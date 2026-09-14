@@ -11,6 +11,8 @@
 #pragma once
 
 #include <nanobind/nanobind.h>
+
+#include "limited_api_compat.h"
 #include <nanobind/ndarray.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <vector>
@@ -240,7 +242,7 @@ public:
                 Py_DECREF(list);
                 return handle();
             }
-            PyList_SetItem(list, i, tuple);  // steals reference
+            PYOPENMS_LIST_SET_ITEM(list, i, tuple);  // steals reference
         }
 
         return handle(list);

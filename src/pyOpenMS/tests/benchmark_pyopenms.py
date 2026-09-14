@@ -268,6 +268,22 @@ def build_large_spectrum(n_peaks: int = 100_000):
 # Benchmark categories
 # ---------------------------------------------------------------------------
 
+def aligned_zeros(shape, dtype=np.float32, alignment=4096):
+    """Zeroed array whose base address is `alignment`-aligned.
+
+    np.zeros() lands wherever the allocator puts it, and for the ~1 MB
+    rasterizer output buffers the resulting cache-set aliasing swings the
+    kernel between two stable modes nearly a factor of two apart. That turns
+    the rasterize benchmarks into a measurement of allocator luck and makes
+    them useless for comparing two builds, so pin the alignment instead.
+    """
+    dtype = np.dtype(dtype)
+    n = int(np.prod(shape))
+    buf = np.zeros(n * dtype.itemsize + alignment, dtype=np.uint8)
+    offset = (-buf.ctypes.data) % alignment
+    return buf[offset:offset + n * dtype.itemsize].view(dtype).reshape(shape)
+
+
 def bench_file_io(suite: BenchmarkSuite, mzml_path: Optional[str]):
     """Benchmark file I/O operations."""
     import pyopenms
@@ -855,36 +871,39 @@ def bench_rasterize(suite: BenchmarkSuite, exp):
     print(f"  [info] {total_peaks} total MS1 peaks across {exp.getNrSpectra()} spectra")
 
     # --- Small grid ---
-    output_small = np.zeros((100, 100), dtype=np.float32)
+    output_small = aligned_zeros((100, 100))
     suite.bench(f"rasterizeRTMZ 100x100 sum [{total_peaks} peaks]", "Rasterize",
                 lambda: exp.rasterizeRTMZ(output_small, min_rt, max_rt,
                                            min_mz, max_mz, 1, "sum"),
                 iterations=10)
 
     # --- Medium grid ---
-    output_med = np.zeros((500, 500), dtype=np.float32)
+    output_med = aligned_zeros((500, 500))
     suite.bench(f"rasterizeRTMZ 500x500 sum [{total_peaks} peaks]", "Rasterize",
                 lambda: exp.rasterizeRTMZ(output_med, min_rt, max_rt,
                                            min_mz, max_mz, 1, "sum"),
                 iterations=5)
 
     # --- Large grid ---
-    output_large = np.zeros((1000, 1000), dtype=np.float32)
+    output_large = aligned_zeros((1000, 1000))
     suite.bench(f"rasterizeRTMZ 1000x1000 sum [{total_peaks} peaks]", "Rasterize",
                 lambda: exp.rasterizeRTMZ(output_large, min_rt, max_rt,
                                            min_mz, max_mz, 1, "sum"),
                 iterations=3)
 
     # --- Extra large grid ---
-    output_xlarge = np.zeros((2500, 2500), dtype=np.float32)
+    output_xlarge = aligned_zeros((2500, 2500))
     suite.bench(f"rasterizeRTMZ 2500x2500 sum [{total_peaks} peaks]", "Rasterize",
                 lambda: exp.rasterizeRTMZ(output_xlarge, min_rt, max_rt,
                                            min_mz, max_mz, 1, "sum"),
                 iterations=3)
 
     # --- Max aggregation ---
+    # Its own buffer: sharing output_med made this benchmark's input depend on
+    # how much the preceding "sum" benchmark had accumulated into it.
+    output_max = aligned_zeros((500, 500))
     suite.bench(f"rasterizeRTMZ 500x500 max [{total_peaks} peaks]", "Rasterize",
-                lambda: exp.rasterizeRTMZ(output_med, min_rt, max_rt,
+                lambda: exp.rasterizeRTMZ(output_max, min_rt, max_rt,
                                            min_mz, max_mz, 1, "max"),
                 iterations=5)
 

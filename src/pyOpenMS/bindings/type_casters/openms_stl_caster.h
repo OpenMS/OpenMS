@@ -13,6 +13,8 @@
 #pragma once
 
 #include <nanobind/nanobind.h>
+
+#include "limited_api_compat.h"
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/set.h>
@@ -116,7 +118,7 @@ public:
                 Py_DECREF(list);
                 return handle();
             }
-            PyList_SetItem(list, i, item);
+            PYOPENMS_LIST_SET_ITEM(list, i, item);
         }
 
         return list;
