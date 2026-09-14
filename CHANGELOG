@@ -567,8 +567,7 @@ Build System:
     #9969, #10009).
   - Fixed Arrow repository keys/version pins, Bioconda synchronization/tooling/dependency
     conflicts and package-list handling; build failures now propagate. Multi-architecture
-    images publish a combined amd64/arm64 manifest. Wheel builds exclude pyarrow 25.0.0
-    because of a Python 3.10 macOS arm64 crash (#9196, #9726, #9728, #9729, #9750,
+    images publish a combined amd64/arm64 manifest (#9196, #9726, #9728, #9729, #9750,
     #9798, #9890, #9891, #9905, #9951, #9954, #10071).
   - Fixed compiler-cache saving and fork-PR workflow failures; documentation lint rules are
     pinned. Added effective Parquet schema/value checks and non-finite numeric comparisons;
