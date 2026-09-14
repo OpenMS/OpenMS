@@ -552,6 +552,17 @@ jobs:
           echo "CONTRIB_CMAKE=${CONTRIB_CMAKE}" >> $GITHUB_ENV
           echo "QT_CMAKE=${QT_CMAKE}" >> $GITHUB_ENV
           echo "THERMO_RAW_TEST_FILE=${THERMO_RAW_TEST_FILE}" >> $GITHUB_ENV
+          # Every directory that can hold a runtime DLL of the extension modules,
+          # defined once and used for both stub generation (which imports the
+          # freshly built package) and delvewheel, so the two cannot drift apart.
+          # On Windows CMake installs shared libraries to <prefix>/bin (RUNTIME)
+          # and import libraries to <prefix>/lib (ARCHIVE), so both halves of
+          # contrib are needed: the libcurl built from source above installs its
+          # DLL into contrib/bin, while the prebuilt contrib keeps its DLLs next
+          # to the import libraries in contrib/lib.
+          # install/bin and install/lib also hold openms_thermo_bridge.dll and nethost.dll.
+          WIN_DLL_DIRS="${OPENMS_ROOT_CMAKE}/bin;${OPENMS_ROOT_CMAKE}/lib;${QT_CMAKE}/bin;${CONTRIB_CMAKE}/bin;${CONTRIB_CMAKE}/lib"
+          echo "WIN_DLL_DIRS=${WIN_DLL_DIRS}" >> $GITHUB_ENV
 
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v3.3
@@ -567,8 +578,8 @@ jobs:
             CMAKE_PREFIX_PATH="${{ env.QT_CMAKE }}/lib/cmake;${{ env.QT_CMAKE }};${{ env.CONTRIB_CMAKE }};${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_BUILD_PARALLEL_LEVEL=2
             PYOPENMS_THERMO_RAW_TEST_FILE="${{ env.THERMO_RAW_TEST_FILE }}"
-          # install/bin and install/lib also hold openms_thermo_bridge.dll and nethost.dll
-          CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path ${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
+            PYOPENMS_DLL_PATH="${{ env.WIN_DLL_DIRS }}"
+          CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path ${{ env.WIN_DLL_DIRS }} -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
@@ -630,6 +641,32 @@ jobs:
           pip install wheelhouse/*cp${PYVER}*.whl
           python -c "import pyopenms; print('pyopenms version:', pyopenms.__version__)"
           python -c "import pyopenms; print(pyopenms.EmpiricalFormula('C6H12O6').getMonoWeight())"
+          # The wheel must carry the type stubs, not just the py.typed marker that
+          # advertises them: stub generation used to be skipped silently in wheel
+          # builds, so every published wheel claimed types it did not contain.
+          python - <<'PY'
+          import pathlib, types, pyopenms
+          root = pathlib.Path(pyopenms.__file__).parent
+          stubs = {p.stem for p in root.glob("*.pyi")}
+          marker = (root / "py.typed").is_file()
+          # Compiled extension modules, whatever the suffix scheme (.pyd,
+          # .abi3.so, .cpython-311-x86_64-linux-gnu.so). nanobind.stubgen only
+          # recurses into submodules that "import pyopenms" binds into the
+          # package namespace, so require a stub for exactly those -- the ones
+          # users get types for. _pyopenms and _arrow_zerocopy are imported
+          # lazily and are not part of that set.
+          compiled = {p.name.split(".")[0] for p in root.iterdir()
+                      if p.suffix in (".pyd", ".so", ".dylib") and p.name.startswith("_")}
+          bound = {n for n, v in vars(pyopenms).items() if isinstance(v, types.ModuleType)}
+          expected = compiled & bound
+          missing = sorted(expected - stubs)
+          print(f"py.typed: {marker}, {len(stubs)} stubs, "
+                f"{len(expected)} of {len(compiled)} extension modules require one")
+          if not marker or not expected or missing:
+              raise SystemExit(
+                  f"wheel does not ship the type information it advertises "
+                  f"(py.typed={marker}, expected={sorted(expected)}, missing stubs={missing})")
+          PY
 
       # Thermo RAW smoke test on a fresh runner: only the .NET runtime may be
       # present, everything else (bridge library, managed assemblies) must come

@@ -43,6 +43,73 @@ if(NOT DEFINED PYOPENMS_BUILD_DIR OR "${PYOPENMS_BUILD_DIR}" STREQUAL "")
   set(PYOPENMS_BUILD_DIR "${CMAKE_BINARY_DIR}/pyOpenMS")
 endif()
 
+# --------------------------------------------------------------------------
+# Windows DLL search path
+# --------------------------------------------------------------------------
+# Windows has no RPATH, and since Python 3.8 an extension module's dependent
+# DLLs are no longer looked up on PATH. pyopenms/__init__.py therefore registers
+# a list of directories with os.add_dll_directory(), read from the
+# PYOPENMS_DLL_PATH environment variable. Both stub generation and the test
+# suite have to import the freshly built package, so both need that list;
+# assembling it in one place keeps the two from drifting apart.
+#
+# The directories are the ones OpenMS' own packaging searches for runtime
+# dependencies (see RUNTIME_DEP_SEARCH_DIRS in cmake/package_general.cmake):
+# every prefix with both /bin and /lib appended. Listing both halves matters
+# here -- on Windows CMake installs shared libraries to <prefix>/bin (RUNTIME)
+# and import libraries to <prefix>/lib (ARCHIVE), so a dependency installed the
+# CMake way puts its DLL in contrib/bin, while the prebuilt contrib keeps its
+# DLLs next to the import libraries in contrib/lib. Naming only one of the two
+# silently loses whichever dependency lives in the other; libcurl, the one
+# contrib library the wheel workflow builds from source, lands in contrib/bin.
+#
+# Qt is deliberately absent: cmake_findExternalLibs.cmake guards the entire Qt
+# block with if(WITH_GUI) and the core library links no Qt target, so QT_INSTALL_BINS
+# is not even defined in the builds that feed pyOpenMS and no extension module
+# has a Qt dependency to resolve.
+function(_pyopenms_windows_dll_dirs _out_var)
+  if(NOT WIN32)
+    set(${_out_var} "" PARENT_SCOPE)
+    return()
+  endif()
+
+  # Build-tree locations of the OpenMS libraries. Generator expressions, so the
+  # per-configuration directory of a multi-config generator is resolved.
+  set(_dirs "")
+  foreach(_target IN ITEMS ${OPENMS_TARGET} ${OPENSWATHALGO_TARGET})
+    if(TARGET ${_target})
+      list(APPEND _dirs "$<TARGET_FILE_DIR:${_target}>")
+    endif()
+  endforeach()
+
+  # Third-party DLLs. A ";"-separated environment variable expands into several
+  # list elements here, which is exactly what CMAKE_PREFIX_PATH needs: CMake
+  # reads that one from the environment for find_package(), but does not make it
+  # visible as a CMake variable, and a standalone wheel build only ever sets the
+  # environment variable.
+  foreach(_prefix IN ITEMS ${OPENMS_CONTRIB_LIBS} ${CMAKE_PREFIX_PATH} $ENV{CMAKE_PREFIX_PATH})
+    if(_prefix)
+      # Normalise separators by hand. file(TO_CMAKE_PATH) is not usable here:
+      # it splits its argument on the *host's* path-list separator, which turns
+      # a native "C:\\dir" into the two entries "C" and "/dir" whenever the
+      # host separator is ":".
+      string(REPLACE "\\" "/" _prefix "${_prefix}")
+      list(APPEND _dirs "${_prefix}/bin" "${_prefix}/lib")
+    endif()
+  endforeach()
+
+  # Anything the caller supplied is kept rather than overwritten.
+  if(NOT "$ENV{PYOPENMS_DLL_PATH}" STREQUAL "")
+    list(APPEND _dirs $ENV{PYOPENMS_DLL_PATH})
+  endif()
+
+  list(REMOVE_DUPLICATES _dirs)
+  # The result is one os.pathsep-separated string, not a CMake list: the ";" has
+  # to survive into the command line, which is what $<SEMICOLON> is for.
+  string(REPLACE ";" "$<SEMICOLON>" _joined "${_dirs}")
+  set(${_out_var} "${_joined}" PARENT_SCOPE)
+endfunction()
+
 if(PYOPENMS_USE_PREBUILT)
   if(NOT PYOPENMS_PREBUILT_DIR)
     message(FATAL_ERROR "PYOPENMS_PREBUILT_DIR must be set when PYOPENMS_USE_PREBUILT=ON")
@@ -442,7 +509,19 @@ else()
 
   # Core Python files
   _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/")
-  _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "py.typed" "${PYOPENMS_BUILD_DIR}/pyopenms/")
+  # py.typed is deliberately NOT copied here. It advertises that the package
+  # ships type information, so it must only appear when the stubs were actually
+  # produced -- nanobind.stubgen writes the marker itself (-M below). Clear a
+  # marker and stubs left behind by an earlier build in the same directory that
+  # did generate them, so disabling stub generation cannot leave a wheel
+  # claiming types it no longer contains.
+  if(NOT PYOPENMS_GENERATE_STUBS)
+    file(REMOVE "${PYOPENMS_BUILD_DIR}/pyopenms/py.typed")
+    file(GLOB _pyopenms_stale_stubs "${PYOPENMS_BUILD_DIR}/pyopenms/*.pyi")
+    if(_pyopenms_stale_stubs)
+      file(REMOVE ${_pyopenms_stale_stubs})
+    endif()
+  endif()
 
   # Addon files
   _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/addons/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/addons/")
@@ -482,8 +561,47 @@ else()
         "${PYOPENMS_NANOBIND_MIN_VERSION} for that interpreter.")
     endif()
 
+    # nanobind.stubgen works by importing the freshly built package, so on
+    # Windows every extension module has to be loadable at this point -- Linux
+    # and macOS resolve OpenMS through RPATH instead.
+    _pyopenms_windows_dll_dirs(_pyopenms_stub_dll_dirs)
+    set(_pyopenms_stub_cmd_prefix "")
+    if(_pyopenms_stub_dll_dirs)
+      set(_pyopenms_stub_cmd_prefix ${CMAKE_COMMAND} -E env "PYOPENMS_DLL_PATH=${_pyopenms_stub_dll_dirs}")
+      # Report what the environment contributed. When stubgen cannot import the
+      # package on Windows the message is only ever "DLL load failed ... The
+      # specified module could not be found", and whether a caller-supplied
+      # value arrived is the one thing it can never tell you. Deliberately a
+      # configure-time message and not a build-time `cmake -E echo` of the
+      # resolved list: that value holds ";"-separated directories and generator
+      # expressions containing "(", both of which the build tool's shell
+      # interprets, which fails with a syntax error and takes the stub target
+      # down with it.
+      if("$ENV{PYOPENMS_DLL_PATH}" STREQUAL "")
+        message(STATUS "pyOpenMS stubs: no PYOPENMS_DLL_PATH in the environment; "
+                       "using the OpenMS target, contrib and CMAKE_PREFIX_PATH directories")
+      else()
+        message(STATUS "pyOpenMS stubs: PYOPENMS_DLL_PATH from the environment: $ENV{PYOPENMS_DLL_PATH}")
+      endif()
+    endif()
+
+    # Every module the package is expected to provide. pyopenms/__init__.py
+    # reports a failed domain import as a warning and only raises when *every*
+    # module failed, so stubgen can otherwise succeed on a partial import and
+    # write stubs with whole domains silently missing.
+    set(_pyopenms_expected_modules _pyopenms)
+    foreach(_domain IN LISTS PYOPENMS_DOMAINS)
+      list(APPEND _pyopenms_expected_modules "_pyopenms_${_domain}")
+    endforeach()
+    if(TARGET _arrow_zerocopy)
+      list(APPEND _pyopenms_expected_modules _arrow_zerocopy)
+    endif()
+
     add_custom_target(pyopenms_stubs
-      COMMAND ${Python_EXECUTABLE} -m nanobind.stubgen
+      COMMAND ${_pyopenms_stub_cmd_prefix} ${Python_EXECUTABLE}
+              ${CMAKE_CURRENT_SOURCE_DIR}/check_module_imports.py
+              ${PYOPENMS_BUILD_DIR}/pyopenms ${_pyopenms_expected_modules}
+      COMMAND ${_pyopenms_stub_cmd_prefix} ${Python_EXECUTABLE} -m nanobind.stubgen
               -m pyopenms
               -r                          # recurse into submodules
               -P                          # include private members
@@ -526,7 +644,7 @@ else()
       foreach(PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
         add_custom_command(
           TARGET pyopenms_copy_deps POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${PYOPENMS_BUILD_DIR}/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
+          COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${PYOPENMS_BUILD_DIR}/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/bin\;${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
           COMMENT "Copying ${PYOPENMS_DEPENDENCY} transitive dependencies"
         )
       endforeach()
@@ -544,6 +662,16 @@ else()
             COMMENT "Copying ${_runtime}"
           )
         endforeach()
+      endif()
+    endif()
+
+    if(PYOPENMS_GENERATE_STUBS)
+      # Stub generation imports pyopenms, which is only possible once the
+      # bundled libraries sit next to the modules.
+      if(APPLE)
+        add_dependencies(pyopenms_stubs pyopenms_fix_deps)
+      else()
+        add_dependencies(pyopenms_stubs pyopenms_copy_deps)
       endif()
     endif()
   endif()
@@ -601,6 +729,11 @@ if(NOT PYOPENMS_USE_PREBUILT)
   else()
     add_dependencies(pyopenms pyopenms_compile)
   endif()
+  if(PYOPENMS_GENERATE_STUBS)
+    # Without this the target is reachable from neither ALL nor the aggregate
+    # target, and every wheel build skips stub generation silently.
+    add_dependencies(pyopenms pyopenms_stubs)
+  endif()
 else()
   add_custom_target(pyopenms ALL)
   add_dependencies(pyopenms pyopenms_compile)
@@ -621,26 +754,15 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   set(_PYTEST_ARGS -m pytest)
 
   # On Windows, when NO_DEPENDENCIES=ON the OpenMS runtime libraries are not
-  # copied next to the compiled extension modules. Python >= 3.8 does not search
-  # PATH for an extension module's dependent DLLs, and Windows has no RPATH, so
-  # pyopenms/__init__.py registers the directories holding OpenMS.dll and its
-  # transitive dependencies via os.add_dll_directory(), reading them from the
-  # PYOPENMS_DLL_PATH environment variable. We set that variable for the test
-  # process with `cmake -E env` so the TARGET_FILE_DIR generator expression (the
-  # per-configuration OpenMS bin folder) is resolved; being an environment
-  # variable it also reaches child processes that some tests spawn to
-  # `import pyopenms`. Harmless no-op when the dependencies are already bundled
-  # (NO_DEPENDENCIES=OFF) and on non-Windows.
+  # copied next to the compiled extension modules, so the test process needs the
+  # same PYOPENMS_DLL_PATH the stub step uses (see _pyopenms_windows_dll_dirs
+  # above). We set it with `cmake -E env` so the TARGET_FILE_DIR generator
+  # expression -- the per-configuration OpenMS bin folder -- is resolved; being
+  # an environment variable it also reaches the child processes some tests spawn
+  # to `import pyopenms`. Empty, and therefore a no-op, off Windows.
   set(_pyopenms_test_cmd_prefix "")
-  if(WIN32)
-    set(_pyopenms_dll_dirs "$<TARGET_FILE_DIR:${OPENMS_TARGET}>")
-    string(APPEND _pyopenms_dll_dirs "$<SEMICOLON>$<TARGET_FILE_DIR:${OPENSWATHALGO_TARGET}>")
-    if(OPENMS_CONTRIB_LIBS)
-      string(APPEND _pyopenms_dll_dirs "$<SEMICOLON>${OPENMS_CONTRIB_LIBS}/lib")
-    endif()
-    if(QT_INSTALL_BINS)
-      string(APPEND _pyopenms_dll_dirs "$<SEMICOLON>${QT_INSTALL_BINS}")
-    endif()
+  _pyopenms_windows_dll_dirs(_pyopenms_dll_dirs)
+  if(_pyopenms_dll_dirs)
     set(_pyopenms_test_cmd_prefix ${CMAKE_COMMAND} -E env "PYOPENMS_DLL_PATH=${_pyopenms_dll_dirs}")
   endif()
 

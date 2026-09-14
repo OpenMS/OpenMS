@@ -134,6 +134,7 @@ include = [
     "bindings/arrow_zerocopy.cpp",
     "bindings/*.h",
     "bindings/type_casters/*.h",
+    "check_module_imports.py",
     "fix_stubs.py",
     "stubs.patch",
 ]

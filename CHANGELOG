@@ -70,6 +70,19 @@ Dependencies:
   - macOS Intel builds discontinued; minimum macOS version is 14 (#8486, #8494, #8527).
 
 PyOpenMS:
+  - Wheels now ship the PEP 561 type stubs they advertise. The pyopenms_stubs target was
+    reachable from neither ALL nor the aggregate pyopenms target, so every wheel build
+    skipped stub generation silently while still shipping py.typed -- editors, mypy and
+    pyright therefore saw no types at all for the 15 compiled extension modules. The
+    target is now built as part of pyopenms, py.typed is only written when the stubs are
+    actually produced, and the wheel test job fails if a wheel carries the marker without
+    a stub for every module. On Windows the search path for the DLLs that stub generation
+    needs (it imports the freshly built package) gained the <prefix>/bin half of every
+    contrib and CMAKE_PREFIX_PATH entry: CMake installs DLLs to bin and import libraries
+    to lib, so the libcurl the wheel workflow builds from source was unreachable, and
+    delvewheel silently bundled an unrelated older libcurl.dll from contrib/lib instead of
+    the one OpenMS was linked against. Stub generation now also verifies that every
+    expected module imports, and names the unresolved DLL when one does not (#10141).
   - Fixed keyword defaults that did not match the wrapped C++ signatures. Four bindings
     declared a parameter with no default after parameters that had one: the transf
     argument of MultipleTesting.lfdr, spectra in both IDMapper.annotate overloads and
