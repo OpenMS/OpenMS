@@ -1510,9 +1510,9 @@ class TestStringColumnsNotTruncated:
         assert list(df['mixed']) == ['abc', '7']
 
         pa = pytest.importorskip('pyarrow')
-        # pandas 2 (object) maps to string, pandas 3 (str dtype) to large_string
-        mixed_type = pep_list.to_arrow().schema.field('mixed').type
-        assert pa.types.is_string(mixed_type) or pa.types.is_large_string(mixed_type)
+        # to_arrow() goes through to_df(), so the column carries the pandas str dtype,
+        # which pyarrow-backed pandas (>= 3) stores as large_string.
+        assert pep_list.to_arrow().schema.field('mixed').type == pa.large_string()
 
     def test_mrm_feature_df_typed_meta_values_by_str_and_bytes_name(self):
         """Known numeric meta values get their numeric dtype whether requested as str, as bytes
