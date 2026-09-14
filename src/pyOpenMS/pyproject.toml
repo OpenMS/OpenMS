@@ -166,9 +166,12 @@ install_components = ["python_modules"]
 [tool.py-build-cmake.wheel]
 # The extensions are compiled in nanobind split mode against the CPython 3.11
 # stable ABI, so one wheel per platform serves 3.11 and every later version.
-# Keep abi3_minimum_cpython_version in step with PYOPENMS_STABLE_ABI_VERSION in
-# CMakeLists.txt: CMake defines Py_LIMITED_API=0x030B0000 from it, and this is
-# what turns that into the cp311-abi3 filename and WHEEL tag.
+# abi3_minimum_cpython_version is the single source of that floor, with three
+# readers: py-build-cmake turns it into the cp311-abi3 filename and WHEEL tag,
+# CMakeLists.txt reads it back as the default PYOPENMS_STABLE_ABI_VERSION (which
+# becomes Py_LIMITED_API) and refuses to package a build that overrides it, and
+# the wheel workflow derives the interpreter cibuildwheel compiles with from it.
+# The last two match it by regex, so keep it a plain one-line integer.
 python_abi = "abi3"
 abi3_minimum_cpython_version = 311
 

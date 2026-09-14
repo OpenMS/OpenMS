@@ -106,8 +106,7 @@ PyOpenMS:
     from_python() takes uint32_t instead of uint8_t flags. pyproject.toml asks for
     nanobind>=3.0.1,<4 and py-build-cmake~=0.5.1, and the CMake fallback fetches nanobind
     v3.0.1. nanobind discovery enforces that minimum instead of accepting whatever
-    find_package() returns, and reports the version it selected. Wheels are unaffected:
-    they still carry one build per supported Python version (#10133).
+    find_package() returns, and reports the version it selected (#10133).
   - BREAKING: Python 3.10 is no longer supported. Wheels and source builds require
     Python 3.11 or newer; the wheel matrix covers 3.11 to 3.14. With 3.10 gone, pandas 3
     is the floor for DataFrame support (the dataframes/all extras and the test

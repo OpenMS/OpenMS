@@ -42,8 +42,27 @@ option(PYOPENMS_PREPARE_WHEEL_REPAIR "Set RPATH for wheel repair tools (auditwhe
 # CPython. Turning it off builds interpreter-specific modules instead, which is
 # useful locally but must not be packaged as an abi3 wheel (see the guard below).
 option(PYOPENMS_SPLIT_MODE "Build stable-ABI (abi3) extensions in nanobind split mode" ON)
-set(PYOPENMS_STABLE_ABI_VERSION "3.11" CACHE STRING
-    "CPython stable-ABI floor for split-mode builds; keep in sync with abi3_minimum_cpython_version in pyproject.toml")
+
+# The stable-ABI floor has to be one number rather than two that happen to agree:
+# CMake turns STABLE_ABI_VERSION into Py_LIMITED_API, py-build-cmake turns
+# abi3_minimum_cpython_version into the wheel's cp<N>-abi3 tag, and nothing
+# connects the two. Read the value out of pyproject.toml so the default here is
+# that same number instead of a second copy that can drift away from it.
+set(_pyopenms_abi3_floor "")
+set(_pyopenms_pyproject "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml")
+if(EXISTS "${_pyopenms_pyproject}")
+  file(STRINGS "${_pyopenms_pyproject}" _pyopenms_abi3_lines
+       REGEX "^[ \t]*abi3_minimum_cpython_version[ \t]*=[ \t]*[0-9]+")
+  # Exactly one key, or we cannot tell which one py-build-cmake will honour.
+  list(LENGTH _pyopenms_abi3_lines _pyopenms_abi3_count)
+  if(_pyopenms_abi3_count EQUAL 1 AND
+     "${_pyopenms_abi3_lines}" MATCHES "=[ \t]*([0-9])([0-9]+)")
+    set(_pyopenms_abi3_floor "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
+  endif()
+endif()
+
+set(PYOPENMS_STABLE_ABI_VERSION "${_pyopenms_abi3_floor}" CACHE STRING
+    "CPython stable-ABI floor for split-mode builds (default: abi3_minimum_cpython_version from pyproject.toml)")
 
 if(PYOPENMS_SPLIT_MODE)
   # Development.SABIModule arrived in CMake 3.26 and nanobind's split mode
@@ -54,6 +73,28 @@ if(PYOPENMS_SPLIT_MODE)
       "pyOpenMS split mode needs CMake 3.26 or newer for the Development.SABIModule "
       "component of find_package(Python); this is CMake ${CMAKE_VERSION}. Configure "
       "with -DPYOPENMS_SPLIT_MODE=OFF to build interpreter-specific modules instead.")
+  endif()
+
+  if(NOT PYOPENMS_STABLE_ABI_VERSION)
+    message(FATAL_ERROR
+      "Could not read a single abi3_minimum_cpython_version key from "
+      "${_pyopenms_pyproject}, so the stable-ABI floor for split mode is unknown. Fix "
+      "that key, or pass -DPYOPENMS_STABLE_ABI_VERSION=<major.minor> explicitly.")
+  endif()
+
+  # Overriding the floor only moves Py_LIMITED_API; the wheel keeps the tag
+  # py-build-cmake derives from pyproject.toml. Packaging the two out of step
+  # yields a cp311-abi3 wheel whose modules need a newer interpreter and fail to
+  # import on 3.11. The knob is harmless outside packaging, so only refuse it
+  # when py-build-cmake is the one driving this configure.
+  if(DEFINED PY_BUILD_CMAKE_VERSION AND _pyopenms_abi3_floor AND
+     NOT PYOPENMS_STABLE_ABI_VERSION VERSION_EQUAL "${_pyopenms_abi3_floor}")
+    message(FATAL_ERROR
+      "PYOPENMS_STABLE_ABI_VERSION is ${PYOPENMS_STABLE_ABI_VERSION}, but pyproject.toml "
+      "tags the wheel for Python ${_pyopenms_abi3_floor} via abi3_minimum_cpython_version. "
+      "Packaging that combination would produce a wheel advertising an ABI it was not built "
+      "against. Change abi3_minimum_cpython_version as well if you really want a different "
+      "stable-ABI floor.")
   endif()
 else()
   # py-build-cmake tags the wheel cp311-abi3 from pyproject.toml, which only
