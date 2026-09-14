@@ -570,6 +570,17 @@ else()
         string(APPEND _pyopenms_stub_dll_dirs "$<SEMICOLON>${_pyopenms_stub_env_dll_dirs}")
       endif()
       set(_pyopenms_stub_cmd_prefix ${CMAKE_COMMAND} -E env "PYOPENMS_DLL_PATH=${_pyopenms_stub_dll_dirs}")
+      # Report what the caller supplied: when stubgen cannot import the package
+      # on Windows the message is only ever "DLL load failed ... The specified
+      # module could not be found", which never names the DLL that is missing.
+      # Knowing whether PYOPENMS_DLL_PATH arrived at all is the first thing
+      # anyone debugging that needs.
+      if("$ENV{PYOPENMS_DLL_PATH}" STREQUAL "")
+        message(STATUS "pyOpenMS stubs: no PYOPENMS_DLL_PATH in the environment; "
+                       "using only the OpenMS/OpenSwathAlgo target directories")
+      else()
+        message(STATUS "pyOpenMS stubs: PYOPENMS_DLL_PATH from the environment: $ENV{PYOPENMS_DLL_PATH}")
+      endif()
     endif()
 
     add_custom_target(pyopenms_stubs
