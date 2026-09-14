@@ -133,23 +133,94 @@ else()
   # Propagate Python_EXECUTABLE to parent scope so the pyopenms_wheel target can use it
   set(Python_EXECUTABLE "${Python_EXECUTABLE}" PARENT_SCOPE)
 
+  # --------------------------------------------------------------------------
   # Find or fetch nanobind
-  if(NOT TARGET nanobind::nanobind)
-    # Try find_package first (installed via pip or system package)
-    execute_process(
-      COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
-      OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
-    find_package(nanobind CONFIG QUIET)
-    if(NOT nanobind_FOUND)
+  # --------------------------------------------------------------------------
+  # pyOpenMS requires nanobind 3: the custom type casters in
+  # bindings/type_casters/ implement the nanobind 3 caster protocol
+  # (from_python(handle, uint32_t, cleanup_list *)). Keep the minimum in sync
+  # with the nanobind requirement in pyproject.toml.
+  set(PYOPENMS_NANOBIND_MIN_VERSION "3.0.1")
+  set(PYOPENMS_NANOBIND_FETCH_TAG "v3.0.1")
+
+  if(COMMAND nanobind_add_module)
+    # An enclosing project already set nanobind up. Check it instead of silently
+    # bypassing the version requirement. nanobind_VERSION is only defined when
+    # nanobind was located through find_package; otherwise read the version
+    # macros nanobind.h defines, so the check compares a complete version rather
+    # than merely establishing that this is some nanobind 3.
+    set(_pyopenms_nb_version "${nanobind_VERSION}")
+    if(NOT _pyopenms_nb_version)
+      set(_pyopenms_nb_header "${NB_DIR}/include/nanobind/nanobind.h")
+      if(EXISTS "${_pyopenms_nb_header}")
+        file(READ "${_pyopenms_nb_header}" _pyopenms_nb_header_content)
+        set(_pyopenms_nb_parts "")
+        foreach(_pyopenms_nb_component MAJOR MINOR PATCH)
+          # A component can legitimately be 0, so collect matches and count them
+          # instead of testing each captured value for truth.
+          if(_pyopenms_nb_header_content MATCHES
+             "#[ \t]*define[ \t]+NB_VERSION_${_pyopenms_nb_component}[ \t]+([0-9]+)")
+            list(APPEND _pyopenms_nb_parts "${CMAKE_MATCH_1}")
+          endif()
+        endforeach()
+        list(LENGTH _pyopenms_nb_parts _pyopenms_nb_part_count)
+        if(_pyopenms_nb_part_count EQUAL 3)
+          list(JOIN _pyopenms_nb_parts "." _pyopenms_nb_version)
+        endif()
+      endif()
+    endif()
+
+    if(NOT _pyopenms_nb_version)
+      message(FATAL_ERROR
+        "pyOpenMS requires nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION}, but the version of the "
+        "nanobind supplied by the enclosing project could not be determined "
+        "(NB_DIR='${NB_DIR}'). Supply it via "
+        "find_package(nanobind ${PYOPENMS_NANOBIND_MIN_VERSION} CONFIG) so the version is known.")
+    elseif(_pyopenms_nb_version VERSION_LESS PYOPENMS_NANOBIND_MIN_VERSION)
+      message(FATAL_ERROR
+        "pyOpenMS requires nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION}, but the enclosing "
+        "project supplied nanobind ${_pyopenms_nb_version}.")
+    endif()
+    set(PYOPENMS_NANOBIND_VERSION "${_pyopenms_nb_version}")
+  else()
+    # Ask the *selected* interpreter where its nanobind lives, so the frontend we
+    # compile against is the one belonging to the interpreter that later runs
+    # nanobind.stubgen. A caller-supplied nanobind_ROOT/nanobind_DIR wins, but it
+    # still has to satisfy the version requirement below.
+    if(NOT nanobind_ROOT AND NOT nanobind_DIR)
+      execute_process(
+        COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        OUTPUT_VARIABLE nanobind_ROOT
+        RESULT_VARIABLE _nanobind_cmake_dir_result
+        ERROR_QUIET)
+      if(NOT _nanobind_cmake_dir_result EQUAL 0)
+        message(STATUS "No nanobind importable from ${Python_EXECUTABLE}")
+        set(nanobind_ROOT "")
+      endif()
+    endif()
+
+    # Request the minimum explicitly: nanobind ships a SameMajorVersion config,
+    # so this accepts >= 3.0.1 and < 4 and rejects an installed 2.x, which the
+    # previous unversioned find_package would have selected.
+    find_package(nanobind ${PYOPENMS_NANOBIND_MIN_VERSION} CONFIG QUIET)
+    if(nanobind_FOUND)
+      set(PYOPENMS_NANOBIND_VERSION "${nanobind_VERSION}")
+    else()
+      message(STATUS
+        "No nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION} found for ${Python_EXECUTABLE}; "
+        "fetching nanobind ${PYOPENMS_NANOBIND_FETCH_TAG}")
       include(FetchContent)
       FetchContent_Declare(
           nanobind
           GIT_REPOSITORY https://github.com/wjakob/nanobind.git
-          GIT_TAG        v2.10.0
+          GIT_TAG        ${PYOPENMS_NANOBIND_FETCH_TAG}
       )
       FetchContent_MakeAvailable(nanobind)
+      set(PYOPENMS_NANOBIND_VERSION "${PYOPENMS_NANOBIND_FETCH_TAG} (fetched)")
     endif()
   endif()
+  message(STATUS "pyOpenMS: using nanobind ${PYOPENMS_NANOBIND_VERSION} from ${NB_DIR}")
 
   # Patch nanobind's __forceinline → inline on MSVC to avoid O(n²) optimizer
   # blowup that causes multi-hour compile times on large binding files.
@@ -387,6 +458,30 @@ else()
   # Stub generation
   # --------------------------------------------------------------------------
   if(PYOPENMS_GENERATE_STUBS)
+    # nanobind.stubgen is imported from ${Python_EXECUTABLE}, the same interpreter
+    # used for nanobind discovery above. If that interpreter cannot import a
+    # nanobind matching the frontend the modules were compiled against (which
+    # happens when the FetchContent fallback kicked in), the generated stubs would
+    # come from a different nanobind release than the modules.
+    execute_process(
+      COMMAND "${Python_EXECUTABLE}" -c "import nanobind; print(nanobind.__version__)"
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      OUTPUT_VARIABLE _pyopenms_stubgen_nanobind_version
+      RESULT_VARIABLE _pyopenms_stubgen_nanobind_result
+      ERROR_QUIET)
+    if(NOT _pyopenms_stubgen_nanobind_result EQUAL 0)
+      message(WARNING
+        "PYOPENMS_GENERATE_STUBS=ON, but ${Python_EXECUTABLE} cannot import nanobind; "
+        "stub generation will fail. Install nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION} "
+        "for that interpreter or configure with -DPYOPENMS_GENERATE_STUBS=OFF.")
+    elseif(_pyopenms_stubgen_nanobind_version VERSION_LESS PYOPENMS_NANOBIND_MIN_VERSION)
+      message(WARNING
+        "Stub generation uses nanobind ${_pyopenms_stubgen_nanobind_version} from "
+        "${Python_EXECUTABLE}, but the modules are built against nanobind "
+        "${PYOPENMS_NANOBIND_VERSION}. Install nanobind >= "
+        "${PYOPENMS_NANOBIND_MIN_VERSION} for that interpreter.")
+    endif()
+
     add_custom_target(pyopenms_stubs
       COMMAND ${Python_EXECUTABLE} -m nanobind.stubgen
               -m pyopenms
@@ -607,9 +702,9 @@ message(STATUS "pyOpenMS Configuration Summary:")
 message(STATUS "  Python:            ${Python_EXECUTABLE} (${Python_VERSION})")
 message(STATUS "  NumPy:             ${Python_NumPy_INCLUDE_DIRS}")
 if(nanobind_SOURCE_DIR)
-  message(STATUS "  nanobind:          ${nanobind_SOURCE_DIR}")
+  message(STATUS "  nanobind:          ${PYOPENMS_NANOBIND_VERSION} (${nanobind_SOURCE_DIR})")
 else()
-  message(STATUS "  nanobind:          (found via find_package)")
+  message(STATUS "  nanobind:          ${PYOPENMS_NANOBIND_VERSION} (${NB_DIR})")
 endif()
 message(STATUS "  OpenMS:            ${OpenMS_DIR}")
 message(STATUS "  Domain modules:    ${PYOPENMS_DOMAINS}")

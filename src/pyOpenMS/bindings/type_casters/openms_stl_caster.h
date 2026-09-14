@@ -36,7 +36,7 @@ struct type_caster<std::vector<std::string>> {
 public:
     NB_TYPE_CASTER(std::vector<std::string>, const_name("list[str]"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
             value.clear();
             return true;
@@ -141,7 +141,7 @@ struct type_caster<std::set<std::string>> {
 public:
     NB_TYPE_CASTER(std::set<std::string>, const_name("set[str]"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
             value.clear();
             return true;
@@ -228,7 +228,7 @@ public:
     using MapType = std::map<std::string, V>;
     NB_TYPE_CASTER(MapType, const_name("dict[str, ") + make_caster<V>::Name + const_name("]"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
             value.clear();
             return true;

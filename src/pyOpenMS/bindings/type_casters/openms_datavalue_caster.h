@@ -54,7 +54,7 @@ public:
                    const_name("None | int | float | str | bytes | "
                              "list[str] | list[int] | list[float]"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         // Handle None -> Empty DataValue
         if (src.is_none()) {
             value = OpenMS::DataValue();
@@ -314,7 +314,7 @@ public:
                    const_name("None | int | float | str | bytes | "
                              "list[str] | list[int] | list[float]"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         // Handle None -> Empty ParamValue
         if (src.is_none()) {
             value = OpenMS::ParamValue();
