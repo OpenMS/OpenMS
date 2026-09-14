@@ -341,9 +341,60 @@ if(ArrowDataset_FOUND)
 
   if(OPENMS_ARROW_DATASET_TARGET)
     message(STATUS "Using Arrow Dataset target: ${OPENMS_ARROW_DATASET_TARGET}")
-    # Arrow Dataset (static) may pull in libxml2 symbols; link explicitly.
-    # This avoids missing xmlBufferFree at runtime when dataset pushdown is enabled.
-    find_package(LibXml2 REQUIRED)
+  endif()
+endif()
+
+# A statically linked Arrow needs libxml2: arrow_bundled_dependencies vendors
+# azure-storage-common, whose xml_wrapper.cpp (Azure::Storage::_internal::
+# XmlReader/XmlWriter) references xmlBufferCreate/xmlBufferFree and friends. It is
+# the only object in that archive that does -- the AWS SDK is bundled too but
+# brings its own parser (aws_xml_node_*) and needs no libxml2.
+#
+# This is deliberately outside the ArrowDataset block above: the archive comes in
+# through Arrow::arrow_static's own interface, so a static build without Arrow
+# Dataset needs libxml2 just the same.
+#
+# Record the edge on the Arrow target rather than adding LibXml2 as another direct
+# OpenMS dependency. CMake emits every direct link library before the transitive
+# archives it pulls in, so a direct entry lands on the link line ahead of
+# libarrow_bundled_dependencies.a -- and a --as-needed linker (the default on most
+# Linux distributions) then drops libxml2.so again because nothing has referenced
+# it yet. The result is a libOpenMS.so with undefined xml* symbols that only fails
+# when something dlopen()s it, e.g. "import pyopenms" => ImportError: undefined
+# symbol: xmlBufferFree. Appending to the imported target's interface instead puts
+# libxml2 after the archive that needs it, which is what the linker requires.
+if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static"
+   OR (OPENMS_ARROW_DATASET_TARGET AND
+       OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static"))
+  # Deliberately not REQUIRED: only the platforms that actually resolve those
+  # symbols against a system libxml2 need it. MSVC has no --as-needed and the
+  # Windows contrib build links a static Arrow with no system libxml2 present at
+  # all, so a mandatory lookup would turn a link-order workaround into a hard
+  # build dependency everywhere and fail configuration where it is not needed.
+  find_package(LibXml2 QUIET)
+  if(LibXml2_FOUND)
+    if(TARGET Arrow::arrow_bundled_dependencies)
+      set_property(TARGET Arrow::arrow_bundled_dependencies APPEND
+                   PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+    else()
+      # Older/repackaged Arrow configs without the bundled-dependencies target:
+      # attach to whichever static targets are in use. Appending puts libxml2 at
+      # the end of their interface, i.e. still behind Arrow's own archives.
+      if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static")
+        set_property(TARGET ${OPENMS_ARROW_TARGET} APPEND
+                     PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+      endif()
+      if(OPENMS_ARROW_DATASET_TARGET AND
+         OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static")
+        set_property(TARGET ${OPENMS_ARROW_DATASET_TARGET} APPEND
+                     PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+      endif()
+    endif()
+    message(STATUS "Arrow is linked statically: added LibXml2 to its link interface")
+  else()
+    message(STATUS "Arrow is linked statically, but no LibXml2 was found: skipping "
+                   "the libxml2 link-interface workaround. Install the libxml2 "
+                   "development files if linking fails with undefined xml* symbols.")
   endif()
 endif()
 
