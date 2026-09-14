@@ -146,23 +146,42 @@ else()
   if(COMMAND nanobind_add_module)
     # An enclosing project already set nanobind up. Check it instead of silently
     # bypassing the version requirement. nanobind_VERSION is only defined when
-    # nanobind was located through find_package; otherwise fall back to a header
-    # that exists exclusively in nanobind 3 (the split-mode backend interface).
-    if(DEFINED nanobind_VERSION AND nanobind_VERSION)
-      if(nanobind_VERSION VERSION_LESS PYOPENMS_NANOBIND_MIN_VERSION)
-        message(FATAL_ERROR
-          "pyOpenMS requires nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION}, but the enclosing "
-          "project supplied nanobind ${nanobind_VERSION}.")
+    # nanobind was located through find_package; otherwise read the version
+    # macros nanobind.h defines, so the check compares a complete version rather
+    # than merely establishing that this is some nanobind 3.
+    set(_pyopenms_nb_version "${nanobind_VERSION}")
+    if(NOT _pyopenms_nb_version)
+      set(_pyopenms_nb_header "${NB_DIR}/include/nanobind/nanobind.h")
+      if(EXISTS "${_pyopenms_nb_header}")
+        file(READ "${_pyopenms_nb_header}" _pyopenms_nb_header_content)
+        set(_pyopenms_nb_parts "")
+        foreach(_pyopenms_nb_component MAJOR MINOR PATCH)
+          # A component can legitimately be 0, so collect matches and count them
+          # instead of testing each captured value for truth.
+          if(_pyopenms_nb_header_content MATCHES
+             "#[ \t]*define[ \t]+NB_VERSION_${_pyopenms_nb_component}[ \t]+([0-9]+)")
+            list(APPEND _pyopenms_nb_parts "${CMAKE_MATCH_1}")
+          endif()
+        endforeach()
+        list(LENGTH _pyopenms_nb_parts _pyopenms_nb_part_count)
+        if(_pyopenms_nb_part_count EQUAL 3)
+          list(JOIN _pyopenms_nb_parts "." _pyopenms_nb_version)
+        endif()
       endif()
-      set(PYOPENMS_NANOBIND_VERSION "${nanobind_VERSION}")
-    elseif(EXISTS "${NB_DIR}/include/nanobind/nb_backend.h")
-      set(PYOPENMS_NANOBIND_VERSION "3 (supplied by enclosing project, exact version unknown)")
-    else()
-      message(FATAL_ERROR
-        "pyOpenMS requires nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION}, but the nanobind "
-        "supplied by the enclosing project could not be confirmed to be nanobind 3 "
-        "(NB_DIR='${NB_DIR}').")
     endif()
+
+    if(NOT _pyopenms_nb_version)
+      message(FATAL_ERROR
+        "pyOpenMS requires nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION}, but the version of the "
+        "nanobind supplied by the enclosing project could not be determined "
+        "(NB_DIR='${NB_DIR}'). Supply it via "
+        "find_package(nanobind ${PYOPENMS_NANOBIND_MIN_VERSION} CONFIG) so the version is known.")
+    elseif(_pyopenms_nb_version VERSION_LESS PYOPENMS_NANOBIND_MIN_VERSION)
+      message(FATAL_ERROR
+        "pyOpenMS requires nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION}, but the enclosing "
+        "project supplied nanobind ${_pyopenms_nb_version}.")
+    endif()
+    set(PYOPENMS_NANOBIND_VERSION "${_pyopenms_nb_version}")
   else()
     # Ask the *selected* interpreter where its nanobind lives, so the frontend we
     # compile against is the one belonging to the interpreter that later runs
