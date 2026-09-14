@@ -69,6 +69,18 @@ Dependencies:
   - macOS Intel builds discontinued; minimum macOS version is 14 (#8486, #8494, #8527).
 
 PyOpenMS:
+  - Fixed keyword defaults that did not match the wrapped C++ signatures. Four bindings
+    declared a parameter with no default after parameters that had one: the transf
+    argument of MultipleTesting.lfdr, spectra in both IDMapper.annotate overloads and
+    plugin_consumer in SwathFile.loadMzML. They are now optional and carry the C++
+    defaults (LfdrTransform.Probit, an empty MSExperiment and None). This also makes
+    the generated type stubs valid Python again: _pyopenms_datastructures.pyi and
+    _pyopenms_misc.pyi did not parse, both failing with "non-default argument follows
+    default argument".
+  - BREAKING: MultipleTesting.lfdr's gridsize and cut defaults were 100 and 0.05, while
+    the wrapped C++ signature (and its documentation) use 512 and 3.0, so Python callers
+    who omitted them silently got different results than C++ callers. The bindings now
+    use the C++ values.
   - BREAKING: Python 3.10 is no longer supported. Wheels and source builds require
     Python 3.11 or newer; the wheel matrix covers 3.11 to 3.14. With 3.10 gone, pandas 3
     is the floor for DataFrame support (the dataframes/all extras and the test

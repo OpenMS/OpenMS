@@ -1076,7 +1076,7 @@ Note that a PeptideIdentication is added to ALL spectra which are within the all
 :raises:
 Exception: MissingInformation is thrown if entries of 'peptide_ids' do not contain 'MZ' and 'RT' information
 )doc")
-        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::FeatureMap& map, const OpenMS::PeptideIdentificationList& ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool use_centroid_rt, bool use_centroid_mz, const OpenMS::MSExperiment& spectra) { return self.annotate(map, ids, protein_ids, use_centroid_rt, use_centroid_mz, spectra); }, "map"_a, "ids"_a, "protein_ids"_a, "use_centroid_rt"_a = false, "use_centroid_mz"_a = false, "spectra"_a, 
+        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::FeatureMap& map, const OpenMS::PeptideIdentificationList& ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool use_centroid_rt, bool use_centroid_mz, const OpenMS::MSExperiment& spectra) { return self.annotate(map, ids, protein_ids, use_centroid_rt, use_centroid_mz, spectra); }, "map"_a, "ids"_a, "protein_ids"_a, "use_centroid_rt"_a = false, "use_centroid_mz"_a = false, "spectra"_a = OpenMS::MSExperiment(), 
             R"doc(
 Mapping method for peak maps\n
 Add peptide identifications stored in a feature map to their
@@ -1089,7 +1089,7 @@ RT and m/z are taken from the peptides, or (if missing) from the feature itself
 :param clear_ids: Reset peptide and protein identifications of each scan before annotating
 :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 )doc")
-        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::ConsensusMap& map, const OpenMS::PeptideIdentificationList& ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool measure_from_subelements, bool annotate_ids_with_subelements, const OpenMS::MSExperiment& spectra) { return self.annotate(map, ids, protein_ids, measure_from_subelements, annotate_ids_with_subelements, spectra); }, "map"_a, "ids"_a, "protein_ids"_a, "measure_from_subelements"_a = false, "annotate_ids_with_subelements"_a = false, "spectra"_a, 
+        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::ConsensusMap& map, const OpenMS::PeptideIdentificationList& ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool measure_from_subelements, bool annotate_ids_with_subelements, const OpenMS::MSExperiment& spectra) { return self.annotate(map, ids, protein_ids, measure_from_subelements, annotate_ids_with_subelements, spectra); }, "map"_a, "ids"_a, "protein_ids"_a, "measure_from_subelements"_a = false, "annotate_ids_with_subelements"_a = false, "spectra"_a = OpenMS::MSExperiment(), 
             R"doc(
 Mapping method for peak maps\n
 Add peptide identifications stored in a feature map to their
@@ -3924,7 +3924,7 @@ ProgressLogger
         .def("__copy__", [](const OpenMS::SwathFile& self) { return OpenMS::SwathFile(self); })
         .def("__deepcopy__", [](const OpenMS::SwathFile& self, nb::dict) { return OpenMS::SwathFile(self); }, "memo"_a)
         .def("loadSplit", [](OpenMS::SwathFile& self, std::vector<std::string> file_list, const std::string& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const std::string& readoptions) { return self.loadSplit(file_list, tmp, exp_meta, readoptions); }, "file_list"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "Loads a Swath run from a list of split mzML files")
-        .def("loadMzML", [](OpenMS::SwathFile& self, const std::string& file, const std::string& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const std::string& readoptions, OpenMS::Interfaces::IMSDataConsumer * plugin_consumer) { return self.loadMzML(file, tmp, exp_meta, readoptions, plugin_consumer); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "plugin_consumer"_a)
+        .def("loadMzML", [](OpenMS::SwathFile& self, const std::string& file, const std::string& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const std::string& readoptions, OpenMS::Interfaces::IMSDataConsumer * plugin_consumer) { return self.loadMzML(file, tmp, exp_meta, readoptions, plugin_consumer); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "plugin_consumer"_a.none() = nb::none())
         .def("loadMzXML", [](OpenMS::SwathFile& self, const std::string& file, const std::string& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const std::string& readoptions) { return self.loadMzXML(file, tmp, exp_meta, readoptions); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "Loads a Swath run from a single mzXML file")
         ;
 

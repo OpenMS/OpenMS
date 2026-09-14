@@ -754,7 +754,24 @@ Example:
 >>> lfdr_values = pyopenms.MultipleTesting.lfdr(
 ...     p_values, pi0_result.pi0, True, True,
 ...     pyopenms.MultipleTesting.LfdrTransform.Probit)
-)doc")
+)doc");
+
+    // The nested enums are registered before the methods below: lfdr() uses
+    // LfdrTransform::Probit as a default argument, and nanobind converts default
+    // values to Python objects while the binding is created, so the enum type has
+    // to be known by then.
+    // Pi0Method enum nested under MultipleTesting
+    nb::enum_<OpenMS::Math::MultipleTesting::Pi0Method>(multipletesting_class, "Pi0Method", nb::is_arithmetic())
+        .value("Smoother", OpenMS::Math::MultipleTesting::Pi0Method::Smoother)
+        .value("Bootstrap", OpenMS::Math::MultipleTesting::Pi0Method::Bootstrap)
+        ;
+    // LfdrTransform enum nested under MultipleTesting
+    nb::enum_<OpenMS::Math::MultipleTesting::LfdrTransform>(multipletesting_class, "LfdrTransform", nb::is_arithmetic())
+        .value("Probit", OpenMS::Math::MultipleTesting::LfdrTransform::Probit)
+        .value("Logit", OpenMS::Math::MultipleTesting::LfdrTransform::Logit)
+        ;
+
+    multipletesting_class
         .def_static("qValue", [](const std::vector<double>& p_values, double pi0, bool pfdr) { return OpenMS::Math::MultipleTesting::qValue(p_values, pi0, pfdr); }, "p_values"_a, "pi0"_a, "pfdr"_a, "Compute q-values from p-values using the Storey-Tibshirani method")
         .def_static("pNorm", [](const std::vector<double>& stat, const std::vector<double>& stat0) { return OpenMS::Math::MultipleTesting::pNorm(stat, stat0); }, "stat"_a, "stat0"_a, "Compute p-values from observed and null statistics using the empirical distribution")
 
@@ -777,7 +794,9 @@ Example:
                                size_t gridsize,
                                double cut) {
             return OpenMS::Math::MultipleTesting::lfdr(p_values, pi0, trunc, monotone, transf, adj, eps, gridsize, cut);
-        }, "p_values"_a, "pi0"_a, "trunc"_a = true, "monotone"_a = true, "transf"_a, "adj"_a = 1.5, "eps"_a = 1e-8, "gridsize"_a = 100, "cut"_a = 0.05,
+        }, "p_values"_a, "pi0"_a, "trunc"_a = true, "monotone"_a = true,
+           "transf"_a = OpenMS::Math::MultipleTesting::LfdrTransform::Probit,
+           "adj"_a = 1.5, "eps"_a = 1e-8, "gridsize"_a = 512, "cut"_a = 3.0,
            "Compute local FDR values")
 
         .def_static("pi0MethodToString", &OpenMS::Math::MultipleTesting::pi0MethodToString,
@@ -791,16 +810,6 @@ Example:
 
         .def_static("toLfdrTransform", &OpenMS::Math::MultipleTesting::toLfdrTransform,
            "s"_a, "Convert string to LfdrTransform enum")
-        ;
-    // Pi0Method enum nested under MultipleTesting
-    nb::enum_<OpenMS::Math::MultipleTesting::Pi0Method>(multipletesting_class, "Pi0Method", nb::is_arithmetic())
-        .value("Smoother", OpenMS::Math::MultipleTesting::Pi0Method::Smoother)
-        .value("Bootstrap", OpenMS::Math::MultipleTesting::Pi0Method::Bootstrap)
-        ;
-    // LfdrTransform enum nested under MultipleTesting
-    nb::enum_<OpenMS::Math::MultipleTesting::LfdrTransform>(multipletesting_class, "LfdrTransform", nb::is_arithmetic())
-        .value("Probit", OpenMS::Math::MultipleTesting::LfdrTransform::Probit)
-        .value("Logit", OpenMS::Math::MultipleTesting::LfdrTransform::Logit)
         ;
 
     // -----------------------------------------------------------------------
