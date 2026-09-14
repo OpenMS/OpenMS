@@ -42,6 +42,7 @@ jobs:
       python-versions-array: ${{ steps.set-versions.outputs.versions-array }}
       pyopenms-version: ${{ steps.set-versions.outputs.pyopenms-version }}
       is-nightly: ${{ steps.set-versions.outputs.is-nightly }}
+      abi3-python: ${{ steps.set-versions.outputs.abi3-python }}
       cibw-build-linux-x64: ${{ steps.set-versions.outputs.cibw-build-linux-x64 }}
       cibw-build-linux-arm64: ${{ steps.set-versions.outputs.cibw-build-linux-arm64 }}
       cibw-build-macos-arm64: ${{ steps.set-versions.outputs.cibw-build-macos-arm64 }}
@@ -51,6 +52,7 @@ jobs:
         with:
           sparse-checkout: |
             .github/workflows/python_versions.json
+            src/pyOpenMS/pyproject.toml
             CMakeLists.txt
           sparse-checkout-cone-mode: false
           persist-credentials: false
@@ -63,18 +65,26 @@ jobs:
           # Output as space-separated for display
           echo "versions-array=$(jq -r '.[]' .github/workflows/python_versions.json | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
+          # The bindings are built in nanobind split mode against CPython's stable
+          # ABI, so exactly one frontend is compiled per platform and the
+          # resulting cp<N>-abi3 wheel covers every version in
+          # python_versions.json. That file is therefore purely the *test*
+          # matrix now; the compiled version comes from the ABI floor declared in
+          # pyproject.toml, so the two cannot drift apart.
+          ABI3_MIN=$(grep -E '^abi3_minimum_cpython_version' src/pyOpenMS/pyproject.toml | grep -oE '[0-9]+')
+          if [[ -z "$ABI3_MIN" ]]; then
+            echo "::error::could not read abi3_minimum_cpython_version from src/pyOpenMS/pyproject.toml"
+            exit 1
+          fi
+          CIBW_PY="cp${ABI3_MIN}"
+          echo "Compiling the ${CIBW_PY} frontend; wheels are tagged ${CIBW_PY}-abi3"
+          echo "abi3-python=${CIBW_PY}" >> $GITHUB_OUTPUT
+
           # Pre-calculate CIBW_BUILD for each platform
-          CIBW_LINUX_X64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_x86_64/' | tr '\n' ' ')
-          echo "cibw-build-linux-x64=$CIBW_LINUX_X64" >> $GITHUB_OUTPUT
-          
-          CIBW_LINUX_ARM64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_aarch64/' | tr '\n' ' ')
-          echo "cibw-build-linux-arm64=$CIBW_LINUX_ARM64" >> $GITHUB_OUTPUT
-          
-          CIBW_MACOS_ARM64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-macosx_arm64/' | tr '\n' ' ')
-          echo "cibw-build-macos-arm64=$CIBW_MACOS_ARM64" >> $GITHUB_OUTPUT
-          
-          CIBW_WINDOWS_X64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-win_amd64/' | tr '\n' ' ')
-          echo "cibw-build-windows-x64=$CIBW_WINDOWS_X64" >> $GITHUB_OUTPUT
+          echo "cibw-build-linux-x64=${CIBW_PY}-manylinux_x86_64" >> $GITHUB_OUTPUT
+          echo "cibw-build-linux-arm64=${CIBW_PY}-manylinux_aarch64" >> $GITHUB_OUTPUT
+          echo "cibw-build-macos-arm64=${CIBW_PY}-macosx_arm64" >> $GITHUB_OUTPUT
+          echo "cibw-build-windows-x64=${CIBW_PY}-win_amd64" >> $GITHUB_OUTPUT
 
           # Extract OpenMS version from CMakeLists.txt
           MAJOR=$(grep 'OPENMS_PACKAGE_VERSION_MAJOR' CMakeLists.txt | head -1 | sed 's/.*"\([0-9]*\)".*/\1/')
@@ -606,9 +616,16 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          # src/pyOpenMS/tests and the class-test data it reads are needed here
+          # because this job, not cibuildwheel, is what now runs the full suite
+          # on every supported interpreter.
           sparse-checkout: |
             tools/ci/fetch_thermo_assets.sh
             cmake/cmake_findExternalLibs.cmake
+            src/pyOpenMS/tests
+            src/pyOpenMS/pyproject.toml
+            src/tests/class_tests/openms/data
+            src/tests/topp
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
@@ -622,14 +639,64 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Test wheel
+      - name: Install the abi3 wheel
         shell: bash
         run: |
-          # Install the wheel matching this Python version
-          PYVER=$(echo "${{ matrix.python-version }}" | tr -d '.')
-          pip install wheelhouse/*cp${PYVER}*.whl
+          # One cp<N>-abi3 wheel per platform now serves every supported
+          # interpreter, so there is no per-version wheel to glob for. Require
+          # exactly one candidate: more than one would mean the artifact still
+          # carries per-version wheels and the wrong one could be picked, none
+          # would mean the build silently produced nothing installable here.
+          shopt -s nullglob
+          wheels=(wheelhouse/*-abi3-*.whl)
+          if [[ ${#wheels[@]} -ne 1 ]]; then
+            echo "::error::expected exactly one abi3 wheel in the ${{ matrix.artifact }} artifact, found ${#wheels[@]}:"
+            ls -la wheelhouse/ || true
+            exit 1
+          fi
+          echo "Installing ${wheels[0]} on Python ${{ matrix.python-version }}"
+          # Install the built artifact itself, never a package-index substitute.
+          python -m pip install --no-index --only-binary=:all: --find-links wheelhouse "${wheels[0]}"
           python -c "import pyopenms; print('pyopenms version:', pyopenms.__version__)"
           python -c "import pyopenms; print(pyopenms.EmpiricalFormula('C6H12O6').getMonoWeight())"
+
+      - name: Check the installed environment is consistent
+        shell: bash
+        run: python -m pip check
+
+      # pyopenms/__init__.py catches per-domain import errors and can leave a
+      # partially populated package behind, so `import pyopenms` alone is not
+      # evidence that the extensions loaded. Import each one explicitly.
+      - name: Import every extension module
+        shell: bash
+        run: |
+          python - <<'EOF'
+          import importlib, pyopenms
+          domains = ["kernel", "metadata", "chemistry", "analysis", "featurefinder",
+                     "format", "processing", "datastructures", "ml", "misc",
+                     "spectrum", "chromatogram", "experiment"]
+          expected = [f"pyopenms._pyopenms_{d}" for d in domains]
+          expected += ["pyopenms._pyopenms", "pyopenms._arrow_zerocopy"]
+          for name in expected:
+              mod = importlib.import_module(name)
+              print("ok", name, getattr(mod, "__file__", ""))
+          print(f"all {len(expected)} extension modules imported")
+          EOF
+
+      - name: Install test dependencies
+        shell: bash
+        run: python -m pip install pytest pytest-cov "pandas>=3" pyarrow
+
+      - name: Run the pyOpenMS test suite against the installed wheel
+        shell: bash
+        env:
+          OPENMS_CLASS_TEST_DATA_PATH: ${{ github.workspace }}/src/tests/class_tests/openms/data
+          OPENMS_TEST_DATA_PATH: ${{ github.workspace }}/src/tests/topp
+        run: |
+          # --import-mode=importlib and running from a directory without a
+          # pyopenms/ source tree keep this honest: the installed wheel is what
+          # gets imported, not the checkout.
+          python -m pytest src/pyOpenMS/tests -q --import-mode=importlib -p no:cacheprovider
 
       # Thermo RAW smoke test on a fresh runner: only the .NET runtime may be
       # present, everything else (bridge library, managed assemblies) must come

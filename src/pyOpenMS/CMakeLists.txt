@@ -12,7 +12,11 @@
 # --------------------------------------------------------------------------
 
 # Required when this file is the top-level project (py-build-cmake / pip install .).
-# Keep in sync with the minimum in the root CMakeLists.txt.
+# Keep in sync with the minimum in the root CMakeLists.txt. Note that this is the
+# floor for a plain pyOpenMS build; split mode (PYOPENMS_SPLIT_MODE, the default)
+# additionally requires CMake 3.26 for FindPython's Development.SABIModule and
+# checks for it below. That requirement is deliberately scoped to pyOpenMS -- the
+# C++-only OpenMS build still needs no more than 3.24.
 cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 project("pyOpenMS" LANGUAGES CXX)
 
@@ -31,6 +35,38 @@ option(NO_DEPENDENCIES "Do not bundle dependencies (use wheel repair tools inste
 option(NO_SHARE "Do not bundle share data into wheel" OFF)
 option(PYOPENMS_GENERATE_STUBS "Generate .pyi stub files" ON)
 option(PYOPENMS_PREPARE_WHEEL_REPAIR "Set RPATH for wheel repair tools (auditwheel/delocate)" OFF)
+
+# Split mode compiles every extension against Python's stable ABI and moves
+# nanobind's version-specific runtime out into the separate nanobind-backend
+# package, so a single cp311-abi3 wheel per platform serves every supported
+# CPython. Turning it off builds interpreter-specific modules instead, which is
+# useful locally but must not be packaged as an abi3 wheel (see the guard below).
+option(PYOPENMS_SPLIT_MODE "Build stable-ABI (abi3) extensions in nanobind split mode" ON)
+set(PYOPENMS_STABLE_ABI_VERSION "3.11" CACHE STRING
+    "CPython stable-ABI floor for split-mode builds; keep in sync with abi3_minimum_cpython_version in pyproject.toml")
+
+if(PYOPENMS_SPLIT_MODE)
+  # Development.SABIModule arrived in CMake 3.26 and nanobind's split mode
+  # requires that target on Windows. Only pyOpenMS needs it, so this is checked
+  # here rather than raising the C++-only OpenMS minimum in the root project.
+  if(CMAKE_VERSION VERSION_LESS 3.26)
+    message(FATAL_ERROR
+      "pyOpenMS split mode needs CMake 3.26 or newer for the Development.SABIModule "
+      "component of find_package(Python); this is CMake ${CMAKE_VERSION}. Configure "
+      "with -DPYOPENMS_SPLIT_MODE=OFF to build interpreter-specific modules instead.")
+  endif()
+else()
+  # py-build-cmake tags the wheel cp311-abi3 from pyproject.toml, which only
+  # describes a split-mode build. Refuse to package interpreter-specific modules
+  # under that tag rather than shipping a wheel that lies about its ABI.
+  if(DEFINED PY_BUILD_CMAKE_VERSION)
+    message(FATAL_ERROR
+      "PYOPENMS_SPLIT_MODE=OFF builds interpreter-specific extensions, but "
+      "pyproject.toml tags the wheel as cp311-abi3. Building a wheel this way would "
+      "mislabel it. Override [tool.py-build-cmake.wheel].python_abi too if you really "
+      "want a linked-mode wheel.")
+  endif()
+endif()
 
 set(PYOPENMS_DOMAINS
     kernel metadata chemistry analysis featurefinder
@@ -127,7 +163,12 @@ else()
   endif()
 
   # Keep in sync with requires-python in pyproject.toml (pandas 3 also needs >= 3.11)
-  find_package(Python 3.11 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
+  set(PYOPENMS_PYTHON_COMPONENTS Interpreter Development.Module NumPy)
+  if(PYOPENMS_SPLIT_MODE)
+    # nanobind links split-mode extensions against Python::SABIModule on Windows.
+    list(APPEND PYOPENMS_PYTHON_COMPONENTS Development.SABIModule)
+  endif()
+  find_package(Python 3.11 REQUIRED COMPONENTS ${PYOPENMS_PYTHON_COMPONENTS})
   find_package(Eigen3 REQUIRED)
 
   # Propagate Python_EXECUTABLE to parent scope so the pyopenms_wheel target can use it
@@ -357,13 +398,33 @@ else()
     )
   endfunction()
 
+  # Options shared by every pyOpenMS extension. Keeping them in one variable is
+  # what guarantees all 15 modules land in the same nanobind domain and, in split
+  # mode, target the same stable ABI -- a module added without them would silently
+  # get its own type registry or an interpreter-specific tag.
+  set(PYOPENMS_NB_MODULE_OPTIONS
+    NB_DOMAIN pyopenms  # Share types across modules
+    NOMINSIZE           # Use CMake's default -O3 instead of nanobind's -Os
+  )
+  if(PYOPENMS_SPLIT_MODE)
+    # STABLE_ABI is what actually defines Py_LIMITED_API and gives the module the
+    # .abi3 suffix; STABLE_ABI_VERSION only selects which CPython ABI to target,
+    # and BACKEND_MODULE is what makes this a split build at all. All three are
+    # needed -- STABLE_ABI_VERSION alone would leave a full-API module behind an
+    # abi3 wheel tag.
+    list(APPEND PYOPENMS_NB_MODULE_OPTIONS
+      BACKEND_MODULE nanobind_backend
+      STABLE_ABI
+      STABLE_ABI_VERSION ${PYOPENMS_STABLE_ABI_VERSION}
+    )
+  endif()
+
   # Build each domain submodule
   foreach(domain ${PYOPENMS_DOMAINS})
     set(MODULE_NAME "_pyopenms_${domain}")
 
     nanobind_add_module(${MODULE_NAME}
-      NB_DOMAIN pyopenms  # Share types across modules
-      NOMINSIZE            # Use CMake's default -O3 instead of nanobind's -Os
+      ${PYOPENMS_NB_MODULE_OPTIONS}
       ${PYOPENMS_BINDINGS_DIR}/bind_${domain}.cpp
     )
     _pyopenms_module_props(${MODULE_NAME})
@@ -371,8 +432,7 @@ else()
 
   # Main entry module
   nanobind_add_module(_pyopenms
-    NB_DOMAIN pyopenms
-    NOMINSIZE
+    ${PYOPENMS_NB_MODULE_OPTIONS}
     ${PYOPENMS_BINDINGS_DIR}/main_module.cpp
   )
   _pyopenms_module_props(_pyopenms)
@@ -406,8 +466,7 @@ else()
 
   message(STATUS "pyOpenMS: Building _arrow_zerocopy module")
   nanobind_add_module(_arrow_zerocopy
-    NB_DOMAIN pyopenms
-    NOMINSIZE
+    ${PYOPENMS_NB_MODULE_OPTIONS}
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
   )
   _pyopenms_module_props(_arrow_zerocopy)
@@ -482,15 +541,33 @@ else()
         "${PYOPENMS_NANOBIND_MIN_VERSION} for that interpreter.")
     endif()
 
+    # Stub generation imports the freshly built package, so the extension modules
+    # have to be able to find OpenMS at that point. Windows has no RPATH and
+    # Python >= 3.8 does not search PATH for an extension's dependent DLLs, so
+    # pyopenms/__init__.py reads those directories from PYOPENMS_DLL_PATH -- the
+    # same mechanism the tests below use.
+    set(_pyopenms_stub_cmd_prefix "")
+    if(WIN32)
+      set(_pyopenms_stub_dll_dirs "$<TARGET_FILE_DIR:${OPENMS_TARGET}>")
+      string(APPEND _pyopenms_stub_dll_dirs "$<SEMICOLON>$<TARGET_FILE_DIR:${OPENSWATHALGO_TARGET}>")
+      if(OPENMS_CONTRIB_LIBS)
+        string(APPEND _pyopenms_stub_dll_dirs "$<SEMICOLON>${OPENMS_CONTRIB_LIBS}/lib")
+      endif()
+      if(QT_INSTALL_BINS)
+        string(APPEND _pyopenms_stub_dll_dirs "$<SEMICOLON>${QT_INSTALL_BINS}")
+      endif()
+      set(_pyopenms_stub_cmd_prefix ${CMAKE_COMMAND} -E env "PYOPENMS_DLL_PATH=${_pyopenms_stub_dll_dirs}")
+    endif()
+
     add_custom_target(pyopenms_stubs
-      COMMAND ${Python_EXECUTABLE} -m nanobind.stubgen
+      COMMAND ${_pyopenms_stub_cmd_prefix} ${Python_EXECUTABLE} -m nanobind.stubgen
               -m pyopenms
               -r                          # recurse into submodules
               -P                          # include private members
               -O ${PYOPENMS_BUILD_DIR}/pyopenms
               -M ${PYOPENMS_BUILD_DIR}/pyopenms/py.typed
               -p ${CMAKE_CURRENT_SOURCE_DIR}/stubs.patch
-      COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
+      COMMAND ${_pyopenms_stub_cmd_prefix} ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
               ${PYOPENMS_BUILD_DIR}/pyopenms
       WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
       DEPENDS pyopenms_compile
@@ -544,6 +621,16 @@ else()
             COMMENT "Copying ${_runtime}"
           )
         endforeach()
+      endif()
+    endif()
+
+    if(PYOPENMS_GENERATE_STUBS)
+      # Stub generation imports pyopenms, which is only possible once the
+      # bundled libraries sit next to the modules.
+      if(APPLE)
+        add_dependencies(pyopenms_stubs pyopenms_fix_deps)
+      else()
+        add_dependencies(pyopenms_stubs pyopenms_copy_deps)
       endif()
     endif()
   endif()
@@ -600,6 +687,9 @@ if(NOT PYOPENMS_USE_PREBUILT)
     endif()
   else()
     add_dependencies(pyopenms pyopenms_compile)
+  endif()
+  if(PYOPENMS_GENERATE_STUBS)
+    add_dependencies(pyopenms pyopenms_stubs)
   endif()
 else()
   add_custom_target(pyopenms ALL)

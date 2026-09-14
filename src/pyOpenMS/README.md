@@ -163,11 +163,24 @@ The project includes a full cibuildwheel configuration in `pyproject.toml` and a
 The CI workflow follows this pattern for each platform:
 
 1. Build and install OpenMS C++ library
-2. Run cibuildwheel, which for each Python version:
+2. Run cibuildwheel **once**, for CPython 3.11 only:
    - Creates an isolated build environment
    - Runs py-build-cmake (which finds the installed OpenMS and compiles the nanobind modules)
    - Runs the platform-specific wheel repair tool to bundle shared libraries
    - Tests the repaired wheel with pytest
+3. Test that one wheel on every supported Python version in a separate job
+
+The extension modules are built in nanobind's **split mode** against the CPython
+3.11 stable ABI, so each platform produces a single `cp311-abi3` wheel that serves
+3.11 and every later version, instead of one wheel per interpreter. nanobind's
+version-specific runtime lives in the separate `nanobind-backend` package, which is
+therefore a runtime dependency. `.github/workflows/python_versions.json` is the
+list of versions the wheel is *tested* on; the version it is *compiled* for comes
+from `abi3_minimum_cpython_version` in `pyproject.toml`.
+
+Split mode needs CMake 3.26 or newer (for `Development.SABIModule`). Configure with
+`-DPYOPENMS_SPLIT_MODE=OFF` to build interpreter-specific modules locally instead;
+that mode must not be packaged as a wheel, since the wheel is tagged `abi3`.
 
 Key cibuildwheel settings (in `pyproject.toml`):
 
