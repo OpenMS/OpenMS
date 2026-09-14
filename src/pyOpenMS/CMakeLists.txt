@@ -541,57 +541,15 @@ else()
         "${PYOPENMS_NANOBIND_MIN_VERSION} for that interpreter.")
     endif()
 
-    # Stub generation imports the freshly built package, so the extension modules
-    # have to be able to find OpenMS at that point. Windows has no RPATH and
-    # Python >= 3.8 does not search PATH for an extension's dependent DLLs, so
-    # pyopenms/__init__.py reads those directories from PYOPENMS_DLL_PATH -- the
-    # same mechanism the tests below use.
-    set(_pyopenms_stub_cmd_prefix "")
-    if(WIN32)
-      set(_pyopenms_stub_dll_dirs "$<TARGET_FILE_DIR:${OPENMS_TARGET}>")
-      string(APPEND _pyopenms_stub_dll_dirs "$<SEMICOLON>$<TARGET_FILE_DIR:${OPENSWATHALGO_TARGET}>")
-      if(OPENMS_CONTRIB_LIBS)
-        string(APPEND _pyopenms_stub_dll_dirs "$<SEMICOLON>${OPENMS_CONTRIB_LIBS}/lib")
-      endif()
-      if(QT_INSTALL_BINS)
-        string(APPEND _pyopenms_stub_dll_dirs "$<SEMICOLON>${QT_INSTALL_BINS}")
-      endif()
-      # OPENMS_CONTRIB_LIBS and QT_INSTALL_BINS come from the enclosing OpenMS
-      # build; a standalone wheel build (py-build-cmake) has neither, so the list
-      # above would name only OpenMS.dll's own directory. OpenMS.dll would then
-      # fail to load because *its* dependencies -- Qt, contrib -- are elsewhere,
-      # and every module import dies with "DLL load failed while importing ...:
-      # The specified module could not be found". Keep whatever the caller put in
-      # the environment instead of overwriting it: the wheel workflow knows those
-      # directories exactly and passes the same ones to delvewheel.
-      if(NOT "$ENV{PYOPENMS_DLL_PATH}" STREQUAL "")
-        # Semicolons separate directories here, not CMake list elements.
-        string(REPLACE ";" "$<SEMICOLON>" _pyopenms_stub_env_dll_dirs "$ENV{PYOPENMS_DLL_PATH}")
-        string(APPEND _pyopenms_stub_dll_dirs "$<SEMICOLON>${_pyopenms_stub_env_dll_dirs}")
-      endif()
-      set(_pyopenms_stub_cmd_prefix ${CMAKE_COMMAND} -E env "PYOPENMS_DLL_PATH=${_pyopenms_stub_dll_dirs}")
-      # Report what the caller supplied: when stubgen cannot import the package
-      # on Windows the message is only ever "DLL load failed ... The specified
-      # module could not be found", which never names the DLL that is missing.
-      # Knowing whether PYOPENMS_DLL_PATH arrived at all is the first thing
-      # anyone debugging that needs.
-      if("$ENV{PYOPENMS_DLL_PATH}" STREQUAL "")
-        message(STATUS "pyOpenMS stubs: no PYOPENMS_DLL_PATH in the environment; "
-                       "using only the OpenMS/OpenSwathAlgo target directories")
-      else()
-        message(STATUS "pyOpenMS stubs: PYOPENMS_DLL_PATH from the environment: $ENV{PYOPENMS_DLL_PATH}")
-      endif()
-    endif()
-
     add_custom_target(pyopenms_stubs
-      COMMAND ${_pyopenms_stub_cmd_prefix} ${Python_EXECUTABLE} -m nanobind.stubgen
+      COMMAND ${Python_EXECUTABLE} -m nanobind.stubgen
               -m pyopenms
               -r                          # recurse into submodules
               -P                          # include private members
               -O ${PYOPENMS_BUILD_DIR}/pyopenms
               -M ${PYOPENMS_BUILD_DIR}/pyopenms/py.typed
               -p ${CMAKE_CURRENT_SOURCE_DIR}/stubs.patch
-      COMMAND ${_pyopenms_stub_cmd_prefix} ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
+      COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
               ${PYOPENMS_BUILD_DIR}/pyopenms
       WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
       DEPENDS pyopenms_compile
@@ -648,15 +606,6 @@ else()
       endif()
     endif()
 
-    if(PYOPENMS_GENERATE_STUBS)
-      # Stub generation imports pyopenms, which is only possible once the
-      # bundled libraries sit next to the modules.
-      if(APPLE)
-        add_dependencies(pyopenms_stubs pyopenms_fix_deps)
-      else()
-        add_dependencies(pyopenms_stubs pyopenms_copy_deps)
-      endif()
-    endif()
   endif()
 
   install(DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/
@@ -711,9 +660,6 @@ if(NOT PYOPENMS_USE_PREBUILT)
     endif()
   else()
     add_dependencies(pyopenms pyopenms_compile)
-  endif()
-  if(PYOPENMS_GENERATE_STUBS)
-    add_dependencies(pyopenms pyopenms_stubs)
   endif()
 else()
   add_custom_target(pyopenms ALL)

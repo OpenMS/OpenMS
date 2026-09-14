@@ -101,9 +101,6 @@ PyOpenMS:
     OpenMS build still requires no more than CMake 3.24. Configure with
     -DPYOPENMS_SPLIT_MODE=OFF for interpreter-specific modules; that mode refuses to
     produce a wheel, which would otherwise be mislabelled abi3.
-  - PYOPENMS_GENERATE_STUBS=ON now actually generates the .pyi stubs during a wheel
-    build. The pyopenms_stubs target existed but was not in ALL and nothing depended
-    on it, so stubs were silently skipped (#10133).
   - BREAKING (source builds): nanobind 3.0.1 or newer is required; nanobind 2.x no longer
     works. The custom type casters follow the nanobind 3 caster protocol, whose
     from_python() takes uint32_t instead of uint8_t flags. pyproject.toml asks for

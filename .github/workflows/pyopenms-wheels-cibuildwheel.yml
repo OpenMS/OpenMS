@@ -582,7 +582,6 @@ jobs:
             CMAKE_PREFIX_PATH="${{ env.QT_CMAKE }}/lib/cmake;${{ env.QT_CMAKE }};${{ env.CONTRIB_CMAKE }};${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_BUILD_PARALLEL_LEVEL=2
             PYOPENMS_THERMO_RAW_TEST_FILE="${{ env.THERMO_RAW_TEST_FILE }}"
-            PYOPENMS_DLL_PATH="${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib"
           # install/bin and install/lib also hold openms_thermo_bridge.dll and nethost.dll
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path ${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
