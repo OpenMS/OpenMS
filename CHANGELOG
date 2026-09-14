@@ -69,6 +69,12 @@ Dependencies:
   - macOS Intel builds discontinued; minimum macOS version is 14 (#8486, #8494, #8527).
 
 PyOpenMS:
+  - BREAKING: Python 3.10 is no longer supported. Wheels and source builds require
+    Python 3.11 or newer; the wheel matrix covers 3.11 to 3.14. With 3.10 gone, pandas 3
+    is the floor for DataFrame support (the dataframes/all extras and the test
+    requirements ask for pandas>=3), so string columns consistently use the pandas str
+    dtype and Arrow-backed large_string. The pyarrow 24.0.0/25.0.0 exclusions were
+    dropped: both only worked around cp310-specific problems (#10119).
   - Autowrap/Cython replaced by nanobind, with PEP 561 type stubs, smaller binaries,
     faster builds and clearer errors. Fixed mutable-reference output parameters and
     restored missing default arguments; Python addons remain supported (#8699).
@@ -570,8 +576,7 @@ Build System:
     #9969, #10009).
   - Fixed Arrow repository keys/version pins, Bioconda synchronization/tooling/dependency
     conflicts and package-list handling; build failures now propagate. Multi-architecture
-    images publish a combined amd64/arm64 manifest. Wheel builds exclude pyarrow 25.0.0
-    because of a Python 3.10 macOS arm64 crash (#9196, #9726, #9728, #9729, #9750,
+    images publish a combined amd64/arm64 manifest (#9196, #9726, #9728, #9729, #9750,
     #9798, #9890, #9891, #9905, #9951, #9954, #10071).
   - Fixed compiler-cache saving and fork-PR workflow failures; documentation lint rules are
     pinned. Added effective Parquet schema/value checks and non-finite numeric comparisons;

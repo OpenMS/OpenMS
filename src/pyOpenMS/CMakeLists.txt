@@ -126,7 +126,8 @@ else()
     endif()
   endif()
 
-  find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
+  # Keep in sync with requires-python in pyproject.toml (pandas 3 also needs >= 3.11)
+  find_package(Python 3.11 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
   find_package(Eigen3 REQUIRED)
 
   # Propagate Python_EXECUTABLE to parent scope so the pyopenms_wheel target can use it
