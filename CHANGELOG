@@ -583,6 +583,12 @@ Build System:
     removed parallel-test output collisions and source-timestamp assumptions
     (#9785, #9787, #9859, #9861, #9877, #9878, #9879, #9887, #9899, #9906, #9937,
     #9973, #10018).
+  - Fixed a link-order bug that left libOpenMS.so with undefined libxml2 symbols when
+    Arrow is linked statically (distribution Arrow packages ship ARROW_USE_STATIC=ON, so
+    non-vcpkg builds hit this). libxml2 was listed as a direct OpenMS dependency, which
+    put it ahead of libarrow_bundled_dependencies.a on the link line; an --as-needed
+    linker then dropped it and `import pyopenms` failed with
+    "undefined symbol: xmlBufferFree". It is now appended to Arrow's link interface.
   - Improved CMake 4/MSVC, clang/Xcode, OpenMP and non-vcpkg ONNX builds, plus Debian
     dependency packaging to avoid .deb conflicts. OpenMP requests fail clearly when
     unavailable; SIMD-only compilation works without a runtime. Fixed
