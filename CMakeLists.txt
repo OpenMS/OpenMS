@@ -473,6 +473,7 @@ set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
                         "dmg"  # a drag&drop dmg package for macOS
                         "pkg"  # a productbuild installer for macOS
                         "nsis" # an NSIS installer for Windows
+                        "wix"  # a WiX/MSI installer for Windows
                         "zip") # a portable version for Windows
 
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
@@ -732,6 +733,13 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     # in the script. Unfortunately we have a lot of specific code in the script.
     set(CPACK_GENERATOR "NSIS")
     include(cmake/package_nsis.cmake)
+  elseif("${PACKAGE_TYPE}" STREQUAL "wix") # .. Windows MSI via WiX
+    ## Unlike the NSIS path, this does not carry a hand-written installer
+    ## script: the payload comes from our install() rules and only the parts
+    ## MSI cannot express by itself (PATH, shortcuts, file associations) are
+    ## authored in cmake/Windows/WiX/.
+    set(CPACK_GENERATOR "WIX")
+    include(cmake/package_wix.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "zip")
     if(NOT WIN32)
       message(FATAL_ERROR "The package type ZIP is only supported for windows.")

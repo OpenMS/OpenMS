@@ -2,6 +2,12 @@ name: "Release"
 
 on:
   workflow_dispatch:
+    inputs:
+      windows_package_type:
+        description: "Windows installer format"
+        type: choice
+        options: ["nsis", "wix"]
+        default: "nsis"
   push:
     tags:
       - 'v[0-9]*'
@@ -55,6 +61,7 @@ jobs:
           ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
           ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
           ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          windows_package_type: ${{ inputs.windows_package_type || 'nsis' }}
 
       - name: Parse the Version Number
         id: version
@@ -63,6 +70,8 @@ jobs:
       - name: Compute Package Type
         id: package-info
         shell: bash
+        env:
+          WINDOWS_PACKAGE_TYPE: ${{ inputs.windows_package_type }}
         run: |
           # Why can't CMake do this?
           if [[ "$RUNNER_OS" == "Linux" ]]; then
@@ -70,7 +79,9 @@ jobs:
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             echo "type=pkg" >>"$GITHUB_OUTPUT"
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            echo "type=nsis" >>"$GITHUB_OUTPUT"
+            # The WiX/MSI path is a prototype; it is only reachable by manually
+            # dispatching this workflow and picking it. Tag pushes keep using NSIS.
+            echo "type=${WINDOWS_PACKAGE_TYPE:-nsis}" >>"$GITHUB_OUTPUT"
           else
             echo >&2 "ERROR: unrecognized RUNNER_OS=$RUNNER_OS"
             exit 1
@@ -151,14 +162,23 @@ jobs:
 
           if ! ninja dist; then
             if [[ "$RUNNER_OS" == "Windows" ]]; then
-              cat /c/cpk/_CPack_Packages/win64/NSIS/NSISOutput.log
+              # Each generator writes its own build log under a differently
+              # named staging directory.
+              cat /c/cpk/_CPack_Packages/win64/NSIS/NSISOutput.log 2>/dev/null || true
+              cat /c/cpk/_CPack_Packages/win64/WIX/wix.log 2>/dev/null || true
             fi
 
             exit 1
           fi
 
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            mv /c/cpk/*.exe .
+            # NSIS produces an .exe, WiX an .msi.
+            mv /c/cpk/*.exe /c/cpk/*.msi . 2>/dev/null || true
+            if ! compgen -G "*.exe" >/dev/null && ! compgen -G "*.msi" >/dev/null; then
+              echo >&2 "ERROR: no installer produced in /c/cpk"
+              ls -la /c/cpk >&2
+              exit 1
+            fi
           fi
 
       # Notarize macOS packages for Gatekeeper approval

@@ -19,6 +19,10 @@ inputs:
   ssh_user:
     description: "SSH user for the rsync cache archive"
     required: false
+  windows_package_type:
+    description: "Windows installer format to prepare tooling for ('nsis' or 'wix')"
+    required: false
+    default: "nsis"
 outputs:
   version:
     description: "The discovered compiler version number"
@@ -47,6 +51,7 @@ runs:
         ssh_host: ${{ inputs.ssh_host }}
         ssh_port: ${{ inputs.ssh_port }}
         ssh_user: ${{ inputs.ssh_user }}
+        windows_package_type: ${{ inputs.windows_package_type }}
 
     ############################################################################
     - name: Compute the Compiler Version

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2002-present, OpenMS Inc. - EKU Tuebingen, ETH Zurich, and FU Berlin
+  (XML comments cannot contain a double hyphen, hence the single dash here.)
+  SPDX-License-Identifier: BSD-3-Clause
+
+  Wires the hand-authored component groups from openms_extras.wxs into the root
+  feature that CPack's WIX generator generates. Without this the fragments would
+  be compiled but never referenced, and so silently left out of the .msi.
+
+  '#PRODUCTFEATURE' is a special id understood by the CPack WIX generator
+  (see the CPACK_WIX_PATCH_FILE documentation) that refers to the root
+  <Feature Id="ProductFeature"> element.
+-->
+<CPackWiXPatch>
+  <CPackWiXFragment Id="#PRODUCTFEATURE">
+    <ComponentGroupRef Id="OpenMSEnvironment"/>
+    <ComponentGroupRef Id="OpenMSShortcuts"/>
+    <ComponentGroupRef Id="OpenMSFileAssociations"/>
+  </CPackWiXFragment>
+</CPackWiXPatch>

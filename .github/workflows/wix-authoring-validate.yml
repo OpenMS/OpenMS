@@ -1,0 +1,30 @@
+name: WiX Authoring Validation
+
+# Lints the hand-authored WiX sources used by the prototype MSI packaging path
+# (PACKAGE_TYPE=wix). Producing an actual .msi needs Windows, but WiX's compile,
+# link and reference-resolution stages are managed code and run on Linux, so a
+# broken fragment or a component group the patch file references but that does
+# not exist is caught here on a cheap Linux runner rather than in a release
+# build. See tools/ci/validate-wix-authoring.sh.
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - 'cmake/Windows/WiX/**'
+      - 'cmake/package_wix.cmake'
+      - 'tools/ci/validate-wix-authoring.sh'
+      - '.github/workflows/wix-authoring-validate.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Validate WiX authoring
+        run: tools/ci/validate-wix-authoring.sh

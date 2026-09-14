@@ -16,6 +16,10 @@ inputs:
   ssh_user:
     description: "SSH user for the rsync cache archive"
     required: false
+  windows_package_type:
+    description: "Windows installer format to prepare tooling for ('nsis' or 'wix')"
+    required: false
+    default: "nsis"
 outputs:
   cmake_prefix:
     description: "Path to add to CMAKE_PREFIX"
@@ -71,6 +75,22 @@ runs:
         bash tools/ci/deps-windows.sh
         echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH
         echo "cmake_prefix=" >>"$GITHUB_OUTPUT"
+
+    # Only needed for the prototype WiX/MSI packaging path (PACKAGE_TYPE=wix).
+    # The runner images no longer ship WiX v3, and CPack's WiX v3 support needs
+    # .NET Framework 3.5, so install the .NET 'wix' tool (v4/v5) instead.
+    - name: "Dependencies: WiX Toolset (Windows)"
+      id: deps-wix
+      if: runner.os == 'Windows' && inputs.windows_package_type == 'wix'
+      shell: bash
+      run: |
+        dotnet tool install --global wix --version "$WIX_VERSION"
+        echo "$USERPROFILE\.dotnet\tools" >> $GITHUB_PATH
+        export PATH="$PATH:$USERPROFILE/.dotnet/tools"
+        # The WixUI dialog set lives in a separately installed extension.
+        wix extension add --global "WixToolset.UI.wixext/$WIX_VERSION"
+      env:
+        WIX_VERSION: "5.0.2"
 
     - name: "Dependencies: Linux"
       id: deps-linux
