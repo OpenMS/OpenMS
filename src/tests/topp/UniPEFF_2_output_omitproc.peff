@@ -6,7 +6,7 @@
 # Decoy=false
 # DbSource=https://www.uniprot.org
 # DbVersion=unknown
-# NumberOfEntries=1
+# NumberOfEntries=2
 # SequenceType=AA
 # //
 # DbName=UniProtKB
@@ -20,5 +20,8 @@
 >sp:P12345 \PName=(Kitchen-sink protein (test) \| alpha\\beta :-\)) \GName=GENE1 \NcbiTaxId=9606 \TaxName=Homo sapiens \Length=100 \SV=3 \EV=64 \PE=1 \ID=KSINK_HUMAN \AltAC=(P99999) \ModResPsi=(45|MOD:00798|half cystine)(50|MOD:00046|O-phospho-L-serine)(55|MOD:00047|O-phospho-L-threonine)(58|MOD:00999|S-palmitoyl-L-cysteine)(80|MOD:00798|half cystine)(90|MOD:00798|half cystine)(95|MOD:00798|half cystine)(?|MOD:00046|O-phospho-L-serine)(?|MOD:00798|half cystine) \ModResUnimod=(60|UNIMOD:34|Methyl) \ModRes=(48||N-linked (GlcNAc...) asparagine)(62||Some unlisted lipid)(65||Test generic mod no accession)(66||Glycyl lysine isopeptide (Lys-Gly) (interchain with G-Cter in ubiquitin))(68||glycosylation site)(88||Isopeptide (Cys-Lys))(89||Isopeptide (Cys-Lys))(?||O-linked unknown-site) \VariantSimple=(25|V)(42|M) \VariantComplex=(30|31|CD)(33|33|)(36|38|)(44|44|)(46|46|APT)
 MSEQNNTEMTFQIQRIYTKDISFEAPNAPHVFQKDWQPEVKLDLDTASSQLADDVYEVVL
 RVTVTASLGEETAFLCEVQQGGKLMNPQRSTVWYACDEFG
+>sp:P12345-2 \PName=(Isoform 2 of Kitchen-sink protein (test) \| alpha\\beta :-\)) \GName=GENE1 \NcbiTaxId=9606 \TaxName=Homo sapiens \Length=94 \ID=KSINK_HUMAN
+MSEQNNTEMTFQIQRIYTKDISFEAPNAPHVFQKDWQPEVKLDLDTASSQLADDXVTVTA
+SLGEETAFLCEVQQGGKLMNPQRSTVWYACDEFG
 >tr:Q67890 \PName=(Minimal TrEMBL entry ?e) \NcbiTaxId=9606 \TaxName=Homo sapiens \Length=31 \SV=1 \EV=2 \PE=4 \ID=MINI_HUMAN \AltAC=(Q00001)
 MKLDLDTASSQLADDVYEVVLRVTVTASLGE
