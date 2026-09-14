@@ -189,6 +189,30 @@ Dependencies:
     (#8679, #9196, #9221)
 
 PyOpenMS:
+  - BREAKING: boolean parameters are Python bools (#10116, step 6). A boolean parameter is one that
+    Param::ParamEntry::isBool() accepts: a scalar string restricted to exactly "true" and "false", in
+    either order, independent of the current value. Nothing is inferred from a value's content, so a
+    parameter's Python type cannot change by copying it.
+    - every read path yields bool, not just p[key]: getValue(), values(), items(), asDict()/to_dict(),
+      repr(p) and ParamEntry.value -- dict and JSON dumps of a Param change shape accordingly
+    - p["flag"] == "true" no longer holds; use `if p["flag"]:`. Writing the string keeps working
+    - assigning a bool to a key that does not exist defines a boolean parameter (value plus the
+      true/false restrictions); assigning one to an existing parameter that is not boolean raises
+      TypeError instead of redefining its type -- call setValidStrings(key, ["true", "false"]) first
+    - Param.getValidStrings() and ParamEntry.valid_strings raise TypeError for a boolean parameter,
+      which has no string restrictions from Python; new Param.isBool(key) reports one.
+      Param.getValueType() still returns STRING_VALUE, which is how the value is stored
+    - a bool anywhere in a list is now rejected instead of silently becoming 0/1, for Param values
+      and for setMetaValue(); [1, True] used to be stored as [1, 1]
+    - setMetaValue(key, True) is newly accepted and stores the canonical "true"/"false" string, the
+      same form C++ writes via DefaultParamHandler::writeParametersToMetaValues. DataValue carries no
+      restrictions, so getMetaValue() returns that string -- compare it explicitly rather than using
+      it in an `if`, since 'false' is truthy in Python
+    - Param.update(other_param) now copies whole entries for keys missing in the target (description,
+      tags and restrictions, so a boolean stays boolean) instead of values only; keys that already
+      exist keep the target's restrictions. update(dict, flag) now honours flag, which it ignored
+    - DefaultParamHandler.setParameters() re-applies the class's own string restrictions to the given
+      Param, so a partial Param cannot make a tri-state parameter report as boolean
   - BREAKING: binding backend replaced from Autowrap/Cython by hand-maintained nanobind bindings (#8699)
     - Python-level API is backward compatible (same class names, signatures, return types)
     - 544 classes wrapped across 10 domain-based modules for parallel compilation
