@@ -660,8 +660,13 @@ jobs:
             exit 1
           fi
           echo "Installing ${wheels[0]} on Python ${{ matrix.python-version }}"
-          # Install the built artifact itself, never a package-index substitute.
-          python -m pip install --no-index --only-binary=:all: --find-links wheelhouse "${wheels[0]}"
+          # Naming the wheel by path is what pins the test to the artifact just
+          # built -- pip installs the file it is given and never substitutes a
+          # package-index release of pyopenms for it. The index still has to stay
+          # reachable for the dependencies (numpy, matplotlib, nanobind-backend),
+          # which are not in wheelhouse; --no-index here would fail the install
+          # with "No matching distribution found for numpy>=2.0".
+          python -m pip install --only-binary=:all: --find-links wheelhouse "${wheels[0]}"
           python -c "import pyopenms; print('pyopenms version:', pyopenms.__version__)"
           python -c "import pyopenms; print(pyopenms.EmpiricalFormula('C6H12O6').getMonoWeight())"
 
