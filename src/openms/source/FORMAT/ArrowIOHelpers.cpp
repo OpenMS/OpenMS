@@ -20,6 +20,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -460,6 +461,30 @@ bool qpxIsCanonicalIntensityLabel(const std::string& label)
     return labels;
   }();
   return canonical.contains(label);
+}
+
+std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit)
+{
+  return qpxCvParams(hit, MS1LabelState::Keys());
+}
+
+std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit,
+                                                              const MS1LabelState::Keys& keys)
+{
+  // The label state written by MS1LabeledWorkflow; see MS1LabelState for the meaning of each key.
+  // Looked up by index: this runs once per exported row, and a lookup by name takes the registry lock.
+  std::vector<std::pair<std::string, std::string>> params;
+  const auto add = [&](const std::string& name, UInt index)
+  {
+    if (index != static_cast<UInt>(-1) && hit.metaValueExists(index))
+    {
+      params.emplace_back(name, hit.getMetaValue(index).toString());
+    }
+  };
+  add(MS1LabelState::LABELED_SEQUENCE, keys.labeled_sequence);
+  add(MS1LabelState::REMOVED_LABELS, keys.removed_labels);
+  add(MS1LabelState::CHANNEL, keys.channel);
+  return params;
 }
 
 std::string qpxRunFileName(const std::string& ms_run_path)
