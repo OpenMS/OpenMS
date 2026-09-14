@@ -343,7 +343,10 @@ if(ArrowDataset_FOUND)
     message(STATUS "Using Arrow Dataset target: ${OPENMS_ARROW_DATASET_TARGET}")
 
     # A statically linked Arrow needs libxml2: arrow_bundled_dependencies vendors
-    # the AWS SDK, which references xmlBufferCreate/xmlBufferFree and friends.
+    # azure-storage-common, whose xml_wrapper.cpp (Azure::Storage::_internal::
+    # XmlReader/XmlWriter) references xmlBufferCreate/xmlBufferFree and friends.
+    # It is the only object in that archive that does -- the AWS SDK is bundled
+    # too but brings its own parser (aws_xml_node_*) and needs no libxml2.
     #
     # Record that edge on the Arrow target rather than adding LibXml2 as another
     # direct OpenMS dependency. CMake emits every direct link library before the
