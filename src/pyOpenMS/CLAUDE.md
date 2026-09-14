@@ -170,7 +170,7 @@ All modules use `NB_DOMAIN "pyopenms"` to share type information.
 
 ## Type Handling
 
-- nanobind type casters auto-convert `OpenMS::String` ↔ Python `str`
+- nanobind type casters auto-convert `std::string`/`std::string_view` ↔ Python `str` (the `OpenMS::String` wrapper was removed; OpenMS now uses `std::string` directly)
 - `PeptideIdentificationList` required (not Python list) for `setPeptideIdentifications()`
 - `AASequence.fromString()`: valid amino acids only (A-Z except B, J, O, U, X, Z)
 - `DPosition<1>` accepts `float`, `DPosition<2>` accepts `tuple`
