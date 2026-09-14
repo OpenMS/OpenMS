@@ -85,7 +85,5 @@ macros and environment information generated during the build of the OpenMS libr
 The CTD is a format developed from the OpenMS team to allow the user to use TOPP tools also in other workflow engines.
 Each tool can output a CTD description of itself (the XML scheme for the CTD can be found here), which can then be used
 by a node generator program to generate nodes for different workflow engines. The CTD mechanism is shared by OpenMS with
-other mature libraries like SeqAn and BALL. An example for a node generation program are the Generic KNIME Nodes. The
-most complete description on how to generate your own Generic KNIME Nodes based on a CTD (e.g. from your freshly
-developed command line tool), can be found on the SeqAn documentation. We are working on a tutorial specifically
-tailored to OpenMS.
+other mature libraries like SeqAn and BALL. Tools can additionally emit Common Workflow Language descriptions with
+`-write_cwl`; see [CWL](/getting-started/cwl-get-started.md).
