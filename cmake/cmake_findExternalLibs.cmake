@@ -366,25 +366,36 @@ endif()
 if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static"
    OR (OPENMS_ARROW_DATASET_TARGET AND
        OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static"))
-  find_package(LibXml2 REQUIRED)
-  if(TARGET Arrow::arrow_bundled_dependencies)
-    set_property(TARGET Arrow::arrow_bundled_dependencies APPEND
-                 PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+  # Deliberately not REQUIRED: only the platforms that actually resolve those
+  # symbols against a system libxml2 need it. MSVC has no --as-needed and the
+  # Windows contrib build links a static Arrow with no system libxml2 present at
+  # all, so a mandatory lookup would turn a link-order workaround into a hard
+  # build dependency everywhere and fail configuration where it is not needed.
+  find_package(LibXml2 QUIET)
+  if(LibXml2_FOUND)
+    if(TARGET Arrow::arrow_bundled_dependencies)
+      set_property(TARGET Arrow::arrow_bundled_dependencies APPEND
+                   PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+    else()
+      # Older/repackaged Arrow configs without the bundled-dependencies target:
+      # attach to whichever static targets are in use. Appending puts libxml2 at
+      # the end of their interface, i.e. still behind Arrow's own archives.
+      if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static")
+        set_property(TARGET ${OPENMS_ARROW_TARGET} APPEND
+                     PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+      endif()
+      if(OPENMS_ARROW_DATASET_TARGET AND
+         OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static")
+        set_property(TARGET ${OPENMS_ARROW_DATASET_TARGET} APPEND
+                     PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+      endif()
+    endif()
+    message(STATUS "Arrow is linked statically: added LibXml2 to its link interface")
   else()
-    # Older/repackaged Arrow configs without the bundled-dependencies target:
-    # attach to whichever static targets are in use. Appending puts libxml2 at the
-    # end of their interface, i.e. still behind Arrow's own archives.
-    if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static")
-      set_property(TARGET ${OPENMS_ARROW_TARGET} APPEND
-                   PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
-    endif()
-    if(OPENMS_ARROW_DATASET_TARGET AND
-       OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static")
-      set_property(TARGET ${OPENMS_ARROW_DATASET_TARGET} APPEND
-                   PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
-    endif()
+    message(STATUS "Arrow is linked statically, but no LibXml2 was found: skipping "
+                   "the libxml2 link-interface workaround. Install the libxml2 "
+                   "development files if linking fails with undefined xml* symbols.")
   endif()
-  message(STATUS "Arrow is linked statically: added LibXml2 to its link interface")
 endif()
 
 #------------------------------------------------------------------------------
