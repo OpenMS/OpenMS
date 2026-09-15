@@ -82,13 +82,31 @@ PyOpenMS:
     the wrapped C++ signature (and its documentation) use 512 and 3.0, so Python callers
     who omitted them silently got different results than C++ callers. The bindings now
     use the C++ values.
+  - Wheels are now built in nanobind split mode against the CPython 3.11 stable ABI:
+    each platform ships a single cp311-abi3 wheel that serves Python 3.11 and every
+    later version, instead of one wheel per interpreter. Adding a new CPython minor
+    version normally only means adding it to the test matrix. nanobind's
+    version-specific runtime moves into the separate nanobind-backend package, which
+    is a new runtime dependency (nanobind-backend>=1.0, deliberately unpinned: newer
+    backends serve extensions built against older backend ABI revisions).
+    python_versions.json is now purely the list of versions the wheel is tested on;
+    the version it is compiled for comes from abi3_minimum_cpython_version in
+    pyproject.toml, so the two cannot drift apart.
+  - The custom type casters build their result lists with the checked
+    PyList_SetItem() instead of the PyList_SET_ITEM() macro, which is unavailable
+    under the Limited API. Behaviour is unchanged; failures release the partially
+    built list rather than leaking it.
+  - Building pyOpenMS in split mode requires CMake 3.26 or newer, for FindPython's
+    Development.SABIModule component. This applies to pyOpenMS only -- the C++-only
+    OpenMS build still requires no more than CMake 3.24. Configure with
+    -DPYOPENMS_SPLIT_MODE=OFF for interpreter-specific modules; that mode refuses to
+    produce a wheel, which would otherwise be mislabelled abi3.
   - BREAKING (source builds): nanobind 3.0.1 or newer is required; nanobind 2.x no longer
     works. The custom type casters follow the nanobind 3 caster protocol, whose
     from_python() takes uint32_t instead of uint8_t flags. pyproject.toml asks for
     nanobind>=3.0.1,<4 and py-build-cmake~=0.5.1, and the CMake fallback fetches nanobind
     v3.0.1. nanobind discovery enforces that minimum instead of accepting whatever
-    find_package() returns, and reports the version it selected. Wheels are unaffected:
-    they still carry one build per supported Python version (#10133).
+    find_package() returns, and reports the version it selected (#10133).
   - BREAKING: Python 3.10 is no longer supported. Wheels and source builds require
     Python 3.11 or newer; the wheel matrix covers 3.11 to 3.14. With 3.10 gone, pandas 3
     is the floor for DataFrame support (the dataframes/all extras and the test

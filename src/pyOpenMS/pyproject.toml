@@ -21,6 +21,14 @@ requires = [
     # from_python(handle, uint32_t, cleanup_list*) signature. The upper bound
     # keeps a future nanobind 4 from silently entering isolated builds.
     "nanobind>=3.0.1,<4",
+    # Split-mode extensions call into this at runtime. Kept in the build
+    # requirements too, so that anything the build imports the freshly built
+    # package with -- the pyopenms_stubs target, when it is built explicitly --
+    # can load it. Deliberately unpinned with no upper bound: a newer backend
+    # serves extensions built against an older backend ABI, and 1.0 is the
+    # revision nanobind 3.0.1 declares (NB_BACKEND_ABI_MAJOR 1 /
+    # NB_BACKEND_ABI_MINOR 0 in nb_backend.h).
+    "nanobind-backend>=1.0",
     "numpy>=2.0",
     "auditwheel; sys_platform == 'linux'",
     "delocate; sys_platform == 'darwin'",
@@ -65,6 +73,9 @@ classifiers = [
 dependencies = [
     "numpy>=2.0",
     "matplotlib>=3.5",
+    # The compiled extensions are built in nanobind split mode, so nanobind's
+    # Python-version-specific runtime lives here rather than inside them.
+    "nanobind-backend>=1.0",
 ]
 
 [project.urls]
@@ -91,6 +102,7 @@ build = [
     # Keep in sync with [build-system].requires above.
     "py-build-cmake~=0.5.1",
     "nanobind>=3.0.1,<4",
+    "nanobind-backend>=1.0",
     "numpy>=2.0",
     "auditwheel; sys_platform == 'linux'",
     "delocate; sys_platform == 'darwin'",
@@ -140,11 +152,29 @@ include = [
 
 [tool.py-build-cmake.cmake]
 # CMake build configuration
+# 3.26 is the first release with FindPython's Development.SABIModule component,
+# which nanobind's split mode needs (on Windows it links Python::SABIModule).
+# This applies to the pyOpenMS wheel build only; the C++ OpenMS build still
+# requires 3.24.
+minimum_version = "3.26"
 build_type = "Release"
 source_path = "."
 install_args = ["--strip"]
 build_args = []
 install_components = ["python_modules"]
+
+[tool.py-build-cmake.wheel]
+# The extensions are compiled in nanobind split mode against the CPython 3.11
+# stable ABI, so one wheel per platform serves 3.11 and every later version.
+# abi3_minimum_cpython_version is the single source of that floor. py-build-cmake
+# turns it into the cp311-abi3 filename and WHEEL tag; CMakeLists.txt reads it
+# back as the default PYOPENMS_STABLE_ABI_VERSION (which becomes Py_LIMITED_API)
+# and refuses to package a build that overrides it; the wheel workflow derives
+# the interpreter cibuildwheel compiles with from it. Those two match it by
+# regex, so keep it a plain one-line integer. The one place that cannot read it
+# is [tool.cibuildwheel].build below -- see the note there.
+python_abi = "abi3"
+abi3_minimum_cpython_version = 311
 
 [tool.py-build-cmake.cmake.options]
 # CMake options - OpenMS_ROOT should be set via environment or config-settings
@@ -160,8 +190,17 @@ NO_DEPENDENCIES = "ON"
 #------------------------------------------------------------------------------
 
 [tool.cibuildwheel]
-# Build for Python 3.11-3.14 (usually overwritten by GitHub Actions)
-build = "cp311-* cp312-* cp313-* cp314-*"
+# Only the CPython 3.11 frontend is compiled: the result is a cp311-abi3 wheel
+# that covers 3.11 through 3.14. The supported interpreters are still all tested,
+# in the separate test-wheels job, against this one artifact.
+#
+# This is the one copy of the ABI floor that is written out rather than derived
+# from abi3_minimum_cpython_version, because cibuildwheel's configuration has no
+# interpolation. The wheel workflow does derive it and overrides this via
+# CIBW_BUILD, so only a direct cibuildwheel run reads the literal. Move it when
+# you move abi3_minimum_cpython_version; if you forget, CMake refuses to
+# configure rather than letting the mismatch through.
+build = "cp311-*"
 # Skip 32-bit and musllinux builds
 skip = "*-win32 *-musllinux_*"
 

@@ -12,7 +12,11 @@
 # --------------------------------------------------------------------------
 
 # Required when this file is the top-level project (py-build-cmake / pip install .).
-# Keep in sync with the minimum in the root CMakeLists.txt.
+# Keep in sync with the minimum in the root CMakeLists.txt. Note that this is the
+# floor for a plain pyOpenMS build; split mode (PYOPENMS_SPLIT_MODE, the default)
+# additionally requires CMake 3.26 for FindPython's Development.SABIModule and
+# checks for it below. That requirement is deliberately scoped to pyOpenMS -- the
+# C++-only OpenMS build still needs no more than 3.24.
 cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 project("pyOpenMS" LANGUAGES CXX)
 
@@ -31,6 +35,79 @@ option(NO_DEPENDENCIES "Do not bundle dependencies (use wheel repair tools inste
 option(NO_SHARE "Do not bundle share data into wheel" OFF)
 option(PYOPENMS_GENERATE_STUBS "Generate .pyi stub files" ON)
 option(PYOPENMS_PREPARE_WHEEL_REPAIR "Set RPATH for wheel repair tools (auditwheel/delocate)" OFF)
+
+# Split mode compiles every extension against Python's stable ABI and moves
+# nanobind's version-specific runtime out into the separate nanobind-backend
+# package, so a single cp311-abi3 wheel per platform serves every supported
+# CPython. Turning it off builds interpreter-specific modules instead, which is
+# useful locally but must not be packaged as an abi3 wheel (see the guard below).
+option(PYOPENMS_SPLIT_MODE "Build stable-ABI (abi3) extensions in nanobind split mode" ON)
+
+# The stable-ABI floor has to be one number rather than two that happen to agree:
+# CMake turns STABLE_ABI_VERSION into Py_LIMITED_API, py-build-cmake turns
+# abi3_minimum_cpython_version into the wheel's cp<N>-abi3 tag, and nothing
+# connects the two. Read the value out of pyproject.toml so the default here is
+# that same number instead of a second copy that can drift away from it.
+set(_pyopenms_abi3_floor "")
+set(_pyopenms_pyproject "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml")
+if(EXISTS "${_pyopenms_pyproject}")
+  file(STRINGS "${_pyopenms_pyproject}" _pyopenms_abi3_lines
+       REGEX "^[ \t]*abi3_minimum_cpython_version[ \t]*=[ \t]*[0-9]+")
+  # Exactly one key, or we cannot tell which one py-build-cmake will honour.
+  list(LENGTH _pyopenms_abi3_lines _pyopenms_abi3_count)
+  if(_pyopenms_abi3_count EQUAL 1 AND
+     "${_pyopenms_abi3_lines}" MATCHES "=[ \t]*([0-9])([0-9]+)")
+    set(_pyopenms_abi3_floor "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
+  endif()
+endif()
+
+set(PYOPENMS_STABLE_ABI_VERSION "${_pyopenms_abi3_floor}" CACHE STRING
+    "CPython stable-ABI floor for split-mode builds (default: abi3_minimum_cpython_version from pyproject.toml)")
+
+if(PYOPENMS_SPLIT_MODE)
+  # Development.SABIModule arrived in CMake 3.26 and nanobind's split mode
+  # requires that target on Windows. Only pyOpenMS needs it, so this is checked
+  # here rather than raising the C++-only OpenMS minimum in the root project.
+  if(CMAKE_VERSION VERSION_LESS 3.26)
+    message(FATAL_ERROR
+      "pyOpenMS split mode needs CMake 3.26 or newer for the Development.SABIModule "
+      "component of find_package(Python); this is CMake ${CMAKE_VERSION}. Configure "
+      "with -DPYOPENMS_SPLIT_MODE=OFF to build interpreter-specific modules instead.")
+  endif()
+
+  if(NOT PYOPENMS_STABLE_ABI_VERSION)
+    message(FATAL_ERROR
+      "Could not read a single abi3_minimum_cpython_version key from "
+      "${_pyopenms_pyproject}, so the stable-ABI floor for split mode is unknown. Fix "
+      "that key, or pass -DPYOPENMS_STABLE_ABI_VERSION=<major.minor> explicitly.")
+  endif()
+
+  # Overriding the floor only moves Py_LIMITED_API; the wheel keeps the tag
+  # py-build-cmake derives from pyproject.toml. Packaging the two out of step
+  # yields a cp311-abi3 wheel whose modules need a newer interpreter and fail to
+  # import on 3.11. The knob is harmless outside packaging, so only refuse it
+  # when py-build-cmake is the one driving this configure.
+  if(DEFINED PY_BUILD_CMAKE_VERSION AND _pyopenms_abi3_floor AND
+     NOT PYOPENMS_STABLE_ABI_VERSION VERSION_EQUAL "${_pyopenms_abi3_floor}")
+    message(FATAL_ERROR
+      "PYOPENMS_STABLE_ABI_VERSION is ${PYOPENMS_STABLE_ABI_VERSION}, but pyproject.toml "
+      "tags the wheel for Python ${_pyopenms_abi3_floor} via abi3_minimum_cpython_version. "
+      "Packaging that combination would produce a wheel advertising an ABI it was not built "
+      "against. Change abi3_minimum_cpython_version as well if you really want a different "
+      "stable-ABI floor.")
+  endif()
+else()
+  # py-build-cmake tags the wheel cp311-abi3 from pyproject.toml, which only
+  # describes a split-mode build. Refuse to package interpreter-specific modules
+  # under that tag rather than shipping a wheel that lies about its ABI.
+  if(DEFINED PY_BUILD_CMAKE_VERSION)
+    message(FATAL_ERROR
+      "PYOPENMS_SPLIT_MODE=OFF builds interpreter-specific extensions, but "
+      "pyproject.toml tags the wheel as cp311-abi3. Building a wheel this way would "
+      "mislabel it. Override [tool.py-build-cmake.wheel].python_abi too if you really "
+      "want a linked-mode wheel.")
+  endif()
+endif()
 
 set(PYOPENMS_DOMAINS
     kernel metadata chemistry analysis featurefinder
@@ -127,7 +204,29 @@ else()
   endif()
 
   # Keep in sync with requires-python in pyproject.toml (pandas 3 also needs >= 3.11)
-  find_package(Python 3.11 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
+  set(PYOPENMS_PYTHON_COMPONENTS Interpreter Development.Module NumPy)
+  if(PYOPENMS_SPLIT_MODE)
+    # nanobind links split-mode extensions against Python::SABIModule on Windows.
+    list(APPEND PYOPENMS_PYTHON_COMPONENTS Development.SABIModule)
+  endif()
+  find_package(Python 3.11 REQUIRED COMPONENTS ${PYOPENMS_PYTHON_COMPONENTS})
+
+  # Targeting a stable ABI newer than the interpreter building us cannot work:
+  # the Limited API its headers expose stops at their own version, so
+  # Py_LIMITED_API would promise symbols that are not there. This is the one
+  # reader of the ABI floor that cannot derive it -- cibuildwheel's TOML has no
+  # interpolation, so [tool.cibuildwheel].build in pyproject.toml names the
+  # frontend literally -- and therefore the one place it can drift. Fail here
+  # rather than compile against a promise the headers do not keep.
+  if(PYOPENMS_SPLIT_MODE AND Python_VERSION VERSION_LESS PYOPENMS_STABLE_ABI_VERSION)
+    message(FATAL_ERROR
+      "Split mode targets the CPython ${PYOPENMS_STABLE_ABI_VERSION} stable ABI, but this "
+      "build runs Python ${Python_VERSION}, whose headers do not have it. Build with "
+      "${PYOPENMS_STABLE_ABI_VERSION} or newer. When packaging, the interpreter is chosen by "
+      "[tool.cibuildwheel].build in pyproject.toml (or CIBW_BUILD), which has to move with "
+      "abi3_minimum_cpython_version.")
+  endif()
+
   find_package(Eigen3 REQUIRED)
 
   # Propagate Python_EXECUTABLE to parent scope so the pyopenms_wheel target can use it
@@ -357,13 +456,33 @@ else()
     )
   endfunction()
 
+  # Options shared by every pyOpenMS extension. Keeping them in one variable is
+  # what guarantees all 15 modules land in the same nanobind domain and, in split
+  # mode, target the same stable ABI -- a module added without them would silently
+  # get its own type registry or an interpreter-specific tag.
+  set(PYOPENMS_NB_MODULE_OPTIONS
+    NB_DOMAIN pyopenms  # Share types across modules
+    NOMINSIZE           # Use CMake's default -O3 instead of nanobind's -Os
+  )
+  if(PYOPENMS_SPLIT_MODE)
+    # STABLE_ABI is what actually defines Py_LIMITED_API and gives the module the
+    # .abi3 suffix; STABLE_ABI_VERSION only selects which CPython ABI to target,
+    # and BACKEND_MODULE is what makes this a split build at all. All three are
+    # needed -- STABLE_ABI_VERSION alone would leave a full-API module behind an
+    # abi3 wheel tag.
+    list(APPEND PYOPENMS_NB_MODULE_OPTIONS
+      BACKEND_MODULE nanobind_backend
+      STABLE_ABI
+      STABLE_ABI_VERSION ${PYOPENMS_STABLE_ABI_VERSION}
+    )
+  endif()
+
   # Build each domain submodule
   foreach(domain ${PYOPENMS_DOMAINS})
     set(MODULE_NAME "_pyopenms_${domain}")
 
     nanobind_add_module(${MODULE_NAME}
-      NB_DOMAIN pyopenms  # Share types across modules
-      NOMINSIZE            # Use CMake's default -O3 instead of nanobind's -Os
+      ${PYOPENMS_NB_MODULE_OPTIONS}
       ${PYOPENMS_BINDINGS_DIR}/bind_${domain}.cpp
     )
     _pyopenms_module_props(${MODULE_NAME})
@@ -371,8 +490,7 @@ else()
 
   # Main entry module
   nanobind_add_module(_pyopenms
-    NB_DOMAIN pyopenms
-    NOMINSIZE
+    ${PYOPENMS_NB_MODULE_OPTIONS}
     ${PYOPENMS_BINDINGS_DIR}/main_module.cpp
   )
   _pyopenms_module_props(_pyopenms)
@@ -406,8 +524,7 @@ else()
 
   message(STATUS "pyOpenMS: Building _arrow_zerocopy module")
   nanobind_add_module(_arrow_zerocopy
-    NB_DOMAIN pyopenms
-    NOMINSIZE
+    ${PYOPENMS_NB_MODULE_OPTIONS}
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
   )
   _pyopenms_module_props(_arrow_zerocopy)
@@ -546,6 +663,7 @@ else()
         endforeach()
       endif()
     endif()
+
   endif()
 
   install(DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/
