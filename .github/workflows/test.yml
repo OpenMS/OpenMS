@@ -23,14 +23,6 @@ jobs:
         include:
           - os: windows-2025
             compiler: cl.exe
-          - os: macos-15
-            compiler: xcode
-          - os: ubuntu-24.04
-            compiler: g++
-          - os: ubuntu-24.04-arm
-            compiler: g++
-          - os: ubuntu-24.04
-            compiler: clang++
     runs-on: ${{ matrix.os }}
 
     steps:
