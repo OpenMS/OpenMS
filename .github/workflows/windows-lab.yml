@@ -1,0 +1,96 @@
+name: Windows test lab
+run-name: Windows lab - ${{ inputs.image }} - ${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: GitHub-hosted Windows image (OpenMS CI uses windows-2025)
+        type: choice
+        options:
+          - windows-2025
+          - windows-2022
+          - windows-latest
+        default: windows-2025
+      setup:
+        description: Runner tools only, or also install OpenMS CI dependencies
+        type: choice
+        options:
+          - runner-only
+          - ci-dependencies
+        default: runner-only
+      session_minutes:
+        description: Maximum interactive session length in minutes
+        type: choice
+        options:
+          - '15'
+          - '30'
+          - '60'
+          - '120'
+        default: '30'
+      interactive:
+        description: Open an SSH terminal (off runs a short native toolchain check)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-lab-${{ github.actor }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    runs-on: ${{ inputs.image }}
+    timeout-minutes: 180
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      # Keep the native compiler/SDK paths when tmate starts MSYS2 Bash.
+      MSYS2_PATH_TYPE: inherit
+      CHERE_INVOKING: '1'
+      CC: cl.exe
+      CXX: cl.exe
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - name: Check out OpenMS at the selected workflow ref
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Emulate a Visual Studio shell
+        uses: egor-tensin/vs-shell@v2
+        with:
+          arch: x64
+
+      - name: Install OpenMS CI dependencies
+        if: inputs.setup == 'ci-dependencies'
+        id: deps
+        uses: ./.github/actions/dependencies
+        with:
+          compiler: cl.exe
+
+      - name: Prepare lab and check native build tools
+        if: ${{ !cancelled() }}
+        env:
+          LAB_SETUP: ${{ inputs.setup }}
+          CMAKE_PREFIX_PATH: ${{ steps.deps.outputs.cmake_prefix }}
+        run: ./.github/windows-lab/Initialize-Lab.ps1
+
+      - name: Open interactive terminal - connection command appears here
+        if: ${{ !cancelled() && inputs.interactive }}
+        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
+        timeout-minutes: ${{ fromJSON(inputs.session_minutes) }}
+        with:
+          limit-access-to-actor: true
+
+      - name: Save test results
+        if: ${{ always() && !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: windows-lab-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/windows-lab-results/
+          if-no-files-found: warn
+          retention-days: 7
