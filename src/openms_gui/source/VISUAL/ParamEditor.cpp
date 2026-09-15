@@ -65,6 +65,10 @@ namespace OpenMS
     ParamEditorDelegate::ParamEditorDelegate(QObject* parent) :
       QItemDelegate(parent)
     {
+      // ParamEditor::store() reads these before any editor has been created, so they must not be
+      // left indeterminate -- a garbage 'Rejected' would refuse to save with no editor open at all
+      commit_state_ = CommitState::Committed;
+      active_editor_ = nullptr;
     }
 
     QWidget* ParamEditorDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
@@ -77,7 +81,8 @@ namespace OpenMS
         return nullptr;
       }
 
-      has_uncommited_data_ = false; // by default all data is committed
+      // an editor is about to open; its value is not yet in the model
+      commit_state_ = CommitState::Editing;
 
       QString dtype = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
       QString restrictions = index.sibling(index.row(), 2).data(Qt::UserRole).toString();
@@ -144,7 +149,6 @@ namespace OpenMS
         OpenMSLineEdit* editor = new OpenMSLineEdit(parent);
         editor->setFocusPolicy(Qt::StrongFocus);
         connect(editor, &Internal::OpenMSLineEdit::lostFocus, this, &Internal::ParamEditorDelegate::commitAndCloseLineEdit_);
-        has_uncommited_data_ = true;
         return editor;
       }
     }
@@ -152,6 +156,9 @@ namespace OpenMS
     void ParamEditorDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
     {
       QString str = index.data(Qt::DisplayRole).toString();
+
+      // remember the open editor so store() can commit it synchronously (see commitActiveEditor())
+      active_editor_ = editor;
 
       // only set editor data for first column (value column)
       if (index.column() != 1)
@@ -161,12 +168,18 @@ namespace OpenMS
 
       if (qobject_cast<QComboBox *>(editor))       //Drop-down list for enums
       {
-        int index = static_cast<QComboBox *>(editor)->findText(str);
-        if (index == -1)
-        {
-          index = 0;
+        QComboBox* box = static_cast<QComboBox *>(editor);
+        int found_index = box->findText(str);
+        if (found_index == -1)
+        { // Preserve a stored value that is outside today's restrictions (e.g. written by an older
+          // version or edited by hand): insert it as its own entry at the front and select it, so
+          // that merely opening and closing the cell keeps the value. Without this the value is not
+          // found, the combo would fall back to its first entry (the empty option), and the
+          // parameter would be silently blanked just by looking at it.
+          box->insertItem(0, str);
+          found_index = 0;
         }
-        static_cast<QComboBox *>(editor)->setCurrentIndex(index);
+        box->setCurrentIndex(found_index);
       }
       else if (qobject_cast<QLineEdit *>(editor))      // LineEdit for other values
       {
@@ -311,6 +324,7 @@ namespace OpenMS
           if (!ok)
           {
             QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to integer number!").arg(new_value.toString()));
+            commit_state_ = CommitState::Rejected; // value not applied to the model
             return;
           }
           //restrictions
@@ -334,6 +348,7 @@ namespace OpenMS
           if (!ok)
           {
             QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()));
+            commit_state_ = CommitState::Rejected; // value not applied to the model
             return;
           }
           //restrictions
@@ -353,6 +368,7 @@ namespace OpenMS
         if (!restrictions_met)
         {
           QMessageBox::warning(nullptr, "Invalid value", QString("Value restrictions not met: %1").arg(index.sibling(index.row(), 3).data(Qt::DisplayRole).toString()));
+          commit_state_ = CommitState::Rejected; // value not applied to the model
           return;
         }
       }
@@ -364,11 +380,36 @@ namespace OpenMS
         model->setData(index, QBrush(Qt::yellow), Qt::BackgroundRole);
         emit modified(true);  // let parent know that we changed something
       }
+
+      // the editor's content is now in the model (or was identical to it). The rejection paths above
+      // set commit_state_ = Rejected before returning, so ParamEditor::store() can tell the value
+      // was not applied; reaching here means it was.
+      commit_state_ = CommitState::Committed;
     }
 
     void ParamEditorDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex &) const
     {
       editor->setGeometry(option.rect);
+    }
+
+    void ParamEditorDelegate::destroyEditor(QWidget* editor, const QModelIndex& index) const
+    {
+      // Only react to the editor we are actually tracking: a delayed teardown of an already-replaced
+      // editor must not disturb the state of a newer one.
+      if (editor == active_editor_)
+      {
+        // If the editor is being destroyed while still in the Editing state, setModelData() was
+        // never called for it -- the edit was abandoned (ESC / revert), not committed or rejected.
+        // The model keeps its previous, consistent value, so there is nothing pending and a later
+        // save must not be blocked. A Rejected state is left untouched: it must survive until the
+        // user starts or cancels another edit, so store() can still refuse the outdated value.
+        if (commit_state_ == CommitState::Editing)
+        {
+          commit_state_ = CommitState::Committed;
+        }
+        active_editor_ = nullptr;
+      }
+      QItemDelegate::destroyEditor(editor, index);
     }
 
     bool ParamEditorDelegate::eventFilter(QObject* editor, QEvent* event)
@@ -397,7 +438,9 @@ namespace OpenMS
 
     void ParamEditorDelegate::commitAndCloseLineEdit_()
     {
-      has_uncommited_data_ = false;
+      // Do not touch commit_state_ here: setModelData() sets it (Rejected when the entered value is
+      // not a valid number or violates the parameter's restrictions, Committed once it has actually
+      // stored). Forcing it here would misreport a rejected edit as committed.
       OpenMSLineEdit * editor = qobject_cast<OpenMSLineEdit *>(sender());
       emit commitData(editor);
       emit closeEditor(editor);
@@ -406,7 +449,30 @@ namespace OpenMS
 
     bool ParamEditorDelegate::hasUncommittedData() const
     {
-      return has_uncommited_data_;
+      return commit_state_ == CommitState::Rejected;
+    }
+
+    bool ParamEditorDelegate::commitActiveEditor()
+    {
+      if (active_editor_ != nullptr && commit_state_ == CommitState::Editing)
+      {
+        // Commit synchronously: emitting commitData(editor) makes the view call setModelData()
+        // immediately (direct connection), unlike moving focus, which would only queue the commit
+        // for the plain QLineEdit editors. setModelData() sets commit_state_ to Committed or
+        // Rejected; closeEditor() then destroys the editor (clearing active_editor_).
+        QWidget* editor = active_editor_;
+        emit commitData(editor);
+        emit closeEditor(editor);
+      }
+      // Fail closed: only a Committed state (value applied, or nothing was pending) permits a save.
+      // Rejected (invalid value) and a lingering Editing (commit did not go through) both block it.
+      return commit_state_ == CommitState::Committed;
+    }
+
+    void ParamEditorDelegate::resetCommitState()
+    {
+      commit_state_ = CommitState::Committed;
+      active_editor_ = nullptr;
     }
 
     ///////////////////ParamTree/////////////////////////////////
@@ -472,6 +538,9 @@ namespace OpenMS
   {
     param_ = &param;
 
+    // a fresh document: drop any edit state (e.g. a rejection) recorded for the previous one, so it
+    // does not block saving this one
+    static_cast<Internal::ParamEditorDelegate*>(tree_->itemDelegate())->resetCommitState();
     tree_->clear();
 
     QTreeWidgetItem * parent = tree_->invisibleRootItem();
@@ -722,33 +791,49 @@ namespace OpenMS
     tree_->resizeColumnToContents(3);
   }
 
-  void ParamEditor::store()
+  bool ParamEditor::store()
   {
-    //std::cerr << "store entered ...\n";
-
-    // store only if no line-edit is opened (in which case data is uncommitted and will not be saved)
-    // this applies only to INIFileEditor, where pressing Ctrl-s results in saving the current (but outdated) param
-    if (param_ != nullptr &&
-        !static_cast<Internal::ParamEditorDelegate*>(this->tree_->itemDelegate())->hasUncommittedData())
+    if (param_ == nullptr)
     {
-      //std::cerr << "and done!...\n";
-      QTreeWidgetItem * parent = tree_->invisibleRootItem();
-      //param_->clear();
-
-      for (Int i = 0; i < parent->childCount(); ++i)
-      {
-        map<std::string, std::string> section_descriptions;
-        storeRecursive_(parent->child(i), "", section_descriptions);        //whole tree recursively
-      }
-
-      setModified(false);
+      return false;
     }
-    //else std::cerr << "store aborted!\n";
 
+    // An editor may still be open with data the user typed but never committed -- this happens in
+    // INIFileEditor when Ctrl-S is pressed while the cursor sits in a QLineEdit, or right after a
+    // path was picked in the file dialog. Commit it first, otherwise the caller goes on to write the
+    // previous, outdated param and the edit is lost silently.
+    //
+    // commitActiveEditor() commits synchronously (emitting commitData directly), not by moving
+    // focus: for the plain QLineEdit editors (input/output file, output dir) Qt would only queue the
+    // commit, so the outdated value would still be written here. It returns false if the value was
+    // rejected (invalid number / restriction violation) -- including a rejection recorded earlier
+    // that the user has not yet corrected -- so nobody writes the outdated value to disk.
+    auto* delegate = static_cast<Internal::ParamEditorDelegate*>(this->tree_->itemDelegate());
+    if (!delegate->commitActiveEditor())
+    {
+      return false;
+    }
+
+    QTreeWidgetItem * parent = tree_->invisibleRootItem();
+
+    for (Int i = 0; i < parent->childCount(); ++i)
+    {
+      map<std::string, std::string> section_descriptions;
+      storeRecursive_(parent->child(i), "", section_descriptions);        //whole tree recursively
+    }
+
+    // Deliberately do NOT reset the modified flag here: store() only commits the edited values into
+    // the in-memory Param. Whether the document is "clean" depends on the value having been
+    // persisted (or applied), which only the caller knows. Callers mark it clean after a successful
+    // write; others (e.g. TOPPASToolConfigDialog) read isModified() to decide whether anything
+    // changed. Resetting it here would hide a just-committed edit and mark the document clean before
+    // it was actually saved.
+    return true;
   }
 
   void ParamEditor::clear()
   {
+    static_cast<Internal::ParamEditorDelegate*>(tree_->itemDelegate())->resetCommitState();
     tree_->clear();
   }
 
