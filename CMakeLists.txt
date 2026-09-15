@@ -551,22 +551,8 @@ if(UNIX)
 	# usually when building, don't use the install RPATH already
 	# (but later on when installing)
 	if(NOT DEFINED CMAKE_BUILD_WITH_INSTALL_RPATH)
-		if (ENABLE_PREPARE_KNIME_PACKAGE)
-			# Since we rely on copying instead of "installing" for KNIME packaging
-			# we need to do it during building already.
-			# In this case, make sure that e.g. Qt is in a system path if you want to test it locally.
-
-			# bakes in "@executable_path/../lib" for all targets
-			SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-
-			# makes sure that our libs are built in a way that their install names are:
-			# @rpath/libOpenMS.dylib
-			# such that when executables link to it, they can look it up via rpath above
-			SET(CMAKE_BUILD_WITH_INSTALL_NAME_DIR TRUE)
-		else()
-			SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-			SET(CMAKE_BUILD_WITH_INSTALL_NAME_DIR FALSE)
-		endif()
+		SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+		SET(CMAKE_BUILD_WITH_INSTALL_NAME_DIR FALSE)
   endif()
 
   # Installed binaries must find the shared dependencies they were linked against
@@ -678,19 +664,9 @@ add_subdirectory(src)
 add_subdirectory(doc)
 
 #------------------------------------------------------------------------------
-# GKN Package building
+# Thirdparty search engines (shipped with the installers)
 #------------------------------------------------------------------------------
-# We will use this path for the KNIME packages and the installers
 set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "The location where thirdparty search engines (Comet, MSGF+, ...) are located. This directory should have the same structure as the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.")
-
-set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.
- Note, this will build all binaries with install RPATHs already in the build folder, so they may not be relocatable anymore. Only enable if needed.")
-if (ENABLE_PREPARE_KNIME_PACKAGE)
-	if(NOT BUILD_TOPP_TOOLS)
-		message(FATAL_ERROR "ENABLE_PREPARE_KNIME_PACKAGE requires BUILD_TOPP_TOOLS to be ON.")
-	endif()
-	include(${OPENMS_HOST_DIRECTORY}/cmake/knime_package_support.cmake)
-endif()
 
 #------------------------------------------------------------------------------
 # CWL generation (updates openms/share/commonwl/*.cwl files for all TOPP tools)

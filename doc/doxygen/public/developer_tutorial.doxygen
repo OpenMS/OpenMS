@@ -65,7 +65,7 @@ The %OpenMS software framework consists of three main layers:
 <br>
 - <b>TOPP tools:</b> The @ref TOPP_documentation["The %OpenMS PiPeline (TOPP)"] is a set of executables covering most core tasks in computational mass spectrometry and has grown beyond proteomics applications and now includes Metabolomics and others. These tools are created using algorithms from the %OpenMS library. These tools form the building blocks of complex workflows. 
 <br>
-- <b>Workflow:</b> a set of over 185 different tools for common mass spectrometric tasks can be accessed by routine users through workflow systems, such as KNIME or Galaxy, the OpenMS-specific @ref TOPPAS_tutorial["TOPPAS"], or even custom bash scripts. 
+- <b>Workflow:</b> a set of over 185 different tools for common mass spectrometric tasks can be accessed by routine users through workflow systems, such as Nextflow or Galaxy, the OpenMS-specific @ref TOPPAS_tutorial["TOPPAS"], or even custom bash scripts. 
 <br>
 
 Each level of increasing abstraction provides better usability, but limits the extensibility as the Python and workflow levels only have access to the exposed Python API or the available set of TOPP tools respectively. Increasing abstraction, however, makes it easier to design and execute complex analyses, even across multiple omics types. By following a layered design the different needs of bioinformaticians and life scientists are addressed. <br>
@@ -510,7 +510,7 @@ Digest amino acid sequence
 
 @section tutorial_tooldev Tool development
 @subsection tutorial_topp TOPP-Tool
-TOPP (The %OpenMS Pipeline) tools are small command line applications built using the %OpenMS library. They act as building blocks for complex analysis workflows and may perform e.g. simple signal processing tasks like filtering, up to more complex tasks like protein inference and quantitation over several MS runs. Common to all TOPP tools is a command line interface allowing automatic integration into workflow engines like KNIME. They are the preferred way to integrate novel methods as application into %OpenMS.
+TOPP (The %OpenMS Pipeline) tools are small command line applications built using the %OpenMS library. They act as building blocks for complex analysis workflows and may perform e.g. simple signal processing tasks like filtering, up to more complex tasks like protein inference and quantitation over several MS runs. Common to all TOPP tools is a command line interface allowing automatic integration into workflow engines like Nextflow. They are the preferred way to integrate novel methods as application into %OpenMS.
 When we first create a novel TOPP tool it is considered unstable. To set it apart from the stable and well tested tools it gets first created as TOPP Util (note: the name “util” has historic reasons and may be changed to unstable tools in the future).
 If it is well tested it will be promoted to a stable Tool in future %OpenMS versions.
 
@@ -536,7 +536,7 @@ This creates a manual (doxygen) page with the information –help output of the 
 - Write the basic documentation (doxygen docu). You probably need to refine it later but you can already insert the correct Toolname etc..
 
 @subsection tutorial_param_def Define tool parameters
-Define tool parameters Each TOPP tool defines a set of parameters that will be available from the command line, KNIME, and other workflow systems. This is done in the void registerOptionsAndFlags_() method. In our case we want to read a protein database (fasta format), a file containing identification data (idXML format), and an option to switch between keeping (whitelisting) and removing (blacklisting) entries based on the filter result. This is our input. The reduced database forms the output and should be written to a protein database in fasta format. This is easily done by adding following lines to:
+Define tool parameters Each TOPP tool defines a set of parameters that will be available from the command line and from workflow systems. This is done in the void registerOptionsAndFlags_() method. In our case we want to read a protein database (fasta format), a file containing identification data (idXML format), and an option to switch between keeping (whitelisting) and removing (blacklisting) entries based on the filter result. This is our input. The reduced database forms the output and should be written to a protein database in fasta format. This is easily done by adding following lines to:
 <br><br>
 <b>Example: Tutorial_TOPP.cpp</b>
 <br>

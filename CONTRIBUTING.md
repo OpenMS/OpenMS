@@ -19,7 +19,7 @@ To do so, open a [new issue](https://github.com/OpenMS/OpenMS/issues/new/choose)
 If you found a bug, e.g. an OpenMS tool crashes during data processing, it is essential to provide some basic information:
   - the OpenMS version you are running
   - the platform you are running OpenMS on (Windows 10, ...)
-  - how you installed OpenMS (e.g., from within KNIME, binary installers, self compiled)
+  - how you installed OpenMS (e.g., conda, binary installers, self compiled)
   - a description on how to reproduce the bug
   - relevant tool output (e.g., error messages)
   - data to repoduce the bug (If possible as a GitHub gist. Other platforms like Dropbox, Google Drive links also work. If you can't share the data publicly please indicate this and we will contact you in private.)

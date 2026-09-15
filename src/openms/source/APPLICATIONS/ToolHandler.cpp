@@ -18,7 +18,7 @@ namespace OpenMS
   ToolListType ToolHandler::getTOPPToolList()
   {
     ToolListType tools_map;
-    // Note: don't use special characters like slashes in category names (leads to subcategories in KNIME)
+    // Note: don't use special characters like slashes in category names (some workflow systems read them as subcategories)
     const auto cat_calibration = "Mass Correction and Calibration";
     const auto cat_centroiding = "Spectrum processing: Centroiding";
     const auto cat_crosslinking = "Cross-Linking";

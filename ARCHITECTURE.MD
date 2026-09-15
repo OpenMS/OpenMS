@@ -148,7 +148,7 @@ The OpenMS architecture is designed for extensibility at multiple levels:
 
 ### Workflow Customization
 - Users can combine OpenMS tools with custom scripts (e.g., via pyOpenMS)
-- Support for workflow systems like KNIME and Galaxy
+- Support for workflow systems like Nextflow and Galaxy
 - Parameter files (INI format) for tool configuration and chaining
 - TOPPAS workflow editor for visual pipeline construction
 
