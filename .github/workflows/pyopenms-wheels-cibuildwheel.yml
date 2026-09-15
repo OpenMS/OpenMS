@@ -644,12 +644,15 @@ jobs:
         with:
           # src/pyOpenMS/tests and the class-test data it reads are needed here
           # because this job, not cibuildwheel, is what now runs the full suite
-          # on every supported interpreter.
+          # on every supported interpreter. fix_stubs.py is build tooling the
+          # stub regression tests load directly; the package's own files they
+          # need come from the installed wheel.
           sparse-checkout: |
             tools/ci/fetch_thermo_assets.sh
             cmake/cmake_findExternalLibs.cmake
             src/pyOpenMS/tests
             src/pyOpenMS/pyproject.toml
+            src/pyOpenMS/fix_stubs.py
             src/tests/class_tests/openms/data
             src/tests/topp
           sparse-checkout-cone-mode: false
