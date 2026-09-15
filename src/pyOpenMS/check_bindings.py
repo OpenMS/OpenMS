@@ -48,6 +48,12 @@ def _search_dirs(package_dir: Path) -> list[Path]:
         if entry:
             dirs.append(Path(entry))
     if sys.platform == "win32":
+        # The application directory is part of the default search order, and it
+        # is where python3.dll lives -- a load-time import of every stable-ABI
+        # module. Without it the report would list python3.dll as unresolvable
+        # fifteen times over and bury the real culprit.
+        exe_dir = Path(sys.executable).resolve().parent
+        dirs += [exe_dir, exe_dir / "DLLs"]
         system32 = Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32"
         dirs.append(system32)
     return dirs
@@ -133,6 +139,13 @@ def _report_windows_dependencies(package_dir: Path, dirs: list[Path]) -> None:
         for name in sorted(unresolved):
             needed_by = ", ".join(sorted(unresolved[name]))
             print(f"  {name}   (needed by {needed_by})", file=sys.stderr)
+        print(
+            "\nCMake can only list directories it was told about. Put the prefix "
+            "holding the missing DLL on CMAKE_PREFIX_PATH (its bin/ and lib/ are "
+            "then searched), or name the directory in PYOPENMS_DLL_PATH "
+            "(os.pathsep-separated), or configure with -DPYOPENMS_GENERATE_STUBS=OFF.",
+            file=sys.stderr,
+        )
     else:
         print(
             "\nEvery direct dependency resolves in the search directories above; "

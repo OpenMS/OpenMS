@@ -133,8 +133,10 @@ endif()
 #
 # Collected once here rather than at each use site, because the two hand-rolled
 # lists that existed were each missing a different piece. Both were built from
-# OPENMS_CONTRIB_LIBS and QT_INSTALL_BINS -- neither of which is defined when
-# src/pyOpenMS is the top-level project under py-build-cmake -- and neither
+# OPENMS_CONTRIB_LIBS -- not defined when src/pyOpenMS is the top-level project
+# under py-build-cmake -- and QT_INSTALL_BINS, which is never defined here at
+# all (cmake/knime_package_support.cmake sets it, and the root project includes
+# that after add_subdirectory(src), only for KNIME packaging). And neither
 # looked in a contrib *bin* directory at all. On Windows CMake installs DLLs to
 # <prefix>/bin (RUNTIME) and import libraries to <prefix>/lib (ARCHIVE), so a
 # contrib built with BUILD_SHARED_LIBS=ON puts its DLLs where a lib-only list
@@ -179,20 +181,13 @@ function(_pyopenms_windows_dll_dirs out_var)
   endforeach()
 
   # An in-tree build knows the contrib prefix directly; a standalone one does not.
+  # (No Qt entry: the core library does not link Qt, and a Qt prefix that is on
+  # CMAKE_PREFIX_PATH is already covered above.)
   if(OPENMS_CONTRIB_LIBS)
     list(APPEND _dirs
       "${OPENMS_CONTRIB_LIBS}/bin"
       "${OPENMS_CONTRIB_LIBS}/lib"
       "${OPENMS_CONTRIB_LIBS}/lib64")
-  endif()
-  # Only defined by a WITH_GUI build of the enclosing project (Qt is not linked
-  # by the core library), so this is inert for the wheel build rather than the
-  # dead weight it looked like when it was the only contrib-adjacent entry.
-  if(QT_INSTALL_BINS)
-    list(APPEND _dirs "${QT_INSTALL_BINS}")
-  endif()
-  if(QT_INSTALL_LIBS)
-    list(APPEND _dirs "${QT_INSTALL_LIBS}")
   endif()
 
   # Only removes textual duplicates: two generator expressions that expand to the
@@ -689,6 +684,24 @@ else()
           "${Python_EXECUTABLE} has nanobind ${_pyopenms_stubgen_nanobind_version}, but the modules are built against nanobind ${PYOPENMS_NANOBIND_VERSION}")
     endif()
 
+    # Importing nanobind is not enough in split mode: every extension calls
+    # PyImport_ImportModule("nanobind_backend") at module init, and that module
+    # ships as the separate nanobind-backend distribution, never as part of
+    # nanobind. A developer interpreter with the one but not the other used to
+    # get failing pyopenms tests; now that the stub target is part of the default
+    # build, it would get a failing build -- so probe it here and treat it like
+    # any other stubgen prerequisite.
+    if(PYOPENMS_SPLIT_MODE AND NOT _pyopenms_stubgen_problem)
+      execute_process(
+        COMMAND "${Python_EXECUTABLE}" -c "import nanobind_backend"
+        RESULT_VARIABLE _pyopenms_stubgen_backend_result
+        OUTPUT_QUIET ERROR_QUIET)
+      if(NOT _pyopenms_stubgen_backend_result EQUAL 0)
+        set(_pyopenms_stubgen_problem
+            "${Python_EXECUTABLE} cannot import nanobind_backend, which split-mode extensions need at import time (pip install nanobind-backend)")
+      endif()
+    endif()
+
     # Now that the stub target is actually built (it is a dependency of the
     # aggregate pyopenms target), this is the difference between a build that
     # fails and one that quietly ships no stubs -- so it has to be decided here
@@ -704,13 +717,14 @@ else()
       if(DEFINED PY_BUILD_CMAKE_VERSION)
         message(FATAL_ERROR
           "Cannot generate .pyi stubs: ${_pyopenms_stubgen_problem}. A wheel built now "
-          "would ship no type information. Install nanobind >= "
-          "${PYOPENMS_NANOBIND_MIN_VERSION} for that interpreter, or configure with "
+          "would ship no type information. Fix that for the interpreter (nanobind >= "
+          "${PYOPENMS_NANOBIND_MIN_VERSION} and nanobind-backend), or configure with "
           "-DPYOPENMS_GENERATE_STUBS=OFF to build a deliberately untyped wheel.")
       endif()
       message(WARNING
-        "Disabling stub generation: ${_pyopenms_stubgen_problem}. Install nanobind >= "
-        "${PYOPENMS_NANOBIND_MIN_VERSION} for that interpreter to get .pyi files.")
+        "Disabling stub generation: ${_pyopenms_stubgen_problem}. Fix that for the "
+        "interpreter (nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION} and "
+        "nanobind-backend) to get .pyi files.")
       # A normal variable shadowing the cache entry, so the rest of this file --
       # including the configuration summary -- reports what will really happen.
       set(PYOPENMS_GENERATE_STUBS OFF)
@@ -729,7 +743,26 @@ else()
           "PYOPENMS_DLL_PATH=${_pyopenms_stub_dll_dirs}")
     endif()
 
-    add_custom_target(pyopenms_stubs
+    # Driven by a stamp file rather than a bare add_custom_target: a custom
+    # target with no OUTPUT is always out of date, and now that this is part of
+    # the default build that would mean re-importing the package, re-running
+    # stubgen over the whole API and re-running fix_stubs.py on every no-op
+    # rebuild of an in-tree developer build. The stamp is touched only after the
+    # last step succeeds and lives outside the package directory, so it is never
+    # installed. Listing the extension targets in DEPENDS gives a file-level
+    # dependency on their outputs, so the stubs regenerate when a module is
+    # rebuilt; the Python sources are listed because the stubs describe them too.
+    set(_pyopenms_stubs_stamp "${PYOPENMS_BUILD_DIR}/pyopenms_stubs.stamp")
+    set(_pyopenms_stub_module_targets _pyopenms _arrow_zerocopy)
+    foreach(domain ${PYOPENMS_DOMAINS})
+      list(APPEND _pyopenms_stub_module_targets "_pyopenms_${domain}")
+    endforeach()
+    file(GLOB _pyopenms_stub_python_sources
+         "${PROJECT_SOURCE_DIR}/pyopenms/*.py"
+         "${PROJECT_SOURCE_DIR}/pyopenms/addons/*.py")
+
+    add_custom_command(
+      OUTPUT ${_pyopenms_stubs_stamp}
       # Preflight. stubgen imports the package as a whole, and pyopenms/__init__.py
       # only raises when NOT ONE module imports -- a package missing half its
       # domains still produces stubs, silently describing an incomplete API. Check
@@ -748,21 +781,34 @@ else()
               -p ${CMAKE_CURRENT_SOURCE_DIR}/stubs.patch
       COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
               ${PYOPENMS_BUILD_DIR}/pyopenms
+      COMMAND ${CMAKE_COMMAND} -E touch ${_pyopenms_stubs_stamp}
       WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
-      DEPENDS pyopenms_compile
+      DEPENDS
+        ${_pyopenms_stub_module_targets}
+        ${_pyopenms_stub_python_sources}
+        ${CMAKE_CURRENT_SOURCE_DIR}/check_bindings.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/stubs.patch
       COMMENT "Generating .pyi stub files for pyopenms"
       # Required: PYOPENMS_DLL_PATH is one argument holding a ';'-separated list,
       # which the build tool would otherwise split (or hand to a shell that chokes
       # on it).
       VERBATIM
     )
+    add_custom_target(pyopenms_stubs DEPENDS ${_pyopenms_stubs_stamp})
   else()
     # Stubs are off. Make sure a build directory reused from an earlier run with
     # them on does not still carry .pyi files and the py.typed marker into the
     # wheel, where they would describe a package that no longer matches.
-    file(GLOB _pyopenms_stale_stubs
-         "${PYOPENMS_BUILD_DIR}/pyopenms/*.pyi"
-         "${PYOPENMS_BUILD_DIR}/pyopenms/py.typed")
+    # GLOB_RECURSE: stubgen -r also writes pyopenms/addons/*.pyi, and the
+    # install(DIRECTORY) rule below recurses just the same. The stamp goes too,
+    # or turning stubs back on later would find it up to date and regenerate
+    # nothing.
+    file(GLOB_RECURSE _pyopenms_stale_stubs "${PYOPENMS_BUILD_DIR}/pyopenms/*.pyi")
+    file(GLOB _pyopenms_stale_markers
+         "${PYOPENMS_BUILD_DIR}/pyopenms/py.typed"
+         "${PYOPENMS_BUILD_DIR}/pyopenms_stubs.stamp")
+    list(APPEND _pyopenms_stale_stubs ${_pyopenms_stale_markers})
     if(_pyopenms_stale_stubs)
       message(STATUS "pyOpenMS: removing stale stub files (PYOPENMS_GENERATE_STUBS=OFF)")
       file(REMOVE ${_pyopenms_stale_stubs})
@@ -799,9 +845,10 @@ else()
           TARGET pyopenms_copy_deps POST_BUILD
           # contrib/bin is where a contrib built with BUILD_SHARED_LIBS=ON puts its
           # DLLs on Windows; without it the transitive copy silently misses them
-          # (#10141). QT_INSTALL_* are only defined by a WITH_GUI build and are
-          # empty entries otherwise, which pyopenms_copy_deps.cmake skips.
-          COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${PYOPENMS_BUILD_DIR}/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/bin\;${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
+          # (#10141). The former QT_INSTALL_BINS/QT_INSTALL_LIBS entries are gone:
+          # they were always empty here (set by cmake/knime_package_support.cmake,
+          # which the root project includes after add_subdirectory(src)).
+          COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${PYOPENMS_BUILD_DIR}/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/bin\;${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
           COMMENT "Copying ${PYOPENMS_DEPENDENCY} transitive dependencies"
         )
       endforeach()

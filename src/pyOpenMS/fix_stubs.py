@@ -247,7 +247,8 @@ def ensure_any_import(content: str) -> str:
 
 def fix_stub_file(path: Path) -> bool:
     """Fix a single .pyi file. Returns True if modified."""
-    content = path.read_text()
+    # nanobind's stubgen writes UTF-8; the locale default is cp1252 on Windows.
+    content = path.read_text(encoding="utf-8")
 
     # Multi-line fixes (operate on full content)
     new_content = fix_code_blocks(content)
@@ -276,7 +277,7 @@ def fix_stub_file(path: Path) -> bool:
 
     modified = new_content != content
     if modified:
-        path.write_text(new_content)
+        path.write_text(new_content, encoding="utf-8")
     return modified
 
 

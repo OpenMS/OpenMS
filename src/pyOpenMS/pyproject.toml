@@ -21,13 +21,12 @@ requires = [
     # from_python(handle, uint32_t, cleanup_list*) signature. The upper bound
     # keeps a future nanobind 4 from silently entering isolated builds.
     "nanobind>=3.0.1,<4",
-    # Split-mode extensions call into this at runtime. Kept in the build
-    # requirements too, so that anything the build imports the freshly built
-    # package with -- the pyopenms_stubs target, when it is built explicitly --
-    # can load it. Deliberately unpinned with no upper bound: a newer backend
-    # serves extensions built against an older backend ABI, and 1.0 is the
-    # revision nanobind 3.0.1 declares (NB_BACKEND_ABI_MAJOR 1 /
-    # NB_BACKEND_ABI_MINOR 0 in nb_backend.h).
+    # Split-mode extensions call into this at runtime. A hard build requirement
+    # too: the pyopenms_stubs target is part of the default build and imports
+    # the freshly built package, which cannot load without it. Deliberately
+    # unpinned with no upper bound: a newer backend serves extensions built
+    # against an older backend ABI, and 1.0 is the revision nanobind 3.0.1
+    # declares (NB_BACKEND_ABI_MAJOR 1 / NB_BACKEND_ABI_MINOR 0 in nb_backend.h).
     "nanobind-backend>=1.0",
     "numpy>=2.0",
     "auditwheel; sys_platform == 'linux'",
@@ -146,6 +145,7 @@ include = [
     "bindings/arrow_zerocopy.cpp",
     "bindings/*.h",
     "bindings/type_casters/*.h",
+    "check_bindings.py",
     "fix_stubs.py",
     "stubs.patch",
 ]
