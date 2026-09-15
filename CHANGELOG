@@ -582,6 +582,12 @@ Fixes:
       SMILES, INCHI, ...) no longer inherit the previous block's values, and a block without
       peak lines is read as an empty spectrum instead of being merged with the next block or
       dropped at the end of the file (#10148).
+    - ExperimentalDesignFile rejects a data row with the wrong number of cells with a ParseError
+      naming the line and the expected/actual count, before the row is indexed. A row ending in
+      an empty cell is one cell short after trimming and was read past its end, which crashed
+      ProteomicsLFQ/MSstatsConverter or put garbage into MSstats/Triqler condition and replicate
+      columns. SampleSection::getFactorValue throws MissingInformation for a row without a value
+      for the factor instead of reading past its end (#10148).
   Robustness:
     - File::writable checks no longer delete concurrently created files or report spurious
       failures; temporary directories are claimed atomically. UUID/unique-ID generation
