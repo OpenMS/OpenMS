@@ -839,16 +839,27 @@ else()
       )
       add_dependencies(pyopenms_fix_deps pyopenms_copy_deps)
     else()
-      # Linux/Windows: Copy transitive dependencies (Qt, contrib libs, etc.)
+      # Linux/Windows: Copy transitive dependencies (contrib libs, etc.)
+      #
+      # On Windows the lookup directories are the same list the stub preflight
+      # and the ctest suite are given, so a library the preflight can load is
+      # also one this step can find and copy. With a separate, contrib-only list
+      # a standalone build (OPENMS_CONTRIB_LIBS unset) searched nothing useful,
+      # and the preflight -- whose search path did cover contrib/bin -- would
+      # have passed a package that was about to ship without libcurl.dll.
+      # Elsewhere the contrib layout is all there is; the former
+      # QT_INSTALL_BINS/QT_INSTALL_LIBS entries are gone because they were
+      # always empty here (set by cmake/knime_package_support.cmake, which the
+      # root project includes after add_subdirectory(src)).
+      if(WIN32)
+        _pyopenms_windows_dll_dirs(_pyopenms_copy_lookup_dirs)
+      else()
+        set(_pyopenms_copy_lookup_dirs "${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64")
+      endif()
       foreach(PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
         add_custom_command(
           TARGET pyopenms_copy_deps POST_BUILD
-          # contrib/bin is where a contrib built with BUILD_SHARED_LIBS=ON puts its
-          # DLLs on Windows; without it the transitive copy silently misses them
-          # (#10141). The former QT_INSTALL_BINS/QT_INSTALL_LIBS entries are gone:
-          # they were always empty here (set by cmake/knime_package_support.cmake,
-          # which the root project includes after add_subdirectory(src)).
-          COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${PYOPENMS_BUILD_DIR}/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/bin\;${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
+          COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${PYOPENMS_BUILD_DIR}/pyopenms/" -DLOOKUP_DIRS="${_pyopenms_copy_lookup_dirs}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
           COMMENT "Copying ${PYOPENMS_DEPENDENCY} transitive dependencies"
         )
       endforeach()

@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# --------------------------------------------------------------------------
+# $Maintainer: Timo Sachsenberg $
+# $Authors: Timo Sachsenberg $
+# --------------------------------------------------------------------------
 """Verify that every expected pyOpenMS extension module imports.
 
 Run before ``nanobind.stubgen``. Two reasons it exists:
@@ -155,6 +159,12 @@ def _report_windows_dependencies(package_dir: Path, dirs: list[Path]) -> None:
 
 
 def _report_environment(package_dir: Path, dirs: list[Path]) -> None:
+    """Print what the loader had to work with, to stderr.
+
+    Interpreter, search directories with the libraries each one holds, and on
+    Windows the dependency names that resolve nowhere -- the information the
+    loader's own error message leaves out.
+    """
     print("\n--- pyOpenMS import diagnostics ---", file=sys.stderr)
     print(f"interpreter : {sys.executable}", file=sys.stderr)
     print(f"version     : {sys.version.splitlines()[0]}", file=sys.stderr)
@@ -186,6 +196,7 @@ def _report_environment(package_dir: Path, dirs: list[Path]) -> None:
 
 
 def main() -> int:
+    """Import every expected module; return 0 if all load, 1 with diagnostics otherwise."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--package-dir",
