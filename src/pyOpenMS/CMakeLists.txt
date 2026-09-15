@@ -120,6 +120,95 @@ if(NOT DEFINED PYOPENMS_BUILD_DIR OR "${PYOPENMS_BUILD_DIR}" STREQUAL "")
   set(PYOPENMS_BUILD_DIR "${CMAKE_BINARY_DIR}/pyOpenMS")
 endif()
 
+# --------------------------------------------------------------------------
+# Windows DLL search path for in-tree imports
+# --------------------------------------------------------------------------
+# Windows has no RPATH, and since Python 3.8 an extension module's dependent
+# DLLs are resolved only from the module's own directory, System32 and the
+# directories registered with os.add_dll_directory() -- never from PATH.
+# pyopenms/__init__.py registers everything listed in the PYOPENMS_DLL_PATH
+# environment variable, so every in-tree `import pyopenms` (the ctest suite and
+# the stub generator) has to be handed the directories holding OpenMS.dll and
+# its transitive dependencies.
+#
+# Collected once here rather than at each use site, because the two hand-rolled
+# lists that existed were each missing a different piece. Both were built from
+# OPENMS_CONTRIB_LIBS and QT_INSTALL_BINS -- neither of which is defined when
+# src/pyOpenMS is the top-level project under py-build-cmake -- and neither
+# looked in a contrib *bin* directory at all. On Windows CMake installs DLLs to
+# <prefix>/bin (RUNTIME) and import libraries to <prefix>/lib (ARCHIVE), so a
+# contrib built with BUILD_SHARED_LIBS=ON puts its DLLs where a lib-only list
+# can never find them. That is not hypothetical: the wheel workflow builds
+# libcurl shared into contrib/bin, and libcurl.dll is a load-time import of
+# OpenMS.dll, so every extension module failed to load with the loader's
+# unhelpful "The specified module could not be found" (#10141).
+function(_pyopenms_windows_dll_dirs out_var)
+  # Caller-supplied directories come first: the environment is the only way an
+  # enclosing build or a CI job can point at something CMake cannot know about.
+  set(_dirs "")
+  if(NOT "$ENV{PYOPENMS_DLL_PATH}" STREQUAL "")
+    # A Windows PATH-style value, so ';' already makes it a CMake list.
+    list(APPEND _dirs "$ENV{PYOPENMS_DLL_PATH}")
+  endif()
+
+  # Exact locations of the two libraries the modules link against. For an
+  # imported OpenMS::OpenMS (the standalone wheel build) this resolves into the
+  # install tree; in-tree it is the build output directory. Guarded because a
+  # PYOPENMS_USE_PREBUILT configure never resolves the target names.
+  foreach(_target IN ITEMS "${OPENMS_TARGET}" "${OPENSWATHALGO_TARGET}")
+    if(NOT _target STREQUAL "" AND TARGET ${_target})
+      list(APPEND _dirs "$<TARGET_FILE_DIR:${_target}>")
+    endif()
+  endforeach()
+
+  # Every prefix this build was pointed at contributes both of its runtime
+  # directories. Same transform cmake/package_general.cmake uses to feed
+  # install(RUNTIME_DEPENDENCY_SET), and it is what picks up contrib/bin
+  # without anyone having to name it. CMAKE_PREFIX_PATH is read as both a CMake
+  # variable and an environment variable: find_package() consults both, but
+  # only the variable is visible to ordinary script code, and the wheel
+  # workflow supplies the environment one.
+  set(_prefixes ${CMAKE_PREFIX_PATH})
+  if(NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
+    list(APPEND _prefixes "$ENV{CMAKE_PREFIX_PATH}")
+  endif()
+  foreach(_prefix IN LISTS _prefixes)
+    if(NOT _prefix STREQUAL "")
+      list(APPEND _dirs "${_prefix}/bin" "${_prefix}/lib")
+    endif()
+  endforeach()
+
+  # An in-tree build knows the contrib prefix directly; a standalone one does not.
+  if(OPENMS_CONTRIB_LIBS)
+    list(APPEND _dirs
+      "${OPENMS_CONTRIB_LIBS}/bin"
+      "${OPENMS_CONTRIB_LIBS}/lib"
+      "${OPENMS_CONTRIB_LIBS}/lib64")
+  endif()
+  # Only defined by a WITH_GUI build of the enclosing project (Qt is not linked
+  # by the core library), so this is inert for the wheel build rather than the
+  # dead weight it looked like when it was the only contrib-adjacent entry.
+  if(QT_INSTALL_BINS)
+    list(APPEND _dirs "${QT_INSTALL_BINS}")
+  endif()
+  if(QT_INSTALL_LIBS)
+    list(APPEND _dirs "${QT_INSTALL_LIBS}")
+  endif()
+
+  # Only removes textual duplicates: two generator expressions that expand to the
+  # same directory both survive. Registering a directory twice is harmless -- the
+  # loop in pyopenms/__init__.py just calls os.add_dll_directory() again -- and
+  # deduplicating after expansion is not worth it, because $<REMOVE_DUPLICATES>
+  # would have to parse paths that can legitimately contain '(' and ')'.
+  list(REMOVE_DUPLICATES _dirs)
+  # '$<SEMICOLON>' rather than a literal ';': the whole list travels as ONE
+  # command argument, and a bare ';' would split it into separate arguments.
+  # Directories that do not exist are skipped by pyopenms/__init__.py, so the
+  # list may name prefixes that have no bin/ or lib/ subdirectory.
+  list(JOIN _dirs "$<SEMICOLON>" _joined)
+  set(${out_var} "${_joined}" PARENT_SCOPE)
+endfunction()
+
 if(PYOPENMS_USE_PREBUILT)
   if(NOT PYOPENMS_PREBUILT_DIR)
     message(FATAL_ERROR "PYOPENMS_PREBUILT_DIR must be set when PYOPENMS_USE_PREBUILT=ON")
@@ -557,9 +646,13 @@ else()
     endforeach()
   endfunction()
 
-  # Core Python files
+  # Core Python files. py.typed is deliberately NOT copied here: it is the marker
+  # that tells type checkers this package ships inline types, and nanobind.stubgen
+  # writes it itself (its -M flag, below) only after the stubs were produced.
+  # Copying it unconditionally made every wheel advertise types even when stub
+  # generation was off or skipped -- which is what shipped, since the stub target
+  # was never actually built (#10141).
   _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/")
-  _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "py.typed" "${PYOPENMS_BUILD_DIR}/pyopenms/")
 
   # Addon files
   _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/addons/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/addons/")
@@ -586,21 +679,67 @@ else()
       OUTPUT_VARIABLE _pyopenms_stubgen_nanobind_version
       RESULT_VARIABLE _pyopenms_stubgen_nanobind_result
       ERROR_QUIET)
+    set(_pyopenms_stubgen_problem "")
     if(NOT _pyopenms_stubgen_nanobind_result EQUAL 0)
-      message(WARNING
-        "PYOPENMS_GENERATE_STUBS=ON, but ${Python_EXECUTABLE} cannot import nanobind; "
-        "stub generation will fail. Install nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION} "
-        "for that interpreter or configure with -DPYOPENMS_GENERATE_STUBS=OFF.")
+      set(_pyopenms_stubgen_problem
+          "${Python_EXECUTABLE} cannot import nanobind")
     elseif(_pyopenms_stubgen_nanobind_version VERSION_LESS PYOPENMS_NANOBIND_MIN_VERSION)
+      # One quoted argument: two would make this a CMake list and print as 'a;b'.
+      set(_pyopenms_stubgen_problem
+          "${Python_EXECUTABLE} has nanobind ${_pyopenms_stubgen_nanobind_version}, but the modules are built against nanobind ${PYOPENMS_NANOBIND_VERSION}")
+    endif()
+
+    # Now that the stub target is actually built (it is a dependency of the
+    # aggregate pyopenms target), this is the difference between a build that
+    # fails and one that quietly ships no stubs -- so it has to be decided here
+    # rather than left as a warning about something that "will fail" later.
+    #
+    # Packaging is the case where a missing stub set is a defect in the artifact,
+    # and nanobind is a declared build requirement there, so refuse to configure.
+    # Any other build (a developer's in-tree OpenMS build, where nanobind may have
+    # come from the FetchContent fallback and be unimportable from this
+    # interpreter) keeps working, without stubs. Same split as the stable-ABI
+    # guards above: fatal only when py-build-cmake is driving the configure.
+    if(_pyopenms_stubgen_problem)
+      if(DEFINED PY_BUILD_CMAKE_VERSION)
+        message(FATAL_ERROR
+          "Cannot generate .pyi stubs: ${_pyopenms_stubgen_problem}. A wheel built now "
+          "would ship no type information. Install nanobind >= "
+          "${PYOPENMS_NANOBIND_MIN_VERSION} for that interpreter, or configure with "
+          "-DPYOPENMS_GENERATE_STUBS=OFF to build a deliberately untyped wheel.")
+      endif()
       message(WARNING
-        "Stub generation uses nanobind ${_pyopenms_stubgen_nanobind_version} from "
-        "${Python_EXECUTABLE}, but the modules are built against nanobind "
-        "${PYOPENMS_NANOBIND_VERSION}. Install nanobind >= "
-        "${PYOPENMS_NANOBIND_MIN_VERSION} for that interpreter.")
+        "Disabling stub generation: ${_pyopenms_stubgen_problem}. Install nanobind >= "
+        "${PYOPENMS_NANOBIND_MIN_VERSION} for that interpreter to get .pyi files.")
+      # A normal variable shadowing the cache entry, so the rest of this file --
+      # including the configuration summary -- reports what will really happen.
+      set(PYOPENMS_GENERATE_STUBS OFF)
+    endif()
+  endif()
+
+  if(PYOPENMS_GENERATE_STUBS)
+    # nanobind.stubgen generates stubs by IMPORTING the freshly built package, so
+    # the modules and every native library behind them must be loadable at this
+    # point in the build. On Windows that needs an explicit search path (see the
+    # helper above); elsewhere RPATH already covers it and the variable is inert.
+    set(_pyopenms_stub_cmd_prefix "")
+    if(WIN32)
+      _pyopenms_windows_dll_dirs(_pyopenms_stub_dll_dirs)
+      set(_pyopenms_stub_cmd_prefix ${CMAKE_COMMAND} -E env
+          "PYOPENMS_DLL_PATH=${_pyopenms_stub_dll_dirs}")
     endif()
 
     add_custom_target(pyopenms_stubs
-      COMMAND ${Python_EXECUTABLE} -m nanobind.stubgen
+      # Preflight. stubgen imports the package as a whole, and pyopenms/__init__.py
+      # only raises when NOT ONE module imports -- a package missing half its
+      # domains still produces stubs, silently describing an incomplete API. Check
+      # every expected module first, and report which native library is missing
+      # instead of leaving the loader's "The specified module could not be found".
+      COMMAND ${_pyopenms_stub_cmd_prefix} ${Python_EXECUTABLE}
+              ${CMAKE_CURRENT_SOURCE_DIR}/check_bindings.py
+              --package-dir ${PYOPENMS_BUILD_DIR}/pyopenms
+              --domains ${PYOPENMS_DOMAINS}
+      COMMAND ${_pyopenms_stub_cmd_prefix} ${Python_EXECUTABLE} -m nanobind.stubgen
               -m pyopenms
               -r                          # recurse into submodules
               -P                          # include private members
@@ -612,7 +751,22 @@ else()
       WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
       DEPENDS pyopenms_compile
       COMMENT "Generating .pyi stub files for pyopenms"
+      # Required: PYOPENMS_DLL_PATH is one argument holding a ';'-separated list,
+      # which the build tool would otherwise split (or hand to a shell that chokes
+      # on it).
+      VERBATIM
     )
+  else()
+    # Stubs are off. Make sure a build directory reused from an earlier run with
+    # them on does not still carry .pyi files and the py.typed marker into the
+    # wheel, where they would describe a package that no longer matches.
+    file(GLOB _pyopenms_stale_stubs
+         "${PYOPENMS_BUILD_DIR}/pyopenms/*.pyi"
+         "${PYOPENMS_BUILD_DIR}/pyopenms/py.typed")
+    if(_pyopenms_stale_stubs)
+      message(STATUS "pyOpenMS: removing stale stub files (PYOPENMS_GENERATE_STUBS=OFF)")
+      file(REMOVE ${_pyopenms_stale_stubs})
+    endif()
   endif()
 
   # --------------------------------------------------------------------------
@@ -643,7 +797,11 @@ else()
       foreach(PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
         add_custom_command(
           TARGET pyopenms_copy_deps POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${PYOPENMS_BUILD_DIR}/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
+          # contrib/bin is where a contrib built with BUILD_SHARED_LIBS=ON puts its
+          # DLLs on Windows; without it the transitive copy silently misses them
+          # (#10141). QT_INSTALL_* are only defined by a WITH_GUI build and are
+          # empty entries otherwise, which pyopenms_copy_deps.cmake skips.
+          COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${PYOPENMS_BUILD_DIR}/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/bin\;${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
           COMMENT "Copying ${PYOPENMS_DEPENDENCY} transitive dependencies"
         )
       endforeach()
@@ -710,14 +868,28 @@ endif()
 # --------------------------------------------------------------------------
 if(NOT PYOPENMS_USE_PREBUILT)
   add_custom_target(pyopenms ALL)
+  # The last step that puts a file into ${PYOPENMS_BUILD_DIR}/pyopenms. Stub
+  # generation imports the package from there, so it has to run after this one:
+  # when dependencies are bundled, the libraries the modules need are only
+  # alongside them once the copy/fix step has finished.
   if(NOT NO_DEPENDENCIES)
     if(APPLE)
-      add_dependencies(pyopenms pyopenms_fix_deps)
+      set(_pyopenms_package_ready pyopenms_fix_deps)
     else()
-      add_dependencies(pyopenms pyopenms_copy_deps)
+      set(_pyopenms_package_ready pyopenms_copy_deps)
     endif()
   else()
-    add_dependencies(pyopenms pyopenms_compile)
+    set(_pyopenms_package_ready pyopenms_compile)
+  endif()
+  add_dependencies(pyopenms ${_pyopenms_package_ready})
+
+  # Stub generation is part of building pyOpenMS. It used to be neither in ALL nor
+  # reachable from this target, so `.pyi` files were never produced during a wheel
+  # build even with PYOPENMS_GENERATE_STUBS=ON -- the option only defined the
+  # target (#10141).
+  if(PYOPENMS_GENERATE_STUBS)
+    add_dependencies(pyopenms_stubs ${_pyopenms_package_ready})
+    add_dependencies(pyopenms pyopenms_stubs)
   endif()
 else()
   add_custom_target(pyopenms ALL)
@@ -749,16 +921,13 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   # variable it also reaches child processes that some tests spawn to
   # `import pyopenms`. Harmless no-op when the dependencies are already bundled
   # (NO_DEPENDENCIES=OFF) and on non-Windows.
+  #
+  # Same directory list as the stub generator uses -- in particular it now covers
+  # the contrib *bin* directory, where a contrib built with shared libraries puts
+  # its DLLs (#10141); this list previously named only contrib/lib.
   set(_pyopenms_test_cmd_prefix "")
   if(WIN32)
-    set(_pyopenms_dll_dirs "$<TARGET_FILE_DIR:${OPENMS_TARGET}>")
-    string(APPEND _pyopenms_dll_dirs "$<SEMICOLON>$<TARGET_FILE_DIR:${OPENSWATHALGO_TARGET}>")
-    if(OPENMS_CONTRIB_LIBS)
-      string(APPEND _pyopenms_dll_dirs "$<SEMICOLON>${OPENMS_CONTRIB_LIBS}/lib")
-    endif()
-    if(QT_INSTALL_BINS)
-      string(APPEND _pyopenms_dll_dirs "$<SEMICOLON>${QT_INSTALL_BINS}")
-    endif()
+    _pyopenms_windows_dll_dirs(_pyopenms_dll_dirs)
     set(_pyopenms_test_cmd_prefix ${CMAKE_COMMAND} -E env "PYOPENMS_DLL_PATH=${_pyopenms_dll_dirs}")
   endif()
 

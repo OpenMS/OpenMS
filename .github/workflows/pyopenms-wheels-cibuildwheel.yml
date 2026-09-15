@@ -582,8 +582,21 @@ jobs:
             CMAKE_PREFIX_PATH="${{ env.QT_CMAKE }}/lib/cmake;${{ env.QT_CMAKE }};${{ env.CONTRIB_CMAKE }};${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_BUILD_PARALLEL_LEVEL=2
             PYOPENMS_THERMO_RAW_TEST_FILE="${{ env.THERMO_RAW_TEST_FILE }}"
-          # install/bin and install/lib also hold openms_thermo_bridge.dll and nethost.dll
-          CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path ${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
+          # install/bin also holds openms_thermo_bridge.dll and nethost.dll (on
+          # Windows INSTALL_LIB_DIR is 'bin', so that is where the DLLs land).
+          #
+          # contrib/bin has to be listed and has to come first. The "Build libcurl
+          # from source" step above installs libcurl.dll there (CMake puts DLLs in
+          # <prefix>/bin and only the import library in <prefix>/lib), and
+          # libcurl.dll is a load-time dependency of OpenMS.dll. delvewheel does not
+          # fail when a dependency is missing from --add-path: it falls back to the
+          # ambient %PATH%, which on the runner image carries an unrelated
+          # vcpkg-built libcurl 8.13.0-DEV. That is what shipped in every Windows
+          # wheel so far -- a different libcurl from the one OpenMS was linked
+          # against, dragging in a second, mingw-built zlib1.dll alongside contrib's
+          # zlib.dll. Listing contrib/bin first makes the libcurl we built win.
+          # -v so the per-DLL resolution is in the log the next time this is wrong.
+          CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair -v --add-path ${{ env.CONTRIB_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
