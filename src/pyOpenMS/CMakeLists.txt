@@ -763,6 +763,13 @@ else()
 
     add_custom_command(
       OUTPUT ${_pyopenms_stubs_stamp}
+      # Drop the marker and the stamp first. A failed run must not leave the
+      # py.typed of an earlier successful one behind: without the marker the
+      # package is untyped under PEP 561, whatever stale .pyi files remain, so
+      # nothing that installs after a failed build advertises types it cannot
+      # vouch for. stubgen's -M writes the marker back only after it succeeds.
+      COMMAND ${CMAKE_COMMAND} -E rm -f
+              ${PYOPENMS_BUILD_DIR}/pyopenms/py.typed ${_pyopenms_stubs_stamp}
       # Preflight. stubgen imports the package as a whole, and pyopenms/__init__.py
       # only raises when NOT ONE module imports -- a package missing half its
       # domains still produces stubs, silently describing an incomplete API. Check
