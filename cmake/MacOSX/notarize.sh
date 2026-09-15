@@ -94,15 +94,25 @@ set -o pipefail
 # (e.g. "The Internet connection appears to be offline" while long-polling
 # Apple's notary service), which fails the whole submission even though
 # neither the build nor the package is at fault. Retry the submission a
-# few times with a short backoff before giving up.
+# few times with a short backoff before giving up -- but only for that
+# class of failure. notarytool also exits non-zero when Apple genuinely
+# rejects the package (status: Invalid) or on other hard errors (bad
+# credentials, unsupported file, ...); those are deterministic, so
+# resubmitting the same package would just waste time and delay the real
+# diagnosis. Only retry when the log matches a known transient-network
+# signature.
 MAX_SUBMIT_ATTEMPTS=3
 SUBMIT_RETRY_DELAY=30
 SUBMIT_SUCCEEDED=false
 
+is_transient_network_error() {
+    grep -qE 'NSURLErrorDomain|Could not connect to the server|network connection was lost|timed out|appears to be offline' "$1"
+}
+
 for attempt in $(seq 1 "$MAX_SUBMIT_ATTEMPTS"); do
     if [[ "$attempt" -gt 1 ]]; then
         echo ""
-        echo "=== Retrying notarization submission (attempt $attempt/$MAX_SUBMIT_ATTEMPTS) after a transient failure ==="
+        echo "=== Retrying notarization submission (attempt $attempt/$MAX_SUBMIT_ATTEMPTS) after a transient network failure ==="
         sleep "$SUBMIT_RETRY_DELAY"
     fi
 
@@ -116,7 +126,12 @@ for attempt in $(seq 1 "$MAX_SUBMIT_ATTEMPTS"); do
         break
     fi
 
-    echo "Warning: notarytool submission attempt $attempt/$MAX_SUBMIT_ATTEMPTS failed."
+    if ! is_transient_network_error "$NOTARIZE_LOG"; then
+        echo "Error: notarytool submission failed with a non-network error; not retrying."
+        break
+    fi
+
+    echo "Warning: notarytool submission attempt $attempt/$MAX_SUBMIT_ATTEMPTS failed with a transient network error."
 done
 
 if [[ "$SUBMIT_SUCCEEDED" = true ]]; then
@@ -188,7 +203,7 @@ if [[ "$SUBMIT_SUCCEEDED" = true ]]; then
         exit 1
     fi
 else
-    echo "Error: notarytool submission failed after $MAX_SUBMIT_ATTEMPTS attempts!"
+    echo "Error: notarytool submission failed!"
     cat "$NOTARIZE_LOG"
 
     # Clean up temporary zip if we created one
