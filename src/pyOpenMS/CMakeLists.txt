@@ -12,7 +12,11 @@
 # --------------------------------------------------------------------------
 
 # Required when this file is the top-level project (py-build-cmake / pip install .).
-# Keep in sync with the minimum in the root CMakeLists.txt.
+# Keep in sync with the minimum in the root CMakeLists.txt. Note that this is the
+# floor for a plain pyOpenMS build; split mode (PYOPENMS_SPLIT_MODE, the default)
+# additionally requires CMake 3.26 for FindPython's Development.SABIModule and
+# checks for it below. That requirement is deliberately scoped to pyOpenMS -- the
+# C++-only OpenMS build still needs no more than 3.24.
 cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 project("pyOpenMS" LANGUAGES CXX)
 
@@ -31,6 +35,79 @@ option(NO_DEPENDENCIES "Do not bundle dependencies (use wheel repair tools inste
 option(NO_SHARE "Do not bundle share data into wheel" OFF)
 option(PYOPENMS_GENERATE_STUBS "Generate .pyi stub files" ON)
 option(PYOPENMS_PREPARE_WHEEL_REPAIR "Set RPATH for wheel repair tools (auditwheel/delocate)" OFF)
+
+# Split mode compiles every extension against Python's stable ABI and moves
+# nanobind's version-specific runtime out into the separate nanobind-backend
+# package, so a single cp311-abi3 wheel per platform serves every supported
+# CPython. Turning it off builds interpreter-specific modules instead, which is
+# useful locally but must not be packaged as an abi3 wheel (see the guard below).
+option(PYOPENMS_SPLIT_MODE "Build stable-ABI (abi3) extensions in nanobind split mode" ON)
+
+# The stable-ABI floor has to be one number rather than two that happen to agree:
+# CMake turns STABLE_ABI_VERSION into Py_LIMITED_API, py-build-cmake turns
+# abi3_minimum_cpython_version into the wheel's cp<N>-abi3 tag, and nothing
+# connects the two. Read the value out of pyproject.toml so the default here is
+# that same number instead of a second copy that can drift away from it.
+set(_pyopenms_abi3_floor "")
+set(_pyopenms_pyproject "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml")
+if(EXISTS "${_pyopenms_pyproject}")
+  file(STRINGS "${_pyopenms_pyproject}" _pyopenms_abi3_lines
+       REGEX "^[ \t]*abi3_minimum_cpython_version[ \t]*=[ \t]*[0-9]+")
+  # Exactly one key, or we cannot tell which one py-build-cmake will honour.
+  list(LENGTH _pyopenms_abi3_lines _pyopenms_abi3_count)
+  if(_pyopenms_abi3_count EQUAL 1 AND
+     "${_pyopenms_abi3_lines}" MATCHES "=[ \t]*([0-9])([0-9]+)")
+    set(_pyopenms_abi3_floor "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
+  endif()
+endif()
+
+set(PYOPENMS_STABLE_ABI_VERSION "${_pyopenms_abi3_floor}" CACHE STRING
+    "CPython stable-ABI floor for split-mode builds (default: abi3_minimum_cpython_version from pyproject.toml)")
+
+if(PYOPENMS_SPLIT_MODE)
+  # Development.SABIModule arrived in CMake 3.26 and nanobind's split mode
+  # requires that target on Windows. Only pyOpenMS needs it, so this is checked
+  # here rather than raising the C++-only OpenMS minimum in the root project.
+  if(CMAKE_VERSION VERSION_LESS 3.26)
+    message(FATAL_ERROR
+      "pyOpenMS split mode needs CMake 3.26 or newer for the Development.SABIModule "
+      "component of find_package(Python); this is CMake ${CMAKE_VERSION}. Configure "
+      "with -DPYOPENMS_SPLIT_MODE=OFF to build interpreter-specific modules instead.")
+  endif()
+
+  if(NOT PYOPENMS_STABLE_ABI_VERSION)
+    message(FATAL_ERROR
+      "Could not read a single abi3_minimum_cpython_version key from "
+      "${_pyopenms_pyproject}, so the stable-ABI floor for split mode is unknown. Fix "
+      "that key, or pass -DPYOPENMS_STABLE_ABI_VERSION=<major.minor> explicitly.")
+  endif()
+
+  # Overriding the floor only moves Py_LIMITED_API; the wheel keeps the tag
+  # py-build-cmake derives from pyproject.toml. Packaging the two out of step
+  # yields a cp311-abi3 wheel whose modules need a newer interpreter and fail to
+  # import on 3.11. The knob is harmless outside packaging, so only refuse it
+  # when py-build-cmake is the one driving this configure.
+  if(DEFINED PY_BUILD_CMAKE_VERSION AND _pyopenms_abi3_floor AND
+     NOT PYOPENMS_STABLE_ABI_VERSION VERSION_EQUAL "${_pyopenms_abi3_floor}")
+    message(FATAL_ERROR
+      "PYOPENMS_STABLE_ABI_VERSION is ${PYOPENMS_STABLE_ABI_VERSION}, but pyproject.toml "
+      "tags the wheel for Python ${_pyopenms_abi3_floor} via abi3_minimum_cpython_version. "
+      "Packaging that combination would produce a wheel advertising an ABI it was not built "
+      "against. Change abi3_minimum_cpython_version as well if you really want a different "
+      "stable-ABI floor.")
+  endif()
+else()
+  # py-build-cmake tags the wheel cp311-abi3 from pyproject.toml, which only
+  # describes a split-mode build. Refuse to package interpreter-specific modules
+  # under that tag rather than shipping a wheel that lies about its ABI.
+  if(DEFINED PY_BUILD_CMAKE_VERSION)
+    message(FATAL_ERROR
+      "PYOPENMS_SPLIT_MODE=OFF builds interpreter-specific extensions, but "
+      "pyproject.toml tags the wheel as cp311-abi3. Building a wheel this way would "
+      "mislabel it. Override [tool.py-build-cmake.wheel].python_abi too if you really "
+      "want a linked-mode wheel.")
+  endif()
+endif()
 
 set(PYOPENMS_DOMAINS
     kernel metadata chemistry analysis featurefinder
@@ -126,29 +203,123 @@ else()
     endif()
   endif()
 
-  find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
+  # Keep in sync with requires-python in pyproject.toml (pandas 3 also needs >= 3.11)
+  set(PYOPENMS_PYTHON_COMPONENTS Interpreter Development.Module NumPy)
+  if(PYOPENMS_SPLIT_MODE)
+    # nanobind links split-mode extensions against Python::SABIModule on Windows.
+    list(APPEND PYOPENMS_PYTHON_COMPONENTS Development.SABIModule)
+  endif()
+  find_package(Python 3.11 REQUIRED COMPONENTS ${PYOPENMS_PYTHON_COMPONENTS})
+
+  # Targeting a stable ABI newer than the interpreter building us cannot work:
+  # the Limited API its headers expose stops at their own version, so
+  # Py_LIMITED_API would promise symbols that are not there. This is the one
+  # reader of the ABI floor that cannot derive it -- cibuildwheel's TOML has no
+  # interpolation, so [tool.cibuildwheel].build in pyproject.toml names the
+  # frontend literally -- and therefore the one place it can drift. Fail here
+  # rather than compile against a promise the headers do not keep.
+  if(PYOPENMS_SPLIT_MODE AND Python_VERSION VERSION_LESS PYOPENMS_STABLE_ABI_VERSION)
+    message(FATAL_ERROR
+      "Split mode targets the CPython ${PYOPENMS_STABLE_ABI_VERSION} stable ABI, but this "
+      "build runs Python ${Python_VERSION}, whose headers do not have it. Build with "
+      "${PYOPENMS_STABLE_ABI_VERSION} or newer. When packaging, the interpreter is chosen by "
+      "[tool.cibuildwheel].build in pyproject.toml (or CIBW_BUILD), which has to move with "
+      "abi3_minimum_cpython_version.")
+  endif()
+
   find_package(Eigen3 REQUIRED)
 
   # Propagate Python_EXECUTABLE to parent scope so the pyopenms_wheel target can use it
   set(Python_EXECUTABLE "${Python_EXECUTABLE}" PARENT_SCOPE)
 
+  # --------------------------------------------------------------------------
   # Find or fetch nanobind
-  if(NOT TARGET nanobind::nanobind)
-    # Try find_package first (installed via pip or system package)
-    execute_process(
-      COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
-      OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
-    find_package(nanobind CONFIG QUIET)
-    if(NOT nanobind_FOUND)
+  # --------------------------------------------------------------------------
+  # pyOpenMS requires nanobind 3: the custom type casters in
+  # bindings/type_casters/ implement the nanobind 3 caster protocol
+  # (from_python(handle, uint32_t, cleanup_list *)). Keep the minimum in sync
+  # with the nanobind requirement in pyproject.toml.
+  set(PYOPENMS_NANOBIND_MIN_VERSION "3.0.1")
+  set(PYOPENMS_NANOBIND_FETCH_TAG "v3.0.1")
+
+  if(COMMAND nanobind_add_module)
+    # An enclosing project already set nanobind up. Check it instead of silently
+    # bypassing the version requirement. nanobind_VERSION is only defined when
+    # nanobind was located through find_package; otherwise read the version
+    # macros nanobind.h defines, so the check compares a complete version rather
+    # than merely establishing that this is some nanobind 3.
+    set(_pyopenms_nb_version "${nanobind_VERSION}")
+    if(NOT _pyopenms_nb_version)
+      set(_pyopenms_nb_header "${NB_DIR}/include/nanobind/nanobind.h")
+      if(EXISTS "${_pyopenms_nb_header}")
+        file(READ "${_pyopenms_nb_header}" _pyopenms_nb_header_content)
+        set(_pyopenms_nb_parts "")
+        foreach(_pyopenms_nb_component MAJOR MINOR PATCH)
+          # A component can legitimately be 0, so collect matches and count them
+          # instead of testing each captured value for truth.
+          if(_pyopenms_nb_header_content MATCHES
+             "#[ \t]*define[ \t]+NB_VERSION_${_pyopenms_nb_component}[ \t]+([0-9]+)")
+            list(APPEND _pyopenms_nb_parts "${CMAKE_MATCH_1}")
+          endif()
+        endforeach()
+        list(LENGTH _pyopenms_nb_parts _pyopenms_nb_part_count)
+        if(_pyopenms_nb_part_count EQUAL 3)
+          list(JOIN _pyopenms_nb_parts "." _pyopenms_nb_version)
+        endif()
+      endif()
+    endif()
+
+    if(NOT _pyopenms_nb_version)
+      message(FATAL_ERROR
+        "pyOpenMS requires nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION}, but the version of the "
+        "nanobind supplied by the enclosing project could not be determined "
+        "(NB_DIR='${NB_DIR}'). Supply it via "
+        "find_package(nanobind ${PYOPENMS_NANOBIND_MIN_VERSION} CONFIG) so the version is known.")
+    elseif(_pyopenms_nb_version VERSION_LESS PYOPENMS_NANOBIND_MIN_VERSION)
+      message(FATAL_ERROR
+        "pyOpenMS requires nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION}, but the enclosing "
+        "project supplied nanobind ${_pyopenms_nb_version}.")
+    endif()
+    set(PYOPENMS_NANOBIND_VERSION "${_pyopenms_nb_version}")
+  else()
+    # Ask the *selected* interpreter where its nanobind lives, so the frontend we
+    # compile against is the one belonging to the interpreter that later runs
+    # nanobind.stubgen. A caller-supplied nanobind_ROOT/nanobind_DIR wins, but it
+    # still has to satisfy the version requirement below.
+    if(NOT nanobind_ROOT AND NOT nanobind_DIR)
+      execute_process(
+        COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        OUTPUT_VARIABLE nanobind_ROOT
+        RESULT_VARIABLE _nanobind_cmake_dir_result
+        ERROR_QUIET)
+      if(NOT _nanobind_cmake_dir_result EQUAL 0)
+        message(STATUS "No nanobind importable from ${Python_EXECUTABLE}")
+        set(nanobind_ROOT "")
+      endif()
+    endif()
+
+    # Request the minimum explicitly: nanobind ships a SameMajorVersion config,
+    # so this accepts >= 3.0.1 and < 4 and rejects an installed 2.x, which the
+    # previous unversioned find_package would have selected.
+    find_package(nanobind ${PYOPENMS_NANOBIND_MIN_VERSION} CONFIG QUIET)
+    if(nanobind_FOUND)
+      set(PYOPENMS_NANOBIND_VERSION "${nanobind_VERSION}")
+    else()
+      message(STATUS
+        "No nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION} found for ${Python_EXECUTABLE}; "
+        "fetching nanobind ${PYOPENMS_NANOBIND_FETCH_TAG}")
       include(FetchContent)
       FetchContent_Declare(
           nanobind
           GIT_REPOSITORY https://github.com/wjakob/nanobind.git
-          GIT_TAG        v2.10.0
+          GIT_TAG        ${PYOPENMS_NANOBIND_FETCH_TAG}
       )
       FetchContent_MakeAvailable(nanobind)
+      set(PYOPENMS_NANOBIND_VERSION "${PYOPENMS_NANOBIND_FETCH_TAG} (fetched)")
     endif()
   endif()
+  message(STATUS "pyOpenMS: using nanobind ${PYOPENMS_NANOBIND_VERSION} from ${NB_DIR}")
 
   # Patch nanobind's __forceinline → inline on MSVC to avoid O(n²) optimizer
   # blowup that causes multi-hour compile times on large binding files.
@@ -285,13 +456,33 @@ else()
     )
   endfunction()
 
+  # Options shared by every pyOpenMS extension. Keeping them in one variable is
+  # what guarantees all 15 modules land in the same nanobind domain and, in split
+  # mode, target the same stable ABI -- a module added without them would silently
+  # get its own type registry or an interpreter-specific tag.
+  set(PYOPENMS_NB_MODULE_OPTIONS
+    NB_DOMAIN pyopenms  # Share types across modules
+    NOMINSIZE           # Use CMake's default -O3 instead of nanobind's -Os
+  )
+  if(PYOPENMS_SPLIT_MODE)
+    # STABLE_ABI is what actually defines Py_LIMITED_API and gives the module the
+    # .abi3 suffix; STABLE_ABI_VERSION only selects which CPython ABI to target,
+    # and BACKEND_MODULE is what makes this a split build at all. All three are
+    # needed -- STABLE_ABI_VERSION alone would leave a full-API module behind an
+    # abi3 wheel tag.
+    list(APPEND PYOPENMS_NB_MODULE_OPTIONS
+      BACKEND_MODULE nanobind_backend
+      STABLE_ABI
+      STABLE_ABI_VERSION ${PYOPENMS_STABLE_ABI_VERSION}
+    )
+  endif()
+
   # Build each domain submodule
   foreach(domain ${PYOPENMS_DOMAINS})
     set(MODULE_NAME "_pyopenms_${domain}")
 
     nanobind_add_module(${MODULE_NAME}
-      NB_DOMAIN pyopenms  # Share types across modules
-      NOMINSIZE            # Use CMake's default -O3 instead of nanobind's -Os
+      ${PYOPENMS_NB_MODULE_OPTIONS}
       ${PYOPENMS_BINDINGS_DIR}/bind_${domain}.cpp
     )
     _pyopenms_module_props(${MODULE_NAME})
@@ -299,8 +490,7 @@ else()
 
   # Main entry module
   nanobind_add_module(_pyopenms
-    NB_DOMAIN pyopenms
-    NOMINSIZE
+    ${PYOPENMS_NB_MODULE_OPTIONS}
     ${PYOPENMS_BINDINGS_DIR}/main_module.cpp
   )
   _pyopenms_module_props(_pyopenms)
@@ -334,8 +524,7 @@ else()
 
   message(STATUS "pyOpenMS: Building _arrow_zerocopy module")
   nanobind_add_module(_arrow_zerocopy
-    NB_DOMAIN pyopenms
-    NOMINSIZE
+    ${PYOPENMS_NB_MODULE_OPTIONS}
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
   )
   _pyopenms_module_props(_arrow_zerocopy)
@@ -386,6 +575,30 @@ else()
   # Stub generation
   # --------------------------------------------------------------------------
   if(PYOPENMS_GENERATE_STUBS)
+    # nanobind.stubgen is imported from ${Python_EXECUTABLE}, the same interpreter
+    # used for nanobind discovery above. If that interpreter cannot import a
+    # nanobind matching the frontend the modules were compiled against (which
+    # happens when the FetchContent fallback kicked in), the generated stubs would
+    # come from a different nanobind release than the modules.
+    execute_process(
+      COMMAND "${Python_EXECUTABLE}" -c "import nanobind; print(nanobind.__version__)"
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      OUTPUT_VARIABLE _pyopenms_stubgen_nanobind_version
+      RESULT_VARIABLE _pyopenms_stubgen_nanobind_result
+      ERROR_QUIET)
+    if(NOT _pyopenms_stubgen_nanobind_result EQUAL 0)
+      message(WARNING
+        "PYOPENMS_GENERATE_STUBS=ON, but ${Python_EXECUTABLE} cannot import nanobind; "
+        "stub generation will fail. Install nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION} "
+        "for that interpreter or configure with -DPYOPENMS_GENERATE_STUBS=OFF.")
+    elseif(_pyopenms_stubgen_nanobind_version VERSION_LESS PYOPENMS_NANOBIND_MIN_VERSION)
+      message(WARNING
+        "Stub generation uses nanobind ${_pyopenms_stubgen_nanobind_version} from "
+        "${Python_EXECUTABLE}, but the modules are built against nanobind "
+        "${PYOPENMS_NANOBIND_VERSION}. Install nanobind >= "
+        "${PYOPENMS_NANOBIND_MIN_VERSION} for that interpreter.")
+    endif()
+
     add_custom_target(pyopenms_stubs
       COMMAND ${Python_EXECUTABLE} -m nanobind.stubgen
               -m pyopenms
@@ -450,6 +663,7 @@ else()
         endforeach()
       endif()
     endif()
+
   endif()
 
   install(DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/
@@ -606,9 +820,9 @@ message(STATUS "pyOpenMS Configuration Summary:")
 message(STATUS "  Python:            ${Python_EXECUTABLE} (${Python_VERSION})")
 message(STATUS "  NumPy:             ${Python_NumPy_INCLUDE_DIRS}")
 if(nanobind_SOURCE_DIR)
-  message(STATUS "  nanobind:          ${nanobind_SOURCE_DIR}")
+  message(STATUS "  nanobind:          ${PYOPENMS_NANOBIND_VERSION} (${nanobind_SOURCE_DIR})")
 else()
-  message(STATUS "  nanobind:          (found via find_package)")
+  message(STATUS "  nanobind:          ${PYOPENMS_NANOBIND_VERSION} (${NB_DIR})")
 endif()
 message(STATUS "  OpenMS:            ${OpenMS_DIR}")
 message(STATUS "  Domain modules:    ${PYOPENMS_DOMAINS}")

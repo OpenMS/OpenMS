@@ -34,6 +34,9 @@ class TOPPBaseTest
   : public TOPPBase
 {
   public:
+    /// return value of main() for the command line given in the constructor
+    ExitCodes exit_code;
+
     TOPPBaseTest()
       : TOPPBase("TOPPBaseTest", "A test class", false, {}, false)
     {
@@ -43,7 +46,7 @@ class TOPPBaseTest
 #else
       putenv(var);
 #endif
-      main(0,nullptr);
+      exit_code = main(0,nullptr);
     }
 
     TOPPBaseTest(int argc ,const char** argv)
@@ -55,7 +58,7 @@ class TOPPBaseTest
 #else
       putenv(var);
 #endif
-      main(argc,argv);
+      exit_code = main(argc,argv);
     }
 
     void registerOptionsAndFlags_() override
@@ -312,6 +315,48 @@ public:
   }
 };
 
+//test class with boolean string options (restricted to true/false) next to a real flag
+class TOPPBaseBoolOptionTest
+  : public TOPPBase
+{
+public:
+  TOPPBaseBoolOptionTest()
+    : TOPPBase("TOPPBaseBoolOptionTest", "A test class for boolean string options", false, {}, false)
+  {}
+  void registerOptionsAndFlags_() override
+  {
+    registerStringOption_("boolopt", "<bool>", "false", "boolean string option", false);
+    setValidStrings_("boolopt", {"true", "false"});
+    registerStringOption_("boolopt_reversed", "<bool>", "true", "boolean string option with reversed restrictions", false);
+    setValidStrings_("boolopt_reversed", {"false", "true"});
+    registerStringOption_("tristate", "<mode>", "auto", "string option with a third allowed value", false);
+    setValidStrings_("tristate", {"auto", "true", "false"});
+    registerFlag_("flag", "flag description");
+  }
+  ExitCodes run(int argc, const char** argv)
+  {
+    static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
+    return main(argc, argv);
+  }
+  std::string getStringOption(const std::string& name) const
+  {
+    return getStringOption_(name);
+  }
+  Param const& getParam() const
+  {
+    return getParam_();
+  }
+  ExitCodes main_(int /*argc*/, const char** /*argv*/) override
+  {
+    return EXECUTION_OK;
+  }
+};
+
 //test class with optional parameters
 class TOPPBaseCmdParseSubsectionsTest
 : public TOPPBase
@@ -401,7 +446,7 @@ END_SECTION
 //parts to build command lines
 const char* a1 ="TOPPBaseTest";
 const char* a3 ="-ini";
-const char* a5 ="-instance";
+const char* a5 ="-instance"; // removed option; must be rejected as unknown
 const char* a6 ="6";
 // needed to get the correct pathes
 char* a7;
@@ -413,6 +458,11 @@ char* a8;
 std::string temp_a8(OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini"));
 a8 = new char[temp_a8.size() + 1];
 strcpy(a8, temp_a8.c_str());
+//
+char* a4;
+std::string temp_a4(OPENMS_GET_TEST_DATA_PATH("TOPPBase_toolcommon_only.ini"));
+a4 = new char[temp_a4.size() + 1];
+strcpy(a4, temp_a4.c_str());
 //
 const char* a9 ="5";
 const char* a10 ="-stringoption";
@@ -433,10 +483,11 @@ START_SECTION(([EXTRA]std::string const& getIniLocation_() const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIniLocation(),"TOPPBaseTest:1:")
-	//command line
+	//the former '-instance' option is gone: the location is fixed and the option is rejected as unknown
 	const char* instance_cl[3] = {a1, a5, a9}; //command line: "TOPPBaseTest -instance 5"
 	TOPPBaseTest tmp2(3,instance_cl);
-	TEST_EQUAL(tmp2.getIniLocation(),"TOPPBaseTest:5:")
+	TEST_EQUAL(tmp2.getIniLocation(),"TOPPBaseTest:1:")
+	TEST_EQUAL(tmp2.exit_code, TOPPBase::ILLEGAL_PARAMETERS)
 END_SECTION
 
 
@@ -452,24 +503,25 @@ START_SECTION(([EXTRA]std::string getStringOption_(const std::string& name) cons
 	//command line (when there is a ini file value too)
 	const char* both_cl[5] = {a1, a10, a12, a3, a7}; //command line: "TOPPBaseTest -stringoption commandline -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp3(5,both_cl);
+	TEST_EQUAL(tmp3.exit_code, TOPPBase::EXECUTION_OK)
 	TEST_EQUAL(tmp3.getStringOption("stringoption"), "commandline");
 
-	//ini file: instance section
+	//ini file: tool section ("TOPPBaseTest:1:") wins over both common sections
 	const char* common_cl[3] = {a1, a3, a7}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp4(3,common_cl);
+	TEST_EQUAL(tmp4.exit_code, TOPPBase::EXECUTION_OK)
 	TEST_EQUAL(tmp4.getStringOption("stringoption"), "instance1");
-	const char* common5_cl[5] = {a1, a3, a7, a5, a9}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 5"
-	TOPPBaseTest tmp5(5,common5_cl);
-	TEST_EQUAL(tmp5.getStringOption("stringoption"), "instance5");
 
-	//ini file: tool common section
-	const char* common6_cl[5] = {a1, a3, a7, a5, a6}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 6"
-	TOPPBaseTest tmp6(5,common6_cl);
+	//ini file: tool common section ("common:TOPPBaseTest:") wins over the plain common section
+	const char* common6_cl[3] = {a1, a3, a4}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon_only.ini"
+	TOPPBaseTest tmp6(3,common6_cl);
+	TEST_EQUAL(tmp6.exit_code, TOPPBase::EXECUTION_OK)
 	TEST_EQUAL(tmp6.getStringOption("stringoption"), "toolcommon");
 
 	//ini file: common section
-	const char* common7_cl[5] = {a1, a3, a8, a5, a6}; //command line: "TOPPBaseTest -ini data/TOPPBase_common.ini -instance 6"
-	TOPPBaseTest tmp7(5,common7_cl);
+	const char* common7_cl[3] = {a1, a3, a8}; //command line: "TOPPBaseTest -ini data/TOPPBase_common.ini"
+	TOPPBaseTest tmp7(3,common7_cl);
+	TEST_EQUAL(tmp7.exit_code, TOPPBase::EXECUTION_OK)
 	TEST_EQUAL(tmp7.getStringOption("stringoption"), "common");
 
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getStringOption("doubleoption"));
@@ -493,7 +545,7 @@ START_SECTION(([EXTRA]std::string getStringOption_(const std::string& name) cons
 	//remove id pool (the path is dependent on the installation path)
 	p1.remove("TOPPBaseTest:1:id_pool");
 
-	//every parameter except for help,ini.instance, write_ini and write_wsdl
+	//every parameter except for help, ini, write_ini and write_ctd/cwl/json
 	//toolname : TOPPBaseTest
 	p2.setValue("TOPPBaseTest:version",VersionInfo::getVersion());
 	p2.setValue("TOPPBaseTest:1:stringoption","string default","string description");
@@ -864,6 +916,156 @@ START_SECTION(([EXTRA] test flag with trailing arguments))
   TOPPBaseTest tmp_flag2;
   TOPPBase::ExitCodes ec_flag2 = tmp_flag2.main(6, string_cl_flag2);
   TEST_EQUAL(ec_flag2, TOPPBase::ILLEGAL_PARAMETERS)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] flags accept an explicit true/false value))
+{
+  std::string temp_flag_ini(OPENMS_GET_TEST_DATA_PATH("TOPPBase_flag_true.ini"));
+  const char* flag_ini = temp_flag_ini.c_str();
+  const char* val_true = "true";
+  const char* val_false = "false";
+
+  // -flag true
+  const char* cl1[4] = {a1, a11, val_true, test}; //command line: "TOPPBaseTest -flag true -test"
+  TOPPBaseTest t1;
+  TEST_EQUAL(t1.main(4, cl1), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t1.getFlag("flag"), true)
+
+  // -flag false
+  const char* cl2[4] = {a1, a11, val_false, test}; //command line: "TOPPBaseTest -flag false -test"
+  TOPPBaseTest t2;
+  TEST_EQUAL(t2.main(4, cl2), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t2.getFlag("flag"), false)
+
+  // duplicates: the last occurrence wins in both directions
+  const char* cl3[5] = {a1, a11, val_false, a11, test}; //command line: "TOPPBaseTest -flag false -flag -test"
+  TOPPBaseTest t3;
+  TEST_EQUAL(t3.main(5, cl3), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t3.getFlag("flag"), true)
+  const char* cl4[5] = {a1, a11, a11, val_false, test}; //command line: "TOPPBaseTest -flag -flag false -test"
+  TOPPBaseTest t4;
+  TEST_EQUAL(t4.main(5, cl4), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t4.getFlag("flag"), false)
+
+  // a flag enabled in an INI file ...
+  const char* cl5[4] = {a1, a3, flag_ini, test}; //command line: "TOPPBaseTest -ini TOPPBase_flag_true.ini -test"
+  TOPPBaseTest t5;
+  TEST_EQUAL(t5.main(4, cl5), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t5.getFlag("flag"), true)
+  // ... is overridden by '-flag false' on the command line
+  const char* cl6[6] = {a1, a3, flag_ini, a11, val_false, test}; //command line: "TOPPBaseTest -ini TOPPBase_flag_true.ini -flag false -test"
+  TOPPBaseTest t6;
+  TEST_EQUAL(t6.main(6, cl6), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t6.getFlag("flag"), false)
+
+  // only the literal 'true'/'false' is accepted, and only a single token
+  const char* val_upper = "TRUE";
+  const char* cl7[4] = {a1, a11, val_upper, test}; //command line: "TOPPBaseTest -flag TRUE -test"
+  TOPPBaseTest t7;
+  TEST_EQUAL(t7.main(4, cl7), TOPPBase::ILLEGAL_PARAMETERS)
+  const char* cl8[5] = {a1, a11, val_true, a12, test}; //command line: "TOPPBaseTest -flag true commandline -test"
+  TOPPBaseTest t8;
+  TEST_EQUAL(t8.main(5, cl8), TOPPBase::ILLEGAL_PARAMETERS)
+
+  // a value meant for a different parameter is still caught (the mistake fixed in #9850, where a
+  // '-Search:decoys auto' was copied from a tool that registers 'decoys' with a third allowed value)
+  const char* val_auto = "auto";
+  const char* cl9[4] = {a1, a11, val_auto, test}; //command line: "TOPPBaseTest -flag auto -test"
+  TOPPBaseTest t9;
+  TEST_EQUAL(t9.main(4, cl9), TOPPBase::ILLEGAL_PARAMETERS)
+
+  // a negative number is not an option (no letter follows the '-'), so it reaches the flag as a
+  // trailing argument; it must not be mistaken for an explicit boolean
+  const char* val_negative = "-5.5";
+  const char* cl10[4] = {a1, a11, val_negative, test}; //command line: "TOPPBaseTest -flag -5.5 -test"
+  TOPPBaseTest t10;
+  TEST_EQUAL(t10.main(4, cl10), TOPPBase::ILLEGAL_PARAMETERS)
+
+  // two flags in a row: the value belongs to the flag it follows, the preceding one stays bare.
+  // The two flags must end up with different values, otherwise the assertion would also hold for a
+  // parser that wrongly gave the value to '-flag'.
+  const char* no_progress = "-no_progress";
+  const char* cl11[5] = {a1, a11, no_progress, val_false, test}; //command line: "TOPPBaseTest -flag -no_progress false -test"
+  TOPPBaseTest t11;
+  TEST_EQUAL(t11.main(5, cl11), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t11.getFlag("flag"), true)
+  TEST_EQUAL(t11.getFlag("no_progress"), false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] boolean string options may be given without a value))
+{
+  const char* tool = "TOPPBaseBoolOptionTest";
+  const char* boolopt = "-boolopt";
+  const char* boolopt_reversed = "-boolopt_reversed";
+  const char* tristate = "-tristate";
+  const char* val_false = "false";
+
+  // not given: default
+  const char* cl0[2] = {tool, test};
+  TOPPBaseBoolOptionTest t0;
+  TEST_EQUAL(t0.run(2, cl0), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t0.getStringOption("boolopt"), "false")
+
+  // bare option means 'true'
+  const char* cl1[3] = {tool, boolopt, test}; //command line: "TOPPBaseBoolOptionTest -boolopt -test"
+  TOPPBaseBoolOptionTest t1;
+  TEST_EQUAL(t1.run(3, cl1), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t1.getStringOption("boolopt"), "true")
+
+  // ... also as the last argument
+  const char* cl2[3] = {tool, test, boolopt}; //command line: "TOPPBaseBoolOptionTest -test -boolopt"
+  TOPPBaseBoolOptionTest t2;
+  TEST_EQUAL(t2.run(3, cl2), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t2.getStringOption("boolopt"), "true")
+
+  // an explicit value still works
+  const char* cl3[4] = {tool, boolopt, val_false, test}; //command line: "TOPPBaseBoolOptionTest -boolopt false -test"
+  TOPPBaseBoolOptionTest t3;
+  TEST_EQUAL(t3.run(4, cl3), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t3.getStringOption("boolopt"), "false")
+
+  // reversed restriction order is boolean as well
+  const char* cl4[4] = {tool, boolopt_reversed, val_false, test}; //command line: "TOPPBaseBoolOptionTest -boolopt_reversed false -test"
+  TOPPBaseBoolOptionTest t4;
+  TEST_EQUAL(t4.run(4, cl4), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t4.getStringOption("boolopt_reversed"), "false")
+  const char* cl5[3] = {tool, boolopt_reversed, test}; //command line: "TOPPBaseBoolOptionTest -boolopt_reversed -test"
+  TOPPBaseBoolOptionTest t5;
+  TEST_EQUAL(t5.run(3, cl5), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t5.getStringOption("boolopt_reversed"), "true")
+
+  // an option with a third allowed value is not boolean: the bare form is still rejected
+  const char* cl6[3] = {tool, tristate, test}; //command line: "TOPPBaseBoolOptionTest -tristate -test"
+  TOPPBaseBoolOptionTest t6;
+  TEST_EQUAL(t6.run(3, cl6), TOPPBase::ILLEGAL_PARAMETERS)
+
+  // an explicitly empty value is not the bare form and stays invalid
+  const char* val_empty = "";
+  const char* cl7[4] = {tool, boolopt, val_empty, test}; //command line: "TOPPBaseBoolOptionTest -boolopt '' -test"
+  TOPPBaseBoolOptionTest t7;
+  TEST_EQUAL(t7.run(4, cl7), TOPPBase::ILLEGAL_PARAMETERS)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] --help with an explicit false does not print the help))
+{
+  const char* tool = "TOPPBaseBoolOptionTest";
+  const char* help = "--help";
+  const char* val_false = "false";
+
+  // '--help' stops before the parameters are evaluated
+  const char* cl1[3] = {tool, help, test}; //command line: "TOPPBaseBoolOptionTest --help -test"
+  TOPPBaseBoolOptionTest t1;
+  TEST_EQUAL(t1.run(3, cl1), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t1.getParam().exists("boolopt"), false)
+
+  // '--help false' runs the tool normally
+  const char* cl2[4] = {tool, help, val_false, test}; //command line: "TOPPBaseBoolOptionTest --help false -test"
+  TOPPBaseBoolOptionTest t2;
+  TEST_EQUAL(t2.run(4, cl2), TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(t2.getParam().exists("boolopt"), true)
 }
 END_SECTION
 

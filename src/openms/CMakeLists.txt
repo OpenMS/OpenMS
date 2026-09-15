@@ -254,8 +254,9 @@ list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
      ${OPENMS_PARQUET_TARGET})
 if (OPENMS_ARROW_DATASET_TARGET)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_DATASET_TARGET})
-  # Dataset pushdown needs libxml2 when Arrow Dataset is linked statically.
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES LibXml2::LibXml2)
+  # libxml2 is needed by a statically linked Arrow, but listing it here put it
+  # ahead of the archive that references it. cmake_findExternalLibs.cmake now
+  # appends it to Arrow's own link interface instead, where the order is right.
 endif()
 
 if (WITH_OPENTIMS)

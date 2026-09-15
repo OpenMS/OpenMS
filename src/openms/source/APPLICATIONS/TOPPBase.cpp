@@ -100,13 +100,14 @@ namespace OpenMS
 
   std::string TOPPBase::getToolPrefix() const
   {
-    return tool_name_ + ":" + instance_number_ + ":";
+    // The "1" is a fixed level of the INI/CTD/TOPPAS file format (formerly a user-selectable
+    // instance number). It is kept so existing parameter files and their consumers keep working.
+    return tool_name_ + ":1:";
   }
 
   TOPPBase::TOPPBase(const std::string& tool_name, const std::string& tool_description, bool official, const std::vector<Citation>& citations, bool toolhandler_test) :
     tool_name_(tool_name),
     tool_description_(tool_description),
-    instance_number_(-1),
     official_(official),
     citations_(citations),
     toolhandler_test_(toolhandler_test),
@@ -167,7 +168,6 @@ namespace OpenMS
       addText_("Common UTIL options:");
     registerStringOption_("ini", "<file>", "", "Use the given TOPP INI file", false);
     registerStringOption_("log", "<file>", "", "Name of log file (created only when specified)", false, true);
-    registerIntOption_("instance", "<n>", 1, "Instance number for the TOPP INI file", false, true);
     registerIntOption_("debug", "<n>", 0, "Sets the debug level", false, true);
     registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores)", false);
     registerStringOption_("write_ini", "<file>", "", "Writes the default configuration file", false);
@@ -196,10 +196,6 @@ namespace OpenMS
 
     // for now command line is all we have, final assembly will follow below
     param_ = param_cmdline_;
-
-    // assign instance number
-    *const_cast<int*>(&instance_number_) = getParamAsInt_("instance", 1);
-    writeDebug_("Instance: " + StringUtils::toStr(instance_number_), 1);
 
     // assign ini location
     *const_cast<std::string*>(&ini_location_) = this->getToolPrefix();
@@ -235,8 +231,9 @@ namespace OpenMS
       return ILLEGAL_PARAMETERS;
     }
 
-    // '--help' given
-    if (param_cmdline_.exists("-help") || param_cmdline_.exists("-helphelp"))
+    // '--help' given (a flag may carry an explicit value, so '--help false' must not print the help)
+    auto flag_given = [this](const std::string& name) { return param_cmdline_.exists(name) && param_cmdline_.getValue(name) == "true"; };
+    if (flag_given("-help") || flag_given("-helphelp"))
     {
       printUsage_();
       return EXECUTION_OK;
@@ -303,10 +300,14 @@ namespace OpenMS
 
           // dissect loaded INI parameters
           param_instance_ = param_inifile_.copy(getIniLocation_(), true);
-          writeDebug_("Parameters from instance section:", param_instance_, 2);
+          writeDebug_("Parameters from tool section:", param_instance_, 2);
           param_common_tool_ = param_inifile_.copy("common:" + tool_name_ + ":", true);
           writeDebug_("Parameters from common section with tool name:", param_common_tool_, 2);
           param_common_ = param_inifile_.copy("common:", true);
+          // the tool-specific part of the common section was extracted above (param_common_tool_);
+          // if left here, its entries would be merged as '<ToolName>:<key>', which the tool's parameter
+          // tree does not know, and Param::update() would reject the whole INI file
+          param_common_.removeAll(tool_name_ + ":");
           writeDebug_("Parameters from common section without tool name:", param_common_, 2);
 
           // set type on command line if given in .ini file
@@ -321,8 +322,8 @@ namespace OpenMS
         writeDebug_("Initialize final param with cmd line:", param_cmdline_, 2);
         finalParam = param_cmdline_;
 
-        // 2. the instance values from the ini-file
-        writeDebug_("Merging instance section into param:", param_instance_, 2);
+        // 2. the tool section values from the ini-file
+        writeDebug_("Merging tool section into param:", param_instance_, 2);
         finalParam.merge(param_instance_);
 
         // 3. the tools data from the common section
@@ -335,10 +336,12 @@ namespace OpenMS
 
 
         finalParam.remove("ini"); // not contained in default params; remove to avoid "unknown param" in update()
+        finalParam.remove("-help"); // dito; only present here when given with an explicit 'false'
+        finalParam.remove("-helphelp");
 
         // finally: augment default values with INI/CLI values
-        // note the copy(getIniLocation_(),..) as we want the param tree without instance
-        // information
+        // note the copy(getIniLocation_(),..) as we want the param tree without the
+        // "ToolName:1:" prefix
         param_ = this->getDefaultParameters_().copy(getIniLocation_(), true);
         if (!param_.update(finalParam, false, false, true, true, getGlobalLogWarn()))
         {
@@ -2095,7 +2098,7 @@ namespace OpenMS
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if (std::unordered_set<std::string>{"ini", "-help", "-helphelp", "instance", "write_ini", "write_ctd", "write_cwl", "write_nested_cwl", "write_json", "write_nested_json"}.count(it->name) > 0) // do not store these params in ini file
+      if (std::unordered_set<std::string>{"ini", "-help", "-helphelp", "write_ini", "write_ctd", "write_cwl", "write_nested_cwl", "write_json", "write_nested_json"}.count(it->name) > 0) // do not store these params in ini file
       {
         continue;
       }
@@ -2226,7 +2229,7 @@ namespace OpenMS
 
     // Descriptions
     tmp.setSectionDescription(tool_name_, tool_description_);
-    tmp.setSectionDescription(tool_name_ + ":" + StringUtils::toStr(instance_number_),"Instance '" + StringUtils::toStr(instance_number_) + "' section for '" + tool_name_ + "'");
+    tmp.setSectionDescription(tool_name_ + ":1", "Instance '1' section for '" + tool_name_ + "'");
 
     // add type (as default type is "", but .ini file should have it)
     if (param_cmdline_.exists("type"))
@@ -2279,6 +2282,18 @@ namespace OpenMS
     return p;
   }
 
+  namespace
+  {
+    /// True if the valid strings are exactly "true" and "false" (either order), i.e. the option is a boolean
+    /// given as a string. Mirrors Param::ParamEntry::isBool() for a registration's restrictions.
+    bool isBoolRestriction_(const StringList& valid_strings)
+    {
+      return valid_strings.size() == 2 &&
+             ((valid_strings[0] == "true" && valid_strings[1] == "false") ||
+              (valid_strings[0] == "false" && valid_strings[1] == "true"));
+    }
+  }
+
   Param TOPPBase::parseCommandLine_(const int argc, const char** argv, const std::string& misc, const std::string& unknown)
   {
     // current state:
@@ -2327,18 +2342,28 @@ namespace OpenMS
           if (pos->second->type == ParameterInformation::FLAG) // flag
           {
             value = "true";
-            // Check if there are trailing arguments after the flag - this is an error
             if (!queue.empty())
             {
-              // Collect the trailing arguments for the error message
-              std::string trailing_args;
-              for (list<std::string>::const_iterator it = queue.begin(); it != queue.end(); ++it)
+              // A flag may be followed by exactly one explicit boolean value: '-flag false' is the only way to
+              // override a flag enabled in an INI file or by an earlier '-flag' (e.g. in appended workflow
+              // arguments), see #10116. Anything else after a flag is a user error (see #5345).
+              if (queue.size() == 1 && (queue.front() == "true" || queue.front() == "false"))
               {
-                if (it != queue.begin()) trailing_args += " ";
-                trailing_args += *it;
+                value = queue.front();
+                queue.pop_front();
               }
-              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                std::string("Command line error: Trailing arguments after flag '") + arg + "': " + trailing_args);
+              else
+              {
+                // Collect the trailing arguments for the error message
+                std::string trailing_args;
+                for (list<std::string>::const_iterator it = queue.begin(); it != queue.end(); ++it)
+                {
+                  if (it != queue.begin()) trailing_args += " ";
+                  trailing_args += *it;
+                }
+                throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                  std::string("Command line error: Trailing arguments after flag '") + arg + "': " + trailing_args);
+              }
             }
           }
           else // option with argument(s)
@@ -2351,7 +2376,15 @@ namespace OpenMS
             case ParameterInformation::OUTPUT_PREFIX:
             case ParameterInformation::OUTPUT_DIR:
               if (queue.empty())
-                value = std::string();
+              {
+                // A boolean string option (restricted to 'true'/'false') given without a value means 'true',
+                // like a flag (see #10116). Any other option keeps the empty string and is rejected later if
+                // its restrictions do not allow it.
+                if (pos->second->type == ParameterInformation::STRING && isBoolRestriction_(pos->second->valid_strings))
+                  value = std::string("true");
+                else
+                  value = std::string();
+              }
               else
                 value = queue.front();
               break;

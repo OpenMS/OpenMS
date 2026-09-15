@@ -67,6 +67,20 @@ public:
 
       /// Check if 'value' fulfills restrictions
       bool isValid(std::string& message) const;
+      /**
+        @brief Is this entry a boolean parameter?
+
+        OpenMS has no boolean value type. A boolean parameter is a scalar string parameter whose
+        valid strings are exactly the two values "true" and "false", in either order.
+        The current value is not considered: a boolean parameter stays boolean after it was set to "true".
+
+        Not boolean are: string lists, unrestricted "true"/"false" strings, single-value restrictions
+        and restrictions that allow further values (e.g. "auto,true,false").
+
+        @note Whether a boolean parameter is a command-line flag (given without a value) or an option
+              taking a value is decided by TOPPBase at registration time, not by this function.
+      */
+      bool isBool() const;
       /// Equality operator (only name and value are compared)
       bool operator==(const ParamEntry& rhs) const;
 
