@@ -182,6 +182,20 @@ Split mode needs CMake 3.26 or newer (for `Development.SABIModule`). Configure w
 `-DPYOPENMS_SPLIT_MODE=OFF` to build interpreter-specific modules locally instead;
 that mode must not be packaged as a wheel, since the wheel is tagged `abi3`.
 
+**Debug builds:** The bindings and `nanobind-backend` must also use compatible C++
+platform ABIs. The official Windows backend uses the Release `/MD` runtime.
+MSVC Debug builds (`/MDd`) and builds with `_GLIBCXX_DEBUG` are incompatible with
+the official backend; nanobind rejects them at import time. For these
+configurations, set `-DPYOPENMS_SPLIT_MODE=OFF` so the nanobind runtime is compiled
+together with the bindings using matching Debug settings. CMake does not select
+this fallback automatically. Use a clean build directory when switching modes.
+
+Ordinary Linux/macOS Debug builds that only add debug symbols or reduce
+optimization can generally keep split mode enabled. Python's stable ABI does not
+remove these C++ compatibility requirements. Keeping split mode for incompatible
+Debug configurations requires building and selecting a matching custom backend;
+see [nanobind's split-mode limitations](https://nanobind.readthedocs.io/en/latest/split_mode.html#limitations).
+
 Key cibuildwheel settings (in `pyproject.toml`):
 
 ```toml
