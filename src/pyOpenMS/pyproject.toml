@@ -148,6 +148,10 @@ include = [
     "check_bindings.py",
     "fix_stubs.py",
     "stubs.patch",
+    # Run from the source directory by the dependency-bundling targets
+    # (NO_DEPENDENCIES=OFF), so a build from the sdist needs them too.
+    "pyopenms_copy_deps.cmake",
+    "mac_fix_dependencies.rb",
 ]
 
 [tool.py-build-cmake.cmake]
