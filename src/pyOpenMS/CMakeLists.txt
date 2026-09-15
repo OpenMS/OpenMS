@@ -677,11 +677,11 @@ else()
     set(_pyopenms_stubgen_problem "")
     if(NOT _pyopenms_stubgen_nanobind_result EQUAL 0)
       set(_pyopenms_stubgen_problem
-          "${Python_EXECUTABLE} cannot import nanobind")
+          "${Python_EXECUTABLE} cannot import nanobind (pip install 'nanobind>=${PYOPENMS_NANOBIND_MIN_VERSION}')")
     elseif(_pyopenms_stubgen_nanobind_version VERSION_LESS PYOPENMS_NANOBIND_MIN_VERSION)
       # One quoted argument: two would make this a CMake list and print as 'a;b'.
       set(_pyopenms_stubgen_problem
-          "${Python_EXECUTABLE} has nanobind ${_pyopenms_stubgen_nanobind_version}, but the modules are built against nanobind ${PYOPENMS_NANOBIND_VERSION}")
+          "${Python_EXECUTABLE} has nanobind ${_pyopenms_stubgen_nanobind_version}, but the modules are built against nanobind ${PYOPENMS_NANOBIND_VERSION} (install nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION} for that interpreter)")
     endif()
 
     # Importing nanobind is not enough in split mode: every extension calls
@@ -702,6 +702,21 @@ else()
       endif()
     endif()
 
+    # A sanitizer-instrumented build cannot generate stubs either: the preflight
+    # and stubgen import the instrumented extensions (and libOpenMS behind them)
+    # into an ordinary interpreter, which ASan refuses at load time unless its
+    # runtime was loaded first ("ASan runtime does not come first"). Supplying
+    # that runtime -- LD_PRELOAD of the compiler-specific libasan, leak detection
+    # off for the interpreter, a different mechanism on macOS -- is fragile and
+    # nothing else in this project needs it, so an instrumented build simply
+    # builds no stubs. ADDRESS_SANITIZER is the enclosing OpenMS build's option;
+    # the flag check also covers a build that was handed the flags directly.
+    if(NOT _pyopenms_stubgen_problem AND
+       (ADDRESS_SANITIZER OR CMAKE_CXX_FLAGS MATCHES "-fsanitize="))
+      set(_pyopenms_stubgen_problem
+          "the build is sanitizer-instrumented, and importing the instrumented extensions into an uninstrumented interpreter fails at load time (build without ADDRESS_SANITIZER to get .pyi files)")
+    endif()
+
     # Now that the stub target is actually built (it is a dependency of the
     # aggregate pyopenms target), this is the difference between a build that
     # fails and one that quietly ships no stubs -- so it has to be decided here
@@ -717,14 +732,10 @@ else()
       if(DEFINED PY_BUILD_CMAKE_VERSION)
         message(FATAL_ERROR
           "Cannot generate .pyi stubs: ${_pyopenms_stubgen_problem}. A wheel built now "
-          "would ship no type information. Fix that for the interpreter (nanobind >= "
-          "${PYOPENMS_NANOBIND_MIN_VERSION} and nanobind-backend), or configure with "
-          "-DPYOPENMS_GENERATE_STUBS=OFF to build a deliberately untyped wheel.")
+          "would ship no type information; configure with -DPYOPENMS_GENERATE_STUBS=OFF "
+          "to build a deliberately untyped wheel.")
       endif()
-      message(WARNING
-        "Disabling stub generation: ${_pyopenms_stubgen_problem}. Fix that for the "
-        "interpreter (nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION} and "
-        "nanobind-backend) to get .pyi files.")
+      message(WARNING "Disabling stub generation: ${_pyopenms_stubgen_problem}.")
       # A normal variable shadowing the cache entry, so the rest of this file --
       # including the configuration summary -- reports what will really happen.
       set(PYOPENMS_GENERATE_STUBS OFF)
