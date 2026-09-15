@@ -89,12 +89,37 @@ echo "=== Submitting for notarization ==="
 # --wait makes the command block until notarization is complete
 # Ensure pipefail is set for this block in case of subshells
 set -o pipefail
-if xcrun notarytool submit "$BUNDLE_PKG" \
-    --apple-id "$ASC_USERNAME" \
-    --password "${!ASC_PASSWORD_ENVVAR}" \
-    --team-id "$ASC_TEAMID" \
-    --wait \
-    2>&1 | tee "$NOTARIZE_LOG"; then
+
+# The --wait poll can be dropped by a transient network blip on the runner
+# (e.g. "The Internet connection appears to be offline" while long-polling
+# Apple's notary service), which fails the whole submission even though
+# neither the build nor the package is at fault. Retry the submission a
+# few times with a short backoff before giving up.
+MAX_SUBMIT_ATTEMPTS=3
+SUBMIT_RETRY_DELAY=30
+SUBMIT_SUCCEEDED=false
+
+for attempt in $(seq 1 "$MAX_SUBMIT_ATTEMPTS"); do
+    if [[ "$attempt" -gt 1 ]]; then
+        echo ""
+        echo "=== Retrying notarization submission (attempt $attempt/$MAX_SUBMIT_ATTEMPTS) after a transient failure ==="
+        sleep "$SUBMIT_RETRY_DELAY"
+    fi
+
+    if xcrun notarytool submit "$BUNDLE_PKG" \
+        --apple-id "$ASC_USERNAME" \
+        --password "${!ASC_PASSWORD_ENVVAR}" \
+        --team-id "$ASC_TEAMID" \
+        --wait \
+        2>&1 | tee "$NOTARIZE_LOG"; then
+        SUBMIT_SUCCEEDED=true
+        break
+    fi
+
+    echo "Warning: notarytool submission attempt $attempt/$MAX_SUBMIT_ATTEMPTS failed."
+done
+
+if [[ "$SUBMIT_SUCCEEDED" = true ]]; then
 
     echo ""
     echo "=== Notarization submission completed ==="
@@ -163,7 +188,7 @@ if xcrun notarytool submit "$BUNDLE_PKG" \
         exit 1
     fi
 else
-    echo "Error: notarytool submission failed!"
+    echo "Error: notarytool submission failed after $MAX_SUBMIT_ATTEMPTS attempts!"
     cat "$NOTARIZE_LOG"
 
     # Clean up temporary zip if we created one
