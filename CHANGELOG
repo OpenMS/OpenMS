@@ -17,8 +17,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 General:
-  - Added an on-demand Windows test lab with SSH access for testing packages,
-    DLL loading, and library bundling on GitHub-hosted runners.
+  - Added optional tmate sessions to Windows build, release, and wheel workflows
+    for inspecting build failures, packages, and library bundling interactively.
   - New native readers for Bruker timsTOF .d, Thermo .raw, imzML and Bruker MALDI imaging;
     see OpenMS Library for capabilities and runtime requirements.
   - New .idparquet, .featureparquet and .consensusparquet directory formats for native

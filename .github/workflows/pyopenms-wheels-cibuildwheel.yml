@@ -20,6 +20,10 @@ name: pyopenms-wheels-cibuildwheel
 on:
   workflow_dispatch:
     inputs:
+      debug_windows:
+        description: Open a tmate session after the Windows build (also on failure)
+        type: boolean
+        default: false
       upload-to-pypi:
         type: boolean
         description: Upload release package to pypi.org
@@ -586,6 +590,15 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path ${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
+      - name: Debug Windows build with tmate
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && runner.os == 'Windows' && inputs.debug_windows }}
+        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
+        timeout-minutes: 30
+        env:
+          MSYS2_PATH_TYPE: inherit
+        with:
+          limit-access-to-actor: true
+
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-windows-x64
@@ -756,7 +769,7 @@ jobs:
     name: Upload nightly to Tuebingen
     needs: [test-wheels]
     runs-on: ubuntu-latest
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && startsWith(github.ref, 'refs/heads/nightly')
+    if: ${{ !inputs.debug_windows && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && startsWith(github.ref, 'refs/heads/nightly') }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -776,7 +789,7 @@ jobs:
     name: Upload release to PyPI
     needs: [test-wheels]
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && inputs.upload-to-pypi && startsWith(github.ref, 'refs/tags/v')
+    if: ${{ !inputs.debug_windows && github.event_name == 'workflow_dispatch' && inputs.upload-to-pypi && startsWith(github.ref, 'refs/tags/v') }}
     environment:
       name: pypi
       url: https://pypi.org/p/pyopenms
@@ -801,9 +814,10 @@ jobs:
     needs: [setup, test-wheels]
     runs-on: ubuntu-latest
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' &&
-        (startsWith(github.ref, 'refs/heads/nightly') || startsWith(github.ref, 'refs/tags/v')))
+      !inputs.debug_windows &&
+      (github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'push' &&
+          (startsWith(github.ref, 'refs/heads/nightly') || startsWith(github.ref, 'refs/tags/v'))))
     steps:
       - uses: actions/download-artifact@v4
         with:

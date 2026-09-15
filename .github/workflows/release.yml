@@ -2,6 +2,11 @@ name: "Release"
 
 on:
   workflow_dispatch:
+    inputs:
+      debug_windows:
+        description: Open a tmate session after the Windows build (also on failure)
+        type: boolean
+        default: false
   push:
     tags:
       - 'v[0-9]*'
@@ -161,6 +166,15 @@ jobs:
             mv /c/cpk/*.exe .
           fi
 
+      - name: Debug Windows build with tmate
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && runner.os == 'Windows' && inputs.debug_windows }}
+        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
+        timeout-minutes: 30
+        env:
+          MSYS2_PATH_TYPE: inherit
+        with:
+          limit-access-to-actor: true
+
       # Notarize macOS packages for Gatekeeper approval
       # This step submits the signed package to Apple for notarization and staples the ticket
       - name: Notarize macOS Package
@@ -253,6 +267,7 @@ jobs:
             ${{ runner.temp }}/OpenMS-${{ steps.version.outputs.name }}.tar.gz
 
   deploy-installer:
+    if: ${{ !inputs.debug_windows }}
     name: "Deploy Installer"
     runs-on: ubuntu-latest
     needs:
@@ -282,6 +297,7 @@ jobs:
           latest: ${{ needs.build-and-test.outputs.version }}
 
   deploy-docs:
+    if: ${{ !inputs.debug_windows }}
     name: "Deploy Documentation"
     runs-on: ubuntu-latest
     needs:

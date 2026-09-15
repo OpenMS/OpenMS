@@ -2,6 +2,11 @@ name: "Build and Test"
 
 on:
   workflow_dispatch:
+    inputs:
+      debug_windows:
+        description: Open a tmate session after the Windows build (also on failure)
+        type: boolean
+        default: false
   push:
     branches:
       - nightly
@@ -30,6 +35,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Build OpenMS
         uses: ./.github/actions/build
@@ -39,3 +46,12 @@ jobs:
           ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
           ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
           ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+
+      - name: Debug Windows build with tmate
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && runner.os == 'Windows' && inputs.debug_windows }}
+        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
+        timeout-minutes: 30
+        env:
+          MSYS2_PATH_TYPE: inherit
+        with:
+          limit-access-to-actor: true
