@@ -166,12 +166,13 @@ install_components = ["python_modules"]
 [tool.py-build-cmake.wheel]
 # The extensions are compiled in nanobind split mode against the CPython 3.11
 # stable ABI, so one wheel per platform serves 3.11 and every later version.
-# abi3_minimum_cpython_version is the single source of that floor, with three
-# readers: py-build-cmake turns it into the cp311-abi3 filename and WHEEL tag,
-# CMakeLists.txt reads it back as the default PYOPENMS_STABLE_ABI_VERSION (which
-# becomes Py_LIMITED_API) and refuses to package a build that overrides it, and
-# the wheel workflow derives the interpreter cibuildwheel compiles with from it.
-# The last two match it by regex, so keep it a plain one-line integer.
+# abi3_minimum_cpython_version is the single source of that floor. py-build-cmake
+# turns it into the cp311-abi3 filename and WHEEL tag; CMakeLists.txt reads it
+# back as the default PYOPENMS_STABLE_ABI_VERSION (which becomes Py_LIMITED_API)
+# and refuses to package a build that overrides it; the wheel workflow derives
+# the interpreter cibuildwheel compiles with from it. Those two match it by
+# regex, so keep it a plain one-line integer. The one place that cannot read it
+# is [tool.cibuildwheel].build below -- see the note there.
 python_abi = "abi3"
 abi3_minimum_cpython_version = 311
 
@@ -192,6 +193,13 @@ NO_DEPENDENCIES = "ON"
 # Only the CPython 3.11 frontend is compiled: the result is a cp311-abi3 wheel
 # that covers 3.11 through 3.14. The supported interpreters are still all tested,
 # in the separate test-wheels job, against this one artifact.
+#
+# This is the one copy of the ABI floor that is written out rather than derived
+# from abi3_minimum_cpython_version, because cibuildwheel's configuration has no
+# interpolation. The wheel workflow does derive it and overrides this via
+# CIBW_BUILD, so only a direct cibuildwheel run reads the literal. Move it when
+# you move abi3_minimum_cpython_version; if you forget, CMake refuses to
+# configure rather than letting the mismatch through.
 build = "cp311-*"
 # Skip 32-bit and musllinux builds
 skip = "*-win32 *-musllinux_*"

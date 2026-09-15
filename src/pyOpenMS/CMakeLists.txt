@@ -210,6 +210,23 @@ else()
     list(APPEND PYOPENMS_PYTHON_COMPONENTS Development.SABIModule)
   endif()
   find_package(Python 3.11 REQUIRED COMPONENTS ${PYOPENMS_PYTHON_COMPONENTS})
+
+  # Targeting a stable ABI newer than the interpreter building us cannot work:
+  # the Limited API its headers expose stops at their own version, so
+  # Py_LIMITED_API would promise symbols that are not there. This is the one
+  # reader of the ABI floor that cannot derive it -- cibuildwheel's TOML has no
+  # interpolation, so [tool.cibuildwheel].build in pyproject.toml names the
+  # frontend literally -- and therefore the one place it can drift. Fail here
+  # rather than compile against a promise the headers do not keep.
+  if(PYOPENMS_SPLIT_MODE AND Python_VERSION VERSION_LESS PYOPENMS_STABLE_ABI_VERSION)
+    message(FATAL_ERROR
+      "Split mode targets the CPython ${PYOPENMS_STABLE_ABI_VERSION} stable ABI, but this "
+      "build runs Python ${Python_VERSION}, whose headers do not have it. Build with "
+      "${PYOPENMS_STABLE_ABI_VERSION} or newer. When packaging, the interpreter is chosen by "
+      "[tool.cibuildwheel].build in pyproject.toml (or CIBW_BUILD), which has to move with "
+      "abi3_minimum_cpython_version.")
+  endif()
+
   find_package(Eigen3 REQUIRED)
 
   # Propagate Python_EXECUTABLE to parent scope so the pyopenms_wheel target can use it
