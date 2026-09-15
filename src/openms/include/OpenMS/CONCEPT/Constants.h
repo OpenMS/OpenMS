@@ -411,6 +411,30 @@ namespace OpenMS
       // complementary suffix ion were matched
       inline const std::string COMPLEMENTARY_IONS_FRACTION = "complementary_ions_fraction";
 
+      // --- PeptDeep (ONNX) prediction-derived PSM features -----------------------------
+      // All five compare a PSM against a deep-learning prediction for the same peptide,
+      // so they are only present when the search engine was run with a PeptDeep model.
+
+      // User parameter name for the cosine similarity between predicted and observed
+      // fragment intensities over the shared b/y ion set
+      inline const std::string MS2_COSINE = "ms2_cosine";
+
+      // User parameter name for the spectral angle 1 - 2*acos(cosine)/pi. Monotone in the
+      // cosine but spreads the crowded high-similarity end, as used by Prosit.
+      inline const std::string MS2_SPECTRAL_ANGLE = "ms2_spectral_angle";
+
+      // User parameter name for Pearson correlation between predicted and observed
+      // fragment intensities
+      inline const std::string MS2_PEARSON = "ms2_pearson";
+
+      // User parameter name for the fraction of confidently predicted fragment ions that
+      // were actually observed
+      inline const std::string MS2_FRAC_PRED_FOUND = "ms2_frac_pred_found";
+
+      // User parameter name for |observed RT - calibrated predicted RT|. The calibration
+      // maps predicted to observed retention time per run, so the value is in RT units.
+      inline const std::string RT_ABS_ERROR = "rt_abs_error";
+
       /** User parameter name to indicate a peptide q-value
               String
       */
