@@ -710,9 +710,29 @@ else()
     # off for the interpreter, a different mechanism on macOS -- is fragile and
     # nothing else in this project needs it, so an instrumented build simply
     # builds no stubs. ADDRESS_SANITIZER is the enclosing OpenMS build's option;
-    # the flag check also covers a build that was handed the flags directly.
-    if(NOT _pyopenms_stubgen_problem AND
-       (ADDRESS_SANITIZER OR CMAKE_CXX_FLAGS MATCHES "-fsanitize="))
+    # the flag check also covers a build that was handed the flags directly --
+    # in CMAKE_CXX_FLAGS or in the per-configuration variable CMake applies on
+    # top of it without folding it in. Only configurations that can actually be
+    # built count: the selected one on a single-config generator, all of them on
+    # a multi-config generator.
+    set(_pyopenms_sanitizer_flag_vars CMAKE_CXX_FLAGS)
+    get_property(_pyopenms_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    if(_pyopenms_multi_config)
+      set(_pyopenms_sanitizer_configs ${CMAKE_CONFIGURATION_TYPES})
+    else()
+      set(_pyopenms_sanitizer_configs ${CMAKE_BUILD_TYPE})
+    endif()
+    foreach(_pyopenms_config IN LISTS _pyopenms_sanitizer_configs)
+      string(TOUPPER "${_pyopenms_config}" _pyopenms_config)
+      list(APPEND _pyopenms_sanitizer_flag_vars "CMAKE_CXX_FLAGS_${_pyopenms_config}")
+    endforeach()
+    set(_pyopenms_sanitized ${ADDRESS_SANITIZER})
+    foreach(_pyopenms_flag_var IN LISTS _pyopenms_sanitizer_flag_vars)
+      if("${${_pyopenms_flag_var}}" MATCHES "-fsanitize=")
+        set(_pyopenms_sanitized TRUE)
+      endif()
+    endforeach()
+    if(NOT _pyopenms_stubgen_problem AND _pyopenms_sanitized)
       set(_pyopenms_stubgen_problem
           "the build is sanitizer-instrumented, and importing the instrumented extensions into an uninstrumented interpreter fails at load time (build without ADDRESS_SANITIZER to get .pyi files)")
     endif()
