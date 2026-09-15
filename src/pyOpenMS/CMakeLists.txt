@@ -642,8 +642,8 @@ else()
   endfunction()
 
   # Core Python files. py.typed is deliberately NOT copied here: it is the marker
-  # that tells type checkers this package ships inline types, and nanobind.stubgen
-  # writes it itself (its -M flag, below) only after the stubs were produced.
+  # that tells type checkers this package ships inline types. The stub target
+  # writes it only after generating and validating the stubs.
   # Copying it unconditionally made every wheel advertise types even when stub
   # generation was off or skipped -- which is what shipped, since the stub target
   # was never actually built (#10141).
@@ -798,7 +798,8 @@ else()
       # py.typed of an earlier successful one behind: without the marker the
       # package is untyped under PEP 561, whatever stale .pyi files remain, so
       # nothing that installs after a failed build advertises types it cannot
-      # vouch for. stubgen's -M writes the marker back only after it succeeds.
+      # vouch for. Write the marker back only after post-processing and syntax
+      # validation succeed; stubgen can succeed while emitting invalid Python.
       COMMAND ${CMAKE_COMMAND} -E rm -f
               ${PYOPENMS_BUILD_DIR}/pyopenms/py.typed ${_pyopenms_stubs_stamp}
       # Preflight. stubgen imports the package as a whole, and pyopenms/__init__.py
@@ -815,11 +816,11 @@ else()
               -r                          # recurse into submodules
               -P                          # include private members
               -O ${PYOPENMS_BUILD_DIR}/pyopenms
-              -M ${PYOPENMS_BUILD_DIR}/pyopenms/py.typed
               -p ${CMAKE_CURRENT_SOURCE_DIR}/stubs.patch
       COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
               ${PYOPENMS_BUILD_DIR}/pyopenms
-      COMMAND ${CMAKE_COMMAND} -E touch ${_pyopenms_stubs_stamp}
+      COMMAND ${CMAKE_COMMAND} -E touch
+              ${PYOPENMS_BUILD_DIR}/pyopenms/py.typed ${_pyopenms_stubs_stamp}
       WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
       DEPENDS
         ${_pyopenms_stub_module_targets}
@@ -998,6 +999,10 @@ endif()
 if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   # Copy tests to build directory so pytest doesn't import from source tree
   file(COPY ${PROJECT_SOURCE_DIR}/tests DESTINATION ${PYOPENMS_BUILD_DIR})
+  # The stub regression tests exercise the post-processor without importing it
+  # from the source tree (which would also expose the unbuilt Python package).
+  configure_file(${PROJECT_SOURCE_DIR}/fix_stubs.py
+                 ${PYOPENMS_BUILD_DIR}/fix_stubs.py COPYONLY)
 
   enable_testing()
 

@@ -99,6 +99,10 @@ PyOpenMS:
     stubs exist. On Windows the stub generator and the ctest suite are handed the
     contrib bin/ directory, where a contrib built with shared libraries keeps its DLLs;
     a failed import now names the DLL that could not be resolved (#10141).
+  - Stub generation uses named free_mem fallbacks on Windows and unsupported
+    platforms, avoiding invalid <lambda> definitions and re-exports in .pyi files.
+    Generated stubs are syntax-checked after post-processing, before the build
+    writes py.typed and its success stamp.
   - The Windows wheel bundles the libcurl it was linked against. delvewheel's search
     path lacked contrib/bin and it fell back to PATH, so every Windows wheel so far
     carried an unrelated vcpkg-built libcurl from the CI image and a second zlib.
