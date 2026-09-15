@@ -595,6 +595,14 @@ jobs:
           # wheel so far -- a different libcurl from the one OpenMS was linked
           # against, dragging in a second, mingw-built zlib1.dll alongside contrib's
           # zlib.dll. Listing contrib/bin first makes the libcurl we built win.
+          #
+          # Side effect worth knowing: the prebuilt contrib also carries the MSVC
+          # redistributable in contrib/bin, so msvcp140.dll is now vendored from
+          # there (14.44) rather than from System32 (14.51). Both export the same
+          # 1515 symbols and cover all 244 the modules import, so this is a
+          # provenance change, not a behaviour change. contrib's bin/zip.dll and
+          # lib/zip.dll are byte-identical, so nothing else moves.
+          #
           # -v so the per-DLL resolution is in the log the next time this is wrong.
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair -v --add-path ${{ env.CONTRIB_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
