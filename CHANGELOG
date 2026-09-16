@@ -640,6 +640,10 @@ Fixes:
       MSExperiment::getSize() (all MS levels plus chromatogram points) although it collects MS1
       peaks only, so MapAlignerPoseClustering with max_num_peaks_considered -1 (or above the MS1
       peak count) on runs with MS2 spectra sorted and copied past the end of a vector (#10148).
+    - BaseFeature::sortPeptideIdentifications() no longer reads the first hit of an
+      identification without hits (a crash for hit-less identifications loaded from featureXML,
+      e.g. in FeatureLinkerUnlabeledQT with use_identifications), sorts the hits of every
+      identification (also of a single one) and uses one score orientation throughout (#10148).
 
 Documentation:
   - Expanded experimental-design terminology and LFQ/fractionated/TMT/SILAC examples,
