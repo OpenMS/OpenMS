@@ -7,9 +7,7 @@ https?://depot\.galaxyproject\.org/singularity/.*
 https?://docutils.*
 https?://dx\.doi\.org/.*
 https?://github\.com/.*
-https?://hub\.knime\.com/.*
 https?://pkgs\.org/.*
 https?://pubs\.acs\.org/.*
-https?://update\.knime\.com/.*
 https?://www\.pnas\.org/.*
 https?://www\.sciencedirect\.com/.*

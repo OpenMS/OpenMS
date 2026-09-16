@@ -12,7 +12,7 @@ The following section provides general information to new contributors.
 * Check out the development version of OpenMS (see website).
 * Build OpenMS by following the installation instructions or [from source](/about/installation.rst).
 * Read the [OpenMS Coding Conventions](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/coding_conventions.html)
-* Read the [OpenMS User Tutorial](/tutorials/knime-user-tutorial.md).
+* Read the [TOPPView User Tutorial](/tutorials/toppview-user-tutorial.md).
 * Create a GitHub account.
 * Subscribe to the [open-ms-general](https://sourceforge.net/projects/open-ms/lists/open-ms-general) 
   or [contact-us](/about/communication.md).

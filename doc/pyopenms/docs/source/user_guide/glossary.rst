@@ -68,9 +68,6 @@ A glossary of common terms used throughout OpenMS documentation.
         Isobaric tags for relative and absolute quantitation (iTRAQ) is a MS based multiplexing technique designed to
         identify and quantify proteins from different samples in one single measurement.
 
-    KNIME
-        An advanced workflow editor which OpenMS provides a plugin for.
-
     LC-MS
     LCMS
         :term:`Liquid chromatography<liquid chromatography>`-coupled mass spectrometry.

@@ -18,12 +18,12 @@
 namespace OpenMS
 {
   /**
-    @brief Registry of TOPP tools and their (TOPPAS / KNIME) categories.
+    @brief Registry of TOPP tools and their TOPPAS categories.
 
     Tool descriptions come from two layers:
 
       -# A hard-coded list of @em official TOPP tools maintained in @ref ToolHandler::getTOPPToolList
-         (one @ref Internal::ToolDescription per tool, including its KNIME-style category string).
+         (one @ref Internal::ToolDescription per tool, including its category string).
          This is what @ref ToolHandler::getTOPPToolList, @ref ToolHandler::getTypes
          and @ref ToolHandler::getCategory consult.
       -# Optional @em internal-tool @c .ttd config files loaded lazily by
@@ -54,7 +54,7 @@ public:
 
       Starts from the hard-coded official tool registry below and merges in internal tools
       discovered from @c .ttd config files under @ref getInternalToolsPath (a name collision
-      between the two throws Exception::InvalidValue). Each value carries the tool's KNIME-style
+      between the two throws Exception::InvalidValue). Each value carries the tool's
       category string (e.g. @c "Quantitation", @c "File Converter") used by TOPPAS for grouping.
       A small number of tools are registered only when the corresponding build-time option is
       enabled (e.g. @c ExecutePipeline / @c ImageCreator require @c WITH_GUI, @c FeatureLinkerWNet
@@ -76,7 +76,7 @@ public:
     static StringList getTypes(const std::string& toolname);
 
     /**
-      @brief Return the KNIME-style category string of a tool.
+      @brief Return the category string of a tool.
 
       @param[in] toolname Name of the TOPP tool to query.
       @return Category string (e.g. @c "Quantitation") or an empty string if @p toolname is unknown.

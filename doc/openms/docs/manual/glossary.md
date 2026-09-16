@@ -150,9 +150,6 @@ TOPPAS
 chromatogram
   A two-dimensional plot that describes the amount of analyte eluted from a chromatography versus the analyte's retention time. OpenMS represents a chromatogram using the class [MSChromatogram](https://openms.de/current_doxygen/html/structOpenMS_1_1Interfaces_1_1Chromatogram.html)
 
-KNIME
-  An advanced workflow editor which OpenMS provides a plugin for; see [Workflow Editor](/getting-started/workflows.rst).
-
 Nextflow
   Script/DSL-based workflow language, executor and utilities; see [Workflow Editor](/getting-started/workflows.rst).
 

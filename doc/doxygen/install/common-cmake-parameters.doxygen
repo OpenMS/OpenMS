@@ -41,8 +41,8 @@ The most important CMake variables are:
     <td>Build the TOPP command-line applications (src/topp). Set to "Off" to build only
     the core OpenMS library, e.g. for a standalone SDK consumed by an external application.
     <code>ENABLE_TOPP_TESTING</code> and <code>ENABLE_PIPELINE_TESTING</code> default to
-    following this flag, and <code>ENABLE_CWL_GENERATION</code> /
-    <code>ENABLE_PREPARE_KNIME_PACKAGE</code> require it to be "On". (Default: On)</td>
+    following this flag, and <code>ENABLE_CWL_GENERATION</code> requires it to be
+    "On". (Default: On)</td>
   </tr>
   <tr>
     <th valign="top">INSTALL_OPENMS_EXAMPLES=On/Off</td>
