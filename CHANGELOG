@@ -77,11 +77,11 @@ PyOpenMS:
     defaults (LfdrTransform.Probit, an empty MSExperiment and None). This also makes
     the generated type stubs valid Python again: _pyopenms_datastructures.pyi and
     _pyopenms_misc.pyi did not parse, both failing with "non-default argument follows
-    default argument".
+    default argument" (#10137).
   - BREAKING: MultipleTesting.lfdr's gridsize and cut defaults were 100 and 0.05, while
     the wrapped C++ signature (and its documentation) use 512 and 3.0, so Python callers
     who omitted them silently got different results than C++ callers. The bindings now
-    use the C++ values.
+    use the C++ values (#10137).
   - Wheels are now built in nanobind split mode against the CPython 3.11 stable ABI:
     each platform ships a single cp311-abi3 wheel that serves Python 3.11 and every
     later version, instead of one wheel per interpreter. Adding a new CPython minor
@@ -663,7 +663,7 @@ Build System:
     link line; an --as-needed linker then dropped it and `import pyopenms` failed with
     "undefined symbol: xmlBufferFree". It is now appended to Arrow's link interface,
     where the ordering is correct. The symbols come from the bundled
-    azure-storage-common, not from the AWS SDK, which brings its own XML parser.
+    azure-storage-common, not from the AWS SDK, which brings its own XML parser (#10136).
   - Improved CMake 4/MSVC, clang/Xcode, OpenMP and non-vcpkg ONNX builds, plus Debian
     dependency packaging to avoid .deb conflicts. OpenMP requests fail clearly when
     unavailable; SIMD-only compilation works without a runtime. Fixed
