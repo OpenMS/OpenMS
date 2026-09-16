@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/APPLICATIONS/OpenMS_CLIConfig.h>
+
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -31,7 +33,7 @@ namespace OpenMS
 
     @ingroup Analysis_ID
   */
-  class OPENMS_DLLAPI SearchEngineBase : public TOPPExternalToolBase
+  class OPENMS_CLI_DLLAPI SearchEngineBase : public TOPPExternalToolBase
   {
   public:
     /// Default construction is disabled; a tool name and description are required.

@@ -530,7 +530,7 @@ Template for %OpenMS tool development
 \snippet Tutorial_Template.cpp doxygen_snippet_Template
 
 - Now add a line with %DatabaseFilter.cpp to src/utils/executables.cmake. This registers the novel tool in the %OpenMS build system. 
-- Then add the tool to getUtilList() in src/openms/source/APPLICATIONS/ToolHandler.cpp 
+- Then add the tool to getUtilList() in src/openms_cli/source/APPLICATIONS/ToolHandler.cpp 
 This creates a manual (doxygen) page with the information –help output of the tool (using TOPPDocumenter). This page must be included at the end of the doxygen documentation of your tool (see other tools for an example).
 - Add yourself as Maintainer/Author
 - Write the basic documentation (doxygen docu). You probably need to refine it later but you can already insert the correct Toolname etc..

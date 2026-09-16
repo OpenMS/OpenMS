@@ -554,7 +554,9 @@ if (WITH_GUI)
     message(WARNING "Qt6WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
   endif()
 
-  set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
+  # The GUI applications derive from TOPPBase and discover tools through ToolHandler,
+  # so the tool framework is part of the GUI library's public link interface.
+  set(OpenMS_GUI_DEP_LIBRARIES "OpenMS" "OpenMS_CLI")
 
   foreach(COMP IN LISTS OpenMS_GUI_QT_COMPONENTS)
     list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")

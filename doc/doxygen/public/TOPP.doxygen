@@ -6,7 +6,7 @@
 // $Authors: Marc Sturm, Chris Bielow, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-// If you add a new (or update an existing) tool below, make sure to update 'openms/source/APPLICATIONS/Toolhandler.cpp' as well!
+// If you add a new (or update an existing) tool below, make sure to update 'openms_cli/source/APPLICATIONS/ToolHandler.cpp' as well!
 
 /**
   @page TOPP_documentation TOPP documentation

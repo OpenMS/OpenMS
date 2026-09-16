@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/APPLICATIONS/OpenMS_CLIConfig.h>
+
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
@@ -18,7 +20,7 @@ namespace OpenMS
   /**
     @brief Struct that captures all information of a command line parameter
   */
-  struct OPENMS_DLLAPI ParameterInformation
+  struct OPENMS_CLI_DLLAPI ParameterInformation
   {
     /// Parameter types
     enum ParameterTypes

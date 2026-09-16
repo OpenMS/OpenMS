@@ -35,7 +35,7 @@ message(STATUS "Found OpenMS ${OpenMS_VERSION} at ${OpenMS_DIR}")
 ## promises before using it. A plain consumer project does not need this block.
 
 ## the libraries are namespaced imported targets ...
-foreach(_target IN ITEMS OpenMS::OpenMS OpenMS::OpenSwathAlgo)
+foreach(_target IN ITEMS OpenMS::OpenMS OpenMS::OpenSwathAlgo OpenMS::OpenMS_CLI)
   if(NOT TARGET ${_target})
     message(FATAL_ERROR "OpenMSConfig.cmake did not provide the target ${_target}")
   endif()
@@ -45,7 +45,7 @@ foreach(_target IN ITEMS OpenMS::OpenMS OpenMS::OpenSwathAlgo)
   endif()
 endforeach()
 ## ... the un-namespaced names of earlier releases remain as aliases ...
-foreach(_alias IN ITEMS OpenMS OpenSwathAlgo)
+foreach(_alias IN ITEMS OpenMS OpenSwathAlgo OpenMS_CLI)
   if(NOT TARGET ${_alias})
     message(FATAL_ERROR "OpenMSConfig.cmake did not provide the compatibility alias ${_alias}")
   endif()
@@ -135,6 +135,13 @@ else()
   message(STATUS "Qt6 not found - skipping TestExternalCodeQt (transitive-Qt link-contract check).")
 endif()
 
+## A TOPP-style tool of an external project: derives from TOPPBase, so it links the
+## tool framework OpenMS::OpenMS_CLI (which carries OpenMS::OpenMS transitively).
+add_executable(TestExternalCodeCLI TestExternalCodeCLI.cpp)
+target_link_libraries(TestExternalCodeCLI OpenMS::OpenMS_CLI)
+add_test(TestExternalCodeCLI TestExternalCodeCLI -greeting "hello from OpenMS_CLI")
+set_tests_properties(TestExternalCodeCLI PROPERTIES PASS_REGULAR_EXPRESSION "hello from OpenMS_CLI")
+
 ## Enable testing - for Nightly Build log
 add_test(TestExternalCode TestExternalCode)
 
@@ -142,7 +149,7 @@ add_test(TestExternalCode TestExternalCode)
 ## dependencies OpenMS was built against) through PATH. OpenMSConfig.cmake
 ## tells us where the OpenMS libraries were installed.
 if(WIN32)
-  foreach(_test IN ITEMS TestExternalCode TestExternalCodeQt TestExternalCodeGUI)
+  foreach(_test IN ITEMS TestExternalCode TestExternalCodeCLI TestExternalCodeQt TestExternalCodeGUI)
     if(TEST ${_test})
       set_property(TEST ${_test} APPEND PROPERTY
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${OPENMS_LIB_DIR}")

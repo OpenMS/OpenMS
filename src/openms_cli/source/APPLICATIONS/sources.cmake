@@ -2,9 +2,15 @@
 set(directory source/APPLICATIONS)
 
 ### list all filenames of the directory here
-### (the TOPP tool framework -- TOPPBase, ToolHandler, ... -- lives in src/openms_cli)
 set(sources_list
-ConsoleUtils.cpp
+INIUpdater.cpp
+MapAlignerBase.cpp
+OpenSwathBase.cpp
+ParameterInformation.cpp
+SearchEngineBase.cpp
+ToolHandler.cpp
+TOPPBase.cpp
+TOPPExternalToolBase.cpp
 )
 
 ### add path to the filenames
@@ -14,7 +20,7 @@ foreach(i ${sources_list})
 endforeach(i)
 
 ### pass source file list to the upper instance
-set(OpenMS_sources ${OpenMS_sources} ${sources})
+set(OpenMS_CLI_sources ${OpenMS_CLI_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\APPLICATIONS" FILES ${sources})

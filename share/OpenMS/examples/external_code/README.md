@@ -3,8 +3,9 @@
 Example project for external code using OpenMS library and headers.
 You can modify the build system via CMakeLists.txt, e.g., to add more C++ classes, alter build flags, or add additional dependencies.
 
-`find_package(OpenMS CONFIG)` provides the OpenMS library as the imported target `OpenMS::OpenMS` (and the OpenSWATH
-algorithm library as `OpenMS::OpenSwathAlgo`); linking it supplies include directories, compile features and
+`find_package(OpenMS CONFIG)` provides the OpenMS library as the imported target `OpenMS::OpenMS` (the OpenSWATH
+algorithm library as `OpenMS::OpenSwathAlgo`, and the TOPP tool framework as `OpenMS::OpenMS_CLI`, which a program
+deriving from `TOPPBase` links instead); linking it supplies include directories, compile features and
 dependencies. Consuming projects need CMake 3.19 or newer.
 
 ## Usage

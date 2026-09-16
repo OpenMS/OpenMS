@@ -42,6 +42,7 @@ OpenMS/
 │   ├── openms/              # Core C++ library
 │   │   ├── include/OpenMS/  # Headers (.h)
 │   │   └── source/          # Implementation (.cpp)
+│   ├── openms_cli/          # TOPP tool framework (TOPPBase, ToolHandler, ...)
 │   ├── openms_gui/          # Qt-based GUI components
 │   ├── openswathalgo/       # OpenSWATH algorithms
 │   ├── topp/                # Command-line tools (TOPP)
@@ -62,7 +63,7 @@ OpenMS/
 
 - **CMake minimum**: 3.21; **C++ standard**: C++23
 - Out-of-tree build expected in `OpenMS-build/`; build in place for development (install prefixes are for system installs).
-- When adding or removing a public header under `src/openms/include/OpenMS/`, update the matching directory's `sources.cmake` header list. These lists control the `OpenMS_headers` install component, and missing entries break consumers of the installed package.
+- When adding or removing a public header under `src/openms/include/OpenMS/` (or `src/openms_cli/include/OpenMS/`), update the matching directory's `sources.cmake` header list. These lists control the `OpenMS_headers` (`OpenMS_CLI_headers`) install component, and missing entries break consumers of the installed package.
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
 - Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
 - **contrib is a git submodule**: run `git submodule update --init contrib` (or clone with `--recurse-submodules`) before building if you need the vendored third-party libraries.
@@ -280,6 +281,7 @@ bool fragment_tolerance_ppm_;
 │   ├── openms/           # Core C++ library
 │   │   ├── include/OpenMS/  # Headers (.h)
 │   │   └── source/          # Implementation (.cpp)
+│   ├── openms_cli/       # TOPP tool framework (TOPPBase, ToolHandler, ...)
 │   ├── openms_gui/       # Qt-based GUI components
 │   ├── openswathalgo/    # OpenSWATH algorithms
 │   ├── topp/             # Command-line tools (TOPP)
@@ -368,7 +370,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 ## TOPP Tool Development
 
 - Add new tool source (e.g., `src/topp/<Tool>.cpp`) and register in `src/topp/executables.cmake`.
-- Register tool in `src/openms/source/APPLICATIONS/ToolHandler.cpp` to generate Doxygen help output.
+- Register tool in `src/openms_cli/source/APPLICATIONS/ToolHandler.cpp` to generate Doxygen help output.
 - Define parameters in `registerOptionsAndFlags_()`; read with `getStringOption_` and related helpers.
 - Document the tool and add to `doc/doxygen/public/TOPP.doxygen` where applicable.
 - Add TOPP tests in `src/tests/topp/CMakeLists.txt`.
@@ -569,7 +571,8 @@ perf report
 - Example external CMake project: `share/OpenMS/examples/external_code/`.
 - External test project: `src/tests/external/`.
 - Use the same compiler/generator as OpenMS; set `OPENMS_CONTRIB_LIBS` and `OpenMS_DIR` when configuring.
-- `find_package(OpenMS CONFIG)` provides the imported targets `OpenMS::OpenMS` and `OpenMS::OpenSwathAlgo`
+- `find_package(OpenMS CONFIG)` provides the imported targets `OpenMS::OpenMS`, `OpenMS::OpenSwathAlgo` and
+  `OpenMS::OpenMS_CLI` (the TOPP tool framework: TOPPBase, ToolHandler, ...; TOPP-style tools link this one)
   (`OpenMS::OpenMS_GUI` via `COMPONENTS GUI`); the un-namespaced names remain as aliases.
 
 ## CI, Packaging, and Containers

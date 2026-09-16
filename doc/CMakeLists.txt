@@ -59,9 +59,9 @@ if(ENABLE_DOCS)
     # let the doc progs decide how to handle a missing OpenMS_GUI library
     if(WITH_GUI)
       set_target_properties(${i} PROPERTIES COMPILE_DEFINITIONS "WITH_GUI=1")
-      target_link_libraries(${i} OpenMS OpenMS_GUI)
+      target_link_libraries(${i} OpenMS OpenMS_CLI OpenMS_GUI)
     else()
-      target_link_libraries(${i} OpenMS)
+      target_link_libraries(${i} OpenMS OpenMS_CLI)
     endif()
   endforeach(i)
 

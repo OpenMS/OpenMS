@@ -651,7 +651,6 @@ set(analysis_executables_list
   PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test
-  TransformationModelDefaults_test
   TransformationModelBSpline_test
   TransformationModelLowess_test
   TransformationModelInterpolated_test
@@ -665,13 +664,6 @@ if(WITH_WNETALIGN)
 endif()
 
 set(applications_executables_list
-  INIUpdater_test
-  #MapAlignerBase_test
-  SearchEngineBase_test
-  TOPPBase_test
-  TOPPExternalToolBase_test
-  ToolHandler_test
-  ParameterInformation_test
   ConsoleUtils_test
 )
 
