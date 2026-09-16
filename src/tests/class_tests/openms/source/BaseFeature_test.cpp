@@ -610,10 +610,13 @@ START_SECTION([EXTRA] sortPeptideIdentifications() with identifications of oppos
   TEST_REAL_SIMILAR(ids[2].getHits()[0].getScore(), 0.2)
   TEST_REAL_SIMILAR(ids[2].getHits()[1].getScore(), 0.1)
 
-  // sorting a sorted feature changes nothing
-  const PeptideIdentificationList sorted_once = ids;
+  // Sorting again reads the orientation from B, which is now the first identification with
+  // hits (lower is better): A (0.2) before C (0.4) before B (0.5). With mixed orientations the
+  // result depends on the order before sorting, as documented.
   tmp.sortPeptideIdentifications();
-  TEST_TRUE(ids == sorted_once)
+  TEST_STRING_EQUAL(ids[0].getIdentifier(), "A")
+  TEST_STRING_EQUAL(ids[1].getIdentifier(), "C")
+  TEST_STRING_EQUAL(ids[2].getIdentifier(), "B")
 
   // Another input order: now B (lower is better) is the first identification with hits, so
   // A (0.2) before C (0.4) before B (0.5).

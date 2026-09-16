@@ -175,7 +175,9 @@ public:
       to compare them is read once, from the first identification (in the order before sorting)
       that has hits, or is higher-is-better if no identification has hits. An identification with
       a different orientation is ordered by that single orientation rather than rejected; only
-      the order of its own hits follows its own orientation.
+      the order of its own hits follows its own orientation. With mixed orientations the result
+      therefore depends on the order before sorting, and sorting again can change it; the sort is
+      idempotent only when all identifications share one orientation.
     */
     void sortPeptideIdentifications();
     ///@}
