@@ -305,6 +305,30 @@ START_SECTION((void load(const std::string& filename, ProteinIdentification& pro
   TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), aa_sequence_3)
 END_SECTION
 
+START_SECTION([EXTRA] load() rejects query numbers outside the range announced by NumQueries)
+{
+  // Regression test for the Mascot query index guard (issue #10148, CPP-164):
+  // a query number one past <NumQueries>, a missing <NumQueries> header and
+  // <query number="0"> used to index the identifications out of bounds instead of failing.
+  SpectrumMetaDataLookup lookup;
+  ProteinIdentification prot_id;
+  PeptideIdentificationList pep_ids;
+
+  // <NumQueries>1</NumQueries> but a <peptide query="2">
+  TEST_EXCEPTION(Exception::ParseError, xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_query_past_end.mascotXML"), prot_id, pep_ids, lookup))
+
+  // no <NumQueries> in the header, so no identifications were allocated
+  TEST_EXCEPTION(Exception::ParseError, xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_no_header.mascotXML"), prot_id, pep_ids, lookup))
+
+  // <query number="0"> in the <queries> section (query numbers are 1-based)
+  TEST_EXCEPTION(Exception::ParseError, xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_query_zero.mascotXML"), prot_id, pep_ids, lookup))
+
+  // a well-formed file still loads after the failed attempts
+  xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"), prot_id, pep_ids, lookup);
+  TEST_EQUAL(pep_ids.size(), 3)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 /// check the temporary files written above against their XML schema (types without a validator are skipped)

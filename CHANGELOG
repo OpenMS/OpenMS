@@ -650,6 +650,9 @@ Fixes:
       identification without hits (a crash for hit-less identifications loaded from featureXML,
       e.g. in FeatureLinkerUnlabeledQT with use_identifications), sorts the hits of every
       identification (also of a single one) and uses one score orientation throughout (#10148).
+    - MascotXMLFile rejects query numbers outside 1..<NumQueries> (a <peptide query> one past
+      the header count, a query number of 0, or an export without show_header=1) with a
+      ParseError instead of writing peptide identifications past the end of the list (#10148).
 
 Documentation:
   - Expanded experimental-design terminology and LFQ/fractionated/TMT/SILAC examples,

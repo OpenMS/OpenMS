@@ -54,6 +54,9 @@ public:
 
 private:
 
+      /// Throws a ParseError unless @p query_number addresses one of the identifications announced by <NumQueries> (1-based)
+      void checkQueryNumber_(Int query_number, const std::string& what) const;
+
       ProteinIdentification& protein_identification_; ///< the protein identifications
       PeptideIdentificationList& id_data_; ///< the identifications (storing the peptide hits)
       ProteinHit actual_protein_hit_;

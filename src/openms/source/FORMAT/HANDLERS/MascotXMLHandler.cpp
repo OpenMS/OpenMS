@@ -16,7 +16,7 @@ namespace OpenMS::Internal
 
     MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, const std::string& filename, map<std::string, vector<AASequence> >& modified_peptides, const SpectrumMetaDataLookup& lookup):
       XMLHandler(filename, ""), protein_identification_(protein_identification),
-      id_data_(id_data), peptide_identification_index_(0), actual_title_(""),
+      id_data_(id_data), peptide_identification_index_(0), actual_query_(0), actual_title_(""),
       modified_peptides_(modified_peptides), lookup_(lookup),
       no_rt_error_(false)
     {
@@ -24,6 +24,17 @@ namespace OpenMS::Internal
 
     MascotXMLHandler::~MascotXMLHandler()
     = default;
+
+    void MascotXMLHandler::checkQueryNumber_(Int query_number, const std::string& what) const
+    {
+      // query numbers are 1-based and must address one of the <NumQueries> identifications
+      if (query_number < 1 || static_cast<Size>(query_number) > id_data_.size())
+      {
+        fatalError(LOAD, "Invalid " + what + " '" + std::to_string(query_number) + "': expected a value between 1 and " +
+                   std::to_string(id_data_.size()) + " (<NumQueries>). No or conflicting header information present "
+                   "(make sure to use the 'show_header=1' option in the ./export_dat.pl script)");
+      }
+    }
 
     void MascotXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
@@ -49,17 +60,15 @@ namespace OpenMS::Internal
       }
       else if (tag_ == "query")
       {
-        actual_query_ = attributeAsInt_(attributes, s_queries_query_number);
+        Int attribute_value = attributeAsInt_(attributes, s_queries_query_number);
+        checkQueryNumber_(attribute_value, "query number");
+        actual_query_ = attribute_value;
       }
       else if (tag_ == "peptide" || tag_ == "u_peptide" || tag_ == "q_peptide")
       {
         Int attribute_value = attributeAsInt_(attributes, s_peptide_query);
+        checkQueryNumber_(attribute_value, tag_ + " query");
         peptide_identification_index_ = attribute_value - 1;
-
-        if (peptide_identification_index_ > id_data_.size())
-        {
-          fatalError(LOAD, "No or conflicting header information present (make sure to use the 'show_header=1' option in the ./export_dat.pl script)");
-        }
       }
     }
 
