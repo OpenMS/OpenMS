@@ -217,6 +217,7 @@ The extensible %OpenMS library implements common mass spectrometric data process
 <caption>Directory structure of src folder (/src)</caption>
  <tr><th>Folder        <th>Description
  <tr><td>openms</td><td>Source code of core library</td></tr>
+ <tr><td>openms_cli</td><td>Source code of the TOPP tool framework (TOPPBase, ToolHandler, INIUpdater, ...), library OpenMS_CLI</td></tr>
  <tr><td>openms_gui</td><td>Source code of GUI applications (e.g.: TOPPView)</td></tr>
  <tr><td>topp</td><td>Source code of (stable) %OpenMS Tools</td></tr>
  <tr><td>util</td><td>Source code of (experimental) %OpenMS Tools</td></tr>
@@ -228,7 +229,7 @@ The extensible %OpenMS library implements common mass spectrometric data process
 <caption>Directory structure of core library (/src/openms/include/OpenMS)</caption>
  <tr><th>Folder        <th>Description
  <tr><td>ANALYSIS</td><td>Source code of high-level analysis like PeakPicking, Quantitation, Identification, MapAlignment</td></tr>
- <tr><td>APPLICATIONS</td><td>Source code for tool base and handling</td></tr>
+ <tr><td>APPLICATIONS</td><td>Console helpers (ConsoleUtils); the tool base classes and tool handling live in /src/openms_cli/include/OpenMS/APPLICATIONS (library OpenMS_CLI)</td></tr>
  <tr><td>CHEMISTRY</td><td>Source code dealing with Elements, Enzymes, Residues/Amino Acids, Modifications, Isotope distributions and amino acid sequences</td></tr>
  <tr><td>COMPARISON</td><td>Different scoring functions for clustering and spectra comparison</td></tr>
  <tr><td>CONCEPT</td><td>%OpenMS concepts (types, macros, ...)</td></tr>

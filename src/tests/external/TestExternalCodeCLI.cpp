@@ -16,20 +16,24 @@
 
 using namespace OpenMS;
 
+/// A minimal TOPP tool: prints the value of its only option.
 class TOPPExternalTool : public TOPPBase
 {
 public:
+  /// Registers the tool as unofficial, so no entry in the ToolHandler is required.
   TOPPExternalTool() :
     TOPPBase("TestExternalCodeCLI", "Tool of an external project built against the installed OpenMS_CLI library.", false)
   {
   }
 
 protected:
+  /// Declares the single string option '-greeting'.
   void registerOptionsAndFlags_() override
   {
     registerStringOption_("greeting", "<text>", "hello", "Text to print", false);
   }
 
+  /// Prints the greeting and reports success.
   ExitCodes main_(int, const char**) override
   {
     std::cout << getStringOption_("greeting") << std::endl;
@@ -37,6 +41,7 @@ protected:
   }
 };
 
+/// Runs the tool through TOPPBase::main(), like every TOPP tool does.
 int main(int argc, const char** argv)
 {
   TOPPExternalTool tool;
