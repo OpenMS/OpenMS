@@ -22,8 +22,9 @@
 ###                          components library_cli and cmake_cli)
 ###   OpenMS::OpenMS_GUI     the GUI library of a WITH_GUI build  (component GUI, on request;
 ###                          install components library_gui and cmake_gui)
-### and the un-namespaced aliases OpenMS, OpenSwathAlgo, OpenMS_CLI and OpenMS_GUI for
-### projects written against earlier releases. A core-only installation (install
+### and, for projects written against earlier releases, the un-namespaced aliases
+### OpenMS and OpenSwathAlgo, plus OpenMS_CLI and OpenMS_GUI when those layers are
+### installed. A core-only installation (install
 ### components library, OpenMS_headers, OpenSwathAlgo_headers, thirdparty_headers,
 ### share and cmake, e.g. what the pyOpenMS wheels are built against) provides the
 ### first two targets; requesting COMPONENTS CLI fails on it. Requesting COMPONENTS GUI

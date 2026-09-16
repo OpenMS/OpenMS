@@ -573,8 +573,8 @@ perf report
 - Use the same compiler/generator as OpenMS; set `OPENMS_CONTRIB_LIBS` and `OpenMS_DIR` when configuring.
 - `find_package(OpenMS CONFIG)` provides the imported targets `OpenMS::OpenMS`, `OpenMS::OpenSwathAlgo` and
   `OpenMS::OpenMS_CLI` (the TOPP tool framework: TOPPBase, ToolHandler, ...; TOPP-style tools link this one
-  and request `COMPONENTS CLI`) (`OpenMS::OpenMS_GUI` via `COMPONENTS GUI`); the un-namespaced names remain
-  as aliases.
+  and request `COMPONENTS CLI`) (`OpenMS::OpenMS_GUI` via `COMPONENTS GUI`); every installed target also has
+  its un-namespaced alias (`OpenMS`, `OpenSwathAlgo`; `OpenMS_CLI`/`OpenMS_GUI` when those layers are installed).
 - The installed package is layered (`cmake/install_macros.cmake`): core (export set `OpenMSTargets`, install
   components `library`/`cmake`), CLI (`OpenMSCLITargets`, `library_cli`/`cmake_cli`) and GUI
   (`OpenMSGUITargets`, `library_gui`/`cmake_gui`); headers have their own `<target>_headers` components.
