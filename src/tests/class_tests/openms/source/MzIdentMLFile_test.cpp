@@ -17,6 +17,8 @@
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <set>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -656,6 +658,120 @@ START_SECTION(([EXTRA] mzIdentML 1.3 multiple spectra per identification))
     refs.insert(pid.getSpectrumReference());
   }
   TEST_EQUAL(refs.size() > 1, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] PeptideSequence held in a CDATA section, behind a comment or padded with whitespace))
+{
+  // reference: the same identifications with the plain spelling '<PeptideSequence>PEPTIDER</PeptideSequence>'
+  std::vector<ProteinIdentification> ref_protein_ids;
+  PeptideIdentificationList ref_peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid"), ref_protein_ids, ref_peptide_ids);
+
+  // same file, but one sequence sits in a CDATA section, one is preceded by an XML comment inside the element
+  // and one is surrounded by whitespace; the reader used to discard the first two ("Non Text Node")
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_cdata_comment_peptide_sequence.mzid"), protein_ids, peptide_ids);
+
+  TEST_EQUAL(protein_ids.size(), ref_protein_ids.size())
+  ABORT_IF(peptide_ids.size() != ref_peptide_ids.size())
+  std::multiset<std::string> all_sequences;
+  for (Size i = 0; i < peptide_ids.size(); ++i)
+  {
+    std::multiset<std::string> sequences, ref_sequences;
+    for (const PeptideHit& hit : peptide_ids[i].getHits())
+    {
+      sequences.insert(hit.getSequence().toString());
+      all_sequences.insert(hit.getSequence().toString());
+    }
+    for (const PeptideHit& hit : ref_peptide_ids[i].getHits())
+    {
+      ref_sequences.insert(hit.getSequence().toString());
+    }
+    TEST_EQUAL(sequences == ref_sequences, true)
+  }
+  // the three rewritten peptides are referenced by PSMs and came back as plain residues
+  TEST_EQUAL(all_sequences.count("PEPTIDER"), 1)    // CDATA section
+  TEST_EQUAL(all_sequences.count("PEPTIDERR"), 1)   // padded with whitespace
+  TEST_EQUAL(all_sequences.count("PEPTIDERRRR"), 2) // comment before the residues
+  TEST_EQUAL(all_sequences.count(""), 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Peptide with an empty PeptideSequence element))
+{
+  // '<PeptideSequence></PeptideSequence>' and '<PeptideSequence/>' are schema-valid and are what the writer
+  // emits for a hit with an empty sequence; the reader used to dereference the missing first child node of
+  // such an element and crash
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_empty_peptide_sequence.mzid"), protein_ids, peptide_ids);
+
+  // the proteins reached through the PeptideEvidences are still there
+  ABORT_IF(protein_ids.size() != 1)
+  TEST_EQUAL(protein_ids[0].getHits().size(), 2)
+
+  // every PSM is kept: the ones referencing an empty peptide carry an empty sequence, the others keep theirs
+  ABORT_IF(peptide_ids.size() != 3)
+  const std::vector<std::multiset<std::string>> expected = {
+    {"", "PEPTIDERR"},  // spectrumID 17: PEPTIDER (now '<PeptideSequence></PeptideSequence>') and PEPTIDERR
+    {"", "PEPTIDERRR"}, // spectrumID 45: PEPTIDERRRR (now '<PeptideSequence/>') and PEPTIDERRR
+    {"", "PEPTIDERRR"}  // spectrumID 99: PEPTIDERRR and PEPTIDERRRR (now '<PeptideSequence/>')
+  };
+  for (Size i = 0; i < peptide_ids.size(); ++i)
+  {
+    std::multiset<std::string> sequences;
+    Size n_empty = 0;
+    for (const PeptideHit& hit : peptide_ids[i].getHits())
+    {
+      sequences.insert(hit.getSequence().toString());
+      if (hit.getSequence().empty()) ++n_empty;
+      TEST_EQUAL(hit.getPeptideEvidences().empty(), false) // the PSM was built completely
+    }
+    TEST_EQUAL(sequences == expected[i], true)
+    TEST_EQUAL(n_empty, 1)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load a PeptideHit with an empty sequence))
+{
+  // the writer emits '<PeptideSequence></PeptideSequence>' for such a hit; loading the file used to crash
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid"), protein_ids, peptide_ids);
+  ABORT_IF(peptide_ids.empty() || peptide_ids[0].getHits().empty())
+
+  PeptideHit empty_hit(0.5, 3, 1, AASequence());
+  empty_hit.setPeptideEvidences(peptide_ids[0].getHits()[0].getPeptideEvidences()); // a protein reference is needed to be written
+  peptide_ids[0].insertHit(empty_hit);
+  Size n_hits = 0;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    n_hits += pid.getHits().size();
+  }
+
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  MzIdentMLFile().store(filename, protein_ids, peptide_ids);
+
+  std::vector<ProteinIdentification> protein_ids2;
+  PeptideIdentificationList peptide_ids2;
+  MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
+
+  TEST_EQUAL(peptide_ids2.size(), peptide_ids.size())
+  Size n_hits2 = 0, n_empty2 = 0;
+  for (const PeptideIdentification& pid : peptide_ids2)
+  {
+    for (const PeptideHit& hit : pid.getHits())
+    {
+      ++n_hits2;
+      if (hit.getSequence().empty()) ++n_empty2;
+    }
+  }
+  TEST_EQUAL(n_hits2, n_hits)
+  TEST_EQUAL(n_empty2, 1)
 }
 END_SECTION
 

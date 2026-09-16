@@ -2466,19 +2466,23 @@ namespace OpenMS::Internal
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
           if (XMLString::equals(element_sib->getTagName(), CONST_XMLCH("PeptideSequence")))
           {
-            DOMNode* tn = element_sib->getFirstChild();
-            if (tn->getNodeType() == DOMNode::TEXT_NODE)
-            {
-              DOMText* data = dynamic_cast<DOMText*>(tn);
-              const XMLCh* val = data->getWholeText();
-              as = StringManager::convert(val);
-            }
-            else
-            {
-              throw std::runtime_error("ERROR : Non Text Node");
-            }
+            // The text content of the element joins the text of all its children (CDATA sections included,
+            // comments excluded) and is an empty string when the element has no children, as in the
+            // '<PeptideSequence/>' the writer emits for a hit with an empty sequence. Inspecting the first
+            // child node instead dereferenced a null pointer for such elements and discarded sequences
+            // that start with a comment or are held in a CDATA section.
+            as = StringManager::convert(element_sib->getTextContent());
           }
         }
+      }
+      // Trim once, before the substitution positions are applied, so that they count residues only.
+      StringUtils::trim(as);
+      if (as.empty())
+      {
+        // The caller catches this, logs the problem and stores an empty sequence for the peptide.
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    StringManager::convert(peptide->getAttribute(CONST_XMLCH("id"))),
+                                    "Peptide has no amino acid sequence.");
       }
       //2. Substitutions
       for (XMLSize_t c = 0; c < node_count; ++c)
@@ -2511,7 +2515,6 @@ namespace OpenMS::Internal
         }
       }
       //3. Modifications
-      StringUtils::trim(as);
       AASequence aas = AASequence::fromString(as);
       for (XMLSize_t c = 0; c < node_count; ++c)
       {
