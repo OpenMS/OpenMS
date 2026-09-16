@@ -15,6 +15,21 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    // Activation methods can originate from untrusted integers (e.g. a column of an sqMass file),
+    // so every value outside the name tables has to be rejected before indexing them.
+    size_t activationMethodIndex(Precursor::ActivationMethod m)
+    {
+      const auto index = static_cast<size_t>(m);
+      if (index >= static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid activation method",
+                                      std::to_string(static_cast<int>(m)));
+      }
+      return index;
+    }
+  }
 
   const std::string Precursor::NamesOfActivationMethod[static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)] = {
     "Collision-induced dissociation", 
@@ -121,7 +136,7 @@ namespace OpenMS
     am.reserve(activation_methods_.size());
     for (const auto& m : activation_methods_)
     {
-      am.push_back(NamesOfActivationMethod[static_cast<size_t>(m)]);
+      am.push_back(NamesOfActivationMethod[activationMethodIndex(m)]);
     }
     return am;
   }
@@ -132,7 +147,7 @@ namespace OpenMS
     am.reserve(activation_methods_.size());
     for (const auto& m : activation_methods_)
     {
-      am.push_back(NamesOfActivationMethodShort[static_cast<size_t>(m)]);
+      am.push_back(NamesOfActivationMethodShort[activationMethodIndex(m)]);
     }
     return am;
   }
@@ -161,20 +176,12 @@ namespace OpenMS
 
   const std::string& Precursor::activationMethodToString(ActivationMethod m)
   {
-    if (m == ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_ACTIVATIONMETHOD");
-    }
-    return NamesOfActivationMethod[static_cast<size_t>(m)];
+    return NamesOfActivationMethod[activationMethodIndex(m)];
   }
 
   const std::string& Precursor::activationMethodToShortString(ActivationMethod m)
   {
-    if (m == ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_ACTIVATIONMETHOD");
-    }
-    return NamesOfActivationMethodShort[static_cast<size_t>(m)];
+    return NamesOfActivationMethodShort[activationMethodIndex(m)];
   }
 
   Precursor::ActivationMethod Precursor::toActivationMethod(const std::string& name)

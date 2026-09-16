@@ -90,10 +90,10 @@ public:
     static StringList getAllShortNamesOfActivationMethods();
 
     /// convert an ActivationMethod enum to its full name string
-    /// @throws Exception::InvalidValue if @p m is SIZE_OF_ACTIVATIONMETHOD
+    /// @throws Exception::InvalidValue if @p m is not a valid activation method (including SIZE_OF_ACTIVATIONMETHOD)
     static const std::string& activationMethodToString(ActivationMethod m);
     /// convert an ActivationMethod enum to its short (abbreviated) name string
-    /// @throws Exception::InvalidValue if @p m is SIZE_OF_ACTIVATIONMETHOD
+    /// @throws Exception::InvalidValue if @p m is not a valid activation method (including SIZE_OF_ACTIVATIONMETHOD)
     static const std::string& activationMethodToShortString(ActivationMethod m);
     /// convert a string (full name or short name) to an ActivationMethod enum
     /// @throws Exception::InvalidValue if @p name is not found in NamesOfActivationMethod or NamesOfActivationMethodShort
@@ -110,8 +110,10 @@ public:
     std::set<ActivationMethod>& getActivationMethods();
     
     /// Returns the full names (e.g., "Collision-induced dissociation") of the activation methods set on this instance
-    StringList getActivationMethodsAsString() const;    
+    /// @throws Exception::InvalidValue if an invalid activation method is set
+    StringList getActivationMethodsAsString() const;
     /// Returns the abbreviations (e.g., "CID") of the activation methods set on this instance
+    /// @throws Exception::InvalidValue if an invalid activation method is set
     StringList getActivationMethodsAsShortString() const;
 
     /// sets the activation methods
