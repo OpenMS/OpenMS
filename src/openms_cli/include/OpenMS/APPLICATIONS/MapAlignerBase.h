@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/APPLICATIONS/OpenMS_CLIConfig.h>
+
 #include <OpenMS/FORMAT/FileTypes.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
@@ -32,13 +34,13 @@
 namespace OpenMS
 {
   // @brief stores model defaults for map aligner algorithms
-  struct OPENMS_DLLAPI MapAlignerBase
+  struct OPENMS_CLI_DLLAPI MapAlignerBase
   {
     static Param getModelDefaults(const std::string& default_model);
   };
 
 
-class OPENMS_DLLAPI TOPPMapAlignerBase :
+class OPENMS_CLI_DLLAPI TOPPMapAlignerBase :
   public TOPPBase, public MapAlignerBase
 {
 

@@ -90,8 +90,9 @@ foreach(i ${GUI_executables})
 endforeach(i)
 
 # GUI TOPP tools also need direct OpenMS link for TOPPBase etc.
+## these two are TOPP tools (TOPPBase-derived) with a Qt front end
 foreach(i ExecutePipeline ImageCreator)
-  target_link_libraries(${i} OpenMS)
+  target_link_libraries(${i} OpenMS_CLI)
 endforeach()
 
 # Add GUI-based TOPP tools to the TOPP_TOOLS list for CWL/INI generation

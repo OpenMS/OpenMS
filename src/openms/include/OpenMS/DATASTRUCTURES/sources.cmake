@@ -38,6 +38,7 @@ Matrix.h
 MatrixEigen.h
 OSWData.h
 Param.h
+ParamTags.h
 ParamValue.h
 QTCluster.h
 StringUtils.h

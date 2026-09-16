@@ -14,9 +14,11 @@
 ### find_package(OpenMS CONFIG) provides the imported targets
 ###   OpenMS::OpenMS         the OpenMS library                   (component Core, always)
 ###   OpenMS::OpenSwathAlgo  the OpenSWATH algorithm library      (component OpenSwathAlgo, always)
+###   OpenMS::OpenMS_CLI     the TOPP tool framework (TOPPBase, ToolHandler, ...); a
+###                          TOPP-style tool links this            (component CLI, always)
 ###   OpenMS::OpenMS_GUI     the GUI library of a WITH_GUI build  (component GUI, on request)
-### and the un-namespaced aliases OpenMS, OpenSwathAlgo and OpenMS_GUI for projects
-### written against earlier releases. Requesting COMPONENTS GUI (or
+### and the un-namespaced aliases OpenMS, OpenSwathAlgo, OpenMS_CLI and OpenMS_GUI for
+### projects written against earlier releases. Requesting COMPONENTS GUI (or
 ### OPTIONAL_COMPONENTS GUI) also finds the Qt6 modules the GUI library was built
 ### against; without it, a consumer that links OpenMS::OpenMS_GUI finds Qt6 itself.
 ###
@@ -114,13 +116,14 @@ if(OpenMS_WITH_OPENMP)
 endif()
 
 #------------------------------------------------------------------------------
-# Components. Core and OpenSwathAlgo are always present. GUI is satisfied when the
+# Components. Core, OpenSwathAlgo and CLI are always present. GUI is satisfied when the
 # installation has the GUI library and the Qt6 modules it links are found; the
 # lookup runs only when the component is requested, so consumers of the core
 # library never need Qt6.
-set(_openms_known_components Core OpenSwathAlgo GUI)
+set(_openms_known_components Core OpenSwathAlgo CLI GUI)
 set(OpenMS_Core_FOUND TRUE)
 set(OpenMS_OpenSwathAlgo_FOUND TRUE)
+set(OpenMS_CLI_FOUND TRUE)
 set(OpenMS_GUI_FOUND FALSE)
 if("GUI" IN_LIST OpenMS_FIND_COMPONENTS)
   if(OpenMS_WITH_GUI)
@@ -168,6 +171,9 @@ if(NOT TARGET OpenMS)
 endif()
 if(NOT TARGET OpenSwathAlgo)
   add_library(OpenSwathAlgo ALIAS OpenMS::OpenSwathAlgo)
+endif()
+if(NOT TARGET OpenMS_CLI)
+  add_library(OpenMS_CLI ALIAS OpenMS::OpenMS_CLI)
 endif()
 if(TARGET OpenMS::OpenMS_GUI AND NOT TARGET OpenMS_GUI)
   add_library(OpenMS_GUI ALIAS OpenMS::OpenMS_GUI)

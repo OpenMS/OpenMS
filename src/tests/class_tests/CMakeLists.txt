@@ -21,6 +21,7 @@ add_subdirectory(openswathalgo)
 #------------------------------------------------------------------------------
 # add OpenMS specific tests
 add_subdirectory(openms)
+add_subdirectory(openms_cli)
 
 if(WITH_GUI)
   #------------------------------------------------------------------------------

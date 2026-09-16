@@ -20,11 +20,13 @@ your code needs:
 
 - `OpenMS::OpenMS`: the OpenMS library (link this)
 - `OpenMS::OpenSwathAlgo`: the OpenSWATH algorithm library
+- `OpenMS::OpenMS_CLI`: the TOPP tool framework (`TOPPBase`, `ToolHandler`, `INIUpdater`, ...); link this instead of
+  `OpenMS::OpenMS` when your program derives from `TOPPBase` (it carries `OpenMS::OpenMS` transitively)
 - `OpenMS::OpenMS_GUI`: the GUI library of an OpenMS built with `WITH_GUI=ON`; request the `GUI` component
   (`find_package(OpenMS CONFIG COMPONENTS GUI)`) to also find the Qt6 modules it was built against, otherwise
   a project linking it has to find those Qt6 modules itself
 
-The un-namespaced names `OpenMS`, `OpenSwathAlgo` and `OpenMS_GUI` remain available as aliases for projects written
+The un-namespaced names `OpenMS`, `OpenSwathAlgo`, `OpenMS_CLI` and `OpenMS_GUI` remain available as aliases for projects written
 against earlier releases. The package also reports the version of the installation (`OpenMS_VERSION`), its build
 options (`OpenMS_WITH_GUI`, `OpenMS_WITH_HDF5`, `OpenMS_WITH_OPENTIMS`, `OpenMS_WITH_THERMO_RAW`, `OpenMS_WITH_OPENMP`,
 `OpenMS_BUILD_TOPP_TOOLS`) and its directories (`OPENMS_DATA_DIR`, `OPENMS_LIB_DIR`, `OPENMS_BIN_DIR`, `OPENMS_DOC_DIR`).
@@ -56,7 +58,8 @@ set(my_sources
   ExampleLibraryFile.cpp
 )
 
-## find OpenMS: provides the imported targets OpenMS::OpenMS (the library) and OpenMS::OpenSwathAlgo.
+## find OpenMS: provides the imported targets OpenMS::OpenMS (the library), OpenMS::OpenSwathAlgo
+## and OpenMS::OpenMS_CLI (the TOPP tool framework, for programs deriving from TOPPBase).
 ## If this fails, point CMake at an installation or build tree with -DOpenMS_DIR=<prefix>/lib/cmake/OpenMS
 ## (<prefix>/CMake on Windows, or the OpenMS build directory), or add <prefix> to CMAKE_PREFIX_PATH.
 find_package(OpenMS CONFIG REQUIRED)

@@ -13,7 +13,7 @@ via the CTD mechanism. A current list of TOPP tools can be found in [the documen
 The recommended way is to inherit from the class TOPPBase as in existing TOPP tools (sources available in /src/topp/). This will add command line parsing functionality to your tool as described in the TOPP section of this page.
 
 - Add the code to `src/topp/` and register it in `src/topp/executables.cmake`
-- Add your tool (with the correct category) to `getTOPPToolList()` in `src/openms/source/APPLICATIONS/ToolHandler.cpp`.
+- Add your tool (with the correct category) to `getTOPPToolList()` in `src/openms_cli/source/APPLICATIONS/ToolHandler.cpp`.
   This creates a doxygen page with the `–help` output of the tool (using `TOPPDocumenter`). This page must be included
   at the end of the doxygen documentation of your tool (see other tools for an example).
 - Add it to the TOPP docu page (in `doc/doxygen/public/TOPP.doxygen`)

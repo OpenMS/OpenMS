@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/APPLICATIONS/OpenMS_CLIConfig.h>
+
 // Small, dependency-light definitions shared by TOPPBase: the Citation struct and
 // the TOPPBase-specific parameter exceptions. Split out of TOPPBase.h so they can
 // be used without pulling in the full TOPPBase interface.
@@ -48,7 +50,7 @@ namespace OpenMS
   namespace Exception
   {
     /// An unregistered parameter was accessed
-    class OPENMS_DLLAPI UnregisteredParameter :
+    class OPENMS_CLI_DLLAPI UnregisteredParameter :
       public Exception::BaseException
     {
 public:
@@ -60,7 +62,7 @@ public:
 
     };
     /// A parameter was accessed with the wrong type
-    class OPENMS_DLLAPI WrongParameterType :
+    class OPENMS_CLI_DLLAPI WrongParameterType :
       public Exception::BaseException
     {
 public:
@@ -72,7 +74,7 @@ public:
 
     };
     /// A required parameter was not given
-    class OPENMS_DLLAPI RequiredParameterNotGiven :
+    class OPENMS_CLI_DLLAPI RequiredParameterNotGiven :
       public Exception::BaseException
     {
 public:

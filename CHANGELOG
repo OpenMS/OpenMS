@@ -660,6 +660,15 @@ Documentation:
     (#8483, #8507, #8548, #8561, #8674, #9162, #9629, #9736, #9752, #9792, #9812, #9928).
 
 Build System:
+  - The TOPP tool framework (TOPPBase, ToolHandler, INIUpdater, ParameterInformation,
+    SearchEngineBase, TOPPExternalToolBase, MapAlignerBase, OpenSwathBase) moved out of
+    libOpenMS into the new library libOpenMS_CLI (src/openms_cli; CMake target OpenMS_CLI,
+    installed as OpenMS::OpenMS_CLI, package component CLI, export macro OPENMS_CLI_DLLAPI).
+    Include paths are unchanged. The CTD/CWL parameter serializers read the parameter tag
+    names from the new core header OpenMS/DATASTRUCTURES/ParamTags.h, so nothing in
+    libOpenMS depends on the framework any more and its exported interface is purely
+    scientific. BREAKING for external projects that build TOPP-style tools: link
+    OpenMS::OpenMS_CLI (which carries OpenMS::OpenMS) instead of OpenMS::OpenMS.
   - vcpkg manifests, cross-platform CMake presets, overlay ports/triplets and binary caching
     support Linux, Windows and macOS; main build/test CI uses them. Release-only triplets
     avoid building duplicate Debug dependencies (#9511, #9800, #9927).

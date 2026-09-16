@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/APPLICATIONS/OpenMS_CLIConfig.h>
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <map>
@@ -24,7 +26,7 @@ namespace OpenMS
     debug level is >= 4). TOPP tools that shell out to an external program should derive from
     this class instead of @ref TOPPBase directly.
   */
-  class OPENMS_DLLAPI TOPPExternalToolBase : public TOPPBase
+  class OPENMS_CLI_DLLAPI TOPPExternalToolBase : public TOPPBase
   {
   public:
     /// No default constructor

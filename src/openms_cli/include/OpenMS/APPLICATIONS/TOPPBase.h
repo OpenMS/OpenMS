@@ -8,11 +8,14 @@
 
 #pragma once
 
+#include <OpenMS/APPLICATIONS/OpenMS_CLIConfig.h>
+
 #include <OpenMS/APPLICATIONS/TOPPBase_defs.h>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ParamTags.h>
 
 #include <OpenMS/METADATA/DataProcessing.h>
 
@@ -50,15 +53,16 @@ namespace OpenMS
       equal to '-out' (if present) with a ".log" suffix
       maybe a new LOGGER type (TOPP), which is only usable on TOPP level?
   */
-  class OPENMS_DLLAPI TOPPBase
+  class OPENMS_CLI_DLLAPI TOPPBase
   {
 public:
-    inline static const char* TAG_OUTPUT_FILE = "output file";
-    inline static const char* TAG_INPUT_FILE = "input file";
-    inline static const char* TAG_OUTPUT_DIR = "output dir";
-    inline static const char* TAG_OUTPUT_PREFIX = "output prefix";
-    inline static const char* TAG_ADVANCED = "advanced";
-    inline static const char* TAG_REQUIRED = "required";
+    /// Parameter tag names; the definitions live in OpenMS/DATASTRUCTURES/ParamTags.h (core library)
+    inline static const char* TAG_OUTPUT_FILE = ParamTags::TAG_OUTPUT_FILE;
+    inline static const char* TAG_INPUT_FILE = ParamTags::TAG_INPUT_FILE;
+    inline static const char* TAG_OUTPUT_DIR = ParamTags::TAG_OUTPUT_DIR;
+    inline static const char* TAG_OUTPUT_PREFIX = ParamTags::TAG_OUTPUT_PREFIX;
+    inline static const char* TAG_ADVANCED = ParamTags::TAG_ADVANCED;
+    inline static const char* TAG_REQUIRED = ParamTags::TAG_REQUIRED;
 
     /// Exit codes
     enum ExitCodes

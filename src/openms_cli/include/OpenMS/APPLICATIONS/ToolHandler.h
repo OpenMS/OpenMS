@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/APPLICATIONS/OpenMS_CLIConfig.h>
+
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
@@ -45,7 +47,7 @@ namespace OpenMS
   /// Map: TOPP tool name -> its @ref Internal::ToolDescription (category + per-type configuration).
   typedef std::map<std::string, Internal::ToolDescription> ToolListType;
 
-  class OPENMS_DLLAPI ToolHandler
+  class OPENMS_CLI_DLLAPI ToolHandler
   {
 public:
 

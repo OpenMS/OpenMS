@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/APPLICATIONS/OpenMS_CLIConfig.h>
+
 #include <memory>
 
 // Consumers
@@ -76,7 +78,7 @@ namespace OpenMS
 
     @ingroup TargetedQuantitation
   */
-  class OPENMS_DLLAPI TOPPOpenSwathBase : public TOPPBase
+  class OPENMS_CLI_DLLAPI TOPPOpenSwathBase : public TOPPBase
   {
 
   public:

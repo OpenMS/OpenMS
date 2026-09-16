@@ -61,7 +61,7 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
   # 1. Install the development components (no applications, documentation or
   #    packaging extras): this is what a library consumer has.
   set(_install_tests)
-  foreach(_component IN ITEMS library OpenMS_headers OpenSwathAlgo_headers cmake share)
+  foreach(_component IN ITEMS library OpenMS_headers OpenMS_CLI_headers OpenSwathAlgo_headers cmake share)
     add_test(NAME TestExternalCode_install_${_component}
       COMMAND ${CMAKE_COMMAND} --install "${CMAKE_BINARY_DIR}" --config $<CONFIG>
               --prefix "${_prefix}" --component ${_component})
