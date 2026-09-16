@@ -605,6 +605,10 @@ Fixes:
     - Fixed ARM64 Base64 alignment, invalid EICExtractor/MetaProSIP size parameters and
       boundary/serialization defects including empty-range accesses and unbounded loops
       (#8689, #9767, #9775, #9776, #9790).
+    - ConsensusMap::split() used raw map indices to address its result vector, so a
+      consensusXML with column ids other than 0..n-1 (e.g. FileFilter -consensus:map 0 3
+      followed by QualityControl) wrote past the end of the vector. Feature maps are now placed
+      by column position (key order); an index with no column raises ElementNotFound (#10148).
     - MapConversion::convert(PeakMap -> ConsensusMap) capped the number of peaks by
       MSExperiment::getSize() (all MS levels plus chromatogram points) although it collects MS1
       peaks only, so MapAlignerPoseClustering with max_num_peaks_considered -1 (or above the MS1
