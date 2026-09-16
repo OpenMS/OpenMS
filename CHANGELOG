@@ -573,6 +573,10 @@ Fixes:
       and unified XIC/XIM reading (#9691, #9730, #9734, #9739, #9778, #9862).
     - Fixed chromatogram MS1-isotope extraction, empty-spectrum mass/IM correction and
       metabolite-library GNPS/COMPOUND_NAME compatibility (#7284, #8163, #9270, #9386).
+    - MzIdentMLFile: loading a Peptide whose PeptideSequence element is empty (as written for a hit
+      with an empty sequence) no longer crashes with a null-pointer dereference; the reader stores an
+      empty sequence for it instead. Sequences held in a CDATA section or preceded by a comment inside
+      the element are now read instead of being discarded (#10148).
   Robustness:
     - File::writable checks no longer delete concurrently created files or report spurious
       failures; temporary directories are claimed atomically. UUID/unique-ID generation
