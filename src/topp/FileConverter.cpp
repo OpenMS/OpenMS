@@ -891,7 +891,7 @@ protected:
       }
       else // experimental data
       {
-        MapConversion::convert(0, exp, cm, exp.size());
+        MapConversion::convert(0, exp, cm);
       }
       for (auto& pepID : cm.getUnassignedPeptideIdentifications())
       {
