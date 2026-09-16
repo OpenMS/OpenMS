@@ -82,9 +82,9 @@ namespace OpenMS
       // Message for a data row whose number of tab-separated cells differs from that of its
       // header. Lines are whitespace-trimmed before they are split, so a row that ends in an
       // empty cell comes out one cell short; the counts make that visible to the user.
-      std::string wrongNumberOfRecords(const Size line_number, const std::string& line, const Size expected, const Size found)
+      std::string wrongNumberOfCells(const Size line_number, const std::string& line, const Size expected, const Size found)
       {
-        return "Wrong number of records in line " + StringUtils::toStr(line_number) + " ('" + line + "'): expected "
+        return "Wrong number of cells in line " + StringUtils::toStr(line_number) + " ('" + line + "'): expected "
                + StringUtils::toStr(expected) + " tab-separated cells as in the header, but found " + StringUtils::toStr(found)
                + ". Lines are trimmed while parsing, so a row must not end in an empty cell.";
       }
@@ -242,8 +242,8 @@ namespace OpenMS
         else if (state == RUN_CONTENT)
         {
           // Check the width of the row before it is extended or indexed: a row that ends in an
-          // empty cell is one cell short (see wrongNumberOfRecords) and would be read past its end
-          parseErrorIf_(cells.size() != n_col, tsv_file, wrongNumberOfRecords(line_number, line, n_col, cells.size()));
+          // empty cell is one cell short (see wrongNumberOfCells) and would be read past its end
+          parseErrorIf_(cells.size() != n_col, tsv_file, wrongNumberOfCells(line_number, line, n_col, cells.size()));
 
           // if no label column exists -> label free
           // -> add label column with label 1 at the end of every row
@@ -394,7 +394,7 @@ namespace OpenMS
         // Line is file section line
         else if (state == RUN_CONTENT)
         {
-          parseErrorIf_(cells.size() != n_col, tsv_file, wrongNumberOfRecords(line_number, line, n_col, cells.size()));
+          parseErrorIf_(cells.size() != n_col, tsv_file, wrongNumberOfCells(line_number, line, n_col, cells.size()));
 
           ExperimentalDesign::MSFileSectionEntry e;
 
@@ -444,7 +444,7 @@ namespace OpenMS
         {
           // The row is stored as it is and indexed by column later (SampleSection::getFactorValue),
           // so it has to be exactly as wide as the sample header; see the file section above
-          parseErrorIf_(cells.size() != n_col, tsv_file, wrongNumberOfRecords(line_number, line, n_col, cells.size()));
+          parseErrorIf_(cells.size() != n_col, tsv_file, wrongNumberOfCells(line_number, line, n_col, cells.size()));
 
           // Parse Error if sample appears multiple times
           const std::string& sample = cells[sample_columnname_to_columnindex_["Sample"]];

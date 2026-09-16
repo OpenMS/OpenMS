@@ -54,7 +54,7 @@ namespace OpenMS
                  existing file; otherwise unresolvable paths are kept as written
       @throws Exception::ParseError on a missing mandatory column, an unknown column in the file
               section of a two-table design, a row of the MS file section or of the sample section
-              with the wrong number of records (the message names the line and the expected and
+              with the wrong number of cells (the message names the line and the expected and
               actual number of cells), or -- with @p require_spectra_files -- a spectra file that
               does not exist
       @throws Exception::ConversionError if @c Fraction_Group, @c Fraction or @c Label is not an
