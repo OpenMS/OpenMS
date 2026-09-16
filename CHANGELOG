@@ -64,7 +64,10 @@ Dependencies:
     OpenMS_WITH_THERMO_RAW, OpenMS_WITH_OPENMP and OpenMS_BUILD_TOPP_TOOLS instead of the
     unprefixed WITH_* variables, which shadowed options of the consuming project, and the
     OPENMS_*_DIR variables no longer point into the prefix of a dependency found before them.
-    The empty OPENMS_ADDCXX_FLAGS variable was dropped. Consuming projects need CMake 3.18.
+    The empty OPENMS_ADDCXX_FLAGS variable was dropped, and the Find modules of the OpenMS
+    build (FindCOIN, FindLIBSVM, ...) are no longer installed next to the package: they served
+    the package's former lookups of dependencies that are PRIVATE now. Consuming projects need
+    CMake 3.18 (#10158).
   - contrib is a git submodule: clone with --recurse-submodules or run
     git submodule update --init (#9155).
   - Optional readers: WITH_OPENTIMS enables timsTOF support (default ON); opentims_DIR or
