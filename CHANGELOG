@@ -605,6 +605,10 @@ Fixes:
     - Fixed ARM64 Base64 alignment, invalid EICExtractor/MetaProSIP size parameters and
       boundary/serialization defects including empty-range accesses and unbounded loops
       (#8689, #9767, #9775, #9776, #9790).
+    - MapConversion::convert(PeakMap -> ConsensusMap) capped the number of peaks by
+      MSExperiment::getSize() (all MS levels plus chromatogram points) although it collects MS1
+      peaks only, so MapAlignerPoseClustering with max_num_peaks_considered -1 (or above the MS1
+      peak count) on runs with MS2 spectra sorted and copied past the end of a vector (#10148).
 
 Documentation:
   - Expanded experimental-design terminology and LFQ/fractionated/TMT/SILAC examples,
