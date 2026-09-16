@@ -37,16 +37,23 @@ namespace OpenMS
 public:
 
     /**
-      @brief Copy the most intense peaks of a @c PeakMap into a
+      @brief Copy the most intense MS1 peaks of a @c PeakMap into a
              @c ConsensusMap.
 
       The output's previous contents are dropped and it is given a fresh
       container unique id (@c PeakMap has no container-level unique id, so
-      one is generated). The @p n peaks with the highest intensity are
-      written to the output as @c ConsensusFeature entries tagged with
-      @p input_map_index; their order in the output is by descending
-      intensity. The column header @c size for @p input_map_index reflects
-      the number of peaks written.
+      one is generated). Only the peaks of MS level 1 spectra are
+      considered (the selection made by @c MSExperiment::get2DData());
+      spectra of other MS levels and chromatograms do not contribute. The
+      @p n MS1 peaks with the highest intensity are written to the output
+      as @c ConsensusFeature entries tagged with @p input_map_index; their
+      order in the output is by descending intensity. The column header
+      @c size for @p input_map_index reflects the number of peaks written.
+
+      @note @p n is capped by the number of MS1 peaks in @p input_map, not
+            by @c input_map.getSize(), which also counts the peaks of
+            other MS levels and all chromatogram points. An input without
+            MS1 peaks (e.g. MS2-only data) yields an empty output.
 
       @param[in]     input_map_index Index assigned to the input map in the
                                      resulting @c ConsensusMap column headers.
@@ -55,8 +62,10 @@ public:
                                      side effect.
       @param[out]    output_map      Resulting @c ConsensusMap; previous
                                      contents are replaced.
-      @param[in]     n               Maximum number of peaks to copy. The
-                                     default (@c Size(-1)) keeps all peaks.
+      @param[in]     n               Maximum number of MS1 peaks to copy. Any
+                                     value at or above the number of MS1
+                                     peaks (including the default
+                                     @c Size(-1)) keeps all MS1 peaks.
     */
     static void convert(UInt64 const input_map_index,
                         PeakMap& input_map,
