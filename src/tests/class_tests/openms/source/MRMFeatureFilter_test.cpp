@@ -15,6 +15,9 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>
 
+#include <cmath>  // issue #9488, ANSW-41: std::isnan
+#include <limits> // issue #9488, ANSW-41: std::numeric_limits
+
 using namespace OpenMS;
 using namespace std;
 
@@ -106,7 +109,6 @@ START_SECTION(double calculateIonRatio(const Feature & component_1, const Featur
 {
   MRMFeatureFilter mrmff;
   std::string feature_name = "peak_apex_int";
-  double inf = std::numeric_limits<double>::infinity();
   // dummy features
   OpenMS::Feature component_1, component_2;
   component_1.setMetaValue(feature_name, 5.0);
@@ -116,7 +118,8 @@ START_SECTION(double calculateIonRatio(const Feature & component_1, const Featur
   // tests
   TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_1,component_2,feature_name),1.0);
   component_2.setMetaValue(feature_name, 0.0);
-  TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_1,component_2,feature_name),inf);
+  // issue #9488, ANSW-41: zero denominator now yields NaN (was +inf)
+  TEST_EQUAL(std::isnan(mrmff.calculateIonRatio(component_1,component_2,feature_name)), true);
   // dummy features
   OpenMS::Feature component_3, component_4;
   component_3.setMetaValue("peak_area", 5.0);
@@ -124,7 +127,8 @@ START_SECTION(double calculateIonRatio(const Feature & component_1, const Featur
   component_4.setMetaValue("peak_area", 5.0);
   component_4.setMetaValue("native_id","component4");
   TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_1,component_4,feature_name),5.0);
-  TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_3,component_4,feature_name),0.0);
+  // issue #9488, ANSW-41: neither component has the key now yields NaN (was 0.0 sentinel)
+  TEST_EQUAL(std::isnan(mrmff.calculateIonRatio(component_3,component_4,feature_name)), true);
   // feature_name == "intensity"
   // feature_name == "intensity"
   Feature component_5, component_6, component_7, component_8;
@@ -136,7 +140,8 @@ START_SECTION(double calculateIonRatio(const Feature & component_1, const Featur
   TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_5, component_6, feature_name), 0.75);
   TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_6, component_5, feature_name), 1.33333333333333);
   component_7.setMetaValue("native_id", "component7");
-  TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_5, component_7, feature_name), inf);
+  // issue #9488, ANSW-41: component_7 default intensity is 0 -> zero denominator now yields NaN (was +inf)
+  TEST_EQUAL(std::isnan(mrmff.calculateIonRatio(component_5, component_7, feature_name)), true);
   TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_5, component_8, feature_name), 3.0);
 }
 END_SECTION

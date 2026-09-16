@@ -41,6 +41,18 @@ namespace OpenMS
     All @c getXxxById methods honour the subset: id @c i refers to the @c i-th element of the
     visible view, not the @c i-th row of the underlying SQLite table.
 
+    @note <b>An EMPTY @p indices vector is a "no-filter" sentinel meaning "expose ALL
+      spectra", NOT "expose zero spectra".</b> This is a deliberate, load-bearing convention
+      (e.g. @ref OpenMS::SwathFile relies on it to mean "no subsetting requested"). It is
+      consistent across every accessor — @ref getNrSpectra, @ref getSpectrumById,
+      @ref getSpectrumMetaById, @ref getAllSpectra and @ref getSpectraByRT all treat an empty
+      subset as "the whole file". Therefore a caller that computes a selection which happens to
+      be empty (e.g. a SWATH window that matched nothing) and passes it here will see the ENTIRE
+      file, not an empty view. Callers that want a genuine subset must pass explicit indices and
+      should special-case the "selected nothing" situation themselves before constructing the
+      accessor. The same empty-as-inherit/no-filter convention applies to the @c (parent, indices)
+      constructor (an empty @p indices inherits the parent's subset unchanged).
+
     @section SpectrumAccessSqMass_perf Performance and concurrency
 
     Per-spectrum access (@ref getSpectrumById / @ref getSpectrumMetaById) is implemented but
@@ -90,7 +102,14 @@ public:
       @brief Construct from an sqMass handler exposing only the spectra at the given indices.
 
       @param[in] handler Read-only handler to the underlying sqMass file.
-      @param[in] indices Absolute spectrum indices to expose; an empty vector falls back to "all spectra" semantics.
+      @param[in] indices Absolute spectrum indices to expose.
+
+      @note <b>An EMPTY @p indices vector does NOT produce an empty view: it is the
+        "no-filter" sentinel and exposes ALL spectra in @p handler.</b> This is intentional
+        and load-bearing (see the class-level "Subsetting" documentation), so do not pass an
+        empty vector expecting zero spectra. If your selection legitimately came out empty
+        (e.g. a SWATH window matched nothing), handle that case before constructing this
+        accessor rather than relying on the index vector to express it.
     */
     SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler, const std::vector<int> & indices);
 

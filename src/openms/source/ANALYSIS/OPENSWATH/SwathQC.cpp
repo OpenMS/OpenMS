@@ -61,12 +61,16 @@ namespace OpenSwath
       // only look at MS1 spectra (for now)
       if (spec.getMSLevel() != 1) return;
 
-      if (!isSubsampledSpectrum_(nr_ms1_spectra_, cd_spectra_, ms1_spectra_seen_))
-      { 
+      // issue #9488, ANSW-5: advance the index for EVERY MS1 spectrum seen (even rejected
+      // ones) so that uniform subsampling uses the true running index, not just the count
+      // of accepted spectra. Snapshot the index BEFORE incrementing (isSubsampledSpectrum_ is 0-based).
+      const size_t current_ms1_idx = ms1_spectra_seen_;
+      ++ms1_spectra_seen_;
+
+      if (!isSubsampledSpectrum_(nr_ms1_spectra_, cd_spectra_, current_ms1_idx))
+      {
         return;
       }
-
-      ++ms1_spectra_seen_;
 
       PeakPickerHiRes pp;
       auto t = spec.getType(true);
