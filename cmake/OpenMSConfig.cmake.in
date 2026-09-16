@@ -28,12 +28,12 @@
 ###   OPENMS_DATA_DIR (= OPENMS_SHARE_DIR), OPENMS_LIB_DIR, OPENMS_BIN_DIR, OPENMS_DOC_DIR
 ###                                         directories of this installation
 
-# The aliases created below are aliases of (non-global) imported targets, which
-# CMake supports since 3.18.
-if(CMAKE_VERSION VERSION_LESS 3.18)
+# The aliases created below are aliases of (non-global) imported targets (CMake
+# 3.18), and the Eigen lookup uses a version range (CMake 3.19).
+if(CMAKE_VERSION VERSION_LESS 3.19)
   set(OpenMS_FOUND FALSE)
   set(OpenMS_NOT_FOUND_MESSAGE
-      "OpenMS requires CMake 3.18 or newer in the consuming project (running ${CMAKE_VERSION}).")
+      "OpenMS requires CMake 3.19 or newer in the consuming project (running ${CMAKE_VERSION}).")
   return()
 endif()
 
@@ -95,8 +95,12 @@ find_dependency(Boost ${_openms_boost_version})
 # Eigen: installed headers such as DATASTRUCTURES/MatrixEigen.h include Eigen, so
 # consumers using them link Eigen3::Eigen. Same two-step lookup as in
 # cmake/cmake_findExternalLibs.cmake: the version range admits Eigen 5 where the
-# package version file understands ranges (CMake issue 24581), the plain lookup
-# produces the diagnostic for older configurations.
+# package version file understands ranges (CMake issue 24581). The fallback is
+# deliberately a plain minimum: a version file written with SameMajorVersion
+# compatibility rejects the range 3.4.0...<6 even for Eigen 3.4 itself, because
+# both ends of a range must lie in the same major version. An Eigen3::Eigen
+# target that the consuming project defines itself (e.g. a vendored Eigen) is
+# accepted as is, like in the OpenMS build; its version is that project's call.
 find_package(Eigen3 ${_openms_eigen3_version}...<6 QUIET)
 if(NOT TARGET Eigen3::Eigen)
   find_dependency(Eigen3 ${_openms_eigen3_version})

@@ -1,9 +1,12 @@
 # External project example
 
 This project shows how to compile custom code against an installed OpenMS: `find_package(OpenMS CONFIG)`
-provides the imported targets `OpenMS::OpenMS` and `OpenMS::OpenSwathAlgo` (and `OpenMS::OpenMS_GUI` when
-the `GUI` component is requested from an installation built with `WITH_GUI=ON`). The un-namespaced
-names `OpenMS`, `OpenSwathAlgo` and `OpenMS_GUI` of earlier releases remain available as aliases.
+provides the imported targets `OpenMS::OpenMS` and `OpenMS::OpenSwathAlgo`, and `OpenMS::OpenMS_GUI` for
+an installation built with `WITH_GUI=ON`. Requesting the `GUI` component (`COMPONENTS GUI` or
+`OPTIONAL_COMPONENTS GUI`) additionally finds the Qt6 modules the GUI library links and sets
+`OpenMS_GUI_FOUND`; a project that links `OpenMS::OpenMS_GUI` without requesting the component has to
+find those Qt6 modules itself. The un-namespaced names `OpenMS`, `OpenSwathAlgo` and `OpenMS_GUI` of
+earlier releases remain available as aliases. Consuming projects need CMake 3.19 or newer.
 
 It also serves as the test that the CMake package of an OpenMS installation works: when OpenMS is
 configured with `-DOPENMS_TEST_INSTALLED_CONSUMER=ON` (on in the CI presets), the CTest tests

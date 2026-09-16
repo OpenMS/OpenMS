@@ -20,14 +20,15 @@ your code needs:
 
 - `OpenMS::OpenMS`: the OpenMS library (link this)
 - `OpenMS::OpenSwathAlgo`: the OpenSWATH algorithm library
-- `OpenMS::OpenMS_GUI`: the GUI library of an OpenMS built with `WITH_GUI=ON`; request it with
-  `find_package(OpenMS CONFIG COMPONENTS GUI)`, which also finds the Qt6 modules it was built against
+- `OpenMS::OpenMS_GUI`: the GUI library of an OpenMS built with `WITH_GUI=ON`; request the `GUI` component
+  (`find_package(OpenMS CONFIG COMPONENTS GUI)`) to also find the Qt6 modules it was built against, otherwise
+  a project linking it has to find those Qt6 modules itself
 
 The un-namespaced names `OpenMS`, `OpenSwathAlgo` and `OpenMS_GUI` remain available as aliases for projects written
 against earlier releases. The package also reports the version of the installation (`OpenMS_VERSION`), its build
 options (`OpenMS_WITH_GUI`, `OpenMS_WITH_HDF5`, `OpenMS_WITH_OPENTIMS`, `OpenMS_WITH_THERMO_RAW`, `OpenMS_WITH_OPENMP`,
 `OpenMS_BUILD_TOPP_TOOLS`) and its directories (`OPENMS_DATA_DIR`, `OPENMS_LIB_DIR`, `OPENMS_BIN_DIR`, `OPENMS_DOC_DIR`).
-Consuming projects need CMake 3.18 or newer.
+Consuming projects need CMake 3.19 or newer.
 
 ```{note}
 CMake finds OpenMS through `OpenMS_DIR`, the directory holding `OpenMSConfig.cmake`: `<prefix>/lib/cmake/OpenMS` of an
@@ -39,7 +40,7 @@ the OpenMS build.
 The example that follows will be explained in details:
 
 ```cmake
-cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
 ### example CMakeLists.txt to develop C++ programs using OpenMS
 project("Example_Project_using_OpenMS")
