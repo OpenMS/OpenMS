@@ -573,6 +573,11 @@ Fixes:
       and unified XIC/XIM reading (#9691, #9730, #9734, #9739, #9778, #9862).
     - Fixed chromatogram MS1-isotope extraction, empty-spectrum mass/IM correction and
       metabolite-library GNPS/COMPOUND_NAME compatibility (#7284, #8163, #9270, #9386).
+    - The MGF reader (MascotGenericFile) starts every BEGIN IONS block from a fresh spectrum:
+      fields absent from a block (CHARGE, RTINSECONDS, the PEPMASS intensity, MSLEVEL, NAME,
+      SMILES, INCHI, ...) no longer inherit the previous block's values, and a block without
+      peak lines is read as an empty spectrum instead of being merged with the next block or
+      dropped at the end of the file (#10148).
   Robustness:
     - File::writable checks no longer delete concurrently created files or report spurious
       failures; temporary directories are claimed atomically. UUID/unique-ID generation
