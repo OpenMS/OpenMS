@@ -355,6 +355,13 @@ TOPP tools:
       - Fixed tree-guided transformation/residual estimates and reference-state leakage
         across repeated identification alignment calls. Pose clustering uses identity
         transforms for unalignable files and reports parallel I/O failures cleanly (#7010).
+      - MapAlignmentAlgorithmKD::filterCCs_ rejected a connected component with mixed
+        charge states only if the conflict was found on the last charge scanned: the
+        'continue' meant to reject the component only escaped the inner charge-scanning
+        loop, so control fell through to the conflict check with 'passes' still true
+        whenever an earlier charge pair conflicted. Mixed-charge components are now
+        rejected reliably instead of sometimes feeding incorrect points into the LOWESS
+        alignment fit (fixes #9050, #10157).
     OpenSwathWorkflow:
       - Automatic in-memory wave scheduling with batchSize=0; innerBatchSize,
         maxConcurrentSwaths and outer_loop_threads allow tuning. OSW buffering adapts to
@@ -668,7 +675,7 @@ Build System:
     names from the new core header OpenMS/DATASTRUCTURES/ParamTags.h, so nothing in
     libOpenMS depends on the framework any more and its exported interface is purely
     scientific. BREAKING for external projects that build TOPP-style tools: link
-    OpenMS::OpenMS_CLI (which carries OpenMS::OpenMS) instead of OpenMS::OpenMS.
+    OpenMS::OpenMS_CLI (which carries OpenMS::OpenMS) instead of OpenMS::OpenMS (#10162).
   - vcpkg manifests, cross-platform CMake presets, overlay ports/triplets and binary caching
     support Linux, Windows and macOS; main build/test CI uses them. Release-only triplets
     avoid building duplicate Debug dependencies (#9511, #9800, #9927).
