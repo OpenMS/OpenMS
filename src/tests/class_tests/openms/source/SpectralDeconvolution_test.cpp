@@ -133,6 +133,32 @@ START_SECTION((DeconvolvedSpectrum& performSpectrumDeconvolution(const MSSpectru
 }
 END_SECTION
 
+START_SECTION([EXTRA] precursor_mz and precursor_charge define the MSn precursor even without a precursor in the spectrum)
+{
+  Param target_param = fd_param;
+  target_param.setValue("precursor_charge", 10);
+  target_param.setValue("precursor_mz", 1000.5);
+  SpectralDeconvolution target_algo;
+  target_algo.setParameters(target_param);
+  target_algo.calculateAveragine(false);
+
+  TOLERANCE_ABSOLUTE(0.001)
+
+  // the given precursor_mz takes precedence over the precursor stored in the spectrum
+  target_algo.performSpectrumDeconvolution(input[5], 6, PeakGroup());
+  TEST_REAL_SIMILAR(target_algo.getDeconvolvedSpectrum().getPrecursor().getMZ(), 1000.5)
+  TEST_EQUAL(target_algo.getDeconvolvedSpectrum().getPrecursor().getCharge(), 10)
+
+  // ... and stands in for a missing one (this used to read past the empty precursor list)
+  MSSpectrum no_precursor = input[5];
+  no_precursor.getPrecursors().clear();
+  target_algo.performSpectrumDeconvolution(no_precursor, 6, PeakGroup());
+  TEST_REAL_SIMILAR(target_algo.getDeconvolvedSpectrum().getPrecursor().getMZ(), 1000.5)
+  TEST_EQUAL(target_algo.getDeconvolvedSpectrum().getPrecursor().getCharge(), 10)
+}
+END_SECTION
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
