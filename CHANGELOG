@@ -202,6 +202,12 @@ TOPP tools:
     All tools:
       - Boolean parameters accept flag syntax or explicit true/false, including overriding
         an INI-enabled flag with '-flag false' (#10116).
+      - A JSON INI ('-ini x.json') reads input file lists in every shape they occur in. A CWL
+        runner emits a 'File[]' input as an array of File objects, which was rejected with a
+        json type error, so every tool with an input file list failed through its generated
+        CWL description once the list was set. Input and output file lists also accept an
+        array of path strings or an object with a 'path' array; a single file parameter takes
+        a path string or an object with a 'path' string (#10121).
       - BREAKING: the advanced option '-instance <n>' was removed. It selected the numbered
         'ToolName:<n>:' section of an INI file and was broken together with '-ini' (every tool
         exited with ILLEGAL_PARAMETERS). Tools always read and write the 'ToolName:1:' section
