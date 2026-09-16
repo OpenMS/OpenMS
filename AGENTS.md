@@ -572,8 +572,17 @@ perf report
 - External test project: `src/tests/external/`.
 - Use the same compiler/generator as OpenMS; set `OPENMS_CONTRIB_LIBS` and `OpenMS_DIR` when configuring.
 - `find_package(OpenMS CONFIG)` provides the imported targets `OpenMS::OpenMS`, `OpenMS::OpenSwathAlgo` and
-  `OpenMS::OpenMS_CLI` (the TOPP tool framework: TOPPBase, ToolHandler, ...; TOPP-style tools link this one)
-  (`OpenMS::OpenMS_GUI` via `COMPONENTS GUI`); the un-namespaced names remain as aliases.
+  `OpenMS::OpenMS_CLI` (the TOPP tool framework: TOPPBase, ToolHandler, ...; TOPP-style tools link this one
+  and request `COMPONENTS CLI`) (`OpenMS::OpenMS_GUI` via `COMPONENTS GUI`); the un-namespaced names remain
+  as aliases.
+- The installed package is layered (`cmake/install_macros.cmake`): core (export set `OpenMSTargets`, install
+  components `library`/`cmake`), CLI (`OpenMSCLITargets`, `library_cli`/`cmake_cli`) and GUI
+  (`OpenMSGUITargets`, `library_gui`/`cmake_gui`); headers have their own `<target>_headers` components.
+  `openms_add_library(... EXPORT_SET <set>)` selects the layer. An installation may stop at any layer
+  (the pyOpenMS wheels install the core layer only); `OpenMSConfig.cmake` includes the target files that
+  exist and sets `OpenMS_CLI_FOUND`/`OpenMS_WITH_GUI`. When adding a library or an install component,
+  keep the layer's library and cmake components together, and update `CPACK_COMPONENTS_ALL` in
+  `cmake/package_deb.cmake`/`package_rpm.cmake` and the consumer fixture in `src/tests/CMakeLists.txt`.
 
 ## CI, Packaging, and Containers
 

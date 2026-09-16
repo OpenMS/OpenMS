@@ -11,14 +11,35 @@ include(CMakePackageConfigHelpers)
 
 # a collection of wrapper for export functions that allows easier usage
 # througout the OpenMS build system
-set(_OPENMS_EXPORT_FILE "OpenMSTargets.cmake")
+#
+# The export sets (core, CLI, GUI; see cmake/install_macros.cmake) each get one
+# target file, <set>.cmake, in the build tree and in the installation.
+# OpenMSConfig.cmake includes the core file and then the files of the layers
+# that are present.
+set(_OPENMS_EXPORT_FILE "${OPENMS_EXPORT_SET}.cmake")
+set(_OPENMS_CLI_EXPORT_FILE "${OPENMS_CLI_EXPORT_SET}.cmake")
+set(_OPENMS_GUI_EXPORT_FILE "${OPENMS_GUI_EXPORT_SET}.cmake")
 
-# clear list before we refill it
-set(_OPENMS_EXPORT_TARGETS "" CACHE INTERNAL "List of targets that will be exported.")
+# clear the lists before we refill them (one list of targets per export set)
+foreach(_export_set IN LISTS OPENMS_EXPORT_SETS)
+  set(_OPENMS_EXPORT_TARGETS_${_export_set} "" CACHE INTERNAL "Targets exported in ${_export_set}.")
+endforeach()
 
+# openms_register_export_target(<target> [<export set>])
+# Registers a target for the build-tree export of its export set (the core set
+# OpenMSTargets when omitted). The install-tree export is registered by
+# install_library().
 macro(openms_register_export_target target_name)
-  set(_OPENMS_EXPORT_TARGETS ${_OPENMS_EXPORT_TARGETS} ${target_name}
-    CACHE INTERNAL "List of targets that will be exported.")
+  set(_export_set ${ARGN})
+  if("${_export_set}" STREQUAL "")
+    set(_export_set ${OPENMS_EXPORT_SET})
+  endif()
+  if(NOT "${_export_set}" IN_LIST OPENMS_EXPORT_SETS)
+    message(FATAL_ERROR "openms_register_export_target(${target_name}): unknown export set '${_export_set}' (known: ${OPENMS_EXPORT_SETS})")
+  endif()
+  set(_OPENMS_EXPORT_TARGETS_${_export_set} ${_OPENMS_EXPORT_TARGETS_${_export_set}} ${target_name}
+    CACHE INTERNAL "Targets exported in ${_export_set}.")
+  unset(_export_set)
 endmacro()
 
 macro(openms_export_targets )
@@ -38,12 +59,19 @@ macro(openms_export_targets )
     COMPATIBILITY SameMinorVersion
   )
 
-  # create the corresponding target file for the build tree, with the same
-  # OpenMS:: namespace as the installed export (install_export_targets), so a
-  # project configured against the build tree sees the same target names
-  export(TARGETS ${_OPENMS_EXPORT_TARGETS}
-         NAMESPACE OpenMS::
-         FILE ${OPENMS_HOST_BINARY_DIRECTORY}/${_OPENMS_EXPORT_FILE})
+  # create the corresponding target files for the build tree, one per export
+  # set that has targets, with the same OpenMS:: namespace as the installed
+  # export (install_export_targets), so a project configured against the build
+  # tree sees the same target names. A target of one set refers to targets of
+  # another set through that set's file, which CMake resolves across the
+  # export() calls of this project.
+  foreach(_export_set IN LISTS OPENMS_EXPORT_SETS)
+    if(_OPENMS_EXPORT_TARGETS_${_export_set})
+      export(TARGETS ${_OPENMS_EXPORT_TARGETS_${_export_set}}
+             NAMESPACE OpenMS::
+             FILE ${OPENMS_HOST_BINARY_DIRECTORY}/${_export_set}.cmake)
+    endif()
+  endforeach()
 
   # install the generated config file
   install_file(${PROJECT_BINARY_DIR}/OpenMSConfig.cmake

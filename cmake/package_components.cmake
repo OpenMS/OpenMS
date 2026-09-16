@@ -19,9 +19,24 @@ cpack_add_component(share
                 )
 cpack_add_component(library
                 DISPLAY_NAME "Libraries"
-                DESCRIPTION "Libraries"
+                DESCRIPTION "The OpenMS core libraries"
                 INSTALL_TYPES recommended full minimal
                 )
+## the layers above the core library (see cmake/install_macros.cmake)
+cpack_add_component(library_cli
+                DISPLAY_NAME "TOPP tool framework library"
+                DESCRIPTION "The TOPP tool framework library (OpenMS_CLI), needed by the TOPP tools"
+                DEPENDS library
+                INSTALL_TYPES recommended full minimal
+                )
+if(WITH_GUI)
+  cpack_add_component(library_gui
+                  DISPLAY_NAME "GUI library"
+                  DESCRIPTION "The GUI library (OpenMS_GUI), needed by TOPPView, TOPPAS and the other GUI applications"
+                  DEPENDS library_cli
+                  INSTALL_TYPES recommended full minimal
+                  )
+endif()
 cpack_add_component(applications
                 DISPLAY_NAME "OpenMS binaries"
                 DESCRIPTION "OpenMS binaries including TOPP tools, TOPPView and TOPPAS."

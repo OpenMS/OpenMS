@@ -669,6 +669,17 @@ Build System:
     libOpenMS depends on the framework any more and its exported interface is purely
     scientific. BREAKING for external projects that build TOPP-style tools: link
     OpenMS::OpenMS_CLI (which carries OpenMS::OpenMS) instead of OpenMS::OpenMS.
+  - The installed CMake package is layered: the core libraries (libOpenMS, libOpenSwathAlgo and the
+    bundled third-party libraries; export set OpenMSTargets, install components library and cmake),
+    the TOPP tool framework (libOpenMS_CLI; OpenMSCLITargets, library_cli and cmake_cli) and the GUI
+    library (libOpenMS_GUI; OpenMSGUITargets, library_gui and cmake_gui) each have their own export
+    set and install components (openms_add_library(... EXPORT_SET <set>)). An installation may stop
+    at any layer: OpenMSConfig.cmake provides the targets of the layers present, reports them with
+    OpenMS_CLI_FOUND and OpenMS_WITH_GUI (now true only when the GUI library is installed) and
+    refuses a required CLI or GUI component that is missing; TOPP-style external tools request
+    COMPONENTS CLI. The pyOpenMS wheels build and install the core layer only again, the
+    installed-consumer test covers a full and a core-only installation, and the deb/rpm/macOS
+    packages include the new library components.
   - vcpkg manifests, cross-platform CMake presets, overlay ports/triplets and binary caching
     support Linux, Windows and macOS; main build/test CI uses them. Release-only triplets
     avoid building duplicate Debug dependencies (#9511, #9800, #9927).

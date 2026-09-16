@@ -9,22 +9,65 @@
 # a collection of wrapper for install functions that allows easier usage
 # throughout the OpenMS build system
 
+#------------------------------------------------------------------------------
+# The installed package is layered. Each layer is one export set (the file
+# OpenMSConfig.cmake includes) and one pair of install components, so an
+# installation may stop at any layer and the package of what is installed stays
+# consistent (CMake refuses an export whose library files are missing):
+#
+#   layer  export set       libraries      cmake files   targets
+#   core   OpenMSTargets    library        cmake         OpenMS::OpenMS, OpenMS::OpenSwathAlgo
+#                                                        and the bundled third-party libraries
+#   CLI    OpenMSCLITargets library_cli    cmake_cli     OpenMS::OpenMS_CLI (links the core layer)
+#   GUI    OpenMSGUITargets library_gui    cmake_gui     OpenMS::OpenMS_GUI (links the CLI layer)
+#
+# Headers keep their own components (OpenMS_headers, OpenMS_CLI_headers,
+# OpenMS_GUI_headers, OpenSwathAlgo_headers, thirdparty_headers). A core-only
+# installation (e.g. the one the pyOpenMS wheels are built against) is
+# library + the core header components + share + cmake.
 set(OPENMS_EXPORT_SET "OpenMSTargets")
+set(OPENMS_CLI_EXPORT_SET "OpenMSCLITargets")
+set(OPENMS_GUI_EXPORT_SET "OpenMSGUITargets")
+set(OPENMS_EXPORT_SETS ${OPENMS_EXPORT_SET} ${OPENMS_CLI_EXPORT_SET} ${OPENMS_GUI_EXPORT_SET})
+
+# the install components of each export set: <set>_LIBRARY_COMPONENT holds the
+# libraries, <set>_CMAKE_COMPONENT the exported target files
+set(${OPENMS_EXPORT_SET}_LIBRARY_COMPONENT library)
+set(${OPENMS_EXPORT_SET}_CMAKE_COMPONENT cmake)
+set(${OPENMS_CLI_EXPORT_SET}_LIBRARY_COMPONENT library_cli)
+set(${OPENMS_CLI_EXPORT_SET}_CMAKE_COMPONENT cmake_cli)
+set(${OPENMS_GUI_EXPORT_SET}_LIBRARY_COMPONENT library_gui)
+set(${OPENMS_GUI_EXPORT_SET}_CMAKE_COMPONENT cmake_gui)
 
 #------------------------------------------------------------------------------
-# Installs the library lib_target_name and all its headers set via
-# set_target_properties(lib_target_name PROPERTIES PUBLIC_HEADER ${headers})
+# Installs the library lib_target_name into the library component of its export
+# set and adds it to that export set.
+#
+# install_library(<target> [EXPORT_SET <set>])
 #
 # @param lib_target_name The target name of the library that should be installed
-macro(install_library lib_target_name)
+# @param EXPORT_SET      One of ${OPENMS_EXPORT_SETS}; the core set OpenMSTargets
+#                        (component 'library') when omitted
+function(install_library lib_target_name)
+    cmake_parse_arguments(_install_library "" "EXPORT_SET" "" ${ARGN})
+    if(_install_library_UNPARSED_ARGUMENTS)
+      message(FATAL_ERROR "install_library(${lib_target_name}): unexpected arguments ${_install_library_UNPARSED_ARGUMENTS}")
+    endif()
+    if(NOT _install_library_EXPORT_SET)
+      set(_install_library_EXPORT_SET ${OPENMS_EXPORT_SET})
+    endif()
+    if(NOT _install_library_EXPORT_SET IN_LIST OPENMS_EXPORT_SETS)
+      message(FATAL_ERROR "install_library(${lib_target_name}): unknown export set '${_install_library_EXPORT_SET}' (known: ${OPENMS_EXPORT_SETS})")
+    endif()
+    set(_component ${${_install_library_EXPORT_SET}_LIBRARY_COMPONENT})
     install(TARGETS ${lib_target_name}
       RUNTIME_DEPENDENCY_SET OPENMS_DEPS
-      EXPORT ${OPENMS_EXPORT_SET}
-      LIBRARY DESTINATION ${INSTALL_LIB_DIR} COMPONENT library
-      ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT library
-      RUNTIME DESTINATION ${INSTALL_LIB_DIR} COMPONENT library
+      EXPORT ${_install_library_EXPORT_SET}
+      LIBRARY DESTINATION ${INSTALL_LIB_DIR} COMPONENT ${_component}
+      ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT ${_component}
+      RUNTIME DESTINATION ${INSTALL_LIB_DIR} COMPONENT ${_component}
       )
-endmacro()
+endfunction()
 
 #------------------------------------------------------------------------------
 # Installs the given headers.
@@ -119,14 +162,23 @@ macro(install_code code_snippet component)
 endmacro()
 
 #------------------------------------------------------------------------------
-# Installs the exported target information. Consumers see every target of the
-# export set as OpenMS::<target> (OpenMS::OpenMS, OpenMS::OpenSwathAlgo, ...);
-# OpenMSConfig.cmake adds un-namespaced aliases for the three OpenMS libraries.
+# Installs the exported target information of every export set that has
+# targets: one <set>.cmake file per layer in the cmake component of that layer
+# (cmake, cmake_cli, cmake_gui), so an installation without a layer has no file
+# claiming its libraries. Consumers see every target as OpenMS::<target>
+# (OpenMS::OpenMS, OpenMS::OpenSwathAlgo, OpenMS::OpenMS_CLI, ...); a target of
+# one layer refers to the targets of the layer below by these names, and
+# OpenMSConfig.cmake includes the files in layer order and adds un-namespaced
+# aliases for the OpenMS libraries.
 macro(install_export_targets )
-    install(EXPORT ${OPENMS_EXPORT_SET}
-            NAMESPACE OpenMS::
-            DESTINATION ${INSTALL_CMAKE_DIR}
-            COMPONENT cmake)
+    foreach(_export_set IN LISTS OPENMS_EXPORT_SETS)
+      if(_OPENMS_EXPORT_TARGETS_${_export_set})
+        install(EXPORT ${_export_set}
+                NAMESPACE OpenMS::
+                DESTINATION ${INSTALL_CMAKE_DIR}
+                COMPONENT ${${_export_set}_CMAKE_COMPONENT})
+      endif()
+    endforeach()
 endmacro()
 
 #------------------------------------------------------------------------------
