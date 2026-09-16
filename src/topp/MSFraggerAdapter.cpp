@@ -605,6 +605,11 @@ protected:
             if (closed_arg == -1)
             {
               int j = arg_varmod_unimod[i].find("-term");
+              // expected form "<modification> (N-term <residue>)": checking the length first keeps substr() in range
+              if (arg_varmod_unimod[i].size() < static_cast<Size>(j) + 8 || arg_varmod_unimod[i][j + 5] != ' ')
+              {
+                _fatalError("Invalid terminal modification '" + arg_varmod_unimod[i] + "'. Expected a single residue, e.g. 'Carbamyl (N-term C)'.");
+              }
               if (arg_varmod_unimod[i].substr(j+7)!=")")
               {
                 _fatalError("Multiple aminoacids in terminal modification are not allowed");
