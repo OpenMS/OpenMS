@@ -582,6 +582,10 @@ Fixes:
     - Fixed ARM64 Base64 alignment, invalid EICExtractor/MetaProSIP size parameters and
       boundary/serialization defects including empty-range accesses and unbounded loops
       (#8689, #9767, #9775, #9776, #9790).
+    - BaseFeature::sortPeptideIdentifications() no longer reads the first hit of an
+      identification without hits (a crash for hit-less identifications loaded from featureXML,
+      e.g. in FeatureLinkerUnlabeledQT with use_identifications), sorts the hits of every
+      identification (also of a single one) and uses one score orientation throughout (#10148).
 
 Documentation:
   - Expanded experimental-design terminology and LFQ/fractionated/TMT/SILAC examples,
