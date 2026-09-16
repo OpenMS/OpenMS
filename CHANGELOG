@@ -92,6 +92,20 @@ PyOpenMS:
     python_versions.json is now purely the list of versions the wheel is tested on;
     the version it is compiled for comes from abi3_minimum_cpython_version in
     pyproject.toml, so the two cannot drift apart.
+  - Wheels now ship the .pyi type stubs and the py.typed marker. The pyopenms_stubs
+    target was never part of the build, so PYOPENMS_GENERATE_STUBS=ON defined it and
+    nothing ran it. It is now built with the pyopenms target, requires every extension
+    module to import before generating anything, and py.typed is written only once the
+    stubs exist. On Windows the stub generator and the ctest suite are handed the
+    contrib bin/ directory, where a contrib built with shared libraries keeps its DLLs;
+    a failed import now names the DLL that could not be resolved (#10141).
+  - Stub generation uses named free_mem fallbacks on Windows and unsupported
+    platforms, avoiding invalid <lambda> definitions and re-exports in .pyi files.
+    Generated stubs are syntax-checked after post-processing, before the build
+    writes py.typed and its success stamp.
+  - The Windows wheel bundles the libcurl it was linked against. delvewheel's search
+    path lacked contrib/bin and it fell back to PATH, so every Windows wheel so far
+    carried an unrelated vcpkg-built libcurl from the CI image and a second zlib.
   - The custom type casters build their result lists with the checked
     PyList_SetItem() instead of the PyList_SET_ITEM() macro, which is unavailable
     under the Limited API. Behaviour is unchanged; failures release the partially
@@ -538,6 +552,10 @@ Fixes:
     - Fixed peptide-indexing crashes on short peptides, NucleicAcidSearchEngine multi-hit
       handling, modified-sequence decoy duplicate detection, and copy operations on spectrum
       generators, SpectrumAnnotator and Normalizer (#532, #8542, #8569, #8575, #8685, #10066).
+    - Fixed the m/z of H2O/NH3 neutral-loss peaks of x/y/z linear ions at charge >= 2 in
+      TheoreticalSpectrumGeneratorXLMS and SimpleTSGXLMS: the loss was subtracted from the already
+      charge-divided position and divided by the charge again, so these peaks sat at roughly half
+      their true m/z. OpenPepXL scores and annotations of such peaks change accordingly (#10148).
   Quantification and numerical correctness:
     - ExperimentalDesign mappings use sample names consistently. Protein-group quantities
       survive ID filtering; ProtXML excludes ProteinProphet's unneeded/subsumed groups
@@ -573,6 +591,11 @@ Fixes:
       and unified XIC/XIM reading (#9691, #9730, #9734, #9739, #9778, #9862).
     - Fixed chromatogram MS1-isotope extraction, empty-spectrum mass/IM correction and
       metabolite-library GNPS/COMPOUND_NAME compatibility (#7284, #8163, #9270, #9386).
+    - The MGF reader (MascotGenericFile) starts every BEGIN IONS block from a fresh spectrum:
+      fields absent from a block (CHARGE, RTINSECONDS, the PEPMASS intensity, MSLEVEL, NAME,
+      SMILES, INCHI, ...) no longer inherit the previous block's values, and a block without
+      peak lines is read as an empty spectrum instead of being merged with the next block or
+      dropped at the end of the file (#10148).
   Robustness:
     - File::writable checks no longer delete concurrently created files or report spurious
       failures; temporary directories are claimed atomically. UUID/unique-ID generation
@@ -582,6 +605,10 @@ Fixes:
     - Fixed ARM64 Base64 alignment, invalid EICExtractor/MetaProSIP size parameters and
       boundary/serialization defects including empty-range accesses and unbounded loops
       (#8689, #9767, #9775, #9776, #9790).
+    - MapConversion::convert(PeakMap -> ConsensusMap) capped the number of peaks by
+      MSExperiment::getSize() (all MS levels plus chromatogram points) although it collects MS1
+      peaks only, so MapAlignerPoseClustering with max_num_peaks_considered -1 (or above the MS1
+      peak count) on runs with MS2 spectra sorted and copied past the end of a vector (#10148).
     - BaseFeature::sortPeptideIdentifications() no longer reads the first hit of an
       identification without hits (a crash for hit-less identifications loaded from featureXML,
       e.g. in FeatureLinkerUnlabeledQT with use_identifications), sorts the hits of every
