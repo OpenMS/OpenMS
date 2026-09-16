@@ -56,6 +56,15 @@ Dependencies:
     public dependency interface. Shared-library consumers no longer require CURL/Xerces
     development packages; OpenSwathAlgo's Boost headers are private. See OpenMS Library
     for XMLHandler/Matrix API migration (#8511, #8547, #8558, #9712, #9737, #10084, #10103).
+  - CMake package: find_package(OpenMS) provides namespaced imported targets, OpenMS::OpenMS,
+    OpenMS::OpenSwathAlgo and, via COMPONENTS GUI, OpenMS::OpenMS_GUI together with the Qt6
+    modules it was built against; the un-namespaced names remain as aliases, while the
+    bundled third-party libraries exist under the OpenMS:: namespace only. The build options
+    of an installation are reported as OpenMS_WITH_GUI, OpenMS_WITH_HDF5, OpenMS_WITH_OPENTIMS,
+    OpenMS_WITH_THERMO_RAW, OpenMS_WITH_OPENMP and OpenMS_BUILD_TOPP_TOOLS instead of the
+    unprefixed WITH_* variables, which shadowed options of the consuming project, and the
+    OPENMS_*_DIR variables no longer point into the prefix of a dependency found before them.
+    The empty OPENMS_ADDCXX_FLAGS variable was dropped. Consuming projects need CMake 3.18.
   - contrib is a git submodule: clone with --recurse-submodules or run
     git submodule update --init (#9155).
   - Optional readers: WITH_OPENTIMS enables timsTOF support (default ON); opentims_DIR or

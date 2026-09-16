@@ -23,8 +23,8 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project(NameOfTheTool)
 
 # allow building separately from OpenMS
-if(NOT TARGET OpenMS)
-  find_package(OpenMS)
+if(NOT TARGET OpenMS::OpenMS)
+  find_package(OpenMS CONFIG REQUIRED)
 endif()
 
 set(tool_sources
@@ -34,7 +34,7 @@ set(tool_sources
   additional_header2.h
 )
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources}) # Add the main cpp file and additional files
-target_link_libraries(${PROJECT_NAME} OpenMS) # Link the executable with OpenMS
+target_link_libraries(${PROJECT_NAME} OpenMS::OpenMS) # Link the executable with OpenMS
 #]] 
   else()
     add_executable(${i} ${i}.cpp)

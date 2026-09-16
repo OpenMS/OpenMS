@@ -355,9 +355,11 @@ include(cmake/min_compiler_versions.cmake)
 #------------------------------------------------------------------------------
 # Project specific compiler flags
 #------------------------------------------------------------------------------
-# Fill this with compile flags that external projects should use as well
-# for OpenMS internal flags (not promoted to external compiler flags) append to CMAKE_CXX_FLAGS
-# see OpenMS/cmake/OpenMSConfig.cmake.in to see how its configured and used (i.e. as OPENMS_ADDCXX_FLAGS)
+# Compiler flags of the OpenMS build itself. Whatever a consumer of the installed
+# package needs to compile against OpenMS is a usage requirement of the library
+# targets (target_compile_features/definitions/options with PUBLIC or INTERFACE
+# scope), which the exported targets in OpenMSTargets.cmake carry;
+# OpenMSConfig.cmake exports no flag variables.
 include(cmake/compiler_flags.cmake)
 
 # Visibility settings

@@ -569,6 +569,8 @@ perf report
 - Example external CMake project: `share/OpenMS/examples/external_code/`.
 - External test project: `src/tests/external/`.
 - Use the same compiler/generator as OpenMS; set `OPENMS_CONTRIB_LIBS` and `OpenMS_DIR` when configuring.
+- `find_package(OpenMS CONFIG)` provides the imported targets `OpenMS::OpenMS` and `OpenMS::OpenSwathAlgo`
+  (`OpenMS::OpenMS_GUI` via `COMPONENTS GUI`); the un-namespaced names remain as aliases.
 
 ## CI, Packaging, and Containers
 

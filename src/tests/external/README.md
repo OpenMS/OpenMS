@@ -1,6 +1,9 @@
 # External project example
 
-This project shows how to compile custom code against an installed OpenMS.
+This project shows how to compile custom code against an installed OpenMS: `find_package(OpenMS CONFIG)`
+provides the imported targets `OpenMS::OpenMS` and `OpenMS::OpenSwathAlgo` (and `OpenMS::OpenMS_GUI` when
+the `GUI` component is requested from an installation built with `WITH_GUI=ON`). The un-namespaced
+names `OpenMS`, `OpenSwathAlgo` and `OpenMS_GUI` of earlier releases remain available as aliases.
 
 It also serves as the test that the CMake package of an OpenMS installation works: when OpenMS is
 configured with `-DOPENMS_TEST_INSTALLED_CONSUMER=ON` (on in the CI presets), the CTest tests

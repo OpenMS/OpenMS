@@ -38,8 +38,11 @@ macro(openms_export_targets )
     COMPATIBILITY SameMinorVersion
   )
 
-  # create corresponding target file
+  # create the corresponding target file for the build tree, with the same
+  # OpenMS:: namespace as the installed export (install_export_targets), so a
+  # project configured against the build tree sees the same target names
   export(TARGETS ${_OPENMS_EXPORT_TARGETS}
+         NAMESPACE OpenMS::
          FILE ${OPENMS_HOST_BINARY_DIRECTORY}/${_OPENMS_EXPORT_FILE})
 
   # install the generated config file
@@ -52,6 +55,7 @@ macro(openms_export_targets )
                ${INSTALL_CMAKE_DIR}
                cmake)
 
-  # register the package
-  export(PACKAGE OpenMS)
+  # No export(PACKAGE OpenMS): with cmake_minimum_required(VERSION 3.24) policy
+  # CMP0090 makes it a no-op, and consumers select an installation explicitly
+  # through OpenMS_DIR or CMAKE_PREFIX_PATH rather than via the user package registry.
 endmacro()
