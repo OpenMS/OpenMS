@@ -596,6 +596,10 @@ Fixes:
       SMILES, INCHI, ...) no longer inherit the previous block's values, and a block without
       peak lines is read as an empty spectrum instead of being merged with the next block or
       dropped at the end of the file (#10148).
+    - MzIdentMLFile: loading a Peptide whose PeptideSequence element is empty (as written for a hit
+      with an empty sequence) no longer crashes with a null-pointer dereference; the reader stores an
+      empty sequence for it instead. Sequences held in a CDATA section or preceded by a comment inside
+      the element are now read instead of being discarded (#10148).
   Robustness:
     - File::writable checks no longer delete concurrently created files or report spurious
       failures; temporary directories are claimed atomically. UUID/unique-ID generation
