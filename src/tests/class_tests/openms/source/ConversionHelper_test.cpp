@@ -225,7 +225,7 @@ auto check_top_ms1 = [&](ConsensusMap& out, Size expected)
   }
 };
 
-START_SECTION([EXTRA] convert(PeakMap) caps n by the number of MS1 peaks, not by getSize())
+START_SECTION([EXTRA] convert(PeakMap) caps n by the number of MS1 peaks rather than by getSize())
 {
   // the input really is in the problematic regime: far more peaks in total than MS1 peaks
   mixed.updateRanges();

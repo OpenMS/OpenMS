@@ -161,7 +161,22 @@ public:
     /// sets the PeptideIdentification vector
     void setPeptideIdentifications(const PeptideIdentificationList& peptides);
 
-    /// sorts PeptideIdentifications, assuming they have the same scoreType.
+    /**
+      @brief Sorts the peptide identifications of this feature by the score of their best hit
+
+      First the hits of every identification are sorted with PeptideIdentification::sort(), so
+      afterwards the best hit of each identification is its first hit. Then the identifications
+      are ordered best first: the identification whose first hit has the best score ends up at
+      index 0. Identifications without hits are placed after all identifications with hits.
+      Identifications whose first hits score equally, and identifications without hits among
+      themselves, keep their relative order (the sort is stable).
+
+      @note The identifications are assumed to share one score type. The score orientation used
+      to compare them is read once, from the first identification (in the order before sorting)
+      that has hits, or is higher-is-better if no identification has hits. An identification with
+      a different orientation is ordered by that single orientation rather than rejected; only
+      the order of its own hits follows its own orientation.
+    */
     void sortPeptideIdentifications();
     ///@}
 

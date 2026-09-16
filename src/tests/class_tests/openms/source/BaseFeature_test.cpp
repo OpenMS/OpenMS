@@ -432,6 +432,94 @@ START_SECTION((sortPeptideIdentifications()))
     TEST_EQUAL(ids[2].empty(), true);
 END_SECTION
 
+START_SECTION([EXTRA] sortPeptideIdentifications() with a hit-less identification that is not empty())
+{
+  // An identification read from featureXML carries an identifier and a score type even when it
+  // has no hits, so PeptideIdentification::empty() is false for it. Sorting must not read the
+  // (non-existent) first hit of such an identification.
+  BaseFeature tmp;
+  PeptideIdentificationList& ids = tmp.getPeptideIdentifications();
+  ids.resize(3);
+
+  // ids[0]: identifier and score type, but no hits
+  ids[0].setIdentifier("run_1");
+  ids[0].setScoreType("q-value");
+  ids[0].setHigherScoreBetter(false);
+  TEST_EQUAL(ids[0].empty(), false)
+  TEST_EQUAL(ids[0].getHits().empty(), true)
+
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("ABCDE"));
+  hit.setScore(0.8);
+  ids[1].setIdentifier("run_0");
+  ids[1].setScoreType("score");
+  ids[1].insertHit(hit);
+
+  hit.setSequence(AASequence::fromString("KRGH"));
+  hit.setScore(0.5);
+  ids[2].setIdentifier("run_0");
+  ids[2].setScoreType("score");
+  ids[2].insertHit(hit);
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  hit.setScore(0.9);
+  ids[2].insertHit(hit); // best hit of ids[2], inserted last on purpose
+
+  tmp.sortPeptideIdentifications();
+
+  TEST_EQUAL(ids.size(), 3)
+  // best top hit first
+  TEST_EQUAL(ids[0].getHits().size(), 2)
+  TEST_REAL_SIMILAR(ids[0].getHits()[0].getScore(), 0.9)
+  TEST_STRING_EQUAL(ids[0].getHits()[0].getSequence().toString(), "PEPTIDE")
+  TEST_REAL_SIMILAR(ids[0].getHits()[1].getScore(), 0.5)
+  TEST_EQUAL(ids[1].getHits().size(), 1)
+  TEST_REAL_SIMILAR(ids[1].getHits()[0].getScore(), 0.8)
+  TEST_STRING_EQUAL(ids[1].getHits()[0].getSequence().toString(), "ABCDE")
+  // the hit-less identification last, and unchanged
+  TEST_EQUAL(ids[2].getHits().empty(), true)
+  TEST_STRING_EQUAL(ids[2].getIdentifier(), "run_1")
+  TEST_STRING_EQUAL(ids[2].getScoreType(), "q-value")
+  TEST_EQUAL(ids[2].isHigherScoreBetter(), false)
+  TEST_EQUAL(ids[2].empty(), false)
+
+  // sorting a sorted feature changes nothing
+  const PeptideIdentificationList sorted_once = ids;
+  tmp.sortPeptideIdentifications();
+  TEST_TRUE(ids == sorted_once)
+
+  // Two hit-less identifications are equivalent: they keep their relative order behind the
+  // identification with hits.
+  BaseFeature tmp2;
+  PeptideIdentificationList& ids2 = tmp2.getPeptideIdentifications();
+  ids2.resize(3);
+  ids2[0].setIdentifier("first_without_hits");
+  ids2[1].setIdentifier("second_without_hits");
+  hit.setScore(0.1);
+  ids2[2].insertHit(hit);
+  tmp2.sortPeptideIdentifications();
+  TEST_EQUAL(ids2.size(), 3)
+  TEST_EQUAL(ids2[0].getHits().size(), 1)
+  TEST_STRING_EQUAL(ids2[1].getIdentifier(), "first_without_hits")
+  TEST_STRING_EQUAL(ids2[2].getIdentifier(), "second_without_hits")
+
+  // Only hit-less identifications: nothing to compare by score, order kept.
+  BaseFeature tmp3;
+  PeptideIdentificationList& ids3 = tmp3.getPeptideIdentifications();
+  ids3.resize(2);
+  ids3[0].setIdentifier("a");
+  ids3[1].setIdentifier("b");
+  tmp3.sortPeptideIdentifications();
+  TEST_EQUAL(ids3.size(), 2)
+  TEST_STRING_EQUAL(ids3[0].getIdentifier(), "a")
+  TEST_STRING_EQUAL(ids3[1].getIdentifier(), "b")
+
+  // No identifications at all.
+  BaseFeature tmp4;
+  tmp4.sortPeptideIdentifications();
+  TEST_EQUAL(tmp4.getPeptideIdentifications().empty(), true)
+}
+END_SECTION
+
 START_SECTION([EXTRA] sortPeptideIdentifications() sorts the hits of a single identification)
 {
   // With a single identification the sort never compares anything, so sorting the hits inside
@@ -549,94 +637,6 @@ START_SECTION([EXTRA] sortPeptideIdentifications() with identifications of oppos
   TEST_STRING_EQUAL(ids3[1].getIdentifier(), "C")
   TEST_STRING_EQUAL(ids3[2].getIdentifier(), "A")
   TEST_STRING_EQUAL(ids3[3].getIdentifier(), "N")
-}
-END_SECTION
-
-START_SECTION([EXTRA] sortPeptideIdentifications() with a hit-less identification that is not empty())
-{
-  // An identification read from featureXML carries an identifier and a score type even when it
-  // has no hits, so PeptideIdentification::empty() is false for it. Sorting must not read the
-  // (non-existent) first hit of such an identification.
-  BaseFeature tmp;
-  PeptideIdentificationList& ids = tmp.getPeptideIdentifications();
-  ids.resize(3);
-
-  // ids[0]: identifier and score type, but no hits
-  ids[0].setIdentifier("run_1");
-  ids[0].setScoreType("q-value");
-  ids[0].setHigherScoreBetter(false);
-  TEST_EQUAL(ids[0].empty(), false)
-  TEST_EQUAL(ids[0].getHits().empty(), true)
-
-  PeptideHit hit;
-  hit.setSequence(AASequence::fromString("ABCDE"));
-  hit.setScore(0.8);
-  ids[1].setIdentifier("run_0");
-  ids[1].setScoreType("score");
-  ids[1].insertHit(hit);
-
-  hit.setSequence(AASequence::fromString("KRGH"));
-  hit.setScore(0.5);
-  ids[2].setIdentifier("run_0");
-  ids[2].setScoreType("score");
-  ids[2].insertHit(hit);
-  hit.setSequence(AASequence::fromString("PEPTIDE"));
-  hit.setScore(0.9);
-  ids[2].insertHit(hit); // best hit of ids[2], inserted last on purpose
-
-  tmp.sortPeptideIdentifications();
-
-  TEST_EQUAL(ids.size(), 3)
-  // best top hit first
-  TEST_EQUAL(ids[0].getHits().size(), 2)
-  TEST_REAL_SIMILAR(ids[0].getHits()[0].getScore(), 0.9)
-  TEST_STRING_EQUAL(ids[0].getHits()[0].getSequence().toString(), "PEPTIDE")
-  TEST_REAL_SIMILAR(ids[0].getHits()[1].getScore(), 0.5)
-  TEST_EQUAL(ids[1].getHits().size(), 1)
-  TEST_REAL_SIMILAR(ids[1].getHits()[0].getScore(), 0.8)
-  TEST_STRING_EQUAL(ids[1].getHits()[0].getSequence().toString(), "ABCDE")
-  // the hit-less identification last, and unchanged
-  TEST_EQUAL(ids[2].getHits().empty(), true)
-  TEST_STRING_EQUAL(ids[2].getIdentifier(), "run_1")
-  TEST_STRING_EQUAL(ids[2].getScoreType(), "q-value")
-  TEST_EQUAL(ids[2].isHigherScoreBetter(), false)
-  TEST_EQUAL(ids[2].empty(), false)
-
-  // sorting a sorted feature changes nothing
-  const PeptideIdentificationList sorted_once = ids;
-  tmp.sortPeptideIdentifications();
-  TEST_TRUE(ids == sorted_once)
-
-  // Two hit-less identifications are equivalent: they keep their relative order behind the
-  // identification with hits.
-  BaseFeature tmp2;
-  PeptideIdentificationList& ids2 = tmp2.getPeptideIdentifications();
-  ids2.resize(3);
-  ids2[0].setIdentifier("first_without_hits");
-  ids2[1].setIdentifier("second_without_hits");
-  hit.setScore(0.1);
-  ids2[2].insertHit(hit);
-  tmp2.sortPeptideIdentifications();
-  TEST_EQUAL(ids2.size(), 3)
-  TEST_EQUAL(ids2[0].getHits().size(), 1)
-  TEST_STRING_EQUAL(ids2[1].getIdentifier(), "first_without_hits")
-  TEST_STRING_EQUAL(ids2[2].getIdentifier(), "second_without_hits")
-
-  // Only hit-less identifications: nothing to compare by score, order kept.
-  BaseFeature tmp3;
-  PeptideIdentificationList& ids3 = tmp3.getPeptideIdentifications();
-  ids3.resize(2);
-  ids3[0].setIdentifier("a");
-  ids3[1].setIdentifier("b");
-  tmp3.sortPeptideIdentifications();
-  TEST_EQUAL(ids3.size(), 2)
-  TEST_STRING_EQUAL(ids3[0].getIdentifier(), "a")
-  TEST_STRING_EQUAL(ids3[1].getIdentifier(), "b")
-
-  // No identifications at all.
-  BaseFeature tmp4;
-  tmp4.sortPeptideIdentifications();
-  TEST_EQUAL(tmp4.getPeptideIdentifications().empty(), true)
 }
 END_SECTION
 
