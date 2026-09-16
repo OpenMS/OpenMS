@@ -509,10 +509,6 @@ if(INSTALL_OPENMS_EXAMPLES)
   install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
 endif()
 
-# Devs also need our custom find modules
-install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_CMAKE_DIR}/Modules cmake)
-file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
-
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
 
 # Add the ONNX source files conditionally

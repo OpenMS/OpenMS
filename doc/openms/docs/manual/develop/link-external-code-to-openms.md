@@ -13,28 +13,37 @@ machine, see, read further in this document.
 
 ## Compiling external code
 
-It is very easy to set up an environment to write your own programs using OpenMS. Make sure to downloaded and installed
-the source package of OpenMS/TOPP properly.
+It is very easy to set up an environment to write your own programs using OpenMS. Build OpenMS from source or
+install a development package, then let CMake locate it with `find_package(OpenMS CONFIG)`. The package provides
+the OpenMS libraries as imported targets, which carry the include directories, compile features and dependencies
+your code needs:
+
+- `OpenMS::OpenMS`: the OpenMS library (link this)
+- `OpenMS::OpenSwathAlgo`: the OpenSWATH algorithm library
+- `OpenMS::OpenMS_GUI`: the GUI library of an OpenMS built with `WITH_GUI=ON`; request the `GUI` component
+  (`find_package(OpenMS CONFIG COMPONENTS GUI)`) to also find the Qt6 modules it was built against, otherwise
+  a project linking it has to find those Qt6 modules itself
+
+The un-namespaced names `OpenMS`, `OpenSwathAlgo` and `OpenMS_GUI` remain available as aliases for projects written
+against earlier releases. The package also reports the version of the installation (`OpenMS_VERSION`), its build
+options (`OpenMS_WITH_GUI`, `OpenMS_WITH_HDF5`, `OpenMS_WITH_OPENTIMS`, `OpenMS_WITH_THERMO_RAW`, `OpenMS_WITH_OPENMP`,
+`OpenMS_BUILD_TOPP_TOOLS`) and its directories (`OPENMS_DATA_DIR`, `OPENMS_LIB_DIR`, `OPENMS_BIN_DIR`, `OPENMS_DOC_DIR`).
+Consuming projects need CMake 3.19 or newer.
 
 ```{note}
-You cannot use the `install` target when working with the development version of OpenMS, it must be built and used 
-within the build tree.
+CMake finds OpenMS through `OpenMS_DIR`, the directory holding `OpenMSConfig.cmake`: `<prefix>/lib/cmake/OpenMS` of an
+installation (`<prefix>/CMake` on Windows) or the OpenMS build directory. Alternatively add `<prefix>` to
+`CMAKE_PREFIX_PATH`. Use the same compiler, generator and dependency locations (e.g. `OPENMS_CONTRIB_LIBS`) as for
+the OpenMS build.
 ```
-
-All important compiler settings and preprocessor definitions along with the OpenMS library are available. The most
-important variables are:
-
-- `OpenMS_INCLUDE_DIRECTORIES`:  all include directories containing OpenMS headers
-- `OPENMS_ADDCXX_FLAGS`: preprocessor macros we require written as `(-DMACRO1 -DMACRO2)`
-
-and the OpenMS target itself (which you can link against).
 
 The example that follows will be explained in details:
 
-```cpp
+```cmake
+cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
+
 ### example CMakeLists.txt to develop C++ programs using OpenMS
 project("Example_Project_using_OpenMS")
-cmake_minimum_required(VERSION 3.0)
 
 ## list all your executables here (a corresponding .cpp file should exist, e.g. Main.cpp)
 set(my_executables
@@ -47,37 +56,30 @@ set(my_sources
   ExampleLibraryFile.cpp
 )
 
-## find OpenMS configuration and register target "OpenMS" (our library)
-find_package(OpenMS)
-## if the above fails you can try calling cmake with -D OpenMS_DIR=/path/to/OpenMS/
-## or modify the find_package() call accordingly
-## find_package(OpenMS PATHS "</path/to/OpenMS//")
+## find OpenMS: provides the imported targets OpenMS::OpenMS (the library) and OpenMS::OpenSwathAlgo.
+## If this fails, point CMake at an installation or build tree with -DOpenMS_DIR=<prefix>/lib/cmake/OpenMS
+## (<prefix>/CMake on Windows, or the OpenMS build directory), or add <prefix> to CMAKE_PREFIX_PATH.
+find_package(OpenMS CONFIG REQUIRED)
+message(STATUS "Found OpenMS ${OpenMS_VERSION} at ${OpenMS_DIR}")
 
-# check whether the OpenMS package was found
-if (OpenMS_FOUND)
-  message(STATUS "\nFound OpenMS at ${OpenMS_DIR}\n")
+## library with additional classes from above
+add_library(my_custom_lib STATIC ${my_sources})
+target_link_libraries(my_custom_lib PUBLIC OpenMS::OpenMS)
 
-  ## library with additional classes from above
-  add_library(my_custom_lib STATIC ${my_sources})
-
-  ## add targets for the executables
-  foreach(i ${my_executables})
-    add_executable(${i} ${i}.cpp)
-    ## link executables against OpenMS
-    target_link_libraries(${i} OpenMS my_custom_lib)
-  endforeach(i)
-
-
-else(OpenMS_FOUND)
-  message(FATAL_ERROR "OpenMSConfig.cmake file not found!")
-endif(OpenMS_FOUND)
+## add targets for the executables
+foreach(i ${my_executables})
+  add_executable(${i} ${i}.cpp)
+  ## link executables against OpenMS
+  target_link_libraries(${i} PRIVATE OpenMS::OpenMS my_custom_lib)
+endforeach(i)
 ```
 
 The command `project` defines the name of the project, the name is only of interest of you're working in an IDE or want
-to export this project's targets. To compile the program, append it to the `my_executables` list. If you use object 
-files (classes which do not contain a main program), append them to the `my_sources` list. In the next step CMake 
-creates a statically linked library of the object files, listed in `my_sources`. This simple CMakeLists.txt example can 
-be extended to also build shared libraries, include other external libraries and so on.
+to export this project's targets. To compile the program, append it to the `my_executables` list. If you use object
+files (classes which do not contain a main program), append them to the `my_sources` list. In the next step CMake
+creates a statically linked library of the object files, listed in `my_sources`, and links it against `OpenMS::OpenMS`;
+the executables inherit that dependency. This simple CMakeLists.txt example can be extended to also build shared
+libraries, include other external libraries and so on.
 
 An example external project can be found in `OpenMS/share/OpenMS/examples/external_code`. Copy these files to a separate
 directory and use CMake to configure it (here as an in-source build).

@@ -119,9 +119,12 @@ macro(install_code code_snippet component)
 endmacro()
 
 #------------------------------------------------------------------------------
-# Installs the exported target information
+# Installs the exported target information. Consumers see every target of the
+# export set as OpenMS::<target> (OpenMS::OpenMS, OpenMS::OpenSwathAlgo, ...);
+# OpenMSConfig.cmake adds un-namespaced aliases for the three OpenMS libraries.
 macro(install_export_targets )
     install(EXPORT ${OPENMS_EXPORT_SET}
+            NAMESPACE OpenMS::
             DESTINATION ${INSTALL_CMAKE_DIR}
             COMPONENT cmake)
 endmacro()

@@ -96,6 +96,10 @@ endmacro()
 #                    LINK_LIBRARIES <list of libraries used when linking the library>
 #                    PRIVATE_LINK_LIBRARIES <list of internal libraries used when linking the library>
 #                    DLL_EXPORT_PATH <path to the dll export header>)
+#
+# Besides TARGET_NAME the library is available as OpenMS::TARGET_NAME, the name
+# under which it is exported (install(EXPORT ... NAMESPACE OpenMS::)), so
+# in-tree code and consumers of the installed package can link the same name.
 function(openms_add_library)
   #------------------------------------------------------------------------------
   # parse arguments to function
@@ -125,6 +129,7 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Add the library
   add_library(${openms_add_library_TARGET_NAME} ${openms_add_library_SOURCE_FILES})
+  add_library(OpenMS::${openms_add_library_TARGET_NAME} ALIAS ${openms_add_library_TARGET_NAME})
 
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
