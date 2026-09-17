@@ -513,6 +513,9 @@ OpenMS Library:
     - Standards: ProForma v2 parsing/serialization (LOSSLESS/CANONICAL), AASequence
       conversion, mass calculation and JSON support; MzPAF peak annotations; USI parsing/
       construction; SpectrumNativeIDParser (#8637, #8648, #8684, #8686).
+    - MzPAF accepts and writes d/v/w satellite ions and the da/db/wa/wb subtypes,
+      including validation, peak annotation conversion and pyOpenMS bindings (#10175).
+      Satellite-ion mass calculation and theoretical spectrum generation remain unsupported.
     - Added IsoelectricPoint, hydrophobicity profiles, protein SequenceCoverage,
       ModifiedSincSmoother, programmatic FileInfo, CCS conversion and MSExperiment
       rasterization. Extended PeakFileOptions and on-disc filtering, peak annotations,
