@@ -74,8 +74,8 @@ endif()
 ## consumer never has to resolve Eigen3::Eigen. A STATIC installation legitimately keeps
 ## it as $<LINK_ONLY:Eigen3::Eigen>, so ask the imported target how it was built rather
 ## than trusting a recorded flag -- TYPE is what CMake itself reports, and it is also how
-## a consuming project should answer this question. TestExternalCode_noeigen_* configures
-## this project with Eigen made unfindable, which is the other half of the check.
+## a consuming project should answer this question. TestExternalCode_noeigen_configure
+## configures this project with Eigen made unfindable, which is the other half of the check.
 get_target_property(_core_type OpenMS::OpenMS TYPE)
 if(_core_type STREQUAL "SHARED_LIBRARY" AND _core_interface MATCHES "Eigen")
   message(FATAL_ERROR "OpenMS::OpenMS leaks Eigen into its link interface: ${_core_interface}")

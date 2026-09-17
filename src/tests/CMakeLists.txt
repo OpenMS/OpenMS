@@ -138,13 +138,24 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
     "${CMAKE_BINARY_DIR}/installed-consumer/build"
     ${_full_components})
 
-  # 1b. The same consumer against the same installation once more, with Eigen made
-  #     unfindable. No installed header includes Eigen and a shared OpenMS carries no
-  #     Eigen3::Eigen in its exported link interface, so finding and linking the package
-  #     has to succeed without it. Either regression fails here: a find_dependency(Eigen3)
-  #     reintroduced into OpenMSConfig.cmake reports the package as not found, and an
-  #     Eigen3::Eigen left dangling in an exported target file is diagnosed when the
-  #     consumer's build system is generated.
+  # 1b. Configure the same consumer against the same installation once more, with Eigen
+  #     made unfindable: no installed header includes Eigen, and a shared OpenMS carries
+  #     no Eigen3::Eigen in its exported link interface, so find_package(OpenMS REQUIRED)
+  #     has to succeed without it. Both regressions this guards against are reported
+  #     before anything is compiled: a find_dependency(Eigen3) reintroduced into
+  #     OpenMSConfig.cmake is a hard error, because CMAKE_DISABLE_FIND_PACKAGE_Eigen3
+  #     refuses a REQUIRED lookup, and an Eigen3::Eigen left dangling in an exported
+  #     target file fails while the consumer's build system is generated ("but the target
+  #     was not found"), which is part of this very invocation.
+  #
+  #     Configure only, deliberately. Building this tree as well would add no coverage:
+  #     disabling the Eigen *package* changes CMake-level discovery, not compiler include
+  #     paths, so for a shared installation the build system generated here is identical
+  #     to the one TestExternalCode_configure produces -- same compile commands, same link
+  #     commands -- and TestExternalCode_build already compiles and links it. The one
+  #     regression that is genuinely compile-time, an installed header including
+  #     <Eigen/Core> again, fails in that build too, since Eigen is PRIVATE and its include
+  #     directory reaches no consumer either way.
   #
   #     Shared builds only, which is what the OpenMS build produces (BUILD_SHARED_LIBS is
   #     set unconditionally in the top-level CMakeLists.txt). A static OpenMS keeps its
@@ -162,13 +173,6 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
               -DCMAKE_DISABLE_FIND_PACKAGE_Eigen3=TRUE ${_configure_args})
     set_tests_properties(TestExternalCode_noeigen_configure PROPERTIES
       FIXTURES_REQUIRED TestExternalCode_installed
-      FIXTURES_SETUP TestExternalCode_noeigen_configured
-      LABELS installed_consumer)
-    add_test(NAME TestExternalCode_noeigen_build
-      COMMAND ${CMAKE_COMMAND} --build "${CMAKE_BINARY_DIR}/installed-consumer/build-no-eigen"
-              --config $<CONFIG>)
-    set_tests_properties(TestExternalCode_noeigen_build PROPERTIES
-      FIXTURES_REQUIRED TestExternalCode_noeigen_configured
       LABELS installed_consumer)
   endif()
 
