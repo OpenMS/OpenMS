@@ -124,8 +124,9 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
   #    set unconditionally in the top-level CMakeLists.txt). A static OpenMS keeps its
   #    private dependencies in the export, so its OpenMSConfig.cmake does look Eigen up
   #    -- disabling Eigen would then make find_package(OpenMS REQUIRED) fail by design,
-  #    which is correct behaviour rather than a regression. The same condition gates the
-  #    matching assertion in src/tests/external/CMakeLists.txt.
+  #    which is correct behaviour rather than a regression. The matching assertion in
+  #    src/tests/external/CMakeLists.txt makes the same distinction consumer-side, by
+  #    asking the imported target for its TYPE.
   if(BUILD_SHARED_LIBS)
     set(_consumer_noeigen "${CMAKE_BINARY_DIR}/installed-consumer/build-no-eigen")
     add_test(NAME TestExternalCode_noeigen_configure

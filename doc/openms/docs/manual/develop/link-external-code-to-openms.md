@@ -29,8 +29,9 @@ your code needs:
 The un-namespaced names `OpenMS`, `OpenSwathAlgo`, `OpenMS_CLI` and `OpenMS_GUI` remain available as aliases for projects written
 against earlier releases. The package also reports the version of the installation (`OpenMS_VERSION`), its build
 options (`OpenMS_WITH_GUI`, `OpenMS_WITH_HDF5`, `OpenMS_WITH_OPENTIMS`, `OpenMS_WITH_THERMO_RAW`, `OpenMS_WITH_OPENMP`,
-`OpenMS_BUILD_TOPP_TOOLS`), whether its libraries are shared (`OpenMS_BUILT_SHARED_LIBS`) and its directories
-(`OPENMS_DATA_DIR`, `OPENMS_LIB_DIR`, `OPENMS_BIN_DIR`, `OPENMS_DOC_DIR`).
+`OpenMS_BUILD_TOPP_TOOLS`) and its directories (`OPENMS_DATA_DIR`, `OPENMS_LIB_DIR`, `OPENMS_BIN_DIR`,
+`OPENMS_DOC_DIR`). Whether an installation is shared or static is not a separate variable: ask the imported
+target with `get_target_property(<var> OpenMS::OpenMS TYPE)`.
 Consuming projects need CMake 3.22 or newer.
 
 ```{note}
