@@ -282,12 +282,20 @@ namespace OpenMS
       values.setName("fraction_group_level_ratio");
       normalized_values.setName("fraction_group_level_ratio_normalized");
 
+      // A reference/reference ratio is only meaningful alongside a passing comparison in the
+      // same fraction group. Its count otherwise pools disjoint, insufficient triplex comparisons.
+      std::set<unsigned> quantified_fraction_groups;
+      for (const auto& [cell, ratios] : group_ratios[g])
+      {
+        if (cell.second != reference_channel && ratios.size() >= min_ratio_count) { quantified_fraction_groups.insert(cell.first); }
+      }
       std::vector<ChannelRatio> reported;
       for (auto& [cell, ratios] : group_ratios[g])
       {
         // Below the minimum the ratio is not reported at all: a protein quantified from one peptide
         // is exactly what the threshold exists to keep out of the result.
         if (ratios.size() < min_ratio_count) { continue; }
+        if (cell.second == reference_channel && ! quantified_fraction_groups.contains(cell.first)) { continue; }
         ChannelRatio group_ratio;
         group_ratio.fraction_group = cell.first;
         group_ratio.channel = cell.second;

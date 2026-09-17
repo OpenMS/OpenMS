@@ -6,6 +6,9 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include "MS1LabeledFAIMS.h"
+#include "MS1LabeledRatioQuantifier.h"
+
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
@@ -53,16 +56,13 @@
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include "MS1LabeledRatioQuantifier.h"
-
 #include <algorithm>
 #include <cmath>
 #include <limits>
-#include <tuple>
 #include <map>
 #include <set>
 #include <string>
+#include <tuple>
 #include <vector>
 
 using namespace OpenMS;
@@ -103,8 +103,9 @@ It is the MS1-labeling counterpart of @ref TOPP_ProteomicsLFQ (label-free) and @
 @ref TOPP_FeatureLinkerUnlabeledQT, @ref TOPP_ProteinInference and @ref TOPP_ProteinQuantifier into one run.
 
 <b>Input</b>
-  - Spectra in mzML format, one file per LC-MS run (@p in). Only MS1 spectra are used; profile and centroided
-    data are both accepted (see @p algorithm:spectrum_type).
+  - Spectra in mzML format, one file per LC-MS run (@p in), with unique basenames. MS1 peaks are used for
+    quantification; spectrum metadata are also read to recover identification FAIMS CVs. Profile and
+    centroided data are both accepted (see @p algorithm:spectrum_type).
   - Identifications (@p ids), one file per spectra file in the same order, already filtered at PSM level
     (e.g. q-value < 0.01) and carrying Posterior Error Probability scores, e.g. produced with
     @ref TOPP_PercolatorAdapter (@p -score_type pep) or @ref TOPP_IDPosteriorErrorProbability, followed by
@@ -113,7 +114,8 @@ It is the MS1-labeling counterpart of @ref TOPP_ProteomicsLFQ (label-free) and @
   - The label specification (@p labels), in the syntax of @ref TOPP_FeatureFinderMultiplex, e.g.
     <tt>[][Lys8,Arg10]</tt> for SILAC, <tt>[][Lys4,Arg6][Lys8,Arg10]</tt> for triple SILAC,
     <tt>[Dimethyl0][Dimethyl6]</tt> for Dimethyl. Every bracket is one channel; the channels are numbered
-    from 1 in this order and are the @c Label column of the experimental design.
+    from 1 in this order and are the @c Label column of the experimental design. Channels must be in
+    increasing mass order, and SILAC requires an explicit unlabelled first channel <tt>[]</tt>.
   - Optionally an experimental design (@p design) with the columns Fraction_Group, Fraction,
     Spectra_Filepath, Label and Sample (see @ref OpenMS::ExperimentalDesign "ExperimentalDesign"). One row per
     (file, channel). Without a design every file is an unfractionated fraction group and every
@@ -121,6 +123,14 @@ It is the MS1-labeling counterpart of @ref TOPP_ProteomicsLFQ (label-free) and @
   - Optionally a protein database (@p fasta). The identifications are then re-indexed with
     @ref TOPP_PeptideIndexer, which annotates protein sequences (for coverage), the decoy status and the
     theoretical peptide uniqueness needed by <tt>-protein_quantification strictly_unique_peptides</tt>.
+
+FAIMS multiplets, identification mapping, blacklist checks and linking are restricted to the same
+compensation voltage. CVs share the physical run's RT alignment and sample columns; they contribute
+separate multiplet evidence to peptide quantification. Identification CVs are recovered from the original
+spectrum references (including the preceding acquisition CV when MS2 metadata omit it). In a multi-CV
+run, an ID without a resolvable spectrum reference must carry a valid @c FAIMS_CV annotation; it cannot
+be assigned using RT alone. A single-CV run allows an unambiguous fallback to that voltage. Missing
+references are repaired only against MS2 spectra at the known CV, within 0.01 seconds of the ID's RT.
 
 <b>Important:</b> the labels have to be part of the database search as (variable) modifications, e.g.
 <tt>Label:13C(6)15N(2) (K)</tt> and <tt>Label:13C(6)15N(4) (R)</tt> for Lys8/Arg10. Otherwise the MS2 spectra of the
@@ -636,6 +646,14 @@ protected:
       else { OPENMS_LOG_WARN << "Peptide ID identifier found not present in the protein ID" << endl; }
     }
 
+    // Resolve FAIMS CVs while the original spectrum references are still available. An RT-based
+    // repair cannot establish a CV reliably in a run that cycles between several voltages.
+    MSExperiment spectrum_metadata;
+    FileHandler metadata_reader;
+    metadata_reader.getOptions().setFillData(false);
+    metadata_reader.loadExperiment(mz_file_abs_path, spectrum_metadata, {FileTypes::MZML}, log_type_);
+    MS1LabeledFAIMS::annotateCompensationVoltages(spectrum_metadata, peptide_ids);
+
     // reannotate spectrum references if missing
     bool missing_spec_ref = false;
     for (const PeptideIdentification& pid : peptide_ids)
@@ -863,7 +881,7 @@ protected:
       Param idm_param = getParam_().copy("id_mapping:", true);
       writeDebug_("Parameters passed to IDMapper", idm_param, 3);
       mapper.setParameters(idm_param);
-      mapper.annotate(multiplets, peptide_ids, protein_ids, /*measure_from_subelements=*/true, /*annotate_ids_with_subelements=*/true);
+      MS1LabeledFAIMS::annotate(mapper, multiplets, peptide_ids, protein_ids);
     }
 
     // a spectrum match that landed on several multiplets stays on the closest one only
@@ -1077,9 +1095,9 @@ protected:
 
     FeatureGroupingAlgorithmQT linker;
     linker.setParameters(fl_param);
-    linker.group(maps, consensus_fraction);
-    // the columns of the result are the channels of the input maps, not the input maps themselves
-    linker.transferSubelements(maps, consensus_fraction);
+    // All CVs of a physical run share its chromatographic RT transformation, but feature identity
+    // and transfer between runs are restricted to the same compensation voltage.
+    MS1LabeledFAIMS::group(linker, maps, consensus_fraction);
 
     consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     consensus_fraction.sortPeptideIdentificationsByMapIndex();
@@ -1266,6 +1284,36 @@ protected:
         "least two channels; use ProteomicsLFQ for label-free data.");
     }
 
+    // The generator may insert an implicit light SILAC channel and omit channels that cannot
+    // occur in a pattern. Every detected handle must still have the channel promised by the design.
+    if (generator.getDeltaMassesList().empty())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "'-labels " + labels_ + "' does not generate any mass patterns. Check the label mass shifts.");
+    }
+    for (const auto& pattern : generator.getDeltaMassesList())
+    {
+      const auto& masses = pattern.getDeltaMasses();
+      bool consistent = masses.size() == samples.size();
+      for (Size i = 0; consistent && i < masses.size(); ++i)
+      {
+        for (const auto& label : masses[i].label_set)
+        {
+          if (std::find(samples[i].begin(), samples[i].end(), label) == samples[i].end()) { consistent = false; }
+        }
+        if (i > 0 && masses[i].delta_mass <= masses[i - 1].delta_mass) { consistent = false; }
+      }
+      if (! consistent)
+      {
+        throw Exception::InvalidParameter(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The channel order in '-labels " + labels_
+            + "' does not match the generated mass patterns. "
+              "Specify every channel in increasing mass order, with an explicit unlabelled first channel [] for SILAC "
+              "(e.g. [][Lys4,Arg6][Lys8,Arg10]). Each pattern must contain every declared channel.");
+      }
+    }
+
     channel_labels_.clear();
     channel_label_sets_.clear();
     channel_descriptions_.clear();
@@ -1433,6 +1481,18 @@ protected:
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Number of spectra files (" + StringUtils::toStr(in.size()) + ") must match number of ID files (" + StringUtils::toStr(in_ids.size()) + ").");
     }
+    // Design lookup and downstream exporters identify physical runs by basename. Reject aliases
+    // before any design filtering or path reconciliation can silently collapse distinct inputs.
+    set<std::string> in_basenames;
+    for (const auto& file : in)
+    {
+      if (! in_basenames.insert(File::basename(file)).second)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Input spectra files must have unique basenames; duplicate basename '" + File::basename(file)
+                                            + "'. Rename the files and update the experimental design before processing.");
+      }
+    }
     const std::string design_file = getStringOption_("design");
     const std::string in_db = getStringOption_("fasta");
 
@@ -1485,6 +1545,22 @@ protected:
       design_ = ExperimentalDesignFile::load(design_table, false, "--no design file--");
     }
 
+    // A basename must also identify a single path in the selected design. Otherwise two design
+    // runs could both be reconciled to the same input file even when the inputs themselves are unique.
+    std::map<std::string, std::string> design_paths;
+    for (const auto& entry : design_.getMSFileSection())
+    {
+      const auto basename = File::basename(entry.path);
+      if (! in_basenames.contains(basename)) { continue; }
+      const auto [it, inserted] = design_paths.emplace(basename, entry.path);
+      if (! inserted && it->second != entry.path)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "The experimental design contains distinct paths with the same basename '" + basename
+                                            + "'. Use unique basenames for physical runs.");
+      }
+    }
+
     // the design's channels must be the ones of '-labels'
     if (design_.getNumberOfLabels() != multiplicity_)
     {
@@ -1494,8 +1570,6 @@ protected:
     }
 
     // input files must be covered by the design, with every channel
-    set<std::string> in_basenames;
-    for (const auto& f : in) { in_basenames.insert(File::basename(f)); }
     {
       const auto& pl2fg = design_.getPathLabelToFractionGroupMapping(true);
       for (const std::string& bn : in_basenames)

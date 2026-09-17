@@ -178,7 +178,11 @@ namespace OpenMS
     return mz;
   }
 
-  bool MultiplexResolverAlgorithm::isBlacklisted_(const MSExperiment& blacklist, double rt, double mz, size_t charge) const
+  bool MultiplexResolverAlgorithm::isBlacklisted_(const MSExperiment& blacklist,
+                                                  double rt,
+                                                  double mz,
+                                                  size_t charge,
+                                                  const ConsensusFeature& consensus) const
   {
     const double mz_tolerance = mz_tolerance_ * mz / 1000000; // m/z tolerance in Da
 
@@ -188,6 +192,18 @@ namespace OpenMS
     // loop over range of relevant spectra
     for (MSExperiment::ConstIterator it_rt = it_rt_begin; it_rt < it_rt_end; ++it_rt)
     {
+      // Coincident peaks acquired at another FAIMS voltage cannot occlude this channel.
+      const bool feature_has_cv = consensus.metaValueExists(Constants::UserParam::FAIMS_CV);
+      const bool spectrum_has_cv
+        = it_rt->metaValueExists(Constants::UserParam::FAIMS_CV) || it_rt->getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+      if (feature_has_cv != spectrum_has_cv) { continue; }
+      if (feature_has_cv)
+      {
+        const double spectrum_cv = it_rt->metaValueExists(Constants::UserParam::FAIMS_CV)
+                                     ? static_cast<double>(it_rt->getMetaValue(Constants::UserParam::FAIMS_CV))
+                                     : it_rt->getDriftTime();
+        if (static_cast<double>(consensus.getMetaValue(Constants::UserParam::FAIMS_CV)) != spectrum_cv) { continue; }
+      }
       // check the first three isotopes of the dummy feature
       for (size_t isotope = 0; isotope < 3; ++isotope)
       {
@@ -228,6 +244,11 @@ namespace OpenMS
     }
 
     ConsensusFeature consensus_complete;
+    // Completion creates a new feature identity, but its acquisition CV remains the same.
+    if (consensus.metaValueExists(Constants::UserParam::FAIMS_CV))
+    {
+      consensus_complete.setMetaValue(Constants::UserParam::FAIMS_CV, consensus.getMetaValue(Constants::UserParam::FAIMS_CV));
+    }
 
     const int charge = consensus.getCharge();
     const double rt = consensus.getRT();
@@ -270,7 +291,7 @@ namespace OpenMS
         const double mz_dummy = mz_complete + it_mass_shift->delta_mass / charge;
         feature_handle.setMZ(mz_dummy);
         feature_handle.setRT(rt);
-        if (isBlacklisted_(blacklist, rt, mz_dummy, charge))
+        if (isBlacklisted_(blacklist, rt, mz_dummy, charge, consensus))
         {
           // Some peaks close-by were blacklisted during feature detection, i.e. another peptide feature overlaps with the dummy feature.
           // Consequently, we better report NaN i.e. not quantifiable.

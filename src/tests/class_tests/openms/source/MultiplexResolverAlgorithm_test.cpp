@@ -6,15 +6,14 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
-
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FEATUREFINDER/MultiplexResolverAlgorithm.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
+#include <OpenMS/test_config.h>
 #include <cmath>
 
 using namespace OpenMS;
@@ -254,6 +253,37 @@ START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, C
     ConsensusMap out4, conflicts4;
     TEST_EXCEPTION(Exception::MissingInformation, resolver.resolve(in3, out4, conflicts4))
   }
+}
+END_SECTION
+
+START_SECTION((FAIMS metadata and CV - specific blacklisting))
+{
+  auto in = makeDuplexMap();
+  in[4].setMetaValue(Constants::UserParam::FAIMS_CV, -65.0);
+  MSExperiment blacklist;
+  MSSpectrum spec;
+  spec.setMSLevel(1);
+  spec.setRT(500.0);
+  spec.setMetaValue(Constants::UserParam::FAIMS_CV, -45.0);
+  spec.push_back(Peak1D(900.0 - ARG10 / 2, 1000.0));
+  blacklist.addSpectrum(spec);
+  blacklist.updateRanges();
+  MultiplexResolverAlgorithm resolver;
+  ConsensusMap out, conflicts;
+  resolver.resolve(in, out, conflicts, blacklist);
+  TEST_REAL_SIMILAR(out[2].getFeatures().begin()->getIntensity(), 0.0)
+  TEST_REAL_SIMILAR((double)out[2].getMetaValue(Constants::UserParam::FAIMS_CV), -65.0)
+
+  // A peak at the same CV must still mask the missing partner.
+  blacklist[0].setMetaValue(Constants::UserParam::FAIMS_CV, -65.0);
+  resolver.resolve(in, out, conflicts, blacklist);
+  TEST_TRUE(std::isnan(out[2].getFeatures().begin()->getIntensity()))
+  // Also accept CV metadata in its native mzML representation.
+  blacklist[0].removeMetaValue(Constants::UserParam::FAIMS_CV);
+  blacklist[0].setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  blacklist[0].setDriftTime(-65.0);
+  resolver.resolve(in, out, conflicts, blacklist);
+  TEST_TRUE(std::isnan(out[2].getFeatures().begin()->getIntensity()))
 }
 END_SECTION
 

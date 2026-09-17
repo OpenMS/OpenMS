@@ -60,6 +60,14 @@ endforeach(_class_test)
 #------------------------------------------------------------------------------
 # some tests need special treatment
 
+# Workflow-specific policies remain beside the TOPP tool, but use the class-test harness.
+foreach(_workflow_test MS1LabeledFAIMS MS1LabeledRatioQuantifier)
+  target_sources(${_workflow_test}_test PRIVATE
+    ${OPENMS_HOST_DIRECTORY}/src/topp/MS1LabeledWorkflow/${_workflow_test}.cpp)
+  target_include_directories(${_workflow_test}_test PRIVATE
+    ${OPENMS_HOST_DIRECTORY}/src/topp/MS1LabeledWorkflow)
+endforeach()
+
 # StopWatch_test needs to be run alone to avoid timing errors
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 

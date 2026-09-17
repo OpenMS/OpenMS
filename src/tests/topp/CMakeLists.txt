@@ -3961,6 +3961,37 @@ add_test("TOPP_MS1LabeledWorkflow_design_label_mismatch" ${TOPP_BIN_PATH}/MS1Lab
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_design_label_mismatch.tmp.consensusXML)
 set_tests_properties("TOPP_MS1LabeledWorkflow_design_label_mismatch" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "uses 2 label.s., but '-labels .*' describes 3 channels")
 
+# SILAC layouts must describe exactly the pattern channels in mass order.
+set(_ms1_labels_reordered "[Lys8,Arg10][]")
+set(_ms1_labels_missing_light "[Lys4,Arg6][Lys8,Arg10]")
+set(_ms1_labels_decreasing "[][Lys8,Arg10][Lys4,Arg6]")
+foreach(_case reordered missing_light decreasing)
+  add_test("TOPP_MS1LabeledWorkflow_labels_${_case}" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+    -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+    -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+    -labels "${_ms1_labels_${_case}}"
+    -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_labels_${_case}.tmp.consensusXML)
+  set_tests_properties("TOPP_MS1LabeledWorkflow_labels_${_case}" PROPERTIES
+    PASS_REGULAR_EXPRESSION "does not match the generated mass patterns")
+endforeach()
+
+add_test("TOPP_MS1LabeledWorkflow_duplicate_basename" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+      ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_duplicate/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -design ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_duplicate_design.tsv
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_duplicate_basename.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_duplicate_basename" PROPERTIES
+  DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "must have unique basenames")
+
+add_test("TOPP_MS1LabeledWorkflow_ambiguous_design" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
+  -design ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_ambiguous_design.tsv
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_ambiguous_design.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_ambiguous_design" PROPERTIES
+  DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "distinct paths with the same basename")
+
 # INIUpdater:
 if(WITH_GUI AND HAS_XSERVER)
   add_test("TOPP_INIUpdater_1" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -out ${TESTS_TEMP_DIR}/INIUpdater_1_noupdate.tmp.toppas)

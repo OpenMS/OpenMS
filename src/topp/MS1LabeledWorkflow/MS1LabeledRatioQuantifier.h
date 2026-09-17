@@ -41,7 +41,9 @@ namespace OpenMS
         group (a fraction group is one labeled sample, measured in one or several fractions).
       - <b>protein group ratio</b>: the median of the peptide ratios of the group's peptides, again
         per fraction group, reported only when at least @p min_ratio_count peptides contribute
-        (MaxQuant's "min. ratio count"). The number of contributing peptides is reported alongside.
+        (MaxQuant's "min. ratio count"). The threshold applies separately to each comparison. The
+        reference/reference value is included only alongside a passing comparison in that fraction
+        group. The number of contributing peptides is reported alongside.
       - <b>normalized ratio</b> (@p normalize, on by default): every ratio divided by the median
         peptide ratio of its (fraction group, channel), i.e. the assumption that most peptides do not
         change. Medians are equivariant under that division, so normalizing the peptide ratios and

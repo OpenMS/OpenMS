@@ -125,7 +125,7 @@ namespace OpenMS
                              const std::vector<bool>& delta_mass_matched);
 
     /// Is one of the first three isotopes of a (dummy) feature at this position blacklisted?
-    bool isBlacklisted_(const MSExperiment& blacklist, double rt, double mz, size_t charge) const;
+    bool isBlacklisted_(const MSExperiment& blacklist, double rt, double mz, size_t charge, const ConsensusFeature& consensus) const;
 
     /**
       @brief Complete an incomplete multiplet with dummy features
