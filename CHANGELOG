@@ -575,6 +575,12 @@ Fixes:
     - Fixed peptide-indexing crashes on short peptides, NucleicAcidSearchEngine multi-hit
       handling, modified-sequence decoy duplicate detection, and copy operations on spectrum
       generators, SpectrumAnnotator and Normalizer (#532, #8542, #8569, #8575, #8685, #10066).
+    - PeptideIndexer no longer exhausts memory when a peptide hit carries an empty sequence
+      (an empty AASequence, or one consisting of stop codons only). The empty needle flagged
+      the root node of the Aho-Corasick trie as a hit, and since the root's suffix link points
+      to itself, the search collected hits until memory ran out. ACTrie::addNeedle() now skips
+      an empty needle with a warning, but still consumes a needle index, so the peptide indices
+      of the caller stay aligned and such hits are simply reported as unmatched (#2987).
     - Fixed the m/z of H2O/NH3 neutral-loss peaks of x/y/z linear ions at charge >= 2 in
       TheoreticalSpectrumGeneratorXLMS and SimpleTSGXLMS: the loss was subtracted from the already
       charge-divided position and divided by the charge again, so these peaks sat at roughly half
