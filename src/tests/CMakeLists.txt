@@ -110,6 +110,8 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
             --output-on-failure --no-tests=error)
   set_tests_properties(TestExternalCode_run PROPERTIES FIXTURES_REQUIRED consumer_built)
 
+  set(_consumer_tests TestExternalCode_configure TestExternalCode_build TestExternalCode_run)
+
   # 4. Configure and build the same consumer once more against the same installation,
   #    with Eigen made unfindable. No installed header includes Eigen and a shared
   #    OpenMS carries no Eigen3::Eigen in its exported link interface, so finding and
@@ -117,26 +119,36 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
   #    find_dependency(Eigen3) reintroduced into OpenMSConfig.cmake reports the package
   #    as not found, and an Eigen3::Eigen left dangling in OpenMSTargets.cmake is
   #    diagnosed when the consumer's build system is generated.
-  set(_consumer_noeigen "${CMAKE_BINARY_DIR}/installed-consumer/build-no-eigen")
-  add_test(NAME TestExternalCode_noeigen_configure
-    COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/src/tests/external" -B "${_consumer_noeigen}"
-            -G "${CMAKE_GENERATOR}" "-DCMAKE_BUILD_TYPE=$<CONFIG>"
-            "-DOpenMS_DIR=${_prefix}/${INSTALL_CMAKE_DIR}"
-            -DCMAKE_DISABLE_FIND_PACKAGE_Eigen3=TRUE ${_configure_args})
-  set_tests_properties(TestExternalCode_noeigen_configure PROPERTIES
-    FIXTURES_REQUIRED openms_installed
-    FIXTURES_SETUP consumer_noeigen_configured)
-  add_test(NAME TestExternalCode_noeigen_build
-    COMMAND ${CMAKE_COMMAND} --build "${_consumer_noeigen}" --config $<CONFIG>)
-  set_tests_properties(TestExternalCode_noeigen_build PROPERTIES
-    FIXTURES_REQUIRED consumer_noeigen_configured)
+  #
+  #    Shared builds only, which is what the OpenMS build produces (BUILD_SHARED_LIBS is
+  #    set unconditionally in the top-level CMakeLists.txt). A static OpenMS keeps its
+  #    private dependencies in the export, so its OpenMSConfig.cmake does look Eigen up
+  #    -- disabling Eigen would then make find_package(OpenMS REQUIRED) fail by design,
+  #    which is correct behaviour rather than a regression. The same condition gates the
+  #    matching assertion in src/tests/external/CMakeLists.txt.
+  if(BUILD_SHARED_LIBS)
+    set(_consumer_noeigen "${CMAKE_BINARY_DIR}/installed-consumer/build-no-eigen")
+    add_test(NAME TestExternalCode_noeigen_configure
+      COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/src/tests/external" -B "${_consumer_noeigen}"
+              -G "${CMAKE_GENERATOR}" "-DCMAKE_BUILD_TYPE=$<CONFIG>"
+              "-DOpenMS_DIR=${_prefix}/${INSTALL_CMAKE_DIR}"
+              -DCMAKE_DISABLE_FIND_PACKAGE_Eigen3=TRUE ${_configure_args})
+    set_tests_properties(TestExternalCode_noeigen_configure PROPERTIES
+      FIXTURES_REQUIRED openms_installed
+      FIXTURES_SETUP consumer_noeigen_configured)
+    add_test(NAME TestExternalCode_noeigen_build
+      COMMAND ${CMAKE_COMMAND} --build "${_consumer_noeigen}" --config $<CONFIG>)
+    set_tests_properties(TestExternalCode_noeigen_build PROPERTIES
+      FIXTURES_REQUIRED consumer_noeigen_configured)
+    list(APPEND _consumer_tests TestExternalCode_noeigen_configure TestExternalCode_noeigen_build)
+    unset(_consumer_noeigen)
+  endif()
 
-  set_tests_properties(${_install_tests} TestExternalCode_configure TestExternalCode_build
-    TestExternalCode_run TestExternalCode_noeigen_configure TestExternalCode_noeigen_build
+  set_tests_properties(${_install_tests} ${_consumer_tests}
     PROPERTIES LABELS installed_consumer)
+  unset(_consumer_tests)
   unset(_install_tests)
   unset(_configure_args)
-  unset(_consumer_noeigen)
   unset(_consumer)
   unset(_prefix)
 endif()
