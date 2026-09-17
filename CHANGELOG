@@ -80,13 +80,13 @@ Dependencies:
     Previously find_package(OpenMS REQUIRED) failed outright when Eigen was absent.
     The lookup is kept for a static OpenMS, whose export does carry
     $<LINK_ONLY:Eigen3::Eigen>, and runs only for such an installation. Eigen is still
-    required to build OpenMS and pyOpenMS.
+    required to build OpenMS and pyOpenMS (#10169).
   - The class-test framework (CONCEPT/ClassTest.h, ClassTestUtils.h,
     FuzzyStringComparator.h, MacrosTest.h) is no longer installed by default. It is an
     in-repo development tool: its static library was already EXCLUDE_FROM_ALL and is not
     exported, so an installation carried the headers without anything to link them
     against. `cmake --install . --component OpenMSTestFramework_headers` still installs
-    them explicitly.
+    them explicitly (#10169).
   - CMake package: find_package(OpenMS CONFIG) provides namespaced imported targets, OpenMS::OpenMS,
     OpenMS::OpenSwathAlgo and, via COMPONENTS GUI, OpenMS::OpenMS_GUI together with the Qt6
     modules it was built against; the un-namespaced names remain as aliases, while the
@@ -683,6 +683,11 @@ Fixes:
       identification without hits (a crash for hit-less identifications loaded from featureXML,
       e.g. in FeatureLinkerUnlabeledQT with use_identifications), sorts the hits of every
       identification (also of a single one) and uses one score orientation throughout (#10148).
+    - MapAlignmentAlgorithmKD::filterCCs_ rejected a connected component with mixed charge
+      states, but its continue statement only escaped the inner charge-scanning loop, so
+      control fell through to the conflict check with the reject flag still unset and the
+      mixed-charge component was kept. Such components could feed alignment points into the
+      LOWESS fit used by MapAlignerPoseClustering (#10157).
 
 Documentation:
   - Expanded experimental-design terminology and LFQ/fractionated/TMT/SILAC examples,
@@ -701,7 +706,7 @@ Build System:
     names from the new core header OpenMS/DATASTRUCTURES/ParamTags.h, so nothing in
     libOpenMS depends on the framework any more and its exported interface is purely
     scientific. BREAKING for external projects that build TOPP-style tools: link
-    OpenMS::OpenMS_CLI (which carries OpenMS::OpenMS) instead of OpenMS::OpenMS.
+    OpenMS::OpenMS_CLI (which carries OpenMS::OpenMS) instead of OpenMS::OpenMS (#10162).
   - The installed CMake package is layered: the core libraries (libOpenMS, libOpenSwathAlgo and the
     bundled third-party libraries; export set OpenMSTargets, install components library and cmake),
     the TOPP tool framework (libOpenMS_CLI; OpenMSCLITargets, library_cli and cmake_cli) and the GUI
@@ -714,7 +719,7 @@ Build System:
     installed-consumer test covers a full and a core-only installation, and the deb/rpm/macOS
     packages include the new library components. Reconfiguring a build directory with another
     WITH_GUI setting no longer leaves a stale GUI target file behind (src/tests/package_layers
-    checks this with stub libraries).
+    checks this with stub libraries) (#10164).
   - vcpkg manifests, cross-platform CMake presets, overlay ports/triplets and binary caching
     support Linux, Windows and macOS; main build/test CI uses them. Release-only triplets
     avoid building duplicate Debug dependencies (#9511, #9800, #9927).
