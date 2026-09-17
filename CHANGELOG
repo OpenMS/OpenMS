@@ -61,6 +61,26 @@ Dependencies:
     public dependency interface. Shared-library consumers no longer require CURL/Xerces
     development packages; OpenSwathAlgo's Boost headers are private. See OpenMS Library
     for XMLHandler/Matrix API migration (#8511, #8547, #8558, #9712, #9737, #10084, #10103).
+  - BREAKING (installed headers): two internal headers are no longer installed, and two
+    public ones no longer pull in a private dependency.
+    DATASTRUCTURES/MatrixEigen.h (the Eigen::Map views on Matrix) and SYSTEM/SIMDe.h
+    both already documented themselves as internal -- MatrixEigen.h says not to include
+    it from public headers, SIMDe.h says to include it from .cpp files only -- and only
+    libOpenMS sources and class tests include them; they stay where they are in the
+    source tree, so in-tree builds are unaffected. FORMAT/GzipIfstream.h and
+    FORMAT/Bzip2Ifstream.h no longer include <zlib.h> and <bzlib.h>: they store the
+    library handle as an opaque pointer (a forward-declared gzFile_s*, resp. a void*,
+    which is what bzlib's BZFILE is), so neither header needs the zlib/bzip2 include
+    directory any more. External code that obtained Eigen, SIMDe, zlib or bzlib
+    declarations through one of these headers has to include the library itself.
+    Note that Eigen3 is still resolved by OpenMSConfig.cmake, because a static OpenMS
+    can reference Eigen3::Eigen from its exported link interface.
+  - The class-test framework (CONCEPT/ClassTest.h, ClassTestUtils.h,
+    FuzzyStringComparator.h, MacrosTest.h) is no longer installed by default. It is an
+    in-repo development tool: its static library was already EXCLUDE_FROM_ALL and is not
+    exported, so an installation carried the headers without anything to link them
+    against. `cmake --install . --component OpenMSTestFramework_headers` still installs
+    them explicitly.
   - CMake package: find_package(OpenMS CONFIG) provides namespaced imported targets, OpenMS::OpenMS,
     OpenMS::OpenSwathAlgo and, via COMPONENTS GUI, OpenMS::OpenMS_GUI together with the Qt6
     modules it was built against; the un-namespaced names remain as aliases, while the

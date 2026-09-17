@@ -30,7 +30,21 @@ endmacro()
 # Installs the given headers.
 #
 # @param header_list List of headers to install
+# @param component   Headers go into the install component <component>_headers
+# @param ARGN        Pass EXCLUDE_FROM_ALL to keep the headers out of a plain
+#                    `cmake --install` (and out of non component-based packaging),
+#                    while `cmake --install . --component <component>_headers`
+#                    still installs them. For in-repo tooling that is not part of
+#                    the shipped API; mirrors the flag on the matching
+#                    install(TARGETS ...) so header and library agree.
 macro(install_headers header_list component)
+  ## ARGN is not a real variable inside a macro, so copy it before using IN_LIST
+  set(_install_headers_args ${ARGN})
+  set(_install_headers_exclude)
+  if ("EXCLUDE_FROM_ALL" IN_LIST _install_headers_args)
+    set(_install_headers_exclude EXCLUDE_FROM_ALL)
+  endif()
+
   foreach(_header ${header_list})
     # nlohmann::json is a PRIVATE dependency of libOpenMS: downstream builds do not have its
     # include directory, so no installed header may include it (configure-time check only).
@@ -64,7 +78,8 @@ macro(install_headers header_list component)
             # note the missing slash, we need this for file directly located in
             # include/OpenMS (e.g., config.h)
             DESTINATION ${INSTALL_INCLUDE_DIR}/OpenMS${_relative_header_path}
-            COMPONENT ${component}_headers)
+            COMPONENT ${component}_headers
+            ${_install_headers_exclude})
   endforeach()
 endmacro()
 

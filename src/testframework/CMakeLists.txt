@@ -42,16 +42,22 @@ target_compile_features(OpenMSTestFramework PUBLIC cxx_std_23)
 openms_add_library_compiler_flags(OpenMSTestFramework)
 
 #------------------------------------------------------------------------------
-# In-repo dev tool, not shipped: EXCLUDE_FROM_ALL keeps the archive out of
-# default installs and the NSIS/zip installers (productbuild drops it too);
-# `cmake --install . --component OpenMSTestFramework` still installs it. Headers
-# keep their historic include/OpenMS/CONCEPT/ location so existing includes
-# resolve. Not exported (OpenMSTargets.cmake) and not in the 'library' component:
-# the wheel builds install component-wise, so an exported target would dangle and
-# break downstream find_package(OpenMS). In-tree consumers link it directly.
+# In-repo dev tool, not shipped: EXCLUDE_FROM_ALL keeps the archive AND its
+# headers out of default installs and the NSIS/zip installers (productbuild
+# enumerates components by name, so it ignores the flag and drops both via an
+# explicit list(REMOVE_ITEM) in cmake/package_mac_productbuild.cmake);
+# `cmake --install . --component OpenMSTestFramework` (resp.
+# `--component OpenMSTestFramework_headers`) still installs them. The headers are
+# useless on their own anyway -- the target is not exported
+# (OpenMSTargets.cmake) and not in the 'library' component, so an installation
+# carries no library to link them against: the wheel builds install
+# component-wise, so an exported target would dangle and break downstream
+# find_package(OpenMS). Headers keep their historic include/OpenMS/CONCEPT/
+# location so existing includes resolve. In-tree consumers link the target
+# directly and read the headers from the source tree.
 install(TARGETS OpenMSTestFramework
         ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT OpenMSTestFramework
         EXCLUDE_FROM_ALL)
-install_headers("${OpenMSTestFramework_sources_h}" OpenMSTestFramework)
+install_headers("${OpenMSTestFramework_sources_h}" OpenMSTestFramework EXCLUDE_FROM_ALL)
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
