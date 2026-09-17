@@ -18,6 +18,8 @@ endif()
 # The channel-ratio quantification of this workflow. Kept next to the tool rather than in the
 # library: its aggregation rules are the ones this workflow defines.
 set(tool_sources
+  MS1LabeledSpectra.cpp
+  MS1LabeledSpectra.h
   MS1LabeledFAIMS.cpp
   MS1LabeledFAIMS.h
   MS1LabeledRatioQuantifier.cpp

@@ -60,7 +60,7 @@ endforeach(_class_test)
 # some tests need special treatment
 
 # Workflow-specific policies remain beside the TOPP tool, but use the class-test harness.
-foreach(_workflow_test MS1LabeledFAIMS MS1LabeledRatioQuantifier)
+foreach(_workflow_test MS1LabeledFAIMS MS1LabeledRatioQuantifier MS1LabeledSpectra)
   target_sources(${_workflow_test}_test PRIVATE
     ${OPENMS_HOST_DIRECTORY}/src/topp/MS1LabeledWorkflow/${_workflow_test}.cpp)
   target_include_directories(${_workflow_test}_test PRIVATE
@@ -320,6 +320,16 @@ endif()
 if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
   target_compile_definitions(ThermoRawFile_test PRIVATE
     THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
+endif()
+
+if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
+  file(TO_CMAKE_PATH "${THERMO_RAW_TEST_DATA}" _ms1_thermo_test_data)
+  target_compile_definitions(MS1LabeledSpectra_test PRIVATE
+    THERMO_RAW_TEST_DATA="${_ms1_thermo_test_data}")
+  set_tests_properties(MS1LabeledSpectra_test PROPERTIES TIMEOUT 1200)
+  if (COMMAND openms_thermo_bridge_copy_runtime_files)
+    openms_thermo_bridge_copy_runtime_files(TARGET MS1LabeledSpectra_test)
+  endif()
 endif()
 
 # Optional Thermo FAIMS-DIA integration fixture. It can be supplied explicitly via

@@ -8,6 +8,7 @@
 
 #include "MS1LabeledFAIMS.h"
 #include "MS1LabeledRatioQuantifier.h"
+#include "MS1LabeledSpectra.h"
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
@@ -53,7 +54,6 @@
 #include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <algorithm>
@@ -103,7 +103,8 @@ It is the MS1-labeling counterpart of @ref TOPP_ProteomicsLFQ (label-free) and @
 @ref TOPP_FeatureLinkerUnlabeledQT, @ref TOPP_ProteinInference and @ref TOPP_ProteinQuantifier into one run.
 
 <b>Input</b>
-  - Spectra in mzML format, one file per LC-MS run (@p in), with unique basenames. MS1 peaks are used for
+  - Spectra in mzML or Thermo RAW format, one file per LC-MS run (@p in), with unique basenames. Native
+    RAW input requires a build with WITH_THERMO_RAW and a .NET 8+ runtime. MS1 peaks are used for
     quantification; spectrum metadata are also read to recover identification FAIMS CVs. Profile and
     centroided data are both accepted (see @p algorithm:spectrum_type).
   - Identifications (@p ids), one file per spectra file in the same order, already filtered at PSM level
@@ -234,8 +235,13 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file list>", StringList(),
-      "Input: spectra files (mzML), one per LC-MS run. Only MS1 spectra are used; profile and centroided data are accepted.");
-    setValidFormats_("in", {"mzML"});
+      "Input: spectra files (mzML, or Thermo RAW with WITH_THERMO_RAW and .NET 8+), one per LC-MS run. "
+      "Only MS1 peaks are used; profile and centroided data are accepted.");
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"
+#ifdef WITH_THERMO_RAW
+      ",raw"
+#endif
+    ));
 
     registerInputFileList_("ids", "<file list>", StringList(),
       "Identifications filtered at PSM level (e.g., q-value < 0.01), one per spectra file in the same order.\n"
@@ -397,7 +403,7 @@ protected:
     }
     if (run_paths.empty())
     {
-      OPENMS_LOG_WARN << "Warning: No mzML origin annotated in ID file. This can lead to errors or unexpected behaviour later: "
+      OPENMS_LOG_WARN << "Warning: No spectra file origin annotated in ID file. This can lead to errors or unexpected behaviour later: "
                       << id_file_abs_path << endl;
     }
     return EXECUTION_OK;
@@ -531,6 +537,7 @@ protected:
   }
 
   /// Load one run's identifications and bring them into the shape the rest of the workflow expects (see ProteomicsLFQ).
+  /// Retain the MS1 peaks read alongside scan metadata, so native RAW input is decoded only once.
   ExitCodes loadAndCleanupIDFile_(
     const std::string& id_file_abs_path,
     const std::string& mz_file,
@@ -540,7 +547,8 @@ protected:
     vector<ProteinIdentification>& protein_ids,
     PeptideIdentificationList& peptide_ids,
     set<std::string>& fixed_modifications,    // adds to
-    set<std::string>& variable_modifications) // adds to
+    set<std::string>& variable_modifications, // adds to
+    MSExperiment& ms1)
   {
     const std::string mz_file_abs_path = File::absolutePath(mz_file);
     FileHandler().loadIdentifications(id_file_abs_path, protein_ids, peptide_ids,
@@ -636,7 +644,7 @@ protected:
     protein_ids[0].setMetaValue("fraction_group", fraction_group);
     protein_ids[0].setMetaValue("fraction", fraction);
 
-    // make the run identifier unique across input files (users split mzML and id files before running the analysis)
+    // make the run identifier unique across input files (users split spectra and ID files before running the analysis)
     const std::string old_identifier = protein_ids[0].getIdentifier();
     const std::string new_identifier = old_identifier + "_" + StringUtils::toStr(fraction_group) + "F" + StringUtils::toStr(fraction);
     protein_ids[0].setIdentifier(new_identifier);
@@ -649,9 +657,7 @@ protected:
     // Resolve FAIMS CVs while the original spectrum references are still available. An RT-based
     // repair cannot establish a CV reliably in a run that cycles between several voltages.
     MSExperiment spectrum_metadata;
-    FileHandler metadata_reader;
-    metadata_reader.getOptions().setFillData(false);
-    metadata_reader.loadExperiment(mz_file_abs_path, spectrum_metadata, {FileTypes::MZML}, log_type_);
+    MS1LabeledSpectra::load(mz_file_abs_path, spectrum_metadata, ms1, log_type_);
     MS1LabeledFAIMS::annotateCompensationVoltages(spectrum_metadata, peptide_ids);
 
     // reannotate spectrum references if missing
@@ -670,7 +676,7 @@ protected:
       OPENMS_LOG_WARN << "Warning: Identification file " << id_file_abs_path
                       << " contains IDs without meta value for the spectrum native id.\n"
                          "OpenMS will try to reannotate them by matching retention times between ID and spectra." << endl;
-      SpectrumMetaDataLookup::addMissingSpectrumReferences(peptide_ids, mz_file_abs_path, true);
+      MS1LabeledSpectra::addMissingSpectrumReferences(spectrum_metadata, peptide_ids);
     }
 
     // deliberately last, i.e. after the spectrum-reference repair above
@@ -684,13 +690,8 @@ protected:
   //-------------------------------------------------------------
 
   /// Detect the peptide multiplets of one run in its MS1 spectra (FeatureFinderMultiplex, incl. its FAIMS handling)
-  ExitCodes detectMultiplets_(const std::string& mz_file, ConsensusMap& multiplets, MSExperiment& blacklist)
+  ExitCodes detectMultiplets_(const std::string& mz_file, MSExperiment&& exp, ConsensusMap& multiplets, MSExperiment& blacklist)
   {
-    MSExperiment exp;
-    FileHandler fh;
-    fh.getOptions().setMSLevels({1}); // only MS1 spectra are needed
-    fh.loadExperiment(mz_file, exp, {FileTypes::MZML}, log_type_);
-
     if (exp.empty())
     {
       OPENMS_LOG_FATAL_ERROR << "No MS1 spectra found in " << mz_file << endl;
@@ -865,13 +866,14 @@ protected:
 
     vector<ProteinIdentification> protein_ids;
     PeptideIdentificationList peptide_ids;
+    MSExperiment ms1;
     ExitCodes e = loadAndCleanupIDFile_(id_file_abs_path, mz_file, in_db, fraction_group, fraction, protein_ids, peptide_ids,
-                                        fixed_modifications, variable_modifications);
+                                        fixed_modifications, variable_modifications, ms1);
     if (e != EXECUTION_OK) { return e; }
 
     ConsensusMap multiplets;
     MSExperiment blacklist;
-    e = detectMultiplets_(mz_file, multiplets, blacklist);
+    e = detectMultiplets_(mz_file, std::move(ms1), multiplets, blacklist);
     if (e != EXECUTION_OK) { return e; }
 
     // map the identifications onto the multiplets: a multiplet matches if any of its channels does,
@@ -1589,7 +1591,7 @@ protected:
     if (nr_filtered > 0)
     {
       OPENMS_LOG_WARN << "WARNING: " << nr_filtered
-                      << " files from experimental design were not passed as mzMLs. Continuing with subset if the fractions still match." << endl;
+                      << " files from experimental design were not passed as spectra inputs. Continuing with subset if the fractions still match." << endl;
     }
     if (!design_.sameNrOfMSFilesPerFraction())
     {
@@ -1621,7 +1623,7 @@ protected:
       }
     }
 
-    // mzML file -> id file (same order)
+    // spectra file -> ID file (same order)
     const std::map<std::string, std::string> mzfile2idfile = DDAWorkflowCommons::mapMzML2Ids(in, in_ids);
 
     //-------------------------------------------------------------

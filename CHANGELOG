@@ -446,6 +446,8 @@ TOPP tools:
       the labels were searched as modifications, that the design enumerates the channels of -labels,
       and that -out_qpx is only requested for labels in the QPX vocabulary (#10044).
       Channel/pattern order and unique input/design basenames are validated before processing.
+      Native Thermo RAW input is supported with WITH_THERMO_RAW and a .NET 8+ runtime;
+      scan metadata and MS1 peaks are extracted in one RAW read, including spectrum-reference repair.
       FAIMS CVs are preserved through ID mapping, multiplet completion and linking. A protein's
       reference-channel ratio requires a comparison passing min_ratio_count in that fraction group (#10047).
     - FeatureLinkerWNet: Wasserstein network-flow grouping across label-free maps (#8992).
