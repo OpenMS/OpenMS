@@ -113,14 +113,24 @@ install(CODE "
         message('\${topp_sign_out}')"
         COMPONENT Dependencies
         )
-install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -e @rpath/ -n -c)"
-        COMPONENT library
-        )
-install(CODE "
-        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE lib_sign_out ERROR_VARIABLE lib_sign_out)
-        message('\${lib_sign_out}')"
-        COMPONENT library
-        )
+## The libraries come in layered components (cmake/install_macros.cmake):
+## library, library_cli and library_gui. productbuild stages each component in
+## its own prefix, so each one fixes and signs the libraries it holds.
+set(_openms_library_components library library_cli)
+if(WITH_GUI)
+  list(APPEND _openms_library_components library_gui)
+endif()
+foreach(_library_component IN LISTS _openms_library_components)
+  install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -e @rpath/ -n -c)"
+          COMPONENT ${_library_component}
+          )
+  install(CODE "
+          execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE lib_sign_out ERROR_VARIABLE lib_sign_out)
+          message('\${lib_sign_out}')"
+          COMPONENT ${_library_component}
+          )
+endforeach()
+unset(_openms_library_components)
 
 ## Sign thirdparty components
 foreach(component IN LISTS THIRDPARTY_COMPONENT_GROUP)

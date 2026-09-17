@@ -54,6 +54,16 @@ namespace OpenMS
 
   void ACTrie::addNeedle(const std::string& needle)
   {
+    if (needle.empty())
+    { // An empty needle would flag the root node as a hit. Since the root's suffix link points to itself, addHits_()
+      // would then never leave the root and collect hits until memory runs out (see issue #2987).
+      // Skip it, but still consume a needle index, so callers which rely on 'the i-th needle added has index i'
+      // (e.g. PeptideIndexing) stay in sync.
+      OPENMS_LOG_WARN << "ACTrie: Skipping an empty peptide that was used as input.\n";
+      ++needle_count_;
+      return;
+    }
+
     Index cn {0}; // start at root
     for (auto c : needle) // OMS_CODING_TEST_EXCLUDE
     {

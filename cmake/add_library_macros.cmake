@@ -95,16 +95,21 @@ endmacro()
 #                                      (will be added with -isystem if available)
 #                    LINK_LIBRARIES <list of libraries used when linking the library>
 #                    PRIVATE_LINK_LIBRARIES <list of internal libraries used when linking the library>
-#                    DLL_EXPORT_PATH <path to the dll export header>)
+#                    DLL_EXPORT_PATH <path to the dll export header>
+#                    EXPORT_SET <export set of the library (see cmake/install_macros.cmake);
+#                                the core set OpenMSTargets, install component 'library',
+#                                when omitted>)
 #
 # Besides TARGET_NAME the library is available as OpenMS::TARGET_NAME, the name
 # under which it is exported (install(EXPORT ... NAMESPACE OpenMS::)), so
 # in-tree code and consumers of the installed package can link the same name.
+# The library and its export go into the install components of EXPORT_SET; the
+# headers always go into the component TARGET_NAME_headers.
 function(openms_add_library)
   #------------------------------------------------------------------------------
   # parse arguments to function
   set(options )
-  set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH)
+  set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH EXPORT_SET)
   set(multiValueArgs INTERNAL_INCLUDES PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES PRIVATE_LINK_LIBRARIES)
   ## make above arguments available as variables, e.g. ${openms_add_library_PRIVATE_LINK_LIBRARIES}
   cmake_parse_arguments(openms_add_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
@@ -207,13 +212,16 @@ function(openms_add_library)
         INTERNAL "${openms_add_library_TARGET_NAME} libraries" FORCE)
 
   #------------------------------------------------------------------------------
-  # we also want to install the library
-  install_library(${openms_add_library_TARGET_NAME})
+  # we also want to install the library (into the components of its export set)
+  if(NOT openms_add_library_EXPORT_SET)
+    set(openms_add_library_EXPORT_SET ${OPENMS_EXPORT_SET})
+  endif()
+  install_library(${openms_add_library_TARGET_NAME} EXPORT_SET ${openms_add_library_EXPORT_SET})
   install_headers("${openms_add_library_HEADER_FILES};${PROJECT_BINARY_DIR}/${_CONFIG_H}" ${openms_add_library_TARGET_NAME})
 
   #------------------------------------------------------------------------------
-  # register for export
-  openms_register_export_target(${openms_add_library_TARGET_NAME})
+  # register for the build-tree export of the same export set
+  openms_register_export_target(${openms_add_library_TARGET_NAME} ${openms_add_library_EXPORT_SET})
 
   #------------------------------------------------------------------------------
   # On Windows copy DLLs and dependencies of them to other locations of executables that need them (tests, documenter)

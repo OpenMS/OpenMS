@@ -22,14 +22,17 @@ include(add_mac_bundle.cmake)
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
-# add the library
+# add the library: the GUI layer of the installed package (export set
+# OpenMSGUITargets, install components library_gui and cmake_gui, headers in
+# OpenMS_GUI_headers); it links the CLI layer, which links the core layer.
 openms_add_library(TARGET_NAME OpenMS_GUI
                    SOURCE_FILES ${OpenMSVisual_sources}
                    HEADER_FILES ${OpenMSVisual_sources_h}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
-                   DLL_EXPORT_PATH "OpenMS/VISUAL/")
+                   DLL_EXPORT_PATH "OpenMS/VISUAL/"
+                   EXPORT_SET ${OPENMS_GUI_EXPORT_SET})
 
 # --------------------------------------------------------------------------
 # additional linker flags required by openms_gui

@@ -21,17 +21,27 @@ your code needs:
 - `OpenMS::OpenMS`: the OpenMS library (link this)
 - `OpenMS::OpenSwathAlgo`: the OpenSWATH algorithm library
 - `OpenMS::OpenMS_CLI`: the TOPP tool framework (`TOPPBase`, `ToolHandler`, `INIUpdater`, ...); link this instead of
-  `OpenMS::OpenMS` when your program derives from `TOPPBase` (it carries `OpenMS::OpenMS` transitively)
-- `OpenMS::OpenMS_GUI`: the GUI library of an OpenMS built with `WITH_GUI=ON`; request the `GUI` component
-  (`find_package(OpenMS CONFIG COMPONENTS GUI)`) to also find the Qt6 modules it was built against, otherwise
-  a project linking it has to find those Qt6 modules itself
+  `OpenMS::OpenMS` when your program derives from `TOPPBase` (it carries `OpenMS::OpenMS` transitively), and request
+  the `CLI` component (`find_package(OpenMS CONFIG REQUIRED COMPONENTS CLI)`) so that an installation without the
+  framework is rejected when your project is configured
+- `OpenMS::OpenMS_GUI`: the GUI library of an OpenMS built with `WITH_GUI=ON` whose installation includes it;
+  request the `GUI` component (`find_package(OpenMS CONFIG REQUIRED COMPONENTS GUI)`) to also find the Qt6 modules
+  it was built against, otherwise a project linking it has to find those Qt6 modules itself
 
-The un-namespaced names `OpenMS`, `OpenSwathAlgo`, `OpenMS_CLI` and `OpenMS_GUI` remain available as aliases for projects written
-against earlier releases. The package also reports the version of the installation (`OpenMS_VERSION`), its build
-options (`OpenMS_WITH_GUI`, `OpenMS_WITH_HDF5`, `OpenMS_WITH_OPENTIMS`, `OpenMS_WITH_THERMO_RAW`, `OpenMS_WITH_OPENMP`,
-`OpenMS_BUILD_TOPP_TOOLS`) and its directories (`OPENMS_DATA_DIR`, `OPENMS_LIB_DIR`, `OPENMS_BIN_DIR`,
-`OPENMS_DOC_DIR`). Whether an installation is shared or static is not a separate variable: ask the imported
-target with `get_target_property(<var> OpenMS::OpenMS TYPE)`.
+The installed package is layered. The core layer (the install components `library`, `OpenMS_headers`,
+`OpenSwathAlgo_headers`, `thirdparty_headers`, `share` and `cmake`) is always present; the TOPP tool framework
+(`library_cli`, `cmake_cli` and `OpenMS_CLI_headers`) and the GUI library (`library_gui`, `cmake_gui` and
+`OpenMS_GUI_headers`) are optional layers on top of it, each linking the layer below. `cmake --install <build>`
+installs everything, `cmake --install <build> --component <name>` one component at a time; the pyOpenMS wheels, for
+instance, are built against a core-only installation. `OpenMSConfig.cmake` provides the targets of the layers an
+installation contains and reports them with `OpenMS_CLI_FOUND` and `OpenMS_WITH_GUI`.
+
+The un-namespaced names `OpenMS` and `OpenSwathAlgo` remain available as aliases for projects written against earlier
+releases, as do `OpenMS_CLI` and `OpenMS_GUI` when their layers are installed. The package also reports the version of the installation (`OpenMS_VERSION`), its layers
+(`OpenMS_CLI_FOUND`, `OpenMS_WITH_GUI`), its build options (`OpenMS_WITH_HDF5`, `OpenMS_WITH_OPENTIMS`,
+`OpenMS_WITH_THERMO_RAW`, `OpenMS_WITH_OPENMP`, `OpenMS_BUILD_TOPP_TOOLS`) and its directories (`OPENMS_DATA_DIR`,
+`OPENMS_LIB_DIR`, `OPENMS_BIN_DIR`, `OPENMS_DOC_DIR`). Whether an installation is shared or static is not a
+separate variable: ask the imported target with `get_target_property(<var> OpenMS::OpenMS TYPE)`.
 Consuming projects need CMake 3.22 or newer.
 
 ```{note}
@@ -60,8 +70,9 @@ set(my_sources
   ExampleLibraryFile.cpp
 )
 
-## find OpenMS: provides the imported targets OpenMS::OpenMS (the library), OpenMS::OpenSwathAlgo
-## and OpenMS::OpenMS_CLI (the TOPP tool framework, for programs deriving from TOPPBase).
+## find OpenMS: provides the imported targets OpenMS::OpenMS (the library) and OpenMS::OpenSwathAlgo, plus
+## OpenMS::OpenMS_CLI (the TOPP tool framework, for programs deriving from TOPPBase) when the installation
+## includes it (add COMPONENTS CLI to require it).
 ## If this fails, point CMake at an installation or build tree with -DOpenMS_DIR=<prefix>/lib/cmake/OpenMS
 ## (<prefix>/CMake on Windows, or the OpenMS build directory), or add <prefix> to CMAKE_PREFIX_PATH.
 find_package(OpenMS CONFIG REQUIRED)
