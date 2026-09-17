@@ -7,224 +7,98 @@
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<mapList count="1">
-		<map id="0" name="" label="" size="36">
+		<map id="0" name="" label="" size="15">
 		</map>
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="408.787391981166536" it="1907.0"/>
+			<centroid rt="5.3" mz="0.0" it="15.0"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="0.273" mz="408.787391981166536" it="1907.0"/>
+				<element map="0" id="0" rt="5.3" mz="0.0" it="15.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="408.787391981166536" it="1907.0"/>
+			<centroid rt="5.3" mz="1.0" it="14.0"/>
 			<groupedElementList>
-				<element map="0" id="1" rt="0.273" mz="408.787391981166536" it="1907.0"/>
+				<element map="0" id="1" rt="5.3" mz="1.0" it="14.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="402.288624278166424" it="954.0"/>
+			<centroid rt="5.3" mz="2.0" it="13.0"/>
 			<groupedElementList>
-				<element map="0" id="2" rt="0.273" mz="402.288624278166424" it="954.0"/>
+				<element map="0" id="2" rt="5.3" mz="2.0" it="13.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="408.781718258337435" it="954.0"/>
+			<centroid rt="5.3" mz="3.0" it="12.0"/>
 			<groupedElementList>
-				<element map="0" id="3" rt="0.273" mz="408.781718258337435" it="954.0"/>
+				<element map="0" id="3" rt="5.3" mz="3.0" it="12.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="408.784555114830198" it="954.0"/>
+			<centroid rt="5.3" mz="4.0" it="11.0"/>
 			<groupedElementList>
-				<element map="0" id="4" rt="0.273" mz="408.784555114830198" it="954.0"/>
+				<element map="0" id="4" rt="5.3" mz="4.0" it="11.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="408.784555114830198" it="954.0"/>
+			<centroid rt="5.3" mz="5.0" it="10.0"/>
 			<groupedElementList>
-				<element map="0" id="5" rt="0.273" mz="408.784555114830198" it="954.0"/>
+				<element map="0" id="5" rt="5.3" mz="5.0" it="10.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="526.708502115555916" it="954.0"/>
+			<centroid rt="5.3" mz="6.0" it="9.0"/>
 			<groupedElementList>
-				<element map="0" id="6" rt="0.273" mz="526.708502115555916" it="954.0"/>
+				<element map="0" id="6" rt="5.3" mz="6.0" it="9.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="481.719167961517826" it="954.0"/>
+			<centroid rt="5.3" mz="7.0" it="8.0"/>
 			<groupedElementList>
-				<element map="0" id="7" rt="0.273" mz="481.719167961517826" it="954.0"/>
+				<element map="0" id="7" rt="5.3" mz="7.0" it="8.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="448.757589913567926" it="954.0"/>
+			<centroid rt="5.3" mz="8.0" it="7.0"/>
 			<groupedElementList>
-				<element map="0" id="8" rt="0.273" mz="448.757589913567926" it="954.0"/>
+				<element map="0" id="8" rt="5.3" mz="8.0" it="7.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="453.770970517571754" it="954.0"/>
+			<centroid rt="5.3" mz="9.0" it="6.0"/>
 			<groupedElementList>
-				<element map="0" id="9" rt="0.273" mz="453.770970517571754" it="954.0"/>
+				<element map="0" id="9" rt="5.3" mz="9.0" it="6.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="402.288624278166424" it="954.0"/>
+			<centroid rt="5.3" mz="10.0" it="5.0"/>
 			<groupedElementList>
-				<element map="0" id="10" rt="0.273" mz="402.288624278166424" it="954.0"/>
+				<element map="0" id="10" rt="5.3" mz="10.0" it="5.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="448.757589913567926" it="954.0"/>
+			<centroid rt="5.3" mz="11.0" it="4.0"/>
 			<groupedElementList>
-				<element map="0" id="11" rt="0.273" mz="448.757589913567926" it="954.0"/>
+				<element map="0" id="11" rt="5.3" mz="11.0" it="4.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="526.708502115555916" it="954.0"/>
+			<centroid rt="5.3" mz="12.0" it="3.0"/>
 			<groupedElementList>
-				<element map="0" id="12" rt="0.273" mz="526.708502115555916" it="954.0"/>
+				<element map="0" id="12" rt="5.3" mz="12.0" it="3.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="408.781718258337435" it="954.0"/>
+			<centroid rt="5.3" mz="13.0" it="2.0"/>
 			<groupedElementList>
-				<element map="0" id="13" rt="0.273" mz="408.781718258337435" it="954.0"/>
+				<element map="0" id="13" rt="5.3" mz="13.0" it="2.0"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="453.770970517571754" it="954.0"/>
+			<centroid rt="5.3" mz="14.0" it="1.0"/>
 			<groupedElementList>
-				<element map="0" id="14" rt="0.273" mz="453.770970517571754" it="954.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="481.719167961517826" it="954.0"/>
-			<groupedElementList>
-				<element map="0" id="15" rt="0.273" mz="481.719167961517826" it="954.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="481.716088402448122" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="16" rt="0.273" mz="481.716088402448122" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="448.754617580291949" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="17" rt="0.273" mz="448.754617580291949" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="526.705281961056812" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="18" rt="0.273" mz="526.705281961056812" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="526.705281961056812" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="19" rt="0.273" mz="526.705281961056812" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="402.291438514180527" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="20" rt="0.273" mz="402.291438514180527" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="402.291438514180527" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="21" rt="0.273" mz="402.291438514180527" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="448.760562246843904" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="22" rt="0.273" mz="448.760562246843904" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="408.778881401844671" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="23" rt="0.273" mz="408.778881401844671" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="453.767981627444101" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="24" rt="0.273" mz="453.767981627444101" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="408.790228857346392" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="25" rt="0.273" mz="408.790228857346392" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="453.773959407699408" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="26" rt="0.273" mz="453.773959407699408" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="448.754617580291949" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="27" rt="0.273" mz="448.754617580291949" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="481.72224752058753" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="28" rt="0.273" mz="481.72224752058753" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="481.72224752058753" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="29" rt="0.273" mz="481.72224752058753" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="448.760562246843904" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="30" rt="0.273" mz="448.760562246843904" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="481.716088402448122" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="31" rt="0.273" mz="481.716088402448122" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="453.767981627444101" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="32" rt="0.273" mz="453.767981627444101" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="408.778881401844671" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="33" rt="0.273" mz="408.778881401844671" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="408.790228857346392" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="34" rt="0.273" mz="408.790228857346392" it="0.0"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_0" quality="0.0">
-			<centroid rt="0.273" mz="453.773959407699408" it="0.0"/>
-			<groupedElementList>
-				<element map="0" id="35" rt="0.273" mz="453.773959407699408" it="0.0"/>
+				<element map="0" id="14" rt="5.3" mz="14.0" it="1.0"/>
 			</groupedElementList>
 		</consensusElement>
 	</consensusElementList>
