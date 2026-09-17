@@ -22,19 +22,26 @@ set(my_sources
 )
 
 ## Find the OpenMS package. It provides the imported targets OpenMS::OpenMS and
-## OpenMS::OpenSwathAlgo; an installation built with WITH_GUI additionally provides
+## OpenMS::OpenSwathAlgo, OpenMS::OpenMS_CLI when the installation includes the TOPP
+## tool framework (OpenMS_CLI_FOUND; a TOPP-style tool requests COMPONENTS CLI) and,
+## for an installation built with WITH_GUI that includes the GUI library,
 ## OpenMS::OpenMS_GUI, whose Qt6 modules are found when the GUI component is requested.
 ## Select an installation with -DOpenMS_DIR=<prefix>/lib/cmake/OpenMS
 ## (<prefix>/CMake on Windows) or by adding <prefix> to CMAKE_PREFIX_PATH.
-find_package(OpenMS CONFIG REQUIRED OPTIONAL_COMPONENTS GUI)
+find_package(OpenMS CONFIG REQUIRED COMPONENTS CLI OPTIONAL_COMPONENTS GUI)
 message(STATUS "Found OpenMS ${OpenMS_VERSION} at ${OpenMS_DIR}")
 
 #------------------------------------------------------------------------------
 ## Package contract. This project doubles as the installed-consumer test of the
-## OpenMS build (OPENMS_TEST_INSTALLED_CONSUMER), so it checks what the package
+## OpenMS build (OPENMS_TEST_INSTALLED_CONSUMER) for the full development
+## installation (core_only/ covers a core-only one), so it checks what the package
 ## promises before using it. A plain consumer project does not need this block.
 
-## the libraries are namespaced imported targets ...
+## the CLI layer of the full installation was found ...
+if(NOT OpenMS_CLI_FOUND)
+  message(FATAL_ERROR "OpenMSConfig.cmake found the required CLI component without setting OpenMS_CLI_FOUND")
+endif()
+## ... the libraries are namespaced imported targets ...
 foreach(_target IN ITEMS OpenMS::OpenMS OpenMS::OpenSwathAlgo OpenMS::OpenMS_CLI)
   if(NOT TARGET ${_target})
     message(FATAL_ERROR "OpenMSConfig.cmake did not provide the target ${_target}")
@@ -101,7 +108,7 @@ if(OpenMS_WITH_GUI)
     message(STATUS "Qt6 not found from this project - skipping the GUI component check.")
   endif()
 elseif(OpenMS_GUI_FOUND)
-  message(FATAL_ERROR "OpenMSConfig.cmake reports the GUI component for an installation built without it")
+  message(FATAL_ERROR "OpenMSConfig.cmake reports the GUI component for an installation without the GUI library")
 endif()
 
 #------------------------------------------------------------------------------

@@ -194,7 +194,8 @@ jobs:
                 $THERMO_MANAGED_OPT \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
-              ninja OpenMS OpenSwathAlgo OpenMS_CLI
+              # core layer only (libOpenMS, libOpenSwathAlgo): the CLI layer is a separate install component
+              ninja OpenMS OpenSwathAlgo
               cmake --install . --component library --strip
               cmake --install . --component OpenMS_headers
               cmake --install . --component OpenSwathAlgo_headers
@@ -282,7 +283,8 @@ jobs:
                 -DWITH_THERMO_RAW=OFF \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
-              ninja OpenMS OpenSwathAlgo OpenMS_CLI
+              # core layer only (libOpenMS, libOpenSwathAlgo): the CLI layer is a separate install component
+              ninja OpenMS OpenSwathAlgo
               cmake --install . --component library --strip
               cmake --install . --component OpenMS_headers
               cmake --install . --component OpenSwathAlgo_headers
@@ -405,7 +407,8 @@ jobs:
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
             -DMT_ENABLE_OPENMP=ON
-          ninja OpenMS OpenSwathAlgo OpenMS_CLI
+          # core layer only (libOpenMS, libOpenSwathAlgo): the CLI layer is a separate install component
+          ninja OpenMS OpenSwathAlgo
           cmake --install . --component library --strip
           cmake --install . --component OpenMS_headers
           cmake --install . --component OpenSwathAlgo_headers
@@ -538,7 +541,8 @@ jobs:
             $THERMO_MANAGED_OPT \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF
-          cmake --build . --target OpenMS OpenSwathAlgo OpenMS_CLI
+          # core layer only (libOpenMS, libOpenSwathAlgo): the CLI layer is a separate install component
+          cmake --build . --target OpenMS OpenSwathAlgo
           cmake --install . --component library --strip
           cmake --install . --component OpenMS_headers
           cmake --install . --component OpenSwathAlgo_headers
