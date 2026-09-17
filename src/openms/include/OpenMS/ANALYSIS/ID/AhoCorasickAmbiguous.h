@@ -432,7 +432,10 @@ namespace OpenMS
     ~ACTrie();
 
     /// Add a needle to build up the trie.
-    /// Call compressTrie() after the last needle was added before searching
+    /// Call compressTrie() after the last needle was added before searching.
+    /// An empty @p needle is not added to the trie (it would match at every position and is thus meaningless) and a warning is
+    /// issued, but it still consumes a needle index, i.e. the i-th needle passed to this function always has
+    /// needle index i (see Hit::needle_index).
     /// @throw Exception::InvalidValue if @p needle contains an invalid amino acid (such as '*')
     void addNeedle(const std::string& needle);
 
@@ -459,7 +462,7 @@ namespace OpenMS
     */
     void compressTrie();
 
-    /// How many needles were added to the trie?
+    /// How many needles were added to the trie? (this includes empty needles, which are skipped by addNeedle(), but still consume an index)
     size_t getNeedleCount() const;
 
     /// Set maximum number of ambiguous amino acids allowed during search.

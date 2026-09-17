@@ -198,6 +198,55 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   r = pi.run(proteins, prot_ids, pep_ids);
   for (Size i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 0); // no hits
 
+  // regression test: https://github.com/OpenMS/OpenMS/issues/2987
+  // empty peptide sequences must not break the mapping. An empty sequence used to flag the root node of the
+  // Aho-Corasick trie as a hit, which made the search report hits until memory was exhausted.
+  {
+    PeptideIndexing indexer;
+    Param p_e = indexer.getParameters();
+    p_e.setValue("decoy_string", "DECOY_");
+    p_e.setValue("enzyme:specificity", "none");
+    p_e.setValue("missing_decoy_action", "warn");
+    p_e.setValue("unmatched_action", "warn"); // an empty sequence cannot match any protein
+    indexer.setParameters(p_e);
+
+    std::vector<FASTAFile::FASTAEntry> proteins_e = toFASTAVec({"MLTEAEKPEPTIDER"});
+    std::vector<ProteinIdentification> prot_ids_e;
+    // empty sequences before, in between and after the real ones
+    PeptideIdentificationList pep_ids_e = toPepVec({"", "MLTEAEK", "", "PEPTIDER", ""});
+    PeptideIndexing::ExitCodes r_e = indexer.run(proteins_e, prot_ids_e, pep_ids_e);
+    TEST_EQUAL(r_e, PeptideIndexing::ExitCodes::EXECUTION_OK);
+    TEST_EQUAL(pep_ids_e.size(), 5);
+    TEST_EQUAL(pep_ids_e[0].getHits()[0].extractProteinAccessionsSet().size(), 0); // empty sequence: no hit
+    TEST_EQUAL(pep_ids_e[1].getHits()[0].extractProteinAccessionsSet().size(), 1); // the real peptides are still mapped ...
+    TEST_EQUAL(pep_ids_e[2].getHits()[0].extractProteinAccessionsSet().size(), 0);
+    TEST_EQUAL(pep_ids_e[3].getHits()[0].extractProteinAccessionsSet().size(), 1); // ... and not shifted by the empty ones
+    TEST_EQUAL(pep_ids_e[4].getHits()[0].extractProteinAccessionsSet().size(), 0);
+
+    // ... the same, but letting PeptideIndexer remove the (unmatchable) empty hits
+    p_e.setValue("unmatched_action", "remove");
+    indexer.setParameters(p_e);
+    pep_ids_e = toPepVec({"", "MLTEAEK", "", "PEPTIDER", ""});
+    r_e = indexer.run(proteins_e, prot_ids_e, pep_ids_e);
+    TEST_EQUAL(r_e, PeptideIndexing::ExitCodes::EXECUTION_OK);
+    TEST_EQUAL(pep_ids_e[0].getHits().size(), 0); // empty sequence: hit was removed
+    TEST_EQUAL(pep_ids_e[1].getHits().size(), 1);
+    TEST_EQUAL(pep_ids_e[1].getHits()[0].extractProteinAccessionsSet().size(), 1);
+    TEST_EQUAL(pep_ids_e[2].getHits().size(), 0);
+    TEST_EQUAL(pep_ids_e[3].getHits().size(), 1);
+    TEST_EQUAL(pep_ids_e[3].getHits()[0].extractProteinAccessionsSet().size(), 1);
+    TEST_EQUAL(pep_ids_e[4].getHits().size(), 0);
+
+    // all peptide sequences empty: nothing to match, but the run must terminate gracefully
+    p_e.setValue("unmatched_action", "warn");
+    indexer.setParameters(p_e);
+    pep_ids_e = toPepVec({"", ""});
+    r_e = indexer.run(proteins_e, prot_ids_e, pep_ids_e);
+    TEST_EQUAL(r_e, PeptideIndexing::ExitCodes::EXECUTION_OK);
+    TEST_EQUAL(pep_ids_e[0].getHits()[0].extractProteinAccessionsSet().size(), 0);
+    TEST_EQUAL(pep_ids_e[1].getHits()[0].extractProteinAccessionsSet().size(), 0);
+  }
+
   // auto mode for decoy strings and position
   std::vector<ProteinIdentification> prot_ids_2;
   PeptideIdentificationList pep_ids_2;
