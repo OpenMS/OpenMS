@@ -30,12 +30,19 @@
 ###   OPENMS_DATA_DIR (= OPENMS_SHARE_DIR), OPENMS_LIB_DIR, OPENMS_BIN_DIR, OPENMS_DOC_DIR
 ###                                         directories of this installation
 
-# The aliases created below are aliases of (non-global) imported targets (CMake
-# 3.18), and the Eigen lookup uses a version range (CMake 3.19).
-if(CMAKE_VERSION VERSION_LESS 3.19)
+# What this file technically needs is CMake 3.19: the aliases created below are
+# aliases of (non-global) imported targets (3.18), and the Eigen lookup uses a
+# version range (3.19). What it enforces is 3.22, because that is the oldest CMake
+# any consumer is actually tested with: src/tests/external (the installed-consumer
+# test, on in the CI presets) and share/OpenMS/examples/external_code both declare
+# 3.22, and it is what the documentation promises. Accepting 3.19 - 3.21 would
+# claim support for a configuration nothing exercises. Building OpenMS itself
+# needs 3.24, so only consumers of a prebuilt OpenMS are affected at all.
+# Lowering this back to 3.19 is fine -- but then test that configuration.
+if(CMAKE_VERSION VERSION_LESS 3.22)
   set(OpenMS_FOUND FALSE)
   set(OpenMS_NOT_FOUND_MESSAGE
-      "OpenMS requires CMake 3.19 or newer in the consuming project (running ${CMAKE_VERSION}).")
+      "OpenMS requires CMake 3.22 or newer in the consuming project (running ${CMAKE_VERSION}).")
   return()
 endif()
 
