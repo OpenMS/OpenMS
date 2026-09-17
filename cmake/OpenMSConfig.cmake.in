@@ -27,6 +27,8 @@
 ###   OpenMS_WITH_GUI, OpenMS_WITH_HDF5, OpenMS_WITH_OPENTIMS, OpenMS_WITH_THERMO_RAW,
 ###   OpenMS_WITH_OPENMP, OpenMS_BUILD_TOPP_TOOLS
 ###                                         build options of this installation
+###   OpenMS_BUILT_SHARED_LIBS              whether the libraries of this installation are
+###                                         shared; the OpenMS build always makes them so
 ###   OPENMS_DATA_DIR (= OPENMS_SHARE_DIR), OPENMS_LIB_DIR, OPENMS_BIN_DIR, OPENMS_DOC_DIR
 ###                                         directories of this installation
 
@@ -68,6 +70,12 @@ set(OpenMS_WITH_THERMO_RAW "@WITH_THERMO_RAW@")
 set(OpenMS_WITH_OPENMP "@OPENMP_FOUND@")
 set(OpenMS_BUILD_TOPP_TOOLS "@BUILD_TOPP_TOOLS@")
 
+## Library configuration of this installation. The dependency lookups below consult it:
+## CMake omits the PRIVATE dependencies of a SHARED library from the exported link
+## interface but keeps them for a STATIC one, so what a consumer still has to resolve
+## depends on how the producer was built.
+set(OpenMS_BUILT_SHARED_LIBS "@BUILD_SHARED_LIBS@")
+
 #------------------------------------------------------------------------------
 # Dependencies that are part of the public link interface of the imported targets.
 # Everything else OpenMS links is PRIVATE: the installed shared library resolves it
@@ -89,10 +97,6 @@ set(_openms_boost_version "@Boost_VERSION@")
 if(NOT _openms_boost_version)
   set(_openms_boost_version 1.81.0)
 endif()
-set(_openms_eigen3_version "@Eigen3_VERSION@")
-if(NOT _openms_eigen3_version)
-  set(_openms_eigen3_version 3.4.0)
-endif()
 
 # Boost: the header-only target Boost::boost is PUBLIC because installed headers
 # use Boost (config.h includes <boost/current_function.hpp> via Macros.h, other
@@ -100,22 +104,36 @@ endif()
 # of the consumer's translation units. The compiled Boost components are PRIVATE
 # and not needed.
 find_dependency(Boost ${_openms_boost_version})
-
-# Eigen: installed headers such as DATASTRUCTURES/MatrixEigen.h include Eigen, so
-# consumers using them link Eigen3::Eigen. Same two-step lookup as in
-# cmake/cmake_findExternalLibs.cmake: the version range admits Eigen 5 where the
-# package version file understands ranges (CMake issue 24581). The fallback is
-# deliberately a plain minimum: a version file written with SameMajorVersion
-# compatibility rejects the range 3.4.0...<6 even for Eigen 3.4 itself, because
-# both ends of a range must lie in the same major version. An Eigen3::Eigen
-# target that the consuming project defines itself (e.g. a vendored Eigen) is
-# accepted as is, like in the OpenMS build; its version is that project's call.
-find_package(Eigen3 ${_openms_eigen3_version}...<6 QUIET)
-if(NOT TARGET Eigen3::Eigen)
-  find_dependency(Eigen3 ${_openms_eigen3_version})
-endif()
 unset(_openms_boost_version)
-unset(_openms_eigen3_version)
+
+# Eigen: a consumer of the shared library OpenMS ships needs nothing of it. No
+# installed header includes Eigen -- DATASTRUCTURES/MatrixEigen.h, the one that does,
+# is internal and not installed -- and CMake omits the PRIVATE dependencies of a
+# SHARED library from the exported link interface, so OpenMSTargets.cmake names no
+# Eigen target at all. A STATIC build is the exception: CMake keeps its private
+# dependencies as $<LINK_ONLY:Eigen3::Eigen>, which has to resolve to a target in the
+# consuming project. So the lookup follows the library configuration the producer
+# recorded instead of running for every consumer; the OpenMS build sets
+# BUILD_SHARED_LIBS unconditionally, so it normally does not run at all.
+#
+# Two-step lookup as in cmake/cmake_findExternalLibs.cmake: the version range admits
+# Eigen 5 where the package version file understands ranges (CMake issue 24581). The
+# fallback is deliberately a plain minimum: a version file written with
+# SameMajorVersion compatibility rejects the range 3.4.0...<6 even for Eigen 3.4
+# itself, because both ends of a range must lie in the same major version. An
+# Eigen3::Eigen target that the consuming project defines itself (e.g. a vendored
+# Eigen) is accepted as is, like in the OpenMS build; its version is that project's call.
+if(NOT OpenMS_BUILT_SHARED_LIBS)
+  set(_openms_eigen3_version "@Eigen3_VERSION@")
+  if(NOT _openms_eigen3_version)
+    set(_openms_eigen3_version 3.4.0)
+  endif()
+  find_package(Eigen3 ${_openms_eigen3_version}...<6 QUIET)
+  if(NOT TARGET Eigen3::Eigen)
+    find_dependency(Eigen3 ${_openms_eigen3_version})
+  endif()
+  unset(_openms_eigen3_version)
+endif()
 
 # OpenMP: OpenMP::OpenMP_CXX is PUBLIC in an OpenMS built with OpenMP.
 if(OpenMS_WITH_OPENMP)

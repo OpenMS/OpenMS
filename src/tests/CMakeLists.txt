@@ -110,10 +110,33 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
             --output-on-failure --no-tests=error)
   set_tests_properties(TestExternalCode_run PROPERTIES FIXTURES_REQUIRED consumer_built)
 
+  # 4. Configure and build the same consumer once more against the same installation,
+  #    with Eigen made unfindable. No installed header includes Eigen and a shared
+  #    OpenMS carries no Eigen3::Eigen in its exported link interface, so finding and
+  #    linking the package has to succeed without it. Either regression fails here: a
+  #    find_dependency(Eigen3) reintroduced into OpenMSConfig.cmake reports the package
+  #    as not found, and an Eigen3::Eigen left dangling in OpenMSTargets.cmake is
+  #    diagnosed when the consumer's build system is generated.
+  set(_consumer_noeigen "${CMAKE_BINARY_DIR}/installed-consumer/build-no-eigen")
+  add_test(NAME TestExternalCode_noeigen_configure
+    COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/src/tests/external" -B "${_consumer_noeigen}"
+            -G "${CMAKE_GENERATOR}" "-DCMAKE_BUILD_TYPE=$<CONFIG>"
+            "-DOpenMS_DIR=${_prefix}/${INSTALL_CMAKE_DIR}"
+            -DCMAKE_DISABLE_FIND_PACKAGE_Eigen3=TRUE ${_configure_args})
+  set_tests_properties(TestExternalCode_noeigen_configure PROPERTIES
+    FIXTURES_REQUIRED openms_installed
+    FIXTURES_SETUP consumer_noeigen_configured)
+  add_test(NAME TestExternalCode_noeigen_build
+    COMMAND ${CMAKE_COMMAND} --build "${_consumer_noeigen}" --config $<CONFIG>)
+  set_tests_properties(TestExternalCode_noeigen_build PROPERTIES
+    FIXTURES_REQUIRED consumer_noeigen_configured)
+
   set_tests_properties(${_install_tests} TestExternalCode_configure TestExternalCode_build
-    TestExternalCode_run PROPERTIES LABELS installed_consumer)
+    TestExternalCode_run TestExternalCode_noeigen_configure TestExternalCode_noeigen_build
+    PROPERTIES LABELS installed_consumer)
   unset(_install_tests)
   unset(_configure_args)
+  unset(_consumer_noeigen)
   unset(_consumer)
   unset(_prefix)
 endif()

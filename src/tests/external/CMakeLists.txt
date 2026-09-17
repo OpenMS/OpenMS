@@ -62,6 +62,15 @@ get_target_property(_core_interface OpenMS::OpenMS INTERFACE_LINK_LIBRARIES)
 if(_core_interface MATCHES "Qt6::")
   message(FATAL_ERROR "OpenMS::OpenMS leaks Qt6 into its link interface: ${_core_interface}")
 endif()
+## ... and neither is Eigen, for a shared installation: no installed header includes it,
+## and CMake omits the PRIVATE dependencies of a SHARED library from the export, so a
+## consumer never has to resolve Eigen3::Eigen. A STATIC installation legitimately keeps
+## it as $<LINK_ONLY:Eigen3::Eigen>, so this follows the configuration the producer
+## recorded. TestExternalCode_noeigen_* configures this project with Eigen made
+## unfindable, which is the other half of the check.
+if(OpenMS_BUILT_SHARED_LIBS AND _core_interface MATCHES "Eigen")
+  message(FATAL_ERROR "OpenMS::OpenMS leaks Eigen into its link interface: ${_core_interface}")
+endif()
 
 ## the directory variables describe this installation, not the prefix of a dependency
 if(NOT EXISTS "${OPENMS_DATA_DIR}/CHEMISTRY/unimod.xml")

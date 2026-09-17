@@ -73,8 +73,14 @@ Dependencies:
     which is what bzlib's BZFILE is), so neither header needs the zlib/bzip2 include
     directory any more. External code that obtained Eigen, SIMDe, zlib or bzlib
     declarations through one of these headers has to include the library itself.
-    Note that Eigen3 is still resolved by OpenMSConfig.cmake, because a static OpenMS
-    can reference Eigen3::Eigen from its exported link interface.
+    find_package(OpenMS) no longer looks for Eigen at all: CMake omits the PRIVATE
+    dependencies of a shared library from the exported link interface, and the OpenMS
+    build always produces shared libraries, so OpenMSTargets.cmake names no Eigen
+    target and a consumer needs neither the Eigen CMake package nor its headers.
+    Previously find_package(OpenMS REQUIRED) failed outright when Eigen was absent.
+    The lookup is kept for a static OpenMS, whose export does carry
+    $<LINK_ONLY:Eigen3::Eigen>, and is gated on the new OpenMS_BUILT_SHARED_LIBS that
+    the installation records. Eigen is still required to build OpenMS and pyOpenMS.
   - The class-test framework (CONCEPT/ClassTest.h, ClassTestUtils.h,
     FuzzyStringComparator.h, MacrosTest.h) is no longer installed by default. It is an
     in-repo development tool: its static library was already EXCLUDE_FROM_ALL and is not
