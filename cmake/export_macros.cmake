@@ -26,9 +26,11 @@ foreach(_export_set IN LISTS OPENMS_EXPORT_SETS)
 endforeach()
 
 # openms_register_export_target(<target> [<export set>])
-# Registers a target for the build-tree export of its export set (the core set
-# OpenMSTargets when omitted). The install-tree export is registered by
-# install_library().
+# Records that the export set (the core set OpenMSTargets when omitted) has
+# targets. What a set contains is install_library()'s association through
+# install(TARGETS ... EXPORT <set>), which export(EXPORT) below reuses; this
+# list only says which sets exist, since exporting an empty or unknown set is
+# an error.
 macro(openms_register_export_target target_name)
   set(_export_set ${ARGN})
   if("${_export_set}" STREQUAL "")
@@ -62,14 +64,21 @@ macro(openms_export_targets )
   # create the corresponding target files for the build tree, one per export
   # set that has targets, with the same OpenMS:: namespace as the installed
   # export (install_export_targets), so a project configured against the build
-  # tree sees the same target names. A target of one set refers to targets of
-  # another set through that set's file, which CMake resolves across the
-  # export() calls of this project.
+  # tree sees the same target names. export(EXPORT) exports exactly the targets
+  # of the installation export set, so the build tree describes the same layers
+  # as an installation. A target of one set refers to targets of another set
+  # through that set's file, which CMake resolves across the export() calls of
+  # this project. A set without targets (the GUI set of a WITH_GUI=OFF
+  # configuration) must not leave the file of an earlier configuration of this
+  # build directory behind: OpenMSConfig.cmake takes the presence of a layer's
+  # file as the layer being available.
   foreach(_export_set IN LISTS OPENMS_EXPORT_SETS)
     if(_OPENMS_EXPORT_TARGETS_${_export_set})
-      export(TARGETS ${_OPENMS_EXPORT_TARGETS_${_export_set}}
+      export(EXPORT ${_export_set}
              NAMESPACE OpenMS::
              FILE ${OPENMS_HOST_BINARY_DIRECTORY}/${_export_set}.cmake)
+    else()
+      file(REMOVE "${OPENMS_HOST_BINARY_DIRECTORY}/${_export_set}.cmake")
     endif()
   endforeach()
 

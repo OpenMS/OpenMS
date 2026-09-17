@@ -134,7 +134,10 @@ endif()
 # the libraries in library_cli and library_gui), so they exist only when the
 # installation includes those layers. Each file refers to the targets of the layer
 # below and is therefore included after it; a GUI file without the CLI layer is
-# an incomplete installation and is left out.
+# an incomplete installation and is left out. The GUI file is also ignored when
+# this configuration was made without the GUI library: a file of an earlier
+# WITH_GUI configuration surviving in the same build or install directory does
+# not make the layer available.
 include("${CMAKE_CURRENT_LIST_DIR}/@_OPENMS_EXPORT_FILE@")
 set(OpenMS_CLI_FOUND FALSE)
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/@_OPENMS_CLI_EXPORT_FILE@")
@@ -142,7 +145,8 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/@_OPENMS_CLI_EXPORT_FILE@")
   set(OpenMS_CLI_FOUND TRUE)
 endif()
 set(OpenMS_WITH_GUI FALSE)
-if(OpenMS_CLI_FOUND AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/@_OPENMS_GUI_EXPORT_FILE@")
+if(OpenMS_CLI_FOUND AND _openms_built_with_gui
+   AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/@_OPENMS_GUI_EXPORT_FILE@")
   include("${CMAKE_CURRENT_LIST_DIR}/@_OPENMS_GUI_EXPORT_FILE@")
   set(OpenMS_WITH_GUI TRUE)
 endif()

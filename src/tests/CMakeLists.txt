@@ -158,6 +158,47 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
     PASS_REGULAR_EXPRESSION "does not include the TOPP tool framework library"
     LABELS installed_consumer)
 
+  # 3. The package of a build tree across reconfigurations: the GUI target file
+  #    of a WITH_GUI=ON configuration must not survive a WITH_GUI=OFF
+  #    reconfiguration of the same build directory, since OpenMSConfig.cmake
+  #    reports a layer from the presence of its file. Reconfiguring OpenMS
+  #    itself twice is far too slow for a test, so src/tests/package_layers, a
+  #    stub project using the real macros and package template, stands in.
+  set(_layers_source "${CMAKE_SOURCE_DIR}/src/tests/package_layers")
+  set(_layers_build  "${CMAKE_BINARY_DIR}/package-layers/build")
+  add_test(NAME PackageLayers_configure_with_gui
+    COMMAND ${CMAKE_COMMAND} -S "${_layers_source}" -B "${_layers_build}"
+            -G "${CMAKE_GENERATOR}" -DWITH_GUI=ON ${_configure_args})
+  set_tests_properties(PackageLayers_configure_with_gui PROPERTIES
+    FIXTURES_SETUP package_layers_with_gui)
+  add_test(NAME PackageLayers_probe_with_gui
+    COMMAND ${CMAKE_COMMAND} -S "${_layers_source}/probe" -B "${_layers_build}-probe-with-gui"
+            -G "${CMAKE_GENERATOR}" "-DOpenMS_DIR=${_layers_build}" -DEXPECT_GUI=ON ${_configure_args})
+  set_tests_properties(PackageLayers_probe_with_gui PROPERTIES
+    FIXTURES_REQUIRED package_layers_with_gui
+    FIXTURES_SETUP package_layers_probed_with_gui)
+  add_test(NAME PackageLayers_reconfigure_without_gui
+    COMMAND ${CMAKE_COMMAND} -S "${_layers_source}" -B "${_layers_build}" -DWITH_GUI=OFF)
+  set_tests_properties(PackageLayers_reconfigure_without_gui PROPERTIES
+    FIXTURES_REQUIRED package_layers_probed_with_gui
+    FIXTURES_SETUP package_layers_without_gui)
+  add_test(NAME PackageLayers_probe_without_gui
+    COMMAND ${CMAKE_COMMAND} -S "${_layers_source}/probe" -B "${_layers_build}-probe-without-gui"
+            -G "${CMAKE_GENERATOR}" "-DOpenMS_DIR=${_layers_build}" -DEXPECT_GUI=OFF ${_configure_args})
+  set_tests_properties(PackageLayers_probe_without_gui PROPERTIES
+    FIXTURES_REQUIRED package_layers_without_gui)
+  add_test(NAME PackageLayers_reject_gui_without_gui
+    COMMAND ${CMAKE_COMMAND} -S "${_layers_source}/probe" -B "${_layers_build}-probe-reject-gui"
+            -G "${CMAKE_GENERATOR}" "-DOpenMS_DIR=${_layers_build}" -DREQUIRE_GUI=ON ${_configure_args})
+  set_tests_properties(PackageLayers_reject_gui_without_gui PROPERTIES
+    FIXTURES_REQUIRED package_layers_without_gui
+    PASS_REGULAR_EXPRESSION "built without the GUI library")
+  set_tests_properties(PackageLayers_configure_with_gui PackageLayers_probe_with_gui
+    PackageLayers_reconfigure_without_gui PackageLayers_probe_without_gui
+    PackageLayers_reject_gui_without_gui PROPERTIES LABELS "installed_consumer;package_layers")
+
+  unset(_layers_source)
+  unset(_layers_build)
   unset(_full_components)
   unset(_core_prefix)
   unset(_configure_args)

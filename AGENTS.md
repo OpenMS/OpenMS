@@ -583,6 +583,8 @@ perf report
   exist and sets `OpenMS_CLI_FOUND`/`OpenMS_WITH_GUI`. When adding a library or an install component,
   keep the layer's library and cmake components together, and update `CPACK_COMPONENTS_ALL` in
   `cmake/package_deb.cmake`/`package_rpm.cmake` and the consumer fixture in `src/tests/CMakeLists.txt`.
+  `src/tests/package_layers` exercises the macros and the package template with stub libraries
+  (including a `WITH_GUI` ON to OFF reconfiguration of one build directory) in seconds.
 
 ## CI, Packaging, and Containers
 
