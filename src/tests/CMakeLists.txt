@@ -148,14 +148,19 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
   #     target file fails while the consumer's build system is generated ("but the target
   #     was not found"), which is part of this very invocation.
   #
-  #     Configure only, deliberately. Building this tree as well would add no coverage:
-  #     disabling the Eigen *package* changes CMake-level discovery, not compiler include
-  #     paths, so for a shared installation the build system generated here is identical
-  #     to the one TestExternalCode_configure produces -- same compile commands, same link
-  #     commands -- and TestExternalCode_build already compiles and links it. The one
-  #     regression that is genuinely compile-time, an installed header including
-  #     <Eigen/Core> again, fails in that build too, since Eigen is PRIVATE and its include
-  #     directory reaches no consumer either way.
+  #     Configure only, deliberately. For a shared installation the build system generated
+  #     here is identical to the one TestExternalCode_configure produces -- same compile
+  #     commands, same link commands -- because disabling the Eigen *package* changes
+  #     CMake-level discovery, not compiler include paths, and TestExternalCode_build
+  #     already compiles and links exactly that. An installed header that includes
+  #     <Eigen/Core> again fails in that build too, but only so long as nothing hands
+  #     consumers a path Eigen resolves from. That proviso is not free: a soft lookup
+  #     reinstated in OpenMSConfig.cmake could append Eigen's include directories to the
+  #     imported target, leaving the link interface clean and the normal build green while
+  #     every consumer without Eigen breaks. src/tests/external/CMakeLists.txt asserts
+  #     against precisely that, by testing whether <Eigen/Core> resolves from any include
+  #     directory the package exposes, so that combination is caught here at configure
+  #     time instead of needing a second consumer build to surface it.
   #
   #     Shared builds only, which is what the OpenMS build produces (BUILD_SHARED_LIBS is
   #     set unconditionally in the top-level CMakeLists.txt). A static OpenMS keeps its
