@@ -15,6 +15,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <filesystem>
 #include <fstream>
@@ -59,7 +60,7 @@ START_SECTION(RETURNSTATE run(const std::string& exe, const std::vector<std::str
   // run everything in a private working directory: the test binary runs in a directory
   // shared by all tests, and under 'ctest --parallel' the other tests' temp files appear
   // and vanish while 'ls -l' walks it, making it print errors and exit non-zero (#9948)
-  File::TempDir tmp_dir;
+  TempDir tmp_dir;
   { // one stable entry, so 'ls -l' has something to list
     std::ofstream file(tmp_dir.getPath() + "some_file.txt");
     file << "content\n";

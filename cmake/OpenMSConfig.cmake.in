@@ -1,6 +1,6 @@
 # Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Julianus Pfeuffer $
@@ -8,78 +8,175 @@
 
 @PACKAGE_INIT@
 
-### CMake OpenMS config file for external code
-### configured by the OpenMS build system from <OpenMS>/cmake/OpenMSConfig.cmake.in
+### CMake package configuration of OpenMS for external code.
+### Configured by the OpenMS build system from <OpenMS>/cmake/OpenMSConfig.cmake.in.
+###
+### find_package(OpenMS CONFIG) provides the imported targets
+###   OpenMS::OpenMS         the OpenMS library                   (component Core, always)
+###   OpenMS::OpenSwathAlgo  the OpenSWATH algorithm library      (component OpenSwathAlgo, always)
+###   OpenMS::OpenMS_CLI     the TOPP tool framework (TOPPBase, ToolHandler, ...); a
+###                          TOPP-style tool links this            (component CLI, always)
+###   OpenMS::OpenMS_GUI     the GUI library of a WITH_GUI build  (component GUI, on request)
+### and the un-namespaced aliases OpenMS, OpenSwathAlgo, OpenMS_CLI and OpenMS_GUI for
+### projects written against earlier releases. Requesting COMPONENTS GUI (or
+### OPTIONAL_COMPONENTS GUI) also finds the Qt6 modules the GUI library was built
+### against; without it, a consumer that links OpenMS::OpenMS_GUI finds Qt6 itself.
+###
+### Variables:
+###   OpenMS_VERSION                        version of this installation
+###   OpenMS_WITH_GUI, OpenMS_WITH_HDF5, OpenMS_WITH_OPENTIMS, OpenMS_WITH_THERMO_RAW,
+###   OpenMS_WITH_OPENMP, OpenMS_BUILD_TOPP_TOOLS
+###                                         build options of this installation
+###   OPENMS_DATA_DIR (= OPENMS_SHARE_DIR), OPENMS_LIB_DIR, OPENMS_BIN_DIR, OPENMS_DOC_DIR
+###                                         directories of this installation
 
-include(CMakeFindDependencyMacro)
-list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/Modules/")
-
-# to mimic OpenMS CMake for finding dependencies
-if(DEFINED OPENMS_CONTRIB_LIBS)
-  list(PREPEND CMAKE_PREFIX_PATH ${OPENMS_CONTRIB_LIBS})
+# The aliases created below are aliases of (non-global) imported targets (CMake
+# 3.18), and the Eigen lookup uses a version range (CMake 3.19).
+if(CMAKE_VERSION VERSION_LESS 3.19)
+  set(OpenMS_FOUND FALSE)
+  set(OpenMS_NOT_FOUND_MESSAGE
+      "OpenMS requires CMake 3.19 or newer in the consuming project (running ${CMAKE_VERSION}).")
+  return()
 endif()
 
 #------------------------------------------------------------------------------
-
-#TODO somehow add the same/compatible versions that were found by OpenMS? And what about static vs dynamic? E.g. if we link to static zlib in OpenMS(.dll) what (if at all) can/should the consumer link against?
-find_dependency(CURL)
-find_dependency(XercesC)
-# Boost::boost (header-only) is part of OpenMS's PUBLIC link interface because
-# the installed public header config.h includes <boost/current_function.hpp>
-# (via Macros.h). Its imported target must therefore exist before the targets
-# file below is included, otherwise consumers configuring against the install
-# tree (e.g. the pyOpenMS wheel build with NO_DEPENDENCIES=ON) fail with
-# "target Boost::boost not found". Only the header-only target is public; the
-# compiled components (date_time/iostreams/regex) stay PRIVATE and are not
-# needed here.
-find_dependency(Boost 1.81.0)
-# Find Eigen
-# Try the version range first (CMake 3.19+ with compatible Eigen config)
-# Use find_package instead of find_dependency so QUIET failures don't abort
-find_package(Eigen3 3.4.0...<6 QUIET)
-if(NOT TARGET Eigen3::Eigen)
-    # Fall back to simple version check for older Eigen/CMake configurations
-    find_dependency(Eigen3 3.4.0 REQUIRED)
-endif()
-
-# Rest are private linked libraries (compiled Boost components are PRIVATE, only
-# the header-only Boost::boost target found above is part of the public interface)
-#find_dependency(LIBSVM 2.91) # now PRIVATE: not exposed in the public API, encapsulated by SimpleSVM (see #8547)
-#find_dependency(COIN)
-#find_dependency(GLPK)
-#find_dependency(ZLIB)
-#find_dependency(BZip2)
-#find_dependency(SQLite3 3.15.0)
-#find_dependency(HDF5)
-#find_dependency(ARROW)
-
-if (@OPENMP_FOUND@)
-  find_dependency(Threads)
-  find_dependency(OpenMP COMPONENTS CXX)
-endif()
-
-# TODO also find GUI dependencies by default? Probably leave it up to the dev, if they need it.
-#  We should probably create components, e.g. OpenMS::Core, OpenMS::Gui, ...
-
-# we need this to reference the target file
-get_filename_component(OPENMS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-
-# include directories for targets
-@_EXPORT_INCLUDE_BLOCK@
-
-set(OPENMS_ADDCXX_FLAGS "@CF_OPENMS_ADDCXX_FLAGS@")
+# Directories of this installation.
+# They expand PACKAGE_PREFIX_DIR, which @PACKAGE_INIT@ derived from the location
+# of this file. Every package configuration generated with
+# configure_package_config_file() (Eigen3Config.cmake among them) resets that
+# variable to its own prefix when a dependency lookup below includes it, so the
+# directories have to be evaluated before any dependency is searched.
 set(OPENMS_DATA_DIR "@PACKAGE_INSTALL_SHARE_DIR@")
-set(OPENMS_SHARE_DIR "@PACKAGE_INSTALL_SHARE_DIR@")
+set(OPENMS_SHARE_DIR "${OPENMS_DATA_DIR}")
 set(OPENMS_BIN_DIR "@PACKAGE_INSTALL_BIN_DIR@")
 set(OPENMS_DOC_DIR "@PACKAGE_INSTALL_DOC_DIR@")
 set(OPENMS_LIB_DIR "@PACKAGE_INSTALL_LIB_DIR@")
 
-# Feature flags from build configuration
-set(BUILD_TOPP_TOOLS @BUILD_TOPP_TOOLS@)
-set(WITH_GUI @WITH_GUI@)
-set(WITH_HDF5 @WITH_HDF5@)
-set(WITH_OPENTIMS @WITH_OPENTIMS@)
-set(WITH_THERMO_RAW @WITH_THERMO_RAW@)
+#------------------------------------------------------------------------------
+# Build options of this installation
+set(OpenMS_WITH_GUI "@WITH_GUI@")
+set(OpenMS_WITH_HDF5 "@WITH_HDF5@")
+set(OpenMS_WITH_OPENTIMS "@WITH_OPENTIMS@")
+set(OpenMS_WITH_THERMO_RAW "@WITH_THERMO_RAW@")
+set(OpenMS_WITH_OPENMP "@OPENMP_FOUND@")
+set(OpenMS_BUILD_TOPP_TOOLS "@BUILD_TOPP_TOOLS@")
 
-## The targets file
-include("${OPENMS_CMAKE_DIR}/@_OPENMS_EXPORT_FILE@")
+#------------------------------------------------------------------------------
+# Dependencies that are part of the public link interface of the imported targets.
+# Everything else OpenMS links is PRIVATE: the installed shared library resolves it
+# through its own RPATH/soname, and consumers need neither the CMake packages nor
+# the development files of those libraries (CURL, Xerces-C, libsvm, SQLite,
+# HDF5, Arrow, ...).
+
+# Dependency lookup mimics the OpenMS build: a contrib installation given via
+# OPENMS_CONTRIB_LIBS is searched first.
+if(DEFINED OPENMS_CONTRIB_LIBS)
+  list(PREPEND CMAKE_PREFIX_PATH ${OPENMS_CONTRIB_LIBS})
+endif()
+
+include(CMakeFindDependencyMacro)
+
+# The versions OpenMS was built against are the minimum for consumers (falling
+# back to the minimum OpenMS itself requires should a build not record them).
+set(_openms_boost_version "@Boost_VERSION@")
+if(NOT _openms_boost_version)
+  set(_openms_boost_version 1.81.0)
+endif()
+set(_openms_eigen3_version "@Eigen3_VERSION@")
+if(NOT _openms_eigen3_version)
+  set(_openms_eigen3_version 3.4.0)
+endif()
+
+# Boost: the header-only target Boost::boost is PUBLIC because installed headers
+# use Boost (config.h includes <boost/current_function.hpp> via Macros.h, other
+# public headers Boost.MultiIndex, Boost.Math, ...), so those headers become part
+# of the consumer's translation units. The compiled Boost components are PRIVATE
+# and not needed.
+find_dependency(Boost ${_openms_boost_version})
+
+# Eigen: installed headers such as DATASTRUCTURES/MatrixEigen.h include Eigen, so
+# consumers using them link Eigen3::Eigen. Same two-step lookup as in
+# cmake/cmake_findExternalLibs.cmake: the version range admits Eigen 5 where the
+# package version file understands ranges (CMake issue 24581). The fallback is
+# deliberately a plain minimum: a version file written with SameMajorVersion
+# compatibility rejects the range 3.4.0...<6 even for Eigen 3.4 itself, because
+# both ends of a range must lie in the same major version. An Eigen3::Eigen
+# target that the consuming project defines itself (e.g. a vendored Eigen) is
+# accepted as is, like in the OpenMS build; its version is that project's call.
+find_package(Eigen3 ${_openms_eigen3_version}...<6 QUIET)
+if(NOT TARGET Eigen3::Eigen)
+  find_dependency(Eigen3 ${_openms_eigen3_version})
+endif()
+unset(_openms_boost_version)
+unset(_openms_eigen3_version)
+
+# OpenMP: OpenMP::OpenMP_CXX is PUBLIC in an OpenMS built with OpenMP.
+if(OpenMS_WITH_OPENMP)
+  find_dependency(OpenMP COMPONENTS CXX)
+endif()
+
+#------------------------------------------------------------------------------
+# Components. Core, OpenSwathAlgo and CLI are always present. GUI is satisfied when the
+# installation has the GUI library and the Qt6 modules it links are found; the
+# lookup runs only when the component is requested, so consumers of the core
+# library never need Qt6.
+set(_openms_known_components Core OpenSwathAlgo CLI GUI)
+set(OpenMS_Core_FOUND TRUE)
+set(OpenMS_OpenSwathAlgo_FOUND TRUE)
+set(OpenMS_CLI_FOUND TRUE)
+set(OpenMS_GUI_FOUND FALSE)
+if("GUI" IN_LIST OpenMS_FIND_COMPONENTS)
+  if(OpenMS_WITH_GUI)
+    if(OpenMS_FIND_REQUIRED_GUI AND NOT OpenMS_FIND_QUIETLY)
+      set(_openms_qt_quiet)
+    else()
+      set(_openms_qt_quiet QUIET)
+    endif()
+    # the Qt6 modules the GUI library was built against (Core plus the module lists
+    # of cmake/cmake_findExternalLibs.cmake); a newer Qt6 is binary compatible
+    set(_openms_gui_qt_modules Core @OpenMS_GUI_QT_COMPONENTS@ @OpenMS_GUI_QT_FOUND_COMPONENTS_OPT@)
+    find_package(Qt6 @Qt6_VERSION@ ${_openms_qt_quiet} COMPONENTS ${_openms_gui_qt_modules})
+    unset(_openms_qt_quiet)
+    if(Qt6_FOUND)
+      set(OpenMS_GUI_FOUND TRUE)
+    elseif(OpenMS_FIND_REQUIRED_GUI)
+      string(REPLACE ";" " " _openms_gui_qt_modules "${_openms_gui_qt_modules}")
+      string(CONCAT OpenMS_NOT_FOUND_MESSAGE
+          "The OpenMS GUI component needs Qt6 @Qt6_VERSION@ or newer with the modules "
+          "${_openms_gui_qt_modules}, which were not found. Add the Qt installation to CMAKE_PREFIX_PATH.")
+    endif()
+    unset(_openms_gui_qt_modules)
+  elseif(OpenMS_FIND_REQUIRED_GUI)
+    set(OpenMS_NOT_FOUND_MESSAGE
+        "This OpenMS installation was built without the GUI library (WITH_GUI=OFF).")
+  endif()
+endif()
+foreach(_openms_component IN LISTS OpenMS_FIND_COMPONENTS)
+  if(NOT _openms_component IN_LIST _openms_known_components
+     AND OpenMS_FIND_REQUIRED_${_openms_component})
+    set(OpenMS_NOT_FOUND_MESSAGE
+        "Unknown OpenMS component '${_openms_component}' (known components: ${_openms_known_components}).")
+  endif()
+endforeach()
+unset(_openms_component)
+unset(_openms_known_components)
+
+#------------------------------------------------------------------------------
+# The imported targets
+include("${CMAKE_CURRENT_LIST_DIR}/@_OPENMS_EXPORT_FILE@")
+
+# Aliases for projects that link the un-namespaced names of earlier releases.
+if(NOT TARGET OpenMS)
+  add_library(OpenMS ALIAS OpenMS::OpenMS)
+endif()
+if(NOT TARGET OpenSwathAlgo)
+  add_library(OpenSwathAlgo ALIAS OpenMS::OpenSwathAlgo)
+endif()
+if(NOT TARGET OpenMS_CLI)
+  add_library(OpenMS_CLI ALIAS OpenMS::OpenMS_CLI)
+endif()
+if(TARGET OpenMS::OpenMS_GUI AND NOT TARGET OpenMS_GUI)
+  add_library(OpenMS_GUI ALIAS OpenMS::OpenMS_GUI)
+endif()
+
+check_required_components(OpenMS)

@@ -35,7 +35,6 @@ NASequence.h
 NucleicAcidSpectrumGenerator.h
 OBODataProvider.h
 ProForma.h
-ProFormaDataJson.h
 ProteaseDB.h
 ProteaseDigestion.h
 Residue.h

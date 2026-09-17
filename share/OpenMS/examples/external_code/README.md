@@ -3,6 +3,11 @@
 Example project for external code using OpenMS library and headers.
 You can modify the build system via CMakeLists.txt, e.g., to add more C++ classes, alter build flags, or add additional dependencies.
 
+`find_package(OpenMS CONFIG)` provides the OpenMS library as the imported target `OpenMS::OpenMS` (the OpenSWATH
+algorithm library as `OpenMS::OpenSwathAlgo`, and the TOPP tool framework as `OpenMS::OpenMS_CLI`, which a program
+deriving from `TOPPBase` links instead); linking it supplies include directories, compile features and
+dependencies. Consuming projects need CMake 3.19 or newer.
+
 ## Usage
 
 Assuming everything happens in the directory `~/dev`, e.g., the OpenMS sources are located in `~/dev/OpenMS` and OpenMS was compiled in `~/dev/OpenMS-build`. For any details on how to compile OpenMS please check out either the documentation shipped with OpenMS or online at http://www.openms.de/documentation.
@@ -16,3 +21,6 @@ Assuming everything happens in the directory `~/dev`, e.g., the OpenMS sources a
 Should the above step fail because CMake couldn't find OpenMS you can specify the OpenMS instance when calling CMake, e.g., 
 
 ```cmake -G "<generator used for OpenMS>" -D OpenMS_DIR=~/Development/OpenMS-build/ ~/Development/OpenMS/share/OpenMS/examples/external_code/```
+
+For an installed OpenMS, `OpenMS_DIR` is the directory holding `OpenMSConfig.cmake`, i.e. `<prefix>/lib/cmake/OpenMS`
+(`<prefix>/CMake` on Windows); alternatively add `<prefix>` to `CMAKE_PREFIX_PATH`.

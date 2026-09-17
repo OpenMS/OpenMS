@@ -7,7 +7,6 @@
 # --------------------------------------------------------------------------
 
 
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_class_tests")
 
 #------------------------------------------------------------------------------
@@ -22,6 +21,7 @@ add_subdirectory(openswathalgo)
 #------------------------------------------------------------------------------
 # add OpenMS specific tests
 add_subdirectory(openms)
+add_subdirectory(openms_cli)
 
 if(WITH_GUI)
   #------------------------------------------------------------------------------

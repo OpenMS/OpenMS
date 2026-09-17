@@ -105,6 +105,7 @@ XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h
 FileTypes.h
+FileNameUtils.h
 MzIdentMLFile.h
 TraMLFile.h
 XMassFile.h

@@ -15,6 +15,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/FORMAT/ZipRandomAccessFile.h>
@@ -41,7 +42,7 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
   TEST_EQUAL(light_exp.compounds.size() > 0, true)
 
   // Write to a single .oswpq archive (do NOT create a directory) to exercise archive writer path
-  File::TempDir tmp_dir;
+  TempDir tmp_dir;
   const std::string out_archive = tmp_dir.getPath() + "/roundtrip.oswpq";
 
   const auto source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(light_exp);
@@ -61,7 +62,7 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
 
   // Verify the RAF path works: ZipRandomAccessFile::Open should succeed directly on the archive
   {
-    std::unique_ptr<File::TempDir> raf_tmp;
+    std::unique_ptr<TempDir> raf_tmp;
     auto ra_res = ZipRandomAccessFile::Open(out_archive, "library/precursors.parquet", raf_tmp);
 #if __has_include(<zip.h>)
     TEST_EQUAL(ra_res.ok(), true)

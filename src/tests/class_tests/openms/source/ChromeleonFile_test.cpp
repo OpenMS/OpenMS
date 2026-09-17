@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/ChromeleonFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -73,7 +74,7 @@ START_SECTION(void load(const std::string& filename, MSExperiment& experiment) c
   TEST_REAL_SIMILAR(c[3300].getIntensity(), -0.130904)
 
   MzMLFile mzml;
-  const std::string output_filepath = File::getTemporaryFile();
+  const std::string output_filepath = TempFiles::getTemporaryFile();
   mzml.store(output_filepath, experiment);
   MSExperiment read_exp;
   mzml.load(output_filepath, read_exp);
@@ -128,7 +129,7 @@ START_SECTION(load_with_new_raw_data_header)
   TEST_REAL_SIMILAR(c[9].getIntensity(), 4.930000)
 
   MzMLFile mzml;
-  const std::string output_filepath = File::getTemporaryFile();
+  const std::string output_filepath = TempFiles::getTemporaryFile();
   mzml.store(output_filepath, experiment);
   MSExperiment read_exp;
   mzml.load(output_filepath, read_exp);

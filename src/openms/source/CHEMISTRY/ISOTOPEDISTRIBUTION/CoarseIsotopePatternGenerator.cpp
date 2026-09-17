@@ -13,7 +13,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <include/OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <atomic>
 #include <cmath>

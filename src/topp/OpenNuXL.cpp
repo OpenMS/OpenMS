@@ -827,7 +827,7 @@ protected:
     registerOutputFile_("out_xls", "<file>", "", "XL output file with group q-values calculated at the XL PSM-level. Generated for the highest FDR threshold in report:xlFDR.", false);
     setValidFormats_("out_xls", ListUtils::create<std::string>("idXML"));
 
-    registerStringOption_("output_folder", "<folder>", "", "Store intermediate files (and final result) also in this output folder. Convenient for TOPPAS/KNIME/etc. users because these files are otherwise only stored in tmp folders.", false, false);
+    registerStringOption_("output_folder", "<folder>", "", "Store intermediate files (and final result) also in this output folder. Convenient for workflow users because these files are otherwise only stored in tmp folders.", false, false);
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 6.0, "Precursor mass tolerance (+/- around precursor m/z).", false);

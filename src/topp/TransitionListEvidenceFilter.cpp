@@ -17,6 +17,8 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <algorithm>
 #include <cmath>
@@ -116,7 +118,7 @@ protected:
                           "Whether to run directly on input data or cache data to disk first. If 'cache', set tempDirectory as needed.",
                           false, true);
     setValidStrings_("readOptions", {"normal", "cache"});
-    registerStringOption_("tempDirectory", "<tmp>", File::getTempDirectory(), "Temporary directory for cached data.", false, true);
+    registerStringOption_("tempDirectory", "<tmp>", SystemSettings::getTempDirectory(), "Temporary directory for cached data.", false, true);
     registerFlag_("keep_cached_files", "If set, do not remove cached files created in tempDirectory.", false);
     registerIntOption_("outer_loop_threads", "<number>", -1,
                        "How many threads the evidence filter should use (-1 uses the OpenMP maximum).",
@@ -262,10 +264,10 @@ protected:
                       << ": " << ListUtils::concatenate(run_files, ", ") << "\n";
 
       std::string per_run_tmp = tmp_dir;
-      std::unique_ptr<File::TempDir> per_run_temp_dir;
+      std::unique_ptr<TempDir> per_run_temp_dir;
       if (readoptions == "cache")
       {
-        per_run_temp_dir = std::make_unique<File::TempDir>(tmp_dir, keep_cached_files);
+        per_run_temp_dir = std::make_unique<TempDir>(tmp_dir, keep_cached_files);
         per_run_tmp = per_run_temp_dir->getPath();
       }
 

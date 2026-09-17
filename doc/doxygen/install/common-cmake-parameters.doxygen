@@ -5,13 +5,8 @@ The most important CMake variables are:
 
 <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
   <tr>
-    <th valign="top">OPENMS_CONTRIB_LIBS</td>
-    <td>Separate search path for the contrib libraries from github.com/OpenMS/contrib that is internally considered before
-    CMAKE_PREFIX_PATH for searching, linking and adding include directories.</td>
-  </tr>
-  <tr>
     <th valign="top">CMAKE_PREFIX_PATH</td>
-    <td>Additional search path for the contrib libraries.
+    <td>Additional search path for libraries.
 
     [MacOSX only]
     If you want to use libraries installed via Homebrew or MacPorts you might
@@ -19,9 +14,6 @@ The most important CMake variables are:
 
     <code>-DCMAKE_PREFIX_PATH=/usr/local/Cellar</code> for Homebrew
     <code>-DCMAKE_PREFIX_PATH=/opt/local</code> for MacPorts
-
-    Please keep in mind that both Homebrew and MacPorts do not provide all libraries so
-    you also need to specify the path to your self-build contrib via <code>-DOPENMS_CONTRIB_LIBS</code>
     </td>
   </tr>
   <tr>
@@ -49,8 +41,8 @@ The most important CMake variables are:
     <td>Build the TOPP command-line applications (src/topp). Set to "Off" to build only
     the core OpenMS library, e.g. for a standalone SDK consumed by an external application.
     <code>ENABLE_TOPP_TESTING</code> and <code>ENABLE_PIPELINE_TESTING</code> default to
-    following this flag, and <code>ENABLE_CWL_GENERATION</code> /
-    <code>ENABLE_PREPARE_KNIME_PACKAGE</code> require it to be "On". (Default: On)</td>
+    following this flag, and <code>ENABLE_CWL_GENERATION</code> requires it to be
+    "On". (Default: On)</td>
   </tr>
   <tr>
     <th valign="top">INSTALL_OPENMS_EXAMPLES=On/Off</td>
@@ -165,6 +157,15 @@ The most important CMake variables are:
     runtime), set the <code>DOTNET_ROOT</code> environment variable to that directory &mdash; the folder
     that contains the <code>dotnet</code> host and the <code>shared/</code> sub-directory
     (e.g. <code>export DOTNET_ROOT=/usr/share/dotnet</code>) &mdash; so the runtime can be found.
+    The managed half of the bridge (<code>ThermoWrapperManaged.dll</code>, its
+    <code>runtimeconfig.json</code> and the Thermo CommonCore assemblies) is installed both next to the
+    bridge library and into <code>share/OpenMS/openms_thermo_bridge/managed</code>; OpenMS looks in the
+    <code>OPENMS_THERMO_MANAGED_DIR</code> environment variable first, then in the share directory, then
+    next to the bridge library. To build without a NuGet/GitHub round trip for those assemblies, pass the
+    bridge's own <code>-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=/path/to/extracted-zip</code> (the zip is
+    published with every openms-thermo-bridge release) or
+    <code>-DOPENMS_THERMO_BRIDGE_DOWNLOAD_PREBUILT_MANAGED=ON</code>; the native bridge then only needs the
+    nethost headers from a .NET SDK / host pack.
     Disabled automatically on Linux/aarch64 targets.
     (Default: On on supported platforms)</td>
   </tr>

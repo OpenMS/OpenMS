@@ -341,9 +341,60 @@ if(ArrowDataset_FOUND)
 
   if(OPENMS_ARROW_DATASET_TARGET)
     message(STATUS "Using Arrow Dataset target: ${OPENMS_ARROW_DATASET_TARGET}")
-    # Arrow Dataset (static) may pull in libxml2 symbols; link explicitly.
-    # This avoids missing xmlBufferFree at runtime when dataset pushdown is enabled.
-    find_package(LibXml2 REQUIRED)
+  endif()
+endif()
+
+# A statically linked Arrow needs libxml2: arrow_bundled_dependencies vendors
+# azure-storage-common, whose xml_wrapper.cpp (Azure::Storage::_internal::
+# XmlReader/XmlWriter) references xmlBufferCreate/xmlBufferFree and friends. It is
+# the only object in that archive that does -- the AWS SDK is bundled too but
+# brings its own parser (aws_xml_node_*) and needs no libxml2.
+#
+# This is deliberately outside the ArrowDataset block above: the archive comes in
+# through Arrow::arrow_static's own interface, so a static build without Arrow
+# Dataset needs libxml2 just the same.
+#
+# Record the edge on the Arrow target rather than adding LibXml2 as another direct
+# OpenMS dependency. CMake emits every direct link library before the transitive
+# archives it pulls in, so a direct entry lands on the link line ahead of
+# libarrow_bundled_dependencies.a -- and a --as-needed linker (the default on most
+# Linux distributions) then drops libxml2.so again because nothing has referenced
+# it yet. The result is a libOpenMS.so with undefined xml* symbols that only fails
+# when something dlopen()s it, e.g. "import pyopenms" => ImportError: undefined
+# symbol: xmlBufferFree. Appending to the imported target's interface instead puts
+# libxml2 after the archive that needs it, which is what the linker requires.
+if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static"
+   OR (OPENMS_ARROW_DATASET_TARGET AND
+       OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static"))
+  # Deliberately not REQUIRED: only the platforms that actually resolve those
+  # symbols against a system libxml2 need it. MSVC has no --as-needed and the
+  # Windows contrib build links a static Arrow with no system libxml2 present at
+  # all, so a mandatory lookup would turn a link-order workaround into a hard
+  # build dependency everywhere and fail configuration where it is not needed.
+  find_package(LibXml2 QUIET)
+  if(LibXml2_FOUND)
+    if(TARGET Arrow::arrow_bundled_dependencies)
+      set_property(TARGET Arrow::arrow_bundled_dependencies APPEND
+                   PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+    else()
+      # Older/repackaged Arrow configs without the bundled-dependencies target:
+      # attach to whichever static targets are in use. Appending puts libxml2 at
+      # the end of their interface, i.e. still behind Arrow's own archives.
+      if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static")
+        set_property(TARGET ${OPENMS_ARROW_TARGET} APPEND
+                     PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+      endif()
+      if(OPENMS_ARROW_DATASET_TARGET AND
+         OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static")
+        set_property(TARGET ${OPENMS_ARROW_DATASET_TARGET} APPEND
+                     PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+      endif()
+    endif()
+    message(STATUS "Arrow is linked statically: added LibXml2 to its link interface")
+  else()
+    message(STATUS "Arrow is linked statically, but no LibXml2 was found: skipping "
+                   "the libxml2 link-interface workaround. Install the libxml2 "
+                   "development files if linking fails with undefined xml* symbols.")
   endif()
 endif()
 
@@ -354,15 +405,47 @@ option(WITH_WNETALIGN "Enable WNet alignment (fetches pylmcf, wnet, wnetalign)" 
 set(WNETALIGN_INCLUDE_DIRS "")
 
 if(WITH_WNETALIGN)
+  set(_wnetalign_from_vcpkg FALSE)
+
   if(OPENMS_USE_VCPKG)
+    # These ports are only installed when the optional 'wnetalign' manifest feature
+    # was requested (-DVCPKG_MANIFEST_FEATURES="...;wnetalign"), which is off by
+    # default -- so a miss here is the normal case, not an error. Check the results
+    # before using them: feeding an unvalidated -NOTFOUND into
+    # target_include_directories() fails at generate time with a message that does
+    # not mention wnetalign at all. On a miss we fall through to the FetchContent
+    # path below, the same find-then-fetch pattern used for opentims and
+    # openms-thermo-bridge, both of which are likewise ON by default.
+    # find_path() caches its result, and CMake only repeats the search when the
+    # cached value is <VAR>-NOTFOUND. A path found by an earlier configure therefore
+    # survives even once it has gone away -- switching VCPKG_TARGET_TRIPLET moves
+    # vcpkg_installed/<triplet>/include, and disabling the manifest feature removes
+    # the headers altogether. Without this, a stale entry would still satisfy the
+    # check below and be handed to target_include_directories() as a non-existent
+    # include directory. Drop entries that no longer resolve so the search reflects
+    # what is on disk now.
+    foreach(_wnetalign_cache_var WNETALIGN_INC WNET_INC PYLMCF_INC)
+      if(DEFINED ${_wnetalign_cache_var} AND NOT EXISTS "${${_wnetalign_cache_var}}")
+        unset(${_wnetalign_cache_var} CACHE)
+      endif()
+    endforeach()
+    unset(_wnetalign_cache_var)
 
     find_path(WNETALIGN_INC NAMES aligner.hpp PATH_SUFFIXES wnetalign)
     find_path(WNET_INC NAMES graph_elements.hpp PATH_SUFFIXES wnet)
     find_path(PYLMCF_INC NAMES lmcf.hpp PATH_SUFFIXES pylmcf)
 
-    set(WNETALIGN_INCLUDE_DIRS ${PYLMCF_INC} ${WNET_INC} ${WNETALIGN_INC})
+    if(WNETALIGN_INC AND WNET_INC AND PYLMCF_INC)
+      set(WNETALIGN_INCLUDE_DIRS ${PYLMCF_INC} ${WNET_INC} ${WNETALIGN_INC})
+      set(_wnetalign_from_vcpkg TRUE)
+      message(STATUS "wnetalign: using vcpkg ports")
+    else()
+      message(STATUS "wnetalign: vcpkg ports not installed (enable the 'wnetalign' "
+                     "manifest feature to use them), fetching from git instead")
+    endif()
+  endif()
 
-  else()
+  if(NOT _wnetalign_from_vcpkg)
     include(FetchContent)
 
     # Header-only: use GIT_REPOSITORY for reproducible versioned fetch.
@@ -471,7 +554,9 @@ if (WITH_GUI)
     message(WARNING "Qt6WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
   endif()
 
-  set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
+  # The GUI applications derive from TOPPBase and discover tools through ToolHandler,
+  # so the tool framework is part of the GUI library's public link interface.
+  set(OpenMS_GUI_DEP_LIBRARIES "OpenMS" "OpenMS_CLI")
 
   foreach(COMP IN LISTS OpenMS_GUI_QT_COMPONENTS)
     list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
@@ -587,6 +672,19 @@ if (WITH_OPENTIMS)
     # Suppress warnings from third-party code
     target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
 
+    # opentims's own CMakeLists.txt applies /O2 to MSVC builds unconditionally
+    # Any Debug build then combines it with the /RTC1 that CMake puts in
+    # CMAKE_CXX_FLAGS_DEBUG, and MSVC rejects the pair:
+    #   cl : Command line error D8016 : '/RTC1' and '/O2' command-line options are incompatible
+    # reported in https://github.com/michalsta/opentims/issues/44 (remove this once opentims fixes it upstream)
+    if(MSVC)
+      get_target_property(_opentims_opts opentims_cpp COMPILE_OPTIONS)
+      if(_opentims_opts)
+        list(REMOVE_ITEM _opentims_opts "/O2")
+        set_property(TARGET opentims_cpp PROPERTY COMPILE_OPTIONS ${_opentims_opts})
+      endif()
+    endif()
+
     # Expose a namespaced alias so downstream CMakeLists always use
     # opentims::opentims_cpp regardless of how the library was obtained.
     add_library(opentims::opentims_cpp ALIAS opentims_cpp)
@@ -606,7 +704,7 @@ endif()
 #------------------------------------------------------------------------------
 # openms-thermo-bridge (Thermo RAW file reading)
 if (WITH_THERMO_RAW)
-  find_package(OpenMSThermoBridge QUIET)
+  find_package(OpenMSThermoBridge 0.3 QUIET)
 
   if(OpenMSThermoBridge_FOUND)
     message(STATUS "openms-thermo-bridge: using system installation")
@@ -617,9 +715,11 @@ if (WITH_THERMO_RAW)
 
     FetchContent_Declare(
       OpenMSThermoBridge
-      GIT_REPOSITORY https://github.com/jpfeuffer/openms-thermo-bridge.git
+      GIT_REPOSITORY https://github.com/OpenMS/openms-thermo-bridge.git
       # Pin to a specific reviewed upstream revision to keep builds reproducible.
-      GIT_TAG        v0.2.3
+      # This is the commit the v0.3.0 release tag points at; tools/ci/fetch_thermo_assets.sh
+      # checks that its own pin matches and downloads the v0.3.0 release assets.
+      GIT_TAG        2c66c9260ad78f499527c7d1c85a920afab9aa2d  # v0.3.0
     )
 
     # Configure the thermo bridge build options
@@ -669,6 +769,28 @@ if (WITH_THERMO_RAW)
     install_library(openms_thermo_bridge)
     openms_register_export_target(openms_thermo_bridge)
 
+    if(WIN32)
+      # On Windows the bridge links the nethost *import* library, so
+      # openms_thermo_bridge.dll needs nethost.dll at run time. The .NET host pack
+      # that provides it is not on PATH, so install a copy next to the OpenMS
+      # libraries; installers and wheel repair tools (delvewheel) pick it up from
+      # there. FindDotNetHost.cmake ran inside the bridge's directory scope, so its
+      # result variables are not visible here: run it again in this scope.
+      list(APPEND CMAKE_MODULE_PATH "${OpenMSThermoBridge_SOURCE_DIR}/cmake")
+      find_package(DotNetHost QUIET)
+      list(POP_BACK CMAKE_MODULE_PATH)
+      if(DotNetHost_RUNTIME_LIBRARY)
+        install(FILES "${DotNetHost_RUNTIME_LIBRARY}"
+                DESTINATION ${INSTALL_LIB_DIR}
+                COMPONENT library)
+        message(STATUS "openms-thermo-bridge: installing ${DotNetHost_RUNTIME_LIBRARY} alongside libOpenMS")
+      else()
+        message(WARNING
+          "openms-thermo-bridge: nethost.dll was not located; openms_thermo_bridge.dll "
+          "will only load if nethost.dll is found on PATH at run time.")
+      endif()
+    endif()
+
     message(STATUS "openms-thermo-bridge: built from source (${OpenMSThermoBridge_SOURCE_DIR})")
 
     # Download and install the Thermo Fisher RawFileReader license.
@@ -705,6 +827,31 @@ if (WITH_THERMO_RAW)
                 COMPONENT share)
       endif()
     endif()
+  endif()
+
+  # Ship the managed half of the bridge (ThermoWrapperManaged.dll, its
+  # runtimeconfig.json and the Thermo CommonCore assemblies) inside the
+  # shared-data directory as well. The bridge installs them to
+  # <libdir>/openms_thermo_bridge/managed and locates them relative to its own
+  # shared library; that link breaks in relocated layouts such as Python wheels,
+  # where wheel repair tools rename and move the library. ThermoRawFile looks in
+  # <share>/openms_thermo_bridge/managed first, so every consumer that carries
+  # share/OpenMS (pyOpenMS wheels included) gets a working reader. The files are
+  # platform-independent IL assemblies (~1.6 MB), so they belong to 'share'.
+  # OpenMSThermoBridge_MANAGED_DIR is set by the bridge for both the
+  # FetchContent build (internal cache variable) and a system installation
+  # (OpenMSThermoBridgeHelpers.cmake). The directory is populated at build time
+  # when the bridge publishes the assemblies itself, which is fine for install().
+  if(OpenMSThermoBridge_MANAGED_DIR)
+    install(DIRECTORY "${OpenMSThermoBridge_MANAGED_DIR}/"
+            DESTINATION "${INSTALL_SHARE_DIR}/openms_thermo_bridge/managed"
+            COMPONENT share
+            PATTERN "*.pdb" EXCLUDE
+            PATTERN "*.zip" EXCLUDE)
+  else()
+    message(WARNING
+      "openms-thermo-bridge: OpenMSThermoBridge_MANAGED_DIR is not set; the managed "
+      "bridge assemblies will not be installed into ${INSTALL_SHARE_DIR}.")
   endif()
 endif()
 #------------------------------------------------------------------------------

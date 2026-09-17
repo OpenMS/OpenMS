@@ -8,7 +8,6 @@
 
 
 project("OpenMS_doc")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 #------------------------------------------------------------------------------
 # helper macro
@@ -60,9 +59,9 @@ if(ENABLE_DOCS)
     # let the doc progs decide how to handle a missing OpenMS_GUI library
     if(WITH_GUI)
       set_target_properties(${i} PROPERTIES COMPILE_DEFINITIONS "WITH_GUI=1")
-      target_link_libraries(${i} OpenMS OpenMS_GUI)
+      target_link_libraries(${i} OpenMS OpenMS_CLI OpenMS_GUI)
     else()
-      target_link_libraries(${i} OpenMS)
+      target_link_libraries(${i} OpenMS OpenMS_CLI)
     endif()
   endforeach(i)
 
@@ -100,7 +99,7 @@ if(ENABLE_DOCS)
     set(DOXYGEN_MIN_REQUIRED "1.8.13")
 
     ## NOTE: keep the all-caps DOXYGEN_VERSION here. The mixed-case Doxygen_VERSION only exists in
-    ## CMake >= 4.2, while OpenMS still supports CMake 3.21; on older CMake it would be empty, making
+    ## CMake >= 4.2; on older CMake it would be empty, making
     ## this version check always fire and dropping the version argument passed to Doxygen_Warning_test
     ## below. DOXYGEN_VERSION is set across the whole supported range (3.9 .. 4.2+).
     if (DOXYGEN_VERSION VERSION_LESS DOXYGEN_MIN_REQUIRED )

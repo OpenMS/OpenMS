@@ -7,7 +7,6 @@
 # --------------------------------------------------------------------------
 
 
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_src")
 
 #------------------------------------------------------------------------------
@@ -19,6 +18,7 @@ add_subdirectory(openswathalgo)
 # OpenMS core lib
 #------------------------------------------------------------------------------
 add_subdirectory(openms)
+add_subdirectory(openms_cli)
 
 #------------------------------------------------------------------------------
 # Class-test framework lib (ClassTest macros, FuzzyStringComparator);

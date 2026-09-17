@@ -878,6 +878,8 @@ about an LC-MS/MS injection.
         .def("setContacts", [](OpenMS::ExperimentalSettings& self, const std::vector<OpenMS::ContactPerson>& contacts) { return self.setContacts(contacts); }, "contacts"_a, "Sets the list of contact persons")
         .def("getInstrument", [](OpenMS::ExperimentalSettings& self) -> OpenMS::Instrument { return self.getInstrument(); }, "Returns a copy of the MS instrument description")
         .def("setInstrument", [](OpenMS::ExperimentalSettings& self, const OpenMS::Instrument& instrument) { return self.setInstrument(instrument); }, "instrument"_a, "Sets the MS instrument description")
+        .def("getInstrumentConfigurations", [](const OpenMS::ExperimentalSettings& self) { return self.getInstrumentConfigurations(); })
+        .def("setInstrumentConfigurations", &OpenMS::ExperimentalSettings::setInstrumentConfigurations, "configurations"_a)
         .def("getHPLC", [](OpenMS::ExperimentalSettings& self) -> OpenMS::HPLC { return self.getHPLC(); }, "Returns a copy of the description of the HPLC run")
         .def("setHPLC", [](OpenMS::ExperimentalSettings& self, const OpenMS::HPLC& hplc) { return self.setHPLC(hplc); }, "hplc"_a, "Sets the description of the HPLC run")
         .def("getDateTime", [](const OpenMS::ExperimentalSettings& self) -> OpenMS::DateTime { return self.getDateTime(); }, "Returns the date the experiment was performed")

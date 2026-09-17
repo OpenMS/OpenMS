@@ -188,6 +188,8 @@
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/SYSTEM/BuildInfo.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 #include <iomanip>
 #include <nanobind/make_iterator.h>
@@ -936,11 +938,11 @@ FeatureGroupingAlgorithm
         .def_static("fileList", [](const std::string& dir, const std::string& file_pattern, bool full_path) { std::vector<std::string> output; OpenMS::File::fileList(dir, file_pattern, output, full_path); return output; }, "dir"_a, "file_pattern"_a, "full_path"_a = false, "Returns list of files matching @p file_pattern in @p dir (returns filenames without paths unless @p full_path is true)")
         .def_static("findDoc", [](const std::string& filename) { return OpenMS::File::findDoc(filename); }, "filename"_a)
         .def_static("getOpenMSDataPath", []() { return OpenMS::File::getOpenMSDataPath(); })
-        .def_static("getOpenMSHomePath", []() { return OpenMS::File::getOpenMSHomePath(); })
-        .def_static("getSystemParameters", []() { return OpenMS::File::getSystemParameters(); })
-        .def_static("findDatabase", [](const std::string& db_name) { return OpenMS::File::findDatabase(db_name); }, "db_name"_a)
+        .def_static("getOpenMSHomePath", []() { return OpenMS::SystemSettings::getOpenMSHomePath(); })
+        .def_static("getSystemParameters", []() { return OpenMS::SystemSettings::getSystemParameters(); })
+        .def_static("findDatabase", [](const std::string& db_name) { return OpenMS::SystemSettings::findDatabase(db_name); }, "db_name"_a)
         .def_static("findExecutable", [](std::string& exe_filename) { return OpenMS::File::findExecutable(exe_filename); }, "exe_filename"_a)
-        .def_static("getTemporaryFile", [](const std::string& alternative_file) { return OpenMS::File::getTemporaryFile(alternative_file); }, "alternative_file"_a)
+        .def_static("getTemporaryFile", [](const std::string& alternative_file) { return OpenMS::TempFiles::getTemporaryFile(alternative_file); }, "alternative_file"_a = "")
 
         .def_static("exists", [](const std::string& file) {
             return OpenMS::File::exists(file);
@@ -971,11 +973,11 @@ FeatureGroupingAlgorithm
         }, "file"_a, "Get the absolute path")
 
         .def_static("getTempDirectory", []() {
-            return OpenMS::File::getTempDirectory();
+            return OpenMS::SystemSettings::getTempDirectory();
         }, "Get the temp directory")
 
         .def_static("getUserDirectory", []() {
-            return OpenMS::File::getUserDirectory();
+            return OpenMS::SystemSettings::getUserDirectory();
         }, "Get the user home directory")
 
         .def_static("getUniqueName", [](bool include_hostname) {
@@ -984,6 +986,31 @@ FeatureGroupingAlgorithm
         .def_static("getUniqueName", []() {
             return OpenMS::File::getUniqueName();
         }, "Get a unique name")
+        ;
+
+    // -----------------------------------------------------------------------
+    // SystemSettings
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::SystemSettings>(m, "SystemSettings", "Per-user OpenMS configuration: the OpenMS.ini parameters and the home, temp and database directories derived from them")
+        .def_static("getOpenMSHomePath", []() { return OpenMS::SystemSettings::getOpenMSHomePath(); }, "Get the OpenMS home path (OPENMS_HOME_PATH overrides the default)")
+        .def_static("getOpenMSConfigDir", []() { return OpenMS::SystemSettings::getOpenMSConfigDir(); }, "Get the per-user configuration directory that holds OpenMS.ini")
+        .def_static("getTempDirectory", []() { return OpenMS::SystemSettings::getTempDirectory(); }, "Get the temp directory (OPENMS_TMPDIR, then OpenMS.ini temp_dir, then the system temp directory)")
+        .def_static("getUserDirectory", []() { return OpenMS::SystemSettings::getUserDirectory(); }, "Get the user data directory (OPENMS_HOME_PATH, then OpenMS.ini home_dir, then the user home)")
+        .def_static("getSystemParameters", []() { return OpenMS::SystemSettings::getSystemParameters(); }, "Get the OpenMS.ini system parameters, completed with defaults where entries are missing")
+        .def_static("findDatabase", [](const std::string& db_name) { return OpenMS::SystemSettings::findDatabase(db_name); }, "db_name"_a, "Resolve a database filename against the OpenMS.ini id_db_dir entries")
+        ;
+
+    // -----------------------------------------------------------------------
+    // TempDir / TempFiles
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::TempDir>(m, "TempDir", "A uniquely named temporary directory, removed when the object is destroyed unless keep_dir is set")
+        .def(nb::init<bool>(), "keep_dir"_a = false, "Create a temporary directory below SystemSettings.getTempDirectory()")
+        .def(nb::init<const std::string&, bool>(), "base_dir"_a, "keep_dir"_a = false, "Create a temporary directory below base_dir")
+        .def("getPath", [](const OpenMS::TempDir& self) { return self.getPath(); }, "Path of the temporary directory, with a trailing slash")
+        ;
+
+    nb::class_<OpenMS::TempFiles>(m, "TempFiles", "Temporary files that are removed when the process exits")
+        .def_static("getTemporaryFile", [](const std::string& alternative_file) { return OpenMS::TempFiles::getTemporaryFile(alternative_file); }, "alternative_file"_a = "", "Return a fresh temporary filename that is deleted at exit, or alternative_file unchanged if it is not empty")
         ;
 
     // -----------------------------------------------------------------------
@@ -1050,7 +1077,7 @@ Note that a PeptideIdentication is added to ALL spectra which are within the all
 :raises:
 Exception: MissingInformation is thrown if entries of 'peptide_ids' do not contain 'MZ' and 'RT' information
 )doc")
-        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::FeatureMap& map, const OpenMS::PeptideIdentificationList& ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool use_centroid_rt, bool use_centroid_mz, const OpenMS::MSExperiment& spectra) { return self.annotate(map, ids, protein_ids, use_centroid_rt, use_centroid_mz, spectra); }, "map"_a, "ids"_a, "protein_ids"_a, "use_centroid_rt"_a = false, "use_centroid_mz"_a = false, "spectra"_a, 
+        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::FeatureMap& map, const OpenMS::PeptideIdentificationList& ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool use_centroid_rt, bool use_centroid_mz, const OpenMS::MSExperiment& spectra) { return self.annotate(map, ids, protein_ids, use_centroid_rt, use_centroid_mz, spectra); }, "map"_a, "ids"_a, "protein_ids"_a, "use_centroid_rt"_a = false, "use_centroid_mz"_a = false, "spectra"_a = OpenMS::MSExperiment(), 
             R"doc(
 Mapping method for peak maps\n
 Add peptide identifications stored in a feature map to their
@@ -1063,7 +1090,7 @@ RT and m/z are taken from the peptides, or (if missing) from the feature itself
 :param clear_ids: Reset peptide and protein identifications of each scan before annotating
 :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 )doc")
-        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::ConsensusMap& map, const OpenMS::PeptideIdentificationList& ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool measure_from_subelements, bool annotate_ids_with_subelements, const OpenMS::MSExperiment& spectra) { return self.annotate(map, ids, protein_ids, measure_from_subelements, annotate_ids_with_subelements, spectra); }, "map"_a, "ids"_a, "protein_ids"_a, "measure_from_subelements"_a = false, "annotate_ids_with_subelements"_a = false, "spectra"_a, 
+        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::ConsensusMap& map, const OpenMS::PeptideIdentificationList& ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool measure_from_subelements, bool annotate_ids_with_subelements, const OpenMS::MSExperiment& spectra) { return self.annotate(map, ids, protein_ids, measure_from_subelements, annotate_ids_with_subelements, spectra); }, "map"_a, "ids"_a, "protein_ids"_a, "measure_from_subelements"_a = false, "annotate_ids_with_subelements"_a = false, "spectra"_a = OpenMS::MSExperiment(), 
             R"doc(
 Mapping method for peak maps\n
 Add peptide identifications stored in a feature map to their
@@ -3919,7 +3946,7 @@ ProgressLogger
         .def("__copy__", [](const OpenMS::SwathFile& self) { return OpenMS::SwathFile(self); })
         .def("__deepcopy__", [](const OpenMS::SwathFile& self, nb::dict) { return OpenMS::SwathFile(self); }, "memo"_a)
         .def("loadSplit", [](OpenMS::SwathFile& self, std::vector<std::string> file_list, const std::string& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const std::string& readoptions) { return self.loadSplit(file_list, tmp, exp_meta, readoptions); }, "file_list"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "Loads a Swath run from a list of split mzML files")
-        .def("loadMzML", [](OpenMS::SwathFile& self, const std::string& file, const std::string& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const std::string& readoptions, OpenMS::Interfaces::IMSDataConsumer * plugin_consumer) { return self.loadMzML(file, tmp, exp_meta, readoptions, plugin_consumer); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "plugin_consumer"_a)
+        .def("loadMzML", [](OpenMS::SwathFile& self, const std::string& file, const std::string& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const std::string& readoptions, OpenMS::Interfaces::IMSDataConsumer * plugin_consumer) { return self.loadMzML(file, tmp, exp_meta, readoptions, plugin_consumer); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "plugin_consumer"_a.none() = nb::none())
         .def("loadMzXML", [](OpenMS::SwathFile& self, const std::string& file, const std::string& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const std::string& readoptions) { return self.loadMzXML(file, tmp, exp_meta, readoptions); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "Loads a Swath run from a single mzXML file")
         ;
 
@@ -4803,14 +4830,14 @@ MzMLFile().store("filtered.mzML", exp)
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store an MSExperiment to an mzML file")
 
-        .def("storeBuffer", [](OpenMS::MzMLFile& self, nb::object output_str, const OpenMS::MSExperiment& exp) {
+        .def("storeBuffer", [](OpenMS::MzMLFile& self, const OpenMS::MSExperiment& exp) {
             std::string buf;
             {
                 nb::gil_scoped_release release;
                 self.storeBuffer(buf, exp);
             }
-            output_str.attr("_value") = nb::cast(buf);
-        }, "output"_a, "exp"_a, "Store an MSExperiment to an in-memory mzML string buffer")
+            return buf;
+        }, "exp"_a, "Store an MSExperiment to an in-memory mzML buffer and return it as str")
 
         .def("loadBuffer", [](OpenMS::MzMLFile& self, const std::string& buffer, OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;

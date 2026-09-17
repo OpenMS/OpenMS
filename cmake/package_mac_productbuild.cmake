@@ -21,11 +21,9 @@ set(CPACK_PRODUCTBUILD_BACKGROUND ${OPENMS_LOGOSMALL_NAME})
 set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
 set(CPACK_PRODUCTBUILD_BACKGROUND_SCALING "none")
 
-# Allow installing to every Domain if supported by current CMake version (https://gitlab.kitware.com/cmake/cmake/-/merge_requests/6825)
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.23.0")
-  set(CPACK_PRODUCTBUILD_DOMAINS TRUE) # system-wide
-  set(CPACK_PRODUCTBUILD_DOMAINS_USER TRUE) # user folder
-endif()
+# Allow installing to every Domain (https://gitlab.kitware.com/cmake/cmake/-/merge_requests/6825).
+set(CPACK_PRODUCTBUILD_DOMAINS TRUE) # system-wide
+set(CPACK_PRODUCTBUILD_DOMAINS_USER TRUE) # user folder
 
 # TODO we might need to set a user-defined template for the installer anyway due to missing architecture support
 # in CMake (https://gitlab.kitware.com/cmake/cmake/-/issues/21734)

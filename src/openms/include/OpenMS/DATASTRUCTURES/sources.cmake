@@ -38,11 +38,13 @@ Matrix.h
 MatrixEigen.h
 OSWData.h
 Param.h
+ParamTags.h
 ParamValue.h
 QTCluster.h
 StringUtils.h
 StringListUtils.h
 ToolDescription.h
+ToolInfo.h
 TypeAliases.h
 )
 

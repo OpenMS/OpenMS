@@ -5,7 +5,7 @@
 // $Authors: Simon Gene Gottlieb $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ParamTags.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamCWLFile.h>
 #include <fstream>
@@ -114,21 +114,21 @@ namespace OpenMS
       std::set<std::string> tags;
       for (auto const& t : param_it->tags)
       {
-        if (t == TOPPBase::TAG_INPUT_FILE)
+        if (t == ParamTags::TAG_INPUT_FILE)
         {
           tags.insert("file");
         }
-        else if (t == TOPPBase::TAG_OUTPUT_FILE)
+        else if (t == ParamTags::TAG_OUTPUT_FILE)
         {
           tags.insert("file");
           tags.insert("output");
         }
-        else if (t == TOPPBase::TAG_OUTPUT_PREFIX)
+        else if (t == ParamTags::TAG_OUTPUT_PREFIX)
         {
           tags.insert("output");
           tags.insert("prefixed");
         }
-        else if (t == TOPPBase::TAG_OUTPUT_DIR)
+        else if (t == ParamTags::TAG_OUTPUT_DIR)
         {
           tags.insert("directory");
           tags.insert("output");

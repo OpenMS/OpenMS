@@ -12,6 +12,7 @@
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
@@ -159,7 +160,7 @@ namespace OpenMS
     arg_param_.insert(tool_name_ + ":1:", *param_);
     try
     {
-      QString tmp_ini_file = toQString(File::getTempDirectory()) + QDir::separator() + "TOPPAS_" + toQString(tool_name_) + "_";
+      QString tmp_ini_file = toQString(SystemSettings::getTempDirectory()) + QDir::separator() + "TOPPAS_" + toQString(tool_name_) + "_";
       if (!tool_type_.empty())
       {
         tmp_ini_file += toQString(tool_type_) + "_";

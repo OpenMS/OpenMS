@@ -15,7 +15,7 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/DataProcessingUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -703,11 +703,31 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
   {
     // @TODO: handle IDs in new format (IdentificationData)
 
-    Size numbr_exps = column_description_.size();
-    std::vector<FeatureMap>fmaps(numbr_exps);
+    // Column headers are keyed by map index, and the keys need not be contiguous (e.g. after
+    // 'FileFilter -consensus:map 0 3', or for a consensusXML without <map id="0">). The result
+    // vector is therefore addressed by the position of a map index among the column headers
+    // (in key order), never by the raw map index, which may lie outside the vector.
+    std::map<UInt64, Size> index_to_position;
+    Size position = 0;
+    for (const auto& column : column_description_)
+    {
+      index_to_position[column.first] = position++;
+    }
+    auto positionOf = [&index_to_position](UInt64 map_index) -> Size
+    {
+      const auto pos = index_to_position.find(map_index);
+      if (pos == index_to_position.end())
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Map index " + std::to_string(map_index) + " does not name a column of this ConsensusMap. Check input!");
+      }
+      return pos->second;
+    };
+
+    std::vector<FeatureMap> fmaps(index_to_position.size());
 
     // Check for Isobaric Analyzer
-    bool iso_analyze = QCBase::isLabeledExperiment(*this);
+    bool iso_analyze = DataProcessingUtils::hasIsobaricAnalyzer(getDataProcessing());
 
     for (const auto& cf : *this)
     {
@@ -777,16 +797,18 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       // Add new Features to corresponding FeatureMap.
       for (auto it = new_feats.begin(); it != new_feats.end(); ++it)
       {
-        fmaps[it->first].emplace_back(std::move(it->second));
+        fmaps[positionOf(it->first)].emplace_back(std::move(it->second));
       }
     }
 
     // Add unassigned PeptideIdentifications to ...
     if (iso_analyze)
     {
-      // ... the first FeatureMap.
-      fmaps[0].getUnassignedPeptideIdentifications() = this->getUnassignedPeptideIdentifications();
-      fmaps[0].getProteinIdentifications() = this->getProteinIdentifications(); // wrong! improve: only copy the ProtID which belongs to this FMap!
+      // ... the first FeatureMap, i.e. the one of map index 0. It is resolved like any other map
+      // index, so a missing column 0 (or no column at all) is reported instead of written out of bounds.
+      const Size first = positionOf(0);
+      fmaps[first].getUnassignedPeptideIdentifications() = this->getUnassignedPeptideIdentifications();
+      fmaps[first].getProteinIdentifications() = this->getProteinIdentifications(); // wrong! improve: only copy the ProtID which belongs to this FMap!
     }
     else
     {
@@ -798,7 +820,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "File did not undergo IsobaricAnalyzer, but no map index was found at PeptideIdentifications. Check Input!");
         }
-        fmaps[upep_id.getMetaValue("map_index")].getUnassignedPeptideIdentifications().push_back(upep_id);
+        fmaps[positionOf(static_cast<UInt64>(upep_id.getMetaValue("map_index")))].getUnassignedPeptideIdentifications().push_back(upep_id);
       }
     }
 

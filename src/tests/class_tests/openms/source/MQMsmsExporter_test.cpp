@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/QC/MQMsmsExporter.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/test_config.h>
@@ -26,7 +27,7 @@ using namespace OpenMS;
 /////////////////////////////////////////////////////////////
 
 
-File::TempDir dir;
+TempDir dir;
 const std::string path = dir.getPath();
 
 

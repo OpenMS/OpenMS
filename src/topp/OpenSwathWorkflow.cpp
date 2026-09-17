@@ -29,6 +29,8 @@
 #include <filesystem>
 #include <system_error>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -332,7 +334,7 @@ protected:
     registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory", false, true);
     setValidStrings_("readOptions", ListUtils::create<std::string>("normal,cache,cacheWorkingInMemory,workingInMemory"));
 
-    registerStringOption_("tempDirectory", "<tmp>", File::getTempDirectory(), "Temporary directory to store cached files for example", false, true);
+    registerStringOption_("tempDirectory", "<tmp>", SystemSettings::getTempDirectory(), "Temporary directory to store cached files for example", false, true);
     registerFlag_("keep_cached_files", "If set, do not remove cached files created in tempDirectory (disable automated cleanup)", false);
 
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
@@ -771,10 +773,10 @@ protected:
                       << ": " << ListUtils::concatenate(current_run_files, ", ") << "\n";
 
       std::string per_run_tmp = tmp_dir;
-      std::unique_ptr<File::TempDir> per_run_temp_dir;
+      std::unique_ptr<TempDir> per_run_temp_dir;
       if (readoptions == "cache")
       {
-        per_run_temp_dir = std::make_unique<File::TempDir>(tmp_dir, keep_cached_files);
+        per_run_temp_dir = std::make_unique<TempDir>(tmp_dir, keep_cached_files);
         per_run_tmp = per_run_temp_dir->getPath();
       }
 
@@ -1282,7 +1284,7 @@ protected:
 
     std::string parquet_dir = out_features;
     bool parquet_zip_output = false;
-    std::unique_ptr<File::TempDir> parquet_temp_dir;
+    std::unique_ptr<TempDir> parquet_temp_dir;
     OpenSwathOSWParquetWriter parquet_writer;
     // Configure writer append behavior from CLI flag
     parquet_writer.setPreserveExisting(getFlag_("append_oswpq"));
@@ -1298,7 +1300,7 @@ protected:
         }
         else
         {
-          parquet_temp_dir = std::make_unique<File::TempDir>();
+          parquet_temp_dir = std::make_unique<TempDir>();
           parquet_dir = parquet_temp_dir->getPath() + "/oswpq_output";
           File::makeDir(parquet_dir);
         }
@@ -1325,12 +1327,12 @@ protected:
       
       ///////////////////////////////////
       // Per-run temporary cache directory (created only when using cache readOptions)
-      // Use File::TempDir for RAII-based cleanup: destructor removes dir (unless keep_cached_files is true)
+      // Use TempDir for RAII-based cleanup: destructor removes dir (unless keep_cached_files is true)
       std::string per_run_tmp = tmp_dir;
-      std::unique_ptr<File::TempDir> per_run_temp_dir;
+      std::unique_ptr<TempDir> per_run_temp_dir;
       if (readoptions == "cache")
       {
-        per_run_temp_dir = std::make_unique<File::TempDir>(tmp_dir, keep_cached_files);
+        per_run_temp_dir = std::make_unique<TempDir>(tmp_dir, keep_cached_files);
         per_run_tmp = per_run_temp_dir->getPath();
       }
 

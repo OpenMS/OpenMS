@@ -30,6 +30,8 @@ RWrapper.h
 SIMDe.h
 StopWatch.h
 SysInfo.h
+SystemSettings.h
+TempFiles.h
 UpdateCheck.h
 )
 

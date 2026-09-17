@@ -77,6 +77,19 @@ namespace OpenMS
       return result;
     }
 
+    namespace
+    {
+      // Message for a data row whose number of tab-separated cells differs from that of its
+      // header. Lines are whitespace-trimmed before they are split, so a row that ends in an
+      // empty cell comes out one cell short; the counts make that visible to the user.
+      std::string wrongNumberOfCells(const Size line_number, const std::string& line, const Size expected, const Size found)
+      {
+        return "Wrong number of cells in line " + StringUtils::toStr(line_number) + " ('" + line + "'): expected "
+               + StringUtils::toStr(expected) + " tab-separated cells as in the header, but found " + StringUtils::toStr(found)
+               + ". Lines are trimmed while parsing, so a row must not end in an empty cell.";
+      }
+    }
+
     // Parse Error of filename if test holds
     void ExperimentalDesignFile::parseErrorIf_(const bool test, const std::string &filename, const std::string &message)
     {
@@ -167,9 +180,11 @@ namespace OpenMS
 
       ParseState state(RUN_HEADER);
       Size n_col = 0;
+      Size line_number = 0; // 1-based line in text_file, for error messages
 
       for (std::string s : text_file)
       {
+        ++line_number;
         const std::string line(StringUtils::trim(s));
 	
         if (StringUtils::hasPrefix(line, "#") || line.empty()) { continue; }
@@ -195,6 +210,10 @@ namespace OpenMS
           has_label = fs_column_header_to_index.contains("Label");
           has_sample = fs_column_header_to_index.contains("Sample");
 
+          // Number of cells a data row has to have: the width of the header as written in the
+          // file. The Label and Sample columns appended below are filled in by the parser.
+          n_col = cells.size();
+
           if (!has_label) // add label column to end of header
           {
             size_t hs = fs_column_header_to_index.size();
@@ -208,8 +227,6 @@ namespace OpenMS
             fs_column_header_to_index["Sample"] = hs;
             cells.push_back("Sample");
           }
-    
-          n_col = fs_column_header_to_index.size();
 
           // determine columns with sample metainfo like condition or replication
           for (size_t i = 0; i != cells.size(); ++i)
@@ -224,6 +241,10 @@ namespace OpenMS
         }
         else if (state == RUN_CONTENT)
         {
+          // Check the width of the row before it is extended or indexed: a row that ends in an
+          // empty cell is one cell short (see wrongNumberOfCells) and would be read past its end
+          parseErrorIf_(cells.size() != n_col, tsv_file, wrongNumberOfCells(line_number, line, n_col, cells.size()));
+
           // if no label column exists -> label free
           // -> add label column with label 1 at the end of every row
           if (!has_label) { cells.push_back("1"); }
@@ -245,7 +266,6 @@ namespace OpenMS
           }
 
           samplename = cells[fs_column_header_to_index["Sample"]];
-          parseErrorIf_(n_col != cells.size(), tsv_file, "Wrong number of records in line");
 
           const auto& [it, inserted] = samplename_to_index.emplace(samplename, samplename_to_index.size());
           sample = it->second;
@@ -323,15 +343,17 @@ namespace OpenMS
       // the file section
       std::map <std::string, Size> fs_column_header_to_index;
 
-      unsigned line_number(0);
+      unsigned sample_row_index(0);
 
       enum ParseState { RUN_HEADER, RUN_CONTENT, SAMPLE_HEADER, SAMPLE_CONTENT };
 
       ParseState state(RUN_HEADER);
       Size n_col = 0;
+      Size line_number = 0; // 1-based line in text_file, for error messages
 
       for (std::string s : text_file)
       {
+        ++line_number;
         // skip empty lines (except in state RUN_CONTENT, where the sample table is read)
         const std::string line(StringUtils::trim(s));
 	      // also skip comment lines
@@ -372,7 +394,7 @@ namespace OpenMS
         // Line is file section line
         else if (state == RUN_CONTENT)
         {
-          parseErrorIf_(n_col != cells.size(), tsv_file, "Wrong number of records in line");
+          parseErrorIf_(cells.size() != n_col, tsv_file, wrongNumberOfCells(line_number, line, n_col, cells.size()));
 
           ExperimentalDesign::MSFileSectionEntry e;
 
@@ -408,7 +430,7 @@ namespace OpenMS
         else if (state == SAMPLE_HEADER)
         {
           state = SAMPLE_CONTENT;
-          line_number = 0;
+          sample_row_index = 0;
           parseHeader_(
             cells,
             tsv_file,
@@ -420,12 +442,16 @@ namespace OpenMS
         // Parse Sample Row
         else if (state == SAMPLE_CONTENT)
         {
+          // The row is stored as it is and indexed by column later (SampleSection::getFactorValue),
+          // so it has to be exactly as wide as the sample header; see the file section above
+          parseErrorIf_(cells.size() != n_col, tsv_file, wrongNumberOfCells(line_number, line, n_col, cells.size()));
+
           // Parse Error if sample appears multiple times
           const std::string& sample = cells[sample_columnname_to_columnindex_["Sample"]];
           parseErrorIf_(sample_sample_to_rowindex_.contains(sample),
                         tsv_file,
                         "Sample: " + std::string(sample) + " appears multiple times in the sample table");
-          sample_sample_to_rowindex_[sample] = line_number++;
+          sample_sample_to_rowindex_[sample] = sample_row_index++;
           sample_content_.push_back(cells);
         }
       }

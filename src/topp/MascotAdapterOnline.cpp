@@ -19,6 +19,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -138,7 +139,7 @@ protected:
 
   void parseMascotResponse_(const PeakMap& exp, bool decoy, MascotRemoteQuery* mascot_query, ProteinIdentification& prot_id, PeptideIdentificationList& pep_ids)
   {
-    std::string mascot_tmp_file_name = decoy ? (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_decoy_response") : (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
+    std::string mascot_tmp_file_name = decoy ? (SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_decoy_response") : (SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
 
     {
       const std::string& data = decoy ? mascot_query->getMascotXMLDecoyResponse() : mascot_query->getMascotXMLResponse();

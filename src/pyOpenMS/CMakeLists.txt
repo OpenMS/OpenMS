@@ -11,7 +11,13 @@
 # Bindings are hand-maintained nanobind C++ sources in bindings/*.cpp.
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+# Required when this file is the top-level project (py-build-cmake / pip install .).
+# Keep in sync with the minimum in the root CMakeLists.txt. Note that this is the
+# floor for a plain pyOpenMS build; split mode (PYOPENMS_SPLIT_MODE, the default)
+# additionally requires CMake 3.26 for FindPython's Development.SABIModule and
+# checks for it below. That requirement is deliberately scoped to pyOpenMS -- the
+# C++-only OpenMS build still needs no more than 3.24.
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 project("pyOpenMS" LANGUAGES CXX)
 
 # C++17 is required for nanobind
@@ -30,6 +36,79 @@ option(NO_SHARE "Do not bundle share data into wheel" OFF)
 option(PYOPENMS_GENERATE_STUBS "Generate .pyi stub files" ON)
 option(PYOPENMS_PREPARE_WHEEL_REPAIR "Set RPATH for wheel repair tools (auditwheel/delocate)" OFF)
 
+# Split mode compiles every extension against Python's stable ABI and moves
+# nanobind's version-specific runtime out into the separate nanobind-backend
+# package, so a single cp311-abi3 wheel per platform serves every supported
+# CPython. Turning it off builds interpreter-specific modules instead, which is
+# useful locally but must not be packaged as an abi3 wheel (see the guard below).
+option(PYOPENMS_SPLIT_MODE "Build stable-ABI (abi3) extensions in nanobind split mode" ON)
+
+# The stable-ABI floor has to be one number rather than two that happen to agree:
+# CMake turns STABLE_ABI_VERSION into Py_LIMITED_API, py-build-cmake turns
+# abi3_minimum_cpython_version into the wheel's cp<N>-abi3 tag, and nothing
+# connects the two. Read the value out of pyproject.toml so the default here is
+# that same number instead of a second copy that can drift away from it.
+set(_pyopenms_abi3_floor "")
+set(_pyopenms_pyproject "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml")
+if(EXISTS "${_pyopenms_pyproject}")
+  file(STRINGS "${_pyopenms_pyproject}" _pyopenms_abi3_lines
+       REGEX "^[ \t]*abi3_minimum_cpython_version[ \t]*=[ \t]*[0-9]+")
+  # Exactly one key, or we cannot tell which one py-build-cmake will honour.
+  list(LENGTH _pyopenms_abi3_lines _pyopenms_abi3_count)
+  if(_pyopenms_abi3_count EQUAL 1 AND
+     "${_pyopenms_abi3_lines}" MATCHES "=[ \t]*([0-9])([0-9]+)")
+    set(_pyopenms_abi3_floor "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
+  endif()
+endif()
+
+set(PYOPENMS_STABLE_ABI_VERSION "${_pyopenms_abi3_floor}" CACHE STRING
+    "CPython stable-ABI floor for split-mode builds (default: abi3_minimum_cpython_version from pyproject.toml)")
+
+if(PYOPENMS_SPLIT_MODE)
+  # Development.SABIModule arrived in CMake 3.26 and nanobind's split mode
+  # requires that target on Windows. Only pyOpenMS needs it, so this is checked
+  # here rather than raising the C++-only OpenMS minimum in the root project.
+  if(CMAKE_VERSION VERSION_LESS 3.26)
+    message(FATAL_ERROR
+      "pyOpenMS split mode needs CMake 3.26 or newer for the Development.SABIModule "
+      "component of find_package(Python); this is CMake ${CMAKE_VERSION}. Configure "
+      "with -DPYOPENMS_SPLIT_MODE=OFF to build interpreter-specific modules instead.")
+  endif()
+
+  if(NOT PYOPENMS_STABLE_ABI_VERSION)
+    message(FATAL_ERROR
+      "Could not read a single abi3_minimum_cpython_version key from "
+      "${_pyopenms_pyproject}, so the stable-ABI floor for split mode is unknown. Fix "
+      "that key, or pass -DPYOPENMS_STABLE_ABI_VERSION=<major.minor> explicitly.")
+  endif()
+
+  # Overriding the floor only moves Py_LIMITED_API; the wheel keeps the tag
+  # py-build-cmake derives from pyproject.toml. Packaging the two out of step
+  # yields a cp311-abi3 wheel whose modules need a newer interpreter and fail to
+  # import on 3.11. The knob is harmless outside packaging, so only refuse it
+  # when py-build-cmake is the one driving this configure.
+  if(DEFINED PY_BUILD_CMAKE_VERSION AND _pyopenms_abi3_floor AND
+     NOT PYOPENMS_STABLE_ABI_VERSION VERSION_EQUAL "${_pyopenms_abi3_floor}")
+    message(FATAL_ERROR
+      "PYOPENMS_STABLE_ABI_VERSION is ${PYOPENMS_STABLE_ABI_VERSION}, but pyproject.toml "
+      "tags the wheel for Python ${_pyopenms_abi3_floor} via abi3_minimum_cpython_version. "
+      "Packaging that combination would produce a wheel advertising an ABI it was not built "
+      "against. Change abi3_minimum_cpython_version as well if you really want a different "
+      "stable-ABI floor.")
+  endif()
+else()
+  # py-build-cmake tags the wheel cp311-abi3 from pyproject.toml, which only
+  # describes a split-mode build. Refuse to package interpreter-specific modules
+  # under that tag rather than shipping a wheel that lies about its ABI.
+  if(DEFINED PY_BUILD_CMAKE_VERSION)
+    message(FATAL_ERROR
+      "PYOPENMS_SPLIT_MODE=OFF builds interpreter-specific extensions, but "
+      "pyproject.toml tags the wheel as cp311-abi3. Building a wheel this way would "
+      "mislabel it. Override [tool.py-build-cmake.wheel].python_abi too if you really "
+      "want a linked-mode wheel.")
+  endif()
+endif()
+
 set(PYOPENMS_DOMAINS
     kernel metadata chemistry analysis featurefinder
     format processing datastructures ml misc
@@ -40,6 +119,90 @@ set(PYOPENMS_DOMAINS
 if(NOT DEFINED PYOPENMS_BUILD_DIR OR "${PYOPENMS_BUILD_DIR}" STREQUAL "")
   set(PYOPENMS_BUILD_DIR "${CMAKE_BINARY_DIR}/pyOpenMS")
 endif()
+
+# --------------------------------------------------------------------------
+# Windows DLL search path for in-tree imports
+# --------------------------------------------------------------------------
+# Windows has no RPATH, and since Python 3.8 an extension module's dependent
+# DLLs are resolved only from the module's own directory, System32 and the
+# directories registered with os.add_dll_directory() -- never from PATH.
+# pyopenms/__init__.py registers everything listed in the PYOPENMS_DLL_PATH
+# environment variable, so every in-tree `import pyopenms` (the ctest suite and
+# the stub generator) has to be handed the directories holding OpenMS.dll and
+# its transitive dependencies.
+#
+# Collected once here rather than at each use site, because the two hand-rolled
+# lists that existed were each missing a different piece. Both were built from
+# OPENMS_CONTRIB_LIBS -- not defined when src/pyOpenMS is the top-level project
+# under py-build-cmake -- and QT_INSTALL_BINS, which is never defined here at
+# all (cmake/knime_package_support.cmake sets it, and the root project includes
+# that after add_subdirectory(src), only for KNIME packaging). And neither
+# looked in a contrib *bin* directory at all. On Windows CMake installs DLLs to
+# <prefix>/bin (RUNTIME) and import libraries to <prefix>/lib (ARCHIVE), so a
+# contrib built with BUILD_SHARED_LIBS=ON puts its DLLs where a lib-only list
+# can never find them. That is not hypothetical: the wheel workflow builds
+# libcurl shared into contrib/bin, and libcurl.dll is a load-time import of
+# OpenMS.dll, so every extension module failed to load with the loader's
+# unhelpful "The specified module could not be found" (#10141).
+function(_pyopenms_windows_dll_dirs out_var)
+  # Caller-supplied directories come first: the environment is the only way an
+  # enclosing build or a CI job can point at something CMake cannot know about.
+  set(_dirs "")
+  if(NOT "$ENV{PYOPENMS_DLL_PATH}" STREQUAL "")
+    # A Windows PATH-style value, so ';' already makes it a CMake list.
+    list(APPEND _dirs "$ENV{PYOPENMS_DLL_PATH}")
+  endif()
+
+  # Exact locations of the two libraries the modules link against. For an
+  # imported OpenMS::OpenMS (the standalone wheel build) this resolves into the
+  # install tree; in-tree it is the build output directory. Guarded because a
+  # PYOPENMS_USE_PREBUILT configure never resolves the target names.
+  foreach(_target IN ITEMS "${OPENMS_TARGET}" "${OPENSWATHALGO_TARGET}")
+    if(NOT _target STREQUAL "" AND TARGET ${_target})
+      list(APPEND _dirs "$<TARGET_FILE_DIR:${_target}>")
+    endif()
+  endforeach()
+
+  # Every prefix this build was pointed at contributes both of its runtime
+  # directories. Same transform cmake/package_general.cmake uses to feed
+  # install(RUNTIME_DEPENDENCY_SET), and it is what picks up contrib/bin
+  # without anyone having to name it. CMAKE_PREFIX_PATH is read as both a CMake
+  # variable and an environment variable: find_package() consults both, but
+  # only the variable is visible to ordinary script code, and the wheel
+  # workflow supplies the environment one.
+  set(_prefixes ${CMAKE_PREFIX_PATH})
+  if(NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
+    list(APPEND _prefixes "$ENV{CMAKE_PREFIX_PATH}")
+  endif()
+  foreach(_prefix IN LISTS _prefixes)
+    if(NOT _prefix STREQUAL "")
+      list(APPEND _dirs "${_prefix}/bin" "${_prefix}/lib")
+    endif()
+  endforeach()
+
+  # An in-tree build knows the contrib prefix directly; a standalone one does not.
+  # (No Qt entry: the core library does not link Qt, and a Qt prefix that is on
+  # CMAKE_PREFIX_PATH is already covered above.)
+  if(OPENMS_CONTRIB_LIBS)
+    list(APPEND _dirs
+      "${OPENMS_CONTRIB_LIBS}/bin"
+      "${OPENMS_CONTRIB_LIBS}/lib"
+      "${OPENMS_CONTRIB_LIBS}/lib64")
+  endif()
+
+  # Only removes textual duplicates: two generator expressions that expand to the
+  # same directory both survive. Registering a directory twice is harmless -- the
+  # loop in pyopenms/__init__.py just calls os.add_dll_directory() again -- and
+  # deduplicating after expansion is not worth it, because $<REMOVE_DUPLICATES>
+  # would have to parse paths that can legitimately contain '(' and ')'.
+  list(REMOVE_DUPLICATES _dirs)
+  # '$<SEMICOLON>' rather than a literal ';': the whole list travels as ONE
+  # command argument, and a bare ';' would split it into separate arguments.
+  # Directories that do not exist are skipped by pyopenms/__init__.py, so the
+  # list may name prefixes that have no bin/ or lib/ subdirectory.
+  list(JOIN _dirs "$<SEMICOLON>" _joined)
+  set(${out_var} "${_joined}" PARENT_SCOPE)
+endfunction()
 
 if(PYOPENMS_USE_PREBUILT)
   if(NOT PYOPENMS_PREBUILT_DIR)
@@ -124,29 +287,123 @@ else()
     endif()
   endif()
 
-  find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
+  # Keep in sync with requires-python in pyproject.toml (pandas 3 also needs >= 3.11)
+  set(PYOPENMS_PYTHON_COMPONENTS Interpreter Development.Module NumPy)
+  if(PYOPENMS_SPLIT_MODE)
+    # nanobind links split-mode extensions against Python::SABIModule on Windows.
+    list(APPEND PYOPENMS_PYTHON_COMPONENTS Development.SABIModule)
+  endif()
+  find_package(Python 3.11 REQUIRED COMPONENTS ${PYOPENMS_PYTHON_COMPONENTS})
+
+  # Targeting a stable ABI newer than the interpreter building us cannot work:
+  # the Limited API its headers expose stops at their own version, so
+  # Py_LIMITED_API would promise symbols that are not there. This is the one
+  # reader of the ABI floor that cannot derive it -- cibuildwheel's TOML has no
+  # interpolation, so [tool.cibuildwheel].build in pyproject.toml names the
+  # frontend literally -- and therefore the one place it can drift. Fail here
+  # rather than compile against a promise the headers do not keep.
+  if(PYOPENMS_SPLIT_MODE AND Python_VERSION VERSION_LESS PYOPENMS_STABLE_ABI_VERSION)
+    message(FATAL_ERROR
+      "Split mode targets the CPython ${PYOPENMS_STABLE_ABI_VERSION} stable ABI, but this "
+      "build runs Python ${Python_VERSION}, whose headers do not have it. Build with "
+      "${PYOPENMS_STABLE_ABI_VERSION} or newer. When packaging, the interpreter is chosen by "
+      "[tool.cibuildwheel].build in pyproject.toml (or CIBW_BUILD), which has to move with "
+      "abi3_minimum_cpython_version.")
+  endif()
+
   find_package(Eigen3 REQUIRED)
 
   # Propagate Python_EXECUTABLE to parent scope so the pyopenms_wheel target can use it
   set(Python_EXECUTABLE "${Python_EXECUTABLE}" PARENT_SCOPE)
 
+  # --------------------------------------------------------------------------
   # Find or fetch nanobind
-  if(NOT TARGET nanobind::nanobind)
-    # Try find_package first (installed via pip or system package)
-    execute_process(
-      COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
-      OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
-    find_package(nanobind CONFIG QUIET)
-    if(NOT nanobind_FOUND)
+  # --------------------------------------------------------------------------
+  # pyOpenMS requires nanobind 3: the custom type casters in
+  # bindings/type_casters/ implement the nanobind 3 caster protocol
+  # (from_python(handle, uint32_t, cleanup_list *)). Keep the minimum in sync
+  # with the nanobind requirement in pyproject.toml.
+  set(PYOPENMS_NANOBIND_MIN_VERSION "3.0.1")
+  set(PYOPENMS_NANOBIND_FETCH_TAG "v3.0.1")
+
+  if(COMMAND nanobind_add_module)
+    # An enclosing project already set nanobind up. Check it instead of silently
+    # bypassing the version requirement. nanobind_VERSION is only defined when
+    # nanobind was located through find_package; otherwise read the version
+    # macros nanobind.h defines, so the check compares a complete version rather
+    # than merely establishing that this is some nanobind 3.
+    set(_pyopenms_nb_version "${nanobind_VERSION}")
+    if(NOT _pyopenms_nb_version)
+      set(_pyopenms_nb_header "${NB_DIR}/include/nanobind/nanobind.h")
+      if(EXISTS "${_pyopenms_nb_header}")
+        file(READ "${_pyopenms_nb_header}" _pyopenms_nb_header_content)
+        set(_pyopenms_nb_parts "")
+        foreach(_pyopenms_nb_component MAJOR MINOR PATCH)
+          # A component can legitimately be 0, so collect matches and count them
+          # instead of testing each captured value for truth.
+          if(_pyopenms_nb_header_content MATCHES
+             "#[ \t]*define[ \t]+NB_VERSION_${_pyopenms_nb_component}[ \t]+([0-9]+)")
+            list(APPEND _pyopenms_nb_parts "${CMAKE_MATCH_1}")
+          endif()
+        endforeach()
+        list(LENGTH _pyopenms_nb_parts _pyopenms_nb_part_count)
+        if(_pyopenms_nb_part_count EQUAL 3)
+          list(JOIN _pyopenms_nb_parts "." _pyopenms_nb_version)
+        endif()
+      endif()
+    endif()
+
+    if(NOT _pyopenms_nb_version)
+      message(FATAL_ERROR
+        "pyOpenMS requires nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION}, but the version of the "
+        "nanobind supplied by the enclosing project could not be determined "
+        "(NB_DIR='${NB_DIR}'). Supply it via "
+        "find_package(nanobind ${PYOPENMS_NANOBIND_MIN_VERSION} CONFIG) so the version is known.")
+    elseif(_pyopenms_nb_version VERSION_LESS PYOPENMS_NANOBIND_MIN_VERSION)
+      message(FATAL_ERROR
+        "pyOpenMS requires nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION}, but the enclosing "
+        "project supplied nanobind ${_pyopenms_nb_version}.")
+    endif()
+    set(PYOPENMS_NANOBIND_VERSION "${_pyopenms_nb_version}")
+  else()
+    # Ask the *selected* interpreter where its nanobind lives, so the frontend we
+    # compile against is the one belonging to the interpreter that later runs
+    # nanobind.stubgen. A caller-supplied nanobind_ROOT/nanobind_DIR wins, but it
+    # still has to satisfy the version requirement below.
+    if(NOT nanobind_ROOT AND NOT nanobind_DIR)
+      execute_process(
+        COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        OUTPUT_VARIABLE nanobind_ROOT
+        RESULT_VARIABLE _nanobind_cmake_dir_result
+        ERROR_QUIET)
+      if(NOT _nanobind_cmake_dir_result EQUAL 0)
+        message(STATUS "No nanobind importable from ${Python_EXECUTABLE}")
+        set(nanobind_ROOT "")
+      endif()
+    endif()
+
+    # Request the minimum explicitly: nanobind ships a SameMajorVersion config,
+    # so this accepts >= 3.0.1 and < 4 and rejects an installed 2.x, which the
+    # previous unversioned find_package would have selected.
+    find_package(nanobind ${PYOPENMS_NANOBIND_MIN_VERSION} CONFIG QUIET)
+    if(nanobind_FOUND)
+      set(PYOPENMS_NANOBIND_VERSION "${nanobind_VERSION}")
+    else()
+      message(STATUS
+        "No nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION} found for ${Python_EXECUTABLE}; "
+        "fetching nanobind ${PYOPENMS_NANOBIND_FETCH_TAG}")
       include(FetchContent)
       FetchContent_Declare(
           nanobind
           GIT_REPOSITORY https://github.com/wjakob/nanobind.git
-          GIT_TAG        v2.10.0
+          GIT_TAG        ${PYOPENMS_NANOBIND_FETCH_TAG}
       )
       FetchContent_MakeAvailable(nanobind)
+      set(PYOPENMS_NANOBIND_VERSION "${PYOPENMS_NANOBIND_FETCH_TAG} (fetched)")
     endif()
   endif()
+  message(STATUS "pyOpenMS: using nanobind ${PYOPENMS_NANOBIND_VERSION} from ${NB_DIR}")
 
   # Patch nanobind's __forceinline → inline on MSVC to avoid O(n²) optimizer
   # blowup that causes multi-hour compile times on large binding files.
@@ -283,13 +540,33 @@ else()
     )
   endfunction()
 
+  # Options shared by every pyOpenMS extension. Keeping them in one variable is
+  # what guarantees all 15 modules land in the same nanobind domain and, in split
+  # mode, target the same stable ABI -- a module added without them would silently
+  # get its own type registry or an interpreter-specific tag.
+  set(PYOPENMS_NB_MODULE_OPTIONS
+    NB_DOMAIN pyopenms  # Share types across modules
+    NOMINSIZE           # Use CMake's default -O3 instead of nanobind's -Os
+  )
+  if(PYOPENMS_SPLIT_MODE)
+    # STABLE_ABI is what actually defines Py_LIMITED_API and gives the module the
+    # .abi3 suffix; STABLE_ABI_VERSION only selects which CPython ABI to target,
+    # and BACKEND_MODULE is what makes this a split build at all. All three are
+    # needed -- STABLE_ABI_VERSION alone would leave a full-API module behind an
+    # abi3 wheel tag.
+    list(APPEND PYOPENMS_NB_MODULE_OPTIONS
+      BACKEND_MODULE nanobind_backend
+      STABLE_ABI
+      STABLE_ABI_VERSION ${PYOPENMS_STABLE_ABI_VERSION}
+    )
+  endif()
+
   # Build each domain submodule
   foreach(domain ${PYOPENMS_DOMAINS})
     set(MODULE_NAME "_pyopenms_${domain}")
 
     nanobind_add_module(${MODULE_NAME}
-      NB_DOMAIN pyopenms  # Share types across modules
-      NOMINSIZE            # Use CMake's default -O3 instead of nanobind's -Os
+      ${PYOPENMS_NB_MODULE_OPTIONS}
       ${PYOPENMS_BINDINGS_DIR}/bind_${domain}.cpp
     )
     _pyopenms_module_props(${MODULE_NAME})
@@ -297,8 +574,7 @@ else()
 
   # Main entry module
   nanobind_add_module(_pyopenms
-    NB_DOMAIN pyopenms
-    NOMINSIZE
+    ${PYOPENMS_NB_MODULE_OPTIONS}
     ${PYOPENMS_BINDINGS_DIR}/main_module.cpp
   )
   _pyopenms_module_props(_pyopenms)
@@ -332,8 +608,7 @@ else()
 
   message(STATUS "pyOpenMS: Building _arrow_zerocopy module")
   nanobind_add_module(_arrow_zerocopy
-    NB_DOMAIN pyopenms
-    NOMINSIZE
+    ${PYOPENMS_NB_MODULE_OPTIONS}
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
   )
   _pyopenms_module_props(_arrow_zerocopy)
@@ -366,9 +641,13 @@ else()
     endforeach()
   endfunction()
 
-  # Core Python files
+  # Core Python files. py.typed is deliberately NOT copied here: it is the marker
+  # that tells type checkers this package ships inline types. The stub target
+  # writes it only after generating and validating the stubs.
+  # Copying it unconditionally made every wheel advertise types even when stub
+  # generation was off or skipped -- which is what shipped, since the stub target
+  # was never actually built (#10141).
   _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/")
-  _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "py.typed" "${PYOPENMS_BUILD_DIR}/pyopenms/")
 
   # Addon files
   _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/addons/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/addons/")
@@ -384,20 +663,195 @@ else()
   # Stub generation
   # --------------------------------------------------------------------------
   if(PYOPENMS_GENERATE_STUBS)
-    add_custom_target(pyopenms_stubs
-      COMMAND ${Python_EXECUTABLE} -m nanobind.stubgen
+    # nanobind.stubgen is imported from ${Python_EXECUTABLE}, the same interpreter
+    # used for nanobind discovery above. If that interpreter cannot import a
+    # nanobind matching the frontend the modules were compiled against (which
+    # happens when the FetchContent fallback kicked in), the generated stubs would
+    # come from a different nanobind release than the modules.
+    execute_process(
+      COMMAND "${Python_EXECUTABLE}" -c "import nanobind; print(nanobind.__version__)"
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      OUTPUT_VARIABLE _pyopenms_stubgen_nanobind_version
+      RESULT_VARIABLE _pyopenms_stubgen_nanobind_result
+      ERROR_QUIET)
+    set(_pyopenms_stubgen_problem "")
+    if(NOT _pyopenms_stubgen_nanobind_result EQUAL 0)
+      set(_pyopenms_stubgen_problem
+          "${Python_EXECUTABLE} cannot import nanobind (pip install 'nanobind>=${PYOPENMS_NANOBIND_MIN_VERSION}')")
+    elseif(_pyopenms_stubgen_nanobind_version VERSION_LESS PYOPENMS_NANOBIND_MIN_VERSION)
+      # One quoted argument: two would make this a CMake list and print as 'a;b'.
+      set(_pyopenms_stubgen_problem
+          "${Python_EXECUTABLE} has nanobind ${_pyopenms_stubgen_nanobind_version}, but the modules are built against nanobind ${PYOPENMS_NANOBIND_VERSION} (install nanobind >= ${PYOPENMS_NANOBIND_MIN_VERSION} for that interpreter)")
+    endif()
+
+    # Importing nanobind is not enough in split mode: every extension calls
+    # PyImport_ImportModule("nanobind_backend") at module init, and that module
+    # ships as the separate nanobind-backend distribution, never as part of
+    # nanobind. A developer interpreter with the one but not the other used to
+    # get failing pyopenms tests; now that the stub target is part of the default
+    # build, it would get a failing build -- so probe it here and treat it like
+    # any other stubgen prerequisite.
+    if(PYOPENMS_SPLIT_MODE AND NOT _pyopenms_stubgen_problem)
+      execute_process(
+        COMMAND "${Python_EXECUTABLE}" -c "import nanobind_backend"
+        RESULT_VARIABLE _pyopenms_stubgen_backend_result
+        OUTPUT_QUIET ERROR_QUIET)
+      if(NOT _pyopenms_stubgen_backend_result EQUAL 0)
+        set(_pyopenms_stubgen_problem
+            "${Python_EXECUTABLE} cannot import nanobind_backend, which split-mode extensions need at import time (pip install nanobind-backend)")
+      endif()
+    endif()
+
+    # A sanitizer-instrumented build cannot generate stubs either: the preflight
+    # and stubgen import the instrumented extensions (and libOpenMS behind them)
+    # into an ordinary interpreter, which ASan refuses at load time unless its
+    # runtime was loaded first ("ASan runtime does not come first"). Supplying
+    # that runtime -- LD_PRELOAD of the compiler-specific libasan, leak detection
+    # off for the interpreter, a different mechanism on macOS -- is fragile and
+    # nothing else in this project needs it, so an instrumented build simply
+    # builds no stubs. ADDRESS_SANITIZER is the enclosing OpenMS build's option;
+    # the flag check also covers a build that was handed the flags directly --
+    # in CMAKE_CXX_FLAGS or in the per-configuration variable CMake applies on
+    # top of it without folding it in. Only configurations that can actually be
+    # built count: the selected one on a single-config generator, all of them on
+    # a multi-config generator.
+    set(_pyopenms_sanitizer_flag_vars CMAKE_CXX_FLAGS)
+    get_property(_pyopenms_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    if(_pyopenms_multi_config)
+      set(_pyopenms_sanitizer_configs ${CMAKE_CONFIGURATION_TYPES})
+    else()
+      set(_pyopenms_sanitizer_configs ${CMAKE_BUILD_TYPE})
+    endif()
+    foreach(_pyopenms_config IN LISTS _pyopenms_sanitizer_configs)
+      string(TOUPPER "${_pyopenms_config}" _pyopenms_config)
+      list(APPEND _pyopenms_sanitizer_flag_vars "CMAKE_CXX_FLAGS_${_pyopenms_config}")
+    endforeach()
+    set(_pyopenms_sanitized ${ADDRESS_SANITIZER})
+    foreach(_pyopenms_flag_var IN LISTS _pyopenms_sanitizer_flag_vars)
+      if("${${_pyopenms_flag_var}}" MATCHES "-fsanitize=")
+        set(_pyopenms_sanitized TRUE)
+      endif()
+    endforeach()
+    if(NOT _pyopenms_stubgen_problem AND _pyopenms_sanitized)
+      set(_pyopenms_stubgen_problem
+          "the build is sanitizer-instrumented, and importing the instrumented extensions into an uninstrumented interpreter fails at load time (build without ADDRESS_SANITIZER to get .pyi files)")
+    endif()
+
+    # Now that the stub target is actually built (it is a dependency of the
+    # aggregate pyopenms target), this is the difference between a build that
+    # fails and one that quietly ships no stubs -- so it has to be decided here
+    # rather than left as a warning about something that "will fail" later.
+    #
+    # Packaging is the case where a missing stub set is a defect in the artifact,
+    # and nanobind is a declared build requirement there, so refuse to configure.
+    # Any other build (a developer's in-tree OpenMS build, where nanobind may have
+    # come from the FetchContent fallback and be unimportable from this
+    # interpreter) keeps working, without stubs. Same split as the stable-ABI
+    # guards above: fatal only when py-build-cmake is driving the configure.
+    if(_pyopenms_stubgen_problem)
+      if(DEFINED PY_BUILD_CMAKE_VERSION)
+        message(FATAL_ERROR
+          "Cannot generate .pyi stubs: ${_pyopenms_stubgen_problem}. A wheel built now "
+          "would ship no type information; configure with -DPYOPENMS_GENERATE_STUBS=OFF "
+          "to build a deliberately untyped wheel.")
+      endif()
+      message(WARNING "Disabling stub generation: ${_pyopenms_stubgen_problem}.")
+      # A normal variable shadowing the cache entry, so the rest of this file --
+      # including the configuration summary -- reports what will really happen.
+      set(PYOPENMS_GENERATE_STUBS OFF)
+    endif()
+  endif()
+
+  if(PYOPENMS_GENERATE_STUBS)
+    # nanobind.stubgen generates stubs by IMPORTING the freshly built package, so
+    # the modules and every native library behind them must be loadable at this
+    # point in the build. On Windows that needs an explicit search path (see the
+    # helper above); elsewhere RPATH already covers it and the variable is inert.
+    set(_pyopenms_stub_cmd_prefix "")
+    if(WIN32)
+      _pyopenms_windows_dll_dirs(_pyopenms_stub_dll_dirs)
+      set(_pyopenms_stub_cmd_prefix ${CMAKE_COMMAND} -E env
+          "PYOPENMS_DLL_PATH=${_pyopenms_stub_dll_dirs}")
+    endif()
+
+    # Driven by a stamp file rather than a bare add_custom_target: a custom
+    # target with no OUTPUT is always out of date, and now that this is part of
+    # the default build that would mean re-importing the package, re-running
+    # stubgen over the whole API and re-running fix_stubs.py on every no-op
+    # rebuild of an in-tree developer build. The stamp is touched only after the
+    # last step succeeds and lives outside the package directory, so it is never
+    # installed. Listing the extension targets in DEPENDS gives a file-level
+    # dependency on their outputs, so the stubs regenerate when a module is
+    # rebuilt; the Python sources are listed because the stubs describe them too.
+    set(_pyopenms_stubs_stamp "${PYOPENMS_BUILD_DIR}/pyopenms_stubs.stamp")
+    set(_pyopenms_stub_module_targets _pyopenms _arrow_zerocopy)
+    foreach(domain ${PYOPENMS_DOMAINS})
+      list(APPEND _pyopenms_stub_module_targets "_pyopenms_${domain}")
+    endforeach()
+    file(GLOB _pyopenms_stub_python_sources
+         "${PROJECT_SOURCE_DIR}/pyopenms/*.py"
+         "${PROJECT_SOURCE_DIR}/pyopenms/addons/*.py")
+
+    add_custom_command(
+      OUTPUT ${_pyopenms_stubs_stamp}
+      # Drop the marker and the stamp first. A failed run must not leave the
+      # py.typed of an earlier successful one behind: without the marker the
+      # package is untyped under PEP 561, whatever stale .pyi files remain, so
+      # nothing that installs after a failed build advertises types it cannot
+      # vouch for. Write the marker back only after post-processing and syntax
+      # validation succeed; stubgen can succeed while emitting invalid Python.
+      COMMAND ${CMAKE_COMMAND} -E rm -f
+              ${PYOPENMS_BUILD_DIR}/pyopenms/py.typed ${_pyopenms_stubs_stamp}
+      # Preflight. stubgen imports the package as a whole, and pyopenms/__init__.py
+      # only raises when NOT ONE module imports -- a package missing half its
+      # domains still produces stubs, silently describing an incomplete API. Check
+      # every expected module first, and report which native library is missing
+      # instead of leaving the loader's "The specified module could not be found".
+      COMMAND ${_pyopenms_stub_cmd_prefix} ${Python_EXECUTABLE}
+              ${CMAKE_CURRENT_SOURCE_DIR}/check_bindings.py
+              --package-dir ${PYOPENMS_BUILD_DIR}/pyopenms
+              --domains ${PYOPENMS_DOMAINS}
+      COMMAND ${_pyopenms_stub_cmd_prefix} ${Python_EXECUTABLE} -m nanobind.stubgen
               -m pyopenms
               -r                          # recurse into submodules
               -P                          # include private members
               -O ${PYOPENMS_BUILD_DIR}/pyopenms
-              -M ${PYOPENMS_BUILD_DIR}/pyopenms/py.typed
               -p ${CMAKE_CURRENT_SOURCE_DIR}/stubs.patch
       COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
               ${PYOPENMS_BUILD_DIR}/pyopenms
+      COMMAND ${CMAKE_COMMAND} -E touch
+              ${PYOPENMS_BUILD_DIR}/pyopenms/py.typed ${_pyopenms_stubs_stamp}
       WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
-      DEPENDS pyopenms_compile
+      DEPENDS
+        ${_pyopenms_stub_module_targets}
+        ${_pyopenms_stub_python_sources}
+        ${CMAKE_CURRENT_SOURCE_DIR}/check_bindings.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/stubs.patch
       COMMENT "Generating .pyi stub files for pyopenms"
+      # Required: PYOPENMS_DLL_PATH is one argument holding a ';'-separated list,
+      # which the build tool would otherwise split (or hand to a shell that chokes
+      # on it).
+      VERBATIM
     )
+    add_custom_target(pyopenms_stubs DEPENDS ${_pyopenms_stubs_stamp})
+  else()
+    # Stubs are off. Make sure a build directory reused from an earlier run with
+    # them on does not still carry .pyi files and the py.typed marker into the
+    # wheel, where they would describe a package that no longer matches.
+    # GLOB_RECURSE: stubgen -r also writes pyopenms/addons/*.pyi, and the
+    # install(DIRECTORY) rule below recurses just the same. The stamp goes too,
+    # or turning stubs back on later would find it up to date and regenerate
+    # nothing.
+    file(GLOB_RECURSE _pyopenms_stale_stubs "${PYOPENMS_BUILD_DIR}/pyopenms/*.pyi")
+    file(GLOB _pyopenms_stale_markers
+         "${PYOPENMS_BUILD_DIR}/pyopenms/py.typed"
+         "${PYOPENMS_BUILD_DIR}/pyopenms_stubs.stamp")
+    list(APPEND _pyopenms_stale_stubs ${_pyopenms_stale_markers})
+    if(_pyopenms_stale_stubs)
+      message(STATUS "pyOpenMS: removing stale stub files (PYOPENMS_GENERATE_STUBS=OFF)")
+      file(REMOVE ${_pyopenms_stale_stubs})
+    endif()
   endif()
 
   # --------------------------------------------------------------------------
@@ -424,11 +878,27 @@ else()
       )
       add_dependencies(pyopenms_fix_deps pyopenms_copy_deps)
     else()
-      # Linux/Windows: Copy transitive dependencies (Qt, contrib libs, etc.)
+      # Linux/Windows: Copy transitive dependencies (contrib libs, etc.)
+      #
+      # On Windows the lookup directories are the same list the stub preflight
+      # and the ctest suite are given, so a library the preflight can load is
+      # also one this step can find and copy. With a separate, contrib-only list
+      # a standalone build (OPENMS_CONTRIB_LIBS unset) searched nothing useful,
+      # and the preflight -- whose search path did cover contrib/bin -- would
+      # have passed a package that was about to ship without libcurl.dll.
+      # Elsewhere the contrib layout is all there is; the former
+      # QT_INSTALL_BINS/QT_INSTALL_LIBS entries are gone because they were
+      # always empty here (set by cmake/knime_package_support.cmake, which the
+      # root project includes after add_subdirectory(src)).
+      if(WIN32)
+        _pyopenms_windows_dll_dirs(_pyopenms_copy_lookup_dirs)
+      else()
+        set(_pyopenms_copy_lookup_dirs "${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64")
+      endif()
       foreach(PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
         add_custom_command(
           TARGET pyopenms_copy_deps POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${PYOPENMS_BUILD_DIR}/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
+          COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${PYOPENMS_BUILD_DIR}/pyopenms/" -DLOOKUP_DIRS="${_pyopenms_copy_lookup_dirs}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
           COMMENT "Copying ${PYOPENMS_DEPENDENCY} transitive dependencies"
         )
       endforeach()
@@ -448,6 +918,7 @@ else()
         endforeach()
       endif()
     endif()
+
   endif()
 
   install(DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/
@@ -494,14 +965,28 @@ endif()
 # --------------------------------------------------------------------------
 if(NOT PYOPENMS_USE_PREBUILT)
   add_custom_target(pyopenms ALL)
+  # The last step that puts a file into ${PYOPENMS_BUILD_DIR}/pyopenms. Stub
+  # generation imports the package from there, so it has to run after this one:
+  # when dependencies are bundled, the libraries the modules need are only
+  # alongside them once the copy/fix step has finished.
   if(NOT NO_DEPENDENCIES)
     if(APPLE)
-      add_dependencies(pyopenms pyopenms_fix_deps)
+      set(_pyopenms_package_ready pyopenms_fix_deps)
     else()
-      add_dependencies(pyopenms pyopenms_copy_deps)
+      set(_pyopenms_package_ready pyopenms_copy_deps)
     endif()
   else()
-    add_dependencies(pyopenms pyopenms_compile)
+    set(_pyopenms_package_ready pyopenms_compile)
+  endif()
+  add_dependencies(pyopenms ${_pyopenms_package_ready})
+
+  # Stub generation is part of building pyOpenMS. It used to be neither in ALL nor
+  # reachable from this target, so `.pyi` files were never produced during a wheel
+  # build even with PYOPENMS_GENERATE_STUBS=ON -- the option only defined the
+  # target (#10141).
+  if(PYOPENMS_GENERATE_STUBS)
+    add_dependencies(pyopenms_stubs ${_pyopenms_package_ready})
+    add_dependencies(pyopenms pyopenms_stubs)
   endif()
 else()
   add_custom_target(pyopenms ALL)
@@ -514,6 +999,10 @@ endif()
 if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   # Copy tests to build directory so pytest doesn't import from source tree
   file(COPY ${PROJECT_SOURCE_DIR}/tests DESTINATION ${PYOPENMS_BUILD_DIR})
+  # The stub regression tests exercise the post-processor without importing it
+  # from the source tree (which would also expose the unbuilt Python package).
+  configure_file(${PROJECT_SOURCE_DIR}/fix_stubs.py
+                 ${PYOPENMS_BUILD_DIR}/fix_stubs.py COPYONLY)
 
   enable_testing()
 
@@ -533,16 +1022,13 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   # variable it also reaches child processes that some tests spawn to
   # `import pyopenms`. Harmless no-op when the dependencies are already bundled
   # (NO_DEPENDENCIES=OFF) and on non-Windows.
+  #
+  # Same directory list as the stub generator uses -- in particular it now covers
+  # the contrib *bin* directory, where a contrib built with shared libraries puts
+  # its DLLs (#10141); this list previously named only contrib/lib.
   set(_pyopenms_test_cmd_prefix "")
   if(WIN32)
-    set(_pyopenms_dll_dirs "$<TARGET_FILE_DIR:${OPENMS_TARGET}>")
-    string(APPEND _pyopenms_dll_dirs "$<SEMICOLON>$<TARGET_FILE_DIR:${OPENSWATHALGO_TARGET}>")
-    if(OPENMS_CONTRIB_LIBS)
-      string(APPEND _pyopenms_dll_dirs "$<SEMICOLON>${OPENMS_CONTRIB_LIBS}/lib")
-    endif()
-    if(QT_INSTALL_BINS)
-      string(APPEND _pyopenms_dll_dirs "$<SEMICOLON>${QT_INSTALL_BINS}")
-    endif()
+    _pyopenms_windows_dll_dirs(_pyopenms_dll_dirs)
     set(_pyopenms_test_cmd_prefix ${CMAKE_COMMAND} -E env "PYOPENMS_DLL_PATH=${_pyopenms_dll_dirs}")
   endif()
 
@@ -604,9 +1090,9 @@ message(STATUS "pyOpenMS Configuration Summary:")
 message(STATUS "  Python:            ${Python_EXECUTABLE} (${Python_VERSION})")
 message(STATUS "  NumPy:             ${Python_NumPy_INCLUDE_DIRS}")
 if(nanobind_SOURCE_DIR)
-  message(STATUS "  nanobind:          ${nanobind_SOURCE_DIR}")
+  message(STATUS "  nanobind:          ${PYOPENMS_NANOBIND_VERSION} (${nanobind_SOURCE_DIR})")
 else()
-  message(STATUS "  nanobind:          (found via find_package)")
+  message(STATUS "  nanobind:          ${PYOPENMS_NANOBIND_VERSION} (${NB_DIR})")
 endif()
 message(STATUS "  OpenMS:            ${OpenMS_DIR}")
 message(STATUS "  Domain modules:    ${PYOPENMS_DOMAINS}")
