@@ -484,6 +484,7 @@ set(chemistry_executables_list
   EmpiricalFormula_test
   EnzymaticDigestion_test
   FineIsotopeDistribution_test
+  GlycanStructure_test
   HydrophobicityProfile_test
   IsoelectricPoint_test
   IMSAlphabetParser_test
@@ -522,6 +523,7 @@ set(chemistry_executables_list
   SimpleTSGXLMS_test
   SpectrumAnnotator_test
   Tagger_test
+  TheoreticalGlycanSpectrumGenerator_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test
   Weights_test

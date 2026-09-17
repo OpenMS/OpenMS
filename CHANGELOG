@@ -504,6 +504,10 @@ GUI tools:
     ordinals and sequence diagrams with multiple modifications (#8766).
 
 OpenMS Library:
+  - Added GlycanStructure and TheoreticalGlycanSpectrumGenerator for composition-based
+    diagnostic/oxonium and bounded B/Y/C/Z ions, structural and internal glycan fragments,
+    and HCD/ETD/EThcD glycopeptide backbone retention with configurable stubs (#10176).
+    Includes mzPAF annotations, neutral losses, resource limits, and pyOpenMS bindings.
   Added:
     - File type aliases are now honoured end to end: TOPP tools accept an alias wherever they accept
       the preferred extension (and a tool declaring an alias accepts the preferred extension),
