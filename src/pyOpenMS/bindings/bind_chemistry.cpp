@@ -43,6 +43,7 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CHEMISTRY/SequenceCoverage.h>
 #include <OpenMS/CHEMISTRY/Tagger.h>
+#include <OpenMS/CHEMISTRY/TheoreticalGlycanSpectrumGenerator.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <iomanip>
 #include <nanobind/make_iterator.h>
@@ -54,6 +55,7 @@
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/set.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <sstream>
 
@@ -745,6 +747,7 @@ if the threshold is absolute or relative.
         .def("__copy__", [](const OpenMS::ProForma::FormulaTag& self) { return OpenMS::ProForma::FormulaTag(self); })
         .def("__deepcopy__", [](const OpenMS::ProForma::FormulaTag& self, nb::dict) { return OpenMS::ProForma::FormulaTag(self); }, "memo"_a)
         .def_rw("formula_string", &OpenMS::ProForma::FormulaTag::formula_string)
+        .def_rw("charge", &OpenMS::ProForma::FormulaTag::charge)
         ;
 
     // -----------------------------------------------------------------------
@@ -2371,5 +2374,95 @@ the fixed and variable modifications given to the constructor
         .def("__eq__", &OpenMS::AdductInfo::operator==)
         ;
     m.def("__static_AdductInfo_parseAdductString", [](const std::string& adduct) -> OpenMS::AdductInfo { return OpenMS::AdductInfo::parseAdductString(adduct); }, "adduct"_a);
+
+    // --- GlycanStructure and TheoreticalGlycanSpectrumGenerator ---
+    using GlycanGenerator = OpenMS::TheoreticalGlycanSpectrumGenerator;
+    nb::class_<OpenMS::ProForma::GlycanComposition>(m, "GlycanComposition", "ProForma glycan residue composition")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ProForma::GlycanComposition&>())
+        .def_rw("components", &OpenMS::ProForma::GlycanComposition::components,
+                "List of (monosaccharide name or FormulaTag, count) pairs");
+
+    auto glycan_tree = nb::class_<OpenMS::GlycanStructure>(m, "GlycanStructure", "Rooted glycan tree with stable node indices");
+    nb::class_<OpenMS::GlycanStructure::Node>(glycan_tree, "Node")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::GlycanStructure::Node&>())
+        .def_ro("monosaccharide", &OpenMS::GlycanStructure::Node::monosaccharide)
+        .def_ro("parent", &OpenMS::GlycanStructure::Node::parent)
+        .def_ro("linkage", &OpenMS::GlycanStructure::Node::linkage);
+    glycan_tree.def(nb::init<>())
+        .def(nb::init<const OpenMS::GlycanStructure&>())
+        .def("add_monosaccharide", &OpenMS::GlycanStructure::addMonosaccharide,
+             "monosaccharide"_a, "parent"_a = nb::none(), "linkage"_a = "")
+        .def("get_nodes", &OpenMS::GlycanStructure::getNodes)
+        .def("get_composition", &OpenMS::GlycanStructure::getComposition);
+
+    auto glycan_generator = nb::class_<GlycanGenerator>(m, "TheoreticalGlycanSpectrumGenerator",
+        "Diagnostic, composition, structural and localized glycopeptide fragment generation");
+    nb::enum_<GlycanGenerator::IonType>(glycan_generator, "IonType")
+        .value("DIAGNOSTIC", GlycanGenerator::IonType::DIAGNOSTIC)
+        .value("B", GlycanGenerator::IonType::B)
+        .value("C", GlycanGenerator::IonType::C)
+        .value("Y", GlycanGenerator::IonType::Y)
+        .value("Z", GlycanGenerator::IonType::Z)
+        .value("PEPTIDE", GlycanGenerator::IonType::PEPTIDE);
+    nb::enum_<GlycanGenerator::FragmentationMethod>(glycan_generator, "FragmentationMethod")
+        .value("HCD", GlycanGenerator::FragmentationMethod::HCD)
+        .value("ETD", GlycanGenerator::FragmentationMethod::ETD)
+        .value("ETHCD", GlycanGenerator::FragmentationMethod::ETHCD);
+    nb::class_<GlycanGenerator::PeptideRetention>(glycan_generator, "PeptideRetention")
+        .def(nb::init<>())
+        .def(nb::init<const GlycanGenerator::PeptideRetention&>())
+        .def_rw("intact", &GlycanGenerator::PeptideRetention::intact)
+        .def_rw("stripped", &GlycanGenerator::PeptideRetention::stripped)
+        .def_rw("stubs", &GlycanGenerator::PeptideRetention::stubs);
+    nb::class_<GlycanGenerator::Options>(glycan_generator, "Options")
+        .def(nb::init<>())
+        .def(nb::init<const GlycanGenerator::Options&>())
+        .def_rw("add_diagnostic_ions", &GlycanGenerator::Options::add_diagnostic_ions)
+        .def_rw("add_b_ions", &GlycanGenerator::Options::add_b_ions)
+        .def_rw("add_y_ions", &GlycanGenerator::Options::add_y_ions)
+        .def_rw("add_c_ions", &GlycanGenerator::Options::add_c_ions)
+        .def_rw("add_z_ions", &GlycanGenerator::Options::add_z_ions)
+        .def_rw("add_internal_fragments", &GlycanGenerator::Options::add_internal_fragments)
+        .def_rw("allow_structural", &GlycanGenerator::Options::allow_structural)
+        .def_rw("min_composition_size", &GlycanGenerator::Options::min_composition_size)
+        .def_rw("max_composition_size", &GlycanGenerator::Options::max_composition_size)
+        .def_rw("max_cleavages", &GlycanGenerator::Options::max_cleavages)
+        .def_rw("max_fragments", &GlycanGenerator::Options::max_fragments)
+        .def_rw("max_states", &GlycanGenerator::Options::max_states)
+        .def_rw("min_charge", &GlycanGenerator::Options::min_charge)
+        .def_rw("max_charge", &GlycanGenerator::Options::max_charge)
+        .def_rw("min_oxonium_charge", &GlycanGenerator::Options::min_oxonium_charge)
+        .def_rw("max_oxonium_charge", &GlycanGenerator::Options::max_oxonium_charge)
+        .def_rw("neutral_losses", &GlycanGenerator::Options::neutral_losses)
+        .def_rw("specific_neutral_losses", &GlycanGenerator::Options::specific_neutral_losses)
+        .def_rw("peptide_retention", &GlycanGenerator::Options::peptide_retention);
+    nb::class_<GlycanGenerator::Fragment>(glycan_generator, "Fragment")
+        .def(nb::init<>())
+        .def(nb::init<const GlycanGenerator::Fragment&>())
+        .def_ro("ion_type", &GlycanGenerator::Fragment::ion_type)
+        .def_ro("composition", &GlycanGenerator::Fragment::composition)
+        .def_ro("neutral_mass", &GlycanGenerator::Fragment::neutral_mass)
+        .def_ro("charge", &GlycanGenerator::Fragment::charge)
+        .def_ro("attachment_position", &GlycanGenerator::Fragment::attachment_position)
+        .def_ro("attachment_residue", &GlycanGenerator::Fragment::attachment_residue)
+        .def_ro("root_cleavage", &GlycanGenerator::Fragment::root_cleavage)
+        .def_ro("branch_cleavages", &GlycanGenerator::Fragment::branch_cleavages)
+        .def_ro("name", &GlycanGenerator::Fragment::name)
+        .def("get_mz", &GlycanGenerator::Fragment::getMZ)
+        .def("get_annotation", &GlycanGenerator::Fragment::getAnnotation);
+    glycan_generator.def(nb::init<>())
+        .def(nb::init<const GlycanGenerator&>())
+        .def(nb::init<const GlycanGenerator::Options&>())
+        .def("set_options", &GlycanGenerator::setOptions, "options"_a)
+        .def("get_options", &GlycanGenerator::getOptions, nb::rv_policy::copy)
+        .def("get_fragments", nb::overload_cast<const GlycanGenerator::Composition&>(&GlycanGenerator::getFragments, nb::const_), "composition"_a)
+        .def("get_fragments", nb::overload_cast<const OpenMS::GlycanStructure&>(&GlycanGenerator::getFragments, nb::const_), "structure"_a)
+        .def("get_glycopeptide_fragments", nb::overload_cast<const OpenMS::AASequence&, const GlycanGenerator::Composition&, OpenMS::Size, GlycanGenerator::FragmentationMethod>(&GlycanGenerator::getGlycopeptideFragments, nb::const_),
+             "peptide"_a, "composition"_a, "attachment_position"_a, "method"_a)
+        .def("get_glycopeptide_fragments", nb::overload_cast<const OpenMS::AASequence&, const OpenMS::GlycanStructure&, OpenMS::Size, GlycanGenerator::FragmentationMethod>(&GlycanGenerator::getGlycopeptideFragments, nb::const_),
+             "peptide"_a, "structure"_a, "attachment_position"_a, "method"_a)
+        .def_static("to_spectrum", &GlycanGenerator::toSpectrum, "fragments"_a);
 
 }

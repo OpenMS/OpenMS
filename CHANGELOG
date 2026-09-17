@@ -471,6 +471,10 @@ GUI tools:
     ordinals and sequence diagrams with multiple modifications (#8766).
 
 OpenMS Library:
+  - Added GlycanStructure and TheoreticalGlycanSpectrumGenerator for composition-based
+    diagnostic/oxonium and bounded B/Y/C/Z ions, structural and internal glycan fragments,
+    and HCD/ETD/EThcD glycopeptide backbone retention with configurable stubs (#10176).
+    Includes mzPAF annotations, neutral losses, resource limits, and pyOpenMS bindings.
   Added:
     - BrukerTimsFile (WITH_OPENTIMS): DDA-/DIA-PASEF and raw 4D access, tiered scan-to-1/K0
       calibration, optional neighboring-MS1-frame aggregation, IM hill centroiding and
