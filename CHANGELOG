@@ -92,7 +92,7 @@ Dependencies:
     The empty OPENMS_ADDCXX_FLAGS variable was dropped, and the Find modules of the OpenMS
     build (FindCOIN, FindLIBSVM, ...) are no longer installed next to the package: they served
     the package's former lookups of dependencies that are PRIVATE now. Consuming projects need
-    CMake 3.19 (#10158).
+    CMake 3.22 (#10158).
   - contrib is a git submodule: clone with --recurse-submodules or run
     git submodule update --init (#9155).
   - Optional readers: WITH_OPENTIMS enables timsTOF support (default ON); opentims_DIR or

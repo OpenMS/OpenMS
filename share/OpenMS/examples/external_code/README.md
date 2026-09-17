@@ -6,7 +6,7 @@ You can modify the build system via CMakeLists.txt, e.g., to add more C++ classe
 `find_package(OpenMS CONFIG)` provides the OpenMS library as the imported target `OpenMS::OpenMS` (the OpenSWATH
 algorithm library as `OpenMS::OpenSwathAlgo`, and the TOPP tool framework as `OpenMS::OpenMS_CLI`, which a program
 deriving from `TOPPBase` links instead); linking it supplies include directories, compile features and
-dependencies. Consuming projects need CMake 3.19 or newer.
+dependencies. Consuming projects need CMake 3.22 or newer.
 
 ## Usage
 
