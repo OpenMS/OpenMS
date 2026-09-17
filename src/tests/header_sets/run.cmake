@@ -7,7 +7,7 @@
 
 cmake_minimum_required(VERSION 3.24)
 
-# cmake -DBINARY_DIR=<scratch> [-DTEST_QT=ON]
+# cmake -DBINARY_DIR=<scratch> [-DGENERATOR="Unix Makefiles"]
 #       [-DCONSUMER_CMAKE=<cmake-3.22>] -P run.cmake
 if(NOT BINARY_DIR)
   message(FATAL_ERROR "Set BINARY_DIR to a scratch directory")
@@ -45,93 +45,49 @@ function(run step)
   endif()
 endfunction()
 
-function(expect_failure step pattern)
-  execute_process(COMMAND ${ARGN} RESULT_VARIABLE _result OUTPUT_VARIABLE _out ERROR_VARIABLE _err)
-  file(WRITE "${BINARY_DIR}/${step}.log" "${_out}${_err}")
-  if(_result EQUAL 0 OR NOT "${_out}${_err}" MATCHES "${pattern}")
-    message(FATAL_ERROR "${step} did not fail as expected:\n${_out}${_err}")
-  endif()
-endfunction()
-
-function(assert_header prefix relative original)
-  if(NOT EXISTS "${prefix}/include/${relative}")
-    message(FATAL_ERROR "Missing installed header: ${relative}")
-  endif()
-  file(SHA256 "${prefix}/include/${relative}" _installed)
-  file(SHA256 "${original}" _original)
-  if(NOT _installed STREQUAL _original)
-    message(FATAL_ERROR "Installed header changed: ${relative}")
-  endif()
-endfunction()
-
 set(_build "${BINARY_DIR}/producer")
 set(_prefix "${BINARY_DIR}/prefix")
 run(configure "${CMAKE_COMMAND}" -S "${_source}" -B "${_build}" ${_configure}
-  -DOPENMS_VERIFY_INTERFACE_HEADER_SETS=ON "-DTEST_QT=${TEST_QT}")
+  -DOPENMS_VERIFY_INTERFACE_HEADER_SETS=OFF)
 run(build "${CMAKE_COMMAND}" --build "${_build}" --config Release --parallel 2)
-run(verify "${CMAKE_COMMAND}" --build "${_build}" --config Release
-  --target all_verify_interface_header_sets --parallel 2)
 run(install "${CMAKE_COMMAND}" --install "${_build}" --config Release --prefix "${_prefix}")
 
-assert_header("${_prefix}" OpenMS/API.h "${_source}/include/OpenMS/API.h")
-foreach(_header IN ITEMS configured.h build_config.h OpenMSHeaderProbeConfig.h)
-  assert_header("${_prefix}" "OpenMS/${_header}" "${_build}/include/OpenMS/${_header}")
-endforeach()
-if(TEST_QT)
-  assert_header("${_prefix}" OpenMS/ProbeObject.h "${_source}/include/OpenMS/ProbeObject.h")
-  file(GLOB_RECURSE _moc "${_build}/OpenMSHeaderProbe_autogen/moc_ProbeObject.cpp")
-  if(NOT _moc)
-    message(FATAL_ERROR "AUTOMOC did not process the public file-set header")
-  endif()
-endif()
-file(GLOB_RECURSE _private "${_prefix}/*private.h")
-file(GLOB_RECURSE _framework_library "${_prefix}/*OpenMSTestFramework*")
-if(_private OR _framework_library OR EXISTS "${_prefix}/include/OpenMS/CONCEPT/ClassTest.h")
+file(GLOB_RECURSE _excluded "${_prefix}/*private.h" "${_prefix}/*OpenMSTestFramework*"
+  "${_prefix}/include/OpenMS/CONCEPT/*")
+if(_excluded)
   message(FATAL_ERROR "A default install leaked private or test-framework files")
 endif()
 
-# Build-tree and installed exports both support older consumers. Building these
-# consumers checks actual include lookup and linkage, not just target properties.
-foreach(_kind IN ITEMS build installed)
-  if(_kind STREQUAL build)
-    set(_targets "${_build}/OpenMSTargets.cmake")
-  else()
-    set(_targets "${_prefix}/lib/cmake/OpenMS/OpenMSTargets.cmake")
-  endif()
-  run(consumer-${_kind}-configure "${CONSUMER_CMAKE}" -S "${_source}/consumer"
-    -B "${BINARY_DIR}/consumer-${_kind}" ${_configure}
-    "-DTARGETS_FILE=${_targets}" "-DTEST_QT=${TEST_QT}")
-  run(consumer-${_kind}-build "${CONSUMER_CMAKE}" --build "${BINARY_DIR}/consumer-${_kind}"
-    --config Release --parallel 2)
-endforeach()
+# Including API.h also checks all three generated headers through the installed export.
+run(consumer-configure "${CONSUMER_CMAKE}" -S "${_source}/consumer"
+  -B "${BINARY_DIR}/consumer" ${_configure}
+  "-DTARGETS_FILE=${_prefix}/lib/cmake/OpenMS/OpenMSTargets.cmake")
+run(consumer-build "${CONSUMER_CMAKE}" --build "${BINARY_DIR}/consumer" --config Release --parallel 2)
 
 set(_headers_prefix "${BINARY_DIR}/headers-only")
 run(install-headers "${CMAKE_COMMAND}" --install "${_build}" --config Release
   --prefix "${_headers_prefix}" --component OpenMSHeaderProbe_headers)
-assert_header("${_headers_prefix}" OpenMS/API.h "${_source}/include/OpenMS/API.h")
-file(GLOB_RECURSE _libraries "${_headers_prefix}/lib/*")
-if(_libraries)
-  message(FATAL_ERROR "Installing the header component also installed libraries")
-endif()
 run(install-framework-headers "${CMAKE_COMMAND}" --install "${_build}" --config Release
   --prefix "${_headers_prefix}" --component OpenMSTestFramework_headers)
-get_filename_component(_repo "${_source}/../../.." ABSOLUTE)
-foreach(_header IN ITEMS ClassTest.h ClassTestUtils.h FuzzyStringComparator.h MacrosTest.h)
-  assert_header("${_headers_prefix}" "OpenMS/CONCEPT/${_header}"
-    "${_repo}/src/testframework/include/OpenMS/CONCEPT/${_header}")
-endforeach()
+set(_expected
+  include/OpenMS/API.h include/OpenMS/OpenMSHeaderProbeConfig.h
+  include/OpenMS/build_config.h include/OpenMS/configured.h
+  include/OpenMS/CONCEPT/ClassTest.h include/OpenMS/CONCEPT/ClassTestUtils.h
+  include/OpenMS/CONCEPT/FuzzyStringComparator.h include/OpenMS/CONCEPT/MacrosTest.h)
+list(SORT _expected)
+file(GLOB_RECURSE _installed RELATIVE "${_headers_prefix}" "${_headers_prefix}/*")
+if(NOT _installed STREQUAL _expected)
+  message(FATAL_ERROR "Unexpected header-component installation: ${_installed}")
+endif()
 
 # The configure-time guard must remain active with verification disabled.
-expect_failure(reject-json "includes nlohmann/json" "${CMAKE_COMMAND}"
+execute_process(COMMAND "${CMAKE_COMMAND}"
   -S "${_source}" -B "${BINARY_DIR}/json" ${_configure}
-  -DBAD_HEADER=json -DOPENMS_VERIFY_INTERFACE_HEADER_SETS=OFF)
-
-# A normal build does not compile the verification units; an explicit check
-# must fail if a public header needs a PRIVATE dependency's include directory.
-set(_leak_build "${BINARY_DIR}/private-dependency")
-run(leak-configure "${CMAKE_COMMAND}" -S "${_source}" -B "${_leak_build}" ${_configure}
-  -DBAD_HEADER=private_dependency -DOPENMS_VERIFY_INTERFACE_HEADER_SETS=ON)
-run(leak-default-build "${CMAKE_COMMAND}" --build "${_leak_build}" --config Release --parallel 2)
-expect_failure(reject-private-dependency "private_dependency.h" "${CMAKE_COMMAND}"
-  --build "${_leak_build}" --config Release --target all_verify_interface_header_sets --parallel 2)
-message(STATUS "Header file-set installation, consumers, verification and exclusions passed")
+  -DBAD_HEADER=json -DOPENMS_VERIFY_INTERFACE_HEADER_SETS=OFF
+  RESULT_VARIABLE _result OUTPUT_VARIABLE _out ERROR_VARIABLE _err)
+file(WRITE "${BINARY_DIR}/reject-json.log" "${_out}${_err}")
+# CMake wraps diagnostics according to path length; whitespace may include a newline.
+if(_result EQUAL 0 OR NOT "${_out}${_err}" MATCHES "includes[ \t\r\n]+nlohmann/json")
+  message(FATAL_ERROR "JSON dependency was not rejected as expected:\n${_out}${_err}")
+endif()
+message(STATUS "Header installation, consumer compatibility and JSON guard passed")

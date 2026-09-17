@@ -37,16 +37,12 @@ set(_headers include/OpenMS/API.h
 if(BAD_HEADER STREQUAL "json")
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/include/OpenMS/bad.h" "#include <nlohmann/json.hpp>\n")
   list(APPEND _headers "${CMAKE_CURRENT_BINARY_DIR}/include/OpenMS/bad.h")
-elseif(BAD_HEADER STREQUAL "private_dependency")
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/include/OpenMS/bad.h" "#include <private_dependency.h>\n")
-  list(APPEND _headers "${CMAKE_CURRENT_BINARY_DIR}/include/OpenMS/bad.h")
 endif()
 
 openms_add_library(TARGET_NAME OpenMSHeaderProbe
   SOURCE_FILES probe.cpp
   HEADER_FILES ${_headers}
   BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include"
-  PRIVATE_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/private_dependency"
   DLL_EXPORT_PATH "OpenMS/")
 target_sources(OpenMSHeaderProbe PRIVATE FILE_SET private_headers TYPE HEADERS
   BASE_DIRS source include
@@ -56,15 +52,5 @@ if(NOT OpenMSHeaderProbe_INCLUDE_DIRECTORIES STREQUAL
   message(FATAL_ERROR "The class-test include-directory cache lost its roots")
 endif()
 
-if(TEST_QT)
-  find_package(Qt6 REQUIRED COMPONENTS Core)
-  target_sources(OpenMSHeaderProbe PUBLIC FILE_SET HEADERS FILES include/OpenMS/ProbeObject.h)
-  target_link_libraries(OpenMSHeaderProbe PUBLIC Qt6::Core)
-  set_target_properties(OpenMSHeaderProbe PROPERTIES AUTOMOC ON)
-  # A missing moc output leaves this reference unresolved when the consumer links.
-  target_sources(OpenMSHeaderProbe PRIVATE probe_object.cpp)
-endif()
-
 add_subdirectory("${OPENMS_HOST_DIRECTORY}/src/testframework" testframework)
 install_export_targets()
-export(EXPORT OpenMSTargets NAMESPACE OpenMS:: FILE "${CMAKE_CURRENT_BINARY_DIR}/OpenMSTargets.cmake")

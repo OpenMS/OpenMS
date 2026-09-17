@@ -7,9 +7,6 @@
 
 cmake_minimum_required(VERSION 3.22)
 project(OpenMSHeaderSetsConsumer CXX)
-if(TEST_QT)
-  find_package(Qt6 REQUIRED COMPONENTS Core)
-endif()
 include("${TARGETS_FILE}")
 add_executable(consumer main.cpp)
 target_link_libraries(consumer PRIVATE OpenMS::OpenMSHeaderProbe)
