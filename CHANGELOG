@@ -693,6 +693,13 @@ Documentation:
     (#8483, #8507, #8548, #8561, #8674, #9162, #9629, #9736, #9752, #9792, #9812, #9928).
 
 Build System:
+  - Public headers of OpenMS, OpenSwathAlgo, OpenMS_CLI, OpenMS_GUI and the test
+    framework use CMake header file sets. Installation paths and components stay
+    unchanged, private headers remain excluded, and CMake 3.22 consumers remain
+    supported. Linux x64 CI explicitly verifies public headers as standalone
+    translation units, with missing includes in identification-data and GUI
+    headers corrected; normal builds can opt in with
+    OPENMS_VERIFY_INTERFACE_HEADER_SETS=ON (#10177).
   - The TOPP tool framework (TOPPBase, ToolHandler, INIUpdater, ParameterInformation,
     SearchEngineBase, TOPPExternalToolBase, MapAlignerBase, OpenSwathBase) moved out of
     libOpenMS into the new library libOpenMS_CLI (src/openms_cli; CMake target OpenMS_CLI,

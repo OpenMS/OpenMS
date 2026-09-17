@@ -64,6 +64,28 @@ option(OPENMS_TEST_INSTALLED_CONSUMER
   "Install into scratch prefixes and build/run the external CMake consumers against them" OFF)
 
 if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
+  # The small fixture exercises the actual header/install helpers, the standalone
+  # test framework, and Qt AUTOMOC without rebuilding the OpenMS libraries.
+  set(_header_test_args)
+  foreach(_var IN ITEMS
+      CMAKE_CXX_COMPILER CMAKE_MAKE_PROGRAM CMAKE_TOOLCHAIN_FILE CMAKE_PREFIX_PATH
+      VCPKG_INSTALLED_DIR VCPKG_TARGET_TRIPLET VCPKG_HOST_TRIPLET
+      CMAKE_MSVC_RUNTIME_LIBRARY CMAKE_OSX_ARCHITECTURES CMAKE_OSX_DEPLOYMENT_TARGET CMAKE_OSX_SYSROOT)
+    if(DEFINED ${_var} AND NOT "${${_var}}" STREQUAL "")
+      string(REPLACE ";" "$<SEMICOLON>" _value "${${_var}}")
+      list(APPEND _header_test_args "-D${_var}=${_value}")
+    endif()
+  endforeach()
+  add_test(NAME HeaderSets
+    COMMAND ${CMAKE_COMMAND}
+      "-DBINARY_DIR=${CMAKE_BINARY_DIR}/header-set-tests"
+      "-DGENERATOR=${CMAKE_GENERATOR}"
+      "-DGENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}"
+      "-DGENERATOR_TOOLSET=${CMAKE_GENERATOR_TOOLSET}"
+      "-DTEST_QT=${WITH_GUI}" ${_header_test_args}
+      -P "${CMAKE_SOURCE_DIR}/src/tests/header_sets/run.cmake")
+  set_tests_properties(HeaderSets PROPERTIES LABELS "installed_consumer;header_sets")
+
   # Only the toolchain of this build is forwarded to the consumers, as a consumer
   # building with the same compiler and dependency provider would pass it;
   # everything about OpenMS comes from the installed OpenMSConfig.cmake.

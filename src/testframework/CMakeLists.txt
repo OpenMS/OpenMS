@@ -7,7 +7,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMSTestFramework")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
 #------------------------------------------------------------------------------
 # The class-test framework (ClassTest.h macros, FuzzyStringComparator,
@@ -31,10 +31,16 @@ set(OpenMSTestFramework_sources_h
 source_group("Source Files\\CONCEPT" FILES ${OpenMSTestFramework_sources})
 source_group("Header Files\\OpenMS\\CONCEPT" FILES ${OpenMSTestFramework_sources_h})
 
-add_library(OpenMSTestFramework STATIC ${OpenMSTestFramework_sources} ${OpenMSTestFramework_sources_h})
+add_library(OpenMSTestFramework STATIC ${OpenMSTestFramework_sources})
+target_sources(OpenMSTestFramework PUBLIC FILE_SET HEADERS
+  BASE_DIRS "${PROJECT_SOURCE_DIR}/include"
+  FILES ${OpenMSTestFramework_sources_h})
+openms_validate_public_headers(${OpenMSTestFramework_sources_h})
+if(OPENMS_VERIFY_INTERFACE_HEADER_SETS)
+  set_target_properties(OpenMSTestFramework PROPERTIES VERIFY_INTERFACE_HEADER_SETS ON)
+endif()
 
 target_include_directories(OpenMSTestFramework PUBLIC
-                           "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
                            "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>")
 
 target_compile_features(OpenMSTestFramework PUBLIC cxx_std_23)
@@ -57,7 +63,8 @@ openms_add_library_compiler_flags(OpenMSTestFramework)
 # directly and read the headers from the source tree.
 install(TARGETS OpenMSTestFramework
         ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT OpenMSTestFramework
+        EXCLUDE_FROM_ALL
+        FILE_SET HEADERS DESTINATION ${INSTALL_INCLUDE_DIR} COMPONENT OpenMSTestFramework_headers
         EXCLUDE_FROM_ALL)
-install_headers("${OpenMSTestFramework_sources_h}" OpenMSTestFramework EXCLUDE_FROM_ALL)
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")

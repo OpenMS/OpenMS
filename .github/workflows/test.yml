@@ -11,6 +11,27 @@ on:
       - develop
 
 jobs:
+  header-set-compatibility:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install producer and consumer CMake versions
+        shell: bash
+        run: |
+          python -m pip install --target "$RUNNER_TEMP/cmake324" cmake==3.24.3
+          python -m pip install --target "$RUNNER_TEMP/cmake322" cmake==3.22.6
+      - name: Test header sets with the minimum supported CMake versions
+        shell: bash
+        run: |
+          "$RUNNER_TEMP/cmake324/cmake/data/bin/cmake" \
+            -DBINARY_DIR="$RUNNER_TEMP/header-sets" \
+            -DGENERATOR="Unix Makefiles" \
+            -DCONSUMER_CMAKE="$RUNNER_TEMP/cmake322/cmake/data/bin/cmake" \
+            -P src/tests/header_sets/run.cmake
+
   build-and-test:
     strategy:
       fail-fast: false

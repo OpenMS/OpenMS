@@ -15,6 +15,8 @@ include(CheckLibArchitecture)
 ## export a single option indicating if libraries should be build as unity
 ## build
 option(ENABLE_UNITYBUILD "Enables unity builds for all libraries." OFF)
+option(OPENMS_VERIFY_INTERFACE_HEADER_SETS
+  "Compile OpenMS public headers individually with the all_verify_interface_header_sets target" OFF)
 
 #------------------------------------------------------------------------------
 ## Unity Build of a set of cpp files
@@ -89,7 +91,7 @@ endmacro()
 #                    SOURCE_FILES  <source files to build the library>
 #                    HEADER_FILES  <header files associated to the library>
 #                                  (will be installed with the library)
-#                    INTERNAL_INCLUDES <list of internal include directories for the library>
+#                    BASE_DIRS <source and binary include roots of the public headers>
 #                    PRIVATE_INCLUDES <list of include directories that will be used for compilation but that will not be exposed to other libraries>
 #                    EXTERNAL_INCLUDES <list of external include directories for the library>
 #                                      (will be added with -isystem if available)
@@ -110,7 +112,7 @@ function(openms_add_library)
   # parse arguments to function
   set(options )
   set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH EXPORT_SET)
-  set(multiValueArgs INTERNAL_INCLUDES PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES PRIVATE_LINK_LIBRARIES)
+  set(multiValueArgs BASE_DIRS PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES PRIVATE_LINK_LIBRARIES)
   ## make above arguments available as variables, e.g. ${openms_add_library_PRIVATE_LINK_LIBRARIES}
   cmake_parse_arguments(openms_add_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
@@ -119,8 +121,8 @@ function(openms_add_library)
   message(STATUS "Adding library ${openms_add_library_TARGET_NAME}")
 
   #------------------------------------------------------------------------------
-  # merge into global exported includes
-  set(${openms_add_library_TARGET_NAME}_INCLUDE_DIRECTORIES ${openms_add_library_INTERNAL_INCLUDES}
+  # Preserve the include-directory cache consumed by class tests.
+  set(${openms_add_library_TARGET_NAME}_INCLUDE_DIRECTORIES ${openms_add_library_BASE_DIRS}
                                                             ${openms_add_library_EXTERNAL_INCLUDES}
       CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
 
@@ -143,17 +145,16 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # Include directories
-  # since internal includes all start with include/OpenMS and install_headers takes care of merging them in the install tree,
-  # we can reference them just by INSTALL_INCLUDE_DIR in the install tree. They are then included as usual via <OpenMS/OPENSWATHALGO/..>"
+  # File-set BASE_DIRS supply the build-tree includes. Keep the install include
+  # explicitly: CMake < 3.23 skips file sets in generated exports, and we support
+  # CMake 3.22 consumers of an installed OpenMS.
   target_include_directories(${openms_add_library_TARGET_NAME} PUBLIC
-                             "$<BUILD_INTERFACE:${openms_add_library_INTERNAL_INCLUDES}>"
                              "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>"  # <prefix>/include
                              )
 
   # TODO actually we shouldn't need to add these external includes. They should propagate through target_link_library if they are public
   target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PUBLIC 
                              "$<BUILD_INTERFACE:${openms_add_library_EXTERNAL_INCLUDES}>"
-                             "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>"
                              )
   target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PRIVATE ${openms_add_library_PRIVATE_INCLUDES})
   
@@ -172,7 +173,7 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # Generate export header if requested
-  if(NOT ${openms_add_library_DLL_EXPORT_PATH} STREQUAL "")
+  if(openms_add_library_DLL_EXPORT_PATH)
     ## this snipped creates 'OpenMSConfig.h' in the build tree
     set(_CONFIG_H "include/${openms_add_library_DLL_EXPORT_PATH}${openms_add_library_TARGET_NAME}Config.h")
     string(TOUPPER ${openms_add_library_TARGET_NAME} _TARGET_UPPER_CASE)
@@ -185,6 +186,19 @@ function(openms_add_library)
 
     # add generated header to visual studio
     source_group("Header Files\\${_fixed_path}" FILES ${_CONFIG_H})
+    list(APPEND openms_add_library_HEADER_FILES "${CMAKE_CURRENT_BINARY_DIR}/${_CONFIG_H}")
+  endif()
+
+  # Both configured headers and generate_export_header() output belong to the
+  # public interface. Listing them here also makes them visible to IDEs/AUTOMOC.
+  list(REMOVE_DUPLICATES openms_add_library_HEADER_FILES)
+  openms_validate_public_headers(${openms_add_library_HEADER_FILES})
+  target_sources(${openms_add_library_TARGET_NAME} PUBLIC FILE_SET HEADERS
+    BASE_DIRS ${openms_add_library_BASE_DIRS}
+    FILES ${openms_add_library_HEADER_FILES})
+  if(OPENMS_VERIFY_INTERFACE_HEADER_SETS)
+    set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES
+      VERIFY_INTERFACE_HEADER_SETS ON)
   endif()
 
   #------------------------------------------------------------------------------
@@ -216,8 +230,7 @@ function(openms_add_library)
   if(NOT openms_add_library_EXPORT_SET)
     set(openms_add_library_EXPORT_SET ${OPENMS_EXPORT_SET})
   endif()
-  install_library(${openms_add_library_TARGET_NAME} EXPORT_SET ${openms_add_library_EXPORT_SET})
-  install_headers("${openms_add_library_HEADER_FILES};${PROJECT_BINARY_DIR}/${_CONFIG_H}" ${openms_add_library_TARGET_NAME})
+  install_library(${openms_add_library_TARGET_NAME} HEADERS EXPORT_SET ${openms_add_library_EXPORT_SET})
 
   #------------------------------------------------------------------------------
   # register for the build-tree export of the same export set
