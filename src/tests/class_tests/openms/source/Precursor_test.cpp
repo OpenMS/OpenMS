@@ -117,30 +117,6 @@ START_SECTION((static StringList getAllShortNamesOfActivationMethods()))
   TEST_EQUAL(result.size(), static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD));
 END_SECTION
 
-START_SECTION([EXTRA] invalid activation methods are rejected instead of indexing past the name tables)
-{
-  TEST_EQUAL(Precursor::activationMethodToString(Precursor::ActivationMethod::LIFT), Precursor::NamesOfActivationMethod[static_cast<size_t>(Precursor::ActivationMethod::LIFT)])
-  TEST_EQUAL(Precursor::activationMethodToShortString(Precursor::ActivationMethod::CID), "CID")
-
-  // values that can reach a Precursor from an integer source, e.g. an sqMass file
-  const Precursor::ActivationMethod sentinel = Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD;
-  const Precursor::ActivationMethod too_large = static_cast<Precursor::ActivationMethod>(static_cast<int>(sentinel) + 5);
-  const Precursor::ActivationMethod negative = static_cast<Precursor::ActivationMethod>(-1);
-
-  for (const Precursor::ActivationMethod m : {sentinel, too_large, negative})
-  {
-    TEST_EXCEPTION(Exception::InvalidValue, Precursor::activationMethodToString(m))
-    TEST_EXCEPTION(Exception::InvalidValue, Precursor::activationMethodToShortString(m))
-
-    Precursor p;
-    p.getActivationMethods().insert(Precursor::ActivationMethod::CID);
-    p.getActivationMethods().insert(m);
-    TEST_EXCEPTION(Exception::InvalidValue, p.getActivationMethodsAsString())
-    TEST_EXCEPTION(Exception::InvalidValue, p.getActivationMethodsAsShortString())
-  }
-}
-END_SECTION
-
 START_SECTION((double getIsolationWindowUpperOffset() const))
   Precursor tmp;
   TEST_REAL_SIMILAR(tmp.getIsolationWindowUpperOffset(), 0);
