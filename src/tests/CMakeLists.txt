@@ -131,11 +131,55 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
   if(WITH_GUI)
     list(APPEND _full_components library_gui cmake_gui)
   endif()
+  set(_full_prefix "${CMAKE_BINARY_DIR}/installed-consumer/prefix")
   _openms_add_installed_consumer_tests(TestExternalCode
     "${CMAKE_SOURCE_DIR}/src/tests/external"
-    "${CMAKE_BINARY_DIR}/installed-consumer/prefix"
+    "${_full_prefix}"
     "${CMAKE_BINARY_DIR}/installed-consumer/build"
     ${_full_components})
+
+  # 1b. Configure the same consumer against the same installation once more, with Eigen
+  #     made unfindable: no installed header includes Eigen, and a shared OpenMS carries
+  #     no Eigen3::Eigen in its exported link interface, so find_package(OpenMS REQUIRED)
+  #     has to succeed without it. Both regressions this guards against are reported
+  #     before anything is compiled: a find_dependency(Eigen3) reintroduced into
+  #     OpenMSConfig.cmake is a hard error, because CMAKE_DISABLE_FIND_PACKAGE_Eigen3
+  #     refuses a REQUIRED lookup, and an Eigen3::Eigen left dangling in an exported
+  #     target file fails while the consumer's build system is generated ("but the target
+  #     was not found"), which is part of this very invocation.
+  #
+  #     Configure only, deliberately. For a shared installation the build system generated
+  #     here is identical to the one TestExternalCode_configure produces -- same compile
+  #     commands, same link commands -- because disabling the Eigen *package* changes
+  #     CMake-level discovery, not compiler include paths, and TestExternalCode_build
+  #     already compiles and links exactly that. An installed header that includes
+  #     <Eigen/Core> again fails in that build too, but only so long as nothing hands
+  #     consumers a path Eigen resolves from. That proviso is not free: a soft lookup
+  #     reinstated in OpenMSConfig.cmake could append Eigen's include directories to the
+  #     imported target, leaving the link interface clean and the normal build green while
+  #     every consumer without Eigen breaks. src/tests/external/CMakeLists.txt asserts
+  #     against precisely that, by testing whether <Eigen/Core> resolves from any include
+  #     directory the package exposes, so that combination is caught here at configure
+  #     time instead of needing a second consumer build to surface it.
+  #
+  #     Shared builds only, which is what the OpenMS build produces (BUILD_SHARED_LIBS is
+  #     set unconditionally in the top-level CMakeLists.txt). A static OpenMS keeps its
+  #     private dependencies in the export, so its OpenMSConfig.cmake does look Eigen up
+  #     -- disabling Eigen would then make find_package(OpenMS REQUIRED) fail by design,
+  #     which is correct behaviour rather than a regression. The matching assertion in
+  #     src/tests/external/CMakeLists.txt makes the same distinction consumer-side, by
+  #     asking the imported target for its TYPE.
+  if(BUILD_SHARED_LIBS)
+    add_test(NAME TestExternalCode_noeigen_configure
+      COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}/src/tests/external"
+              -B "${CMAKE_BINARY_DIR}/installed-consumer/build-no-eigen"
+              -G "${CMAKE_GENERATOR}" "-DCMAKE_BUILD_TYPE=$<CONFIG>"
+              "-DOpenMS_DIR=${_full_prefix}/${INSTALL_CMAKE_DIR}"
+              -DCMAKE_DISABLE_FIND_PACKAGE_Eigen3=TRUE ${_configure_args})
+    set_tests_properties(TestExternalCode_noeigen_configure PROPERTIES
+      FIXTURES_REQUIRED TestExternalCode_installed
+      LABELS installed_consumer)
+  endif()
 
   # 2. The core-only installation: exactly the components the pyOpenMS wheel
   #    builds install (.github/workflows/pyopenms-wheels-cibuildwheel.yml) ...
@@ -200,6 +244,7 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
   unset(_layers_source)
   unset(_layers_build)
   unset(_full_components)
+  unset(_full_prefix)
   unset(_core_prefix)
   unset(_configure_args)
 endif()

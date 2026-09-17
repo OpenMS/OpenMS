@@ -7,7 +7,7 @@ You can modify the build system via CMakeLists.txt, e.g., to add more C++ classe
 algorithm library as `OpenMS::OpenSwathAlgo`, and the TOPP tool framework as `OpenMS::OpenMS_CLI`, which a program
 deriving from `TOPPBase` links instead; it is part of an installation that includes the CLI layer, so such a
 program requests it with `COMPONENTS CLI`); linking it supplies include directories, compile features and
-dependencies. Consuming projects need CMake 3.19 or newer.
+dependencies. Consuming projects need CMake 3.22 or newer.
 
 ## Usage
 

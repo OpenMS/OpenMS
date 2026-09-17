@@ -162,9 +162,10 @@ set(CPACK_POSTFLIGHT_APPLICATIONS_SCRIPT ${OPENMS_HOST_BINARY_DIRECTORY}/cmake/M
 ## processed, so it picks up every real component.
 get_cmake_property(CPACK_COMPONENTS_ALL COMPONENTS)
 list(REMOVE_ITEM CPACK_COMPONENTS_ALL python_modules)
-## Drop the class-test framework archive (dev tool, not product payload;
-## productbuild enumerates components explicitly). Its headers stay packaged.
-list(REMOVE_ITEM CPACK_COMPONENTS_ALL OpenMSTestFramework)
+## Drop the class-test framework archive and its headers (dev tool, not product
+## payload). Both install rules are EXCLUDE_FROM_ALL, but productbuild enumerates
+## components explicitly and installs each one by name, which ignores that flag.
+list(REMOVE_ITEM CPACK_COMPONENTS_ALL OpenMSTestFramework OpenMSTestFramework_headers)
 
 ## Create own target because you cannot "depend" on the internal target 'package'
 add_custom_target(dist
