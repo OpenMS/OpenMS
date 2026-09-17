@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
 ### Probe of the package-layer tests: configured against the build tree of the
 ### stub project in .. and checks what its OpenMSConfig.cmake reports.

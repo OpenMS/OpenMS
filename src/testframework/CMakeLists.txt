@@ -40,9 +40,6 @@ if(OPENMS_VERIFY_INTERFACE_HEADER_SETS)
   set_target_properties(OpenMSTestFramework PROPERTIES VERIFY_INTERFACE_HEADER_SETS ON)
 endif()
 
-target_include_directories(OpenMSTestFramework PUBLIC
-                           "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>")
-
 target_compile_features(OpenMSTestFramework PUBLIC cxx_std_23)
 
 openms_add_library_compiler_flags(OpenMSTestFramework)

@@ -145,12 +145,7 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # Include directories
-  # File-set BASE_DIRS supply the build-tree includes. Keep the install include
-  # explicitly: CMake < 3.23 skips file sets in generated exports, and we support
-  # CMake 3.22 consumers of an installed OpenMS.
-  target_include_directories(${openms_add_library_TARGET_NAME} PUBLIC
-                             "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>"  # <prefix>/include
-                             )
+  # Public include directories come from the header file set and its install destination.
 
   # TODO actually we shouldn't need to add these external includes. They should propagate through target_link_library if they are public
   target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PUBLIC 

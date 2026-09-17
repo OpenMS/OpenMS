@@ -7,8 +7,7 @@
 
 cmake_minimum_required(VERSION 3.24)
 
-# cmake -DBINARY_DIR=<scratch> [-DGENERATOR="Unix Makefiles"]
-#       [-DCONSUMER_CMAKE=<cmake-3.22>] -P run.cmake
+# cmake -DBINARY_DIR=<scratch> [-DGENERATOR="Unix Makefiles"] -P run.cmake
 if(NOT BINARY_DIR)
   message(FATAL_ERROR "Set BINARY_DIR to a scratch directory")
 endif()
@@ -16,9 +15,6 @@ get_filename_component(BINARY_DIR "${BINARY_DIR}" ABSOLUTE)
 file(MAKE_DIRECTORY "${BINARY_DIR}")
 if(NOT GENERATOR)
   set(GENERATOR Ninja)
-endif()
-if(NOT CONSUMER_CMAKE)
-  set(CONSUMER_CMAKE "${CMAKE_COMMAND}")
 endif()
 set(_source "${CMAKE_CURRENT_LIST_DIR}")
 set(_configure -G "${GENERATOR}" -DCMAKE_BUILD_TYPE=Release)
@@ -59,10 +55,10 @@ if(_excluded)
 endif()
 
 # Including API.h also checks all three generated headers through the installed export.
-run(consumer-configure "${CONSUMER_CMAKE}" -S "${_source}/consumer"
+run(consumer-configure "${CMAKE_COMMAND}" -S "${_source}/consumer"
   -B "${BINARY_DIR}/consumer" ${_configure}
   "-DTARGETS_FILE=${_prefix}/lib/cmake/OpenMS/OpenMSTargets.cmake")
-run(consumer-build "${CONSUMER_CMAKE}" --build "${BINARY_DIR}/consumer" --config Release --parallel 2)
+run(consumer-build "${CMAKE_COMMAND}" --build "${BINARY_DIR}/consumer" --config Release --parallel 2)
 
 set(_headers_prefix "${BINARY_DIR}/headers-only")
 run(install-headers "${CMAKE_COMMAND}" --install "${_build}" --config Release

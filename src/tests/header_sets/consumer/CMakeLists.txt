@@ -5,7 +5,7 @@
 # $Maintainer: Timo Sachsenberg $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.24)
 project(OpenMSHeaderSetsConsumer CXX)
 include("${TARGETS_FILE}")
 add_executable(consumer main.cpp)
