@@ -54,10 +54,12 @@ public:
   /**
     @brief Export protein group data to Apache Arrow Table
 
-    Exports indistinguishable protein groups following the active QPX 1.1 pg schema. One row is
-    emitted per protein group, experimental-design @c fraction_group, and label. @c grouped_runs
+    Exports indistinguishable protein groups following the active QPX 1.1 pg schema. At most one
+    row is emitted per protein group, experimental-design @c fraction_group, and label. @c grouped_runs
     lists that fraction group's raw files, while scalar @c label and @c intensity carry one
-    quantity. Together with @c anchor_protein these columns form the primary key.
+    quantity. The row's identity is derived from @c pg_accessions, @c grouped_runs and @c label --
+    the FULL group membership, not @c anchor_protein, which is a display representative and is not
+    unique across groups that share a leading protein.
 
     A fraction group must be <b>rectangular</b>: every label it publishes has to exist in every one
     of its runs, which makes "(any file in grouped_runs, label) -> run.samples[]" resolvable.
@@ -72,10 +74,21 @@ public:
     Groups without quantification are melted onto the fraction groups in which a member accession
     has peptide evidence, with null @c label and @c intensity.
 
+    A quantified group may still have no quantity for an individual cell, because it was never
+    measured there. Such a cell keeps its @c label and takes a null @c intensity: the group is not
+    identification-only, so its label is known, and a null says "not measured" where a @c 0.0 would
+    be indistinguishable from a measurement of zero.
+
+    That row is emitted only where the group has identification evidence in the quantification
+    unit, because a labelled null asserts "identified here, but not quantified for this label". A
+    cell with neither a quantity nor evidence is omitted entirely: a row there would claim an
+    observation that was never made.
+
     @param[in] cmap The ConsensusMap with annotated protein group quantification
     @param[in] design The experimental design that was used to quantify @p cmap. It defines the
-               exact fraction-group/label keys and their grouped runs. The exporter checks those
-               keys against every quantified protein group.
+               fraction-group/label keys and their grouped runs. Every key a protein group carries
+               must be one of them; a group carrying fewer is quantified in fewer cells, which is
+               not an error.
     @return Shared pointer to Arrow Table, or nullptr on error
   */
   static std::shared_ptr<arrow::Table> exportToArrow(const ConsensusMap& cmap,
