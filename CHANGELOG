@@ -642,6 +642,11 @@ Fixes:
     - QPX import reports unsupported modifications and checks reconstructed m/z. Modification
       definitions are still not carried by the format, so unsupported modifications may
       still be lost on import (#10004, #10012).
+    - AASequence::getFormula() and AASequence::getMonoWeight() handle Residue::Zp1Ion and
+      Residue::Zp2Ion, the radical z+1/z+2 electron-transfer fragments. Both types used to fall
+      through to the default branch, which logs an error and returns the internal mass without any
+      ion offset, and a C-terminal modification was never applied to them. getAverageWeight() and
+      getMZ() build on those two functions and are fixed with them (#10181).
     - Corrected a/b neutral-loss fragment masses, negative-charge MzPAF parsing and
       deisotoping precursor constraints (proton mass units; unknown precursor charge no
       longer discards all isotope clusters). Unsupported deisotoping tolerances no longer
