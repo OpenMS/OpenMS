@@ -13,6 +13,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <map>
 #include <string>
@@ -229,6 +230,34 @@ START_SECTION((static bool sameFormat(const std::string& lhs, const std::string&
   // but a custom extension still matches its own spelling, case-insensitively
   TEST_TRUE(FileTypes::sameFormat("customA", "customA"))
   TEST_TRUE(FileTypes::sameFormat("customA", "CUSTOMA"))
+}
+END_SECTION
+
+START_SECTION((file dialog filters list every accepted extension))
+{
+  // ONE_BY_ONE: each type gets one filter naming all its extensions, preferred first
+  const FileTypeList fasta_only({FileTypes::FASTA});
+  const std::string one = fasta_only.toFileDialogFilter(FilterLayout::ONE_BY_ONE, false);
+  TEST_STRING_EQUAL(one, "FASTA file (*.fasta *.fa *.faa)")
+
+  // COMPACT: the combined filter lists them too
+  const std::string compact = fasta_only.toFileDialogFilter(FilterLayout::COMPACT, false);
+  TEST_STRING_EQUAL(compact, "all readable files (*.fasta *.fa *.faa)")
+
+  // a type without aliases is unchanged
+  const FileTypeList mzml_only({FileTypes::MZML});
+  TEST_STRING_EQUAL(mzml_only.toFileDialogFilter(FilterLayout::ONE_BY_ONE, false), "mzML raw data file (*.mzML)")
+
+  // the filter must round-trip back to its type, or save dialogs cannot resolve the chosen filter
+  const FileTypeList several({FileTypes::FASTA, FileTypes::MZML, FileTypes::PEPXML});
+  for (const auto& t : several.getTypes())
+  {
+    const std::string filter = FileTypes::typeToDescription(t) + " (*." + ListUtils::concatenate(FileTypes::typeToExtensions(t), " *.") + ")";
+    TEST_EQUAL(several.fromFileDialogFilter(filter), t)
+  }
+
+  // 'all files (*)' stays ambiguous and yields the fallback
+  TEST_EQUAL(several.fromFileDialogFilter("all files (*)", FileTypes::MZML), FileTypes::MZML)
 }
 END_SECTION
 

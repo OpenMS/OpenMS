@@ -1513,15 +1513,19 @@ namespace OpenMS
     StringList expandFormatsForMetadata(const StringList& valid_strings)
     {
       StringList out;
+      StringList seen; // upper-cased, so we neither repeat nor re-case a pattern
+      auto add = [&out, &seen](const std::string& ext) {
+        const std::string key = StringUtils::toUppered(ext);
+        if (ListUtils::contains(seen, key)) return;
+        seen.push_back(key);
+        out.push_back("*." + ext);
+      };
       for (const auto& vs : valid_strings)
       {
+        add(vs); // the tool's own spelling first, so a declared '*.FASTA' stays '*.FASTA'
         const FileTypes::Type type = FileTypes::nameToType(vs);
-        const StringList exts = (type == FileTypes::UNKNOWN) ? StringList {vs} : FileTypes::typeToExtensions(type);
-        for (const auto& ext : exts)
-        {
-          const std::string pattern = "*." + ext;
-          if (!ListUtils::contains(out, pattern)) out.push_back(pattern);
-        }
+        if (type == FileTypes::UNKNOWN) continue; // custom extension: nothing to expand
+        for (const auto& ext : FileTypes::typeToExtensions(type)) add(ext);
       }
       return out;
     }
