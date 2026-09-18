@@ -10,6 +10,13 @@ on:
     branches:
       - develop
 
+# This workflow only reads the repository: it configures, builds and tests the
+# checked-out tree and reports through the check run. Nothing here calls the
+# GitHub API, so the default token -- which is write-capable for pull requests
+# from a branch of this repository -- grants more than the job can justify.
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     strategy:
@@ -29,7 +36,12 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      # A pull request builds and runs code from the branch under review, so the
+      # checkout must not leave its token behind in .git/config for that code to
+      # find. Matches the checkouts in release.yml.
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Build OpenMS
         uses: ./.github/actions/build
