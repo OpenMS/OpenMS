@@ -10,6 +10,9 @@ on:
     branches:
       - develop
 
+permissions:
+  contents: read
+
 jobs:
   header-set-compatibility:
     runs-on: ubuntu-24.04
@@ -49,6 +52,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Build OpenMS
         uses: ./.github/actions/build
