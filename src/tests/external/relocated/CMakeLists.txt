@@ -105,11 +105,17 @@ endforeach()
 ## And a program of an external project builds against the moved installation
 ## and loads its libraries at run time.
 add_executable(TestExternalCodeRelocated ../TestExternalCodeRelocated.cpp)
-target_link_libraries(TestExternalCodeRelocated OpenMS::OpenMS)
-## the version the package reports, for the program to check against the library
-## it actually loaded
+## ${CMAKE_DL_LIBS} for the loader query in the program: dl_iterate_phdr() is part
+## of libc on current glibc, but was in libdl before 2.34 and the manylinux images
+## of the wheel builds sit right at that boundary. Empty on Windows and macOS.
+target_link_libraries(TestExternalCodeRelocated OpenMS::OpenMS ${CMAKE_DL_LIBS})
+## What the package reports, for the program to check the library it actually
+## loaded against: its version, and the directory the package says its libraries
+## are in. The latter is the run-time half of the checks above -- they establish
+## what the package *says*, this establishes that the loader agrees.
 target_compile_definitions(TestExternalCodeRelocated PRIVATE
                            OPENMS_EXPECTED_VERSION="${OpenMS_VERSION}"
+                           OPENMS_EXPECTED_LIB_DIR="${OPENMS_LIB_DIR}"
                            ## disable auto-linking of boost (mainly needed for Windows)
                            BOOST_ALL_NO_LIB)
 add_test(TestExternalCodeRelocated TestExternalCodeRelocated)
