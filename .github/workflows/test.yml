@@ -10,10 +10,6 @@ on:
     branches:
       - develop
 
-# This workflow only reads the repository: it configures, builds and tests the
-# checked-out tree and reports through the check run. Nothing here calls the
-# GitHub API, so the default token -- which is write-capable for pull requests
-# from a branch of this repository -- grants more than the job can justify.
 permissions:
   contents: read
 
