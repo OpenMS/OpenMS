@@ -297,14 +297,18 @@ openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
                                  ${OpenMS_configured_headers}
-                   INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
-                                     ${CMAKE_CURRENT_BINARY_DIR}/include
+                   BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
+                             ${CMAKE_CURRENT_BINARY_DIR}/include
                    PRIVATE_INCLUDES ${OPENMS_ONNX_PRIVATE_INCLUDES}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
+
+target_sources(OpenMS PRIVATE FILE_SET private_headers TYPE HEADERS
+  BASE_DIRS source include
+  FILES ${OpenMS_private_headers})
 
 # The core library has no QObject classes, including in builds that also find Qt.
 set_target_properties(OpenMS PROPERTIES AUTOMOC OFF)

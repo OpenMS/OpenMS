@@ -32,6 +32,11 @@ The most important CMake variables are:
     <td>[g++/clang only] Enables/Disables Address Sanitizer (ASAN) to find access violations and other bugs.</td>
   </tr>
   <tr>
+    <th valign="top">OPENMS_VERIFY_INTERFACE_HEADER_SETS=On/Off</th>
+    <td>Enable public-header compile checks. Build <code>all_verify_interface_header_sets</code>
+    explicitly; see @ref verifying_public_headers. (Default: Off)</td>
+  </tr>
+  <tr>
     <th valign="top">WITH_GUI=On/Off</td>
     <td>Defines if the OpenMS GUI tools (TOPPView, TOPPAS) should be built or
     not. If you plan to use OpenMS without a GUI, set this flag to "Off" (Default: On)</td>

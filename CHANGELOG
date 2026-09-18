@@ -98,7 +98,7 @@ Dependencies:
     The empty OPENMS_ADDCXX_FLAGS variable was dropped, and the Find modules of the OpenMS
     build (FindCOIN, FindLIBSVM, ...) are no longer installed next to the package: they served
     the package's former lookups of dependencies that are PRIVATE now. Consuming projects need
-    CMake 3.22: find_package(OpenMS) rejects older versions with an explanatory message
+    CMake 3.24: find_package(OpenMS) rejects older versions with an explanatory message
     instead of failing later (#10158).
   - contrib is a git submodule: clone with --recurse-submodules or run
     git submodule update --init (#9155).
@@ -745,6 +745,13 @@ Documentation:
     (#8483, #8507, #8548, #8561, #8674, #9162, #9629, #9736, #9752, #9792, #9812, #9928).
 
 Build System:
+  - Public headers of OpenMS, OpenSwathAlgo, OpenMS_CLI, OpenMS_GUI and the test
+    framework use CMake header file sets. Installation paths and components stay
+    unchanged and private headers remain excluded. Building OpenMS and consuming
+    its CMake package both require CMake 3.24. Linux x64 CI explicitly verifies
+    public headers as standalone translation units, with missing includes in
+    identification-data and GUI headers corrected; normal builds can opt in with
+    OPENMS_VERIFY_INTERFACE_HEADER_SETS=ON (#10177).
   - The TOPP tool framework (TOPPBase, ToolHandler, INIUpdater, ParameterInformation,
     SearchEngineBase, TOPPExternalToolBase, MapAlignerBase, OpenSwathBase) moved out of
     libOpenMS into the new library libOpenMS_CLI (src/openms_cli; CMake target OpenMS_CLI,

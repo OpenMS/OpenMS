@@ -42,7 +42,7 @@ releases, as do `OpenMS_CLI` and `OpenMS_GUI` when their layers are installed. T
 `OpenMS_WITH_THERMO_RAW`, `OpenMS_WITH_OPENMP`, `OpenMS_BUILD_TOPP_TOOLS`) and its directories (`OPENMS_DATA_DIR`,
 `OPENMS_LIB_DIR`, `OPENMS_BIN_DIR`, `OPENMS_DOC_DIR`). Whether an installation is shared or static is not a
 separate variable: ask the imported target with `get_target_property(<var> OpenMS::OpenMS TYPE)`.
-Consuming projects need CMake 3.22 or newer.
+Building OpenMS and consuming its CMake package both require CMake 3.24 or newer.
 
 ```{note}
 CMake finds OpenMS through `OpenMS_DIR`, the directory holding `OpenMSConfig.cmake`: `<prefix>/lib/cmake/OpenMS` of an
@@ -54,7 +54,7 @@ the OpenMS build.
 The example that follows will be explained in details:
 
 ```cmake
-cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
 ### example CMakeLists.txt to develop C++ programs using OpenMS
 project("Example_Project_using_OpenMS")

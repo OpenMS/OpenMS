@@ -79,6 +79,15 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
       list(APPEND _configure_args "-D${_var}=${_value}")
     endif()
   endforeach()
+  add_test(NAME HeaderSets
+    COMMAND ${CMAKE_COMMAND}
+      "-DBINARY_DIR=${CMAKE_BINARY_DIR}/header-set-tests"
+      "-DGENERATOR=${CMAKE_GENERATOR}"
+      "-DGENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}"
+      "-DGENERATOR_TOOLSET=${CMAKE_GENERATOR_TOOLSET}"
+      ${_configure_args} -P "${CMAKE_SOURCE_DIR}/src/tests/header_sets/run.cmake")
+  set_tests_properties(HeaderSets PROPERTIES LABELS "installed_consumer;header_sets")
+
   if(CMAKE_GENERATOR_PLATFORM)
     list(APPEND _configure_args -A "${CMAKE_GENERATOR_PLATFORM}")
   endif()

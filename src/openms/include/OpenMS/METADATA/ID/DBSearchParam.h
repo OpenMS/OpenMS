@@ -11,6 +11,13 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/ID/ProcessingStep.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
+
+#include <map>
+#include <set>
+#include <string>
+#include <tuple>
 
 namespace OpenMS
 {

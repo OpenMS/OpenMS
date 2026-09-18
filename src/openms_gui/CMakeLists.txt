@@ -28,7 +28,7 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 openms_add_library(TARGET_NAME OpenMS_GUI
                    SOURCE_FILES ${OpenMSVisual_sources}
                    HEADER_FILES ${OpenMSVisual_sources_h}
-                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+                   BASE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/VISUAL/"
