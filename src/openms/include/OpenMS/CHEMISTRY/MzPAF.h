@@ -49,6 +49,9 @@ namespace OpenMS
     FORMULA,    ///< Chemical formula ion (f)
     NAMED,      ///< Named compound (_)
     UNKNOWN,    ///< Unknown or unrecognized ion type
+    // The satellite series are appended after UNKNOWN on purpose. They were added later, and
+    // the enumerator values are exposed arithmetically to Python (nb::is_arithmetic), so the
+    // existing values have to stay put. Do not "tidy" this by moving UNKNOWN back to the end.
     D,          ///< d-ion (N-terminal satellite ion, partial side-chain loss)
     V,          ///< v-ion (C-terminal satellite ion, complete side-chain loss)
     W           ///< w-ion (C-terminal satellite ion, partial side-chain loss)
