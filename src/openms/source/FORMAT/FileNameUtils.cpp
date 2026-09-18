@@ -38,7 +38,13 @@ namespace OpenMS
       // check the name without the compression suffix (e.g. bla.mzML.gz --> bla.mzML) and report the
       // whole '.mzML.gz' span as the extension. Do not use getTypeByContent() here, as this is deadly for output files!
       const FileTypes::Type inner = matchExtension_(StringUtils::prefix(filename, last_dot), ext_start);
-      if (inner != FileTypes::UNKNOWN) return inner; // ext_start already points at the inner extension
+      if (inner != FileTypes::UNKNOWN)
+      {
+        // usually ext_start already points at the inner extension. The exception is the extensionless
+        // Bruker 'fid': for 'fid.gz' the compression suffix is the only extension-shaped span there is.
+        if (ext_start == std::string::npos) ext_start = last_dot;
+        return inner;
+      }
       ext_start = last_dot;                          // e.g. 'archive.gz' => only '.gz' is an extension
       return FileTypes::UNKNOWN;
     }

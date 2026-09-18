@@ -26,6 +26,10 @@ START_SECTION((filename rules and legacy entry points))
     {"", FileTypes::UNKNOWN, ""},
     {"fid", FileTypes::XMASS, "fid"},
     {"/dotted.directory/fid", FileTypes::XMASS, "/dotted.directory/fid"},
+    // 'fid' has no extension of its own, so a compression suffix is the whole extension
+    {"fid.gz", FileTypes::XMASS, "fid"},
+    {"fid.bz2", FileTypes::XMASS, "fid"},
+    {"/dotted.directory/fid.zip", FileTypes::XMASS, "/dotted.directory/fid"},
     {"sample.mzML.gz", FileTypes::MZML, "sample"},
     {"sample.mzML.bz2", FileTypes::MZML, "sample"},
     {"sample.d.zip", FileTypes::BRUKER_TDF, "sample"},
