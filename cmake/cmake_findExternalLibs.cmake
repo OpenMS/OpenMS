@@ -35,7 +35,8 @@ find_package(XercesC REQUIRED)
 # imported target that no find_package created is a hard error at generate time
 # ("the link interface of target ... contains ZLIB::ZLIB but the target was not
 # found"). When no candidate target exists, boost's own flag is left in place
-# and a warning names _name.
+# and a warning names _name. Pass an empty _package to skip the find_package,
+# for callers that have already looked the dependency up themselves.
 #
 # The regex is built here rather than passed in: a macro substitutes its
 # arguments as text, so a backslash escape in one would be unescaped a second
@@ -46,7 +47,11 @@ macro(openms_boost_flag_to_target _boost_target _name _stem _package)
   set(_obftt_hits "${_obftt_libs}")
   list(FILTER _obftt_hits INCLUDE REGEX "${_obftt_regex}")
   if (_obftt_hits)
-    find_package(${_package})
+    if (NOT "${_package}" STREQUAL "")
+      # QUIET: a miss is reported below, with advice specific to this build --
+      # find_package's own "set <pkg>_DIR" wall of text would only compete.
+      find_package(${_package} QUIET)
+    endif()
     set(_obftt_target "")
     foreach (_obftt_candidate ${ARGN})
       if (TARGET ${_obftt_candidate})
@@ -61,7 +66,8 @@ macro(openms_boost_flag_to_target _boost_target _name _stem _package)
               PROPERTIES INTERFACE_LINK_LIBRARIES "${_obftt_libs}")
     else()
       message(WARNING "${_boost_target} links ${_name}, but no imported target for it was found. Leaving boost's \
-plain link flag for it in place; if linking fails, install ${_name} or use '-DBOOST_USE_STATIC=OFF'.")
+plain link flag for it in place; if linking fails, point CMake at ${_name} through CMAKE_PREFIX_PATH or its _ROOT \
+variable.")
     endif()
   endif()
   unset(_obftt_regex)
@@ -108,39 +114,35 @@ we are going to try to continue building.")
     # find_package calls and their resulting imported targets
     # since boost CMake does not expose this transitive dependency as targets!
     # see https://github.com/boostorg/boost_install/issues/64
-    # Translate exactly the ICU libraries boost listed, component by component:
-    # which ones it links depends on how it was built, so requesting or
-    # substituting a component it does not use would invent a dependency.
-    # Substitute only components that were found, because naming an imported
-    # target no find_package created is a hard error at generate time ("the
-    # link interface contains ICU::data but the target was not found") -- this
-    # is the only find_package(ICU) in the project. Components per FindICU.
+    # Ask only for the ICU components boost actually listed: which ones it links
+    # depends on how it was built, so requesting one it does not use would
+    # invent a dependency. Components per FindICU.
     set(_icu_components)
     foreach (_icu_component data i18n io le lx test tu uc)
-      if (libs MATCHES "icu${_icu_component}")
+      set(_icu_hits "${libs}")
+      list(FILTER _icu_hits INCLUDE REGEX "^(-l|.*lib)icu${_icu_component}(\\.|$)")
+      if (_icu_hits)
         list(APPEND _icu_components ${_icu_component})
       endif()
     endforeach()
     if (_icu_components)
-      find_package(ICU COMPONENTS ${_icu_components})
-      set(_icu_targets)
-      foreach (_icu_component ${_icu_components})
-        if (TARGET ICU::${_icu_component})
-          list(FILTER libs EXCLUDE REGEX "icu${_icu_component}")
-          list(APPEND _icu_targets ICU::${_icu_component})
-        else()
-          message(WARNING "Boost::regex links icu${_icu_component}, but the ICU ${_icu_component} component was not \
-found. Leaving boost's plain link flag for it in place; if linking fails, install ICU (e.g. 'brew install icu4c') or \
-use '-DBOOST_USE_STATIC=OFF'.")
-        endif()
-      endforeach()
-      if (_icu_targets)
-        list(APPEND libs ${_icu_targets})
-        set_target_properties(Boost::regex
-                PROPERTIES INTERFACE_LINK_LIBRARIES "${libs}")
+      # OPTIONAL_COMPONENTS, not COMPONENTS: plain COMPONENTS marks each one
+      # required even without REQUIRED, and FindICU creates every ICU:: target
+      # inside "if(ICU_FOUND)" -- so one missing component would leave us with
+      # no targets at all instead of the ones that are there.
+      find_package(ICU QUIET OPTIONAL_COMPONENTS ${_icu_components})
+      if (ICU_FOUND)
+        foreach (_icu_component ${_icu_components})
+          openms_boost_flag_to_target(Boost::regex "icu${_icu_component}" "icu${_icu_component}" ""
+                  ICU::${_icu_component})
+        endforeach()
+      else()
+        message(WARNING "Boost::regex links ICU, but ICU was not found, so boost's plain -licu* link flags are left \
+in place. Homebrew's icu4c is keg-only and therefore off CMake's default search path: configure with \
+-DICU_ROOT=\"$(brew --prefix icu4c)\" if linking fails.")
       endif()
-      unset(_icu_targets)
     endif()
+    unset(_icu_hits)
     unset(_icu_component)
     unset(_icu_components)
   endif()
