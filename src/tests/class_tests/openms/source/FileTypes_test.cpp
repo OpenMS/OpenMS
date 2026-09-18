@@ -261,23 +261,35 @@ START_SECTION((file dialog filters list every accepted extension))
 }
 END_SECTION
 
-START_SECTION((static bool supportsCompressedReading(Type type)))
+START_SECTION((static bool supportsCompressedReading(Type type, Type compression)))
 {
-  // XML-based readers decompress transparently through XMLFile/CompressedInputSource
-  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::MZML))
-  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::FEATUREXML))
-  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::IDXML))
-  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::PEPXML))
-  // Bruker .d.zip is unpacked by FileHandler via ZipArchiveFile
-  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::BRUKER_TDF))
+  // XML-based readers decompress transparently through XMLFile/CompressedInputSource, all three containers
+  for (auto comp : {FileTypes::GZ, FileTypes::BZ2, FileTypes::ZIP})
+  {
+    TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::MZML, comp))
+    TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::FEATUREXML, comp))
+    TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::IDXML, comp))
+    TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::PEPXML, comp))
+    // generic '.xml' is read through UniProtXMLFile; UniPEFF declares 'xml' and documents '.xml.gz'
+    TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::XML, comp))
 
-  // non-XML readers do not: a '.mgf.gz' resolves to MGF by name but nothing can read it
-  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MGF))
-  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MSP))
-  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::FASTA))
-  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::CSV))
-  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::PARQUET))
-  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::UNKNOWN))
+    // non-XML readers do not: a '.mgf.gz' resolves to MGF by name but nothing can read it
+    TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MGF, comp))
+    TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MSP, comp))
+    TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::FASTA, comp))
+    TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::CSV, comp))
+    TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::PARQUET, comp))
+    TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::UNKNOWN, comp))
+  }
+
+  // Bruker is the exception: FileHandler unpacks '.d.zip' but has no gzip/bzip2 path
+  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::BRUKER_TDF, FileTypes::ZIP))
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::BRUKER_TDF, FileTypes::GZ))
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::BRUKER_TDF, FileTypes::BZ2))
+
+  // a non-compression type is never a container
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MZML, FileTypes::MZML))
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MZML, FileTypes::UNKNOWN))
 }
 END_SECTION
 

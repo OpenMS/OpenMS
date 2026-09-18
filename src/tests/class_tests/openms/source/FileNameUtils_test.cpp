@@ -94,6 +94,14 @@ START_SECTION((filename rules and legacy entry points))
   // a dot in a directory name is not an extension, let alone a compression suffix
   TEST_FALSE(FileNameUtils::hasCompressionSuffix("/my.gz/sample"))
 
+  // the container itself is reported, since not every reader handles every one of them
+  TEST_EQUAL(FileNameUtils::compressionType("sample.mzML.gz"), FileTypes::GZ)
+  TEST_EQUAL(FileNameUtils::compressionType("sample.mzML.bz2"), FileTypes::BZ2)
+  TEST_EQUAL(FileNameUtils::compressionType("sample.d.zip"), FileTypes::ZIP)
+  TEST_EQUAL(FileNameUtils::compressionType("sample.MZML.GZ"), FileTypes::GZ)
+  TEST_EQUAL(FileNameUtils::compressionType("sample.mzML"), FileTypes::UNKNOWN)
+  TEST_EQUAL(FileNameUtils::compressionType("/my.gz/sample"), FileTypes::UNKNOWN)
+
   // filename-only detection must work for output files that do not exist yet
   TEST_EQUAL(FileNameUtils::getTypeByFileName("does_not_exist_anywhere.fa"), FileTypes::FASTA)
 END_SECTION

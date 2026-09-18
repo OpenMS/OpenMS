@@ -436,13 +436,13 @@ namespace OpenMS
       {
         // A compression suffix is not by itself a licence to connect: only readers that decompress
         // transparently accept one, so '.mgf.gz' stays a mismatch even where '.mgf' would be fine.
-        const bool needs_decompression = FileNameUtils::hasCompressionSuffix(file_name);
-        if (!needs_decompression || FileTypes::supportsCompressedReading(file_type))
+        const FileTypes::Type compression = FileNameUtils::compressionType(file_name);
+        if (compression == FileTypes::UNKNOWN || FileTypes::supportsCompressedReading(file_type, compression))
         {
-          const std::string file_type_name = FileTypes::typeToName(file_type);
           for (const auto& target_ext : target_param_types)
           {
-            if (FileTypes::sameFormat(target_ext, file_type_name))
+            // the file's type is already resolved, so one lookup per declared format is enough
+            if (FileTypes::nameToType(target_ext) == file_type)
             {
               type_mismatch = false;
               break;

@@ -27,6 +27,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IndentedStream.h>
 #include <OpenMS/FORMAT/ParamCTDFile.h>
@@ -1507,6 +1508,15 @@ namespace OpenMS
       return false;
     }
 
+    /// Is @p filename's compression suffix, if any, one the reader for @p type can actually handle?
+    /// getType() sees through '.gz'/'.bz2'/'.zip', so without this a 'spectra.mgf.gz' passes validation
+    /// and then fails inside the reader. TOPPAS applies the same rule to its edges.
+    bool compressionSupported(const std::string& filename, FileTypes::Type type)
+    {
+      const FileTypes::Type compression = FileNameUtils::compressionType(filename);
+      return compression == FileTypes::UNKNOWN || FileTypes::supportsCompressedReading(type, compression);
+    }
+
     /// Expand declared formats to every accepted extension, as '*.ext' patterns for INI/CTD metadata.
     /// 'fasta' becomes {*.fasta, *.fa, *.faa}; an unrecognized custom extension is passed through as-is.
     /// Order is stable (declaration order, preferred extension before its aliases) and duplicates are dropped.
@@ -1560,6 +1570,12 @@ namespace OpenMS
         if (f_type == FileTypes::UNKNOWN)
         {
           writeLogWarn_("Warning: Could not determine format of input file '" + t + "'!");
+        }
+        else if (!compressionSupported(t, f_type))
+        {
+          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                 "Input file '" + t + "' is compressed, but the reader for format '" +
+                                 FileTypes::typeToName(f_type) + "' cannot decompress it. Please decompress it first.");
         }
         else if (!formatAccepted(p.valid_strings, f_type))
         {
@@ -1627,6 +1643,12 @@ namespace OpenMS
         if (f_type == FileTypes::UNKNOWN)
         {
           writeLogWarn_("Warning: Could not determine format of input file '" + param_value + "'!");
+        }
+        else if (!compressionSupported(param_value, f_type))
+        {
+          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                 "Input file '" + param_value + "' is compressed, but the reader for format '" +
+                                 FileTypes::typeToName(f_type) + "' cannot decompress it. Please decompress it first.");
         }
         else if (!formatAccepted(p.valid_strings, f_type))
         {

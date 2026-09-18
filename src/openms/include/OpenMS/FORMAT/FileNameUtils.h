@@ -40,10 +40,17 @@ namespace OpenMS
     */
     static bool hasValidExtension(const std::string& filename, FileTypes::Type type);
 
-    /** @brief Does @p filename end in a compression suffix (.gz/.bz2/.zip)?
+    /** @brief Which compression suffix does @p filename end in?
 
         getTypeByFileName() sees through such a suffix to the inner type, so callers that need to know
-        whether a reader must decompress have to ask separately (see FileTypes::supportsCompressedReading).
+        whether a reader must decompress have to ask separately (see FileTypes::supportsCompressedReading,
+        which needs this value because not every reader handles every container).
+        @param[in] filename Filename to inspect.
+        @return FileTypes::GZ, BZ2 or ZIP, or FileTypes::UNKNOWN if there is no compression suffix.
+    */
+    static FileTypes::Type compressionType(const std::string& filename);
+
+    /** @brief Does @p filename end in a compression suffix (.gz/.bz2/.zip)?
         @param[in] filename Filename to inspect.
     */
     static bool hasCompressionSuffix(const std::string& filename);

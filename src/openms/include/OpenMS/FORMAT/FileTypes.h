@@ -156,14 +156,18 @@ namespace OpenMS
     static bool isDirectoryType(Type type);
 
     /**
-      @brief Can a reader for @p type read a .gz/.bz2/.zip-compressed file directly?
+      @brief Can a reader for @p type read a file compressed with @p compression directly?
 
-      Transparent decompression is provided by XMLFile through CompressedInputSource, so it covers the
-      XML-based formats only. A compressed filename of any other type still resolves to that type by
-      name, but no reader will accept it, so callers must not treat the compression suffix as proof
-      that the file can be read.
+      Transparent decompression is provided by XMLFile through CompressedInputSource, which handles
+      all three suffixes, so it covers the XML-based formats. BRUKER_TDF is the exception: FileHandler
+      unpacks a '.d.zip' archive via ZipArchiveFile but has no gzip or bzip2 path, so it supports ZIP
+      only. A compressed filename of any other type still resolves to that type by name, but no reader
+      will accept it, so callers must not treat the compression suffix as proof that the file can be read.
+
+      @param[in] type The format inside the compressed container
+      @param[in] compression GZ, BZ2 or ZIP; anything else returns false
     */
-    static bool supportsCompressedReading(Type type);
+    static bool supportsCompressedReading(Type type, Type compression);
 
     /**
       @brief Do two declared format strings denote the same format?

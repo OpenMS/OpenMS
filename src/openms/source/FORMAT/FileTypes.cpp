@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <array>
+#include <cctype>
 #include <list>
 #include <utility>
 
@@ -119,7 +120,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::BRUKER_TDF, "d", "Bruker TDF", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::COMPRESSED_READABLE}), // .d.zip via ZipArchiveFile
     TypeNameBinding(FileTypes::IMZML, "imzML", "imzML mass spectrometry imaging file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}),
     TypeNameBinding(FileTypes::YAML, "yaml", "YAML file", {PROP::WRITEABLE}),
-    TypeNameBinding(FileTypes::XML, "xml", "any XML file", {PROP::READABLE}),  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
+    TypeNameBinding(FileTypes::XML, "xml", "any XML file", {PROP::READABLE, PROP::COMPRESSED_READABLE}),  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
   FileTypeList::FileTypeList(const std::vector<FileTypes::Type>& types)
@@ -252,20 +253,30 @@ namespace OpenMS
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid type: Type has no extensions!", StringUtils::toStr(type));
   }
 
+  namespace
+  {
+    /// Case-insensitive equality without allocating a converted copy of either side.
+    /// nameToType() runs this over the whole registry and sits in TOPPAS' per-file edge checks.
+    bool equalsCaseInsensitive(const std::string& lhs, const std::string& rhs)
+    {
+      return lhs.size() == rhs.size()
+          && std::equal(lhs.begin(), lhs.end(), rhs.begin(),
+                        [](char a, char b) { return std::toupper(static_cast<unsigned char>(a)) == std::toupper(static_cast<unsigned char>(b)); });
+    }
+  }
+
   FileTypes::Type FileTypes::nameToType(const std::string& name)
   {
-    const std::string name_upper = StringUtils::toUppered(name);
-
     // preferred extensions take precedence over aliases, so an alias can never shadow another type's canonical name
     for (const auto& t_info : type_with_annotation__)
     {
-      if (StringUtils::toUppered(t_info.name) == name_upper) return t_info.type;
+      if (equalsCaseInsensitive(t_info.name, name)) return t_info.type;
     }
     for (const auto& t_info : type_with_annotation__)
     {
       for (const auto& alias : t_info.aliases)
       {
-        if (StringUtils::toUppered(alias) == name_upper) return t_info.type;
+        if (equalsCaseInsensitive(alias, name)) return t_info.type;
       }
     }
 
@@ -273,8 +284,17 @@ namespace OpenMS
   }
 
 
-  bool FileTypes::supportsCompressedReading(Type type)
+  bool FileTypes::supportsCompressedReading(Type type, Type compression)
   {
+    if (compression != FileTypes::GZ && compression != FileTypes::BZ2 && compression != FileTypes::ZIP)
+    {
+      return false;
+    }
+    // Bruker's '.d.zip' is unpacked by FileHandler, not by XMLFile, and only for ZIP
+    if (type == FileTypes::BRUKER_TDF)
+    {
+      return compression == FileTypes::ZIP;
+    }
     for (const auto& t_info : type_with_annotation__)
     {
       if (t_info.type == type)
@@ -296,7 +316,7 @@ namespace OpenMS
     }
     // at least one side is a custom/unknown extension: two of those are only equal if they are spelled the same,
     // otherwise every unrecognized format would match every other one through UNKNOWN
-    return StringUtils::toUppered(lhs) == StringUtils::toUppered(rhs);
+    return equalsCaseInsensitive(lhs, rhs);
   }
 
 
