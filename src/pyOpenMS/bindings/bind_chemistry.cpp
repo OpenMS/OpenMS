@@ -1310,7 +1310,7 @@ Examples:
         "isMzPAFFormat", [](const std::string& annotation) { return OpenMS::MzPAF::isMzPAFFormat(annotation); }, "annotation"_a,
         "Check if a string appears to be in mzPAF format")
       .def_static(
-        "isStandardFragmentIon", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::isStandardFragmentIon(series); }, "series"_a,
+        "isPeptideFragmentIon", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::isPeptideFragmentIon(series); }, "series"_a,
         "Check if ion series is a peptide fragment ion (a, b, c, d, v, w, x, y, z)")
       .def_static(
         "ionSeriesToChar", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::ionSeriesToChar(series); }, "series"_a,

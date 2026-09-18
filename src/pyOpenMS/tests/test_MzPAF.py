@@ -26,7 +26,7 @@ def test_satellite_roundtrip(text, series, ordinal, subtype):
     assert ann.satellite_subtype == subtype
     assert ann.isValid()
     assert p.MzPAF.isMzPAFFormat(text)
-    assert p.MzPAF.isStandardFragmentIon(series)
+    assert p.MzPAF.isPeptideFragmentIon(series)
     assert p.MzPAF.ionSeriesToChar(series) == text[0]
     assert p.MzPAF.charToIonSeries(text[0]) == series
     assert p.MzPAF.toString(ann) == text

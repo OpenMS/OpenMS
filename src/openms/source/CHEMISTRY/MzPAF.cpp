@@ -128,7 +128,7 @@ namespace OpenMS
     if (ion_series == MzPAFIonSeries::UNKNOWN || ! hasValidSatelliteSubtype(*this)) { return false; }
 
     // Standard fragment ions need ordinal
-    if (MzPAF::isStandardFragmentIon(ion_series) && !ordinal.has_value())
+    if (MzPAF::isPeptideFragmentIon(ion_series) && !ordinal.has_value())
     {
       return false;
     }
@@ -1060,7 +1060,7 @@ namespace OpenMS
   // Utilities
   //--------------------------------------------------------------------------
 
-  bool MzPAF::isStandardFragmentIon(MzPAFIonSeries series)
+  bool MzPAF::isPeptideFragmentIon(MzPAFIonSeries series)
   {
     return series == MzPAFIonSeries::A || series == MzPAFIonSeries::B || series == MzPAFIonSeries::C || series == MzPAFIonSeries::X
            || series == MzPAFIonSeries::Y || series == MzPAFIonSeries::Z || series == MzPAFIonSeries::D || series == MzPAFIonSeries::V
@@ -1088,7 +1088,7 @@ namespace OpenMS
   std::optional<double> MzPAF::calculateTheoreticalMZ(
     const MzPAFAnnotation& ann, const AASequence& sequence)
   {
-    if (!isStandardFragmentIon(ann.ion_series))
+    if (!isPeptideFragmentIon(ann.ion_series))
     {
       return std::nullopt;
     }

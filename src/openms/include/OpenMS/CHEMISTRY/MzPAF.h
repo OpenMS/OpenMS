@@ -405,10 +405,16 @@ namespace OpenMS
     /**
       @brief Check if ion series is a peptide fragment ion (a, b, c, d, v, w, x, y, z)
 
+      These are exactly the series that mzPAF requires to carry an ordinal.
+
       @param[in] series The ion series to check
-      @return True if it's a standard fragment ion type
+      @return True if it's a peptide fragment ion type
+      @note True here does not imply a computable mass. calculateTheoreticalMZ() returns
+            std::nullopt for the satellite series d/v/w, so
+            `if (isPeptideFragmentIon(s)) mz = *calculateTheoreticalMZ(...)` would
+            dereference an empty optional.
     */
-    static bool isStandardFragmentIon(MzPAFIonSeries series);
+    static bool isPeptideFragmentIon(MzPAFIonSeries series);
 
     /**
       @brief Get the ion series character for an annotation
