@@ -670,6 +670,11 @@ Fixes:
       reported as 'I'. The former hard error rejecting '-IL_equivalent' for three of those enzymes
       was removed; it did not cover the other four and never triggered for the default
       'enzyme:name=auto', where the enzyme is taken from the idXML (#1793).
+    - The cleavage rule of 'elastase-trypsin-chymotrypsin' now includes 'J', matching its own
+      description ("cuts after A,L,I(or J),V,K,R,W,F,Y") and the six other enzymes that cleave
+      after I/L. It was the only one omitting 'J', so a peptide preceded by 'J' in the database
+      was rejected as non-specific. This was previously masked with '-IL_equivalent', which
+      rewrote 'J' to 'I' before the cleavage sites were determined (#1793).
     - Fixed the m/z of H2O/NH3 neutral-loss peaks of x/y/z linear ions at charge >= 2 in
       TheoreticalSpectrumGeneratorXLMS and SimpleTSGXLMS: the loss was subtracted from the already
       charge-divided position and divided by the charge again, so these peaks sat at roughly half

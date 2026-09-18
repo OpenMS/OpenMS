@@ -16,6 +16,7 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
+#include <algorithm>
 #include <atomic>
 #include <unordered_map>
 #include <array>
@@ -510,10 +511,9 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
           //       evaluate enzyme specificity (some enzymes, e.g. Chymotrypsin, cleave after 'L', but not after 'I')
           //       and to report the true flanking residues; see https://github.com/OpenMS/OpenMS/issues/1793
           if (IL_equivalent_)
-          {
-            prot_IL = prot;
-            StringUtils::substitute(prot_IL, 'L', 'I');
-            StringUtils::substitute(prot_IL, 'J', 'I');
+          { // single pass: copy and map 'L'/'J' to 'I' in one go (this is in the hot loop over all proteins)
+            prot_IL.resize(prot.size());
+            std::transform(prot.begin(), prot.end(), prot_IL.begin(), [](const char c) { return (c == 'L' || c == 'J') ? 'I' : c; });
           }
           else
           { // warn if 'J' is found (it eats into aaa_max)

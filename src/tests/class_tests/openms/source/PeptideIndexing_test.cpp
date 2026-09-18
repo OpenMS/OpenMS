@@ -447,6 +447,41 @@ START_SECTION(([EXTRA] enzyme specificity is evaluated on the unmodified protein
     }
     TEST_EQUAL(checked_flanks, 1); // ... and the evidence for Protein1 must be there in the first place
   }
+
+  // Since the enzyme filter now sees the protein as-is, a 'J' in the database reaches the cleavage
+  // rules unsubstituted. All enzymes which cleave after I/L list 'J' in their cleavage rule, so a 'J'
+  // flank is a valid cleavage site regardless of the 'IL_equivalent' setting.
+  //
+  //   Protein3: GGG J DTAYDDSGNSGGGG   <-- peptide preceded by 'J', peptide ends at the protein C-term
+  for (const std::string il_equivalent : {"false", "true"})
+  {
+    PeptideIndexing pi;
+    Param p = pi.getParameters();
+    p.setValue("decoy_string", "DECOY_");
+    p.setValue("missing_decoy_action", "warn");
+    p.setValue("enzyme:name", "elastase-trypsin-chymotrypsin");
+    p.setValue("enzyme:specificity", "full");
+    p.setValue("aaa_max", 0);
+    p.setValue("mismatches_max", 0);
+    p.setValue("IL_equivalent", il_equivalent);
+    pi.setParameters(p);
+
+    std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec({"GGGJDTAYDDSGNSGGGG"}, {"Protein3"});
+    std::vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids = toPepVec({"DTAYDDSGNSGGGG"});
+
+    PeptideIndexing::ExitCodes r = pi.run(proteins, prot_ids, pep_ids);
+    TEST_EQUAL(r, PeptideIndexing::ExitCodes::EXECUTION_OK);
+
+    const PeptideHit& hit = pep_ids[0].getHits()[0];
+    TEST_EQUAL(hit.extractProteinAccessionsSet().count("Protein3"), 1);
+    // and the flanking residue is the original 'J', not the 'I' used for searching
+    TEST_EQUAL(hit.getPeptideEvidences().size(), 1);
+    if (!hit.getPeptideEvidences().empty())
+    {
+      TEST_EQUAL(hit.getPeptideEvidences()[0].getAABefore(), 'J');
+    }
+  }
 }
 END_SECTION
 
