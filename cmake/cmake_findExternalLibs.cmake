@@ -22,6 +22,28 @@
 find_package(XercesC REQUIRED)
 
 #------------------------------------------------------------------------------
+# Is _path inside a Homebrew prefix? /opt/homebrew on Apple Silicon,
+# /usr/local on Intel, or $HOMEBREW_PREFIX for a relocated install. Used to
+# spot a static boost from brew, which needs the fixups below. cmake_path
+# compares whole path components, so /usr/locale does not count as /usr/local.
+macro(openms_is_homebrew_path _path _out)
+  set(${_out} FALSE)
+  set(_oihp_prefixes "/opt/homebrew" "/usr/local")
+  if (DEFINED ENV{HOMEBREW_PREFIX})
+    list(APPEND _oihp_prefixes "$ENV{HOMEBREW_PREFIX}")
+  endif()
+  foreach (_oihp_prefix ${_oihp_prefixes})
+    cmake_path(IS_PREFIX _oihp_prefix "${_path}" NORMALIZE _oihp_hit)
+    if (_oihp_hit)
+      set(${_out} TRUE)
+    endif()
+  endforeach()
+  unset(_oihp_prefixes)
+  unset(_oihp_prefix)
+  unset(_oihp_hit)
+endmacro()
+
+#------------------------------------------------------------------------------
 # Boost's CMake config does not expose the transitive dependencies of its
 # compiled libraries as imported targets, so a static boost from brew carries
 # plain "-lzstd"-style entries in its link interface instead
@@ -91,7 +113,8 @@ if(Boost_FOUND)
 
   get_target_property(location Boost::iostreams LOCATION)
   get_target_property(target_type Boost::iostreams TYPE)
-  if (target_type STREQUAL "STATIC_LIBRARY" AND location MATCHES "^/usr/local/")
+  openms_is_homebrew_path("${location}" boost_from_brew)
+  if (target_type STREQUAL "STATIC_LIBRARY" AND boost_from_brew)
     message(WARNING "Statically linked Boost from system installations like brew, are not fully supported yet.
 Either use '-DBOOST_USE_STATIC=OFF' to use the shared library or build boost with our contrib. Nonetheless,
 we are going to try to continue building.")
@@ -108,7 +131,8 @@ we are going to try to continue building.")
 
   get_target_property(location Boost::regex LOCATION)
   get_target_property(target_type Boost::regex TYPE)
-  if (target_type STREQUAL "STATIC_LIBRARY" AND location MATCHES "^/usr/local/")
+  openms_is_homebrew_path("${location}" boost_from_brew)
+  if (target_type STREQUAL "STATIC_LIBRARY" AND boost_from_brew)
     get_target_property(libs Boost::regex INTERFACE_LINK_LIBRARIES)
     # If boost from brew, replace simple "link flags" like "-licuuc" with
     # find_package calls and their resulting imported targets
