@@ -48,7 +48,10 @@ namespace OpenMS
     REPORTER,   ///< Reporter ion (r)
     FORMULA,    ///< Chemical formula ion (f)
     NAMED,      ///< Named compound (_)
-    UNKNOWN     ///< Unknown or unrecognized ion type
+    UNKNOWN,    ///< Unknown or unrecognized ion type
+    D,          ///< d-ion (N-terminal satellite ion, partial side-chain loss)
+    V,          ///< v-ion (C-terminal satellite ion, complete side-chain loss)
+    W           ///< w-ion (C-terminal satellite ion, partial side-chain loss)
   };
 
   /**
@@ -103,6 +106,8 @@ namespace OpenMS
     Examples:
     - y4                  - Simple y-ion at position 4
     - b2-H2O              - b-ion with neutral loss
+    - d5, v7, w3          - Satellite ions with side-chain losses
+    - da4, db4, wa4, wb4  - Satellite ions with an a/b subtype
     - y4^2                - Doubly charged y-ion
     - y2+2i               - Second isotope peak
     - y4/0.001            - With mass delta in Da
@@ -134,6 +139,7 @@ namespace OpenMS
     std::optional<MzPAFMassDelta> mass_delta;       ///< Mass delta (/0.001, /-1.4ppm)
     std::optional<double> confidence;               ///< Confidence score (*0.75)
     std::optional<std::string> embedded_sequence;        ///< Embedded ProForma sequence string ({LC[Carbamidomethyl]})
+    std::optional<char> satellite_subtype;               ///< Optional 'a' or 'b' subtype, valid only for d- and w-ions
 
     /// Check if this annotation has minimal valid data
     bool isValid() const;
@@ -320,6 +326,7 @@ namespace OpenMS
 
       @param[in] ann The annotation to convert
       @return The mzPAF string representation
+      @throws Exception::InvalidParameter if the satellite subtype is not 'a' or 'b', or is set on a series other than d/w
     */
     static std::string toString(const MzPAFAnnotation& ann);
 
@@ -378,6 +385,10 @@ namespace OpenMS
 
       Calculates the theoretical m/z value for the annotated ion based on the sequence.
 
+      @note Satellite ions (d, v, w, including their subtypes) are parsed and serialized,
+            but their residue-dependent side-chain losses are not yet supported here;
+            these ions return std::nullopt.
+
       @param[in] ann The annotation
       @param[in] sequence The peptide sequence
       @return Theoretical m/z, or std::nullopt if calculation not possible
@@ -386,7 +397,7 @@ namespace OpenMS
       const MzPAFAnnotation& ann, const AASequence& sequence);
 
     /**
-      @brief Check if ion series is a standard fragment ion (a, b, c, x, y, z)
+      @brief Check if ion series is a peptide fragment ion (a, b, c, d, v, w, x, y, z)
 
       @param[in] series The ion series to check
       @return True if it's a standard fragment ion type
@@ -397,7 +408,8 @@ namespace OpenMS
       @brief Get the ion series character for an annotation
 
       @param[in] series The ion series enum
-      @return The character representation (a, b, c, x, y, z, p, I, m, r, f, _)
+      @return The character representation (a, b, c, d, v, w, x, y, z, p, I, m, r, f, _)
+      @note The satellite subtype is stored separately in MzPAFAnnotation::satellite_subtype.
     */
     static char ionSeriesToChar(MzPAFIonSeries series);
 
