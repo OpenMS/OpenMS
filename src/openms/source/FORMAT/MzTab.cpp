@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -1298,6 +1299,11 @@ namespace OpenMS
       current_ph = phs.at(current_psm_idx);
     }
 
+    // The PSM section describes the spectrum match: a hit whose sequence was reduced to a peptide
+    // identity (MS1LabeledWorkflow removes the labels, which belong to the channel) reports the
+    // peptidoform it was matched with, so that the calculated mass fits the precursor.
+    // current_ph is this function's own copy, so it can carry the matched peptidoform in place.
+    if (MS1LabelState::hasMatchedSequence(current_ph)) { current_ph.setSequence(MS1LabelState::matchedSequence(current_ph)); }
     const AASequence& aas = current_ph.getSequence();
     row.sequence = MzTabString(aas.toUnmodifiedString());
 

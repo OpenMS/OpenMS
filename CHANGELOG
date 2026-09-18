@@ -417,6 +417,13 @@ TOPP tools:
         (#9382). FeatureFinderCentroided uses about 20% less RAM (#9159).
       - Fixed swapped mass-trace/isotopic-pattern tolerances in FeatureFinderAlgorithmPicked
         and charge-merging crashes in FeatureLinkerUnlabeledKD (#8944, #9247, #9250).
+    MultiplexResolver, MS1LabeledWorkflow:
+      - BREAKING: `algorithm:mz_tolerance` and `algorithm:rt_tolerance` (re-exported by
+        MS1LabeledWorkflow as `resolver:mz_tolerance` / `resolver:rt_tolerance`) are now double
+        instead of int, with a minimum of 0.0. They were always read into double members, so a
+        fractional value was rejected on the command line and, in an INI file, silently stored as 0 --
+        disabling the blacklist proximity check. An INI carrying them as type="int" must be updated
+        to type="double" or the tool will refuse to start
     Other tools:
       - CometAdapter merges compatible variable modifications for faster searches and supports
         DDA-PASEF .d input; native-ID translation avoids Comet mzParser crashes (#8407,
@@ -444,6 +451,32 @@ TOPP tools:
         origins/cluster size; OpenSwathChromatogramExtractor uses CompoundName for metabolite
         chromatogram identifiers (#8864, #8907, #9271).
   New tools:
+    - MS1LabeledWorkflow: one-command quantification of MS1-labeled (SILAC, Dimethyl, ...) experiments,
+      the counterpart of ProteomicsLFQ and IsobaricWorkflow: per run FeatureFinderMultiplex, IDMapper,
+      IDConflictResolver and MultiplexResolver, then per-fraction alignment and linking (channels kept as
+      sub-features, fractions combined column-wise), protein inference/FDR and quantification, written as
+      consensusXML, mzTab and/or a QPX collection; optional match between runs (-match_between_runs)
+      lets unidentified multiplets take over identifications from other runs. The peptide identity is
+      the unlabeled sequence (the label belongs to the channel): label modifications are removed after
+      the multiplet resolution and the label state is kept on every identification (labeled_sequence,
+      removed_labels, label_channel), reported as mzTab opt_global columns and QPX cv_params; PSM-level
+      output (mzTab PSM section, QPX psm view) reports the peptidoform as searched, feature-level
+      output the peptide identity. Each column header describes its channel's labels
+      (channel_description). A spectrum match mapped onto several multiplets stays with the closest
+      one; distinct spectra of one peptide on distinct multiplets are all quantified. The reported quantity
+      is the channel ratio, computed as MaxQuant does (median of the evidence ratios per peptide, median
+      of the peptide ratios per protein group, a minimum ratio count, and a normalized variant) rather
+      than as a ratio of aggregated intensities, so no ProteinQuantifier run is needed for it. The
+      reference channel is reported with its ratio of 1.0 wherever another channel was measured
+      against it, so a consumer sees a complete set of channels; the
+      per-channel abundances are reported next to it as summed intensities. Checks up front that
+      the labels were searched as modifications, that the design enumerates the channels of -labels,
+      and that -out_qpx is only requested for labels in the QPX vocabulary (#10044).
+      Channel/pattern order and unique input/design basenames are validated before processing.
+      Native Thermo RAW input is supported with WITH_THERMO_RAW and a .NET 8+ runtime;
+      scan metadata and MS1 peaks are extracted in one RAW read, including spectrum-reference repair.
+      FAIMS CVs are preserved through ID mapping, multiplet completion and linking. A protein's
+      reference-channel ratio requires a comparison passing min_ratio_count in that fraction group (#10047).
     - FeatureLinkerWNet: Wasserstein network-flow grouping across label-free maps (#8992).
     - UniPEFF: UniProtKB XML-to-PEFF conversion with sequence, modification and variant
       annotations; optional annotation identifiers and external unimod.obo (#9649).
@@ -472,6 +505,20 @@ GUI tools:
 
 OpenMS Library:
   Added:
+    - MultiplexResolverAlgorithm: the multiplet completion and quant/ID conflict resolution of the
+      MultiplexResolver tool as a library class (DefaultParamHandler with the tool's 'algorithm' and
+      'labels' sections), shared by MultiplexResolver and MS1LabeledWorkflow (#10044)
+    - ProteinGroupArrowExport: the QPX pg view fills its previously empty additional_intensities column
+      with the channel ratio of that (protein group, fraction group, label) -- named ratio and
+      ratio_normalized under the row's own channel label -- and the number of contributing peptides
+      with cv_params/ratio_count, when the producer annotated them (MS1LabeledWorkflow does). Rows
+      without them are written as before (#10044)
+    - MS1LabelState: the label-state meta values of an MS1-labeled identification (labeled_sequence,
+      removed_labels, label_channel) and the peptidoform a hit was matched with. The mzTab PSM
+      section and the QPX psm view report that matched peptidoform (and derive the psm identity
+      from it); the QPX feature and psm views write the three values to the previously empty
+      cv_params column (ArrowIOHelpers::qpxCvParams). Identifications without a label state are
+      exported as before (#10044)
     - BrukerTimsFile (WITH_OPENTIMS): DDA-/DIA-PASEF and raw 4D access, tiered scan-to-1/K0
       calibration, optional neighboring-MS1-frame aggregation, IM hill centroiding and
       frame/RT filtering. Range-limited reads reduce I/O/memory; aggregation is faster.
