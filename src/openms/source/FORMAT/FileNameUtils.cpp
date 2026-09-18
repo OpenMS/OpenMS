@@ -8,48 +8,67 @@
 
 #include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/SYSTEM/PathUtils.h>
 
 namespace OpenMS
 {
-  FileTypes::Type FileNameUtils::getTypeByFileName(const std::string& filename)
+  namespace
   {
-    std::string basename = PathUtils::basename(filename), tmp;
-    // special rules for "double extensions":
-    if (StringUtils::hasSuffix(basename, ".pep.xml"))
+    /// Compression suffixes we see through: 'bla.mzML.gz' is an mzML, not a distinct format.
+    bool isCompressionSuffix(const std::string& suffix_upper)
     {
-      return FileTypes::PEPXML;
+      return suffix_upper == "GZ" || suffix_upper == "BZ2" || suffix_upper == "ZIP";
     }
-    if (StringUtils::hasSuffix(basename, ".prot.xml"))
-    {
-      return FileTypes::PROTXML;
-    }
-    if (StringUtils::hasSuffix(basename, ".xquest.xml"))
-    {
-      return FileTypes::XQUESTXML;
-    }
-    if (StringUtils::hasSuffix(basename, ".spec.xml"))
-    {
-      return FileTypes::SPECXML;
-    }
-    if (!StringUtils::has(basename, '.')) // no '.' => unknown type
+  }
+
+  FileTypes::Type FileNameUtils::matchExtension_(const std::string& filename, size_t& ext_start)
+  {
+    ext_start = std::string::npos;
+    // npos + 1 wraps to 0, i.e. the whole string is the basename when there is no separator
+    const size_t name_start = filename.find_last_of("\\/") + 1;
+
+    if (filename.find('.', name_start) == std::string::npos) // no '.' in the basename => no extension to match
     {
       // last chance, Bruker fid file
-      if (basename == "fid")
-      {
-        return FileTypes::XMASS;
-      }
-      return FileTypes::UNKNOWN;
-    }
-    tmp = StringUtils::suffix(basename, '.');
-    StringUtils::toUpper(tmp);
-    if (tmp == "BZ2" || tmp == "GZ" || tmp == "ZIP")
-    {
-      // do not use getTypeByContent() here, as this is deadly for output files!
-      return getTypeByFileName(StringUtils::prefix(filename, filename.size() - tmp.size() - 1)); // check name without compression suffix (e.g. bla.mzML.gz --> bla.mzML)
+      return StringUtils::substr(filename, name_start) == "fid" ? FileTypes::XMASS : FileTypes::UNKNOWN;
     }
 
-    return FileTypes::nameToType(tmp);
+    const size_t last_dot = filename.rfind('.'); // >= name_start, since the basename has a dot
+    if (isCompressionSuffix(StringUtils::toUppered(StringUtils::substr(filename, last_dot + 1))))
+    {
+      // check the name without the compression suffix (e.g. bla.mzML.gz --> bla.mzML) and report the
+      // whole '.mzML.gz' span as the extension. Do not use getTypeByContent() here, as this is deadly for output files!
+      const FileTypes::Type inner = matchExtension_(StringUtils::prefix(filename, last_dot), ext_start);
+      if (inner != FileTypes::UNKNOWN)
+      {
+        // usually ext_start already points at the inner extension. The exception is the extensionless
+        // Bruker 'fid': for 'fid.gz' the compression suffix is the only extension-shaped span there is.
+        if (ext_start == std::string::npos) ext_start = last_dot;
+        return inner;
+      }
+      ext_start = last_dot;                          // e.g. 'archive.gz' => only '.gz' is an extension
+      return FileTypes::UNKNOWN;
+    }
+
+    // Try every dot-delimited suffix of the basename. find() walks left to right and earlier dots yield
+    // longer suffixes, so the first hit is the longest match, e.g. '.pep.xml' wins over '.xml'.
+    for (size_t dot = filename.find('.', name_start); dot != std::string::npos; dot = filename.find('.', dot + 1))
+    {
+      const FileTypes::Type type = FileTypes::nameToType(StringUtils::substr(filename, dot + 1));
+      if (type != FileTypes::UNKNOWN)
+      {
+        ext_start = dot;
+        return type;
+      }
+    }
+
+    ext_start = last_dot; // unknown format, but the last dot still delimits something extension-shaped
+    return FileTypes::UNKNOWN;
+  }
+
+  FileTypes::Type FileNameUtils::getTypeByFileName(const std::string& filename)
+  {
+    size_t ext_start;
+    return matchExtension_(filename, ext_start);
   }
 
   bool FileNameUtils::hasValidExtension(const std::string& filename, const FileTypes::Type type)
@@ -60,25 +79,15 @@ namespace OpenMS
 
   std::string FileNameUtils::stripExtension(const std::string& filename)
   {
-    if (!StringUtils::has(filename, '.'))
+    // we don't just search for the last '.' and remove the suffix, because this could be wrong:
+    // 'bla.mzML.gz' must lose both suffixes and 'bla.pep.xml' must lose the compound extension as a whole
+    size_t ext_start;
+    matchExtension_(filename, ext_start);
+    if (ext_start == std::string::npos) // nothing extension-shaped, e.g. '/my.dotted.dir/filename'
     {
       return filename;
     }
-    // we don't just search for the last '.' and remove the suffix, because this could be wrong, e.g. bla.mzML.gz would become bla.mzML
-    auto type = getTypeByFileName(filename);
-    auto s_type = FileTypes::typeToName(type);
-    size_t pos = StringUtils::toLowered(filename).rfind(StringUtils::toLowered(s_type)); // search backwards in entire string, because we could search for 'mzML' and have 'mzML.gz'
-    if (pos == std::string::npos) // file type was FileTypes::UNKNOWN and we did not find '.unknown' as ending
-    {
-      size_t ext_pos = filename.rfind('.');
-      size_t dir_sep = filename.find_last_of("/\\"); // look for '/' or '\'
-      if (dir_sep != std::string::npos && dir_sep > ext_pos) // we found a directory separator after the last '.', e.g. '/my.dotted.dir/filename'! Ouch!
-      { // do not strip anything, because there is no extension to strip
-        return filename;
-      }
-      return StringUtils::prefix(filename, ext_pos);
-    }
-    return StringUtils::prefix(filename, pos - 1); // strip the '.' as well
+    return StringUtils::prefix(filename, ext_start); // strip the '.' as well
   }
 
   std::string FileNameUtils::swapExtension(const std::string& filename, const FileTypes::Type new_type)

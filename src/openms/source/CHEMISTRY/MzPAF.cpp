@@ -113,12 +113,19 @@ namespace OpenMS
   // MzPAFAnnotation implementation
   //--------------------------------------------------------------------------
 
+  namespace
+  {
+    bool hasValidSatelliteSubtype(const MzPAFAnnotation& ann)
+    {
+      return ! ann.satellite_subtype.has_value()
+             || ((ann.ion_series == MzPAFIonSeries::D || ann.ion_series == MzPAFIonSeries::W)
+                 && (ann.satellite_subtype.value() == 'a' || ann.satellite_subtype.value() == 'b'));
+    }
+  } // anonymous namespace
+
   bool MzPAFAnnotation::isValid() const
   {
-    if (ion_series == MzPAFIonSeries::UNKNOWN)
-    {
-      return false;
-    }
+    if (ion_series == MzPAFIonSeries::UNKNOWN || ! hasValidSatelliteSubtype(*this)) { return false; }
 
     // Standard fragment ions need ordinal
     if (MzPAF::isStandardFragmentIon(ion_series) && !ordinal.has_value())
@@ -161,21 +168,11 @@ namespace OpenMS
 
   bool MzPAFAnnotation::operator==(const MzPAFAnnotation& other) const
   {
-    return analyte_index == other.analyte_index &&
-           ion_series == other.ion_series &&
-           ordinal == other.ordinal &&
-           immonium_residue == other.immonium_residue &&
-           internal_range == other.internal_range &&
-           reporter_name == other.reporter_name &&
-           formula == other.formula &&
-           named_compound == other.named_compound &&
-           neutral_losses == other.neutral_losses &&
-           isotope_offset == other.isotope_offset &&
-           adduct == other.adduct &&
-           charge == other.charge &&
-           mass_delta == other.mass_delta &&
-           confidence == other.confidence &&
-           embedded_sequence == other.embedded_sequence;
+    return analyte_index == other.analyte_index && ion_series == other.ion_series && satellite_subtype == other.satellite_subtype
+           && ordinal == other.ordinal && immonium_residue == other.immonium_residue && internal_range == other.internal_range
+           && reporter_name == other.reporter_name && formula == other.formula && named_compound == other.named_compound
+           && neutral_losses == other.neutral_losses && isotope_offset == other.isotope_offset && adduct == other.adduct && charge == other.charge
+           && mass_delta == other.mass_delta && confidence == other.confidence && embedded_sequence == other.embedded_sequence;
   }
 
   std::ostream& operator<<(std::ostream& os, const MzPAFAnnotation& ann)
@@ -449,15 +446,24 @@ namespace OpenMS
 
         char first = text[0];
 
-        // Standard fragment ions: a, b, c, x, y, z
-        if (first == 'a' || first == 'b' || first == 'c' ||
-            first == 'x' || first == 'y' || first == 'z')
+        // Peptide fragment ions, including d/v/w satellite ions
+        if (first == 'a' || first == 'b' || first == 'c' || first == 'x' || first == 'y' || first == 'z' || first == 'd' || first == 'v'
+            || first == 'w')
         {
           MzPAF::charToIonSeries(first, ann.ion_series);
 
-          if (text.size() > 1 && std::isdigit(text[1]))
+          // Only d/w allow the a/b subtype (da, db, wa, wb).
+          size_t ordinal_start = 1;
+          if ((first == 'd' || first == 'w') && text.size() > 1 && (text[1] == 'a' || text[1] == 'b'))
           {
-            ann.ordinal = parseInt_(StringUtils::substr(text, 1), MzPAFErrorCode::INVALID_NUMBER, "Invalid ordinal number");
+            ann.satellite_subtype = text[1];
+            ordinal_start = 2;
+          }
+
+          if (text.size() > ordinal_start)
+          {
+            // Parse the entire suffix so invalid subtype letters cannot be silently discarded.
+            ann.ordinal = parseInt_(text.substr(ordinal_start), MzPAFErrorCode::INVALID_NUMBER, "Invalid ordinal number");
             advance_();
           }
           else
@@ -872,6 +878,12 @@ namespace OpenMS
 
   std::string MzPAF::toString(const MzPAFAnnotation& ann)
   {
+    if (! hasValidSatelliteSubtype(ann))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Satellite subtype must be 'a' or 'b' and is only valid for d- and w-ions");
+    }
+
     std::ostringstream oss;
 
     // Analyte index
@@ -889,7 +901,11 @@ namespace OpenMS
       case MzPAFIonSeries::X:
       case MzPAFIonSeries::Y:
       case MzPAFIonSeries::Z:
+      case MzPAFIonSeries::D:
+      case MzPAFIonSeries::V:
+      case MzPAFIonSeries::W:
         oss << ionSeriesToChar(ann.ion_series);
+        if (ann.satellite_subtype.has_value()) { oss << ann.satellite_subtype.value(); }
         if (ann.ordinal.has_value())
         {
           oss << ann.ordinal.value();
@@ -1048,9 +1064,9 @@ namespace OpenMS
 
   bool MzPAF::isStandardFragmentIon(MzPAFIonSeries series)
   {
-    return series == MzPAFIonSeries::A || series == MzPAFIonSeries::B ||
-           series == MzPAFIonSeries::C || series == MzPAFIonSeries::X ||
-           series == MzPAFIonSeries::Y || series == MzPAFIonSeries::Z;
+    return series == MzPAFIonSeries::A || series == MzPAFIonSeries::B || series == MzPAFIonSeries::C || series == MzPAFIonSeries::X
+           || series == MzPAFIonSeries::Y || series == MzPAFIonSeries::Z || series == MzPAFIonSeries::D || series == MzPAFIonSeries::V
+           || series == MzPAFIonSeries::W;
   }
 
   bool MzPAF::isMzPAFFormat(const std::string& annotation)
@@ -1062,11 +1078,8 @@ namespace OpenMS
 
     char first = annotation[0];
 
-    if (first == 'a' || first == 'b' || first == 'c' ||
-        first == 'x' || first == 'y' || first == 'z' ||
-        first == 'p' || first == 'I' || first == 'm' ||
-        first == 'r' || first == 'f' || first == '_' ||
-        std::isdigit(first))
+    if (first == 'a' || first == 'b' || first == 'c' || first == 'x' || first == 'y' || first == 'z' || first == 'd' || first == 'v' || first == 'w'
+        || first == 'p' || first == 'I' || first == 'm' || first == 'r' || first == 'f' || first == '_' || std::isdigit(first))
     {
       return tryParse(annotation).has_value();
     }
@@ -1118,6 +1131,11 @@ namespace OpenMS
       case MzPAFIonSeries::Z:
         mass = sequence.getSuffix(pos).getMonoWeight(Residue::ZIon);
         break;
+      case MzPAFIonSeries::D:
+      case MzPAFIonSeries::V:
+      case MzPAFIonSeries::W:
+        // Satellite masses require residue-dependent side-chain losses.
+        return std::nullopt;
       default:
         return std::nullopt;
     }
@@ -1150,6 +1168,12 @@ namespace OpenMS
       case MzPAFIonSeries::X: return 'x';
       case MzPAFIonSeries::Y: return 'y';
       case MzPAFIonSeries::Z: return 'z';
+      case MzPAFIonSeries::D:
+        return 'd';
+      case MzPAFIonSeries::V:
+        return 'v';
+      case MzPAFIonSeries::W:
+        return 'w';
       case MzPAFIonSeries::PRECURSOR: return 'p';
       case MzPAFIonSeries::IMMONIUM: return 'I';
       case MzPAFIonSeries::INTERNAL: return 'm';
@@ -1171,6 +1195,15 @@ namespace OpenMS
       case 'x': series = MzPAFIonSeries::X; return true;
       case 'y': series = MzPAFIonSeries::Y; return true;
       case 'z': series = MzPAFIonSeries::Z; return true;
+      case 'd':
+        series = MzPAFIonSeries::D;
+        return true;
+      case 'v':
+        series = MzPAFIonSeries::V;
+        return true;
+      case 'w':
+        series = MzPAFIonSeries::W;
+        return true;
       case 'p': series = MzPAFIonSeries::PRECURSOR; return true;
       case 'I': series = MzPAFIonSeries::IMMONIUM; return true;
       case 'm': series = MzPAFIonSeries::INTERNAL; return true;

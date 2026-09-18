@@ -14,6 +14,10 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
+#include <map>
+#include <string>
+#include <vector>
+
 
 ///////////////////////////
 
@@ -110,6 +114,58 @@ START_SECTION((static Type nameToType(const std::string& name)))
   TEST_EQUAL(FileTypes::BRUKER_TDF, FileTypes::nameToType("d"));
 
   TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("somethingunknown"));
+
+  // registered aliases resolve to the same type as the preferred extension, case-insensitively
+  TEST_EQUAL(FileTypes::FASTA, FileTypes::nameToType("fa"));
+  TEST_EQUAL(FileTypes::FASTA, FileTypes::nameToType("faa"));
+  TEST_EQUAL(FileTypes::FASTA, FileTypes::nameToType("FaA"));
+  TEST_EQUAL(FileTypes::PEPXML, FileTypes::nameToType("pep.xml"));
+  TEST_EQUAL(FileTypes::PEPXML, FileTypes::nameToType("PEP.XML"));
+  TEST_EQUAL(FileTypes::PROTXML, FileTypes::nameToType("prot.xml"));
+  TEST_EQUAL(FileTypes::PARQUET, FileTypes::nameToType("PQT"));
+  // CSV and TSV stay distinct types; having aliases does not merge formats
+  TEST_NOT_EQUAL(FileTypes::nameToType("csv"), FileTypes::nameToType("tsv"));
+}
+END_SECTION
+
+START_SECTION((static std::vector<std::string> typeToExtensions(Type type)))
+{
+  // preferred extension first, aliases after
+  TEST_EQUAL(FileTypes::typeToExtensions(FileTypes::FASTA) == std::vector<std::string>({"fasta", "fa", "faa"}), true);
+  TEST_EQUAL(FileTypes::typeToExtensions(FileTypes::PEPXML) == std::vector<std::string>({"pepXML", "pep.xml"}), true);
+  TEST_EQUAL(FileTypes::typeToExtensions(FileTypes::PROTXML) == std::vector<std::string>({"protXML", "prot.xml"}), true);
+  TEST_EQUAL(FileTypes::typeToExtensions(FileTypes::PARQUET) == std::vector<std::string>({"parquet", "pqt"}), true);
+  // a type without aliases yields just its preferred extension
+  TEST_EQUAL(FileTypes::typeToExtensions(FileTypes::MZML) == std::vector<std::string>({"mzML"}), true);
+
+  // every type is covered, the first entry always matches typeToName(), and every extension round-trips
+  for (int i = 0; i < (int)FileTypes::SIZE_OF_TYPE; ++i)
+  {
+    const FileTypes::Type type = FileTypes::Type(i);
+    const std::vector<std::string> exts = FileTypes::typeToExtensions(type);
+    TEST_EQUAL(exts.empty(), false);
+    TEST_STRING_EQUAL(exts.front(), FileTypes::typeToName(type));
+    for (const auto& ext : exts)
+    {
+      TEST_EQUAL(FileTypes::nameToType(ext), type);
+    }
+  }
+
+  // no extension may be claimed by two types, otherwise filename matching would be ambiguous
+  std::map<std::string, FileTypes::Type> seen;
+  for (int i = 0; i < (int)FileTypes::SIZE_OF_TYPE; ++i)
+  {
+    for (const auto& ext : FileTypes::typeToExtensions(FileTypes::Type(i)))
+    {
+      const std::string key = StringUtils::toLowered(ext);
+      TEST_EQUAL(seen.find(key) == seen.end(), true);
+      if (seen.find(key) != seen.end())
+      {
+        std::cerr << "extension '" << ext << "' is claimed by two types" << std::endl;
+      }
+      seen[key] = FileTypes::Type(i);
+    }
+  }
 }
 END_SECTION
 

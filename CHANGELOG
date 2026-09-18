@@ -505,6 +505,12 @@ GUI tools:
 
 OpenMS Library:
   Added:
+    - FileTypes: a file type may now register additional accepted extensions besides its preferred
+      one. FileTypes::typeToExtensions() lists them (preferred first) and nameToType() resolves them
+      case-insensitively: 'fa'/'faa' for FASTA, 'pep.xml' for pepXML, 'prot.xml' for protXML and
+      'pqt' for parquet. typeToName() still returns the single preferred extension, which is what
+      OpenMS writes, and formats that merely share an extension family (e.g. CSV and TSV) remain
+      distinct types (#490)
     - MultiplexResolverAlgorithm: the multiplet completion and quant/ID conflict resolution of the
       MultiplexResolver tool as a library class (DefaultParamHandler with the tool's 'algorithm' and
       'labels' sections), shared by MultiplexResolver and MS1LabeledWorkflow (#10044)
@@ -560,6 +566,9 @@ OpenMS Library:
     - Standards: ProForma v2 parsing/serialization (LOSSLESS/CANONICAL), AASequence
       conversion, mass calculation and JSON support; MzPAF peak annotations; USI parsing/
       construction; SpectrumNativeIDParser (#8637, #8648, #8684, #8686).
+    - MzPAF accepts and writes d/v/w satellite ions and the da/db/wa/wb subtypes,
+      including validation, peak annotation conversion and pyOpenMS bindings (#10175).
+      Satellite-ion mass calculation and theoretical spectrum generation remain unsupported.
     - Added IsoelectricPoint, hydrophobicity profiles, protein SequenceCoverage,
       ModifiedSincSmoother, programmatic FileInfo, CCS conversion and MSExperiment
       rasterization. Extended PeakFileOptions and on-disc filtering, peak annotations,
@@ -715,6 +724,11 @@ Fixes:
       columns. SampleSection::getFactorValue throws MissingInformation for a row without a value
       for the factor instead of reading past its end (#10148).
   Robustness:
+    - BREAKING: FileHandler/FileNameUtils::stripExtension() now removes the whole recognized
+      extension instead of searching the path for the canonical type name. 'a.pep.xml' yields 'a'
+      rather than 'a.pep', and 'a.pep.xml.gz' yields 'a' rather than 'a.pep.xml'. File::extension()
+      reports the same span ('.pep.xml'), and an extensionless file in a dotted directory
+      ('/my.dir/fid') is no longer truncated. swapExtension() follows (#490).
     - File::writable checks no longer delete concurrently created files or report spurious
       failures; temporary directories are claimed atomically. UUID/unique-ID generation
       avoids weak-entropy/parallel-process collisions (#8678, #9703, #9937, #9940, #9941, #9965).
