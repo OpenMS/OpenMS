@@ -556,7 +556,7 @@ namespace OpenMS
       const simde__m128i w2 = simde_mm_set1_epi8('\n');
       const simde__m128i w3 = simde_mm_set1_epi8('\r');
 
-      for (; p <= p_end - 16; p += 16)
+      for (; p_end - p >= 16; p += 16)
       {
         const simde__m128i s = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(p));
         simde__m128i x = simde_mm_cmpeq_epi8(s, w0);
@@ -591,7 +591,7 @@ namespace OpenMS
       const simde__m128i w2 = simde_mm_set1_epi8('\n');
       const simde__m128i w3 = simde_mm_set1_epi8('\r');
 
-      for (; p <= p_end - 16; p += 16)
+      for (; p_end - p >= 16; p += 16)
       {
         const simde__m128i s = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(p));
         simde__m128i x = simde_mm_cmpeq_epi8(s, w0);
