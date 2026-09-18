@@ -28,11 +28,32 @@
 #endif
 
 #include <cmath>
+#include <optional>
 
 namespace OpenMS::Internal
 {
 
     namespace Sql = Internal::SqliteHelper;
+
+    namespace
+    {
+      /// Activation method stored in column @p col, or nothing if the column is NULL, -1 (no method) or not a
+      /// valid ActivationMethod. The column is read as 64-bit: sqlite3_column_int() truncates larger values, which
+      /// could turn them negative or into a wrong but valid method.
+      std::optional<Precursor::ActivationMethod> readActivationMethod(sqlite3_stmt* stmt, int col)
+      {
+        if (sqlite3_column_type(stmt, col) == SQLITE_NULL)
+        {
+          return std::nullopt;
+        }
+        const sqlite3_int64 value = sqlite3_column_int64(stmt, col);
+        if (value < 0 || value >= static_cast<sqlite3_int64>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
+        {
+          return std::nullopt;
+        }
+        return static_cast<Precursor::ActivationMethod>(value);
+      }
+    }
 
   /**
    * @brief Helper function to concatenate integers with "," for SQL IN(...) lists.
@@ -706,10 +727,9 @@ namespace OpenMS::Internal
             product.setIsolationWindowUpperOffset(offset_value);
           }
         }
-        if (sqlite3_column_type(stmt, 12) != SQLITE_NULL && sqlite3_column_int(stmt, 12) >= 0
-            && sqlite3_column_int(stmt, 12) < static_cast<int>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
+        if (const auto activation = readActivationMethod(stmt, 12))
         {
-          precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 12)));
+          precursor.getActivationMethods().insert(*activation);
         }
         if (sqlite3_column_type(stmt, 13) != SQLITE_NULL)
         {
@@ -850,10 +870,9 @@ namespace OpenMS::Internal
             spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
           }
         }
-        if (sqlite3_column_type(stmt, 15) != SQLITE_NULL && sqlite3_column_int(stmt, 15) >= 0
-            && sqlite3_column_int(stmt, 15) < static_cast<int>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
+        if (const auto activation = readActivationMethod(stmt, 15))
         {
-          precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 15)));
+          precursor.getActivationMethods().insert(*activation);
         }
         if (sqlite3_column_type(stmt, 16) != SQLITE_NULL)
         {
