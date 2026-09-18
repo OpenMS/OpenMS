@@ -1,0 +1,6 @@
+The implementation of the Composition is derived from Pyteomics, 
+
+Goloborodko, A.A.; Levitsky, L.I.; Ivanov, M.V.; and Gorshkov, M.V. (2013)
+"Pyteomics - a Python Framework for Exploratory Data Analysis and Rapid Software
+Prototyping in Proteomics", Journal of The American Society for Mass Spectrometry,
+24(2), 301–304. DOI: `10.1007/s13361-012-0516-6 <http://dx.doi.org/10.1007/s13361-012-0516-6>`_

@@ -12,9 +12,14 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/test_config.h>
 #include <algorithm>
+#include <fstream>
 #include <set>
+#include <sstream>
+#include <stdexcept>
 #include <string_view>
+#include <tuple>
 
 using namespace OpenMS;
 using Generator = TheoreticalGlycanSpectrumGenerator;
@@ -38,6 +43,67 @@ const Generator::Fragment& findIon(const std::vector<Generator::Fragment>& fragm
   const auto it = std::find_if(fragments.begin(), fragments.end(), [&](const auto& f) { return f.name == name && f.charge == charge; });
   if (it == fragments.end()) { throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Missing ion: " + std::string(name)); }
   return *it;
+}
+
+using GlypyKey = std::tuple<Ion, std::optional<Size>, std::vector<Size>>;
+struct GlypyCase
+{
+  GlycanStructure tree;
+  std::map<GlypyKey, double> masses;
+};
+
+std::map<std::string, GlypyCase> loadGlypyCases()
+{
+  std::ifstream input(OPENMS_GET_TEST_DATA_PATH("TheoreticalGlycanSpectrumGenerator_glypy/structural.tsv"));
+  if (! input) { throw std::runtime_error("Cannot open GlyPy structural fixture"); }
+  std::map<std::string, GlypyCase> cases;
+  const std::map<char, Ion> ion_types {{'B', Ion::B}, {'C', Ion::C}, {'Y', Ion::Y}, {'Z', Ion::Z}};
+  for (std::string line; std::getline(input, line);)
+  {
+    if (line.empty() || line[0] == '#') { continue; }
+    std::istringstream row(line);
+    char record;
+    std::string fixture;
+    row >> record >> fixture;
+    auto& reference = cases[fixture];
+    if (record == 'N')
+    {
+      Size index;
+      Int parent;
+      std::string symbol;
+      row >> index >> parent >> symbol;
+      if (! row) { throw std::runtime_error("Malformed GlyPy node: " + line); }
+      const auto attachment = parent < 0 ? std::nullopt : std::optional<Size>(parent);
+      const auto actual_index = symbol.starts_with("Formula:")
+                                  ? reference.tree.addMonosaccharide(ProForma::FormulaTag {symbol.substr(8), std::nullopt}, attachment)
+                                  : reference.tree.addMonosaccharide(symbol, attachment);
+      if (actual_index != index) { throw std::runtime_error("Unexpected GlyPy node order: " + line); }
+    }
+    else if (record == 'F')
+    {
+      char series;
+      Int root;
+      std::string branches;
+      double mass;
+      row >> series >> root >> branches >> mass;
+      if (! row) { throw std::runtime_error("Malformed GlyPy fragment: " + line); }
+      std::vector<Size> cuts;
+      if (branches != "-")
+      {
+        std::replace(branches.begin(), branches.end(), ',', ' ');
+        std::istringstream branch_stream(branches);
+        for (Size cut; branch_stream >> cut;)
+        {
+          cuts.push_back(cut);
+        }
+      }
+      const auto root_cut = root < 0 ? std::nullopt : std::optional<Size>(root);
+      const auto inserted = reference.masses.emplace(GlypyKey {ion_types.at(series), root_cut, cuts}, mass);
+      if (! inserted.second) { throw std::runtime_error("Duplicate GlyPy interpretation: " + line); }
+    }
+    else { throw std::runtime_error("Unknown GlyPy record: " + line); }
+  }
+  return cases;
 }
 } // namespace
 
@@ -194,6 +260,112 @@ START_SECTION((branched tree fragments preserve cleavage identity and connectivi
   {
     TEST_TRUE(ion.branch_cleavages.size() + (ion.root_cleavage.has_value() ? 1 : 0) <= 1)
   }
+}
+END_SECTION
+
+START_SECTION((GlyPy stored fragment masses match the supported glycosidic series))
+{
+  // Adapted Apache-2.0 fixtures, pinned sources and notices are in the data directory.
+  TOLERANCE_ABSOLUTE(0.0001)
+  TOLERANCE_RELATIVE(1.0)
+  Generator::Options options;
+  options.add_diagnostic_ions = false;
+  options.add_c_ions = options.add_z_ions = true;
+  options.max_cleavages = 3;
+  options.max_charge = 1;
+  const auto cases = loadGlypyCases();
+  std::map<std::string, std::vector<double>> observed, expected;
+  const std::map<Ion, char> series {{Ion::B, 'B'}, {Ion::C, 'C'}, {Ion::Y, 'Y'}, {Ion::Z, 'Z'}};
+  for (const auto& fragment : Generator(options).getFragments(cases.at("common_glycan").tree))
+  {
+    // GlyPy has no virtual bond below the reducing-end residue.
+    if (fragment.root_cleavage == 0 || fragment.branch_cleavages == std::vector<Size> {0}) { continue; }
+    const auto kind = fragment.root_cleavage ? std::string(1, series.at(fragment.ion_type)) + std::string(fragment.branch_cleavages.size(), 'Y')
+                                             : std::string(fragment.branch_cleavages.size(), series.at(fragment.ion_type));
+    observed[kind].push_back(fragment.neutral_mass);
+  }
+  std::ifstream input(OPENMS_GET_TEST_DATA_PATH("TheoreticalGlycanSpectrumGenerator_glypy/stored_masses.tsv"));
+  TEST_TRUE(input.good())
+  Size count = 0;
+  for (std::string line; std::getline(input, line);)
+  {
+    if (line.empty() || line[0] == '#') { continue; }
+    std::istringstream row(line);
+    std::string kind;
+    double mass;
+    row >> kind >> mass;
+    if (! row) { throw std::runtime_error("Malformed GlyPy stored mass: " + line); }
+    expected[kind].push_back(mass);
+    ++count;
+  }
+  TEST_EQUAL(count, 96)
+  TEST_EQUAL(observed.size(), expected.size())
+  for (auto& [kind, masses] : expected)
+  {
+    STATUS("GlyPy stored kind: " << kind)
+    auto& actual = observed[kind];
+    TEST_EQUAL(actual.size(), masses.size())
+    std::sort(actual.begin(), actual.end());
+    std::sort(masses.begin(), masses.end());
+    for (Size i = 0; i < std::min(actual.size(), masses.size()); ++i)
+    {
+      TEST_REAL_SIMILAR(actual[i], masses[i])
+    }
+  }
+  TOLERANCE_ABSOLUTE(0.00001)
+  TOLERANCE_RELATIVE(1.00000001)
+}
+END_SECTION
+
+START_SECTION((GlyPy tree fixtures preserve cleavage identities and masses at charges one to three))
+{
+  TOLERANCE_ABSOLUTE(0.0001)
+  TOLERANCE_RELATIVE(1.0)
+  const auto cases = loadGlypyCases();
+  TEST_EQUAL(cases.size(), 3)
+  Size comparisons = 0;
+  for (const auto& [fixture, reference] : cases)
+  {
+    for (Size max_cleavages = 1; max_cleavages <= 3; ++max_cleavages)
+    {
+      STATUS("GlyPy fixture: " << fixture << "; maximum cleavages: " << max_cleavages)
+      Generator::Options options;
+      options.add_diagnostic_ions = false;
+      options.add_c_ions = options.add_z_ions = true;
+      options.max_charge = 3;
+      options.max_cleavages = max_cleavages;
+      using ChargedKey = std::pair<GlypyKey, Int>;
+      std::map<ChargedKey, Generator::Fragment> observed;
+      for (const auto& fragment : Generator(options).getFragments(reference.tree))
+      {
+        if (fragment.root_cleavage == 0 || fragment.branch_cleavages == std::vector<Size> {0}) { continue; }
+        const GlypyKey key {fragment.ion_type, fragment.root_cleavage, fragment.branch_cleavages};
+        const auto inserted = observed.emplace(ChargedKey {key, fragment.charge}, fragment);
+        TEST_TRUE(inserted.second)
+      }
+      Size expected_count = 0;
+      for (const auto& [key, mass] : reference.masses)
+      {
+        const auto& [series, root, branches] = key;
+        if (branches.size() + root.has_value() > max_cleavages) { continue; }
+        for (Int charge = 1; charge <= 3; ++charge)
+        {
+          ++expected_count;
+          const auto found = observed.find(ChargedKey {key, charge});
+          TEST_TRUE(found != observed.end())
+          if (found == observed.end()) { continue; }
+          TEST_REAL_SIMILAR(found->second.neutral_mass, mass)
+          // Independent proton mass used by Pyteomics 5.0.1 (see fixture README).
+          TEST_REAL_SIMILAR(found->second.getMZ(), mass / charge + 1.00727646677)
+          ++comparisons;
+        }
+      }
+      TEST_EQUAL(observed.size(), expected_count)
+    }
+  }
+  TEST_EQUAL(comparisons, 2892)
+  TOLERANCE_ABSOLUTE(0.00001)
+  TOLERANCE_RELATIVE(1.00000001)
 }
 END_SECTION
 
