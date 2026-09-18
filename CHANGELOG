@@ -664,6 +664,10 @@ Fixes:
       TheoreticalSpectrumGeneratorXLMS and SimpleTSGXLMS: the loss was subtracted from the already
       charge-divided position and divided by the charge again, so these peaks sat at roughly half
       their true m/z. OpenPepXL scores and annotations of such peaks change accordingly (#10148).
+    - IDFilter -in_silico_digestion rejected correctly positioned peptides: the digestion check
+      used end - start as the peptide length although evidence end positions are inclusive, so
+      every length was one short and the C-terminal cleavage site was checked one residue too
+      early. Results of in-silico digestion filtering change accordingly (#10148).
   Quantification and numerical correctness:
     - ExperimentalDesign mappings use sample names consistently. Protein-group quantities
       survive ID filtering; ProtXML excludes ProteinProphet's unneeded/subsumed groups
