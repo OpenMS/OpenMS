@@ -1,0 +1,81 @@
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# $Maintainer: Timo Sachsenberg $
+"""Regenerate structural.tsv with glypy==1.0.17; no OpenMS import or network."""
+
+import json
+from importlib.metadata import version
+from pathlib import Path
+
+from glypy.io import glycoct
+from glypy.structure.glycan_composition import MonosaccharideResidue
+
+ROOT = Path(__file__).resolve().parent
+SYMBOLS = {
+    "Glc": "Hex", "Gal": "Hex", "Man": "Hex", "Hex": "Hex",
+    "Glc2NAc": "HexNAc", "Gal2NAc": "HexNAc", "HexNAc": "HexNAc",
+    "Fuc": "Fuc", "Neu5Ac": "Neu5Ac", "Neu5Gc": "Neu5Gc",
+}
+
+
+def snapshot(name, text):
+    glycan = glycoct.loads(text)
+    indices = {}
+    rows = []
+
+    def visit(node, parent=-1):
+        index = len(indices)
+        indices[node.id] = index
+        residue = MonosaccharideResidue.from_monosaccharide(node)
+        symbol = SYMBOLS.get(str(residue))
+        if symbol is None:
+            formula = "".join(f"{atom}{count}" for atom, count in
+                              sorted(residue.total_composition().items()) if count)
+            symbol = "Formula:" + formula
+        rows.append(f"N\t{name}\t{index}\t{parent}\t{symbol}")
+        for _, child in node.children():
+            visit(child, index)
+
+    visit(glycan.root)
+    links = {link.id: link for _, link in glycan.iterlinks()}
+    fragments = {}
+    for fragment in glycan.fragments("BCYZ", max_cleavages=3):
+        cuts = [(indices[links[link_id].child.id], kind)
+                for link_id, (_, kind) in fragment.link_ids.items()]
+        roots = [(node, kind) for node, kind in cuts if kind in ("B", "C")]
+        if roots:
+            if len(roots) != 1 or any(kind != "Y" for _, kind in cuts if kind not in ("B", "C")):
+                continue
+            root, series = roots[0]
+            branches = tuple(sorted(node for node, kind in cuts if kind == "Y"))
+        else:
+            kinds = {kind for _, kind in cuts}
+            if kinds not in ({"Y"}, {"Z"}):
+                continue
+            root, series = -1, next(iter(kinds))
+            branches = tuple(sorted(node for node, _ in cuts))
+        key = series, root, branches
+        if key in fragments:
+            assert abs(fragments[key] - fragment.mass) < 1e-9
+        fragments[key] = fragment.mass
+    for (series, root, branches), mass in sorted(fragments.items()):
+        branch_text = ",".join(map(str, branches)) or "-"
+        rows.append(f"F\t{name}\t{series}\t{root}\t{branch_text}\t{mass:.11f}")
+    return rows
+
+
+if __name__ == "__main__":
+    if version("glypy") != "1.0.17":
+        raise SystemExit("Use glypy==1.0.17 to preserve the reference version")
+    inputs = json.loads((ROOT / "structures.json").read_text())
+    lines = [
+        "# SPDX-License-Identifier: Apache-2.0",
+        "# Modified from GlyPy fixtures: selected trees, parent-first node indices,",
+        "# canonical residue symbols/formulas, and GlyPy 1.0.17 neutral fragment masses.",
+        "# Source revision: 8d129a8c950e8635165cda9b4b1af392d4e7289e; see README.md, LICENSE, NOTICE.",
+        "# N: fixture, node index, parent (-1 = root), residue symbol or Formula:formula",
+        "# F: fixture, series, root cleavage (-1 = none), branch cleavages (- = none), neutral mass (Da)",
+    ]
+    for name, text in inputs["structures"].items():
+        lines.extend(snapshot(name, text))
+    (ROOT / "structural.tsv").write_text("\n".join(lines) + "\n")

@@ -1,0 +1,10 @@
+{
+  "license": "Apache-2.0",
+  "source": "https://github.com/mobiusklein/glypy/blob/8d129a8c950e8635165cda9b4b1af392d4e7289e/tests/common.py",
+  "modifications": "Three structures extracted from the upstream Python dictionary and stored as JSON; GlycoCT strings unchanged. See LICENSE and NOTICE.",
+  "structures": {
+    "common_glycan": "\nRES\n1b:b-dglc-HEX-1:5\n2b:b-dgal-HEX-1:5\n3b:b-dglc-HEX-1:5\n4s:n-acetyl\n5b:a-lgal-HEX-1:5|6:d\n6b:b-dgal-HEX-1:5\n7b:b-dglc-HEX-1:5\n8s:n-acetyl\n9b:a-lgal-HEX-1:5|6:d\n10b:b-dgal-HEX-1:5\nLIN\n1:1o(4+1)2d\n2:2o(3+1)3d\n3:3d(2+1)4n\n4:3o(3+1)5d\n5:3o(4+1)6d\n6:6o(3+1)7d\n7:7d(2+1)8n\n8:7o(3+1)9d\n9:7o(4+1)10d",
+    "branchy_glycan": "\nRES\n1b:x-dglc-HEX-x:x\n2s:n-acetyl\n3b:b-dman-HEX-1:5\n4b:a-dman-HEX-1:5\n5b:b-dglc-HEX-1:5\n6s:n-acetyl\n7b:b-dgal-HEX-1:5\n8b:b-dglc-HEX-1:5\n9s:n-acetyl\n10b:b-dgal-HEX-1:5\n11b:a-dman-HEX-1:5\n12b:b-dglc-HEX-1:5\n13s:n-acetyl\n14b:b-dgal-HEX-1:5\nLIN\n1:1d(2+1)2n\n2:1o(4+1)3d\n3:3o(3+1)11d\n4:3o(6+1)4d\n5:4o(2+1)8d\n6:4o(6+1)5d\n7:5d(2+1)6n\n8:5o(4+1)7d\n9:8d(2+1)9n\n10:8o(4+1)10d\n11:11o(2+1)12d\n12:12d(2+1)13n\n13:12o(4+1)14d",
+    "G58143RL": "\nRES\n1b:x-dglc-HEX-1:5\n2s:n-acetyl\n3b:b-dglc-HEX-1:5\n4s:n-acetyl\n5b:b-dman-HEX-1:5\n6b:a-dman-HEX-1:5\n7b:b-dglc-HEX-1:5\n8s:n-acetyl\n9b:b-dgal-HEX-1:5\n10b:a-dgro-dgal-NON-2:6|1:a|2:keto|3:d\n11s:n-acetyl\n12b:a-dman-HEX-1:5\n13b:b-dglc-HEX-1:5\n14s:n-acetyl\n15b:b-dgal-HEX-1:5\n16b:a-dgro-dgal-NON-2:6|1:a|2:keto|3:d\n17s:n-acetyl\n18s:sulfate\n19b:a-lgal-HEX-1:5|6:d\nLIN\n1:1d(2+1)2n\n2:1o(4+1)3d\n3:3d(2+1)4n\n4:3o(4+1)5d\n5:5o(3+1)6d\n6:6o(2+1)7d\n7:7d(2+1)8n\n8:7o(4+1)9d\n9:9o(6+2)10d\n10:10d(5+1)11n\n11:5o(6+1)12d\n12:12o(2+1)13d\n13:13d(2+1)14n\n14:13o(4+1)15d\n15:15o(6+2)16d\n16:16d(5+1)17n\n17:13o(6+1)18n\n18:1o(6+1)19d"
+  }
+}
