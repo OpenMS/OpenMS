@@ -476,13 +476,11 @@ std::vector<Fragment> TheoreticalGlycanSpectrumGenerator::generate_(const Compos
     if (method != FragmentationMethod::HCD)
     {
       series_types.emplace_back('c', Residue::CIon);
-      series_types.emplace_back('z', Residue::ZIon);
+      // Zp1Ion is the radical z+1 form, the main electron-transfer fragment.
+      series_types.emplace_back('z', Residue::Zp1Ion);
     }
     for (const auto& [series, type] : series_types)
     {
-      // AASequence does not support Zp1Ion. Its ZIon path preserves C-terminal
-      // modifications; adding one hydrogen converts it to the radical z+1 form.
-      const auto radical_shift = series == 'z' ? EmpiricalFormula("H") : EmpiricalFormula();
       PeptideRetention retention;
       if (method != FragmentationMethod::HCD)
       {
@@ -505,8 +503,8 @@ std::vector<Fragment> TheoreticalGlycanSpectrumGenerator::generate_(const Compos
         visit();
         const bool prefix = series == 'b' || series == 'c';
         const auto part = prefix ? peptide->getPrefix(ordinal) : peptide->getSuffix(ordinal);
-        const auto part_formula = part.getFormula(type) + radical_shift;
-        const double part_mass = part.getMonoWeight(type) + radical_shift.getMonoWeight();
+        const auto part_formula = part.getFormula(type);
+        const double part_mass = part.getMonoWeight(type);
         const bool contains_site = prefix ? site < ordinal : site >= peptide->size() - ordinal;
         const auto forms = contains_site ? retained_forms : std::vector<Components> {{}};
         for (const auto& retained : forms)
