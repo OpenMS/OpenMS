@@ -64,22 +64,41 @@ we are going to try to continue building.")
     # find_package calls and their resulting imported targets
     # since boost CMake does not expose this transitive dependency as targets!
     # see https://github.com/boostorg/boost_install/issues/64
-    # Only rewrite what we actually found, and only the ICU entries: naming an
-    # imported target that no find_package created is a hard error at generate
-    # time ("the link interface contains ICU::data but the target was not
-    # found"), and this is the only find_package(ICU) in the project.
-    if (libs MATCHES "icui18n")
-      find_package(ICU COMPONENTS "data" "uc" "i18n")
-      if (TARGET ICU::data AND TARGET ICU::uc AND TARGET ICU::i18n)
-        list(FILTER libs EXCLUDE REGEX "icu(data|uc|i18n)")
-        list(APPEND libs ICU::data ICU::uc ICU::i18n)
+    # Translate exactly the ICU libraries boost listed, component by component:
+    # which ones it links depends on how it was built, so requesting or
+    # substituting a component it does not use would invent a dependency.
+    # Substitute only components that were found, because naming an imported
+    # target no find_package created is a hard error at generate time ("the
+    # link interface contains ICU::data but the target was not found") -- this
+    # is the only find_package(ICU) in the project. Components per FindICU.
+    set(_icu_components)
+    foreach (_icu_component data i18n io le lx test tu uc)
+      if (libs MATCHES "icu${_icu_component}")
+        list(APPEND _icu_components ${_icu_component})
+      endif()
+    endforeach()
+    if (_icu_components)
+      find_package(ICU COMPONENTS ${_icu_components})
+      set(_icu_targets)
+      foreach (_icu_component ${_icu_components})
+        if (TARGET ICU::${_icu_component})
+          list(FILTER libs EXCLUDE REGEX "icu${_icu_component}")
+          list(APPEND _icu_targets ICU::${_icu_component})
+        else()
+          message(WARNING "Boost::regex links icu${_icu_component}, but the ICU ${_icu_component} component was not \
+found. Leaving boost's plain link flag for it in place; if linking fails, install ICU (e.g. 'brew install icu4c') or \
+use '-DBOOST_USE_STATIC=OFF'.")
+        endif()
+      endforeach()
+      if (_icu_targets)
+        list(APPEND libs ${_icu_targets})
         set_target_properties(Boost::regex
                 PROPERTIES INTERFACE_LINK_LIBRARIES "${libs}")
-      else()
-        message(WARNING "Boost::regex links ICU, but ICU was not found. Leaving its plain -licu* link flags in place; \
-if linking fails, install ICU (e.g. 'brew install icu4c') or use '-DBOOST_USE_STATIC=OFF'.")
       endif()
+      unset(_icu_targets)
     endif()
+    unset(_icu_component)
+    unset(_icu_components)
   endif()
 else()
   message(FATAL_ERROR "Boost or one of its components not found!")
