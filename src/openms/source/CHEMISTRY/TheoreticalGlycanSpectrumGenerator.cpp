@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <functional>
 #include <limits>
@@ -28,7 +29,9 @@ namespace
   using IonType = Generator::IonType;
 
   [[noreturn]] void invalid(const std::string& message)
-  { throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message); }
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
+  }
 
   bool nonnegative(const EmpiricalFormula& formula)
   {
@@ -147,6 +150,11 @@ double TheoreticalGlycanSpectrumGenerator::Fragment::getMZ() const
 
 std::string TheoreticalGlycanSpectrumGenerator::Fragment::getAnnotation() const
 {
+  // mzPAF named compounds are bracket-delimited, and its tokenizer discards whitespace.
+  if (name.empty() || std::any_of(name.begin(), name.end(), [](unsigned char c) { return std::isspace(c) || c == '[' || c == ']' || c == '\0'; }))
+  {
+    invalid("Fragment names must be nonempty and contain no whitespace, square brackets or NUL characters");
+  }
   MzPAFAnnotation annotation;
   annotation.ion_series = MzPAFIonSeries::NAMED;
   annotation.named_compound = name;
@@ -157,7 +165,9 @@ std::string TheoreticalGlycanSpectrumGenerator::Fragment::getAnnotation() const
 TheoreticalGlycanSpectrumGenerator::TheoreticalGlycanSpectrumGenerator() = default;
 
 TheoreticalGlycanSpectrumGenerator::TheoreticalGlycanSpectrumGenerator(const Options& options)
-{ setOptions(options); }
+{
+  setOptions(options);
+}
 
 void TheoreticalGlycanSpectrumGenerator::setOptions(const Options& options)
 {
@@ -192,25 +202,35 @@ void TheoreticalGlycanSpectrumGenerator::setOptions(const Options& options)
 }
 
 const TheoreticalGlycanSpectrumGenerator::Options& TheoreticalGlycanSpectrumGenerator::getOptions() const
-{ return options_; }
+{
+  return options_;
+}
 
 std::vector<Fragment> TheoreticalGlycanSpectrumGenerator::getFragments(const Composition& composition) const
-{ return generate_(composition, nullptr, nullptr, 0, FragmentationMethod::HCD); }
+{
+  return generate_(composition, nullptr, nullptr, 0, FragmentationMethod::HCD);
+}
 
 std::vector<Fragment> TheoreticalGlycanSpectrumGenerator::getFragments(const GlycanStructure& structure) const
-{ return generate_(structure.getComposition(), &structure, nullptr, 0, FragmentationMethod::HCD); }
+{
+  return generate_(structure.getComposition(), &structure, nullptr, 0, FragmentationMethod::HCD);
+}
 
 std::vector<Fragment> TheoreticalGlycanSpectrumGenerator::getGlycopeptideFragments(const AASequence& peptide,
                                                                                    const Composition& composition,
                                                                                    Size attachment_position,
                                                                                    FragmentationMethod method) const
-{ return generate_(composition, nullptr, &peptide, attachment_position, method); }
+{
+  return generate_(composition, nullptr, &peptide, attachment_position, method);
+}
 
 std::vector<Fragment> TheoreticalGlycanSpectrumGenerator::getGlycopeptideFragments(const AASequence& peptide,
                                                                                    const GlycanStructure& structure,
                                                                                    Size attachment_position,
                                                                                    FragmentationMethod method) const
-{ return generate_(structure.getComposition(), &structure, &peptide, attachment_position, method); }
+{
+  return generate_(structure.getComposition(), &structure, &peptide, attachment_position, method);
+}
 
 std::vector<Fragment> TheoreticalGlycanSpectrumGenerator::generate_(const Composition& composition,
                                                                     const GlycanStructure* structure,
@@ -286,15 +306,16 @@ std::vector<Fragment> TheoreticalGlycanSpectrumGenerator::generate_(const Compos
     if (options_.add_diagnostic_ions)
     {
       auto diagnostic = [&](const std::string& symbol, const std::vector<std::string>& losses) {
-        const auto it = all.find(symbol);
+        const auto& canonical = MonosaccharideDB::getInstance()->getMonosaccharideOrThrow(symbol).symbol;
+        const auto it = all.find(canonical);
         if (it == all.end()) { return; }
-        Components single {{symbol, it->second}};
+        Components single {{canonical, it->second}};
         single.begin()->second.count = 1;
         for (const auto& loss : losses)
         {
           const auto formula = it->second.formula - EmpiricalFormula(loss);
           Fragment fragment;
-          fragment.name = "glycan:diagnostic:" + symbol + (loss.empty() ? "" : "-" + loss);
+          fragment.name = "glycan:diagnostic:" + canonical + (loss.empty() ? "" : "-" + loss);
           emit(fragment, single, formula, formula.getMonoWeight(), false);
         }
       };
@@ -459,6 +480,9 @@ std::vector<Fragment> TheoreticalGlycanSpectrumGenerator::generate_(const Compos
     }
     for (const auto& [series, type] : series_types)
     {
+      // AASequence does not support Zp1Ion. Its ZIon path preserves C-terminal
+      // modifications; adding one hydrogen converts it to the radical z+1 form.
+      const auto radical_shift = series == 'z' ? EmpiricalFormula("H") : EmpiricalFormula();
       PeptideRetention retention;
       if (method != FragmentationMethod::HCD)
       {
@@ -481,6 +505,8 @@ std::vector<Fragment> TheoreticalGlycanSpectrumGenerator::generate_(const Compos
         visit();
         const bool prefix = series == 'b' || series == 'c';
         const auto part = prefix ? peptide->getPrefix(ordinal) : peptide->getSuffix(ordinal);
+        const auto part_formula = part.getFormula(type) + radical_shift;
+        const double part_mass = part.getMonoWeight(type) + radical_shift.getMonoWeight();
         const bool contains_site = prefix ? site < ordinal : site >= peptide->size() - ordinal;
         const auto forms = contains_site ? retained_forms : std::vector<Components> {{}};
         for (const auto& retained : forms)
@@ -490,7 +516,7 @@ std::vector<Fragment> TheoreticalGlycanSpectrumGenerator::generate_(const Compos
           fragment.name = "peptide:" + std::string(1, series) + std::to_string(ordinal);
           if (contains_site) { fragment.name += ";glycan=" + nameOf(retained); }
           const auto formula = formulaOf(retained);
-          emit(fragment, retained, part.getFormula(type) + formula, part.getMonoWeight(type) + formula.getMonoWeight(), false, contains_site);
+          emit(fragment, retained, part_formula + formula, part_mass + formula.getMonoWeight(), false, contains_site);
         }
       }
     }

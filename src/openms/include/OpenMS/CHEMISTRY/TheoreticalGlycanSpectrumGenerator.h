@@ -104,8 +104,9 @@ public:
     std::string attachment_residue;
     std::optional<Size> root_cleavage;
     std::vector<Size> branch_cleavages;
-    std::string name; ///< Uncharged name, including loss/cleavage/site information
+    std::string name; ///< Nonempty uncharged name without whitespace, square brackets or NUL characters
     double getMZ() const;
+    /// Serialize as an mzPAF named compound; throws InvalidParameter for an invalid name.
     std::string getAnnotation() const;
   };
 
@@ -140,6 +141,8 @@ public:
     are preserved. HCD defaults to b/y ions stripped or with one HexNAc (if present).
     ETD defaults to c/z ions with the full glycan. EThcD generates b/y/c/z
     ions with the full glycan; per-series overrides can add stripped/stub ions.
+    Backbone ions named peptide:zN use the radical z+1 form (Residue::Zp1Ion)
+    for both ETD and EThcD; this is distinct from the glycan Z series.
     Only backbone fragments containing the attachment receive retained glycan mass.
     Explicit stubs allow, for example, HexNAc+Fuc retention without assuming a core
     topology from a composition. ETD omits glycan cleavage ions by default.

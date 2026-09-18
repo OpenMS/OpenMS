@@ -22,6 +22,8 @@ auto spectrum = Generator::toSpectrum(fragments);
 
 The diagnostic panel includes HexNAc (204.0867 and the 186/168/144/138/126 series),
 Hex, Hex+HexNAc, fucose/deoxyhexose, Neu5Ac/NeuAc and Neu5Gc/NeuGc.
+The aliases dHex and d-Hex yield the canonical d-Hex diagnostic annotation.
+Fuc and generic d-Hex remain distinct interpretations even though their masses match.
 Diagnostic ions default to charge 1, with a separate configurable charge range.
 Single global or residue-specific neutral losses can be configured for glycan
 series. Losses must fit the retained fragment's elemental composition.
@@ -57,6 +59,9 @@ ETD c/z ions retain the full glycan, and ETD omits glycan cleavage/diagnostic io
 EThcD generates b/y/c/z ions with intact glycan retention alongside glycan
 cleavage ions; per-series overrides can add stripped/stub products. These are
 configurable theoretical possibilities, not predicted intensities.
+Backbone ions named peptide:zN use the radical z+1 form (Residue::Zp1Ion) for
+both ETD and EThcD. Their neutral masses exceed the CID-type z masses by one
+hydrogen atom (about 1.007825 Da); this convention does not affect glycan Z ions.
 
 Per-series PeptideRetention overrides allow intact, stripped and explicit stub
 compositions. For example, specify HexNAc1Fuc1 to retain a fucosylated stub.
@@ -79,6 +84,8 @@ a fresh sorted MS2 spectrum, with aligned IonNames and Charges arrays and unit
 intensities. Because mzPAF has no glycan series, IonNames uses named-compound
 annotations through OpenMS::MzPAF, not peptide b/y notation. Composition and
 tree labels are explicit; attachment names use one-based residue positions.
+getAnnotation() rejects empty names and names containing whitespace, square
+brackets or NUL characters to prevent loss or corruption during mzPAF parsing.
 
 max_fragments counts final charge/loss interpretations and max_states bounds
 enumeration work. Exceeding either throws InvalidParameter without returning a
