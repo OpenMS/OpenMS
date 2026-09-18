@@ -71,7 +71,7 @@ we are going to try to continue building.")
     endforeach ()
     ##
     set_target_properties(Boost::regex
-            PROPERTIES INTERFACE_LINK_LIBRARIES "ICU::data;ICU:uc;ICU::i18n")
+            PROPERTIES INTERFACE_LINK_LIBRARIES "ICU::data;ICU::uc;ICU::i18n")
   endif()
 else()
   message(FATAL_ERROR "Boost or one of its components not found!")
