@@ -250,7 +250,10 @@
                 "linux-x64-base",
                 "release-base",
                 "ci-base"
-            ]
+            ],
+            "cacheVariables": {
+                "OPENMS_VERIFY_INTERFACE_HEADER_SETS": "ON"
+            }
         },
         {
             "name": "linux-arm64-ci",

@@ -69,6 +69,136 @@ START_SECTION(Simple ion parsing - all standard ions)
 }
 END_SECTION
 
+START_SECTION(Satellite ion parsing and roundtrip)
+{
+  struct SatelliteCase
+  {
+    std::string text;
+    MzPAFIonSeries series;
+    int ordinal;
+    std::optional<char> subtype;
+  };
+  const vector<SatelliteCase> cases
+    = {{"d5", MzPAFIonSeries::D, 5, std::nullopt}, {"v7", MzPAFIonSeries::V, 7, std::nullopt}, {"w3", MzPAFIonSeries::W, 3, std::nullopt},
+       {"da12", MzPAFIonSeries::D, 12, 'a'},       {"db4", MzPAFIonSeries::D, 4, 'b'},         {"wa12", MzPAFIonSeries::W, 12, 'a'},
+       {"wb4", MzPAFIonSeries::W, 4, 'b'}};
+
+  for (const auto& test_case : cases)
+  {
+    const auto ann = MzPAF::parse(test_case.text);
+    TEST_EQUAL(ann.ion_series, test_case.series)
+    TEST_EQUAL(ann.ordinal.value(), test_case.ordinal)
+    TEST_TRUE(ann.satellite_subtype == test_case.subtype)
+    TEST_TRUE(ann.isValid())
+    TEST_TRUE(MzPAF::isStandardFragmentIon(ann.ion_series))
+    TEST_TRUE(MzPAF::isMzPAFFormat(test_case.text))
+    TEST_STRING_EQUAL(MzPAF::toString(ann), test_case.text)
+    TEST_EQUAL(MzPAF::parse(MzPAF::toString(ann)), ann)
+
+    MzPAFAnnotation constructed;
+    constructed.ion_series = test_case.series;
+    constructed.ordinal = test_case.ordinal;
+    constructed.satellite_subtype = test_case.subtype;
+    TEST_STRING_EQUAL(MzPAF::toString(constructed), test_case.text)
+    TEST_EQUAL(constructed, ann)
+
+    MzPAFIonSeries series = MzPAFIonSeries::UNKNOWN;
+    TEST_TRUE(MzPAF::charToIonSeries(test_case.text[0], series))
+    TEST_EQUAL(series, test_case.series)
+    TEST_EQUAL(MzPAF::ionSeriesToChar(series), test_case.text[0])
+  }
+}
+END_SECTION
+
+START_SECTION(Satellite ions with modifiers and peak annotation conversion)
+{
+  for (const std::string prefix : {"d", "v", "w", "da", "db", "wa", "wb"})
+  {
+    const auto ann = MzPAF::parse("1@" + prefix + "3{LIR}-H2O+2i^2/-1.4ppm*0.75");
+    TEST_EQUAL(ann.analyte_index.value(), 1)
+    TEST_EQUAL(ann.ordinal.value(), 3)
+    TEST_STRING_EQUAL(ann.embedded_sequence.value(), "LIR")
+    TEST_EQUAL(ann.neutral_losses.size(), 1)
+    TEST_STRING_EQUAL(ann.neutral_losses[0].formula.toString(), "H2O1")
+    TEST_EQUAL(ann.isotope_offset.value(), 2)
+    TEST_EQUAL(ann.charge.value(), 2)
+    TEST_REAL_SIMILAR(ann.mass_delta.value().value, -1.4)
+    TEST_EQUAL(ann.mass_delta.value().unit, MzPAFDeltaUnit::PPM)
+    TEST_REAL_SIMILAR(ann.confidence.value(), 0.75)
+    TEST_EQUAL(MzPAF::parse(MzPAF::toString(ann)), ann)
+
+    const auto peak = MzPAF::toPeakAnnotation(ann, 500.123, 1000.0);
+    TEST_EQUAL(peak.charge, 2)
+    TEST_REAL_SIMILAR(peak.mz, 500.123)
+    TEST_REAL_SIMILAR(peak.intensity, 1000.0)
+    const auto restored = MzPAF::fromPeakAnnotation(peak);
+    TEST_EQUAL(restored.size(), 1)
+    TEST_EQUAL(restored.annotations[0], ann)
+  }
+
+  const std::string text = "d5,da5,db5,v7,w3,wa3,wb3,y4^2";
+  const auto anns = MzPAF::parseMultiple(text);
+  TEST_EQUAL(anns.size(), 8)
+  TEST_STRING_EQUAL(MzPAF::toString(anns), text)
+  TEST_EQUAL(MzPAF::parseMultiple(MzPAF::toString(anns)), anns)
+}
+END_SECTION
+
+START_SECTION(Satellite subtype validation and equality)
+{
+  MzPAFAnnotation ann;
+  TEST_FALSE(ann.satellite_subtype.has_value())
+  for (const auto series : {MzPAFIonSeries::D, MzPAFIonSeries::V, MzPAFIonSeries::W})
+  {
+    ann.ion_series = series;
+    TEST_FALSE(ann.isValid()) // Satellites require an ordinal too.
+  }
+  ann.ordinal = 3;
+
+  for (const auto series : {MzPAFIonSeries::D, MzPAFIonSeries::W})
+  {
+    ann.ion_series = series;
+    for (const char subtype : {'a', 'b'})
+    {
+      ann.satellite_subtype = subtype;
+      TEST_TRUE(ann.isValid())
+    }
+    ann.satellite_subtype = 'c';
+    TEST_FALSE(ann.isValid())
+    TEST_EXCEPTION(Exception::InvalidParameter, MzPAF::toString(ann))
+  }
+
+  // A subtype on any other series would produce a non-conformant annotation.
+  for (const auto series : {MzPAFIonSeries::A, MzPAFIonSeries::B, MzPAFIonSeries::C, MzPAFIonSeries::X, MzPAFIonSeries::Y, MzPAFIonSeries::Z,
+                            MzPAFIonSeries::V, MzPAFIonSeries::PRECURSOR})
+  {
+    ann.ion_series = series;
+    ann.satellite_subtype = 'a';
+    TEST_FALSE(ann.isValid())
+    TEST_EXCEPTION(Exception::InvalidParameter, MzPAF::toString(ann))
+  }
+
+  TEST_FALSE(MzPAF::parse("da3") == MzPAF::parse("db3"))
+  TEST_FALSE(MzPAF::parse("wa3") == MzPAF::parse("wb3"))
+  TEST_FALSE(MzPAF::parse("w3") == MzPAF::parse("wa3"))
+  TEST_FALSE(MzPAF::parseMultiple("d3,da3") == MzPAF::parseMultiple("d3,db3"))
+}
+END_SECTION
+
+START_SECTION(Reject malformed satellite ions)
+{
+  for (const std::string text : {"d",    "v",    "w",      "da",  "db",  "wa",   "wb",   "va3", "vb3", "aa3",  "ba3",    "ca3",
+                                 "xa3",  "ya3",  "za3",    "dc3", "wc3", "daa3", "wba3", "wA3", "d3a", "da^2", "wb-H2O", "da99999999999999999999",
+                                 "va 3", "dc 3", "wafoo 3"})
+  {
+    TEST_EXCEPTION(MzPAFParseError, MzPAF::parse(text))
+    TEST_FALSE(MzPAF::tryParse(text).has_value())
+    TEST_FALSE(MzPAF::isMzPAFFormat(text))
+    TEST_FALSE(MzPAF::tryParseMultiple("y4," + text).has_value())
+  }
+}
+END_SECTION
+
 START_SECTION(Ion with charge)
 {
   MzPAFAnnotation ann = MzPAF::parse("y4^2");
@@ -550,6 +680,12 @@ START_SECTION(calculateTheoreticalMZ)
   MzPAFAnnotation y100 = MzPAF::parse("y100");
   auto mz_y100 = MzPAF::calculateTheoreticalMZ(y100, seq);
   TEST_EQUAL(mz_y100.has_value(), false)
+
+  // Parsing satellite annotations must not imply support for their side-chain masses.
+  for (const std::string text : {"d3", "v3", "w3", "da3", "db3", "wa3", "wb3"})
+  {
+    TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse(text), seq).has_value())
+  }
 }
 END_SECTION
 

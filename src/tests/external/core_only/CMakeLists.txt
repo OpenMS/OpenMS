@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
 ### Installed-consumer test of a core-only OpenMS installation: the install
 ### components library, OpenMS_headers, OpenSwathAlgo_headers, thirdparty_headers,

@@ -30,8 +30,8 @@ include(${PROJECT_SOURCE_DIR}/includes.cmake)
 openms_add_library(TARGET_NAME OpenMS_CLI
                    SOURCE_FILES ${OpenMS_CLI_sources}
                    HEADER_FILES ${OpenMS_CLI_sources_h}
-                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include
-                                     ${PROJECT_BINARY_DIR}/include
+                   BASE_DIRS ${PROJECT_SOURCE_DIR}/include
+                             ${PROJECT_BINARY_DIR}/include
                    LINK_LIBRARIES OpenMS
                    DLL_EXPORT_PATH "OpenMS/APPLICATIONS/"
                    EXPORT_SET ${OPENMS_CLI_EXPORT_SET})

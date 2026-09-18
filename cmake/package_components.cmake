@@ -37,11 +37,23 @@ if(WITH_GUI)
                   INSTALL_TYPES recommended full minimal
                   )
 endif()
+## Every TOPP tool links the TOPP tool framework, so the binaries do not start
+## without the CLI layer; in a WITH_GUI build the component also holds TOPPView
+## and TOPPAS, which need the GUI layer on top of it (library_gui DEPENDS
+## library_cli). Selecting the binaries without their libraries installs tools
+## that fail at startup with a loader error for libOpenMS_CLI.
+if(WITH_GUI)
+  set(_openms_applications_depends library_gui)
+else()
+  set(_openms_applications_depends library_cli)
+endif()
 cpack_add_component(applications
                 DISPLAY_NAME "OpenMS binaries"
                 DESCRIPTION "OpenMS binaries including TOPP tools, TOPPView and TOPPAS."
+                DEPENDS ${_openms_applications_depends}
                 INSTALL_TYPES recommended full minimal
                 )
+unset(_openms_applications_depends)
 cpack_add_component(doc
                 DISPLAY_NAME "Documentation"
                 DESCRIPTION "Class and tool documentation. With tutorials."
