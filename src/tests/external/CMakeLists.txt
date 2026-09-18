@@ -87,7 +87,12 @@ endif()
 ## with an installed header including Eigen that compiles here and breaks for anyone
 ## without Eigen installed. Asked functionally rather than by matching path names, so a
 ## build directory that happens to contain "eigen" does not trip it.
-get_target_property(_core_includes OpenMS::OpenMS INTERFACE_INCLUDE_DIRECTORIES)
+## The package reports its header locations through a CMake file set, whose base
+## directories reach INTERFACE_INCLUDE_DIRECTORIES as $<BUILD_INTERFACE:...>, so
+## the raw property holds no directory to probe and this check would pass on
+## every installation; openms_package_include_dirs() resolves them to paths.
+include("${CMAKE_CURRENT_LIST_DIR}/openms_package_include_dirs.cmake")
+openms_package_include_dirs(OpenMS::OpenMS _core_includes)
 if(_core_type STREQUAL "SHARED_LIBRARY" AND _core_includes)
   foreach(_inc IN LISTS _core_includes)
     if(EXISTS "${_inc}/Eigen/Core")

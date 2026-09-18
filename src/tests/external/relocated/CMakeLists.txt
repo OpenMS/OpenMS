@@ -35,6 +35,11 @@ endif()
 find_package(OpenMS CONFIG REQUIRED)
 message(STATUS "Found OpenMS ${OpenMS_VERSION} at ${OpenMS_DIR}")
 
+## The include directories the package reports are not plain paths -- the base
+## directories of its header file set arrive wrapped in $<BUILD_INTERFACE:...>.
+## openms_package_include_dirs() resolves them; its file explains the mechanism.
+include("${CMAKE_CURRENT_LIST_DIR}/../openms_package_include_dirs.cmake")
+
 #------------------------------------------------------------------------------
 ## What the package reports has to describe the prefix it was found in.
 
@@ -89,10 +94,7 @@ foreach(_target IN ITEMS OpenMS::OpenMS OpenMS::OpenSwathAlgo)
     endif()
   endforeach()
   ## ... and the headers they are used with
-  get_target_property(_includes ${_target} INTERFACE_INCLUDE_DIRECTORIES)
-  if(NOT _includes)
-    set(_includes)
-  endif()
+  openms_package_include_dirs(${_target} _includes)
   foreach(_include IN LISTS _includes)
     openms_assert_below_prefix("an include directory of ${_target}" "${_include}")
     if(NOT IS_DIRECTORY "${_include}")
