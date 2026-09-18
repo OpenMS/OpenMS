@@ -27,8 +27,10 @@ namespace OpenMS
     std::string name;
     std::string description;
     std::vector<FileTypes::FileProperties> features;
-    TypeNameBinding(FileTypes::Type ptype, std::string pname, std::string pdescription, std::vector<FileTypes::FileProperties> pfeatures)
-      : type(ptype), name(std::move(pname)), description(std::move(pdescription)), features(pfeatures)
+    /// additional extensions accepted for this type, besides 'name' (which stays the preferred one)
+    std::vector<std::string> aliases;
+    TypeNameBinding(FileTypes::Type ptype, std::string pname, std::string pdescription, std::vector<FileTypes::FileProperties> pfeatures, std::vector<std::string> paliases = {})
+      : type(ptype), name(std::move(pname)), description(std::move(pdescription)), features(pfeatures), aliases(std::move(paliases))
     {
       // Check that there are no double-spaces in the description, since Qt will replace "  " with " " in filters supplied to QFileDialog::getSaveFileName.
       // And if you later ask for the selected filter, you will get a different string back.
@@ -37,7 +39,10 @@ namespace OpenMS
   };
 
   using PROP = FileTypes::FileProperties;   // shorten our syntax a bit
-  /// Maps the FileType::Type to the preferred extension.
+  /// Maps the FileType::Type to its preferred extension plus any additional accepted extensions.
+  /// The preferred extension is what typeToName() returns and what we write; the aliases are only ever accepted on input.
+  /// An alias must be unique across all types (FileTypes_test enforces this), and must not be a suffix that other formats
+  /// also use (e.g. a plain 'xml' alias would make 'pepXML' and 'mzML' ambiguous).
   /// when adding new types, be sure to update the FileTypes_test typesWithProperties test to match the new files
   static const std::array<TypeNameBinding, FileTypes::SIZE_OF_TYPE> type_with_annotation__ =
   {
@@ -57,8 +62,8 @@ namespace OpenMS
     //TODO: Add support for cachedMZML as a first class file type
     TypeNameBinding(FileTypes::CACHEDMZML, "cachedMzML", "cachedMzML raw data file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::MS2, "ms2", "ms2 file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE}),
-    TypeNameBinding(FileTypes::PEPXML, "pepXML", "pepXML file", {PROP::READABLE, PROP::WRITEABLE}), //Supported for loading and storing identifications but TODO integrate this into fileHandler
-    TypeNameBinding(FileTypes::PROTXML, "protXML", "protXML file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE}),
+    TypeNameBinding(FileTypes::PEPXML, "pepXML", "pepXML file", {PROP::READABLE, PROP::WRITEABLE}, {"pep.xml"}), //Supported for loading and storing identifications but TODO integrate this into fileHandler
+    TypeNameBinding(FileTypes::PROTXML, "protXML", "protXML file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE}, {"prot.xml"}),
     TypeNameBinding(FileTypes::MZIDENTML, "mzid", "mzIdentML file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::QCML, "qcml", "quality control file", {PROP::PROVIDES_QC, PROP::WRITEABLE}), //TODO add load functions for QC
     TypeNameBinding(FileTypes::MZQC, "mzqc", "quality control file in json format", {PROP::PROVIDES_QC, PROP::WRITEABLE}),
@@ -74,7 +79,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::PEPLIST, "peplist", "SpecArray file", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::HARDKLOER, "hardkloer", "hardkloer file", {}),
     TypeNameBinding(FileTypes::KROENIK, "kroenik", "kroenik file", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
-    TypeNameBinding(FileTypes::FASTA, "fasta", "FASTA file", {PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::FASTA, "fasta", "FASTA file", {PROP::READABLE, PROP::WRITEABLE}, {"fa", "faa"}),
     TypeNameBinding(FileTypes::PEFF, "peff", "PEFF protein file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::EDTA, "edta", "enhanced dta file", {PROP::PROVIDES_FEATURES, PROP::PROVIDES_CONSENSUSFEATURES, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::CSV, "csv", "comma-separated values file", {PROP::READABLE, PROP::WRITEABLE}),
@@ -107,7 +112,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file", {PROP::READABLE}),
     TypeNameBinding(FileTypes::GZ, "gz", "gzip compressed file", {PROP::READABLE}),
     TypeNameBinding(FileTypes::ZIP, "zip", "ZIP compressed file", {PROP::READABLE}),
-    TypeNameBinding(FileTypes::PARQUET, "parquet", "Apache Parquet file", {PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::PARQUET, "parquet", "Apache Parquet file", {PROP::READABLE, PROP::WRITEABLE}, {"pqt"}),
     TypeNameBinding(FileTypes::IDPARQUET, "idparquet", "OpenMS identification parquet bundle (directory)", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::FEATUREPARQUET, "featureparquet", "OpenMS feature map parquet bundle (directory)", {PROP::PROVIDES_FEATURES, PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::CONSENSUSPARQUET, "consensusparquet", "OpenMS consensus map parquet bundle (directory)", {PROP::PROVIDES_CONSENSUSFEATURES, PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
@@ -225,22 +230,35 @@ namespace OpenMS
   }
 
 
-  FileTypes::Type FileTypes::nameToType(const std::string& name)
+  std::vector<std::string> FileTypes::typeToExtensions(Type type)
   {
-    std::string name_upper = name;
-    StringUtils::toUpper(name_upper);
-
-    // Special case for multiple extensions for PARQUET
-    if (name_upper == "PQT")
-    {
-      return FileTypes::PARQUET;
-    }
-
     for (const auto& t_info : type_with_annotation__)
     {
-      std::string t_upper = t_info.name;
-      StringUtils::toUpper(t_upper);
-      if (t_upper == name_upper) return t_info.type;
+      if (t_info.type == type)
+      {
+        std::vector<std::string> result {t_info.name}; // preferred extension first
+        result.insert(result.end(), t_info.aliases.begin(), t_info.aliases.end());
+        return result;
+      }
+    }
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid type: Type has no extensions!", StringUtils::toStr(type));
+  }
+
+  FileTypes::Type FileTypes::nameToType(const std::string& name)
+  {
+    const std::string name_upper = StringUtils::toUppered(name);
+
+    // preferred extensions take precedence over aliases, so an alias can never shadow another type's canonical name
+    for (const auto& t_info : type_with_annotation__)
+    {
+      if (StringUtils::toUppered(t_info.name) == name_upper) return t_info.type;
+    }
+    for (const auto& t_info : type_with_annotation__)
+    {
+      for (const auto& alias : t_info.aliases)
+      {
+        if (StringUtils::toUppered(alias) == name_upper) return t_info.type;
+      }
     }
 
     return FileTypes::UNKNOWN;

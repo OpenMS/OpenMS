@@ -121,8 +121,22 @@ namespace OpenMS
       SIZE_OF_FILEPROPERTIES        // Not a property, just the number of 'em
     };
 
-    /// Returns the name/extension of the type.
+    /// Returns the name/preferred extension of the type.
     static std::string typeToName(Type type);
+
+    /**
+      @brief Returns every extension accepted for @p type, preferred one first.
+
+      The first element always equals typeToName(@p type) and is what OpenMS writes; the
+      remaining ones are aliases that are merely recognized on input (e.g. FASTA yields
+      {"fasta", "fa", "faa"}). Use this for file dialog filters and format listings; use
+      typeToName() when a single canonical extension is required.
+
+      @param[in] type The type to look up
+      @return Accepted extensions, without a leading dot, preferred extension first
+      @throw Exception::InvalidValue if @p type is not a known type
+    */
+    static std::vector<std::string> typeToExtensions(Type type);
     
     /// Returns the human-readable explanation of the type.
     /// This may or may not add information, e.g.
@@ -130,6 +144,7 @@ namespace OpenMS
     static std::string typeToDescription(Type type);
     
     /// Converts a file type name into a Type
+    /// Accepts the preferred extension as well as any registered alias (e.g. 'fa' and 'faa' both give FASTA).
     /// @param[in] name A case-insensitive name (e.g. FASTA or Fasta, etc.)
     static Type nameToType(const std::string& name);
 
