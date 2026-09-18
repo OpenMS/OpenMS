@@ -761,6 +761,9 @@ Fixes:
       columns. SampleSection::getFactorValue throws MissingInformation for a row without a value
       for the factor instead of reading past its end (#10148).
   Robustness:
+    - mzIdentML output with more than one identification run repeated the Measure ids
+      (Measure_mz, Measure_int, Measure_error) in every SpectrumIdentificationList and failed schema
+      validation; the Measure definitions are now written once.
     - FileMerger renamed the merged spectra but left precursor spectrumRef attributes pointing to the
       original native IDs, so MS2 spectra lost the link to their parent scan and the mzML output
       failed schema validation. The references are now updated together with the IDs (#10200).
