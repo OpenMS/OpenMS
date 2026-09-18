@@ -1195,7 +1195,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              s +=std::string(indent + 2, '\t') + "<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>\n";
+              s +=std::string(indent + 2, '\t') + "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>\n";
             }
             s +=std::string(indent + 1, '\t') + "</SearchModification>\n";
           }
@@ -1405,7 +1405,7 @@ namespace OpenMS::Internal
                     double diffmass = mod->getMonoMass() - hit.getSequence()[i].getMonoWeight();
                     p += "\" monoisotopicMassDelta=\"" + StringUtils::toStr(diffmass);
                   }
-                  p += "\">\n\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
+                  p += "\">\n\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
                   p += "\n\t\t</Modification>\n";
                 }
               }
@@ -1826,7 +1826,7 @@ namespace OpenMS::Internal
                   double diffmass = mod->getMonoMass() - peptide_sequence[i].getMonoWeight();
                   p += "\" monoisotopicMassDelta=\"" + StringUtils::toStr(diffmass);
                 }
-                p += "\">\n\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
+                p += "\">\n\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
                 p += "\n\t\t</Modification>\n";
               }
             }
