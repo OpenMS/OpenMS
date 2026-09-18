@@ -98,7 +98,7 @@ Dependencies:
     The empty OPENMS_ADDCXX_FLAGS variable was dropped, and the Find modules of the OpenMS
     build (FindCOIN, FindLIBSVM, ...) are no longer installed next to the package: they served
     the package's former lookups of dependencies that are PRIVATE now. Consuming projects need
-    CMake 3.22: find_package(OpenMS) rejects older versions with an explanatory message
+    CMake 3.24: find_package(OpenMS) rejects older versions with an explanatory message
     instead of failing later (#10158).
   - contrib is a git submodule: clone with --recurse-submodules or run
     git submodule update --init (#9155).
@@ -642,6 +642,11 @@ Fixes:
     - QPX import reports unsupported modifications and checks reconstructed m/z. Modification
       definitions are still not carried by the format, so unsupported modifications may
       still be lost on import (#10004, #10012).
+    - AASequence::getFormula() and AASequence::getMonoWeight() handle Residue::Zp1Ion and
+      Residue::Zp2Ion, the radical z+1/z+2 electron-transfer fragments. Both types used to fall
+      through to the default branch, which logs an error and returns the internal mass without any
+      ion offset, and a C-terminal modification was never applied to them. getAverageWeight() and
+      getMZ() build on those two functions and are fixed with them (#10181).
     - Corrected a/b neutral-loss fragment masses, negative-charge MzPAF parsing and
       deisotoping precursor constraints (proton mass units; unknown precursor charge no
       longer discards all isotope clusters). Unsupported deisotoping tolerances no longer
@@ -740,6 +745,13 @@ Documentation:
     (#8483, #8507, #8548, #8561, #8674, #9162, #9629, #9736, #9752, #9792, #9812, #9928).
 
 Build System:
+  - Public headers of OpenMS, OpenSwathAlgo, OpenMS_CLI, OpenMS_GUI and the test
+    framework use CMake header file sets. Installation paths and components stay
+    unchanged and private headers remain excluded. Building OpenMS and consuming
+    its CMake package both require CMake 3.24. Linux x64 CI explicitly verifies
+    public headers as standalone translation units, with missing includes in
+    identification-data and GUI headers corrected; normal builds can opt in with
+    OPENMS_VERIFY_INTERFACE_HEADER_SETS=ON (#10177).
   - The TOPP tool framework (TOPPBase, ToolHandler, INIUpdater, ParameterInformation,
     SearchEngineBase, TOPPExternalToolBase, MapAlignerBase, OpenSwathBase) moved out of
     libOpenMS into the new library libOpenMS_CLI (src/openms_cli; CMake target OpenMS_CLI,
@@ -759,9 +771,11 @@ Build System:
     refuses a required CLI or GUI component that is missing; TOPP-style external tools request
     COMPONENTS CLI. The pyOpenMS wheels build and install the core layer only again, the
     installed-consumer test covers a full and a core-only installation, and the deb/rpm/macOS
-    packages include the new library components. Reconfiguring a build directory with another
-    WITH_GUI setting no longer leaves a stale GUI target file behind (src/tests/package_layers
-    checks this with stub libraries).
+    packages include the new library components. The applications component depends on the library
+    layer its binaries link (library_gui in a WITH_GUI build, library_cli otherwise), so a
+    component-selectable installation cannot leave the TOPP tools without libOpenMS_CLI.
+    Reconfiguring a build directory with another WITH_GUI setting no longer leaves a stale GUI
+    target file behind (src/tests/package_layers checks this with stub libraries).
   - vcpkg manifests, cross-platform CMake presets, overlay ports/triplets and binary caching
     support Linux, Windows and macOS; main build/test CI uses them. Release-only triplets
     avoid building duplicate Debug dependencies (#9511, #9800, #9927).

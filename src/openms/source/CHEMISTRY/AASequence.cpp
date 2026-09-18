@@ -401,6 +401,7 @@ namespace OpenMS
       if (c_term_mod_ != nullptr &&
         (type == Residue::Full || type == Residue::XIon ||
          type == Residue::YIon || type == Residue::ZIon ||
+         type == Residue::Zp1Ion || type == Residue::Zp2Ion ||
          type == Residue::CTerminal))
       {
         ef += c_term_mod_->getDiffFormula();
@@ -462,6 +463,14 @@ namespace OpenMS
         {
           return ef + Residue::getInternalToZIon();
         }
+        case Residue::Zp1Ion:
+        {
+          return ef + Residue::getInternalToZp1Ion();
+        }
+        case Residue::Zp2Ion:
+        {
+          return ef + Residue::getInternalToZp2Ion();
+        }
         default:
           OPENMS_LOG_ERROR << "AASequence::getFormula: unknown ResidueType\n";
       }
@@ -522,6 +531,7 @@ namespace OpenMS
       if (c_term_mod_ != nullptr &&
           (type == Residue::Full || type == Residue::XIon ||
            type == Residue::YIon || type == Residue::ZIon ||
+           type == Residue::Zp1Ion || type == Residue::Zp2Ion ||
            type == Residue::CTerminal))
       {
         mono_weight += c_term_mod_->getDiffMonoMass();
@@ -582,6 +592,14 @@ namespace OpenMS
         case Residue::ZIon:
         {
           return mono_weight + Residue::getInternalToZIon().getMonoWeight();
+        }
+        case Residue::Zp1Ion:
+        {
+          return mono_weight + Residue::getInternalToZp1Ion().getMonoWeight();
+        }
+        case Residue::Zp2Ion:
+        {
+          return mono_weight + Residue::getInternalToZp2Ion().getMonoWeight();
         }
         default:
           OPENMS_LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType\n";

@@ -43,13 +43,14 @@ set(${OPENMS_GUI_EXPORT_SET}_CMAKE_COMPONENT cmake_gui)
 # Installs the library lib_target_name into the library component of its export
 # set and adds it to that export set.
 #
-# install_library(<target> [EXPORT_SET <set>])
+# install_library(<target> [HEADERS] [EXPORT_SET <set>])
 #
 # @param lib_target_name The target name of the library that should be installed
 # @param EXPORT_SET      One of ${OPENMS_EXPORT_SETS}; the core set OpenMSTargets
 #                        (component 'library') when omitted
+# @param HEADERS         Install the public HEADERS file set in <target>_headers
 function(install_library lib_target_name)
-    cmake_parse_arguments(_install_library "" "EXPORT_SET" "" ${ARGN})
+    cmake_parse_arguments(_install_library "HEADERS" "EXPORT_SET" "" ${ARGN})
     if(_install_library_UNPARSED_ARGUMENTS)
       message(FATAL_ERROR "install_library(${lib_target_name}): unexpected arguments ${_install_library_UNPARSED_ARGUMENTS}")
     endif()
@@ -60,38 +61,30 @@ function(install_library lib_target_name)
       message(FATAL_ERROR "install_library(${lib_target_name}): unknown export set '${_install_library_EXPORT_SET}' (known: ${OPENMS_EXPORT_SETS})")
     endif()
     set(_component ${${_install_library_EXPORT_SET}_LIBRARY_COMPONENT})
+    set(_header_install_args)
+    if(_install_library_HEADERS)
+      set(_header_install_args FILE_SET HEADERS DESTINATION ${INSTALL_INCLUDE_DIR}
+        COMPONENT ${lib_target_name}_headers)
+    endif()
     install(TARGETS ${lib_target_name}
       RUNTIME_DEPENDENCY_SET OPENMS_DEPS
       EXPORT ${_install_library_EXPORT_SET}
       LIBRARY DESTINATION ${INSTALL_LIB_DIR} COMPONENT ${_component}
       ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT ${_component}
       RUNTIME DESTINATION ${INSTALL_LIB_DIR} COMPONENT ${_component}
+      ${_header_install_args}
       )
 endfunction()
 
 #------------------------------------------------------------------------------
-# Installs the given headers.
-#
-# @param header_list List of headers to install
-# @param component   Headers go into the install component <component>_headers
-# @param ARGN        Pass EXCLUDE_FROM_ALL to keep the headers out of a plain
-#                    `cmake --install` (and out of non component-based packaging),
-#                    while `cmake --install . --component <component>_headers`
-#                    still installs them. For in-repo tooling that is not part of
-#                    the shipped API; mirrors the flag on the matching
-#                    install(TARGETS ...) so header and library agree.
-macro(install_headers header_list component)
-  ## ARGN is not a real variable inside a macro, so copy it before using IN_LIST
-  set(_install_headers_args ${ARGN})
-  set(_install_headers_exclude)
-  if ("EXCLUDE_FROM_ALL" IN_LIST _install_headers_args)
-    set(_install_headers_exclude EXCLUDE_FROM_ALL)
-  endif()
-
-  foreach(_header ${header_list})
+# Reject JSON dependencies in installed headers even when compiler header checks
+# could resolve them through a system or shared dependency include directory.
+# Keep this configure-time guard independent of the header installation method.
+function(openms_validate_public_headers)
+  foreach(_header IN LISTS ARGN)
     # nlohmann::json is a PRIVATE dependency of libOpenMS: downstream builds do not have its
     # include directory, so no installed header may include it (configure-time check only).
-    # Header lists are relative to the calling source directory, like install(FILES) resolves them.
+    # Header lists are relative to the calling source directory.
     # Generated headers in the build tree may not exist yet at this point; they come from OpenMS'
     # own templates, so only what is already on disk is scanned.
     set(_header_to_scan "${_header}")
@@ -105,26 +98,8 @@ macro(install_headers header_list component)
                             "public headers: move the header under source/ or expose value types instead.")
       endif()
     endif()
-    set(_relative_header_path)
-
-    get_filename_component(_target_path ${_header} PATH)
-    if ("${_target_path}" MATCHES "^${PROJECT_BINARY_DIR}.*")
-      # is generated bin header
-      string(REPLACE "${PROJECT_BINARY_DIR}/include/OpenMS" "" _relative_header_path "${_target_path}")
-    else()
-      # is source header -> strip include/OpenMS
-      string(REPLACE "include/OpenMS" "" _relative_header_path "${_target_path}")
-    endif()
-
-    # install the header
-    install(FILES ${_header}
-            # note the missing slash, we need this for file directly located in
-            # include/OpenMS (e.g., config.h)
-            DESTINATION ${INSTALL_INCLUDE_DIR}/OpenMS${_relative_header_path}
-            COMPONENT ${component}_headers
-            ${_install_headers_exclude})
   endforeach()
-endmacro()
+endfunction()
 
 #------------------------------------------------------------------------------
 # Installs the tool tool_target_name
@@ -293,4 +268,3 @@ macro(install_qt6_libs _qt_components _targetpath _install_component)
     endif()
   endforeach(_qt_component)
 endmacro()
-
