@@ -7,6 +7,14 @@ inputs:
   macosx_deployment_target:
     description: "Used to override -macos-version-min on macOS"
     default: 14.0
+  verify_headers:
+    description: >-
+      Compile every public header on its own after the build. Only the
+      linux-x64-ci preset turns OPENMS_VERIFY_INTERFACE_HEADER_SETS on, so the
+      step is a no-op elsewhere. Off by default: this checks the source tree,
+      not the artifact, so it belongs in the PR workflow rather than in every
+      release build.
+    default: "false"
   ssh_key:
     description: "SSH private key for the rsync cache archive"
     required: false
@@ -234,10 +242,15 @@ runs:
 
         cmake --build --preset "${{ steps.preset.outputs.name }}" --verbose
 
+    # all_verify_interface_header_sets only exists where
+    # OPENMS_VERIFY_INTERFACE_HEADER_SETS is on (CMakePresets.json), and a build
+    # without it fails with "No rule to make target" rather than skipping. So
+    # ask for the preset that sets it instead of for the runner it happens to
+    # use today.
     - name: Verify public headers
-      if: ${{ runner.os == 'Linux' && runner.arch == 'X64' }}
+      if: ${{ inputs.verify_headers == 'true' && steps.preset.outputs.name == 'linux-x64-ci' }}
       shell: bash
-      run: cmake --build --preset "${{ steps.preset.outputs.name }}" --target all_verify_interface_header_sets --parallel 2
+      run: cmake --build --preset "${{ steps.preset.outputs.name }}" --target all_verify_interface_header_sets
 
     ############################################################################
     # Hit rate and cache size for this run.  Without this there is no way to

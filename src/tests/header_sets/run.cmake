@@ -76,6 +76,15 @@ if(NOT _installed STREQUAL _expected)
   message(FATAL_ERROR "Unexpected header-component installation: ${_installed}")
 endif()
 
+# With verification on, every public header is compiled as its own translation
+# unit and the private file set must stay out of it: source/private.h and
+# include/OpenMS/private.h are #error headers, so a private header leaking into
+# an interface file set fails this build instead of passing unnoticed.
+run(verify-configure "${CMAKE_COMMAND}" -S "${_source}" -B "${BINARY_DIR}/verify" ${_configure}
+  -DOPENMS_VERIFY_INTERFACE_HEADER_SETS=ON)
+run(verify "${CMAKE_COMMAND}" --build "${BINARY_DIR}/verify" --config Release
+  --target all_verify_interface_header_sets --parallel 2)
+
 # The configure-time guard must remain active with verification disabled.
 execute_process(COMMAND "${CMAKE_COMMAND}"
   -S "${_source}" -B "${BINARY_DIR}/json" ${_configure}
@@ -86,4 +95,4 @@ file(WRITE "${BINARY_DIR}/reject-json.log" "${_out}${_err}")
 if(_result EQUAL 0 OR NOT "${_out}${_err}" MATCHES "includes[ \t\r\n]+nlohmann/json")
   message(FATAL_ERROR "JSON dependency was not rejected as expected:\n${_out}${_err}")
 endif()
-message(STATUS "Header installation, consumer compatibility and JSON guard passed")
+message(STATUS "Header installation, consumer compatibility, header verification and JSON guard passed")

@@ -7,7 +7,9 @@
 # --------------------------------------------------------------------------
 
 project("OpenMSTestFramework")
-cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
+## No cmake_minimum_required() here: this directory is pulled in with
+## add_subdirectory(), where declaring one resets the policy scope to that
+## version. The top-level CMakeLists.txt is the only place that sets it.
 
 #------------------------------------------------------------------------------
 # The class-test framework (ClassTest.h macros, FuzzyStringComparator,
