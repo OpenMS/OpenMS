@@ -513,9 +513,14 @@ OpenMS Library:
       extension, so what OpenMS writes is unchanged (#490)
     - FileTypes::sameFormat() compares two declared format strings by type when both are recognized and
       literally otherwise, so 'fasta' matches 'fa' while two different custom extensions stay distinct.
-      FileTypes::supportsCompressedReading() and FileNameUtils::hasCompressionSuffix() report whether a
-      reader actually decompresses: a compression suffix alone no longer implies compatibility with
-      every format, so a '.mgf.gz' is rejected where a '.mzML.gz' is accepted (#490)
+      FileTypes::supportsCompressedReading(type, compression) reports whether a reader accepts that
+      specific container, and FileNameUtils::compressionType() reports which container a filename
+      carries (hasCompressionSuffix() answers the same question as a bool). The pair takes the
+      container because support is not uniform: the XML-based readers decompress .gz, .bz2 and .zip
+      transparently through CompressedInputSource, while Bruker TDF accepts only a '.d.zip' archive
+      that FileHandler unpacks. A compression suffix alone therefore no longer implies compatibility,
+      so '.mgf.gz' is rejected where '.mzML.gz' is accepted, and both the CLI and TOPPAS apply the
+      same rule. Compressed output is unaffected: XMLFile still selects gzip/bzip2 by filename (#490)
     - FileTypes: a file type may now register additional accepted extensions besides its preferred
       one. FileTypes::typeToExtensions() lists them (preferred first) and nameToType() resolves them
       case-insensitively: 'fa'/'faa' for FASTA, 'pep.xml' for pepXML, 'prot.xml' for protXML and
