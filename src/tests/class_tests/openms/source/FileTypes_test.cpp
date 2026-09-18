@@ -13,6 +13,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <map>
 #include <string>
@@ -206,6 +207,91 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   TEST_EXCEPTION(Exception::ElementNotFound, list.fromFileDialogFilter("not a valid filter", FileTypes::CONSENSUSXML));
 
   END_SECTION
+
+START_SECTION((static bool sameFormat(const std::string& lhs, const std::string& rhs)))
+{
+  // a preferred extension and its aliases denote the same format, in either order, any case
+  TEST_TRUE(FileTypes::sameFormat("fasta", "fa"))
+  TEST_TRUE(FileTypes::sameFormat("fa", "fasta"))
+  TEST_TRUE(FileTypes::sameFormat("FaA", "FASTA"))
+  TEST_TRUE(FileTypes::sameFormat("pep.xml", "pepXML"))
+  TEST_TRUE(FileTypes::sameFormat("pqt", "parquet"))
+  TEST_TRUE(FileTypes::sameFormat("mzML", "mzml"))
+
+  // distinct formats stay distinct, even when they share an extension family
+  TEST_FALSE(FileTypes::sameFormat("csv", "tsv"))
+  TEST_FALSE(FileTypes::sameFormat("fasta", "mzML"))
+  TEST_FALSE(FileTypes::sameFormat("pepXML", "protXML"))
+  TEST_FALSE(FileTypes::sameFormat("pep.xml", "xml"))
+
+  // two unrecognized extensions must not collapse into equal-because-both-UNKNOWN
+  TEST_FALSE(FileTypes::sameFormat("customA", "customB"))
+  TEST_FALSE(FileTypes::sameFormat("customA", "fasta"))
+  // but a custom extension still matches its own spelling, case-insensitively
+  TEST_TRUE(FileTypes::sameFormat("customA", "customA"))
+  TEST_TRUE(FileTypes::sameFormat("customA", "CUSTOMA"))
+}
+END_SECTION
+
+START_SECTION((file dialog filters list every accepted extension))
+{
+  // ONE_BY_ONE: each type gets one filter naming all its extensions, preferred first
+  const FileTypeList fasta_only({FileTypes::FASTA});
+  const std::string one = fasta_only.toFileDialogFilter(FilterLayout::ONE_BY_ONE, false);
+  TEST_STRING_EQUAL(one, "FASTA file (*.fasta *.fa *.faa)")
+
+  // COMPACT: the combined filter lists them too
+  const std::string compact = fasta_only.toFileDialogFilter(FilterLayout::COMPACT, false);
+  TEST_STRING_EQUAL(compact, "all readable files (*.fasta *.fa *.faa)")
+
+  // a type without aliases is unchanged
+  const FileTypeList mzml_only({FileTypes::MZML});
+  TEST_STRING_EQUAL(mzml_only.toFileDialogFilter(FilterLayout::ONE_BY_ONE, false), "mzML raw data file (*.mzML)")
+
+  // the filter must round-trip back to its type, or save dialogs cannot resolve the chosen filter
+  const FileTypeList several({FileTypes::FASTA, FileTypes::MZML, FileTypes::PEPXML});
+  for (const auto& t : several.getTypes())
+  {
+    const std::string filter = FileTypes::typeToDescription(t) + " (*." + ListUtils::concatenate(FileTypes::typeToExtensions(t), " *.") + ")";
+    TEST_EQUAL(several.fromFileDialogFilter(filter), t)
+  }
+
+  // 'all files (*)' stays ambiguous and yields the fallback
+  TEST_EQUAL(several.fromFileDialogFilter("all files (*)", FileTypes::MZML), FileTypes::MZML)
+}
+END_SECTION
+
+START_SECTION((static bool supportsCompressedReading(Type type, Type compression)))
+{
+  // XML-based readers decompress transparently through XMLFile/CompressedInputSource, all three containers
+  for (auto comp : {FileTypes::GZ, FileTypes::BZ2, FileTypes::ZIP})
+  {
+    TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::MZML, comp))
+    TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::FEATUREXML, comp))
+    TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::IDXML, comp))
+    TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::PEPXML, comp))
+    // generic '.xml' is read through UniProtXMLFile; UniPEFF declares 'xml' and documents '.xml.gz'
+    TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::XML, comp))
+
+    // non-XML readers do not: a '.mgf.gz' resolves to MGF by name but nothing can read it
+    TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MGF, comp))
+    TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MSP, comp))
+    TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::FASTA, comp))
+    TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::CSV, comp))
+    TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::PARQUET, comp))
+    TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::UNKNOWN, comp))
+  }
+
+  // Bruker is the exception: FileHandler unpacks '.d.zip' but has no gzip/bzip2 path
+  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::BRUKER_TDF, FileTypes::ZIP))
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::BRUKER_TDF, FileTypes::GZ))
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::BRUKER_TDF, FileTypes::BZ2))
+
+  // a non-compression type is never a container
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MZML, FileTypes::MZML))
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MZML, FileTypes::UNKNOWN))
+}
+END_SECTION
 
   START_SECTION(static FileTypes::FileTypeList typesWithProperties(const std::vector<FileProperties>& features))
   {
