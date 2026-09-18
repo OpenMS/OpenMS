@@ -75,6 +75,78 @@ using namespace std;
 namespace OpenMS
 {
 
+  namespace
+  {
+    /// Does any entry of @p valid_strings denote the same format as @p type?
+    /// Compared by type, so a tool declaring 'fasta' accepts 'db.fa' and one declaring 'fa' accepts 'db.fasta'.
+    /// Entries that are not known formats keep their exact spelling, so a custom extension only matches itself.
+    bool formatAccepted(const StringList& valid_strings, FileTypes::Type type)
+    {
+      const std::string type_name = FileTypes::typeToName(type);
+      for (const auto& vs : valid_strings)
+      {
+        if (FileTypes::sameFormat(vs, type_name)) return true;
+      }
+      return false;
+    }
+
+    /// Is @p filename's compression suffix, if any, one the reader for @p type can actually handle?
+    /// getType() sees through '.gz'/'.bz2'/'.zip', so without this a 'spectra.mgf.gz' passes validation
+    /// and then fails inside the reader. TOPPAS applies the same rule to its edges.
+    bool compressionSupported(const std::string& filename, FileTypes::Type type)
+    {
+      const FileTypes::Type compression = FileNameUtils::compressionType(filename);
+      return compression == FileTypes::UNKNOWN || FileTypes::supportsCompressedReading(type, compression);
+    }
+
+    /// Expand declared formats to every accepted extension, as '*.ext' patterns for INI/CTD metadata.
+    /// 'fasta' becomes {*.fasta, *.fa, *.faa}; an unrecognized custom extension is passed through as-is.
+    /// Order is stable (declaration order, preferred extension before its aliases) and duplicates are dropped.
+    StringList expandFormatsForMetadata(const StringList& valid_strings)
+    {
+      StringList out;
+      StringList seen; // upper-cased, so we neither repeat nor re-case a pattern
+      auto add = [&out, &seen](const std::string& ext) {
+        const std::string key = StringUtils::toUppered(ext);
+        if (ListUtils::contains(seen, key)) return;
+        seen.push_back(key);
+        out.push_back("*." + ext);
+      };
+      for (const auto& vs : valid_strings)
+      {
+        add(vs); // the tool's own spelling first, so a declared '*.FASTA' stays '*.FASTA'
+        const FileTypes::Type type = FileTypes::nameToType(vs);
+        if (type == FileTypes::UNKNOWN) continue; // custom extension: nothing to expand
+        for (const auto& ext : FileTypes::typeToExtensions(type)) add(ext);
+      }
+      return out;
+    }
+
+    /// Accepted extensions for help text, without the '*.' prefix that INI/CTD use.
+    /// Mirrors expandFormatsForMetadata so that --help, the CTD and validation all say the same thing.
+    StringList expandFormatsForHelp(const StringList& valid_strings)
+    {
+      StringList out;
+      for (const auto& pattern : expandFormatsForMetadata(valid_strings))
+      {
+        out.push_back(StringUtils::substr(pattern, 2)); // drop the leading '*.'
+      }
+      return out;
+    }
+
+    /// Declared formats as '*.ext' patterns, with no alias expansion.
+    /// Used for output parameters: the preferred extension must stay the single canonical choice, both
+    /// because it is what OpenMS writes and because TOPPAS derives an output file's suffix from a
+    /// single-entry restriction (TOPPASToolVertex).
+    StringList canonicalFormatsForMetadata(const StringList& valid_strings)
+    {
+      StringList out;
+      for (const auto& vs : valid_strings) out.push_back("*." + vs);
+      return out;
+    }
+  }
+
+
   using namespace Exception;
 
   std::string TOPPBase::topp_ini_file_ = SystemSettings::getOpenMSHomePath() + "/.TOPP.ini";
@@ -776,7 +848,12 @@ namespace OpenMS
       case ParameterInformation::OUTPUT_FILE_LIST:
         if (!it->valid_strings.empty())
         {
-          StringList copy = it->valid_strings;
+          const bool is_input_file = (it->type == ParameterInformation::INPUT_FILE
+                                   || it->type == ParameterInformation::INPUT_FILE_LIST);
+          // Input parameters accept every registered alias, and the INI/CTD advertise them, so --help
+          // has to name them too; otherwise the same tool tells the user two different things.
+          // Outputs list only the preferred extension, which is the one OpenMS writes.
+          StringList copy = is_input_file ? expandFormatsForHelp(it->valid_strings) : it->valid_strings;
           for (auto& str : copy)
           {
             StringUtils::quote(str, '\'');
@@ -1491,65 +1568,6 @@ namespace OpenMS
     }
 
     return tmp;
-  }
-
-  namespace
-  {
-    /// Does any entry of @p valid_strings denote the same format as @p type?
-    /// Compared by type, so a tool declaring 'fasta' accepts 'db.fa' and one declaring 'fa' accepts 'db.fasta'.
-    /// Entries that are not known formats keep their exact spelling, so a custom extension only matches itself.
-    bool formatAccepted(const StringList& valid_strings, FileTypes::Type type)
-    {
-      const std::string type_name = FileTypes::typeToName(type);
-      for (const auto& vs : valid_strings)
-      {
-        if (FileTypes::sameFormat(vs, type_name)) return true;
-      }
-      return false;
-    }
-
-    /// Is @p filename's compression suffix, if any, one the reader for @p type can actually handle?
-    /// getType() sees through '.gz'/'.bz2'/'.zip', so without this a 'spectra.mgf.gz' passes validation
-    /// and then fails inside the reader. TOPPAS applies the same rule to its edges.
-    bool compressionSupported(const std::string& filename, FileTypes::Type type)
-    {
-      const FileTypes::Type compression = FileNameUtils::compressionType(filename);
-      return compression == FileTypes::UNKNOWN || FileTypes::supportsCompressedReading(type, compression);
-    }
-
-    /// Expand declared formats to every accepted extension, as '*.ext' patterns for INI/CTD metadata.
-    /// 'fasta' becomes {*.fasta, *.fa, *.faa}; an unrecognized custom extension is passed through as-is.
-    /// Order is stable (declaration order, preferred extension before its aliases) and duplicates are dropped.
-    StringList expandFormatsForMetadata(const StringList& valid_strings)
-    {
-      StringList out;
-      StringList seen; // upper-cased, so we neither repeat nor re-case a pattern
-      auto add = [&out, &seen](const std::string& ext) {
-        const std::string key = StringUtils::toUppered(ext);
-        if (ListUtils::contains(seen, key)) return;
-        seen.push_back(key);
-        out.push_back("*." + ext);
-      };
-      for (const auto& vs : valid_strings)
-      {
-        add(vs); // the tool's own spelling first, so a declared '*.FASTA' stays '*.FASTA'
-        const FileTypes::Type type = FileTypes::nameToType(vs);
-        if (type == FileTypes::UNKNOWN) continue; // custom extension: nothing to expand
-        for (const auto& ext : FileTypes::typeToExtensions(type)) add(ext);
-      }
-      return out;
-    }
-
-    /// Declared formats as '*.ext' patterns, with no alias expansion.
-    /// Used for output parameters: the preferred extension must stay the single canonical choice, both
-    /// because it is what OpenMS writes and because TOPPAS derives an output file's suffix from a
-    /// single-entry restriction (TOPPASToolVertex).
-    StringList canonicalFormatsForMetadata(const StringList& valid_strings)
-    {
-      StringList out;
-      for (const auto& vs : valid_strings) out.push_back("*." + vs);
-      return out;
-    }
   }
 
   void TOPPBase::fileParamValidityCheck_(const StringList& param_value, const std::string& param_name, const ParameterInformation& p) const
