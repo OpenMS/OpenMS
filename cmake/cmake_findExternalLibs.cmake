@@ -60,18 +60,26 @@ we are going to try to continue building.")
   get_target_property(target_type Boost::regex TYPE)
   if (target_type STREQUAL "STATIC_LIBRARY" AND location MATCHES "^/usr/local/")
     get_target_property(libs Boost::regex INTERFACE_LINK_LIBRARIES)
-    # If boost from brew, replace simple "link flags" like "-lzstd" with
+    # If boost from brew, replace simple "link flags" like "-licuuc" with
     # find_package calls and their resulting imported targets
     # since boost CMake does not expose this transitive dependency as targets!
     # see https://github.com/boostorg/boost_install/issues/64
-    foreach (lib ${libs})
-      if (lib MATCHES "icui18n")
-        find_package(ICU COMPONENTS "data" "uc" "i18n")
+    # Only rewrite what we actually found, and only the ICU entries: naming an
+    # imported target that no find_package created is a hard error at generate
+    # time ("the link interface contains ICU::data but the target was not
+    # found"), and this is the only find_package(ICU) in the project.
+    if (libs MATCHES "icui18n")
+      find_package(ICU COMPONENTS "data" "uc" "i18n")
+      if (TARGET ICU::data AND TARGET ICU::uc AND TARGET ICU::i18n)
+        list(FILTER libs EXCLUDE REGEX "icu(data|uc|i18n)")
+        list(APPEND libs ICU::data ICU::uc ICU::i18n)
+        set_target_properties(Boost::regex
+                PROPERTIES INTERFACE_LINK_LIBRARIES "${libs}")
+      else()
+        message(WARNING "Boost::regex links ICU, but ICU was not found. Leaving its plain -licu* link flags in place; \
+if linking fails, install ICU (e.g. 'brew install icu4c') or use '-DBOOST_USE_STATIC=OFF'.")
       endif()
-    endforeach ()
-    ##
-    set_target_properties(Boost::regex
-            PROPERTIES INTERFACE_LINK_LIBRARIES "ICU::data;ICU::uc;ICU::i18n")
+    endif()
   endif()
 else()
   message(FATAL_ERROR "Boost or one of its components not found!")
