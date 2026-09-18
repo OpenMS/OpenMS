@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <filesystem>
+#include <initializer_list>
 #include <iostream>
 #include <string>
 
@@ -30,7 +31,7 @@ using namespace OpenMS;
 namespace
 {
   /**
-    @brief Path of the OpenMS core library this process has loaded, empty when the loader reports none.
+    @brief Path of the loaded module whose file name is @p file_name, empty when the loader reports none.
 
     Asked of the loader rather than of the build system, because which library is
     resolved at run time is the question here: the RPATH of this executable is only
@@ -43,38 +44,17 @@ namespace
     Identified by module name rather than by the address of an exported function:
     for a function defined in a shared library, taking its address in an executable
     yields the address of the PLT stub inside the executable, so dladdr() would
-    report the executable instead of the library.
+    report the executable instead of the library. The names are not guessed here
+    either -- relocated/CMakeLists.txt passes what $<TARGET_FILE_NAME:...> of the
+    imported targets says, so a SOVERSION, an OUTPUT_NAME or a debug postfix on the
+    OpenMS libraries changes what is looked for along with what is built.
   */
-  std::string loadedOpenMSLibrary();
-
-#if !defined(_WIN32)
-  /**
-    @brief Whether @p name is a path to the OpenMS core library.
-
-    Matched on everything before the first '.' of the file name, so that the
-    versioned forms ("libOpenMS.so.3.6") count and the libraries of the other
-    layers ("libOpenMS_CLI.so") do not.
-  */
-  bool isOpenMSCoreLibrary(const char* name)
-  {
-    if (name == nullptr)
-    {
-      return false;
-    }
-    const std::string file = std::filesystem::path(name).filename().string();
-    return file.substr(0, file.find('.')) == "libOpenMS";
-  }
-#endif
+  std::string loadedModulePath(const std::string& file_name);
 
 #if defined(_WIN32)
-  std::string loadedOpenMSLibrary()
+  std::string loadedModulePath(const std::string& file_name)
   {
-    // "OpenMS" for an MSVC build, "libOpenMS" for the MinGW naming convention
-    HMODULE module = GetModuleHandleA("OpenMS");
-    if (module == nullptr)
-    {
-      module = GetModuleHandleA("libOpenMS");
-    }
+    const HMODULE module = GetModuleHandleA(file_name.c_str());
     if (module == nullptr)
     {
       return {};
@@ -88,12 +68,12 @@ namespace
     return std::string(path, length);
   }
 #elif defined(__APPLE__)
-  std::string loadedOpenMSLibrary()
+  std::string loadedModulePath(const std::string& file_name)
   {
     for (uint32_t i = 0; i < _dyld_image_count(); ++i)
     {
       const char* name = _dyld_get_image_name(i);
-      if (isOpenMSCoreLibrary(name))
+      if (name != nullptr && std::filesystem::path(name).filename().string() == file_name)
       {
         return name;
       }
@@ -101,27 +81,37 @@ namespace
     return {};
   }
 #else
-  /// Callback of the dl_iterate_phdr() walk below; stores the first match in @p data.
-  int collectOpenMSLibrary(struct dl_phdr_info* info, size_t /* size */, void* data)
+  /// What collectModule() is looking for, and where it puts the answer.
+  struct ModuleQuery
   {
-    if (!isOpenMSCoreLibrary(info->dlpi_name))
+    const std::string* file_name = nullptr;
+    std::string path;
+  };
+
+  /// Callback of the dl_iterate_phdr() walk below; stores the first match in @p data.
+  int collectModule(struct dl_phdr_info* info, size_t /* size */, void* data)
+  {
+    ModuleQuery& query = *static_cast<ModuleQuery*>(data);
+    if (info->dlpi_name == nullptr
+        || std::filesystem::path(info->dlpi_name).filename().string() != *query.file_name)
     {
       return 0;
     }
-    *static_cast<std::string*>(data) = info->dlpi_name;
+    query.path = info->dlpi_name;
     return 1; // anything but 0 ends the walk
   }
 
-  std::string loadedOpenMSLibrary()
+  std::string loadedModulePath(const std::string& file_name)
   {
-    std::string path;
-    dl_iterate_phdr(collectOpenMSLibrary, &path);
-    return path;
+    ModuleQuery query;
+    query.file_name = &file_name;
+    dl_iterate_phdr(collectModule, &query);
+    return query.path;
   }
 #endif
 
-  /// Directory of @p path, resolved as far as it exists; empty when it cannot be resolved.
-  std::filesystem::path resolvedDirectory(const std::filesystem::path& path)
+  /// @p path resolved as far as it exists; empty when it cannot be resolved.
+  std::filesystem::path resolvedPath(const std::filesystem::path& path)
   {
     std::error_code ec;
     const std::filesystem::path resolved = std::filesystem::weakly_canonical(path, ec);
@@ -133,34 +123,47 @@ namespace
 int main()
 {
   // Compiled against the headers of the moved prefix and linked against the
-  // libOpenMS installed there.
+  // libraries installed there.
   const std::string version = VersionInfo::getVersion();
 
-  // The library that was loaded has to be the one the package describes, not
-  // another OpenMS that happened to be earlier on the loader's search path.
-  // Both halves of that: it comes out of the directory the package reports ...
-  const std::string module = loadedOpenMSLibrary();
-  if (module.empty())
+  const std::filesystem::path expected_dir = resolvedPath(OPENMS_EXPECTED_LIB_DIR);
+  if (expected_dir.empty())
   {
-    std::cerr << "cannot determine which OpenMS library this process loaded\n";
+    std::cerr << "cannot resolve the library directory the package reports: " << OPENMS_EXPECTED_LIB_DIR << "\n";
     return 1;
   }
-  const std::filesystem::path module_dir = resolvedDirectory(std::filesystem::path(module).parent_path());
-  const std::filesystem::path expected_dir = resolvedDirectory(OPENMS_EXPECTED_LIB_DIR);
-  if (module_dir.empty() || expected_dir.empty())
-  {
-    std::cerr << "cannot resolve the directory of " << module << " or of " << OPENMS_EXPECTED_LIB_DIR << "\n";
-    return 1;
-  }
-  if (module_dir != expected_dir)
-  {
-    std::cerr << "loaded the OpenMS library " << module << ", but the package reports its libraries in "
-              << OPENMS_EXPECTED_LIB_DIR << "\n";
-    return 1;
-  }
-  std::cout << "Loaded OpenMS " << version << " from " << module << std::endl;
 
-  // ... and it is the version the package reports. Compared through the parsed
+  // The libraries that were loaded have to be the ones the package describes, not
+  // another OpenMS that happened to be earlier on the loader's search path. Both
+  // libraries of the core layer, because the executable links OpenMS::OpenMS and
+  // gets OpenMS::OpenSwathAlgo with it: each is resolved by the loader in its own
+  // right, so an RPATH that sends one of them back to the build tree is exactly
+  // the regression this test exists to catch.
+  for (const std::string& module_name : {std::string(OPENMS_CORE_MODULE_NAME),
+                                         std::string(OPENMS_OPENSWATHALGO_MODULE_NAME)})
+  {
+    const std::string module = loadedModulePath(module_name);
+    if (module.empty())
+    {
+      std::cerr << "the loader does not report a module named " << module_name << " in this process\n";
+      return 1;
+    }
+    const std::filesystem::path module_dir = resolvedPath(std::filesystem::path(module).parent_path());
+    if (module_dir.empty())
+    {
+      std::cerr << "cannot resolve the directory of " << module << "\n";
+      return 1;
+    }
+    if (module_dir != expected_dir)
+    {
+      std::cerr << "loaded " << module << ", but the package reports its libraries in "
+                << OPENMS_EXPECTED_LIB_DIR << "\n";
+      return 1;
+    }
+    std::cout << "Loaded " << module << std::endl;
+  }
+
+  // And the library is the version the package reports. Compared through the parsed
   // struct rather than as a string: a pre-release build appends "-pre-<identifier>"
   // to the library's version, while the package reports the plain major.minor.patch
   // in OPENMS_EXPECTED_VERSION.
@@ -180,6 +183,6 @@ int main()
     return 1;
   }
 
-  std::cout << "All good and well!" << std::endl;
+  std::cout << "OpenMS " << version << ": all good and well!" << std::endl;
   return 0;
 }
