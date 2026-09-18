@@ -32,9 +32,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # A pull request builds and runs code from the branch under review, so the
-      # checkout must not leave its token behind in .git/config for that code to
-      # find. Matches the checkouts in release.yml.
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
