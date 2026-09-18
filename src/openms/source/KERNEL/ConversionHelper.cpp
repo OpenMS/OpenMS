@@ -40,10 +40,17 @@ namespace OpenMS
     }
     output_map.reserve(n);
 
+    // most intense first; equal intensities are ordered by RT, then m/z, so that the selected peaks and their
+    // order do not depend on the standard library's partial_sort implementation
     std::partial_sort(tmp.begin(),
                       tmp.begin() + n,
                       tmp.end(),
-                      [](auto &left, auto &right) {Peak2D::IntensityLess cmp; return cmp(right, left);});
+                      [](const Peak2D& left, const Peak2D& right)
+                      {
+                        if (left.getIntensity() != right.getIntensity()) return left.getIntensity() > right.getIntensity();
+                        if (left.getRT() != right.getRT()) return left.getRT() < right.getRT();
+                        return left.getMZ() < right.getMZ();
+                      });
 
     for (Size element_index = 0; element_index < n; ++element_index)
     {
