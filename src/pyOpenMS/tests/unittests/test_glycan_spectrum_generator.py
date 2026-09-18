@@ -34,6 +34,42 @@ def test_diagnostics_and_metadata():
         generator.set_options(modified_options)
 
 
+@pytest.mark.parametrize("symbol", ["dHex", "d-Hex"])
+def test_deoxyhexose_diagnostic_aliases(symbol):
+    generator_type = oms.TheoreticalGlycanSpectrumGenerator
+    options = generator_type.Options()
+    options.add_b_ions = False
+    options.add_y_ions = False
+    generator = generator_type(options)
+    fragments = generator.get_fragments(composition(**{symbol: 1}))
+    assert len(fragments) == 1
+    assert fragments[0].name == "glycan:diagnostic:d-Hex"
+    assert fragments[0].get_mz() == pytest.approx(147.06519, abs=1e-5)
+    assert len(generator.get_fragments(composition(**{"dHex": 1, "d-Hex": 2}))) == 1
+    mixed = generator.get_fragments(composition(Fuc=1, dHex=1))
+    assert {f.name for f in mixed} == {"glycan:diagnostic:Fuc", "glycan:diagnostic:d-Hex"}
+    assert mixed[0].get_mz() == pytest.approx(mixed[1].get_mz(), abs=1e-5)
+
+
+@pytest.mark.parametrize("method_name", ["ETD", "ETHCD"])
+def test_radical_backbone_masses(method_name):
+    generator_type = oms.TheoreticalGlycanSpectrumGenerator
+    method = getattr(generator_type.FragmentationMethod, method_name)
+    fragments = generator_type().get_glycopeptide_fragments(
+        oms.AASequence.fromString("ANST"), composition(HexNAc=1), 1, method,
+    )
+    ions = {(f.name, f.charge): f for f in fragments}
+    # Independent elemental expectations: C4H7O3 and C19H31N4O12 before protonation.
+    z1 = ions[("peptide:z1", 1)]
+    assert z1.attachment_position is None
+    assert z1.get_mz() == pytest.approx(104.04679555, abs=1e-5)
+    assert ions[("peptide:z1", 2)].get_mz() == pytest.approx(52.52703601, abs=1e-5)
+    name = "peptide:z3;glycan=HexNAc1;site=N2"
+    assert ions[(name, 1)].attachment_position == 1
+    assert ions[(name, 1)].get_mz() == pytest.approx(508.20112392, abs=1e-5)
+    assert ions[(name, 2)].get_mz() == pytest.approx(254.60420019, abs=1e-5)
+
+
 def test_tree_and_formula_residues():
     tree = oms.GlycanStructure()
     root = tree.add_monosaccharide("HexNAc")

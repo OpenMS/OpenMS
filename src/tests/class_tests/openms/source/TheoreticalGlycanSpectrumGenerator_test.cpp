@@ -76,6 +76,29 @@ START_SECTION((diagnostic ions from a ProForma composition))
 }
 END_SECTION
 
+START_SECTION((deoxyhexose diagnostic aliases preserve canonical and stereochemical identity))
+{
+  Generator::Options options;
+  options.add_b_ions = options.add_y_ions = false;
+  Generator generator(options);
+  for (const auto& symbol : {"dHex", "d-Hex"})
+  {
+    const auto ions = generator.getFragments(comp({{symbol, 1}}));
+    TEST_EQUAL(ions.size(), 1)
+    const auto& ion = findIon(ions, "glycan:diagnostic:d-Hex");
+    TEST_REAL_SIMILAR(ion.getMZ(), 147.06519)
+    TEST_EQUAL(ion.composition.components.size(), 1)
+    TEST_EQUAL(std::get<std::string>(ion.composition.components[0].first), "d-Hex")
+    TEST_EQUAL(*MzPAF::parse(ion.getAnnotation()).named_compound, ion.name)
+  }
+  // Aliases describe the same component; Fuc additionally specifies stereochemistry.
+  TEST_EQUAL(generator.getFragments(comp({{"dHex", 1}, {"d-Hex", 2}})).size(), 1)
+  const auto mixed = generator.getFragments(comp({{"Fuc", 1}, {"dHex", 1}}));
+  TEST_EQUAL(mixed.size(), 2)
+  TEST_REAL_SIMILAR(findIon(mixed, "glycan:diagnostic:Fuc").getMZ(), findIon(mixed, "glycan:diagnostic:d-Hex").getMZ())
+}
+END_SECTION
+
 START_SECTION((bounded composition B / Y / C / Z ions, charge ranges and formulas))
 {
   Generator::Options options;
@@ -194,8 +217,8 @@ START_SECTION((glycopeptide attachment, HCD / ETD / EThcD and configurable reten
   TEST_EQUAL(etd.size(), 12)
   const auto& intact = findIon(etd, "peptide:c2;glycan=Fuc1Hex3HexNAc2;site=N2");
   TEST_REAL_SIMILAR(intact.neutral_mass, peptide.getPrefix(2).getMonoWeight(Residue::CIon) + full_mass)
-  TEST_REAL_SIMILAR(findIon(etd, "peptide:z3;glycan=Fuc1Hex3HexNAc2;site=N2").neutral_mass,
-                    peptide.getSuffix(3).getMonoWeight(Residue::ZIon) + full_mass)
+  // The radical NST suffix has neutral formula C11H18N3O7.
+  TEST_REAL_SIMILAR(findIon(etd, "peptide:z3;glycan=Fuc1Hex3HexNAc2;site=N2").neutral_mass, 304.11447493 + full_mass)
   for (const auto& ion : etd)
   {
     TEST_TRUE(ion.ion_type == Ion::PEPTIDE)
@@ -219,6 +242,60 @@ START_SECTION((glycopeptide attachment, HCD / ETD / EThcD and configurable reten
   TEST_EXCEPTION(Exception::InvalidParameter,
                  generator.getGlycopeptideFragments(peptide, comp({{"HexNAc", 1}}), 1, Generator::FragmentationMethod::HCD))
   TEST_EXCEPTION(Exception::InvalidParameter, generator.getGlycopeptideFragments(peptide, glycan, 4, Generator::FragmentationMethod::HCD))
+}
+END_SECTION
+
+START_SECTION((ETD and EThcD radical backbone masses match independent elemental expectations))
+{
+  Generator generator;
+  const auto peptide = AASequence::fromString("ANST");
+  const auto glycan = comp({{"HexNAc", 1}});
+  // Fixed monoisotopic masses from elemental counts, without AASequence's ion conversions:
+  // z1(T): C4H7O3; z3(NST)+HexNAc: C19H31N4O12; c2(AN)+HexNAc: C15H27N5O8.
+  // Radical z = internal residue sum + O - N; charge adds one proton per unit.
+  for (const auto method : {Generator::FragmentationMethod::ETD, Generator::FragmentationMethod::ETHCD})
+  {
+    const auto ions = generator.getGlycopeptideFragments(peptide, glycan, 1, method);
+    const auto& z1 = findIon(ions, "peptide:z1");
+    TEST_FALSE(z1.attachment_position.has_value())
+    TEST_REAL_SIMILAR(z1.neutral_mass, 103.03951908)
+    TEST_REAL_SIMILAR(z1.getMZ(), 104.04679555)
+    TEST_REAL_SIMILAR(findIon(ions, "peptide:z1", 2).getMZ(), 52.52703601)
+    const auto& z3 = findIon(ions, "peptide:z3;glycan=HexNAc1;site=N2");
+    TEST_EQUAL(*z3.attachment_position, 1)
+    TEST_REAL_SIMILAR(z3.neutral_mass, 507.19384745)
+    TEST_REAL_SIMILAR(z3.getMZ(), 508.20112392)
+    TEST_REAL_SIMILAR(findIon(ions, z3.name, 2).getMZ(), 254.60420019)
+    TEST_REAL_SIMILAR(findIon(ions, "peptide:c2;glycan=HexNAc1;site=N2").getMZ(), 406.19323932)
+    auto modified = peptide;
+    modified.setCTerminalModification("Amidated"); // OH -> NH2: -0.98401558 Da.
+    const auto amidated = generator.getGlycopeptideFragments(modified, glycan, 1, method);
+    TEST_REAL_SIMILAR(findIon(amidated, "peptide:z1").getMZ(), 103.06277997)
+    TEST_REAL_SIMILAR(findIon(amidated, z3.name).getMZ(), 507.21710834)
+    TEST_REAL_SIMILAR(findIon(amidated, z3.name, 2).getMZ(), 254.11219240)
+    TEST_REAL_SIMILAR(findIon(amidated, "peptide:c2;glycan=HexNAc1;site=N2").getMZ(), 406.19323932)
+  }
+}
+END_SECTION
+
+START_SECTION((fragment annotations reject names that cannot roundtrip through mzPAF))
+{
+  Generator::Fragment fragment;
+  for (const auto& name :
+       std::vector<std::string> {"", "glycan name", "glycan\tname", "glycan\nname", "glycan[name", "glycan]name", std::string("glycan\0name", 11)})
+  {
+    fragment.name = name;
+    TEST_EXCEPTION(Exception::InvalidParameter, fragment.getAnnotation())
+  }
+  fragment.name = "glycan:diagnostic:d-Hex";
+  fragment.charge = 2;
+  fragment.neutral_mass = 146.0579088;
+  const auto parsed = MzPAF::parse(fragment.getAnnotation());
+  TEST_EQUAL(*parsed.named_compound, fragment.name)
+  TEST_EQUAL(*parsed.charge, 2)
+  // The public C++ fragment type can also reach serialization through spectrum export.
+  fragment.name = "glycan name";
+  TEST_EXCEPTION(Exception::InvalidParameter, Generator::toSpectrum({fragment}))
 }
 END_SECTION
 
