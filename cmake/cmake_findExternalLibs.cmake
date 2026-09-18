@@ -22,6 +22,56 @@
 find_package(XercesC REQUIRED)
 
 #------------------------------------------------------------------------------
+# Boost's CMake config does not expose the transitive dependencies of its
+# compiled libraries as imported targets, so a static boost from brew carries
+# plain "-lzstd"-style entries in its link interface instead
+# (https://github.com/boostorg/boost_install/issues/64).
+#
+# Replace the entries of _boost_target's link interface that name library
+# _stem -- "-l<stem>" or a path to "lib<stem>.<ext>" -- with the first of
+# ${ARGN} that exists as an imported target, after looking for _package. Touch
+# nothing else: which libraries boost links depends on how it was built, so
+# substituting one it does not list would invent a dependency, and naming an
+# imported target that no find_package created is a hard error at generate time
+# ("the link interface of target ... contains ZLIB::ZLIB but the target was not
+# found"). When no candidate target exists, boost's own flag is left in place
+# and a warning names _name.
+#
+# The regex is built here rather than passed in: a macro substitutes its
+# arguments as text, so a backslash escape in one would be unescaped a second
+# time ("\\." arriving as ".", which would make the zlib stem match -lzstd).
+macro(openms_boost_flag_to_target _boost_target _name _stem _package)
+  set(_obftt_regex "^(-l|.*lib)${_stem}(\\.|$)")
+  get_target_property(_obftt_libs ${_boost_target} INTERFACE_LINK_LIBRARIES)
+  set(_obftt_hits "${_obftt_libs}")
+  list(FILTER _obftt_hits INCLUDE REGEX "${_obftt_regex}")
+  if (_obftt_hits)
+    find_package(${_package})
+    set(_obftt_target "")
+    foreach (_obftt_candidate ${ARGN})
+      if (TARGET ${_obftt_candidate})
+        set(_obftt_target ${_obftt_candidate})
+        break()
+      endif()
+    endforeach()
+    if (_obftt_target)
+      list(FILTER _obftt_libs EXCLUDE REGEX "${_obftt_regex}")
+      list(APPEND _obftt_libs ${_obftt_target})
+      set_target_properties(${_boost_target}
+              PROPERTIES INTERFACE_LINK_LIBRARIES "${_obftt_libs}")
+    else()
+      message(WARNING "${_boost_target} links ${_name}, but no imported target for it was found. Leaving boost's \
+plain link flag for it in place; if linking fails, install ${_name} or use '-DBOOST_USE_STATIC=OFF'.")
+    endif()
+  endif()
+  unset(_obftt_regex)
+  unset(_obftt_libs)
+  unset(_obftt_hits)
+  unset(_obftt_target)
+  unset(_obftt_candidate)
+endmacro()
+
+#------------------------------------------------------------------------------
 # BOOST
 set(OpenMS_BOOST_COMPONENTS date_time regex CACHE INTERNAL "Boost components for core lib")
 find_boost(iostreams ${OpenMS_BOOST_COMPONENTS})
@@ -39,21 +89,15 @@ if(Boost_FOUND)
     message(WARNING "Statically linked Boost from system installations like brew, are not fully supported yet.
 Either use '-DBOOST_USE_STATIC=OFF' to use the shared library or build boost with our contrib. Nonetheless,
 we are going to try to continue building.")
-    get_target_property(libs Boost::iostreams INTERFACE_LINK_LIBRARIES)
-    # If boost from brew, replace simple "link flags" like "-lzstd" with
-    # find_package calls and their resulting imported targets
-    # since boost CMake does not expose this transitive dependency as targets!
-    # see https://github.com/boostorg/boost_install/issues/64
-    foreach (lib ${libs})
-      if (lib MATCHES "zstd")
-        find_package(zstd)
-      elseif (lib MATCHES "lzma")
-        find_package(LibLZMA)
-      endif()
-    endforeach ()
-    ##
-    set_target_properties(Boost::iostreams
-          PROPERTIES INTERFACE_LINK_LIBRARIES "BZip2::BZip2;ZLIB::ZLIB;zstd::libzstd_shared;LibLZMA::LibLZMA")
+    # Swap each compression backend boost listed for its imported target, one
+    # entry at a time (see openms_boost_flag_to_target above). zstd's config
+    # package exports a shared or a static target depending on how it was
+    # built, so take whichever exists -- as the opentims block further down
+    # already does.
+    openms_boost_flag_to_target(Boost::iostreams "zlib"  z    ZLIB    ZLIB::ZLIB)
+    openms_boost_flag_to_target(Boost::iostreams "bzip2" bz2  BZip2   BZip2::BZip2)
+    openms_boost_flag_to_target(Boost::iostreams "zstd"  zstd zstd    zstd::libzstd_shared zstd::libzstd_static)
+    openms_boost_flag_to_target(Boost::iostreams "lzma"  lzma LibLZMA LibLZMA::LibLZMA)
   endif()
 
   get_target_property(location Boost::regex LOCATION)
