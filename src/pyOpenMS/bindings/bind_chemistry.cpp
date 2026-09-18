@@ -1150,7 +1150,7 @@ The cross-linker modifications are read from an OBO file.
     // MzPAFAnnotation
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MzPAFAnnotation>(m, "MzPAFAnnotation",
-                                        R"doc(
+        R"doc(
 A single mzPAF peak annotation.
 Represents one annotation for a peak in mzPAF (Peak Annotation Format),
 the HUPO-PSI standard for fragment ion annotations.
@@ -1165,29 +1165,29 @@ Examples:
 - m3:6 - Internal fragment
 - r[TMT127N] - Reporter ion
 )doc")
-      .def(nb::init<>())
-      .def(nb::init<const OpenMS::MzPAFAnnotation&>())
-      .def("__copy__", [](const OpenMS::MzPAFAnnotation& self) { return OpenMS::MzPAFAnnotation(self); })
-      .def(
-        "__deepcopy__", [](const OpenMS::MzPAFAnnotation& self, nb::dict) { return OpenMS::MzPAFAnnotation(self); }, "memo"_a)
-      .def("isValid", [](const OpenMS::MzPAFAnnotation& self) { return self.isValid(); })
-      .def(nb::self == nb::self)
-      .def_rw("analyte_index", &OpenMS::MzPAFAnnotation::analyte_index)
-      .def_rw("ion_series", &OpenMS::MzPAFAnnotation::ion_series)
-      .def_rw("ordinal", &OpenMS::MzPAFAnnotation::ordinal)
-      .def_rw("immonium_residue", &OpenMS::MzPAFAnnotation::immonium_residue)
-      .def_rw("internal_range", &OpenMS::MzPAFAnnotation::internal_range)
-      .def_rw("reporter_name", &OpenMS::MzPAFAnnotation::reporter_name)
-      .def_rw("formula", &OpenMS::MzPAFAnnotation::formula)
-      .def_rw("named_compound", &OpenMS::MzPAFAnnotation::named_compound)
-      .def_rw("neutral_losses", &OpenMS::MzPAFAnnotation::neutral_losses)
-      .def_rw("isotope_offset", &OpenMS::MzPAFAnnotation::isotope_offset)
-      .def_rw("adduct", &OpenMS::MzPAFAnnotation::adduct)
-      .def_rw("charge", &OpenMS::MzPAFAnnotation::charge)
-      .def_rw("mass_delta", &OpenMS::MzPAFAnnotation::mass_delta)
-      .def_rw("confidence", &OpenMS::MzPAFAnnotation::confidence)
-      .def_rw("embedded_sequence", &OpenMS::MzPAFAnnotation::embedded_sequence)
-      .def_rw("satellite_subtype", &OpenMS::MzPAFAnnotation::satellite_subtype, "Optional 'a' or 'b' subtype, valid only for d- and w-ions");
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::MzPAFAnnotation &>())
+        .def("__copy__", [](const OpenMS::MzPAFAnnotation& self) { return OpenMS::MzPAFAnnotation(self); })
+        .def("__deepcopy__", [](const OpenMS::MzPAFAnnotation& self, nb::dict) { return OpenMS::MzPAFAnnotation(self); }, "memo"_a)
+        .def("isValid", [](const OpenMS::MzPAFAnnotation& self) { return self.isValid(); })
+        .def(nb::self == nb::self)
+        .def_rw("analyte_index", &OpenMS::MzPAFAnnotation::analyte_index)
+        .def_rw("ion_series", &OpenMS::MzPAFAnnotation::ion_series)
+        .def_rw("ordinal", &OpenMS::MzPAFAnnotation::ordinal)
+        .def_rw("immonium_residue", &OpenMS::MzPAFAnnotation::immonium_residue)
+        .def_rw("internal_range", &OpenMS::MzPAFAnnotation::internal_range)
+        .def_rw("reporter_name", &OpenMS::MzPAFAnnotation::reporter_name)
+        .def_rw("formula", &OpenMS::MzPAFAnnotation::formula)
+        .def_rw("named_compound", &OpenMS::MzPAFAnnotation::named_compound)
+        .def_rw("neutral_losses", &OpenMS::MzPAFAnnotation::neutral_losses)
+        .def_rw("isotope_offset", &OpenMS::MzPAFAnnotation::isotope_offset)
+        .def_rw("adduct", &OpenMS::MzPAFAnnotation::adduct)
+        .def_rw("charge", &OpenMS::MzPAFAnnotation::charge)
+        .def_rw("mass_delta", &OpenMS::MzPAFAnnotation::mass_delta)
+        .def_rw("confidence", &OpenMS::MzPAFAnnotation::confidence)
+        .def_rw("embedded_sequence", &OpenMS::MzPAFAnnotation::embedded_sequence)
+        .def_rw("satellite_subtype", &OpenMS::MzPAFAnnotation::satellite_subtype, "Optional 'a' or 'b' subtype, valid only for d- and w-ions")
+        ;
 
     // -----------------------------------------------------------------------
     // MzPAFMassDelta
@@ -1233,24 +1233,24 @@ Examples:
     // MzPAFIonSeries
     // -----------------------------------------------------------------------
     nb::enum_<OpenMS::MzPAFIonSeries>(m, "MzPAFIonSeries", "Ion series types for mzPAF peak annotations", nb::is_arithmetic())
-      .value("A", OpenMS::MzPAFIonSeries::A)
-      .value("B", OpenMS::MzPAFIonSeries::B)
-      .value("C", OpenMS::MzPAFIonSeries::C)
-      .value("X", OpenMS::MzPAFIonSeries::X)
-      .value("Y", OpenMS::MzPAFIonSeries::Y)
-      .value("Z", OpenMS::MzPAFIonSeries::Z)
-      .value("D", OpenMS::MzPAFIonSeries::D)
-      .value("V", OpenMS::MzPAFIonSeries::V)
-      .value("W", OpenMS::MzPAFIonSeries::W)
-      .value("PRECURSOR", OpenMS::MzPAFIonSeries::PRECURSOR)
-      .value("IMMONIUM", OpenMS::MzPAFIonSeries::IMMONIUM)
-      .value("INTERNAL", OpenMS::MzPAFIonSeries::INTERNAL)
-      .value("REPORTER", OpenMS::MzPAFIonSeries::REPORTER)
-      .value("FORMULA", OpenMS::MzPAFIonSeries::FORMULA)
-      .value("NAMED", OpenMS::MzPAFIonSeries::NAMED)
-      .value("UNKNOWN", OpenMS::MzPAFIonSeries::UNKNOWN)
+        .value("A", OpenMS::MzPAFIonSeries::A)
+        .value("B", OpenMS::MzPAFIonSeries::B)
+        .value("C", OpenMS::MzPAFIonSeries::C)
+        .value("X", OpenMS::MzPAFIonSeries::X)
+        .value("Y", OpenMS::MzPAFIonSeries::Y)
+        .value("Z", OpenMS::MzPAFIonSeries::Z)
+        .value("D", OpenMS::MzPAFIonSeries::D)
+        .value("V", OpenMS::MzPAFIonSeries::V)
+        .value("W", OpenMS::MzPAFIonSeries::W)
+        .value("PRECURSOR", OpenMS::MzPAFIonSeries::PRECURSOR)
+        .value("IMMONIUM", OpenMS::MzPAFIonSeries::IMMONIUM)
+        .value("INTERNAL", OpenMS::MzPAFIonSeries::INTERNAL)
+        .value("REPORTER", OpenMS::MzPAFIonSeries::REPORTER)
+        .value("FORMULA", OpenMS::MzPAFIonSeries::FORMULA)
+        .value("NAMED", OpenMS::MzPAFIonSeries::NAMED)
+        .value("UNKNOWN", OpenMS::MzPAFIonSeries::UNKNOWN)
 
-      ;
+        ;
 
     // -----------------------------------------------------------------------
     // MzPAFDeltaUnit
@@ -1282,47 +1282,23 @@ Examples:
     // MzPAF (static utility class)
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MzPAF>(m, "MzPAF", "Parser and writer for mzPAF (Peak Annotation Format) notation")
-      .def_static(
-        "parse", [](const std::string& input) { return OpenMS::MzPAF::parse(input); }, "input"_a, "Parse an mzPAF string into a single annotation")
-      .def_static(
-        "parseMultiple", [](const std::string& input) { return OpenMS::MzPAF::parseMultiple(input); }, "input"_a,
-        "Parse an mzPAF string with potentially multiple annotations")
-      .def_static(
-        "tryParse", [](const std::string& input) { return OpenMS::MzPAF::tryParse(input); }, "input"_a,
-        "Try to parse an mzPAF string (returns None on failure)")
-      .def_static(
-        "tryParseMultiple", [](const std::string& input) { return OpenMS::MzPAF::tryParseMultiple(input); }, "input"_a,
-        "Try to parse multiple annotations (returns None on failure)")
-      .def_static(
-        "toString", [](const OpenMS::MzPAFAnnotation& ann) { return OpenMS::MzPAF::toString(ann); }, "ann"_a, "Convert an annotation to mzPAF string")
-      .def_static(
-        "toStringMultiple", [](const OpenMS::MzPAFPeakAnnotations& anns) { return OpenMS::MzPAF::toString(anns); }, "anns"_a,
-        "Convert multiple annotations to mzPAF string")
-      .def_static(
-        "toPeakAnnotation",
-        [](const OpenMS::MzPAFAnnotation& mzpaf, double mz, double intensity) { return OpenMS::MzPAF::toPeakAnnotation(mzpaf, mz, intensity); },
-        "mzpaf"_a, "mz"_a, "intensity"_a, "Create a PeakAnnotation from mzPAF data")
-      .def_static(
-        "fromPeakAnnotation",
-        [](const OpenMS::PeptideHit::PeakAnnotation& peak_annotation) { return OpenMS::MzPAF::fromPeakAnnotation(peak_annotation); },
-        "peak_annotation"_a, "Parse mzPAF annotations from a PeakAnnotation")
-      .def_static(
-        "isMzPAFFormat", [](const std::string& annotation) { return OpenMS::MzPAF::isMzPAFFormat(annotation); }, "annotation"_a,
-        "Check if a string appears to be in mzPAF format")
-      .def_static(
-        "isPeptideFragmentIon", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::isPeptideFragmentIon(series); }, "series"_a,
-        "Check if ion series is a peptide fragment ion (a, b, c, d, v, w, x, y, z)")
-      .def_static(
-        "ionSeriesToChar", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::ionSeriesToChar(series); }, "series"_a,
-        "Get the ion series character for an annotation")
-      .def_static(
-        "charToIonSeries",
-        [](char c) -> std::optional<OpenMS::MzPAFIonSeries> {
-          OpenMS::MzPAFIonSeries series;
-          if (OpenMS::MzPAF::charToIonSeries(c, series)) return series;
-          return std::nullopt;
-        },
-        "c"_a, "Parse ion series from character (returns None if invalid)");
+        .def_static("parse", [](const std::string& input) { return OpenMS::MzPAF::parse(input); }, "input"_a, "Parse an mzPAF string into a single annotation")
+        .def_static("parseMultiple", [](const std::string& input) { return OpenMS::MzPAF::parseMultiple(input); }, "input"_a, "Parse an mzPAF string with potentially multiple annotations")
+        .def_static("tryParse", [](const std::string& input) { return OpenMS::MzPAF::tryParse(input); }, "input"_a, "Try to parse an mzPAF string (returns None on failure)")
+        .def_static("tryParseMultiple", [](const std::string& input) { return OpenMS::MzPAF::tryParseMultiple(input); }, "input"_a, "Try to parse multiple annotations (returns None on failure)")
+        .def_static("toString", [](const OpenMS::MzPAFAnnotation& ann) { return OpenMS::MzPAF::toString(ann); }, "ann"_a, "Convert an annotation to mzPAF string")
+        .def_static("toStringMultiple", [](const OpenMS::MzPAFPeakAnnotations& anns) { return OpenMS::MzPAF::toString(anns); }, "anns"_a, "Convert multiple annotations to mzPAF string")
+        .def_static("toPeakAnnotation", [](const OpenMS::MzPAFAnnotation& mzpaf, double mz, double intensity) { return OpenMS::MzPAF::toPeakAnnotation(mzpaf, mz, intensity); }, "mzpaf"_a, "mz"_a, "intensity"_a, "Create a PeakAnnotation from mzPAF data")
+        .def_static("fromPeakAnnotation", [](const OpenMS::PeptideHit::PeakAnnotation& peak_annotation) { return OpenMS::MzPAF::fromPeakAnnotation(peak_annotation); }, "peak_annotation"_a, "Parse mzPAF annotations from a PeakAnnotation")
+        .def_static("isMzPAFFormat", [](const std::string& annotation) { return OpenMS::MzPAF::isMzPAFFormat(annotation); }, "annotation"_a, "Check if a string appears to be in mzPAF format")
+        .def_static("isPeptideFragmentIon", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::isPeptideFragmentIon(series); }, "series"_a, "Check if ion series is a peptide fragment ion (a, b, c, d, v, w, x, y, z)")
+        .def_static("ionSeriesToChar", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::ionSeriesToChar(series); }, "series"_a, "Get the ion series character for an annotation")
+        .def_static("charToIonSeries", [](char c) -> std::optional<OpenMS::MzPAFIonSeries> {
+            OpenMS::MzPAFIonSeries series;
+            if (OpenMS::MzPAF::charToIonSeries(c, series)) return series;
+            return std::nullopt;
+        }, "c"_a, "Parse ion series from character (returns None if invalid)")
+        ;
 
     // -----------------------------------------------------------------------
     // NamedMod
@@ -2401,4 +2377,5 @@ the fixed and variable modifications given to the constructor
         .def("__eq__", &OpenMS::AdductInfo::operator==)
         ;
     m.def("__static_AdductInfo_parseAdductString", [](const std::string& adduct) -> OpenMS::AdductInfo { return OpenMS::AdductInfo::parseAdductString(adduct); }, "adduct"_a);
+
 }
