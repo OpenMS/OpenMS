@@ -329,7 +329,10 @@ namespace OpenMS
 
       @param[in] ann The annotation to convert
       @return The mzPAF string representation
-      @throws Exception::InvalidParameter if the satellite subtype is not 'a' or 'b', or is set on a series other than d/w
+      @note This function is total and never throws. An annotation carrying a satellite subtype
+            that mzPAF does not allow -- anything other than 'a'/'b', or a subtype on a series
+            other than d/w -- is written without it, mirroring how an UNKNOWN series is written
+            as '?'. Use isValid() to reject such an annotation.
     */
     static std::string toString(const MzPAFAnnotation& ann);
 

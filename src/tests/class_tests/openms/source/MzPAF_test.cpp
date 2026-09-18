@@ -15,6 +15,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
+#include <sstream>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -165,7 +167,8 @@ START_SECTION(Satellite subtype validation and equality)
     }
     ann.satellite_subtype = 'c';
     TEST_FALSE(ann.isValid())
-    TEST_EXCEPTION(Exception::InvalidParameter, MzPAF::toString(ann))
+    // toString() stays total: the non-conformant subtype is dropped, not thrown on.
+    TEST_STRING_EQUAL(MzPAF::toString(ann), std::string(1, MzPAF::ionSeriesToChar(series)) + "3")
   }
 
   // A subtype on any other series would produce a non-conformant annotation.
@@ -175,7 +178,18 @@ START_SECTION(Satellite subtype validation and equality)
     ann.ion_series = series;
     ann.satellite_subtype = 'a';
     TEST_FALSE(ann.isValid())
-    TEST_EXCEPTION(Exception::InvalidParameter, MzPAF::toString(ann))
+    TEST_STRING_EQUAL(MzPAF::toString(ann), std::string(1, MzPAF::ionSeriesToChar(series)) + "3")
+  }
+
+  // Streaming must never propagate out of an invalid annotation (operator<< forwards to toString).
+  {
+    MzPAFAnnotation bad;
+    bad.ion_series = MzPAFIonSeries::V;
+    bad.ordinal = 3;
+    bad.satellite_subtype = 'a';
+    std::ostringstream oss;
+    oss << bad;
+    TEST_STRING_EQUAL(oss.str(), "v3")
   }
 
   TEST_FALSE(MzPAF::parse("da3") == MzPAF::parse("db3"))

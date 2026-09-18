@@ -878,12 +878,6 @@ namespace OpenMS
 
   std::string MzPAF::toString(const MzPAFAnnotation& ann)
   {
-    if (! hasValidSatelliteSubtype(ann))
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Satellite subtype must be 'a' or 'b' and is only valid for d- and w-ions");
-    }
-
     std::ostringstream oss;
 
     // Analyte index
@@ -905,7 +899,11 @@ namespace OpenMS
       case MzPAFIonSeries::V:
       case MzPAFIonSeries::W:
         oss << ionSeriesToChar(ann.ion_series);
-        if (ann.satellite_subtype.has_value()) { oss << ann.satellite_subtype.value(); }
+        // Only da/db/wa/wb exist in mzPAF, so a subtype the format does not allow is dropped
+        // rather than written out -- emitting it would produce a string this parser rejects.
+        // Keeping this total matters because operator<<() and toString(MzPAFPeakAnnotations)
+        // both forward here; rejecting such an annotation is isValid()'s job.
+        if (ann.satellite_subtype.has_value() && hasValidSatelliteSubtype(ann)) { oss << ann.satellite_subtype.value(); }
         if (ann.ordinal.has_value())
         {
           oss << ann.ordinal.value();
