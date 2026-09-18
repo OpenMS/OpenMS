@@ -80,7 +80,7 @@ Dependencies:
     Previously find_package(OpenMS REQUIRED) failed outright when Eigen was absent.
     The lookup is kept for a static OpenMS, whose export does carry
     $<LINK_ONLY:Eigen3::Eigen>, and runs only for such an installation. Eigen is still
-    required to build OpenMS and pyOpenMS.
+    required to build OpenMS and pyOpenMS (#10169).
   - The class-test framework (CONCEPT/ClassTest.h, ClassTestUtils.h,
     FuzzyStringComparator.h, MacrosTest.h) is no longer installed by default. It is an
     in-repo development tool: its static library was already EXCLUDE_FROM_ALL and is not
@@ -701,6 +701,11 @@ Fixes:
     - MRMFeatureSelector works with GLPK; LP/ILP failures now report status and throw instead
       of returning silently empty results in feature selection/decharging (#9940, #9944,
       #9956).
+    - MapAlignmentAlgorithmKD::filterCCs_ (used by FeatureGroupingAlgorithmKD, i.e. by
+      FeatureLinkerUnlabeledKD) rejected a connected component containing conflicting nonzero
+      charge states only via a continue that escaped the inner charge-scanning loop, so the
+      component still passed the conflict check and was grouped. Such components are now
+      correctly rejected, which changes alignment and linking results (#10157).
   Data integrity and I/O:
     - Sorting/filtering/set_peaks keeps peak annotations and binary arrays aligned in
       spectra, chromatograms and mobilograms. select() checks bounds before mutation;
@@ -761,6 +766,10 @@ Fixes:
       MSExperiment::getSize() (all MS levels plus chromatogram points) although it collects MS1
       peaks only, so MapAlignerPoseClustering with max_num_peaks_considered -1 (or above the MS1
       peak count) on runs with MS2 spectra sorted and copied past the end of a vector (#10148).
+    - StringUtils::skipWhitespace(string_view) and skipNonWhitespace(string_view) returned the
+      scanned length as int; for inputs longer than INT_MAX characters the value wrapped
+      negative, and removeWhitespaces() then built its iterators from it, reading and writing
+      before the start of the buffer. Both now return size_t (#10171).
     - BaseFeature::sortPeptideIdentifications() no longer reads the first hit of an
       identification without hits (a crash for hit-less identifications loaded from featureXML,
       e.g. in FeatureLinkerUnlabeledQT with use_identifications), sorts the hits of every
@@ -790,7 +799,7 @@ Build System:
     names from the new core header OpenMS/DATASTRUCTURES/ParamTags.h, so nothing in
     libOpenMS depends on the framework any more and its exported interface is purely
     scientific. BREAKING for external projects that build TOPP-style tools: link
-    OpenMS::OpenMS_CLI (which carries OpenMS::OpenMS) instead of OpenMS::OpenMS.
+    OpenMS::OpenMS_CLI (which carries OpenMS::OpenMS) instead of OpenMS::OpenMS (#10162).
   - The installed CMake package is layered: the core libraries (libOpenMS, libOpenSwathAlgo and the
     bundled third-party libraries; export set OpenMSTargets, install components library and cmake),
     the TOPP tool framework (libOpenMS_CLI; OpenMSCLITargets, library_cli and cmake_cli) and the GUI
@@ -805,7 +814,7 @@ Build System:
     layer its binaries link (library_gui in a WITH_GUI build, library_cli otherwise), so a
     component-selectable installation cannot leave the TOPP tools without libOpenMS_CLI.
     Reconfiguring a build directory with another WITH_GUI setting no longer leaves a stale GUI
-    target file behind (src/tests/package_layers checks this with stub libraries).
+    target file behind (src/tests/package_layers checks this with stub libraries) (#10164).
   - vcpkg manifests, cross-platform CMake presets, overlay ports/triplets and binary caching
     support Linux, Windows and macOS; main build/test CI uses them. Release-only triplets
     avoid building duplicate Debug dependencies (#9511, #9800, #9927).
@@ -829,7 +838,9 @@ Build System:
   - Fixed Arrow repository keys/version pins, Bioconda synchronization/tooling/dependency
     conflicts and package-list handling; build failures now propagate. Multi-architecture
     images publish a combined amd64/arm64 manifest (#9196, #9726, #9728, #9729, #9750,
-    #9798, #9890, #9891, #9905, #9951, #9954, #10071).
+    #9798, #9890, #9891, #9905, #9951, #9954, #10071). The nightly Bioconda deploy
+    workflow called bioconda-utils build with --pkg-dir, an option that does not exist
+    (--package-dir is correct), failing every nightly run since 2026-09-08 (#10167).
   - Fixed compiler-cache saving and fork-PR workflow failures; documentation lint rules are
     pinned. Added effective Parquet schema/value checks and non-finite numeric comparisons;
     removed parallel-test output collisions and source-timestamp assumptions
