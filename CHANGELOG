@@ -676,6 +676,10 @@ Fixes:
     - MRMFeatureSelector works with GLPK; LP/ILP failures now report status and throw instead
       of returning silently empty results in feature selection/decharging (#9940, #9944,
       #9956).
+    - MapAlignmentAlgorithmKD::filterCCs_ rejects a connected component as soon as it sees
+      conflicting non-zero charge states instead of only skipping the check for that pair of
+      features; a mixed-charge component that happened to pass the earlier charge comparisons
+      was previously kept, letting features of different charge get grouped together (#9050).
   Data integrity and I/O:
     - Sorting/filtering/set_peaks keeps peak annotations and binary arrays aligned in
       spectra, chromatograms and mobilograms. select() checks bounds before mutation;
@@ -799,7 +803,9 @@ Build System:
   - Fixed Arrow repository keys/version pins, Bioconda synchronization/tooling/dependency
     conflicts and package-list handling; build failures now propagate. Multi-architecture
     images publish a combined amd64/arm64 manifest (#9196, #9726, #9728, #9729, #9750,
-    #9798, #9890, #9891, #9905, #9951, #9954, #10071).
+    #9798, #9890, #9891, #9905, #9951, #9954, #10071). The Bioconda deploy workflow's
+    bioconda-utils build calls use --package-dir, the option the installed bioconda-utils
+    actually accepts; --pkg-dir had failed every nightly deploy run (#10167).
   - Fixed compiler-cache saving and fork-PR workflow failures; documentation lint rules are
     pinned. Added effective Parquet schema/value checks and non-finite numeric comparisons;
     removed parallel-test output collisions and source-timestamp assumptions
