@@ -71,6 +71,15 @@ namespace OpenMS
     return matchExtension_(filename, ext_start);
   }
 
+  bool FileNameUtils::hasCompressionSuffix(const std::string& filename)
+  {
+    const size_t last_dot = filename.rfind('.');
+    if (last_dot == std::string::npos) return false;
+    const size_t name_start = filename.find_last_of("\\/") + 1;
+    if (last_dot < name_start) return false; // the dot belongs to a directory, not to the basename
+    return isCompressionSuffix(StringUtils::toUppered(StringUtils::substr(filename, last_dot + 1)));
+  }
+
   bool FileNameUtils::hasValidExtension(const std::string& filename, const FileTypes::Type type)
   {
     FileTypes::Type ft = FileNameUtils::getTypeByFileName(filename);

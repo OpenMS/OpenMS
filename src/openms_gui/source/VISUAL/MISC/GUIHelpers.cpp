@@ -58,7 +58,15 @@ namespace OpenMS
       return file_name;
     }
     // check whether a file type suffix has been given, or fall back to @p fallback_extension (if 'all filter' was used)
-    file_name = toQString(FileHandler::swapExtension(fromQString(file_name), supported_file_types.fromFileDialogFilter(fromQString(selected_filter), fallback_extension)));
+    const FileTypes::Type chosen_type = supported_file_types.fromFileDialogFilter(fromQString(selected_filter), fallback_extension);
+    const std::string typed_name = fromQString(file_name);
+    // Keep the extension the user typed when it already denotes the chosen type. The filter now offers every
+    // accepted extension (e.g. '*.fasta *.fa *.faa'), so swapping unconditionally would silently rewrite a
+    // deliberately chosen 'db.fa' to 'db.fasta'. Anything else still gets the preferred extension.
+    if (FileHandler::getTypeByFileName(typed_name) != chosen_type)
+    {
+      file_name = toQString(FileHandler::swapExtension(typed_name, chosen_type));
+    }
     return file_name;
   }
 

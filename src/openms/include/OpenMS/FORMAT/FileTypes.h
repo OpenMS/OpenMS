@@ -118,6 +118,7 @@ namespace OpenMS
       PROVIDES_QUANTIFICATIONS,     //
       PROVIDES_TRANSFORMATIONS,     //
       PROVIDES_QC,                  //
+      COMPRESSED_READABLE,          // the reader transparently decompresses .gz/.bz2/.zip input (XMLFile via CompressedInputSource)
       SIZE_OF_FILEPROPERTIES        // Not a property, just the number of 'em
     };
 
@@ -153,6 +154,29 @@ namespace OpenMS
 
     /// Returns true if @p type represents a directory-shaped format (e.g. BRUKER_TDF, IDPARQUET, FEATUREPARQUET, CONSENSUSPARQUET).
     static bool isDirectoryType(Type type);
+
+    /**
+      @brief Can a reader for @p type read a .gz/.bz2/.zip-compressed file directly?
+
+      Transparent decompression is provided by XMLFile through CompressedInputSource, so it covers the
+      XML-based formats only. A compressed filename of any other type still resolves to that type by
+      name, but no reader will accept it, so callers must not treat the compression suffix as proof
+      that the file can be read.
+    */
+    static bool supportsCompressedReading(Type type);
+
+    /**
+      @brief Do two declared format strings denote the same format?
+
+      Recognized names are compared by type, so a preferred extension and any of its aliases match
+      ('fasta' == 'fa'). If either side is unrecognized the comparison falls back to a case-insensitive
+      string compare, so two different custom extensions never become equal just because both map to
+      UNKNOWN.
+
+      @param[in] lhs A format name, without a leading dot (e.g. 'fasta' or a tool's custom extension)
+      @param[in] rhs The format name to compare against
+    */
+    static bool sameFormat(const std::string& lhs, const std::string& rhs);
   };
 
  enum class FilterLayout

@@ -505,6 +505,17 @@ GUI tools:
 
 OpenMS Library:
   Added:
+    - File type aliases are now honoured end to end: TOPP tools accept an alias wherever they accept
+      the preferred extension (and a tool declaring an alias accepts the preferred extension),
+      TOPPAS connects tools and input-file lists by format rather than by literal suffix, GUI file
+      dialogs offer every accepted extension ('FASTA file (*.fasta *.fa *.faa)'), and INI/CTD
+      supported_formats list them for input parameters. Output parameters keep the single canonical
+      extension, so what OpenMS writes is unchanged (#490)
+    - FileTypes::sameFormat() compares two declared format strings by type when both are recognized and
+      literally otherwise, so 'fasta' matches 'fa' while two different custom extensions stay distinct.
+      FileTypes::supportsCompressedReading() and FileNameUtils::hasCompressionSuffix() report whether a
+      reader actually decompresses: a compression suffix alone no longer implies compatibility with
+      every format, so a '.mgf.gz' is rejected where a '.mzML.gz' is accepted (#490)
     - FileTypes: a file type may now register additional accepted extensions besides its preferred
       one. FileTypes::typeToExtensions() lists them (preferred first) and nameToType() resolves them
       case-insensitively: 'fa'/'faa' for FASTA, 'pep.xml' for pepXML, 'prot.xml' for protXML and

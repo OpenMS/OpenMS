@@ -207,6 +207,51 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
 
   END_SECTION
 
+START_SECTION((static bool sameFormat(const std::string& lhs, const std::string& rhs)))
+{
+  // a preferred extension and its aliases denote the same format, in either order, any case
+  TEST_TRUE(FileTypes::sameFormat("fasta", "fa"))
+  TEST_TRUE(FileTypes::sameFormat("fa", "fasta"))
+  TEST_TRUE(FileTypes::sameFormat("FaA", "FASTA"))
+  TEST_TRUE(FileTypes::sameFormat("pep.xml", "pepXML"))
+  TEST_TRUE(FileTypes::sameFormat("pqt", "parquet"))
+  TEST_TRUE(FileTypes::sameFormat("mzML", "mzml"))
+
+  // distinct formats stay distinct, even when they share an extension family
+  TEST_FALSE(FileTypes::sameFormat("csv", "tsv"))
+  TEST_FALSE(FileTypes::sameFormat("fasta", "mzML"))
+  TEST_FALSE(FileTypes::sameFormat("pepXML", "protXML"))
+  TEST_FALSE(FileTypes::sameFormat("pep.xml", "xml"))
+
+  // two unrecognized extensions must not collapse into equal-because-both-UNKNOWN
+  TEST_FALSE(FileTypes::sameFormat("customA", "customB"))
+  TEST_FALSE(FileTypes::sameFormat("customA", "fasta"))
+  // but a custom extension still matches its own spelling, case-insensitively
+  TEST_TRUE(FileTypes::sameFormat("customA", "customA"))
+  TEST_TRUE(FileTypes::sameFormat("customA", "CUSTOMA"))
+}
+END_SECTION
+
+START_SECTION((static bool supportsCompressedReading(Type type)))
+{
+  // XML-based readers decompress transparently through XMLFile/CompressedInputSource
+  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::MZML))
+  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::FEATUREXML))
+  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::IDXML))
+  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::PEPXML))
+  // Bruker .d.zip is unpacked by FileHandler via ZipArchiveFile
+  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::BRUKER_TDF))
+
+  // non-XML readers do not: a '.mgf.gz' resolves to MGF by name but nothing can read it
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MGF))
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MSP))
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::FASTA))
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::CSV))
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::PARQUET))
+  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::UNKNOWN))
+}
+END_SECTION
+
   START_SECTION(static FileTypes::FileTypeList typesWithProperties(const std::vector<FileProperties>& features))
   {
     std::vector<FileTypes::FileProperties> f;

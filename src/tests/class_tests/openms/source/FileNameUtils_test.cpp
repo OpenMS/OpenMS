@@ -83,6 +83,17 @@ START_SECTION((filename rules and legacy entry points))
   TEST_STRING_EQUAL(FileNameUtils::swapExtension("sample.pep.xml", FileTypes::PEPXML), "sample.pepXML")
   TEST_STRING_EQUAL(FileNameUtils::swapExtension("table.pqt", FileTypes::PARQUET), "table.parquet")
 
+  // a compression suffix is visible separately from the type it wraps
+  TEST_TRUE(FileNameUtils::hasCompressionSuffix("sample.mzML.gz"))
+  TEST_TRUE(FileNameUtils::hasCompressionSuffix("sample.mzML.bz2"))
+  TEST_TRUE(FileNameUtils::hasCompressionSuffix("sample.d.zip"))
+  TEST_TRUE(FileNameUtils::hasCompressionSuffix("sample.MZML.GZ"))
+  TEST_FALSE(FileNameUtils::hasCompressionSuffix("sample.mzML"))
+  TEST_FALSE(FileNameUtils::hasCompressionSuffix("fid"))
+  TEST_FALSE(FileNameUtils::hasCompressionSuffix(""))
+  // a dot in a directory name is not an extension, let alone a compression suffix
+  TEST_FALSE(FileNameUtils::hasCompressionSuffix("/my.gz/sample"))
+
   // filename-only detection must work for output files that do not exist yet
   TEST_EQUAL(FileNameUtils::getTypeByFileName("does_not_exist_anywhere.fa"), FileTypes::FASTA)
 END_SECTION
