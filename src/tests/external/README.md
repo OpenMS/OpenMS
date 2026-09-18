@@ -18,7 +18,10 @@ configured with `-DOPENMS_TEST_INSTALLED_CONSUMER=ON` (on in the CI presets), th
 against that installation. The tests `TestExternalCodeCore_*` do the same for a core-only installation
 (the install components the pyOpenMS wheels are built against) with the project in `core_only/`, which
 checks that the package works without the CLI and GUI layers, reports them absent and refuses a required
-`CLI` component.
+`CLI` component. The tests `TestExternalCodeRelocated_*` install into a prefix of their own, *rename* it
+and then build the project in `relocated/` against the new location, which is what unpacking a binary
+package into an arbitrary directory does: the package has to derive everything it reports from the
+location of `OpenMSConfig.cmake` itself rather than from the prefix it was installed to.
 
 ## Usage
 

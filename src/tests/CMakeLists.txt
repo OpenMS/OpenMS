@@ -86,26 +86,66 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
     list(APPEND _configure_args -T "${CMAKE_GENERATOR_TOOLSET}")
   endif()
 
-  # The tests of one installation: <name>_install_<component> for each of the
-  # install components given after the consumer build directory (fixture
-  # <name>_installed), then <name>_configure, <name>_build and <name>_run of
-  # the consumer project in source_dir.
+  # The tests of one installation: <name>_install_<component> for each install
+  # component in COMPONENTS (fixture <name>_installed), then <name>_configure,
+  # <name>_build and <name>_run of the consumer project in source_dir.
+  #
+  # RELOCATE_TO <dir> renames the finished installation to <dir> and points the
+  # consumer there instead of at prefix, which is how the package is checked for
+  # being relocatable. It adds <name>_clean (fixture <name>_cleaned), emptying
+  # both directories so that the rename has a free destination and the moved
+  # prefix holds this installation and nothing left over from an earlier run,
+  # and <name>_move (fixture <name>_moved), which performs the rename.
+  # CONFIGURE_ARGS are passed to the consumer's configure step on top of the
+  # toolchain arguments above.
   function(_openms_add_installed_consumer_tests name source_dir prefix consumer)
+    cmake_parse_arguments(PARSE_ARGV 4 _ic "" "RELOCATE_TO" "COMPONENTS;CONFIGURE_ARGS")
+    if(_ic_UNPARSED_ARGUMENTS)
+      message(FATAL_ERROR "_openms_add_installed_consumer_tests(${name}): unexpected arguments '${_ic_UNPARSED_ARGUMENTS}'")
+    endif()
+
+    # the prefix the consumer is pointed at, which is the one it ends up in
+    set(_found_prefix "${prefix}")
+    set(_step_tests)
+    if(_ic_RELOCATE_TO)
+      set(_found_prefix "${_ic_RELOCATE_TO}")
+      add_test(NAME ${name}_clean
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "${prefix}" "${_ic_RELOCATE_TO}")
+      set_tests_properties(${name}_clean PROPERTIES FIXTURES_SETUP ${name}_cleaned)
+      list(APPEND _step_tests ${name}_clean)
+    endif()
+
     set(_install_tests)
-    foreach(_component IN LISTS ARGN)
+    foreach(_component IN LISTS _ic_COMPONENTS)
       add_test(NAME ${name}_install_${_component}
         COMMAND ${CMAKE_COMMAND} --install "${CMAKE_BINARY_DIR}" --config $<CONFIG>
                 --prefix "${prefix}" --component ${_component})
       list(APPEND _install_tests ${name}_install_${_component})
     endforeach()
     set_tests_properties(${_install_tests} PROPERTIES FIXTURES_SETUP ${name}_installed)
+    if(_ic_RELOCATE_TO)
+      set_tests_properties(${_install_tests} PROPERTIES FIXTURES_REQUIRED ${name}_cleaned)
+    endif()
+    list(APPEND _step_tests ${_install_tests})
+
+    set(_configure_fixture ${name}_installed)
+    if(_ic_RELOCATE_TO)
+      add_test(NAME ${name}_move
+        COMMAND ${CMAKE_COMMAND} -E rename "${prefix}" "${_ic_RELOCATE_TO}")
+      set_tests_properties(${name}_move PROPERTIES
+        FIXTURES_REQUIRED ${name}_installed
+        FIXTURES_SETUP ${name}_moved)
+      list(APPEND _step_tests ${name}_move)
+      set(_configure_fixture ${name}_moved)
+    endif()
 
     add_test(NAME ${name}_configure
       COMMAND ${CMAKE_COMMAND} -S "${source_dir}" -B "${consumer}"
               -G "${CMAKE_GENERATOR}" "-DCMAKE_BUILD_TYPE=$<CONFIG>"
-              "-DOpenMS_DIR=${prefix}/${INSTALL_CMAKE_DIR}" ${_configure_args})
+              "-DOpenMS_DIR=${_found_prefix}/${INSTALL_CMAKE_DIR}"
+              ${_ic_CONFIGURE_ARGS} ${_configure_args})
     set_tests_properties(${name}_configure PROPERTIES
-      FIXTURES_REQUIRED ${name}_installed
+      FIXTURES_REQUIRED ${_configure_fixture}
       FIXTURES_SETUP ${name}_configured)
 
     add_test(NAME ${name}_build
@@ -118,7 +158,7 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
               --output-on-failure --no-tests=error)
     set_tests_properties(${name}_run PROPERTIES FIXTURES_REQUIRED ${name}_built)
 
-    set_tests_properties(${_install_tests} ${name}_configure ${name}_build ${name}_run
+    set_tests_properties(${_step_tests} ${name}_configure ${name}_build ${name}_run
       PROPERTIES LABELS installed_consumer)
   endfunction()
 
@@ -136,7 +176,7 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
     "${CMAKE_SOURCE_DIR}/src/tests/external"
     "${_full_prefix}"
     "${CMAKE_BINARY_DIR}/installed-consumer/build"
-    ${_full_components})
+    COMPONENTS ${_full_components})
 
   # 1b. Configure the same consumer against the same installation once more, with Eigen
   #     made unfindable: no installed header includes Eigen, and a shared OpenMS carries
@@ -188,7 +228,7 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
     "${CMAKE_SOURCE_DIR}/src/tests/external/core_only"
     "${_core_prefix}"
     "${CMAKE_BINARY_DIR}/installed-consumer/build-core"
-    library OpenMS_headers OpenSwathAlgo_headers thirdparty_headers cmake share)
+    COMPONENTS library OpenMS_headers OpenSwathAlgo_headers thirdparty_headers cmake share)
   #    ... which has to refuse a consumer that requires the CLI component. That
   #    configure step fails, and the test passes on the reason the package gives.
   add_test(NAME TestExternalCodeCore_reject_cli
@@ -202,7 +242,33 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
     PASS_REGULAR_EXPRESSION "does not include the TOPP tool framework library"
     LABELS installed_consumer)
 
-  # 3. The package of a build tree across reconfigurations: the GUI target file
+  # 3. A relocated installation: the prefix is renamed once the install is
+  #    complete and the consumer is pointed at the new location. That is what
+  #    unpacking a binary package produces -- the prefix a user installs to is
+  #    never the one the release was built with -- and it is what
+  #    OpenMSConfig.cmake deriving everything from its own location buys (#4603).
+  #    Installed into a staging prefix of its own and then *renamed*, rather than
+  #    copied, so that the prefix it was installed to is really gone: a path baked
+  #    in at install time would still resolve against a copy's original.
+  #    The destination has a space in its name on purpose, because <prefix> is
+  #    "C:\Program Files\OpenMS" for every user of the Windows installer.
+  #
+  #    The core-only component set without share: the shared data relocates
+  #    through the same PACKAGE_PREFIX_DIR arithmetic as the directory variables
+  #    the consumer does check, so copying ~200 MB a third time would cost more
+  #    than it proves. The consumer accordingly stays off the shared data.
+  set(_relocate_prefix "${CMAKE_BINARY_DIR}/installed-consumer/prefix-staged")
+  set(_relocate_moved "${CMAKE_BINARY_DIR}/installed-consumer/relocated prefix")
+  _openms_add_installed_consumer_tests(TestExternalCodeRelocated
+    "${CMAKE_SOURCE_DIR}/src/tests/external/relocated"
+    "${_relocate_prefix}"
+    "${CMAKE_BINARY_DIR}/installed-consumer/build-relocated"
+    COMPONENTS library OpenMS_headers OpenSwathAlgo_headers thirdparty_headers cmake
+    RELOCATE_TO "${_relocate_moved}"
+    CONFIGURE_ARGS "-DOPENMS_RELOCATED_FROM=${_relocate_prefix}"
+                   "-DOPENMS_RELOCATED_TO=${_relocate_moved}")
+
+  # 4. The package of a build tree across reconfigurations: the GUI target file
   #    of a WITH_GUI=ON configuration must not survive a WITH_GUI=OFF
   #    reconfiguration of the same build directory, since OpenMSConfig.cmake
   #    reports a layer from the presence of its file. Reconfiguring OpenMS
@@ -246,5 +312,7 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
   unset(_full_components)
   unset(_full_prefix)
   unset(_core_prefix)
+  unset(_relocate_prefix)
+  unset(_relocate_moved)
   unset(_configure_args)
 endif()
