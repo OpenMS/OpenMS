@@ -701,6 +701,10 @@ Fixes:
     - MRMFeatureSelector works with GLPK; LP/ILP failures now report status and throw instead
       of returning silently empty results in feature selection/decharging (#9940, #9944,
       #9956).
+    - MapAlignmentAlgorithmKD::filterCCs_ rejects connected components with mixed charge
+      states again; the conflict check's `continue` only escaped the inner charge-scanning
+      loop, so such components kept feeding alignment points into the LOWESS fit (#9050,
+      #10157).
   Data integrity and I/O:
     - Sorting/filtering/set_peaks keeps peak annotations and binary arrays aligned in
       spectra, chromatograms and mobilograms. select() checks bounds before mutation;
@@ -748,6 +752,11 @@ Fixes:
     - File::writable checks no longer delete concurrently created files or report spurious
       failures; temporary directories are claimed atomically. UUID/unique-ID generation
       avoids weak-entropy/parallel-process collisions (#8678, #9703, #9937, #9940, #9941, #9965).
+    - StringUtils::skipWhitespace(string_view)/skipNonWhitespace(string_view) return size_t
+      instead of int, so an input longer than INT_MAX characters no longer wraps to a negative
+      offset that removeWhitespaces() then used to build out-of-bounds iterators. Their pointer
+      scanners also bound the SIMD loop by the remaining length instead of computing p_end - 16,
+      which was undefined behaviour for ranges shorter than 16 characters (#10171).
     - Fixed concurrent logging heap corruption, stream restoration and scoped suppression;
       update checks tolerate unwritable home directories (#8440, #9074, #9075, #9583, #10019).
     - Fixed ARM64 Base64 alignment, invalid EICExtractor/MetaProSIP size parameters and
@@ -848,6 +857,11 @@ Build System:
     unavailable; SIMD-only compilation works without a runtime. Fixed
     YAML CTD parsing and optional WNet tool registration (#8368, #8880, #9056, #9223,
     #8496, #9267, #9388, #9651, #9653, #9783, #9784, #9971).
+  - Fixed the brew-Boost fallback that rewrites Boost::iostreams'/Boost::regex's raw -l
+    link flags to imported targets for a statically-linked Homebrew Boost: a single-colon
+    ICU target reached the link line unresolved, unmatched find_package/set_target_properties
+    entries could name a target nothing had created, and FindICU's plain COMPONENTS marked
+    every component required (#10187).
   - Documentation formulas use MathJax, removing Ghostscript. Removed obsolete developer
     scripts, ENABLE_STYLE_TESTING, doc_xml and stale examples/schemas. Runtime schema
     coverage is retained; QcMLFile/PepXMLFileMascot validation remains unavailable and

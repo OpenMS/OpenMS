@@ -662,7 +662,7 @@ Computes a SHA-1 hash of the file content
         .def_static("typeToName", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToName(type); }, "type"_a, "Returns the name/preferred extension of the type")
         .def_static("typeToExtensions", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToExtensions(type); }, "type"_a, "Returns every extension accepted for the type, preferred one first (e.g. FASTA -> ['fasta', 'fa', 'faa'])")
         .def_static("typeToDescription", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToDescription(type); }, "type"_a, "Returns the human-readable explanation of the type")
-        .def_static("nameToType", [](const std::string& name) { return OpenMS::FileTypes::nameToType(name); }, "name"_a)
+        .def_static("nameToType", [](const std::string& name) { return OpenMS::FileTypes::nameToType(name); }, "name"_a, "Converts a case-insensitive file type name into a Type, accepting registered aliases (e.g. 'fa' and 'faa' both give FASTA)")
         .def_static("typeToMZML", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToMZML(type); }, "type"_a, "Returns the mzML name")
         ;
     // FileType enum nested under FileTypes
