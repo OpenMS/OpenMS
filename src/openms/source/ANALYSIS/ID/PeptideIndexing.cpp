@@ -446,7 +446,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
 
     OPENMS_LOG_INFO << "Searching with up to " << aaa_max_ << " ambiguous amino acid(s) and " << mm_max_ << " mismatch(es)!\n";
 
-    uint16_t count_j_proteins(0);
+    Size count_j_proteins(0); // not uint16_t: databases can easily hold more than 65k 'J' proteins, and the counter would wrap silently
     bool has_active_data = true; // becomes false if end of FASTA file is reached
     const std::string jumpX(aaa_max_ + mm_max_ + 1, 'X'); // jump over stretches of 'X' which cost a lot of time; +1 because AXXA is a valid hit for aaa_max == 2 (cannot split it)
     // use very large target value for progress if DB size is unknown (did not fit into first chunk)
