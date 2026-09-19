@@ -105,6 +105,39 @@ std::map<std::string, GlypyCase> loadGlypyCases()
   }
   return cases;
 }
+
+// Reference fragment masses for `common_glycan`, as computed by GlyPy
+// (https://github.com/mobiusklein/glypy, revision 8d129a8c950e8635165cda9b4b1af392d4e7289e,
+// test_data/fragments-example.json). Only the kinds this generator supports are listed;
+// repeated values are deliberate and record the multiplicity of that fragment.
+// clang-format off: one line group per fragmentation kind.
+const std::vector<std::pair<std::string, double>> GLYPY_STORED_MASSES {
+  {"B", 146.05790880799998}, {"B", 146.05790880799998}, {"B", 162.05282343}, {"B", 511.190104769}, {"B", 673.2429281990001},
+  {"B", 1022.3802095379999}, {"B", 1184.433032968},
+  {"BY", 162.05282343}, {"BY", 162.05282343}, {"BY", 349.13728133899997}, {"BY", 349.13728133899997}, {"BY", 365.132195961}, {"BY", 511.190104769},
+  {"BY", 511.190104769}, {"BY", 511.190104769}, {"BY", 527.185019391}, {"BY", 673.2429281990001}, {"BY", 860.327386108}, {"BY", 876.3223007299999},
+  {"BY", 876.32230073}, {"BY", 1022.3802095379999}, {"BY", 1038.37512416}, {"BY", 1038.37512416},
+  {"Z", 162.05282343}, {"Z", 324.10564686}, {"Z", 673.242928199}, {"Z", 835.2957516289999}, {"Z", 1184.433032968}, {"Z", 1200.4279475899998},
+  {"Z", 1200.42794759},
+  {"C", 164.068473494}, {"C", 164.068473494}, {"C", 180.063388116}, {"C", 529.200669455}, {"C", 691.253492885}, {"C", 1040.3907742239999},
+  {"C", 1202.4435976539999},
+  {"CY", 180.063388116}, {"CY", 180.063388116}, {"CY", 367.147846025}, {"CY", 367.147846025}, {"CY", 383.142760647}, {"CY", 529.200669455},
+  {"CY", 529.200669455}, {"CY", 529.200669455}, {"CY", 545.1955840769999}, {"CY", 691.253492885}, {"CY", 878.337950794}, {"CY", 894.3328654159999},
+  {"CY", 894.332865416}, {"CY", 1040.3907742239999}, {"CY", 1056.385688846}, {"CY", 1056.385688846},
+  {"Y", 180.063388116}, {"Y", 342.116211546}, {"Y", 691.253492885}, {"Y", 853.306316315}, {"Y", 1202.4435976539999}, {"Y", 1218.438512276},
+  {"Y", 1218.438512276},
+  {"BYY", 203.079372531}, {"BYY", 203.079372531}, {"BYY", 365.132195961}, {"BYY", 365.132195961}, {"BYY", 365.132195961}, {"BYY", 527.185019391},
+  {"BYY", 714.2694773000001}, {"BYY", 714.2694773000001}, {"BYY", 730.264391922}, {"BYY", 876.32230073}, {"BYY", 876.32230073},
+  {"BYY", 892.317215352},
+  {"CYY", 221.089937217}, {"CYY", 221.089937217}, {"CYY", 383.142760647}, {"CYY", 383.142760647}, {"CYY", 383.142760647}, {"CYY", 545.1955840769999},
+  {"CYY", 732.280041986}, {"CYY", 732.280041986}, {"CYY", 748.2749566079999}, {"CYY", 894.332865416}, {"CYY", 894.332865416},
+  {"CYY", 910.3277800379999},
+  {"ZZ", 509.17445470499996}, {"ZZ", 671.227278135}, {"ZZ", 1020.3645594739999}, {"ZZ", 1020.3645594739999}, {"ZZ", 1036.359474096},
+  {"YY", 545.1955840769999}, {"YY", 707.2484075069999}, {"YY", 1056.385688846}, {"YY", 1056.385688846}, {"YY", 1072.380603468},
+  {"ZZZ", 856.2960859799999},
+  {"YYY", 910.3277800379999},
+};
+// clang-format on
 } // namespace
 
 START_TEST(TheoreticalGlycanSpectrumGenerator, "$Id$")
@@ -265,7 +298,7 @@ END_SECTION
 
 START_SECTION((GlyPy stored fragment masses match the supported glycosidic series))
 {
-  // Adapted Apache-2.0 fixtures, pinned sources and notices are in the data directory.
+  // Expected values are GlyPy's; see GLYPY_STORED_MASSES above for the pinned source.
   TOLERANCE_ABSOLUTE(0.0001)
   TOLERANCE_RELATIVE(1.0)
   Generator::Options options;
@@ -284,21 +317,11 @@ START_SECTION((GlyPy stored fragment masses match the supported glycosidic serie
                                              : std::string(fragment.branch_cleavages.size(), series.at(fragment.ion_type));
     observed[kind].push_back(fragment.neutral_mass);
   }
-  std::ifstream input(OPENMS_GET_TEST_DATA_PATH("TheoreticalGlycanSpectrumGenerator_glypy/stored_masses.tsv"));
-  TEST_TRUE(input.good())
-  Size count = 0;
-  for (std::string line; std::getline(input, line);)
+  for (const auto& [kind, mass] : GLYPY_STORED_MASSES)
   {
-    if (line.empty() || line[0] == '#') { continue; }
-    std::istringstream row(line);
-    std::string kind;
-    double mass;
-    row >> kind >> mass;
-    if (! row) { throw std::runtime_error("Malformed GlyPy stored mass: " + line); }
     expected[kind].push_back(mass);
-    ++count;
   }
-  TEST_EQUAL(count, 96)
+  TEST_EQUAL(GLYPY_STORED_MASSES.size(), 96)
   TEST_EQUAL(observed.size(), expected.size())
   for (auto& [kind, masses] : expected)
   {
