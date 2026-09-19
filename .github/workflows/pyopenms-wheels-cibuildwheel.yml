@@ -288,7 +288,10 @@ jobs:
               # Same SDK story as the x86_64 job above; the script pins the
               # linux-arm64 tarball and host pack here. No pre-built managed
               # bridge is published for this platform, so the SDK also runs the
-              # 'dotnet publish' that produces ThermoWrapperManaged.dll.
+              # dotnet publish step that produces ThermoWrapperManaged.dll.
+              # Keep apostrophes out of this block: it is the body of a
+              # single-quoted docker run ... bash -c argument, and one would
+              # end that string early and silently truncate the script.
               yum install -y cmake ninja-build libcurl-devel libicu
               bash tools/ci/install_dotnet_sdk_linux.sh /usr/share/dotnet
               export DOTNET_ROOT=/usr/share/dotnet
