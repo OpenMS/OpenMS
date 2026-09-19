@@ -104,8 +104,8 @@ Dependencies:
     git submodule update --init (#9155).
   - Optional readers: WITH_OPENTIMS enables timsTOF support (default ON); opentims_DIR or
     opentims_ROOT selects a system installation before downloading. WITH_THERMO_RAW is
-    ON by default except on Linux/aarch64; .NET 8+ is required at runtime (#9147, #9148,
-    #9389, #9736).
+    ON by default on every supported platform; .NET 8+ is required at runtime (#9147,
+    #9148, #9389, #9736, #10206).
   - WITH_WNETALIGN (default ON) fetches wnetalign/wnet/pylmcf. WITH_ONNX (default OFF)
     requires an external ONNX Runtime installation (#8992, #9453).
   - HiGHS joins COIN-OR and GLPK as LP backends. LP_SOLVER=AUTO tries COIN-OR, GLPK,
@@ -217,10 +217,10 @@ PyOpenMS:
     offsets. set_peaks() keeps parallel data arrays consistent; enum/FileTypes and
     identification-file wrappers were completed or corrected (#8502, #8553, #8589,
     #8720, #9098, #9705, #9792, #9794, #9795).
-  - Thermo .raw reading is included in Linux x86_64, macOS arm64 and Windows wheels;
-    install .NET 8+ and set DOTNET_ROOT for non-standard locations. Linux aarch64 wheels
-    have no Thermo support. Optional WNet/Bruker bindings are exposed only when built;
-    use hasattr() for feature detection (#9946, #9957, #10070).
+  - Thermo .raw reading is included in every wheel, Linux aarch64 among them; install
+    .NET 8+ and set DOTNET_ROOT for non-standard locations. Optional WNet/Bruker bindings
+    are exposed only when built; use hasattr() for feature detection (#9946, #9957,
+    #10070, #10205, #10206).
   - See src/pyOpenMS/THREAD_SAFETY.md for concurrency rules and OpenMP oversubscription
     guidance; releasing the GIL does not guarantee thread safety (#9792, #9857).
 
