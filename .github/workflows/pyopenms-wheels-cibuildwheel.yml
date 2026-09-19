@@ -343,11 +343,16 @@ jobs:
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-arm64 }}
           CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
-          CIBW_BEFORE_ALL: yum install -y libcurl-devel
+          # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file
+          CIBW_BEFORE_ALL: yum install -y libcurl-devel dotnet-runtime-8.0
+          # Use install directory with stripped libraries.
+          # PYOPENMS_THERMO_RAW_TEST_FILE enables the Thermo RAW tests in the wheel test suite.
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT=/project/install
             CMAKE_PREFIX_PATH=/contrib-build:/project/install
             CMAKE_BUILD_PARALLEL_LEVEL=2
+            DOTNET_ROOT=/usr/lib64/dotnet
+            PYOPENMS_THERMO_RAW_TEST_FILE=/project/thermo-testdata/Angiotensin_AllScans.raw
           CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
