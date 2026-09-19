@@ -123,6 +123,7 @@ public:
     @brief Generate diagnostic and bounded composition B/Y (optionally C/Z) ions.
     @param[in] composition ProForma composition, with nonnegative counts
     @return Fragments sorted by m/z; empty input produces no ions
+    @throws Exception::ElementNotFound if a named monosaccharide is unknown to MonosaccharideDB
     @throws Exception::InvalidParameter for invalid chemistry or exhausted resource limits
   */
   std::vector<Fragment> getFragments(const Composition& composition) const;
@@ -152,6 +153,7 @@ public:
     @param[in] attachment_position Zero-based residue index in the peptide
     @param[in] method Fragmentation method
     @return Fragments sorted by m/z
+    @throws Exception::ElementNotFound if a named monosaccharide is unknown to MonosaccharideDB
     @throws Exception::InvalidParameter for an empty glycan, invalid site, or impossible stub
   */
   std::vector<Fragment>
