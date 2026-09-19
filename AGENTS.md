@@ -5,12 +5,15 @@ This file provides context and instructions for AI coding agents working on Open
 ## Critical Constraints
 
 **NEVER do these things:**
-- Build the project unless explicitly asked (extremely resource-intensive)
 - Modify files in `src/openms/extern/` or `src/openms/thirdparty/` (third-party vendored code; use the provided sync scripts to update vendored libraries)
 - Commit secrets, credentials, or `.env` files
 - Add `using namespace` or `using std::...` in header files
 - Modify the contrib tree or third-party dependencies
 - Skip tests when making code changes
+
+**Before opening a pull request, always build the changes locally and run the relevant tests.**
+Use an out-of-tree build and select the targets and tests affected by the change. Resolve
+build or test failures before opening the PR; do not defer this validation to CI.
 
 ## Quick Commands
 
@@ -410,6 +413,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 ## Contribution Workflow and Commit Messages
 
 - Development follows Gitflow; use forks and open PRs against `develop`.
+- Build locally and run the relevant tests before opening a PR (see Critical Constraints).
 - Commit format: `[TAG1,TAG2] short summary` (<=120 chars, <=80 preferred), blank line, longer description, and `Fixes #N`/`Closes #N` when applicable.
 - Commit tags: NOP, DOC, COMMENT, API, INTERNAL, FEATURE, FIX, TEST, FORMAT, PARAM, IO, LOG, GUI, RESOURCE, BUILD.
 - PR checklist: update `AUTHORS` and `CHANGELOG`, run/extend tests, update pyOpenMS bindings when needed.

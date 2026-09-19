@@ -26,6 +26,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <memory>
 #include <unordered_set>
 
 using namespace OpenMS;
@@ -89,6 +90,8 @@ Different input files types are supported:
 @li featureXML or consensusXML: Given (consensus) features annotated with peptide identifications from multiple search runs, one consensus identification is created for every annotated feature. Peptide identifications not assigned to features are not considered and will be removed. See @ref TOPP_IDMapper for the task of mapping peptide identifications to feature maps or consensus maps.
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+@note An idXML file without peptide identifications is a valid empty search result. Without @p per_spectrum, its original identification runs and search settings are preserved. With @p per_spectrum, search settings are combined for each originating MS file even if no peptides were identified. Empty runs also remain available for the @p count_empty support calculation when combined with non-empty results.
 
 <B>Filtering:</B>
 
@@ -487,11 +490,13 @@ protected:
         }
       }
     }
-    new_sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(final_enz);
+    // Empty searches may legitimately have no enzyme information. Keep the
+    // original unknown enzyme instead of looking up an empty enzyme name.
+    if (! final_enz.empty()) { new_sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(final_enz); }
 
     std::string final_db = *dbs.begin();
     std::string final_db_bn = final_db;
-    StringUtils::substitute(final_db_bn, "\\","/");
+    StringUtils::substitute(final_db_bn, "\\", "/");
     final_db_bn = File::basename(final_db_bn);
     // we need to copy to substitute anyway
     for (auto db : dbs) // OMS_CODING_TEST_EXCLUDE
@@ -505,11 +510,11 @@ protected:
       }
     }
 
-    new_sp.charges =StringUtils::toStr(min_chg) + "-" + StringUtils::toStr(max_chg);
+    if (min_chg <= max_chg) { new_sp.charges = StringUtils::toStr(min_chg) + "-" + StringUtils::toStr(max_chg); }
     if (prec_tol_da > 0 && prec_tol_ppm > 0)
     {
       OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible "
-      "precursor tolerance units. Using Da for the combined run.";
+                         "precursor tolerance units. Using Da for the combined run.";
     }
     if (prec_tol_da > 0)
     {
@@ -568,6 +573,12 @@ protected:
     map<std::string, std::string> runid_to_se;
     map<std::string, Size> id_mapping; // mapping: run ID -> index
     Size number_of_runs = input_map.getProteinIdentifications().size();
+    if (number_of_runs == 0)
+    {
+      // Unannotated maps have no identification runs to combine.
+      input_map.getUnassignedPeptideIdentifications().clear();
+      return;
+    }
     for (Size i = 0; i < number_of_runs; ++i)
     {
       const auto& prot = input_map.getProteinIdentifications()[i];
@@ -612,37 +623,37 @@ protected:
     //----------------------------------------------------------------
     // set up ConsensusID
     //----------------------------------------------------------------
-    ConsensusIDAlgorithm* consensus;
+    std::unique_ptr<ConsensusIDAlgorithm> consensus;
     // general algorithm parameters:
     Param algo_params = ConsensusIDAlgorithmBest().getDefaults();
     algorithm_ = getStringOption_("algorithm");
     if (algorithm_ == "PEPMatrix")
     {
-      consensus = new ConsensusIDAlgorithmPEPMatrix();
+      consensus = std::make_unique<ConsensusIDAlgorithmPEPMatrix>();
       // add algorithm-specific parameters:
       algo_params.merge(getParam_().copy("PEPMatrix:", true));
     }
     else if (algorithm_ == "PEPIons")
     {
-      consensus = new ConsensusIDAlgorithmPEPIons();
+      consensus = std::make_unique<ConsensusIDAlgorithmPEPIons>();
       // add algorithm-specific parameters:
       algo_params.merge(getParam_().copy("PEPIons:", true));
     }
     else if (algorithm_ == "best")
     {
-      consensus = new ConsensusIDAlgorithmBest();
+      consensus = std::make_unique<ConsensusIDAlgorithmBest>();
     }
     else if (algorithm_ == "worst")
     {
-      consensus = new ConsensusIDAlgorithmWorst();
+      consensus = std::make_unique<ConsensusIDAlgorithmWorst>();
     }
     else if (algorithm_ == "average")
     {
-      consensus = new ConsensusIDAlgorithmAverage();
+      consensus = std::make_unique<ConsensusIDAlgorithmAverage>();
     }
     else // algorithm_ == "ranks"
     {
-      consensus = new ConsensusIDAlgorithmRanks();
+      consensus = std::make_unique<ConsensusIDAlgorithmRanks>();
     }
     algo_params.update(getParam_(), false, getGlobalLogDebug()); // update general params.
     consensus->setParameters(algo_params);
@@ -762,14 +773,20 @@ protected:
             }
           }
         }
+        // Finalize metadata independently of peptide grouping: an MS file may
+        // have valid search runs without any peptide identifications.
+        for (const auto& [original_file, new_run_id] : mzml_to_new_run_idx)
+        {
+          ProteinIdentification& to_put = prot_ids[new_run_id];
+          // Note: we assume that at least one of the inputs had mzML as an extension
+          // we could keep track of it but IMHO we should not allow raw there at all (just complicates things)
+          to_put.setPrimaryMSRunPath({original_file + ".mzML"});
+          setProteinIdentificationSettings_(to_put, mzml_to_sesettings[new_run_id], mzml_to_rescoresettings[new_run_id]);
+        }
         for (auto& file_ref_peps : grouping_per_file)
         {
           Size new_run_id = mzml_to_new_run_idx[file_ref_peps.first];
           ProteinIdentification& to_put = prot_ids[new_run_id];
-          // Note: we assume that at least one of the inputs had mzML as an extension
-          // we could keep track of it but IMHO we should not allow raw there at all (just complicates things)
-          to_put.setPrimaryMSRunPath({file_ref_peps.first + ".mzML"});
-          setProteinIdentificationSettings_(to_put, mzml_to_sesettings[new_run_id], mzml_to_rescoresettings[new_run_id]);
           for (const auto& ref_peps : file_ref_peps.second)
           {
             PeptideIdentificationList peps = ref_peps.second;
@@ -801,14 +818,26 @@ protected:
         {
           OPENMS_LOG_FATAL_ERROR << "ConsensusID on idXML without the --per_spectrum flag, expects a single idXML file."
           "Please merge the files with IDMerger using its default settings." << std::endl;
+          return INCOMPATIBLE_INPUT_DATA;
         }
         // note: this requires a single merged idXML file.
         FileHandler().loadIdentifications(in[0], prot_ids, pep_ids, {FileTypes::IDXML});
 
-        if (prot_ids.size() == 1)
+        if (pep_ids.empty())
+        {
+          // There is no consensus to compute. Keep all original runs and their
+          // search settings, including metadata that a merge would discard.
+          OPENMS_LOG_WARN << "No peptide identifications found. Preserving the input identification runs and search settings.\n";
+          FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
+          return EXECUTION_OK;
+        }
+
+        if (prot_ids.size() < 2)
         {
           OPENMS_LOG_FATAL_ERROR << "ConsensusID on idXML without the --per_spectrum flag expects a merged idXML file"
-          "with multiple runs. Only one run found in the first file." << std::endl;
+                                    " with multiple runs. At least two runs are required for non-empty input."
+                                 << std::endl;
+          return INCOMPATIBLE_INPUT_DATA;
         }
 
         // merge peptide IDs by precursor position - this is equivalent to a
@@ -898,7 +927,7 @@ protected:
       FeatureMap map;
       FileHandler().loadFeatures(in[0], map, {FileTypes::FEATUREXML});
 
-      processFeatureOrConsensusMap_(map, consensus);
+      processFeatureOrConsensusMap_(map, consensus.get());
 
       FileHandler().storeFeatures(out, map, {FileTypes::FEATUREXML});
     }
@@ -911,12 +940,10 @@ protected:
       ConsensusMap map;
       FileHandler().loadConsensusFeatures(in[0], map, {FileTypes::CONSENSUSXML});
 
-      processFeatureOrConsensusMap_(map, consensus);
+      processFeatureOrConsensusMap_(map, consensus.get());
 
       FileHandler().storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML});
     }
-
-    delete consensus;
 
     return EXECUTION_OK;
   }
