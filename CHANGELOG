@@ -253,6 +253,10 @@ TOPP tools:
       - For per-peak IM input, PeakPickerHiRes warns and uses intensity-weighted mean IM;
         Resampler, FeatureFinderCentroided, FeatureFinderMultiplex and MultiplexResolver
         reject incompatible data (#9018).
+    ConsensusID:
+      - Accept empty idXML searches while preserving their run metadata; initialize
+        per-spectrum search settings even for MS files without peptide IDs. Handle maps
+        without identification runs and report invalid input combinations cleanly (#1427).
     QPX export (ProteomicsLFQ, IsobaricWorkflow, ProteinQuantifier, ProSE):
       - BREAKING: -out_feature_qpx replaced by -out_qpx, a directory containing QPX 1.1
         quantms.psm.parquet, quantms.feature.parquet and quantms.pg.parquet views.
