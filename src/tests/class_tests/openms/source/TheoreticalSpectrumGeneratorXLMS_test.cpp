@@ -21,6 +21,8 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 #include <iostream>
 #include <cmath>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+
 #include <algorithm>
 
 
@@ -903,20 +905,36 @@ START_SECTION([EXTRA] precursor isotope peaks are charge normalized)
 
   ABORT_IF(spec.getStringDataArrays().empty())
   const auto& names = spec.getStringDataArrays()[0];
-  std::vector<double> precursor_mzs;
-  for (Size i = 0; i < spec.size(); ++i)
+  // m/z values of the peaks with the given name, sorted (mono- and isotope peak carry the same name)
+  auto mzs_of = [&](const std::string& name)
   {
-    if (names[i] == "[M+H]") precursor_mzs.push_back(spec[i].getMZ());
-  }
-  std::sort(precursor_mzs.begin(), precursor_mzs.end());
+    std::vector<double> mzs;
+    for (Size i = 0; i < spec.size(); ++i)
+    {
+      if (names[i] == name) mzs.push_back(spec[i].getMZ());
+    }
+    std::sort(mzs.begin(), mzs.end());
+    return mzs;
+  };
 
   TOLERANCE_ABSOLUTE(1e-6)
-  TEST_EQUAL(precursor_mzs.size(), 2)
-  ABORT_IF(precursor_mzs.size() != 2)
-  const double mono_mz = (precursor_mass + charge * Constants::PROTON_MASS_U) / charge;
-  TEST_REAL_SIMILAR(precursor_mzs[0], mono_mz)
-  // the isotope peak used to be placed at the charged mass plus a charge divided offset (~2003 instead of ~668)
-  TEST_REAL_SIMILAR(precursor_mzs[1], mono_mz + Constants::C13C12_MASSDIFF_U / charge)
+  // the precursor and its H2O and NH3 losses (added independently of add_losses), each with its first isotope peak,
+  // which used to be placed at the charged mass plus a charge divided offset (~2003 instead of ~668)
+  const std::vector<std::pair<std::string, double>> expected =
+  {
+    {"[M+H]", 0.0},
+    {"[M+H]-H2O", EmpiricalFormula("H2O").getMonoWeight()},
+    {"[M+H]-NH3", EmpiricalFormula("NH3").getMonoWeight()}
+  };
+  for (const auto& [name, loss] : expected)
+  {
+    const std::vector<double> mzs = mzs_of(name);
+    TEST_EQUAL(mzs.size(), 2)
+    ABORT_IF(mzs.size() != 2)
+    const double mono_mz = (precursor_mass + charge * Constants::PROTON_MASS_U - loss) / charge;
+    TEST_REAL_SIMILAR(mzs[0], mono_mz)
+    TEST_REAL_SIMILAR(mzs[1], mono_mz + Constants::C13C12_MASSDIFF_U / charge)
+  }
 }
 END_SECTION
 

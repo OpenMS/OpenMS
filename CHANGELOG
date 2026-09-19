@@ -691,8 +691,9 @@ Fixes:
       their true m/z. OpenPepXL scores and annotations of such peaks change accordingly (#10148).
     - TheoreticalSpectrumGeneratorXLMS placed the second isotope peak of the precursor (and of its
       H2O/NH3 losses) at the charged mass instead of its m/z, e.g. about 2003 instead of 668 for a
-      2000 Da precursor at charge 3. OpenPepXL uses these peaks, so its log_occupancy scores
-      change slightly; the reported cross-link spectrum matches are unchanged (#10148).
+      2000 Da precursor at charge 3. OpenPepXL uses these peaks: on the test data only its
+      log_occupancy scores change; on other data the corrected peak can now match an experimental
+      peak and change matched ion counts and scores (#10148).
   Quantification and numerical correctness:
     - ExperimentalDesign mappings use sample names consistently. Protein-group quantities
       survive ID filtering; ProtXML excludes ProteinProphet's unneeded/subsumed groups
