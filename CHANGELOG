@@ -863,10 +863,11 @@ Build System:
     scripts, ENABLE_STYLE_TESTING, doc_xml and stale examples/schemas. Runtime schema
     coverage is retained; QcMLFile/PepXMLFileMascot validation remains unavailable and
     now throws NotImplemented (#9740, #9757, #9771, #9945).
-  - Debian package dependencies are generated with dpkg-shlibdeps instead of a
-    hand-written list. The declared libc6 floor had gone stale, so the package installed
-    on distributions whose glibc and libstdc++ were too old for its binaries and the TOPP
-    tools then failed at startup with a version lookup error (#10202).
+  - The Debian package's system-library dependencies are generated with dpkg-shlibdeps;
+    the Qt, yaml-cpp and SQLite entries stay hand-written. The declared libc6 floor had
+    gone stale, so the package installed on distributions whose glibc and libstdc++ were
+    too old for its binaries and the TOPP tools then failed at startup with a version
+    lookup error (#10202).
   - Linux wheels are built in a container with the checkout bind-mounted, which made git
     refuse the repository and left the embedded version a placeholder. The build marks the
     checkout safe, and any git failure now falls back to the "exported" version string

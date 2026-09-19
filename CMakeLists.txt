@@ -258,7 +258,7 @@ include(GetGitRevisionDescription)
 option(GIT_TRACKING "Embedding of Git version control information into the OpenMS library (and OpenMSInfo tool). Note that if activated, every branch-switch or commit will trigger re-generation of the build system (MakeFiles, VS Solutions etc)." ON)
 if (GIT_TRACKING)
   ## will configure an include file
-  git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
+  git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE OPENMS_GIT_INFO_FOUND)
 endif()
 
 if(NOT GIT_TRACKING)
@@ -274,9 +274,9 @@ if(NOT GIT_TRACKING)
     set(OPENMS_GIT_LC_DATE "1970-01-01")
   endif()
   message(STATUS "  [CMake is not tracking Git commits and branching ('-D GIT_TRACKING=Off')]")
-elseif(OPENMS_GIT_SHORT_REFSPEC MATCHES "NOTFOUND$")
-  ## Matches every marker git_short_info can return, including the "<exit code>-NOTFOUND"
-  ## from a git that runs but fails, which otherwise reaches VersionInfo and file names.
+elseif(NOT OPENMS_GIT_INFO_FOUND)
+  ## Covers a git that runs but fails, e.g. a container refusing a bind-mounted checkout;
+  ## its marker would otherwise reach VersionInfo and the package file names.
   set(OPENMS_GIT_SHORT_SHA1 "exported")
   set(OPENMS_GIT_SHORT_REFSPEC "exported")
   set(OPENMS_GIT_LC_DATE "1970-01-01")

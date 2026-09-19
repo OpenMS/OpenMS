@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# --------------------------------------------------------------------------
+# $Maintainer: Timo Sachsenberg $
+# $Authors: Timo Sachsenberg $
+# --------------------------------------------------------------------------
 """Fail if a macOS wheel needs a newer macOS than its platform tag promises.
 
 pip selects a wheel by its tag alone, so a wheel whose bundled dependencies target a
