@@ -701,10 +701,11 @@ Fixes:
       H2O/NH3 losses) at the charged mass instead of its m/z, e.g. about 2003 instead of 668 for a
       2000 Da precursor at charge 3. OpenPepXL uses these peaks: on the test data only its
       log_occupancy scores change; on other data the corrected peak can now match an experimental
-      peak and change matched ion counts and scores (#10148).
+      peak and change matched ion counts and scores (#10194).
   Quantification and numerical correctness:
     - IsobaricWorkflow wrote every consensus feature with the same id ("e_0"), which is invalid
-      consensusXML (consensusElement/@id is xs:ID); each feature now gets its own unique ID.
+      consensusXML (consensusElement/@id is xs:ID); each feature now gets its own unique ID
+      (#10201).
     - ExperimentalDesign mappings use sample names consistently. Protein-group quantities
       survive ID filtering; ProtXML excludes ProteinProphet's unneeded/subsumed groups
       (#6038, #8960, #9874).
@@ -762,7 +763,7 @@ Fixes:
   Robustness:
     - FileMerger renamed the merged spectra but left precursor spectrumRef attributes pointing to the
       original native IDs, so MS2 spectra lost the link to their parent scan and the mzML output
-      failed schema validation. The references are now updated together with the IDs.
+      failed schema validation. The references are now updated together with the IDs (#10200).
     - BREAKING: FileHandler/FileNameUtils::stripExtension() now removes the whole recognized
       extension instead of searching the path for the canonical type name. 'a.pep.xml' yields 'a'
       rather than 'a.pep', and 'a.pep.xml.gz' yields 'a' rather than 'a.pep.xml'. File::extension()
