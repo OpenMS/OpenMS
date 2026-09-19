@@ -318,7 +318,7 @@
     </NODE>
     <NODE name="elastase-trypsin-chymotrypsin">
       <ITEM name="Name" value="elastase-trypsin-chymotrypsin" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[ALIVKRWFYX])(?!P)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[ALIJVKRWFYX])(?!P)" type="string" />
       <ITEM name="RegExDescription" value="elastase-trypsin-chymotrypsin cuts after A,L,I(or J),V,K,R,W,F,Y unless followed by P." type="string" />
       <ITEM name="CometID" value="32" type="int" />
     </NODE>
