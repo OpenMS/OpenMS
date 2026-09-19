@@ -876,6 +876,19 @@ Build System:
     scripts, ENABLE_STYLE_TESTING, doc_xml and stale examples/schemas. Runtime schema
     coverage is retained; QcMLFile/PepXMLFileMascot validation remains unavailable and
     now throws NotImplemented (#9740, #9757, #9771, #9945).
+  - The Debian package's system-library dependencies are generated with dpkg-shlibdeps;
+    the Qt, yaml-cpp and SQLite entries stay hand-written. The declared libc6 floor had
+    gone stale, so the package installed on distributions whose glibc and libstdc++ were
+    too old for its binaries and the TOPP tools then failed at startup with a version
+    lookup error (#10202).
+  - Linux wheels are built in a container with the checkout bind-mounted, which made git
+    refuse the repository and left the embedded version a placeholder. The build marks the
+    checkout safe, and any git failure now falls back to the "exported" version string
+    instead of leaking the placeholder into VersionInfo and package file names (#10202).
+  - MACOSX_DEPLOYMENT_TARGET is declared once for the wheels; the workflow value silently
+    overrode pyproject.toml, which moved the supported macOS floor without notice. A CI
+    check compares the Mach-O load commands of each wheel against its platform tag, so a
+    wheel can no longer install on a macOS it cannot run on (#10202).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----

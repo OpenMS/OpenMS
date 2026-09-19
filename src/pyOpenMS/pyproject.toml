@@ -253,7 +253,11 @@ repair-wheel-command = [
 [tool.cibuildwheel.macos.environment]
 # Homebrew paths
 CMAKE_PREFIX_PATH = "$(brew --prefix):$(brew --prefix libomp)"
-MACOSX_DEPLOYMENT_TARGET = "14.0"
+# Must match CIBW_ENVIRONMENT in the wheel workflow, which overrides this whole table.
+# Lowering it alone ships a wheel that installs on an older macOS and then fails in dyld,
+# because the bundled Homebrew dependencies target the runner's macOS; build on a runner
+# of the older version instead. tools/ci/check_macos_wheel_target.py enforces this.
+MACOSX_DEPLOYMENT_TARGET = "15.0"
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]

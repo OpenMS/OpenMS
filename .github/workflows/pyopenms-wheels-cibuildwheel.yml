@@ -161,6 +161,9 @@ jobs:
             -w /project \
             ghcr.io/openms/contrib_manylinux_2_34:latest-amd64 \
             bash -c '
+              # The bind-mounted workspace is owned by another user, so without this git
+              # exits 128 and the wheels carry a placeholder version instead of the commit.
+              git config --global --add safe.directory /project
               # The native thermo bridge compiles against the nethost headers/library
               # from the .NET host pack, and the same SDK publishes the managed
               # assemblies unless tools/ci/fetch_thermo_assets.sh provided pre-built
@@ -267,6 +270,9 @@ jobs:
             -w /project \
             ghcr.io/openms/contrib_manylinux_2_34:latest-arm64 \
             bash -c '
+              # The bind-mounted workspace is owned by another user, so without this git
+              # exits 128 and the wheels carry a placeholder version instead of the commit.
+              git config --global --add safe.directory /project
               yum install -y cmake ninja-build libcurl-devel
               mkdir build && cd build
               cmake .. \
@@ -435,6 +441,8 @@ jobs:
           # Use old mechanism: copy libraries and use @loader_path
           # NO_DEPENDENCIES=OFF enables legacy library copying for macOS (with our fix_dependencies script)
           # DOTNET_ROOT and PYOPENMS_THERMO_RAW_TEST_FILE enable the Thermo RAW tests in the wheel test suite.
+          # MACOSX_DEPLOYMENT_TARGET must match src/pyOpenMS/pyproject.toml; this
+          # overrides that table wholesale. The check below enforces it.
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT="${{ github.workspace }}/install"
             CMAKE_PREFIX_PATH="/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/install"
@@ -444,6 +452,9 @@ jobs:
             PYOPENMS_THERMO_RAW_TEST_FILE="${{ github.workspace }}/thermo-testdata/Angiotensin_AllScans.raw"
           CIBW_BUILD_VERBOSITY: 1
           #CIBW_TEST_SKIP: "*"
+
+      - name: Check the wheels run on the macOS their tag promises
+        run: python3 tools/ci/check_macos_wheel_target.py wheelhouse/*.whl
 
       - uses: actions/upload-artifact@v4
         with:
