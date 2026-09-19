@@ -49,6 +49,9 @@ namespace OpenMS
     FORMULA,    ///< Chemical formula ion (f)
     NAMED,      ///< Named compound (_)
     UNKNOWN,    ///< Unknown or unrecognized ion type
+    // The satellite series are appended after UNKNOWN on purpose. They were added later, and
+    // the enumerator values are exposed arithmetically to Python (nb::is_arithmetic), so the
+    // existing values have to stay put. Do not "tidy" this by moving UNKNOWN back to the end.
     D,          ///< d-ion (N-terminal satellite ion, partial side-chain loss)
     V,          ///< v-ion (C-terminal satellite ion, complete side-chain loss)
     W           ///< w-ion (C-terminal satellite ion, partial side-chain loss)
@@ -326,7 +329,10 @@ namespace OpenMS
 
       @param[in] ann The annotation to convert
       @return The mzPAF string representation
-      @throws Exception::InvalidParameter if the satellite subtype is not 'a' or 'b', or is set on a series other than d/w
+      @note This function is total and never throws. An annotation carrying a satellite subtype
+            that mzPAF does not allow -- anything other than 'a'/'b', or a subtype on a series
+            other than d/w -- is written without it, mirroring how an UNKNOWN series is written
+            as '?'. Use isValid() to reject such an annotation.
     */
     static std::string toString(const MzPAFAnnotation& ann);
 
@@ -399,10 +405,16 @@ namespace OpenMS
     /**
       @brief Check if ion series is a peptide fragment ion (a, b, c, d, v, w, x, y, z)
 
+      These are exactly the series that mzPAF requires to carry an ordinal.
+
       @param[in] series The ion series to check
-      @return True if it's a standard fragment ion type
+      @return True if it's a peptide fragment ion type
+      @note True here does not imply a computable mass. calculateTheoreticalMZ() returns
+            std::nullopt for the satellite series d/v/w, so
+            `if (isPeptideFragmentIon(s)) mz = *calculateTheoreticalMZ(...)` would
+            dereference an empty optional.
     */
-    static bool isStandardFragmentIon(MzPAFIonSeries series);
+    static bool isPeptideFragmentIon(MzPAFIonSeries series);
 
     /**
       @brief Get the ion series character for an annotation

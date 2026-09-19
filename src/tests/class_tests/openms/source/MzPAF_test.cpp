@@ -15,6 +15,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
+#include <sstream>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -90,7 +92,7 @@ START_SECTION(Satellite ion parsing and roundtrip)
     TEST_EQUAL(ann.ordinal.value(), test_case.ordinal)
     TEST_TRUE(ann.satellite_subtype == test_case.subtype)
     TEST_TRUE(ann.isValid())
-    TEST_TRUE(MzPAF::isStandardFragmentIon(ann.ion_series))
+    TEST_TRUE(MzPAF::isPeptideFragmentIon(ann.ion_series))
     TEST_TRUE(MzPAF::isMzPAFFormat(test_case.text))
     TEST_STRING_EQUAL(MzPAF::toString(ann), test_case.text)
     TEST_EQUAL(MzPAF::parse(MzPAF::toString(ann)), ann)
@@ -165,7 +167,8 @@ START_SECTION(Satellite subtype validation and equality)
     }
     ann.satellite_subtype = 'c';
     TEST_FALSE(ann.isValid())
-    TEST_EXCEPTION(Exception::InvalidParameter, MzPAF::toString(ann))
+    // toString() stays total: the non-conformant subtype is dropped, not thrown on.
+    TEST_STRING_EQUAL(MzPAF::toString(ann), std::string(1, MzPAF::ionSeriesToChar(series)) + "3")
   }
 
   // A subtype on any other series would produce a non-conformant annotation.
@@ -175,7 +178,18 @@ START_SECTION(Satellite subtype validation and equality)
     ann.ion_series = series;
     ann.satellite_subtype = 'a';
     TEST_FALSE(ann.isValid())
-    TEST_EXCEPTION(Exception::InvalidParameter, MzPAF::toString(ann))
+    TEST_STRING_EQUAL(MzPAF::toString(ann), std::string(1, MzPAF::ionSeriesToChar(series)) + "3")
+  }
+
+  // Streaming must never propagate out of an invalid annotation (operator<< forwards to toString).
+  {
+    MzPAFAnnotation bad;
+    bad.ion_series = MzPAFIonSeries::V;
+    bad.ordinal = 3;
+    bad.satellite_subtype = 'a';
+    std::ostringstream oss;
+    oss << bad;
+    TEST_STRING_EQUAL(oss.str(), "v3")
   }
 
   TEST_FALSE(MzPAF::parse("da3") == MzPAF::parse("db3"))
@@ -612,24 +626,24 @@ START_SECTION(tryParseMultiple non-throwing)
 }
 END_SECTION
 
-START_SECTION(isStandardFragmentIon)
+START_SECTION(isPeptideFragmentIon)
 {
   // Standard fragment ions (a, b, c, x, y, z)
-  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::A), true)
-  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::B), true)
-  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::C), true)
-  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::X), true)
-  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::Y), true)
-  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::Z), true)
+  TEST_EQUAL(MzPAF::isPeptideFragmentIon(MzPAFIonSeries::A), true)
+  TEST_EQUAL(MzPAF::isPeptideFragmentIon(MzPAFIonSeries::B), true)
+  TEST_EQUAL(MzPAF::isPeptideFragmentIon(MzPAFIonSeries::C), true)
+  TEST_EQUAL(MzPAF::isPeptideFragmentIon(MzPAFIonSeries::X), true)
+  TEST_EQUAL(MzPAF::isPeptideFragmentIon(MzPAFIonSeries::Y), true)
+  TEST_EQUAL(MzPAF::isPeptideFragmentIon(MzPAFIonSeries::Z), true)
 
   // Special ion types (not standard fragment ions)
-  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::PRECURSOR), false)
-  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::IMMONIUM), false)
-  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::INTERNAL), false)
-  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::REPORTER), false)
-  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::FORMULA), false)
-  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::NAMED), false)
-  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::UNKNOWN), false)
+  TEST_EQUAL(MzPAF::isPeptideFragmentIon(MzPAFIonSeries::PRECURSOR), false)
+  TEST_EQUAL(MzPAF::isPeptideFragmentIon(MzPAFIonSeries::IMMONIUM), false)
+  TEST_EQUAL(MzPAF::isPeptideFragmentIon(MzPAFIonSeries::INTERNAL), false)
+  TEST_EQUAL(MzPAF::isPeptideFragmentIon(MzPAFIonSeries::REPORTER), false)
+  TEST_EQUAL(MzPAF::isPeptideFragmentIon(MzPAFIonSeries::FORMULA), false)
+  TEST_EQUAL(MzPAF::isPeptideFragmentIon(MzPAFIonSeries::NAMED), false)
+  TEST_EQUAL(MzPAF::isPeptideFragmentIon(MzPAFIonSeries::UNKNOWN), false)
 }
 END_SECTION
 

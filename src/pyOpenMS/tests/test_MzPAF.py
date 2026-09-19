@@ -26,7 +26,7 @@ def test_satellite_roundtrip(text, series, ordinal, subtype):
     assert ann.satellite_subtype == subtype
     assert ann.isValid()
     assert p.MzPAF.isMzPAFFormat(text)
-    assert p.MzPAF.isStandardFragmentIon(series)
+    assert p.MzPAF.isPeptideFragmentIon(series)
     assert p.MzPAF.ionSeriesToChar(series) == text[0]
     assert p.MzPAF.charToIonSeries(text[0]) == series
     assert p.MzPAF.toString(ann) == text
@@ -87,14 +87,13 @@ def test_satellite_subtype_validation_and_equality():
     ann.ordinal = 3
     ann.satellite_subtype = "c"
     assert not ann.isValid()
-    with pytest.raises(RuntimeError):
-        p.MzPAF.toString(ann)
+    # toString() stays total: the non-conformant subtype is dropped, not raised on.
+    assert p.MzPAF.toString(ann) == "w3"
 
     ann.satellite_subtype = "a"
     ann.ion_series = p.MzPAFIonSeries.V
     assert not ann.isValid()
-    with pytest.raises(RuntimeError):
-        p.MzPAF.toString(ann)
+    assert p.MzPAF.toString(ann) == "v3"
 
 
 @pytest.mark.parametrize(
