@@ -27,6 +27,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IndentedStream.h>
 #include <OpenMS/FORMAT/ParamCTDFile.h>
@@ -73,6 +74,78 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  namespace
+  {
+    /// Does any entry of @p valid_strings denote the same format as @p type?
+    /// Compared by type, so a tool declaring 'fasta' accepts 'db.fa' and one declaring 'fa' accepts 'db.fasta'.
+    /// Entries that are not known formats keep their exact spelling, so a custom extension only matches itself.
+    bool formatAccepted(const StringList& valid_strings, FileTypes::Type type)
+    {
+      const std::string type_name = FileTypes::typeToName(type);
+      for (const auto& vs : valid_strings)
+      {
+        if (FileTypes::sameFormat(vs, type_name)) return true;
+      }
+      return false;
+    }
+
+    /// Is @p filename's compression suffix, if any, one the reader for @p type can actually handle?
+    /// getType() sees through '.gz'/'.bz2'/'.zip', so without this a 'spectra.mgf.gz' passes validation
+    /// and then fails inside the reader. TOPPAS applies the same rule to its edges.
+    bool compressionSupported(const std::string& filename, FileTypes::Type type)
+    {
+      const FileTypes::Type compression = FileNameUtils::compressionType(filename);
+      return compression == FileTypes::UNKNOWN || FileTypes::supportsCompressedReading(type, compression);
+    }
+
+    /// Expand declared formats to every accepted extension, as '*.ext' patterns for INI/CTD metadata.
+    /// 'fasta' becomes {*.fasta, *.fa, *.faa}; an unrecognized custom extension is passed through as-is.
+    /// Order is stable (declaration order, preferred extension before its aliases) and duplicates are dropped.
+    StringList expandFormatsForMetadata(const StringList& valid_strings)
+    {
+      StringList out;
+      StringList seen; // upper-cased, so we neither repeat nor re-case a pattern
+      auto add = [&out, &seen](const std::string& ext) {
+        const std::string key = StringUtils::toUppered(ext);
+        if (ListUtils::contains(seen, key)) return;
+        seen.push_back(key);
+        out.push_back("*." + ext);
+      };
+      for (const auto& vs : valid_strings)
+      {
+        add(vs); // the tool's own spelling first, so a declared '*.FASTA' stays '*.FASTA'
+        const FileTypes::Type type = FileTypes::nameToType(vs);
+        if (type == FileTypes::UNKNOWN) continue; // custom extension: nothing to expand
+        for (const auto& ext : FileTypes::typeToExtensions(type)) add(ext);
+      }
+      return out;
+    }
+
+    /// Accepted extensions for help text, without the '*.' prefix that INI/CTD use.
+    /// Mirrors expandFormatsForMetadata so that --help, the CTD and validation all say the same thing.
+    StringList expandFormatsForHelp(const StringList& valid_strings)
+    {
+      StringList out;
+      for (const auto& pattern : expandFormatsForMetadata(valid_strings))
+      {
+        out.push_back(StringUtils::substr(pattern, 2)); // drop the leading '*.'
+      }
+      return out;
+    }
+
+    /// Declared formats as '*.ext' patterns, with no alias expansion.
+    /// Used for output parameters: the preferred extension must stay the single canonical choice, both
+    /// because it is what OpenMS writes and because TOPPAS derives an output file's suffix from a
+    /// single-entry restriction (TOPPASToolVertex).
+    StringList canonicalFormatsForMetadata(const StringList& valid_strings)
+    {
+      StringList out;
+      for (const auto& vs : valid_strings) out.push_back("*." + vs);
+      return out;
+    }
+  }
+
 
   using namespace Exception;
 
@@ -775,7 +848,12 @@ namespace OpenMS
       case ParameterInformation::OUTPUT_FILE_LIST:
         if (!it->valid_strings.empty())
         {
-          StringList copy = it->valid_strings;
+          const bool is_input_file = (it->type == ParameterInformation::INPUT_FILE
+                                   || it->type == ParameterInformation::INPUT_FILE_LIST);
+          // Input parameters accept every registered alias, and the INI/CTD advertise them, so --help
+          // has to name them too; otherwise the same tool tells the user two different things.
+          // Outputs list only the preferred extension, which is the one OpenMS writes.
+          StringList copy = is_input_file ? expandFormatsForHelp(it->valid_strings) : it->valid_strings;
           for (auto& str : copy)
           {
             StringUtils::quote(str, '\'');
@@ -1511,7 +1589,13 @@ namespace OpenMS
         {
           writeLogWarn_("Warning: Could not determine format of input file '" + t + "'!");
         }
-        else if (!ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type), ListUtils::CASE::INSENSITIVE))
+        else if (!compressionSupported(t, f_type))
+        {
+          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                 "Input file '" + t + "' is compressed, but the reader for format '" +
+                                 FileTypes::typeToName(f_type) + "' cannot decompress it. Please decompress it first.");
+        }
+        else if (!formatAccepted(p.valid_strings, f_type))
         {
             throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                    "Input file '" + t + "' has invalid format '" +
@@ -1578,7 +1662,13 @@ namespace OpenMS
         {
           writeLogWarn_("Warning: Could not determine format of input file '" + param_value + "'!");
         }
-        else if (!ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type), ListUtils::CASE::INSENSITIVE))
+        else if (!compressionSupported(param_value, f_type))
+        {
+          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                 "Input file '" + param_value + "' is compressed, but the reader for format '" +
+                                 FileTypes::typeToName(f_type) + "' cannot decompress it. Please decompress it first.");
+        }
+        else if (!formatAccepted(p.valid_strings, f_type))
         {
             throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                    "Input file '" + param_value + "' has invalid format '" +
@@ -1594,8 +1684,7 @@ namespace OpenMS
         // determine file type as string
         FileTypes::Type f_type = FileHandler::getTypeByFileName(param_value);
         // Wrong ending, unknown is is ok.
-        if (f_type != FileTypes::UNKNOWN
-          && !ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type), ListUtils::CASE::INSENSITIVE))
+        if (f_type != FileTypes::UNKNOWN && !formatAccepted(p.valid_strings, f_type))
         {
           throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             std::string("Invalid output file extension for file '") + param_value + "'. Valid file extensions are: '" +
@@ -2138,18 +2227,21 @@ namespace OpenMS
         break;
 
       case ParameterInformation::INPUT_FILE:
+        tmp.setValue(name, it->default_value.toString(), it->description, tags);
+        if (!it->valid_strings.empty())
+        { // inputs advertise every extension they accept, so a '.fa' is offered alongside '.fasta'
+          tmp.setValidStrings(name, expandFormatsForMetadata(it->valid_strings));
+        }
+        break;
+
       case ParameterInformation::OUTPUT_FILE:
       case ParameterInformation::OUTPUT_PREFIX:
       case ParameterInformation::OUTPUT_DIR:
         tmp.setValue(name, it->default_value.toString(), it->description, tags);
         if (!it->valid_strings.empty())
-        {
-          StringList vss_tmp = it->valid_strings;
-          for (auto& vs : vss_tmp)
-          {
-            vs = "*." + vs;
-          }
-          tmp.setValidStrings(name, ListUtils::create<std::string>(vss_tmp));
+        { // outputs keep the canonical extension: it is what we write, and TOPPAS derives the
+          // output suffix from a single-entry restriction
+          tmp.setValidStrings(name, canonicalFormatsForMetadata(it->valid_strings));
         }
         break;
 
@@ -2171,13 +2263,18 @@ namespace OpenMS
         break;
 
       case ParameterInformation::INPUT_FILE_LIST:
+        tmp.setValue(name, it->default_value, it->description, tags);
+        if (!it->valid_strings.empty())
+        {
+          tmp.setValidStrings(name, expandFormatsForMetadata(it->valid_strings));
+        }
+        break;
+
       case ParameterInformation::OUTPUT_FILE_LIST:
         tmp.setValue(name, it->default_value, it->description, tags);
         if (!it->valid_strings.empty())
         {
-          std::vector<std::string> vss = ListUtils::create<std::string>(it->valid_strings);
-          std::transform(vss.begin(), vss.end(), vss.begin(), [](const std::string& s) {return "*." + s;});
-          tmp.setValidStrings(name, vss);
+          tmp.setValidStrings(name, canonicalFormatsForMetadata(it->valid_strings));
         }
         break;
 

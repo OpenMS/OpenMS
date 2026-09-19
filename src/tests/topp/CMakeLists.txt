@@ -4109,6 +4109,25 @@ add_test("TOPP_SimpleSearchEngine_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SimpleSe
 set_tests_properties("TOPP_SimpleSearchEngine_1_out" PROPERTIES DEPENDS
 "TOPP_SimpleSearchEngine_1")
 
+# A registered alias must be accepted wherever the preferred extension is, and must produce the same
+# result (#490). Copy the database to '.fa' at configure time rather than duplicating the test data.
+configure_file(${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta ${DATA_DIR_TOPP_BIN}/SimpleSearchEngine_alias.fa COPYONLY)
+add_test("TOPP_SimpleSearchEngine_3_fasta_alias" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
+-ini ${DATA_DIR_TOPP}/SimpleSearchEngine_1.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/SimpleSearchEngine_3_out.tmp.idXML
+-database ${DATA_DIR_TOPP_BIN}/SimpleSearchEngine_alias.fa)
+add_test("TOPP_SimpleSearchEngine_3_fasta_alias_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SimpleSearchEngine_3_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/SimpleSearchEngine_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+set_tests_properties("TOPP_SimpleSearchEngine_3_fasta_alias_out" PROPERTIES DEPENDS
+"TOPP_SimpleSearchEngine_3_fasta_alias")
+
+# ... while a genuinely wrong format is still rejected: an mzML handed to the FASTA parameter must not
+# be accepted just because alias resolution got more permissive.
+add_test("TOPP_SimpleSearchEngine_4_wrong_format" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
+-ini ${DATA_DIR_TOPP}/SimpleSearchEngine_1.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/SimpleSearchEngine_4_out.tmp.idXML
+-database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML)
+set_tests_properties("TOPP_SimpleSearchEngine_4_wrong_format" PROPERTIES WILL_FAIL 1)
+
 # extra percolator features
 add_test("TOPP_SimpleSearchEngine_2" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
 -ini ${DATA_DIR_TOPP}/SimpleSearchEngine_2.ini -in

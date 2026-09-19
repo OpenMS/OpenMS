@@ -1149,7 +1149,7 @@ The cross-linker modifications are read from an OBO file.
     // -----------------------------------------------------------------------
     // MzPAFAnnotation
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MzPAFAnnotation>(m, "MzPAFAnnotation", 
+    nb::class_<OpenMS::MzPAFAnnotation>(m, "MzPAFAnnotation",
         R"doc(
 A single mzPAF peak annotation.
 Represents one annotation for a peak in mzPAF (Peak Annotation Format),
@@ -1157,6 +1157,8 @@ the HUPO-PSI standard for fragment ion annotations.
 Examples:
 - y4 - Simple y-ion at position 4
 - b2-H2O - b-ion with neutral loss
+- d5, v7, w3 - Satellite ions with side-chain losses
+- da4, db4, wa4, wb4 - Satellite ions with an a/b subtype
 - y4^2 - Doubly charged y-ion
 - y4/0.001*0.75 - With mass delta and confidence
 - IY - Immonium ion (tyrosine)
@@ -1184,6 +1186,7 @@ Examples:
         .def_rw("mass_delta", &OpenMS::MzPAFAnnotation::mass_delta)
         .def_rw("confidence", &OpenMS::MzPAFAnnotation::confidence)
         .def_rw("embedded_sequence", &OpenMS::MzPAFAnnotation::embedded_sequence)
+        .def_rw("satellite_subtype", &OpenMS::MzPAFAnnotation::satellite_subtype, "Optional 'a' or 'b' subtype, valid only for d- and w-ions")
         ;
 
     // -----------------------------------------------------------------------
@@ -1236,6 +1239,9 @@ Examples:
         .value("X", OpenMS::MzPAFIonSeries::X)
         .value("Y", OpenMS::MzPAFIonSeries::Y)
         .value("Z", OpenMS::MzPAFIonSeries::Z)
+        .value("D", OpenMS::MzPAFIonSeries::D)
+        .value("V", OpenMS::MzPAFIonSeries::V)
+        .value("W", OpenMS::MzPAFIonSeries::W)
         .value("PRECURSOR", OpenMS::MzPAFIonSeries::PRECURSOR)
         .value("IMMONIUM", OpenMS::MzPAFIonSeries::IMMONIUM)
         .value("INTERNAL", OpenMS::MzPAFIonSeries::INTERNAL)
@@ -1285,7 +1291,7 @@ Examples:
         .def_static("toPeakAnnotation", [](const OpenMS::MzPAFAnnotation& mzpaf, double mz, double intensity) { return OpenMS::MzPAF::toPeakAnnotation(mzpaf, mz, intensity); }, "mzpaf"_a, "mz"_a, "intensity"_a, "Create a PeakAnnotation from mzPAF data")
         .def_static("fromPeakAnnotation", [](const OpenMS::PeptideHit::PeakAnnotation& peak_annotation) { return OpenMS::MzPAF::fromPeakAnnotation(peak_annotation); }, "peak_annotation"_a, "Parse mzPAF annotations from a PeakAnnotation")
         .def_static("isMzPAFFormat", [](const std::string& annotation) { return OpenMS::MzPAF::isMzPAFFormat(annotation); }, "annotation"_a, "Check if a string appears to be in mzPAF format")
-        .def_static("isStandardFragmentIon", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::isStandardFragmentIon(series); }, "series"_a, "Check if ion series is a standard fragment ion (a, b, c, x, y, z)")
+        .def_static("isPeptideFragmentIon", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::isPeptideFragmentIon(series); }, "series"_a, "Check if ion series is a peptide fragment ion (a, b, c, d, v, w, x, y, z)")
         .def_static("ionSeriesToChar", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::ionSeriesToChar(series); }, "series"_a, "Get the ion series character for an annotation")
         .def_static("charToIonSeries", [](char c) -> std::optional<OpenMS::MzPAFIonSeries> {
             OpenMS::MzPAFIonSeries series;

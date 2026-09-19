@@ -6,6 +6,8 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileNameUtils.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
@@ -365,18 +367,14 @@ namespace OpenMS
     }
     else
     {
-      // check file type compatibility
+      // check file type compatibility. Compare by format, so a producer declaring 'fasta' connects to a
+      // consumer declaring 'fa'; unrecognized custom extensions still only match their own spelling.
       bool found_match = false;
-      for (StringList::iterator s_it = source_param_types.begin(); s_it != source_param_types.end(); ++s_it)
+      for (const auto& source_ext : source_param_types)
       {
-        std::string ext_1 = *s_it;
-        StringUtils::toLower(ext_1);
-        found_match = false;
-        for (StringList::iterator t_it = target_param_types.begin(); t_it != target_param_types.end(); ++t_it)
+        for (const auto& target_ext : target_param_types)
         {
-          std::string ext_2 = *t_it;
-          StringUtils::toLower(ext_2);
-          if (ext_1 == ext_2)
+          if (FileTypes::sameFormat(source_ext, target_ext))
           {
             found_match = true;
             break;
@@ -431,19 +429,41 @@ namespace OpenMS
     {
       bool type_mismatch = true;
       const std::string file_name = fromQString(q_file_name);
-      size_t extension_start_index = file_name.rfind(".");
-      if (extension_start_index != std::string::npos)
+      // Resolve the whole name through the FileTypes registry: this understands aliases ('db.fa'),
+      // compound extensions ('x.pep.xml') and sees through a compression suffix to the inner type.
+      const FileTypes::Type file_type = FileNameUtils::getTypeByFileName(file_name);
+      if (file_type != FileTypes::UNKNOWN)
       {
-        std::string extension = StringUtils::substr(file_name, extension_start_index + 1);
-        StringUtils::toLower(extension);
-        for (StringList::iterator it = target_param_types.begin(); it != target_param_types.end(); ++it)
+        // A compression suffix is not by itself a licence to connect: only readers that decompress
+        // transparently accept one, so '.mgf.gz' stays a mismatch even where '.mgf' would be fine.
+        const FileTypes::Type compression = FileNameUtils::compressionType(file_name);
+        if (compression == FileTypes::UNKNOWN || FileTypes::supportsCompressedReading(file_type, compression))
         {
-          std::string other_ext = *it;
-          StringUtils::toLower(other_ext);
-          if (extension == other_ext || extension == "gz" || extension == "bz2")
+          for (const auto& target_ext : target_param_types)
           {
-            type_mismatch = false;
-            break;
+            // the file's type is already resolved, so one lookup per declared format is enough
+            if (FileTypes::nameToType(target_ext) == file_type)
+            {
+              type_mismatch = false;
+              break;
+            }
+          }
+        }
+      }
+      else
+      {
+        // unknown ending: fall back to the literal suffix, so tools declaring a custom extension still connect
+        const size_t extension_start_index = file_name.rfind(".");
+        if (extension_start_index != std::string::npos)
+        {
+          const std::string extension = StringUtils::substr(file_name, extension_start_index + 1);
+          for (const auto& target_ext : target_param_types)
+          {
+            if (FileTypes::sameFormat(target_ext, extension))
+            {
+              type_mismatch = false;
+              break;
+            }
           }
         }
       }
