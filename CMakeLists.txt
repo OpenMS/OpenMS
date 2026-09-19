@@ -274,11 +274,16 @@ if(NOT GIT_TRACKING)
     set(OPENMS_GIT_LC_DATE "1970-01-01")
   endif()
   message(STATUS "  [CMake is not tracking Git commits and branching ('-D GIT_TRACKING=Off')]")
-elseif(OPENMS_GIT_SHORT_REFSPEC STREQUAL "GIT-NOTFOUND" OR OPENMS_GIT_SHORT_REFSPEC STREQUAL "HEAD-HASH-NOTFOUND")
+elseif(OPENMS_GIT_SHORT_REFSPEC MATCHES "NOTFOUND$")
+  ## Covers every failure git_short_info can report: GIT-NOTFOUND, HEAD-HASH-NOTFOUND
+  ## and the "<exit code>-NOTFOUND" it returns when git itself runs but fails - for
+  ## example inside a container where the bind-mounted checkout trips git's ownership
+  ## check. Without this the placeholder reached OPENMS_PACKAGE_VERSION_FULLSTRING and
+  ## was baked into VersionInfo and the package file names.
   set(OPENMS_GIT_SHORT_SHA1 "exported")
   set(OPENMS_GIT_SHORT_REFSPEC "exported")
   set(OPENMS_GIT_LC_DATE "1970-01-01")
-  message(STATUS "  [CMake cannot track Git commits and branching, since Git or the .git folder was not found. ('-D GIT_TRACKING=On')]")
+  message(STATUS "  [CMake cannot track Git commits and branching, since Git information could not be determined. ('-D GIT_TRACKING=On')]")
 else()
   # everything found, print some status information
   message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
