@@ -107,34 +107,13 @@ option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript 
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
 option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
-set(_openms_with_thermo_raw_default ON)
-# Thermo's RawFileReader does not ship native dependencies for Linux aarch64,
-# so the .NET runtime can build the bridge but throws a managed exception when
-# actually opening a RAW file. Default OFF on that platform.
-# macOS arm64 is natively supported as of openms-thermo-bridge v0.2.0.
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
-  set(_openms_with_thermo_raw_default OFF)
-endif()
-option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ${_openms_with_thermo_raw_default})
+# Every platform we build for reads RAW files: the Thermo CommonCore assemblies are
+# architecture-neutral IL, and only the bridge around them is compiled per target.
+option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ON)
 option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" OFF)
 option(ENABLE_THERMO_FAIMS_DIA_TESTS "Download Thermo FAIMS-DIA test data for integration tests" OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
-
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
-  if(WITH_THERMO_RAW)
-    message(WARNING
-      "Thermo RAW support is disabled by default on Linux aarch64 because "
-      "Thermo RawFileReader native dependencies are not available there. You explicitly "
-      "enabled WITH_THERMO_RAW=ON. Please vote on https://github.com/thermofisherlsms/RawFileReader/issues/21 "
-      "and contact Thermo Fisher support by email if this support matters for your workflow.")
-  else()
-    message(STATUS
-      "Thermo RAW support defaults to OFF on Linux aarch64. Please vote on "
-      "https://github.com/thermofisherlsms/RawFileReader/issues/21 and contact Thermo Fisher "
-      "support by email if native support matters for your workflow.")
-  endif()
-endif()
 
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
