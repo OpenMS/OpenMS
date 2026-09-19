@@ -456,7 +456,8 @@ namespace OpenMS
 
         if (accession_resolver_.exists(evidence))
         {
-          return digestion_.isValidProduct(AASequence::fromString(accession_resolver_.getValue(evidence).sequence), evidence.getStart(), evidence.getEnd() - evidence.getStart(),
+          // getEnd() is the position of the last residue (inclusive), isValidProduct() expects a length
+          return digestion_.isValidProduct(AASequence::fromString(accession_resolver_.getValue(evidence).sequence), evidence.getStart(), evidence.getEnd() - evidence.getStart() + 1,
                                            ignore_missed_cleavages_, methionine_cleavage_);
         }
         else
