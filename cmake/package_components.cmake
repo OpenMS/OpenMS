@@ -47,7 +47,10 @@ if(WITH_GUI)
 else()
   set(_openms_applications_depends library_cli)
 endif()
-cpack_add_component(applications
+## Capitalized to match the name install_tool() registers (cmake/install_macros.cmake).
+## CPack folds the name to upper case for the CPACK_COMPONENT_<NAME>_* metadata below,
+## but compares it verbatim when selecting what to install, so the two must agree.
+cpack_add_component(Applications
                 DISPLAY_NAME "OpenMS binaries"
                 DESCRIPTION "OpenMS binaries including TOPP tools, TOPPView and TOPPAS."
                 DEPENDS ${_openms_applications_depends}
