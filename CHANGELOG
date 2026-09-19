@@ -812,9 +812,12 @@ Build System:
     refuses a required CLI or GUI component that is missing; TOPP-style external tools request
     COMPONENTS CLI. The pyOpenMS wheels build and install the core layer only again, the
     installed-consumer test covers a full and a core-only installation, and the deb/rpm/macOS
-    packages include the new library components. The applications component depends on the library
+    packages include the new library components. The Applications component depends on the library
     layer its binaries link (library_gui in a WITH_GUI build, library_cli otherwise), so a
-    component-selectable installation cannot leave the TOPP tools without libOpenMS_CLI.
+    component-selectable installation cannot leave the TOPP tools without libOpenMS_CLI. The
+    deb/rpm component lists spell that component the way the install rules register it: CPack
+    compares component names verbatim when it selects what to install, so a component-wise
+    package built from the previous spelling would have contained none of the TOPP tools.
     Reconfiguring a build directory with another WITH_GUI setting no longer leaves a stale GUI
     target file behind (src/tests/package_layers checks this with stub libraries) (#10164).
   - vcpkg manifests, cross-platform CMake presets, overlay ports/triplets and binary caching
