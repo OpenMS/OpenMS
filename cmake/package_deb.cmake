@@ -54,14 +54,17 @@ endif()
 ## We should probably use a full system-shared-libs-only machine for building. Then the deps should look similar to below.
 #set(CPACK_DEBIAN_PACKAGE_DEPENDS "libxerces-c-dev (>= 3.1.1), libeigen3-dev, libboost-dev (>= 1.54.0), libboost-iostreams-dev (>= 1.54.0), libboost-date-time-dev (>= 1.54.0), libboost-math-dev (>= 1.54.0), libsvm-dev (>= 3.12), libglpk-dev (>= 4.52.1), zlib1g-dev (>= 1.2.7), libbz2-dev (>= 1.0.6), libqt4-dev (>= 4.8.2), libqt4-opengl-dev (>= 4.8.2), libqtwebkit-dev (>= 2.2.1), coinor-libcoinutils-dev (>= 2.6.4)")
 
-## Hand-written because SHLIBDEPS is off above. The libc6 floor is therefore ours to
-## keep current: it is NOT derived, and it is stale relative to what the binaries need
-## (the 2026-09-18 nightly declares 2.28 while its binaries need GLIBC_2.38), so it
-## installs on distributions too old to run it. Fixing that properly means removing the
-## foreign runtimes and turning SHLIBDEPS back on.
+## Hand-written because SHLIBDEPS is off above, so the toolchain floors are ours to keep
+## current. They are not guesses: running dpkg-shlibdeps over the binaries of the
+## 2026-09-18 nightly package yields exactly
+##   libc6 (>= 2.38), libgcc-s1 (>= 3.0), libgomp1 (>= 6), libstdc++6 (>= 13.1)
+## and the aarch64 package needs the same symbol versions (GLIBC_2.38, GLIBCXX_3.4.32,
+## GOMP_4.5), so one list serves both. Refresh them whenever the build toolchain moves;
+## removing the foreign runtimes above and re-enabling SHLIBDEPS is what would make that
+## automatic again.
 ## Note: SQLiteCpp is statically linked, but SQLite3 is dynamically linked at runtime
 set(CPACK_DEBIAN_PACKAGE_DEPENDS
-  "libqt6svg6 (>= 6.2.2), libc6 (>= 2.28), libqt6widgets6t64 (>= 6.2.2) | libqt6widgets6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2), libyaml-cpp0.7 | libyaml-cpp0.8, libsqlite3-0 (>= 3.35.0)")
+  "libqt6svg6 (>= 6.2.2), libc6 (>= 2.38), libstdc++6 (>= 13.1), libgomp1 (>= 6), libgcc-s1 (>= 3.0), libqt6widgets6t64 (>= 6.2.2) | libqt6widgets6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2), libyaml-cpp0.7 | libyaml-cpp0.8, libsqlite3-0 (>= 3.35.0)")
 
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "science")

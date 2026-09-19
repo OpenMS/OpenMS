@@ -889,9 +889,11 @@ Build System:
     five runtimes under THIRDPARTY/ThermoRawFileParser, most of them foreign to whichever
     host builds the package, and dpkg-shlibdeps treats a foreign-architecture binary as an
     error rather than missing information, so no package was produced at all. The declared
-    libc6 floor is therefore still hand-maintained and still stale, which lets the package
-    install on distributions whose glibc and libstdc++ are too old for its binaries
-    (#10202, #10207).
+    dependency floors are therefore hand-maintained, but they now carry what
+    dpkg-shlibdeps derives from the shipped binaries -- libc6 (>= 2.38), libstdc++6
+    (>= 13.1), libgomp1 (>= 6), libgcc-s1 (>= 3.0) -- instead of a stale libc6 (>= 2.28)
+    with no C++ or OpenMP entry at all. The package no longer installs on distributions
+    too old to run it (#10202, #10207).
   - Linux wheels are built in a container with the checkout bind-mounted, which made git
     refuse the repository and left the embedded version a placeholder. The build marks the
     checkout safe, and any git failure now falls back to the "exported" version string
