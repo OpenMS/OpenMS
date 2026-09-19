@@ -5,15 +5,14 @@
 #
 # Trigger: Release tags, nightly branch, develop PRs, or manual dispatch
 #
-# Thermo RAW support: the Linux x86_64, macOS arm64 and Windows wheels are built with
-# WITH_THERMO_RAW=ON. The managed half of openms-thermo-bridge (ThermoWrapperManaged.dll
-# and the Thermo CommonCore assemblies) is taken from the bridge's pre-built release zip
-# via tools/ci/fetch_thermo_assets.sh (retried, SHA-256 pinned, cached between runs)
-# when one is published for the pinned bridge revision; otherwise the bridge publishes
-# it with the .NET SDK during the OpenMS build (NuGet restore + Thermo package download).
+# Thermo RAW support: every wheel is built with WITH_THERMO_RAW=ON. The managed half of
+# openms-thermo-bridge (ThermoWrapperManaged.dll and the Thermo CommonCore assemblies) is
+# taken from the bridge's pre-built release zip via tools/ci/fetch_thermo_assets.sh
+# (retried, SHA-256 pinned, cached between runs) when one is published for the pinned
+# bridge revision; otherwise the bridge publishes it with the .NET SDK during the OpenMS
+# build (NuGet restore + Thermo package download), which is how Linux aarch64 gets them.
 # Compiling the native bridge always needs the nethost headers from a .NET SDK. The
-# finished wheels are smoke-tested by loading a real RAW file. Linux aarch64 stays off:
-# Thermo ships no native RawFileReader dependencies for it.
+# finished wheels are smoke-tested by loading a real RAW file.
 
 name: pyopenms-wheels-cibuildwheel
 
@@ -262,6 +261,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Cache Thermo bridge assets
+        uses: actions/cache@v4
+        with:
+          path: |
+            thermo-managed
+            thermo-testdata
+          key: thermo-assets-linux-arm64-${{ hashFiles('tools/ci/fetch_thermo_assets.sh') }}
+
+      # Idempotent: reuses cached files after verifying their SHA-256, downloads
+      # (with retries) only what is missing.
+      - name: Fetch Thermo bridge assets (prebuilt managed assemblies + RAW test file)
+        run: bash tools/ci/fetch_thermo_assets.sh linux-arm64 "$GITHUB_WORKSPACE"
+
       - name: Build and install OpenMS in container
         run: |
           # Build and install OpenMS so libraries are stripped and paths are clean
@@ -273,7 +285,22 @@ jobs:
               # The bind-mounted workspace is owned by another user, so without this git
               # exits 128 and the wheels carry a placeholder version instead of the commit.
               git config --global --add safe.directory /project
-              yum install -y cmake ninja-build libcurl-devel
+              # Same SDK story as the x86_64 job above; the script pins the
+              # linux-arm64 tarball and host pack here. No pre-built managed
+              # bridge is published for this platform, so the SDK also runs the
+              # dotnet publish step that produces ThermoWrapperManaged.dll.
+              # Keep apostrophes out of this block: it is the body of a
+              # single-quoted docker run ... bash -c argument, and one would
+              # end that string early and silently truncate the script.
+              yum install -y cmake ninja-build libcurl-devel libicu
+              bash tools/ci/install_dotnet_sdk_linux.sh /usr/share/dotnet
+              export DOTNET_ROOT=/usr/share/dotnet
+              export PATH="$DOTNET_ROOT:$PATH"
+              export DOTNET_CLI_TELEMETRY_OPTOUT=1
+              THERMO_MANAGED_OPT=""
+              if [ -f /project/thermo-managed/ThermoWrapperManaged.dll ]; then
+                THERMO_MANAGED_OPT="-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=/project/thermo-managed"
+              fi
               mkdir build && cd build
               cmake .. \
                 -G Ninja \
@@ -286,7 +313,8 @@ jobs:
                 -DWITH_GUI=OFF \
                 -DBUILD_TOPP_TOOLS=OFF \
                 -DINSTALL_OPENMS_EXAMPLES=OFF \
-                -DWITH_THERMO_RAW=OFF \
+                -DWITH_THERMO_RAW=ON \
+                $THERMO_MANAGED_OPT \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
               # core layer only (libOpenMS, libOpenSwathAlgo): the CLI layer is a separate install component
@@ -298,8 +326,6 @@ jobs:
               cmake --install . --component share
               cmake --install . --component cmake
             '
-          # WITH_THERMO_RAW stays OFF here: Thermo's RawFileReader has no native
-          # dependencies for Linux aarch64 (https://github.com/thermofisherlsms/RawFileReader/issues/21).
 
       - name: Set pyOpenMS version
         run: |
@@ -317,11 +343,16 @@ jobs:
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-arm64 }}
           CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
-          CIBW_BEFORE_ALL: yum install -y libcurl-devel
+          # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file
+          CIBW_BEFORE_ALL: yum install -y libcurl-devel dotnet-runtime-8.0
+          # Use install directory with stripped libraries.
+          # PYOPENMS_THERMO_RAW_TEST_FILE enables the Thermo RAW tests in the wheel test suite.
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT=/project/install
             CMAKE_PREFIX_PATH=/contrib-build:/project/install
             CMAKE_BUILD_PARALLEL_LEVEL=2
+            DOTNET_ROOT=/usr/lib64/dotnet
+            PYOPENMS_THERMO_RAW_TEST_FILE=/project/thermo-testdata/Angiotensin_AllScans.raw
           CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
@@ -646,7 +677,7 @@ jobs:
             thermo-platform: linux-x64
           - os: ubuntu-22.04-arm
             artifact: wheels-linux-arm64
-            thermo-platform: ''
+            thermo-platform: linux-arm64
           - os: macos-15
             artifact: wheels-macos-arm64
             thermo-platform: osx-arm64

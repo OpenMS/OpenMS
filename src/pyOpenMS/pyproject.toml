@@ -254,9 +254,15 @@ repair-wheel-command = [
 # Homebrew paths
 CMAKE_PREFIX_PATH = "$(brew --prefix):$(brew --prefix libomp)"
 # Must match CIBW_ENVIRONMENT in the wheel workflow, which overrides this whole table.
-# Lowering it alone ships a wheel that installs on an older macOS and then fails in dyld,
-# because the bundled Homebrew dependencies target the runner's macOS; build on a runner
-# of the older version instead. tools/ci/check_macos_wheel_target.py enforces this.
+# Lowering it alone ships a wheel that installs on an older macOS and then fails in dyld:
+# the dependencies bundled into the wheel come from Homebrew, whose bottles are built for
+# the runner's macOS. Lowering the floor means building those dependencies for the lower
+# target too -- either on a runner of that macOS, or by building them from source with
+# vcpkg, as the desktop builds do, under a triplet that sets VCPKG_OSX_DEPLOYMENT_TARGET;
+# the runner stops mattering once one does. None of the macOS triplets in
+# vcpkg-overlays/triplets set it today, so that route needs a new triplet rather than an
+# edit to arm64-osx-dynamic-sysroot, which the desktop preset already builds against.
+# tools/ci/check_macos_wheel_target.py enforces that the tag and the binaries agree.
 MACOSX_DEPLOYMENT_TARGET = "15.0"
 
 [tool.cibuildwheel.windows]
