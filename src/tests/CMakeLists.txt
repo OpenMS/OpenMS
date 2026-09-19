@@ -95,34 +95,47 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
     list(APPEND _configure_args -T "${CMAKE_GENERATOR_TOOLSET}")
   endif()
 
-  # The tests of one installation: <name>_install_<component> for each install
-  # component in COMPONENTS (fixture <name>_installed), then <name>_configure,
-  # <name>_build and <name>_run of the consumer project in source_dir.
+  # The tests of one installation: <name>_clean (fixture <name>_cleaned), then
+  # <name>_install_<component> for each install component in COMPONENTS (fixture
+  # <name>_installed), then <name>_configure, <name>_build and <name>_run of the
+  # consumer project in source_dir.
+  #
+  # The prefix is emptied before every run because `cmake --install --component`
+  # only ever adds files: a component dropped from COMPONENTS would otherwise
+  # leave the files of an earlier run of the same build tree behind, and since
+  # OpenMSConfig.cmake reports a layer from the presence of its target file, the
+  # consumer would keep finding a layer the installation no longer installs.
   #
   # RELOCATE_TO <dir> renames the finished installation to <dir> and points the
   # consumer there instead of at prefix, which is how the package is checked for
-  # being relocatable. It adds <name>_clean (fixture <name>_cleaned), emptying
-  # both directories so that the rename has a free destination and the moved
-  # prefix holds this installation and nothing left over from an earlier run,
-  # and <name>_move (fixture <name>_moved), which performs the rename.
-  # CONFIGURE_ARGS are passed to the consumer's configure step on top of the
-  # toolchain arguments above.
+  # being relocatable. It adds <dir> to the directories <name>_clean empties, so
+  # the rename has a free destination and the moved prefix holds this
+  # installation and nothing else, and <name>_move (fixture <name>_moved), which
+  # performs the rename. CONFIGURE_ARGS are passed to the consumer's configure
+  # step on top of the toolchain arguments above.
   function(_openms_add_installed_consumer_tests name source_dir prefix consumer)
     cmake_parse_arguments(PARSE_ARGV 4 _ic "" "RELOCATE_TO" "COMPONENTS;CONFIGURE_ARGS")
     if(_ic_UNPARSED_ARGUMENTS)
       message(FATAL_ERROR "_openms_add_installed_consumer_tests(${name}): unexpected arguments '${_ic_UNPARSED_ARGUMENTS}'")
     endif()
+    # Without this an empty COMPONENTS silently produces a chain that installs
+    # nothing: the foreach below adds no tests, set_tests_properties() on an
+    # empty list is a no-op, and <name>_configure then runs against whatever a
+    # previous run happened to leave in the prefix.
+    if(NOT _ic_COMPONENTS)
+      message(FATAL_ERROR "_openms_add_installed_consumer_tests(${name}): COMPONENTS must name at least one install component")
+    endif()
 
     # the prefix the consumer is pointed at, which is the one it ends up in
     set(_found_prefix "${prefix}")
-    set(_step_tests)
+    set(_clean_dirs "${prefix}")
     if(_ic_RELOCATE_TO)
       set(_found_prefix "${_ic_RELOCATE_TO}")
-      add_test(NAME ${name}_clean
-        COMMAND ${CMAKE_COMMAND} -E rm -rf "${prefix}" "${_ic_RELOCATE_TO}")
-      set_tests_properties(${name}_clean PROPERTIES FIXTURES_SETUP ${name}_cleaned)
-      list(APPEND _step_tests ${name}_clean)
+      list(APPEND _clean_dirs "${_ic_RELOCATE_TO}")
     endif()
+    add_test(NAME ${name}_clean COMMAND ${CMAKE_COMMAND} -E rm -rf ${_clean_dirs})
+    set_tests_properties(${name}_clean PROPERTIES FIXTURES_SETUP ${name}_cleaned)
+    set(_step_tests ${name}_clean)
 
     set(_install_tests)
     foreach(_component IN LISTS _ic_COMPONENTS)
@@ -131,10 +144,15 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
                 --prefix "${prefix}" --component ${_component})
       list(APPEND _install_tests ${name}_install_${_component})
     endforeach()
-    set_tests_properties(${_install_tests} PROPERTIES FIXTURES_SETUP ${name}_installed)
-    if(_ic_RELOCATE_TO)
-      set_tests_properties(${_install_tests} PROPERTIES FIXTURES_REQUIRED ${name}_cleaned)
-    endif()
+    # Every chain installs from this one build tree, and each `cmake --install
+    # --component <c>` writes ${CMAKE_BINARY_DIR}/install_manifest_<c>.txt, so
+    # concurrent installs of the same component interleave in that file and leave
+    # it describing whichever scratch prefix finished last. They also contend for
+    # install throughput rather than gaining from it. One lock across all chains.
+    set_tests_properties(${_install_tests} PROPERTIES
+      FIXTURES_REQUIRED ${name}_cleaned
+      FIXTURES_SETUP ${name}_installed
+      RESOURCE_LOCK openms_installed_consumer_install)
     list(APPEND _step_tests ${_install_tests})
 
     set(_configure_fixture ${name}_installed)
