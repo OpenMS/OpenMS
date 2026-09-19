@@ -21,6 +21,9 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 #include <iostream>
 #include <cmath>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+
+#include <algorithm>
 
 
 START_TEST(TheoreticalSpectrumGeneratorXLMS, "$Id$")
@@ -882,6 +885,59 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   TEST_EQUAL(spec.size(), 48)
 
 END_SECTION
+
+START_SECTION([EXTRA] precursor isotope peaks are charge normalized)
+{
+  TheoreticalSpectrumGeneratorXLMS tsg;
+  Param param = tsg.getParameters();
+  param.setValue("add_isotopes", "true");
+  param.setValue("max_isotope", 2);
+  param.setValue("add_precursor_peaks", "true");
+  param.setValue("add_losses", "false");
+  param.setValue("add_metainfo", "true");
+  tsg.setParameters(param);
+
+  AASequence xl_peptide = AASequence::fromString("PEPTIDESAREWEIRD");
+  PeakSpectrum spec;
+  const double precursor_mass = 2000.0;
+  const int charge = 3; // precursor peaks are added at the maximal charge
+  tsg.getXLinkIonSpectrum(spec, xl_peptide, 3, precursor_mass, true, 2, charge);
+
+  ABORT_IF(spec.getStringDataArrays().empty())
+  const auto& names = spec.getStringDataArrays()[0];
+  // m/z values of the peaks with the given name, sorted (mono- and isotope peak carry the same name)
+  auto mzs_of = [&](const std::string& name)
+  {
+    std::vector<double> mzs;
+    for (Size i = 0; i < spec.size(); ++i)
+    {
+      if (names[i] == name) mzs.push_back(spec[i].getMZ());
+    }
+    std::sort(mzs.begin(), mzs.end());
+    return mzs;
+  };
+
+  TOLERANCE_ABSOLUTE(1e-6)
+  // the precursor and its H2O and NH3 losses (added independently of add_losses), each with its first isotope peak,
+  // which used to be placed at the charged mass plus a charge divided offset (~2003 instead of ~668)
+  const std::vector<std::pair<std::string, double>> expected =
+  {
+    {"[M+H]", 0.0},
+    {"[M+H]-H2O", EmpiricalFormula("H2O").getMonoWeight()},
+    {"[M+H]-NH3", EmpiricalFormula("NH3").getMonoWeight()}
+  };
+  for (const auto& [name, loss] : expected)
+  {
+    const std::vector<double> mzs = mzs_of(name);
+    TEST_EQUAL(mzs.size(), 2)
+    ABORT_IF(mzs.size() != 2)
+    const double mono_mz = (precursor_mass + charge * Constants::PROTON_MASS_U - loss) / charge;
+    TEST_REAL_SIMILAR(mzs[0], mono_mz)
+    TEST_REAL_SIMILAR(mzs[1], mono_mz + Constants::C13C12_MASSDIFF_U / charge)
+  }
+}
+END_SECTION
+
 
 delete ptr;
 
