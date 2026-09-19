@@ -690,6 +690,8 @@ Fixes:
       charge-divided position and divided by the charge again, so these peaks sat at roughly half
       their true m/z. OpenPepXL scores and annotations of such peaks change accordingly (#10148).
   Quantification and numerical correctness:
+    - IsobaricWorkflow wrote every consensus feature with the same id ("e_0"), which is invalid
+      consensusXML (consensusElement/@id is xs:ID); each feature now gets its own unique ID.
     - ExperimentalDesign mappings use sample names consistently. Protein-group quantities
       survive ID filtering; ProtXML excludes ProteinProphet's unneeded/subsumed groups
       (#6038, #8960, #9874).
