@@ -27,22 +27,10 @@ set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
 # Don't add RPATH
 SET(CMAKE_SKIP_INSTALL_RPATH TRUE)
 
-## Derive dependencies from the binaries we actually ship.
-## The hand-written list below cannot keep up with the toolchain: it still declared
-## libc6 (>= 2.28) while the libraries had moved on to requiring GLIBC_2.38 and
-## GLIBCXX_3.4.32, so apt happily installed the package on Ubuntu 22.04 and Debian 12
-## and every TOPP tool then died at startup with a version lookup error. dpkg-shlibdeps
-## reads the symbol versions out of the built binaries, so the floors move with the
-## build instead of being maintained by hand.
-##
-## CPack keeps this separate from CPACK_DEBIAN_PACKAGE_DEPENDS and concatenates the two,
-## so the curated entries below - in particular the Qt alternatives, which cannot be
-## generated - are preserved.
-##
-## The privately bundled libraries are not turned into bogus dependencies: our binaries
-## carry RUNPATH $ORIGIN/../lib, CPack creates the DEBIAN directory that lets
-## dpkg-shlibdeps resolve $ORIGIN inside the staging tree, and anything found there
-## belongs to no package and is skipped via --ignore-missing-info.
+## Derive the system dependencies (glibc, libstdc++, gomp) from the built binaries;
+## a hand-written floor goes stale and installs on systems the binaries cannot run on.
+## CPack appends this to CPACK_DEBIAN_PACKAGE_DEPENDS below. Bundled libraries resolve
+## through our RUNPATH inside the staging tree and are skipped (--ignore-missing-info).
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
 ## Debug for now. Not much output.
@@ -60,13 +48,10 @@ endif()
 ## We should probably use a full system-shared-libs-only machine for building. Then the deps should look similar to below.
 #set(CPACK_DEBIAN_PACKAGE_DEPENDS "libxerces-c-dev (>= 3.1.1), libeigen3-dev, libboost-dev (>= 1.54.0), libboost-iostreams-dev (>= 1.54.0), libboost-date-time-dev (>= 1.54.0), libboost-math-dev (>= 1.54.0), libsvm-dev (>= 3.12), libglpk-dev (>= 4.52.1), zlib1g-dev (>= 1.2.7), libbz2-dev (>= 1.0.6), libqt4-dev (>= 4.8.2), libqt4-opengl-dev (>= 4.8.2), libqtwebkit-dev (>= 2.2.1), coinor-libcoinutils-dev (>= 2.6.4)")
 
-## Entries that SHLIBDEPS cannot produce, appended to the generated list above.
-## Alternatives (pkg | pkg) express the t64 rename across Debian/Ubuntu releases and have
-## to stay hand-written. External libraries from Debian repositories should be listed here
-## to avoid file conflicts.
+## Entries SHLIBDEPS cannot produce: the (pkg | pkg) alternatives for the t64 rename, and
+## external libraries from Debian repositories listed here to avoid file conflicts.
+## Do not add a libc6 floor here; dpkg-shlibdeps derives it from the binaries.
 ## Note: SQLiteCpp is statically linked, but SQLite3 is dynamically linked at runtime
-## Do not add a libc6 floor here - dpkg-shlibdeps computes it from the binaries, and a
-## hand-written one silently overrides nothing but does go stale.
 set(CPACK_DEBIAN_PACKAGE_DEPENDS
   "libqt6svg6 (>= 6.2.2), libqt6widgets6t64 (>= 6.2.2) | libqt6widgets6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2), libyaml-cpp0.7 | libyaml-cpp0.8, libsqlite3-0 (>= 3.35.0)")
 

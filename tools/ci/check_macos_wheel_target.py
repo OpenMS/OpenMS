@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """Fail if a macOS wheel needs a newer macOS than its platform tag promises.
 
-pip selects a wheel purely from its tag. If MACOSX_DEPLOYMENT_TARGET is lowered without
-the bundled dependencies following - Homebrew bottles in particular are built for the
-runner's own macOS - the wheel installs on an older system and then dies in dyld. That
-failure reaches users instead of CI, so check the shipped Mach-O headers against the tag.
+pip selects a wheel by its tag alone, so a wheel whose bundled dependencies target a
+newer macOS installs on an older one and then dies in dyld.
 
 Usage: check_macos_wheel_target.py wheelhouse/*.whl
 """

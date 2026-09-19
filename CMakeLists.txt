@@ -275,11 +275,8 @@ if(NOT GIT_TRACKING)
   endif()
   message(STATUS "  [CMake is not tracking Git commits and branching ('-D GIT_TRACKING=Off')]")
 elseif(OPENMS_GIT_SHORT_REFSPEC MATCHES "NOTFOUND$")
-  ## Covers every failure git_short_info can report: GIT-NOTFOUND, HEAD-HASH-NOTFOUND
-  ## and the "<exit code>-NOTFOUND" it returns when git itself runs but fails - for
-  ## example inside a container where the bind-mounted checkout trips git's ownership
-  ## check. Without this the placeholder reached OPENMS_PACKAGE_VERSION_FULLSTRING and
-  ## was baked into VersionInfo and the package file names.
+  ## Matches every marker git_short_info can return, including the "<exit code>-NOTFOUND"
+  ## from a git that runs but fails, which otherwise reaches VersionInfo and file names.
   set(OPENMS_GIT_SHORT_SHA1 "exported")
   set(OPENMS_GIT_SHORT_REFSPEC "exported")
   set(OPENMS_GIT_LC_DATE "1970-01-01")
