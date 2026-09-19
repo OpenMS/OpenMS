@@ -1,4 +1,11 @@
-"""Glycan fragmentation bindings and site-specific retention regressions."""
+"""
+## ----------------------------------------------------------------------------
+## $Maintainer: Timo Sachsenberg $
+## $Authors: Timo Sachsenberg $
+## ----------------------------------------------------------------------------
+
+Glycan fragmentation bindings and site-specific retention regressions.
+"""
 
 import pytest
 import pyopenms as oms
