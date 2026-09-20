@@ -3091,6 +3091,94 @@ add_test("TOPP_ConsensusID_8" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_
 add_test("TOPP_ConsensusID_8_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ${TESTS_TEMP_DIR}/ConsensusID_8_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_8_output.idXML )
 set_tests_properties("TOPP_ConsensusID_8_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_8")
 
+# Empty search results retain their original runs and all search settings in RT/mz mode.
+# Compare complete files, including spectra_data and custom search/run metadata (#1427, #8250).
+foreach(input IN ITEMS empty empty_runs)
+  add_test("TOPP_ConsensusID_${input}" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_${input}_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_${input}.tmp.idXML)
+  add_test("TOPP_ConsensusID_${input}_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ConsensusID_${input}.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_${input}_input.idXML)
+  set_tests_properties("TOPP_ConsensusID_${input}_out" PROPERTIES DEPENDS "TOPP_ConsensusID_${input}")
+endforeach()
+
+# Finalize per-spectrum metadata even for an MS file with only empty runs.
+# Two search engines cover sample.mzML; empty_sample.mzML has no peptide IDs at all.
+set(consensusid_empty_metadata
+  "search_engine=\"OpenMS/ConsensusID_best\""
+  "db=\"test.fasta\" db_version=\"2020-01\" taxonomy=\"9606\""
+  "charges=\"2-4\" enzyme=\"trypsin\" missed_cleavages=\"2\""
+  "precursor_peak_tolerance=\"20\" precursor_peak_tolerance_ppm=\"true\""
+  "peak_mass_tolerance=\"0.04\" peak_mass_tolerance_ppm=\"false\""
+  "<FixedModification name=\"Carbamidomethyl (C)\""
+  "<VariableModification name=\"Oxidation (M)\""
+  "<VariableModification name=\"Phospho (S)\""
+  "name=\"SE:Engine1\" value=\"1.0\""
+  "name=\"SE:Engine2\" value=\"2.0\""
+  "name=\"Engine1:charges\" value=\"2:3\""
+  "name=\"Engine2:charges\" value=\"2:4\""
+  "name=\"spectra_data\" value=\"[sample.mzML]\""
+  "name=\"spectra_data\" value=\"[empty_sample.mzML]\""
+  "name=\"ConsensusIDBaseSearch\" value=\"Engine2:2.0\"")
+add_test("TOPP_ConsensusID_empty_per_spectrum" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_empty_input.idXML ${DATA_DIR_TOPP}/ConsensusID_empty_other_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_empty_per_spectrum.tmp.idXML -algorithm best -per_spectrum)
+add_test("TOPP_ConsensusID_empty_per_spectrum_out" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/ConsensusID_empty_per_spectrum.tmp.idXML
+  "-DEXPECTED=${consensusid_empty_metadata}" "-DFORBIDDEN=<PeptideIdentification"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ConsensusID_empty_per_spectrum_out" PROPERTIES DEPENDS "TOPP_ConsensusID_empty_per_spectrum")
+
+# Missing optional enzyme/charge settings must remain unknown, not fail the
+# enzyme lookup or become the sentinel charge range "10000--10000".
+add_test("TOPP_ConsensusID_empty_unknown" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_empty_unknown_input.idXML -out ${TESTS_TEMP_DIR}/ConsensusID_empty_unknown.tmp.idXML -algorithm best -per_spectrum)
+add_test("TOPP_ConsensusID_empty_unknown_out" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/ConsensusID_empty_unknown.tmp.idXML
+  "-DEXPECTED=charges=\"\" enzyme=\"unknown_enzyme\";name=\"spectra_data\" value=\"[sample_unknown.mzML]\""
+  "-DFORBIDDEN=<PeptideIdentification;10000--10000"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ConsensusID_empty_unknown_out" PROPERTIES DEPENDS "TOPP_ConsensusID_empty_unknown")
+
+# Empty runs contribute to support only with count_empty. With min_support=1,
+# the sole peptide survives only if the empty search run is ignored.
+foreach(mode IN ITEMS rt_mz per_spectrum)
+  if(mode STREQUAL "per_spectrum")
+    set(consensusid_mixed_inputs ${DATA_DIR_TOPP}/ConsensusID_nonempty_input.idXML ${DATA_DIR_TOPP}/ConsensusID_empty_other_input.idXML)
+    set(consensusid_mode_args -per_spectrum)
+  else()
+    set(consensusid_mixed_inputs ${DATA_DIR_TOPP}/ConsensusID_mixed_input.idXML)
+    set(consensusid_mode_args)
+  endif()
+  foreach(count_empty IN ITEMS false true)
+    set(consensusid_test "TOPP_ConsensusID_mixed_${mode}_${count_empty}")
+    set(consensusid_output "${TESTS_TEMP_DIR}/ConsensusID_mixed_${mode}_${count_empty}.tmp.idXML")
+    add_test("${consensusid_test}" ${TOPP_BIN_PATH}/ConsensusID -test -in ${consensusid_mixed_inputs} -out ${consensusid_output} -algorithm best ${consensusid_mode_args} -filter:count_empty ${count_empty} -filter:min_support 1)
+    if(count_empty)
+      set(consensusid_output_check "-DFORBIDDEN=<PeptideIdentification")
+    else()
+      set(consensusid_output_check "-DEXPECTED=sequence=\"PEPTIDE\";name=\"consensus_support\" value=\"1.0\"")
+    endif()
+    add_test("${consensusid_test}_out" ${CMAKE_COMMAND} -DINPUT_FILE=${consensusid_output} "${consensusid_output_check}" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+    set_tests_properties("${consensusid_test}_out" PROPERTIES DEPENDS "${consensusid_test}")
+    if(mode STREQUAL "per_spectrum")
+      add_test("${consensusid_test}_metadata" ${CMAKE_COMMAND} -DINPUT_FILE=${consensusid_output} "-DEXPECTED=${consensusid_empty_metadata}" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+      set_tests_properties("${consensusid_test}_metadata" PROPERTIES DEPENDS "${consensusid_test}")
+    endif()
+  endforeach()
+endforeach()
+
+# Unannotated features and consensus features have no identification runs.
+foreach(format IN ITEMS featureXML consensusXML)
+  add_test("TOPP_ConsensusID_no_ids_${format}" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_no_ids_input.${format} -out ${TESTS_TEMP_DIR}/ConsensusID_no_ids.tmp.${format})
+  add_test("TOPP_ConsensusID_no_ids_${format}_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ConsensusID_no_ids.tmp.${format} -in2 ${DATA_DIR_TOPP}/ConsensusID_no_ids_input.${format})
+  set_tests_properties("TOPP_ConsensusID_no_ids_${format}_out" PROPERTIES DEPENDS "TOPP_ConsensusID_no_ids_${format}")
+endforeach()
+
+# Require the documented input shape and a clean INCOMPATIBLE_INPUT_DATA return (11).
+add_test("TOPP_ConsensusID_multiple_files_without_per_spectrum" ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ConsensusID;-test;-in;${DATA_DIR_TOPP}/ConsensusID_empty_input.idXML;${DATA_DIR_TOPP}/ConsensusID_empty_other_input.idXML;-out;${TESTS_TEMP_DIR}/ConsensusID_invalid_multiple.tmp.idXML"
+  -DEXPECTED_CODE=11 "-DEXPECTED_OUTPUT_REGEX=expects a single idXML file"
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+add_test("TOPP_ConsensusID_nonempty_single_run" ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ConsensusID;-test;-in;${DATA_DIR_TOPP}/ConsensusID_nonempty_input.idXML;-out;${TESTS_TEMP_DIR}/ConsensusID_invalid_single.tmp.idXML"
+  -DEXPECTED_CODE=11 "-DEXPECTED_OUTPUT_REGEX=At least two runs are required"
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+
 #------------------------------------------------------------------------------
 # FalseDiscoveryRate_tests (1: default param, 2: with runs separated, 3: with charge variants individual, 4: with charge variants and no charge 1 decoys -> q_value 0)
 add_test("TOPP_FalseDiscoveryRate_1" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out ${TESTS_TEMP_DIR}/FalseDiscoveryRate_output_1.tmp.idXML -PSM true -protein false)
@@ -4108,6 +4196,25 @@ ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/SimpleSearchEn
 add_test("TOPP_SimpleSearchEngine_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SimpleSearchEngine_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/SimpleSearchEngine_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 set_tests_properties("TOPP_SimpleSearchEngine_1_out" PROPERTIES DEPENDS
 "TOPP_SimpleSearchEngine_1")
+
+# A registered alias must be accepted wherever the preferred extension is, and must produce the same
+# result (#490). Copy the database to '.fa' at configure time rather than duplicating the test data.
+configure_file(${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta ${DATA_DIR_TOPP_BIN}/SimpleSearchEngine_alias.fa COPYONLY)
+add_test("TOPP_SimpleSearchEngine_3_fasta_alias" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
+-ini ${DATA_DIR_TOPP}/SimpleSearchEngine_1.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/SimpleSearchEngine_3_out.tmp.idXML
+-database ${DATA_DIR_TOPP_BIN}/SimpleSearchEngine_alias.fa)
+add_test("TOPP_SimpleSearchEngine_3_fasta_alias_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SimpleSearchEngine_3_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/SimpleSearchEngine_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+set_tests_properties("TOPP_SimpleSearchEngine_3_fasta_alias_out" PROPERTIES DEPENDS
+"TOPP_SimpleSearchEngine_3_fasta_alias")
+
+# ... while a genuinely wrong format is still rejected: an mzML handed to the FASTA parameter must not
+# be accepted just because alias resolution got more permissive.
+add_test("TOPP_SimpleSearchEngine_4_wrong_format" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
+-ini ${DATA_DIR_TOPP}/SimpleSearchEngine_1.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/SimpleSearchEngine_4_out.tmp.idXML
+-database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML)
+set_tests_properties("TOPP_SimpleSearchEngine_4_wrong_format" PROPERTIES WILL_FAIL 1)
 
 # extra percolator features
 add_test("TOPP_SimpleSearchEngine_2" ${TOPP_BIN_PATH}/SimpleSearchEngine -test

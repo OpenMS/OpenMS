@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="test.fasta" db_version="2020-01" taxonomy="9606" mass_type="monoisotopic" charges="2:3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.02" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="custom_search_setting" value="first"/>
+	</SearchParameters>
+	<SearchParameters id="SP_1" db="test.fasta" db_version="2020-01" taxonomy="9606" mass_type="monoisotopic" charges="2:4" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="20" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.04" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Phospho (S)" />
+				<UserParam type="string" name="custom_search_setting" value="second"/>
+	</SearchParameters>
+	<IdentificationRun date="2020-01-01T12:00:00" search_engine="Engine1" search_engine_version="1.0" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<UserParam type="stringList" name="spectra_data" value="[/data/sample.mzML]"/>
+			<UserParam type="string" name="run_note" value="Engine1 search on sample"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="PEP" higher_score_better="false" significance_threshold="0.0" MZ="400.0" RT="10.0" spectrum_reference="scan=1" >
+			<PeptideHit score="0.05" sequence="PEPTIDE" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2020-01-02T12:00:00" search_engine="Engine2" search_engine_version="2.0" search_parameters_ref="SP_1" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<UserParam type="stringList" name="spectra_data" value="[/data/sample.mzML]"/>
+			<UserParam type="string" name="run_note" value="Engine2 search on sample"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+</IdXML>

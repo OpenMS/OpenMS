@@ -35,6 +35,11 @@ endif()
 find_package(OpenMS CONFIG REQUIRED)
 message(STATUS "Found OpenMS ${OpenMS_VERSION} at ${OpenMS_DIR}")
 
+## The include directories the package reports are not plain paths -- the base
+## directories of its header file set arrive wrapped in $<BUILD_INTERFACE:...>.
+## openms_package_include_dirs() resolves them; its file explains the mechanism.
+include("${CMAKE_CURRENT_LIST_DIR}/../openms_package_include_dirs.cmake")
+
 #------------------------------------------------------------------------------
 ## What the package reports has to describe the prefix it was found in.
 
@@ -88,10 +93,14 @@ foreach(_target IN ITEMS OpenMS::OpenMS OpenMS::OpenSwathAlgo)
       message(FATAL_ERROR "OPENMS_LIB_DIR='${OPENMS_LIB_DIR}' but the ${_configuration} ${_target} is ${_location}")
     endif()
   endforeach()
-  ## ... and the headers they are used with
-  get_target_property(_includes ${_target} INTERFACE_INCLUDE_DIRECTORIES)
+  ## ... and the headers they are used with. Reporting none is a failure rather
+  ## than an empty loop below: both libraries install their public headers as a
+  ## file set, so an export that stops carrying them is the regression this checks
+  ## for -- and it would not show up in the build either, since the program
+  ## includes no OpenSwathAlgo header.
+  openms_package_include_dirs(${_target} _includes)
   if(NOT _includes)
-    set(_includes)
+    message(FATAL_ERROR "${_target} exposes no include directories")
   endif()
   foreach(_include IN LISTS _includes)
     openms_assert_below_prefix("an include directory of ${_target}" "${_include}")
@@ -109,13 +118,18 @@ add_executable(TestExternalCodeRelocated ../TestExternalCodeRelocated.cpp)
 ## of libc on current glibc, but was in libdl before 2.34 and the manylinux images
 ## of the wheel builds sit right at that boundary. Empty on Windows and macOS.
 target_link_libraries(TestExternalCodeRelocated OpenMS::OpenMS ${CMAKE_DL_LIBS})
-## What the package reports, for the program to check the library it actually
-## loaded against: its version, and the directory the package says its libraries
-## are in. The latter is the run-time half of the checks above -- they establish
-## what the package *says*, this establishes that the loader agrees.
+## What the package reports, for the program to check the libraries it actually
+## loaded against: the version, the directory the package says its libraries are
+## in, and the file names of the two libraries of the core layer. That is the
+## run-time half of the checks above -- they establish what the package *says*,
+## this establishes that the loader agrees. The names come from the imported
+## targets rather than from a literal in the program, so a SOVERSION, an
+## OUTPUT_NAME or a debug postfix on the OpenMS libraries keeps the lookup exact.
 target_compile_definitions(TestExternalCodeRelocated PRIVATE
                            OPENMS_EXPECTED_VERSION="${OpenMS_VERSION}"
                            OPENMS_EXPECTED_LIB_DIR="${OPENMS_LIB_DIR}"
+                           OPENMS_CORE_MODULE_NAME="$<TARGET_FILE_NAME:OpenMS::OpenMS>"
+                           OPENMS_OPENSWATHALGO_MODULE_NAME="$<TARGET_FILE_NAME:OpenMS::OpenSwathAlgo>"
                            ## disable auto-linking of boost (mainly needed for Windows)
                            BOOST_ALL_NO_LIB)
 add_test(TestExternalCodeRelocated TestExternalCodeRelocated)

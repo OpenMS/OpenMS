@@ -9,6 +9,7 @@
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <QDesktopServices>
@@ -58,7 +59,19 @@ namespace OpenMS
       return file_name;
     }
     // check whether a file type suffix has been given, or fall back to @p fallback_extension (if 'all filter' was used)
-    file_name = toQString(FileHandler::swapExtension(fromQString(file_name), supported_file_types.fromFileDialogFilter(fromQString(selected_filter), fallback_extension)));
+    const FileTypes::Type chosen_type = supported_file_types.fromFileDialogFilter(fromQString(selected_filter), fallback_extension);
+    const std::string typed_name = fromQString(file_name);
+    // Keep the extension the user typed when it already denotes the chosen type. The filter now offers every
+    // accepted extension (e.g. '*.fasta *.fa *.faa'), so swapping unconditionally would silently rewrite a
+    // deliberately chosen 'db.fa' to 'db.fasta'. Anything else still gets the preferred extension.
+    // A compression suffix must NOT take this shortcut: getTypeByFileName() sees through '.gz', so
+    // 'run.mzML.gz' reports MZML, and keeping that name would write uncompressed bytes over a gzip file.
+    const bool keep_typed_name = !FileNameUtils::hasCompressionSuffix(typed_name)
+                              && FileHandler::getTypeByFileName(typed_name) == chosen_type;
+    if (!keep_typed_name)
+    {
+      file_name = toQString(FileHandler::swapExtension(typed_name, chosen_type));
+    }
     return file_name;
   }
 
