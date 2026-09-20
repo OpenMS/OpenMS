@@ -1456,6 +1456,9 @@ Fixes:
       and logs a warning. TOPPASEdge falls back to extension-based file type detection when
       content-based detection returns UNKNOWN, and no longer mishandles an edge whose referenced
       vertex was removed (#9054).
+    - The mzML writer escapes the name of a non-standard data array and the fraction identifier.
+      An & or < in either - they are taken verbatim from the data - produced a file that no reader
+      could parse, including the OpenMS one (#10148).
     - FileMerger renamed the merged spectra but left precursor spectrumRef attributes pointing to the
       original native IDs, so MS2 spectra lost the link to their parent scan and the mzML output
       failed schema validation. The references are now updated together with the IDs (#10200).
