@@ -897,7 +897,7 @@ Build System:
     package was produced at all. Only the runtime identifiers the build targets are
     installed now; the parser's own Mono.Unix.dll.config maps the library to linux-x64,
     osx-x64 and osx-arm64 and to nothing else, so the others could never be loaded
-    (#10202, #10207).
+    (#10202, #10207, #10211).
   - Linux wheels are built in a container with the checkout bind-mounted, which made git
     refuse the repository and left the embedded version a placeholder. The build marks the
     checkout safe, and any git failure now falls back to the "exported" version string
