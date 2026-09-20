@@ -68,3 +68,29 @@ add_custom_target(TOPP)
 add_dependencies(TOPP ${TOPP_TOOLS})
 
 openms_doc_path("${PROJECT_SOURCE_DIR}")
+
+# Boost used directly by these implementation/test translation units.
+foreach(_boost_consumer IN ITEMS
+  Digestor
+  FeatureFinderMultiplex
+  FileInfo
+  FileMerger
+  MRMTransitionGroupPicker
+  MSGFPlusAdapter
+  MSstatsConverter
+  MaRaClusterAdapter
+  MetaProSIP
+  OpenNuXL
+  OpenSwathAnalyzer
+  OpenSwathChromatogramExtractor
+  OpenSwathFeatureXMLToTSV
+  OpenSwathPeakMapExtractor
+  PercolatorAdapter
+  SageAdapter
+  TextExporter
+)
+  if(TARGET ${_boost_consumer})
+    target_link_libraries(${_boost_consumer} Boost::boost)
+  endif()
+endforeach()
+unset(_boost_consumer)

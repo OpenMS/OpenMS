@@ -11,7 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <boost/regex.hpp>
+#include <OpenMS/DATASTRUCTURES/RegularExpression.h>
 
 namespace OpenMS
 {
@@ -74,9 +74,7 @@ namespace OpenMS
        @note The regular expression must contain a capture group, and the last matching
              subgroup is used as the scan number.
     */
-    static Int extractScanNumber(const std::string& native_id,
-                                 const boost::regex& scan_regexp,
-                                 bool no_error = false);
+    static Int extractScanNumber(const std::string& native_id, const RegularExpression& scan_regexp, bool no_error = false);
 
     /**
        @brief Extract the scan number from the native ID using a CV accession

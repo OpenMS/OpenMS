@@ -74,4 +74,32 @@ cmake -G "<generator>" .
 	
 
 
+
+@section external_boost Boost is an implementation dependency
+
+The installed shared OpenMS library can be used without Boost headers or a Boost
+CMake package. Boost is still required to build OpenMS itself and may remain a
+runtime dependency of its binaries. Static consumers also need its link dependencies.
+
+Use OpenMS::RegularExpression for the compiled-pattern overloads of
+SpectrumNativeIDParser::extractScanNumber and SpectrumLookup::extractScanNumber.
+Named groups and the existing regex syntax are retained. In pyOpenMS, pass a pattern
+string and the explicit @p no_error argument; the two-argument overload still
+accepts a native-ID CV accession.
+
+IdentificationData collections preserve uniqueness, ordered traversal and stable
+references, but their concrete container/iterator types have changed. Use the
+OpenMS aliases instead of naming Boost.MultiIndex types. Boost-specific container
+operations outside the IDDataContainer interface need to be adapted. The ordered
+processing-step view returned by getStepsAndScoresByStep() is a lightweight value.
+Internal headers such as ANALYSIS/ID/IDBoostGraph.h are not part of the installed interface.
+
+RandomShuffler retains its seeded shuffle sequence; use its seed() method instead
+of accessing a Boost engine. Checked integer conversions in public templates now
+throw OpenMS::Exception::OutOfRange on overflow.
+
+These changes affect the C++ ABI: rebuild applications and extensions against the
+new headers and library. Applications that use Boost independently must locate and
+link their own Boost targets.
+
 */

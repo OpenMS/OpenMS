@@ -12,7 +12,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 
-#include <boost/regex.hpp>
+#include <OpenMS/DATASTRUCTURES/RegularExpression.h>
 
 namespace OpenMS
 {
@@ -61,7 +61,7 @@ namespace OpenMS
     static const std::string& default_scan_regexp;
 
     /// Possible formats of spectrum references, defined as regular expressions
-    std::vector<boost::regex> reference_formats;
+    std::vector<RegularExpression> reference_formats;
 
     /// Tolerance for look-up by retention time
     double rt_tolerance;
@@ -200,9 +200,7 @@ namespace OpenMS
        @deprecated Use SpectrumNativeIDParser::extractScanNumber() instead for better discoverability.
        @see SpectrumNativeIDParser::extractScanNumber()
     */
-    static Int extractScanNumber(const std::string& native_id,
-                                 const boost::regex& scan_regexp,
-                                 bool no_error = false);
+    static Int extractScanNumber(const std::string& native_id, const RegularExpression& scan_regexp, bool no_error = false);
 
     /**
        @brief Extract the scan number from the native ID using a CV accession
@@ -249,7 +247,7 @@ namespace OpenMS
 
     Size n_spectra_; ///< Number of spectra
 
-    boost::regex scan_regexp_; ///< Regular expression to extract scan numbers
+    RegularExpression scan_regexp_; ///< Regular expression to extract scan numbers
 
     std::vector<std::string> regexp_name_list_; ///< Named groups in vector format
 
@@ -279,8 +277,7 @@ namespace OpenMS
 
        @return Index of the spectrum that matched
     */
-    Size findByRegExpMatch_(const std::string& spectrum_ref, const std::string& regexp,
-                            const boost::smatch& match) const;
+    Size findByRegExpMatch_(const std::string& spectrum_ref, const std::string& regexp, const Internal::RegularExpressionMatch& match) const;
 
     /**
        @brief Set the regular expression for extracting scan numbers from spectrum native IDs

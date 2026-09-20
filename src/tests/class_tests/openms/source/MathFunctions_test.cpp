@@ -217,5 +217,34 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+
+START_SECTION((RandomShuffler preserves portable sequences and independent copies))
+{
+  // Golden sequence from the pre-refactoring implementation (seed 42).
+  std::vector<int> values {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+  Math::RandomShuffler shuffler(42);
+  shuffler.portable_random_shuffle(values.begin(), values.end());
+  const std::vector<int> expected {2, 6, 5, 4, 8, 3, 0, 11, 1, 10, 7, 9};
+  TEST_TRUE(values == expected)
+
+  auto copy = shuffler;
+  auto values_copy = values;
+  shuffler.portable_random_shuffle(values.begin(), values.end());
+  copy.portable_random_shuffle(values_copy.begin(), values_copy.end());
+  TEST_TRUE(values == values_copy)
+
+  // Empty and singleton shuffles must not consume random numbers.
+  auto unadvanced = copy;
+  std::vector<int> empty;
+  copy.portable_random_shuffle(empty.begin(), empty.end());
+  std::vector<int> singleton {1};
+  copy.portable_random_shuffle(singleton.begin(), singleton.end());
+  values_copy = values;
+  copy.portable_random_shuffle(values.begin(), values.end());
+  unadvanced.portable_random_shuffle(values_copy.begin(), values_copy.end());
+  TEST_TRUE(values == values_copy)
+}
+END_SECTION
+
 END_TEST
 

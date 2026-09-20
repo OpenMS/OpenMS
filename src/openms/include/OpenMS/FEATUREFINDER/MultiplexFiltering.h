@@ -21,7 +21,6 @@
 #include <algorithm>
 #include <iostream>
 
-#include <boost/serialization/strong_typedef.hpp>
 
 namespace OpenMS
 {

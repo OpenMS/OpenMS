@@ -8,14 +8,13 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/ID/IDDataContainer.h>
+
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/ID/ParentMatch.h>
 #include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/member.hpp>
 
 namespace OpenMS
 {
@@ -81,21 +80,13 @@ namespace OpenMS
     typedef IdentifiedSequence<NASequence> IdentifiedOligo;
 
     // identified peptides indexed by their sequences:
-    typedef boost::multi_index_container<
-      IdentifiedPeptide,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          IdentifiedPeptide, AASequence, &IdentifiedPeptide::sequence>>>
-      > IdentifiedPeptides;
+    using IdentifiedPeptides = IDDataContainer<IdentifiedPeptide, AASequence, AASequence>;
+    extern template class OPENMS_DLLAPI IDDataContainer<IdentifiedPeptide, AASequence, AASequence>;
     typedef IteratorWrapper<IdentifiedPeptides::iterator> IdentifiedPeptideRef;
 
     // identified oligos indexed by their sequences:
-    typedef boost::multi_index_container<
-      IdentifiedOligo,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          IdentifiedOligo, NASequence, &IdentifiedOligo::sequence>>>
-      > IdentifiedOligos;
+    using IdentifiedOligos = IDDataContainer<IdentifiedOligo, NASequence, NASequence>;
+    extern template class OPENMS_DLLAPI IDDataContainer<IdentifiedOligo, NASequence, NASequence>;
     typedef IteratorWrapper<IdentifiedOligos::iterator> IdentifiedOligoRef;
 
   }

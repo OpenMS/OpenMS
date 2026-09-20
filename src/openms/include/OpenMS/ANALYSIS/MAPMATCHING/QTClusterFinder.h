@@ -15,7 +15,6 @@
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 
-#include <boost/heap/fibonacci_heap.hpp>
 #include <unordered_map>
 
 #include <list>
@@ -90,7 +89,8 @@ namespace OpenMS
               const OpenMS::GridFeature*, std::unordered_set<Size> > ElementMapping;
 
     /// Heap to efficiently find the best clusters
-    typedef boost::heap::fibonacci_heap<QTCluster> Heap;
+    struct Heap;
+    struct HeapHandles;
 
     typedef HashGrid<OpenMS::GridFeature*> Grid;
 
@@ -157,7 +157,7 @@ namespace OpenMS
                                ConsensusFeature& feature,
                                ElementMapping& element_mapping,
                                const Grid& grid,
-                               const std::vector<Heap::handle_type>& handles);
+                               const HeapHandles& handles);
 
     /**
      * @brief Computes an initial QT clustering of the points in the hash grid
@@ -171,7 +171,7 @@ namespace OpenMS
     void computeClustering_(const Grid& grid,
                             Heap& cluster_heads,
                             std::vector<QTCluster::BulkData>& cluster_data,
-                            std::vector<Heap::handle_type>& handles,
+                            HeapHandles& handles,
                             ElementMapping& element_mapping);
 
     /** 
@@ -214,10 +214,10 @@ namespace OpenMS
      * therefore don't have to delete them.
      */
     void updateClustering_(ElementMapping& element_mapping,
-                           const Grid& grid, 
+                           const Grid& grid,
                            const QTCluster::Elements& elements,
                            Heap& cluster_heads,
-                           const std::vector<Heap::handle_type>& handles,
+                           const HeapHandles& handles,
                            Size best_id);
 
     /// Runs the algorithm on feature maps or consensus maps

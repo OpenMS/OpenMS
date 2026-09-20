@@ -6,6 +6,7 @@
 // $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <boost/heap/fibonacci_heap.hpp>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
@@ -26,6 +27,13 @@ using std::unordered_set;
 
 namespace OpenMS
 {
+struct QTClusterFinder::Heap : boost::heap::fibonacci_heap<QTCluster>
+{
+};
+struct QTClusterFinder::HeapHandles : std::vector<Heap::handle_type>
+{
+};
+
   QTClusterFinder::QTClusterFinder() :
     BaseGroupFinder(), feature_distance_(FeatureDistance())
   {
@@ -413,7 +421,7 @@ namespace OpenMS
     Heap cluster_heads;
 
     // handles to cluster heads to reach them (index == cluster.id_) in cluster_heads for updating
-    vector<Heap::handle_type> handles;
+    HeapHandles handles;
 
     // "cold" cluster bodies, where most of their data lies
     vector<QTCluster::BulkData> cluster_data;
@@ -458,7 +466,7 @@ namespace OpenMS
                                               ConsensusFeature& feature,
                                               ElementMapping& element_mapping,
                                               const Grid& grid,
-                                              const vector<Heap::handle_type>& handles)
+                                              const HeapHandles& handles)
   {
     // pop until the top is valid
     while (cluster_heads.top().isInvalid())
@@ -563,10 +571,10 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
   }
 
   void QTClusterFinder::updateClustering_(ElementMapping& element_mapping,
-                                          const Grid& grid, 
+                                          const Grid& grid,
                                           const QTCluster::Elements& elements,
                                           Heap& cluster_heads,
-                                          const vector<Heap::handle_type>& handles,
+                                          const HeapHandles& handles,
                                           Size best_id)
   {
     // remove the current best from the heap and consolidate the heap from previous lazy updates
@@ -769,7 +777,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
   void QTClusterFinder::computeClustering_(const Grid& grid,
                                            Heap& cluster_heads,
                                            vector<QTCluster::BulkData>& cluster_data,
-                                           vector<Heap::handle_type>& handles,
+                                           HeapHandles& handles,
                                            ElementMapping& element_mapping)
   {
     cluster_heads.clear();

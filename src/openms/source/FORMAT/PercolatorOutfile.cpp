@@ -6,6 +6,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <boost/regex.hpp>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
 
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
