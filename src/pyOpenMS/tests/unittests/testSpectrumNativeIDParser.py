@@ -106,3 +106,13 @@ def testSpectrumNativeIDParser():
 
 if __name__ == "__main__":
     testSpectrumNativeIDParser()
+
+
+def test_regex_pattern_overloads():
+    """Compiled C++ regex arguments are accepted as pattern strings in Python."""
+    pattern = r"scan=(?<SCAN>\d+)"
+    for parser in (pyopenms.SpectrumNativeIDParser, pyopenms.SpectrumLookup):
+        assert parser.extractScanNumber("scan=42", pattern, False) == 42
+        assert parser.extractScanNumber("scan=42 scan=99", pattern, False) == 99
+        assert parser.extractScanNumber("missing", pattern, True) == -1
+        assert parser.extractScanNumber("scan=42", "MS:1000768") == 42

@@ -6,6 +6,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#include <boost/numeric/conversion/cast.hpp>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>

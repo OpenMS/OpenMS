@@ -6,6 +6,7 @@ set(sources_list
 IdentificationData.cpp
 IdentificationDataConverter.cpp
 IdentifiedMolecule.cpp
+IDDataContainer.cpp
 )
 
 ### add path to the filenames

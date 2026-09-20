@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/ID/AppliedProcessingStep.h>
+#include <ranges>
 
 namespace OpenMS
 {
@@ -20,14 +21,13 @@ namespace OpenMS
       AppliedProcessingSteps steps_and_scores;
 
       /// Return the applied processing steps (incl. scores) as a set ordered by processing step reference (option)
-      AppliedProcessingSteps::nth_index<1>::type& getStepsAndScoresByStep()
+      AppliedProcessingSteps::OrderedView getStepsAndScoresByStep()
       {
         return steps_and_scores.get<1>();
       }
 
       /// Return the applied processing steps (incl. scores) as a set ordered by processing step reference (option) - const variant
-      const AppliedProcessingSteps::nth_index<1>::type&
-      getStepsAndScoresByStep() const
+      AppliedProcessingSteps::ConstOrderedView getStepsAndScoresByStep() const
       {
         return steps_and_scores.get<1>();
       }
@@ -138,7 +138,7 @@ namespace OpenMS
       getScoreAndStep(ScoreTypeRef score_ref) const
       {
         // give priority to scores from later processing steps:
-        for (const auto& step : boost::adaptors::reverse(steps_and_scores))
+        for (const auto& step : std::views::reverse(steps_and_scores))
         {
           auto pos = step.scores.find(score_ref);
           if (pos != step.scores.end())
@@ -162,7 +162,7 @@ namespace OpenMS
       getMostRecentScore() const
       {
         // check steps starting with most recent:
-        for (const auto& step : boost::adaptors::reverse(steps_and_scores))
+        for (const auto& step : std::views::reverse(steps_and_scores))
         {
           auto top_score = step.getScoresInOrder(true);
           if (!top_score.empty())

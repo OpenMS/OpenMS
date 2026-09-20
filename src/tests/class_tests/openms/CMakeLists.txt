@@ -391,3 +391,36 @@ if(WITH_ONNX)
     configure_file("${SOURCE_MODEL}" "${TEST_MODEL}" COPYONLY)
   endforeach()
 endif()
+
+# This test exercises the private Boost graph implementation.
+target_link_libraries(IDBoostGraph_test Boost::boost)
+
+# Boost used directly by these implementation/test translation units.
+foreach(_boost_consumer IN ITEMS
+  DBSuitability_test
+  EmgFitter1D_test
+  EmgModel_test
+  FastLowessSmoothing_test
+  LogConfigHandler_test
+  LogStream_test
+  LowessSmoothing_test
+  MRMAssay_test
+  MRMDecoy_test
+  MRMMapping_test
+  MRMTransitionGroupPicker_test
+  OpenSwathDataAccessHelper_test
+  OpenSwathHelper_test
+  OpenSwathMRMFeatureAccessOpenMS_test
+  OpenSwathSpectrumAccessOpenMS_test
+  PeakPickerChromatogram_test
+  PeakPickerMobilogram_test
+  StatisticFunctions_test
+  TransitionPQPFile_test
+  TransitionTSVFile_test
+  UniqueIdGenerator_test
+)
+  if(TARGET ${_boost_consumer})
+    target_link_libraries(${_boost_consumer} Boost::boost)
+  endif()
+endforeach()
+unset(_boost_consumer)

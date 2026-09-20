@@ -6,6 +6,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include "../DATASTRUCTURES/RegularExpressionInternal.h"
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -17,6 +18,7 @@ using namespace std;
 
 namespace OpenMS
 {
+  using Internal::RegularExpressionAccess;
   void SpectrumMetaDataLookup::getSpectrumMetaData(Size index,
                                                    SpectrumMetaData& meta) const
   {
@@ -31,7 +33,7 @@ namespace OpenMS
 
   void SpectrumMetaDataLookup::getSpectrumMetaData(
     const MSSpectrum& spectrum, SpectrumMetaData& meta,
-    const boost::regex& scan_regexp, const map<Size, double>& precursor_rts)
+    const RegularExpression& scan_regexp, const map<Size, double>& precursor_rts)
   {
     meta.native_id = spectrum.getNativeID();
     meta.rt = spectrum.getRT();
@@ -70,11 +72,11 @@ namespace OpenMS
                                                    SpectrumMetaData& meta,
                                                    MetaDataFlags flags) const
   {
-    for (std::vector<boost::regex>::const_iterator it = 
+    for (std::vector<RegularExpression>::const_iterator it =
            reference_formats.begin(); it != reference_formats.end(); ++it)
     {
-      boost::smatch match;
-      bool found = boost::regex_search(spectrum_ref, match, *it);
+      Internal::RegularExpressionMatch match;
+      bool found = boost::regex_search(spectrum_ref, static_cast<boost::smatch&>(match), RegularExpressionAccess::get(*it));
       if (found)
       {
         // first try to extract the requested meta data from the reference:

@@ -117,14 +117,14 @@ namespace OpenMS
         }
         for (auto it = cuts_after_regexes_.begin(); it != cuts_after_regexes_.end() && is_match; ++it) // Check if the cuts_after_regexes all match
         {
-          if (!boost::regex_search(rna[i - cuts_after_regexes_.size() + (it - cuts_after_regexes_.begin())]->getCode(), *it))
+          if (!it->search(rna[i - cuts_after_regexes_.size() + (it - cuts_after_regexes_.begin())]->getCode()))
           {
             is_match = false;
           }
         }
         for (auto it = cuts_before_regexes_.begin(); it != cuts_before_regexes_.end() && is_match; ++it) // Check if the cuts_before_regexes all match
         {
-          if (!boost::regex_search(rna[i + (it - cuts_before_regexes_.begin())]->getCode(), *it))
+          if (!it->search(rna[i + (it - cuts_before_regexes_.begin())]->getCode()))
           {
             is_match = false;
           }

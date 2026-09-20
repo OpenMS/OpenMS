@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/MetaInfo.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -14,6 +15,18 @@ namespace OpenMS
 {
 
   MetaInfoRegistry MetaInfo::registry_ = MetaInfoRegistry();
+
+  MetaInfo::iterator MetaInfo::find_(UInt index)
+  {
+    auto it = std::lower_bound(begin(), end(), index, [](const auto& entry, UInt key) { return entry.first < key; });
+    return it != end() && it->first == index ? it : end();
+  }
+
+  MetaInfo::const_iterator MetaInfo::find_(UInt index) const
+  {
+    auto it = std::lower_bound(begin(), end(), index, [](const auto& entry, UInt key) { return entry.first < key; });
+    return it != end() && it->first == index ? it : end();
+  }
 
   MetaInfo::~MetaInfo() = default;
 
@@ -36,7 +49,7 @@ namespace OpenMS
       return *this;
     }
 
-    // Two-way merge into vector, then construct flat_map from sorted range
+    // Two-way merge into a sorted vector
     using pair_type = MapType::value_type;
     std::vector<pair_type> merged;
     merged.reserve(index_to_value_.size() + rhs.index_to_value_.size());
@@ -68,18 +81,14 @@ namespace OpenMS
     merged.insert(merged.end(), it_this, end_this);
     merged.insert(merged.end(), it_rhs, end_rhs);
 
-    // Construct flat_map from sorted range using move semantics
-    index_to_value_ = MapType(
-      boost::container::ordered_unique_range,
-      std::make_move_iterator(merged.begin()),
-      std::make_move_iterator(merged.end())
-    );
+    // Keep the merged storage without another element-wise copy
+    index_to_value_ = std::move(merged);
     return *this;
   }
 
   const DataValue& MetaInfo::getValue(const std::string& name, const DataValue& default_value) const
   {
-    MapType::const_iterator it = index_to_value_.find(registry_.getIndex(name));
+    MapType::const_iterator it = find_(registry_.getIndex(name));
     if (it != index_to_value_.end())
     {
       return it->second;
@@ -89,7 +98,7 @@ namespace OpenMS
 
   const DataValue& MetaInfo::getValue(UInt index, const DataValue& default_value) const
   {
-    MapType::const_iterator it = index_to_value_.find(index);
+    MapType::const_iterator it = find_(index);
     if (it != index_to_value_.end())
     {
       return it->second;
@@ -106,7 +115,7 @@ namespace OpenMS
   void MetaInfo::setValue(UInt index, const DataValue& value)
   {
     // @TODO: check if that index is registered in MetaInfoRegistry?
-    auto it = index_to_value_.find(index);
+    auto it = find_(index);
     if (it != index_to_value_.end())
     {
       it->second = value;
@@ -114,10 +123,12 @@ namespace OpenMS
     else
     {
       // Note; we need to create a copy of data value here and can't use the const &
-      // The underlying flat_map invalidates references to it if inserting
+      // The underlying sorted vector invalidates references to it if inserting
       // an element leads to relocation (e.g, in constructs like: m.insert(1, m[2]));)
       DataValue tmp = value;
-      index_to_value_.insert(std::make_pair(index, tmp));
+      auto pos
+        = std::lower_bound(index_to_value_.begin(), index_to_value_.end(), index, [](const auto& entry, UInt key) { return entry.first < key; });
+      index_to_value_.insert(pos, std::make_pair(index, std::move(tmp)));
     }
   }
 
@@ -129,21 +140,16 @@ namespace OpenMS
   bool MetaInfo::exists(const std::string& name) const
   {
     UInt index = registry_.getIndex(name);
-    if (index != UInt(-1))
-    {
-      return (index_to_value_.contains(index));
-    }
+    if (index != UInt(-1)) { return (find_(index) != index_to_value_.end()); }
     return false;
   }
 
   bool MetaInfo::exists(UInt index) const
-  {
-    return (index_to_value_.contains(index));
-  }
+  { return (find_(index) != index_to_value_.end()); }
 
   void MetaInfo::removeValue(const std::string& name)
   {
-    MapType::iterator it = index_to_value_.find(registry_.getIndex(name));
+    MapType::iterator it = find_(registry_.getIndex(name));
     if (it != index_to_value_.end())
     {
       index_to_value_.erase(it);
@@ -152,7 +158,7 @@ namespace OpenMS
 
   void MetaInfo::removeValue(UInt index)
   {
-    MapType::iterator it = index_to_value_.find(index);
+    MapType::iterator it = find_(index);
     if (it != index_to_value_.end())
     {
       index_to_value_.erase(it);

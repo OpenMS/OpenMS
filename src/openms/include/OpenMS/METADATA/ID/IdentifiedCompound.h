@@ -8,12 +8,11 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/ID/IDDataContainer.h>
+
 #include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/member.hpp>
 
 namespace OpenMS
 {
@@ -46,12 +45,8 @@ namespace OpenMS
     };
 
     // identified compounds indexed by their identifiers:
-    typedef boost::multi_index_container<
-      IdentifiedCompound,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          IdentifiedCompound, std::string, &IdentifiedCompound::identifier>>>
-      > IdentifiedCompounds;
+    using IdentifiedCompounds = IDDataContainer<IdentifiedCompound, std::string, std::string>;
+    extern template class OPENMS_DLLAPI IDDataContainer<IdentifiedCompound, std::string, std::string>;
     typedef IteratorWrapper<IdentifiedCompounds::iterator> IdentifiedCompoundRef;
   }
 }

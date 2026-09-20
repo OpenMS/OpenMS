@@ -648,7 +648,7 @@ Look up spectrum by reference
 :param spectrum_ref: Spectrum reference to parse
 :returns: Index of the spectrum that matched
 )doc")
-        .def_static("extractScanNumber", [](const std::string& native_id, const boost::basic_regex<char>& scan_regexp, bool no_error) { return OpenMS::SpectrumLookup::extractScanNumber(native_id, scan_regexp, no_error); }, "native_id"_a, "scan_regexp"_a, "no_error"_a, 
+        .def_static("extractScanNumber", [](const std::string& native_id, const std::string& scan_regexp, bool no_error) { return OpenMS::SpectrumLookup::extractScanNumber(native_id, OpenMS::RegularExpression(scan_regexp), no_error); }, "native_id"_a, "scan_regexp"_a, "no_error"_a,
             R"doc(
 Extract scan number from a native ID using a regular expression
 :param native_id: The native spectrum ID string
@@ -669,7 +669,7 @@ Extract scan number from a native ID using the accession type
     // SpectrumNativeIDParser
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::SpectrumNativeIDParser>(m, "SpectrumNativeIDParser", "OpenMS class SpectrumNativeIDParser")
-        .def_static("extractScanNumber", [](const std::string& native_id, const boost::basic_regex<char>& scan_regexp, bool no_error) { return OpenMS::SpectrumNativeIDParser::extractScanNumber(native_id, scan_regexp, no_error); }, "native_id"_a, "scan_regexp"_a, "no_error"_a, 
+        .def_static("extractScanNumber", [](const std::string& native_id, const std::string& scan_regexp, bool no_error) { return OpenMS::SpectrumNativeIDParser::extractScanNumber(native_id, OpenMS::RegularExpression(scan_regexp), no_error); }, "native_id"_a, "scan_regexp"_a, "no_error"_a,
             R"doc(
 wrap-attach:
 SpectrumNativeIDParser

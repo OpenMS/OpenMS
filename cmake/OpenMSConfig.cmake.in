@@ -88,20 +88,12 @@ endif()
 
 include(CMakeFindDependencyMacro)
 
-# The versions OpenMS was built against are the minimum for consumers (falling
-# back to the minimum OpenMS itself requires should a build not record them).
-set(_openms_boost_version "@Boost_VERSION@")
-if(NOT _openms_boost_version)
-  set(_openms_boost_version 1.81.0)
+# Boost is private. Shared-library consumers do not need Boost development files.
+# A static export retains private link dependencies, so resolve its compiled
+# components and header target only in that configuration.
+if(NOT "@BUILD_SHARED_LIBS@")
+  find_dependency(Boost @Boost_VERSION@ COMPONENTS iostreams @OpenMS_BOOST_COMPONENTS@)
 endif()
-
-# Boost: the header-only target Boost::boost is PUBLIC because installed headers
-# use Boost (config.h includes <boost/current_function.hpp> via Macros.h, other
-# public headers Boost.MultiIndex, Boost.Math, ...), so those headers become part
-# of the consumer's translation units. The compiled Boost components are PRIVATE
-# and not needed.
-find_dependency(Boost ${_openms_boost_version})
-unset(_openms_boost_version)
 
 # Eigen: a consumer of the shared library OpenMS ships needs nothing of it. No
 # installed header includes Eigen -- DATASTRUCTURES/MatrixEigen.h, the one that does,

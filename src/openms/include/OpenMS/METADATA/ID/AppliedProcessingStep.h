@@ -8,14 +8,11 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/ID/IDDataContainer.h>
+
 #include <OpenMS/METADATA/ID/ProcessingStep.h>
 #include <OpenMS/METADATA/ID/ScoreType.h>
 
-#include <boost/range/adaptor/reversed.hpp>
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/sequenced_index.hpp>
 
 #include <optional>
 
@@ -96,15 +93,7 @@ namespace OpenMS
 
     // we want to keep track of the processing steps in sequence (order of
     // application), but also ensure there are no duplicate steps:
-    typedef boost::multi_index_container<
-      AppliedProcessingStep,
-      boost::multi_index::indexed_by<
-        boost::multi_index::sequenced<>,
-        boost::multi_index::ordered_unique<
-          boost::multi_index::member<
-            AppliedProcessingStep, std::optional<ProcessingStepRef>,
-            &AppliedProcessingStep::processing_step_opt>>>
-      > AppliedProcessingSteps;
-
+    using AppliedProcessingSteps = IDDataContainer<AppliedProcessingStep, std::optional<ProcessingStepRef>, std::optional<ProcessingStepRef>>;
+    extern template class OPENMS_DLLAPI IDDataContainer<AppliedProcessingStep, std::optional<ProcessingStepRef>, std::optional<ProcessingStepRef>>;
   }
 }
