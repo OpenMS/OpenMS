@@ -848,7 +848,8 @@ protected:
     // calculations
     //-------------------------------------------------------------
     std::string paramP = "-P" + tmp_file;
-    std::string paramN = "-N" + FileHandler::stripExtension(FileHandler::stripExtension(tmp_pepxml));
+    // comet appends '.pep.xml' to -N itself, so hand it the stem (stripExtension removes the whole '.pep.xml')
+    std::string paramN = "-N" + FileHandler::stripExtension(tmp_pepxml);
     std::vector<std::string> arguments = {paramP, paramN, input_file_with_index};
 
     //-------------------------------------------------------------

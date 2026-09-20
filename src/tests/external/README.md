@@ -1,17 +1,27 @@
 # External project example
 
 This project shows how to compile custom code against an installed OpenMS: `find_package(OpenMS CONFIG)`
-provides the imported targets `OpenMS::OpenMS` and `OpenMS::OpenSwathAlgo`, and `OpenMS::OpenMS_GUI` for
-an installation built with `WITH_GUI=ON`. Requesting the `GUI` component (`COMPONENTS GUI` or
-`OPTIONAL_COMPONENTS GUI`) additionally finds the Qt6 modules the GUI library links and sets
-`OpenMS_GUI_FOUND`; a project that links `OpenMS::OpenMS_GUI` without requesting the component has to
-find those Qt6 modules itself. The un-namespaced names `OpenMS`, `OpenSwathAlgo` and `OpenMS_GUI` of
-earlier releases remain available as aliases. Consuming projects need CMake 3.19 or newer.
+provides the imported targets `OpenMS::OpenMS` and `OpenMS::OpenSwathAlgo`, `OpenMS::OpenMS_CLI` (the TOPP tool
+framework; `TestExternalCodeCLI` derives a tool from `TOPPBase` against it) for an installation that includes
+the CLI layer, and `OpenMS::OpenMS_GUI` for an installation built with `WITH_GUI=ON` that includes the GUI
+layer. Requesting the `CLI` component rejects an installation without the tool framework. Requesting the
+`GUI` component (`COMPONENTS GUI` or `OPTIONAL_COMPONENTS GUI`) additionally finds the Qt6 modules the GUI
+library links and sets `OpenMS_GUI_FOUND`; a project that links `OpenMS::OpenMS_GUI` without requesting the
+component has to find those Qt6 modules itself. The un-namespaced names `OpenMS` and `OpenSwathAlgo` of earlier
+releases remain available as aliases, as do `OpenMS_CLI` and `OpenMS_GUI` when their layers are installed.
+Building OpenMS and consuming its CMake package both require CMake 3.24 or newer.
 
 It also serves as the test that the CMake package of an OpenMS installation works: when OpenMS is
 configured with `-DOPENMS_TEST_INSTALLED_CONSUMER=ON` (on in the CI presets), the CTest tests
-`TestExternalCode_*` install the development components into `<build>/installed-consumer/prefix`,
-then configure, build and run this project against that installation.
+`TestExternalCode_*` install the development components (core and CLI layer, plus the GUI layer of a
+`WITH_GUI` build) into `<build>/installed-consumer/prefix`, then configure, build and run this project
+against that installation. The tests `TestExternalCodeCore_*` do the same for a core-only installation
+(the install components the pyOpenMS wheels are built against) with the project in `core_only/`, which
+checks that the package works without the CLI and GUI layers, reports them absent and refuses a required
+`CLI` component. The tests `TestExternalCodeRelocated_*` install into a prefix of their own, *rename* it
+and then build the project in `relocated/` against the new location, which is what unpacking a binary
+package into an arbitrary directory does: the package has to derive everything it reports from the
+location of `OpenMSConfig.cmake` itself rather than from the prefix it was installed to.
 
 ## Usage
 

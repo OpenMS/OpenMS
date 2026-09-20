@@ -20,6 +20,7 @@
 #include <string_view>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -1061,6 +1062,37 @@ namespace OpenMS
     return prot_quant_;
   }
 
+  namespace
+  {
+    /**
+      @brief The group's data array named @p name, appended if absent, and emptied
+
+      The annotations used to be written by resizing each container to a fixed length and addressing
+      slots by index. That truncated whatever another annotator had appended -- the channel-ratio
+      arrays of MS1LabeledRatioQuantifier, for instance -- and, since resize() shrinks without
+      clearing, a second annotation pass appended to values still holding what was read from file,
+      which the QPX writers then reject as a repeated (fraction group, label) key. It also relied on
+      ConsensusXMLHandler placing non-canonical names in the expected slots, which it does only
+      because those names happen to sort that way.
+
+      Appending invalidates references into the container, so a caller must create every array it
+      needs before taking a reference to any of them.
+    */
+    template <typename ArraysT>
+    typename ArraysT::value_type& clearedArrayByName(ArraysT& arrays, const std::string& name)
+    {
+      auto it = getDataArrayByName(arrays, name);
+      if (it == arrays.end())
+      {
+        arrays.emplace_back();
+        arrays.back().setName(name);
+        return arrays.back();
+      }
+      it->clear();
+      return *it;
+    }
+  } // namespace
+
   void PeptideAndProteinQuant::annotateQuantificationsToProteins(
     const ProteinQuant& protein_quants,
     ProteinIdentification& proteins,
@@ -1118,21 +1150,29 @@ namespace OpenMS
         const SampleAbundances& total_distinct_peptides = q.second.total_distinct_peptides;
         const auto& file_level_psm_counts = q.second.file_level_psm_counts;
       
-        // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
         // Protein abundances are reported only at (fraction group, label) assay grain. Every
         // quantity array is named; the explicit assay arrays also gate mzTab and QPX output.
-        id_group->getFloatDataArrays().resize(4);
-        id_group->getStringDataArrays().resize(2);
-        id_group->getIntegerDataArrays().resize(4);
+        //
+        // Created here, all of them, before any reference is taken below: clearedArrayByName() may
+        // append, which would invalidate a reference taken earlier. The order is the order the
+        // consensusXML writer emits them in, which is not the order they are filled in below.
+        clearedArrayByName(id_group->getFloatDataArrays(), "psm_count");
+        clearedArrayByName(id_group->getFloatDataArrays(), "distinct_peptides");
+        clearedArrayByName(id_group->getFloatDataArrays(), "file_channel_level_abundance");
+        clearedArrayByName(id_group->getFloatDataArrays(), "fraction_group_level_abundance");
+        clearedArrayByName(id_group->getIntegerDataArrays(), "file_channel_level_channel");
+        clearedArrayByName(id_group->getIntegerDataArrays(), "file_level_psm_count");
+        clearedArrayByName(id_group->getIntegerDataArrays(), "fraction_group_level_fraction_group");
+        clearedArrayByName(id_group->getIntegerDataArrays(), "fraction_group_level_label");
+        clearedArrayByName(id_group->getStringDataArrays(), "file_channel_level_filename");
+        clearedArrayByName(id_group->getStringDataArrays(), "file_level_filename");
         
         // Spectral-count metadata remains sample-indexed independently of abundance grain. Do not
         // pre-size these arrays: psm_counts currently has no producer, and an empty array round
         // trips without needing the removed sample-abundance array as a length anchor.
-        auto & psm_counts = id_group->getFloatDataArrays()[0];
-        psm_counts.setName("psm_count");
+        auto& psm_counts = *getDataArrayByName(id_group->getFloatDataArrays(), "psm_count");
 
-        auto & peptide_counts = id_group->getFloatDataArrays()[1];
-        peptide_counts.setName("distinct_peptides");
+        auto& peptide_counts = *getDataArrayByName(id_group->getFloatDataArrays(), "distinct_peptides");
 
         for (auto const & s : total_psm_counts)
         {
@@ -1149,12 +1189,9 @@ namespace OpenMS
         // label. Materialize every cell represented by the quantification input in deterministic
         // order, using zero for a quantified protein without sufficient evidence in that cell just
         // as other table writers do for an absent assay result.
-        auto& fraction_group_level_abundance = id_group->getFloatDataArrays()[3];
-        fraction_group_level_abundance.setName("fraction_group_level_abundance");
-        auto& fraction_group_level_fraction_group = id_group->getIntegerDataArrays()[2];
-        fraction_group_level_fraction_group.setName("fraction_group_level_fraction_group");
-        auto& fraction_group_level_label = id_group->getIntegerDataArrays()[3];
-        fraction_group_level_label.setName("fraction_group_level_label");
+        auto& fraction_group_level_abundance = *getDataArrayByName(id_group->getFloatDataArrays(), "fraction_group_level_abundance");
+        auto& fraction_group_level_fraction_group = *getDataArrayByName(id_group->getIntegerDataArrays(), "fraction_group_level_fraction_group");
+        auto& fraction_group_level_label = *getDataArrayByName(id_group->getIntegerDataArrays(), "fraction_group_level_label");
         for (const auto& [fraction_group, label] : quantification_fraction_group_labels_)
         {
           double abundance = 0.0;
@@ -1172,12 +1209,9 @@ namespace OpenMS
         }
 
         // Add file/channel level abundances
-        auto& file_channel_level_abundance = id_group->getFloatDataArrays()[2];
-        file_channel_level_abundance.setName("file_channel_level_abundance");
-        auto& file_channel_level_filename = id_group->getStringDataArrays()[0];
-        file_channel_level_filename.setName("file_channel_level_filename");
-        auto& file_channel_level_channel = id_group->getIntegerDataArrays()[0];
-        file_channel_level_channel.setName("file_channel_level_channel");
+        auto& file_channel_level_abundance = *getDataArrayByName(id_group->getFloatDataArrays(), "file_channel_level_abundance");
+        auto& file_channel_level_filename = *getDataArrayByName(id_group->getStringDataArrays(), "file_channel_level_filename");
+        auto& file_channel_level_channel = *getDataArrayByName(id_group->getIntegerDataArrays(), "file_channel_level_channel");
      
 
         // We loop over the filenames in the design file, as this is the order we expect in the output.
@@ -1237,10 +1271,8 @@ namespace OpenMS
         }
 
         // Add file level PSM counts
-        auto& file_level_psm_count = id_group->getIntegerDataArrays()[1];
-        file_level_psm_count.setName("file_level_psm_count");
-        auto& file_level_filename = id_group->getStringDataArrays()[1];
-        file_level_filename.setName("file_level_filename");
+        auto& file_level_psm_count = *getDataArrayByName(id_group->getIntegerDataArrays(), "file_level_psm_count");
+        auto& file_level_filename = *getDataArrayByName(id_group->getStringDataArrays(), "file_level_filename");
 
         for (const auto& filename : file_level_psm_counts)
         {

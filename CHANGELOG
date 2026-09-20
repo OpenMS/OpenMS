@@ -61,6 +61,32 @@ Dependencies:
     public dependency interface. Shared-library consumers no longer require CURL/Xerces
     development packages; OpenSwathAlgo's Boost headers are private. See OpenMS Library
     for XMLHandler/Matrix API migration (#8511, #8547, #8558, #9712, #9737, #10084, #10103).
+  - BREAKING (installed headers): two internal headers are no longer installed, and two
+    public ones no longer pull in a private dependency.
+    DATASTRUCTURES/MatrixEigen.h (the Eigen::Map views on Matrix) and SYSTEM/SIMDe.h
+    both already documented themselves as internal -- MatrixEigen.h says not to include
+    it from public headers, SIMDe.h says to include it from .cpp files only -- and only
+    libOpenMS sources and class tests include them; they stay where they are in the
+    source tree, so in-tree builds are unaffected. FORMAT/GzipIfstream.h and
+    FORMAT/Bzip2Ifstream.h no longer include <zlib.h> and <bzlib.h>: they store the
+    library handle as an opaque pointer (a forward-declared gzFile_s*, resp. a void*,
+    which is what bzlib's BZFILE is), so neither header needs the zlib/bzip2 include
+    directory any more. External code that obtained Eigen, SIMDe, zlib or bzlib
+    declarations through one of these headers has to include the library itself.
+    find_package(OpenMS) no longer looks for Eigen at all: CMake omits the PRIVATE
+    dependencies of a shared library from the exported link interface, and the OpenMS
+    build always produces shared libraries, so OpenMSTargets.cmake names no Eigen
+    target and a consumer needs neither the Eigen CMake package nor its headers.
+    Previously find_package(OpenMS REQUIRED) failed outright when Eigen was absent.
+    The lookup is kept for a static OpenMS, whose export does carry
+    $<LINK_ONLY:Eigen3::Eigen>, and runs only for such an installation. Eigen is still
+    required to build OpenMS and pyOpenMS (#10169).
+  - The class-test framework (CONCEPT/ClassTest.h, ClassTestUtils.h,
+    FuzzyStringComparator.h, MacrosTest.h) is no longer installed by default. It is an
+    in-repo development tool: its static library was already EXCLUDE_FROM_ALL and is not
+    exported, so an installation carried the headers without anything to link them
+    against. `cmake --install . --component OpenMSTestFramework_headers` still installs
+    them explicitly.
   - CMake package: find_package(OpenMS CONFIG) provides namespaced imported targets, OpenMS::OpenMS,
     OpenMS::OpenSwathAlgo and, via COMPONENTS GUI, OpenMS::OpenMS_GUI together with the Qt6
     modules it was built against; the un-namespaced names remain as aliases, while the
@@ -72,13 +98,14 @@ Dependencies:
     The empty OPENMS_ADDCXX_FLAGS variable was dropped, and the Find modules of the OpenMS
     build (FindCOIN, FindLIBSVM, ...) are no longer installed next to the package: they served
     the package's former lookups of dependencies that are PRIVATE now. Consuming projects need
-    CMake 3.19 (#10158).
+    CMake 3.24: find_package(OpenMS) rejects older versions with an explanatory message
+    instead of failing later (#10158).
   - contrib is a git submodule: clone with --recurse-submodules or run
     git submodule update --init (#9155).
   - Optional readers: WITH_OPENTIMS enables timsTOF support (default ON); opentims_DIR or
     opentims_ROOT selects a system installation before downloading. WITH_THERMO_RAW is
-    ON by default except on Linux/aarch64; .NET 8+ is required at runtime (#9147, #9148,
-    #9389, #9736).
+    ON by default on every supported platform; .NET 8+ is required at runtime (#9147,
+    #9148, #9389, #9736, #10206).
   - WITH_WNETALIGN (default ON) fetches wnetalign/wnet/pylmcf. WITH_ONNX (default OFF)
     requires an external ONNX Runtime installation (#8992, #9453).
   - HiGHS joins COIN-OR and GLPK as LP backends. LP_SOLVER=AUTO tries COIN-OR, GLPK,
@@ -190,10 +217,10 @@ PyOpenMS:
     offsets. set_peaks() keeps parallel data arrays consistent; enum/FileTypes and
     identification-file wrappers were completed or corrected (#8502, #8553, #8589,
     #8720, #9098, #9705, #9792, #9794, #9795).
-  - Thermo .raw reading is included in Linux x86_64, macOS arm64 and Windows wheels;
-    install .NET 8+ and set DOTNET_ROOT for non-standard locations. Linux aarch64 wheels
-    have no Thermo support. Optional WNet/Bruker bindings are exposed only when built;
-    use hasattr() for feature detection (#9946, #9957, #10070).
+  - Thermo .raw reading is included in every wheel, Linux aarch64 among them; install
+    .NET 8+ and set DOTNET_ROOT for non-standard locations. Optional WNet/Bruker bindings
+    are exposed only when built; use hasattr() for feature detection (#9946, #9957,
+    #10070, #10205, #10206).
   - See src/pyOpenMS/THREAD_SAFETY.md for concurrency rules and OpenMP oversubscription
     guidance; releasing the GIL does not guarantee thread safety (#9792, #9857).
 
@@ -226,6 +253,10 @@ TOPP tools:
       - For per-peak IM input, PeakPickerHiRes warns and uses intensity-weighted mean IM;
         Resampler, FeatureFinderCentroided, FeatureFinderMultiplex and MultiplexResolver
         reject incompatible data (#9018).
+    ConsensusID:
+      - Accept empty idXML searches while preserving their run metadata; initialize
+        per-spectrum search settings even for MS files without peptide IDs. Handle maps
+        without identification runs and report invalid input combinations cleanly (#1427).
     QPX export (ProteomicsLFQ, IsobaricWorkflow, ProteinQuantifier, ProSE):
       - BREAKING: -out_feature_qpx replaced by -out_qpx, a directory containing QPX 1.1
         quantms.psm.parquet, quantms.feature.parquet and quantms.pg.parquet views.
@@ -390,6 +421,13 @@ TOPP tools:
         (#9382). FeatureFinderCentroided uses about 20% less RAM (#9159).
       - Fixed swapped mass-trace/isotopic-pattern tolerances in FeatureFinderAlgorithmPicked
         and charge-merging crashes in FeatureLinkerUnlabeledKD (#8944, #9247, #9250).
+    MultiplexResolver, MS1LabeledWorkflow:
+      - BREAKING: `algorithm:mz_tolerance` and `algorithm:rt_tolerance` (re-exported by
+        MS1LabeledWorkflow as `resolver:mz_tolerance` / `resolver:rt_tolerance`) are now double
+        instead of int, with a minimum of 0.0. They were always read into double members, so a
+        fractional value was rejected on the command line and, in an INI file, silently stored as 0 --
+        disabling the blacklist proximity check. An INI carrying them as type="int" must be updated
+        to type="double" or the tool will refuse to start
     Other tools:
       - CometAdapter merges compatible variable modifications for faster searches and supports
         DDA-PASEF .d input; native-ID translation avoids Comet mzParser crashes (#8407,
@@ -417,6 +455,32 @@ TOPP tools:
         origins/cluster size; OpenSwathChromatogramExtractor uses CompoundName for metabolite
         chromatogram identifiers (#8864, #8907, #9271).
   New tools:
+    - MS1LabeledWorkflow: one-command quantification of MS1-labeled (SILAC, Dimethyl, ...) experiments,
+      the counterpart of ProteomicsLFQ and IsobaricWorkflow: per run FeatureFinderMultiplex, IDMapper,
+      IDConflictResolver and MultiplexResolver, then per-fraction alignment and linking (channels kept as
+      sub-features, fractions combined column-wise), protein inference/FDR and quantification, written as
+      consensusXML, mzTab and/or a QPX collection; optional match between runs (-match_between_runs)
+      lets unidentified multiplets take over identifications from other runs. The peptide identity is
+      the unlabeled sequence (the label belongs to the channel): label modifications are removed after
+      the multiplet resolution and the label state is kept on every identification (labeled_sequence,
+      removed_labels, label_channel), reported as mzTab opt_global columns and QPX cv_params; PSM-level
+      output (mzTab PSM section, QPX psm view) reports the peptidoform as searched, feature-level
+      output the peptide identity. Each column header describes its channel's labels
+      (channel_description). A spectrum match mapped onto several multiplets stays with the closest
+      one; distinct spectra of one peptide on distinct multiplets are all quantified. The reported quantity
+      is the channel ratio, computed as MaxQuant does (median of the evidence ratios per peptide, median
+      of the peptide ratios per protein group, a minimum ratio count, and a normalized variant) rather
+      than as a ratio of aggregated intensities, so no ProteinQuantifier run is needed for it. The
+      reference channel is reported with its ratio of 1.0 wherever another channel was measured
+      against it, so a consumer sees a complete set of channels; the
+      per-channel abundances are reported next to it as summed intensities. Checks up front that
+      the labels were searched as modifications, that the design enumerates the channels of -labels,
+      and that -out_qpx is only requested for labels in the QPX vocabulary (#10044).
+      Channel/pattern order and unique input/design basenames are validated before processing.
+      Native Thermo RAW input is supported with WITH_THERMO_RAW and a .NET 8+ runtime;
+      scan metadata and MS1 peaks are extracted in one RAW read, including spectrum-reference repair.
+      FAIMS CVs are preserved through ID mapping, multiplet completion and linking. A protein's
+      reference-channel ratio requires a comparison passing min_ratio_count in that fraction group (#10047).
     - FeatureLinkerWNet: Wasserstein network-flow grouping across label-free maps (#8992).
     - UniPEFF: UniProtKB XML-to-PEFF conversion with sequence, modification and variant
       annotations; optional annotation identifiers and external unimod.obo (#9649).
@@ -444,7 +508,47 @@ GUI tools:
     ordinals and sequence diagrams with multiple modifications (#8766).
 
 OpenMS Library:
+  - Added GlycanStructure and TheoreticalGlycanSpectrumGenerator for composition-based
+    diagnostic/oxonium and bounded B/Y/C/Z ions, structural and internal glycan fragments,
+    and HCD/ETD/EThcD glycopeptide backbone retention with configurable stubs (#10176).
+    Includes mzPAF annotations, neutral losses, resource limits, and pyOpenMS bindings.
   Added:
+    - File type aliases are now honoured end to end: TOPP tools accept an alias wherever they accept
+      the preferred extension (and a tool declaring an alias accepts the preferred extension),
+      TOPPAS connects tools and input-file lists by format rather than by literal suffix, GUI file
+      dialogs offer every accepted extension ('FASTA file (*.fasta *.fa *.faa)'), and INI/CTD
+      supported_formats list them for input parameters. Output parameters keep the single canonical
+      extension, so what OpenMS writes is unchanged (#490)
+    - FileTypes::sameFormat() compares two declared format strings by type when both are recognized and
+      literally otherwise, so 'fasta' matches 'fa' while two different custom extensions stay distinct.
+      FileTypes::supportsCompressedReading(type, compression) reports whether a reader accepts that
+      specific container, and FileNameUtils::compressionType() reports which container a filename
+      carries (hasCompressionSuffix() answers the same question as a bool). The pair takes the
+      container because support is not uniform: the XML-based readers decompress .gz, .bz2 and .zip
+      transparently through CompressedInputSource, while Bruker TDF accepts only a '.d.zip' archive
+      that FileHandler unpacks. A compression suffix alone therefore no longer implies compatibility,
+      so '.mgf.gz' is rejected where '.mzML.gz' is accepted, and both the CLI and TOPPAS apply the
+      same rule. Compressed output is unaffected: XMLFile still selects gzip/bzip2 by filename (#490)
+    - FileTypes: a file type may now register additional accepted extensions besides its preferred
+      one. FileTypes::typeToExtensions() lists them (preferred first) and nameToType() resolves them
+      case-insensitively: 'fa'/'faa' for FASTA, 'pep.xml' for pepXML, 'prot.xml' for protXML and
+      'pqt' for parquet. typeToName() still returns the single preferred extension, which is what
+      OpenMS writes, and formats that merely share an extension family (e.g. CSV and TSV) remain
+      distinct types (#490)
+    - MultiplexResolverAlgorithm: the multiplet completion and quant/ID conflict resolution of the
+      MultiplexResolver tool as a library class (DefaultParamHandler with the tool's 'algorithm' and
+      'labels' sections), shared by MultiplexResolver and MS1LabeledWorkflow (#10044)
+    - ProteinGroupArrowExport: the QPX pg view fills its previously empty additional_intensities column
+      with the channel ratio of that (protein group, fraction group, label) -- named ratio and
+      ratio_normalized under the row's own channel label -- and the number of contributing peptides
+      with cv_params/ratio_count, when the producer annotated them (MS1LabeledWorkflow does). Rows
+      without them are written as before (#10044)
+    - MS1LabelState: the label-state meta values of an MS1-labeled identification (labeled_sequence,
+      removed_labels, label_channel) and the peptidoform a hit was matched with. The mzTab PSM
+      section and the QPX psm view report that matched peptidoform (and derive the psm identity
+      from it); the QPX feature and psm views write the three values to the previously empty
+      cv_params column (ArrowIOHelpers::qpxCvParams). Identifications without a label state are
+      exported as before (#10044)
     - BrukerTimsFile (WITH_OPENTIMS): DDA-/DIA-PASEF and raw 4D access, tiered scan-to-1/K0
       calibration, optional neighboring-MS1-frame aggregation, IM hill centroiding and
       frame/RT filtering. Range-limited reads reduce I/O/memory; aggregation is faster.
@@ -486,6 +590,9 @@ OpenMS Library:
     - Standards: ProForma v2 parsing/serialization (LOSSLESS/CANONICAL), AASequence
       conversion, mass calculation and JSON support; MzPAF peak annotations; USI parsing/
       construction; SpectrumNativeIDParser (#8637, #8648, #8684, #8686).
+    - MzPAF accepts and writes d/v/w satellite ions and the da/db/wa/wb subtypes,
+      including validation, peak annotation conversion and pyOpenMS bindings (#10175).
+      Satellite-ion mass calculation and theoretical spectrum generation remain unsupported.
     - Added IsoelectricPoint, hydrophobicity profiles, protein SequenceCoverage,
       ModifiedSincSmoother, programmatic FileInfo, CCS conversion and MSExperiment
       rasterization. Extended PeakFileOptions and on-disc filtering, peak annotations,
@@ -568,6 +675,11 @@ Fixes:
     - QPX import reports unsupported modifications and checks reconstructed m/z. Modification
       definitions are still not carried by the format, so unsupported modifications may
       still be lost on import (#10004, #10012).
+    - AASequence::getFormula() and AASequence::getMonoWeight() handle Residue::Zp1Ion and
+      Residue::Zp2Ion, the radical z+1/z+2 electron-transfer fragments. Both types used to fall
+      through to the default branch, which logs an error and returns the internal mass without any
+      ion offset, and a C-terminal modification was never applied to them. getAverageWeight() and
+      getMZ() build on those two functions and are fixed with them (#10181).
     - Corrected a/b neutral-loss fragment masses, negative-charge MzPAF parsing and
       deisotoping precursor constraints (proton mass units; unknown precursor charge no
       longer discards all isotope clusters). Unsupported deisotoping tolerances no longer
@@ -575,11 +687,25 @@ Fixes:
     - Fixed peptide-indexing crashes on short peptides, NucleicAcidSearchEngine multi-hit
       handling, modified-sequence decoy duplicate detection, and copy operations on spectrum
       generators, SpectrumAnnotator and Normalizer (#532, #8542, #8569, #8575, #8685, #10066).
+    - PeptideIndexer no longer exhausts memory when a peptide hit carries an empty sequence
+      (an empty AASequence, or one consisting of stop codons only). The empty needle flagged
+      the root node of the Aho-Corasick trie as a hit, and since the root's suffix link points
+      to itself, the search collected hits until memory ran out. ACTrie::addNeedle() now skips
+      an empty needle with a warning, but still consumes a needle index, so the peptide indices
+      of the caller stay aligned and such hits are simply reported as unmatched (#2987).
     - Fixed the m/z of H2O/NH3 neutral-loss peaks of x/y/z linear ions at charge >= 2 in
       TheoreticalSpectrumGeneratorXLMS and SimpleTSGXLMS: the loss was subtracted from the already
       charge-divided position and divided by the charge again, so these peaks sat at roughly half
       their true m/z. OpenPepXL scores and annotations of such peaks change accordingly (#10148).
+    - TheoreticalSpectrumGeneratorXLMS placed the second isotope peak of the precursor (and of its
+      H2O/NH3 losses) at the charged mass instead of its m/z, e.g. about 2003 instead of 668 for a
+      2000 Da precursor at charge 3. OpenPepXL uses these peaks: on the test data only its
+      log_occupancy scores change; on other data the corrected peak can now match an experimental
+      peak and change matched ion counts and scores (#10194).
   Quantification and numerical correctness:
+    - IsobaricWorkflow wrote every consensus feature with the same id ("e_0"), which is invalid
+      consensusXML (consensusElement/@id is xs:ID); each feature now gets its own unique ID
+      (#10201).
     - ExperimentalDesign mappings use sample names consistently. Protein-group quantities
       survive ID filtering; ProtXML excludes ProteinProphet's unneeded/subsumed groups
       (#6038, #8960, #9874).
@@ -591,6 +717,11 @@ Fixes:
     - MRMFeatureSelector works with GLPK; LP/ILP failures now report status and throw instead
       of returning silently empty results in feature selection/decharging (#9940, #9944,
       #9956).
+    - MapAlignmentAlgorithmKD::filterCCs_ (used by FeatureGroupingAlgorithmKD, i.e. by
+      FeatureLinkerUnlabeledKD) rejected a connected component containing conflicting nonzero
+      charge states only via a continue that escaped the inner charge-scanning loop, so the
+      component still passed the conflict check and was grouped. Such components are now
+      correctly rejected, which changes alignment and linking results (#10157).
   Data integrity and I/O:
     - Sorting/filtering/set_peaks keeps peak annotations and binary arrays aligned in
       spectra, chromatograms and mobilograms. select() checks bounds before mutation;
@@ -630,6 +761,14 @@ Fixes:
       columns. SampleSection::getFactorValue throws MissingInformation for a row without a value
       for the factor instead of reading past its end (#10148).
   Robustness:
+    - FileMerger renamed the merged spectra but left precursor spectrumRef attributes pointing to the
+      original native IDs, so MS2 spectra lost the link to their parent scan and the mzML output
+      failed schema validation. The references are now updated together with the IDs (#10200).
+    - BREAKING: FileHandler/FileNameUtils::stripExtension() now removes the whole recognized
+      extension instead of searching the path for the canonical type name. 'a.pep.xml' yields 'a'
+      rather than 'a.pep', and 'a.pep.xml.gz' yields 'a' rather than 'a.pep.xml'. File::extension()
+      reports the same span ('.pep.xml'), and an extensionless file in a dotted directory
+      ('/my.dir/fid') is no longer truncated. swapExtension() follows (#490).
     - File::writable checks no longer delete concurrently created files or report spurious
       failures; temporary directories are claimed atomically. UUID/unique-ID generation
       avoids weak-entropy/parallel-process collisions (#8678, #9703, #9937, #9940, #9941, #9965).
@@ -646,6 +785,10 @@ Fixes:
       MSExperiment::getSize() (all MS levels plus chromatogram points) although it collects MS1
       peaks only, so MapAlignerPoseClustering with max_num_peaks_considered -1 (or above the MS1
       peak count) on runs with MS2 spectra sorted and copied past the end of a vector (#10148).
+    - StringUtils::skipWhitespace(string_view) and skipNonWhitespace(string_view) returned the
+      scanned length as int; for inputs longer than INT_MAX characters the value wrapped
+      negative, and removeWhitespaces() then built its iterators from it, reading and writing
+      before the start of the buffer. Both now return size_t (#10171).
     - FileConverter: converting spectra to consensusXML/consensusparquet kept only as many of the
       most intense MS1 peaks as the input had spectra. It now writes one consensus feature per MS1
       peak (more memory and runtime for large files); equal intensities are ordered by RT and m/z,
@@ -665,6 +808,40 @@ Documentation:
     (#8483, #8507, #8548, #8561, #8674, #9162, #9629, #9736, #9752, #9792, #9812, #9928).
 
 Build System:
+  - Public headers of OpenMS, OpenSwathAlgo, OpenMS_CLI, OpenMS_GUI and the test
+    framework use CMake header file sets. Installation paths and components stay
+    unchanged and private headers remain excluded. Building OpenMS and consuming
+    its CMake package both require CMake 3.24. Linux x64 CI explicitly verifies
+    public headers as standalone translation units, with missing includes in
+    identification-data and GUI headers corrected; normal builds can opt in with
+    OPENMS_VERIFY_INTERFACE_HEADER_SETS=ON (#10177).
+  - The TOPP tool framework (TOPPBase, ToolHandler, INIUpdater, ParameterInformation,
+    SearchEngineBase, TOPPExternalToolBase, MapAlignerBase, OpenSwathBase) moved out of
+    libOpenMS into the new library libOpenMS_CLI (src/openms_cli; CMake target OpenMS_CLI,
+    installed as OpenMS::OpenMS_CLI, package component CLI, export macro OPENMS_CLI_DLLAPI).
+    Include paths are unchanged. The CTD/CWL parameter serializers read the parameter tag
+    names from the new core header OpenMS/DATASTRUCTURES/ParamTags.h, so nothing in
+    libOpenMS depends on the framework any more and its exported interface is purely
+    scientific. BREAKING for external projects that build TOPP-style tools: link
+    OpenMS::OpenMS_CLI (which carries OpenMS::OpenMS) instead of OpenMS::OpenMS (#10162).
+  - The installed CMake package is layered: the core libraries (libOpenMS, libOpenSwathAlgo and the
+    bundled third-party libraries; export set OpenMSTargets, install components library and cmake),
+    the TOPP tool framework (libOpenMS_CLI; OpenMSCLITargets, library_cli and cmake_cli) and the GUI
+    library (libOpenMS_GUI; OpenMSGUITargets, library_gui and cmake_gui) each have their own export
+    set and install components (openms_add_library(... EXPORT_SET <set>)). An installation may stop
+    at any layer: OpenMSConfig.cmake provides the targets of the layers present, reports them with
+    OpenMS_CLI_FOUND and OpenMS_WITH_GUI (now true only when the GUI library is installed) and
+    refuses a required CLI or GUI component that is missing; TOPP-style external tools request
+    COMPONENTS CLI. The pyOpenMS wheels build and install the core layer only again, the
+    installed-consumer test covers a full and a core-only installation, and the deb/rpm/macOS
+    packages include the new library components. The Applications component depends on the library
+    layer its binaries link (library_gui in a WITH_GUI build, library_cli otherwise), so a
+    component-selectable installation cannot leave the TOPP tools without libOpenMS_CLI. The
+    deb/rpm component lists spell that component the way the install rules register it: CPack
+    compares component names verbatim when it selects what to install, so a component-wise
+    package built from the previous spelling would have contained none of the TOPP tools.
+    Reconfiguring a build directory with another WITH_GUI setting no longer leaves a stale GUI
+    target file behind (src/tests/package_layers checks this with stub libraries) (#10164).
   - vcpkg manifests, cross-platform CMake presets, overlay ports/triplets and binary caching
     support Linux, Windows and macOS; main build/test CI uses them. Release-only triplets
     avoid building duplicate Debug dependencies (#9511, #9800, #9927).
@@ -688,7 +865,9 @@ Build System:
   - Fixed Arrow repository keys/version pins, Bioconda synchronization/tooling/dependency
     conflicts and package-list handling; build failures now propagate. Multi-architecture
     images publish a combined amd64/arm64 manifest (#9196, #9726, #9728, #9729, #9750,
-    #9798, #9890, #9891, #9905, #9951, #9954, #10071).
+    #9798, #9890, #9891, #9905, #9951, #9954, #10071). The nightly Bioconda deploy
+    workflow called bioconda-utils build with --pkg-dir, an option that does not exist
+    (--package-dir is correct), failing every nightly run since 2026-09-08 (#10167).
   - Fixed compiler-cache saving and fork-PR workflow failures; documentation lint rules are
     pinned. Added effective Parquet schema/value checks and non-finite numeric comparisons;
     removed parallel-test output collisions and source-timestamp assumptions
@@ -711,6 +890,41 @@ Build System:
     scripts, ENABLE_STYLE_TESTING, doc_xml and stale examples/schemas. Runtime schema
     coverage is retained; QcMLFile/PepXMLFileMascot validation remains unavailable and
     now throws NotImplemented (#9740, #9757, #9771, #9945).
+  - The Debian package derives its libc6, libstdc++6, libgomp1 and libgcc-s1 dependencies
+    from the shipped binaries with dpkg-shlibdeps, so they cannot go stale as the declared
+    libc6 (>= 2.28) had, and the package does not install on distributions too old to run
+    it. This needed the install tree cleaned up first: the bundled tools were installed
+    verbatim, including ThermoRawFileParser's NuGet runtimes/<rid>/ directories, which
+    carry libMono.Unix.so for nine runtime identifiers (android-arm, android-arm64,
+    android-x64, android-x86, linux-arm, linux-arm64, linux-x64, osx-arm64, osx-x64).
+    Most are foreign to whichever host builds the package, and dpkg-shlibdeps treats a
+    foreign-architecture binary as an error rather than as missing information, so no
+    package was produced at all. Only the runtime identifiers the build targets are
+    installed now; the parser's own Mono.Unix.dll.config maps the library to linux-x64,
+    osx-x64 and osx-arm64 and to nothing else, so the others could never be loaded
+    (#10202, #10207, #10211).
+  - The Debian package's dependencies stay hand-written. Generating them with
+    dpkg-shlibdeps was tried and reverted: the staging tree ships libMono.Unix.so for
+    five runtimes under THIRDPARTY/ThermoRawFileParser, most of them foreign to whichever
+    host builds the package, and dpkg-shlibdeps treats a foreign-architecture binary as an
+    error rather than missing information, so no package was produced at all. The declared
+    dependency floors are therefore hand-maintained, but they now carry what
+    dpkg-shlibdeps derives from the shipped binaries -- libc6 (>= 2.38), libstdc++6
+    (>= 13.1), libgomp1 (>= 6), libgcc-s1 (>= 3.0) -- instead of a stale libc6 (>= 2.28)
+    with no C++ or OpenMP entry at all. The package no longer installs on distributions
+    too old to run it (#10202, #10207).
+  - The container image build failed on every nightly run once WITH_THERMO_RAW defaulted
+    to ON on Linux aarch64 (#10206): the Dockerfile still installed the .NET SDK/runtime
+    that openms-thermo-bridge needs only for amd64, so the arm64 build could not find
+    the dotnet executable at configure time. Both installs are now unconditional (#10210).
+  - Linux wheels are built in a container with the checkout bind-mounted, which made git
+    refuse the repository and left the embedded version a placeholder. The build marks the
+    checkout safe, and any git failure now falls back to the "exported" version string
+    instead of leaking the placeholder into VersionInfo and package file names (#10202).
+  - MACOSX_DEPLOYMENT_TARGET is declared once for the wheels; the workflow value silently
+    overrode pyproject.toml, which moved the supported macOS floor without notice. A CI
+    check compares the Mach-O load commands of each wheel against its platform tag, so a
+    wheel can no longer install on a macOS it cannot run on (#10202).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----

@@ -250,7 +250,10 @@
                 "linux-x64-base",
                 "release-base",
                 "ci-base"
-            ]
+            ],
+            "cacheVariables": {
+                "OPENMS_VERIFY_INTERFACE_HEADER_SETS": "ON"
+            }
         },
         {
             "name": "linux-arm64-ci",
@@ -260,11 +263,7 @@
                 "linux-arm64-base",
                 "release-base",
                 "ci-base"
-            ],
-            "cacheVariables": {
-                "WITH_THERMO_RAW":"OFF",
-                "ENABLE_THERMO_RAW_TESTS": "OFF"
-            }
+            ]
         },
         {
             "name": "macos-arm64-ci",

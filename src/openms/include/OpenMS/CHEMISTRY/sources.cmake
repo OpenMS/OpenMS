@@ -19,6 +19,7 @@ ElementDB.h
 EmpiricalFormula.h
 EnzymaticDigestion.h
 EnzymeXMLDataProvider.h
+GlycanStructure.h
 HydrophobicityProfile.h
 IonNaming.h
 IsoelectricPoint.h
@@ -50,6 +51,7 @@ SequenceCoverage.h
 SimpleTSGXLMS.h
 SpectrumAnnotator.h
 Tagger.h
+TheoreticalGlycanSpectrumGenerator.h
 TheoreticalSpectrumGenerator.h
 TheoreticalSpectrumGeneratorXLMS.h
 UnimodXMLDataProvider.h

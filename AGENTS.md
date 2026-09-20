@@ -5,12 +5,15 @@ This file provides context and instructions for AI coding agents working on Open
 ## Critical Constraints
 
 **NEVER do these things:**
-- Build the project unless explicitly asked (extremely resource-intensive)
 - Modify files in `src/openms/extern/` or `src/openms/thirdparty/` (third-party vendored code; use the provided sync scripts to update vendored libraries)
 - Commit secrets, credentials, or `.env` files
 - Add `using namespace` or `using std::...` in header files
 - Modify the contrib tree or third-party dependencies
 - Skip tests when making code changes
+
+**Before opening a pull request, always build the changes locally and run the relevant tests.**
+Use an out-of-tree build and select the targets and tests affected by the change. Resolve
+build or test failures before opening the PR; do not defer this validation to CI.
 
 ## Quick Commands
 
@@ -42,6 +45,7 @@ OpenMS/
 │   ├── openms/              # Core C++ library
 │   │   ├── include/OpenMS/  # Headers (.h)
 │   │   └── source/          # Implementation (.cpp)
+│   ├── openms_cli/          # TOPP tool framework (TOPPBase, ToolHandler, ...)
 │   ├── openms_gui/          # Qt-based GUI components
 │   ├── openswathalgo/       # OpenSWATH algorithms
 │   ├── topp/                # Command-line tools (TOPP)
@@ -60,9 +64,11 @@ OpenMS/
 
 ## Build and Install
 
-- **CMake minimum**: 3.21; **C++ standard**: C++23
+- **CMake minimum**: 3.24 for both building OpenMS and consuming its CMake package; **C++ standard**: C++23
 - Out-of-tree build expected in `OpenMS-build/`; build in place for development (install prefixes are for system installs).
-- When adding or removing a public header under `src/openms/include/OpenMS/`, update the matching directory's `sources.cmake` header list. These lists control the `OpenMS_headers` install component, and missing entries break consumers of the installed package.
+- When adding or removing a public header under `src/openms/include/OpenMS/` (or `src/openms_cli/include/OpenMS/`), update the matching directory's `sources.cmake` header list. These lists control the `OpenMS_headers` (`OpenMS_CLI_headers`) install component, and missing entries break consumers of the installed package.
+- Public headers are declared in `FILE_SET HEADERS`; generated export headers are added by `openms_add_library()`. Private headers under `source/` and `include/` belong to the private file set. File sets supply the build and installed include directories.
+- Linux x64 CI builds `all_verify_interface_header_sets`; developers can opt in with `OPENMS_VERIFY_INTERFACE_HEADER_SETS=ON`. Keep the JSON guard because shared include roots can hide private dependencies.
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
 - Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
 - **contrib is a git submodule**: run `git submodule update --init contrib` (or clone with `--recurse-submodules`) before building if you need the vendored third-party libraries.
@@ -280,6 +286,7 @@ bool fragment_tolerance_ppm_;
 │   ├── openms/           # Core C++ library
 │   │   ├── include/OpenMS/  # Headers (.h)
 │   │   └── source/          # Implementation (.cpp)
+│   ├── openms_cli/       # TOPP tool framework (TOPPBase, ToolHandler, ...)
 │   ├── openms_gui/       # Qt-based GUI components
 │   ├── openswathalgo/    # OpenSWATH algorithms
 │   ├── topp/             # Command-line tools (TOPP)
@@ -368,7 +375,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 ## TOPP Tool Development
 
 - Add new tool source (e.g., `src/topp/<Tool>.cpp`) and register in `src/topp/executables.cmake`.
-- Register tool in `src/openms/source/APPLICATIONS/ToolHandler.cpp` to generate Doxygen help output.
+- Register tool in `src/openms_cli/source/APPLICATIONS/ToolHandler.cpp` to generate Doxygen help output.
 - Define parameters in `registerOptionsAndFlags_()`; read with `getStringOption_` and related helpers.
 - Document the tool and add to `doc/doxygen/public/TOPP.doxygen` where applicable.
 - Add TOPP tests in `src/tests/topp/CMakeLists.txt`.
@@ -406,6 +413,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 ## Contribution Workflow and Commit Messages
 
 - Development follows Gitflow; use forks and open PRs against `develop`.
+- Build locally and run the relevant tests before opening a PR (see Critical Constraints).
 - Commit format: `[TAG1,TAG2] short summary` (<=120 chars, <=80 preferred), blank line, longer description, and `Fixes #N`/`Closes #N` when applicable.
 - Commit tags: NOP, DOC, COMMENT, API, INTERNAL, FEATURE, FIX, TEST, FORMAT, PARAM, IO, LOG, GUI, RESOURCE, BUILD.
 - PR checklist: update `AUTHORS` and `CHANGELOG`, run/extend tests, update pyOpenMS bindings when needed.
@@ -569,8 +577,20 @@ perf report
 - Example external CMake project: `share/OpenMS/examples/external_code/`.
 - External test project: `src/tests/external/`.
 - Use the same compiler/generator as OpenMS; set `OPENMS_CONTRIB_LIBS` and `OpenMS_DIR` when configuring.
-- `find_package(OpenMS CONFIG)` provides the imported targets `OpenMS::OpenMS` and `OpenMS::OpenSwathAlgo`
-  (`OpenMS::OpenMS_GUI` via `COMPONENTS GUI`); the un-namespaced names remain as aliases.
+- `find_package(OpenMS CONFIG)` provides the imported targets `OpenMS::OpenMS`, `OpenMS::OpenSwathAlgo` and
+  `OpenMS::OpenMS_CLI` (the TOPP tool framework: TOPPBase, ToolHandler, ...; TOPP-style tools link this one
+  and request `COMPONENTS CLI`) (`OpenMS::OpenMS_GUI` via `COMPONENTS GUI`); every installed target also has
+  its un-namespaced alias (`OpenMS`, `OpenSwathAlgo`; `OpenMS_CLI`/`OpenMS_GUI` when those layers are installed).
+- The installed package is layered (`cmake/install_macros.cmake`): core (export set `OpenMSTargets`, install
+  components `library`/`cmake`), CLI (`OpenMSCLITargets`, `library_cli`/`cmake_cli`) and GUI
+  (`OpenMSGUITargets`, `library_gui`/`cmake_gui`); headers have their own `<target>_headers` components.
+  `openms_add_library(... EXPORT_SET <set>)` selects the layer. An installation may stop at any layer
+  (the pyOpenMS wheels install the core layer only); `OpenMSConfig.cmake` includes the target files that
+  exist and sets `OpenMS_CLI_FOUND`/`OpenMS_WITH_GUI`. When adding a library or an install component,
+  keep the layer's library and cmake components together, and update `CPACK_COMPONENTS_ALL` in
+  `cmake/package_deb.cmake`/`package_rpm.cmake` and the consumer fixture in `src/tests/CMakeLists.txt`.
+  `src/tests/package_layers` exercises the macros and the package template with stub libraries
+  (including a `WITH_GUI` ON to OFF reconfiguration of one build directory) in seconds.
 
 ## CI, Packaging, and Containers
 

@@ -107,34 +107,13 @@ option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript 
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
 option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
-set(_openms_with_thermo_raw_default ON)
-# Thermo's RawFileReader does not ship native dependencies for Linux aarch64,
-# so the .NET runtime can build the bridge but throws a managed exception when
-# actually opening a RAW file. Default OFF on that platform.
-# macOS arm64 is natively supported as of openms-thermo-bridge v0.2.0.
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
-  set(_openms_with_thermo_raw_default OFF)
-endif()
-option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ${_openms_with_thermo_raw_default})
+# Every platform we build for reads RAW files: the Thermo CommonCore assemblies are
+# architecture-neutral IL, and only the bridge around them is compiled per target.
+option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ON)
 option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" OFF)
 option(ENABLE_THERMO_FAIMS_DIA_TESTS "Download Thermo FAIMS-DIA test data for integration tests" OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
-
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
-  if(WITH_THERMO_RAW)
-    message(WARNING
-      "Thermo RAW support is disabled by default on Linux aarch64 because "
-      "Thermo RawFileReader native dependencies are not available there. You explicitly "
-      "enabled WITH_THERMO_RAW=ON. Please vote on https://github.com/thermofisherlsms/RawFileReader/issues/21 "
-      "and contact Thermo Fisher support by email if this support matters for your workflow.")
-  else()
-    message(STATUS
-      "Thermo RAW support defaults to OFF on Linux aarch64. Please vote on "
-      "https://github.com/thermofisherlsms/RawFileReader/issues/21 and contact Thermo Fisher "
-      "support by email if native support matters for your workflow.")
-  endif()
-endif()
 
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
@@ -258,7 +237,7 @@ include(GetGitRevisionDescription)
 option(GIT_TRACKING "Embedding of Git version control information into the OpenMS library (and OpenMSInfo tool). Note that if activated, every branch-switch or commit will trigger re-generation of the build system (MakeFiles, VS Solutions etc)." ON)
 if (GIT_TRACKING)
   ## will configure an include file
-  git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
+  git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE OPENMS_GIT_INFO_FOUND)
 endif()
 
 if(NOT GIT_TRACKING)
@@ -274,11 +253,13 @@ if(NOT GIT_TRACKING)
     set(OPENMS_GIT_LC_DATE "1970-01-01")
   endif()
   message(STATUS "  [CMake is not tracking Git commits and branching ('-D GIT_TRACKING=Off')]")
-elseif(OPENMS_GIT_SHORT_REFSPEC STREQUAL "GIT-NOTFOUND" OR OPENMS_GIT_SHORT_REFSPEC STREQUAL "HEAD-HASH-NOTFOUND")
+elseif(NOT OPENMS_GIT_INFO_FOUND)
+  ## Covers a git that runs but fails, e.g. a container refusing a bind-mounted checkout;
+  ## its marker would otherwise reach VersionInfo and the package file names.
   set(OPENMS_GIT_SHORT_SHA1 "exported")
   set(OPENMS_GIT_SHORT_REFSPEC "exported")
   set(OPENMS_GIT_LC_DATE "1970-01-01")
-  message(STATUS "  [CMake cannot track Git commits and branching, since Git or the .git folder was not found. ('-D GIT_TRACKING=On')]")
+  message(STATUS "  [CMake cannot track Git commits and branching, since Git information could not be determined. ('-D GIT_TRACKING=On')]")
 else()
   # everything found, print some status information
   message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")

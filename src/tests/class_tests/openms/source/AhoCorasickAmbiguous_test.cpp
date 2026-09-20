@@ -112,6 +112,11 @@ START_SECTION(void addNeedle(const std::string& needle))
   TEST_EQUAL(t.getNeedleCount(), 5)
   TEST_EQUAL(t.getMaxAAACount(), 1)
   TEST_EQUAL(t.getMaxMMCount(), 2)
+
+  // an empty needle is not an error, but it is not added to the trie either (it would match everywhere);
+  // it does consume a needle index though, so callers stay in sync -- see https://github.com/OpenMS/OpenMS/issues/2987
+  t.addNeedle("");
+  TEST_EQUAL(t.getNeedleCount(), 6)
 END_SECTION
 
 START_SECTION(void addNeedles(const std::vector<std::string>& needle))
@@ -334,6 +339,25 @@ START_SECTION(bool nextHits(ACTrieState& state) const)
   t.addNeedlesAndCompress(needles);
   testCase(t, "MBBDEABCRAFG", "MDDDEADC@0, MDD@0, DD@1, DD@2, DEADC@3", needles, __LINE__);
              //MDDDEADC
+
+  ///
+  /// empty needles (e.g. an empty AASequence, or a peptide which consists of stop codons only) are skipped instead of
+  /// flagging the root node as a hit (which made the search loop forever); they still consume a needle index though,
+  /// i.e. all other needles keep their index -- see https://github.com/OpenMS/OpenMS/issues/2987
+  ///
+  t = ACTrie(4, 0);
+  needles = {"", "MDDDEADC", "MDD", "", "DD", "DEADC", ""};
+  t.addNeedlesAndCompress(needles);
+  TEST_EQUAL(t.getNeedleCount(), 7) // empty needles are counted as well
+  // same hits as above (empty needles are never reported, and do not shift the index of the other needles)
+  testCase(t, "MBBDEABCRAFG", "MDDDEADC@0, MDD@0, DD@1, DD@2, DEADC@3", needles, __LINE__);
+
+  // ... and if all needles are empty, the search simply finds nothing (instead of running out of memory)
+  t = ACTrie(4, 0);
+  needles = {"", ""};
+  t.addNeedlesAndCompress(needles);
+  TEST_EQUAL(t.getNeedleCount(), 2)
+  testCase(t, "MBBDEABCRAFG", "", needles, __LINE__);
 }
 END_SECTION
 

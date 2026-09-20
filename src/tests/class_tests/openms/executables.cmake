@@ -114,6 +114,10 @@ set(metadata_executables_list
   MassAnalyzer_test
   MetaInfoDescription_test
   MetaInfoInterface_test
+  MS1LabelState_test
+  MS1LabeledFAIMS_test
+  MS1LabeledRatioQuantifier_test
+  MS1LabeledSpectra_test
   MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test
@@ -419,6 +423,7 @@ set(filtering_executables_list
   MultiplexFiltering_test
   MultiplexFilteringCentroided_test
   MultiplexFilteringProfile_test
+  MultiplexResolverAlgorithm_test
   MultiplexIsotopicPeakPattern_test
   MultiplexSatelliteCentroided_test
   MultiplexSatelliteProfile_test
@@ -479,6 +484,7 @@ set(chemistry_executables_list
   EmpiricalFormula_test
   EnzymaticDigestion_test
   FineIsotopeDistribution_test
+  GlycanStructure_test
   HydrophobicityProfile_test
   IsoelectricPoint_test
   IMSAlphabetParser_test
@@ -517,6 +523,7 @@ set(chemistry_executables_list
   SimpleTSGXLMS_test
   SpectrumAnnotator_test
   Tagger_test
+  TheoreticalGlycanSpectrumGenerator_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test
   Weights_test
@@ -651,7 +658,6 @@ set(analysis_executables_list
   PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test
-  TransformationModelDefaults_test
   TransformationModelBSpline_test
   TransformationModelLowess_test
   TransformationModelInterpolated_test
@@ -665,13 +671,6 @@ if(WITH_WNETALIGN)
 endif()
 
 set(applications_executables_list
-  INIUpdater_test
-  #MapAlignerBase_test
-  SearchEngineBase_test
-  TOPPBase_test
-  TOPPExternalToolBase_test
-  ToolHandler_test
-  ParameterInformation_test
   ConsoleUtils_test
 )
 

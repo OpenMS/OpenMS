@@ -217,9 +217,9 @@ The extensible %OpenMS library implements common mass spectrometric data process
 <caption>Directory structure of src folder (/src)</caption>
  <tr><th>Folder        <th>Description
  <tr><td>openms</td><td>Source code of core library</td></tr>
+ <tr><td>openms_cli</td><td>Source code of the TOPP tool framework (TOPPBase, ToolHandler, INIUpdater, ...), library OpenMS_CLI</td></tr>
  <tr><td>openms_gui</td><td>Source code of GUI applications (e.g.: TOPPView)</td></tr>
  <tr><td>topp</td><td>Source code of (stable) %OpenMS Tools</td></tr>
- <tr><td>util</td><td>Source code of (experimental) %OpenMS Tools</td></tr>
  <tr><td>pyOpenMS</td><td>Source files providing the python bindings</td></tr>
  <tr><td>tests</td><td>Source code of class and tool tests</td></tr>
 </table >
@@ -228,7 +228,7 @@ The extensible %OpenMS library implements common mass spectrometric data process
 <caption>Directory structure of core library (/src/openms/include/OpenMS)</caption>
  <tr><th>Folder        <th>Description
  <tr><td>ANALYSIS</td><td>Source code of high-level analysis like PeakPicking, Quantitation, Identification, MapAlignment</td></tr>
- <tr><td>APPLICATIONS</td><td>Source code for tool base and handling</td></tr>
+ <tr><td>APPLICATIONS</td><td>Console helpers (ConsoleUtils); the tool base classes and tool handling live in /src/openms_cli/include/OpenMS/APPLICATIONS (library OpenMS_CLI)</td></tr>
  <tr><td>CHEMISTRY</td><td>Source code dealing with Elements, Enzymes, Residues/Amino Acids, Modifications, Isotope distributions and amino acid sequences</td></tr>
  <tr><td>COMPARISON</td><td>Different scoring functions for clustering and spectra comparison</td></tr>
  <tr><td>CONCEPT</td><td>%OpenMS concepts (types, macros, ...)</td></tr>
@@ -520,7 +520,7 @@ But let’s first get started by defining what our tool should actually do:
 The DatabaseFilter tool should provide functionality to reduce a fasta database by filtering its entries based on different criteria. A simple criterion could be the length of a protein. To make the task a bit more interesting and to show other parts of the %OpenMS library, we will start with a bit more complex filtering step that keeps all entries from the fasta database that have been identified in a peptide search  (e.g., using X!Tandem, Mascot or MSGF+). This functionality might come in handy if the size of large databases needs to be reduced to a manageable size. In addition, we want the user to be able to choose between keeping and removing matching protein id.
 
 @subsection tutorial_create Create and register a minimal tool in OpenMS
-- Create an empty file src/utils/DatabaseFilter.cpp
+- Create an empty file src/topp/DatabaseFilter.cpp
 - Add the scaffold code for a minimal TOPP tool. Text in bold will later be adapted to our DatabaseFilter tool. 
 
 <b>Example: Tutorial_Template.cpp</b>
@@ -529,8 +529,8 @@ Template for %OpenMS tool development
 
 \snippet Tutorial_Template.cpp doxygen_snippet_Template
 
-- Now add a line with %DatabaseFilter.cpp to src/utils/executables.cmake. This registers the novel tool in the %OpenMS build system. 
-- Then add the tool to getUtilList() in src/openms/source/APPLICATIONS/ToolHandler.cpp 
+- Now add a line with %DatabaseFilter to src/topp/executables.cmake. This registers the novel tool in the %OpenMS build system. 
+- Then add the tool to getTOPPToolList() in src/openms_cli/source/APPLICATIONS/ToolHandler.cpp 
 This creates a manual (doxygen) page with the information –help output of the tool (using TOPPDocumenter). This page must be included at the end of the doxygen documentation of your tool (see other tools for an example).
 - Add yourself as Maintainer/Author
 - Write the basic documentation (doxygen docu). You probably need to refine it later but you can already insert the correct Toolname etc..
