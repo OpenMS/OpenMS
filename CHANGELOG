@@ -895,6 +895,10 @@ Build System:
     (>= 13.1), libgomp1 (>= 6), libgcc-s1 (>= 3.0) -- instead of a stale libc6 (>= 2.28)
     with no C++ or OpenMP entry at all. The package no longer installs on distributions
     too old to run it (#10202, #10207).
+  - The container image build failed on every nightly run once WITH_THERMO_RAW defaulted
+    to ON on Linux aarch64 (#10206): the Dockerfile still installed the .NET SDK/runtime
+    that openms-thermo-bridge needs only for amd64, so the arm64 build could not find
+    the dotnet executable at configure time. Both installs are now unconditional (#10210).
   - Linux wheels are built in a container with the checkout bind-mounted, which made git
     refuse the repository and left the embedded version a placeholder. The build marks the
     checkout safe, and any git failure now falls back to the "exported" version string
