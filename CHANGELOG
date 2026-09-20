@@ -885,16 +885,19 @@ Build System:
     scripts, ENABLE_STYLE_TESTING, doc_xml and stale examples/schemas. Runtime schema
     coverage is retained; QcMLFile/PepXMLFileMascot validation remains unavailable and
     now throws NotImplemented (#9740, #9757, #9771, #9945).
-  - The Debian package's dependencies stay hand-written. Generating them with
-    dpkg-shlibdeps was tried and reverted: the staging tree ships libMono.Unix.so for
-    five runtimes under THIRDPARTY/ThermoRawFileParser, most of them foreign to whichever
-    host builds the package, and dpkg-shlibdeps treats a foreign-architecture binary as an
-    error rather than missing information, so no package was produced at all. The declared
-    dependency floors are therefore hand-maintained, but they now carry what
-    dpkg-shlibdeps derives from the shipped binaries -- libc6 (>= 2.38), libstdc++6
-    (>= 13.1), libgomp1 (>= 6), libgcc-s1 (>= 3.0) -- instead of a stale libc6 (>= 2.28)
-    with no C++ or OpenMP entry at all. The package no longer installs on distributions
-    too old to run it (#10202, #10207).
+  - The Debian package derives its libc6, libstdc++6, libgomp1 and libgcc-s1 dependencies
+    from the shipped binaries with dpkg-shlibdeps, so they cannot go stale as the declared
+    libc6 (>= 2.28) had, and the package does not install on distributions too old to run
+    it. This needed the install tree cleaned up first: the bundled tools were installed
+    verbatim, including ThermoRawFileParser's NuGet runtimes/<rid>/ directories, which
+    carry libMono.Unix.so for nine runtime identifiers (android-arm, android-arm64,
+    android-x64, android-x86, linux-arm, linux-arm64, linux-x64, osx-arm64, osx-x64).
+    Most are foreign to whichever host builds the package, and dpkg-shlibdeps treats a
+    foreign-architecture binary as an error rather than as missing information, so no
+    package was produced at all. Only the runtime identifiers the build targets are
+    installed now; the parser's own Mono.Unix.dll.config maps the library to linux-x64,
+    osx-x64 and osx-arm64 and to nothing else, so the others could never be loaded
+    (#10202, #10207).
   - Linux wheels are built in a container with the checkout bind-mounted, which made git
     refuse the repository and left the embedded version a placeholder. The build marks the
     checkout safe, and any git failure now falls back to the "exported" version string
