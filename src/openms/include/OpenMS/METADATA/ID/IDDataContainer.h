@@ -10,6 +10,7 @@
 
 #include <OpenMS/config.h>
 #include <algorithm>
+#include <concepts>
 #include <cstddef>
 #include <functional>
 #include <initializer_list>
@@ -227,7 +228,9 @@ public:
     return ConstOrderedView(this);
   }
 
+  /// Value equality is available only for equality-comparable record types.
   friend bool operator==(const IDDataContainer& lhs, const IDDataContainer& rhs)
+    requires std::equality_comparable<Value>
   { return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin()); }
 
 private:

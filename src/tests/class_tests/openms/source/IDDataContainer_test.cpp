@@ -14,7 +14,34 @@
 using namespace OpenMS;
 using namespace OpenMS::IdentificationDataInternal;
 
+// Some record types deliberately provide no value equality. Instantiating their
+// containers (including DLL exports on MSVC) must not instantiate std::equal.
+static_assert(! std::equality_comparable<InputFile>);
+static_assert(! std::equality_comparable<InputFiles>);
+static_assert(! std::equality_comparable<ParentGroup>);
+static_assert(! std::equality_comparable<ParentGroups>);
+static_assert(std::equality_comparable<AppliedProcessingSteps>);
+
 START_TEST(IDDataContainer, "$Id$")
+
+START_SECTION((equality compares record values))
+{
+  AppliedProcessingSteps steps;
+  AppliedProcessingSteps other;
+  TEST_TRUE(steps == other)
+  steps.push_back(AppliedProcessingStep());
+  TEST_FALSE(steps == other)
+  other = steps;
+  TEST_TRUE(steps == other)
+
+  IdentificationData data;
+  auto software = data.registerProcessingSoftware(ProcessingSoftware("test", "1.0"));
+  auto step = data.registerProcessingStep(ProcessingStep(software));
+  other.clear();
+  other.push_back(AppliedProcessingStep(step));
+  TEST_FALSE(steps == other)
+}
+END_SECTION
 
 START_SECTION((ordered uniqueness, stable references, copy and move))
 {
