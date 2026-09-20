@@ -12,10 +12,13 @@ via the CTD mechanism. A current list of TOPP tools can be found in [the documen
 
 The recommended way is to inherit from the class TOPPBase as in existing TOPP tools (sources available in /src/topp/). This will add command line parsing functionality to your tool as described in the TOPP section of this page.
 
-- Add the code to `src/topp/` and register it in `src/topp/executables.cmake`
-- Add your tool (with the correct category) to `getTOPPToolList()` in `src/openms_cli/source/APPLICATIONS/ToolHandler.cpp`.
-  This creates a doxygen page with the `–help` output of the tool (using `TOPPDocumenter`). This page must be included
-  at the end of the doxygen documentation of your tool (see other tools for an example).
+- Add the code to `src/topp/` and declare it in `src/topp/executables.cmake` with
+  `openms_topp_tool(<YourTool> "<Category>")`, in alphabetical order. That single line both builds the tool and
+  registers it: the build generates the tool registry `share/OpenMS/TOOLS/OpenMS.tsv` that `ToolHandler` reads at
+  run time, so there is no C++ list and no registry file to edit, and a tool cannot be built without being
+  registered. Pick `<Category>` from the set used in `doc/doxygen/public/TOPP.doxygen`.
+  Registration creates a doxygen page with the `–help` output of the tool (using `TOPPDocumenter`). This page must be
+  included at the end of the doxygen documentation of your tool (see other tools for an example).
 - Add it to the TOPP docu page (in `doc/doxygen/public/TOPP.doxygen`)
 - Add the name to `src/topp/executables.cmake`
 - Write a TOPP test (add it to `src/tests/topp/CMakeLists.txt`)

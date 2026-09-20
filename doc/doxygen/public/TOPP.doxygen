@@ -6,7 +6,8 @@
 // $Authors: Marc Sturm, Chris Bielow, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-// If you add a new (or update an existing) tool below, make sure to update 'openms_cli/source/APPLICATIONS/ToolHandler.cpp' as well!
+// If you add a new (or update an existing) tool below, make sure its openms_topp_tool()
+// declaration in 'src/topp/executables.cmake' uses a matching category!
 
 /**
   @page TOPP_documentation TOPP documentation

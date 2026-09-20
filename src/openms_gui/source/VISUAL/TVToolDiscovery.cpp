@@ -32,7 +32,7 @@ namespace OpenMS
     static bool _ [[maybe_unused]] = [&]() -> bool
     {
       // Get a map of all tools
-      const auto &tools = ToolHandler::getTOPPToolList();
+      const auto &tools = ToolHandler::getTOPPToolListRef();
       // Launch threads for loading tool/util params.
       for (const auto& tool : tools)
       {

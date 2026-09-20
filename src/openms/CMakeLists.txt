@@ -491,6 +491,7 @@ endif()
 # Note: that slash(/) is important here, otherwise the whole directory
 #       (not its content) will be copied!
 #install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
+
 install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
   DESTINATION ${INSTALL_SHARE_DIR}
   COMPONENT share
@@ -503,6 +504,18 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
   REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
   REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
   REGEX "OpenMS/examples" EXCLUDE
+)
+
+## The TOPP tool registry is generated into the build tree rather than checked in
+## (cmake/topp_tool_macros.cmake), so it is installed from there. Because it is written from
+## the tools this build actually declares, there is nothing to filter per build option: a
+## tool that was not built was not declared and is not in the file. It is installed into
+## TOOLS/ rather than beside the other share data so that the directory holds registry files
+## and nothing else: ToolHandler reads every *.tsv it finds there.
+install(FILES ${OPENMS_TOOL_REGISTRY_BUILD_FILE}
+  DESTINATION ${INSTALL_SHARE_DIR}/TOOLS
+  COMPONENT share
+  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
 )
 install(FILES ${OPENMS_HOST_DIRECTORY}/License.txt
   DESTINATION ${INSTALL_SHARE_DIR}/LICENSES

@@ -1,181 +1,179 @@
+### Declaration of the TOPP tools.
+###
+### openms_topp_tool(<Name> <Category>) declares one tool: the build produces it from
+### <Name>.cpp (or from the subdirectory <Name>/), and the tool registry
+### share/OpenMS/TOOLS/OpenMS.tsv is generated from these declarations, so declaring a tool
+### here is all that is needed for ToolHandler to list it. See cmake/topp_tool_macros.cmake.
+###
+### <Category> is the group TOPPAS shows the tool in; mirror the set of categories in
+### doc/doxygen/public/TOPP.doxygen. Keep the declarations in alphabetical order.
+
 ### the directory name
 set(directory source/APPLICATIONS/TOPP)
 
-### list all filenames of the directory here
-set(TOPP_executables
-AccurateMassSearch
-AssayGeneratorMetabo
-AssayGeneratorMetaboSirius
-BaselineFilter
-FeatureFinderLFQ
-ClusterMassTraces
-ClusterMassTracesByPrecursor
-CometAdapter
-ConsensusID
-ConsensusMapNormalizer
-CVInspector
-DatabaseFilter
-DatabaseSuitability
-DecoyDatabase
-Decharger
-DeMeanderize
-Digestor
-DigestorMotif
-DTAExtractor
-EICExtractor
-Epifany
-ExternalCalibration
-FalseDiscoveryRate
-FeatureFinderCentroided
-FeatureFinderIdentification
-FeatureFinderMetabo
-FeatureFinderMetaboIdent
-FeatureFinderMultiplex
-FeatureLinkerLabeled
-FeatureLinkerUnlabeled
-FeatureLinkerUnlabeledKD
-FeatureLinkerUnlabeledQT
-FileConverter
-FileFilter
-FileInfo
-FileMerger
-FLASHDeconv
-FuzzyDiff
-GNPSExport
-HighResPrecursorMassCorrector
-IDConflictResolver
-IDDecoyProbability
-IDExtractor
-IDFileConverter
-IDFilter
-IDMapper
-IDMerger
-IDPosteriorErrorProbability
-IDRipper
-IDRTCalibration
-IDScoreSwitcher
-IDSplitter
-INIUpdater
-InternalCalibration
-IonMobilityBinning
-IsobaricAnalyzer
-IsobaricWorkflow
-JSONExporter
-LuciphorAdapter
-MapAlignerIdentification
-MapAlignerPoseClustering
-MapAlignerTreeGuided
-MapNormalizer
-MapRTTransformer
-MapStatistics
-MaRaClusterAdapter
-MascotAdapterOnline
-MassCalculator
-MassTraceExtractor
-MetaboliteAdductDecharger
-MetaboliteSpectralMatcher
-MetaProSIP
-MRMMapper
-MRMPairFinder
-MSGFPlusAdapter
-MSFraggerAdapter
-MSstatsConverter
-MS1LabeledWorkflow
-MultiplexResolver
-MzMLSplitter
-MzTabExporter
-NoiseFilterGaussian
-NoiseFilterSGolay
-NovorAdapter
-NucleicAcidSearchEngine
-OpenMSDatabasesInfo
-OpenMSInfo
-OpenNuXL
-OpenPepXL
-OpenSwathAnalyzer
-OpenSwathAssayGenerator
-OpenSwathChromatogramExtractor
-OpenSwathConfidenceScoring
-OpenSwathDecoyGenerator
-OpenSwathFeatureXMLToTSV
-OpenSwathExport
-OpenSwathInfer
-OpenSwathPercolatorScoring
-OpenSwathRTNormalizer
-PeakPickerHiRes
-PeakPickerIterative
-PeakPickerIM
-PeptideIndexer
-ProSE
-PercolatorAdapter
-PhosphoScoring
-ProteinInference
-ProteinQuantifier
-ProteomicsLFQ
-PSMFeatureExtractor
-QCCalculator
-QCEmbedder
-QCExporter
-QCExtractor
-QCImporter
-QCMerger
-QCShrinker
-QualityControl
-Resampler
-RNADigestor
-RNAMassCalculator
-RNPxlXICFilter
-SageAdapter
-SeedListGenerator
-SemanticValidator
-SequenceCoverageCalculator
-SimpleSearchEngine
-SiriusExport
-SpectraFilterNLargest
-SpectraFilterNormalizer
-SpectraFilterThresholdMower
-SpectraFilterWindowMower
-SpectraMerger
-SpectraSTSearchAdapter
-StaticModification
-TICCalculator
-TextExporter
-UniPEFF
-XFDR
-XMLValidator
-)
+openms_topp_tool(AccurateMassSearch               "Metabolite Identification")
+openms_topp_tool(AssayGeneratorMetabo             "Targeted Experiments and OpenSWATH")
+openms_topp_tool(AssayGeneratorMetaboSirius       "Targeted Experiments and OpenSWATH")
+openms_topp_tool(BaselineFilter                   "Spectrum Processing: Peak Smoothing and Normalization")
+openms_topp_tool(FeatureFinderLFQ                 "Quantitation")
+openms_topp_tool(ClusterMassTraces                "Misc")
+openms_topp_tool(ClusterMassTracesByPrecursor     "Targeted Experiments and OpenSWATH")
+openms_topp_tool(CometAdapter                     "Identification of Proteins and Peptides (SearchEngines)")
+openms_topp_tool(ConsensusID                      "Identification Processing")
+openms_topp_tool(ConsensusMapNormalizer           "Quantitation")
+openms_topp_tool(CVInspector                      "[for Developers]")
+openms_topp_tool(DatabaseFilter                   "File Filtering, Extraction and Merging")
+openms_topp_tool(DatabaseSuitability              "Quality Control")
+openms_topp_tool(DecoyDatabase                    "File Filtering, Extraction and Merging")
+openms_topp_tool(Decharger                        "Quantitation")
+openms_topp_tool(DeMeanderize                     "Misc")
+openms_topp_tool(Digestor                         "Identification Processing")
+openms_topp_tool(DigestorMotif                    "Identification Processing")
+openms_topp_tool(DTAExtractor                     "File Filtering, Extraction and Merging")
+openms_topp_tool(EICExtractor                     "Quantitation")
+openms_topp_tool(Epifany                          "Identification Processing")
+openms_topp_tool(ExternalCalibration              "Mass Correction and Calibration")
+openms_topp_tool(FalseDiscoveryRate               "Identification Processing")
+openms_topp_tool(FeatureFinderCentroided          "Quantitation")
+openms_topp_tool(FeatureFinderIdentification      "Quantitation")
+openms_topp_tool(FeatureFinderMetabo              "Quantitation")
+openms_topp_tool(FeatureFinderMetaboIdent         "Quantitation")
+openms_topp_tool(FeatureFinderMultiplex           "Quantitation")
+openms_topp_tool(FeatureLinkerLabeled             "Feature Linking")
+openms_topp_tool(FeatureLinkerUnlabeled           "Feature Linking")
+openms_topp_tool(FeatureLinkerUnlabeledKD         "Feature Linking")
+openms_topp_tool(FeatureLinkerUnlabeledQT         "Feature Linking")
+openms_topp_tool(FileConverter                    "File Converter")
+openms_topp_tool(FileFilter                       "File Filtering, Extraction and Merging")
+openms_topp_tool(FileInfo                         "File Filtering, Extraction and Merging")
+openms_topp_tool(FileMerger                       "File Filtering, Extraction and Merging")
+openms_topp_tool(FLASHDeconv                      "Top-Down")
+openms_topp_tool(FuzzyDiff                        "[for Developers]")
+openms_topp_tool(GNPSExport                       "File Converter")
+openms_topp_tool(HighResPrecursorMassCorrector    "Mass Correction and Calibration")
+openms_topp_tool(IDConflictResolver               "Identification Processing")
+openms_topp_tool(IDDecoyProbability               "Identification Processing")
+openms_topp_tool(IDExtractor                      "Identification Processing")
+openms_topp_tool(IDFileConverter                  "File Converter")
+openms_topp_tool(IDFilter                         "File Filtering, Extraction and Merging")
+openms_topp_tool(IDMapper                         "Identification Processing")
+openms_topp_tool(IDMerger                         "File Filtering, Extraction and Merging")
+openms_topp_tool(IDPosteriorErrorProbability      "Identification Processing")
+openms_topp_tool(IDRipper                         "File Filtering, Extraction and Merging")
+openms_topp_tool(IDRTCalibration                  "Mass Correction and Calibration")
+openms_topp_tool(IDScoreSwitcher                  "Identification Processing")
+openms_topp_tool(IDSplitter                       "File Filtering, Extraction and Merging")
+openms_topp_tool(INIUpdater                       "Misc")
+openms_topp_tool(InternalCalibration              "Mass Correction and Calibration")
+openms_topp_tool(IonMobilityBinning               "File Filtering, Extraction and Merging")
+openms_topp_tool(IsobaricAnalyzer                 "Quantitation")
+openms_topp_tool(IsobaricWorkflow                 "Quantitation")
+openms_topp_tool(JSONExporter                     "[for Developers]")
+openms_topp_tool(LuciphorAdapter                  "Identification of Proteins and Peptides (SearchEngines)")
+openms_topp_tool(MapAlignerIdentification         "Map Alignment")
+openms_topp_tool(MapAlignerPoseClustering         "Map Alignment")
+openms_topp_tool(MapAlignerTreeGuided             "Map Alignment")
+openms_topp_tool(MapNormalizer                    "Spectrum Processing: Peak Smoothing and Normalization")
+openms_topp_tool(MapRTTransformer                 "Map Alignment")
+openms_topp_tool(MapStatistics                    "File Filtering, Extraction and Merging")
+openms_topp_tool(MaRaClusterAdapter               "Spectrum processing: Misc")
+openms_topp_tool(MascotAdapterOnline              "Identification of Proteins and Peptides (SearchEngines)")
+openms_topp_tool(MassCalculator                   "Misc")
+openms_topp_tool(MassTraceExtractor               "Quantitation")
+openms_topp_tool(MetaboliteAdductDecharger        "Quantitation")
+openms_topp_tool(MetaboliteSpectralMatcher        "Metabolite Identification")
+openms_topp_tool(MetaProSIP                       "Quantitation")
+openms_topp_tool(MRMMapper                        "Targeted Experiments and OpenSWATH")
+openms_topp_tool(MRMPairFinder                    "Targeted Experiments and OpenSWATH")
+openms_topp_tool(MSGFPlusAdapter                  "Identification of Proteins and Peptides (SearchEngines)")
+openms_topp_tool(MSFraggerAdapter                 "Identification of Proteins and Peptides (SearchEngines)")
+openms_topp_tool(MSstatsConverter                 "File Converter")
+openms_topp_tool(MS1LabeledWorkflow               "Quantitation")
+openms_topp_tool(MultiplexResolver                "Quantitation")
+openms_topp_tool(MzMLSplitter                     "File Filtering, Extraction and Merging")
+openms_topp_tool(MzTabExporter                    "File Converter")
+openms_topp_tool(NoiseFilterGaussian              "Spectrum Processing: Peak Smoothing and Normalization")
+openms_topp_tool(NoiseFilterSGolay                "Spectrum Processing: Peak Smoothing and Normalization")
+openms_topp_tool(NovorAdapter                     "Identification of Proteins and Peptides (SearchEngines)")
+openms_topp_tool(NucleicAcidSearchEngine          "RNA")
+openms_topp_tool(OpenMSDatabasesInfo              "[for Developers]")
+openms_topp_tool(OpenMSInfo                       "Misc")
+openms_topp_tool(OpenNuXL                         "Cross-Linking")
+openms_topp_tool(OpenPepXL                        "Cross-Linking")
+openms_topp_tool(OpenSwathAnalyzer                "Targeted Experiments and OpenSWATH")
+openms_topp_tool(OpenSwathAssayGenerator          "Targeted Experiments and OpenSWATH")
+openms_topp_tool(OpenSwathChromatogramExtractor   "Targeted Experiments and OpenSWATH")
+openms_topp_tool(OpenSwathConfidenceScoring       "Targeted Experiments and OpenSWATH")
+openms_topp_tool(OpenSwathDecoyGenerator          "Targeted Experiments and OpenSWATH")
+openms_topp_tool(OpenSwathFeatureXMLToTSV         "Targeted Experiments and OpenSWATH")
+openms_topp_tool(OpenSwathExport                  "Targeted Experiments and OpenSWATH")
+openms_topp_tool(OpenSwathInfer                   "Targeted Experiments and OpenSWATH")
+openms_topp_tool(OpenSwathPercolatorScoring       "Targeted Experiments and OpenSWATH")
+openms_topp_tool(OpenSwathRTNormalizer            "Targeted Experiments and OpenSWATH")
+openms_topp_tool(PeakPickerHiRes                  "Spectrum processing: Centroiding")
+openms_topp_tool(PeakPickerIterative              "Spectrum processing: Centroiding")
+openms_topp_tool(PeakPickerIM                     "Spectrum processing: Centroiding")
+openms_topp_tool(PeptideIndexer                   "Identification Processing")
+openms_topp_tool(ProSE                            "Identification of Proteins and Peptides (SearchEngines)")
+openms_topp_tool(PercolatorAdapter                "Identification Processing")
+openms_topp_tool(PhosphoScoring                   "Identification Processing")
+openms_topp_tool(ProteinInference                 "Identification Processing")
+openms_topp_tool(ProteinQuantifier                "Quantitation")
+openms_topp_tool(ProteomicsLFQ                    "Quantitation")
+openms_topp_tool(PSMFeatureExtractor              "Identification Processing")
+openms_topp_tool(QCCalculator                     "Quality Control")
+openms_topp_tool(QCEmbedder                       "Quality Control")
+openms_topp_tool(QCExporter                       "Quality Control")
+openms_topp_tool(QCExtractor                      "Quality Control")
+openms_topp_tool(QCImporter                       "Quality Control")
+openms_topp_tool(QCMerger                         "Quality Control")
+openms_topp_tool(QCShrinker                       "Quality Control")
+openms_topp_tool(QualityControl                   "Quality Control")
+openms_topp_tool(Resampler                        "Spectrum processing: Misc")
+openms_topp_tool(RNADigestor                      "RNA")
+openms_topp_tool(RNAMassCalculator                "RNA")
+openms_topp_tool(RNPxlXICFilter                   "Cross-Linking")
+openms_topp_tool(SageAdapter                      "Identification of Proteins and Peptides (SearchEngines)")
+openms_topp_tool(SeedListGenerator                "Quantitation")
+openms_topp_tool(SemanticValidator                "[for Developers]")
+openms_topp_tool(SequenceCoverageCalculator       "Identification Processing")
+openms_topp_tool(SimpleSearchEngine               "Identification of Proteins and Peptides (SearchEngines)")
+openms_topp_tool(SiriusExport                     "Metabolite Identification")
+openms_topp_tool(SpectraFilterNLargest            "Spectrum Processing: Peak Smoothing and Normalization")
+openms_topp_tool(SpectraFilterNormalizer          "Spectrum Processing: Peak Smoothing and Normalization")
+openms_topp_tool(SpectraFilterThresholdMower      "Spectrum Processing: Peak Smoothing and Normalization")
+openms_topp_tool(SpectraFilterWindowMower         "Spectrum Processing: Peak Smoothing and Normalization")
+openms_topp_tool(SpectraMerger                    "Spectrum processing: Misc")
+openms_topp_tool(SpectraSTSearchAdapter           "Identification of Proteins and Peptides (SearchEngines)")
+openms_topp_tool(StaticModification               "Identification Processing")
+openms_topp_tool(TICCalculator                    "Misc")
+openms_topp_tool(TextExporter                     "File Converter")
+openms_topp_tool(UniPEFF                          "File Converter")
+openms_topp_tool(XFDR                             "Cross-Linking")
+openms_topp_tool(XMLValidator                     "[for Developers]")
 
 if(NOT DISABLE_OPENSWATH)
-  set(TOPP_executables
-    ${TOPP_executables}
-    TargetedFileConverter
-    OpenSwathDIAPreScoring
-    OpenSwathMzMLFileCacher
-    OpenSwathPeakMapExtractor
-    TransitionListEvidenceFilter
-    OpenSwathWorkflow
-    OpenSwathFileSplitter
-    OpenSwathRewriteToFeatureXML
-    MRMTransitionGroupPicker
-  )
+  openms_topp_tool(TargetedFileConverter            "File Converter")
+  openms_topp_tool(OpenSwathDIAPreScoring           "Targeted Experiments and OpenSWATH")
+  openms_topp_tool(OpenSwathMzMLFileCacher          "Targeted Experiments and OpenSWATH")
+  openms_topp_tool(OpenSwathPeakMapExtractor        "Targeted Experiments and OpenSWATH")
+  openms_topp_tool(TransitionListEvidenceFilter     "Targeted Experiments and OpenSWATH")
+  openms_topp_tool(OpenSwathWorkflow                "Targeted Experiments and OpenSWATH")
+  openms_topp_tool(OpenSwathFileSplitter            "Targeted Experiments and OpenSWATH")
+  openms_topp_tool(OpenSwathRewriteToFeatureXML     "Targeted Experiments and OpenSWATH")
+  openms_topp_tool(MRMTransitionGroupPicker         "Targeted Experiments and OpenSWATH")
 endif(NOT DISABLE_OPENSWATH)
 
-set(TOPP_executables
-  ${TOPP_executables}
-  ParquetConverter
-  ParquetDiff
-)
+openms_topp_tool(ParquetConverter                 "File Converter")
+openms_topp_tool(ParquetDiff                      "[for Developers]")
 
 if(WITH_WNETALIGN)
-  set(TOPP_executables
-    ${TOPP_executables}
-    FeatureLinkerWNet
-  )
+  openms_topp_tool(FeatureLinkerWNet                "Feature Linking")
 endif()
 
 ### add filenames to Visual Studio solution tree
 set(sources_VS)
-foreach(i ${TOPP_executables})
+foreach(i ${TOPP_TOOLS})
 	list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
 

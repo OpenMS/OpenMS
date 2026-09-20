@@ -98,10 +98,12 @@ foreach(i ExecutePipeline ImageCreator)
   target_link_libraries(${i} OpenMS_CLI)
 endforeach()
 
-# Add GUI-based TOPP tools to the TOPP_TOOLS list for CWL/INI generation
+# The TOPP tools that need the GUI library. Declared the same way as the tools of
+# src/topp/executables.cmake, so they reach the tool registry and the CWL/INI generation
+# exactly in a WITH_GUI build -- there is no separate list of "GUI-only tools" anywhere.
 set(GUI_TOPP_TOOLS ExecutePipeline ImageCreator)
-set(TOPP_TOOLS ${TOPP_TOOLS} ${GUI_TOPP_TOOLS}
-    CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
+openms_topp_tool(ExecutePipeline "Misc")
+openms_topp_tool(ImageCreator    "Misc")
 
 # Make the TOPP collection target depend on GUI TOPP tools
 if(TARGET TOPP)

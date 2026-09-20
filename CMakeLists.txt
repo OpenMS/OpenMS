@@ -498,6 +498,15 @@ set(OPENMS_SHARE_DIR "${PROJECT_SOURCE_DIR}/share/OpenMS")
 set(OPENMS_WIN32_DLL_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 #------------------------------------------------------------------------------
+# The TOPP tool registry is generated (cmake/topp_tool_macros.cmake) rather than checked in,
+# so it lives in the build tree, not in the source share/ directory. It is installed into
+# the share component like the rest of share/OpenMS; a build tree that was never installed
+# is what OPENMS_BUILD_TOOL_REGISTRY_PATH in config.h points ToolHandler at.
+include(${PROJECT_SOURCE_DIR}/cmake/topp_tool_macros.cmake)
+set(OPENMS_TOOL_REGISTRY_BUILD_DIR "${OPENMS_HOST_BINARY_DIRECTORY}/share/OpenMS/TOOLS")
+set(OPENMS_TOOL_REGISTRY_BUILD_FILE "${OPENMS_TOOL_REGISTRY_BUILD_DIR}/OpenMS.tsv")
+
+#------------------------------------------------------------------------------
 # define installation subdirectories to allow for custom installations
 # note that all those directories are below CMAKE_INSTALL_PREFIX
 set(INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")

@@ -204,12 +204,26 @@ namespace OpenMS
     if (toolhandler_test_)
     {
       // check if tool is in official tools list
-      if (official_ && !ToolHandler::getTOPPToolList().count(tool_name_))
+      const ToolListType& tools = ToolHandler::getTOPPToolListRef();
+      if (official_ && !tools.count(tool_name_))
       {
+        if (tools.empty())
+        {
+          // Not this tool's fault: no registry file was found at all, so no tool would pass
+          // this check. Saying "register your tool" here would send the reader off to edit a
+          // list that is not the problem.
+          throw Exception::InvalidValue(__FILE__,
+                                        __LINE__,
+                                        OPENMS_PRETTY_FUNCTION,
+                                        std::string("The TOPP tool registry at '" + ToolHandler::getToolRegistryPath() +
+                                                    "' is empty or unreadable, so no tool can be looked up. This installation is incomplete: it needs the *.tsv files of the 'share' component."),
+                                        tool_name_);
+        }
         throw Exception::InvalidValue(__FILE__,
                                       __LINE__,
                                       OPENMS_PRETTY_FUNCTION,
-                                      std::string("If '" + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false."),
+                                      std::string("If '" + tool_name_ + "' is an official TOPP tool, declare it with openms_topp_tool() in src/topp/executables.cmake, which builds it and generates its entry in '" +
+                                                  ToolHandler::getToolRegistryPath() + "/OpenMS.tsv'. If it is not, set the 'official' flag of the TOPPBase constructor to false."),
                                       tool_name_);
       }
     }
@@ -235,7 +249,7 @@ namespace OpenMS
     registerOptionsAndFlags_();
     addEmptyLine_();
     // common section for all tools
-    if (ToolHandler::getTOPPToolList().count(tool_name_))
+    if (ToolHandler::getTOPPToolListRef().count(tool_name_))
       addText_("Common TOPP options:");
     else
       addText_("Common UTIL options:");
