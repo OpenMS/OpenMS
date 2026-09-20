@@ -306,7 +306,6 @@ set(format_executables_list
   SwathWindowLoader_test
   TextFile_test
   TargetedDataFileLoader_test
-  ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
   UnimodXMLFile_test

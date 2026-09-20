@@ -27,7 +27,6 @@ set(sources_list
   PTMXMLHandler.cpp
   ParamXMLHandler.cpp
   ThermoRawFileMetadata.cpp
-  ToolDescriptionHandler.cpp
   TraMLHandler.cpp
   UnimodXMLHandler.cpp
   UniProtXMLHandler.cpp
