@@ -379,7 +379,7 @@ Test if everything worked by calling `make doc_param_internal`. The parameters d
 
 ### How is the command line documentation for TOPP tools created?
 
-The program `OpenMS/doc/doxygen/parameters/TOPPDocumenter.cpp` creates the command line documentation for all classes
+The program `OpenMS/doc/doxygen/parameters/TOPPDocumenter.cpp` creates the command line documentation for all tools
 that are registered in the tool registry (`share/OpenMS/TOOLS/*.tsv`), which is what `ToolHandler` lists.
 It can be included in the documentation using the 
 following `doxygen` command:

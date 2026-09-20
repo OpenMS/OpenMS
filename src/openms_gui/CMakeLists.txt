@@ -98,12 +98,16 @@ foreach(i ExecutePipeline ImageCreator)
   target_link_libraries(${i} OpenMS_CLI)
 endforeach()
 
-# The TOPP tools that need the GUI library. Declared the same way as the tools of
-# src/topp/executables.cmake, so they reach the tool registry and the CWL/INI generation
-# exactly in a WITH_GUI build -- there is no separate list of "GUI-only tools" anywhere.
+# The TOPP tools that need the GUI library, declared the same way as the tools of
+# src/topp/executables.cmake so they reach the tool registry and the CWL/INI generation
+# exactly in a WITH_GUI build. One list drives both the declarations and the dependency
+# below, so a tool cannot be built here without being registered. These are a subset of
+# GUI_executables, which also holds the GUI applications that are not TOPP tools
+# (TOPPView, TOPPAS, INIFileEditor).
 set(GUI_TOPP_TOOLS ExecutePipeline ImageCreator)
-openms_topp_tool(ExecutePipeline "Misc")
-openms_topp_tool(ImageCreator    "Misc")
+foreach(_gui_topp_tool ${GUI_TOPP_TOOLS})
+  openms_topp_tool(${_gui_topp_tool} "Misc")
+endforeach()
 
 # Make the TOPP collection target depend on GUI TOPP tools
 if(TARGET TOPP)

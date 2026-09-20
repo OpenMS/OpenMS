@@ -17,10 +17,9 @@ The recommended way is to inherit from the class TOPPBase as in existing TOPP to
   registers it: the build generates the tool registry `share/OpenMS/TOOLS/OpenMS.tsv` that `ToolHandler` reads at
   run time, so there is no C++ list and no registry file to edit, and a tool cannot be built without being
   registered. Pick `<Category>` from the set used in `doc/doxygen/public/TOPP.doxygen`.
-  Registration creates a doxygen page with the `–help` output of the tool (using `TOPPDocumenter`). This page must be
+  Registration creates a doxygen page with the `--help` output of the tool (using `TOPPDocumenter`). This page must be
   included at the end of the doxygen documentation of your tool (see other tools for an example).
 - Add it to the TOPP docu page (in `doc/doxygen/public/TOPP.doxygen`)
-- Add the name to `src/topp/executables.cmake`
 - Write a TOPP test (add it to `src/tests/topp/CMakeLists.txt`)
 
 ```{warning}
