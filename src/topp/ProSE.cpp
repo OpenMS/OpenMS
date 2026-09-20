@@ -35,8 +35,6 @@
 #include <iomanip>
 #include <sstream>
 
-#include <arrow/table.h>  // only for std::shared_ptr<arrow::Table> declarations
-
 #include <map>
 #include <set>
 
