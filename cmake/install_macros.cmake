@@ -236,6 +236,10 @@ macro(install_thirdparty_folder foldername)
     ## maps the library to runtimes/linux-x64, runtimes/osx-x64 and
     ## runtimes/osx-arm64, and to nothing else.
     ##
+    ## Seven of the nine carry a .so, so CPackDeb hands all seven to
+    ## dpkg-shlibdeps and five are foreign on any given host; the two osx ones
+    ## are Mach-O and never reach it.
+    ##
     ## The rest is not merely dead weight. Any foreign-architecture ELF in the
     ## staging tree makes dpkg-shlibdeps fail with "cannot find library
     ## libc.so.6 needed by ... (ELF format: ...)", an error --ignore-missing-info

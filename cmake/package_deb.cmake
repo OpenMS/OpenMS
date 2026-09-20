@@ -33,9 +33,11 @@ SET(CMAKE_SKIP_INSTALL_RPATH TRUE)
 ##
 ## This was on once before (#10202) and had to come off again (#10207), because the
 ## staging tree carried foreign-architecture binaries: ThermoRawFileParser's NuGet
-## runtimes/<rid>/ tree ships libMono.Unix.so for android-arm, android-arm64,
-## android-x86, linux-arm and linux-arm64, and on any one host most of those are
-## foreign. dpkg-shlibdeps answers each with "cannot find library libc.so.6 needed by
+## runtimes/<rid>/ tree ships a libMono.Unix.so for seven runtime identifiers
+## (android-arm, android-arm64, android-x64, android-x86, linux-arm, linux-arm64,
+## linux-x64), and on any one host five of the seven are foreign -- see the binary
+## list in the failing run 35434550390, where they are the only such files.
+## dpkg-shlibdeps answers each with "cannot find library libc.so.6 needed by
 ## ... (ELF format: ...; abi: ...)", an error --ignore-missing-info does not cover, so
 ## CPack aborted before writing the package. install_thirdparty_folder()
 ## (cmake/install_macros.cmake) now installs only the runtime identifiers this build
