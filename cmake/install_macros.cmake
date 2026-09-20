@@ -172,9 +172,111 @@ macro(install_export_targets )
 endmacro()
 
 #------------------------------------------------------------------------------
+# Returns in ${out_var} the .NET runtime identifiers (RIDs) whose native assets
+# this build can load, spelled as NuGet spells them, <os>-<arch>:
+# https://learn.microsoft.com/dotnet/core/rid-catalog
+function(openms_target_dotnet_rids out_var)
+  if(WIN32)
+    set(_os "win")
+  elseif(APPLE)
+    set(_os "osx")
+  else()
+    set(_os "linux")
+  endif()
+
+  ## CMAKE_SYSTEM_PROCESSOR spells the same architecture differently per
+  ## platform (x86_64 vs AMD64, aarch64 vs arm64). On macOS
+  ## CMAKE_OSX_ARCHITECTURES overrides it and may name more than one.
+  set(_processors "${CMAKE_SYSTEM_PROCESSOR}")
+  if(APPLE AND CMAKE_OSX_ARCHITECTURES)
+    set(_processors ${CMAKE_OSX_ARCHITECTURES})
+  endif()
+
+  set(_rids)
+  foreach(_processor IN LISTS _processors)
+    string(TOLOWER "${_processor}" _processor)
+    if(_processor MATCHES "^(x86_64|amd64|x64)$")
+      set(_arch "x64")
+    elseif(_processor MATCHES "^(aarch64|arm64)$")
+      set(_arch "arm64")
+    elseif(_processor MATCHES "^(i[3-6]86|x86)$")
+      set(_arch "x86")
+    elseif(_processor MATCHES "^arm")
+      set(_arch "arm")
+    else()
+      ## Unknown architecture: pass it through rather than guess. A RID nothing
+      ## matches only means nothing is kept, which install_thirdparty_folder
+      ## reports below.
+      set(_arch "${_processor}")
+    endif()
+    list(APPEND _rids "${_os}-${_arch}")
+  endforeach()
+
+  ## An arm64 Mac runs x86_64 processes under Rosetta, so an x86_64 mono on one
+  ## still asks for the osx-x64 helper. Mach-O files never reach dpkg-shlibdeps,
+  ## so keeping it costs nothing where the exclusion below actually matters.
+  if(APPLE AND "osx-arm64" IN_LIST _rids)
+    list(APPEND _rids "osx-x64")
+  endif()
+
+  list(REMOVE_DUPLICATES _rids)
+  set(${out_var} "${_rids}" PARENT_SCOPE)
+endfunction()
+
+#------------------------------------------------------------------------------
 # Installs Thirdparty folders with executables
 macro(install_thirdparty_folder foldername)
   if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/${foldername})
+    ## The .NET tools here (ThermoRawFileParser) carry NuGet's 'runtimes/<rid>/'
+    ## layout: one folder of native helper libraries per runtime identifier the
+    ## NuGet package supports. Mono.Unix ships nine of them -- android-arm,
+    ## android-arm64, android-x64, android-x86, linux-arm, linux-arm64,
+    ## linux-x64, osx-arm64 and osx-x64 -- and at most the one matching the
+    ## machine can ever be loaded. ThermoRawFileParser's own Mono.Unix.dll.config
+    ## maps the library to runtimes/linux-x64, runtimes/osx-x64 and
+    ## runtimes/osx-arm64, and to nothing else.
+    ##
+    ## Seven of the nine carry a .so, so CPackDeb hands all seven to
+    ## dpkg-shlibdeps and five are foreign on any given host; the two osx ones
+    ## are Mach-O and never reach it.
+    ##
+    ## The rest is not merely dead weight. Any foreign-architecture ELF in the
+    ## staging tree makes dpkg-shlibdeps fail with "cannot find library
+    ## libc.so.6 needed by ... (ELF format: ...)", an error --ignore-missing-info
+    ## does not cover, so CPack aborts before writing the .deb. That is what
+    ## forced CPACK_DEBIAN_PACKAGE_SHLIBDEPS off once already (on in #10202,
+    ## reverted in #10207). Install the RIDs this build targets and leave the
+    ## others behind; cmake/package_deb.cmake depends on that.
+    openms_target_dotnet_rids(_target_rids)
+    set(_foreign_rid_excludes)
+    set(_present_rids)
+    set(_kept_rids)
+    set(_runtimes_dir "${SEARCH_ENGINES_DIRECTORY}/${foldername}/runtimes")
+    file(GLOB _rid_entries RELATIVE "${_runtimes_dir}" "${_runtimes_dir}/*")
+    foreach(_rid IN LISTS _rid_entries)
+      if(NOT IS_DIRECTORY "${_runtimes_dir}/${_rid}")
+        continue()
+      endif()
+      list(APPEND _present_rids "${_rid}")
+      if("${_rid}" IN_LIST _target_rids)
+        list(APPEND _kept_rids "${_rid}")
+      else()
+        ## Matches the RID directory itself, so install() never descends into
+        ## it. The (/|$) tail is what keeps 'android-arm' from also matching
+        ## 'android-arm64'.
+        list(APPEND _foreign_rid_excludes REGEX "/runtimes/${_rid}(/|$)" EXCLUDE)
+      endif()
+    endforeach()
+    if(_present_rids AND NOT _kept_rids)
+      ## Nothing here this build could load, so drop the tree instead of leaving
+      ## an empty runtimes/ behind. Windows is that case: Mono.Unix is a Unix
+      ## helper and the vendored tool carries no win-* runtime at all.
+      set(_foreign_rid_excludes REGEX "/runtimes(/|$)" EXCLUDE)
+    endif()
+    if(_foreign_rid_excludes)
+      message(STATUS "${foldername}: installing .NET runtimes ${_kept_rids} of ${_present_rids}")
+    endif()
+
     install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/${foldername}
             DESTINATION           ${INSTALL_SHARE_DIR}/THIRDPARTY
             COMPONENT             ${foldername}
@@ -184,6 +286,7 @@ macro(install_thirdparty_folder foldername)
             DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE
                                   WORLD_READ WORLD_EXECUTE
+            ${_foreign_rid_excludes}
             REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
             REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
             )
