@@ -112,20 +112,35 @@ namespace OpenMS
     }
     os << " xsi:noNamespaceSchemaLocation=\"https://www.openms.de/xml-schema/IdXML_1_5.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
-    // look up different search parameters. SearchParameters::operator== ignores meta values, so runs
-    // collapse onto one block; the block carries the modification definitions of all of them.
+    // Look up different search parameters; runs that use the same ones share a block, which carries
+    // the modification definitions of all of them. SearchParameters::operator== compares the search
+    // settings only, but the per-engine provenance (SE:<engine>, <engine>:db, ...) lives in the meta
+    // values, and ProteinIdentification::getOriginalSearchEngineName() and ConsensusID read it from
+    // there. Runs that differ only in their meta values - e.g. several engines run with the same
+    // database and tolerances - therefore need their own block: sharing one would hand every run the
+    // meta values, and with them the search engine, of the first run.
     const auto definitions = ModificationDefinitionIO::collect(protein_ids, peptide_ids);
     std::vector<ProteinIdentification::SearchParameters> params;
     std::vector<std::set<const ResidueModification*>> params_defs;
-    for (std::vector<ProteinIdentification>::const_iterator it = protein_ids.begin(); it != protein_ids.end(); ++it)
+    std::vector<Size> params_of_run(protein_ids.size()); // the block each run references
+    for (Size i = 0; i != protein_ids.size(); ++i)
     {
-      const Size idx = static_cast<Size>(find(params.begin(), params.end(), it->getSearchParameters()) - params.begin());
+      const ProteinIdentification::SearchParameters& sp = protein_ids[i].getSearchParameters();
+      Size idx = 0;
+      for (; idx != params.size(); ++idx)
+      {
+        if (params[idx] == sp && static_cast<const MetaInfoInterface&>(params[idx]) == static_cast<const MetaInfoInterface&>(sp))
+        {
+          break;
+        }
+      }
       if (idx == params.size())
       {
-        params.push_back(it->getSearchParameters());
+        params.push_back(sp);
         params_defs.emplace_back();
       }
-      const auto d = definitions.find(it->getIdentifier());
+      params_of_run[i] = idx;
+      const auto d = definitions.find(protein_ids[i].getIdentifier());
       if (d != definitions.end()) params_defs[idx].insert(d->second.begin(), d->second.end());
     }
     for (Size i = 0; i != params.size(); ++i)
@@ -226,15 +241,9 @@ namespace OpenMS
       os << "date=\"" << protein_ids[i].getDateTime().getDate() << "T" << protein_ids[i].getDateTime().getTime() << "\" ";
       os << "search_engine=\"" << writeXMLEscape(protein_ids[i].getSearchEngine()) << "\" ";
       os << "search_engine_version=\"" << writeXMLEscape(protein_ids[i].getSearchEngineVersion()) << "\" ";
-      // identifier
-      for (Size j = 0; j != params.size(); ++j)
-      {
-        if (params[j] == protein_ids[i].getSearchParameters())
-        {
-          os << "search_parameters_ref=\"SP_" << j << "\" ";
-          break;
-        }
-      }
+      // identifier; the block was picked above - looking it up again would miss it, since attaching
+      // the modification definitions adds a meta value the run itself does not have
+      os << "search_parameters_ref=\"SP_" << params_of_run[i] << "\" ";
       os << ">\n";
       os << "\t\t<ProteinIdentification ";
       os << "score_type=\"" << writeXMLEscape(protein_ids[i].getScoreType()) << "\" ";
