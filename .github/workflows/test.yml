@@ -2,6 +2,16 @@ name: "Build and Test"
 
 on:
   workflow_dispatch:
+    inputs:
+      use_pch:
+        description: "Build OpenMS libraries with precompiled headers"
+        type: boolean
+        default: false
+      compiler_cache:
+        description: "Compiler cache storage"
+        type: choice
+        options: [github, archive]
+        default: github
   push:
     branches:
       - nightly
@@ -14,6 +24,36 @@ permissions:
   contents: read
 
 jobs:
+  pch-compatibility:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: egor-tensin/vs-shell@v2
+        if: runner.os == 'Windows'
+        with:
+          arch: x64
+      - name: Test PCH configuration and consumption
+        shell: bash
+        run: cmake -DBINARY_DIR="$RUNNER_TEMP/pch-test" -P src/tests/pch/run.cmake
+      - name: Install ccache for the MSVC launcher test
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tools/ci/setup_pch_ccache.ps1
+      - name: Test MSVC PCH with ccache
+        if: runner.os == 'Windows'
+        shell: bash
+        env:
+          CCACHE_SLOPPINESS: pch_defines,time_macros
+        run: |
+          cmake -DBINARY_DIR="$RUNNER_TEMP/pch-ccache-test" \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -P src/tests/pch/run.cmake
+
   header-set-compatibility:
     runs-on: ubuntu-24.04
     steps:
@@ -59,6 +99,8 @@ jobs:
         uses: ./.github/actions/build
         with:
           compiler: ${{ matrix.compiler }}
+          use_pch: ${{ inputs.use_pch && 'true' || 'false' }}
+          compiler_cache: ${{ inputs.compiler_cache || 'github' }}
           ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
           ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}

@@ -10,6 +10,7 @@
 include(CMakeParseArguments)
 include(GenerateExportHeader)
 include(CheckLibArchitecture)
+include(${CMAKE_CURRENT_LIST_DIR}/precompiled_headers.cmake)
 
 #------------------------------------------------------------------------------
 ## export a single option indicating if libraries should be build as unity
@@ -157,6 +158,7 @@ function(openms_add_library)
 
   # Add compiler flags using the new helper function
   openms_add_library_compiler_flags(${openms_add_library_TARGET_NAME})
+  openms_add_precompiled_headers(${openms_add_library_TARGET_NAME})
 
   if(ADDRESS_SANITIZER)
     add_asan_to_target(${openms_add_library_TARGET_NAME})

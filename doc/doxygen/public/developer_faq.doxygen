@@ -56,6 +56,60 @@
  
  View the description for each option by calling <code>ccmake</code>.
 
+ @subsection precompiled_headers Can I speed up builds with precompiled headers?
+
+ Configure with <code>-DOPENMS_USE_PCH=ON</code> (default: OFF), for example:
+ @code{.sh}
+ cmake --preset windows-x64-release -DOPENMS_USE_PCH=ON
+ cmake --build --preset windows-x64-release
+ @endcode
+
+ This precompiles commonly used standard-library headers separately for each OpenMS
+ library and build configuration. CMake manages rebuilding them when their inputs
+ change. The PCH is private: installed targets do not require it, and tools, tests,
+ third-party libraries and Python bindings retain their existing build settings.
+ Keep normal source includes even when PCH is enabled. Public-header verification
+ and the default build without PCH continue to detect missing includes.
+ Individual sources can opt out with the CMake source property
+ <code>SKIP_PRECOMPILE_HEADERS</code>; a target can use
+ <code>DISABLE_PRECOMPILE_HEADERS</code>.
+
+ Compare complete clean builds and incremental builds on the same machine before
+ enabling PCH by default. A fresh CI runner can benefit: it builds each PCH once
+ and reuses it for many source files. PCH construction, memory use and compiler
+ cache hit rates also affect the result.
+
+ @subsection precompiled_header_caching Can the PCH be cached on archive.openms.de?
+
+ Do not copy a build tree or raw PCH files between CI runners. In particular,
+ <a href="https://learn.microsoft.com/en-us/cpp/build/creating-precompiled-header-files#precompiled-header-consistency-rules">MSVC documents PCH files as machine-specific</a>.
+ Compiler versions, flags, macros, runtime configuration and header inputs must
+ match as well. Rebuild the PCH locally on each runner.
+
+ The <code>Build and Test</code> workflow has manual <code>use_pch</code> and
+ <code>compiler_cache</code> inputs. Selecting <code>archive</code> stores
+ <code>.ccache</code> through the same pinned rsync-cache action used for vcpkg,
+ under <code>openms/ccache/</code>. The transport key separates operating system,
+ architecture, compiler version, PCH mode and vcpkg manifests. ccache checks each
+ compilation's inputs; the transport key alone is not a validity check.
+ Only successful trusted branch jobs publish the archive cache. Other branches
+ and pull requests use the action's public HTTP read fallback. The default
+ <code>github</code> backend retains the existing GitHub Actions cache.
+
+ <a href="https://ccache.dev/releasenotes.html">Recent ccache releases support MSVC PCH</a>;
+ use ccache 4.14 or newer for the toolset-invalidation and path-handling fixes.
+ With MSVC and a direct <code>ccache</code> C++ launcher, OpenMS bypasses ccache
+ only when creating the PCH (<code>/Yc</code>). Object compilations that consume
+ it (<code>/Yu</code>) retain ccache. The PCH itself stays local, and ccache hashes
+ it when checking consuming objects. With any supported compiler, set
+ <code>CCACHE_SLOPPINESS=pch_defines,time_macros</code> when using PCH with ccache.
+ This relaxes checks for preprocessor definitions and time macros, so avoid
+ changing PCH configuration through per-source macros. The manual CI PCH mode
+ sets this explicitly; local builds retain the user's ccache configuration.
+ OpenMS adds Clang's <code>-fno-pch-timestamp</code> option when the direct
+ launcher is ccache. A newly generated PCH can change consuming objects' cache
+ keys, so warm-cache builds may be faster with PCH disabled; measure both modes.
+
  @subsection can_i_use_another_solver Which LP solvers are supported?
 
  OpenMS supports three LP solvers: GLPK, COIN-OR, and HiGHS.

@@ -7,6 +7,12 @@ inputs:
   macosx_deployment_target:
     description: "Used to override -macos-version-min on macOS"
     default: 14.0
+  use_pch:
+    description: "Build private precompiled headers for OpenMS libraries"
+    default: "false"
+  compiler_cache:
+    description: "Compiler cache storage: github or archive (rsync)"
+    default: "github"
   ssh_key:
     description: "SSH private key for the rsync cache archive"
     required: false
@@ -30,6 +36,15 @@ runs:
   using: "composite"
   steps:
 
+    - name: Validate build options
+      shell: bash
+      env:
+        OPENMS_CI_PCH: ${{ inputs.use_pch }}
+        OPENMS_CI_CACHE: ${{ inputs.compiler_cache }}
+      run: |
+        case "$OPENMS_CI_PCH" in true|false) ;; *) echo "Invalid use_pch value" >&2; exit 1 ;; esac
+        case "$OPENMS_CI_CACHE" in github|archive) ;; *) echo "Invalid compiler_cache value" >&2; exit 1 ;; esac
+
     ############################################################################
     # NOTE: x64 is hardcoded. No support for 32bit.
     - name: Emulate a Visual Studio shell (Windows)
@@ -47,6 +62,11 @@ runs:
         ssh_host: ${{ inputs.ssh_host }}
         ssh_port: ${{ inputs.ssh_port }}
         ssh_user: ${{ inputs.ssh_user }}
+
+    - name: Set up ccache for MSVC PCH
+      if: runner.os == 'Windows' && inputs.use_pch == 'true'
+      shell: pwsh
+      run: ./tools/ci/setup_pch_ccache.ps1
 
     ############################################################################
     - name: Compute the Compiler Version
@@ -135,6 +155,7 @@ runs:
     # ladder still finds the most recent cache by prefix.
     - name: Try to Fetch Existing Build Cache
       id: ccache-restore
+      if: inputs.compiler_cache == 'github'
       uses: actions/cache/restore@v5
       with:
         path: .ccache
@@ -155,6 +176,21 @@ runs:
           ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-develop-
           ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-
 
+    # Cache compiler output, never a build tree or MSVC .pch files. The action
+    # falls back to public HTTP reads without an SSH key. Only trusted branch
+    # builds publish to this shared cache; PR jobs have no archive write key.
+    - name: Restore compiler cache from archive
+      if: inputs.compiler_cache == 'archive'
+      uses: OpenMS/ci-tools/actions/rsync-cache@b0622a9a8ecfe12fa6e896795f45fddad12faa6c
+      with:
+        name: ccache
+        path: ${{ github.workspace }}/.ccache
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.ver }}-pch-${{ inputs.use_pch }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+        ssh_key: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule') && github.ref_type == 'branch' && (github.ref_name == github.event.repository.default_branch || github.ref_name == 'nightly' || startsWith(github.ref_name, 'release/')) && inputs.ssh_key || '' }}
+        ssh_host: ${{ inputs.ssh_host }}
+        ssh_port: ${{ inputs.ssh_port }}
+        ssh_user: ${{ inputs.ssh_user }}
+
     ############################################################################
     - name: Configure Build Caching
       id: ccache-configure
@@ -168,6 +204,7 @@ runs:
         # repository and it has to cover five build jobs plus the ~1.6 GB
         # Windows contrib cache.
         maxsize: ${{ runner.os == 'Windows' && '2G' || '1G' }}
+        OPENMS_CI_PCH: ${{ inputs.use_pch }}
       run: |
         mkdir -p "$GITHUB_WORKSPACE/.ccache"
 
@@ -178,6 +215,12 @@ runs:
           echo "CCACHE_MAXSIZE=$maxsize"
           echo "CMAKE_C_COMPILER_LAUNCHER=ccache"
           echo "CMAKE_CXX_COMPILER_LAUNCHER=ccache"
+
+          # PCH use requires these explicit relaxations in ccache. Keep them
+          # opt-in along with the PCH build itself.
+          if [ "$OPENMS_CI_PCH" = true ]; then
+            echo "CCACHE_SLOPPINESS=pch_defines,time_macros"
+          fi
 
         } >>"$GITHUB_ENV"
 
@@ -221,6 +264,7 @@ runs:
         SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
         # FIXME: Do we actually need this?
         MACOSX_DEPLOYMENT_TARGET: "${{ inputs.macosx_deployment_target }}"
+        OPENMS_CI_PCH: ${{ inputs.use_pch }}
         #-DOPENMS_CONTRIB_LIBS, -DYOPENMS and DBOOST_USE_STATIC are dropped since
         # pyOpenMS is not build in this workflow and BOOST_USE_STATIC is already set
         # in CMakePresets.json.
@@ -231,6 +275,7 @@ runs:
         cmake --preset "${{ steps.preset.outputs.name }}" \
           -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
           -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install" \
+          -DOPENMS_USE_PCH="$OPENMS_CI_PCH"
 
         cmake --build --preset "${{ steps.preset.outputs.name }}" --verbose
 
@@ -279,7 +324,7 @@ runs:
     # Test failures still save: the build was complete by then, so the cache is
     # too, and a red test says nothing about the objects.
     - name: Save Build Cache
-      if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+      if: ${{ !cancelled() && inputs.compiler_cache == 'github' && steps.build.outcome == 'success' }}
       uses: actions/cache/save@v5
       with:
         path: .ccache
