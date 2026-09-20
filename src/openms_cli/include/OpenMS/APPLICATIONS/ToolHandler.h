@@ -23,9 +23,9 @@ namespace OpenMS
     @brief Registry of TOPP tools and their TOPPAS categories.
 
     The registry is @em data, not code: it is assembled from the tab-separated @c .tsv files
-    under @ref getToolRegistryPath (@c [OpenMS share]/TOOLS plus an OS-specific subdirectory,
-    @c .../LINUX on Mac and Linux and @c .../WINDOWS on Windows). The search path can be
-    augmented through the @c OPENMS_TOOL_REGISTRY_PATH environment variable
+    under @ref ToolHandler::getToolRegistryPath (@c [OpenMS share]/TOOLS plus an OS-specific
+    subdirectory, @c .../LINUX on Mac and Linux and @c .../WINDOWS on Windows). The search
+    path can be augmented through the @c OPENMS_TOOL_REGISTRY_PATH environment variable
     (@c OPENMS_TTD_INTERNAL_PATH, its name in earlier releases, is still read as well). A
     directory that the search reaches twice contributes its files once.
 
