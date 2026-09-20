@@ -14,14 +14,8 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 
-#include <boost/random/mersenne_twister.hpp> // for mt19937_64
-#include <boost/random/uniform_int.hpp>
 #include <cmath>
-#include <boost/math/special_functions/binomial.hpp>
-#include <boost/math/special_functions/gamma.hpp>
-#include <boost/math/special_functions/log1p.hpp>
-#include <boost/math/distributions/binomial.hpp>
-#include <boost/math/distributions/complement.hpp>
+#include <memory>
 #include <limits>
 #include <utility> // for std::pair
 #include <vector>
@@ -473,36 +467,33 @@ namespace Math
     return (1.0 - h) * qs + h * x[hi];
   }
 
-  // portable random shuffle
+  /// Portable random shuffle with a reproducible, platform-independent random sequence.
   class OPENMS_DLLAPI RandomShuffler
   {
   public:
-    explicit RandomShuffler(int seed): rng_(boost::mt19937_64(seed))
-    {
-    }
+    RandomShuffler();
+    explicit RandomShuffler(int seed);
+    RandomShuffler(const RandomShuffler& other);
+    RandomShuffler(RandomShuffler&& other) noexcept;
+    RandomShuffler& operator=(const RandomShuffler& other);
+    RandomShuffler& operator=(RandomShuffler&& other) noexcept;
+    ~RandomShuffler();
 
-    explicit RandomShuffler(const boost::mt19937_64& mt_rng): rng_(mt_rng)
-    {
-    }
-
-    RandomShuffler() = default;
-    ~RandomShuffler() = default;
-
-    boost::mt19937_64 rng_;
     template<class RandomAccessIterator>
     void portable_random_shuffle(RandomAccessIterator first, RandomAccessIterator last)
     {
-      for (auto i = (last - first) - 1; i > 0; --i) // OMS_CODING_TEST_EXCLUDE
+      for (auto i = last - first; i > 1; --i)
       {
-        boost::uniform_int<decltype(i)> d(0, i);
-        std::swap(first[i], first[d(rng_)]);
+        std::iter_swap(first + i - 1, first + randomIndex_(i - 1));
       }
     }
 
-    void seed(uint64_t val)
-    {
-      rng_.seed(val);
-    }
+    void seed(uint64_t value);
+
+  private:
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
+    std::ptrdiff_t randomIndex_(std::ptrdiff_t upper);
   };
 
   /**
@@ -513,27 +504,7 @@ namespace Math
    * @return Natural logarithm of binomial coefficient C(n,k)
    * @throws std::invalid_argument if k > n
    */
-  inline double log_binomial_coef(unsigned n, unsigned k) 
-  {
-    // Handle edge cases for improved numerical stability
-    if (k > n) 
-    {
-      throw std::invalid_argument("k cannot be greater than n in binomial coefficient");
-    }
-    
-    if (k == 0 || k == n) 
-    {
-      return 0.0;  // log(1) = 0
-    }
-    
-    // Use symmetry to minimize computation for large k
-    if (k > n / 2) 
-    {
-      k = n - k;
-    }
-    
-    return boost::math::lgamma(n + 1.0) - boost::math::lgamma(k + 1.0) - boost::math::lgamma(n - k + 1.0);
-  }
+  OPENMS_DLLAPI double log_binomial_coef(unsigned n, unsigned k);
 
   /**
    * @brief Log-sum-exp operation for numerical stability
@@ -565,23 +536,6 @@ namespace Math
    * @return Probability P(X ≥ n) for binomial distribution B(N,p)
    * @throws std::invalid_argument if parameters are invalid
    */
-  inline double binomial_cdf_complement(unsigned N, unsigned n, double p)
-  {
-    if (p < 0.0 || p > 1.0)
-    {
-      throw std::invalid_argument("Probability p must be between 0 and 1");
-    }
-    if (n > N)
-    {
-      throw std::invalid_argument("n cannot be greater than N");
-    }
-
-    if (n == 0)   return 1.0;                // P(X ≥ 0) = 1
-    if (p == 0.0) return (n == 0) ? 1.0 : 0.0;
-    if (p == 1.0) return 1.0;               // all mass at N
-
-    const boost::math::binomial_distribution<double> dist(N, p);
-    return boost::math::cdf(boost::math::complement(dist, n - 1));
-  }
+  OPENMS_DLLAPI double binomial_cdf_complement(unsigned N, unsigned n, double p);
 } // namespace Math
 } // namespace OpenMS

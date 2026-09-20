@@ -385,16 +385,13 @@ namespace OpenMS
         const auto first_channel = *cf.getFeatures().begin();                  
         std::string filename = File::basename(map.getColumnHeaders()[first_channel.getMapIndex()].filename); // all channels are associated with same file in TMT/iTRAQ
 
-        boost::regex scanregex{""};
+        RegularExpression scanregex {""};
         std::string cf_scan_id_key_name = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? "id_scan_id" : "scan_id";
         std::string cf_scan_id = StringUtils::toStr(cf.getMetaValue(cf_scan_id_key_name, ""));
         if (!cf_scan_id.empty()) 
         {
           // This assumes all scan_ids are of the same structure
-          if (lookForScanNrsAsIntegers && scanregex.empty())
-          {
-            scanregex = SpectrumLookup::getRegExFromNativeID(cf_scan_id);
-          }
+          if (lookForScanNrsAsIntegers && scanregex.empty()) { scanregex.assign(SpectrumLookup::getRegExFromNativeID(cf_scan_id)); }
           if (auto run_it = file2nativeid2pepid.find(filename); run_it != file2nativeid2pepid.end()) // TMT/iTRAQ run has identifications
           {
             if (auto scanid_it = run_it->second.find(cf_scan_id); scanid_it != run_it->second.end()) // TMT/iTRAQ run has scan_id with identification

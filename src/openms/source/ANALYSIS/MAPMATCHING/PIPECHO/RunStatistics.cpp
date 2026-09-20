@@ -6,6 +6,7 @@
 // $Authors: Peter J. Jones $
 // --------------------------------------------------------------------------
 
+#include <boost/math/distributions/normal.hpp>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>

@@ -8,10 +8,10 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include <boost/array.hpp>
-#include <boost/functional/hash.hpp>
-#include <boost/unordered/unordered_map.hpp>
 #include <cmath>
+#include <unordered_map>
+#include <functional>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <iterator>
 #include <limits>
 
@@ -48,12 +48,25 @@ namespace OpenMS
     /**
      * @brief Contents of a cell.
      */
-    typedef typename boost::unordered_multimap<ClusterCenter, Cluster> CellContent;
+    struct PositionHash
+    {
+      template<typename T>
+      std::size_t operator()(const DPosition<2, T>& position) const noexcept
+      {
+        std::size_t result = 0;
+        for (const auto coordinate : position)
+        {
+          OpenMS::hash_combine(result, std::hash<T> {}(coordinate));
+        }
+        return result;
+      }
+    };
+    typedef std::unordered_multimap<ClusterCenter, Cluster, PositionHash> CellContent;
 
     /**
      * @brief Map of (cell-index, cell-content).
      */
-    typedef boost::unordered_map<CellIndex, CellContent> Grid;
+    typedef std::unordered_map<CellIndex, CellContent, PositionHash> Grid;
 
     typedef typename CellContent::key_type key_type;
     typedef typename CellContent::mapped_type mapped_type;
@@ -501,7 +514,7 @@ namespace OpenMS
   template<UInt N, typename T>
   std::size_t hash_value(const DPosition<N, T>& b)
   {
-    boost::hash<T> hasher;
+    std::hash<T> hasher;
     std::size_t hash = 0;
     for (typename DPosition<N, T>::const_iterator it = b.begin(); it != b.end(); ++it)
       hash ^= hasher(*it);

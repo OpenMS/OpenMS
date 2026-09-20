@@ -30,6 +30,7 @@ openms_add_library(TARGET_NAME OpenMS_GUI
                    HEADER_FILES ${OpenMSVisual_sources_h}
                    BASE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES
+                   PRIVATE_LINK_LIBRARIES Boost::boost
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/VISUAL/"
                    EXPORT_SET ${OPENMS_GUI_EXPORT_SET})

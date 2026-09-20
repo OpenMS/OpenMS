@@ -8,10 +8,10 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/ID/IDDataContainer.h>
+
 #include <OpenMS/METADATA/ID/ObservationMatch.h>
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
 
 namespace OpenMS
 {
@@ -64,13 +64,8 @@ namespace OpenMS
       }
     };
 
-    typedef boost::multi_index_container<
-      ObservationMatchGroup,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<
-          boost::multi_index::member<ObservationMatchGroup, std::set<ObservationMatchRef>,
-                                     &ObservationMatchGroup::observation_match_refs>>>
-      > ObservationMatchGroups;
+    using ObservationMatchGroups = IDDataContainer<ObservationMatchGroup, std::set<ObservationMatchRef>, std::set<ObservationMatchRef>>;
+    extern template class OPENMS_DLLAPI IDDataContainer<ObservationMatchGroup, std::set<ObservationMatchRef>, std::set<ObservationMatchRef>>;
     typedef IteratorWrapper<ObservationMatchGroups::iterator> MatchGroupRef;
   }
 }

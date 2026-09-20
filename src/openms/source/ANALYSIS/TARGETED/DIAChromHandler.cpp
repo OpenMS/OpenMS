@@ -7,6 +7,7 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
+#include <boost/numeric/conversion/cast.hpp>
 #include <OpenMS/ANALYSIS/TARGETED/DIAChromHandler.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>

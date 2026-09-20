@@ -9,6 +9,7 @@
 #pragma once
 
 // Datastructures
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
@@ -508,7 +509,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_consumers_size); i++)
+      for (SignedSize i = 0; i < OpenMS::checkedCast<SignedSize>(swath_consumers_size); i++)
       {
         std::shared_ptr<PeakMap > exp(new PeakMap);
         std::string meta_file = cachedir_ + basename_ + "_" + StringUtils::toStr(i) +  ".mzML";
