@@ -1529,6 +1529,9 @@ Fixes:
     - QPX export names the offending values when it refuses a duplicated primary key, and says
       whether the duplicate is a repeated identification or a run/scan value that does not
       identify a spectrum, instead of only reporting a Parquet row index (#9895).
+    - The mzML writer escapes the name of a non-standard data array and the fraction identifier.
+      An & or < in either - they are taken verbatim from the data - produced a file that no reader
+      could parse, including the OpenMS one (#10148).
     - FileMerger renamed the merged spectra but left precursor spectrumRef attributes pointing to the
       original native IDs, so MS2 spectra lost the link to their parent scan and the mzML output
       failed schema validation. The references are now updated together with the IDs (#10200).
