@@ -1529,6 +1529,11 @@ Fixes:
     - QPX export names the offending values when it refuses a duplicated primary key, and says
       whether the duplicate is a repeated identification or a run/scan value that does not
       identify a spectrum, instead of only reporting a Parquet row index (#9895).
+    - idXML keeps the search parameter meta values of every identification run. Runs whose search
+      settings are equal shared one <SearchParameters> block, and the block carried the meta values
+      of the first run only, so after reading such a file back every run reported the search engine
+      of the first one (SE:<engine>) - e.g. several engines run with the same database and
+      tolerances, merged into one file (#10318).
     - FileMerger renamed the merged spectra but left precursor spectrumRef attributes pointing to the
       original native IDs, so MS2 spectra lost the link to their parent scan and the mzML output
       failed schema validation. The references are now updated together with the IDs (#10200).
