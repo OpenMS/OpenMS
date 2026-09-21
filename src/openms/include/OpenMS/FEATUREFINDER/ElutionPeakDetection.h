@@ -137,6 +137,9 @@ private:
     /// Whether to apply S/N filtering
     bool mt_snr_filtering_;
 
+    /// How far a valley must fall below both neighbouring maxima to split there
+    double min_valley_depth_;
+
     /// Main function to do the work
     void detectElutionPeaks_(MassTrace&, std::vector<MassTrace>&);
   };

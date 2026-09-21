@@ -39,6 +39,8 @@ namespace OpenMS
     defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", {"advanced"});
     defaults_.setValidStrings("masstrace_snr_filtering", {"true","false"});
 
+    defaults_.setValue("min_valley_depth", 2.0, "EXPERIMENT: how far a valley must fall below both neighbouring maxima to split.", {"advanced"});
+
     defaultsToParam_();
     this->setLogType(CMD);
   }
@@ -275,8 +277,8 @@ namespace OpenMS
         // 2.4 Decide whether to split the masstrace (introduce a minimum):
         // i)  the maxima intensity should be at least 2x above the minimum for a split
         // ii) check that splitting the trace would not create peaks smaller than min_dist 
-        if (left_max_int / min_int >= 2.0
-           && right_max_int / min_int >= 2.0
+        if (left_max_int / min_int >= min_valley_depth_
+           && right_max_int / min_int >= min_valley_depth_
            && left_dist >= min_dist
            && right_dist >= min_dist)
         {
@@ -629,6 +631,7 @@ namespace OpenMS
 
     pw_filtering_ = param_.getValue("width_filtering").toString();
     mt_snr_filtering_ = param_.getValue("masstrace_snr_filtering").toBool();
+    min_valley_depth_ = (double)param_.getValue("min_valley_depth");
   }
 
 } //namespace OpenMS
