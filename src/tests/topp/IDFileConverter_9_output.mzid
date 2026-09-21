@@ -180,17 +180,6 @@
 			</SpectrumIdentificationResult>
 		</SpectrumIdentificationList>
 		<SpectrumIdentificationList id="SIL_7804704400743266335">
-			<FragmentationTable>
-				<Measure id="Measure_mz">
-					<cvParam accession="MS:1001225" cvRef="PSI-MS" unitCvRef="PSI-MS" unitName="m/z" unitAccession="MS:1000040" name="product ion m/z"/>
-				</Measure>
-				<Measure id="Measure_int">
-					<cvParam cvRef="PSI-MS" accession="MS:1001226" name="product ion intensity" unitAccession="MS:1000131" unitCvRef="UO" unitName="number of detector counts"/>
-				</Measure>
-				<Measure id="Measure_error">
-					<cvParam cvRef="PSI-MS" accession="MS:1001227" name="product ion m/z error" unitAccession="MS:1000040" unitCvRef="PSI-MS" unitName="m/z"/>
-				</Measure>
-			</FragmentationTable>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_13440783915218733453" spectrumID="17" id="SIR_16907355690727166316">
 				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="PEP_10306100746905639127" calculatedMassToCharge="956.468357540270972" experimentalMassToCharge="675.899999999999977" chargeState="1" id="SII_14811341817612382122">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_12524258085768770586"/>

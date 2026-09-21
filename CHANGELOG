@@ -45,10 +45,10 @@ General:
 
 Dependencies:
   - Minimum versions: CMake 3.24, Eigen 3.4.0, Boost 1.81, Arrow/Parquet 23 and nanobind
-    3.0.1. Arrow/Parquet is required on all platforms; WITH_PARQUET was removed and
+    3.1. Arrow/Parquet is required on all platforms; WITH_PARQUET was removed and
     versions 24+ are accepted. Compiler minimums are checked before vcpkg runs
     (#8366, #8370, #8422, #8679, #8699, #8991, #9042, #9095, #9196, #9221, #10112,
-    #10133).
+    #10133, #10221).
   - Qt6 is required only with WITH_GUI=ON. Core/non-GUI code now uses standard C++ and
     platform APIs, libcurl for HTTP, boost-process for subprocesses and nlohmann/json.
     ZIP support uses libzip instead of minizip-ng. ExecutePipeline, INIUpdater and
@@ -159,12 +159,12 @@ PyOpenMS:
     OpenMS build still requires no more than CMake 3.24. Configure with
     -DPYOPENMS_SPLIT_MODE=OFF for interpreter-specific modules; that mode refuses to
     produce a wheel, which would otherwise be mislabelled abi3.
-  - BREAKING (source builds): nanobind 3.0.1 or newer is required; nanobind 2.x no longer
+  - BREAKING (source builds): nanobind 3.1 or newer is required; nanobind 2.x no longer
     works. The custom type casters follow the nanobind 3 caster protocol, whose
     from_python() takes uint32_t instead of uint8_t flags. pyproject.toml asks for
-    nanobind>=3.0.1,<4 and py-build-cmake~=0.5.1, and the CMake fallback fetches nanobind
-    v3.0.1. nanobind discovery enforces that minimum instead of accepting whatever
-    find_package() returns, and reports the version it selected (#10133).
+    nanobind>=3.1,<4 and py-build-cmake~=0.5.1, and the CMake fallback fetches nanobind
+    v3.1.0. nanobind discovery enforces that minimum instead of accepting whatever
+    find_package() returns, and reports the version it selected (#10133, #10221).
   - BREAKING: Python 3.10 is no longer supported. Wheels and source builds require
     Python 3.11 or newer; the wheel matrix covers 3.11 to 3.14. With 3.10 gone, pandas 3
     is the floor for DataFrame support (the dataframes/all extras and the test
@@ -761,6 +761,9 @@ Fixes:
       columns. SampleSection::getFactorValue throws MissingInformation for a row without a value
       for the factor instead of reading past its end (#10148).
   Robustness:
+    - mzIdentML output with more than one identification run repeated the Measure ids
+      (Measure_mz, Measure_int, Measure_error) in every SpectrumIdentificationList and failed schema
+      validation; the Measure definitions are now written once.
     - Chromatograms built from MS1 spectra (FileConverter -convert_to_chromatograms, e.g. on GC-MS/SIM
       data) had no native ID, so the mzML output contained many chromatograms with id="" and failed
       schema validation. They are now named "XIC mz=<m/z>".
@@ -797,6 +800,11 @@ Fixes:
       scanned length as int; for inputs longer than INT_MAX characters the value wrapped
       negative, and removeWhitespaces() then built its iterators from it, reading and writing
       before the start of the buffer. Both now return size_t (#10171).
+    - FileConverter: converting spectra to consensusXML/consensusparquet kept only as many of the
+      most intense MS1 peaks as the input had spectra. It now writes one consensus feature per MS1
+      peak (more memory and runtime for large files); equal intensities are ordered by RT and m/z,
+      so the output no longer depends on the platform, and every feature gets its own unique ID
+      (previously all were written as "e_0", which is invalid consensusXML) (#10161).
     - BaseFeature::sortPeptideIdentifications() no longer reads the first hit of an
       identification without hits (a crash for hit-less identifications loaded from featureXML,
       e.g. in FeatureLinkerUnlabeledQT with use_identifications), sorts the hits of every
