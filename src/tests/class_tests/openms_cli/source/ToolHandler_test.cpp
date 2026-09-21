@@ -47,8 +47,9 @@ START_SECTION((static ToolListType getTOPPToolList()))
   // the key and the description's own name are the same thing: the name the registry entry declares
   TEST_EQUAL(list.find("DecoyDatabase")->second.name, "DecoyDatabase")
   TEST_EQUAL(list.find("QCShrinker")->second.name, "QCShrinker")
-  // a tool of a build option is listed only by a build that has the option, because
-  // ToolHandler reads that option's registry file only then
+  // a tool behind a build option is listed only by a build that has the option: the
+  // openms_topp_tool() declaration is inside that option's if(), so a build without it
+  // neither builds the tool nor writes it to the generated registry
 #ifdef WITH_GUI
   TEST_TRUE(list.find("ImageCreator") != list.end())
 #else
