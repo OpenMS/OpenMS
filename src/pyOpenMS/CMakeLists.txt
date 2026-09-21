@@ -323,8 +323,8 @@ else()
   # bindings/type_casters/ implement the nanobind 3 caster protocol
   # (from_python(handle, uint32_t, cleanup_list *)). Keep the minimum in sync
   # with the nanobind requirement in pyproject.toml.
-  set(PYOPENMS_NANOBIND_MIN_VERSION "3.0.1")
-  set(PYOPENMS_NANOBIND_FETCH_TAG "v3.0.1")
+  set(PYOPENMS_NANOBIND_MIN_VERSION "3.1")
+  set(PYOPENMS_NANOBIND_FETCH_TAG "v3.1.0")
 
   if(COMMAND nanobind_add_module)
     # An enclosing project already set nanobind up. Check it instead of silently
@@ -384,7 +384,7 @@ else()
     endif()
 
     # Request the minimum explicitly: nanobind ships a SameMajorVersion config,
-    # so this accepts >= 3.0.1 and < 4 and rejects an installed 2.x, which the
+    # so this accepts >= 3.1 and < 4 and rejects an installed 2.x, which the
     # previous unversioned find_package would have selected.
     find_package(nanobind ${PYOPENMS_NANOBIND_MIN_VERSION} CONFIG QUIET)
     if(nanobind_FOUND)
