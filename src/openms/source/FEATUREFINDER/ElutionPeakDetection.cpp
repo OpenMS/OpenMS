@@ -27,26 +27,45 @@ namespace OpenMS
     /**
       @brief Is this split fragment only the flank of the peak next to it?
 
-      Elution peak detection cuts a mass trace at the minima between its maxima. A fragment
-      whose apex is one of the two cut points is the rising or falling side of the fragment
-      across that cut, not a peak of its own: the signal keeps climbing into the neighbour.
-      Reported on its own it becomes a feature positioned at the very edge of its RT range,
-      tens of seconds away from the elution maximum it belongs to (issue #2777).
+      Elution peak detection cuts a mass trace at the minima between its maxima, and a fragment
+      whose apex falls on one of those cut points was reported as a trace of its own. Such a
+      fragment can be the rising or falling side of the peak across the cut, which reported on
+      its own becomes a feature positioned at the edge of its RT range (issue #2777).
 
-      Only a boundary shared with another fragment counts. At the outer ends of the parent
-      trace nothing continues, so an apex there means the peak is merely sampled too sparsely
-      to put the maximum in the interior -- a real peak, and one that is kept.
+      The fragment-relative position of the apex does not establish that on its own. The split
+      loop puts the minimum at the END of the left fragment, so the right fragment starts one
+      sample past the minimum and its first sample is normally a genuine maximum. The apex is
+      therefore checked against the parent trace, across the cut: only when the neighbouring
+      sample shows the signal still climbing is the fragment a flank rather than a peak.
 
       @param mt The fragment
+      @param parent_smoothed Smoothed intensities of the trace the fragment was cut from
+      @param offset Index of the fragment's first point within the parent trace
       @param frag_idx Index of the fragment within the parent trace
       @param frag_count Number of fragments the parent was cut into
     */
-    bool isSplitBoundaryFlank(const MassTrace& mt, Size frag_idx, Size frag_count)
+    bool isSplitBoundaryFlank(const MassTrace& mt, const std::vector<double>& parent_smoothed,
+                              Size offset, Size frag_idx, Size frag_count)
     {
       const Size apex_idx = mt.findMaxByIntPeak(true);
-      const bool continues_left = (frag_idx > 0);
-      const bool continues_right = (frag_idx + 1 < frag_count);
-      return (apex_idx == 0 && continues_left) || (apex_idx + 1 == mt.getSize() && continues_right);
+      const bool on_shared_start = (apex_idx == 0 && frag_idx > 0);
+      const bool on_shared_end = (apex_idx + 1 == mt.getSize() && frag_idx + 1 < frag_count);
+      if (!on_shared_start && !on_shared_end)
+      {
+        return false;
+      }
+
+      const Size parent_idx = offset + apex_idx;
+      if (parent_idx >= parent_smoothed.size())
+      {
+        return false;
+      }
+      const double here = parent_smoothed[parent_idx];
+      const double left = (parent_idx > 0) ? parent_smoothed[parent_idx - 1] : -1.0;
+      const double right = (parent_idx + 1 < parent_smoothed.size()) ? parent_smoothed[parent_idx + 1] : -1.0;
+
+      // a genuine maximum of the parent trace is a peak of its own, cut or not
+      return !(here > left && here > right);
     }
   }
 
@@ -521,6 +540,7 @@ namespace OpenMS
         // *********************************************************************
         std::vector<PeakType> tmp_mt;
         std::vector<double> smoothed_tmp;
+        const Size frag_offset = last_idx; // where this fragment starts inside the parent trace
         while (last_idx <= mins[min_idx])
         {
           tmp_mt.push_back(*cp_it);
@@ -544,7 +564,8 @@ namespace OpenMS
         // *********************************************************************
         // Step 3.2: discard fragments that are only the flank of a neighbouring peak
         // *********************************************************************
-        if (require_resolved_apex_ && isSplitBoundaryFlank(new_mt, min_idx, mins.size()))
+        if (require_resolved_apex_ &&
+            isSplitBoundaryFlank(new_mt, mt.getSmoothedIntensities(), frag_offset, min_idx, mins.size()))
         {
           pw_ok = false;
         }
