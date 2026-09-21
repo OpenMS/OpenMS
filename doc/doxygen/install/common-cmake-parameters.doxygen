@@ -171,8 +171,7 @@ The most important CMake variables are:
     published with every openms-thermo-bridge release) or
     <code>-DOPENMS_THERMO_BRIDGE_DOWNLOAD_PREBUILT_MANAGED=ON</code>; the native bridge then only needs the
     nethost headers from a .NET SDK / host pack.
-    Disabled automatically on Linux/aarch64 targets.
-    (Default: On on supported platforms)</td>
+    (Default: On)</td>
   </tr>
   <tr>
     <th valign="top">ENABLE_THERMO_RAW_TESTS=On/Off</td>
