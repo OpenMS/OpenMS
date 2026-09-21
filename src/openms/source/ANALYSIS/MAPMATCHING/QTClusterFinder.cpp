@@ -8,6 +8,7 @@
 
 #include <boost/heap/fibonacci_heap.hpp>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+#include <OpenMS/ML/CLUSTERING/HashGrid.h>
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -32,6 +33,10 @@ struct QTClusterFinder::Heap : boost::heap::fibonacci_heap<QTCluster>
 };
 struct QTClusterFinder::HeapHandles : std::vector<Heap::handle_type>
 {
+};
+struct QTClusterFinder::Grid : HashGrid<OpenMS::GridFeature*>
+{
+  using HashGrid<OpenMS::GridFeature*>::HashGrid;
 };
 
   QTClusterFinder::QTClusterFinder() :

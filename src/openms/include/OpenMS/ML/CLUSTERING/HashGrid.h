@@ -8,12 +8,17 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
+#include <boost/functional/hash.hpp>
+#include <boost/unordered/unordered_map.hpp>
 #include <cmath>
-#include <unordered_map>
-#include <functional>
-#include <OpenMS/CONCEPT/HashUtils.h>
 #include <iterator>
 #include <limits>
+
+// Boost.Unordered, not std::unordered_map, on purpose: QTClusterFinder walks this grid in
+// container order and numbers its clusters from it, so the bucket order decides which of two
+// equally good clusters wins. Boost's bucket policy and boost::hash are the same on every
+// platform; the std containers' are not, and the regression references are shared across
+// platforms. That is why this header is internal (see the sources.cmake of this directory).
 
 #ifndef OPENMS_COMPARISON_CLUSTERING_HASHGRID_H
   #define OPENMS_COMPARISON_CLUSTERING_HASHGRID_H
@@ -48,25 +53,12 @@ namespace OpenMS
     /**
      * @brief Contents of a cell.
      */
-    struct PositionHash
-    {
-      template<typename T>
-      std::size_t operator()(const DPosition<2, T>& position) const noexcept
-      {
-        std::size_t result = 0;
-        for (const auto coordinate : position)
-        {
-          OpenMS::hash_combine(result, std::hash<T> {}(coordinate));
-        }
-        return result;
-      }
-    };
-    typedef std::unordered_multimap<ClusterCenter, Cluster, PositionHash> CellContent;
+    typedef typename boost::unordered_multimap<ClusterCenter, Cluster> CellContent;
 
     /**
      * @brief Map of (cell-index, cell-content).
      */
-    typedef std::unordered_map<CellIndex, CellContent, PositionHash> Grid;
+    typedef boost::unordered_map<CellIndex, CellContent> Grid;
 
     typedef typename CellContent::key_type key_type;
     typedef typename CellContent::mapped_type mapped_type;
@@ -514,7 +506,7 @@ namespace OpenMS
   template<UInt N, typename T>
   std::size_t hash_value(const DPosition<N, T>& b)
   {
-    std::hash<T> hasher;
+    boost::hash<T> hasher;
     std::size_t hash = 0;
     for (typename DPosition<N, T>::const_iterator it = b.begin(); it != b.end(); ++it)
       hash ^= hasher(*it);
