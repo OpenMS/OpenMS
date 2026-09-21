@@ -175,8 +175,22 @@ jobs:
     # green nightly red and send everyone hunting for a packaging break that
     # never happened.
     continue-on-error: true
+    # update_nightly.yml pushes to nightly and then dispatches this workflow by
+    # name, and the workflow answers to both `push` and `workflow_dispatch`, so a
+    # nightly update starts two runs of it. Without a group shared across runs,
+    # both could find no open issue and both open one. Serialize the reporting;
+    # never cancel, because the surviving run's result still has to be recorded.
+    concurrency:
+      group: bioconda-deploy-report-status
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     permissions:
+      # A permissions block sets every scope it does not name to none, so the
+      # read that listJobsForWorkflowRun needs has to be spelled out. Without it
+      # that call fails with 403 before the issue is ever created, and
+      # continue-on-error swallows the error -- leaving the nightly failing
+      # silently, which is the one thing this job exists to prevent.
+      actions: read
       issues: write
     steps:
       - name: Report nightly result
@@ -252,10 +266,18 @@ jobs:
               await github.rest.issues.getLabel({ owner, repo, name: LABEL });
             } catch (error) {
               if (error.status !== 404) throw error;
-              await github.rest.issues.createLabel({
-                owner, repo, name: LABEL, color: 'd73a4a',
-                description: 'Automated: the nightly Bioconda deploy is red',
-              });
+              try {
+                await github.rest.issues.createLabel({
+                  owner, repo, name: LABEL, color: 'd73a4a',
+                  description: 'Automated: the nightly Bioconda deploy is red',
+                });
+              } catch (createError) {
+                // 422 is "a label of that name already exists". The concurrency
+                // group makes a racing run unlikely but not impossible -- a
+                // manual dispatch queues separately. Either way the label now
+                // exists, which is all this needs.
+                if (createError.status !== 422) throw createError;
+              }
             }
 
             const { data: issue } = await github.rest.issues.create({
