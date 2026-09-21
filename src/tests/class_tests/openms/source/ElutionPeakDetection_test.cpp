@@ -84,14 +84,16 @@ START_SECTION((void detectPeaks(std::vector< MassTrace > &, std::vector< MassTra
 
         test_epd.detectPeaks(output_mt, splitted_mt);
 
-        // mass traces split to local peaks
+        // mass traces split to local peaks. The leading chunk T1.1 is a 4-point flank whose
+        // apex is its own first point (FWHM 0, mass trace S/N 0.19), so 'require_resolved_apex'
+        // discards it and the split starts at T1.2 (see issue #2777)
         //TEST_EQUAL(splitted_mt.size(), 2); // lowess and GSL
-        TEST_EQUAL(splitted_mt.size(), 3); // SavitzkyGolay
+        TEST_EQUAL(splitted_mt.size(), 2); // SavitzkyGolay
         //TEST_EQUAL(splitted_mt.size(), 6); // lowess with regression
 
         // correct labeling if subtraces?
-        TEST_EQUAL(splitted_mt[0].getLabel(), "T1.1");//lowess and GSL / SavitzkyGolay / lowess with regression
-        TEST_EQUAL(splitted_mt[1].getLabel(), "T1.2");//lowess and GSL / SavitzkyGolay / lowess with regression
+        TEST_EQUAL(splitted_mt[0].getLabel(), "T1.2");//lowess and GSL / SavitzkyGolay / lowess with regression
+        TEST_EQUAL(splitted_mt[1].getLabel(), "T1.3");//lowess and GSL / SavitzkyGolay / lowess with regression
         //        TEST_EQUAL(splitted_mt[2].getLabel(), "T1.3");//lowess with regression
         //        TEST_EQUAL(splitted_mt[3].getLabel(), "T1.4");//lowess with regression
         //        TEST_EQUAL(splitted_mt[4].getLabel(), "T1.5");//lowess with regression
@@ -220,19 +222,18 @@ END_SECTION
 
 START_SECTION((double computeMassTraceSNR(const MassTrace &)))
 {
-    ABORT_IF(splitted_mt.size() != 3);
+    ABORT_IF(splitted_mt.size() != 2);
 
+    // the discarded flank T1.1 used to be splitted_mt[0] here, with a S/N of 0.1907
     double snr1(test_epd.computeMassTraceSNR(splitted_mt[0]));
     double snr2(test_epd.computeMassTraceSNR(splitted_mt[1]));
-    double snr3(test_epd.computeMassTraceSNR(splitted_mt[2]));
 
     // using lowess and GSL
     //TEST_REAL_SIMILAR(snr1, 8.6058);
     //TEST_REAL_SIMILAR(snr2, 8.946);
     // using SavitzkyGolay
-    TEST_REAL_SIMILAR(snr1, 0.1907);
-    TEST_REAL_SIMILAR(snr2, 9.8855);
-    TEST_REAL_SIMILAR(snr3, 7.6432);
+    TEST_REAL_SIMILAR(snr1, 9.8855);
+    TEST_REAL_SIMILAR(snr2, 7.6432);
     // using lowess with regression
     //TEST_REAL_SIMILAR(snr1, 0.0497);
     //TEST_REAL_SIMILAR(snr2, 0.1450);
@@ -241,19 +242,18 @@ END_SECTION
 
 START_SECTION((double computeApexSNR(const MassTrace &)))
 {
-    ABORT_IF(splitted_mt.size() != 3);
+    ABORT_IF(splitted_mt.size() != 2);
 
+    // the discarded flank T1.1 used to be splitted_mt[0] here, with an apex S/N of 2.0427
     double snr1(test_epd.computeApexSNR(splitted_mt[0]));
     double snr2(test_epd.computeApexSNR(splitted_mt[1]));
-    double snr3(test_epd.computeApexSNR(splitted_mt[2]));
 
     // using lowess and GSL
     //TEST_REAL_SIMILAR(snr1, 40.0159);
     //TEST_REAL_SIMILAR(snr2, 58.5950);
     // using SavitzkyGolay
-    TEST_REAL_SIMILAR(snr1,  2.0427);
-    TEST_REAL_SIMILAR(snr2, 37.7893);
-    TEST_REAL_SIMILAR(snr3, 52.9933);
+    TEST_REAL_SIMILAR(snr1, 37.7893);
+    TEST_REAL_SIMILAR(snr2, 52.9933);
     // using lowess with regression
     //TEST_REAL_SIMILAR(snr1, 6.5177);
     //TEST_REAL_SIMILAR(snr2, 7.3813);
