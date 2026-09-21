@@ -1,3 +1,11 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors: $
+// --------------------------------------------------------------------------
+
 /**
   
   @page external_code External Code using OpenMS
@@ -23,7 +31,6 @@
 	The most important variables are:
 	<UL>
 	<LI>OpenMS_INCLUDE_DIRECTORIES - all include directories containing %OpenMS headers
-	<LI>OPENMS_ADDCXX_FLAGS - preprocessor macros we require written as (-DMACRO1 -DMACRO2) etc
 	</UL>
 	and the %OpenMS target itself (which you can link against).
 	<br>	

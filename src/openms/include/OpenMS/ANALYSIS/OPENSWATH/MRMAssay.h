@@ -315,7 +315,9 @@ protected:
       @brief Generates random peptide sequence
 
       @param[in] sequence_size length of peptide sequence
-      @param[in] pseudoRNG a pseudo random integer generator
+      @param[in] pseudoRNG a pseudo random integer generator. Each draw is reduced
+                 modulo the number of residues, so the generator sets the residue
+                 distribution but not the index range.
 
       @return random peptide sequence
     */
