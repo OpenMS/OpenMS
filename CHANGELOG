@@ -764,6 +764,9 @@ Fixes:
     - mzIdentML output with more than one identification run repeated the Measure ids
       (Measure_mz, Measure_int, Measure_error) in every SpectrumIdentificationList and failed schema
       validation; the Measure definitions are now written once.
+    - Chromatograms built from MS1 spectra (FileConverter -convert_to_chromatograms, e.g. on GC-MS/SIM
+      data) had no native ID, so the mzML output contained many chromatograms with id="" and failed
+      schema validation. They are now named "XIC mz=<m/z>".
     - FileMerger renamed the merged spectra but left precursor spectrumRef attributes pointing to the
       original native IDs, so MS2 spectra lost the link to their parent scan and the mzML output
       failed schema validation. The references are now updated together with the IDs (#10200).
@@ -888,6 +891,19 @@ Build System:
     scripts, ENABLE_STYLE_TESTING, doc_xml and stale examples/schemas. Runtime schema
     coverage is retained; QcMLFile/PepXMLFileMascot validation remains unavailable and
     now throws NotImplemented (#9740, #9757, #9771, #9945).
+  - The Debian package derives its libc6, libstdc++6, libgomp1 and libgcc-s1 dependencies
+    from the shipped binaries with dpkg-shlibdeps, so they cannot go stale as the declared
+    libc6 (>= 2.28) had, and the package does not install on distributions too old to run
+    it. This needed the install tree cleaned up first: the bundled tools were installed
+    verbatim, including ThermoRawFileParser's NuGet runtimes/<rid>/ directories, which
+    carry libMono.Unix.so for nine runtime identifiers (android-arm, android-arm64,
+    android-x64, android-x86, linux-arm, linux-arm64, linux-x64, osx-arm64, osx-x64).
+    Most are foreign to whichever host builds the package, and dpkg-shlibdeps treats a
+    foreign-architecture binary as an error rather than as missing information, so no
+    package was produced at all. Only the runtime identifiers the build targets are
+    installed now; the parser's own Mono.Unix.dll.config maps the library to linux-x64,
+    osx-x64 and osx-arm64 and to nothing else, so the others could never be loaded
+    (#10202, #10207, #10211).
   - The Debian package's dependencies stay hand-written. Generating them with
     dpkg-shlibdeps was tried and reverted: the staging tree ships libMono.Unix.so for
     five runtimes under THIRDPARTY/ThermoRawFileParser, most of them foreign to whichever

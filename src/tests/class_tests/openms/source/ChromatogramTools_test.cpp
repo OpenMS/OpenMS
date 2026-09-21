@@ -155,6 +155,33 @@ START_SECTION(template <typename ExperimentType> void convertSpectraToChromatogr
 }
 END_SECTION
 
+START_SECTION([EXTRA] forced conversion of MS1 spectra gives every XIC chromatogram its own native ID)
+{
+  // targeted MS1 (e.g. GC-MS SIM) data: no precursor, one XIC chromatogram per m/z
+  PeakMap exp;
+  for (int s = 0; s < 2; ++s)
+  {
+    PeakSpectrum spec;
+    spec.setRT(10.0 + s);
+    for (double mz : {217.0, 218.0})
+    {
+      Peak1D p;
+      p.setMZ(mz);
+      p.setIntensity(100.0f + s);
+      spec.push_back(p);
+    }
+    exp.addSpectrum(spec);
+  }
+  ChromatogramTools().convertSpectraToChromatograms(exp, false, true);
+  TEST_EQUAL(exp.getChromatograms().size(), 2)
+  ABORT_IF(exp.getChromatograms().size() != 2)
+  // mzML requires unique chromatogram ids; they used to be empty
+  TEST_STRING_EQUAL(exp.getChromatograms()[0].getNativeID(), "XIC mz=" + StringUtils::toStr(217.0))
+  TEST_STRING_EQUAL(exp.getChromatograms()[1].getNativeID(), "XIC mz=" + StringUtils::toStr(218.0))
+  TEST_EQUAL(exp.getChromatograms()[0].size(), 2)
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -52,7 +52,7 @@
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" defaultSourceFileRef="sf_ru_0">
 		<userParam name="mzml_id" type="xsd:string" value="IMM_3.6_014"/>
 		<chromatogramList count="42" defaultDataProcessingRef="dp_sp_0">
-			<chromatogram id="" index="0" defaultArrayLength="3">
+			<chromatogram id="XIC mz=217.0" index="0" defaultArrayLength="3">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -88,7 +88,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="1" defaultArrayLength="3">
+			<chromatogram id="XIC mz=218.0" index="1" defaultArrayLength="3">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -124,7 +124,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="2" defaultArrayLength="4">
+			<chromatogram id="XIC mz=219.0" index="2" defaultArrayLength="4">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -160,7 +160,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="3" defaultArrayLength="4">
+			<chromatogram id="XIC mz=220.0" index="3" defaultArrayLength="4">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -196,7 +196,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="4" defaultArrayLength="4">
+			<chromatogram id="XIC mz=221.0" index="4" defaultArrayLength="4">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -232,7 +232,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="5" defaultArrayLength="1">
+			<chromatogram id="XIC mz=222.0" index="5" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -268,7 +268,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="6" defaultArrayLength="1">
+			<chromatogram id="XIC mz=223.0" index="6" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -304,7 +304,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="7" defaultArrayLength="1">
+			<chromatogram id="XIC mz=245.0" index="7" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -340,7 +340,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="8" defaultArrayLength="1">
+			<chromatogram id="XIC mz=246.0" index="8" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -376,7 +376,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="9" defaultArrayLength="1">
+			<chromatogram id="XIC mz=247.0" index="9" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -412,7 +412,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="10" defaultArrayLength="1">
+			<chromatogram id="XIC mz=248.0" index="10" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -448,7 +448,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="11" defaultArrayLength="1">
+			<chromatogram id="XIC mz=249.0" index="11" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -484,7 +484,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="12" defaultArrayLength="1">
+			<chromatogram id="XIC mz=250.0" index="12" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -520,7 +520,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="13" defaultArrayLength="1">
+			<chromatogram id="XIC mz=307.0" index="13" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -556,7 +556,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="14" defaultArrayLength="1">
+			<chromatogram id="XIC mz=308.0" index="14" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -592,7 +592,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="15" defaultArrayLength="1">
+			<chromatogram id="XIC mz=309.0" index="15" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -628,7 +628,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="16" defaultArrayLength="1">
+			<chromatogram id="XIC mz=310.0" index="16" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -664,7 +664,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="17" defaultArrayLength="1">
+			<chromatogram id="XIC mz=311.0" index="17" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -700,7 +700,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="18" defaultArrayLength="3">
+			<chromatogram id="XIC mz=357.0" index="18" defaultArrayLength="3">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -736,7 +736,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="19" defaultArrayLength="3">
+			<chromatogram id="XIC mz=358.0" index="19" defaultArrayLength="3">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -772,7 +772,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="20" defaultArrayLength="3">
+			<chromatogram id="XIC mz=359.0" index="20" defaultArrayLength="3">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -808,7 +808,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="21" defaultArrayLength="2">
+			<chromatogram id="XIC mz=360.0" index="21" defaultArrayLength="2">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -844,7 +844,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="22" defaultArrayLength="1">
+			<chromatogram id="XIC mz=400.0" index="22" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -880,7 +880,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="23" defaultArrayLength="1">
+			<chromatogram id="XIC mz=401.0" index="23" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -916,7 +916,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="24" defaultArrayLength="1">
+			<chromatogram id="XIC mz=402.0" index="24" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -952,7 +952,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="25" defaultArrayLength="1">
+			<chromatogram id="XIC mz=403.0" index="25" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -988,7 +988,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="26" defaultArrayLength="1">
+			<chromatogram id="XIC mz=404.0" index="26" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1024,7 +1024,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="27" defaultArrayLength="1">
+			<chromatogram id="XIC mz=445.0" index="27" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1060,7 +1060,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="28" defaultArrayLength="1">
+			<chromatogram id="XIC mz=446.0" index="28" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1096,7 +1096,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="29" defaultArrayLength="1">
+			<chromatogram id="XIC mz=447.0" index="29" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1132,7 +1132,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="30" defaultArrayLength="1">
+			<chromatogram id="XIC mz=448.0" index="30" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1168,7 +1168,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="31" defaultArrayLength="1">
+			<chromatogram id="XIC mz=449.0" index="31" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1204,7 +1204,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="32" defaultArrayLength="1">
+			<chromatogram id="XIC mz=471.0" index="32" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1240,7 +1240,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="33" defaultArrayLength="1">
+			<chromatogram id="XIC mz=472.0" index="33" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1276,7 +1276,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="34" defaultArrayLength="1">
+			<chromatogram id="XIC mz=473.0" index="34" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1312,7 +1312,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="35" defaultArrayLength="1">
+			<chromatogram id="XIC mz=474.0" index="35" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1348,7 +1348,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="36" defaultArrayLength="1">
+			<chromatogram id="XIC mz=475.0" index="36" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1384,7 +1384,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="37" defaultArrayLength="1">
+			<chromatogram id="XIC mz=476.0" index="37" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1420,7 +1420,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="38" defaultArrayLength="1">
+			<chromatogram id="XIC mz=765.0" index="38" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1456,7 +1456,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="39" defaultArrayLength="1">
+			<chromatogram id="XIC mz=767.0" index="39" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1492,7 +1492,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="40" defaultArrayLength="1">
+			<chromatogram id="XIC mz=769.0" index="40" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1528,7 +1528,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="" index="41" defaultArrayLength="1">
+			<chromatogram id="XIC mz=770.0" index="41" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -1569,48 +1569,48 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="">3584</offset>
-		<offset idRef="">5529</offset>
-		<offset idRef="">7474</offset>
-		<offset idRef="">9439</offset>
-		<offset idRef="">11404</offset>
-		<offset idRef="">13369</offset>
-		<offset idRef="">15285</offset>
-		<offset idRef="">17201</offset>
-		<offset idRef="">19117</offset>
-		<offset idRef="">21033</offset>
-		<offset idRef="">22949</offset>
-		<offset idRef="">24866</offset>
-		<offset idRef="">26783</offset>
-		<offset idRef="">28700</offset>
-		<offset idRef="">30617</offset>
-		<offset idRef="">32534</offset>
-		<offset idRef="">34451</offset>
-		<offset idRef="">36368</offset>
-		<offset idRef="">38285</offset>
-		<offset idRef="">40231</offset>
-		<offset idRef="">42177</offset>
-		<offset idRef="">44123</offset>
-		<offset idRef="">46057</offset>
-		<offset idRef="">47974</offset>
-		<offset idRef="">49891</offset>
-		<offset idRef="">51808</offset>
-		<offset idRef="">53725</offset>
-		<offset idRef="">55642</offset>
-		<offset idRef="">57559</offset>
-		<offset idRef="">59476</offset>
-		<offset idRef="">61393</offset>
-		<offset idRef="">63310</offset>
-		<offset idRef="">65227</offset>
-		<offset idRef="">67144</offset>
-		<offset idRef="">69061</offset>
-		<offset idRef="">70978</offset>
-		<offset idRef="">72895</offset>
-		<offset idRef="">74812</offset>
-		<offset idRef="">76729</offset>
-		<offset idRef="">78646</offset>
-		<offset idRef="">80563</offset>
-		<offset idRef="">82480</offset>
+		<offset idRef="XIC mz=217.0">3584</offset>
+		<offset idRef="XIC mz=218.0">5529</offset>
+		<offset idRef="XIC mz=219.0">7474</offset>
+		<offset idRef="XIC mz=220.0">9439</offset>
+		<offset idRef="XIC mz=221.0">11404</offset>
+		<offset idRef="XIC mz=222.0">13369</offset>
+		<offset idRef="XIC mz=223.0">15285</offset>
+		<offset idRef="XIC mz=245.0">17201</offset>
+		<offset idRef="XIC mz=246.0">19117</offset>
+		<offset idRef="XIC mz=247.0">21033</offset>
+		<offset idRef="XIC mz=248.0">22949</offset>
+		<offset idRef="XIC mz=249.0">24866</offset>
+		<offset idRef="XIC mz=250.0">26783</offset>
+		<offset idRef="XIC mz=307.0">28700</offset>
+		<offset idRef="XIC mz=308.0">30617</offset>
+		<offset idRef="XIC mz=309.0">32534</offset>
+		<offset idRef="XIC mz=310.0">34451</offset>
+		<offset idRef="XIC mz=311.0">36368</offset>
+		<offset idRef="XIC mz=357.0">38285</offset>
+		<offset idRef="XIC mz=358.0">40231</offset>
+		<offset idRef="XIC mz=359.0">42177</offset>
+		<offset idRef="XIC mz=360.0">44123</offset>
+		<offset idRef="XIC mz=400.0">46057</offset>
+		<offset idRef="XIC mz=401.0">47974</offset>
+		<offset idRef="XIC mz=402.0">49891</offset>
+		<offset idRef="XIC mz=403.0">51808</offset>
+		<offset idRef="XIC mz=404.0">53725</offset>
+		<offset idRef="XIC mz=445.0">55642</offset>
+		<offset idRef="XIC mz=446.0">57559</offset>
+		<offset idRef="XIC mz=447.0">59476</offset>
+		<offset idRef="XIC mz=448.0">61393</offset>
+		<offset idRef="XIC mz=449.0">63310</offset>
+		<offset idRef="XIC mz=471.0">65227</offset>
+		<offset idRef="XIC mz=472.0">67144</offset>
+		<offset idRef="XIC mz=473.0">69061</offset>
+		<offset idRef="XIC mz=474.0">70978</offset>
+		<offset idRef="XIC mz=475.0">72895</offset>
+		<offset idRef="XIC mz=476.0">74812</offset>
+		<offset idRef="XIC mz=765.0">76729</offset>
+		<offset idRef="XIC mz=767.0">78646</offset>
+		<offset idRef="XIC mz=769.0">80563</offset>
+		<offset idRef="XIC mz=770.0">82480</offset>
 	</index>
 </indexList>
 <indexListOffset>84431</indexListOffset>

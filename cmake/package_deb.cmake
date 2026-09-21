@@ -27,15 +27,24 @@ set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
 # Don't add RPATH
 SET(CMAKE_SKIP_INSTALL_RPATH TRUE)
 
-## Deriving the dependencies from the binaries would keep the floors below from going
-## stale, but dpkg-shlibdeps cannot be switched on while the staging tree carries
-## foreign-architecture binaries: share/OpenMS/THIRDPARTY/ThermoRawFileParser/runtimes
-## ships libMono.Unix.so for android-arm, android-arm64, android-x86, linux-arm and
-## linux-arm64, and on any one host most of those are foreign. dpkg-shlibdeps reports
-## "cannot find library ... (ELF format: ...; abi: ...)" for each, which is an error and
-## not covered by --ignore-missing-info, so CPack aborts before writing the package.
-## Dropping those unused runtimes from the install is what would let this be ON.
-##set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+## Derive the system dependencies (glibc, libstdc++, gomp) from the built binaries;
+## a hand-written floor goes stale and installs on systems the binaries cannot run on.
+## CPack appends what it derives to CPACK_DEBIAN_PACKAGE_DEPENDS below.
+##
+## This was on once before (#10202) and had to come off again (#10207), because the
+## staging tree carried foreign-architecture binaries: ThermoRawFileParser's NuGet
+## runtimes/<rid>/ tree ships a libMono.Unix.so for seven runtime identifiers
+## (android-arm, android-arm64, android-x64, android-x86, linux-arm, linux-arm64,
+## linux-x64), and on any one host five of the seven are foreign -- see the binary
+## list in the failing run 35434550390, where they are the only such files.
+## dpkg-shlibdeps answers each with "cannot find library libc.so.6 needed by
+## ... (ELF format: ...; abi: ...)", an error --ignore-missing-info does not cover, so
+## CPack aborted before writing the package. install_thirdparty_folder()
+## (cmake/install_macros.cmake) now installs only the runtime identifiers this build
+## targets, so nothing foreign reaches the staging tree. The private libraries the tool
+## still cannot resolve (libOpenMS_CLI.so and its siblings) are same-architecture, and
+## those come back as warnings rather than errors, so they do not stop it.
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
 ## Debug for now. Not much output.
 set(CPACK_DEBIAN_PACKAGE_DEBUG ON)
@@ -54,17 +63,13 @@ endif()
 ## We should probably use a full system-shared-libs-only machine for building. Then the deps should look similar to below.
 #set(CPACK_DEBIAN_PACKAGE_DEPENDS "libxerces-c-dev (>= 3.1.1), libeigen3-dev, libboost-dev (>= 1.54.0), libboost-iostreams-dev (>= 1.54.0), libboost-date-time-dev (>= 1.54.0), libboost-math-dev (>= 1.54.0), libsvm-dev (>= 3.12), libglpk-dev (>= 4.52.1), zlib1g-dev (>= 1.2.7), libbz2-dev (>= 1.0.6), libqt4-dev (>= 4.8.2), libqt4-opengl-dev (>= 4.8.2), libqtwebkit-dev (>= 2.2.1), coinor-libcoinutils-dev (>= 2.6.4)")
 
-## Hand-written because SHLIBDEPS is off above, so the toolchain floors are ours to keep
-## current. They are not guesses: running dpkg-shlibdeps over the binaries of the
-## 2026-09-18 nightly package yields exactly
-##   libc6 (>= 2.38), libgcc-s1 (>= 3.0), libgomp1 (>= 6), libstdc++6 (>= 13.1)
-## and the aarch64 package needs the same symbol versions (GLIBC_2.38, GLIBCXX_3.4.32,
-## GOMP_4.5), so one list serves both. Refresh them whenever the build toolchain moves;
-## removing the foreign runtimes above and re-enabling SHLIBDEPS is what would make that
-## automatic again.
+## Entries SHLIBDEPS cannot produce: the (pkg | pkg) alternatives for the t64 rename,
+## and external libraries from Debian repositories listed here to avoid file conflicts.
+## Do not add a libc6, libstdc++6, libgomp1 or libgcc-s1 floor here; dpkg-shlibdeps
+## derives those from the binaries and a second hand-written copy is what went stale.
 ## Note: SQLiteCpp is statically linked, but SQLite3 is dynamically linked at runtime
 set(CPACK_DEBIAN_PACKAGE_DEPENDS
-  "libqt6svg6 (>= 6.2.2), libc6 (>= 2.38), libstdc++6 (>= 13.1), libgomp1 (>= 6), libgcc-s1 (>= 3.0), libqt6widgets6t64 (>= 6.2.2) | libqt6widgets6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2), libyaml-cpp0.7 | libyaml-cpp0.8, libsqlite3-0 (>= 3.35.0)")
+  "libqt6svg6 (>= 6.2.2), libqt6widgets6t64 (>= 6.2.2) | libqt6widgets6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2), libyaml-cpp0.7 | libyaml-cpp0.8, libsqlite3-0 (>= 3.35.0)")
 
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "science")
