@@ -761,6 +761,9 @@ Fixes:
       columns. SampleSection::getFactorValue throws MissingInformation for a row without a value
       for the factor instead of reading past its end (#10148).
   Robustness:
+    - mzIdentML output with more than one identification run repeated the Measure ids
+      (Measure_mz, Measure_int, Measure_error) in every SpectrumIdentificationList and failed schema
+      validation; the Measure definitions are now written once.
     - Chromatograms built from MS1 spectra (FileConverter -convert_to_chromatograms, e.g. on GC-MS/SIM
       data) had no native ID, so the mzML output contained many chromatograms with id="" and failed
       schema validation. They are now named "XIC mz=<m/z>".
