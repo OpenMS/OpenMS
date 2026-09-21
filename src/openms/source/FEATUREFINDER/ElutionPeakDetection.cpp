@@ -40,6 +40,8 @@ namespace OpenMS
     defaults_.setValidStrings("masstrace_snr_filtering", {"true","false"});
 
     defaults_.setValue("min_valley_depth", 2.0, "EXPERIMENT: how far a valley must fall below both neighbouring maxima to split.", {"advanced"});
+    defaults_.setValue("peak_separation_window", 0.5, "EXPERIMENT: non-maximum suppression half-window, as a multiple of chrom_fwhm in scans.", {"advanced"});
+    defaults_.setValue("min_separation_scans", 1, "EXPERIMENT: floor for that half-window, in scans.", {"advanced"});
 
     defaultsToParam_();
     this->setLogType(CMD);
@@ -411,7 +413,9 @@ namespace OpenMS
     // Step 2: Identify local maxima and minima
     // *********************************************************************
     std::vector<Size> maxes, mins;
-    findLocalExtrema(mt, win_size / 2, maxes, mins);
+    const Size nms_half = std::max((Size)min_separation_scans_,
+                                  (Size)std::floor(win_size * peak_separation_window_));
+    findLocalExtrema(mt, nms_half, maxes, mins);
 
 #ifdef DEBUG_EPD
     std::cout << "findLocalExtrema returned: maxima " << maxes.size() << " / minima " << mins.size() << '\n';
@@ -632,6 +636,8 @@ namespace OpenMS
     pw_filtering_ = param_.getValue("width_filtering").toString();
     mt_snr_filtering_ = param_.getValue("masstrace_snr_filtering").toBool();
     min_valley_depth_ = (double)param_.getValue("min_valley_depth");
+    peak_separation_window_ = (double)param_.getValue("peak_separation_window");
+    min_separation_scans_ = (int)param_.getValue("min_separation_scans");
   }
 
 } //namespace OpenMS

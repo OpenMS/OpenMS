@@ -140,6 +140,9 @@ private:
     /// How far a valley must fall below both neighbouring maxima to split there
     double min_valley_depth_;
 
+    double peak_separation_window_;
+    int min_separation_scans_;
+
     /// Main function to do the work
     void detectElutionPeaks_(MassTrace&, std::vector<MassTrace>&);
   };
