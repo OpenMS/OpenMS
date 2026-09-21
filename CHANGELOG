@@ -454,6 +454,9 @@ TOPP tools:
       - IDConflictResolver adds rank_aggregation; MaRaClusterAdapter records consensus-spectrum
         origins/cluster size; OpenSwathChromatogramExtractor uses CompoundName for metabolite
         chromatogram identifiers (#8864, #8907, #9271).
+      - FLASHDeconv -mzml_mass_charge now always writes a non-negative charge, matching what
+        the mzML charge state CV param (MS:1000041) expects; a negative option value no longer
+        produces an invalid charge in the output (#9054).
   New tools:
     - MS1LabeledWorkflow: one-command quantification of MS1-labeled (SILAC, Dimethyl, ...) experiments,
       the counterpart of ProteomicsLFQ and IsobaricWorkflow: per run FeatureFinderMultiplex, IDMapper,
@@ -503,6 +506,9 @@ GUI tools:
   - Fixed TOPPAS shutdown crashes, TOPPView extreme-zoom crashes and large-file context-menu
     delays, non-string metadata conversion, Windows spinbox sizing and Annotation1DItem
     DLL exports (#8997, #9206, #9263, #9723, #9831).
+  - TOPPASEdge no longer holds a dangling pointer to a deleted vertex: its source/target
+    are QPointer<TOPPASVertex>, so removing a connected node cannot crash the pipeline
+    editor (#9054).
   - Fragment annotations survive viewing and spectrum switches unchanged, including charge
     notation and multiline comments. Corrected duplicate charge display, neutral-loss ion
     ordinals and sequence diagrams with multiple modifications (#8766).
