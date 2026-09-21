@@ -151,3 +151,122 @@ jobs:
             echo "No packages found to upload!"
             exit 1
           fi
+
+  # The job above is the only thing that exercises the Bioconda recipes against
+  # OpenMS develop, and until now a red night reported to nobody: the run is
+  # dispatched by update_nightly.yml with GITHUB_TOKEN rather than owned by a
+  # person, so no failure notification reaches an inbox. Both 2026 breakages
+  # were found by hand, long after the nightly had caught them -- the
+  # should_be_noarch_generic lint ran red from 2026-09-06, and the openms
+  # package shipping no libOpenMS_CLI.so from 2026-09-17. The nightly did its
+  # job on the first night each time; only the telling was missing.
+  #
+  # So turn the result into one tracking issue: opened on the first red night,
+  # commented on each further one, closed when the nightly is green again. One
+  # issue rather than one per night, because the interesting signal is "still
+  # broken since <date>", not a pile of duplicates.
+  report-status:
+    needs: bioconda-deploy
+    # always(), not failure(): a green night has to be able to close the issue
+    # the red ones opened, otherwise it outlives the breakage.
+    if: always()
+    # The report must never change the verdict it reports on. Without this, an
+    # issues:write refused by org policy, or a transient API error, would turn a
+    # green nightly red and send everyone hunting for a packaging break that
+    # never happened.
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Report nightly result
+        uses: actions/github-script@v8
+        env:
+          DEPLOY_RESULT: ${{ needs.bioconda-deploy.result }}
+        with:
+          script: |
+            const LABEL = 'bioconda-nightly';
+            const TITLE = 'Nightly Bioconda deploy is failing';
+            const { owner, repo } = context.repo;
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const result = process.env.DEPLOY_RESULT;
+
+            // Only a clean pass or fail says anything about the recipes. A
+            // cancelled or skipped run must neither open nor close an issue:
+            // doing so would report breakage that was never observed, or
+            // declare a fix that was never built.
+            if (result !== 'success' && result !== 'failure') {
+              core.info(`bioconda-deploy was '${result}'; nothing to report.`);
+              return;
+            }
+
+            const tracking = (await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'open', labels: LABEL, per_page: 100,
+            })).find(issue => !issue.pull_request) ?? null;
+
+            if (result === 'success') {
+              if (!tracking) {
+                core.info('Nightly is green and no tracking issue is open.');
+                return;
+              }
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: tracking.number,
+                body: `Nightly is green again: ${runUrl}`,
+              });
+              await github.rest.issues.update({
+                owner, repo, issue_number: tracking.number,
+                state: 'closed', state_reason: 'completed',
+              });
+              core.info(`Closed #${tracking.number}.`);
+              return;
+            }
+
+            // Name the steps that actually failed, so the issue is readable
+            // without opening the run. 'latest' drops superseded attempts.
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              owner, repo, run_id: context.runId, filter: 'latest', per_page: 100,
+            });
+            const failed = jobs.flatMap(job =>
+              (job.steps ?? [])
+                .filter(step => step.conclusion === 'failure')
+                .map(step => `- \`${job.name}\` → \`${step.name}\``));
+            const details = [
+              `- Run: ${runUrl}`,
+              `- Commit: ${context.sha}`,
+              ...(failed.length ? ['- Failed steps:', ...failed.map(l => `  ${l}`)] : []),
+            ].join('\n');
+
+            if (tracking) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: tracking.number,
+                body: `Still failing.\n\n${details}`,
+              });
+              core.info(`Commented on #${tracking.number}.`);
+              return;
+            }
+
+            // issues.create only attaches labels that already exist, so make
+            // sure of it first -- otherwise the issue opens unlabelled and the
+            // next night cannot find it and opens another one.
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: LABEL });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                owner, repo, name: LABEL, color: 'd73a4a',
+                description: 'Automated: the nightly Bioconda deploy is red',
+              });
+            }
+
+            const { data: issue } = await github.rest.issues.create({
+              owner, repo, title: TITLE, labels: [LABEL],
+              body: [
+                'The nightly **Deploy to Bioconda** run is failing.',
+                '',
+                details,
+                '',
+                'Opened automatically on the first red night, commented on each',
+                'further one, and closed once the nightly is green again.',
+              ].join('\n'),
+            });
+            core.info(`Opened #${issue.number}.`);
