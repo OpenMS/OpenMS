@@ -77,7 +77,7 @@ function(install_library lib_target_name)
 endfunction()
 
 #------------------------------------------------------------------------------
-# Reject JSON dependencies in installed headers even when compiler header checks
+# Reject private dependencies in installed headers even when compiler header checks
 # could resolve them through a system or shared dependency include directory.
 # Keep this configure-time guard independent of the header installation method.
 function(openms_validate_public_headers)
@@ -96,6 +96,19 @@ function(openms_validate_public_headers)
       if (_nlohmann_json_hits)
         message(FATAL_ERROR "Installed header ${_header} includes nlohmann/json. Keep JSON types out of "
                             "public headers: move the header under source/ or expose value types instead.")
+      endif()
+
+      # The same holds for every other PRIVATE dependency of libOpenMS. They are all
+      # installed into one dependency prefix, so an accidental public include resolves
+      # through a sibling package's include directory on the machine that builds OpenMS
+      # and only fails downstream. Catch it here instead of shipping a header nobody
+      # outside the build tree can compile.
+      file(STRINGS "${_header_to_scan}" _private_dependency_hits
+           REGEX "#[ \t]*include[ \t]*[<\"](boost|arrow|parquet|xercesc|Eigen|SQLiteCpp|simde|opentims[+][+])/")
+      if (_private_dependency_hits)
+        message(FATAL_ERROR "Installed header ${_header} includes a private dependency "
+                            "(${_private_dependency_hits}). Keep those types out of public headers: "
+                            "add the header to OpenMS_private_headers or expose OpenMS types instead.")
       endif()
     endif()
   endforeach()
