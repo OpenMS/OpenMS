@@ -1288,10 +1288,10 @@ namespace OpenMS
       param.setValue("min_fwhm", -1.0);
       param.setValue("max_fwhm", 1e6);
       param.setValue("masstrace_snr_filtering", "false");
-      // The ion mobility axis is sampled far too coarsely for estimateFWHM() to bracket a half
-      // maximum, so most traces here have their apex on the first or last point. They are real
-      // IM peaks nonetheless -- that is why the intensity below comes from computeIntensitySum()
-      // rather than getIntensity() -- and must not be discarded.
+      // The ion mobility axis is sampled so coarsely that a fragment is often only two or three
+      // points wide, which puts its maximum on a split boundary even when it is a peak of its
+      // own. They are real IM peaks -- that is why the intensity below comes from
+      // computeIntensitySum() rather than getIntensity() -- and must not be discarded.
       param.setValue("require_resolved_apex", "false");
       epd.setParameters(param);
 

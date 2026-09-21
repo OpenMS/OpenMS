@@ -722,16 +722,17 @@ Fixes:
       charge states only via a continue that escaped the inner charge-scanning loop, so the
       component still passed the conflict check and was grouped. Such components are now
       correctly rejected, which changes alignment and linking results (#10157).
-    - ElutionPeakDetection drops mass traces whose apex falls on their first or last data
-      point. estimateFWHM() cannot bracket the half maximum for those, so it left the FWHM
-      borders collapsed and the area-based quantification of the trace returned 0. With
-      'epd:width_filtering' set to 'fixed' they were already removed by the FWHM bounds, but
-      with 'off' or 'auto' they reached the output as features with intensity 0 whose RT sat
-      on the edge of their own RT range, up to tens of seconds away from the elution maximum.
-      The new advanced parameter 'epd:require_resolved_apex' (default 'true') controls this
-      independently of the width filter, so FeatureFinderMetabo and MassTraceExtractor report
-      fewer features when width filtering is not 'fixed'. PeakPickerIM turns it off because
-      the ion mobility axis is sampled too coarsely for a FWHM to be bracketed (#2777).
+    - ElutionPeakDetection splits a mass trace at the minima between its maxima, and a
+      resulting fragment whose apex fell on one of those cut points was reported as a trace of
+      its own. Such a fragment is the flank of the peak in the neighbouring fragment, so the
+      feature built from it sat at the edge of its RT range instead of at an elution maximum,
+      tens of seconds away. These are now discarded under the new advanced parameter
+      'epd:require_resolved_apex' (default 'true'), independently of 'width_filtering'. Ends
+      that are also the ends of the original trace do not count as cut points, so peaks merely
+      sampled too sparsely to put their maximum in the interior are kept -- with a scan rate
+      close to the peak width that is the majority of traces, and discarding them would remove
+      a large part of the signal. PeakPickerIM turns the parameter off because its ion mobility
+      axis is coarse enough for that case to dominate (#2777).
     - MassTrace::updateWeightedMeanRT() weighted each peak by the RT distance to its
       predecessor and started the sum at the second peak, so the first peak contributed to
       neither the numerator nor the denominator. The centroid was biased towards later RT

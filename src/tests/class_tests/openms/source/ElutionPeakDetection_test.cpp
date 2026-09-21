@@ -84,16 +84,14 @@ START_SECTION((void detectPeaks(std::vector< MassTrace > &, std::vector< MassTra
 
         test_epd.detectPeaks(output_mt, splitted_mt);
 
-        // mass traces split to local peaks. The leading chunk T1.1 is a 4-point flank whose
-        // apex is its own first point (FWHM 0, mass trace S/N 0.19), so 'require_resolved_apex'
-        // discards it and the split starts at T1.2 (see issue #2777)
+        // mass traces split to local peaks
         //TEST_EQUAL(splitted_mt.size(), 2); // lowess and GSL
-        TEST_EQUAL(splitted_mt.size(), 2); // SavitzkyGolay
+        TEST_EQUAL(splitted_mt.size(), 3); // SavitzkyGolay
         //TEST_EQUAL(splitted_mt.size(), 6); // lowess with regression
 
         // correct labeling if subtraces?
-        TEST_EQUAL(splitted_mt[0].getLabel(), "T1.2");//lowess and GSL / SavitzkyGolay / lowess with regression
-        TEST_EQUAL(splitted_mt[1].getLabel(), "T1.3");//lowess and GSL / SavitzkyGolay / lowess with regression
+        TEST_EQUAL(splitted_mt[0].getLabel(), "T1.1");//lowess and GSL / SavitzkyGolay / lowess with regression
+        TEST_EQUAL(splitted_mt[1].getLabel(), "T1.2");//lowess and GSL / SavitzkyGolay / lowess with regression
         //        TEST_EQUAL(splitted_mt[2].getLabel(), "T1.3");//lowess with regression
         //        TEST_EQUAL(splitted_mt[3].getLabel(), "T1.4");//lowess with regression
         //        TEST_EQUAL(splitted_mt[4].getLabel(), "T1.5");//lowess with regression
@@ -104,30 +102,55 @@ END_SECTION
 
 START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
 {
-  // A trace that only decays has its apex on the first point, so estimateFWHM() cannot
-  // bracket the half maximum: the FWHM borders stay collapsed and the area quantification of
-  // the trace is 0. Such a flank is not an elution peak and 'require_resolved_apex' (on by
-  // default) drops it whatever the width filter says -- it used to pass through with
-  // 'width_filtering' set to anything but 'fixed' and surface as a feature with intensity 0
-  // sitting on the edge of its own RT range (see issue #2777)
-  std::vector<Peak2D> decaying;
-  for (Size i = 0; i < 12; ++i)
+  // helper: build a mass trace from an intensity profile, one scan per second
+  auto make_trace = [](const std::vector<double>& ints) {
+    std::vector<Peak2D> pts;
+    for (Size i = 0; i < ints.size(); ++i)
+    {
+      Peak2D p;
+      p.setRT(100.0 + i);
+      p.setMZ(230.1);
+      p.setIntensity((Peak2D::IntensityType)ints[i]);
+      pts.push_back(p);
+    }
+    MassTrace mt(pts);
+    mt.setLabel("T1");
+    return mt;
+  };
+
+  // A peak sampled too sparsely to put its maximum in the interior is still a peak. Nothing
+  // was split off it, so it must survive even though estimateFWHM() cannot bracket a half
+  // maximum for it and returns 0 -- most of a run's traces look like this when the scan rate
+  // is close to the peak width (see issue #2777)
+  MassTrace sparse_mt(make_trace({10000, 5000, 2500, 1200, 600, 300, 150, 80, 40, 20, 10, 10}));
+  std::vector<MassTrace> sparse_out;
+  test_epd.detectPeaks(sparse_mt, sparse_out); // test_epd has width_filtering "off"
+  TEST_EQUAL(sparse_out.size(), 1);
+  if (!sparse_out.empty())
   {
-    Peak2D p;
-    p.setRT(100.0 + i);
-    p.setMZ(230.1);
-    p.setIntensity(10000.0f / (i + 1));
-    decaying.push_back(p);
+    TEST_EQUAL(sparse_out[0].findMaxByIntPeak(true), 0); // apex on the first point, and kept
   }
-  MassTrace decaying_mt(decaying);
-  decaying_mt.setLabel("T42");
 
-  std::vector<MassTrace> decaying_out;
-  test_epd.detectPeaks(decaying_mt, decaying_out); // test_epd has width_filtering "off"
-  TEST_EQUAL(decaying_out.empty(), true);
+  // A trace that IS split must not yield a fragment whose apex sits on one of the cut points:
+  // that fragment is the flank of the peak in the neighbouring fragment, and reporting it
+  // gives a feature positioned at the edge of its RT range
+  const std::vector<double> profile = {50, 3200, 400, 3200, 50, 3200, 50, 6400, 100, 50, 800,
+                                       400, 100, 1600, 1600, 800, 1600, 50, 800, 1600, 800,
+                                       800, 50, 100, 50, 400};
+  MassTrace split_mt(make_trace(profile));
+  std::vector<MassTrace> split_out;
+  test_epd.detectPeaks(split_mt, split_out);
+  TEST_EQUAL(split_out.size() > 1, true); // the profile really does get split
+  for (Size k = 0; k < split_out.size(); ++k)
+  {
+    const Size apex = split_out[k].findMaxByIntPeak(true);
+    const bool on_shared_start = (apex == 0 && k > 0);
+    const bool on_shared_end = (apex + 1 == split_out[k].getSize() && k + 1 < split_out.size());
+    TEST_EQUAL(on_shared_start || on_shared_end, false);
+  }
 
-  // callers that sample too sparsely for a FWHM (e.g. PeakPickerIM on the ion mobility axis)
-  // can opt out and keep the trace
+  // ... and the check is what removes them: with it off, the profile does produce such a
+  // fragment. PeakPickerIM opts out this way, its ion mobility axis being far too coarse.
   ElutionPeakDetection keep_epd;
   Param keep_def = ElutionPeakDetection().getDefaults();
   keep_def.setValue("width_filtering", "off");
@@ -135,11 +158,20 @@ START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
   keep_def.setValue("require_resolved_apex", "false");
   keep_epd.setParameters(keep_def);
 
-  MassTrace kept_mt(decaying);
-  kept_mt.setLabel("T42");
-  std::vector<MassTrace> kept_out;
-  keep_epd.detectPeaks(kept_mt, kept_out);
-  TEST_EQUAL(kept_out.size(), 1);
+  MassTrace unfiltered_mt(make_trace(profile));
+  std::vector<MassTrace> unfiltered_out;
+  keep_epd.detectPeaks(unfiltered_mt, unfiltered_out);
+  Size on_boundary = 0;
+  for (Size k = 0; k < unfiltered_out.size(); ++k)
+  {
+    const Size apex = unfiltered_out[k].findMaxByIntPeak(true);
+    if ((apex == 0 && k > 0) || (apex + 1 == unfiltered_out[k].getSize() && k + 1 < unfiltered_out.size()))
+    {
+      ++on_boundary;
+    }
+  }
+  TEST_EQUAL(on_boundary > 0, true);
+  TEST_EQUAL(unfiltered_out.size() > split_out.size(), true);
 }
 END_SECTION
 
@@ -222,18 +254,19 @@ END_SECTION
 
 START_SECTION((double computeMassTraceSNR(const MassTrace &)))
 {
-    ABORT_IF(splitted_mt.size() != 2);
+    ABORT_IF(splitted_mt.size() != 3);
 
-    // the discarded flank T1.1 used to be splitted_mt[0] here, with a S/N of 0.1907
     double snr1(test_epd.computeMassTraceSNR(splitted_mt[0]));
     double snr2(test_epd.computeMassTraceSNR(splitted_mt[1]));
+    double snr3(test_epd.computeMassTraceSNR(splitted_mt[2]));
 
     // using lowess and GSL
     //TEST_REAL_SIMILAR(snr1, 8.6058);
     //TEST_REAL_SIMILAR(snr2, 8.946);
     // using SavitzkyGolay
-    TEST_REAL_SIMILAR(snr1, 9.8855);
-    TEST_REAL_SIMILAR(snr2, 7.6432);
+    TEST_REAL_SIMILAR(snr1, 0.1907);
+    TEST_REAL_SIMILAR(snr2, 9.8855);
+    TEST_REAL_SIMILAR(snr3, 7.6432);
     // using lowess with regression
     //TEST_REAL_SIMILAR(snr1, 0.0497);
     //TEST_REAL_SIMILAR(snr2, 0.1450);
@@ -242,18 +275,19 @@ END_SECTION
 
 START_SECTION((double computeApexSNR(const MassTrace &)))
 {
-    ABORT_IF(splitted_mt.size() != 2);
+    ABORT_IF(splitted_mt.size() != 3);
 
-    // the discarded flank T1.1 used to be splitted_mt[0] here, with an apex S/N of 2.0427
     double snr1(test_epd.computeApexSNR(splitted_mt[0]));
     double snr2(test_epd.computeApexSNR(splitted_mt[1]));
+    double snr3(test_epd.computeApexSNR(splitted_mt[2]));
 
     // using lowess and GSL
     //TEST_REAL_SIMILAR(snr1, 40.0159);
     //TEST_REAL_SIMILAR(snr2, 58.5950);
     // using SavitzkyGolay
-    TEST_REAL_SIMILAR(snr1, 37.7893);
-    TEST_REAL_SIMILAR(snr2, 52.9933);
+    TEST_REAL_SIMILAR(snr1,  2.0427);
+    TEST_REAL_SIMILAR(snr2, 37.7893);
+    TEST_REAL_SIMILAR(snr3, 52.9933);
     // using lowess with regression
     //TEST_REAL_SIMILAR(snr1, 6.5177);
     //TEST_REAL_SIMILAR(snr2, 7.3813);
