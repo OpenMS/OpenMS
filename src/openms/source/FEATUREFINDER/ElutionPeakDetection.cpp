@@ -64,8 +64,12 @@ namespace OpenMS
       const double left = (parent_idx > 0) ? parent_smoothed[parent_idx - 1] : -1.0;
       const double right = (parent_idx + 1 < parent_smoothed.size()) ? parent_smoothed[parent_idx + 1] : -1.0;
 
-      // a genuine maximum of the parent trace is a peak of its own, cut or not
-      return !(here > left && here > right);
+      // A genuine maximum of the parent trace is a peak of its own, cut or not. The comparison
+      // has to allow ties: a flat-topped peak whose plateau starts right after the cut has its
+      // apex equal to the next sample, and rejecting it would delete a real peak just like the
+      // fragment-relative test did. What remains is the case this check is for -- a fragment
+      // that only climbs towards the cut, with the signal continuing higher past it.
+      return !(here >= left && here >= right);
     }
   }
 

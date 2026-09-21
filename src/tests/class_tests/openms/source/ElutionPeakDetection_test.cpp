@@ -135,6 +135,33 @@ START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
     TEST_REAL_SIMILAR(two_peak_out[1].getMaxIntensity(false), 1000.0);
   }
 
+  // Same, with a flat top: the plateau starts on the first sample after the cut, so the apex
+  // equals its neighbour rather than exceeding it. Comparing strictly would delete this peak
+  // exactly as the fragment-relative test did, so ties count as a maximum. Checked against
+  // 'require_resolved_apex' off as well, which is the setting PeakPickerIM runs with.
+  const std::vector<double> flat_top = {100, 500, 1000, 500, 100, 1000, 1000, 500, 100};
+  MassTrace flat_mt(make_trace(flat_top, 2.0));
+  std::vector<MassTrace> flat_out;
+  test_epd.detectPeaks(flat_mt, flat_out);
+  TEST_EQUAL(flat_out.size(), 2);
+  if (flat_out.size() == 2)
+  {
+    TEST_REAL_SIMILAR(flat_out[1].getCentroidRT(), 110.0);
+    TEST_REAL_SIMILAR(flat_out[1].getMaxIntensity(false), 1000.0);
+  }
+
+  ElutionPeakDetection optout_epd;
+  Param optout_def = ElutionPeakDetection().getDefaults();
+  optout_def.setValue("width_filtering", "off");
+  optout_def.setValue("masstrace_snr_filtering", "false");
+  optout_def.setValue("require_resolved_apex", "false");
+  optout_epd.setParameters(optout_def);
+
+  MassTrace flat_optout_mt(make_trace(flat_top, 2.0));
+  std::vector<MassTrace> flat_optout_out;
+  optout_epd.detectPeaks(flat_optout_mt, flat_optout_out);
+  TEST_EQUAL(flat_optout_out.size(), flat_out.size());
+
   // A peak sampled too sparsely to put its maximum in the interior is still a peak. Nothing
   // was split off it, so it must survive even though estimateFWHM() cannot bracket a half
   // maximum for it and returns 0 -- most of a run's traces look like this when the scan rate
