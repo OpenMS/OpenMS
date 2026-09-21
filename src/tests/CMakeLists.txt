@@ -251,15 +251,12 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
   # Prove that every installed core header compiles with Boost unavailable.
   if(BUILD_SHARED_LIBS)
     list(GET Boost_INCLUDE_DIRS 0 _boost_header_root)
-    get_target_property(_arrow_header_dirs ${OPENMS_ARROW_TARGET} INTERFACE_INCLUDE_DIRECTORIES)
-    string(REPLACE ";" "$<SEMICOLON>" _arrow_header_dirs "${_arrow_header_dirs}")
     _openms_add_installed_consumer_tests(TestExternalCodeNoBoost
       "${CMAKE_SOURCE_DIR}/src/tests/external/boost_free"
       "${CMAKE_BINARY_DIR}/installed-consumer/prefix-no-boost"
       "${CMAKE_BINARY_DIR}/installed-consumer/build-no-boost"
       COMPONENTS library OpenMS_headers OpenSwathAlgo_headers thirdparty_headers cmake
-      CONFIGURE_ARGS "-DOPENMS_BOOST_HEADER_ROOT=${_boost_header_root}"
-                     "-DOPENMS_ARROW_INCLUDE_DIRS=${_arrow_header_dirs}")
+      CONFIGURE_ARGS "-DOPENMS_BOOST_HEADER_ROOT=${_boost_header_root}")
   endif()
 
   # 2. The core-only installation: exactly the components the pyOpenMS wheel

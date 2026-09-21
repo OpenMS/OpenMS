@@ -102,4 +102,13 @@ These changes affect the C++ ABI: rebuild applications and extensions against th
 new headers and library. Applications that use Boost independently must locate and
 link their own Boost targets.
 
+The same rule applies to the other implementation dependencies. A header whose
+declarations name an Arrow, OpenTIMS, Xerces-C or SQLite type is internal and is not
+installed: FORMAT/ParquetFile.h (Arrow builders and tables) and
+FORMAT/RationalScan2ImConverter.h (an OpenTIMS converter subclass) joined that group.
+The installed readers and writers built on them -- XICParquetFile, QPXFile,
+BrukerTimsFile and the rest -- take and return OpenMS types and need none of those
+packages. A build that configures OpenMS fails outright if an installed header
+includes one of them.
+
 */

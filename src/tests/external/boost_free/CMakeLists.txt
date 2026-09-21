@@ -20,6 +20,9 @@ foreach(_header IN LISTS _boost_headers)
   file(WRITE "${_poison}/${_header}" "#error An installed OpenMS header requires Boost\n")
 endforeach()
 
+# Nothing but OpenMS' own usage requirements reaches these translation units, so
+# an installed header that pulls in any private dependency (Boost, but equally
+# Arrow, Xerces or SQLite) fails to compile here.
 add_library(public_headers OBJECT)
 target_link_libraries(public_headers PRIVATE OpenMS::OpenMS)
 target_include_directories(public_headers BEFORE PRIVATE "${_poison}")
@@ -42,15 +45,6 @@ foreach(_target IN ITEMS OpenMS::OpenMS OpenMS::OpenSwathAlgo)
       file(TO_CMAKE_PATH "${_header}" _include)
       file(CONFIGURE OUTPUT "${_source}" CONTENT "#include \"${_include}\"\n" @ONLY)
       target_sources(public_headers PRIVATE "${_source}")
-      # ParquetFile exposes Arrow types. Supply that existing dependency only
-      # to its header unit; the plain OpenMS consumer below does not need it.
-      if(_include MATCHES "/FORMAT/ParquetFile\\.h$")
-        if(NOT OPENMS_ARROW_INCLUDE_DIRS)
-          message(FATAL_ERROR "ParquetFile.h requires the producer's Arrow include directories")
-        endif()
-        set_source_files_properties("${_source}" PROPERTIES
-          INCLUDE_DIRECTORIES "${_poison};${OPENMS_ARROW_INCLUDE_DIRS}")
-      endif()
     endforeach()
   endforeach()
 endforeach()
