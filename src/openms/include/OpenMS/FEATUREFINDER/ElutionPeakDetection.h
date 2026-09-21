@@ -137,7 +137,8 @@ private:
     /// Whether to apply S/N filtering
     bool mt_snr_filtering_;
 
-    /// Whether traces whose apex sits on their first or last point are discarded
+    /// Whether a fragment of a split trace is discarded when its apex sits on one of the cut
+    /// points and is not a local maximum of the parent trace across that cut
     bool require_resolved_apex_;
 
     /// Main function to do the work
