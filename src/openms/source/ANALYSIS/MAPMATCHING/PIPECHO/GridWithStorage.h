@@ -8,9 +8,13 @@
 
 #pragma once
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+// HashGrid directly: this used to arrive through QTClusterFinder.h, which no longer
+// exposes it (its Grid is opaque now), and nothing else here comes from that header.
+#include <OpenMS/ML/CLUSTERING/HashGrid.h>
 
+#include <functional>
 #include <memory>
+#include <vector>
 
 namespace OpenMS::PipEcho
 {
