@@ -795,6 +795,11 @@ Fixes:
       scanned length as int; for inputs longer than INT_MAX characters the value wrapped
       negative, and removeWhitespaces() then built its iterators from it, reading and writing
       before the start of the buffer. Both now return size_t (#10171).
+    - FileConverter: converting spectra to consensusXML/consensusparquet kept only as many of the
+      most intense MS1 peaks as the input had spectra. It now writes one consensus feature per MS1
+      peak (more memory and runtime for large files); equal intensities are ordered by RT and m/z,
+      so the output no longer depends on the platform, and every feature gets its own unique ID
+      (previously all were written as "e_0", which is invalid consensusXML) (#10161).
     - BaseFeature::sortPeptideIdentifications() no longer reads the first hit of an
       identification without hits (a crash for hit-less identifications loaded from featureXML,
       e.g. in FeatureLinkerUnlabeledQT with use_identifications), sorts the hits of every
