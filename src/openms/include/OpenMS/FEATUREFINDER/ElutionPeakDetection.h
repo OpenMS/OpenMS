@@ -137,6 +137,9 @@ private:
     /// Whether to apply S/N filtering
     bool mt_snr_filtering_;
 
+    /// Whether traces whose apex sits on their first or last point are discarded
+    bool require_resolved_apex_;
+
     /// Main function to do the work
     void detectElutionPeaks_(MassTrace&, std::vector<MassTrace>&);
   };

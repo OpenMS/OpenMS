@@ -102,7 +102,42 @@ END_SECTION
 
 START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
 {
-  NOT_TESTABLE; // see above
+  // A trace that only decays has its apex on the first point, so estimateFWHM() cannot
+  // bracket the half maximum: the FWHM borders stay collapsed and the area quantification of
+  // the trace is 0. Such a flank is not an elution peak and 'require_resolved_apex' (on by
+  // default) drops it whatever the width filter says -- it used to pass through with
+  // 'width_filtering' set to anything but 'fixed' and surface as a feature with intensity 0
+  // sitting on the edge of its own RT range (see issue #2777)
+  std::vector<Peak2D> decaying;
+  for (Size i = 0; i < 12; ++i)
+  {
+    Peak2D p;
+    p.setRT(100.0 + i);
+    p.setMZ(230.1);
+    p.setIntensity(10000.0f / (i + 1));
+    decaying.push_back(p);
+  }
+  MassTrace decaying_mt(decaying);
+  decaying_mt.setLabel("T42");
+
+  std::vector<MassTrace> decaying_out;
+  test_epd.detectPeaks(decaying_mt, decaying_out); // test_epd has width_filtering "off"
+  TEST_EQUAL(decaying_out.empty(), true);
+
+  // callers that sample too sparsely for a FWHM (e.g. PeakPickerIM on the ion mobility axis)
+  // can opt out and keep the trace
+  ElutionPeakDetection keep_epd;
+  Param keep_def = ElutionPeakDetection().getDefaults();
+  keep_def.setValue("width_filtering", "off");
+  keep_def.setValue("masstrace_snr_filtering", "false");
+  keep_def.setValue("require_resolved_apex", "false");
+  keep_epd.setParameters(keep_def);
+
+  MassTrace kept_mt(decaying);
+  kept_mt.setLabel("T42");
+  std::vector<MassTrace> kept_out;
+  keep_epd.detectPeaks(kept_mt, kept_out);
+  TEST_EQUAL(kept_out.size(), 1);
 }
 END_SECTION
 

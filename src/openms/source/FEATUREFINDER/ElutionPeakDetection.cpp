@@ -22,6 +22,25 @@
 
 namespace OpenMS
 {
+  namespace
+  {
+    /**
+      @brief Did estimateFWHM() resolve an actual elution peak for this trace?
+
+      A FWHM of zero means the apex was found on the first or the last point of the trace, so
+      estimateFWHM() could not bracket the half maximum and left the FWHM borders collapsed.
+      Such a trace is a flank, not a peak: its area-based quantification is 0 and its centroid
+      RT -- the apex -- sits on the edge of its own RT range. Dropping it is what
+      'require_resolved_apex' asks for, independently of the width filter; without that the
+      trace surfaces as a feature with intensity 0 whose RT is tens of seconds away from the
+      elution maximum (see issue #2777).
+    */
+    bool isResolvedElutionPeak(double fwhm)
+    {
+      return fwhm > 0.0;
+    }
+  }
+
   ElutionPeakDetection::ElutionPeakDetection() :
     DefaultParamHandler("ElutionPeakDetection"), ProgressLogger()
   {
@@ -38,6 +57,9 @@ namespace OpenMS
 
     defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", {"advanced"});
     defaults_.setValidStrings("masstrace_snr_filtering", {"true","false"});
+
+    defaults_.setValue("require_resolved_apex", "true", "Discard mass traces whose apex falls on their first or last data point. These are flanks rather than resolved elution peaks: no FWHM can be determined for them and area-based quantification returns 0, so they end up as features with intensity 0 positioned at the edge of their own RT range. Applies regardless of 'width_filtering'. Disable only if every sub-trace is wanted, e.g. when peaks are sampled too sparsely for a FWHM to be bracketed.", {"advanced"});
+    defaults_.setValidStrings("require_resolved_apex", {"true","false"});
 
     defaultsToParam_();
     this->setLogType(CMD);
@@ -426,11 +448,18 @@ namespace OpenMS
       bool snr_ok = true;
 
       // *********************************************************************
-      // Step 3.1: check mass trace length criteria (if fixed filter is enabled)
+      // Step 3.1: check mass trace length criteria
       // *********************************************************************
-      if (pw_filtering_ == "fixed")
+      // estimateFWHM() is needed here in any case: it also sets the FWHM borders the
+      // quantification relies on, and its return value tells us whether an elution peak was
+      // resolved at all (see the zero check below).
+      double act_fwhm(mt.estimateFWHM(true));
+      if (require_resolved_apex_ && !isResolvedElutionPeak(act_fwhm))
       {
-        double act_fwhm(mt.estimateFWHM(true));
+        pw_ok = false;
+      }
+      else if (pw_filtering_ == "fixed")
+      {
         if (act_fwhm < min_fwhm_ || act_fwhm > max_fwhm_)
         {
           pw_ok = false;
@@ -451,11 +480,6 @@ namespace OpenMS
       if (pw_ok && snr_ok)
       {
         mt.updateSmoothedMaxRT();
-
-        if (pw_filtering_ != "fixed")
-        {
-          mt.estimateFWHM(true);
-        }
 
 #ifdef _OPENMP
 #pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
@@ -507,11 +531,15 @@ namespace OpenMS
         bool snr_ok = true;
 
         // *********************************************************************
-        // Step 3.2: check mass trace length criteria (if fixed filter is enabled)
+        // Step 3.2: check mass trace length criteria
         // *********************************************************************
-        if (pw_filtering_ == "fixed")
+        double act_fwhm(new_mt.estimateFWHM(true));
+        if (require_resolved_apex_ && !isResolvedElutionPeak(act_fwhm))
         {
-          double act_fwhm(new_mt.estimateFWHM(true));
+          pw_ok = false;
+        }
+        else if (pw_filtering_ == "fixed")
+        {
           if (act_fwhm < min_fwhm_ || act_fwhm > max_fwhm_)
           {
             pw_ok = false;
@@ -537,10 +565,6 @@ namespace OpenMS
           new_mt.updateWeightedMeanMZ();
           new_mt.updateWeightedMZsd();
           new_mt.setQuantMethod(mt.getQuantMethod());
-          if (pw_filtering_ != "fixed")
-          {
-            new_mt.estimateFWHM(true);
-          }
 
 #ifdef _OPENMP
 #pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
@@ -629,6 +653,7 @@ namespace OpenMS
 
     pw_filtering_ = param_.getValue("width_filtering").toString();
     mt_snr_filtering_ = param_.getValue("masstrace_snr_filtering").toBool();
+    require_resolved_apex_ = param_.getValue("require_resolved_apex").toBool();
   }
 
 } //namespace OpenMS

@@ -1288,6 +1288,11 @@ namespace OpenMS
       param.setValue("min_fwhm", -1.0);
       param.setValue("max_fwhm", 1e6);
       param.setValue("masstrace_snr_filtering", "false");
+      // The ion mobility axis is sampled far too coarsely for estimateFWHM() to bracket a half
+      // maximum, so most traces here have their apex on the first or last point. They are real
+      // IM peaks nonetheless -- that is why the intensity below comes from computeIntensitySum()
+      // rather than getIntensity() -- and must not be discarded.
+      param.setValue("require_resolved_apex", "false");
       epd.setParameters(param);
 
       std::vector<MassTrace> split_mtraces;

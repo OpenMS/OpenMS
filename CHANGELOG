@@ -722,6 +722,23 @@ Fixes:
       charge states only via a continue that escaped the inner charge-scanning loop, so the
       component still passed the conflict check and was grouped. Such components are now
       correctly rejected, which changes alignment and linking results (#10157).
+    - ElutionPeakDetection drops mass traces whose apex falls on their first or last data
+      point. estimateFWHM() cannot bracket the half maximum for those, so it left the FWHM
+      borders collapsed and the area-based quantification of the trace returned 0. With
+      'epd:width_filtering' set to 'fixed' they were already removed by the FWHM bounds, but
+      with 'off' or 'auto' they reached the output as features with intensity 0 whose RT sat
+      on the edge of their own RT range, up to tens of seconds away from the elution maximum.
+      The new advanced parameter 'epd:require_resolved_apex' (default 'true') controls this
+      independently of the width filter, so FeatureFinderMetabo and MassTraceExtractor report
+      fewer features when width filtering is not 'fixed'. PeakPickerIM turns it off because
+      the ion mobility axis is sampled too coarsely for a FWHM to be bracketed (#2777).
+    - MassTrace::updateWeightedMeanRT() weighted each peak by the RT distance to its
+      predecessor and started the sum at the second peak, so the first peak contributed to
+      neither the numerator nor the denominator. The centroid was biased towards later RT
+      and, for a two-point trace, was always the RT of the second peak whatever the
+      intensities. The intensity-weighted mean now uses mid-interval (trapezoidal) weights
+      over all peaks, which changes RT positions on the 'epd:enabled=false' path of
+      FeatureFinderMetabo and MassTraceExtractor (#2777).
   Data integrity and I/O:
     - Sorting/filtering/set_peaks keeps peak annotations and binary arrays aligned in
       spectra, chromatograms and mobilograms. select() checks bounds before mutation;
