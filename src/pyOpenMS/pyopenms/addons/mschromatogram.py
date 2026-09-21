@@ -3,7 +3,7 @@
 from __future__ import annotations
 import warnings
 import numpy as np
-from . import addon
+from . import addon, register_element_views, string_dtype
 
 
 @addon("MSChromatogram")
@@ -52,7 +52,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
     if want('product_mz'):
         data_dict['product_mz'] = np.full(cnt, self.getProduct().getMZ(), dtype=np.float64)
     if want('native_id'):
-        data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype='U100')
+        data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype=string_dtype(cnt))
 
     if want_explicit('chromatogram_type'):
         chrom_type = self.getChromatogramType()
@@ -65,10 +65,10 @@ def get_data_dict(self, columns=None, export_meta_values=True):
             7: 'ABSORPTION_CHROMATOGRAM', 8: 'EMISSION_CHROMATOGRAM'
         }
         type_name = type_names.get(int(chrom_type), f'UNKNOWN_{chrom_type}')
-        data_dict['chromatogram_type'] = np.full(cnt, type_name, dtype='U100')
+        data_dict['chromatogram_type'] = np.full(cnt, type_name, dtype=string_dtype(cnt))
 
     if want_explicit('comment'):
-        data_dict['comment'] = np.full(cnt, self.getComment(), dtype='U100')
+        data_dict['comment'] = np.full(cnt, self.getComment(), dtype=string_dtype(cnt))
 
     # Meta values
     if requested is None and export_meta_values:
@@ -86,10 +86,8 @@ def get_data_dict(self, columns=None, export_meta_values=True):
                     data_dict[k_str] = np.full(cnt, v, dtype=np.int64)
                 elif isinstance(v, float):
                     data_dict[k_str] = np.full(cnt, v, dtype=np.float64)
-                elif isinstance(v, str):
-                    data_dict[k_str] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
                 else:
-                    data_dict[k_str] = np.full(cnt, str(v), dtype='object')
+                    data_dict[k_str] = np.full(cnt, v if isinstance(v, str) else str(v), dtype=string_dtype(cnt))
             except Exception:
                 data_dict[k_str] = np.full(cnt, str(v), dtype='object')
     elif requested is not None:
@@ -108,10 +106,8 @@ def get_data_dict(self, columns=None, export_meta_values=True):
                             data_dict[col] = np.full(cnt, v, dtype=np.int64)
                         elif isinstance(v, float):
                             data_dict[col] = np.full(cnt, v, dtype=np.float64)
-                        elif isinstance(v, str):
-                            data_dict[col] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
                         else:
-                            data_dict[col] = np.full(cnt, str(v), dtype='object')
+                            data_dict[col] = np.full(cnt, v if isinstance(v, str) else str(v), dtype=string_dtype(cnt))
                     except Exception:
                         data_dict[col] = np.full(cnt, str(v), dtype='object')
 
@@ -148,3 +144,12 @@ def to_arrow(self, columns=None, export_meta_values=True):
     """Returns an Apache Arrow Table representation."""
     import pyarrow as pa
     return pa.Table.from_pydict(self.get_data_dict(columns=columns, export_meta_values=export_meta_values))
+
+
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("MSChromatogram", "float_data_array", "_float_data_array_count", "float data arrays")
+register_element_views("MSChromatogram", "integer_data_array", "_integer_data_array_count", "integer data arrays")
+register_element_views("MSChromatogram", "string_data_array", "_string_data_array_count", "string data arrays")
+
+

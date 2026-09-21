@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/OpenSwathBase.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
@@ -16,6 +17,8 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <algorithm>
 #include <cmath>
@@ -115,7 +118,7 @@ protected:
                           "Whether to run directly on input data or cache data to disk first. If 'cache', set tempDirectory as needed.",
                           false, true);
     setValidStrings_("readOptions", {"normal", "cache"});
-    registerStringOption_("tempDirectory", "<tmp>", File::getTempDirectory(), "Temporary directory for cached data.", false, true);
+    registerStringOption_("tempDirectory", "<tmp>", SystemSettings::getTempDirectory(), "Temporary directory for cached data.", false, true);
     registerFlag_("keep_cached_files", "If set, do not remove cached files created in tempDirectory.", false);
     registerIntOption_("outer_loop_threads", "<number>", -1,
                        "How many threads the evidence filter should use (-1 uses the OpenMP maximum).",
@@ -195,8 +198,16 @@ protected:
     }
 
     const std::string decoy_handling = getStringOption_("decoy_handling");
+    const std::string decoy_prefix = getStringOption_("decoy_prefix");
     Param tsv_reader_param = getParam_().copy("Library:", true);
-    OpenSwath::LightTargetedExperiment transition_exp = loadTransitionListForPrefilter_(tr_type, tr_file, tsv_reader_param, decoy_handling);
+    OpenSwathLibraryIDNormalizer::SourceIDMapping library_source_ids;
+    OpenSwath::LightTargetedExperiment transition_exp =
+      loadTransitionList(tr_type, tr_file, tsv_reader_param, &library_source_ids);
+
+    // Decoy prefixes belong to source/provenance identifiers. Materialize the
+    // configured prefix on explicit transition flags before evidence filtering
+    // sees only canonical numeric IDs.
+    OpenSwathLibraryIDNormalizer::materializeDecoyPrefix(transition_exp, library_source_ids, decoy_prefix);
     OPENMS_LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, "
                     << transition_exp.getCompounds().size() << " compounds with "
                     << transition_exp.getTransitions().size() << " transitions.\n";
@@ -253,10 +264,10 @@ protected:
                       << ": " << ListUtils::concatenate(run_files, ", ") << "\n";
 
       std::string per_run_tmp = tmp_dir;
-      std::unique_ptr<File::TempDir> per_run_temp_dir;
+      std::unique_ptr<TempDir> per_run_temp_dir;
       if (readoptions == "cache")
       {
-        per_run_temp_dir = std::make_unique<File::TempDir>(tmp_dir, keep_cached_files);
+        per_run_temp_dir = std::make_unique<TempDir>(tmp_dir, keep_cached_files);
         per_run_tmp = per_run_temp_dir->getPath();
       }
 
@@ -338,10 +349,10 @@ protected:
     }
 
     OpenSwath::LightTargetedExperiment filtered_exp = buildOutputExperiment_(
-      transition_exp, selected_targets, decoy_handling, getStringOption_("decoy_prefix"),
-      output_precursor_im_scale, output_precursor_im_scaled_by_charge);
+      transition_exp, selected_targets, decoy_handling, decoy_prefix,
+      output_precursor_im_scale, output_precursor_im_scaled_by_charge, library_source_ids);
 
-    writeTransitionList_(out, out_type, filtered_exp);
+    writeTransitionList_(out, out_type, filtered_exp, library_source_ids);
     OPENMS_LOG_INFO << "Wrote filtered transition list with " << filtered_exp.getProteins().size()
                     << " proteins, " << filtered_exp.getCompounds().size()
                     << " compounds, and " << filtered_exp.getTransitions().size()
@@ -350,22 +361,6 @@ protected:
   }
 
 private:
-  OpenSwath::LightTargetedExperiment loadTransitionListForPrefilter_(const FileTypes::Type& tr_type,
-                                                                     const std::string& tr_file,
-                                                                     const Param& tsv_reader_param,
-                                                                     const std::string& decoy_handling)
-  {
-    if (tr_type == FileTypes::PQP && decoy_handling == "keep_matching")
-    {
-      OPENMS_LOG_INFO << "Loading PQP with legacy TraML IDs to preserve target-decoy precursor ID matching.\n";
-      OpenSwath::LightTargetedExperiment transition_exp;
-      TransitionPQPFile pqp_reader;
-      pqp_reader.setLogType(log_type_);
-      pqp_reader.convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp, true);
-      return transition_exp;
-    }
-    return loadTransitionList(tr_type, tr_file, tsv_reader_param);
-  }
 
   static ChromExtractParams makeChromExtractParams_(double mz_window, bool ppm, double im_window)
   {
@@ -390,16 +385,15 @@ private:
     return id.find("DECOY") == 0 || id.find("Decoy") == 0 || id.find("decoy") == 0;
   }
 
-  static bool mapsToSelectedTarget_(const std::string& decoy_ref,
-                                    const std::unordered_set<std::string>& selected_targets,
-                                    const std::string& decoy_prefix)
+  static bool mapsToSelectedTarget_(
+    const std::string& decoy_ref,
+    const std::unordered_set<std::string>& selected_targets,
+    const std::string& decoy_prefix,
+    const OpenSwathLibraryIDNormalizer::SourceIDMapping& source_ids)
   {
-    const std::string prefix = decoy_prefix;
-    if (!prefix.empty() && decoy_ref.find(prefix) == 0)
-    {
-      return selected_targets.find(decoy_ref.substr(prefix.size())) != selected_targets.end();
-    }
-    return false;
+    const auto target_ref = OpenSwathLibraryIDNormalizer::canonicalTargetForDecoyPrecursor(
+      decoy_ref, source_ids, decoy_prefix);
+    return target_ref.has_value() && selected_targets.contains(*target_ref);
   }
 
   static OpenSwath::LightTargetedExperiment buildOutputExperiment_(
@@ -408,7 +402,8 @@ private:
     const std::string& decoy_handling,
     const std::string& decoy_prefix,
     double precursor_im_scale,
-    bool precursor_im_scaled_by_charge)
+    bool precursor_im_scaled_by_charge,
+    const OpenSwathLibraryIDNormalizer::SourceIDMapping& source_ids)
   {
     OpenSwath::LightTargetedExperiment filtered_exp;
     std::unordered_map<std::string, int> charge_by_compound;
@@ -421,7 +416,13 @@ private:
     std::unordered_set<std::string> kept_compounds;
     for (const auto& transition : transition_exp.getTransitions())
     {
-      const bool decoy = transition.getDecoy() || hasDecoyPrefix_(transition.getPeptideRef(), decoy_prefix);
+      std::string source_ref = transition.getPeptideRef();
+      if (const auto source_it = source_ids.precursor_canonical_to_source.find(transition.getPeptideRef());
+          source_it != source_ids.precursor_canonical_to_source.end())
+      {
+        source_ref = source_it->second;
+      }
+      const bool decoy = transition.getDecoy() || hasDecoyPrefix_(source_ref, decoy_prefix);
       bool keep = false;
       if (!decoy)
       {
@@ -433,7 +434,7 @@ private:
       }
       else if (decoy_handling == "keep_matching")
       {
-        keep = mapsToSelectedTarget_(transition.getPeptideRef(), selected_targets, decoy_prefix);
+        keep = mapsToSelectedTarget_(transition.getPeptideRef(), selected_targets, decoy_prefix, source_ids);
       }
 
       if (keep)
@@ -488,9 +489,11 @@ private:
     return filtered_exp;
   }
 
-  void writeTransitionList_(const std::string& out,
-                            FileTypes::Type out_type,
-                            const OpenSwath::LightTargetedExperiment& filtered_exp) const
+  void writeTransitionList_(
+    const std::string& out,
+    FileTypes::Type out_type,
+    const OpenSwath::LightTargetedExperiment& filtered_exp,
+    const OpenSwathLibraryIDNormalizer::SourceIDMapping& source_ids) const
   {
     if (out_type == FileTypes::TSV)
     {
@@ -502,12 +505,12 @@ private:
     {
       TransitionPQPFile writer;
       writer.setLogType(log_type_);
-      writer.convertLightTargetedExperimentToPQP(out.c_str(), filtered_exp);
+      writer.convertLightTargetedExperimentToPQP(out.c_str(), filtered_exp, &source_ids);
     }
     else if (out_type == FileTypes::OSWPQ)
     {
       TransitionParquetFile writer;
-      writer.convertLightTargetedExperimentToParquet(out, filtered_exp);
+      writer.convertLightTargetedExperimentToParquet(out, filtered_exp, &source_ids);
     }
     else
     {

@@ -57,22 +57,6 @@ indicates that the particular peptide is present at that position, so a feature 
 
 Targeted data analysis on the MS1 level uses OpenSWATH algorithms and follows roughly the steps outlined below.
 
-<B>Use of inferred ("external") IDs</B>
-
-The situation becomes more complicated when several LC-MS/MS runs from related samples of a label-free experiment are considered.
-In order to quantify a larger fraction of the peptides/proteins in the samples, it is desirable to infer peptide identifications across runs.
-Ideally, all peptides identified in any of the runs should be quantified in each and every run.
-However, for feature detection of inferred ("external") IDs, the following problems arise:
-First, retention times may be shifted between the run being quantified and the run that gave rise to the ID.
-Such shifts can be corrected (see @ref TOPP_MapAlignerIdentification), but only to an extent.
-Thus, the RT location of the inferred ID may not necessarily lie within the RT range of the correct feature.
-Second, since the peptide in question was not directly identified in the run being quantified, it may not actually be present in detectable amounts in that sample, e.g. due to differential
-regulation of the corresponding protein. There is thus a risk of introducing false-positive features.
-
-FeatureFinderIdentification deals with these challenges by explicitly distinguishing between internal IDs (derived from the LC-MS/MS run being quantified) and external IDs (inferred from related
-runs). Features derived from internal IDs give rise to a training dataset for an SVM classifier. The SVM is then used to predict which feature candidates derived from external IDs are most likely
-to be correct. See steps 4 and 5 below for more details.
-
 <B>1. Assay generation</B>
 
 Feature detection is based on assays for identified peptides, each of which incorporates the retention time (RT), mass-to-charge ratio (m/z), and isotopic distribution (derived from the sequence)
@@ -96,16 +80,12 @@ A variety of scores for different quality aspects are calculated by OpenSWATH.
 
 <B>4. Feature classification</B>
 
-Feature candidates derived from assays with "internal" IDs are classed as "negative" (candidates without matching internal IDs), "positive" (the single best candidate per assay with matching
-internal IDs), and "ambiguous" (other candidates with matching internal IDs). If "external" IDs were given as input, features based on them are initially classed as "unknown". Also in this case, a
-support vector machine (SVM) is trained on the "positive" and "negative" candidates, to distinguish between the two classes based on the different OpenSWATH quality scores (plus an RT deviation
-score). After parameter optimization by cross-validation, the resulting SVM is used to predict the probability of "unknown" feature candidates being positives.
+Feature candidates are classed as "negative" (candidates without matching IDs), "positive" (the single best candidate per assay with matching IDs), and "ambiguous" (other candidates with matching
+IDs).
 
 <B>5. Feature filtering</B>
 
-Feature candidates are filtered so that at most one feature per peptide and charge state remains.
-For assays with internal IDs, only candidates previously classed as "positive" are kept.
-For assays based solely on external IDs, the feature candidate with the highest SVM probability is selected and kept (possibly subject to the @p svm:min_prob threshold).
+Feature candidates are filtered so that at most one feature per peptide and charge state remains; only candidates previously classed as "positive" are kept.
 
 <B>6. Elution model fitting</B>
 
@@ -174,8 +154,6 @@ protected:
     });
     registerInputFile_("id", "<file>", "", "Input file: Peptide identifications derived directly from 'in'");
     setValidFormats_("id", {"idXML", "idparquet"});
-    registerInputFile_("id_ext", "<file>", "", "Input file: 'External' peptide identifications (e.g. from aligned runs)", false);
-    setValidFormats_("id_ext", {"idXML", "idparquet"});
     registerOutputFile_("out", "<file>", "", "Output file: Features");
     setValidFormats_("out", {"featureXML", "featureparquet"});
     registerOutputFile_("lib_out", "<file>", "", "Output file: Assay library", false);
@@ -185,7 +163,7 @@ protected:
     registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
     setValidFormats_("candidates_out", {"featureXML", "featureparquet"});
     registerInputFile_("candidates_in", "<file>", "",
-                       "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.",
+                       "Input file: Feature candidates from a previous run. If set, only feature filtering and elution model fitting are carried out, if enabled. Many parameters are ignored.",
                        false, true);
     setValidFormats_("candidates_in", {"featureXML", "featureparquet"});
 
@@ -229,7 +207,6 @@ protected:
     if (candidates_in.empty())
     {
       std::string in = getStringOption_("in");
-      std::string id_ext = getStringOption_("id_ext");
       std::string lib_out = getStringOption_("lib_out");
       std::string chrom_out = getStringOption_("chrom_out");
 
@@ -242,17 +219,10 @@ protected:
       mzml.getOptions().addMSLevel(1);
       mzml.loadExperiment(in, ms_data_full, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
 
-      PeptideIdentificationList peptides, peptides_ext;
-      vector<ProteinIdentification> proteins, proteins_ext;
+      PeptideIdentificationList peptides;
+      vector<ProteinIdentification> proteins;
 
-      // "internal" IDs:
       FileHandler().loadIdentifications(id, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
-
-      // "external" IDs:
-      if (!id_ext.empty())
-      {
-        FileHandler().loadIdentifications(id_ext, proteins_ext, peptides_ext, {FileTypes::IDXML, FileTypes::IDPARQUET});
-      }
 
       //-------------------------------------------------------------
       // Run feature detection (FAIMS handling is done internally)
@@ -262,7 +232,7 @@ protected:
       ffid_algo_run.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
       ffid_algo_run.setMSData(std::move(ms_data_full));
 
-      ffid_algo_run.run(peptides, proteins, peptides_ext, proteins_ext, features, FeatureMap(), in);
+      ffid_algo_run.run(peptides, proteins, features, FeatureMap(), in);
 
       // write auxiliary output (library is empty for multi-FAIMS data):
       if (!lib_out.empty())

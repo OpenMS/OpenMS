@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <fstream>
 
 using namespace OpenMS;
@@ -18,7 +19,7 @@ START_TEST(ZipArchiveFile, "$Id$")
 START_SECTION(void addOrReplaceFromFile(const std::string&, const std::string&, const std::string&))
 {
   // prepare temporary workspace
-  File::TempDir tmp;
+  TempDir tmp;
   const std::string base = tmp.getPath() + "/workspace";
   File::makeDir(base);
   File::makeDir(base + "/library");
@@ -45,7 +46,7 @@ START_SECTION(void addOrReplaceFromFile(const std::string&, const std::string&, 
   TEST_EQUAL(found, true)
 
   // extract and verify content
-  std::unique_ptr<File::TempDir> unpack_tmp;
+  std::unique_ptr<TempDir> unpack_tmp;
   const std::string unpack_dir = ZipArchiveFile::unzipDirectory(archive, unpack_tmp);
   const std::string extracted = unpack_dir + "/library/precursors.parquet";
   TEST_EQUAL(File::exists(extracted), true)
@@ -68,7 +69,7 @@ START_SECTION(void addOrReplaceFromFile(const std::string&, const std::string&, 
   ZipArchiveFile::addOrReplaceFromFile(archive, "library/precursors.parquet", file1);
 
   // extract to new temp dir and verify replaced content
-  std::unique_ptr<File::TempDir> unpack_tmp2;
+  std::unique_ptr<TempDir> unpack_tmp2;
   const std::string unpack_dir2 = ZipArchiveFile::unzipDirectory(archive, unpack_tmp2);
   const std::string extracted2 = unpack_dir2 + "/library/precursors.parquet";
   TEST_EQUAL(File::exists(extracted2), true)
@@ -84,7 +85,7 @@ END_SECTION
 
 START_SECTION([EXTRA] unzipDirectory error paths)
 {
-  File::TempDir tmp;
+  TempDir tmp;
 
   // Corrupt archive: an existing, readable file that is not a valid ZIP (garbage
   // bytes, no central directory). libzip's zip_open() fails and unzipDirectory
@@ -98,13 +99,13 @@ START_SECTION([EXTRA] unzipDirectory error paths)
   }
   TEST_EQUAL(File::exists(corrupt), true)
   {
-    std::unique_ptr<File::TempDir> td;
+    std::unique_ptr<TempDir> td;
     TEST_EXCEPTION(Exception::InvalidValue, ZipArchiveFile::unzipDirectory(corrupt, td))
   }
 
   // Missing / unreadable input: a clear FileNotFound.
   {
-    std::unique_ptr<File::TempDir> td;
+    std::unique_ptr<TempDir> td;
     TEST_EXCEPTION(Exception::FileNotFound, ZipArchiveFile::unzipDirectory("/nonexistent/path/to/archive.oswpq", td))
   }
 
@@ -113,7 +114,7 @@ START_SECTION([EXTRA] unzipDirectory error paths)
   {
     const std::string adir = tmp.getPath() + "/already_a_dir";
     File::makeDir(adir);
-    std::unique_ptr<File::TempDir> td;
+    std::unique_ptr<TempDir> td;
     TEST_STRING_EQUAL(ZipArchiveFile::unzipDirectory(adir, td), adir)
   }
 }

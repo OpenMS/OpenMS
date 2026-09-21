@@ -277,6 +277,19 @@ START_SECTION(( void encodeStrings(const std::vector<std::string> & in, String &
   TEST_EQUAL(strings[3],"test")
   TEST_EQUAL(strings[4],"1234")
 
+  // round-trip including a single-character string (regression: the decode emit
+  // guard used to require length >= 2 and silently dropped 1-char segments)
+  vector<std::string> single_char_strings;
+  single_char_strings.push_back("a");
+  single_char_strings.push_back("bb");
+  single_char_strings.push_back("c");
+  b64.encodeStrings(single_char_strings, str, false);
+  b64.decodeStrings(str, single_char_strings, false);
+  TEST_EQUAL(single_char_strings.size(), 3)
+  TEST_EQUAL(single_char_strings[0], "a")
+  TEST_EQUAL(single_char_strings[1], "bb")
+  TEST_EQUAL(single_char_strings[2], "c")
+
   // test some corrupted strings
   src = "==";
   b64.decodeStrings(src, strings, false);
@@ -288,7 +301,12 @@ START_SECTION(( void encodeStrings(const std::vector<std::string> & in, String &
 
   src = "====";
   b64.decodeStrings(src, strings, false);
-  TEST_EQUAL(strings.size(), 0)
+  // "====" is malformed base64 (4 padding chars). decodeSingleString() decodes it to a
+  // single non-NUL placeholder byte (the padding count only inspects the last 2 chars and
+  // '=' is mis-mapped to a non-zero value in registerDecoder_). The corrected non-empty
+  // guard now surfaces that as one length-1 string; the previous length>=2 guard silently
+  // dropped it (the same defect that also dropped valid single-character strings above).
+  TEST_EQUAL(strings.size(), 1)
 
   src = "Q A..A=="; // spaces and dots are not allowed
   b64.decodeStrings(src, strings, false);

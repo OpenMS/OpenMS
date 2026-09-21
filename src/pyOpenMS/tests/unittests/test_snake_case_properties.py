@@ -1,0 +1,121 @@
+"""
+Tests for the Pythonic snake_case properties on core classes (issue #9760).
+
+These properties are additive: the existing getX()/setX() methods are unchanged.
+Only clean, no-arg scalar get/set pairs are exposed as properties.
+"""
+
+import pytest
+
+
+def test_peak1d_scalar_properties_roundtrip():
+    """Peak1D.mz / .intensity read and write, and stay in sync with the getters."""
+    from pyopenms import Peak1D
+
+    pk = Peak1D()
+    pk.mz = 250.5
+    pk.intensity = 900.0
+
+    # property read
+    assert pk.mz == pytest.approx(250.5)
+    assert pk.intensity == pytest.approx(900.0)
+    # property write is reflected in the legacy getters (additive, same storage)
+    assert pk.getMZ() == pytest.approx(250.5)
+    assert pk.getIntensity() == pytest.approx(900.0)
+    # legacy setter is reflected in the property
+    pk.setMZ(111.0)
+    assert pk.mz == pytest.approx(111.0)
+
+
+def test_peak1d_pos_alias_is_not_a_property():
+    """'pos' is an alias of mz; it must NOT be exposed as a property (avoid alias pairs)."""
+    from pyopenms import Peak1D
+
+    assert not hasattr(Peak1D, "pos")
+    # but the legacy method alias still works
+    pk = Peak1D()
+    pk.mz = 42.0
+    assert pk.getPos() == pytest.approx(42.0)
+
+
+def test_msspectrum_scalar_properties_roundtrip():
+    """MSSpectrum scalar properties read/write and stay in sync with getters."""
+    from pyopenms import MSSpectrum
+
+    s = MSSpectrum()
+    s.rt = 205.2
+    s.ms_level = 2
+    s.drift_time = 25.5
+    s.name = "scan=1"
+    s.comment = "hello"
+    s.native_id = "controllerType=0 scan=1"
+
+    assert s.rt == pytest.approx(205.2)
+    assert s.ms_level == 2
+    assert s.drift_time == pytest.approx(25.5)
+    assert s.name == "scan=1"
+    assert s.comment == "hello"
+    assert s.native_id == "controllerType=0 scan=1"
+
+    # agreement with the legacy getters
+    assert s.getRT() == pytest.approx(205.2)
+    assert s.getMSLevel() == 2
+    assert s.getName() == "scan=1"
+    assert s.getNativeID() == "controllerType=0 scan=1"
+
+    # legacy setter reflected in the property
+    s.setRT(9.0)
+    assert s.rt == pytest.approx(9.0)
+
+
+def test_msspectrum_drift_time_unit_enum_property():
+    """drift_time_unit is an enum-valued property backed by get/setDriftTimeUnit."""
+    from pyopenms import MSSpectrum, DriftTimeUnit
+
+    s = MSSpectrum()
+    s.drift_time_unit = DriftTimeUnit.MILLISECOND
+    assert s.drift_time_unit == DriftTimeUnit.MILLISECOND
+    assert s.getDriftTimeUnit() == DriftTimeUnit.MILLISECOND
+
+
+def test_getitem_returns_copy():
+    """
+    spectrum[i] returns a copy, so mutating the indexed peak does NOT change the
+    underlying peak. In-place mutation via indexing is intentionally not supported
+    here; a proper index-based View is tracked as a follow-up to #9760.
+    """
+    from pyopenms import MSSpectrum
+
+    s = MSSpectrum()
+    s.set_peaks(([100.0, 200.0], [10.0, 20.0]))
+
+    # mutate through the indexed peak (operates on a copy)
+    s[0].mz = 999.0
+    s[1].intensity = 55.0
+
+    # the underlying peak data is unchanged
+    assert s[0].mz == pytest.approx(100.0)
+    assert s[1].intensity == pytest.approx(20.0)
+    mz, intensity = s.get_peaks()
+    assert mz[0] == pytest.approx(100.0)
+    assert intensity[1] == pytest.approx(20.0)
+
+    # the supported way to update a peak in place is __setitem__
+    from pyopenms import Peak1D
+    pk = Peak1D()
+    pk.mz = 999.0
+    pk.intensity = 55.0
+    s[0] = pk
+    assert s[0].mz == pytest.approx(999.0)
+    assert s[0].intensity == pytest.approx(55.0)
+
+
+def test_getters_setters_still_present_additive():
+    """The legacy methods must remain (properties are purely additive)."""
+    from pyopenms import Peak1D, MSSpectrum
+
+    for name in ("getMZ", "setMZ", "getIntensity", "setIntensity", "getPos", "setPos"):
+        assert hasattr(Peak1D, name)
+    for name in ("getRT", "setRT", "getMSLevel", "setMSLevel", "getName", "setName",
+                 "getNativeID", "setNativeID", "getComment", "setComment"):
+        assert hasattr(MSSpectrum, name)

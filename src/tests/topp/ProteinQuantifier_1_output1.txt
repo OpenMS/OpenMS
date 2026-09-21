@@ -1,4 +1,5 @@
 # Protein abundances computed from file 'source/TEST/TOPP/ProteinQuantifier_input.featureXML'
 # Parameters (relevant only): method=top, top:N=3, top:aggregate=median
-"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance"
+# Runs per fraction group: fgroup1: 'file1'
+"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_fgroup1_label1"
 "Protein0"	1	0	3	5555

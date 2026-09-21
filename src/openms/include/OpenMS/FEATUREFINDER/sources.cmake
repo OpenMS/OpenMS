@@ -24,7 +24,6 @@ Biosaur2Algorithm.h
 FeatureFinderAlgorithmMetaboIdent.h
 FeatureFinderMultiplexAlgorithm.h
 FeatureFindingMetabo.h
-FFIDAlgoExternalIDHandler.h
 Fitter1D.h
 GaussFitter1D.h
 GaussModel.h
@@ -45,6 +44,7 @@ MultiplexFiltering.h
 MultiplexFilteringCentroided.h
 MultiplexFilteringProfile.h
 MultiplexIsotopicPeakPattern.h
+MultiplexResolverAlgorithm.h
 MultiplexSatelliteCentroided.h
 MultiplexSatelliteProfile.h
 PeakWidthEstimator.h

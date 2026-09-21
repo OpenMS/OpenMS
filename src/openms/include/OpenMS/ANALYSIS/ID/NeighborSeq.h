@@ -51,10 +51,8 @@ namespace OpenMS
         theoretical-spectrum generator for charge-1 b/y ions including
         the @c b1 prefix ion.
 
-        @note The class stores a @c const-reference to the moved-in
-              vector via its internal member (not a copy). The vector
-              passed to the constructor must therefore outlive every
-              call on this instance.
+        @note The vector is moved into the instance, which then owns it for its
+              lifetime; the caller's argument is left in a moved-from state.
 
         @param[in] digested_relevant_peptides Digested peptides to use
                                               as the "relevant" reference
@@ -221,7 +219,7 @@ namespace OpenMS
 
 
     private:
-      const std::vector<AASequence>& digested_relevant_peptides_; ///< digested relevant peptides
+      std::vector<AASequence> digested_relevant_peptides_; ///< digested relevant peptides (owned: moved in at construction)
       std::map<double, std::vector<int>> mass_position_map_; ///< map of masses to positions in digested_relevant_peptides_
 
       TheoreticalSpectrumGenerator spec_gen_; ///< for b/y ions with charge 1

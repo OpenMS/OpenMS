@@ -110,6 +110,21 @@ MSExperiment empty_exp;
 TEST_EQUAL(tic.compute(empty_exp, 0) == TIC::Result(), true)
 END_SECTION
 
+START_SECTION([TIC::Result] bool operator==(const Result& rhs) const)
+{
+  // Results differing only in relative_intensities must not compare equal
+  TIC::Result a;
+  TIC::Result b;
+  a.relative_intensities = {1.0f};
+  b.relative_intensities = {2.0f};
+  TEST_FALSE(a == b)
+
+  // ... and equal again once relative_intensities match
+  b.relative_intensities = {1.0f};
+  TEST_TRUE(a == b)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

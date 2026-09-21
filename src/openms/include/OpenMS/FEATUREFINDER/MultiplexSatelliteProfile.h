@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/OpenMSConfig.h>
+
 namespace OpenMS
 {
   /**

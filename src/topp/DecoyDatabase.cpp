@@ -11,6 +11,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
@@ -275,7 +276,7 @@ protected:
       
       if (out_neighbor.empty())
       { // make it a temp file, since we need to append its content to the final 'out' DB
-        out_neighbor = File::getTemporaryFile(out_neighbor);
+        out_neighbor = TempFiles::getTemporaryFile(out_neighbor);
       }
 
       //-------------------------------------------------------------

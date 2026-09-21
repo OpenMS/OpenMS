@@ -14,6 +14,7 @@ ChromatogramSettings.h
 ContactPerson.h
 DataArrays.h
 DataProcessing.h
+DataProcessingUtils.h
 DocumentIdentifier.h
 ExperimentalDesign.h
 ExperimentalSettings.h
@@ -24,6 +25,7 @@ Instrument.h
 InstrumentSettings.h
 IonDetector.h
 IonSource.h
+MS1LabelState.h
 MassAnalyzer.h
 MetaInfo.h
 MetaInfoDescription.h
@@ -61,4 +63,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\METADATA" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

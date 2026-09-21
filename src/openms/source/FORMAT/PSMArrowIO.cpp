@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
@@ -87,7 +88,8 @@ bool PSMArrowIO::exportToParquet(
     return false;
   }
   if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(
-        protein_identifications, dir + "/" + kSearchParams, config))
+        protein_identifications, dir + "/" + kSearchParams, config,
+        ModificationDefinitionIO::encodeByRun(protein_identifications, ModificationDefinitionIO::collect(protein_identifications, peptide_identifications))))
   {
     OPENMS_LOG_ERROR << "PSMArrowIO: failed to write " << kSearchParams << std::endl;
     return false;

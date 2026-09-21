@@ -14,11 +14,55 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <fstream>
+#include <utility>
+#include <vector>
 
 using namespace std;
 using namespace OpenMS;
+
+namespace
+{
+  /**
+    @brief The region in which a feature accepts a precursor.
+
+    This is the bounding box of the feature's convex hull, extended by @p rt_tolerance in
+    retention time and by 0.01 Th in m/z. All four edges are inclusive.
+  */
+  struct FeatureBox
+  {
+    double rt_lo, rt_hi, mz_lo, mz_hi;
+
+    /// Spelled as the negation of "outside", so that a NaN coordinate is accepted exactly as
+    /// DBoundingBox::encloses() accepts it (neither comparison fires) rather than rejected.
+    bool contains(double rt, double mz) const
+    {
+      return !(rt < rt_lo || rt > rt_hi || mz < mz_lo || mz > mz_hi);
+    }
+
+    /// Whether this box can be placed on an ordered m/z sweep axis at all
+    bool sortable() const
+    {
+      return std::isfinite(mz_lo) && std::isfinite(mz_hi);
+    }
+  };
+
+  FeatureBox makeFeatureBox(const OpenMS::Feature& feature, double rt_tolerance)
+  {
+    // Deliberately built with the same DBoundingBox operations the per-pair check always used,
+    // so the region is identical for every input - including the normalisation setMin()/setMax()
+    // perform when a tolerance is negative, or when the feature has no convex hull at all.
+    OpenMS::DBoundingBox<2> bb = feature.getConvexHull().getBoundingBox();
+    const OpenMS::DPosition<2> extend_rt(rt_tolerance, 0.01);
+    bb.setMin(bb.minPosition() - extend_rt);
+    bb.setMax(bb.maxPosition() + extend_rt);
+    return FeatureBox{bb.minPosition()[0], bb.maxPosition()[0],
+                      bb.minPosition()[1], bb.maxPosition()[1]};
+  }
+} // namespace
 
 namespace OpenMS
 {
@@ -229,28 +273,160 @@ namespace OpenMS
 
       // for each precursor/MS2 find all features that are in the given tolerance window (bounding box + rt tolerances)
       // if believe_charge is set, only add features that match the precursor charge
+      //
+      // The inner set holds feature indices in ascending order no matter in which order they were
+      // inserted, and the nearest-feature selection further down breaks ties with a strict '<', i.e.
+      // in favour of the lowest feature index. That is what makes it safe for the candidate search
+      // below to visit precursors in m/z order rather than in storage order. Replacing this set with
+      // an insertion-ordered container would make the result depend on the traversal order.
       map<Size, set<Size> > scan_idx_to_feature_idx;
 
-      size_t overlap_checks(0);
+      // MS2 scan indices ordered by precursor m/z. The experiment itself is never reordered.
+      // The m/z is carried alongside the index so the sort compares plain doubles in contiguous
+      // memory rather than dereferencing spectrum -> precursor list -> m/z on every comparison.
+      // A non-finite precursor m/z has no place on the sweep axis - NaN would additionally
+      // violate the strict weak ordering std::sort requires - so those spectra are kept aside
+      // and compared exhaustively below.
+      vector<pair<double, Size> > scan_by_mz;
+      vector<Size> unsorted_scans;
+      scan_by_mz.reserve(exp.size()); // upper bound; avoids reallocating while collecting
       for (Size scan = 0; scan != exp.size(); ++scan)
       {
         // skip non-tandem mass spectra
         if (exp[scan].getMSLevel() != 2 || exp[scan].getPrecursors().empty()) continue;
+        const double pc_mz = exp[scan].getPrecursors()[0].getMZ();
+        if (std::isfinite(pc_mz))
+        {
+          scan_by_mz.push_back(make_pair(pc_mz, scan));
+        }
+        else
+        {
+          unsorted_scans.push_back(scan);
+        }
+      }
+      sort(scan_by_mz.begin(), scan_by_mz.end(),
+           [](const pair<double, Size>& a, const pair<double, Size>& b) { return a.first < b.first; });
+
+      // Pre-compute every feature's match region once. ConvexHull2D::getBoundingBox() is not
+      // cached, so evaluating it per (spectrum, feature) pair used to dominate the runtime.
+      // Skipped entirely when there is nothing to match against.
+      vector<FeatureBox> boxes;
+      vector<pair<double, Size> > feature_by_mz_lo; // ordered by the start of the m/z interval
+      vector<Size> unsorted_features;               // non-finite m/z interval: compared directly
+      if (!scan_by_mz.empty() || !unsorted_scans.empty())
+      {
+        boxes.reserve(features.size());
+        feature_by_mz_lo.reserve(features.size());
+        Size features_without_hull(0);
+        for (Size f = 0; f != features.size(); ++f)
+        {
+          if (features[f].getConvexHulls().empty()) { ++features_without_hull; }
+          boxes.push_back(makeFeatureBox(features[f], rt_tolerance_s));
+          if (boxes[f].sortable())
+          {
+            feature_by_mz_lo.push_back(make_pair(boxes[f].mz_lo, f));
+          }
+          else
+          {
+            unsorted_features.push_back(f);
+          }
+        }
+
+        // Reported once here instead of once per (spectrum, feature) pair, as the exhaustive check
+        // did, so the message is aggregated and worded differently. The count is also taken before
+        // any believe_charge filtering, so this can warn where the old code stayed silent - e.g.
+        // when every hull-less feature mismatches every precursor charge. Matching is unchanged:
+        // such a feature is not literally skipped, it takes part in the sweep with a box normalised
+        // to a degenerate interval at the numeric maximum that no real precursor m/z can reach.
+        // Note this counts features with *no* hull; one empty hull among several is not counted
+        // here and yields a full-numeric-range box that matches everything instead (see #9802).
+        if (features_without_hull != 0)
+        {
+          OPENMS_LOG_WARN << "HighResPrecursorMassCorrector warning: " << features_without_hull
+                          << " feature(s) have no convex hull - omitting them for matching" << endl;
+        }
+
+        sort(feature_by_mz_lo.begin(), feature_by_mz_lo.end(),
+             [](const pair<double, Size>& a, const pair<double, Size>& b) { return a.first < b.first; });
+      }
+
+      // Sweep a line over increasing precursor m/z: a feature becomes active when its m/z
+      // interval starts and is retired once it ends, so every precursor is only compared
+      // against the features whose m/z interval actually contains it.
+      size_t overlap_checks(0);
+      vector<Size> active;
+      Size next_feature(0);
+      for (Size i = 0; i != scan_by_mz.size(); ++i)
+      {
+        const double pc_mz = scan_by_mz[i].first;
+        const Size scan = scan_by_mz[i].second;
 
         // extract precursor / MS2 information
-        const double pc_mz = exp[scan].getPrecursors()[0].getMZ();
         const double rt = exp[scan].getRT();
         const int pc_charge = exp[scan].getPrecursors()[0].getCharge();
 
-        for (Size f = 0; f != features.size(); ++f)
+        // activate intervals starting at or before pc_mz (must happen before retiring below)
+        while (next_feature != feature_by_mz_lo.size() && feature_by_mz_lo[next_feature].first <= pc_mz)
         {
+          active.push_back(feature_by_mz_lo[next_feature].second);
+          ++next_feature;
+        }
+
+        Size kept(0);
+        for (Size a = 0; a != active.size(); ++a)
+        {
+          const Size f = active[a];
+
+          // interval ended; pc_mz only increases from here, so retire the feature for good
+          if (boxes[f].mz_hi < pc_mz) { continue; }
+          active[kept++] = f; // stays active regardless of the charge filter below
+
           // feature  is incompatible if believe_charge is set and charges don't match
           if (believe_charge && features[f].getCharge() != pc_charge)
           {
             continue;
           }
           // check if precursor/MS2 position overlap with feature
-          if (overlaps_(features[f], rt, pc_mz, rt_tolerance_s))
+          if (boxes[f].contains(rt, pc_mz))
+          {
+            scan_idx_to_feature_idx[scan].insert(f);
+          }
+          ++overlap_checks;
+        }
+        active.resize(kept);
+
+        // features that cannot be placed on the sweep axis (empty for well-formed input)
+        for (Size u = 0; u != unsorted_features.size(); ++u)
+        {
+          const Size f = unsorted_features[u];
+          if (believe_charge && features[f].getCharge() != pc_charge)
+          {
+            continue;
+          }
+          if (boxes[f].contains(rt, pc_mz))
+          {
+            scan_idx_to_feature_idx[scan].insert(f);
+          }
+          ++overlap_checks;
+        }
+      }
+
+      // precursors that cannot be placed on the sweep axis are compared against every feature,
+      // exactly as the exhaustive implementation did (empty for well-formed input)
+      for (Size i = 0; i != unsorted_scans.size(); ++i)
+      {
+        const Size scan = unsorted_scans[i];
+        const double pc_mz = exp[scan].getPrecursors()[0].getMZ();
+        const double rt = exp[scan].getRT();
+        const int pc_charge = exp[scan].getPrecursors()[0].getCharge();
+
+        for (Size f = 0; f != features.size(); ++f)
+        {
+          if (believe_charge && features[f].getCharge() != pc_charge)
+          {
+            continue;
+          }
+          if (boxes[f].contains(rt, pc_mz))
           {
             scan_idx_to_feature_idx[scan].insert(f);
           }
@@ -260,7 +436,11 @@ namespace OpenMS
 
       if (debug_level > 0)
       {
-        OPENMS_LOG_INFO << "Total number of overlap checks: " << overlap_checks << endl;
+        OPENMS_LOG_INFO << "Number of candidate overlap checks: " << overlap_checks
+                        << " (comparing every precursor against every feature would be "
+                        << (static_cast<UInt64>(scan_by_mz.size()) + static_cast<UInt64>(unsorted_scans.size()))
+                           * static_cast<UInt64>(features.size())
+                        << ")" << endl;
         OPENMS_LOG_INFO << "Number of precursors with overlapping features: " << scan_idx_to_feature_idx.size() << endl;
       }
 
@@ -373,33 +553,6 @@ namespace OpenMS
         }
       }
       return corrected_precursors;
-    }
-
-    bool PrecursorCorrection::overlaps_(const Feature& feature,
-                                        const double rt,
-                                        const double pc_mz,
-                                        const double rt_tolerance)
-    {
-      if (feature.getConvexHulls().empty())
-      {
-        OPENMS_LOG_WARN << "HighResPrecursorMassCorrector warning: at least one feature has no convex hull - omitting feature for matching" << std::endl;
-      }
-
-      // get bounding box and extend by retention time tolerance
-      DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();
-      DPosition<2> extend_rt(rt_tolerance, 0.01);
-      box.setMin(box.minPosition() - extend_rt);
-      box.setMax(box.maxPosition() + extend_rt);
-
-      DPosition<2> pc_pos(rt, pc_mz);
-      if (box.encloses(pc_pos))
-      {
-        return true;
-      }
-      else
-      {
-        return false;
-      }
     }
 
     bool PrecursorCorrection::compatible_(const Feature& feature,

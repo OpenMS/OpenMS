@@ -17,6 +17,16 @@ displayed.
 
 First we create a mass spectrum and insert peaks with descending mass-to-charge ratios:
 
+.. note::
+
+   Common scalar attributes of :py:class:`~.MSSpectrum` and :py:class:`~.Peak1D`
+   are available as *snake_case properties*, e.g. ``spectrum.rt``,
+   ``spectrum.ms_level``, ``spectrum.drift_time``, ``peak.mz`` and
+   ``peak.intensity``. They are equivalent to the corresponding
+   ``getX()`` / ``setX()`` methods (e.g. ``spectrum.rt = 205.2`` is the same as
+   ``spectrum.setRT(205.2)``), which remain available. Use whichever style you
+   prefer; the examples below use the property form where possible.
+
 .. code-block:: python
     :linenos:
 
@@ -32,10 +42,10 @@ First we create a mass spectrum and insert peaks with descending mass-to-charge 
 
     # Iterate over spectrum of those peaks
     for p in spectrum:
-        print(p.getMZ(), p.getIntensity())
+        print(p.mz, p.intensity)
 
     # Access a peak by index
-    print("\nFirst peak: ", spectrum[0].getMZ(), spectrum[0].getIntensity())
+    print("\nFirst peak: ", spectrum[0].mz, spectrum[0].intensity)
 
 
 .. code-block:: output
@@ -59,7 +69,9 @@ Note how lines 12-13 (as well as line 16) use the direct access to the
 is convenient but slow since a new :py:class:`~.Peak1D` object needs to be created each
 time).
 The following example uses the faster access through numpy arrays with :py:meth:`~.MSSpectrum.get_peaks` or
-:py:meth:`~.MSSpectrum.set_peaks`. Direct iteration is only shown for demonstration purposes and should not be used in
+:py:meth:`~.MSSpectrum.set_peaks` (which copy the peak data in and out; the zero-copy alternative
+``peaks_struct()`` returns a writable structured numpy view into the spectrum's own storage).
+Direct iteration is only shown for demonstration purposes and should not be used in
 production code.
 
 .. code-block:: python
@@ -101,9 +113,9 @@ We now set several of these properties in a current :py:class:`~.MSSpectrum`:
 
     # create spectrum and set properties
     spectrum = oms.MSSpectrum()
-    spectrum.setDriftTime(25)  # 25 ms
-    spectrum.setRT(205.2)  # 205.2 s
-    spectrum.setMSLevel(3)  # MS3
+    spectrum.drift_time = 25  # 25 ms
+    spectrum.rt = 205.2  # 205.2 s
+    spectrum.ms_level = 3  # MS3
 
     # Add peak(s) to spectrum
     spectrum.set_peaks(([401.5], [900]))
@@ -164,7 +176,11 @@ activation energy). Additional instrument settings allow to set e.g. the polarit
 We next add actual peaks into the spectrum (a single peak at Lmath:`401.5` m/z and :math:`900\ intensity`).
 Additional metadata can be stored in data arrays for each peak
 (e.g. use cases care peak annotations or  "Signal to Noise" values for each
-peak. Finally, we add the spectrum to an :py:class:`~.MSExperiment` container to save it using the
+peak. Reading such an array back through ``getFloatDataArrays()`` copies it;
+for zero-copy access chain the views instead:
+``spectrum.float_data_array_view(0).data_view()`` returns a writable numpy
+array backed directly by the spectrum's own storage.
+Finally, we add the spectrum to an :py:class:`~.MSExperiment` container to save it using the
 :py:class:`~.MzMLFile` class in a file called ``testfile.mzML``.
 
 You can now open the resulting mass spectrum in a mass spectrum viewer. We use the OpenMS
@@ -413,7 +429,39 @@ certain conditions:
 .. code-block:: output
 
     700.0
-		
+
+
+Every spectrum obtained this way -- by iteration, indexing or
+:py:meth:`~.MSExperiment.getSpectrum` -- is an independent copy: editing it
+does not change the experiment until you write it back (for example with
+``exp[i] = spectrum``). That is the safe default, but duplicating every
+spectrum is wasteful when sweeping over large amounts of peak data. For
+those cases pyOpenMS offers zero-copy **views**: ``spectrum_view(i)``
+returns a live view of one spectrum, ``spectrum_views()`` a list of views,
+and ``iter_spectrum_views()`` iterates over views (``chromatogram_view``
+and friends exist likewise). Edits through a view land directly in the
+experiment, and no peak data is copied:
+
+.. code-block:: python
+    :linenos:
+
+    # The same sum as above, but zero-copy: no spectrum is duplicated
+    print(
+        sum(
+            p.getIntensity()
+            for s in exp.iter_spectrum_views()
+            if s.getRT() >= 2.0 and s.getRT() <= 3.0
+            for p in s
+        )
+    )
+
+.. caution::
+
+    A view aliases the experiment's internal storage, so it is only valid
+    while the spectrum list is left untouched: adding, removing or sorting
+    spectra invalidates every outstanding view. The naming is the contract
+    -- methods ending in ``_view``/``_views``/``_struct`` alias their
+    parent, while anything called ``get_*`` returns a copy you own.
 
 We could store the resulting experiment containing the six mass spectra as mzML
 using the :py:class:`~.MzMLFile` object:
@@ -448,7 +496,7 @@ provided by OpenMS.
 
     def plot_spectra_2D(exp, ms_level=1, marker_size=5):
         exp.updateRanges()
-        for spec in exp:
+        for spec in exp.iter_spectrum_views():  # zero-copy read of each spectrum
             if spec.getMSLevel() == ms_level:
                 mz, intensity = spec.get_peaks()
                 p = intensity.argsort()  # sort by intensity to plot highest on top

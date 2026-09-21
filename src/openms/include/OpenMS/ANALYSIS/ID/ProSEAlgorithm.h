@@ -167,6 +167,14 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *  - When every per-file run failed, @p aggregate.exit_code is set to the
      *    first non-OK per-file exit code (so callers can inspect it without
      *    walking the @p per_file vector).
+     *  - When the caller passed @c build_pooled_aggregate = false, the pooled
+     *    PSM copy is not retained: @p aggregate is left almost-empty (only
+     *    @c is_open_search and @c exit_code), exactly as in the single-file
+     *    case. In OPEN search the pooling still happens internally because the
+     *    aggregate modification analysis needs it, so
+     *    @c aggregate.modification_analysis is populated as usual and only
+     *    @c aggregate.protein_ids / @c aggregate.peptide_ids are released
+     *    afterwards. In closed search nothing is pooled at all.
      *
      * The aggregate's @c protein_ids template is taken from the first
      * successful per-file result (search parameters are identical across files
@@ -423,7 +431,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * analysis (TSV written if a non-empty per-file base name is provided). An
      * additional aggregate SearchResult is computed by pooling all per-file
      * peptide identifications and running modification analysis once on the
-     * pooled set.
+     * pooled set (see @p build_pooled_aggregate to skip retaining that second
+     * copy of every PSM).
      *
      * @param[in] in_spectra_files Spectrum file paths (mzML or Bruker .d).
      * @param[in] fasta_db Protein sequence database as FASTA entries.
@@ -434,6 +443,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] aggregate_base_name Optional base name for the aggregate
      *            modification-analysis TSV output. Empty disables aggregate
      *            TSV writing (the aggregate analysis is still computed).
+     * @param[in] build_pooled_aggregate Whether the pooled PSM set is retained
+     *            in @p aggregate. Pooling copies every per-file PSM a second
+     *            time, so callers that never read @c aggregate.peptide_ids
+     *            should pass false. With false, @c aggregate.protein_ids and
+     *            @c aggregate.peptide_ids come back empty (only
+     *            @c is_open_search and @c exit_code are set); the aggregate
+     *            modification analysis is unaffected — in open search the
+     *            pooled set is still built internally, analyzed, and then
+     *            released. Default true (unchanged behavior).
      * @return MultiFileSearchResult bundling per-file results and aggregate.
      *
      * Errors:
@@ -444,7 +462,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         const std::vector<std::string>& in_spectra_files,
         const std::vector<FASTAFile::FASTAEntry>& fasta_db,
         const std::vector<std::string>& output_base_names = {},
-        const std::string& aggregate_base_name = "") const;
+        const std::string& aggregate_base_name = "",
+        bool build_pooled_aggregate = true) const;
 
     /**
      * @brief Multi-file search with modification analysis (FASTA file path).
@@ -454,13 +473,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * is recorded in each per-file ProteinIdentification's SearchParameters
      * (and on the aggregate result).
      *
-     * @see searchWithModificationAnalysis(const std::vector<std::string>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<std::string>&, const std::string&) const
+     * @p build_pooled_aggregate is forwarded unchanged; see the in-memory
+     * overload for its exact effect on @c aggregate.
+     *
+     * @see searchWithModificationAnalysis(const std::vector<std::string>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<std::string>&, const std::string&, bool) const
      */
     MultiFileSearchResult searchWithModificationAnalysis(
         const std::vector<std::string>& in_spectra_files,
         const std::string& in_db,
         const std::vector<std::string>& output_base_names = {},
-        const std::string& aggregate_base_name = "") const;
+        const std::string& aggregate_base_name = "",
+        bool build_pooled_aggregate = true) const;
 
   protected:
     void updateMembers_() override;
@@ -489,6 +512,67 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         if (a.score != b.score) return a.score > b.score;
         return a.sequence < b.sequence;
       }
+    };
+
+    /**
+     * @brief Running summary of the *complete* candidate pool of one spectrum.
+     *
+     * scoreSpectraAgainstIndex_() prunes each spectrum to max(report_top_hits_, 2)
+     * candidates as soon as it has scored them, so by the time postProcessHits_()
+     * runs the surviving hits are no longer a sample of the search space: with the
+     * default report:top_hits=1 only two candidates remain, and derived features
+     * such as `ln_num_candidates` or `hyperscore_zscore` would degenerate into a
+     * binary flag and a rescaled delta score respectively.
+     *
+     * add() is therefore called for every candidate the moment it is scored --
+     * before pruning and before zero-scoring candidates are dropped -- so the
+     * summary reflects the full pool. Instances accumulate across chunks in the
+     * chunked search paths, where each chunk contributes its own candidates for
+     * the same spectrum.
+     */
+    struct CandidatePoolStats_
+    {
+      double sum = 0.0;         ///< sum of all candidate scores
+      double sumsq = 0.0;       ///< sum of squared candidate scores
+      double best = 0.0;        ///< best candidate score (HyperScore is non-negative, so 0 doubles as "none seen")
+      double second_best = 0.0; ///< runner-up candidate score
+      Size count = 0;           ///< number of candidates scored
+
+      /// Fold one freshly scored candidate into the summary.
+      void add(double score)
+      {
+        if (score > best) { second_best = best; best = score; }
+        else if (score > second_best) { second_best = score; }
+        sum += score;
+        sumsq += score * score;
+        ++count;
+      }
+
+      /// Best minus runner-up over the full pool.
+      double deltaScore() const { return best - second_best; }
+
+      /**
+       * @brief How much of an outlier the best score is within its own candidate pool.
+       *
+       * Standard score of `best` against the mean and (population) SD of all
+       * `count` candidates -- a lightweight significance proxy, since HyperScore
+       * (unlike e.g. MS-GF+'s SpecEValue) has no closed-form e-value.
+       *
+       * Standardising against the whole pool rather than against the `count - 1`
+       * non-best candidates keeps the statistic bounded: by Samuelson's inequality
+       * a pool member cannot deviate from its own mean by more than sqrt(count - 1)
+       * SDs, so the feature tops out at sqrt(scoring:max_candidates_per_spectrum - 1)
+       * (7 at the default cap of 50). The leave-one-out form has no such bound --
+       * with two candidates the SD of the single remaining score is 0 by
+       * construction, and the ratio diverges. That mattered in practice: on a
+       * 70k-PSM Orbitrap run the leave-one-out form produced values up to 6.5e+07,
+       * which is enough to dominate Percolator's feature standardisation.
+       *
+       * Returns 0 when fewer than two candidates were scored, and when every
+       * candidate scored the same -- in both cases the best candidate does not
+       * stand out from the pool.
+       */
+      double zScore() const;
     };
 
     /// @brief filter, deisotope, decharge spectra
@@ -593,9 +677,23 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @brief Score all spectra against one FragmentIndex.
      *
      * Shared by the non-chunked and chunked search paths. Appends per-scan
-     * AnnotatedHit_ entries to annotated_hits; does not prune or sort. Expects
-     * a pre-built FragmentIndex whose parameters already reflect any
-     * calibrated tolerances the caller wants to apply.
+     * AnnotatedHit_ entries to annotated_hits and prunes each spectrum to
+     * max(report_top_hits_, 2) candidates to bound memory. Expects a pre-built
+     * FragmentIndex whose parameters already reflect any calibrated tolerances
+     * the caller wants to apply.
+     *
+     * @param[in] spectra Preprocessed MS2 spectra to score.
+     * @param[in] fi Pre-built FragmentIndex to query for candidates.
+     * @param[in] db Database the FragmentIndex was built from, used to reconstruct candidate sequences.
+     * @param[in] spectrum_generator Generator for the theoretical spectrum of each candidate.
+     * @param[in] effective_fragment_tol Fragment mass tolerance to score with (calibrated, if calibration ran).
+     * @param[in] fragment_mass_tolerance_unit_ppm Whether @p effective_fragment_tol is in ppm rather than Da.
+     * @param[in] open_search_mode Whether to record the precursor delta mass on each hit.
+     * @param[in,out] annotated_hits Per-spectrum candidate hits, one entry per spectrum.
+     * @param[in,out] pool_stats Per-spectrum summary of the full (unpruned) candidate
+     *                pool, one entry per spectrum. Accumulated rather than overwritten,
+     *                so chunked callers can pass the same vector for every chunk.
+     * @param[in] progress_label Label shown by the progress logger for this scoring pass.
      */
     void scoreSpectraAgainstIndex_(
         const PeakMap& spectra,
@@ -606,6 +704,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         bool fragment_mass_tolerance_unit_ppm,
         bool open_search_mode,
         std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
+        std::vector<CandidatePoolStats_>& pool_stats,
         const std::string& progress_label) const;
 
     /**
@@ -617,6 +716,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *
      * @param[in] exp Input MS experiment providing spectra/metadata for annotation.
      * @param[in,out] annotated_hits Per-spectrum candidate hits (trimmed to @p top_hits in-place).
+     * @param[in] pool_stats Per-spectrum summary of the full candidate pool as collected
+     *            by scoreSpectraAgainstIndex_(), used for the pool-derived PSM features
+     *            (delta score, z-score, candidate count). Must match @p annotated_hits in size.
      * @param[out] protein_ids Output container for protein-level identification and search metadata.
      * @param[out] peptide_ids Output container for spectrum-level peptide identifications (PSMs).
      * @param[in] top_hits Number of top-scoring hits to retain per spectrum (report_top_hits_).
@@ -634,6 +736,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      */
     void postProcessHits_(const PeakMap& exp,
       std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
+      const std::vector<CandidatePoolStats_>& pool_stats,
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
       Size top_hits,

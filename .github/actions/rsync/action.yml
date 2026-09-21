@@ -1,0 +1,115 @@
+name: "Prepare for rsync"
+description: "Prepare the environment for running rsync"
+
+inputs:
+  key:
+    description: "The text of the SSH key, or empty if there is no ssh key available"
+    required: false
+  user:
+    description: "The SSH user"
+    required: false
+  host:
+    description: "The SSH host name or IP address"
+    required: false
+  port:
+    description: "The port number that SSH is running on"
+    required: false
+  src:
+    description: "The source directory, file, glob to upload"
+    required: true
+  dst:
+    description: "The remote directory to upload into"
+    required: true
+  mkpath:
+    description: "Should rsync create the destination directory?"
+    required: false
+  latest:
+    description: "If set, create a 'latest' symlink to the given location"
+    required: false
+  latest_dst:
+    description: "The remote location to store the latest symlink.  Defaults to the parent of dst."
+    required: false
+
+outputs:
+  have_key:
+    description: "Set to 'true' if a SSH key is present and rsync can be called"
+    value: ${{ steps.ssh-key.outputs.have_key }}
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: "Prepare for rsync"
+      id: ssh-key
+      shell: bash
+      env:
+        SSH_KEY_TEXT: ${{ inputs.key }}
+        SSH_PORT: ${{ inputs.port }}
+      run: |
+        output=$HOME/.ssh/private.key
+
+        if [[ -n "$SSH_KEY_TEXT" ]]; then
+          mkdir -p "$(dirname "$output")"
+          cat <<<"$SSH_KEY_TEXT" >"$output"
+          chmod 0600 "$output"
+
+          {
+            echo "have_key=true"
+            echo "ssh=ssh -i $output -p $SSH_PORT -o StrictHostKeyChecking=accept-new"
+          } >>"$GITHUB_OUTPUT"
+        else
+          {
+            echo "have_key=false"
+            echo "ssh=echo"
+          } >>"$GITHUB_OUTPUT"
+        fi
+
+    - name: "Upload via rsync"
+      if: steps.ssh-key.outputs.have_key == 'true'
+      shell: bash
+      env:
+        SSH_CMD: ${{ steps.ssh-key.outputs.ssh }}
+        SSH_USER: ${{ inputs.user }}
+        SSH_HOST: ${{ inputs.host }}
+        SRC_DIR: ${{ inputs.src }}
+        DST_DIR: ${{ inputs.dst }}
+        MKPATH: ${{ inputs.mkpath }}
+        LATEST: ${{ inputs.latest }}
+        LATEST_DST: ${{ inputs.latest_dst }}
+      run: |
+        if [[ -z "${SSH_USER:-}" ]] || [[ -z "${SSH_HOST:-}" ]]; then
+          echo >&2 "ERROR: missing user or host input!"
+          exit 1
+        fi
+
+        rsync_options=(
+          "--progress"
+          "-avz"
+          "-e" "$SSH_CMD"
+        )
+
+        if [[ "${MKPATH:-false}" == "true" ]]; then
+          rsync_options+=("--mkpath")
+        fi
+
+        # Allow globing on the src directory:
+        # shellcheck disable=SC2086
+        rsync \
+          "${rsync_options[@]}" \
+          $SRC_DIR \
+          "${SSH_USER}@${SSH_HOST}:${DST_DIR}"
+
+        if [[ -n "${LATEST:-}" ]]; then
+          ln -s "$LATEST" latest
+
+          if [[ -z "${LATEST_DST:-}" ]]; then
+            LATEST_DST=$(dirname "$DST_DIR")
+          fi
+
+          rsync \
+            "${rsync_options[@]}" \
+            "latest" \
+            "${SSH_USER}@${SSH_HOST}:${LATEST_DST}"
+
+          rm latest
+        fi

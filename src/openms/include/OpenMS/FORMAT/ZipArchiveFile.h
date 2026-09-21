@@ -11,6 +11,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <memory>
 #include <string>
@@ -46,7 +47,7 @@ namespace OpenMS
     /**
       @brief Unpack a zip archive into a temporary directory and return the usable path
 
-      Extracts the archive into a newly created File::TempDir and returns the path to
+      Extracts the archive into a newly created TempDir and returns the path to
       the unpacked directory. This function protects against path traversal and
       absolute paths in archive entries. If the provided path already points to a
       directory it is returned unchanged and no TempDir is created.
@@ -58,7 +59,7 @@ namespace OpenMS
       @throws Exception::InvalidValue on archive extraction errors.
       @throws Exception::NotImplemented if libzip support is unavailable.
     */
-    static std::string unzipDirectory(const std::string& input_path, std::unique_ptr<File::TempDir>& temp_dir);
+    static std::string unzipDirectory(const std::string& input_path, std::unique_ptr<TempDir>& temp_dir);
 
     /**
       @brief Add or replace an entry inside an existing zip archive from a file on disk
@@ -119,7 +120,7 @@ namespace OpenMS
       @throws Exception::FileNotFound if the archive or entry is not found
       @throws Exception::InvalidValue on extraction errors
     */
-    static std::string extractEntryToTempFile(const std::string& archive_path, const std::string& entry_name, std::unique_ptr<File::TempDir>& temp_dir);
+    static std::string extractEntryToTempFile(const std::string& archive_path, const std::string& entry_name, std::unique_ptr<TempDir>& temp_dir);
 
   };
 

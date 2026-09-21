@@ -55,10 +55,6 @@ NB_MODULE(_pyopenms_processing, m) {
         .def("setActive", [](OpenMS::DataFilters& self, bool is_active) { return self.setActive(is_active); }, "is_active"_a)
         .def("isActive", [](const OpenMS::DataFilters& self) { return self.isActive(); })
         .def("__len__", [](OpenMS::DataFilters& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::DataFilters& self, size_t i) -> const OpenMS::DataFilters::DataFilter & {
-            if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
         .def("passes", [](const OpenMS::DataFilters& self, const OpenMS::Feature& feature) { return self.passes(feature); }, "feature"_a, "Check if a Feature passes the filters")
         .def("passes", [](const OpenMS::DataFilters& self, const OpenMS::ConsensusFeature& consensus_feature) { return self.passes(consensus_feature); }, "consensus_feature"_a, "Check if a ConsensusFeature passes the filters")
         .def("passes", [](const OpenMS::DataFilters& self, const OpenMS::MSSpectrum& spectrum, size_t peak_index) { return self.passes(spectrum, peak_index); }, "spectrum"_a, "peak_index"_a, "Check if a peak in a spectrum passes the filters")

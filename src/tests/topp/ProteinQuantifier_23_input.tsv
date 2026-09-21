@@ -1,0 +1,7 @@
+Fraction_Group	Fraction	Spectra_Filepath	Label	Sample
+1	1	sample1.mzML	1	1
+2	1	sample2.mzML	1	2
+
+Sample	MSstats_Condition	MSstats_BioReplicate	MSstats_Mixture
+1	condA	1	1
+2	condB	2	1

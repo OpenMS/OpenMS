@@ -12,7 +12,7 @@ The following section provides general information to new contributors.
 * Check out the development version of OpenMS (see website).
 * Build OpenMS by following the installation instructions or [from source](/about/installation.rst).
 * Read the [OpenMS Coding Conventions](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/coding_conventions.html)
-* Read the [OpenMS User Tutorial](/tutorials/knime-user-tutorial.md).
+* Read the [TOPPView User Tutorial](/tutorials/toppview-user-tutorial.md).
 * Create a GitHub account.
 * Subscribe to the [open-ms-general](https://sourceforge.net/projects/open-ms/lists/open-ms-general) 
   or [contact-us](/about/communication.md).
@@ -24,7 +24,7 @@ Follow the [OpenMS coding conventions](https://abibuilder.cs.uni-tuebingen.de/ar
 Coding style (brackets, variable names, etc.) must conform to the conventions.
 
 * The class and all the members should be properly documented.
-* Check your code with the tool  `tools/checker.php`. Call `php tools/checker.php` for detailed instructions.
+* Check your code style by using the `.clang-format` file in the repository root.
 
 Please open a pull request and follow the [pull request guidelines](/manual/contribute/pull-request-checklist.md).
 

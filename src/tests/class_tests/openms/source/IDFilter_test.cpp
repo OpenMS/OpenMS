@@ -439,6 +439,55 @@ START_SECTION((bool updateProteinGroups(vector<ProteinIdentification::ProteinGro
 }
 END_SECTION
 
+START_SECTION(([EXTRA] updateProteinGroups keeps the quantities attached to a group))
+{
+  // The data arrays of a protein group hold the quantities PeptideAndProteinQuant attaches to it, and
+  // they are indexed by sample resp. by (file, channel) - not by group member. Filtering a protein out
+  // of a group therefore does not invalidate them, and rebuilding the group without them silently
+  // threw protein abundances away in every tool that filters after quantification (Epifany,
+  // ProteinInference, FalseDiscoveryRate, PercolatorAdapter, ProteomicsLFQ).
+  vector<ProteinIdentification::ProteinGroup> groups(1);
+  groups[0].accessions = {"A", "B"};
+  groups[0].probability = 0.9;
+  groups[0].getFloatDataArrays().resize(2);
+  groups[0].getFloatDataArrays()[0].setName("abundances");
+  groups[0].getFloatDataArrays()[0].assign({11.0f, 22.0f, 33.0f});
+  groups[0].getFloatDataArrays()[1].setName("file_channel_level_abundance");
+  groups[0].getFloatDataArrays()[1].assign({1.0f, 2.0f});
+  groups[0].getStringDataArrays().resize(1);
+  groups[0].getStringDataArrays()[0].setName("file_channel_level_filename");
+  groups[0].getStringDataArrays()[0].assign({"fA", "fB"});
+  groups[0].getIntegerDataArrays().resize(1);
+  groups[0].getIntegerDataArrays()[0].setName("file_channel_level_channel");
+  groups[0].getIntegerDataArrays()[0].assign({1, 2});
+
+  // drop protein "B", so the group survives with one member fewer
+  vector<ProteinHit> hits(1);
+  hits[0].setAccession("A");
+
+  const bool valid = IDFilter::updateProteinGroups(groups, hits);
+  TEST_EQUAL(valid, false); // a protein was removed from the group
+  TEST_EQUAL(groups.size(), 1);
+  TEST_EQUAL(groups[0].accessions.size(), 1);
+  TEST_EQUAL(groups[0].accessions[0], "A");
+
+  // the quantities must have come along, names and values intact
+  // (ABORT_IF, not TEST_EQUAL: the assertions are soft, so indexing an empty array below would take
+  // the whole test binary down with a segfault instead of reporting which expectation failed)
+  ABORT_IF(groups[0].getFloatDataArrays().size() != 2);
+  ABORT_IF(groups[0].getStringDataArrays().size() != 1);
+  ABORT_IF(groups[0].getIntegerDataArrays().size() != 1);
+  TEST_EQUAL(groups[0].getFloatDataArrays().size(), 2);
+  TEST_EQUAL(groups[0].getFloatDataArrays()[0].getName(), "abundances");
+  TEST_EQUAL(groups[0].getFloatDataArrays()[0].size(), 3);
+  TEST_REAL_SIMILAR(groups[0].getFloatDataArrays()[0][0], 11.0);
+  TEST_REAL_SIMILAR(groups[0].getFloatDataArrays()[0][2], 33.0);
+  TEST_EQUAL(groups[0].getFloatDataArrays()[1].getName(), "file_channel_level_abundance");
+  TEST_EQUAL(groups[0].getStringDataArrays()[0][1], "fB");
+  TEST_EQUAL(groups[0].getIntegerDataArrays()[0][1], 2);
+}
+END_SECTION
+
 START_SECTION((template <class IdentificationType> static void removeEmptyIdentifications(vector<IdentificationType>& ids)))
 {
   vector<ProteinIdentification> proteins(2);

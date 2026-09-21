@@ -6,7 +6,6 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_TOPP")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
 # OpenMS' TOPP tools
@@ -24,8 +23,8 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project(NameOfTheTool)
 
 # allow building separately from OpenMS
-if(NOT TARGET OpenMS)
-  find_package(OpenMS)
+if(NOT TARGET OpenMS::OpenMS_CLI)
+  find_package(OpenMS CONFIG REQUIRED)
 endif()
 
 set(tool_sources
@@ -35,11 +34,11 @@ set(tool_sources
   additional_header2.h
 )
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources}) # Add the main cpp file and additional files
-target_link_libraries(${PROJECT_NAME} OpenMS) # Link the executable with OpenMS
+target_link_libraries(${PROJECT_NAME} OpenMS::OpenMS_CLI) # Link the executable with the TOPP tool framework (which brings OpenMS::OpenMS)
 #]] 
   else()
     add_executable(${i} ${i}.cpp)
-    target_link_libraries(${i} OpenMS)
+    target_link_libraries(${i} OpenMS_CLI)
     openms_add_executable_compiler_flags(${i})
   endif()  
   
@@ -51,6 +50,8 @@ target_link_libraries(${PROJECT_NAME} OpenMS) # Link the executable with OpenMS
 endforeach(i)
 
 # special requirements of some tools
+# FuzzyDiff wraps the FuzzyStringComparator, which lives in the (static) class-test framework library
+target_link_libraries(FuzzyDiff OpenMSTestFramework)
 target_link_libraries(FileMerger Boost::regex)
 target_link_libraries(DecoyDatabase Boost::regex)
 target_link_libraries(NucleicAcidSearchEngine Boost::regex)

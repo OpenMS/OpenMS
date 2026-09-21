@@ -39,34 +39,16 @@ namespace OpenMS
 
     public:
         /**
-          @brief concatMULTISEPeptideIds
-          @param[in] all_peptide_ids PeptideIdentification vector to append to
-          @param[in] new_peptide_ids PeptideIdentification vector to be appended
-          @param[in] search_engine search engine to depend on for feature creation
-         
-          Appends a vector of PeptideIdentification to another and prepares Percolator features in MetaInfo (With the respective key "CONCAT:" + search_engine).
-         */
-        static void concatMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const std::string& search_engine);
-
-        /**
-          @brief mergeMULTISEPeptideIds
-          @param[in] all_peptide_ids PeptideIdentification vector to be merged into
-          @param[in] new_peptide_ids PeptideIdentification vector to merge
-          @param[in] search_engine search engine to create features from their scores
-         
-          Merges a vector of PeptideIdentification into another and prepares the merged MetaInfo and scores for collection in addMULTISEFeatures for feature registration.
-         */
-        static void mergeMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const std::string& search_engine);
-
-        /**
           @brief mergeMULTISEProteinIds
           @param[in] all_protein_ids ProteinIdentification vector to be merged into
           @param[in] new_protein_ids ProteinIdentification vector to merge
-         
-          Concatenates SearchParameter of multiple search engine runs and merges PeptideEvidences, collects used search engines in MetaInfo for collection in addMULTISEFeatures for feature registration.
+
+          Merges a ProteinIdentification run into another: takes over the search parameters of the
+          first run, sets the search engine to "multiple" once runs from differing search engines are
+          combined, and unions the ProteinHits by accession.
          */
         static void mergeMULTISEProteinIds(std::vector<ProteinIdentification>& all_protein_ids, std::vector<ProteinIdentification>& new_protein_ids);
-        
+
 
         /**
           @brief addMSGFFeatures
@@ -119,28 +101,6 @@ namespace OpenMS
         static void addMASCOTFeatures(PeptideIdentificationList& peptide_ids, StringList& feature_set);
 
         /**
-          @brief addMULTISEFeatures
-          @param[in] peptide_ids PeptideIdentification vector to create Percolator features in
-          @param[in] search_engines_used the list of search engines to be considered
-          @param[in] feature_set register of added features
-          @param[in] complete_only will only add features for PeptideIdentifications where all given search engines identified something
-          @param[in] limits_imputation
-         
-          Adds multiple search engine specific Percolator features and registers them in feature_set
-         */
-        static void addMULTISEFeatures(PeptideIdentificationList& peptide_ids, StringList& search_engines_used, StringList& feature_set, bool complete_only = true, bool limits_imputation = false);
-
-        /**
-          @brief addCONCATSEFeatures
-          @param[in] peptide_id_list PeptideIdentification vector to create Percolator features in
-          @param[in] search_engines_used the list of search engines to be considered
-          @param[in] feature_set register of added features
-         
-          Adds multiple search engine specific Percolator features and registers them in feature_set
-        */
-        static void addCONCATSEFeatures(PeptideIdentificationList& peptide_id_list, StringList& search_engines_used, StringList& feature_set);
-
-        /**
           @brief checkExtraFeatures
           @param[in] psms the vector of PeptideHit to be checked
           @param[in] extra_features the list of requested extra features
@@ -165,24 +125,12 @@ namespace OpenMS
         /// helper function for assigning the frequently occurring feature delta score
         static void assignDeltaScore_(std::vector<PeptideHit>& hits, const std::string& score_ref, const std::string& output_ref);
 
-        /// gets the scan identifier to merge by
-        static std::string getScanMergeKey_(PeptideIdentificationList::iterator it, PeptideIdentificationList::iterator start);
-
         /// For accession dependent sorting of ProteinHits
         struct lq_ProteinHit
         {
           inline bool operator() (const ProteinHit& h1, const ProteinHit& h2)
           {
             return (h1.getAccession() < h2.getAccession());
-          }
-        };
-
-        /// For accession dependent sorting of PeptideEvidences
-        struct lq_PeptideEvidence
-        {
-          inline bool operator() (const PeptideEvidence& h1, const PeptideEvidence& h2)
-          {
-            return (h1.getProteinAccession() < h2.getProteinAccession());
           }
         };
 

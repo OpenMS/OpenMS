@@ -34,6 +34,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 
 #include <boost/math/distributions/normal.hpp>
@@ -495,6 +496,14 @@ class MetaProSIPReporting
 public:
   static void plotHeatMap(const std::string& output_dir, const std::string& tmp_path, const std::string& file_suffix, const std::string& file_extension, const vector<vector<double> >& binned_ria, vector<std::string> class_labels, Size debug_level = 0, const std::string& executable = "R")
   {
+    // nothing to plot: an empty RIA matrix (e.g. no reported peptides, or a degenerate
+    // bin count relayed by a caller) would index binned_ria[0] below out of bounds
+    if (binned_ria.empty())
+    {
+      OPENMS_LOG_WARN << "No peptide RIA data available; skipping heat map generation." << endl;
+      return;
+    }
+
     std::string filename =std::string("heatmap") + file_suffix + "." + file_extension;
     std::string script_filename =std::string("heatmap") + file_suffix + std::string(".R");
 
@@ -1315,6 +1324,14 @@ protected:
     cluster_labels.clear();
     binned_peptide_ria.clear();
 
+    // defensive guard: a zero bin count would make 'binned' empty and the clamp below
+    // (to binned.size() - 1) would index binned[0] on an empty vector. Callers enforce a
+    // positive bin count (see 'heatmap_bins' registration), so there is nothing to bin here.
+    if (n_heatmap_bins == 0)
+    {
+      return;
+    }
+
     for (vector<vector<SIPPeptide> >::const_iterator cit = sip_clusters.begin(); cit != sip_clusters.end(); ++cit)
     {
       const vector<SIPPeptide>& sip_peptides = *cit;
@@ -2112,6 +2129,7 @@ protected:
     registerDoubleOption_("pattern_2H_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
     registerDoubleOption_("pattern_18O_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
     registerIntOption_("heatmap_bins", "<threshold>", 20, "Number of RIA bins for heat map generation.", false, true);
+    setMinInt_("heatmap_bins", 1); // at least one bin: 0 underflows and negative values wrap to a huge Size (see createBinnedPeptideRIAData_)
 
     registerStringOption_("plot_extension", "<extension>", "png", "Extension used for plots (png|svg|pdf).", false, true);
     StringList valid_extensions;
@@ -2966,7 +2984,7 @@ protected:
     Size n_heatmap_bins = getIntOption_("heatmap_bins");
     double score_plot_y_axis_min = getDoubleOption_("score_plot_yaxis_min");
 
-    std::string tmp_path = File::getTempDirectory();
+    std::string tmp_path = SystemSettings::getTempDirectory();
     StringUtils::substitute(tmp_path, '\\', '/');
 
     // Do we want to create a qc report?

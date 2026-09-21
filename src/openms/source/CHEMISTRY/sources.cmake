@@ -18,6 +18,7 @@ ElementDB.cpp
 EmpiricalFormula.cpp
 EnzymaticDigestion.cpp
 EnzymeXMLDataProvider.cpp
+GlycanStructure.cpp
 HydrophobicityProfile.cpp
 IsoelectricPoint.cpp
 ModificationDefinition.cpp
@@ -46,6 +47,7 @@ SequenceCoverage.cpp
 SpectrumAnnotator.cpp
 SimpleTSGXLMS.cpp
 Tagger.cpp
+TheoreticalGlycanSpectrumGenerator.cpp
 TheoreticalSpectrumGenerator.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp
 UnimodXMLDataProvider.cpp

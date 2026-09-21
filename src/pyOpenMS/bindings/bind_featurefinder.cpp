@@ -100,7 +100,7 @@ interpolation
         .def("__deepcopy__", [](const OpenMS::InterpolationModel& self, nb::dict) { return OpenMS::InterpolationModel(self); }, "memo"_a)
         .def("getIntensity", [](const OpenMS::InterpolationModel& self, const OpenMS::DPosition<1>& pos) { return self.getIntensity(pos); }, "pos"_a, "Access model predicted intensity at position 'pos'")
         .def("getIntensity", [](const OpenMS::InterpolationModel& self, double coord) { return self.getIntensity(coord); }, "coord"_a, "Access model predicted intensity at position 'pos'")
-        .def("getInterpolation", [](const OpenMS::InterpolationModel& self) -> const OpenMS::Math::LinearInterpolation<> & { return self.getInterpolation(); }, nb::rv_policy::reference_internal, "Returns the interpolation class")
+        .def("getInterpolation", [](const OpenMS::InterpolationModel& self) -> OpenMS::Math::LinearInterpolation<> { return self.getInterpolation(); }, "Returns the interpolation class")
         .def("getScalingFactor", [](const OpenMS::InterpolationModel& self) { return self.getScalingFactor(); }, "Returns the interpolation class")
         .def("setOffset", [](OpenMS::InterpolationModel& self, double offset) { return self.setOffset(offset); }, "offset"_a, "Sets the offset of the model")
         .def("getCenter", [](const OpenMS::InterpolationModel& self) { return self.getCenter(); }, 
@@ -145,7 +145,7 @@ InterpolationModel
 Returns the "center" of the model, particular definition (depends on the derived model)
 )doc")
         .def("getIntensity", [](const OpenMS::EmgModel& self, const OpenMS::DPosition<1>& pos) { return self.getIntensity(pos); }, "pos"_a, "Access model predicted intensity at position 'pos'")
-        .def("getInterpolation", [](const OpenMS::EmgModel& self) -> const OpenMS::Math::LinearInterpolation<> & { return self.getInterpolation(); }, nb::rv_policy::reference_internal, "Returns the interpolation class")
+        .def("getInterpolation", [](const OpenMS::EmgModel& self) -> OpenMS::Math::LinearInterpolation<> { return self.getInterpolation(); }, "Returns the interpolation class")
         .def("getScalingFactor", [](const OpenMS::EmgModel& self) { return self.getScalingFactor(); }, "Returns the interpolation class")
         .def("setInterpolationStep", [](OpenMS::EmgModel& self, double interpolation_step) { return self.setInterpolationStep(interpolation_step); }, "interpolation_step"_a, "Sets the interpolation step for the linear interpolation of the model")
         .def("setScalingFactor", [](OpenMS::EmgModel& self, double scaling) { return self.setScalingFactor(scaling); }, "scaling"_a, "Sets the scaling factor of the model")
@@ -188,7 +188,7 @@ Peak widening is achieved by either a Gaussian or Lorentzian shape
         .def("getFormula", [](OpenMS::IsotopeModel& self) { return self.getFormula(); }, "Return the Averagine peptide formula (mass calculated from mean mass and charge -- use .setParameters() to set them)")
         .def("setSamples", [](OpenMS::IsotopeModel& self, const OpenMS::EmpiricalFormula& formula) { return self.setSamples(formula); }, "formula"_a, "Set sample/supporting points of interpolation")
         .def("getCenter", [](const OpenMS::IsotopeModel& self) { return self.getCenter(); })
-        .def("getIsotopeDistribution", [](const OpenMS::IsotopeModel& self) -> const OpenMS::IsotopeDistribution & { return self.getIsotopeDistribution(); }, nb::rv_policy::reference_internal, 
+        .def("getIsotopeDistribution", [](const OpenMS::IsotopeModel& self) -> OpenMS::IsotopeDistribution { return self.getIsotopeDistribution(); }, 
             R"doc(
 Get the center of the Isotope model
 This is a m/z-value not necessarily the monoisotopic mass
@@ -222,7 +222,7 @@ for a group of matching peptide features
 )doc")
         .def(nb::init<>())
         .def(nb::init<std::vector<OpenMS::MultiplexDeltaMasses::DeltaMass>>())
-        .def("getDeltaMasses", [](OpenMS::MultiplexDeltaMasses& self) -> std::vector<OpenMS::MultiplexDeltaMasses::DeltaMass> & { return self.getDeltaMasses(); }, nb::rv_policy::reference_internal)
+        .def("getDeltaMasses", [](OpenMS::MultiplexDeltaMasses& self) -> std::vector<OpenMS::MultiplexDeltaMasses::DeltaMass> { return self.getDeltaMasses(); })
         ;
 
     // -----------------------------------------------------------------------
@@ -311,15 +311,17 @@ For a pandas-based interface see FeatureFinderAlgorithmMetaboIdent.compounds_fro
 )doc")
         .def(nb::init<const std::string&, const std::string&, double, const std::vector<int>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::string&>(),
             "name"_a, "formula"_a, "mass"_a, "charges"_a, "rts"_a, "rt_ranges"_a, "iso_distrib"_a, "ion_mobilities"_a = std::vector<double>(), "adduct"_a = std::string(""))
-        .def("getName", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::string& { return self.getName(); }, nb::rv_policy::reference_internal, "Returns the compound name")
-        .def("getFormula", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::string& { return self.getFormula(); }, nb::rv_policy::reference_internal, "Returns the molecular formula")
+        // string getters return by value so the signature states the copy rule
+        // (the caster builds a new Python str either way)
+        .def("getName", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> std::string { return self.getName(); }, "Returns the compound name")
+        .def("getFormula", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> std::string { return self.getFormula(); }, "Returns the molecular formula")
         .def("getMass", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) { return self.getMass(); }, "Returns the neutral mass")
-        .def("getCharges", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<int>& { return self.getCharges(); }, nb::rv_policy::reference_internal, "Returns the charge states")
-        .def("getRTs", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getRTs(); }, nb::rv_policy::reference_internal, "Returns the expected retention times")
+        .def("getCharges", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<int>& { return self.getCharges(); }, "Returns the charge states")
+        .def("getRTs", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getRTs(); }, "Returns the expected retention times")
         .def("getRTRanges", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) { return self.getRTRanges(); }, "Returns the RT ranges")
-        .def("getIsotopeDistribution", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getIsotopeDistribution(); }, nb::rv_policy::reference_internal, "Returns the isotope distribution")
-        .def("getIonMobilities", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getIonMobilities(); }, nb::rv_policy::reference_internal, "Returns the expected ion mobility values")
-        .def("getAdduct", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::string& { return self.getAdduct(); }, nb::rv_policy::reference_internal, "Returns the adduct string (e.g. 'M+H;1+', 'M+Na;1+', 'M-H;1-')")
+        .def("getIsotopeDistribution", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getIsotopeDistribution(); }, "Returns the isotope distribution")
+        .def("getIonMobilities", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getIonMobilities(); }, "Returns the expected ion mobility values")
+        .def("getAdduct", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> std::string { return self.getAdduct(); }, "Returns the adduct string (e.g. 'M+H;1+', 'M+Na;1+', 'M-H;1-')")
         ;
 
     // -----------------------------------------------------------------------
@@ -332,10 +334,14 @@ Helper struct for a collection of mass traces used in FeatureFinderAlgorithmPick
         .def(nb::init<>())
         .def("size", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.size(); }, "Returns the number of mass traces")
         .def("__len__", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self, size_t i) -> const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& {
+        .def("__getitem__", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self, size_t i) -> OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
+            return self[i];  // by value: element access yields an owned copy
+        }, "i"_a, "Returns a copy of the mass trace at index i")
+        .def("__setitem__", [](OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self, size_t i, const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace) {
+            if (i >= self.size()) throw nb::index_error();
+            self[i] = trace;
+        }, "i"_a, "trace"_a, "Writes a mass trace back to index i")
         .def("getPeakCount", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.getPeakCount(); }, "Returns the peak count of all traces")
         .def("getTheoreticalmaxPosition", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.getTheoreticalmaxPosition(); }, "Returns the theoretical maximum trace index")
         .def("updateBaseline", [](OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { self.updateBaseline(); }, "Sets the baseline to the lowest contained peak of the trace")

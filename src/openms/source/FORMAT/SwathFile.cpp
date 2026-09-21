@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 //TODO remove MzML after we get transform support for our handlers
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
@@ -23,6 +24,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
@@ -31,6 +33,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 
 #include <memory> // for make_shared
+#include <utility>
 
 namespace OpenMS
 {
@@ -249,6 +252,41 @@ namespace OpenMS
     return swath_maps;
   }
 
+  std::vector<FAIMSSwathMapGroup> SwathFile::loadFromMSExperimentByFAIMSCV(
+    PeakMap&& exp,
+    const std::string& tmp,
+    std::shared_ptr<ExperimentalSettings>& exp_meta,
+    const std::string& readoptions)
+  {
+    // Preserve experiment-level metadata without retaining a second copy of the full spectrum data.
+    auto metadata = std::make_shared<PeakMap>();
+    metadata->getExperimentalSettings() = exp.getExperimentalSettings();
+    exp_meta = metadata;
+
+    // Partition exactly once. splitByFAIMSCV() also provides the established OpenMS fallback for
+    // MS2+ spectra that lack an explicit CV by assigning them to the most recently observed CV.
+    auto cv_experiments = IMDataConverter::splitByFAIMSCV(std::move(exp));
+
+    std::vector<FAIMSSwathMapGroup> result;
+    result.reserve(cv_experiments.size());
+
+    for (auto& cv_experiment : cv_experiments)
+    {
+      const double faims_cv = cv_experiment.first;
+
+      // Process one CV bucket at a time. Moving the PeakMap into a shared_ptr keeps the existing
+      // loadFromMSExperiment() path intact while allowing each source bucket to be released as soon
+      // as its SWATH maps have been constructed.
+      auto group_exp = std::make_shared<PeakMap>(std::move(cv_experiment.second));
+      std::shared_ptr<ExperimentalSettings> group_meta;
+      auto swath_maps = loadFromMSExperiment(group_exp, tmp, group_meta, readoptions);
+
+      result.push_back(FAIMSSwathMapGroup{faims_cv, std::move(swath_maps)});
+    }
+
+    return result;
+  }
+
   /// Loads a Swath run from a single mzXML file
   std::vector<OpenSwath::SwathMap> SwathFile::loadMzXML(const std::string& file,
     const std::string& tmp,
@@ -397,7 +435,7 @@ namespace OpenMS
     const std::string& file,
     std::shared_ptr<ExperimentalSettings>& exp_meta)
   {
-    return loadBrukerTdf(file, File::getTempDirectory(), exp_meta, "normal");
+    return loadBrukerTdf(file, SystemSettings::getTempDirectory(), exp_meta, "normal");
   }
 #endif
 

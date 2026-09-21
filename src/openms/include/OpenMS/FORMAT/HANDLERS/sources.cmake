@@ -53,6 +53,7 @@ set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 ### PRIVATE link dependency.
 set(private_headers_list_h
 SAX2HandlerAdapter.h
+ThermoRawFileMetadata.h
 MzIdentMLDOMHandler.h
 )
 set(private_sources_h)

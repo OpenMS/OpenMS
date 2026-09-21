@@ -658,11 +658,21 @@ private:
                             SpectrumMatchesTopN& sms);
 
     /**
-     * @brief queries peaks for a given experimental spectrum with a set range of potential peptides, isotope error and precursor charge. Hits are transferred into a PSM list.
-     * Technically an adapter between query(...) and openSearch(...)/searchDifferentPrecursorRanges(...)
-     * @param[out] candidates The n best Spectrum matches
+     * @brief Counts fragment matches for ONE (precursor charge, isotope error) block and appends
+     * the surviving candidates to @p candidates.
+     *
+     * Every peak of @p spectrum is walked against the fragment buckets at fragment charges
+     * 1..min(@p precursor_charge, @c fragment:max_charge) and the hits are counted per peptide
+     * of @p candidates_range. Only candidates reaching @c fragment:min_matched_ions — clamped to
+     * at least one matched peak, so a candidate that matched nothing is never a candidate — are
+     * emitted, in ascending peptide index within the block. Candidates that could not survive
+     * trimHits are therefore never materialized.
+     *
+     * @param[in,out] candidates Accumulator the block's matches are APPENDED to. Must NOT be
+     *                pre-sized — entries are appended, never indexed into. Pre-existing entries
+     *                are preserved, so one container can accumulate several blocks.
      * @param[in] spectrum The queried experimental spectrum
-     * @param[in] candidates_range The range of precursors/peptides the peptide could potentially belong to
+     * @param[in] candidates_range The half-open [first, second) range of peptides the precursor could belong to
      * @param[in] isotope_error The applied isotope error
      * @param[in] precursor_charge The applied precursor charge
      */

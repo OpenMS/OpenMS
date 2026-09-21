@@ -337,6 +337,22 @@ START_SECTION((DRange<1> getIntensityRange() const))
 
   TEST_REAL_SIMILAR(cons.getIntensityRange().minX(),0.0)
   TEST_REAL_SIMILAR(cons.getIntensityRange().maxX(),200.0)
+
+  // all-negative intensities: the running max must be seeded with the lowest
+  // (most negative) value, not the smallest positive value. Before the fix the
+  // max was seeded with minPositive() (~2.2e-308) so it never got overwritten
+  // by any negative intensity and maxX() returned that bogus tiny positive.
+  ConsensusFeature cons_neg;
+  Feature fn;
+  fn.setIntensity(-50.0f);
+  fn.setUniqueId(0);
+  cons_neg.insert(0,fn);
+  fn.setUniqueId(1);
+  fn.setIntensity(-10.0f);
+  cons_neg.insert(0,fn);
+
+  TEST_REAL_SIMILAR(cons_neg.getIntensityRange().minX(),-50.0)
+  TEST_REAL_SIMILAR(cons_neg.getIntensityRange().maxX(),-10.0)
 END_SECTION
 
 START_SECTION((DRange<2> getPositionRange() const))
@@ -355,6 +371,26 @@ START_SECTION((DRange<2> getPositionRange() const))
   TEST_REAL_SIMILAR(cons.getPositionRange().maxX(),1000.0)
   TEST_REAL_SIMILAR(cons.getPositionRange().minY(),500.0)
   TEST_REAL_SIMILAR(cons.getPositionRange().maxY(),1500.0)
+
+  // all-negative positions: the running max must be seeded with the lowest
+  // (most negative) value. Before the fix the max was seeded with minPositive()
+  // so an all-negative RT/MZ set reported a bogus tiny-positive max instead of
+  // the true (negative) maximum.
+  ConsensusFeature cons_neg;
+  Feature fn;
+  fn.setRT(-1000.0);
+  fn.setMZ(-1500.0);
+  fn.setUniqueId(0);
+  cons_neg.insert(0,fn);
+  fn.setRT(-1.0);
+  fn.setMZ(-500.0);
+  fn.setUniqueId(1);
+  cons_neg.insert(0,fn);
+
+  TEST_REAL_SIMILAR(cons_neg.getPositionRange().minX(),-1000.0)
+  TEST_REAL_SIMILAR(cons_neg.getPositionRange().maxX(),-1.0)
+  TEST_REAL_SIMILAR(cons_neg.getPositionRange().minY(),-1500.0)
+  TEST_REAL_SIMILAR(cons_neg.getPositionRange().maxY(),-500.0)
 END_SECTION
 
 START_SECTION((const HandleSetType& getFeatures() const))

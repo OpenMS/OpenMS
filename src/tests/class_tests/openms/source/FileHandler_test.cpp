@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -21,6 +22,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -295,7 +297,7 @@ TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d
   // Use u8"" for portable path construction. Only use Latin-1 characters (ä, ü) that are
   // representable in Windows-1252 so that path::string() round-trips correctly on Windows.
   // CJK characters would fail because Windows path::string() uses the Active Code Page.
-  fs::path nonascii_dir = fs::path(std::string(File::getTempDirectory())) / u8"openms_t\u00e4st_\u00fc";
+  fs::path nonascii_dir = fs::path(std::string(SystemSettings::getTempDirectory())) / u8"openms_t\u00e4st_\u00fc";
   std::error_code ec;
   fs::create_directories(nonascii_dir, ec);
   if (!ec)
@@ -821,4 +823,7 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST

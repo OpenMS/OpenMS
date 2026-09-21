@@ -6,35 +6,47 @@
 // $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
+// This file holds the basic filesystem and shared-data operations of File.
+// The OpenMS.ini settings and path policy live in SystemSettings, and
+// temporary directories and files in TempFiles (both in OpenMS/SYSTEM/),
+// which keeps Param and ParamXMLFile out of this translation unit.
+
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/openms_data_path.h>
 
-#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/ParamXMLFile.h>
-
+#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
 #include <filesystem>
 #include <fstream>
+#include <set>
+#include <vector>
+
+#include <sys/stat.h>  // for stat()/_wstat64() in getModificationTime()
+#include <sys/types.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName() && GetComputerNameA()
 #include <Shlwapi.h> // for PathMatchSpecA
-#include <io.h>      // for _access_s
+#include <io.h>      // for _access_s(), _sopen_s() and _close()
+#include <share.h>   // for _SH_DENYNO
 #pragma comment(lib, "Shlwapi.lib")
 #else
 #include <fnmatch.h>
-#include <unistd.h> // for gethostname()
+#include <unistd.h> // for gethostname() and close()
+#include <cstdlib>  // for getenv
 #endif
+
+#include <fcntl.h>    // for O_CREAT/O_EXCL (spelled _O_CREAT/_O_EXCL on Windows) and open()
+#include <sys/stat.h> // for the permission bits handed to the exclusive create
 
 #ifdef OPENMS_HAS_UNISTD_H
 #include <unistd.h> // for readLink() and getpid()
@@ -48,47 +60,7 @@ namespace fs = std::filesystem;
 
 using namespace std;
 
-namespace OpenMS
-{
-
-  File::TempDir::TempDir(bool keep_dir)
-    : keep_dir_(keep_dir)
-  {
-    temp_dir_ = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
-    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
-    fs::create_directories(to_path(temp_dir_));
-  };
-
-  File::TempDir::TempDir(const std::string& base_dir, bool keep_dir)
-    : keep_dir_(keep_dir)
-  {
-    // Create a unique subdirectory under the provided base_dir
-    temp_dir_ = base_dir;
-    if (!temp_dir_.empty() && !StringUtils::hasSuffix(temp_dir_, "/"))
-    {
-      temp_dir_ += "/";
-    }
-    temp_dir_ += "OpenMSTempDir_" + File::getUniqueName() + "/";
-    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
-    fs::create_directories(to_path(temp_dir_));
-  };
-
-  File::TempDir::~TempDir()
-  {
-    if (keep_dir_)
-    {
-      OPENMS_LOG_DEBUG << "Keeping temporary files in directory '" << temp_dir_ << '\n';
-      return;
-    }
-
-    File::removeDirRecursively(temp_dir_);
-  };
-
-  const std::string& File::TempDir::getPath() const
-  {
-    return temp_dir_;
-  }
-
+namespace OpenMS{
   std::string File::getExecutablePath()
   {
     // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe/1024937#1024937 for more OS' (if needed)
@@ -163,6 +135,28 @@ namespace OpenMS
     auto perms = st.permissions();
     return (perms & (fs::perms::owner_exec | fs::perms::group_exec | fs::perms::others_exec)) != fs::perms::none;
 #endif
+  }
+
+  Int64 File::getModificationTime(const std::string& file)
+  {
+    if (!File::exists(file)) return -1;
+
+    // stat() rather than std::filesystem::last_write_time(): file_time_type's epoch is
+    // implementation-defined (2174 on libstdc++, 1601 on MSVC), and std::chrono::clock_cast -- the
+    // standard way to anchor it to the Unix epoch -- is not available across the toolchains this
+    // builds on: absent from Apple's libc++, and libstdc++ still reports __cpp_lib_chrono == 201611
+    // as of GCC 13, below the 201907L that clock_cast requires. st_mtime is seconds since the Unix
+    // epoch on POSIX and on MSVC alike, so it needs neither a conversion nor a per-platform offset.
+    // to_path() first, so a UTF-8 path still resolves on Windows.
+    const auto p = to_path(file);
+#ifdef OPENMS_WINDOWSPLATFORM
+    struct _stat64 st;
+    if (_wstat64(p.c_str(), &st) != 0) return -1;
+#else
+    struct stat st;
+    if (::stat(p.c_str(), &st) != 0) return -1;
+#endif
+    return static_cast<Int64>(st.st_mtime);
   }
 
   UInt64 File::fileSize(const std::string& file)
@@ -254,7 +248,7 @@ namespace OpenMS
       auto canonical_target = fs::canonical(target_path, ec);
       if (!ec && canonical_source == canonical_target)
       {
-        OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir << " to " << to_dir << ". Same path given.\n";
+        OPENMS_LOG_ERROR << "Error: Could not copy '" << from_dir << "' to '" << to_dir << "'. Same path given.\n";
         return false;
       }
     }
@@ -364,19 +358,19 @@ namespace OpenMS
   }
 
   std::string File::basename(const std::string& file)
-  { // using well-defined overflow of unsigned ints here if path separator is not found
-    return StringUtils::substr(file, file.find_last_of("\\/") + 1);
+  {
+    return PathUtils::basename(file);
   }
 
   std::string File::stemName(const std::string& file)
   {
-    return FileHandler::stripExtension(basename(file));
+    return FileNameUtils::stripExtension(basename(file));
   }
 
   std::string File::extension(const std::string& file)
   {
     std::string base = basename(file);
-    std::string stem = FileHandler::stripExtension(base);
+    std::string stem = FileNameUtils::stripExtension(base);
     if (stem.size() >= base.size())
     {
       return ""; // no extension (stripExtension returned the same or longer string)
@@ -413,43 +407,116 @@ namespace OpenMS
     return pos == string::npos ? no_path : StringUtils::substr(file, 0, pos);
   }
 
+  namespace
+  {
+    /**
+      @brief Ask the OS whether @p file can be accessed with @p mode, creating nothing.
+
+      Returns 0 on success, otherwise an errno-style code -- in particular ENOENT when the
+      path is not there at all. Callers must branch on that return value rather than calling
+      exists() first: two separate queries can disagree, because another process is free to
+      create or delete the path in between, and the caller would then act on an answer that
+      was never true at any single point in time.
+    */
+    int fileAccess_(const std::string& file, int mode)
+    {
+      errno = 0;
+#ifdef OPENMS_WINDOWSPLATFORM
+      if (_access_s(file.c_str(), mode) == 0) return 0;
+#else
+      if (access(file.c_str(), mode) == 0) return 0;
+#endif
+      return errno != 0 ? errno : EACCES;
+    }
+
+    /**
+      @brief Create @p file, failing with EEXIST if it is already there.
+
+      Returns 0 if *this* call created the file, otherwise an errno-style code.
+      The exclusivity is the point: only the call that actually created a file may delete it
+      again. A plain truncating open would clobber -- and then unlink -- whatever another
+      process had put at that path in the meantime.
+    */
+    int createExclusive_(const std::string& file)
+    {
+      errno = 0;
+#ifdef OPENMS_WINDOWSPLATFORM
+      int fd = -1;
+      const int err = _sopen_s(&fd, file.c_str(), _O_CREAT | _O_EXCL | _O_WRONLY, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+      if (err != 0) return errno != 0 ? errno : err;
+      _close(fd);
+#else
+      const int fd = ::open(file.c_str(), O_CREAT | O_EXCL | O_WRONLY, 0666);
+      if (fd < 0) return errno != 0 ? errno : EACCES;
+      ::close(fd);
+#endif
+      return 0;
+    }
+  } // namespace
+
   bool File::readable(const std::string& file)
   {
-    auto p = to_path(file);
-    std::error_code ec;
-    if (!fs::exists(p, ec)) return false;
+    // A single query -- see fileAccess_() for why this must not be preceded by an exists() check.
 #ifdef OPENMS_WINDOWSPLATFORM
-    return _access_s(file.c_str(), 4) == 0; // 4 = read permission
+    return fileAccess_(file, 4) == 0; // 4 = read permission
 #else
-    return access(file.c_str(), R_OK) == 0;
+    return fileAccess_(file, R_OK) == 0;
 #endif
   }
 
   bool File::writable(const std::string& file)
   {
-    auto p = to_path(file);
-    std::error_code ec;
+    if (file.empty()) return false;
 
-    if (fs::exists(p, ec))
-    {
 #ifdef OPENMS_WINDOWSPLATFORM
-      return _access_s(file.c_str(), 2) == 0; // 2 = write permission
+    const int write_mode = 2; // 2 = write permission
 #else
-      return access(file.c_str(), W_OK) == 0;
+    const int write_mode = W_OK;
 #endif
-    }
-    else
+
+    // A single query -- see fileAccess_() for why this must not be preceded by an exists() check.
+    const int err = fileAccess_(file, write_mode);
+    if (err == 0) return true;       // it is there and we may write it
+    if (err != ENOENT) return false; // it is there and we may not
+
+    // The path does not exist, so whether we could create it comes down to whether its
+    // directory accepts new files. Ask that with a probe file of our own instead of creating
+    // and deleting @p file itself: probing under the caller's name is what used to make this
+    // query destructive. Two callers probing the same new path would delete each other's
+    // file and report it unwritable, and a probe could unlink output that a concurrent writer
+    // had just produced under that name.
+    const std::string dir = File::path(file);
+    for (int attempt = 0; attempt < 3; ++attempt)
     {
-      // File does not exist: probe by trying to create it
-      std::ofstream f(file.c_str());
-      bool ok = f.is_open() && f.good();
-      f.close();
-      if (ok)
+      // Keep the probe name short. It stands in for the caller's own basename, so every extra
+      // character it carries is a character of path budget the caller loses -- and on Windows
+      // that budget is MAX_PATH, small enough that a needlessly long probe can overflow it for
+      // a directory the caller's own (shorter) name would have fit into. getUniqueName(false)
+      // drops the hostname, roughly halving the name; pid and its atomic counter still make a
+      // collision take a second machine picking the same pid in the same second on a shared
+      // filesystem, and the retry covers even that.
+      const std::string probe = dir + "/." + File::getUniqueName(false) + ".omswt";
+      const int create_err = createExclusive_(probe);
+      if (create_err == 0)
       {
-        std::remove(file.c_str());
+        std::remove(probe.c_str());
+        return true;
       }
-      return ok;
+      if (create_err == EEXIST) continue; // somebody holds that name -- retry with a fresh one
+
+      // The create can also fail for a reason that is about the probe *name* rather than about
+      // the directory: an over-long probe path reports ENAMETOOLONG on POSIX, and the Windows
+      // CRT folds ERROR_FILENAME_EXCED_RANGE onto ENOENT/EINVAL. Answering "not writable" on
+      // those would be exactly the false negative this function exists to avoid, so fall back
+      // to asking the directory itself. That still answers false when the directory is simply
+      // not there, because access() reports ENOENT for it too.
+      if (create_err == ENAMETOOLONG || create_err == ENOENT || create_err == EINVAL)
+      {
+        return fileAccess_(dir, write_mode) == 0;
+      }
+      return false; // read-only medium, no permission on the directory, ...
     }
+    return false;
   }
 
   std::string File::find(const std::string& filename, StringList directories)
@@ -500,9 +567,10 @@ namespace OpenMS
     //if the file was not found, throw an exception that also points at the resolved data path
     //(this is the usual culprit for missing standard share/OpenMS files, e.g. a stale OPENMS_DATA_PATH)
     const std::string hint = "OpenMS searched its shared-data directory '" + getOpenMSDataPath()
-      + "' (resolved from " + getOpenMSDataPathSource_() + "). "
-      + "If this is a wrong or outdated OpenMS installation, set the OPENMS_DATA_PATH environment variable "
-      + "to the matching '.../share/OpenMS' directory, or unset it if it points to a stale location";
+      + "' (via " + getOpenMSDataPathSource() + "). "
+      + "If this is a wrong or outdated OpenMS installation, reinstall OpenMS (or ensure the executable sits "
+      + "next to its '.../share/OpenMS' directory); OPENMS_DATA_PATH is only used as a last-resort fallback, "
+      + "so unset it if it points to a stale location";
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, hint);
   }
 
@@ -595,34 +663,29 @@ namespace OpenMS
 
       std::string found_path_from;
       bool from_env(false);
-      if (getenv("OPENMS_DATA_PATH") != nullptr)
-      {
-        path = getenv("OPENMS_DATA_PATH");
-        from_env = true;
-        path_checked = isOpenMSDataPath_(path);
-        if (path_checked)
-        {
-          found_path_from = "the OPENMS_DATA_PATH environment variable";
-        }
-      }
 
-      // probe the install path
+  #if !defined(OPENMS_WINDOWSPLATFORM)
+      // Probe the compiled-in install path (baked to CMAKE_INSTALL_PREFIX at build time).
+      // Skipped on Windows: CMake's default prefix bakes to the wrong "(x86)/OpenMS_host"
+      // tree, which never matches the real 64-bit install dir and could pick up an
+      // unrelated OpenMS installation. On Linux/macOS the baked prefix is genuinely correct.
       if (!path_checked)
       {
         path = OPENMS_INSTALL_DATA_PATH;
         path_checked = isOpenMSDataPath_(path);
         if (path_checked)
         {
-          found_path_from = "the compiled-in installation path (OPENMS_INSTALL_DATA_PATH)";
+          found_path_from = "OPENMS_INSTALL_DATA_PATH (compiled-in install)";
         }
       }
+  #endif
 
-      // probe the OPENMS_DATA_PATH macro
+      // probe the OPENMS_DATA_PATH macro (compiled-in build path; used by devs/CI in the build tree)
       if (!path_checked)
       {
         path = OPENMS_DATA_PATH;
         path_checked = isOpenMSDataPath_(path);
-        if (path_checked) found_path_from = "the compiled-in build path (OPENMS_DATA_PATH)";
+        if (path_checked) found_path_from = "OPENMS_DATA_PATH (compiled-in build)";
       }
 
   #if defined(__APPLE__)
@@ -631,18 +694,37 @@ namespace OpenMS
       {
         path = getExecutablePath() + "../../../share/OpenMS";
         path_checked = isOpenMSDataPath_(path);
-        if (path_checked) found_path_from = "the application bundle (relative to the executable)";
+        if (path_checked) found_path_from = "app bundle (exe-relative)";
       }
   #endif
 
-      // On Linux and Apple check relative from the executable
+      // Probe relative to the executable (../share/OpenMS).
+      // For installed builds this is the deterministic source of truth: it resolves from the
+      // binary's own location, so a stale OPENMS_DATA_PATH from an old or side-by-side install
+      // cannot hijack data resolution.
       if (!path_checked)
       {
         path = getExecutablePath() + "../share/OpenMS";
         path_checked = isOpenMSDataPath_(path);
         if (path_checked)
         {
-          found_path_from = "the executable location (../share/OpenMS)";
+          found_path_from = "exe-relative (../share/OpenMS)";
+        }
+      }
+
+      // Finally, fall back to the OPENMS_DATA_PATH environment variable.
+      // Probed LAST so installed tools resolve deterministically from the binary location and a
+      // stale/leftover OPENMS_DATA_PATH cannot override it. pyOpenMS still relies on this: there
+      // the executable is python.exe, the exe-relative probe fails, and resolution falls through
+      // to the env var pyOpenMS sets itself in __init__.py.
+      if (!path_checked && getenv("OPENMS_DATA_PATH") != nullptr)
+      {
+        path = getenv("OPENMS_DATA_PATH");
+        from_env = true;
+        path_checked = isOpenMSDataPath_(path);
+        if (path_checked)
+        {
+          found_path_from = "OPENMS_DATA_PATH env";
         }
       }
 
@@ -677,7 +759,7 @@ namespace OpenMS
     return resolveOpenMSDataPath_().path;
   }
 
-  const std::string& File::getOpenMSDataPathSource_()
+  const std::string& File::getOpenMSDataPathSource()
   {
     return resolveOpenMSDataPath_().source;
   }
@@ -691,157 +773,6 @@ namespace OpenMS
   bool File::isDirectory(const std::string& path)
   {
     return fs::is_directory(to_path(path));
-  }
-
-  std::string File::getTempDirectory()
-  {
-    Param p = getSystemParameters();
-    std::string dir;
-    if (getenv("OPENMS_TMPDIR") != nullptr)
-    {
-      dir = getenv("OPENMS_TMPDIR");
-    }
-    else if (p.exists("temp_dir") && !StringUtils::trimmed(p.getValue("temp_dir").toString()).empty())
-    {
-      dir = p.getValue("temp_dir").toString();
-    }
-    else
-    {
-      dir = fs::temp_directory_path().generic_string();
-    }
-    return dir;
-  }
-
-  /// The current OpenMS user data path (for result files)
-  std::string File::getUserDirectory()
-  {
-    Param p = getSystemParameters();
-    std::string dir;
-    if (getenv("OPENMS_HOME_PATH") != nullptr)
-    {
-      dir = getenv("OPENMS_HOME_PATH");
-    }
-    else if (p.exists("home_dir") && !StringUtils::trimmed(p.getValue("home_dir").toString()).empty())
-    {
-      dir = p.getValue("home_dir").toString();
-    }
-    else
-    {
-#ifdef OPENMS_WINDOWSPLATFORM
-      const char* home = getenv("USERPROFILE");
-#else
-      const char* home = getenv("HOME");
-#endif
-      dir = home ? std::string(home) : std::string(".");
-      StringUtils::substitute(dir, '\\', '/');
-    }
-    StringUtils::ensureLastChar(dir, '/');
-    return dir;
-  }
-
-  std::string File::findDatabase(const std::string& db_name)
-  {
-    Param sys_p = getSystemParameters();
-    std::string full_db_name;
-    try
-    {
-      full_db_name = find(db_name, ListUtils::toStringList<std::string>(sys_p.getValue("id_db_dir")));
-      OPENMS_LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'\n";
-    }
-    catch (Exception::FileNotFound& e)
-    {
-      OPENMS_LOG_ERROR << "Input database '" + db_name + "' not found (" << e.what() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!\n";
-      throw;
-    }
-
-    return full_db_name;
-  }
-
-  std::string File::getOpenMSHomePath()
-  {
-    std::string home_path;
-    // set path where OpenMS.ini is found from environment or use default
-    if (getenv("OPENMS_HOME_PATH") != nullptr)
-    {
-      home_path = getenv("OPENMS_HOME_PATH");
-    }
-    else
-    {
-#ifdef OPENMS_WINDOWSPLATFORM
-      const char* home = getenv("USERPROFILE");
-#else
-      const char* home = getenv("HOME");
-#endif
-      home_path = home ? std::string(home) : std::string(".");
-      StringUtils::substitute(home_path, '\\', '/');
-    }
-    return home_path;
-  }
-
-  std::string File::getOpenMSConfigDir()
-  {
-    // Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems.
-    // This is the single source of truth for the per-user config dir (OpenMS.ini, update-check .ver files, ...).
-    #ifdef __unix__
-      if (getenv("XDG_CONFIG_HOME"))
-      {
-        return std::string(getenv("XDG_CONFIG_HOME")) + "/OpenMS";
-      }
-      return File::getOpenMSHomePath() + "/.config/OpenMS";
-    #else
-      return File::getOpenMSHomePath() + "/.OpenMS";
-    #endif
-  }
-
-  Param File::getSystemParameters()
-  {
-    std::string filename = File::getOpenMSConfigDir() + "/OpenMS.ini";
-
-    Param p;
-    if (!File::readable(filename)) // no file, lets keep it that way
-    {
-      p = getSystemParameterDefaults_();
-    }
-    else
-    {
-      ParamXMLFile paramFile;
-      paramFile.load(filename, p);
-
-      // check version
-      if (!p.exists("version") || (p.getValue("version") != VersionInfo::getVersion()))
-      {
-        if (!p.exists("version"))
-        {
-          OPENMS_LOG_WARN << "Broken file '" << filename << "' discovered. The 'version' tag is missing.\n";
-        }
-        else // old version
-        {
-          OPENMS_LOG_WARN << "File '" << filename << "' is deprecated.\n";
-        }
-        OPENMS_LOG_WARN << "Updating missing/wrong entries in '" << filename << "' with defaults!\n";
-        Param p_new = getSystemParameterDefaults_();
-        p.setValue("version", VersionInfo::getVersion()); // update old version, such that p_new:version does not get overwritten during update()
-        p_new.update(p);
-        // no new version is stored
-      }
-    }
-    return p;
-  }
-
-  Param File::getSystemParameterDefaults_()
-  {
-    Param p;
-    p.setValue("version", VersionInfo::getVersion());
-    p.setValue("home_dir", ""); // only active when user enters something in this value
-    p.setValue("temp_dir", ""); // only active when user enters something in this value
-    p.setValue("id_db_dir", std::vector<std::string>(),
-               std::string("Default directory for FASTA and psq files used as databased for id engines. ") + \
-               "This allows you to specify just the filename of the DB in the " + \
-               "respective TOPP tool, and the database will be searched in the directories specified here " + \
-               ""); // only active when user enters something in this value
-    p.setValue("threads", 1);
-
-    return p;
   }
 
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -946,44 +877,6 @@ namespace OpenMS
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, toolName);
   }
 
-  std::string File::getTemporaryFile(const std::string& alternative_file)
-  {
-    // take no action
-    if (!alternative_file.empty())
-    {
-      return alternative_file;
-    }
-    // create temporary (and schedule for deletion)
-    return temporary_files_.newFile();
-  }
-
-
-  File::TemporaryFiles_::TemporaryFiles_()
-    : filenames_()
-  {
-  }
-
-  std::string File::TemporaryFiles_::newFile()
-  {
-    std::string s = getTempDirectory(); StringUtils::ensureLastChar(s, '/'); s += getUniqueName();
-    std::lock_guard<std::mutex> _(mtx_);
-    filenames_.push_back(s);
-    // do NOT return filenames_.back() by ref, since another thread might resize the vector and invalidate the reference!
-    return s; // uses RVO, so its efficient
-  }
-
-  File::TemporaryFiles_::~TemporaryFiles_()
-  {
-    std::lock_guard<std::mutex> _(mtx_);
-    for (Size i = 0; i < filenames_.size(); ++i)
-    {
-      if (File::exists(filenames_[i]) && !File::remove(filenames_[i]))
-      {
-        std::cerr << "Warning: unable to remove temporary file '" << filenames_[i] << "'" << std::endl;
-      }
-    }
-  }
-
   File::MatchingFileListsStatus File::validateMatchingFileNames(const StringList& sl1,
                                                         const StringList& sl2,
                                                         bool basename,
@@ -1013,8 +906,8 @@ namespace OpenMS
 
           if (ignore_extension)
           {
-              sl1_name = FileHandler::stripExtension(sl1_name);
-              sl2_name = FileHandler::stripExtension(sl2_name);
+              sl1_name = FileNameUtils::stripExtension(sl1_name);
+              sl2_name = FileNameUtils::stripExtension(sl2_name);
           }
 
           sl1_set.insert(sl1_name);
@@ -1039,6 +932,5 @@ namespace OpenMS
       return MatchingFileListsStatus::SET_MISMATCH;
   }
 
-  File::TemporaryFiles_ File::temporary_files_;
 
 } // namespace OpenMS

@@ -34,6 +34,12 @@ namespace OpenMS
     automatically (params: <i>AutoMaxIntensity</i>, <i>auto_mode</i>) by two
     different methods or can be set directly by the user (param:
     <i>max_intensity</i>).
+    Within the histogram bin that contains the median, the noise value is
+    linearly interpolated between that bin's edges (assuming a uniform
+    distribution of points within the bin), rather than using the bin's
+    center. This keeps the estimate close to continuous as the underlying data
+    changes, instead of only ever taking one of <i>bin_count</i> discrete
+    values.
     If the (estimated) <i>max_intensity</i> value is too low and the median is
     found to be in the last (&highest) bin, a warning will be given.  In this
     case you should increase <i>max_intensity</i> (and optionally the
@@ -325,8 +331,29 @@ protected:
           // increase the error count
           if (median_bin == bin_count_minus_1) {++histogram_oob_percent_; }
 
+          // Interpolate within the median bin instead of just reporting its center.
+          // Using the bin center alone means the noise estimate can only take one of
+          // 'bin_count_' discrete values; a tiny, insignificant shift in which side of
+          // a bin boundary the cumulative-median crossing falls on then causes a full
+          // bin-width jump in the reported noise, even though the underlying data barely
+          // changed. Assuming points are uniformly distributed within the bin, we can
+          // instead estimate where inside the bin the crossing actually occurs.
+          const int elements_in_median_bin = histogram[median_bin];
+          double noise_estimate;
+          if (elements_in_median_bin > 0)
+          {
+            const int elements_before_median_bin = element_inc_count - elements_in_median_bin;
+            const double median_bin_lower_edge = median_bin * bin_size;
+            noise_estimate = median_bin_lower_edge
+              + ((double)(element_in_window_half - elements_before_median_bin) / elements_in_median_bin) * bin_size;
+          }
+          else // only possible if the rightmost bin was hit while empty (already flagged above)
+          {
+            noise_estimate = bin_value[median_bin];
+          }
+
           // just avoid division by 0
-          noise = std::max(1.0, bin_value[median_bin]);
+          noise = std::max(1.0, noise_estimate);
         }
 
         // store result

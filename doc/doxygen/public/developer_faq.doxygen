@@ -16,7 +16,7 @@
  <ul>
  <li>The coding style (brackets, variable names, etc.) must conform to the conventions.</li>
  <li>The class and all the members should be properly documented.</li>
- <li>Check your code with the tool  <code>tools/checker.php</code>. Call <code>php tools/checker.php</code> for detailed instructions.</li>
+ <li>Check your code style by using the <code>.clang-format</code> file in the repository root.</li>
  </ul>
 
  Please open a pull request and follow the <a href="https://openms.readthedocs.io/en/latest/contribute-to-openms/pull-request-checklist.html">pull request guidelines</a>.

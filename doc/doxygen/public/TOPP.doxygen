@@ -6,7 +6,7 @@
 // $Authors: Marc Sturm, Chris Bielow, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-// If you add a new (or update an existing) tool below, make sure to update 'openms/source/APPLICATIONS/Toolhandler.cpp' as well!
+// If you add a new (or update an existing) tool below, make sure to update 'openms_cli/source/APPLICATIONS/ToolHandler.cpp' as well!
 
 /**
   @page TOPP_documentation TOPP documentation
@@ -29,7 +29,6 @@
   - @subpage TOPP_ParquetConverter - Converts between XML and Parquet formats for feature and consensus maps.
   - @subpage TOPP_TargetedFileConverter - Converts targeted files (such as tsv or TraML files).
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
-  - @subpage TOPP_TriqlerConverter - Convert to Triqler input file format.
   - @subpage TOPP_UniPEFF - Convert a UniProtKB XML protein database (.xml or .xml.gz) to PEFF 1.0.
 
 
@@ -92,6 +91,7 @@
   - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC-MS maps.
   - @subpage TOPP_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule; optionally detects multimers (dimers, trimers, etc.).
   - @subpage TOPP_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
+  - @subpage TOPP_MS1LabeledWorkflow - Complete workflow for quantification with MS1 labeling (SILAC, Dimethyl) combining several OpenMS tools.
   - @subpage TOPP_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps.
   - @subpage TOPP_ProteomicsLFQ - Perform label-free quantification in a single tool.
@@ -213,6 +213,7 @@
   <b>[for developers]</b>
   - @subpage TOPP_CVInspector - Visualization and validation of PSI mapping and CV files.
   - @subpage TOPP_FuzzyDiff - Compares two files, tolerating numeric differences.
+  - @subpage TOPP_ParquetDiff - Compares two Parquet tables by primary key, tolerating numeric differences.
   - @subpage TOPP_JSONExporter - Exports .oms (SQLite) files in JSON format
   - @subpage TOPP_OpenMSDatabasesInfo - prints the content of OpenMS' enzyme and modification databases to a TSV file.
   - @subpage TOPP_SemanticValidator - SemanticValidator for analysisXML and mzML files.

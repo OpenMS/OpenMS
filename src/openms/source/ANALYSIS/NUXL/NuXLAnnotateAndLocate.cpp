@@ -8,6 +8,8 @@
 
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLAnnotateAndLocate.h>
+
+#include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLConstants.h>
 
@@ -253,7 +255,10 @@ namespace OpenMS
         fa.mz = fragment_mz;
         fa.intensity = fragment_intensity;
         fa.charge = charge;
-        fa.annotation = ion_name;
+        // the abundant immonium ions arrive named "iF+", but the special lysine ones that
+        // NuXLFragmentIonGenerator::addSpecialLysImmonumIons() adds do not carry the charge at all
+        // ("iK(C6H13N2O)"), so those reached the output with no charge in the name
+        fa.annotation = IonNaming::withCharge(ion_name, charge);
         annotated_immonium_ions.push_back(fa);
         peak_is_annotated.insert(aligned.second);
       }
@@ -600,7 +605,7 @@ namespace OpenMS
               fa.mz = fragment_mz;
               fa.intensity = fragment_intensity;
               fa.charge = 1;
-              fa.annotation = ion_name + "+";
+              fa.annotation = IonNaming::withCharge(ion_name, 1);
               annotated_marker_ions.push_back(fa);
             }
             else
@@ -617,7 +622,11 @@ namespace OpenMS
               fa.mz = fragment_mz;
               fa.intensity = fragment_intensity;
               fa.charge = 1;
-              fa.annotation = ion_name + "+";
+              // getAnnotatedImmoniumIon() already ends the name with the charge ("iY+U-H3PO4+"), while
+              // the special lysine immonium ions ("iK(C5H10N1)") and the marker ions do not. Appending
+              // unconditionally annotated the first kind as doubly charged while PeakAnnotation::charge
+              // said 1 -- the same defect as issue #8766, in the written data rather than the display.
+              fa.annotation = IonNaming::withCharge(ion_name, 1);
               shifted_immonium_ions.push_back(fa);
             }
             else
@@ -634,7 +643,7 @@ namespace OpenMS
             static const std::regex pattern(R"(\](\++)+)");
             fa.annotation = std::regex_replace(ion_name, pattern, "]"); // remove charge inside string (e.g., before loss)
             StringUtils::substitute(fa.annotation, ' ', '+'); // turn gap into plus "[M+2H] U-H2O" -> "[M+2H]+U-H2O"
-            fa.annotation +=std::string(charge, '+'); // add charges back at end
+            fa.annotation += IonNaming::chargeSuffix(charge); // add charges back at end
             annotated_precursor_ions.push_back(fa);
           }
           else if (isupper(ion_name[0])) // shifted internal ions
@@ -645,7 +654,7 @@ namespace OpenMS
             fa.charge = charge;
             std::string with_plus = ion_name;
             StringUtils::substitute(with_plus, ' ', '+'); // turn "PEPT U-H2O" into "PEPT+U-H20"
-            fa.annotation = with_plus + std::string(charge, '+'); 
+            fa.annotation = with_plus + IonNaming::chargeSuffix(charge);
             shifted_immonium_ions.push_back(fa);  //TODO: add to shifted_internal_fragment_ions or rename vector
           }
         }
@@ -715,7 +724,9 @@ namespace OpenMS
         // 1. if cross-link on AA, then the prefix or suffix ending at this AA must be shifted
         // 2. if the previous AA in the prefix / suffix had a stronger shifted signal, then the current on is not the correct one
         // 3. if the current AA is cross-linked, then the previous AA is not cross-linked and we should observe an unshifted prefix / suffix ion
-        // Sum up all intensities of shifted prefix / suffix ions
+        // Sum up all intensities of shifted prefix / suffix ions.
+        // Rules 2 and 3 are checked per ion series: implausible prefix (a/b) evidence must not
+        // discard suffix (y) evidence for the same AA, and vice versa.
         for (Size i = 0; i != sites_sum_score.size(); ++i)
         {
           sites_sum_score[i] = 0.0;
@@ -724,19 +735,26 @@ namespace OpenMS
           if (n_shifts[i] > 0)
           {
             // Rules apply only for a3,b3 and higher ions (because we rarely observe a1,b1 ions we can't check for Rule 3)
-            if (i >= 2 && n_shifts[i - 1] > n_shifts[i]) continue; // Stronger signal from shifted AA before the current one? Then skip it.
-            if (i >= 2 && n_noshifts[i - 1] == 0) continue; // continue if unshifted AA is missing before (left of) the shifted one.
-            // sum up all intensities from this position and all longer prefixes that also carry the NA
-            for (Size j = i; j != sites_sum_score.size(); ++j) { sites_sum_score[i] += n_shifts[j]; }
+            const bool stronger_shifted_before = (i >= 2 && n_shifts[i - 1] > n_shifts[i]); // Stronger signal from shifted AA before the current one? Then skip it.
+            const bool unshifted_before_missing = (i >= 2 && n_noshifts[i - 1] == 0); // skip if unshifted AA is missing before (left of) the shifted one.
+            if (!stronger_shifted_before && !unshifted_before_missing)
+            {
+              // sum up all intensities from this position and all longer prefixes that also carry the NA
+              for (Size j = i; j != sites_sum_score.size(); ++j) { sites_sum_score[i] += n_shifts[j]; }
+            }
           }
 
           if (c_shifts[i] > 0)
           {
             // Rules apply only for y3 and higher ions (because we rarely observe y1 ions we can't check for Rule 3)
-            if (i < c_shifts.size()-2 && c_shifts[i + 1] > c_shifts[i]) continue; // AA after has higher intensity and also shifted? Then skip it.
-            if (i < c_noshifts.size()-2 && c_noshifts[i + 1] == 0) continue; // continue if unshifted AA is missing before (right of) the shifted one.
-            // sum up all intensities from this position and all longer suffixes that also carry the NA
-            for (int j = i; j >= 0; --j) { sites_sum_score[i] += c_shifts[j]; }
+            // i + 2 < size instead of i < size - 2: the right-hand side underflows for one-residue peptides
+            const bool stronger_shifted_after = (i + 2 < c_shifts.size() && c_shifts[i + 1] > c_shifts[i]); // AA after has higher intensity and also shifted? Then skip it.
+            const bool unshifted_after_missing = (i + 2 < c_noshifts.size() && c_noshifts[i + 1] == 0); // skip if unshifted AA is missing after (right of) the shifted one.
+            if (!stronger_shifted_after && !unshifted_after_missing)
+            {
+              // sum up all intensities from this position and all longer suffixes that also carry the NA
+              for (int j = i; j >= 0; --j) { sites_sum_score[i] += c_shifts[j]; }
+            }
           }
         }
 #ifdef DEBUG_OpenNuXL

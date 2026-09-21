@@ -9,6 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
@@ -211,7 +212,7 @@ protected:
     //-------------------------------------------------------------
     
     // tmp_dir
-    File::TempDir tmp_dir(debug_level_ >= 2);
+    TempDir tmp_dir(debug_level_ >= 2);
 
     // parameter file
     std::string tmp_param = tmp_dir.getPath() + "param.txt";    

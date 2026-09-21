@@ -17,7 +17,7 @@ can type
 We have binary packages for OSX, Linux and Windows (64 bit only) available from
 `PyPI <https://pypi.org/project/pyopenms>`_. Make sure to download
 the 64bit Python release for Windows. Currently we only support
-Python 3.9, 3.10, 3.11, 3.12 and 3.13.
+Python 3.11, 3.12, 3.13 and 3.14.
 
 You can install Python first from `here <https://www.python.org/downloads/>`_,
 again make sure to download the 64bit release. You can then open a shell and

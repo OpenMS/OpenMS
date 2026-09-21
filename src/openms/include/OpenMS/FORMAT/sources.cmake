@@ -77,6 +77,7 @@ ParamCTDFile.h
 ParamCWLFile.h
 ParamJSONFile.h
 ParamXMLFile.h
+ParquetTableComparator.h
 PEFFFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
@@ -98,13 +99,13 @@ SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h
 TransformationXMLFile.h
-TriqlerFile.h
 UnimodXMLFile.h
 UniProtXMLFile.h
 XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h
 FileTypes.h
+FileNameUtils.h
 MzIdentMLFile.h
 TraMLFile.h
 XMassFile.h
@@ -129,14 +130,19 @@ list(APPEND sources_list_h XICParquetFile.h)
 list(APPEND sources_list_h XIMParquetFile.h)
 list(APPEND sources_list_h XIPMParquetFile.h)
 list(APPEND sources_list_h QPXFile.h)
+list(APPEND sources_list_h QPXIdentity.h)
 list(APPEND sources_list_h ProteinGroupArrowExport.h)
+list(APPEND sources_list_h QPXCollectionExport.h)
+list(APPEND sources_list_h QPXValueValidation.h)
 list(APPEND sources_list_h ProteinIdentificationArrowIO.h)
 list(APPEND sources_list_h FeatureMapArrowIO.h)
 list(APPEND sources_list_h ConsensusMapArrowIO.h)
 list(APPEND sources_list_h PSMArrowIO.h)
+list(APPEND sources_list_h ModificationDefinitionIO.h)
 
 if (WITH_OPENTIMS)
   list(APPEND sources_list_h BrukerTimsFile.h)
+  list(APPEND sources_list_h BrukerTimsImagingFile.h)
   list(APPEND sources_list_h RationalScan2ImConverter.h)
 endif()
 

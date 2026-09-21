@@ -33,13 +33,13 @@ public:
     ~PeptDeepMS2Inference();
 
     /// @brief Predicts MS2 fragment intensities for a batch of peptide sequences.
-    /// @param peptides A vector of raw uppercase peptide strings.
+    /// @param peptides A vector of peptide strings. Supports OpenMS AASequence modification notation (e.g., "PEPTIDEK", "M(Oxidation)PEP").
     /// @param charges A vector of precursor charge states (must match peptides size).
     /// @param nces A vector of normalized collision energies (must match peptides size).
     /// @param instrument_indices A vector of categorical integers representing MS instruments (e.g., 0=Lumos, 1=QE, 2=timsTOF, 3=Sciex).
     /// @return A vector of flattened fragment intensity arrays, one for each peptide.
     ///         Native shape ordering is contiguous by fragment and ion type [b_1, y_1, b_2, y_2...].
-    /// @throws std::invalid_argument if the sequence string is empty, too long, or contains unmapped characters.
+    /// @throws Exception::IllegalArgument if peptides is empty, size constraints fail, or a sequence is chemically invalid.
     std::vector<std::vector<float>> predictMS2(
         const std::vector<std::string>& peptides,
         const std::vector<float>& charges,

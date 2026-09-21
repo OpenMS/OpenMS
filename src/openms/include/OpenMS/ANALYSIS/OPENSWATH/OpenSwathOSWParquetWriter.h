@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenSwath
@@ -53,19 +54,16 @@ namespace OpenMS
   public:
     /**
       @brief Write an OSW parquet directory or zip archive.
-
       Writes the assay library (precursors + transitions) and scored features
       for a single run into the Parquet directory layout. If the output
       directory already exists, the new run is appended under a fresh
       @c run_id= partition.
-
       @param[in] output_path       Path to the output directory (.oswpq)
       @param[in] assay_library     The transition library used for extraction
       @param[in] feature_map       Scored features for this run
       @param[in] run_id            Unique identifier for this run
       @param[in] input_filename    Original input filename (stored in metadata)
       @param[in] enable_uis_scoring Whether UIS (identification) transitions are included
-
       @throws Exception::MissingFeature if built without Parquet support
       @throws Exception::MissingInformation if a feature is missing required meta values
       @throws Exception::InvalidValue if a run_id already exists in the output
@@ -78,8 +76,30 @@ namespace OpenMS
                bool enable_uis_scoring) const;
 
     /**
+      @brief Write an OSW parquet directory or zip archive while preserving source-ID provenance.
+
+      @param[in] output_path Path to the output directory (.oswpq)
+      @param[in] assay_library The transition library used for extraction
+      @param[in] feature_map Scored features for this run
+      @param[in] run_id Unique identifier for this run
+      @param[in] input_filename Original input filename (stored in metadata)
+      @param[in] enable_uis_scoring Whether UIS (identification) transitions are included
+      @param[in] source_ids Optional source-ID provenance for the persisted library traml_id
+      @throws Exception::MissingFeature if built without Parquet support
+      @throws Exception::MissingInformation if a feature is missing required meta values
+      @throws Exception::InvalidValue if a run_id already exists in the output
+    */
+    void write(const std::string& output_path,
+               const OpenSwath::LightTargetedExperiment& assay_library,
+               const FeatureMap& feature_map,
+               UInt64 run_id,
+               const std::string& input_filename,
+               bool enable_uis_scoring,
+               const OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids) const;
+
+    /**
      * @brief Set whether the writer should preserve (append) existing archives.
-     * 
+     *
      * @param[in] preserve If true, the writer will append to existing .oswpq archives instead of overwriting them.
      */
     void setPreserveExisting(bool preserve);

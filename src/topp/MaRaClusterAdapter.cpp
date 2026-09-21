@@ -20,6 +20,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <iostream>
 #include <cmath>
@@ -298,7 +299,7 @@ protected:
     //-------------------------------------------------------------
 
     // create temp directory to store maracluster temporary files
-    File::TempDir tmp_dir(debug_level_ >= 2);
+    TempDir tmp_dir(debug_level_ >= 2);
 
     double pcut = getDoubleOption_("pcut");
 

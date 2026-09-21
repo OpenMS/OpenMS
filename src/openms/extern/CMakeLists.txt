@@ -8,7 +8,6 @@
 
 
 project("OpenMS-3rd-party-libs")
-cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
 # For use in the subdirs to cat their license
 function(cat IN_FILE OUT_FILE)
@@ -50,6 +49,19 @@ endif()
 
 option(USE_EXTERNAL_SQLITECPP "Use an external SQLiteCpp library" OFF)
 message(STATUS "Option USE_EXTERNAL_SQLITECPP: ${USE_EXTERNAL_SQLITECPP}")
+#Declaring vcpkg's sqlite3 up front so consumers can prefer it, instead of relying on race condition.
+if(OPENMS_USE_VCPKG)
+    find_package(unofficial-sqlite3 CONFIG QUIET GLOBAL)
+endif()
+
+#Needed when linking SQLiteCpp directly, its own sqlite3 dependency isn't always reliably propogated
+#weak linkage on macOS and Linux.
+set(OPENMS_SQLITECPP_EXTRA_LIBS "")
+if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
+    list(APPEND OPENMS_SQLITECPP_EXTRA_LIBS unofficial::sqlite3::sqlite3)
+endif()
+set(OPENMS_SQLITECPP_EXTRA_LIBS "${OPENMS_SQLITECPP_EXTRA_LIBS}" CACHE INTERNAL "")
+
 if(USE_EXTERNAL_SQLITECPP)
     find_package(SQLiteCpp REQUIRED GLOBAL)      ## global propagates the target up to the parent project
     message(STATUS "External 'SQLiteCpp' at: '${SQLiteCpp_DIR}'")

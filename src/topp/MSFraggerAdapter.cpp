@@ -18,6 +18,7 @@
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
@@ -396,7 +397,7 @@ protected:
       _fatalError("MSFragger may only be used upon acceptance of license terms.");
     }
 
-    File::TempDir working_directory(debug_level_ >= 2);
+    TempDir working_directory(debug_level_ >= 2);
     try
     {
       // java executable
@@ -548,7 +549,7 @@ protected:
       std::vector<std::string> arg_fixmod_unimod = this->getStringList_(TOPPMSFraggerAdapter::fixed_modifications_unimod);
 
       // parameters have been read in and verified, they are now going to be written into the fragger.params file in a temporary directory
-      this->parameter_file_path = File::getTemporaryFile();
+      this->parameter_file_path = TempFiles::getTemporaryFile();
 
       writeDebug_("Parameter file for MSFragger: '" + this->parameter_file_path + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
       writeDebug_("Working Directory: '" + working_directory.getPath() + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);

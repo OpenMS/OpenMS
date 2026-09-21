@@ -166,4 +166,8 @@ static constexpr cstr past_last_slash(cstr str)
 //       but currently we need this information for the ToolHandler.
 #cmakedefine WITH_GUI 1
 
+// Whether WNet alignment support was enabled at build time (WITH_WNETALIGN option).
+// Used by ToolHandler to conditionally register FeatureLinkerWNet.
+#cmakedefine WITH_WNETALIGN 1
+
 #endif // OPENMS_CONFIG_H

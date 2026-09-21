@@ -8,17 +8,57 @@
 
 #include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <cmath>
 #include <map>
 
 using namespace std;
 
 namespace OpenMS
 {
+
+//static
+const ResidueModification* NuXLModificationsGenerator::registerPrecursorAdduct(const std::string& nucleotide_composition,
+                                                                               const EmpiricalFormula& adduct_formula,
+                                                                               const Residue& residue)
+{
+  std::string id = "NuXL:" + nucleotide_composition;
+  EmpiricalFormula diff_formula = adduct_formula;
+  double diff_mono_mass = adduct_formula.getMonoWeight();
+  double diff_average_mass = adduct_formula.getAverageWeight();
+
+  if (residue.isModified())
+  {
+    const ResidueModification* existing = residue.getModification();
+    if (existing->getId().empty() || existing->getDiffFormula().isEmpty()) { return nullptr; }
+    id += "~" + existing->getId();
+    diff_mono_mass += existing->getDiffMonoMass();
+    diff_average_mass += existing->getDiffAverageMass();
+    diff_formula += existing->getDiffFormula();
+    if (std::fabs(diff_formula.getMonoWeight() - diff_mono_mass) > 1e-3)
+    {
+      OPENMS_LOG_WARN << "OpenNuXL: the formula of '" << existing->getFullId() << "' (" << existing->getDiffFormula().toString()
+                      << ") does not match its mass (" << existing->getDiffMonoMass() << " Da); '" << id
+                      << "' is defined by mass only." << std::endl;
+      diff_formula = EmpiricalFormula();
+    }
+  }
+
+  ResidueModification definition;
+  definition.setId(id);
+  definition.setOrigin(residue.getOneLetterCode()[0]);
+  definition.setTermSpecificity(ResidueModification::ANYWHERE);
+  definition.setFullId();
+  definition.setDiffFormula(diff_formula);
+  definition.setDiffMonoMass(diff_mono_mass);
+  definition.setDiffAverageMass(diff_average_mass);
+  return ModificationsDB::getInstance()->registerDefinition(definition);
+}
 
 //static
 bool NuXLModificationsGenerator::notInSeq(const std::string& res_seq, const std::string& query)

@@ -186,6 +186,86 @@ void ImzMLBinaryIO::readMzArray(FILE* ibd,
   }
 }
 
+namespace
+{
+  /// Shared float-typed .ibd array reader. @p context names the array in error messages.
+  void readFloatVector_(FILE* ibd,
+                        const uint64_t offset,
+                        const uint64_t count,
+                        const ImzMLSpectrumIndex::DataType dt,
+                        std::vector<float>& out,
+                        const std::string& ibd_path,
+                        const std::string& context)
+  {
+    out.clear();
+    if (!ibd || count == 0)
+    {
+      return;
+    }
+
+    validateCount_(count, ibd_path, context.c_str());
+
+    seekIbd_(ibd, offset, ibd_path, context.c_str());
+
+    out.resize(count);
+
+    switch (dt)
+    {
+      case ImzMLSpectrumIndex::DataType::FLOAT32:
+        if (fread(out.data(), 4, count, ibd) != count)
+        {
+          throwReadError_(ibd_path, "failed to read float32 " + context + " from .ibd");
+        }
+        decodeLittleEndian_(out.data(), count);
+        break;
+      case ImzMLSpectrumIndex::DataType::FLOAT64:
+      {
+        std::vector<double> tmp(count);
+        if (fread(tmp.data(), 8, count, ibd) != count)
+        {
+          throwReadError_(ibd_path, "failed to read float64 " + context + " from .ibd");
+        }
+        decodeLittleEndian_(tmp.data(), count);
+        for (Size i = 0; i < count; ++i)
+        {
+          out[i] = static_cast<float>(tmp[i]);
+        }
+        break;
+      }
+      case ImzMLSpectrumIndex::DataType::INT32:
+      {
+        std::vector<int32_t> tmp(count);
+        if (fread(tmp.data(), 4, count, ibd) != count)
+        {
+          throwReadError_(ibd_path, "failed to read int32 " + context + " from .ibd");
+        }
+        decodeLittleEndian_(tmp.data(), count);
+        for (Size i = 0; i < count; ++i)
+        {
+          out[i] = static_cast<float>(tmp[i]);
+        }
+        break;
+      }
+      case ImzMLSpectrumIndex::DataType::INT64:
+      {
+        std::vector<int64_t> tmp(count);
+        if (fread(tmp.data(), 8, count, ibd) != count)
+        {
+          throwReadError_(ibd_path, "failed to read int64 " + context + " from .ibd");
+        }
+        decodeLittleEndian_(tmp.data(), count);
+        for (Size i = 0; i < count; ++i)
+        {
+          out[i] = static_cast<float>(tmp[i]);
+        }
+        break;
+      }
+      default:
+        throwReadError_(ibd_path, "unsupported " + context + " data type in .ibd");
+    }
+  }
+} // namespace
+
 void ImzMLBinaryIO::readIntArray(FILE* ibd,
                                  const uint64_t offset,
                                  const uint64_t count,
@@ -193,72 +273,19 @@ void ImzMLBinaryIO::readIntArray(FILE* ibd,
                                  std::vector<float>& out,
                                  const std::string& ibd_path)
 {
-  out.clear();
-  if (!ibd || count == 0)
-  {
-    return;
-  }
+  readFloatVector_(ibd, offset, count, dt, out, ibd_path, "intensity array");
+}
 
-  validateCount_(count, ibd_path, "intensity array");
-
-  seekIbd_(ibd, offset, ibd_path, "intensity array");
-
-  out.resize(count);
-
-  switch (dt)
-  {
-    case ImzMLSpectrumIndex::DataType::FLOAT32:
-      if (fread(out.data(), 4, count, ibd) != count)
-      {
-        throwReadError_(ibd_path, "failed to read float32 intensity array from .ibd");
-      }
-      decodeLittleEndian_(out.data(), count);
-      break;
-    case ImzMLSpectrumIndex::DataType::FLOAT64:
-    {
-      std::vector<double> tmp(count);
-      if (fread(tmp.data(), 8, count, ibd) != count)
-      {
-        throwReadError_(ibd_path, "failed to read float64 intensity array from .ibd");
-      }
-      decodeLittleEndian_(tmp.data(), count);
-      for (Size i = 0; i < count; ++i)
-      {
-        out[i] = static_cast<float>(tmp[i]);
-      }
-      break;
-    }
-    case ImzMLSpectrumIndex::DataType::INT32:
-    {
-      std::vector<int32_t> tmp(count);
-      if (fread(tmp.data(), 4, count, ibd) != count)
-      {
-        throwReadError_(ibd_path, "failed to read int32 intensity array from .ibd");
-      }
-      decodeLittleEndian_(tmp.data(), count);
-      for (Size i = 0; i < count; ++i)
-      {
-        out[i] = static_cast<float>(tmp[i]);
-      }
-      break;
-    }
-    case ImzMLSpectrumIndex::DataType::INT64:
-    {
-      std::vector<int64_t> tmp(count);
-      if (fread(tmp.data(), 8, count, ibd) != count)
-      {
-        throwReadError_(ibd_path, "failed to read int64 intensity array from .ibd");
-      }
-      decodeLittleEndian_(tmp.data(), count);
-      for (Size i = 0; i < count; ++i)
-      {
-        out[i] = static_cast<float>(tmp[i]);
-      }
-      break;
-    }
-    default:
-      throwReadError_(ibd_path, "unsupported intensity array data type in .ibd");
-  }
+void ImzMLBinaryIO::readAuxArray(FILE* ibd,
+                                 const uint64_t offset,
+                                 const uint64_t count,
+                                 const ImzMLSpectrumIndex::DataType dt,
+                                 std::vector<float>& out,
+                                 const std::string& ibd_path,
+                                 const std::string& array_name)
+{
+  readFloatVector_(ibd, offset, count, dt, out, ibd_path,
+                   array_name.empty() ? std::string("auxiliary array") : array_name);
 }
 
 void ImzMLBinaryIO::writeFloat32Array(FILE* ibd,

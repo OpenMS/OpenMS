@@ -65,12 +65,18 @@ namespace OpenMS
     }
 
     /// Append a double/float/long double via std::to_chars.
-    /// NaN is output as "NaN" (uppercase) for backward compatibility.
+    /// NaN is output as "NaN" (uppercase) for backward compatibility, infinities as "inf"/"-inf".
     /// Trailing zeros are trimmed but at least one digit after '.' is kept (matches old karma behavior).
     template <typename T>
     inline void appendNumeric(T value, std::string& target, int precision, bool fixed_format)
     {
       if (std::isnan(value)) { target += "NaN"; return; }
+      // Without this, std::to_chars writes "inf", which carries neither '.' nor 'e', so the
+      // "keep at least one digit after the decimal point" rule below (there so that 5 prints as 5.0)
+      // appended ".0" and produced "inf.0" - a token nothing can read back, which turned any file
+      // containing an infinity into one that fails to load. "inf"/"-inf" round-trip through
+      // toDouble()/toFloat() as they stand, so only the writing side was ever wrong.
+      if (std::isinf(value)) { target += (value < T(0)) ? "-inf" : "inf"; return; }
       char buf[64];
       std::to_chars_result fc;
 
@@ -550,7 +556,7 @@ namespace OpenMS
       const simde__m128i w2 = simde_mm_set1_epi8('\n');
       const simde__m128i w3 = simde_mm_set1_epi8('\r');
 
-      for (; p <= p_end - 16; p += 16)
+      for (; p_end - p >= 16; p += 16)
       {
         const simde__m128i s = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(p));
         simde__m128i x = simde_mm_cmpeq_epi8(s, w0);
@@ -585,7 +591,7 @@ namespace OpenMS
       const simde__m128i w2 = simde_mm_set1_epi8('\n');
       const simde__m128i w3 = simde_mm_set1_epi8('\r');
 
-      for (; p <= p_end - 16; p += 16)
+      for (; p_end - p >= 16; p += 16)
       {
         const simde__m128i s = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(p));
         simde__m128i x = simde_mm_cmpeq_epi8(s, w0);

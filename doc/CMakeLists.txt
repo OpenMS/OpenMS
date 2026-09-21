@@ -8,7 +8,6 @@
 
 
 project("OpenMS_doc")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 #------------------------------------------------------------------------------
 # helper macro
@@ -60,15 +59,18 @@ if(ENABLE_DOCS)
     # let the doc progs decide how to handle a missing OpenMS_GUI library
     if(WITH_GUI)
       set_target_properties(${i} PROPERTIES COMPILE_DEFINITIONS "WITH_GUI=1")
-      target_link_libraries(${i} OpenMS OpenMS_GUI)
+      target_link_libraries(${i} OpenMS OpenMS_CLI OpenMS_GUI)
     else()
-      target_link_libraries(${i} OpenMS)
+      target_link_libraries(${i} OpenMS OpenMS_CLI)
     endif()
   endforeach(i)
 
   # collection target
   add_custom_target(doc_progs)
-  add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP)
+  add_dependencies(doc_progs ${OpenMS_doc_executables})
+  if(TARGET TOPP)
+    add_dependencies(doc_progs TOPP)
+  endif()
 
   if(WITH_GUI)
     add_dependencies(doc_progs GUI)
@@ -97,7 +99,7 @@ if(ENABLE_DOCS)
     set(DOXYGEN_MIN_REQUIRED "1.8.13")
 
     ## NOTE: keep the all-caps DOXYGEN_VERSION here. The mixed-case Doxygen_VERSION only exists in
-    ## CMake >= 4.2, while OpenMS still supports CMake 3.21; on older CMake it would be empty, making
+    ## CMake >= 4.2; on older CMake it would be empty, making
     ## this version check always fire and dropping the version argument passed to Doxygen_Warning_test
     ## below. DOXYGEN_VERSION is set across the whole supported range (3.9 .. 4.2+).
     if (DOXYGEN_VERSION VERSION_LESS DOXYGEN_MIN_REQUIRED )
@@ -123,7 +125,6 @@ if(ENABLE_DOCS)
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile)
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_dot.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_dot)
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_noclass.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_noclass)
-    configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_xml.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_xml)
 
     #------------------------------------------------------------------------------
     # doc paths (bin path, topp documenter, defaultparamhandler documenter)
@@ -254,22 +255,6 @@ if(ENABLE_DOCS)
                       VERBATIM)
 
     #------------------------------------------------------------------------------
-    # doc_xml target
-    add_custom_target(doc_xml
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                      COMMAND ${CMAKE_COMMAND} -E echo "Creating XML documentation"
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E remove_directory xml_output
-                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_xml
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                      COMMAND ${CMAKE_COMMAND} -E echo "The XML documentation has been successfully created."
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMENT "Build the doxygen documentation"
-                      VERBATIM)
-
-    #------------------------------------------------------------------------------
     # doc_noclass target
     add_custom_target(doc_noclass
                       COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -310,7 +295,9 @@ if(ENABLE_DOCS)
     # add virtual dependency of doc_minimal on TOPP
     # this is not necessary but defers the generation of doc_minimal to a later
     # stage to avoid confusion if doc_minimal is built first
-    add_dependencies(doc_minimal TOPP)
+    if(TARGET TOPP)
+      add_dependencies(doc_minimal TOPP)
+    endif()
 
     if (TARGET Doxygen::dot)
       #------------------------------------------------------------------------------

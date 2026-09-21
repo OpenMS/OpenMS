@@ -1,0 +1,65 @@
+name: "Build and Test"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - nightly
+      - release/*
+  pull_request:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  header-set-compatibility:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install the minimum supported CMake version
+        shell: bash
+        run: |
+          python -m pip install --target "$RUNNER_TEMP/cmake324" cmake==3.24.3
+      - name: Test header sets with CMake 3.24
+        shell: bash
+        run: |
+          "$RUNNER_TEMP/cmake324/cmake/data/bin/cmake" \
+            -DBINARY_DIR="$RUNNER_TEMP/header-sets" \
+            -DGENERATOR="Unix Makefiles" \
+            -P src/tests/header_sets/run.cmake
+
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            compiler: cl.exe
+          - os: macos-15
+            compiler: xcode
+          - os: ubuntu-24.04
+            compiler: g++
+          - os: ubuntu-24.04-arm
+            compiler: g++
+          - os: ubuntu-24.04
+            compiler: clang++
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Build OpenMS
+        uses: ./.github/actions/build
+        with:
+          compiler: ${{ matrix.compiler }}
+          ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}

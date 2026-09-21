@@ -8,13 +8,16 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/ThermoRawFile.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/IonSource.h>
 #include <OpenMS/METADATA/MassAnalyzer.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
+#include <cmath>
 #include <set>
 
 using namespace OpenMS;
@@ -70,12 +73,42 @@ START_SECTION(round-trip load raw -> mzML -> reload MSExperiment)
   }
   TEST_EQUAL(found_positive, true)
 
-  std::string tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_thermo_roundtrip.mzML";
+  std::string tmp_mzml = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_thermo_roundtrip.mzML";
   MzMLFile().store(tmp_mzml, original);
 
   MSExperiment reloaded;
   MzMLFile().load(tmp_mzml, reloaded);
   File::remove(tmp_mzml);
+
+  TEST_EQUAL(original.getSourceFiles()[0].getChecksum().size(), 40)
+  TEST_EQUAL(reloaded.getSourceFiles()[0].getChecksum(), original.getSourceFiles()[0].getChecksum())
+  TEST_EQUAL(reloaded.getInstrument().getMetaValue("instrument serial number"), original.getInstrument().getMetaValue("instrument serial number"))
+  TEST_EQUAL(reloaded.getMetaValue("Thermo instrument methods"), original.getMetaValue("Thermo instrument methods"))
+  TEST_TRUE(original.getSample().metaValueExists("Thermo injection volume"))
+  TEST_EQUAL(reloaded.getSample().getMetaValue("Thermo injection volume"), original.getSample().getMetaValue("Thermo injection volume"))
+  bool saw_supplemental = false;
+  for (Size i = 0; i < original.size(); ++i)
+  {
+    TEST_EQUAL(original[i].getNativeID(), reloaded[i].getNativeID())
+    TEST_EQUAL(original[i].getPrecursors().size(), reloaded[i].getPrecursors().size())
+    TEST_EQUAL(original[i].getAcquisitionInfo()[0].getMetaValue("Thermo trailer extra"), reloaded[i].getAcquisitionInfo()[0].getMetaValue("Thermo trailer extra"))
+    for (Size j = 0; j < original[i].getPrecursors().size(); ++j)
+    {
+      const auto& before = original[i].getPrecursors()[j];
+      const auto& after = reloaded[i].getPrecursors()[j];
+      TEST_REAL_SIMILAR(before.getMZ(), after.getMZ())
+      TEST_REAL_SIMILAR(before.getMetaValue("selected ion m/z"), after.getMetaValue("selected ion m/z", after.getMZ()))
+      TEST_REAL_SIMILAR(before.getIsolationWindowLowerOffset(), after.getIsolationWindowLowerOffset())
+      TEST_REAL_SIMILAR(before.getIsolationWindowUpperOffset(), after.getIsolationWindowUpperOffset())
+      TEST_EQUAL(before.getMetaValue("spectrum_ref"), after.getMetaValue("spectrum_ref"))
+      if (before.metaValueExists("supplemental collision energy"))
+      {
+        saw_supplemental = true;
+        TEST_EQUAL(before.getMetaValue("supplemental collision energy"), after.getMetaValue("supplemental collision energy"))
+      }
+    }
+  }
+  TEST_TRUE(saw_supplemental)
 
   TEST_EQUAL(original.size(), reloaded.size())
   TEST_EQUAL(original.getSourceFiles().size(), reloaded.getSourceFiles().size())
@@ -163,6 +196,153 @@ START_SECTION(round-trip load raw -> mzML -> reload MSExperiment)
   TEST_EQUAL(rt_filter > 0, true)
   TEST_EQUAL(rt_tic > 0, true)
   TEST_EQUAL(rt_window > 0, true)
+}
+END_SECTION
+#endif
+
+#ifdef THERMO_FAIMS_DIA_TEST_DATA
+START_SECTION(real Thermo FAIMS-DIA RAW -> FAIMS-aware SWATH maps)
+{
+  ThermoRawFile file;
+  MSExperiment exp;
+  file.load(THERMO_FAIMS_DIA_TEST_DATA, exp);
+
+  TEST_EQUAL(exp.empty(), false)
+  TEST_EQUAL(exp.getSourceFiles().empty(), false)
+
+  Size ms1_count = 0;
+  Size ms2_count = 0;
+  Size explicit_faims_count = 0;
+  Size dia_ms2_count = 0;
+  std::set<double> faims_cvs;
+
+  for (const MSSpectrum& spectrum : exp.getSpectra())
+  {
+    if (spectrum.getMSLevel() == 1)
+    {
+      ++ms1_count;
+    }
+    else if (spectrum.getMSLevel() == 2)
+    {
+      ++ms2_count;
+
+      if (!spectrum.getPrecursors().empty())
+      {
+        const Precursor& precursor = spectrum.getPrecursors()[0];
+        if (precursor.getMZ() > 0.0 &&
+            precursor.getIsolationWindowLowerOffset() > 0.0 &&
+            precursor.getIsolationWindowUpperOffset() > 0.0)
+        {
+          ++dia_ms2_count;
+        }
+      }
+    }
+
+    if (spectrum.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+    {
+      ++explicit_faims_count;
+      faims_cvs.insert(spectrum.getDriftTime());
+    }
+  }
+
+  // Pin the native-reader side of the integration boundary to this public fixture.
+  TEST_EQUAL(exp.size(), 92778)
+  TEST_EQUAL(ms1_count, 1974)
+  TEST_EQUAL(ms2_count, 90804)
+  TEST_EQUAL(dia_ms2_count, ms2_count)
+  TEST_EQUAL(explicit_faims_count, exp.size())
+  TEST_EQUAL(faims_cvs.size(), 1)
+  if (!faims_cvs.empty())
+  {
+    TEST_REAL_SIMILAR(*faims_cvs.begin(), -5.0)
+  }
+
+  cout << "Thermo FAIMS-DIA validation: spectra=" << exp.size()
+       << ", MS1=" << ms1_count
+       << ", MS2=" << ms2_count
+       << ", DIA-like MS2=" << dia_ms2_count
+       << ", explicit FAIMS spectra=" << explicit_faims_count
+       << ", unique CVs=" << faims_cvs.size() << '\n';
+  cout << "FAIMS CVs:";
+  for (double cv : faims_cvs) { cout << ' ' << cv; }
+  cout << '\n';
+
+  std::shared_ptr<ExperimentalSettings> exp_meta;
+  auto groups = SwathFile().loadFromMSExperimentByFAIMSCV(
+    std::move(exp), SystemSettings::getTempDirectory() + "/", exp_meta, "normal");
+
+  TEST_EQUAL(groups.size(), 1)
+  TEST_EQUAL(exp_meta != nullptr, true)
+  if (!groups.empty())
+  {
+    TEST_REAL_SIMILAR(groups[0].faims_cv, -5.0)
+  }
+
+  Size groups_with_ms1 = 0;
+  Size total_swath_windows = 0;
+  for (const auto& group : groups)
+  {
+    TEST_EQUAL(std::isfinite(group.faims_cv), true)
+    TEST_EQUAL(faims_cvs.count(group.faims_cv), 1)
+    TEST_EQUAL(group.swath_maps.empty(), false)
+
+    Size group_ms1_maps = 0;
+    Size group_swath_windows = 0;
+    Size group_ms2_spectra = 0;
+
+    for (const auto& map : group.swath_maps)
+    {
+      TEST_EQUAL(map.sptr != nullptr, true)
+      if (map.sptr == nullptr) { continue; }
+
+      if (map.ms1)
+      {
+        ++group_ms1_maps;
+      }
+      else
+      {
+        ++group_swath_windows;
+        group_ms2_spectra += map.sptr->getNrSpectra();
+        TEST_EQUAL(map.lower < map.upper, true)
+        TEST_EQUAL(map.sptr->getNrSpectra() > 0, true)
+      }
+    }
+
+    // SwathFile should emit at most one MS1 map and at least one DIA window per CV.
+    TEST_EQUAL(group_ms1_maps <= 1, true)
+    TEST_EQUAL(group_swath_windows > 0, true)
+    TEST_EQUAL(group_ms2_spectra > 0, true)
+
+    if (group_ms1_maps == 1) { ++groups_with_ms1; }
+    total_swath_windows += group_swath_windows;
+
+    cout << "  CV " << group.faims_cv
+         << ": maps=" << group.swath_maps.size()
+         << ", MS1 maps=" << group_ms1_maps
+         << ", DIA windows=" << group_swath_windows
+         << ", MS2 spectra=" << group_ms2_spectra << '\n';
+  }
+
+  TEST_EQUAL(groups_with_ms1, 1)
+  TEST_EQUAL(total_swath_windows, 75)
+
+  Size total_ms2_spectra = 0;
+  if (!groups.empty())
+  {
+    TEST_EQUAL(groups[0].swath_maps.size(), 76)
+    for (const auto& map : groups[0].swath_maps)
+    {
+      if (!map.ms1 && map.sptr != nullptr)
+      {
+        total_ms2_spectra += map.sptr->getNrSpectra();
+      }
+    }
+  }
+  TEST_EQUAL(total_ms2_spectra, ms2_count)
+
+  cout << "FAIMS SWATH groups=" << groups.size()
+       << ", groups with MS1=" << groups_with_ms1
+       << ", total DIA windows=" << total_swath_windows << '\n';
 }
 END_SECTION
 #endif

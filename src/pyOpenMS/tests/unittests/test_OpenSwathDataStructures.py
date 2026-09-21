@@ -85,7 +85,7 @@ class TestOpenSwathDataStructures(unittest.TestCase):
 
         self.assertAlmostEqual(mz[0], 1)
 
-        mz_view = spectrum.get_mz_array_view()
+        mz_view = spectrum.mz_array_view()
 
         self.assertAlmostEqual(mz_view[0], 1)
 
@@ -101,7 +101,7 @@ class TestOpenSwathDataStructures(unittest.TestCase):
 
         dataarr = spectrum.get_data_arrays()
         mz = dataarr[0].get_data()
-        mz_view = dataarr[0].get_data_view()
+        mz_view = dataarr[0].data_view()
         self.assertAlmostEqual(mz[0], 200)
         self.assertAlmostEqual(mz_view[0], 200)
 
@@ -162,10 +162,10 @@ class TestOpenSwathDataStructures(unittest.TestCase):
             self.assertAlmostEqual(i,e)
 
     def test_osbinarydataarray_get_data_view_empty(self):
-        """get_data_view() should return empty array for empty OSBinaryDataArray."""
+        """data_view() should return empty array for empty OSBinaryDataArray."""
         import numpy as np
         bda = pyopenms.OSBinaryDataArray()
-        arr = bda.get_data_view()
+        arr = bda.data_view()
         self.assertIsInstance(arr, np.ndarray)
         self.assertEqual(len(arr), 0)
 
@@ -173,8 +173,8 @@ class TestOpenSwathDataStructures(unittest.TestCase):
         """All _view methods should return empty arrays for empty OSSpectrum."""
         import numpy as np
         spec = pyopenms.OSSpectrum()
-        for arr in [spec.get_mz_array_view(), spec.get_intensity_array_view(),
-                     spec.get_drift_time_array_view()]:
+        for arr in [spec.mz_array_view(), spec.intensity_array_view(),
+                     spec.drift_time_array_view()]:
             self.assertIsInstance(arr, np.ndarray)
             self.assertEqual(len(arr), 0)
 
@@ -182,7 +182,7 @@ class TestOpenSwathDataStructures(unittest.TestCase):
         """All _view methods should return empty arrays for empty OSChromatogram."""
         import numpy as np
         chrom = pyopenms.OSChromatogram()
-        for arr in [chrom.get_time_array_view(), chrom.get_intensity_array_view()]:
+        for arr in [chrom.time_array_view(), chrom.intensity_array_view()]:
             self.assertIsInstance(arr, np.ndarray)
             self.assertEqual(len(arr), 0)
 

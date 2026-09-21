@@ -61,6 +61,26 @@ namespace OpenMS
     /// Get the primary MS run path for a PeptideIdentification (using id_merge_index metadata)
     std::string getPrimaryMSRunPath(const PeptideIdentification& pepid) const;
 
+    /**
+      @brief Refuse a PSM of a merged run that cannot be attributed to an origin file
+
+      A run with several @c spectra_data entries resolves per PSM only through
+      @c id_merge_index. Without a usable one, getPrimaryMSRunPath() falls back to the run's
+      @e first file, silently labelling every PSM of the run with it. Callers that use the
+      resolved path as a key -- QPX @c run_file_name is a primary-key component of the psm,
+      feature and pg views -- must refuse such input rather than publish it, so run this as a
+      preflight before any output is opened.
+
+      Runs with 0 or 1 path are exempt: unmerged input has nothing to disambiguate, and
+      resolution cannot be wrong.
+
+      @param[in] pep_id The PSM to check
+      @param[in] psm_index Only used to make the diagnostic locatable
+      @throw Exception::MissingInformation if the run is merged and @c id_merge_index is
+             missing, is not an integer, or is out of range
+    */
+    void validateMergeIndex(const PeptideIdentification& pep_id, size_t psm_index) const;
+
     /// Check if the mapping contains an entry for the given identifier
     bool hasIdentifier(const std::string& identifier) const;
 

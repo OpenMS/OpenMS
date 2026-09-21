@@ -10,17 +10,28 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepInput.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <onnxruntime_cxx_api.h>
 #include <stdexcept>
 #include <algorithm>
 #include <string>
 #include <map>
 
+namespace {
+    constexpr float MAX_PREDICTED_INTENSITY = 10.0f; // Cap artifactual spikes from the ONNX model
+    constexpr float MIN_INTENSITY_THRESHOLD = 1e-4f; // Floor near-zero noise after normalization
+}
+
 namespace OpenMS {
 
 PeptDeepMS2Inference::PeptDeepMS2Inference(const std::string& model_path, int intra_op_threads, size_t batch_size)
     : model_(model_path, intra_op_threads), batch_size_(batch_size)
-{}
+{
+  if (batch_size_ == 0)
+  {
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Batch size cannot be zero.");
+  }
+}
 
 PeptDeepMS2Inference::~PeptDeepMS2Inference() = default;
 
@@ -37,7 +48,15 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input vectors must have the same size.");
     }
 
-    // 1. Grouping by Sequence Length (Justin's dynamic optimization)
+    std::vector<OpenMS::AASequence> parsed_peptides;
+    parsed_peptides.reserve(peptides.size());
+    for (const std::string& pep : peptides)
+    {
+        ML::validatePeptide(pep);
+        parsed_peptides.push_back(OpenMS::AASequence::fromString(pep));
+    }
+
+    // 1. Grouping by Sequence Length
     ML::PeptDeepInputConfig input_config;
     const std::vector<int64_t> input_shape = model_.getInputShape(0);
     if (input_shape.size() >= 2 && input_shape[1] > 0) {
@@ -47,14 +66,14 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
     std::vector<std::vector<size_t>> groups;
     if (input_config.fixed_sequence_length > 0) {
         groups.push_back({});
-        groups.back().reserve(peptides.size());
-        for (size_t i = 0; i < peptides.size(); ++i) {
+        groups.back().reserve(parsed_peptides.size());
+        for (size_t i = 0; i < parsed_peptides.size(); ++i) {
             groups.back().push_back(i);
         }
     } else {
         std::map<size_t, std::vector<size_t>> indices_by_encoded_length;
-        for (size_t i = 0; i < peptides.size(); ++i) {
-            indices_by_encoded_length[peptides[i].size() + 2].push_back(i);
+        for (size_t i = 0; i < parsed_peptides.size(); ++i) {
+            indices_by_encoded_length[parsed_peptides[i].size() + 2].push_back(i);
         }
         for (auto& item : indices_by_encoded_length) {
             groups.push_back(std::move(item.second));
@@ -62,7 +81,7 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
     }
 
     // 2. Setup master predictions array and ONNX variables
-    std::vector<std::vector<float>> predictions(peptides.size());
+    std::vector<std::vector<float>> predictions(parsed_peptides.size());
 
     std::vector<std::string> input_names = model_.getInputNames();
     std::vector<const char*> input_names_chars;
@@ -82,7 +101,7 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
         {
             size_t current_chunk_size = std::min(batch_size_, group_indices.size() - chunk_start);
 
-            std::vector<std::string> chunk_peptides;
+            std::vector<OpenMS::AASequence> chunk_peptides;
             std::vector<float> chunk_charges, chunk_nces;
             std::vector<int64_t> chunk_instruments;
 
@@ -93,13 +112,13 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
 
             for (size_t j = 0; j < current_chunk_size; ++j) {
                 size_t original_idx = group_indices[chunk_start + j];
-                chunk_peptides.push_back(peptides[original_idx]);
+                chunk_peptides.push_back(parsed_peptides[original_idx]);
                 chunk_charges.push_back(charges[original_idx]);
                 chunk_nces.push_back(nces[original_idx]);
                 chunk_instruments.push_back(instrument_indices[original_idx]);
             }
 
-            ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildUnmodifiedInstrumentBatch(
+            ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildProductMetaBatch(
                 chunk_peptides, chunk_charges, chunk_nces, chunk_instruments, input_config);
 
             const int64_t batch_size_cast = static_cast<int64_t>(batch.batch_size);
@@ -126,15 +145,15 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
                     input_tensors.push_back(Ort::Value::CreateTensor<float>(
                         model_.memoryInfo(), batch.mod_x.data(), batch.mod_x.size(), expected_shape.data(), expected_shape.size()));
                 } else if (name == "charges" || name == "charge") {
-                    expected_shape = {batch_size_cast, 1}; // <--- REVERT TO 2D
+                    expected_shape = {batch_size_cast, 1};
                     input_tensors.push_back(Ort::Value::CreateTensor<float>(
                         model_.memoryInfo(), batch.charges.data(), batch.charges.size(), expected_shape.data(), expected_shape.size()));
                 } else if (name == "nces" || name == "nce") {
-                    expected_shape = {batch_size_cast, 1}; // <--- REVERT TO 2D
+                    expected_shape = {batch_size_cast, 1};
                     input_tensors.push_back(Ort::Value::CreateTensor<float>(
                         model_.memoryInfo(), batch.nces.data(), batch.nces.size(), expected_shape.data(), expected_shape.size()));
                 } else if (name == "instrument_indices" || name == "instrument") {
-                    expected_shape = {batch_size_cast}; // <--- KEEP AS 1D
+                    expected_shape = {batch_size_cast};
                     input_tensors.push_back(Ort::Value::CreateTensor<int64_t>(
                         model_.memoryInfo(), batch.instrument_indices.data(), batch.instrument_indices.size(), expected_shape.data(), expected_shape.size()));
                 } else {
@@ -149,13 +168,30 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
             float* floatarr = output_tensors.front().GetTensorMutableData<float>();
             auto out_shape = output_tensors.front().GetTensorTypeAndShapeInfo().GetShape();
 
-            int64_t actual_rows = out_shape.size() >= 3 ? out_shape[1] : (out_shape.size() >= 2 ? out_shape[out_shape.size() - 2] : 1);
+            if (out_shape.size() != 3)
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected MS2 output tensor to have a rank of 3.", std::to_string(out_shape.size()));
+            }
+
+            if (out_shape[0] != batch_size_cast)
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ONNX MS2 output batch dimension mismatch.", std::to_string(out_shape[0]));
+            }
+
+            int64_t actual_rows = out_shape[1];
             int64_t num_ions = out_shape.back();
             int64_t elements_per_batch = actual_rows * num_ions;
 
             for (size_t j = 0; j < current_chunk_size; ++j) {
-                const std::string& current_peptide = chunk_peptides[j];
-                int64_t valid_fragments = current_peptide.size() - 1;
+                const OpenMS::AASequence& current_seq = chunk_peptides[j];
+
+                size_t parsed_size = current_seq.size();
+                if (parsed_size < 1) {
+                    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Parsed peptide sequence cannot be empty.");
+                }
+
+                int64_t valid_fragments = static_cast<int64_t>(parsed_size) - 1;
+
                 int64_t start_row = (actual_rows > valid_fragments) ? (actual_rows - valid_fragments) / 2 : 0;
 
                 std::vector<float> intensities;
@@ -171,8 +207,7 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
                     for (int64_t k_ion = 0; k_ion < num_ions; ++k_ion) {
                         float val = batch_floatarr[(row_idx * num_ions) + k_ion];
 
-                        // Capping massive padding logits to prevent Base Peak Normalization failure
-                        if (val > 10.0f) {
+                        if (val > MAX_PREDICTED_INTENSITY) {
                             val = 0.0f;
                         }
                         intensities.push_back(val < 0.0f ? 0.0f : val);
@@ -184,9 +219,8 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
                 if (apex <= 0.0f) apex = 1.0f;
                 for (float& val : intensities) {
                     val /= apex;
-                    if (val < 1e-4f) val = 0.0f;
+                    if (val < MIN_INTENSITY_THRESHOLD) val = 0.0f;
                 }
-                if (!intensities.empty()) intensities[0] = 0.0f;
 
                 predictions[group_indices[chunk_start + j]] = std::move(intensities);
             }

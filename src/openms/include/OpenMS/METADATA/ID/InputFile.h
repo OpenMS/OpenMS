@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/METADATA/ID/MetaData.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>

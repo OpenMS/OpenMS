@@ -63,6 +63,7 @@ namespace OpenMS
   void CalibrationData::clear()
   {
     data_.clear();
+    groups_.clear();
   }
 
   void CalibrationData::setUsePPM( bool usePPM )

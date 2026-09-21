@@ -13,8 +13,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
@@ -71,8 +69,6 @@ protected:
     setValidFormats_("in", ListUtils::create<std::string>("featureXML,consensusXML,featureparquet,consensusparquet"));
     registerOutputFile_("out", "<file>", "", "Output file", true);
     setValidFormats_("out", ListUtils::create<std::string>("consensusXML,consensusparquet"));
-    registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
-    setValidFormats_("design", ListUtils::create<std::string>("tsv"));
     addEmptyLine_();
     registerFlag_("keep_subelements", "For consensusXML/consensusparquet input only: If set, the sub-features of the inputs are transferred to the output.");
   }
@@ -122,55 +118,9 @@ protected:
     ConsensusMap out_map;
     StringList ms_run_locations;
 
-    std::string design_file;
-
-    // TODO: support design in labeled feature linker
-    if (!labeled)
-    {
-      design_file = getStringOption_("design");
-    }
-
-    if ((file_type == FileTypes::CONSENSUSXML || file_type == FileTypes::CONSENSUSPARQUET) && !design_file.empty())
-    {
-      writeLogError_("Error: Using fractionated design with consensusXML/consensusparquet as input is not supported!");
-      return ILLEGAL_PARAMETERS;
-    }
-  
     if (file_type == FileTypes::FEATUREXML || file_type == FileTypes::FEATUREPARQUET)
     {
       OPENMS_LOG_INFO << "Linking " << ins.size() << " feature maps." << endl;
-  
-      //-------------------------------------------------------------
-      // Extract (optional) fraction identifiers and associate with featureXMLs
-      //-------------------------------------------------------------
-
-      // determine map of fractions to MS files
-      map<unsigned, vector<std::string>> frac2files;
-
-      if (!design_file.empty())
-      {
-        // parse design file and determine fractions
-        ExperimentalDesign ed = ExperimentalDesignFile::load(design_file, false);
-
-        // determine if design defines more than one fraction
-        frac2files = ed.getFractionToMSFilesMapping();
-
-        writeDebug_("Grouping " + StringUtils::toStr(ed.getNumberOfFractions()) + " fractions.", 3);
-
-        // check if all fractions have the same number of MS runs associated
-        if (!ed.sameNrOfMSFilesPerFraction())
-        {
-          writeLogError_("Error: Number of runs must match for every fraction!");
-          return ILLEGAL_PARAMETERS;
-        }
-      }
-      else // no design file given
-      {
-        for (Size i = 0; i != ins.size(); ++i)
-        {
-          frac2files[1].emplace_back("file" + StringUtils::toStr(i)); // associate each run with fraction 1
-        }
-      }
 
       vector<FeatureMap > maps(ins.size());
       FileHandler f;
@@ -255,26 +205,8 @@ protected:
 
       ////////////////////////////////////////////////////
       // invoke feature grouping algorithm
-      
-      if (frac2files.size() == 1) // group one fraction
-      {
-        algorithm->group(maps, out_map);
-      }
-      else // group multiple fractions
-      {
-        writeDebug_("Stored in " + StringUtils::toStr(maps.size()) + " maps.", 3);
-        for (Size i = 1; i <= frac2files.size(); ++i)
-        {
-          vector<FeatureMap> fraction_maps;
-          // TODO FRACTIONS: here we assume that the order of featureXML is from fraction 1..n
-          // we should check if these are shuffled and error / warn          
-          for (size_t feature_map_index = 0; feature_map_index != frac2files[i].size(); ++feature_map_index)
-          {
-            fraction_maps.push_back(maps[feature_map_index]);
-          }
-          algorithm->group(fraction_maps, out_map);
-        }
-      }
+
+      algorithm->group(maps, out_map);
     }
     else
     {

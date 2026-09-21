@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////

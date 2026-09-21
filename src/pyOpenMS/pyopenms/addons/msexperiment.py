@@ -3,7 +3,7 @@
 from __future__ import annotations
 import warnings
 import numpy as np
-from . import addon
+from . import addon, register_element_views
 
 
 @addon("MSExperiment")
@@ -217,7 +217,7 @@ def _build_spectra_arrow(exp, format, columns, ms_levels, min_rt, max_rt,
         all_pmz, all_pch, all_pint = [], [], []
         all_ilo, all_iup, all_im = [], [], []
 
-        for spec_idx, spec in enumerate(exp):
+        for spec_idx, spec in enumerate(exp.iter_spectrum_views()):  # zero-copy read of each spectrum
             ms_level = spec.getMSLevel()
             if ms_level not in ms_levels:
                 continue
@@ -259,10 +259,12 @@ def _build_spectra_arrow(exp, format, columns, ms_levels, min_rt, max_rt,
                     all_iup.extend([None] * n)
 
             if include_ion_mobility:
-                if spec.containsIMData():
-                    im_idx, _ = spec.getIMData()
-                    fda = spec.getFloatDataArrays()[im_idx]
-                    im_arr = np.asarray(fda.get_data(), dtype=np.float32)
+                # get_drift_time_array() resolves the IM index and copies only that one
+                # array, in C++. Indexing getFloatDataArrays() materialises every data
+                # array of every spectrum just to read one of them. It returns None on
+                # exactly the containsIMData() condition, so it is also the guard.
+                im_arr = spec.get_drift_time_array()
+                if im_arr is not None:
                     if mask is not None and len(im_arr) == len(mask):
                         im_arr = im_arr[mask]
                     all_im.append(im_arr[:n])
@@ -291,7 +293,7 @@ def _build_spectra_arrow(exp, format, columns, ms_levels, min_rt, max_rt,
         all_pmz, all_pch, all_pint = [], [], []
         all_ilo, all_iup, all_im = [], [], []
 
-        for spec_idx, spec in enumerate(exp):
+        for spec_idx, spec in enumerate(exp.iter_spectrum_views()):  # zero-copy read of each spectrum
             ms_level = spec.getMSLevel()
             if ms_level not in ms_levels:
                 continue
@@ -329,12 +331,9 @@ def _build_spectra_arrow(exp, format, columns, ms_levels, min_rt, max_rt,
                     all_iup.append(None)
 
             if include_ion_mobility:
-                if spec.containsIMData():
-                    im_idx, _ = spec.getIMData()
-                    fda = spec.getFloatDataArrays()[im_idx]
-                    all_im.append(fda.get_data().tolist())
-                else:
-                    all_im.append(None)
+                # see the note in the long-format path above: one C++ call, one array
+                im_arr = spec.get_drift_time_array()
+                all_im.append(im_arr.tolist() if im_arr is not None else None)
 
         d = {}
         d['spectrum_index'] = np.array(all_idx, dtype=np.uint32)
@@ -446,7 +445,7 @@ def get_massql_df(self, ion_mobility=False):
         return 0
 
     def _get_spec_arrays(mslevel):
-        for scan_num, spec in enumerate(self):
+        for scan_num, spec in enumerate(self.iter_spectrum_views()):  # zero-copy read of each spectrum
             if spec.getMSLevel() == mslevel:
                 mz, inty = spec.get_peaks()
                 mz = np.asarray(mz, dtype=np.float64)
@@ -469,14 +468,17 @@ def get_massql_df(self, ion_mobility=False):
                 yield ndarr
 
     def _get_ion_spec_arrays(mslevel):
-        for scan_num, spec in enumerate(self):
+        for scan_num, spec in enumerate(self.iter_spectrum_views()):  # zero-copy read of each spectrum
             if spec.getMSLevel() == mslevel:
                 mz, inty = spec.get_peaks()
                 mz = np.asarray(mz, dtype=np.float64)
                 inty = np.asarray(inty, dtype=np.float32)
-                ion_array_idx, ion_unit = spec.getIMData()
-                ion_data_arr = spec.getFloatDataArrays()[ion_array_idx]
-                ion_data = np.asarray(ion_data_arr.get_data(), dtype=np.float32)
+                # get_drift_time_array() resolves the IM index and copies only that one
+                # array, in C++, and already returns float32; indexing getFloatDataArrays()
+                # materialised every data array of every spectrum just to read one.
+                ion_data = spec.get_drift_time_array()
+                if ion_data is None:
+                    spec.getIMData()  # no IM array: raise the established error, as before
                 max_inty = np.amax(inty, initial=0)
                 sum_inty = np.sum(inty)
                 i_norm = np.zeros_like(inty) if max_inty == 0 else inty / max_inty
@@ -545,22 +547,18 @@ def get_ion_df(self):
     """Returns a DataFrame with RT, mz, intensity, and ion mobility columns for MS1 spectra."""
     import pandas as pd
     all_data = []
-    for spec in self:
+    for spec in self.iter_spectrum_views():
         if spec.getMSLevel() != 1:
             continue
         mz, inty = spec.get_peaks()
         n = len(mz)
         if n == 0:
             continue
-        try:
-            im_idx, im_unit = spec.getIMData()
-        except RuntimeError:
-            continue
-        fdas = spec.getFloatDataArrays()
-        if im_idx >= len(fdas):
-            continue
-        im_data = np.asarray(fdas[im_idx].get_data())
-        if len(im_data) != n:
+        # get_drift_time_array() resolves the IM index and copies only that one array,
+        # in C++, and returns None on exactly the condition the RuntimeError signalled --
+        # so it replaces the try/except, the bounds check and the whole-vector fetch.
+        im_data = spec.get_drift_time_array()
+        if im_data is None or len(im_data) != n:
             continue
         rt_arr = np.full(n, spec.getRT())
         data = np.column_stack([rt_arr, mz, inty, im_data])
@@ -569,3 +567,11 @@ def get_ion_df(self):
         return pd.DataFrame(columns=['RT', 'mz', 'inty', 'IM'])
     result = np.vstack(all_data)
     return pd.DataFrame(result, columns=['RT', 'mz', 'inty', 'IM'])
+
+
+# The plural/iterator view families are generated from one template so the
+# naming and contract wording cannot drift between them.
+register_element_views("MSExperiment", "spectrum", "getNrSpectra", "spectra")
+register_element_views("MSExperiment", "chromatogram", "getNrChromatograms", "chromatograms")
+
+

@@ -651,7 +651,7 @@ namespace OpenMS::Internal
           peptide_hit_alpha.setMetaValue("XFDR:used_for_FDR", StringUtils::toInt32(xprophet_f));
         }
         std::string fdr_type;
-        if (this->optionalAttributeAsString_(xprophet_f, attributes, "fdr_type") && !fdr_type.empty())
+        if (this->optionalAttributeAsString_(fdr_type, attributes, "fdr_type") && !fdr_type.empty())
         {
           peptide_hit_alpha.setMetaValue("XFDR:fdr_type", fdr_type);
         }

@@ -7,7 +7,6 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -75,7 +74,6 @@ add_subdirectory(thirdparty/percolator)
 ## public — it propagates include dirs but no link libraries; the compiled Boost
 ## components (date_time/iostreams/regex) stay PRIVATE below.
 set(OPENMS_DEP_LIBRARIES
-  CURL::libcurl
   Boost::boost
 )
 
@@ -85,6 +83,7 @@ set(OPENMS_DEP_LIBRARIES
 ## Note: LibSVM::LibSVM is PRIVATE because LIBSVM types are not exposed in the public API;
 ##       they are fully encapsulated by the SimpleSVM wrapper (Pimpl) (see #8547).
 set(OPENMS_DEP_PRIVATE_LIBRARIES
+  CURL::libcurl
   XercesC::XercesC
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
@@ -99,6 +98,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Quadtree
   SIMDe
   SQLiteCpp
+  ${OPENMS_SQLITECPP_EXTRA_LIBS}
   ZLIB::ZLIB
   libzip::zip
   nlohmann_json::nlohmann_json
@@ -110,11 +110,51 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
 option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 
 if(WITH_ONNX)
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ONNXRuntime::ONNXRuntime)
+  if(OPENMS_USE_VCPKG)
+    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES onnxruntime::onnxruntime)
 
-  # Bypass IMPORTED_RUNTIME_ARTIFACTS by grabbing the file path directly.
-  # This avoids the read-only TYPE property error completely.
-  get_target_property(ORT_LIB_PATH ONNXRuntime::ONNXRuntime IMPORTED_LOCATION)
+    #vcpkg's onnxruntime::onnxruntime imported target does not set IMPORTED_LOCATION. Without the fallback,
+    #ORT_LIB_PATH silently resolves to NOTFOUND, the install(PROGRAMS ...) step below silently never fires, and cmake
+    #only able to find libonnxruntime for build OpenMS library by the proximity to the built tree. An installed build
+    #would likely fail at runtime with missing shared library error. Only relevant to dynamic triplets i.e., Linux and Mac.
+    #For windows onnxruntime is directly liked to onnxruntime.dll
+    get_target_property(ORT_LIB_PATH onnxruntime::onnxruntime IMPORTED_LOCATION)
+    if(NOT ORT_LIB_PATH)
+      message(STATUS "onnxruntime::onnxruntime has no IMPORTED_LOCATION, falling back to vcpkg installed lib path")
+      if(APPLE)
+        file(GLOB ORT_LIB_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libonnxruntime*.dylib")
+      elseif(UNIX)
+        file(GLOB ORT_LIB_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libonnxruntime.so*")
+      elseif(WIN32)
+        #Added for symmetry. Current openms build using vcpkg uses a static library linkage triplet so this branch never
+        #fires but if in future a dyanmic lib linkage windows triplet is used then this branch will be useful to locate
+        #onnxruntime.dll
+        file(GLOB ORT_LIB_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/onnxruntime.dll")
+      endif()
+      if(ORT_LIB_PATH)
+        list(GET ORT_LIB_PATH 0 ORT_LIB_PATH)
+      endif()
+    endif()
+
+    #On most triplets, INTERFACE_INCLUDE_DIRECTORIES is populated correctly by vcpkg and this fallback is never used. On
+    #Windows triplet(x64-windows-static-md-relsease) it comes back empty, which is error "onnxruntime_cxx_api.h: No such file or directory"
+    #on Windows CI.
+    get_target_property(ORT_INCLUDE_DIRS onnxruntime::onnxruntime INTERFACE_INCLUDE_DIRECTORIES)
+    if(NOT ORT_INCLUDE_DIRS)
+      message(STATUS "onnxruntime::onnxruntime has no INTERFACE_INCLUDE_DIRECTORIES, falling back to vcpkg installed include path")
+      set(ORT_INCLUDE_DIRS "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/onnxruntime")
+    endif()
+    message(STATUS "ORT_INCLUDE_DIRS: ${ORT_INCLUDE_DIRS}")
+  else() 
+    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ONNXRuntime::ONNXRuntime)
+    # Bypass IMPORTED_RUNTIME_ARTIFACTS by grabbing the file path directly.
+    # This avoids the read-only TYPE property error completely.
+    get_target_property(ORT_LIB_PATH ONNXRuntime::ONNXRuntime IMPORTED_LOCATION)
+  endif()
+
+  if(ORT_INCLUDE_DIRS)
+    list(APPEND OPENMS_ONNX_PRIVATE_INCLUDES ${ORT_INCLUDE_DIRS})
+  endif()
 
   if(ORT_LIB_PATH)
       # Safely install ONNX shared libraries based on the operating system
@@ -214,8 +254,9 @@ list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
      ${OPENMS_PARQUET_TARGET})
 if (OPENMS_ARROW_DATASET_TARGET)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_DATASET_TARGET})
-  # Dataset pushdown needs libxml2 when Arrow Dataset is linked statically.
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES LibXml2::LibXml2)
+  # libxml2 is needed by a statically linked Arrow, but listing it here put it
+  # ahead of the archive that references it. cmake_findExternalLibs.cmake now
+  # appends it to Arrow's own link interface instead, where the order is right.
 endif()
 
 if (WITH_OPENTIMS)
@@ -256,14 +297,137 @@ openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
                                  ${OpenMS_configured_headers}
-                   INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
-                                     ${CMAKE_CURRENT_BINARY_DIR}/include
-                   PRIVATE_INCLUDES
+                   BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
+                             ${CMAKE_CURRENT_BINARY_DIR}/include
+                   PRIVATE_INCLUDES ${OPENMS_ONNX_PRIVATE_INCLUDES}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
+
+target_sources(OpenMS PRIVATE FILE_SET private_headers TYPE HEADERS
+  BASE_DIRS source include
+  FILES ${OpenMS_private_headers})
+
+# The core library has no QObject classes, including in builds that also find Qt.
+set_target_properties(OpenMS PROPERTIES AUTOMOC OFF)
+
+## When an in-tree executable links libOpenMS.so, the linker has to locate the
+## private shared dependencies of libOpenMS by soname. CMake passes -rpath-link
+## for them only when the imported target is typed SHARED; find modules such as
+## FindCURL and FindXercesC create UNKNOWN targets. Without the hint, a library
+## of the same soname earlier on the search path (e.g. a conda environment on
+## CMAKE_PREFIX_PATH) is picked instead of the one libOpenMS was linked against,
+## and its versioned symbols stay unresolved (#10114). Point the linker at the
+## exact directories. BUILD_INTERFACE keeps this out of the installed export;
+## installed consumers resolve these through the install RPATH of libOpenMS.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # Location an imported target resolves to for one build configuration,
+  # selected the way CMake itself does it (cmGeneratorTarget::GetMappedConfig):
+  # MAP_IMPORTED_CONFIG_<CONFIG> first (an empty entry means the
+  # configuration-less property; a mapping that matches nothing means no other
+  # configuration is acceptable), then the exact configuration, then the
+  # configuration-less property, then the first available configuration.
+  function(_openms_imported_location target config out_var)
+    if(config STREQUAL "")
+      set(config NOCONFIG)
+    endif()
+    string(TOUPPER "${config}" config)
+    set(_location "")
+    get_property(_has_map TARGET ${target} PROPERTY MAP_IMPORTED_CONFIG_${config} SET)
+    if(_has_map)
+      get_target_property(_map ${target} MAP_IMPORTED_CONFIG_${config})
+      if(_map STREQUAL "")
+        set(_map ";")
+      endif()
+      foreach(_mapped IN LISTS _map)
+        if(_mapped STREQUAL "")
+          get_target_property(_location ${target} IMPORTED_LOCATION)
+        else()
+          string(TOUPPER "${_mapped}" _mapped)
+          get_target_property(_location ${target} IMPORTED_LOCATION_${_mapped})
+        endif()
+        if(_location)
+          break()
+        endif()
+      endforeach()
+    else()
+      get_target_property(_location ${target} IMPORTED_LOCATION_${config})
+      if(NOT _location)
+        get_target_property(_location ${target} IMPORTED_LOCATION)
+      endif()
+      if(NOT _location)
+        get_target_property(_available ${target} IMPORTED_CONFIGURATIONS)
+        foreach(_candidate IN LISTS _available)
+          string(TOUPPER "${_candidate}" _candidate)
+          get_target_property(_location ${target} IMPORTED_LOCATION_${_candidate})
+          if(_location)
+            break()
+          endif()
+        endforeach()
+      endif()
+    endif()
+    if(NOT _location)
+      set(_location "")
+    endif()
+    set(${out_var} "${_location}" PARENT_SCOPE)
+  endfunction()
+
+  get_property(_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+  foreach(_dep IN LISTS OPENMS_DEP_PRIVATE_LIBRARIES)
+    if(NOT TARGET "${_dep}")
+      continue()
+    endif()
+    get_target_property(_dep_type ${_dep} TYPE)
+    if(NOT _dep_type STREQUAL "UNKNOWN_LIBRARY")
+      continue()
+    endif()
+    # Multi-config generators get one entry per build configuration guarded by
+    # $<CONFIG:...>, so each configuration searches the directory of the
+    # location it links against (a single entry when they all agree); a
+    # single-config build has exactly one location. The directories are
+    # literal rather than $<TARGET_FILE_DIR:...>: the build-tree export keeps
+    # BUILD_INTERFACE content, and its consumers do not have these targets.
+    if(_multi_config)
+      set(_dep_options)
+      set(_dep_dirs)
+      foreach(_build_config IN LISTS CMAKE_CONFIGURATION_TYPES)
+        _openms_imported_location(${_dep} "${_build_config}" _dep_location)
+        if(_dep_location MATCHES "\\.so(\\.[0-9.]+)?$")
+          get_filename_component(_dep_dir "${_dep_location}" DIRECTORY)
+          list(APPEND _dep_dirs "${_dep_dir}")
+          list(APPEND _dep_options
+            "$<BUILD_INTERFACE:$<$<CONFIG:${_build_config}>:-Wl,-rpath-link,${_dep_dir}>>")
+        endif()
+      endforeach()
+      list(REMOVE_DUPLICATES _dep_dirs)
+      list(LENGTH _dep_dirs _dep_dir_count)
+      list(LENGTH _dep_options _dep_option_count)
+      list(LENGTH CMAKE_CONFIGURATION_TYPES _build_config_count)
+      if(_dep_dir_count EQUAL 1 AND _dep_option_count EQUAL _build_config_count)
+        target_link_options(OpenMS INTERFACE "$<BUILD_INTERFACE:-Wl,-rpath-link,${_dep_dirs}>")
+      elseif(_dep_options)
+        target_link_options(OpenMS INTERFACE ${_dep_options})
+      endif()
+    else()
+      _openms_imported_location(${_dep} "${CMAKE_BUILD_TYPE}" _dep_location)
+      if(_dep_location MATCHES "\\.so(\\.[0-9.]+)?$")
+        get_filename_component(_dep_dir "${_dep_location}" DIRECTORY)
+        target_link_options(OpenMS INTERFACE "$<BUILD_INTERFACE:-Wl,-rpath-link,${_dep_dir}>")
+      endif()
+    endif()
+  endforeach()
+  unset(_multi_config)
+  unset(_build_config_count)
+  unset(_dep_type)
+  unset(_dep_location)
+  unset(_dep_options)
+  unset(_dep_option_count)
+  unset(_dep_dirs)
+  unset(_dep_dir_count)
+  unset(_dep_dir)
+endif()
 
 # The vendored percolator headers (#include "X.h", no subdir) are used only by
 # libOpenMS's Percolator pimpl TU. Their directory is made visible via the
@@ -340,11 +504,14 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
   REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
   REGEX "OpenMS/examples" EXCLUDE
 )
-install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
-
-# Devs also need our custom find modules
-install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_CMAKE_DIR}/Modules cmake)
-file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
+install(FILES ${OPENMS_HOST_DIRECTORY}/License.txt
+  DESTINATION ${INSTALL_SHARE_DIR}/LICENSES
+  RENAME OpenMS-BSD-3-Clause.txt
+  COMPONENT share
+)
+if(INSTALL_OPENMS_EXAMPLES)
+  install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
+endif()
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
 

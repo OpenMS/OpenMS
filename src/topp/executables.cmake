@@ -80,6 +80,7 @@ MRMPairFinder
 MSGFPlusAdapter
 MSFraggerAdapter
 MSstatsConverter
+MS1LabeledWorkflow
 MultiplexResolver
 MzMLSplitter
 MzTabExporter
@@ -139,7 +140,6 @@ SpectraSTSearchAdapter
 StaticModification
 TICCalculator
 TextExporter
-TriqlerConverter
 UniPEFF
 XFDR
 XMLValidator
@@ -163,6 +163,7 @@ endif(NOT DISABLE_OPENSWATH)
 set(TOPP_executables
   ${TOPP_executables}
   ParquetConverter
+  ParquetDiff
 )
 
 if(WITH_WNETALIGN)

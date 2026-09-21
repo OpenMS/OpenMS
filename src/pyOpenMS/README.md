@@ -4,6 +4,8 @@ pyOpenMS is a Python library for the analysis of mass spectrometry data. It uses
 
 Additionally, it provides convenience functions for plotting and converting from/to DataFrames or NumPy/pyarrow arrays.
 
+For binding-specific development guidance, see [the wrapping guide](README_WRAPPING_NEW_CLASSES.md) and the [thread-safety contract](THREAD_SAFETY.md).
+
 ## Build Instructions
 
 There are two main ways to build pyOpenMS:
@@ -161,11 +163,38 @@ The project includes a full cibuildwheel configuration in `pyproject.toml` and a
 The CI workflow follows this pattern for each platform:
 
 1. Build and install OpenMS C++ library
-2. Run cibuildwheel, which for each Python version:
+2. Run cibuildwheel **once**, for CPython 3.11 only:
    - Creates an isolated build environment
    - Runs py-build-cmake (which finds the installed OpenMS and compiles the nanobind modules)
    - Runs the platform-specific wheel repair tool to bundle shared libraries
    - Tests the repaired wheel with pytest
+3. Test that one wheel on every supported Python version in a separate job
+
+The extension modules are built in nanobind's **split mode** against the CPython
+3.11 stable ABI, so each platform produces a single `cp311-abi3` wheel that serves
+3.11 and every later version, instead of one wheel per interpreter. nanobind's
+version-specific runtime lives in the separate `nanobind-backend` package, which is
+therefore a runtime dependency. `.github/workflows/python_versions.json` is the
+list of versions the wheel is *tested* on; the version it is *compiled* for comes
+from `abi3_minimum_cpython_version` in `pyproject.toml`.
+
+Split mode needs CMake 3.26 or newer (for `Development.SABIModule`). Configure with
+`-DPYOPENMS_SPLIT_MODE=OFF` to build interpreter-specific modules locally instead;
+that mode must not be packaged as a wheel, since the wheel is tagged `abi3`.
+
+**Debug builds:** The bindings and `nanobind-backend` must also use compatible C++
+platform ABIs. The official Windows backend uses the Release `/MD` runtime.
+MSVC Debug builds (`/MDd`) and builds with `_GLIBCXX_DEBUG` are incompatible with
+the official backend; nanobind rejects them at import time. For these
+configurations, set `-DPYOPENMS_SPLIT_MODE=OFF` so the nanobind runtime is compiled
+together with the bindings using matching Debug settings. CMake does not select
+this fallback automatically. Use a clean build directory when switching modes.
+
+Ordinary Linux/macOS Debug builds that only add debug symbols or reduce
+optimization can generally keep split mode enabled. Python's stable ABI does not
+remove these C++ compatibility requirements. Keeping split mode for incompatible
+Debug configurations requires building and selecting a matching custom backend;
+see [nanobind's split-mode limitations](https://nanobind.readthedocs.io/en/latest/split_mode.html#limitations).
 
 Key cibuildwheel settings (in `pyproject.toml`):
 
@@ -339,19 +368,25 @@ Common methods to add for container-like classes:
 - `__repr__()`: Return `f"ClassName(key_prop={value}, ...)"` with important properties
 - `__str__()`: Delegate to `__repr__()` or return simpler output
 - `get_data()`: Return safe copy of data (for DataArray classes)
-- `get_data_view()`: Return zero-copy writable view (empty ndarray if empty, document lifetime). Note: `get_data_mv()` is a deprecated alias.
+- `data_view()`: Return zero-copy writable view (empty ndarray if empty, document lifetime). Note: `get_data_mv()` is a deprecated alias.
 
 ### Zero-copy API Naming Conventions
 
-When exposing zero-copy numpy access to C++ memory, use these suffixes consistently:
+The prefix is the ownership contract: anything called `get_*` (or `getX()`)
+returns a copy the caller owns; aliasing accessors never carry the `get_`
+prefix and end in `_view`, `_views`, or `_struct` (see `OWNERSHIP.md` for the
+full rule and its exceptions).
+
+When exposing zero-copy access to C++ memory, use these suffixes consistently:
 
 | Suffix | Returns | Empty behavior | Use when |
 |--------|---------|----------------|----------|
 | `_view` | Typed 1-D `ndarray<T>` (writable) | Empty `ndarray` (not `None`) | Single array column (mz, intensity, rt…) |
 | `_struct` | Structured `ndarray` with named fields | Empty structured `ndarray` (not `None`) | Multiple fields together (e.g. mz + intensity) |
+| `<singular>_view(i)` / `<singular>_views()` / `iter_<singular>_views()` | Live element view / list / iterator of views (`reference_internal`, parent kept alive) | `IndexError` out of range (indexed form); empty list / exhausted iterator (plural forms) | Aliasing object element access (`spectrum_view(i)`, `feature_views()`) |
 
 **Rules:**
-- `_view` methods **must** return an empty typed `ndarray` (never `None`) when the container is empty. Exception: when the underlying array may not exist at all (e.g. `get_drift_time_array_view()` on a spectrum without IM data — returns `None`).
+- `_view` methods **must** return an empty typed `ndarray` (never `None`) when the container is empty. Exception: when the underlying array may not exist at all (e.g. `drift_time_array_view()` on a spectrum without IM data — returns `None`).
 - `_struct` methods **always** return a structured `ndarray` (empty if container is empty), never `None`.
 - The old `_mv` suffix is **deprecated**; use `_view` for new bindings. Deprecated aliases live in `pyopenms/addons/deprecated_mv_aliases.py`.
 - Do not use `_as_view` for new methods.
