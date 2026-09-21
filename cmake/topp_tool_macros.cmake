@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Chris Bielow $
-# $Authors: Chris Bielow $
+# $Maintainer: Timo Sachsenberg $
+# $Authors: Timo Sachsenberg $
 # --------------------------------------------------------------------------
 
 # Declaration of TOPP tools, and generation of the tool registry from those declarations.
