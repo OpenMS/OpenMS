@@ -22,57 +22,6 @@
 
 namespace OpenMS
 {
-  namespace
-  {
-    /**
-      @brief Is this split fragment only the flank of the peak next to it?
-
-      Elution peak detection cuts a mass trace at the minima between its maxima, and a fragment
-      whose apex falls on one of those cut points was reported as a trace of its own. Such a
-      fragment can be the rising or falling side of the peak across the cut, which reported on
-      its own becomes a feature positioned at the edge of its RT range (issue #2777).
-
-      The fragment-relative position of the apex does not establish that on its own. The split
-      loop puts the minimum at the END of the left fragment, so the right fragment starts one
-      sample past the minimum and its first sample is normally a genuine maximum. The apex is
-      therefore checked against the parent trace, across the cut: only when the neighbouring
-      sample shows the signal still climbing is the fragment a flank rather than a peak.
-
-      @param mt The fragment
-      @param parent_smoothed Smoothed intensities of the trace the fragment was cut from
-      @param offset Index of the fragment's first point within the parent trace
-      @param frag_idx Index of the fragment within the parent trace
-      @param frag_count Number of fragments the parent was cut into
-    */
-    bool isSplitBoundaryFlank(const MassTrace& mt, const std::vector<double>& parent_smoothed,
-                              Size offset, Size frag_idx, Size frag_count)
-    {
-      const Size apex_idx = mt.findMaxByIntPeak(true);
-      const bool on_shared_start = (apex_idx == 0 && frag_idx > 0);
-      const bool on_shared_end = (apex_idx + 1 == mt.getSize() && frag_idx + 1 < frag_count);
-      if (!on_shared_start && !on_shared_end)
-      {
-        return false;
-      }
-
-      const Size parent_idx = offset + apex_idx;
-      if (parent_idx >= parent_smoothed.size())
-      {
-        return false;
-      }
-      const double here = parent_smoothed[parent_idx];
-      const double left = (parent_idx > 0) ? parent_smoothed[parent_idx - 1] : -1.0;
-      const double right = (parent_idx + 1 < parent_smoothed.size()) ? parent_smoothed[parent_idx + 1] : -1.0;
-
-      // A genuine maximum of the parent trace is a peak of its own, cut or not. The comparison
-      // has to allow ties: a flat-topped peak whose plateau starts right after the cut has its
-      // apex equal to the next sample, and rejecting it would delete a real peak just like the
-      // fragment-relative test did. What remains is the case this check is for -- a fragment
-      // that only climbs towards the cut, with the signal continuing higher past it.
-      return !(here >= left && here >= right);
-    }
-  }
-
   ElutionPeakDetection::ElutionPeakDetection() :
     DefaultParamHandler("ElutionPeakDetection"), ProgressLogger()
   {
@@ -89,9 +38,6 @@ namespace OpenMS
 
     defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", {"advanced"});
     defaults_.setValidStrings("masstrace_snr_filtering", {"true","false"});
-
-    defaults_.setValue("require_resolved_apex", "true", "When a mass trace is split at its minima, discard a fragment whose apex falls on one of the cut points. Such a fragment is the flank of the peak in the neighbouring fragment rather than a peak of its own, and reporting it yields a feature positioned at the edge of its RT range instead of at an elution maximum. Fragment ends that are also the ends of the original trace do not count, so peaks that are merely sampled too sparsely to put their maximum in the interior are kept. Applies regardless of 'width_filtering'.", {"advanced"});
-    defaults_.setValidStrings("require_resolved_apex", {"true","false"});
 
     defaultsToParam_();
     this->setLogType(CMD);
@@ -482,10 +428,6 @@ namespace OpenMS
       // *********************************************************************
       // Step 3.1: check mass trace length criteria (if fixed filter is enabled)
       // *********************************************************************
-      // Nothing was split off this trace, so an apex on its first or last point means the
-      // peak is simply sampled too sparsely for estimateFWHM() to bracket a half maximum,
-      // not that the trace is a fragment of a larger peak. Those are kept -- see the
-      // boundary check in the split branch below (issue #2777).
       if (pw_filtering_ == "fixed")
       {
         double act_fwhm(mt.estimateFWHM(true));
@@ -544,7 +486,6 @@ namespace OpenMS
         // *********************************************************************
         std::vector<PeakType> tmp_mt;
         std::vector<double> smoothed_tmp;
-        const Size frag_offset = last_idx; // where this fragment starts inside the parent trace
         while (last_idx <= mins[min_idx])
         {
           tmp_mt.push_back(*cp_it);
@@ -566,18 +507,9 @@ namespace OpenMS
         bool snr_ok = true;
 
         // *********************************************************************
-        // Step 3.2: discard fragments that are only the flank of a neighbouring peak
+        // Step 3.2: check mass trace length criteria (if fixed filter is enabled)
         // *********************************************************************
-        if (require_resolved_apex_ &&
-            isSplitBoundaryFlank(new_mt, mt.getSmoothedIntensities(), frag_offset, min_idx, mins.size()))
-        {
-          pw_ok = false;
-        }
-
-        // *********************************************************************
-        // Step 3.3: check mass trace length criteria (if fixed filter is enabled)
-        // *********************************************************************
-        if (pw_ok && pw_filtering_ == "fixed")
+        if (pw_filtering_ == "fixed")
         {
           double act_fwhm(new_mt.estimateFWHM(true));
           if (act_fwhm < min_fwhm_ || act_fwhm > max_fwhm_)
@@ -587,7 +519,7 @@ namespace OpenMS
         }
 
         // *********************************************************************
-        // Step 3.4: check mass trace signal to noise filter criteria
+        // Step 3.3: check mass trace signal to noise filter criteria
         // *********************************************************************
         if (mt_snr_filtering_)
         {
@@ -697,7 +629,6 @@ namespace OpenMS
 
     pw_filtering_ = param_.getValue("width_filtering").toString();
     mt_snr_filtering_ = param_.getValue("masstrace_snr_filtering").toBool();
-    require_resolved_apex_ = param_.getValue("require_resolved_apex").toBool();
   }
 
 } //namespace OpenMS

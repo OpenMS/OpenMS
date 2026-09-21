@@ -1288,11 +1288,6 @@ namespace OpenMS
       param.setValue("min_fwhm", -1.0);
       param.setValue("max_fwhm", 1e6);
       param.setValue("masstrace_snr_filtering", "false");
-      // The ion mobility axis is sampled so coarsely that a fragment is often only two or three
-      // points wide, which puts its maximum on a split boundary even when it is a peak of its
-      // own. They are real IM peaks -- that is why the intensity below comes from
-      // computeIntensitySum() rather than getIntensity() -- and must not be discarded.
-      param.setValue("require_resolved_apex", "false");
       epd.setParameters(param);
 
       std::vector<MassTrace> split_mtraces;

@@ -102,6 +102,13 @@ END_SECTION
 
 START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
 {
+  // These pin the behaviour issue #2777 is about: a peak next to a split boundary, or one
+  // sampled too sparsely to put its maximum in the interior, must come out with its apex as
+  // the centroid RT rather than being dropped or positioned at the edge of its RT range.
+  // Rejecting fragments by where their apex sits was tried and does not work -- the split loop
+  // keeps the minimum as the last point of the left fragment, so the right fragment starts one
+  // sample past it and its first sample is normally a genuine peak.
+
   // helper: build a mass trace from an intensity profile with the given scan spacing
   auto make_trace = [](const std::vector<double>& ints, double spacing) {
     std::vector<Peak2D> pts;
@@ -118,29 +125,24 @@ START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
     return mt;
   };
 
-  // Two equally tall peaks separated by a minimum. The split loop keeps the minimum as the
-  // last point of the left fragment, so the right fragment starts one sample past it and its
-  // apex is its own first point -- yet that apex is higher than both of its neighbours in the
-  // parent trace, so it is a peak, not a flank. Both must survive (see issue #2777).
+  // Two equally tall peaks separated by a minimum. The second fragment begins one sample past
+  // the minimum, so its apex is its own first point -- yet it is higher than both neighbours in
+  // the parent trace. Both peaks must survive, each centred on its apex.
   MassTrace two_peak_mt(make_trace({100, 500, 1000, 500, 100, 1000, 500, 100}, 2.0));
   std::vector<MassTrace> two_peak_out;
   test_epd.detectPeaks(two_peak_mt, two_peak_out); // test_epd has width_filtering "off"
   TEST_EQUAL(two_peak_out.size(), 2);
   if (two_peak_out.size() == 2)
   {
-    // the apex of each fragment, not the edge of its RT range
     TEST_REAL_SIMILAR(two_peak_out[0].getCentroidRT(), 104.0);
     TEST_REAL_SIMILAR(two_peak_out[1].getCentroidRT(), 110.0);
     TEST_REAL_SIMILAR(two_peak_out[0].getMaxIntensity(false), 1000.0);
     TEST_REAL_SIMILAR(two_peak_out[1].getMaxIntensity(false), 1000.0);
   }
 
-  // Same, with a flat top: the plateau starts on the first sample after the cut, so the apex
-  // equals its neighbour rather than exceeding it. Comparing strictly would delete this peak
-  // exactly as the fragment-relative test did, so ties count as a maximum. Checked against
-  // 'require_resolved_apex' off as well, which is the setting PeakPickerIM runs with.
-  const std::vector<double> flat_top = {100, 500, 1000, 500, 100, 1000, 1000, 500, 100};
-  MassTrace flat_mt(make_trace(flat_top, 2.0));
+  // Same, with a flat top starting on the first sample after the cut, so the apex equals its
+  // neighbour instead of exceeding it.
+  MassTrace flat_mt(make_trace({100, 500, 1000, 500, 100, 1000, 1000, 500, 100}, 2.0));
   std::vector<MassTrace> flat_out;
   test_epd.detectPeaks(flat_mt, flat_out);
   TEST_EQUAL(flat_out.size(), 2);
@@ -150,22 +152,9 @@ START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
     TEST_REAL_SIMILAR(flat_out[1].getMaxIntensity(false), 1000.0);
   }
 
-  ElutionPeakDetection optout_epd;
-  Param optout_def = ElutionPeakDetection().getDefaults();
-  optout_def.setValue("width_filtering", "off");
-  optout_def.setValue("masstrace_snr_filtering", "false");
-  optout_def.setValue("require_resolved_apex", "false");
-  optout_epd.setParameters(optout_def);
-
-  MassTrace flat_optout_mt(make_trace(flat_top, 2.0));
-  std::vector<MassTrace> flat_optout_out;
-  optout_epd.detectPeaks(flat_optout_mt, flat_optout_out);
-  TEST_EQUAL(flat_optout_out.size(), flat_out.size());
-
-  // A peak sampled too sparsely to put its maximum in the interior is still a peak. Nothing
-  // was split off it, so it must survive even though estimateFWHM() cannot bracket a half
-  // maximum for it and returns 0 -- most of a run's traces look like this when the scan rate
-  // is close to the peak width.
+  // A peak sampled too sparsely to put its maximum in the interior is still a peak. Nothing is
+  // split off it, and estimateFWHM() cannot bracket a half maximum for it, but it survives --
+  // when the scan rate is close to the peak width most of a run's traces look like this.
   MassTrace sparse_mt(make_trace({10000, 5000, 2500, 1200, 600, 300, 150, 80, 40, 20, 10, 10}, 1.0));
   std::vector<MassTrace> sparse_out;
   test_epd.detectPeaks(sparse_mt, sparse_out);
