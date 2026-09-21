@@ -159,12 +159,12 @@ PyOpenMS:
     OpenMS build still requires no more than CMake 3.24. Configure with
     -DPYOPENMS_SPLIT_MODE=OFF for interpreter-specific modules; that mode refuses to
     produce a wheel, which would otherwise be mislabelled abi3.
-  - BREAKING (source builds): nanobind 3.0.1 or newer is required; nanobind 2.x no longer
+  - BREAKING (source builds): nanobind 3.1 or newer is required; nanobind 2.x no longer
     works. The custom type casters follow the nanobind 3 caster protocol, whose
     from_python() takes uint32_t instead of uint8_t flags. pyproject.toml asks for
-    nanobind>=3.0.1,<4 and py-build-cmake~=0.5.1, and the CMake fallback fetches nanobind
-    v3.0.1. nanobind discovery enforces that minimum instead of accepting whatever
-    find_package() returns, and reports the version it selected (#10133).
+    nanobind>=3.1,<4 and py-build-cmake~=0.5.1, and the CMake fallback fetches nanobind
+    v3.1.0. nanobind discovery enforces that minimum instead of accepting whatever
+    find_package() returns, and reports the version it selected (#10133, #10221).
   - BREAKING: Python 3.10 is no longer supported. Wheels and source builds require
     Python 3.11 or newer; the wheel matrix covers 3.11 to 3.14. With 3.10 gone, pandas 3
     is the floor for DataFrame support (the dataframes/all extras and the test
