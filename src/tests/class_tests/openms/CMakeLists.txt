@@ -348,6 +348,7 @@ foreach(_boost_consumer IN ITEMS
   EmgFitter1D_test
   EmgModel_test
   FastLowessSmoothing_test
+  HashGrid_test
   LogConfigHandler_test
   LogStream_test
   LowessSmoothing_test

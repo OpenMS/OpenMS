@@ -10,7 +10,6 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/ML/CLUSTERING/HashGrid.h>
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
@@ -94,7 +93,8 @@ namespace OpenMS
     /// Handles into @p Heap, one per cluster, so a cluster's priority can be updated in place
     struct HeapHandles;
 
-    typedef HashGrid<OpenMS::GridFeature*> Grid;
+    /// Spatial hash grid of the input features, keyed by (RT, m/z) cell
+    struct Grid;
 
   private:
     /// Number of input maps
