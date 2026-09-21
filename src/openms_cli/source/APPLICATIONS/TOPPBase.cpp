@@ -219,11 +219,18 @@ namespace OpenMS
                                                     "' is empty or unreadable, so no tool can be looked up. This installation is incomplete: it needs the *.tsv files of the 'share' component."),
                                         tool_name_);
         }
+        // Three ways out, because a tool reaching this point can be any of three things: part
+        // of OpenMS, built elsewhere against an OpenMS installation, or not meant to be a
+        // registered tool at all. Naming only the first sends the author of an external tool
+        // to edit a file that is not theirs.
         throw Exception::InvalidValue(__FILE__,
                                       __LINE__,
                                       OPENMS_PRETTY_FUNCTION,
-                                      std::string("If '" + tool_name_ + "' is an official TOPP tool, declare it with openms_topp_tool() in src/topp/executables.cmake, which builds it and generates its entry in '" +
-                                                  ToolHandler::getToolRegistryPath() + "/OpenMS.tsv'. If it is not, set the 'official' flag of the TOPPBase constructor to false."),
+                                      std::string("The tool '" + tool_name_ + "' is not in the TOPP tool registry at '" + ToolHandler::getToolRegistryPath() +
+                                                  "'. If it is part of OpenMS, declare it with openms_topp_tool() in src/topp/executables.cmake, which both builds it and generates its entry. "
+                                                  "If it is built outside OpenMS, register it by installing a tab-separated '<tool name>\\t<category>' line in a *.tsv file of that directory, "
+                                                  "or in a directory named by the OPENMS_TOOL_REGISTRY_PATH environment variable; no OpenMS rebuild is needed. "
+                                                  "If it is not meant to be a registered TOPP tool, set the 'official' flag of the TOPPBase constructor to false."),
                                       tool_name_);
       }
     }
