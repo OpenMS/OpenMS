@@ -8,9 +8,11 @@
 
 #pragma once
 
-// HashGrid directly: this used to arrive through QTClusterFinder.h, which no longer
-// exposes it (its Grid is opaque now), and nothing else here comes from that header.
+// HashGrid directly: it used to arrive through QTClusterFinder.h, whose Grid is opaque now.
 #include <OpenMS/ML/CLUSTERING/HashGrid.h>
+// Kept: the rest of PipEcho reaches FeatureMap, ConsensusMap and ConsensusFeature through
+// this header's BaseGroupFinder.h. Dropping it broke Impl.h/Impl.cpp.
+#include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 
 #include <functional>
 #include <memory>
