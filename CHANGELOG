@@ -923,6 +923,14 @@ Build System:
     overrode pyproject.toml, which moved the supported macOS floor without notice. A CI
     check compares the Mach-O load commands of each wheel against its platform tag, so a
     wheel can no longer install on a macOS it cannot run on (#10202).
+  - A failing nightly Bioconda deploy is reported as a tracking issue. The run is
+    dispatched by update_nightly.yml with GITHUB_TOKEN rather than owned by a person, so a
+    red night notified nobody: the openms package shipped no libOpenMS_CLI.so from
+    2026-09-17 and a recipe lint ran red from 2026-09-06, both found by hand days later
+    although the nightly had caught each on the first night. The workflow now opens one
+    issue on the first failure, naming the steps that failed, comments on each further one
+    and closes it once the nightly is green again. Cancelled and skipped runs report
+    nothing, and the reporting job cannot turn a green nightly red (#10224).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----
