@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <concepts>
 #include <iterator>
 #include <utility>
 

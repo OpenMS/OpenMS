@@ -471,12 +471,19 @@ namespace Math
   class OPENMS_DLLAPI RandomShuffler
   {
   public:
+    /// Default constructor; the engine starts from its default seed
     RandomShuffler();
+    /// Constructor seeding the engine with @p seed
     explicit RandomShuffler(int seed);
+    /// Copy constructor; the copy continues the source's sequence independently
     RandomShuffler(const RandomShuffler& other);
+    /// Move constructor; the moved-from shuffler reseeds itself on next use
     RandomShuffler(RandomShuffler&& other) noexcept;
+    /// Copy assignment; see the copy constructor
     RandomShuffler& operator=(const RandomShuffler& other);
+    /// Move assignment; see the move constructor
     RandomShuffler& operator=(RandomShuffler&& other) noexcept;
+    /// Destructor (out of line: the engine is an incomplete type here)
     ~RandomShuffler();
 
     template<class RandomAccessIterator>

@@ -90,6 +90,8 @@ namespace OpenMS
 
     /// Heap to efficiently find the best clusters
     struct Heap;
+
+    /// Handles into @p Heap, one per cluster, so a cluster's priority can be updated in place
     struct HeapHandles;
 
     typedef HashGrid<OpenMS::GridFeature*> Grid;

@@ -66,7 +66,9 @@ double log_binomial_coef(unsigned n, unsigned k)
 
 double binomial_cdf_complement(unsigned N, unsigned n, double p)
 {
-  if (p < 0.0 || p > 1.0) { throw std::invalid_argument("Probability p must be between 0 and 1"); }
+  // Positive test on purpose: every comparison against a NaN p is false, so the
+  // negated form would wave it through to Boost's domain_error policy.
+  if (! (p >= 0.0 && p <= 1.0)) { throw std::invalid_argument("Probability p must be between 0 and 1"); }
   if (n > N) { throw std::invalid_argument("n cannot be greater than N"); }
 
   if (n == 0) return 1.0; // P(X ≥ 0) = 1
