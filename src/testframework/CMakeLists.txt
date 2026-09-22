@@ -13,8 +13,10 @@ cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 # The class-test framework (ClassTest.h macros, FuzzyStringComparator,
 # MacrosTest.h) as its own STATIC library: standard-library only, no libOpenMS
 # headers or symbols, so the tests of every OpenMS library (incl. ones that do
-# not link libOpenMS, like OpenSwathAlgo) can use it. Library-specific behavior
-# is registered by the test projects (see openms/source/OpenMSTestSupport.cpp).
+# not link libOpenMS, like OpenSwathAlgo) can use it. Library-specific behavior is
+# registered on top of it by the OpenMSTestSupport target of src/tests/class_tests,
+# which does link libOpenMS and therefore cannot live here: this directory has to stay
+# configurable on its own, which src/tests/header_sets builds it to prove.
 
 set(OpenMSTestFramework_sources
   source/CONCEPT/ClassTest.cpp

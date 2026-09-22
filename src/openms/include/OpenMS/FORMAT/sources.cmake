@@ -77,7 +77,6 @@ ParamCTDFile.h
 ParamCWLFile.h
 ParamJSONFile.h
 ParamXMLFile.h
-ParquetTableComparator.h
 PEFFFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
@@ -97,10 +96,8 @@ SwathFile.h
 SqliteConnector.h
 SqMassFile.h
 TextFile.h
-ToolDescriptionFile.h
 TransformationXMLFile.h
 UnimodXMLFile.h
-UniProtXMLFile.h
 XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h
@@ -120,6 +117,7 @@ if (WITH_HDF5)
 endif()
 
 list(APPEND sources_list_h ZipArchiveFile.h)
+list(APPEND sources_list_h ZipRandomAccessFile.h)
 list(APPEND sources_list_h MSExperimentArrowExport.h)
 list(APPEND sources_list_h ConsensusMapArrowExport.h)
 list(APPEND sources_list_h ArrowSchemaRegistry.h)

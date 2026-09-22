@@ -55,7 +55,7 @@ class TOPPImageCreator :
 public:
   TOPPImageCreator() :
     TOPPBase("ImageCreator",
-             "Transforms an LC-MS map into an image.", false), 
+             "Transforms an LC-MS map into an image."), 
     out_formats_({"png", "jpg", "bmp", "tiff", "ppm"}) // all in lower case!
   {
   }

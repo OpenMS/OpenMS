@@ -76,11 +76,11 @@ endif()
 # TOPP tools (must come before openms_gui so TOPP_TOOLS cache is initialized
 # before the GUI appends its tools to it)
 #------------------------------------------------------------------------------
+# Declarations accumulate in the cache, so drop what an earlier configure of this build
+# directory left behind before any tool is declared.
+openms_reset_topp_tools()
 if(BUILD_TOPP_TOOLS)
   add_subdirectory(topp)
-else()
-  # Clear a value left by a previous configure in the same build directory.
-  set(TOPP_TOOLS "" CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
 endif()
 
 if(WITH_GUI)
@@ -89,6 +89,14 @@ if(WITH_GUI)
   #------------------------------------------------------------------------------
   add_subdirectory(openms_gui)
 endif()
+
+#------------------------------------------------------------------------------
+# The tool registry, generated from the openms_topp_tool() declarations of the two
+# subdirectories above. It therefore describes exactly the tools this build produces: a
+# build option that does not build a tool does not declare it either, so nothing has to
+# filter the registry afterwards, at run time or at install time.
+#------------------------------------------------------------------------------
+openms_write_tool_registry("${OPENMS_TOOL_REGISTRY_BUILD_FILE}")
 
 #------------------------------------------------------------------------------
 # Tests

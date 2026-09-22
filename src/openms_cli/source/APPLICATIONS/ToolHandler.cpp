@@ -8,223 +8,94 @@
 
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 
-#include <OpenMS/FORMAT/ToolDescriptionFile.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h>
+#include <OpenMS/config.h>
 
 #include <algorithm>
+#include <filesystem>
+#include <set>
 
 namespace OpenMS
 {
+  const ToolListType& ToolHandler::getTOPPToolListRef()
+  {
+    // Immediately evaluated lambda so the registry is parsed exactly once, thread-safely
+    // (same pattern as File::resolveOpenMSDataPath_). TOPPBase consults the registry
+    // several times while a tool starts up, and TOPPAS once per palette entry.
+    static const ToolListType tools = loadRegistry_();
+    return tools;
+  }
+
   ToolListType ToolHandler::getTOPPToolList()
   {
+    return getTOPPToolListRef();
+  }
+
+  ToolListType ToolHandler::loadRegistry_()
+  {
     ToolListType tools_map;
-    // Note: don't use special characters like slashes in category names (some workflow systems read them as subcategories)
-    const auto cat_calibration = "Mass Correction and Calibration";
-    const auto cat_centroiding = "Spectrum processing: Centroiding";
-    const auto cat_crosslinking = "Cross-Linking";
-    const auto cat_dev = "[for Developers]";
-    const auto cat_file_converter = "File Converter";
-    const auto cat_file_filter_extract_merge = "File Filtering, Extraction and Merging";
-    const auto cat_ID_MTX = "Metabolite Identification";
-    const auto cat_ID_proc = "Identification Processing";
-    const auto cat_ID_search = "Identification of Proteins and Peptides (SearchEngines)";
-    const auto cat_linking = "Feature Linking";
-    const auto cat_map_align = "Map Alignment";
-    const auto cat_misc = "Misc";
-    const auto cat_QC = "Quality Control";
-    const auto cat_quant = "Quantitation";
-    const auto cat_rna = "RNA";
-    const auto cat_signal_proc_misc = "Spectrum processing: Misc";
-    const auto cat_signal_proc_smooth_normalize = "Spectrum Processing: Peak Smoothing and Normalization";
-    const auto cat_targeted = "Targeted Experiments and OpenSWATH";
-    const auto cat_topdown = "Top-Down";
+    // which file registered a name, so a collision can name both sides
+    std::map<std::string, std::string> registered_by;
 
-    // STOP and read!
-    // 1) add your tool in alphabetical order!
-    // 2) if you add/change categories, also mirror your changes in doc/doxygen/public/TOPP.doxygen
-
-    tools_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", cat_ID_MTX);
-    tools_map["AssayGeneratorMetabo"] = Internal::ToolDescription("AssayGeneratorMetabo", cat_targeted);
-    tools_map["AssayGeneratorMetaboSirius"] = Internal::ToolDescription("AssayGeneratorMetaboSirius", cat_targeted);
-    tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", cat_signal_proc_smooth_normalize);
-    tools_map["FeatureFinderLFQ"] = Internal::ToolDescription("FeatureFinderLFQ", cat_quant);
-    tools_map["ClusterMassTraces"] = Internal::ToolDescription("ClusterMassTraces", cat_misc);
-    tools_map["ClusterMassTracesByPrecursor"] = Internal::ToolDescription("ClusterMassTracesByPrecursor", cat_targeted);
-    tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", cat_ID_search);
-    tools_map["ConsensusID"] = Internal::ToolDescription("ConsensusID", cat_ID_proc);
-    tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", cat_quant);
-    tools_map["CVInspector"] = Internal::ToolDescription("CVInspector", cat_dev);
-    tools_map["DatabaseFilter"] = Internal::ToolDescription("DatabaseFilter", cat_file_filter_extract_merge);
-    tools_map["DatabaseSuitability"] = Internal::ToolDescription("DatabaseSuitability", cat_QC);
-    tools_map["Decharger"] = Internal::ToolDescription("Decharger", cat_quant);
-    tools_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", cat_file_filter_extract_merge);
-    tools_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", cat_misc);
-    tools_map["Digestor"] = Internal::ToolDescription("Digestor", cat_ID_proc);
-    tools_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", cat_ID_proc);
-    tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", cat_file_filter_extract_merge);
-    tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", cat_quant);
-    tools_map["Epifany"] = Internal::ToolDescription("Epifany", cat_ID_proc);
-    tools_map["ExecutePipeline"] = Internal::ToolDescription("ExecutePipeline", cat_misc);
-    tools_map["ExternalCalibration"] = Internal::ToolDescription("ExternalCalibration", cat_calibration);
-    tools_map["FalseDiscoveryRate"] = Internal::ToolDescription("FalseDiscoveryRate", cat_ID_proc);
-    tools_map["FeatureFinderCentroided"] = Internal::ToolDescription("FeatureFinderCentroided", cat_quant);
-    tools_map["FeatureFinderIdentification"] = Internal::ToolDescription("FeatureFinderIdentification", cat_quant);
-    tools_map["FeatureFinderMetabo"] = Internal::ToolDescription("FeatureFinderMetabo", cat_quant);
-    tools_map["FeatureFinderMetaboIdent"] = Internal::ToolDescription("FeatureFinderMetaboIdent", cat_quant);
-    tools_map["FeatureFinderMultiplex"] = Internal::ToolDescription("FeatureFinderMultiplex", cat_quant);
-    tools_map["FeatureLinkerLabeled"] = Internal::ToolDescription("FeatureLinkerLabeled", cat_linking);
-    tools_map["FeatureLinkerUnlabeled"] = Internal::ToolDescription("FeatureLinkerUnlabeled", cat_linking);
-    tools_map["FeatureLinkerUnlabeledKD"] = Internal::ToolDescription("FeatureLinkerUnlabeledKD", cat_linking);
-    tools_map["FeatureLinkerUnlabeledQT"] = Internal::ToolDescription("FeatureLinkerUnlabeledQT", cat_linking);
-#ifdef WITH_WNETALIGN
-    tools_map["FeatureLinkerWNet"] = Internal::ToolDescription("FeatureLinkerWNet", cat_linking);
-#endif
-    tools_map["FileConverter"] = Internal::ToolDescription("FileConverter", cat_file_converter);
-    tools_map["FileFilter"] = Internal::ToolDescription("FileFilter", cat_file_filter_extract_merge);
-    tools_map["FileInfo"] = Internal::ToolDescription("FileInfo", cat_file_filter_extract_merge);
-    tools_map["FileMerger"] = Internal::ToolDescription("FileMerger", cat_file_filter_extract_merge);
-    tools_map["FLASHDeconv"] = Internal::ToolDescription("FLASHDeconv", cat_topdown);
-    tools_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", cat_dev);
-    tools_map["GNPSExport"] = Internal::ToolDescription("GNPSExport", cat_file_converter);
-    tools_map["HighResPrecursorMassCorrector"] = Internal::ToolDescription("HighResPrecursorMassCorrector", cat_calibration);
-    tools_map["IDConflictResolver"] = Internal::ToolDescription("IDConflictResolver", cat_ID_proc);
-    tools_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", cat_ID_proc);
-    tools_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", cat_ID_proc);
-    tools_map["IDFileConverter"] = Internal::ToolDescription("IDFileConverter", cat_file_converter);
-    tools_map["IDFilter"] = Internal::ToolDescription("IDFilter", cat_file_filter_extract_merge);
-    tools_map["IDMapper"] = Internal::ToolDescription("IDMapper", cat_ID_proc);
-    tools_map["IDMerger"] = Internal::ToolDescription("IDMerger", cat_file_filter_extract_merge);
-    tools_map["IDPosteriorErrorProbability"] = Internal::ToolDescription("IDPosteriorErrorProbability", cat_ID_proc);
-    tools_map["IDRipper"] = Internal::ToolDescription("IDRipper", cat_file_filter_extract_merge);
-    tools_map["IDRTCalibration"] = Internal::ToolDescription("IDRTCalibration", cat_calibration);
-    tools_map["IDScoreSwitcher"] = Internal::ToolDescription("IDScoreSwitcher", cat_ID_proc);
-    tools_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", cat_file_filter_extract_merge);
-    tools_map["ImageCreator"] = Internal::ToolDescription("ImageCreator", cat_misc);
-    tools_map["INIUpdater"] = Internal::ToolDescription("INIUpdater", cat_misc);
-    tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", cat_calibration);
-    tools_map["IonMobilityBinning"] = Internal::ToolDescription("IonMobilityBinning", cat_file_filter_extract_merge);
-    tools_map["IsobaricAnalyzer"] = Internal::ToolDescription("IsobaricAnalyzer", cat_quant);
-    tools_map["IsobaricWorkflow"] = Internal::ToolDescription("IsobaricWorkflow", cat_quant);
-    tools_map["JSONExporter"] = Internal::ToolDescription("JSONExporter", cat_dev);
-    tools_map["LuciphorAdapter"] = Internal::ToolDescription("LuciphorAdapter", cat_ID_search);
-    tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", cat_map_align);
-    tools_map["MapAlignerPoseClustering"] = Internal::ToolDescription("MapAlignerPoseClustering", cat_map_align);
-    tools_map["MapAlignerTreeGuided"] = Internal::ToolDescription("MapAlignerTreeGuided", cat_map_align);
-    tools_map["MapNormalizer"] = Internal::ToolDescription("MapNormalizer", cat_signal_proc_smooth_normalize);
-    tools_map["MapRTTransformer"] = Internal::ToolDescription("MapRTTransformer", cat_map_align);
-    tools_map["MapStatistics"] = Internal::ToolDescription("MapStatistics", cat_file_filter_extract_merge);
-    tools_map["MaRaClusterAdapter"] = Internal::ToolDescription("MaRaClusterAdapter", cat_signal_proc_misc);
-    tools_map["MascotAdapterOnline"] = Internal::ToolDescription("MascotAdapterOnline", cat_ID_search);
-    tools_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", cat_misc);
-    tools_map["MassTraceExtractor"] = Internal::ToolDescription("MassTraceExtractor", cat_quant);
-    tools_map["MetaboliteAdductDecharger"] = Internal::ToolDescription("MetaboliteAdductDecharger", cat_quant);
-    tools_map["MetaboliteSpectralMatcher"] = Internal::ToolDescription("MetaboliteSpectralMatcher", cat_ID_MTX);
-    tools_map["MetaProSIP"] = Internal::ToolDescription("MetaProSIP", cat_quant);
-    tools_map["MRMMapper"] = Internal::ToolDescription("MRMMapper", cat_targeted);
-    tools_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", cat_targeted);
-    tools_map["MRMTransitionGroupPicker"] = Internal::ToolDescription("MRMTransitionGroupPicker", cat_targeted);
-    tools_map["MSFraggerAdapter"] = Internal::ToolDescription("MSFraggerAdapter", cat_ID_search);
-    tools_map["MSGFPlusAdapter"] = Internal::ToolDescription("MSGFPlusAdapter", cat_ID_search);
-    tools_map["MSstatsConverter"] = Internal::ToolDescription("MSstatsConverter", cat_file_converter);
-    tools_map["MS1LabeledWorkflow"] = Internal::ToolDescription("MS1LabeledWorkflow", cat_quant);
-    tools_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", cat_quant);
-    tools_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", cat_file_filter_extract_merge);
-    tools_map["MzTabExporter"] = Internal::ToolDescription("MzTabExporter", cat_file_converter);
-    tools_map["NoiseFilterGaussian"] = Internal::ToolDescription("NoiseFilterGaussian", cat_signal_proc_smooth_normalize);
-    tools_map["NoiseFilterSGolay"] = Internal::ToolDescription("NoiseFilterSGolay", cat_signal_proc_smooth_normalize);
-    tools_map["NovorAdapter"] = Internal::ToolDescription("NovorAdapter", cat_ID_search);
-    tools_map["NucleicAcidSearchEngine"] = Internal::ToolDescription("NucleicAcidSearchEngine", cat_rna);
-    tools_map["OpenMSDatabasesInfo"] = Internal::ToolDescription("OpenMSDatabasesInfo", cat_dev);
-    tools_map["OpenMSInfo"] = Internal::ToolDescription("OpenMSInfo", cat_misc);
-    tools_map["OpenNuXL"] = Internal::ToolDescription("OpenNuXL", cat_crosslinking);
-    tools_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", cat_crosslinking);
-    tools_map["OpenSwathAnalyzer"] = Internal::ToolDescription("OpenSwathAnalyzer", cat_targeted);
-    tools_map["OpenSwathAssayGenerator"] = Internal::ToolDescription("OpenSwathAssayGenerator", cat_targeted);
-    tools_map["OpenSwathChromatogramExtractor"] = Internal::ToolDescription("OpenSwathChromatogramExtractor", cat_targeted);
-    tools_map["OpenSwathConfidenceScoring"] = Internal::ToolDescription("OpenSwathConfidenceScoring", cat_targeted);
-    tools_map["OpenSwathDecoyGenerator"] = Internal::ToolDescription("OpenSwathDecoyGenerator", cat_targeted);
-    tools_map["OpenSwathDIAPreScoring"] = Internal::ToolDescription("OpenSwathDIAPreScoring", cat_targeted);
-    tools_map["OpenSwathExport"] = Internal::ToolDescription("OpenSwathExport", cat_targeted);
-    tools_map["OpenSwathFeatureXMLToTSV"] = Internal::ToolDescription("OpenSwathFeatureXMLToTSV", cat_targeted);
-    tools_map["OpenSwathFileSplitter"] = Internal::ToolDescription("OpenSwathFileSplitter", cat_targeted);
-    tools_map["OpenSwathInfer"] = Internal::ToolDescription("OpenSwathInfer", cat_targeted);
-    tools_map["OpenSwathMzMLFileCacher"] = Internal::ToolDescription("OpenSwathMzMLFileCacher", cat_targeted);
-    tools_map["OpenSwathPeakMapExtractor"] = Internal::ToolDescription("OpenSwathPeakMapExtractor", cat_targeted);
-    tools_map["OpenSwathPercolatorScoring"] = Internal::ToolDescription("OpenSwathPercolatorScoring", cat_targeted);
-    tools_map["OpenSwathRewriteToFeatureXML"] = Internal::ToolDescription("OpenSwathRewriteToFeatureXML", cat_targeted);
-    tools_map["OpenSwathRTNormalizer"] = Internal::ToolDescription("OpenSwathRTNormalizer", cat_targeted);
-    tools_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", cat_targeted);
-    tools_map["PeakPickerHiRes"] = Internal::ToolDescription("PeakPickerHiRes", cat_centroiding);
-    tools_map["PeakPickerIM"] = Internal::ToolDescription("PeakPickerIM", cat_centroiding);
-    tools_map["PeakPickerIterative"] = Internal::ToolDescription("PeakPickerIterative", cat_centroiding);
-    tools_map["PeptideIndexer"] = Internal::ToolDescription("PeptideIndexer", cat_ID_proc);
-    tools_map["ProSE"] = Internal::ToolDescription("ProSE", cat_ID_search);
-    tools_map["PercolatorAdapter"] = Internal::ToolDescription("PercolatorAdapter", cat_ID_proc);
-    tools_map["PhosphoScoring"] = Internal::ToolDescription("PhosphoScoring", cat_ID_proc);
-    tools_map["ProteinInference"] = Internal::ToolDescription("ProteinInference", cat_ID_proc);
-    tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", cat_quant);
-    tools_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", cat_quant);
-    tools_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", cat_ID_proc);
-    tools_map["ParquetConverter"] = Internal::ToolDescription("ParquetConverter", cat_file_converter);
-    tools_map["ParquetDiff"] = Internal::ToolDescription("ParquetDiff", cat_dev);
-    tools_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", cat_QC);
-    tools_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", cat_QC);
-    tools_map["QCExporter"] = Internal::ToolDescription("QCExporter", cat_QC);
-    tools_map["QCExtractor"] = Internal::ToolDescription("QCExtractor", cat_QC);
-    tools_map["QCImporter"] = Internal::ToolDescription("QCImporter", cat_QC);
-    tools_map["QCMerger"] = Internal::ToolDescription("QCMerger", cat_QC);
-    tools_map["QCShrinker"] = Internal::ToolDescription("QCExporter", cat_QC);
-    tools_map["QualityControl"] = Internal::ToolDescription("QualityControl", cat_QC);
-    tools_map["Resampler"] = Internal::ToolDescription("Resampler", cat_signal_proc_misc);
-    tools_map["RNADigestor"] = Internal::ToolDescription("RNADigestor", cat_rna);
-    tools_map["RNAMassCalculator"] = Internal::ToolDescription("RNAMassCalculator", cat_rna);
-    tools_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", cat_crosslinking);
-    tools_map["SageAdapter"] = Internal::ToolDescription("SageAdapter", cat_ID_search);
-    tools_map["SeedListGenerator"] = Internal::ToolDescription("SeedListGenerator", cat_quant);
-    tools_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", cat_dev);
-    tools_map["SequenceCoverageCalculator"] = Internal::ToolDescription("SequenceCoverageCalculator", cat_ID_proc);
-    tools_map["SimpleSearchEngine"] = Internal::ToolDescription("SimpleSearchEngine", cat_ID_search);
-    tools_map["SiriusExport"] = Internal::ToolDescription("SiriusExport", cat_ID_MTX);
-    tools_map["SpectraFilterNLargest"] = Internal::ToolDescription("SpectraFilterNLargest", cat_signal_proc_smooth_normalize);
-    tools_map["SpectraFilterNormalizer"] = Internal::ToolDescription("SpectraFilterNormalizer", cat_signal_proc_smooth_normalize);
-    tools_map["SpectraFilterThresholdMower"] = Internal::ToolDescription("SpectraFilterThresholdMower", cat_signal_proc_smooth_normalize);
-    tools_map["SpectraFilterWindowMower"] = Internal::ToolDescription("SpectraFilterWindowMower", cat_signal_proc_smooth_normalize);
-    tools_map["SpectraMerger"] = Internal::ToolDescription("SpectraMerger", cat_signal_proc_misc);
-    tools_map["SpectraSTSearchAdapter"] = Internal::ToolDescription("SpectraSTSearchAdapter", cat_ID_search);
-    tools_map["StaticModification"] = Internal::ToolDescription("StaticModification", cat_ID_proc);
-    tools_map["TargetedFileConverter"] = Internal::ToolDescription("TargetedFileConverter", cat_file_converter);
-    tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", cat_file_converter);
-    tools_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", cat_misc);
-    tools_map["TransitionListEvidenceFilter"] = Internal::ToolDescription("TransitionListEvidenceFilter", cat_targeted);
-    tools_map["UniPEFF"] = Internal::ToolDescription("UniPEFF", cat_file_converter);
-    tools_map["XFDR"] = Internal::ToolDescription("XFDR", cat_crosslinking);
-    tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev);
-
-    // STOP! insert your tool in alphabetical order for easier maintenance (tools requiring the GUI lib should be added below **in addition**)
-
-    // ATTENTION: tools requiring the GUI lib
-#ifndef WITH_GUI
-    StringList GUI_tools = {
-      "ExecutePipeline",
-      "ImageCreator",
-    };
-    for (const auto& tool : GUI_tools) {
-      tools_map.erase(tool);
-    }
-#endif
-
-    // INTERNAL tools
-    // this operation is expensive, as we need to parse configuration files (*.ttd)
-    std::vector<Internal::ToolDescription> internal_tools = getInternalTools_();
-    for (std::vector<Internal::ToolDescription>::const_iterator it = internal_tools.begin(); it != internal_tools.end(); ++it)
+    for (const std::string& file : getToolRegistryFiles_())
     {
-      if (!tools_map.contains(it->name))
+      CsvFile registry;
+      try
       {
-        tools_map[it->name] = *it;
+        registry.load(file, '\t', false);
       }
-      else
+      catch (Exception::BaseException& e)
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Duplicate tool name error: Trying to add internal tool '" + it->name, it->name);
+        // A single unreadable registry file must not cost us every other tool: report it and
+        // carry on. If this leaves the registry empty, TOPPBase says so when a tool starts.
+        OPENMS_LOG_ERROR << "Cannot read the tool registry file '" << file << "': " << e.what()
+                         << "\nThe tools it registers will not be known to this process." << std::endl;
+        continue;
+      }
+
+      for (Size row = 0; row < registry.rowCount(); ++row)
+      {
+        StringList fields;
+        // '#' comment lines and, with them, the header are dropped by CsvFile itself. The
+        // return value only says whether the line held a separator at all, which a blank line
+        // and a line missing its category have in common; the fields tell the two apart, being
+        // empty for the blank line and the whole line for the malformed one.
+        registry.getRow(row, fields);
+        if (fields.empty())
+        {
+          continue; // blank line
+        }
+        // A row is '<name>\t<category>' plus an optional third field holding the tool's
+        // '-type' sub-modes, ';' separated. Reported rather than guessed at: a row that does
+        // not say what category a tool belongs to is a mistake in the file, not a default.
+        if (fields.size() < 2 || fields[0].empty() || fields[1].empty())
+        {
+          OPENMS_LOG_ERROR << "The tool registry file '" << file << "' has a malformed entry in line " << (row + 1)
+                           << " (expected '<tool name><TAB><category>'); ignoring it." << std::endl;
+          continue;
+        }
+
+        Internal::ToolDescription td;
+        td.name = fields[0];
+        td.category = fields[1];
+        if (fields.size() > 2 && !fields[2].empty())
+        {
+          StringUtils::split(fields[2], ';', td.types);
+        }
+
+        auto [it, inserted] = tools_map.emplace(td.name, td);
+        if (!inserted)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Duplicate tool name error: '" + td.name + "' is registered both by '" +
+                                          registered_by[td.name] + "' and by '" + file +
+                                          "'. Every tool name may be registered only once.",
+                                        td.name);
+        }
+        registered_by[td.name] = file;
       }
     }
 
@@ -233,87 +104,119 @@ namespace OpenMS
 
   StringList ToolHandler::getTypes(const std::string& toolname)
   {
-    Internal::ToolDescription ret;
-    ToolListType tools = getTOPPToolList();
-    if (tools.contains(toolname))
+    const ToolListType& tools = getTOPPToolListRef();
+    auto it = tools.find(toolname);
+    if (it != tools.end())
     {
-      return tools[toolname].types;
+      return it->second.types;
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Requested tool '" + toolname + "' does not exist!", toolname);
+    // Deliberately not an error: a tool that is not in the registry still has to be able to
+    // describe itself (TOPPBase::handleWriteCommands_ asks for the types to write one
+    // CTD/CWL per type), and a tool without registered types has exactly one description.
+    return {};
   }
 
-  std::vector<Internal::ToolDescription> ToolHandler::getInternalTools_()
+  std::string ToolHandler::getToolRegistryPath()
   {
-    if (!tools_internal_loaded_)
+    return File::getOpenMSDataPath() + "/TOOLS";
+  }
+
+  StringList ToolHandler::getToolRegistryFiles_()
+  {
+    auto holdsRegistry = [](const std::string& dir) {
+      StringList files;
+      File::fileList(dir, "*.tsv", files, false);
+      return !files.empty();
+    };
+
+    // The registry of OpenMS' own tools is generated by the build (cmake/topp_tool_macros.cmake)
+    // and installed into share/OpenMS/TOOLS. The first of these that actually holds a registry
+    // wins; a second one would hold the same tools and reading both would be a duplicate-name
+    // error for every tool. Asked by content rather than by existence, so an empty TOOLS
+    // directory -- what checking out a branch that predates the registry leaves behind -- does
+    // not shadow the others.
+    StringList candidates;
+    //  - where the shared data of this installation is, which is the normal case;
+    candidates.push_back(getToolRegistryPath());
+    //  - next to the executable, for an installed tool whose shared data resolved elsewhere.
+    //    File::getOpenMSDataPath() prefers the compiled-in source directory over the
+    //    executable's own ../share/OpenMS, so on the machine OpenMS was built on an installed
+    //    tool is pointed at the source tree, which carries no registry (it is generated, not
+    //    checked in). Without this it would find no registry at all once the build tree is
+    //    gone, although its own installation has one;
+#if defined(__APPLE__)
+    candidates.push_back(File::getExecutablePath() + "../../../share/OpenMS/TOOLS"); // inside an app bundle
+#endif
+    candidates.push_back(File::getExecutablePath() + "../share/OpenMS/TOOLS");
+    //  - and the build tree, for running from a build that was never installed.
+    candidates.push_back(OPENMS_BUILD_TOOL_REGISTRY_PATH);
+
+    std::string registry = candidates.front();
+    for (const std::string& candidate : candidates)
     {
-      loadInternalToolConfig_();
-      tools_internal_loaded_ = true;
-    }
-    return tools_internal_;
-  }
-
-  std::string ToolHandler::getInternalToolsPath()
-  {
-    return File::getOpenMSDataPath() + "/TOOLS/INTERNAL";
-  }
-
-  void ToolHandler::loadInternalToolConfig_()
-  {
-    StringList files = getInternalToolConfigFiles_();
-    for (size_t i = 0; i < files.size(); ++i)
-    {
-      ToolDescriptionFile tdf;
-      std::vector<Internal::ToolDescription> tools;
-      tdf.load(files[i], tools);
-      // add every tool from file to list
-      for (Size i_t = 0; i_t < tools.size(); ++i_t)
+      if (holdsRegistry(candidate))
       {
-        tools_internal_.push_back(tools[i_t]);
+        registry = candidate;
+        break;
       }
     }
-  }
 
-  StringList ToolHandler::getInternalToolConfigFiles_()
-  {
     StringList paths;
-    // *.ttd default path
-    paths.push_back(getInternalToolsPath());
-    // OS-specific path
+    // the registry directory itself
+    paths.push_back(registry);
+    // OS-specific path, for a tool that only exists on one platform
 #ifdef OPENMS_WINDOWSPLATFORM
-    paths.push_back(getInternalToolsPath() + "/WINDOWS");
+    paths.push_back(registry + "/WINDOWS");
 #else
-    paths.push_back(getInternalToolsPath() + "/LINUX");
+    paths.push_back(registry + "/LINUX");
 #endif
-    // additional environment
-    if (getenv("OPENMS_TTD_INTERNAL_PATH") != nullptr)
+    // additional environment. OPENMS_TTD_INTERNAL_PATH is the name earlier releases used;
+    // still read so a site-local setup pointing at it keeps working.
+    for (const char* var : {"OPENMS_TOOL_REGISTRY_PATH", "OPENMS_TTD_INTERNAL_PATH"})
     {
-      paths.push_back(std::string(getenv("OPENMS_TTD_INTERNAL_PATH")));
+      if (const char* value = getenv(var); value != nullptr)
+      {
+        paths.push_back(std::string(value));
+      }
     }
 
     StringList all_files;
+    // A file must not be read twice: loadRegistry_() treats a second registration of a name as
+    // a fatal collision, so a search path that repeats (both environment variables set, or one
+    // of them pointing at the share directory that is already searched) would stop every tool
+    // from starting. Compared canonically, so two spellings of one directory count as one.
+    std::set<std::filesystem::path> seen;
     for (const auto& p : paths)
     {
       StringList files;
-      File::fileList(p, "*.ttd", files, true);
-      all_files.insert(all_files.end(), files.begin(), files.end());
+      File::fileList(p, "*.tsv", files, true);
+      for (const std::string& file : files)
+      {
+        std::error_code ec;
+        std::filesystem::path key = std::filesystem::weakly_canonical(std::filesystem::path(file), ec);
+        if (ec)
+        {
+          key = std::filesystem::path(file);
+        }
+        if (!seen.insert(key).second)
+        {
+          continue;
+        }
+        all_files.push_back(file);
+      }
     }
     return all_files;
   }
 
   std::string ToolHandler::getCategory(const std::string& toolname)
   {
-    ToolListType tools = getTOPPToolList();
-    std::string s;
-    if (tools.contains(toolname))
+    const ToolListType& tools = getTOPPToolListRef();
+    auto it = tools.find(toolname);
+    if (it != tools.end())
     {
-      s = tools[toolname].category;
+      return it->second.category;
     }
-
-    return s;
+    return std::string();
   }
-
-  // static
-  std::vector<Internal::ToolDescription> ToolHandler::tools_internal_;
-  bool ToolHandler::tools_internal_loaded_ = false;
 
 } // namespace

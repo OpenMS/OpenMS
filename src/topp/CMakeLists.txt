@@ -13,8 +13,11 @@ project("OpenMS_TOPP")
 # add all the tools. We support two modes
 # 1. either as single MyToolName.cpp file
 # 2. via a subfolder MyToolName/ with MyToolName/MyToolName.cpp and (optionally) additional header/source files
+# executables.cmake declares each tool with openms_topp_tool(), which appends to TOPP_TOOLS
+# and records its category; the registry is generated from those declarations in
+# src/CMakeLists.txt once the GUI tools have been declared too.
 include(executables.cmake)
-foreach(i ${TOPP_executables})  
+foreach(i ${TOPP_TOOLS})  
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${i})
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${i})
 #[[
@@ -35,6 +38,9 @@ set(tool_sources
 )
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources}) # Add the main cpp file and additional files
 target_link_libraries(${PROJECT_NAME} OpenMS::OpenMS_CLI) # Link the executable with the TOPP tool framework (which brings OpenMS::OpenMS)
+if(COMMAND openms_add_executable_compiler_flags) # not defined when building this tool standalone
+  openms_add_executable_compiler_flags(${PROJECT_NAME})
+endif()
 #]] 
   else()
     add_executable(${i} ${i}.cpp)
@@ -53,18 +59,12 @@ endforeach(i)
 # FuzzyDiff wraps the FuzzyStringComparator, which lives in the (static) class-test framework library
 target_link_libraries(FuzzyDiff OpenMSTestFramework)
 target_link_libraries(FileMerger Boost::regex)
-target_link_libraries(DecoyDatabase Boost::regex)
-target_link_libraries(NucleicAcidSearchEngine Boost::regex)
 target_link_libraries(IsobaricWorkflow Eigen3::Eigen)
 target_link_libraries(MetaProSIP Eigen3::Eigen)
 
 
 # collection target
 add_custom_target(TOPP)
-add_dependencies(TOPP ${TOPP_executables})
-
-## export the list of TOPP tools into CACHE
-set(TOPP_TOOLS ${TOPP_executables}
-    CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
+add_dependencies(TOPP ${TOPP_TOOLS})
 
 openms_doc_path("${PROJECT_SOURCE_DIR}")

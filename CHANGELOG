@@ -37,6 +37,32 @@ General:
   - Shared-data lookup uses the compiled-in path, then the executable location, then
     OPENMS_DATA_PATH, preventing stale installations from overriding bundled resources.
     Missing-file errors identify the resolved directory (#9635, #9636, #9650).
+  - A TOPP tool may keep its own sources and headers in a subfolder src/topp/<Tool>/ with
+    a CMakeLists.txt of its own, next to the single-file src/topp/<Tool>.cpp layout. The
+    class test of a tool-local class builds that class straight from the tool folder, so
+    moving code out of the library does not cost it its test coverage.
+    BREAKING (installed headers): OpenNuXL moved to src/topp/OpenNuXL/ and took the whole
+    NuXL pipeline with it. Nothing outside this tool ever used it, so OpenMS/ANALYSIS/NUXL
+    is gone: its thirteen headers are no longer installed and its classes are no longer
+    part of libOpenMS. The five NuXL class tests are unchanged and still run.
+  - BREAKING: TOPPBase no longer takes a bool official, and neither do SearchEngineBase,
+    TOPPOpenSwathBase, TOPPMapAlignerBase and TOPPFeatureLinkerBase, which only forwarded
+    it. A tool is registered by its openms_topp_tool() declaration, the same declaration
+    that builds it, so every tool that exists is registered and the flag named nothing.
+    What it did instead was let a tool disown its own registration: OpenNuXL, PeakPickerIM,
+    FeatureFinderLFQ, ProSE, QCEmbedder and ImageCreator each wrote an empty category into
+    their CTD while the registry held a real one, so TOPPAS and every other CTD consumer
+    saw them uncategorised; all six now carry their category. Out-of-tree code deriving
+    from one of these classes drops the argument; something that is not a registered TOPP
+    tool at all passes toolhandler_test = false instead, which is now the only way to skip
+    the registry check.
+  - BREAKING (installed headers): Move tool-only helpers without pyOpenMS bindings
+    into the CometAdapter, DecoyDatabase, INIUpdater, NucleicAcidSearchEngine,
+    OpenSwathExport, OpenSwathInfer, OpenSwathPeakMapExtractor, OpenSwathPercolatorScoring,
+    OpenSwathWorkflow, ParquetDiff, QualityControl and UniPEFF folders. Their
+    29 headers are no longer installed and 28 implementations no longer live in
+    libOpenMS or libOpenMS_CLI. Class and round-trip tests travel with the tools;
+    reusable inference and XIPM reader tests also remain available in library-only builds.
   - BREAKING: KNIME plugin support was removed. The ENABLE_PREPARE_KNIME_PACKAGE option
     and the prepare_knime_package targets are gone, as are the KNIME user tutorial, the
     LaTeX tutorial handout and the .knwf workflow collection under doc/tutorials (still
@@ -510,7 +536,7 @@ GUI tools:
 OpenMS Library:
   - Added GlycanStructure and TheoreticalGlycanSpectrumGenerator for composition-based
     diagnostic/oxonium and bounded B/Y/C/Z ions, structural and internal glycan fragments,
-    and HCD/ETD/EThcD glycopeptide backbone retention with configurable stubs (#10176).
+    and HCD/ETD/EThcD glycopeptide backbone retention with configurable stubs (#10176, #10204).
     Includes mzPAF annotations, neutral losses, resource limits, and pyOpenMS bindings.
   Added:
     - File type aliases are now honoured end to end: TOPP tools accept an alias wherever they accept
@@ -702,6 +728,11 @@ Fixes:
       2000 Da precursor at charge 3. OpenPepXL uses these peaks: on the test data only its
       log_occupancy scores change; on other data the corrected peak can now match an experimental
       peak and change matched ion counts and scores (#10194).
+    - ConsensusID rejected a single empty idXML run (valid XML with no peptide identifications)
+      and dropped search settings when combining empty runs; per-spectrum runs also lost their
+      MS-file metadata, and unannotated feature/consensus maps could crash. Empty runs, and
+      entirely empty input in RT/mz mode, now keep their original search settings and
+      spectra_data instead of being discarded (#10203).
   Quantification and numerical correctness:
     - IsobaricWorkflow wrote every consensus feature with the same id ("e_0"), which is invalid
       consensusXML (consensusElement/@id is xs:ID); each feature now gets its own unique ID
@@ -722,6 +753,13 @@ Fixes:
       charge states only via a continue that escaped the inner charge-scanning loop, so the
       component still passed the conflict check and was grouped. Such components are now
       correctly rejected, which changes alignment and linking results (#10157).
+    - MassTrace::updateWeightedMeanRT() weighted each peak by the RT distance to its
+      predecessor and started the sum at the second peak, so the first peak contributed to
+      neither the numerator nor the denominator. The centroid was biased towards later RT
+      and, for a two-point trace, was always the RT of the second peak whatever the
+      intensities. The intensity-weighted mean now uses mid-interval (trapezoidal) weights
+      over all peaks, which changes RT positions on the 'epd:enabled=false' path of
+      FeatureFinderMetabo and MassTraceExtractor (#2777).
   Data integrity and I/O:
     - Sorting/filtering/set_peaks keeps peak annotations and binary arrays aligned in
       spectra, chromatograms and mobilograms. select() checks bounds before mutation;
@@ -761,9 +799,14 @@ Fixes:
       columns. SampleSection::getFactorValue throws MissingInformation for a row without a value
       for the factor instead of reading past its end (#10148).
   Robustness:
+    - NuXLDeisotoper (a copy of Deisotoper::deisotopeAndSingleCharge) applies the two precursor mass
+      fixes already made to Deisotoper: a precursor with unknown charge (0) no longer enables the
+      mass constraint with a neutral mass of 0, which rejected every fragment cluster, and neutral
+      masses are computed with PROTON_MASS_U (the proton mass in Da) instead of PROTON_MASS (the
+      proton mass in kg), which had made every mass about 1 u per charge too high (#10073, #10075).
     - mzIdentML output with more than one identification run repeated the Measure ids
       (Measure_mz, Measure_int, Measure_error) in every SpectrumIdentificationList and failed schema
-      validation; the Measure definitions are now written once.
+      validation; the Measure definitions are now written once (#10213).
     - Chromatograms built from MS1 spectra (FileConverter -convert_to_chromatograms, e.g. on GC-MS/SIM
       data) had no native ID, so the mzML output contained many chromatograms with id="" and failed
       schema validation. They are now named "XIC mz=<m/z>".
@@ -772,6 +815,11 @@ Fixes:
       data were reordered depending on the standard library, which silently corrupted mass traces
       built over such a map. The sort is also faster now, because it moves an index instead of a
       whole spectrum (#10054).
+      schema validation. They are now named "XIC mz=<m/z>" (#10214).
+    - FLASHDeconv skips spectra with a non-positive mzml_mass_charge value instead of crashing on them,
+      and logs a warning. TOPPASEdge falls back to extension-based file type detection when
+      content-based detection returns UNKNOWN, and no longer mishandles an edge whose referenced
+      vertex was removed (#9054).
     - FileMerger renamed the merged spectra but left precursor spectrumRef attributes pointing to the
       original native IDs, so MS2 spectra lost the link to their parent scan and the mzML output
       failed schema validation. The references are now updated together with the IDs (#10200).
@@ -853,6 +901,14 @@ Build System:
     package built from the previous spelling would have contained none of the TOPP tools.
     Reconfiguring a build directory with another WITH_GUI setting no longer leaves a stale GUI
     target file behind (src/tests/package_layers checks this with stub libraries) (#10164).
+  - Three places spelled the install component that every TOPP tool, TOPPView and TOPPAS is
+    registered under ("Applications") in lower case: the cpack_add_component() declaration and
+    the CPACK_COMPONENTS_ALL lists of the deb/rpm packages. CPack folds CPACK_COMPONENT_<NAME>_*
+    metadata (DISPLAY_NAME, DEPENDS, ...) to upper case, so that lookup still worked, but compares
+    the name verbatim when selecting what to install, so a component-wise deb/rpm build from these
+    lists would have matched no install rule and shipped no TOPP tools at all. Both generators
+    currently build monolithically, so the shipped packages were unaffected; the naming is now
+    "Applications" everywhere (#10199).
   - vcpkg manifests, cross-platform CMake presets, overlay ports/triplets and binary caching
     support Linux, Windows and macOS; main build/test CI uses them. Release-only triplets
     avoid building duplicate Debug dependencies (#9511, #9800, #9927).
@@ -897,6 +953,16 @@ Build System:
     unavailable; SIMD-only compilation works without a runtime. Fixed
     YAML CTD parsing and optional WNet tool registration (#8368, #8880, #9056, #9223,
     #8496, #9267, #9388, #9651, #9653, #9783, #9784, #9971).
+  - Fixed the Homebrew static-Boost fallback on macOS: Boost's CMake config does not
+    expose iostreams'/regex's transitive dependencies as targets, so the fallback
+    rewrote their raw -l flags to imported ones, but a malformed "ICU:uc" reached the
+    link line unchanged, a missing find_package could name a target that was never
+    created (a hard configure-time error), and the Apple Silicon path was never taken
+    because the Homebrew-prefix check only matched /usr/local. Each dependency is now
+    translated independently against only the imported targets that were actually
+    found, using OPTIONAL_COMPONENTS so one missing ICU component no longer drops
+    every ICU target, and the Homebrew-prefix check also matches /opt/homebrew and
+    HOMEBREW_PREFIX (#10187).
   - Documentation formulas use MathJax, removing Ghostscript. Removed obsolete developer
     scripts, ENABLE_STYLE_TESTING, doc_xml and stale examples/schemas. Runtime schema
     coverage is retained; QcMLFile/PepXMLFileMascot validation remains unavailable and

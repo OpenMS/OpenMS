@@ -74,7 +74,7 @@ class TOPPFeatureFinderLFQ final :
 {
 public:
   TOPPFeatureFinderLFQ() :
-    TOPPBase("FeatureFinderLFQ", "Feature detection for LC-MS1 data (EXPERIMENTAL)", false)
+    TOPPBase("FeatureFinderLFQ", "Feature detection for LC-MS1 data (EXPERIMENTAL)")
   {
   }
 

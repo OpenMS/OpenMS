@@ -25,10 +25,8 @@ MzXMLHandler.h
 PASEFHillCentroider.h
 PTMXMLHandler.h
 ParamXMLHandler.h
-ToolDescriptionHandler.h
 TraMLHandler.h
 UnimodXMLHandler.h
-UniProtXMLHandler.h
 StringManager.h
 XMLAttributes.h
 XMLHandler.h

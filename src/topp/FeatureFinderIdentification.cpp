@@ -135,7 +135,7 @@ public:
   // TODO
   // cppcheck-suppress uninitMemberVar
   TOPPFeatureFinderIdentification() :
-      TOPPBase("FeatureFinderIdentification", "Detects features in MS1 data based on peptide identifications.", true,
+      TOPPBase("FeatureFinderIdentification", "Detects features in MS1 data based on peptide identifications.",
                {{"Weisser H, Choudhary JS", "Targeted Feature Detection for Data-Dependent Shotgun Proteomics", "J. Proteome Res. 2017; 16, 8:2964-2974", "10.1021/acs.jproteome.7b00248"}})
   {
   }

@@ -42,11 +42,8 @@ endif()
 #------------------------------------------------------------------------------
 # Add the actual tests
 foreach(_class_test ${TEST_executables})
-  # OpenMSTestSupport.cpp registers libOpenMS behavior (unique-ID seeding, exception
-  # naming) with the std-only test framework. Removing it makes ID-bearing
-  # reference-file comparisons nondeterministic -- see the file's header comment.
-  add_executable(${_class_test} source/${_class_test}.cpp source/OpenMSTestSupport.cpp)
-  target_link_libraries(${_class_test} OpenMSTestFramework ${OpenMS_LIBRARIES})
+  add_executable(${_class_test} source/${_class_test}.cpp)
+  target_link_libraries(${_class_test} OpenMSTestSupport ${OpenMS_LIBRARIES})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
   # only add OPENMP flags to gcc linker (except Mac OS X, due to compiler bug
@@ -59,12 +56,26 @@ endforeach(_class_test)
 #------------------------------------------------------------------------------
 # some tests need special treatment
 
-# Workflow-specific policies remain beside the TOPP tool, but use the class-test harness.
-foreach(_workflow_test MS1LabeledFAIMS MS1LabeledRatioQuantifier MS1LabeledSpectra)
-  target_sources(${_workflow_test}_test PRIVATE
-    ${OPENMS_HOST_DIRECTORY}/src/topp/MS1LabeledWorkflow/${_workflow_test}.cpp)
-  target_include_directories(${_workflow_test}_test PRIVATE
-    ${OPENMS_HOST_DIRECTORY}/src/topp/MS1LabeledWorkflow)
+# Class tests of classes that live with a TOPP tool rather than in the library. A tool that
+# has a test/CMakeLists.txt gets it added here, and declares its tests with
+# openms_add_tool_class_test(), which cmake/class_test_macros.cmake defines. Adding a test/
+# folder to a tool is all it takes; nothing in this file changes.
+#
+# They are declared from this project rather than from the tool's own CMakeLists.txt because
+# src/topp is configured before src/tests: at that point OpenMS/test_config.h has not been
+# generated, the -O0 test flags and the test runtime output directory are unset, and the
+# ENABLE_CLASS_TESTING/PACKAGE_TYPE gating of src/tests/CMakeLists.txt does not exist yet.
+#
+# TOPP_TOOLS is empty when BUILD_TOPP_TOOLS is OFF, so a build that does not want the tools
+# does not compile their sources into test binaries either.
+
+include("${OPENMS_HOST_DIRECTORY}/cmake/class_test_macros.cmake")
+
+foreach(_topp_tool ${TOPP_TOOLS})
+  if(EXISTS "${OPENMS_HOST_DIRECTORY}/src/topp/${_topp_tool}/test/CMakeLists.txt")
+    add_subdirectory("${OPENMS_HOST_DIRECTORY}/src/topp/${_topp_tool}/test"
+                     "topp_${_topp_tool}_tests")
+  endif()
 endforeach()
 
 # StopWatch_test needs to be run alone to avoid timing errors
@@ -214,74 +225,14 @@ if (TARGET TransitionParquetFile_test)
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
-if (TARGET OpenSwathOSWParquetReader_test)
-  target_link_libraries(OpenSwathOSWParquetReader_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-endif()
-if (TARGET OpenSwathOSWParquetWriter_test)
-  target_link_libraries(OpenSwathOSWParquetWriter_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-endif()
-if (TARGET OpenSwathOSWParquetRoundTrip_test)
-  target_link_libraries(OpenSwathOSWParquetRoundTrip_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-endif()
-if (TARGET OpenSwathExport_test)
-  target_link_libraries(OpenSwathExport_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-endif()
-if (TARGET OpenSwathPercolatorScoring_test)
-  target_link_libraries(OpenSwathPercolatorScoring_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-  #Test calls sqlite3 directly, so linkage required.
-  if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
-    target_link_libraries(OpenSwathPercolatorScoring_test unofficial::sqlite3::sqlite3)
-  elseif(TARGET SQLite::SQLite3)
-    target_link_libraries(OpenSwathPercolatorScoring_test SQLite::SQLite3)
-  elseif(TARGET SQLiteCpp)
-    target_link_libraries(OpenSwathPercolatorScoring_test SQLiteCpp ${OPENMS_SQLITECPP_EXTRA_LIBS})
-  elseif(TARGET sqlite3)
-    target_link_libraries(OpenSwathPercolatorScoring_test sqlite3)
-  endif()
-endif()
 if (TARGET ArrowSchemaRegistry_test)
   target_link_libraries(ArrowSchemaRegistry_test
     ${OPENMS_ARROW_TARGET}
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
-if (TARGET OpenSwathResultsExporter_test)
-  target_link_libraries(OpenSwathResultsExporter_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-endif()
-if (TARGET OpenSwathParquetExporter_test)
-  target_link_libraries(OpenSwathParquetExporter_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-endif()
 if (TARGET ArrowIOHelpers_test)
   target_link_libraries(ArrowIOHelpers_test
-    ${OPENMS_ARROW_TARGET}
-    ${OPENMS_PARQUET_TARGET}
-  )
-endif()
-# Builds its fixture tables with arrow::*Builder rather than through an exporter, so it needs
-# Arrow itself, not just what OpenMS re-exports -- the same reason QPXValueValidation_test does.
-if (TARGET ParquetTableComparator_test)
-  target_link_libraries(ParquetTableComparator_test
     ${OPENMS_ARROW_TARGET}
     ${OPENMS_PARQUET_TARGET}
   )
@@ -320,16 +271,6 @@ endif()
 if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
   target_compile_definitions(ThermoRawFile_test PRIVATE
     THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
-endif()
-
-if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
-  file(TO_CMAKE_PATH "${THERMO_RAW_TEST_DATA}" _ms1_thermo_test_data)
-  target_compile_definitions(MS1LabeledSpectra_test PRIVATE
-    THERMO_RAW_TEST_DATA="${_ms1_thermo_test_data}")
-  set_tests_properties(MS1LabeledSpectra_test PROPERTIES TIMEOUT 1200)
-  if (COMMAND openms_thermo_bridge_copy_runtime_files)
-    openms_thermo_bridge_copy_runtime_files(TARGET MS1LabeledSpectra_test)
-  endif()
 endif()
 
 # Optional Thermo FAIMS-DIA integration fixture. It can be supplied explicitly via

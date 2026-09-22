@@ -26,7 +26,6 @@ IsoelectricPoint.h
 ModificationDataProvider.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
-ModifiedNASequenceGenerator.h
 ModifiedPeptideGenerator.h
 ModificationsDB.h
 ModomicsJSONDataProvider.h

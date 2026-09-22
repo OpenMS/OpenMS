@@ -15,7 +15,6 @@ set(sources_list_h
   NoopMSDataConsumer.h
   SiriusFragmentAnnotation.h
   SwathFileConsumer.h
-  XIPMParquetConsumer.h
 )
 
 ### add path to the filenames

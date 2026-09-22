@@ -6,7 +6,10 @@
 // $Authors: Marc Sturm, Chris Bielow, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-// If you add a new (or update an existing) tool below, make sure to update 'openms_cli/source/APPLICATIONS/ToolHandler.cpp' as well!
+// If you add a new (or update an existing) tool below, make sure its openms_topp_tool()
+// declaration uses a matching category. Tools are declared in 'src/topp/executables.cmake',
+// except those needing the GUI library (ExecutePipeline, ImageCreator), which are declared
+// in 'src/openms_gui/CMakeLists.txt'.
 
 /**
   @page TOPP_documentation TOPP documentation

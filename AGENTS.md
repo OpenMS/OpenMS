@@ -375,7 +375,9 @@ void MyClass::process(const MSSpectrum& spectrum)
 ## TOPP Tool Development
 
 - Add new tool source (e.g., `src/topp/<Tool>.cpp`) and register in `src/topp/executables.cmake`.
-- Register tool in `src/openms_cli/source/APPLICATIONS/ToolHandler.cpp` to generate Doxygen help output.
+- Declaring it with `openms_topp_tool(<Tool> "<Category>")` also registers it: the build generates the
+  tool registry `share/OpenMS/TOOLS/OpenMS.tsv` from those declarations, so `ToolHandler` lists it and
+  Doxygen help output is generated. There is no separate registry file to edit.
 - Define parameters in `registerOptionsAndFlags_()`; read with `getStringOption_` and related helpers.
 - Document the tool and add to `doc/doxygen/public/TOPP.doxygen` where applicable.
 - Add TOPP tests in `src/tests/topp/CMakeLists.txt`.
@@ -406,7 +408,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 
 - New C++ class: add `.h`/`.cpp`, Doxygen docs, class test, `OPENMS_DLLAPI`, register in CMake lists.
 - C++ API change: update nanobind bindings/addons, pyOpenMS tests, and relevant docs; tag commits with `API` as needed.
-- New/changed TOPP tool: register in `src/topp/executables.cmake` and `ToolHandler.cpp`, add docs, add TOPP tests and data.
+- New/changed TOPP tool: declare in `src/topp/executables.cmake` with its category, add docs, add TOPP tests and data.
 - Parameter or I/O change: update tool docs/CTD, tests, and `CHANGELOG`; use `PARAM`/`IO` commit tags.
 - File format change: update `FileHandler::NamesOfTypes[]`, schemas/validators, and tests.
 
@@ -491,7 +493,7 @@ When you change | Also update
 ----------------|------------
 C++ class (new) | Add `.h`/`.cpp`, Doxygen docs, class test, `OPENMS_DLLAPI`, CMake registration
 C++ API | nanobind bindings (`bind_<domain>.cpp`), pyOpenMS addons, tests, docs
-TOPP tool (new) | `src/topp/executables.cmake`, `ToolHandler.cpp`, docs, TOPP tests
+TOPP tool (new) | `src/topp/executables.cmake` (name + category), docs, TOPP tests
 Parameters | Tool docs, CTD, tests, `CHANGELOG`
 File format | `FileHandler::NamesOfTypes[]`, schemas, tests
 

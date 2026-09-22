@@ -69,6 +69,20 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
+# The generated TOPP tool registry has to be something ToolHandler can actually read.
+#
+# It is generated from the same declarations that produce the executables
+# (cmake/topp_tool_macros.cmake), so the registry and the build cannot list different tools
+# and there is nothing to cross-check. What can still go wrong is the generator itself
+# writing a file the XML parser rejects, which would cost every tool its registration and
+# shows up only at run time, so the generated file is checked here.
+#------------------------------------------------------------------------------
+add_test("TOPP_tool_registry_is_readable" ${CMAKE_COMMAND}
+         -DREGISTRY_FILE=${OPENMS_TOOL_REGISTRY_BUILD_FILE}
+         "-DTOOLS=${TOPP_TOOLS}"
+         -P "${DATA_DIR_TOPP}/check_tool_registry.cmake")
+
+#------------------------------------------------------------------------------
 # WRITE_INI test for each TOPP tool, checking -write_ini functionality
 #------------------------------------------------------------------------------
 

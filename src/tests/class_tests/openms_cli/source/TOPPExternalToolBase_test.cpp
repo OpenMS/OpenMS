@@ -26,7 +26,7 @@ class TOPPExternalToolBaseTest
 {
 public:
   TOPPExternalToolBaseTest()
-    : TOPPExternalToolBase("TOPPExternalToolBaseTest", "A test class", false, {}, false)
+    : TOPPExternalToolBase("TOPPExternalToolBaseTest", "A test class", {}, false)
   {
     char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM

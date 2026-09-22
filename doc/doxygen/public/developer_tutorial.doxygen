@@ -530,7 +530,9 @@ Template for %OpenMS tool development
 \snippet Tutorial_Template.cpp doxygen_snippet_Template
 
 - Now add a line with %DatabaseFilter to src/topp/executables.cmake. This registers the novel tool in the %OpenMS build system. 
-- Then add the tool to getTOPPToolList() in src/openms_cli/source/APPLICATIONS/ToolHandler.cpp 
+- That one line also registers the tool: openms_topp_tool() records the category, and the build generates
+  the tool registry share/OpenMS/TOOLS/OpenMS.tsv that ToolHandler reads at run time from those declarations.
+  There is no C++ list and no registry file to edit, and a tool cannot be built without being registered.
 This creates a manual (doxygen) page with the information –help output of the tool (using TOPPDocumenter). This page must be included at the end of the doxygen documentation of your tool (see other tools for an example).
 - Add yourself as Maintainer/Author
 - Write the basic documentation (doxygen docu). You probably need to refine it later but you can already insert the correct Toolname etc..
