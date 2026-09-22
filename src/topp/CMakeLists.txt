@@ -69,7 +69,9 @@ add_dependencies(TOPP ${TOPP_TOOLS})
 
 openms_doc_path("${PROJECT_SOURCE_DIR}")
 
-# Boost used directly by these implementation/test translation units.
+# Boost used directly by these implementation/test translation units. Tools that live in
+# their own directory resolve Boost in their own CMakeLists instead, so that they still
+# build standalone against an installed OpenMS SDK.
 foreach(_boost_consumer IN ITEMS
   Digestor
   FeatureFinderMultiplex
@@ -80,11 +82,9 @@ foreach(_boost_consumer IN ITEMS
   MSstatsConverter
   MaRaClusterAdapter
   MetaProSIP
-  OpenNuXL
   OpenSwathAnalyzer
   OpenSwathChromatogramExtractor
   OpenSwathFeatureXMLToTSV
-  OpenSwathPeakMapExtractor
   PercolatorAdapter
   SageAdapter
   TextExporter

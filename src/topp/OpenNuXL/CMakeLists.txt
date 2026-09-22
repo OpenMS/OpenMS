@@ -19,6 +19,12 @@ endif()
 if(NOT TARGET nlohmann_json::nlohmann_json)
   find_package(nlohmann_json CONFIG REQUIRED)
 endif()
+# Boost is a PRIVATE dependency of libOpenMS for the same reason, so it does not arrive
+# through OpenMS_CLI either. Only the header-only target is needed: OpenNuXL.cpp uses
+# Boost.Range and NuXLReport.cpp Boost.Math, neither of which is a compiled component.
+if(NOT TARGET Boost::boost)
+  find_package(Boost 1.81 REQUIRED)
+endif()
 
 # The whole NuXL pipeline. It used to live in OpenMS/ANALYSIS/NUXL, but nothing outside
 # this tool ever used it, so it is kept next to the tool instead of in the library:
@@ -56,7 +62,7 @@ set(tool_sources
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources} ${tool_headers})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # NuXLPresets.cpp parses the preset JSON; nlohmann::json does not arrive through OpenMS_CLI.
-target_link_libraries(${PROJECT_NAME} OpenMS::OpenMS_CLI nlohmann_json::nlohmann_json)
+target_link_libraries(${PROJECT_NAME} OpenMS::OpenMS_CLI nlohmann_json::nlohmann_json Boost::boost)
 if(COMMAND openms_add_executable_compiler_flags)
   openms_add_executable_compiler_flags(${PROJECT_NAME})
 endif()
