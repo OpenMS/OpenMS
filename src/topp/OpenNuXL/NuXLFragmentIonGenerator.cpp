@@ -6,8 +6,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
+#include "NuXLFragmentIonGenerator.h"
+#include "NuXLFragmentAnnotationHelper.h"
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>

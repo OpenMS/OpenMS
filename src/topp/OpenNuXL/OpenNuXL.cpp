@@ -34,18 +34,20 @@
 #include <OpenMS/ANALYSIS/ID/MorpheusScore.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLDeisotoper.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLAnnotatedHit.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLAnnotateAndLocate.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLConstants.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLFDR.h>
+// tool-local parts of the OpenNuXL pipeline (see CMakeLists.txt in this folder)
+#include "NuXLAnnotateAndLocate.h"
+#include "NuXLAnnotatedHit.h"
+#include "NuXLConstants.h"
+#include "NuXLDeisotoper.h"
+#include "NuXLFDR.h"
+#include "NuXLFragmentAnnotationHelper.h"
+#include "NuXLFragmentIonGenerator.h"
+
 #include <OpenMS/ANALYSIS/NUXL/NuXLMarkerIonExtractor.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLPresets.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>

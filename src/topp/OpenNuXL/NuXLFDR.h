@@ -33,7 +33,7 @@ namespace OpenMS
 
   @ingroup Analysis_ID
 */
-class OPENMS_DLLAPI NuXLFDR
+class NuXLFDR
 {
   public:
     /**

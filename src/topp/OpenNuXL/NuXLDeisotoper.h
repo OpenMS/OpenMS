@@ -25,7 +25,7 @@ class MSSpectrum;
   considers each peak (starting from the right of a spectrum) and, for each
   peak
   **/
-class OPENMS_DLLAPI NuXLDeisotoper
+class NuXLDeisotoper
 {
   public:
 

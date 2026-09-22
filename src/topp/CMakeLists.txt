@@ -35,6 +35,9 @@ set(tool_sources
 )
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources}) # Add the main cpp file and additional files
 target_link_libraries(${PROJECT_NAME} OpenMS::OpenMS_CLI) # Link the executable with the TOPP tool framework (which brings OpenMS::OpenMS)
+if(COMMAND openms_add_executable_compiler_flags) # not defined when building this tool standalone
+  openms_add_executable_compiler_flags(${PROJECT_NAME})
+endif()
 #]] 
   else()
     add_executable(${i} ${i}.cpp)

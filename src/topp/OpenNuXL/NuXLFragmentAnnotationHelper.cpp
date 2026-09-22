@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
+#include "NuXLFragmentAnnotationHelper.h"
 
 #include <OpenMS/CHEMISTRY/IonNaming.h>
 #include <OpenMS/KERNEL/StandardTypes.h>

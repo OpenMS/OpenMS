@@ -3,14 +3,7 @@ set(directory include/OpenMS/ANALYSIS/NUXL)
 
 ### list all header files of the directory here
 set(sources_list_h
-NuXLAnnotateAndLocate.h
-NuXLAnnotatedHit.h
-NuXLConstants.h
-NuXLDeisotoper.h
-NuXLFDR.h
 NuXLFragmentAdductDefinition.h
-NuXLFragmentAnnotationHelper.h
-NuXLFragmentIonGenerator.h
 NuXLMarkerIonExtractor.h
 NuXLModificationsGenerator.h
 NuXLParameterParsing.h

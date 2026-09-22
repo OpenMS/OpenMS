@@ -12,7 +12,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLAnnotatedHit.h>
+#include "NuXLAnnotatedHit.h"
 
 #include <set>
 #include <map>
@@ -33,7 +33,7 @@ namespace OpenMS
 
   @ingroup Analysis_ID
 */
-class OPENMS_DLLAPI NuXLAnnotateAndLocate
+class NuXLAnnotateAndLocate
 {
   public:
 

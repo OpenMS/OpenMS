@@ -37,6 +37,15 @@ General:
   - Shared-data lookup uses the compiled-in path, then the executable location, then
     OPENMS_DATA_PATH, preventing stale installations from overriding bundled resources.
     Missing-file errors identify the resolved directory (#9635, #9636, #9650).
+  - A TOPP tool may keep its own sources and headers in a subfolder src/topp/<Tool>/ with
+    a CMakeLists.txt of its own, next to the single-file src/topp/<Tool>.cpp layout.
+    OpenNuXL moved to src/topp/OpenNuXL/ and took the parts of the pipeline that only it
+    used with it. BREAKING (installed headers): NuXLAnnotateAndLocate.h, NuXLAnnotatedHit.h,
+    NuXLConstants.h, NuXLDeisotoper.h, NuXLFDR.h, NuXLFragmentAnnotationHelper.h and
+    NuXLFragmentIonGenerator.h are no longer part of libOpenMS or of the installed
+    OpenMS/ANALYSIS/NUXL headers. The reusable NuXL classes with class tests
+    (NuXLFragmentAdductDefinition, NuXLMarkerIonExtractor, NuXLModificationsGenerator,
+    NuXLParameterParsing, NuXLPresets, NuXLReport) stay in the library.
   - BREAKING: KNIME plugin support was removed. The ENABLE_PREPARE_KNIME_PACKAGE option
     and the prepare_knime_package targets are gone, as are the KNIME user tutorial, the
     LaTeX tutorial handout and the .knwf workflow collection under doc/tutorials (still

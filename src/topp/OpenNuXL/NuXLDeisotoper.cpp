@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLDeisotoper.h>
+#include "NuXLDeisotoper.h"
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>

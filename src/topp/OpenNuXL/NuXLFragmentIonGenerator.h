@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAdductDefinition.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
+#include "NuXLFragmentAnnotationHelper.h"
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -43,7 +43,7 @@ namespace OpenMS
 
   @ingroup Analysis_ID
 */
-class OPENMS_DLLAPI NuXLFragmentIonGenerator
+class NuXLFragmentIonGenerator
 {
   public:
   /// Annotation prefix used for marker ions appended by @ref addMS2MarkerIons (e.g. @c "MI:U-H2O").

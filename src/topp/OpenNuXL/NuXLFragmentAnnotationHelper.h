@@ -26,12 +26,12 @@ namespace OpenMS
          and store them as PeptideHit::PeakAnnotation
  
  */
-class OPENMS_DLLAPI NuXLFragmentAnnotationHelper
+class NuXLFragmentAnnotationHelper
 {
   public:
 
   /// Single fragment annotation
-  struct OPENMS_DLLAPI FragmentAnnotationDetail_
+  struct FragmentAnnotationDetail_
   {
     FragmentAnnotationDetail_(std::string s, int z, double m, double i):
       shift(s),

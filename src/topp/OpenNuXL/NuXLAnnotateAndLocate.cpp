@@ -6,12 +6,12 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLAnnotateAndLocate.h>
+#include "NuXLFragmentIonGenerator.h"
+#include "NuXLAnnotateAndLocate.h"
 
 #include <OpenMS/CHEMISTRY/IonNaming.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLConstants.h>
+#include "NuXLFragmentAnnotationHelper.h"
+#include "NuXLConstants.h"
 
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
