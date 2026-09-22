@@ -325,7 +325,7 @@ START_SECTION((double getCentroidRT() const ))
 {
   MassTrace test_mt_const(test_mt);
   double test_mt_cent_rt = test_mt_const.getCentroidRT();
-  TEST_REAL_SIMILAR(test_mt_cent_rt, 155.214671250425);
+  TEST_REAL_SIMILAR(test_mt_cent_rt, 155.209843462245);
 }
 END_SECTION
 
@@ -761,7 +761,26 @@ START_SECTION((void updateWeightedMeanRT()))
   TEST_EXCEPTION(Exception::InvalidValue, empty_trace.updateWeightedMeanRT());
 
   test_mt.updateWeightedMeanRT();
-  TEST_REAL_SIMILAR(test_mt.getCentroidRT(), 155.214671250425);
+  TEST_REAL_SIMILAR(test_mt.getCentroidRT(), 155.209843462245);
+
+  // every peak has to contribute, the first one included: a two-point trace carrying almost
+  // all of its intensity on the first peak must have its centroid next to that peak. The
+  // weights used to be the RT distance to the predecessor, starting at the second peak, which
+  // dropped peak 0 and always returned the RT of the second peak here (see issue #2777)
+  std::vector<PeakType> two_peak_vec;
+  two_peak_vec.push_back(fillPeak(100.0, 230.1, 1000.0));
+  two_peak_vec.push_back(fillPeak(105.0, 230.1, 10.0));
+  MassTrace two_peak_mt(two_peak_vec);
+  two_peak_mt.updateWeightedMeanRT();
+  TEST_REAL_SIMILAR(two_peak_mt.getCentroidRT(), 100.04950495049505); // (1000*100 + 10*105) / 1010
+
+  // a trace without any intensity has no weights to go by and falls back to the mean RT
+  std::vector<PeakType> flat_vec;
+  flat_vec.push_back(fillPeak(100.0, 230.1, 0.0));
+  flat_vec.push_back(fillPeak(104.0, 230.1, 0.0));
+  MassTrace flat_mt(flat_vec);
+  flat_mt.updateWeightedMeanRT();
+  TEST_REAL_SIMILAR(flat_mt.getCentroidRT(), 102.0);
 }
 END_SECTION
 

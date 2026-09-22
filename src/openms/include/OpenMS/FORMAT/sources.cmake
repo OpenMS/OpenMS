@@ -97,7 +97,6 @@ SwathFile.h
 SqliteConnector.h
 SqMassFile.h
 TextFile.h
-ToolDescriptionFile.h
 TransformationXMLFile.h
 UnimodXMLFile.h
 UniProtXMLFile.h

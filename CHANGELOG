@@ -730,6 +730,13 @@ Fixes:
       charge states only via a continue that escaped the inner charge-scanning loop, so the
       component still passed the conflict check and was grouped. Such components are now
       correctly rejected, which changes alignment and linking results (#10157).
+    - MassTrace::updateWeightedMeanRT() weighted each peak by the RT distance to its
+      predecessor and started the sum at the second peak, so the first peak contributed to
+      neither the numerator nor the denominator. The centroid was biased towards later RT
+      and, for a two-point trace, was always the RT of the second peak whatever the
+      intensities. The intensity-weighted mean now uses mid-interval (trapezoidal) weights
+      over all peaks, which changes RT positions on the 'epd:enabled=false' path of
+      FeatureFinderMetabo and MassTraceExtractor (#2777).
   Data integrity and I/O:
     - Sorting/filtering/set_peaks keeps peak annotations and binary arrays aligned in
       spectra, chromatograms and mobilograms. select() checks bounds before mutation;

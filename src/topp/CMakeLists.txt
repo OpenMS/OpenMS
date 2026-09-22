@@ -13,8 +13,11 @@ project("OpenMS_TOPP")
 # add all the tools. We support two modes
 # 1. either as single MyToolName.cpp file
 # 2. via a subfolder MyToolName/ with MyToolName/MyToolName.cpp and (optionally) additional header/source files
+# executables.cmake declares each tool with openms_topp_tool(), which appends to TOPP_TOOLS
+# and records its category; the registry is generated from those declarations in
+# src/CMakeLists.txt once the GUI tools have been declared too.
 include(executables.cmake)
-foreach(i ${TOPP_executables})  
+foreach(i ${TOPP_TOOLS})  
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${i})
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${i})
 #[[
@@ -64,10 +67,6 @@ target_link_libraries(MetaProSIP Eigen3::Eigen)
 
 # collection target
 add_custom_target(TOPP)
-add_dependencies(TOPP ${TOPP_executables})
-
-## export the list of TOPP tools into CACHE
-set(TOPP_TOOLS ${TOPP_executables}
-    CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
+add_dependencies(TOPP ${TOPP_TOOLS})
 
 openms_doc_path("${PROJECT_SOURCE_DIR}")
