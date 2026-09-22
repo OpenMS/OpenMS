@@ -95,7 +95,7 @@ class TOPPSageAdapter :
 {
 public: 
   TOPPSageAdapter() :
-    SearchEngineBase("SageAdapter", "Annotates MS/MS spectra using Sage.", true,
+    SearchEngineBase("SageAdapter", "Annotates MS/MS spectra using Sage.",
              {
                  {"Michael Lazear",
                  "Sage: An Open-Source Tool for Fast Proteomics Searching and Quantification at Scale",

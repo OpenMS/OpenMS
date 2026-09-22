@@ -178,10 +178,9 @@ namespace OpenMS
     return tool_name_ + ":1:";
   }
 
-  TOPPBase::TOPPBase(const std::string& tool_name, const std::string& tool_description, bool official, const std::vector<Citation>& citations, bool toolhandler_test) :
+  TOPPBase::TOPPBase(const std::string& tool_name, const std::string& tool_description, const std::vector<Citation>& citations, bool toolhandler_test) :
     tool_name_(tool_name),
     tool_description_(tool_description),
-    official_(official),
     citations_(citations),
     toolhandler_test_(toolhandler_test),
     log_type_(ProgressLogger::NONE),
@@ -203,9 +202,9 @@ namespace OpenMS
     // can be disabled to allow unit tests
     if (toolhandler_test_)
     {
-      // check if tool is in official tools list
+      // check that this tool is in the registry
       const ToolListType& tools = ToolHandler::getTOPPToolListRef();
-      if (official_ && !tools.count(tool_name_))
+      if (!tools.count(tool_name_))
       {
         if (tools.empty())
         {
@@ -230,7 +229,7 @@ namespace OpenMS
                                                   "'. If it is part of OpenMS, declare it with openms_topp_tool() in src/topp/executables.cmake, which both builds it and generates its entry. "
                                                   "If it is built outside OpenMS, register it by installing a tab-separated '<tool name>\\t<category>' line in a *.tsv file of that directory, "
                                                   "or in a directory named by the OPENMS_TOOL_REGISTRY_PATH environment variable; no OpenMS rebuild is needed. "
-                                                  "If it is not meant to be a registered TOPP tool, set the 'official' flag of the TOPPBase constructor to false."),
+                                                  "If it is not meant to be a registered TOPP tool at all, pass toolhandler_test = false to the TOPPBase constructor."),
                                       tool_name_);
       }
     }
@@ -2721,11 +2720,9 @@ namespace OpenMS
 
           // fill program category and docurl
           std::string docurl = getDocumentationURL();
-          std::string category;
-          if (official_)
-          { // we can only get the docurl/category from registered/official tools
-            category = ToolHandler::getCategory(tool_name_);
-          }
+          // Empty for a name the registry does not hold, which is only the case for something that
+          // is not a TOPP tool and therefore passed toolhandler_test = false.
+          std::string category = ToolHandler::getCategory(tool_name_);
 
           // collect citation information
           std::vector<std::string> citation_dois;

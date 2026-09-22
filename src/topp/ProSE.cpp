@@ -92,8 +92,7 @@ class ProSE :
   public:
     ProSE() :
       TOPPExternalToolBase("ProSE",
-        "Annotates bottom-up MS/MS spectra using ProSE.",
-        false)
+        "Annotates bottom-up MS/MS spectra using ProSE.")
     {
     }
 

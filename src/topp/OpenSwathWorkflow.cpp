@@ -226,7 +226,7 @@ class TOPPOpenSwathWorkflow
 public:
 
   TOPPOpenSwathWorkflow()
-    : TOPPOpenSwathBase("OpenSwathWorkflow", "Complete workflow to run OpenSWATH", true,
+    : TOPPOpenSwathBase("OpenSwathWorkflow", "Complete workflow to run OpenSWATH",
                         {
                           {"Roest, H.L. et al.",
                            "OpenSWATH enables automated, targeted analysis of data-independent acquisition MS data",

@@ -115,9 +115,6 @@ set(metadata_executables_list
   MetaInfoDescription_test
   MetaInfoInterface_test
   MS1LabelState_test
-  MS1LabeledFAIMS_test
-  MS1LabeledRatioQuantifier_test
-  MS1LabeledSpectra_test
   MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test
@@ -645,11 +642,6 @@ set(analysis_executables_list
   PrecursorPurity_test
   QTClusterFinder_test
   ReactionMonitoringTransition_test
-  NuXLDeisotoper_test
-  NuXLReport_test
-  NuXLFragmentAdductDefinition_test
-  NuXLModificationsGenerator_test
-  NuXLParameterParsing_test
   ProSEAlgorithm_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test

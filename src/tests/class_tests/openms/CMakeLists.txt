@@ -59,12 +59,29 @@ endforeach(_class_test)
 #------------------------------------------------------------------------------
 # some tests need special treatment
 
-# Workflow-specific policies remain beside the TOPP tool, but use the class-test harness.
-foreach(_workflow_test MS1LabeledFAIMS MS1LabeledRatioQuantifier MS1LabeledSpectra)
-  target_sources(${_workflow_test}_test PRIVATE
-    ${OPENMS_HOST_DIRECTORY}/src/topp/MS1LabeledWorkflow/${_workflow_test}.cpp)
-  target_include_directories(${_workflow_test}_test PRIVATE
-    ${OPENMS_HOST_DIRECTORY}/src/topp/MS1LabeledWorkflow)
+# Class tests of classes that live with a TOPP tool rather than in the library. A tool that
+# has a test/CMakeLists.txt gets it added here, and declares its tests with
+# openms_add_tool_class_test(), which cmake/class_test_macros.cmake defines. Adding a test/
+# folder to a tool is all it takes; nothing in this file changes.
+#
+# They are declared from this project rather than from the tool's own CMakeLists.txt because
+# src/topp is configured before src/tests: at that point OpenMS/test_config.h has not been
+# generated, the -O0 test flags and the test runtime output directory are unset, and the
+# ENABLE_CLASS_TESTING/PACKAGE_TYPE gating of src/tests/CMakeLists.txt does not exist yet.
+#
+# TOPP_TOOLS is empty when BUILD_TOPP_TOOLS is OFF, so a build that does not want the tools
+# does not compile their sources into test binaries either.
+
+# OpenMSTestSupport.cpp lives in this project; openms_add_tool_class_test() links it into
+# every tool-local class test (see the file's header comment for why it is needed).
+set(OPENMS_TEST_SUPPORT_SOURCE "${PROJECT_SOURCE_DIR}/source/OpenMSTestSupport.cpp")
+include("${OPENMS_HOST_DIRECTORY}/cmake/class_test_macros.cmake")
+
+foreach(_topp_tool ${TOPP_TOOLS})
+  if(EXISTS "${OPENMS_HOST_DIRECTORY}/src/topp/${_topp_tool}/test/CMakeLists.txt")
+    add_subdirectory("${OPENMS_HOST_DIRECTORY}/src/topp/${_topp_tool}/test"
+                     "topp_${_topp_tool}_tests")
+  endif()
 endforeach()
 
 # StopWatch_test needs to be run alone to avoid timing errors
@@ -320,16 +337,6 @@ endif()
 if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
   target_compile_definitions(ThermoRawFile_test PRIVATE
     THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
-endif()
-
-if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
-  file(TO_CMAKE_PATH "${THERMO_RAW_TEST_DATA}" _ms1_thermo_test_data)
-  target_compile_definitions(MS1LabeledSpectra_test PRIVATE
-    THERMO_RAW_TEST_DATA="${_ms1_thermo_test_data}")
-  set_tests_properties(MS1LabeledSpectra_test PROPERTIES TIMEOUT 1200)
-  if (COMMAND openms_thermo_bridge_copy_runtime_files)
-    openms_thermo_bridge_copy_runtime_files(TARGET MS1LabeledSpectra_test)
-  endif()
 endif()
 
 # Optional Thermo FAIMS-DIA integration fixture. It can be supplied explicitly via

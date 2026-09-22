@@ -102,7 +102,7 @@ class TOPPCometAdapter :
 {
 public:
   TOPPCometAdapter() :
-    SearchEngineBase("CometAdapter", "Annotates MS/MS spectra using Comet.", true,
+    SearchEngineBase("CometAdapter", "Annotates MS/MS spectra using Comet.",
              {
                  {"Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R.",
                  "Comet: An open-source MS/MS sequence database search tool",

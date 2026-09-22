@@ -61,8 +61,7 @@ class TOPPTransitionListEvidenceFilter :
 public:
   TOPPTransitionListEvidenceFilter() :
     TOPPOpenSwathBase("TransitionListEvidenceFilter",
-                      "Filter transition-list precursors by quick raw-data evidence.",
-                      true)
+                      "Filter transition-list precursors by quick raw-data evidence.")
   {
   }
 

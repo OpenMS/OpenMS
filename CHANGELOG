@@ -37,6 +37,25 @@ General:
   - Shared-data lookup uses the compiled-in path, then the executable location, then
     OPENMS_DATA_PATH, preventing stale installations from overriding bundled resources.
     Missing-file errors identify the resolved directory (#9635, #9636, #9650).
+  - A TOPP tool may keep its own sources and headers in a subfolder src/topp/<Tool>/ with
+    a CMakeLists.txt of its own, next to the single-file src/topp/<Tool>.cpp layout. The
+    class test of a tool-local class builds that class straight from the tool folder, so
+    moving code out of the library does not cost it its test coverage.
+    BREAKING (installed headers): OpenNuXL moved to src/topp/OpenNuXL/ and took the whole
+    NuXL pipeline with it. Nothing outside this tool ever used it, so OpenMS/ANALYSIS/NUXL
+    is gone: its thirteen headers are no longer installed and its classes are no longer
+    part of libOpenMS. The five NuXL class tests are unchanged and still run.
+  - BREAKING: TOPPBase no longer takes a bool official, and neither do SearchEngineBase,
+    TOPPOpenSwathBase, TOPPMapAlignerBase and TOPPFeatureLinkerBase, which only forwarded
+    it. A tool is registered by its openms_topp_tool() declaration, the same declaration
+    that builds it, so every tool that exists is registered and the flag named nothing.
+    What it did instead was let a tool disown its own registration: OpenNuXL, PeakPickerIM,
+    FeatureFinderLFQ, ProSE, QCEmbedder and ImageCreator each wrote an empty category into
+    their CTD while the registry held a real one, so TOPPAS and every other CTD consumer
+    saw them uncategorised; all six now carry their category. Out-of-tree code deriving
+    from one of these classes drops the argument; something that is not a registered TOPP
+    tool at all passes toolhandler_test = false instead, which is now the only way to skip
+    the registry check.
   - BREAKING: KNIME plugin support was removed. The ENABLE_PREPARE_KNIME_PACKAGE option
     and the prepare_knime_package targets are gone, as are the KNIME user tutorial, the
     LaTeX tutorial handout and the .knwf workflow collection under doc/tutorials (still
