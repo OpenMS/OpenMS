@@ -768,6 +768,10 @@ Fixes:
       columns. SampleSection::getFactorValue throws MissingInformation for a row without a value
       for the factor instead of reading past its end (#10148).
   Robustness:
+    - PeakPickerMobilogram::remove_overlapping_ (the cached form of the remove_overlapping_peaks
+      parameter) was declared but never assigned in updateMembers_(), so overlapping peak
+      boundaries were merged or not depending on uninitialized memory, regardless of what the
+      parameter was set to. It is now read like every other cached parameter.
     - mzIdentML output with more than one identification run repeated the Measure ids
       (Measure_mz, Measure_int, Measure_error) in every SpectrumIdentificationList and failed schema
       validation; the Measure definitions are now written once.
