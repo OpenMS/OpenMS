@@ -6,7 +6,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/INIUpdater.h>
+#include "INIUpdater.h"
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>

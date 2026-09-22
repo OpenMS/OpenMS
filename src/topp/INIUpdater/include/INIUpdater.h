@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/APPLICATIONS/OpenMS_CLIConfig.h>
-
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
@@ -25,7 +23,7 @@ namespace OpenMS
   /// map each old TOPP tool to its new Name
   typedef std::map<Internal::ToolDescriptionInternal, Internal::ToolDescriptionInternal> ToolMapping;
 
-  class OPENMS_CLI_DLLAPI INIUpdater
+  class INIUpdater
   {
 public:
 

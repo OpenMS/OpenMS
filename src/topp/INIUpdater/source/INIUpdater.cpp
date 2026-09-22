@@ -6,7 +6,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/INIUpdater.h>
+#include "INIUpdater.h"
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 

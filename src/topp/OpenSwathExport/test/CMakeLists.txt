@@ -8,12 +8,12 @@
 if(NOT COMMAND openms_add_tool_class_test)
   message(FATAL_ERROR
     "${CMAKE_CURRENT_SOURCE_DIR} is added by src/tests/class_tests/openms, which provides "
-    "# Match the pre-relocation class-test gate.
-if(DISABLE_OPENSWATH)
-  return()
+    "openms_add_tool_class_test(). It cannot be configured on its own.")
 endif()
 
-openms_add_tool_class_test(). It cannot be configured on its own.")
+# Match the pre-relocation class-test gate.
+if(DISABLE_OPENSWATH)
+  return()
 endif()
 
 openms_add_tool_class_test(OpenSwathExport_test

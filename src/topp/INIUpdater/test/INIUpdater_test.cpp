@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/APPLICATIONS/INIUpdater.h>
+#include "INIUpdater.h"
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>

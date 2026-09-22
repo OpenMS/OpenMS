@@ -57,12 +57,12 @@ General:
     tool at all passes toolhandler_test = false instead, which is now the only way to skip
     the registry check.
   - BREAKING (installed headers): Move tool-only helpers without pyOpenMS bindings
-    into the CometAdapter, DecoyDatabase, NucleicAcidSearchEngine, OpenSwathExport,
-    OpenSwathInfer, OpenSwathPeakMapExtractor, OpenSwathPercolatorScoring,
+    into the CometAdapter, DecoyDatabase, INIUpdater, NucleicAcidSearchEngine,
+    OpenSwathExport, OpenSwathInfer, OpenSwathPeakMapExtractor, OpenSwathPercolatorScoring,
     OpenSwathWorkflow, ParquetDiff, QualityControl and UniPEFF folders. Their
-    28 headers are no longer installed and 27 implementations no longer live in
-    libOpenMS. Class and round-trip tests travel with the tools; reusable inference
-    and XIPM reader tests also remain available in library-only builds.
+    29 headers are no longer installed and 28 implementations no longer live in
+    libOpenMS or libOpenMS_CLI. Class and round-trip tests travel with the tools;
+    reusable inference and XIPM reader tests also remain available in library-only builds.
   - BREAKING: KNIME plugin support was removed. The ENABLE_PREPARE_KNIME_PACKAGE option
     and the prepare_knime_package targets are gone, as are the KNIME user tutorial, the
     LaTeX tutorial handout and the .knwf workflow collection under doc/tutorials (still
