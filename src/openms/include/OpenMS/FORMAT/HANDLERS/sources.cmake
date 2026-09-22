@@ -27,7 +27,6 @@ PTMXMLHandler.h
 ParamXMLHandler.h
 TraMLHandler.h
 UnimodXMLHandler.h
-UniProtXMLHandler.h
 StringManager.h
 XMLAttributes.h
 XMLHandler.h
