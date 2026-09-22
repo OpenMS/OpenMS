@@ -5,10 +5,15 @@
 # $Authors: Timo Sachsenberg $
 # --------------------------------------------------------------------------
 
-# Class tests of the workflow-specific classes that live with this tool. The class-test
-# project adds this directory and provides openms_add_tool_class_test(); see the OpenNuXL
-# block in src/tests/class_tests/openms/CMakeLists.txt. Each class is standalone, so each
-# test links only the class it covers.
+# Declared with the OpenMS class-test conventions. In this tree the class-test project adds
+# this directory and has already defined openms_add_tool_class_test(); out of tree the same
+# entry point would come from the OpenMS package, which needs the TestFramework component
+# that OpenMS does not export yet (see cmake/class_test_macros.cmake).
+if(NOT COMMAND openms_add_tool_class_test)
+  find_package(OpenMS CONFIG REQUIRED COMPONENTS TestFramework)
+endif()
+
+# Each of these classes is standalone, so each test links only the class it covers.
 foreach(_ms1_test MS1LabeledFAIMS MS1LabeledRatioQuantifier MS1LabeledSpectra)
   openms_add_tool_class_test(${_ms1_test}_test
     SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../${_ms1_test}.cpp

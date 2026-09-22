@@ -5,10 +5,14 @@
 # $Authors: Timo Sachsenberg $
 # --------------------------------------------------------------------------
 
-# Class tests of the NuXL classes that live with this tool. The class-test project adds this
-# directory and provides openms_add_tool_class_test(); see the block that does so in
-# src/tests/class_tests/openms/CMakeLists.txt.
-#
+# Declared with the OpenMS class-test conventions. In this tree the class-test project adds
+# this directory and has already defined openms_add_tool_class_test(); out of tree the same
+# entry point would come from the OpenMS package, which needs the TestFramework component
+# that OpenMS does not export yet (see cmake/class_test_macros.cmake).
+if(NOT COMMAND openms_add_tool_class_test)
+  find_package(OpenMS CONFIG REQUIRED COMPONENTS TestFramework)
+endif()
+
 # Each entry lists the tool-local sources its test has to link: the class it covers plus the
 # NuXL classes that class calls into.
 set(_nuxl_NuXLFragmentAdductDefinition_sources NuXLFragmentAdductDefinition.cpp)

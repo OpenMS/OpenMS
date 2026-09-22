@@ -61,8 +61,8 @@ endforeach(_class_test)
 
 # Class tests of classes that live with a TOPP tool rather than in the library. A tool that
 # has a test/CMakeLists.txt gets it added here, and declares its tests with
-# openms_add_tool_class_test() below. Adding a test/ folder to a tool is all it takes;
-# nothing in this file changes.
+# openms_add_tool_class_test(), which cmake/class_test_macros.cmake defines. Adding a test/
+# folder to a tool is all it takes; nothing in this file changes.
 #
 # They are declared from this project rather than from the tool's own CMakeLists.txt because
 # src/topp is configured before src/tests: at that point OpenMS/test_config.h has not been
@@ -71,24 +71,11 @@ endforeach(_class_test)
 #
 # TOPP_TOOLS is empty when BUILD_TOPP_TOOLS is OFF, so a build that does not want the tools
 # does not compile their sources into test binaries either.
-set(OPENMS_CLASS_TESTS_SOURCE_DIR "${PROJECT_SOURCE_DIR}/source")
 
-# openms_add_tool_class_test(<name>_test SOURCES <tool sources> INCLUDE_DIRS <dirs>)
-# Builds one class test of a tool-local class the way the loop above builds a library one.
-function(openms_add_tool_class_test _name)
-  cmake_parse_arguments(_tct "" "" "SOURCES;INCLUDE_DIRS" ${ARGN})
-  # OpenMSTestSupport.cpp registers libOpenMS behavior with the std-only test framework;
-  # every class test needs it (see the file's header comment).
-  add_executable(${_name} ${_name}.cpp ${_tct_SOURCES}
-    "${OPENMS_CLASS_TESTS_SOURCE_DIR}/OpenMSTestSupport.cpp")
-  target_include_directories(${_name} PRIVATE ${_tct_INCLUDE_DIRS})
-  target_link_libraries(${_name} OpenMSTestFramework ${OpenMS_LIBRARIES})
-  openms_add_executable_compiler_flags(${_name})
-  add_test(${_name} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name})
-  if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set_target_properties(${_name} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
-  endif()
-endfunction()
+# OpenMSTestSupport.cpp lives in this project; openms_add_tool_class_test() links it into
+# every tool-local class test (see the file's header comment for why it is needed).
+set(OPENMS_TEST_SUPPORT_SOURCE "${PROJECT_SOURCE_DIR}/source/OpenMSTestSupport.cpp")
+include("${OPENMS_HOST_DIRECTORY}/cmake/class_test_macros.cmake")
 
 foreach(_topp_tool ${TOPP_TOOLS})
   if(EXISTS "${OPENMS_HOST_DIRECTORY}/src/topp/${_topp_tool}/test/CMakeLists.txt")
