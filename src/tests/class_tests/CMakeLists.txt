@@ -38,8 +38,12 @@ openms_add_library_compiler_flags(OpenMSTestSupport)
 # (config.h) is keyed on NDEBUG, and this file's OPENMS_ASSERTIONS branch decides
 # whether precondition tests run at all. Set on the target, because the directory
 # scope here also covers the OpenSwathAlgo tests, which keep the production flags.
+# One quoted generator expression per flag: an unquoted one containing a space is split
+# into two arguments by the CMake language, and a fragment that is no longer a complete
+# expression is passed to the compiler verbatim rather than diagnosed.
 if(CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
-  target_compile_options(OpenMSTestSupport PRIVATE $<$<CONFIG:Release>:-O0 -UNDEBUG>)
+  target_compile_options(OpenMSTestSupport PRIVATE
+    "$<$<CONFIG:Release>:-O0>" "$<$<CONFIG:Release>:-UNDEBUG>")
 endif()
 
 #------------------------------------------------------------------------------
