@@ -13,7 +13,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
+#include "NuXLReport.h"
 #include <vector>
 
 namespace OpenMS

@@ -20,7 +20,7 @@
 
 namespace OpenMS
 {  
-struct OPENMS_DLLAPI NuXLFragmentAdductDefinition
+struct NuXLFragmentAdductDefinition
 {
   EmpiricalFormula formula; // formula
   std::string name;  // name used in annotation

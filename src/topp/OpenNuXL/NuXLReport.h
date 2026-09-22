@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLMarkerIonExtractor.h>
+#include "NuXLMarkerIonExtractor.h"
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -25,7 +25,7 @@ namespace OpenMS
 {
 
 /// @brief struct to hold a single report line
-struct OPENMS_DLLAPI NuXLReportRow
+struct NuXLReportRow
 {
   bool no_id;
 
@@ -57,13 +57,13 @@ struct OPENMS_DLLAPI NuXLReportRow
 };
 
 /// create header line
-struct OPENMS_DLLAPI NuXLReportRowHeader
+struct NuXLReportRowHeader
 {
   static std::string getString(const std::string& separator, const StringList& meta_values_to_export);
 };
 
 /// create PSM report
-struct OPENMS_DLLAPI NuXLReport
+struct NuXLReport
 {
   static std::vector<NuXLReportRow> annotate(
     const PeakMap& spectra, 
@@ -74,7 +74,7 @@ struct OPENMS_DLLAPI NuXLReport
 
 
 /// protein report
-struct OPENMS_DLLAPI NuXLProteinReport
+struct NuXLProteinReport
 {
   static void annotateProteinModificationForTopHits(std::vector<ProteinIdentification>& prot_ids, 
     const PeptideIdentificationList& peps, 

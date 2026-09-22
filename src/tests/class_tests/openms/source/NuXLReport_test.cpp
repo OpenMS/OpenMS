@@ -8,8 +8,8 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
+#include "NuXLModificationsGenerator.h"
+#include "NuXLReport.h"
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Constants.h>

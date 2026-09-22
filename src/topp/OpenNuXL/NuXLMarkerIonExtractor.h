@@ -17,7 +17,7 @@
 namespace OpenMS
 {
 
-  struct OPENMS_DLLAPI NuXLMarkerIonExtractor
+  struct NuXLMarkerIonExtractor
   {
     /// name to mass-intensity pair
     typedef std::map<std::string, std::vector<std::pair<double, double> > > MarkerIonsType;

@@ -43,11 +43,11 @@
 #include "NuXLFragmentAnnotationHelper.h"
 #include "NuXLFragmentIonGenerator.h"
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLMarkerIonExtractor.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLPresets.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
+#include "NuXLMarkerIonExtractor.h"
+#include "NuXLModificationsGenerator.h"
+#include "NuXLParameterParsing.h"
+#include "NuXLPresets.h"
+#include "NuXLReport.h"
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>

@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
+#include "NuXLModificationsGenerator.h"
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/AASequence.h>

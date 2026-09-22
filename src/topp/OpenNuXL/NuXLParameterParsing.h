@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAdductDefinition.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
+#include "NuXLFragmentAdductDefinition.h"
+#include "NuXLModificationsGenerator.h"
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/TypeAliases.h>
@@ -27,14 +27,14 @@ namespace OpenMS
 using NucleotideToFeasibleFragmentAdducts = std::pair<char, std::vector<NuXLFragmentAdductDefinition> >;
 
 // stores the fragment adducts and marker ions for a given precursor adduct
-struct OPENMS_DLLAPI MS2AdductsOfSinglePrecursorAdduct
+struct MS2AdductsOfSinglePrecursorAdduct
 {
   std::vector<NucleotideToFeasibleFragmentAdducts> feasible_adducts;
   std::vector<NuXLFragmentAdductDefinition> marker_ions;
 };
 
 // helper struct to facilitate parsing of parameters (modifications, nucleotide adducts, ...)
-struct OPENMS_DLLAPI NuXLParameterParsing
+struct NuXLParameterParsing
 {
   /// Query ResidueModifications (given as strings) from ModificationsDB
   static std::vector<ResidueModification> getModifications(StringList modNames);

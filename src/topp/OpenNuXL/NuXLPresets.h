@@ -24,7 +24,7 @@ namespace OpenMS
       @param[in] custom_presets_file Optional path to a custom presets file
       @return StringList containing all available preset names
     */
-    OPENMS_DLLAPI StringList getAllPresetsNames(const std::string& custom_presets_file = "");
+    StringList getAllPresetsNames(const std::string& custom_presets_file = "");
 
     /**
       @brief Get preset parameters for a given preset name
@@ -36,7 +36,7 @@ namespace OpenMS
       @param[out] fragment_adducts Output parameter for fragment adducts
       @param[out] can_cross_link Output parameter for can_cross_link
     */
-   OPENMS_DLLAPI void getPresets(const std::string& p, 
+   void getPresets(const std::string& p, 
     const std::string& custom_presets_file,
     StringList& nucleotides, 
     StringList& mapping, 
@@ -53,7 +53,7 @@ namespace OpenMS
       @param[out] fragment_adducts Output parameter for fragment adducts
       @param[out] can_cross_link Output parameter for can_cross_link
     */
-    OPENMS_DLLAPI void getPresets(const std::string& p, 
+    void getPresets(const std::string& p, 
      StringList& nucleotides, 
      StringList& mapping, 
      StringList& modifications, 

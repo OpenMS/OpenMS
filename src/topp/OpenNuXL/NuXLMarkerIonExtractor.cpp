@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLMarkerIonExtractor.h>
+#include "NuXLMarkerIonExtractor.h"
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 using namespace std;

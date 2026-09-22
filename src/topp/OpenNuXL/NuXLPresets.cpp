@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLPresets.h>
+#include "NuXLPresets.h"
 #include <OpenMS/SYSTEM/File.h>
 #include <nlohmann/json.hpp>
 #include <fstream>

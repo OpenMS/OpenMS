@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAdductDefinition.h>
+#include "NuXLFragmentAdductDefinition.h"
 #include "NuXLFragmentAnnotationHelper.h"
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>

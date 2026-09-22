@@ -9,9 +9,9 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAdductDefinition.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLPresets.h>
+#include "NuXLFragmentAdductDefinition.h"
+#include "NuXLParameterParsing.h"
+#include "NuXLPresets.h"
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
@@ -23,7 +23,7 @@ using namespace std;
 
 ///////////////////////////
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
+#include "NuXLParameterParsing.h"
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace OpenMS;

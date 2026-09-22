@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAdductDefinition.h>
+#include "NuXLFragmentAdductDefinition.h"
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <unordered_set>

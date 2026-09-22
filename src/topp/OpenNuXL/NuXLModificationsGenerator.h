@@ -38,7 +38,7 @@ namespace OpenMS
 
     @ingroup Analysis_ID
   */
-  struct OPENMS_DLLAPI NuXLModificationMassesResult
+  struct NuXLModificationMassesResult
   {
     /// Comparator that orders strings primarily by length (shortest first) and lexicographically within the same length.
     struct MyStringLengthCompare
@@ -85,7 +85,7 @@ namespace OpenMS
 
     @ingroup Analysis_ID
   */
-  class OPENMS_DLLAPI NuXLModificationsGenerator
+  class NuXLModificationsGenerator
   {
     public:
       /**

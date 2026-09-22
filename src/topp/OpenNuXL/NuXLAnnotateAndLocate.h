@@ -11,7 +11,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
+#include "NuXLParameterParsing.h"
 #include "NuXLAnnotatedHit.h"
 
 #include <set>

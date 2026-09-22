@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAdductDefinition.h>
+#include "NuXLFragmentAdductDefinition.h"
 
 using namespace std;
 

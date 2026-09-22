@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
+#include "NuXLReport.h"
 #include <OpenMS/MATH/MathFunctions.h>
 #include <boost/range/adaptor/reversed.hpp>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
