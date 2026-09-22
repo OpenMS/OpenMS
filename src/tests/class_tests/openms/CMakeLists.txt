@@ -67,12 +67,23 @@ foreach(_workflow_test MS1LabeledFAIMS MS1LabeledRatioQuantifier MS1LabeledSpect
     ${OPENMS_HOST_DIRECTORY}/src/topp/MS1LabeledWorkflow)
 endforeach()
 
-# The NuXL pipeline and its class tests live next to their only user, the OpenNuXL TOPP
-# tool. Adding that directory here rather than listing the tests in executables.cmake
-# gives them this project's include directories and test build flags, so they build and
-# run like any other class test while their sources stay with the tool.
+# Class tests of classes that live with a TOPP tool rather than in the library.
+# A tool that has a test/CMakeLists.txt gets it added here, so those targets inherit this
+# project's include directories (OpenMS/test_config.h among them), its -O0 test build
+# flags, its runtime output directory and the ENABLE_CLASS_TESTING/PACKAGE_TYPE gating of
+# src/tests/CMakeLists.txt -- a tool's own CMakeLists.txt is configured before any of
+# those exist. Adding a test/ folder to a tool is all it takes; nothing here changes.
+# The tool list is read rather than taken from TOPP_TOOLS so these tests still build when
+# BUILD_TOPP_TOOLS is OFF: they compile the tool's sources directly and never link it.
 set(OPENMS_CLASS_TESTS_SUPPORT_SOURCE "${PROJECT_SOURCE_DIR}/source/OpenMSTestSupport.cpp")
-add_subdirectory("${OPENMS_HOST_DIRECTORY}/src/topp/OpenNuXL/test" topp_OpenNuXL_tests)
+include("${OPENMS_HOST_DIRECTORY}/src/topp/executables.cmake")
+foreach(_topp_tool ${TOPP_executables})
+  if(EXISTS "${OPENMS_HOST_DIRECTORY}/src/topp/${_topp_tool}/test/CMakeLists.txt")
+    add_subdirectory("${OPENMS_HOST_DIRECTORY}/src/topp/${_topp_tool}/test"
+                     "topp_${_topp_tool}_tests")
+  endif()
+endforeach()
+unset(directory)  # stray variable set by executables.cmake
 
 # StopWatch_test needs to be run alone to avoid timing errors
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
