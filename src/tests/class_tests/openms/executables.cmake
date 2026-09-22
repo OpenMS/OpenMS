@@ -115,9 +115,6 @@ set(metadata_executables_list
   MetaInfoDescription_test
   MetaInfoInterface_test
   MS1LabelState_test
-  MS1LabeledFAIMS_test
-  MS1LabeledRatioQuantifier_test
-  MS1LabeledSpectra_test
   MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test

@@ -59,31 +59,43 @@ endforeach(_class_test)
 #------------------------------------------------------------------------------
 # some tests need special treatment
 
-# Workflow-specific policies remain beside the TOPP tool, but use the class-test harness.
-foreach(_workflow_test MS1LabeledFAIMS MS1LabeledRatioQuantifier MS1LabeledSpectra)
-  target_sources(${_workflow_test}_test PRIVATE
-    ${OPENMS_HOST_DIRECTORY}/src/topp/MS1LabeledWorkflow/${_workflow_test}.cpp)
-  target_include_directories(${_workflow_test}_test PRIVATE
-    ${OPENMS_HOST_DIRECTORY}/src/topp/MS1LabeledWorkflow)
-endforeach()
+# Class tests of classes that live with a TOPP tool rather than in the library. A tool that
+# has a test/CMakeLists.txt gets it added here, and declares its tests with
+# openms_add_tool_class_test() below. Adding a test/ folder to a tool is all it takes;
+# nothing in this file changes.
+#
+# They are declared from this project rather than from the tool's own CMakeLists.txt because
+# src/topp is configured before src/tests: at that point OpenMS/test_config.h has not been
+# generated, the -O0 test flags and the test runtime output directory are unset, and the
+# ENABLE_CLASS_TESTING/PACKAGE_TYPE gating of src/tests/CMakeLists.txt does not exist yet.
+#
+# TOPP_TOOLS is empty when BUILD_TOPP_TOOLS is OFF, so a build that does not want the tools
+# does not compile their sources into test binaries either.
+set(OPENMS_CLASS_TESTS_SOURCE_DIR "${PROJECT_SOURCE_DIR}/source")
 
-# Class tests of classes that live with a TOPP tool rather than in the library.
-# A tool that has a test/CMakeLists.txt gets it added here, so those targets inherit this
-# project's include directories (OpenMS/test_config.h among them), its -O0 test build
-# flags, its runtime output directory and the ENABLE_CLASS_TESTING/PACKAGE_TYPE gating of
-# src/tests/CMakeLists.txt -- a tool's own CMakeLists.txt is configured before any of
-# those exist. Adding a test/ folder to a tool is all it takes; nothing here changes.
-# The tool list is read rather than taken from TOPP_TOOLS so these tests still build when
-# BUILD_TOPP_TOOLS is OFF: they compile the tool's sources directly and never link it.
-set(OPENMS_CLASS_TESTS_SUPPORT_SOURCE "${PROJECT_SOURCE_DIR}/source/OpenMSTestSupport.cpp")
-include("${OPENMS_HOST_DIRECTORY}/src/topp/executables.cmake")
-foreach(_topp_tool ${TOPP_executables})
+# openms_add_tool_class_test(<name>_test SOURCES <tool sources> INCLUDE_DIRS <dirs>)
+# Builds one class test of a tool-local class the way the loop above builds a library one.
+function(openms_add_tool_class_test _name)
+  cmake_parse_arguments(_tct "" "" "SOURCES;INCLUDE_DIRS" ${ARGN})
+  # OpenMSTestSupport.cpp registers libOpenMS behavior with the std-only test framework;
+  # every class test needs it (see the file's header comment).
+  add_executable(${_name} ${_name}.cpp ${_tct_SOURCES}
+    "${OPENMS_CLASS_TESTS_SOURCE_DIR}/OpenMSTestSupport.cpp")
+  target_include_directories(${_name} PRIVATE ${_tct_INCLUDE_DIRS})
+  target_link_libraries(${_name} OpenMSTestFramework ${OpenMS_LIBRARIES})
+  openms_add_executable_compiler_flags(${_name})
+  add_test(${_name} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name})
+  if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set_target_properties(${_name} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
+  endif()
+endfunction()
+
+foreach(_topp_tool ${TOPP_TOOLS})
   if(EXISTS "${OPENMS_HOST_DIRECTORY}/src/topp/${_topp_tool}/test/CMakeLists.txt")
     add_subdirectory("${OPENMS_HOST_DIRECTORY}/src/topp/${_topp_tool}/test"
                      "topp_${_topp_tool}_tests")
   endif()
 endforeach()
-unset(directory)  # stray variable set by executables.cmake
 
 # StopWatch_test needs to be run alone to avoid timing errors
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
@@ -338,16 +350,6 @@ endif()
 if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
   target_compile_definitions(ThermoRawFile_test PRIVATE
     THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
-endif()
-
-if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
-  file(TO_CMAKE_PATH "${THERMO_RAW_TEST_DATA}" _ms1_thermo_test_data)
-  target_compile_definitions(MS1LabeledSpectra_test PRIVATE
-    THERMO_RAW_TEST_DATA="${_ms1_thermo_test_data}")
-  set_tests_properties(MS1LabeledSpectra_test PROPERTIES TIMEOUT 1200)
-  if (COMMAND openms_thermo_bridge_copy_runtime_files)
-    openms_thermo_bridge_copy_runtime_files(TARGET MS1LabeledSpectra_test)
-  endif()
 endif()
 
 # Optional Thermo FAIMS-DIA integration fixture. It can be supplied explicitly via
