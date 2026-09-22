@@ -53,7 +53,9 @@ General:
     removes it from the registry, and a tool built outside this repository can register
     itself by installing its own .tsv next to it, without an OpenMS rebuild. ToolHandler
     looks for a registry at the installation's shared-data path, then next to the
-    executable, then in the build tree, and caches it after the first read.
+    executable, then in the build tree if earlier locations contain no registry. It also
+    reads .tsv files from directories named by OPENMS_TOOL_REGISTRY_PATH or the legacy
+    OPENMS_TTD_INTERNAL_PATH, and caches the result after the first read.
     ToolHandler::getTypes() returns an empty list for a tool the registry does not know
     instead of throwing, matching its documented behavior. BREAKING (installed headers):
     ToolDescriptionFile, ToolDescriptionHandler and Internal::ToolDescription's
