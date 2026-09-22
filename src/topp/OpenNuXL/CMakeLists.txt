@@ -16,37 +16,40 @@ if(NOT TARGET OpenMS::OpenMS_CLI)
 endif()
 
 # The whole NuXL pipeline. It used to live in OpenMS/ANALYSIS/NUXL, but nothing outside
-# this tool ever used it, so it is kept next to the tool instead of in the library.
-# The class tests in src/tests/class_tests/openms build the sources they cover straight
-# from this folder; see the OpenNuXL block in that directory's CMakeLists.txt.
+# this tool ever used it, so it is kept next to the tool instead of in the library:
+#   include/  the NuXL headers        source/  their implementations
+#   test/     their class tests, built by the class-test project (see test/CMakeLists.txt)
+set(tool_headers
+  include/NuXLAnnotateAndLocate.h
+  include/NuXLAnnotatedHit.h
+  include/NuXLConstants.h
+  include/NuXLDeisotoper.h
+  include/NuXLFDR.h
+  include/NuXLFragmentAdductDefinition.h
+  include/NuXLFragmentAnnotationHelper.h
+  include/NuXLFragmentIonGenerator.h
+  include/NuXLMarkerIonExtractor.h
+  include/NuXLModificationsGenerator.h
+  include/NuXLParameterParsing.h
+  include/NuXLPresets.h
+  include/NuXLReport.h
+)
 set(tool_sources
-  NuXLAnnotateAndLocate.cpp
-  NuXLAnnotateAndLocate.h
-  NuXLAnnotatedHit.h
-  NuXLConstants.h
-  NuXLDeisotoper.cpp
-  NuXLDeisotoper.h
-  NuXLFDR.cpp
-  NuXLFDR.h
-  NuXLFragmentAdductDefinition.cpp
-  NuXLFragmentAdductDefinition.h
-  NuXLFragmentAnnotationHelper.cpp
-  NuXLFragmentAnnotationHelper.h
-  NuXLFragmentIonGenerator.cpp
-  NuXLFragmentIonGenerator.h
-  NuXLMarkerIonExtractor.cpp
-  NuXLMarkerIonExtractor.h
-  NuXLModificationsGenerator.cpp
-  NuXLModificationsGenerator.h
-  NuXLParameterParsing.cpp
-  NuXLParameterParsing.h
-  NuXLPresets.cpp
-  NuXLPresets.h
-  NuXLReport.cpp
-  NuXLReport.h
+  source/NuXLAnnotateAndLocate.cpp
+  source/NuXLDeisotoper.cpp
+  source/NuXLFDR.cpp
+  source/NuXLFragmentAdductDefinition.cpp
+  source/NuXLFragmentAnnotationHelper.cpp
+  source/NuXLFragmentIonGenerator.cpp
+  source/NuXLMarkerIonExtractor.cpp
+  source/NuXLModificationsGenerator.cpp
+  source/NuXLParameterParsing.cpp
+  source/NuXLPresets.cpp
+  source/NuXLReport.cpp
 )
 
-add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources})
+add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources} ${tool_headers})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(${PROJECT_NAME} OpenMS::OpenMS_CLI)
 # NuXLPresets.cpp parses the preset JSON. nlohmann::json is a PRIVATE dependency of
 # libOpenMS, so it does not arrive through OpenMS_CLI and has to be linked here.

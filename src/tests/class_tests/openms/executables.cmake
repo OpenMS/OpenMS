@@ -646,10 +646,6 @@ set(analysis_executables_list
   PrecursorPurity_test
   QTClusterFinder_test
   ReactionMonitoringTransition_test
-  NuXLReport_test
-  NuXLFragmentAdductDefinition_test
-  NuXLModificationsGenerator_test
-  NuXLParameterParsing_test
   ProSEAlgorithm_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test

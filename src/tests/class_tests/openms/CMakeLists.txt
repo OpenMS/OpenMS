@@ -67,24 +67,12 @@ foreach(_workflow_test MS1LabeledFAIMS MS1LabeledRatioQuantifier MS1LabeledSpect
     ${OPENMS_HOST_DIRECTORY}/src/topp/MS1LabeledWorkflow)
 endforeach()
 
-# The NuXL pipeline lives next to its only user, the OpenNuXL TOPP tool, so these tests
-# build the classes they cover from src/topp/OpenNuXL. Each entry lists the tool-local
-# sources its test has to link: the covered class plus the NuXL classes it calls into.
-set(_nuxl_NuXLFragmentAdductDefinition_sources NuXLFragmentAdductDefinition.cpp)
-set(_nuxl_NuXLModificationsGenerator_sources NuXLModificationsGenerator.cpp)
-set(_nuxl_NuXLParameterParsing_sources NuXLParameterParsing.cpp NuXLFragmentAdductDefinition.cpp
-                                       NuXLModificationsGenerator.cpp NuXLPresets.cpp)
-set(_nuxl_NuXLReport_sources NuXLReport.cpp NuXLMarkerIonExtractor.cpp NuXLModificationsGenerator.cpp)
-foreach(_nuxl_test NuXLFragmentAdductDefinition NuXLModificationsGenerator NuXLParameterParsing NuXLReport)
-  foreach(_nuxl_source ${_nuxl_${_nuxl_test}_sources})
-    target_sources(${_nuxl_test}_test PRIVATE
-      ${OPENMS_HOST_DIRECTORY}/src/topp/OpenNuXL/${_nuxl_source})
-  endforeach()
-  target_include_directories(${_nuxl_test}_test PRIVATE
-    ${OPENMS_HOST_DIRECTORY}/src/topp/OpenNuXL)
-endforeach()
-# NuXLPresets.cpp parses the preset JSON; nlohmann::json is PRIVATE to libOpenMS.
-target_link_libraries(NuXLParameterParsing_test nlohmann_json::nlohmann_json)
+# The NuXL pipeline and its class tests live next to their only user, the OpenNuXL TOPP
+# tool. Adding that directory here rather than listing the tests in executables.cmake
+# gives them this project's include directories and test build flags, so they build and
+# run like any other class test while their sources stay with the tool.
+set(OPENMS_CLASS_TESTS_SUPPORT_SOURCE "${PROJECT_SOURCE_DIR}/source/OpenMSTestSupport.cpp")
+add_subdirectory("${OPENMS_HOST_DIRECTORY}/src/topp/OpenNuXL/test" topp_OpenNuXL_tests)
 
 # StopWatch_test needs to be run alone to avoid timing errors
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
