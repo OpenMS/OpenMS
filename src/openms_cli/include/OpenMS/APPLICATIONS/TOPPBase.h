@@ -97,12 +97,13 @@ public:
 
       @param[in] name Tool name.
       @param[in] description Short description of the tool (one line).
-      @param[in] official If this is an official TOPP tool contained in the OpenMS/TOPP release.
-             If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
       @param[in] citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
-      @param[in] toolhandler_test Check if this tool is registered with the ToolHandler (disable for unit tests only)
+      @param[in] toolhandler_test Whether this name has to be in the tool registry. Every tool is registered by
+             its openms_topp_tool() declaration, so leave this at @em true. Pass @em false only for something
+             that is not a TOPP tool at all and therefore has no declaration: the fake tools of TOPPBase's own
+             class tests, and the templates under doc/code_examples.
     */
-    TOPPBase(const std::string& name, const std::string& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
+    TOPPBase(const std::string& name, const std::string& description, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 
     /// Destructor
     virtual ~TOPPBase();
@@ -311,8 +312,6 @@ protected:
     /// Version string including additional revision/date time information. Note: This differs from version_ only if not provided by the user.
     std::string verboseVersion_;
 
-    /// Flag indicating if this an official TOPP tool
-    bool official_;
 
     /// Papers, specific for this tool (will be shown in '--help')
     std::vector<Citation> citations_;

@@ -62,7 +62,7 @@ class TOPPOpenSwathPeakMapExtractor :
 {
 public:
   TOPPOpenSwathPeakMapExtractor() :
-    TOPPOpenSwathBase("OpenSwathPeakMapExtractor", "Extract targeted mz/RT/IM peak maps from DIA or diaPASEF data", true)
+    TOPPOpenSwathBase("OpenSwathPeakMapExtractor", "Extract targeted mz/RT/IM peak maps from DIA or diaPASEF data")
   {
   }
 

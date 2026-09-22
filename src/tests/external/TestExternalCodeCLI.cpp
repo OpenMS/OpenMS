@@ -22,7 +22,7 @@ class TOPPExternalTool : public TOPPBase
 public:
   /// Registers the tool as unofficial, so no entry in the ToolHandler is required.
   TOPPExternalTool() :
-    TOPPBase("TestExternalCodeCLI", "Tool of an external project built against the installed OpenMS_CLI library.", false)
+    TOPPBase("TestExternalCodeCLI", "Tool of an external project built against the installed OpenMS_CLI library.", {}, false)
   {
   }
 

@@ -46,7 +46,6 @@ public:
   TOPPFLASHDeconv():
       TOPPBase("FLASHDeconv",
                "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
-               true,
                {Citation {"Jeong K, Kim J, Gaikwad M et al.", "FLASHDeconv: Ultrafast, High-Quality Feature Deconvolution for Top-Down Proteomics",
                           "Cell Syst 2020 Feb 26;10(2):213-218.e6", "10.1016/j.cels.2020.01.003"}})
   {

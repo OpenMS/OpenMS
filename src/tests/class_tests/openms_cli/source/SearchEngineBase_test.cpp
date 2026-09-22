@@ -27,7 +27,7 @@ class SearchEngineBaseTest
 {
   public:
     SearchEngineBaseTest()
-      : SearchEngineBase("SearchEngineBaseTest", "A test class", false, {}, false)
+      : SearchEngineBase("SearchEngineBaseTest", "A test class", {}, false)
     {
       char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
