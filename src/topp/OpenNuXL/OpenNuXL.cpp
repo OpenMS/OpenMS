@@ -796,7 +796,7 @@ class OpenNuXL :
 
 public:
   OpenNuXL() :
-    TOPPExternalToolBase("OpenNuXL", "Annotate RNA/DNA-peptide cross-links in MS/MS spectra.", false)
+    TOPPExternalToolBase("OpenNuXL", "Annotate RNA/DNA-peptide cross-links in MS/MS spectra.")
   {
   }
 
