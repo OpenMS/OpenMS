@@ -12,15 +12,18 @@
 #
 # This lives here rather than inside src/tests/class_tests/openms/CMakeLists.txt so that a
 # tool's test/ folder has one documented entry point instead of depending on the internals
-# of the project that happens to add it, and so the same entry point can be installed with
-# the OpenMS package once the test framework is exported. It is not installed today: the
-# package has no TestFramework component, so there is nothing out of tree to link against
-# (see src/testframework/CMakeLists.txt for why the target is not exported).
+# of the project that happens to add it.
+#
+# In-tree only, and not installed. OpenMS deliberately does not export its test framework
+# (see src/testframework/CMakeLists.txt), so a tool's test/ folder cannot be configured
+# outside this build; those folders therefore assert on this command rather than offer a
+# fallback that could not succeed. Making them buildable out of tree needs the framework
+# exported as a package component and a home for OpenMSTestSupport.cpp -- both decisions in
+# their own right, neither of which this file anticipates.
 #
 # The caller sets OPENMS_TEST_SUPPORT_SOURCE. OpenMSTestSupport.cpp registers libOpenMS
 # behavior (unique-ID seeding, exception naming) with the standard-library-only test
-# framework, and every class test links it; it belongs to the class-test project today, so
-# an out-of-tree consumer has nothing to point this at yet.
+# framework, and every class test links it.
 
 # openms_add_tool_class_test(<name>_test
 #                            SOURCES <tool sources the test links>

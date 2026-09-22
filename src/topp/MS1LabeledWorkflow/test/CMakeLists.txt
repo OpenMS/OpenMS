@@ -5,12 +5,15 @@
 # $Authors: Timo Sachsenberg $
 # --------------------------------------------------------------------------
 
-# Declared with the OpenMS class-test conventions. In this tree the class-test project adds
-# this directory and has already defined openms_add_tool_class_test(); out of tree the same
-# entry point would come from the OpenMS package, which needs the TestFramework component
-# that OpenMS does not export yet (see cmake/class_test_macros.cmake).
+# This directory is added by the OpenMS class-test project, which defines the class-test
+# conventions in cmake/class_test_macros.cmake. Building it on its own is not supported:
+# that needs OpenMS to export its test framework, which it deliberately does not (see
+# src/testframework/CMakeLists.txt). State the dependency rather than leave a caller to
+# discover it as an unknown command.
 if(NOT COMMAND openms_add_tool_class_test)
-  find_package(OpenMS CONFIG REQUIRED COMPONENTS TestFramework)
+  message(FATAL_ERROR
+    "${CMAKE_CURRENT_SOURCE_DIR} is added by src/tests/class_tests/openms, which provides "
+    "openms_add_tool_class_test(). It cannot be configured on its own.")
 endif()
 
 # Each of these classes is standalone, so each test links only the class it covers.
