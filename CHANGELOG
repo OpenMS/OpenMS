@@ -768,6 +768,10 @@ Fixes:
       columns. SampleSection::getFactorValue throws MissingInformation for a row without a value
       for the factor instead of reading past its end (#10148).
   Robustness:
+    - SpectrumCheapDPCorr::operator()(x, y) declared a local "bool keeppeaks_" that shadowed the
+      member of the same name, so the member itself was never assigned: dynprog_(), which resolves
+      ambiguous many-to-many peak alignments, read uninitialized memory instead of the keeppeaks
+      parameter when deciding whether to keep unaligned peaks in the consensus spectrum.
     - mzIdentML output with more than one identification run repeated the Measure ids
       (Measure_mz, Measure_int, Measure_error) in every SpectrumIdentificationList and failed schema
       validation; the Measure definitions are now written once.
