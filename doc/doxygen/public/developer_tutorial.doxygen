@@ -217,7 +217,7 @@ The extensible %OpenMS library implements common mass spectrometric data process
 <caption>Directory structure of src folder (/src)</caption>
  <tr><th>Folder        <th>Description
  <tr><td>openms</td><td>Source code of core library</td></tr>
- <tr><td>openms_cli</td><td>Source code of the TOPP tool framework (TOPPBase, ToolHandler, INIUpdater, ...), library OpenMS_CLI</td></tr>
+ <tr><td>openms_cli</td><td>Source code of the TOPP tool framework (TOPPBase, ToolHandler, ...), library OpenMS_CLI</td></tr>
  <tr><td>openms_gui</td><td>Source code of GUI applications (e.g.: TOPPView)</td></tr>
  <tr><td>topp</td><td>Source code of (stable) %OpenMS Tools</td></tr>
  <tr><td>pyOpenMS</td><td>Source files providing the python bindings</td></tr>
