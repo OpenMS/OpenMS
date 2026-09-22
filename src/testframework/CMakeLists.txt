@@ -13,8 +13,10 @@ cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 # The class-test framework (ClassTest.h macros, FuzzyStringComparator,
 # MacrosTest.h) as its own STATIC library: standard-library only, no libOpenMS
 # headers or symbols, so the tests of every OpenMS library (incl. ones that do
-# not link libOpenMS, like OpenSwathAlgo) can use it. Library-specific behavior
-# is registered on top of it by OpenMSTestSupport below, which does link libOpenMS.
+# not link libOpenMS, like OpenSwathAlgo) can use it. Library-specific behavior is
+# registered on top of it by the OpenMSTestSupport target of src/tests/class_tests,
+# which does link libOpenMS and therefore cannot live here: this directory has to stay
+# configurable on its own, which src/tests/header_sets builds it to prove.
 
 set(OpenMSTestFramework_sources
   source/CONCEPT/ClassTest.cpp
@@ -43,25 +45,6 @@ endif()
 target_compile_features(OpenMSTestFramework PUBLIC cxx_std_23)
 
 openms_add_library_compiler_flags(OpenMSTestFramework)
-
-#------------------------------------------------------------------------------
-# The libOpenMS half of the class-test setup: a fixed UniqueIdGenerator seed and an
-# OpenMS exception translator, registered at static init (the source says what breaks
-# without it). Every class test of a library that links libOpenMS needs it.
-#
-# An OBJECT library, not STATIC, and that is the point: this translation unit exports
-# no name that anyone references, so as a static archive member the linker would drop
-# it and the seed would silently never be set -- the very nondeterminism the file
-# exists to prevent, and harder to notice than forgetting to list a source file.
-# An object library puts its objects into the consumer unconditionally.
-#
-# Not installed and not exported; consumers link it in-tree. Exporting it later, to
-# make a tool's test/ folder configurable out of tree, needs a STATIC library behind
-# an INTERFACE target applying $<LINK_LIBRARY:WHOLE_ARCHIVE,...>, because an installed
-# OBJECT library does not carry that guarantee to its consumers.
-add_library(OpenMSTestSupport OBJECT source/OpenMSTestSupport.cpp)
-target_link_libraries(OpenMSTestSupport PUBLIC OpenMSTestFramework OpenMS)
-openms_add_library_compiler_flags(OpenMSTestSupport)
 
 #------------------------------------------------------------------------------
 # In-repo dev tool, not shipped: EXCLUDE_FROM_ALL keeps the archive AND its
