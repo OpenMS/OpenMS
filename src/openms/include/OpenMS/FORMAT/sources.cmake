@@ -117,7 +117,6 @@ if (WITH_HDF5)
 endif()
 
 list(APPEND sources_list_h ZipArchiveFile.h)
-list(APPEND sources_list_h ZipRandomAccessFile.h)
 list(APPEND sources_list_h MSExperimentArrowExport.h)
 list(APPEND sources_list_h ConsensusMapArrowExport.h)
 list(APPEND sources_list_h ArrowSchemaRegistry.h)
@@ -172,6 +171,11 @@ set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 ### an internal helper shared by the Parquet-backed I/O classes -- the installed
 ### readers/writers (XICParquetFile, QPXFile, ...) expose OpenMS types only -- so
 ### keeping it off OpenMS_sources_h is what lets Arrow/Parquet stay PRIVATE.
+###
+### ZipRandomAccessFile.h is the same: Open() returns an
+### arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>>, so the header includes
+### <arrow/io/api.h>. Only library sources, two tool-local sources and its class test use
+### it, and they all compile against the build tree.
 set(private_headers_list_h
 Bzip2InputStream.h
 CompressedInputSource.h
@@ -181,6 +185,7 @@ SqliteConnector_impl.h
 OMSFileLoad.h
 OMSFileStore.h
 ParquetFile.h
+ZipRandomAccessFile.h
 )
 
 ### RationalScan2ImConverter derives from OpenTIMS' Scan2InvIonMobilityConverter, so its
