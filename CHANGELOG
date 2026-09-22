@@ -776,6 +776,11 @@ Fixes:
       columns. SampleSection::getFactorValue throws MissingInformation for a row without a value
       for the factor instead of reading past its end (#10148).
   Robustness:
+    - NuXLDeisotoper (a copy of Deisotoper::deisotopeAndSingleCharge) applies the two precursor mass
+      fixes already made to Deisotoper: a precursor with unknown charge (0) no longer enables the
+      mass constraint with a neutral mass of 0, which rejected every fragment cluster, and neutral
+      masses are computed with PROTON_MASS_U (the proton mass in Da) instead of PROTON_MASS (the
+      proton mass in kg), which had made every mass about 1 u per charge too high (#10073, #10075).
     - mzIdentML output with more than one identification run repeated the Measure ids
       (Measure_mz, Measure_int, Measure_error) in every SpectrumIdentificationList and failed schema
       validation; the Measure definitions are now written once.
