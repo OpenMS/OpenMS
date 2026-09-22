@@ -333,8 +333,12 @@ int main(int argc, char** argv)
 
   //TOPP tools
   ToolListType topp_tools = ToolHandler::getTOPPToolList();
+#ifdef WITH_GUI
+  // Only documented when they were built: a WITH_GUI=OFF build has no such executables,
+  // and generate() below runs each tool to capture its help output.
   topp_tools["TOPPView"] = Internal::ToolDescription(); // these two need to be excluded from writing an INI file later!
   topp_tools["TOPPAS"] = Internal::ToolDescription();
+#endif
 
   bool errors_occured = generate(topp_tools, "TOPP_", binary_directory);
 
