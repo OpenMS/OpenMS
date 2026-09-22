@@ -12,7 +12,7 @@ project("OpenMS_class_tests_openms_cli")
 # Class tests of the TOPP tool framework (libOpenMS_CLI). They use the fixtures of
 # the core class tests, so the generated test_config.h points at the same data
 # directory, and they register libOpenMS behavior with the test framework through
-# the same OpenMSTestSupport.cpp.
+# the same OpenMSTestSupport target.
 set(CF_OPENMS_TEST_DATA_PATH "${PROJECT_SOURCE_DIR}/../openms/data/")
 set(CONFIGURED_TEST_CONFIG_H "${PROJECT_BINARY_DIR}/include/OpenMS/test_config.h")
 configure_file(${PROJECT_SOURCE_DIR}/../openms/include/OpenMS/test_config.h.in ${CONFIGURED_TEST_CONFIG_H})
@@ -39,8 +39,8 @@ if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_
 endif()
 
 foreach(_class_test ${cli_executables_list})
-  add_executable(${_class_test} source/${_class_test}.cpp ${PROJECT_SOURCE_DIR}/../openms/source/OpenMSTestSupport.cpp)
-  target_link_libraries(${_class_test} OpenMSTestFramework ${OpenMS_CLI_LIBRARIES})
+  add_executable(${_class_test} source/${_class_test}.cpp)
+  target_link_libraries(${_class_test} OpenMSTestSupport ${OpenMS_CLI_LIBRARIES})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
   # only add OPENMP flags to gcc linker (except Mac OS X, due to compiler bug

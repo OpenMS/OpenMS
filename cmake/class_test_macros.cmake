@@ -18,12 +18,12 @@
 # (see src/testframework/CMakeLists.txt), so a tool's test/ folder cannot be configured
 # outside this build; those folders therefore assert on this command rather than offer a
 # fallback that could not succeed. Making them buildable out of tree needs the framework
-# exported as a package component and a home for OpenMSTestSupport.cpp -- both decisions in
-# their own right, neither of which this file anticipates.
+# exported as a package component -- a decision in its own right, which this file does not
+# anticipate.
 #
-# The caller sets OPENMS_TEST_SUPPORT_SOURCE. OpenMSTestSupport.cpp registers libOpenMS
-# behavior (unique-ID seeding, exception naming) with the standard-library-only test
-# framework, and every class test links it.
+# The OpenMSTestSupport target registers libOpenMS behavior (unique-ID seeding, exception
+# naming) with the standard-library-only test framework. Every class test links it, and
+# linking it is the only thing a test has to do to get it: see src/testframework.
 
 # openms_add_tool_class_test(<name>_test
 #                            SOURCES <tool sources the test links>
@@ -37,16 +37,10 @@ function(openms_add_tool_class_test _name)
     message(FATAL_ERROR "openms_add_tool_class_test(${_name}): unexpected arguments "
                         "'${_tct_UNPARSED_ARGUMENTS}'")
   endif()
-  if(NOT OPENMS_TEST_SUPPORT_SOURCE)
-    message(FATAL_ERROR
-      "openms_add_tool_class_test(${_name}): OPENMS_TEST_SUPPORT_SOURCE is not set. It has to "
-      "name OpenMSTestSupport.cpp, which every class test links; without it, reference-file "
-      "comparisons of ID-bearing output become nondeterministic.")
-  endif()
 
-  add_executable(${_name} ${_name}.cpp ${_tct_SOURCES} "${OPENMS_TEST_SUPPORT_SOURCE}")
+  add_executable(${_name} ${_name}.cpp ${_tct_SOURCES})
   target_include_directories(${_name} PRIVATE ${_tct_INCLUDE_DIRS})
-  target_link_libraries(${_name} OpenMSTestFramework ${OpenMS_LIBRARIES})
+  target_link_libraries(${_name} OpenMSTestSupport ${OpenMS_LIBRARIES})
   if(COMMAND openms_add_executable_compiler_flags)
     openms_add_executable_compiler_flags(${_name})
   endif()

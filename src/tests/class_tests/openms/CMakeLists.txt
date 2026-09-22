@@ -42,11 +42,8 @@ endif()
 #------------------------------------------------------------------------------
 # Add the actual tests
 foreach(_class_test ${TEST_executables})
-  # OpenMSTestSupport.cpp registers libOpenMS behavior (unique-ID seeding, exception
-  # naming) with the std-only test framework. Removing it makes ID-bearing
-  # reference-file comparisons nondeterministic -- see the file's header comment.
-  add_executable(${_class_test} source/${_class_test}.cpp source/OpenMSTestSupport.cpp)
-  target_link_libraries(${_class_test} OpenMSTestFramework ${OpenMS_LIBRARIES})
+  add_executable(${_class_test} source/${_class_test}.cpp)
+  target_link_libraries(${_class_test} OpenMSTestSupport ${OpenMS_LIBRARIES})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
   # only add OPENMP flags to gcc linker (except Mac OS X, due to compiler bug
@@ -72,9 +69,6 @@ endforeach(_class_test)
 # TOPP_TOOLS is empty when BUILD_TOPP_TOOLS is OFF, so a build that does not want the tools
 # does not compile their sources into test binaries either.
 
-# OpenMSTestSupport.cpp lives in this project; openms_add_tool_class_test() links it into
-# every tool-local class test (see the file's header comment for why it is needed).
-set(OPENMS_TEST_SUPPORT_SOURCE "${PROJECT_SOURCE_DIR}/source/OpenMSTestSupport.cpp")
 include("${OPENMS_HOST_DIRECTORY}/cmake/class_test_macros.cmake")
 
 foreach(_topp_tool ${TOPP_TOOLS})
