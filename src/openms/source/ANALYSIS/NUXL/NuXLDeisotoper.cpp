@@ -105,9 +105,14 @@ void NuXLDeisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
   double precursor_mass(0);
   if (old_spectrum.getPrecursors().size() == 1)
   {
-    has_precursor_data = true;
-    int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
-    precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS * precursor_charge);
+    // A charge of 0 means the precursor charge is unknown (see Precursor.h): then the neutral mass
+    // would be 0 and every fragment cluster would be rejected, so only use a known charge.
+    const int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
+    if (precursor_charge != 0)
+    {
+      precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS_U * precursor_charge);
+      has_precursor_data = (precursor_mass > 0);
+    }
   }
 
   MSSpectrum high_intensity_peaks;
@@ -159,7 +164,7 @@ void NuXLDeisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
           // do not bother testing charges q (and masses m) with: m/q > precursor_mass/q (or m > precursor_mass)
           if (has_precursor_data)
           {
-            double current_theo_mass = (current_mz * q) - (Constants::PROTON_MASS * q);
+            double current_theo_mass = (current_mz * q) - (Constants::PROTON_MASS_U * q);
             if (current_theo_mass > (precursor_mass + tolerance_dalton))
             {
               continue;
@@ -259,7 +264,7 @@ void NuXLDeisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
         // do not bother testing charges q (and masses m) with: m/q > precursor_mass/q (or m > precursor_mass)
         if (has_precursor_data)
         {
-          double current_theo_mass = (current_mz * q) - (Constants::PROTON_MASS * q);
+          double current_theo_mass = (current_mz * q) - (Constants::PROTON_MASS_U * q);
           if (current_theo_mass > (precursor_mass + tolerance_dalton))
           {
             continue;
