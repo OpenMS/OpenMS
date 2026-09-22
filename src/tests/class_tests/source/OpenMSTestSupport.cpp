@@ -6,12 +6,14 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-// libOpenMS-specific setup for the std-only class-test framework. Compiled into
-// every openms/openms_gui test executable (not tests that don't link libOpenMS,
-// e.g. OpenSwathAlgo). Registers, at static init:
+// libOpenMS-specific setup for the std-only class-test framework. Built as the
+// OpenMSTestSupport target and linked by every class test of a project that links
+// libOpenMS -- the openms, openms_cli and openms_gui test projects and the
+// tool-local test/ folders -- but not by tests that do not, e.g. OpenSwathAlgo.
+// Registers, at static init:
 //  1. a fixed UniqueIdGenerator seed, so IDs in output files match the reference
-//     files -- do NOT drop this file from a target or ID comparisons (e.g.
-//     featureXML) become nondeterministic;
+//     files; without it they are drawn from a time-derived seed and ID-bearing
+//     comparisons (e.g. featureXML) become nondeterministic;
 //  2. an OpenMS exception translator, so failure reports name unexpected OpenMS
 //     exceptions (without it: std::exception::what() -- degraded, not wrong).
 
