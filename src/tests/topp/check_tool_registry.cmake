@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Chris Bielow $
-# $Authors: Chris Bielow $
+# $Maintainer: Timo Sachsenberg $
+# $Authors: Timo Sachsenberg $
 # --------------------------------------------------------------------------
 
 ## Run with 'cmake -P', which starts with no policy settings of its own; IN_LIST below needs
