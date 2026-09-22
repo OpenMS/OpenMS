@@ -73,7 +73,6 @@ ParamCTDFile.cpp
 ParamCWLFile.cpp
 ParamJSONFile.cpp
 ParamXMLFile.cpp
-ParquetTableComparator.cpp
 PEFFFile.cpp
 PTMXMLFile.cpp
 PepNovoInfile.cpp
@@ -95,7 +94,6 @@ TextFile.cpp
 TraMLFile.cpp
 TransformationXMLFile.cpp
 UnimodXMLFile.cpp
-UniProtXMLFile.cpp
 XMassFile.cpp
 XMLFile.cpp
 XQuestResultXMLFile.cpp

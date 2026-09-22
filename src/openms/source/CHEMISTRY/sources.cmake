@@ -24,7 +24,6 @@ IsoelectricPoint.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp
-ModifiedNASequenceGenerator.cpp
 MonosaccharideDB.cpp
 ModifiedPeptideGenerator.cpp
 ModomicsJSONDataProvider.cpp

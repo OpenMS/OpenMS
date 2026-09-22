@@ -18,7 +18,6 @@ set(CONFIGURED_TEST_CONFIG_H "${PROJECT_BINARY_DIR}/include/OpenMS/test_config.h
 configure_file(${PROJECT_SOURCE_DIR}/../openms/include/OpenMS/test_config.h.in ${CONFIGURED_TEST_CONFIG_H})
 
 set(cli_executables_list
-  INIUpdater_test
   #MapAlignerBase_test
   ParameterInformation_test
   SearchEngineBase_test

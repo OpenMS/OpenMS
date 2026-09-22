@@ -12,7 +12,6 @@ ConsensusIDAlgorithm.h
 ConsensusIDAlgorithmAverage.h
 ConsensusIDAlgorithmBest.h
 ConsensusIDAlgorithmIdentity.h
-CometModification.h
 ConsensusIDAlgorithmPEPIons.h
 ConsensusIDAlgorithmPEPMatrix.h
 ConsensusIDAlgorithmRanks.h
@@ -36,7 +35,6 @@ IonIdentityMolecularNetworking.h
 MetaboliteSpectralMatching.h
 ProSEAlgorithm.h
 MorpheusScore.h
-NeighborSeq.h
 OpenSearchModificationAnalysis.h
 PeptideIndexing.h
 PeptideProteinResolution.h

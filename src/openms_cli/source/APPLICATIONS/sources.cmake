@@ -3,7 +3,6 @@ set(directory source/APPLICATIONS)
 
 ### list all filenames of the directory here
 set(sources_list
-INIUpdater.cpp
 MapAlignerBase.cpp
 OpenSwathBase.cpp
 ParameterInformation.cpp
