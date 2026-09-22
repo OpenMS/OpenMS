@@ -429,7 +429,7 @@ public:
 
 TOPPBaseTest* ptr = nullptr;
 TOPPBaseTest* nullPointer = nullptr;
-START_SECTION(TOPPBase(const std::string& name, const std::string& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true))
+START_SECTION(TOPPBase(const std::string& name, const std::string& description, const std::vector<Citation>& citations = {}, bool toolhandler_test = true))
 	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION

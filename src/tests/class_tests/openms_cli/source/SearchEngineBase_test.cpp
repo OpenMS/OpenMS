@@ -81,7 +81,7 @@ START_TEST(SearchEngineBase, "$Id$");
 
 SearchEngineBaseTest* ptr = nullptr;
 SearchEngineBaseTest* nullPointer = nullptr;
-START_SECTION(SearchEngineBase(const std::string& name, const std::string& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true))
+START_SECTION(SearchEngineBase(const std::string& name, const std::string& description, const std::vector<Citation>& citations = {}, bool toolhandler_test = true))
 	ptr = new SearchEngineBaseTest();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION

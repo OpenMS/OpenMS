@@ -20,7 +20,7 @@ using namespace OpenMS;
 class TOPPExternalTool : public TOPPBase
 {
 public:
-  /// Registers the tool as unofficial, so no entry in the ToolHandler is required.
+  /// Not a registered TOPP tool, so the ToolHandler registry check is skipped.
   TOPPExternalTool() :
     TOPPBase("TestExternalCodeCLI", "Tool of an external project built against the installed OpenMS_CLI library.", {}, false)
   {

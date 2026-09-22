@@ -312,7 +312,6 @@ protected:
     /// Version string including additional revision/date time information. Note: This differs from version_ only if not provided by the user.
     std::string verboseVersion_;
 
-
     /// Papers, specific for this tool (will be shown in '--help')
     std::vector<Citation> citations_;
 
