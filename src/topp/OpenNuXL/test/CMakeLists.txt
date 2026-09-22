@@ -38,5 +38,9 @@ foreach(_nuxl_test NuXLFragmentAdductDefinition NuXLModificationsGenerator NuXLP
   endif()
 endforeach()
 
-# NuXLPresets.cpp parses the preset JSON; nlohmann::json is PRIVATE to libOpenMS.
+# NuXLPresets.cpp parses the preset JSON; nlohmann::json is PRIVATE to libOpenMS, so it
+# does not come with the OpenMS package either (see the tool's CMakeLists.txt).
+if(NOT TARGET nlohmann_json::nlohmann_json)
+  find_package(nlohmann_json CONFIG REQUIRED)
+endif()
 target_link_libraries(NuXLParameterParsing_test nlohmann_json::nlohmann_json)
