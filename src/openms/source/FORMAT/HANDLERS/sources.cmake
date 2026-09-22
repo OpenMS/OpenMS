@@ -29,7 +29,6 @@ set(sources_list
   ThermoRawFileMetadata.cpp
   TraMLHandler.cpp
   UnimodXMLHandler.cpp
-  UniProtXMLHandler.cpp
   StringManager.cpp
   XMLAttributes.cpp
   XMLHandler.cpp

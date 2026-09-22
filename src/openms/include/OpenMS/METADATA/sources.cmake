@@ -32,7 +32,6 @@ MetaInfoDescription.h
 MetaInfoInterface.h
 MetaInfoInterfaceUtils.h
 MetaInfoRegistry.h
-CometNativeIDRemapper.h
 SpectrumNativeIDParser.h
 PeptideEvidence.h
 PeptideHit.h
