@@ -470,3 +470,25 @@ def test_ms_imaging_experiment_views_keep_parent_alive():
     gc.collect()
     assert exp.getNrSpectra() == 3                      # parent kept alive by the view
     assert spec.size() == 2
+
+
+def test_ms_imaging_experiment_setters_keep_pixel_coordinate():
+    from pyopenms import MSSpectrum, MSImagingExperiment
+
+    mie = _make_fixture()
+    # a spectrum built from scratch inherits the slot's coordinate ...
+    mie[1] = MSSpectrum()
+    assert MSImagingExperiment.getPixelCoordinate(mie[1]) == (1, 0)
+    mie.setSpectrum(2, MSSpectrum())
+    assert MSImagingExperiment.getPixelCoordinate(mie[2]) == (0, 1)
+    # ... one that carries its own keeps it (the caller may be moving spectra deliberately)
+    moved = MSSpectrum()
+    MSImagingExperiment.setPixelCoordinate(moved, 1, 1)
+    mie[1] = moved
+    assert MSImagingExperiment.getPixelCoordinate(mie[1]) == (1, 1)
+    with pytest.raises(Exception):
+        mie.validate()                                      # index is now stale, as it should report
+    # the pixel-addressed setter records the pixel it was given
+    mie.setSpectrum(1, 0, MSSpectrum())
+    assert MSImagingExperiment.getPixelCoordinate(mie[1]) == (1, 0)
+    mie.validate()

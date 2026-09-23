@@ -350,6 +350,25 @@ void MSImagingExperiment::bindPixel(UInt x, UInt y, Size spectrum_index)
 
   void MSImagingExperiment::rebuildGeometry()
   {
+    // A pixel added through getGeometry().addPixel() left no coordinate on its spectrum, so
+    // the rebuild cannot bring it back: say so instead of dropping it silently.
+    const PixelMetaIndices idx = pixelMetaIndices_();
+    const Size n_spectra = experiment_.getNrSpectra();
+    Size unannotated = 0;
+    for (const auto& p : geometry_.getPixels())
+    {
+      if (p.spectrum_index < n_spectra
+          && (!experiment_[p.spectrum_index].metaValueExists(idx.x) || !experiment_[p.spectrum_index].metaValueExists(idx.y)))
+      {
+        ++unannotated;
+      }
+    }
+    if (unannotated > 0)
+    {
+      OPENMS_LOG_WARN << "imaging: rebuildGeometry() drops " << unannotated << " pixel(s) bound to spectra that carry no "
+                      << META_PIXEL_X << "/" << META_PIXEL_Y << " coordinate; bind pixels with bindPixel() or setGeometry() to keep them."
+                      << std::endl; // std::endl: OPENMS_LOG_* only distributes a line on flush
+    }
     geometry_.clearPixels();
     bindPixelsFromSpectra(experiment_, geometry_);
   }

@@ -32,6 +32,24 @@
 #include <type_traits>
 #include <unordered_set>
 
+namespace
+{
+  // Write-back for the copy-returning index getters of MSImagingExperiment: the slot's
+  // pixel coordinate survives unless the incoming spectrum brings its own (a spectrum
+  // built from scratch would otherwise drop the pixel at the next rebuildGeometry()).
+  void replaceSpectrumKeepingPixel(OpenMS::MSSpectrum& slot, const OpenMS::MSSpectrum& incoming)
+  {
+    OpenMS::UInt x = 0, y = 0;
+    const bool slot_has_pixel = OpenMS::MSImagingExperiment::getPixelCoordinate(slot, x, y);
+    slot = incoming;
+    OpenMS::UInt ix = 0, iy = 0;
+    if (slot_has_pixel && !OpenMS::MSImagingExperiment::getPixelCoordinate(slot, ix, iy))
+    {
+      OpenMS::MSImagingExperiment::setPixelCoordinate(slot, x, y);
+    }
+  }
+} // namespace
+
 namespace nb = nanobind;
 using namespace nb::literals;
 
@@ -729,9 +747,9 @@ instead: edits through them land immediately, no write-back needed.
       "__setitem__",
       [](OpenMS::MSImagingExperiment& self, size_t i, const OpenMS::MSSpectrum& val) {
         if (i >= self.getNrSpectra()) throw nb::index_error();
-        self[i] = val;
+        replaceSpectrumKeepingPixel(self[i], val);
       },
-      "i"_a, "val"_a, "Sets the spectrum at index i")
+      "i"_a, "val"_a, "Sets the spectrum at index i. A spectrum that carries no pixel coordinate inherits the one recorded in the slot it replaces.")
     .def(
       "getSpectrum",
       [](const OpenMS::MSImagingExperiment& self, size_t i) -> OpenMS::MSSpectrum {
@@ -743,9 +761,9 @@ instead: edits through them land immediately, no write-back needed.
       "setSpectrum",
       [](OpenMS::MSImagingExperiment& self, size_t i, const OpenMS::MSSpectrum& spectrum) {
         if (i >= self.getNrSpectra()) throw nb::index_error();
-        self[i] = spectrum; // write-back for the copy-returning getter
+        replaceSpectrumKeepingPixel(self[i], spectrum); // write-back for the copy-returning getter
       },
-      "i"_a, "spectrum"_a, "Replaces the spectrum at index i")
+      "i"_a, "spectrum"_a, "Replaces the spectrum at index i. A spectrum that carries no pixel coordinate inherits the one recorded in the slot it replaces.")
     .def(
       "spectrum_view",
       [](OpenMS::MSImagingExperiment& self, size_t i) -> OpenMS::MSSpectrum& {
@@ -769,9 +787,11 @@ instead: edits through them land immediately, no write-back needed.
     .def(
       "setSpectrum",
       [](OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y, const OpenMS::MSSpectrum& spectrum) {
-        self.getSpectrum(x, y) = spectrum;  // write-back for the copy-returning getter; validates the pixel
+        OpenMS::MSSpectrum& slot = self.getSpectrum(x, y);  // validates the pixel
+        slot = spectrum;                                     // write-back for the copy-returning getter
+        OpenMS::MSImagingExperiment::setPixelCoordinate(slot, x, y);  // the caller named the pixel: record it
       },
-      "x"_a, "y"_a, "spectrum"_a, "Replaces the spectrum at pixel (x, y)")
+      "x"_a, "y"_a, "spectrum"_a, "Replaces the spectrum at pixel (x, y) and records that pixel coordinate on it")
     .def(
       "spectrum_view",
       [](OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum& { return self.getSpectrum(x, y); },
