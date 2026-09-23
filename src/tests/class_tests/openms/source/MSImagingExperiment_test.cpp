@@ -164,6 +164,17 @@ START_SECTION((const MSExperiment& getMSExperiment() const)) {NOT_TESTABLE} END_
   TEST_EQUAL((Int)fx[1].getMetaValue(MSImagingExperiment::META_PIXEL_X), 2)
   TEST_EQUAL((Int)fx[1].getMetaValue(MSImagingExperiment::META_PIXEL_Y), 2)
   fx.validate();
+
+  // a geometry binding one spectrum to two pixels is rejected before anything is touched
+  MSImagingGeometry twice;
+  twice.setDimensions(2, 2);
+  twice.addPixel(0, 0, 1);
+  twice.addPixel(0, 1, 1);
+  TEST_EXCEPTION(Exception::InvalidValue, fx.setGeometry(std::move(twice)))
+  TEST_EQUAL(fx.getNumberOfPixels(), 1u)
+  TEST_EQUAL(fx.hasPixel(1, 1), true)
+  TEST_EQUAL((Int)fx[1].getMetaValue(MSImagingExperiment::META_PIXEL_X), 2)
+  fx.validate();
 }
 END_SECTION
 
@@ -281,6 +292,51 @@ START_SECTION((void bindPixel(UInt x, UInt y, Size spectrum_index)))
   TEST_EXCEPTION(Exception::InvalidValue, mie.bindPixel(1, 1, 0))  // duplicate pixel
   TEST_EXCEPTION(Exception::InvalidValue, mie.bindPixel(2, 0, 0))  // outside the 2x2 grid
   TEST_EQUAL(mie[0].metaValueExists(MSImagingExperiment::META_PIXEL_X), false) // nothing written on failure
+
+  // a spectrum has one acquisition location: a second binding of spectrum 2 is rejected
+  // and leaves the single existing binding intact
+  TEST_EXCEPTION(Exception::InvalidValue, mie.bindPixel(0, 0, 2))
+  TEST_EQUAL(mie.getNumberOfPixels(), 1u)
+  TEST_EQUAL(mie.hasPixel(0, 0), false)
+  TEST_EQUAL((Int)mie[2].getMetaValue(MSImagingExperiment::META_PIXEL_X), 2)
+  TEST_EQUAL((Int)mie[2].getMetaValue(MSImagingExperiment::META_PIXEL_Y), 2)
+  mie.validate();
+  // rebinding to the very same pixel is a duplicate-pixel error, as before
+  TEST_EXCEPTION(Exception::InvalidValue, mie.bindPixel(1, 1, 2))
+  // a spectrum that merely carries a coordinate (no pixel claims it) can be bound anywhere
+  MSImagingExperiment::setPixelCoordinate(mie[0], 1, 0);
+  mie.bindPixel(0, 0, 0);
+  TEST_EQUAL((Int)mie[0].getMetaValue(MSImagingExperiment::META_PIXEL_X), 1)
+  TEST_EQUAL((Int)mie[0].getMetaValue(MSImagingExperiment::META_PIXEL_Y), 1)
+  mie.validate();
+}
+END_SECTION
+
+START_SECTION((void unbindPixel(UInt x, UInt y)))
+{
+  MSImagingExperiment mie = makeFixture();
+  mie.getGeometry().addRegion(MSImagingRegion::rectangle(1, "col0", 0, 0, 0, 1));
+  mie.unbindPixel(1, 0); // spectrum 1
+  TEST_EQUAL(mie.getNumberOfPixels(), 2u)
+  TEST_EQUAL(mie.hasPixel(1, 0), false)
+  TEST_EQUAL(mie[1].metaValueExists(MSImagingExperiment::META_PIXEL_X), false)
+  TEST_EQUAL(mie[1].metaValueExists(MSImagingExperiment::META_PIXEL_Y), false)
+  TEST_EQUAL(mie[1].metaValueExists(MSImagingExperiment::META_PIXEL_Z), false)
+  TEST_EQUAL(mie.getNrSpectra(), 3u) // the spectrum itself stays
+  TEST_EQUAL(mie.getGeometry().getNumberOfRegions(), 1u)
+  TEST_EQUAL(mie.getGeometry().getSpectrumIndex(0, 1), 2u) // remaining lookups still resolve
+  mie.validate();
+  TEST_EXCEPTION(Exception::ElementNotFound, mie.unbindPixel(1, 0))
+
+  // ... which is how a binding is moved
+  mie.bindPixel(1, 1, 1);
+  TEST_EQUAL(mie.getGeometry().getSpectrumIndex(1, 1), 1u)
+  TEST_EQUAL((Int)mie[1].getMetaValue(MSImagingExperiment::META_PIXEL_X), 2)
+  TEST_EQUAL((Int)mie[1].getMetaValue(MSImagingExperiment::META_PIXEL_Y), 2)
+  mie.validate();
+  mie.rebuildGeometry();
+  TEST_EQUAL(mie.getNumberOfPixels(), 3u)
+  TEST_EQUAL(mie.getGeometry().getSpectrumIndex(1, 1), 1u)
 }
 END_SECTION
 

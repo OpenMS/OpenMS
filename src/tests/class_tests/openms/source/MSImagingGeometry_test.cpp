@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
+#include <OpenMS/IMAGING/MSImagingRegion.h>
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/Exception.h>
@@ -143,6 +144,44 @@ START_SECTION((void clear()))
   TEST_EQUAL(g.hasPixel(0, 0), false)
   TEST_REAL_SIMILAR(g.getPixelSizeX(), 1.0)
   TEST_EQUAL(g.getPixelSizeUnit(), "micrometer")
+}
+END_SECTION
+
+START_SECTION((void removePixel(UInt x, UInt y)))
+{
+  MSImagingGeometry g;
+  g.setDimensions(3, 3);
+  g.addPixel(0, 0, 10);
+  g.addPixel(1, 0, 11);
+  g.addPixel(2, 0, 12);
+  g.removePixel(1, 0);
+  TEST_EQUAL(g.getNumberOfPixels(), 2u)
+  TEST_EQUAL(g.hasPixel(1, 0), false)
+  TEST_EQUAL(g.getSpectrumIndex(0, 0), 10u)
+  TEST_EQUAL(g.getSpectrumIndex(2, 0), 12u) // lookup re-indexed after the erased entry
+  TEST_EQUAL(g.getPixels()[1].spectrum_index, 12u)
+  TEST_EQUAL(g.getWidth(), 3u) // dimensions untouched
+  TEST_EXCEPTION(Exception::ElementNotFound, g.removePixel(1, 0))
+  g.addPixel(1, 0, 13); // the coordinate is free again
+  TEST_EQUAL(g.getSpectrumIndex(1, 0), 13u)
+}
+END_SECTION
+
+START_SECTION((void clearPixels()))
+{
+  MSImagingGeometry g;
+  g.setDimensions(2, 2);
+  g.setPixelSize(5.0, 5.0, "micrometer");
+  g.addPixel(0, 0, 0);
+  g.addRegion(MSImagingRegion::rectangle(1, "r", 0, 0, 1, 1));
+  g.clearPixels();
+  TEST_EQUAL(g.getNumberOfPixels(), 0u)
+  TEST_EQUAL(g.hasPixel(0, 0), false)
+  TEST_EQUAL(g.getWidth(), 2u)
+  TEST_REAL_SIMILAR(g.getPixelSizeX(), 5.0)
+  TEST_EQUAL(g.getNumberOfRegions(), 1u)
+  g.addPixel(0, 0, 7);
+  TEST_EQUAL(g.getSpectrumIndex(0, 0), 7u)
 }
 END_SECTION
 

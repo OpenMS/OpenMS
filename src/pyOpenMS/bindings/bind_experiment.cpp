@@ -37,13 +37,17 @@ namespace
   // Write-back for the copy-returning index getters of MSImagingExperiment: the slot's
   // pixel coordinate survives unless the incoming spectrum brings its own (a spectrum
   // built from scratch would otherwise drop the pixel at the next rebuildGeometry()).
+  // "Brings its own" means any imzml:x/y at all, on whatever plane: a z != 1 spectrum
+  // (kept by the loaders, reachable by index, never mapped by the 2D geometry) must not
+  // have its acquisition location rewritten by an ordinary swap.
   void replaceSpectrumKeepingPixel(OpenMS::MSSpectrum& slot, const OpenMS::MSSpectrum& incoming)
   {
     OpenMS::UInt x = 0, y = 0;
     const bool slot_has_pixel = OpenMS::MSImagingExperiment::getPixelCoordinate(slot, x, y);
+    const bool incoming_has_coord = incoming.metaValueExists(OpenMS::MSImagingExperiment::META_PIXEL_X)
+                                    || incoming.metaValueExists(OpenMS::MSImagingExperiment::META_PIXEL_Y);
     slot = incoming;
-    OpenMS::UInt ix = 0, iy = 0;
-    if (slot_has_pixel && !OpenMS::MSImagingExperiment::getPixelCoordinate(slot, ix, iy))
+    if (slot_has_pixel && !incoming_has_coord)
     {
       OpenMS::MSImagingExperiment::setPixelCoordinate(slot, x, y);
     }
@@ -640,6 +644,8 @@ structured numpy view of all pixels at once.
         .def("getSpectrumIndex", &OpenMS::MSImagingGeometry::getSpectrumIndex, "x"_a, "y"_a)
         .def("getNumberOfPixels", &OpenMS::MSImagingGeometry::getNumberOfPixels)
         .def("clear", &OpenMS::MSImagingGeometry::clear)
+        .def("clearPixels", &OpenMS::MSImagingGeometry::clearPixels, "Removes all pixels; dimensions, pixel size and regions are kept.")
+        .def("removePixel", &OpenMS::MSImagingGeometry::removePixel, "x"_a, "y"_a, "Removes the pixel at (x, y); raises if there is none.")
 
         .def(
           "pixels_struct",
@@ -777,7 +783,9 @@ instead: edits through them land immediately, no write-back needed.
     .def("getNumberOfPixels", &OpenMS::MSImagingExperiment::getNumberOfPixels)
     .def("hasPixel", &OpenMS::MSImagingExperiment::hasPixel, "x"_a, "y"_a)
     .def("bindPixel", &OpenMS::MSImagingExperiment::bindPixel, "x"_a, "y"_a, "spectrum_index"_a,
-         "Binds pixel (x, y) to the spectrum at spectrum_index and records the coordinate on that spectrum. Raises on a missing spectrum, a duplicate pixel or an out-of-grid coordinate.")
+         "Binds pixel (x, y) to the spectrum at spectrum_index and records the coordinate on that spectrum. Raises on a missing spectrum, a duplicate pixel, an out-of-grid coordinate, or a spectrum already bound to another pixel (unbindPixel() it first).")
+    .def("unbindPixel", &OpenMS::MSImagingExperiment::unbindPixel, "x"_a, "y"_a,
+         "Removes pixel (x, y) from the geometry and the coordinate from its spectrum; the spectrum stays reachable by index.")
     .def(
       "getSpectrum",
       [](const OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum {

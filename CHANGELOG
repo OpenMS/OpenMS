@@ -609,7 +609,9 @@ OpenMS Library:
       A spectrum's pixel coordinate is spectrum metadata (imzml:x/y/z); the geometry is a
       rebuildable index of it: MSImagingExperiment::bindPixel()/setGeometry() record the
       coordinates on the spectra, rebuildGeometry() re-derives the index after spectra were
-      reordered or dropped, validate() detects a stale index, and ImzMLFile::store() writes an
+      reordered or dropped, validate() detects a stale index, a spectrum can be bound to only
+      one pixel (bindPixel()/setGeometry() reject a second binding; unbindPixel() and
+      MSImagingGeometry::removePixel() move one), and ImzMLFile::store() writes an
       annotated MSImagingExperiment in place instead of copying it. MSImagingExperiment gained
       index-based access (getNrSpectra(), getSpectrum(i), operator[], begin()/end()), matching
       OnDiscImzMLExperiment, which gained the zero-based getSpectrum(x, y) (#10249).

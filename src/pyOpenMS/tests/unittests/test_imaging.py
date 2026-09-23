@@ -492,3 +492,61 @@ def test_ms_imaging_experiment_setters_keep_pixel_coordinate():
     mie.setSpectrum(1, 0, MSSpectrum())
     assert MSImagingExperiment.getPixelCoordinate(mie[1]) == (1, 0)
     mie.validate()
+
+
+def test_ms_imaging_experiment_setters_keep_other_plane_coordinates():
+    """A z != 1 spectrum (kept by index, never mapped by the 2D geometry) keeps its own
+    acquisition location when swapped into a mapped slot."""
+    from pyopenms import MSSpectrum, MSImagingExperiment
+
+    mie = _make_fixture()
+    exp = mie.msexperiment_view()
+    deep = MSSpectrum()
+    deep.setMetaValue("imzml:x", 3)
+    deep.setMetaValue("imzml:y", 4)
+    deep.setMetaValue("imzml:z", 2)
+    exp.addSpectrum(deep)                      # index 3, plane 2: not a geometry pixel
+    assert MSImagingExperiment.getPixelCoordinate(mie[3]) is None
+    assert mie.getNumberOfPixels() == 3
+
+    # swap the plane-2 spectrum with the plane-1 spectrum of pixel (1, 0)
+    s1, s3 = mie[1], mie[3]
+    mie[1], mie[3] = s3, s1
+    assert (mie[1].getMetaValue("imzml:x"), mie[1].getMetaValue("imzml:y"), mie[1].getMetaValue("imzml:z")) == (3, 4, 2)
+    assert (mie[3].getMetaValue("imzml:x"), mie[3].getMetaValue("imzml:y"), mie[3].getMetaValue("imzml:z")) == (2, 1, 1)
+    with pytest.raises(Exception):
+        mie.validate()                         # pixel (1, 0) now points at a plane-2 spectrum
+    mie.rebuildGeometry()                      # ... and the index follows the spectra
+    assert mie.geometry_view().getSpectrumIndex(1, 0) == 3
+    mie.validate()
+
+
+def test_ms_imaging_experiment_bind_pixel_rejects_second_binding():
+    from pyopenms import MSExperiment, MSSpectrum, MSImagingExperiment
+
+    exp = MSExperiment()
+    for _ in range(2):
+        exp.addSpectrum(MSSpectrum())
+    mie = MSImagingExperiment(exp)
+    mie.geometry_view().setDimensions(2, 2)
+    mie.bindPixel(0, 0, 0)
+    with pytest.raises(Exception):
+        mie.bindPixel(1, 0, 0)                 # spectrum 0 already has a pixel
+    assert mie.getNumberOfPixels() == 1
+    assert MSImagingExperiment.getPixelCoordinate(mie[0]) == (0, 0)
+    mie.validate()
+    # moving a binding is explicit: unbind, then bind
+    mie.unbindPixel(0, 0)
+    assert mie.hasPixel(0, 0) is False
+    assert MSImagingExperiment.getPixelCoordinate(mie[0]) is None
+    mie.bindPixel(1, 0, 0)
+    assert mie.geometry_view().getSpectrumIndex(1, 0) == 0
+    mie.validate()
+    # a geometry binding one spectrum twice is rejected as a whole
+    from pyopenms import MSImagingGeometry
+    twice = MSImagingGeometry()
+    twice.addPixel(0, 0, 1)
+    twice.addPixel(0, 1, 1)
+    with pytest.raises(Exception):
+        mie.setGeometry(twice)
+    assert mie.getNumberOfPixels() == 1

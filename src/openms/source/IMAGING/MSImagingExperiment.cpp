@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+#include <unordered_set>
 #include <utility>
 
 namespace OpenMS
@@ -107,6 +108,19 @@ const MSImagingGeometry& MSImagingExperiment::getGeometry() const
 
 void MSImagingExperiment::setGeometry(MSImagingGeometry geom)
 {
+  // A spectrum has one acquisition location: two pixels claiming the same spectrum could not
+  // both be recorded on it, so reject the geometry before anything is touched.
+  std::unordered_set<Size> bound;
+  bound.reserve(geom.getNumberOfPixels());
+  for (const auto& p : geom.getPixels())
+  {
+    if (!bound.insert(p.spectrum_index).second)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Geometry binds the same spectrum to more than one pixel",
+                                    StringUtils::toStr(p.spectrum_index));
+    }
+  }
   geometry_ = std::move(geom);
   stampPixelCoordinates_();
 }
@@ -187,8 +201,34 @@ void MSImagingExperiment::bindPixel(UInt x, UInt y, Size spectrum_index)
                                    static_cast<SignedSize>(spectrum_index),
                                    static_cast<SignedSize>(experiment_.getNrSpectra()));
   }
+  // Already bound elsewhere? The spectrum's own coordinate is the O(1) way to tell: it points at
+  // the pixel that claims it (bindPixel()/setGeometry() keep the two in step).
+  UInt bx = 0;
+  UInt by = 0;
+  if (getPixelCoordinate(experiment_[spectrum_index], bx, by) && !(bx == x && by == y)
+      && geometry_.hasPixel(bx, by) && geometry_.getSpectrumIndex(bx, by) == spectrum_index)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Spectrum " + StringUtils::toStr(spectrum_index) + " is already bound to pixel ("
+                                    + coordToString_(bx, by) + "); unbindPixel() it first",
+                                  coordToString_(x, y));
+  }
   geometry_.addPixel(x, y, spectrum_index); // throws on duplicate / out-of-grid before anything is written
   setPixelCoordinate(experiment_[spectrum_index], x, y);
+}
+
+void MSImagingExperiment::unbindPixel(UInt x, UInt y)
+{
+  const Size idx = geometry_.getSpectrumIndex(x, y); // throws ElementNotFound
+  geometry_.removePixel(x, y);
+  if (idx < experiment_.getNrSpectra())
+  {
+    const PixelMetaIndices meta = pixelMetaIndices_();
+    MSSpectrum& spec = experiment_[idx];
+    spec.removeMetaValue(meta.x);
+    spec.removeMetaValue(meta.y);
+    spec.removeMetaValue(meta.z);
+  }
 }
 
   MSSpectrum& MSImagingExperiment::getSpectrum(UInt x, UInt y)

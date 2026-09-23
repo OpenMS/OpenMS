@@ -138,6 +138,24 @@ void MSImagingGeometry::clearRegions()
   region_id_to_index_.clear();
 }
 
+void MSImagingGeometry::removePixel(UInt x, UInt y)
+{
+  const auto it = lookup_.find(packKey_(x, y));
+  if (it == lookup_.end())
+  {
+    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                     StringUtils::toStr(x) + "," + StringUtils::toStr(y));
+  }
+  const Size pos = it->second;
+  lookup_.erase(it);
+  pixels_.erase(pixels_.begin() + pos);
+  // lookup_ stores positions in pixels_: everything behind the erased entry moved up by one
+  for (Size i = pos; i < pixels_.size(); ++i)
+  {
+    lookup_[packKey_(pixels_[i].x, pixels_[i].y)] = i;
+  }
+}
+
 void MSImagingGeometry::clearPixels()
 {
   pixels_.clear();

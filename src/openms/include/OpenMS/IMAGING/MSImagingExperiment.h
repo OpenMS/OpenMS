@@ -131,6 +131,9 @@ public:
     reports them).
 
     @param[in] geom New geometry (moved in).
+    @throws Exception::InvalidValue if @p geom binds one spectrum_index to more
+            than one pixel (a spectrum has exactly one acquisition location);
+            nothing is modified in that case.
   */
   void setGeometry(MSImagingGeometry geom);
   //@}
@@ -201,14 +204,31 @@ public:
     so the spectrum stays self-describing and rebuildGeometry() can restore
     the binding later.
 
+    A spectrum has exactly one acquisition location: binding one that is
+    already bound to another pixel is rejected (use unbindPixel() first to
+    move it). Nothing is modified when an exception is thrown.
+
     @param[in] x              Column index (zero-based).
     @param[in] y              Row index (zero-based).
     @param[in] spectrum_index Index into the underlying experiment.
     @throws Exception::IndexOverflow if @p spectrum_index >= getNrSpectra().
-    @throws Exception::InvalidValue on duplicate coordinates, or if the
-            geometry has dimensions and (@p x, @p y) lies outside them.
+    @throws Exception::InvalidValue on duplicate coordinates, if the geometry
+            has dimensions and (@p x, @p y) lies outside them, or if the
+            spectrum is already bound to a different pixel.
   */
   void bindPixel(UInt x, UInt y, Size spectrum_index);
+
+  /**
+    @brief Removes the pixel at (@p x, @p y) from the geometry and the coordinate from its spectrum.
+
+    The spectrum stays in the experiment (reachable by index) and can be bound
+    to another pixel afterwards. Regions are left untouched.
+
+    @param[in] x Column index (zero-based).
+    @param[in] y Row index (zero-based).
+    @throws Exception::ElementNotFound if no pixel exists at that coordinate.
+  */
+  void unbindPixel(UInt x, UInt y);
 
   /**
     @brief Mutable access to the spectrum bound to the pixel at (@p x, @p y).

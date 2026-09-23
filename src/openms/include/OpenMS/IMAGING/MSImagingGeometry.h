@@ -111,6 +111,17 @@ public:
   /// @return Size of the pixel list.
   Size getNumberOfPixels() const;
 
+  /**
+    @brief Removes the pixel at (@p x, @p y).
+
+    The remaining pixels keep their insertion order; positions returned earlier
+    by getRegionPixels() are invalidated. Regions are left untouched.
+    @param[in] x Column index.
+    @param[in] y Row index.
+    @throws Exception::ElementNotFound if no pixel exists at that coordinate.
+  */
+  void removePixel(UInt x, UInt y);
+
   /// @brief Resets all state (dimensions, pixel size, pixels, lookup, regions).
   void clear();
 
