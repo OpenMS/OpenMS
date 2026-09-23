@@ -4,8 +4,7 @@ OpenMS SDK
 This archive holds what you need to build your own C++ code against OpenMS:
 
   include/            headers of OpenMS, OpenSwathAlgo, the TOPP tool framework
-                      (OpenMS_CLI), the GUI library (OpenMS_GUI, if built) and the
-                      bundled third-party headers
+                      (OpenMS_CLI) and the bundled third-party headers
   lib/ (bin/ on Windows)
                       the OpenMS libraries and the shared libraries they depend on
   lib/cmake/OpenMS/ (CMake/ on Windows)
@@ -21,8 +20,6 @@ Using it from CMake (3.24 or newer)
   find_package(OpenMS 3 CONFIG REQUIRED)            # OpenMS::OpenMS, OpenMS::OpenSwathAlgo
   find_package(OpenMS 3 CONFIG REQUIRED COMPONENTS CLI)
                                                     # + OpenMS::OpenMS_CLI (TOPPBase-style tools)
-  find_package(OpenMS 3 CONFIG REQUIRED COMPONENTS GUI)
-                                                    # + OpenMS::OpenMS_GUI (needs Qt6)
 
   add_executable(mytool mytool.cpp)
   target_link_libraries(mytool PRIVATE OpenMS::OpenMS_CLI)
@@ -40,8 +37,9 @@ Requirements of your project
 
   * Boost headers (1.81 or newer): public OpenMS headers include Boost. No
     compiled Boost library is needed.
-  * Qt6 (Core, Widgets, ...) only if you link OpenMS::OpenMS_GUI. On Linux the
-    SDK does not bundle Qt6.
+  * No Qt: the SDK holds the core and CLI layers, which do not use it. The GUI
+    library (OpenMS::OpenMS_GUI) is not part of the SDK; build OpenMS from source
+    if you need it.
   * The same compiler family the SDK was built with:
       - Windows: MSVC (Visual Studio 2022 17.14 or newer), x64, Release configuration
         with the dynamic runtime (/MD). A Debug build of your code (/MDd) must not

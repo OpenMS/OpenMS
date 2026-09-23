@@ -12,11 +12,12 @@
 #
 # Usage: package_sdk.sh <build dir> <version> <output dir>
 #
-# The SDK is the development installation of the package layers (see
-# cmake/install_macros.cmake): the core, CLI and (in a WITH_GUI build) GUI
-# libraries with their headers, the CMake package files, the shared data and
-# the bundled runtime dependencies (component Dependencies, which exists when the
-# tree was configured with a PACKAGE_TYPE, as for the installers). It is written
+# The SDK is the development installation of the core and CLI layers of the
+# package (see cmake/install_macros.cmake): their libraries and headers, the CMake
+# package files, the shared data and the runtime dependencies of those libraries
+# (from the component Dependencies, which exists when the tree was configured
+# with a PACKAGE_TYPE, as for the installers, reduced by sdk_prune_dependencies.cmake
+# to what the SDK loads). The GUI layer is left out, so the SDK needs no Qt. It is written
 # as <output dir>/OpenMS-SDK-<version>-<platform>.tar.gz (.zip on Windows) with a
 # single top-level directory of the same name.
 #
@@ -83,11 +84,9 @@ components=(
   cmake cmake_cli
   share
 )
-if [[ "$(cache_var WITH_GUI)" == "ON" ]]; then
-  components+=(library_gui OpenMS_GUI_headers cmake_gui QtPlatformPlugin)
-fi
-# the runtime dependencies of everything above; their macOS install-name fix-up
-# is redone below, as the component's own install code does not work in this layout
+# the runtime dependencies of all installed targets, pruned below to those of the
+# SDK libraries; their macOS install-name fix-up is redone below, as the
+# component's own install code does not work in this layout
 components+=(Dependencies)
 
 build_type=$(cache_var CMAKE_BUILD_TYPE)
@@ -132,10 +131,12 @@ fi
 # of the application bundle, which does not exist in this prefix, and the script
 # aborts on it before it gets to the libraries. So the bundled dependencies keep the
 # install names of the build machine. Run the call the library components use
-# (-l only) once more over the complete lib/ directory, then sign again: rewriting
-# install names invalidates signatures, and arm64 refuses to load such libraries.
+# (-l only) once more over the complete lib/ directory, with @loader_path as the
+# only RPATH so the libraries find each other wherever the SDK is extracted (as
+# $ORIGIN does on Linux), then sign again: rewriting install names invalidates
+# signatures, and arm64 refuses to load such libraries.
 if [[ "$(uname -s)" == Darwin ]]; then
-  ruby "$source_dir/cmake/MacOSX/fix_dependencies.rb" -l "$stage/$lib_dir" -e @rpath/ -n -c
+  ruby "$source_dir/cmake/MacOSX/fix_dependencies.rb" -l "$stage/$lib_dir" -e @rpath/ -n -c -r @loader_path
   signing_identity=$(cache_var SIGNING_IDENTITY)
   if [[ -n "$signing_identity" && "$signing_identity" != "-" ]]; then
     sign_args=(--force --options runtime --timestamp --sign "$signing_identity")
@@ -148,6 +149,29 @@ if [[ "$(uname -s)" == Darwin ]]; then
     fi
   done < <(find "$stage/$lib_dir" -type f -print0)
 fi
+
+# Keep only the bundled libraries the SDK libraries load (no Qt, nothing only the
+# GUI library or the applications need). The loader environment of this job must
+# not decide where a dependency resolves to.
+case "$(uname -s)" in
+  Linux)  lib_pattern='lib%s.so' ;;
+  Darwin) lib_pattern='lib%s.dylib' ;;
+  *)      lib_pattern='%s.dll' ;;
+esac
+roots=()
+for library in OpenMS OpenSwathAlgo OpenMS_CLI; do
+  # shellcheck disable=SC2059 # the pattern is chosen above
+  root="$stage/$lib_dir/$(printf "$lib_pattern" "$library")"
+  if [[ ! -e "$root" ]]; then
+    echo >&2 "ERROR: the SDK misses $root"
+    exit 1
+  fi
+  roots+=("$(cmake_path "$root")")
+done
+echo "--- pruning the bundled dependencies"
+env -u LD_LIBRARY_PATH -u DYLD_LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH \
+  cmake "-DLIB_DIR=$(cmake_path "$stage/$lib_dir")" "-DROOTS=$(IFS=';'; echo "${roots[*]}")" \
+        -P "$(cmake_path "$source_dir/tools/ci/sdk_prune_dependencies.cmake")"
 
 cp "$source_dir/cmake/OpenMSSDKReadme.txt" "$stage/README.txt"
 cp "$source_dir/License.txt" "$stage/License.txt"
