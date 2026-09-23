@@ -76,14 +76,10 @@ foreach(_boost_consumer IN ITEMS
   FeatureFinderMultiplex
   FileInfo
   FileMerger
-  MRMTransitionGroupPicker
   MSGFPlusAdapter
   MSstatsConverter
   MaRaClusterAdapter
   MetaProSIP
-  OpenSwathAnalyzer
-  OpenSwathChromatogramExtractor
-  OpenSwathFeatureXMLToTSV
   PercolatorAdapter
   SageAdapter
   TextExporter

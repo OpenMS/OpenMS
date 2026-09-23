@@ -6,7 +6,7 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <boost/numeric/conversion/cast.hpp>
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/APPLICATIONS/OpenSwathBase.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
@@ -318,7 +318,7 @@ protected:
   static OpenSwath::SpectrumAccessPtr loadMS1Map_(const std::vector<OpenSwath::SwathMap>& swath_maps, const bool load_into_memory)
   {
     OpenSwath::SpectrumAccessPtr ms1_map;
-    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+    for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
     {
       if (swath_maps[i].ms1)
       {
@@ -338,7 +338,7 @@ protected:
                                         const ChromExtractParams& cp)
   {
     tr_win_map.resize(transition_exp.transitions.size(), -1);
-    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+    for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
     {
       for (Size k = 0; k < transition_exp.transitions.size(); ++k)
       {
@@ -788,7 +788,7 @@ protected:
         selectBestPrmTransitions_(transition_exp_run, tr_win_map, swath_maps, cp_current);
       }
 
-      for (SignedSize swath_index = 0; swath_index < boost::numeric_cast<SignedSize>(swath_maps.size()); ++swath_index)
+      for (SignedSize swath_index = 0; swath_index < checkedCast<SignedSize>(swath_maps.size()); ++swath_index)
       {
         if (swath_maps[swath_index].ms1)
         {
@@ -855,7 +855,7 @@ protected:
         const SignedSize nr_batches = batch_size > 0 ?
           static_cast<SignedSize>((n_compounds + batch_size - 1) / batch_size) : 0;
         const std::string swath_source_file =
-          swath_index < boost::numeric_cast<SignedSize>(swath_map_sources.size()) ?
+          swath_index < checkedCast<SignedSize>(swath_map_sources.size()) ?
           swath_map_sources[swath_index] :
           ListUtils::concatenate(current_run_files, ";");
 

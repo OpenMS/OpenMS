@@ -26,27 +26,14 @@ namespace OpenMS
   EnzymaticDigestion::EnzymaticDigestion() :
       missed_cleavages_(0),
       enzyme_(ProteaseDB::getInstance()->getEnzyme("Trypsin")), // @TODO: keep trypsin as default?
-      re_(new RegularExpression(enzyme_->getRegEx())),
+      re_(enzyme_->getRegEx()),
       specificity_(SPEC_FULL)
   {
   }
 
-  EnzymaticDigestion::EnzymaticDigestion(const EnzymaticDigestion& rhs) :
-      missed_cleavages_(rhs.missed_cleavages_),
-      enzyme_(rhs.enzyme_),
-      re_(new RegularExpression(*rhs.re_)),
-      specificity_(rhs.specificity_)
-  {
-  }
+  EnzymaticDigestion::EnzymaticDigestion(const EnzymaticDigestion& rhs) = default;
 
-  EnzymaticDigestion& EnzymaticDigestion::operator=(const EnzymaticDigestion& rhs)
-  {
-    missed_cleavages_ = rhs.missed_cleavages_;
-    enzyme_ = rhs.enzyme_;
-    re_.reset(new RegularExpression(*rhs.re_));
-    specificity_ = rhs.specificity_;
-    return *this;
-  }
+  EnzymaticDigestion& EnzymaticDigestion::operator=(const EnzymaticDigestion& rhs) = default;
 
   EnzymaticDigestion::~EnzymaticDigestion() = default;
 
@@ -63,7 +50,7 @@ namespace OpenMS
   void EnzymaticDigestion::setEnzyme(const DigestionEnzyme* enzyme)
   {
     enzyme_ = enzyme;
-    re_.reset(new RegularExpression(enzyme_->getRegEx()));
+    re_.assign(enzyme_->getRegEx());
   }
 
   std::string EnzymaticDigestion::getEnzymeName() const
@@ -101,7 +88,7 @@ namespace OpenMS
 
     if (enzyme_->getRegEx() != "()") // if it's not "no cleavage"
     {
-      boost::sregex_token_iterator i(sequence.begin() + start, sequence.begin() + end, RegularExpressionAccess::get(*re_), -1);
+      boost::sregex_token_iterator i(sequence.begin() + start, sequence.begin() + end, RegularExpressionAccess::get(re_), -1);
       boost::sregex_token_iterator j;
       while (i != j)
       {

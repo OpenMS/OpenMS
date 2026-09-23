@@ -6,7 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <boost/numeric/conversion/cast.hpp>
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -278,7 +278,7 @@ namespace OpenMS
       if (aa_sequence.hasCTerminalModification())
       {
         const ResidueModification& rmod = *(aa_sequence.getCTerminalModification());
-        light_mod.location = boost::numeric_cast<int>(aa_sequence.size());
+        light_mod.location = checkedCast<int>(aa_sequence.size());
         light_mod.unimod_id = rmod.getUniModRecordId();
         p.modifications.push_back(light_mod);
       }
@@ -288,7 +288,7 @@ namespace OpenMS
         {
           // search the residue in the modification database (if the sequence is valid, we should find it)
           const ResidueModification& rmod = *(aa_sequence.getResidue(i).getModification());
-          light_mod.location = boost::numeric_cast<int>(i);
+          light_mod.location = checkedCast<int>(i);
           light_mod.unimod_id = rmod.getUniModRecordId();
           p.modifications.push_back(light_mod);
         }

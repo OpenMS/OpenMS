@@ -6,7 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <boost/numeric/conversion/cast.hpp>
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -203,7 +203,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
+    for (SignedSize i = 0; i < checkedCast<SignedSize>(file_list.size()); ++i)
     {
       MRMFeatureFinderScoring featureFinder;
       std::shared_ptr<MapType> swath_map (new MapType());

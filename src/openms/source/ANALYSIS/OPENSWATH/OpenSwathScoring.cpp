@@ -6,7 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <boost/numeric/conversion/cast.hpp>
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
 #include <OpenMS/CONCEPT/Macros.h>
@@ -534,7 +534,7 @@ namespace OpenMS
 
     if (su_.use_nr_peaks_score_)
     {
-      scores.nr_peaks = boost::numeric_cast<int>(imrmfeature->size());
+      scores.nr_peaks = checkedCast<int>(imrmfeature->size());
     }
 
     // Signal to noise scoring
