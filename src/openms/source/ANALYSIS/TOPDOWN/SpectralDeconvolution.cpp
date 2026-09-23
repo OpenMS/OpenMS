@@ -209,6 +209,8 @@ namespace OpenMS
   // The main function called from outside. precursor_map_for_FLASHIda is used to read FLASHIda information
   void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec, const int scan_number, const PeakGroup& precursor_peak_group)
   {
+    // Every bitsets_.impl access is reached through this function, so this is the only place a
+    // moved-from instance needs its bitsets recreated. Keep it that way.
     if (!bitsets_.impl) bitsets_.impl = std::make_unique<Bitsets::Impl>();
     // First prepare for decoy runs. if it is noisy decoy, change the distance between the isotopes
     iso_da_distance_ = target_decoy_type_ == PeakGroup::noise_decoy

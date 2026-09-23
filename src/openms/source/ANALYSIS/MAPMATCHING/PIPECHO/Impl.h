@@ -14,6 +14,8 @@
 #include "Run.h"
 #include "RunStatistics.h"
 #include "Window.h"
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <algorithm>
 #include <cmath>

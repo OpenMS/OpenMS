@@ -170,7 +170,17 @@ public:
   std::pair<iterator, bool> emplace_back(Args&&... args)
   { return emplace(std::forward<Args>(args)...); }
   iterator erase(iterator position);
-  bool modify(iterator position, const std::function<void(Value&)>& modifier);
+  /// Changes the record at @p position in place by calling @p modifier(Value&); see the class
+  /// description for a change that breaks uniqueness.
+  template<typename Modifier>
+  bool modify(iterator position, Modifier&& modifier)
+  {
+    // Passed to the out-of-line modify_() as a plain function pointer and a pointer to the
+    // caller's callable: unlike std::function, this never copies or allocates the callable.
+    using Callable = std::remove_reference_t<Modifier>;
+    auto call = [](void* context, Value& value) { (*static_cast<Callable*>(context))(value); };
+    return modify_(position, call, const_cast<void*>(static_cast<const void*>(std::addressof(modifier))));
+  }
   iterator find(const Key& key) const;
   std::pair<iterator, iterator> equal_range(const Prefix& key) const;
 
@@ -206,8 +216,9 @@ public:
     explicit OrderedView(IDDataContainer* owner): ConstOrderedView(owner), mutable_owner_(owner)
     {
     }
-    bool modify(iterator position, const std::function<void(Value&)>& modifier)
-    { return mutable_owner_->modify(position, modifier); }
+    template<typename Modifier>
+    bool modify(iterator position, Modifier&& modifier)
+    { return mutable_owner_->modify(position, std::forward<Modifier>(modifier)); }
   };
   template<int Index>
   struct nth_index
@@ -236,6 +247,7 @@ public:
 private:
   std::unique_ptr<Impl> impl_;
   ordered_iterator orderedBegin_() const;
+  bool modify_(iterator position, void (*call)(void*, Value&), void* context);
   static const Value* advance_(const Impl* owner, const Value* value, bool forward, bool ordered);
 };
 } // namespace OpenMS::IdentificationDataInternal

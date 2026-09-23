@@ -198,8 +198,8 @@ auto IDDataContainer<V, K, P>::erase(iterator position) -> iterator
   return iterator(impl_.get(), next == records.end() ? nullptr : std::addressof(*next));
 }
 template<typename V, typename K, typename P>
-bool IDDataContainer<V, K, P>::modify(iterator position, const std::function<void(V&)>& modifier)
-{ return impl_->records.modify(impl_->records.iterator_to(*position), modifier); }
+bool IDDataContainer<V, K, P>::modify_(iterator position, void (*call)(void*, V&), void* context)
+{ return impl_->records.modify(impl_->records.iterator_to(*position), [call, context](V& value) { call(context, value); }); }
 template<typename V, typename K, typename P>
 auto IDDataContainer<V, K, P>::find(const K& key) const -> iterator
 {

@@ -6,7 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <boost/numeric/conversion/cast.hpp>
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -138,11 +138,11 @@ protected:
     {
       for (Size i = 0; i < input->getNrChromatograms(); i++)
       {
-        chromatogram_map[input->getChromatogramNativeID(i)] = boost::numeric_cast<int>(i);
+        chromatogram_map[input->getChromatogramNativeID(i)] = checkedCast<int>(i);
       }
       for (Size i = 0; i < transition_exp.getPeptides().size(); i++)
       {
-        assay_peptide_map[transition_exp.getPeptides()[i].id] = boost::numeric_cast<int>(i);
+        assay_peptide_map[transition_exp.getPeptides()[i].id] = checkedCast<int>(i);
       }
       for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
       {

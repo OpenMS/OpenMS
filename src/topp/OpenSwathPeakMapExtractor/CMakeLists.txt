@@ -35,12 +35,6 @@ if(NOT OPENMS_ARROW_TARGET OR NOT OPENMS_PARQUET_TARGET)
   endif()
 endif()
 
-# Boost is private to libOpenMS as well. OpenSwathPeakMapExtractor.cpp uses
-# boost::numeric_cast, so the header-only target is enough.
-if(NOT TARGET Boost::boost)
-  find_package(Boost 1.81 REQUIRED)
-endif()
-
 set(tool_sources
   source/XIPMParquetConsumer.cpp
 )
@@ -50,7 +44,7 @@ set(tool_headers
 
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources} ${tool_headers})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(${PROJECT_NAME} OpenMS::OpenMS_CLI ${OPENMS_ARROW_TARGET} ${OPENMS_PARQUET_TARGET} Boost::boost)
+target_link_libraries(${PROJECT_NAME} OpenMS::OpenMS_CLI ${OPENMS_ARROW_TARGET} ${OPENMS_PARQUET_TARGET})
 if(COMMAND openms_add_executable_compiler_flags)
   openms_add_executable_compiler_flags(${PROJECT_NAME})
 endif()
