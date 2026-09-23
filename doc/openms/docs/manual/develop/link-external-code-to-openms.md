@@ -20,7 +20,7 @@ your code needs:
 
 - `OpenMS::OpenMS`: the OpenMS library (link this)
 - `OpenMS::OpenSwathAlgo`: the OpenSWATH algorithm library
-- `OpenMS::OpenMS_CLI`: the TOPP tool framework (`TOPPBase`, `ToolHandler`, `INIUpdater`, ...); link this instead of
+- `OpenMS::OpenMS_CLI`: the TOPP tool framework (`TOPPBase`, `ToolHandler`, ...); link this instead of
   `OpenMS::OpenMS` when your program derives from `TOPPBase` (it carries `OpenMS::OpenMS` transitively), and request
   the `CLI` component (`find_package(OpenMS CONFIG REQUIRED COMPONENTS CLI)`) so that an installation without the
   framework is rejected when your project is configured

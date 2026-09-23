@@ -44,7 +44,7 @@ General:
     BREAKING (installed headers): OpenNuXL moved to src/topp/OpenNuXL/ and took the whole
     NuXL pipeline with it. Nothing outside this tool ever used it, so OpenMS/ANALYSIS/NUXL
     is gone: its thirteen headers are no longer installed and its classes are no longer
-    part of libOpenMS. The five NuXL class tests are unchanged and still run.
+    part of libOpenMS. The five NuXL class tests are unchanged and still run (#10228).
   - BREAKING: TOPPBase no longer takes a bool official, and neither do SearchEngineBase,
     TOPPOpenSwathBase, TOPPMapAlignerBase and TOPPFeatureLinkerBase, which only forwarded
     it. A tool is registered by its openms_topp_tool() declaration, the same declaration
@@ -55,14 +55,15 @@ General:
     saw them uncategorised; all six now carry their category. Out-of-tree code deriving
     from one of these classes drops the argument; something that is not a registered TOPP
     tool at all passes toolhandler_test = false instead, which is now the only way to skip
-    the registry check.
+    the registry check (#10216, #10228).
   - BREAKING (installed headers): Move tool-only helpers without pyOpenMS bindings
     into the CometAdapter, DecoyDatabase, INIUpdater, NucleicAcidSearchEngine,
     OpenSwathExport, OpenSwathInfer, OpenSwathPeakMapExtractor, OpenSwathPercolatorScoring,
     OpenSwathWorkflow, ParquetDiff, QualityControl and UniPEFF folders. Their
     29 headers are no longer installed and 28 implementations no longer live in
     libOpenMS or libOpenMS_CLI. Class and round-trip tests travel with the tools;
-    reusable inference and XIPM reader tests also remain available in library-only builds.
+    reusable inference and XIPM reader tests also remain available in library-only builds
+    (#10239).
   - BREAKING: KNIME plugin support was removed. The ENABLE_PREPARE_KNIME_PACKAGE option
     and the prepare_knime_package targets are gone, as are the KNIME user tutorial, the
     LaTeX tutorial handout and the .knwf workflow collection under doc/tutorials (still
@@ -868,7 +869,7 @@ Build System:
     public headers as standalone translation units, with missing includes in
     identification-data and GUI headers corrected; normal builds can opt in with
     OPENMS_VERIFY_INTERFACE_HEADER_SETS=ON (#10177).
-  - The TOPP tool framework (TOPPBase, ToolHandler, INIUpdater, ParameterInformation,
+  - The TOPP tool framework (TOPPBase, ToolHandler, ParameterInformation,
     SearchEngineBase, TOPPExternalToolBase, MapAlignerBase, OpenSwathBase) moved out of
     libOpenMS into the new library libOpenMS_CLI (src/openms_cli; CMake target OpenMS_CLI,
     installed as OpenMS::OpenMS_CLI, package component CLI, export macro OPENMS_CLI_DLLAPI).
