@@ -813,6 +813,12 @@ Fixes:
       validation; the Measure definitions are now written once (#10213).
     - Chromatograms built from MS1 spectra (FileConverter -convert_to_chromatograms, e.g. on GC-MS/SIM
       data) had no native ID, so the mzML output contained many chromatograms with id="" and failed
+      schema validation. They are now named "XIC mz=<m/z>".
+    - MSExperiment::sortSpectra() keeps spectra with equal retention time in their input order.
+      std::sort gave no guarantee for them, so ion mobility frames, FAIMS splits and Bruker TIMS
+      data were reordered depending on the standard library, which silently corrupted mass traces
+      built over such a map. The sort is also faster now, because it moves an index instead of a
+      whole spectrum (#10054).
       schema validation. They are now named "XIC mz=<m/z>" (#10214).
     - FLASHDeconv skips spectra with a non-positive mzml_mass_charge value instead of crashing on them,
       and logs a warning. TOPPASEdge falls back to extension-based file type detection when
