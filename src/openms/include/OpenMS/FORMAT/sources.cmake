@@ -174,8 +174,12 @@ set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 ###
 ### ZipRandomAccessFile.h is the same: Open() returns an
 ### arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>>, so the header includes
-### <arrow/io/api.h>. Only library sources, two tool-local sources and its class test use
-### it, and they all compile against the build tree.
+### <arrow/io/api.h>.
+###
+### Both are still installed, next to the public headers but outside the exported header
+### set: the OpenSwathExport, OpenSwathPercolatorScoring and OpenSwathWorkflow tool
+### directories include them and can be built against an installed OpenMS, where they
+### find Arrow themselves. See OpenMS_installed_private_headers in src/openms/CMakeLists.txt.
 set(private_headers_list_h
 Bzip2InputStream.h
 CompressedInputSource.h
@@ -202,3 +206,6 @@ foreach(i ${private_headers_list_h})
 endforeach(i)
 source_group("Header Files\\OpenMS\\FORMAT" FILES ${private_sources_h})
 set(OpenMS_private_headers ${OpenMS_private_headers} ${private_sources_h})
+list(APPEND OpenMS_installed_private_headers
+  ${directory}/ParquetFile.h
+  ${directory}/ZipRandomAccessFile.h)

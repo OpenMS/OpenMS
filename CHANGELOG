@@ -78,17 +78,22 @@ Dependencies:
     MetaInfo::MapType uses sorted vector storage, and identification collections
     expose OpenMS iterators and ordered views instead of Boost.MultiIndex types.
     getStepsAndScoresByStep() returns a view by value. RandomShuffler exposes seed()
-    instead of a Boost engine constructor/member, and IDBoostGraph.h is internal.
+    instead of a Boost engine constructor/member, and IDBoostGraph.h is internal (see
+    below).
     Rebuild downstream C++ code and Python extensions; code using Boost directly
     must declare its own dependency.
-  - The internal headers FORMAT/ParquetFile.h and FORMAT/RationalScan2ImConverter.h
-    are no longer installed. They derive from / return Arrow and OpenTIMS types and
-    were usable only where those development files happened to be on the include
-    path; the installed Parquet and Bruker readers expose OpenMS types as before.
-    ML/CLUSTERING/HashGrid.h joined them: it keeps Boost.Unordered, because
-    QTClusterFinder numbers its clusters in the grid's bucket order and only Boost
-    orders the buckets identically on every platform. QTClusterFinder::Grid is an
-    opaque type now, like its Heap.
+  - The internal header FORMAT/RationalScan2ImConverter.h is no longer installed. It
+    derives from an OpenTIMS type and was usable only where OpenTIMS' development files
+    happened to be on the include path; the installed Bruker reader exposes OpenMS
+    types as before. FORMAT/ParquetFile.h, FORMAT/ZipRandomAccessFile.h (Arrow) and
+    ANALYSIS/ID/IDBoostGraph.h (Boost.Graph) are internal too, but stay installed,
+    outside the exported header set: the OpenSwath and OpenNuXL tool directories include
+    them when built against an installed OpenMS. Code that includes one of them has to
+    find Arrow resp. Boost itself, as those directories do. ML/CLUSTERING/HashGrid.h
+    is no longer installed either: it keeps Boost.Unordered, because QTClusterFinder
+    numbers its clusters in the grid's bucket order and only Boost orders the buckets
+    identically on every platform. QTClusterFinder::Grid is an opaque type now, like
+    its Heap.
   - Minimum versions: CMake 3.24, Eigen 3.4.0, Boost 1.81, Arrow/Parquet 23 and nanobind
     3.1. Arrow/Parquet is required on all platforms; WITH_PARQUET was removed and
     versions 24+ are accepted. Compiler minimums are checked before vcpkg runs
