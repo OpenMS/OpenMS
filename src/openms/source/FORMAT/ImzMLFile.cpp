@@ -239,6 +239,9 @@ void ImzMLFile::load(const std::string& filename, MSImagingExperiment& exp)
 
 void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry& geom)
 {
+  // Grid dimensions and pixel size are dataset-level imzML metadata mirrored on the experiment;
+  // the pixels themselves come from the coordinates each spectrum carries (imzml:x/y/z), which
+  // MSImagingExperiment::bindPixelsFromSpectra() maps with the loaders' tolerance rules.
   geom.clear();
 
   UInt width = 0;
@@ -256,109 +259,7 @@ void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry&
     geom.setDimensions(width, height);
   }
 
-  UInt max_x = 0;
-  UInt max_y = 0;
-  // cap listing to 20 but still count all duplicates without filling up unnecessary memory
-  const Size max_listed = 20;
-  Size duplicate_count = 0;
-  std::vector<Size> duplicate_spectra;  // first few spectrum indices dropped from the geometry
-  duplicate_spectra.reserve(max_listed);
-  const Size n_spectra = exp.getNrSpectra();
-  for (Size i = 0; i < n_spectra; ++i)
-  {
-    const MSSpectrum& spec = exp[i];
-    if (!spec.metaValueExists("imzml:x") || !spec.metaValueExists("imzml:y"))
-    {
-      continue;
-    }
-
-    const Int x_imz = spec.getMetaValue("imzml:x");
-    const Int y_imz = spec.getMetaValue("imzml:y");
-    if (x_imz < 1 || y_imz < 1)
-    {
-      // imzML coordinates are 1-based; a <1 value is non-conformant. Warn and skip the
-      // spectrum (it stays accessible by index) rather than aborting the whole load.
-      OPENMS_LOG_WARN << "imzML: pixel coordinates must be >= 1; skipping spectrum " << i
-                      << " at (" << OpenMS::StringConversions::toString(x_imz) << ","
-                      << OpenMS::StringConversions::toString(y_imz) << ")." << std::endl;
-      continue;
-    }
-
-    Int z_imz = 1;
-    if (spec.metaValueExists("imzml:z"))
-    {
-      z_imz = spec.getMetaValue("imzml:z");
-    }
-    if (z_imz != 1)
-    {
-      continue;
-    }
-
-    const UInt x = static_cast<UInt>(x_imz - 1);
-    const UInt y = static_cast<UInt>(y_imz - 1);
-    // Soften the geometry's strict in-bounds rule to a warning: a pixel beyond the
-    // declared grid (IMS:1000042/043) is dropped from the geometry (the spectrum stays
-    // accessible by index) instead of aborting the whole load.
-    if (width > 0 && height > 0 && (x >= width || y >= height))
-    {
-      OPENMS_LOG_WARN << "imzML: pixel (" << OpenMS::StringConversions::toString(x_imz) << ","
-                      << OpenMS::StringConversions::toString(y_imz) << ") at spectrum " << i
-                      << " lies outside the declared " << width << "x" << height
-                      << " grid; excluding it from the imaging geometry." << std::endl;
-      continue;
-    }
-    max_x = std::max(max_x, x);
-    max_y = std::max(max_y, y);
-    if (geom.hasPixel(x, y))
-    {
-      ++duplicate_count;
-      if (duplicate_spectra.size() < max_listed)
-      {
-        duplicate_spectra.push_back(i);
-      }
-      continue;
-    }
-    geom.addPixel(x, y, i);
-  }
-  if (duplicate_count > 0)
-  {
-    const Size listed = duplicate_spectra.size();
-    std::string indices;
-    for (Size k = 0; k < listed; ++k) //concat spectrum ids and coords for warning
-    {
-      if (k > 0)
-      {
-        indices += ", ";
-      }
-      const MSSpectrum& d = exp[duplicate_spectra[k]];
-      indices += StringUtils::toStr(duplicate_spectra[k])
-                 + " (x=" + d.getMetaValue("imzml:x").toString()
-                 + ",y=" + d.getMetaValue("imzml:y").toString() + ")";
-    }
-    if (listed < duplicate_count)
-    {
-      indices += ", ... and " + StringUtils::toStr(duplicate_count - listed) + " more";
-    }
-    OPENMS_LOG_WARN << "imzML: " << duplicate_count << " of " << n_spectra
-                    << " spectra reuse a pixel coordinate already taken by an earlier spectrum. "
-                    << "Only the first spectrum per pixel is mapped into the imaging geometry; "
-                    << "all spectra remain reachable by index. Affected spectra: "
-                    << indices << "." << std::endl; // std::endl: OPENMS_LOG_* only distributes a line on flush
-  }
-
-  if (width == 0 && (max_x > 0 || geom.getNumberOfPixels() > 0))
-  {
-    width = max_x + 1;
-  }
-  if (height == 0 && (max_y > 0 || geom.getNumberOfPixels() > 0))
-  {
-    height = max_y + 1;
-  }
-  if (width > 0 && height > 0
-      && (geom.getWidth() != width || geom.getHeight() != height))
-  {
-    geom.setDimensions(width, height);
-  }
+  MSImagingExperiment::bindPixelsFromSpectra(exp, geom);
 
   if (exp.metaValueExists("imzml:pixel_size_x") && exp.metaValueExists("imzml:pixel_size_y"))
   {
@@ -499,36 +400,14 @@ void ImzMLFile::store(const std::string& filename, const MSExperiment& exp) cons
 
 void ImzMLFile::store(const std::string& filename, const MSImagingExperiment& exp) const
 {
-  // Geometry-driven store: the MSImagingGeometry is the source of truth for pixel
-  // coordinates and grid dimensions, so this works for any MSImagingExperiment — including
-  // ones built without imzml:x/y MetaValues (e.g. from BrukerTimsImagingFile). We synthesize
-  // those MetaValues from the geometry onto a copy of the experiment and reuse the writer.
-  const MSImagingGeometry& geom = exp.getGeometry();
-  MSExperiment out = exp.getMSExperiment();
-
-  for (const MSImagingGeometry::Pixel& px : geom.getPixels())
-  {
-    if (px.spectrum_index >= out.getNrSpectra())
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "imaging geometry references a spectrum index outside the experiment",
-        OpenMS::StringConversions::toString(px.spectrum_index));
-    }
-    MSSpectrum& s = out[px.spectrum_index];
-    s.setMetaValue("imzml:x", static_cast<Int>(px.x) + 1); // 0-based geometry -> 1-based imzML
-    s.setMetaValue("imzml:y", static_cast<Int>(px.y) + 1);
-    if (!s.metaValueExists("imzml:z"))
-    {
-      s.setMetaValue("imzml:z", 1);
-    }
-  }
-
-  if (geom.getWidth() > 0)  { out.setMetaValue("imzml:max_count_x", static_cast<UInt>(geom.getWidth())); }
-  if (geom.getHeight() > 0) { out.setMetaValue("imzml:max_count_y", static_cast<UInt>(geom.getHeight())); }
-  if (geom.getPixelSizeX() > 0) { out.setMetaValue("imzml:pixel_size_x", geom.getPixelSizeX()); }
-  if (geom.getPixelSizeY() > 0) { out.setMetaValue("imzml:pixel_size_y", geom.getPixelSizeY()); }
-
-  store(filename, out);
+  // Geometry-driven store: the MSImagingGeometry is the authoritative index of pixel coordinates
+  // and grid dimensions, so this works for any MSImagingExperiment. The writer stamps the
+  // coordinates onto a private copy only when some mapped spectrum does not carry them yet
+  // (e.g. pixels added through getGeometry().addPixel()); an experiment whose spectra are
+  // already annotated — as bindPixel(), setGeometry() and the loaders leave them — is written
+  // in place.
+  Internal::ImzMLWriter::store(filename, exp.getMSExperiment(), options_, const_cast<ImzMLFile&>(*this),
+                               &exp.getGeometry());
 }
 
 void ImzMLFile::loadImpl_(const std::string& filename,

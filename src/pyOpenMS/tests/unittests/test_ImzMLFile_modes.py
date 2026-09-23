@@ -128,7 +128,7 @@ class TestImzMLAllModes(unittest.TestCase):
         imaging = pyopenms.MSImagingExperiment()
         pyopenms.ImzMLFile().load(self.continuous_path, imaging)
 
-        self.assertEqual(imaging.getNumberOfSpectra(), self.CONTINUOUS_SPECTRA)
+        self.assertEqual(imaging.getNrSpectra(), self.CONTINUOUS_SPECTRA)
         self.assertEqual(imaging.getNumberOfPixels(), self.CONTINUOUS_SPECTRA)
         self.assertEqual(imaging.getGeometry().getWidth(), self.GRID)
         self.assertEqual(imaging.getGeometry().getHeight(), self.GRID)

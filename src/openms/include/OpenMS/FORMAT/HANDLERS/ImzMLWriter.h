@@ -16,6 +16,8 @@
 
 namespace OpenMS
 {
+class MSImagingGeometry;
+
 namespace Internal
 {
 
@@ -66,13 +68,23 @@ namespace Internal
       what the reader accepts for the same dataset (readers map only the first spectrum
       per pixel into the imaging geometry).
 
+      @p exp is only copied when something has to be rewritten before export:
+      an active PeakFileOptions filter, unsorted spectra with sort-by-m/z on,
+      or a @p geometry whose pixels are not (consistently) recorded on their
+      spectra yet. Otherwise the spectra are serialized in place.
+
       @param[in] imzml_path Path to the output @c .imzML file.
       @param[in] exp        Experiment to store (must contain at least one spectrum).
       @param[in] options    Peak file options (filtering, sort, binary precision).
       @param[in] logger     Progress logger for status output.
+      @param[in] geometry   Optional imaging geometry: its pixel coordinates take precedence
+                            over the spectra's imzml:x/y MetaValues for the spectra it maps
+                            (other spectra keep their own), and its grid dimensions and
+                            pixel size take precedence over the experiment-level MetaValues.
 
       @throws Exception::MissingInformation if @p exp has no spectra or lacks imzml:x/y on any spectrum.
-      @throws Exception::InvalidValue if pixel coordinates are invalid.
+      @throws Exception::InvalidValue if pixel coordinates are invalid, or if @p geometry references
+              a spectrum index outside @p exp.
       @throws Exception::InvalidParameter if continuous export is requested but spectra are incompatible.
       @throws Exception::UnableToCreateFile if output files cannot be written.
       @throws Exception::ParseError if binary array serialization fails.
@@ -80,7 +92,8 @@ namespace Internal
     static void store(const std::string& imzml_path,
                       const MSExperiment& exp,
                       const PeakFileOptions& options,
-                      ProgressLogger& logger);
+                      ProgressLogger& logger,
+                      const MSImagingGeometry* geometry = nullptr);
   };
 
 } // namespace Internal

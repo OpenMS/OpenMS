@@ -176,6 +176,20 @@ namespace OpenMS
     */
     MSSpectrum getSpectrumAtCoord(uint32_t x, uint32_t y, uint32_t z = 1) const;
 
+    /**
+      @brief Return the spectrum bound to the pixel at zero-based geometry coordinate (x, y).
+
+      The in-memory counterpart is @p MSImagingExperiment::getSpectrum(x, y); both address
+      the shared @p MSImagingGeometry (0-based, z == 1 plane only), so the same coordinates
+      work on either class. Use getSpectrumAtCoord() for imzML-native 1-based (x, y, z).
+
+      @param x  Pixel column (0-based).
+      @param y  Pixel row    (0-based).
+      @throws Exception::ElementNotFound if no pixel exists at (x, y).
+      @throws Exception::FileNotFound    if the .ibd is not open.
+    */
+    MSSpectrum getSpectrum(UInt x, UInt y) const;
+
     // ------------------------------------------------------------------
     // Ion image extraction — lazy decode, no full dataset in memory
     // ------------------------------------------------------------------

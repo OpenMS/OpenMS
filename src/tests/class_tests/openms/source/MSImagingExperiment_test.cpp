@@ -18,6 +18,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <cmath>
+#include <iterator>
+#include <utility>
 
 using namespace OpenMS;
 using namespace std;
@@ -34,13 +36,19 @@ MSSpectrum makeSpec(std::initializer_list<std::pair<double, double>> peaks)
   return s;
 }
 
-// 2x2 grid; pixel (1,1) intentionally missing.
-MSImagingExperiment makeFixture()
+MSExperiment makeSpecExperiment()
 {
   MSExperiment exp;
   exp.addSpectrum(makeSpec({{499.95, 10.0}, {500.05, 20.0}}));
   exp.addSpectrum(makeSpec({{490.0, 5.0}}));
   exp.addSpectrum(makeSpec({{500.0, 100.0}}));
+  return exp;
+}
+
+// 2x2 grid; pixel (1,1) intentionally missing.
+MSImagingExperiment makeFixture()
+{
+  MSExperiment exp = makeSpecExperiment();
 
   MSImagingGeometry geom;
   geom.setDimensions(2, 2);
@@ -67,7 +75,7 @@ START_SECTION((MSImagingExperiment()))
   ptr = new MSImagingExperiment();
   TEST_NOT_EQUAL(ptr, null_ptr)
   TEST_EQUAL(ptr->getNumberOfPixels(), 0u)
-  TEST_EQUAL(ptr->getNumberOfSpectra(), 0u)
+  TEST_EQUAL(ptr->getNrSpectra(), 0u)
 }
 END_SECTION
 
@@ -82,7 +90,7 @@ START_SECTION((explicit MSImagingExperiment(MSExperiment exp)))
   exp.addSpectrum(MSSpectrum());
 
   MSImagingExperiment mie(std::move(exp));
-  TEST_EQUAL(mie.getNumberOfSpectra(), 2u)
+  TEST_EQUAL(mie.getNrSpectra(), 2u)
   TEST_EQUAL(mie.getNumberOfPixels(), 0u)
 }
 END_SECTION
@@ -90,14 +98,14 @@ END_SECTION
 START_SECTION((MSImagingExperiment & operator=(MSExperiment exp)))
 {
   MSImagingExperiment mie = makeFixture();
-  TEST_EQUAL(mie.getNumberOfSpectra(), 3u)
+  TEST_EQUAL(mie.getNrSpectra(), 3u)
   TEST_EQUAL(mie.getNumberOfPixels(), 3u)
 
   // assignment from a new MSExperiment resets the geometry
   MSExperiment fresh;
   fresh.addSpectrum(MSSpectrum());
   mie = std::move(fresh);
-  TEST_EQUAL(mie.getNumberOfSpectra(), 1u)
+  TEST_EQUAL(mie.getNrSpectra(), 1u)
   TEST_EQUAL(mie.getNumberOfPixels(), 0u)
   TEST_EQUAL(mie.getGeometry().getWidth(), 0u)
 }
@@ -111,7 +119,7 @@ START_SECTION((void setMSExperiment(MSExperiment exp)))
 
   MSImagingExperiment mie;
   mie.setMSExperiment(std::move(exp));
-  TEST_EQUAL(mie.getNumberOfSpectra(), 2u)
+  TEST_EQUAL(mie.getNrSpectra(), 2u)
 }
 END_SECTION
 
@@ -119,7 +127,7 @@ START_SECTION((MSExperiment & getMSExperiment()))
 {
   MSImagingExperiment mie;
   mie.getMSExperiment().addSpectrum(MSSpectrum());
-  TEST_EQUAL(mie.getNumberOfSpectra(), 1u)
+  TEST_EQUAL(mie.getNrSpectra(), 1u)
 }
 END_SECTION
 
@@ -131,9 +139,31 @@ START_SECTION((const MSExperiment& getMSExperiment() const)) {NOT_TESTABLE} END_
   g.setDimensions(3, 2);
   g.addPixel(0, 0, 0);
   MSImagingExperiment mie;
-  mie.setGeometry(std::move(g));
+  mie.setGeometry(std::move(g)); // no spectra yet: nothing to annotate, pixel is kept
   TEST_EQUAL(mie.getGeometry().getWidth(), 3u)
   TEST_EQUAL(mie.getNumberOfPixels(), 1u)
+
+  // with spectra present, the bound spectra get their (1-based) pixel coordinate recorded
+  MSImagingExperiment fx = makeFixture();
+  for (Size i = 0; i < 3; ++i)
+  {
+    TEST_EQUAL(fx[i].metaValueExists(MSImagingExperiment::META_PIXEL_X), true)
+    TEST_EQUAL(fx[i].metaValueExists(MSImagingExperiment::META_PIXEL_Y), true)
+    TEST_EQUAL((Int)fx[i].getMetaValue(MSImagingExperiment::META_PIXEL_Z), 1)
+  }
+  TEST_EQUAL((Int)fx[1].getMetaValue(MSImagingExperiment::META_PIXEL_X), 2) // pixel (1,0) -> spectrum 1
+  TEST_EQUAL((Int)fx[1].getMetaValue(MSImagingExperiment::META_PIXEL_Y), 1)
+  TEST_EQUAL((Int)fx[2].getMetaValue(MSImagingExperiment::META_PIXEL_X), 1) // pixel (0,1) -> spectrum 2
+  TEST_EQUAL((Int)fx[2].getMetaValue(MSImagingExperiment::META_PIXEL_Y), 2)
+
+  // the geometry passed in is authoritative: a spectrum's previous coordinate is overwritten
+  MSImagingGeometry moved;
+  moved.setDimensions(2, 2);
+  moved.addPixel(1, 1, 1);
+  fx.setGeometry(std::move(moved));
+  TEST_EQUAL((Int)fx[1].getMetaValue(MSImagingExperiment::META_PIXEL_X), 2)
+  TEST_EQUAL((Int)fx[1].getMetaValue(MSImagingExperiment::META_PIXEL_Y), 2)
+  fx.validate();
 }
 END_SECTION
 
@@ -149,7 +179,81 @@ START_SECTION((const MSImagingGeometry& getGeometry() const)) {NOT_TESTABLE} END
 
   START_SECTION((Size getNumberOfPixels() const)) {NOT_TESTABLE} END_SECTION
 
-  START_SECTION((Size getNumberOfSpectra() const)) {NOT_TESTABLE} END_SECTION
+  START_SECTION((Size getNrSpectra() const)) {NOT_TESTABLE} END_SECTION
+
+  START_SECTION((Size size() const))
+{
+  MSImagingExperiment mie = makeFixture();
+  TEST_EQUAL(mie.size(), 3u)
+  TEST_EQUAL(MSImagingExperiment().size(), 0u)
+}
+END_SECTION
+
+START_SECTION((bool empty() const))
+{
+  TEST_EQUAL(MSImagingExperiment().empty(), true)
+  TEST_EQUAL(makeFixture().empty(), false)
+}
+END_SECTION
+
+START_SECTION((MSSpectrum& getSpectrum(Size index)))
+{
+  MSImagingExperiment mie = makeFixture();
+  TEST_EQUAL(mie.getSpectrum(Size(0)).size(), 2u)
+  mie.getSpectrum(Size(1)).setRT(42.0); // a reference: edits land
+  TEST_REAL_SIMILAR(mie.getMSExperiment()[1].getRT(), 42.0)
+  TEST_EXCEPTION(Exception::IndexOverflow, mie.getSpectrum(Size(3)))
+}
+END_SECTION
+
+START_SECTION((const MSSpectrum& getSpectrum(Size index) const))
+{
+  const MSImagingExperiment mie = makeFixture();
+  TEST_REAL_SIMILAR(mie.getSpectrum(Size(2))[0].getMZ(), 500.0)
+  TEST_EXCEPTION(Exception::IndexOverflow, mie.getSpectrum(Size(99)))
+}
+END_SECTION
+
+START_SECTION((MSSpectrum& operator[](Size index)))
+{
+  MSImagingExperiment mie = makeFixture();
+  TEST_EQUAL(mie[0].size(), 2u)
+  TEST_EXCEPTION(Exception::IndexOverflow, mie[3])
+}
+END_SECTION
+
+START_SECTION((const MSSpectrum& operator[](Size index) const))
+{
+  const MSImagingExperiment mie = makeFixture();
+  TEST_EQUAL(mie[1].size(), 1u)
+  TEST_EXCEPTION(Exception::IndexOverflow, mie[3])
+}
+END_SECTION
+
+START_SECTION((Iterator begin()))
+{
+  MSImagingExperiment mie = makeFixture();
+  Size n = 0;
+  for (MSSpectrum& s : mie)
+  {
+    s.setRT(double(n));
+    ++n;
+  }
+  TEST_EQUAL(n, 3u)
+  TEST_REAL_SIMILAR(mie[2].getRT(), 2.0)
+}
+END_SECTION
+
+START_SECTION((Iterator end())) {NOT_TESTABLE} END_SECTION
+
+START_SECTION((ConstIterator begin() const))
+{
+  const MSImagingExperiment mie = makeFixture();
+  TEST_EQUAL(std::distance(mie.begin(), mie.end()), 3)
+}
+END_SECTION
+
+START_SECTION((ConstIterator end() const)) {NOT_TESTABLE} END_SECTION
 
   START_SECTION((bool hasPixel(UInt x, UInt y) const))
 {
@@ -158,6 +262,25 @@ START_SECTION((const MSImagingGeometry& getGeometry() const)) {NOT_TESTABLE} END
   TEST_EQUAL(mie.hasPixel(1, 0), true)
   TEST_EQUAL(mie.hasPixel(0, 1), true)
   TEST_EQUAL(mie.hasPixel(1, 1), false)
+}
+END_SECTION
+
+START_SECTION((void bindPixel(UInt x, UInt y, Size spectrum_index)))
+{
+  MSImagingExperiment mie(makeSpecExperiment());
+  mie.getGeometry().setDimensions(2, 2);
+  mie.bindPixel(1, 1, 2);
+  TEST_EQUAL(mie.hasPixel(1, 1), true)
+  TEST_EQUAL(mie.getGeometry().getSpectrumIndex(1, 1), 2u)
+  TEST_EQUAL((Int)mie[2].getMetaValue(MSImagingExperiment::META_PIXEL_X), 2) // recorded 1-based
+  TEST_EQUAL((Int)mie[2].getMetaValue(MSImagingExperiment::META_PIXEL_Y), 2)
+  TEST_EQUAL((Int)mie[2].getMetaValue(MSImagingExperiment::META_PIXEL_Z), 1)
+  mie.validate();
+
+  TEST_EXCEPTION(Exception::IndexOverflow, mie.bindPixel(0, 0, 3)) // no such spectrum
+  TEST_EXCEPTION(Exception::InvalidValue, mie.bindPixel(1, 1, 0))  // duplicate pixel
+  TEST_EXCEPTION(Exception::InvalidValue, mie.bindPixel(2, 0, 0))  // outside the 2x2 grid
+  TEST_EQUAL(mie[0].metaValueExists(MSImagingExperiment::META_PIXEL_X), false) // nothing written on failure
 }
 END_SECTION
 
@@ -237,6 +360,129 @@ START_SECTION((void validate() const))
   // append a 4th pixel that maps to a non-existent spectrum -> throws
   mie.getGeometry().addPixel(1, 1, 999);
   TEST_EXCEPTION(Exception::InvalidValue, mie.validate())
+
+  // every index in range, but the spectrum list was reordered: the coordinate each spectrum
+  // carries no longer matches the pixel it is bound to -> throws (an index-only check passes)
+  MSImagingExperiment reordered = makeFixture();
+  std::swap(reordered.getMSExperiment().getSpectra()[0], reordered.getMSExperiment().getSpectra()[2]);
+  TEST_EXCEPTION(Exception::InvalidValue, reordered.validate())
+
+  // spectra without coordinates are accepted as-is (hand-built geometry over plain spectra)
+  MSImagingExperiment plain(makeSpecExperiment());
+  plain.getGeometry().setDimensions(2, 2);
+  plain.getGeometry().addPixel(0, 0, 0);
+  plain.validate();
+
+  // a stale index that happens to be in range on a replaced experiment is caught too
+  MSImagingExperiment replaced = makeFixture();
+  MSExperiment other = replaced.getMSExperiment();
+  other.getSpectra().erase(other.getSpectra().begin()); // drop spectrum 0: every index shifts by one
+  replaced.setMSExperiment(std::move(other));
+  TEST_EXCEPTION(Exception::InvalidValue, replaced.validate())
+}
+END_SECTION
+
+START_SECTION((void rebuildGeometry()))
+{
+  MSImagingExperiment mie = makeFixture();
+  mie.getGeometry().setPixelSize(20.0, 20.0, "micrometer");
+  mie.getGeometry().addRegion(MSImagingRegion::rectangle(1, "col0", 0, 0, 0, 1));
+
+  // reorder the spectra behind the geometry's back, then rebuild the index from the
+  // coordinates the spectra carry: dims, pixel size and regions survive, indices follow
+  MSExperiment& exp = mie.getMSExperiment();
+  std::swap(exp.getSpectra()[0], exp.getSpectra()[2]);
+  TEST_EXCEPTION(Exception::InvalidValue, mie.validate())
+  mie.rebuildGeometry();
+  mie.validate();
+  TEST_EQUAL(mie.getNumberOfPixels(), 3u)
+  TEST_EQUAL(mie.getGeometry().getWidth(), 2u)
+  TEST_EQUAL(mie.getGeometry().getHeight(), 2u)
+  TEST_REAL_SIMILAR(mie.getGeometry().getPixelSizeX(), 20.0)
+  TEST_EQUAL(mie.getGeometry().getNumberOfRegions(), 1u)
+  TEST_EQUAL(mie.getGeometry().getSpectrumIndex(0, 0), 2u) // the 500.0-peak spectrum moved to index 0 ... 
+  TEST_EQUAL(mie.getGeometry().getSpectrumIndex(0, 1), 0u) // ... and pixel (0,1)'s spectrum is now at 0
+  TEST_EQUAL(mie.getGeometry().getSpectrumIndex(1, 0), 1u)
+  TEST_REAL_SIMILAR(mie.getSpectrum(0, 0)[0].getMZ(), 499.95) // pixel (0,0) still yields its own spectrum
+  TEST_REAL_SIMILAR(mie.getSpectrum(0, 1)[0].getMZ(), 500.0)
+
+  // erasing a spectrum drops its pixel; the others are re-indexed
+  exp.getSpectra().erase(exp.getSpectra().begin() + 1); // spectrum 1 = pixel (1,0)
+  mie.rebuildGeometry();
+  mie.validate();
+  TEST_EQUAL(mie.getNumberOfPixels(), 2u)
+  TEST_EQUAL(mie.hasPixel(1, 0), false)
+  TEST_EQUAL(mie.getGeometry().getSpectrumIndex(0, 1), 0u)
+  TEST_EQUAL(mie.getGeometry().getSpectrumIndex(0, 0), 1u)
+
+  // no declared grid: dimensions grow to the bounding box of the mapped pixels
+  MSImagingExperiment grown(makeSpecExperiment());
+  MSImagingExperiment::setPixelCoordinate(grown[0], 4, 1);
+  MSImagingExperiment::setPixelCoordinate(grown[2], 0, 3);
+  grown.rebuildGeometry();
+  TEST_EQUAL(grown.getNumberOfPixels(), 2u)
+  TEST_EQUAL(grown.getGeometry().getWidth(), 5u)
+  TEST_EQUAL(grown.getGeometry().getHeight(), 4u)
+  TEST_EQUAL(grown.getGeometry().getSpectrumIndex(4, 1), 0u)
+
+  // duplicates: first spectrum per pixel wins; out-of-grid and non-z1 spectra are skipped
+  MSImagingExperiment dup(makeSpecExperiment());
+  dup.getGeometry().setDimensions(2, 2);
+  MSImagingExperiment::setPixelCoordinate(dup[0], 0, 0);
+  MSImagingExperiment::setPixelCoordinate(dup[1], 0, 0);
+  MSImagingExperiment::setPixelCoordinate(dup[2], 5, 5);
+  dup.rebuildGeometry();
+  TEST_EQUAL(dup.getNumberOfPixels(), 1u)
+  TEST_EQUAL(dup.getGeometry().getSpectrumIndex(0, 0), 0u)
+  dup[2].setMetaValue(MSImagingExperiment::META_PIXEL_X, 2);
+  dup[2].setMetaValue(MSImagingExperiment::META_PIXEL_Y, 2);
+  dup[2].setMetaValue(MSImagingExperiment::META_PIXEL_Z, 2);
+  dup.rebuildGeometry();
+  TEST_EQUAL(dup.hasPixel(1, 1), false)
+}
+END_SECTION
+
+START_SECTION((static void bindPixelsFromSpectra(const MSExperiment& exp, MSImagingGeometry& geom)))
+{
+  MSImagingExperiment fx = makeFixture(); // spectra annotated by setGeometry()
+  MSImagingGeometry geom;
+  MSImagingExperiment::bindPixelsFromSpectra(fx.getMSExperiment(), geom);
+  TEST_EQUAL(geom.getNumberOfPixels(), 3u)
+  TEST_EQUAL(geom.getWidth(), 2u)
+  TEST_EQUAL(geom.getHeight(), 2u)
+  TEST_EQUAL(geom.getSpectrumIndex(0, 1), 2u)
+}
+END_SECTION
+
+START_SECTION((static bool getPixelCoordinate(const MSSpectrum& spec, UInt& x, UInt& y)))
+{
+  MSSpectrum s;
+  UInt x = 7, y = 7;
+  TEST_EQUAL(MSImagingExperiment::getPixelCoordinate(s, x, y), false)
+  s.setMetaValue(MSImagingExperiment::META_PIXEL_X, 3);
+  s.setMetaValue(MSImagingExperiment::META_PIXEL_Y, 1);
+  TEST_EQUAL(MSImagingExperiment::getPixelCoordinate(s, x, y), true)
+  TEST_EQUAL(x, 2u) // 1-based meta value -> 0-based geometry coordinate
+  TEST_EQUAL(y, 0u)
+  s.setMetaValue(MSImagingExperiment::META_PIXEL_Z, 2);
+  TEST_EQUAL(MSImagingExperiment::getPixelCoordinate(s, x, y), false) // only plane 1 is modeled
+  s.setMetaValue(MSImagingExperiment::META_PIXEL_Z, 1);
+  s.setMetaValue(MSImagingExperiment::META_PIXEL_X, 0);
+  TEST_EQUAL(MSImagingExperiment::getPixelCoordinate(s, x, y), false) // non-conformant (< 1)
+}
+END_SECTION
+
+START_SECTION((static void setPixelCoordinate(MSSpectrum& spec, UInt x, UInt y)))
+{
+  MSSpectrum s;
+  MSImagingExperiment::setPixelCoordinate(s, 0, 4);
+  TEST_EQUAL((Int)s.getMetaValue(MSImagingExperiment::META_PIXEL_X), 1)
+  TEST_EQUAL((Int)s.getMetaValue(MSImagingExperiment::META_PIXEL_Y), 5)
+  TEST_EQUAL((Int)s.getMetaValue(MSImagingExperiment::META_PIXEL_Z), 1)
+  UInt x = 0, y = 0;
+  TEST_EQUAL(MSImagingExperiment::getPixelCoordinate(s, x, y), true)
+  TEST_EQUAL(x, 0u)
+  TEST_EQUAL(y, 4u)
 }
 END_SECTION
 

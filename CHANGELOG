@@ -144,6 +144,14 @@ Dependencies:
   - macOS Intel builds discontinued; minimum macOS version is 14 (#8486, #8494, #8527).
 
 PyOpenMS:
+  - MSImagingExperiment no longer forces a full copy to reach its data: msexperiment_view()
+    and geometry_view() alias the owned MSExperiment and MSImagingGeometry (getMSExperiment()
+    and getGeometry() still copy, per the ownership rule), spectrum_view(i) / spectrum_view(x, y),
+    spectrum_views() and iter_spectrum_views() alias single spectra, and the class is indexable
+    (len, img[i], iteration, getSpectrum(i)/setSpectrum(i, s)). bindPixel(), rebuildGeometry(),
+    validate() and the static getPixelCoordinate()/setPixelCoordinate() helpers expose the
+    coordinates-on-spectra model; OnDiscImzMLExperiment.getSpectrum(x, y) takes the same
+    zero-based pixel coordinates as MSImagingExperiment (#10249).
   - Fixed keyword defaults that did not match the wrapped C++ signatures. Four bindings
     declared a parameter with no default after parameters that had one: the transf
     argument of MultipleTesting.lfdr, spectra in both IDMapper.annotate overloads and
@@ -598,6 +606,13 @@ OpenMS Library:
       string arrays and duplicate pixels (first spectrum used for geometry, all remain
       index-accessible). Both loaders reject zlib-compressed m/z/intensity arrays
       (#9381, #9383, #9521, #9654, #9903, #9908, #10002).
+      A spectrum's pixel coordinate is spectrum metadata (imzml:x/y/z); the geometry is a
+      rebuildable index of it: MSImagingExperiment::bindPixel()/setGeometry() record the
+      coordinates on the spectra, rebuildGeometry() re-derives the index after spectra were
+      reordered or dropped, validate() detects a stale index, and ImzMLFile::store() writes an
+      annotated MSImagingExperiment in place instead of copying it. MSImagingExperiment gained
+      index-based access (getNrSpectra(), getSpectrum(i), operator[], begin()/end()), matching
+      OnDiscImzMLExperiment, which gained the zero-based getSpectrum(x, y) (#10249).
     - Native Parquet: PSMArrowIO, FeatureMapArrowIO, ConsensusMapArrowIO, ArrowSchemaRegistry,
       ArrowExport and ProteinGroupArrowExport. Preserves map metadata/unique IDs and
       identification run links; rejects duplicate run IDs and dangling feature references.

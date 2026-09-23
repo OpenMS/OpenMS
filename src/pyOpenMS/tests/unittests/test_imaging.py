@@ -121,7 +121,7 @@ def test_ms_imaging_geometry_rejects_oob():
 def test_ms_imaging_experiment_extract_ion_image():
     mie = _make_fixture()
     assert mie.getNumberOfPixels() == 3
-    assert mie.getNumberOfSpectra() == 3
+    assert mie.getNrSpectra() == 3
     assert mie.hasPixel(1, 1) is False
 
     # 200 ppm @ 500 Da -> window [499.9, 500.1]
@@ -172,7 +172,7 @@ def test_ms_imaging_experiment_assignment_clears_geometry():
     assert mie.getNumberOfPixels() == 3
     # operator= is exposed in C++ but we can re-create via constructor + reassign:
     mie2 = type(mie)(fresh)
-    assert mie2.getNumberOfSpectra() == 1
+    assert mie2.getNrSpectra() == 1
     assert mie2.getNumberOfPixels() == 0
 
 def test_ms_imaging_region_rectangle():
@@ -298,3 +298,175 @@ def test_ms_imaging_experiment_extract_region():
 
     with pytest.raises(Exception):
         mie.extractIonImage(500.0, 200.0, 99)   # unknown region id
+
+# ---------------------------------------------------------------------------
+# Coordinates live on the spectra; the geometry is a rebuildable index.
+# ---------------------------------------------------------------------------
+
+def test_ms_imaging_experiment_set_geometry_records_coordinates():
+    from pyopenms import MSImagingExperiment
+
+    mie = _make_fixture()
+    assert MSImagingExperiment.META_PIXEL_X == "imzml:x"
+    # 1-based on the spectrum, 0-based in the geometry
+    assert mie[1].getMetaValue("imzml:x") == 2 and mie[1].getMetaValue("imzml:y") == 1
+    assert mie[2].getMetaValue("imzml:x") == 1 and mie[2].getMetaValue("imzml:y") == 2
+    assert MSImagingExperiment.getPixelCoordinate(mie[2]) == (0, 1)
+    mie.validate()
+
+
+def test_ms_imaging_experiment_index_access():
+    mie = _make_fixture()
+    assert mie.getNrSpectra() == 3
+    assert len(mie) == 3
+    assert mie.size() == 3 and mie.empty() is False
+    assert mie[2].get_peaks()[0].tolist() == pytest.approx([500.0])
+    assert mie.getSpectrum(0).size() == 2
+    assert [s.size() for s in mie] == [2, 1, 1]
+    with pytest.raises(IndexError):
+        mie[3]
+    with pytest.raises(IndexError):
+        mie.getSpectrum(3)
+
+    # getters copy; the write-back route is __setitem__ / setSpectrum(i, ...)
+    s = mie[1]
+    s.setRT(7.0)
+    assert mie[1].getRT() == -1.0                      # default RT: the copy was edited, not the experiment
+    mie[1] = s
+    assert mie[1].getRT() == 7.0
+    mie.setSpectrum(1, mie[0])
+    assert mie[1].size() == 2
+
+
+def test_ms_imaging_experiment_bind_pixel():
+    from pyopenms import MSExperiment, MSSpectrum, MSImagingExperiment
+
+    exp = MSExperiment()
+    for _ in range(3):
+        exp.addSpectrum(MSSpectrum())
+    mie = MSImagingExperiment(exp)
+    mie.geometry_view().setDimensions(2, 2)
+    mie.bindPixel(1, 1, 2)
+    assert mie.hasPixel(1, 1) is True
+    assert mie[2].getMetaValue("imzml:x") == 2 and mie[2].getMetaValue("imzml:y") == 2
+    assert MSImagingExperiment.getPixelCoordinate(mie[2]) == (1, 1)
+    assert MSImagingExperiment.getPixelCoordinate(mie[0]) is None
+    with pytest.raises(Exception):
+        mie.bindPixel(0, 0, 3)     # no such spectrum
+    with pytest.raises(Exception):
+        mie.bindPixel(1, 1, 0)     # duplicate pixel
+    mie.validate()
+
+
+def test_ms_imaging_experiment_rebuild_geometry_after_reorder():
+    mie = _make_fixture()
+    exp = mie.msexperiment_view()
+    # reorder the spectra behind the geometry's back: the index is stale ...
+    s0, s2 = exp[0], exp[2]
+    exp[0], exp[2] = s2, s0
+    with pytest.raises(Exception):
+        mie.validate()
+    # ... and is repaired from the coordinates the spectra carry
+    mie.rebuildGeometry()
+    mie.validate()
+    assert mie.getNumberOfPixels() == 3
+    assert mie.geometry_view().getSpectrumIndex(0, 0) == 2
+    assert mie.geometry_view().getSpectrumIndex(0, 1) == 0
+    assert mie.getSpectrum(0, 0).get_peaks()[0].tolist() == pytest.approx([499.95, 500.05])
+
+    # a dropped spectrum drops its pixel and re-indexes the rest
+    exp.setSpectra([exp[0], exp[2]])
+    mie.rebuildGeometry()
+    mie.validate()
+    assert mie.getNumberOfPixels() == 2
+    assert mie.hasPixel(1, 0) is False
+
+
+def test_ms_imaging_experiment_validate_detects_stale_index():
+    from pyopenms import MSExperiment
+
+    mie = _make_fixture()
+    exp = mie.getMSExperiment()           # a copy
+    exp.setSpectra([exp[1], exp[2]])      # spectrum 0 gone: every index shifts by one
+    mie.setMSExperiment(exp)              # geometry is kept, now stale
+    with pytest.raises(Exception):
+        mie.validate()
+    mie.rebuildGeometry()
+    mie.validate()
+    assert mie.getNumberOfPixels() == 2
+
+
+def test_ms_imaging_experiment_static_coordinate_helpers():
+    from pyopenms import MSSpectrum, MSImagingExperiment, MSImagingGeometry, MSExperiment
+
+    s = MSSpectrum()
+    assert MSImagingExperiment.getPixelCoordinate(s) is None
+    MSImagingExperiment.setPixelCoordinate(s, 3, 0)
+    assert s.getMetaValue("imzml:x") == 4 and s.getMetaValue("imzml:y") == 1
+    assert s.getMetaValue("imzml:z") == 1
+    assert MSImagingExperiment.getPixelCoordinate(s) == (3, 0)
+
+    exp = MSExperiment()
+    exp.addSpectrum(s)
+    geom = MSImagingGeometry()
+    MSImagingExperiment.bindPixelsFromSpectra(exp, geom)
+    assert geom.getNumberOfPixels() == 1
+    assert geom.getSpectrumIndex(3, 0) == 0
+    assert (geom.getWidth(), geom.getHeight()) == (4, 1)
+
+
+# ---------------------------------------------------------------------------
+# Views: msexperiment_view / geometry_view / spectrum_view alias the storage.
+# ---------------------------------------------------------------------------
+
+def test_ms_imaging_experiment_msexperiment_view_aliases():
+    mie = _make_fixture()
+    exp = mie.msexperiment_view()
+    assert exp.getNrSpectra() == 3
+    exp.spectrum_view(1).setRT(12.5)         # lands without any write-back
+    assert mie.getSpectrum(1, 0).getRT() == 12.5
+    # the view follows setMSExperiment(): the member is replaced in place
+    fresh = mie.getMSExperiment()
+    fresh.addSpectrum(fresh[0])
+    mie.setMSExperiment(fresh)
+    assert exp.getNrSpectra() == 4
+    # zero-copy iteration of every spectrum through the view
+    for spec in mie.iter_spectrum_views():
+        spec.setMSLevel(2)
+    assert all(s.getMSLevel() == 2 for s in mie)
+    assert len(mie.spectrum_views()) == 4
+
+
+def test_ms_imaging_experiment_geometry_view_aliases():
+    from pyopenms import MSImagingRegion
+
+    mie = _make_fixture()
+    g = mie.geometry_view()
+    g.addRegion(MSImagingRegion.rectangle(1, "col0", 0, 0, 0, 1))
+    assert mie.getRegionSpectrumIndices(1) == [0, 2]   # landed, no setGeometry() needed
+    pix = g.pixels_struct()                             # zero-copy end to end
+    assert pix["spectrum_index"].tolist() == [0, 1, 2]
+    assert mie.getGeometry().getNumberOfRegions() == 1
+
+
+def test_ms_imaging_experiment_spectrum_view_by_pixel_and_index():
+    mie = _make_fixture()
+    mie.spectrum_view(0, 1).setRT(3.0)
+    assert mie.getSpectrum(0, 1).getRT() == 3.0
+    assert mie.spectrum_view(2).getRT() == 3.0          # pixel (0, 1) is spectrum 2
+    mie.spectrum_view(2).setRT(4.0)
+    assert mie[2].getRT() == 4.0
+    with pytest.raises(Exception):
+        mie.spectrum_view(1, 1)                          # pixel not in the geometry
+    with pytest.raises(IndexError):
+        mie.spectrum_view(3)
+
+
+def test_ms_imaging_experiment_views_keep_parent_alive():
+    import gc
+
+    exp = _make_fixture().msexperiment_view()
+    spec = _make_fixture().spectrum_view(0, 0)
+    gc.collect()
+    assert exp.getNrSpectra() == 3                      # parent kept alive by the view
+    assert spec.size() == 2

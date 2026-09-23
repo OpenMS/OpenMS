@@ -16,6 +16,8 @@
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/IMAGING/MSImagingExperiment.h>
+#include <OpenMS/IMAGING/MSImagingGeometry.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Instrument.h>
 
@@ -24,6 +26,7 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
+#include <optional>
 #include <functional>
 #include <iomanip>
 #include <random>
@@ -1391,15 +1394,91 @@ namespace
     os << "</mzML>\n";
   }
 
+  /// true if every pixel of @p geom is bound to an in-range spectrum that already carries that
+  /// very coordinate (so the writer can serialize @p exp in place, without stamping a copy).
+  bool geometryRecordedOnSpectra_(const MSExperiment& exp, const MSImagingGeometry& geom)
+  {
+    const Size n_spectra = exp.getNrSpectra();
+    for (const MSImagingGeometry::Pixel& px : geom.getPixels())
+    {
+      if (px.spectrum_index >= n_spectra)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "imaging geometry references a spectrum index outside the experiment",
+          OpenMS::StringConversions::toString(px.spectrum_index));
+      }
+      UInt x = 0;
+      UInt y = 0;
+      if (!MSImagingExperiment::getPixelCoordinate(exp[px.spectrum_index], x, y) || x != px.x || y != px.y)
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Records every pixel's coordinate on its spectrum (the geometry wins over whatever the
+  /// spectrum carried); spectra the geometry does not map keep their own MetaValues.
+  void stampGeometryOnSpectra_(MSExperiment& exp, const MSImagingGeometry& geom)
+  {
+    const Size n_spectra = exp.getNrSpectra();
+    for (const MSImagingGeometry::Pixel& px : geom.getPixels())
+    {
+      if (px.spectrum_index >= n_spectra)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "imaging geometry references a spectrum index outside the experiment",
+          OpenMS::StringConversions::toString(px.spectrum_index));
+      }
+      MSImagingExperiment::setPixelCoordinate(exp[px.spectrum_index], px.x, px.y);
+    }
+  }
+
+  /// true if applyStoreOptions_() would change @p exp, i.e. the writer needs a private copy.
+  bool storeOptionsRewrite_(const MSExperiment& exp, const PeakFileOptions& options)
+  {
+    if (options.hasMSLevels() || options.hasRTRange() || options.hasPrecursorMZRange()
+        || options.hasMZRange() || options.hasIntensityRange() || options.getMetadataOnly())
+    {
+      return true;
+    }
+    if (options.getSortSpectraByMZ())
+    {
+      for (const MSSpectrum& spectrum : exp.getSpectra())
+      {
+        if (!spectrum.empty() && !spectrum.isSorted())
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
 } // namespace
 
 void ImzMLWriter::store(const std::string& imzml_path,
                           const MSExperiment& exp,
                           const PeakFileOptions& options,
-                          ProgressLogger& logger)
+                          ProgressLogger& logger,
+                          const MSImagingGeometry* geometry)
 {
-  MSExperiment work = exp;
-  applyStoreOptions_(work, options);
+  // Copy only when something has to be rewritten before export; a multi-GB imaging
+  // experiment whose spectra already carry their pixel coordinates is serialized in place.
+  const bool needs_stamping = (geometry != nullptr) && !geometryRecordedOnSpectra_(exp, *geometry);
+  const bool needs_copy = needs_stamping || storeOptionsRewrite_(exp, options);
+  std::optional<MSExperiment> work_copy;
+  if (needs_copy)
+  {
+    work_copy.emplace(exp);
+    if (geometry != nullptr)
+    {
+      // Stamp before filtering: the geometry's spectrum indices refer to the unfiltered order.
+      stampGeometryOnSpectra_(*work_copy, *geometry);
+    }
+    applyStoreOptions_(*work_copy, options);
+  }
+  const MSExperiment& work = needs_copy ? *work_copy : exp;
 
   if (work.empty())
   {
@@ -1411,6 +1490,15 @@ void ImzMLWriter::store(const std::string& imzml_path,
   warnOnDroppedDataArrays_(work);
 
   ImzMLMeta meta = extractMeta_(work);
+  if (geometry != nullptr)
+  {
+    // The geometry is the authoritative record of grid and pixel size (an experiment assembled
+    // from a non-imzML source, e.g. BrukerTimsImagingFile, has no imzml:* MetaValues for them).
+    if (geometry->getWidth() > 0)  { meta.max_count_x = geometry->getWidth(); }
+    if (geometry->getHeight() > 0) { meta.max_count_y = geometry->getHeight(); }
+    if (geometry->getPixelSizeX() > 0) { meta.pixel_size_x = geometry->getPixelSizeX(); }
+    if (geometry->getPixelSizeY() > 0) { meta.pixel_size_y = geometry->getPixelSizeY(); }
+  }
   const bool continuous = isContinuousMode_(work, meta);
   meta.imaging_mode = continuous ? "continuous" : "processed";
 

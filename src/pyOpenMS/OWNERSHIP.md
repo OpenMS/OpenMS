@@ -155,10 +155,23 @@ The same convention already marks the zero-copy numpy views (`data_view()`,
 The family is
 available on `MSExperiment` (spectra, chromatograms), `FeatureMap` (features),
 `ConsensusMap` (consensus features), `PeptideIdentificationList`
-(identifications), `MRMTransitionGroup` (features, chromatograms), and
+(identifications), `MRMTransitionGroup` (features, chromatograms),
+`MSImagingExperiment` (spectra, by index `spectrum_view(i)` or by pixel
+`spectrum_view(x, y)`), and
 `MSSpectrum`/`MSChromatogram` (float/integer/string data arrays) — where
 `spec.float_data_array_view(i).data_view()` chains into a fully
-zero-copy numpy view of spectrum-owned storage. Anything named `get_*`
+zero-copy numpy view of spectrum-owned storage.
+
+The same naming covers an owned *member* object, not just list elements:
+`MSImagingExperiment.msexperiment_view()` and `geometry_view()` alias the
+imaging experiment's `MSExperiment` and `MSImagingGeometry` (`getMSExperiment()`
+and `getGeometry()` copy, as the rule says). These two are the safe end of the
+family: the members live inside the parent, so the view stays valid for the
+parent's whole lifetime — `setMSExperiment()`/`setGeometry()` replace the
+content in place — and the parent is kept alive. What a member view cannot do
+is keep the *geometry* in step: reordering or erasing spectra through
+`msexperiment_view()` leaves the pixel index stale, which `validate()` reports
+and `rebuildGeometry()` repairs from the coordinates the spectra carry. Anything named `get_*`
 returns a copy you own, as the rule above says (with only its three
 documented exceptions).
 

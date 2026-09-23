@@ -39,6 +39,7 @@ NB_MODULE(_pyopenms_experiment, m)
 {
     // index-based value iterators (see index_value_iterator.h)
     pyopenms_iter::bind_index_value_iterator<OpenMS::MSExperiment>(m, "_MSExperimentIter");
+    pyopenms_iter::bind_index_value_iterator<OpenMS::MSImagingExperiment>(m, "_MSImagingExperimentIter");
   m.doc() = "pyOpenMS experiment bindings";
 
   // -----------------------------------------------------------------------
@@ -670,6 +671,16 @@ In-memory model for a 2D imaging mass spectrometry dataset.
 Owns an MSExperiment (spectra) and an MSImagingGeometry (pixel grid +
 pixel -> spectrum index mapping). Provides pixel-based spectrum access
 and a simple sum-based ion image extraction.
+
+A spectrum's pixel coordinate is stored on the spectrum itself (meta values
+``imzml:x`` / ``imzml:y``, 1-based); the geometry is a spatial index derived
+from them. bindPixel() and setGeometry() record the coordinates on the bound
+spectra. After reordering or erasing spectra call rebuildGeometry(); validate()
+reports a stale index.
+
+Every getter returns a copy (see OWNERSHIP.md). ``msexperiment_view()``,
+``geometry_view()`` and ``spectrum_view(...)`` alias the object's storage
+instead: edits through them land immediately, no write-back needed.
 )doc")
     .def(nb::init<>())
     .def(nb::init<OpenMS::MSExperiment>(), "exp"_a, "Wrap an MSExperiment with an empty geometry.")
@@ -677,17 +688,78 @@ and a simple sum-based ion image extraction.
     .def("__copy__", [](const OpenMS::MSImagingExperiment& self) { return OpenMS::MSImagingExperiment(self); })
     .def(
       "__deepcopy__", [](const OpenMS::MSImagingExperiment& self, nb::dict) { return OpenMS::MSImagingExperiment(self); }, "memo"_a)
+    .def_ro_static("META_PIXEL_X", &OpenMS::MSImagingExperiment::META_PIXEL_X, "Meta value key of a spectrum's pixel column (1-based).")
+    .def_ro_static("META_PIXEL_Y", &OpenMS::MSImagingExperiment::META_PIXEL_Y, "Meta value key of a spectrum's pixel row (1-based).")
+    .def_ro_static("META_PIXEL_Z", &OpenMS::MSImagingExperiment::META_PIXEL_Z, "Meta value key of a spectrum's pixel plane (only 1 is modeled).")
+
+    // Owned members: copies by the ownership rule, views by name.
     .def(
       "getMSExperiment", [](const OpenMS::MSImagingExperiment& self) -> OpenMS::MSExperiment { return self.getMSExperiment(); },
-      "Returns a copy of the owned MSExperiment")
-    .def("setMSExperiment", &OpenMS::MSImagingExperiment::setMSExperiment, "exp"_a, "Replaces the owned MSExperiment without touching the geometry.")
+      "Returns a copy of the owned MSExperiment. For a live alias use msexperiment_view().")
+    .def("setMSExperiment", &OpenMS::MSImagingExperiment::setMSExperiment, "exp"_a,
+         "Replaces the owned MSExperiment without touching the geometry (validate()/rebuildGeometry() if the spectra moved).")
+    .def(
+      "msexperiment_view", [](OpenMS::MSImagingExperiment& self) -> OpenMS::MSExperiment& { return self.getMSExperiment(); },
+      nb::rv_policy::reference_internal,
+      "Returns a live view of the owned MSExperiment. The view aliases this object's storage: edits through it are visible immediately, and the parent is kept alive automatically. It stays valid for the lifetime of this object (setMSExperiment() replaces the content in place). Reordering or erasing spectra through it leaves the geometry stale: call rebuildGeometry() afterwards. For an owned, hazard-free copy use getMSExperiment().")
     .def(
       "getGeometry", [](const OpenMS::MSImagingExperiment& self) -> OpenMS::MSImagingGeometry { return self.getGeometry(); },
-      "Returns a copy of the imaging geometry")
-    .def("setGeometry", &OpenMS::MSImagingExperiment::setGeometry, "geom"_a)
+      "Returns a copy of the imaging geometry. For a live alias use geometry_view().")
+    .def("setGeometry", &OpenMS::MSImagingExperiment::setGeometry, "geom"_a,
+         "Replaces the geometry and records its pixel coordinates on the bound spectra.")
+    .def(
+      "geometry_view", [](OpenMS::MSImagingExperiment& self) -> OpenMS::MSImagingGeometry& { return self.getGeometry(); },
+      nb::rv_policy::reference_internal,
+      "Returns a live view of the imaging geometry (e.g. to add regions, or for a zero-copy geometry_view().pixels_struct()). The view aliases this object's storage, edits land immediately, the parent is kept alive automatically, and it stays valid for the lifetime of this object. Pixels added through it are not recorded on their spectra; prefer bindPixel(). For an owned copy use getGeometry().")
+
+    // Index-based access (mirrors OnDiscImzMLExperiment and MSExperiment).
+    .def("getNrSpectra", &OpenMS::MSImagingExperiment::getNrSpectra, "Number of spectra in the underlying experiment")
+    .def("size", &OpenMS::MSImagingExperiment::size, "Number of spectra in the underlying experiment")
+    .def("empty", &OpenMS::MSImagingExperiment::empty, "True if the underlying experiment holds no spectra")
+    .def("__len__", &OpenMS::MSImagingExperiment::size)
+    .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::MSImagingExperiment>(self); })
+    .def(
+      "__getitem__",
+      [](const OpenMS::MSImagingExperiment& self, size_t i) -> OpenMS::MSSpectrum {
+        if (i >= self.getNrSpectra()) throw nb::index_error();
+        return self[i]; // by value: element access yields an owned copy
+      },
+      "i"_a, "Returns a copy of the spectrum at index i")
+    .def(
+      "__setitem__",
+      [](OpenMS::MSImagingExperiment& self, size_t i, const OpenMS::MSSpectrum& val) {
+        if (i >= self.getNrSpectra()) throw nb::index_error();
+        self[i] = val;
+      },
+      "i"_a, "val"_a, "Sets the spectrum at index i")
+    .def(
+      "getSpectrum",
+      [](const OpenMS::MSImagingExperiment& self, size_t i) -> OpenMS::MSSpectrum {
+        if (i >= self.getNrSpectra()) throw nb::index_error();
+        return self.getSpectrum(i);
+      },
+      "i"_a, "Returns a copy of the spectrum at index i")
+    .def(
+      "setSpectrum",
+      [](OpenMS::MSImagingExperiment& self, size_t i, const OpenMS::MSSpectrum& spectrum) {
+        if (i >= self.getNrSpectra()) throw nb::index_error();
+        self[i] = spectrum; // write-back for the copy-returning getter
+      },
+      "i"_a, "spectrum"_a, "Replaces the spectrum at index i")
+    .def(
+      "spectrum_view",
+      [](OpenMS::MSImagingExperiment& self, size_t i) -> OpenMS::MSSpectrum& {
+        if (i >= self.getNrSpectra()) throw nb::index_error();
+        return self.getSpectrum(i);
+      },
+      nb::rv_policy::reference_internal, "i"_a,
+      "Returns a live view of the spectrum at index i. The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the spectrum list is resized or reordered (setMSExperiment and add/sort operations through msexperiment_view() invalidate it). The parent object is kept alive automatically. For an owned, hazard-free copy use getSpectrum(i) or img[i].")
+
+    // Pixel-based access (zero-based geometry coordinates).
     .def("getNumberOfPixels", &OpenMS::MSImagingExperiment::getNumberOfPixels)
-    .def("getNumberOfSpectra", &OpenMS::MSImagingExperiment::getNumberOfSpectra)
     .def("hasPixel", &OpenMS::MSImagingExperiment::hasPixel, "x"_a, "y"_a)
+    .def("bindPixel", &OpenMS::MSImagingExperiment::bindPixel, "x"_a, "y"_a, "spectrum_index"_a,
+         "Binds pixel (x, y) to the spectrum at spectrum_index and records the coordinate on that spectrum. Raises on a missing spectrum, a duplicate pixel or an out-of-grid coordinate.")
     .def(
       "getSpectrum",
       [](const OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum {
@@ -700,14 +772,37 @@ and a simple sum-based ion image extraction.
         self.getSpectrum(x, y) = spectrum;  // write-back for the copy-returning getter; validates the pixel
       },
       "x"_a, "y"_a, "spectrum"_a, "Replaces the spectrum at pixel (x, y)")
+    .def(
+      "spectrum_view",
+      [](OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum& { return self.getSpectrum(x, y); },
+      nb::rv_policy::reference_internal, "x"_a, "y"_a,
+      "Returns a live view of the spectrum at pixel (x, y); same contract as spectrum_view(i). Raises if the pixel does not exist or references a missing spectrum. For an owned copy use getSpectrum(x, y).")
+
+    // Consistency between spectra and geometry.
+    .def("rebuildGeometry", &OpenMS::MSImagingExperiment::rebuildGeometry,
+         "Re-derives the pixel -> spectrum index mapping from the coordinates the spectra carry (imzml:x/y); call after reordering, erasing or subsetting spectra. Dimensions, pixel size and regions are kept.")
+    .def("validate", &OpenMS::MSImagingExperiment::validate,
+         "Raises if a pixel references a missing spectrum, or a spectrum that carries a different pixel coordinate (stale index; call rebuildGeometry()).")
+    .def_static(
+      "getPixelCoordinate",
+      [](const OpenMS::MSSpectrum& spec) -> nb::object {
+        OpenMS::UInt x = 0, y = 0;
+        if (!OpenMS::MSImagingExperiment::getPixelCoordinate(spec, x, y)) return nb::none();
+        return nb::make_tuple(x, y);
+      },
+      "spec"_a, "Zero-based (x, y) pixel coordinate carried by a spectrum, or None if it carries none (or lies on a plane other than z == 1).")
+    .def_static("setPixelCoordinate", &OpenMS::MSImagingExperiment::setPixelCoordinate, "spec"_a, "x"_a, "y"_a,
+                "Records the zero-based pixel coordinate (x, y) on a spectrum (stored 1-based as imzml:x/y, imzml:z = 1 unless set).")
+    .def_static("bindPixelsFromSpectra", &OpenMS::MSImagingExperiment::bindPixelsFromSpectra, "exp"_a, "geom"_a,
+                "Appends one pixel per coordinate-carrying spectrum of exp to geom (see rebuildGeometry()).")
+
     .def("extractIonImage", nb::overload_cast<double, double>(&OpenMS::MSImagingExperiment::extractIonImage, nb::const_), "mz"_a, "tolerance_ppm"_a)
     .def("extractIonImage", nb::overload_cast<double, double, OpenMS::Size>(&OpenMS::MSImagingExperiment::extractIonImage, nb::const_), "mz"_a,
          "tolerance_ppm"_a, "region_id"_a)
     .def("getRegionSpectrumIndices", &OpenMS::MSImagingExperiment::getRegionSpectrumIndices, "region_id"_a)
-    .def("validate", &OpenMS::MSImagingExperiment::validate)
     .def("__repr__", [](const OpenMS::MSImagingExperiment& self) {
       std::ostringstream oss;
-      oss << "MSImagingExperiment(num_pixels=" << self.getNumberOfPixels() << ", num_spectra=" << self.getNumberOfSpectra() << ")";
+      oss << "MSImagingExperiment(num_pixels=" << self.getNumberOfPixels() << ", num_spectra=" << self.getNrSpectra() << ")";
       return oss.str();
     });
 

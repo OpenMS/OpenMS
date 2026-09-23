@@ -169,7 +169,7 @@ START_SECTION(mode 6: MSImagingExperiment in-memory pixel lookup)
   MSImagingExperiment imaging;
   ImzMLFile().load(continuous_path, imaging);
 
-  TEST_EQUAL(imaging.getNumberOfSpectra(), k_continuous_spectra)
+  TEST_EQUAL(imaging.getNrSpectra(), k_continuous_spectra)
   TEST_EQUAL(imaging.getNumberOfPixels(), k_continuous_spectra)
   TEST_EQUAL(imaging.getGeometry().getWidth(), k_grid)
   TEST_EQUAL(imaging.getGeometry().getHeight(), k_grid)

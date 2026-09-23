@@ -114,6 +114,9 @@ public:
   /// @brief Resets all state (dimensions, pixel size, pixels, lookup, regions).
   void clear();
 
+  /// @brief Removes all pixels and their lookup; dimensions, pixel size and regions are kept.
+  void clearPixels();
+
   /// @brief Sentinel returned by regionOf() when a coordinate belongs to no region.
   static constexpr Size NO_REGION = std::numeric_limits<Size>::max();
 

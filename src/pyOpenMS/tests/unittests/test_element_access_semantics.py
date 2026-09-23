@@ -694,6 +694,29 @@ def test_imaging_experiment_per_pixel_write_back():
     with pytest.raises(Exception):
         mie.setSpectrum(1, 1, got)                    # pixel not in the geometry
 
+    # Index-based access follows the same rule: __getitem__/getSpectrum(i) copy,
+    # __setitem__/setSpectrum(i, ...) write back.
+    got = mie[2]
+    got.setRT(5.0)
+    assert mie[2].getRT() == 99.0, "index getter aliases"
+    mie[2] = got
+    assert mie.getSpectrum(2).getRT() == 5.0
+    assert mie.getSpectrum(0, 1).getRT() == 5.0, "pixel (0, 1) is spectrum 2"
+
+    # The owned members copy too; the aliasing forms are the *_view names.
+    exp = mie.getMSExperiment()
+    exp.spectrum_view(0).setRT(77.0)
+    assert mie.getSpectrum(0, 0).getRT() == 1.0, "getMSExperiment() copies"
+    mie.msexperiment_view().spectrum_view(0).setRT(77.0)
+    assert mie.getSpectrum(0, 0).getRT() == 77.0, "msexperiment_view() aliases"
+    geom = mie.getGeometry()
+    geom.setDimensions(9, 9)
+    assert mie.getGeometry().getWidth() == 2, "getGeometry() copies"
+    mie.geometry_view().setDimensions(9, 9)
+    assert mie.getGeometry().getWidth() == 9, "geometry_view() aliases"
+    mie.spectrum_view(0, 0).setRT(3.0)
+    assert mie.getSpectrum(0, 0).getRT() == 3.0, "spectrum_view(x, y) aliases"
+
 
 # ---------------------------------------------------------------------------
 # SimpleOpenMSSpectraFactory: probes the cached_data marker C++-side (no

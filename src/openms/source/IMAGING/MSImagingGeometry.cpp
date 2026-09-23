@@ -138,6 +138,12 @@ void MSImagingGeometry::clearRegions()
   region_id_to_index_.clear();
 }
 
+void MSImagingGeometry::clearPixels()
+{
+  pixels_.clear();
+  lookup_.clear();
+}
+
 void MSImagingGeometry::clear()
 {
   width_ = 0;

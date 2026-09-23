@@ -637,7 +637,7 @@ START_SECTION(void load(const std::string& filename, MSImagingExperiment& exp))
   ImzMLFile f;
   f.load(imzml_path, imaging);
 
-  TEST_EQUAL(imaging.getNumberOfSpectra() > 0, true)
+  TEST_EQUAL(imaging.getNrSpectra() > 0, true)
   TEST_EQUAL(imaging.getGeometry().getWidth(), 3)
   TEST_EQUAL(imaging.getGeometry().getHeight(), 3)
   TEST_EQUAL(imaging.hasPixel(0, 0), true)
@@ -770,6 +770,74 @@ START_SECTION(void store(const std::string& filename, const MSImagingExperiment&
 }
 END_SECTION
 
+
+START_SECTION([EXTRA] store(MSImagingExperiment) writes annotated spectra in place and only copies for unannotated pixels)
+{
+  MSExperiment ms;
+  for (int i = 0; i < 4; ++i)
+  {
+    MSSpectrum s;
+    Peak1D p;
+    p.setMZ(100.0 + i);
+    p.setIntensity(10.0 * (i + 1));
+    s.push_back(p);
+    ms.addSpectrum(s);
+  }
+
+  MSImagingExperiment img;
+  img.setMSExperiment(ms);
+  img.getGeometry().setDimensions(2, 2);
+  img.getGeometry().setPixelSize(30.0, 30.0, "micrometer");
+  img.bindPixel(0, 0, 0); // bindPixel() records the coordinate on the spectrum ...
+  img.bindPixel(1, 0, 1);
+  img.bindPixel(0, 1, 2);
+  img.getGeometry().addPixel(1, 1, 3); // ... a raw geometry insert does not
+  TEST_EQUAL(img[2].metaValueExists(MSImagingExperiment::META_PIXEL_X), true)
+  TEST_EQUAL(img[3].metaValueExists(MSImagingExperiment::META_PIXEL_X), false)
+
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  ImzMLFile().store(tmp_imzml, img); // annotates a private copy for pixel (1,1); img is untouched
+  TEST_EQUAL(img[3].metaValueExists(MSImagingExperiment::META_PIXEL_X), false)
+
+  MSImagingExperiment reloaded;
+  ImzMLFile().load(tmp_imzml, reloaded);
+  TEST_EQUAL(reloaded.getNrSpectra(), 4u)
+  TEST_EQUAL(reloaded.getNumberOfPixels(), 4u)
+  TEST_EQUAL(reloaded.getGeometry().getWidth(), 2u)
+  TEST_EQUAL(reloaded.getGeometry().getHeight(), 2u)
+  TEST_REAL_SIMILAR(reloaded.getGeometry().getPixelSizeX(), 30.0) // grid + pixel size come from the geometry
+  TEST_EQUAL(reloaded.getGeometry().getSpectrumIndex(1, 1), 3u)
+  TEST_REAL_SIMILAR(reloaded.getSpectrum(1, 1)[0].getMZ(), 103.0)
+
+  // The geometry is authoritative: a spectrum whose recorded coordinate disagrees with the
+  // pixel it is bound to is written at the geometry's coordinate (validate() would flag it).
+  MSImagingExperiment moved = reloaded;
+  moved.getMSExperiment()[3].setMetaValue(MSImagingExperiment::META_PIXEL_X, 1);
+  moved.getMSExperiment()[3].setMetaValue(MSImagingExperiment::META_PIXEL_Y, 1);
+  TEST_EXCEPTION(Exception::InvalidValue, moved.validate())
+  std::string tmp_imzml2;
+  NEW_TMP_FILE_EXT(tmp_imzml2, ".imzML");
+  ImzMLFile().store(tmp_imzml2, moved);
+  MSImagingExperiment reloaded2;
+  ImzMLFile().load(tmp_imzml2, reloaded2);
+  TEST_EQUAL(reloaded2.getNumberOfPixels(), 4u)
+  TEST_EQUAL(reloaded2.getGeometry().getSpectrumIndex(1, 1), 3u)
+
+  // A dangling pixel is rejected before anything is written.
+  MSImagingExperiment dangling = reloaded;
+  dangling.getGeometry().clearPixels();
+  dangling.getGeometry().addPixel(0, 0, 99);
+  std::string tmp_imzml3;
+  NEW_TMP_FILE_EXT(tmp_imzml3, ".imzML");
+  TEST_EXCEPTION(Exception::InvalidValue, ImzMLFile().store(tmp_imzml3, dangling))
+
+  for (const std::string& written : {tmp_imzml, tmp_imzml2})
+  {
+    remove((written.substr(0, written.size() - 6) + ".ibd").c_str());
+  }
+}
+END_SECTION
 
 START_SECTION(void store round-trip processed imzML)
 {

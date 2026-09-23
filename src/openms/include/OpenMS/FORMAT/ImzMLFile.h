@@ -131,18 +131,21 @@ namespace OpenMS
     /**
       @brief Build @p MSImagingGeometry from a loaded imzML @p MSExperiment.
 
-      Reads dataset dimensions from @p imzml:max_count_x/y MetaValues when
-      present and registers each spectrum that carries @p imzml:x/y (and
-      @p imzml:z = 1). Coordinates are converted from imzML's 1-based convention
-      to zero-based geometry indices. Out-of-grid or &lt; 1 coordinates are
-      warned and skipped. Duplicate coordinates are likewise warned and dropped
-      from the geometry (only the first spectrum per pixel is mapped; every
-      spectrum stays reachable by index), matching what the loaders accept for
-      the same dataset.
+      Reads dataset dimensions and pixel size from the @p imzml:max_count_x/y and
+      @p imzml:pixel_size_x/y MetaValues when present, then registers each spectrum
+      that carries @p imzml:x/y (and @p imzml:z = 1) via
+      @p MSImagingExperiment::bindPixelsFromSpectra(): coordinates are converted
+      from imzML's 1-based convention to zero-based geometry indices, out-of-grid
+      or &lt; 1 coordinates are warned and skipped, and duplicate coordinates are
+      warned and dropped from the geometry (only the first spectrum per pixel is
+      mapped; every spectrum stays reachable by index), matching what the loaders
+      accept for the same dataset.
 
       Prefer the index-based overload when a spectrum index is available (used
       by the loaders). This MetaValue-based path is for experiments already
-      loaded into an @p MSExperiment (e.g. via @p FileHandler).
+      loaded into an @p MSExperiment; to refresh the geometry of an
+      @p MSImagingExperiment after its spectra were reordered, use
+      @p MSImagingExperiment::rebuildGeometry() instead.
 
       @param[in] exp  Experiment previously loaded from imzML (e.g. via @p load or @p FileHandler).
       @param[out] geom Geometry to populate (cleared first).
@@ -250,10 +253,15 @@ namespace OpenMS
 
       Unlike the @p MSExperiment overload, this does not require @p imzml:x/y MetaValues on
       the spectra: the spatial information is read from @p exp.getGeometry(), so any
-      MSImagingExperiment can be written — including ones built without those MetaValues
-      (e.g. from @p BrukerTimsImagingFile). Dataset-level imzML metadata already present on
+      MSImagingExperiment can be written. Dataset-level imzML metadata already present on
       the wrapped experiment (imaging mode, data types, scan geometry, ...) is preserved;
       grid dimensions and pixel size are taken from the geometry.
+
+      The spectra are written in place when every mapped spectrum already carries its
+      pixel coordinate — which is how @p MSImagingExperiment::setGeometry(), bindPixel()
+      and the loaders leave them — and the @p PeakFileOptions need no filtering or sorting.
+      Only otherwise (e.g. pixels added through @p getGeometry().addPixel()) is a private
+      copy annotated first.
 
       @param[in] filename Path to the output @c .imzML file.
       @param[in] exp      Imaging experiment to store.

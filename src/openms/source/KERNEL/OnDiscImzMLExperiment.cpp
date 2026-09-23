@@ -312,6 +312,13 @@ MSSpectrum OnDiscImzMLExperiment::getSpectrumAtCoord(uint32_t x, uint32_t y, uin
                                    "(" + StringConversions::toString(x) + "," + StringConversions::toString(y) + "," + StringConversions::toString(z) + ")");
 }
 
+MSSpectrum OnDiscImzMLExperiment::getSpectrum(UInt x, UInt y) const
+{
+  if (!pimpl_->ibd_)
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pimpl_->ibd_path_);
+  return getSpectrum(pimpl_->geometry_.getSpectrumIndex(x, y)); // throws ElementNotFound for an unmapped pixel
+}
+
 IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm) const
 {
   if (!pimpl_->ibd_)

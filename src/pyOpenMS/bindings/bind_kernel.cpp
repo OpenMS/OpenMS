@@ -1951,9 +1951,12 @@ This is an alias for getChromatogramByNativeId().
         .def("getSpectrum", [](OpenMS::OnDiscImzMLExperiment& self, size_t i) {
             return self.getSpectrum(i);
         }, "i"_a)
+        .def("getSpectrum", [](OpenMS::OnDiscImzMLExperiment& self, OpenMS::UInt x, OpenMS::UInt y) {
+            return self.getSpectrum(x, y);
+        }, "x"_a, "y"_a, "Decode the spectrum at zero-based geometry pixel (x, y); same coordinates as MSImagingExperiment.getSpectrum(x, y)")
         .def("getSpectrumAtCoord", [](OpenMS::OnDiscImzMLExperiment& self, uint32_t x, uint32_t y, uint32_t z) {
             return self.getSpectrumAtCoord(x, y, z);
-        }, "x"_a, "y"_a, "z"_a = 1)
+        }, "x"_a, "y"_a, "z"_a = 1, "Decode the spectrum at imzML-native 1-based (x, y, z); use getSpectrum(x, y) for zero-based geometry coordinates")
         .def("getIndex", [](const OpenMS::OnDiscImzMLExperiment& self, size_t i) {
             return self.getIndex(i);
         }, "i"_a, "Return ImzMLSpectrumIndex entry without reading .ibd peak data")
