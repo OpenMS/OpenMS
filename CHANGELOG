@@ -75,15 +75,6 @@ General:
     the registry check (#10228).
   - BREAKING (installed headers): Move tool-only helpers without pyOpenMS bindings
     into the CometAdapter, DecoyDatabase, INIUpdater, NucleicAcidSearchEngine,
-    OpenSwathExport, OpenSwathInfer, OpenSwathPeakMapExtractor, OpenSwathPercolatorScoring,
-    OpenSwathWorkflow, ParquetDiff, QualityControl and UniPEFF folders. Their
-    29 headers are no longer installed and 28 implementations no longer live in
-    libOpenMS or libOpenMS_CLI. Class and round-trip tests travel with the tools;
-    reusable inference and XIPM reader tests also remain available in library-only builds
-    (#10239).
-    the registry check (#10216, #10228).
-  - BREAKING (installed headers): Move tool-only helpers without pyOpenMS bindings
-    into the CometAdapter, DecoyDatabase, INIUpdater, NucleicAcidSearchEngine,
     OpenSwathInfer, QualityControl and UniPEFF folders. Their 21 headers are no longer
     installed and 20 implementations no longer live in libOpenMS or libOpenMS_CLI.
     Class tests travel with the tools; reusable inference tests also remain available
@@ -840,13 +831,12 @@ Fixes:
       validation; the Measure definitions are now written once (#10213).
     - Chromatograms built from MS1 spectra (FileConverter -convert_to_chromatograms, e.g. on GC-MS/SIM
       data) had no native ID, so the mzML output contained many chromatograms with id="" and failed
-      schema validation. They are now named "XIC mz=<m/z>".
+      schema validation. They are now named "XIC mz=<m/z>" (#10214).
     - MSExperiment::sortSpectra() keeps spectra with equal retention time in their input order.
       std::sort gave no guarantee for them, so ion mobility frames, FAIMS splits and Bruker TIMS
       data were reordered depending on the standard library, which silently corrupted mass traces
       built over such a map. The sort is also faster now, because it moves an index instead of a
-      whole spectrum (#10054).
-      schema validation. They are now named "XIC mz=<m/z>" (#10214).
+      whole spectrum (#10220).
     - FLASHDeconv skips spectra with a non-positive mzml_mass_charge value instead of crashing on them,
       and logs a warning. TOPPASEdge falls back to extension-based file type detection when
       content-based detection returns UNKNOWN, and no longer mishandles an edge whose referenced
