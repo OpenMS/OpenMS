@@ -853,6 +853,10 @@ Fixes:
       identification (also of a single one) and uses one score orientation throughout (#10148).
 
 Documentation:
+  - Corrected misleading Doxygen contracts in the sqMass/SQLite stack: countTableRows
+    exception types, the SpectrumAccessSqMass usage example and getSpectraByRT /
+    getMultipleSpectra semantics, SqMassFile::store replacement behaviour and the
+    OpenSwathScoring fetchSpectrumSwath spectrum counts (#10148).
   - Expanded experimental-design terminology and LFQ/fractionated/TMT/SILAC examples,
     targeted quantitation, FAIMS, RT units, file conversions, USI and MetaProSIP CSV docs
     (#4400, #8478, #8588, #8597, #8615, #9173, #9909).
