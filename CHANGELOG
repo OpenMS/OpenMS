@@ -127,6 +127,14 @@ Dependencies:
     the package's former lookups of dependencies that are PRIVATE now. Consuming projects need
     CMake 3.24: find_package(OpenMS) rejects older versions with an explanatory message
     instead of failing later (#10158).
+  - Every release ships a developer SDK archive per platform
+    (OpenMS-SDK-<version>-<platform>.tar.gz, .zip on Windows) next to the installers:
+    the core and CLI layers (OpenMS, OpenSwathAlgo, OpenMS_CLI) with their headers, the
+    CMake package, share/OpenMS and the shared libraries those layers load, relocatable
+    and without Qt or the GUI library. Point CMAKE_PREFIX_PATH at the extracted archive
+    and use find_package(OpenMS CONFIG COMPONENTS CLI). The archive's README.txt lists the
+    requirements (Boost headers of at least the version it was built against, MSVC
+    Release /MD on Windows, Ubuntu 24.04 as the Linux baseline) (#10248).
   - contrib is a git submodule: clone with --recurse-submodules or run
     git submodule update --init (#9155).
   - Optional readers: WITH_OPENTIMS enables timsTOF support (default ON); opentims_DIR or
