@@ -111,7 +111,7 @@
                 "WITH_THERMO_RAW":"ON",
                 "ENABLE_THERMO_RAW_TESTS": "OFF",
                 "ENABLE_TUTORIALS": "OFF",
-                "WITH_ONNX": "OFF",
+                "WITH_ONNX": "ON",
                 "WITH_OPENTIMS":"ON",
                 "ENABLE_OPENTIMS_TESTS": "OFF",
                 "WITH_WNETALIGN": "ON",
@@ -122,7 +122,7 @@
                 "USE_EXTERNAL_EOLBSPLINE":"ON",
                 "WITH_HDF5": "OFF",
                 "PYOPENMS":"OFF",
-                "VCPKG_MANIFEST_FEATURES":"isospec;eol-bspline;simde;nlohmann-json;sqlitecpp;wnetalign;openms-thermo-bridge;opentims"
+                "VCPKG_MANIFEST_FEATURES":"isospec;eol-bspline;simde;nlohmann-json;sqlitecpp;wnetalign;openms-thermo-bridge;opentims;onnxruntime"
             }
         },
         {

@@ -9,7 +9,11 @@ This archive holds what you need to build your own C++ code against OpenMS:
                       the OpenMS libraries and the shared libraries they depend on
   lib/cmake/OpenMS/ (CMake/ on Windows)
                       the CMake package (OpenMSConfig.cmake)
-  share/OpenMS/       shared data (CV files, chemistry, databases) needed at runtime
+  share/OpenMS/       shared data (CV files, chemistry, databases) needed at runtime;
+                      share/OpenMS/models holds the PeptDeep ONNX models for the
+                      PeptDeep inference classes, PeptDeepRTInference, PeptDeepCCSInference
+                      and PeptDeepMS2Inference (the ONNX Runtime
+                      library is bundled with the other dependencies)
 
 It is relocatable: extract it anywhere.
 
