@@ -789,7 +789,7 @@ Fixes:
       and, for a two-point trace, was always the RT of the second peak whatever the
       intensities. The intensity-weighted mean now uses mid-interval (trapezoidal) weights
       over all peaks, which changes RT positions on the 'epd:enabled=false' path of
-      FeatureFinderMetabo and MassTraceExtractor (#2777).
+      FeatureFinderMetabo and MassTraceExtractor (#2777, #10225).
   Data integrity and I/O:
     - Sorting/filtering/set_peaks keeps peak annotations and binary arrays aligned in
       spectra, chromatograms and mobilograms. select() checks bounds before mutation;
@@ -840,13 +840,12 @@ Fixes:
       validation; the Measure definitions are now written once (#10213).
     - Chromatograms built from MS1 spectra (FileConverter -convert_to_chromatograms, e.g. on GC-MS/SIM
       data) had no native ID, so the mzML output contained many chromatograms with id="" and failed
-      schema validation. They are now named "XIC mz=<m/z>".
+      schema validation. They are now named "XIC mz=<m/z>" (#10214).
     - MSExperiment::sortSpectra() keeps spectra with equal retention time in their input order.
       std::sort gave no guarantee for them, so ion mobility frames, FAIMS splits and Bruker TIMS
       data were reordered depending on the standard library, which silently corrupted mass traces
       built over such a map. The sort is also faster now, because it moves an index instead of a
-      whole spectrum (#10054).
-      schema validation. They are now named "XIC mz=<m/z>" (#10214).
+      whole spectrum (#10054, #10220).
     - FLASHDeconv skips spectra with a non-positive mzml_mass_charge value instead of crashing on them,
       and logs a warning. TOPPASEdge falls back to extension-based file type detection when
       content-based detection returns UNKNOWN, and no longer mishandles an edge whose referenced
@@ -893,7 +892,7 @@ Documentation:
   - Corrected misleading Doxygen contracts in the sqMass/SQLite stack: countTableRows
     exception types, the SpectrumAccessSqMass usage example and getSpectraByRT /
     getMultipleSpectra semantics, SqMassFile::store replacement behaviour and the
-    OpenSwathScoring fetchSpectrumSwath spectrum counts (#10148).
+    OpenSwathScoring fetchSpectrumSwath spectrum counts (#10148, #10244).
   - Expanded experimental-design terminology and LFQ/fractionated/TMT/SILAC examples,
     targeted quantitation, FAIMS, RT units, file conversions, USI and MetaProSIP CSV docs
     (#4400, #8478, #8588, #8597, #8615, #9173, #9909).
