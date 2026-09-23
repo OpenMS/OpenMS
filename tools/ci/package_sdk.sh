@@ -112,10 +112,11 @@ for required in \
 done
 
 # Linux: the SDK has to find its bundled dependencies wherever it is extracted.
-# The installer configuration does not guarantee an RPATH on the installed
-# libraries (package_deb.cmake skips it), and with RUNPATH the dependencies of a
-# library are looked up through that library's own entry only, so every library
-# in the SDK gets one that points at its own directory.
+# The OpenMS libraries are installed with $ORIGIN/../lib/, but the bundled
+# third-party libraries keep whatever RPATH their own build gave them, and with
+# RUNPATH the dependencies of a library are looked up through that library's own
+# entry only. So every library in the SDK gets one that points at its own
+# directory, rather than relying on each dependency provider to have set one.
 if [[ "$(uname -s)" == Linux ]]; then
   if ! command -v patchelf >/dev/null 2>&1; then
     echo >&2 "ERROR: patchelf is required to package the SDK on Linux"
