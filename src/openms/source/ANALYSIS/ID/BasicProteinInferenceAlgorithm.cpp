@@ -235,6 +235,18 @@ namespace OpenMS
     IDScoreSwitcherAlgorithm::switchBackScoreType(cmap, isr, include_unassigned); // NOP if no switch was performed
   }
 
+  void BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(ProteinIdentification& proteins,
+                                                                       const PeptideIdentificationList& peptides,
+                                                                       Size use_top_psms,
+                                                                       bool add_singletons)
+  {
+    // The graph keeps pointers to the hits it is built from and needs non-const ones. Building
+    // it and grouping do not modify them; the copy is what lets the interface promise that.
+    PeptideIdentificationList peptides_copy{peptides};
+    IDBoostGraph ibg{proteins, peptides_copy, use_top_psms, false, false};
+    ibg.calculateAndAnnotateIndistProteins(add_singletons);
+  }
+
   void BasicProteinInferenceAlgorithm::run(PeptideIdentificationList &pep_ids,
                                            std::vector<ProteinIdentification> &prot_ids) const
   {
