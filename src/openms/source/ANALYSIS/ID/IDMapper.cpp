@@ -380,12 +380,15 @@ namespace OpenMS
         OPENMS_LOG_WARN << "IDMapper is configured to validate charges. Because the data looks like TMT/iTRAQ this option will be ignored."  << std::endl;
       }
 
+      // Default-constructed, so empty() holds until the first scan_id sets it below. A compiled
+      // empty pattern ("") is not empty(): with it the fallback never ran, and extractScanNumber()
+      // found no capture group and threw. Declared outside the loop, the regex is derived once.
+      RegularExpression scanregex;
       for (auto& cf : map)
       {  
         const auto first_channel = *cf.getFeatures().begin();                  
         std::string filename = File::basename(map.getColumnHeaders()[first_channel.getMapIndex()].filename); // all channels are associated with same file in TMT/iTRAQ
 
-        RegularExpression scanregex {""};
         std::string cf_scan_id_key_name = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? "id_scan_id" : "scan_id";
         std::string cf_scan_id = StringUtils::toStr(cf.getMetaValue(cf_scan_id_key_name, ""));
         if (!cf_scan_id.empty()) 

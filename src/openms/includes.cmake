@@ -2,6 +2,9 @@ set(OpenMS_sources  CACHE INTERNAL "This variable should hold all OpenMS sources
 # Implementation headers under source/ and include/ belong to the PRIVATE
 # private_headers file set. Initialise before either phase appends to the list.
 set(OpenMS_private_headers CACHE INTERNAL "Private (non-installed) libOpenMS headers")
+# The few of those that are installed anyway, outside the exported header set (see
+# src/openms/CMakeLists.txt).
+set(OpenMS_installed_private_headers CACHE INTERNAL "Private libOpenMS headers installed for tool directories")
 
 ## ATTENTION: The order of includes should be similar to the inclusion hierarchy
 include(source/INTERFACES_IMPL/sources.cmake)
