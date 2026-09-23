@@ -59,10 +59,7 @@ source_group("Header Files\\OpenMS\\ANALYSIS\\ID" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 
-# Implementation detail of protein inference: its graph types are Boost.Graph, so it stays out
-# of the exported header set. It is still installed next to the public headers, because the
-# OpenNuXL tool directory includes it (NuXLReport.cpp) and can be built against an installed
-# OpenMS, where it finds Boost itself. See OpenMS_installed_private_headers in
-# src/openms/CMakeLists.txt.
+# Implementation detail of protein inference: its graph types are Boost.Graph, so it is not
+# installed. Code outside the library that needs indistinguishable protein groups calls
+# BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups() instead.
 list(APPEND OpenMS_private_headers ${directory}/IDBoostGraph.h)
-list(APPEND OpenMS_installed_private_headers ${directory}/IDBoostGraph.h)

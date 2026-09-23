@@ -305,13 +305,12 @@ target_sources(OpenMS PRIVATE FILE_SET private_headers TYPE HEADERS
   BASE_DIRS source include
   FILES ${OpenMS_private_headers})
 
-## A few private headers are installed after all: tool directories that can be built
-## against an installed OpenMS include them (OpenNuXL: IDBoostGraph.h; the OpenSwath tools:
-## ParquetFile.h, ZipRandomAccessFile.h). Each names a private dependency (Boost, Arrow) in
-## its declarations, so it stays out of the exported HEADERS set, which the header-set
-## verification and the Boost-free consumer test compile with nothing but OpenMS' own usage
-## requirements. Installed next to the public headers instead, it is usable only by a
-## consumer that finds that dependency itself, as those tool directories do.
+## Two private headers are installed after all: the OpenSwath tool directories, which can be
+## built against an installed OpenMS, include them (ParquetFile.h, ZipRandomAccessFile.h).
+## Both name Arrow types in their declarations, so they stay out of the exported HEADERS set,
+## which the header-set verification and the Boost-free consumer test compile with nothing but
+## OpenMS' own usage requirements. Installed next to the public headers instead, they are
+## usable only by a consumer that finds Arrow itself, as those tool directories do.
 foreach(_header IN LISTS OpenMS_installed_private_headers)
   if(NOT _header IN_LIST OpenMS_private_headers)
     message(FATAL_ERROR "${_header} is on OpenMS_installed_private_headers but not on "

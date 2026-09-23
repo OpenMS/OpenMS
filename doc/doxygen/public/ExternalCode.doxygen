@@ -100,6 +100,8 @@ OpenMS aliases instead of naming Boost.MultiIndex types. Boost-specific containe
 operations outside the IDDataContainer interface need to be adapted. The ordered
 processing-step view returned by getStepsAndScoresByStep() is a lightweight value.
 Internal headers such as ANALYSIS/ID/IDBoostGraph.h are not part of the installed interface.
+Indistinguishable protein groups are available through
+BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups().
 
 RandomShuffler retains its seeded shuffle sequence; use its seed() method instead
 of accessing a Boost engine. Checked integer conversions in public templates now
@@ -119,10 +121,10 @@ BrukerTimsFile and the rest -- take and return OpenMS types and need none of tho
 packages. A build that configures OpenMS fails outright if a public header includes
 one of them.
 
-Three internal headers are installed anyway, because tool directories that can be built
-against an installed OpenMS include them: ANALYSIS/ID/IDBoostGraph.h (Boost.Graph),
-FORMAT/ParquetFile.h and FORMAT/ZipRandomAccessFile.h (Arrow). They are not part of the
-exported header set, and no public header includes them. Code that includes one of them
-has to find and link Boost resp. Arrow itself.
+Two internal headers are installed anyway, because the OpenSwath tool directories, which
+can be built against an installed OpenMS, include them: FORMAT/ParquetFile.h and
+FORMAT/ZipRandomAccessFile.h (Arrow). They are not part of the exported header set, and no
+public header includes them. Code that includes one of them has to find and link Arrow
+itself.
 
 */

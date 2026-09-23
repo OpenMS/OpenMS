@@ -10,15 +10,13 @@
 #include "NuXLReport.h"
 #include <OpenMS/MATH/MathFunctions.h>
 #include <boost/range/adaptor/reversed.hpp>
-#include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+#include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-  using Internal::IDBoostGraph;
-
   std::string NuXLReportRow::getString(const std::string& separator) const
   {
     StringList sl;
@@ -871,9 +869,8 @@ Output format:
     vector<ProteinIdentification::ProteinGroup> ipg;
     if (!prot_id.getHits().empty())
     {
-      PeptideIdentificationList pep_copy{peps}; // TODO: why copy needed?
-      IDBoostGraph ibg{prot_id, pep_copy, true, false, false}; // only consider top hit
-      ibg.calculateAndAnnotateIndistProteins(false); // only indistinguishable protein groups
+      // only consider the top hit, and only groups of indistinguishable proteins (no singletons)
+      BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(prot_id, peps, 1, false);
       ipg = prot_id.getIndistinguishableProteins();
       std::sort(std::begin(ipg), std::end(ipg));
     }

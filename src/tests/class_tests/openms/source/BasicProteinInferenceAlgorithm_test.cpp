@@ -11,6 +11,11 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
+
+#include <algorithm>
 
 using namespace OpenMS;
 using namespace std;
@@ -212,6 +217,80 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       TEST_EQUAL(prots[0].getIndistinguishableProteins().at(0).probability, 10);
       TEST_EQUAL(prots[0].getIndistinguishableProteins().at(1).probability, 5.0);
       TEST_EQUAL(prots[0].getIndistinguishableProteins().at(2).probability, 2.5);      
+    }
+    END_SECTION
+
+    START_SECTION(static void annotateIndistinguishableGroups(ProteinIdentification& proteins, const PeptideIdentificationList& peptides, Size use_top_psms = 1, bool add_singletons = true))
+    {
+      // P1 and P2 share every top hit; P3 has its own. The second-ranked hit of the fourth
+      // spectrum and the hit from another run would each set P1 resp. P2 apart, so they must
+      // only count when asked for (all hits) resp. never.
+      auto make_proteins = []()
+      {
+        ProteinIdentification proteins;
+        proteins.setIdentifier("run");
+        proteins.insertHit(ProteinHit(0.9, 1, "P1", ""));
+        proteins.insertHit(ProteinHit(0.8, 2, "P2", ""));
+        proteins.insertHit(ProteinHit(0.7, 3, "P3", ""));
+        return proteins;
+      };
+      auto make_hit = [](const std::string& sequence, UInt rank, const std::vector<std::string>& accessions)
+      {
+        PeptideHit hit(1.0 / rank, rank, 2, AASequence::fromString(sequence));
+        for (const auto& accession : accessions) hit.addPeptideEvidence(PeptideEvidence(accession));
+        return hit;
+      };
+      auto make_id = [](const std::string& run, const std::vector<PeptideHit>& hits)
+      {
+        PeptideIdentification id;
+        id.setIdentifier(run);
+        id.setHits(hits);
+        return id;
+      };
+      PeptideIdentificationList peptides;
+      peptides.push_back(make_id("run", {make_hit("PEPTIDEA", 1, {"P1", "P2"})}));
+      peptides.push_back(make_id("run", {make_hit("PEPTIDEK", 1, {"P1", "P2"})}));
+      peptides.push_back(make_id("run", {make_hit("PEPTIDEC", 1, {"P3"})}));
+      peptides.push_back(make_id("run", {make_hit("PEPTIDED", 1, {"P3"}), make_hit("PEPTIDEE", 2, {"P1"})}));
+      peptides.push_back(make_id("other run", {make_hit("PEPTIDEF", 1, {"P2"})}));
+
+      // the groups in a canonical order: accessions sorted within, groups sorted
+      auto groups = [](const ProteinIdentification& proteins)
+      {
+        std::vector<std::string> result;
+        for (const auto& group : proteins.getIndistinguishableProteins())
+        {
+          std::vector<std::string> accessions = group.accessions;
+          std::sort(accessions.begin(), accessions.end());
+          result.push_back(ListUtils::concatenate(accessions, ","));
+        }
+        std::sort(result.begin(), result.end());
+        return ListUtils::concatenate(result, "|");
+      };
+
+      ProteinIdentification proteins = make_proteins();
+      BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, peptides);
+      TEST_EQUAL(groups(proteins), "P1,P2|P3")
+      // nothing but the groups changes
+      TEST_EQUAL(proteins.getHits().size(), 3)
+      TEST_REAL_SIMILAR(proteins.getHits()[0].getScore(), 0.9)
+      TEST_EQUAL(peptides[3].getHits().size(), 2)
+
+      proteins = make_proteins();
+      BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, peptides, 1, false);
+      TEST_EQUAL(groups(proteins), "P1,P2")
+
+      proteins = make_proteins();
+      BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, peptides, 0, true);
+      TEST_EQUAL(groups(proteins), "P1|P2|P3")
+
+      proteins = make_proteins();
+      BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, peptides, 0, false);
+      TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 0)
+
+      proteins = make_proteins();
+      TEST_EXCEPTION(Exception::MissingInformation,
+                     BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, PeptideIdentificationList()))
     }
     END_SECTION
 
