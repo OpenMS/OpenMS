@@ -173,7 +173,13 @@ env -u LD_LIBRARY_PATH -u DYLD_LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH \
   cmake "-DLIB_DIR=$(cmake_path "$stage/$lib_dir")" "-DROOTS=$(IFS=';'; echo "${roots[*]}")" \
         -P "$(cmake_path "$source_dir/tools/ci/sdk_prune_dependencies.cmake")"
 
-cp "$source_dir/cmake/OpenMSSDKReadme.txt" "$stage/README.txt"
+# the README names what this SDK was built against
+boost_version=$(sed -n 's/^set(_openms_boost_version "\(.*\)")$/\1/p' "$stage/$cmake_dir/OpenMSConfig.cmake")
+# OpenMSConfig.cmake falls back to this minimum when the build recorded no version
+boost_version=${boost_version:-1.81.0}
+sed -e "s/@BOOST_VERSION@/$boost_version/" \
+    -e "s/@OPENMS_VERSION_MAJOR_MINOR@/${version%.*}/" \
+    "$source_dir/cmake/OpenMSSDKReadme.txt" > "$stage/README.txt"
 cp "$source_dir/License.txt" "$stage/License.txt"
 
 #------------------------------------------------------------------------------

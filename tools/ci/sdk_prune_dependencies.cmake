@@ -50,18 +50,41 @@ set(_post_exclude
   ".*[\\/][Ss][Yy][Ss][Tt][Ee][Mm]32[\\/].*"
   "^/usr/lib/" "^/System/" "^/lib/" "^/lib64/")
 
-file(GET_RUNTIME_DEPENDENCIES
-  LIBRARIES ${ROOTS}
-  RESOLVED_DEPENDENCIES_VAR _resolved
-  UNRESOLVED_DEPENDENCIES_VAR _unresolved
-  CONFLICTING_DEPENDENCIES_PREFIX _conflict
-  DIRECTORIES "${LIB_DIR}"
-  PRE_EXCLUDE_REGEXES ${_pre_exclude}
-  POST_EXCLUDE_REGEXES ${_post_exclude})
-
-foreach(_name IN LISTS _conflict_FILENAMES)
-  message(STATUS "found in several places: ${_name}: ${_conflict_${_name}}")
-endforeach()
+# A dependency that different libraries resolve to different files is reported as
+# a conflict instead of a resolved dependency, and its own dependencies are not
+# followed. The SDK's copy is what its libraries load, so such a copy becomes a
+# root of the next pass, until no conflict involves the SDK.
+set(_roots ${ROOTS})
+set(_pass 0)
+while(TRUE)
+  math(EXPR _pass "${_pass} + 1")
+  if(_pass GREATER 10)
+    message(FATAL_ERROR "Conflicting dependencies keep appearing after ${_pass} passes: ${_conflict_FILENAMES}")
+  endif()
+  file(GET_RUNTIME_DEPENDENCIES
+    LIBRARIES ${_roots}
+    RESOLVED_DEPENDENCIES_VAR _resolved
+    UNRESOLVED_DEPENDENCIES_VAR _unresolved
+    CONFLICTING_DEPENDENCIES_PREFIX _conflict
+    DIRECTORIES "${LIB_DIR}"
+    PRE_EXCLUDE_REGEXES ${_pre_exclude}
+    POST_EXCLUDE_REGEXES ${_post_exclude})
+  set(_new_roots)
+  foreach(_name IN LISTS _conflict_FILENAMES)
+    message(STATUS "found in several places: ${_name}: ${_conflict_${_name}}")
+    foreach(_path IN LISTS _conflict_${_name})
+      file(REAL_PATH "${_path}" _real)
+      string(FIND "${_real}" "${LIB_DIR}/" _pos)
+      if(_pos EQUAL 0 AND NOT _real IN_LIST _roots)
+        list(APPEND _new_roots "${_real}")
+      endif()
+    endforeach()
+  endforeach()
+  if(NOT _new_roots)
+    break()
+  endif()
+  list(APPEND _roots ${_new_roots})
+endwhile()
 
 # an unresolved name that the SDK does contain means the closure is incomplete
 set(_missing)
@@ -80,7 +103,7 @@ if(_missing)
 endif()
 
 set(_keep)
-foreach(_file IN LISTS ROOTS _resolved)
+foreach(_file IN LISTS _roots _resolved)
   file(REAL_PATH "${_file}" _real)
   list(APPEND _keep "${_real}")
 endforeach()
@@ -105,8 +128,11 @@ foreach(_entry IN LISTS _entries)
   endif()
 endforeach()
 
-# shared libraries (and the symbolic links naming them)
+# shared libraries and the symbolic links naming them: decided before anything is
+# removed, so a link is judged by the file it points to, not by whether that file
+# has already gone
 file(GLOB_RECURSE _files LIST_DIRECTORIES false "${LIB_DIR}/*")
+set(_remove)
 foreach(_file IN LISTS _files)
   if(_file MATCHES "\\.framework/" OR NOT EXISTS "${_file}")
     continue()
@@ -116,9 +142,12 @@ foreach(_file IN LISTS _files)
   endif()
   file(REAL_PATH "${_file}" _real)
   if(NOT _real IN_LIST _keep)
-    message(STATUS "removing ${_file}")
-    file(REMOVE "${_file}")
+    list(APPEND _remove "${_file}")
   endif()
+endforeach()
+foreach(_file IN LISTS _remove)
+  message(STATUS "removing ${_file}")
+  file(REMOVE "${_file}")
 endforeach()
 
 # directories left empty (e.g. the Qt plugin directory), deepest first

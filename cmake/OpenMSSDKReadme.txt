@@ -17,9 +17,12 @@ It is relocatable: extract it anywhere.
 Using it from CMake (3.24 or newer)
 -----------------------------------
 
-  find_package(OpenMS 3 CONFIG REQUIRED)            # OpenMS::OpenMS, OpenMS::OpenSwathAlgo
-  find_package(OpenMS 3 CONFIG REQUIRED COMPONENTS CLI)
+  find_package(OpenMS CONFIG REQUIRED)              # OpenMS::OpenMS, OpenMS::OpenSwathAlgo
+  find_package(OpenMS CONFIG REQUIRED COMPONENTS CLI)
                                                     # + OpenMS::OpenMS_CLI (TOPPBase-style tools)
+
+  A version request has to name major and minor version (find_package(OpenMS @OPENMS_VERSION_MAJOR_MINOR@ ...)):
+  the package is compatible within one minor version only.
 
   add_executable(mytool mytool.cpp)
   target_link_libraries(mytool PRIVATE OpenMS::OpenMS_CLI)
@@ -35,8 +38,9 @@ the OpenMS sources under src/tests/external.
 Requirements of your project
 ----------------------------
 
-  * Boost headers (1.81 or newer): public OpenMS headers include Boost. No
-    compiled Boost library is needed.
+  * Boost headers, version @BOOST_VERSION@ or newer (the version this SDK was built
+    against; find_package(OpenMS) requires at least that): public OpenMS headers
+    include Boost. No compiled Boost library is needed.
   * No Qt: the SDK holds the core and CLI layers, which do not use it. The GUI
     library (OpenMS::OpenMS_GUI) is not part of the SDK; build OpenMS from source
     if you need it.
