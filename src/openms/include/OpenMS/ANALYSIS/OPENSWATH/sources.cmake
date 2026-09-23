@@ -29,11 +29,17 @@ set(sources_list_h
   OpenSwathLibraryIDNormalizer.h
   OpenSwathExportConfig.h
   OpenSwathExportData.h
+  OpenSwathMatrixExporter.h
+  OpenSwathParquetExporter.h
   OpenSwathInferenceConfig.h
   OpenSwathInferenceData.h
   OpenSwathScores.h
   OpenSwathScoring.h
+  OpenSwathOSWParquetReader.h
+  OpenSwathPercolatorScoring.h
+  OpenSwathOSWParquetWriter.h
   OpenSwathOSWWriter.h
+  OpenSwathResultsExporter.h
   TransitionListEvidenceFilter.h
   OpenSwathWorkflow.h
   OpenSwathWorkflowScheduler.h

@@ -10,8 +10,8 @@
 
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 
-// Std-only (see ClassTest.h); OpenMS behavior is registered by the test projects
-// (openms/source/OpenMSTestSupport.cpp).
+// Std-only (see ClassTest.h); OpenMS behavior is registered by the OpenMSTestSupport
+// target (src/tests/class_tests/source/OpenMSTestSupport.cpp).
 #include <cstdlib>      // std::getenv, exit
 #include <exception>    // std::exception, current-exception handling
 #include <filesystem>

@@ -88,6 +88,13 @@ if(WITH_GUI)
   # OpenMS gui lib
   #------------------------------------------------------------------------------
   add_subdirectory(openms_gui)
+else()
+  # doc/doxygen/public references the GUI tools' documentation pages (the TOPP tool list, the
+  # TOPPAS tutorial) whether or not the GUI is built, and what those pages describe does not
+  # depend on building it. The part that does -- the command line help and INI documentation
+  # TOPPDocumenter captures by running each tool -- is marked @if WITH_GUI in them (see
+  # doc/CMakeLists.txt).
+  openms_doc_path("${PROJECT_SOURCE_DIR}/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS")
 endif()
 
 #------------------------------------------------------------------------------

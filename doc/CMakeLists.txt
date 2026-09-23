@@ -120,6 +120,17 @@ if(ENABLE_DOCS)
     endif()
       
     
+    ## Conditional documentation, for doxygen's @if <label> ... @endif. WITH_GUI marks what only a
+    ## build with the GUI can document: the GUI tools' command line help and INI documentation,
+    ## which TOPPDocumenter captures by running the tools. Without the GUI their pages are still
+    ## generated, just without that section, so the references to them from doc/doxygen/public
+    ## still resolve.
+    if (WITH_GUI)
+      set(CF_DOXYGEN_ENABLED_SECTIONS "WITH_GUI")
+    else()
+      set(CF_DOXYGEN_ENABLED_SECTIONS "")
+    endif()
+
     #------------------------------------------------------------------------------
     # configure doxygen configuration files
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile)

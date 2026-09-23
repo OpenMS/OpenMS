@@ -334,8 +334,10 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   MSChromatogramParquetConsumer_test
   MobilogramParquetConsumer_test
   XICParquetFile_test
-  XIPMParquetFile_test
   XIMParquetFile_test
+  XIPMParquetConsumer_test
+  XIPMParquetRoundTrip_test
+  XIPMParquetFile_test
   ParquetFile_test
   ProteinIdentificationArrowIO_test
   FeatureMapArrowIO_test
@@ -344,7 +346,7 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   ModificationDefinitionIO_test
   ArrowSchemaRegistry_test
   ArrowIOHelpers_test
-  )
+  ParquetTableComparator_test)
 
 set(math_executables_list
   BasicStatistics_test
@@ -744,6 +746,8 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureFinderScoring_test
     MRMFeatureFilter_test
     MRMFeatureQC_test
+    OpenSwathExport_test
+    OpenSwathPercolatorScoring_test
     SpectrumHelpers_test
     StatsHelpers_test
     SwathQC_test
@@ -755,6 +759,12 @@ endif(NOT DISABLE_OPENSWATH)
 
 if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list TransitionParquetFile_test)
+  list(APPEND swath_executables_list OpenSwathOSWParquetReader_test)
+  list(APPEND swath_executables_list OpenSwathOSWParquetWriter_test)
+  list(APPEND swath_executables_list OpenSwathMatrixExporter_test)
+  list(APPEND format_executables_list OpenSwathOSWParquetRoundTrip_test)
+  list(APPEND swath_executables_list OpenSwathResultsExporter_test)
+  list(APPEND swath_executables_list OpenSwathParquetExporter_test)
 endif()
 
 set(Boost_dependent_tests
