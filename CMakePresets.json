@@ -104,6 +104,7 @@
         {
             "name": "ci-base",
             "hidden": true,
+            "description": "Settings shared by the CI presets, which the test and release workflows build. WNet alignment (WITH_WNETALIGN, FeatureLinkerWNet) is off by default, and the wnetalign vcpkg feature is not requested; the wnetalign input of .github/actions/build turns it back on (the release workflow does, so the installers keep FeatureLinkerWNet), in which case CMake fetches the pinned pylmcf/wnet/wnetalign sources itself.",
             "cacheVariables": {
                 "OPENMS_TEST_INSTALLED_CONSUMER": "ON",
                 "WITH_GUI": "ON",
@@ -114,7 +115,7 @@
                 "WITH_ONNX": "OFF",
                 "WITH_OPENTIMS":"ON",
                 "ENABLE_OPENTIMS_TESTS": "OFF",
-                "WITH_WNETALIGN": "ON",
+                "WITH_WNETALIGN": "OFF",
                 "USE_EXTERNAL_JSON": "ON",
                 "USE_EXTERNAL_SQLITECPP": "ON",
                 "USE_EXTERNAL_SIMDE": "ON",
@@ -122,7 +123,7 @@
                 "USE_EXTERNAL_EOLBSPLINE":"ON",
                 "WITH_HDF5": "OFF",
                 "PYOPENMS":"OFF",
-                "VCPKG_MANIFEST_FEATURES":"isospec;eol-bspline;simde;nlohmann-json;sqlitecpp;wnetalign;openms-thermo-bridge;opentims"
+                "VCPKG_MANIFEST_FEATURES":"isospec;eol-bspline;simde;nlohmann-json;sqlitecpp;openms-thermo-bridge;opentims"
             }
         },
         {

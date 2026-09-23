@@ -7,6 +7,9 @@ inputs:
   macosx_deployment_target:
     description: "Used to override -macos-version-min on macOS"
     default: 14.0
+  wnetalign:
+    description: "Set to 'true' to build the WNet alignment (WITH_WNETALIGN: FeatureLinkerWNet and its classes), which the CI presets leave off"
+    default: "false"
   ssh_key:
     description: "SSH private key for the rsync cache archive"
     required: false
@@ -224,13 +227,23 @@ runs:
         #-DOPENMS_CONTRIB_LIBS, -DYOPENMS and DBOOST_USE_STATIC are dropped since
         # pyOpenMS is not build in this workflow and BOOST_USE_STATIC is already set
         # in CMakePresets.json.
+        WNETALIGN: ${{ inputs.wnetalign }}
 
       run: |
         set -ex
 
+        # The CI presets turn WITH_WNETALIGN off and do not request the wnetalign
+        # vcpkg feature, so turning it on here makes CMake fetch the pinned
+        # pylmcf/wnet/wnetalign sources (the versions the vcpkg ports install).
+        WNETALIGN_OPT=""
+        if [[ "$WNETALIGN" == "true" ]]; then
+          WNETALIGN_OPT="-DWITH_WNETALIGN=ON"
+        fi
+
         cmake --preset "${{ steps.preset.outputs.name }}" \
           -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
           -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install" \
+          $WNETALIGN_OPT
 
         cmake --build --preset "${{ steps.preset.outputs.name }}" --verbose
 

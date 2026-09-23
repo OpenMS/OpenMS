@@ -51,6 +51,8 @@ jobs:
         uses: ./.github/actions/build
         with:
           compiler: ${{ matrix.compiler }}
+          # Off in the CI presets, but the installers ship FeatureLinkerWNet.
+          wnetalign: true
           ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
           ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}

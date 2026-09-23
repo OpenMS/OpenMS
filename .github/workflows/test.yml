@@ -2,6 +2,11 @@ name: "Build and Test"
 
 on:
   workflow_dispatch:
+    inputs:
+      wnetalign:
+        type: boolean
+        description: "Also build the WNet alignment (WITH_WNETALIGN: FeatureLinkerWNet), which CI leaves off by default"
+        default: false
   push:
     branches:
       - nightly
@@ -59,6 +64,8 @@ jobs:
         uses: ./.github/actions/build
         with:
           compiler: ${{ matrix.compiler }}
+          # Only a manual run can ask for it; pushes and pull requests leave it off.
+          wnetalign: ${{ inputs.wnetalign }}
           ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
           ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}

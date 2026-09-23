@@ -24,7 +24,9 @@ namespace OpenMS
     (m/z, RT) positions, with unmatched features assigned to a "trash" node
     at a configurable cost. This produces a 1-to-1 consensus matching per pair.
 
+    @if WITH_WNETALIGN
     @htmlinclude OpenMS_FeatureGroupingAlgorithmWNet.parameters
+    @endif
 
     @ingroup FeatureGrouping
   */

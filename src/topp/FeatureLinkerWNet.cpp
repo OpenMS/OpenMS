@@ -55,10 +55,12 @@ FeatureFinder TOPP tools.
 
 @see @ref TOPP_FeatureLinkerUnlabeledQT @ref TOPP_FeatureLinkerUnlabeledKD
 
+@if WITH_WNETALIGN
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_FeatureLinkerWNet.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_FeatureLinkerWNet.html
+@endif
 */
 
 // We do not want this class to show up in the docu:

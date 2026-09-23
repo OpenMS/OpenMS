@@ -124,12 +124,17 @@ if(ENABLE_DOCS)
     ## build with the GUI can document: the GUI tools' command line help and INI documentation,
     ## which TOPPDocumenter captures by running the tools. Without the GUI their pages are still
     ## generated, just without that section, so the references to them from doc/doxygen/public
-    ## still resolve.
+    ## still resolve. WITH_WNETALIGN does the same for FeatureLinkerWNet and for the parameter
+    ## documentation of FeatureGroupingAlgorithmWNet, which DefaultParamHandlerDocumenter only
+    ## writes when the WNet alignment is built.
+    set(_doxygen_enabled_sections "")
     if (WITH_GUI)
-      set(CF_DOXYGEN_ENABLED_SECTIONS "WITH_GUI")
-    else()
-      set(CF_DOXYGEN_ENABLED_SECTIONS "")
+      list(APPEND _doxygen_enabled_sections "WITH_GUI")
     endif()
+    if (WITH_WNETALIGN)
+      list(APPEND _doxygen_enabled_sections "WITH_WNETALIGN")
+    endif()
+    list(JOIN _doxygen_enabled_sections " " CF_DOXYGEN_ENABLED_SECTIONS)
 
     #------------------------------------------------------------------------------
     # configure doxygen configuration files
