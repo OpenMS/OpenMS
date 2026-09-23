@@ -37,6 +37,11 @@ location of `OpenMSConfig.cmake` itself rather than from the prefix it was insta
     `OpenMS_DIR`. On Windows the CMake package lives in `<prefix>/CMake`.
  4. Build and run the tests: `cmake --build ~/example-build` and `ctest --test-dir ~/example-build`.
 
+For an installation built with `WITH_ONNX=ON` (`OpenMS_WITH_ONNX` in `OpenMSConfig.cmake`),
+`TestExternalCodePeptDeep` loads the three PeptDeep models the installation ships under
+`OPENMS_DATA_DIR/models` with the PeptDeep inference classes and checks a retention-time
+prediction, so the package is verified to carry the models and a loadable ONNX Runtime.
+
 On Windows, `<prefix>/bin` (the OpenMS DLLs) and the directories of the dependency DLLs must be
 on `PATH` when running your executables; this project's `CMakeLists.txt` shows how to do that
 for CTest using `OPENMS_LIB_DIR` from `OpenMSConfig.cmake`.

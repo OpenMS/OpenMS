@@ -36,7 +36,7 @@
 ###   OpenMS_CLI_FOUND                      the CLI layer is part of this installation
 ###   OpenMS_GUI_FOUND                      the GUI component was requested and satisfied
 ###   OpenMS_WITH_GUI                       the GUI library is part of this installation
-###   OpenMS_WITH_HDF5, OpenMS_WITH_OPENTIMS, OpenMS_WITH_THERMO_RAW,
+###   OpenMS_WITH_HDF5, OpenMS_WITH_OPENTIMS, OpenMS_WITH_THERMO_RAW, OpenMS_WITH_ONNX,
 ###   OpenMS_WITH_OPENMP, OpenMS_BUILD_TOPP_TOOLS
 ###                                         build options of this installation
 ###   OPENMS_DATA_DIR (= OPENMS_SHARE_DIR), OPENMS_LIB_DIR, OPENMS_BIN_DIR, OPENMS_DOC_DIR
@@ -70,6 +70,7 @@ set(_openms_built_with_gui "@WITH_GUI@")
 set(OpenMS_WITH_HDF5 "@WITH_HDF5@")
 set(OpenMS_WITH_OPENTIMS "@WITH_OPENTIMS@")
 set(OpenMS_WITH_THERMO_RAW "@WITH_THERMO_RAW@")
+set(OpenMS_WITH_ONNX "@WITH_ONNX@")
 set(OpenMS_WITH_OPENMP "@OPENMP_FOUND@")
 set(OpenMS_BUILD_TOPP_TOOLS "@BUILD_TOPP_TOOLS@")
 
