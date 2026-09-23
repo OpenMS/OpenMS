@@ -113,18 +113,13 @@ link their own Boost targets.
 
 The same rule applies to the other implementation dependencies. A header whose
 declarations name an Arrow, OpenTIMS, Xerces-C or SQLite type is internal and is not
-installed: FORMAT/RationalScan2ImConverter.h (an OpenTIMS converter subclass) joined
-that group, as did ML/CLUSTERING/HashGrid.h, whose Boost.Unordered containers are what
-make QT clustering produce the same result on every platform.
+installed: FORMAT/ParquetFile.h and FORMAT/ZipRandomAccessFile.h (Arrow builders,
+tables and files) and FORMAT/RationalScan2ImConverter.h (an OpenTIMS converter subclass)
+joined that group, as did ML/CLUSTERING/HashGrid.h, whose Boost.Unordered containers are
+what make QT clustering produce the same result on every platform.
 The installed readers and writers built on them -- XICParquetFile, QPXFile,
 BrukerTimsFile and the rest -- take and return OpenMS types and need none of those
 packages. A build that configures OpenMS fails outright if a public header includes
 one of them.
-
-Two internal headers are installed anyway, because the OpenSwath tool directories, which
-can be built against an installed OpenMS, include them: FORMAT/ParquetFile.h and
-FORMAT/ZipRandomAccessFile.h (Arrow). They are not part of the exported header set, and no
-public header includes them. Code that includes one of them has to find and link Arrow
-itself.
 
 */

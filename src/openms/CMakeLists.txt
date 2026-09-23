@@ -305,23 +305,6 @@ target_sources(OpenMS PRIVATE FILE_SET private_headers TYPE HEADERS
   BASE_DIRS source include
   FILES ${OpenMS_private_headers})
 
-## Two private headers are installed after all: the OpenSwath tool directories, which can be
-## built against an installed OpenMS, include them (ParquetFile.h, ZipRandomAccessFile.h).
-## Both name Arrow types in their declarations, so they stay out of the exported HEADERS set,
-## which the header-set verification and the Boost-free consumer test compile with nothing but
-## OpenMS' own usage requirements. Installed next to the public headers instead, they are
-## usable only by a consumer that finds Arrow itself, as those tool directories do.
-foreach(_header IN LISTS OpenMS_installed_private_headers)
-  if(NOT _header IN_LIST OpenMS_private_headers)
-    message(FATAL_ERROR "${_header} is on OpenMS_installed_private_headers but not on "
-                        "OpenMS_private_headers; a public header is installed already.")
-  endif()
-  cmake_path(GET _header PARENT_PATH _header_dir)
-  cmake_path(RELATIVE_PATH _header_dir BASE_DIRECTORY include)
-  install(FILES ${_header} DESTINATION ${INSTALL_INCLUDE_DIR}/${_header_dir}
-          COMPONENT OpenMS_headers)
-endforeach()
-
 # The core library has no QObject classes, including in builds that also find Qt.
 set_target_properties(OpenMS PROPERTIES AUTOMOC OFF)
 

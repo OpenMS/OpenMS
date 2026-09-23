@@ -87,13 +87,12 @@ Dependencies:
     indistinguishable protein groups without it.
     Rebuild downstream C++ code and Python extensions; code using Boost directly
     must declare its own dependency.
-  - The internal header FORMAT/RationalScan2ImConverter.h is no longer installed. It
-    derives from an OpenTIMS type and was usable only where OpenTIMS' development files
-    happened to be on the include path; the installed Bruker reader exposes OpenMS
-    types as before. FORMAT/ParquetFile.h and FORMAT/ZipRandomAccessFile.h (Arrow) are
-    internal too, but stay installed, outside the exported header set: the OpenSwath
-    tool directories include them when built against an installed OpenMS. Code that
-    includes one of them has to find Arrow itself, as those directories do.
+  - The internal headers FORMAT/ParquetFile.h, FORMAT/ZipRandomAccessFile.h (Arrow) and
+    FORMAT/RationalScan2ImConverter.h (OpenTIMS) are no longer installed. They take,
+    return or derive from Arrow and OpenTIMS types and were usable only where those
+    development files happened to be on the include path; the installed Parquet and
+    Bruker readers expose OpenMS types as before, and the OpenSWATH helpers built on
+    them live in libOpenMS (#10247).
     ML/CLUSTERING/HashGrid.h is no longer installed either: it keeps Boost.Unordered,
     because QTClusterFinder numbers its clusters in the grid's bucket order and only
     Boost orders the buckets identically on every platform. QTClusterFinder::Grid is
