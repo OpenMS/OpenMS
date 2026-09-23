@@ -81,6 +81,18 @@ General:
     libOpenMS or libOpenMS_CLI. Class and round-trip tests travel with the tools;
     reusable inference and XIPM reader tests also remain available in library-only builds
     (#10239).
+    the registry check (#10216, #10228).
+  - BREAKING (installed headers): Move tool-only helpers without pyOpenMS bindings
+    into the CometAdapter, DecoyDatabase, INIUpdater, NucleicAcidSearchEngine,
+    OpenSwathInfer, QualityControl and UniPEFF folders. Their 21 headers are no longer
+    installed and 20 implementations no longer live in libOpenMS or libOpenMS_CLI.
+    Class tests travel with the tools; reusable inference tests also remain available
+    in library-only builds (#10239). Helpers built on a private dependency of libOpenMS
+    stay in the library even with a single tool as user, so that no tool has to find
+    that dependency itself: the Arrow/Parquet-based OpenSWATH exporters, OSW Parquet
+    reader/writer, Percolator scoring, XIPMParquetConsumer and ParquetTableComparator.
+    OpenSwathExport, OpenSwathPeakMapExtractor, OpenSwathPercolatorScoring,
+    OpenSwathWorkflow and ParquetDiff link nothing but OpenMS.
   - BREAKING: KNIME plugin support was removed. The ENABLE_PREPARE_KNIME_PACKAGE option
     and the prepare_knime_package targets are gone, as are the KNIME user tutorial, the
     LaTeX tutorial handout and the .knwf workflow collection under doc/tutorials (still
@@ -828,6 +840,12 @@ Fixes:
       validation; the Measure definitions are now written once (#10213).
     - Chromatograms built from MS1 spectra (FileConverter -convert_to_chromatograms, e.g. on GC-MS/SIM
       data) had no native ID, so the mzML output contained many chromatograms with id="" and failed
+      schema validation. They are now named "XIC mz=<m/z>".
+    - MSExperiment::sortSpectra() keeps spectra with equal retention time in their input order.
+      std::sort gave no guarantee for them, so ion mobility frames, FAIMS splits and Bruker TIMS
+      data were reordered depending on the standard library, which silently corrupted mass traces
+      built over such a map. The sort is also faster now, because it moves an index instead of a
+      whole spectrum (#10054).
       schema validation. They are now named "XIC mz=<m/z>" (#10214).
     - FLASHDeconv skips spectra with a non-positive mzml_mass_charge value instead of crashing on them,
       and logs a warning. TOPPASEdge falls back to extension-based file type detection when
@@ -872,6 +890,10 @@ Fixes:
       identification (also of a single one) and uses one score orientation throughout (#10148).
 
 Documentation:
+  - Corrected misleading Doxygen contracts in the sqMass/SQLite stack: countTableRows
+    exception types, the SpectrumAccessSqMass usage example and getSpectraByRT /
+    getMultipleSpectra semantics, SqMassFile::store replacement behaviour and the
+    OpenSwathScoring fetchSpectrumSwath spectrum counts (#10148).
   - Expanded experimental-design terminology and LFQ/fractionated/TMT/SILAC examples,
     targeted quantitation, FAIMS, RT units, file conversions, USI and MetaProSIP CSV docs
     (#4400, #8478, #8588, #8597, #8615, #9173, #9909).
@@ -887,7 +909,7 @@ Build System:
     public headers as standalone translation units, with missing includes in
     identification-data and GUI headers corrected; normal builds can opt in with
     OPENMS_VERIFY_INTERFACE_HEADER_SETS=ON (#10177).
-  - The TOPP tool framework (TOPPBase, ToolHandler, INIUpdater, ParameterInformation,
+  - The TOPP tool framework (TOPPBase, ToolHandler, ParameterInformation,
     SearchEngineBase, TOPPExternalToolBase, MapAlignerBase, OpenSwathBase) moved out of
     libOpenMS into the new library libOpenMS_CLI (src/openms_cli; CMake target OpenMS_CLI,
     installed as OpenMS::OpenMS_CLI, package component CLI, export macro OPENMS_CLI_DLLAPI).
@@ -993,16 +1015,6 @@ Build System:
     installed now; the parser's own Mono.Unix.dll.config maps the library to linux-x64,
     osx-x64 and osx-arm64 and to nothing else, so the others could never be loaded
     (#10202, #10207, #10211).
-  - The Debian package's dependencies stay hand-written. Generating them with
-    dpkg-shlibdeps was tried and reverted: the staging tree ships libMono.Unix.so for
-    five runtimes under THIRDPARTY/ThermoRawFileParser, most of them foreign to whichever
-    host builds the package, and dpkg-shlibdeps treats a foreign-architecture binary as an
-    error rather than missing information, so no package was produced at all. The declared
-    dependency floors are therefore hand-maintained, but they now carry what
-    dpkg-shlibdeps derives from the shipped binaries -- libc6 (>= 2.38), libstdc++6
-    (>= 13.1), libgomp1 (>= 6), libgcc-s1 (>= 3.0) -- instead of a stale libc6 (>= 2.28)
-    with no C++ or OpenMP entry at all. The package no longer installs on distributions
-    too old to run it (#10202, #10207).
   - The container image build failed on every nightly run once WITH_THERMO_RAW defaulted
     to ON on Linux aarch64 (#10206): the Dockerfile still installed the .NET SDK/runtime
     that openms-thermo-bridge needs only for amd64, so the arm64 build could not find

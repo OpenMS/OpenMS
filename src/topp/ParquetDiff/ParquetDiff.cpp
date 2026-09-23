@@ -9,7 +9,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include "ParquetTableComparator.h"
+#include <OpenMS/FORMAT/ParquetTableComparator.h>
 
 #include <iostream>
 

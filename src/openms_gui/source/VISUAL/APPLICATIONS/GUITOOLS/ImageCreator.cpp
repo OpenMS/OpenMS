@@ -40,10 +40,12 @@ The input is first resampled into a matrix using bilinear forward resampling.
 Then the content of the matrix is written to an image file.
 The output has a uniform spacing in both dimensions regardless of the input.
 
+@if WITH_GUI
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_ImageCreator.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_ImageCreator.html
+@endif
 */
 
 // We do not want this class to show up in the docu:
