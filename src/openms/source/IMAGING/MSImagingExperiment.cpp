@@ -33,10 +33,12 @@ namespace
 
   PixelMetaIndices pixelMetaIndices_()
   {
+    // registerName() (not getIndex(), which is UINT_MAX for a name nobody has used yet in this
+    // process) returns the existing index when the key is already registered.
     MetaInfoRegistry& reg = MetaInfoInterface::metaRegistry();
-    return {reg.getIndex(MSImagingExperiment::META_PIXEL_X),
-            reg.getIndex(MSImagingExperiment::META_PIXEL_Y),
-            reg.getIndex(MSImagingExperiment::META_PIXEL_Z)};
+    return {reg.registerName(MSImagingExperiment::META_PIXEL_X),
+            reg.registerName(MSImagingExperiment::META_PIXEL_Y),
+            reg.registerName(MSImagingExperiment::META_PIXEL_Z)};
   }
 
   // Same contract as MSImagingExperiment::getPixelCoordinate(), on pre-resolved indices.
