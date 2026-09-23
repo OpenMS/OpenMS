@@ -261,8 +261,13 @@ namespace OpenMS
      * This function will fetch a vector of spectrum pointers to be used in DIA analysis.
      * If nr_spectra_to_add == 1, then a vector of length 1 will be returned
      *
-     *   - Case \#1: "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
+     *   - Case \#1: "simple" addition selected - Array of up to "nr_spectra_to_add" spectra returned (one more for an even "nr_spectra_to_add")
      *   - Case \#2: "resampling addition selected - Array of length 1 of the resampled spectrum returned
+     *
+     * These sequence lengths apply when "swath_maps" holds a single map. If it holds
+     * more than one map (SONAR-style data), the per-map results are concatenated into
+     * a single spectrum in both cases, so at most one spectrum is returned regardless
+     * of "nr_spectra_to_add".
      *
      * For case \#2 result is
      * all spectra summed up (add) with the intensities of multiple spectra a single
@@ -300,7 +305,7 @@ namespace OpenMS
      * This function will fetch a SpectrumSequence to be used in DIA analysis.
      * If nr_spectra_to_add == 1, then a vector of length 1 will be returned.
      * Spectra are prepared differently based on the condition
-     * Case #1: "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
+     * Case #1: "simple" addition selected - Array of up to "nr_spectra_to_add" spectra returned (one more for an even "nr_spectra_to_add")
      * Case #2: "resampling addition selected - Array of length 1 of the resampled spectrum returned
      *
      * For case #2 result is
