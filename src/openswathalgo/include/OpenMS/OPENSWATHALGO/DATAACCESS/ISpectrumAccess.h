@@ -73,7 +73,8 @@ public:
      * Returns the spectrum closest to @p RT plus up to @p nr_spectra_to_fetch / 2 neighbours
      * on either side, in alternating order around the closest spectrum (the result is not
      * sorted by RT). An odd @p nr_spectra_to_fetch yields at most that many spectra, an even
-     * value one more, and any value below 2 only the closest spectrum.
+     * value one more, and any value below 2 only the closest spectrum. If no spectrum lies
+     * at or after @p RT (e.g. @p RT is past the last spectrum), the sequence is empty.
      *
      * @p RT = target RT
      * @p nr_spectra_to_fetch = # spectra around target RT to fetch (see above for the resulting sequence length)
@@ -85,7 +86,7 @@ public:
      * The returned sequence is built as described for the driftless overload above: the
      * closest spectrum plus up to @p nr_spectra_to_fetch / 2 neighbours per side, in
      * alternating order (an even value yields one spectrum more, any value below 2 only
-     * the closest spectrum).
+     * the closest spectrum); if no spectrum lies at or after @p RT, the sequence is empty.
      *
      * @p RT = target RT
      * @p nr_spectra_to_fetch = # spectra around target RT to fetch (see above for the resulting sequence length)

@@ -265,6 +265,11 @@ namespace OpenMS
      *   - Case \#1: "simple" addition selected - Array of up to "nr_spectra_to_add" spectra returned (one more for an even "nr_spectra_to_add")
      *   - Case \#2: "resampling addition selected - Array of length 1 of the resampled spectrum returned
      *
+     * These sequence lengths apply when "swath_maps" holds a single map. If it holds
+     * more than one map (SONAR-style data), the per-map results are concatenated into
+     * a single spectrum in both cases, so at most one spectrum is returned regardless
+     * of "nr_spectra_to_add".
+     *
      * For case \#2 result is
      * all spectra summed up (add) with the intensities of multiple spectra a single
      * swath map (assuming these are regular SWATH / DIA maps) around the given

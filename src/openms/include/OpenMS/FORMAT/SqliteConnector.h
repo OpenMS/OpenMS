@@ -73,7 +73,7 @@ namespace OpenMS
 
     /// Counts the number of entries in SQL table @p table_name
     /// @throws Exception::IllegalArgument if the table is unknown (the SQL statement cannot be prepared)
-    /// @throws Exception::SqlOperationFailed if the count query yields no row or a NULL count
+    /// @throws Exception::SqlOperationFailed if the count query fails or yields a NULL count
     Size countTableRows(const std::string& table_name);
 
     /**

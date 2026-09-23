@@ -111,11 +111,13 @@ public:
                                             be created or opened for
                                             writing.
 
-      @warning An existing file at @p filename is deleted before writing
-               starts; nothing is appended to or merged with an existing
-               database. The replacement is not atomic: if the write fails,
-               the previous file is already gone and a partial database may
-               remain.
+      @warning store() writes a fresh database: an existing file at @p filename
+               is removed before writing starts, and the previous contents are
+               neither appended to nor merged. The replacement is not atomic:
+               if the removal succeeds and a later write fails, the previous
+               file is already gone and a partial database may remain. If the
+               removal itself fails, table creation can fail against the
+               existing file, which then remains.
     */
     void store(const std::string& filename, const MapType& map) const;
 
