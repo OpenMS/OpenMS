@@ -86,8 +86,8 @@ components=(
 if [[ "$(cache_var WITH_GUI)" == "ON" ]]; then
   components+=(library_gui OpenMS_GUI_headers cmake_gui QtPlatformPlugin)
 fi
-# last, so the install code attached to it (dependency fix-ups on macOS) sees
-# all libraries of the SDK
+# the runtime dependencies of everything above; their macOS install-name fix-up
+# is redone below, as the component's own install code does not work in this layout
 components+=(Dependencies)
 
 build_type=$(cache_var CMAKE_BUILD_TYPE)
@@ -125,6 +125,28 @@ if [[ "$(uname -s)" == Linux ]]; then
   # shellcheck disable=SC2016 # $ORIGIN is for the dynamic loader, not the shell
   find "$stage/$lib_dir" -maxdepth 1 -type f -name '*.so*' -print0 |
     xargs -0 -r -n 1 patchelf --set-rpath '$ORIGIN'
+fi
+
+# macOS: the install code of the Dependencies component (package_mac_productbuild.cmake)
+# is written for the pkg layout: its fix_dependencies.rb call names the bin/ directory
+# of the application bundle, which does not exist in this prefix, and the script
+# aborts on it before it gets to the libraries. So the bundled dependencies keep the
+# install names of the build machine. Run the call the library components use
+# (-l only) once more over the complete lib/ directory, then sign again: rewriting
+# install names invalidates signatures, and arm64 refuses to load such libraries.
+if [[ "$(uname -s)" == Darwin ]]; then
+  ruby "$source_dir/cmake/MacOSX/fix_dependencies.rb" -l "$stage/$lib_dir" -e @rpath/ -n -c
+  signing_identity=$(cache_var SIGNING_IDENTITY)
+  if [[ -n "$signing_identity" && "$signing_identity" != "-" ]]; then
+    sign_args=(--force --options runtime --timestamp --sign "$signing_identity")
+  else
+    sign_args=(--force --sign -)
+  fi
+  while IFS= read -r -d '' file; do
+    if file -b "$file" | grep -q '^Mach-O'; then
+      codesign "${sign_args[@]}" "$file"
+    fi
+  done < <(find "$stage/$lib_dir" -type f -print0)
 fi
 
 cp "$source_dir/cmake/OpenMSSDKReadme.txt" "$stage/README.txt"
