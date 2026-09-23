@@ -14,37 +14,12 @@ if(NOT TARGET OpenMS::OpenMS_CLI)
   find_package(OpenMS CONFIG REQUIRED COMPONENTS CLI)
 endif()
 
-# Arrow and Parquet are private dependencies of OpenMS. Resolve them here too
-# so that this directory can also be built against an installed OpenMS SDK.
-if(NOT OPENMS_ARROW_TARGET OR NOT OPENMS_PARQUET_TARGET)
-  find_package(Arrow CONFIG REQUIRED)
-  find_package(Parquet CONFIG REQUIRED)
-  if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
-    set(OPENMS_ARROW_TARGET Arrow::arrow_static)
-  elseif(TARGET Arrow::arrow_shared)
-    set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
-  else()
-    set(OPENMS_ARROW_TARGET Arrow::arrow_static)
-  endif()
-  if(ARROW_USE_STATIC AND TARGET Parquet::parquet_static)
-    set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
-  elseif(TARGET Parquet::parquet_shared)
-    set(OPENMS_PARQUET_TARGET Parquet::parquet_shared)
-  else()
-    set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
-  endif()
-endif()
-
-set(tool_sources
-  source/OpenSwathOSWParquetWriter.cpp
-)
-set(tool_headers
-  include/OpenSwathOSWParquetWriter.h
-)
-
-add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources} ${tool_headers})
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(${PROJECT_NAME} OpenMS::OpenMS_CLI ${OPENMS_ARROW_TARGET} ${OPENMS_PARQUET_TARGET})
+# OpenSwathOSWParquetWriter live in libOpenMS, not here, although only this tool uses them:
+# they are built on Arrow/Parquet, which are private dependencies of OpenMS. Kept in the
+# library behind OpenMS-typed interfaces, they leave this tool with nothing to link but OpenMS,
+# in-tree and against an installed OpenMS alike.
+add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp)
+target_link_libraries(${PROJECT_NAME} OpenMS::OpenMS_CLI)
 if(COMMAND openms_add_executable_compiler_flags)
   openms_add_executable_compiler_flags(${PROJECT_NAME})
 endif()
