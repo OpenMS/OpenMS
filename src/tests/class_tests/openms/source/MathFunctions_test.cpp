@@ -11,6 +11,8 @@
 
 ///////////////////////////
 #include <OpenMS/MATH/MathFunctions.h>
+
+#include <limits>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -203,6 +205,8 @@ START_SECTION((double binomial_cdf_complement(unsigned N, unsigned n, double p))
   TEST_EXCEPTION(std::invalid_argument, Math::binomial_cdf_complement(10, 11, 0.5));
   TEST_EXCEPTION(std::invalid_argument, Math::binomial_cdf_complement(10, 5, -0.1));
   TEST_EXCEPTION(std::invalid_argument, Math::binomial_cdf_complement(10, 5, 1.1));
+  // every comparison with NaN is false, so a range check written as (p < 0 || p > 1) would let it through
+  TEST_EXCEPTION(std::invalid_argument, Math::binomial_cdf_complement(10, 5, std::numeric_limits<double>::quiet_NaN()));
   
   // Test the function used in AScore
   // This is similar to the test in AScore_test.cpp for computeCumulativeScoreTest_
