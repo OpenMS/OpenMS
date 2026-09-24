@@ -15,7 +15,7 @@ namespace OpenMS
   /**
     @brief A feature grouping algorithm for unlabeled data.
 
-    The algorithm takes a number of feature or consensus maps and searches for corresponding (consensus) features across different maps. The maps have to be aligned (i.e. retention time distortions corrected, 
+    The algorithm takes a number of feature or consensus maps and searches for corresponding (consensus) features across different maps. The maps have to be aligned (i.e. retention time distortions corrected,
     using one of the map-alignment algorithms, e.g. @ref MapAlignmentAlgorithmKD), but small deviations are tolerated.
 
     This particular algorithm accumulates the features from all input maps, then applies a variant of QT clustering to find groups of corresponding features. For more details, see QTClusterFinder.
@@ -50,9 +50,18 @@ public:
 
         @exception IllegalArgument is thrown if less than two input maps are given.
     */
-    void group(const std::vector<ConsensusMap>& maps, 
+    void group(const std::vector<ConsensusMap>& maps,
                        ConsensusMap& out) override;
-                       
+
+protected:
+    void updateMembers_() override;
+
+private:
+    std::vector<Int> add_isotope_error_;
+    double rt_tolerance_;
+    double mz_tolerance_;
+    bool mz_measure_is_ppm_;
+
 private:
 
     /// Copy constructor intentionally not implemented -> private

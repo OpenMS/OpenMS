@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_2">
+    <featureList count="1">
+        <feature id="f_2">
+            <position dim="0">50.0</position>
+            <position dim="1">1000.50165</position>
+            <intensity>8000.0</intensity>
+            <charge>2</charge>
+        </feature>
+    </featureList>
+</featureMap>
