@@ -723,8 +723,8 @@ Fixes:
       to itself, the search collected hits until memory ran out. ACTrie::addNeedle() now skips
       an empty needle with a warning, but still consumes a needle index, so the peptide indices
       of the caller stay aligned and such hits are simply reported as unmatched (#2987).
-    - ACTrieState returns empty hits when no query was set instead of crashing (potentially
-      happens when the number of threads is larger than number of proteins)
+    - PeptideIndexer: ACTrieState returns empty hits when no query was set instead of crashing
+      (potentially happens when the number of threads is larger than number of proteins) (#10257)
     - Fixed the m/z of H2O/NH3 neutral-loss peaks of x/y/z linear ions at charge >= 2 in
       TheoreticalSpectrumGeneratorXLMS and SimpleTSGXLMS: the loss was subtracted from the already
       charge-divided position and divided by the charge again, so these peaks sat at roughly half
