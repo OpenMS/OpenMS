@@ -48,11 +48,16 @@ into half-cystine modifications (PSI-MOD:00798) which are then merged into
 the main modified-residue list in position-sorted order. Disulfide
 connectivity is reported as <code>\\DisulfideBond=(bond:idA,idB)</code>
 tuples referencing <code>id:</code> prefixes on the half-cystine tuples
-inside \\ModResPsi. By default only half-cystines that participate in a
-documented intrachain bond are labeled, in bond order: the k-th bond labels
-its two half-cystines 2k-1 and 2k and is itself labeled k (1-based; see
-issue 9829). Interchain half-cystines (single-position features) stay
-unlabeled. With @c -annotation_identifiers (PEFF "Option B") every
+inside \\ModResPsi, for every bond whose two half-cystines UniProt locates in
+this sequence (<code>\<begin\></code>/<code>\<end\></code>). These are mostly
+intrachain bonds, but also bonds between chains cleaved from the same
+precursor (e.g. insulin's "Interchain (between B and A chains)"). A bond given
+as a single <code>\<position\></code> (partner cysteine in another molecule) or
+with an endpoint beyond the sequence end keeps its half-cystine tuple(s) but
+gets no connectivity. By default only the half-cystines of reported bonds are
+labeled, in bond order: the k-th reported bond labels its two half-cystines
+2k-1 and 2k and is itself labeled k (1-based; see issue 9829). With
+@c -annotation_identifiers (PEFF "Option B") every
 annotation tuple instead carries a global sequential 1-based id and
 \\DisulfideBond references those ids.
 
@@ -440,7 +445,7 @@ namespace
     /// Indices into EntryAnnotations::mods after merge — resolved to annotation_ids during emission.
     size_t idx_a{0};
     size_t idx_b{0};
-    bool valid{false};       ///< true only when both endpoints come from a <begin>/<end> half-cystine pair
+    bool valid{false};       ///< true when both endpoints come from a <begin>/<end> location; cleared by invalidateOutOfRangeDisulfides()
     uint32_t annotation_id{kNoId};  ///< id of the \DisulfideBond tuple itself (kNoId = not emitted)
   };
 
@@ -769,10 +774,12 @@ namespace
   }
 
   /// Default mode (no -annotation_identifiers): implement the selective labeling scheme
-  /// from issue #9829 — the k-th (1-based) documented intrachain disulfide labels its
-  /// begin half-cystine 2k-1 and its end half-cystine 2k, and the \DisulfideBond tuple
-  /// itself is labeled k, referencing those two ids. All other annotations (including
-  /// lone interchain half-cystines from single-<position> features) stay unlabeled.
+  /// from issue #9829 — the k-th (1-based) valid disulfide pair (both half-cystines located
+  /// in this sequence via <begin>/<end>: intrachain, or between chains of one precursor)
+  /// labels its begin half-cystine 2k-1 and its end half-cystine 2k, and the \DisulfideBond
+  /// tuple itself is labeled k, referencing those two ids. All other annotations (including
+  /// half-cystines from single-<position> features, whose partner lies in another molecule)
+  /// stay unlabeled.
   void assignDisulfideLabels(EntryAnnotations& a)
   {
     uint32_t next_bond = 1;
@@ -1035,11 +1042,12 @@ namespace
 
     if (emit_aa_mods)
     {
-      // \DisulfideBond=(bond_id:idA,idB) — one tuple per documented intrachain bond,
+      // \DisulfideBond=(bond_id:idA,idB) — one tuple per valid <begin>/<end> disulfide pair,
       // referencing the ids its two half-cystines carry inside \ModResPsi. The ids were
       // stamped by whichever assignment pass ran (issue #9829 selective labels in the
       // default mode; global annotation identifiers in Option B); a pair without an id
-      // (interchain/invalid) is not emitted.
+      // (endpoint beyond the sequence end) is not emitted. Single-<position> disulfide
+      // features never form a pair.
       std::string val;
       for (const auto& d : a.disulfides)
       {

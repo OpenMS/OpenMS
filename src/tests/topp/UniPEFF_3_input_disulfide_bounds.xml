@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- UniPEFF disulfide-bounds fixture (30 residues; Cys at 5, 10, 12, 20, 30). Bonds 1 and 2
+     have an endpoint beyond the sequence end (malformed input): their half-cystines MUST still
+     be written, but they MUST NOT get connectivity (no labels, no \DisulfideBond tuple) and MUST
+     NOT consume a bond number. Bond 3 ends exactly on the last residue and MUST be kept. -->
+<uniprot>
+  <entry dataset="Swiss-Prot" version="1">
+    <accession>P00003</accession>
+    <name>SSBND_HUMAN</name>
+    <protein>
+      <recommendedName>
+        <fullName>Disulfide bounds test protein</fullName>
+      </recommendedName>
+    </protein>
+    <organism>
+      <name type="scientific">Homo sapiens</name>
+      <dbReference type="NCBI Taxonomy" id="9606"/>
+    </organism>
+    <proteinExistence type="evidence at protein level"/>
+    <!-- Bond 1: end beyond the sequence end. -->
+    <feature type="disulfide bond">
+      <location>
+        <begin position="5"/>
+        <end position="150"/>
+      </location>
+    </feature>
+    <!-- Bond 2: both endpoints beyond the sequence end. -->
+    <feature type="disulfide bond">
+      <location>
+        <begin position="31"/>
+        <end position="35"/>
+      </location>
+    </feature>
+    <!-- Bond 3: ends exactly on the last residue (in range). -->
+    <feature type="disulfide bond">
+      <location>
+        <begin position="10"/>
+        <end position="30"/>
+      </location>
+    </feature>
+    <!-- Bond 4: in range. -->
+    <feature type="disulfide bond">
+      <location>
+        <begin position="12"/>
+        <end position="20"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Phosphoserine">
+      <location>
+        <position position="8"/>
+      </location>
+    </feature>
+    <sequence length="30" mass="3300" version="1">MKTACLLSGCACDEFGHIKCLMNPQRSTVC</sequence>
+  </entry>
+</uniprot>

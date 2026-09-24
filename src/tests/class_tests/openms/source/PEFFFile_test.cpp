@@ -1662,7 +1662,7 @@ START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of
   TEST_EQUAL(e1.complex_variants.size(), 5)
   TEST_EQUAL(e1.processed_regions.size(), 5)
 
-  // Default-mode disulfide reporting (issue #9829): the k-th documented intrachain
+  // Default-mode disulfide reporting (issue #9829): the k-th documented <begin>/<end>
   // bond labels its begin half-cystine 2k-1 and its end half-cystine 2k and is
   // itself labeled k; \DisulfideBond=(k:2k-1,2k) references those ids. These are
   // entry-local labels (only bonded half-cystines carry them), NOT Option B global
@@ -1680,8 +1680,8 @@ START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of
   // out of ascending order inside the position-sorted \ModResPsi list. Parse order
   // of e1.modifications = the 9 ModResPsi tuples first: 45, 50, 55, 58, 80, 90, 95,
   // ?(phospho), ?(half cystine). Bond 1 = 45<->80 (labels 1, 2); bond 2 = ?<->90
-  // (labels 3, 4); the lone interchain half-cystine at 95 and all regular mods
-  // stay unlabeled.
+  // (labels 3, 4); the half-cystine at 95 (single-<position>, i.e. interchain with
+  // another molecule) and all regular mods stay unlabeled.
   const UInt kNotSet = std::numeric_limits<UInt>::max();
   TEST_EQUAL(e1.modifications[0].position, 45)
   TEST_EQUAL(e1.modifications[0].annotation_id, 1)

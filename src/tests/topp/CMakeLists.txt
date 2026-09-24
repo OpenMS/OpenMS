@@ -3613,6 +3613,17 @@ add_test("TOPP_UniPEFF_9" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/Un
 add_test("TOPP_UniPEFF_9_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_9_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_2_output_compact.peff)
 set_tests_properties("TOPP_UniPEFF_9_out" PROPERTIES DEPENDS "TOPP_UniPEFF_9")
 
+# Disulfide bonds with an endpoint beyond the sequence end keep their half-cystine tuples but
+# lose connectivity (no labels, no \DisulfideBond tuple, no bond number consumed); a bond ending
+# exactly on the last residue is kept. Checked in the default mode and with -annotation_identifiers.
+add_test("TOPP_UniPEFF_10" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_3_input_disulfide_bounds.xml -out ${TESTS_TEMP_DIR}/UniPEFF_10_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_10_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_10_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_3_output_A.peff)
+set_tests_properties("TOPP_UniPEFF_10_out" PROPERTIES DEPENDS "TOPP_UniPEFF_10")
+
+add_test("TOPP_UniPEFF_11" ${TOPP_BIN_PATH}/UniPEFF -test -annotation_identifiers -in ${DATA_DIR_TOPP}/UniPEFF_3_input_disulfide_bounds.xml -out ${TESTS_TEMP_DIR}/UniPEFF_11_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_11_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_11_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_3_output_B.peff)
+set_tests_properties("TOPP_UniPEFF_11_out" PROPERTIES DEPENDS "TOPP_UniPEFF_11")
+
 #------------------------------------------------------------------------------
 # XFDR tests
 add_test("TOPP_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -in ${DATA_DIR_TOPP}/XFDR_test_in1.idXML -out_idXML ${TESTS_TEMP_DIR}/XFDR_test_out1_temp.idXML -out_mzIdentML ${TESTS_TEMP_DIR}/XFDR_test_out1_temp.mzid -out_xquest ${TESTS_TEMP_DIR}/XFDR_test_out1_temp.xquest.xml)
