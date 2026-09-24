@@ -377,9 +377,10 @@ TOPP tools:
         fragment sorting honors -threads/OMP_NUM_THREADS. Failed merged writes preserve
         per-file output; target/decoy-shared peptides no longer break merged idXML
         (#9088, #9094, #9117, #9121, #9197, #9203, #9205, #9642, #9963, #10129).
-      - Stop codons ('*') in the database no longer abort the search. A trailing stop codon, as
-        in genome-translated databases such as SGD's, is removed so the C-terminal peptide is
-        searched; peptides containing a stop codon or another symbol are skipped like X/B/Z.
+      - Stop codons ('*') in the database no longer abort ProSE or SimpleSearchEngine. A trailing
+        stop codon, as in genome-translated databases such as SGD's, is removed so the C-terminal
+        peptide is searched; peptides containing a stop codon or another symbol are skipped like
+        X/B/Z (#10262).
     PercolatorAdapter:
       - Defaults to in-process Percolator 3.08 rescoring; no executable is required for
         idXML/mzid PSM-level FDR. OSW input and peptide/protein-level FDR require
