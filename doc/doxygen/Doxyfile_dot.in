@@ -212,7 +212,7 @@ DIRECTORY_GRAPH        = YES
 
 DOT_IMAGE_FORMAT       = png
 
-DOT_PATH               = @CF_DOXYGEN_DOT_EXECUTABLE@
+DOT_PATH               = "@CF_DOXYGEN_DOT_EXECUTABLE@"
 
 DOTFILE_DIRS           =
 
