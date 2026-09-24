@@ -815,8 +815,8 @@ if (WITH_THERMO_RAW)
               DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
               COMPONENT share)
     else()
-      message(STATUS "openms-thermo-bridge: ${_openms_thermo_license_file} not found; "
-                     "the install will not include the Thermo RawFileReader license.")
+      message(WARNING "openms-thermo-bridge: ${_openms_thermo_license_file} not found; "
+                      "the install will not include the Thermo RawFileReader license.")
     endif()
   else()
     # No system install found — fetch and build from source.
