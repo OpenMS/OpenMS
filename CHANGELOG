@@ -771,6 +771,9 @@ Fixes:
       MS-file metadata, and unannotated feature/consensus maps could crash. Empty runs, and
       entirely empty input in RT/mz mode, now keep their original search settings and
       spectra_data instead of being discarded (#10203).
+    - MaRaClusterAdapter passes -precursor_tolerance_units on to MaRaCluster. It appended the
+      unit's index as a digit instead, so 20 ppm reached MaRaCluster as '-p 20.00' and 0.05 Da
+      as '-p 0.051', which MaRaCluster reads as 0.051 ppm: a tolerance in Da was never applied.
   Quantification and numerical correctness:
     - IsobaricWorkflow wrote every consensus feature with the same id ("e_0"), which is invalid
       consensusXML (consensusElement/@id is xs:ID); each feature now gets its own unique ID
