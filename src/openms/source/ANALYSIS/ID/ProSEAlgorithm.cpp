@@ -645,7 +645,8 @@ namespace OpenMS
           MSSpectrum theoretical_spec;
           if (need_alignment)
           {
-            const int max_frag_z = (charge >= 2) ? std::min<int>(charge - 1, 2) : 1;
+            const int max_frag_z
+              = std::max(1, std::min<int>(static_cast<int>(used_charge) - 1, static_cast<int>(param_.getValue("fragment:max_charge"))));
             tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
             sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
           }
@@ -1241,8 +1242,11 @@ namespace OpenMS
     // referencing namespace-scope constants inside the loop without explicit sharing.
     const double c13c12_massdiff_u = Constants::C13C12_MASSDIFF_U;
     const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
+    const int max_fragment_charge = param_.getValue("fragment:max_charge");
 
-#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep)
+#pragma omp parallel for schedule(dynamic) default(none)                                                                                     \
+  shared(annotated_hits, pool_stats, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, \
+           proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep, max_fragment_charge)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
       #pragma omp atomic
@@ -1325,7 +1329,10 @@ namespace OpenMS
         // Clear peaks + data arrays (ion names / charges) before refilling for the
         // next candidate; getSpectrum appends to whatever is there.
         theo_spectrum.clear(true);
-        spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, 1);
+        // The fragment index can retrieve candidates from multiply charged ions. Score them too;
+        // otherwise 3+ precursors with predominantly 2+ fragments become zero-score hits.
+        const int max_frag_z = std::max(1, std::min<int>(static_cast<int>(sms.precursor_charge_) - 1, max_fragment_charge));
+        spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, max_frag_z);
         // Note: TSG emits sorted output when add_metainfo=true (see the
         // sortByPositionPresorted() call at the tail of getSpectrum_); the extra
         // sortByPosition() pass here was a redundant O(N) scan per candidate.
@@ -1346,8 +1353,10 @@ namespace OpenMS
         ah.sequence = std::move(mod_candidate);
         ah.score = score;
         double seq_length = (double)ah.sequence.size();
-        ah.prefix_fraction = static_cast<float>(detail.matched_prefix_ions / seq_length);
-        ah.suffix_fraction = static_cast<float>(detail.matched_suffix_ions / seq_length);
+        // A cleavage can match at several fragment charges. The ion counts retain
+        // those matches, but the Percolator fractions must remain in [0, 1].
+        ah.prefix_fraction = static_cast<float>(std::min(1.0, detail.matched_prefix_ions / seq_length));
+        ah.suffix_fraction = static_cast<float>(std::min(1.0, detail.matched_suffix_ions / seq_length));
         ah.mean_error = static_cast<float>(detail.mean_error);
         ah.matched_prefix_ions = static_cast<uint16_t>(detail.matched_prefix_ions);
         ah.matched_suffix_ions = static_cast<uint16_t>(detail.matched_suffix_ions);
@@ -3069,6 +3078,7 @@ namespace OpenMS
     tsg_param.setValue("add_first_prefix_ion", "true");
     tsg_param.setValue("add_metainfo", "true");
     tsg.setParameters(tsg_param);
+    const int max_fragment_charge = param_.getValue("fragment:max_charge");
 
     // Collect per-spectrum best hits with scores and errors
     struct CalHit { double score; double prec_error; double frag_error; };
@@ -3112,7 +3122,8 @@ namespace OpenMS
         // Clear peaks + data arrays before refilling; getSpectrum appends to
         // whatever is there. Its output is already sorted with add_metainfo=true.
         theo.clear(true);
-        tsg.getSpectrum(theo, seq, 1, 1);
+        const int max_frag_z = std::max(1, std::min<int>(static_cast<int>(sms.precursor_charge_) - 1, max_fragment_charge));
+        tsg.getSpectrum(theo, seq, 1, max_frag_z);
 
         HyperScore::PSMDetail detail;
         double score = HyperScore::computeWithDetail(

@@ -372,6 +372,9 @@ TOPP tools:
         matched_prefix_ions/matched_suffix_ions; scoring now counts all enabled ion series.
         Fixed isotope-aware precursor errors, fragment-error tolerances and adapter lookup
         (#9166, #9167, #9175, #9177, #9188, #9195, #9204, #9970).
+      - Score multiply charged fragments consistently with candidate retrieval and calibration.
+        This recovers 3+ peptides dominated by 2+ fragments; matched-ion fractions stay within
+        [0, 1] when a cleavage matches at more than one fragment charge.
       - Added PSM annotations, search diagnostics and an end-of-run report with optional
         -summary_out. Optimized indexing, modification enumeration, scoring and annotation;
         fragment sorting honors -threads/OMP_NUM_THREADS. Failed merged writes preserve
