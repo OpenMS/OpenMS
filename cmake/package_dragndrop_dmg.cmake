@@ -83,7 +83,10 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README.md
         COMPONENT   TOPPShell)
 
 ## ----------
-## No need to for this at the moment: no Qt plugins for the general CLI tools required anymore. Left here for reference.
+## Not installed for DMGs: here the Qt plugins only live inside each app bundle, not in ${INSTALL_PLUGIN_DIR},
+## so GUI TOPP tools in bin (e.g. ExecutePipeline) cannot find a platform plugin. To support that, also install
+## Qt6::QCocoaIntegrationPlugin to ${INSTALL_PLUGIN_DIR}/platforms and fix it (-p below), as pkg builds do
+## (see src/openms_gui/add_mac_bundle.cmake and src/openms_gui/CMakeLists.txt). Left here for reference.
 ## ----------
 ## Install the qt.conf file so we can find the libraries
 ## add qt.conf to the bin directory for DMGs

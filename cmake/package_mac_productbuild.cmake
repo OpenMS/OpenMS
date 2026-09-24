@@ -82,17 +82,7 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README.md
                     WORLD_READ
         COMPONENT   TOPPShell)
 
-## Not needed unless we need Qt plugins for TOPP again
-## Install the qt.conf file so we can find the libraries
-## add qt.conf to the bin directory for DMGs/pkgs
-#file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-#"[Paths]\nPlugins = ../${INSTALL_PLUGIN_DIR}\n")
-#install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
-#        DESTINATION ./${INSTALL_BIN_DIR}
-#        PERMISSIONS OWNER_WRITE OWNER_READ
-#                    GROUP_READ
-#                    WORLD_READ
-#        COMPONENT   Applications)
+## bin/qt.conf (for the GUI TOPP tools, e.g. ExecutePipeline) is installed in src/openms_gui/CMakeLists.txt
 
 ## Fix OpenMS dependencies for all executables in the install directory under bin.
 ## That affects everything but the bundles (whose Framework folders are symlinked to lib anyway).
