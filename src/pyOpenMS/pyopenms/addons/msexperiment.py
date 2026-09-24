@@ -529,6 +529,8 @@ def get_df(self, *args, **kwargs):
     """Deprecated: use to_df() instead."""
     warnings.warn("get_df() is deprecated. Use to_df() instead.",
                   DeprecationWarning, stacklevel=2)
+    if "long" in kwargs:  # pyOpenMS 3.5 named to_df()'s long_format "long"
+        kwargs["long_format"] = kwargs.pop("long")
     return self.to_df(*args, **kwargs)
 
 
@@ -539,6 +541,8 @@ def get_df_columns(self, *args, **kwargs):
         "get_df_columns() is deprecated. Use df_columns() instead.",
         DeprecationWarning, stacklevel=2
     )
+    if "long" in kwargs:  # pyOpenMS 3.5 named df_columns()'s long_format "long"
+        kwargs["long_format"] = kwargs.pop("long")
     return self.df_columns(*args, **kwargs)
 
 
