@@ -129,7 +129,7 @@ namespace OpenMS
       used, and of each only its first @p use_top_psms hits. Scores, hits and peptides stay
       as they are.
 
-      @param[in,out] proteins        Protein-identification run; the groups are added to its getIndistinguishableProteins().
+      @param[in,out] proteins        Protein-identification run; the groups replace its getIndistinguishableProteins(), which stay as they were if an exception is thrown.
       @param[in]     peptides        Peptide identifications, e.g. of several runs; not modified.
       @param[in]     use_top_psms    Number of hits per peptide identification to use, in stored order; 0 uses all.
       @param[in]     add_singletons  If true, a protein that shares its peptides with no other protein gets a group of its own.

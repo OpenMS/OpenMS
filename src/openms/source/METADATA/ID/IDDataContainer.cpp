@@ -142,10 +142,16 @@ struct IDDataContainer<Value, Key, Prefix>::Impl
   }
 };
 
+// Every container owns its Impl from the start: iterators remember it as their owner, so an
+// Impl allocated on first insertion would make an end() saved while empty differ from end().
+// Only a moved-from container has none, until insert() gives it a new one.
 template<typename V, typename K, typename P>
-IDDataContainer<V, K, P>::IDDataContainer() = default;
+IDDataContainer<V, K, P>::IDDataContainer(): impl_(std::make_unique<Impl>())
+{
+}
 template<typename V, typename K, typename P>
-IDDataContainer<V, K, P>::IDDataContainer(const IDDataContainer& other): impl_(other.impl_ ? std::make_unique<Impl>(*other.impl_) : nullptr)
+IDDataContainer<V, K, P>::IDDataContainer(const IDDataContainer& other):
+  impl_(other.impl_ ? std::make_unique<Impl>(*other.impl_) : std::make_unique<Impl>())
 {
 }
 template<typename V, typename K, typename P>

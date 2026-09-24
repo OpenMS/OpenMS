@@ -100,10 +100,11 @@ General:
     -write_ctd and -write_cwl continue to work for Galaxy and CWL (#10135).
 
 Dependencies:
-  - Boost is now private to the shared OpenMS library. Installed headers and CMake
-    exports no longer require Boost development packages; builds of OpenMS itself
-    still use Boost. A consumer test compiles every installed core header with
-    Boost headers blocked.
+  - Boost is now private to the shared OpenMS library. Installed headers and the CMake
+    package of a shared build no longer require Boost development packages; a static
+    build keeps Boost among its link dependencies, so its consumers still need them,
+    and builds of OpenMS itself still use Boost. A consumer test compiles every
+    installed core header with Boost headers blocked.
   - BREAKING (C++ API/ABI): regex parameters now use OpenMS::RegularExpression;
     MetaInfo::MapType uses sorted vector storage, and identification collections
     expose OpenMS iterators and ordered views instead of Boost.MultiIndex types.

@@ -48,7 +48,11 @@ START_SECTION((ordered uniqueness, stable references, copy and move))
 {
   InputFiles records;
   TEST_TRUE(records.begin() == records.end())
+  // like Boost.MultiIndex, the first insertion keeps an end() saved while empty valid
+  auto saved_end = records.end();
   auto a = records.insert(InputFile("a")).first;
+  TEST_TRUE(saved_end == records.end())
+  TEST_TRUE(--saved_end == a)
   const auto* address = &*a;
   records.insert(InputFile("c"));
   records.insert(InputFile("b"));

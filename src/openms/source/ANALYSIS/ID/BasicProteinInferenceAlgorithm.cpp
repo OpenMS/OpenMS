@@ -17,6 +17,7 @@
 #include <iostream>
 #include <map>
 #include <unordered_map>
+#include <utility>
 
 namespace OpenMS
 {
@@ -244,7 +245,18 @@ namespace OpenMS
     // it and grouping do not modify them; the copy is what lets the interface promise that.
     PeptideIdentificationList peptides_copy{peptides};
     IDBoostGraph ibg{proteins, peptides_copy, use_top_psms, false, false};
-    ibg.calculateAndAnnotateIndistProteins(add_singletons);
+    // The graph appends its groups. Start from none, so that they replace the run's groups
+    // (also those of an earlier call) instead of adding to them, and restore those on failure.
+    auto previous = std::exchange(proteins.getIndistinguishableProteins(), {});
+    try
+    {
+      ibg.calculateAndAnnotateIndistProteins(add_singletons);
+    }
+    catch (...)
+    {
+      proteins.getIndistinguishableProteins() = std::move(previous);
+      throw;
+    }
   }
 
   void BasicProteinInferenceAlgorithm::run(PeptideIdentificationList &pep_ids,
