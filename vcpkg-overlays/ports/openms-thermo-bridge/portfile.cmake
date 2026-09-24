@@ -78,3 +78,9 @@ vcpkg_download_distfile(THERMO_LICENSE_PATH
 )
 
 vcpkg_install_copyright(FILE_LIST "${THERMO_LICENSE_PATH}" "${SOURCE_PATH}/LICENSE")
+
+# The copyright file above concatenates the notice (a Word document) with the
+# bridge's LICENSE, so it cannot be shipped as the notice itself. Install the
+# document next to the CMake package as well; OpenMS ships it from there, as it
+# does for a bridge built from source (cmake/cmake_findExternalLibs.cmake).
+file(INSTALL "${THERMO_LICENSE_PATH}" DESTINATION "${CURRENT_PACKAGES_DIR}/share/OpenMSThermoBridge")

@@ -805,6 +805,19 @@ if (WITH_THERMO_RAW)
 
   if(OpenMSThermoBridge_FOUND)
     message(STATUS "openms-thermo-bridge: using system installation")
+
+    # Ship the Thermo Fisher RawFileReader license with the Thermo assemblies, as the
+    # from-source branch below does. The vcpkg port installs it next to its CMake
+    # package (vcpkg-overlays/ports/openms-thermo-bridge/portfile.cmake).
+    set(_openms_thermo_license_file "${OpenMSThermoBridge_DIR}/ThermoRawFileReader-License.doc")
+    if(EXISTS "${_openms_thermo_license_file}")
+      install(FILES "${_openms_thermo_license_file}"
+              DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
+              COMPONENT share)
+    else()
+      message(STATUS "openms-thermo-bridge: ${_openms_thermo_license_file} not found; "
+                     "the install will not include the Thermo RawFileReader license.")
+    endif()
   else()
     # No system install found — fetch and build from source.
     message(STATUS "openms-thermo-bridge: system installation not found, fetching from git")
