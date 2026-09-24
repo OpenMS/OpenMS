@@ -711,6 +711,10 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     {
       while (!e.sequence.empty() && e.sequence.back() == '*') { e.sequence.pop_back(); }
     }
+    // An entry left without residues has nothing to search, and decoy generation needs residues.
+    fasta_db.erase(std::remove_if(fasta_db.begin(), fasta_db.end(),
+                                  [](const FASTAFile::FASTAEntry& e) { return e.sequence.empty(); }),
+                   fasta_db.end());
 
     // generate decoy protein sequences by reversing them
     if (decoys_)

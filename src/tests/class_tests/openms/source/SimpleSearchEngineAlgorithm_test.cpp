@@ -58,10 +58,13 @@ START_SECTION(([EXTRA] Stop codons in the database: a trailing one is removed, a
   // a few contain one. P02's VLGFHQ*R has the precursor mass and fragments of VLGFHQR: it used to
   // be scored, which aborted the search, because AASequence parses '*' as a weightless X.
   // DIVSAGSLYL, the C-terminal peptide of P03, is only searchable without the stop codon.
+  // P04 is left without residues once its stop codons are removed, and decoy generation
+  // used to crash on it.
   vector<FASTAFile::FASTAEntry> fasta_db = {
     {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIK*"},
     {"P02", "Test", "MSTEKVLGFHQ*RGWSADEK*"},
     {"P03", "Test", "MDSTEKLIHRDIVSAGSLYL*"},
+    {"P04", "Test", "**"},
   };
 
   TheoreticalSpectrumGenerator tsg;
@@ -106,6 +109,7 @@ START_SECTION(([EXTRA] Stop codons in the database: a trailing one is removed, a
   p.setValue("peptide:min_size", 7);
   p.setValue("peptide:max_size", 40);
   p.setValue("peptide:missed_cleavages", 1);
+  p.setValue("decoys", "true");
   algo.setParameters(p);
 
   vector<ProteinIdentification> prot_ids;
