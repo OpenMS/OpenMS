@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- UniPEFF disulfide-bounds fixture (30 residues; Cys at 5, 10, 12, 20, 30). Valid against
      uniprot.xsd (mass and checksum computed as UniProt does), but semantically malformed on
-     purpose: bonds 1 and 2 have an endpoint beyond the sequence end. Their half-cystines MUST still
-     be written, but they MUST NOT get connectivity (no labels, no \DisulfideBond tuple) and MUST
-     NOT consume a bond number. Bond 3 ends exactly on the last residue and MUST be kept. -->
+     purpose: bonds 1 and 2 have an endpoint beyond the sequence end. They MUST NOT get
+     connectivity (no labels, no \DisulfideBond tuple) and MUST NOT consume a bond number; their
+     half-cystines beyond the end (31, 35, 150) MUST be omitted, the in-range one (5) written
+     unlabeled. Bond 3 ends exactly on the last residue and MUST be kept. -->
 <uniprot xmlns="http://uniprot.org/uniprot" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://uniprot.org/uniprot http://www.uniprot.org/docs/uniprot.xsd">
   <entry dataset="Swiss-Prot" created="2026-09-24" modified="2026-09-24" version="1">
     <accession>P00003</accession>

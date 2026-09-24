@@ -53,13 +53,18 @@ this sequence (<code>\<begin\></code>/<code>\<end\></code>). These are mostly
 intrachain bonds, but also bonds between chains cleaved from the same
 precursor (e.g. insulin's "Interchain (between B and A chains)"). A bond given
 as a single <code>\<position\></code> (partner cysteine in another molecule) or
-with an endpoint beyond the sequence end keeps its half-cystine tuple(s) but
-gets no connectivity. By default only the half-cystines of reported bonds are
-labeled, in bond order: the k-th reported bond labels its two half-cystines
+with an endpoint beyond the sequence end gets no connectivity; its in-range
+half-cystines are written as plain modifications (see below for the rest). By
+default only the half-cystines of reported bonds are labeled, in bond order:
+the k-th reported bond labels its two half-cystines
 2k-1 and 2k and is itself labeled k (1-based; see issue 9829). With
 @c -annotation_identifiers (PEFF "Option B") every
 annotation tuple instead carries a global sequential 1-based id and
 \\DisulfideBond references those ids.
+
+Annotations positioned beyond the end of the sequence (malformed input), i.e.
+modifications, variants and processed regions, are omitted with a warning,
+since PEFF treats such a position as an error in the file.
 
 Modification accession lookup uses UniProt's <em>ptmlist.txt</em> (a snapshot
 is bundled under @c share/OpenMS/CHEMISTRY/UniProt_ptmlist.txt); override
@@ -665,8 +670,9 @@ namespace
   /// input): the pair then gets no labels and no \DisulfideBond tuple in either mode,
   /// matching how out-of-bounds variants and processed regions are omitted. Unknown
   /// (position 0) endpoints stay valid — UniProt documents such bonds and they are
-  /// emitted as '?'. The half-cystine ModRes tuples themselves are still written,
-  /// like every other modification (mod positions are not range-checked).
+  /// emitted as '?'. An in-range half-cystine of such a pair is still written as a plain
+  /// modification; the out-of-range one is omitted by the writer, like any modification
+  /// beyond the sequence end.
   void invalidateOutOfRangeDisulfides(EntryAnnotations& a, const std::string& base_sequence,
                                       const std::string& accession)
   {
@@ -703,29 +709,31 @@ namespace
                            bool emit_processed, bool emit_aa_mods, bool emit_variants)
   {
     uint32_t next_id = 1;
+    const int seq_len = static_cast<int>(base_sequence.size());
     if (emit_aa_mods)
     {
+      // Modifications beyond the sequence end are not written (see writePeffEntry).
+      auto in_range = [seq_len](const ModResItem& m) { return !(seq_len > 0 && m.position > seq_len); };
       // PSI-MOD bucket: ModRes whose PTM has a PSI-MOD accession.
       for (auto& m : a.mods)
       {
-        if (m.ptm != nullptr && !m.ptm->psi_mod.empty()) m.annotation_id = next_id++;
+        if (in_range(m) && m.ptm != nullptr && !m.ptm->psi_mod.empty()) m.annotation_id = next_id++;
       }
       // Unimod bucket: ModRes with Unimod but no PSI-MOD.
       for (auto& m : a.mods)
       {
-        if (m.ptm != nullptr && m.ptm->psi_mod.empty() && !m.ptm->unimod.empty()) m.annotation_id = next_id++;
+        if (in_range(m) && m.ptm != nullptr && m.ptm->psi_mod.empty() && !m.ptm->unimod.empty()) m.annotation_id = next_id++;
       }
       // Generic bucket: ModRes with no CV accession (or no PTM at all).
       for (auto& m : a.mods)
       {
-        if (m.ptm == nullptr || (m.ptm->psi_mod.empty() && m.ptm->unimod.empty())) m.annotation_id = next_id++;
+        if (in_range(m) && (m.ptm == nullptr || (m.ptm->psi_mod.empty() && m.ptm->unimod.empty()))) m.annotation_id = next_id++;
       }
     }
 
     if (emit_variants)
     {
       // VariantSimple: real simple list, then complex entries that get demoted to simple.
-      const int seq_len = static_cast<int>(base_sequence.size());
       for (auto& v : a.simple_variants)
       {
         if (v.position == 0) continue;
@@ -751,7 +759,6 @@ namespace
 
     if (emit_processed)
     {
-      const int seq_len = static_cast<int>(base_sequence.size());
       for (auto& p : a.processed)
       {
         if (p.begin == 0 || p.end == 0) continue;
@@ -763,7 +770,8 @@ namespace
     if (emit_aa_mods)
     {
       // Disulfide tuples continue the id sequence; only valid pairs whose endpoints
-      // exist in the merged mod list get one (same guards as the writer).
+      // exist in the merged mod list get one (same guards as the writer). Valid pairs
+      // have both endpoints in range, so both carry an id from the buckets above.
       for (auto& d : a.disulfides)
       {
         if (!d.valid) continue;
@@ -922,6 +930,12 @@ namespace
       for (const ModResItem& m : a.mods)
       {
         if (!belongs(m)) continue;
+        if (seq_len > 0 && m.position > seq_len)
+        {
+          OPENMS_LOG_WARN << "UniPEFF: " << e.accession << " " << key << " position " << m.position
+                          << " exceeds sequence length " << seq_len << "; omitted.\n";
+          continue;
+        }
         val.push_back('(');
         if (m.annotation_id != kNoId) { val += std::to_string(m.annotation_id); val.push_back(':'); }
         val += positionOrUnknown(m.position);

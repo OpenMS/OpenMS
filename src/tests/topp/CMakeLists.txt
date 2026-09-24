@@ -3613,9 +3613,10 @@ add_test("TOPP_UniPEFF_9" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/Un
 add_test("TOPP_UniPEFF_9_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_9_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_2_output_compact.peff)
 set_tests_properties("TOPP_UniPEFF_9_out" PROPERTIES DEPENDS "TOPP_UniPEFF_9")
 
-# Disulfide bonds with an endpoint beyond the sequence end keep their half-cystine tuples but
-# lose connectivity (no labels, no \DisulfideBond tuple, no bond number consumed); a bond ending
-# exactly on the last residue is kept. Checked in the default mode and with -annotation_identifiers.
+# Disulfide bonds with an endpoint beyond the sequence end lose connectivity (no labels, no
+# \DisulfideBond tuple, no bond number consumed) and their out-of-range half-cystines are omitted
+# (in-range ones stay, unlabeled); a bond ending exactly on the last residue is kept. Checked in
+# the default mode and with -annotation_identifiers.
 add_test("TOPP_UniPEFF_10" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_3_input_disulfide_bounds.xml -out ${TESTS_TEMP_DIR}/UniPEFF_10_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
 add_test("TOPP_UniPEFF_10_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_10_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_3_output_A.peff)
 set_tests_properties("TOPP_UniPEFF_10_out" PROPERTIES DEPENDS "TOPP_UniPEFF_10")
