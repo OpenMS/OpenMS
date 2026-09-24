@@ -120,6 +120,8 @@ what make QT clustering produce the same result on every platform.
 The installed readers and writers built on them -- XICParquetFile, QPXFile,
 BrukerTimsFile and the rest -- take and return OpenMS types and need none of those
 packages. A build that configures OpenMS fails outright if a public header includes
-one of them.
+anything but OpenMS headers, the C++ standard library, operating-system headers and the
+headers of the public dependencies (OpenMP, and Qt in the GUI layer), so a dependency
+added later is kept out of the installed headers too.
 
 */

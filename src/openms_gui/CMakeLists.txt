@@ -32,6 +32,8 @@ openms_add_library(TARGET_NAME OpenMS_GUI
                    EXTERNAL_INCLUDES
                    PRIVATE_LINK_LIBRARIES Boost::boost
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
+                   # Qt is a PUBLIC dependency of the GUI layer only: <QString>, <QtWidgets/QDialog>
+                   ALLOWED_PUBLIC_INCLUDES "Q[A-Za-z0-9_]*" "Qt[A-Za-z]+/.*"
                    DLL_EXPORT_PATH "OpenMS/VISUAL/"
                    EXPORT_SET ${OPENMS_GUI_EXPORT_SET})
 

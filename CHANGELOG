@@ -123,6 +123,12 @@ Dependencies:
     because QTClusterFinder numbers its clusters in the grid's bucket order and only
     Boost orders the buckets identically on every platform. QTClusterFinder::Grid is
     an opaque type now, like its Heap.
+  - Configuring OpenMS fails if an installed header includes anything but OpenMS
+    headers, the C++ standard library, operating-system headers and the headers of a
+    public dependency (OpenMP; Qt in the GUI layer). This allowlist replaces a list of
+    known private dependencies, so a dependency added later cannot slip into the
+    installed headers unnoticed. A library allows the headers of its own public
+    dependencies with openms_add_library(... ALLOWED_PUBLIC_INCLUDES ...).
   - Minimum versions: CMake 3.24, Eigen 3.4.0, Boost 1.81, Arrow/Parquet 23 and nanobind
     3.1. Arrow/Parquet is required on all platforms; WITH_PARQUET was removed and
     versions 24+ are accepted. Compiler minimums are checked before vcpkg runs
