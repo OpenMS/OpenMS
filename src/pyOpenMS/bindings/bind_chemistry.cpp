@@ -1797,6 +1797,16 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .def("setBackboneBasicityRight", [](OpenMS::Residue& self, double gb_bb_r) { return self.setBackboneBasicityRight(gb_bb_r); }, "gb_bb_r"_a, "Sets the C-terminal direction backbone basicity")
         .def("hasNeutralLoss", [](const OpenMS::Residue& self) { return self.hasNeutralLoss(); }, "True if the residue has neutral loss")
         .def("hasNTermNeutralLosses", [](const OpenMS::Residue& self) { return self.hasNTermNeutralLosses(); }, "True if N-terminal neutral losses are set")
+        .def("hasVLoss", [](const OpenMS::Residue& self) { return self.hasVLoss(); }, "True if the residue can produce a v-ion via complete side-chain loss")
+        .def("getVLossFormula", [](const OpenMS::Residue& self) { return self.getVLossFormula(); }, "Returns the formula lost in v-ion formation (internal_formula - C2H3NO)")
+        .def("hasSatelliteLoss", [](const OpenMS::Residue& self, const std::string& subtype) {
+            char sub = subtype.empty() ? '\0' : subtype[0];
+            return self.hasSatelliteLoss(sub);
+        }, "subtype"_a = "", "True if the residue has a beta-gamma satellite loss (for d/w ions)")
+        .def("getSatelliteLossFormula", [](const OpenMS::Residue& self, const std::string& subtype) {
+            char sub = subtype.empty() ? '\0' : subtype[0];
+            return self.getSatelliteLossFormula(sub);
+        }, "subtype"_a = "", "Returns the formula of the satellite side-chain loss (for d/w ions)")
         .def("getHydrophobicity", [](const OpenMS::Residue& self, OpenMS::HydrophobicityScaleMethod scale) { return self.getHydrophobicity(scale); }, "scale"_a, "Returns the hydrophobicity value of the residue for the given scale (throws for non-standard residues)")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
@@ -1838,6 +1848,9 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .value("YIonMinusNH3", OpenMS::Residue::ResidueType::YIonMinusNH3)
         .value("NonIdentified", OpenMS::Residue::ResidueType::NonIdentified)
         .value("Unannotated", OpenMS::Residue::ResidueType::Unannotated)
+        .value("DIon", OpenMS::Residue::ResidueType::DIon)
+        .value("VIon", OpenMS::Residue::ResidueType::VIon)
+        .value("WIon", OpenMS::Residue::ResidueType::WIon)
         .value("SizeOfResidueType", OpenMS::Residue::ResidueType::SizeOfResidueType)
         .export_values();
 

@@ -270,6 +270,15 @@ namespace OpenMS
     case Zp2Ion:
       return internal_formula_ + getInternalToZp2Ion();
 
+    case DIon:
+      return internal_formula_ + getInternalToAIon() - getSatelliteLossFormula();
+
+    case VIon:
+      return internal_formula_ + getInternalToYIon() - getVLossFormula();
+
+    case WIon:
+      return internal_formula_ + getInternalToZIon() - getSatelliteLossFormula();
+
     default:
       cerr << "Residue::getFormula: unknown ResidueType" << endl;
       return formula_;
@@ -316,6 +325,15 @@ namespace OpenMS
 
     case ZIon:
       return average_weight_ + (getInternalToZIon() - getInternalToFull()).getAverageWeight();
+
+    case DIon:
+      return average_weight_ + (getInternalToAIon() - getInternalToFull()).getAverageWeight() - getSatelliteLossFormula().getAverageWeight();
+
+    case VIon:
+      return average_weight_ + (getInternalToYIon() - getInternalToFull()).getAverageWeight() - getVLossFormula().getAverageWeight();
+
+    case WIon:
+      return average_weight_ + (getInternalToZIon() - getInternalToFull()).getAverageWeight() - getSatelliteLossFormula().getAverageWeight();
 
     default:
       cerr << "Residue::getAverageWeight: unknown ResidueType" << endl;
@@ -368,6 +386,15 @@ namespace OpenMS
 
     case Zp2Ion:
       return mono_weight_ - internal_to_full_monoweight_ + internal_to_zp2_monoweight_;
+
+    case DIon:
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_a_monoweight_ - getSatelliteLossFormula().getMonoWeight();
+
+    case VIon:
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_y_monoweight_ - getVLossFormula().getMonoWeight();
+
+    case WIon:
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_z_monoweight_ - getSatelliteLossFormula().getMonoWeight();
 
     default:
       cerr << "Residue::getMonoWeight: unknown ResidueType" << endl;
@@ -601,6 +628,87 @@ namespace OpenMS
     return residue_sets_.contains(residue_set);
   }
 
+  bool Residue::hasVLoss() const
+  {
+    // Glycine has no side chain beyond H (internal formula C2H3NO), so no v-loss.
+    if (one_letter_code_ == "G") { return false; }
+    static const EmpiricalFormula gly_backbone("C2H3NO");
+    return internal_formula_.contains(gly_backbone) && (internal_formula_ != gly_backbone);
+  }
+
+  EmpiricalFormula Residue::getVLossFormula() const
+  {
+    if (!hasVLoss()) { return EmpiricalFormula(); }
+    static const EmpiricalFormula gly_backbone("C2H3NO");
+    return internal_formula_ - gly_backbone;
+  }
+
+  bool Residue::hasSatelliteLoss(char subtype) const
+  {
+    if (one_letter_code_.empty()) { return false; }
+    char olc = one_letter_code_[0];
+    switch (olc)
+    {
+      case 'V':
+      case 'L':
+      case 'D':
+      case 'E':
+      case 'N':
+      case 'Q':
+      case 'M':
+      case 'C':
+      case 'S':
+      case 'K':
+      case 'R':
+      case 'U':
+        return (subtype == '\0' || subtype == 'a' || subtype == 'b');
+      case 'I':
+      case 'T':
+        return (subtype == '\0' || subtype == 'a' || subtype == 'b');
+      default:
+        return false;
+    }
+  }
+
+  EmpiricalFormula Residue::getSatelliteLossFormula(char subtype) const
+  {
+    if (one_letter_code_.empty()) { return EmpiricalFormula(); }
+    char olc = one_letter_code_[0];
+    switch (olc)
+    {
+      case 'V':
+        return EmpiricalFormula("CH3");
+      case 'L':
+        return EmpiricalFormula("C3H7");
+      case 'I':
+        return (subtype == 'b') ? EmpiricalFormula("C2H5") : EmpiricalFormula("CH3");
+      case 'T':
+        return (subtype == 'b') ? EmpiricalFormula("CH3") : EmpiricalFormula("OH");
+      case 'D':
+        return EmpiricalFormula("CHO2");
+      case 'E':
+        return EmpiricalFormula("C2H3O2");
+      case 'N':
+        return EmpiricalFormula("CH2NO");
+      case 'Q':
+        return EmpiricalFormula("C2H4NO");
+      case 'M':
+        return EmpiricalFormula("C2H5S");
+      case 'C':
+        return EmpiricalFormula("HS");
+      case 'S':
+        return EmpiricalFormula("OH");
+      case 'K':
+        return EmpiricalFormula("C3H8N");
+      case 'R':
+        return EmpiricalFormula("C2H9N2");
+      case 'U':
+        return EmpiricalFormula("HSe");
+      default:
+        return EmpiricalFormula();
+    }
+  }
+
   std::string Residue::residueTypeToIonLetter(const Residue::ResidueType& res_type)
   {
     switch (res_type)
@@ -613,6 +721,9 @@ namespace OpenMS
       case Residue::ZIon: return "z";
       case Residue::Zp1Ion: return "z.";
       case Residue::Zp2Ion: return "z'";
+      case Residue::DIon: return "d";
+      case Residue::VIon: return "v";
+      case Residue::WIon: return "w";
       default:
        OPENMS_LOG_ERROR << "Unknown residue type encountered. Can't map to ion letter." << endl;
     }

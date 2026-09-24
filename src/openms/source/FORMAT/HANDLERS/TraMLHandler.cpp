@@ -1025,6 +1025,15 @@ namespace OpenMS::Internal
             case Residue::ZIon:
               os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001230\" name=\"frag: z ion\"/>\n";
               break;
+            case Residue::DIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001236\" name=\"frag: d ion\"/>\n";
+              break;
+            case Residue::VIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001237\" name=\"frag: v ion\"/>\n";
+              break;
+            case Residue::WIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001238\" name=\"frag: w ion\"/>\n";
+              break;
             case Residue::Precursor:
               os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001523\" name=\"frag: precursor ion\"/>\n";
               break;
@@ -1433,6 +1442,18 @@ namespace OpenMS::Internal
         else if (cv_term.getAccession() == "MS:1001230")
         {
           actual_interpretation_.iontype = TargetedExperiment::IonType::ZIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001236")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::DIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001237")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::VIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001238")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::WIon;
         }
         else if (cv_term.getAccession() == "MS:1001523")
         {

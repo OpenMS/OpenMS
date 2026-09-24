@@ -111,3 +111,27 @@ def test_reject_malformed_satellite_annotations(text):
     assert p.MzPAF.tryParseMultiple(f"y4,{text}") is None
     with pytest.raises(RuntimeError):
         p.MzPAF.parse(text)
+
+
+def test_satellite_ions_theoretical_mz():
+    seq = p.AASequence.fromString("PEPTIDER")
+    assert p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse("d3"), seq) is None
+
+    mz_da5 = p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse("da5"), seq)
+    mz_db5 = p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse("db5"), seq)
+    assert mz_da5 is not None
+    assert mz_db5 is not None
+    assert pytest.approx(mz_da5 - mz_db5, abs=1e-3) == p.EmpiricalFormula("CH2").getMonoWeight()
+
+    mz_wa4 = p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse("wa4"), seq)
+    mz_wb4 = p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse("wb4"), seq)
+    assert mz_wa4 is not None
+    assert mz_wb4 is not None
+    assert pytest.approx(mz_wa4 - mz_wb4, abs=1e-3) == p.EmpiricalFormula("CH2").getMonoWeight()
+
+    mz_v4 = p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse("v4"), seq)
+    assert mz_v4 is not None
+
+    assert p.Residue.ResidueType.DIon is not None
+    assert p.Residue.ResidueType.VIon is not None
+    assert p.Residue.ResidueType.WIon is not None

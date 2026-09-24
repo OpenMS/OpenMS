@@ -885,5 +885,64 @@ START_SECTION(([EXTRA] std::hash<Residue>))
 }
 END_SECTION
 
+START_SECTION((Satellite ion methods and types))
+{
+  TEST_EQUAL(Residue::getResidueTypeName(Residue::DIon), "d-ion")
+  TEST_EQUAL(Residue::getResidueTypeName(Residue::VIon), "v-ion")
+  TEST_EQUAL(Residue::getResidueTypeName(Residue::WIon), "w-ion")
+
+  TEST_EQUAL(Residue::residueTypeToIonLetter(Residue::DIon), "d")
+  TEST_EQUAL(Residue::residueTypeToIonLetter(Residue::VIon), "v")
+  TEST_EQUAL(Residue::residueTypeToIonLetter(Residue::WIon), "w")
+
+  const ResidueDB* rdb = ResidueDB::getInstance();
+  const Residue* gly = rdb->getResidue("Gly");
+  const Residue* ala = rdb->getResidue("Ala");
+  const Residue* val = rdb->getResidue("Val");
+  const Residue* leu = rdb->getResidue("Leu");
+  const Residue* ile = rdb->getResidue("Ile");
+  const Residue* thr = rdb->getResidue("Thr");
+
+  // v-loss tests
+  TEST_EQUAL(gly->hasVLoss(), false)
+  TEST_EQUAL(gly->getVLossFormula(), EmpiricalFormula(""))
+  TEST_EQUAL(ala->hasVLoss(), true)
+  TEST_EQUAL(ala->getVLossFormula(), EmpiricalFormula("CH2"))
+  TEST_EQUAL(leu->hasVLoss(), true)
+  TEST_EQUAL(leu->getVLossFormula(), EmpiricalFormula("C4H8"))
+
+  // satellite loss tests
+  TEST_EQUAL(gly->hasSatelliteLoss(), false)
+  TEST_EQUAL(ala->hasSatelliteLoss(), false)
+  TEST_EQUAL(val->hasSatelliteLoss(), true)
+  TEST_EQUAL(val->getSatelliteLossFormula(), EmpiricalFormula("CH3"))
+
+  TEST_EQUAL(leu->hasSatelliteLoss(), true)
+  TEST_EQUAL(leu->getSatelliteLossFormula(), EmpiricalFormula("C3H7"))
+
+  // Ile subtype a (-CH3, 15 Da) vs subtype b (-C2H5, 29 Da)
+  TEST_EQUAL(ile->hasSatelliteLoss('a'), true)
+  TEST_EQUAL(ile->hasSatelliteLoss('b'), true)
+  TEST_EQUAL(ile->getSatelliteLossFormula('a'), EmpiricalFormula("CH3"))
+  TEST_EQUAL(ile->getSatelliteLossFormula('b'), EmpiricalFormula("C2H5"))
+
+  // Thr subtype a (-OH) vs subtype b (-CH3)
+  TEST_EQUAL(thr->hasSatelliteLoss('a'), true)
+  TEST_EQUAL(thr->hasSatelliteLoss('b'), true)
+  TEST_EQUAL(thr->getSatelliteLossFormula('a'), EmpiricalFormula("OH"))
+  TEST_EQUAL(thr->getSatelliteLossFormula('b'), EmpiricalFormula("CH3"))
+
+  // Residue weights and formulas for DIon, VIon, WIon
+  TOLERANCE_ABSOLUTE(0.001)
+  TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::DIon), leu->getMonoWeight(Residue::AIon) - EmpiricalFormula("C3H7").getMonoWeight())
+  TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::VIon), leu->getMonoWeight(Residue::YIon) - EmpiricalFormula("C4H8").getMonoWeight())
+  TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::WIon), leu->getMonoWeight(Residue::ZIon) - EmpiricalFormula("C3H7").getMonoWeight())
+
+  TEST_EQUAL(leu->getFormula(Residue::DIon), leu->getFormula(Residue::AIon) - EmpiricalFormula("C3H7"))
+  TEST_EQUAL(leu->getFormula(Residue::VIon), leu->getFormula(Residue::YIon) - EmpiricalFormula("C4H8"))
+  TEST_EQUAL(leu->getFormula(Residue::WIon), leu->getFormula(Residue::ZIon) - EmpiricalFormula("C3H7"))
+}
+END_SECTION
+
 END_TEST
 
