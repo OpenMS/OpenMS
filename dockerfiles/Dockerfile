@@ -173,7 +173,6 @@ RUN <<-EOF
         -DCMAKE_PREFIX_PATH="/usr/;/usr/local" \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
         -DBOOST_USE_STATIC=OFF \
-        -DWITH_WNETALIGN=OFF \
         -S ${SOURCE_DIR} \
         -B ${BUILD_DIR}
 EOF

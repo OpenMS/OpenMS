@@ -497,7 +497,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # wnetalign (Wasserstein network spectral alignment)
-option(WITH_WNETALIGN "Enable WNet alignment (fetches pylmcf, wnet, wnetalign)" ON)
+option(WITH_WNETALIGN "Enable WNet alignment (fetches pylmcf, wnet, wnetalign)" OFF)
 
 set(WNETALIGN_INCLUDE_DIRS "")
 
@@ -512,7 +512,7 @@ if(WITH_WNETALIGN)
     # target_include_directories() fails at generate time with a message that does
     # not mention wnetalign at all. On a miss we fall through to the FetchContent
     # path below, the same find-then-fetch pattern used for opentims and
-    # openms-thermo-bridge, both of which are likewise ON by default.
+    # openms-thermo-bridge.
     # find_path() caches its result, and CMake only repeats the search when the
     # cached value is <VAR>-NOTFOUND. A path found by an earlier configure therefore
     # survives even once it has gone away -- switching VCPKG_TARGET_TRIPLET moves

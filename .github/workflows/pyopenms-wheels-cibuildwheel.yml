@@ -193,7 +193,6 @@ jobs:
                 -DBUILD_TOPP_TOOLS=OFF \
                 -DINSTALL_OPENMS_EXAMPLES=OFF \
                 -DWITH_THERMO_RAW=ON \
-                -DWITH_WNETALIGN=OFF \
                 $THERMO_MANAGED_OPT \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
@@ -315,7 +314,6 @@ jobs:
                 -DBUILD_TOPP_TOOLS=OFF \
                 -DINSTALL_OPENMS_EXAMPLES=OFF \
                 -DWITH_THERMO_RAW=ON \
-                -DWITH_WNETALIGN=OFF \
                 $THERMO_MANAGED_OPT \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
@@ -442,7 +440,6 @@ jobs:
             -DBUILD_TOPP_TOOLS=OFF \
             -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DWITH_THERMO_RAW=ON \
-            -DWITH_WNETALIGN=OFF \
             $THERMO_MANAGED_OPT \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
@@ -583,7 +580,6 @@ jobs:
             -DBUILD_TOPP_TOOLS=OFF \
             -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DWITH_THERMO_RAW=ON \
-            -DWITH_WNETALIGN=OFF \
             $THERMO_MANAGED_OPT \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF

@@ -104,7 +104,6 @@
         {
             "name": "ci-base",
             "hidden": true,
-            "description": "Settings shared by the CI presets, which the test and release workflows build. WNet alignment (WITH_WNETALIGN, FeatureLinkerWNet) is off, and the wnetalign vcpkg feature is not requested; the wnetalign input of .github/actions/build turns it back on (a manual run of the Build and Test workflow can ask for it), in which case CMake fetches the pinned pylmcf/wnet/wnetalign sources itself.",
             "cacheVariables": {
                 "OPENMS_TEST_INSTALLED_CONSUMER": "ON",
                 "WITH_GUI": "ON",

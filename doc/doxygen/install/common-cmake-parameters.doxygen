@@ -184,7 +184,7 @@ The most important CMake variables are:
     <th valign="top">WITH_WNETALIGN=On/Off</td>
     <td>Enable the Wasserstein network alignment feature (FeatureLinkerWNet TOPP tool).
     When enabled, the three header-only libraries <code>pylmcf</code>, <code>wnet</code>, and
-    <code>wnetalign</code> are fetched automatically via FetchContent. (Default: On)</td>
+    <code>wnetalign</code> are fetched automatically via FetchContent. (Default: Off)</td>
   </tr>
   <tr>
     <th valign="top">WITH_ONNX=On/Off</td>
