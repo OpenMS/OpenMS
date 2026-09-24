@@ -49,8 +49,8 @@ annotation id from <code>\\DisulfideBond=(id1,id2)</code>.
 
 Features whose <code>\<location sequence="..."\></code> names another isoform
 carry coordinates of that isoform, not of the entry's canonical sequence. They
-are not applied to the canonical entry; their number is reported in a summary
-log line (per-feature details with @c -debug 1).
+are not applied to the canonical entry; a summary log line counts those that
+would otherwise have become annotations.
 
 Modification accession lookup uses UniProt's <em>ptmlist.txt</em> (a snapshot
 is bundled under @c share/OpenMS/CHEMISTRY/UniProt_ptmlist.txt); override
@@ -813,17 +813,24 @@ namespace
     return !f.location_sequence.empty();
   }
 
-  /// Counts isoform-scoped features that were not applied to canonical entries.
+  /// True if classifyAndAppend() added anything to @p a (checked before mergeHalfCystines()).
+  bool hasClassifiedAnnotations(const EntryAnnotations& a)
+  {
+    return !(a.regular_mods.empty() && a.halfcys.empty() && a.simple_variants.empty()
+             && a.complex_variants.empty() && a.processed.empty());
+  }
+
+  /// Counts, over all entries, the isoform-scoped features that were left out although
+  /// they would otherwise have become annotations of the canonical entry.
   struct IsoformScopedTracker
   {
     size_t total{0};
     size_t entries{0};
 
-    void add(const UniProtEntry& e)
+    void add(size_t skipped_in_entry)
     {
-      const auto n = static_cast<size_t>(std::count_if(e.features.begin(), e.features.end(), isIsoformScoped));
-      total += n;
-      if (n > 0) ++entries;
+      total += skipped_in_entry;
+      if (skipped_in_entry > 0) ++entries;
     }
   };
 
@@ -1061,6 +1068,7 @@ namespace
   {
     UniProtEntry source;
     EntryAnnotations annotations;
+    size_t isoform_scoped_skipped{0};  ///< isoform-scoped features left out that would otherwise have become annotations
     std::string prefix;       ///< sp/tr or user override
   };
 
@@ -1077,8 +1085,18 @@ namespace
     {
       if (isIsoformScoped(f))
       {
-        OPENMS_LOG_DEBUG << "UniPEFF: " << pe.source.accession << " " << f.type << " '" << f.description
-                         << "' is annotated on isoform " << f.location_sequence << "; not applied to the canonical entry.\n";
+        // Never applied to the canonical entry. Classifying it into a scratch list tells whether
+        // it would otherwise have become an annotation, so the summary counts only those
+        // (not e.g. sequence conflicts, which UniPEFF never writes).
+        EntryAnnotations not_applied;
+        classifyAndAppend(f, ptms, not_applied, record_processing, record_aa_mods,
+                          record_variants, pe.source.accession);
+        if (hasClassifiedAnnotations(not_applied))
+        {
+          ++pe.isoform_scoped_skipped;
+          OPENMS_LOG_DEBUG << "UniPEFF: " << pe.source.accession << " " << f.type << " '" << f.description
+                           << "' is annotated on isoform " << f.location_sequence << "; not applied to the canonical entry.\n";
+        }
         continue;
       }
       classifyAndAppend(f, ptms, pe.annotations, record_processing, record_aa_mods,
@@ -1277,7 +1295,7 @@ protected:
           it = spools.emplace(pe.prefix, std::move(s)).first;
           prefixes.push_back(pe.prefix);
         }
-        isoform_scoped_tracker.add(pe.source);
+        isoform_scoped_tracker.add(pe.isoform_scoped_skipped);
         writePeffEntry(it->second.out, pe.source, pe.annotations, pe.prefix, option_b,
                        psi_obo, unimod_obo, fallback_tracker,
                        record_processing, record_aa_mods, record_variants);

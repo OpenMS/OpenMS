@@ -2,7 +2,9 @@
 <!-- UniPEFF fixture for isoform-scoped features. A <location sequence="..."> names
      another isoform: its coordinates do not refer to the entry's canonical sequence,
      so such features must NOT be written as canonical PEFF annotations. Each entry
-     mixes them with ordinary features that must still be emitted. -->
+     mixes them with ordinary features that must still be emitted. The run summary
+     counts the 5 isoform-scoped features that would otherwise have become annotations,
+     not the sequence conflict (a type UniPEFF never writes). -->
 <uniprot>
   <entry dataset="Swiss-Prot" version="7">
     <accession>P11111</accession>
@@ -78,6 +80,14 @@
       <location sequence="P11111-3">
         <begin position="44"/>
         <end position="45"/>
+      </location>
+    </feature>
+    <!-- Isoform-scoped, but of a type UniPEFF never writes: not counted in the summary. -->
+    <feature type="sequence conflict" description="In Ref. 2; AAA00000.">
+      <original>E</original>
+      <variation>K</variation>
+      <location sequence="P11111-2">
+        <position position="33"/>
       </location>
     </feature>
     <sequence length="40" mass="4600" version="2">MSEQNCEMTFQIQRIYNCKDISFEAPNAPCKLTPEYASGW</sequence>
