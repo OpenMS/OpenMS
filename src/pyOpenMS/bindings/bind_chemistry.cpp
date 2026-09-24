@@ -1301,6 +1301,9 @@ Examples:
             if (OpenMS::MzPAF::charToIonSeries(c, series)) return series;
             return std::nullopt;
         }, "c"_a, "Parse ion series from character (returns None if invalid)")
+        .def_static("calculateTheoreticalMZ", [](const OpenMS::MzPAFAnnotation& ann, const OpenMS::AASequence& seq) {
+            return OpenMS::MzPAF::calculateTheoreticalMZ(ann, seq);
+        }, "ann"_a, "sequence"_a, "Calculate theoretical m/z for an annotation and peptide sequence, or None if unsupported")
         ;
 
     // -----------------------------------------------------------------------

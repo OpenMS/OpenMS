@@ -630,8 +630,8 @@ namespace OpenMS
 
   bool Residue::hasVLoss() const
   {
-    // Glycine has no side chain beyond H (internal formula C2H3NO), so no v-loss.
-    if (one_letter_code_ == "G") { return false; }
+    // Modified residues have unknown side-chain attachment; Glycine has no side chain beyond H.
+    if (isModified() || one_letter_code_ == "G") { return false; }
     static const EmpiricalFormula gly_backbone("C2H3NO");
     return internal_formula_.contains(gly_backbone) && (internal_formula_ != gly_backbone);
   }
@@ -645,7 +645,8 @@ namespace OpenMS
 
   bool Residue::hasSatelliteLoss(char subtype) const
   {
-    if (one_letter_code_.empty()) { return false; }
+    if (isModified() || one_letter_code_.empty()) { return false; }
+    if (subtype != '\0' && subtype != 'a' && subtype != 'b') { return false; }
     char olc = one_letter_code_[0];
     switch (olc)
     {
@@ -661,10 +662,9 @@ namespace OpenMS
       case 'K':
       case 'R':
       case 'U':
-        return (subtype == '\0' || subtype == 'a' || subtype == 'b');
       case 'I':
       case 'T':
-        return (subtype == '\0' || subtype == 'a' || subtype == 'b');
+        return true;
       default:
         return false;
     }
@@ -672,7 +672,7 @@ namespace OpenMS
 
   EmpiricalFormula Residue::getSatelliteLossFormula(char subtype) const
   {
-    if (one_letter_code_.empty()) { return EmpiricalFormula(); }
+    if (!hasSatelliteLoss(subtype)) { return EmpiricalFormula(); }
     char olc = one_letter_code_[0];
     switch (olc)
     {
@@ -701,7 +701,7 @@ namespace OpenMS
       case 'K':
         return EmpiricalFormula("C3H8N");
       case 'R':
-        return EmpiricalFormula("C2H9N2");
+        return EmpiricalFormula("C3H8N3");
       case 'U':
         return EmpiricalFormula("HSe");
       default:

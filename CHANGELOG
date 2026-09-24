@@ -650,7 +650,7 @@ OpenMS Library:
       construction; SpectrumNativeIDParser (#8637, #8648, #8684, #8686).
     - MzPAF accepts and writes d/v/w satellite ions and the da/db/wa/wb subtypes,
       including validation, peak annotation conversion and pyOpenMS bindings (#10175).
-      Satellite-ion mass calculation and theoretical spectrum generation remain unsupported.
+      Theoretical spectrum generation for satellite ions remains unsupported.
     - Added IsoelectricPoint, hydrophobicity profiles, protein SequenceCoverage,
       ModifiedSincSmoother, programmatic FileInfo, CCS conversion and MSExperiment
       rasterization. Extended PeakFileOptions and on-disc filtering, peak annotations,

@@ -114,6 +114,7 @@ def test_reject_malformed_satellite_annotations(text):
 
 
 def test_satellite_ions_theoretical_mz():
+    """Test theoretical m/z calculations for d, v, and w satellite ions."""
     seq = p.AASequence.fromString("PEPTIDER")
     assert p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse("d3"), seq) is None
 

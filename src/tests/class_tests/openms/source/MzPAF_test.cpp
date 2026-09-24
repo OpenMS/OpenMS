@@ -717,6 +717,11 @@ START_SECTION(calculateTheoreticalMZ)
   // v4 on PEPTIDER (suffix 4 is IDER, complete side-chain loss of Ile)
   auto mz_v4 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("v4"), seq);
   TEST_EQUAL(mz_v4.has_value(), true)
+
+  // Modified residue at satellite cleavage site should return nullopt
+  AASequence mod_seq = AASequence::fromString("M(Oxidation)EPTIDER");
+  TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse("d1"), mod_seq).has_value())
+  TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse("v8"), mod_seq).has_value())
 }
 END_SECTION
 

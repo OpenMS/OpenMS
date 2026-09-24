@@ -932,6 +932,24 @@ START_SECTION((Satellite ion methods and types))
   TEST_EQUAL(thr->getSatelliteLossFormula('a'), EmpiricalFormula("OH"))
   TEST_EQUAL(thr->getSatelliteLossFormula('b'), EmpiricalFormula("CH3"))
 
+  const Residue* arg = rdb->getResidue("Arg");
+  TEST_EQUAL(arg->hasSatelliteLoss(), true)
+  TEST_EQUAL(arg->getSatelliteLossFormula(), EmpiricalFormula("C3H8N3"))
+
+  // Invalid subtype 'c' must be rejected
+  TEST_EQUAL(leu->hasSatelliteLoss('c'), false)
+  TEST_EQUAL(leu->getSatelliteLossFormula('c'), EmpiricalFormula(""))
+  TEST_EQUAL(ile->hasSatelliteLoss('c'), false)
+  TEST_EQUAL(ile->getSatelliteLossFormula('c'), EmpiricalFormula(""))
+
+  // Modified residues must reject satellite and v losses
+  Residue mod_met(*rdb->getResidue("Met"));
+  mod_met.setModification("Oxidation");
+  TEST_EQUAL(mod_met.hasSatelliteLoss(), false)
+  TEST_EQUAL(mod_met.getSatelliteLossFormula(), EmpiricalFormula(""))
+  TEST_EQUAL(mod_met.hasVLoss(), false)
+  TEST_EQUAL(mod_met.getVLossFormula(), EmpiricalFormula(""))
+
   // Residue weights and formulas for DIon, VIon, WIon
   TOLERANCE_ABSOLUTE(0.001)
   TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::DIon), leu->getMonoWeight(Residue::AIon) - EmpiricalFormula("C3H7").getMonoWeight())
