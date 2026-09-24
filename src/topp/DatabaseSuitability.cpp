@@ -34,45 +34,10 @@ using namespace std;
 
 @brief Calculates the suitability of a database which was used a for peptide identification search. Also reports the quality of LC-MS spectra.
 
-*/
-#ifdef OPENMS_HASDOXYGENDOT
-/*
-@dot
-digraph sample_workflow {
-  node [ style="solid,filled", color=black, fillcolor=grey90, width=1.5, fixedsize=true, shape=square, fontname=Helvetica, fontsize=10 ];
-  edge [ style="solid" ];
-  rankdir="LR";
-  splines=ortho;
-  mzml [ label="mzML file(s)" shape=oval fillcolor=white group=1];
-  db [ label="database in question" shape=oval fillcolor=white ];
-  novor [ label="NovorAdapter" URL="\ref OpenMS::NovorAdapter" group=2];
-  id_filter [ label="IDFilter" URL="\ref OpenMS::IDFilter" group=2];
-  id_convert [ label="IDFileConverter" URL="\ref OpenMS::IDFileConverter" group=2];
-  decoy_db [ label="DecoyDatabase" URL="\ref OpenMS::DecoyDatabase" group=2];
-  comet [ label="CometAdapter" URL="\ref OpenMS::CometAdapter" group=1];
-  pep_ind [ label="PeptideIndexer" URL="\ref OpenMS::PeptideIndexer" group=1];
-  db_suit [ label="DatabaseSuitability" fillcolor="#6F42C1" fontcolor=white group=3];
-  tsv [ label="optional\ntsv output" shape=oval fillcolor=white group=3];
-  {rank = same; db_suit; decoy_db;}
-  mzml -> novor;
-  mzml -> comet;
-  comet -> pep_ind;
-  pep_ind -> db_suit [ xlabel="in_id" fontsize=10 ];
-  novor -> id_filter;
-  id_filter -> id_convert;
-  id_convert -> db_suit [ xlabel="novo_database" fontsize=10 ];
-  id_convert -> decoy_db;
-  decoy_db -> db [ dir=back ];
-  db_suit -> db [ dir=back xlabel="database" fontsize=10 ];
-  decoy_db -> comet;
-  mzml -> db_suit [ xlabel="in_spec" fontsize=10 ];
-  novor -> db_suit [ xlabel="in_novo" fontsize=10 ];
-  db_suit -> tsv;
-}
-@enddot
-*/
-#endif
-/**
+@image html DatabaseSuitability_workflow.svg
+
+Tools in this example workflow: @ref TOPP_CometAdapter, @ref TOPP_PeptideIndexer, @ref TOPP_NovorAdapter, @ref TOPP_IDFilter, @ref TOPP_IDFileConverter and @ref TOPP_DecoyDatabase.
+
 The metric this tool uses to determine the suitability of a database is based on a de novo model. Therefore it is crucial that your workflow is set up the right way. Above you can see an example.@n
 Most importantly the peptide identification search needs to be done with a combination of the database in question and a de novo "database".@n
 To generate the de novo "database":
