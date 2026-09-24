@@ -72,15 +72,6 @@ General:
     saw them uncategorised; all six now carry their category. Out-of-tree code deriving
     from one of these classes drops the argument; something that is not a registered TOPP
     tool at all passes toolhandler_test = false instead, which is now the only way to skip
-    the registry check (#10228).
-  - BREAKING (installed headers): Move tool-only helpers without pyOpenMS bindings
-    into the CometAdapter, DecoyDatabase, INIUpdater, NucleicAcidSearchEngine,
-    OpenSwathExport, OpenSwathInfer, OpenSwathPeakMapExtractor, OpenSwathPercolatorScoring,
-    OpenSwathWorkflow, ParquetDiff, QualityControl and UniPEFF folders. Their
-    29 headers are no longer installed and 28 implementations no longer live in
-    libOpenMS or libOpenMS_CLI. Class and round-trip tests travel with the tools;
-    reusable inference and XIPM reader tests also remain available in library-only builds
-    (#10239).
     the registry check (#10216, #10228).
   - BREAKING (installed headers): Move tool-only helpers without pyOpenMS bindings
     into the CometAdapter, DecoyDatabase, INIUpdater, NucleicAcidSearchEngine,
@@ -841,7 +832,7 @@ Fixes:
       controlled vocabulary "MS", although the document declares only "PSI-MS". The writer names
       every other cvParam PSI-MS; this one now does too, so files with an unrecognized
       modification validate against strict readers that check cvRef against the declared
-      vocabularies.
+      vocabularies (#10245).
     - NuXLDeisotoper (a copy of Deisotoper::deisotopeAndSingleCharge) applies the two precursor mass
       fixes already made to Deisotoper: a precursor with unknown charge (0) no longer enables the
       mass constraint with a neutral mass of 0, which rejected every fragment cluster, and neutral
