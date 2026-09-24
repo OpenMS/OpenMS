@@ -457,6 +457,27 @@ START_SECTION(([EXTRA] resolveDecoyStrategy_ / buildDecoyAugmentedDB_: auto/gene
     std::vector<FASTAFile::FASTAEntry> built = algo.buildDecoyAugmentedDB_(suffix_db, s);
     TEST_EQUAL(built.size(), 4)
   }
+
+  // --- stop codons: trailing ones are removed, an entry of stop codons only is dropped ---
+  // The emptied entry used to reach DecoyGenerator::reversePeptides(), which crashes on a
+  // protein without residues.
+  {
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "generate");
+    algo.setParameters(p);
+    const std::vector<FASTAFile::FASTAEntry> stop_db = {
+      FASTAFile::FASTAEntry("sp|P1|A", "", "PEPTIDEKAAR*"),
+      FASTAFile::FASTAEntry("sp|P2|B", "", "**") };
+    ProSEAlgorithm_test::DecoyStrategy_ s = algo.resolveDecoyStrategy_(stop_db);
+    std::vector<FASTAFile::FASTAEntry> built = algo.buildDecoyAugmentedDB_(stop_db, s);
+    TEST_EQUAL(built.size(), 2)             // P1 and its decoy
+    for (const auto& e : built)
+    {
+      TEST_EQUAL(e.sequence.size(), 11)
+      TEST_EQUAL(e.identifier.find("P2"), std::string::npos)
+    }
+  }
 }
 END_SECTION
 

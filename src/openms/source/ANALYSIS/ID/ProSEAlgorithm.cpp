@@ -1091,6 +1091,8 @@ namespace OpenMS
     //    a sequence, as in databases translated from genomes (e.g. SGD), is not a residue: remove
     //    it so the C-terminal peptide stays searchable and decoys are built from the protein
     //    alone. FragmentIndex skips peptides that contain a stop codon inside the sequence.
+    //    An entry left without residues has nothing to search, and decoy generation needs
+    //    residues: drop it.
     for (const FASTAFile::FASTAEntry& e : fasta_db)
     {
       const bool is_existing_decoy = strategy.strip_existing &&
@@ -1101,6 +1103,7 @@ namespace OpenMS
         db.push_back(e);
         std::string& sequence = db.back().sequence;
         while (!sequence.empty() && sequence.back() == '*') { sequence.pop_back(); }
+        if (sequence.empty()) { db.pop_back(); }
       }
     }
 
