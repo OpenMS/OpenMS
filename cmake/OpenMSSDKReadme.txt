@@ -50,7 +50,7 @@ Requirements of your project
       - Windows: MSVC (Visual Studio 2022 17.14 or newer), x64, Release configuration
         with the dynamic runtime (/MD). A Debug build of your code (/MDd) must not
         be linked against this SDK; build OpenMS from source for that.
-      - macOS: Apple Clang, arm64.
+      - macOS: Apple Clang, arm64@MACOS_MINIMUM@.
       - Linux: GCC with a glibc and libstdc++ at least as new as those of
         Ubuntu 24.04, on which the SDK is built.
 

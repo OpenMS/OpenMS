@@ -173,6 +173,51 @@ env -u LD_LIBRARY_PATH -u DYLD_LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH \
   cmake "-DLIB_DIR=$(cmake_path "$stage/$lib_dir")" "-DROOTS=$(IFS=';'; echo "${roots[*]}")" \
         -P "$(cmake_path "$source_dir/tools/ci/sdk_prune_dependencies.cmake")"
 
+# macOS: the oldest macOS the SDK runs on is the deployment target (minos) its
+# libraries were built for. The README states the one of libOpenMS. A bundled
+# dependency built for a newer macOS would raise it without anyone noticing, so
+# it stops the packaging instead.
+macos_minimum=""
+if [[ "$(uname -s)" == Darwin ]]; then
+  # minos of a Mach-O file: LC_BUILD_VERSION, or LC_VERSION_MIN_MACOSX in older
+  # files (reads all of otool's output: an early exit would fail the pipeline)
+  macho_minos() {
+    otool -l "$1" | awk '
+      $1 == "cmd" { cmd = $2 }
+      minos == "" && cmd == "LC_BUILD_VERSION" && $1 == "minos" { minos = $2 }
+      minos == "" && cmd == "LC_VERSION_MIN_MACOSX" && $1 == "version" { minos = $2 }
+      END { print minos }'
+  }
+  # whether the dotted version $1 is newer than $2
+  version_newer() {
+    awk -v a="$1" -v b="$2" 'BEGIN {
+      n = split(a, x, "."); m = split(b, y, "."); if (m > n) n = m
+      for (i = 1; i <= n; ++i) if (x[i] + 0 != y[i] + 0) exit !(x[i] + 0 > y[i] + 0)
+      exit 1
+    }'
+  }
+  openms_minimum=$(macho_minos "$stage/$lib_dir/libOpenMS.dylib")
+  if [[ -z "$openms_minimum" ]]; then
+    echo >&2 "ERROR: libOpenMS.dylib records no minimum macOS version"
+    exit 1
+  fi
+  newer=()
+  while IFS= read -r -d '' file; do
+    if file -b "$file" | grep -q '^Mach-O'; then
+      minimum=$(macho_minos "$file")
+      if [[ -n "$minimum" ]] && version_newer "$minimum" "$openms_minimum"; then
+        newer+=("${file#"$stage/"}: macOS $minimum")
+      fi
+    fi
+  done < <(find "$stage/$lib_dir" -type f -print0)
+  if [[ ${#newer[@]} -gt 0 ]]; then
+    echo >&2 "ERROR: libOpenMS is built for macOS $openms_minimum, but these bundled libraries need a newer macOS:"
+    printf >&2 '  %s\n' "${newer[@]}"
+    exit 1
+  fi
+  macos_minimum=", deployment target macOS $openms_minimum or newer"
+fi
+
 # The README names what a consumer needs, read off the installed package file:
 # while the public headers include Boost, OpenMSConfig.cmake records the Boost
 # version the build used in _openms_boost_version (falling back to 1.81.0 when the
@@ -189,9 +234,9 @@ else
   boost_requirement="No Boost: the OpenMS headers do not include it, and find_package(OpenMS)
     does not look for it."
 fi
-awk -v requirement="$boost_requirement" -v major_minor="${version%.*}" '
+awk -v requirement="$boost_requirement" -v major_minor="${version%.*}" -v macos_minimum="$macos_minimum" '
   index($0, "@BOOST_REQUIREMENT@") { sub(/@BOOST_REQUIREMENT@/, requirement) }
-  { gsub(/@OPENMS_VERSION_MAJOR_MINOR@/, major_minor); print }
+  { gsub(/@OPENMS_VERSION_MAJOR_MINOR@/, major_minor); gsub(/@MACOS_MINIMUM@/, macos_minimum); print }
 ' "$source_dir/cmake/OpenMSSDKReadme.txt" > "$stage/README.txt"
 cp "$source_dir/License.txt" "$stage/License.txt"
 
