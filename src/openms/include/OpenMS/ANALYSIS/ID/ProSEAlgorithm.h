@@ -578,6 +578,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// @brief filter, deisotope, decharge spectra
     static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top);
 
+    /**
+     * @brief Highest fragment charge of the theoretical spectrum for a precursor of charge @p precursor_charge
+     *
+     * A fragment carries at most one charge less than its precursor, so this is
+     * precursor_charge - 1, at least 1, and at most @p max_fragment_charge. An unknown (0)
+     * or implausible (negative) precursor charge yields 1.
+     */
+    static int theoreticalFragmentCharge_(int precursor_charge, int max_fragment_charge);
+
     /// How decoys are obtained/recognised for a search (parameter "decoys").
     enum class DecoyMode_
     {
@@ -775,6 +784,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool deisotope_requested_{true};
     Size peaks_keep_n_{0};     ///< NLargest cap on MS2 peaks before scoring; 0 = resolution-aware auto (peaks:keep_n)
     Int peaks_window_top_{20}; ///< WindowMower peaks-per-100Da before scoring (peaks:window_top)
+
+    Int fragment_max_charge_{2}; ///< fragment:max_charge (candidate retrieval and PSM annotation)
+    bool score_multiply_charged_fragments_{false}; ///< scoring:multiply_charged_fragments
 
     StringList modifications_fixed_;
 

@@ -180,9 +180,9 @@ static void configure_calibration_params_(ProSEAlgorithm& algo,
 
 // ---------------------------------------------------------------------------
 // Shared synthetic search problem for the protein-FDR contract tests below.
-// 10 proteins + many modified-precursor spectra under a wide precursor window, so
-// ProSEAlgorithm with decoys=true reliably produces BOTH target and decoy protein
-// hits — the prerequisite for exercising picked-protein FDR.
+// 10 proteins + many modified-precursor spectra under a wide precursor window. Every
+// spectrum comes from a target peptide, so decoy hits are only accidental; tests that
+// need decoy PSMs and decoy proteins add them with addDecoySpectraForFDR().
 // ---------------------------------------------------------------------------
 void buildSyntheticProteinFDRData(std::vector<FASTAFile::FASTAEntry>& fasta_db, PeakMap& spectra)
 {
@@ -299,10 +299,10 @@ void buildSyntheticProteinFDRData(std::vector<FASTAFile::FASTAEntry>& fasta_db, 
   }
 }
 
-// Add spectra that originate from the generated decoy database. Improved fragment
-// scoring can separate all target spectra from decoys, so relying on accidental
-// decoy wins no longer exercises the decoy-retention contract of the FDR tests.
-void addDecoySpectraForFDR(const std::vector<FASTAFile::FASTAEntry>& fasta_db, PeakMap& spectra)
+// Add five spectra of peptides from the generated decoy database (ProSE reverses tryptic
+// peptides, as done here), so the FDR tests do not depend on accidental decoy wins among
+// the target-derived spectra of buildSyntheticProteinFDRData(). Returns the number added.
+Size addDecoySpectraForFDR(const std::vector<FASTAFile::FASTAEntry>& fasta_db, PeakMap& spectra)
 {
   DecoyGenerator generator;
   const AASequence decoy_protein = generator.reversePeptides(AASequence::fromString(fasta_db.front().sequence), "Trypsin");
@@ -337,6 +337,21 @@ void addDecoySpectraForFDR(const std::vector<FASTAFile::FASTAEntry>& fasta_db, P
     spectra.addSpectrum(std::move(ms2));
     if (++added == 5) break;
   }
+  return added;
+}
+
+// Number of PSMs labelled decoy (target_decoy "decoy"; "target+decoy" counts as target).
+Size countDecoyPSMs(const PeptideIdentificationList& peptide_ids)
+{
+  Size decoys = 0;
+  for (const auto& pid : peptide_ids)
+  {
+    for (const auto& hit : pid.getHits())
+    {
+      if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy").toString() == "decoy") { ++decoys; }
+    }
+  }
+  return decoys;
 }
 
 START_TEST(ProSEAlgorithm, "$Id$")
@@ -975,7 +990,7 @@ START_SECTION(([EXTRA] FDR-filtered modification discovery))
       created++;
     }
   }
-  addDecoySpectraForFDR(fasta_db, spectra);
+  TEST_EQUAL(addDecoySpectraForFDR(fasta_db, spectra), 5)
   TEST_TRUE(spectra.size() > 2000)
 
   // =========================================================================
@@ -1358,6 +1373,7 @@ START_SECTION((ExitCodes search(const std::string &, const std::string &, std::v
   PeakMap spectra;
   buildSyntheticProteinFDRData(fasta_db, spectra);
   TEST_TRUE(spectra.size() > 500)
+  TEST_EQUAL(addDecoySpectraForFDR(fasta_db, spectra), 5)
 
   std::string tmp_mzml;
   NEW_TMP_FILE(tmp_mzml)
@@ -1378,6 +1394,25 @@ START_SECTION((ExitCodes search(const std::string &, const std::string &, std::v
   p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
   p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.05);
+  p.setValue("FDR:protein", 0.0);
+
+  // Precondition: without protein FDR the same search reports decoy PSMs and decoy
+  // proteins, so the removal checked below has something to remove.
+  {
+    algo.setParameters(p);
+    std::vector<ProteinIdentification> prot_ids_no_protein_fdr;
+    PeptideIdentificationList pep_ids_no_protein_fdr;
+    algo.search(tmp_mzml, tmp_fasta, prot_ids_no_protein_fdr, pep_ids_no_protein_fdr);
+    TEST_TRUE(countDecoyPSMs(pep_ids_no_protein_fdr) > 0)
+    ABORT_IF(prot_ids_no_protein_fdr.size() != 1)
+    Size decoy_proteins_no_protein_fdr = 0;
+    for (const auto& ph : prot_ids_no_protein_fdr[0].getHits())
+    {
+      if (ph.getAccession().rfind("DECOY_", 0) == 0) { ++decoy_proteins_no_protein_fdr; }
+    }
+    TEST_TRUE(decoy_proteins_no_protein_fdr > 0)
+  }
+
   p.setValue("FDR:protein", 0.5);   // lenient: keep proteins but exercise the picked-FDR path
   algo.setParameters(p);
 
@@ -1422,7 +1457,7 @@ START_SECTION(([EXTRA] file-based single-file search retains decoys when protein
   std::vector<FASTAFile::FASTAEntry> fasta_db;
   PeakMap spectra;
   buildSyntheticProteinFDRData(fasta_db, spectra);
-  addDecoySpectraForFDR(fasta_db, spectra);
+  TEST_EQUAL(addDecoySpectraForFDR(fasta_db, spectra), 5)
 
   std::string tmp_mzml;
   NEW_TMP_FILE(tmp_mzml)
@@ -1493,7 +1528,7 @@ START_SECTION(([EXTRA] in-memory search applies PSM-level FDR only, never protei
   std::vector<FASTAFile::FASTAEntry> fasta_db;
   PeakMap spectra;
   buildSyntheticProteinFDRData(fasta_db, spectra);
-  addDecoySpectraForFDR(fasta_db, spectra);
+  TEST_EQUAL(addDecoySpectraForFDR(fasta_db, spectra), 5)
 
   ProSEAlgorithm algo;
   Param p = algo.getParameters();
@@ -1534,7 +1569,7 @@ START_SECTION(([EXTRA] in-memory search retains decoys after PSM-level FDR filte
   std::vector<FASTAFile::FASTAEntry> fasta_db;
   PeakMap spectra;
   buildSyntheticProteinFDRData(fasta_db, spectra);
-  addDecoySpectraForFDR(fasta_db, spectra);
+  TEST_EQUAL(addDecoySpectraForFDR(fasta_db, spectra), 5)
 
   ProSEAlgorithm algo;
   Param p = algo.getParameters();
@@ -1834,71 +1869,117 @@ START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragme
 }
 END_SECTION
 
-START_SECTION(([EXTRA] doubly charged fragments score for a triply charged precursor))
+START_SECTION(([EXTRA] scoring:multiply_charged_fragments scores doubly charged fragments of a triply charged precursor))
 {
+  // A 3+ precursor whose MS2 spectrum shows only 2+ fragments without isotope peaks, so
+  // deisotoping cannot convert them to charge 1. The fragment index retrieves the peptide
+  // through its 2+ fragments either way; the score uses them only when
+  // scoring:multiply_charged_fragments is enabled.
   const AASequence peptide = AASequence::fromString("LQSRPAAPPAPGPGQLTLR");
-  vector<FASTAFile::FASTAEntry> fasta_db = {{"P01", "TestProtein", peptide.toUnmodifiedString()}};
+  const vector<FASTAFile::FASTAEntry> fasta_db = {{"P01", "TestProtein", peptide.toUnmodifiedString()}};
 
   TheoreticalSpectrumGenerator tsg;
   Param tsg_params = tsg.getParameters();
   tsg_params.setValue("add_first_prefix_ion", "true");
   tsg.setParameters(tsg_params);
-  MSSpectrum fragments;
-  tsg.getSpectrum(fragments, peptide, 2, 2);
 
-  PeakMap exp;
-  MSSpectrum ms2;
-  ms2.setMSLevel(2);
-  ms2.setRT(100.0);
-  Precursor precursor;
-  precursor.setMZ(peptide.getMZ(3));
-  precursor.setCharge(3);
-  ms2.setPrecursors({precursor});
-  for (const auto& peak : fragments)
+  // One MS2 spectrum with the peptide's b/y ions of charge min_z..max_z at m/z >= min_mz, for a
+  // precursor of charge true_z that is annotated with annotated_z (0 = unknown).
+  auto make_spectra = [&](int min_z, int max_z, int true_z, int annotated_z, double min_mz)
   {
-    if (peak.getMZ() >= 150.0) ms2.emplace_back(peak.getMZ(), peak.getIntensity());
+    MSSpectrum fragments;
+    tsg.getSpectrum(fragments, peptide, min_z, max_z);
+    MSSpectrum ms2;
+    ms2.setMSLevel(2);
+    ms2.setRT(100.0);
+    Precursor precursor;
+    precursor.setMZ(peptide.getMZ(true_z));
+    precursor.setCharge(annotated_z);
+    ms2.setPrecursors({precursor});
+    for (const auto& peak : fragments)
+    {
+      if (peak.getMZ() >= min_mz) ms2.emplace_back(peak.getMZ(), peak.getIntensity());
+    }
+    ms2.sortByPosition();
+    PeakMap spectra;
+    spectra.addSpectrum(std::move(ms2));
+    return spectra;
+  };
+  auto search = [&](PeakMap spectra, bool multiply_charged_fragments, int max_fragment_charge)
+  {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("fragment:deisotope", "false");
+    p.setValue("fragment:max_charge", max_fragment_charge);
+    p.setValue("scoring:multiply_charged_fragments", multiply_charged_fragments ? "true" : "false");
+    p.setValue("modifications:fixed", vector<string> {});
+    p.setValue("modifications:variable", vector<string> {});
+    p.setValue("annotate:PSM", vector<string> {"ALL"});
+    algo.setParameters(p);
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    algo.search(spectra, fasta_db, proteins, peptides);
+    return peptides;
+  };
+
+  // The 32 doubly charged b3..b18 and y3..y18 ions (the smaller ones fall below 150 m/z).
+  const PeakMap doubly_charged = make_spectra(2, 2, 3, 3, 150.0);
+  TEST_EQUAL(doubly_charged[0].size(), 32)
+
+  // Default: only singly charged fragments are scored and none of them is in the spectrum.
+  TEST_EQUAL(search(doubly_charged, false, 2).size(), 0)
+
+  // Opt-in: every peak is matched by a doubly charged fragment.
+  PeptideIdentificationList ids = search(doubly_charged, true, 2);
+  TEST_EQUAL(ids.size(), 1)
+  ABORT_IF(ids.size() != 1 || ids[0].getHits().empty())
+  const PeptideHit& hit = ids[0].getHits()[0];
+  TEST_EQUAL(hit.getSequence(), peptide)
+  TEST_EQUAL(hit.getCharge(), 3)
+  TEST_EQUAL(hit.getScore() > 0, true)
+  TEST_EQUAL(static_cast<int>(hit.getMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS)), 32)
+  TEST_EQUAL(static_cast<int>(hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS)), 16)
+  TEST_EQUAL(static_cast<int>(hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS)), 16)
+  TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION)), 16.0 / 19.0)
+  TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION)), 16.0 / 19.0)
+  Size doubly_charged_annotations = 0;
+  for (const auto& annotation : hit.getPeakAnnotations())
+  {
+    if (annotation.charge == 2) ++doubly_charged_annotations;
   }
-  ms2.sortByPosition();
-  exp.addSpectrum(std::move(ms2));
+  TEST_EQUAL(doubly_charged_annotations, 32)
 
-  ProSEAlgorithm algo;
-  Param p = algo.getParameters();
-  p.setValue("fragment:deisotope", "false");
-  p.setValue("modifications:fixed", vector<string> {});
-  p.setValue("modifications:variable", vector<string> {});
-  p.setValue("annotate:PSM", vector<string> {"ALL"});
-  algo.setParameters(p);
+  // fragment:max_charge 1 disables doubly charged fragments for retrieval and scoring.
+  TEST_EQUAL(search(doubly_charged, true, 1).size(), 0)
 
-  vector<ProteinIdentification> proteins;
-  PeptideIdentificationList peptides;
-  algo.search(exp, fasta_db, proteins, peptides);
-  TEST_EQUAL(peptides.size(), 1)
-  TEST_EQUAL(peptides[0].getHits().empty(), false)
-  TEST_EQUAL(peptides[0].getHits()[0].getSequence(), peptide)
-  TEST_EQUAL(peptides[0].getHits()[0].getScore() > 0, true)
-  TEST_EQUAL(static_cast<int>(peptides[0].getHits()[0].getMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS)) >= 5, true)
+  // Unknown precursor charge: the search tries 2+ to 5+, and the 3+ hypothesis matches the
+  // doubly charged fragments. The hit reports that charge and is annotated with it.
+  PeptideIdentificationList unknown_charge_ids = search(make_spectra(2, 2, 3, 0, 150.0), true, 2);
+  TEST_EQUAL(unknown_charge_ids.size(), 1)
+  ABORT_IF(unknown_charge_ids.size() != 1 || unknown_charge_ids[0].getHits().empty())
+  TEST_EQUAL(unknown_charge_ids[0].getHits()[0].getSequence(), peptide)
+  TEST_EQUAL(unknown_charge_ids[0].getHits()[0].getCharge(), 3)
+  TEST_EQUAL(unknown_charge_ids[0].getHits()[0].getPeakAnnotations().size(), 32)
 
-  // A cleavage can match at both fragment charges, but its reported fraction
-  // cannot exceed one even when the raw matched-ion count exceeds the length.
-  PeakMap mixed_exp;
-  MSSpectrum mixed_ms2;
-  tsg.getSpectrum(mixed_ms2, peptide, 1, 2);
-  mixed_ms2.sortByPosition();
-  mixed_ms2.setMSLevel(2);
-  mixed_ms2.setRT(101.0);
-  mixed_ms2.setPrecursors({precursor});
-  mixed_exp.addSpectrum(std::move(mixed_ms2));
-  proteins.clear();
-  peptides.clear();
-  algo.search(mixed_exp, fasta_db, proteins, peptides);
-  TEST_EQUAL(peptides.size(), 1)
-  TEST_EQUAL(peptides[0].getHits().empty(), false)
-  const auto& mixed_hit = peptides[0].getHits()[0];
-  const int prefix_matches = mixed_hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS);
-  const int suffix_matches = mixed_hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS);
-  TEST_EQUAL(prefix_matches > static_cast<int>(peptide.size()) || suffix_matches > static_cast<int>(peptide.size()), true)
-  TEST_EQUAL(static_cast<double>(mixed_hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION)) <= 1.0, true)
-  TEST_EQUAL(static_cast<double>(mixed_hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION)) <= 1.0, true)
+  // All b/y ions at charge 1 and 2. The ion counts include every matched charge, but a
+  // cleavage site matched at both charges counts once in the fractions, which are therefore
+  // the same with and without multiply charged fragments (18 of 19 positions).
+  const PeakMap both_charges = make_spectra(1, 2, 3, 3, 0.0);
+  const PeptideIdentificationList singly_scored = search(both_charges, false, 2);
+  const PeptideIdentificationList multiply_scored = search(both_charges, true, 2);
+  ABORT_IF(singly_scored.size() != 1 || singly_scored[0].getHits().empty() || multiply_scored.size() != 1 || multiply_scored[0].getHits().empty())
+  const PeptideHit& singly_hit = singly_scored[0].getHits()[0];
+  const PeptideHit& multiply_hit = multiply_scored[0].getHits()[0];
+  TEST_EQUAL(static_cast<int>(singly_hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS)), 18)
+  TEST_EQUAL(static_cast<int>(singly_hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS)), 18)
+  TEST_EQUAL(static_cast<int>(multiply_hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS)), 36)
+  TEST_EQUAL(static_cast<int>(multiply_hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS)), 36)
+  for (const PeptideHit* h : {&singly_hit, &multiply_hit})
+  {
+    TEST_REAL_SIMILAR(static_cast<double>(h->getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION)), 18.0 / 19.0)
+    TEST_REAL_SIMILAR(static_cast<double>(h->getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION)), 18.0 / 19.0)
+  }
+  TEST_EQUAL(multiply_hit.getScore() > singly_hit.getScore(), true)
 }
 END_SECTION
 

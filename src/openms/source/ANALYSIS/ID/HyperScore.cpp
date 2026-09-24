@@ -12,12 +12,72 @@
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <bitset>
 
 using std::vector;
 
 namespace OpenMS
 {
 #include <cmath>   // for std::lgamma
+
+  namespace
+  {
+    // Classifies a TheoreticalSpectrumGenerator ion annotation as N-terminal ('p': a, b, c),
+    // C-terminal ('s': x, y, z) or neither (0) and extracts its backbone position, e.g.
+    // "b5++" -> ('p', 5), "y3-H2O1+" -> ('s', 3), "z.4+" -> ('s', 4). Cross-link annotations
+    // carry the ion type after a '$'. The position is 0 if the annotation has none.
+    char ionSeries(const std::string& name, size_t& position)
+    {
+      auto is_prefix = [](char c) { return c == 'a' || c == 'b' || c == 'c'; };
+      auto is_suffix = [](char c) { return c == 'x' || c == 'y' || c == 'z'; };
+      size_t type_pos = 0;
+      char type = name.empty() ? '\0' : name[0];
+      if (!is_prefix(type) && !is_suffix(type))
+      {
+        const size_t dollar = name.find('$');
+        if (dollar == std::string::npos || dollar + 1 >= name.size()) return 0;
+        type_pos = dollar + 1;
+        type = name[type_pos];
+        if (!is_prefix(type) && !is_suffix(type)) return 0;
+      }
+      size_t i = type_pos + 1;
+      while (i < name.size() && (name[i] == '.' || name[i] == '\'')) ++i; // z-dot / z-prime notation
+      position = 0;
+      for (; i < name.size() && name[i] >= '0' && name[i] <= '9'; ++i)
+      {
+        position = position * 10 + static_cast<size_t>(name[i] - '0');
+      }
+      return is_prefix(type) ? 'p' : 's';
+    }
+
+    // Distinct backbone positions of matched ions. Positions below 256 (every realistic
+    // peptide) use a fixed bitset, so the scoring loop does not allocate.
+    class MatchedSites
+    {
+    public:
+      void add(size_t position)
+      {
+        if (position < small_.size())
+        {
+          if (small_[position]) return;
+          small_.set(position);
+        }
+        else
+        {
+          if (large_.size() <= position) large_.resize(position + 1, false);
+          if (large_[position]) return;
+          large_[position] = true;
+        }
+        ++count_;
+      }
+      size_t count() const { return count_; }
+
+    private:
+      std::bitset<256> small_;
+      std::vector<bool> large_;
+      size_t count_ = 0;
+    };
+  }
 
   inline double HyperScore::logfactorial_(int x, int base)
   {
@@ -131,6 +191,24 @@ namespace OpenMS
     int suffix_ion_count = 0;  // C-terminal: x, y, z (incl. z., z')
     double dot_product = 0.0;
     double abs_error = 0.0;
+    // Ion counts include every matched ion type and charge; the sites count each backbone
+    // position once (e.g. b5+ and b5++, or a3 and b3, are one site).
+    MatchedSites prefix_sites, suffix_sites;
+    auto count_ion = [&](const std::string& name)
+    {
+      size_t position = 0;
+      const char series = ionSeries(name, position);
+      if (series == 'p')
+      {
+        ++prefix_ion_count;
+        prefix_sites.add(position);
+      }
+      else if (series == 's')
+      {
+        ++suffix_ion_count;
+        suffix_sites.add(position);
+      }
+    };
 
     if (fragment_mass_tolerance_unit_ppm)
     {
@@ -139,16 +217,7 @@ namespace OpenMS
       {
         abs_error += Math::getPPMAbs((*it).getMZ(), it.ref().getMZ());
         dot_product += (*it).getIntensity() * it.ref().getIntensity();
-        const std::string& name = (*ion_names)[it.refIdx()];
-        const char c = name[0];
-        if (c == 'a' || c == 'b' || c == 'c') ++prefix_ion_count;
-        else if (c == 'x' || c == 'y' || c == 'z') ++suffix_ion_count;
-        else if (auto p = name.find('$'); p != std::string::npos && p + 1 < name.size())
-        {
-          const char d = name[p + 1];
-          if (d == 'a' || d == 'b' || d == 'c') ++prefix_ion_count;
-          else if (d == 'x' || d == 'y' || d == 'z') ++suffix_ion_count;
-        }
+        count_ion((*ion_names)[it.refIdx()]);
       }
     }
     else
@@ -158,16 +227,7 @@ namespace OpenMS
       {
         abs_error += abs((*it).getMZ() - it.ref().getMZ());
         dot_product += (*it).getIntensity() * it.ref().getIntensity();
-        const std::string& name = (*ion_names)[it.refIdx()];
-        const char c = name[0];
-        if (c == 'a' || c == 'b' || c == 'c') ++prefix_ion_count;
-        else if (c == 'x' || c == 'y' || c == 'z') ++suffix_ion_count;
-        else if (auto p = name.find('$'); p != std::string::npos && p + 1 < name.size())
-        {
-          const char d = name[p + 1];
-          if (d == 'a' || d == 'b' || d == 'c') ++prefix_ion_count;
-          else if (d == 'x' || d == 'y' || d == 'z') ++suffix_ion_count;
-        }
+        count_ion((*ion_names)[it.refIdx()]);
       }
     }
 
@@ -176,6 +236,8 @@ namespace OpenMS
     const double hyperScore = log1p(dot_product) + 2*logfactorial_(i_min) + logfactorial_(i_max, i_min + 1);
     d.matched_prefix_ions = prefix_ion_count;
     d.matched_suffix_ions = suffix_ion_count;
+    d.matched_prefix_sites = prefix_sites.count();
+    d.matched_suffix_sites = suffix_sites.count();
     d.mean_error = (prefix_ion_count + suffix_ion_count) > 0 ? abs_error / (double)(prefix_ion_count + suffix_ion_count) : 0.0;
     return hyperScore;
   }

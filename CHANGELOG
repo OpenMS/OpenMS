@@ -372,9 +372,13 @@ TOPP tools:
         matched_prefix_ions/matched_suffix_ions; scoring now counts all enabled ion series.
         Fixed isotope-aware precursor errors, fragment-error tolerances and adapter lookup
         (#9166, #9167, #9175, #9177, #9188, #9195, #9204, #9970).
-      - Score multiply charged fragments consistently with candidate retrieval and calibration.
-        This recovers 3+ peptides dominated by 2+ fragments; matched-ion fractions stay within
-        [0, 1] when a cleavage matches at more than one fragment charge.
+      - Optional scoring of multiply charged fragments (-Search:scoring:multiply_charged_fragments,
+        off by default): scoring and calibration then use fragment charges up to
+        min(precursor charge - 1, fragment:max_charge), which recovers 3+ precursors whose
+        fragments are mostly 2+ without isotope peaks. Off by default because it lowered
+        identifications at 1% FDR on iPRG2015 (Q Exactive). PSM annotations use the searched
+        charge for spectra without precursor charge and honor fragment:max_charge; matched
+        prefix/suffix ion fractions count distinct cleavage sites and stay below 1 (#10261).
       - Added PSM annotations, search diagnostics and an end-of-run report with optional
         -summary_out. Optimized indexing, modification enumeration, scoring and annotation;
         fragment sorting honors -threads/OMP_NUM_THREADS. Failed merged writes preserve

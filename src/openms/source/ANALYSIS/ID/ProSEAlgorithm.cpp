@@ -216,8 +216,21 @@ namespace OpenMS
     defaults_.setValue("precursor:isotope_error_max", 1, "Maximum allowed precursor isotope error");
 
     // Fragment and scoring limits
-    defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
+    defaults_.setValue("fragment:max_charge", 2,
+      "Maximum fragment ion charge. Candidate retrieval (fragment index) matches fragment charges up to "
+      "min(precursor charge, this value); PSM annotations, and the scoring if "
+      "scoring:multiply_charged_fragments is enabled, use fragment charges up to "
+      "min(precursor charge - 1, this value).");
+    defaults_.setMinInt("fragment:max_charge", 1);
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
+    defaults_.setValue("scoring:multiply_charged_fragments", "false",
+      "Score fragment ions of charge up to min(precursor charge - 1, fragment:max_charge) instead of "
+      "singly charged ions only (HyperScore, calibration and matched-ion counts). Off by default: "
+      "deisotoping already converts multiply charged fragments that show an isotope pattern to "
+      "charge 1, and the additional theoretical ions also add random matches, which raises decoy "
+      "scores as much as target scores. Consider it for spectra whose multiply charged fragments "
+      "carry no isotope pattern.");
+    defaults_.setValidStrings("scoring:multiply_charged_fragments", {"true", "false"});
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
     // Ion series toggles
@@ -285,6 +298,9 @@ namespace OpenMS
     precursor_isotopes_ = param_.getValue("precursor:isotopes");
     peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
     peaks_window_top_ = (Int)param_.getValue("peaks:window_top");
+
+    fragment_max_charge_ = (Int)param_.getValue("fragment:max_charge");
+    score_multiply_charged_fragments_ = param_.getValue("scoring:multiply_charged_fragments").toBool();
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
 
@@ -367,6 +383,12 @@ namespace OpenMS
     calibration_enabled_ = param_.getValue("calibration:enabled") == "true";
     calibration_subset_ratio_ = param_.getValue("calibration:subset_ratio");
     calibration_min_psms_ = param_.getValue("calibration:min_psms");
+  }
+
+  // static
+  int ProSEAlgorithm::theoreticalFragmentCharge_(int precursor_charge, int max_fragment_charge)
+  {
+    return std::max(1, std::min(precursor_charge - 1, max_fragment_charge));
   }
 
   // static
@@ -622,7 +644,9 @@ namespace OpenMS
           pi.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
         }
 
-        Size charge = spec.getPrecursors()[0].getCharge();
+        // Signed on purpose: a non-positive charge (0 = unset, or a negative-mode encoding) is
+        // unknown, and the search tried several precursor charges for this spectrum.
+        const Int spectrum_charge = spec.getPrecursors()[0].getCharge();
 
         // Spectrum-level quantity, identical for every candidate of this spectrum, so it is
         // computed once here rather than per hit.
@@ -634,19 +658,20 @@ namespace OpenMS
         for (const auto& ah : annotated_hits[scan_index])
         {
           PeptideHit ph;
-          // Prefer spectrum charge; if absent (0), fall back to the charge actually used by FI for this candidate
-          const Size used_charge = (charge > 0) ? charge : static_cast<Size>(ah.applied_charge);
+          // Prefer spectrum charge; if unknown, fall back to the charge actually used by FI for this candidate
+          const Size used_charge = (spectrum_charge > 0) ? static_cast<Size>(spectrum_charge) : static_cast<Size>(ah.applied_charge);
           ph.setCharge(used_charge);
           ph.setScore(ah.score);
           ph.setSequence(ah.sequence);
 
-          // Generate theoretical spectrum + alignment for annotations that need it.
+          // Generate theoretical spectrum + alignment for annotations that need it. The
+          // annotations describe every plausible fragment charge, independent of whether the
+          // score used multiply charged fragments (scoring:multiply_charged_fragments).
           std::vector<std::pair<Size, Size>> alignment;
           MSSpectrum theoretical_spec;
           if (need_alignment)
           {
-            const int max_frag_z
-              = std::max(1, std::min<int>(static_cast<int>(used_charge) - 1, static_cast<int>(param_.getValue("fragment:max_charge"))));
+            const int max_frag_z = theoreticalFragmentCharge_(static_cast<int>(used_charge), fragment_max_charge_);
             tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
             sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
           }
@@ -1242,11 +1267,12 @@ namespace OpenMS
     // referencing namespace-scope constants inside the loop without explicit sharing.
     const double c13c12_massdiff_u = Constants::C13C12_MASSDIFF_U;
     const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
-    const int max_fragment_charge = param_.getValue("fragment:max_charge");
+    // Highest fragment charge the score may use: 1 unless scoring:multiply_charged_fragments.
+    const int scoring_max_fragment_charge = score_multiply_charged_fragments_ ? fragment_max_charge_ : 1;
 
 #pragma omp parallel for schedule(dynamic) default(none)                                                                                     \
   shared(annotated_hits, pool_stats, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, \
-           proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep, max_fragment_charge)
+           proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep, scoring_max_fragment_charge)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
       #pragma omp atomic
@@ -1329,9 +1355,10 @@ namespace OpenMS
         // Clear peaks + data arrays (ion names / charges) before refilling for the
         // next candidate; getSpectrum appends to whatever is there.
         theo_spectrum.clear(true);
-        // The fragment index can retrieve candidates from multiply charged ions. Score them too;
-        // otherwise 3+ precursors with predominantly 2+ fragments become zero-score hits.
-        const int max_frag_z = std::max(1, std::min<int>(static_cast<int>(sms.precursor_charge_) - 1, max_fragment_charge));
+        // Singly charged fragments by default. The fragment index also matches multiply charged
+        // fragments during retrieval, but scoring them raises random (decoy) matches as well; with
+        // scoring:multiply_charged_fragments they are scored up to precursor charge - 1.
+        const int max_frag_z = theoreticalFragmentCharge_(static_cast<int>(sms.precursor_charge_), scoring_max_fragment_charge);
         spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, max_frag_z);
         // Note: TSG emits sorted output when add_metainfo=true (see the
         // sortByPositionPresorted() call at the tail of getSpectrum_); the extra
@@ -1353,10 +1380,11 @@ namespace OpenMS
         ah.sequence = std::move(mod_candidate);
         ah.score = score;
         double seq_length = (double)ah.sequence.size();
-        // A cleavage can match at several fragment charges. The ion counts retain
-        // those matches, but the Percolator fractions must remain in [0, 1].
-        ah.prefix_fraction = static_cast<float>(std::min(1.0, detail.matched_prefix_ions / seq_length));
-        ah.suffix_fraction = static_cast<float>(std::min(1.0, detail.matched_suffix_ions / seq_length));
+        // Fractions of backbone positions covered: a position matched by several ion types or
+        // charges (b5+ and b5++, a3 and b3) counts once, so they stay below 1. The ion counts
+        // below keep every matched ion.
+        ah.prefix_fraction = static_cast<float>(detail.matched_prefix_sites / seq_length);
+        ah.suffix_fraction = static_cast<float>(detail.matched_suffix_sites / seq_length);
         ah.mean_error = static_cast<float>(detail.mean_error);
         ah.matched_prefix_ions = static_cast<uint16_t>(detail.matched_prefix_ions);
         ah.matched_suffix_ions = static_cast<uint16_t>(detail.matched_suffix_ions);
@@ -3072,13 +3100,21 @@ namespace OpenMS
     OPENMS_LOG_INFO << "[ProSE] Calibration: scoring " << subset_size << " / " << spectra.size()
                     << " spectra (top TIC)..." << std::endl;
 
-    // Score subset and collect errors from the best hit per spectrum
+    // Score subset and collect errors from the best hit per spectrum. The theoretical
+    // spectra match the main search (same ion series and fragment charges), so the
+    // calibration PSMs are the ones the main search would pick.
     TheoreticalSpectrumGenerator tsg;
     Param tsg_param(tsg.getParameters());
     tsg_param.setValue("add_first_prefix_ion", "true");
     tsg_param.setValue("add_metainfo", "true");
+    tsg_param.setValue("add_a_ions", add_a_ions_ ? "true" : "false");
+    tsg_param.setValue("add_b_ions", add_b_ions_ ? "true" : "false");
+    tsg_param.setValue("add_c_ions", add_c_ions_ ? "true" : "false");
+    tsg_param.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
+    tsg_param.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
+    tsg_param.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
     tsg.setParameters(tsg_param);
-    const int max_fragment_charge = param_.getValue("fragment:max_charge");
+    const int scoring_max_fragment_charge = score_multiply_charged_fragments_ ? fragment_max_charge_ : 1;
 
     // Collect per-spectrum best hits with scores and errors
     struct CalHit { double score; double prec_error; double frag_error; };
@@ -3122,7 +3158,7 @@ namespace OpenMS
         // Clear peaks + data arrays before refilling; getSpectrum appends to
         // whatever is there. Its output is already sorted with add_metainfo=true.
         theo.clear(true);
-        const int max_frag_z = std::max(1, std::min<int>(static_cast<int>(sms.precursor_charge_) - 1, max_fragment_charge));
+        const int max_frag_z = theoreticalFragmentCharge_(static_cast<int>(sms.precursor_charge_), scoring_max_fragment_charge);
         tsg.getSpectrum(theo, seq, 1, max_frag_z);
 
         HyperScore::PSMDetail detail;

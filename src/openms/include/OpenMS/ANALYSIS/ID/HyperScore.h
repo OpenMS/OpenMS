@@ -46,8 +46,10 @@ struct OPENMS_DLLAPI HyperScore
    */
   struct PSMDetail
   {
-    size_t matched_prefix_ions = 0;  ///< N-terminal ions (a, b, c)
-    size_t matched_suffix_ions = 0;  ///< C-terminal ions (x, y, z)
+    size_t matched_prefix_ions = 0;  ///< N-terminal ions (a, b, c); every matched ion type and charge counts
+    size_t matched_suffix_ions = 0;  ///< C-terminal ions (x, y, z); every matched ion type and charge counts
+    size_t matched_prefix_sites = 0; ///< distinct backbone positions with at least one matched N-terminal ion
+    size_t matched_suffix_sites = 0; ///< distinct backbone positions with at least one matched C-terminal ion
     double mean_error = 0.0;
   };
 

@@ -4466,6 +4466,23 @@ add_test(NAME "TOPP_ProSE_9_summary_exists" COMMAND ${CMAKE_COMMAND} -E sha256su
   ${TESTS_TEMP_DIR}/ProSE_9_summary.tmp.yaml)
 set_tests_properties("TOPP_ProSE_9_summary_exists" PROPERTIES DEPENDS "TOPP_ProSE_9_summary")
 
+# Test 10: -Search:scoring:multiply_charged_fragments on the inputs of test 4. The three
+# 3+ spectra contain 2+ fragments without isotope peaks, which only this option scores;
+# test 4 enables calibration, so the calibration pass is covered as well.
+add_test("TOPP_ProSE_10_multiply_charged" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_4.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_10_multiply_charged_out.tmp.idXML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+  -Search:scoring:multiply_charged_fragments true)
+add_test("TOPP_ProSE_10_multiply_charged_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_10_multiply_charged_out.tmp.idXML
+  -in2 ${DATA_DIR_TOPP}/ProSE_10_multiply_charged_out.idXML
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "name=\"fragment_annotation\""
+  -ratio 1.2 -absdiff 2.0)
+set_tests_properties("TOPP_ProSE_10_multiply_charged_out" PROPERTIES DEPENDS
+  "TOPP_ProSE_10_multiply_charged")
+
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   # Create a symlink with .d suffix so FileHandler recognizes the format
