@@ -168,6 +168,8 @@ Dependencies:
     then downloads HiGHS (#9246).
   - ENABLE_TDL now defaults to OFF; set it to ON for CWL support (#9067).
   - macOS Intel builds discontinued; minimum macOS version is 14 (#8486, #8494, #8527).
+  - The bundled MaRaCluster is updated from 0.05.0 to 1.04.1 on Linux and Windows x86_64,
+    and the macOS arm64 packages now include it too (OpenMS/THIRDPARTY#113).
 
 PyOpenMS:
   - Fixed keyword defaults that did not match the wrapped C++ signatures. Four bindings
