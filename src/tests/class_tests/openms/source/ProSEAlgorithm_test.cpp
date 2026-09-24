@@ -28,6 +28,7 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <algorithm>
+#include <map>
 #include <numeric>
 #include <random>
 #include <set>
@@ -455,6 +456,27 @@ START_SECTION(([EXTRA] resolveDecoyStrategy_ / buildDecoyAugmentedDB_: auto/gene
     // searched unchanged (no double-generation -> no *_decoy_decoy entries).
     std::vector<FASTAFile::FASTAEntry> built = algo.buildDecoyAugmentedDB_(suffix_db, s);
     TEST_EQUAL(built.size(), 4)
+  }
+
+  // --- stop codons: trailing ones are removed, an entry of stop codons only is dropped ---
+  // The emptied entry used to reach DecoyGenerator::reversePeptides(), which crashes on a
+  // protein without residues.
+  {
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "generate");
+    algo.setParameters(p);
+    const std::vector<FASTAFile::FASTAEntry> stop_db = {
+      FASTAFile::FASTAEntry("sp|P1|A", "", "PEPTIDEKAAR*"),
+      FASTAFile::FASTAEntry("sp|P2|B", "", "**") };
+    ProSEAlgorithm_test::DecoyStrategy_ s = algo.resolveDecoyStrategy_(stop_db);
+    std::vector<FASTAFile::FASTAEntry> built = algo.buildDecoyAugmentedDB_(stop_db, s);
+    TEST_EQUAL(built.size(), 2)             // P1 and its decoy
+    for (const auto& e : built)
+    {
+      TEST_EQUAL(e.sequence.size(), 11)
+      TEST_EQUAL(e.identifier.find("P2"), std::string::npos)
+    }
   }
 }
 END_SECTION
@@ -1305,6 +1327,80 @@ START_SECTION(([EXTRA] Edge cases - empty inputs))
   // Empty FASTA database: FragmentIndex does not handle empty databases gracefully,
   // so we skip this edge case (it would crash in FragmentIndex::build).
   // This is an existing limitation, not specific to the in-memory overload.
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Stop codons in the database: a trailing one is removed, an inner one does not abort the search))
+{
+  // Sequences translated from genomes (e.g. SGD's yeast database) end with a stop codon ('*'), and
+  // a few contain one. P02's VLGFHQ*R has the precursor mass and fragments of VLGFHQR: it used to
+  // be indexed, and scoring it aborted the search, because AASequence parses '*' as a weightless
+  // X. DIVSAGSLYL, the C-terminal peptide of P03, is only searchable without the stop codon.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIK*"},
+    {"P02", "Test", "MSTEKVLGFHQ*RGWSADEK*"},
+    {"P03", "Test", "MDSTEKLIHRDIVSAGSLYL*"},
+  };
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(tsg_param);
+
+  PeakMap spectra;
+  for (const std::string seq_str : {"VLGFHQR", "DIVSAGSLYL"})
+  {
+    const AASequence seq = AASequence::fromString(seq_str);
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, seq, 1, 1);
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(100.0 + spectra.size());
+    Precursor prec;
+    prec.setMZ(seq.getMZ(2));
+    prec.setCharge(2);
+    spec.setPrecursors({prec});
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
+    spectra.addSpectrum(std::move(spec));
+  }
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", vector<string>{});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("decoys", "ignore");
+  p.setValue("peptide:min_size", 7);
+  p.setValue("peptide:max_size", 40);
+  p.setValue("peptide:missed_cleavages", 1);
+  algo.setParameters(p);
+
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+
+  std::map<std::string, const PeptideHit*> top_hits;
+  for (PeptideIdentification& pid : pep_ids)
+  {
+    pid.sort();
+    for (const PeptideHit& hit : pid.getHits())
+    {
+      TEST_EQUAL(hit.getSequence().toString().find('X'), std::string::npos)
+    }
+    if (!pid.getHits().empty()) top_hits[pid.getHits()[0].getSequence().toString()] = &pid.getHits()[0];
+  }
+  TEST_EQUAL(top_hits.size(), 2)
+  TEST_EQUAL(top_hits.count("VLGFHQR"), 1)
+  ABORT_IF(top_hits.count("DIVSAGSLYL") != 1)
+  const std::vector<PeptideEvidence>& evidences = top_hits["DIVSAGSLYL"]->getPeptideEvidences();
+  ABORT_IF(evidences.size() != 1)
+  TEST_STRING_EQUAL(evidences[0].getProteinAccession(), "P03")
+  TEST_EQUAL(evidences[0].getAAAfter(), PeptideEvidence::C_TERMINAL_AA)
 }
 END_SECTION
 
