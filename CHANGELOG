@@ -162,8 +162,8 @@ Dependencies:
     opentims_ROOT selects a system installation before downloading. WITH_THERMO_RAW is
     ON by default on every supported platform; .NET 8+ is required at runtime (#9147,
     #9148, #9389, #9736, #10206).
-  - WITH_WNETALIGN (default ON) fetches wnetalign/wnet/pylmcf. WITH_ONNX (default OFF)
-    requires an external ONNX Runtime installation (#8992, #9453).
+  - WITH_WNETALIGN (default OFF) fetches wnetalign/wnet/pylmcf when enabled. WITH_ONNX
+    (default OFF) requires an external ONNX Runtime installation (#8992, #9453).
   - HiGHS joins COIN-OR and GLPK as LP backends. LP_SOLVER=AUTO tries COIN-OR, GLPK,
     then downloads HiGHS (#9246).
   - ENABLE_TDL now defaults to OFF; set it to ON for CWL support (#9067).
@@ -537,7 +537,8 @@ TOPP tools:
       scan metadata and MS1 peaks are extracted in one RAW read, including spectrum-reference repair.
       FAIMS CVs are preserved through ID mapping, multiplet completion and linking. A protein's
       reference-channel ratio requires a comparison passing min_ratio_count in that fraction group (#10047).
-    - FeatureLinkerWNet: Wasserstein network-flow grouping across label-free maps (#8992).
+    - FeatureLinkerWNet: Wasserstein network-flow grouping across label-free maps; optional,
+      built with WITH_WNETALIGN=ON (#8992).
     - UniPEFF: UniProtKB XML-to-PEFF conversion with sequence, modification, variant and
       disulfide-bond annotations; disulfide connectivity is reported by default via bond-ordered
       half-cystine labels; optional global 1-based annotation identifiers and external
@@ -640,8 +641,9 @@ OpenMS Library:
       to 0 to disable it). Added .oswpq archives, .xic chromatograms, .xim mobilograms,
       per-compound RT ranges and a FAIMS-aware adapter for pre-loaded experiments
       (#8524, #8737, #8743, #8813, #8871, #9190, #9271, #9280, #9377, #9842, #9932).
-    - PipEchoAlgorithm and FeatureGroupingAlgorithmWNet/WNetMatcher expose the new
-      match-between-runs and Wasserstein grouping methods (#8992, #9647).
+    - PipEchoAlgorithm exposes the new match-between-runs method (#9647).
+    - FeatureGroupingAlgorithmWNet/WNetMatcher expose the Wasserstein grouping methods;
+      optional, built with WITH_WNETALIGN=ON (#8992).
     - Optional C++ ONNX predictors for AlphaPeptDeep RT, MS2 and CCS models, with verified
       model downloads and AASequence-based modification support. Unsupported modifications
       are rejected; Python bindings are not yet available (#9453, #9765).
