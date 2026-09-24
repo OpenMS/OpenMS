@@ -126,6 +126,11 @@ PyOpenMS:
     the wrapped C++ signature (and its documentation) use 512 and 3.0, so Python callers
     who omitted them silently got different results than C++ callers. The bindings now
     use the C++ values (#10137).
+  - Fixed plot_spectrum() and mirror_plot_spectrum() failing on annotated spectra with
+    "'str' object has no attribute 'decode'": peak annotations are now accepted as str,
+    as the bindings return them. The deprecated MSExperiment.get_df() and
+    get_df_columns() accept pyOpenMS 3.5's long= keyword again and map it to
+    long_format= (#10260).
   - Wheels are now built in nanobind split mode against the CPython 3.11 stable ABI:
     each platform ships a single cp311-abi3 wheel that serves Python 3.11 and every
     later version, instead of one wheel per interpreter. Adding a new CPython minor
@@ -826,6 +831,9 @@ Build System:
     installer path/staging failures are fixed. macOS installers are signed/notarized and
     exclude pyOpenMS modules distributed as wheels (#8961, #9514, #9523, #9742, #9827,
     #9969, #10009).
+  - macOS pkg installers ship bin/qt.conf pointing to lib/plugins, so ExecutePipeline (and
+    with it TOPPAS pipelines on the command line) finds the Qt cocoa platform plugin again
+    instead of failing with 'Could not find the Qt platform plugin "cocoa"' (#10260).
   - Fixed Arrow repository keys/version pins, Bioconda synchronization/tooling/dependency
     conflicts and package-list handling; build failures now propagate. Multi-architecture
     images publish a combined amd64/arm64 manifest (#9196, #9726, #9728, #9729, #9750,
