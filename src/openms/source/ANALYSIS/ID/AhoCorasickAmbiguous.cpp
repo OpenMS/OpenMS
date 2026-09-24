@@ -275,6 +275,10 @@ namespace OpenMS
       // and a lot less memory (since only hits from current scouts are found)
       while (!state.scouts.empty())
       {
+        // Note: 'sp' is held across stepScout_(), which may push new scouts onto the very same queue.
+        //       This is only safe because std::queue defaults to a std::deque, where inserting at either
+        //       end never invalidates references to existing elements. Re-specifying the queue with a
+        //       std::vector container would turn this into a dangling reference on reallocation.
         ACScout& sp = state.scouts.front();
         // let scout traverse the tree until it dies. This might add new scouts to the queue.
         while (stepScout_(sp, state));

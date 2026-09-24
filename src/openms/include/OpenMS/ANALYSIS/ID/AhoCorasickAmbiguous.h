@@ -396,9 +396,12 @@ namespace OpenMS
     void setQuery(const std::string& haystack);
 
     /// Where in the text are we currently?
+    /// @note The result is undefined unless setQuery() was called before, since the position is computed
+    ///       relative to the current query (a default-constructed state points into an empty string literal instead)
     size_t textPos() const;
 
     /// Where in the text are we currently?
+    /// @note See textPos(): without a preceding setQuery() this does not point into the query
     const char* textPosIt() const;
 
     /// The current query
@@ -409,10 +412,16 @@ namespace OpenMS
     AA nextValidAA();
 
     std::vector<Hit> hits;             ///< current hits found
-    std::queue<ACScout> scouts;        ///< initial scout points which are currently active and need processing
+    /// initial scout points which are currently active and need processing.
+    /// this needs a deque: ACTrie::nextHitsNoClear_() holds a reference to front()
+    /// while pushing new scouts, which only a deque (not a vector) keeps valid.
+    std::queue<ACScout> scouts;
     Index tree_pos;                    ///< position in trie (for the Primary)
   private:
-    const char* it_q_;                 ///< position in query
+    /// position in query; defaults to an empty string literal, so that a state which never saw a setQuery()
+    /// reads as 'query fully consumed' instead of dereferencing an uninitialized pointer (could happen in OpenMP context,
+    /// with more threads than proteins to search, where some threads never get a protein to search)
+    const char* it_q_ = "";
     std::string query_;                ///< current query ( = haystack = text)
   };
 
