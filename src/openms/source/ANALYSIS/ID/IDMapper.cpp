@@ -405,7 +405,13 @@ namespace OpenMS
             // look for only the scan_number in case the search engine only extracted this (e.g. Sage)
             else if (lookForScanNrsAsIntegers)
             {
-              auto scanid_it = run_it->second.find(StringUtils::toStr(SpectrumLookup::extractScanNumber(cf_scan_id, scanregex, false)));
+              // A WIFF native ID ("sample=1 period=1 cycle=96 experiment=1") holds two numbers, and
+              // the generic regex would take the last, the experiment. Its scan number is
+              // cycle * 1000 + experiment (96001), which the accession-based overload computes.
+              const Int scan_number = StringUtils::hasSubstring(cf_scan_id, "cycle=")
+                ? SpectrumLookup::extractScanNumber(cf_scan_id, "MS:1000770")
+                : SpectrumLookup::extractScanNumber(cf_scan_id, scanregex, false);
+              auto scanid_it = run_it->second.find(StringUtils::toStr(scan_number));
               if(scanid_it != run_it->second.end())
               {
                 cf.getPeptideIdentifications().push_back(*scanid_it->second);

@@ -288,9 +288,21 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, peptides, 0, false);
       TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 0)
 
+      // the groups replace those the run had, also from an earlier call, instead of adding to them
+      ProteinIdentification::ProteinGroup stale;
+      stale.accessions = {"P3", "P1"};
       proteins = make_proteins();
+      proteins.getIndistinguishableProteins().push_back(stale);
+      BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, peptides);
+      BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, peptides);
+      TEST_EQUAL(groups(proteins), "P1,P2|P3")
+
+      // on failure the run keeps its groups
+      proteins = make_proteins();
+      proteins.getIndistinguishableProteins().push_back(stale);
       TEST_EXCEPTION(Exception::MissingInformation,
                      BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, PeptideIdentificationList()))
+      TEST_EQUAL(groups(proteins), "P1,P3")
     }
     END_SECTION
 
