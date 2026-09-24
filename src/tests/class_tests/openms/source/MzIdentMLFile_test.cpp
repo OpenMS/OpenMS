@@ -815,6 +815,48 @@ START_SECTION(([EXTRA] score selection with Comet:expectation value and PSM-leve
 }
 END_SECTION
 
+START_SECTION(([EXTRA] score selection with X!Tandem and OMSSA scores))
+{
+  // X!Tandem:expect (MS:1001330), OMSSA:evalue (MS:1001328) and OMSSA:pvalue (MS:1001329) have no score order in
+  // PSI-MS; they are lower-is-better. Every result holds a better (PEPTIDER) and a worse (PEPTIDERR) hit.
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_xtandem_omssa_scores.mzid"), protein_ids, peptide_ids);
+  TEST_EQUAL(peptide_ids.size(), 6)
+  ABORT_IF(peptide_ids.size() != 6)
+
+  struct Expected
+  {
+    std::string score_type;
+    bool higher_better;
+    double best_score;
+  };
+  const std::vector<Expected> expected{
+    {"X\\!Tandem:expect", false, 0.001},     // expect and hyperscore
+    {"q-value", false, 0.005},               // expect, hyperscore and q-value: the expect yields to the q-value
+    {"X\\!Tandem:hyperscore", true, 45.5},   // hyperscore only
+    {"OMSSA:evalue", false, 0.002},          // E-value and p-value
+    {"q-value", false, 0.004},               // E-value, p-value and q-value
+    {"OMSSA:pvalue", false, 2e-06}           // p-value only
+  };
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    PeptideIdentification& pid = peptide_ids[i];
+    pid.sort();
+    TEST_STRING_EQUAL(pid.getScoreType(), expected[i].score_type)
+    TEST_EQUAL(pid.isHigherScoreBetter(), expected[i].higher_better)
+    TEST_EQUAL(pid.getHits().size(), 2)
+    if (pid.getHits().empty()) continue;
+    TEST_STRING_EQUAL(pid.getHits()[0].getSequence().toString(), "PEPTIDER")
+    TEST_REAL_SIMILAR(pid.getHits()[0].getScore(), expected[i].best_score)
+  }
+
+  // the search engine scores stay available when the q-value is used
+  TEST_REAL_SIMILAR(double(peptide_ids[1].getHits()[0].getMetaValue("MS:1001330")), 0.001)
+  TEST_REAL_SIMILAR(double(peptide_ids[1].getHits()[0].getMetaValue("MS:1001331")), 45.5)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

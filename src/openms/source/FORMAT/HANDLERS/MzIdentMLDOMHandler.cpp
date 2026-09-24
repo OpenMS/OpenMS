@@ -2144,13 +2144,15 @@ namespace OpenMS::Internal
       long double score = 0;
       const auto& [param_cv, param_user] = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
       // The first recognized score in accession order is used, except that a lower-is-better search engine
-      // specific score (e.g. Comet:expectation value) yields to a PSM-level q-value.
+      // specific score (e.g. Comet:expectation value or X!Tandem:expect) yields to a PSM-level q-value, which is
+      // then used even if other scores lie between the two in accession order.
       const bool has_psm_q_value = std::any_of(param_cv.getCVTerms().begin(), param_cv.getCVTerms().end(),
         [this](const auto& term)
         {
           return (q_score_child_terms_.contains(term.first) || term.first == "MS:1002354") && term.first != "MS:1002055";
         });
       bool scoretype = false;
+      bool use_q_value = false;
       for (map<std::string, vector<OpenMS::CVTerm>>::const_iterator scoreit = param_cv.getCVTerms().begin(); scoreit != param_cv.getCVTerms().end(); ++scoreit)
       {
         if (q_score_child_terms_.contains(scoreit->first) || scoreit->first == "MS:1002354")
@@ -2164,12 +2166,17 @@ namespace OpenMS::Internal
             break;
           }
         }
+        else if (use_q_value)
+        {
+          continue;
+        }
         else if (scoreit->first != "MS:1001143" && // the parent term itself has no numeric value; handled in the special case below
                  specific_score_child_terms_.contains(scoreit->first))
         {
           const bool lower_better = isLowerBetterEngineScore_(cv_.getTerm(scoreit->first));
           if (lower_better && has_psm_q_value)
           {
+            use_q_value = true;
             continue;
           }
           score = toDoubleOrZero_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
