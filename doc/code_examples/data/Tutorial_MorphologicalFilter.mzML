@@ -56,7 +56,7 @@
 					<cvParam cvRef="MS" accession="MS:1000022" name="TOF Total Path Length" value="0" unitAccession="UO:0000008" unitName="meter" unitCvRef="UO" />
 					<cvParam cvRef="MS" accession="MS:1000024" name="final MS exponent" value="0" />
 					<cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="0" unitAccession="UO:0000228" unitName="tesla" unitCvRef="UO" />
-					<cvParam cvRef="MS" accession="MS:1000288" name="cyclotron" />
+					<cvParam cvRef="MS" accession="MS:1000443" name="mass analyzer type" />
 					<userParam name="warning" type="xsd:string" value="invented mass analyzer, to fulfill mzML schema"/>
 				</analyzer>
 				<detector order="0">
@@ -168,10 +168,10 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=1">7989</offset>
-		<offset idRef="spectrum=2">10487</offset>
+		<offset idRef="spectrum=1">7998</offset>
+		<offset idRef="spectrum=2">10496</offset>
 	</index>
 </indexList>
-<indexListOffset>12987</indexListOffset>
+<indexListOffset>12997</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
