@@ -15,6 +15,7 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/SYSTEM/RWrapper.h>
 
 #include <vector>
@@ -417,7 +418,7 @@ namespace OpenMS
     //
     if (!file_models.empty() || !file_models_plot.empty())
     {
-      std::string out_table = File::getTemporaryFile(file_models);
+      std::string out_table = TempFiles::getTemporaryFile(file_models);
       { // we need this scope, to ensure that SVOutStream writes its cache, before we call RWrapper!
         SVOutStream sv(out_table, ", ", ", ", OpenMS::QuotingMethod::NONE);
 
@@ -462,7 +463,7 @@ namespace OpenMS
     std::string out_table_residuals;
     if (!file_residuals.empty() || !file_residuals_plot.empty())
     {
-      out_table_residuals = File::getTemporaryFile(file_residuals);
+      out_table_residuals = TempFiles::getTemporaryFile(file_residuals);
       sv = new SVOutStream(out_table_residuals, ", ", ", ", OpenMS::QuotingMethod::NONE);
     }
 

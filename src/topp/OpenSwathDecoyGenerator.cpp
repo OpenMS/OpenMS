@@ -82,7 +82,7 @@ class TOPPOpenSwathDecoyGenerator
 public:
 
   TOPPOpenSwathDecoyGenerator() :
-    TOPPBase("OpenSwathDecoyGenerator", "Generates decoys according to different models for a specific TraML", true)
+    TOPPBase("OpenSwathDecoyGenerator", "Generates decoys according to different models for a specific TraML")
   {
   }
 

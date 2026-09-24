@@ -34,7 +34,6 @@ not validate.
 | `xQuest_1_0.xsd` | `XQuestResultXMLFile` |
 | `Param_1_8_0.xsd` | `ParamXMLFile` |
 | `Param_1_7_0.xsd` | tool_description_lib (`convertToCTD` / `convertToCWL`) |
-| `ToolDescriptor_1_0.xsd` | `ToolDescriptionFile` |
 | `mzIdentML1.3.0.xsd` (default) + `1.2.0` / `1.1.0` / `1.0.0` → `FuGElightv1.0.0.xsd` | `MzIdentMLFile` (version auto-detected) |
 
 ## Removed / archived schemas

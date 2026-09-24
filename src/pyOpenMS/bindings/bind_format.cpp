@@ -58,7 +58,7 @@
 #include <OpenMS/FORMAT/PEFFFile.h>
 #include <OpenMS/FORMAT/ParamCTDFile.h>
 #include <OpenMS/FORMAT/ParquetFilter.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/KERNEL/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
 #include <OpenMS/FORMAT/SequestInfile.h>
@@ -659,7 +659,8 @@ Computes a SHA-1 hash of the file content
         .def(nb::init<const OpenMS::FileTypes &>())
         .def("__copy__", [](const OpenMS::FileTypes& self) { return OpenMS::FileTypes(self); })
         .def("__deepcopy__", [](const OpenMS::FileTypes& self, nb::dict) { return OpenMS::FileTypes(self); }, "memo"_a)
-        .def_static("typeToName", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToName(type); }, "type"_a, "Returns the name/extension of the type")
+        .def_static("typeToName", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToName(type); }, "type"_a, "Returns the name/preferred extension of the type")
+        .def_static("typeToExtensions", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToExtensions(type); }, "type"_a, "Returns every extension accepted for the type, preferred one first (e.g. FASTA -> ['fasta', 'fa', 'faa'])")
         .def_static("typeToDescription", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToDescription(type); }, "type"_a, "Returns the human-readable explanation of the type")
         .def_static("nameToType", [](const std::string& name) { return OpenMS::FileTypes::nameToType(name); }, "name"_a)
         .def_static("typeToMZML", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToMZML(type); }, "type"_a, "Returns the mzML name")
@@ -1098,14 +1099,11 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
         .def("__copy__", [](const OpenMS::MSNumpressCoder& self) { return OpenMS::MSNumpressCoder(self); })
         .def("__deepcopy__", [](const OpenMS::MSNumpressCoder& self, nb::dict) { return OpenMS::MSNumpressCoder(self); }, "memo"_a)
 
-        .def("encodeNP", [](OpenMS::MSNumpressCoder& self, std::vector<double> in, nb::object out_obj, bool zlib_compression, OpenMS::MSNumpressCoder::NumpressConfig config) {
+        .def("encodeNP", [](OpenMS::MSNumpressCoder& self, std::vector<double> in, bool zlib_compression, OpenMS::MSNumpressCoder::NumpressConfig config) {
             std::string result;
             self.encodeNP(in, result, zlib_compression, config);
-            // Write result back to the output String-like object
-            if (nb::hasattr(out_obj, "_value")) {
-                out_obj.attr("_value") = std::string(result);
-            }
-        }, "in"_a, "result"_a, "zlib_compression"_a, "config"_a, "Encode vector of doubles to Base64 numpress string")
+            return result;
+        }, "in"_a, "zlib_compression"_a, "config"_a, "Encode vector of doubles to a Base64 numpress string and return it")
 
         .def("decodeNP", [](OpenMS::MSNumpressCoder& self, nb::object in_obj, nb::list out, bool zlib_compression, OpenMS::MSNumpressCoder::NumpressConfig config) {
             std::string in_str;
@@ -1120,14 +1118,12 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
             for (double v : result) out.append(v);
         }, "in"_a, "out"_a, "zlib_compression"_a, "config"_a, "Decode Base64 numpress string to vector of doubles")
 
-        .def("encodeNPRaw", [](OpenMS::MSNumpressCoder& self, std::vector<double> in, nb::object out_obj, OpenMS::MSNumpressCoder::NumpressConfig config) {
+        .def("encodeNPRaw", [](OpenMS::MSNumpressCoder& self, std::vector<double> in, OpenMS::MSNumpressCoder::NumpressConfig config) {
             std::string result;
             self.encodeNPRaw(in, result, config);
-            if (nb::hasattr(out_obj, "_value")) {
-                // Raw encoding may contain null bytes - use the full size
-                out_obj.attr("_value") = nb::bytes(result.c_str(), result.size());
-            }
-        }, "in"_a, "result"_a, "config"_a, "Encode vector of doubles to raw numpress byte array")
+            // Raw encoding may contain null bytes - return bytes of the full size
+            return nb::bytes(result.c_str(), result.size());
+        }, "in"_a, "config"_a, "Encode vector of doubles to a raw numpress byte array and return it as bytes")
 
         .def("decodeNPRaw", [](OpenMS::MSNumpressCoder& self, nb::object in_obj, nb::list out, OpenMS::MSNumpressCoder::NumpressConfig config) {
             std::string in_str;

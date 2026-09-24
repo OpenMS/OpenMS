@@ -275,7 +275,15 @@ TAB_SIZE               = 2
 # a double escape (\\{ and \\})
 
 ALIASES                = "improvement=\xrefitem improvement \"Improvement\"  \"Improvements List\"" \
-                         "experimental=\xrefitem experimental \"Experimental classes\" \"Experimental List\""
+                         "experimental=\xrefitem experimental \"Experimental classes\" \"Experimental List\"" \
+                         "minMSVC=@OPENMS_MIN_MSVC_IDE@" \
+                         "minMSVCToolset=@OPENMS_MIN_MSVC_TOOLSET@" \
+                         "minMSVCYear=@OPENMS_MIN_MSVC_YEAR@" \
+                         "minMSVCGenerator=@OPENMS_MIN_MSVC_GENERATOR@" \
+                         "minGCC=@OPENMS_MIN_GCC@" \
+                         "minClang=@OPENMS_MIN_CLANG@" \
+                         "minXcode=@OPENMS_MIN_XCODE@" \
+                         "minCMake=@OPENMS_MIN_CMAKE@"
 
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C sources
 # only. Doxygen will then generate output that is more tailored for C. For
@@ -694,7 +702,7 @@ GENERATE_DEPRECATEDLIST= YES
 # sections, marked by \if <section_label> ... \endif and \cond <section_label>
 # ... \endcond blocks.
 
-ENABLED_SECTIONS       =
+ENABLED_SECTIONS       = @CF_DOXYGEN_ENABLED_SECTIONS@
 
 # The MAX_INITIALIZER_LINES tag determines the maximum number of lines that the
 # initial value of a variable or macro / define can have for it to appear in the
@@ -903,7 +911,8 @@ EXCLUDE_PATTERNS       = */.git/* \
                          *_moc* \
                          */UIC/* \
                          */contrib/* \
-                         */backup/*
+                         */backup/* \
+                         */test/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the

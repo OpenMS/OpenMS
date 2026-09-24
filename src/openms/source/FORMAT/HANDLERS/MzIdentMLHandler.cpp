@@ -1064,22 +1064,27 @@ namespace OpenMS::Internal
       for (std::map<std::string, std::string>::const_iterator sil_it = sil_map.begin(); sil_it != sil_map.end(); ++sil_it)
       {
         os << "\t\t<SpectrumIdentificationList id=\"" << sil_it->first << "\">\n";
-        os << "\t\t\t<FragmentationTable>\n"
-           << "\t\t\t\t<Measure id=\"Measure_mz\">\n"
-           << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
-           << "\t\t\t\t</Measure>\n"
-           << "\t\t\t\t<Measure id=\"Measure_int\">\n"
-           << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001226\" name=\"product ion intensity\" unitAccession=\"MS:1000131\" unitCvRef=\"UO\" unitName=\"number of detector counts\"/>\n"
-           << "\t\t\t\t</Measure>\n"
-           << "\t\t\t\t<Measure id=\"Measure_error\">\n"
-           << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001227\" name=\"product ion m/z error\" unitAccession=\"MS:1000040\" unitCvRef=\"PSI-MS\" unitName=\"m/z\"/>\n"
-           << "\t\t\t\t</Measure>\n";
-        if (is_ppxl)
+        // The Measure ids must be unique in the whole document, and FragmentArray/@measure_ref may refer to a
+        // Measure in any list: define them once, in the first list (the table is optional in the others).
+        if (sil_it == sil_map.begin())
         {
-            os << "<!-- userParam cross-link_chain will contain a list of chain type corresponding to the indexed ion [alpha|beta] -->\n";
-            os << "<!-- userParam cross-link_ioncategory will contain a list of ion category corresponding to the indexed ion [xi|ci] -->\n";
+          os << "\t\t\t<FragmentationTable>\n"
+             << "\t\t\t\t<Measure id=\"Measure_mz\">\n"
+             << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
+             << "\t\t\t\t</Measure>\n"
+             << "\t\t\t\t<Measure id=\"Measure_int\">\n"
+             << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001226\" name=\"product ion intensity\" unitAccession=\"MS:1000131\" unitCvRef=\"UO\" unitName=\"number of detector counts\"/>\n"
+             << "\t\t\t\t</Measure>\n"
+             << "\t\t\t\t<Measure id=\"Measure_error\">\n"
+             << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001227\" name=\"product ion m/z error\" unitAccession=\"MS:1000040\" unitCvRef=\"PSI-MS\" unitName=\"m/z\"/>\n"
+             << "\t\t\t\t</Measure>\n";
+          if (is_ppxl)
+          {
+              os << "<!-- userParam cross-link_chain will contain a list of chain type corresponding to the indexed ion [alpha|beta] -->\n";
+              os << "<!-- userParam cross-link_ioncategory will contain a list of ion category corresponding to the indexed ion [xi|ci] -->\n";
+          }
+          os << "\t\t\t</FragmentationTable>\n";
         }
-        os << "\t\t\t</FragmentationTable>\n";
         os << sil_it->second;
         os << "\t\t</SpectrumIdentificationList>\n";
       }
@@ -1190,7 +1195,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              s +=std::string(indent + 2, '\t') + "<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>\n";
+              s +=std::string(indent + 2, '\t') + "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>\n";
             }
             s +=std::string(indent + 1, '\t') + "</SearchModification>\n";
           }
@@ -1400,7 +1405,7 @@ namespace OpenMS::Internal
                     double diffmass = mod->getMonoMass() - hit.getSequence()[i].getMonoWeight();
                     p += "\" monoisotopicMassDelta=\"" + StringUtils::toStr(diffmass);
                   }
-                  p += "\">\n\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
+                  p += "\">\n\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
                   p += "\n\t\t</Modification>\n";
                 }
               }
@@ -1821,7 +1826,7 @@ namespace OpenMS::Internal
                   double diffmass = mod->getMonoMass() - peptide_sequence[i].getMonoWeight();
                   p += "\" monoisotopicMassDelta=\"" + StringUtils::toStr(diffmass);
                 }
-                p += "\">\n\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
+                p += "\">\n\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
                 p += "\n\t\t</Modification>\n";
               }
             }

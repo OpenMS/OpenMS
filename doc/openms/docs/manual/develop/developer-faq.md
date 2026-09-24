@@ -12,7 +12,7 @@ The following section provides general information to new contributors.
 * Check out the development version of OpenMS (see website).
 * Build OpenMS by following the installation instructions or [from source](/about/installation.rst).
 * Read the [OpenMS Coding Conventions](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/coding_conventions.html)
-* Read the [OpenMS User Tutorial](/tutorials/knime-user-tutorial.md).
+* Read the [TOPPView User Tutorial](/tutorials/toppview-user-tutorial.md).
 * Create a GitHub account.
 * Subscribe to the [open-ms-general](https://sourceforge.net/projects/open-ms/lists/open-ms-general) 
   or [contact-us](/about/communication.md).
@@ -366,7 +366,8 @@ generates a html table with the parameters. This table can then be included in t
 following `doxygen` command:`@htmlinclude OpenMS_<class name>.parameters`.
 
 ```{note}
-Parameter documentation is automatically generated for `TOPP` included in the static `ToolHandler.cpp` tools list.
+Parameter documentation is automatically generated for `TOPP` tools registered in the tool registry
+(`share/OpenMS/TOOLS/*.tsv`, generated from the `openms_topp_tool()` declarations), which is what `ToolHandler` lists.
 ```
 
 To include TOPP parameter documentation use following `doxygen` command:
@@ -378,8 +379,9 @@ Test if everything worked by calling `make doc_param_internal`. The parameters d
 
 ### How is the command line documentation for TOPP tools created?
 
-The program `OpenMS/doc/doxygen/parameters/TOPPDocumenter.cpp` creates the command line documentation for all classes
-that are included in the static `ToolHandler.cpp` tools list. It can be included in the documentation using the 
+The program `OpenMS/doc/doxygen/parameters/TOPPDocumenter.cpp` creates the command line documentation for all tools
+that are registered in the tool registry (`share/OpenMS/TOOLS/*.tsv`), which is what `ToolHandler` lists.
+It can be included in the documentation using the 
 following `doxygen` command:
 
 `@verbinclude TOPP_<tool name>.cli`

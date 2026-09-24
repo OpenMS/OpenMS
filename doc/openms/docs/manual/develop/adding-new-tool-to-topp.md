@@ -12,12 +12,14 @@ via the CTD mechanism. A current list of TOPP tools can be found in [the documen
 
 The recommended way is to inherit from the class TOPPBase as in existing TOPP tools (sources available in /src/topp/). This will add command line parsing functionality to your tool as described in the TOPP section of this page.
 
-- Add the code to `src/topp/` and register it in `src/topp/executables.cmake`
-- Add your tool (with the correct category) to `getTOPPToolList()` in `src/openms/source/APPLICATIONS/ToolHandler.cpp`.
-  This creates a doxygen page with the `–help` output of the tool (using `TOPPDocumenter`). This page must be included
-  at the end of the doxygen documentation of your tool (see other tools for an example).
+- Add the code to `src/topp/` and declare it in `src/topp/executables.cmake` with
+  `openms_topp_tool(<YourTool> "<Category>")`, in alphabetical order. That single line both builds the tool and
+  registers it: the build generates the tool registry `share/OpenMS/TOOLS/OpenMS.tsv` that `ToolHandler` reads at
+  run time, so there is no C++ list and no registry file to edit, and a tool cannot be built without being
+  registered. Pick `<Category>` from the set used in `doc/doxygen/public/TOPP.doxygen`.
+  Registration creates a doxygen page with the `--help` output of the tool (using `TOPPDocumenter`). This page must be
+  included at the end of the doxygen documentation of your tool (see other tools for an example).
 - Add it to the TOPP docu page (in `doc/doxygen/public/TOPP.doxygen`)
-- Add the name to `src/topp/executables.cmake`
 - Write a TOPP test (add it to `src/tests/topp/CMakeLists.txt`)
 
 ```{warning}
@@ -85,7 +87,5 @@ macros and environment information generated during the build of the OpenMS libr
 The CTD is a format developed from the OpenMS team to allow the user to use TOPP tools also in other workflow engines.
 Each tool can output a CTD description of itself (the XML scheme for the CTD can be found here), which can then be used
 by a node generator program to generate nodes for different workflow engines. The CTD mechanism is shared by OpenMS with
-other mature libraries like SeqAn and BALL. An example for a node generation program are the Generic KNIME Nodes. The
-most complete description on how to generate your own Generic KNIME Nodes based on a CTD (e.g. from your freshly
-developed command line tool), can be found on the SeqAn documentation. We are working on a tutorial specifically
-tailored to OpenMS.
+other mature libraries like SeqAn and BALL. Tools can additionally emit Common Workflow Language descriptions with
+`-write_cwl`; see [CWL](/getting-started/cwl-get-started.md).

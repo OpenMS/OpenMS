@@ -36,6 +36,7 @@
   #include <filesystem>
   #include <limits>
   #include <map>
+  #include <nlohmann/json.hpp>
   #include <optional>
   #include <openms_thermo_bridge/cv_mapping.hpp>
   #include <openms_thermo_bridge/thermo_bridge.hpp>
@@ -158,6 +159,47 @@ namespace
     }
   }
 
+  /**
+    Typed view of one scan's bridge metadata (schema version 1) for the precursor parser.
+    Trailer entries whose label or value is not a string are dropped; numeric reaction
+    fields the bridge reports as null stay unset.
+  */
+  Internal::ThermoScan toThermoScan(const nlohmann::json& meta)
+  {
+    auto string_or_empty = [](const nlohmann::json& object, const char* key) -> std::string {
+      return object.contains(key) && object[key].is_string() ? object[key].get<std::string>() : std::string();
+    };
+    auto number_or_unset = [](const nlohmann::json& object, const char* key) -> std::optional<double> {
+      if (object.contains(key) && object[key].is_number()) { return object[key].get<double>(); }
+      return std::nullopt;
+    };
+    Internal::ThermoScan scan;
+    scan.scan_number = meta.at("scan_number").get<int>();
+    scan.ms_level = meta.at("ms_level").get<int>();
+    scan.filter = string_or_empty(meta, "filter");
+    scan.native_id = string_or_empty(meta, "native_id");
+    for (const auto& entry : meta.at("trailer"))
+    {
+      if (entry.at("label").is_string() && entry.at("value").is_string())
+      {
+        scan.trailer.push_back({entry.at("label").get<std::string>(), entry.at("value").get<std::string>()});
+      }
+    }
+    for (const auto& reaction : meta.at("reactions"))
+    {
+      Internal::ThermoReaction converted;
+      converted.precursor_mass = number_or_unset(reaction, "precursor_mass");
+      converted.isolation_width = number_or_unset(reaction, "isolation_width");
+      converted.isolation_offset = number_or_unset(reaction, "isolation_offset");
+      converted.activation = string_or_empty(reaction, "activation");
+      converted.collision_energy = number_or_unset(reaction, "collision_energy");
+      converted.collision_energy_valid = reaction.contains("collision_energy_valid") && reaction["collision_energy_valid"].is_boolean()
+                                         && reaction["collision_energy_valid"].get<bool>();
+      scan.reactions.push_back(std::move(converted));
+    }
+    return scan;
+  }
+
 } // anonymous namespace
 
 void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
@@ -261,12 +303,12 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
     std::map<std::string, std::string> configurations;
     Metadata precursor_parser;
     std::map<int, Size> spectrum_by_scan;
-    auto activation = [&](Precursor& precursor, const Json& reaction, bool supplemental) {
-      const std::string type = text(reaction, "activation");
-      if (reaction.value("collision_energy_valid", false) && reaction.at("collision_energy").is_number())
+    auto activation = [&](Precursor& precursor, const Internal::ThermoReaction& reaction, bool supplemental) {
+      const std::string& type = reaction.activation;
+      if (reaction.collision_energy_valid && reaction.collision_energy)
       {
         precursor.setMetaValue(supplemental ? "supplemental collision energy" : "collision energy",
-                               unit_value(numeric(reaction, "collision_energy"), 266));
+                               unit_value(*reaction.collision_energy, 266));
       }
       if (supplemental)
       {
@@ -311,6 +353,7 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
         setProgress(scan);
         const Json meta = Json::parse(raw.scan_metadata_json(scan));
         if (meta.at("schema_version") != 1) { throw std::runtime_error("Unsupported Thermo scan metadata schema"); }
+        const Internal::ThermoScan parsed = toThermoScan(meta);
         MSSpectrum spectrum;
         const int level = meta.at("ms_level").get<int>();
         spectrum.setMSLevel(level > 0 ? level : 0);
@@ -334,18 +377,17 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
         // scan-level term.
         spectrum.setMetaValue("filter string", filter);
         if (options_.preserve_trailers) { acquisition.setMetaValue("Thermo trailer extra", meta.at("trailer").dump()); }
-        auto injection = Metadata::number(Metadata::trailer(meta, "Ion Injection Time (ms):"));
-        if (injection.is_number()) { acquisition.setMetaValue("ion injection time", unit_value(injection.get<double>(), 28)); }
-        auto mono = Metadata::number(Metadata::trailer(meta, "Monoisotopic M/Z:"));
-        if (mono.is_number() && mono.get<double>() > 0) { acquisition.setMetaValue("[Thermo Trailer Extra]Monoisotopic M/Z:", mono.get<double>()); }
-        const auto voltage_on = Metadata::number(Metadata::trailer(meta, "FAIMS Voltage On:"));
-        const auto voltage = Metadata::number(Metadata::trailer(meta, "FAIMS CV:"));
-        std::string enabled = Metadata::trailer(meta, "FAIMS Voltage On:");
+        const auto injection = Metadata::number(Metadata::trailer(parsed, "Ion Injection Time (ms):"));
+        if (injection) { acquisition.setMetaValue("ion injection time", unit_value(*injection, 28)); }
+        const auto mono = Metadata::number(Metadata::trailer(parsed, "Monoisotopic M/Z:"));
+        if (mono && *mono > 0) { acquisition.setMetaValue("[Thermo Trailer Extra]Monoisotopic M/Z:", *mono); }
+        const auto voltage_on = Metadata::number(Metadata::trailer(parsed, "FAIMS Voltage On:"));
+        const auto voltage = Metadata::number(Metadata::trailer(parsed, "FAIMS CV:"));
+        std::string enabled = Metadata::trailer(parsed, "FAIMS Voltage On:");
         std::transform(enabled.begin(), enabled.end(), enabled.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-        if (((voltage_on.is_number() && voltage_on.get<double>() != 0) || (enabled == "true" || enabled == "on" || enabled == "yes"))
-            && voltage.is_number())
+        if (((voltage_on && *voltage_on != 0) || (enabled == "true" || enabled == "on" || enabled == "yes")) && voltage)
         {
-          spectrum.setDriftTime(voltage.get<double>());
+          spectrum.setDriftTime(*voltage);
           spectrum.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
         }
         const std::string analyzer = text(meta, "analyzer"), ionization = text(meta, "ionization");
@@ -409,32 +451,32 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
           }
           spectrum.getProducts().push_back(product);
         }
-        for (const auto& descriptor : neutral ? Json::array() : precursor_parser.precursors(meta))
+        for (const auto& descriptor : neutral ? std::vector<Internal::ThermoPrecursor>() : precursor_parser.precursors(parsed))
         {
           Precursor precursor;
-          precursor.setMZ(numeric(descriptor, "selected_mz")); // OpenMS default: selected ion
-          precursor.setMetaValue("isolation window target m/z", numeric(descriptor, "target_mz"));
-          precursor.setMetaValue("selected ion m/z", numeric(descriptor, "selected_mz"));
-          if (descriptor.at("charge").is_number()) { precursor.setCharge(static_cast<int>(numeric(descriptor, "charge"))); }
-          if (descriptor.at("width").is_number())
+          precursor.setMZ(descriptor.selected_mz); // OpenMS default: selected ion
+          precursor.setMetaValue("isolation window target m/z", descriptor.target_mz);
+          precursor.setMetaValue("selected ion m/z", descriptor.selected_mz);
+          if (descriptor.charge) { precursor.setCharge(*descriptor.charge); }
+          if (descriptor.width)
           {
-            const double lower = numeric(descriptor, "lower_offset"), upper = numeric(descriptor, "upper_offset");
+            const double lower = descriptor.lower_offset, upper = descriptor.upper_offset;
             if (lower >= 0) { precursor.setIsolationWindowLowerOffset(lower); }
             if (upper >= 0) { precursor.setIsolationWindowUpperOffset(upper); }
             if (lower <= 0) { precursor.setMetaValue("isolation window lower offset", lower); }
             if (upper <= 0) { precursor.setMetaValue("isolation window upper offset", upper); }
           }
-          if (! text(descriptor, "spectrum_ref").empty()) { precursor.setMetaValue("spectrum_ref", text(descriptor, "spectrum_ref")); }
-          activation(precursor, descriptor.at("activation"), false);
-          if (descriptor.at("supplemental").is_object()) { activation(precursor, descriptor.at("supplemental"), true); }
-          auto parent = spectrum_by_scan.find(descriptor.at("parent_scan").get<int>());
-          if (descriptor.at("estimate_intensity").get<bool>() && parent != spectrum_by_scan.end() && precursor.getMZ() > 0)
+          if (! descriptor.spectrum_ref.empty()) { precursor.setMetaValue("spectrum_ref", descriptor.spectrum_ref); }
+          activation(precursor, descriptor.activation, false);
+          if (descriptor.supplemental) { activation(precursor, *descriptor.supplemental, true); }
+          auto parent = spectrum_by_scan.find(descriptor.parent_scan);
+          if (descriptor.estimate_intensity && parent != spectrum_by_scan.end() && precursor.getMZ() > 0)
           {
             // TRFP's precursor-intensity estimate sums the target +/- 1.5 m/z.
             double intensity = 0;
             const auto& parent_spectrum = exp[parent->second];
-            const double target = numeric(descriptor, "target_mz");
-            const double half_width = numeric(descriptor, "width") > 0 ? 1.5 : 0.0;
+            const double target = descriptor.target_mz;
+            const double half_width = descriptor.width.value_or(0.0) > 0 ? 1.5 : 0.0;
             for (auto peak = parent_spectrum.MZBegin(target - half_width); peak != parent_spectrum.end() && peak->getMZ() < target + half_width;
                  ++peak)
             {

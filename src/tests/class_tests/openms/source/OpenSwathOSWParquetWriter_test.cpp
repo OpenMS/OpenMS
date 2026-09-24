@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
@@ -43,10 +44,10 @@ START_SECTION(void write(const std::string&, const OpenSwath::LightTargetedExper
   fmap.push_back(f1);
   fmap.push_back(f2);
 
-  // Use File::TempDir so the temporary directory is removed automatically
+  // Use TempDir so the temporary directory is removed automatically
   // even if the test aborts early. Create a subdirectory for the .oswpq
   // content so it is contained inside the TempDir.
-  File::TempDir tmp_dir;
+  TempDir tmp_dir;
   std::string base = tmp_dir.getPath() + "/oswpq";
   if (File::exists(base)) File::removeDirRecursively(base);
   File::makeDir(base);

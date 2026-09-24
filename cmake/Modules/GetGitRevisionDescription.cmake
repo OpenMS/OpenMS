@@ -129,9 +129,14 @@ function(git_get_exact_tag _var)
 	set(${_var} "${out}" PARENT_SCOPE)
 endfunction()
 
+## An optional 4th argument reports whether every git call succeeded. The metadata
+## strings cannot signal that on their own: a branch may be named like a sentinel.
 function(git_short_info _refspecvar _hashvar _lc_datevar)
 	if(NOT GIT_FOUND)
 		find_package(Git QUIET)
+	endif()
+	if(ARGC GREATER 3)
+		set(${ARGV3} FALSE PARENT_SCOPE)
 	endif()
 	get_git_head_revision(refspec hash)
 	if(NOT GIT_FOUND)
@@ -146,6 +151,8 @@ function(git_short_info _refspecvar _hashvar _lc_datevar)
 		set(${_lc_datevar} "HEAD-HASH-NOTFOUND" PARENT_SCOPE)
 		return()
 	endif()
+
+	set(_ok TRUE)
 
 	execute_process(COMMAND
 		"${GIT_EXECUTABLE}"
@@ -162,6 +169,7 @@ function(git_short_info _refspecvar _hashvar _lc_datevar)
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
 	if(NOT res EQUAL 0)
 		set(out "${out}-${res}-NOTFOUND")
+		set(_ok FALSE)
 	endif()
 
 	set(${_hashvar} "${out}" PARENT_SCOPE)
@@ -181,6 +189,7 @@ function(git_short_info _refspecvar _hashvar _lc_datevar)
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
 	if(NOT res EQUAL 0)
 		set(out "${out}-${res}-NOTFOUND")
+		set(_ok FALSE)
 	endif()
 
 	set(${_refspecvar} "${out}" PARENT_SCOPE)
@@ -201,7 +210,12 @@ function(git_short_info _refspecvar _hashvar _lc_datevar)
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
 	if(NOT res EQUAL 0)
 		set(out "${out}-${res}-NOTFOUND")
+		set(_ok FALSE)
 	endif()
 
 	set(${_lc_datevar} "${out}" PARENT_SCOPE)
+
+	if(ARGC GREATER 3)
+		set(${ARGV3} ${_ok} PARENT_SCOPE)
+	endif()
 endfunction()

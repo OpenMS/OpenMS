@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/IndentedStream.h>
 #include <OpenMS/SYSTEM/BuildInfo.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/config.h>
 #include <OpenMS/openms_data_path.h>
 
@@ -124,8 +125,8 @@ protected:
        << green("<< Installation information >>\n")
        << "Data path    : " << File::getOpenMSDataPath()
        << " (via " << File::getOpenMSDataPathSource() << ")" << '\n'
-       << "Temp path    : " << File::getTempDirectory() << '\n'
-       << "Userdata path: " << File::getUserDirectory() << '\n'
+       << "Temp path    : " << SystemSettings::getTempDirectory() << '\n'
+       << "Userdata path: " << SystemSettings::getUserDirectory() << '\n'
        << '\n'
        << green("<< Build information >>\n") 
        << "Source path  : " << OPENMS_SOURCE_PATH << '\n'

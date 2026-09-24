@@ -97,14 +97,13 @@ SwathFile.h
 SqliteConnector.h
 SqMassFile.h
 TextFile.h
-ToolDescriptionFile.h
 TransformationXMLFile.h
 UnimodXMLFile.h
-UniProtXMLFile.h
 XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h
 FileTypes.h
+FileNameUtils.h
 MzIdentMLFile.h
 TraMLFile.h
 XMassFile.h
@@ -119,6 +118,7 @@ if (WITH_HDF5)
 endif()
 
 list(APPEND sources_list_h ZipArchiveFile.h)
+list(APPEND sources_list_h ZipRandomAccessFile.h)
 list(APPEND sources_list_h MSExperimentArrowExport.h)
 list(APPEND sources_list_h ConsensusMapArrowExport.h)
 list(APPEND sources_list_h ArrowSchemaRegistry.h)

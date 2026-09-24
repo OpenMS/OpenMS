@@ -1043,6 +1043,45 @@ START_SECTION((void sortSpectra(bool sort_mz = true)))
 }
 END_SECTION
 
+START_SECTION([EXTRA] void sortSpectra() keeps spectra of equal retention time in their input order)
+{
+  // An ion mobility frame, a FAIMS split and Bruker TIMS data all produce many spectra with the
+  // same retention time. std::sort gives no guarantee for those, so they came out in an order that
+  // depends on the standard library, and consumers that walk the spectra in order saw them
+  // shuffled (#10054). Enough spectra to get past the insertion sort std::sort uses for short
+  // ranges, which is stable by accident.
+  PeakMap exp;
+  const Size frames = 4;
+  const Size per_frame = 250;
+  for (Size i = 0; i < frames * per_frame; ++i)
+  {
+    MSSpectrum s;
+    s.setRT(double(frames - 1 - (i % frames))); // frames arrive in reverse order
+    s.setNativeID("scan=" + std::to_string(i));
+    s.setMSLevel(1);
+    exp.addSpectrum(s);
+  }
+
+  exp.sortSpectra(false);
+
+  TEST_EQUAL(exp.size(), frames * per_frame)
+  TEST_EQUAL(exp.isSorted(false), true)
+  // inside each retention time the spectra must still be in the order they were added, i.e. their
+  // native IDs ascend
+  bool order_kept = true;
+  for (Size i = 1; i < exp.size(); ++i)
+  {
+    if (exp[i - 1].getRT() != exp[i].getRT()) continue;
+    const std::string id_before = exp[i - 1].getNativeID();
+    const std::string id_now = exp[i].getNativeID();
+    const Size before = std::stoul(id_before.substr(id_before.find('=') + 1));
+    const Size now = std::stoul(id_now.substr(id_now.find('=') + 1));
+    if (before > now) order_kept = false;
+  }
+  TEST_EQUAL(order_kept, true)
+}
+END_SECTION
+
 START_SECTION(bool isSorted(bool check_mz = true ) const)
 {
   //make test dataset
@@ -1635,6 +1674,51 @@ START_SECTION((const MSChromatogram calculateTIC(float rt_bin_size=0) const))
 	TEST_EQUAL(chrom[0].getIntensity(),8);
 	TEST_EQUAL(chrom[1].getIntensity(),2);
 	TEST_EQUAL(chrom[2].getIntensity(),9);
+}
+END_SECTION
+
+START_SECTION([EXTRA] binned TIC preserves duplicate RTs and MS level selection)
+{
+  MSExperiment exp;
+  const std::vector<double> rts {10.0, 10.0, 11.0, 13.0};
+  const std::vector<UInt> levels {1, 1, 2, 1};
+  const std::vector<float> intensities {1.0f, 2.0f, 4.0f, 8.0f};
+  for (Size i = 0; i < rts.size(); ++i)
+  {
+    MSSpectrum spectrum;
+    spectrum.setRT(rts[i]);
+    spectrum.setMSLevel(levels[i]);
+    Peak1D peak;
+    peak.setMZ(100.0);
+    peak.setIntensity(intensities[i]);
+    spectrum.push_back(peak);
+    exp.addSpectrum(spectrum);
+  }
+
+  const auto ms1 = exp.calculateTIC(2.0f, 1);
+  TEST_EQUAL(ms1.size(), 3)
+  ABORT_IF(ms1.size() != 3)
+  TEST_EQUAL(ms1[0].getRT(), 10.0)
+  TEST_EQUAL(ms1[1].getRT(), 12.0)
+  TEST_EQUAL(ms1[2].getRT(), 14.0)
+  TEST_EQUAL(ms1[0].getIntensity(), 3.0f)
+  TEST_EQUAL(ms1[1].getIntensity(), 4.0f)
+  TEST_EQUAL(ms1[2].getIntensity(), 4.0f)
+
+  const auto all = exp.calculateTIC(2.0f, 0);
+  TEST_EQUAL(all.size(), 3)
+  ABORT_IF(all.size() != 3)
+  TEST_EQUAL(all[0].getIntensity(), 5.0f)
+  TEST_EQUAL(all[1].getIntensity(), 6.0f)
+  TEST_EQUAL(all[2].getIntensity(), 4.0f)
+
+  const auto ms2 = exp.calculateTIC(2.0f, 2);
+  TEST_EQUAL(ms2.size(), 1)
+  ABORT_IF(ms2.size() != 1)
+  TEST_EQUAL(ms2[0].getRT(), 11.0)
+  TEST_EQUAL(ms2[0].getIntensity(), 4.0f)
+  TEST_TRUE(exp.calculateTIC(2.0f, 3).empty())
+  TEST_TRUE(MSExperiment().calculateTIC(2.0f).empty())
 }
 END_SECTION
 

@@ -86,6 +86,17 @@
 
   In order to build the tests, execute build the all target. Depending on the build system you generated this target can have different names, e.g., <code>make all</code> for Makefiles and <code>ALL_BUILD</code> for Visual Studio. This will build the TOPP tools and all unit tests. Building the TOPP tools alone is not sufficient (you need <code>FuzzyDiff</code> - a UTIL to run the tests).
 
+  @subsection verifying_public_headers Verifying public headers
+
+  To check that each public header compiles on its own, enable <code>OPENMS_VERIFY_INTERFACE_HEADER_SETS</code> in an existing build directory and build the verification target explicitly:
+
+  @code{.sh}
+  cmake -S /path/to/OpenMS -B /path/to/OpenMS-build -DOPENMS_VERIFY_INTERFACE_HEADER_SETS=ON
+  cmake --build /path/to/OpenMS-build --target all_verify_interface_header_sets
+  @endcode
+
+  Add <code>--config Debug</code> (or your chosen configuration) for multi-configuration generators such as Visual Studio. These compile checks are separate from CTest and the default build; Linux x64 CI runs them explicitly. Private headers are excluded, and public headers must still avoid including private headers even if verification passes.
+
   @subsection running_tests Running tests
 
   %OpenMS uses <code>CTest</code> to run its tests. You can invoke the <code>ctest</code> executable in the %OpenMS binary directory and it will run all tests (including TOPP tests). To run a specific test use the <code>ctest -R &lt;testname&gt;</code>, e.g. <code>ctest -R TOPP_FileMerger</code> to run all <code>FileMerger</code> tests. You can add <code>-V</code> or <code>-VV</code> to <code>ctest</code> to make the output more verbose. For Visual Studio and Xcode, provide the configuration to test, e.g., <code>ctest -R TOPP_FileMerger -C</code>. Release to execute all <code>FileMerger</code> tests using the Release build.

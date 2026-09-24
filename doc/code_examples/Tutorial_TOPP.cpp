@@ -52,7 +52,7 @@ class TOPPDatabaseFilter : public TOPPBase
 {
 public:
   TOPPDatabaseFilter():
-      TOPPBase("DatabaseFilter", "Filters a protein database (FASTA format) based on identified proteins", false) // false: mark as unofficial tool
+      TOPPBase("DatabaseFilter", "Filters a protein database (FASTA format) based on identified proteins", {}, false) // false: not a registered TOPP tool, so skip the registry check
   {
   }
 

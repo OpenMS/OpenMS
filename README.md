@@ -28,7 +28,7 @@ quantitation, SILAC, iTRAQ, TMT, SRM, SWATH, etc.
 It provides built-in algorithms for de novo identification and database search,
 as well as adapters to other state-of-the-art tools like Comet, etc.
 It supports easy integration of OpenMS built tools into workflow
-engines like nextflow, KNIME, Galaxy, and TOPPAS via the TOPPTools concept and
+engines like nextflow, Galaxy, and TOPPAS via the TOPPTools concept and
 a unified parameter handling via a 'common tool description' (CTD) scheme.
 
 With pyOpenMS, OpenMS offers Python bindings to a large part of the OpenMS API

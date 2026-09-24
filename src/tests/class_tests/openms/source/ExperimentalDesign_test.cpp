@@ -19,6 +19,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <fstream>
 ///////////////////////////
 
@@ -334,6 +335,49 @@ START_SECTION((std::string SampleSection::getFactorValue(const unsigned sample, 
     }
   }      
 
+END_SECTION
+
+START_SECTION(([EXTRA] SampleSection::getFactorValue reports a row that is shorter than the column list))
+{
+  // The public constructor and addSample() accept rows with fewer values than there are columns
+  // (a parsed design file no longer produces them, see ExperimentalDesignFile_test). Both
+  // getFactorValue() overloads used to read such a row past its end: undefined behaviour, in
+  // practice a garbage string or a crash, instead of a report of the missing value.
+  ExperimentalDesign::SampleSection ss(
+    {{"S1", "A", "1"}, {"S2", "B"}}, // S2 has no MSstats_BioReplicate value
+    {{"S1", 0}, {"S2", 1}},
+    {{"Sample", 0}, {"MSstats_Condition", 1}, {"MSstats_BioReplicate", 2}});
+
+  // positive control: the complete row and the present values of the short row are unaffected
+  TEST_STRING_EQUAL(ss.getFactorValue("S1", "MSstats_BioReplicate"), "1")
+  TEST_STRING_EQUAL(ss.getFactorValue(0u, "MSstats_BioReplicate"), "1")
+  TEST_STRING_EQUAL(ss.getFactorValue("S2", "MSstats_Condition"), "B")
+  TEST_STRING_EQUAL(ss.getFactorValue(1u, "Sample"), "S2")
+
+  // the missing value is reported by both overloads, naming the sample and the factor
+  TEST_EXCEPTION(Exception::MissingInformation, ss.getFactorValue("S2", "MSstats_BioReplicate"))
+  TEST_EXCEPTION(Exception::MissingInformation, ss.getFactorValue(1u, "MSstats_BioReplicate"))
+  try
+  {
+    ss.getFactorValue("S2", "MSstats_BioReplicate");
+    TEST_TRUE(false) // not reached
+  }
+  catch (const Exception::MissingInformation& e)
+  {
+    const std::string msg = e.what();
+    TEST_TRUE(msg.find("S2") != std::string::npos)
+    TEST_TRUE(msg.find("MSstats_BioReplicate") != std::string::npos)
+  }
+
+  // addSample() without content pushes an empty row, so every factor is missing for it
+  ss.addSample("S3");
+  TEST_EXCEPTION(Exception::MissingInformation, ss.getFactorValue("S3", "MSstats_Condition"))
+  TEST_EXCEPTION(Exception::MissingInformation, ss.getFactorValue(2u, "Sample"))
+
+  // an unknown sample or factor is reported as before
+  TEST_EXCEPTION(Exception::MissingInformation, ss.getFactorValue("nope", "MSstats_Condition"))
+  TEST_EXCEPTION(Exception::MissingInformation, ss.getFactorValue("S1", "nope"))
+}
 END_SECTION
 
 START_SECTION((unsigned getNumberOfFractions() const ))
@@ -688,7 +732,7 @@ START_SECTION((Size annotateColumnHeaders(ConsensusMap& cmap) const))
   }
 
   // Both files in fraction group 1, as fractions 1 and 2; one sample per channel.
-  const std::string design_path = File::getTemporaryFile();
+  const std::string design_path = TempFiles::getTemporaryFile();
   {
     std::ofstream os(design_path.c_str());
     os << "Fraction_Group\tFraction\tSpectra_Filepath\tLabel\tSample\n";
@@ -766,7 +810,7 @@ START_SECTION(([EXTRA] annotateColumnHeaders - headers that collapse onto one de
     cmap.getColumnHeaders()[i] = h;
   }
 
-  const std::string design_path = File::getTemporaryFile();
+  const std::string design_path = TempFiles::getTemporaryFile();
   {
     std::ofstream os(design_path.c_str());
     os << "Fraction_Group\tFraction\tSpectra_Filepath\tLabel\tSample\n";

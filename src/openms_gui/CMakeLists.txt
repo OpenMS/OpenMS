@@ -7,7 +7,6 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_GUI")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 set(CMAKE_AUTOUIC ON) # convert .ui files to ui_....h files using CMake + Qt's UIC
 set(CMAKE_AUTOMOC ON)
@@ -23,14 +22,17 @@ include(add_mac_bundle.cmake)
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
-# add the library
+# add the library: the GUI layer of the installed package (export set
+# OpenMSGUITargets, install components library_gui and cmake_gui, headers in
+# OpenMS_GUI_headers); it links the CLI layer, which links the core layer.
 openms_add_library(TARGET_NAME OpenMS_GUI
                    SOURCE_FILES ${OpenMSVisual_sources}
                    HEADER_FILES ${OpenMSVisual_sources_h}
-                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+                   BASE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
-                   DLL_EXPORT_PATH "OpenMS/VISUAL/")
+                   DLL_EXPORT_PATH "OpenMS/VISUAL/"
+                   EXPORT_SET ${OPENMS_GUI_EXPORT_SET})
 
 # --------------------------------------------------------------------------
 # additional linker flags required by openms_gui
@@ -91,14 +93,21 @@ foreach(i ${GUI_executables})
 endforeach(i)
 
 # GUI TOPP tools also need direct OpenMS link for TOPPBase etc.
+## these two are TOPP tools (TOPPBase-derived) with a Qt front end
 foreach(i ExecutePipeline ImageCreator)
-  target_link_libraries(${i} OpenMS)
+  target_link_libraries(${i} OpenMS_CLI)
 endforeach()
 
-# Add GUI-based TOPP tools to the TOPP_TOOLS list for CWL/INI generation
+# The TOPP tools that need the GUI library, declared the same way as the tools of
+# src/topp/executables.cmake so they reach the tool registry and the CWL/INI generation
+# exactly in a WITH_GUI build. One list drives both the declarations and the dependency
+# below, so a tool cannot be built here without being registered. These are a subset of
+# GUI_executables, which also holds the GUI applications that are not TOPP tools
+# (TOPPView, TOPPAS, INIFileEditor).
 set(GUI_TOPP_TOOLS ExecutePipeline ImageCreator)
-set(TOPP_TOOLS ${TOPP_TOOLS} ${GUI_TOPP_TOOLS}
-    CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
+foreach(_gui_topp_tool ${GUI_TOPP_TOOLS})
+  openms_topp_tool(${_gui_topp_tool} "Misc")
+endforeach()
 
 # Make the TOPP collection target depend on GUI TOPP tools
 if(TARGET TOPP)

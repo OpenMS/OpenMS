@@ -20,6 +20,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <iostream>
 #include <cmath>
@@ -94,7 +95,7 @@ class MaRaClusterAdapter :
 {
 public:
   MaRaClusterAdapter() :
-    TOPPExternalToolBase("MaRaClusterAdapter", "Facilitate input to MaRaCluster and reintegrate.", true,
+    TOPPExternalToolBase("MaRaClusterAdapter", "Facilitate input to MaRaCluster and reintegrate.",
                 { // citation(s), specific for this tool
                  { "The M and Käll L", "MaRaCluster: A Fragment Rarity Metric for Clustering Fragment Spectra in Shotgun Proteomics", "J Proteome Res 2016; 15: 3", "10.1021/acs.jproteome.5b00749"}
                 }
@@ -298,7 +299,7 @@ protected:
     //-------------------------------------------------------------
 
     // create temp directory to store maracluster temporary files
-    File::TempDir tmp_dir(debug_level_ >= 2);
+    TempDir tmp_dir(debug_level_ >= 2);
 
     double pcut = getDoubleOption_("pcut");
 

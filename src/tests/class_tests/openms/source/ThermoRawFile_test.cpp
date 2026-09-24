@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/MassAnalyzer.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 #include <cmath>
 #include <set>
@@ -72,7 +73,7 @@ START_SECTION(round-trip load raw -> mzML -> reload MSExperiment)
   }
   TEST_EQUAL(found_positive, true)
 
-  std::string tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_thermo_roundtrip.mzML";
+  std::string tmp_mzml = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_thermo_roundtrip.mzML";
   MzMLFile().store(tmp_mzml, original);
 
   MSExperiment reloaded;
@@ -268,7 +269,7 @@ START_SECTION(real Thermo FAIMS-DIA RAW -> FAIMS-aware SWATH maps)
 
   std::shared_ptr<ExperimentalSettings> exp_meta;
   auto groups = SwathFile().loadFromMSExperimentByFAIMSCV(
-    std::move(exp), File::getTempDirectory() + "/", exp_meta, "normal");
+    std::move(exp), SystemSettings::getTempDirectory() + "/", exp_meta, "normal");
 
   TEST_EQUAL(groups.size(), 1)
   TEST_EQUAL(exp_meta != nullptr, true)

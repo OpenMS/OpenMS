@@ -21,6 +21,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 ///////////////////////////
 
@@ -147,7 +148,7 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
        true, // decreasing isotope model
        2, // enforce only starting from second peak
        true);
-   std::string temp_file1 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output1.mzML";
+   std::string temp_file1 = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output1.mzML";
    MzMLFile().store(temp_file1, input1);
    File::remove(temp_file1);
 
@@ -177,7 +178,7 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
        true, // decreasing isotope model
        2, // enforce only starting from second peak
        true);
-   std::string temp_file2 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output2.mzML";
+   std::string temp_file2 = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output2.mzML";
    MzMLFile().store(temp_file2, input2);
    File::remove(temp_file2);
 

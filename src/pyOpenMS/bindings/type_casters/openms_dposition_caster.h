@@ -29,7 +29,7 @@ struct type_caster<OpenMS::DPosition<1>> {
 public:
     NB_TYPE_CASTER(OpenMS::DPosition<1>, const_name("float"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
             return false;
         }
@@ -77,7 +77,7 @@ struct type_caster<OpenMS::DPosition<2>> {
 public:
     NB_TYPE_CASTER(OpenMS::DPosition<2>, const_name("tuple[float, float]"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
             return false;
         }
@@ -163,7 +163,7 @@ public:
     NB_TYPE_CASTER(std::vector<OpenMS::DPosition<2>>,
                    const_name("numpy.ndarray[numpy.float64[Any, 2]]"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
             value.clear();
             return true;
@@ -240,7 +240,12 @@ public:
                 Py_DECREF(list);
                 return handle();
             }
-            PyList_SET_ITEM(list, i, tuple);  // steals reference
+            // PyList_SetItem steals the reference even when it fails, so the item
+            // must not be released again here; only the partially built list is.
+            if (PyList_SetItem(list, static_cast<Py_ssize_t>(i), tuple) != 0) {
+                Py_DECREF(list);
+                return handle();
+            }
         }
 
         return handle(list);

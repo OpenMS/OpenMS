@@ -24,6 +24,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
@@ -434,7 +435,7 @@ namespace OpenMS
     const std::string& file,
     std::shared_ptr<ExperimentalSettings>& exp_meta)
   {
-    return loadBrukerTdf(file, File::getTempDirectory(), exp_meta, "normal");
+    return loadBrukerTdf(file, SystemSettings::getTempDirectory(), exp_meta, "normal");
   }
 #endif
 

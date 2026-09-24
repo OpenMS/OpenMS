@@ -7,7 +7,6 @@
 # --------------------------------------------------------------------------
 
 
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_src")
 
 #------------------------------------------------------------------------------
@@ -19,6 +18,7 @@ add_subdirectory(openswathalgo)
 # OpenMS core lib
 #------------------------------------------------------------------------------
 add_subdirectory(openms)
+add_subdirectory(openms_cli)
 
 #------------------------------------------------------------------------------
 # Class-test framework lib (ClassTest macros, FuzzyStringComparator);
@@ -76,11 +76,11 @@ endif()
 # TOPP tools (must come before openms_gui so TOPP_TOOLS cache is initialized
 # before the GUI appends its tools to it)
 #------------------------------------------------------------------------------
+# Declarations accumulate in the cache, so drop what an earlier configure of this build
+# directory left behind before any tool is declared.
+openms_reset_topp_tools()
 if(BUILD_TOPP_TOOLS)
   add_subdirectory(topp)
-else()
-  # Clear a value left by a previous configure in the same build directory.
-  set(TOPP_TOOLS "" CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
 endif()
 
 if(WITH_GUI)
@@ -88,7 +88,22 @@ if(WITH_GUI)
   # OpenMS gui lib
   #------------------------------------------------------------------------------
   add_subdirectory(openms_gui)
+else()
+  # doc/doxygen/public references the GUI tools' documentation pages (the TOPP tool list, the
+  # TOPPAS tutorial) whether or not the GUI is built, and what those pages describe does not
+  # depend on building it. The part that does -- the command line help and INI documentation
+  # TOPPDocumenter captures by running each tool -- is marked @if WITH_GUI in them (see
+  # doc/CMakeLists.txt).
+  openms_doc_path("${PROJECT_SOURCE_DIR}/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS")
 endif()
+
+#------------------------------------------------------------------------------
+# The tool registry, generated from the openms_topp_tool() declarations of the two
+# subdirectories above. It therefore describes exactly the tools this build produces: a
+# build option that does not build a tool does not declare it either, so nothing has to
+# filter the registry afterwards, at run time or at install time.
+#------------------------------------------------------------------------------
+openms_write_tool_registry("${OPENMS_TOOL_REGISTRY_BUILD_FILE}")
 
 #------------------------------------------------------------------------------
 # Tests

@@ -50,6 +50,7 @@ START_SECTION(inline const char* skipWhitespace(const char* p, const char* p_end
     TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data() + 2)), 0);
     TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data() + 3)), 2);
   }
+  TEST_EQUAL(skipWhitespace(std::string_view()), 0);
 }
 END_SECTION
 
@@ -80,6 +81,7 @@ START_SECTION(inline const char* skipNonWhitespace(const char* p, const char* p_
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 3)), 0);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 5)), 2);
   }
+  TEST_EQUAL(skipNonWhitespace(std::string_view()), 0);
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

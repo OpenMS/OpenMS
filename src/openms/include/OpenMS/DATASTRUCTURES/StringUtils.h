@@ -238,20 +238,20 @@ namespace OpenMS
     OPENMS_DLLAPI const char* skipWhitespace(const char* p, const char* p_end);
 
     /// Returns count of leading whitespace characters in @p data
-    inline int skipWhitespace(const std::string_view& data)
+    inline size_t skipWhitespace(const std::string_view& data)
     {
       auto pos = skipWhitespace(data.data(), data.data() + data.size());
-      return static_cast<int>(pos - data.data());
+      return static_cast<size_t>(pos - data.data());
     }
 
     /// Returns pointer to first whitespace character in [p, p_end), or p_end
     OPENMS_DLLAPI const char* skipNonWhitespace(const char* p, const char* p_end);
 
     /// Returns count of leading non-whitespace characters in @p data
-    inline int skipNonWhitespace(const std::string_view& data)
+    inline size_t skipNonWhitespace(const std::string_view& data)
     {
       auto pos = skipNonWhitespace(data.data(), data.data() + data.size());
-      return static_cast<int>(pos - data.data());
+      return static_cast<size_t>(pos - data.data());
     }
 
 
@@ -523,7 +523,7 @@ namespace OpenMS
     inline std::string& removeWhitespaces(std::string& s)
     {
       // skip unmodified prefix
-      int start = skipNonWhitespace(std::string_view(s.data(), s.size()));
+      const size_t start = skipNonWhitespace(std::string_view(s.data(), s.size()));
       auto it     = s.cbegin() + start;
       auto dest   = s.begin()  + start;
       auto it_end = s.cend();

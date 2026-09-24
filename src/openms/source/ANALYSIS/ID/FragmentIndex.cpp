@@ -1262,11 +1262,15 @@ namespace OpenMS
 
       OPENMS_LOG_INFO << "Sorting fragments..." << std::endl;
 
-      /// 1.) First all Fragments are sorted by their own mass (parallel via Boost.Sort)
+      /// 1.) First all Fragments are sorted by their own mass (parallel via Boost.Sort).
+      /// Boost defaults to std::thread::hardware_concurrency() threads, which ignores both
+      /// the tool's -threads option and the process CPU affinity: on a 384-core node a
+      /// single-threaded run spawned 384 sort threads. Use the same budget as the OpenMP
+      /// regions around it.
       boost::sort::block_indirect_sort(fi_fragments_.begin(), fi_fragments_.end(), [](const Fragment& a, const Fragment& b)
       {
         return std::tie(a.fragment_mz_, a.peptide_idx_) < std::tie(b.fragment_mz_, b.peptide_idx_);
-      });
+      }, static_cast<uint32_t>(num_threads));
 
       // Empty database (no peptide passed length / mass / motif filters): nothing to bucket.
       // Mark as built and return — guards against the OMP loop below dividing by zero

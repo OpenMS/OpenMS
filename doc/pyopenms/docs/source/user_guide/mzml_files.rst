@@ -120,9 +120,8 @@ Alternatively, we could also use pyOpenMS to decode the same data:
         + b"AAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA="
     )
 
-    out = []
-    oms.Base64().decode64(
-        encoded_data, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False
+    out = oms.Base64().decode64(
+        encoded_data, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, False
     )
     print(out)
 .. code-block:: output
@@ -140,33 +139,30 @@ This allows us thus to manually decode the data. We can use pyOpenMS to encode a
         + b"AAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA="
     )
 
-    out = []
-    oms.Base64().decode64(
-        encoded_data, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False
+    out = oms.Base64().decode64(
+        encoded_data, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, False
     )
     print(out)
 
-    data = oms.String()
-    oms.Base64().encode64(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, data, False)
+    data = oms.Base64().encode64(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, False)
     print(data)
 
-    oms.Base64().encode64(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, data, True)
+    data = oms.Base64().encode64(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, True)
     print(data)
 
-    data = oms.String()
-    oms.Base64().encode32(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, data, False)
+    data = oms.Base64().encode32(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, False)
     print(data)
 
-    oms.Base64().encode32(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, data, True)
+    data = oms.Base64().encode32(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, True)
     print(data)
 
 .. code-block:: output
 
     [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0]
-    b'AAAAAAAAAAAAAAAAAAAAQAAAAAAAABBAAAAAAAAAGEAAAAAAAAAgQAAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA='
-    b'eJxjYEABDhBKAEpLQGkFKK0CpTWgtA6UNoDSRg4AZlQDYw=='
-    b'AAAAAAAAAEAAAIBAAADAQAAAAEEAACBBAABAQQAAYEEAAIBBAACQQQ=='
-    b'eJxjYAADBwaGBiA+AMQMjgwMCkDsAMQJQNwAxBMcAVbKBVc='
+    AAAAAAAAAAAAAAAAAAAAQAAAAAAAABBAAAAAAAAAGEAAAAAAAAAgQAAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA=
+    eJxjYEABDhBKAEpLQGkFKK0CpTWgtA6UNoDSRg4AZlQDYw==
+    AAAAAAAAAEAAAIBAAADAQAAAAEEAACBBAABAQQAAYEEAAIBBAACQQQ==
+    eJxjYAADBwaGBiA+AMQMjgwMCkDsAMQJQNwAxBMcAVbKBVc=
 
 Note how encoding the data with 64 bit precision results in an output string of
 length :math:`108` characters that is about twice as long compared to encoding the data
@@ -191,15 +187,14 @@ original input data exactly:
 
     c = oms.NumpressConfig()
     c.np_compression = oms.MSNumpressCoder.NumpressCompression.LINEAR
-    res = oms.String()
-    oms.MSNumpressCoder().encodeNP(data, res, False, c)
+    res = oms.MSNumpressCoder().encodeNP(data, False, c)
     print(res)
 
     oms.MSNumpressCoder().decodeNP(res, r, False, c)
     print(r)
 
     c.np_compression = oms.MSNumpressCoder.NumpressCompression.PIC
-    oms.MSNumpressCoder().encodeNP(data, res, False, c)
+    res = oms.MSNumpressCoder().encodeNP(data, False, c)
     print(res)
 
     oms.MSNumpressCoder().decodeNP(res, r, False, c)
@@ -208,9 +203,9 @@ original input data exactly:
 .. code-block:: output
 
     [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.00000001]
-    b'Qc////+AAAAAAAAA/v//f4iIiIew'
+    Qc////+AAAAAAAAA/v//f4iIiIew
     [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.00000001024455]
-    b'hydHZ4enx+YBYhA='
+    hydHZ4enx+YBYhA=
     [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0]
 
 Note how the lossy numpress compression leads to even shorter data, with 16

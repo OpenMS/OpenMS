@@ -27,6 +27,7 @@
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 #include <fstream>
 
@@ -437,7 +438,7 @@ START_SECTION(([EXTRA] Transaction removes a partially written collection unless
   // then, and a directory holding quantms.feature.parquet but no quantms.psm.parquet reads as a
   // complete export of a smaller dataset. Transaction is what makes the collection
   // all-or-nothing.
-  const std::string dir = File::getTempDirectory() + "/" + File::getUniqueName() + "_qpx_txn";
+  const std::string dir = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_qpx_txn";
   TEST_TRUE(File::makeDir(dir))
 
   const std::vector<std::string> files{dir + "/quantms.feature.parquet",
