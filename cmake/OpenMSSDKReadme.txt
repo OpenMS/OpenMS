@@ -42,9 +42,7 @@ the OpenMS sources under src/tests/external.
 Requirements of your project
 ----------------------------
 
-  * Boost headers, version @BOOST_VERSION@ or newer (the version this SDK was built
-    against; find_package(OpenMS) requires at least that): public OpenMS headers
-    include Boost. No compiled Boost library is needed.
+  * @BOOST_REQUIREMENT@
   * No Qt: the SDK holds the core and CLI layers, which do not use it. The GUI
     library (OpenMS::OpenMS_GUI) is not part of the SDK; build OpenMS from source
     if you need it.

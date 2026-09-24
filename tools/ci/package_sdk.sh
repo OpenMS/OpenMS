@@ -25,7 +25,7 @@
 # src/tests/external is configured against it through CMAKE_PREFIX_PATH (the way
 # the SDK README tells users to), built and its tests are run. The consumer gets
 # only the toolchain of the OpenMS build (compiler, vcpkg), which is how it
-# obtains the Boost headers the OpenMS package requires.
+# obtains the Boost headers when the OpenMS package requires them.
 set -euo pipefail
 
 if [[ $# -ne 3 ]]; then
@@ -173,13 +173,26 @@ env -u LD_LIBRARY_PATH -u DYLD_LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH \
   cmake "-DLIB_DIR=$(cmake_path "$stage/$lib_dir")" "-DROOTS=$(IFS=';'; echo "${roots[*]}")" \
         -P "$(cmake_path "$source_dir/tools/ci/sdk_prune_dependencies.cmake")"
 
-# the README names what this SDK was built against
-boost_version=$(sed -n 's/^set(_openms_boost_version "\(.*\)")$/\1/p' "$stage/$cmake_dir/OpenMSConfig.cmake")
-# OpenMSConfig.cmake falls back to this minimum when the build recorded no version
-boost_version=${boost_version:-1.81.0}
-sed -e "s/@BOOST_VERSION@/$boost_version/" \
-    -e "s/@OPENMS_VERSION_MAJOR_MINOR@/${version%.*}/" \
-    "$source_dir/cmake/OpenMSSDKReadme.txt" > "$stage/README.txt"
+# The README names what a consumer needs, read off the installed package file:
+# while the public headers include Boost, OpenMSConfig.cmake records the Boost
+# version the build used in _openms_boost_version (falling back to 1.81.0 when the
+# build recorded none) and requires it from the consumer; once Boost is a private
+# dependency of the shared library, the file has no such entry and a consumer
+# needs no Boost development files at all.
+config_file="$stage/$cmake_dir/OpenMSConfig.cmake"
+if grep -q '^set(_openms_boost_version ' "$config_file"; then
+  boost_version=$(sed -n 's/^set(_openms_boost_version "\(.*\)")$/\1/p' "$config_file")
+  boost_requirement="Boost headers, version ${boost_version:-1.81.0} or newer (the version this SDK was built
+    against; find_package(OpenMS) requires at least that): public OpenMS headers
+    include Boost. No compiled Boost library is needed."
+else
+  boost_requirement="No Boost: the OpenMS headers do not include it, and find_package(OpenMS)
+    does not look for it."
+fi
+awk -v requirement="$boost_requirement" -v major_minor="${version%.*}" '
+  index($0, "@BOOST_REQUIREMENT@") { sub(/@BOOST_REQUIREMENT@/, requirement) }
+  { gsub(/@OPENMS_VERSION_MAJOR_MINOR@/, major_minor); print }
+' "$source_dir/cmake/OpenMSSDKReadme.txt" > "$stage/README.txt"
 cp "$source_dir/License.txt" "$stage/License.txt"
 
 #------------------------------------------------------------------------------
