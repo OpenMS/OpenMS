@@ -726,6 +726,10 @@ OpenMS Library:
 
 Fixes:
   Chemistry and identifications:
+    - MzIdentMLFile: search engine scores without a score order in the PSI-MS vocabulary take
+      it from OpenMS' score registry, so Comet:expectation value, percolator:Q value and
+      percolator:PEP are read as lower-is-better. Such lower-is-better engine scores no longer
+      take precedence over a PSM-level q-value (#8691).
     - Fixed signed/stacked unknown mass shifts, precision-aware mass matching and spurious
       zero-mass PSI-MOD assignments. Distinct modified residues remain distinct and
       mass/formula round-trips no longer silently change peptidoforms (#10006, #10007,

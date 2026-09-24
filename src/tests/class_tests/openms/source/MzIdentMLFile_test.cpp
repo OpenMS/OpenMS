@@ -775,6 +775,46 @@ START_SECTION(([EXTRA] store and load a PeptideHit with an empty sequence))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] score selection with Comet:expectation value and PSM-level q-value))
+{
+  // Comet:expectation value (MS:1002257) is lower-is-better and must not displace a PSM-level q-value.
+  // Every result holds a better (PEPTIDER) and a worse (PEPTIDERR) hit.
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_comet_scores.mzid"), protein_ids, peptide_ids);
+  TEST_EQUAL(peptide_ids.size(), 5)
+  ABORT_IF(peptide_ids.size() != 5)
+
+  struct Expected
+  {
+    std::string score_type;
+    bool higher_better;
+    double best_score;
+  };
+  const std::vector<Expected> expected{
+    {"q-value", false, 0.0001},                // expectation value and q-value
+    {"q-value", false, 0.0001},                // the same, q-value listed first
+    {"Comet:expectation value", false, 1e-05}, // expectation value only
+    {"q-value", false, 0.0001},                // q-value only
+    {"Comet:xcorr", true, 3.5}                 // xcorr, expectation value and q-value: the raw score is used
+  };
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    PeptideIdentification& pid = peptide_ids[i];
+    pid.sort();
+    TEST_STRING_EQUAL(pid.getScoreType(), expected[i].score_type)
+    TEST_EQUAL(pid.isHigherScoreBetter(), expected[i].higher_better)
+    TEST_EQUAL(pid.getHits().size(), 2)
+    if (pid.getHits().empty()) continue;
+    TEST_STRING_EQUAL(pid.getHits()[0].getSequence().toString(), "PEPTIDER")
+    TEST_REAL_SIMILAR(pid.getHits()[0].getScore(), expected[i].best_score)
+  }
+
+  // the expectation value stays available when the q-value is used
+  TEST_REAL_SIMILAR(double(peptide_ids[0].getHits()[0].getMetaValue("MS:1002257")), 1e-05)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
