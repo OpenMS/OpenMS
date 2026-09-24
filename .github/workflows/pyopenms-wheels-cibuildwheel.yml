@@ -30,13 +30,6 @@ on:
   pull_request:
     branches: [develop]
 
-env:
-  # WNet alignment (WITH_WNETALIGN) is left out of pull request builds, as in the Build and Test
-  # workflow; the wheels this workflow publishes (nightly, tags, manual runs) keep its bindings
-  # (WNetMatcher, FeatureGroupingAlgorithmWNet). Substituted into the OpenMS configure commands
-  # below, including the ones that run in docker.
-  WITH_WNETALIGN: ${{ github.event_name == 'pull_request' && 'OFF' || 'ON' }}
-
 jobs:
   #----------------------------------------------------------------------------
   # Setup job to read Python versions and calculate package version
@@ -200,7 +193,7 @@ jobs:
                 -DBUILD_TOPP_TOOLS=OFF \
                 -DINSTALL_OPENMS_EXAMPLES=OFF \
                 -DWITH_THERMO_RAW=ON \
-                -DWITH_WNETALIGN=${{ env.WITH_WNETALIGN }} \
+                -DWITH_WNETALIGN=OFF \
                 $THERMO_MANAGED_OPT \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
@@ -322,7 +315,7 @@ jobs:
                 -DBUILD_TOPP_TOOLS=OFF \
                 -DINSTALL_OPENMS_EXAMPLES=OFF \
                 -DWITH_THERMO_RAW=ON \
-                -DWITH_WNETALIGN=${{ env.WITH_WNETALIGN }} \
+                -DWITH_WNETALIGN=OFF \
                 $THERMO_MANAGED_OPT \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
@@ -449,7 +442,7 @@ jobs:
             -DBUILD_TOPP_TOOLS=OFF \
             -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DWITH_THERMO_RAW=ON \
-            -DWITH_WNETALIGN=${{ env.WITH_WNETALIGN }} \
+            -DWITH_WNETALIGN=OFF \
             $THERMO_MANAGED_OPT \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
@@ -590,7 +583,7 @@ jobs:
             -DBUILD_TOPP_TOOLS=OFF \
             -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DWITH_THERMO_RAW=ON \
-            -DWITH_WNETALIGN=${{ env.WITH_WNETALIGN }} \
+            -DWITH_WNETALIGN=OFF \
             $THERMO_MANAGED_OPT \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF
