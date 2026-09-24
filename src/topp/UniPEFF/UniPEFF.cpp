@@ -413,6 +413,11 @@ namespace
     std::string sequence;   ///< canonical sequence with the referenced splice variants applied
   };
 
+  /// Isoforms without a reconstructable sequence ("external": stored as its own
+  /// UniProt entry; "not described": sequence unknown), counted per sequence type
+  /// so the run reports them in one summary line instead of one line per isoform.
+  using SkippedIsoformCounts = std::map<std::string, size_t>;
+
   /// Split a UniProt @c ref attribute ("VSP_1 VSP_2") on whitespace.
   std::vector<std::string> splitRefs(const std::string& ref)
   {
@@ -1181,10 +1186,12 @@ namespace
   };
 
   /// Prepare one entry: classify features, merge halfcys, (Option B) stamp IDs,
-  /// and reconstruct the emittable isoform sequences.
+  /// and reconstruct the emittable isoform sequences ("external" / "not described"
+  /// isoforms are counted in @p skipped_isoforms).
   PreparedEntry prepareEntry(UniProtEntry&& e, const PtmMap& ptms, const std::string& prefix_override,
                              bool option_b, bool record_processing, bool record_aa_mods,
-                             bool record_variants, bool record_isoforms)
+                             bool record_variants, bool record_isoforms,
+                             SkippedIsoformCounts& skipped_isoforms)
   {
     PreparedEntry pe;
     pe.source = std::move(e);
@@ -1218,9 +1225,11 @@ namespace
         if (iso.sequence_type != "described")
         {
           // "external" (sequence lives in another entry) / "not described": nothing to reconstruct.
-          OPENMS_LOG_INFO << "UniPEFF: " << pe.source.accession << " isoform "
-                          << (iso.id.empty() ? std::string("<no id>") : iso.id)
-                          << " has sequence type '" << iso.sequence_type << "'; not emitted.\n";
+          // Counted for the end-of-run summary; the per-isoform detail is debug output.
+          ++skipped_isoforms[iso.sequence_type];
+          OPENMS_LOG_DEBUG << "UniPEFF: " << pe.source.accession << " isoform "
+                           << (iso.id.empty() ? std::string("<no id>") : iso.id)
+                           << " has sequence type '" << iso.sequence_type << "'; not emitted.\n";
           continue;
         }
         if (iso.id.empty())
@@ -1382,6 +1391,7 @@ protected:
     size_t skipped_no_accession = 0;
     size_t skipped_no_sequence = 0;
     size_t isoforms_written = 0;
+    SkippedIsoformCounts skipped_isoforms;
 
     auto cleanup_spools = [&]() {
       for (auto& [_, s] : spools)
@@ -1410,7 +1420,7 @@ protected:
         }
         PreparedEntry pe = prepareEntry(std::move(entry), ptms, prefix_override, option_b,
                                         record_processing, record_aa_mods, record_variants,
-                                        record_isoforms);
+                                        record_isoforms, skipped_isoforms);
         auto it = spools.find(pe.prefix);
         if (it == spools.end())
         {
@@ -1464,6 +1474,19 @@ protected:
     {
       OPENMS_LOG_INFO << "UniPEFF: wrote " << isoforms_written
                       << " isoform entries reconstructed from alternative products.\n";
+    }
+    if (!skipped_isoforms.empty())
+    {
+      size_t skipped_total = 0;
+      std::string by_type;
+      for (const auto& [type, n] : skipped_isoforms)
+      {
+        skipped_total += n;
+        if (!by_type.empty()) by_type += ", ";
+        by_type += std::to_string(n) + " '" + type + "'";
+      }
+      OPENMS_LOG_INFO << "UniPEFF: " << skipped_total << " isoform(s) without a reconstructable sequence were not emitted ("
+                      << by_type << ").\n";
     }
     if (writable == 0)
     {

@@ -202,7 +202,8 @@ namespace OpenMS::Internal
 
     if (entry_depth_ == 0) return;  // outside any <entry>
 
-    // <comment type="alternative products"> -> skip whole subtree
+    // <comment type="alternative products">: open the gate; the branch at the top of this
+    // function harvests its <isoform> definitions and ignores everything else inside it.
     if (tag == "comment" && attrValue(attrs, "type") == "alternative products")
     {
       alt_products_depth_ = depth_;

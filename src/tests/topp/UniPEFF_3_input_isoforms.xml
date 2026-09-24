@@ -10,7 +10,7 @@
                                       (applied C- to N-terminal; also tests
                                       first-<name> capture with a synonym)
        P77777-4  ref=VSP_D            single-position 40 V->VPRACK       -> 45 aa
-     Skipped isoforms (each must produce a log line, never an entry):
+     Skipped isoforms (never emitted as an entry):
        P77777-1  displayed (identical to the canonical entry)
        P77777-5  sequence type "not described"
        P77777-6  dangling ref VSP_MISSING
