@@ -810,6 +810,17 @@ if (WITH_THERMO_RAW)
     message(STATUS "openms-thermo-bridge: system installation not found, fetching from git")
     include(FetchContent)
 
+    # Leave the bridge's own install() rules out of every OpenMS install and package.
+    # They would add its headers, its CMake package, the .pdb and a second copy of
+    # the managed assemblies under lib/, none of which OpenMS needs: the headers are
+    # private to ThermoRawFile.cpp, install_library() below installs the library and
+    # exports it with OpenMS, and the managed assemblies are installed into share/
+    # further down. FetchContent_Declare() takes EXCLUDE_FROM_ALL from CMake 3.28 on;
+    # the library itself is still built because libOpenMS links it.
+    set(_openms_thermo_bridge_fetch_options)
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.28)
+      set(_openms_thermo_bridge_fetch_options EXCLUDE_FROM_ALL)
+    endif()
     FetchContent_Declare(
       OpenMSThermoBridge
       GIT_REPOSITORY https://github.com/OpenMS/openms-thermo-bridge.git
@@ -817,7 +828,9 @@ if (WITH_THERMO_RAW)
       # This is the commit the v0.3.0 release tag points at; tools/ci/fetch_thermo_assets.sh
       # checks that its own pin matches and downloads the v0.3.0 release assets.
       GIT_TAG        2c66c9260ad78f499527c7d1c85a920afab9aa2d  # v0.3.0
+      ${_openms_thermo_bridge_fetch_options}
     )
+    unset(_openms_thermo_bridge_fetch_options)
 
     # Configure the thermo bridge build options
     set(OPENMS_THERMO_BRIDGE_BUILD_CLI         OFF CACHE BOOL "" FORCE)
@@ -836,7 +849,8 @@ if (WITH_THERMO_RAW)
     # the CMake export set so downstream consumers resolve it via RPATH.
     set(_openms_saved_build_testing ${BUILD_TESTING})
     set(BUILD_TESTING OFF)
-    # The sub-project's install() calls have no COMPONENT, so CMake defaults them
+    # Before CMake 3.28 the sub-project's install() calls still run (see
+    # EXCLUDE_FROM_ALL above). They have no COMPONENT, so CMake defaults them
     # to "Unspecified". On macOS, that creates an unsigned dylib in Unspecified.pkg
     # that fails Apple notarization. Route them to "library" instead — the same
     # component used by install_library() below — so the existing signing step

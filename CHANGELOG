@@ -1024,6 +1024,20 @@ Build System:
     installed now; the parser's own Mono.Unix.dll.config maps the library to linux-x64,
     osx-x64 and osx-arm64 and to nothing else, so the others could never be loaded
     (#10202, #10207, #10211).
+  - Debian package clean-up (#10230). Libraries no longer carry empty RUNPATH entries,
+    which the dynamic loader reads as the current working directory: the release
+    workflow links under PACKAGE_TYPE=none, whose install RPATH also names the build
+    tree's vcpkg directory, and packages after reconfiguring, so CMake kept most of the
+    ':' padding of the longer build-tree RPATH. libOpenSwathAlgo (and on arm64 the
+    Thermo bridge) shipped with $ORIGIN/../lib/ and about 90 empty entries; CPack now
+    removes them before building the package. The arm64 package, which builds the
+    Thermo bridge from source, no longer ships the bridge's headers, CMake package,
+    .pdb and a second copy of its managed assemblies under lib/: the bridge's own
+    install rules are left out (EXCLUDE_FROM_ALL, CMake 3.28+), as on amd64. Depends is
+    now exactly what dpkg-shlibdeps derives. The hand-written entries had gone stale:
+    the Qt ones are derived anyway, and the derived plain t64 names made their
+    "t64 | non-t64" alternatives unenforceable; nothing links yaml-cpp dynamically; and
+    SQLite ships inside the package, so libsqlite3-0 was never used.
   - The container image build failed on every nightly run once WITH_THERMO_RAW defaulted
     to ON on Linux aarch64 (#10206): the Dockerfile still installed the .NET SDK/runtime
     that openms-thermo-bridge needs only for amd64, so the arm64 build could not find
