@@ -831,6 +831,11 @@ Fixes:
       columns. SampleSection::getFactorValue throws MissingInformation for a row without a value
       for the factor instead of reading past its end (#10148).
   Robustness:
+    - mzIdentML writer: the "unknown modification" cvParam (MS:1001460) referenced the undeclared
+      controlled vocabulary "MS", although the document declares only "PSI-MS". The writer names
+      every other cvParam PSI-MS; this one now does too, so files with an unrecognized
+      modification validate against strict readers that check cvRef against the declared
+      vocabularies.
     - NuXLDeisotoper (a copy of Deisotoper::deisotopeAndSingleCharge) applies the two precursor mass
       fixes already made to Deisotoper: a precursor with unknown charge (0) no longer enables the
       mass constraint with a neutral mass of 0, which rejected every fragment cluster, and neutral
