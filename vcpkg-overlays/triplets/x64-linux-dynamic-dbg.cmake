@@ -11,9 +11,11 @@ set(VCPKG_FIXUP_ELF_RPATH ON)
 
 # vcpkg's openblas port otherwise lets OpenBLAS choose its kernels for the CPU of the
 # build machine, and the binary cache passes that build on to later builds and to the
-# packages. Build for a fixed target instead: HASWELL (AVX2). That also keeps clang
-# debug builds working on AVX-512 machines, where OpenBLAS's AVX-512 SGEMM kernel
-# does not compile without optimization.
+# packages. Build for a fixed target instead: CORE2 (SSSE3), the x86_64 baseline OpenMS
+# itself is compiled for (-mssse3), so the packages run on every CPU OpenMS supports.
+# OpenMS calls BLAS only through COIN-OR's LAPACK, so faster kernels would gain it
+# little. The fixed target also keeps clang debug builds working on AVX-512 machines,
+# where OpenBLAS's AVX-512 SGEMM kernel does not compile without optimization.
 if(PORT STREQUAL "openblas")
-    list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS "-DTARGET=HASWELL")
+    list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS "-DTARGET=CORE2")
 endif()
