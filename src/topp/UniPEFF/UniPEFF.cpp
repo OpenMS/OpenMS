@@ -47,6 +47,11 @@ the main modified-residue list in position-sorted order; in Option B
 (@c -AnnotationIdentifiers) the resulting half-cystines are referenced by
 annotation id from <code>\\DisulfideBond=(id1,id2)</code>.
 
+Features whose <code>\<location sequence="..."\></code> names another isoform
+carry coordinates of that isoform, not of the entry's canonical sequence. They
+are not applied to the canonical entry; their number is reported in a summary
+log line (per-feature details with @c -debug 1).
+
 Modification accession lookup uses UniProt's <em>ptmlist.txt</em> (a snapshot
 is bundled under @c share/OpenMS/CHEMISTRY/UniProt_ptmlist.txt); override
 with @c -ptmlist. Canonical OBO names come from <em>PSI-MOD.obo</em> (bundled)
@@ -801,6 +806,27 @@ namespace
     return m.name;  // UniProt PTM ID
   }
 
+  /// A feature with &lt;location sequence="..."&gt; is annotated on another isoform:
+  /// its coordinates do not refer to the entry's canonical sequence.
+  bool isIsoformScoped(const UniProtFeature& f)
+  {
+    return !f.location_sequence.empty();
+  }
+
+  /// Counts isoform-scoped features that were not applied to canonical entries.
+  struct IsoformScopedTracker
+  {
+    size_t total{0};
+    size_t entries{0};
+
+    void add(const UniProtEntry& e)
+    {
+      const auto n = static_cast<size_t>(std::count_if(e.features.begin(), e.features.end(), isIsoformScoped));
+      total += n;
+      if (n > 0) ++entries;
+    }
+  };
+
   /// Write the descriptor + sequence for one entry. OBO-name fallbacks taken during
   /// emission are accumulated into @p tracker so the final report can distinguish
   /// "N occurrences across M distinct accessions".
@@ -1049,6 +1075,12 @@ namespace
 
     for (const auto& f : pe.source.features)
     {
+      if (isIsoformScoped(f))
+      {
+        OPENMS_LOG_DEBUG << "UniPEFF: " << pe.source.accession << " " << f.type << " '" << f.description
+                         << "' is annotated on isoform " << f.location_sequence << "; not applied to the canonical entry.\n";
+        continue;
+      }
       classifyAndAppend(f, ptms, pe.annotations, record_processing, record_aa_mods,
                         record_variants, pe.source.accession);
     }
@@ -1210,6 +1242,7 @@ protected:
     bool spool_open_failed = false;
     std::string spool_open_failed_path;
     OboFallbackTracker fallback_tracker;
+    IsoformScopedTracker isoform_scoped_tracker;
     {
       UniProtXMLFile xml;
       xml.loadStreaming(in_file, [&](UniProtEntry&& entry) {
@@ -1244,6 +1277,7 @@ protected:
           it = spools.emplace(pe.prefix, std::move(s)).first;
           prefixes.push_back(pe.prefix);
         }
+        isoform_scoped_tracker.add(pe.source);
         writePeffEntry(it->second.out, pe.source, pe.annotations, pe.prefix, option_b,
                        psi_obo, unimod_obo, fallback_tracker,
                        record_processing, record_aa_mods, record_variants);
@@ -1321,6 +1355,12 @@ protected:
                       << fallback_tracker.distinct.size() << " distinct accession(s) fell back to UniProt ptmlist IDs "
                          "(no OBO 'name:' entry found). Provide an updated -psimod_obo / -unimod_obo for strict PEFF "
                          "conformance." << std::endl;
+    }
+    if (isoform_scoped_tracker.total > 0)
+    {
+      OPENMS_LOG_INFO << "UniPEFF: " << isoform_scoped_tracker.total << " feature(s) annotated on other "
+                         "isoforms (location/@sequence) were not applied to canonical entries ("
+                      << isoform_scoped_tracker.entries << " entries affected).\n";
     }
     return EXECUTION_OK;
   }

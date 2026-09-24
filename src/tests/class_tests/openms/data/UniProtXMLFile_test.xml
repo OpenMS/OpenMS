@@ -42,7 +42,7 @@
       </location>
     </feature>
     <feature type="modified residue" description="Phosphoserine">
-      <location>
+      <location sequence="P00001-2">
         <position position="20"/>
       </location>
     </feature>

@@ -35,6 +35,7 @@ namespace OpenMS
     int  end{0};               ///< 1-based range end   (0 = unknown / absent)
     std::string original;      ///< &lt;original&gt; text (sequence variant)
     std::string variation;     ///< &lt;variation&gt; text (sequence variant; first occurrence only)
+    std::string location_sequence; ///< &lt;location sequence="..."&gt;: accession of the isoform the coordinates refer to; empty = the entry's canonical sequence
   };
 
   /**

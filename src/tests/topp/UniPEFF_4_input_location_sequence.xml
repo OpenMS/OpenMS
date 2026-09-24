@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- UniPEFF fixture for isoform-scoped features. A <location sequence="..."> names
+     another isoform: its coordinates do not refer to the entry's canonical sequence,
+     so such features must NOT be written as canonical PEFF annotations. Each entry
+     mixes them with ordinary features that must still be emitted. -->
+<uniprot>
+  <entry dataset="Swiss-Prot" version="7">
+    <accession>P11111</accession>
+    <name>ISOSC_HUMAN</name>
+    <protein>
+      <recommendedName>
+        <fullName>Isoform-scoped feature test protein</fullName>
+      </recommendedName>
+    </protein>
+    <gene>
+      <name type="primary">ISOSC</name>
+    </gene>
+    <organism>
+      <name type="scientific">Homo sapiens</name>
+      <dbReference type="NCBI Taxonomy" id="9606"/>
+    </organism>
+    <proteinExistence type="evidence at protein level"/>
+    <feature type="initiator methionine" description="Removed">
+      <location>
+        <position position="1"/>
+      </location>
+    </feature>
+    <feature type="chain" description="Isoform-scoped feature test protein">
+      <location>
+        <begin position="2"/>
+        <end position="40"/>
+      </location>
+    </feature>
+    <!-- Canonical: residue 22 is S. -->
+    <feature type="modified residue" description="Phosphoserine">
+      <location>
+        <position position="22"/>
+      </location>
+    </feature>
+    <!-- Isoform-scoped: canonical residue 20 is D, not S. -->
+    <feature type="modified residue" description="Phosphoserine">
+      <location sequence="P11111-2">
+        <position position="20"/>
+      </location>
+    </feature>
+    <!-- Isoform-scoped: position 52 lies past the 40-residue canonical sequence. -->
+    <feature type="modified residue" description="Phosphothreonine">
+      <location sequence="P11111-3">
+        <position position="52"/>
+      </location>
+    </feature>
+    <feature type="disulfide bond" description="Interchain">
+      <location>
+        <begin position="6"/>
+        <end position="18"/>
+      </location>
+    </feature>
+    <!-- Canonical: residue 25 is A. -->
+    <feature type="sequence variant" description="In dbSNP.">
+      <original>A</original>
+      <variation>V</variation>
+      <location>
+        <position position="25"/>
+      </location>
+    </feature>
+    <!-- Isoform-scoped: canonical residue 28 is A, not S. -->
+    <feature type="sequence variant" description="In dbSNP.">
+      <original>S</original>
+      <variation>L</variation>
+      <location sequence="P11111-2">
+        <position position="28"/>
+      </location>
+    </feature>
+    <!-- Isoform-scoped range variant. -->
+    <feature type="sequence variant" description="In dbSNP.">
+      <original>KL</original>
+      <variation>E</variation>
+      <location sequence="P11111-3">
+        <begin position="44"/>
+        <end position="45"/>
+      </location>
+    </feature>
+    <sequence length="40" mass="4600" version="2">MSEQNCEMTFQIQRIYNCKDISFEAPNAPCKLTPEYASGW</sequence>
+  </entry>
+  <!-- Only an isoform-scoped feature: the canonical entry carries no annotations. -->
+  <entry dataset="Swiss-Prot" version="3">
+    <accession>P22222</accession>
+    <name>ISOSD_HUMAN</name>
+    <protein>
+      <recommendedName>
+        <fullName>Isoform-scoped only test protein</fullName>
+      </recommendedName>
+    </protein>
+    <organism>
+      <name type="scientific">Homo sapiens</name>
+      <dbReference type="NCBI Taxonomy" id="9606"/>
+    </organism>
+    <proteinExistence type="evidence at transcript level"/>
+    <feature type="modified residue" description="Phosphoserine">
+      <location sequence="P22222-2">
+        <position position="3"/>
+      </location>
+    </feature>
+    <sequence length="10" mass="1100" version="1">MKLDLDTASS</sequence>
+  </entry>
+</uniprot>
