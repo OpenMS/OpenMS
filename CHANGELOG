@@ -1030,10 +1030,11 @@ Build System:
     tree's vcpkg directory, and packages after reconfiguring, so CMake kept most of the
     ':' padding of the longer build-tree RPATH. libOpenSwathAlgo (and on arm64 the
     Thermo bridge) shipped with $ORIGIN/../lib/ and about 90 empty entries; CPack now
-    removes them before building the package. The arm64 package, which builds the
-    Thermo bridge from source, no longer ships the bridge's headers, CMake package,
-    .pdb and a second copy of its managed assemblies under lib/: the bridge's own
-    install rules are left out (EXCLUDE_FROM_ALL, CMake 3.28+), as on amd64. Depends is
+    removes them before building the package. The arm64 build takes the Thermo bridge
+    from vcpkg, as every other platform does: vcpkg.json still left it out on
+    linux & arm64 from when Thermo RAW reading was off there (#10206 turned it on), so
+    the arm64 build fetched and built the bridge itself and packaged the bridge's
+    headers, CMake package, .pdb and a second copy of its managed assemblies. Depends is
     now exactly what dpkg-shlibdeps derives. The hand-written entries had gone stale:
     the Qt ones are derived anyway, and the derived plain t64 names made their
     "t64 | non-t64" alternatives unenforceable; nothing links yaml-cpp dynamically; and

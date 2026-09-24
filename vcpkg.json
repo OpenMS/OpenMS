@@ -141,8 +141,7 @@
       "description": "Enable native reading of Thermo Fisher RAW files via the openms-thermo-bridge C++/.NET library via -DWITH_THERMO_RAW=ON.",
       "dependencies": [
         {
-          "name": "openms-thermo-bridge",
-          "platform": "!(linux & arm64)"
+          "name": "openms-thermo-bridge"
         }
       ]
     },
