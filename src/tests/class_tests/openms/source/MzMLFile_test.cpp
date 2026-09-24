@@ -1240,6 +1240,11 @@ START_SECTION(bool isSemanticallyValid(const std::string& filename, StringList& 
   TEST_EQUAL(errors.size(), 0)
   TEST_EQUAL(warnings.size(), 0)
 
+  //value of a term whose value type is a list (MS:1003820 coordinate spacing model: list of doubles)
+  TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_list_value.mzML"), errors, warnings),true)
+  TEST_EQUAL(errors.size(), 0)
+  TEST_EQUAL(warnings.size(), 0)
+
   //invalid file
   TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_3_invalid.mzML"), errors, warnings),false)
   TEST_EQUAL(errors.size(), 8)
