@@ -160,6 +160,7 @@ jobs:
             -w /project \
             ghcr.io/openms/contrib_manylinux_2_34:latest-amd64 \
             bash -c '
+              set -e
               # The bind-mounted workspace is owned by another user, so without this git
               # exits 128 and the wheels carry a placeholder version instead of the commit.
               git config --global --add safe.directory /project
@@ -171,7 +172,21 @@ jobs:
               # rhel.9-x64 RID that the bridge does not search (see
               # tools/ci/install_dotnet_sdk_linux.sh). libicu is the only dependency
               # the SDK needs.
-              yum install -y cmake ninja-build libcurl-devel libicu
+              # A mirror can 404 on repodata it has not synced yet (seen for the
+              # AlmaLinux AppStream aarch64 metadata); retry with a metadata
+              # refresh instead of failing the whole build on one stale mirror.
+              for attempt in 1 2 3 4 5; do
+                if yum install -y cmake ninja-build libcurl-devel libicu; then
+                  break
+                fi
+                if [ "$attempt" -eq 5 ]; then
+                  echo yum install failed after 5 attempts >&2
+                  exit 1
+                fi
+                echo yum install failed, attempt $attempt of 5, retrying after metadata refresh >&2
+                yum clean metadata
+                sleep $((attempt * 10))
+              done
               bash tools/ci/install_dotnet_sdk_linux.sh /usr/share/dotnet
               export DOTNET_ROOT=/usr/share/dotnet
               export PATH="$DOTNET_ROOT:$PATH"
@@ -222,8 +237,14 @@ jobs:
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-x64 }}
           CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
-          # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file
-          CIBW_BEFORE_ALL: yum install -y libcurl-devel dotnet-runtime-8.0
+          # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file.
+          # Retried: a yum mirror can 404 on repodata it has not synced yet.
+          CIBW_BEFORE_ALL: >-
+            for attempt in 1 2 3 4 5; do
+            if yum install -y libcurl-devel dotnet-runtime-8.0; then break; fi;
+            if [ "$attempt" -eq 5 ]; then echo yum install failed after 5 attempts >&2; exit 1; fi;
+            echo yum install failed, attempt $attempt of 5, retrying after metadata refresh >&2;
+            yum clean metadata; sleep $((attempt * 10)); done
           # Use install directory with stripped libraries.
           # PYOPENMS_THERMO_RAW_TEST_FILE enables the Thermo RAW tests in the wheel test suite.
           CIBW_ENVIRONMENT: >-
@@ -282,6 +303,7 @@ jobs:
             -w /project \
             ghcr.io/openms/contrib_manylinux_2_34:latest-arm64 \
             bash -c '
+              set -e
               # The bind-mounted workspace is owned by another user, so without this git
               # exits 128 and the wheels carry a placeholder version instead of the commit.
               git config --global --add safe.directory /project
@@ -292,7 +314,22 @@ jobs:
               # Keep apostrophes out of this block: it is the body of a
               # single-quoted docker run ... bash -c argument, and one would
               # end that string early and silently truncate the script.
-              yum install -y cmake ninja-build libcurl-devel libicu
+              # A mirror can 404 on repodata it has not synced yet (this is what
+              # broke this job on 2026-09-24: every AlmaLinux mirror returned 404
+              # for the aarch64 AppStream repodata); retry with a metadata
+              # refresh instead of failing the whole build on one stale mirror.
+              for attempt in 1 2 3 4 5; do
+                if yum install -y cmake ninja-build libcurl-devel libicu; then
+                  break
+                fi
+                if [ "$attempt" -eq 5 ]; then
+                  echo yum install failed after 5 attempts >&2
+                  exit 1
+                fi
+                echo yum install failed, attempt $attempt of 5, retrying after metadata refresh >&2
+                yum clean metadata
+                sleep $((attempt * 10))
+              done
               bash tools/ci/install_dotnet_sdk_linux.sh /usr/share/dotnet
               export DOTNET_ROOT=/usr/share/dotnet
               export PATH="$DOTNET_ROOT:$PATH"
@@ -343,8 +380,14 @@ jobs:
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-arm64 }}
           CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
-          # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file
-          CIBW_BEFORE_ALL: yum install -y libcurl-devel dotnet-runtime-8.0
+          # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file.
+          # Retried: a yum mirror can 404 on repodata it has not synced yet.
+          CIBW_BEFORE_ALL: >-
+            for attempt in 1 2 3 4 5; do
+            if yum install -y libcurl-devel dotnet-runtime-8.0; then break; fi;
+            if [ "$attempt" -eq 5 ]; then echo yum install failed after 5 attempts >&2; exit 1; fi;
+            echo yum install failed, attempt $attempt of 5, retrying after metadata refresh >&2;
+            yum clean metadata; sleep $((attempt * 10)); done
           # Use install directory with stripped libraries.
           # PYOPENMS_THERMO_RAW_TEST_FILE enables the Thermo RAW tests in the wheel test suite.
           CIBW_ENVIRONMENT: >-
