@@ -8,7 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include "OpenSwathPercolatorScoring.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>

@@ -81,7 +81,7 @@ OpenMS/
 
 **Optional:** HDF5 (`-DWITH_HDF5=ON`); Bruker TimsTOF `.d` directory support via opentims (`-DWITH_OPENTIMS=ON`, default on; set `-DENABLE_OPENTIMS_TESTS=ON` to also fetch and run integration tests); Thermo RAW file reading via openms-thermo-bridge (`-DWITH_THERMO_RAW=ON`, default on except on Linux/aarch64; requires .NET 8+ runtime at run time; set `-DENABLE_THERMO_RAW_TESTS=ON` to download test data and run integration tests)
 
-**Enabled by default (fetched via FetchContent; requires network or `FETCHCONTENT_SOURCE_DIR_*` override):** WNetAlign/WNet/PyLMCF for `FeatureLinkerWNet` (`-DWITH_WNETALIGN=OFF` to disable)
+**Disabled by default (fetched via FetchContent when enabled; requires network or `FETCHCONTENT_SOURCE_DIR_*` override):** WNetAlign/WNet/PyLMCF for `FeatureLinkerWNet` (`-DWITH_WNETALIGN=ON` to enable)
 
 **Always enabled:** Apache Arrow/Parquet (required dependency since 3.6)
 

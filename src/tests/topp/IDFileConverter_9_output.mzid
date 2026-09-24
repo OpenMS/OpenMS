@@ -40,7 +40,7 @@
  	<Peptide id="PEP_15050004366391181853" name="N[3899.350028191399815]PEPTIDEK">
 		<PeptideSequence>NPEPTIDEK</PeptideSequence>
 		<Modification location="1" residues="N" monoisotopicMassDelta="3785.307099999999991">
-			<cvParam cvRef="MS" accession="MS:1001460" name="unknown modification"/>
+			<cvParam cvRef="PSI-MS" accession="MS:1001460" name="unknown modification"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_16177748921272733768" name="PEPTIDERRRRR">
@@ -116,7 +116,7 @@
 		</AdditionalSearchParams>
 		<ModificationParams>
 			<SearchModification fixedMod="true" massDelta="3785.307099999999991" residues="N">
-				<cvParam cvRef="MS" accession="MS:1001460" name="unknown modification"/>
+				<cvParam cvRef="PSI-MS" accession="MS:1001460" name="unknown modification"/>
 			</SearchModification>
 		</ModificationParams>
 		<Enzymes independent="false">

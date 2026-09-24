@@ -9,9 +9,9 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include "OpenSwathMatrixExporter.h"
-#include "OpenSwathParquetExporter.h"
-#include "OpenSwathResultsExporter.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathMatrixExporter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathParquetExporter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathResultsExporter.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/SYSTEM/File.h>

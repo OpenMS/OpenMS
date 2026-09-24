@@ -52,7 +52,9 @@ public:
     /// Return pointer to a spectrum at the given id, the spectrum will be filtered by drift time
     SpectrumPtr getSpectrumById(int id, double drift_start, double drift_end );
 
-    /// Return a vector of ids of spectra that are within RT +/- deltaRT
+    /// Return a vector of ids of spectra that are within RT +/- deltaRT.
+    /// For deltaRT == 0, the first spectrum at or after RT is returned (spectra are
+    /// assumed to be stored in RT order); getMultipleSpectra relies on this behaviour.
     virtual std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const = 0;
     /// Returns the number of spectra available
     virtual size_t getNrSpectra() const = 0;
@@ -67,14 +69,27 @@ public:
     virtual std::string getChromatogramNativeID(int id) const = 0;
 
     /* @brief Fetches a spectrumSequence (multiple spectra pointers) closest to the given RT
+     *
+     * Returns the spectrum closest to @p RT plus up to @p nr_spectra_to_fetch / 2 neighbours
+     * on either side, in alternating order around the closest spectrum (the result is not
+     * sorted by RT). An odd @p nr_spectra_to_fetch yields at most that many spectra, an even
+     * value one more, and any value below 2 only the closest spectrum. If no spectrum lies
+     * at or after @p RT (e.g. @p RT is past the last spectrum), the sequence is empty.
+     *
      * @p RT = target RT
-     * @p nr_spectra_to_fetch = # spectra around target RT to fetch (length of the spectrum sequence)
+     * @p nr_spectra_to_fetch = # spectra around target RT to fetch (see above for the resulting sequence length)
     */
     SpectrumSequence getMultipleSpectra(double RT, int nr_spectra_to_fetch);
 
     /* @brief Fetches a spectrumSequence (multiple spectra pointers) closest to the given RT. Filters all spectra by specified @p drift_start and @p drift_end
+     *
+     * The returned sequence is built as described for the driftless overload above: the
+     * closest spectrum plus up to @p nr_spectra_to_fetch / 2 neighbours per side, in
+     * alternating order (an even value yields one spectrum more, any value below 2 only
+     * the closest spectrum); if no spectrum lies at or after @p RT, the sequence is empty.
+     *
      * @p RT = target RT
-     * @p nr_spectra_to_fetch = # spectra around target RT to fetch (length of the spectrum sequence)
+     * @p nr_spectra_to_fetch = # spectra around target RT to fetch (see above for the resulting sequence length)
     */
     SpectrumSequence getMultipleSpectra(double RT, int nr_spectra_to_fetch, double drift_start, double drift_end);
 

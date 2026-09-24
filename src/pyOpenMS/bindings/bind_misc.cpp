@@ -876,7 +876,7 @@ algorithm. For feature-level grouping across multiple maps, use
 FeatureGroupingAlgorithmWNet instead.
 
 This class is only available when OpenMS is built with
-``WITH_WNETALIGN=ON`` (the default). Use
+``WITH_WNETALIGN=ON`` (off by default). Use
 ``hasattr(pyopenms, "WNetMatcher")`` to feature-detect at runtime.
 )doc")
         .def_static("match", &OpenMS::WNetMatcher::match,
@@ -903,7 +903,7 @@ flow on (m/z, RT) positions; the subsequent merge across multiple maps is
 heuristic and not globally optimal.
 
 This class is only available when OpenMS is built with
-``WITH_WNETALIGN=ON`` (the default). Use
+``WITH_WNETALIGN=ON`` (off by default). Use
 ``hasattr(pyopenms, "FeatureGroupingAlgorithmWNet")`` to feature-detect
 at runtime.
 

@@ -1043,6 +1043,45 @@ START_SECTION((void sortSpectra(bool sort_mz = true)))
 }
 END_SECTION
 
+START_SECTION([EXTRA] void sortSpectra() keeps spectra of equal retention time in their input order)
+{
+  // An ion mobility frame, a FAIMS split and Bruker TIMS data all produce many spectra with the
+  // same retention time. std::sort gives no guarantee for those, so they came out in an order that
+  // depends on the standard library, and consumers that walk the spectra in order saw them
+  // shuffled (#10054). Enough spectra to get past the insertion sort std::sort uses for short
+  // ranges, which is stable by accident.
+  PeakMap exp;
+  const Size frames = 4;
+  const Size per_frame = 250;
+  for (Size i = 0; i < frames * per_frame; ++i)
+  {
+    MSSpectrum s;
+    s.setRT(double(frames - 1 - (i % frames))); // frames arrive in reverse order
+    s.setNativeID("scan=" + std::to_string(i));
+    s.setMSLevel(1);
+    exp.addSpectrum(s);
+  }
+
+  exp.sortSpectra(false);
+
+  TEST_EQUAL(exp.size(), frames * per_frame)
+  TEST_EQUAL(exp.isSorted(false), true)
+  // inside each retention time the spectra must still be in the order they were added, i.e. their
+  // native IDs ascend
+  bool order_kept = true;
+  for (Size i = 1; i < exp.size(); ++i)
+  {
+    if (exp[i - 1].getRT() != exp[i].getRT()) continue;
+    const std::string id_before = exp[i - 1].getNativeID();
+    const std::string id_now = exp[i].getNativeID();
+    const Size before = std::stoul(id_before.substr(id_before.find('=') + 1));
+    const Size now = std::stoul(id_now.substr(id_now.find('=') + 1));
+    if (before > now) order_kept = false;
+  }
+  TEST_EQUAL(order_kept, true)
+}
+END_SECTION
+
 START_SECTION(bool isSorted(bool check_mz = true ) const)
 {
   //make test dataset
