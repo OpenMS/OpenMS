@@ -45,6 +45,23 @@ General:
     NuXL pipeline with it. Nothing outside this tool ever used it, so OpenMS/ANALYSIS/NUXL
     is gone: its thirteen headers are no longer installed and its classes are no longer
     part of libOpenMS. The five NuXL class tests are unchanged and still run (#10228).
+  - The TOPP tool registry (which tools exist, and their TOPPAS/CTD category) is generated
+    at build time from each tool's openms_topp_tool() declaration in
+    src/topp/executables.cmake, instead of being hard-coded as 154 literal entries in
+    ToolHandler::getTOPPToolList(). The build writes share/OpenMS/TOOLS/OpenMS.tsv from the
+    declarations, so a build option that removes a tool (e.g. DISABLE_OPENSWATH) now also
+    removes it from the registry, and a tool built outside this repository can register
+    itself by installing its own .tsv next to it, without an OpenMS rebuild. ToolHandler
+    looks for a registry at the installation's shared-data path, then next to the
+    executable, then in the build tree if earlier locations contain no registry. It also
+    reads .tsv files from directories named by OPENMS_TOOL_REGISTRY_PATH or the legacy
+    OPENMS_TTD_INTERNAL_PATH, and caches the result after the first read.
+    ToolHandler::getTypes() returns an empty list for a tool the registry does not know
+    instead of throwing, matching its documented behavior. BREAKING (installed headers):
+    ToolDescriptionFile, ToolDescriptionHandler and Internal::ToolDescription's
+    foreign-executable fields (FileMapping, MappingParam, ToolExternalDetails,
+    external_details, is_internal) are removed; nothing used them once the .ttd XML format
+    was replaced by the generated TSV (#10216).
   - BREAKING: TOPPBase no longer takes a bool official, and neither do SearchEngineBase,
     TOPPOpenSwathBase, TOPPMapAlignerBase and TOPPFeatureLinkerBase, which only forwarded
     it. A tool is registered by its openms_topp_tool() declaration, the same declaration
@@ -55,6 +72,15 @@ General:
     saw them uncategorised; all six now carry their category. Out-of-tree code deriving
     from one of these classes drops the argument; something that is not a registered TOPP
     tool at all passes toolhandler_test = false instead, which is now the only way to skip
+    the registry check (#10228).
+  - BREAKING (installed headers): Move tool-only helpers without pyOpenMS bindings
+    into the CometAdapter, DecoyDatabase, INIUpdater, NucleicAcidSearchEngine,
+    OpenSwathExport, OpenSwathInfer, OpenSwathPeakMapExtractor, OpenSwathPercolatorScoring,
+    OpenSwathWorkflow, ParquetDiff, QualityControl and UniPEFF folders. Their
+    29 headers are no longer installed and 28 implementations no longer live in
+    libOpenMS or libOpenMS_CLI. Class and round-trip tests travel with the tools;
+    reusable inference and XIPM reader tests also remain available in library-only builds
+    (#10239).
     the registry check (#10216, #10228).
   - BREAKING (installed headers): Move tool-only helpers without pyOpenMS bindings
     into the CometAdapter, DecoyDatabase, INIUpdater, NucleicAcidSearchEngine,
@@ -809,12 +835,19 @@ Fixes:
       fixes already made to Deisotoper: a precursor with unknown charge (0) no longer enables the
       mass constraint with a neutral mass of 0, which rejected every fragment cluster, and neutral
       masses are computed with PROTON_MASS_U (the proton mass in Da) instead of PROTON_MASS (the
-      proton mass in kg), which had made every mass about 1 u per charge too high (#10073, #10075).
+      proton mass in kg), which had made every mass about 1 u per charge too high
+      (#10073, #10075, #10231).
     - mzIdentML output with more than one identification run repeated the Measure ids
       (Measure_mz, Measure_int, Measure_error) in every SpectrumIdentificationList and failed schema
       validation; the Measure definitions are now written once (#10213).
     - Chromatograms built from MS1 spectra (FileConverter -convert_to_chromatograms, e.g. on GC-MS/SIM
       data) had no native ID, so the mzML output contained many chromatograms with id="" and failed
+      schema validation. They are now named "XIC mz=<m/z>".
+    - MSExperiment::sortSpectra() keeps spectra with equal retention time in their input order.
+      std::sort gave no guarantee for them, so ion mobility frames, FAIMS splits and Bruker TIMS
+      data were reordered depending on the standard library, which silently corrupted mass traces
+      built over such a map. The sort is also faster now, because it moves an index instead of a
+      whole spectrum (#10054).
       schema validation. They are now named "XIC mz=<m/z>" (#10214).
     - FLASHDeconv skips spectra with a non-positive mzml_mass_charge value instead of crashing on them,
       and logs a warning. TOPPASEdge falls back to extension-based file type detection when
@@ -859,6 +892,10 @@ Fixes:
       identification (also of a single one) and uses one score orientation throughout (#10148).
 
 Documentation:
+  - Corrected misleading Doxygen contracts in the sqMass/SQLite stack: countTableRows
+    exception types, the SpectrumAccessSqMass usage example and getSpectraByRT /
+    getMultipleSpectra semantics, SqMassFile::store replacement behaviour and the
+    OpenSwathScoring fetchSpectrumSwath spectrum counts (#10148).
   - Expanded experimental-design terminology and LFQ/fractionated/TMT/SILAC examples,
     targeted quantitation, FAIMS, RT units, file conversions, USI and MetaProSIP CSV docs
     (#4400, #8478, #8588, #8597, #8615, #9173, #9909).
@@ -980,16 +1017,6 @@ Build System:
     installed now; the parser's own Mono.Unix.dll.config maps the library to linux-x64,
     osx-x64 and osx-arm64 and to nothing else, so the others could never be loaded
     (#10202, #10207, #10211).
-  - The Debian package's dependencies stay hand-written. Generating them with
-    dpkg-shlibdeps was tried and reverted: the staging tree ships libMono.Unix.so for
-    five runtimes under THIRDPARTY/ThermoRawFileParser, most of them foreign to whichever
-    host builds the package, and dpkg-shlibdeps treats a foreign-architecture binary as an
-    error rather than missing information, so no package was produced at all. The declared
-    dependency floors are therefore hand-maintained, but they now carry what
-    dpkg-shlibdeps derives from the shipped binaries -- libc6 (>= 2.38), libstdc++6
-    (>= 13.1), libgomp1 (>= 6), libgcc-s1 (>= 3.0) -- instead of a stale libc6 (>= 2.28)
-    with no C++ or OpenMP entry at all. The package no longer installs on distributions
-    too old to run it (#10202, #10207).
   - The container image build failed on every nightly run once WITH_THERMO_RAW defaulted
     to ON on Linux aarch64 (#10206): the Dockerfile still installed the .NET SDK/runtime
     that openms-thermo-bridge needs only for amd64, so the arm64 build could not find
