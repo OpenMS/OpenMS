@@ -857,15 +857,15 @@ START_SECTION(([EXTRA] score selection with X!Tandem and OMSSA scores))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] score selection with Mascot, MS-GF and TopPIC scores))
+START_SECTION(([EXTRA] score selection with lower-is-better search engine scores without PSI-MS score order))
 {
-  // Mascot:expectation value, MS-GF:PepQValue, MS-GF:PEP, TopPIC:spectral FDR and TopPIC:spectral p-value have no
-  // score order in PSI-MS; they are lower-is-better. Every result holds a better (PEPTIDER) and a worse (PEPTIDERR) hit.
+  // These scores have no score order in PSI-MS; OpenMS' score registry (Scores) knows them as lower-is-better.
+  // Every result holds a better (PEPTIDER) and a worse (PEPTIDERR) hit.
   std::vector<ProteinIdentification> protein_ids;
   PeptideIdentificationList peptide_ids;
-  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_mascot_msgf_toppic_scores.mzid"), protein_ids, peptide_ids);
-  TEST_EQUAL(peptide_ids.size(), 7)
-  ABORT_IF(peptide_ids.size() != 7)
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_engine_scores.mzid"), protein_ids, peptide_ids);
+  TEST_EQUAL(peptide_ids.size(), 20)
+  ABORT_IF(peptide_ids.size() != 20)
 
   struct Expected
   {
@@ -880,7 +880,20 @@ START_SECTION(([EXTRA] score selection with Mascot, MS-GF and TopPIC scores))
     {"MS-GF:PEP", false, 0.002},                // PEP only
     {"TopPIC:spectral FDR", false, 0.003},      // FDR only
     {"TopPIC:spectral p-value", false, 2e-06},  // p-value only
-    {"q-value", false, 0.004}                   // E-value, FDR and q-value: the E-value yields to the q-value
+    {"q-value", false, 0.004},                  // E-value, FDR and q-value: the E-value yields to the q-value
+    {"ProteinProspector:expectation value", false, 0.002},
+    {"Phenyx:PepPvalue", false, 1e-05},
+    {"PSM-level FDRScore", false, 0.001},
+    {"PSM-level combined FDRScore", false, 0.002},
+    {"MSPathFinder:PepQValue", false, 0.003},
+    {"TopMG:spectral FDR", false, 0.004},
+    {"TopMG:spectral p-value", false, 3e-06},
+    {"MaxQuant-DIA PEP", false, 0.005},
+    {"OpenMS:ConsensusID PEP", false, 0.006},
+    {"OpenMS:Target-decoy PSM q-value", false, 0.007},
+    {"exact p-value", false, 4e-06},
+    {"res-ev p-value", false, 5e-06},
+    {"combined p-value", false, 6e-06}
   };
   for (Size i = 0; i < expected.size(); ++i)
   {

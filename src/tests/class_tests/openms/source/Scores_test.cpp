@@ -79,8 +79,8 @@ END_SECTION
 START_SECTION((static std::vector<std::string> getAllIDScoreNames()))
 {
   std::vector<std::string> names = Scores::getAllIDScoreNames();
-  // pins the current registry: 9 RAW + 11 RAW_EVAL + 1 PP + 6 PEP + 4 FDR + 7 QVAL
-  TEST_EQUAL(names.size(), 38)
+  // pins the current registry: 9 RAW + 17 RAW_EVAL + 1 PP + 8 PEP + 7 FDR + 10 QVAL
+  TEST_EQUAL(names.size(), 52)
   std::set<std::string> s(names.begin(), names.end());
   TEST_EQUAL(s.count("q-value"), 1)
   TEST_EQUAL(s.count("expect"), 1)
@@ -94,13 +94,13 @@ START_SECTION((static const std::set<std::string>& getIDNamesForType(IDType type
 {
   TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW).size(), 9)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW).count("hyperscore"), 1)
-  TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW_EVAL).size(), 11)
+  TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW_EVAL).size(), 17)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW_EVAL).count("expect"), 1)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::PP).size(), 1)
-  TEST_EQUAL(Scores::getIDNamesForType(IDType::PEP).size(), 6)
-  TEST_EQUAL(Scores::getIDNamesForType(IDType::FDR).size(), 4)
+  TEST_EQUAL(Scores::getIDNamesForType(IDType::PEP).size(), 8)
+  TEST_EQUAL(Scores::getIDNamesForType(IDType::FDR).size(), 7)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::FDR).count("fdr"), 1)
-  TEST_EQUAL(Scores::getIDNamesForType(IDType::QVAL).size(), 7)
+  TEST_EQUAL(Scores::getIDNamesForType(IDType::QVAL).size(), 10)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::QVAL).count("q-value"), 1)
 }
 END_SECTION
@@ -122,11 +122,25 @@ START_SECTION((static bool findIDTypeByName(const std::string& name, IDType& typ
     {"MS:1001328", IDType::RAW_EVAL}, // OMSSA:evalue
     {"MS:1001329", IDType::RAW_EVAL}, // OMSSA:pvalue
     {"MS:1001172", IDType::RAW_EVAL}, // Mascot:expectation value
+    {"MS:1002045", IDType::RAW_EVAL}, // ProteinProspector:expectation value
+    {"MS:1001396", IDType::RAW_EVAL}, // Phenyx:PepPvalue
     {"MS:1002931", IDType::RAW_EVAL}, // TopPIC:spectral p-value
+    {"MS:1002953", IDType::RAW_EVAL}, // TopMG:spectral p-value
+    {"MS:1003359", IDType::RAW_EVAL}, // exact p-value (Crux)
+    {"MS:1003363", IDType::RAW_EVAL}, // res-ev p-value (Crux)
+    {"MS:1003364", IDType::RAW_EVAL}, // combined p-value (Crux)
     {"MS:1002056", IDType::PEP},      // MS-GF:PEP
+    {"MS:1003101", IDType::PEP},      // MaxQuant-DIA PEP
+    {"MS:1003113", IDType::PEP},      // OpenMS:ConsensusID PEP
     {"MS:1002929", IDType::FDR},      // TopPIC:spectral FDR
+    {"MS:1002951", IDType::FDR},      // TopMG:spectral FDR
+    {"MS:1002355", IDType::FDR},      // PSM-level FDRScore (mzidLibrary)
+    {"MS:1002356", IDType::FDR},      // PSM-level combined FDRScore (mzidLibrary)
     {"MS:1002054", IDType::QVAL},     // MS-GF:QValue
-    {"MS:1002055", IDType::QVAL}      // MS-GF:PepQValue
+    {"MS:1002055", IDType::QVAL},     // MS-GF:PepQValue
+    {"MS:1002723", IDType::QVAL},     // MSPathFinder:QValue
+    {"MS:1002724", IDType::QVAL},     // MSPathFinder:PepQValue
+    {"MS:1003115", IDType::QVAL}      // OpenMS:Target-decoy PSM q-value
   };
   for (const auto& [accession, type] : accessions)
   {

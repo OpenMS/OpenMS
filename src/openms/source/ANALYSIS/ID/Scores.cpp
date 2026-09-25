@@ -25,17 +25,35 @@ namespace OpenMS
         // then you need additional if's/try's
         // PSI-MS accessions of search engine scores, mostly ones without a score order in PSI-MS: the mzIdentML reader
         // takes their direction from here, and they are the meta value names of imported hits.
-        // RAW_EVAL: MS-GF:EValue, Comet:expectation value, OMSSA:evalue, OMSSA:pvalue, X!Tandem:expect,
-        // Mascot:expectation value, TopPIC:spectral p-value (p-values are lower-is-better like E-values)
-        {IDType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue", "MS:1002053", "MS:1002257", "MS:1001328", "MS:1001329", "MS:1001330",
-                            "MS:1001172", "MS:1002931"}},
+        // p-values are listed with the E-values: both are lower-is-better.
+        {IDType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue",
+                            "MS:1002053",                             // MS-GF:EValue
+                            "MS:1002257",                             // Comet:expectation value
+                            "MS:1001328", "MS:1001329",               // OMSSA:evalue, OMSSA:pvalue
+                            "MS:1001330",                             // X!Tandem:expect
+                            "MS:1001172",                             // Mascot:expectation value
+                            "MS:1002045",                             // ProteinProspector:expectation value
+                            "MS:1001396",                             // Phenyx:PepPvalue
+                            "MS:1002931", "MS:1002953",               // TopPIC/TopMG:spectral p-value
+                            "MS:1003359", "MS:1003363", "MS:1003364"  // Crux: exact, res-ev and combined p-value
+                           }},
         {IDType::PP, {"Posterior Probability"}},
-        // PEP: percolator:PEP, MS-GF:PEP
-        {IDType::PEP, {"Posterior Error Probability", "pep", "PEP", "posterior_error_probability", "MS:1001493", "MS:1002056"}}, // TODO add CV terms
-        // FDR: TopPIC:spectral FDR
-        {IDType::FDR, {"FDR", "fdr", "false discovery rate", "MS:1002929"}},
-        // QVAL: percolator:Q value, MS-GF:QValue, MS-GF:PepQValue (peptide level; sorts after the PSM-level MS-GF:QValue)
-        {IDType::QVAL, {"q-value", "qvalue", "MS:1001491", "q-Value", "qval", "MS:1002054", "MS:1002055"}}
+        {IDType::PEP, {"Posterior Error Probability", "pep", "PEP", "posterior_error_probability",
+                       "MS:1001493",                                  // percolator:PEP
+                       "MS:1002056",                                  // MS-GF:PEP
+                       "MS:1003101",                                  // MaxQuant-DIA PEP
+                       "MS:1003113"                                   // OpenMS:ConsensusID PEP
+                      }},
+        {IDType::FDR, {"FDR", "fdr", "false discovery rate",
+                       "MS:1002929", "MS:1002951",                    // TopPIC/TopMG:spectral FDR
+                       "MS:1002355", "MS:1002356"                     // mzidLibrary PSM-level (combined) FDRScore
+                      }},
+        // PSM-level q-values of MS-GF and MSPathFinder are listed with their peptide-level ones, which sort after them
+        {IDType::QVAL, {"q-value", "qvalue", "MS:1001491", "q-Value", "qval",
+                        "MS:1002054", "MS:1002055",                   // MS-GF:QValue, MS-GF:PepQValue
+                        "MS:1002723", "MS:1002724",                   // MSPathFinder:QValue, MSPathFinder:PepQValue
+                        "MS:1003115"                                  // OpenMS:Target-decoy PSM q-value
+                       }}
       };
 
       m.type_to_better = {
