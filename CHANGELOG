@@ -343,7 +343,9 @@ PyOpenMS:
     most of them derived from DefaultParamHandler, ProgressLogger, CVTermList or CsvFile,
     either had no __copy__ or inherited their base's, so copy.copy() and copy.deepcopy()
     failed or returned the base class: a DefaultParamHandler for PeakPickerHiRes, for
-    example. The copy constructor X(other) is back on 136 classes that had it in 3.5.0,
+    example. FeatureDistance, MultiplexResolverAlgorithm and SwathMapMassCorrection, which
+    returned a DefaultParamHandler too, get their own __copy__ and __deepcopy__ as well.
+    The copy constructor X(other) is back on 136 classes that had it in 3.5.0,
     and new on four more. It stays gone from six: FeatureFindingMetabo and
     OpenSwathOSWWriter have no C++ copy constructor any more, and MSDataSqlConsumer,
     CachedSwathFileConsumer, MzMLSwathFileConsumer and PeakWidthEstimator delete objects

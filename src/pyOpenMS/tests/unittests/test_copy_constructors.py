@@ -209,6 +209,43 @@ def test_copy_keeps_the_class(class_name):
         assert type(duplicate) is cls
 
 
+# Further classes with a copy constructor that derive from DefaultParamHandler, whose
+# __copy__ they inherited, so copy.copy() returned a DefaultParamHandler
+DERIVED_WITH_OWN_COPY = {
+    "FeatureDistance": lambda: pyopenms.FeatureDistance(1.0, False),
+    "MultiplexResolverAlgorithm": lambda: pyopenms.MultiplexResolverAlgorithm(),
+    "SwathMapMassCorrection": lambda: pyopenms.SwathMapMassCorrection(),
+}
+
+
+@pytest.mark.parametrize("class_name", sorted(DERIVED_WITH_OWN_COPY))
+def test_copy_of_derived_class_keeps_the_class(class_name):
+    cls = getattr(pyopenms, class_name)
+    obj = DERIVED_WITH_OWN_COPY[class_name]()
+    for duplicate in (copy.copy(obj), copy.deepcopy(obj), cls(obj)):
+        assert type(duplicate) is cls
+
+
+def _has_copy_constructor(cls):
+    """True if a constructor of cls takes a single argument of type cls."""
+    for signature, *_ in getattr(cls.__init__, "__nb_signature__", ()):
+        params = signature[signature.index("(") + 1:signature.rindex(")")].split(", ")
+        args = [p for p in params if p not in ("self", "/", "*")]
+        if len(args) == 1 and args[0].split(": ")[-1].split(".")[-1] == cls.__name__:
+            return True
+    return False
+
+
+def test_classes_with_a_copy_constructor_do_not_inherit_copy():
+    # A class that inherits __copy__ from a bound base (DefaultParamHandler, ProgressLogger,
+    # XMLFile, ...) gets a copy of that base from copy.copy() (#10260)
+    assert _has_copy_constructor(pyopenms.MSSpectrum)  # the signature check works
+    inheriting = sorted(
+        name for name, cls in inspect.getmembers(pyopenms, inspect.isclass)
+        if _has_copy_constructor(cls) and "__copy__" not in cls.__dict__ and hasattr(cls, "__copy__"))
+    assert inheriting == []
+
+
 def _peak_width_estimator():
     # PeakWidthEstimator fits a spline to the widths of picked peaks, so it needs some
     mzs = [400.0 + 5.0 * i for i in range(200)]

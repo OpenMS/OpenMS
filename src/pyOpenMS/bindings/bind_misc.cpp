@@ -661,6 +661,9 @@ DefaultParamHandler
 )doc")
         .def(nb::init<double, bool>())
         .def(nb::init<const OpenMS::FeatureDistance &>())
+        // Own copy methods: the inherited DefaultParamHandler ones return a DefaultParamHandler
+        .def("__copy__", [](const OpenMS::FeatureDistance& self) { return OpenMS::FeatureDistance(self); })
+        .def("__deepcopy__", [](const OpenMS::FeatureDistance& self, nb::dict) { return OpenMS::FeatureDistance(self); }, "memo"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -2752,6 +2755,9 @@ DefaultParamHandler
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MultiplexResolverAlgorithm&>())
+        // Own copy methods: the inherited DefaultParamHandler ones return a DefaultParamHandler
+        .def("__copy__", [](const OpenMS::MultiplexResolverAlgorithm& self) { return OpenMS::MultiplexResolverAlgorithm(self); })
+        .def("__deepcopy__", [](const OpenMS::MultiplexResolverAlgorithm& self, nb::dict) { return OpenMS::MultiplexResolverAlgorithm(self); }, "memo"_a)
         .def("resolve", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::ConsensusMap& map_in, OpenMS::ConsensusMap& map_out, OpenMS::ConsensusMap& map_conflicts, const OpenMS::MSExperiment& blacklist) { nb::gil_scoped_release release; self.resolve(map_in, map_out, map_conflicts, blacklist); }, "map_in"_a, "map_out"_a, "map_conflicts"_a, "blacklist"_a, "Split map_in into resolved multiplets (map_out) and conflicts (map_conflicts); blacklist may be an empty MSExperiment")
         .def("resolve", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::ConsensusMap& map_in, OpenMS::ConsensusMap& map_out, OpenMS::ConsensusMap& map_conflicts) { nb::gil_scoped_release release; self.resolve(map_in, map_out, map_conflicts); }, "map_in"_a, "map_out"_a, "map_conflicts"_a, "Split map_in into resolved multiplets (map_out) and conflicts (map_conflicts) without a blacklist")
         ;
@@ -4092,6 +4098,9 @@ points. *
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SwathMapMassCorrection &>())
+        // Own copy methods: the inherited DefaultParamHandler ones return a DefaultParamHandler
+        .def("__copy__", [](const OpenMS::SwathMapMassCorrection& self) { return OpenMS::SwathMapMassCorrection(self); })
+        .def("__deepcopy__", [](const OpenMS::SwathMapMassCorrection& self, nb::dict) { return OpenMS::SwathMapMassCorrection(self); }, "memo"_a)
         ;
 
     // -----------------------------------------------------------------------
