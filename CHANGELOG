@@ -293,8 +293,11 @@ PyOpenMS:
     PercolatorOutfile.PercolatorOutfile_ScoreType are now ExitCodes and ScoreType.
     getMapping() is now called on a member, e.g.
     IonSource.IonizationMethod.ESI.getMapping(), not on an instance of the enum class such
-    as IonSource.IonizationMethod(). Thirty-two enums no longer convert with int(); use
-    .value: AnnotationState, ChecksumType, DecoyTransitionType, DimensionDescription,
+    as IonSource.IonizationMethod(). Thirty-two enums are no longer ints: int() raises
+    TypeError, and == with a number is False without an error, so spec.getType() == 1 is
+    now False for a centroided spectrum. Compare with a member such as
+    SpectrumSettings.SpectrumType.CENTROID, or use .value. The 32 are AnnotationState,
+    ChecksumType, DecoyTransitionType, DimensionDescription,
     IMFormat, MT_QUANTMETHOD, MZTrafoModel_MODELTYPE, DataFilters.FilterOperation,
     DataFilters.FilterType, DataProcessing.ProcessingAction,
     FeatureOverlapFilter.MergeIntensityMode, Instrument.IonOpticsType,
