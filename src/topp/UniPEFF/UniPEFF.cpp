@@ -1175,7 +1175,7 @@ protected:
     registerStringOption_("prefix", "<string>", "", "Force a single PEFF prefix for every entry (e.g. 'sp'); if empty, sp/tr is derived from the UniProt dataset.", false);
     registerStringOption_("dbversion", "<string>", "unknown", "Value for the mandatory '# DbVersion=' PEFF header line.", false);
 
-    registerFlag_("annotation_identifiers", "Emit PEFF Option B: assign a global sequential id: prefix to every annotation tuple, referenced by \\DisulfideBond. By default only half-cystines in documented disulfide bonds get (1-based, bond-ordered) ids.");
+    registerFlag_("annotation_identifiers", "Emit PEFF Option B: assign a global sequential id: prefix to every annotation tuple, referenced by \\DisulfideBond. By default only the \\DisulfideBond tuples and the half-cystines they reference get ids: bond k (1-based) is labeled k, its half-cystines 2k-1 and 2k.");
     registerFlag_("omit_molecular_processing", "Skip the \\Processed annotations (initiator methionine, signal/transit peptide, propeptide, chain).");
     registerFlag_("omit_amino_acid_modifications", "Skip \\ModResPsi / \\ModResUnimod / \\ModRes and \\DisulfideBond; ptmlist is not read.");
     registerFlag_("omit_sequence_variations", "Skip \\VariantSimple and \\VariantComplex annotations.");
