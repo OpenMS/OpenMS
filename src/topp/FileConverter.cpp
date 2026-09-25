@@ -531,7 +531,18 @@ protected:
         raw_options.centroid = !getFlag_("RawToMzML:no_peak_picking");
         raw_options.noise_data = getFlag_("RawToMzML:include_noise");
         raw_file.setOptions(raw_options);
-        raw_file.load(in, exp);
+        try
+        {
+          raw_file.load(in, exp);
+        }
+        catch (const Exception::ParseError&)
+        {
+          // This reader is the default now, so name the way back to the external one
+          OPENMS_LOG_ERROR << "The in-process Thermo reader failed. It needs the .NET 8 runtime; if that is "
+                           << "missing, install it, or pass '-RawToMzML:reader external' to convert with "
+                           << "ThermoRawFileParser instead." << std::endl;
+          throw;
+        }
         // Record the source directory as absolute file URI, as FileHandler::loadExperiment() does
         // (ThermoRawFile stores the path as given, which is empty for a bare file name).
         const std::string raw_dir = File::path(File::absolutePath(in));
