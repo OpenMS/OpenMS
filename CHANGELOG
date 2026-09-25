@@ -304,6 +304,11 @@ PyOpenMS:
     #10070, #10205, #10206).
   - See src/pyOpenMS/THREAD_SAFETY.md for concurrency rules and OpenMP oversubscription
     guidance; releasing the GIL does not guarantee thread safety (#9792, #9857).
+  - BREAKING: IMSWeights, NoiseEstimator, Ratio, SpectrumAccessQuadMZTransforming and
+    SplineSpectrum_Navigator are no longer bound. The methods that take or return them are
+    still exposed but cannot be used: RealMassDecomposer(weights),
+    SignalToNoiseEstimatorMedianRapid.estimateNoise(), ConsensusFeature.addRatio(),
+    setRatios() and getRatios(), and SplineInterpolatedPeaks.getNavigator().
 
 TOPP tools:
   Changes:
@@ -605,10 +610,14 @@ TOPP tools:
       instead of diffing two files. Exit code is EXECUTION_OK when the comparison (or -schema validation)
       passes and every input holds at least -min_rows rows, if set; otherwise INCOMPATIBLE_INPUT_DATA, so it
       drops into CTest the way FuzzyDiff does (#9865, part of #9864)
+    - ParquetConverter: converts featureXML and consensusXML files to Parquet directories and
+      back (#8970).
   Removed tools:
     - BREAKING: GenericWrapper and its external-tool definitions removed; use direct TOPP
       invocations or TOPPAS workflows (#8981, #9735).
-    - QPXConverter removed; the QPXFile export API remains (#9693).
+    - BREAKING: QuantmsIOConverter removed (renamed QPXConverter in #8756, then removed). QPX
+      output comes from the -out_qpx option of ProteomicsLFQ, IsobaricWorkflow, MS1LabeledWorkflow,
+      ProteinQuantifier and ProSE; the QPXFile export API remains (#9693).
     - BREAKING: TriqlerConverter, ProteomicsLFQ -out_triqler and TriqlerFile removed. Use
       -out_msstats, or convert -out_cxml/-out_qpx downstream (#9898).
 
@@ -622,6 +631,8 @@ GUI tools:
   - Fragment annotations survive viewing and spectrum switches unchanged, including charge
     notation and multiline comments. Corrected duplicate charge display, neutral-loss ion
     ordinals and sequence diagrams with multiple modifications (#8766).
+  - BREAKING: SwathWizard and FLASHDeconvWizard removed; run the TOPP tools they wrapped,
+    such as OpenSwathWorkflow and FLASHDeconv, directly (#9472).
 
 OpenMS Library:
   - Added GlycanStructure and TheoreticalGlycanSpectrumGenerator for composition-based

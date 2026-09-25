@@ -83,7 +83,7 @@ using namespace std;
 /**
 @page TOPP_ProteomicsLFQ ProteomicsLFQ
 
-ProteomicsLFQ performs label-free quantification of peptides and proteins. @n
+@brief Performs label-free quantification of peptides and proteins.
 
 Input: @n
   - Spectra in mzML format or Bruker .d directories (TimsTOF PASEF)
