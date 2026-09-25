@@ -53,8 +53,8 @@ namespace OpenMS
       directory it is returned unchanged and no TempDir is created.
 
       Before writing anything, archives with more than 100000 entries, or whose declared
-      uncompressed size exceeds the free space of the temporary directory (or if that free
-      space cannot be determined), are rejected.
+      uncompressed size exceeds 90% of the free space of the temporary directory (or if that
+      free space cannot be determined), are rejected.
       Extraction stops at an entry that inflates beyond its declared size.
 
       @param[in] input_path Path to the zip archive (or a directory).

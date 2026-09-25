@@ -119,9 +119,10 @@ std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::u
   const std::filesystem::path base_path = std::filesystem::u8path(std::string(unpack_dir)).lexically_normal();
 
   // Extraction budget, checked before anything is written: at most MAX_ENTRIES entries, and the
-  // declared uncompressed sizes must fit into the free space of the temporary directory. The copy
-  // loop below stops any entry that inflates beyond its declared size, so a crafted archive
-  // cannot write more than this check allowed.
+  // declared uncompressed sizes must fit into 90% of the free space of the temporary directory, which
+  // leaves room for the output and for other work on the same filesystem. The copy loop below stops
+  // any entry that inflates beyond its declared size, so a crafted archive cannot write more than
+  // this check allowed.
   constexpr zip_int64_t MAX_ENTRIES = 100000;
   if (num > MAX_ENTRIES)
   {
@@ -154,12 +155,13 @@ std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::u
                                   "Cannot determine the free space of the temporary directory: " + space_error.message(),
                                   input_path);
   }
-  if (declared_total > space.available)
+  const std::uintmax_t budget = space.available - space.available / 10;
+  if (declared_total > budget)
   {
     zip_close(za);
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                  "Zip archive unpacks to " + std::to_string(declared_total) + " bytes, but only "
-                                  + std::to_string(space.available) + " bytes are free in the temporary directory",
+                                  "Zip archive unpacks to " + std::to_string(declared_total) + " bytes, more than 90% of the "
+                                  + std::to_string(space.available) + " bytes free in the temporary directory",
                                   input_path);
   }
 
