@@ -25,42 +25,29 @@ Some thirdparty software used via adapter tools in OpenMS might also require an 
 
 ## Install via the provided Debian package
 
-For Debian-based Linux users, it is suggested to  use the [deb-package](https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/latest/) provided. It is most easily installed with **[gdebi](https://launchpad.net/gdebi)**
-which automatically resolves the dependencies available in the PPA Repositories.
+For Debian-based Linux users, it is suggested to use the Debian package attached to each
+[OpenMS release](https://github.com/OpenMS/OpenMS/releases/latest), built for x86_64 and for aarch64 (ARM64).
+It is tested on Ubuntu 24.04 and needs glibc 2.38 or newer, so it does not install on Ubuntu 22.04 or Debian 12. On
+older distributions, use conda (see above) or a container (see below).
+
+Install it with `apt`, which resolves its dependencies, such as Qt 6, from your distribution's repositories:
 
 ```bash
-sudo apt-get install gdebi
-sudo gdebi /PATH/TO/OpenMS.deb
+sudo apt install ./OpenMS-<version>-Debian-Linux-<architecture>.deb
 ```
-If you encounter errors with unavailable packages, troubleshoot using the following steps.
+If you encounter errors, troubleshoot using the following steps.
 
-1. Qt5 (or one of its packages, e.g. `qt5xbase`) is missing.
+1. Packages are missing, for example the Qt 6 libraries.
 
-   It might be because your Debian is too old to have a recent enough version in its official repositories. It is
-   suggested to use the same packages that are used while building (make sure to adapt the Qt version and your
-   Debian/Ubuntu version, here Xenial):
-   ```bash
-   sudo add-apt-repository ppa:beineri/opt-qt59-xenial
-   sudo apt-get update
-   ```
-   Run the installation again.
+   The package depends on the libraries of current distributions. Older distributions do not provide them; see the
+   requirements above.
 
-2. ICU with its `libicu` is missing.
-
-   You can find the missing version on [pkgs.org](https://pkgs.org) and install it with `gdebi`, too. You can have
-   multiple versions of ICU installed.
-
-3. Error while executing a tool
+2. Error while executing a tool
 
    To ensure the tool functionality, make sure you add the `OPENMS_DATA_PATH` variable to your environment as follow
    `export OPENMS_DATA_PATH=/usr/share/OpenMS`
 
-4. Thirdparty installation of Qt5 in step 1
-
-   Make sure you source the provided environment file using:
-   `source /opt/qt59/bin/qt59-env.sh`
-
-5. Adapters are not finding thirdparty applications
+3. Adapters are not finding thirdparty applications
 
    Executables for thirdparty applications can be found in:
    `/usr/share/OpenMS/THIRDPARTY`
@@ -91,11 +78,6 @@ runtime:
 
 ```bash
 export DOTNET_ROOT=/usr/share/dotnet
-```
-
-```{note}
-Native Thermo RAW reading is not available on Linux/aarch64 (ARM64), because Thermo's
-RawFileReader does not ship native dependencies for that platform.
 ```
 
 ## Build OpenMS from source
