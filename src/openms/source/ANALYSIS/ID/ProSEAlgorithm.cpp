@@ -3084,11 +3084,19 @@ namespace OpenMS
     OPENMS_LOG_INFO << "[ProSE] Calibration: scoring " << subset_size << " / " << spectra.size()
                     << " spectra (top TIC)..." << std::endl;
 
-    // Score subset and collect errors from the best hit per spectrum
+    // Score subset and collect errors from the best hit per spectrum, with the ion series
+    // the fragment index was built from (e.g. c/z+1 for ETD, where b/y would match nothing)
     TheoreticalSpectrumGenerator tsg;
     Param tsg_param(tsg.getParameters());
     tsg_param.setValue("add_first_prefix_ion", "true");
     tsg_param.setValue("add_metainfo", "true");
+    tsg_param.setValue("add_a_ions", add_a_ions_ ? "true" : "false");
+    tsg_param.setValue("add_b_ions", add_b_ions_ ? "true" : "false");
+    tsg_param.setValue("add_c_ions", add_c_ions_ ? "true" : "false");
+    tsg_param.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
+    tsg_param.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
+    tsg_param.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
+    tsg_param.setValue("add_zp1_ions", add_zp1_ions_ ? "true" : "false");
     tsg.setParameters(tsg_param);
 
     // Collect per-spectrum best hits with scores and errors

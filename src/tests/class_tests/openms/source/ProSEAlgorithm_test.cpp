@@ -99,7 +99,8 @@ static vector<FASTAFile::FASTAEntry> calibration_fasta_db_()
   };
 }
 
-static PeakMap build_calibration_spectra_(const vector<double>& ppm_shifts)
+// etd_ions: c/z+1 instead of b/y fragments
+static PeakMap build_calibration_spectra_(const vector<double>& ppm_shifts, bool etd_ions = false)
 {
   // Digest the test protein into tryptic peptides >= 8 residues.
   ProteaseDigestion digester;
@@ -117,6 +118,13 @@ static PeakMap build_calibration_spectra_(const vector<double>& ppm_shifts)
   Param tsg_param = tsg.getParameters();
   tsg_param.setValue("add_first_prefix_ion", "true");
   tsg_param.setValue("add_metainfo", "true");
+  if (etd_ions)
+  {
+    tsg_param.setValue("add_b_ions", "false");
+    tsg_param.setValue("add_y_ions", "false");
+    tsg_param.setValue("add_c_ions", "true");
+    tsg_param.setValue("add_zp1_ions", "true");
+  }
   tsg.setParameters(tsg_param);
 
   PeakMap spectra;
@@ -2048,6 +2056,39 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   // values are observable via last_calibration_result_, which is checked above.
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_lower_, 20.0)
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_upper_, 30.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] calibration scores candidates with the configured ion series))
+{
+  // Same fixture as above, but with ETD-type spectra (c/z+1 ions) and a search for c/z+1
+  // ions only. The calibration pass must score its candidates with these ions; a
+  // generator left at the b/y defaults matches none of their peaks and calibration fails.
+  const vector<double> ppm_shifts = {
+    0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0
+  };
+  PeakMap spectra = build_calibration_spectra_(ppm_shifts, /*etd_ions*/ true);
+  auto fasta_db = calibration_fasta_db_();
+
+  ProSEAlgorithm_test algo;
+  configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0,
+                                /*min_psms*/ 3);
+  Param p = algo.getParameters();
+  p.setValue("ions:add_b_ions", "false");
+  p.setValue("ions:add_y_ions", "false");
+  p.setValue("ions:add_c_ions", "true");
+  p.setValue("ions:add_zp1_ions", "true");
+  algo.setParameters(p);
+
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+
+  const auto& cal = algo.last_calibration_result_;
+  TEST_EQUAL(cal.success, true)
+  TEST_EQUAL(cal.extreme_bias, false)
+  TEST_EQUAL(cal.precursor_shift > 0.0, true)
 }
 END_SECTION
 
