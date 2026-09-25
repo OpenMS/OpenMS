@@ -234,6 +234,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       /// True when `db` contains decoy entries (generated or external), i.e.
       /// target-decoy FDR is possible.
       bool have_decoys = false;
+      /// True when `fragment_index` also holds c and z+1 ions for electron-activated
+      /// spectra (ions:by_activation). search() rebuilds an index without them once it
+      /// meets such spectra.
+      bool electron_ions = false;
     };
 
     /**
@@ -623,8 +627,27 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * auto/generate/ignore enum and manages decoys at the database level, so
      * forwarding it verbatim would trip FragmentIndex's validation. This returns
      * getParameters() with "decoys" overridden to "false".
+     *
+     * @param[in] electron_ions Also index c and z+1 ions, for electron-activated spectra
+     *            (ions:by_activation).
      */
-    Param fragmentIndexParameters_() const;
+    Param fragmentIndexParameters_(bool electron_ions = false) const;
+
+    /// prepareContext(), with c and z+1 ions in the index if @p electron_ions is set
+    SearchContext prepareContext_(const std::vector<FASTAFile::FASTAEntry>& fasta_db, bool electron_ions) const;
+
+    /// Theoretical spectrum generators for the configured ion series and for electron-activated
+    /// spectra (ions:by_activation); defined in the source file
+    struct SpectrumGenerators_;
+
+    /// Generators for scoring, annotation and calibration, configured from the ions:* parameters
+    SpectrumGenerators_ spectrumGenerators_() const;
+
+    /// True if the precursor of @p spectrum was activated by electrons (ETD, ECD, EThcD or ETciD)
+    static bool isElectronActivated_(const MSSpectrum& spectrum);
+
+    /// Number of spectra that ions:by_activation also scores with c and z+1 ions (0 if it is off)
+    Size countElectronActivated_(const PeakMap& spectra) const;
 
     /**
      * @brief Build the searched database according to @p strategy.
@@ -685,7 +708,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] spectra Preprocessed MS2 spectra to score.
      * @param[in] fi Pre-built FragmentIndex to query for candidates.
      * @param[in] db Database the FragmentIndex was built from, used to reconstruct candidate sequences.
-     * @param[in] spectrum_generator Generator for the theoretical spectrum of each candidate.
+     * @param[in] generators Generators for the theoretical spectrum of each candidate, chosen per spectrum.
      * @param[in] effective_fragment_tol Fragment mass tolerance to score with (calibrated, if calibration ran).
      * @param[in] fragment_mass_tolerance_unit_ppm Whether @p effective_fragment_tol is in ppm rather than Da.
      * @param[in] open_search_mode Whether to record the precursor delta mass on each hit.
@@ -699,7 +722,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         const PeakMap& spectra,
         FragmentIndex& fi,
         const std::vector<FASTAFile::FASTAEntry>& db,
-        const TheoreticalSpectrumGenerator& spectrum_generator,
+        const SpectrumGenerators_& generators,
         double effective_fragment_tol,
         bool fragment_mass_tolerance_unit_ppm,
         bool open_search_mode,
@@ -808,6 +831,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool add_y_ions_{true};
     bool add_z_ions_{false};
     bool add_zp1_ions_{false};
+    bool ions_by_activation_{true}; ///< add c and z+1 ions for electron-activated spectra
 
     Size database_chunk_size_{0};  ///< 0 = disabled; >0 = chunk DB into groups of this many proteins
 
