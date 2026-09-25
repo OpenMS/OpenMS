@@ -34,6 +34,7 @@
 #include <map>
 #include <ostream>
 #include <set>
+#include <utility>
 
 namespace OpenMS
 {
@@ -165,6 +166,17 @@ namespace OpenMS
         if (line.starts_with("[Term]")) break; // end of the header
       }
       return "";
+    }
+
+    /// PSI-MS term (accession, name) of an input file format, for the mzQC inputFile
+    std::pair<std::string, std::string> fileFormatTerm(FileTypes::Type type)
+    {
+      switch (type)
+      {
+        case FileTypes::RAW: return {"MS:1000563", "Thermo RAW format"};
+        case FileTypes::BRUKER_TDF: return {"MS:1002817", "Bruker TDF format"};
+        default: return {"MS:1000584", "mzML format"};
+      }
     }
 
     /// file URI of a local path: every byte of its UTF-8 form outside the unreserved characters of RFC 3986 and '/' is
@@ -719,7 +731,8 @@ namespace OpenMS
       json input_file;
       input_file["location"] = fileURI(run.input_path);
       input_file["name"] = File::basename(run.input_path);
-      input_file["fileFormat"] = json{{"accession", "MS:1000584"}, {"name", "mzML format"}};
+      const auto [format_accession, format_name] = fileFormatTerm(run.input_type);
+      input_file["fileFormat"] = json{{"accession", format_accession}, {"name", format_name}};
       json properties = json::array();
       auto addProperty = [&](const std::string& accession, const std::string& value)
       {

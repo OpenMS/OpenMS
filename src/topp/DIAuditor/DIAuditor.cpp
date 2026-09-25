@@ -16,6 +16,7 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -41,6 +42,14 @@ one or more mzML files and reports how each run was acquired: the MS1 sampling, 
 range, widths, ion mobility, how often each window was measured and how fast) and how ion current and peak counts are
 distributed over the run and over the windows. This helps to develop DIA methods and to recover the method of DIA
 data acquired elsewhere.
+
+<B>Inputs</B>: mzML files are read spectrum by spectrum, so their size does not matter. Depending on the build, Thermo
+.raw files (the OpenMS Thermo reader, which needs a .NET 8 runtime) and Bruker timsTOF .d directories or .d.zip
+archives (diaPASEF frames are split into their isolation windows) can be given directly. These readers load a whole run
+into memory, so large runs need correspondingly much memory; converting them to mzML first avoids that. Spectra are
+used as they are stored, profile or centroided, which matters for the peak counts. Values a reader does not provide are
+NA: the mass resolving power (MS1Resolution, MassResolvingPower) for .raw and .d input, and the instrument, its serial
+number and the start time for .d input.
 
 MS2 spectra are grouped into isolation windows by the isolation window of their precursor (target m/z, lower and upper
 offset) and by their ion mobility settings (see @p ion_mobility): the FAIMS compensation voltage, and the ion mobility
@@ -77,7 +86,8 @@ In the tables, retention times are given in minutes, cycle times in seconds; val
 cycle time of a window measured only once) are written as NA.
 
 <B>Differences to the original DIAuditor</B>
-- Input files are given explicitly (@p in) instead of all mzML files in the current directory.
+- Input files are given explicitly (@p in) instead of all mzML files in the current directory, and may also be Thermo
+  .raw files or Bruker .d directories.
 - Scan start times are converted from any unit the mzML reader supports; DIAuditor treats times written in seconds as
   minutes.
 - A FAIMS compensation voltage is attributed to its own spectrum; DIAuditor can attribute the value of an MS1 spectrum to
@@ -123,8 +133,17 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFileList_("in", "<files>", ListUtils::create<std::string>(""), "Input mzML files, one per run");
-    setValidFormats_("in", {"mzML"});
+    registerInputFileList_("in", "<files>", ListUtils::create<std::string>(""),
+                           "Input files, one per run: mzML, Thermo .raw and Bruker timsTOF .d (directory or .d.zip), "
+                           "as supported by this build");
+    StringList in_formats = {"mzML"};
+#ifdef WITH_THERMO_RAW
+    in_formats.push_back("raw");
+#endif
+#ifdef WITH_OPENTIMS
+    in_formats.push_back("d");
+#endif
+    setValidFormats_("in", in_formats);
     registerOutputFile_("out", "<file>", "", "Table with one row per run", false);
     setValidFormats_("out", {"tsv"});
     registerOutputFile_("out_windows", "<file>", "", "Table with one row per isolation window of each run", false);
@@ -170,9 +189,17 @@ protected:
     options.ion_mobility = (ion_mobility == "faims") ? DIAQCMetrics::IonMobilityKey::FAIMS :
                            (ion_mobility == "none") ? DIAQCMetrics::IonMobilityKey::NONE : DIAQCMetrics::IonMobilityKey::AUTO;
 
+    // paths without trailing directory separators (e.g. 'run.d/' from shell completion), as FileHandler::getType() does
+    StringList files;
+    for (std::string file : in)
+    {
+      while (file.size() > 1 && (file.ends_with('/') || file.ends_with('\\'))) file.pop_back();
+      files.push_back(file);
+    }
+
     // runs are labelled by file name, which has to be unique (also required by mzQC)
     std::map<std::string, std::string> labels;
-    for (const std::string& file : in)
+    for (const std::string& file : files)
     {
       const auto [it, inserted] = labels.emplace(File::stemName(file), file);
       if (!inserted)
@@ -184,23 +211,37 @@ protected:
     }
 
     std::vector<DIAQCMetrics::RunMetrics> runs;
-    for (const std::string& file : in)
+    for (const std::string& file : files)
     {
-      // stream the file: only a small record per spectrum is kept
       OPENMS_LOG_INFO << "Reading " << file << " ..." << endl;
+      const FileTypes::Type type = FileHandler::getType(file);
       DIAQCMetrics metrics(options);
-      MSDataTransformingConsumer consumer;
-      consumer.setExperimentalSettingsFunc([&metrics](const ExperimentalSettings& settings) { metrics.setExperimentalSettings(settings); });
-      consumer.setSpectraProcessingFunc([&metrics](MSSpectrum& spectrum) { metrics.addSpectrum(spectrum); });
-      MzMLFile mzml;
-      mzml.setLogType(log_type_);
-      mzml.getOptions().setSortSpectraByMZ(false); // peaks are only counted and summed
-      mzml.transform(file, &consumer, true);
+      if (type == FileTypes::MZML)
+      {
+        // stream the file: only a small record per spectrum is kept
+        MSDataTransformingConsumer consumer;
+        consumer.setExperimentalSettingsFunc([&metrics](const ExperimentalSettings& settings) { metrics.setExperimentalSettings(settings); });
+        consumer.setSpectraProcessingFunc([&metrics](MSSpectrum& spectrum) { metrics.addSpectrum(spectrum); });
+        MzMLFile mzml;
+        mzml.setLogType(log_type_);
+        mzml.getOptions().setSortSpectraByMZ(false); // peaks are only counted and summed
+        mzml.transform(file, &consumer, true);
+      }
+      else
+      {
+        // the vendor readers (Thermo .raw, Bruker .d) load the whole run
+        PeakMap exp;
+        FileHandler().loadExperiment(file, exp, {type}, log_type_);
+        metrics.setExperimentalSettings(exp);
+        for (const MSSpectrum& spectrum : exp) metrics.addSpectrum(spectrum);
+      }
 
       DIAQCMetrics::RunMetrics run = metrics.compute();
       run.source_file = File::stemName(file);
       run.input_path = file;
-      if (!out_mzqc.empty()) run.file_sha1 = FileHandler::computeFileHash(file);
+      run.input_type = type;
+      // a .d directory has no single file to checksum
+      if (!out_mzqc.empty() && !File::isDirectory(file)) run.file_sha1 = FileHandler::computeFileHash(file);
 
       OPENMS_LOG_INFO << File::basename(file) << ": " << run.ms1_count << " MS1 and " << run.msn_count
                       << " MSn spectra, " << run.window_count << " isolation windows." << endl;

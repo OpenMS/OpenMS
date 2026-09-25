@@ -580,7 +580,8 @@ START_SECTION(static void writeMzQC(const std::vector<RunMetrics>& runs, std::os
   no_precursor_metrics.addSpectrum(makeSpectrum(2.0, 2, {1.0}));
   DIAQCMetrics::RunMetrics no_precursor = no_precursor_metrics.compute();
   no_precursor.source_file = "no_precursor";
-  no_precursor.input_path = "no_precursor.mzML";
+  no_precursor.input_path = "no_precursor.d";
+  no_precursor.input_type = FileTypes::BRUKER_TDF;
   DIAQCMetrics selected_ion_metrics;
   for (double mz : {600.0, 650.0})
   {
@@ -592,7 +593,8 @@ START_SECTION(static void writeMzQC(const std::vector<RunMetrics>& runs, std::os
   }
   DIAQCMetrics::RunMetrics selected_ion = selected_ion_metrics.compute();
   selected_ion.source_file = "selected_ion";
-  selected_ion.input_path = "selected_ion.mzML";
+  selected_ion.input_path = "selected_ion.raw";
+  selected_ion.input_type = FileTypes::RAW;
 
   std::ostringstream os;
   DIAQCMetrics::writeMzQC({run, none, no_precursor, selected_ion}, os, "1.2.3", "2026-01-02T03:04:05Z");
@@ -611,6 +613,14 @@ START_SECTION(static void writeMzQC(const std::vector<RunMetrics>& runs, std::os
   TEST_TRUE(location.starts_with("file:///"))
   TEST_TRUE(location.ends_with("/dir%20with%20space/run%231%2050%25B.mzML"))
   TEST_STRING_EQUAL(metadata["inputFiles"][0]["fileProperties"][0]["accession"].get<std::string>(), "MS:1000031")
+  // the file format of each input: mzML (default), Bruker TDF and Thermo RAW
+  auto fileFormat = [&run_qualities](Size i) { return run_qualities[i]["metadata"]["inputFiles"][0]["fileFormat"]; };
+  TEST_STRING_EQUAL(fileFormat(0)["accession"].get<std::string>(), "MS:1000584")
+  TEST_STRING_EQUAL(fileFormat(0)["name"].get<std::string>(), "mzML format")
+  TEST_STRING_EQUAL(fileFormat(2)["accession"].get<std::string>(), "MS:1002817")
+  TEST_STRING_EQUAL(fileFormat(2)["name"].get<std::string>(), "Bruker TDF format")
+  TEST_STRING_EQUAL(fileFormat(3)["accession"].get<std::string>(), "MS:1000563")
+  TEST_STRING_EQUAL(fileFormat(3)["name"].get<std::string>(), "Thermo RAW format")
   TEST_STRING_EQUAL(metadata["analysisSoftware"][0]["accession"].get<std::string>(), "MS:1000752")
   TEST_STRING_EQUAL(metadata["analysisSoftware"][0]["version"].get<std::string>(), "1.2.3")
 
