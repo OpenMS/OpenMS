@@ -268,7 +268,8 @@ PyOpenMS:
   - BREAKING: CrossLinksDB, ElementDB, ModificationsDB, ProteaseDB, ResidueDB, RibonucleotideDB
     and RNaseDB are callable singletons. ModificationsDB() and ModificationsDB.getInstance()
     return the one shared instance, but the names are no longer classes:
-    isinstance(x, oms.ModificationsDB) is False.
+    isinstance(x, oms.ModificationsDB) is False, even for that instance. To check the type,
+    use isinstance(x, type(oms.ModificationsDB.getInstance())).
   - BREAKING: classes removed from pyOpenMS. PeptideSearchEngineFIAlgorithm is now
     ProSEAlgorithm, after the C++ rename; its exit codes are
     ProSEAlgorithm.ProSEAlgorithm_ExitCodes (#9137). OPXL_PreprocessedPairSpectra is
