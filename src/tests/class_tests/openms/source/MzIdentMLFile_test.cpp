@@ -857,6 +857,45 @@ START_SECTION(([EXTRA] score selection with X!Tandem and OMSSA scores))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] score selection with Mascot, MS-GF and TopPIC scores))
+{
+  // Mascot:expectation value, MS-GF:PepQValue, MS-GF:PEP, TopPIC:spectral FDR and TopPIC:spectral p-value have no
+  // score order in PSI-MS; they are lower-is-better. Every result holds a better (PEPTIDER) and a worse (PEPTIDERR) hit.
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_mascot_msgf_toppic_scores.mzid"), protein_ids, peptide_ids);
+  TEST_EQUAL(peptide_ids.size(), 7)
+  ABORT_IF(peptide_ids.size() != 7)
+
+  struct Expected
+  {
+    std::string score_type;
+    bool higher_better;
+    double best_score;
+  };
+  const std::vector<Expected> expected{
+    {"Mascot:expectation value", false, 0.001}, // expectation value only
+    {"Mascot:score", true, 45.5},               // score and expectation value: the score comes first
+    {"MS-GF:PepQValue", false, 0.001},          // peptide-level q-value only
+    {"MS-GF:PEP", false, 0.002},                // PEP only
+    {"TopPIC:spectral FDR", false, 0.003},      // FDR only
+    {"TopPIC:spectral p-value", false, 2e-06},  // p-value only
+    {"q-value", false, 0.004}                   // E-value, FDR and q-value: the E-value yields to the q-value
+  };
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    PeptideIdentification& pid = peptide_ids[i];
+    pid.sort();
+    TEST_STRING_EQUAL(pid.getScoreType(), expected[i].score_type)
+    TEST_EQUAL(pid.isHigherScoreBetter(), expected[i].higher_better)
+    TEST_EQUAL(pid.getHits().size(), 2)
+    if (pid.getHits().empty()) continue;
+    TEST_STRING_EQUAL(pid.getHits()[0].getSequence().toString(), "PEPTIDER")
+    TEST_REAL_SIMILAR(pid.getHits()[0].getScore(), expected[i].best_score)
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

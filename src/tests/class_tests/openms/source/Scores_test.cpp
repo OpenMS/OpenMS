@@ -79,8 +79,8 @@ END_SECTION
 START_SECTION((static std::vector<std::string> getAllIDScoreNames()))
 {
   std::vector<std::string> names = Scores::getAllIDScoreNames();
-  // pins the current registry: 9 RAW + 9 RAW_EVAL + 1 PP + 5 PEP + 3 FDR + 5 QVAL
-  TEST_EQUAL(names.size(), 32)
+  // pins the current registry: 9 RAW + 11 RAW_EVAL + 1 PP + 6 PEP + 4 FDR + 7 QVAL
+  TEST_EQUAL(names.size(), 38)
   std::set<std::string> s(names.begin(), names.end());
   TEST_EQUAL(s.count("q-value"), 1)
   TEST_EQUAL(s.count("expect"), 1)
@@ -94,13 +94,13 @@ START_SECTION((static const std::set<std::string>& getIDNamesForType(IDType type
 {
   TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW).size(), 9)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW).count("hyperscore"), 1)
-  TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW_EVAL).size(), 9)
+  TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW_EVAL).size(), 11)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW_EVAL).count("expect"), 1)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::PP).size(), 1)
-  TEST_EQUAL(Scores::getIDNamesForType(IDType::PEP).size(), 5)
-  TEST_EQUAL(Scores::getIDNamesForType(IDType::FDR).size(), 3)
+  TEST_EQUAL(Scores::getIDNamesForType(IDType::PEP).size(), 6)
+  TEST_EQUAL(Scores::getIDNamesForType(IDType::FDR).size(), 4)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::FDR).count("fdr"), 1)
-  TEST_EQUAL(Scores::getIDNamesForType(IDType::QVAL).size(), 5)
+  TEST_EQUAL(Scores::getIDNamesForType(IDType::QVAL).size(), 7)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::QVAL).count("q-value"), 1)
 }
 END_SECTION
@@ -116,12 +116,24 @@ START_SECTION((static bool findIDTypeByName(const std::string& name, IDType& typ
   TEST_EQUAL(t == IDType::QVAL, true)
   TEST_EQUAL(Scores::findIDTypeByName("Posterior Error Probability", t), true)
   TEST_EQUAL(t == IDType::PEP, true)
-  // search engine scores by PSI-MS accession (X!Tandem:expect, OMSSA:evalue, OMSSA:pvalue): lower is better
-  for (const char* accession : {"MS:1001330", "MS:1001328", "MS:1001329"})
+  // search engine scores by PSI-MS accession, all lower-is-better
+  const std::vector<std::pair<std::string, IDType>> accessions{
+    {"MS:1001330", IDType::RAW_EVAL}, // X!Tandem:expect
+    {"MS:1001328", IDType::RAW_EVAL}, // OMSSA:evalue
+    {"MS:1001329", IDType::RAW_EVAL}, // OMSSA:pvalue
+    {"MS:1001172", IDType::RAW_EVAL}, // Mascot:expectation value
+    {"MS:1002931", IDType::RAW_EVAL}, // TopPIC:spectral p-value
+    {"MS:1002056", IDType::PEP},      // MS-GF:PEP
+    {"MS:1002929", IDType::FDR},      // TopPIC:spectral FDR
+    {"MS:1002054", IDType::QVAL},     // MS-GF:QValue
+    {"MS:1002055", IDType::QVAL}      // MS-GF:PepQValue
+  };
+  for (const auto& [accession, type] : accessions)
   {
     t = IDType::RAW;
     TEST_EQUAL(Scores::findIDTypeByName(accession, t), true)
-    TEST_EQUAL(t == IDType::RAW_EVAL, true)
+    TEST_EQUAL(t == type, true)
+    TEST_EQUAL(Scores::isHigherBetter(t), false)
   }
 
   // unknown name -> false

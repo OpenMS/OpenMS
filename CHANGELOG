@@ -739,10 +739,12 @@ Fixes:
   Chemistry and identifications:
     - MzIdentMLFile: search engine scores without a score order in the PSI-MS vocabulary take
       it from OpenMS' score registry, so Comet:expectation value, X!Tandem:expect, OMSSA:evalue,
-      OMSSA:pvalue, percolator:Q value and percolator:PEP are read as lower-is-better. Such
-      lower-is-better engine scores yield to a PSM-level q-value, which is then used. The
-      registry (Scores) now lists the X!Tandem and OMSSA scores by accession, so QPX and Arrow
-      exports also report them as additional scores (#8691).
+      OMSSA:pvalue, Mascot:expectation value, MS-GF:PEP, MS-GF:PepQValue, TopPIC:spectral FDR,
+      TopPIC:spectral p-value, percolator:Q value and percolator:PEP are read as lower-is-better.
+      Such lower-is-better engine scores yield to a PSM-level q-value, which is then used. The
+      registry (Scores) now lists the X!Tandem, OMSSA, Mascot, MS-GF and TopPIC scores by
+      accession, so IDScoreSwitcherAlgorithm finds them by score type and QPX and Arrow exports
+      report them as additional scores (#8691).
     - Fixed signed/stacked unknown mass shifts, precision-aware mass matching and spurious
       zero-mass PSI-MOD assignments. Distinct modified residues remain distinct and
       mass/formula round-trips no longer silently change peptidoforms (#10006, #10007,

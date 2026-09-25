@@ -23,13 +23,19 @@ namespace OpenMS
         //TODO check if we should combine RAW and RAW_EVAL:
         // What if a SE does not have an e-value score (spectrast, OMSSA, crux/sequest, myrimatch),
         // then you need additional if's/try's
-        // accessions: MS-GF:EValue, Comet:expectation value, OMSSA:evalue, OMSSA:pvalue, X!Tandem:expect
-        // (PSI-MS gives the last four no score order; the OMSSA p-value is lower-is-better like its E-value)
-        {IDType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue", "MS:1002053", "MS:1002257", "MS:1001328", "MS:1001329", "MS:1001330"}},
+        // PSI-MS accessions of search engine scores, mostly ones without a score order in PSI-MS: the mzIdentML reader
+        // takes their direction from here, and they are the meta value names of imported hits.
+        // RAW_EVAL: MS-GF:EValue, Comet:expectation value, OMSSA:evalue, OMSSA:pvalue, X!Tandem:expect,
+        // Mascot:expectation value, TopPIC:spectral p-value (p-values are lower-is-better like E-values)
+        {IDType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue", "MS:1002053", "MS:1002257", "MS:1001328", "MS:1001329", "MS:1001330",
+                            "MS:1001172", "MS:1002931"}},
         {IDType::PP, {"Posterior Probability"}},
-        {IDType::PEP, {"Posterior Error Probability", "pep", "PEP", "posterior_error_probability", "MS:1001493"}}, // TODO add CV terms
-        {IDType::FDR, {"FDR", "fdr", "false discovery rate"}},
-        {IDType::QVAL, {"q-value", "qvalue", "MS:1001491", "q-Value", "qval"}}
+        // PEP: percolator:PEP, MS-GF:PEP
+        {IDType::PEP, {"Posterior Error Probability", "pep", "PEP", "posterior_error_probability", "MS:1001493", "MS:1002056"}}, // TODO add CV terms
+        // FDR: TopPIC:spectral FDR
+        {IDType::FDR, {"FDR", "fdr", "false discovery rate", "MS:1002929"}},
+        // QVAL: percolator:Q value, MS-GF:QValue, MS-GF:PepQValue (peptide level; sorts after the PSM-level MS-GF:QValue)
+        {IDType::QVAL, {"q-value", "qvalue", "MS:1001491", "q-Value", "qval", "MS:1002054", "MS:1002055"}}
       };
 
       m.type_to_better = {
