@@ -28,6 +28,9 @@ namespace OpenMS
    * Ion mobility data is stored in VSSC (1/K0) units using IM_PEAK format
    * for MS1 and DIA MS2, and scalar drift times for DDA MS2.
    *
+   * Every method taking a path also accepts a zipped .d directory ('.d.zip'), which is
+   * unpacked into a temporary directory for the duration of the call.
+   *
    * In FRAME export mode, raw TOF indices and intensities are returned without
    * any signal processing. TOF-to-m/z and scan-to-IM conversions are applied,
    * but no smoothing or centroiding is performed.

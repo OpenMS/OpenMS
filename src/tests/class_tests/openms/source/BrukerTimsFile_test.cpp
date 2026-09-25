@@ -15,11 +15,15 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
+
+#include <fstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -114,6 +118,42 @@ START_SECTION(void load(const std::string& path, MSExperiment& exp, const Config
   BrukerTimsFile f;
   MSExperiment exp;
   TEST_EXCEPTION(Exception::FileNotReadable, f.load("/nonexistent/path.d", exp));
+}
+END_SECTION
+
+START_SECTION([EXTRA] load() of a zipped .d directory (.d.zip))
+{
+  // opentims only opens directories, so load() unpacks a '.d.zip' archive and reads the
+  // (possibly nested) .d directory inside it. SDK-free: neither archive holds TDF data.
+  TempDir tmp;
+  BrukerTimsFile f;
+  MSExperiment exp;
+
+  // No .d directory in the archive: reported as such, instead of handing the archive
+  // itself to opentims ("... .d.zip (opentims: Not a directory)").
+  const std::string no_d = tmp.getPath() + "/no_d";
+  File::makeDir(no_d);
+  { std::ofstream os((no_d + "/readme.txt").c_str()); os << "no Bruker data"; }
+  const std::string no_d_zip = tmp.getPath() + "/no_d.d.zip";
+  ZipArchiveFile::zipDirectory(no_d, no_d_zip);
+  TEST_EXCEPTION(Exception::ParseError, f.load(no_d_zip, exp));
+
+  // A nested .d directory is what reaches opentims (which rejects it: no analysis.tdf).
+  const std::string nested = tmp.getPath() + "/nested";
+  File::makeDir(nested + "/outer/run.d");
+  { std::ofstream os((nested + "/outer/run.d/placeholder.txt").c_str()); os << "no TDF data"; }
+  const std::string nested_zip = tmp.getPath() + "/run.d.zip";
+  ZipArchiveFile::zipDirectory(nested, nested_zip);
+  std::string message;
+  try
+  {
+    f.load(nested_zip, exp);
+  }
+  catch (const Exception::FileNotReadable& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.find("run.d (opentims") != std::string::npos, true)
 }
 END_SECTION
 

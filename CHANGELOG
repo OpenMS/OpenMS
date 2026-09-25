@@ -597,7 +597,7 @@ OpenMS Library:
       carries (hasCompressionSuffix() answers the same question as a bool). The pair takes the
       container because support is not uniform: the XML-based readers decompress .gz, .bz2 and .zip
       transparently through CompressedInputSource, while Bruker TDF accepts only a '.d.zip' archive
-      that FileHandler unpacks. A compression suffix alone therefore no longer implies compatibility,
+      that BrukerTimsFile unpacks. A compression suffix alone therefore no longer implies compatibility,
       so '.mgf.gz' is rejected where '.mzML.gz' is accepted, and both the CLI and TOPPAS apply the
       same rule. Compressed output is unaffected: XMLFile still selects gzip/bzip2 by filename (#490)
     - FileTypes: a file type may now register additional accepted extensions besides its preferred

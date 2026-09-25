@@ -8,6 +8,7 @@
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 #include <OpenMS/FORMAT/HANDLERS/PASEFHillCentroider.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
@@ -15,6 +16,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <opentims++/opentims.h>
 #include <opentims++/tof2mz_converter.h>
@@ -24,6 +27,7 @@
 
 #include <memory>
 #include <algorithm>
+#include <filesystem>
 #include <numeric>
 #include <vector>
 #include <cmath>
@@ -1433,6 +1437,30 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // Helper: resolve a zipped .d directory ('.d.zip') to a readable .d directory
+  // =====================================================================
+  // opentims only opens directories. A '.d.zip' archive is unpacked into @p temp_dir, which
+  // must outlive every use of the returned path; any other path is returned unchanged.
+  static std::string resolveTimsDirectory(const std::string& path, std::unique_ptr<TempDir>& temp_dir)
+  {
+    if (File::isDirectory(path) || !StringUtils::hasSuffix(StringUtils::toLowered(path), ".zip"))
+    {
+      return path;
+    }
+    const std::string unpacked = ZipArchiveFile::unzipDirectory(path, temp_dir);
+    // Find the .d directory inside the extracted archive (may be nested)
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(to_path(unpacked)))
+    {
+      if (entry.is_directory() && entry.path().extension() == ".d")
+      {
+        return entry.path().string();
+      }
+    }
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      path, "ZIP archive does not contain a .d directory");
+  }
+
+  // =====================================================================
   // Helper: open TimsDataHandle with tiered calibration strategy
   // =====================================================================
   using Config = BrukerTimsFile::Config;
@@ -1883,8 +1911,10 @@ namespace OpenMS
   BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata(
       const std::string& path, ExperimentalSettings& exp_settings, const Config& config)
   {
-    auto handle = openTimsDataHandle(path, config);
-    std::string tdf_path = path + "/analysis.tdf";
+    std::unique_ptr<TempDir> unpacked; // holds an unpacked .d.zip for this call
+    const std::string d_path = resolveTimsDirectory(path, unpacked);
+    auto handle = openTimsDataHandle(d_path, config);
+    std::string tdf_path = d_path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     if (!isDIA(db))
@@ -1963,7 +1993,8 @@ namespace OpenMS
   void BrukerTimsFile::loadDIAStreaming(
       const std::string& path, FullSwathFileConsumer& consumer, const Config& config)
   {
-    auto handle = openTimsDataHandle(path, config);
+    std::unique_ptr<TempDir> unpacked; // holds an unpacked .d.zip for this call
+    auto handle = openTimsDataHandle(resolveTimsDirectory(path, unpacked), config);
     std::string tdf_path = handle->get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
@@ -2127,9 +2158,11 @@ namespace OpenMS
   void BrukerTimsFile::load(const std::string& path, MSExperiment& exp, const Config& config)
   {
     exp.clear(true);
-    auto handle = openTimsDataHandle(path, config);
+    std::unique_ptr<TempDir> unpacked; // holds an unpacked .d.zip for this call
+    const std::string d_path = resolveTimsDirectory(path, unpacked);
+    auto handle = openTimsDataHandle(d_path, config);
 
-    std::string tdf_path = path + "/analysis.tdf";
+    std::string tdf_path = d_path + "/analysis.tdf";
 
     // Resolve RT range (if any) to an effective frame_id range; also
     // validates the user-supplied frame_id/rt ranges and emits warnings.
@@ -2174,9 +2207,11 @@ namespace OpenMS
 
   void BrukerTimsFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
   {
-    auto handle = openTimsDataHandle(path, config);
+    std::unique_ptr<TempDir> unpacked; // holds an unpacked .d.zip for this call
+    const std::string d_path = resolveTimsDirectory(path, unpacked);
+    auto handle = openTimsDataHandle(d_path, config);
 
-    std::string tdf_path = path + "/analysis.tdf";
+    std::string tdf_path = d_path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     const auto eff = resolveEffectiveConfig(db, config,
