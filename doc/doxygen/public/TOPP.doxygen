@@ -209,7 +209,6 @@
   - @subpage TOPP_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
   - @subpage TOPP_INIUpdater - Updates INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have change
   - @subpage TOPP_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
-  - @subpage TOPP_MetaProSIP - Performs proteinSIP on peptide features for elemental flux analysis.
   - @subpage TOPP_OpenMSInfo - Print system information.
   - @subpage TOPP_TICCalculator - Calculates the TIC of a raw mass spectrometric file.
 
