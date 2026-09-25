@@ -160,7 +160,10 @@ public:
       @param[in] feature_name name of the feature to calculate the ratio on
        e.g., peak_apex, peak_area
 
-      @return The ratio.
+      @return The ratio feature_1/feature_2. Returns std::numeric_limits<double>::quiet_NaN()
+        if the denominator (component_2's value) is zero, or if neither component has @p feature_name.
+        If only @p component_1 has the value (no internal standard for @p component_2), returns
+        component_1's raw value (NOT a ratio). (issue #9488, ANSW-41)
     */
     double calculateIonRatio(const Feature& component_1, const Feature& component_2, const std::string& feature_name) const;
 
