@@ -208,7 +208,7 @@ protected:
       {
         OPENMS_LOG_WARN << "Warning: no MS2 spectra in '" << file << "', so there are no isolation windows. Is this a DIA run?" << endl;
       }
-      else if (run.window_count == 0)
+      else if (run.window_count == 0 && run.without_isolation_window.spectrum_count > 0) // (MS2 spectra without RT: warned below)
       {
         OPENMS_LOG_WARN << "Warning: no MS2 spectrum of '" << file << "' has an isolation window, so there are no DIA "
                         << "isolation windows. Is this a DIA run?" << endl;
