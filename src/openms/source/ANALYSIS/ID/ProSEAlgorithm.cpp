@@ -435,20 +435,6 @@ namespace OpenMS
                                            [](const MSSpectrum& spectrum) { return isElectronActivated_(spectrum); }));
   }
 
-  bool ProSEAlgorithm::hasElectronActivatedSpectra_(const std::string& file) const
-  {
-    if (!ions_by_activation_) return false;
-    PeakMap spectra;
-    FileHandler f;
-    PeakFileOptions options;
-    options.clearMSLevels();
-    options.addMSLevel(2);
-    options.setFillData(false); // activation methods only, no peaks
-    f.getOptions() = options;
-    f.loadExperiment(file, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
-    return countElectronActivated_(spectra) > 0;
-  }
-
   void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top)
   {
     // Intensity threshold + normalization used to run here as two extra SERIAL full-map
@@ -1818,8 +1804,8 @@ namespace OpenMS
     endProgress();
 
     // ions:by_activation: electron-activated spectra are also scored with c and z+1 ions, so the
-    // index must hold them. A context without them is left unchanged, so that concurrent searches
-    // on it stay safe; this call builds its own index instead.
+    // index must hold them. A context without them is left unchanged, as other searches may share
+    // it; this call builds its own index instead.
     const Size n_electron_activated = countElectronActivated_(spectra);
     FragmentIndex electron_index;
     FragmentIndex* index = &ctx.fragment_index;
@@ -2377,17 +2363,28 @@ namespace OpenMS
         preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
       }
 
-      // ions:by_activation: the chunk indices, shared by all files, hold c and z+1 ions if any
-      // file has electron-activated spectra
-      bool electron_ions = false;
+      // ions:by_activation: as in a single-file search, a file is scored against indices with c and
+      // z+1 ions if it has electron-activated spectra, and against indices with the configured ion
+      // series otherwise, so that its results do not depend on the other files. index_series lists
+      // the kinds of index the files need (false: configured ion series, true: also c and z+1 ions);
+      // each chunk builds one index per entry, one after the other.
+      std::vector<bool> file_electron_ions(in_spectra_files.size(), false);
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         const Size n_electron_activated = countElectronActivated_(all_spectra[i]);
         if (n_electron_activated == 0) continue;
-        electron_ions = true;
+        file_electron_ions[i] = true;
         OPENMS_LOG_INFO << "[ProSE] " << in_spectra_files[i] << ": " << n_electron_activated << " of "
                         << all_spectra[i].size() << " spectra are electron-activated (ETD, ECD, EThcD or ETciD)"
                         << " and are also scored with c and z+1 ions." << std::endl;
+      }
+      std::vector<bool> index_series;
+      for (const bool electron_ions : {false, true})
+      {
+        if (std::find(file_electron_ions.begin(), file_electron_ions.end(), electron_ions) != file_electron_ions.end())
+        {
+          index_series.push_back(electron_ions);
+        }
       }
 
       // Per-file calibration: build a strided calibration FI once, run calibration per file.
@@ -2415,57 +2412,61 @@ namespace OpenMS
 
       if (calibration_enabled_ && !open_search_mode)
       {
-        // Build a strided-sample calibration FI once, reused across files.
+        // Build a strided-sample calibration FI once per kind of index, reused across files.
         std::vector<FASTAFile::FASTAEntry> cal_db = buildCalibrationSample_(full_db);
-        FragmentIndex cal_fi;
-        cal_fi.setParameters(fragmentIndexParameters_(electron_ions));
-        StopWatch sw_cal_idx; sw_cal_idx.start();
-        cal_fi.build(cal_db);
-        sw_cal_idx.stop();
-        mfres.shared.seconds_index_build += sw_cal_idx.getClockTime();
-
-        for (Size i = 0; i < in_spectra_files.size(); ++i)
+        for (const bool electron_ions : index_series)
         {
-          OPENMS_LOG_INFO << "[ProSE] Calibration for " << in_spectra_files[i]
-                          << " (strided sample, " << cal_db.size() << " proteins)" << std::endl;
-          CalibrationResult_ cal = runCalibrationPass_(all_spectra[i], cal_fi, cal_db);
-          if (cal.success)
+          FragmentIndex cal_fi;
+          cal_fi.setParameters(fragmentIndexParameters_(electron_ions));
+          StopWatch sw_cal_idx; sw_cal_idx.start();
+          cal_fi.build(cal_db);
+          sw_cal_idx.stop();
+          mfres.shared.seconds_index_build += sw_cal_idx.getClockTime();
+
+          for (Size i = 0; i < in_spectra_files.size(); ++i)
           {
-            per_file_cal[i].effective_fragment_tol = cal.fragment_tolerance;
-            if (!cal.extreme_bias)
+            if (file_electron_ions[i] != electron_ions) continue;
+            OPENMS_LOG_INFO << "[ProSE] Calibration for " << in_spectra_files[i]
+                            << " (strided sample, " << cal_db.size() << " proteins)" << std::endl;
+            CalibrationResult_ cal = runCalibrationPass_(all_spectra[i], cal_fi, cal_db);
+            if (cal.success)
             {
-              per_file_cal[i].effective_precursor_tol_lower = cal.cal_lower;
-              per_file_cal[i].effective_precursor_tol_upper = cal.cal_upper;
-              OPENMS_LOG_INFO << "[ProSE] Calibration: shift=" << cal.precursor_shift
-                              << " " << precursor_mass_tolerance_unit_
-                              << " -> window [-" << cal.cal_lower << ", +" << cal.cal_upper << "]"
-                              << " fragment=" << cal.fragment_tolerance << std::endl;
+              per_file_cal[i].effective_fragment_tol = cal.fragment_tolerance;
+              if (!cal.extreme_bias)
+              {
+                per_file_cal[i].effective_precursor_tol_lower = cal.cal_lower;
+                per_file_cal[i].effective_precursor_tol_upper = cal.cal_upper;
+                OPENMS_LOG_INFO << "[ProSE] Calibration: shift=" << cal.precursor_shift
+                                << " " << precursor_mass_tolerance_unit_
+                                << " -> window [-" << cal.cal_lower << ", +" << cal.cal_upper << "]"
+                                << " fragment=" << cal.fragment_tolerance << std::endl;
+              }
+              else
+              {
+                OPENMS_LOG_WARN << "[ProSE] Calibration for " << in_spectra_files[i]
+                                << ": extreme bias, precursor calibration discarded. Fragment calibration applied." << std::endl;
+              }
+              // Recompute mod-match tolerance with calibrated values.
+              // Temporarily set member variables, compute, then restore.
+              const double orig_lower = precursor_mass_tolerance_lower_;
+              const double orig_upper = precursor_mass_tolerance_upper_;
+              if (!cal.extreme_bias)
+              {
+                precursor_mass_tolerance_lower_ = cal.cal_lower;
+                precursor_mass_tolerance_upper_ = cal.cal_upper;
+              }
+              per_file_cal[i].mod_match_tol = computeModMatchTolerance_();
+              precursor_mass_tolerance_lower_ = orig_lower;
+              precursor_mass_tolerance_upper_ = orig_upper;
             }
             else
             {
-              OPENMS_LOG_WARN << "[ProSE] Calibration for " << in_spectra_files[i]
-                              << ": extreme bias, precursor calibration discarded. Fragment calibration applied." << std::endl;
+              OPENMS_LOG_INFO << "[ProSE] Calibration failed for " << in_spectra_files[i]
+                              << ", using configured tolerances." << std::endl;
             }
-            // Recompute mod-match tolerance with calibrated values.
-            // Temporarily set member variables, compute, then restore.
-            const double orig_lower = precursor_mass_tolerance_lower_;
-            const double orig_upper = precursor_mass_tolerance_upper_;
-            if (!cal.extreme_bias)
-            {
-              precursor_mass_tolerance_lower_ = cal.cal_lower;
-              precursor_mass_tolerance_upper_ = cal.cal_upper;
-            }
-            per_file_cal[i].mod_match_tol = computeModMatchTolerance_();
-            precursor_mass_tolerance_lower_ = orig_lower;
-            precursor_mass_tolerance_upper_ = orig_upper;
           }
-          else
-          {
-            OPENMS_LOG_INFO << "[ProSE] Calibration failed for " << in_spectra_files[i]
-                            << ", using configured tolerances." << std::endl;
-          }
+          // cal_fi freed here.
         }
-        // cal_fi freed here.
       }
       else if (calibration_enabled_ && open_search_mode)
       {
@@ -2498,43 +2499,48 @@ namespace OpenMS
                         << " (" << (end - start) << " proteins)" << std::endl;
 
         std::vector<FASTAFile::FASTAEntry> chunk_db(full_db.begin() + start, full_db.begin() + end);
-        FragmentIndex chunk_fi;
-        chunk_fi.setParameters(fragmentIndexParameters_(electron_ions));
-        StopWatch sw_chunk; sw_chunk.start();
-        chunk_fi.build(chunk_db);
-        sw_chunk.stop();
-        mfres.shared.seconds_index_build += sw_chunk.getClockTime();
-        mfres.shared.indexed_peptides += chunk_fi.getPeptides().size();
-        mfres.shared.indexed_fragments += chunk_fi.getNumFragments();
-        if (chunk_fi.isSnesMode()) { mfres.shared.snes_mode = true; }
-
-        // Score ALL files against this chunk's index.
-        // Each file may have different calibrated tolerances — apply per-file
-        // precursor bounds to the FI before scoring, then use per-file
-        // fragment tolerance for HyperScore.
-        const Param base_fi_params = chunk_fi.getParameters();
-        for (Size i = 0; i < in_spectra_files.size(); ++i)
+        for (const bool electron_ions : index_series)
         {
-          // Apply per-file calibrated precursor bounds to FI query params. Asymmetric
-          // lower/upper preserved — collapsing to max() would re-open the tight side
-          // of the calibrated window and admit spurious decoy candidates (#9180).
-          if (calibration_enabled_ && !open_search_mode)
+          FragmentIndex chunk_fi;
+          chunk_fi.setParameters(fragmentIndexParameters_(electron_ions));
+          StopWatch sw_chunk; sw_chunk.start();
+          chunk_fi.build(chunk_db);
+          sw_chunk.stop();
+          mfres.shared.seconds_index_build += sw_chunk.getClockTime();
+          // the indices of a chunk hold the same peptides
+          if (electron_ions == index_series.front()) { mfres.shared.indexed_peptides += chunk_fi.getPeptides().size(); }
+          mfres.shared.indexed_fragments += chunk_fi.getNumFragments();
+          if (chunk_fi.isSnesMode()) { mfres.shared.snes_mode = true; }
+
+          // Score the files that need this kind of index against it.
+          // Each file may have different calibrated tolerances — apply per-file
+          // precursor bounds to the FI before scoring, then use per-file
+          // fragment tolerance for HyperScore.
+          const Param base_fi_params = chunk_fi.getParameters();
+          for (Size i = 0; i < in_spectra_files.size(); ++i)
           {
-            Param fi_params = base_fi_params;
-            fi_params.setValue("fragment:mass_tolerance", per_file_cal[i].effective_fragment_tol);
-            fi_params.setValue("precursor:mass_tolerance_lower", per_file_cal[i].effective_precursor_tol_lower);
-            fi_params.setValue("precursor:mass_tolerance_upper", per_file_cal[i].effective_precursor_tol_upper);
-            chunk_fi.setParameters(fi_params);
+            if (file_electron_ions[i] != electron_ions) continue;
+            // Apply per-file calibrated precursor bounds to FI query params. Asymmetric
+            // lower/upper preserved — collapsing to max() would re-open the tight side
+            // of the calibrated window and admit spurious decoy candidates (#9180).
+            if (calibration_enabled_ && !open_search_mode)
+            {
+              Param fi_params = base_fi_params;
+              fi_params.setValue("fragment:mass_tolerance", per_file_cal[i].effective_fragment_tol);
+              fi_params.setValue("precursor:mass_tolerance_lower", per_file_cal[i].effective_precursor_tol_lower);
+              fi_params.setValue("precursor:mass_tolerance_upper", per_file_cal[i].effective_precursor_tol_upper);
+              chunk_fi.setParameters(fi_params);
+            }
+            scoreSpectraAgainstIndex_(all_spectra[i], chunk_fi, chunk_db,
+                                      generators, per_file_cal[i].effective_fragment_tol,
+                                      fragment_mass_tolerance_unit_ppm, open_search_mode,
+                                      per_file_hits[i], per_file_pool_stats[i],
+                                      "  file " + StringUtils::toStr(i + 1) + " chunk " + StringUtils::toStr(chunk_idx));
           }
-          scoreSpectraAgainstIndex_(all_spectra[i], chunk_fi, chunk_db,
-                                    generators, per_file_cal[i].effective_fragment_tol,
-                                    fragment_mass_tolerance_unit_ppm, open_search_mode,
-                                    per_file_hits[i], per_file_pool_stats[i],
-                                    "  file " + StringUtils::toStr(i + 1) + " chunk " + StringUtils::toStr(chunk_idx));
+          // Restore base FI params for next chunk (in case calibration modified them).
+          if (calibration_enabled_ && !open_search_mode)
+            chunk_fi.setParameters(base_fi_params);
         }
-        // Restore base FI params for next chunk (in case calibration modified them).
-        if (calibration_enabled_ && !open_search_mode)
-          chunk_fi.setParameters(base_fi_params);
 
         // Per-chunk pruning for each file.
         const Size keep = std::max(report_top_hits_, Size(2));
@@ -2658,45 +2664,59 @@ namespace OpenMS
       // ================================================================
       // Non-chunked multi-file: shared SearchContext (existing path).
       // ================================================================
-      SearchContext ctx;
-      // ions:by_activation: whether the shared index holds c and z+1 ions is decided from all files
-      // before the first search, so that the results of a file do not depend on the input order.
-      // The later files are scanned for their activation methods (metadata only); the first file
-      // decides once it is loaded, and the index is built then.
-      bool electron_ions_later_files = false;
-      for (Size i = 1; i < in_spectra_files.size() && !electron_ions_later_files; ++i)
+      // ions:by_activation: as in a single-file search, a file is searched against an index with c
+      // and z+1 ions if it has electron-activated spectra, and against an index with the configured
+      // ion series otherwise, so that its results do not depend on the other files or their order.
+      // Each of the two contexts is built when the first file needs it and is shared by all files
+      // that need it; runs that mix both kinds of files hold both.
+      SearchContext contexts[2]; // [0]: configured ion series, [1]: also c and z+1 ions
+      bool built[2] = {false, false};
+      auto context_for = [&](bool electron_ions) -> SearchContext&
       {
-        electron_ions_later_files = hasElectronActivatedSpectra_(in_spectra_files[i]);
-      }
-      auto build_context = [&](bool electron_ions)
-      {
+        SearchContext& ctx = contexts[electron_ions];
+        if (built[electron_ions]) { return ctx; }
+        const bool first_context = !built[!electron_ions];
         StopWatch sw_idx; sw_idx.start();
-        if (!full_db.empty())
+        if (first_context && full_db.empty())
         {
-          // chunk_size was set but augmented DB fits in one chunk — reuse the
-          // already-built decoy-augmented DB instead of re-augmenting inside
-          // prepareContext.
-          ctx.db = std::move(full_db);
-          ctx.decoy_string = strategy.decoy_string;
-          ctx.decoy_is_prefix = strategy.is_prefix;
-          ctx.have_decoys = strategy.have_decoys;
+          ctx = prepareContext(fasta_db, electron_ions);
+        }
+        else
+        {
+          if (!first_context)
+          {
+            // the database of the other context
+            const SearchContext& other = contexts[!electron_ions];
+            ctx.db = other.db;
+            ctx.decoy_string = other.decoy_string;
+            ctx.decoy_is_prefix = other.decoy_is_prefix;
+            ctx.have_decoys = other.have_decoys;
+          }
+          else
+          {
+            // chunk_size was set but augmented DB fits in one chunk — reuse the
+            // already-built decoy-augmented DB instead of re-augmenting inside
+            // prepareContext.
+            ctx.db = std::move(full_db);
+            ctx.decoy_string = strategy.decoy_string;
+            ctx.decoy_is_prefix = strategy.is_prefix;
+            ctx.have_decoys = strategy.have_decoys;
+          }
           startProgress(0, 1, "Building fragment index...");
           ctx.fragment_index.setParameters(fragmentIndexParameters_(electron_ions));
           ctx.fragment_index.build(ctx.db);
           ctx.electron_ions = electron_ions;
           endProgress();
         }
-        else
-        {
-          ctx = prepareContext(fasta_db, electron_ions);
-        }
         sw_idx.stop();
+        built[electron_ions] = true;
 
-        // Shared report stats: index built once and reused across all files.
+        // Shared report stats: each index is built once and reused across the files that need it.
         mfres.shared.chunked = false;
-        mfres.shared.seconds_index_build = sw_idx.getClockTime();
+        mfres.shared.seconds_index_build += sw_idx.getClockTime();
+        mfres.shared.indexed_fragments += ctx.fragment_index.getNumFragments();
+        if (!first_context) { return ctx; } // same database and peptides as the other context
         mfres.shared.indexed_peptides = ctx.fragment_index.getPeptides().size();
-        mfres.shared.indexed_fragments = ctx.fragment_index.getNumFragments();
         mfres.shared.snes_mode = ctx.fragment_index.isSnesMode();
         for (const auto& e : ctx.db)
         {
@@ -2709,6 +2729,7 @@ namespace OpenMS
           if (is_decoy) { ++mfres.shared.db_decoy_proteins; }
           else { ++mfres.shared.db_target_proteins; }
         }
+        return ctx;
       };
 
       mfres.per_file.reserve(in_spectra_files.size());
@@ -2731,7 +2752,7 @@ namespace OpenMS
           f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         }
         spectra.sortSpectra(true);
-        if (i == 0) { build_context(electron_ions_later_files || countElectronActivated_(spectra) > 0); }
+        SearchContext& ctx = context_for(countElectronActivated_(spectra) > 0);
 
         SearchResult result;
         result.is_open_search = isOpenSearchMode_();

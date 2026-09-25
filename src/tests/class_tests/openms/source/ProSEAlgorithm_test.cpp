@@ -1478,14 +1478,15 @@ START_SECTION(([EXTRA] ions:by_activation leaves a prepared context unchanged))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] ions:by_activation chooses the shared multi-file index independent of the input order))
+START_SECTION(([EXTRA] ions:by_activation searches each file of a multi-file search with the ions it needs))
 {
-  // An HCD file and an ETD file searched together share one fragment index. It holds c and z+1
-  // ions because one of the files has electron-activated spectra, whichever file comes first, so
-  // that the results of a file do not depend on the input order.
+  // As in a single-file search, the HCD file is searched against an index with b/y ions and the
+  // ETD file against one that also holds c and z+1 ions, whatever the other files and their order.
+  // Each kind of index is built once: for the whole database, or per chunk in the chunk-major path
+  // (database:chunk_size), so the index statistics add up to one index of each kind.
   vector<FASTAFile::FASTAEntry> fasta_db = {
-    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
-                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVR"},
+    {"P02", "Test", "THQPSANLDIKCMYKWTERHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
   };
   const PeakMap spectra = build_etd_hcd_spectra_();
   PeakMap etd_spectra, hcd_spectra;
@@ -1501,25 +1502,54 @@ START_SECTION(([EXTRA] ions:by_activation chooses the shared multi-file index in
 
   ProSEAlgorithm algo;
   configure_by_activation_params_(algo, true);
-  const Size electron_index_fragments = algo.prepareContext(fasta_db, true).fragment_index.getNumFragments();
-  auto hcd_first = algo.searchWithModificationAnalysis(vector<std::string>{hcd_file, etd_file}, fasta_db, vector<std::string>{}, "", false);
-  auto etd_first = algo.searchWithModificationAnalysis(vector<std::string>{etd_file, hcd_file}, fasta_db, vector<std::string>{}, "", false);
-  ABORT_IF(hcd_first.per_file.size() != 2 || etd_first.per_file.size() != 2)
-  TEST_EQUAL(hcd_first.shared.indexed_fragments, electron_index_fragments)
-  TEST_EQUAL(etd_first.shared.indexed_fragments, electron_index_fragments)
+  const ProSEAlgorithm::SearchContext standard_ctx = algo.prepareContext(fasta_db);
+  const Size standard_fragments = standard_ctx.fragment_index.getNumFragments();
+  const Size electron_fragments = algo.prepareContext(fasta_db, true).fragment_index.getNumFragments();
+  TEST_EQUAL(electron_fragments > standard_fragments, true)
 
-  // same top hits and scores for each file in both orders
-  std::map<std::string, PeptideHit> hcd_a = top_hits_by_spectrum_(hcd_first.per_file[0].peptide_ids);
-  std::map<std::string, PeptideHit> hcd_b = top_hits_by_spectrum_(etd_first.per_file[1].peptide_ids);
-  std::map<std::string, PeptideHit> etd_a = top_hits_by_spectrum_(hcd_first.per_file[1].peptide_ids);
-  std::map<std::string, PeptideHit> etd_b = top_hits_by_spectrum_(etd_first.per_file[0].peptide_ids);
-  ABORT_IF(hcd_a.size() != 1 || hcd_b.size() != 1 || etd_a.size() != 1 || etd_b.size() != 1)
-  TEST_STRING_EQUAL(hcd_a.begin()->second.getSequence().toUnmodifiedString(), "THQPSANLDIK")
-  TEST_EQUAL(hcd_a.begin()->second.getSequence(), hcd_b.begin()->second.getSequence())
-  TEST_REAL_SIMILAR(hcd_a.begin()->second.getScore(), hcd_b.begin()->second.getScore())
-  TEST_STRING_EQUAL(etd_a.begin()->second.getSequence().toUnmodifiedString(), "VLGFHQR")
-  TEST_EQUAL(count_annotations_(etd_a.begin()->second, "z."), 6)
-  TEST_REAL_SIMILAR(etd_a.begin()->second.getScore(), etd_b.begin()->second.getScore())
+  // the top hit of each file searched alone
+  auto search_alone = [&algo, &fasta_db](PeakMap alone)
+  {
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    algo.search(alone, fasta_db, prot_ids, pep_ids);
+    return top_hits_by_spectrum_(pep_ids);
+  };
+  const std::map<std::string, PeptideHit> hcd_alone = search_alone(hcd_spectra);
+  const std::map<std::string, PeptideHit> etd_alone = search_alone(etd_spectra);
+  ABORT_IF(hcd_alone.size() != 1 || etd_alone.size() != 1)
+  TEST_STRING_EQUAL(hcd_alone.begin()->second.getSequence().toUnmodifiedString(), "THQPSANLDIK")
+  TEST_STRING_EQUAL(etd_alone.begin()->second.getSequence().toUnmodifiedString(), "VLGFHQR")
+  TEST_EQUAL(count_annotations_(etd_alone.begin()->second, "z."), 6)
+
+  auto test_same_top_hit = [](PeptideIdentificationList& pep_ids, const std::map<std::string, PeptideHit>& alone)
+  {
+    std::map<std::string, PeptideHit> hits = top_hits_by_spectrum_(pep_ids);
+    TEST_EQUAL(hits.size(), 1)
+    if (hits.size() != 1) return;
+    TEST_EQUAL(hits.begin()->second.getSequence(), alone.begin()->second.getSequence())
+    TEST_REAL_SIMILAR(hits.begin()->second.getScore(), alone.begin()->second.getScore())
+  };
+
+  for (int chunk_size : {0, 1})
+  {
+    Param p = algo.getParameters();
+    p.setValue("database:chunk_size", chunk_size);
+    algo.setParameters(p);
+    auto hcd_first = algo.searchWithModificationAnalysis(vector<std::string>{hcd_file, etd_file}, fasta_db, vector<std::string>{}, "", false);
+    auto etd_first = algo.searchWithModificationAnalysis(vector<std::string>{etd_file, hcd_file}, fasta_db, vector<std::string>{}, "", false);
+    ABORT_IF(hcd_first.per_file.size() != 2 || etd_first.per_file.size() != 2)
+    for (const auto* res : {&hcd_first, &etd_first})
+    {
+      TEST_EQUAL(res->shared.chunked, chunk_size > 0)
+      TEST_EQUAL(res->shared.indexed_peptides, standard_ctx.fragment_index.getPeptides().size())
+      TEST_EQUAL(res->shared.indexed_fragments, standard_fragments + electron_fragments)
+    }
+    test_same_top_hit(hcd_first.per_file[0].peptide_ids, hcd_alone);
+    test_same_top_hit(etd_first.per_file[1].peptide_ids, hcd_alone);
+    test_same_top_hit(hcd_first.per_file[1].peptide_ids, etd_alone);
+    test_same_top_hit(etd_first.per_file[0].peptide_ids, etd_alone);
+  }
 }
 END_SECTION
 

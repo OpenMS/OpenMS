@@ -125,7 +125,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       Size db_target_proteins = 0;             ///< target entries in the searched (augmented) db
       Size db_decoy_proteins = 0;              ///< decoy entries in the searched (augmented) db
       Size indexed_peptides = 0;               ///< peptides in the fragment index (summed over chunks)
-      Size indexed_fragments = 0;              ///< theoretical fragments in the index (summed over chunks)
+      /// theoretical fragments in the index (summed over chunks, and over the indices with and
+      /// without c and z+1 ions when the files need both; see ions:by_activation)
+      Size indexed_fragments = 0;
       double seconds_index_build = 0.0;        ///< decoy generation + fragment index build wall time
       double seconds_total = 0.0;              ///< whole-search wall time (set by the caller)
     };
@@ -235,8 +237,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       /// target-decoy FDR is possible.
       bool have_decoys = false;
       /// True when `fragment_index` also holds c and z+1 ions for electron-activated
-      /// spectra (ions:by_activation); see prepareContext(). search() never changes the
-      /// context: for such spectra and a context without these ions, it builds a
+      /// spectra (ions:by_activation); see prepareContext(). search() does not add them
+      /// to a context: for such spectra and a context without these ions, it builds a
       /// temporary index for the call.
       bool electron_ions = false;
     };
@@ -381,9 +383,11 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @return Prepared SearchContext containing the (possibly decoy-augmented)
      *         database and the built FragmentIndex.
      *
-     * Thread-safety: the returned context's FragmentIndex is read-only during
-     * subsequent search() calls; concurrent search() calls reading the same
-     * SearchContext are safe (per FragmentIndex query thread-safety contract).
+     * Thread-safety: concurrent search() calls reading the same SearchContext are
+     * safe (per FragmentIndex query thread-safety contract) as long as
+     * calibration:enabled is off. A successful calibration sets the calibrated
+     * tolerances as query parameters of the context's FragmentIndex until the call
+     * returns, so calibrated searches must not share a context concurrently.
      * Do not call prepareContext() concurrently on the same algorithm instance.
      */
     SearchContext prepareContext(const std::vector<FASTAFile::FASTAEntry>& fasta_db) const;
@@ -660,10 +664,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     /// Number of spectra that ions:by_activation also scores with c and z+1 ions (0 if it is off)
     Size countElectronActivated_(const PeakMap& spectra) const;
-
-    /// True if ions:by_activation is on and @p file has electron-activated MS2 spectra; reads the
-    /// spectrum metadata only
-    bool hasElectronActivatedSpectra_(const std::string& file) const;
 
     /**
      * @brief Build the searched database according to @p strategy.
