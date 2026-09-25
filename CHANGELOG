@@ -17,6 +17,9 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 General:
+  - Updated the bundled PSI-MS controlled vocabulary from 4.1.155 to 4.2.2, including CV
+    term-name changes in mzML/TraML output and vocabulary versions in mzTab-M/mzQC output
+    (#8691)
   - New native readers for Bruker timsTOF .d, Thermo .raw, imzML and Bruker MALDI imaging;
     see OpenMS Library for capabilities and runtime requirements.
   - New .idparquet, .featureparquet and .consensusparquet directory formats for native
@@ -734,6 +737,12 @@ OpenMS Library:
 
 Fixes:
   Chemistry and identifications:
+    - MzIdentMLFile: search engine scores without a score order in the PSI-MS vocabulary take
+      it from OpenMS' score registry, so Comet:expectation value, X!Tandem:expect, OMSSA:evalue,
+      OMSSA:pvalue, percolator:Q value and percolator:PEP are read as lower-is-better. Such
+      lower-is-better engine scores yield to a PSM-level q-value, which is then used. The
+      registry (Scores) now lists the X!Tandem and OMSSA scores by accession, so QPX and Arrow
+      exports also report them as additional scores (#8691).
     - Fixed signed/stacked unknown mass shifts, precision-aware mass matching and spurious
       zero-mass PSI-MOD assignments. Distinct modified residues remain distinct and
       mass/formula round-trips no longer silently change peptidoforms (#10006, #10007,
@@ -815,6 +824,12 @@ Fixes:
       prediction access (#9488, #9492, #9211).
     - mzML metadata round-trips preserve UTF-8, whitespace, timestamps, independent noise
       grids, detector types/units and precursor-intensity units (#10077, #10079).
+    - MzMLFile writes activation and analyzer terms that are valid with PSI-MS 4.2.2. EThcD or
+      ETciD without a supplemental activation term also gets the generic dissociation method,
+      as PSI-MS now lists combined methods as activation attributes. SWIFT, cyclotron and
+      ion-storage analyzers, and the analyzer invented for incomplete instruments, use the
+      generic mass analyzer type; the OpenMS type is kept in a userParam and restored on
+      reading. HCID, EThcD and ETciD terms use their PSI-MS names (#8691).
     - Fixed INI required/advanced parsing, XQuest FDR-type restoration, mzIdentML missing
       modification locations, PepXML source-run paths/redundant Comet scores and duplicate
       IDMapper spectrum references (#5443, #8905, #9089, #9660, #9763, #9766).
