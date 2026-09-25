@@ -586,8 +586,9 @@ TOPP tools:
       a zero-vs-epsilon comparison stays expressible -- and two NaNs compare equal. List-valued key columns
       (e.g. QPX's grouped_runs) are canonicalized by sorting before matching, and a duplicate primary key
       is reported as an error in its own right. -schema validates a single file against a named QPX view
-      instead of diffing two files. Exit code is EXECUTION_OK when equal and INCOMPATIBLE_INPUT_DATA
-      otherwise, so it drops into CTest the way FuzzyDiff does (#9865, part of #9864)
+      instead of diffing two files. Exit code is EXECUTION_OK when the comparison (or -schema validation)
+      passes and every input holds at least -min_rows rows, if set; otherwise INCOMPATIBLE_INPUT_DATA, so it
+      drops into CTest the way FuzzyDiff does (#9865, part of #9864)
   Removed tools:
     - BREAKING: GenericWrapper and its external-tool definitions removed; use direct TOPP
       invocations or TOPPAS workflows (#8981, #9735).
