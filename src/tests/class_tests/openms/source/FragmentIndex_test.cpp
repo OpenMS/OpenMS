@@ -699,6 +699,91 @@ START_SECTION([EXTRA] z+1 ions match TheoreticalSpectrumGenerator)
 }
 END_SECTION
 
+// ions:electron_ions indexes c and z+1 ions apart from the main ion series. Queried without them, the
+// index must give the candidates of an index that lacks them; queried with them, those of an index
+// that holds them in the main series. The spectrum holds the y ions of THQPSANLDIK and the c and z+1
+// ions of NDSIQLHTAPK, which has the same composition and hence the same precursor mass.
+START_SECTION([EXTRA] ions:electron_ions are matched only on request)
+{
+  const std::vector<FASTAFile::FASTAEntry> entries {{"p1", "p1", "THQPSANLDIK"}, {"p2", "p2", "NDSIQLHTAPK"}};
+  auto build_index = [&entries](FragmentIndex& fi, bool electron_ions, bool c_zp1_in_main_series)
+  {
+    auto params = fi.getParameters();
+    params.setValue("enzyme", "no cleavage");
+    params.setValue("peptide:min_size", 0);
+    params.setValue("peptide:max_size", 100);
+    params.setValue("peptide:min_mass", 0);
+    params.setValue("peptide:max_mass", 50000);
+    params.setValue("fragment:min_mz", 0);
+    params.setValue("fragment:max_mz", 50000);
+    params.setValue("fragment:mass_tolerance", 20.0);
+    params.setValue("fragment:mass_tolerance_unit", "ppm");
+    params.setValue("modifications:variable", std::vector<std::string> {});
+    params.setValue("modifications:fixed", std::vector<std::string> {});
+    params.setValue("ions:add_c_ions", c_zp1_in_main_series ? "true" : "false");
+    params.setValue("ions:add_zp1_ions", c_zp1_in_main_series ? "true" : "false");
+    params.setValue("ions:electron_ions", electron_ions ? "true" : "false");
+    fi.setParameters(params);
+    fi.build(entries);
+  };
+  FragmentIndex by_index, electron_index, union_index;
+  build_index(by_index, false, false);
+  build_index(electron_index, true, false);
+  build_index(union_index, false, true);
+  TEST_EQUAL(electron_index.getNumFragments() > by_index.getNumFragments(), true)
+  TEST_EQUAL(electron_index.getNumFragments(), union_index.getNumFragments())
+
+  auto ions = [](const std::string& seq_str, bool y, bool c_zp1)
+  {
+    TheoreticalSpectrumGenerator tsg;
+    Param tsg_param = tsg.getParameters();
+    tsg_param.setValue("add_b_ions", "false");
+    tsg_param.setValue("add_y_ions", y ? "true" : "false");
+    tsg_param.setValue("add_c_ions", c_zp1 ? "true" : "false");
+    tsg_param.setValue("add_zp1_ions", c_zp1 ? "true" : "false");
+    tsg.setParameters(tsg_param);
+    PeakSpectrum ion_spectrum;
+    tsg.getSpectrum(ion_spectrum, AASequence::fromString(seq_str), 1, 1);
+    return ion_spectrum;
+  };
+  MSSpectrum spec = ions("THQPSANLDIK", true, false);
+  for (const Peak1D& peak : ions("NDSIQLHTAPK", false, true)) spec.push_back(peak);
+  spec.sortByPosition();
+  spec.setMSLevel(2);
+  Precursor prec;
+  prec.setMZ(AASequence::fromString("THQPSANLDIK").getMZ(2));
+  prec.setCharge(2);
+  spec.setPrecursors({prec});
+
+  // candidates as (peptide sequence, number of matched fragments), best first
+  auto candidates = [&entries, &spec](FragmentIndex& fi, bool with_electron_ions)
+  {
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi.querySpectrum(spec, entries, sms, with_electron_ions);
+    std::vector<std::pair<std::string, uint32_t>> result;
+    for (const auto& hit : sms.hits_)
+    {
+      const FragmentIndex::Peptide& pep = fi.getPeptides()[hit.peptide_idx_];
+      result.emplace_back(entries[pep.protein_idx].sequence.substr(pep.sequence_.first, pep.sequence_.second), hit.num_matched_);
+    }
+    return result;
+  };
+  const auto by_candidates = candidates(by_index, false);
+  const auto without = candidates(electron_index, false);
+  const auto with = candidates(electron_index, true);
+  const auto union_candidates = candidates(union_index, false);
+  ABORT_IF(by_candidates.empty() || with.empty())
+  TEST_EQUAL(without == by_candidates, true)
+  TEST_EQUAL(with == union_candidates, true)
+  TEST_STRING_EQUAL(by_candidates[0].first, "THQPSANLDIK")
+  TEST_STRING_EQUAL(with[0].first, "NDSIQLHTAPK")
+  // the default overload does not match the c and z+1 ions
+  FragmentIndex::SpectrumMatchesTopN sms_default;
+  electron_index.querySpectrum(spec, entries, sms_default);
+  TEST_EQUAL(sms_default.hits_.size(), without.size())
+}
+END_SECTION
+
 // Test multi-mod-per-site: two different variable mods targeting the same AA (C)
 // and fragment count correctness with modifications
 START_SECTION(multi_mod_per_site)

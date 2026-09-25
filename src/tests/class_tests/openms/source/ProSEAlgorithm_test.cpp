@@ -342,6 +342,39 @@ static PeakMap build_etd_hcd_spectra_()
   return spectra;
 }
 
+// HCD spectrum with the y ions of THQPSANLDIK and, by chance, the c and z+1 ions of NDSIQLHTAPK, a
+// peptide of the same composition and hence the same precursor mass. Matched against c and z+1 ions
+// as well, NDSIQLHTAPK explains more peaks than THQPSANLDIK; matched against b/y ions, it explains
+// hardly any.
+static MSSpectrum build_displacement_hcd_spectrum_()
+{
+  auto ions = [](const std::string& seq_str, bool y, bool c_zp1)
+  {
+    TheoreticalSpectrumGenerator tsg;
+    Param tsg_param = tsg.getParameters();
+    tsg_param.setValue("add_b_ions", "false");
+    tsg_param.setValue("add_y_ions", y ? "true" : "false");
+    tsg_param.setValue("add_c_ions", c_zp1 ? "true" : "false");
+    tsg_param.setValue("add_zp1_ions", c_zp1 ? "true" : "false");
+    tsg.setParameters(tsg_param);
+    MSSpectrum ion_spectrum;
+    tsg.getSpectrum(ion_spectrum, AASequence::fromString(seq_str), 1, 1);
+    return ion_spectrum;
+  };
+  MSSpectrum spec = ions("THQPSANLDIK", true, false);
+  for (const Peak1D& peak : ions("NDSIQLHTAPK", false, true)) spec.push_back(peak);
+  spec.sortByPosition();
+  spec.setMSLevel(2);
+  spec.setRT(200.0);
+  Precursor prec;
+  prec.setMZ(AASequence::fromString("THQPSANLDIK").getMZ(2));
+  prec.setCharge(2);
+  prec.setActivationMethods({Precursor::ActivationMethod::HCD});
+  spec.setPrecursors({prec});
+  spec.setNativeID("spectrum=hcd");
+  return spec;
+}
+
 static void configure_by_activation_params_(ProSEAlgorithm& algo, bool by_activation)
 {
   Param p = algo.getParameters();
@@ -1445,6 +1478,48 @@ START_SECTION(([EXTRA] ions:by_activation scores electron-activated spectra with
 }
 END_SECTION
 
+START_SECTION(([EXTRA] ions:by_activation selects the candidates of other spectra with their ion series alone))
+{
+  // Only one candidate per spectrum is scored. For the HCD spectrum it must be THQPSANLDIK, as when
+  // the spectrum is searched alone, also when an ETD spectrum in the same run makes the index hold
+  // c and z+1 ions: against those, NDSIQLHTAPK matches more peaks.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+    {"P02", "Competitor", "MSGRNDSIQLHTAPKWEAGR"},
+  };
+  ProSEAlgorithm algo;
+  configure_by_activation_params_(algo, true);
+  Param p = algo.getParameters();
+  p.setValue("scoring:max_candidates_per_spectrum", 1);
+  algo.setParameters(p);
+
+  PeakMap hcd_alone;
+  hcd_alone.addSpectrum(build_displacement_hcd_spectrum_());
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(hcd_alone, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  std::map<std::string, PeptideHit> alone = top_hits_by_spectrum_(pep_ids);
+  ABORT_IF(alone.count("spectrum=hcd") != 1)
+  TEST_STRING_EQUAL(alone["spectrum=hcd"].getSequence().toUnmodifiedString(), "THQPSANLDIK")
+
+  PeakMap mixed = build_etd_hcd_spectra_();
+  PeakMap run;
+  run.addSpectrum(mixed[0]); // ETD spectrum of VLGFHQR
+  run.addSpectrum(build_displacement_hcd_spectrum_());
+  vector<ProteinIdentification> prot_ids_mixed;
+  PeptideIdentificationList pep_ids_mixed;
+  TEST_EQUAL(algo.search(run, fasta_db, prot_ids_mixed, pep_ids_mixed) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  std::map<std::string, PeptideHit> hits = top_hits_by_spectrum_(pep_ids_mixed);
+  ABORT_IF(hits.count("spectrum=0") != 1)
+  TEST_STRING_EQUAL(hits["spectrum=0"].getSequence().toUnmodifiedString(), "VLGFHQR")
+  TEST_EQUAL(hits.count("spectrum=hcd"), 1)
+  ABORT_IF(hits.count("spectrum=hcd") != 1)
+  TEST_STRING_EQUAL(hits["spectrum=hcd"].getSequence().toUnmodifiedString(), "THQPSANLDIK")
+  TEST_REAL_SIMILAR(hits["spectrum=hcd"].getScore(), alone["spectrum=hcd"].getScore())
+}
+END_SECTION
+
 START_SECTION(([EXTRA] ions:by_activation leaves a prepared context unchanged))
 {
   // prepareContext(fasta_db) does not know the spectra, so its index holds the configured b/y ions
@@ -1478,20 +1553,19 @@ START_SECTION(([EXTRA] ions:by_activation leaves a prepared context unchanged))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] ions:by_activation searches each file of a multi-file search with the ions it needs))
+START_SECTION(([EXTRA] ions:by_activation gives each file of a multi-file search the results it gets alone))
 {
-  // As in a single-file search, the HCD file is searched against an index with b/y ions and the
-  // ETD file against one that also holds c and z+1 ions, whatever the other files and their order.
-  // Each kind of index is built once: for the whole database, or per chunk in the chunk-major path
-  // (database:chunk_size), so the index statistics add up to one index of each kind.
+  // An HCD file and an ETD file searched together, in both orders, without and with chunks
+  // (database:chunk_size). The ETD file makes the index hold c and z+1 ions. The HCD spectrum is the
+  // one above: matched against these ions, NDSIQLHTAPK (in the same chunk) would displace
+  // THQPSANLDIK. Each file must get the top hit it gets alone.
   vector<FASTAFile::FASTAEntry> fasta_db = {
-    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVR"},
-    {"P02", "Test", "THQPSANLDIKCMYKWTERHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+    {"P01", "Test", "MSDEREKTHQPSANLDIKCMYKWTERNDSIQLHTAPKWEAGR"},
+    {"P02", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVR"},
   };
-  const PeakMap spectra = build_etd_hcd_spectra_();
   PeakMap etd_spectra, hcd_spectra;
-  etd_spectra.addSpectrum(spectra[0]);
-  hcd_spectra.addSpectrum(spectra[1]);
+  etd_spectra.addSpectrum(build_etd_hcd_spectra_()[0]);
+  hcd_spectra.addSpectrum(build_displacement_hcd_spectrum_());
   std::string etd_file, hcd_file;
   NEW_TMP_FILE(etd_file)
   etd_file += ".mzML";
@@ -1502,10 +1576,11 @@ START_SECTION(([EXTRA] ions:by_activation searches each file of a multi-file sea
 
   ProSEAlgorithm algo;
   configure_by_activation_params_(algo, true);
-  const ProSEAlgorithm::SearchContext standard_ctx = algo.prepareContext(fasta_db);
-  const Size standard_fragments = standard_ctx.fragment_index.getNumFragments();
-  const Size electron_fragments = algo.prepareContext(fasta_db, true).fragment_index.getNumFragments();
-  TEST_EQUAL(electron_fragments > standard_fragments, true)
+  Param p = algo.getParameters();
+  p.setValue("scoring:max_candidates_per_spectrum", 1);
+  algo.setParameters(p);
+  const ProSEAlgorithm::SearchContext electron_ctx = algo.prepareContext(fasta_db, true);
+  const Size electron_fragments = electron_ctx.fragment_index.getNumFragments();
 
   // the top hit of each file searched alone
   auto search_alone = [&algo, &fasta_db](PeakMap alone)
@@ -1533,7 +1608,6 @@ START_SECTION(([EXTRA] ions:by_activation searches each file of a multi-file sea
 
   for (int chunk_size : {0, 1})
   {
-    Param p = algo.getParameters();
     p.setValue("database:chunk_size", chunk_size);
     algo.setParameters(p);
     auto hcd_first = algo.searchWithModificationAnalysis(vector<std::string>{hcd_file, etd_file}, fasta_db, vector<std::string>{}, "", false);
@@ -1542,8 +1616,8 @@ START_SECTION(([EXTRA] ions:by_activation searches each file of a multi-file sea
     for (const auto* res : {&hcd_first, &etd_first})
     {
       TEST_EQUAL(res->shared.chunked, chunk_size > 0)
-      TEST_EQUAL(res->shared.indexed_peptides, standard_ctx.fragment_index.getPeptides().size())
-      TEST_EQUAL(res->shared.indexed_fragments, standard_fragments + electron_fragments)
+      TEST_EQUAL(res->shared.indexed_peptides, electron_ctx.fragment_index.getPeptides().size())
+      TEST_EQUAL(res->shared.indexed_fragments, electron_fragments)
     }
     test_same_top_hit(hcd_first.per_file[0].peptide_ids, hcd_alone);
     test_same_top_hit(etd_first.per_file[1].peptide_ids, hcd_alone);

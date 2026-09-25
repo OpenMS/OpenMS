@@ -125,9 +125,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       Size db_target_proteins = 0;             ///< target entries in the searched (augmented) db
       Size db_decoy_proteins = 0;              ///< decoy entries in the searched (augmented) db
       Size indexed_peptides = 0;               ///< peptides in the fragment index (summed over chunks)
-      /// theoretical fragments in the index (summed over chunks, and over the indices with and
-      /// without c and z+1 ions when the files need both; see ions:by_activation)
-      Size indexed_fragments = 0;
+      Size indexed_fragments = 0;              ///< theoretical fragments in the index (summed over chunks)
       double seconds_index_build = 0.0;        ///< decoy generation + fragment index build wall time
       double seconds_total = 0.0;              ///< whole-search wall time (set by the caller)
     };
@@ -237,9 +235,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       /// target-decoy FDR is possible.
       bool have_decoys = false;
       /// True when `fragment_index` also holds c and z+1 ions for electron-activated
-      /// spectra (ions:by_activation); see prepareContext(). search() does not add them
-      /// to a context: for such spectra and a context without these ions, it builds a
-      /// temporary index for the call.
+      /// spectra (ions:by_activation); only those spectra are matched against them. See
+      /// prepareContext(). search() does not add them to a context: for such spectra and
+      /// a context without these ions, it builds a temporary index for the call.
       bool electron_ions = false;
     };
 
@@ -397,8 +395,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *
      * As prepareContext(fasta_db). With @p electron_ions, the index also holds c and z+1
      * ions, which ions:by_activation scores for electron-activated spectra (ETD, ECD, EThcD,
-     * ETciD). Use it when the spectra to search contain such spectra: search() otherwise
-     * builds a temporary index with these ions for each call.
+     * ETciD). Only those spectra are matched against them, so other spectra get the same
+     * candidates as from prepareContext(fasta_db). Use it when the spectra to search contain
+     * such spectra: search() otherwise builds a temporary index with these ions for each call.
      *
      * @param[in] fasta_db Protein sequence database as FASTA entries.
      * @param[in] electron_ions Also index c and z+1 ions.
