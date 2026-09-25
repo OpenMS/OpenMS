@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 ///////////////////////////
 
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -1402,6 +1403,42 @@ START_SECTION(void transform(const std::string& filename_in, Interfaces::IMSData
   TEST_REAL_SIMILAR(consumer.TIC, 350)
 
   TEST_EQUAL(map.getNrSpectra(), 4)
+}
+END_SECTION
+
+START_SECTION([EXTRA] transform() ends the progress of a first pass that stops before the end of the file)
+{
+  // records the nesting depth of every progress started with it
+  class DepthRecorder : public ProgressLogger::ProgressLoggerImpl
+  {
+  public:
+    explicit DepthRecorder(std::vector<int>& depths) : depths_(depths) {}
+    void startProgress(const SignedSize, const SignedSize, const std::string&, const int current_recursion_depth) const override
+    {
+      depths_.push_back(current_recursion_depth);
+    }
+    void setProgress(const SignedSize, const int) const override {}
+    SignedSize nextProgress() const override { return 0; }
+    void endProgress(const int, UInt64) const override {}
+
+  private:
+    std::vector<int>& depths_;
+  };
+
+  // the first pass stops at the spectrum list (metadata only) or at the chromatogram list (counting); the progress of
+  // the next file must not be nested deeper
+  for (bool skip_full_count : {true, false})
+  {
+    std::vector<int> first, second;
+    MzMLFile mzml;
+    MSDataTransformingConsumer consumer;
+    mzml.setLogger(new DepthRecorder(first));
+    mzml.transform(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), &consumer, skip_full_count);
+    mzml.setLogger(new DepthRecorder(second));
+    mzml.transform(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), &consumer, skip_full_count);
+    TEST_FALSE(first.empty())
+    TEST_TRUE(first == second)
+  }
 }
 END_SECTION
 

@@ -5847,11 +5847,11 @@ set_tests_properties("TOPP_QCCalculator_2_out" PROPERTIES DEPENDS "TOPP_QCCalcul
 #------------------------------------------------------------------------------
 # DIAuditor:
 # FAIMS DIA run (with a window measured once) and an OpenSwath DIA run with scan times in seconds;
-# the mzQC diff skips what follows the installed psi-ms.obo (term definitions, vocabulary version and URI)
+# the mzQC diff skips what follows the installed psi-ms.obo (term names and definitions, vocabulary version and URI)
 add_test("TOPP_DIAuditor_1" ${TOPP_BIN_PATH}/DIAuditor -test -in ${DATA_DIR_TOPP}/DIAuditor_1_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -out ${TESTS_TEMP_DIR}/DIAuditor_1.tmp.tsv -out_windows ${TESTS_TEMP_DIR}/DIAuditor_1_windows.tmp.tsv -out_mzqc ${TESTS_TEMP_DIR}/DIAuditor_1.tmp.mzQC)
 add_test("TOPP_DIAuditor_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DIAuditor_1.tmp.tsv -in2 ${DATA_DIR_TOPP}/DIAuditor_1_output.tsv)
 add_test("TOPP_DIAuditor_1_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DIAuditor_1_windows.tmp.tsv -in2 ${DATA_DIR_TOPP}/DIAuditor_1_windows_output.tsv)
-add_test("TOPP_DIAuditor_1_out3" ${DIFF} -whitelist "creationDate" "location" "version" "description" "psi-ms-CV" -in1 ${TESTS_TEMP_DIR}/DIAuditor_1.tmp.mzQC -in2 ${DATA_DIR_TOPP}/DIAuditor_1_output.mzQC)
+add_test("TOPP_DIAuditor_1_out3" ${DIFF} -whitelist "creationDate" "location" "version" "description" "psi-ms-CV" "\"name\"" -in1 ${TESTS_TEMP_DIR}/DIAuditor_1.tmp.mzQC -in2 ${DATA_DIR_TOPP}/DIAuditor_1_output.mzQC)
 set_tests_properties("TOPP_DIAuditor_1_out1" "TOPP_DIAuditor_1_out2" "TOPP_DIAuditor_1_out3" PROPERTIES DEPENDS "TOPP_DIAuditor_1")
 # TIC from the file only, non-zero peaks, windows by m/z alone (the two FAIMS voltages merge)
 add_test("TOPP_DIAuditor_2" ${TOPP_BIN_PATH}/DIAuditor -test -in ${DATA_DIR_TOPP}/DIAuditor_1_input.mzML -tic file -peak_count nonzero -ion_mobility none -out ${TESTS_TEMP_DIR}/DIAuditor_2.tmp.tsv -out_windows ${TESTS_TEMP_DIR}/DIAuditor_2_windows.tmp.tsv)

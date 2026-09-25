@@ -37,14 +37,15 @@ namespace OpenMS
 
     MS2 spectra are grouped into isolation windows. Two spectra belong to the same window if their first precursor has
     the same isolation window (target m/z, lower and upper offset) and, depending on Options::ion_mobility, the same
-    FAIMS compensation voltage and ion mobility range. Windows are reported in the order in which they are first
-    acquired. Spectra of MS level 3 and higher are counted, but not assigned to windows. Spectra without a retention
-    time (no scan start time) are counted, but not used for any other metric.
+    FAIMS compensation voltage and ion mobility range. Values are compared with an absolute tolerance of 1e-6 (as in
+    OpenSWATH), since converters may write them with different last digits. Windows are reported in the order in which
+    they are first acquired. Spectra of MS level 3 and higher are counted, but not assigned to windows. Spectra without
+    a retention time (no scan start time) are counted, but not used for any other metric.
 
     Conventions (retention times are kept in seconds; the table writers convert them to minutes like DIAuditor):
     - Medians of times are the usual median (mean of the two middle values for an even count).
-    - Peak count quantiles, including their median, are observed values: the value at position floor(q * n) of the
-      sorted counts.
+    - Peak count quartiles, including their median, are observed values taken as in DIAuditor: the values at
+      positions n/4, n/2 and n/4 + n/2 (integer division) of the n sorted counts.
     - A "TIC quantile RT" is the retention time of the first spectrum at which the cumulative TIC reaches the quantile.
     - Cycle times are medians of the time between consecutive spectra of the same kind (MS1, or one isolation window).
     - Undefined values (e.g. a cycle time from a single spectrum, TIC quantiles when the TIC is zero) are NaN.
@@ -130,7 +131,7 @@ namespace OpenMS
       Size ms2_count = 0;                 ///< spectra of MS level 2
       Size spectra_without_rt = 0;        ///< spectra without retention time (not used for other metrics)
       Size ms2_multiple_precursors = 0;   ///< MS2 spectra with more than one precursor (e.g. multiplexed DIA); only the first is used
-      Size ms2_scan_ion_mobility = 0;     ///< MS2 spectra with an ion mobility position (1/K0, drift time) of their own, e.g. single TIMS scans
+      Size ms2_scan_ion_mobility = 0;     ///< MS2 spectra that look like single ion mobility scans (no range or IM array)
 
       double ms1_mass_resolving_power;    ///< median over MS1 spectra
       TICQuantileRTs ms1_tic_quantile_rt;
@@ -143,6 +144,7 @@ namespace OpenMS
       PeakCountSummary ms2_peak_count;
 
       Size window_count = 0;
+      Size windows_measured_once = 0;     ///< windows with a single MS2 spectrum
       double window_spectra_min;          ///< fewest spectra of any window
       double window_spectra_max;          ///< most spectra of any window
       double window_mz_min;               ///< lowest lower m/z of any window
@@ -219,9 +221,12 @@ namespace OpenMS
       double faims_cv = 0.0;              // NaN if none
       double ion_mobility_lower = 0.0;    // NaN if none
       double ion_mobility_upper = 0.0;    // NaN if none
-      bool scan_ion_mobility = false;     // the spectrum has an ion mobility position of its own (not FAIMS)
+      bool scan_ion_mobility = false;     // the spectrum looks like a single ion mobility scan
       Size precursor_count = 0;
     };
+
+    /// Statistics of a group of records (all MS1, all MS2, or one isolation window); defined in the source file
+    struct GroupStatistics;
 
     Options options_;
     std::vector<SpectrumRecord> records_;

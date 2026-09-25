@@ -834,6 +834,9 @@ Fixes:
       ion-storage analyzers, and the analyzer invented for incomplete instruments, use the
       generic mass analyzer type; the OpenMS type is kept in a userParam and restored on
       reading. HCID, EThcD and ETciD terms use their PSI-MS names (#8691).
+    - Reading an mzML file only partly (metadata only, or counting its spectra, as the first pass of
+      MzMLFile::transform() does) ends the progress it started, so the progress output of every later
+      file is no longer nested one level deeper (#10271).
     - Fixed INI required/advanced parsing, XQuest FDR-type restoration, mzIdentML missing
       modification locations, PepXML source-run paths/redundant Comet scores and duplicate
       IDMapper spectrum references (#5443, #8905, #9089, #9660, #9763, #9766).

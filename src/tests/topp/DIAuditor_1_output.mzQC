@@ -1,7 +1,7 @@
 {
   "mzQC": {
     "version": "1.0.0",
-    "creationDate": "2026-09-25T08:15:32Z",
+    "creationDate": "2026-09-25T12:20:55Z",
     "description": "Data-independent acquisition quality metrics (DIAuditor)",
     "runQualities": [
       {
@@ -483,8 +483,8 @@
             "name": "DIA isolation window TIC",
             "description": "The minimum and maximum TIC collected in any given DIA isolation window.",
             "value": [
-              24172.71112346649,
-              25944.43344116211
+              24172.710875749588,
+              25944.433181762695
             ],
             "unit": {
               "accession": "MS:1000043",

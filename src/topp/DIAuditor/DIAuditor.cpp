@@ -45,9 +45,12 @@ data acquired elsewhere.
 MS2 spectra are grouped into isolation windows by the isolation window of their precursor (target m/z, lower and upper
 offset) and by their ion mobility settings (see @p ion_mobility): the FAIMS compensation voltage, and the ion mobility
 range of the window as it is written for diaPASEF frames ('ion mobility lower/upper limit', e.g. by
-<tt>msconvert --combineIonMobilitySpectra</tt> or the OpenMS timsTOF reader). Windows are listed in the order in which
-they are first acquired. Spectra of MS level 3 and higher, and spectra without retention time, are counted but not
-assigned to windows.
+<tt>msconvert --combineIonMobilitySpectra</tt> or the OpenMS timsTOF reader). These values are matched with an absolute
+tolerance of 1e-6 (as in OpenSWATH). Windows are listed in the order in which they are first acquired. Spectra of MS
+level 3 and higher, and spectra without retention time, are counted but not assigned to windows.
+
+Peak count quartiles are taken as in DIAuditor: the values at positions n/4, n/2 and n/4 + n/2 (integer division) of
+the n sorted counts.
 
 The tool warns about data it cannot describe well: MS2 spectra that are single ion mobility scans (e.g. diaPASEF
 converted without combining the scans of a frame; every scan then counts as a measurement of its window), MS2 spectra
@@ -78,9 +81,12 @@ cycle time of a window measured only once) are written as NA.
 - Only MS2 spectra form windows; DIAuditor also puts MS3 and higher spectra into them.
 - Spectra without a 'total ion current' value get the sum of their intensities (see @p tic), and the instrument
   model is recognised from the whole PSI-MS vocabulary.
-- Medians of times are the usual median; quartiles and medians of peak counts are the values at position
-  floor(q * n) of the sorted counts. MS1Resolution and a window's MassResolvingPower are the median over the
-  respective spectra.
+- Values that define a window are matched with a tolerance of 1e-6; DIAuditor requires exact equality.
+- Medians of times (cycle times) are the usual median, i.e. the mean of the two middle values for an even count;
+  DIAuditor takes the value at position n/2 of the n - 1 sorted time differences. MS1Resolution and a window's
+  MassResolvingPower are the median over the respective spectra; DIAuditor takes the last MS1 spectrum and the first
+  spectrum of the window.
+- The sum of intensities (see @p tic) is accumulated in double precision.
 - RTDuration is the retention time of the last spectrum of any MS level; DIAuditor uses the last MSn spectrum.
 - The column header 'IsolationWidowWidthMax' of DIAuditor is spelled 'IsolationWindowWidthMax'.
 - Runs and windows with very few spectra do not stop the tool; undefined values are reported as NA.
@@ -179,6 +185,7 @@ protected:
       consumer.setExperimentalSettingsFunc([&metrics](const ExperimentalSettings& settings) { metrics.setExperimentalSettings(settings); });
       consumer.setSpectraProcessingFunc([&metrics](MSSpectrum& spectrum) { metrics.addSpectrum(spectrum); });
       MzMLFile mzml;
+      mzml.setLogType(log_type_);
       mzml.getOptions().setSortSpectraByMZ(false); // peaks are only counted and summed
       mzml.transform(file, &consumer, true);
 
@@ -193,7 +200,7 @@ protected:
       {
         OPENMS_LOG_WARN << "Warning: no MS2 spectra in '" << file << "', so there are no isolation windows. Is this a DIA run?" << endl;
       }
-      else if (run.window_count > run.ms2_count / 2)
+      else if (run.windows_measured_once > run.window_count / 2)
       {
         OPENMS_LOG_WARN << "Warning: most isolation windows of '" << file << "' are measured only once. Is this a DIA run?" << endl;
       }
@@ -238,7 +245,7 @@ protected:
     {
       // mzQC requires an RFC 3339 date-time, i.e. with time zone
       std::ostringstream mzqc;
-      DIAQCMetrics::writeMzQC(runs, mzqc, VersionInfo::getVersion(), DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ss") + "Z");
+      DIAQCMetrics::writeMzQC(runs, mzqc, VersionInfo::getVersion(), DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ"));
       std::ofstream os;
       open(out_mzqc, os);
       os << mzqc.str();

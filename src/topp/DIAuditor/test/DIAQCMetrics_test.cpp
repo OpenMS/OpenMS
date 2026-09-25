@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
@@ -253,6 +254,26 @@ START_SECTION(void addSpectrum(const MSSpectrum& spectrum))
   const DIAQCMetrics::RunMetrics im_auto = windowsWith(DIAQCMetrics::IonMobilityKey::AUTO);
   TEST_EQUAL(im_auto.window_count, 7) // A, B, A', C, 900 @ 0.7-0.9, 900 @ 1.0-1.2, 950
   TEST_EQUAL(im_auto.ms2_scan_ion_mobility, 2)
+
+  // a frame that also carries a single ion mobility value (e.g. its centre) is not a single scan: it has an ion
+  // mobility range or an ion mobility array
+  {
+    DIAQCMetrics frames;
+    MSSpectrum with_range = makeSpectrum(1.0, 2, {1.0});
+    setWindow(with_range, 500.0, 12.5, 12.5);
+    setIonMobility(with_range, 0.8, DriftTimeUnit::VSSC);
+    with_range.setMetaValue("ion mobility lower limit", 0.7);
+    with_range.setMetaValue("ion mobility upper limit", 0.9);
+    frames.addSpectrum(with_range);
+    MSSpectrum with_array = makeSpectrum(2.0, 2, {1.0, 2.0});
+    setWindow(with_array, 500.0, 12.5, 12.5);
+    setIonMobility(with_array, 0.8, DriftTimeUnit::VSSC);
+    with_array.getFloatDataArrays().resize(1);
+    with_array.getFloatDataArrays()[0].assign({0.75f, 0.85f});
+    IMDataConverter::setIMUnit(with_array.getFloatDataArrays()[0], DriftTimeUnit::VSSC);
+    frames.addSpectrum(with_array);
+    TEST_EQUAL(frames.compute().ms2_scan_ion_mobility, 0)
+  }
   ABORT_IF(im_auto.windows.size() != 7)
   TEST_REAL_SIMILAR(im_auto.windows[4].ion_mobility_lower, 0.7)
   TEST_REAL_SIMILAR(im_auto.windows[4].ion_mobility_upper, 0.9)
@@ -293,6 +314,17 @@ START_SECTION(void addSpectrum(const MSSpectrum& spectrum))
   TEST_REAL_SIMILAR(tic(DIAQCMetrics::TICSource::FILE, true), 100.0)
   TEST_REAL_SIMILAR(tic(DIAQCMetrics::TICSource::FILE, false), 0.0)
   TEST_REAL_SIMILAR(tic(DIAQCMetrics::TICSource::COMPUTED, true), 6.0)
+
+  // the sum of intensities is accumulated in double precision (1e8 + 1 is not representable as float)
+  {
+    DIAQCMetrics::Options options;
+    options.tic_source = DIAQCMetrics::TICSource::COMPUTED;
+    DIAQCMetrics metrics(options);
+    MSSpectrum s = makeSpectrum(10.0, 2, {1e8, 1.0});
+    setWindow(s, 500.0, 10.0, 10.0);
+    metrics.addSpectrum(s);
+    TEST_TRUE(metrics.compute().ms2_total_tic == 100000001.0)
+  }
 
   // peak counts with and without zero-intensity points (A' has one of two)
   DIAQCMetrics::Options options;
@@ -368,6 +400,53 @@ START_SECTION(void addSpectrum(const MSSpectrum& spectrum))
   TEST_EQUAL(sp.windows[0].spectrum_count, 4)
   TEST_REAL_SIMILAR(sp.ms2_peak_count[4], 3.0) // the 50 peaks of the MS3 spectrum are not counted
   TEST_EQUAL(sp.ms2_multiple_precursors, 1)
+  TEST_EQUAL(sp.windows_measured_once, 2) // C and 410
+
+  // a multiplexed MS2 spectrum without retention time still counts for the warning
+  MSSpectrum msx_no_rt = makeSpectrum(-1.0, 2, {1.0});
+  setWindow(msx_no_rt, 410.0, 5.0, 5.0);
+  setWindow(msx_no_rt, 810.0, 5.0, 5.0);
+  special.addSpectrum(msx_no_rt);
+  TEST_EQUAL(special.compute().ms2_multiple_precursors, 2)
+
+  // values that define a window are matched within 1e-6, as converters may write them with different last digits
+  {
+    DIAQCMetrics close_values;
+    const std::vector<std::pair<double, double>> target_and_limit = {
+      {500.0, 0.571948494756735}, {500.0 + 1e-9, 0.5719484947567351}, {500.0 - 1e-9, 0.571948494756735}, {500.001, 0.571948494756735}};
+    double rt = 10.0;
+    for (const auto& [target, limit] : target_and_limit)
+    {
+      MSSpectrum s = makeSpectrum(rt++, 2, {1.0});
+      setWindow(s, target, 12.5, 12.5);
+      s.setMetaValue("ion mobility lower limit", limit);
+      s.setMetaValue("ion mobility upper limit", 0.9);
+      close_values.addSpectrum(s);
+    }
+    const DIAQCMetrics::RunMetrics cv = close_values.compute();
+    TEST_EQUAL(cv.window_count, 2)
+    ABORT_IF(cv.windows.size() != 2)
+    TEST_EQUAL(cv.windows[0].spectrum_count, 3)
+    TEST_EQUAL(cv.windows_measured_once, 1)
+  }
+
+  // peak count quartiles as in DIAuditor: positions n/4, n/2 and n/4 + n/2 of the n sorted counts
+  {
+    DIAQCMetrics three;
+    double rt = 10.0;
+    for (Size peaks : {12, 5, 8})
+    {
+      MSSpectrum s = makeSpectrum(rt++, 2, std::vector<double>(peaks, 1.0));
+      setWindow(s, 500.0, 12.5, 12.5);
+      three.addSpectrum(s);
+    }
+    const DIAQCMetrics::PeakCountSummary pc = three.compute().windows[0].peak_count;
+    TEST_REAL_SIMILAR(pc[0], 5.0)
+    TEST_REAL_SIMILAR(pc[1], 5.0)
+    TEST_REAL_SIMILAR(pc[2], 8.0)
+    TEST_REAL_SIMILAR(pc[3], 8.0) // floor(0.75 * 3) would give 12
+    TEST_REAL_SIMILAR(pc[4], 12.0)
+  }
 }
 END_SECTION
 
@@ -459,10 +538,10 @@ START_SECTION(static void writeMzQC(const std::vector<RunMetrics>& runs, std::os
   none.input_path = "empty.mzML";
 
   std::ostringstream os;
-  DIAQCMetrics::writeMzQC({run, none}, os, "1.2.3", "2026-01-02T03:04:05");
+  DIAQCMetrics::writeMzQC({run, none}, os, "1.2.3", "2026-01-02T03:04:05Z");
   const nlohmann::json mzqc = nlohmann::json::parse(os.str());
   TEST_STRING_EQUAL(mzqc["mzQC"]["version"].get<std::string>(), "1.0.0")
-  TEST_STRING_EQUAL(mzqc["mzQC"]["creationDate"].get<std::string>(), "2026-01-02T03:04:05")
+  TEST_STRING_EQUAL(mzqc["mzQC"]["creationDate"].get<std::string>(), "2026-01-02T03:04:05Z")
   TEST_EQUAL(mzqc["mzQC"]["controlledVocabularies"].size(), 1)
   const auto& run_qualities = mzqc["mzQC"]["runQualities"];
   TEST_EQUAL(run_qualities.size(), 2)

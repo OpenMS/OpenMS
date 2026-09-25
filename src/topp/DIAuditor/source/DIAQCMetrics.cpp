@@ -20,6 +20,7 @@
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
 #include <nlohmann/json.hpp>
 
@@ -33,7 +34,6 @@
 #include <map>
 #include <ostream>
 #include <set>
-#include <tuple>
 
 namespace OpenMS
 {
@@ -41,6 +41,8 @@ namespace OpenMS
   {
     constexpr double NaN = std::numeric_limits<double>::quiet_NaN();
     constexpr std::array<double, 3> TIC_QUANTILES = {0.25, 0.5, 0.75};
+    /// absolute tolerance for values that define an isolation window (as in FullSwathFileConsumer)
+    constexpr double WINDOW_TOLERANCE = 1e-6;
 
     /// A numeric meta value as double; NaN if missing or not numeric
     double metaValueAsDouble(const MetaInfoInterface& meta, const std::string& name)
@@ -66,12 +68,28 @@ namespace OpenMS
       }
     }
 
-    /// The value at position floor(q * n) of the sorted range; NaN if empty
-    double observedQuantile(const std::vector<Size>& sorted, double q)
+    /// Minimum, quartiles and maximum of sorted counts, taken as in DIAuditor: the values at positions n/4, n/2 and
+    /// n/4 + n/2 (integer division)
+    DIAQCMetrics::PeakCountSummary peakCountSummary(const std::vector<Size>& sorted)
     {
-      if (sorted.empty()) return NaN;
-      const Size index = std::min(sorted.size() - 1, static_cast<Size>(std::floor(q * static_cast<double>(sorted.size()))));
-      return static_cast<double>(sorted[index]);
+      if (sorted.empty()) return {NaN, NaN, NaN, NaN, NaN};
+      const Size n = sorted.size();
+      return {static_cast<double>(sorted.front()), static_cast<double>(sorted[n / 4]), static_cast<double>(sorted[n / 2]),
+              static_cast<double>(sorted[n / 4 + n / 2]), static_cast<double>(sorted.back())};
+    }
+
+    /// Sum of intensities, accumulated in double precision
+    double intensitySum(const MSSpectrum& spectrum)
+    {
+      double sum = 0.0;
+      for (const Peak1D& p : spectrum) sum += p.getIntensity();
+      return sum;
+    }
+
+    /// Two values of a window definition are the same (both undefined, or equal within the tolerance)
+    bool sameValue(double a, double b)
+    {
+      return (std::isnan(a) && std::isnan(b)) || std::fabs(a - b) <= WINDOW_TOLERANCE;
     }
 
     double medianOrNaN(std::vector<double> values)
@@ -93,58 +111,6 @@ namespace OpenMS
       }
       return {lo, hi};
     }
-
-    /// Statistics of a group of spectra (all MS1, all MSn, or one isolation window)
-    template <typename Record>
-    struct GroupStatistics
-    {
-      double total_tic = 0.0;
-      DIAQCMetrics::TICQuantileRTs tic_quantile_rt{NaN, NaN, NaN};
-      DIAQCMetrics::PeakCountSummary peak_count{NaN, NaN, NaN, NaN, NaN};
-      std::vector<double> rt_differences;
-      double cycle_time_median = NaN;
-      double mass_resolving_power = NaN;
-      double rt_min = NaN;
-      double rt_max = NaN;
-
-      /// @p records must be sorted by retention time
-      explicit GroupStatistics(const std::vector<const Record*>& records)
-      {
-        if (records.empty()) return;
-        rt_min = records.front()->rt;
-        rt_max = records.back()->rt;
-
-        for (const Record* r : records) total_tic += r->tic;
-        if (total_tic > 0.0)
-        {
-          double cumulative = 0.0;
-          Size next = 0;
-          for (const Record* r : records)
-          {
-            cumulative += r->tic;
-            while (next < TIC_QUANTILES.size() && cumulative >= TIC_QUANTILES[next] * total_tic)
-            {
-              tic_quantile_rt[next++] = r->rt;
-            }
-          }
-        }
-
-        std::vector<Size> counts;
-        counts.reserve(records.size());
-        for (const Record* r : records) counts.push_back(r->peak_count);
-        std::sort(counts.begin(), counts.end());
-        peak_count = {static_cast<double>(counts.front()), observedQuantile(counts, 0.25), observedQuantile(counts, 0.5),
-                      observedQuantile(counts, 0.75), static_cast<double>(counts.back())};
-
-        rt_differences.reserve(records.size());
-        for (Size i = 1; i < records.size(); ++i) rt_differences.push_back(records[i]->rt - records[i - 1]->rt);
-        cycle_time_median = medianOrNaN(rt_differences);
-
-        std::vector<double> resolving_powers;
-        for (const Record* r : records) resolving_powers.push_back(r->mass_resolving_power);
-        mass_resolving_power = medianOrNaN(std::move(resolving_powers));
-      }
-    };
 
     /// Up to 12 significant digits, independent of the locale: plain notation for the usual magnitudes (120000, not
     /// "1.2e05") and no noise from double arithmetic (0.06, not 0.0600000000000094)
@@ -187,7 +153,7 @@ namespace OpenMS
       os << '\n';
     }
 
-    /// data-version of an OBO file (empty if not found)
+    /// data-version of an OBO file (empty if not found); reads the header only
     std::string oboDataVersion(const std::string& obo_file)
     {
       std::ifstream is(obo_file);
@@ -201,11 +167,12 @@ namespace OpenMS
       return "";
     }
 
-    /// file URI of a local path: every byte outside the unreserved characters of RFC 3986 and '/' is percent-encoded
+    /// file URI of a local path: every byte of its UTF-8 form outside the unreserved characters of RFC 3986 and '/' is
+    /// percent-encoded (a backslash is a separator only on Windows, where generic_u8string() turns it into '/')
     std::string fileURI(const std::string& path)
     {
-      std::string absolute = std::filesystem::path(File::absolutePath(path)).lexically_normal().generic_string();
-      std::replace(absolute.begin(), absolute.end(), '\\', '/');
+      const std::u8string utf8 = std::filesystem::absolute(to_path(path)).lexically_normal().generic_u8string();
+      std::string absolute(reinterpret_cast<const char*>(utf8.data()), utf8.size());
       if (!absolute.starts_with("/")) absolute.insert(0, "/"); // Windows drive letter
       const bool drive = absolute.size() > 2 && std::isalpha(static_cast<unsigned char>(absolute[1])) && absolute[2] == ':';
       std::string uri = "file://";
@@ -227,6 +194,55 @@ namespace OpenMS
       return uri;
     }
   } // namespace
+
+  struct DIAQCMetrics::GroupStatistics
+  {
+    double total_tic = 0.0;
+    TICQuantileRTs tic_quantile_rt{NaN, NaN, NaN};
+    PeakCountSummary peak_count{NaN, NaN, NaN, NaN, NaN};
+    std::vector<double> rt_differences;
+    double cycle_time_median = NaN;
+    double mass_resolving_power = NaN;
+    double rt_min = NaN;
+    double rt_max = NaN;
+
+    /// @p records must be sorted by retention time
+    explicit GroupStatistics(const std::vector<const SpectrumRecord*>& records)
+    {
+      if (records.empty()) return;
+      rt_min = records.front()->rt;
+      rt_max = records.back()->rt;
+
+      for (const SpectrumRecord* r : records) total_tic += r->tic;
+      if (total_tic > 0.0)
+      {
+        double cumulative = 0.0;
+        Size next = 0;
+        for (const SpectrumRecord* r : records)
+        {
+          cumulative += r->tic;
+          while (next < TIC_QUANTILES.size() && cumulative >= TIC_QUANTILES[next] * total_tic)
+          {
+            tic_quantile_rt[next++] = r->rt;
+          }
+        }
+      }
+
+      std::vector<Size> counts;
+      counts.reserve(records.size());
+      for (const SpectrumRecord* r : records) counts.push_back(r->peak_count);
+      std::sort(counts.begin(), counts.end());
+      peak_count = peakCountSummary(counts);
+
+      rt_differences.reserve(records.size());
+      for (Size i = 1; i < records.size(); ++i) rt_differences.push_back(records[i]->rt - records[i - 1]->rt);
+      cycle_time_median = medianOrNaN(rt_differences);
+
+      std::vector<double> resolving_powers;
+      for (const SpectrumRecord* r : records) resolving_powers.push_back(r->mass_resolving_power);
+      mass_resolving_power = medianOrNaN(std::move(resolving_powers));
+    }
+  };
 
   DIAQCMetrics::WindowMetrics::WindowMetrics() :
     faims_cv(NaN),
@@ -304,13 +320,13 @@ namespace OpenMS
     switch (options_.tic_source)
     {
       case TICSource::AUTO:
-        record.tic = std::isfinite(file_tic) ? file_tic : spectrum.calculateTIC();
+        record.tic = std::isfinite(file_tic) ? file_tic : intensitySum(spectrum);
         break;
       case TICSource::FILE:
         record.tic = std::isfinite(file_tic) ? file_tic : 0.0;
         break;
       case TICSource::COMPUTED:
-        record.tic = spectrum.calculateTIC();
+        record.tic = intensitySum(spectrum);
         break;
     }
 
@@ -343,15 +359,15 @@ namespace OpenMS
     record.faims_cv = (faims && options_.ion_mobility != IonMobilityKey::NONE) ? spectrum.getDriftTime() : NaN;
     // other ion mobility: the range of the window (e.g. a diaPASEF frame) is a setting of the window, while the ion
     // mobility of a single spectrum (e.g. one TIMS scan) is a position within it
-    record.ion_mobility_lower = NaN;
-    record.ion_mobility_upper = NaN;
-    if (options_.ion_mobility == IonMobilityKey::AUTO)
-    {
-      record.ion_mobility_lower = metaValueAsDouble(spectrum, "ion mobility lower limit");
-      record.ion_mobility_upper = metaValueAsDouble(spectrum, "ion mobility upper limit");
-    }
+    const double im_lower = metaValueAsDouble(spectrum, "ion mobility lower limit");
+    const double im_upper = metaValueAsDouble(spectrum, "ion mobility upper limit");
+    const bool im_range = std::isfinite(im_lower) || std::isfinite(im_upper);
+    record.ion_mobility_lower = (options_.ion_mobility == IonMobilityKey::AUTO) ? im_lower : NaN;
+    record.ion_mobility_upper = (options_.ion_mobility == IonMobilityKey::AUTO) ? im_upper : NaN;
+    // a single scan has an ion mobility of its own, but neither the range nor the ion mobility array of a frame
     record.scan_ion_mobility = !faims && spectrum.getDriftTimeUnit() != DriftTimeUnit::NONE &&
-                               spectrum.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET;
+                               spectrum.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET && !im_range &&
+                               !spectrum.containsIMData();
 
     records_.push_back(record);
   }
@@ -381,7 +397,12 @@ namespace OpenMS
     {
       if (r.ms_level == 1) ++run.ms1_count;
       if (r.ms_level >= 2) ++run.msn_count;
-      if (r.ms_level == 2) ++run.ms2_count;
+      if (r.ms_level == 2)
+      {
+        ++run.ms2_count;
+        if (r.precursor_count > 1) ++run.ms2_multiple_precursors;
+        if (r.scan_ion_mobility) ++run.ms2_scan_ion_mobility;
+      }
       // a spectrum without scan start time has a negative retention time
       if (!(r.rt >= 0.0))
       {
@@ -397,39 +418,57 @@ namespace OpenMS
       else if (r.ms_level == 2)
       {
         ms2.push_back(&r);
-        if (r.precursor_count > 1) ++run.ms2_multiple_precursors;
-        if (r.scan_ion_mobility) ++run.ms2_scan_ion_mobility;
       }
     }
     auto by_rt = [](const SpectrumRecord* a, const SpectrumRecord* b) { return a->rt < b->rt; };
     std::stable_sort(ms1.begin(), ms1.end(), by_rt);
     std::stable_sort(ms2.begin(), ms2.end(), by_rt);
 
-    const GroupStatistics<SpectrumRecord> ms1_stats(ms1);
+    const GroupStatistics ms1_stats(ms1);
     run.ms1_mass_resolving_power = ms1_stats.mass_resolving_power;
     run.ms1_tic_quantile_rt = ms1_stats.tic_quantile_rt;
     run.ms1_total_tic = ms1_stats.total_tic;
     run.ms1_cycle_time_median = ms1_stats.cycle_time_median;
     run.ms1_peak_count = ms1_stats.peak_count;
 
-    const GroupStatistics<SpectrumRecord> ms2_stats(ms2);
+    const GroupStatistics ms2_stats(ms2);
     run.ms2_tic_quantile_rt = ms2_stats.tic_quantile_rt;
     run.ms2_total_tic = ms2_stats.total_tic;
     run.ms2_peak_count = ms2_stats.peak_count;
 
-    // group MS2 spectra into isolation windows, in order of first acquisition
-    // (NaN never equals itself, so undefined values enter the key as a flag plus 0)
-    auto part = [](double value) { return std::make_pair(std::isfinite(value), std::isfinite(value) ? value : 0.0); };
-    using WindowKey = std::tuple<bool, double, double, double, std::pair<bool, double>, std::pair<bool, double>, std::pair<bool, double>>;
-    std::map<WindowKey, Size> window_index;
+    // group MS2 spectra into isolation windows, in order of first acquisition; the values that define a window are
+    // matched within the tolerance, and candidate windows are looked up by target m/z in bins of 0.001 (much wider)
+    auto sameWindow = [](const SpectrumRecord& a, const SpectrumRecord& b)
+    {
+      return sameValue(a.target_mz, b.target_mz) && sameValue(a.lower_offset, b.lower_offset) &&
+             sameValue(a.upper_offset, b.upper_offset) && sameValue(a.faims_cv, b.faims_cv) &&
+             sameValue(a.ion_mobility_lower, b.ion_mobility_lower) && sameValue(a.ion_mobility_upper, b.ion_mobility_upper);
+    };
+    std::map<long long, std::vector<Size>> windows_by_target;
     std::vector<std::vector<const SpectrumRecord*>> window_records;
     for (const SpectrumRecord* r : ms2)
     {
-      const WindowKey key(r->has_isolation_window, r->target_mz, r->lower_offset, r->upper_offset,
-                          part(r->faims_cv), part(r->ion_mobility_lower), part(r->ion_mobility_upper));
-      auto [it, inserted] = window_index.emplace(key, window_records.size());
-      if (inserted) window_records.emplace_back();
-      window_records[it->second].push_back(r);
+      const long long bin = std::llround(r->target_mz * 1000.0);
+      Size index = window_records.size();
+      for (long long b = bin - 1; b <= bin + 1 && index == window_records.size(); ++b)
+      {
+        const auto candidates = windows_by_target.find(b);
+        if (candidates == windows_by_target.end()) continue;
+        for (Size w : candidates->second)
+        {
+          if (sameWindow(*window_records[w].front(), *r))
+          {
+            index = w;
+            break;
+          }
+        }
+      }
+      if (index == window_records.size())
+      {
+        window_records.emplace_back();
+        windows_by_target[bin].push_back(index);
+      }
+      window_records[index].push_back(r);
     }
 
     std::vector<double> pooled_rt_differences, window_cycle_times, window_spectra, window_lower, window_upper,
@@ -437,7 +476,7 @@ namespace OpenMS
     for (const auto& records : window_records)
     {
       const SpectrumRecord& first = *records.front();
-      const GroupStatistics<SpectrumRecord> stats(records);
+      const GroupStatistics stats(records);
 
       WindowMetrics window;
       window.has_isolation_window = first.has_isolation_window;
@@ -458,6 +497,7 @@ namespace OpenMS
       window.peak_count = stats.peak_count;
       run.windows.push_back(window);
 
+      if (window.spectrum_count == 1) ++run.windows_measured_once;
       pooled_rt_differences.insert(pooled_rt_differences.end(), stats.rt_differences.begin(), stats.rt_differences.end());
       window_cycle_times.push_back(window.cycle_time_median);
       window_spectra.push_back(static_cast<double>(window.spectrum_count));
@@ -676,7 +716,9 @@ namespace OpenMS
     }
 
     // PSI-MS carries the unit (UO) terms it uses; declaring UO as well would make them ambiguous for validators.
-    // The URI names the release of the installed vocabulary (the purl always points to the latest one).
+    // The URI names the release of the installed vocabulary (the purl always points to the latest one). The terms are
+    // looked up in getPSIMSCV(), which the mzML reader has loaded already; its version() is that of the last OBO file
+    // it loaded (not psi-ms.obo), so the version is read from the header of psi-ms.obo.
     const std::string ms_version = oboDataVersion(File::find("/CV/psi-ms.obo"));
     json vocabulary_ms{{"name", "Proteomics Standards Initiative Mass Spectrometry Ontology"}};
     if (ms_version.empty())
