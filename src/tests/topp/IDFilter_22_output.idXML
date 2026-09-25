@@ -28,7 +28,7 @@
 			<UserParam type="stringList" name="spectra_data" value="[/Users/timosachsenberg/oms210/src/tests/topp/THIRDPARTY/spectra.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="SpecEValue" higher_score_better="false" significance_threshold="0.0" MZ="1063.209838867190001" RT="4587.668999999999869" spectrum_reference="spectrum=1" >
-			<PeptideHit score="3.864406e-26" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="-" aa_after="E" start="1" end="28" protein_refs="PH_0" >
+			<PeptideHit score="3.864406e-26" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="-" aa_after="E" start="0" end="27" protein_refs="PH_0" >
 				<UserParam type="float" name="MS:1002049" value="163.0"/>
 				<UserParam type="float" name="MS:1002050" value="199.0"/>
 				<UserParam type="float" name="MS:1002052" value="3.864406e-26"/>

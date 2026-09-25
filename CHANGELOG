@@ -761,6 +761,14 @@ Fixes:
       TheoreticalSpectrumGeneratorXLMS and SimpleTSGXLMS: the loss was subtracted from the already
       charge-divided position and divided by the charge again, so these peaks sat at roughly half
       their true m/z. OpenPepXL scores and annotations of such peaks change accordingly (#10148).
+    - IDFilter -in_silico_digestion rejected correctly positioned peptides: the digestion check
+      used end - start as the peptide length although evidence end positions are inclusive, so
+      every length was one short and the C-terminal cleavage site was checked one residue too
+      early. Results of in-silico digestion filtering change accordingly (#10148).
+    - Reading mzIdentML shifted every peptide position by one: mzIdentML counts the first residue
+      of a protein as 1, PeptideEvidence counts it as 0, but the reader stored the value unchanged.
+      Positions read from mzIdentML (e.g. by IDFileConverter) are now 0-based like everywhere else
+      in OpenMS (#10148).
     - TheoreticalSpectrumGeneratorXLMS placed the second isotope peak of the precursor (and of its
       H2O/NH3 losses) at the charged mass instead of its m/z, e.g. about 2003 instead of 668 for a
       2000 Da precursor at charge 3. OpenPepXL uses these peaks: on the test data only its

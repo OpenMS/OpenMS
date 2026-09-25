@@ -2003,8 +2003,9 @@ namespace OpenMS::Internal
 
             if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
             {
-              pev.setStart(pv.start);
-              pev.setEnd(pv.stop);
+              // mzIdentML positions are 1-based, OpenMS positions are 0-based
+              pev.setStart(pv.start - 1);
+              pev.setEnd(pv.stop - 1);
             }
 
             idec = pv.idec;
@@ -2211,10 +2212,11 @@ namespace OpenMS::Internal
 
             if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
             {
-              hit.setMetaValue("start", pv.start);
-              hit.setMetaValue("end", pv.stop);
-              pev.setStart(pv.start);
-              pev.setEnd(pv.stop);
+              hit.setMetaValue("start", pv.start - 1);
+              hit.setMetaValue("end", pv.stop - 1);
+              // mzIdentML positions are 1-based, OpenMS positions are 0-based
+              pev.setStart(pv.start - 1);
+              pev.setEnd(pv.stop - 1);
             }
 
             idec = pv.idec;

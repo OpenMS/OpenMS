@@ -226,6 +226,25 @@ START_SECTION((class PeptideDigestionFilter::operator(PeptideHit& hit)))
 }
 END_SECTION
 
+START_SECTION([EXTRA] DigestionFilter uses the inclusive end position of peptide evidences)
+{
+  // tryptic peptides of PEPTIDEKAAAARGGGK: PEPTIDEK (0..7) | AAAAR (8..12) | GGGK (13..16)
+  std::vector<FASTAFile::FASTAEntry> proteins;
+  proteins.emplace_back("P1", "", "PEPTIDEKAAAARGGGK");
+  ProteaseDigestion digestion;
+  digestion.setEnzyme("Trypsin");
+  IDFilter::DigestionFilter filter(proteins, digestion, true, false);
+
+  // PeptideEvidence end positions are inclusive (PeptideIndexer writes start + length - 1)
+  TEST_EQUAL(filter(PeptideEvidence("P1", 0, 7, PeptideEvidence::N_TERMINAL_AA, 'A')), true)
+  TEST_EQUAL(filter(PeptideEvidence("P1", 8, 12, 'K', 'G')), true)
+  TEST_EQUAL(filter(PeptideEvidence("P1", 13, 16, 'R', PeptideEvidence::C_TERMINAL_AA)), true)
+  // AAAA (8..11) does not end at a cleavage site
+  TEST_EQUAL(filter(PeptideEvidence("P1", 8, 11, 'K', 'R')), false)
+}
+END_SECTION
+
+
 
 START_SECTION((static void removeUnreferencedProteins(vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides)))
 {
