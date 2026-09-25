@@ -848,6 +848,11 @@ Fixes:
       masses are computed with PROTON_MASS_U (the proton mass in Da) instead of PROTON_MASS (the
       proton mass in kg), which had made every mass about 1 u per charge too high
       (#10073, #10075, #10231).
+    - SpectralDeconvolution/FLASHDeconv: -precursor_mz (used together with -precursor_charge, as
+      documented) now sets the target precursor m/z instead of being silently ignored, and it can
+      stand in for a missing precursor in an MSn spectrum -- which is what the tool's own log
+      message recommends when it has no precursor to charge-deconvolve. Running that combination
+      previously read past an empty precursor vector (#10148).
     - mzIdentML output with more than one identification run repeated the Measure ids
       (Measure_mz, Measure_int, Measure_error) in every SpectrumIdentificationList and failed schema
       validation; the Measure definitions are now written once (#10213).

@@ -92,7 +92,12 @@ namespace OpenMS
       return;
     }
 
-    auto precursor = spec.getPrecursors()[0];
+    // a given precursor_mz takes precedence over the precursor of the spectrum and stands in for a missing one
+    Precursor precursor = spec.getPrecursors().empty() ? Precursor() : spec.getPrecursors()[0];
+    if (target_precursor_mz_ > 0)
+    {
+      precursor.setMZ(target_precursor_mz_);
+    }
     double target_precursor_mass
       = (precursor.getMZ() - FLASHHelperClasses::getChargeMass(target_precursor_charge_ > 0)) * std::abs(target_precursor_charge_);
     precursor.setCharge(target_precursor_charge_);
@@ -166,7 +171,8 @@ namespace OpenMS
       deconvolved_spectrum_.setPrecursor(precursor);
     }
 
-    if (target_precursor_charge_ != 0 || target_precursor_mz_ > 0) { setTargetPrecursorCharge_(); }
+    // precursor_mz is only used together with precursor_charge (see the parameter documentation)
+    if (target_precursor_charge_ != 0) { setTargetPrecursorCharge_(); }
 
     if (deconvolved_spectrum_.getPrecursorPeakGroup().empty() && !precursor_peak_group.empty())
     {
