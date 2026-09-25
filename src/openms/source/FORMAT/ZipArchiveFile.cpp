@@ -147,7 +147,14 @@ std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::u
   }
   std::error_code space_error;
   const std::filesystem::space_info space = std::filesystem::space(base_path, space_error);
-  if (!space_error && declared_total > space.available)
+  if (space_error)
+  {
+    zip_close(za);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Cannot determine the free space of the temporary directory: " + space_error.message(),
+                                  input_path);
+  }
+  if (declared_total > space.available)
   {
     zip_close(za);
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
