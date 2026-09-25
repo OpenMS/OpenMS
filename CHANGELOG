@@ -17,6 +17,9 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 General:
+  - Updated the bundled PSI-MS controlled vocabulary from 4.1.155 to 4.2.2, including CV
+    term-name changes in mzML/TraML output and vocabulary versions in mzTab-M/mzQC output
+    (#8691)
   - New native readers for Bruker timsTOF .d, Thermo .raw, imzML and Bruker MALDI imaging;
     see OpenMS Library for capabilities and runtime requirements.
   - New .idparquet, .featureparquet and .consensusparquet directory formats for native
@@ -98,6 +101,13 @@ General:
     LaTeX tutorial handout and the .knwf workflow collection under doc/tutorials (still
     available in the archived OpenMS/Tutorials repository). CTD generation is unaffected:
     -write_ctd and -write_cwl continue to work for Galaxy and CWL (#10135).
+  - The API documentation no longer generates Graphviz (dot) graphs: include, included-by,
+    collaboration, directory and graphical class-hierarchy graphs are gone, class
+    inheritance diagrams use doxygen's built-in renderer, and the few hand-drawn
+    diagrams are pre-rendered SVGs. This shrinks the HTML documentation by more than half
+    and makes Graphviz optional; the 'doc_dot' target still builds all graphs. The
+    OPENMS_HASDOXYGENDOT macro in the installed OpenMS/config.h, which was always 0 and
+    no longer used, was removed.
 
 Dependencies:
   - Minimum versions: CMake 3.24, Eigen 3.4.0, Boost 1.81, Arrow/Parquet 23 and nanobind
@@ -377,6 +387,10 @@ TOPP tools:
         fragment sorting honors -threads/OMP_NUM_THREADS. Failed merged writes preserve
         per-file output; target/decoy-shared peptides no longer break merged idXML
         (#9088, #9094, #9117, #9121, #9197, #9203, #9205, #9642, #9963, #10129).
+      - Stop codons ('*') in the database no longer abort ProSE or SimpleSearchEngine. A trailing
+        stop codon, as in genome-translated databases such as SGD's, is removed so the C-terminal
+        peptide is searched; peptides containing a stop codon or another symbol are skipped like
+        X/B/Z (#10262).
     PercolatorAdapter:
       - Defaults to in-process Percolator 3.08 rescoring; no executable is required for
         idXML/mzid PSM-level FDR. OSW input and peptide/protein-level FDR require
@@ -725,6 +739,12 @@ OpenMS Library:
 
 Fixes:
   Chemistry and identifications:
+    - MzIdentMLFile: search engine scores without a score order in the PSI-MS vocabulary take
+      it from OpenMS' score registry, so Comet:expectation value, X!Tandem:expect, OMSSA:evalue,
+      OMSSA:pvalue, percolator:Q value and percolator:PEP are read as lower-is-better. Such
+      lower-is-better engine scores yield to a PSM-level q-value, which is then used. The
+      registry (Scores) now lists the X!Tandem and OMSSA scores by accession, so QPX and Arrow
+      exports also report them as additional scores (#8691).
     - Fixed signed/stacked unknown mass shifts, precision-aware mass matching and spurious
       zero-mass PSI-MOD assignments. Distinct modified residues remain distinct and
       mass/formula round-trips no longer silently change peptidoforms (#10006, #10007,
@@ -806,6 +826,12 @@ Fixes:
       prediction access (#9488, #9492, #9211).
     - mzML metadata round-trips preserve UTF-8, whitespace, timestamps, independent noise
       grids, detector types/units and precursor-intensity units (#10077, #10079).
+    - MzMLFile writes activation and analyzer terms that are valid with PSI-MS 4.2.2. EThcD or
+      ETciD without a supplemental activation term also gets the generic dissociation method,
+      as PSI-MS now lists combined methods as activation attributes. SWIFT, cyclotron and
+      ion-storage analyzers, and the analyzer invented for incomplete instruments, use the
+      generic mass analyzer type; the OpenMS type is kept in a userParam and restored on
+      reading. HCID, EThcD and ETciD terms use their PSI-MS names (#8691).
     - Fixed INI required/advanced parsing, XQuest FDR-type restoration, mzIdentML missing
       modification locations, PepXML source-run paths/redundant Comet scores and duplicate
       IDMapper spectrum references (#5443, #8905, #9089, #9660, #9763, #9766).
@@ -1038,6 +1064,12 @@ Build System:
     overrode pyproject.toml, which moved the supported macOS floor without notice. A CI
     check compares the Mach-O load commands of each wheel against its platform tag, so a
     wheel can no longer install on a macOS it cannot run on (#10202).
+  - vcpkg builds OpenBLAS, which COIN-OR's LAPACK pulls in, for a fixed CPU target on Linux:
+    CORE2 (SSSE3, the baseline OpenMS itself is compiled for) on x86_64 and ARMV8 on arm64. It
+    used to take the kernels for the CPU of the build machine, and the binary cache passed that
+    build on to later builds and to the packages. The 2026-09-24 nightlies shipped an OpenBLAS
+    that needs AVX2 on x86_64 and SVE on arm64, which not every supported CPU has, and clang
+    debug builds failed on x86_64 machines with AVX-512.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----

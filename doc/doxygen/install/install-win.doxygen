@@ -170,10 +170,11 @@
       </ul>
     <li>
       Optional:<br>
-        You can create dependency graphs using a doxygen plug-in called <tt>dot</tt>.
+        Graphviz (the <tt>dot</tt> tool) is only needed for the optional <tt>doc_dot</tt> target, which builds the documentation
+        with all dependency graphs (include, collaboration and directory graphs). The regular documentation targets do not need it.
         <ul>
-            <li> Download binaries for windows from http://www.graphviz.org (we tested: graphviz-2.18.exe)
-            <li> The installer should have added dot.exe to the Windows PATH Environment (please recheck)
+            <li> Download binaries for Windows from https://graphviz.org/download/ (or run <tt>choco install graphviz</tt>)
+            <li> Make sure <tt>dot.exe</tt> is on the Windows PATH Environment (please recheck)
         </ul>
   </ol>
 

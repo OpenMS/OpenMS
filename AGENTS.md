@@ -683,4 +683,4 @@ perf report
 - https://github.com/orgs/OpenMS/packages
 - https://github.com/OpenMS/NSIS
 - http://miktex.org/
-- http://www.graphviz.org
+- https://graphviz.org (optional; only needed for the `doc_dot` documentation target with all dot graphs)
