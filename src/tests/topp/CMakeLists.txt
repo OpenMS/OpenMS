@@ -705,6 +705,27 @@ add_test("TOPP_FileConverter_nonascii_out1" ${DIFF} -whitelist "id=" "location="
 set_tests_properties("TOPP_FileConverter_nonascii" PROPERTIES DEPENDS "TOPP_FileConverter_nonascii_prepare")
 set_tests_properties("TOPP_FileConverter_nonascii_out1" PROPERTIES DEPENDS "TOPP_FileConverter_nonascii")
 
+# Thermo .raw: builds with the in-process reader use it by default. The external ThermoRawFileParser
+# also needs ThermoRawFileParser.exe on the PATH (and mono on linux/mac), which packages do not provide.
+if (WITH_THERMO_RAW)
+  add_test("TOPP_FileConverter_RAW_default_reader" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter.tmp.ini
+    "-DEXPECTED=<ITEM name=\"reader\" value=\"inprocess\""
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_FileConverter_RAW_default_reader" PROPERTIES DEPENDS "TOPPWRITEINI_FileConverter")
+endif()
+# The default conversion needs no ThermoRawFileParser and, like it, applies vendor peak picking
+# (-RawToMzML:no_peak_picking keeps profile scans). Needs the .NET runtime, hence the fixture gate.
+if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
+  add_test("TOPP_FileConverter_RAW_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA} -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_1.tmp.mzML)
+  add_test("TOPP_FileConverter_RAW_1_centroided" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_1.tmp.mzML
+    "-DEXPECTED=name=\"centroid spectrum\""
+    "-DFORBIDDEN=name=\"profile spectrum\""
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_FileConverter_RAW_1_centroided" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_1")
+endif()
+
 #------------------------------------------------------------------------------
 # FileFilter tests
 add_test("TOPP_FileFilter_1" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out ${TESTS_TEMP_DIR}/FileFilter_1.tmp.mzML -rt :30 -mz :1000 -int :20000 -in_type mzML -out_type mzML)

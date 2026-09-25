@@ -38,6 +38,10 @@
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #endif
 
+#ifdef WITH_THERMO_RAW
+#include <OpenMS/FORMAT/ThermoRawFile.h>
+#endif
+
 
 using namespace OpenMS;
 using namespace std;
@@ -70,10 +74,13 @@ Maybe most importantly, data from MS experiments in a number of different format
 the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and
 supports traceability of analysis steps.)
 
-Thermo raw files can be converted to mzML using the ThermoRawFileParser provided in the THIRDPARTY folder.
-On windows, a recent .NET framwork needs to be installed. On linux and mac, the mono runtime needs to be
-present and accessible via the -NET_executable parameter. The path to the ThermoRawFileParser can be set
-via the -ThermoRaw_executable option.
+Thermo raw files are read by the built-in reader (-RawToMzML:reader inprocess, the default when OpenMS is
+built with WITH_THERMO_RAW), which needs a .NET 8 (or newer) runtime and supports every output format.
+Like ThermoRawFileParser, it applies vendor peak picking unless -RawToMzML:no_peak_picking is given.
+Alternatively, -RawToMzML:reader external converts to mzML using the ThermoRawFileParser provided in the
+THIRDPARTY folder. On windows, a recent .NET framwork needs to be installed. On linux and mac, the mono
+runtime needs to be present and accessible via the -NET_executable parameter. The path to the
+ThermoRawFileParser can be set via the -ThermoRaw_executable option.
 
 For MaxQuant-flavoured mzXML the use of the advanced option '-force_MaxQuant_compatibility' is recommended.
 
@@ -339,16 +346,24 @@ protected:
     setValidStrings_("bruker:expose_hill_bounds", {"true", "false"});
 #endif
 
-    registerTOPPSubsection_("RawToMzML", "Options for converting raw files to mzML (uses ThermoRawFileParser)");
-    registerInputFile_("RawToMzML:NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, {"is_executable"});
-    registerInputFile_("RawToMzML:ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, {"is_executable"});
+    registerTOPPSubsection_("RawToMzML", "Options for converting Thermo raw files");
+    registerInputFile_("RawToMzML:NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac (external reader only).", false, true, {"is_executable"});
+    registerInputFile_("RawToMzML:ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable (external reader only).", false, true, {"is_executable"});
     setValidFormats_("RawToMzML:ThermoRaw_executable", {"exe"});
     registerFlag_("RawToMzML:no_peak_picking", "Disables vendor peak picking for raw files.", true);
-    registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
+    registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem (external reader only).", true);
     registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
-    registerStringOption_("RawToMzML:reader", "<mode>", "external",
+    // Packages always contain the in-process reader (WITH_THERMO_RAW is ON on every supported
+    // platform), while 'external' also needs ThermoRawFileParser.exe on the PATH and, on linux
+    // and mac, mono. So 'external' is only the default of builds without the in-process reader.
+#ifdef WITH_THERMO_RAW
+    const std::string default_raw_reader = "inprocess";
+#else
+    const std::string default_raw_reader = "external";
+#endif
+    registerStringOption_("RawToMzML:reader", "<mode>", default_raw_reader,
       "Reader for Thermo .raw files. 'external' uses ThermoRawFileParser (external .NET process, mzML output only); "
-      "'inprocess' uses the built-in ThermoRawFile (in-process, supports any output format; requires WITH_THERMO_RAW build).",
+      "'inprocess' uses the built-in ThermoRawFile (in-process, supports any output format; requires WITH_THERMO_RAW build and a .NET 8 runtime).",
       false, true);
     std::vector<std::string> raw_reader_modes = {"external"};
 #ifdef WITH_THERMO_RAW
@@ -501,14 +516,30 @@ protected:
 #ifdef WITH_THERMO_RAW
       if (raw_reader == "inprocess")
       {
-        if (getFlag_("RawToMzML:no_peak_picking") || getFlag_("RawToMzML:no_zlib_compression") || getFlag_("RawToMzML:include_noise"))
+        if (getFlag_("RawToMzML:no_zlib_compression"))
         {
-          OPENMS_LOG_WARN << "RawToMzML:no_peak_picking, no_zlib_compression, and include_noise are "
-                          << "specific to the external ThermoRawFileParser; they are ignored when "
-                          << "RawToMzML:reader=inprocess." << std::endl;
+          OPENMS_LOG_WARN << "RawToMzML:no_zlib_compression is specific to the external ThermoRawFileParser; "
+                          << "it is ignored when RawToMzML:reader=inprocess." << std::endl;
+        }
+        // Read like ThermoRawFileParser does by default: vendor peak picking unless
+        // no_peak_picking is set, noise arrays on request. Otherwise the reader choice would
+        // change what is written (ThermoRawFile keeps profile scans by default). FileHandler
+        // cannot pass these options, so ThermoRawFile is used directly (like BrukerTimsFile below).
+        ThermoRawFile raw_file;
+        raw_file.setLogType(log_type_);
+        ThermoRawFile::Options raw_options = raw_file.getOptions();
+        raw_options.centroid = !getFlag_("RawToMzML:no_peak_picking");
+        raw_options.noise_data = getFlag_("RawToMzML:include_noise");
+        raw_file.setOptions(raw_options);
+        raw_file.load(in, exp);
+        // Record the source directory as absolute file URI, as FileHandler::loadExperiment() does
+        // (ThermoRawFile stores the path as given, which is empty for a bare file name).
+        const std::string raw_dir = File::path(File::absolutePath(in));
+        for (SourceFile& source_file : exp.getSourceFiles())
+        {
+          source_file.setPathToFile((StringUtils::hasPrefix(raw_dir, "/") ? "file://" : "file:///") + raw_dir);
         }
         // Fall through to generic output writing — supports any output format.
-        fh.loadExperiment(in, exp, {FileTypes::RAW}, log_type_, true, true);
       }
       else
 #endif
