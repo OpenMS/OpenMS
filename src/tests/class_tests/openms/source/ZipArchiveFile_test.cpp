@@ -167,4 +167,31 @@ START_SECTION([EXTRA] unzipDirectory stops at an entry larger than it declares)
 }
 END_SECTION
 
+START_SECTION([EXTRA] unzipDirectory rejects an entry that leaves the target directory)
+{
+  // The target directory is <TempDir>/parquet_unpacked. '../parquet_unpacked_x/f.txt' leads to
+  // a sibling whose path starts with the target's path, so a string prefix check accepts it.
+  TempDir tmp;
+  const std::string file = tmp.getPath() + "/f.txt";
+  {
+    std::ofstream ofs(file.c_str());
+    ofs << "payload";
+  }
+  const std::string archive = tmp.getPath() + "/escape.zip";
+  ZipArchiveFile::addOrReplaceFromFile(archive, "../parquet_unpacked_x/f.txt", file);
+
+  std::unique_ptr<TempDir> td;
+  std::string message;
+  try
+  {
+    ZipArchiveFile::unzipDirectory(archive, td);
+  }
+  catch (const Exception::InvalidValue& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.find("outside target directory") != std::string::npos, true)
+}
+END_SECTION
+
 END_TEST

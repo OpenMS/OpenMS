@@ -1457,17 +1457,44 @@ namespace OpenMS
     auto unpacked = std::make_shared<UnpackedArchive>();
     unpacked->archive = path;
     const std::string root = ZipArchiveFile::unzipDirectory(path, unpacked->dir);
-    // Find the .d directory inside the extracted archive (may be nested)
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(to_path(root)))
+    // Find the .d directory inside the extracted archive. It may be nested. The iteration order
+    // is unspecified, and archives made on macOS also hold a __MACOSX/<name>.d with AppleDouble
+    // files only, so take the shallowest .d that holds analysis.tdf or analysis.tdf_bin (as
+    // FileHandler::getType() requires of a directory), and the first by name among equals.
+    std::filesystem::path found;
+    int found_depth = std::numeric_limits<int>::max();
+    for (auto it = std::filesystem::recursive_directory_iterator(to_path(root));
+         it != std::filesystem::recursive_directory_iterator(); ++it)
     {
-      if (entry.is_directory() && entry.path().extension() == ".d")
+      if (!it->is_directory())
       {
-        unpacked->d_path = entry.path().string();
-        return unpacked;
+        continue;
+      }
+      const std::filesystem::path& dir = it->path();
+      if (dir.filename() == "__MACOSX")
+      {
+        it.disable_recursion_pending();
+        continue;
+      }
+      std::error_code ec;
+      if (dir.extension() == ".d"
+          && (std::filesystem::exists(dir / "analysis.tdf", ec) || std::filesystem::exists(dir / "analysis.tdf_bin", ec)))
+      {
+        it.disable_recursion_pending();
+        if (it.depth() < found_depth || (it.depth() == found_depth && dir < found))
+        {
+          found = dir;
+          found_depth = it.depth();
+        }
       }
     }
-    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      path, "ZIP archive does not contain a .d directory");
+    if (found.empty())
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        path, "ZIP archive does not contain a .d directory with analysis.tdf");
+    }
+    unpacked->d_path = found.string();
+    return unpacked;
   }
 
   std::shared_ptr<BrukerTimsFile::UnpackedArchive> BrukerTimsFile::takeUnpacked_(const std::string& path)

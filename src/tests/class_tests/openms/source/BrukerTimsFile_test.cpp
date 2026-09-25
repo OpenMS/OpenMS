@@ -138,10 +138,10 @@ START_SECTION([EXTRA] load() of a zipped .d directory (.d.zip))
   ZipArchiveFile::zipDirectory(no_d, no_d_zip);
   TEST_EXCEPTION(Exception::ParseError, f.load(no_d_zip, exp));
 
-  // A nested .d directory is what reaches opentims (which rejects it: no analysis.tdf).
+  // A nested .d directory is what reaches opentims (which rejects it: no TDF data).
   const std::string nested = tmp.getPath() + "/nested";
   File::makeDir(nested + "/outer/run.d");
-  { std::ofstream os((nested + "/outer/run.d/placeholder.txt").c_str()); os << "no TDF data"; }
+  { std::ofstream os((nested + "/outer/run.d/analysis.tdf").c_str()); os << "no TDF data"; }
   const std::string nested_zip = tmp.getPath() + "/run.d.zip";
   ZipArchiveFile::zipDirectory(nested, nested_zip);
   std::string message;
@@ -157,6 +157,49 @@ START_SECTION([EXTRA] load() of a zipped .d directory (.d.zip))
 }
 END_SECTION
 
+START_SECTION([EXTRA] load() reads the shallowest .d directory with analysis.tdf in a .d.zip)
+{
+  // Archives made with macOS's "Compress" also hold __MACOSX/<name>.d with AppleDouble files
+  // only, and a directory lists its entries in no specified order. SDK-free: no TDF data.
+  TempDir tmp;
+  BrukerTimsFile f;
+  MSExperiment exp;
+  auto write = [](const std::string& file) { std::ofstream os(file.c_str()); os << "no TDF data"; };
+
+  // Only an AppleDouble twin and a .d without analysis.tdf: nothing to hand to opentims.
+  const std::string mac_only = tmp.getPath() + "/mac_only";
+  File::makeDir(mac_only + "/__MACOSX/run.d");
+  write(mac_only + "/__MACOSX/run.d/._analysis.tdf");
+  File::makeDir(mac_only + "/notes.d");
+  write(mac_only + "/notes.d/readme.txt");
+  const std::string mac_only_zip = tmp.getPath() + "/mac_only.d.zip";
+  ZipArchiveFile::zipDirectory(mac_only, mac_only_zip);
+  TEST_EXCEPTION(Exception::ParseError, f.load(mac_only_zip, exp))
+
+  // The run beside its AppleDouble twin and a deeper run: the shallow run.d reaches opentims.
+  const std::string mixed = tmp.getPath() + "/mixed";
+  File::makeDir(mixed + "/run.d");
+  write(mixed + "/run.d/analysis.tdf");
+  File::makeDir(mixed + "/__MACOSX/run.d");
+  write(mixed + "/__MACOSX/run.d/._analysis.tdf");
+  File::makeDir(mixed + "/backup/old.d");
+  write(mixed + "/backup/old.d/analysis.tdf");
+  const std::string mixed_zip = tmp.getPath() + "/mixed.d.zip";
+  ZipArchiveFile::zipDirectory(mixed, mixed_zip);
+  std::string message;
+  try
+  {
+    f.load(mixed_zip, exp);
+  }
+  catch (const Exception::FileNotReadable& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.find("run.d (opentims") != std::string::npos, true)
+  TEST_EQUAL(message.find("__MACOSX") == std::string::npos, true)
+}
+END_SECTION
+
 START_SECTION([EXTRA] readDIAMetadata() keeps its .d.zip extraction for the next call)
 {
   // SwathFile sizes its consumer from readDIAMetadata() and then streams the spectra with
@@ -166,13 +209,13 @@ START_SECTION([EXTRA] readDIAMetadata() keeps its .d.zip extraction for the next
   TempDir tmp;
   const std::string src = tmp.getPath() + "/src";
   File::makeDir(src + "/run.d");
-  { std::ofstream os((src + "/run.d/placeholder.txt").c_str()); os << "no TDF data"; }
+  { std::ofstream os((src + "/run.d/analysis.tdf").c_str()); os << "no TDF data"; }
   const std::string archive = tmp.getPath() + "/run.d.zip";
   ZipArchiveFile::zipDirectory(src, archive);
 
   BrukerTimsFile f;
   ExperimentalSettings settings;
-  TEST_EXCEPTION(Exception::FileNotReadable, f.readDIAMetadata(archive, settings)) // opentims: no analysis.tdf
+  TEST_EXCEPTION(Exception::FileNotReadable, f.readDIAMetadata(archive, settings)) // opentims: no TDF data
   File::remove(archive);
   RegularSwathFileConsumer consumer;
   TEST_EXCEPTION(Exception::FileNotReadable, f.loadDIAStreaming(archive, consumer)) // the kept files

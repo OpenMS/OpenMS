@@ -179,9 +179,9 @@ std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::u
     }
 
     std::filesystem::path outpath = (base_path / entry_path).lexically_normal();
-    const std::string base_str = base_path.string();
-    const std::string out_str = outpath.string();
-    if (out_str.size() < base_str.size() || out_str.compare(0, base_str.size(), base_str) != 0)
+    // Compare path elements, not strings: '../parquet_unpacked_x/f' shares the base's string prefix
+    const std::filesystem::path relative = outpath.lexically_relative(base_path);
+    if (relative.empty() || *relative.begin() == "..")
     {
       zip_close(za);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
