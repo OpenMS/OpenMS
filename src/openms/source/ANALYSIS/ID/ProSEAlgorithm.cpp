@@ -435,6 +435,20 @@ namespace OpenMS
                                            [](const MSSpectrum& spectrum) { return isElectronActivated_(spectrum); }));
   }
 
+  bool ProSEAlgorithm::hasElectronActivatedSpectra_(const std::string& file) const
+  {
+    if (!ions_by_activation_) return false;
+    PeakMap spectra;
+    FileHandler f;
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(2);
+    options.setFillData(false); // activation methods only, no peaks
+    f.getOptions() = options;
+    f.loadExperiment(file, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+    return countElectronActivated_(spectra) > 0;
+  }
+
   void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top)
   {
     // Intensity threshold + normalization used to run here as two extra SERIAL full-map
@@ -1267,11 +1281,11 @@ namespace OpenMS
   ProSEAlgorithm::prepareContext(
       const std::vector<FASTAFile::FASTAEntry>& fasta_db) const
   {
-    return prepareContext_(fasta_db, false);
+    return prepareContext(fasta_db, false);
   }
 
   ProSEAlgorithm::SearchContext
-  ProSEAlgorithm::prepareContext_(
+  ProSEAlgorithm::prepareContext(
       const std::vector<FASTAFile::FASTAEntry>& fasta_db, bool electron_ions) const
   {
     SearchContext ctx;
@@ -1494,7 +1508,7 @@ namespace OpenMS
     const bool electron_ions = countElectronActivated_(spectra) > 0;
     if (database_chunk_size_ == 0)
     {
-      SearchContext ctx = prepareContext_(fasta_db, electron_ions);
+      SearchContext ctx = prepareContext(fasta_db, electron_ions);
       ctx.release_fragment_index_after_scoring = true;
       return search(spectra, ctx, protein_ids, peptide_ids);
     }
@@ -1804,9 +1818,11 @@ namespace OpenMS
     endProgress();
 
     // ions:by_activation: electron-activated spectra are also scored with c and z+1 ions, so the
-    // index must hold them. A context prepared without them (by prepareContext(), or for an earlier
-    // spectrum file without such spectra) is rebuilt once.
+    // index must hold them. A context without them is left unchanged, so that concurrent searches
+    // on it stay safe; this call builds its own index instead.
     const Size n_electron_activated = countElectronActivated_(spectra);
+    FragmentIndex electron_index;
+    FragmentIndex* index = &ctx.fragment_index;
     if (n_electron_activated > 0)
     {
       OPENMS_LOG_INFO << "[ProSE] " << n_electron_activated << " of " << spectra.size()
@@ -1814,18 +1830,19 @@ namespace OpenMS
                       << " with c and z+1 ions." << std::endl;
       if (!ctx.electron_ions)
       {
-        startProgress(0, 1, "Rebuilding fragment index with c and z+1 ions...");
-        ctx.fragment_index.clear();
-        ctx.fragment_index.setParameters(fragmentIndexParameters_(true));
-        ctx.fragment_index.build(ctx.db);
-        ctx.electron_ions = true;
+        OPENMS_LOG_WARN << "[ProSE] The prepared fragment index holds no c and z+1 ions; building one for this"
+                        << " search. prepareContext(fasta_db, true) prepares a context that has them." << std::endl;
+        startProgress(0, 1, "Building fragment index with c and z+1 ions...");
+        electron_index.setParameters(fragmentIndexParameters_(true));
+        electron_index.build(ctx.db);
         endProgress();
+        index = &electron_index;
       }
     }
 
-    // Reference the prepared (decoy-augmented) database and prebuilt fragment index from the context.
+    // Reference the prepared (decoy-augmented) database and the fragment index to search.
     std::vector<FASTAFile::FASTAEntry>& db = ctx.db;
-    FragmentIndex& fragment_index_ = ctx.fragment_index;
+    FragmentIndex& fragment_index_ = *index;
 
     // Effective tolerances: may be overridden by calibration pass below.
     // The precursor scalar passed to postProcessHits_ is the widest bound
@@ -2642,9 +2659,15 @@ namespace OpenMS
       // Non-chunked multi-file: shared SearchContext (existing path).
       // ================================================================
       SearchContext ctx;
-      // Built once the first file is loaded, so that its activation methods decide whether the
-      // index holds c and z+1 ions (ions:by_activation). search() rebuilds it once should a
-      // later file need them.
+      // ions:by_activation: whether the shared index holds c and z+1 ions is decided from all files
+      // before the first search, so that the results of a file do not depend on the input order.
+      // The later files are scanned for their activation methods (metadata only); the first file
+      // decides once it is loaded, and the index is built then.
+      bool electron_ions_later_files = false;
+      for (Size i = 1; i < in_spectra_files.size() && !electron_ions_later_files; ++i)
+      {
+        electron_ions_later_files = hasElectronActivatedSpectra_(in_spectra_files[i]);
+      }
       auto build_context = [&](bool electron_ions)
       {
         StopWatch sw_idx; sw_idx.start();
@@ -2665,7 +2688,7 @@ namespace OpenMS
         }
         else
         {
-          ctx = prepareContext_(fasta_db, electron_ions);
+          ctx = prepareContext(fasta_db, electron_ions);
         }
         sw_idx.stop();
 
@@ -2708,7 +2731,7 @@ namespace OpenMS
           f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         }
         spectra.sortSpectra(true);
-        if (i == 0) { build_context(countElectronActivated_(spectra) > 0); }
+        if (i == 0) { build_context(electron_ions_later_files || countElectronActivated_(spectra) > 0); }
 
         SearchResult result;
         result.is_open_search = isOpenSearchMode_();
@@ -2746,9 +2769,6 @@ namespace OpenMS
 
         mfres.per_file.push_back(std::move(result));
       }
-      // search() may have rebuilt the index with c and z+1 ions for a later file
-      mfres.shared.indexed_peptides = ctx.fragment_index.getPeptides().size();
-      mfres.shared.indexed_fragments = ctx.fragment_index.getNumFragments();
     }
 
     // Build the aggregate result by pooling per-file PSMs.

@@ -235,8 +235,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       /// target-decoy FDR is possible.
       bool have_decoys = false;
       /// True when `fragment_index` also holds c and z+1 ions for electron-activated
-      /// spectra (ions:by_activation). search() rebuilds an index without them once it
-      /// meets such spectra.
+      /// spectra (ions:by_activation); see prepareContext(). search() never changes the
+      /// context: for such spectra and a context without these ions, it builds a
+      /// temporary index for the call.
       bool electron_ions = false;
     };
 
@@ -386,6 +387,20 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * Do not call prepareContext() concurrently on the same algorithm instance.
      */
     SearchContext prepareContext(const std::vector<FASTAFile::FASTAEntry>& fasta_db) const;
+
+    /**
+     * @brief Build a SearchContext whose FragmentIndex also holds c and z+1 ions.
+     *
+     * As prepareContext(fasta_db). With @p electron_ions, the index also holds c and z+1
+     * ions, which ions:by_activation scores for electron-activated spectra (ETD, ECD, EThcD,
+     * ETciD). Use it when the spectra to search contain such spectra: search() otherwise
+     * builds a temporary index with these ions for each call.
+     *
+     * @param[in] fasta_db Protein sequence database as FASTA entries.
+     * @param[in] electron_ions Also index c and z+1 ions.
+     * @return Prepared SearchContext.
+     */
+    SearchContext prepareContext(const std::vector<FASTAFile::FASTAEntry>& fasta_db, bool electron_ions) const;
 
     /**
      * @brief In-memory search using a pre-built SearchContext.
@@ -633,9 +648,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      */
     Param fragmentIndexParameters_(bool electron_ions = false) const;
 
-    /// prepareContext(), with c and z+1 ions in the index if @p electron_ions is set
-    SearchContext prepareContext_(const std::vector<FASTAFile::FASTAEntry>& fasta_db, bool electron_ions) const;
-
     /// Theoretical spectrum generators for the configured ion series and for electron-activated
     /// spectra (ions:by_activation); defined in the source file
     struct SpectrumGenerators_;
@@ -648,6 +660,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     /// Number of spectra that ions:by_activation also scores with c and z+1 ions (0 if it is off)
     Size countElectronActivated_(const PeakMap& spectra) const;
+
+    /// True if ions:by_activation is on and @p file has electron-activated MS2 spectra; reads the
+    /// spectrum metadata only
+    bool hasElectronActivatedSpectra_(const std::string& file) const;
 
     /**
      * @brief Build the searched database according to @p strategy.
