@@ -156,6 +156,19 @@
             }
           },
           {
+            "accession": "MS:4000069",
+            "name": "m/z acquisition range",
+            "description": "Upper and lower limit of m/z precursor values at which MSn spectra are recorded.",
+            "value": [
+              425.0,
+              900.0
+            ],
+            "unit": {
+              "accession": "MS:1000040",
+              "name": "m/z"
+            }
+          },
+          {
             "accession": "MS:4000193",
             "name": "DIA isolation window median cycle time",
             "description": "The median time between consecutive measurements of the same DIA isolation window across the full run.",
@@ -173,19 +186,6 @@
             "unit": {
               "accession": "UO:0000189",
               "name": "count unit"
-            }
-          },
-          {
-            "accession": "MS:4000069",
-            "name": "m/z acquisition range",
-            "description": "Upper and lower limit of m/z precursor values at which MSn spectra are recorded.",
-            "value": [
-              400.0,
-              950.0
-            ],
-            "unit": {
-              "accession": "MS:1000040",
-              "name": "m/z"
             }
           },
           {
@@ -407,6 +407,19 @@
             }
           },
           {
+            "accession": "MS:4000069",
+            "name": "m/z acquisition range",
+            "description": "Upper and lower limit of m/z precursor values at which MSn spectra are recorded.",
+            "value": [
+              412.5,
+              512.5
+            ],
+            "unit": {
+              "accession": "MS:1000040",
+              "name": "m/z"
+            }
+          },
+          {
             "accession": "MS:4000193",
             "name": "DIA isolation window median cycle time",
             "description": "The median time between consecutive measurements of the same DIA isolation window across the full run.",
@@ -424,19 +437,6 @@
             "unit": {
               "accession": "UO:0000189",
               "name": "count unit"
-            }
-          },
-          {
-            "accession": "MS:4000069",
-            "name": "m/z acquisition range",
-            "description": "Upper and lower limit of m/z precursor values at which MSn spectra are recorded.",
-            "value": [
-              400.0,
-              525.0
-            ],
-            "unit": {
-              "accession": "MS:1000040",
-              "name": "m/z"
             }
           },
           {

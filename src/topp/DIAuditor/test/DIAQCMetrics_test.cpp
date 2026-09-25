@@ -211,6 +211,10 @@ START_SECTION(RunMetrics compute() const)
   TEST_REAL_SIMILAR(run.window_total_tic_max, 40.0)
   TEST_REAL_SIMILAR(run.window_peak_count_median_min, 1.0)
   TEST_REAL_SIMILAR(run.window_peak_count_median_max, 3.0)
+  TEST_EQUAL(run.without_isolation_window.spectrum_count, 0)
+  // the precursor m/z values (here the isolation targets), not the m/z range the windows cover (487.5 to 850)
+  TEST_REAL_SIMILAR(run.precursor_mz_min, 500.0)
+  TEST_REAL_SIMILAR(run.precursor_mz_max, 800.0)
 
   // no spectra
   DIAQCMetrics empty;
@@ -221,6 +225,7 @@ START_SECTION(RunMetrics compute() const)
   TEST_TRUE(std::isnan(none.ms1_cycle_time_median))
   TEST_TRUE(std::isnan(none.ms1_peak_count[2]))
   TEST_TRUE(std::isnan(none.window_mz_min))
+  TEST_TRUE(std::isnan(none.precursor_mz_min))
 }
 END_SECTION
 
@@ -350,33 +355,63 @@ START_SECTION(void addSpectrum(const MSSpectrum& spectrum))
   TEST_EQUAL(si.window_count, 1)
   TEST_REAL_SIMILAR(si.windows[0].target_mz, 500.0)
   TEST_REAL_SIMILAR(si.windows[0].lower_mz, 487.5)
+  TEST_REAL_SIMILAR(si.precursor_mz_min, 501.3) // the recorded precursor m/z is the selected ion
+  TEST_REAL_SIMILAR(si.precursor_mz_max, 507.9)
 
-  // MSn spectra without precursor form a window without isolation information
+  // MS2 spectra without an isolation window are not a DIA isolation window: they are collected in
+  // without_isolation_window and left out of the window count and the window statistics
   DIAQCMetrics no_precursor;
   no_precursor.addSpectrum(makeSpectrum(1.0, 2, {1.0}));
   no_precursor.addSpectrum(makeSpectrum(2.0, 2, {1.0}));
   const DIAQCMetrics::RunMetrics np = no_precursor.compute();
-  TEST_EQUAL(np.window_count, 1)
-  TEST_FALSE(np.windows[0].has_isolation_window)
+  TEST_EQUAL(np.ms2_count, 2)
+  TEST_EQUAL(np.window_count, 0)
+  TEST_EQUAL(np.windows.size(), 0)
+  TEST_EQUAL(np.windows_measured_once, 0)
+  TEST_EQUAL(np.without_isolation_window.spectrum_count, 2)
+  TEST_FALSE(np.without_isolation_window.has_isolation_window)
+  TEST_TRUE(std::isnan(np.without_isolation_window.target_mz))
+  TEST_TRUE(std::isnan(np.without_isolation_window.lower_mz))
+  TEST_REAL_SIMILAR(np.without_isolation_window.cycle_time_median, 1.0)
   TEST_TRUE(std::isnan(np.window_mz_min))
+  TEST_TRUE(std::isnan(np.window_spectra_max))
+  TEST_TRUE(std::isnan(np.window_cycle_time_median))
+  TEST_TRUE(std::isnan(np.precursor_mz_min))
 
-  // a precursor with a selected ion but no isolation window: grouped by the precursor m/z, no m/z range
+  // a precursor with a selected ion but no isolation window: one group whatever the precursor m/z, no m/z range
   DIAQCMetrics no_window;
-  for (double rt : {1.0, 2.0})
+  double rt_no_window = 1.0;
+  for (double mz : {600.0, 650.0, 600.0})
   {
-    MSSpectrum s = makeSpectrum(rt, 2, {1.0});
+    MSSpectrum s = makeSpectrum(rt_no_window++, 2, {1.0});
     Precursor p;
-    p.setMZ(600.0);
+    p.setMZ(mz);
     p.setMetaValue("isolation window target m/z", 0.0); // what the reader stores for a missing isolation window
     s.getPrecursors().push_back(p);
     no_window.addSpectrum(s);
   }
   const DIAQCMetrics::RunMetrics nw = no_window.compute();
-  TEST_EQUAL(nw.window_count, 1)
-  TEST_FALSE(nw.windows[0].has_isolation_window)
-  TEST_REAL_SIMILAR(nw.windows[0].target_mz, 600.0)
+  TEST_EQUAL(nw.window_count, 0)
+  TEST_EQUAL(nw.without_isolation_window.spectrum_count, 3)
+  TEST_TRUE(std::isnan(nw.without_isolation_window.target_mz))
   TEST_TRUE(std::isnan(nw.window_mz_min))
   TEST_TRUE(std::isnan(nw.window_width_max))
+  TEST_REAL_SIMILAR(nw.precursor_mz_min, 600.0)
+  TEST_REAL_SIMILAR(nw.precursor_mz_max, 650.0)
+
+  // a DIA run with one MS2 spectrum without an isolation window: the windows and their statistics are unchanged
+  DIAQCMetrics mixed;
+  addRun(mixed);
+  mixed.addSpectrum(makeSpectrum(70.0, 2, {1.0})); // TIC 1, below that of every window
+  const DIAQCMetrics::RunMetrics mx = mixed.compute();
+  TEST_EQUAL(mx.ms2_count, 14)
+  TEST_EQUAL(mx.window_count, 4)
+  TEST_EQUAL(mx.windows_measured_once, 1) // C
+  TEST_EQUAL(mx.without_isolation_window.spectrum_count, 1)
+  TEST_REAL_SIMILAR(mx.without_isolation_window.total_tic, 1.0)
+  TEST_REAL_SIMILAR(mx.window_total_tic_min, 7.0)
+  TEST_REAL_SIMILAR(mx.window_half_tic_rt_max, 75.0)
+  TEST_REAL_SIMILAR(mx.ms2_total_tic, 40.0 + 24.0 + 16.0 + 7.0 + 1.0) // MS2 statistics include it
 
   // spectra without retention time, MS3 spectra and multiplexed spectra
   DIAQCMetrics special;
@@ -509,6 +544,7 @@ START_SECTION(static void writeWindowTable(const std::vector<RunMetrics>& runs, 
 {
   DIAQCMetrics metrics;
   addRun(metrics);
+  metrics.addSpectrum(makeSpectrum(70.0, 2, {1.0})); // an MS2 spectrum without isolation window
   DIAQCMetrics::RunMetrics run = metrics.compute();
   run.source_file = "run1";
 
@@ -517,11 +553,13 @@ START_SECTION(static void writeWindowTable(const std::vector<RunMetrics>& runs, 
   std::istringstream is(os.str());
   std::vector<std::string> lines;
   for (std::string line; std::getline(is, line);) lines.push_back(line);
-  TEST_EQUAL(lines.size(), 5)
-  ABORT_IF(lines.size() != 5)
+  TEST_EQUAL(lines.size(), 6)
+  ABORT_IF(lines.size() != 6)
   TEST_STRING_EQUAL(lines[0], "SourceFile\tLoMZ\tHiMZ\tWidthMZ\tIonMobility\tMassResolvingPower\tMSMSCount\tRTMin\tRTMax\tCycleTimeMedian\tTIC25ileRT\tTIC50ileRT\tTIC75ileRT\tTotalTIC\tPkCountMin\tPkCount25ile\tPkCount50ile\tPkCount75ile\tPkCountMax\tIonMobilityLow\tIonMobilityHigh\tTargetMZ")
   TEST_STRING_EQUAL(lines[1], "run1\t487.5\t512.5\t25\t-45\tNA\t4\t1.00833333333\t1.15833333333\t3\t1.00833333333\t1.05833333333\t1.10833333333\t40\t2\t2\t2\t2\t2\tNA\tNA\t500")
   TEST_STRING_EQUAL(lines[4], "run1\t750\t850\t100\tNA\tNA\t1\t1.25\t1.25\tNA\t1.25\t1.25\t1.25\t7\t1\t1\t1\t1\t1\tNA\tNA\t800")
+  // the MS2 spectra without isolation window follow the windows, without m/z values
+  TEST_STRING_EQUAL(lines[5], "run1\tNA\tNA\tNA\tNA\tNA\t1\t1.16666666667\t1.16666666667\tNA\t1.16666666667\t1.16666666667\t1.16666666667\t1\t1\t1\t1\t1\t1\tNA\tNA\tNA")
 }
 END_SECTION
 
@@ -536,16 +574,35 @@ START_SECTION(static void writeMzQC(const std::vector<RunMetrics>& runs, std::os
   DIAQCMetrics::RunMetrics none = DIAQCMetrics().compute();
   none.source_file = "empty";
   none.input_path = "empty.mzML";
+  // MS2 spectra without precursor, and with a selected ion but no isolation window
+  DIAQCMetrics no_precursor_metrics;
+  no_precursor_metrics.addSpectrum(makeSpectrum(1.0, 2, {1.0}));
+  no_precursor_metrics.addSpectrum(makeSpectrum(2.0, 2, {1.0}));
+  DIAQCMetrics::RunMetrics no_precursor = no_precursor_metrics.compute();
+  no_precursor.source_file = "no_precursor";
+  no_precursor.input_path = "no_precursor.mzML";
+  DIAQCMetrics selected_ion_metrics;
+  for (double mz : {600.0, 650.0})
+  {
+    MSSpectrum s = makeSpectrum(mz / 100.0, 2, {1.0});
+    Precursor p;
+    p.setMZ(mz);
+    s.getPrecursors().push_back(p);
+    selected_ion_metrics.addSpectrum(s);
+  }
+  DIAQCMetrics::RunMetrics selected_ion = selected_ion_metrics.compute();
+  selected_ion.source_file = "selected_ion";
+  selected_ion.input_path = "selected_ion.mzML";
 
   std::ostringstream os;
-  DIAQCMetrics::writeMzQC({run, none}, os, "1.2.3", "2026-01-02T03:04:05Z");
+  DIAQCMetrics::writeMzQC({run, none, no_precursor, selected_ion}, os, "1.2.3", "2026-01-02T03:04:05Z");
   const nlohmann::json mzqc = nlohmann::json::parse(os.str());
   TEST_STRING_EQUAL(mzqc["mzQC"]["version"].get<std::string>(), "1.0.0")
   TEST_STRING_EQUAL(mzqc["mzQC"]["creationDate"].get<std::string>(), "2026-01-02T03:04:05Z")
   TEST_EQUAL(mzqc["mzQC"]["controlledVocabularies"].size(), 1)
   const auto& run_qualities = mzqc["mzQC"]["runQualities"];
-  TEST_EQUAL(run_qualities.size(), 2)
-  ABORT_IF(run_qualities.size() != 2)
+  TEST_EQUAL(run_qualities.size(), 4)
+  ABORT_IF(run_qualities.size() != 4)
 
   const auto& metadata = run_qualities[0]["metadata"];
   TEST_STRING_EQUAL(metadata["label"].get<std::string>(), "run1")
@@ -578,7 +635,8 @@ START_SECTION(static void writeMzQC(const std::vector<RunMetrics>& runs, std::os
   TEST_REAL_SIMILAR(m["MS:4000190"]["value"][1].get<double>(), 1.1) // minutes
   TEST_TRUE(m["MS:4000196"]["value"] == nlohmann::json::array({1, 4}))
   TEST_TRUE(m["MS:4000199"]["value"] == nlohmann::json::array({1, 3}))
-  TEST_TRUE(m["MS:4000069"]["value"] == nlohmann::json::array({487.5, 850.0}))
+  // m/z acquisition range: the precursor m/z values, not the m/z range the windows cover (487.5 to 850)
+  TEST_TRUE(m["MS:4000069"]["value"] == nlohmann::json::array({500.0, 800.0}))
   TEST_TRUE(m["MS:4000190"].contains("description"))
 
   // undefined values are left out, never written as null
@@ -588,6 +646,17 @@ START_SECTION(static void writeMzQC(const std::vector<RunMetrics>& runs, std::os
   TEST_EQUAL(e.count("MS:4000067"), 0)
   TEST_EQUAL(e.count("MS:4000194"), 0)
   TEST_EQUAL(os.str().find("null"), std::string::npos)
+
+  // MS2 spectra without isolation window: no DIA isolation window metrics, and without precursor no m/z range
+  const std::vector<std::string> window_metrics = {"MS:4000193", "MS:4000194", "MS:4000195", "MS:4000196",
+                                                   "MS:4000197", "MS:4000198", "MS:4000199"};
+  auto np = metricsOf(run_qualities[2]);
+  TEST_EQUAL(np["MS:4000060"]["value"].get<int>(), 2)
+  for (const std::string& accession : window_metrics) TEST_EQUAL(np.count(accession), 0)
+  TEST_EQUAL(np.count("MS:4000069"), 0)
+  auto si = metricsOf(run_qualities[3]);
+  for (const std::string& accession : window_metrics) TEST_EQUAL(si.count(accession), 0)
+  TEST_TRUE(si["MS:4000069"]["value"] == nlohmann::json::array({600.0, 650.0}))
 }
 END_SECTION
 

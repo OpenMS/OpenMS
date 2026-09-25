@@ -39,8 +39,10 @@ namespace OpenMS
     the same isolation window (target m/z, lower and upper offset) and, depending on Options::ion_mobility, the same
     FAIMS compensation voltage and ion mobility range. Values are compared with an absolute tolerance of 1e-6 (as in
     OpenSWATH), since converters may write them with different last digits. Windows are reported in the order in which
-    they are first acquired. Spectra of MS level 3 and higher are counted, but not assigned to windows. Spectra without
-    a retention time (no scan start time) are counted, but not used for any other metric.
+    they are first acquired. MS2 spectra without an isolation window (no precursor, or no isolation window offsets) are
+    not a DIA isolation window: they are collected in RunMetrics::without_isolation_window and left out of the window
+    count and the window statistics. Spectra of MS level 3 and higher are counted, but not assigned to windows. Spectra
+    without a retention time (no scan start time) are counted, but not used for any other metric.
 
     Conventions (retention times are kept in seconds; the table writers convert them to minutes like DIAuditor):
     - Medians of times are the usual median (mean of the two middle values for an even count).
@@ -94,11 +96,11 @@ namespace OpenMS
     /// Metrics of one isolation window
     struct WindowMetrics
     {
-      bool has_isolation_window = false;  ///< false for MS2 spectra without isolation window offsets
-      double target_mz = 0.0;             ///< isolation window target (or the precursor m/z if there is no isolation window)
-      double lower_mz = 0.0;              ///< target m/z minus lower offset
-      double upper_mz = 0.0;              ///< target m/z plus upper offset
-      double width_mz = 0.0;              ///< upper_mz - lower_mz
+      bool has_isolation_window = false;  ///< false only for RunMetrics::without_isolation_window
+      double target_mz;                   ///< isolation window target m/z; NaN without isolation window (also below)
+      double lower_mz;                    ///< target m/z minus lower offset
+      double upper_mz;                    ///< target m/z plus upper offset
+      double width_mz;                    ///< upper_mz - lower_mz
       double faims_cv;                    ///< FAIMS compensation voltage; NaN if none
       double ion_mobility_lower;          ///< lower limit of the ion mobility range of the window; NaN if none
       double ion_mobility_upper;          ///< upper limit of the ion mobility range of the window; NaN if none
@@ -132,6 +134,8 @@ namespace OpenMS
       Size spectra_without_rt = 0;        ///< spectra without retention time (not used for other metrics)
       Size ms2_multiple_precursors = 0;   ///< MS2 spectra with more than one precursor (e.g. multiplexed DIA); only the first is used
       Size ms2_scan_ion_mobility = 0;     ///< MS2 spectra that look like single ion mobility scans (no range or IM array)
+      double precursor_mz_min;            ///< lowest precursor m/z of the MSn spectra (selected ion, or isolation target)
+      double precursor_mz_max;            ///< highest precursor m/z of the MSn spectra
 
       double ms1_mass_resolving_power;    ///< median over MS1 spectra
       TICQuantileRTs ms1_tic_quantile_rt;
@@ -143,7 +147,7 @@ namespace OpenMS
       double ms2_total_tic = 0.0;
       PeakCountSummary ms2_peak_count;
 
-      Size window_count = 0;
+      Size window_count = 0;              ///< DIA isolation windows (not counting without_isolation_window)
       Size windows_measured_once = 0;     ///< windows with a single MS2 spectrum
       double window_spectra_min;          ///< fewest spectra of any window
       double window_spectra_max;          ///< most spectra of any window
@@ -160,7 +164,11 @@ namespace OpenMS
       double window_peak_count_median_min;
       double window_peak_count_median_max;
 
-      std::vector<WindowMetrics> windows;
+      std::vector<WindowMetrics> windows;  ///< the DIA isolation windows
+
+      /// MS2 spectra without an isolation window, as one group (spectrum_count 0 if there are none). This is not a DIA
+      /// isolation window: it is neither in windows nor in the window statistics above.
+      WindowMetrics without_isolation_window;
 
       RunMetrics();
     };
@@ -188,7 +196,8 @@ namespace OpenMS
     /// Write one row per run (DIAuditor's "byRun" table) as tab-separated values
     static void writeRunTable(const std::vector<RunMetrics>& runs, std::ostream& os);
 
-    /// Write one row per isolation window (DIAuditor's "byIsolationWindow" table) as tab-separated values
+    /// Write one row per isolation window (DIAuditor's "byIsolationWindow" table) as tab-separated values. MS2 spectra
+    /// without an isolation window (RunMetrics::without_isolation_window) follow as the run's last row, without m/z values.
     static void writeWindowTable(const std::vector<RunMetrics>& runs, std::ostream& os);
 
     /**
@@ -196,7 +205,9 @@ namespace OpenMS
 
       Only metrics defined in the PSI-MS vocabulary are written, with the names and units the vocabulary defines. Terms
       missing from the installed vocabulary are skipped with a warning. Per-window values are not written, as the
-      vocabulary has no term for them; see writeWindowTable().
+      vocabulary has no term for them; see writeWindowTable(). The DIA isolation window metrics (MS:4000193 to
+      MS:4000199) describe RunMetrics::windows only, and MS:4000069 'm/z acquisition range' is the range of the
+      precursor m/z values (RunMetrics::precursor_mz_min/max), not the m/z range the isolation windows cover.
 
       @param[in] runs The runs
       @param[in] os Output stream
@@ -215,6 +226,7 @@ namespace OpenMS
       Size peak_count = 0;
       double mass_resolving_power = 0.0;  // NaN if not annotated
       bool has_isolation_window = false;
+      double precursor_mz = 0.0;          // NaN if none
       double target_mz = 0.0;
       double lower_offset = 0.0;
       double upper_offset = 0.0;

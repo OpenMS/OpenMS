@@ -245,6 +245,10 @@ namespace OpenMS
   };
 
   DIAQCMetrics::WindowMetrics::WindowMetrics() :
+    target_mz(NaN),
+    lower_mz(NaN),
+    upper_mz(NaN),
+    width_mz(NaN),
     faims_cv(NaN),
     ion_mobility_lower(NaN),
     ion_mobility_upper(NaN),
@@ -260,6 +264,8 @@ namespace OpenMS
   DIAQCMetrics::RunMetrics::RunMetrics() :
     rt_min(NaN),
     rt_max(NaN),
+    precursor_mz_min(NaN),
+    precursor_mz_max(NaN),
     ms1_mass_resolving_power(NaN),
     ms1_tic_quantile_rt{NaN, NaN, NaN},
     ms1_cycle_time_median(NaN),
@@ -342,9 +348,12 @@ namespace OpenMS
     record.mass_resolving_power = metaValueAsDouble(spectrum, "mass resolving power");
 
     record.precursor_count = spectrum.getPrecursors().size();
+    record.precursor_mz = NaN;
     if (record.ms_level >= 2 && record.precursor_count > 0)
     {
       const Precursor& precursor = spectrum.getPrecursors().front();
+      // the recorded precursor m/z: the selected ion m/z, or the isolation window target if there is no selected ion
+      if (precursor.getMZ() > 0.0) record.precursor_mz = precursor.getMZ();
       // if the file has a selected ion m/z, the mzML reader moves the isolation window target into a meta value
       // (0 if the precursor has no isolation window)
       const double target = metaValueAsDouble(precursor, "isolation window target m/z");
@@ -411,6 +420,11 @@ namespace OpenMS
       }
       if (!(r.rt >= run.rt_min)) run.rt_min = r.rt;
       if (!(r.rt <= run.rt_max)) run.rt_max = r.rt;
+      if (r.ms_level >= 2 && std::isfinite(r.precursor_mz))
+      {
+        if (!(r.precursor_mz >= run.precursor_mz_min)) run.precursor_mz_min = r.precursor_mz;
+        if (!(r.precursor_mz <= run.precursor_mz_max)) run.precursor_mz_max = r.precursor_mz;
+      }
       if (r.ms_level == 1)
       {
         ms1.push_back(&r);
@@ -437,7 +451,8 @@ namespace OpenMS
     run.ms2_peak_count = ms2_stats.peak_count;
 
     // group MS2 spectra into isolation windows, in order of first acquisition; the values that define a window are
-    // matched within the tolerance, and candidate windows are looked up by target m/z in bins of 0.001 (much wider)
+    // matched within the tolerance, and candidate windows are looked up by target m/z in bins of 0.001 (much wider).
+    // MS2 spectra without an isolation window are not a DIA isolation window and are collected separately.
     auto sameWindow = [](const SpectrumRecord& a, const SpectrumRecord& b)
     {
       return sameValue(a.target_mz, b.target_mz) && sameValue(a.lower_offset, b.lower_offset) &&
@@ -446,8 +461,14 @@ namespace OpenMS
     };
     std::map<long long, std::vector<Size>> windows_by_target;
     std::vector<std::vector<const SpectrumRecord*>> window_records;
+    std::vector<const SpectrumRecord*> without_window;
     for (const SpectrumRecord* r : ms2)
     {
+      if (!r->has_isolation_window)
+      {
+        without_window.push_back(r);
+        continue;
+      }
       const long long bin = std::llround(r->target_mz * 1000.0);
       Size index = window_records.size();
       for (long long b = bin - 1; b <= bin + 1 && index == window_records.size(); ++b)
@@ -471,6 +492,21 @@ namespace OpenMS
       window_records[index].push_back(r);
     }
 
+    // the statistics of a group of MS2 spectra (sorted by retention time)
+    auto groupMetrics = [](const std::vector<const SpectrumRecord*>& records, const GroupStatistics& stats)
+    {
+      WindowMetrics group;
+      group.mass_resolving_power = stats.mass_resolving_power;
+      group.spectrum_count = records.size();
+      group.rt_min = stats.rt_min;
+      group.rt_max = stats.rt_max;
+      group.cycle_time_median = stats.cycle_time_median;
+      group.tic_quantile_rt = stats.tic_quantile_rt;
+      group.total_tic = stats.total_tic;
+      group.peak_count = stats.peak_count;
+      return group;
+    };
+
     std::vector<double> pooled_rt_differences, window_cycle_times, window_spectra, window_lower, window_upper,
       window_widths, window_half_tic_rts, window_total_tics, window_peak_count_medians;
     for (const auto& records : window_records)
@@ -478,8 +514,8 @@ namespace OpenMS
       const SpectrumRecord& first = *records.front();
       const GroupStatistics stats(records);
 
-      WindowMetrics window;
-      window.has_isolation_window = first.has_isolation_window;
+      WindowMetrics window = groupMetrics(records, stats);
+      window.has_isolation_window = true;
       window.target_mz = first.target_mz;
       window.lower_mz = first.target_mz - first.lower_offset;
       window.upper_mz = first.target_mz + first.upper_offset;
@@ -487,32 +523,25 @@ namespace OpenMS
       window.faims_cv = first.faims_cv;
       window.ion_mobility_lower = first.ion_mobility_lower;
       window.ion_mobility_upper = first.ion_mobility_upper;
-      window.mass_resolving_power = stats.mass_resolving_power;
-      window.spectrum_count = records.size();
-      window.rt_min = stats.rt_min;
-      window.rt_max = stats.rt_max;
-      window.cycle_time_median = stats.cycle_time_median;
-      window.tic_quantile_rt = stats.tic_quantile_rt;
-      window.total_tic = stats.total_tic;
-      window.peak_count = stats.peak_count;
       run.windows.push_back(window);
 
       if (window.spectrum_count == 1) ++run.windows_measured_once;
       pooled_rt_differences.insert(pooled_rt_differences.end(), stats.rt_differences.begin(), stats.rt_differences.end());
       window_cycle_times.push_back(window.cycle_time_median);
       window_spectra.push_back(static_cast<double>(window.spectrum_count));
-      if (window.has_isolation_window)
-      {
-        window_lower.push_back(window.lower_mz);
-        window_upper.push_back(window.upper_mz);
-        window_widths.push_back(window.width_mz);
-      }
+      window_lower.push_back(window.lower_mz);
+      window_upper.push_back(window.upper_mz);
+      window_widths.push_back(window.width_mz);
       window_half_tic_rts.push_back(window.tic_quantile_rt[1]);
       window_total_tics.push_back(window.total_tic);
       window_peak_count_medians.push_back(window.peak_count[2]);
     }
 
     run.window_count = run.windows.size();
+    if (!without_window.empty())
+    {
+      run.without_isolation_window = groupMetrics(without_window, GroupStatistics(without_window));
+    }
     std::tie(run.window_spectra_min, run.window_spectra_max) = finiteRange(window_spectra);
     run.window_mz_min = finiteRange(window_lower).first;
     run.window_mz_max = finiteRange(window_upper).second;
@@ -581,12 +610,14 @@ namespace OpenMS
                   "IonMobilityLow", "IonMobilityHigh", "TargetMZ"});
     for (const RunMetrics& run : runs)
     {
-      for (const WindowMetrics& w : run.windows)
+      std::vector<const WindowMetrics*> rows;
+      for (const WindowMetrics& w : run.windows) rows.push_back(&w);
+      if (run.without_isolation_window.spectrum_count > 0) rows.push_back(&run.without_isolation_window); // m/z values NA
+      for (const WindowMetrics* row : rows)
       {
-        const bool iso = w.has_isolation_window;
+        const WindowMetrics& w = *row;
         writeRow(os, {textCell(run.source_file),
-                      iso ? numberToString(w.lower_mz) : "NA", iso ? numberToString(w.upper_mz) : "NA",
-                      iso ? numberToString(w.width_mz) : "NA",
+                      numberToString(w.lower_mz), numberToString(w.upper_mz), numberToString(w.width_mz),
                       numberToString(w.faims_cv), numberToString(w.mass_resolving_power),
                       countToString(w.spectrum_count), numberToString(toMinutes(w.rt_min)), numberToString(toMinutes(w.rt_max)),
                       numberToString(w.cycle_time_median),
@@ -595,7 +626,7 @@ namespace OpenMS
                       countToString(w.peak_count[0]), countToString(w.peak_count[1]), countToString(w.peak_count[2]),
                       countToString(w.peak_count[3]), countToString(w.peak_count[4]),
                       numberToString(w.ion_mobility_lower), numberToString(w.ion_mobility_upper),
-                      w.target_mz > 0.0 ? numberToString(w.target_mz) : "NA"});
+                      numberToString(w.target_mz)});
       }
     }
   }
@@ -670,11 +701,13 @@ namespace OpenMS
       addNumbers("MS:4000190", {toMinutes(run.ms1_tic_quantile_rt[0]), toMinutes(run.ms1_tic_quantile_rt[1]), toMinutes(run.ms1_tic_quantile_rt[2])}, minute, false); // MS1 TIC quantile RT
       addNumbers("MS:4000191", {toMinutes(run.ms2_tic_quantile_rt[0]), toMinutes(run.ms2_tic_quantile_rt[1]), toMinutes(run.ms2_tic_quantile_rt[2])}, minute, false); // MS2 TIC quantile RT
       addNumbers("MS:4000192", {run.ms1_cycle_time_median}, second, false); // MS1 median cycle time
-      if (run.window_count > 0)
+      // m/z acquisition range: the range of the precursor m/z values of MSn spectra (not the m/z range that the
+      // isolation windows cover, which is in the run table)
+      addNumbers("MS:4000069", {run.precursor_mz_min, run.precursor_mz_max}, mz, false);
+      if (run.window_count > 0) // only DIA isolation windows; MS2 spectra without an isolation window are not one
       {
         addNumbers("MS:4000193", {run.window_cycle_time_median}, second, false); // DIA isolation window median cycle time
         add("MS:4000194", run.window_count, count); // DIA isolation window count
-        addNumbers("MS:4000069", {run.window_mz_min, run.window_mz_max}, mz, false); // m/z acquisition range
         addNumbers("MS:4000195", {run.window_width_min, run.window_width_max}, mz, false); // DIA isolation window m/z widths
         // times a window is measured; note that PSI-MS 4.2.2 names this term like MS:4000194 ("DIA isolation window count")
         addNumbers("MS:4000196", {run.window_spectra_min, run.window_spectra_max}, count, true);

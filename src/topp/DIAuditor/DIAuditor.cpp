@@ -46,26 +46,32 @@ MS2 spectra are grouped into isolation windows by the isolation window of their 
 offset) and by their ion mobility settings (see @p ion_mobility): the FAIMS compensation voltage, and the ion mobility
 range of the window as it is written for diaPASEF frames ('ion mobility lower/upper limit', e.g. by
 <tt>msconvert --combineIonMobilitySpectra</tt> or the OpenMS timsTOF reader). These values are matched with an absolute
-tolerance of 1e-6 (as in OpenSWATH). Windows are listed in the order in which they are first acquired. Spectra of MS
-level 3 and higher, and spectra without retention time, are counted but not assigned to windows.
+tolerance of 1e-6 (as in OpenSWATH). Windows are listed in the order in which they are first acquired. MS2 spectra
+without an isolation window (no precursor, or no isolation window offsets) are not a DIA isolation window: they are
+listed together in the last row of a run in @p out_windows, without m/z values, and left out of the window count and
+of all other window metrics. Spectra of MS level 3 and higher, and spectra without retention time, are counted but not
+assigned to windows.
 
 Peak count quartiles are taken as in DIAuditor: the values at positions n/4, n/2 and n/4 + n/2 (integer division) of
 the n sorted counts.
 
 The tool warns about data it cannot describe well: MS2 spectra that are single ion mobility scans (e.g. diaPASEF
 converted without combining the scans of a frame; every scan then counts as a measurement of its window), MS2 spectra
-with several precursors (multiplexed DIA, e.g. MSX; only the first isolation window is used), and runs whose windows
-are mostly measured once (e.g. DDA).
+with several precursors (multiplexed DIA, e.g. MSX; only the first isolation window is used), MS2 spectra without an
+isolation window, and runs without isolation windows or whose windows are mostly measured once (e.g. DDA).
 
 <B>Outputs</B> (at least one is required)
 - @p out: one row per run, with the columns of DIAuditor's <tt>DIAuditor-byRun.tsv</tt>, followed by run-level
   MS2 statistics.
 - @p out_windows: one row per isolation window of each run, with the columns of DIAuditor's
   <tt>DIAuditor-byIsolationWindow.tsv</tt> (IonMobility is the FAIMS compensation voltage), followed by the ion
-  mobility range of the window and the isolation target m/z.
+  mobility range of the window and the isolation target m/z. MS2 spectra without an isolation window follow in one
+  row with NA m/z values.
 - @p out_mzqc: an mzQC file with one runQuality per run. It contains only metrics defined in the PSI-MS vocabulary
   (e.g. MS:4000190 to MS:4000199 for DIA), with the units the vocabulary defines. Per-window values are not
-  part of it, because the vocabulary has no term for them.
+  part of it, because the vocabulary has no term for them. The DIA window metrics are written only for runs with
+  isolation windows. MS:4000069 'm/z acquisition range' is the range of the precursor m/z values of the MSn spectra
+  (as the vocabulary defines it); the run table's MZRangeMin/MZRangeMax is the m/z range the isolation windows cover.
 
 In the tables, retention times are given in minutes, cycle times in seconds; values that are undefined (e.g. the
 cycle time of a window measured only once) are written as NA.
@@ -79,6 +85,8 @@ cycle time of a window measured only once) are written as NA.
 - Windows are also separated by their isolation offsets and by the ion mobility range of diaPASEF frames (unless
   @p ion_mobility is set to 'faims' or 'none'); DIAuditor uses the isolation target and the FAIMS voltage only.
 - Only MS2 spectra form windows; DIAuditor also puts MS3 and higher spectra into them.
+- MS2 spectra without an isolation window are not a window; DIAuditor puts them into a window at m/z 0, which also
+  extends its m/z range down to 0.
 - Spectra without a 'total ion current' value get the sum of their intensities (see @p tic), and the instrument
   model is recognised from the whole PSI-MS vocabulary.
 - Values that define a window are matched with a tolerance of 1e-6; DIAuditor requires exact equality.
@@ -196,13 +204,23 @@ protected:
 
       OPENMS_LOG_INFO << File::basename(file) << ": " << run.ms1_count << " MS1 and " << run.msn_count
                       << " MSn spectra, " << run.window_count << " isolation windows." << endl;
-      if (run.window_count == 0)
+      if (run.ms2_count == 0)
       {
         OPENMS_LOG_WARN << "Warning: no MS2 spectra in '" << file << "', so there are no isolation windows. Is this a DIA run?" << endl;
+      }
+      else if (run.window_count == 0)
+      {
+        OPENMS_LOG_WARN << "Warning: no MS2 spectrum of '" << file << "' has an isolation window, so there are no DIA "
+                        << "isolation windows. Is this a DIA run?" << endl;
       }
       else if (run.windows_measured_once > run.window_count / 2)
       {
         OPENMS_LOG_WARN << "Warning: most isolation windows of '" << file << "' are measured only once. Is this a DIA run?" << endl;
+      }
+      if (run.window_count > 0 && run.without_isolation_window.spectrum_count > 0)
+      {
+        OPENMS_LOG_WARN << "Warning: " << run.without_isolation_window.spectrum_count << " MS2 spectra of '" << file
+                        << "' have no isolation window. They are not counted as a DIA isolation window." << endl;
       }
       if (run.spectra_without_rt > 0)
       {
