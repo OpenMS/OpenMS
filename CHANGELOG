@@ -37,9 +37,9 @@ General:
     reference and register them before parsing any sequence; ProForma writes a tool-defined modification
     as its chemistry plus an INFO: name (e.g. "[Formula:C9H11N2O8P1|INFO:NuXL:U-H2O]") so a reader
     without the definition still gets the right mass, and resolves the name first when it is registered.
-    OpenNuXL is the first consumer (see OpenNuXL below). BREAKING: a file naming such a modification is a
-    hard load failure ("Cannot convert string to peptide modification") in an OpenMS build without this
-    support (#10003, #10026, #10028, #10036, #10037, #10038, #10039, #10040)
+    OpenNuXL is the first consumer (see OpenNuXL below). BREAKING: an idXML, featureXML or consensusXML
+    file naming such a modification is a hard load failure ("Cannot convert string to peptide modification")
+    in an OpenMS build without this support (#10003, #10026, #10028, #10036, #10037, #10038, #10039, #10040)
   - Transparent .zip input for XML formats and Bruker .d directories; XML output supports
     .gz/.bz2 compression selected by filename extension (#7560, #9139, #9259).
   - BREAKING: OpenMS::String/StringView replaced by std::string/std::string_view;
