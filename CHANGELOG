@@ -285,13 +285,25 @@ PyOpenMS:
   - BREAKING: MassTrace is now the kernel mass trace (getCentroidMZ(), getSize(), ...), and
     Kernel_MassTrace is an alias for it. 3.5.0's MassTrace was the FeatureFinder helper
     struct with max_rt and theoretical_int, which is gone.
-  - BREAKING: nested enums lost the prefix autowrap had given them: IonDetector.Type (was
-    Type_IonDetector), FeatureDeconvolution.CHARGEMODE and
-    MetaboliteFeatureDeconvolution.CHARGEMODE (were CHARGEMODE_FD and CHARGEMODE_MFD),
-    OpenPepXLAlgorithm.ExitCodes, PeptideIndexing.ExitCodes and PercolatorOutfile.ScoreType.
-    The enums' getMapping() helper is gone. Seventeen enums, mostly metadata ones such as
-    IonSource.IonizationMethod, SpectrumSettings.SpectrumType, Precursor.ActivationMethod and
-    the MassAnalyzer enums, no longer convert with int(): use .value. Setters such as
+  - BREAKING: some nested enums were renamed. IonDetector.Type_IonDetector is now
+    IonDetector.Type, FeatureDeconvolution.CHARGEMODE_FD and
+    MetaboliteFeatureDeconvolution.CHARGEMODE_MFD are now CHARGEMODE, and
+    OpenPepXLAlgorithm.OpenPepXLAlgorithm_ExitCodes,
+    PeptideIndexing.PeptideIndexing_ExitCodes and
+    PercolatorOutfile.PercolatorOutfile_ScoreType are now ExitCodes and ScoreType.
+    getMapping() is now called on a member, e.g.
+    IonSource.IonizationMethod.ESI.getMapping(), not on an instance of the enum class such
+    as IonSource.IonizationMethod(). Thirty-two enums no longer convert with int(); use
+    .value: AnnotationState, ChecksumType, DecoyTransitionType, DimensionDescription,
+    IMFormat, MT_QUANTMETHOD, MZTrafoModel_MODELTYPE, DataFilters.FilterOperation,
+    DataFilters.FilterType, DataProcessing.ProcessingAction,
+    FeatureOverlapFilter.MergeIntensityMode, Instrument.IonOpticsType,
+    InstrumentSettings.ScanMode, IonDetector.AcquisitionMode, IonDetector.Type,
+    IonSource.InletType, IonSource.IonizationMethod, IonSource.Polarity,
+    IsotopeModel.Averagines, the six MassAnalyzer enums,
+    NonNegativeLeastSquaresSolver.RETURN_STATUS, Precursor.ActivationMethod,
+    ProteinIdentification.PeakMassType, RetentionTime.RTType, RetentionTime.RTUnit,
+    Sample.SampleState and SpectrumSettings.SpectrumType. Setters such as
     IonSource.setIonizationMethod() still accept an int (#8405, #8604).
   - The names List, Union, np, numpy, print_function and common_meta_value_types, which
     3.5.0 leaked from its implementation, and the streampos class are no longer exported.
