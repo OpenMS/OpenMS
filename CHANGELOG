@@ -362,9 +362,10 @@ TOPP tools:
         collapsed onto a single assay and the replicate axis had nowhere to live -- the opposite of the
         mzTab spec, which defines an assay as one measurement and study_variable as the grouping level
         above it. Assay abundances are read from PeptideAndProteinQuant's fraction_group_level_abundance
-        array matched by (fraction_group, label) key rather than by position, so a mismatched or
-        duplicated key warns and falls back to the previous sample-grain value instead of emitting a
-        wrong number. A sample split across several assays reports each assay's own value with a null
+        array matched by (fraction_group, label) key rather than by position. Malformed arrays, keys
+        that are not 1-based and duplicated keys warn and fall back to the previous sample-grain value
+        instead of emitting a wrong number; an assay whose key the array lacks gets a null abundance,
+        without a warning. A sample split across several assays reports each assay's own value with a null
         study_variable abundance, since no across-replicate aggregator has been agreed on, rather than
         silently picking one of them. This also fixes peptide_abundance_assay[i] being assigned rather
         than summed -- only ill-defined before, when an assay was forced 1:1 with a study variable, and
