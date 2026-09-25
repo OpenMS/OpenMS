@@ -1040,6 +1040,12 @@ Build System:
     overrode pyproject.toml, which moved the supported macOS floor without notice. A CI
     check compares the Mach-O load commands of each wheel against its platform tag, so a
     wheel can no longer install on a macOS it cannot run on (#10202).
+  - vcpkg builds OpenBLAS, which COIN-OR's LAPACK pulls in, for a fixed CPU target on Linux:
+    CORE2 (SSSE3, the baseline OpenMS itself is compiled for) on x86_64 and ARMV8 on arm64. It
+    used to take the kernels for the CPU of the build machine, and the binary cache passed that
+    build on to later builds and to the packages. The 2026-09-24 nightlies shipped an OpenBLAS
+    that needs AVX2 on x86_64 and SVE on arm64, which not every supported CPU has, and clang
+    debug builds failed on x86_64 machines with AVX-512.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----
