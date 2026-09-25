@@ -121,12 +121,14 @@ namespace OpenMS::Internal
   void UniProtXMLHandler::resetEntry_()
   {
     current_entry_ = UniProtEntry{};
+    current_isoform_ = UniProtIsoform{};
     full_name_captured_ = false;
     recommended_name_depth_ = 0;
     gene_depth_ = 0;
     organism_depth_ = 0;
     sequence_depth_ = 0;
     feature_depth_ = 0;
+    isoform_depth_ = 0;
   }
 
   void UniProtXMLHandler::resetFeature_()
@@ -155,12 +157,38 @@ namespace OpenMS::Internal
     // equals the local name here.
     const std::string tag = xmlchToString(qname);
 
-    // Inside the alternative-products comment? swallow the whole subtree.
-    if (alt_products_depth_ != 0) return;
-
     // Reset per-element capture at every start so the next end-tag only sees its own characters.
     char_buf_.clear();
     capture_ = CaptureTarget::None;
+
+    // Inside the alternative-products comment: harvest <isoform> definitions, ignore the rest
+    // (<event>, <text>, isoform synonyms and secondary ids).
+    if (alt_products_depth_ != 0)
+    {
+      if (tag == "isoform" && isoform_depth_ == 0)
+      {
+        current_isoform_ = UniProtIsoform{};
+        isoform_depth_ = depth_;
+      }
+      else if (isoform_depth_ != 0)
+      {
+        if (tag == "id" && current_isoform_.id.empty())
+        {
+          capture_ = CaptureTarget::IsoformId;
+        }
+        else if (tag == "name" && current_isoform_.name.empty())
+        {
+          capture_ = CaptureTarget::IsoformName;
+        }
+        else if (tag == "sequence")
+        {
+          // Empty element: the isoform sequence itself is never stored in the XML.
+          current_isoform_.sequence_type = attrValue(attrs, "type");
+          current_isoform_.sequence_ref = attrValue(attrs, "ref");
+        }
+      }
+      return;
+    }
 
     // <entry dataset="..." version="...">
     if (tag == "entry" && entry_depth_ == 0)
@@ -174,19 +202,21 @@ namespace OpenMS::Internal
 
     if (entry_depth_ == 0) return;  // outside any <entry>
 
-    // <comment type="alternative products"> -> skip whole subtree
+    // <comment type="alternative products">: open the gate; the branch at the top of this
+    // function harvests its <isoform> definitions and ignores everything else inside it.
     if (tag == "comment" && attrValue(attrs, "type") == "alternative products")
     {
       alt_products_depth_ = depth_;
       return;
     }
 
-    // <feature type="..." description="...">
+    // <feature type="..." id="..." description="...">
     if (tag == "feature" && feature_depth_ == 0)
     {
       resetFeature_();
       feature_depth_ = depth_;
       current_feature_.type = attrValue(attrs, "type");
+      current_feature_.id = attrValue(attrs, "id");
       current_feature_.description = attrValue(attrs, "description");
       return;
     }
@@ -313,9 +343,27 @@ namespace OpenMS::Internal
   {
     const std::string tag = xmlchToString(qname);
 
-    // Close the alt-products skip gate at its matching </comment>.
+    // Inside the alternative-products comment: deposit isoform captures and close
+    // the isoform / comment gates at their matching end tags.
     if (alt_products_depth_ != 0)
     {
+      if (capture_ == CaptureTarget::IsoformId)
+      {
+        current_isoform_.id = char_buf_;
+      }
+      else if (capture_ == CaptureTarget::IsoformName)
+      {
+        current_isoform_.name = char_buf_;
+      }
+      capture_ = CaptureTarget::None;
+      char_buf_.clear();
+
+      if (isoform_depth_ != 0 && depth_ == isoform_depth_ && tag == "isoform")
+      {
+        current_entry_.isoforms.push_back(std::move(current_isoform_));
+        current_isoform_ = UniProtIsoform{};
+        isoform_depth_ = 0;
+      }
       if (depth_ == alt_products_depth_ && tag == "comment") alt_products_depth_ = 0;
       --depth_;
       return;
@@ -352,6 +400,8 @@ namespace OpenMS::Internal
         case CaptureTarget::FeatureVariation:
           current_feature_.variation = char_buf_;
           break;
+        case CaptureTarget::IsoformId:      // handled in the alternative-products branch above;
+        case CaptureTarget::IsoformName:    // unreachable here
         case CaptureTarget::None:
           break;
       }

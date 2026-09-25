@@ -554,7 +554,9 @@ TOPP tools:
     - FeatureLinkerWNet: Wasserstein network-flow grouping across label-free maps; optional,
       built with WITH_WNETALIGN=ON (#8992).
     - UniPEFF: UniProtKB XML-to-PEFF conversion with sequence, modification and variant
-      annotations; optional annotation identifiers and external unimod.obo (#9649).
+      annotations; optional annotation identifiers and external unimod.obo (#9649). UniProt
+      isoforms are reconstructed from their splice-variant features and emitted as additional
+      entries after the parent entry; disable with -omit_isoforms (#9966, fixes #9830).
     - OpenSwathInfer: peptidoform, peptide, protein and gene inference (#9280).
     - OpenSwathExport: TSV/Parquet result export (#9377).
     - OpenSwathPercolatorScoring: Percolator scoring of OpenSWATH results (#9695).
