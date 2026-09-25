@@ -285,9 +285,10 @@ runtime.
     // CachedSwathFileConsumer
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::CachedSwathFileConsumer>(m, "CachedSwathFileConsumer", "FullSwathFileConsumer")
-        .def(nb::init<const OpenMS::CachedSwathFileConsumer &>())
-        .def("__copy__", [](const OpenMS::CachedSwathFileConsumer& self) { return OpenMS::CachedSwathFileConsumer(self); })
-        .def("__deepcopy__", [](const OpenMS::CachedSwathFileConsumer& self, nb::dict) { return OpenMS::CachedSwathFileConsumer(self); }, "memo"_a)
+        // Not copyable: its C++ copy shares the cache-file consumers, which the copy and
+        // the original both delete (a double free).
+        .def("__copy__", [](const OpenMS::CachedSwathFileConsumer&) -> nb::object { throw nb::type_error("CachedSwathFileConsumer cannot be copied"); })
+        .def("__deepcopy__", [](const OpenMS::CachedSwathFileConsumer&, nb::dict) -> nb::object { throw nb::type_error("CachedSwathFileConsumer cannot be copied"); }, "memo"_a)
         .def(nb::init<std::string, std::string, size_t, std::vector<int>>())
         .def(nb::init<std::vector<OpenSwath::SwathMap>, std::string, std::string, size_t, std::vector<int>>())
         .def("setExpectedSize", [](OpenMS::CachedSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
@@ -1241,7 +1242,10 @@ result as Chromatogram
     nb::class_<OpenMS::MzMLSwathFileConsumer>(m, "MzMLSwathFileConsumer", "FullSwathFileConsumer")
         .def(nb::init<std::string, std::string, size_t, std::vector<int>>())
         .def(nb::init<std::vector<OpenSwath::SwathMap>, std::string, std::string, size_t, std::vector<int>>())
-        .def(nb::init<const OpenMS::MzMLSwathFileConsumer &>())
+        // Not copyable: its C++ copy shares the mzML-writing consumers, which the copy and
+        // the original both delete (a double free).
+        .def("__copy__", [](const OpenMS::MzMLSwathFileConsumer&) -> nb::object { throw nb::type_error("MzMLSwathFileConsumer cannot be copied"); })
+        .def("__deepcopy__", [](const OpenMS::MzMLSwathFileConsumer&, nb::dict) -> nb::object { throw nb::type_error("MzMLSwathFileConsumer cannot be copied"); }, "memo"_a)
         .def("setExpectedSize", [](OpenMS::MzMLSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
         .def("setExperimentalSettings", [](OpenMS::MzMLSwathFileConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a)
         .def("retrieveSwathMaps", [](OpenMS::MzMLSwathFileConsumer& self) { std::vector<OpenSwath::SwathMap> maps; self.retrieveSwathMaps(maps); return maps; })

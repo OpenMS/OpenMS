@@ -1718,7 +1718,10 @@ DefaultParamHandler
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MSDataSqlConsumer, OpenMS::Interfaces::IMSDataConsumer>(m, "MSDataSqlConsumer", "A data consumer that inserts MS data into a SQLite database")
         .def(nb::init<std::string, size_t, int, bool, bool, double>())
-        .def(nb::init<const OpenMS::MSDataSqlConsumer &>())
+        // Not copyable: its C++ copy shares the SQLite handler, which the copy and the
+        // original both delete. In 3.5.0, MSDataSqlConsumer(other) aborted Python.
+        .def("__copy__", [](const OpenMS::MSDataSqlConsumer&) -> nb::object { throw nb::type_error("MSDataSqlConsumer cannot be copied"); })
+        .def("__deepcopy__", [](const OpenMS::MSDataSqlConsumer&, nb::dict) -> nb::object { throw nb::type_error("MSDataSqlConsumer cannot be copied"); }, "memo"_a)
         .def("flush", [](OpenMS::MSDataSqlConsumer& self) { return self.flush(); })
         .def("consumeSpectrum", [](OpenMS::MSDataSqlConsumer& self, OpenMS::MSSpectrum& s) { return self.consumeSpectrum(s); }, "s"_a, "Write a spectrum to the output file")
         .def("consumeChromatogram", [](OpenMS::MSDataSqlConsumer& self, OpenMS::MSChromatogram& c) { return self.consumeChromatogram(c); }, "c"_a, "Write a chromatogram to the output file")

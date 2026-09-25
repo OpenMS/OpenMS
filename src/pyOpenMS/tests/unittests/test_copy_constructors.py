@@ -209,11 +209,41 @@ def test_copy_keeps_the_class(class_name):
         assert type(duplicate) is cls
 
 
-def test_uncopyable_class_refuses_to_copy():
-    # FeatureFindingMetabo owns a unique_ptr and has no C++ copy constructor. It must
-    # refuse instead of returning the DefaultParamHandler part of itself.
-    obj = pyopenms.FeatureFindingMetabo()
+def _peak_width_estimator():
+    # PeakWidthEstimator fits a spline to the widths of picked peaks, so it needs some
+    mzs = [400.0 + 5.0 * i for i in range(200)]
+    spectrum = pyopenms.MSSpectrum()
+    spectrum.set_peaks((mzs, [100.0] * len(mzs)))
+    experiment = pyopenms.MSExperiment()
+    experiment.addSpectrum(spectrum)
+    boundaries = []
+    for mz in mzs:
+        boundary = pyopenms.PeakBoundary()
+        boundary.mz_min, boundary.mz_max = mz * (1 - 1e-5), mz * (1 + 1e-5)
+        boundaries.append(boundary)
+    return pyopenms.PeakWidthEstimator(experiment, [boundaries])
+
+
+# Classes that must refuse to be copied, each with a way to make one
+UNCOPYABLE = {
+    # Has no C++ copy constructor (it owns a unique_ptr<SimpleSVM>). Without its own
+    # __copy__, copy.copy() returned the DefaultParamHandler part of it.
+    "FeatureFindingMetabo": lambda tmp_path: pyopenms.FeatureFindingMetabo(),
+    # These delete objects that their C++ copy would share, so the copy and the original
+    # would both delete them. MSDataSqlConsumer(other) aborted Python in 3.5.0.
+    "MSDataSqlConsumer": lambda tmp_path: pyopenms.MSDataSqlConsumer(str(tmp_path / "x.sqMass"), 1, 500, True, False, 1e-4),
+    "CachedSwathFileConsumer": lambda tmp_path: pyopenms.CachedSwathFileConsumer(str(tmp_path) + "/", "cached", 0, []),
+    "MzMLSwathFileConsumer": lambda tmp_path: pyopenms.MzMLSwathFileConsumer(str(tmp_path) + "/", "mzml", 0, []),
+    "PeakWidthEstimator": lambda tmp_path: _peak_width_estimator(),
+}
+
+
+@pytest.mark.parametrize("name", sorted(UNCOPYABLE))
+def test_uncopyable_class_refuses_to_copy(name, tmp_path):
+    obj = UNCOPYABLE[name](tmp_path)
     with pytest.raises(TypeError, match="cannot be copied"):
         copy.copy(obj)
     with pytest.raises(TypeError, match="cannot be copied"):
         copy.deepcopy(obj)
+    with pytest.raises(TypeError):
+        type(obj)(obj)  # no copy constructor X(other)

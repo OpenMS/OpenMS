@@ -287,7 +287,10 @@ boundaries as reported by the PeakPickerHiRes, the typical peak width is
 estimated for arbitrary m/z using a spline interpolation.
 )doc")
         .def(nb::init<OpenMS::MSExperiment, std::vector<std::vector<OpenMS::PeakPickerHiRes::PeakBoundary>>>())
-        .def(nb::init<const OpenMS::PeakWidthEstimator &>())
+        // Not copyable: its C++ copy shares the fitted spline, which the copy and the
+        // original both delete (a double free).
+        .def("__copy__", [](const OpenMS::PeakWidthEstimator&) -> nb::object { throw nb::type_error("PeakWidthEstimator cannot be copied"); })
+        .def("__deepcopy__", [](const OpenMS::PeakWidthEstimator&, nb::dict) -> nb::object { throw nb::type_error("PeakWidthEstimator cannot be copied"); }, "memo"_a)
         .def("getPeakWidth", [](OpenMS::PeakWidthEstimator& self, double mz) { return self.getPeakWidth(mz); }, "mz"_a, "Returns the estimated peak width at m/z")
         ;
 

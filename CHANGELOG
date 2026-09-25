@@ -342,9 +342,13 @@ PyOpenMS:
     most of them derived from DefaultParamHandler, ProgressLogger, CVTermList or CsvFile,
     either had no __copy__ or inherited their base's, so copy.copy() and copy.deepcopy()
     failed or returned the base class: a DefaultParamHandler for PeakPickerHiRes, for
-    example. The copy constructor X(other) is back on the 140 classes that had it in 3.5.0,
-    and new on four more. FeatureFindingMetabo has no C++ copy constructor any more, so
-    copying it raises TypeError (#10260).
+    example. The copy constructor X(other) is back on 136 classes that had it in 3.5.0,
+    and new on four more. It stays gone from six: FeatureFindingMetabo and
+    OpenSwathOSWWriter have no C++ copy constructor any more, and MSDataSqlConsumer,
+    CachedSwathFileConsumer, MzMLSwathFileConsumer and PeakWidthEstimator delete objects
+    that their C++ copy shares, so a copy and its original freed them twice
+    (MSDataSqlConsumer(other) aborted Python in 3.5.0). copy.copy() and copy.deepcopy()
+    raise TypeError for FeatureFindingMetabo and these four (#10260).
   - Restored C++ default arguments that the port had dropped, e.g. Residue.getMonoWeight(),
     getAverageWeight() and getFormula() without a residue type, MSDataCachedConsumer(filename),
     MetaInfo.getValue(name), FineIsotopePatternGenerator(threshold),
