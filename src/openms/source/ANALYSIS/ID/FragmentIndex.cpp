@@ -99,6 +99,7 @@ namespace OpenMS
       ion_offsets_.c_offset = Residue::getInternalToCIon().getMonoWeight();
       ion_offsets_.x_offset = Residue::getInternalToXIon().getMonoWeight();
       ion_offsets_.z_offset = Residue::getInternalToZIon().getMonoWeight();
+      ion_offsets_.zp1_offset = Residue::getInternalToZp1Ion().getMonoWeight();
     });
   }
 
@@ -360,7 +361,7 @@ namespace OpenMS
     generateFragmentsForSeries_(fragments, sequence, seq_len, peptide_idx,
                                 n_term_mod_mass, c_term_mod_mass, residue_mod_masses,
                                 add_b_ions_, add_a_ions_, add_c_ions_,
-                                add_y_ions_, add_x_ions_, add_z_ions_);
+                                add_y_ions_, add_x_ions_, add_z_ions_, add_zp1_ions_);
   }
 
   void FragmentIndex::generateFragmentsForSeries_(
@@ -376,7 +377,8 @@ namespace OpenMS
     bool add_c,
     bool add_y,
     bool add_x,
-    bool add_z) const
+    bool add_z,
+    bool add_zp1) const
   {
     const double proton = Constants::PROTON_MASS_U;
     const auto& table = residue_mass_table_;
@@ -421,9 +423,9 @@ namespace OpenMS
       }
     }
 
-    // Generate suffix ions (y, x, z) - right to left cumulative sum
+    // Generate suffix ions (y, x, z, z+1) - right to left cumulative sum
     // Suffix ion index: first iteration produces y1, second y2, etc.
-    if (add_y || add_x || add_z)
+    if (add_y || add_x || add_z || add_zp1)
     {
       {
         constexpr int z = 1;
@@ -455,6 +457,12 @@ namespace OpenMS
           if (add_z)
           {
             float mz = static_cast<float>((cumulative + ion_offsets_.z_offset) / z);
+            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
+              fragments.emplace_back(peptide_idx, mz);
+          }
+          if (add_zp1)
+          {
+            float mz = static_cast<float>((cumulative + ion_offsets_.zp1_offset) / z);
             if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
               fragments.emplace_back(peptide_idx, mz);
           }
@@ -1188,7 +1196,7 @@ namespace OpenMS
 
           // SNES candidate lookup in querySpectrumSNES_ only targets b-ions (for
           // Single-N mothers) and y-ions (for Single-C mothers) — the other ion
-          // series (a/c/x/z) are not targeted and indexing them would be wasted
+          // series (a/c/x/z/z+1) are not targeted and indexing them would be wasted
           // storage at best and source of silent data loss at worst if a user
           // disabled the primary series via ion toggles. Force b-only/y-only
           // regardless of the class add_*_ions_ flags. CodeRabbit #6.
@@ -1201,7 +1209,8 @@ namespace OpenMS
             /*add_c=*/false,
             /*add_y=*/ is_single_c,
             /*add_x=*/false,
-            /*add_z=*/false);
+            /*add_z=*/false,
+            /*add_zp1=*/false);
         }
         else if (!has_modifications || pep.mod_bitmask_ == 0)
         {
@@ -2430,8 +2439,11 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("ions:add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
     defaults_.setValidStrings("ions:add_x_ions", {"true","false"});
     
-    defaults_.setValue("ions:add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+    defaults_.setValue("ions:add_z_ions", "false", "Add peaks of z-ions (y - NH3) to the spectrum. For ETD, EThcD or ETciD spectra, use ions:add_zp1_ions instead.");
     defaults_.setValidStrings("ions:add_z_ions", {"true","false"});
+
+    defaults_.setValue("ions:add_zp1_ions", "false", "Add peaks of z+1 ions (z-dot, y - NH2) to the spectrum, the main C-terminal fragments of ETD, EThcD and ETciD spectra.");
+    defaults_.setValidStrings("ions:add_zp1_ions", {"true","false"});
     defaults_.setSectionDescription("ions", "Theoretical ion series toggles");
 
 
@@ -2565,6 +2577,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     add_c_ions_ = param_.getValue("ions:add_c_ions").toBool();
     add_x_ions_ = param_.getValue("ions:add_x_ions").toBool();
     add_z_ions_ = param_.getValue("ions:add_z_ions").toBool();
+    add_zp1_ions_ = param_.getValue("ions:add_zp1_ions").toBool();
     digestion_enzyme_ = param_.getValue("enzyme").toString();
     enzyme_specificity_ = EnzymaticDigestion::getSpecificityByName(
       param_.getValue("peptide:enzyme_specificity").toString());
@@ -2629,7 +2642,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "SNES mode (snes_enabled=true with enzyme_specificity=none) requires both "
         "ions:add_b_ions=true and ions:add_y_ions=true in v1. Additional ion "
-        "series (a/c/x/z) may be enabled freely for downstream scoring.");
+        "series (a/c/x/z/z+1) may be enabled freely for downstream scoring.");
     }
 
     if (isOpenSearchMode_())

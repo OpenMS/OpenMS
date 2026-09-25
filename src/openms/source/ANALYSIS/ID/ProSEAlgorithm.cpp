@@ -231,8 +231,10 @@ namespace OpenMS
     defaults_.setValidStrings("ions:add_c_ions", {"true","false"});
     defaults_.setValue("ions:add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
     defaults_.setValidStrings("ions:add_x_ions", {"true","false"});
-    defaults_.setValue("ions:add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+    defaults_.setValue("ions:add_z_ions", "false", "Add peaks of z-ions (y - NH3) to the spectrum. For ETD, EThcD or ETciD spectra, use ions:add_zp1_ions instead.");
     defaults_.setValidStrings("ions:add_z_ions", {"true","false"});
+    defaults_.setValue("ions:add_zp1_ions", "false", "Add peaks of z+1 ions (z-dot, y - NH2) to the spectrum, the main C-terminal fragments of ETD, EThcD and ETciD spectra. Typically combined with ions:add_c_ions.");
+    defaults_.setValidStrings("ions:add_zp1_ions", {"true","false"});
     defaults_.setSectionDescription("ions", "Theoretical ion series toggles");
 
     defaults_.setValue("calibration:enabled", "false",
@@ -361,6 +363,7 @@ namespace OpenMS
     add_x_ions_ = param_.getValue("ions:add_x_ions").toBool();
     add_y_ions_ = param_.getValue("ions:add_y_ions").toBool();
     add_z_ions_ = param_.getValue("ions:add_z_ions").toBool();
+    add_zp1_ions_ = param_.getValue("ions:add_zp1_ions").toBool();
 
     database_chunk_size_ = param_.getValue("database:chunk_size");
 
@@ -590,6 +593,7 @@ namespace OpenMS
       tsg_param.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
       tsg_param.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
       tsg_param.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
+      tsg_param.setValue("add_zp1_ions", add_zp1_ions_ ? "true" : "false");
       tsg.setParameters(tsg_param);
     }
     SpectrumAlignment sa;
@@ -764,12 +768,14 @@ namespace OpenMS
                 const bool is_suffix = (c == 'x' || c == 'y' || c == 'z');
                 if (is_prefix || is_suffix)
                 {
-                  // Extract ordinal: "b5", "y3-H2O1+", "c12++" -> 5, 3, 12
+                  // Extract ordinal: "b5", "y3-H2O1+", "c12++", "z.4+" (z+1) -> 5, 3, 12, 4
                   Size pos = 1;
+                  while (pos < name.size() && (name[pos] == '.' || name[pos] == '\'')) ++pos; // z. (z+1), z' (z+2)
+                  const Size ordinal_begin = pos;
                   while (pos < name.size() && name[pos] >= '0' && name[pos] <= '9') ++pos;
-                  if (pos > 1)
+                  if (pos > ordinal_begin)
                   {
-                    int ordinal = StringUtils::toInt32(StringUtils::substr(name, 1, pos - 1));
+                    int ordinal = StringUtils::toInt32(StringUtils::substr(name, ordinal_begin, pos - ordinal_begin));
                     (is_prefix ? prefix_ordinals : suffix_ordinals).push_back(ordinal);
                   }
                 }
@@ -1532,6 +1538,7 @@ namespace OpenMS
       tsg_param.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
       tsg_param.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
       tsg_param.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
+      tsg_param.setValue("add_zp1_ions", add_zp1_ions_ ? "true" : "false");
       spectrum_generator.setParameters(tsg_param);
     }
 
@@ -1833,6 +1840,7 @@ namespace OpenMS
     param.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
     param.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
     param.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
+    param.setValue("add_zp1_ions", add_zp1_ions_ ? "true" : "false");
     spectrum_generator.setParameters(param);
 
     // preallocate storage for PSMs
@@ -2208,6 +2216,7 @@ namespace OpenMS
       if (add_x_ions_) sh.ion_series.push_back("x");
       if (add_y_ions_) sh.ion_series.push_back("y");
       if (add_z_ions_) sh.ion_series.push_back("z");
+      if (add_zp1_ions_) sh.ion_series.push_back("z+1");
       sh.open_search = isOpenSearchMode_();
       sh.calibration_enabled = calibration_enabled_;
       sh.psm_fdr_threshold = fdr_psm_;
@@ -2371,6 +2380,7 @@ namespace OpenMS
         tsg_param.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
         tsg_param.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
         tsg_param.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
+        tsg_param.setValue("add_zp1_ions", add_zp1_ions_ ? "true" : "false");
         spectrum_generator.setParameters(tsg_param);
       }
 

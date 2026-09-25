@@ -1219,6 +1219,106 @@ START_SECTION(([EXTRA] Closed search with c/z ions toggled - ETD-style fragmenta
 }
 END_SECTION
 
+START_SECTION(([EXTRA] Closed search with c/z+1 ions - ETD fragmentation))
+{
+  // ETD, EThcD and ETciD spectra are dominated by c and z+1 (z-dot) ions. z+1 ions are one
+  // hydrogen atom heavier than the z ions of ions:add_z_ions (y - NH3), so only
+  // ions:add_zp1_ions matches the C-terminal fragments of such spectra.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_b_ions", "false");
+  tsg_param.setValue("add_y_ions", "false");
+  tsg_param.setValue("add_c_ions", "true");
+  tsg_param.setValue("add_zp1_ions", "true");
+  tsg.setParameters(tsg_param);
+
+  const vector<string> test_seqs = { "VLGFHQR", "THQPSANLDIK" };
+  PeakMap spectra;
+  for (const auto& seq_str : test_seqs)
+  {
+    const AASequence seq = AASequence::fromString(seq_str);
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, seq, 1, 1);
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(100.0 + spectra.size());
+    Precursor prec;
+    prec.setMZ(seq.getMZ(2));
+    prec.setCharge(2);
+    spec.setPrecursors({prec});
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
+    spectra.addSpectrum(std::move(spec));
+  }
+
+  // top hit per spectrum, keyed by sequence
+  auto run_search = [&](const std::string& z_ion_series) {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("precursor:mass_tolerance_lower", 10.0);
+    p.setValue("precursor:mass_tolerance_upper", 10.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("modifications:fixed", vector<string>{});
+    p.setValue("modifications:variable", vector<string>{});
+    p.setValue("decoys", "ignore");
+    p.setValue("peptide:min_size", 7);
+    p.setValue("peptide:max_size", 40);
+    p.setValue("peptide:missed_cleavages", 1);
+    p.setValue("ions:add_b_ions", "false");
+    p.setValue("ions:add_y_ions", "false");
+    p.setValue("ions:add_c_ions", "true");
+    p.setValue(z_ion_series, "true");
+    algo.setParameters(p);
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+    TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    std::map<std::string, PeptideHit> top_hits;
+    for (PeptideIdentification& pid : pep_ids)
+    {
+      if (pid.getHits().empty()) continue;
+      pid.sort();
+      top_hits[pid.getHits()[0].getSequence().toUnmodifiedString()] = pid.getHits()[0];
+    }
+    return top_hits;
+  };
+
+  // (1) with z+1 ions, both peptides are identified and all their z+1 ions are matched.
+  // z+1 ordinals ("z.3+") count for the longest ion series: z1..z(n-1) is one run longer
+  // than c2..c(n-1) (the spectra have no c1).
+  std::map<std::string, PeptideHit> zp1_hits = run_search("ions:add_zp1_ions");
+  TEST_EQUAL(zp1_hits.size(), test_seqs.size())
+  for (const auto& seq_str : test_seqs)
+  {
+    ABORT_IF(zp1_hits.count(seq_str) != 1)
+    const PeptideHit& hit = zp1_hits[seq_str];
+    const int n_suffix = static_cast<int>(seq_str.size()) - 1;
+    TEST_EQUAL(static_cast<int>(hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS)), n_suffix)
+    TEST_EQUAL(static_cast<int>(hit.getMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE)), n_suffix)
+    Size zp1_annotations = 0;
+    for (const auto& pa : hit.getPeakAnnotations())
+    {
+      if (StringUtils::hasPrefix(pa.annotation, "z.")) ++zp1_annotations;
+    }
+    TEST_EQUAL(zp1_annotations, static_cast<Size>(n_suffix))
+  }
+
+  // (2) ProSE's z ions (y - NH3) miss every z+1 peak; the c ions alone still identify a peptide
+  std::map<std::string, PeptideHit> z_hits = run_search("ions:add_z_ions");
+  TEST_FALSE(z_hits.empty())
+  for (const auto& [seq_str, hit] : z_hits)
+  {
+    TEST_EQUAL(static_cast<int>(hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS)), 0)
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] Ion mobility annotation))
 {
   // Create a small protein database

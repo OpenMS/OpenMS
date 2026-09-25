@@ -807,6 +807,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool add_x_ions_{false};
     bool add_y_ions_{true};
     bool add_z_ions_{false};
+    bool add_zp1_ions_{false};
 
     Size database_chunk_size_{0};  ///< 0 = disabled; >0 = chunk DB into groups of this many proteins
 

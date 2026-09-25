@@ -381,6 +381,8 @@ TOPP tools:
         stop codon, as in genome-translated databases such as SGD's, is removed so the C-terminal
         peptide is searched; peptides containing a stop codon or another symbol are skipped like
         X/B/Z (#10262).
+      - New ions:add_zp1_ions scores z+1 (z-dot) ions, the main C-terminal fragments of ETD,
+        EThcD and ETciD spectra; ions:add_z_ions generates z ions (y - NH3), which miss them.
     PercolatorAdapter:
       - Defaults to in-process Percolator 3.08 rescoring; no executable is required for
         idXML/mzid PSM-level FDR. OSW input and peptide/protein-level FDR require

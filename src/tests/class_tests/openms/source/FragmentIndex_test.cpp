@@ -12,6 +12,7 @@
 ///////////////////////////////
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -639,6 +640,62 @@ START_SECTION(lightweight_fragment_count)
   TEST_EQUAL(fcTest.getPeptides().size(), 1)
   size_t expected_with_skip = 2 * (seq.size() - 1 - 2); // skip 2 from each series
   TEST_EQUAL(fcTest.fragmentCountForPeptide(0), expected_with_skip)
+}
+END_SECTION
+
+// z+1 ions (z-dot), the main C-terminal fragments of ETD-type spectra, are one hydrogen atom
+// heavier than the z ions of ions:add_z_ions. The index must hold the m/z values that
+// TheoreticalSpectrumGenerator produces for them, as scoring uses the latter.
+START_SECTION([EXTRA] z+1 ions match TheoreticalSpectrumGenerator)
+{
+  const std::string seq = "PEPTIDER";
+  const std::vector<FASTAFile::FASTAEntry> entries {{"p", "p", seq}};
+
+  auto indexed_mzs = [&entries](const std::string& ion_series)
+  {
+    FragmentIndex_test fi;
+    auto params = fi.getParameters();
+    params.setValue("enzyme", "no cleavage");
+    params.setValue("peptide:min_size", 0);
+    params.setValue("peptide:max_size", 100);
+    params.setValue("peptide:min_mass", 0);
+    params.setValue("peptide:max_mass", 50000);
+    params.setValue("fragment:min_mz", 0);
+    params.setValue("fragment:max_mz", 50000);
+    params.setValue("fragment:min_ion_index", 0);
+    params.setValue("modifications:variable", std::vector<std::string> {});
+    params.setValue("modifications:fixed", std::vector<std::string> {});
+    params.setValue("ions:add_b_ions", "false");
+    params.setValue("ions:add_y_ions", "false");
+    params.setValue(ion_series, "true");
+    fi.setParameters(params);
+    fi.build(entries);
+    std::vector<double> mzs;
+    for (const auto& f : fi.getFragments()) mzs.push_back(f.fragment_mz_);
+    std::sort(mzs.begin(), mzs.end());
+    return mzs;
+  };
+  const std::vector<double> zp1_mzs = indexed_mzs("ions:add_zp1_ions");
+  const std::vector<double> z_mzs = indexed_mzs("ions:add_z_ions");
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_b_ions", "false");
+  tsg_param.setValue("add_y_ions", "false");
+  tsg_param.setValue("add_zp1_ions", "true");
+  tsg.setParameters(tsg_param);
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, AASequence::fromString(seq), 1, 1);
+  theo.sortByPosition();
+
+  TEST_EQUAL(zp1_mzs.size(), seq.size() - 1)
+  ABORT_IF(zp1_mzs.size() != theo.size() || z_mzs.size() != zp1_mzs.size())
+  const double hydrogen = EmpiricalFormula("H").getMonoWeight();
+  for (Size i = 0; i < zp1_mzs.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(zp1_mzs[i], theo[i].getMZ())
+    TEST_REAL_SIMILAR(zp1_mzs[i], z_mzs[i] + hydrogen)
+  }
 }
 END_SECTION
 

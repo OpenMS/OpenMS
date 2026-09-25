@@ -533,6 +533,7 @@ protected:
       double c_offset{0.0};
       double x_offset{0.0};
       double z_offset{0.0};
+      double zp1_offset{0.0}; ///< z+1 (z-dot) ions, the main C-terminal fragments of ETD-type spectra
     };
     static IonOffsets ion_offsets_;
 
@@ -577,6 +578,7 @@ protected:
     /// @param[in] add_y Emit y-ions (suffix).
     /// @param[in] add_x Emit x-ions (suffix).
     /// @param[in] add_z Emit z-ions (suffix).
+    /// @param[in] add_zp1 Emit z+1 ions (z-dot, suffix).
     void generateFragmentsForSeries_(
       std::vector<Fragment>& fragments,
       const char* sequence,
@@ -590,7 +592,8 @@ protected:
       bool add_c,
       bool add_y,
       bool add_x,
-      bool add_z) const;
+      bool add_z,
+      bool add_zp1) const;
 
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
     std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
@@ -706,6 +709,7 @@ private:
     bool add_c_ions_;
     bool add_x_ions_;
     bool add_z_ions_;
+    bool add_zp1_ions_;
 
     // SpectrumGenerator independend member variables
     std::string digestion_enzyme_;
