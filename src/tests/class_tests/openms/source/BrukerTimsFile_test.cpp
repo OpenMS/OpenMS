@@ -157,6 +157,30 @@ START_SECTION([EXTRA] load() of a zipped .d directory (.d.zip))
 }
 END_SECTION
 
+START_SECTION([EXTRA] readDIAMetadata() keeps its .d.zip extraction for the next call)
+{
+  // SwathFile sizes its consumer from readDIAMetadata() and then streams the spectra with
+  // loadDIAStreaming(). The second call reads the files the first one unpacked, so both see the
+  // same data and the archive is unpacked once. Data-free: the archive is deleted after
+  // readDIAMetadata(), so only kept files let the next call reach opentims again.
+  TempDir tmp;
+  const std::string src = tmp.getPath() + "/src";
+  File::makeDir(src + "/run.d");
+  { std::ofstream os((src + "/run.d/placeholder.txt").c_str()); os << "no TDF data"; }
+  const std::string archive = tmp.getPath() + "/run.d.zip";
+  ZipArchiveFile::zipDirectory(src, archive);
+
+  BrukerTimsFile f;
+  ExperimentalSettings settings;
+  TEST_EXCEPTION(Exception::FileNotReadable, f.readDIAMetadata(archive, settings)) // opentims: no analysis.tdf
+  File::remove(archive);
+  RegularSwathFileConsumer consumer;
+  TEST_EXCEPTION(Exception::FileNotReadable, f.loadDIAStreaming(archive, consumer)) // the kept files
+  MSExperiment exp;
+  TEST_EXCEPTION(Exception::FileNotFound, f.load(archive, exp)) // nothing kept any more
+}
+END_SECTION
+
 START_SECTION([FileHandler] BRUKER_TDF detection)
 {
   // Test: .d suffix is detected as BRUKER_TDF

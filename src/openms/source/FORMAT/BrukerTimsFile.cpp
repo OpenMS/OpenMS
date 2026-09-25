@@ -1437,27 +1437,49 @@ namespace OpenMS
   }
 
   // =====================================================================
-  // Helper: resolve a zipped .d directory ('.d.zip') to a readable .d directory
+  // Zipped .d directories ('.d.zip')
   // =====================================================================
-  // opentims only opens directories. A '.d.zip' archive is unpacked into @p temp_dir, which
-  // must outlive every use of the returned path; any other path is returned unchanged.
-  static std::string resolveTimsDirectory(const std::string& path, std::unique_ptr<TempDir>& temp_dir)
+  // opentims only opens directories, so a '.d.zip' archive is unpacked into a temporary
+  // directory that exists as long as this struct.
+  struct BrukerTimsFile::UnpackedArchive
+  {
+    std::string archive;          ///< the archive path as the caller gave it
+    std::unique_ptr<TempDir> dir; ///< owns the extracted files
+    std::string d_path;           ///< the (possibly nested) .d directory inside dir
+  };
+
+  std::shared_ptr<BrukerTimsFile::UnpackedArchive> BrukerTimsFile::unpack_(const std::string& path)
   {
     if (File::isDirectory(path) || !StringUtils::hasSuffix(StringUtils::toLowered(path), ".zip"))
     {
-      return path;
+      return nullptr;
     }
-    const std::string unpacked = ZipArchiveFile::unzipDirectory(path, temp_dir);
+    auto unpacked = std::make_shared<UnpackedArchive>();
+    unpacked->archive = path;
+    const std::string root = ZipArchiveFile::unzipDirectory(path, unpacked->dir);
     // Find the .d directory inside the extracted archive (may be nested)
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(to_path(unpacked)))
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(to_path(root)))
     {
       if (entry.is_directory() && entry.path().extension() == ".d")
       {
-        return entry.path().string();
+        unpacked->d_path = entry.path().string();
+        return unpacked;
       }
     }
     throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       path, "ZIP archive does not contain a .d directory");
+  }
+
+  std::shared_ptr<BrukerTimsFile::UnpackedArchive> BrukerTimsFile::takeUnpacked_(const std::string& path)
+  {
+    std::shared_ptr<UnpackedArchive> kept;
+    kept.swap(unpacked_);
+    if (kept && kept->archive == path)
+    {
+      return kept;
+    }
+    kept.reset(); // free its disk space before unpacking another archive
+    return unpack_(path);
   }
 
   // =====================================================================
@@ -1911,8 +1933,10 @@ namespace OpenMS
   BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata(
       const std::string& path, ExperimentalSettings& exp_settings, const Config& config)
   {
-    std::unique_ptr<TempDir> unpacked; // holds an unpacked .d.zip for this call
-    const std::string d_path = resolveTimsDirectory(path, unpacked);
+    // Keep the extraction for the call that follows, typically loadDIAStreaming(): the consumer
+    // is sized from this metadata, so its spectra must come from the same files.
+    unpacked_ = takeUnpacked_(path);
+    const std::string d_path = unpacked_ ? unpacked_->d_path : path;
     auto handle = openTimsDataHandle(d_path, config);
     std::string tdf_path = d_path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
@@ -1993,8 +2017,8 @@ namespace OpenMS
   void BrukerTimsFile::loadDIAStreaming(
       const std::string& path, FullSwathFileConsumer& consumer, const Config& config)
   {
-    std::unique_ptr<TempDir> unpacked; // holds an unpacked .d.zip for this call
-    auto handle = openTimsDataHandle(resolveTimsDirectory(path, unpacked), config);
+    const auto unpacked = takeUnpacked_(path); // the files readDIAMetadata() read, if it read path
+    auto handle = openTimsDataHandle(unpacked ? unpacked->d_path : path, config);
     std::string tdf_path = handle->get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
@@ -2158,8 +2182,8 @@ namespace OpenMS
   void BrukerTimsFile::load(const std::string& path, MSExperiment& exp, const Config& config)
   {
     exp.clear(true);
-    std::unique_ptr<TempDir> unpacked; // holds an unpacked .d.zip for this call
-    const std::string d_path = resolveTimsDirectory(path, unpacked);
+    const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
+    const std::string d_path = unpacked ? unpacked->d_path : path;
     auto handle = openTimsDataHandle(d_path, config);
 
     std::string tdf_path = d_path + "/analysis.tdf";
@@ -2207,8 +2231,8 @@ namespace OpenMS
 
   void BrukerTimsFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
   {
-    std::unique_ptr<TempDir> unpacked; // holds an unpacked .d.zip for this call
-    const std::string d_path = resolveTimsDirectory(path, unpacked);
+    const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
+    const std::string d_path = unpacked ? unpacked->d_path : path;
     auto handle = openTimsDataHandle(d_path, config);
 
     std::string tdf_path = d_path + "/analysis.tdf";
