@@ -1,0 +1,701 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, David L. Tabb $
+// --------------------------------------------------------------------------
+
+#include "DIAQCMetrics.h"
+
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <nlohmann/json.hpp>
+
+#include <algorithm>
+#include <cctype>
+#include <charconv>
+#include <cmath>
+#include <filesystem>
+#include <fstream>
+#include <limits>
+#include <map>
+#include <ostream>
+#include <set>
+#include <tuple>
+
+namespace OpenMS
+{
+  namespace
+  {
+    constexpr double NaN = std::numeric_limits<double>::quiet_NaN();
+    constexpr std::array<double, 3> TIC_QUANTILES = {0.25, 0.5, 0.75};
+
+    /// A numeric meta value as double; NaN if missing or not numeric
+    double metaValueAsDouble(const MetaInfoInterface& meta, const std::string& name)
+    {
+      if (!meta.metaValueExists(name)) return NaN;
+      const DataValue& value = meta.getMetaValue(name);
+      switch (value.valueType())
+      {
+        case DataValue::DOUBLE_VALUE:
+        case DataValue::INT_VALUE:
+          return static_cast<double>(value);
+        case DataValue::STRING_VALUE:
+          try
+          {
+            return StringUtils::toDouble(value.toString());
+          }
+          catch (const Exception::ConversionError&)
+          {
+            return NaN;
+          }
+        default:
+          return NaN;
+      }
+    }
+
+    /// The value at position floor(q * n) of the sorted range; NaN if empty
+    double observedQuantile(const std::vector<Size>& sorted, double q)
+    {
+      if (sorted.empty()) return NaN;
+      const Size index = std::min(sorted.size() - 1, static_cast<Size>(std::floor(q * static_cast<double>(sorted.size()))));
+      return static_cast<double>(sorted[index]);
+    }
+
+    double medianOrNaN(std::vector<double> values)
+    {
+      values.erase(std::remove_if(values.begin(), values.end(), [](double v) { return !std::isfinite(v); }), values.end());
+      if (values.empty()) return NaN;
+      return Math::median(values.begin(), values.end());
+    }
+
+    /// Minimum and maximum of the finite values; NaN if there are none
+    std::pair<double, double> finiteRange(const std::vector<double>& values)
+    {
+      double lo = NaN, hi = NaN;
+      for (double v : values)
+      {
+        if (!std::isfinite(v)) continue;
+        if (!(v >= lo)) lo = v; // also true while lo is NaN
+        if (!(v <= hi)) hi = v;
+      }
+      return {lo, hi};
+    }
+
+    /// Statistics of a group of spectra (all MS1, all MSn, or one isolation window)
+    template <typename Record>
+    struct GroupStatistics
+    {
+      double total_tic = 0.0;
+      DIAQCMetrics::TICQuantileRTs tic_quantile_rt{NaN, NaN, NaN};
+      DIAQCMetrics::PeakCountSummary peak_count{NaN, NaN, NaN, NaN, NaN};
+      std::vector<double> rt_differences;
+      double cycle_time_median = NaN;
+      double mass_resolving_power = NaN;
+      double rt_min = NaN;
+      double rt_max = NaN;
+
+      /// @p records must be sorted by retention time
+      explicit GroupStatistics(const std::vector<const Record*>& records)
+      {
+        if (records.empty()) return;
+        rt_min = records.front()->rt;
+        rt_max = records.back()->rt;
+
+        for (const Record* r : records) total_tic += r->tic;
+        if (total_tic > 0.0)
+        {
+          double cumulative = 0.0;
+          Size next = 0;
+          for (const Record* r : records)
+          {
+            cumulative += r->tic;
+            while (next < TIC_QUANTILES.size() && cumulative >= TIC_QUANTILES[next] * total_tic)
+            {
+              tic_quantile_rt[next++] = r->rt;
+            }
+          }
+        }
+
+        std::vector<Size> counts;
+        counts.reserve(records.size());
+        for (const Record* r : records) counts.push_back(r->peak_count);
+        std::sort(counts.begin(), counts.end());
+        peak_count = {static_cast<double>(counts.front()), observedQuantile(counts, 0.25), observedQuantile(counts, 0.5),
+                      observedQuantile(counts, 0.75), static_cast<double>(counts.back())};
+
+        rt_differences.reserve(records.size());
+        for (Size i = 1; i < records.size(); ++i) rt_differences.push_back(records[i]->rt - records[i - 1]->rt);
+        cycle_time_median = medianOrNaN(rt_differences);
+
+        std::vector<double> resolving_powers;
+        for (const Record* r : records) resolving_powers.push_back(r->mass_resolving_power);
+        mass_resolving_power = medianOrNaN(std::move(resolving_powers));
+      }
+    };
+
+    /// Up to 12 significant digits, independent of the locale: plain notation for the usual magnitudes (120000, not
+    /// "1.2e05") and no noise from double arithmetic (0.06, not 0.0600000000000094)
+    std::string numberToString(double value)
+    {
+      if (!std::isfinite(value)) return "NA";
+      if (value == 0.0) value = 0.0; // no "-0"
+      std::array<char, 32> buffer;
+      const auto result = std::to_chars(buffer.data(), buffer.data() + buffer.size(), value, std::chars_format::general, 12);
+      return std::string(buffer.data(), result.ptr);
+    }
+
+    std::string countToString(double value)
+    {
+      if (!std::isfinite(value)) return "NA";
+      return StringUtils::toStr(static_cast<long long>(std::llround(value)));
+    }
+
+    double toMinutes(double seconds)
+    {
+      return seconds / 60.0;
+    }
+
+    /// Text for a table cell: tabs and line breaks would break the table
+    std::string textCell(const std::string& text)
+    {
+      if (text.empty()) return "NA";
+      std::string cell(text);
+      std::replace_if(cell.begin(), cell.end(), [](char c) { return c == '\t' || c == '\n' || c == '\r'; }, ' ');
+      return cell;
+    }
+
+    void writeRow(std::ostream& os, const std::vector<std::string>& cells)
+    {
+      for (Size i = 0; i < cells.size(); ++i)
+      {
+        if (i > 0) os << '\t';
+        os << cells[i];
+      }
+      os << '\n';
+    }
+
+    /// data-version of an OBO file (empty if not found)
+    std::string oboDataVersion(const std::string& obo_file)
+    {
+      std::ifstream is(obo_file);
+      std::string line;
+      const std::string key = "data-version:";
+      while (std::getline(is, line))
+      {
+        if (line.starts_with(key)) return StringUtils::trimmed(line.substr(key.size()));
+        if (line.starts_with("[Term]")) break; // end of the header
+      }
+      return "";
+    }
+
+    /// file URI of a local path: every byte outside the unreserved characters of RFC 3986 and '/' is percent-encoded
+    std::string fileURI(const std::string& path)
+    {
+      std::string absolute = std::filesystem::path(File::absolutePath(path)).lexically_normal().generic_string();
+      std::replace(absolute.begin(), absolute.end(), '\\', '/');
+      if (!absolute.starts_with("/")) absolute.insert(0, "/"); // Windows drive letter
+      const bool drive = absolute.size() > 2 && std::isalpha(static_cast<unsigned char>(absolute[1])) && absolute[2] == ':';
+      std::string uri = "file://";
+      const char* hex = "0123456789ABCDEF";
+      for (Size i = 0; i < absolute.size(); ++i)
+      {
+        const unsigned char c = static_cast<unsigned char>(absolute[i]);
+        if (std::isalnum(c) || c == '-' || c == '.' || c == '_' || c == '~' || c == '/' || (drive && i == 2))
+        {
+          uri += static_cast<char>(c);
+        }
+        else
+        {
+          uri += '%';
+          uri += hex[c >> 4];
+          uri += hex[c & 0x0F];
+        }
+      }
+      return uri;
+    }
+  } // namespace
+
+  DIAQCMetrics::WindowMetrics::WindowMetrics() :
+    faims_cv(NaN),
+    ion_mobility_lower(NaN),
+    ion_mobility_upper(NaN),
+    mass_resolving_power(NaN),
+    rt_min(NaN),
+    rt_max(NaN),
+    cycle_time_median(NaN),
+    tic_quantile_rt{NaN, NaN, NaN},
+    peak_count{NaN, NaN, NaN, NaN, NaN}
+  {
+  }
+
+  DIAQCMetrics::RunMetrics::RunMetrics() :
+    rt_min(NaN),
+    rt_max(NaN),
+    ms1_mass_resolving_power(NaN),
+    ms1_tic_quantile_rt{NaN, NaN, NaN},
+    ms1_cycle_time_median(NaN),
+    ms1_peak_count{NaN, NaN, NaN, NaN, NaN},
+    ms2_tic_quantile_rt{NaN, NaN, NaN},
+    ms2_peak_count{NaN, NaN, NaN, NaN, NaN},
+    window_spectra_min(NaN),
+    window_spectra_max(NaN),
+    window_mz_min(NaN),
+    window_mz_max(NaN),
+    window_width_min(NaN),
+    window_width_max(NaN),
+    window_cycle_time_mean(NaN),
+    window_cycle_time_median(NaN),
+    window_half_tic_rt_min(NaN),
+    window_half_tic_rt_max(NaN),
+    window_total_tic_min(NaN),
+    window_total_tic_max(NaN),
+    window_peak_count_median_min(NaN),
+    window_peak_count_median_max(NaN)
+  {
+  }
+
+  DIAQCMetrics::DIAQCMetrics() = default;
+
+  DIAQCMetrics::DIAQCMetrics(const Options& options) :
+    options_(options)
+  {
+  }
+
+  void DIAQCMetrics::setExperimentalSettings(const ExperimentalSettings& settings)
+  {
+    instrument_ = settings.getInstrument().getName();
+    serial_number_.clear();
+    if (settings.getInstrument().metaValueExists("instrument serial number"))
+    {
+      serial_number_ = settings.getInstrument().getMetaValue("instrument serial number").toString();
+    }
+    // The mzML reader keeps the attribute verbatim if it carries more than DateTime can hold (e.g. a time zone).
+    start_time_stamp_.clear();
+    if (settings.metaValueExists("mzml_start_time_stamp"))
+    {
+      start_time_stamp_ = settings.getMetaValue("mzml_start_time_stamp").toString();
+    }
+    else if (!settings.getDateTime().isNull() && settings.getDateTime().isValid())
+    {
+      start_time_stamp_ = settings.getDateTime().toString("yyyy-MM-ddThh:mm:ss");
+    }
+  }
+
+  void DIAQCMetrics::addSpectrum(const MSSpectrum& spectrum)
+  {
+    SpectrumRecord record;
+    record.rt = spectrum.getRT();
+    record.ms_level = spectrum.getMSLevel();
+
+    const double file_tic = metaValueAsDouble(spectrum, "total ion current");
+    switch (options_.tic_source)
+    {
+      case TICSource::AUTO:
+        record.tic = std::isfinite(file_tic) ? file_tic : spectrum.calculateTIC();
+        break;
+      case TICSource::FILE:
+        record.tic = std::isfinite(file_tic) ? file_tic : 0.0;
+        break;
+      case TICSource::COMPUTED:
+        record.tic = spectrum.calculateTIC();
+        break;
+    }
+
+    if (options_.peak_count == PeakCountMode::ALL)
+    {
+      record.peak_count = spectrum.size();
+    }
+    else
+    {
+      record.peak_count = std::count_if(spectrum.begin(), spectrum.end(), [](const Peak1D& p) { return p.getIntensity() > 0; });
+    }
+
+    record.mass_resolving_power = metaValueAsDouble(spectrum, "mass resolving power");
+
+    record.precursor_count = spectrum.getPrecursors().size();
+    if (record.ms_level >= 2 && record.precursor_count > 0)
+    {
+      const Precursor& precursor = spectrum.getPrecursors().front();
+      // if the file has a selected ion m/z, the mzML reader moves the isolation window target into a meta value
+      // (0 if the precursor has no isolation window)
+      const double target = metaValueAsDouble(precursor, "isolation window target m/z");
+      record.target_mz = (target > 0.0) ? target : precursor.getMZ();
+      record.lower_offset = precursor.getIsolationWindowLowerOffset();
+      record.upper_offset = precursor.getIsolationWindowUpperOffset();
+      record.has_isolation_window = record.lower_offset > 0.0 || record.upper_offset > 0.0;
+    }
+
+    // FAIMS: the compensation voltage is a setting of the window
+    const bool faims = spectrum.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+    record.faims_cv = (faims && options_.ion_mobility != IonMobilityKey::NONE) ? spectrum.getDriftTime() : NaN;
+    // other ion mobility: the range of the window (e.g. a diaPASEF frame) is a setting of the window, while the ion
+    // mobility of a single spectrum (e.g. one TIMS scan) is a position within it
+    record.ion_mobility_lower = NaN;
+    record.ion_mobility_upper = NaN;
+    if (options_.ion_mobility == IonMobilityKey::AUTO)
+    {
+      record.ion_mobility_lower = metaValueAsDouble(spectrum, "ion mobility lower limit");
+      record.ion_mobility_upper = metaValueAsDouble(spectrum, "ion mobility upper limit");
+    }
+    record.scan_ion_mobility = !faims && spectrum.getDriftTimeUnit() != DriftTimeUnit::NONE &&
+                               spectrum.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET;
+
+    records_.push_back(record);
+  }
+
+  Size DIAQCMetrics::size() const
+  {
+    return records_.size();
+  }
+
+  void DIAQCMetrics::clear()
+  {
+    records_.clear();
+    instrument_.clear();
+    serial_number_.clear();
+    start_time_stamp_.clear();
+  }
+
+  DIAQCMetrics::RunMetrics DIAQCMetrics::compute() const
+  {
+    RunMetrics run;
+    run.instrument = instrument_;
+    run.serial_number = serial_number_;
+    run.start_time_stamp = start_time_stamp_;
+
+    std::vector<const SpectrumRecord*> ms1, ms2;
+    for (const SpectrumRecord& r : records_)
+    {
+      if (r.ms_level == 1) ++run.ms1_count;
+      if (r.ms_level >= 2) ++run.msn_count;
+      if (r.ms_level == 2) ++run.ms2_count;
+      // a spectrum without scan start time has a negative retention time
+      if (!(r.rt >= 0.0))
+      {
+        ++run.spectra_without_rt;
+        continue;
+      }
+      if (!(r.rt >= run.rt_min)) run.rt_min = r.rt;
+      if (!(r.rt <= run.rt_max)) run.rt_max = r.rt;
+      if (r.ms_level == 1)
+      {
+        ms1.push_back(&r);
+      }
+      else if (r.ms_level == 2)
+      {
+        ms2.push_back(&r);
+        if (r.precursor_count > 1) ++run.ms2_multiple_precursors;
+        if (r.scan_ion_mobility) ++run.ms2_scan_ion_mobility;
+      }
+    }
+    auto by_rt = [](const SpectrumRecord* a, const SpectrumRecord* b) { return a->rt < b->rt; };
+    std::stable_sort(ms1.begin(), ms1.end(), by_rt);
+    std::stable_sort(ms2.begin(), ms2.end(), by_rt);
+
+    const GroupStatistics<SpectrumRecord> ms1_stats(ms1);
+    run.ms1_mass_resolving_power = ms1_stats.mass_resolving_power;
+    run.ms1_tic_quantile_rt = ms1_stats.tic_quantile_rt;
+    run.ms1_total_tic = ms1_stats.total_tic;
+    run.ms1_cycle_time_median = ms1_stats.cycle_time_median;
+    run.ms1_peak_count = ms1_stats.peak_count;
+
+    const GroupStatistics<SpectrumRecord> ms2_stats(ms2);
+    run.ms2_tic_quantile_rt = ms2_stats.tic_quantile_rt;
+    run.ms2_total_tic = ms2_stats.total_tic;
+    run.ms2_peak_count = ms2_stats.peak_count;
+
+    // group MS2 spectra into isolation windows, in order of first acquisition
+    // (NaN never equals itself, so undefined values enter the key as a flag plus 0)
+    auto part = [](double value) { return std::make_pair(std::isfinite(value), std::isfinite(value) ? value : 0.0); };
+    using WindowKey = std::tuple<bool, double, double, double, std::pair<bool, double>, std::pair<bool, double>, std::pair<bool, double>>;
+    std::map<WindowKey, Size> window_index;
+    std::vector<std::vector<const SpectrumRecord*>> window_records;
+    for (const SpectrumRecord* r : ms2)
+    {
+      const WindowKey key(r->has_isolation_window, r->target_mz, r->lower_offset, r->upper_offset,
+                          part(r->faims_cv), part(r->ion_mobility_lower), part(r->ion_mobility_upper));
+      auto [it, inserted] = window_index.emplace(key, window_records.size());
+      if (inserted) window_records.emplace_back();
+      window_records[it->second].push_back(r);
+    }
+
+    std::vector<double> pooled_rt_differences, window_cycle_times, window_spectra, window_lower, window_upper,
+      window_widths, window_half_tic_rts, window_total_tics, window_peak_count_medians;
+    for (const auto& records : window_records)
+    {
+      const SpectrumRecord& first = *records.front();
+      const GroupStatistics<SpectrumRecord> stats(records);
+
+      WindowMetrics window;
+      window.has_isolation_window = first.has_isolation_window;
+      window.target_mz = first.target_mz;
+      window.lower_mz = first.target_mz - first.lower_offset;
+      window.upper_mz = first.target_mz + first.upper_offset;
+      window.width_mz = window.upper_mz - window.lower_mz;
+      window.faims_cv = first.faims_cv;
+      window.ion_mobility_lower = first.ion_mobility_lower;
+      window.ion_mobility_upper = first.ion_mobility_upper;
+      window.mass_resolving_power = stats.mass_resolving_power;
+      window.spectrum_count = records.size();
+      window.rt_min = stats.rt_min;
+      window.rt_max = stats.rt_max;
+      window.cycle_time_median = stats.cycle_time_median;
+      window.tic_quantile_rt = stats.tic_quantile_rt;
+      window.total_tic = stats.total_tic;
+      window.peak_count = stats.peak_count;
+      run.windows.push_back(window);
+
+      pooled_rt_differences.insert(pooled_rt_differences.end(), stats.rt_differences.begin(), stats.rt_differences.end());
+      window_cycle_times.push_back(window.cycle_time_median);
+      window_spectra.push_back(static_cast<double>(window.spectrum_count));
+      if (window.has_isolation_window)
+      {
+        window_lower.push_back(window.lower_mz);
+        window_upper.push_back(window.upper_mz);
+        window_widths.push_back(window.width_mz);
+      }
+      window_half_tic_rts.push_back(window.tic_quantile_rt[1]);
+      window_total_tics.push_back(window.total_tic);
+      window_peak_count_medians.push_back(window.peak_count[2]);
+    }
+
+    run.window_count = run.windows.size();
+    std::tie(run.window_spectra_min, run.window_spectra_max) = finiteRange(window_spectra);
+    run.window_mz_min = finiteRange(window_lower).first;
+    run.window_mz_max = finiteRange(window_upper).second;
+    std::tie(run.window_width_min, run.window_width_max) = finiteRange(window_widths);
+    std::tie(run.window_half_tic_rt_min, run.window_half_tic_rt_max) = finiteRange(window_half_tic_rts);
+    std::tie(run.window_total_tic_min, run.window_total_tic_max) = finiteRange(window_total_tics);
+    std::tie(run.window_peak_count_median_min, run.window_peak_count_median_max) = finiteRange(window_peak_count_medians);
+    run.window_cycle_time_median = medianOrNaN(pooled_rt_differences);
+
+    double sum = 0.0;
+    Size n = 0;
+    for (double t : window_cycle_times)
+    {
+      if (!std::isfinite(t)) continue;
+      sum += t;
+      ++n;
+    }
+    if (n > 0) run.window_cycle_time_mean = sum / static_cast<double>(n);
+
+    return run;
+  }
+
+  void DIAQCMetrics::writeRunTable(const std::vector<RunMetrics>& runs, std::ostream& os)
+  {
+    writeRow(os, {"SourceFile", "Instrument", "SerialNumber", "StartTimeStamp", "RTDuration",
+                  "mzMLMS1Count", "mzMLMSnCount", "MS1Resolution",
+                  "MS1TIC25ileRT", "MS1TIC50ileRT", "MS1TIC75ileRT", "MS1TotalTIC", "MS1CycleTime",
+                  "MS1PkCountMin", "MS1PkCount25ile", "MS1PkCount50ile", "MS1PkCount75ile", "MS1PkCountMax",
+                  "IsolationWindowCount", "CyclesMin", "CyclesMax",
+                  "MZRangeMin", "MZRangeMax", "IsolationWindowWidthMin", "IsolationWindowWidthMax",
+                  "AverageMedianCycleTime", "TICMedianRTMin", "TICMedianRTMax", "TotalTICMin", "TotalTICMax",
+                  "PkCountMedianMin", "PkCountMedianMax",
+                  "MS2TIC25ileRT", "MS2TIC50ileRT", "MS2TIC75ileRT", "MS2TotalTIC",
+                  "MS2PkCountMin", "MS2PkCount25ile", "MS2PkCount50ile", "MS2PkCount75ile", "MS2PkCountMax",
+                  "MedianWindowCycleTime"});
+    for (const RunMetrics& run : runs)
+    {
+      writeRow(os, {textCell(run.source_file), textCell(run.instrument), textCell(run.serial_number), textCell(run.start_time_stamp),
+                    numberToString(toMinutes(run.rt_max)),
+                    countToString(run.ms1_count), countToString(run.msn_count), numberToString(run.ms1_mass_resolving_power),
+                    numberToString(toMinutes(run.ms1_tic_quantile_rt[0])), numberToString(toMinutes(run.ms1_tic_quantile_rt[1])),
+                    numberToString(toMinutes(run.ms1_tic_quantile_rt[2])), numberToString(run.ms1_total_tic),
+                    numberToString(run.ms1_cycle_time_median),
+                    countToString(run.ms1_peak_count[0]), countToString(run.ms1_peak_count[1]), countToString(run.ms1_peak_count[2]),
+                    countToString(run.ms1_peak_count[3]), countToString(run.ms1_peak_count[4]),
+                    countToString(run.window_count), countToString(run.window_spectra_min), countToString(run.window_spectra_max),
+                    numberToString(run.window_mz_min), numberToString(run.window_mz_max),
+                    numberToString(run.window_width_min), numberToString(run.window_width_max),
+                    numberToString(run.window_cycle_time_mean),
+                    numberToString(toMinutes(run.window_half_tic_rt_min)), numberToString(toMinutes(run.window_half_tic_rt_max)),
+                    numberToString(run.window_total_tic_min), numberToString(run.window_total_tic_max),
+                    countToString(run.window_peak_count_median_min), countToString(run.window_peak_count_median_max),
+                    numberToString(toMinutes(run.ms2_tic_quantile_rt[0])), numberToString(toMinutes(run.ms2_tic_quantile_rt[1])),
+                    numberToString(toMinutes(run.ms2_tic_quantile_rt[2])), numberToString(run.ms2_total_tic),
+                    countToString(run.ms2_peak_count[0]), countToString(run.ms2_peak_count[1]), countToString(run.ms2_peak_count[2]),
+                    countToString(run.ms2_peak_count[3]), countToString(run.ms2_peak_count[4]),
+                    numberToString(run.window_cycle_time_median)});
+    }
+  }
+
+  void DIAQCMetrics::writeWindowTable(const std::vector<RunMetrics>& runs, std::ostream& os)
+  {
+    writeRow(os, {"SourceFile", "LoMZ", "HiMZ", "WidthMZ", "IonMobility", "MassResolvingPower",
+                  "MSMSCount", "RTMin", "RTMax", "CycleTimeMedian", "TIC25ileRT", "TIC50ileRT", "TIC75ileRT",
+                  "TotalTIC", "PkCountMin", "PkCount25ile", "PkCount50ile", "PkCount75ile", "PkCountMax",
+                  "IonMobilityLow", "IonMobilityHigh", "TargetMZ"});
+    for (const RunMetrics& run : runs)
+    {
+      for (const WindowMetrics& w : run.windows)
+      {
+        const bool iso = w.has_isolation_window;
+        writeRow(os, {textCell(run.source_file),
+                      iso ? numberToString(w.lower_mz) : "NA", iso ? numberToString(w.upper_mz) : "NA",
+                      iso ? numberToString(w.width_mz) : "NA",
+                      numberToString(w.faims_cv), numberToString(w.mass_resolving_power),
+                      countToString(w.spectrum_count), numberToString(toMinutes(w.rt_min)), numberToString(toMinutes(w.rt_max)),
+                      numberToString(w.cycle_time_median),
+                      numberToString(toMinutes(w.tic_quantile_rt[0])), numberToString(toMinutes(w.tic_quantile_rt[1])),
+                      numberToString(toMinutes(w.tic_quantile_rt[2])), numberToString(w.total_tic),
+                      countToString(w.peak_count[0]), countToString(w.peak_count[1]), countToString(w.peak_count[2]),
+                      countToString(w.peak_count[3]), countToString(w.peak_count[4]),
+                      numberToString(w.ion_mobility_lower), numberToString(w.ion_mobility_upper),
+                      w.target_mz > 0.0 ? numberToString(w.target_mz) : "NA"});
+      }
+    }
+  }
+
+  void DIAQCMetrics::writeMzQC(const std::vector<RunMetrics>& runs, std::ostream& os, const std::string& software_version, const std::string& creation_date)
+  {
+    using json = nlohmann::ordered_json;
+    const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
+    std::set<std::string> reported_missing;
+
+    // a CV term as {accession, name[, description]}; empty if the term is not in the vocabulary
+    auto term = [&cv, &reported_missing](const std::string& accession, bool with_description = false) -> json
+    {
+      if (!cv.exists(accession))
+      {
+        if (reported_missing.insert(accession).second)
+        {
+          OPENMS_LOG_WARN << "Warning: CV term '" << accession << "' is not in the installed PSI-MS vocabulary. "
+                          << "Values that need it are not written to the mzQC file." << std::endl;
+        }
+        return json();
+      }
+      const ControlledVocabulary::CVTerm& cv_term = cv.getTerm(accession);
+      json result{{"accession", accession}, {"name", cv_term.name}};
+      if (with_description && !cv_term.description.empty()) result["description"] = cv_term.description;
+      return result;
+    };
+
+    auto allFinite = [](const std::vector<double>& values)
+    {
+      return std::all_of(values.begin(), values.end(), [](double v) { return std::isfinite(v); });
+    };
+
+    json run_qualities = json::array();
+    for (const RunMetrics& run : runs)
+    {
+      json metrics = json::array();
+      auto add = [&](const std::string& accession, const json& value, const std::string& unit)
+      {
+        json metric = term(accession, true);
+        if (metric.is_null()) return;
+        metric["value"] = value;
+        if (!unit.empty())
+        {
+          json unit_term = term(unit);
+          if (!unit_term.is_null()) metric["unit"] = unit_term;
+        }
+        metrics.push_back(metric);
+      };
+      // numbers that may be undefined: the metric is left out rather than written as null
+      auto addNumbers = [&](const std::string& accession, const std::vector<double>& values, const std::string& unit, bool integer)
+      {
+        if (values.empty() || !allFinite(values)) return;
+        json value = json::array();
+        for (double v : values)
+        {
+          if (integer) value.push_back(std::llround(v));
+          else value.push_back(v);
+        }
+        add(accession, values.size() == 1 ? value[0] : value, unit);
+      };
+      const std::string second = "UO:0000010", minute = "UO:0000031", count = "UO:0000189", mz = "MS:1000040", intensity = "MS:1000043";
+      const auto& q1 = run.ms1_peak_count;
+      const auto& q2 = run.ms2_peak_count;
+
+      addNumbers("MS:4000067", {run.rt_max - run.rt_min}, second, false); // MS run duration
+      addNumbers("MS:4000070", {run.rt_min, run.rt_max}, second, false); // retention time acquisition range
+      add("MS:4000059", run.ms1_count, count); // number of MS1 spectra
+      add("MS:4000060", run.ms2_count, count); // number of MS2 spectra
+      addNumbers("MS:4000061", {q1[1], q1[2], q1[3]}, count, true); // MS1 density quantiles
+      addNumbers("MS:4000062", {q2[1], q2[2], q2[3]}, count, true); // MS2 density quantiles
+      addNumbers("MS:4000190", {toMinutes(run.ms1_tic_quantile_rt[0]), toMinutes(run.ms1_tic_quantile_rt[1]), toMinutes(run.ms1_tic_quantile_rt[2])}, minute, false); // MS1 TIC quantile RT
+      addNumbers("MS:4000191", {toMinutes(run.ms2_tic_quantile_rt[0]), toMinutes(run.ms2_tic_quantile_rt[1]), toMinutes(run.ms2_tic_quantile_rt[2])}, minute, false); // MS2 TIC quantile RT
+      addNumbers("MS:4000192", {run.ms1_cycle_time_median}, second, false); // MS1 median cycle time
+      if (run.window_count > 0)
+      {
+        addNumbers("MS:4000193", {run.window_cycle_time_median}, second, false); // DIA isolation window median cycle time
+        add("MS:4000194", run.window_count, count); // DIA isolation window count
+        addNumbers("MS:4000069", {run.window_mz_min, run.window_mz_max}, mz, false); // m/z acquisition range
+        addNumbers("MS:4000195", {run.window_width_min, run.window_width_max}, mz, false); // DIA isolation window m/z widths
+        // times a window is measured; note that PSI-MS 4.2.2 names this term like MS:4000194 ("DIA isolation window count")
+        addNumbers("MS:4000196", {run.window_spectra_min, run.window_spectra_max}, count, true);
+        addNumbers("MS:4000197", {toMinutes(run.window_half_tic_rt_min), toMinutes(run.window_half_tic_rt_max)}, minute, false); // DIA isolation window half TIC RT
+        addNumbers("MS:4000198", {run.window_total_tic_min, run.window_total_tic_max}, intensity, false); // DIA isolation window TIC
+        addNumbers("MS:4000199", {run.window_peak_count_median_min, run.window_peak_count_median_max}, count, true); // DIA isolation window peak count
+      }
+
+      json input_file;
+      input_file["location"] = fileURI(run.input_path);
+      input_file["name"] = File::basename(run.input_path);
+      input_file["fileFormat"] = json{{"accession", "MS:1000584"}, {"name", "mzML format"}};
+      json properties = json::array();
+      auto addProperty = [&](const std::string& accession, const std::string& value)
+      {
+        if (value.empty()) return;
+        json property = term(accession);
+        if (property.is_null()) return;
+        property["value"] = value;
+        properties.push_back(property);
+      };
+      addProperty("MS:1000569", run.file_sha1); // SHA-1
+      addProperty("MS:1000031", run.instrument); // instrument model
+      addProperty("MS:1000529", run.serial_number); // instrument serial number
+      if (!properties.empty()) input_file["fileProperties"] = properties;
+
+      json software = term("MS:1000752", true); // TOPP software
+      if (software.is_null()) software = json{{"accession", "MS:1000752"}, {"name", "TOPP software"}};
+      software["value"] = "DIAuditor";
+      software["version"] = software_version;
+      software["uri"] = "https://www.openms.de";
+
+      json run_quality;
+      run_quality["metadata"]["label"] = run.source_file;
+      run_quality["metadata"]["inputFiles"] = json::array({input_file});
+      run_quality["metadata"]["analysisSoftware"] = json::array({software});
+      run_quality["qualityMetrics"] = metrics;
+      run_qualities.push_back(run_quality);
+    }
+
+    // PSI-MS carries the unit (UO) terms it uses; declaring UO as well would make them ambiguous for validators.
+    // The URI names the release of the installed vocabulary (the purl always points to the latest one).
+    const std::string ms_version = oboDataVersion(File::find("/CV/psi-ms.obo"));
+    json vocabulary_ms{{"name", "Proteomics Standards Initiative Mass Spectrometry Ontology"}};
+    if (ms_version.empty())
+    {
+      vocabulary_ms["uri"] = "http://purl.obolibrary.org/obo/ms/psi-ms.obo";
+    }
+    else
+    {
+      vocabulary_ms["uri"] = "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v" + ms_version + "/psi-ms.obo";
+      vocabulary_ms["version"] = ms_version;
+    }
+
+    json out;
+    out["mzQC"]["version"] = "1.0.0";
+    out["mzQC"]["creationDate"] = creation_date;
+    out["mzQC"]["description"] = "Data-independent acquisition quality metrics (DIAuditor)";
+    out["mzQC"]["runQualities"] = run_qualities;
+    out["mzQC"]["controlledVocabularies"] = json::array({vocabulary_ms});
+    // replace invalid UTF-8 (e.g. from a file name in another encoding) instead of failing
+    os << out.dump(2, ' ', false, json::error_handler_t::replace) << '\n';
+  }
+} // namespace OpenMS

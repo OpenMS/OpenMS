@@ -5845,6 +5845,21 @@ add_test("TOPP_QCCalculator_2_out" ${DIFF} -whitelist "creationDate" "location" 
 set_tests_properties("TOPP_QCCalculator_2_out" PROPERTIES DEPENDS "TOPP_QCCalculator_2")
 
 #------------------------------------------------------------------------------
+# DIAuditor:
+# FAIMS DIA run (with a window measured once) and an OpenSwath DIA run with scan times in seconds;
+# the mzQC diff skips what follows the installed psi-ms.obo (term definitions, vocabulary version and URI)
+add_test("TOPP_DIAuditor_1" ${TOPP_BIN_PATH}/DIAuditor -test -in ${DATA_DIR_TOPP}/DIAuditor_1_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -out ${TESTS_TEMP_DIR}/DIAuditor_1.tmp.tsv -out_windows ${TESTS_TEMP_DIR}/DIAuditor_1_windows.tmp.tsv -out_mzqc ${TESTS_TEMP_DIR}/DIAuditor_1.tmp.mzQC)
+add_test("TOPP_DIAuditor_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DIAuditor_1.tmp.tsv -in2 ${DATA_DIR_TOPP}/DIAuditor_1_output.tsv)
+add_test("TOPP_DIAuditor_1_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DIAuditor_1_windows.tmp.tsv -in2 ${DATA_DIR_TOPP}/DIAuditor_1_windows_output.tsv)
+add_test("TOPP_DIAuditor_1_out3" ${DIFF} -whitelist "creationDate" "location" "version" "description" "psi-ms-CV" -in1 ${TESTS_TEMP_DIR}/DIAuditor_1.tmp.mzQC -in2 ${DATA_DIR_TOPP}/DIAuditor_1_output.mzQC)
+set_tests_properties("TOPP_DIAuditor_1_out1" "TOPP_DIAuditor_1_out2" "TOPP_DIAuditor_1_out3" PROPERTIES DEPENDS "TOPP_DIAuditor_1")
+# TIC from the file only, non-zero peaks, windows by m/z alone (the two FAIMS voltages merge)
+add_test("TOPP_DIAuditor_2" ${TOPP_BIN_PATH}/DIAuditor -test -in ${DATA_DIR_TOPP}/DIAuditor_1_input.mzML -tic file -peak_count nonzero -ion_mobility none -out ${TESTS_TEMP_DIR}/DIAuditor_2.tmp.tsv -out_windows ${TESTS_TEMP_DIR}/DIAuditor_2_windows.tmp.tsv)
+add_test("TOPP_DIAuditor_2_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DIAuditor_2.tmp.tsv -in2 ${DATA_DIR_TOPP}/DIAuditor_2_output.tsv)
+add_test("TOPP_DIAuditor_2_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DIAuditor_2_windows.tmp.tsv -in2 ${DATA_DIR_TOPP}/DIAuditor_2_windows_output.tsv)
+set_tests_properties("TOPP_DIAuditor_2_out1" "TOPP_DIAuditor_2_out2" PROPERTIES DEPENDS "TOPP_DIAuditor_2")
+
+#------------------------------------------------------------------------------
 # PSMFeatureExtractor
 add_test("TOPP_PSMFeatureExtractor_1" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML)
 add_test("TOPP_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "MS-GF+:" "db=" "date=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1" -in1 ${TESTS_TEMP_DIR}/PSMFeatureExtractor_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_1_out.idXML)

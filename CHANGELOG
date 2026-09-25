@@ -560,6 +560,10 @@ TOPP tools:
     - OpenSwathPercolatorScoring: Percolator scoring of OpenSWATH results (#9695).
     - OpenSwathPeakMapExtractor: targeted full-peakmap extraction (#9684).
     - TransitionListEvidenceFilter: filter transition lists using mzML evidence (#9161).
+    - DIAuditor: quality metrics of DIA runs per run and per isolation window (MS1 sampling,
+      window layout incl. FAIMS/1/K0, cycle times, TIC and peak-count distributions), a
+      re-implementation of D. L. Tabb's DIAuditor. Writes its per-run and per-window tables and
+      an mzQC file with the PSI-MS DIA metrics (MS:4000190-MS:4000199).
   Removed tools:
     - BREAKING: GenericWrapper and its external-tool definitions removed; use direct TOPP
       invocations or TOPPAS workflows (#8981, #9735).
