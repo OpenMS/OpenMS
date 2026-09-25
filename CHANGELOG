@@ -321,7 +321,8 @@ TOPP tools:
         '-RawToMzML:reader external' still runs ThermoRawFileParser. The in-process reader needs
         a .NET 8 runtime. On Windows, where the installer's ThermoRawFileParser ran on the
         built-in .NET Framework, install .NET 8 or pass '-RawToMzML:reader external', as
-        pipelines that set -RawToMzML:ThermoRaw_executable now must too.
+        pipelines that set -RawToMzML:ThermoRaw_executable now must too. FileConverter warns
+        when that option or -RawToMzML:NET_executable is set but the in-process reader runs.
       - For per-peak IM input, PeakPickerHiRes warns and uses intensity-weighted mean IM;
         Resampler, FeatureFinderCentroided, FeatureFinderMultiplex and MultiplexResolver
         reject incompatible data (#9018).

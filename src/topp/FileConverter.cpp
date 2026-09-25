@@ -154,6 +154,9 @@ public:
   }
 
 protected:
+  /// Default of RawToMzML:ThermoRaw_executable
+  static constexpr const char* THERMO_RAW_PARSER_DEFAULT = "ThermoRawFileParser.exe";
+
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
@@ -348,7 +351,7 @@ protected:
 
     registerTOPPSubsection_("RawToMzML", "Options for converting Thermo raw files");
     registerInputFile_("RawToMzML:NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac (external reader only).", false, true, {"is_executable"});
-    registerInputFile_("RawToMzML:ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable (external reader only).", false, true, {"is_executable"});
+    registerInputFile_("RawToMzML:ThermoRaw_executable", "<file>", THERMO_RAW_PARSER_DEFAULT, "The ThermoRawFileParser executable (external reader only).", false, true, {"is_executable"});
     setValidFormats_("RawToMzML:ThermoRaw_executable", {"exe"});
     registerFlag_("RawToMzML:no_peak_picking", "Disables vendor peak picking for raw files.", true);
     registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem (external reader only).", true);
@@ -520,6 +523,19 @@ protected:
         {
           OPENMS_LOG_WARN << "RawToMzML:no_zlib_compression is specific to the external ThermoRawFileParser; "
                           << "it is ignored when RawToMzML:reader=inprocess." << std::endl;
+        }
+        // Pipelines written for the old default may still name the external reader's executables.
+        // Compare raw values: getStringOption_() would search the PATH for them and throw.
+        const std::pair<std::string, std::string> external_only[] = {
+          {"RawToMzML:ThermoRaw_executable", THERMO_RAW_PARSER_DEFAULT}, {"RawToMzML:NET_executable", ""}};
+        for (const auto& [option, default_value] : external_only)
+        {
+          if (getParam_().getValue(option).toString() != default_value)
+          {
+            OPENMS_LOG_WARN << option << " is specific to the external ThermoRawFileParser; it is ignored "
+                            << "when RawToMzML:reader=inprocess. Pass '-RawToMzML:reader external' to use it."
+                            << std::endl;
+          }
         }
         // Read like ThermoRawFileParser does by default: vendor peak picking unless
         // no_peak_picking is set, noise arrays on request. Otherwise the reader choice would

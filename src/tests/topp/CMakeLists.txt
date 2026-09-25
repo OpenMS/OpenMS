@@ -715,7 +715,9 @@ if (WITH_THERMO_RAW)
   set_tests_properties("TOPP_FileConverter_RAW_default_reader" PROPERTIES DEPENDS "TOPPWRITEINI_FileConverter")
 endif()
 # The default conversion needs no ThermoRawFileParser and, like it, applies vendor peak picking
-# (-RawToMzML:no_peak_picking keeps profile scans). Needs the .NET runtime, hence the fixture gate.
+# (-RawToMzML:no_peak_picking keeps profile scans). Needs the .NET runtime, hence the fixture gate:
+# THERMO_RAW_TEST_DATA is set only with -DENABLE_THERMO_RAW_TESTS=ON, which is off by default and in
+# the CI presets.
 if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
   add_test("TOPP_FileConverter_RAW_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA} -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_1.tmp.mzML)
   add_test("TOPP_FileConverter_RAW_1_centroided" ${CMAKE_COMMAND}
