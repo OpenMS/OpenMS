@@ -174,3 +174,46 @@ def test_copy_constructor(class_name):
     assert type(obj_copy) is type(obj)
     if _has_own_eq(cls):
         assert obj_copy == obj
+
+
+# Classes whose copy.copy() and copy.deepcopy() worked in pyOpenMS 3.5.0. Most of them
+# derive from a bound base (DefaultParamHandler, ProgressLogger, CVTermList, CsvFile)
+# and need their own __copy__/__deepcopy__, or they inherit the base's and return a
+# copy of the base class instead of themselves (#10260).
+COPYABLE_IN_3_5 = [
+    "AScore", "AbsoluteQuantitation", "AbsoluteQuantitationMethodFile",
+    "AccurateMassSearchEngine", "Biosaur2Algorithm", "CachedMzMLHandler", "ChannelInfo",
+    "ConfidenceScoring", "Contact", "DTA2DFile", "DataFilter", "DataFilters",
+    "ElutionModelFitter", "ElutionPeakDetection", "EmgGradientDescent", "EmgScoring",
+    "FeatureFinderMultiplexAlgorithm", "GNPSMGFFile", "GaussFilter", "IDFilter",
+    "ILPDCWrapper", "InternalCalibration", "IsotopeLabelingMDVs", "MRMAssay", "MRMDecoy",
+    "MRMFeatureFilter", "MRMFeaturePickerFile", "MRMFeatureQCFile", "MRMTransitionGroupPicker",
+    "MS2File", "MZTrafoModel", "MascotGenericFile", "MassTraceDetection", "MassTraces",
+    "MasstraceCorrelator", "MetaboliteSpectralMatching", "MultiplexDeltaMasses",
+    "MultiplexDeltaMassesGenerator", "OpenPepXLAlgorithm", "PeakIntegrator",
+    "PeakPickerChromatogram", "PeakPickerHiRes", "PeakPickerIM", "PeakPickerIterative",
+    "PeptideAndProteinQuant", "PeptideIndexing", "Prediction", "Protein", "Publication",
+    "SavitzkyGolayFilter", "SeedListGenerator", "SimpleSearchEngineAlgorithm",
+    "SiriusExportAlgorithm", "TargetedExperiment_Instrument",
+    "TargetedExperiment_Interpretation", "TargetedExperiment_Modification",
+    "TargetedSpectraExtractor", "TraMLProduct", "TransitionPQPFile", "TransitionTSVFile",
+    "XFDRAlgorithm",
+]
+
+
+@pytest.mark.parametrize("class_name", COPYABLE_IN_3_5)
+def test_copy_keeps_the_class(class_name):
+    cls = getattr(pyopenms, class_name)
+    obj = cls()
+    for duplicate in (copy.copy(obj), copy.deepcopy(obj), cls(obj)):
+        assert type(duplicate) is cls
+
+
+def test_uncopyable_class_refuses_to_copy():
+    # FeatureFindingMetabo owns a unique_ptr and has no C++ copy constructor. It must
+    # refuse instead of returning the DefaultParamHandler part of itself.
+    obj = pyopenms.FeatureFindingMetabo()
+    with pytest.raises(TypeError, match="cannot be copied"):
+        copy.copy(obj)
+    with pytest.raises(TypeError, match="cannot be copied"):
+        copy.deepcopy(obj)
