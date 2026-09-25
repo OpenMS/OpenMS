@@ -563,7 +563,7 @@ TOPP tools:
     - DIAuditor: quality metrics of DIA runs per run and per isolation window (MS1 sampling,
       window layout incl. FAIMS/1/K0, cycle times, TIC and peak-count distributions), a
       re-implementation of D. L. Tabb's DIAuditor. Writes its per-run and per-window tables and
-      an mzQC file with the PSI-MS DIA metrics (MS:4000190-MS:4000199).
+      an mzQC file with the PSI-MS DIA metrics (MS:4000190-MS:4000199) (#10271).
   Removed tools:
     - BREAKING: GenericWrapper and its external-tool definitions removed; use direct TOPP
       invocations or TOPPAS workflows (#8981, #9735).
