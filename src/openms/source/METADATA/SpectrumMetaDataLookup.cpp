@@ -152,6 +152,12 @@ namespace OpenMS
         return; // use the first reference format that matches
       }
     }
+    // No reference format matched: signal the failure instead of silently leaving
+    // 'meta' at its default sentinels. This mirrors SpectrumLookup::findByReference()
+    // (issue #9488, META-12).
+    std::string msg = "Spectrum reference doesn't match any known format";
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                spectrum_ref, msg);
   }
 
 
@@ -307,7 +313,7 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
     bool stop_on_error, 
     bool override_spectra_data, 
     bool override_spectra_references,
-    vector<ProteinIdentification> proteins)
+    vector<ProteinIdentification>& proteins)
   {
     bool success = true;
     PeakMap exp;
