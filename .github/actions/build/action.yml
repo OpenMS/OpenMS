@@ -5,8 +5,12 @@ inputs:
     description: "The name of the compiler to use"
     required: true
   macosx_deployment_target:
-    description: "Used to override -macos-version-min on macOS"
-    default: 14.0
+    description: >-
+      The oldest macOS the binaries run on (-mmacosx-version-min). Keep it at the
+      runner's macOS: the Homebrew libraries the package bundles are built for that
+      version, so a lower value makes a package that installs on an older macOS and
+      then fails to load.
+    default: "15.0"
   ssh_key:
     description: "SSH private key for the rsync cache archive"
     required: false
@@ -219,7 +223,8 @@ runs:
         # Official variables that need to be set to build OpenMS:
         CMAKE_PREFIX_PATH: ${{ steps.deps.outputs.cmake_prefix }}
         SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
-        # FIXME: Do we actually need this?
+        # Also sets LSMinimumSystemVersion of the GUI apps (src/openms_gui/add_mac_bundle.cmake)
+        # and the installer's minimum macOS (cmake/package_mac_productbuild.cmake).
         MACOSX_DEPLOYMENT_TARGET: "${{ inputs.macosx_deployment_target }}"
         #-DOPENMS_CONTRIB_LIBS, -DYOPENMS and DBOOST_USE_STATIC are dropped since
         # pyOpenMS is not build in this workflow and BOOST_USE_STATIC is already set

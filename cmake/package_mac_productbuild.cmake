@@ -25,10 +25,21 @@ set(CPACK_PRODUCTBUILD_BACKGROUND_SCALING "none")
 set(CPACK_PRODUCTBUILD_DOMAINS TRUE) # system-wide
 set(CPACK_PRODUCTBUILD_DOMAINS_USER TRUE) # user folder
 
-# TODO we might need to set a user-defined template for the installer anyway due to missing architecture support
-# in CMake (https://gitlab.kitware.com/cmake/cmake/-/issues/21734)
-# The template would go in cmake/Modules which is already in our Module path.
-# Official template is here: https://gitlab.kitware.com/cmake/cmake/-/blob/v3.27.4/Modules/Internal/CPack/CPack.distribution.dist.in?ref_type=tags
+# The installer refuses a macOS older than the deployment target, which package builds set
+# through MACOSX_DEPLOYMENT_TARGET (.github/actions/build/action.yml). The Distribution file
+# comes from cmake/Modules/CPack.distribution.dist.in: CPack looks for that template in
+# CMAKE_MODULE_PATH before its own, and ours is CMake's plus this element. Setting
+# CPACK_APPLE_PKG_INSTALLER_CONTENT instead does not work: CPack generates that variable.
+# TODO the template could also declare hostArchitectures, which CMake does not support
+# (https://gitlab.kitware.com/cmake/cmake/-/issues/21734).
+# Single quotes: CPack copies CPACK_* values into CPackConfig.cmake without escaping them.
+if(CMAKE_OSX_DEPLOYMENT_TARGET)
+  set(CPACK_OPENMS_ALLOWED_OS_VERSIONS
+      "<allowed-os-versions><os-version min='${CMAKE_OSX_DEPLOYMENT_TARGET}'/></allowed-os-versions>")
+else()
+  set(CPACK_OPENMS_ALLOWED_OS_VERSIONS "")
+  message(WARNING "CMAKE_OSX_DEPLOYMENT_TARGET is not set, so the installer will not check the macOS version. Set MACOSX_DEPLOYMENT_TARGET to the macOS the build and its bundled libraries target.")
+endif()
 
 if(NOT DEFINED CPACK_PRODUCTBUILD_IDENTITY_NAME)
   message(WARNING "CPACK_PRODUCTBUILD_IDENTITY_NAME not set. PKG will not be signed. Make sure to specify an identity with a Developer ID: Installer certificate (not Application certificate).")
