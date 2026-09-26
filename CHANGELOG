@@ -392,6 +392,13 @@ PyOpenMS:
     .decode() on the peak annotations, which the bindings now return as str (#10260).
   - The deprecated MSExperiment.get_df() and get_df_columns() accept long= again, 3.5.0's
     name for long_format (#10260).
+  - FeatureMap.get_assigned_peptide_identifications() leaves ID_native_id and ID_filename
+    out of a peptide hit when they are not known, instead of writing 'unknown', matching
+    FeatureMap.to_df() (#10260).
+  - BREAKING: FeatureMap.to_df() indexes features by feature_id as an unsigned 64-bit
+    integer, where 3.5.0's get_df() used text; the deprecated get_df() returns it as a
+    column. The peptide hits keep feature_id as text, so convert it before merging; the user
+    guide shows how (#10260).
   - Thermo .raw reading is included in every wheel, Linux aarch64 among them; install
     .NET 8+ and set DOTNET_ROOT for non-standard locations. Optional WNet/Bruker bindings
     are exposed only when built; use hasattr() for feature detection (#9946, #9957,

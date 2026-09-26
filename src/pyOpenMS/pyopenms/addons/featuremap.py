@@ -137,13 +137,46 @@ def get_df_columns(self, *args, **kwargs):
 
 @addon("FeatureMap")
 def get_assigned_peptide_identifications(self):
-    """Returns all PeptideIdentifications assigned to features in this map."""
+    """Returns all PeptideIdentifications assigned to features in this map.
+
+    Every peptide hit carries the keys for merging with to_df() as meta values:
+    'feature_id' (the unique ID of its feature), 'ID_native_id' (the feature's
+    spectrum_native_id) and 'ID_filename' (the primary MS run path of the matching
+    ProteinIdentification). A value that is not known, null in to_df(), is not set
+    (and removed if the hit already carried one).
+    'feature_id' is text, because a meta value cannot hold an unsigned 64-bit integer,
+    so convert it before merging::
+
+        peps = fmap.get_assigned_peptide_identifications()
+        pep_df = peps.to_df(export_unidentified=False)
+        pep_df['feature_id'] = pep_df['feature_id'].astype('uint64')
+        merged = pd.merge(fmap.to_df().reset_index(), pep_df, on='feature_id')
+
+    A PeptideIdentification without hits has no hit to carry the keys, hence
+    export_unidentified=False. Without any identified hit, the peptide frame has no
+    'feature_id' column and there is nothing to merge. The feature map itself is not
+    modified.
+    """
     from pyopenms._pyopenms_metadata import PeptideIdentificationList
     result = PeptideIdentificationList()
     for f in self.iter_feature_views():
-        pep_ids = f.getPeptideIdentifications()
-        for pid in pep_ids:
-            result.push_back(pid)
+        feature_id = str(f.getUniqueId())
+        native_id = None
+        if f.metaValueExists('spectrum_native_id'):
+            native_id = str(f.getMetaValue('spectrum_native_id'))
+        for pep in f.getPeptideIdentifications():
+            filename = self._get_prot_id_filename_from_pep_id(pep)
+            hits = pep.getHits()
+            for hit in hits:
+                hit.setMetaValue('feature_id', feature_id)
+                # an unknown value also removes one the hit already carries
+                for key, value in (('ID_native_id', native_id), ('ID_filename', filename)):
+                    if value is not None:
+                        hit.setMetaValue(key, value)
+                    elif hit.metaValueExists(key):
+                        hit.removeMetaValue(key)
+            pep.setHits(hits)
+            result.push_back(pep)
     return result
 
 

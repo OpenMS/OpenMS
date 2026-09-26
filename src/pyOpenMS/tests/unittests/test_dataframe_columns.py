@@ -1228,6 +1228,86 @@ class TestFeatureMapColumnSelection:
         assert 'custom_score' in cols
 
 
+class TestFeatureMapAssignedPeptideIdentifications:
+    """get_assigned_peptide_identifications() sets the keys for merging with to_df()."""
+
+    # above the int64 range, so it only fits the frame as uint64
+    LARGE_ID = 18446744073709551557
+
+    @classmethod
+    def _feature_map(cls):
+        fmap = pyopenms.FeatureMap()
+        prot = pyopenms.ProteinIdentification()
+        prot.setIdentifier('run1')
+        prot.setPrimaryMSRunPath(['run1.mzML'])
+        fmap.setProteinIdentifications([prot])
+        # the last feature has a PeptideIdentification without hits
+        for unique_id, native_id, identified in ((cls.LARGE_ID, 'scan=1', True), (7, None, True),
+                                                 (9, 'scan=3', False)):
+            f = pyopenms.Feature()
+            f.setUniqueId(unique_id)
+            if native_id is not None:
+                f.setMetaValue('spectrum_native_id', native_id)
+            pep = pyopenms.PeptideIdentification()
+            pep.setIdentifier('run1')
+            if identified:
+                hit = pyopenms.PeptideHit()
+                hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+                pep.setHits([hit])
+            peps = pyopenms.PeptideIdentificationList()
+            peps.push_back(pep)
+            f.setPeptideIdentifications(peps)
+            fmap.push_back(f)
+        return fmap
+
+    def test_hits_carry_merge_keys(self):
+        peps = self._feature_map().get_assigned_peptide_identifications()
+        assert len(peps) == 3
+        first, second = peps[0].getHits()[0], peps[1].getHits()[0]
+        assert first.getMetaValue('feature_id') == str(self.LARGE_ID)
+        assert first.getMetaValue('ID_native_id') == 'scan=1'
+        assert first.getMetaValue('ID_filename') == 'run1.mzML'
+        assert second.getMetaValue('feature_id') == '7'
+        # to_df() reports a missing native ID as null, so the hit gets no value either
+        assert not second.metaValueExists('ID_native_id')
+        assert len(peps[2].getHits()) == 0
+
+    def test_unknown_value_replaces_an_earlier_one(self):
+        f = pyopenms.Feature()
+        f.setUniqueId(11)
+        hit = pyopenms.PeptideHit()
+        hit.setMetaValue('ID_native_id', 'scan=99')
+        hit.setMetaValue('ID_filename', 'old.mzML')
+        pep = pyopenms.PeptideIdentification()
+        pep.setIdentifier('unmatched')
+        pep.setHits([hit])
+        peps = pyopenms.PeptideIdentificationList()
+        peps.push_back(pep)
+        f.setPeptideIdentifications(peps)
+        fmap = pyopenms.FeatureMap()
+        fmap.push_back(f)
+        # no spectrum_native_id and no matching ProteinIdentification: both unknown
+        annotated = fmap.get_assigned_peptide_identifications()[0].getHits()[0]
+        assert annotated.getMetaValue('feature_id') == '11'
+        assert not annotated.metaValueExists('ID_native_id')
+        assert not annotated.metaValueExists('ID_filename')
+
+    def test_merge_with_feature_frame(self):
+        import pandas as pd
+        fmap = self._feature_map()
+        pep_df = fmap.get_assigned_peptide_identifications().to_df(export_unidentified=False)
+        pep_df['feature_id'] = pep_df['feature_id'].astype('uint64')
+        merged = pd.merge(fmap.to_df().reset_index(), pep_df, on='feature_id')
+        assert len(merged) == 2
+        assert set(merged['feature_id']) == {self.LARGE_ID, 7}
+
+    def test_feature_map_is_not_modified(self):
+        fmap = self._feature_map()
+        fmap.get_assigned_peptide_identifications()
+        hit = fmap[0].getPeptideIdentifications()[0].getHits()[0]
+        assert not hit.metaValueExists('feature_id')
+
+
 class TestConsensusMapColumnSelection:
     """Tests for ConsensusMap.df_columns() method."""
 

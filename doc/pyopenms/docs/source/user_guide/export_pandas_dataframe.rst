@@ -142,9 +142,7 @@ FeatureMap
         Additionally the ID_filename (file name of the corresponding ProteinIdentification) and the ID_native_id 
         (spectrum ID of the corresponding Feature) are exported. They are also annotated as meta values when 
         collecting all assigned PeptideIdentifications from a FeatureMap with FeatureMap.get_assigned_peptide_identifications().
-        A DataFrame from the assigned peptides generated with peptide_identifications_to_df(assigned_peptides) can be
-        merged with the FeatureMap DataFrame with:
-        merged_df = pd.merge(feature_df, assigned_peptide_df, on=['feature_id', 'ID_native_id', 'ID_filename'])
+        The section below shows how to merge the two DataFrames.
         
         **Returns:**
 
@@ -206,53 +204,48 @@ Peptide identifications can be mapped to their corresponding features in a ``Fea
 **pyopenms.FeatureMap.get_assigned_peptide_identifications()**
         Generates a list with peptide identifications assigned to a feature.
 
-        Adds 'ID_native_id' (feature spectrum id), 'ID_filename' (primary MS run path of corresponding ProteinIdentification)
-        and 'feature_id' (unique ID of corresponding Feature) as meta values to the peptide hits.
-        A DataFrame from the assigned peptides generated with peptide_identifications_to_df(assigned_peptides) can be
-        merged with the FeatureMap DataFrame with:
-        merged_df = pd.merge(feature_df, assigned_peptide_df, on=['feature_id', 'ID_native_id', 'ID_filename'])
+        Adds 'feature_id' (unique ID of corresponding Feature), 'ID_native_id' (feature spectrum id) and 'ID_filename'
+        (primary MS run path of corresponding ProteinIdentification) as meta values to the peptide hits. A value that is
+        not known is left out. The FeatureMap itself is not changed.
         
         **Returns:**
 
-        **[PeptideIdentification]** 
+        **PeptideIdentificationList** 
         
         list of PeptideIdentification objects
 
 A ``DataFrame`` can be created on the resulting list of `PeptideIdentification` objects using
-``pyopenms.peptide_identifications_to_df(assigned_peptides)``.
-:term:`Feature map<feature map>` and peptide data frames contain columns, on which they can be merged together to contain the complete
+``assigned_peptides.to_df()``.
+:term:`Feature map<feature map>` and peptide data frames can be merged on the ``feature_id`` column to contain the complete
 information for peptides and features in a single data frame.
-
-The columns for unambiguously merging the data frames:
-
-- ``feature_id``: the unique feature identifier
-
-- ``ID_native_id``: the feature spectrum native identifier
-
-- ``ID_filename``: the filename (primary MS run path) of the corresponding `ProteinIdentification`
+The peptide hits store ``feature_id`` as text, because a meta value cannot hold the unsigned 64-bit number
+that ``FeatureMap.to_df()`` uses, so convert the column before merging. Leave out PeptideIdentifications
+without hits with ``export_unidentified=False``: they have no hit to carry the ``feature_id``.
 
 **Example:**
 
 .. code-block:: python
     :linenos:
 
-    feature_df = feature_map.get_df()
+    feature_df = feature_map.to_df().reset_index()
     assigned_peptides = feature_map.get_assigned_peptide_identifications()
-    assigned_peptide_df = oms.peptide_identifications_to_df(assigned_peptides)
+    assigned_peptide_df = assigned_peptides.to_df(export_unidentified=False)
+    assigned_peptide_df["feature_id"] = assigned_peptide_df["feature_id"].astype("uint64")
 
     merged_df = pd.merge(
         feature_df,
         assigned_peptide_df,
-        on=["feature_id", "ID_native_id", "ID_filename"],
+        on="feature_id",
+        suffixes=("", "_psm"),
     )
     merged_df.head(2)
 
-.. csv-table:: consensus_map.get_df()
-   :widths: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
-   :header: "feature_id",	"peptide_sequence",	"peptide_score",	"ID_filename",	"ID_native_id",	"charge_x",	"RT_x",	"mz_x",	"RTstart",	"RTend",	"...",	"id",	"RT_y",	"mz_y",	"q-value",	"charge_y",	"protein_accession",	"start",	"end",	"OMSSA_score",	"target_decoy"
+.. csv-table:: merged_df.head(2)
+   :widths: 2 20 20 20 20 20 5 20 20 20 20 5 20 20 20 20 5 20 20 20 5 5 20 20 20
+   :header: "",	"feature_id",	"peptide_sequence",	"peptide_score",	"ID_filename",	"ID_native_id",	"charge",	"rt",	"mz",	"rt_start",	"rt_end",	"...",	"id",	"rt_psm",	"mz_psm",	"q-value",	"charge_psm",	"protein_accession",	"start",	"end",	"P_ID",	"PSM_ID",	"OMSSA_score",	"ID_native_id_psm",	"target_decoy"
 
-   "9650885788371886430",	"LVTDLTK",	"0.000000",	"unknown",	"spectrum=1270",	"2",	"1942.600083",	"395.239277",	"1932.484009",	"1950.834351",	"...",	"OMSSA_2009-11-17T11:11:11_4731105163044641872",	"1933.405151",	"395.239349",	"0.000000",	"2",	"P02769|ALBU_BOVIN",	"-1",	"-1",	"0.001084",	"True"
-   "18416216708636999474",	"DDSPDLPK",	"0.034483",	"unknown",	"spectrum=1167",	"2",	"1749.138335",	"443.711224",	"1735.693115",	"1763.343506",	"...",	"OMSSA_2009-11-17T11:11:11_4731105163044641872",	"1738.033447",	"443.711243",	"0.034483",	"2",	"P02769|ALBU_BOVIN",	"-1",	"-1",	"0.003951",	"True"    
+   "0",	"9650885788371886430",	"LVTDLTK",	"0.000000",	"None",	"spectrum=1270",	"2",	"1942.600083",	"395.239277",	"1932.484009",	"1950.834351",	"...",	"OMSSA_2009-11-17T11:11:11_243408016051731251",	"1933.405151",	"395.239349",	"0.000000",	"2",	"P02769|ALBU_BOVIN",	"-1",	"-1",	"0",	"0",	"0.001084",	"spectrum=1270",	"True"
+   "1",	"18416216708636999474",	"DDSPDLPK",	"0.034483",	"None",	"spectrum=1167",	"2",	"1749.138335",	"443.711224",	"1735.693115",	"1763.343506",	"...",	"OMSSA_2009-11-17T11:11:11_243408016051731251",	"1738.033447",	"443.711243",	"0.034483",	"2",	"P02769|ALBU_BOVIN",	"-1",	"-1",	"1",	"0",	"0.003951",	"spectrum=1167",	"True"
 
 ConsensusMap
 ************
