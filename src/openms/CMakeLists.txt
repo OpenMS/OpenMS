@@ -100,6 +100,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   SQLiteCpp
   ${OPENMS_SQLITECPP_EXTRA_LIBS}
   ZLIB::ZLIB
+  ${OPENMS_ZSTD_TARGET}
   libzip::zip
   nlohmann_json::nlohmann_json
   IsoSpec

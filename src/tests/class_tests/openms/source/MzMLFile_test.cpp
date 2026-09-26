@@ -1066,6 +1066,101 @@ START_SECTION((template <typename MapType> void store(const std::string& filenam
 }
 END_SECTION
 
+START_SECTION([EXTRA] load and store zstd compressed binary data arrays)
+{
+  MzMLFile file;
+
+  // externally generated file (Python numpy + zstandard) using all zstd compression variants
+  PeakMap exp;
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_zstd.mzML"), exp);
+  TEST_EQUAL(exp.size(), 2)
+  ABORT_IF(exp.size() != 2)
+  TEST_EQUAL(exp[0].size(), 5)
+  ABORT_IF(exp[0].size() != 5)
+  const std::vector<double> mz = {100.5, 200.25, 300.125, 400.0, 500.0625}; // byte-shuffled zstd
+  const std::vector<double> intensity = {10, 20, 10, 30, 20}; // dictionary-encoded zstd
+  for (Size i = 0; i < mz.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(exp[0][i].getMZ(), mz[i])
+    TEST_REAL_SIMILAR(exp[0][i].getIntensity(), intensity[i])
+  }
+  TEST_EQUAL(exp[0].getFloatDataArrays().size(), 1)
+  ABORT_IF(exp[0].getFloatDataArrays().size() != 1)
+  TEST_EQUAL(exp[0].getFloatDataArrays()[0].getName(), "float values")
+  TEST_EQUAL(exp[0].getFloatDataArrays()[0].size(), 5)
+  ABORT_IF(exp[0].getFloatDataArrays()[0].size() != 5)
+  TEST_REAL_SIMILAR(exp[0].getFloatDataArrays()[0][0], 0.5)
+  TEST_REAL_SIMILAR(exp[0].getFloatDataArrays()[0][4], 4.5)
+  TEST_EQUAL(exp[0].getIntegerDataArrays().size(), 2)
+  ABORT_IF(exp[0].getIntegerDataArrays().size() != 2)
+  TEST_EQUAL(exp[0].getIntegerDataArrays()[0].getName(), "int32 values")
+  const std::vector<Int> int32_values = {7, -1, 7, 7, 300};
+  const auto& int32_array = exp[0].getIntegerDataArrays()[0];
+  TEST_EQUAL(std::vector<Int>(int32_array.begin(), int32_array.end()) == int32_values, true)
+  TEST_EQUAL(exp[0].getIntegerDataArrays()[1].getName(), "int64 values")
+  TEST_EQUAL(exp[0].getIntegerDataArrays()[1].size(), 5)
+  ABORT_IF(exp[0].getIntegerDataArrays()[1].size() != 5)
+  TEST_EQUAL(exp[0].getIntegerDataArrays()[1][2], 3)
+  TEST_EQUAL(exp[0].getStringDataArrays().size(), 1)
+  ABORT_IF(exp[0].getStringDataArrays().size() != 1)
+  TEST_EQUAL(exp[0].getStringDataArrays()[0].size(), 3)
+  ABORT_IF(exp[0].getStringDataArrays()[0].size() != 3)
+  TEST_EQUAL(exp[0].getStringDataArrays()[0][0], "alpha")
+  TEST_EQUAL(exp[0].getStringDataArrays()[0][2], "gamma")
+  TEST_EQUAL(exp[1].size(), 0) // empty arrays
+  TEST_EQUAL(exp.getChromatograms().size(), 1)
+  ABORT_IF(exp.getChromatograms().size() != 1)
+  TEST_EQUAL(exp.getChromatograms()[0].size(), 3)
+  ABORT_IF(exp.getChromatograms()[0].size() != 3)
+  TEST_REAL_SIMILAR(exp.getChromatograms()[0][1].getRT(), 2.0)
+  TEST_REAL_SIMILAR(exp.getChromatograms()[0][1].getIntensity(), 200.0)
+
+  // lossless round-trip (32/64 bit floats, 32/64 bit integers, null terminated strings)
+  PeakMap exp_original;
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"), exp_original);
+  file.getOptions().setZstdCompression(true);
+  std::string encoded;
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003781")) // numeric arrays
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003780")) // string arrays
+  TEST_FALSE(StringUtils::hasSubstring(encoded, "MS:1000574"))
+  TEST_FALSE(StringUtils::hasSubstring(encoded, "MS:1000576"))
+  PeakMap exp_zstd;
+  file.loadBuffer(encoded, exp_zstd);
+  TEST_EQUAL(exp_zstd == exp_original, true)
+
+  // zstd takes precedence over zlib
+  file.getOptions().setCompression(true);
+  std::string encoded_both;
+  file.storeBuffer(encoded_both, exp_original);
+  TEST_EQUAL(encoded_both, encoded)
+  file.getOptions().setCompression(false);
+
+  // numpress followed by zstd yields the same values as numpress followed by zlib
+  MSNumpressCoder::NumpressConfig np_mz, np_int;
+  np_mz.setCompression("linear");
+  np_mz.estimate_fixed_point = true;
+  np_int.setCompression("slof");
+  np_int.estimate_fixed_point = true;
+  file.getOptions().setNumpressConfigurationMassTime(np_mz);
+  file.getOptions().setNumpressConfigurationIntensity(np_int);
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003783"))
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003785"))
+  PeakMap exp_np_zstd;
+  file.loadBuffer(encoded, exp_np_zstd);
+
+  file.getOptions().setZstdCompression(false);
+  file.getOptions().setCompression(true);
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1002746"))
+  PeakMap exp_np_zlib;
+  file.loadBuffer(encoded, exp_np_zlib);
+  TEST_EQUAL(exp_np_zstd.size(), exp_np_zlib.size())
+  TEST_EQUAL(exp_np_zstd == exp_np_zlib, true)
+}
+END_SECTION
+
 START_SECTION([EXTRA] store and load gzip and bzip2 compressed files - round-trip)
 {
   // The file format is inferred from the extension before the compression

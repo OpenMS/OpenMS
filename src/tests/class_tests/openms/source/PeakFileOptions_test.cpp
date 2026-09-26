@@ -71,6 +71,19 @@ START_SECTION((bool getCompression() const))
 	TEST_EQUAL(tmp.getCompression(), false);
 END_SECTION
 
+START_SECTION((void setZstdCompression(bool zstd)))
+	PeakFileOptions tmp;
+	tmp.setZstdCompression(true);
+	TEST_TRUE(tmp.getZstdCompression());
+	tmp.setZstdCompression(false);
+	TEST_FALSE(tmp.getZstdCompression());
+END_SECTION
+
+START_SECTION((bool getZstdCompression() const))
+	PeakFileOptions tmp;
+	TEST_FALSE(tmp.getZstdCompression());
+END_SECTION
+
 START_SECTION((void setMetadataOnly(bool only)))
 	PeakFileOptions tmp;
 	tmp.setMetadataOnly(true);

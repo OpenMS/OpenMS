@@ -1032,6 +1032,7 @@ namespace OpenMS::Internal
         bin_data_.emplace_back();
         bin_data_.back().np_compression = MSNumpressCoder::NONE; // ensure that numpress compression is initially set to none ...
         bin_data_.back().compression = false; // ensure that zlib compression is initially set to none ...
+        bin_data_.back().zstd_compression = false; // ... and zstd compression as well
 
         // array length
         Int array_length = (Int) default_array_length_;
@@ -5565,6 +5566,8 @@ namespace OpenMS::Internal
         }
 
         std::string compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
+        // string arrays are not byte-shuffled (only relevant for zstd compression)
+        std::string compression_term_string = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false, false);
         // write float data array
         for (Size m = 0; m < spec.getFloatDataArrays().size(); ++m)
         {
@@ -5580,7 +5583,7 @@ namespace OpenMS::Internal
           {
             data64_to_encode[p] = array[p];
           }
-          Base64::encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+          MzMLHandlerHelper::encodeNumericArray(data64_to_encode, options_, encoded_string);
 
           std::string data_processing_ref_string ;
           if (!array.getDataProcessing().empty())
@@ -5611,7 +5614,7 @@ namespace OpenMS::Internal
           data_to_encode.resize(array.size());
           for (Size p = 0; p < array.size(); ++p)
             data_to_encode[p] = array[p];
-          Base64::encodeStrings(data_to_encode, encoded_string, options_.getCompression());
+          MzMLHandlerHelper::encodeStringArray(data_to_encode, options_, encoded_string);
           std::string data_processing_ref_string ;
           if (!array.getDataProcessing().empty())
           {
@@ -5619,7 +5622,7 @@ namespace OpenMS::Internal
           }
           os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001479\" name=\"null-terminated ASCII string\" />\n";
-          os << "\t\t\t\t\t\t" << compression_term << "\n";
+          os << "\t\t\t\t\t\t" << compression_term_string << "\n";
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
           writeUserParam_(os, array, 6, "/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
           os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
@@ -5740,7 +5743,7 @@ namespace OpenMS::Internal
       // Try numpress encoding (if it is enabled) and fall back to regular encoding if it fails
       if (np_config.np_compression != MSNumpressCoder::NONE)
       {
-        MSNumpressCoder().encodeNP(data_to_encode, encoded_string, pf_options_.getCompression(), np_config);
+        MzMLHandlerHelper::encodeNumpressArray(data_to_encode, pf_options_, np_config, encoded_string);
         if (!encoded_string.empty())
         {
           // numpress succeeded
@@ -5755,7 +5758,7 @@ namespace OpenMS::Internal
       if (is32bit && no_numpress)
       {
         compression_term = compression_term_no_np; // select the no-numpress term
-        Base64::encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
+        MzMLHandlerHelper::encodeNumericArray(data_to_encode, pf_options_, encoded_string);
         os << "\t\t\t\t\t<binaryDataArray" << array_length << " encodedLength=\"" << encoded_string.size() << "\">\n";
         os << cv_term_type;
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
@@ -5763,7 +5766,7 @@ namespace OpenMS::Internal
       else if (!is32bit && no_numpress)
       {
         compression_term = compression_term_no_np; // select the no-numpress term
-        Base64::encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
+        MzMLHandlerHelper::encodeNumericArray(data_to_encode, pf_options_, encoded_string);
         os << "\t\t\t\t\t<binaryDataArray" << array_length << " encodedLength=\"" << encoded_string.size() << "\">\n";
         os << cv_term_type;
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
@@ -5830,7 +5833,7 @@ namespace OpenMS::Internal
       // Try numpress encoding (if it is enabled) and fall back to regular encoding if it fails
       if (np_config.np_compression != MSNumpressCoder::NONE)
       {
-        MSNumpressCoder().encodeNP(data_to_encode, encoded_string, pf_options_.getCompression(), np_config);
+        MzMLHandlerHelper::encodeNumpressArray(data_to_encode, pf_options_, np_config, encoded_string);
         if (!encoded_string.empty())
         {
           // numpress succeeded
@@ -5845,7 +5848,7 @@ namespace OpenMS::Internal
       if (no_numpress)
       {
         compression_term = compression_term_no_np; // select the no-numpress term
-        Base64::encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
+        MzMLHandlerHelper::encodeNumericArray(data_to_encode, pf_options_, encoded_string);
         os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
         os << cv_term_type;
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
@@ -5964,6 +5967,8 @@ namespace OpenMS::Internal
       writeContainerData_<ChromatogramType>(os, options_, chromatogram, "intensity");
 
       compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
+      // string arrays are not byte-shuffled (only relevant for zstd compression)
+      std::string compression_term_string = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false, false);
       // write float data array
       for (Size m = 0; m < chromatogram.getFloatDataArrays().size(); ++m)
       {
@@ -5979,7 +5984,7 @@ namespace OpenMS::Internal
         {
           data64_to_encode[p] = array[p];
         }
-        Base64::encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+        MzMLHandlerHelper::encodeNumericArray(data64_to_encode, options_, encoded_string);
         std::string data_processing_ref_string ;
         if (!array.getDataProcessing().empty())
         {
@@ -6011,7 +6016,7 @@ namespace OpenMS::Internal
         {
           data_to_encode[p] = array[p];
         }
-        Base64::encodeStrings(data_to_encode, encoded_string, options_.getCompression());
+        MzMLHandlerHelper::encodeStringArray(data_to_encode, options_, encoded_string);
         std::string data_processing_ref_string ;
         if (!array.getDataProcessing().empty())
         {
@@ -6019,7 +6024,7 @@ namespace OpenMS::Internal
         }
         os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001479\" name=\"null-terminated ASCII string\" />\n";
-        os << "\t\t\t\t\t\t" << compression_term << "\n";
+        os << "\t\t\t\t\t\t" << compression_term_string << "\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
         writeUserParam_(os, array, 6, "/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
         os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";

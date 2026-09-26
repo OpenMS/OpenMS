@@ -171,7 +171,7 @@ jobs:
               # rhel.9-x64 RID that the bridge does not search (see
               # tools/ci/install_dotnet_sdk_linux.sh). libicu is the only dependency
               # the SDK needs.
-              yum install -y cmake ninja-build libcurl-devel libicu
+              yum install -y cmake ninja-build libcurl-devel libicu libzstd-devel
               bash tools/ci/install_dotnet_sdk_linux.sh /usr/share/dotnet
               export DOTNET_ROOT=/usr/share/dotnet
               export PATH="$DOTNET_ROOT:$PATH"
@@ -223,7 +223,7 @@ jobs:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-x64 }}
           CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
           # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file
-          CIBW_BEFORE_ALL: yum install -y libcurl-devel dotnet-runtime-8.0
+          CIBW_BEFORE_ALL: yum install -y libcurl-devel libzstd dotnet-runtime-8.0
           # Use install directory with stripped libraries.
           # PYOPENMS_THERMO_RAW_TEST_FILE enables the Thermo RAW tests in the wheel test suite.
           CIBW_ENVIRONMENT: >-
@@ -292,7 +292,7 @@ jobs:
               # Keep apostrophes out of this block: it is the body of a
               # single-quoted docker run ... bash -c argument, and one would
               # end that string early and silently truncate the script.
-              yum install -y cmake ninja-build libcurl-devel libicu
+              yum install -y cmake ninja-build libcurl-devel libicu libzstd-devel
               bash tools/ci/install_dotnet_sdk_linux.sh /usr/share/dotnet
               export DOTNET_ROOT=/usr/share/dotnet
               export PATH="$DOTNET_ROOT:$PATH"
@@ -344,7 +344,7 @@ jobs:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-arm64 }}
           CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
           # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file
-          CIBW_BEFORE_ALL: yum install -y libcurl-devel dotnet-runtime-8.0
+          CIBW_BEFORE_ALL: yum install -y libcurl-devel libzstd dotnet-runtime-8.0
           # Use install directory with stripped libraries.
           # PYOPENMS_THERMO_RAW_TEST_FILE enables the Thermo RAW tests in the wheel test suite.
           CIBW_ENVIRONMENT: >-
@@ -555,6 +555,25 @@ jobs:
             -DBUILD_TESTING=OFF \
             -DCURL_DISABLE_LDAP=ON \
             -DCURL_USE_LIBPSL=OFF
+          cmake --build build
+          cmake --install build
+
+      # The prebuilt contrib only carries the zstd copy bundled privately into Arrow
+      # (no headers), so build zstd (mzML zstd compression) like libcurl above. The
+      # DLL lands in contrib/bin, which delvewheel searches first.
+      - name: Build zstd from source
+        shell: bash
+        run: |
+          curl -L -o zstd-src.tar.gz https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz
+          tar xzf zstd-src.tar.gz
+          cd zstd-1.5.7/build/cmake
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/contrib" \
+            -DZSTD_BUILD_SHARED=ON \
+            -DZSTD_BUILD_STATIC=OFF \
+            -DZSTD_BUILD_PROGRAMS=OFF \
+            -DZSTD_BUILD_TESTS=OFF
           cmake --build build
           cmake --install build
 

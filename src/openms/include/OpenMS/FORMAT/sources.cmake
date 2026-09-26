@@ -111,6 +111,7 @@ XQuestResultXMLFile.h
 MRMFile.h
 TargetedDataFileLoader.h
 ZlibCompression.h
+ZstdCompression.h
 )
 
 if (WITH_HDF5)
