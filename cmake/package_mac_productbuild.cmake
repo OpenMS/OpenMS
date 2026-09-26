@@ -28,14 +28,16 @@ set(CPACK_PRODUCTBUILD_DOMAINS_USER TRUE) # user folder
 # The installer refuses a macOS older than the deployment target, which package builds set
 # through MACOSX_DEPLOYMENT_TARGET (.github/actions/build/action.yml). The Distribution file
 # comes from cmake/Modules/CPack.distribution.dist.in: CPack looks for that template in
-# CMAKE_MODULE_PATH before its own, and ours is CMake's plus this element. Setting
-# CPACK_APPLE_PKG_INSTALLER_CONTENT instead does not work: CPack generates that variable.
+# CMAKE_MODULE_PATH before its own, and ours is CMake's plus a <volume-check>, the only
+# parent Apple's Distribution XML reference allows for <allowed-os-versions>; its script
+# attribute is required. Setting CPACK_APPLE_PKG_INSTALLER_CONTENT instead does not work:
+# CPack generates that variable.
 # TODO the template could also declare hostArchitectures, which CMake does not support
 # (https://gitlab.kitware.com/cmake/cmake/-/issues/21734).
 # Single quotes: CPack copies CPACK_* values into CPackConfig.cmake without escaping them.
 if(CMAKE_OSX_DEPLOYMENT_TARGET)
   set(CPACK_OPENMS_ALLOWED_OS_VERSIONS
-      "<allowed-os-versions><os-version min='${CMAKE_OSX_DEPLOYMENT_TARGET}'/></allowed-os-versions>")
+      "<volume-check script='true'><allowed-os-versions><os-version min='${CMAKE_OSX_DEPLOYMENT_TARGET}'/></allowed-os-versions></volume-check>")
 else()
   set(CPACK_OPENMS_ALLOWED_OS_VERSIONS "")
   message(WARNING "CMAKE_OSX_DEPLOYMENT_TARGET is not set, so the installer will not check the macOS version. Set MACOSX_DEPLOYMENT_TARGET to the macOS the build and its bundled libraries target.")
