@@ -430,6 +430,16 @@ TOPP tools:
         ProteomicsLFQ and OpenSwathWorkflow. Bruker .d input: FileConverter, CometAdapter,
         ProteomicsLFQ, OpenSwathWorkflow and PeakPickerIM (#8975, #9019, #9022, #9030,
         #9126, #9418).
+      - On Linux and macOS, FileConverter reads Thermo .raw in-process by default
+        (-RawToMzML:reader inprocess): the packages there provide neither mono nor
+        ThermoRawFileParser on the PATH, which the external reader needs. The in-process reader
+        needs a .NET 8 runtime (with DOTNET_ROOT set if it is not in the standard location, e.g.
+        installed with Homebrew or into ~/.dotnet) and applies vendor peak picking unless
+        -RawToMzML:no_peak_picking, as ThermoRawFileParser did. Pipelines that set
+        -RawToMzML:ThermoRaw_executable must pass
+        '-RawToMzML:reader external' too; FileConverter warns when that option or
+        -RawToMzML:NET_executable is set but the in-process reader runs. Windows keeps the
+        external reader, which runs on the built-in .NET Framework.
       - For per-peak IM input, PeakPickerHiRes warns and uses intensity-weighted mean IM;
         Resampler, FeatureFinderCentroided, FeatureFinderMultiplex and MultiplexResolver
         reject incompatible data (#9018).
