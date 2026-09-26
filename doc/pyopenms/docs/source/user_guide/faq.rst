@@ -12,6 +12,11 @@ To change data inside a container, read it, edit it, and put it back:
 
 .. code-block:: python
 
+    import pyopenms as oms
+
+    exp = oms.MSExperiment()
+    exp.addSpectrum(oms.MSSpectrum())
+
     spec = exp[0]        # read it (a copy)
     spec.setRT(5.0)      # edit it
     exp[0] = spec        # put it back

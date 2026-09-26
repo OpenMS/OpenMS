@@ -75,9 +75,7 @@ If files are already centroided this step can bet omitted.
         if file.endswith(".mzML"):
             exp_raw = oms.MSExperiment()
             oms.MzMLFile().load(os.path.join(files, file), exp_raw)
-            exp_centroid = oms.MSExperiment()
-
-            oms.PeakPickerHiRes().pickExperiment(exp_raw, exp_centroid, True)
+            exp_centroid = oms.PeakPickerHiRes().pickExperiment(exp_raw, True)
 
             oms.MzMLFile().store(os.path.join(files, "centroid", file), exp_centroid)
             del exp_raw
@@ -102,7 +100,6 @@ Feature Detection
 
             exp.sortSpectra(True)
 
-            mass_traces = []
             mtd = oms.MassTraceDetection()
             mtd_params = mtd.getDefaults()
             mtd_params.setValue(
@@ -112,23 +109,20 @@ Feature Detection
                 "noise_threshold_int", 1000.0
             )  # adjust to noise level in your data
             mtd.setParameters(mtd_params)
-            mtd.run(exp, mass_traces, 0)
+            mass_traces = mtd.run(exp)
 
-            mass_traces_split = []
-            mass_traces_final = []
             epd = oms.ElutionPeakDetection()
             epd_params = epd.getDefaults()
             epd_params.setValue("width_filtering", "fixed")
             epd.setParameters(epd_params)
-            epd.detectPeaks(mass_traces, mass_traces_split)
+            mass_traces_split = epd.detectPeaks(mass_traces)
 
             if epd.getParameters().getValue("width_filtering") == "auto":
-                epd.filterByPeakWidth(mass_traces_split, mass_traces_final)
+                mass_traces_final = epd.filterByPeakWidth(mass_traces_split)
             else:
                 mass_traces_final = mass_traces_split
 
             feature_map = oms.FeatureMap()
-            feat_chrom = []
             ffm = oms.FeatureFindingMetabo()
             ffm_params = ffm.getDefaults()
             ffm_params.setValue("isotope_filtering_model", "none")
@@ -138,10 +132,10 @@ Feature Detection
             ffm_params.setValue("mz_scoring_by_elements", "false")
             ffm_params.setValue("report_convex_hulls", "true")
             ffm.setParameters(ffm_params)
-            ffm.run(mass_traces_final, feature_map, feat_chrom)
+            ffm.run(mass_traces_final, feature_map)  # fills feature_map
 
             feature_map.setUniqueIds()
-            feature_map.setPrimaryMSRunPath([file[:-5].encode()])
+            feature_map.setPrimaryMSRunPath([file[:-5]])
 
             feature_maps.append(feature_map)
 
@@ -167,8 +161,7 @@ Feature Map Retention Time Alignment
     aligner.setReference(feature_maps[ref_index])
 
     for feature_map in feature_maps[:ref_index] + feature_maps[ref_index + 1 :]:
-        trafo = oms.TransformationDescription()
-        aligner.align(feature_map, trafo)
+        trafo = aligner.align(feature_map)
         transformer = oms.MapAlignmentTransformer()
         transformer.transformRetentionTimes(
             feature_map, trafo, True
@@ -223,7 +216,7 @@ Visualization of RTs before and after Alignment
 
     fig.tight_layout()
     fig.legend(
-        [fmap.getMetaValue("spectra_data")[0].decode() for fmap in fmaps],
+        [fmap.getMetaValue("spectra_data")[0] for fmap in fmaps],
         loc="lower center",
     )
     # in some cases get file name elsewhere, e.g. fmap.getDataProcessing()[0].getMetaValue('parameter: out')
@@ -245,9 +238,7 @@ Feature Linking
 
     for i, feature_map in enumerate(feature_maps):
         file_description = file_descriptions.get(i, oms.ColumnHeader())
-        file_description.filename = feature_map.getMetaValue("spectra_data")[
-            0
-        ].decode()
+        file_description.filename = feature_map.getMetaValue("spectra_data")[0]
         file_description.size = feature_map.size()
         file_description.unique_id = feature_map.getUniqueId()
         file_descriptions[i] = file_description
@@ -266,7 +257,7 @@ ConsensusMap to Pandas DataFrame
 
     intensities = consensus_map.get_intensity_df()
 
-    meta_data = consensus_map.get_metadata_df()[["RT", "mz", "quality"]]
+    meta_data = consensus_map.get_metadata_df()[["rt", "mz", "quality"]]
 
     cm_df = pd.concat([meta_data, intensities], axis=1)
     cm_df.reset_index(drop=True, inplace=True)
@@ -384,7 +375,7 @@ Annotate :term:Features<features>` with Identified Compounds
     ):
         indices = id_df.index[
             np.isclose(id_df["mz"], float(mz), atol=1e-05)
-            & np.isclose(id_df["RT"], float(rt), atol=1e-05)
+            & np.isclose(id_df["rt"], float(rt), atol=1e-05)
         ].tolist()
         for index in indices:
             if description != "null":
@@ -401,6 +392,6 @@ Visualize :term:`Consensus Features<consensus features>` with Identifications
 .. code-block:: python
     :linenos:
 
-    fig = px.scatter(id_df, x="RT", y="mz", hover_name="identifications")
+    fig = px.scatter(id_df, x="rt", y="mz", hover_name="identifications")
     fig.update_layout(title="Consensus features with identifications (hover)")
     fig.show()

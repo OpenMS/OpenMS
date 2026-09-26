@@ -66,7 +66,6 @@ Now we want to find matching peaks (in m/z) between the observed and the theoret
 .. code-block:: python
     :linenos:
 
-    alignment = []
     spa = oms.SpectrumAlignment()
     p = spa.getParameters()
     # use 0.5 Da tolerance for m/z (Note: for high-resolution data we could also use ppm by setting the is_relative_tolerance value to true)
@@ -74,7 +73,7 @@ Now we want to find matching peaks (in m/z) between the observed and the theoret
     p.setValue("is_relative_tolerance", "false")
     spa.setParameters(p)
     # align both spectra
-    spa.getSpectrumAlignment(alignment, theo_spectrum, observed_spectrum)
+    alignment = spa.getSpectrumAlignment(theo_spectrum, observed_spectrum)
 
 The alignment contains a list of matched peak indices. We can simply inspect matching peaks with:
 
@@ -88,7 +87,7 @@ The alignment contains a list of matched peak indices. We can simply inspect mat
     print("Number of matched peaks: " + str(len(alignment)))
     t = []
     for theo_idx, obs_idx in alignment:
-        ion_name = theo_spectrum.getStringDataArrays()[0][theo_idx].decode()
+        ion_name = theo_spectrum.getStringDataArrays()[0][theo_idx]
         ion_charge = theo_spectrum.getIntegerDataArrays()[0][theo_idx]
         t.append(
             [
