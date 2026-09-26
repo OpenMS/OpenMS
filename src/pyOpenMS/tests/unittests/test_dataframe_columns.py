@@ -11,6 +11,7 @@ Tests cover:
 """
 
 import os
+import sys
 
 import pytest
 import numpy as np
@@ -639,6 +640,24 @@ class TestBackwardCompatibility:
 
         assert 'rt' in df.columns
         assert 'intensity' in df.columns
+
+
+def test_msexperiment_to_arrow_falls_back_without_the_zero_copy_module(monkeypatch):
+    """Without pyopenms._arrow_zerocopy, to_arrow() warns and exports in Python.
+
+    A local 'import warnings' in another branch of to_arrow() made the name local to the
+    whole function, so this fallback raised UnboundLocalError instead."""
+    pytest.importorskip("pyarrow")
+    monkeypatch.setitem(sys.modules, "pyopenms._arrow_zerocopy", None)  # the import raises
+    spectrum = pyopenms.MSSpectrum()
+    spectrum.setMSLevel(1)
+    spectrum.setRT(1.0)
+    spectrum.set_peaks(([100.0, 200.0], [5.0, 6.0]))
+    exp = pyopenms.MSExperiment()
+    exp.addSpectrum(spectrum)
+    with pytest.warns(UserWarning, match="_arrow_zerocopy"):
+        table = exp.to_arrow()
+    assert table.num_rows == 2
 
 
 class TestMSExperimentUnifiedToArrow:
