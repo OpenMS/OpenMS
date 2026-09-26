@@ -1,6 +1,7 @@
 {
   "name": "openms-thermo-bridge",
   "version": "0.3.0",
+  "port-version": 1,
   "description": "Minimal C++ bridge to read Thermo .raw files via .NET embedding",
   "homepage": "https://github.com/OpenMS/openms-thermo-bridge",
   "license": "BSD-3-Clause",

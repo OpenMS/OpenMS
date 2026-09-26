@@ -187,6 +187,8 @@ Dependencies:
   - vcpkg builds use OpenSSL 3.6.4, and the Linux DEBs and the macOS package bundle it (the 3.5.0 DEBs
     bundled 3.0.2). vcpkg.json pins the version because the baseline's 3.6.2 is affected by the
     High-severity CVE-2026-45447.
+  - The bundled MaRaCluster is updated from 0.05.0 to 1.04.1 on Linux and Windows x86_64,
+    and the macOS arm64 packages now include it too (OpenMS/THIRDPARTY#113).
 
 PyOpenMS:
   - Fixed keyword defaults that did not match the wrapped C++ signatures. Four bindings
@@ -1210,6 +1212,24 @@ Build System:
     installed now; the parser's own Mono.Unix.dll.config maps the library to linux-x64,
     osx-x64 and osx-arm64 and to nothing else, so the others could never be loaded
     (#10202, #10207, #10211).
+  - Debian package clean-up (#10230). Libraries no longer carry empty RUNPATH entries,
+    which the dynamic loader reads as the current working directory: the release
+    workflow links under PACKAGE_TYPE=none, whose install RPATH also names the build
+    tree's vcpkg directory, and packages after reconfiguring, so CMake kept most of the
+    ':' padding of the longer build-tree RPATH. libOpenSwathAlgo (and on arm64 the
+    Thermo bridge) shipped with $ORIGIN/../lib/ and about 90 empty entries; CPack now
+    removes them before building the package. The arm64 build takes the Thermo bridge
+    from vcpkg, as every other platform does: vcpkg.json still left it out on
+    linux & arm64 from when Thermo RAW reading was off there (#10206 turned it on), so
+    the arm64 build fetched and built the bridge itself and packaged the bridge's
+    headers, CMake package, .pdb and a second copy of its managed assemblies. The vcpkg
+    port also installs the Thermo RawFileReader license now, so every package ships it
+    under share/OpenMS/LICENSES as the from-source build did; before, only the arm64
+    package had it. Depends is
+    now exactly what dpkg-shlibdeps derives. The hand-written entries had gone stale:
+    the Qt ones are derived anyway, and the derived plain t64 names made their
+    "t64 | non-t64" alternatives unenforceable; nothing links yaml-cpp dynamically; and
+    SQLite ships inside the package, so libsqlite3-0 was never used.
   - The container image build failed on every nightly run once WITH_THERMO_RAW defaulted
     to ON on Linux aarch64 (#10206): the Dockerfile still installed the .NET SDK/runtime
     that openms-thermo-bridge needs only for amd64, so the arm64 build could not find

@@ -24,12 +24,17 @@ set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
 ## We usually do not want to ship things like stdlib or glibc. Could mess up a system slighlty, when installed system wide
 #include(InstallRequiredSystemLibraries)
 
-# Don't add RPATH
-SET(CMAKE_SKIP_INSTALL_RPATH TRUE)
+## Some libraries reach the staging tree with empty RUNPATH entries, which the loader
+## reads as the current working directory: the release workflow links the binaries
+## under PACKAGE_TYPE=none and packages them after reconfiguring (the script explains
+## how that leaves them behind). The script removes them before the package is built.
+list(APPEND CPACK_PRE_BUILD_SCRIPTS "${CMAKE_CURRENT_LIST_DIR}/cpack_clean_runpath.cmake")
 
-## Derive the system dependencies (glibc, libstdc++, gomp) from the built binaries;
-## a hand-written floor goes stale and installs on systems the binaries cannot run on.
-## CPack appends what it derives to CPACK_DEBIAN_PACKAGE_DEPENDS below.
+## Derive the dependencies from the built binaries; a hand-written list goes stale and
+## installs on systems the binaries cannot run on. Depends is what this derives and
+## nothing else. A library the package ships itself (SQLite, in lib/) needs no Debian
+## package, and a hand-written "<pkg>t64 | <pkg>" alternative would not help: Depends
+## entries are ANDed, and dpkg-shlibdeps derives the plain <pkg>t64 name.
 ##
 ## This was on once before (#10202) and had to come off again (#10207), because the
 ## staging tree carried foreign-architecture binaries: ThermoRawFileParser's NuGet
@@ -58,18 +63,6 @@ set(CPACK_COMPONENTS_ALL Applications doc library library_cli share ${THIRDPARTY
 if(WITH_GUI)
   list(APPEND CPACK_COMPONENTS_ALL library_gui)
 endif()
-
-## TODO we only need to put dependencies on shared libs. But this depends on what is found and what is statically linked on build machine.
-## We should probably use a full system-shared-libs-only machine for building. Then the deps should look similar to below.
-#set(CPACK_DEBIAN_PACKAGE_DEPENDS "libxerces-c-dev (>= 3.1.1), libeigen3-dev, libboost-dev (>= 1.54.0), libboost-iostreams-dev (>= 1.54.0), libboost-date-time-dev (>= 1.54.0), libboost-math-dev (>= 1.54.0), libsvm-dev (>= 3.12), libglpk-dev (>= 4.52.1), zlib1g-dev (>= 1.2.7), libbz2-dev (>= 1.0.6), libqt4-dev (>= 4.8.2), libqt4-opengl-dev (>= 4.8.2), libqtwebkit-dev (>= 2.2.1), coinor-libcoinutils-dev (>= 2.6.4)")
-
-## Entries SHLIBDEPS cannot produce: the (pkg | pkg) alternatives for the t64 rename,
-## and external libraries from Debian repositories listed here to avoid file conflicts.
-## Do not add a libc6, libstdc++6, libgomp1 or libgcc-s1 floor here; dpkg-shlibdeps
-## derives those from the binaries and a second hand-written copy is what went stale.
-## Note: SQLiteCpp is statically linked, but SQLite3 is dynamically linked at runtime
-set(CPACK_DEBIAN_PACKAGE_DEPENDS
-  "libqt6svg6 (>= 6.2.2), libqt6widgets6t64 (>= 6.2.2) | libqt6widgets6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2), libyaml-cpp0.7 | libyaml-cpp0.8, libsqlite3-0 (>= 3.35.0)")
 
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "science")
