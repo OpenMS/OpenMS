@@ -1179,6 +1179,60 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
 }
 END_SECTION
 
+START_SECTION(([EXTRA] chromatograms are stored with a precursor or product only if they have one))
+{
+  // a TIC has neither, an MS1 chromatogram has no product; they used to be written with an empty precursor and a
+  // product isolation window at m/z 0
+  MSChromatogram tic;
+  tic.setNativeID("TIC");
+  tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+  tic.push_back(ChromatogramPeak(1.0, 10.0));
+  MSChromatogram ms1(tic);
+  ms1.setNativeID("MS1");
+  ms1.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_ION_CURRENT_CHROMATOGRAM);
+  Precursor precursor;
+  precursor.setMZ(500.25);
+  ms1.setPrecursor(precursor);
+  MSChromatogram srm(ms1);
+  srm.setNativeID("SRM");
+  srm.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  Product product;
+  product.setMZ(600.5);
+  srm.setProduct(product);
+  PeakMap exp;
+  exp.addChromatogram(tic);
+  exp.addChromatogram(ms1);
+  exp.addChromatogram(srm);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  MzMLFile().store(tmp_filename, exp);
+  std::ifstream is(tmp_filename);
+  std::string out((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+  auto chromatogramXML = [&out](const std::string& id)
+  {
+    Size start = out.find("<chromatogram id=\"" + id + "\"");
+    return out.substr(start, out.find("</chromatogram>", start) - start);
+  };
+  TEST_FALSE(StringUtils::hasSubstring(chromatogramXML("TIC"), "<precursor"))
+  TEST_FALSE(StringUtils::hasSubstring(chromatogramXML("TIC"), "<product"))
+  TEST_TRUE(StringUtils::hasSubstring(chromatogramXML("MS1"), "<precursor"))
+  TEST_FALSE(StringUtils::hasSubstring(chromatogramXML("MS1"), "<product"))
+  TEST_TRUE(StringUtils::hasSubstring(chromatogramXML("SRM"), "<precursor"))
+  TEST_TRUE(StringUtils::hasSubstring(chromatogramXML("SRM"), "<product"))
+
+  PeakMap reloaded;
+  MzMLFile().load(tmp_filename, reloaded);
+  TEST_EQUAL(reloaded.getChromatograms().size(), 3)
+  TEST_TRUE(reloaded.getChromatograms()[0].getPrecursor() == Precursor())
+  TEST_TRUE(reloaded.getChromatograms()[0].getProduct() == Product())
+  TEST_REAL_SIMILAR(reloaded.getChromatograms()[1].getPrecursor().getMZ(), 500.25)
+  TEST_TRUE(reloaded.getChromatograms()[1].getProduct() == Product())
+  TEST_REAL_SIMILAR(reloaded.getChromatograms()[2].getPrecursor().getMZ(), 500.25)
+  TEST_REAL_SIMILAR(reloaded.getChromatograms()[2].getProduct().getMZ(), 600.5)
+}
+END_SECTION
+
 START_SECTION(bool isValid(const std::string& filename, std::ostream& os = std::cerr))
 {
   std::string tmp_filename;

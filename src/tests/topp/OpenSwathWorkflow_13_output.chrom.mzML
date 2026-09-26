@@ -116,11 +116,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -264,11 +259,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -412,11 +402,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEC"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -560,11 +545,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDED"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -708,11 +688,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEF"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -745,11 +720,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEE"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -993,31 +963,31 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="0_Precursor_i0">6874</offset>
-		<offset idRef="0">9034</offset>
-		<offset idRef="1">11262</offset>
-		<offset idRef="2">13490</offset>
-		<offset idRef="2_Precursor_i0">15718</offset>
-		<offset idRef="3">17878</offset>
-		<offset idRef="4">20106</offset>
-		<offset idRef="5">22330</offset>
-		<offset idRef="3_Precursor_i0">24558</offset>
-		<offset idRef="6">26718</offset>
-		<offset idRef="7">28946</offset>
-		<offset idRef="8">31171</offset>
-		<offset idRef="4_Precursor_i0">33400</offset>
-		<offset idRef="9">35561</offset>
-		<offset idRef="10">37790</offset>
-		<offset idRef="11">40016</offset>
-		<offset idRef="6_Precursor_i0">42246</offset>
-		<offset idRef="5_Precursor_i0">44465</offset>
-		<offset idRef="15">46684</offset>
-		<offset idRef="12">48916</offset>
-		<offset idRef="16">51148</offset>
-		<offset idRef="13">53376</offset>
-		<offset idRef="17">55604</offset>
-		<offset idRef="14">57836</offset>
+		<offset idRef="0">8799</offset>
+		<offset idRef="1">11027</offset>
+		<offset idRef="2">13255</offset>
+		<offset idRef="2_Precursor_i0">15483</offset>
+		<offset idRef="3">17408</offset>
+		<offset idRef="4">19636</offset>
+		<offset idRef="5">21860</offset>
+		<offset idRef="3_Precursor_i0">24088</offset>
+		<offset idRef="6">26013</offset>
+		<offset idRef="7">28241</offset>
+		<offset idRef="8">30466</offset>
+		<offset idRef="4_Precursor_i0">32695</offset>
+		<offset idRef="9">34621</offset>
+		<offset idRef="10">36850</offset>
+		<offset idRef="11">39076</offset>
+		<offset idRef="6_Precursor_i0">41306</offset>
+		<offset idRef="5_Precursor_i0">43290</offset>
+		<offset idRef="15">45274</offset>
+		<offset idRef="12">47506</offset>
+		<offset idRef="16">49738</offset>
+		<offset idRef="13">51966</offset>
+		<offset idRef="17">54194</offset>
+		<offset idRef="14">56426</offset>
 	</index>
 </indexList>
-<indexListOffset>60102</indexListOffset>
+<indexListOffset>58692</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

@@ -5961,8 +5961,16 @@ namespace OpenMS::Internal
       }
       writeUserParam_(os, chromatogram, 4, "/mzML/run/chromatogramList/chromatogram/cvParam/@accession", validator,
                       {"mzml intensity array", "mzml coordinate array", "chromatogram type accession"});
-      writePrecursor_(os, chromatogram.getPrecursor(), validator);
-      writeProduct_(os, chromatogram.getProduct(), validator);
+      // precursor and product are optional: a chromatogram without them (e.g. a TIC, or the product of an MS1
+      // chromatogram) would otherwise get an empty precursor and a product isolation window at m/z 0
+      if (chromatogram.getPrecursor() != Precursor())
+      {
+        writePrecursor_(os, chromatogram.getPrecursor(), validator);
+      }
+      if (chromatogram.getProduct() != Product())
+      {
+        writeProduct_(os, chromatogram.getProduct(), validator);
+      }
 
       //--------------------------------------------------------------------------------------------
       //binary data array list

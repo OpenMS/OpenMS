@@ -883,6 +883,10 @@ Fixes:
     - Reading an mzML file only partly (metadata only, or counting its spectra, as the first pass of
       MzMLFile::transform() does) ends the progress it started, so the progress output of every later
       file is no longer nested one level deeper (#10271).
+    - mzML chromatograms are written with a precursor or product only if they have one. A TIC used
+      to get an empty precursor and a product isolation window at m/z 0, and an MS1 chromatogram such
+      a product. The original DIAuditor, for example, read that product's isolation window as the
+      last spectrum's and crashed (#10271).
     - Fixed INI required/advanced parsing, XQuest FDR-type restoration, mzIdentML missing
       modification locations, PepXML source-run paths/redundant Comet scores and duplicate
       IDMapper spectrum references (#5443, #8905, #9089, #9660, #9763, #9766).
