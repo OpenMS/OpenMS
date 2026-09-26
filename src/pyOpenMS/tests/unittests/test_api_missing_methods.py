@@ -4,6 +4,8 @@ Tests for missing methods on existing classes (Task 3).
 Verifies that methods present in the Cython 3.5 API
 are available in the nanobind build.
 """
+import os
+
 import pytest
 import pyopenms
 
@@ -612,6 +614,21 @@ class TestControlledVocabularyMethods:
     def test_get_term_by_name(self):
         cv = pyopenms.ControlledVocabulary()
         assert hasattr(cv, 'getTermByName')
+
+    def test_get_term_returns_cvterm(self):
+        """getTerm() and getTermByName() return a CVTerm_ControlledVocabulary, as in 3.5.0."""
+        obo = os.path.join(pyopenms.File.getOpenMSDataPath(), 'CV', 'psi-ms.obo')
+        if not os.path.exists(obo):
+            pytest.skip('psi-ms.obo is not installed')
+        cv = pyopenms.ControlledVocabulary()
+        cv.loadFromOBO('psims', obo)
+        term = cv.getTerm('MS:1002252')
+        assert isinstance(term, pyopenms.CVTerm_ControlledVocabulary)
+        assert term.id == 'MS:1002252'
+        assert term.name == 'Comet:xcorr'
+        by_name = cv.getTermByName('Comet:xcorr')
+        assert isinstance(by_name, pyopenms.CVTerm_ControlledVocabulary)
+        assert by_name.id == 'MS:1002252'
 
     def test_get_all_child_terms(self):
         cv = pyopenms.ControlledVocabulary()

@@ -2832,22 +2832,13 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("exists", [](const OpenMS::ControlledVocabulary& self, const std::string& id) { return self.exists(id); }, "id"_a)
         .def("hasTermWithName", [](const OpenMS::ControlledVocabulary& self, const std::string& name) { return self.hasTermWithName(name); }, "name"_a)
         .def("isChildOf", [](const OpenMS::ControlledVocabulary& self, const std::string& child_id, const std::string& parent_id) { return self.isChildOf(child_id, parent_id); }, "child_id"_a, "parent_id"_a)
+        // Return a copy of the term as CVTerm_ControlledVocabulary, as 3.5.0 did.
         .def("getTerm", [](const OpenMS::ControlledVocabulary& self, const std::string& id) {
-            const auto& term = self.getTerm(id);
-            nb::dict d;
-            d["id"] = nb::str(term.id.c_str());
-            d["name"] = nb::str(term.name.c_str());
-            d["description"] = nb::str(term.description.c_str());
-            return d;
-        }, "id"_a, "Returns the term with the given id as a dict")
+            return OpenMS::ControlledVocabulary::CVTerm(self.getTerm(id));
+        }, "id"_a, "Returns the term with the given id")
         .def("getTermByName", [](const OpenMS::ControlledVocabulary& self, const std::string& name, const std::string& desc) {
-            const auto& term = self.getTermByName(name, desc);
-            nb::dict d;
-            d["id"] = nb::str(term.id.c_str());
-            d["name"] = nb::str(term.name.c_str());
-            d["description"] = nb::str(term.description.c_str());
-            return d;
-        }, "name"_a, "desc"_a = "", "Returns the term with the given name as a dict")
+            return OpenMS::ControlledVocabulary::CVTerm(self.getTermByName(name, desc));
+        }, "name"_a, "desc"_a = "", "Returns the term with the given name")
         .def("getAllChildTerms", [](const OpenMS::ControlledVocabulary& self, const std::string& parent_id) { std::set<std::string> terms; self.getAllChildTerms(terms, parent_id); return terms; }, "parent_id"_a, "Returns all child terms of the given parent term")
         ;
 
