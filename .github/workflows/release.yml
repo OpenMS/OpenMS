@@ -209,6 +209,34 @@ jobs:
             ${{ github.workspace }}/build/${{ steps.build-openms.outputs.preset }}/*.deb
             ${{ github.workspace }}/build/${{ steps.build-openms.outputs.preset }}/*.pkg
 
+      # The developer SDK (libraries, headers, CMake package, shared data and the
+      # bundled dependencies) is installed from the tree the installer was just
+      # packaged from, then checked by building src/tests/external against the
+      # extracted archive. See tools/ci/package_sdk.sh.
+      - name: Install SDK Packaging Tools
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends patchelf
+
+      - name: Package the Developer SDK
+        shell: bash
+        env:
+          PRESET: ${{ steps.build-openms.outputs.preset }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          bash tools/ci/package_sdk.sh "build/$PRESET" "$VERSION" "$RUNNER_TEMP/sdk"
+
+      - name: Upload the Developer SDK as an Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ format('sdk-{0}-{1}-{2}', steps.version.outputs.name, runner.os, runner.arch) }}
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/sdk/*.tar.gz
+            ${{ runner.temp }}/sdk/*.zip
+
       # Zip the documentation first, since there are :: which make the
       # upload action choke.
       - name: Zip Documentation
@@ -267,6 +295,13 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           pattern: installer-*
+          merge-multiple: true
+          path: ${{ github.workspace }}/downloads
+
+      - name: Download the Developer SDK
+        uses: actions/download-artifact@v8
+        with:
+          pattern: sdk-*
           merge-multiple: true
           path: ${{ github.workspace }}/downloads
 
@@ -434,6 +469,13 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           pattern: installer-*
+          merge-multiple: true
+          path: ${{ github.workspace }}/downloads
+
+      - name: Download the Developer SDK
+        uses: actions/download-artifact@v8
+        with:
+          pattern: sdk-*
           merge-multiple: true
           path: ${{ github.workspace }}/downloads
 

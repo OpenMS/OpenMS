@@ -157,11 +157,14 @@ if(WITH_ONNX)
   endif()
 
   if(ORT_LIB_PATH)
-      # Safely install ONNX shared libraries based on the operating system
+      # Safely install ONNX shared libraries based on the operating system.
+      # Component Dependencies, as for the other runtime dependencies
+      # (cmake/package_general.cmake): the installers and the SDK select their
+      # components by name and never install the unnamed default component.
       if(WIN32)
-          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_BIN_DIR}")
+          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_BIN_DIR}" COMPONENT Dependencies)
       else()
-          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_LIB_DIR}")
+          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_LIB_DIR}" COMPONENT Dependencies)
       endif()
   endif()
 
@@ -241,9 +244,13 @@ if(WITH_ONNX)
     endif()
   endforeach()
 
-  # Ensure models are packaged during 'make install'.
+  # Ensure models are packaged during 'make install'. They are shared data the
+  # library loads at runtime, so they belong to the share component the
+  # installers and the SDK install (the unnamed default component is never
+  # selected by them).
   install(FILES ${OPENMS_PEPTDEEP_MODEL_FILES}
-          DESTINATION "share/OpenMS/models")
+          DESTINATION "${INSTALL_SHARE_DIR}/models"
+          COMPONENT share)
 
 endif()
 

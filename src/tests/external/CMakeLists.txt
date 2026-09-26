@@ -183,11 +183,28 @@ set_tests_properties(TestExternalCodeCLI PROPERTIES PASS_REGULAR_EXPRESSION "hel
 ## Enable testing - for Nightly Build log
 add_test(TestExternalCode TestExternalCode)
 
+## A WITH_ONNX installation ships the PeptDeep inference classes and their ONNX
+## models under OPENMS_DATA_DIR/models, and the ONNX Runtime library among its
+## dependencies. The consumer loads every model from the installation and runs a
+## prediction, so a package that carries the classes but not the models, or a
+## runtime that cannot be loaded, fails here rather than at a user's.
+if(OpenMS_WITH_ONNX)
+  set(_peptdeep_models_dir "${OPENMS_DATA_DIR}/models")
+  foreach(_model IN ITEMS peptdeep_rt_dynamic.onnx peptdeep_ccs_dynamic.onnx peptdeep_ms2_dynamic.onnx)
+    if(NOT EXISTS "${_peptdeep_models_dir}/${_model}")
+      message(FATAL_ERROR "OpenMS_WITH_ONNX is set but the installation does not ship ${_peptdeep_models_dir}/${_model}")
+    endif()
+  endforeach()
+  add_executable(TestExternalCodePeptDeep TestExternalCodePeptDeep.cpp)
+  target_link_libraries(TestExternalCodePeptDeep OpenMS::OpenMS)
+  add_test(TestExternalCodePeptDeep TestExternalCodePeptDeep "${_peptdeep_models_dir}")
+endif()
+
 ## Windows has no RPATH: executables find OpenMS.dll (and the DLLs of the
 ## dependencies OpenMS was built against) through PATH. OpenMSConfig.cmake
 ## tells us where the OpenMS libraries were installed.
 if(WIN32)
-  foreach(_test IN ITEMS TestExternalCode TestExternalCodeCLI TestExternalCodeQt TestExternalCodeGUI)
+  foreach(_test IN ITEMS TestExternalCode TestExternalCodeCLI TestExternalCodeQt TestExternalCodeGUI TestExternalCodePeptDeep)
     if(TEST ${_test})
       set_property(TEST ${_test} APPEND PROPERTY
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${OPENMS_LIB_DIR}")
