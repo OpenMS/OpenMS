@@ -319,8 +319,10 @@ TOPP tools:
       - On Linux and macOS, FileConverter reads Thermo .raw in-process by default
         (-RawToMzML:reader inprocess): the packages there provide neither mono nor
         ThermoRawFileParser on the PATH, which the external reader needs. The in-process reader
-        needs a .NET 8 runtime and applies vendor peak picking unless -RawToMzML:no_peak_picking,
-        as ThermoRawFileParser did. Pipelines that set -RawToMzML:ThermoRaw_executable must pass
+        needs a .NET 8 runtime (with DOTNET_ROOT set if it is not in the standard location, e.g.
+        installed with Homebrew or into ~/.dotnet) and applies vendor peak picking unless
+        -RawToMzML:no_peak_picking, as ThermoRawFileParser did. Pipelines that set
+        -RawToMzML:ThermoRaw_executable must pass
         '-RawToMzML:reader external' too; FileConverter warns when that option or
         -RawToMzML:NET_executable is set but the in-process reader runs. Windows keeps the
         external reader, which runs on the built-in .NET Framework.
