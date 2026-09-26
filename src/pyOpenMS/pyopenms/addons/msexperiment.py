@@ -524,11 +524,20 @@ def get_massql_df(self, ion_mobility=False):
     return ms1_df, ms2_df
 
 
+def _rename_long_kwarg(kwargs, caller):
+    """pyOpenMS 3.5.0 named the long_format argument of get_df() and get_df_columns() "long"."""
+    if "long" in kwargs:
+        if "long_format" in kwargs:
+            raise TypeError(f"{caller}() got both 'long' and 'long_format'")
+        kwargs["long_format"] = kwargs.pop("long")
+
+
 @addon("MSExperiment")
 def get_df(self, *args, **kwargs):
     """Deprecated: use to_df() instead."""
     warnings.warn("get_df() is deprecated. Use to_df() instead.",
                   DeprecationWarning, stacklevel=2)
+    _rename_long_kwarg(kwargs, "get_df")
     return self.to_df(*args, **kwargs)
 
 
@@ -539,6 +548,7 @@ def get_df_columns(self, *args, **kwargs):
         "get_df_columns() is deprecated. Use df_columns() instead.",
         DeprecationWarning, stacklevel=2
     )
+    _rename_long_kwarg(kwargs, "get_df_columns")
     return self.df_columns(*args, **kwargs)
 
 

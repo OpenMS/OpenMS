@@ -34,6 +34,7 @@
 #ifdef _OPENMP
   #include <omp.h>
 #endif
+#include <algorithm>
 #include <bit>
 #include <cmath>
 #include <functional>
@@ -53,6 +54,29 @@ namespace OpenMS
   std::array<double, 128> FragmentIndex::residue_mass_table_{};
   std::once_flag FragmentIndex::mass_table_once_flag_;
   FragmentIndex::IonOffsets FragmentIndex::ion_offsets_{};
+
+  namespace
+  {
+    // Characters a peptide in the index may contain: one-letter codes of residues with a known
+    // elemental formula. Excludes the ambiguous codes B, X and Z, stop codons ('*') and any other
+    // symbol. AASequence parses '*' as a weightless X, so a peptide containing one could be
+    // indexed but never scored.
+    const std::array<bool, 256>& indexableResidues()
+    {
+      static const std::array<bool, 256> table = []
+      {
+        std::array<bool, 256> indexable{};
+        const ResidueDB* rdb = ResidueDB::getInstance();
+        for (char c = 'A'; c <= 'Z'; ++c)
+        {
+          const Residue* r = rdb->getResidue(static_cast<unsigned char>(c));
+          indexable[static_cast<unsigned char>(c)] = (r != nullptr && !r->getFormula().isEmpty());
+        }
+        return indexable;
+      }();
+      return table;
+    }
+  }
 
   void FragmentIndex::initResidueMassTable_()
   {
@@ -733,6 +757,7 @@ namespace OpenMS
     static const double water = Residue::getInternalToFull().getMonoWeight();
     const double base_sum_constants = water + Constants::PROTON_MASS_U
                                       + fixed_nterm_delta_ + fixed_cterm_delta_;
+    const std::array<bool, 256>& indexable = indexableResidues();
 
     #pragma omp parallel for
     for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
@@ -747,15 +772,26 @@ namespace OpenMS
       const size_t L = seq.size();
       if (L < peptide_min_length_) continue;
 
+      // Position of the first residue at or after `from` that cannot be indexed
+      // (X/B/Z, a stop codon or any other symbol), or npos.
+      auto findUnindexable = [&seq, &indexable](size_t from)
+      {
+        for (size_t i = from; i < seq.size(); ++i)
+        {
+          if (!indexable[static_cast<unsigned char>(seq[i])]) return i;
+        }
+        return std::string::npos;
+      };
+
       // Honor peptide:max_size=0 as "no maximum" (the documented semantics of
       // the non-SNES path). Using raw peptide_max_length_ in std::min would give
       // length 0 and an empty SNES index.
       const size_t effective_max_length = (peptide_max_length_ == 0) ? L : peptide_max_length_;
 
-      // Mass-compute + filter + emit. No X/B/Z check here: the dispatch below
-      // either calls sweepSpan(0, L) on a protein with no ambiguous residues
-      // or splits at X/B/Z, so span boundaries structurally prevent any
-      // ambiguous residue from reaching this lambda.
+      // Mass-compute + filter + emit. No residue check here: the dispatch below
+      // either calls sweepSpan(0, L) on a protein that can be indexed as a whole
+      // or splits at X/B/Z, stop codons and other symbols, so span boundaries
+      // structurally prevent any such residue from reaching this lambda.
       auto emitMother = [&](size_t start, size_t length, bool is_single_c)
       {
         if (length < peptide_min_length_) return;
@@ -809,12 +845,13 @@ namespace OpenMS
         }
       };
 
-      // No X/B/Z anywhere: sweep the whole protein as a single span.
-      // Otherwise: split into contiguous unambiguous spans and sweep each.
+      // No X/B/Z (or stop codon, or other symbol) anywhere: sweep the whole
+      // protein as a single span. Otherwise: split into contiguous unambiguous
+      // spans and sweep each.
       // Issue #9192 item 2: previously the whole mother was dropped on any
       // X/B/Z overlap; truncating to the unambiguous prefix/suffix at the same
       // anchor preserves valid shorter realizations.
-      const size_t first_bad = seq.find_first_of("XBZ");
+      const size_t first_bad = findUnindexable(0);
       if (first_bad == std::string::npos)
       {
         sweepSpan(0, L);
@@ -828,7 +865,7 @@ namespace OpenMS
           sweepSpan(p, bad);
           p = bad + 1;
           if (p >= L) break;  // protein ended with X/B/Z — no tail span
-          bad = seq.find_first_of("XBZ", p);
+          bad = findUnindexable(p);
           if (bad == std::string::npos) { sweepSpan(p, L); break; }  // last span — no more X/B/Z
         }
       }
@@ -896,6 +933,9 @@ namespace OpenMS
       for (int t = 0; t < num_threads; ++t)
         thread_peptides[t].reserve(est_per_thread);
 
+      const std::array<bool, 256>& indexable = indexableResidues();
+      const auto is_unindexable = [&indexable](char c) { return !indexable[static_cast<unsigned char>(c)]; };
+
       vector<pair<size_t, size_t>> digested_peptides;
       #pragma omp parallel for private(digested_peptides)
       for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
@@ -911,10 +951,11 @@ namespace OpenMS
 
         for (const pair<size_t, size_t>& digested_peptide : digested_peptides)
         {
-          // skip peptides containing unknown or ambiguous AA codes (X, B, Z)
+          // skip peptides containing unknown or ambiguous AA codes (X, B, Z), stop codons ('*')
+          // or other symbols
           {
             const std::string_view sub(protein.sequence.data() + digested_peptide.first, digested_peptide.second);
-            if (sub.find_first_of("XBZ") != std::string_view::npos)
+            if (std::any_of(sub.begin(), sub.end(), is_unindexable))
             {
               #pragma omp atomic
               skipped_peptides++;
@@ -1037,7 +1078,7 @@ namespace OpenMS
       }
       if (skipped_peptides > 0)
       {
-        OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unknown or ambiguous AA (X/B/Z)\n";
+        OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unknown or ambiguous AA (X/B/Z), stop codons or other symbols\n";
       }
 
       // Merge per-thread peptide vectors.

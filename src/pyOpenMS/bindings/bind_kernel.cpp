@@ -757,6 +757,9 @@ about a single chromatogram.
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::Contact, OpenMS::CVTermList>(m, "Contact", "OpenMS class Contact")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Contact &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Contact& self) { return OpenMS::TargetedExperimentHelper::Contact(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Contact& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Contact(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
@@ -946,6 +949,9 @@ This is a lightweight instrument reference with just an id field.
 For the full MS instrument description, use the Instrument class instead.
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Instrument &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Instrument& self) { return OpenMS::TargetedExperimentHelper::Instrument(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Instrument& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Instrument(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
 
@@ -2511,6 +2517,9 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::Prediction, OpenMS::CVTermList>(m, "Prediction", "OpenMS class Prediction")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Prediction &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Prediction& self) { return OpenMS::TargetedExperimentHelper::Prediction(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Prediction& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Prediction(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
@@ -2542,6 +2551,9 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::Protein, OpenMS::CVTermList>(m, "Protein", "OpenMS class Protein")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Protein &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Protein& self) { return OpenMS::TargetedExperimentHelper::Protein(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Protein& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Protein(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
@@ -2754,6 +2766,9 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::Publication, OpenMS::CVTermList>(m, "Publication", "CVTermList")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Publication &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Publication& self) { return OpenMS::TargetedExperimentHelper::Publication(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Publication& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Publication(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
@@ -3341,6 +3356,9 @@ Stores information about the ion type, ordinal, and rank for MS product ions.
 CVTermListInterface
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Interpretation &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Interpretation& self) { return OpenMS::TargetedExperimentHelper::Interpretation(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Interpretation& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Interpretation(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def_rw("ordinal", &OpenMS::TargetedExperimentHelper::Interpretation::ordinal)
@@ -3353,6 +3371,9 @@ CVTermListInterface
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::TraMLProduct, OpenMS::CVTermListInterface>(m, "TraMLProduct", "OpenMS class TraMLProduct")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::TraMLProduct &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) { return OpenMS::TargetedExperimentHelper::TraMLProduct(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self, nb::dict) { return OpenMS::TargetedExperimentHelper::TraMLProduct(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def("setChargeState", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, int charge) { return self.setChargeState(charge); }, "charge"_a)
         .def("hasCharge", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) { return self.hasCharge(); })

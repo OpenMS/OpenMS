@@ -13,6 +13,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <cstdint>
 #include <limits>
+#include <memory>
 #include <string>
 
 class TimsDataHandle;
@@ -27,6 +28,15 @@ namespace OpenMS
    * Supports DDA-PASEF, DIA-PASEF, and raw frame-level 4D access.
    * Ion mobility data is stored in VSSC (1/K0) units using IM_PEAK format
    * for MS1 and DIA MS2, and scalar drift times for DDA MS2.
+   *
+   * Every method taking a path also accepts a zipped .d directory ('.d.zip'), which is
+   * unpacked into a temporary directory for the duration of the call. The .d directory may be
+   * nested in the archive: the shallowest one holding analysis.tdf is read, and __MACOSX
+   * folders are skipped. readDIAMetadata() keeps its extraction until the next call on the same
+   * object: if that call reads the same archive, it reads the kept files instead of unpacking
+   * the archive again, so a consumer sized from the metadata receives the spectra of the same
+   * files. Any call other than readDIAMetadata() removes the kept files, as does destroying the
+   * object.
    *
    * In FRAME export mode, raw TOF indices and intensities are returned without
    * any signal processing. TOF-to-m/z and scan-to-IM conversions are applied,
@@ -244,6 +254,19 @@ namespace OpenMS
 
     /// Populate SourceFile metadata from the .d path (no peak data read)
     void loadExperimentalSettings_(const std::string& path, ExperimentalSettings& settings);
+
+    /// A '.d.zip' archive unpacked into a temporary directory (defined in the .cpp)
+    struct UnpackedArchive;
+
+    /// Unpack @p path if it is a '.d.zip' archive; returns nullptr for a .d directory
+    static std::shared_ptr<UnpackedArchive> unpack_(const std::string& path);
+
+    /// The files to read @p path from: those kept by readDIAMetadata() if it unpacked the same
+    /// path, else a new extraction (nullptr for a .d directory). Nothing stays kept afterwards.
+    std::shared_ptr<UnpackedArchive> takeUnpacked_(const std::string& path);
+
+    /// The archive the last readDIAMetadata() unpacked, kept for the call that follows
+    std::shared_ptr<UnpackedArchive> unpacked_;
   };
 
 } // namespace OpenMS

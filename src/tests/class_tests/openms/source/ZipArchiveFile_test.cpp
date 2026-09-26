@@ -11,6 +11,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
 #include <fstream>
+#include <iterator>
 
 using namespace OpenMS;
 
@@ -117,6 +118,79 @@ START_SECTION([EXTRA] unzipDirectory error paths)
     std::unique_ptr<TempDir> td;
     TEST_STRING_EQUAL(ZipArchiveFile::unzipDirectory(adir, td), adir)
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] unzipDirectory stops at an entry larger than it declares)
+{
+  // A crafted archive (zip bomb) can declare small entries that inflate to much more. libzip
+  // does not stop an entry at its declared size, so unzipDirectory counts the bytes itself.
+  // Here a 1 MiB entry claims 1000 bytes in its headers.
+  TempDir tmp;
+  const std::string src = tmp.getPath() + "/src";
+  File::makeDir(src);
+  {
+    std::ofstream ofs((src + "/data.bin").c_str(), std::ios::binary);
+    ofs << std::string(1 << 20, 'x');
+  }
+  const std::string archive = tmp.getPath() + "/lying.zip";
+  ZipArchiveFile::zipDirectory(src, archive);
+
+  std::string bytes;
+  {
+    std::ifstream ifs(archive.c_str(), std::ios::binary);
+    bytes.assign(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+  }
+  const size_t local = bytes.find(std::string("PK\x03\x04", 4));
+  const size_t central = bytes.find(std::string("PK\x01\x02", 4));
+  TEST_NOT_EQUAL(local, std::string::npos)
+  TEST_NOT_EQUAL(central, std::string::npos)
+  const std::string declared("\xe8\x03\x00\x00", 4); // 1000, little endian
+  bytes.replace(local + 22, 4, declared);   // uncompressed size in the local file header
+  bytes.replace(central + 24, 4, declared); // and in the central directory header
+  {
+    std::ofstream ofs(archive.c_str(), std::ios::binary | std::ios::trunc);
+    ofs << bytes;
+  }
+
+  std::unique_ptr<TempDir> td;
+  std::string message;
+  try
+  {
+    ZipArchiveFile::unzipDirectory(archive, td);
+  }
+  catch (const Exception::InvalidValue& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.find("larger than its declared size") != std::string::npos, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] unzipDirectory rejects an entry that leaves the target directory)
+{
+  // The target directory is <TempDir>/parquet_unpacked. '../parquet_unpacked_x/f.txt' leads to
+  // a sibling whose path starts with the target's path, so a string prefix check accepts it.
+  TempDir tmp;
+  const std::string file = tmp.getPath() + "/f.txt";
+  {
+    std::ofstream ofs(file.c_str());
+    ofs << "payload";
+  }
+  const std::string archive = tmp.getPath() + "/escape.zip";
+  ZipArchiveFile::addOrReplaceFromFile(archive, "../parquet_unpacked_x/f.txt", file);
+
+  std::unique_ptr<TempDir> td;
+  std::string message;
+  try
+  {
+    ZipArchiveFile::unzipDirectory(archive, td);
+  }
+  catch (const Exception::InvalidValue& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.find("outside target directory") != std::string::npos, true)
 }
 END_SECTION
 

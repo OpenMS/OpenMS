@@ -10,6 +10,8 @@ Tests cover:
 - Edge cases (empty spectra, missing data)
 """
 
+import os
+
 import pytest
 import numpy as np
 
@@ -504,6 +506,26 @@ class TestPeptideIdentificationListGetDF:
         """Test to_df() with decode_ontology=False."""
         df = peptide_id_list.to_df(decode_ontology=False)
         assert len(df) == 2
+
+    def test_to_df_decode_ontology_names_cv_terms(self):
+        """Test that to_df() and df_columns() name PSI-MS accession meta values by their term."""
+        obo = os.path.join(pyopenms.File.getOpenMSDataPath(), 'CV', 'psi-ms.obo')
+        if not os.path.exists(obo):
+            pytest.skip('psi-ms.obo is not installed')
+        hit = pyopenms.PeptideHit()
+        hit.setScore(50.0)
+        hit.setCharge(2)
+        hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        hit.setMetaValue('MS:1002252', 1.5)
+        pep = pyopenms.PeptideIdentification()
+        pep.setIdentifier('test_id')
+        pep.setHits([hit])
+        pep_list = pyopenms.PeptideIdentificationList()
+        pep_list.append(pep)
+
+        assert 'Comet:xcorr' in pep_list.to_df().columns
+        assert 'Comet:xcorr' in pep_list.df_columns()
+        assert 'MS:1002252' in pep_list.to_df(decode_ontology=False).columns
 
     def test_to_df_custom_missing_values(self, peptide_id_list_with_unidentified):
         """Test to_df() with custom default_missing_values."""

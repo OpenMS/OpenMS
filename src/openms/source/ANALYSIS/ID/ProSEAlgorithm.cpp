@@ -1087,13 +1087,24 @@ namespace OpenMS
                       << (strategy.is_prefix ? "prefix" : "suffix") << ")." << std::endl;
     }
 
-    // 1. Copy targets, dropping pre-existing decoys when requested.
+    // 1. Copy targets, dropping pre-existing decoys when requested. A stop codon ('*') that ends
+    //    a sequence, as in databases translated from genomes (e.g. SGD), is not a residue: remove
+    //    it so the C-terminal peptide stays searchable and decoys are built from the protein
+    //    alone. FragmentIndex skips peptides that contain a stop codon inside the sequence.
+    //    An entry left without residues has nothing to search, and decoy generation needs
+    //    residues: drop it.
     for (const FASTAFile::FASTAEntry& e : fasta_db)
     {
       const bool is_existing_decoy = strategy.strip_existing &&
         (strategy.strip_is_prefix ? StringUtils::hasPrefix(e.identifier, strategy.strip_string)
                                   : StringUtils::hasSuffix(e.identifier, strategy.strip_string));
-      if (!is_existing_decoy) { db.push_back(e); }
+      if (!is_existing_decoy)
+      {
+        db.push_back(e);
+        std::string& sequence = db.back().sequence;
+        while (!sequence.empty() && sequence.back() == '*') { sequence.pop_back(); }
+        if (sequence.empty()) { db.pop_back(); }
+      }
     }
 
     // 2. Generate decoys by reversing the (remaining) target proteins.

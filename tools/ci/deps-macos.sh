@@ -74,9 +74,12 @@ fi
 # Optional documentation dependencies:
 if [ "$SKIP_DOC_DEPS" = false ]; then
   brew install \
-    doxygen \
-    graphviz
+    doxygen
 fi
+
+# Graphviz is only needed for the optional 'doc_dot' target (documentation
+# with all dot graphs), so it is not installed here:
+#   brew install graphviz
 # [installation_documentation]
 
 # These are only needed in CI:
