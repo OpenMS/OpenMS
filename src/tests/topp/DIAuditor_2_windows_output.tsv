@@ -1,0 +1,5 @@
+SourceFile	LoMZ	HiMZ	WidthMZ	IonMobility	MassResolvingPower	MSMSCount	RTMin	RTMax	CycleTimeMedian	TIC25ileRT	TIC50ileRT	TIC75ileRT	TotalTIC	PkCountMin	PkCount25ile	PkCount50ile	PkCount75ile	PkCountMax	IonMobilityLow	IonMobilityHigh	TargetMZ
+DIAuditor_1_input	400	450	50	NA	30000	8	1.004	1.174	1.2	1.024	1.074	1.104	17000	6	6	7	8	9	NA	NA	425
+DIAuditor_1_input	450	500	50	NA	30000	8	1.008	1.178	1.2	1.028	1.078	1.108	21100	8	8	9	10	11	NA	NA	475
+DIAuditor_1_input	500	550	50	NA	30000	8	1.012	1.182	1.2	1.032	1.082	1.112	27000	10	10	11	12	13	NA	NA	525
+DIAuditor_1_input	850	950	100	NA	30000	1	1.19	1.19	NA	1.19	1.19	1.19	750	5	5	5	5	5	NA	NA	900

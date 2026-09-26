@@ -1,0 +1,518 @@
+{
+  "mzQC": {
+    "version": "1.0.0",
+    "creationDate": "2026-09-25T12:20:55Z",
+    "description": "Data-independent acquisition quality metrics (DIAuditor)",
+    "runQualities": [
+      {
+        "metadata": {
+          "label": "DIAuditor_1_input",
+          "inputFiles": [
+            {
+              "location": "file:///DIAuditor_1_input.mzML",
+              "name": "DIAuditor_1_input.mzML",
+              "fileFormat": {
+                "accession": "MS:1000584",
+                "name": "mzML format"
+              },
+              "fileProperties": [
+                {
+                  "accession": "MS:1000569",
+                  "name": "SHA-1",
+                  "value": "0a5216261a1734ef235264d09e6fb4ff3c733923"
+                },
+                {
+                  "accession": "MS:1000031",
+                  "name": "instrument model",
+                  "value": "Orbitrap Exploris 480"
+                },
+                {
+                  "accession": "MS:1000529",
+                  "name": "instrument serial number",
+                  "value": "FSN20001"
+                }
+              ]
+            }
+          ],
+          "analysisSoftware": [
+            {
+              "accession": "MS:1000752",
+              "name": "TOPP software",
+              "description": "TOPP (The OpenMS proteomics pipeline) software.",
+              "value": "DIAuditor",
+              "version": "3.6.0",
+              "uri": "https://www.openms.de"
+            }
+          ]
+        },
+        "qualityMetrics": [
+          {
+            "accession": "MS:4000067",
+            "name": "MS run duration",
+            "description": "The duration of the mass spectrometry acquisition (as measured by the time between the last scan and first scan) in seconds.",
+            "value": 11.399999999999991,
+            "unit": {
+              "accession": "UO:0000010",
+              "name": "second"
+            }
+          },
+          {
+            "accession": "MS:4000070",
+            "name": "retention time acquisition range",
+            "description": "Upper and lower limit of retention time at which spectra are recorded.",
+            "value": [
+              60.0,
+              71.39999999999999
+            ],
+            "unit": {
+              "accession": "UO:0000010",
+              "name": "second"
+            }
+          },
+          {
+            "accession": "MS:4000059",
+            "name": "number of MS1 spectra",
+            "description": "The number of MS1 events in the run.",
+            "value": 8,
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          },
+          {
+            "accession": "MS:4000060",
+            "name": "number of MS2 spectra",
+            "description": "The number of MS2 events in the run.",
+            "value": 25,
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          },
+          {
+            "accession": "MS:4000061",
+            "name": "MS1 density quantiles",
+            "description": "The first to n-th quantile of MS1 peak density (scan peak counts). A value triplet represents the original QuaMeter metrics, the quartiles of MS1 density. The number of values in the tuple implies the quantile mode.",
+            "value": [
+              25,
+              28,
+              31
+            ],
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          },
+          {
+            "accession": "MS:4000062",
+            "name": "MS2 density quantiles",
+            "description": "The first to n-th quantile of MS2 peak density (scan peak counts). A value triplet represents the original QuaMeter metrics, the quartiles of MS2 density. The number of values in the tuple implies the quantile mode.",
+            "value": [
+              8,
+              9,
+              11
+            ],
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          },
+          {
+            "accession": "MS:4000190",
+            "name": "MS1 TIC quantile RT",
+            "description": "The amount of time elapsed since the start of the data acquisition until the implied quantile of all MS1 TIC has been accumulated. The number of values in the tuple implies the quantile mode.",
+            "value": [
+              1.05,
+              1.1,
+              1.15
+            ],
+            "unit": {
+              "accession": "UO:0000031",
+              "name": "minute"
+            }
+          },
+          {
+            "accession": "MS:4000191",
+            "name": "MS2 TIC quantile RT",
+            "description": "The amount of time elapsed since the start of the data acquisition until the implied quantile of all MS2 TIC has been accumulated. The number of values in the tuple implies the quantile mode.",
+            "value": [
+              1.054,
+              1.108,
+              1.154
+            ],
+            "unit": {
+              "accession": "UO:0000031",
+              "name": "minute"
+            }
+          },
+          {
+            "accession": "MS:4000192",
+            "name": "MS1 median cycle time",
+            "description": "The median time between consecutive MS1 scans across the full run.",
+            "value": 1.2000000000000028,
+            "unit": {
+              "accession": "UO:0000010",
+              "name": "second"
+            }
+          },
+          {
+            "accession": "MS:4000069",
+            "name": "m/z acquisition range",
+            "description": "Upper and lower limit of m/z precursor values at which MSn spectra are recorded.",
+            "value": [
+              425.0,
+              900.0
+            ],
+            "unit": {
+              "accession": "MS:1000040",
+              "name": "m/z"
+            }
+          },
+          {
+            "accession": "MS:4000193",
+            "name": "DIA isolation window median cycle time",
+            "description": "The median time between consecutive measurements of the same DIA isolation window across the full run.",
+            "value": 3.0,
+            "unit": {
+              "accession": "UO:0000010",
+              "name": "second"
+            }
+          },
+          {
+            "accession": "MS:4000194",
+            "name": "DIA isolation window count",
+            "description": "The number of distinct DIA isolation windows (i.e. sharing the same low m/z boundary, high m/z boundary, and ion mobility parameters).",
+            "value": 7,
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          },
+          {
+            "accession": "MS:4000195",
+            "name": "DIA isolation window m/z widths",
+            "description": "The minimum and maximum m/z width of the DIA isolation windows, defined as the subtraction between the high m/z boundary and the low m/z boundary. For fixed-window DIA methods, the same value is reported twice.",
+            "value": [
+              50.0,
+              100.0
+            ],
+            "unit": {
+              "accession": "MS:1000040",
+              "name": "m/z"
+            }
+          },
+          {
+            "accession": "MS:4000196",
+            "name": "DIA isolation window count",
+            "description": "The minimum and maximum number of times any specific DIA isolation window is measured via MS/MS. In case all isolation windows are sampled the same number of times, this value is reported twice.",
+            "value": [
+              1,
+              4
+            ],
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          },
+          {
+            "accession": "MS:4000197",
+            "name": "DIA isolation window half TIC RT",
+            "description": "The minimum and maximum retention time in which at least half of the TIC for any given DIA isolation window compared to the full TIC in this isolation window has been collected.",
+            "value": [
+              1.074,
+              1.19
+            ],
+            "unit": {
+              "accession": "UO:0000031",
+              "name": "minute"
+            }
+          },
+          {
+            "accession": "MS:4000198",
+            "name": "DIA isolation window TIC",
+            "description": "The minimum and maximum TIC collected in any given DIA isolation window.",
+            "value": [
+              750.0,
+              18600.0
+            ],
+            "unit": {
+              "accession": "MS:1000043",
+              "name": "intensity unit"
+            }
+          },
+          {
+            "accession": "MS:4000199",
+            "name": "DIA isolation window peak count",
+            "description": "For each DIA isolation window, we compute the median number of peaks per MS/MS measurement. This metric reports the lowest and highest peak count medians among the isolation windows.",
+            "value": [
+              5,
+              12
+            ],
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          }
+        ]
+      },
+      {
+        "metadata": {
+          "label": "OpenSwathWorkflow_1_input",
+          "inputFiles": [
+            {
+              "location": "file:///OpenSwathWorkflow_1_input.mzML",
+              "name": "OpenSwathWorkflow_1_input.mzML",
+              "fileFormat": {
+                "accession": "MS:1000584",
+                "name": "mzML format"
+              },
+              "fileProperties": [
+                {
+                  "accession": "MS:1000569",
+                  "name": "SHA-1",
+                  "value": "c781bfa8039eae8940610d86ec2a336a7e8394c9"
+                },
+                {
+                  "accession": "MS:1000031",
+                  "name": "instrument model",
+                  "value": "LCQ Deca"
+                },
+                {
+                  "accession": "MS:1000529",
+                  "name": "instrument serial number",
+                  "value": "23433"
+                }
+              ]
+            }
+          ],
+          "analysisSoftware": [
+            {
+              "accession": "MS:1000752",
+              "name": "TOPP software",
+              "description": "TOPP (The OpenMS proteomics pipeline) software.",
+              "value": "DIAuditor",
+              "version": "3.6.0",
+              "uri": "https://www.openms.de"
+            }
+          ]
+        },
+        "qualityMetrics": [
+          {
+            "accession": "MS:4000067",
+            "name": "MS run duration",
+            "description": "The duration of the mass spectrometry acquisition (as measured by the time between the last scan and first scan) in seconds.",
+            "value": 185.0,
+            "unit": {
+              "accession": "UO:0000010",
+              "name": "second"
+            }
+          },
+          {
+            "accession": "MS:4000070",
+            "name": "retention time acquisition range",
+            "description": "Upper and lower limit of retention time at which spectra are recorded.",
+            "value": [
+              10.0,
+              195.0
+            ],
+            "unit": {
+              "accession": "UO:0000010",
+              "name": "second"
+            }
+          },
+          {
+            "accession": "MS:4000059",
+            "name": "number of MS1 spectra",
+            "description": "The number of MS1 events in the run.",
+            "value": 19,
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          },
+          {
+            "accession": "MS:4000060",
+            "name": "number of MS2 spectra",
+            "description": "The number of MS2 events in the run.",
+            "value": 95,
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          },
+          {
+            "accession": "MS:4000061",
+            "name": "MS1 density quantiles",
+            "description": "The first to n-th quantile of MS1 peak density (scan peak counts). A value triplet represents the original QuaMeter metrics, the quartiles of MS1 density. The number of values in the tuple implies the quantile mode.",
+            "value": [
+              12,
+              12,
+              12
+            ],
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          },
+          {
+            "accession": "MS:4000062",
+            "name": "MS2 density quantiles",
+            "description": "The first to n-th quantile of MS2 peak density (scan peak counts). A value triplet represents the original QuaMeter metrics, the quartiles of MS2 density. The number of values in the tuple implies the quantile mode.",
+            "value": [
+              3,
+              3,
+              3
+            ],
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          },
+          {
+            "accession": "MS:4000190",
+            "name": "MS1 TIC quantile RT",
+            "description": "The amount of time elapsed since the start of the data acquisition until the implied quantile of all MS1 TIC has been accumulated. The number of values in the tuple implies the quantile mode.",
+            "value": [
+              1.1666666666666667,
+              1.6666666666666667,
+              2.1666666666666665
+            ],
+            "unit": {
+              "accession": "UO:0000031",
+              "name": "minute"
+            }
+          },
+          {
+            "accession": "MS:4000191",
+            "name": "MS2 TIC quantile RT",
+            "description": "The amount of time elapsed since the start of the data acquisition until the implied quantile of all MS2 TIC has been accumulated. The number of values in the tuple implies the quantile mode.",
+            "value": [
+              1.55,
+              2.033333333333333,
+              2.4166666666666665
+            ],
+            "unit": {
+              "accession": "UO:0000031",
+              "name": "minute"
+            }
+          },
+          {
+            "accession": "MS:4000192",
+            "name": "MS1 median cycle time",
+            "description": "The median time between consecutive MS1 scans across the full run.",
+            "value": 10.0,
+            "unit": {
+              "accession": "UO:0000010",
+              "name": "second"
+            }
+          },
+          {
+            "accession": "MS:4000069",
+            "name": "m/z acquisition range",
+            "description": "Upper and lower limit of m/z precursor values at which MSn spectra are recorded.",
+            "value": [
+              412.5,
+              512.5
+            ],
+            "unit": {
+              "accession": "MS:1000040",
+              "name": "m/z"
+            }
+          },
+          {
+            "accession": "MS:4000193",
+            "name": "DIA isolation window median cycle time",
+            "description": "The median time between consecutive measurements of the same DIA isolation window across the full run.",
+            "value": 10.0,
+            "unit": {
+              "accession": "UO:0000010",
+              "name": "second"
+            }
+          },
+          {
+            "accession": "MS:4000194",
+            "name": "DIA isolation window count",
+            "description": "The number of distinct DIA isolation windows (i.e. sharing the same low m/z boundary, high m/z boundary, and ion mobility parameters).",
+            "value": 5,
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          },
+          {
+            "accession": "MS:4000195",
+            "name": "DIA isolation window m/z widths",
+            "description": "The minimum and maximum m/z width of the DIA isolation windows, defined as the subtraction between the high m/z boundary and the low m/z boundary. For fixed-window DIA methods, the same value is reported twice.",
+            "value": [
+              25.0,
+              25.0
+            ],
+            "unit": {
+              "accession": "MS:1000040",
+              "name": "m/z"
+            }
+          },
+          {
+            "accession": "MS:4000196",
+            "name": "DIA isolation window count",
+            "description": "The minimum and maximum number of times any specific DIA isolation window is measured via MS/MS. In case all isolation windows are sampled the same number of times, this value is reported twice.",
+            "value": [
+              19,
+              19
+            ],
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          },
+          {
+            "accession": "MS:4000197",
+            "name": "DIA isolation window half TIC RT",
+            "description": "The minimum and maximum retention time in which at least half of the TIC for any given DIA isolation window compared to the full TIC in this isolation window has been collected.",
+            "value": [
+              1.6833333333333333,
+              2.4166666666666665
+            ],
+            "unit": {
+              "accession": "UO:0000031",
+              "name": "minute"
+            }
+          },
+          {
+            "accession": "MS:4000198",
+            "name": "DIA isolation window TIC",
+            "description": "The minimum and maximum TIC collected in any given DIA isolation window.",
+            "value": [
+              24172.710875749588,
+              25944.433181762695
+            ],
+            "unit": {
+              "accession": "MS:1000043",
+              "name": "intensity unit"
+            }
+          },
+          {
+            "accession": "MS:4000199",
+            "name": "DIA isolation window peak count",
+            "description": "For each DIA isolation window, we compute the median number of peaks per MS/MS measurement. This metric reports the lowest and highest peak count medians among the isolation windows.",
+            "value": [
+              3,
+              3
+            ],
+            "unit": {
+              "accession": "UO:0000189",
+              "name": "count unit"
+            }
+          }
+        ]
+      }
+    ],
+    "controlledVocabularies": [
+      {
+        "name": "Proteomics Standards Initiative Mass Spectrometry Ontology",
+        "uri": "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.2.2/psi-ms.obo",
+        "version": "4.2.2"
+      }
+    ]
+  }
+}

@@ -679,6 +679,11 @@ TOPP tools:
     - OpenSwathPercolatorScoring: Percolator scoring of OpenSWATH results (#9695).
     - OpenSwathPeakMapExtractor: targeted full-peakmap extraction (#9684).
     - TransitionListEvidenceFilter: filter transition lists using mzML evidence (#9161).
+    - DIAuditor: quality metrics of DIA runs per run and per isolation window (MS1 sampling,
+      window layout incl. FAIMS/1/K0, cycle times, TIC and peak-count distributions), a
+      re-implementation of D. L. Tabb's DIAuditor. Reads mzML, Thermo .raw and Bruker timsTOF .d
+      (diaPASEF) and writes its per-run and per-window tables and an mzQC file with the PSI-MS
+      DIA metrics (MS:4000190-MS:4000199) (#10271).
     - ParquetDiff: compares two Parquet tables by primary key with a numeric tolerance instead of exact
       bytes. FuzzyDiff is string-based and cannot read Parquet, which left the QPX psm/feature/pg exchange
       surface with no comparison route at all. The key is auto-derived from a QPX file's own file_type
@@ -970,6 +975,13 @@ Fixes:
       ion-storage analyzers, and the analyzer invented for incomplete instruments, use the
       generic mass analyzer type; the OpenMS type is kept in a userParam and restored on
       reading. HCID, EThcD and ETciD terms use their PSI-MS names (#8691).
+    - Reading an mzML file only partly (metadata only, or counting its spectra, as the first pass of
+      MzMLFile::transform() does) ends the progress it started, so the progress output of every later
+      file is no longer nested one level deeper (#10271).
+    - mzML chromatograms are written with a precursor or product only if they have one. A TIC used
+      to get an empty precursor and a product isolation window at m/z 0, and an MS1 chromatogram such
+      a product. The original DIAuditor, for example, read that product's isolation window as the
+      last spectrum's and crashed (#10271).
     - Fixed INI required/advanced parsing, XQuest FDR-type restoration, mzIdentML missing
       modification locations, PepXML source-run paths/redundant Comet scores and duplicate
       IDMapper spectrum references (#5443, #8905, #9089, #9660, #9763, #9766).
