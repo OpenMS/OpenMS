@@ -74,12 +74,13 @@ Maybe most importantly, data from MS experiments in a number of different format
 the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and
 supports traceability of analysis steps.)
 
-Thermo raw files are read by the built-in reader (-RawToMzML:reader inprocess, the default when OpenMS is
-built with WITH_THERMO_RAW), which needs a .NET 8 (or newer) runtime and supports every output format.
-Like ThermoRawFileParser, it applies vendor peak picking unless -RawToMzML:no_peak_picking is given.
-Alternatively, -RawToMzML:reader external converts to mzML using the ThermoRawFileParser provided in the
-THIRDPARTY folder. On windows, a recent .NET framwork needs to be installed. On linux and mac, the mono
-runtime needs to be present and accessible via the -NET_executable parameter. The path to the
+Thermo raw files are read by one of two readers, chosen with -RawToMzML:reader.
+The built-in reader (inprocess; the default on linux and mac when OpenMS is built with WITH_THERMO_RAW)
+needs a .NET 8 (or newer) runtime and supports every output format. Like ThermoRawFileParser, it applies
+vendor peak picking unless -RawToMzML:no_peak_picking is given.
+The external reader (external; the default on windows) converts to mzML using the ThermoRawFileParser
+provided in the THIRDPARTY folder. On windows, a recent .NET framework needs to be installed. On linux and
+mac, the mono runtime needs to be present and accessible via the -NET_executable parameter. The path to the
 ThermoRawFileParser can be set via the -ThermoRaw_executable option.
 
 For MaxQuant-flavoured mzXML the use of the advanced option '-force_MaxQuant_compatibility' is recommended.
@@ -357,16 +358,19 @@ protected:
     registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem (external reader only).", true);
     registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
     // Packages always contain the in-process reader (WITH_THERMO_RAW is ON on every supported
-    // platform), while 'external' also needs ThermoRawFileParser.exe on the PATH and, on linux
-    // and mac, mono. So 'external' is only the default of builds without the in-process reader.
-#ifdef WITH_THERMO_RAW
+    // platform), which needs a .NET 8 runtime. 'external' needs ThermoRawFileParser.exe on the PATH
+    // and, on linux and mac, mono, which the packages there do not provide, so linux and mac default
+    // to the in-process reader. The windows installer puts ThermoRawFileParser on the PATH, where it
+    // runs on the .NET Framework that windows includes, but does not bundle .NET 8, so windows
+    // keeps 'external'.
+#if defined(WITH_THERMO_RAW) && !defined(OPENMS_WINDOWSPLATFORM)
     const std::string default_raw_reader = "inprocess";
 #else
     const std::string default_raw_reader = "external";
 #endif
     registerStringOption_("RawToMzML:reader", "<mode>", default_raw_reader,
-      "Reader for Thermo .raw files. 'external' uses ThermoRawFileParser (external .NET process, mzML output only); "
-      "'inprocess' uses the built-in ThermoRawFile (in-process, supports any output format; requires WITH_THERMO_RAW build and a .NET 8 runtime).",
+      "Reader for Thermo .raw files. 'external' uses ThermoRawFileParser (external .NET process, mzML output only; the default on windows); "
+      "'inprocess' uses the built-in ThermoRawFile (in-process, supports any output format; requires WITH_THERMO_RAW build and a .NET 8 runtime; the default on linux and mac).",
       false, true);
     std::vector<std::string> raw_reader_modes = {"external"};
 #ifdef WITH_THERMO_RAW
@@ -553,7 +557,7 @@ protected:
         }
         catch (const Exception::ParseError&)
         {
-          // This reader is the default now, so name the way back to the external one
+          // This reader is the default on linux and mac, so name the way back to the external one
           OPENMS_LOG_ERROR << "The in-process Thermo reader failed. It needs the .NET 8 runtime; if that is "
                            << "missing, install it, or pass '-RawToMzML:reader external' to convert with "
                            << "ThermoRawFileParser instead." << std::endl;
