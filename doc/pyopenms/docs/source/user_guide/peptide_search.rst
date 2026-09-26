@@ -247,7 +247,7 @@ This is done by applying one of the available protein inference algorithms on th
 
     # Restore valid references into the proteins
     remove_peptides_without_reference = True
-    idfilter.updateProteinReferences(
+    idfilter.removeDanglingProteinReferences(
         peptide_ids, protein_ids, remove_peptides_without_reference
     )
 
