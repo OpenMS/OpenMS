@@ -139,8 +139,7 @@ Now, let's run an algorithm. Since the interfaces of the aligners differ slightl
     
     # perform alignment and transformation of feature maps to the reference map (exclude reference map)
     for feature_map in feature_maps_to_align:
-        trafo = oms.TransformationDescription()
-        aligner.align(feature_map, trafo)
+        trafo = aligner.align(feature_map)
         transformer = oms.MapAlignmentTransformer()
         transformer.transformRetentionTimes(
             feature_map, trafo, True

@@ -40,10 +40,9 @@ potential amino acid combinations that explain a certain mass in the
     md_alg = oms.MassDecompositionAlgorithm()
     param = md_alg.getParameters()
     param.setValue("tolerance", 0.05)
-    param.setValue("residue_set", b"Natural19WithoutI")
+    param.setValue("residue_set", "Natural19WithoutI")
     md_alg.setParameters(param)
-    decomps = []
-    md_alg.getDecompositions(decomps, 262.0953584466)
+    decomps = md_alg.getDecompositions(262.0953584466)
     for d in decomps:
         print(d.toExpandedString())
 
@@ -62,7 +61,7 @@ residues equals the target mass:
 .. code-block:: python
 
     mass = 262.0953584466
-    residues = oms.ResidueDB().getResidues(b"Natural19WithoutI")
+    residues = oms.ResidueDB().getResidues("Natural19WithoutI")
 
 
     def recursive_mass_decomposition(mass_sum, peptide):
@@ -93,6 +92,7 @@ possible amino acid combinations for that mass within a given tolerance:
     :linenos:
 
     import sys
+    import pyopenms as oms
 
     # Example for mass decomposition (mass explanation)
     # Internal residue masses (as observed e.g. as mass shifts in tandem mass spectra)
@@ -104,12 +104,11 @@ possible amino acid combinations for that mass within a given tolerance:
     md_alg = oms.MassDecompositionAlgorithm()
     param = md_alg.getParameters()
     param.setValue("tolerance", tol)
-    param.setValue("residue_set", b"Natural19WithoutI")
+    param.setValue("residue_set", "Natural19WithoutI")
     md_alg.setParameters(param)
-    decomps = []
-    md_alg.getDecompositions(decomps, mass)
+    decomps = md_alg.getDecompositions(mass)
     for d in decomps:
-      print(d.toExpandedString().decode()) 
+      print(d.toExpandedString())
 
 If we copy the above code into a script, for example ``mass_decomposition.py``,
 we will have a stand-alone software that takes two arguments: first the mass to
@@ -149,12 +148,11 @@ Spectrum Tagger
     print(spec.size())  # should be 357
 
     # tagger searching only for charge +1
-    tags = []
     tagger = oms.Tagger(2, 10.0, 5, 1, 1, [], [])
-    tagger.getTag(spec, tags)
+    tags = tagger.getTag(spec)
 
     print(len(tags))  # should be 890
 
-    b"EPTID" in tags  # True
-    b"PTIDE" in tags  # True
-    b"PTIDEF" in tags  # False
+    "EPTID" in tags  # True
+    "PTIDE" in tags  # True
+    "PTIDEF" in tags  # False

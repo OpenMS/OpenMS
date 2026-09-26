@@ -183,7 +183,8 @@ Dependencies:
   - HiGHS joins COIN-OR and GLPK as LP backends. LP_SOLVER=AUTO tries COIN-OR, GLPK,
     then downloads HiGHS (#9246).
   - ENABLE_TDL now defaults to OFF; set it to ON for CWL support (#9067).
-  - macOS Intel builds discontinued; minimum macOS version is 14 (#8486, #8494, #8527).
+  - macOS Intel builds discontinued; the minimum macOS version is 15 (Sequoia), for the installer
+    and for the pyOpenMS wheels (#8486, #8494, #8527).
 
 PyOpenMS:
   - Fixed keyword defaults that did not match the wrapped C++ signatures. Four bindings

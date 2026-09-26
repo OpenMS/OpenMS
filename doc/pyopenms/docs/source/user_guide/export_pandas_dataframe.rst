@@ -23,15 +23,23 @@ Required imports for the examples:
 MSExperiment
 ************
 
-**pyopenms.MSExperiment.get_df(** *long=False* **)**
+**pyopenms.MSExperiment.to_df(** *columns=None*, *ms_levels=None*, *long_format=False* **)**
         Generates a pandas DataFrame with all peaks  in the MSExperiment
 
         **Parameters:**
 
-        **long :** default False
+        **columns :** default None
+
+        columns to export; None exports all of them
+
+        **ms_levels :** default None
+
+        MS levels to export, for example [1]; None exports all of them
+
+        **long_format :** default False
         
         set to True if you want to have a long/expanded/melted dataframe with one row per peak. Faster but
-        replicated RT information. If False, returns rows in the style: rt, np.array(mz), np.array(int)
+        replicated RT information. If False, returns rows in the style: rt, ms_level, np.array(mz), np.array(intensity)
         
         **Returns:**
 
@@ -48,42 +56,38 @@ MSExperiment
     exp = oms.MSExperiment()
     oms.MzMLFile().load("BSA1.mzML", exp)
 
-    df = exp.get_df()  # default: long = False
+    df = exp.to_df()  # default: long_format = False
     df.head(2)
 
 
-.. csv-table:: exp.get_df()
-   :widths: 2 10 50 50
-   :header: ,"RT", "mzarray", "intarray"
+.. csv-table:: exp.to_df()
+   :widths: 2 10 5 50 50
+   :header: ,"rt", "ms_level", "mz_array", "intensity_array"
 
-   "0",	"1501.41394", "[300.0897645621494, 300.18132740129533, 300.20...",	"[3431.0261, 1181.809, 1516.1746, 1719.8547, 11..."
-   "1", "1503.03125", "[300.06577092599525, 300.08932376441896, 300.2...",	"[914.79034, 1842.2311, 2395.1025, 851.4738, 16..." 
+   "0",	"1501.41394", "1", "[300.0897645621494, 300.18132740129533, 300.20...",	"[3431.0261, 1181.809, 1516.1746, 1719.8547, 11..."
+   "1", "1503.03125", "1", "[300.06577092599525, 300.08932376441896, 300.2...",	"[914.79034, 1842.2311, 2395.1025, 851.4738, 16..." 
 
 
 .. code-block:: python
     :linenos:
 
-    df = exp.get_df(long=True)
+    df = exp.to_df(long_format=True)
     df.head(2)
 
-.. csv-table:: exp.get_df(long=True)
-   :widths: 2 20 20 20
-   :header: "",	"RT",	"mz", "inty"
+.. csv-table:: exp.to_df(long_format=True)
+   :widths: 2 20 20 20 10
+   :header: "",	"rt",	"mz",	"intensity",	"ms_level"
 
-   "0",	"1501.41394",	"300.089752",	"3431.026123"
-   "1",	"1501.41394",	"300.181335",	"1181.808960"
+   "0",	"1501.41394",	"300.089765",	"3431.026123",	"1"
+   "1",	"1501.41394",	"300.181327",	"1181.808960",	"1"
 
 PeptideIdentification
 *********************
 
-**pyopenms.peptide_identifications_to_df( peps**, *decode_ontology=True*, *default_missing_values={bool: False, int: -9999, float: np.nan, str: ''}*, *export_unidentified=True* **)**
-        Generates a pandas DataFrame with all peaks  in the MSExperiment
+**pyopenms.PeptideIdentificationList.to_df(** *decode_ontology=True*, *default_missing_values={bool: False, int: -9999, float: np.nan, str: ''}*, *export_unidentified=True*, *columns=None* **)**
+        Generates a pandas DataFrame with the peptide identifications in the list
 
         **Parameters:**
-
-        **peps :** 
-        
-        list of PeptideIdentification objects
 
         **decode_ontology :** default True
         
@@ -96,6 +100,10 @@ PeptideIdentification
         **export_unidentified :** default True
         
         export PeptideIdentifications without PeptideHit
+
+        **columns :** default None
+
+        columns to export; None exports all of them
         
         **Returns:**
 
@@ -113,11 +121,11 @@ PeptideIdentification
     pep_ids = oms.PeptideIdentificationList()
     oms.IdXMLFile().load("small.idXML", prot_ids, pep_ids)
 
-    df = oms.peptide_identifications_to_df(pep_ids)
+    df = pep_ids.to_df()
     df.head(2)
-.. csv-table:: peptide_identifications_to_df(pep_ids)
+.. csv-table:: pep_ids.to_df()
    :widths: 2 20 10 20 20 10 20 20 20 20 20 20 20 20 20 20
-   :header: "",	"id",	"RT",	"mz",	"q-value",	"charge",	"protein_accession",	"start",	"end",	"NuXL:z2 mass",	"NuXL:z3 mass",	"...", "isotope_error",	"NuXL:peptide_mass_z0",	"NuXL:XL_U",	"NuXL:sequence_score"
+   :header: "",	"id",	"rt",	"mz",	"q-value",	"charge",	"protein_accession",	"start",	"end",	"NuXL:z2 mass",	"NuXL:z3 mass",	"...", "isotope_error",	"NuXL:peptide_mass_z0",	"NuXL:XL_U",	"NuXL:sequence_score"
 
     "0",	"OpenNuXL_2019-12-04T16:39:43_1021782429466859437",	"900.425415",	"414.730865",	"0.368649",	"4",	"DECOY_sp\|Q86UQ0|ZN589_HUMAN",	"255",	"267",	"828.458069",	"552.641113",	"...",	"0",	"1654.901611",	"0",	"0.173912"
     "1",	"OpenNuXL_2019-12-04T16:39:43_7293634134684008928",	"903.565186",	"506.259521",	"0.422779",	"2",	"sp\|P61313|RL15_HUMAN",	"179",	"187",	"0.0",	"0.0",	"...",	"0",	"1010.504639",	"0",	"0.290786"
@@ -125,12 +133,16 @@ PeptideIdentification
 FeatureMap
 **********
 
-**pyopenms.FeatureMap.get_df(** *meta_values = None* **)**
-        Generates a pandas DataFrame with information contained in the FeatureMap.
+**pyopenms.FeatureMap.to_df(** *columns = None*, *meta_values = None*, *export_peptide_identifications = True* **)**
+        Generates a pandas DataFrame with information contained in the FeatureMap, indexed by feature_id.
 
         Optionally the feature meta values and information for the assigned PeptideHit can be exported.
 
         **Parameters:**
+
+        **columns :** default None
+
+        columns to export; None exports all of them
 
         **meta_values :** default None
         
@@ -161,41 +173,41 @@ FeatureMap
     feature_map = oms.FeatureMap()
     oms.FeatureXMLFile().load("BSA1_F1_idmapped.featureXML", feature_map)
 
-    df = feature_map.get_df()  # default: meta_values = None
+    df = feature_map.to_df()  # default: meta_values = None
     df.head(2)
-.. csv-table:: feature_map.get_df()
+.. csv-table:: feature_map.to_df()
    :widths: 20 20 20 20 20 5 20 20 20 20 20 20 20 20
-   :header: "id",	"peptide_sequence",	"peptide_score",	"ID_filename",	"ID_native_id",	"charge",	"RT",	"mz",	"RTstart",	"RTend",	"mzstart",	"mzend",	"quality",	"intensity"
+   :header: "feature_id",	"peptide_sequence",	"peptide_score",	"ID_filename",	"ID_native_id",	"charge",	"rt",	"mz",	"rt_start",	"rt_end",	"mz_start",	"mz_end",	"quality",	"intensity"
 
-   "9650885788371886430",	"LVTDLTK",	"0.000000",	"unknown",	"spectrum=1270",	"2",	"1942.600083",	"395.239277",	"1932.484009",	"1950.834351",	"395.239199",	"397.245758",	"0.808494",	"157572000.0"
-   "18416216708636999474",	"DDSPDLPK",	"0.034483",	"unknown",	"spectrum=1167",	"2",	"1749.138335",	"443.711224",	"1735.693115",	"1763.343506",	"443.711122",	"445.717531",	"0.893553",	"54069300.0"
+   "9650885788371886430",	"LVTDLTK",	"0.000000",	"None",	"spectrum=1270",	"2",	"1942.600083",	"395.239277",	"1932.484009",	"1950.834351",	"395.239199",	"397.245758",	"0.808494",	"157572000.0"
+   "18416216708636999474",	"DDSPDLPK",	"0.034483",	"None",	"spectrum=1167",	"2",	"1749.138335",	"443.711224",	"1735.693115",	"1763.343506",	"443.711122",	"445.717531",	"0.893553",	"54069300.0"
 
 
 .. code-block:: python
     :linenos:
 
-    df = feature_map.get_df(meta_values="all", export_peptide_identifications=False)
+    df = feature_map.to_df(meta_values="all", export_peptide_identifications=False)
     df.head(2)
 
-.. csv-table:: feature_map.get_df(meta_values = 'all', export_peptide_identifications = False)
+.. csv-table:: feature_map.to_df(meta_values = 'all', export_peptide_identifications = False)
    :widths: 20 5 20 20 20 20 20 20 20 20 20 20 20 20 20 20
-   :header: "id",	"charge",	"RT",	"mz",	"RTstart",	"RTend",	"mzstart",	"mzend",	"quality",	"intensity",	"FWHM",	"spectrum_index",	"spectrum_native_id",	"label",	"score_correlation",	"score_fit"
+   :header: "feature_id",	"charge",	"rt",	"mz",	"rt_start",	"rt_end",	"mz_start",	"mz_end",	"quality",	"intensity",	"FWHM",	"spectrum_index",	"spectrum_native_id",	"label",	"score_correlation",	"score_fit"
 
    "9650885788371886430",	"2",	"1942.600083",	"395.239277",	"1932.484009",	"1950.834351",	"395.239199",	"397.245758",	"0.808494",	"157572000.0",	"10.061090",	"259",	"spectrum=1270",	"168",	"0.989969",	"0.660286"
-   "18416216708636999474",	"2",	"1749.138335",	"443.711224",	"1735.693115",	"1763.343506",	"443.71112",	"445.717531",	"0.893553",	"54069300.0", "14.156094",	"156",	"spectrum=1167",	"169",	"0.999002",	"0.799234"
+   "18416216708636999474",	"2",	"1749.138335",	"443.711224",	"1735.693115",	"1763.343506",	"443.711122",	"445.717531",	"0.893553",	"54069300.0",	"14.156094",	"156",	"spectrum=1167",	"169",	"0.999002",	"0.799234"
 
 .. code-block:: python
     :linenos:
 
-    df = feature_map.get_df(meta_values=[b"FWHM", b"label"])
+    df = feature_map.to_df(meta_values=["FWHM", "label"])
     df.head(2)
 
-.. csv-table:: feature_map.get_df(meta_values = [b'FWHM', b'label'])
-   :widths: 20 5 20 20 20 20 20 20 20 20 20 20
-   :header: "id",	"charge",	"RT",	"mz",	"RTstart",	"RTend",	"mzstart",	"mzend",	"quality",	"intensity", "FWHM",	"label"
+.. csv-table:: feature_map.to_df(meta_values = ['FWHM', 'label'])
+   :widths: 20 20 20 20 20 5 20 20 20 20 20 20 20 20 20 20
+   :header: "feature_id",	"peptide_sequence",	"peptide_score",	"ID_filename",	"ID_native_id",	"charge",	"rt",	"mz",	"rt_start",	"rt_end",	"mz_start",	"mz_end",	"quality",	"intensity",	"FWHM",	"label"
 
-   "9650885788371886430",	"2",	"1942.600083",	"395.239277",	"1932.484009",	"1950.834351",	"395.239199",	"397.245758",	"0.808494",	"157572000.0",	"10.061090",	"168"
-   "18416216708636999474",	"2",	"1749.138335",	"443.711224",	"1735.693115",	"1763.343506",	"443.71112",	"445.717531",	"0.893553",	"54069300.0",	"14.156094",	"169"
+   "9650885788371886430",	"LVTDLTK",	"0.000000",	"None",	"spectrum=1270",	"2",	"1942.600083",	"395.239277",	"1932.484009",	"1950.834351",	"395.239199",	"397.245758",	"0.808494",	"157572000.0",	"10.061090",	"168"
+   "18416216708636999474",	"DDSPDLPK",	"0.034483",	"None",	"spectrum=1167",	"2",	"1749.138335",	"443.711224",	"1735.693115",	"1763.343506",	"443.711122",	"445.717531",	"0.893553",	"54069300.0",	"14.156094",	"169"
 
 **Extract assigned peptide identifications from a feature map**
 
@@ -257,7 +269,7 @@ The columns for unambiguously merging the data frames:
 ConsensusMap
 ************
 
-**pyopenms.ConsensusMap.get_df()**
+**pyopenms.ConsensusMap.to_df(** *columns=None* **)**
         Generates a pandas DataFrame with both consensus feature meta data and intensities from each sample.
 
         **Returns:**
@@ -300,11 +312,11 @@ ConsensusMap
     consensus_map = oms.ConsensusMap()
     oms.ConsensusXMLFile().load("ProteomicsLFQ_1_out.consensusXML", consensus_map)
 
-    df = consensus_map.get_df()
+    df = consensus_map.to_df()
     df.head(2)
-.. csv-table:: consensus_map.get_df()
+.. csv-table:: consensus_map.to_df()
    :widths: 2 10 20 20 20 20 30 10 30
-   :header: "id",	"sequence",	"charge",	"RT",	"mz",	"quality",	"BSA1_F1.mzML",	"...",	"BSA1_F2.mzML"
+   :header: "id",	"sequence",	"charge",	"rt",	"mz",	"quality",	"BSA1_F1.mzML",	"...",	"BSA1_F2.mzML"
 
    "2935923263525422257",	"DGDIEAEISR",	"3",	"1523.370634",	"368.843773",	"0.000000",	"0.0",	"...",	"0.0"
    "10409195546240342212",	"SHC(Carbamidomethyl)IAEVEK",	"3",	"1552.032973",	"358.174576",	"0.491247",	"1358151.0",	"...",	"0.0"
@@ -330,7 +342,7 @@ ConsensusMap
 
 .. csv-table:: consensus_map.get_metadata_df()
    :widths: 20 20 20 20 20 20
-   :header: "id",	"sequence",	"charge",	"RT",	"mz",	"quality"
+   :header: "id",	"sequence",	"charge",	"rt",	"mz",	"quality"
 
    "2935923263525422257",	"DGDIEAEISR",	"3",	"1523.370634",	"368.843773",	"0.000000"
    "10409195546240342212",	"SHC(Carbamidomethyl)IAEVEK",	"3",	"1552.032973",	"358.174576",	"0.491247"
