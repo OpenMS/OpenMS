@@ -231,8 +231,12 @@ namespace OpenMS
     defaults_.setValidStrings("ions:add_c_ions", {"true","false"});
     defaults_.setValue("ions:add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
     defaults_.setValidStrings("ions:add_x_ions", {"true","false"});
-    defaults_.setValue("ions:add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+    defaults_.setValue("ions:add_z_ions", "false", "Add peaks of z-ions (y - NH3) to the spectrum. These are not the z+1 ions of ETD-type spectra; see ions:by_activation and ions:add_zp1_ions.");
     defaults_.setValidStrings("ions:add_z_ions", {"true","false"});
+    defaults_.setValue("ions:add_zp1_ions", "false", "Add peaks of z+1 ions (z-dot, y - NH2) to the spectrum, the main C-terminal fragments of ETD, EThcD and ETciD spectra, for all spectra. ions:by_activation adds them (with c ions) for spectra recorded as electron-activated; set this, typically with ions:add_c_ions, for ETD-type data without activation information.");
+    defaults_.setValidStrings("ions:add_zp1_ions", {"true","false"});
+    defaults_.setValue("ions:by_activation", "true", "Score spectra whose precursor was activated by electrons (ETD, ECD, EThcD or ETciD, as recorded in the input file) with c and z+1 ions in addition to the ion series above. Other spectra, and spectra without activation information, use the ion series above.");
+    defaults_.setValidStrings("ions:by_activation", {"true","false"});
     defaults_.setSectionDescription("ions", "Theoretical ion series toggles");
 
     defaults_.setValue("calibration:enabled", "false",
@@ -361,6 +365,8 @@ namespace OpenMS
     add_x_ions_ = param_.getValue("ions:add_x_ions").toBool();
     add_y_ions_ = param_.getValue("ions:add_y_ions").toBool();
     add_z_ions_ = param_.getValue("ions:add_z_ions").toBool();
+    add_zp1_ions_ = param_.getValue("ions:add_zp1_ions").toBool();
+    ions_by_activation_ = param_.getValue("ions:by_activation").toBool();
 
     database_chunk_size_ = param_.getValue("database:chunk_size");
 
@@ -370,6 +376,72 @@ namespace OpenMS
   }
 
   // static
+  struct ProSEAlgorithm::SpectrumGenerators_
+  {
+    TheoreticalSpectrumGenerator standard; ///< configured ion series
+    TheoreticalSpectrumGenerator electron; ///< configured ion series plus c and z+1 ions
+    bool by_activation = false;
+
+    /// True if @p spectrum is matched against, and scored with, c and z+1 ions as well: its
+    /// precursor was activated by electrons
+    bool electronIons(const MSSpectrum& spectrum) const
+    {
+      return by_activation && isElectronActivated_(spectrum);
+    }
+
+    /// The generator for @p spectrum, chosen by the activation of its precursor
+    const TheoreticalSpectrumGenerator& forSpectrum(const MSSpectrum& spectrum) const
+    {
+      return electronIons(spectrum) ? electron : standard;
+    }
+  };
+
+  ProSEAlgorithm::SpectrumGenerators_ ProSEAlgorithm::spectrumGenerators_() const
+  {
+    // Scoring, annotation and calibration use the ion series of the fragment index, so that
+    // a candidate is scored against the ions it was retrieved by.
+    auto configure = [this](TheoreticalSpectrumGenerator& tsg, bool electron)
+    {
+      Param p(tsg.getParameters());
+      p.setValue("add_first_prefix_ion", "true");
+      p.setValue("add_metainfo", "true");
+      p.setValue("add_a_ions", add_a_ions_ ? "true" : "false");
+      p.setValue("add_b_ions", add_b_ions_ ? "true" : "false");
+      p.setValue("add_c_ions", (add_c_ions_ || electron) ? "true" : "false");
+      p.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
+      p.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
+      p.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
+      p.setValue("add_zp1_ions", (add_zp1_ions_ || electron) ? "true" : "false");
+      tsg.setParameters(p);
+    };
+    SpectrumGenerators_ generators;
+    configure(generators.standard, false);
+    configure(generators.electron, true);
+    generators.by_activation = ions_by_activation_;
+    return generators;
+  }
+
+  bool ProSEAlgorithm::isElectronActivated_(const MSSpectrum& spectrum)
+  {
+    if (spectrum.getPrecursors().empty()) return false;
+    for (const Precursor::ActivationMethod method : spectrum.getPrecursors()[0].getActivationMethods())
+    {
+      if (method == Precursor::ActivationMethod::ETD || method == Precursor::ActivationMethod::ECD
+          || method == Precursor::ActivationMethod::EThcD || method == Precursor::ActivationMethod::ETciD)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Size ProSEAlgorithm::countElectronActivated_(const PeakMap& spectra) const
+  {
+    if (!ions_by_activation_) return 0;
+    return static_cast<Size>(std::count_if(spectra.begin(), spectra.end(),
+                                           [](const MSSpectrum& spectrum) { return isElectronActivated_(spectrum); }));
+  }
+
   void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top)
   {
     // Intensity threshold + normalization used to run here as two extra SERIAL full-map
@@ -571,27 +643,15 @@ namespace OpenMS
     // Both configurations depend only on the fragment tolerance, so they are
     // shared read-only by every thread of the loop below: getSpectrum() and
     // getSpectrumAlignment() are const and hold no mutable state (the scoring
-    // loop in scoreSpectraAgainstIndex_ shares one generator the same way).
+    // loop in scoreSpectraAgainstIndex_ shares its generators the same way).
     // The alignment tolerance mirrors the search's fragment tolerance so the
     // reported FRAGMENT_ERROR_MEDIAN_PPM is not polluted by far-off spurious
     // matches — SpectrumAlignment's default is 0.3 Da absolute, which is ~30×
     // looser than a typical 20 ppm search.
-    TheoreticalSpectrumGenerator tsg;
-    {
-      Param tsg_param(tsg.getParameters());
-      tsg_param.setValue("add_metainfo", "true");
-      tsg_param.setValue("add_first_prefix_ion", "true");
-      // Mirror the configured ion series so annotation features (fragment error,
-      // peak annotations, longest ion run, MIC) are computed on the same
-      // theoretical spectrum the candidate was scored against.
-      tsg_param.setValue("add_a_ions", add_a_ions_ ? "true" : "false");
-      tsg_param.setValue("add_b_ions", add_b_ions_ ? "true" : "false");
-      tsg_param.setValue("add_c_ions", add_c_ions_ ? "true" : "false");
-      tsg_param.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
-      tsg_param.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
-      tsg_param.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
-      tsg.setParameters(tsg_param);
-    }
+    // The generators mirror the ion series of the scoring, so annotation features (fragment
+    // error, peak annotations, longest ion run, MIC) are computed on the same theoretical
+    // spectrum the candidate was scored against.
+    const SpectrumGenerators_ generators = spectrumGenerators_();
     SpectrumAlignment sa;
     {
       Param sa_param(sa.getParameters());
@@ -606,6 +666,7 @@ namespace OpenMS
       if (!annotated_hits[scan_index].empty())
       {
         const MSSpectrum& spec = exp[scan_index];
+        const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
         // create empty PeptideIdentification object and fill meta data
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
@@ -764,12 +825,14 @@ namespace OpenMS
                 const bool is_suffix = (c == 'x' || c == 'y' || c == 'z');
                 if (is_prefix || is_suffix)
                 {
-                  // Extract ordinal: "b5", "y3-H2O1+", "c12++" -> 5, 3, 12
+                  // Extract ordinal: "b5", "y3-H2O1+", "c12++", "z.4+" (z+1) -> 5, 3, 12, 4
                   Size pos = 1;
+                  while (pos < name.size() && (name[pos] == '.' || name[pos] == '\'')) ++pos; // z. (z+1), z' (z+2)
+                  const Size ordinal_begin = pos;
                   while (pos < name.size() && name[pos] >= '0' && name[pos] <= '9') ++pos;
-                  if (pos > 1)
+                  if (pos > ordinal_begin)
                   {
-                    int ordinal = StringUtils::toInt32(StringUtils::substr(name, 1, pos - 1));
+                    int ordinal = StringUtils::toInt32(StringUtils::substr(name, ordinal_begin, pos - ordinal_begin));
                     (is_prefix ? prefix_ordinals : suffix_ordinals).push_back(ordinal);
                   }
                 }
@@ -962,7 +1025,7 @@ namespace OpenMS
   // Hoisted out of the in-memory search() body so callers can build the
   // index once and reuse it across many spectrum files.
   // =====================================================================
-  Param ProSEAlgorithm::fragmentIndexParameters_() const
+  Param ProSEAlgorithm::fragmentIndexParameters_(bool electron_ions) const
   {
     Param p = getParameters();
     // FragmentIndex has its own boolean 'decoys' flag {true,false}; ProSE's enum
@@ -970,6 +1033,11 @@ namespace OpenMS
     // decoy-augmented database itself, so the FragmentIndex must never generate.
     p.remove("decoys");
     p.setValue("decoys", "false");
+    // ions:by_activation is resolved by the caller, which knows the spectra. The c and z+1 ions
+    // for electron-activated spectra go into a set of their own, which the other spectra are not
+    // matched against (see scoreSpectraAgainstIndex_).
+    p.remove("ions:by_activation");
+    p.setValue("ions:electron_ions", electron_ions ? "true" : "false");
     return p;
   }
 
@@ -1204,6 +1272,13 @@ namespace OpenMS
   ProSEAlgorithm::prepareContext(
       const std::vector<FASTAFile::FASTAEntry>& fasta_db) const
   {
+    return prepareContext(fasta_db, false);
+  }
+
+  ProSEAlgorithm::SearchContext
+  ProSEAlgorithm::prepareContext(
+      const std::vector<FASTAFile::FASTAEntry>& fasta_db, bool electron_ions) const
+  {
     SearchContext ctx;
 
     startProgress(0, 1, "Generate decoys...");
@@ -1216,9 +1291,10 @@ namespace OpenMS
 
     // build fragment index
     startProgress(0, 1, "Building fragment index...");
-    Param this_params = fragmentIndexParameters_();
+    Param this_params = fragmentIndexParameters_(electron_ions);
     ctx.fragment_index.setParameters(this_params);
     ctx.fragment_index.build(ctx.db);
+    ctx.electron_ions = electron_ions;
     endProgress();
 
     return ctx;
@@ -1232,7 +1308,7 @@ namespace OpenMS
       const PeakMap& spectra,
       FragmentIndex& fi,
       const std::vector<FASTAFile::FASTAEntry>& db,
-      const TheoreticalSpectrumGenerator& spectrum_generator,
+      const SpectrumGenerators_& generators,
       double effective_fragment_tol,
       bool fragment_mass_tolerance_unit_ppm,
       bool open_search_mode,
@@ -1253,7 +1329,7 @@ namespace OpenMS
     const double c13c12_massdiff_u = Constants::C13C12_MASSDIFF_U;
     const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
 
-#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep)
+#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
       #pragma omp atomic
@@ -1262,8 +1338,11 @@ namespace OpenMS
       IF_MASTERTHREAD { setProgress(count_spectra); }
 
       const MSSpectrum& exp_spectrum = spectra[scan_index];
+      const TheoreticalSpectrumGenerator& spectrum_generator = generators.forSpectrum(exp_spectrum);
       FragmentIndex::SpectrumMatchesTopN top_sms;
-      fi.querySpectrum(exp_spectrum, db, top_sms);
+      // ions:by_activation: only electron-activated spectra are matched against the c and z+1 ions,
+      // so that these ions do not change which candidates the other spectra keep
+      fi.querySpectrum(exp_spectrum, db, top_sms, generators.electronIons(exp_spectrum));
 
       const bool snes_mode = fi.isSnesMode();
       const bool prec_tol_ppm = precursor_mass_tolerance_unit_ == "ppm";
@@ -1418,9 +1497,11 @@ namespace OpenMS
     // Chunking disabled → take the existing single-context path (decoys built
     // lazily by prepareContext). The ctx is locally owned and not reused,
     // so opt in to eager FI release (M1) before PeptideIndexing.
+    // ions:by_activation: index c and z+1 ions up front if electron-activated spectra are searched
+    const bool electron_ions = countElectronActivated_(spectra) > 0;
     if (database_chunk_size_ == 0)
     {
-      SearchContext ctx = prepareContext(fasta_db);
+      SearchContext ctx = prepareContext(fasta_db, electron_ions);
       ctx.release_fragment_index_after_scoring = true;
       return search(spectra, ctx, protein_ids, peptide_ids);
     }
@@ -1443,8 +1524,9 @@ namespace OpenMS
       ctx.have_decoys = strategy.have_decoys;
       ctx.release_fragment_index_after_scoring = true; // single-use ctx (M1)
       startProgress(0, 1, "Building fragment index...");
-      ctx.fragment_index.setParameters(fragmentIndexParameters_());
+      ctx.fragment_index.setParameters(fragmentIndexParameters_(electron_ions));
       ctx.fragment_index.build(ctx.db);
+      ctx.electron_ions = electron_ions;
       endProgress();
       return search(spectra, ctx, protein_ids, peptide_ids);
     }
@@ -1472,6 +1554,16 @@ namespace OpenMS
     bool open_search_mode = isOpenSearchMode_();
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
 
+    // ions:by_activation: the chunk indices hold c and z+1 ions if electron-activated spectra are searched
+    const Size n_electron_activated = countElectronActivated_(spectra);
+    const bool electron_ions = n_electron_activated > 0;
+    if (electron_ions)
+    {
+      OPENMS_LOG_INFO << "[ProSE] " << n_electron_activated << " of " << spectra.size()
+                      << " spectra are electron-activated (ETD, ECD, EThcD or ETciD) and are also scored"
+                      << " with c and z+1 ions." << std::endl;
+    }
+
     // Effective tolerances — may be narrowed by calibration below. Kept asymmetric
     // (lower / upper separately) so the FragmentIndex query can exploit the full
     // calibrated window rather than the looser max() collapse.
@@ -1493,7 +1585,7 @@ namespace OpenMS
     {
       std::vector<FASTAFile::FASTAEntry> cal_db = buildCalibrationSample_(full_db);
       FragmentIndex cal_fi;
-      cal_fi.setParameters(fragmentIndexParameters_());
+      cal_fi.setParameters(fragmentIndexParameters_(electron_ions));
       cal_fi.build(cal_db);
 
       CalibrationResult_ cal = runCalibrationPass_(spectra, cal_fi, cal_db);
@@ -1520,20 +1612,8 @@ namespace OpenMS
       }
     }
 
-    // 3. Prepare spectrum generator (once).
-    TheoreticalSpectrumGenerator spectrum_generator;
-    {
-      Param tsg_param(spectrum_generator.getParameters());
-      tsg_param.setValue("add_first_prefix_ion", "true");
-      tsg_param.setValue("add_metainfo", "true");
-      tsg_param.setValue("add_a_ions", add_a_ions_ ? "true" : "false");
-      tsg_param.setValue("add_b_ions", add_b_ions_ ? "true" : "false");
-      tsg_param.setValue("add_c_ions", add_c_ions_ ? "true" : "false");
-      tsg_param.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
-      tsg_param.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
-      tsg_param.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
-      spectrum_generator.setParameters(tsg_param);
-    }
+    // 3. Prepare spectrum generators (once).
+    const SpectrumGenerators_ generators = spectrumGenerators_();
 
     // 4. Allocate per-spectrum hit accumulator (persists across chunks).
     vector<vector<AnnotatedHit_>> annotated_hits(spectra.size());
@@ -1557,7 +1637,7 @@ namespace OpenMS
       std::vector<FASTAFile::FASTAEntry> chunk_db(full_db.begin() + start, full_db.begin() + end);
       FragmentIndex chunk_fi;
       {
-        Param fi_params = fragmentIndexParameters_();
+        Param fi_params = fragmentIndexParameters_(electron_ions);
         // Apply calibrated tolerances (if calibration succeeded above). Asymmetric
         // lower/upper preserved — collapsing to max() would re-open the tight side
         // of the calibrated window and admit spurious decoy candidates.
@@ -1569,7 +1649,7 @@ namespace OpenMS
       chunk_fi.build(chunk_db);
 
       // Score all spectra against this chunk's index.
-      scoreSpectraAgainstIndex_(spectra, chunk_fi, chunk_db, spectrum_generator,
+      scoreSpectraAgainstIndex_(spectra, chunk_fi, chunk_db, generators,
                                 effective_fragment_tol, fragment_mass_tolerance_unit_ppm,
                                 open_search_mode, annotated_hits, pool_stats,
                                 "Scoring chunk " + StringUtils::toStr(chunk_idx) + "...");
@@ -1730,9 +1810,32 @@ namespace OpenMS
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
     endProgress();
 
-    // Reference the prepared (decoy-augmented) database and prebuilt fragment index from the context.
+    // ions:by_activation: electron-activated spectra are also scored with c and z+1 ions, so the
+    // index must hold them. A context without them is left unchanged, as other searches may share
+    // it; this call builds its own index instead.
+    const Size n_electron_activated = countElectronActivated_(spectra);
+    FragmentIndex electron_index;
+    FragmentIndex* index = &ctx.fragment_index;
+    if (n_electron_activated > 0)
+    {
+      OPENMS_LOG_INFO << "[ProSE] " << n_electron_activated << " of " << spectra.size()
+                      << " spectra are electron-activated (ETD, ECD, EThcD or ETciD) and are also scored"
+                      << " with c and z+1 ions." << std::endl;
+      if (!ctx.electron_ions)
+      {
+        OPENMS_LOG_WARN << "[ProSE] The prepared fragment index holds no c and z+1 ions; building one for this"
+                        << " search. prepareContext(fasta_db, true) prepares a context that has them." << std::endl;
+        startProgress(0, 1, "Building fragment index with c and z+1 ions...");
+        electron_index.setParameters(fragmentIndexParameters_(true));
+        electron_index.build(ctx.db);
+        endProgress();
+        index = &electron_index;
+      }
+    }
+
+    // Reference the prepared (decoy-augmented) database and the fragment index to search.
     std::vector<FASTAFile::FASTAEntry>& db = ctx.db;
-    FragmentIndex& fragment_index_ = ctx.fragment_index;
+    FragmentIndex& fragment_index_ = *index;
 
     // Effective tolerances: may be overridden by calibration pass below.
     // The precursor scalar passed to postProcessHits_ is the widest bound
@@ -1820,20 +1923,8 @@ namespace OpenMS
     // then restore_fi_params() has reset the members to user-configured values).
     last_mod_match_tolerance_used_ = computeModMatchTolerance_();
 
-    // create spectrum generator — forward the ion-series toggles so scoring
-    // uses the same ion types as the FragmentIndex (which already reads them
-    // via setParameters in prepareContext).
-    TheoreticalSpectrumGenerator spectrum_generator;
-    Param param(spectrum_generator.getParameters());
-    param.setValue("add_first_prefix_ion", "true");
-    param.setValue("add_metainfo", "true");
-    param.setValue("add_a_ions", add_a_ions_ ? "true" : "false");
-    param.setValue("add_b_ions", add_b_ions_ ? "true" : "false");
-    param.setValue("add_c_ions", add_c_ions_ ? "true" : "false");
-    param.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
-    param.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
-    param.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
-    spectrum_generator.setParameters(param);
+    // spectrum generators with the ion series of the FragmentIndex
+    const SpectrumGenerators_ generators = spectrumGenerators_();
 
     // preallocate storage for PSMs
     vector<vector<AnnotatedHit_> > annotated_hits(spectra.size(), vector<AnnotatedHit_>());
@@ -1843,7 +1934,7 @@ namespace OpenMS
     bool open_search_mode = open_search;
 
     StopWatch sw_search; sw_search.start();
-    scoreSpectraAgainstIndex_(spectra, fragment_index_, db, spectrum_generator,
+    scoreSpectraAgainstIndex_(spectra, fragment_index_, db, generators,
                               effective_fragment_tol, fragment_mass_tolerance_unit_ppm,
                               open_search_mode, annotated_hits, pool_stats,
                               "Scoring peptide models against spectra...");
@@ -2208,6 +2299,8 @@ namespace OpenMS
       if (add_x_ions_) sh.ion_series.push_back("x");
       if (add_y_ions_) sh.ion_series.push_back("y");
       if (add_z_ions_) sh.ion_series.push_back("z");
+      if (add_zp1_ions_) sh.ion_series.push_back("z+1");
+      if (ions_by_activation_) sh.ion_series.push_back("+c/z+1 for ETD/ECD/EThcD/ETciD");
       sh.open_search = isOpenSearchMode_();
       sh.calibration_enabled = calibration_enabled_;
       sh.psm_fdr_threshold = fdr_psm_;
@@ -2277,6 +2370,20 @@ namespace OpenMS
         preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
       }
 
+      // ions:by_activation: the chunk indices, shared by all files, hold c and z+1 ions if any file has
+      // electron-activated spectra. Only those spectra are matched against them (see
+      // scoreSpectraAgainstIndex_), so the other files get the results they would get alone.
+      bool electron_ions = false;
+      for (Size i = 0; i < in_spectra_files.size(); ++i)
+      {
+        const Size n_electron_activated = countElectronActivated_(all_spectra[i]);
+        if (n_electron_activated == 0) continue;
+        electron_ions = true;
+        OPENMS_LOG_INFO << "[ProSE] " << in_spectra_files[i] << ": " << n_electron_activated << " of "
+                        << all_spectra[i].size() << " spectra are electron-activated (ETD, ECD, EThcD or ETciD)"
+                        << " and are also scored with c and z+1 ions." << std::endl;
+      }
+
       // Per-file calibration: build a strided calibration FI once, run calibration per file.
       // Stores per-file effective tolerances (asymmetric lower/upper preserved — see #9180)
       // for use during scoring.
@@ -2305,7 +2412,7 @@ namespace OpenMS
         // Build a strided-sample calibration FI once, reused across files.
         std::vector<FASTAFile::FASTAEntry> cal_db = buildCalibrationSample_(full_db);
         FragmentIndex cal_fi;
-        cal_fi.setParameters(fragmentIndexParameters_());
+        cal_fi.setParameters(fragmentIndexParameters_(electron_ions));
         StopWatch sw_cal_idx; sw_cal_idx.start();
         cal_fi.build(cal_db);
         sw_cal_idx.stop();
@@ -2359,20 +2466,8 @@ namespace OpenMS
         OPENMS_LOG_WARN << "Warning: calibration not applicable in open-search mode." << std::endl;
       }
 
-      // Prepare spectrum generator (once).
-      TheoreticalSpectrumGenerator spectrum_generator;
-      {
-        Param tsg_param(spectrum_generator.getParameters());
-        tsg_param.setValue("add_first_prefix_ion", "true");
-        tsg_param.setValue("add_metainfo", "true");
-        tsg_param.setValue("add_a_ions", add_a_ions_ ? "true" : "false");
-        tsg_param.setValue("add_b_ions", add_b_ions_ ? "true" : "false");
-        tsg_param.setValue("add_c_ions", add_c_ions_ ? "true" : "false");
-        tsg_param.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
-        tsg_param.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
-        tsg_param.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
-        spectrum_generator.setParameters(tsg_param);
-      }
+      // Prepare spectrum generators (once).
+      const SpectrumGenerators_ generators = spectrumGenerators_();
 
       // Per-file hit accumulators.
       std::vector<std::vector<std::vector<AnnotatedHit_>>> per_file_hits(in_spectra_files.size());
@@ -2398,7 +2493,7 @@ namespace OpenMS
 
         std::vector<FASTAFile::FASTAEntry> chunk_db(full_db.begin() + start, full_db.begin() + end);
         FragmentIndex chunk_fi;
-        chunk_fi.setParameters(fragmentIndexParameters_());
+        chunk_fi.setParameters(fragmentIndexParameters_(electron_ions));
         StopWatch sw_chunk; sw_chunk.start();
         chunk_fi.build(chunk_db);
         sw_chunk.stop();
@@ -2426,7 +2521,7 @@ namespace OpenMS
             chunk_fi.setParameters(fi_params);
           }
           scoreSpectraAgainstIndex_(all_spectra[i], chunk_fi, chunk_db,
-                                    spectrum_generator, per_file_cal[i].effective_fragment_tol,
+                                    generators, per_file_cal[i].effective_fragment_tol,
                                     fragment_mass_tolerance_unit_ppm, open_search_mode,
                                     per_file_hits[i], per_file_pool_stats[i],
                                     "  file " + StringUtils::toStr(i + 1) + " chunk " + StringUtils::toStr(chunk_idx));
@@ -2558,44 +2653,66 @@ namespace OpenMS
       // Non-chunked multi-file: shared SearchContext (existing path).
       // ================================================================
       SearchContext ctx;
-      StopWatch sw_idx; sw_idx.start();
-      if (!full_db.empty())
+      bool ctx_built = false;
+      // ions:by_activation: the shared index gets c and z+1 ions once a file has electron-activated
+      // spectra, by rebuilding it. Only such spectra are matched against these ions (see
+      // scoreSpectraAgainstIndex_), so the results of the other files depend neither on whether
+      // the index holds them nor on the input order, and no file has to be read in advance.
+      auto prepare_context = [&](bool electron_ions)
       {
-        // chunk_size was set but augmented DB fits in one chunk — reuse the
-        // already-built decoy-augmented DB instead of re-augmenting inside
-        // prepareContext.
-        ctx.db = std::move(full_db);
-        ctx.decoy_string = strategy.decoy_string;
-        ctx.decoy_is_prefix = strategy.is_prefix;
-        ctx.have_decoys = strategy.have_decoys;
-        startProgress(0, 1, "Building fragment index...");
-        ctx.fragment_index.setParameters(fragmentIndexParameters_());
-        ctx.fragment_index.build(ctx.db);
-        endProgress();
-      }
-      else
-      {
-        ctx = prepareContext(fasta_db);
-      }
-      sw_idx.stop();
+        if (ctx_built && (ctx.electron_ions || !electron_ions)) { return; }
+        StopWatch sw_idx; sw_idx.start();
+        if (ctx_built)
+        {
+          startProgress(0, 1, "Building fragment index with c and z+1 ions...");
+          ctx.fragment_index.clear();
+          ctx.fragment_index.setParameters(fragmentIndexParameters_(true));
+          ctx.fragment_index.build(ctx.db);
+          ctx.electron_ions = true;
+          endProgress();
+        }
+        else if (!full_db.empty())
+        {
+          // chunk_size was set but augmented DB fits in one chunk — reuse the
+          // already-built decoy-augmented DB instead of re-augmenting inside
+          // prepareContext.
+          ctx.db = std::move(full_db);
+          ctx.decoy_string = strategy.decoy_string;
+          ctx.decoy_is_prefix = strategy.is_prefix;
+          ctx.have_decoys = strategy.have_decoys;
+          startProgress(0, 1, "Building fragment index...");
+          ctx.fragment_index.setParameters(fragmentIndexParameters_(electron_ions));
+          ctx.fragment_index.build(ctx.db);
+          ctx.electron_ions = electron_ions;
+          endProgress();
+        }
+        else
+        {
+          ctx = prepareContext(fasta_db, electron_ions);
+        }
+        sw_idx.stop();
 
-      // Shared report stats: index built once and reused across all files.
-      mfres.shared.chunked = false;
-      mfres.shared.seconds_index_build = sw_idx.getClockTime();
-      mfres.shared.indexed_peptides = ctx.fragment_index.getPeptides().size();
-      mfres.shared.indexed_fragments = ctx.fragment_index.getNumFragments();
-      mfres.shared.snes_mode = ctx.fragment_index.isSnesMode();
-      for (const auto& e : ctx.db)
-      {
-        // Count by the RESOLVED decoy marker (prefix OR suffix), not the hardcoded
-        // decoy_prefix_: otherwise reused external/suffix decoys (decoy_mode "external")
-        // would be miscounted as targets. have_decoys is false for target-only (ignore),
-        // where decoys are stripped and decoy_string is empty.
-        const bool is_decoy = strategy.have_decoys &&
-            accessionHasDecoyMarker_(e.identifier, strategy.decoy_string, strategy.is_prefix);
-        if (is_decoy) { ++mfres.shared.db_decoy_proteins; }
-        else { ++mfres.shared.db_target_proteins; }
-      }
+        // Shared report stats: index built once (and rebuilt at most once, with c and z+1 ions)
+        // and reused across all files.
+        mfres.shared.chunked = false;
+        mfres.shared.seconds_index_build += sw_idx.getClockTime();
+        mfres.shared.indexed_fragments = ctx.fragment_index.getNumFragments();
+        if (ctx_built) { return; } // a rebuild: same database and peptides
+        ctx_built = true;
+        mfres.shared.indexed_peptides = ctx.fragment_index.getPeptides().size();
+        mfres.shared.snes_mode = ctx.fragment_index.isSnesMode();
+        for (const auto& e : ctx.db)
+        {
+          // Count by the RESOLVED decoy marker (prefix OR suffix), not the hardcoded
+          // decoy_prefix_: otherwise reused external/suffix decoys (decoy_mode "external")
+          // would be miscounted as targets. have_decoys is false for target-only (ignore),
+          // where decoys are stripped and decoy_string is empty.
+          const bool is_decoy = strategy.have_decoys &&
+              accessionHasDecoyMarker_(e.identifier, strategy.decoy_string, strategy.is_prefix);
+          if (is_decoy) { ++mfres.shared.db_decoy_proteins; }
+          else { ++mfres.shared.db_target_proteins; }
+        }
+      };
 
       mfres.per_file.reserve(in_spectra_files.size());
 
@@ -2617,6 +2734,7 @@ namespace OpenMS
           f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         }
         spectra.sortSpectra(true);
+        prepare_context(countElectronActivated_(spectra) > 0);
 
         SearchResult result;
         result.is_open_search = isOpenSearchMode_();
@@ -3074,12 +3192,9 @@ namespace OpenMS
     OPENMS_LOG_INFO << "[ProSE] Calibration: scoring " << subset_size << " / " << spectra.size()
                     << " spectra (top TIC)..." << std::endl;
 
-    // Score subset and collect errors from the best hit per spectrum
-    TheoreticalSpectrumGenerator tsg;
-    Param tsg_param(tsg.getParameters());
-    tsg_param.setValue("add_first_prefix_ion", "true");
-    tsg_param.setValue("add_metainfo", "true");
-    tsg.setParameters(tsg_param);
+    // Score subset and collect errors from the best hit per spectrum, with the ion series
+    // the fragment index was built from (e.g. c/z+1 for ETD, where b/y would match nothing)
+    const SpectrumGenerators_ generators = spectrumGenerators_();
 
     // Collect per-spectrum best hits with scores and errors
     struct CalHit { double score; double prec_error; double frag_error; };
@@ -3087,7 +3202,7 @@ namespace OpenMS
 
     // Parallelize over the calibration subset, mirroring the main scoring loop
     // (scoreSpectraAgainstIndex_). Each iteration is independent: querySpectrum and
-    // the shared TheoreticalSpectrumGenerator expose const, thread-safe methods (the
+    // the shared TheoreticalSpectrumGenerators expose const, thread-safe methods (the
     // main loop already calls them concurrently), and every working variable below is
     // loop-local. The only cross-thread write is the push into cal_hits, guarded by a
     // critical section. Without this the calibration pass ran single-threaded: on a
@@ -3100,9 +3215,10 @@ namespace OpenMS
     {
       const Size scan_idx = tic_index[si].second;
       const MSSpectrum& spec = spectra[scan_idx];
+      const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
 
       FragmentIndex::SpectrumMatchesTopN top_sms;
-      fragment_index.querySpectrum(spec, top_sms);
+      fragment_index.querySpectrum(spec, db, top_sms, generators.electronIons(spec));
 
       // Find the best-scoring hit for this spectrum
       double best_score = 0;

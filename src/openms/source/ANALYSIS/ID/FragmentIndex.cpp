@@ -99,6 +99,7 @@ namespace OpenMS
       ion_offsets_.c_offset = Residue::getInternalToCIon().getMonoWeight();
       ion_offsets_.x_offset = Residue::getInternalToXIon().getMonoWeight();
       ion_offsets_.z_offset = Residue::getInternalToZIon().getMonoWeight();
+      ion_offsets_.zp1_offset = Residue::getInternalToZp1Ion().getMonoWeight();
     });
   }
 
@@ -349,6 +350,7 @@ namespace OpenMS
 
   void FragmentIndex::generateFragmentsLightweight_(
     std::vector<Fragment>& fragments,
+    std::vector<Fragment>& electron_fragments,
     const char* sequence,
     size_t seq_len,
     UInt32 peptide_idx,
@@ -360,7 +362,16 @@ namespace OpenMS
     generateFragmentsForSeries_(fragments, sequence, seq_len, peptide_idx,
                                 n_term_mod_mass, c_term_mod_mass, residue_mod_masses,
                                 add_b_ions_, add_a_ions_, add_c_ions_,
-                                add_y_ions_, add_x_ions_, add_z_ions_);
+                                add_y_ions_, add_x_ions_, add_z_ions_, add_zp1_ions_);
+    // ions:electron_ions: the c and z+1 ions that the series above lack, in a set of their own
+    if (electron_ions_ && !(add_c_ions_ && add_zp1_ions_))
+    {
+      generateFragmentsForSeries_(electron_fragments, sequence, seq_len, peptide_idx,
+                                  n_term_mod_mass, c_term_mod_mass, residue_mod_masses,
+                                  /*add_b=*/false, /*add_a=*/false, /*add_c=*/!add_c_ions_,
+                                  /*add_y=*/false, /*add_x=*/false, /*add_z=*/false,
+                                  /*add_zp1=*/!add_zp1_ions_);
+    }
   }
 
   void FragmentIndex::generateFragmentsForSeries_(
@@ -376,7 +387,8 @@ namespace OpenMS
     bool add_c,
     bool add_y,
     bool add_x,
-    bool add_z) const
+    bool add_z,
+    bool add_zp1) const
   {
     const double proton = Constants::PROTON_MASS_U;
     const auto& table = residue_mass_table_;
@@ -421,9 +433,9 @@ namespace OpenMS
       }
     }
 
-    // Generate suffix ions (y, x, z) - right to left cumulative sum
+    // Generate suffix ions (y, x, z, z+1) - right to left cumulative sum
     // Suffix ion index: first iteration produces y1, second y2, etc.
-    if (add_y || add_x || add_z)
+    if (add_y || add_x || add_z || add_zp1)
     {
       {
         constexpr int z = 1;
@@ -455,6 +467,12 @@ namespace OpenMS
           if (add_z)
           {
             float mz = static_cast<float>((cumulative + ion_offsets_.z_offset) / z);
+            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
+              fragments.emplace_back(peptide_idx, mz);
+          }
+          if (add_zp1)
+          {
+            float mz = static_cast<float>((cumulative + ion_offsets_.zp1_offset) / z);
             if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
               fragments.emplace_back(peptide_idx, mz);
           }
@@ -491,8 +509,10 @@ namespace OpenMS
     // on human-proteome builds). The swap idiom is the only portable way to force
     // deallocation across libstdc++/libc++/MSVC.
     std::vector<Fragment>().swap(fi_fragments_);
+    std::vector<Fragment>().swap(electron_fragments_);
     std::vector<Peptide>().swap(fi_peptides_);
     std::vector<float>().swap(bucket_min_mz_);
+    std::vector<float>().swap(electron_bucket_min_mz_);
     std::vector<uint32_t>().swap(protein_lengths_);
     is_build_ = false;
     mod_tables_initialized_ = false;
@@ -1141,9 +1161,11 @@ namespace OpenMS
 #endif
       const size_t est_per_thread = (fi_peptides_.size() * 2 * peptide_min_length_) / num_threads + 1;
       vector<vector<Fragment>> thread_fragments(num_threads);
+      vector<vector<Fragment>> thread_electron_fragments(num_threads); // ions:electron_ions
       for (int t = 0; t < num_threads; ++t)
       {
         thread_fragments[t].reserve(est_per_thread);
+        if (electron_ions_) thread_electron_fragments[t].reserve(est_per_thread);
       }
 
       // Unified fragment generation path for all cases.
@@ -1188,7 +1210,7 @@ namespace OpenMS
 
           // SNES candidate lookup in querySpectrumSNES_ only targets b-ions (for
           // Single-N mothers) and y-ions (for Single-C mothers) — the other ion
-          // series (a/c/x/z) are not targeted and indexing them would be wasted
+          // series (a/c/x/z/z+1) are not targeted and indexing them would be wasted
           // storage at best and source of silent data loss at worst if a user
           // disabled the primary series via ion toggles. Force b-only/y-only
           // regardless of the class add_*_ions_ flags. CodeRabbit #6.
@@ -1201,7 +1223,8 @@ namespace OpenMS
             /*add_c=*/false,
             /*add_y=*/ is_single_c,
             /*add_x=*/false,
-            /*add_z=*/false);
+            /*add_z=*/false,
+            /*add_zp1=*/false);
         }
         else if (!has_modifications || pep.mod_bitmask_ == 0)
         {
@@ -1209,8 +1232,8 @@ namespace OpenMS
           if (!has_modifications)
           {
             generateFragmentsLightweight_(
-              thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
-              0.0, 0.0, nullptr);
+              thread_fragments[tid], thread_electron_fragments[tid], seq_ptr, seq_len,
+              static_cast<UInt32>(peptide_idx), 0.0, 0.0, nullptr);
           }
           else
           {
@@ -1227,8 +1250,8 @@ namespace OpenMS
               }
             }
             generateFragmentsLightweight_(
-              thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
-              fixed_nterm_delta_, fixed_cterm_delta_,
+              thread_fragments[tid], thread_electron_fragments[tid], seq_ptr, seq_len,
+              static_cast<UInt32>(peptide_idx), fixed_nterm_delta_, fixed_cterm_delta_,
               has_residue_mods ? mod_masses.data() : nullptr);
           }
         }
@@ -1285,39 +1308,34 @@ namespace OpenMS
           }
 
           generateFragmentsLightweight_(
-            thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
-            n_term_mod, c_term_mod,
+            thread_fragments[tid], thread_electron_fragments[tid], seq_ptr, seq_len,
+            static_cast<UInt32>(peptide_idx), n_term_mod, c_term_mod,
             has_residue_mods ? mod_masses.data() : nullptr);
         }
       }
 
-      // Merge per-thread vectors into global fragment array
-      size_t total_fragments = 0;
-      for (int t = 0; t < num_threads; ++t) total_fragments += thread_fragments[t].size();
-      fi_fragments_.reserve(total_fragments);
-      for (int t = 0; t < num_threads; ++t)
+      // Merge per-thread vectors into the global fragment arrays
+      auto merge_thread_fragments = [num_threads](vector<vector<Fragment>>& per_thread, vector<Fragment>& merged)
       {
-        fi_fragments_.insert(fi_fragments_.end(), thread_fragments[t].begin(), thread_fragments[t].end());
-        vector<Fragment>().swap(thread_fragments[t]);
-      }
+        size_t total_fragments = 0;
+        for (int t = 0; t < num_threads; ++t) total_fragments += per_thread[t].size();
+        merged.reserve(total_fragments);
+        for (int t = 0; t < num_threads; ++t)
+        {
+          merged.insert(merged.end(), per_thread[t].begin(), per_thread[t].end());
+          vector<Fragment>().swap(per_thread[t]);
+        }
+      };
+      merge_thread_fragments(thread_fragments, fi_fragments_);
+      merge_thread_fragments(thread_electron_fragments, electron_fragments_);
 
       OPENMS_LOG_INFO << "Sorting fragments..." << std::endl;
-
-      /// 1.) First all Fragments are sorted by their own mass (parallel via Boost.Sort).
-      /// Boost defaults to std::thread::hardware_concurrency() threads, which ignores both
-      /// the tool's -threads option and the process CPU affinity: on a 384-core node a
-      /// single-threaded run spawned 384 sort threads. Use the same budget as the OpenMP
-      /// regions around it.
-      boost::sort::block_indirect_sort(fi_fragments_.begin(), fi_fragments_.end(), [](const Fragment& a, const Fragment& b)
-      {
-        return std::tie(a.fragment_mz_, a.peptide_idx_) < std::tie(b.fragment_mz_, b.peptide_idx_);
-      }, static_cast<uint32_t>(num_threads));
 
       // Empty database (no peptide passed length / mass / motif filters): nothing to bucket.
       // Mark as built and return — guards against the OMP loop below dividing by zero
       // when bucketsize_ becomes 0. This is a real risk for immunopeptidomics FASTAs that
       // contain entries shorter than peptide:min_size.
-      if (fi_fragments_.empty())
+      if (fi_fragments_.empty() && electron_fragments_.empty())
       {
         bucketsize_ = 1; // keep non-zero to preserve bucket-walking loop invariants
         OPENMS_LOG_INFO << "[FragmentIndex] No fragments generated — index is empty." << std::endl;
@@ -1332,15 +1350,39 @@ namespace OpenMS
       bucketsize_ = 4096;
       OPENMS_LOG_INFO << "Creating DB with bucket_size " << bucketsize_ << endl;
 
+      sortAndBucketFragments_(fi_fragments_, bucket_min_mz_, num_threads);
+      // ions:electron_ions: the c and z+1 ions get buckets of their own, walked only on request
+      sortAndBucketFragments_(electron_fragments_, electron_bucket_min_mz_, num_threads);
+
+      is_build_ = true;
+      OPENMS_LOG_INFO << "Fragment index built!" << endl;
+  }
+
+  void FragmentIndex::sortAndBucketFragments_(std::vector<Fragment>& fragments,
+                                              std::vector<float>& bucket_min_mz,
+                                              int num_threads)
+  {
+      if (fragments.empty()) return;
+
+      /// 1.) First all Fragments are sorted by their own mass (parallel via Boost.Sort).
+      /// Boost defaults to std::thread::hardware_concurrency() threads, which ignores both
+      /// the tool's -threads option and the process CPU affinity: on a 384-core node a
+      /// single-threaded run spawned 384 sort threads. Use the same budget as the OpenMP
+      /// regions around it.
+      boost::sort::block_indirect_sort(fragments.begin(), fragments.end(), [](const Fragment& a, const Fragment& b)
+      {
+        return std::tie(a.fragment_mz_, a.peptide_idx_) < std::tie(b.fragment_mz_, b.peptide_idx_);
+      }, static_cast<uint32_t>(num_threads));
+
       /// 2.) Within each fragment-m/z bucket, re-sort the fragments by their originating peptide
       /// index so that query() can binary-search a candidate peptide range inside a bucket.
       ///
-      /// bucket_min_mz_[k] is the smallest fragment m/z in bucket k. Because fi_fragments_ is
+      /// bucket_min_mz[k] is the smallest fragment m/z in bucket k. Because fragments is
       /// already globally sorted by fragment_mz_, these per-bucket minima are monotonically
       /// non-decreasing, so we write them directly by bucket index — no omp critical and no
-      /// trailing re-sort of bucket_min_mz_ is required.
-      const size_t num_buckets = (fi_fragments_.size() + bucketsize_ - 1) / bucketsize_;
-      bucket_min_mz_.resize(num_buckets);
+      /// trailing re-sort of bucket_min_mz is required.
+      const size_t num_buckets = (fragments.size() + bucketsize_ - 1) / bucketsize_;
+      bucket_min_mz.resize(num_buckets);
 
       // Per-thread scratch buffers reused as the LSD-radix ping-pong destination across buckets.
       vector<vector<Fragment>> radix_scratch(num_threads);
@@ -1355,10 +1397,10 @@ namespace OpenMS
         const int tid = 0;
 #endif
         const size_t i = static_cast<size_t>(b) * bucketsize_;
-        bucket_min_mz_[b] = fi_fragments_[i].fragment_mz_;
+        bucket_min_mz[b] = fragments[i].fragment_mz_;
 
-        Fragment* base = fi_fragments_.data() + i;
-        const size_t n = std::min<size_t>(bucketsize_, fi_fragments_.size() - i);
+        Fragment* base = fragments.data() + i;
+        const size_t n = std::min<size_t>(bucketsize_, fragments.size() - i);
 
         // LSD radix sort of the bucket by peptide_idx_ (uint32). peptide_idx_ spans the full
         // peptide range, so a value-range counting sort is not applicable; instead we do a few
@@ -1392,8 +1434,6 @@ namespace OpenMS
         // After an odd number of passes the sorted data lives in scratch — copy it back in place.
         if (src != base) std::copy(src, src + n, base);
       }
-      is_build_ = true;
-      OPENMS_LOG_INFO << "Fragment index built!" << endl;
   }
 
   std::pair<size_t, size_t> FragmentIndex::getPeptidesInMassWindow(float precursor_mass,
@@ -1486,7 +1526,8 @@ namespace OpenMS
   void FragmentIndex::queryPeaks(SpectrumMatchesTopN& candidates, const MSSpectrum& spectrum,
                                 const std::pair<size_t, size_t>& candidates_range,
                                 const int16_t isotope_error,
-                                const uint16_t precursor_charge)
+                                const uint16_t precursor_charge,
+                                const bool with_electron_ions)
   {
       // One call == one (precursor charge, isotope error) block: count matched fragments per
       // candidate peptide and APPEND only the candidates that clear the emit threshold below.
@@ -1540,29 +1581,24 @@ namespace OpenMS
       // 0 yields an empty fragment-charge loop, hence no candidates — as before.
       const uint16_t actual_max = std::min(precursor_charge, max_fragment_charge_);
 
-      for (const Peak1D& peak : spectrum)
+      // Bucket walk, tolerance window and half-open peptide-range test are identical to
+      // FragmentIndex::query() — same buckets visited, same comparisons, in the same
+      // order. Only the per-hit action differs: increment instead of emplace_back.
+      auto count_matches = [&](const std::vector<Fragment>& fragments, const std::vector<float>& bucket_min_mz,
+                               float adjusted_mass, float frag_tol)
       {
-        for (uint16_t fragment_charge = 1; fragment_charge <= actual_max; fragment_charge++)
-        {
-          // Bucket walk, tolerance window and half-open peptide-range test are identical to
-          // FragmentIndex::query() — same buckets visited, same comparisons, in the same
-          // order. Only the per-hit action differs: increment instead of emplace_back.
-          float adjusted_mass = peak.getMZ() * (float)fragment_charge -((fragment_charge-1) * Constants::PROTON_MASS_U);
+          auto left_it = std::lower_bound(bucket_min_mz.begin(), bucket_min_mz.end(), adjusted_mass - frag_tol);
+          auto right_it = std::upper_bound(bucket_min_mz.begin(), bucket_min_mz.end(), adjusted_mass + frag_tol);
 
-          float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, adjusted_mass) : fragment_mz_tolerance_;
+          if (left_it != bucket_min_mz.begin()) --left_it;
 
-          auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), adjusted_mass - frag_tol);
-          auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), adjusted_mass + frag_tol);
-
-          if (left_it != bucket_min_mz_.begin()) --left_it;
-
-          const size_t bucket_begin = std::distance(bucket_min_mz_.begin(), left_it);
-          const size_t bucket_end = std::distance(bucket_min_mz_.begin(), right_it);
+          const size_t bucket_begin = std::distance(bucket_min_mz.begin(), left_it);
+          const size_t bucket_end = std::distance(bucket_min_mz.begin(), right_it);
 
           for (size_t j = bucket_begin; j < bucket_end; j++)
           {
-            auto slice_begin = fi_fragments_.begin() + (j*bucketsize_);
-            auto slice_end = ((j+1) * bucketsize_) >= fi_fragments_.size() ? fi_fragments_.end() : (fi_fragments_.begin() + ((j+1) * bucketsize_)) ;
+            auto slice_begin = fragments.begin() + (j*bucketsize_);
+            auto slice_end = ((j+1) * bucketsize_) >= fragments.size() ? fragments.end() : (fragments.begin() + ((j+1) * bucketsize_)) ;
 
             auto left_iter = std::lower_bound(slice_begin, slice_end, candidates_range.first, [](Fragment a, UInt32 b) { return a.peptide_idx_ < b;} );
 
@@ -1583,6 +1619,19 @@ namespace OpenMS
               ++left_iter;
             }
           }
+      };
+
+      for (const Peak1D& peak : spectrum)
+      {
+        for (uint16_t fragment_charge = 1; fragment_charge <= actual_max; fragment_charge++)
+        {
+          float adjusted_mass = peak.getMZ() * (float)fragment_charge -((fragment_charge-1) * Constants::PROTON_MASS_U);
+
+          float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, adjusted_mass) : fragment_mz_tolerance_;
+
+          count_matches(fi_fragments_, bucket_min_mz_, adjusted_mass, frag_tol);
+          // ions:electron_ions: the c and z+1 ions count only when the caller asks for them
+          if (with_electron_ions) count_matches(electron_fragments_, electron_bucket_min_mz_, adjusted_mass, frag_tol);
         }
       }
 
@@ -1696,7 +1745,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
   void FragmentIndex::searchDifferentPrecursorRanges(const MSSpectrum& spectrum,
                                                      float precursor_mass,
                                                      SpectrumMatchesTopN& sms,
-                                                     uint16_t charge)
+                                                     uint16_t charge,
+                                                     bool with_electron_ions)
   {
     // Open mode absorbs isotope shifts into the wide window — no per-isotope iteration.
     const bool open_mode = isOpenSearchMode_();
@@ -1719,7 +1769,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       // block per isotope error, for no gain — operator+= is a plain tail insert.
       auto candidates_range = getPeptidesInMassWindow(shifted_mass, window);
 
-      queryPeaks(sms, spectrum, candidates_range, isotope_error, charge);
+      queryPeaks(sms, spectrum, candidates_range, isotope_error, charge, with_electron_ions);
     }
   }
 
@@ -2359,6 +2409,14 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
                                     const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                                     OpenMS::FragmentIndex::SpectrumMatchesTopN& sms)
   {
+    querySpectrum(spectrum, fasta_entries, sms, false);
+  }
+
+  void FragmentIndex::querySpectrum(const OpenMS::MSSpectrum& spectrum,
+                                    const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                    OpenMS::FragmentIndex::SpectrumMatchesTopN& sms,
+                                    bool with_electron_ions)
+  {
       if (!isBuild())
       {
         OPENMS_LOG_WARN << "FragmentIndex not yet build \n";
@@ -2405,7 +2463,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       {
         float mz;
         mz = (float)precursor[0].getMZ() * charge - ((charge-1) * Constants::PROTON_MASS_U);
-        searchDifferentPrecursorRanges(spectrum, mz, sms, charge);
+        searchDifferentPrecursorRanges(spectrum, mz, sms, charge, with_electron_ions);
       }
       trimHits(sms);
   }
@@ -2430,8 +2488,14 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("ions:add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
     defaults_.setValidStrings("ions:add_x_ions", {"true","false"});
     
-    defaults_.setValue("ions:add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+    defaults_.setValue("ions:add_z_ions", "false", "Add peaks of z-ions (y - NH3) to the spectrum. For ETD, EThcD or ETciD spectra, use ions:add_zp1_ions instead.");
     defaults_.setValidStrings("ions:add_z_ions", {"true","false"});
+
+    defaults_.setValue("ions:add_zp1_ions", "false", "Add peaks of z+1 ions (z-dot, y - NH2) to the spectrum, the main C-terminal fragments of ETD, EThcD and ETciD spectra.");
+    defaults_.setValidStrings("ions:add_zp1_ions", {"true","false"});
+
+    defaults_.setValue("ions:electron_ions", "false", "Also index c and z+1 ions, the main fragments of ETD, ECD, EThcD and ETciD spectra, apart from the ion series above: querySpectrum() matches a spectrum against them only when asked to, e.g. for an electron-activated spectrum. Series enabled above are not indexed twice. Ignored in SNES mode.");
+    defaults_.setValidStrings("ions:electron_ions", {"true","false"});
     defaults_.setSectionDescription("ions", "Theoretical ion series toggles");
 
 
@@ -2565,6 +2629,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     add_c_ions_ = param_.getValue("ions:add_c_ions").toBool();
     add_x_ions_ = param_.getValue("ions:add_x_ions").toBool();
     add_z_ions_ = param_.getValue("ions:add_z_ions").toBool();
+    add_zp1_ions_ = param_.getValue("ions:add_zp1_ions").toBool();
+    electron_ions_ = param_.getValue("ions:electron_ions").toBool();
     digestion_enzyme_ = param_.getValue("enzyme").toString();
     enzyme_specificity_ = EnzymaticDigestion::getSpecificityByName(
       param_.getValue("peptide:enzyme_specificity").toString());
@@ -2629,7 +2695,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "SNES mode (snes_enabled=true with enzyme_specificity=none) requires both "
         "ions:add_b_ions=true and ions:add_y_ions=true in v1. Additional ion "
-        "series (a/c/x/z) may be enabled freely for downstream scoring.");
+        "series (a/c/x/z/z+1) may be enabled freely for downstream scoring.");
     }
 
     if (isOpenSearchMode_())

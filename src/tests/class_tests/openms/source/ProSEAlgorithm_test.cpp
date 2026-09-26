@@ -99,7 +99,8 @@ static vector<FASTAFile::FASTAEntry> calibration_fasta_db_()
   };
 }
 
-static PeakMap build_calibration_spectra_(const vector<double>& ppm_shifts)
+// etd_ions: c/z+1 instead of b/y fragments
+static PeakMap build_calibration_spectra_(const vector<double>& ppm_shifts, bool etd_ions = false)
 {
   // Digest the test protein into tryptic peptides >= 8 residues.
   ProteaseDigestion digester;
@@ -117,6 +118,13 @@ static PeakMap build_calibration_spectra_(const vector<double>& ppm_shifts)
   Param tsg_param = tsg.getParameters();
   tsg_param.setValue("add_first_prefix_ion", "true");
   tsg_param.setValue("add_metainfo", "true");
+  if (etd_ions)
+  {
+    tsg_param.setValue("add_b_ions", "false");
+    tsg_param.setValue("add_y_ions", "false");
+    tsg_param.setValue("add_c_ions", "true");
+    tsg_param.setValue("add_zp1_ions", "true");
+  }
   tsg.setParameters(tsg_param);
 
   PeakMap spectra;
@@ -298,6 +306,114 @@ void buildSyntheticProteinFDRData(std::vector<FASTAFile::FASTAEntry>& fasta_db, 
       created++;
     }
   }
+}
+
+// A run with one ETD spectrum (c/z+1 ions) and one HCD spectrum, each tagged with its activation
+// method as in mzML, for the ions:by_activation tests below. The HCD spectrum holds c/z+1 peaks
+// besides its b/y peaks: scored with b/y ions only, as HCD spectra are, they stay unannotated.
+static PeakMap build_etd_hcd_spectra_()
+{
+  PeakMap spectra;
+  auto add_spectrum = [&spectra](const std::string& seq_str, bool etd)
+  {
+    TheoreticalSpectrumGenerator tsg;
+    Param tsg_param = tsg.getParameters();
+    tsg_param.setValue("add_b_ions", etd ? "false" : "true");
+    tsg_param.setValue("add_y_ions", etd ? "false" : "true");
+    tsg_param.setValue("add_c_ions", "true");
+    tsg_param.setValue("add_zp1_ions", "true");
+    tsg.setParameters(tsg_param);
+    const AASequence seq = AASequence::fromString(seq_str);
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, seq, 1, 1);
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(100.0 + spectra.size());
+    Precursor prec;
+    prec.setMZ(seq.getMZ(2));
+    prec.setCharge(2);
+    prec.setActivationMethods({etd ? Precursor::ActivationMethod::ETD : Precursor::ActivationMethod::HCD});
+    spec.setPrecursors({prec});
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
+    spectra.addSpectrum(std::move(spec));
+  };
+  add_spectrum("VLGFHQR", true);
+  add_spectrum("THQPSANLDIK", false);
+  return spectra;
+}
+
+// HCD spectrum with the y ions of THQPSANLDIK and, by chance, the c and z+1 ions of NDSIQLHTAPK, a
+// peptide of the same composition and hence the same precursor mass. Matched against c and z+1 ions
+// as well, NDSIQLHTAPK explains more peaks than THQPSANLDIK; matched against b/y ions, it explains
+// hardly any.
+static MSSpectrum build_displacement_hcd_spectrum_()
+{
+  auto ions = [](const std::string& seq_str, bool y, bool c_zp1)
+  {
+    TheoreticalSpectrumGenerator tsg;
+    Param tsg_param = tsg.getParameters();
+    tsg_param.setValue("add_b_ions", "false");
+    tsg_param.setValue("add_y_ions", y ? "true" : "false");
+    tsg_param.setValue("add_c_ions", c_zp1 ? "true" : "false");
+    tsg_param.setValue("add_zp1_ions", c_zp1 ? "true" : "false");
+    tsg.setParameters(tsg_param);
+    MSSpectrum ion_spectrum;
+    tsg.getSpectrum(ion_spectrum, AASequence::fromString(seq_str), 1, 1);
+    return ion_spectrum;
+  };
+  MSSpectrum spec = ions("THQPSANLDIK", true, false);
+  for (const Peak1D& peak : ions("NDSIQLHTAPK", false, true)) spec.push_back(peak);
+  spec.sortByPosition();
+  spec.setMSLevel(2);
+  spec.setRT(200.0);
+  Precursor prec;
+  prec.setMZ(AASequence::fromString("THQPSANLDIK").getMZ(2));
+  prec.setCharge(2);
+  prec.setActivationMethods({Precursor::ActivationMethod::HCD});
+  spec.setPrecursors({prec});
+  spec.setNativeID("spectrum=hcd");
+  return spec;
+}
+
+static void configure_by_activation_params_(ProSEAlgorithm& algo, bool by_activation)
+{
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", vector<string>{});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("decoys", "ignore");
+  p.setValue("peptide:min_size", 7);
+  p.setValue("peptide:max_size", 40);
+  p.setValue("peptide:missed_cleavages", 1);
+  p.setValue("ions:by_activation", by_activation ? "true" : "false");
+  algo.setParameters(p);
+}
+
+// top hit per spectrum, keyed by native ID
+static std::map<std::string, PeptideHit> top_hits_by_spectrum_(PeptideIdentificationList& pep_ids)
+{
+  std::map<std::string, PeptideHit> top_hits;
+  for (PeptideIdentification& pid : pep_ids)
+  {
+    if (pid.getHits().empty()) continue;
+    pid.sort();
+    top_hits[pid.getSpectrumReference()] = pid.getHits()[0];
+  }
+  return top_hits;
+}
+
+static Size count_annotations_(const PeptideHit& hit, const std::string& prefix)
+{
+  Size n = 0;
+  for (const auto& pa : hit.getPeakAnnotations())
+  {
+    if (StringUtils::hasPrefix(pa.annotation, prefix)) ++n;
+  }
+  return n;
 }
 
 START_TEST(ProSEAlgorithm, "$Id$")
@@ -1219,6 +1335,298 @@ START_SECTION(([EXTRA] Closed search with c/z ions toggled - ETD-style fragmenta
 }
 END_SECTION
 
+START_SECTION(([EXTRA] Closed search with c/z+1 ions - ETD fragmentation))
+{
+  // ETD, EThcD and ETciD spectra are dominated by c and z+1 (z-dot) ions. z+1 ions are one
+  // hydrogen atom heavier than the z ions of ions:add_z_ions (y - NH3), so only
+  // ions:add_zp1_ions matches the C-terminal fragments of such spectra.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_b_ions", "false");
+  tsg_param.setValue("add_y_ions", "false");
+  tsg_param.setValue("add_c_ions", "true");
+  tsg_param.setValue("add_zp1_ions", "true");
+  tsg.setParameters(tsg_param);
+
+  const vector<string> test_seqs = { "VLGFHQR", "THQPSANLDIK" };
+  PeakMap spectra;
+  for (const auto& seq_str : test_seqs)
+  {
+    const AASequence seq = AASequence::fromString(seq_str);
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, seq, 1, 1);
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(100.0 + spectra.size());
+    Precursor prec;
+    prec.setMZ(seq.getMZ(2));
+    prec.setCharge(2);
+    spec.setPrecursors({prec});
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
+    spectra.addSpectrum(std::move(spec));
+  }
+
+  // top hit per spectrum, keyed by sequence
+  auto run_search = [&](const std::string& z_ion_series) {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("precursor:mass_tolerance_lower", 10.0);
+    p.setValue("precursor:mass_tolerance_upper", 10.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("modifications:fixed", vector<string>{});
+    p.setValue("modifications:variable", vector<string>{});
+    p.setValue("decoys", "ignore");
+    p.setValue("peptide:min_size", 7);
+    p.setValue("peptide:max_size", 40);
+    p.setValue("peptide:missed_cleavages", 1);
+    p.setValue("ions:add_b_ions", "false");
+    p.setValue("ions:add_y_ions", "false");
+    p.setValue("ions:add_c_ions", "true");
+    p.setValue(z_ion_series, "true");
+    algo.setParameters(p);
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+    TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    std::map<std::string, PeptideHit> top_hits;
+    for (PeptideIdentification& pid : pep_ids)
+    {
+      if (pid.getHits().empty()) continue;
+      pid.sort();
+      top_hits[pid.getHits()[0].getSequence().toUnmodifiedString()] = pid.getHits()[0];
+    }
+    return top_hits;
+  };
+
+  // (1) with z+1 ions, both peptides are identified and all their z+1 ions are matched.
+  // z+1 ordinals ("z.3+") count for the longest ion series: z1..z(n-1) is one run longer
+  // than c2..c(n-1) (the spectra have no c1).
+  std::map<std::string, PeptideHit> zp1_hits = run_search("ions:add_zp1_ions");
+  TEST_EQUAL(zp1_hits.size(), test_seqs.size())
+  for (const auto& seq_str : test_seqs)
+  {
+    ABORT_IF(zp1_hits.count(seq_str) != 1)
+    const PeptideHit& hit = zp1_hits[seq_str];
+    const int n_suffix = static_cast<int>(seq_str.size()) - 1;
+    TEST_EQUAL(static_cast<int>(hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS)), n_suffix)
+    TEST_EQUAL(static_cast<int>(hit.getMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE)), n_suffix)
+    Size zp1_annotations = 0;
+    for (const auto& pa : hit.getPeakAnnotations())
+    {
+      if (StringUtils::hasPrefix(pa.annotation, "z.")) ++zp1_annotations;
+    }
+    TEST_EQUAL(zp1_annotations, static_cast<Size>(n_suffix))
+  }
+
+  // (2) ProSE's z ions (y - NH3) miss every z+1 peak; the c ions alone still identify a peptide
+  std::map<std::string, PeptideHit> z_hits = run_search("ions:add_z_ions");
+  TEST_FALSE(z_hits.empty())
+  for (const auto& [seq_str, hit] : z_hits)
+  {
+    TEST_EQUAL(static_cast<int>(hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS)), 0)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ions:by_activation scores electron-activated spectra with c/z+1 ions))
+{
+  // With the default ion series (b/y), ions:by_activation (default on) adds c and z+1 ions for
+  // the ETD spectrum only; the HCD spectrum is scored with b/y ions alone, so its c/z+1 peaks
+  // stay unannotated.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+  PeakMap spectra = build_etd_hcd_spectra_();
+
+  ProSEAlgorithm algo;
+  configure_by_activation_params_(algo, true);
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  std::map<std::string, PeptideHit> hits = top_hits_by_spectrum_(pep_ids);
+  ABORT_IF(hits.count("spectrum=0") != 1 || hits.count("spectrum=1") != 1)
+
+  const PeptideHit& etd_hit = hits["spectrum=0"];
+  TEST_STRING_EQUAL(etd_hit.getSequence().toUnmodifiedString(), "VLGFHQR")
+  TEST_EQUAL(static_cast<int>(etd_hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS)), 6)
+  TEST_EQUAL(count_annotations_(etd_hit, "z."), 6)
+
+  const PeptideHit& hcd_hit = hits["spectrum=1"];
+  TEST_STRING_EQUAL(hcd_hit.getSequence().toUnmodifiedString(), "THQPSANLDIK")
+  TEST_EQUAL(count_annotations_(hcd_hit, "y") > 0, true)
+  TEST_EQUAL(count_annotations_(hcd_hit, "c"), 0)
+  TEST_EQUAL(count_annotations_(hcd_hit, "z."), 0)
+
+  // switched off, the ETD spectrum is scored with b/y ions only and none of its peaks match
+  PeakMap spectra_off = build_etd_hcd_spectra_();
+  ProSEAlgorithm algo_off;
+  configure_by_activation_params_(algo_off, false);
+  vector<ProteinIdentification> prot_ids_off;
+  PeptideIdentificationList pep_ids_off;
+  TEST_EQUAL(algo_off.search(spectra_off, fasta_db, prot_ids_off, pep_ids_off) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  std::map<std::string, PeptideHit> hits_off = top_hits_by_spectrum_(pep_ids_off);
+  TEST_EQUAL(hits_off.count("spectrum=0"), 0)
+  TEST_EQUAL(hits_off.count("spectrum=1"), 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ions:by_activation selects the candidates of other spectra with their ion series alone))
+{
+  // Only one candidate per spectrum is scored. For the HCD spectrum it must be THQPSANLDIK, as when
+  // the spectrum is searched alone, also when an ETD spectrum in the same run makes the index hold
+  // c and z+1 ions: against those, NDSIQLHTAPK matches more peaks.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+    {"P02", "Competitor", "MSGRNDSIQLHTAPKWEAGR"},
+  };
+  ProSEAlgorithm algo;
+  configure_by_activation_params_(algo, true);
+  Param p = algo.getParameters();
+  p.setValue("scoring:max_candidates_per_spectrum", 1);
+  algo.setParameters(p);
+
+  PeakMap hcd_alone;
+  hcd_alone.addSpectrum(build_displacement_hcd_spectrum_());
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(hcd_alone, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  std::map<std::string, PeptideHit> alone = top_hits_by_spectrum_(pep_ids);
+  ABORT_IF(alone.count("spectrum=hcd") != 1)
+  TEST_STRING_EQUAL(alone["spectrum=hcd"].getSequence().toUnmodifiedString(), "THQPSANLDIK")
+
+  PeakMap mixed = build_etd_hcd_spectra_();
+  PeakMap run;
+  run.addSpectrum(mixed[0]); // ETD spectrum of VLGFHQR
+  run.addSpectrum(build_displacement_hcd_spectrum_());
+  vector<ProteinIdentification> prot_ids_mixed;
+  PeptideIdentificationList pep_ids_mixed;
+  TEST_EQUAL(algo.search(run, fasta_db, prot_ids_mixed, pep_ids_mixed) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  std::map<std::string, PeptideHit> hits = top_hits_by_spectrum_(pep_ids_mixed);
+  ABORT_IF(hits.count("spectrum=0") != 1)
+  TEST_STRING_EQUAL(hits["spectrum=0"].getSequence().toUnmodifiedString(), "VLGFHQR")
+  TEST_EQUAL(hits.count("spectrum=hcd"), 1)
+  ABORT_IF(hits.count("spectrum=hcd") != 1)
+  TEST_STRING_EQUAL(hits["spectrum=hcd"].getSequence().toUnmodifiedString(), "THQPSANLDIK")
+  TEST_REAL_SIMILAR(hits["spectrum=hcd"].getScore(), alone["spectrum=hcd"].getScore())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ions:by_activation leaves a prepared context unchanged))
+{
+  // prepareContext(fasta_db) does not know the spectra, so its index holds the configured b/y ions
+  // only. search() must not change the context (concurrent searches may share it): for the ETD
+  // spectrum it builds a temporary index with c and z+1 ions. prepareContext(fasta_db, true)
+  // prepares a context that has them.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+  ProSEAlgorithm algo;
+  configure_by_activation_params_(algo, true);
+  ProSEAlgorithm::SearchContext ctx = algo.prepareContext(fasta_db);
+  TEST_EQUAL(ctx.electron_ions, false)
+  const Size fragments_before = ctx.fragment_index.getNumFragments();
+
+  PeakMap spectra = build_etd_hcd_spectra_();
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(spectra, ctx, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(ctx.electron_ions, false)
+  TEST_EQUAL(ctx.fragment_index.getNumFragments(), fragments_before)
+  std::map<std::string, PeptideHit> hits = top_hits_by_spectrum_(pep_ids);
+  ABORT_IF(hits.count("spectrum=0") != 1)
+  TEST_STRING_EQUAL(hits["spectrum=0"].getSequence().toUnmodifiedString(), "VLGFHQR")
+  TEST_EQUAL(count_annotations_(hits["spectrum=0"], "z."), 6)
+
+  ProSEAlgorithm::SearchContext electron_ctx = algo.prepareContext(fasta_db, true);
+  TEST_EQUAL(electron_ctx.electron_ions, true)
+  TEST_EQUAL(electron_ctx.fragment_index.getNumFragments() > fragments_before, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ions:by_activation gives each file of a multi-file search the results it gets alone))
+{
+  // An HCD file and an ETD file searched together, in both orders, without and with chunks
+  // (database:chunk_size). The ETD file makes the index hold c and z+1 ions. The HCD spectrum is the
+  // one above: matched against these ions, NDSIQLHTAPK (in the same chunk) would displace
+  // THQPSANLDIK. Each file must get the top hit it gets alone.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKTHQPSANLDIKCMYKWTERNDSIQLHTAPKWEAGR"},
+    {"P02", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVR"},
+  };
+  PeakMap etd_spectra, hcd_spectra;
+  etd_spectra.addSpectrum(build_etd_hcd_spectra_()[0]);
+  hcd_spectra.addSpectrum(build_displacement_hcd_spectrum_());
+  std::string etd_file, hcd_file;
+  NEW_TMP_FILE(etd_file)
+  etd_file += ".mzML";
+  NEW_TMP_FILE(hcd_file)
+  hcd_file += ".mzML";
+  FileHandler().storeExperiment(etd_file, etd_spectra, {FileTypes::MZML});
+  FileHandler().storeExperiment(hcd_file, hcd_spectra, {FileTypes::MZML});
+
+  ProSEAlgorithm algo;
+  configure_by_activation_params_(algo, true);
+  Param p = algo.getParameters();
+  p.setValue("scoring:max_candidates_per_spectrum", 1);
+  algo.setParameters(p);
+  const ProSEAlgorithm::SearchContext electron_ctx = algo.prepareContext(fasta_db, true);
+  const Size electron_fragments = electron_ctx.fragment_index.getNumFragments();
+
+  // the top hit of each file searched alone
+  auto search_alone = [&algo, &fasta_db](PeakMap alone)
+  {
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    algo.search(alone, fasta_db, prot_ids, pep_ids);
+    return top_hits_by_spectrum_(pep_ids);
+  };
+  const std::map<std::string, PeptideHit> hcd_alone = search_alone(hcd_spectra);
+  const std::map<std::string, PeptideHit> etd_alone = search_alone(etd_spectra);
+  ABORT_IF(hcd_alone.size() != 1 || etd_alone.size() != 1)
+  TEST_STRING_EQUAL(hcd_alone.begin()->second.getSequence().toUnmodifiedString(), "THQPSANLDIK")
+  TEST_STRING_EQUAL(etd_alone.begin()->second.getSequence().toUnmodifiedString(), "VLGFHQR")
+  TEST_EQUAL(count_annotations_(etd_alone.begin()->second, "z."), 6)
+
+  auto test_same_top_hit = [](PeptideIdentificationList& pep_ids, const std::map<std::string, PeptideHit>& alone)
+  {
+    std::map<std::string, PeptideHit> hits = top_hits_by_spectrum_(pep_ids);
+    TEST_EQUAL(hits.size(), 1)
+    if (hits.size() != 1) return;
+    TEST_EQUAL(hits.begin()->second.getSequence(), alone.begin()->second.getSequence())
+    TEST_REAL_SIMILAR(hits.begin()->second.getScore(), alone.begin()->second.getScore())
+  };
+
+  for (int chunk_size : {0, 1})
+  {
+    p.setValue("database:chunk_size", chunk_size);
+    algo.setParameters(p);
+    auto hcd_first = algo.searchWithModificationAnalysis(vector<std::string>{hcd_file, etd_file}, fasta_db, vector<std::string>{}, "", false);
+    auto etd_first = algo.searchWithModificationAnalysis(vector<std::string>{etd_file, hcd_file}, fasta_db, vector<std::string>{}, "", false);
+    ABORT_IF(hcd_first.per_file.size() != 2 || etd_first.per_file.size() != 2)
+    for (const auto* res : {&hcd_first, &etd_first})
+    {
+      TEST_EQUAL(res->shared.chunked, chunk_size > 0)
+      TEST_EQUAL(res->shared.indexed_peptides, electron_ctx.fragment_index.getPeptides().size())
+      TEST_EQUAL(res->shared.indexed_fragments, electron_fragments)
+    }
+    test_same_top_hit(hcd_first.per_file[0].peptide_ids, hcd_alone);
+    test_same_top_hit(etd_first.per_file[1].peptide_ids, hcd_alone);
+    test_same_top_hit(hcd_first.per_file[1].peptide_ids, etd_alone);
+    test_same_top_hit(etd_first.per_file[0].peptide_ids, etd_alone);
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] Ion mobility annotation))
 {
   // Create a small protein database
@@ -1948,6 +2356,39 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   // values are observable via last_calibration_result_, which is checked above.
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_lower_, 20.0)
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_upper_, 30.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] calibration scores candidates with the configured ion series))
+{
+  // Same fixture as above, but with ETD-type spectra (c/z+1 ions) and a search for c/z+1
+  // ions only. The calibration pass must score its candidates with these ions; a
+  // generator left at the b/y defaults matches none of their peaks and calibration fails.
+  const vector<double> ppm_shifts = {
+    0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0
+  };
+  PeakMap spectra = build_calibration_spectra_(ppm_shifts, /*etd_ions*/ true);
+  auto fasta_db = calibration_fasta_db_();
+
+  ProSEAlgorithm_test algo;
+  configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0,
+                                /*min_psms*/ 3);
+  Param p = algo.getParameters();
+  p.setValue("ions:add_b_ions", "false");
+  p.setValue("ions:add_y_ions", "false");
+  p.setValue("ions:add_c_ions", "true");
+  p.setValue("ions:add_zp1_ions", "true");
+  algo.setParameters(p);
+
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+
+  const auto& cal = algo.last_calibration_result_;
+  TEST_EQUAL(cal.success, true)
+  TEST_EQUAL(cal.extreme_bias, false)
+  TEST_EQUAL(cal.precursor_shift > 0.0, true)
 }
 END_SECTION
 
