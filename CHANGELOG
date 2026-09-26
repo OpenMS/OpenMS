@@ -258,6 +258,73 @@ PyOpenMS:
   - BREAKING: pyopenms.String removed; use Python str (string arguments also accept
     bytes). MzMLFile.storeBuffer() and MSNumpressCoder.encodeNP() return str directly;
     encodeNPRaw() returns bytes (#8602, #8604, #10109).
+  - BREAKING: output arguments are return values. A method that filled a list or object
+    passed by the caller now returns it, and the old call raises TypeError. For example:
+      picked = oms.PeakPickerHiRes().pickExperiment(exp)   # was pickExperiment(exp, picked, True)
+      traces = oms.MassTraceDetection().run(exp)           # was run(exp, traces, 0)
+      trafo = aligner.align(feature_map)                   # was align(feature_map, trafo)
+      decomps = decomposer.getDecompositions(262.1)        # was getDecompositions(decomps, 262.1)
+      proteins, peptides = oms.ProtXMLFile().load(path)    # was load(path, proteins, peptides)
+      ok, errors, warnings = oms.MzMLFile().isSemanticallyValid(path)
+      names = oms.RNaseDB().getAllNames()                  # was getAllNames(names)
+    FileHandler.loadFeatures() and the load() of MzTabFile, SqMassFile, DTAFile, DTA2DFile,
+    EDTAFile, KroenikFile, ChromeleonFile and MRMFeatureQCFile changed the same way, 108 call
+    forms in all; the type stubs show the new form of each. MzMLFile, FeatureXMLFile,
+    ConsensusXMLFile and FileHandler.loadExperiment still fill their argument, and
+    IdXMLFile.load accepts both forms (#8699).
+  - BREAKING: strings inside returned containers are str instead of bytes: list and set
+    elements, dict keys (EmpiricalFormula("H2O").getElementalComposition() is now
+    {'H': 2, 'O': 1}), Param keys and tags, list-valued string meta values and string data
+    arrays, as well as the few methods that returned bytes. Methods that return a single
+    String already returned str. Drop .decode() calls and b"..." keys and comparisons.
+  - BREAKING: LogConfigHandler has no constructor any more. Use
+    oms.LogConfigHandler.getInstance().setLogLevel("ERROR") instead of
+    oms.LogConfigHandler().setLogLevel("ERROR").
+  - BREAKING: CrossLinksDB, ElementDB, ModificationsDB, ProteaseDB, ResidueDB, RibonucleotideDB
+    and RNaseDB are callable singletons. ModificationsDB() and ModificationsDB.getInstance()
+    return the one shared instance, but the names are no longer classes:
+    isinstance(x, oms.ModificationsDB) is False, even for that instance. To check the type,
+    use isinstance(x, type(oms.ModificationsDB.getInstance())).
+  - BREAKING: classes removed from pyOpenMS. PeptideSearchEngineFIAlgorithm is now
+    ProSEAlgorithm, after the C++ rename; its exit codes are
+    ProSEAlgorithm.ProSEAlgorithm_ExitCodes (#9137). OPXL_PreprocessedPairSpectra is
+    PreprocessedPairSpectra. DPosition1 and DPosition2 are a float and an (x, y) tuple.
+    ArrayWrapperDouble and ArrayWrapperFloat are not needed any more, because peak data comes
+    back as NumPy arrays. ProteinInference was deleted (#9482); PeptideAndProteinQuant covers
+    protein quantification. KDTreeFeatureMaps, KDTreeFeatureNode and PeakIndex were dropped
+    because they handed out references that could outlive their data; use
+    FeatureGroupingAlgorithmKD, and fm[i] or exp[s][p] (#9803). IdentificationRuns,
+    Internal_MzMLValidator, IsotopePattern, Seed, TheoreticalIsotopePattern, TraceInfo and
+    OSWFile are no longer bound; use IDRipper.rip(), MzMLFile.isSemanticallyValid() and
+    CoarseIsotopePatternGenerator.
+  - BREAKING: MassTrace is now the kernel mass trace (getCentroidMZ(), getSize(), ...), and
+    Kernel_MassTrace is an alias for it. 3.5.0's MassTrace was the FeatureFinder helper
+    struct with max_rt and theoretical_int, which is gone.
+  - BREAKING: some nested enums were renamed. IonDetector.Type_IonDetector is now
+    IonDetector.Type, FeatureDeconvolution.CHARGEMODE_FD and
+    MetaboliteFeatureDeconvolution.CHARGEMODE_MFD are now CHARGEMODE, and
+    OpenPepXLAlgorithm.OpenPepXLAlgorithm_ExitCodes,
+    PeptideIndexing.PeptideIndexing_ExitCodes and
+    PercolatorOutfile.PercolatorOutfile_ScoreType are now ExitCodes and ScoreType.
+    getMapping() is now called on a member, e.g.
+    IonSource.IonizationMethod.ESI.getMapping(), not on an instance of the enum class such
+    as IonSource.IonizationMethod(). Thirty-two enums are no longer ints: int() raises
+    TypeError, and == with a number is False without an error, so spec.getType() == 1 is
+    now False for a centroided spectrum. Compare with a member such as
+    SpectrumSettings.SpectrumType.CENTROID, or use .value. The 32 are AnnotationState,
+    ChecksumType, DecoyTransitionType, DimensionDescription,
+    IMFormat, MT_QUANTMETHOD, MZTrafoModel_MODELTYPE, DataFilters.FilterOperation,
+    DataFilters.FilterType, DataProcessing.ProcessingAction,
+    FeatureOverlapFilter.MergeIntensityMode, Instrument.IonOpticsType,
+    InstrumentSettings.ScanMode, IonDetector.AcquisitionMode, IonDetector.Type,
+    IonSource.InletType, IonSource.IonizationMethod, IonSource.Polarity,
+    IsotopeModel.Averagines, the six MassAnalyzer enums,
+    NonNegativeLeastSquaresSolver.RETURN_STATUS, Precursor.ActivationMethod,
+    ProteinIdentification.PeakMassType, RetentionTime.RTType, RetentionTime.RTUnit,
+    Sample.SampleState and SpectrumSettings.SpectrumType. Setters such as
+    IonSource.setIonizationMethod() still accept an int (#8405, #8604).
+  - The names List, Union, np, numpy, print_function and common_meta_value_types, which
+    3.5.0 leaked from its implementation, and the streampos class are no longer exported.
   - Getters and ordinary element access return owned copies, restoring 3.5 semantics
     after the initial nanobind port. Modify and assign back, e.g.
     s = exp.getSpectrum(0); s.setRT(1.0); exp[0] = s
@@ -298,6 +365,29 @@ PyOpenMS:
     offsets. set_peaks() keeps parallel data arrays consistent; enum/FileTypes and
     identification-file wrappers were completed or corrected (#8502, #8553, #8589,
     #8720, #9098, #9705, #9792, #9794, #9795).
+  - Fixed SimpleSearchEngineAlgorithm.search(), which ran the search and then raised
+    std::bad_cast because its ExitCodes enum was not registered. It returns
+    (exit_code, protein_ids) and fills pep_ids; the codes are
+    SimpleSearchEngineAlgorithm.ExitCodes (#10260).
+  - Copying works again for the classes that supported it in 3.5.0. Sixty-one classes,
+    most of them derived from DefaultParamHandler, ProgressLogger, CVTermList or CsvFile,
+    either had no __copy__ or inherited their base's, so copy.copy() and copy.deepcopy()
+    failed or returned the base class: a DefaultParamHandler for PeakPickerHiRes, for
+    example. FeatureDistance, MultiplexResolverAlgorithm and SwathMapMassCorrection, which
+    returned a DefaultParamHandler too, get their own __copy__ and __deepcopy__ as well.
+    The copy constructor X(other) is back on 136 classes that had it in 3.5.0,
+    and new on four more. It stays gone from six: FeatureFindingMetabo and
+    OpenSwathOSWWriter have no C++ copy constructor any more, and MSDataSqlConsumer,
+    CachedSwathFileConsumer, MzMLSwathFileConsumer and PeakWidthEstimator delete objects
+    that their C++ copy shares, so a copy and its original freed them twice
+    (MSDataSqlConsumer(other) aborted Python in 3.5.0). copy.copy() and copy.deepcopy()
+    raise TypeError for FeatureFindingMetabo and these four (#10260).
+  - Restored C++ default arguments that the port had dropped, e.g. Residue.getMonoWeight(),
+    getAverageWeight() and getFormula() without a residue type, MSDataCachedConsumer(filename),
+    MetaInfo.getValue(name), FineIsotopePatternGenerator(threshold),
+    ModificationDefinition(mod, fixed), TextFile(filename, trim_lines, first_n),
+    IDFilter.removeDuplicatePeptideHits(peptides) and
+    IDConflictResolverAlgorithm.resolve(features) (#10260).
   - Thermo .raw reading is included in every wheel, Linux aarch64 among them; install
     .NET 8+ and set DOTNET_ROOT for non-standard locations. Optional WNet/Bruker bindings
     are exposed only when built; use hasattr() for feature detection (#9946, #9957,
