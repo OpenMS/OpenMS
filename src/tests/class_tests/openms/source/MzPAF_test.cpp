@@ -695,11 +695,33 @@ START_SECTION(calculateTheoreticalMZ)
   auto mz_y100 = MzPAF::calculateTheoreticalMZ(y100, seq);
   TEST_EQUAL(mz_y100.has_value(), false)
 
-  // Parsing satellite annotations must not imply support for their side-chain masses.
-  for (const std::string text : {"d3", "v3", "w3", "da3", "db3", "wa3", "wb3"})
-  {
-    TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse(text), seq).has_value())
-  }
+  // Satellite m/z calculation tests
+  // d3 on PEPTIDER (cleavage at Proline, which has no satellite loss) should return nullopt
+  TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse("d3"), seq).has_value())
+
+  // d5 on PEPTIDER (cleavage at Isoleucine): da5 (-CH3) and db5 (-C2H5)
+  auto mz_da5 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("da5"), seq);
+  auto mz_db5 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("db5"), seq);
+  TEST_EQUAL(mz_da5.has_value(), true)
+  TEST_EQUAL(mz_db5.has_value(), true)
+  // da5 vs db5 mass difference should be exactly C2H5 - CH3 = CH2 (14.01565 Da)
+  TEST_REAL_SIMILAR(mz_da5.value() - mz_db5.value(), EmpiricalFormula("CH2").getMonoWeight())
+
+  // wa4 and wb4 on PEPTIDER (suffix 4 is IDER, N-terminal residue is Ile)
+  auto mz_wa4 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("wa4"), seq);
+  auto mz_wb4 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("wb4"), seq);
+  TEST_EQUAL(mz_wa4.has_value(), true)
+  TEST_EQUAL(mz_wb4.has_value(), true)
+  TEST_REAL_SIMILAR(mz_wa4.value() - mz_wb4.value(), EmpiricalFormula("CH2").getMonoWeight())
+
+  // v4 on PEPTIDER (suffix 4 is IDER, complete side-chain loss of Ile)
+  auto mz_v4 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("v4"), seq);
+  TEST_EQUAL(mz_v4.has_value(), true)
+
+  // Modified residue at satellite cleavage site should return nullopt
+  AASequence mod_seq = AASequence::fromString("M(Oxidation)EPTIDER");
+  TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse("d1"), mod_seq).has_value())
+  TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse("v8"), mod_seq).has_value())
 }
 END_SECTION
 

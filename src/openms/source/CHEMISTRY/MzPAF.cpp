@@ -1130,10 +1130,28 @@ namespace OpenMS
         mass = sequence.getSuffix(pos).getMonoWeight(Residue::ZIon);
         break;
       case MzPAFIonSeries::D:
+      {
+        char subtype = ann.satellite_subtype.value_or('\0');
+        const Residue& res = sequence[pos - 1];
+        if (!res.hasSatelliteLoss(subtype)) { return std::nullopt; }
+        mass = sequence.getPrefix(pos).getMonoWeight(Residue::AIon) - res.getSatelliteLossFormula(subtype).getMonoWeight();
+        break;
+      }
       case MzPAFIonSeries::V:
+      {
+        const Residue& res = sequence[sequence.size() - pos];
+        if (!res.hasVLoss()) { return std::nullopt; }
+        mass = sequence.getSuffix(pos).getMonoWeight(Residue::YIon) - res.getVLossFormula().getMonoWeight();
+        break;
+      }
       case MzPAFIonSeries::W:
-        // Satellite masses require residue-dependent side-chain losses.
-        return std::nullopt;
+      {
+        char subtype = ann.satellite_subtype.value_or('\0');
+        const Residue& res = sequence[sequence.size() - pos];
+        if (!res.hasSatelliteLoss(subtype)) { return std::nullopt; }
+        mass = sequence.getSuffix(pos).getMonoWeight(Residue::ZIon) - res.getSatelliteLossFormula(subtype).getMonoWeight();
+        break;
+      }
       default:
         return std::nullopt;
     }

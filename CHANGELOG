@@ -720,6 +720,8 @@ OpenMS Library:
     diagnostic/oxonium and bounded B/Y/C/Z ions, structural and internal glycan fragments,
     and HCD/ETD/EThcD glycopeptide backbone retention with configurable stubs (#10176, #10204).
     Includes mzPAF annotations, neutral losses, resource limits, and pyOpenMS bindings.
+  - Added DIon, VIon and WIon to Residue::ResidueType, with side-chain loss methods on Residue,
+    fragment mass calculation in AASequence and MzPAF, TraML support and pyOpenMS bindings (#10175).
   Added:
     - File type aliases are now honoured end to end: TOPP tools accept an alias wherever they accept
       the preferred extension (and a tool declaring an alias accepts the preferred extension),
@@ -801,7 +803,7 @@ OpenMS Library:
       construction; SpectrumNativeIDParser (#8637, #8648, #8684, #8686).
     - MzPAF accepts and writes d/v/w satellite ions and the da/db/wa/wb subtypes,
       including validation, peak annotation conversion and pyOpenMS bindings (#10175).
-      Satellite-ion mass calculation and theoretical spectrum generation remain unsupported.
+      Theoretical spectrum generation for satellite ions remains unsupported.
     - Added IsoelectricPoint, hydrophobicity profiles, protein SequenceCoverage,
       ModifiedSincSmoother, programmatic FileInfo, CCS conversion and MSExperiment
       rasterization. Extended PeakFileOptions and on-disc filtering, peak annotations,

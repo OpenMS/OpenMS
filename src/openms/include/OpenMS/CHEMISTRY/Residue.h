@@ -170,6 +170,9 @@ public:
       YIonMinusNH3,   ///< MS:1001233 y ion without ammonia
       NonIdentified,  ///< MS:1001240 Non-identified ion
       Unannotated,    ///< no stored annotation
+      DIon,           ///< MS:1001236 a ion with partial side-chain loss
+      VIon,           ///< MS:1001237 y ion with complete side-chain loss
+      WIon,           ///< MS:1001238 z ion with partial side-chain loss
       SizeOfResidueType
     };
     //@}
@@ -194,7 +197,10 @@ public:
       "b-NH3-ion",
       "y-NH3-ion",
       "Non-identified ion",
-      "unannotated"
+      "unannotated",
+      "d-ion",
+      "v-ion",
+      "w-ion"
     };
 
     /// returns the ion name given as a residue type
@@ -437,6 +443,20 @@ public:
 
     /// true if the residue is contained in the set
     bool isInResidueSet(const std::string& residue_set);
+
+    /// true if the residue can produce a v-ion via complete side-chain loss
+    bool hasVLoss() const;
+
+    /// returns the formula lost in v-ion formation (internal_formula - C2H3NO)
+    EmpiricalFormula getVLossFormula() const;
+
+    /// true if the residue has a beta-gamma satellite loss (for d/w ions)
+    /// @param subtype '\0' for default, 'a' for subtype a, 'b' for subtype b
+    bool hasSatelliteLoss(char subtype = '\0') const;
+
+    /// returns the formula of the satellite side-chain loss (for d/w ions)
+    /// @param subtype '\0' for default, 'a' for subtype a, 'b' for subtype b
+    EmpiricalFormula getSatelliteLossFormula(char subtype = '\0') const;
     //@}
 
     /// helper for mapping residue types to letters for Text annotations and labels
