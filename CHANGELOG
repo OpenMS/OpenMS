@@ -184,6 +184,9 @@ Dependencies:
     then downloads HiGHS (#9246).
   - ENABLE_TDL now defaults to OFF; set it to ON for CWL support (#9067).
   - macOS Intel builds discontinued; minimum macOS version is 14 (#8486, #8494, #8527).
+  - vcpkg builds use OpenSSL 3.6.4, and the Linux DEBs and the macOS package bundle it (the 3.5.0 DEBs
+    bundled 3.0.2). vcpkg.json pins the version because the baseline's 3.6.2 is affected by the
+    High-severity CVE-2026-45447.
 
 PyOpenMS:
   - Fixed keyword defaults that did not match the wrapped C++ signatures. Four bindings
