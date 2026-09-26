@@ -2821,7 +2821,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     // -----------------------------------------------------------------------
     // ControlledVocabulary
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ControlledVocabulary>(m, "ControlledVocabulary",
+    auto controlledvocabulary_class = nb::class_<OpenMS::ControlledVocabulary>(m, "ControlledVocabulary",
         "Representation of a controlled vocabulary")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ControlledVocabulary &>())
@@ -2832,7 +2832,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("exists", [](const OpenMS::ControlledVocabulary& self, const std::string& id) { return self.exists(id); }, "id"_a)
         .def("hasTermWithName", [](const OpenMS::ControlledVocabulary& self, const std::string& name) { return self.hasTermWithName(name); }, "name"_a)
         .def("isChildOf", [](const OpenMS::ControlledVocabulary& self, const std::string& child_id, const std::string& parent_id) { return self.isChildOf(child_id, parent_id); }, "child_id"_a, "parent_id"_a)
-        // Return a copy of the term as CVTerm_ControlledVocabulary, as 3.5.0 did.
+        // Return a copy of the term as a ControlledVocabulary.CVTerm, as 3.5.0 did.
         .def("getTerm", [](const OpenMS::ControlledVocabulary& self, const std::string& id) {
             return OpenMS::ControlledVocabulary::CVTerm(self.getTerm(id));
         }, "id"_a, "Returns the term with the given id")
@@ -2843,9 +2843,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         ;
 
     // -----------------------------------------------------------------------
-    // CVTerm_ControlledVocabulary (ControlledVocabulary::CVTerm)
+    // ControlledVocabulary.CVTerm (ControlledVocabulary::CVTerm)
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ControlledVocabulary::CVTerm>(m, "CVTerm_ControlledVocabulary",
+    auto cvterm_class = nb::class_<OpenMS::ControlledVocabulary::CVTerm>(controlledvocabulary_class, "CVTerm",
         "Representation of a CV term in a controlled vocabulary")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ControlledVocabulary::CVTerm&>())
@@ -2869,14 +2869,19 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("toXMLString", [](const OpenMS::ControlledVocabulary::CVTerm& self, const std::string& ref, const std::string& value) {
             return self.toXMLString(ref, value);
         }, "ref"_a, "value"_a = "", "Returns the XML representation of this term")
+        .def("__repr__", [](const OpenMS::ControlledVocabulary::CVTerm& self) {
+            return "CVTerm(id='" + self.id + "', name='" + self.name + "')";
+        })
         ;
+    // 3.5.0 name of the class
+    m.attr("CVTerm_ControlledVocabulary") = cvterm_class;
     m.def("__static_CVTerm_ControlledVocabulary_getXRefTypeName", [](OpenMS::ControlledVocabulary::CVTerm::XRefType type) -> std::string { return OpenMS::ControlledVocabulary::CVTerm::getXRefTypeName(type); }, "type"_a);
     m.def("__static_CVTerm_ControlledVocabulary_isHigherBetterScore", [](OpenMS::ControlledVocabulary::CVTerm term) -> bool { return OpenMS::ControlledVocabulary::CVTerm::isHigherBetterScore(term); }, "term"_a);
 
     // -----------------------------------------------------------------------
-    // XRefType_CVTerm_ControlledVocabulary (ControlledVocabulary::CVTerm::XRefType)
+    // ControlledVocabulary.CVTerm.XRefType (ControlledVocabulary::CVTerm::XRefType)
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::ControlledVocabulary::CVTerm::XRefType>(m, "XRefType_CVTerm_ControlledVocabulary",
+    auto xreftype_enum = nb::enum_<OpenMS::ControlledVocabulary::CVTerm::XRefType>(cvterm_class, "XRefType",
         "Cross-reference type for CV terms", nb::is_arithmetic())
         .value("XSD_STRING", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_STRING)
         .value("XSD_INTEGER", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER)
@@ -2890,6 +2895,8 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .value("XSD_ANYURI", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_ANYURI)
         .value("NONE", OpenMS::ControlledVocabulary::CVTerm::XRefType::NONE)
         ;
+    // 3.5.0 name of the enum
+    m.attr("XRefType_CVTerm_ControlledVocabulary") = xreftype_enum;
 
     // -----------------------------------------------------------------------
     // CVMappingFile

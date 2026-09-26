@@ -616,19 +616,26 @@ class TestControlledVocabularyMethods:
         assert hasattr(cv, 'getTermByName')
 
     def test_get_term_returns_cvterm(self):
-        """getTerm() and getTermByName() return a CVTerm_ControlledVocabulary, as in 3.5.0."""
+        """getTerm() and getTermByName() return a ControlledVocabulary.CVTerm, as in 3.5.0."""
         obo = os.path.join(pyopenms.File.getOpenMSDataPath(), 'CV', 'psi-ms.obo')
         if not os.path.exists(obo):
             pytest.skip('psi-ms.obo is not installed')
         cv = pyopenms.ControlledVocabulary()
         cv.loadFromOBO('psims', obo)
         term = cv.getTerm('MS:1002252')
-        assert isinstance(term, pyopenms.CVTerm_ControlledVocabulary)
+        assert isinstance(term, pyopenms.ControlledVocabulary.CVTerm)
         assert term.id == 'MS:1002252'
         assert term.name == 'Comet:xcorr'
+        assert repr(term) == "CVTerm(id='MS:1002252', name='Comet:xcorr')"
         by_name = cv.getTermByName('Comet:xcorr')
-        assert isinstance(by_name, pyopenms.CVTerm_ControlledVocabulary)
+        assert isinstance(by_name, pyopenms.ControlledVocabulary.CVTerm)
         assert by_name.id == 'MS:1002252'
+
+    def test_cvterm_keeps_its_3_5_names(self):
+        """The 3.5.0 names of the term class and its XRefType enum still work."""
+        assert pyopenms.CVTerm_ControlledVocabulary is pyopenms.ControlledVocabulary.CVTerm
+        assert (pyopenms.XRefType_CVTerm_ControlledVocabulary
+                is pyopenms.ControlledVocabulary.CVTerm.XRefType)
 
     def test_get_all_child_terms(self):
         cv = pyopenms.ControlledVocabulary()
