@@ -631,11 +631,13 @@ class TestControlledVocabularyMethods:
         assert isinstance(by_name, pyopenms.ControlledVocabulary.CVTerm)
         assert by_name.id == 'MS:1002252'
 
-    def test_cvterm_keeps_its_3_5_names(self):
-        """The 3.5.0 names of the term class and its XRefType enum still work."""
-        assert pyopenms.CVTerm_ControlledVocabulary is pyopenms.ControlledVocabulary.CVTerm
-        assert (pyopenms.XRefType_CVTerm_ControlledVocabulary
-                is pyopenms.ControlledVocabulary.CVTerm.XRefType)
+    def test_cvterm_is_nested(self):
+        """The term class and its XRefType enum are nested in ControlledVocabulary."""
+        assert pyopenms.ControlledVocabulary.CVTerm.__name__ == 'CVTerm'
+        assert hasattr(pyopenms.ControlledVocabulary.CVTerm.XRefType, 'XSD_STRING')
+        # 3.5.0 names, dropped in 3.6.0
+        assert not hasattr(pyopenms, 'CVTerm_ControlledVocabulary')
+        assert not hasattr(pyopenms, 'XRefType_CVTerm_ControlledVocabulary')
 
     def test_get_all_child_terms(self):
         cv = pyopenms.ControlledVocabulary()

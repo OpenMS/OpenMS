@@ -2873,15 +2873,13 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
             return "CVTerm(id='" + self.id + "', name='" + self.name + "')";
         })
         ;
-    // 3.5.0 name of the class
-    m.attr("CVTerm_ControlledVocabulary") = cvterm_class;
     m.def("__static_CVTerm_ControlledVocabulary_getXRefTypeName", [](OpenMS::ControlledVocabulary::CVTerm::XRefType type) -> std::string { return OpenMS::ControlledVocabulary::CVTerm::getXRefTypeName(type); }, "type"_a);
     m.def("__static_CVTerm_ControlledVocabulary_isHigherBetterScore", [](OpenMS::ControlledVocabulary::CVTerm term) -> bool { return OpenMS::ControlledVocabulary::CVTerm::isHigherBetterScore(term); }, "term"_a);
 
     // -----------------------------------------------------------------------
     // ControlledVocabulary.CVTerm.XRefType (ControlledVocabulary::CVTerm::XRefType)
     // -----------------------------------------------------------------------
-    auto xreftype_enum = nb::enum_<OpenMS::ControlledVocabulary::CVTerm::XRefType>(cvterm_class, "XRefType",
+    nb::enum_<OpenMS::ControlledVocabulary::CVTerm::XRefType>(cvterm_class, "XRefType",
         "Cross-reference type for CV terms", nb::is_arithmetic())
         .value("XSD_STRING", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_STRING)
         .value("XSD_INTEGER", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER)
@@ -2895,8 +2893,6 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .value("XSD_ANYURI", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_ANYURI)
         .value("NONE", OpenMS::ControlledVocabulary::CVTerm::XRefType::NONE)
         ;
-    // 3.5.0 name of the enum
-    m.attr("XRefType_CVTerm_ControlledVocabulary") = xreftype_enum;
 
     // -----------------------------------------------------------------------
     // CVMappingFile

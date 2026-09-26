@@ -291,6 +291,10 @@ PyOpenMS:
   - BREAKING: MassTrace is now the kernel mass trace (getCentroidMZ(), getSize(), ...), and
     Kernel_MassTrace is an alias for it. 3.5.0's MassTrace was the FeatureFinder helper
     struct with max_rt and theoretical_int, which is gone.
+  - BREAKING: CVTerm_ControlledVocabulary, the term class of ControlledVocabulary, is now
+    ControlledVocabulary.CVTerm, and XRefType_CVTerm_ControlledVocabulary is now
+    ControlledVocabulary.CVTerm.XRefType. A term prints as
+    CVTerm(id='MS:1002252', name='Comet:xcorr') (#10284).
   - BREAKING: some nested enums were renamed. IonDetector.Type_IonDetector is now
     IonDetector.Type, FeatureDeconvolution.CHARGEMODE_FD and
     MetaboliteFeatureDeconvolution.CHARGEMODE_MFD are now CHARGEMODE, and
@@ -373,14 +377,11 @@ PyOpenMS:
     that their C++ copy shares, so a copy and its original freed them twice
     (MSDataSqlConsumer(other) aborted Python in 3.5.0). copy.copy() and copy.deepcopy()
     raise TypeError for FeatureFindingMetabo and these four (#10260).
-  - ControlledVocabulary.getTerm() and getTermByName() return a term object again, as in
-    3.5.0, instead of a dict with id, name and description. With the dict,
+  - ControlledVocabulary.getTerm() and getTermByName() return a ControlledVocabulary.CVTerm
+    again, as in 3.5.0, instead of a dict with id, name and description. With the dict,
     PeptideIdentificationList.to_df() and df_columns() kept PSI-MS accessions such as
-    MS:1002252 as column names, although decode_ontology=True asks for the term names.
-    The term class is now ControlledVocabulary.CVTerm, with the enum
-    ControlledVocabulary.CVTerm.XRefType, and prints as
-    CVTerm(id='MS:1002252', name='Comet:xcorr'). The 3.5.0 names CVTerm_ControlledVocabulary
-    and XRefType_CVTerm_ControlledVocabulary still work (#10284).
+    MS:1002252 as column names, although decode_ontology=True asks for the term names
+    (#10284).
   - Restored C++ default arguments that the port had dropped, e.g. Residue.getMonoWeight(),
     getAverageWeight() and getFormula() without a residue type, MSDataCachedConsumer(filename),
     MetaInfo.getValue(name), FineIsotopePatternGenerator(threshold),
