@@ -1272,6 +1272,26 @@ class TestFeatureMapAssignedPeptideIdentifications:
         assert not second.metaValueExists('ID_native_id')
         assert len(peps[2].getHits()) == 0
 
+    def test_unknown_value_replaces_an_earlier_one(self):
+        f = pyopenms.Feature()
+        f.setUniqueId(11)
+        hit = pyopenms.PeptideHit()
+        hit.setMetaValue('ID_native_id', 'scan=99')
+        hit.setMetaValue('ID_filename', 'old.mzML')
+        pep = pyopenms.PeptideIdentification()
+        pep.setIdentifier('unmatched')
+        pep.setHits([hit])
+        peps = pyopenms.PeptideIdentificationList()
+        peps.push_back(pep)
+        f.setPeptideIdentifications(peps)
+        fmap = pyopenms.FeatureMap()
+        fmap.push_back(f)
+        # no spectrum_native_id and no matching ProteinIdentification: both unknown
+        annotated = fmap.get_assigned_peptide_identifications()[0].getHits()[0]
+        assert annotated.getMetaValue('feature_id') == '11'
+        assert not annotated.metaValueExists('ID_native_id')
+        assert not annotated.metaValueExists('ID_filename')
+
     def test_merge_with_feature_frame(self):
         import pandas as pd
         fmap = self._feature_map()
