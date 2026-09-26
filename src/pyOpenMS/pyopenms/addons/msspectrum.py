@@ -49,9 +49,7 @@ def df_columns(self, columns='default', export_meta_values=True):
     if export_meta_values:
         mvs = []
         self.getKeys(mvs)
-        for k in mvs:
-            k_str = k.decode() if isinstance(k, bytes) else k
-            cols.append(k_str)
+        cols.extend(mvs)
 
     return cols
 
@@ -146,27 +144,25 @@ def get_data_dict(self, columns=None, export_meta_values=True):
             if not self.metaValueExists(k):
                 continue
             v = self.getMetaValue(k)
-            k_str = k.decode() if isinstance(k, bytes) else k
             try:
                 if type(v) is type(True):
-                    data_dict[k_str] = np.full(cnt, v, dtype=np.bool_)
+                    data_dict[k] = np.full(cnt, v, dtype=np.bool_)
                 elif isinstance(v, int):
-                    data_dict[k_str] = np.full(cnt, v, dtype=np.int64)
+                    data_dict[k] = np.full(cnt, v, dtype=np.int64)
                 elif isinstance(v, float):
-                    data_dict[k_str] = np.full(cnt, v, dtype=np.float64)
+                    data_dict[k] = np.full(cnt, v, dtype=np.float64)
                 else:
-                    data_dict[k_str] = np.full(cnt, v if isinstance(v, str) else str(v), dtype=string_dtype(cnt))
+                    data_dict[k] = np.full(cnt, v if isinstance(v, str) else str(v), dtype=string_dtype(cnt))
             except Exception:
-                data_dict[k_str] = np.full(cnt, str(v), dtype='object')
+                data_dict[k] = np.full(cnt, str(v), dtype='object')
     elif requested is not None:
         mvs = []
         self.getKeys(mvs)
-        mv_names = {(k.decode() if isinstance(k, bytes) else k): k for k in mvs}
+        mv_names = set(mvs)
         for col in requested:
             if col in mv_names:
-                k = mv_names[col]
-                if self.metaValueExists(k):
-                    v = self.getMetaValue(k)
+                if self.metaValueExists(col):
+                    v = self.getMetaValue(col)
                     try:
                         if type(v) is type(True):
                             data_dict[col] = np.full(cnt, v, dtype=np.bool_)

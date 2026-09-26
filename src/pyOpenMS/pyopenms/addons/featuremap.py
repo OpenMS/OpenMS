@@ -19,8 +19,7 @@ def df_columns(self, columns='default', export_peptide_identifications=True):
         for f in self.iter_feature_views():
             mvs = []
             f.getKeys(mvs)
-            for m in mvs:
-                meta_values.add(m.decode() if isinstance(m, bytes) else m)
+            meta_values.update(mvs)
         cols.extend(sorted(meta_values))
     return cols
 
@@ -107,7 +106,7 @@ def to_df(self, columns=None, meta_values=None, export_peptide_identifications=T
     if need_pep_ids:
         col_names += ['peptide_sequence', 'peptide_score', 'ID_filename', 'ID_native_id']
     col_names += ['charge', 'rt', 'mz', 'rt_start', 'rt_end', 'mz_start', 'mz_end', 'quality', 'intensity']
-    for m in meta_values:
+    for m in meta_values:  # the caller's meta_values may be bytes
         col_names.append(m.decode() if isinstance(m, bytes) else m)
 
     df = pd.DataFrame(rows, columns=col_names).set_index('feature_id')
