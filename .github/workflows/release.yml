@@ -252,6 +252,8 @@ jobs:
           TARBALL: ${{ steps.source-name.outputs.tarball }}
         run: |
           # FIXME: Why not use `git archive`?
+          # The build also leaves its caches (.ccache, .vcpkg-cache) and the
+          # third-party tools (_thirdparty) in the workspace.
           tar \
             --directory "$GITHUB_WORKSPACE" \
             --exclude='build/*' \
@@ -260,6 +262,9 @@ jobs:
             --exclude='.git/**' \
             --exclude='.github/**' \
             --exclude='vcpkg*/**' \
+            --exclude='.ccache/**' \
+            --exclude='.vcpkg-cache/**' \
+            --exclude='_thirdparty/**' \
             -czf "$RUNNER_TEMP/$TARBALL" .
 
       - name: Upload Source Code as an Artifact
