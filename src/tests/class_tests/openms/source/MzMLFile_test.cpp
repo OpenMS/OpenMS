@@ -1275,7 +1275,7 @@ START_SECTION(bool isSemanticallyValid(const std::string& filename, StringList& 
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
   TEST_EQUAL(errors.size(),0)
-  TEST_EQUAL(warnings.size(),2) // add mappings for chromatogram/precursor/activation and selectedIon to reduce that count
+  TEST_EQUAL(warnings.size(),0) // its chromatograms have no precursor, whose activation would have no mapping rule
 
   //valid file
   TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), errors, warnings),true)
