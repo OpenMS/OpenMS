@@ -114,7 +114,8 @@ if(TARGET TOPP)
   add_dependencies(TOPP ${GUI_TOPP_TOOLS})
 endif()
 
-  ## install platform plugins. On Mac this is handled for every GUI app inside its app bundle.
+  ## install platform plugins, and a qt.conf in bin/ that points to them: ExecutePipeline creates
+  ## a QApplication, so it needs the platform plugin even without a window.
   if(WIN32)
       install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QWindowsIntegrationPlugin"
               DESTINATION "${INSTALL_PLUGIN_DIR}/platforms"
@@ -125,6 +126,15 @@ endif()
       install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
         DESTINATION ${INSTALL_BIN_DIR}
         COMPONENT QtPlatformPlugin)
+  elseif(APPLE AND "${PACKAGE_TYPE}" STREQUAL "pkg")
+      ## add_mac_bundle.cmake installs the cocoa plugin to ${INSTALL_PLUGIN_DIR} in component Dependencies.
+      ## The qt.conf of each app bundle points there; bin/ gets its own. (A dmg keeps the plugins inside
+      ## each bundle, so bin/ has nothing to point to there.)
+      file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+        "[Paths]\nPlugins = ${QT_PLUGIN_PATH_REL_TO_BIN}\n")
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+        DESTINATION ${INSTALL_BIN_DIR}
+        COMPONENT Dependencies)
   endif()
 
 add_custom_target(GUI)

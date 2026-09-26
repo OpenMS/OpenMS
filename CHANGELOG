@@ -188,6 +188,9 @@ Dependencies:
   - ENABLE_TDL now defaults to OFF; set it to ON for CWL support (#9067).
   - macOS Intel builds discontinued; the minimum macOS version is 15 (Sequoia), for the installer
     and for the pyOpenMS wheels (#8450, #9037, #10202).
+  - vcpkg builds use OpenSSL 3.6.4, and the Linux DEBs and the macOS package bundle it (the 3.5.0 DEBs
+    bundled 3.0.2). vcpkg.json pins the version because the baseline's 3.6.2 is affected by the
+    High-severity CVE-2026-45447.
 
 PyOpenMS:
   - Fixed keyword defaults that did not match the wrapped C++ signatures. Four bindings
@@ -392,6 +395,10 @@ PyOpenMS:
     ModificationDefinition(mod, fixed), TextFile(filename, trim_lines, first_n),
     IDFilter.removeDuplicatePeptideHits(peptides) and
     IDConflictResolverAlgorithm.resolve(features) (#10260).
+  - plot_spectrum() and mirror_plot_spectrum() plot annotated spectra again. They called
+    .decode() on the peak annotations, which the bindings now return as str (#10260).
+  - The deprecated MSExperiment.get_df() and get_df_columns() accept long= again, 3.5.0's
+    name for long_format (#10260).
   - Thermo .raw reading is included in every wheel, Linux aarch64 among them; install
     .NET 8+ and set DOTNET_ROOT for non-standard locations. Optional WNet/Bruker bindings
     are exposed only when built; use hasattr() for feature detection (#9946, #9957,
@@ -1151,6 +1158,8 @@ Build System:
     installer path/staging failures are fixed. macOS installers are signed/notarized and
     exclude pyOpenMS modules distributed as wheels (#8961, #9514, #9523, #9742, #9827,
     #9969, #10009).
+  - The macOS package installs bin/qt.conf, so ExecutePipeline, and with it TOPPAS
+    pipelines on the command line, can load the Qt platform plugin again (#10260).
   - Fixed Arrow repository keys/version pins, Bioconda synchronization/tooling/dependency
     conflicts and package-list handling; build failures now propagate. Multi-architecture
     images publish a combined amd64/arm64 manifest (#9196, #9726, #9728, #9729, #9750,
