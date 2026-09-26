@@ -135,6 +135,7 @@ NB_MODULE(_pyopenms_format, m) {
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::AbsoluteQuantitationStandardsFile>(m, "AbsoluteQuantitationStandardsFile", "Load files containing runConcentration data")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::AbsoluteQuantitationStandardsFile &>())
         .def("__copy__", [](const OpenMS::AbsoluteQuantitationStandardsFile& self) { return OpenMS::AbsoluteQuantitationStandardsFile(self); })
         .def("__deepcopy__", [](const OpenMS::AbsoluteQuantitationStandardsFile& self, nb::dict) { return OpenMS::AbsoluteQuantitationStandardsFile(self); }, "memo"_a)
         .def("load", [](const OpenMS::AbsoluteQuantitationStandardsFile& self, const std::string& filename, std::vector<OpenMS::AbsoluteQuantitationStandards::runConcentration>& run_concentrations) { self.load(filename, run_concentrations); }, "filename"_a, "run_concentrations"_a)
@@ -145,6 +146,7 @@ NB_MODULE(_pyopenms_format, m) {
     // -----------------------------------------------------------------------
     auto base64_class = nb::class_<OpenMS::Base64>(m, "Base64", "Class to encode and decode Base64")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::Base64 &>())
         .def("__copy__", [](const OpenMS::Base64& self) { return OpenMS::Base64(self); })
         .def("__deepcopy__", [](const OpenMS::Base64& self, nb::dict) { return OpenMS::Base64(self); }, "memo"_a)
         .def_static("encodeStrings", [](const std::vector<std::string>& in, bool zlib_compression, bool append_null_byte) { std::string out; OpenMS::Base64::encodeStrings(in, out, zlib_compression, append_null_byte); return out; }, "in"_a, "zlib_compression"_a, "append_null_byte"_a, "Encodes a vector of strings to a Base64 string")
@@ -283,8 +285,10 @@ runtime.
     // CachedSwathFileConsumer
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::CachedSwathFileConsumer>(m, "CachedSwathFileConsumer", "FullSwathFileConsumer")
-        .def("__copy__", [](const OpenMS::CachedSwathFileConsumer& self) { return OpenMS::CachedSwathFileConsumer(self); })
-        .def("__deepcopy__", [](const OpenMS::CachedSwathFileConsumer& self, nb::dict) { return OpenMS::CachedSwathFileConsumer(self); }, "memo"_a)
+        // Not copyable: its C++ copy shares the cache-file consumers, which the copy and
+        // the original both delete (a double free).
+        .def("__copy__", [](const OpenMS::CachedSwathFileConsumer&) -> nb::object { throw nb::type_error("CachedSwathFileConsumer cannot be copied"); })
+        .def("__deepcopy__", [](const OpenMS::CachedSwathFileConsumer&, nb::dict) -> nb::object { throw nb::type_error("CachedSwathFileConsumer cannot be copied"); }, "memo"_a)
         .def(nb::init<std::string, std::string, size_t, std::vector<int>>())
         .def(nb::init<std::vector<OpenSwath::SwathMap>, std::string, std::string, size_t, std::vector<int>>())
         .def("setExpectedSize", [](OpenMS::CachedSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
@@ -324,6 +328,7 @@ chromatograms
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ChromeleonFile>(m, "ChromeleonFile", "Load Chromeleon HPLC text file and save it into a `MSExperiment`")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::ChromeleonFile &>())
         .def("__copy__", [](const OpenMS::ChromeleonFile& self) { return OpenMS::ChromeleonFile(self); })
         .def("__deepcopy__", [](const OpenMS::ChromeleonFile& self, nb::dict) { return OpenMS::ChromeleonFile(self); }, "memo"_a)
         .def("load", [](const OpenMS::ChromeleonFile& self, const std::string& filename) { OpenMS::MSExperiment experiment; self.load(filename, experiment); return experiment; }, "filename"_a, "Load the file's data and metadata, and save it into a `MSExperiment`")
@@ -334,6 +339,7 @@ chromatograms
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::DTAFile>(m, "DTAFile", "File adapter for DTA files")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::DTAFile &>())
         .def("__copy__", [](const OpenMS::DTAFile& self) { return OpenMS::DTAFile(self); })
         .def("__deepcopy__", [](const OpenMS::DTAFile& self, nb::dict) { return OpenMS::DTAFile(self); }, "memo"_a)
         .def("load", [](OpenMS::DTAFile& self, const std::string& filename) {
@@ -351,6 +357,7 @@ chromatograms
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::EDTAFile>(m, "EDTAFile", "File adapter for Enhanced DTA files")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::EDTAFile &>())
         .def("__copy__", [](const OpenMS::EDTAFile& self) { return OpenMS::EDTAFile(self); })
         .def("__deepcopy__", [](const OpenMS::EDTAFile& self, nb::dict) { return OpenMS::EDTAFile(self); }, "memo"_a)
         .def("load", [](OpenMS::EDTAFile& self, const std::string& filename) { OpenMS::ConsensusMap consensus_map; self.load(filename, consensus_map); return consensus_map; }, "filename"_a)
@@ -411,6 +418,7 @@ Note: Methods taking std::ostream are not directly exposed. Use file-based workf
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::FeatureFileOptions>(m, "FeatureFileOptions", "Options for loading files containing features")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::FeatureFileOptions &>())
         .def("__copy__", [](const OpenMS::FeatureFileOptions& self) { return OpenMS::FeatureFileOptions(self); })
         .def("__deepcopy__", [](const OpenMS::FeatureFileOptions& self, nb::dict) { return OpenMS::FeatureFileOptions(self); }, "memo"_a)
         .def("setLoadConvexHull", [](OpenMS::FeatureFileOptions& self, bool convex) { return self.setLoadConvexHull(convex); }, "convex"_a, "Sets whether or not to load convex hull")
@@ -1096,6 +1104,7 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
     // -----------------------------------------------------------------------
     auto msnumpresscoder_class = nb::class_<OpenMS::MSNumpressCoder>(m, "MSNumpressCoder", "Class to encode and decode data encoded with MSNumpress")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::MSNumpressCoder &>())
         .def("__copy__", [](const OpenMS::MSNumpressCoder& self) { return OpenMS::MSNumpressCoder(self); })
         .def("__deepcopy__", [](const OpenMS::MSNumpressCoder& self, nb::dict) { return OpenMS::MSNumpressCoder(self); }, "memo"_a)
 
@@ -1153,6 +1162,7 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MSNumpressCoder::NumpressConfig>(m, "NumpressConfig", "OpenMS class NumpressConfig")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::MSNumpressCoder::NumpressConfig &>())
         .def("__copy__", [](const OpenMS::MSNumpressCoder::NumpressConfig& self) { return OpenMS::MSNumpressCoder::NumpressConfig(self); })
         .def("__deepcopy__", [](const OpenMS::MSNumpressCoder::NumpressConfig& self, nb::dict) { return OpenMS::MSNumpressCoder::NumpressConfig(self); }, "memo"_a)
         .def_rw("numpressFixedPoint", &OpenMS::MSNumpressCoder::NumpressConfig::numpressFixedPoint)
@@ -1168,6 +1178,7 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MSstatsFile>(m, "MSstatsFile", "File adapter for MSstats files")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::MSstatsFile &>())
         .def("__copy__", [](const OpenMS::MSstatsFile& self) { return OpenMS::MSstatsFile(self); })
         .def("__deepcopy__", [](const OpenMS::MSstatsFile& self, nb::dict) { return OpenMS::MSstatsFile(self); }, "memo"_a)
         .def("storeLFQ", [](OpenMS::MSstatsFile& self, const std::string& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const bool is_isotope_label_type, const std::string& bioreplicate, const std::string& condition, const std::string& retention_time_summarization_method, const bool remove_shared_peptides) { self.storeLFQ(filename, consensus_map, design, reannotate_filenames, is_isotope_label_type, bioreplicate, condition, retention_time_summarization_method, remove_shared_peptides); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "is_isotope_label_type"_a, "bioreplicate"_a, "condition"_a, "retention_time_summarization_method"_a, "remove_shared_peptides"_a = true)
@@ -1179,6 +1190,7 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MsInspectFile>(m, "MsInspectFile", "File adapter for MsInspect files")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::MsInspectFile &>())
         .def("__copy__", [](const OpenMS::MsInspectFile& self) { return OpenMS::MsInspectFile(self); })
         .def("__deepcopy__", [](const OpenMS::MsInspectFile& self, nb::dict) { return OpenMS::MsInspectFile(self); }, "memo"_a)
         .def("load", [](OpenMS::MsInspectFile& self, const std::string& filename, OpenMS::FeatureMap& feature_map) { self.load(filename, feature_map); }, "filename"_a, "feature_map"_a)
@@ -1196,7 +1208,7 @@ spectrum or chromatogram (from <chromatogram> to </chromatogram> or
 <spectrum> to </spectrum> tag). It returns the data contained in the
 binaryDataArray for Intensity / mass-to-charge or Intensity / time
 )doc")
-        .def(nb::init<bool>())
+        .def(nb::init<bool>(), "skip_xml_checks"_a = false)
         .def("__copy__", [](const OpenMS::MzMLSpectrumDecoder& self) { return OpenMS::MzMLSpectrumDecoder(self); })
         .def("__deepcopy__", [](const OpenMS::MzMLSpectrumDecoder& self, nb::dict) { return OpenMS::MzMLSpectrumDecoder(self); }, "memo"_a)
         .def("domParseSpectrum", [](OpenMS::MzMLSpectrumDecoder& self, const std::string& in, std::shared_ptr<OpenMS::Interfaces::Spectrum>& sptr) { return self.domParseSpectrum(in, sptr); }, "in"_a, "sptr"_a, 
@@ -1230,6 +1242,10 @@ result as Chromatogram
     nb::class_<OpenMS::MzMLSwathFileConsumer>(m, "MzMLSwathFileConsumer", "FullSwathFileConsumer")
         .def(nb::init<std::string, std::string, size_t, std::vector<int>>())
         .def(nb::init<std::vector<OpenSwath::SwathMap>, std::string, std::string, size_t, std::vector<int>>())
+        // Not copyable: its C++ copy shares the mzML-writing consumers, which the copy and
+        // the original both delete (a double free).
+        .def("__copy__", [](const OpenMS::MzMLSwathFileConsumer&) -> nb::object { throw nb::type_error("MzMLSwathFileConsumer cannot be copied"); })
+        .def("__deepcopy__", [](const OpenMS::MzMLSwathFileConsumer&, nb::dict) -> nb::object { throw nb::type_error("MzMLSwathFileConsumer cannot be copied"); }, "memo"_a)
         .def("setExpectedSize", [](OpenMS::MzMLSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
         .def("setExperimentalSettings", [](OpenMS::MzMLSwathFileConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a)
         .def("retrieveSwathMaps", [](OpenMS::MzMLSwathFileConsumer& self) { std::vector<OpenSwath::SwathMap> maps; self.retrieveSwathMaps(maps); return maps; })
@@ -1258,6 +1274,7 @@ Data model of MzTab files
 Please see the official MzTab specification at https://code.google.com/p/mztab/
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::MzTab &>())
         .def("__copy__", [](const OpenMS::MzTab& self) { return OpenMS::MzTab(self); })
         .def("__deepcopy__", [](const OpenMS::MzTab& self, nb::dict) { return OpenMS::MzTab(self); }, "memo"_a)
         ;
@@ -1267,6 +1284,7 @@ Please see the official MzTab specification at https://code.google.com/p/mztab/
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MzTabFile>(m, "MzTabFile", "File adapter for MzTab files")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::MzTabFile &>())
         .def("__copy__", [](const OpenMS::MzTabFile& self) { return OpenMS::MzTabFile(self); })
         .def("__deepcopy__", [](const OpenMS::MzTabFile& self, nb::dict) { return OpenMS::MzTabFile(self); }, "memo"_a)
         .def("store", [](const OpenMS::MzTabFile& self, const std::string& filename, const OpenMS::MzTab& mz_tab) { return self.store(filename, mz_tab); }, "filename"_a, "mz_tab"_a, "Stores MzTab file")
@@ -1283,6 +1301,7 @@ Data model of MzTabM files
 Please see the official MzTabM specification at https://github.com/HUPO-PSI/mzTab/tree/master/specification_document-releases/2_0-Metabolomics-Release
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::MzTabM &>())
         .def("__copy__", [](const OpenMS::MzTabM& self) { return OpenMS::MzTabM(self); })
         .def("__deepcopy__", [](const OpenMS::MzTabM& self, nb::dict) { return OpenMS::MzTabM(self); }, "memo"_a)
         .def_static("exportFeatureMapToMzTabM", [](const OpenMS::FeatureMap& feature_map) { return OpenMS::MzTabM::exportFeatureMapToMzTabM(feature_map); }, "feature_map"_a, "Export FeatureMap with Identifications to MzTabM")
@@ -1293,6 +1312,7 @@ Please see the official MzTabM specification at https://github.com/HUPO-PSI/mzTa
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MzTabMFile>(m, "MzTabMFile", "File adapter for MzTab-M files")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::MzTabMFile &>())
         .def("__copy__", [](const OpenMS::MzTabMFile& self) { return OpenMS::MzTabMFile(self); })
         .def("__deepcopy__", [](const OpenMS::MzTabMFile& self, nb::dict) { return OpenMS::MzTabMFile(self); }, "memo"_a)
         .def("store", [](const OpenMS::MzTabMFile& self, const std::string& filename, const OpenMS::MzTabM& mztab_m) { return self.store(filename, mztab_m); }, "filename"_a, "mztab_m"_a, "Store MzTabM file")
@@ -1328,6 +1348,7 @@ The files contain the results of the OMSSA algorithm in a comma separated manner
 load the data from such a file into the structures of OpenMS
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::OMSSACSVFile &>())
         .def("__copy__", [](const OpenMS::OMSSACSVFile& self) { return OpenMS::OMSSACSVFile(self); })
         .def("__deepcopy__", [](const OpenMS::OMSSACSVFile& self, nb::dict) { return OpenMS::OMSSACSVFile(self); }, "memo"_a)
         .def("load", [](const OpenMS::OMSSACSVFile& self, const std::string& filename) { OpenMS::ProteinIdentification protein_identification; OpenMS::PeptideIdentificationList id_data; self.load(filename, protein_identification, id_data); return std::make_tuple(protein_identification, id_data); }, "filename"_a)
@@ -1829,6 +1850,7 @@ Class for reading Percolator tab-delimited output files
 For PSM-level output, the file extension should be ".psms"
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::PercolatorOutfile &>())
         .def("__copy__", [](const OpenMS::PercolatorOutfile& self) { return OpenMS::PercolatorOutfile(self); })
         .def("__deepcopy__", [](const OpenMS::PercolatorOutfile& self, nb::dict) { return OpenMS::PercolatorOutfile(self); }, "memo"_a)
         .def_static("getScoreType", [](std::string score_type_name) { return OpenMS::PercolatorOutfile::getScoreType(score_type_name); }, "score_type_name"_a, "Returns a score type given its name")
@@ -2017,6 +2039,7 @@ FullSwathFileConsumer
     nb::class_<OpenMS::SiriusFragmentAnnotation::SiriusTargetDecoySpectra>(m, "SiriusFragmentAnnotation_SiriusTargetDecoySpectra", "OpenMS class SiriusFragmentAnnotation_SiriusTargetDecoySpectra")
         .def(nb::init<>())
         .def(nb::init<OpenMS::MSSpectrum, OpenMS::MSSpectrum>())
+        .def(nb::init<const OpenMS::SiriusFragmentAnnotation::SiriusTargetDecoySpectra &>())
         .def("__copy__", [](const OpenMS::SiriusFragmentAnnotation::SiriusTargetDecoySpectra& self) { return OpenMS::SiriusFragmentAnnotation::SiriusTargetDecoySpectra(self); })
         .def("__deepcopy__", [](const OpenMS::SiriusFragmentAnnotation::SiriusTargetDecoySpectra& self, nb::dict) { return OpenMS::SiriusFragmentAnnotation::SiriusTargetDecoySpectra(self); }, "memo"_a)
         .def_rw("target", &OpenMS::SiriusFragmentAnnotation::SiriusTargetDecoySpectra::target)
@@ -2029,6 +2052,7 @@ FullSwathFileConsumer
     nb::class_<OpenMS::SqMassFile::SqMassConfig>(m, "SqMassConfig",
         "Configuration for SqMassFile write operations")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::SqMassFile::SqMassConfig &>())
         .def("__copy__", [](const OpenMS::SqMassFile::SqMassConfig& self) { return OpenMS::SqMassFile::SqMassConfig(self); })
         .def("__deepcopy__", [](const OpenMS::SqMassFile::SqMassConfig& self, nb::dict) { return OpenMS::SqMassFile::SqMassConfig(self); }, "memo"_a)
         .def_rw("write_full_meta", &OpenMS::SqMassFile::SqMassConfig::write_full_meta)
@@ -2048,6 +2072,7 @@ allows users to access, select and filter spectra and chromatograms
 on-demand even in a large collection of data
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::SqMassFile &>())
         .def("__copy__", [](const OpenMS::SqMassFile& self) { return OpenMS::SqMassFile(self); })
         .def("__deepcopy__", [](const OpenMS::SqMassFile& self, nb::dict) { return OpenMS::SqMassFile(self); }, "memo"_a)
         .def("load", [](const OpenMS::SqMassFile& self, const std::string& filename) { OpenMS::MSExperiment map; self.load(filename, map); return map; }, "filename"_a, "Read / Write a complete mass spectrometric experiment")
@@ -2799,6 +2824,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     nb::class_<OpenMS::ControlledVocabulary>(m, "ControlledVocabulary",
         "Representation of a controlled vocabulary")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::ControlledVocabulary &>())
         .def("__copy__", [](const OpenMS::ControlledVocabulary& self) { return OpenMS::ControlledVocabulary(self); })
         .def("__deepcopy__", [](const OpenMS::ControlledVocabulary& self, nb::dict) { return OpenMS::ControlledVocabulary(self); }, "memo"_a)
         .def("loadFromOBO", [](OpenMS::ControlledVocabulary& self, const std::string& name, const std::string& filename) { self.loadFromOBO(name, filename); }, "name"_a, "filename"_a, "Loads the CV from an OBO file")
@@ -2942,6 +2968,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         "MSP spectral library file reader/writer")
         .def(nb::init<>())
         .def(nb::init<const std::string&, OpenMS::MSExperiment&>(), "filename"_a, "library"_a)
+        .def(nb::init<const OpenMS::MSPGenericFile &>())
         .def("__copy__", [](const OpenMS::MSPGenericFile& self) { return OpenMS::MSPGenericFile(self); })
         .def("__deepcopy__", [](const OpenMS::MSPGenericFile& self, nb::dict) { return OpenMS::MSPGenericFile(self); }, "memo"_a)
         .def("load", [](OpenMS::MSPGenericFile& self, const std::string& filename, OpenMS::MSExperiment& library) { self.load(filename, library); }, "filename"_a, "library"_a)

@@ -22,71 +22,7 @@
 
   The targeted quantitation workflow consists of four main stages:
 
-  @dot
-  digraph TargetedWorkflow {
-    rankdir=TB;
-    node [shape=box, style=filled];
-
-    subgraph cluster_input {
-      label="Input Data";
-      style=filled;
-      fillcolor=lightgray;
-      raw [label="Raw mzML", fillcolor=white];
-      traml [label="Transition List\n(TraML/TSV)", fillcolor=white];
-      stds [label="Standards\n(known concentrations)", fillcolor=white];
-    }
-
-    subgraph cluster_picking {
-      label="1. Peak Picking & Integration";
-      style=filled;
-      fillcolor=lightblue;
-      picker [label="MRMTransitionGroupPicker", fillcolor=white];
-      integrator [label="PeakIntegrator", fillcolor=white];
-      emg [label="EmgGradientDescent\n(optional)", fillcolor=white];
-    }
-
-    subgraph cluster_qc {
-      label="2. Quality Control";
-      style=filled;
-      fillcolor=lightyellow;
-      qc [label="MRMFeatureQC", fillcolor=white];
-      filter [label="MRMFeatureFilter", fillcolor=white];
-    }
-
-    subgraph cluster_selection {
-      label="3. Feature Selection";
-      style=filled;
-      fillcolor=lightgreen;
-      selector [label="MRMFeatureSelector\n(QMIP or Score)", fillcolor=white];
-      batch [label="MRMBatchFeatureSelector", fillcolor=white];
-    }
-
-    subgraph cluster_quant {
-      label="4. Absolute Quantitation";
-      style=filled;
-      fillcolor=lightpink;
-      method [label="AbsoluteQuantitationMethod", fillcolor=white];
-      quant [label="AbsoluteQuantitation", fillcolor=white];
-    }
-
-    raw -> picker;
-    traml -> picker;
-    picker -> integrator;
-    integrator -> emg [style=dashed];
-    emg -> filter;
-    integrator -> filter;
-    qc -> filter;
-    filter -> selector;
-    selector -> batch [style=dashed];
-    batch -> quant;
-    selector -> quant;
-    stds -> quant;
-    method -> quant;
-
-    results [label="Quantified Results\n(FeatureMap)", shape=ellipse, fillcolor=white];
-    quant -> results;
-  }
-  @enddot
+  @image html TargetedQuantitation_tutorial_workflow.svg
 
   @section TQ_stage1 Stage 1: Peak Picking and Integration
 

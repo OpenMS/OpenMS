@@ -23,7 +23,9 @@ namespace OpenMS
         //TODO check if we should combine RAW and RAW_EVAL:
         // What if a SE does not have an e-value score (spectrast, OMSSA, crux/sequest, myrimatch),
         // then you need additional if's/try's
-        {IDType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue", "MS:1002053", "MS:1002257"}},
+        // accessions: MS-GF:EValue, Comet:expectation value, OMSSA:evalue, OMSSA:pvalue, X!Tandem:expect
+        // (PSI-MS gives the last four no score order; the OMSSA p-value is lower-is-better like its E-value)
+        {IDType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue", "MS:1002053", "MS:1002257", "MS:1001328", "MS:1001329", "MS:1001330"}},
         {IDType::PP, {"Posterior Probability"}},
         {IDType::PEP, {"Posterior Error Probability", "pep", "PEP", "posterior_error_probability", "MS:1001493"}}, // TODO add CV terms
         {IDType::FDR, {"FDR", "fdr", "false discovery rate"}},
