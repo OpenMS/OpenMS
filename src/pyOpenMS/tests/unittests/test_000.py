@@ -5167,6 +5167,9 @@ def testPeakFileOptions():
     pfo.setMSLevels
     pfo.setMetadataOnly
     pfo.setWriteSupplementalData
+    assert not pfo.getZstdCompression()
+    pfo.setZstdCompression(True)
+    assert pfo.getZstdCompression()
 
 @report
 def testMRMMapping():

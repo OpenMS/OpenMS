@@ -31,6 +31,7 @@ RUN apt-get update \
     libglpk-dev \
     libzip-dev \
     zlib1g-dev \
+    libzstd-dev \
     libzip4 \
     zlib1g \
     # ICU is needed by the .NET SDK/runtime for the openms-thermo-bridge build
@@ -196,6 +197,7 @@ RUN apt-get update \
     libsvm3 \
     libzip4 \
     zlib1g \
+    libzstd1 \
     libbz2-1.0 \
     libcurl4 \
     libgomp1 \

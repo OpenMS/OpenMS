@@ -121,6 +121,8 @@ Dependencies:
     versions 24+ are accepted. Compiler minimums are checked before vcpkg runs
     (#8366, #8370, #8422, #8679, #8699, #8991, #9042, #9095, #9196, #9221, #10112,
     #10133, #10221).
+  - Zstandard (zstd) is now a required dependency (mzML zstd binary array compression; #9033).
+    It is found via its CMake config package or as a plain library (e.g. libzstd-dev).
   - Qt6 is required only with WITH_GUI=ON. Core/non-GUI code now uses standard C++ and
     platform APIs, libcurl for HTTP, boost-process for subprocesses and nlohmann/json.
     ZIP support uses libzip instead of minizip-ng. ExecutePipeline, INIUpdater and
@@ -729,6 +731,10 @@ GUI tools:
     such as OpenSwathWorkflow and FLASHDeconv, directly (#9472).
 
 OpenMS Library:
+  - mzML: read and write Zstandard (zstd) compressed binary data arrays (MS:1003780 zstd,
+    MS:1003781 byte-shuffled zstd, MS:1003782 dictionary-encoded zstd and MS:1003783-MS:1003785
+    MS-Numpress followed by zstd). Writing is enabled with PeakFileOptions::setZstdCompression(),
+    FileConverter -zstd_compression or FileFilter -peak_options:zstd_compression (#9033).
   - Added GlycanStructure and TheoreticalGlycanSpectrumGenerator for composition-based
     diagnostic/oxonium and bounded B/Y/C/Z ions, structural and internal glycan fragments,
     and HCD/ETD/EThcD glycopeptide backbone retention with configurable stubs (#10176, #10204).

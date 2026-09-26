@@ -128,6 +128,20 @@ public:
     void setCompression(bool compress);
     /// returns @c true, if data should be compressed when writing
     bool getCompression() const;
+
+    /**
+        @brief [mzML only!] Sets whether binary data should be compressed with Zstandard (zstd) instead of zlib when writing
+
+        If enabled, numeric binary data arrays are byte-shuffled and compressed with zstd
+        (MS:1003781 "byte-shuffled zstd compression"), string arrays are compressed with zstd
+        (MS:1003780 "zstd compression") and numpress-compressed arrays are additionally compressed
+        with zstd (MS:1003783 - MS:1003785). This takes precedence over setCompression().
+
+        @note Not all external tools support reading zstd-compressed mzML files yet.
+    */
+    void setZstdCompression(bool zstd);
+    /// returns @c true, if binary data should be compressed with Zstandard (zstd) when writing
+    bool getZstdCompression() const;
     //@}
 
     ///@name lazyload option
@@ -236,6 +250,7 @@ private:
     DRange<1> precursor_mz_range_{};
     std::vector<Int> ms_levels_{};
     bool zlib_compression_ = false;
+    bool zstd_compression_ = false;
     bool always_append_data_ = false;
     bool skip_xml_checks_ = false;
     bool sort_spectra_by_mz_ = true;

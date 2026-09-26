@@ -177,6 +177,7 @@ protected:
     registerStringOption_("write_scan_index", "<toggle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
     setValidStrings_("write_scan_index", ListUtils::create<std::string>("true,false"));
     registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size using linear compression for m/z domain and slof for intensity and float data arrays (attention: may cause small loss of precision; only for mzML data).", true);
+    registerFlag_("zstd_compression", "[mzML output only] Compress binary data arrays with Zstandard (zstd) instead of zlib (lossless; can be combined with 'lossy_compression'). Attention: not all external tools can read zstd-compressed mzML files yet.", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
@@ -423,6 +424,7 @@ protected:
     bool convert_to_chromatograms = getFlag_("convert_to_chromatograms");
     bool lossy_compression = getFlag_("lossy_compression");
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
+    bool zstd_compression = getFlag_("zstd_compression");
 
     // prepare data structures for lossy compression (note that we compress any float data arrays the same as intensity arrays)
     MSNumpressCoder::NumpressConfig npconfig_mz, npconfig_int, npconfig_fda;
@@ -651,6 +653,7 @@ protected:
           consumer.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
           consumer.getOptions().setCompression(true);
         }
+        consumer.getOptions().setZstdCompression(zstd_compression);
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
 
         // for different input file type
@@ -735,6 +738,7 @@ protected:
         mzmlFile.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
         mzmlFile.getOptions().setCompression(true);
       }
+      mzmlFile.getOptions().setZstdCompression(zstd_compression);
 
       if (convert_to_chromatograms)
       {

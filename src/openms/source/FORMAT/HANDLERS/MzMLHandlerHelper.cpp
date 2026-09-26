@@ -11,9 +11,96 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/Base64.h>
+#include <OpenMS/FORMAT/ZstdCompression.h>
+
+#include <cstring>
 
 namespace OpenMS::Internal
 {
+
+  namespace
+  {
+    /// Convert a numeric array to little-endian bytes, byte-shuffle and zstd-compress them and encode the result in Base64
+    template <typename T>
+    void encodeZstdNumeric(std::vector<T>& in, std::string& out)
+    {
+      out.clear();
+      if (in.empty())
+      {
+        return;
+      }
+      if constexpr (OPENMS_IS_BIG_ENDIAN)
+      {
+        invertEndianess<sizeof(T)>(in.data(), in.size());
+      }
+      std::string compressed;
+      ZstdCompression::encode(in.data(), in.size() * sizeof(T), ZstdCompression::ByteTransform::BYTE_SHUFFLE, sizeof(T), compressed);
+      Base64::encodeStrings({compressed}, out, false, false);
+    }
+
+    /// Decode the Base64 string of a zstd-compressed array (with the transform given in @p bindata) into a numeric array
+    template <typename T>
+    void decodeZstdNumeric(const MzMLHandlerHelper::BinaryData& bindata, std::vector<T>& out)
+    {
+      out.clear();
+      std::string compressed;
+      Base64::decodeSingleString(bindata.base64, compressed, false);
+      std::string decoded;
+      ZstdCompression::decode(compressed.data(), compressed.size(), bindata.zstd_transform, sizeof(T), decoded);
+      if (decoded.size() % sizeof(T) != 0)
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "zstd-compressed binary data array '" + bindata.meta.getName() + "' has a size of " +
+                                         std::to_string(decoded.size()) + " bytes, which is not a multiple of the element size " + std::to_string(sizeof(T)) + ".");
+      }
+      out.resize(decoded.size() / sizeof(T));
+      if (!out.empty())
+      {
+        std::memcpy(out.data(), decoded.data(), decoded.size());
+      }
+      if constexpr (OPENMS_IS_BIG_ENDIAN)
+      {
+        invertEndianess<sizeof(T)>(out.data(), out.size());
+      }
+    }
+
+    /// Decode the Base64 string of a zstd-compressed array of null-terminated strings
+    void decodeZstdStrings(const MzMLHandlerHelper::BinaryData& bindata, std::vector<std::string>& out)
+    {
+      out.clear();
+      std::string compressed;
+      Base64::decodeSingleString(bindata.base64, compressed, false);
+      std::string decoded;
+      ZstdCompression::decode(compressed.data(), compressed.size(), bindata.zstd_transform, 1, decoded);
+      // split at null bytes (skipping empty strings, identical to Base64::decodeStrings)
+      size_t start = 0;
+      while (start < decoded.size())
+      {
+        size_t end = decoded.find('\0', start);
+        if (end == std::string::npos)
+        {
+          end = decoded.size();
+        }
+        if (end > start)
+        {
+          out.emplace_back(decoded, start, end - start);
+        }
+        start = end + 1;
+      }
+    }
+
+    /// Decode the Base64 string of a numpress + zstd compressed array
+    void decodeZstdNumpress(const MzMLHandlerHelper::BinaryData& bindata, std::vector<double>& out)
+    {
+      std::string compressed;
+      Base64::decodeSingleString(bindata.base64, compressed, false);
+      std::string numpressed;
+      ZstdCompression::uncompressData(compressed.data(), compressed.size(), numpressed);
+      MSNumpressCoder::NumpressConfig config;
+      config.np_compression = bindata.np_compression;
+      MSNumpressCoder().decodeNPRaw(numpressed, out, config);
+    }
+  }
 
     void MzMLHandlerHelper::warning(int mode, const std::string & msg, UInt line, UInt column)
     {
@@ -33,9 +120,32 @@ namespace OpenMS::Internal
       OPENMS_LOG_WARN << error_message << std::endl;
     }
 
-  std::string MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, const std::string& indent, bool use_numpress)
+  std::string MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, const std::string& indent, bool use_numpress, bool zstd_byte_shuffle)
   {
-    if (opt.getCompression())
+    if (opt.getZstdCompression())
+    {
+      if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
+      {
+        if (zstd_byte_shuffle)
+        {
+          return indent + R"(<cvParam cvRef="MS" accession="MS:1003781" name="byte-shuffled zstd compression" />)";
+        }
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1003780" name="zstd compression" />)";
+      }
+      else if (np.np_compression == MSNumpressCoder::LINEAR)
+      {
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1003783" name="MS-Numpress linear prediction compression followed by zstd compression" />)";
+      }
+      else if (np.np_compression == MSNumpressCoder::PIC)
+      {
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1003784" name="MS-Numpress positive integer compression followed by zstd compression" />)";
+      }
+      else if (np.np_compression == MSNumpressCoder::SLOF)
+      {
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1003785" name="MS-Numpress short logged float compression followed by zstd compression" />)";
+      }
+    }
+    else if (opt.getCompression())
     {
       if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
       {
@@ -76,6 +186,105 @@ namespace OpenMS::Internal
     }
     // default
     return indent + R"(<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />)";
+  }
+
+  void MzMLHandlerHelper::encodeNumericArray(std::vector<float>& in, const PeakFileOptions& opt, std::string& out)
+  {
+    if (opt.getZstdCompression())
+    {
+      encodeZstdNumeric(in, out);
+    }
+    else
+    {
+      Base64::encode(in, Base64::BYTEORDER_LITTLEENDIAN, out, opt.getCompression());
+    }
+  }
+
+  void MzMLHandlerHelper::encodeNumericArray(std::vector<double>& in, const PeakFileOptions& opt, std::string& out)
+  {
+    if (opt.getZstdCompression())
+    {
+      encodeZstdNumeric(in, out);
+    }
+    else
+    {
+      Base64::encode(in, Base64::BYTEORDER_LITTLEENDIAN, out, opt.getCompression());
+    }
+  }
+
+  void MzMLHandlerHelper::encodeNumericArray(std::vector<Int32>& in, const PeakFileOptions& opt, std::string& out)
+  {
+    if (opt.getZstdCompression())
+    {
+      encodeZstdNumeric(in, out);
+    }
+    else
+    {
+      Base64::encodeIntegers(in, Base64::BYTEORDER_LITTLEENDIAN, out, opt.getCompression());
+    }
+  }
+
+  void MzMLHandlerHelper::encodeNumericArray(std::vector<Int64>& in, const PeakFileOptions& opt, std::string& out)
+  {
+    if (opt.getZstdCompression())
+    {
+      encodeZstdNumeric(in, out);
+    }
+    else
+    {
+      Base64::encodeIntegers(in, Base64::BYTEORDER_LITTLEENDIAN, out, opt.getCompression());
+    }
+  }
+
+  void MzMLHandlerHelper::encodeStringArray(const std::vector<std::string>& in, const PeakFileOptions& opt, std::string& out)
+  {
+    if (opt.getZstdCompression())
+    {
+      out.clear();
+      if (in.empty())
+      {
+        return;
+      }
+      std::string raw;
+      for (const auto& str : in)
+      {
+        raw.append(str);
+        raw.push_back('\0');
+      }
+      std::string compressed;
+      ZstdCompression::compressData(raw.data(), raw.size(), compressed);
+      Base64::encodeStrings({compressed}, out, false, false);
+    }
+    else
+    {
+      Base64::encodeStrings(in, out, opt.getCompression());
+    }
+  }
+
+  void MzMLHandlerHelper::encodeNumpressArray(const std::vector<double>& in, const PeakFileOptions& opt, const MSNumpressCoder::NumpressConfig& config, std::string& out)
+  {
+    if (opt.getZstdCompression())
+    {
+      out.clear();
+      std::string numpressed;
+      MSNumpressCoder().encodeNPRaw(in, numpressed, config);
+      if (numpressed.empty())
+      {
+        return; // numpress failed (or empty input)
+      }
+      std::string compressed;
+      ZstdCompression::compressData(numpressed.data(), numpressed.size(), compressed);
+      Base64::encodeStrings({compressed}, out, false, false);
+    }
+    else
+    {
+      MSNumpressCoder().encodeNP(in, out, opt.getCompression(), config);
+    }
+  }
+
+  void MzMLHandlerHelper::encodeNumpressArray(const std::vector<float>& in, const PeakFileOptions& opt, const MSNumpressCoder::NumpressConfig& config, std::string& out)
+  {
+    encodeNumpressArray(std::vector<double>(in.begin(), in.end()), opt, config, out);
   }
 
   void MzMLHandlerHelper::writeFooter_(std::ostream& os,
@@ -176,9 +385,16 @@ namespace OpenMS::Internal
         {
           // If its numpress, we don't distinguish 32 / 64 bit as the numpress
           // decoder always works with 64 bit (takes std::vector<double>)
-          MSNumpressCoder::NumpressConfig config;
-          config.np_compression = bindata.np_compression;
-          MSNumpressCoder().decodeNP(bindata.base64, bindata.floats_64,  bindata.compression, config);
+          if (bindata.zstd_compression)
+          {
+            decodeZstdNumpress(bindata, bindata.floats_64);
+          }
+          else
+          {
+            MSNumpressCoder::NumpressConfig config;
+            config.np_compression = bindata.np_compression;
+            MSNumpressCoder().decodeNP(bindata.base64, bindata.floats_64,  bindata.compression, config);
+          }
 
           // Next, ensure that we only look at the float array even if the
           // mzML tags say 32 bit data (I am looking at you, proteowizard)
@@ -186,7 +402,14 @@ namespace OpenMS::Internal
         }
         else if (bindata.precision == BinaryData::PRE_64)
         {
-          Base64::decode(bindata.base64, Base64::BYTEORDER_LITTLEENDIAN, bindata.floats_64, bindata.compression);
+          if (bindata.zstd_compression)
+          {
+            decodeZstdNumeric(bindata, bindata.floats_64);
+          }
+          else
+          {
+            Base64::decode(bindata.base64, Base64::BYTEORDER_LITTLEENDIAN, bindata.floats_64, bindata.compression);
+          }
           if (bindata.size != bindata.floats_64.size())
           {
             MzMLHandlerHelper::warning(0,std::string("Float binary data array '") + bindata.meta.getName() + 
@@ -196,7 +419,14 @@ namespace OpenMS::Internal
         }
         else if (bindata.precision == BinaryData::PRE_32)
         {
-          Base64::decode(bindata.base64, Base64::BYTEORDER_LITTLEENDIAN, bindata.floats_32, bindata.compression);
+          if (bindata.zstd_compression)
+          {
+            decodeZstdNumeric(bindata, bindata.floats_32);
+          }
+          else
+          {
+            Base64::decode(bindata.base64, Base64::BYTEORDER_LITTLEENDIAN, bindata.floats_32, bindata.compression);
+          }
           if (bindata.size != bindata.floats_32.size())
           {
             MzMLHandlerHelper::warning(0,std::string("Float binary data array '") + bindata.meta.getName() + 
@@ -226,7 +456,14 @@ namespace OpenMS::Internal
       {
         if (bindata.precision == BinaryData::PRE_64)
         {
-          Base64::decodeIntegers(bindata.base64, Base64::BYTEORDER_LITTLEENDIAN, bindata.ints_64, bindata.compression);
+          if (bindata.zstd_compression)
+          {
+            decodeZstdNumeric(bindata, bindata.ints_64);
+          }
+          else
+          {
+            Base64::decodeIntegers(bindata.base64, Base64::BYTEORDER_LITTLEENDIAN, bindata.ints_64, bindata.compression);
+          }
           if (bindata.size != bindata.ints_64.size())
           {
             MzMLHandlerHelper::warning(0,std::string("Integer binary data array '") + bindata.meta.getName() + 
@@ -236,7 +473,14 @@ namespace OpenMS::Internal
         }
         else if (bindata.precision == BinaryData::PRE_32)
         {
-          Base64::decodeIntegers(bindata.base64, Base64::BYTEORDER_LITTLEENDIAN, bindata.ints_32, bindata.compression);
+          if (bindata.zstd_compression)
+          {
+            decodeZstdNumeric(bindata, bindata.ints_32);
+          }
+          else
+          {
+            Base64::decodeIntegers(bindata.base64, Base64::BYTEORDER_LITTLEENDIAN, bindata.ints_32, bindata.compression);
+          }
           if (bindata.size != bindata.ints_32.size())
           {
             MzMLHandlerHelper::warning(0,std::string("Integer binary data array '") + bindata.meta.getName() + 
@@ -247,7 +491,14 @@ namespace OpenMS::Internal
       }
       else if (bindata.data_type == BinaryData::DT_STRING)
       {
-        Base64::decodeStrings(bindata.base64, bindata.decoded_char, bindata.compression);
+        if (bindata.zstd_compression)
+        {
+          decodeZstdStrings(bindata, bindata.decoded_char);
+        }
+        else
+        {
+          Base64::decodeStrings(bindata.base64, bindata.decoded_char, bindata.compression);
+        }
         if (bindata.size != bindata.decoded_char.size())
         {
           MzMLHandlerHelper::warning(0,std::string("std::string binary data array '") + bindata.meta.getName() + 
@@ -287,6 +538,15 @@ namespace OpenMS::Internal
                                                        const std::string& unit_accession)
   {
     bool is_default_array = (accession == "MS:1000514" || accession == "MS:1000515" || accession == "MS:1000595");
+
+    // zstd compression (optionally preceded by a byte transform or numpress compression)
+    auto setZstd = [&data](ZstdCompression::ByteTransform transform, MSNumpressCoder::NumpressCompression np)
+    {
+      data.back().compression = false;
+      data.back().zstd_compression = true;
+      data.back().zstd_transform = transform;
+      data.back().np_compression = np;
+    };
 
     // store unit accession for non-default arrays
     if (!unit_accession.empty() && !is_default_array)
@@ -329,37 +589,69 @@ namespace OpenMS::Internal
     else if (accession == "MS:1000574") //zlib compression
     {
       data.back().compression = true;
+      data.back().zstd_compression = false;
     }
     else if (accession == "MS:1002312") //numpress compression: linear
     {
       data.back().np_compression = MSNumpressCoder::LINEAR;
+      data.back().zstd_compression = false;
     }
     else if (accession == "MS:1002313") //numpress compression: pic
     {
       data.back().np_compression = MSNumpressCoder::PIC;
+      data.back().zstd_compression = false;
     }
     else if (accession == "MS:1002314") //numpress compression: slof
     {
       data.back().np_compression = MSNumpressCoder::SLOF;
+      data.back().zstd_compression = false;
     }
     else if (accession == "MS:1002746") //numpress compression: linear + zlib
     {
       data.back().np_compression = MSNumpressCoder::LINEAR;
       data.back().compression = true;
+      data.back().zstd_compression = false;
     }
     else if (accession == "MS:1002747") //numpress compression: pic + zlib
     {
       data.back().np_compression = MSNumpressCoder::PIC;
       data.back().compression = true;
+      data.back().zstd_compression = false;
     }
     else if (accession == "MS:1002748") //numpress compression: slof + zlib
     {
       data.back().np_compression = MSNumpressCoder::SLOF;
       data.back().compression = true;
+      data.back().zstd_compression = false;
+    }
+    else if (accession == "MS:1003780") // zstd compression
+    {
+      setZstd(ZstdCompression::ByteTransform::NONE, MSNumpressCoder::NONE);
+    }
+    else if (accession == "MS:1003781") // byte-shuffled zstd compression
+    {
+      setZstd(ZstdCompression::ByteTransform::BYTE_SHUFFLE, MSNumpressCoder::NONE);
+    }
+    else if (accession == "MS:1003782") // dictionary-encoded zstd compression
+    {
+      setZstd(ZstdCompression::ByteTransform::DICTIONARY, MSNumpressCoder::NONE);
+    }
+    else if (accession == "MS:1003783") // numpress compression: linear + zstd
+    {
+      setZstd(ZstdCompression::ByteTransform::NONE, MSNumpressCoder::LINEAR);
+    }
+    else if (accession == "MS:1003784") // numpress compression: pic + zstd
+    {
+      setZstd(ZstdCompression::ByteTransform::NONE, MSNumpressCoder::PIC);
+    }
+    else if (accession == "MS:1003785") // numpress compression: slof + zstd
+    {
+      setZstd(ZstdCompression::ByteTransform::NONE, MSNumpressCoder::SLOF);
     }
     else if (accession == "MS:1000576") // no compression
     {
       data.back().compression = false;
+      data.back().zstd_compression = false;
       data.back().np_compression = MSNumpressCoder::NONE;
     }
     else if (is_default_array) // handle m/z, intensity, rt
