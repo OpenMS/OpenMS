@@ -1152,7 +1152,7 @@ Build System:
     exclude pyOpenMS modules distributed as wheels (#8961, #9514, #9523, #9742, #9827,
     #9969, #10009).
   - The macOS package installs bin/qt.conf, so ExecutePipeline, and with it TOPPAS
-    pipelines on the command line, can load the Qt platform plugin again (#10260).
+    pipelines on the command line, can load the Qt platform plugin (#10260, #10280).
   - Fixed Arrow repository keys/version pins, Bioconda synchronization/tooling/dependency
     conflicts and package-list handling; build failures now propagate. Multi-architecture
     images publish a combined amd64/arm64 manifest (#9196, #9726, #9728, #9729, #9750,
@@ -1219,6 +1219,10 @@ Build System:
     overrode pyproject.toml, which moved the supported macOS floor without notice. A CI
     check compares the Mach-O load commands of each wheel against its platform tag, so a
     wheel can no longer install on a macOS it cannot run on (#10202).
+  - The macOS package states the macOS it needs. The build targets macOS 15, the macOS its
+    Homebrew libraries are built for, instead of 14. The installer refuses older versions,
+    and TOPPView, TOPPAS and INIFileEditor declare the build's target in their Info.plist
+    instead of macOS 12 (#10286).
   - vcpkg builds OpenBLAS, which COIN-OR's LAPACK pulls in, for a fixed CPU target on Linux:
     CORE2 (SSSE3, the baseline OpenMS itself is compiled for) on x86_64 and ARMV8 on arm64. It
     used to take the kernels for the CPU of the build machine, and the binary cache passed that

@@ -20,6 +20,15 @@ macro(add_mac_app_bundle _name)
 	set(INFO_PLIST_TEMPLATE "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${_name}-resources/${_name}.plist.in")
 	get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
 
+	# LSMinimumSystemVersion in the Info.plist template: the macOS the build targets. Package
+	# builds set it through MACOSX_DEPLOYMENT_TARGET. A build without a target runs on the
+	# macOS it was built on, so it keeps the permissive 12.0 the templates used to hardcode.
+	if(CMAKE_OSX_DEPLOYMENT_TARGET)
+		set(OPENMS_BUNDLE_MINIMUM_SYSTEM_VERSION "${CMAKE_OSX_DEPLOYMENT_TARGET}")
+	else()
+		set(OPENMS_BUNDLE_MINIMUM_SYSTEM_VERSION "12.0")
+	endif()
+
 	## TODO do we need a different RPATH for apps? Doesnt CMAKE do that automatically
 	# we also need the icns in the app
 	add_executable(
