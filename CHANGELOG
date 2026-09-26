@@ -188,7 +188,10 @@ Dependencies:
     bundled 3.0.2). vcpkg.json pins the version because the baseline's 3.6.2 is affected by the
     High-severity CVE-2026-45447.
   - The bundled MaRaCluster is updated from 0.05.0 to 1.04.1 on Linux and Windows x86_64,
-    and the macOS arm64 packages now include it too (OpenMS/THIRDPARTY#113).
+    and the macOS arm64 packages now include it too. MaRaClusterAdapter now converts the
+    input files in MaRaCluster's index step, single-threaded, before it clusters them:
+    1.04.1's Windows build crashes in about one run in ten when it converts several files
+    in parallel (OpenMS/THIRDPARTY#113, #10259).
 
 PyOpenMS:
   - Fixed keyword defaults that did not match the wrapped C++ signatures. Four bindings
@@ -1225,11 +1228,11 @@ Build System:
     headers, CMake package, .pdb and a second copy of its managed assemblies. The vcpkg
     port also installs the Thermo RawFileReader license now, so every package ships it
     under share/OpenMS/LICENSES as the from-source build did; before, only the arm64
-    package had it. Depends is
-    now exactly what dpkg-shlibdeps derives. The hand-written entries had gone stale:
-    the Qt ones are derived anyway, and the derived plain t64 names made their
-    "t64 | non-t64" alternatives unenforceable; nothing links yaml-cpp dynamically; and
-    SQLite ships inside the package, so libsqlite3-0 was never used.
+    package had it. Depends is now exactly what dpkg-shlibdeps derives. The hand-written
+    entries had gone stale: the Qt ones are derived anyway, and the derived plain t64
+    names made their "t64 | non-t64" alternatives unenforceable; nothing links yaml-cpp
+    dynamically; and SQLite ships inside the package, so libsqlite3-0 was never used
+    (#10259).
   - The container image build failed on every nightly run once WITH_THERMO_RAW defaulted
     to ON on Linux aarch64 (#10206): the Dockerfile still installed the .NET SDK/runtime
     that openms-thermo-bridge needs only for amd64, so the arm64 build could not find
