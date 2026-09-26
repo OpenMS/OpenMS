@@ -105,6 +105,9 @@ public:
       @param[in,out] exp the experiment to be converted.
       @param[in] remove_spectra if set to true, the chromatogram spectra are removed from the experiment.
       @param[in] force_conversion Convert even if ScanMode is not SRM or if there are no precursors (e.g. GC-MS data)
+
+      @note XIC chromatograms built via @p force_conversion (no precursor, e.g. GC-MS data) are
+            given a native ID of the form "XIC mz=<mz>" so they can be told apart.
     */
     template <typename ExperimentType>
     void convertSpectraToChromatograms(ExperimentType & exp, bool remove_spectra = false, bool force_conversion = false)
