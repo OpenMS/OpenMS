@@ -1007,6 +1007,10 @@ Fixes:
       ProteomicsLFQ/MSstatsConverter or put garbage into MSstats/Triqler condition and replicate
       columns. SampleSection::getFactorValue throws MissingInformation for a row without a value
       for the factor instead of reading past its end (#10148).
+    - UniPEFF wrote UniProt features whose <location sequence="..."> names another isoform
+      as annotations of the canonical entry, although their coordinates refer to that isoform
+      (e.g. \ModResPsi phosphoserines on non-S residues or past the sequence end). Such
+      features are now skipped and counted in a summary log line.
   Robustness:
     - mzIdentML writer: the "unknown modification" cvParam (MS:1001460) referenced the undeclared
       controlled vocabulary "MS", although the document declares only "PSI-MS". The writer names

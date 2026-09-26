@@ -81,12 +81,16 @@ START_SECTION((void load(const std::string& filename, std::vector<UniProtEntry>&
   TEST_EQUAL(f_mod.description, "Phosphoserine")
   TEST_EQUAL(f_mod.has_position, true)
   TEST_EQUAL(f_mod.position, 20)
+  // <location sequence="..."> names the isoform the coordinates refer to.
+  TEST_EQUAL(f_mod.location_sequence, "P00001-2")
 
   const UniProtFeature& f_ss = e1.features[2];
   TEST_EQUAL(f_ss.type, "disulfide bond")
   TEST_EQUAL(f_ss.has_range, true)
   TEST_EQUAL(f_ss.begin, 15)
   TEST_EQUAL(f_ss.end,   25)
+  // No sequence attribute: coordinates refer to the canonical sequence.
+  TEST_EQUAL(f_ss.location_sequence, "")
 
   const UniProtFeature& f_var = e1.features[3];
   TEST_EQUAL(f_var.type, "sequence variant")
