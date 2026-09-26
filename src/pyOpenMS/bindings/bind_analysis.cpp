@@ -1559,34 +1559,37 @@ duplicated code
         .def(nb::init<const OpenMS::OPXLHelper &>())
         .def("__copy__", [](const OpenMS::OPXLHelper& self) { return OpenMS::OPXLHelper(self); })
         .def("__deepcopy__", [](const OpenMS::OPXLHelper& self, nb::dict) { return OpenMS::OPXLHelper(self); }, "memo"_a)
+        .def_static("addXLTargetDecoyMV", [](OpenMS::PeptideIdentificationList& peptide_ids) { return OpenMS::OPXLHelper::addXLTargetDecoyMV(peptide_ids); }, "peptide_ids"_a)
         .def_static("addXLTargetDecoyMV", [](std::vector<OpenMS::PeptideIdentification> peptide_ids) {
             OpenMS::OPXLHelper::addXLTargetDecoyMV(peptide_ids);
             return peptide_ids;
         }, "peptide_ids"_a)
-        .def_static("addXLTargetDecoyMV", [](OpenMS::PeptideIdentificationList& peptide_ids) { return OpenMS::OPXLHelper::addXLTargetDecoyMV(peptide_ids); }, "peptide_ids"_a)
+        .def_static("addBetaAccessions", [](OpenMS::PeptideIdentificationList& peptide_ids) { return OpenMS::OPXLHelper::addBetaAccessions(peptide_ids); }, "peptide_ids"_a)
         .def_static("addBetaAccessions", [](std::vector<OpenMS::PeptideIdentification> peptide_ids) {
             OpenMS::OPXLHelper::addBetaAccessions(peptide_ids);
             return peptide_ids;
         }, "peptide_ids"_a)
-        .def_static("addBetaAccessions", [](OpenMS::PeptideIdentificationList& peptide_ids) { return OpenMS::OPXLHelper::addBetaAccessions(peptide_ids); }, "peptide_ids"_a)
+        .def_static("removeBetaPeptideHits", [](OpenMS::PeptideIdentificationList& peptide_ids) { return OpenMS::OPXLHelper::removeBetaPeptideHits(peptide_ids); }, "peptide_ids"_a)
         .def_static("removeBetaPeptideHits", [](std::vector<OpenMS::PeptideIdentification> peptide_ids) {
             OpenMS::OPXLHelper::removeBetaPeptideHits(peptide_ids);
             return peptide_ids;
         }, "peptide_ids"_a)
-        .def_static("removeBetaPeptideHits", [](OpenMS::PeptideIdentificationList& peptide_ids) { return OpenMS::OPXLHelper::removeBetaPeptideHits(peptide_ids); }, "peptide_ids"_a)
         .def_static("addPercolatorFeatureList", [](OpenMS::ProteinIdentification& prot_id) { return OpenMS::OPXLHelper::addPercolatorFeatureList(prot_id); }, "prot_id"_a)
-        .def_static("computeDeltaScores", []() { std::vector<OpenMS::PeptideIdentification> peptide_ids; OpenMS::OPXLHelper::computeDeltaScores(peptide_ids); return peptide_ids; })
-        .def_static("computeDeltaScores", []() { OpenMS::PeptideIdentificationList peptide_ids; OpenMS::OPXLHelper::computeDeltaScores(peptide_ids); return peptide_ids; })
+        .def_static("computeDeltaScores", [](OpenMS::PeptideIdentificationList& peptide_ids) { OpenMS::OPXLHelper::computeDeltaScores(peptide_ids); }, "peptide_ids"_a)
+        .def_static("computeDeltaScores", [](std::vector<OpenMS::PeptideIdentification> peptide_ids) {
+            OpenMS::OPXLHelper::computeDeltaScores(peptide_ids);
+            return peptide_ids;
+        }, "peptide_ids"_a)
         .def_static("combineTopRanksFromPairs", [](std::vector<OpenMS::PeptideIdentification> peptide_ids, size_t number_top_hits) {
             return OpenMS::OPXLHelper::combineTopRanksFromPairs(peptide_ids, number_top_hits);
         }, "peptide_ids"_a, "number_top_hits"_a)
         .def_static("combineTopRanksFromPairs", [](OpenMS::PeptideIdentificationList& peptide_ids, size_t number_top_hits) { return OpenMS::OPXLHelper::combineTopRanksFromPairs(peptide_ids, number_top_hits); }, "peptide_ids"_a, "number_top_hits"_a)
         .def_static("computePrecursorError", [](const OpenMS::OPXLDataStructs::CrossLinkSpectrumMatch& csm, double precursor_mz, int precursor_charge) { return OpenMS::OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge); }, "csm"_a, "precursor_mz"_a, "precursor_charge"_a)
+        .def_static("addProteinPositionMetaValues", [](OpenMS::PeptideIdentificationList& peptide_ids) { return OpenMS::OPXLHelper::addProteinPositionMetaValues(peptide_ids); }, "peptide_ids"_a, "Adds MetaValues for cross-link positions to PeptideHits")
         .def_static("addProteinPositionMetaValues", [](std::vector<OpenMS::PeptideIdentification> peptide_ids) {
             OpenMS::OPXLHelper::addProteinPositionMetaValues(peptide_ids);
             return peptide_ids;
         }, "peptide_ids"_a, "Adds MetaValues for cross-link positions to PeptideHits")
-        .def_static("addProteinPositionMetaValues", [](OpenMS::PeptideIdentificationList& peptide_ids) { return OpenMS::OPXLHelper::addProteinPositionMetaValues(peptide_ids); }, "peptide_ids"_a)
         .def_static("isoPeakMeans", [](OpenMS::OPXLDataStructs::CrossLinkSpectrumMatch& csm, const OpenMS::DataArrays::IntegerDataArray& num_iso_peaks_array, const std::vector<std::pair<size_t, size_t>>& matched_spec_linear_alpha, const std::vector<std::pair<size_t, size_t>>& matched_spec_linear_beta, const std::vector<std::pair<size_t, size_t>>& matched_spec_xlinks_alpha, const std::vector<std::pair<size_t, size_t>>& matched_spec_xlinks_beta) { OpenMS::OPXLHelper::isoPeakMeans(csm, num_iso_peaks_array, matched_spec_linear_alpha, matched_spec_linear_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta); }, "csm"_a, "num_iso_peaks_array"_a, "matched_spec_linear_alpha"_a, "matched_spec_linear_beta"_a, "matched_spec_xlinks_alpha"_a, "matched_spec_xlinks_beta"_a, "Computes the mean of alpha, beta, xlinks-alpha and xlinks-beta iso peak counts")
         .def_static("enumerateCrossLinksAndMasses", [](
                 const std::vector<OpenMS::OPXLDataStructs::AASeqWithMass>& peptides,

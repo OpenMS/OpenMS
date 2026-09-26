@@ -280,6 +280,12 @@ If there are several hits with the best score, the first one is taken
         .def_static("removeDanglingProteinReferences", [](OpenMS::PeptideIdentificationList& peptides, const std::vector<OpenMS::ProteinIdentification>& proteins, bool remove_peptides_without_reference) { return OpenMS::IDFilter::removeDanglingProteinReferences(peptides, proteins, remove_peptides_without_reference); }, "peptides"_a, "proteins"_a, "remove_peptides_without_reference"_a)
         .def_static("removeDanglingProteinReferences", [](OpenMS::ConsensusMap& cmap, bool remove_peptides_without_reference) { return OpenMS::IDFilter::removeDanglingProteinReferences(cmap, remove_peptides_without_reference); }, "cmap"_a, "remove_peptides_without_reference"_a)
         .def_static("removeDanglingProteinReferences", [](OpenMS::ConsensusMap& cmap, const OpenMS::ProteinIdentification& ref_run, bool remove_peptides_without_reference) { return OpenMS::IDFilter::removeDanglingProteinReferences(cmap, ref_run, remove_peptides_without_reference); }, "cmap"_a, "ref_run"_a, "remove_peptides_without_reference"_a)
+        // pyOpenMS 3.5 name of removeDanglingProteinReferences (renamed in C++, #8500)
+        .def_static("updateProteinReferences", [](OpenMS::PeptideIdentificationList& peptides, const std::vector<OpenMS::ProteinIdentification>& proteins, bool remove_peptides_without_reference) {
+            if (PyErr_WarnEx(PyExc_DeprecationWarning, "IDFilter.updateProteinReferences() is deprecated; use removeDanglingProteinReferences()", 1) < 0) throw nb::python_error();
+            OpenMS::IDFilter::removeDanglingProteinReferences(peptides, proteins, remove_peptides_without_reference);
+        }, "peptides"_a, "proteins"_a, "remove_peptides_without_reference"_a = false,
+            "Deprecated alias of removeDanglingProteinReferences, the pyOpenMS 3.5 name")
         .def_static("updateProteinGroups", [](std::vector<OpenMS::ProteinIdentification::ProteinGroup> groups, const std::vector<OpenMS::ProteinHit>& hits) { auto result = OpenMS::IDFilter::updateProteinGroups(groups, hits); return nb::make_tuple(result, groups); }, "groups"_a, "hits"_a,
             R"doc(
 Removes dangling protein references from peptide hits
@@ -318,6 +324,10 @@ Filter identifications by "N best" PeptideIdentification objects (better Peptide
 Removes hits annotated as decoys from peptide or protein identifications. Checks for meta values named "target_decoy" and "isDecoy", and removes protein/peptide hits if the values are "decoy" and "true", respectively
 )doc")
         .def_static("filterHitsByScore", [](OpenMS::PeptideIdentificationList& ids, double threshold_score) { return OpenMS::IDFilter::filterHitsByScore(ids, threshold_score); }, "ids"_a, "threshold_score"_a, "Filters peptide or protein identifications according to the score of the hits. The score orientation has to be set to higherscorebetter in each PeptideIdentification. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept")
+        .def_static("filterHitsByScore", [](std::vector<OpenMS::ProteinIdentification> ids, double threshold_score) {
+            OpenMS::IDFilter::filterHitsByScore(ids, threshold_score);
+            return ids;
+        }, "ids"_a, "threshold_score"_a, "Filters protein hits by score, keeping hits at least as good as the threshold, and returns the filtered list")
         .def_static("removeUnreferencedProteins", [](std::vector<OpenMS::ProteinIdentification> proteins, OpenMS::PeptideIdentificationList& ids) { OpenMS::IDFilter::removeUnreferencedProteins(proteins, ids); return proteins; }, "proteins"_a, "ids"_a, "Removes protein hits from the protein IDs in a 'cmap' that are not referenced by a peptide in the features or if requested in the unassigned peptide list")
         .def_static("countHits", [](const OpenMS::PeptideIdentificationList& ids) { return OpenMS::IDFilter::countHits(ids); }, "ids"_a, "Counts the number of peptide hits in the given identifications")
         ;

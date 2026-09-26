@@ -262,12 +262,23 @@ PyOpenMS:
     EDTAFile, KroenikFile, ChromeleonFile and MRMFeatureQCFile changed the same way, 108 call
     forms in all; the type stubs show the new form of each. MzMLFile, FeatureXMLFile,
     ConsensusXMLFile and FileHandler.loadExperiment still fill their argument, and
-    IdXMLFile.load accepts both forms (#8699).
+    IdXMLFile.load accepts both forms (#8699). PeptideIndexing.run(),
+    PosteriorErrorProbabilityModel.fit() and initPlots(), IDFilter.updateProteinGroups() and
+    AbsoluteQuantitation.optimizeCalibrationCurveIterative() keep their 3.5 arguments but
+    return a tuple, their 3.5 result followed by the updated lists. A check such as
+    `if model.fit(...)` is therefore always true; unpack the tuple instead (#10260).
   - BREAKING: strings inside returned containers are str instead of bytes: list and set
     elements, dict keys (EmpiricalFormula("H2O").getElementalComposition() is now
     {'H': 2, 'O': 1}), Param keys and tags, list-valued string meta values and string data
     arrays, as well as the few methods that returned bytes. Methods that return a single
     String already returned str. Drop .decode() calls and b"..." keys and comparisons.
+  - BREAKING: C++ char arguments take a one-character str and reject bytes, the only type
+    3.5 accepted: PeptideEvidence.setAABefore("K"), not setAABefore(b"K"). This affects
+    PeptideEvidence.setAABefore() and setAAAfter(), ResidueModification.setOrigin(),
+    Ribonucleotide.setOrigin() and its constructor, GaussTraceFitter.getGnuplotFormula(),
+    the separator of CsvFile.load() and AAIndex, whose methods are now static and which
+    has no constructor: AAIndex.aliphatic("A") instead of AAIndex().aliphatic(b"A")
+    (#10260).
   - BREAKING: LogConfigHandler has no constructor any more. Use
     oms.LogConfigHandler.getInstance().setLogLevel("ERROR") instead of
     oms.LogConfigHandler().setLogLevel("ERROR").
@@ -388,6 +399,24 @@ PyOpenMS:
     ModificationDefinition(mod, fixed), TextFile(filename, trim_lines, first_n),
     IDFilter.removeDuplicatePeptideHits(peptides) and
     IDConflictResolverAlgorithm.resolve(features) (#10260).
+  - Methods that update a list argument in C++ update a Python list passed there again, as
+    in 3.5, besides returning the updated list, so both f(prots, peps) and
+    prots = f(prots, peps) work. Without this, 3.5 code ran but its list silently stayed
+    unchanged. Among them are IDFilter.removeUnreferencedProteins(),
+    FalseDiscoveryRate.apply() and applyEstimated(), BasicProteinInferenceAlgorithm.run(),
+    BayesianProteinInferenceAlgorithm.inferPosteriorProbabilities(),
+    PeptideProteinResolution.run(), the PercolatorFeatureSetHelper feature methods and
+    TransformationModel*.weightData(); pyopenms/addons/inout_lists.py lists all of them.
+    Tuples and other sequences are not updated (#10260).
+  - Restored calls that 3.5 had: MapAlignmentAlgorithmIdentification.align() aligns
+    several maps, returning one TransformationDescription per map or, in the 3.5 form
+    align(maps, transformations, reference_index), filling the list passed in, and
+    setReference() takes a PeptideIdentificationList; IDFilter.filterHitsByScore() takes
+    a list of ProteinIdentification; IDFilter.updateProteinReferences() is a deprecated
+    alias of removeDanglingProteinReferences(). OPXLHelper.computeDeltaScores() takes the
+    identifications to score (it took no argument), and the OPXLHelper methods update a
+    PeptideIdentificationList in place again instead of a copy. TransitionTSVFile and
+    TransitionPQPFile accept bytes file names, like the other file classes (#10260).
   - plot_spectrum() and mirror_plot_spectrum() plot annotated spectra again. They called
     .decode() on the peak annotations, which the bindings now return as str (#10260).
   - The deprecated MSExperiment.get_df() and get_df_columns() accept long= again, 3.5.0's
