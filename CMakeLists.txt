@@ -238,6 +238,15 @@ option(GIT_TRACKING "Embedding of Git version control information into the OpenM
 if (GIT_TRACKING)
   ## will configure an include file
   git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE OPENMS_GIT_INFO_FOUND)
+  ## The Release workflow builds a release from its tag, a detached checkout whose refspec is "HEAD".
+  ## If HEAD is the tag v<version> of this version, use the tag as refspec, so that the packages
+  ## carry the plain version below instead of <version>-pre-HEAD-<date>.
+  if(OPENMS_GIT_INFO_FOUND AND OPENMS_GIT_SHORT_REFSPEC STREQUAL "HEAD")
+    git_get_exact_tag(_openms_release_tag --tags --match "v${OPENMS_PACKAGE_VERSION}")
+    if(_openms_release_tag STREQUAL "v${OPENMS_PACKAGE_VERSION}")
+      set(OPENMS_GIT_SHORT_REFSPEC "${_openms_release_tag}")
+    endif()
+  endif()
 endif()
 
 if(NOT GIT_TRACKING)
@@ -275,7 +284,8 @@ if(OPENMS_GIT_SHORT_REFSPEC MATCHES "disabled" OR OPENMS_GIT_SHORT_REFSPEC MATCH
   string(TIMESTAMP DATE "%Y%m%d")
   set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "${OPENMS_GIT_SHORT_REFSPEC}-${DATE}")
   set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}-pre-${OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER}")
-elseif(OPENMS_GIT_SHORT_REFSPEC MATCHES "release*" OR OPENMS_GIT_SHORT_REFSPEC MATCHES "master")
+elseif(OPENMS_GIT_SHORT_REFSPEC MATCHES "release*" OR OPENMS_GIT_SHORT_REFSPEC MATCHES "master"
+       OR OPENMS_GIT_SHORT_REFSPEC STREQUAL "v${OPENMS_PACKAGE_VERSION}")
   set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "")
   set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}")
 else()
