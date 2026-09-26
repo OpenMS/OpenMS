@@ -227,7 +227,7 @@ namespace OpenMS
     const set<std::string>& accessions = hit.extractProteinAccessionsSet();
     for (const std::string& acc : accessions)
     {
-      if (!acc.contains(Constants::UserParam::CONCAT_PEPTIDE) && !boost::regex_search(StringUtils::toLowered(std::string(acc)), decoy_pattern_))
+      if (!acc.contains(Constants::UserParam::CONCAT_PEPTIDE) && !decoy_pattern_.search(StringUtils::toLowered(std::string(acc))))
       {
         return false;
       }
@@ -616,7 +616,7 @@ namespace OpenMS
           {
             continue;
           }
-          if (boost::regex_search(StringUtils::toLowered(std::string(acc)), decoy_pattern_))// skip decoy accessions (this can happen if the hit is 'target+decoy'.)
+          if (decoy_pattern_.search(StringUtils::toLowered(std::string(acc))))// skip decoy accessions (this can happen if the hit is 'target+decoy'.)
           {
             continue;
           }

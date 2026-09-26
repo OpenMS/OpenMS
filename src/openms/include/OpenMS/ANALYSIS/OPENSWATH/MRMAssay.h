@@ -8,15 +8,13 @@
 
 #pragma once
 
+#include <functional>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/variate_generator.hpp>
 
 // #define DEBUG_MRMASSAY
 
@@ -317,11 +315,13 @@ protected:
       @brief Generates random peptide sequence
 
       @param[in] sequence_size length of peptide sequence
-      @param[in] pseudoRNG a Boost pseudo RNG
+      @param[in] pseudoRNG a pseudo random integer generator. Each draw is reduced
+                 modulo the number of residues, so the generator sets the residue
+                 distribution but not the index range.
 
       @return random peptide sequence
     */
-    std::string getRandomSequence_(size_t sequence_size, boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG);
+    std::string getRandomSequence_(size_t sequence_size, const std::function<int()>& pseudoRNG);
 
     /**
       @brief Computes all N choose K combinations

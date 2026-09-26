@@ -8,11 +8,10 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/ID/IDDataContainer.h>
+
 #include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/member.hpp>
 
 namespace OpenMS
 {
@@ -86,12 +85,8 @@ namespace OpenMS
 
     // parent sequences indexed by their accessions:
     // @TODO: allow querying/iterating over proteins and RNAs separately
-    typedef boost::multi_index_container<
-      ParentSequence,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          ParentSequence, std::string, &ParentSequence::accession>>>
-      > ParentSequences;
+    using ParentSequences = IDDataContainer<ParentSequence, std::string, std::string>;
+    extern template class OPENMS_DLLAPI IDDataContainer<ParentSequence, std::string, std::string>;
     typedef IteratorWrapper<ParentSequences::iterator> ParentSequenceRef;
 
   }

@@ -6,6 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
@@ -53,7 +54,7 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
+    for (SignedSize i = 0; i < checkedCast<SignedSize>(file_list.size()); ++i)
     {
 
 #ifdef _OPENMP

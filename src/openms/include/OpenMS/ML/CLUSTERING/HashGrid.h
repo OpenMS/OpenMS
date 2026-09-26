@@ -8,12 +8,17 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include <boost/array.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/unordered/unordered_map.hpp>
 #include <cmath>
 #include <iterator>
 #include <limits>
+
+// Boost.Unordered, not std::unordered_map, on purpose: QTClusterFinder walks this grid in
+// container order and numbers its clusters from it, so the bucket order decides which of two
+// equally good clusters wins. Boost's bucket policy and boost::hash are the same on every
+// platform; the std containers' are not, and the regression references are shared across
+// platforms. That is why this header is internal (see the sources.cmake of this directory).
 
 #ifndef OPENMS_COMPARISON_CLUSTERING_HASHGRID_H
   #define OPENMS_COMPARISON_CLUSTERING_HASHGRID_H

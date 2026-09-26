@@ -77,13 +77,32 @@ function(install_library lib_target_name)
 endfunction()
 
 #------------------------------------------------------------------------------
-# Reject JSON dependencies in installed headers even when compiler header checks
-# could resolve them through a system or shared dependency include directory.
+# What every installed header may include, as regular expressions matched against the
+# whole include name. A library adds the headers of its own PUBLIC dependencies with
+# openms_add_library(... ALLOWED_PUBLIC_INCLUDES ...), e.g. Qt for the GUI layer.
+set(OPENMS_PUBLIC_INCLUDE_ALLOWLIST
+  "OpenMS/.*"                             # OpenMS' own headers
+  "[a-z_]+"                               # the C++ standard library: <vector>, <string_view>, ...
+  "sys/.*" "windows\\.h" "winternl\\.h"   # operating-system headers
+  "omp\\.h"                               # OpenMP, a PUBLIC dependency of libOpenMS
+  "CrawdadWrapper\\.h")                   # Crawdad, a PUBLIC dependency of WITH_CRAWDAD builds
+
+#------------------------------------------------------------------------------
+# Reject every include of an installed header that is not on the allowlist above.
+# openms_validate_public_headers(<header>... [ALLOW <regex>...])
+#
+# All dependencies of OpenMS are installed into one prefix, so an include of a PRIVATE
+# dependency resolves through a sibling package's include directory on the machine that
+# builds OpenMS, and the compiler header checks pass. It only fails downstream, where the
+# package is missing. An allowlist rather than a list of known private dependencies means
+# that a dependency added later is rejected too, without anyone having to list it.
 # Keep this configure-time guard independent of the header installation method.
 function(openms_validate_public_headers)
-  foreach(_header IN LISTS ARGN)
-    # nlohmann::json is a PRIVATE dependency of libOpenMS: downstream builds do not have its
-    # include directory, so no installed header may include it (configure-time check only).
+  cmake_parse_arguments(PARSE_ARGV 0 _validate "" "" "ALLOW")
+  set(_allowed ${OPENMS_PUBLIC_INCLUDE_ALLOWLIST} ${_validate_ALLOW})
+  list(JOIN _allowed "|" _allowed_regex)
+  set(_allowed_regex "^(${_allowed_regex})$")
+  foreach(_header IN LISTS _validate_UNPARSED_ARGUMENTS)
     # Header lists are relative to the calling source directory.
     # Generated headers in the build tree may not exist yet at this point; they come from OpenMS'
     # own templates, so only what is already on disk is scanned.
@@ -92,10 +111,21 @@ function(openms_validate_public_headers)
       set(_header_to_scan "${CMAKE_CURRENT_SOURCE_DIR}/${_header_to_scan}")
     endif()
     if (EXISTS "${_header_to_scan}" AND NOT IS_DIRECTORY "${_header_to_scan}")
-      file(STRINGS "${_header_to_scan}" _nlohmann_json_hits REGEX "nlohmann/json")
-      if (_nlohmann_json_hits)
-        message(FATAL_ERROR "Installed header ${_header} includes nlohmann/json. Keep JSON types out of "
-                            "public headers: move the header under source/ or expose value types instead.")
+      file(STRINGS "${_header_to_scan}" _include_lines REGEX "^[ \t]*#[ \t]*include[ \t]*[<\"]")
+      set(_rejected)
+      foreach(_line IN LISTS _include_lines)
+        string(REGEX REPLACE "^[ \t]*#[ \t]*include[ \t]*[<\"]([^>\"]*)[>\"].*$" "\\1" _include "${_line}")
+        if (NOT _include MATCHES "${_allowed_regex}")
+          list(APPEND _rejected "${_include}")
+        endif()
+      endforeach()
+      if (_rejected)
+        list(JOIN _rejected ", " _rejected)
+        message(FATAL_ERROR "Installed header ${_header} includes ${_rejected}, which downstream "
+                            "builds cannot rely on. For a PRIVATE dependency, add the header to "
+                            "OpenMS_private_headers or expose OpenMS types instead. For a PUBLIC one, "
+                            "which OpenMSConfig.cmake finds for consumers, allow its headers with "
+                            "openms_add_library(... ALLOWED_PUBLIC_INCLUDES <regex>).")
       endif()
     endif()
   endforeach()

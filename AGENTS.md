@@ -68,7 +68,7 @@ OpenMS/
 - Out-of-tree build expected in `OpenMS-build/`; build in place for development (install prefixes are for system installs).
 - When adding or removing a public header under `src/openms/include/OpenMS/` (or `src/openms_cli/include/OpenMS/`), update the matching directory's `sources.cmake` header list. These lists control the `OpenMS_headers` (`OpenMS_CLI_headers`) install component, and missing entries break consumers of the installed package.
 - Public headers are declared in `FILE_SET HEADERS`; generated export headers are added by `openms_add_library()`. Private headers under `source/` and `include/` belong to the private file set. File sets supply the build and installed include directories.
-- Linux x64 CI builds `all_verify_interface_header_sets`; developers can opt in with `OPENMS_VERIFY_INTERFACE_HEADER_SETS=ON`. Keep the JSON guard because shared include roots can hide private dependencies.
+- Linux x64 CI builds `all_verify_interface_header_sets`; developers can opt in with `OPENMS_VERIFY_INTERFACE_HEADER_SETS=ON`. Keep the configure-time include allowlist (`openms_validate_public_headers()` in `cmake/install_macros.cmake`) because shared include roots can hide private dependencies; a new PUBLIC dependency is allowed per library with `openms_add_library(... ALLOWED_PUBLIC_INCLUDES ...)`, never by widening the allowlist for a PRIVATE one.
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
 - Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
 - **contrib is a git submodule**: run `git submodule update --init contrib` (or clone with `--recurse-submodules`) before building if you need the vendored third-party libraries.

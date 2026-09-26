@@ -8,15 +8,14 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/ID/IDDataContainer.h>
+
 #include <OpenMS/METADATA/ID/Observation.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/ID/IdentifiedMolecule.h>
 #include <OpenMS/METADATA/PeptideHit.h> // for "PeakAnnotation"
 #include <OpenMS/CHEMISTRY/AdductInfo.h>
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/composite_key.hpp>
 
 namespace OpenMS
 {
@@ -108,20 +107,8 @@ namespace OpenMS
 
     // all matches for the same observation should be consecutive, so make sure
     // the observation is used as the first member in the composite key:
-    typedef boost::multi_index_container<
-      ObservationMatch,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<
-          boost::multi_index::composite_key<
-            ObservationMatch,
-            boost::multi_index::member<ObservationMatch, ObservationRef,
-                                       &ObservationMatch::observation_ref>,
-            boost::multi_index::member<
-              ObservationMatch, IdentifiedMolecule,
-              &ObservationMatch::identified_molecule_var>,
-            boost::multi_index::member<ObservationMatch, AdductOpt,
-                                       &ObservationMatch::adduct_opt>>>>
-      > ObservationMatches;
+    using ObservationMatches = IDDataContainer<ObservationMatch, std::tuple<ObservationRef, IdentifiedMolecule, AdductOpt>, ObservationRef>;
+    extern template class OPENMS_DLLAPI IDDataContainer<ObservationMatch, std::tuple<ObservationRef, IdentifiedMolecule, AdductOpt>, ObservationRef>;
 
     typedef IteratorWrapper<ObservationMatches::iterator> ObservationMatchRef;
   }

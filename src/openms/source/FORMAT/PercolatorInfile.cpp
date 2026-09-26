@@ -418,7 +418,7 @@ namespace OpenMS
 
     // Scan-number regex is derived from the first pid's scan identifier.
     const std::string sid = getScanIdentifier(peptide_ids[0], 0);
-    boost::regex scan_regex = boost::regex(SpectrumLookup::getRegExFromNativeID(sid));
+    RegularExpression scan_regex = RegularExpression(SpectrumLookup::getRegExFromNativeID(sid));
 
     size_t pid_index_1based = 0;
     size_t pid_index_0based = 0;

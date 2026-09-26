@@ -18,7 +18,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
-#include <boost/regex.hpp>
+#include <OpenMS/DATASTRUCTURES/RegularExpression.h>
 
 namespace OpenMS
 {
@@ -114,10 +114,10 @@ namespace OpenMS
       bool fragmenterror_statistics_;
       bool terminal_series_match_ratio_;
 
-      static const boost::regex nt_regex_;
-      static const boost::regex ct_regex_;
-      static const boost::regex noloss_regex_;
-      static const boost::regex seriesposition_regex_;
+      static const RegularExpression nt_regex_;
+      static const RegularExpression ct_regex_;
+      static const RegularExpression noloss_regex_;
+      static const RegularExpression seriesposition_regex_;
   };
 }
 

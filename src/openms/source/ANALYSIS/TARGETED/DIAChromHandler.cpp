@@ -7,6 +7,7 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/TARGETED/DIAChromHandler.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
@@ -60,7 +61,7 @@ std::vector<MSChromatogram> DIAChromHandler::collectIrtChromatogramsForIrt(
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1)
 #endif
-  for (SignedSize map_idx = 0; map_idx < boost::numeric_cast<SignedSize>(swath_maps.size()); ++map_idx)
+  for (SignedSize map_idx = 0; map_idx < checkedCast<SignedSize>(swath_maps.size()); ++map_idx)
   {
     std::vector< OpenMS::MSChromatogram > tmp_chromatograms;
     if (!swath_maps[map_idx].ms1) // skip MS1

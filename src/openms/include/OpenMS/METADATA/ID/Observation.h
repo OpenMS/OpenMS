@@ -8,14 +8,12 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/ID/IDDataContainer.h>
+
 #include <OpenMS/METADATA/ID/InputFile.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/composite_key.hpp>
-#include <boost/multi_index/member.hpp>
 
 namespace OpenMS
 {
@@ -56,17 +54,8 @@ namespace OpenMS
     };
 
     // combination of input file and data ID must be unique:
-    typedef boost::multi_index_container<
-      Observation,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<
-          boost::multi_index::composite_key<
-            Observation,
-            boost::multi_index::member<Observation, InputFileRef,
-                                       &Observation::input_file>,
-            boost::multi_index::member<Observation, std::string,
-                                       &Observation::data_id>>>>
-      > Observations;
+    using Observations = IDDataContainer<Observation, std::tuple<InputFileRef, std::string>, InputFileRef>;
+    extern template class OPENMS_DLLAPI IDDataContainer<Observation, std::tuple<InputFileRef, std::string>, InputFileRef>;
     typedef IteratorWrapper<Observations::iterator> ObservationRef;
   }
 }

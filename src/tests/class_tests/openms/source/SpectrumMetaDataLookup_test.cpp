@@ -91,7 +91,7 @@ START_SECTION((void getSpectrumMetaData(Size, SpectrumMetaData&) const))
 }
 END_SECTION
 
-START_SECTION((static void getSpectrumMetaData(const MSSpectrum&, SpectrumMetaData&, const boost::regex&, const map<Size, double>&)))
+START_SECTION((static void getSpectrumMetaData(const MSSpectrum&, SpectrumMetaData&, const RegularExpression&, const map<Size, double>&)))
 {
   SpectrumMetaDataLookup::SpectrumMetaData meta;
   SpectrumMetaDataLookup::getSpectrumMetaData(spectrum, meta);
@@ -104,7 +104,7 @@ START_SECTION((static void getSpectrumMetaData(const MSSpectrum&, SpectrumMetaDa
 
   map<Size, double> precursor_rts;
   precursor_rts[1] = 1.0;
-  boost::regex scan_regexp("=(?<SCAN>\\d+)$");
+  RegularExpression scan_regexp("=(?<SCAN>\\d+)$");
   SpectrumMetaDataLookup::getSpectrumMetaData(spectrum, meta, scan_regexp,
                                               precursor_rts);
   TEST_EQUAL(meta.precursor_rt, 1.0);

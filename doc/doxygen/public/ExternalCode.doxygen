@@ -1,3 +1,11 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors: $
+// --------------------------------------------------------------------------
+
 /**
   
   @page external_code External Code using OpenMS
@@ -23,7 +31,6 @@
 	The most important variables are:
 	<UL>
 	<LI>OpenMS_INCLUDE_DIRECTORIES - all include directories containing %OpenMS headers
-	<LI>OPENMS_ADDCXX_FLAGS - preprocessor macros we require written as (-DMACRO1 -DMACRO2) etc
 	</UL>
 	and the %OpenMS target itself (which you can link against).
 	<br>	
@@ -73,5 +80,48 @@ cmake -G "<generator>" .
 	
 	
 
+
+
+@section external_boost Boost is an implementation dependency
+
+The installed shared OpenMS library can be used without Boost headers or a Boost
+CMake package. Boost is still required to build OpenMS itself and may remain a
+runtime dependency of its binaries. Static consumers also need its link dependencies.
+
+Use OpenMS::RegularExpression for the compiled-pattern overloads of
+SpectrumNativeIDParser::extractScanNumber and SpectrumLookup::extractScanNumber.
+Named groups and the existing regex syntax are retained. In pyOpenMS, pass a pattern
+string and the explicit @p no_error argument; the two-argument overload still
+accepts a native-ID CV accession.
+
+IdentificationData collections preserve uniqueness, ordered traversal and stable
+references, but their concrete container/iterator types have changed. Use the
+OpenMS aliases instead of naming Boost.MultiIndex types. Boost-specific container
+operations outside the IDDataContainer interface need to be adapted. The ordered
+processing-step view returned by getStepsAndScoresByStep() is a lightweight value.
+Internal headers such as ANALYSIS/ID/IDBoostGraph.h are not part of the installed interface.
+Indistinguishable protein groups are available through
+BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups().
+
+RandomShuffler retains its seeded shuffle sequence; use its seed() method instead
+of accessing a Boost engine. Checked integer conversions in public templates now
+throw OpenMS::Exception::OutOfRange on overflow.
+
+These changes affect the C++ ABI: rebuild applications and extensions against the
+new headers and library. Applications that use Boost independently must locate and
+link their own Boost targets.
+
+The same rule applies to the other implementation dependencies. A header whose
+declarations name an Arrow, OpenTIMS, Xerces-C or SQLite type is internal and is not
+installed: FORMAT/ParquetFile.h and FORMAT/ZipRandomAccessFile.h (Arrow builders,
+tables and files) and FORMAT/RationalScan2ImConverter.h (an OpenTIMS converter subclass)
+joined that group, as did ML/CLUSTERING/HashGrid.h, whose Boost.Unordered containers are
+what make QT clustering produce the same result on every platform.
+The installed readers and writers built on them -- XICParquetFile, QPXFile,
+BrukerTimsFile and the rest -- take and return OpenMS types and need none of those
+packages. A build that configures OpenMS fails outright if a public header includes
+anything but OpenMS headers, the C++ standard library, operating-system headers and the
+headers of the public dependencies (OpenMP, and Qt in the GUI layer), so a dependency
+added later is kept out of the installed headers too.
 
 */

@@ -1,6 +1,7 @@
 // Copyright (c) 2002-present, OpenMS Inc.
 // SPDX-License-Identifier: BSD-3-Clause
 
+#include <boost/math/distributions/binomial.hpp>
 #include <OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>

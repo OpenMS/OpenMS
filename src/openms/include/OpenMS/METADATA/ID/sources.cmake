@@ -22,6 +22,7 @@ ParentGroup.h
 ObservationMatchGroup.h
 ScoreType.h
 ScoredProcessingResult.h
+IDDataContainer.h
 )
 
 ### add path to the filenames
