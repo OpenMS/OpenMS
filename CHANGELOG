@@ -93,15 +93,6 @@ General:
     the registry check (#10228).
   - BREAKING (installed headers): Move tool-only helpers without pyOpenMS bindings
     into the CometAdapter, DecoyDatabase, INIUpdater, NucleicAcidSearchEngine,
-    OpenSwathExport, OpenSwathInfer, OpenSwathPeakMapExtractor, OpenSwathPercolatorScoring,
-    OpenSwathWorkflow, ParquetDiff, QualityControl and UniPEFF folders. Their
-    29 headers are no longer installed and 28 implementations no longer live in
-    libOpenMS or libOpenMS_CLI. Class and round-trip tests travel with the tools;
-    reusable inference and XIPM reader tests also remain available in library-only builds
-    (#10239).
-    the registry check (#10216, #10228).
-  - BREAKING (installed headers): Move tool-only helpers without pyOpenMS bindings
-    into the CometAdapter, DecoyDatabase, INIUpdater, NucleicAcidSearchEngine,
     OpenSwathInfer, QualityControl and UniPEFF folders. Their 21 headers are no longer
     installed and 20 implementations no longer live in libOpenMS or libOpenMS_CLI.
     Class tests travel with the tools; reusable inference tests also remain available
@@ -110,7 +101,7 @@ General:
     that dependency itself: the Arrow/Parquet-based OpenSWATH exporters, OSW Parquet
     reader/writer, Percolator scoring, XIPMParquetConsumer and ParquetTableComparator.
     OpenSwathExport, OpenSwathPeakMapExtractor, OpenSwathPercolatorScoring,
-    OpenSwathWorkflow and ParquetDiff link nothing but OpenMS.
+    OpenSwathWorkflow and ParquetDiff link nothing but OpenMS (#10247).
   - BREAKING: KNIME plugin support was removed. The ENABLE_PREPARE_KNIME_PACKAGE option
     and the prepare_knime_package targets are gone, as are the KNIME user tutorial, the
     LaTeX tutorial handout and the .knwf workflow collection under doc/tutorials (still
@@ -122,7 +113,7 @@ General:
     diagrams are pre-rendered SVGs. This shrinks the HTML documentation by more than half
     and makes Graphviz optional; the 'doc_dot' target still builds all graphs. The
     OPENMS_HASDOXYGENDOT macro in the installed OpenMS/config.h, which was always 0 and
-    no longer used, was removed.
+    no longer used, was removed (#10265).
 
 Dependencies:
   - Minimum versions: CMake 3.24, Eigen 3.4.0, Boost 1.81, Arrow/Parquet 23 and nanobind
@@ -188,7 +179,7 @@ Dependencies:
     ON by default on every supported platform; .NET 8+ is required at runtime (#9147,
     #9148, #9389, #9736, #10206).
   - WITH_WNETALIGN (default OFF) fetches wnetalign/wnet/pylmcf when enabled. WITH_ONNX
-    (default OFF) requires an external ONNX Runtime installation (#8992, #9453).
+    (default OFF) requires an external ONNX Runtime installation (#8992, #9453, #10255).
   - HiGHS joins COIN-OR and GLPK as LP backends. LP_SOLVER=AUTO tries COIN-OR, GLPK,
     then downloads HiGHS (#9246).
   - ENABLE_TDL now defaults to OFF; set it to ON for CWL support (#9067).
@@ -680,7 +671,7 @@ TOPP tools:
       FAIMS CVs are preserved through ID mapping, multiplet completion and linking. A protein's
       reference-channel ratio requires a comparison passing min_ratio_count in that fraction group (#10047).
     - FeatureLinkerWNet: Wasserstein network-flow grouping across label-free maps; optional,
-      built with WITH_WNETALIGN=ON (#8992).
+      built with WITH_WNETALIGN=ON (#8992, #10255).
     - UniPEFF: UniProtKB XML-to-PEFF conversion with sequence, modification and variant
       annotations; optional annotation identifiers and external unimod.obo (#9649).
     - OpenSwathInfer: peptidoform, peptide, protein and gene inference (#9280).
@@ -801,7 +792,7 @@ OpenMS Library:
       (#8524, #8737, #8743, #8813, #8871, #9190, #9271, #9280, #9377, #9842, #9932).
     - PipEchoAlgorithm exposes the new match-between-runs method (#9647).
     - FeatureGroupingAlgorithmWNet/WNetMatcher expose the Wasserstein grouping methods;
-      optional, built with WITH_WNETALIGN=ON (#8992).
+      optional, built with WITH_WNETALIGN=ON (#8992, #10255).
     - Optional C++ ONNX predictors for AlphaPeptDeep RT, MS2 and CCS models, with verified
       model downloads and AASequence-based modification support. Unsupported modifications
       are rejected; Python bindings are not yet available (#9453, #9765).
@@ -962,7 +953,7 @@ Fixes:
       and, for a two-point trace, was always the RT of the second peak whatever the
       intensities. The intensity-weighted mean now uses mid-interval (trapezoidal) weights
       over all peaks, which changes RT positions on the 'epd:enabled=false' path of
-      FeatureFinderMetabo and MassTraceExtractor (#2777).
+      FeatureFinderMetabo and MassTraceExtractor (#2777, #10225).
   Data integrity and I/O:
     - Sorting/filtering/set_peaks keeps peak annotations and binary arrays aligned in
       spectra, chromatograms and mobilograms. select() checks bounds before mutation;
@@ -1012,7 +1003,7 @@ Fixes:
       controlled vocabulary "MS", although the document declares only "PSI-MS". The writer names
       every other cvParam PSI-MS; this one now does too, so files with an unrecognized
       modification validate against strict readers that check cvRef against the declared
-      vocabularies.
+      vocabularies (#10245).
     - NuXLDeisotoper (a copy of Deisotoper::deisotopeAndSingleCharge) applies the two precursor mass
       fixes already made to Deisotoper: a precursor with unknown charge (0) no longer enables the
       mass constraint with a neutral mass of 0, which rejected every fragment cluster, and neutral
@@ -1024,13 +1015,12 @@ Fixes:
       validation; the Measure definitions are now written once (#10213).
     - Chromatograms built from MS1 spectra (FileConverter -convert_to_chromatograms, e.g. on GC-MS/SIM
       data) had no native ID, so the mzML output contained many chromatograms with id="" and failed
-      schema validation. They are now named "XIC mz=<m/z>".
+      schema validation. They are now named "XIC mz=<m/z>" (#10214).
     - MSExperiment::sortSpectra() keeps spectra with equal retention time in their input order.
       std::sort gave no guarantee for them, so ion mobility frames, FAIMS splits and Bruker TIMS
       data were reordered depending on the standard library, which silently corrupted mass traces
       built over such a map. The sort is also faster now, because it moves an index instead of a
-      whole spectrum (#10054).
-      schema validation. They are now named "XIC mz=<m/z>" (#10214).
+      whole spectrum (#10054, #10220).
     - FLASHDeconv skips spectra with a non-positive mzml_mass_charge value instead of crashing on them,
       and logs a warning. TOPPASEdge falls back to extension-based file type detection when
       content-based detection returns UNKNOWN, and no longer mishandles an edge whose referenced
@@ -1077,7 +1067,7 @@ Documentation:
   - Corrected misleading Doxygen contracts in the sqMass/SQLite stack: countTableRows
     exception types, the SpectrumAccessSqMass usage example and getSpectraByRT /
     getMultipleSpectra semantics, SqMassFile::store replacement behaviour and the
-    OpenSwathScoring fetchSpectrumSwath spectrum counts (#10148).
+    OpenSwathScoring fetchSpectrumSwath spectrum counts (#10148, #10244).
   - Expanded experimental-design terminology and LFQ/fractionated/TMT/SILAC examples,
     targeted quantitation, FAIMS, RT units, file conversions, USI and MetaProSIP CSV docs
     (#4400, #8478, #8588, #8597, #8615, #9173, #9909).
@@ -1153,7 +1143,10 @@ Build System:
     images publish a combined amd64/arm64 manifest (#9196, #9726, #9728, #9729, #9750,
     #9798, #9890, #9891, #9905, #9951, #9954, #10071). The nightly Bioconda deploy
     workflow called bioconda-utils build with --pkg-dir, an option that does not exist
-    (--package-dir is correct), failing every nightly run since 2026-09-08 (#10167).
+    (--package-dir is correct), failing every nightly run since 2026-09-08 (#10167). A later
+    upstream bioconda-utils release renamed --mulled-test to --mulled-build-and-test without
+    keeping the old name, breaking the same workflow again; it now uses the current flag
+    (#10227).
   - Fixed compiler-cache saving and fork-PR workflow failures; documentation lint rules are
     pinned. Added effective Parquet schema/value checks and non-finite numeric comparisons;
     removed parallel-test output collisions and source-timestamp assumptions
@@ -1216,7 +1209,7 @@ Build System:
     used to take the kernels for the CPU of the build machine, and the binary cache passed that
     build on to later builds and to the packages. The 2026-09-24 nightlies shipped an OpenBLAS
     that needs AVX2 on x86_64 and SVE on arm64, which not every supported CPU has, and clang
-    debug builds failed on x86_64 machines with AVX-512.
+    debug builds failed on x86_64 machines with AVX-512 (#10264).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----
