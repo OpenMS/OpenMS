@@ -121,6 +121,9 @@ Dependencies:
     versions 24+ are accepted. Compiler minimums are checked before vcpkg runs
     (#8366, #8370, #8422, #8679, #8699, #8991, #9042, #9095, #9196, #9221, #10112,
     #10133, #10221).
+  - C++23 is required (#9037). The minimum compilers are GCC 13, Clang 17, AppleClang 16
+    (Xcode 16) and Visual Studio 2022 17.14; configuring with an older one stops with a
+    message.
   - Qt6 is required only with WITH_GUI=ON. Core/non-GUI code now uses standard C++ and
     platform APIs, libcurl for HTTP, boost-process for subprocesses and nlohmann/json.
     ZIP support uses libzip instead of minizip-ng. ExecutePipeline, INIUpdater and
@@ -184,7 +187,7 @@ Dependencies:
     then downloads HiGHS (#9246).
   - ENABLE_TDL now defaults to OFF; set it to ON for CWL support (#9067).
   - macOS Intel builds discontinued; the minimum macOS version is 15 (Sequoia), for the installer
-    and for the pyOpenMS wheels (#8486, #8494, #8527).
+    and for the pyOpenMS wheels (#8450, #9037, #10202).
 
 PyOpenMS:
   - Fixed keyword defaults that did not match the wrapped C++ signatures. Four bindings

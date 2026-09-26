@@ -84,7 +84,7 @@ MSExperiment
 PeptideIdentification
 *********************
 
-**pyopenms.PeptideIdentificationList.to_df(** *decode_ontology=True*, *default_missing_values={bool: False, int: -9999, float: np.nan, str: ''}*, *export_unidentified=True*, *columns=None* **)**
+**pyopenms.PeptideIdentificationList.to_df(** *decode_ontology=True*, *default_missing_values=None*, *export_unidentified=True*, *columns=None* **)**
         Generates a pandas DataFrame with the peptide identifications in the list
 
         **Parameters:**
@@ -93,9 +93,9 @@ PeptideIdentification
         
         if meta values contain CV identifer (e.g., from PSI-MS) they will be automatically decoded into the human readable CV term name.
 
-        **default_missing_values :** default {bool: False, int: -9999, float: np.nan, str: ''}
+        **default_missing_values :** default None
         
-        default value for missing values for each data type
+        default value for missing values for each data type; None uses {bool: False, int: -9999, float: np.nan, str: ''}
 
         **export_unidentified :** default True
         
