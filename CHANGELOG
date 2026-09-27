@@ -20,8 +20,9 @@ General:
   - Updated the bundled PSI-MS controlled vocabulary from 4.1.155 to 4.2.2, including CV
     term-name changes in mzML/TraML output and vocabulary versions in mzTab-M/mzQC output
     (#8691)
-  - New native readers for Bruker timsTOF .d, Thermo .raw, imzML and Bruker MALDI imaging;
-    see OpenMS Library for capabilities and runtime requirements.
+  - New native readers for Bruker timsTOF .d and Thermo .raw, which FileConverter and many other
+    tools use, and for imzML (library and pyOpenMS) and Bruker MALDI imaging (library only); no
+    TOPP tool reads imaging data yet. See OpenMS Library for capabilities and runtime requirements.
   - New .idparquet, .featureparquet and .consensusparquet directory formats for native
     identification, feature and consensus-map storage, supported across TOPP tools
     (#9225, #9232, #9236, #9237, #9241, #9242, #9396, #9405).
@@ -40,8 +41,9 @@ General:
     OpenNuXL is the first consumer (see OpenNuXL below). BREAKING: an idXML, featureXML or consensusXML
     file naming such a modification is a hard load failure ("Cannot convert string to peptide modification")
     in an OpenMS build without this support (#10003, #10026, #10028, #10036, #10037, #10038, #10039, #10040)
-  - Transparent .zip input for XML formats and Bruker .d directories; XML output supports
-    .gz/.bz2 compression selected by filename extension (#7560, #9139, #9259).
+  - Transparent .zip input for the XML formats (except mzIdentML) and Bruker .d directories;
+    mzML, mzXML, mzData, featureXML, consensusXML, traML and mzIdentML output is compressed
+    with gzip or bzip2 when the file name ends in .gz or .bz2 (#7560, #9139, #9259).
   - BREAKING: OpenMS::String/StringView replaced by std::string/std::string_view;
     StringList is std::vector<std::string>. Use OpenMS::StringUtils free functions for
     conversion, splitting, trimming and substitution. String, StringConversions and
@@ -802,7 +804,8 @@ OpenMS Library:
       specific container, and FileNameUtils::compressionType() reports which container a filename
       carries (hasCompressionSuffix() answers the same question as a bool). The pair takes the
       container because support is not uniform: the XML-based readers decompress .gz, .bz2 and .zip
-      transparently through CompressedInputSource, while Bruker TDF accepts only a '.d.zip' archive
+      transparently through CompressedInputSource (except the mzIdentML reader, which parses the
+      file itself and cannot read a compressed one), while Bruker TDF accepts only a '.d.zip' archive
       that BrukerTimsFile unpacks. A compression suffix alone therefore no longer implies compatibility,
       so '.mgf.gz' is rejected where '.mzML.gz' is accepted, and both the CLI and TOPPAS apply the
       same rule. Compressed output is unaffected: XMLFile still selects gzip/bzip2 by filename (#490)
@@ -1133,6 +1136,10 @@ Fixes:
       identification (also of a single one) and uses one score orientation throughout (#10148).
 
 Documentation:
+  - New "File formats" page in the OpenMS documentation: which formats tools read and write
+    compressed, the .idparquet, .featureparquet and .consensusparquet bundles (their files, the
+    tools that use them, how to convert), and that imzML is read by the library and pyOpenMS
+    only. The TextExporter page lists the Parquet bundles it reads.
   - Corrected misleading Doxygen contracts in the sqMass/SQLite stack: countTableRows
     exception types, the SpectrumAccessSqMass usage example and getSpectraByRT /
     getMultipleSpectra semantics, SqMassFile::store replacement behaviour and the
