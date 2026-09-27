@@ -973,8 +973,14 @@ namespace OpenMS
 #ifdef WITH_THERMO_RAW
       case FileTypes::RAW:
       {
+        // Apply Thermo's peak picking, as FileConverter and ThermoRawFileParser do by default:
+        // the tools that read .raw expect centroided spectra. ThermoRawFile itself keeps the
+        // acquired profile scans unless Options::centroid is set.
         ThermoRawFile f;
         f.setLogType(log);
+        ThermoRawFile::Options raw_options = f.getOptions();
+        raw_options.centroid = true;
+        f.setOptions(raw_options);
         f.load(filename, exp);
 
         // ThermoRawFile loads everything; apply PeakFileOptions filters post-load.

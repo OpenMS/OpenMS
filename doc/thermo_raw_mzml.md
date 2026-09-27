@@ -23,9 +23,12 @@ OpenMS::MzMLFile().store("output.mzML", experiment);
 The same options are exposed in pyOpenMS as `ThermoRawFileOptions` and through
 `ThermoRawFile.getOptions()` / `setOptions()`. The default preserves the acquired
 profile/centroid representation; compare with TRFP's no-peak-picking mode or
-set `centroid = true` on both conversion paths. Optional charge/noise/detector
-exports are disabled by default. Trailer preservation, methods and SHA-1 are on;
-each can be disabled separately to control output size or hashing cost.
+set `centroid = true` on both conversion paths. `FileHandler::loadExperiment()`,
+through which most TOPP tools read `.raw` input, sets `centroid = true`, as
+FileConverter does unless `-RawToMzML:no_peak_picking` is given. Optional
+charge/noise/detector exports are disabled by default. Trailer preservation,
+methods and SHA-1 are on; each can be disabled separately to control output size
+or hashing cost.
 
 | Metadata | OpenMS representation |
 | --- | --- |
