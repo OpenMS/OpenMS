@@ -136,3 +136,41 @@ def test_satellite_ions_theoretical_mz():
     assert p.Residue.ResidueType.DIon is not None
     assert p.Residue.ResidueType.VIon is not None
     assert p.Residue.ResidueType.WIon is not None
+
+
+@pytest.mark.parametrize("sequence,annotation,fragment,ion_type,expected_mz", [
+    ("ALA", "d2", "AL", p.Residue.ResidueType.DIon, 115.086589785771),
+    ("ALA", "v2", "LA", p.Residue.ResidueType.VIon, 145.060769721971),
+    # MS-Product 6.9.0 independently gives RALAR da3 = 271.1877 and AAAACAK wa3 = 272.1605.
+    ("RALAR", "d3", "RAL", p.Residue.ResidueType.DIon, 271.187701168571),
+    ("AAAACAK", "w3", "CAK", p.Residue.ResidueType.WIon, 272.160484136671),
+])
+@pytest.mark.parametrize("charge", [1, 2, 3])
+def test_satellite_absolute_masses(sequence, annotation, fragment, ion_type, expected_mz, charge):
+    expected = (expected_mz + (charge - 1) * 1.007276466771) / charge
+    ann = p.MzPAF.parse(annotation + (f"^{charge}" if charge > 1 else ""))
+    assert p.MzPAF.calculateTheoreticalMZ(ann, p.AASequence.fromString(sequence)) == pytest.approx(expected, abs=1e-6)
+    seq = p.AASequence.fromString(fragment)
+    assert seq.getMZ(charge, ion_type) == pytest.approx(expected, abs=1e-6)
+    assert seq.getFormula(ion_type, charge).getMonoWeight() == pytest.approx(expected * charge, abs=1e-6)
+
+
+@pytest.mark.parametrize("ion_type", [p.Residue.ResidueType.DIon, p.Residue.ResidueType.VIon, p.Residue.ResidueType.WIon])
+@pytest.mark.parametrize("residue", ["G", "M(Oxidation)"])
+def test_unsupported_satellite_mass_apis(ion_type, residue):
+    sequence = "A" + residue if ion_type == p.Residue.ResidueType.DIon else residue + "A"
+    seq = p.AASequence.fromString(sequence)
+    res = p.AASequence.fromString(residue)[0]
+    for obj in (seq, res):
+        for method in (obj.getFormula, obj.getMonoWeight, obj.getAverageWeight):
+            with pytest.raises(RuntimeError, match="unsupported or modified"):
+                if obj is seq:
+                    method(ion_type, 0)
+                else:
+                    method(ion_type)
+
+
+def test_modified_satellite_cleavage_mzpaf():
+    seq = p.AASequence.fromString("AM(Oxidation)EPTIDER")
+    for annotation in ("d2", "v8", "w8"):
+        assert p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse(annotation), seq) is None

@@ -317,18 +317,21 @@ public:
     void setFormula(const EmpiricalFormula& formula);
 
     /// returns the empirical formula of the residue
+    /// @throws Exception::InvalidValue for d/v/w ions with an unsupported or modified cleavage residue.
     EmpiricalFormula getFormula(ResidueType res_type = Full) const;
 
     /// sets average weight of the residue (must be full, with N and C-terminus)
     void setAverageWeight(double weight);
 
     /// returns average weight of the residue
+    /// @throws Exception::InvalidValue for d/v/w ions with an unsupported or modified cleavage residue.
     double getAverageWeight(ResidueType res_type = Full) const;
 
     /// sets monoisotopic weight of the residue (must be full, with N and C-terminus)
     void setMonoWeight(double weight);
 
     /// returns monoisotopic weight of the residue
+    /// @throws Exception::InvalidValue for d/v/w ions with an unsupported or modified cleavage residue.
     double getMonoWeight(ResidueType res_type = Full) const;
 
     /// returns a pointer to the modification, or a null pointer if none is set
@@ -447,14 +450,16 @@ public:
     /// true if the residue can produce a v-ion via complete side-chain loss
     bool hasVLoss() const;
 
-    /// returns the formula lost in v-ion formation (internal_formula - C2H3NO)
+    /// returns the neutral HR loss in v-ion formation (internal_formula - C2HNO)
+    /// @see https://goldbook.iupac.org/terms/view/12607
+    /// Returns an empty formula when hasVLoss() is false.
     EmpiricalFormula getVLossFormula() const;
 
     /// true if the residue has a beta-gamma satellite loss (for d/w ions)
     /// @param subtype '\0' for default, 'a' for subtype a, 'b' for subtype b
     bool hasSatelliteLoss(char subtype = '\0') const;
 
-    /// returns the formula of the satellite side-chain loss (for d/w ions)
+    /// returns the radical side-chain loss: d = a + H - loss; w = z+1 - loss
     /// @param subtype '\0' for default, 'a' for subtype a, 'b' for subtype b
     EmpiricalFormula getSatelliteLossFormula(char subtype = '\0') const;
     //@}
@@ -481,6 +486,9 @@ public:
     double getHydrophobicity(const HydrophobicityScaleMethod scale) const;
  
 protected:
+    /// Reject satellite ions whose cleavage residue has no supported loss.
+    void validateSatelliteIon_(ResidueType type) const;
+
 
     /// the name of the residue
     std::string name_ = "unknown";

@@ -10,6 +10,7 @@
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -230,8 +231,19 @@ namespace OpenMS
     mono_weight_ = formula_.getMonoWeight();
   }
 
+  void Residue::validateSatelliteIon_(ResidueType type) const
+  {
+    if (((type == DIon || type == WIon) && !hasSatelliteLoss()) ||
+        (type == VIon && !hasVLoss()))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Cannot calculate " + getResidueTypeName(type) + " for unsupported or modified residue.", getName());
+    }
+  }
+
   EmpiricalFormula Residue::getFormula(ResidueType res_type) const
   {
+    validateSatelliteIon_(res_type);
     switch (res_type)
     {
     case Full:
@@ -271,7 +283,7 @@ namespace OpenMS
       return internal_formula_ + getInternalToZp2Ion();
 
     case DIon:
-      return internal_formula_ + getInternalToAIon() - getSatelliteLossFormula();
+      return internal_formula_ + getInternalToAIon() + EmpiricalFormula("H") - getSatelliteLossFormula();
 
     case VIon:
       return internal_formula_ + getInternalToYIon() - getVLossFormula();
@@ -293,6 +305,7 @@ namespace OpenMS
 
   double Residue::getAverageWeight(ResidueType res_type) const
   {
+    validateSatelliteIon_(res_type);
 
     switch (res_type)
     {
@@ -327,7 +340,7 @@ namespace OpenMS
       return average_weight_ + (getInternalToZIon() - getInternalToFull()).getAverageWeight();
 
     case DIon:
-      return average_weight_ + (getInternalToAIon() - getInternalToFull()).getAverageWeight() - getSatelliteLossFormula().getAverageWeight();
+      return average_weight_ + (getInternalToAIon() + EmpiricalFormula("H") - getInternalToFull()).getAverageWeight() - getSatelliteLossFormula().getAverageWeight();
 
     case VIon:
       return average_weight_ + (getInternalToYIon() - getInternalToFull()).getAverageWeight() - getVLossFormula().getAverageWeight();
@@ -349,6 +362,7 @@ namespace OpenMS
 
   double Residue::getMonoWeight(ResidueType res_type) const
   {
+    validateSatelliteIon_(res_type);
     switch (res_type)
     {
     case Full:
@@ -388,7 +402,7 @@ namespace OpenMS
       return mono_weight_ - internal_to_full_monoweight_ + internal_to_zp2_monoweight_;
 
     case DIon:
-      return mono_weight_ - internal_to_full_monoweight_ + internal_to_a_monoweight_ - getSatelliteLossFormula().getMonoWeight();
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_a_monoweight_ + EmpiricalFormula("H").getMonoWeight() - getSatelliteLossFormula().getMonoWeight();
 
     case VIon:
       return mono_weight_ - internal_to_full_monoweight_ + internal_to_y_monoweight_ - getVLossFormula().getMonoWeight();
@@ -639,8 +653,10 @@ namespace OpenMS
   EmpiricalFormula Residue::getVLossFormula() const
   {
     if (!hasVLoss()) { return EmpiricalFormula(); }
-    static const EmpiricalFormula gly_backbone("C2H3NO");
-    return internal_formula_ - gly_backbone;
+    // v ions eliminate HR, including two more H atoms than the side-chain
+    // substitution relative to glycine.
+    static const EmpiricalFormula v_backbone("C2HNO");
+    return internal_formula_ - v_backbone;
   }
 
   bool Residue::hasSatelliteLoss(char subtype) const

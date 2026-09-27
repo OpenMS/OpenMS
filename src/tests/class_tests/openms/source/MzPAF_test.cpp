@@ -728,10 +728,30 @@ START_SECTION(calculateTheoreticalMZ)
   auto mz_v4 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("v4"), seq);
   TEST_EQUAL(mz_v4.has_value(), true)
 
+  // Absolute d/v masses, independently derived from neutral losses C3H6/C4H10.
+  // Fernandez et al., DOI: 10.1002/ejoc.202101549 (d); Liu et al.,
+  // DOI: 10.1016/j.ijms.2011.04.008, Table 4 (v).
+  const AASequence ala = AASequence::fromString("ALA");
+  TOLERANCE_ABSOLUTE(0.000001)
+  for (Int charge : {1, 2, 3})
+  {
+    auto d = MzPAF::parse("d2");
+    d.charge = charge;
+    auto v = MzPAF::parse("v2");
+    v.charge = charge;
+    const auto mz_d = MzPAF::calculateTheoreticalMZ(d, ala);
+    const auto mz_v = MzPAF::calculateTheoreticalMZ(v, ala);
+    TEST_TRUE(mz_d.has_value())
+    TEST_TRUE(mz_v.has_value())
+    TEST_REAL_SIMILAR(mz_d.value(), (115.086589785771 + (charge - 1) * Constants::PROTON_MASS_U) / charge)
+    TEST_REAL_SIMILAR(mz_v.value(), (145.060769721971 + (charge - 1) * Constants::PROTON_MASS_U) / charge)
+  }
+
   // Modified residue at satellite cleavage site should return nullopt
-  AASequence mod_seq = AASequence::fromString("M(Oxidation)EPTIDER");
-  TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse("d1"), mod_seq).has_value())
+  AASequence mod_seq = AASequence::fromString("AM(Oxidation)EPTIDER");
+  TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse("d2"), mod_seq).has_value())
   TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse("v8"), mod_seq).has_value())
+  TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse("w8"), mod_seq).has_value())
 }
 END_SECTION
 

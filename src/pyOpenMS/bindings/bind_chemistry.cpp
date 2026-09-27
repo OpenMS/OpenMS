@@ -1801,7 +1801,7 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .def("hasNeutralLoss", [](const OpenMS::Residue& self) { return self.hasNeutralLoss(); }, "True if the residue has neutral loss")
         .def("hasNTermNeutralLosses", [](const OpenMS::Residue& self) { return self.hasNTermNeutralLosses(); }, "True if N-terminal neutral losses are set")
         .def("hasVLoss", [](const OpenMS::Residue& self) { return self.hasVLoss(); }, "True if the residue can produce a v-ion via complete side-chain loss")
-        .def("getVLossFormula", [](const OpenMS::Residue& self) { return self.getVLossFormula(); }, "Returns the formula lost in v-ion formation (internal_formula - C2H3NO)")
+        .def("getVLossFormula", [](const OpenMS::Residue& self) { return self.getVLossFormula(); }, "Returns the formula lost in v-ion formation (internal_formula - C2HNO)")
         .def("hasSatelliteLoss", [](const OpenMS::Residue& self, const std::string& subtype) {
             char sub = subtype.empty() ? '\0' : subtype[0];
             return self.hasSatelliteLoss(sub);
