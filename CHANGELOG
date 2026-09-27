@@ -878,9 +878,11 @@ OpenMS Library:
       construction; SpectrumNativeIDParser (#8637, #8648, #8684, #8686).
     - MzPAF accepts and writes d/v/w satellite ions and the da/db/wa/wb subtypes,
       including validation, peak annotation conversion and pyOpenMS bindings (#10175).
-      Satellite mass calculations use d = a + H - radical side-chain loss and
-      v = y - HR. Direct residue/sequence mass and formula APIs reject unsupported
-      or modified cleavage residues instead of returning the parent-ion mass.
+      Satellite mass calculations use d = a + H - radical side-chain loss,
+      v = y - HR and w = z+1 (z-dot) - radical side-chain loss; w was computed from the
+      even-electron z ion, one H too light, until #10258. Direct residue/sequence mass
+      and formula APIs reject unsupported or modified cleavage residues instead of
+      returning the parent-ion mass.
       Theoretical spectrum generation for satellite ions remains unsupported.
     - Added IsoelectricPoint, hydrophobicity profiles, protein SequenceCoverage,
       ModifiedSincSmoother, programmatic FileInfo, CCS conversion and MSExperiment

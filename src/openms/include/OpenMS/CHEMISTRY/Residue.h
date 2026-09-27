@@ -172,7 +172,7 @@ public:
       Unannotated,    ///< no stored annotation
       DIon,           ///< MS:1001236 a ion with partial side-chain loss
       VIon,           ///< MS:1001237 y ion with complete side-chain loss
-      WIon,           ///< MS:1001238 z ion with partial side-chain loss
+      WIon,           ///< MS:1001238 z+1 (z-dot) ion with partial side-chain loss
       SizeOfResidueType
     };
     //@}
