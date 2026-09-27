@@ -527,6 +527,20 @@ class TestPeptideIdentificationListGetDF:
         assert 'Comet:xcorr' in pep_list.df_columns()
         assert 'MS:1002252' in pep_list.to_df(decode_ontology=False).columns
 
+    def test_df_columns_empty_score_type(self):
+        """Test that df_columns() names the score of an empty score type as to_df() does."""
+        hit = pyopenms.PeptideHit()
+        hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        pep = pyopenms.PeptideIdentification()
+        pep.setHits([hit])
+        pep_list = pyopenms.PeptideIdentificationList()
+        pep_list.append(pep)
+
+        cols = pep_list.df_columns()
+        assert cols == list(pep_list.to_df().columns)
+        # the columns select the score instead of dropping it
+        assert list(pep_list.to_df(columns=cols).columns) == cols
+
     def test_to_df_custom_missing_values(self, peptide_id_list_with_unidentified):
         """Test to_df() with custom default_missing_values."""
         custom_missing = {bool: False, int: 0, float: 0.0, str: 'N/A'}
@@ -1235,11 +1249,12 @@ class TestFeatureMapPeptideDataFrame:
     LARGE_ID = 18446744073709551557
 
     @classmethod
-    def _feature_map(cls, ids=None, annotated=False):
+    def _feature_map(cls, ids=None, annotated=False, score_type='q-value'):
         """Three features; the last has a PeptideIdentification without hits.
 
         annotated: the hits carry feature_id as text, as 3.5.0's
         get_assigned_peptide_identifications() added it.
+        score_type: the score type of every PeptideIdentification.
         """
         fmap = pyopenms.FeatureMap()
         prot = pyopenms.ProteinIdentification()
@@ -1254,7 +1269,7 @@ class TestFeatureMapPeptideDataFrame:
                 f.setMetaValue('spectrum_native_id', native_id)
             pep = pyopenms.PeptideIdentification()
             pep.setIdentifier('run1')
-            pep.setScoreType('q-value')
+            pep.setScoreType(score_type)
             if identified:
                 hit = pyopenms.PeptideHit()
                 hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
@@ -1315,8 +1330,11 @@ class TestFeatureMapPeptideDataFrame:
 
     def test_columns(self):
         """peptide_df_columns() lists the columns of to_peptide_df()."""
-        fmap = self._feature_map()
-        assert fmap.peptide_df_columns() == list(fmap.to_peptide_df().columns)
+        for score_type in ('q-value', ''):
+            fmap = self._feature_map(score_type=score_type)
+            cols = fmap.peptide_df_columns()
+            assert cols == list(fmap.to_peptide_df().columns)
+            assert list(fmap.to_peptide_df(columns=cols).columns) == cols
         assert list(fmap.to_peptide_df(columns=['id', 'feature_id']).columns) == ['feature_id', 'id']
 
     def test_feature_id_meta_value_gives_way(self):
