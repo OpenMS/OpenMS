@@ -135,6 +135,7 @@ install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
 ## macOS packages bundle theirs.
 set(_openms_bundled_qt_version "")
 set(_openms_qt_formulae "")
+set(_openms_qt_homebrew_prefix "")
 if(WITH_GUI AND Qt6Core_FOUND AND (WIN32 OR APPLE))
   set(_openms_bundled_qt_version "${Qt6Core_VERSION}")
   if(APPLE)
@@ -144,10 +145,11 @@ if(WITH_GUI AND Qt6Core_FOUND AND (WIN32 OR APPLE))
     foreach(_openms_qt_component IN ITEMS Core ${OpenMS_GUI_QT_COMPONENTS})
       list(APPEND _openms_qt_dirs "${Qt6${_openms_qt_component}_DIR}")
     endforeach()
-    openms_homebrew_formulae_of(_openms_qt_formulae ${_openms_qt_dirs})
+    openms_homebrew_formulae_of(_openms_qt_formulae _openms_qt_homebrew_prefix ${_openms_qt_dirs})
   endif()
 endif()
 openms_install_third_party_licenses(QT_VERSION "${_openms_bundled_qt_version}"
+                                    HOMEBREW_PREFIX "${_openms_qt_homebrew_prefix}"
                                     HOMEBREW_FORMULAE ${_openms_qt_formulae})
 
 ########################################################### SEARCHENGINES

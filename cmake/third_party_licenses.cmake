@@ -26,9 +26,11 @@
 ##   of a formula into its keg, and these are installed for the given formulae and every
 ##   formula they depend on.
 
-## Sets <out_var> to the Homebrew formulae whose kegs hold the given paths.
-function(openms_homebrew_formulae_of out_var)
+## Sets <formulae_var> to the Homebrew formulae whose kegs hold the given paths, and
+## <prefix_var> to the prefix of the Homebrew installation they belong to.
+function(openms_homebrew_formulae_of formulae_var prefix_var)
   set(_formulae)
+  set(_prefixes)
   foreach(_path IN LISTS ARGN)
     if(NOT EXISTS "${_path}")
       continue()
@@ -36,20 +38,31 @@ function(openms_homebrew_formulae_of out_var)
     ## <prefix>/opt/<formula> and the files linked into <prefix>/lib resolve to the keg,
     ## <prefix>/Cellar/<formula>/<version>.
     file(REAL_PATH "${_path}" _real)
-    if(_real MATCHES "/Cellar/([^/]+)/[^/]+(/|$)")
-      list(APPEND _formulae "${CMAKE_MATCH_1}")
+    if(_real MATCHES "^(.*)/Cellar/([^/]+)/[^/]+(/|$)")
+      list(APPEND _prefixes "${CMAKE_MATCH_1}")
+      list(APPEND _formulae "${CMAKE_MATCH_2}")
     endif()
   endforeach()
   list(REMOVE_DUPLICATES _formulae)
-  set(${out_var} "${_formulae}" PARENT_SCOPE)
+  list(REMOVE_DUPLICATES _prefixes)
+  list(LENGTH _prefixes _count)
+  if(_count GREATER 1)
+    ## A Mac can have two Homebrew installations, /opt/homebrew and /usr/local.
+    message(FATAL_ERROR "The paths ${ARGN} belong to more than one Homebrew installation: "
+                        "${_prefixes}")
+  endif()
+  set(${formulae_var} "${_formulae}" PARENT_SCOPE)
+  set(${prefix_var} "${_prefixes}" PARENT_SCOPE)
 endfunction()
 
-## openms_install_third_party_licenses([QT_VERSION <version>] [HOMEBREW_FORMULAE <formula>...])
+## openms_install_third_party_licenses([QT_VERSION <version>]
+##                                     [HOMEBREW_PREFIX <prefix> HOMEBREW_FORMULAE <formula>...])
 ##   QT_VERSION         the version of the Qt the package bundles; empty if it bundles none
+##   HOMEBREW_PREFIX    the prefix of the Homebrew installation the formulae come from
 ##   HOMEBREW_FORMULAE  the Homebrew formulae the package bundles libraries of; their
 ##                      dependencies are added
 function(openms_install_third_party_licenses)
-  cmake_parse_arguments(PARSE_ARGV 0 arg "" "QT_VERSION" "HOMEBREW_FORMULAE")
+  cmake_parse_arguments(PARSE_ARGV 0 arg "" "QT_VERSION;HOMEBREW_PREFIX" "HOMEBREW_FORMULAE")
   set(_licenses_dir "${INSTALL_SHARE_DIR}/LICENSES")
 
   if(OPENMS_USE_VCPKG AND VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
@@ -91,16 +104,17 @@ function(openms_install_third_party_licenses)
 
   if(arg_HOMEBREW_FORMULAE)
     ## The package bundles libraries of these formulae and their dependencies, so configuring
-    ## fails rather than leave their license files out. /opt/homebrew and /usr/local are
-    ## Homebrew's default prefixes, for a PATH without brew (e.g. that of an IDE).
-    find_program(OPENMS_BREW_EXECUTABLE brew PATHS /opt/homebrew/bin /usr/local/bin)
-    if(NOT OPENMS_BREW_EXECUTABLE)
-      message(FATAL_ERROR "Homebrew (brew) was not found, but it is needed to collect the license "
-                          "files of the Homebrew formulae ${arg_HOMEBREW_FORMULAE}, whose libraries "
-                          "the package bundles. Set OPENMS_BREW_EXECUTABLE to its path.")
+    ## fails rather than leave their license files out. The brew of the installation the
+    ## formulae come from is used, not the one on the PATH: a brew answers for its own
+    ## installation only, and a Mac can have two.
+    set(_brew "${arg_HOMEBREW_PREFIX}/bin/brew")
+    if(NOT arg_HOMEBREW_PREFIX OR NOT EXISTS "${_brew}")
+      message(FATAL_ERROR "The package bundles libraries of the Homebrew formulae "
+                          "${arg_HOMEBREW_FORMULAE}, but '${_brew}', which is needed to collect "
+                          "their license files, does not exist.")
     endif()
     ## --union: the dependencies of any of the formulae, not only those they all share.
-    execute_process(COMMAND "${OPENMS_BREW_EXECUTABLE}" deps --installed --union ${arg_HOMEBREW_FORMULAE}
+    execute_process(COMMAND "${_brew}" deps --installed --union ${arg_HOMEBREW_FORMULAE}
                     OUTPUT_VARIABLE _dependencies
                     RESULT_VARIABLE _result
                     ERROR_VARIABLE _error
@@ -117,7 +131,7 @@ function(openms_install_third_party_licenses)
 
     set(_without_license)
     foreach(_formula IN LISTS _formulae)
-      execute_process(COMMAND "${OPENMS_BREW_EXECUTABLE}" --prefix "${_formula}"
+      execute_process(COMMAND "${_brew}" --prefix "${_formula}"
                       OUTPUT_VARIABLE _prefix
                       RESULT_VARIABLE _result
                       ERROR_QUIET
