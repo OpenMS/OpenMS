@@ -566,9 +566,9 @@ jobs:
         run: |
           curl -L -o zstd-src.tar.gz https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz
           echo "eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3  zstd-src.tar.gz" | sha256sum -c -
-          # Extract only what the library build needs: the tarball has symlinks under
-          # tests/ that tar on Windows cannot create.
-          tar xzf zstd-src.tar.gz zstd-1.5.7/lib zstd-1.5.7/build/cmake
+          # Skip tests/: its symlinks cannot be created by tar on Windows, and the
+          # library build does not need it (it does need build/VS2010 for the DLL .rc).
+          tar xzf zstd-src.tar.gz --exclude='zstd-1.5.7/tests'
           cd zstd-1.5.7/build/cmake
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
