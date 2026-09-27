@@ -90,18 +90,19 @@ idparquet input and computes PSM-level FDRs. PercolatorAdapter runs the percolat
   - @p -peptide_level_fdrs or @p -protein_level_fdrs
   - @p -doc (other than 0)
   - @p -init_weights
+  - an option that only the executable implements: @p -out_pout_target, @p -out_pout_decoy,
+    @p -out_pout_target_proteins, @p -out_pout_decoy_proteins, @p -weights, @p -quick_validation, @p -static,
+    @p -test_each_iteration or @p -override
 
-The in-process backend does not write the files of @p -out_pin, @p -out_pout_* and @p -weights, and it does
-not implement @p -quick_validation, @p -static, @p -test_each_iteration, @p -override and @p -verbose.
-They need @p -use_subprocess @p true.
+Both backends write the pin file of @p -out_pin. @p -verbose sets the verbosity of the executable only.
 
 The in-process backend needs enough decoys to train its model, roughly 100 or more. If the training fails,
 PercolatorAdapter stops with an error.
 
 Multithreading: The in-process backend uses the number of threads set with @p -threads, at most 3 (one per
-cross-validation fold). For the percolator executable, a minimum of 3 threads is used (its default) even if
-@p -threads is set to e.g. 1, for backwards compatibility reasons. You can still force the usage of less
-than 3 threads by setting the @p -force flag.
+cross-validation fold); @p -threads @p 0 gives 3. For the percolator executable, a minimum of 3 threads is used
+(its default) even if @p -threads is set to e.g. 1, for backwards compatibility reasons. You can still force the
+usage of less than 3 threads by setting the @p -force flag.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_PercolatorAdapter.cli
@@ -420,7 +421,8 @@ protected:
     registerStringOption_("use_subprocess", "<choice>", "false",
         "Run the external 'percolator' binary instead of the in-process OpenMS::Percolator library. "
         "The in-process backend covers idXML/mzid/idparquet input with PSM-level FDRs; "
-        "OSW input, protein- or peptide-level FDRs, -doc and -init_weights run the binary automatically.", false);
+        "OSW input, protein- or peptide-level FDRs, -doc, -init_weights and the options only the binary implements "
+        "(-out_pout_*, -weights, -quick_validation, -static, -test_each_iteration, -override) run the binary automatically.", false);
     setValidStrings_("use_subprocess", {"true","false"});
 
     registerInputFile_("percolator_executable", "<executable>",
@@ -431,8 +433,8 @@ protected:
                        "percolator",
         #endif
                        "The Percolator executable. Required only when it is run: with -use_subprocess true, "
-                       "OSW input, protein- or peptide-level FDRs, -doc or -init_weights. "
-                       "The in-process backend doesn't need it.",
+                       "OSW input, protein- or peptide-level FDRs, -doc, -init_weights or an option only the "
+                       "executable implements (see -use_subprocess). The in-process backend doesn't need it.",
                        !is_required, !is_advanced_option, {"is_executable"}
     );
     registerFlag_("peptide_level_fdrs", "Calculate peptide-level FDRs instead of PSM-level FDRs.");
@@ -847,16 +849,30 @@ protected:
     // in-process backend covers the idXML/mzid + PSM-level FDR path; OSW input,
     // protein-/peptide-level FDR, description-of-correct, initial weights, or an
     // explicit -use_subprocess true all fall through to the subprocess path.
+    // So do the options that only the binary implements: the in-process backend
+    // writes neither the pout files nor the final weights, and has none of these
+    // training switches, so it would otherwise ignore them without a word.
+    // (-out_pin is not among them: both backends write it.)
     // '-percolator_executable' carries the 'is_executable' tag, so merely reading
     // it resolves it on PATH and aborts when it is missing. Read it only when the
     // subprocess will actually be run, so installations without percolator can
     // still use the in-process backend (#10020).
+    const bool binary_only_option_set = !getStringOption_("out_pout_target").empty()
+                                        || !getStringOption_("out_pout_decoy").empty()
+                                        || !getStringOption_("out_pout_target_proteins").empty()
+                                        || !getStringOption_("out_pout_decoy_proteins").empty()
+                                        || !getStringOption_("weights").empty()
+                                        || getFlag_("quick_validation")
+                                        || getFlag_("static")
+                                        || getFlag_("test_each_iteration")
+                                        || getFlag_("override");
     const bool in_process_ok = getStringOption_("use_subprocess") != "true"
                                && in_osw.empty()
                                && !protein_level_fdrs
                                && !peptide_level_fdrs
                                && description_of_correct == 0
-                               && getStringOption_("init_weights").empty();
+                               && getStringOption_("init_weights").empty()
+                               && !binary_only_option_set;
 
     std::string percolator_executable;
     if (!in_process_ok)
@@ -993,6 +1009,15 @@ protected:
       // init_weights, etc.).
       if (in_process_ok)
       {
+        // -out_pin: the same pin file the subprocess path writes below, from the
+        // hits before the PIN meta values are stamped on them. Asking for it must
+        // not switch the backend, or the debug output would change the results.
+        if (!getStringOption_("out_pin").empty())
+        {
+          OPENMS_LOG_DEBUG << "Writing percolator input file." << endl;
+          PercolatorInfile::store(pin_file, all_peptide_ids, feature_set, enz_str, min_charge, max_charge);
+        }
+
         // Stamp PIN meta values on all hits — this mirrors what the subprocess
         // path does at .pin write time. After this, every hit carries the
         // full PIN feature set (CalcMass, ExpMass, mass, peplen, chargeN,
@@ -1096,7 +1121,11 @@ protected:
         pp.setValue("initial_direction", getStringOption_("default_direction"));
         pp.setValue("pep_method", "nonparametric");  // match external percolator binary's PEP algorithm
         {
-          const int in_process_threads = std::min(std::max(getIntOption_("threads"), 1), 3);
+          // Percolator trains one model per cross-validation fold, so more than 3
+          // threads do not help. -threads 0 ("all cores") gets 3, which is also what
+          // the executable uses when it is not told otherwise.
+          const int threads = getIntOption_("threads");
+          const int in_process_threads = threads <= 0 ? 3 : std::min(threads, 3);
           pp.setValue("num_threads", in_process_threads);  // mirror subprocess --num-threads
         }
         perc.setParameters(pp);

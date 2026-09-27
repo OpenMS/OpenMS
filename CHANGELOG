@@ -583,7 +583,10 @@ TOPP tools:
       - Defaults to in-process Percolator 3.08 rescoring; no executable is required for
         idXML/mzid/idparquet PSM-level FDR. OSW input, peptide/protein-level FDR, -doc and
         -init_weights run the percolator executable automatically, which is then required
-        (#9218, #10020).
+        (#9218, #10020). So do the options only the executable implements (-out_pout_*,
+        -weights, -quick_validation, -static, -test_each_iteration, -override), which the
+        in-process backend ignored; it now writes the -out_pin file itself, and uses three
+        threads for -threads 0 instead of one.
       - Both backends preserve input CalcMass and apply -score:fdr/-best_per_spectrum_only
         consistently. Fixed in-process memory leaks and Debug-build Normalizer assertions
         (#9240, #9257, #9997, #10012, #10049, #10057).
