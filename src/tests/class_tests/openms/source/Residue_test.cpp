@@ -954,11 +954,21 @@ START_SECTION((Satellite ion methods and types))
   TOLERANCE_ABSOLUTE(0.001)
   TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::DIon), leu->getMonoWeight(Residue::AIon) - EmpiricalFormula("C3H7").getMonoWeight())
   TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::VIon), leu->getMonoWeight(Residue::YIon) - EmpiricalFormula("C4H8").getMonoWeight())
-  TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::WIon), leu->getMonoWeight(Residue::ZIon) - EmpiricalFormula("C3H7").getMonoWeight())
+  TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::WIon), leu->getMonoWeight(Residue::Zp1Ion) - EmpiricalFormula("C3H7").getMonoWeight())
 
   TEST_EQUAL(leu->getFormula(Residue::DIon), leu->getFormula(Residue::AIon) - EmpiricalFormula("C3H7"))
   TEST_EQUAL(leu->getFormula(Residue::VIon), leu->getFormula(Residue::YIon) - EmpiricalFormula("C4H8"))
-  TEST_EQUAL(leu->getFormula(Residue::WIon), leu->getFormula(Residue::ZIon) - EmpiricalFormula("C3H7"))
+  TEST_EQUAL(leu->getFormula(Residue::WIon), leu->getFormula(Residue::Zp1Ion) - EmpiricalFormula("C3H7"))
+
+  // Absolute-mass regression: w-ion is a radical z+1 fragment minus the satellite
+  // side-chain loss, not a plain z-ion minus the loss (that would be missing one H).
+  // Cys satellite loss is HS; the radical z-ion (Zp1Ion) already carries the extra H
+  // relative to the even-electron z-ion (ZIon), so w = Zp1Ion - HS, not ZIon - HS.
+  const Residue* cys = rdb->getResidue("Cys");
+  TEST_EQUAL(cys->hasSatelliteLoss(), true)
+  TEST_EQUAL(cys->getSatelliteLossFormula(), EmpiricalFormula("HS"))
+  TEST_EQUAL(cys->getFormula(Residue::WIon), cys->getFormula(Residue::Zp1Ion) - EmpiricalFormula("HS"))
+  TEST_NOT_EQUAL(cys->getFormula(Residue::WIon), cys->getFormula(Residue::ZIon) - EmpiricalFormula("HS"))
 }
 END_SECTION
 

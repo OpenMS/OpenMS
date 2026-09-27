@@ -352,6 +352,15 @@ START_SECTION((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::
   TEST_EQUAL(seq_c_term.getFormula(Residue::Zp1Ion, 0), seq_c_term.getFormula(Residue::ZIon, 0) + EmpiricalFormula("H"))
   TEST_EQUAL(seq_c_term.getFormula(Residue::Zp1Ion, 0) - seq.getFormula(Residue::Zp1Ion, 0),
              seq_c_term.getFormula(Residue::ZIon, 0) - seq.getFormula(Residue::ZIon, 0))
+
+  // Absolute-mass regression: the w ion is formed by satellite side-chain loss from the
+  // radical z+1 (z-dot) ion, not from the even-electron z ion, which is one H short.
+  // AAAACAK / w3 (suffix "CAK", satellite loss HS from Cys) from Kempkes et al. 2018
+  // (DOI: 10.1002/jms.4298), where w3 is observed at nominal m/z 272.
+  AASequence w3_suffix = AASequence::fromString("AAAACAK").getSuffix(3);
+  TEST_EQUAL(w3_suffix.toString(), "CAK")
+  TEST_EQUAL(w3_suffix.getFormula(Residue::WIon, 0), EmpiricalFormula("C12H21N3O4"))
+  TEST_NOT_EQUAL(w3_suffix.getFormula(Residue::WIon, 0), EmpiricalFormula("C12H20N3O4"))
 END_SECTION
 
 START_SECTION((double getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
@@ -411,6 +420,13 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
   TEST_REAL_SIMILAR(amidated.getMonoWeight(Residue::Zp2Ion) - AASequence::fromString("DFPIANGER").getMonoWeight(Residue::Zp2Ion), c_term_shift)
   TEST_REAL_SIMILAR(amidated.getMonoWeight(Residue::Zp1Ion), amidated.getMonoWeight(Residue::ZIon) + EmpiricalFormula("H").getMonoWeight())
 
+  // Absolute-mass regression for the w ion: AAAACAK / w3 (suffix "CAK") from
+  // Kempkes et al. 2018 (DOI: 10.1002/jms.4298); the published w3 peak is at
+  // nominal m/z 272, i.e. one H heavier than a (wrongly) z-ion-based calculation.
+  AASequence w3_suffix = AASequence::fromString("AAAACAK").getSuffix(3);
+  TEST_REAL_SIMILAR(w3_suffix.getMonoWeight(Residue::WIon, 1),
+                    EmpiricalFormula("C12H21N3O4").getMonoWeight() + Constants::PROTON_MASS_U)
+  TEST_REAL_SIMILAR(w3_suffix.getMonoWeight(Residue::WIon, 0), w3_suffix.getFormula(Residue::WIon, 0).getMonoWeight())
 
   TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(), double(1017.48796))
 

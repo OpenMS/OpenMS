@@ -483,7 +483,7 @@ namespace OpenMS
         }
         case Residue::WIon:
         {
-          return ef + Residue::getInternalToZIon() - peptide_.front()->getSatelliteLossFormula();
+          return ef + Residue::getInternalToZp1Ion() - peptide_.front()->getSatelliteLossFormula();
         }
         default:
           OPENMS_LOG_ERROR << "AASequence::getFormula: unknown ResidueType\n";
@@ -627,7 +627,7 @@ namespace OpenMS
         }
         case Residue::WIon:
         {
-          return mono_weight + Residue::getInternalToZIon().getMonoWeight() - peptide_.front()->getSatelliteLossFormula().getMonoWeight();
+          return mono_weight + Residue::getInternalToZp1Ion().getMonoWeight() - peptide_.front()->getSatelliteLossFormula().getMonoWeight();
         }
         default:
           OPENMS_LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType\n";

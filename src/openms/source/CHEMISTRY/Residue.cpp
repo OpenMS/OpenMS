@@ -277,7 +277,7 @@ namespace OpenMS
       return internal_formula_ + getInternalToYIon() - getVLossFormula();
 
     case WIon:
-      return internal_formula_ + getInternalToZIon() - getSatelliteLossFormula();
+      return internal_formula_ + getInternalToZp1Ion() - getSatelliteLossFormula();
 
     default:
       cerr << "Residue::getFormula: unknown ResidueType" << endl;
@@ -333,7 +333,7 @@ namespace OpenMS
       return average_weight_ + (getInternalToYIon() - getInternalToFull()).getAverageWeight() - getVLossFormula().getAverageWeight();
 
     case WIon:
-      return average_weight_ + (getInternalToZIon() - getInternalToFull()).getAverageWeight() - getSatelliteLossFormula().getAverageWeight();
+      return average_weight_ + (getInternalToZp1Ion() - getInternalToFull()).getAverageWeight() - getSatelliteLossFormula().getAverageWeight();
 
     default:
       cerr << "Residue::getAverageWeight: unknown ResidueType" << endl;
@@ -394,7 +394,7 @@ namespace OpenMS
       return mono_weight_ - internal_to_full_monoweight_ + internal_to_y_monoweight_ - getVLossFormula().getMonoWeight();
 
     case WIon:
-      return mono_weight_ - internal_to_full_monoweight_ + internal_to_z_monoweight_ - getSatelliteLossFormula().getMonoWeight();
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_zp1_monoweight_ - getSatelliteLossFormula().getMonoWeight();
 
     default:
       cerr << "Residue::getMonoWeight: unknown ResidueType" << endl;

@@ -1149,7 +1149,7 @@ namespace OpenMS
         char subtype = ann.satellite_subtype.value_or('\0');
         const Residue& res = sequence[sequence.size() - pos];
         if (!res.hasSatelliteLoss(subtype)) { return std::nullopt; }
-        mass = sequence.getSuffix(pos).getMonoWeight(Residue::ZIon) - res.getSatelliteLossFormula(subtype).getMonoWeight();
+        mass = sequence.getSuffix(pos).getMonoWeight(Residue::Zp1Ion) - res.getSatelliteLossFormula(subtype).getMonoWeight();
         break;
       }
       default:

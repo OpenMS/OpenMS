@@ -13,6 +13,7 @@
 
 #include <OpenMS/CHEMISTRY/MzPAF.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
 #include <sstream>
@@ -713,6 +714,15 @@ START_SECTION(calculateTheoreticalMZ)
   TEST_EQUAL(mz_wa4.has_value(), true)
   TEST_EQUAL(mz_wb4.has_value(), true)
   TEST_REAL_SIMILAR(mz_wa4.value() - mz_wb4.value(), EmpiricalFormula("CH2").getMonoWeight())
+
+  // Absolute-mass regression: w3 on AAAACAK (suffix CAK, satellite loss HS from Cys).
+  // The w ion is formed from the radical z+1 fragment, not the even-electron z ion,
+  // which would be one H (1.007825 Da) too light. Kempkes et al. 2018
+  // (DOI: 10.1002/jms.4298) report w3 of this peptide at nominal m/z 272.
+  AASequence aaaacak = AASequence::fromString("AAAACAK");
+  auto mz_w3 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("w3"), aaaacak);
+  TEST_EQUAL(mz_w3.has_value(), true)
+  TEST_REAL_SIMILAR(mz_w3.value(), EmpiricalFormula("C12H21N3O4").getMonoWeight() + Constants::PROTON_MASS_U)
 
   // v4 on PEPTIDER (suffix 4 is IDER, complete side-chain loss of Ile)
   auto mz_v4 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("v4"), seq);
