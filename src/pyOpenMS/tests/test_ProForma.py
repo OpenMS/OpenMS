@@ -432,7 +432,7 @@ def test_write_mode_enum():
     """Test WriteMode enum values accessible via ProForma class."""
     import pyopenms as p
 
-    # Enums are nested under ProForma class (C++ enum class with wrap-attach)
+    # Enums are nested under ProForma class (C++ enum class bound in the ProForma scope)
     assert hasattr(p.ProForma, 'WriteMode')
     assert hasattr(p.ProForma.WriteMode, 'LOSSLESS')
     assert hasattr(p.ProForma.WriteMode, 'CANONICAL')
@@ -445,7 +445,7 @@ def test_conversion_policy_enum():
     """Test ConversionPolicy enum values accessible via ProForma class."""
     import pyopenms as p
 
-    # Enums are nested under ProForma class (C++ enum class with wrap-attach)
+    # Enums are nested under ProForma class (C++ enum class bound in the ProForma scope)
     assert hasattr(p.ProForma, 'ConversionPolicy')
     assert hasattr(p.ProForma.ConversionPolicy, 'FAIL_ON_LOSS')
     assert hasattr(p.ProForma.ConversionPolicy, 'DROP_UNLOCALISED')
@@ -457,10 +457,10 @@ def test_conversion_policy_enum():
 
 
 def test_nested_enums_under_proforma():
-    """Test that ProForma enums are accessible via ProForma class (via wrap-attach)."""
+    """Test that ProForma enums are accessible via ProForma class."""
     import pyopenms as p
 
-    # Enums should be nested under ProForma via wrap-attach
+    # Enums should be nested under ProForma
     assert hasattr(p.ProForma, 'WriteMode')
     assert hasattr(p.ProForma, 'ConversionPolicy')
     assert hasattr(p.ProForma, 'ConversionIssueType')
