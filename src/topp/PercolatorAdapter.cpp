@@ -79,10 +79,29 @@ We only read the q-value for protein groups since Percolator has a more elaborat
 For proteins we add q-value as main score and PEP as metavalue.
 For PSMs you can choose the main score. Peptide level FDRs cannot be parsed and used yet.</p>
 
-Multithreading: The thread parameter is passed to percolator.
-Note: By default, a minimum of 3 threads is used (default of percolator) even if the number of threads
-is set to e.g. 1 for backwards compatibility reasons. You can still force the usage of less than 3 threads
-by setting the force flag.     
+<B>In-process backend and percolator executable</B>
+
+By default, PercolatorAdapter runs Percolator in-process: OpenMS contains the Percolator algorithm, so the
+percolator executable does not have to be installed. The in-process backend rescores idXML, mzIdentML and
+idparquet input and computes PSM-level FDRs. PercolatorAdapter runs the percolator executable
+(@p -percolator_executable) instead, which then has to be installed, if one of these options is set:
+  - @p -use_subprocess @p true
+  - @p -in_osw (OpenSWATH input)
+  - @p -peptide_level_fdrs or @p -protein_level_fdrs
+  - @p -doc (other than 0)
+  - @p -init_weights
+
+The in-process backend does not write the files of @p -out_pin, @p -out_pout_* and @p -weights, and it does
+not implement @p -quick_validation, @p -static, @p -test_each_iteration, @p -override and @p -verbose.
+They need @p -use_subprocess @p true.
+
+The in-process backend needs enough decoys to train its model, roughly 100 or more. If the training fails,
+PercolatorAdapter stops with an error.
+
+Multithreading: The in-process backend uses the number of threads set with @p -threads, at most 3 (one per
+cross-validation fold). For the percolator executable, a minimum of 3 threads is used (its default) even if
+@p -threads is set to e.g. 1, for backwards compatibility reasons. You can still force the usage of less
+than 3 threads by setting the @p -force flag.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_PercolatorAdapter.cli
@@ -400,8 +419,8 @@ protected:
     setValidStrings_("enzyme", ListUtils::create<std::string>(enzs));
     registerStringOption_("use_subprocess", "<choice>", "false",
         "Run the external 'percolator' binary instead of the in-process OpenMS::Percolator library. "
-        "The in-process backend covers the idXML/mzid + PSM-level FDR path; "
-        "OSW input, protein-level FDR, and peptide-level FDR still require the subprocess.", false);
+        "The in-process backend covers idXML/mzid/idparquet input with PSM-level FDRs; "
+        "OSW input, protein- or peptide-level FDRs, -doc and -init_weights run the binary automatically.", false);
     setValidStrings_("use_subprocess", {"true","false"});
 
     registerInputFile_("percolator_executable", "<executable>",
@@ -411,8 +430,9 @@ protected:
         #else
                        "percolator",
         #endif
-                       "The Percolator executable. Required only when -use_subprocess=true; "
-                       "the in-process backend doesn't need it.",
+                       "The Percolator executable. Required only when it is run: with -use_subprocess true, "
+                       "OSW input, protein- or peptide-level FDRs, -doc or -init_weights. "
+                       "The in-process backend doesn't need it.",
                        !is_required, !is_advanced_option, {"is_executable"}
     );
     registerFlag_("peptide_level_fdrs", "Calculate peptide-level FDRs instead of PSM-level FDRs.");
