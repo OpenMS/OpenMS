@@ -380,8 +380,21 @@ namespace OpenMS
     return false;
   }
 
+  void AASequence::validateSatelliteIon_(Residue::ResidueType type) const
+  {
+    if (peptide_.empty()) return;
+    if ((type == Residue::DIon && !peptide_.back()->hasSatelliteLoss()) ||
+        (type == Residue::WIon && !peptide_.front()->hasSatelliteLoss()) ||
+        (type == Residue::VIon && !peptide_.front()->hasVLoss()))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Cannot calculate " + Residue::getResidueTypeName(type) + " for unsupported or modified cleavage residue.", toString());
+    }
+  }
+
   EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const
   {
+    validateSatelliteIon_(type);
     if (!peptide_.empty())
     {
       // Initialize with the missing/additional protons
@@ -392,6 +405,7 @@ namespace OpenMS
       if (n_term_mod_ != nullptr &&
         (type == Residue::Full || type == Residue::AIon ||
          type == Residue::BIon || type == Residue::CIon ||
+         type == Residue::DIon ||
          type == Residue::NTerminal))
       {
         ef += n_term_mod_->getDiffFormula();
@@ -402,6 +416,7 @@ namespace OpenMS
         (type == Residue::Full || type == Residue::XIon ||
          type == Residue::YIon || type == Residue::ZIon ||
          type == Residue::Zp1Ion || type == Residue::Zp2Ion ||
+         type == Residue::VIon || type == Residue::WIon ||
          type == Residue::CTerminal))
       {
         ef += c_term_mod_->getDiffFormula();
@@ -471,6 +486,18 @@ namespace OpenMS
         {
           return ef + Residue::getInternalToZp2Ion();
         }
+        case Residue::DIon:
+        {
+          return ef + Residue::getInternalToAIon() + EmpiricalFormula("H") - peptide_.back()->getSatelliteLossFormula();
+        }
+        case Residue::VIon:
+        {
+          return ef + Residue::getInternalToYIon() - peptide_.front()->getVLossFormula();
+        }
+        case Residue::WIon:
+        {
+          return ef + Residue::getInternalToZp1Ion() - peptide_.front()->getSatelliteLossFormula();
+        }
         default:
           OPENMS_LOG_ERROR << "AASequence::getFormula: unknown ResidueType\n";
       }
@@ -515,6 +542,7 @@ namespace OpenMS
 
   double AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
   {
+    validateSatelliteIon_(type);
     if (!peptide_.empty())
     {
       double mono_weight(Constants::PROTON_MASS_U * charge);
@@ -523,6 +551,7 @@ namespace OpenMS
       if (n_term_mod_ != nullptr &&
           (type == Residue::Full || type == Residue::AIon ||
            type == Residue::BIon || type == Residue::CIon ||
+           type == Residue::DIon ||
            type == Residue::NTerminal))
       {
         mono_weight += n_term_mod_->getDiffMonoMass();
@@ -532,6 +561,7 @@ namespace OpenMS
           (type == Residue::Full || type == Residue::XIon ||
            type == Residue::YIon || type == Residue::ZIon ||
            type == Residue::Zp1Ion || type == Residue::Zp2Ion ||
+           type == Residue::VIon || type == Residue::WIon ||
            type == Residue::CTerminal))
       {
         mono_weight += c_term_mod_->getDiffMonoMass();
@@ -600,6 +630,18 @@ namespace OpenMS
         case Residue::Zp2Ion:
         {
           return mono_weight + Residue::getInternalToZp2Ion().getMonoWeight();
+        }
+        case Residue::DIon:
+        {
+          return mono_weight + Residue::getInternalToAIon().getMonoWeight() + EmpiricalFormula("H").getMonoWeight() - peptide_.back()->getSatelliteLossFormula().getMonoWeight();
+        }
+        case Residue::VIon:
+        {
+          return mono_weight + Residue::getInternalToYIon().getMonoWeight() - peptide_.front()->getVLossFormula().getMonoWeight();
+        }
+        case Residue::WIon:
+        {
+          return mono_weight + Residue::getInternalToZp1Ion().getMonoWeight() - peptide_.front()->getSatelliteLossFormula().getMonoWeight();
         }
         default:
           OPENMS_LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType\n";

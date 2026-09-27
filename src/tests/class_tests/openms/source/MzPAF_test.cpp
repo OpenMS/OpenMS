@@ -13,6 +13,7 @@
 
 #include <OpenMS/CHEMISTRY/MzPAF.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
 #include <sstream>
@@ -695,11 +696,62 @@ START_SECTION(calculateTheoreticalMZ)
   auto mz_y100 = MzPAF::calculateTheoreticalMZ(y100, seq);
   TEST_EQUAL(mz_y100.has_value(), false)
 
-  // Parsing satellite annotations must not imply support for their side-chain masses.
-  for (const std::string text : {"d3", "v3", "w3", "da3", "db3", "wa3", "wb3"})
+  // Satellite m/z calculation tests
+  // d3 on PEPTIDER (cleavage at Proline, which has no satellite loss) should return nullopt
+  TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse("d3"), seq).has_value())
+
+  // d5 on PEPTIDER (cleavage at Isoleucine): da5 (-CH3) and db5 (-C2H5)
+  auto mz_da5 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("da5"), seq);
+  auto mz_db5 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("db5"), seq);
+  TEST_EQUAL(mz_da5.has_value(), true)
+  TEST_EQUAL(mz_db5.has_value(), true)
+  // da5 vs db5 mass difference should be exactly C2H5 - CH3 = CH2 (14.01565 Da)
+  TEST_REAL_SIMILAR(mz_da5.value() - mz_db5.value(), EmpiricalFormula("CH2").getMonoWeight())
+
+  // wa4 and wb4 on PEPTIDER (suffix 4 is IDER, N-terminal residue is Ile)
+  auto mz_wa4 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("wa4"), seq);
+  auto mz_wb4 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("wb4"), seq);
+  TEST_EQUAL(mz_wa4.has_value(), true)
+  TEST_EQUAL(mz_wb4.has_value(), true)
+  TEST_REAL_SIMILAR(mz_wa4.value() - mz_wb4.value(), EmpiricalFormula("CH2").getMonoWeight())
+
+  // Absolute-mass regression: w3 on AAAACAK (suffix CAK, satellite loss HS from Cys).
+  // The w ion is formed from the radical z+1 fragment, not the even-electron z ion,
+  // which would be one H (1.007825 Da) too light. Kempkes et al. 2018
+  // (DOI: 10.1002/jms.4298) report w3 of this peptide at nominal m/z 272.
+  AASequence aaaacak = AASequence::fromString("AAAACAK");
+  auto mz_w3 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("w3"), aaaacak);
+  TEST_EQUAL(mz_w3.has_value(), true)
+  TEST_REAL_SIMILAR(mz_w3.value(), EmpiricalFormula("C12H21N3O4").getMonoWeight() + Constants::PROTON_MASS_U)
+
+  // v4 on PEPTIDER (suffix 4 is IDER, complete side-chain loss of Ile)
+  auto mz_v4 = MzPAF::calculateTheoreticalMZ(MzPAF::parse("v4"), seq);
+  TEST_EQUAL(mz_v4.has_value(), true)
+
+  // Absolute d/v masses, independently derived from neutral losses C3H6/C4H10.
+  // Fernandez et al., DOI: 10.1002/ejoc.202101549 (d); Liu et al.,
+  // DOI: 10.1016/j.ijms.2011.04.008, Table 4 (v).
+  const AASequence ala = AASequence::fromString("ALA");
+  TOLERANCE_ABSOLUTE(0.000001)
+  for (Int charge : {1, 2, 3})
   {
-    TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse(text), seq).has_value())
+    auto d = MzPAF::parse("d2");
+    d.charge = charge;
+    auto v = MzPAF::parse("v2");
+    v.charge = charge;
+    const auto mz_d = MzPAF::calculateTheoreticalMZ(d, ala);
+    const auto mz_v = MzPAF::calculateTheoreticalMZ(v, ala);
+    TEST_TRUE(mz_d.has_value())
+    TEST_TRUE(mz_v.has_value())
+    TEST_REAL_SIMILAR(mz_d.value(), (115.086589785771 + (charge - 1) * Constants::PROTON_MASS_U) / charge)
+    TEST_REAL_SIMILAR(mz_v.value(), (145.060769721971 + (charge - 1) * Constants::PROTON_MASS_U) / charge)
   }
+
+  // Modified residue at satellite cleavage site should return nullopt
+  AASequence mod_seq = AASequence::fromString("AM(Oxidation)EPTIDER");
+  TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse("d2"), mod_seq).has_value())
+  TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse("v8"), mod_seq).has_value())
+  TEST_FALSE(MzPAF::calculateTheoreticalMZ(MzPAF::parse("w8"), mod_seq).has_value())
 }
 END_SECTION
 
