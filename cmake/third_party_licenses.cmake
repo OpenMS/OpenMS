@@ -25,6 +25,11 @@
 ##   come from Homebrew, and the package bundles them. Homebrew installs the license files
 ##   of a formula into its keg, and these are installed for the given formulae and every
 ##   formula they depend on.
+##
+## openms_install_vendored_licenses() installs the licenses of the third-party code that
+## OpenMS carries in its own source tree and compiles into its libraries (vendored/<name>/).
+## Every installation of libOpenMS contains that code, the Python wheels too, so the
+## top-level CMakeLists.txt calls it in every configuration, not only for packages.
 
 ## Sets <formulae_var> to the Homebrew formulae whose kegs hold the given paths, and
 ## <prefix_var> to the prefix of the Homebrew installation they belong to.
@@ -167,5 +172,59 @@ function(openms_install_third_party_licenses)
       ## directory; the Qt licenses are installed above.
       message(STATUS "No license file in the Homebrew kegs of: ${_without_license}")
     endif()
+  endif()
+endfunction()
+
+## Installs the licenses of the libraries under src/openms/extern and src/openms/thirdparty,
+## and of the third-party code in other OpenMS source files (libkdtree++ in KDTree.h,
+## MSNumpress), under share/OpenMS/LICENSES/vendored. A library of src/openms/extern that the
+## build takes from vcpkg or the system instead (USE_EXTERNAL_<name>) is left out; for a vcpkg
+## port, openms_install_third_party_licenses() installs its license.
+function(openms_install_vendored_licenses)
+  set(_licenses_dir "${INSTALL_SHARE_DIR}/LICENSES/vendored")
+  set(_openms "${OPENMS_HOST_DIRECTORY}/src/openms")
+  set(_texts "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/third_party_licenses")
+
+  ## Percolator is under the Apache License 2.0, whose NOTICE file has to accompany it. The
+  ## NOTICE file also holds the license of the LIBLINEAR code that Percolator contains.
+  install(FILES "${_openms}/thirdparty/percolator/LICENSE-Apache-2.0.txt"
+                "${_openms}/thirdparty/percolator/NOTICE-percolator.txt"
+          DESTINATION "${_licenses_dir}/percolator"
+          COMPONENT share)
+  install(FILES "${_texts}/libkdtree/README.txt"
+                "${_texts}/libkdtree/Artistic-2.0.txt"
+          DESTINATION "${_licenses_dir}/libkdtree"
+          COMPONENT share)
+  install(FILES "${_texts}/MSNumpress/LICENSE.txt"
+          DESTINATION "${_licenses_dir}/MSNumpress"
+          COMPONENT share)
+
+  ## <directory in src/openms/extern>/<its license file>
+  set(_extern_licenses evergreen/LICENSE GTE/LICENSE Quadtree/LICENSE)
+  if(NOT USE_EXTERNAL_JSON)
+    list(APPEND _extern_licenses nlohmann_json/LICENSE.MIT)
+  endif()
+  if(NOT USE_EXTERNAL_SQLITECPP)
+    list(APPEND _extern_licenses SQLiteCpp/LICENSE.txt)
+  endif()
+  if(NOT USE_EXTERNAL_SIMDE)
+    list(APPEND _extern_licenses simde/COPYING)
+  endif()
+  if(NOT USE_EXTERNAL_ISOSPEC)
+    list(APPEND _extern_licenses IsoSpec/LICENSE)
+  endif()
+  if(NOT USE_EXTERNAL_EOLBSPLINE)
+    list(APPEND _extern_licenses eol-bspline/LICENSE)
+  endif()
+  foreach(_license IN LISTS _extern_licenses)
+    get_filename_component(_library "${_license}" DIRECTORY)
+    install(FILES "${_openms}/extern/${_license}"
+            DESTINATION "${_licenses_dir}/${_library}"
+            COMPONENT share)
+  endforeach()
+  if(ENABLE_TDL)
+    install(DIRECTORY "${_openms}/extern/tool_description_lib/LICENSES/"
+            DESTINATION "${_licenses_dir}/tool_description_lib"
+            COMPONENT share)
   endif()
 endfunction()

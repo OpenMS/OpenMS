@@ -77,4 +77,10 @@ vcpkg_download_distfile(THERMO_LICENSE_PATH
     SHA512 6ecc1691854ebd16914b2035c20585f8d5afd5f6fcf0a4ef3564ee7d6bfe65c8d332df2e56fa926cf093602a7983ae6a5c300f7ac23e3241d9ea1dc9f3b01b03
 )
 
-vcpkg_install_copyright(FILE_LIST "${THERMO_LICENSE_PATH}" "${SOURCE_PATH}/LICENSE")
+# The Thermo license is a Word document. vcpkg_install_copyright() reads the files it
+# combines as text and cuts a binary file off at its first NUL byte, so the license gets
+# its own file next to the copyright file. OpenMS installs it from there
+# (cmake/cmake_findExternalLibs.cmake).
+file(INSTALL "${THERMO_LICENSE_PATH}" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE"
+    COMMENT "The Thermo Fisher RawFileReader assemblies are licensed under the terms in ThermoRawFileReader-License.doc.")

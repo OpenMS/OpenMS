@@ -805,6 +805,22 @@ if (WITH_THERMO_RAW)
 
   if(OpenMSThermoBridge_FOUND)
     message(STATUS "openms-thermo-bridge: using system installation")
+    # The vcpkg port (vcpkg-overlays/ports/openms-thermo-bridge) installs the Thermo Fisher
+    # RawFileReader license next to its copyright file. It covers the CommonCore assemblies
+    # installed below, so it goes where the source build below puts it.
+    if(OPENMS_USE_VCPKG AND VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
+      set(_openms_thermo_license_file
+          "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share/openms-thermo-bridge/ThermoRawFileReader-License.doc")
+      if(EXISTS "${_openms_thermo_license_file}")
+        install(FILES "${_openms_thermo_license_file}"
+                DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
+                COMPONENT share)
+      else()
+        message(WARNING
+            "openms-thermo-bridge: ${_openms_thermo_license_file} does not exist. "
+            "The install will not include the Thermo RawFileReader license.")
+      endif()
+    endif()
   else()
     # No system install found — fetch and build from source.
     message(STATUS "openms-thermo-bridge: system installation not found, fetching from git")
