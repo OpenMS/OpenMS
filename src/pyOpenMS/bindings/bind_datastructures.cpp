@@ -124,7 +124,7 @@ nb::object paramEntryValueToDisplay(const OpenMS::Param::ParamEntry& entry)
 [[noreturn]] void throwUnsupportedParamValue(const std::string& key, nb::handle value)
 {
     std::string type_name = "?";
-    try { type_name = nb::cast<std::string>(nb::str(value.type().attr("__name__"))); }
+    try { type_name = nb::cast<std::string>(value.type().attr("__name__")); }
     catch (...) { PyErr_Clear(); }  // keep the placeholder; we are already reporting an error
     throw nb::type_error(("Param value for key '" + key + "' has unsupported type '" + type_name
                           + "'; expected bool, int, float, str, bytes, None, "
