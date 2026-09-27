@@ -13,7 +13,6 @@
 #include <OpenMS/MATH/MathFunctions.h>
 
 #include <iterator>
-#include <limits>
 #include <type_traits>
 
 namespace OpenMS
@@ -231,13 +230,12 @@ namespace OpenMS
 
           // forward iterate over elements in target data until distance gets worse.
           // Equal distances (e.g. equal target values) do not stop the walk; the first (smaller) element is kept.
-          // Distances are compared in the TRAIT's own type, so equal target values always tie.
-          using DiffType = std::decay_t<decltype(TRAIT::getDiffAbsolute(*it_ref_, *it_tgt_))>;
-          DiffType diff = std::numeric_limits<DiffType>::max();
+          // Distances are compared in the TRAIT's own type (auto drops a returned reference), so equal target values always tie.
           CONT_IT best = it_tgt_;
-          do
+          auto diff = TRAIT::getDiffAbsolute(*it_ref_, *it_tgt_);
+          while (++it_tgt_ != tgt_end_)
           {
-            const DiffType d = TRAIT::getDiffAbsolute(*it_ref_, *it_tgt_);
+            const auto d = TRAIT::getDiffAbsolute(*it_ref_, *it_tgt_);
             if (d < diff) // getting better
             {
               diff = d;
@@ -247,8 +245,7 @@ namespace OpenMS
             {
               break;
             }
-            ++it_tgt_;
-          } while (it_tgt_ != tgt_end_);
+          }
           it_tgt_ = best; // closest valid entry (never tgt_end_)
 
           if (float(diff) <= max_dist) return; // ok, found match (in float precision, like the tolerance)
