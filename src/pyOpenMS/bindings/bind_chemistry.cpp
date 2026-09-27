@@ -1386,11 +1386,13 @@ the ProForma v2 peptidoform notation standard. It contains nested types that
 form the Abstract Syntax Tree (AST) representation of parsed ProForma strings.
 All methods are static. Use ProForma.parse() to parse a ProForma string.
 Usage example:
+
 .. code-block:: python
-pf = ProForma.parse("EM[UNIMOD:35]K")
-# pf now contains the parsed Peptidoform AST
-s = ProForma.toString(pf, ProForma.WriteMode.LOSSLESS)
-# s is "EM[UNIMOD:35]K"
+
+  pf = ProForma.parse("EM[UNIMOD:35]K")
+  # pf now contains the parsed Peptidoform AST
+  s = ProForma.toString(pf, ProForma.WriteMode.LOSSLESS)
+  # s is "EM[UNIMOD:35]K"
 )doc")
         .def_static("parse", [](const std::string& input) { return OpenMS::ProForma::parse(input); }, "input"_a, "Parse a ProForma string into a Peptidoform AST")
         .def_static("parseIon", [](const std::string& input) { return OpenMS::ProForma::parseIon(input); }, "input"_a, "Parse a ProForma string into a PeptidoformIon AST (with charge state)")

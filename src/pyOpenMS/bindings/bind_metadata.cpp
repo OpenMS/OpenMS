@@ -293,13 +293,15 @@ This class encapsulates the mapping between ProteinIdentification identifiers
 and their associated MS run paths. It is useful for resolving the correct
 source file for peptide identifications, especially in merged identification results.
 Example usage:
+
 .. code-block:: python
-# Create mapping from protein identifications
-mapper = oms.IdentifierMSRunMapper(protein_ids)
-# Get MS run paths for a peptide's identifier
-paths = mapper.getMSRunPaths(pep_id.getIdentifier())
-# Build a USI using the mapping
-usi = pep_id.buildUSI(mapper, "PXD000561", False)
+
+  # Create mapping from protein identifications
+  mapper = oms.IdentifierMSRunMapper(protein_ids)
+  # Get MS run paths for a peptide's identifier
+  paths = mapper.getMSRunPaths(pep_id.getIdentifier())
+  # Build a USI using the mapping
+  usi = pep_id.buildUSI(mapper, "PXD000561", False)
 )doc")
         .def(nb::init<>())
         .def(nb::init<std::vector<OpenMS::ProteinIdentification>>())

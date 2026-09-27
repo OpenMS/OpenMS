@@ -449,6 +449,12 @@ PyOpenMS:
     still exposed but cannot be used: RealMassDecomposer(weights),
     SignalToNoiseEstimatorMedianRapid.estimateNoise(), ConsensusFeature.addRatio(),
     setRatios() and getRatios(), and SplineInterpolatedPeaks.getNavigator().
+  - User guide: new pages on ProForma, USI and mzPAF, on glycans and glycopeptide fragment
+    spectra, and on threads and parallel processing; new sections on PEFF files, FAIMS
+    data, file summaries with FileInfo and the type stubs. Corrected the PEFFFile docstring
+    (load() returns a tuple) and four PEFFEntry method docstrings that carried the
+    description of their neighbour; the docstring examples of ProForma,
+    IdentifierMSRunMapper and PEFFFile now render as code blocks.
 
 TOPP tools:
   Changes:
