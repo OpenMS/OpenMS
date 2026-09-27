@@ -3121,6 +3121,7 @@ ProgressLogger
         .def(nb::init<>())
         .def("setReference", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::FeatureMap& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference for alignment (FeatureMap)")
         .def("setReference", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::ConsensusMap& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference for alignment (ConsensusMap)")
+        .def("setReference", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::PeptideIdentificationList& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference for alignment (peptide identifications)")
         .def("align", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::FeatureMap& map) {
             std::vector<OpenMS::FeatureMap> maps = {map};
             std::vector<OpenMS::TransformationDescription> trafos;
@@ -3133,6 +3134,37 @@ ProgressLogger
             self.align(maps, trafos);
             return trafos.empty() ? OpenMS::TransformationDescription() : trafos[0];
         }, "map"_a, "Aligns a ConsensusMap and returns the transformation")
+        // Several maps at once. These overloads must follow the single-map ones: an empty
+        // FeatureMap or ConsensusMap is also an empty sequence of maps.
+        .def("align", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const std::vector<OpenMS::FeatureMap>& maps, int reference_index) {
+            std::vector<OpenMS::TransformationDescription> trafos;
+            self.align(maps, trafos, reference_index);
+            return trafos;
+        }, "maps"_a, "reference_index"_a = -1,
+            "Aligns several FeatureMaps and returns one transformation per map. With reference_index >= 0, maps[reference_index] is the reference; with -1, the reference set with setReference() is used, or else the maps are aligned to a consensus of all of them")
+        .def("align", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const std::vector<OpenMS::ConsensusMap>& maps, int reference_index) {
+            std::vector<OpenMS::TransformationDescription> trafos;
+            self.align(maps, trafos, reference_index);
+            return trafos;
+        }, "maps"_a, "reference_index"_a = -1, "Aligns several ConsensusMaps and returns one transformation per map; see the FeatureMap overload")
+        .def("align", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const std::vector<OpenMS::PeptideIdentificationList>& maps, int reference_index) {
+            std::vector<OpenMS::TransformationDescription> trafos;
+            self.align(maps, trafos, reference_index);
+            return trafos;
+        }, "maps"_a, "reference_index"_a = -1, "Aligns several runs of peptide identifications and returns one transformation per run; see the FeatureMap overload")
+        // The pyOpenMS 3.5 form, which fills the list passed as 'transformations'
+        .def("align", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const std::vector<OpenMS::FeatureMap>& maps, nb::list transformations, int reference_index) {
+            std::vector<OpenMS::TransformationDescription> trafos;
+            self.align(maps, trafos, reference_index);
+            transformations.clear();
+            for (auto& trafo : trafos) transformations.append(nb::cast(std::move(trafo)));
+        }, "maps"_a, "transformations"_a, "reference_index"_a = -1)
+        .def("align", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const std::vector<OpenMS::ConsensusMap>& maps, nb::list transformations, int reference_index) {
+            std::vector<OpenMS::TransformationDescription> trafos;
+            self.align(maps, trafos, reference_index);
+            transformations.clear();
+            for (auto& trafo : trafos) transformations.append(nb::cast(std::move(trafo)));
+        }, "maps"_a, "transformations"_a, "reference_index"_a = -1)
         ;
     def_ProgressLogger<OpenMS::MapAlignmentAlgorithmIdentification>(mapalignmentalgorithmidentification_class);
 
@@ -4694,9 +4726,9 @@ ProgressLogger
         .def("__copy__", [](const OpenMS::TransitionTSVFile& self) { return OpenMS::TransitionTSVFile(self); })
         .def("__deepcopy__", [](const OpenMS::TransitionTSVFile& self, nb::dict) { return OpenMS::TransitionTSVFile(self); }, "memo"_a)
         .def("validateTargetedExperiment", [](OpenMS::TransitionTSVFile& self, const OpenMS::TargetedExperiment& targeted_exp) { return self.validateTargetedExperiment(targeted_exp); }, "targeted_exp"_a, "Validate a TargetedExperiment (check that all ids are unique)")
-        .def("convertTargetedExperimentToTSV", [](OpenMS::TransitionTSVFile& self, const char* filename, OpenMS::TargetedExperiment& targeted_exp) { self.convertTargetedExperimentToTSV(filename, targeted_exp); }, "filename"_a, "targeted_exp"_a, "Write a TargetedExperiment to a TSV file")
-        .def("convertTSVToTargetedExperiment", [](OpenMS::TransitionTSVFile& self, const char* filename, OpenMS::TargetedExperiment& targeted_exp) {
-            self.convertTSVToTargetedExperiment(filename, OpenMS::FileTypes::TSV, targeted_exp);
+        .def("convertTargetedExperimentToTSV", [](OpenMS::TransitionTSVFile& self, const std::string& filename, OpenMS::TargetedExperiment& targeted_exp) { self.convertTargetedExperimentToTSV(filename.c_str(), targeted_exp); }, "filename"_a, "targeted_exp"_a, "Write a TargetedExperiment to a TSV file")
+        .def("convertTSVToTargetedExperiment", [](OpenMS::TransitionTSVFile& self, const std::string& filename, OpenMS::TargetedExperiment& targeted_exp) {
+            self.convertTSVToTargetedExperiment(filename.c_str(), OpenMS::FileTypes::TSV, targeted_exp);
         }, "filename"_a, "targeted_exp"_a, "Read a TSV file into a TargetedExperiment")
         ;
 
@@ -4709,8 +4741,8 @@ ProgressLogger
         .def("__copy__", [](const OpenMS::TransitionPQPFile& self) { return OpenMS::TransitionPQPFile(self); })
         .def("__deepcopy__", [](const OpenMS::TransitionPQPFile& self, nb::dict) { return OpenMS::TransitionPQPFile(self); }, "memo"_a)
         .def("validateTargetedExperiment", [](OpenMS::TransitionPQPFile& self, const OpenMS::TargetedExperiment& targeted_exp) { return self.validateTargetedExperiment(targeted_exp); }, "targeted_exp"_a)
-        .def("convertPQPToTargetedExperiment", [](OpenMS::TransitionPQPFile& self, const char* filename, OpenMS::TargetedExperiment& targeted_exp, bool legacy_traml_id) { self.convertPQPToTargetedExperiment(filename, targeted_exp, legacy_traml_id); }, "filename"_a, "targeted_exp"_a, "legacy_traml_id"_a = false)
-        .def("convertTargetedExperimentToPQP", [](OpenMS::TransitionPQPFile& self, const char* filename, OpenMS::TargetedExperiment& targeted_exp) { self.convertTargetedExperimentToPQP(filename, targeted_exp); }, "filename"_a, "targeted_exp"_a)
+        .def("convertPQPToTargetedExperiment", [](OpenMS::TransitionPQPFile& self, const std::string& filename, OpenMS::TargetedExperiment& targeted_exp, bool legacy_traml_id) { self.convertPQPToTargetedExperiment(filename.c_str(), targeted_exp, legacy_traml_id); }, "filename"_a, "targeted_exp"_a, "legacy_traml_id"_a = false)
+        .def("convertTargetedExperimentToPQP", [](OpenMS::TransitionPQPFile& self, const std::string& filename, OpenMS::TargetedExperiment& targeted_exp) { self.convertTargetedExperimentToPQP(filename.c_str(), targeted_exp); }, "filename"_a, "targeted_exp"_a)
         ;
 
     // -----------------------------------------------------------------------

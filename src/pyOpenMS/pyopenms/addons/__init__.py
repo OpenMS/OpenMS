@@ -148,6 +148,10 @@ def apply_addons(namespace: Dict[str, Any]) -> None:
             for method_name, method in methods.items():
                 setattr(cls, method_name, method)
 
+    # Update the caller's list for in/out list arguments, as pyOpenMS 3.5 did
+    from .inout_lists import install as install_inout_lists
+    install_inout_lists(namespace)
+
     # Add getMapping() to all enum types for Cython API compatibility
     import enum
     def _enum_getMapping(self):
