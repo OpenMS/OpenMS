@@ -479,7 +479,7 @@ TOPP tools:
       - Tools that read Thermo .raw get the spectra centroided by Thermo's peak picking, as
         FileConverter writes them by default. For profile spectra, convert with FileConverter
         -RawToMzML:no_peak_picking first; in C++ and pyOpenMS, ThermoRawFile keeps the scans as
-        acquired unless its centroid option is set.
+        acquired unless its centroid option is set (#10303).
       - On Linux and macOS, FileConverter reads Thermo .raw in-process by default
         (-RawToMzML:reader inprocess): the packages there provide neither mono nor
         ThermoRawFileParser on the PATH, which the external reader needs. The in-process reader
