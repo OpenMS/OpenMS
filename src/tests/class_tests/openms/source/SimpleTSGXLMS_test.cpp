@@ -17,6 +17,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 #include <iostream>
+#include <cmath>
 
 
 START_TEST(SimpleTSGXLMS, "$Id$")
@@ -233,6 +234,73 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
 //  }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+END_SECTION
+
+START_SECTION([EXTRA] getLinearIonSpectrum() places suffix-ion neutral-loss peaks correctly at charge >= 2 (X-02, issue 10148))
+  // Regression test for X-02 (issue #10148): the x/y/z branch of addLinearPeaks_ passed the already
+  // charge-divided position instead of the charged mono weight to addLosses_, which subtracts the
+  // loss and divides by the charge again. Suffix loss peaks at charge >= 2 therefore ended up at
+  // (M/z - L)/z instead of (M - L)/z. Prefix (a/b/c) ions and cross-linked ions were not affected.
+  SimpleTSGXLMS tsg;
+  Param p(tsg.getParameters());
+  p.setValue("add_losses", "true");
+  p.setValue("add_isotopes", "false");
+  tsg.setParameters(p);
+
+  // 1) charge independence: every charge-2 peak must have a charge-1 counterpart at 2 * mz - proton.
+  //    Link on K (position 3); the suffix part IDESR carries H2O (D, E, S) and NH3 (R) losses.
+  AASequence xl_peptide = AASequence::fromString("PEPKIDESR");
+  std::vector< SimpleTSGXLMS::SimplePeak > spec_z1, spec_z2;
+  tsg.getLinearIonSpectrum(spec_z1, xl_peptide, 3, 1);
+  tsg.getLinearIonSpectrum(spec_z2, xl_peptide, 3, 2);
+  // per charge: a1-a3, b1-b3, a2/a3/b2/b3-H2O, y1-y5, y1-NH3, y2-y5 -H2O and -NH3 = 24 peaks
+  TEST_EQUAL(spec_z1.size(), 24)
+  TEST_EQUAL(spec_z2.size(), 48)
+  Size checked_z2 = 0;
+  for (Size i = 0; i != spec_z2.size(); ++i)
+  {
+    if (spec_z2[i].charge != 2)
+    {
+      continue;
+    }
+    ++checked_z2;
+    const double expected_z1 = 2.0 * spec_z2[i].mz - Constants::PROTON_MASS_U;
+    bool found = false;
+    for (Size j = 0; j != spec_z1.size(); ++j)
+    {
+      if (std::fabs(spec_z1[j].mz - expected_z1) <= 1e-5)
+      {
+        found = true;
+        break;
+      }
+    }
+    TEST_EQUAL(found, true)
+  }
+  TEST_EQUAL(checked_z2, 24)
+
+  // 2) concrete value: y1 = S of "KS" (link on K, so only y1 is generated) at charge 2.
+  //    M = 2 * 1.00727647 (protons) + 18.01056506 (y offset, H2O) + 87.03202916 (S internal) = 107.05714716
+  //    y1(2+) = 53.52857, y1-H2O(2+) = (107.05714716 - 18.01056506) / 2 = 44.52329
+  //    The unfixed code emitted the loss peak at (53.52857 - 18.01056506) / 2 = 17.75900 instead.
+  AASequence ks = AASequence::fromString("KS");
+  std::vector< SimpleTSGXLMS::SimplePeak > spec_ks;
+  tsg.getLinearIonSpectrum(spec_ks, ks, 0, 2);
+  TEST_EQUAL(spec_ks.size(), 4) // y1 and y1-H2O at charge 1 and 2
+  bool has_correct_loss = false;
+  bool has_wrong_loss = false;
+  for (Size i = 0; i != spec_ks.size(); ++i)
+  {
+    if (std::fabs(spec_ks[i].mz - 44.5233) <= 1e-3)
+    {
+      has_correct_loss = true;
+    }
+    if (std::fabs(spec_ks[i].mz - 17.7590) <= 1e-3)
+    {
+      has_wrong_loss = true;
+    }
+  }
+  TEST_EQUAL(has_correct_loss, true)
+  TEST_EQUAL(has_wrong_loss, false)
 END_SECTION
 
 START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequence & peptide, Size link_pos, double precursor_mass, bool frag_alpha, int mincharge, int maxcharge, Size link_pos_2 = 0))

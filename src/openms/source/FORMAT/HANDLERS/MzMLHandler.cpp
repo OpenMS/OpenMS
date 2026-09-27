@@ -100,6 +100,17 @@ namespace OpenMS::Internal
         StringUtils::substitute(result, "\t", "&#9;");
         return result;
       }
+
+      /// userParam that keeps a mass analyzer type without a PSI-MS "mass analyzer type" term next to the generic term
+      constexpr char legacy_analyzer_type_param[] = "legacy mass analyzer type";
+
+      /// PSI-MS no longer lists SWIFT and cyclotron as mass analyzer types, and ion storage (from mzData) never was one
+      bool hasLegacyAnalyzerType(const MassAnalyzer& analyzer)
+      {
+        return analyzer.getType() == MassAnalyzer::AnalyzerType::SWIFT ||
+               analyzer.getType() == MassAnalyzer::AnalyzerType::CYCLOTRON ||
+               analyzer.getType() == MassAnalyzer::AnalyzerType::IONSTORAGE;
+      }
     }
 
 
@@ -3020,7 +3031,7 @@ namespace OpenMS::Internal
       else if (parent_tag == "analyzer")
       {
         //mass analyzer type
-        if (accession == "MS:1000079") //fourier transform ion cyclotron resonance mass spectrometer
+        if (accession == "MS:1000079") //fourier transform ion cyclotron resonance
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::FOURIERTRANSFORM);
         }
@@ -3458,7 +3469,17 @@ namespace OpenMS::Internal
       }
       else if (parent_tag == "analyzer")
       {
-        instruments_[current_id_].getMassAnalyzers().back().setMetaValue(name, data_value);
+        // restore a mass analyzer type that was written with the generic term (see hasLegacyAnalyzerType)
+        MassAnalyzer& analyzer = instruments_[current_id_].getMassAnalyzers().back();
+        const StringList type_names = MassAnalyzer::getAllNamesOfAnalyzerType();
+        if (name == legacy_analyzer_type_param && std::find(type_names.begin(), type_names.end(), value) != type_names.end())
+        {
+          analyzer.setType(MassAnalyzer::toAnalyzerType(value));
+        }
+        else
+        {
+          analyzer.setMetaValue(name, data_value);
+        }
       }
       else if (parent_tag == "detector")
       {
@@ -4335,7 +4356,7 @@ namespace OpenMS::Internal
           }
           else if (ma.getType() == MassAnalyzer::AnalyzerType::FOURIERTRANSFORM)
           {
-            os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000079\" name=\"fourier transform ion cyclotron resonance mass spectrometer\" />\n";
+            os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000079\" name=\"fourier transform ion cyclotron resonance\" />\n";
           }
           else if (ma.getType() == MassAnalyzer::AnalyzerType::SECTOR)
           {
@@ -4357,14 +4378,6 @@ namespace OpenMS::Internal
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000264\" name=\"ion trap\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::AnalyzerType::SWIFT)
-          {
-            os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000284\" name=\"stored waveform inverse fourier transform\" />\n";
-          }
-          else if (ma.getType() == MassAnalyzer::AnalyzerType::CYCLOTRON)
-          {
-            os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000288\" name=\"cyclotron\" />\n";
-          }
           else if (ma.getType() == MassAnalyzer::AnalyzerType::ORBITRAP)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000484\" name=\"orbitrap\" />\n";
@@ -4385,19 +4398,23 @@ namespace OpenMS::Internal
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000291\" name=\"linear ion trap\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::AnalyzerType::ANALYZERNULL)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::ANALYZERNULL || hasLegacyAnalyzerType(ma))
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000443\" name=\"mass analyzer type\" />\n";
           }
 
           writeUserParam_(os, ma, 5, "/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/analyzer/cvParam/@accession", validator, {"mass analyzer accession"});
+          if (hasLegacyAnalyzerType(ma)) // after all cvParams, as the schema requires
+          {
+            os << "\t\t\t\t\t<userParam name=\"" << legacy_analyzer_type_param << "\" type=\"xsd:string\" value=\"" << writeXMLAttribute_(MassAnalyzer::analyzerTypeToString(ma.getType())) << "\" />\n";
+          }
           os << "\t\t\t\t</analyzer>\n";
         }
         //FORCED
         if (component_count < 3 && in.getMassAnalyzers().empty())
         {
           os << "\t\t\t\t<analyzer order=\"1234\">\n";
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000288\" name=\"cyclotron\" />\n";
+          os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000443\" name=\"mass analyzer type\" />\n";
           os << "\t\t\t\t\t<userParam name=\"warning\" type=\"xsd:string\" value=\"invented mass analyzer, to fulfill mzML schema\" />\n";
           os << "\t\t\t\t</analyzer>\n";
         }
@@ -4680,7 +4697,7 @@ namespace OpenMS::Internal
       }
       if (precursor.getActivationMethods().count(Precursor::ActivationMethod::HCID) != 0)
       {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002481\" name=\"high-energy collision-induced dissociation\" />\n";
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002481\" name=\"higher energy beam-type collision-induced dissociation\" />\n";
       }
       if (precursor.getActivationMethods().count(Precursor::ActivationMethod::HCD) != 0)
       {
@@ -4704,15 +4721,17 @@ namespace OpenMS::Internal
       }
       // ETciD / EThcD are already expressed by an explicit supplemental activation term (written
       // below as a cvParam from the meta values), so the combined term is only written without one.
-      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::ETciD) != 0 &&
-          !precursor.metaValueExists("supplemental collision-induced dissociation"))
+      const bool write_etcid = precursor.getActivationMethods().count(Precursor::ActivationMethod::ETciD) != 0 &&
+                               !precursor.metaValueExists("supplemental collision-induced dissociation");
+      const bool write_ethcd = precursor.getActivationMethods().count(Precursor::ActivationMethod::EThcD) != 0 &&
+                               !precursor.metaValueExists("supplemental beam-type collision-induced dissociation");
+      if (write_etcid)
       {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003182\" name=\"electron transfer and collision-induced dissociation\" />\n";
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003182\" name=\"electron-transfer/collision-induced dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::EThcD) != 0 &&
-          !precursor.metaValueExists("supplemental beam-type collision-induced dissociation"))
+      if (write_ethcd)
       {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002631\" name=\"electron transfer and higher-energy collision dissociation\" />\n";
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002631\" name=\"electron-transfer/higher-energy collision dissociation\" />\n";
       }
       if (precursor.getActivationMethods().count(Precursor::ActivationMethod::PQD) != 0)
       {
@@ -4726,7 +4745,9 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002000\" name=\"LIFT\" />\n";
       }
-      if (precursor.getActivationMethods().empty())
+      // mzML requires a dissociation method, but PSI-MS lists the combined terms (MS:1003181) as precursor
+      // activation attributes: write the generic term unless another activation method provides one
+      if (precursor.getActivationMethods().size() == static_cast<Size>(write_etcid) + static_cast<Size>(write_ethcd))
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
       }

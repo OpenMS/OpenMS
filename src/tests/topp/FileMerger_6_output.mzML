@@ -198,7 +198,7 @@
 					</scan>
 				</scanList>
 				<precursorList count="1">
-					<precursor spectrumRef="index=1">
+					<precursor spectrumRef="spectrum=1">
 						<selectedIonList count="1">
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="445.34" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />

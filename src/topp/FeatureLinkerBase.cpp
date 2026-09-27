@@ -57,8 +57,8 @@ class TOPPFeatureLinkerBase :
 {
 
 public:
-  TOPPFeatureLinkerBase(std::string name, std::string description, bool official = true) :
-    TOPPBase(name, description, official)
+  TOPPFeatureLinkerBase(std::string name, std::string description) :
+    TOPPBase(name, description)
   {
   }
 

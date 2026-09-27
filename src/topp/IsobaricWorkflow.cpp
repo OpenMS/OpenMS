@@ -875,7 +875,8 @@ protected:
     // TODO expose this as a proper min-intensity filtering setting.
     const auto empty_feat = [](const ConsensusFeature& c){return c.getIntensity() <= 0.;};
     cmap.erase(remove_if(cmap.begin(), cmap.end(), empty_feat), cmap.end());
-    cmap.ensureUniqueId();
+    // unique IDs for the map and for every consensus feature (consensusElement/@id is xs:ID)
+    cmap.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
     std::vector<ProteinIdentification> merged_prot_ids;
     merged_prot_ids.resize(1);
     PeptideIdentificationList _;

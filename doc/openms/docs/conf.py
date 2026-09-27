@@ -27,8 +27,6 @@ author = 'OpenMS Team'
 #
 # The short major.minor.patch version.
 version = '3.5.0'
-# Short version for the latest supported KNIME
-knime_version = '5.5.0'
 
 # The full version, including alpha/beta/rc tags.
 release = '3.5.0'
@@ -145,7 +143,6 @@ pathicon = 'fa fa-folder-open'
 variables_to_export = [
     "project",
     "version",
-    "knime_version"
 ]
 myst_substitutions = {}
 for v in variables_to_export:

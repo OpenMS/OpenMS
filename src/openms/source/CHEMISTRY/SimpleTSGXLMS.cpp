@@ -227,7 +227,7 @@ namespace OpenMS
 
         if (add_losses_)
         {
-          addLosses_(spectrum, pos, charge, backward_losses[i]);
+          addLosses_(spectrum, mono_weight, charge, backward_losses[i]);
         }
         spectrum.emplace_back(pos, charge);
 

@@ -19,6 +19,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
+#include <algorithm>
 #include <limits>
 
 /*
@@ -371,6 +372,37 @@ START_SECTION([EXTRA] peptide:enzyme_specificity (full / semi / none))
     fi_tiny.build(tiny); // must not crash
     TEST_EQUAL(fi_tiny.getPeptides().size(), 0)
   }
+}
+END_SECTION
+
+// Stop codons ('*') and other symbols have no residue mass. A peptide containing one used to be
+// indexed, and scoring it aborted ProSE, because AASequence parses '*' as a weightless X.
+START_SECTION([EXTRA] build() skips peptides containing stop codons or other symbols)
+{
+  // Tryptic products: "ACDEFGR", "HIL*MNPQK" (stop codon), "STVWYGHIK", "LMNP#QR" (other symbol)
+  // and "DEFGHIL*" (C-terminal peptide followed by the stop codon).
+  const std::vector<FASTAFile::FASTAEntry> entries{
+    {"t", "t", "ACDEFGRHIL*MNPQKSTVWYGHIKLMNP#QRDEFGHIL*"}};
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("enzyme", "Trypsin");
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("peptide:min_size", 2);
+  p.setValue("peptide:max_size", 100);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  fi.setParameters(p);
+  fi.build(entries);
+
+  std::vector<std::string> indexed;
+  for (const auto& peptide : fi.getPeptides())
+  {
+    indexed.push_back(entries[0].sequence.substr(peptide.sequence_.first, peptide.sequence_.second));
+  }
+  std::sort(indexed.begin(), indexed.end());
+  TEST_STRING_EQUAL(ListUtils::concatenate(indexed, ","), "ACDEFGR,STVWYGHIK")
 }
 END_SECTION
 
@@ -2646,6 +2678,37 @@ START_SECTION((SNES mother generation rejects ambiguous residue spans (X/B/Z)))
   for (const auto& mother : fi.getPeptides())
   {
     if (mother.sequence_.first == 0 && mother.sequence_.second == 8) { found_prefix = true; break; }
+  }
+  TEST_EQUAL(found_prefix, true)
+}
+END_SECTION
+
+START_SECTION((SNES mother generation rejects spans with a stop codon))
+{
+  // As above, with a stop codon ('*') instead of the X: it has no residue mass either.
+  const std::vector<FASTAFile::FASTAEntry> entries{
+      {"p", "p", "ACDEFGHI*KLMNPQSTVWY"}}; // '*' at 0-based position 8
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 8);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(entries);
+
+  bool found_prefix = false;
+  for (const auto& mother : fi.getPeptides())
+  {
+    const size_t start = mother.sequence_.first;
+    const size_t end = start + mother.sequence_.second;
+    TEST_EQUAL(start > 8u || end <= 8u, true)
+    if (start == 0 && mother.sequence_.second == 8) { found_prefix = true; }
   }
   TEST_EQUAL(found_prefix, true)
 }

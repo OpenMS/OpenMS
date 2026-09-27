@@ -435,31 +435,39 @@ namespace OpenMS
         return;
       }
 
+      // Intensity-weighted mean RT, integrated with the trapezoidal rule: each peak is
+      // weighted by its intensity times the RT span it stands for, which is half the
+      // distance to each of its neighbours (the outermost peaks only have the half towards
+      // their single neighbour).
+      //
+      // The previous formulation weighted every peak by the distance to its *predecessor*
+      // and started the sum at the second peak, so peak 0 contributed to neither the
+      // numerator nor the denominator. That biased the centroid towards later RT and, for a
+      // two-point trace, degenerated to the RT of the second peak whatever the intensities
+      // (see issue #2777).
+      double wmean_rt(0.0);
+      double trace_area(0.0);
 
-
-
-      /* seems not to work with the way we compute the area in the code below -> as a result the RT values are outside the feature boundaries
-      trace_area = this->computePeakArea();
+      for (Size i = 0; i < trace_peaks_.size(); ++i)
+      {
+        const double rt_lower = (i > 0) ? trace_peaks_[i - 1].getRT() : trace_peaks_[i].getRT();
+        const double rt_upper = (i + 1 < trace_peaks_.size()) ? trace_peaks_[i + 1].getRT() : trace_peaks_[i].getRT();
+        const double weight = trace_peaks_[i].getIntensity() * (rt_upper - rt_lower) / 2.0;
+        wmean_rt += weight * trace_peaks_[i].getRT();
+        trace_area += weight;
+      }
 
       if (trace_area < std::numeric_limits<double>::epsilon())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peak area equals zero... impossible to compute weights!",StringUtils::toStr(trace_peaks_.size()));
+      { // no intensity at all, or all peaks share one RT -> weights carry no information
+        double rt_sum(0.0);
+        for (const Peak2D& peak : trace_peaks_)
+        {
+          rt_sum += peak.getRT();
+        }
+        centroid_rt_ = rt_sum / trace_peaks_.size();
+        return;
       }
-      the reason is because computePeakArea uses trapezoidal rule to compute the area, which is not the same as the sum of the intensities
-      we could probably change the part below to also use trapezoidal rule to compute the trace area
-      */
 
-      double wmean_rt(0.0);
-      double trace_area = 0;
-
-      double rt_before = trace_peaks_[0].getRT();
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin() + 1; l_it != trace_peaks_.end(); ++l_it)
-      {
-        double rt_diff = l_it->getRT() - rt_before;                
-        wmean_rt += l_it->getIntensity() * l_it->getRT() * rt_diff;
-        rt_before = l_it->getRT();
-        trace_area += l_it->getIntensity() * rt_diff;
-      }
       centroid_rt_ = wmean_rt / trace_area;
     }
 

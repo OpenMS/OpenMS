@@ -92,9 +92,9 @@ public:
     /**
       @brief Store an @c MSExperiment in @c sqMass format.
 
-      Writes the spectra, chromatograms and experimental metadata of
-      @p map to @p filename, creating the file (and the required SQLite
-      tables) if necessary. The current @ref SqMassConfig is applied.
+      Writes the spectra, chromatograms and experimental metadata of @p map to
+      @p filename as a new @c sqMass database and creates the required SQLite
+      tables. The current @ref SqMassConfig is applied.
 
       The sqMass @c RUN::ID column is taken from
       @c MSExperiment::getSqlRunID; populate it via
@@ -110,6 +110,14 @@ public:
       @throws Exception::SqlOperationFailed When the database file cannot
                                             be created or opened for
                                             writing.
+
+      @warning store() writes a fresh database: an existing file at @p filename
+               is removed before writing starts, and the previous contents are
+               neither appended to nor merged. The replacement is not atomic:
+               if the removal succeeds and a later write fails, the previous
+               file is already gone and a partial database may remain. If the
+               removal itself fails, table creation can fail against the
+               existing file, which then remains.
     */
     void store(const std::string& filename, const MapType& map) const;
 

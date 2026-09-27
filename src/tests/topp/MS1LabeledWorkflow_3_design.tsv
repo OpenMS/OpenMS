@@ -1,0 +1,5 @@
+Fraction_Group	Fraction	Spectra_Filepath	Label	Sample
+1	1	MS1LabeledWorkflow_A_F1.mzML	1	1
+1	1	MS1LabeledWorkflow_A_F1.mzML	2	2
+2	1	MS1LabeledWorkflow_B_F1.mzML	1	3
+2	1	MS1LabeledWorkflow_B_F1.mzML	2	4

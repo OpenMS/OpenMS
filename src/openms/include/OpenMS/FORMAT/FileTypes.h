@@ -118,11 +118,26 @@ namespace OpenMS
       PROVIDES_QUANTIFICATIONS,     //
       PROVIDES_TRANSFORMATIONS,     //
       PROVIDES_QC,                  //
+      COMPRESSED_READABLE,          // the reader transparently decompresses .gz/.bz2/.zip input (XMLFile via CompressedInputSource)
       SIZE_OF_FILEPROPERTIES        // Not a property, just the number of 'em
     };
 
-    /// Returns the name/extension of the type.
+    /// Returns the name/preferred extension of the type.
     static std::string typeToName(Type type);
+
+    /**
+      @brief Returns every extension accepted for @p type, preferred one first.
+
+      The first element always equals typeToName(@p type) and is what OpenMS writes; the
+      remaining ones are aliases that are merely recognized on input (e.g. FASTA yields
+      {"fasta", "fa", "faa"}). Use this for file dialog filters and format listings; use
+      typeToName() when a single canonical extension is required.
+
+      @param[in] type The type to look up
+      @return Accepted extensions, without a leading dot, preferred extension first
+      @throw Exception::InvalidValue if @p type is not a known type
+    */
+    static std::vector<std::string> typeToExtensions(Type type);
     
     /// Returns the human-readable explanation of the type.
     /// This may or may not add information, e.g.
@@ -130,6 +145,7 @@ namespace OpenMS
     static std::string typeToDescription(Type type);
     
     /// Converts a file type name into a Type
+    /// Accepts the preferred extension as well as any registered alias (e.g. 'fa' and 'faa' both give FASTA).
     /// @param[in] name A case-insensitive name (e.g. FASTA or Fasta, etc.)
     static Type nameToType(const std::string& name);
 
@@ -138,6 +154,33 @@ namespace OpenMS
 
     /// Returns true if @p type represents a directory-shaped format (e.g. BRUKER_TDF, IDPARQUET, FEATUREPARQUET, CONSENSUSPARQUET).
     static bool isDirectoryType(Type type);
+
+    /**
+      @brief Can a reader for @p type read a file compressed with @p compression directly?
+
+      Transparent decompression is provided by XMLFile through CompressedInputSource, which handles
+      all three suffixes, so it covers the XML-based formats. BRUKER_TDF is the exception: FileHandler
+      unpacks a '.d.zip' archive via ZipArchiveFile but has no gzip or bzip2 path, so it supports ZIP
+      only. A compressed filename of any other type still resolves to that type by name, but no reader
+      will accept it, so callers must not treat the compression suffix as proof that the file can be read.
+
+      @param[in] type The format inside the compressed container
+      @param[in] compression GZ, BZ2 or ZIP; anything else returns false
+    */
+    static bool supportsCompressedReading(Type type, Type compression);
+
+    /**
+      @brief Do two declared format strings denote the same format?
+
+      Recognized names are compared by type, so a preferred extension and any of its aliases match
+      ('fasta' == 'fa'). If either side is unrecognized the comparison falls back to a case-insensitive
+      string compare, so two different custom extensions never become equal just because both map to
+      UNKNOWN.
+
+      @param[in] lhs A format name, without a leading dot (e.g. 'fasta' or a tool's custom extension)
+      @param[in] rhs The format name to compare against
+    */
+    static bool sameFormat(const std::string& lhs, const std::string& rhs);
   };
 
  enum class FilterLayout

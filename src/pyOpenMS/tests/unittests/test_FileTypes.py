@@ -85,3 +85,32 @@ def test_static_methods_callable_on_class():
 
     mzml_name = pyopenms.FileTypes.typeToMZML(pyopenms.FileType.MZML)
     assert isinstance(mzml_name, str)
+
+
+def test_typeToExtensions():
+    """Test typeToExtensions returns the preferred extension first, then aliases."""
+    assert pyopenms.FileTypes.typeToExtensions(pyopenms.FileType.FASTA) == ["fasta", "fa", "faa"]
+    assert pyopenms.FileTypes.typeToExtensions(pyopenms.FileType.PEPXML) == ["pepXML", "pep.xml"]
+    assert pyopenms.FileTypes.typeToExtensions(pyopenms.FileType.PARQUET) == ["parquet", "pqt"]
+    # a type without aliases yields just its preferred extension
+    assert pyopenms.FileTypes.typeToExtensions(pyopenms.FileType.MZML) == ["mzML"]
+
+
+def test_typeToExtensions_preferred_matches_typeToName():
+    """The first extension is always what typeToName reports, i.e. what OpenMS writes."""
+    for t in [pyopenms.FileType.MZML, pyopenms.FileType.FASTA,
+              pyopenms.FileType.PEPXML, pyopenms.FileType.PARQUET]:
+        exts = pyopenms.FileTypes.typeToExtensions(t)
+        assert exts[0] == pyopenms.FileTypes.typeToName(t)
+        # every accepted extension round-trips back to the same type
+        for ext in exts:
+            assert pyopenms.FileTypes.nameToType(ext) == t
+
+
+def test_nameToType_accepts_aliases():
+    """Aliases resolve case-insensitively, and distinct formats stay distinct."""
+    assert pyopenms.FileTypes.nameToType("fa") == pyopenms.FileType.FASTA
+    assert pyopenms.FileTypes.nameToType("FaA") == pyopenms.FileType.FASTA
+    assert pyopenms.FileTypes.nameToType("pep.xml") == pyopenms.FileType.PEPXML
+    assert pyopenms.FileTypes.nameToType("PQT") == pyopenms.FileType.PARQUET
+    assert pyopenms.FileTypes.nameToType("csv") != pyopenms.FileTypes.nameToType("tsv")

@@ -6,7 +6,7 @@ TOPP Tools
 
 - [Executed from the command line](/getting-started/topp-tools.md#command-line-interface) or,
 - Applied individually using OpenMS graphical applications.
-- Applied in sequence as a workflow using a workflow editor such as KNIME, Nextflow or Galaxy.
+- Applied in sequence as a workflow using a workflow editor such as Nextflow or Galaxy.
 
 Before you choose one of the above options, there are few concepts that need to be understood.
 

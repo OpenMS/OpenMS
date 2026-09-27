@@ -5,15 +5,14 @@
 #
 # Trigger: Release tags, nightly branch, develop PRs, or manual dispatch
 #
-# Thermo RAW support: the Linux x86_64, macOS arm64 and Windows wheels are built with
-# WITH_THERMO_RAW=ON. The managed half of openms-thermo-bridge (ThermoWrapperManaged.dll
-# and the Thermo CommonCore assemblies) is taken from the bridge's pre-built release zip
-# via tools/ci/fetch_thermo_assets.sh (retried, SHA-256 pinned, cached between runs)
-# when one is published for the pinned bridge revision; otherwise the bridge publishes
-# it with the .NET SDK during the OpenMS build (NuGet restore + Thermo package download).
+# Thermo RAW support: every wheel is built with WITH_THERMO_RAW=ON. The managed half of
+# openms-thermo-bridge (ThermoWrapperManaged.dll and the Thermo CommonCore assemblies) is
+# taken from the bridge's pre-built release zip via tools/ci/fetch_thermo_assets.sh
+# (retried, SHA-256 pinned, cached between runs) when one is published for the pinned
+# bridge revision; otherwise the bridge publishes it with the .NET SDK during the OpenMS
+# build (NuGet restore + Thermo package download), which is how Linux aarch64 gets them.
 # Compiling the native bridge always needs the nethost headers from a .NET SDK. The
-# finished wheels are smoke-tested by loading a real RAW file. Linux aarch64 stays off:
-# Thermo ships no native RawFileReader dependencies for it.
+# finished wheels are smoke-tested by loading a real RAW file.
 
 name: pyopenms-wheels-cibuildwheel
 
@@ -42,6 +41,7 @@ jobs:
       python-versions-array: ${{ steps.set-versions.outputs.versions-array }}
       pyopenms-version: ${{ steps.set-versions.outputs.pyopenms-version }}
       is-nightly: ${{ steps.set-versions.outputs.is-nightly }}
+      abi3-python: ${{ steps.set-versions.outputs.abi3-python }}
       cibw-build-linux-x64: ${{ steps.set-versions.outputs.cibw-build-linux-x64 }}
       cibw-build-linux-arm64: ${{ steps.set-versions.outputs.cibw-build-linux-arm64 }}
       cibw-build-macos-arm64: ${{ steps.set-versions.outputs.cibw-build-macos-arm64 }}
@@ -51,6 +51,7 @@ jobs:
         with:
           sparse-checkout: |
             .github/workflows/python_versions.json
+            src/pyOpenMS/pyproject.toml
             CMakeLists.txt
           sparse-checkout-cone-mode: false
           persist-credentials: false
@@ -63,18 +64,31 @@ jobs:
           # Output as space-separated for display
           echo "versions-array=$(jq -r '.[]' .github/workflows/python_versions.json | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
+          # The bindings are built in nanobind split mode against CPython's stable
+          # ABI, so exactly one frontend is compiled per platform and the
+          # resulting cp<N>-abi3 wheel covers every version in
+          # python_versions.json. That file is therefore purely the *test*
+          # matrix now; the compiled version comes from the ABI floor declared in
+          # pyproject.toml, so the two cannot drift apart.
+          # Capture only the value: the key name contains a digit of its own
+          # ("abi3_..."), so matching every number on the line yields "3 311".
+          ABI3_MIN=$(sed -nE 's/^[[:space:]]*abi3_minimum_cpython_version[[:space:]]*=[[:space:]]*([0-9]+).*/\1/p' \
+                       src/pyOpenMS/pyproject.toml)
+          # Match the exact shape rather than just "non-empty", so a duplicated
+          # or malformed key fails here instead of producing a broken tag.
+          if [[ ! "$ABI3_MIN" =~ ^[0-9]+$ ]]; then
+            echo "::error::could not read a single numeric abi3_minimum_cpython_version from src/pyOpenMS/pyproject.toml (got '${ABI3_MIN}')"
+            exit 1
+          fi
+          CIBW_PY="cp${ABI3_MIN}"
+          echo "Compiling the ${CIBW_PY} frontend; wheels are tagged ${CIBW_PY}-abi3"
+          echo "abi3-python=${CIBW_PY}" >> $GITHUB_OUTPUT
+
           # Pre-calculate CIBW_BUILD for each platform
-          CIBW_LINUX_X64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_x86_64/' | tr '\n' ' ')
-          echo "cibw-build-linux-x64=$CIBW_LINUX_X64" >> $GITHUB_OUTPUT
-          
-          CIBW_LINUX_ARM64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_aarch64/' | tr '\n' ' ')
-          echo "cibw-build-linux-arm64=$CIBW_LINUX_ARM64" >> $GITHUB_OUTPUT
-          
-          CIBW_MACOS_ARM64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-macosx_arm64/' | tr '\n' ' ')
-          echo "cibw-build-macos-arm64=$CIBW_MACOS_ARM64" >> $GITHUB_OUTPUT
-          
-          CIBW_WINDOWS_X64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-win_amd64/' | tr '\n' ' ')
-          echo "cibw-build-windows-x64=$CIBW_WINDOWS_X64" >> $GITHUB_OUTPUT
+          echo "cibw-build-linux-x64=${CIBW_PY}-manylinux_x86_64" >> $GITHUB_OUTPUT
+          echo "cibw-build-linux-arm64=${CIBW_PY}-manylinux_aarch64" >> $GITHUB_OUTPUT
+          echo "cibw-build-macos-arm64=${CIBW_PY}-macosx_arm64" >> $GITHUB_OUTPUT
+          echo "cibw-build-windows-x64=${CIBW_PY}-win_amd64" >> $GITHUB_OUTPUT
 
           # Extract OpenMS version from CMakeLists.txt
           MAJOR=$(grep 'OPENMS_PACKAGE_VERSION_MAJOR' CMakeLists.txt | head -1 | sed 's/.*"\([0-9]*\)".*/\1/')
@@ -146,6 +160,9 @@ jobs:
             -w /project \
             ghcr.io/openms/contrib_manylinux_2_34:latest-amd64 \
             bash -c '
+              # The bind-mounted workspace is owned by another user, so without this git
+              # exits 128 and the wheels carry a placeholder version instead of the commit.
+              git config --global --add safe.directory /project
               # The native thermo bridge compiles against the nethost headers/library
               # from the .NET host pack, and the same SDK publishes the managed
               # assemblies unless tools/ci/fetch_thermo_assets.sh provided pre-built
@@ -179,6 +196,7 @@ jobs:
                 $THERMO_MANAGED_OPT \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
+              # core layer only (libOpenMS, libOpenSwathAlgo): the CLI layer is a separate install component
               ninja OpenMS OpenSwathAlgo
               cmake --install . --component library --strip
               cmake --install . --component OpenMS_headers
@@ -243,6 +261,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Cache Thermo bridge assets
+        uses: actions/cache@v4
+        with:
+          path: |
+            thermo-managed
+            thermo-testdata
+          key: thermo-assets-linux-arm64-${{ hashFiles('tools/ci/fetch_thermo_assets.sh') }}
+
+      # Idempotent: reuses cached files after verifying their SHA-256, downloads
+      # (with retries) only what is missing.
+      - name: Fetch Thermo bridge assets (prebuilt managed assemblies + RAW test file)
+        run: bash tools/ci/fetch_thermo_assets.sh linux-arm64 "$GITHUB_WORKSPACE"
+
       - name: Build and install OpenMS in container
         run: |
           # Build and install OpenMS so libraries are stripped and paths are clean
@@ -251,7 +282,25 @@ jobs:
             -w /project \
             ghcr.io/openms/contrib_manylinux_2_34:latest-arm64 \
             bash -c '
-              yum install -y cmake ninja-build libcurl-devel
+              # The bind-mounted workspace is owned by another user, so without this git
+              # exits 128 and the wheels carry a placeholder version instead of the commit.
+              git config --global --add safe.directory /project
+              # Same SDK story as the x86_64 job above; the script pins the
+              # linux-arm64 tarball and host pack here. No pre-built managed
+              # bridge is published for this platform, so the SDK also runs the
+              # dotnet publish step that produces ThermoWrapperManaged.dll.
+              # Keep apostrophes out of this block: it is the body of a
+              # single-quoted docker run ... bash -c argument, and one would
+              # end that string early and silently truncate the script.
+              yum install -y cmake ninja-build libcurl-devel libicu
+              bash tools/ci/install_dotnet_sdk_linux.sh /usr/share/dotnet
+              export DOTNET_ROOT=/usr/share/dotnet
+              export PATH="$DOTNET_ROOT:$PATH"
+              export DOTNET_CLI_TELEMETRY_OPTOUT=1
+              THERMO_MANAGED_OPT=""
+              if [ -f /project/thermo-managed/ThermoWrapperManaged.dll ]; then
+                THERMO_MANAGED_OPT="-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=/project/thermo-managed"
+              fi
               mkdir build && cd build
               cmake .. \
                 -G Ninja \
@@ -264,9 +313,11 @@ jobs:
                 -DWITH_GUI=OFF \
                 -DBUILD_TOPP_TOOLS=OFF \
                 -DINSTALL_OPENMS_EXAMPLES=OFF \
-                -DWITH_THERMO_RAW=OFF \
+                -DWITH_THERMO_RAW=ON \
+                $THERMO_MANAGED_OPT \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
+              # core layer only (libOpenMS, libOpenSwathAlgo): the CLI layer is a separate install component
               ninja OpenMS OpenSwathAlgo
               cmake --install . --component library --strip
               cmake --install . --component OpenMS_headers
@@ -275,8 +326,6 @@ jobs:
               cmake --install . --component share
               cmake --install . --component cmake
             '
-          # WITH_THERMO_RAW stays OFF here: Thermo's RawFileReader has no native
-          # dependencies for Linux aarch64 (https://github.com/thermofisherlsms/RawFileReader/issues/21).
 
       - name: Set pyOpenMS version
         run: |
@@ -294,11 +343,16 @@ jobs:
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-arm64 }}
           CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
-          CIBW_BEFORE_ALL: yum install -y libcurl-devel
+          # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file
+          CIBW_BEFORE_ALL: yum install -y libcurl-devel dotnet-runtime-8.0
+          # Use install directory with stripped libraries.
+          # PYOPENMS_THERMO_RAW_TEST_FILE enables the Thermo RAW tests in the wheel test suite.
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT=/project/install
             CMAKE_PREFIX_PATH=/contrib-build:/project/install
             CMAKE_BUILD_PARALLEL_LEVEL=2
+            DOTNET_ROOT=/usr/lib64/dotnet
+            PYOPENMS_THERMO_RAW_TEST_FILE=/project/thermo-testdata/Angiotensin_AllScans.raw
           CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
@@ -390,6 +444,7 @@ jobs:
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
             -DMT_ENABLE_OPENMP=ON
+          # core layer only (libOpenMS, libOpenSwathAlgo): the CLI layer is a separate install component
           ninja OpenMS OpenSwathAlgo
           cmake --install . --component library --strip
           cmake --install . --component OpenMS_headers
@@ -417,6 +472,8 @@ jobs:
           # Use old mechanism: copy libraries and use @loader_path
           # NO_DEPENDENCIES=OFF enables legacy library copying for macOS (with our fix_dependencies script)
           # DOTNET_ROOT and PYOPENMS_THERMO_RAW_TEST_FILE enable the Thermo RAW tests in the wheel test suite.
+          # MACOSX_DEPLOYMENT_TARGET must match src/pyOpenMS/pyproject.toml; this
+          # overrides that table wholesale. The check below enforces it.
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT="${{ github.workspace }}/install"
             CMAKE_PREFIX_PATH="/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/install"
@@ -426,6 +483,9 @@ jobs:
             PYOPENMS_THERMO_RAW_TEST_FILE="${{ github.workspace }}/thermo-testdata/Angiotensin_AllScans.raw"
           CIBW_BUILD_VERBOSITY: 1
           #CIBW_TEST_SKIP: "*"
+
+      - name: Check the wheels run on the macOS their tag promises
+        run: python3 tools/ci/check_macos_wheel_target.py wheelhouse/*.whl
 
       - uses: actions/upload-artifact@v4
         with:
@@ -523,6 +583,7 @@ jobs:
             $THERMO_MANAGED_OPT \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF
+          # core layer only (libOpenMS, libOpenSwathAlgo): the CLI layer is a separate install component
           cmake --build . --target OpenMS OpenSwathAlgo
           cmake --install . --component library --strip
           cmake --install . --component OpenMS_headers
@@ -567,8 +628,29 @@ jobs:
             CMAKE_PREFIX_PATH="${{ env.QT_CMAKE }}/lib/cmake;${{ env.QT_CMAKE }};${{ env.CONTRIB_CMAKE }};${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_BUILD_PARALLEL_LEVEL=2
             PYOPENMS_THERMO_RAW_TEST_FILE="${{ env.THERMO_RAW_TEST_FILE }}"
-          # install/bin and install/lib also hold openms_thermo_bridge.dll and nethost.dll
-          CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path ${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
+          # install/bin also holds openms_thermo_bridge.dll and nethost.dll (on
+          # Windows INSTALL_LIB_DIR is 'bin', so that is where the DLLs land).
+          #
+          # contrib/bin has to be listed and has to come first. The "Build libcurl
+          # from source" step above installs libcurl.dll there (CMake puts DLLs in
+          # <prefix>/bin and only the import library in <prefix>/lib), and
+          # libcurl.dll is a load-time dependency of OpenMS.dll. delvewheel does not
+          # fail when a dependency is missing from --add-path: it falls back to the
+          # ambient %PATH%, which on the runner image carries an unrelated
+          # vcpkg-built libcurl 8.13.0-DEV. That is what shipped in every Windows
+          # wheel so far -- a different libcurl from the one OpenMS was linked
+          # against, dragging in a second, mingw-built zlib1.dll alongside contrib's
+          # zlib.dll. Listing contrib/bin first makes the libcurl we built win.
+          #
+          # Side effect worth knowing: the prebuilt contrib also carries the MSVC
+          # redistributable in contrib/bin, so msvcp140.dll is now vendored from
+          # there (14.44) rather than from System32 (14.51). Both export the same
+          # 1515 symbols and cover all 244 the modules import, so this is a
+          # provenance change, not a behaviour change. contrib's bin/zip.dll and
+          # lib/zip.dll are byte-identical, so nothing else moves.
+          #
+          # -v so the per-DLL resolution is in the log the next time this is wrong.
+          CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair -v --add-path ${{ env.CONTRIB_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
@@ -595,7 +677,7 @@ jobs:
             thermo-platform: linux-x64
           - os: ubuntu-22.04-arm
             artifact: wheels-linux-arm64
-            thermo-platform: ''
+            thermo-platform: linux-arm64
           - os: macos-15
             artifact: wheels-macos-arm64
             thermo-platform: osx-arm64
@@ -606,9 +688,19 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          # src/pyOpenMS/tests and the class-test data it reads are needed here
+          # because this job, not cibuildwheel, is what now runs the full suite
+          # on every supported interpreter. fix_stubs.py is build tooling the
+          # stub regression tests load directly; the package's own files they
+          # need come from the installed wheel.
           sparse-checkout: |
             tools/ci/fetch_thermo_assets.sh
             cmake/cmake_findExternalLibs.cmake
+            src/pyOpenMS/tests
+            src/pyOpenMS/pyproject.toml
+            src/pyOpenMS/fix_stubs.py
+            src/tests/class_tests/openms/data
+            src/tests/topp
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
@@ -622,14 +714,69 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Test wheel
+      - name: Install the abi3 wheel
         shell: bash
         run: |
-          # Install the wheel matching this Python version
-          PYVER=$(echo "${{ matrix.python-version }}" | tr -d '.')
-          pip install wheelhouse/*cp${PYVER}*.whl
+          # One cp<N>-abi3 wheel per platform now serves every supported
+          # interpreter, so there is no per-version wheel to glob for. Require
+          # exactly one candidate: more than one would mean the artifact still
+          # carries per-version wheels and the wrong one could be picked, none
+          # would mean the build silently produced nothing installable here.
+          shopt -s nullglob
+          wheels=(wheelhouse/*-abi3-*.whl)
+          if [[ ${#wheels[@]} -ne 1 ]]; then
+            echo "::error::expected exactly one abi3 wheel in the ${{ matrix.artifact }} artifact, found ${#wheels[@]}:"
+            ls -la wheelhouse/ || true
+            exit 1
+          fi
+          echo "Installing ${wheels[0]} on Python ${{ matrix.python-version }}"
+          # Naming the wheel by path is what pins the test to the artifact just
+          # built -- pip installs the file it is given and never substitutes a
+          # package-index release of pyopenms for it. The index still has to stay
+          # reachable for the dependencies (numpy, matplotlib, nanobind-backend),
+          # which are not in wheelhouse; --no-index here would fail the install
+          # with "No matching distribution found for numpy>=2.0".
+          python -m pip install --only-binary=:all: --find-links wheelhouse "${wheels[0]}"
           python -c "import pyopenms; print('pyopenms version:', pyopenms.__version__)"
           python -c "import pyopenms; print(pyopenms.EmpiricalFormula('C6H12O6').getMonoWeight())"
+
+      - name: Check the installed environment is consistent
+        shell: bash
+        run: python -m pip check
+
+      # pyopenms/__init__.py catches per-domain import errors and can leave a
+      # partially populated package behind, so `import pyopenms` alone is not
+      # evidence that the extensions loaded. Import each one explicitly.
+      - name: Import every extension module
+        shell: bash
+        run: |
+          python - <<'EOF'
+          import importlib, pyopenms
+          domains = ["kernel", "metadata", "chemistry", "analysis", "featurefinder",
+                     "format", "processing", "datastructures", "ml", "misc",
+                     "spectrum", "chromatogram", "experiment"]
+          expected = [f"pyopenms._pyopenms_{d}" for d in domains]
+          expected += ["pyopenms._pyopenms", "pyopenms._arrow_zerocopy"]
+          for name in expected:
+              mod = importlib.import_module(name)
+              print("ok", name, getattr(mod, "__file__", ""))
+          print(f"all {len(expected)} extension modules imported")
+          EOF
+
+      - name: Install test dependencies
+        shell: bash
+        run: python -m pip install pytest pytest-cov "pandas>=3" pyarrow
+
+      - name: Run the pyOpenMS test suite against the installed wheel
+        shell: bash
+        env:
+          OPENMS_CLASS_TEST_DATA_PATH: ${{ github.workspace }}/src/tests/class_tests/openms/data
+          OPENMS_TEST_DATA_PATH: ${{ github.workspace }}/src/tests/topp
+        run: |
+          # --import-mode=importlib and running from a directory without a
+          # pyopenms/ source tree keep this honest: the installed wheel is what
+          # gets imported, not the checkout.
+          python -m pytest src/pyOpenMS/tests -q --import-mode=importlib -p no:cacheprovider
 
       # Thermo RAW smoke test on a fresh runner: only the .NET runtime may be
       # present, everything else (bridge library, managed assemblies) must come

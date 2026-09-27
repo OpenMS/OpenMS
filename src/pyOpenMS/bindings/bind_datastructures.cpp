@@ -448,6 +448,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::CalibrationData>(m, "CalibrationData", "A helper class, holding all calibration points")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::CalibrationData &>())
         .def("__copy__", [](const OpenMS::CalibrationData& self) { return OpenMS::CalibrationData(self); })
         .def("__deepcopy__", [](const OpenMS::CalibrationData& self, nb::dict) { return OpenMS::CalibrationData(self); }, "memo"_a)
         .def("getMZ", [](const OpenMS::CalibrationData& self, size_t i) { return self.getMZ(i); }, "i"_a, "Retrieve the observed m/z of the i'th calibration point")
@@ -705,6 +706,7 @@ The following formats are supported:
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Math::GaussFitter::GaussFitResult>(m, "GaussFitResult", "Result of a Gaussian fit")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::Math::GaussFitter::GaussFitResult &>())
         .def("__copy__", [](const OpenMS::Math::GaussFitter::GaussFitResult& self) { return OpenMS::Math::GaussFitter::GaussFitResult(self); })
         .def("__deepcopy__", [](const OpenMS::Math::GaussFitter::GaussFitResult& self, nb::dict) { return OpenMS::Math::GaussFitter::GaussFitResult(self); }, "memo"_a)
         .def(nb::init<double, double, double>())
@@ -728,6 +730,7 @@ The following formats are supported:
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::IsotopeCluster>(m, "IsotopeCluster", "OpenMS class IsotopeCluster")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::IsotopeCluster &>())
         .def("__copy__", [](const OpenMS::IsotopeCluster& self) { return OpenMS::IsotopeCluster(self); })
         .def("__deepcopy__", [](const OpenMS::IsotopeCluster& self, nb::dict) { return OpenMS::IsotopeCluster(self); }, "memo"_a)
         .def_rw("peaks", &OpenMS::IsotopeCluster::peaks)
@@ -902,7 +905,24 @@ Example:
 >>> lfdr_values = pyopenms.MultipleTesting.lfdr(
 ...     p_values, pi0_result.pi0, True, True,
 ...     pyopenms.MultipleTesting.LfdrTransform.Probit)
-)doc")
+)doc");
+
+    // The nested enums are registered before the methods below: lfdr() uses
+    // LfdrTransform::Probit as a default argument, and nanobind converts default
+    // values to Python objects while the binding is created, so the enum type has
+    // to be known by then.
+    // Pi0Method enum nested under MultipleTesting
+    nb::enum_<OpenMS::Math::MultipleTesting::Pi0Method>(multipletesting_class, "Pi0Method", nb::is_arithmetic())
+        .value("Smoother", OpenMS::Math::MultipleTesting::Pi0Method::Smoother)
+        .value("Bootstrap", OpenMS::Math::MultipleTesting::Pi0Method::Bootstrap)
+        ;
+    // LfdrTransform enum nested under MultipleTesting
+    nb::enum_<OpenMS::Math::MultipleTesting::LfdrTransform>(multipletesting_class, "LfdrTransform", nb::is_arithmetic())
+        .value("Probit", OpenMS::Math::MultipleTesting::LfdrTransform::Probit)
+        .value("Logit", OpenMS::Math::MultipleTesting::LfdrTransform::Logit)
+        ;
+
+    multipletesting_class
         .def_static("qValue", [](const std::vector<double>& p_values, double pi0, bool pfdr) { return OpenMS::Math::MultipleTesting::qValue(p_values, pi0, pfdr); }, "p_values"_a, "pi0"_a, "pfdr"_a, "Compute q-values from p-values using the Storey-Tibshirani method")
         .def_static("pNorm", [](const std::vector<double>& stat, const std::vector<double>& stat0) { return OpenMS::Math::MultipleTesting::pNorm(stat, stat0); }, "stat"_a, "stat0"_a, "Compute p-values from observed and null statistics using the empirical distribution")
 
@@ -925,7 +945,9 @@ Example:
                                size_t gridsize,
                                double cut) {
             return OpenMS::Math::MultipleTesting::lfdr(p_values, pi0, trunc, monotone, transf, adj, eps, gridsize, cut);
-        }, "p_values"_a, "pi0"_a, "trunc"_a = true, "monotone"_a = true, "transf"_a, "adj"_a = 1.5, "eps"_a = 1e-8, "gridsize"_a = 100, "cut"_a = 0.05,
+        }, "p_values"_a, "pi0"_a, "trunc"_a = true, "monotone"_a = true,
+           "transf"_a = OpenMS::Math::MultipleTesting::LfdrTransform::Probit,
+           "adj"_a = 1.5, "eps"_a = 1e-8, "gridsize"_a = 512, "cut"_a = 3.0,
            "Compute local FDR values")
 
         .def_static("pi0MethodToString", &OpenMS::Math::MultipleTesting::pi0MethodToString,
@@ -939,16 +961,6 @@ Example:
 
         .def_static("toLfdrTransform", &OpenMS::Math::MultipleTesting::toLfdrTransform,
            "s"_a, "Convert string to LfdrTransform enum")
-        ;
-    // Pi0Method enum nested under MultipleTesting
-    nb::enum_<OpenMS::Math::MultipleTesting::Pi0Method>(multipletesting_class, "Pi0Method", nb::is_arithmetic())
-        .value("Smoother", OpenMS::Math::MultipleTesting::Pi0Method::Smoother)
-        .value("Bootstrap", OpenMS::Math::MultipleTesting::Pi0Method::Bootstrap)
-        ;
-    // LfdrTransform enum nested under MultipleTesting
-    nb::enum_<OpenMS::Math::MultipleTesting::LfdrTransform>(multipletesting_class, "LfdrTransform", nb::is_arithmetic())
-        .value("Probit", OpenMS::Math::MultipleTesting::LfdrTransform::Probit)
-        .value("Logit", OpenMS::Math::MultipleTesting::LfdrTransform::Logit)
         ;
 
     // -----------------------------------------------------------------------
@@ -1178,6 +1190,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Param::ParamEntry>(m, "ParamEntry", "OpenMS class ParamEntry")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::Param::ParamEntry &>())
         .def("__copy__", [](const OpenMS::Param::ParamEntry& self) { return OpenMS::Param::ParamEntry(self); })
         .def("__deepcopy__", [](const OpenMS::Param::ParamEntry& self, nb::dict) { return OpenMS::Param::ParamEntry(self); }, "memo"_a)
         .def("__init__", [](OpenMS::Param::ParamEntry* self, const std::string& name, nb::handle value,
@@ -1236,6 +1249,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Param::ParamNode>(m, "ParamNode", "OpenMS class ParamNode")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::Param::ParamNode &>())
         .def("__copy__", [](const OpenMS::Param::ParamNode& self) { return OpenMS::Param::ParamNode(self); })
         .def("__deepcopy__", [](const OpenMS::Param::ParamNode& self, nb::dict) { return OpenMS::Param::ParamNode(self); }, "memo"_a)
         .def(nb::init<const std::string&, const std::string&>(), "name"_a, "description"_a)
@@ -1420,6 +1434,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::VersionInfo::VersionDetails>(m, "VersionDetails", "Version details struct")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::VersionInfo::VersionDetails &>())
         .def("__copy__", [](const OpenMS::VersionInfo::VersionDetails& self) { return OpenMS::VersionInfo::VersionDetails(self); })
         .def("__deepcopy__", [](const OpenMS::VersionInfo::VersionDetails& self, nb::dict) { return OpenMS::VersionInfo::VersionDetails(self); }, "memo"_a)
         .def_rw("version_major", &OpenMS::VersionInfo::VersionDetails::version_major)
@@ -1641,7 +1656,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
             "adduct_base"_a, "q_min"_a, "q_max"_a, "max_span"_a, "thresh_logp"_a, "max_neutrals"_a)
         .def("__copy__", [](const OpenMS::MassExplainer& self) { return OpenMS::MassExplainer(self); })
         .def("__deepcopy__", [](const OpenMS::MassExplainer& self, nb::dict) { return OpenMS::MassExplainer(self); }, "memo"_a)
-        .def("compute", &OpenMS::MassExplainer::compute,
+        .def("compute", &OpenMS::MassExplainer::compute, "include_identity"_a = false,
             "Compute all possible mass differences and their explanations")
         .def("setAdductBase", &OpenMS::MassExplainer::setAdductBase, "adduct_base"_a,
             "Set the base set of allowed adducts")

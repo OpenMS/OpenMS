@@ -24,8 +24,9 @@ namespace OpenMS
   The format -- both the one-table and the two-table variant -- its columns, the rules a design
   has to satisfy, and worked examples are documented on OpenMS::ExperimentalDesign. In short:
 
-  - TAB-separated; while parsing, cells are whitespace trimmed and lines starting with a hash
-    character (a comment) are ignored.
+  - TAB-separated; while parsing, lines and cells are whitespace trimmed and lines starting with
+    a hash character (a comment) are ignored. A data row must have exactly as many cells as its
+    header; since trimming removes a trailing empty cell, no row may end in an empty cell.
   - The variant is auto-detected, by a check cruder than the parsers: it scans every line, not
     just headers, and reads the file as two-table as soon as one line has exactly one cell equal
     to @c Sample and no cell equal to @c Fraction_Group. It neither trims cells nor skips comment
@@ -52,8 +53,10 @@ namespace OpenMS
       @param[in] require_spectra_files If true, every @c Spectra_Filepath must resolve to an
                  existing file; otherwise unresolvable paths are kept as written
       @throws Exception::ParseError on a missing mandatory column, an unknown column in the file
-              section of a two-table design, a row of the MS file section with the wrong number
-              of records, or -- with @p require_spectra_files -- a spectra file that does not exist
+              section of a two-table design, a row of the MS file section or of the sample section
+              with the wrong number of cells (the message names the line and the expected and
+              actual number of cells), or -- with @p require_spectra_files -- a spectra file that
+              does not exist
       @throws Exception::ConversionError if @c Fraction_Group, @c Fraction or @c Label is not an
               integer
       @throws Exception::InvalidValue if the fraction groups are not consecutive starting at 1

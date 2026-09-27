@@ -101,7 +101,7 @@ class PercolatorAdapter :
 {
 public:
   PercolatorAdapter() :
-    TOPPExternalToolBase("PercolatorAdapter", "Facilitate input to Percolator and reintegrate.", true)
+    TOPPExternalToolBase("PercolatorAdapter", "Facilitate input to Percolator and reintegrate.")
   {
   }
 

@@ -27,7 +27,7 @@ include(source/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
 openms_add_library(TARGET_NAME OpenSwathAlgo
                    SOURCE_FILES ${OpenSwathAlgoFiles}
                    HEADER_FILES ${OpenSwathAlgoHeaders}
-                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+                   BASE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    PRIVATE_LINK_LIBRARIES Boost::boost Eigen3::Eigen $<$<BOOL:${OPENMP_FOUND}>:OpenMP::OpenMP_CXX>
                    DLL_EXPORT_PATH "OpenMS/OPENSWATHALGO/")
 

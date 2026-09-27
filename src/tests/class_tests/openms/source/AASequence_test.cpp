@@ -343,6 +343,15 @@ START_SECTION((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::
   TEST_EQUAL(seq.getFormula(), EmpiricalFormula("O10SH33N5C24"))
   TEST_EQUAL(seq.getFormula(Residue::Full, 1), EmpiricalFormula("O10SH33N5C24+"))
   TEST_EQUAL(seq.getFormula(Residue::BIon, 0), EmpiricalFormula("O9SH31N5C24"))
+  // z+1 ("z-dot", the main electron-transfer fragment) and z+2 carry one and two extra hydrogens
+  TEST_EQUAL(seq.getFormula(Residue::Zp1Ion, 0), seq.getFormula(Residue::ZIon, 0) + EmpiricalFormula("H"))
+  TEST_EQUAL(seq.getFormula(Residue::Zp2Ion, 0), seq.getFormula(Residue::ZIon, 0) + EmpiricalFormula("H2"))
+  // ... and, being C-terminal fragments, they carry a C-terminal modification like the z ion does
+  AASequence seq_c_term = AASequence::fromString("ACDEF");
+  seq_c_term.setCTerminalModification("Amidated (C-term)");
+  TEST_EQUAL(seq_c_term.getFormula(Residue::Zp1Ion, 0), seq_c_term.getFormula(Residue::ZIon, 0) + EmpiricalFormula("H"))
+  TEST_EQUAL(seq_c_term.getFormula(Residue::Zp1Ion, 0) - seq.getFormula(Residue::Zp1Ion, 0),
+             seq_c_term.getFormula(Residue::ZIon, 0) - seq.getFormula(Residue::ZIon, 0))
 END_SECTION
 
 START_SECTION((double getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
@@ -379,6 +388,28 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
   EmpiricalFormula ala_z_neutral = EmpiricalFormula("OH")+ala_res-EmpiricalFormula("NH2");
   TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::ZIon, 1), ala_z_neutral.getMonoWeight()+Constants::PROTON_MASS_U);
   //73.02900
+
+  EmpiricalFormula ala_zp1_neutral = ala_z_neutral+EmpiricalFormula("H");
+  TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::Zp1Ion, 1), ala_zp1_neutral.getMonoWeight()+Constants::PROTON_MASS_U);
+  //74.03623
+
+  EmpiricalFormula ala_zp2_neutral = ala_z_neutral+EmpiricalFormula("H2");
+  TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::Zp2Ion, 1), ala_zp2_neutral.getMonoWeight()+Constants::PROTON_MASS_U);
+  //75.04406
+
+  // direct calculation and calculation via the empirical formula must agree for the z+1/z+2 types too
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(Residue::Zp1Ion, 1),
+                    AASequence::fromString("DFPIANGER").getFormula(Residue::Zp1Ion, 1).getMonoWeight())
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(Residue::Zp2Ion, 1),
+                    AASequence::fromString("DFPIANGER").getFormula(Residue::Zp2Ion, 1).getMonoWeight())
+
+  // a C-terminal modification shifts the z+1/z+2 ions by the same amount as the z ion
+  AASequence amidated = AASequence::fromString("DFPIANGER");
+  amidated.setCTerminalModification("Amidated (C-term)");
+  const double c_term_shift = amidated.getMonoWeight(Residue::ZIon) - AASequence::fromString("DFPIANGER").getMonoWeight(Residue::ZIon);
+  TEST_REAL_SIMILAR(amidated.getMonoWeight(Residue::Zp1Ion) - AASequence::fromString("DFPIANGER").getMonoWeight(Residue::Zp1Ion), c_term_shift)
+  TEST_REAL_SIMILAR(amidated.getMonoWeight(Residue::Zp2Ion) - AASequence::fromString("DFPIANGER").getMonoWeight(Residue::Zp2Ion), c_term_shift)
+  TEST_REAL_SIMILAR(amidated.getMonoWeight(Residue::Zp1Ion), amidated.getMonoWeight(Residue::ZIon) + EmpiricalFormula("H").getMonoWeight())
 
 
   TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(), double(1017.48796))

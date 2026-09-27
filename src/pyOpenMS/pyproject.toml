@@ -14,8 +14,29 @@
 # Also update dependency-group.build when making changes here!!!
 requires = [
     "build>=1.3.0",
-    "py-build-cmake>=0.3.0",
-    "nanobind>=2.4.0",
+    # The wheel ABI configuration the planned cp311-abi3 wheels need only exists
+    # from the 0.5 series on, so the declared minimum has to cover it.
+    "py-build-cmake~=0.5.1",
+    # nanobind 3 is required: the custom type casters use the nanobind 3
+    # from_python(handle, uint32_t, cleanup_list*) signature. The upper bound
+    # keeps a future nanobind 4 from silently entering isolated builds.
+    "nanobind>=3.1,<4",
+    # Split-mode extensions call into this at runtime. A hard build requirement
+    # too: the pyopenms_stubs target is part of the default build and imports
+    # the freshly built package, which cannot load without it. Deliberately
+    # unpinned with no upper bound: a newer backend serves extensions built
+    # against an older backend ABI, and 1.0 is the revision both nanobind 3.0.1
+    # and 3.1 declare (NB_BACKEND_ABI_MAJOR 1 / NB_BACKEND_ABI_MINOR 0 in
+    # nb_backend.h).
+    #
+    # Note that this floor, not the nanobind one above, is what governs runtime
+    # behaviour in split mode: nb_func.cpp and friends are compiled into the
+    # backend, so a fix landing in a nanobind release only reaches pyOpenMS once
+    # a nanobind-backend built from that release is published. #10061 (help() on
+    # a bound method) is the current example -- nanobind 3.1 added
+    # nb_bound_method_get_doc, but the newest nanobind-backend (1.0.0) predates
+    # it, so raise this floor once a backend carrying it exists.
+    "nanobind-backend>=1.0",
     "numpy>=2.0",
     "auditwheel; sys_platform == 'linux'",
     "delocate; sys_platform == 'darwin'",
@@ -60,6 +81,9 @@ classifiers = [
 dependencies = [
     "numpy>=2.0",
     "matplotlib>=3.5",
+    # The compiled extensions are built in nanobind split mode, so nanobind's
+    # Python-version-specific runtime lives here rather than inside them.
+    "nanobind-backend>=1.0",
 ]
 
 [project.urls]
@@ -83,8 +107,10 @@ all = ["pandas>=3", "pyarrow"]
 [dependency-groups]
 build = [
     "build>=1.3.0",
-    "py-build-cmake>=0.3.0",
-    "nanobind>=2.4.0",
+    # Keep in sync with [build-system].requires above.
+    "py-build-cmake~=0.5.1",
+    "nanobind>=3.1,<4",
+    "nanobind-backend>=1.0",
     "numpy>=2.0",
     "auditwheel; sys_platform == 'linux'",
     "delocate; sys_platform == 'darwin'",
@@ -128,17 +154,40 @@ include = [
     "bindings/arrow_zerocopy.cpp",
     "bindings/*.h",
     "bindings/type_casters/*.h",
+    "check_bindings.py",
     "fix_stubs.py",
     "stubs.patch",
+    # Run from the source directory by the dependency-bundling targets
+    # (NO_DEPENDENCIES=OFF), so a build from the sdist needs them too.
+    "pyopenms_copy_deps.cmake",
+    "mac_fix_dependencies.rb",
 ]
 
 [tool.py-build-cmake.cmake]
 # CMake build configuration
+# 3.26 is the first release with FindPython's Development.SABIModule component,
+# which nanobind's split mode needs (on Windows it links Python::SABIModule).
+# This applies to the pyOpenMS wheel build only; the C++ OpenMS build still
+# requires 3.24.
+minimum_version = "3.26"
 build_type = "Release"
 source_path = "."
 install_args = ["--strip"]
 build_args = []
 install_components = ["python_modules"]
+
+[tool.py-build-cmake.wheel]
+# The extensions are compiled in nanobind split mode against the CPython 3.11
+# stable ABI, so one wheel per platform serves 3.11 and every later version.
+# abi3_minimum_cpython_version is the single source of that floor. py-build-cmake
+# turns it into the cp311-abi3 filename and WHEEL tag; CMakeLists.txt reads it
+# back as the default PYOPENMS_STABLE_ABI_VERSION (which becomes Py_LIMITED_API)
+# and refuses to package a build that overrides it; the wheel workflow derives
+# the interpreter cibuildwheel compiles with from it. Those two match it by
+# regex, so keep it a plain one-line integer. The one place that cannot read it
+# is [tool.cibuildwheel].build below -- see the note there.
+python_abi = "abi3"
+abi3_minimum_cpython_version = 311
 
 [tool.py-build-cmake.cmake.options]
 # CMake options - OpenMS_ROOT should be set via environment or config-settings
@@ -154,8 +203,17 @@ NO_DEPENDENCIES = "ON"
 #------------------------------------------------------------------------------
 
 [tool.cibuildwheel]
-# Build for Python 3.11-3.14 (usually overwritten by GitHub Actions)
-build = "cp311-* cp312-* cp313-* cp314-*"
+# Only the CPython 3.11 frontend is compiled: the result is a cp311-abi3 wheel
+# that covers 3.11 through 3.14. The supported interpreters are still all tested,
+# in the separate test-wheels job, against this one artifact.
+#
+# This is the one copy of the ABI floor that is written out rather than derived
+# from abi3_minimum_cpython_version, because cibuildwheel's configuration has no
+# interpolation. The wheel workflow does derive it and overrides this via
+# CIBW_BUILD, so only a direct cibuildwheel run reads the literal. Move it when
+# you move abi3_minimum_cpython_version; if you forget, CMake refuses to
+# configure rather than letting the mismatch through.
+build = "cp311-*"
 # Skip 32-bit and musllinux builds
 skip = "*-win32 *-musllinux_*"
 
@@ -204,7 +262,17 @@ repair-wheel-command = [
 [tool.cibuildwheel.macos.environment]
 # Homebrew paths
 CMAKE_PREFIX_PATH = "$(brew --prefix):$(brew --prefix libomp)"
-MACOSX_DEPLOYMENT_TARGET = "14.0"
+# Must match CIBW_ENVIRONMENT in the wheel workflow, which overrides this whole table.
+# Lowering it alone ships a wheel that installs on an older macOS and then fails in dyld:
+# the dependencies bundled into the wheel come from Homebrew, whose bottles are built for
+# the runner's macOS. Lowering the floor means building those dependencies for the lower
+# target too -- either on a runner of that macOS, or by building them from source with
+# vcpkg, as the desktop builds do, under a triplet that sets VCPKG_OSX_DEPLOYMENT_TARGET;
+# the runner stops mattering once one does. None of the macOS triplets in
+# vcpkg-overlays/triplets set it today, so that route needs a new triplet rather than an
+# edit to arm64-osx-dynamic-sysroot, which the desktop preset already builds against.
+# tools/ci/check_macos_wheel_target.py enforces that the tag and the binaries agree.
+MACOSX_DEPLOYMENT_TARGET = "15.0"
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]

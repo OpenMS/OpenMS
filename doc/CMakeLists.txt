@@ -59,9 +59,9 @@ if(ENABLE_DOCS)
     # let the doc progs decide how to handle a missing OpenMS_GUI library
     if(WITH_GUI)
       set_target_properties(${i} PROPERTIES COMPILE_DEFINITIONS "WITH_GUI=1")
-      target_link_libraries(${i} OpenMS OpenMS_GUI)
+      target_link_libraries(${i} OpenMS OpenMS_CLI OpenMS_GUI)
     else()
-      target_link_libraries(${i} OpenMS)
+      target_link_libraries(${i} OpenMS OpenMS_CLI)
     endif()
   endforeach(i)
 
@@ -106,20 +106,34 @@ if(ENABLE_DOCS)
       message(STATUS "Warning: Doxygen ( vers. installed = ${DOXYGEN_VERSION} < ${DOXYGEN_MIN_REQUIRED}) does not correctly process \\include commands in developer's installation instructions. This will make them incomplete. Upgrade Doxygen to fix.")
     endif()
 
-    ## DOT (Graphviz) is an optional component. When present, substitute the full path to the dot
-    ## executable into the Doxyfile and enable HAVE_DOT; otherwise leave DOT_PATH empty (avoids
-    ## `warning: the dot tool could not be found ...` in doxygen-error.log) and set HAVE_DOT=NO.
-    ## Note: HAVE_DOT must be the literal YES/NO that doxygen expects, not the CMake TRUE/FALSE of
-    ## Doxygen_dot_FOUND, hence the explicit mapping below.
+    ## DOT (Graphviz) is an optional component and only used by the opt-in 'doc_dot' target.
+    ## The main documentation (doc, doc_class_only, doc_noclass, doc_minimal) never runs dot:
+    ## Doxyfile.in sets HAVE_DOT = NO literally, and class inheritance diagrams are drawn by
+    ## doxygen's built-in generator. When dot is present, its full path is still substituted into
+    ## DOT_PATH (inherited by Doxyfile_dot); otherwise DOT_PATH is left empty, which avoids
+    ## `warning: the dot tool could not be found ...` in doxygen-error.log.
     if (TARGET Doxygen::dot)
       get_target_property(CF_DOXYGEN_DOT_EXECUTABLE Doxygen::dot IMPORTED_LOCATION)
-      set(DOXYGEN_HAVE_DOT "YES")
     else()
       set(CF_DOXYGEN_DOT_EXECUTABLE "")
-      set(DOXYGEN_HAVE_DOT "NO")
     endif()
-      
-    
+
+    ## Conditional documentation, for doxygen's @if <label> ... @endif. WITH_GUI marks what only a
+    ## build with the GUI can document: the GUI tools' command line help and INI documentation,
+    ## which TOPPDocumenter captures by running the tools. Without the GUI their pages are still
+    ## generated, just without that section, so the references to them from doc/doxygen/public
+    ## still resolve. WITH_WNETALIGN does the same for FeatureLinkerWNet and for the parameter
+    ## documentation of FeatureGroupingAlgorithmWNet, which DefaultParamHandlerDocumenter only
+    ## writes when the WNet alignment is built.
+    set(_doxygen_enabled_sections "")
+    if (WITH_GUI)
+      list(APPEND _doxygen_enabled_sections "WITH_GUI")
+    endif()
+    if (WITH_WNETALIGN)
+      list(APPEND _doxygen_enabled_sections "WITH_WNETALIGN")
+    endif()
+    list(JOIN _doxygen_enabled_sections " " CF_DOXYGEN_ENABLED_SECTIONS)
+
     #------------------------------------------------------------------------------
     # configure doxygen configuration files
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile)
@@ -301,7 +315,8 @@ if(ENABLE_DOCS)
 
     if (TARGET Doxygen::dot)
       #------------------------------------------------------------------------------
-      # doc_dot target
+      # doc_dot target: opt-in documentation with all dot (Graphviz) graphs (include,
+      # included-by, collaboration, directory, graphical hierarchy); not part of ALL
       add_custom_target(doc_dot
                         COMMAND ${CMAKE_COMMAND} -E echo ""
                         COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -319,7 +334,7 @@ if(ENABLE_DOCS)
                         VERBATIM)
       add_dependencies(doc_dot doc_param_internal)
     else()
-      message(STATUS "DOT not found. Disabling target 'doc_dot'!")
+      message(STATUS "DOT (Graphviz) not found. Disabling the optional target 'doc_dot' (documentation with all dot graphs). The other documentation targets do not need it.")
     endif()
 
     #------------------------------------------------------------------------------

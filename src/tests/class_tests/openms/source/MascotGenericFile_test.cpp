@@ -418,6 +418,248 @@ START_SECTION((SEQ sequence query field - single and multiple))
 }
 END_SECTION
 
+START_SECTION((precursor charge, precursor intensity and RT are not inherited from the previous block))
+{
+  // Regression test: the reader reused one spectrum object for all blocks and only reset the
+  // peaks, TITLE and SEQ. A block without CHARGE, RTINSECONDS or a PEPMASS intensity therefore
+  // silently received the values of the previous block (wrong precursor charge/mass, RT, ...).
+  std::string mgf_content = "BEGIN IONS\n"
+                            "TITLE=s1\n"
+                            "PEPMASS=500.25 12000\n"
+                            "CHARGE=2+\n"
+                            "RTINSECONDS=1200\n"
+                            "100 10\n"
+                            "END IONS\n"
+                            "BEGIN IONS\n"
+                            "TITLE=s2\n"
+                            "PEPMASS=612.8\n"
+                            "150 20\n"
+                            "END IONS\n";
+
+  std::string tmp_in("MascotGenericFile_no_carry_over.mgf");
+  NEW_TMP_FILE(tmp_in)
+  std::ofstream ofs(tmp_in.c_str());
+  ofs << mgf_content;
+  ofs.close();
+
+  PeakMap exp;
+  MascotGenericFile mgf_file;
+  mgf_file.load(tmp_in, exp);
+
+  TEST_EQUAL(exp.size(), 2)
+  ABORT_IF(exp.size() != 2)
+
+  // s1: all fields are given in its block
+  TEST_EQUAL(exp[0].getPrecursors().size(), 1)
+  TEST_REAL_SIMILAR(exp[0].getPrecursors()[0].getMZ(), 500.25)
+  TEST_REAL_SIMILAR(exp[0].getPrecursors()[0].getIntensity(), 12000.0)
+  TEST_EQUAL(exp[0].getPrecursors()[0].getCharge(), 2)
+  TEST_REAL_SIMILAR(exp[0].getRT(), 1200.0)
+  TEST_EQUAL(exp[0].getMSLevel(), 2)
+  TEST_STRING_EQUAL(exp[0].getNativeID(), "index=0")
+  TEST_STRING_EQUAL(StringUtils::toStr(exp[0].getMetaValue("TITLE")), "s1_index=0")
+  TEST_EQUAL(exp[0].size(), 1)
+  TEST_REAL_SIMILAR(exp[0][0].getMZ(), 100.0)
+
+  // s2: only the PEPMASS m/z is given -> everything else must be at its default value
+  // (charge 0, intensity 0, RT unset i.e. -1) and not at the values of s1
+  TEST_EQUAL(exp[1].getPrecursors().size(), 1)
+  TEST_REAL_SIMILAR(exp[1].getPrecursors()[0].getMZ(), 612.8)
+  TEST_REAL_SIMILAR(exp[1].getPrecursors()[0].getIntensity(), 0.0)
+  TEST_EQUAL(exp[1].getPrecursors()[0].getCharge(), 0)
+  TEST_REAL_SIMILAR(exp[1].getRT(), -1.0) // MSSpectrum default; getRT() < 0 means 'no RT'
+  TEST_EQUAL(exp[1].getMSLevel(), 2)
+  TEST_TRUE(exp[1].getType() == SpectrumSettings::SpectrumType::CENTROID)
+  TEST_STRING_EQUAL(exp[1].getNativeID(), "index=1")
+  TEST_STRING_EQUAL(StringUtils::toStr(exp[1].getMetaValue("TITLE")), "s2_index=1")
+  TEST_EQUAL(exp[1].size(), 1)
+  TEST_REAL_SIMILAR(exp[1][0].getMZ(), 150.0)
+  TEST_REAL_SIMILAR(exp[1][0].getIntensity(), 20.0)
+}
+END_SECTION
+
+START_SECTION((MS level and library fields (NAME, SMILES, INCHI, ...) are not inherited from the previous block))
+{
+  // Spectral-library entries differ in which fields they list; a block without NAME/SMILES/...
+  // must not report the compound of the previous block.
+  std::string mgf_content = "BEGIN IONS\n"
+                            "TITLE=lib1\n"
+                            "PEPMASS=195.0877\n"
+                            "CHARGE=1\n"
+                            "MSLEVEL=3\n"
+                            "NAME=Caffeine\n"
+                            "SMILES=CC\n"
+                            "INCHI=InChI=1S/C8H10N4O2\n"
+                            "IONMODE=positive\n"
+                            "SPECTRUMID=CCMSLIB00000000001\n"
+                            "SCANS=1\n"
+                            "100 10\n"
+                            "END IONS\n"
+                            "BEGIN IONS\n"
+                            "TITLE=lib2\n"
+                            "PEPMASS=181.0720\n"
+                            "150 20\n"
+                            "END IONS\n";
+
+  std::string tmp_in("MascotGenericFile_no_carry_over_library.mgf");
+  NEW_TMP_FILE(tmp_in)
+  std::ofstream ofs(tmp_in.c_str());
+  ofs << mgf_content;
+  ofs.close();
+
+  PeakMap exp;
+  MascotGenericFile mgf_file;
+  mgf_file.load(tmp_in, exp);
+
+  TEST_EQUAL(exp.size(), 2)
+  ABORT_IF(exp.size() != 2)
+
+  // block 1: everything present
+  TEST_EQUAL(exp[0].getMSLevel(), 3)
+  TEST_EQUAL(exp[0].getPrecursors()[0].getCharge(), 1)
+  TEST_TRUE(exp[0].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME))
+  TEST_STRING_EQUAL(StringUtils::toStr(exp[0].getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME)), "Caffeine")
+  TEST_TRUE(exp[0].metaValueExists(Constants::UserParam::MSM_SMILES_STRING))
+  TEST_STRING_EQUAL(StringUtils::toStr(exp[0].getMetaValue(Constants::UserParam::MSM_SMILES_STRING)), "CC")
+  TEST_TRUE(exp[0].metaValueExists(Constants::UserParam::MSM_INCHI_STRING))
+  TEST_STRING_EQUAL(StringUtils::toStr(exp[0].getMetaValue(Constants::UserParam::MSM_INCHI_STRING)), "InChI=1S/C8H10N4O2")
+  TEST_TRUE(exp[0].metaValueExists("IONMODE"))
+  TEST_TRUE(exp[0].metaValueExists("GNPS_Spectrum_ID"))
+  TEST_TRUE(exp[0].metaValueExists("Scan_ID"))
+
+  // block 2: none of these fields is given -> none of them may be present
+  TEST_REAL_SIMILAR(exp[1].getPrecursors()[0].getMZ(), 181.0720)
+  TEST_EQUAL(exp[1].getPrecursors()[0].getCharge(), 0)
+  TEST_EQUAL(exp[1].getMSLevel(), 2) // MGF default, not the MSLEVEL=3 of block 1
+  TEST_FALSE(exp[1].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME))
+  TEST_FALSE(exp[1].metaValueExists(Constants::UserParam::MSM_SMILES_STRING))
+  TEST_FALSE(exp[1].metaValueExists(Constants::UserParam::MSM_INCHI_STRING))
+  TEST_FALSE(exp[1].metaValueExists("IONMODE"))
+  TEST_FALSE(exp[1].metaValueExists("GNPS_Spectrum_ID"))
+  TEST_FALSE(exp[1].metaValueExists("Scan_ID"))
+  TEST_STRING_EQUAL(StringUtils::toStr(exp[1].getMetaValue("TITLE")), "lib2_index=1")
+}
+END_SECTION
+
+START_SECTION((a block without peak lines is read as an empty spectrum and not merged with the next block))
+{
+  // Regression test: 'END IONS' was only detected inside the peak loop, so a block without
+  // peak lines ran on into the following block (merging both, and shifting all native IDs)
+  // and was dropped when it was the last block of the file.
+  {
+    std::string mgf_content = "BEGIN IONS\n"
+                              "TITLE=first\n"
+                              "PEPMASS=500.0\n"
+                              "CHARGE=2+\n"
+                              "100 10\n"
+                              "END IONS\n"
+                              "BEGIN IONS\n"
+                              "TITLE=empty\n"
+                              "PEPMASS=600.0\n"
+                              "CHARGE=3+\n"
+                              "END IONS\n"
+                              "BEGIN IONS\n"
+                              "TITLE=third\n"
+                              "PEPMASS=700.0\n"
+                              "200 20\n"
+                              "END IONS\n";
+
+    std::string tmp_in("MascotGenericFile_empty_block.mgf");
+    NEW_TMP_FILE(tmp_in)
+    std::ofstream ofs(tmp_in.c_str());
+    ofs << mgf_content;
+    ofs.close();
+
+    PeakMap exp;
+    MascotGenericFile mgf_file;
+    mgf_file.load(tmp_in, exp);
+
+    TEST_EQUAL(exp.size(), 3)
+    ABORT_IF(exp.size() != 3)
+
+    TEST_STRING_EQUAL(StringUtils::toStr(exp[0].getMetaValue("TITLE")), "first_index=0")
+    TEST_REAL_SIMILAR(exp[0].getPrecursors()[0].getMZ(), 500.0)
+    TEST_EQUAL(exp[0].getPrecursors()[0].getCharge(), 2)
+    TEST_EQUAL(exp[0].size(), 1)
+
+    // the empty block keeps its own header fields, but has no peaks
+    TEST_STRING_EQUAL(exp[1].getNativeID(), "index=1")
+    TEST_STRING_EQUAL(StringUtils::toStr(exp[1].getMetaValue("TITLE")), "empty_index=1")
+    TEST_REAL_SIMILAR(exp[1].getPrecursors()[0].getMZ(), 600.0)
+    TEST_EQUAL(exp[1].getPrecursors()[0].getCharge(), 3)
+    TEST_EQUAL(exp[1].size(), 0)
+
+    // the third block is a spectrum of its own: its TITLE and PEPMASS are on the third
+    // spectrum, and it does not inherit the CHARGE of the empty block
+    TEST_STRING_EQUAL(exp[2].getNativeID(), "index=2")
+    TEST_STRING_EQUAL(StringUtils::toStr(exp[2].getMetaValue("TITLE")), "third_index=2")
+    TEST_REAL_SIMILAR(exp[2].getPrecursors()[0].getMZ(), 700.0)
+    TEST_EQUAL(exp[2].getPrecursors()[0].getCharge(), 0)
+    TEST_EQUAL(exp[2].size(), 1)
+    TEST_REAL_SIMILAR(exp[2][0].getMZ(), 200.0)
+  }
+
+  // an empty block at the end of the file is kept as well
+  {
+    std::string mgf_content = "BEGIN IONS\n"
+                              "TITLE=first\n"
+                              "PEPMASS=500.0\n"
+                              "100 10\n"
+                              "END IONS\n"
+                              "BEGIN IONS\n"
+                              "TITLE=last_empty\n"
+                              "PEPMASS=600.0\n"
+                              "END IONS\n";
+
+    std::string tmp_in("MascotGenericFile_empty_last_block.mgf");
+    NEW_TMP_FILE(tmp_in)
+    std::ofstream ofs(tmp_in.c_str());
+    ofs << mgf_content;
+    ofs.close();
+
+    PeakMap exp;
+    MascotGenericFile mgf_file;
+    mgf_file.load(tmp_in, exp);
+
+    TEST_EQUAL(exp.size(), 2)
+    ABORT_IF(exp.size() != 2)
+    TEST_STRING_EQUAL(StringUtils::toStr(exp[1].getMetaValue("TITLE")), "last_empty_index=1")
+    TEST_REAL_SIMILAR(exp[1].getPrecursors()[0].getMZ(), 600.0)
+    TEST_EQUAL(exp[1].size(), 0)
+  }
+}
+END_SECTION
+
+START_SECTION((parameters in the file header are not applied to spectra))
+{
+  // positive control for the documented behaviour: lines outside BEGIN IONS/END IONS
+  // (Mascot search parameters) are skipped and do not act as defaults for the blocks
+  std::string mgf_content = "CHARGE=1,2,3\n"
+                            "MASS=monoisotopic\n"
+                            "\n"
+                            "BEGIN IONS\n"
+                            "TITLE=no_charge\n"
+                            "PEPMASS=500.0\n"
+                            "100 10\n"
+                            "END IONS\n";
+
+  std::string tmp_in("MascotGenericFile_header_params.mgf");
+  NEW_TMP_FILE(tmp_in)
+  std::ofstream ofs(tmp_in.c_str());
+  ofs << mgf_content;
+  ofs.close();
+
+  PeakMap exp;
+  MascotGenericFile mgf_file;
+  mgf_file.load(tmp_in, exp);
+
+  TEST_EQUAL(exp.size(), 1)
+  TEST_REAL_SIMILAR(exp[0].getPrecursors()[0].getMZ(), 500.0)
+  TEST_EQUAL(exp[0].getPrecursors()[0].getCharge(), 0)
+  TEST_EQUAL(exp[0].size(), 1)
+}
+END_SECTION
+
 delete ptr;
 
 /////////////////////////////////////////////////////////////

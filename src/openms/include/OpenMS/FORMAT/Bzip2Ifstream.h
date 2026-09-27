@@ -9,8 +9,15 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <bzlib.h>
+#include <cstddef>  // for size_t
+#include <cstdio>   // for std::FILE (used to come in through <bzlib.h>)
 #include <istream>
+
+// <bzlib.h> is deliberately not included here: bzip2 is a PRIVATE dependency of
+// libOpenMS, so no installed header may require its include directory. The only
+// bzip2 type this class needs is BZFILE, which bzlib defines as `typedef void
+// BZFILE;`, so the handle is stored as a void* below. Bzip2Ifstream.cpp includes
+// <bzlib.h> and does the conversions.
 
 namespace OpenMS
 {
@@ -104,10 +111,12 @@ public:
     void close();
 
 protected:
-    /// Underlying @c FILE handle used to feed the bzip2 reader; @c nullptr when no file is open.
-    FILE * file_;
+    /// Underlying @c std::FILE handle used to feed the bzip2 reader; @c nullptr when no file is open.
+    std::FILE * file_;
     /// bzip2 read handle attached to @ref file_; @c nullptr when no file is open.
-    BZFILE * bzip2file_;
+    /// This is a @c BZFILE*, which bzlib defines as @c void*; spelled @c void* so
+    /// that this header does not have to include @c <bzlib.h>.
+    void * bzip2file_;
     /// Number of bytes produced by the most recent @ref read call.
     size_t     n_buffer_;
     /// Most recent bzip2 status code returned to the read API.

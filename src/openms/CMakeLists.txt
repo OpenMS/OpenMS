@@ -254,8 +254,9 @@ list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
      ${OPENMS_PARQUET_TARGET})
 if (OPENMS_ARROW_DATASET_TARGET)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_DATASET_TARGET})
-  # Dataset pushdown needs libxml2 when Arrow Dataset is linked statically.
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES LibXml2::LibXml2)
+  # libxml2 is needed by a statically linked Arrow, but listing it here put it
+  # ahead of the archive that references it. cmake_findExternalLibs.cmake now
+  # appends it to Arrow's own link interface instead, where the order is right.
 endif()
 
 if (WITH_OPENTIMS)
@@ -296,14 +297,18 @@ openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
                                  ${OpenMS_configured_headers}
-                   INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
-                                     ${CMAKE_CURRENT_BINARY_DIR}/include
+                   BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
+                             ${CMAKE_CURRENT_BINARY_DIR}/include
                    PRIVATE_INCLUDES ${OPENMS_ONNX_PRIVATE_INCLUDES}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
+
+target_sources(OpenMS PRIVATE FILE_SET private_headers TYPE HEADERS
+  BASE_DIRS source include
+  FILES ${OpenMS_private_headers})
 
 # The core library has no QObject classes, including in builds that also find Qt.
 set_target_properties(OpenMS PROPERTIES AUTOMOC OFF)
@@ -486,6 +491,7 @@ endif()
 # Note: that slash(/) is important here, otherwise the whole directory
 #       (not its content) will be copied!
 #install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
+
 install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
   DESTINATION ${INSTALL_SHARE_DIR}
   COMPONENT share
@@ -499,6 +505,18 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
   REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
   REGEX "OpenMS/examples" EXCLUDE
 )
+
+## The TOPP tool registry is generated into the build tree rather than checked in
+## (cmake/topp_tool_macros.cmake), so it is installed from there. Because it is written from
+## the tools this build actually declares, there is nothing to filter per build option: a
+## tool that was not built was not declared and is not in the file. It is installed into
+## TOOLS/ rather than beside the other share data so that the directory holds registry files
+## and nothing else: ToolHandler reads every *.tsv it finds there.
+install(FILES ${OPENMS_TOOL_REGISTRY_BUILD_FILE}
+  DESTINATION ${INSTALL_SHARE_DIR}/TOOLS
+  COMPONENT share
+  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+)
 install(FILES ${OPENMS_HOST_DIRECTORY}/License.txt
   DESTINATION ${INSTALL_SHARE_DIR}/LICENSES
   RENAME OpenMS-BSD-3-Clause.txt
@@ -507,10 +525,6 @@ install(FILES ${OPENMS_HOST_DIRECTORY}/License.txt
 if(INSTALL_OPENMS_EXAMPLES)
   install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
 endif()
-
-# Devs also need our custom find modules
-install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_CMAKE_DIR}/Modules cmake)
-file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
 

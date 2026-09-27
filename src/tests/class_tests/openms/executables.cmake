@@ -18,22 +18,13 @@ set(concept_executables_list
   UniqueIdInterface_test
 )
 set(qc_executables_list
-  Contaminants_test
   DBSuitability_test
   FeatureSummary_test
-  FragmentMassError_test
-  FWHM_test
   IdentificationSummary_test
   MissedCleavages_test
   Ms2IdentificationRate_test
-  Ms2SpectrumStats_test
-  MQEvidenceExporter_test
-  MQMsmsExporter_test
-  MzCalibration_test
-  PeptideMass_test
   PSMExplainedIonCurrent_test
   QCBase_test
-  RTAlignment_test
   SpectrumCount_test
   TIC_test
 )
@@ -114,10 +105,10 @@ set(metadata_executables_list
   MassAnalyzer_test
   MetaInfoDescription_test
   MetaInfoInterface_test
+  MS1LabelState_test
   MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test
-  CometNativeIDRemapper_test
   SpectrumNativeIDParser_test
   PeptideEvidence_test
   PeptideHit_test
@@ -302,11 +293,9 @@ set(format_executables_list
   SwathWindowLoader_test
   TextFile_test
   TargetedDataFileLoader_test
-  ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
   UnimodXMLFile_test
-  UniProtXMLFile_test
   XMassFile_test
   XMLFile_test
   XMLHandler_test
@@ -346,6 +335,7 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   XICParquetFile_test
   XIMParquetFile_test
   XIPMParquetConsumer_test
+  XIPMParquetRoundTrip_test
   XIPMParquetFile_test
   ParquetFile_test
   ProteinIdentificationArrowIO_test
@@ -419,6 +409,7 @@ set(filtering_executables_list
   MultiplexFiltering_test
   MultiplexFilteringCentroided_test
   MultiplexFilteringProfile_test
+  MultiplexResolverAlgorithm_test
   MultiplexIsotopicPeakPattern_test
   MultiplexSatelliteCentroided_test
   MultiplexSatelliteProfile_test
@@ -479,6 +470,7 @@ set(chemistry_executables_list
   EmpiricalFormula_test
   EnzymaticDigestion_test
   FineIsotopeDistribution_test
+  GlycanStructure_test
   HydrophobicityProfile_test
   IsoelectricPoint_test
   IMSAlphabetParser_test
@@ -494,7 +486,6 @@ set(chemistry_executables_list
   ModificationDefinition_test
   ModificationDefinitionsSet_test
   ModificationsDB_test
-  ModifiedNASequenceGenerator_test
   MonosaccharideDB_test
   IonNaming_test
   MzPAF_test
@@ -517,6 +508,7 @@ set(chemistry_executables_list
   SimpleTSGXLMS_test
   SpectrumAnnotator_test
   Tagger_test
+  TheoreticalGlycanSpectrumGenerator_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test
   Weights_test
@@ -536,7 +528,6 @@ set(analysis_executables_list
   BasicProteinInferenceAlgorithm_test
   BayesianProteinInferenceAlgorithm_test
   ClusterProxyKD_test
-  CometModification_test
   ConfidenceScoring_test
   ConsensusIDAlgorithmAverage_test
   ConsensusIDAlgorithmBest_test
@@ -622,7 +613,6 @@ set(analysis_executables_list
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
   NeedlemanWunsch_test
-  NeighborSeq_test
   PeptideIndexing_test
   PeptideAndProteinQuant_test
   PeptideProteinResolution_test
@@ -639,10 +629,6 @@ set(analysis_executables_list
   PrecursorPurity_test
   QTClusterFinder_test
   ReactionMonitoringTransition_test
-  NuXLReport_test
-  NuXLFragmentAdductDefinition_test
-  NuXLModificationsGenerator_test
-  NuXLParameterParsing_test
   ProSEAlgorithm_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
@@ -651,7 +637,6 @@ set(analysis_executables_list
   PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test
-  TransformationModelDefaults_test
   TransformationModelBSpline_test
   TransformationModelLowess_test
   TransformationModelInterpolated_test
@@ -665,13 +650,6 @@ if(WITH_WNETALIGN)
 endif()
 
 set(applications_executables_list
-  INIUpdater_test
-  #MapAlignerBase_test
-  SearchEngineBase_test
-  TOPPBase_test
-  TOPPExternalToolBase_test
-  ToolHandler_test
-  ParameterInformation_test
   ConsoleUtils_test
 )
 
@@ -769,7 +747,6 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureQC_test
     OpenSwathExport_test
     OpenSwathPercolatorScoring_test
-    PeptidoformInference_test
     SpectrumHelpers_test
     StatsHelpers_test
     SwathQC_test

@@ -52,11 +52,16 @@ namespace OpenMS
       absolute paths in archive entries. If the provided path already points to a
       directory it is returned unchanged and no TempDir is created.
 
+      Before writing anything, archives with more than 100000 entries, or whose declared
+      uncompressed size exceeds 90% of the free space of the temporary directory (or if that
+      free space cannot be determined), are rejected.
+      Extraction stops at an entry that inflates beyond its declared size.
+
       @param[in] input_path Path to the zip archive (or a directory).
       @param[out] temp_dir A unique_ptr which will be set to the owned TempDir when an archive is extracted. If input_path is a directory this will remain unchanged.
       @return The path where the archive was unpacked (or input_path if already a directory).
       @throws Exception::FileNotFound if the input archive is not readable.
-      @throws Exception::InvalidValue on archive extraction errors.
+      @throws Exception::InvalidValue on archive extraction errors, including an archive over these limits.
       @throws Exception::NotImplemented if libzip support is unavailable.
     */
     static std::string unzipDirectory(const std::string& input_path, std::unique_ptr<TempDir>& temp_dir);

@@ -46,6 +46,9 @@ NB_MODULE(_pyopenms_processing, m) {
     // -----------------------------------------------------------------------
     auto datafilters_class = nb::class_<OpenMS::DataFilters>(m, "DataFilters", "DataFilter array providing some convenience functions")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::DataFilters &>())
+        .def("__copy__", [](const OpenMS::DataFilters& self) { return OpenMS::DataFilters(self); })
+        .def("__deepcopy__", [](const OpenMS::DataFilters& self, nb::dict) { return OpenMS::DataFilters(self); }, "memo"_a)
         .def("size", [](const OpenMS::DataFilters& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::DataFilters& self, size_t i) { if (i >= self.size()) throw nb::index_error(); return self[i]; })
         .def("add", [](OpenMS::DataFilters& self, const OpenMS::DataFilters::DataFilter& filter) { return self.add(filter); }, "filter"_a)
@@ -81,6 +84,9 @@ NB_MODULE(_pyopenms_processing, m) {
     nb::class_<OpenMS::DataFilters::DataFilter>(m, "DataFilter",
         "Representation of a peak/feature filter combining FilterType, FilterOperation and a value")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::DataFilters::DataFilter &>())
+        .def("__copy__", [](const OpenMS::DataFilters::DataFilter& self) { return OpenMS::DataFilters::DataFilter(self); })
+        .def("__deepcopy__", [](const OpenMS::DataFilters::DataFilter& self, nb::dict) { return OpenMS::DataFilters::DataFilter(self); }, "memo"_a)
         .def(nb::init<OpenMS::DataFilters::FilterType, OpenMS::DataFilters::FilterOperation, double, const std::string&>(),
             "type"_a, "op"_a, "val"_a, "meta_name"_a = "")
         .def(nb::init<OpenMS::DataFilters::FilterType, OpenMS::DataFilters::FilterOperation, const std::string&, const std::string&>(),
@@ -251,6 +257,9 @@ The group of clean-up functions provides helpers that are useful to ensure data 
 The filter functions for MS/MS experiments do include clean-up steps, because they filter peptide and protein IDs in conjunction and potential contradictions between the two must be eliminated.
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::IDFilter &>())
+        .def("__copy__", [](const OpenMS::IDFilter& self) { return OpenMS::IDFilter(self); })
+        .def("__deepcopy__", [](const OpenMS::IDFilter& self, nb::dict) { return OpenMS::IDFilter(self); }, "memo"_a)
         .def_static("filterHitsByRank", [](OpenMS::PeptideIdentificationList& ids, size_t min_rank, size_t max_rank) { return OpenMS::IDFilter::filterHitsByRank(ids, min_rank, max_rank); }, "ids"_a, "min_rank"_a, "max_rank"_a)
         .def_static("removeHitsMatchingProteins", [](OpenMS::PeptideIdentificationList& ids, const std::set<std::string>& accessions) { return OpenMS::IDFilter::removeHitsMatchingProteins(ids, accessions); }, "ids"_a, "accessions"_a, "Filters peptide or protein identifications according to the given proteins (negative)")
         .def_static("keepHitsMatchingProteins", [](OpenMS::PeptideIdentificationList& ids, const std::set<std::string>& accessions) { return OpenMS::IDFilter::keepHitsMatchingProteins(ids, accessions); }, "ids"_a, "accessions"_a, "Filters peptide or protein identifications according to the given proteins (positive)")
@@ -295,7 +304,7 @@ protein references after cleanup are also removed (default: false) (in)
         .def_static("removePeptidesWithMatchingSequences", [](OpenMS::PeptideIdentificationList& peptides, const OpenMS::PeptideIdentificationList& bad_peptides, bool ignore_mods) { return OpenMS::IDFilter::removePeptidesWithMatchingSequences(peptides, bad_peptides, ignore_mods); }, "peptides"_a, "bad_peptides"_a, "ignore_mods"_a, "Removes all peptide hits with a sequence that matches one in 'bad_peptides'")
         .def_static("keepPeptidesWithMatchingSequences", [](OpenMS::PeptideIdentificationList& peptides, const OpenMS::PeptideIdentificationList& good_peptides, bool ignore_mods) { return OpenMS::IDFilter::keepPeptidesWithMatchingSequences(peptides, good_peptides, ignore_mods); }, "peptides"_a, "good_peptides"_a, "ignore_mods"_a, "Removes all peptide hits with a sequence that does not match one in 'good_peptides'")
         .def_static("keepUniquePeptidesPerProtein", [](OpenMS::PeptideIdentificationList& peptides) { return OpenMS::IDFilter::keepUniquePeptidesPerProtein(peptides); }, "peptides"_a, "Removes all peptides that are not annotated as unique for a protein (by PeptideIndexer)")
-        .def_static("removeDuplicatePeptideHits", [](OpenMS::PeptideIdentificationList& peptides, bool seq_only) { return OpenMS::IDFilter::removeDuplicatePeptideHits(peptides, seq_only); }, "peptides"_a, "seq_only"_a, "Removes duplicate peptide hits from each peptide identification, keeping only unique hits (per ID)")
+        .def_static("removeDuplicatePeptideHits", [](OpenMS::PeptideIdentificationList& peptides, bool seq_only) { return OpenMS::IDFilter::removeDuplicatePeptideHits(peptides, seq_only); }, "peptides"_a, "seq_only"_a = false, "Removes duplicate peptide hits from each peptide identification, keeping only unique hits (per ID)")
         .def_static("filterHitsByScore", [](OpenMS::AnnotatedMSRun& annotated_data, double peptide_threshold_score, double protein_threshold_score) { return OpenMS::IDFilter::filterHitsByScore(annotated_data, peptide_threshold_score, protein_threshold_score); }, "annotated_data"_a, "peptide_threshold_score"_a, "protein_threshold_score"_a, "Filters an MS/MS experiment according to score thresholds")
         .def_static("keepNBestHits", [](OpenMS::AnnotatedMSRun& annotated_data, size_t n) { return OpenMS::IDFilter::keepNBestHits(annotated_data, n); }, "annotated_data"_a, "n"_a)
         .def_static("keepNBestSpectra", [](OpenMS::PeptideIdentificationList& peptides, size_t n) { return OpenMS::IDFilter::keepNBestSpectra(peptides, n); }, "peptides"_a, "n"_a, 
@@ -318,6 +327,7 @@ Removes hits annotated as decoys from peptide or protein identifications. Checks
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::InternalCalibration::LockMass>(m, "InternalCalibration_LockMass", "OpenMS class InternalCalibration_LockMass")
         .def(nb::init<double, int, int>())
+        .def(nb::init<const OpenMS::InternalCalibration::LockMass &>())
         .def_rw("mz", &OpenMS::InternalCalibration::LockMass::mz)
         .def_rw("ms_level", &OpenMS::InternalCalibration::LockMass::ms_level)
         .def_rw("charge", &OpenMS::InternalCalibration::LockMass::charge)
@@ -342,6 +352,9 @@ Outlier detection before model building via the RANSAC algorithm is supported fo
 )doc")
         .def(nb::init<>())
         .def(nb::init<bool>())
+        .def(nb::init<const OpenMS::MZTrafoModel &>())
+        .def("__copy__", [](const OpenMS::MZTrafoModel& self) { return OpenMS::MZTrafoModel(self); })
+        .def("__deepcopy__", [](const OpenMS::MZTrafoModel& self, nb::dict) { return OpenMS::MZTrafoModel(self); }, "memo"_a)
         .def_static("nameToEnum", [](const std::string& name) { return OpenMS::MZTrafoModel::nameToEnum(name); }, "name"_a)
         .def_static("enumToName", [](OpenMS::MZTrafoModel::MODELTYPE mt) { return OpenMS::MZTrafoModel::enumToName(mt); }, "mt"_a)
         .def_static("setRANSACParams", [](const OpenMS::Math::RANSACParam& p) { return OpenMS::MZTrafoModel::setRANSACParams(p); }, "p"_a)
@@ -523,6 +536,7 @@ SplinePackage contains the spline fit of a single set of such data
 points. * * @see SplineInterpolatedPeaks
 )doc")
         .def(nb::init<std::vector<double>, std::vector<double>>())
+        .def(nb::init<const OpenMS::SplinePackage &>())
         .def("getPosMin", [](const OpenMS::SplinePackage& self) { return self.getPosMin(); }, "Returns the minimum position for which the spline fit is valid")
         .def("getPosMax", [](const OpenMS::SplinePackage& self) { return self.getPosMax(); }, "Returns the maximum position for which the spline fit is valid")
         .def("getPosStepWidth", [](const OpenMS::SplinePackage& self) { return self.getPosStepWidth(); }, "Returns a sensible position step width for the package")

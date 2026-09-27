@@ -21,6 +21,8 @@
 
 namespace OpenMS
 {
+  class LayerDataPeak;
+
   /**
     @brief Tabular visualization / selection of identified spectra.
 

@@ -32,6 +32,11 @@ The most important CMake variables are:
     <td>[g++/clang only] Enables/Disables Address Sanitizer (ASAN) to find access violations and other bugs.</td>
   </tr>
   <tr>
+    <th valign="top">OPENMS_VERIFY_INTERFACE_HEADER_SETS=On/Off</th>
+    <td>Enable public-header compile checks. Build <code>all_verify_interface_header_sets</code>
+    explicitly; see @ref verifying_public_headers. (Default: Off)</td>
+  </tr>
+  <tr>
     <th valign="top">WITH_GUI=On/Off</td>
     <td>Defines if the OpenMS GUI tools (TOPPView, TOPPAS) should be built or
     not. If you plan to use OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
@@ -41,8 +46,8 @@ The most important CMake variables are:
     <td>Build the TOPP command-line applications (src/topp). Set to "Off" to build only
     the core OpenMS library, e.g. for a standalone SDK consumed by an external application.
     <code>ENABLE_TOPP_TESTING</code> and <code>ENABLE_PIPELINE_TESTING</code> default to
-    following this flag, and <code>ENABLE_CWL_GENERATION</code> /
-    <code>ENABLE_PREPARE_KNIME_PACKAGE</code> require it to be "On". (Default: On)</td>
+    following this flag, and <code>ENABLE_CWL_GENERATION</code> requires it to be
+    "On". (Default: On)</td>
   </tr>
   <tr>
     <th valign="top">INSTALL_OPENMS_EXAMPLES=On/Off</td>
@@ -166,8 +171,7 @@ The most important CMake variables are:
     published with every openms-thermo-bridge release) or
     <code>-DOPENMS_THERMO_BRIDGE_DOWNLOAD_PREBUILT_MANAGED=ON</code>; the native bridge then only needs the
     nethost headers from a .NET SDK / host pack.
-    Disabled automatically on Linux/aarch64 targets.
-    (Default: On on supported platforms)</td>
+    (Default: On)</td>
   </tr>
   <tr>
     <th valign="top">ENABLE_THERMO_RAW_TESTS=On/Off</td>
@@ -179,7 +183,7 @@ The most important CMake variables are:
     <th valign="top">WITH_WNETALIGN=On/Off</td>
     <td>Enable the Wasserstein network alignment feature (FeatureLinkerWNet TOPP tool).
     When enabled, the three header-only libraries <code>pylmcf</code>, <code>wnet</code>, and
-    <code>wnetalign</code> are fetched automatically via FetchContent. (Default: On)</td>
+    <code>wnetalign</code> are fetched automatically via FetchContent. (Default: Off)</td>
   </tr>
   <tr>
     <th valign="top">WITH_ONNX=On/Off</td>

@@ -11,10 +11,9 @@ choco install -y --no-progress \
   cmake \
   ninja
 
-# If you want to install the documentation dependencies:
-choco install -y --no-progress \
-  graphviz
-
+# If you want to install the documentation dependencies (Graphviz is only
+# needed for the optional 'doc_dot' target, i.e. documentation with all dot
+# graphs, and is therefore not installed here: choco install graphviz).
 # Temporary hack to get doxygen installed:
 (git clone https://github.com/OpenMS/chocolatey-packages.git &&
   cd chocolatey-packages &&

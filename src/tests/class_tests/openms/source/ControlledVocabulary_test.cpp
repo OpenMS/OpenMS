@@ -15,7 +15,9 @@
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <iostream>
 #include <map>
+#include <sstream>
 
 ///////////////////////////
 
@@ -217,6 +219,23 @@ START_SECTION(([ControlledVocabulary::CVTerm] bool ControlledVocabulary::CVTerm:
   TEST_EQUAL(ControlledVocabulary::CVTerm::isHigherBetterScore(cv.getTerm("MS:1001331")),true)
   TEST_EQUAL(ControlledVocabulary::CVTerm::isHigherBetterScore(cv.getTerm("MS:1002265")),false)
   TEST_EQUAL(ControlledVocabulary::CVTerm::isHigherBetterScore(cv.getTerm("MS:1002467")),true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] void loadFromOBO(const std::string &name, const std::string &filename): value types given as CV terms))
+{
+  // unknown value types are reported on std::cerr; loading the bundled vocabulary must not report any
+  std::stringstream load_messages;
+  std::streambuf* cerr_buffer = std::cerr.rdbuf(load_messages.rdbuf());
+  ControlledVocabulary cv;
+  cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
+  std::cerr.rdbuf(cerr_buffer);
+  TEST_STRING_EQUAL(load_messages.str(), "")
+
+  // list types and AA sequence values are stored as strings
+  TEST_EQUAL(cv.getTerm("MS:1003163").xref_type == ControlledVocabulary::CVTerm::XRefType::XSD_STRING, true) // list of integers
+  TEST_EQUAL(cv.getTerm("MS:1003820").xref_type == ControlledVocabulary::CVTerm::XRefType::XSD_STRING, true) // list of doubles
+  TEST_EQUAL(cv.getTerm("MS:1003986").xref_type == ControlledVocabulary::CVTerm::XRefType::XSD_STRING, true) // AA sequence
 }
 END_SECTION
 

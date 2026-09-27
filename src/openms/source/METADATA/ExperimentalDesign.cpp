@@ -981,6 +981,17 @@ namespace OpenMS
       }
       const StringList& sample_row = content_.at(sample_idx);
       const Size col_index = columnname_to_columnindex_.at(factor);
+      // A row may hold fewer values than there are columns, e.g. when it was added with
+      // addSample() without content; reading it past its end would be undefined behaviour
+      if (col_index >= sample_row.size())
+      {
+        throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Sample row " + StringUtils::toStr(sample_idx) + " of the Experimental Design has no value for factor '" + factor
+          + "' (column " + StringUtils::toStr(col_index) + ", but the row holds only " + StringUtils::toStr(sample_row.size()) + " value(s))");
+      }
       return sample_row[col_index];
     }
 
@@ -1004,6 +1015,16 @@ namespace OpenMS
      }
      const StringList& sample_row = content_.at(sample_to_rowindex_.at(sample_name));
      const Size col_index = columnname_to_columnindex_.at(factor);
+     // see getFactorValue(unsigned, const std::string&): the row may be shorter than the column list
+     if (col_index >= sample_row.size())
+     {
+      throw Exception::MissingInformation(
+                  __FILE__,
+                  __LINE__,
+                  OPENMS_PRETTY_FUNCTION,
+                  "Sample '" + sample_name + "' of the Experimental Design has no value for factor '" + factor
+                  + "' (column " + StringUtils::toStr(col_index) + ", but its row holds only " + StringUtils::toStr(sample_row.size()) + " value(s))");
+     }
      return sample_row[col_index];
     }
 

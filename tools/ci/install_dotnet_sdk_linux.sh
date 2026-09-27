@@ -7,16 +7,17 @@
 # $Authors: Timo Sachsenberg $
 # --------------------------------------------------------------------------
 #
-# Install a pinned .NET SDK (linux-x64) from Microsoft's release archive into a
-# directory, verifying the tarball against the SHA-512 Microsoft publishes in
+# Install the pinned .NET SDK for this machine's architecture (linux-x64 or
+# linux-arm64) from Microsoft's release archive into a directory, verifying the
+# tarball against the SHA-512 Microsoft publishes in
 # https://builds.dotnet.microsoft.com/dotnet/release-metadata/8.0/releases.json.
 #
 # The pyOpenMS wheel build needs this for exactly one thing: the nethost headers
-# and static library in packs/Microsoft.NETCore.App.Host.linux-x64, which the
-# native openms-thermo-bridge compiles against. It is used instead of
+# and static library in packs/Microsoft.NETCore.App.Host.<rid>, which the native
+# openms-thermo-bridge compiles against. It is used instead of
 #   * the distro dotnet-sdk RPM: AlmaLinux names its host pack
 #     Microsoft.NETCore.App.Host.rhel.9-x64, which the bridge's
-#     FindDotNetHost.cmake (linux-x64 RID) does not find;
+#     FindDotNetHost.cmake (generic linux-<arch> RID) does not find;
 #   * dotnet-install.sh: a mutable script fetched from a redirecting endpoint
 #     and executed unverified.
 #
@@ -27,19 +28,37 @@
 set -euo pipefail
 
 DOTNET_SDK_VERSION="8.0.424"
-DOTNET_SDK_URL="https://builds.dotnet.microsoft.com/dotnet/Sdk/${DOTNET_SDK_VERSION}/dotnet-sdk-${DOTNET_SDK_VERSION}-linux-x64.tar.gz"
-DOTNET_SDK_SHA512="6503fd9f464d5e3a4f43a881d2b74afc6a2c46ceda74d027f1565b7239f4b3ec884857c03c0dcd49eb52f384d5ae1fa5aaf135f0a6aabc5518103aceed643c74"
+
+# The RID of the machine the build runs on: the host pack has to match the
+# architecture of the bridge being compiled, so it follows uname rather than a
+# caller-supplied value. Both SHA-512s are the ones Microsoft publishes in the
+# releases.json named above, for this SDK version.
+case "$(uname -m)" in
+  x86_64|amd64)
+    DOTNET_RID="linux-x64"
+    DOTNET_SDK_SHA512="6503fd9f464d5e3a4f43a881d2b74afc6a2c46ceda74d027f1565b7239f4b3ec884857c03c0dcd49eb52f384d5ae1fa5aaf135f0a6aabc5518103aceed643c74"
+    ;;
+  aarch64|arm64)
+    DOTNET_RID="linux-arm64"
+    DOTNET_SDK_SHA512="bb19b6779ad93d146055583d644ef269bb42501f6c7fdef51e14026cde9d5fd726d370de098a8d8504867fb24bfcb5ab88cc22bec812461aede334de1aacf7b6"
+    ;;
+  *)
+    echo "error: no pinned .NET SDK for machine $(uname -m)" >&2
+    exit 2
+    ;;
+esac
+DOTNET_SDK_URL="https://builds.dotnet.microsoft.com/dotnet/Sdk/${DOTNET_SDK_VERSION}/dotnet-sdk-${DOTNET_SDK_VERSION}-${DOTNET_RID}.tar.gz"
 
 install_dir="${1:-/usr/share/dotnet}"
 
 # Reuse an existing installation only if it carries both the pinned SDK and the
-# linux-x64 host pack we are here for. A distro-packaged SDK at the same version
-# may exist without that pack (its host pack uses a distro RID), in which case
-# the pinned archive is extracted on top.
+# host pack we are here for. A distro-packaged SDK at the same version may exist
+# without that pack (its host pack uses a distro RID), in which case the pinned
+# archive is extracted on top.
 find_host_pack() {
   # glob loop rather than ls|head: an unmatched glob must not trip 'set -e -o pipefail'
   local d
-  for d in "${install_dir}"/packs/Microsoft.NETCore.App.Host.linux-x64/*/runtimes/linux-x64/native; do
+  for d in "${install_dir}"/packs/Microsoft.NETCore.App.Host.${DOTNET_RID}/*/runtimes/${DOTNET_RID}/native; do
     if [[ -d "$d" ]]; then printf '%s' "$d"; return 0; fi
   done
   return 0
@@ -56,7 +75,7 @@ else
        --output "${tmp}/dotnet-sdk.tar.gz" "${DOTNET_SDK_URL}"
   actual="$(sha512sum < "${tmp}/dotnet-sdk.tar.gz" | cut -d' ' -f1)"
   if [[ "${actual}" != "${DOTNET_SDK_SHA512}" ]]; then
-    echo "error: SHA-512 mismatch for dotnet-sdk-${DOTNET_SDK_VERSION}-linux-x64.tar.gz" >&2
+    echo "error: SHA-512 mismatch for dotnet-sdk-${DOTNET_SDK_VERSION}-${DOTNET_RID}.tar.gz" >&2
     echo "       expected ${DOTNET_SDK_SHA512}" >&2
     echo "       actual   ${actual}" >&2
     exit 1
@@ -67,7 +86,7 @@ fi
 
 host_pack="$(find_host_pack)"
 if [[ -z "${host_pack}" || ! -f "${host_pack}/nethost.h" ]]; then
-  echo "error: nethost host pack not found under ${install_dir}/packs" >&2
+  echo "error: no ${DOTNET_RID} nethost host pack under ${install_dir}/packs" >&2
   exit 1
 fi
 echo ".NET SDK ${DOTNET_SDK_VERSION} ready in ${install_dir}; nethost pack: ${host_pack}"

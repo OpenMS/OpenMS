@@ -13,6 +13,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -20,6 +21,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include <sys/stat.h>
+#include <algorithm>
 #include <cerrno>
 #include <limits>
 #include <xercesc/util/XMLString.hpp>
@@ -47,6 +49,21 @@ namespace OpenMS::Internal
     inline double toDoubleOrZero_(const std::string& s)
     {
       return s.empty() ? 0.0 : StringUtils::toDouble(s);
+    }
+
+    // Search engine specific scores (MS:1001143 and children) count as higher-is-better unless the PSI-MS
+    // vocabulary annotates them otherwise (has_order) or, for the many terms without such an annotation,
+    // OpenMS' score registry knows them as e-values, PEPs or q-values (e.g. Comet:expectation value).
+    bool isLowerBetterEngineScore_(const ControlledVocabulary::CVTerm& term)
+    {
+      const bool has_order = std::any_of(term.unparsed.begin(), term.unparsed.end(),
+        [](const std::string& line) { return StringUtils::hasPrefix(line, "relationship: has_order"); });
+      if (has_order)
+      {
+        return !ControlledVocabulary::CVTerm::isHigherBetterScore(term);
+      }
+      Scores::IDType type = Scores::IDType::RAW;
+      return Scores::findIDTypeByName(term.id, type) && !Scores::isHigherBetter(type);
     }
   }
 
@@ -2126,7 +2143,16 @@ namespace OpenMS::Internal
 
       long double score = 0;
       const auto& [param_cv, param_user] = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
+      // The first recognized score in accession order is used, except that a lower-is-better search engine
+      // specific score (e.g. Comet:expectation value or X!Tandem:expect) yields to a PSM-level q-value, which is
+      // then used even if other scores lie between the two in accession order.
+      const bool has_psm_q_value = std::any_of(param_cv.getCVTerms().begin(), param_cv.getCVTerms().end(),
+        [this](const auto& term)
+        {
+          return (q_score_child_terms_.contains(term.first) || term.first == "MS:1002354") && term.first != "MS:1002055";
+        });
       bool scoretype = false;
+      bool use_q_value = false;
       for (map<std::string, vector<OpenMS::CVTerm>>::const_iterator scoreit = param_cv.getCVTerms().begin(); scoreit != param_cv.getCVTerms().end(); ++scoreit)
       {
         if (q_score_child_terms_.contains(scoreit->first) || scoreit->first == "MS:1002354")
@@ -2140,11 +2166,21 @@ namespace OpenMS::Internal
             break;
           }
         }
+        else if (use_q_value)
+        {
+          continue;
+        }
         else if (scoreit->first != "MS:1001143" && // the parent term itself has no numeric value; handled in the special case below
                  specific_score_child_terms_.contains(scoreit->first))
         {
+          const bool lower_better = isLowerBetterEngineScore_(cv_.getTerm(scoreit->first));
+          if (lower_better && has_psm_q_value)
+          {
+            use_q_value = true;
+            continue;
+          }
           score = toDoubleOrZero_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
-          spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
+          spectrum_identification.setHigherScoreBetter(!lower_better);
           spectrum_identification.setScoreType(scoreit->second.front().getName());
           scoretype = true;
           break;
@@ -2466,19 +2502,23 @@ namespace OpenMS::Internal
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
           if (XMLString::equals(element_sib->getTagName(), CONST_XMLCH("PeptideSequence")))
           {
-            DOMNode* tn = element_sib->getFirstChild();
-            if (tn->getNodeType() == DOMNode::TEXT_NODE)
-            {
-              DOMText* data = dynamic_cast<DOMText*>(tn);
-              const XMLCh* val = data->getWholeText();
-              as = StringManager::convert(val);
-            }
-            else
-            {
-              throw std::runtime_error("ERROR : Non Text Node");
-            }
+            // The text content of the element joins the text of all its children (CDATA sections included,
+            // comments excluded) and is an empty string when the element has no children, as in the
+            // '<PeptideSequence/>' the writer emits for a hit with an empty sequence. Inspecting the first
+            // child node instead dereferenced a null pointer for such elements and discarded sequences
+            // that start with a comment or are held in a CDATA section.
+            as = StringManager::convert(element_sib->getTextContent());
           }
         }
+      }
+      // Trim once, before the substitution positions are applied, so that they count residues only.
+      StringUtils::trim(as);
+      if (as.empty())
+      {
+        // The caller catches this, logs the problem and stores an empty sequence for the peptide.
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    StringManager::convert(peptide->getAttribute(CONST_XMLCH("id"))),
+                                    "Peptide has no amino acid sequence.");
       }
       //2. Substitutions
       for (XMLSize_t c = 0; c < node_count; ++c)
@@ -2511,7 +2551,6 @@ namespace OpenMS::Internal
         }
       }
       //3. Modifications
-      StringUtils::trim(as);
       AASequence aas = AASequence::fromString(as);
       for (XMLSize_t c = 0; c < node_count; ++c)
       {

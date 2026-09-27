@@ -82,17 +82,8 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README.md
                     WORLD_READ
         COMPONENT   TOPPShell)
 
-## Not needed unless we need Qt plugins for TOPP again
-## Install the qt.conf file so we can find the libraries
-## add qt.conf to the bin directory for DMGs/pkgs
-#file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-#"[Paths]\nPlugins = ../${INSTALL_PLUGIN_DIR}\n")
-#install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
-#        DESTINATION ./${INSTALL_BIN_DIR}
-#        PERMISSIONS OWNER_WRITE OWNER_READ
-#                    GROUP_READ
-#                    WORLD_READ
-#        COMPONENT   Applications)
+## bin/qt.conf, which ExecutePipeline needs to find the Qt platform plugin, is installed in
+## src/openms_gui/CMakeLists.txt.
 
 ## Fix OpenMS dependencies for all executables in the install directory under bin.
 ## That affects everything but the bundles (whose Framework folders are symlinked to lib anyway).
@@ -113,14 +104,24 @@ install(CODE "
         message('\${topp_sign_out}')"
         COMPONENT Dependencies
         )
-install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -e @rpath/ -n -c)"
-        COMPONENT library
-        )
-install(CODE "
-        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE lib_sign_out ERROR_VARIABLE lib_sign_out)
-        message('\${lib_sign_out}')"
-        COMPONENT library
-        )
+## The libraries come in layered components (cmake/install_macros.cmake):
+## library, library_cli and library_gui. productbuild stages each component in
+## its own prefix, so each one fixes and signs the libraries it holds.
+set(_openms_library_components library library_cli)
+if(WITH_GUI)
+  list(APPEND _openms_library_components library_gui)
+endif()
+foreach(_library_component IN LISTS _openms_library_components)
+  install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -e @rpath/ -n -c)"
+          COMPONENT ${_library_component}
+          )
+  install(CODE "
+          execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE lib_sign_out ERROR_VARIABLE lib_sign_out)
+          message('\${lib_sign_out}')"
+          COMPONENT ${_library_component}
+          )
+endforeach()
+unset(_openms_library_components)
 
 ## Sign thirdparty components
 foreach(component IN LISTS THIRDPARTY_COMPONENT_GROUP)
@@ -152,9 +153,10 @@ set(CPACK_POSTFLIGHT_APPLICATIONS_SCRIPT ${OPENMS_HOST_BINARY_DIRECTORY}/cmake/M
 ## processed, so it picks up every real component.
 get_cmake_property(CPACK_COMPONENTS_ALL COMPONENTS)
 list(REMOVE_ITEM CPACK_COMPONENTS_ALL python_modules)
-## Drop the class-test framework archive (dev tool, not product payload;
-## productbuild enumerates components explicitly). Its headers stay packaged.
-list(REMOVE_ITEM CPACK_COMPONENTS_ALL OpenMSTestFramework)
+## Drop the class-test framework archive and its headers (dev tool, not product
+## payload). Both install rules are EXCLUDE_FROM_ALL, but productbuild enumerates
+## components explicitly and installs each one by name, which ignores that flag.
+list(REMOVE_ITEM CPACK_COMPONENTS_ALL OpenMSTestFramework OpenMSTestFramework_headers)
 
 ## Create own target because you cannot "depend" on the internal target 'package'
 add_custom_target(dist

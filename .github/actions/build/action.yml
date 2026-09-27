@@ -234,6 +234,11 @@ runs:
 
         cmake --build --preset "${{ steps.preset.outputs.name }}" --verbose
 
+    - name: Verify public headers
+      if: ${{ runner.os == 'Linux' && runner.arch == 'X64' }}
+      shell: bash
+      run: cmake --build --preset "${{ steps.preset.outputs.name }}" --target all_verify_interface_header_sets --parallel 2
+
     ############################################################################
     # Hit rate and cache size for this run.  Without this there is no way to
     # tell from a build log whether compiler caching is working at all.

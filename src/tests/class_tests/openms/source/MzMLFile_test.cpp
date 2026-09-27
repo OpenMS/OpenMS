@@ -1240,6 +1240,11 @@ START_SECTION(bool isSemanticallyValid(const std::string& filename, StringList& 
   TEST_EQUAL(errors.size(), 0)
   TEST_EQUAL(warnings.size(), 0)
 
+  //value of a term whose value type is a list (MS:1003820 coordinate spacing model: list of doubles)
+  TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_list_value.mzML"), errors, warnings),true)
+  TEST_EQUAL(errors.size(), 0)
+  TEST_EQUAL(warnings.size(), 0)
+
   //invalid file
   TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_3_invalid.mzML"), errors, warnings),false)
   TEST_EQUAL(errors.size(), 8)
@@ -1252,6 +1257,106 @@ START_SECTION(bool isSemanticallyValid(const std::string& filename, StringList& 
   //  {
   //    cout << "WARNING: " << warnings[i] << endl;
   //  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] combined activation methods and legacy mass analyzer types are stored as valid mzML))
+{
+  // PSI-MS lists the combined dissociation methods (EThcD, ETciD) as precursor activation attributes and no longer
+  // lists SWIFT or cyclotron as mass analyzer types, but mzML requires a dissociation method and a mass analyzer type
+  std::string tmp_filename;
+  MzMLFile file;
+  StringList errors, warnings;
+  PeakMap exp;
+
+  Instrument instrument;
+  IonSource source;
+  source.setOrder(1);
+  source.setIonizationMethod(IonSource::IonizationMethod::ESI);
+  instrument.getIonSources().push_back(source);
+  const std::vector<MassAnalyzer::AnalyzerType> analyzer_types = {MassAnalyzer::AnalyzerType::CYCLOTRON, MassAnalyzer::AnalyzerType::SWIFT,
+                                                                  MassAnalyzer::AnalyzerType::IONSTORAGE, MassAnalyzer::AnalyzerType::ANALYZERNULL};
+  for (Size i = 0; i < analyzer_types.size(); ++i)
+  {
+    MassAnalyzer analyzer;
+    analyzer.setOrder(2 + static_cast<Int>(i));
+    analyzer.setType(analyzer_types[i]);
+    instrument.getMassAnalyzers().push_back(analyzer);
+  }
+  instrument.getMassAnalyzers().back().setMetaValue("legacy mass analyzer type", "no analyzer type"); // not a type: stays a meta value
+  IonDetector detector;
+  detector.setOrder(6);
+  detector.setType(IonDetector::Type::ELECTRONMULTIPLIER);
+  instrument.getIonDetectors().push_back(detector);
+  exp.setInstrument(instrument);
+
+  using Method = Precursor::ActivationMethod;
+  const std::vector<std::set<Method>> activations = {{Method::EThcD}, {Method::ETciD}, {Method::HCID}, {}, {Method::ETD, Method::EThcD}};
+  for (Size i = 0; i < activations.size(); ++i)
+  {
+    MSSpectrum spec;
+    spec.setNativeID("scan=" + std::to_string(i + 1));
+    spec.setRT(i + 1.0);
+    spec.setMSLevel(2);
+    spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+    Precursor precursor;
+    precursor.setMZ(500.0);
+    precursor.getActivationMethods() = activations[i];
+    spec.getPrecursors().push_back(precursor);
+    exp.addSpectrum(spec);
+  }
+  // ETD with supplemental beam-type CID (as written by ThermoRawFileParser): no combined term needed
+  exp[4].getPrecursors()[0].setMetaValue("supplemental beam-type collision-induced dissociation", "");
+
+  NEW_TMP_FILE(tmp_filename);
+  file.store(tmp_filename, exp);
+  TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings), true)
+  TEST_EQUAL(errors.size(), 0)
+  TEST_EQUAL(warnings.size(), 0)
+  for (const auto& error : errors)
+  {
+    cout << "ERROR: " << error << endl;
+  }
+
+  // the generic dissociation method is written for EThcD only, ETciD only and no activation method
+  std::string encoded;
+  file.storeBuffer(encoded, exp);
+  Size generic_methods = 0;
+  for (Size pos = encoded.find("accession=\"MS:1000044\""); pos != std::string::npos; pos = encoded.find("accession=\"MS:1000044\"", pos + 1))
+  {
+    ++generic_methods;
+  }
+  TEST_EQUAL(generic_methods, 3)
+
+  PeakMap loaded;
+  file.load(tmp_filename, loaded);
+  TEST_EQUAL(loaded.size(), activations.size())
+  for (Size i = 0; i < loaded.size(); ++i)
+  {
+    TEST_TRUE(loaded[i].getPrecursors()[0].getActivationMethods() == activations[i])
+  }
+  const auto& analyzers = loaded.getInstrument().getMassAnalyzers();
+  TEST_EQUAL(analyzers.size(), analyzer_types.size())
+  for (Size i = 0; i < analyzers.size(); ++i)
+  {
+    TEST_EQUAL(analyzers[i].getType(), analyzer_types[i])
+  }
+  TEST_FALSE(analyzers[0].metaValueExists("legacy mass analyzer type"))
+  TEST_EQUAL(analyzers[3].getMetaValue("legacy mass analyzer type"), "no analyzer type")
+
+  // an instrument without mass analyzer gets an invented generic one
+  PeakMap source_only;
+  Instrument partial;
+  partial.getIonSources().push_back(source);
+  source_only.setInstrument(partial);
+  NEW_TMP_FILE(tmp_filename);
+  file.store(tmp_filename, source_only);
+  TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings), true)
+  TEST_EQUAL(errors.size(), 0)
+  TEST_EQUAL(warnings.size(), 0)
+  file.load(tmp_filename, loaded);
+  TEST_EQUAL(loaded.getInstrument().getMassAnalyzers().size(), 1)
+  TEST_EQUAL(loaded.getInstrument().getMassAnalyzers()[0].getType(), MassAnalyzer::AnalyzerType::ANALYZERNULL)
 }
 END_SECTION
 
