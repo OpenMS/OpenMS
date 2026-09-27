@@ -170,7 +170,10 @@ def df_columns(self, decode_ontology=True):
     else:
         clearMVs = metavals
 
-    return ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
+    cols = ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
+    # to_df() builds a numpy structured array, which names a field without a name, such as
+    # the score of an empty score type, 'f<position>'
+    return [c or f"f{i}" for i, c in enumerate(cols)]
 
 
 @addon("PeptideIdentificationList")
