@@ -1294,10 +1294,7 @@ Build System:
     and ICU (homebrew/<formula>/). Every installation, the Python wheels included, has the
     licenses of the third-party code that OpenMS carries in its source tree and compiles into
     libOpenMS, such as Percolator with its NOTICE file, evergreen, libkdtree++ and MSNumpress
-    (vendored/<name>/). The installers built with vcpkg also have the license of the Thermo
-    RawFileReader assemblies that the native .raw reader uses (ThermoRawFileReader-License.doc).
-    The openms-thermo-bridge vcpkg port now installs it as a file of its own: combined with the
-    port's own license, the Word document was cut off at its first NUL byte (#10292).
+    (vendored/<name>/) (#10292).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----
