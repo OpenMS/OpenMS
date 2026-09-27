@@ -13,6 +13,7 @@
 #include <OpenMS/MATH/MathFunctions.h>
 
 #include <iterator>
+#include <limits>
 #include <type_traits>
 
 namespace OpenMS
@@ -26,6 +27,8 @@ namespace OpenMS
 
     The iterator always chooses the closest matching peak in the target container, if more than one candidate is found in the
     match-window. If two peaks have equal distance, the smaller value is preferred.
+    Target elements with equal distance (e.g. two peaks with the same m/z) do not stop the search, i.e. later reference elements
+    can still be matched to target elements beyond them.
     If no peak is found within the given tolerance (distance), the reference peak does not yield a result and the next reference peak is tested.
     This means the operator++ can be called at most(!) ref.size()-1 times before it == is.end().
     
@@ -39,6 +42,8 @@ namespace OpenMS
         
     This iterator is much more efficient than iterating over the reference container and calling findNearest(), i.e. binary search on the target container,
     i.e. O(n+m) vs. O(n*log(m)). Since this container is much more cache-friendly, the actual speedups are even larger.
+    Exception: a run of k equidistant target elements (e.g. duplicate peaks) is re-read by every reference element whose
+    search reaches it, i.e. O(n*k) in the degenerate case of k equal target values.
 
   */
   template <typename CONT_T, typename TRAIT, bool CONST_T = true >
@@ -224,28 +229,29 @@ namespace OpenMS
 
           double max_dist = TRAIT::allowedTol(tol_, *it_ref_);
 
-          // forward iterate over elements in target data until distance gets worse
-          float diff = std::numeric_limits<float>::max();
+          // forward iterate over elements in target data until distance gets worse.
+          // Equal distances (e.g. equal target values) do not stop the walk; the first (smaller) element is kept.
+          // Distances are compared in the TRAIT's own type, so equal target values always tie.
+          using DiffType = std::decay_t<decltype(TRAIT::getDiffAbsolute(*it_ref_, *it_tgt_))>;
+          DiffType diff = std::numeric_limits<DiffType>::max();
+          CONT_IT best = it_tgt_;
           do
           {
-            auto d = TRAIT::getDiffAbsolute(*it_ref_, *it_tgt_);
-            if (diff > d) // getting better
+            const DiffType d = TRAIT::getDiffAbsolute(*it_ref_, *it_tgt_);
+            if (d < diff) // getting better
             {
               diff = d;
+              best = it_tgt_;
             }
-            else   // getting worse (overshot)
+            else if (d > diff) // getting worse (overshot)
             {
-              --it_tgt_;
               break;
             }
             ++it_tgt_;
           } while (it_tgt_ != tgt_end_);
+          it_tgt_ = best; // closest valid entry (never tgt_end_)
 
-          if (it_tgt_ == tgt_end_)
-          { // reset to last valid entry
-            --it_tgt_;
-          }
-          if (diff <= max_dist) return; // ok, found match
+          if (float(diff) <= max_dist) return; // ok, found match (in float precision, like the tolerance)
 
           // try next ref peak
           ++it_ref_;

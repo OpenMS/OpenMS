@@ -943,6 +943,10 @@ OpenMS Library:
 
 Fixes:
   Chemistry and identifications:
+    - MatchedIterator no longer stops at the first of two target elements with the same value
+      (e.g. two peaks with the same m/z). HyperScore, PScore, AScore, SpectrumAlignment (ppm) and
+      the QC metrics FragmentMassError and PSMExplainedIonCurrent ignored all peaks above such a
+      pair, so ProSE and SimpleSearchEngine mis-scored spectra with duplicate peaks. (#10291)
     - MzIdentMLFile: search engine scores without a score order in the PSI-MS vocabulary take
       it from OpenMS' score registry, so Comet:expectation value, X!Tandem:expect, OMSSA:evalue,
       OMSSA:pvalue, percolator:Q value and percolator:PEP are read as lower-is-better. Such
