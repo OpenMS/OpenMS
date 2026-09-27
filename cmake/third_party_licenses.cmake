@@ -90,22 +90,26 @@ function(openms_install_third_party_licenses)
   endif()
 
   if(arg_HOMEBREW_FORMULAE)
-    find_program(OPENMS_BREW_EXECUTABLE brew)
+    ## The package bundles libraries of these formulae and their dependencies, so configuring
+    ## fails rather than leave their license files out. /opt/homebrew and /usr/local are
+    ## Homebrew's default prefixes, for a PATH without brew (e.g. that of an IDE).
+    find_program(OPENMS_BREW_EXECUTABLE brew PATHS /opt/homebrew/bin /usr/local/bin)
     if(NOT OPENMS_BREW_EXECUTABLE)
-      message(WARNING "Homebrew (brew) was not found, so the package will not include the "
-                      "license files of the Homebrew formulae ${arg_HOMEBREW_FORMULAE}.")
-      return()
+      message(FATAL_ERROR "Homebrew (brew) was not found, but it is needed to collect the license "
+                          "files of the Homebrew formulae ${arg_HOMEBREW_FORMULAE}, whose libraries "
+                          "the package bundles. Set OPENMS_BREW_EXECUTABLE to its path.")
     endif()
     ## --union: the dependencies of any of the formulae, not only those they all share.
     execute_process(COMMAND "${OPENMS_BREW_EXECUTABLE}" deps --installed --union ${arg_HOMEBREW_FORMULAE}
                     OUTPUT_VARIABLE _dependencies
                     RESULT_VARIABLE _result
                     ERROR_VARIABLE _error
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                    ERROR_STRIP_TRAILING_WHITESPACE)
     if(NOT _result EQUAL 0)
-      message(WARNING "'brew deps' failed (${_error}); the package will include the license "
-                      "files of ${arg_HOMEBREW_FORMULAE} but not those of their dependencies.")
-      set(_dependencies "")
+      message(FATAL_ERROR "'brew deps' failed (${_error}), so the license files of the "
+                          "dependencies of the Homebrew formulae ${arg_HOMEBREW_FORMULAE}, whose "
+                          "libraries the package bundles, cannot be collected.")
     endif()
     string(REGEX REPLACE "[ \t\r\n]+" ";" _dependencies "${_dependencies}")
     set(_formulae ${arg_HOMEBREW_FORMULAE} ${_dependencies})

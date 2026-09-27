@@ -1291,7 +1291,7 @@ Build System:
     macOS packages, which bundle Qt, also have the Qt licenses (LGPL-3.0 and GPL-3.0) and
     where to get Qt's source code (Qt/). The macOS package also has the license files of the
     Homebrew formulae whose libraries it bundles: Qt's and those they depend on, such as glib
-    and ICU (homebrew/<formula>/).
+    and ICU (homebrew/<formula>/) (#10292).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----
