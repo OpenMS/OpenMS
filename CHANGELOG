@@ -1285,6 +1285,13 @@ Build System:
     build on to later builds and to the packages. The 2026-09-24 nightlies shipped an OpenBLAS
     that needs AVX2 on x86_64 and SVE on arm64, which not every supported CPU has, and clang
     debug builds failed on x86_64 machines with AVX-512 (#10264).
+  - The installers ship the license texts of the third-party code they bundle, under
+    share/OpenMS/LICENSES; before, that directory held only the OpenMS license. Every package
+    has the license of each vcpkg port the build uses (vcpkg/<port>.txt). The Windows and
+    macOS packages, which bundle Qt, also have the Qt licenses (LGPL-3.0 and GPL-3.0) and
+    where to get Qt's source code (Qt/). The macOS package also has the license files of the
+    Homebrew formulae whose libraries it bundles: Qt's and those they depend on, such as glib
+    and ICU (homebrew/<formula>/).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----

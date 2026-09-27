@@ -678,6 +678,9 @@ install_export_targets()
 # Installation and packaging:
 #------------------------------------------------------------------------------
 
+## Defines openms_install_third_party_licenses(), which package_general.cmake calls.
+include(cmake/third_party_licenses.cmake)
+
 if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
 
   # packaging routines:
