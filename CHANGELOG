@@ -1143,6 +1143,12 @@ Documentation:
   - Updated pyOpenMS type hints, docstrings, wrapping/ownership guidance and test templates;
     documented native-reader requirements, core-only builds and vcpkg configuration
     (#8483, #8507, #8548, #8561, #8674, #9162, #9629, #9736, #9752, #9792, #9812, #9928).
+  - New "Vendor formats" pages in the OpenMS and pyOpenMS documentation: the tools that read
+    Thermo .raw files and Bruker timsTOF .d directories, FileConverter's two Thermo readers
+    and their defaults, and that the other tools read .raw without vendor peak picking.
+    Corrected the FileConverter, FeatureFinderIdentification and FeatureFinderMetaboIdent
+    pages, the .NET requirement on the Windows installation page, and the macOS installation
+    page (macOS 15, notarized installer).
 
 Build System:
   - Public headers of OpenMS, OpenSwathAlgo, OpenMS_CLI, OpenMS_GUI and the test

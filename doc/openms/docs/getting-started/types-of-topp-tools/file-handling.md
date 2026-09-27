@@ -25,8 +25,9 @@ Another frequently-occurring problem is corrupt data. You can check for corrupt 
 
 ## Converting your files to mzML
 
-The TOPP tools work only on the HUPO-PSI `mzML` format. If you need to convert *mzData*, *mzXML* or *ANDI/MS* data to
-*mzML*, use the FileConverter, e.g.
+The TOPP tools read spectra from the HUPO-PSI `mzML` format. Many of them also read Thermo Fisher `.raw` files and
+Bruker timsTOF `.d` directories directly; see [Vendor formats](../vendor-formats.md). If you need to convert *mzData*,
+*mzXML*, *MGF* or vendor data to *mzML*, use the FileConverter, e.g.
 
 `FileConverter -in infile.mzXML -out outfile.mzML`
 

@@ -69,6 +69,7 @@ headings and structure.
 
    logging
    reading_raw_ms_data
+   vendor_formats
    other_ms_data_formats
    mzml_files
    scoring_spectra_hyperscore
