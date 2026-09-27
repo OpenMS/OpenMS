@@ -56,6 +56,10 @@ class DataValue:
             self._value = str(value) if isinstance(value, str) else value.decode("utf-8")
             self._type = DataType.STRING_VALUE
         elif isinstance(value, (list, tuple)):
+            # Same rule as the type casters: a bool is not a list element type, and
+            # int()/float() would otherwise turn [1, True] into [1, 1].
+            if any(isinstance(v, bool) for v in value):
+                raise TypeError("DataValue lists cannot contain bool elements: %r" % (value,))
             if len(value) == 0:
                 self._value = []
                 self._type = DataType.STRING_LIST

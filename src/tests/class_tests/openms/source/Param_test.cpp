@@ -1261,7 +1261,32 @@ START_SECTION((void setDefaults(const Param& defaults, const std::string& prefix
 	TEST_EQUAL(p2.getValue("intlist2") == ListUtils::create<Int>("11,22,33"), true)
 	TEST_EQUAL(p2.getValue("doublelist2") == ListUtils::create<double>("11.22,22.33"), true)
 
-
+	// an existing string entry takes the defaults' string restrictions; its value is kept
+	{
+		Param restricted_defaults;
+		restricted_defaults.setValue("flag", "false");
+		restricted_defaults.setValidStrings("flag", {"true", "false"});
+		restricted_defaults.setValue("mode", "auto");
+		restricted_defaults.setValidStrings("mode", {"auto", "true", "false"});
+		restricted_defaults.setValue("free", "x");
+		restricted_defaults.setValue("number", 1);
+		Param given;
+		given.setValue("flag", "true", "", {"advanced"});           // no restrictions
+		given.setValue("mode", "true");
+		given.setValidStrings("mode", {"true", "false"});           // contradicting restrictions
+		given.setValue("free", "y");
+		given.setValidStrings("free", {"y", "z"});                  // defaults are unrestricted
+		given.setValue("number", "not a number");                   // type mismatch: untouched
+		given.setValidStrings("number", {"not a number"});
+		given.setDefaults(restricted_defaults);
+		TEST_EQUAL(given.getValue("flag").toString(), "true")
+		TEST_EQUAL(given.getValidStrings("flag") == std::vector<std::string>({"true", "false"}), true)
+		TEST_EQUAL(given.getTags("flag") == std::vector<std::string>({"advanced"}), true)
+		TEST_EQUAL(given.getValue("mode").toString(), "true")
+		TEST_EQUAL(given.getValidStrings("mode") == std::vector<std::string>({"auto", "true", "false"}), true)
+		TEST_EQUAL(given.getValidStrings("free").empty(), true)
+		TEST_EQUAL(given.getValidStrings("number") == std::vector<std::string>({"not a number"}), true)
+	}
 
 	p2.setDefaults(defaults,"PATH");
 

@@ -169,16 +169,21 @@ void paramEntrySetValueFromPython(OpenMS::Param::ParamEntry& entry, nb::handle v
 //   key absent            -> define a boolean parameter (value + restrictions)
 //   key present, isBool() -> set the value; Param::setValue keeps the restrictions
 //   key present, anything else -> refuse, rather than silently redefining its type
+//
+// `tags` unset means "value-only assignment": an existing key keeps its tags. Param::setValue
+// replaces tags unconditionally (ParamNode::insert), so they are passed back in explicitly.
 void paramSetValueFromPython(OpenMS::Param& param, const std::string& key, nb::handle value,
                              const std::string& description = "",
-                             const std::vector<std::string>& tags = std::vector<std::string>())
+                             const std::optional<std::vector<std::string>>& tags = std::nullopt)
 {
+    const bool existed = param.exists(key);
+    const std::vector<std::string> effective_tags =
+        tags ? *tags : (existed ? param.getTags(key) : std::vector<std::string>());
     if (PyBool_Check(value.ptr()))
     {
         const std::string as_string = (value.ptr() == Py_True) ? "true" : "false";
-        const bool existed = param.exists(key);
         if (existed && !param.getEntry(key).isBool()) throwNotABoolParam(key);
-        param.setValue(key, as_string, description, tags);
+        param.setValue(key, as_string, description, effective_tags);
         // ParamNode::insert keeps valid_strings on an existing entry, so only a new one
         // needs them stamped.
         if (!existed) param.setValidStrings(key, {"true", "false"});
@@ -191,7 +196,7 @@ void paramSetValueFromPython(OpenMS::Param& param, const std::string& key, nb::h
         // which means overload resolution can no longer produce nanobind's own TypeError.
         throwUnsupportedParamValue(key, value);
     }
-    param.setValue(key, converted, description, tags);
+    param.setValue(key, converted, description, effective_tags);
 }
 
 // Restrictions of a boolean parameter are not strings from Python -- the value is a bool,
@@ -1037,11 +1042,11 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
             return keys;
         })
 
-        .def("setValue", [](OpenMS::Param& self, const std::string& key, nb::handle value, const std::string& description, const std::vector<std::string>& tags) {
+        .def("setValue", [](OpenMS::Param& self, const std::string& key, nb::handle value, const std::string& description, const std::optional<std::vector<std::string>>& tags) {
             paramSetValueFromPython(self, key, value, description, tags);
-        }, "key"_a, "value"_a, "description"_a = "", "tags"_a = std::vector<std::string>(),
-            nb::sig("def setValue(self, key: str, value: " PY_PARAM_VALUE_IN ", description: str = '', tags: list[str] = []) -> None"),
-            "Sets a value with description and tags. A bool defines a boolean parameter for a new key and sets an existing boolean one")
+        }, "key"_a, "value"_a, "description"_a = "", "tags"_a = nb::none(),
+            nb::sig("def setValue(self, key: str, value: " PY_PARAM_VALUE_IN ", description: str = '', tags: list[str] | None = None) -> None"),
+            "Sets a value with description and tags. A bool defines a boolean parameter for a new key and sets an existing boolean one. Without tags an existing key keeps its tags")
         .def("setValue", [](OpenMS::Param& self, const std::string& key, nb::handle value, const std::string& description) {
             paramSetValueFromPython(self, key, value, description);
         }, "key"_a, "value"_a, "description"_a = "",
@@ -1148,7 +1153,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
                 for (auto it = param_src.begin(); it != param_src.end(); ++it) {
                     std::string key = it.getName();
                     if (!self.exists(key)) continue;
-                    self.setValue(key, param_src.getValue(key));
+                    self.setValue(key, param_src.getValue(key), "", self.getTags(key));
                 }
             } else {
                 nb::dict d = nb::cast<nb::dict>(source);

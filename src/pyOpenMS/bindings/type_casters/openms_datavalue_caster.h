@@ -511,18 +511,29 @@ public:
                         return false;
                     }
 
+                    // Same rule as the DataValue caster: every item must be str/bytes.
+                    // Skipping the others silently turned ["a", True] into ["a"].
                     if (PyUnicode_Check(item)) {
                         Py_ssize_t size;
                         const char* data = PyUnicode_AsUTF8AndSize(item, &size);
-                        if (data) {
-                            sl.push_back(std::string(data, size));
+                        if (!data) {
+                            Py_DECREF(item);
+                            PyErr_Clear();
+                            return false;
                         }
+                        sl.push_back(std::string(data, size));
                     } else if (PyBytes_Check(item)) {
                         char* data;
                         Py_ssize_t size;
-                        if (PyBytes_AsStringAndSize(item, &data, &size) == 0) {
-                            sl.push_back(std::string(data, size));
+                        if (PyBytes_AsStringAndSize(item, &data, &size) != 0) {
+                            Py_DECREF(item);
+                            PyErr_Clear();
+                            return false;
                         }
+                        sl.push_back(std::string(data, size));
+                    } else {
+                        Py_DECREF(item);
+                        return false;  // reject non-string items
                     }
                     Py_DECREF(item);
                 }

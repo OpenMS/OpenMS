@@ -20,6 +20,10 @@ class ParamValue:
         # and toBool() all agree with the C++ side instead of each deriving its own answer.
         if isinstance(value, bool):
             value = "true" if value else "false"
+        # Same rule as the type casters: a bool is not a list element type. Checking here,
+        # not in valueType(), also covers direct toIntVector()/toDoubleVector() calls.
+        elif isinstance(value, list) and any(isinstance(v, bool) for v in value):
+            raise TypeError("ParamValue lists cannot contain bool elements: %r" % (value,))
         self._value = value
 
     def isEmpty(self):
@@ -39,8 +43,6 @@ class ParamValue:
                 return self.STRING_LIST
             elif isinstance(self._value[0], str):
                 return self.STRING_LIST
-            elif isinstance(self._value[0], bool):
-                return self.EMPTY_VALUE  # bools are not a supported list element type
             elif isinstance(self._value[0], int):
                 return self.INT_LIST
             elif isinstance(self._value[0], float):

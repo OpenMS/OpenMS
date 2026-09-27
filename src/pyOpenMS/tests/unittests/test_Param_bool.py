@@ -150,11 +150,72 @@ def test_unsupported_value_type_raises_TypeError_naming_the_key():
     assert "'x'" in str(exc.value)
 
 
-@pytest.mark.parametrize("value", [[1, True], [True, 1], [1.0, True], [True]])
+@pytest.mark.parametrize("value", [[1, True], [True, 1], [1.0, True], [True],
+                                   ["a", True], [b"a", False], ["a", 1]])
 def test_bools_inside_lists_are_rejected_at_every_position(value):
     p = pyopenms.Param()
     with pytest.raises(TypeError):
         p["x"] = value
+
+
+@pytest.mark.parametrize("value", [[1, True], [True, 1], [1.0, True], ["a", True]])
+def test_python_shims_reject_bools_inside_lists(value):
+    with pytest.raises(TypeError):
+        pyopenms.ParamValue(value)
+    with pytest.raises(TypeError):
+        pyopenms.DataValue(value)
+
+
+def test_python_shims_keep_numeric_lists():
+    assert pyopenms.ParamValue([1, 2]).toIntVector() == [1, 2]
+    assert pyopenms.ParamValue([1.5, 2.0]).toDoubleVector() == [1.5, 2.0]
+    assert pyopenms.DataValue([1, 2]).toIntList() == [1, 2]
+
+
+# ------------------------------------------------------------------ tags on assignment
+
+
+def _tagged_boolean():
+    p = pyopenms.Param()
+    p.setValue("flag", True, "a flag", ["advanced"])
+    return p
+
+
+@pytest.mark.parametrize("assign", [
+    lambda p: p.__setitem__("flag", False),
+    lambda p: p.setValue("flag", False),
+    lambda p: p.setValue("flag", False, "a flag"),
+    lambda p: p.update({"flag": False}),
+    lambda p: p.update({"flag": False}, True),
+])
+def test_value_only_assignment_keeps_tags(assign):
+    p = _tagged_boolean()
+    assign(p)
+    assert p["flag"] is False
+    assert p.getTags("flag") == ["advanced"]
+    assert p.getDescription("flag") == "a flag"
+
+
+def test_value_only_assignment_keeps_tags_of_non_boolean():
+    p = pyopenms.Param()
+    p.setValue("n", 1, "a number", ["advanced"])
+    p["n"] = 2
+    assert p.getTags("n") == ["advanced"]
+
+
+def test_filtered_update_from_param_keeps_tags():
+    p = _tagged_boolean()
+    src = pyopenms.Param()
+    src["flag"] = False
+    p.update(src, True)
+    assert p["flag"] is False
+    assert p.getTags("flag") == ["advanced"]
+
+
+def test_explicit_tags_still_replace():
+    p = _tagged_boolean()
+    p.setValue("flag", False, "a flag", [])
+    assert p.getTags("flag") == []
 
 
 # ------------------------------------------------------------------ restrictions API
@@ -317,6 +378,21 @@ def test_partial_param_cannot_turn_a_tristate_into_a_boolean():
     assert applied["algorithm:deisotope"] == "true"
     assert not applied.isBool("algorithm:deisotope")
     assert applied.getValidStrings("algorithm:deisotope") == ["true", "false", "auto"]
+
+
+def test_fitModel_param_without_restrictions_reads_as_bool():
+    # fitModel never goes through setParameters(); the model merges its own defaults via
+    # Param::setDefaults, which is where the algorithm's restrictions are restored.
+    t = pyopenms.TransformationDescription()
+    t.setDataPoints([(1.0, 1.0), (2.0, 2.0)])
+    t.fitModel("linear")
+    assert t.getModelParameters()["symmetric_regression"] is False
+
+    t.fitModel("linear", pyopenms.Param({"symmetric_regression": "false"}))
+    p = t.getModelParameters()
+    assert p["symmetric_regression"] is False
+    p["symmetric_regression"] = True
+    assert p["symmetric_regression"] is True
 
 
 def test_params_can_be_copied_into_meta_values():

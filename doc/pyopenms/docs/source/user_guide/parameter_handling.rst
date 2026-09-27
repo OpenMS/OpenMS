@@ -189,8 +189,9 @@ the current value. From Python such a parameter is a plain ``bool`` everywhere:
 
 Assigning a ``bool`` to a key that does not exist yet *defines* a boolean parameter -- it
 stores the value and the ``true``/``false`` restrictions -- so the parameter survives
-``to_dict()``/``from_dict()``, ``repr()`` and INI round trips as a boolean, and is written
-as a flag to INI and CTD files:
+``to_dict()``/``from_dict()``, ``repr()`` and INI round trips as a boolean. (INI and CTD
+files still store it as a ``true``/``false`` string with those restrictions, not as a
+dedicated flag type.) Assigning a new value keeps the parameter's description and tags:
 
 .. code-block:: pycon
 

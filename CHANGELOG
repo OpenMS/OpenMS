@@ -72,7 +72,9 @@ PyOpenMS:
   - BREAKING: boolean parameters are Python bools (#10116). Reading/writing Params
     now uses Python bool for boolean entries; assigning bool to non-boolean
     parameters raises TypeError; boolean-ness is preserved through Param updates,
-    dict conversion, repr and INI round-trips.
+    dict conversion, repr and INI round-trips. Param::setDefaults now gives existing
+    string entries the defaults' valid strings (values unchanged), so a partial Param
+    cannot override an algorithm's restrictions.
   - BREAKING: Python 3.10 is no longer supported. Wheels and source builds require
     Python 3.11 or newer; the wheel matrix covers 3.11 to 3.14. With 3.10 gone, pandas 3
     is the floor for DataFrame support (the dataframes/all extras and the test
