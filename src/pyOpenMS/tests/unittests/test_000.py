@@ -2395,6 +2395,7 @@ def testFeatureXMLFile():
     assert 'feature_id' in df_fm.columns
     df_pep = pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications())
     assert len(df_pep) == 2
+    assert len(fm.to_peptide_df()) == 2
 
     fm = pyopenms.FeatureMap()
     pyopenms.FeatureXMLFile().load(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1_idmapped.featureXML'), fm)
@@ -2403,6 +2404,10 @@ def testFeatureXMLFile():
     assert 'feature_id' in df_fm2.columns
     df_pep2 = pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications())
     assert len(df_pep2) > 0
+    # every identified PeptideIdentification finds its feature, the 15 rows 3.5.0 asserted
+    merged = pd.merge(fm.to_df().reset_index(), fm.to_peptide_df(export_unidentified=False),
+                      on='feature_id', suffixes=('', '_psm'))
+    assert len(merged) == 15
 
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)

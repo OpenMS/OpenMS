@@ -109,7 +109,10 @@ def to_df(self, columns=None, meta_values=None, export_peptide_identifications=T
     for m in meta_values:  # the caller's meta_values may be bytes
         col_names.append(m.decode() if isinstance(m, bytes) else m)
 
-    df = pd.DataFrame(rows, columns=col_names).set_index('feature_id')
+    df = pd.DataFrame(rows, columns=col_names)
+    # uint64 whatever the values: pandas would infer int64 when every ID happened to fit
+    df['feature_id'] = df['feature_id'].astype(np.uint64)
+    df = df.set_index('feature_id')
 
     if columns is not None:
         available_cols = [c for c in columns if c in df.columns]
@@ -139,45 +142,70 @@ def get_df_columns(self, *args, **kwargs):
 def get_assigned_peptide_identifications(self):
     """Returns all PeptideIdentifications assigned to features in this map.
 
-    Every peptide hit carries the keys for merging with to_df() as meta values:
-    'feature_id' (the unique ID of its feature), 'ID_native_id' (the feature's
-    spectrum_native_id) and 'ID_filename' (the primary MS run path of the matching
-    ProteinIdentification). A value that is not known, null in to_df(), is not set
-    (and removed if the hit already carried one).
-    'feature_id' is text, because a meta value cannot hold an unsigned 64-bit integer,
-    so convert it before merging::
-
-        peps = fmap.get_assigned_peptide_identifications()
-        pep_df = peps.to_df(export_unidentified=False)
-        pep_df['feature_id'] = pep_df['feature_id'].astype('uint64')
-        merged = pd.merge(fmap.to_df().reset_index(), pep_df, on='feature_id')
-
-    A PeptideIdentification without hits has no hit to carry the keys, hence
-    export_unidentified=False. Without any identified hit, the peptide frame has no
-    'feature_id' column and there is nothing to merge. The feature map itself is not
-    modified.
+    The identifications are returned as the features store them, feature by feature.
+    The list holds copies, so neither the map nor its features change. To relate them
+    to their features, use to_peptide_df(), which adds each one's feature_id.
     """
     from pyopenms._pyopenms_metadata import PeptideIdentificationList
     result = PeptideIdentificationList()
     for f in self.iter_feature_views():
-        feature_id = str(f.getUniqueId())
-        native_id = None
-        if f.metaValueExists('spectrum_native_id'):
-            native_id = str(f.getMetaValue('spectrum_native_id'))
-        for pep in f.getPeptideIdentifications():
-            filename = self._get_prot_id_filename_from_pep_id(pep)
-            hits = pep.getHits()
-            for hit in hits:
-                hit.setMetaValue('feature_id', feature_id)
-                # an unknown value also removes one the hit already carries
-                for key, value in (('ID_native_id', native_id), ('ID_filename', filename)):
-                    if value is not None:
-                        hit.setMetaValue(key, value)
-                    elif hit.metaValueExists(key):
-                        hit.removeMetaValue(key)
-            pep.setHits(hits)
-            result.push_back(pep)
+        for pid in f.getPeptideIdentifications():
+            result.push_back(pid)
     return result
+
+
+@addon("FeatureMap")
+def peptide_df_columns(self, decode_ontology=True):
+    """Returns a list of column names that to_peptide_df() would produce."""
+    peps = self.get_assigned_peptide_identifications()
+    return ['feature_id'] + [c for c in peps.df_columns(decode_ontology=decode_ontology) if c != 'feature_id']
+
+
+@addon("FeatureMap")
+def to_peptide_df(self, decode_ontology=True, default_missing_values=None, export_unidentified=True,
+                  columns=None):
+    """Returns the PeptideIdentifications assigned to features as a pandas DataFrame.
+
+    One row per identification, as PeptideIdentificationList.to_df() writes the list
+    that get_assigned_peptide_identifications() returns, preceded by a 'feature_id'
+    column: the unique ID of the identification's feature, as the unsigned 64-bit
+    integer that also indexes to_df(). 'P_ID' is the identification's position in
+    get_assigned_peptide_identifications(). Merge the two frames with::
+
+        merged = pd.merge(fmap.to_df().reset_index(),
+                          fmap.to_peptide_df(export_unidentified=False),
+                          on='feature_id', suffixes=('', '_psm'))
+
+    The merge needs unique feature IDs. Features without one, such as features created
+    in Python, have the ID 0 until FeatureMap.setUniqueIds() assigns them one. A
+    'feature_id' meta value on the hits, as 3.5.0's get_assigned_peptide_identifications()
+    added it, gives way to the 'feature_id' column.
+
+    :param decode_ontology: Decode meta value names using the PSI-MS ontology.
+    :param default_missing_values: Default values for missing data by type.
+    :param export_unidentified: Export PeptideIdentifications without PeptideHit.
+    :param columns: Columns to include after 'feature_id', which is always the first.
+        If None, includes all.
+    :return: DataFrame with one row per assigned peptide identification.
+    """
+    from pyopenms._pyopenms_metadata import PeptideIdentificationList
+    peps = PeptideIdentificationList()
+    feature_ids = []
+    for f in self.iter_feature_views():
+        feature_id = f.getUniqueId()
+        for pid in f.getPeptideIdentifications():
+            peps.push_back(pid)
+            # to_df() writes a row for pid only if this holds
+            if export_unidentified or pid.getHits():
+                feature_ids.append(feature_id)
+    if columns is not None:
+        columns = [c for c in columns if c != 'feature_id']
+    df = peps.to_df(decode_ontology=decode_ontology, default_missing_values=default_missing_values,
+                    export_unidentified=export_unidentified, columns=columns)
+    # a 'feature_id' meta value of the hits gives way to the feature's ID
+    df = df.drop(columns='feature_id', errors='ignore')
+    df.insert(0, 'feature_id', np.array(feature_ids, dtype=np.uint64))
+    return df
 
 
 @addon("FeatureMap")
