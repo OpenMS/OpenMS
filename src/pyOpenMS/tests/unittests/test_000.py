@@ -1600,9 +1600,11 @@ def _testParam(p):
     assert sorted(p.items()) == sorted((k, p[k]) for k in p.keys())
 
     assert not p.exists("asdflkj01231321321v")
+    # value-only setValue() keeps an entry's tags, so k may still carry its defaults' tags
+    tags_before = p.getTags(k)
     p.addTag(k, "a")
     p.addTags(k, ["", "c"])
-    assert sorted(p.getTags(k)) == ["", "a", "c"]
+    assert sorted(p.getTags(k)) == sorted(set(tags_before) | {"", "a", "c"})
     p.clearTags(k)
     assert p.getTags(k) == []
 
