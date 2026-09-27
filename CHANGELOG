@@ -1140,6 +1140,9 @@ Documentation:
   - Expanded experimental-design terminology and LFQ/fractionated/TMT/SILAC examples,
     targeted quantitation, FAIMS, RT units, file conversions, USI and MetaProSIP CSV docs
     (#4400, #8478, #8588, #8597, #8615, #9173, #9909).
+  - New pyOpenMS user-guide pages "Arrow and Parquet" (to_arrow() of spectra, feature maps,
+    consensus maps and identifications; reading and writing the Parquet bundles) and "Mass
+    Spectrometry Imaging" (loading imzML, ion images, regions, on-disc access, writing).
   - Updated pyOpenMS type hints, docstrings, wrapping/ownership guidance and test templates;
     documented native-reader requirements, core-only builds and vcpkg configuration
     (#8483, #8507, #8548, #8561, #8674, #9162, #9629, #9736, #9752, #9792, #9812, #9928).

@@ -73,6 +73,8 @@ headings and structure.
    mzml_files
    scoring_spectra_hyperscore
    export_pandas_dataframe
+   arrow_parquet
+   ms_imaging
    query_msexperiment_massql
    memory_management
    pyopenms_in_r
