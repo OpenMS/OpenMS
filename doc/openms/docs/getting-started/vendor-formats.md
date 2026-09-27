@@ -49,11 +49,10 @@ NucleicAcidSearchEngine, OpenPepXL, OpenSwathPeakMapExtractor, OpenSwathWorkflow
 ProteomicsLFQ, SageAdapter and SimpleSearchEngine.
 
 They read with the built-in reader, on every platform, so they need the .NET 8 runtime on
-Windows as well. Unlike FileConverter, they do **not** apply Thermo's peak picking: they
-process the spectra as acquired. For most Orbitrap methods the MS1 spectra, and depending on
-the method the MS2 spectra, are then profile spectra. Tools that expect centroided data work
-on profile data in that case. To give them centroided spectra, convert the `.raw` file with
-FileConverter first and use the mzML.
+Windows as well. Like FileConverter, they apply Thermo's peak picking, so they process
+centroided spectra. To process the spectra as they were acquired, which for most Orbitrap
+methods means profile MS1 spectra, convert the `.raw` file with
+`FileConverter -RawToMzML:no_peak_picking` first and use the mzML.
 
 ```{note}
 OpenNuXL also accepts `.raw` files. It converts them with ThermoRawFileParser, like the

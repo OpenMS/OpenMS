@@ -25,8 +25,8 @@ installed in a non-standard location, set the environment variable ``DOTNET_ROOT
 directory that contains the ``dotnet`` executable and the ``shared`` sub-directory. Everything
 else the reader needs comes with the wheel.
 
-:py:class:`~.FileHandler` reads ``.raw`` files like any other format. It returns the spectra as
-they were acquired, which for most :term:`Orbitrap` methods means profile :term:`MS1` spectra:
+:py:class:`~.FileHandler` reads ``.raw`` files like any other format. It applies Thermo's peak
+picking, as the TOPP tool FileConverter does by default, so it returns centroided spectra:
 
 .. code-block:: python
     :linenos:
@@ -37,25 +37,30 @@ they were acquired, which for most :term:`Orbitrap` methods means profile :term:
 
 .. code-block:: output
 
-    1 SpectrumType.PROFILE
+    1 SpectrumType.CENTROID
 
-:py:class:`~.ThermoRawFile` takes options, for example to apply Thermo's peak picking, as the
-TOPP tool FileConverter does by default:
+:py:class:`~.ThermoRawFile` returns the spectra as they were acquired, which for most
+:term:`Orbitrap` methods means profile :term:`MS1` spectra. Its options set, among other
+things, whether it applies Thermo's peak picking:
 
 .. code-block:: python
     :linenos:
 
     reader = oms.ThermoRawFile()
+    acquired = oms.MSExperiment()
+    reader.load("my_run.raw", acquired)
+    print(acquired[0].getMSLevel(), acquired[0].getType())
+
     options = reader.getOptions()
     options.centroid = True
     reader.setOptions(options)
-
     centroided = oms.MSExperiment()
     reader.load("my_run.raw", centroided)
     print(centroided[0].getMSLevel(), centroided[0].getType())
 
 .. code-block:: output
 
+    1 SpectrumType.PROFILE
     1 SpectrumType.CENTROID
 
 The other fields of :py:class:`~.ThermoRawFileOptions` add the charges the instrument assigned

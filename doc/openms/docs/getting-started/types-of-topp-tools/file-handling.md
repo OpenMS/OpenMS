@@ -66,7 +66,7 @@ As TOPP offers no functionality for statistical analysis, this step is normally 
 In order to export the OpenMS XML formats into an appropriate format for these packages the TOPP **TextExporter** can be
 used.
 
-It converts the the following OpenMS formats to text files:
+It converts the following OpenMS formats to text files:
 
 - featureXML and `.featureparquet`
 - idXML and `.idparquet`

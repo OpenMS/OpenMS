@@ -20,13 +20,15 @@ OpenMS only accepts files in certain formats, including but not limited to:
 - **consensusXML**: The OpenMS format for grouping features in one map or across several maps.
 - **idXML**: The OpenMS format for protein and peptide identification.
 - **Parquet bundles** (`.idparquet`, `.featureparquet`, `.consensusparquet`): the content of idXML, featureXML and
-  consensusXML as Apache Parquet tables. Compressed files (`.gz`, `.bz2`, `.zip`) can be read directly as well; see
-  [File formats](file-formats.md).
+  consensusXML as Apache Parquet tables.
+
+The XML formats except mzIdentML can also be read compressed (`.gz`, `.bz2`, `.zip`); see
+[File formats](file-formats.md).
 
 Documented schemas of the OpenMS formats can be found [here](https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS).
 
-Many tools also read Thermo Fisher `.raw` files and Bruker timsTOF `.d` directories directly; see
-[Vendor formats](vendor-formats.md). For data in other formats, you may need to use a file conversion
+Many tools also read Thermo Fisher `.raw` files and Bruker timsTOF `.d` directories, also zipped as `.d.zip`,
+directly; see [Vendor formats](vendor-formats.md). For data in other formats, you may need to use a file conversion
 TOPP tool.
 
 Command Line Interface
