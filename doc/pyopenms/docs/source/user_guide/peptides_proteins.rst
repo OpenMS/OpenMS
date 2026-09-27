@@ -348,8 +348,8 @@ In this tutorial, we will cover a step-by-step guide on how to use the pyopenms 
         sequence = poms.AASequence.fromString("TESTMTECSTMTESTR")
 
         # We use the names "Oxidation (M)" and "Carbamidomethyl (C)" for the variable and fixed modifications, respectively.
-        variable_mod_names = [b"Oxidation (M)"]
-        fixed_mod_names = [b"Carbamidomethyl (C)"]
+        variable_mod_names = ["Oxidation (M)"]
+        fixed_mod_names = ["Carbamidomethyl (C)"]
 
         # We then use the getModifications() method of the ModifiedPeptideGenerator class to get the modifications for these names.
         variable_modifications = poms.ModifiedPeptideGenerator.getModifications(variable_mod_names)
@@ -362,11 +362,10 @@ In this tutorial, we will cover a step-by-step guide on how to use the pyopenms 
         max_variable_mods = 1
 
         # Generate the modified peptides
-        peptides_with_variable_modifications = []
         keep_unmodified_in_result = False
-        poms.ModifiedPeptideGenerator.applyVariableModifications(variable_modifications, sequence, max_variable_mods,
-                                                                peptides_with_variable_modifications,
-                                                                keep_unmodified_in_result)
+        peptides_with_variable_modifications = poms.ModifiedPeptideGenerator.applyVariableModifications(
+            variable_modifications, sequence, max_variable_mods, keep_unmodified_in_result
+        )
 
         # Print the modified peptides generated using Fixed modifications and their mono-isotopic mass.
         print("Fixed:", sequence.toString())

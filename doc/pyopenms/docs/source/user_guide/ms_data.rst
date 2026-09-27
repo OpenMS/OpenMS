@@ -753,7 +753,7 @@ To find a spectrum using their original scan number from their native ID we can 
     # Bruker may have:
     # <spectrum index="0" id="scan=19" defaultArrayLength="15">
     # thus we can use (this would also work for Thermo native IDs)
-    lookup.readSpectra(inp, "scan=(?<SCAN>\d+)")       ## required: creates an internal look-up table
+    lookup.readSpectra(inp, r"scan=(?<SCAN>\d+)")       ## required: creates an internal look-up table
 
     vendor_scan_nrs = [19, 21]  ## our test.mzML contains 4 spectra, starting at scan=19
 
@@ -798,7 +798,7 @@ For this simple example, you can achieve the same thing using :py:class:`~.PeakF
     # Create a PeakFileOptions object
     options = oms.PeakFileOptions()
     options.setMSLevels([2])  # Load only MS level 2
-    options.setMZRange(oms.DRange1(oms.DPosition1(mz_start),oms.DPosition1(mz_end)))
+    options.setMZRange(oms.DRange1(mz_start, mz_end))
 
     # Load the mzML file with the specified options
     mzml = oms.MzMLFile()
