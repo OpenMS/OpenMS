@@ -56,7 +56,7 @@
     "xerces-c",
     "zlib"
   ],
-  "overrides": [{ "name": "openssl", "version": "3.0.8" }],
+  "overrides": [{ "name": "openssl", "version": "3.6.4", "port-version": 1 }],
   "features": {
     "hdf5": {
       "description": "HDF5 C and C++ libraries for builds configured with -DWITH_HDF5=ON.",

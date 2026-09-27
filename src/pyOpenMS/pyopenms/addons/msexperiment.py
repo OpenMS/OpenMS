@@ -104,7 +104,6 @@ def to_arrow(self, data='spectra', format='long', columns=None,
     import pyarrow as pa
 
     if long_format is not None:
-        import warnings
         warnings.warn(
             "long_format parameter is deprecated. Use format='long' or format='semi_wide' instead.",
             DeprecationWarning, stacklevel=2

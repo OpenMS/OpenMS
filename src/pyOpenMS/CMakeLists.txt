@@ -811,7 +811,10 @@ else()
               ${CMAKE_CURRENT_SOURCE_DIR}/check_bindings.py
               --package-dir ${PYOPENMS_BUILD_DIR}/pyopenms
               --domains ${PYOPENMS_DOMAINS}
-      COMMAND ${_pyopenms_stub_cmd_prefix} ${Python_EXECUTABLE} -m nanobind.stubgen
+      # PYOPENMS_STUBGEN keeps pyopenms/addons/inout_lists.py from wrapping the bound
+      # methods; stubgen would describe a wrapper as (*args, **kwargs).
+      COMMAND ${_pyopenms_stub_cmd_prefix} ${CMAKE_COMMAND} -E env PYOPENMS_STUBGEN=1
+              ${Python_EXECUTABLE} -m nanobind.stubgen
               -m pyopenms
               -r                          # recurse into submodules
               -P                          # include private members
