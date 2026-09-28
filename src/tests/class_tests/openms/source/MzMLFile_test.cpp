@@ -1233,6 +1233,82 @@ START_SECTION(([EXTRA] chromatograms are stored with a precursor or product only
 }
 END_SECTION
 
+START_SECTION(([EXTRA] the mass resolving power is stored in the scan))
+{
+  // The reader keeps MS:1000800 with the spectrum, but mzML allows it only in a scan. It used to be written as a
+  // userParam of the spectrum, which other readers do not find.
+  PeakMap exp;
+  MSSpectrum with_scan;
+  with_scan.setNativeID("scan=1");
+  with_scan.setRT(1.0);
+  with_scan.setMetaValue("mass resolving power", "60000"); // as the mzML reader stores it
+  with_scan.getAcquisitionInfo().push_back(Acquisition());
+  exp.addSpectrum(with_scan);
+  MSSpectrum without_scan; // written with a scan of its own
+  without_scan.setNativeID("scan=2");
+  without_scan.setRT(2.0);
+  without_scan.setMetaValue("mass resolving power", 30000);
+  exp.addSpectrum(without_scan);
+  MSSpectrum also_in_scan; // a value of the scan itself is written once, and takes precedence
+  also_in_scan.setNativeID("scan=3");
+  also_in_scan.setRT(3.0);
+  also_in_scan.setMetaValue("mass resolving power", 15000);
+  also_in_scan.getAcquisitionInfo().push_back(Acquisition());
+  also_in_scan.getAcquisitionInfo().back().setMetaValue("mass resolving power", 17500);
+  exp.addSpectrum(also_in_scan);
+  MSSpectrum none;
+  none.setNativeID("scan=4");
+  none.setRT(4.0);
+  exp.addSpectrum(none);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  MzMLFile().store(tmp_filename, exp);
+  std::ifstream is(tmp_filename);
+  std::string out((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+  // the spectrum element up to its scan list, and the scan list
+  auto spectrumXML = [&out](const std::string& id)
+  {
+    const Size start = out.find("<spectrum id=\"" + id + "\"");
+    const Size scans = out.find("<scanList", start);
+    return std::make_pair(out.substr(start, scans - start), out.substr(scans, out.find("</scanList>", scans) - scans));
+  };
+  auto count = [](const std::string& text, const std::string& pattern)
+  {
+    Size n = 0;
+    for (Size pos = text.find(pattern); pos != std::string::npos; pos = text.find(pattern, pos + 1)) ++n;
+    return n;
+  };
+  const std::string term = "accession=\"MS:1000800\" name=\"mass resolving power\" value=\"";
+  TEST_FALSE(StringUtils::hasSubstring(out, "userParam name=\"mass resolving power\""))
+  for (const char* id : {"scan=1", "scan=2", "scan=3", "scan=4"})
+  {
+    TEST_FALSE(StringUtils::hasSubstring(spectrumXML(id).first, "mass resolving power"))
+  }
+  TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=1").second, term + "60000\""))
+  TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=2").second, term + "30000\""))
+  TEST_EQUAL(count(spectrumXML("scan=3").second, "mass resolving power"), 1)
+  TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=3").second, term + "17500\""))
+  TEST_FALSE(StringUtils::hasSubstring(spectrumXML("scan=4").second, "mass resolving power"))
+
+  MzMLFile file;
+  StringList errors, warnings;
+  TEST_TRUE(file.isValid(tmp_filename))
+  TEST_TRUE(file.isSemanticallyValid(tmp_filename, errors, warnings))
+  TEST_EQUAL(errors.size(), 0)
+  TEST_EQUAL(warnings.size(), 0)
+
+  // read back as the value of the spectrum, as from mzML written by other software
+  PeakMap reloaded;
+  file.load(tmp_filename, reloaded);
+  ABORT_IF(reloaded.size() != 4)
+  TEST_EQUAL(reloaded[0].getMetaValue("mass resolving power").toString(), "60000")
+  TEST_EQUAL(reloaded[1].getMetaValue("mass resolving power").toString(), "30000")
+  TEST_EQUAL(reloaded[2].getMetaValue("mass resolving power").toString(), "17500")
+  TEST_FALSE(reloaded[3].metaValueExists("mass resolving power"))
+}
+END_SECTION
+
 START_SECTION(bool isValid(const std::string& filename, std::ostream& os = std::cerr))
 {
   std::string tmp_filename;

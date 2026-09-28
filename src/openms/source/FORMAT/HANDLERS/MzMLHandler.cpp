@@ -5403,8 +5403,20 @@ namespace OpenMS::Internal
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\" />\n";
       }
 
+      // The reader keeps the mass resolving power with the spectrum, but mzML allows MS:1000800 only in a scan. So it is
+      // left out here and written in the first scan, as a CV term whatever the type of its value (the vocabulary declares
+      // a string, the value is usually a number): other readers would not find a userParam. A value of the scan itself
+      // takes precedence.
       writeUserParam_(os, spec, 4, "/mzML/run/spectrumList/spectrum/cvParam/@accession", validator,
-                      {"mzml coordinate array", "mzml intensity array", "sampled noise m/z array", "sampled noise intensity array", "sampled noise baseline array"});
+                      {"mzml coordinate array", "mzml intensity array", "sampled noise m/z array", "sampled noise intensity array", "sampled noise baseline array",
+                       "mass resolving power"});
+      auto writeResolvingPower = [&](const MetaInfoInterface& scan_meta, bool first_scan)
+      {
+        const std::string key = "mass resolving power";
+        const MetaInfoInterface* source = scan_meta.metaValueExists(key) ? &scan_meta :
+                                          (first_scan && spec.metaValueExists(key)) ? &spec : nullptr;
+        if (source != nullptr) os << "\t\t\t\t\t\t" << writeCV_(cv_.getTerm("MS:1000800"), source->getMetaValue(key));
+      };
       //--------------------------------------------------------------------------------------------
       //scan list
       //--------------------------------------------------------------------------------------------
@@ -5472,7 +5484,8 @@ namespace OpenMS::Internal
             }
           }
         }
-        writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator, {"instrument_configuration_ref"});
+        writeResolvingPower(ac, j == 0);
+        writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator, {"instrument_configuration_ref", "mass resolving power"});
 
         if (spec.getInstrumentSettings().getZoomScan())
         {
@@ -5503,6 +5516,7 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t\t\t<scan>\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+        writeResolvingPower(Acquisition(), true);
 
         if (spec.getInstrumentSettings().getZoomScan())
         {
