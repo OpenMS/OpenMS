@@ -1600,9 +1600,11 @@ def _testParam(p):
     assert sorted(p.items()) == sorted((k, p[k]) for k in p.keys())
 
     assert not p.exists("asdflkj01231321321v")
+    # value-only setValue() keeps an entry's tags, so k may still carry its defaults' tags
+    tags_before = p.getTags(k)
     p.addTag(k, "a")
     p.addTags(k, ["", "c"])
-    assert sorted(p.getTags(k)) == ["", "a", "c"]
+    assert sorted(p.getTags(k)) == sorted(set(tags_before) | {"", "a", "c"})
     p.clearTags(k)
     assert p.getTags(k) == []
 
@@ -1631,8 +1633,12 @@ def _testParam(p):
     assert p == p1
 
     e1 = p1.getEntry(k)
-    for f in ["name", "description", "value", "tags", "valid_strings",
-              "min_float", "max_float", "min_int", "max_int"]:
+    fields = ["name", "description", "value", "tags", "valid_strings",
+              "min_float", "max_float", "min_int", "max_int"]
+    if e1.isBool():
+        # a boolean parameter has no string restrictions from Python (issue #10116)
+        fields.remove("valid_strings")
+    for f in fields:
         assert getattr(e1, f) is not None
 
     assert e1 == e1
@@ -2395,6 +2401,7 @@ def testFeatureXMLFile():
     assert 'feature_id' in df_fm.columns
     df_pep = pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications())
     assert len(df_pep) == 2
+    assert len(fm.to_peptide_df()) == 2
 
     fm = pyopenms.FeatureMap()
     pyopenms.FeatureXMLFile().load(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1_idmapped.featureXML'), fm)
@@ -2403,6 +2410,10 @@ def testFeatureXMLFile():
     assert 'feature_id' in df_fm2.columns
     df_pep2 = pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications())
     assert len(df_pep2) > 0
+    # every identified PeptideIdentification finds its feature, the 15 rows 3.5.0 asserted
+    merged = pd.merge(fm.to_df().reset_index(), fm.to_peptide_df(export_unidentified=False),
+                      on='feature_id', suffixes=('', '_psm'))
+    assert len(merged) == 15
 
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)

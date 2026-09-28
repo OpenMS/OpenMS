@@ -62,8 +62,11 @@ The most important CMake variables are:
     When enabled, OpenMS will attempt to locate a system installation of
     opentims; if none is found, it is fetched and built automatically from
     source via CMake FetchContent.
-    Affects FileConverter, PeakPickerIM, OpenSwathWorkflow, CometAdapter, and
-    ProteomicsLFQ.
+    Adds <code>.d</code> (and <code>.d.zip</code>) input to CometAdapter,
+    FeatureFinderIdentification, FeatureFinderLFQ, FeatureFinderMetaboIdent, FileConverter,
+    IonMobilityBinning, MetaboliteSpectralMatcher, NucleicAcidSearchEngine,
+    OpenSwathPeakMapExtractor, OpenSwathWorkflow, PeakPickerIM, ProSE, ProteomicsLFQ,
+    SageAdapter, SimpleSearchEngine and TransitionListEvidenceFilter.
     (Default: On)</td>
   </tr>
   <tr>

@@ -348,8 +348,8 @@ In this tutorial, we will cover a step-by-step guide on how to use the pyopenms 
         sequence = poms.AASequence.fromString("TESTMTECSTMTESTR")
 
         # We use the names "Oxidation (M)" and "Carbamidomethyl (C)" for the variable and fixed modifications, respectively.
-        variable_mod_names = [b"Oxidation (M)"]
-        fixed_mod_names = [b"Carbamidomethyl (C)"]
+        variable_mod_names = ["Oxidation (M)"]
+        fixed_mod_names = ["Carbamidomethyl (C)"]
 
         # We then use the getModifications() method of the ModifiedPeptideGenerator class to get the modifications for these names.
         variable_modifications = poms.ModifiedPeptideGenerator.getModifications(variable_mod_names)
@@ -362,11 +362,10 @@ In this tutorial, we will cover a step-by-step guide on how to use the pyopenms 
         max_variable_mods = 1
 
         # Generate the modified peptides
-        peptides_with_variable_modifications = []
         keep_unmodified_in_result = False
-        poms.ModifiedPeptideGenerator.applyVariableModifications(variable_modifications, sequence, max_variable_mods,
-                                                                peptides_with_variable_modifications,
-                                                                keep_unmodified_in_result)
+        peptides_with_variable_modifications = poms.ModifiedPeptideGenerator.applyVariableModifications(
+            variable_modifications, sequence, max_variable_mods, keep_unmodified_in_result
+        )
 
         # Print the modified peptides generated using Fixed modifications and their mono-isotopic mass.
         print("Fixed:", sequence.toString())
@@ -424,3 +423,133 @@ Afterwards, the ``example.fasta`` file can be read again from the disk:
         for e in entries:
             print(e.identifier, e.sequence)
 
+
+Annotated Proteins in PEFF Files
+********************************
+
+The PSI Extended :term:`FASTA` Format (PEFF) adds a header that describes the database
+and ``\Key=value`` annotations in the description lines: modified residues, sequence
+variants, processed regions such as signal peptides, disulfide bonds and more.
+:py:class:`~.PEFFFile` reads and writes PEFF files. ``load()`` returns a tuple of two
+lists: one :py:class:`~.PEFFEntry` per protein and one :py:class:`~.PEFFDatabaseMetadata`
+per database header. The example downloads a PEFF file with four UniProtKB entries:
+
+.. code-block:: python
+    :linenos:
+
+    from urllib.request import urlretrieve
+
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests/class_tests"
+    urlretrieve(gh + "/openms/data/PEFFFile_uniprot.peff", "uniprot.peff")
+
+    entries, headers = oms.PEFFFile().load("uniprot.peff")
+    header = headers[0]
+    print(header.db_name, header.db_version, header.prefix, header.number_of_entries)
+    for entry in entries:
+        print(entry.identifier, entry.entry_id, entry.protein_names, len(entry.sequence))
+
+.. code-block:: output
+
+    UniProtKB/Swiss-Prot-extract 55.5 sp 4
+    sp:P06748 NPM_HUMAN ['Nucleophosmin', 'NPM'] 294
+    sp:P02144_CHAIN0 MYG_HUMAN ['Myoglobin'] 153
+    sp:P00761 TRYP_PIG ['Trypsin precursor', 'EC 3.4.21.4'] 231
+    sp:NX_P01308-1 INS_HUMAN ['Insulin isoform Iso 1'] 110
+
+Header keys become attributes such as ``db_name``; unknown keys are kept in
+``unrecognized_keys``. An entry holds the identifier (``prefix:accession``), the sequence
+and the annotations, such as ``\ID`` in ``entry_id`` and ``\PName`` in ``protein_names``.
+Positional annotations are lists with 1-based positions: ``modifications``
+(:py:class:`~.PEFFModification`), ``simple_variants`` (:py:class:`~.PEFFVariantSimple`),
+``complex_variants`` and ``processed_regions``.
+
+``getModifiedSequence()`` returns an :py:class:`~.AASequence` with the annotated
+modifications that pyOpenMS can resolve. ``getVariantSequences(False)`` returns
+descriptions and sequences with one simple variant each (``True`` adds the complex
+variants). ``getProcessedSequence()`` takes the accession of a processed region and
+returns, for a signal peptide (``PEFF:0001021``), the sequence after it, otherwise the
+region itself. ``toFASTAEntry()`` returns a :py:class:`~.FASTAEntry` with the identifier,
+the first protein name as description and the sequence:
+
+.. code-block:: python
+    :linenos:
+
+    npm, myoglobin, trypsin, insulin = entries
+    modified = npm.getModifiedSequence()
+    for mod in npm.modifications:
+        residue = modified[mod.position - 1]
+        print(mod.position, mod.accession, mod.name, "->", residue.getModificationName())
+
+    reference = myoglobin.getSequence()
+    descriptions, variants = myoglobin.getVariantSequences(False)
+    for description, variant in zip(descriptions, variants):
+        print(description, f"{variant.getMonoWeight() - reference.getMonoWeight():.4f}")
+
+    mature = trypsin.getProcessedSequence("PEFF:0001021")
+    print(trypsin.processed_regions[0].end_position, mature.size(), mature.getPrefix(10))
+
+    fasta_entries = [entry.toFASTAEntry() for entry in entries]
+    print(fasta_entries[0].identifier, fasta_entries[0].description)
+    oms.FASTAFile().store("uniprot.fasta", fasta_entries)
+
+.. code-block:: output
+
+    125 MOD:00046 O-phospho-L-serine -> Phospho
+    199 MOD:00047 O-phospho-L-threonine -> Phospho
+    E54K -0.9476
+    K133N -14.0520
+    R139Q -28.0425
+    R139W 29.9782
+    8 223 IVGGYTCAAN
+    sp:P06748 Nucleophosmin
+
+``digestWithVariants()`` digests the reference sequence with a
+:py:class:`~.ProteaseDigestion` into peptides of 6 to 40 residues (default) and returns
+descriptions and peptides: the reference peptides with an empty description (unless
+``include_reference=False``) and, for each peptide, the combinations of the simple
+variants in it (with ``include_modifications=True`` also of the annotated modifications):
+
+.. code-block:: python
+    :linenos:
+
+    digestion = oms.ProteaseDigestion()
+    digestion.setEnzyme("Trypsin")
+    descriptions, peptides = myoglobin.digestWithVariants(digestion, include_reference=False)
+    for description, peptide in zip(descriptions, peptides):
+        print(description, peptide)
+
+.. code-block:: output
+
+    E54K SEDKMK
+    K133N HPGDFGADAQGAMNN
+    R139Q ALELFQ
+    R139W ALELFW
+
+Peptide boundaries come from the reference sequence: K133N removes the cleavage site after
+position 133, but its peptide still ends there. ``generatePeptides()`` also applies fixed
+and variable modifications given by name, such as ``fixed_mods=["Carbamidomethyl (C)"]``.
+
+``store()`` writes entries with one header or with a list of headers. For large files,
+``readStart()`` and ``readNext()`` read one entry at a time, and ``writeStart()``,
+``writeNext()`` and ``writeEnd()`` write one entry at a time:
+
+.. code-block:: python
+    :linenos:
+
+    human = [entry for entry in entries if entry.ncbi_tax_id == 9606]
+    header.number_of_entries = len(human)
+    oms.PEFFFile().store("human.peff", human, header)
+
+    reader = oms.PEFFFile()
+    reader.readStart("human.peff")
+    entry = oms.PEFFEntry()
+    while reader.readNext(entry):
+        print(entry.identifier, len(entry.modifications), len(entry.simple_variants))
+
+.. code-block:: output
+
+    sp:P06748 2 0
+    sp:P02144_CHAIN0 0 4
+    sp:NX_P01308-1 0 0
+
+The UniPEFF tool, one of the :term:`TOPP tools`, converts UniProtKB XML files to PEFF.

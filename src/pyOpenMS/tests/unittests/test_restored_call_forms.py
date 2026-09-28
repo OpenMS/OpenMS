@@ -6,6 +6,8 @@ are left out, and SimpleSearchEngineAlgorithm.search() is expected to return
 its result instead of raising std::bad_cast.
 """
 
+import pytest
+
 import pyopenms as oms
 from pyopenms.Constants import PROTON_MASS_U
 
@@ -114,3 +116,118 @@ def test_mass_explainer_compute_without_argument():
 
 def test_java_info_can_run_without_verbosity_flag():
     assert oms.JavaInfo.canRun("a-java-executable-that-does-not-exist") is False
+
+
+def _identified_run(shift):
+    """A FeatureMap and its PeptideIdentificationList: five peptides, RTs shifted by 'shift'."""
+    fmap = oms.FeatureMap()
+    peptides = oms.PeptideIdentificationList()
+    for i, sequence in enumerate(["PEPTIDEK", "ELVISLIVESK", "DLGEEHFK", "LVNELTEFAK", "YLYEIAR"]):
+        rt = 100.0 * (i + 1) + shift
+        hit = oms.PeptideHit()
+        hit.setSequence(oms.AASequence.fromString(sequence))
+        hit.setScore(0.01)
+        pid = oms.PeptideIdentification()
+        pid.setRT(rt)
+        pid.setMZ(500.0 + i)
+        pid.setScoreType("q-value")
+        pid.setHigherScoreBetter(False)
+        pid.setHits([hit])
+        peptides.push_back(pid)
+        feature = oms.Feature()
+        feature.setRT(rt)
+        feature.setMZ(500.0 + i)
+        feature_peptides = oms.PeptideIdentificationList()
+        feature_peptides.push_back(pid)
+        feature.setPeptideIdentifications(feature_peptides)
+        fmap.push_back(feature)
+    return fmap, peptides
+
+
+def _shifts(trafo):
+    return sorted(round(p.first - p.second, 6) for p in trafo.getDataPoints())
+
+
+def test_map_alignment_identification_aligns_several_maps():
+    (fmap0, peps0), (fmap1, peps1) = _identified_run(0.0), _identified_run(10.0)
+    aligner = oms.MapAlignmentAlgorithmIdentification()
+
+    trafos = aligner.align([fmap0, fmap1], 0)
+    assert len(trafos) == 2
+    assert _shifts(trafos[1]) == [10.0] * 5
+
+    # pyOpenMS 3.5 form: the transformations are written into the list passed in
+    filled = [oms.TransformationDescription()]
+    assert aligner.align([fmap0, fmap1], filled, 0) is None
+    assert len(filled) == 2 and _shifts(filled[1]) == [10.0] * 5
+
+    trafos = aligner.align([peps0, peps1], 0)
+    assert _shifts(trafos[1]) == [10.0] * 5
+
+    aligner.setReference(peps0)
+    trafos = aligner.align([fmap1])
+    assert len(trafos) == 1 and _shifts(trafos[0]) == [10.0] * 5
+
+
+def test_id_filter_filters_a_protein_list_by_score():
+    run = oms.ProteinIdentification()
+    run.setHigherScoreBetter(True)
+    hits = []
+    for accession, score in (("P1", 0.9), ("P2", 0.5), ("P3", 0.1)):
+        hit = oms.ProteinHit()
+        hit.setAccession(accession)
+        hit.setScore(score)
+        hits.append(hit)
+    run.setHits(hits)
+    proteins = [run]
+    filtered = oms.IDFilter.filterHitsByScore(proteins, 0.5)
+    assert [h.getAccession() for h in filtered[0].getHits()] == ["P1", "P2"]
+    assert [h.getAccession() for h in proteins[0].getHits()] == ["P1", "P2"]
+
+
+def test_id_filter_update_protein_references_is_a_deprecated_alias():
+    run = oms.ProteinIdentification()
+    run.setIdentifier("run1")
+    known = oms.ProteinHit()
+    known.setAccession("P1")
+    run.setHits([known])
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDEK"))
+    evidences = []
+    for accession in ("P1", "P2"):
+        evidence = oms.PeptideEvidence()
+        evidence.setProteinAccession(accession)
+        evidences.append(evidence)
+    hit.setPeptideEvidences(evidences)
+    pid = oms.PeptideIdentification()
+    pid.setIdentifier("run1")
+    pid.setHits([hit])
+    peptides = oms.PeptideIdentificationList()
+    peptides.push_back(pid)
+    with pytest.warns(DeprecationWarning, match="removeDanglingProteinReferences"):
+        oms.IDFilter.updateProteinReferences(peptides, [run], False)
+    remaining = [e.getProteinAccession() for e in peptides[0].getHits()[0].getPeptideEvidences()]
+    assert remaining == ["P1"]
+
+
+def test_opxl_helper_compute_delta_scores_takes_the_identifications():
+    pid = oms.PeptideIdentification()
+    pid.setHigherScoreBetter(True)
+    hits = []
+    for score in (5.0, 10.0):
+        hit = oms.PeptideHit()
+        hit.setScore(score)
+        hits.append(hit)
+    pid.setHits(hits)
+    peptides = oms.PeptideIdentificationList()
+    peptides.push_back(pid)
+    assert oms.OPXLHelper.computeDeltaScores(peptides) is None
+    scored = peptides[0].getHits()
+    assert [h.getScore() for h in scored] == [10.0, 5.0]
+    assert [h.getMetaValue("delta_score") for h in scored] == [0.5, 0.0]
+
+
+def test_transition_files_accept_bytes_paths(tmp_path):
+    target = tmp_path / "transitions.tsv"
+    oms.TransitionTSVFile().convertTargetedExperimentToTSV(str(target).encode(), oms.TargetedExperiment())
+    assert target.exists()

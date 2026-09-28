@@ -28,6 +28,7 @@ namespace OpenMS
   {
     std::string type;          ///< feature/\@type, e.g. "modified residue", "disulfide bond", "sequence variant"
     std::string description;   ///< feature/\@description (raw, before any cleanup)
+    std::string location_sequence; ///< &lt;location sequence="..."&gt;: accession of the isoform the coordinates refer to; empty = the entry's canonical sequence
     bool has_position{false};  ///< a single &lt;position&gt; element was present
     bool has_range{false};     ///< a &lt;begin&gt; / &lt;end&gt; pair was present
     int  position{0};          ///< 1-based position (0 = unknown / absent)

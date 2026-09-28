@@ -11,6 +11,7 @@ Tests cover:
 """
 
 import os
+import sys
 
 import pytest
 import numpy as np
@@ -527,6 +528,20 @@ class TestPeptideIdentificationListGetDF:
         assert 'Comet:xcorr' in pep_list.df_columns()
         assert 'MS:1002252' in pep_list.to_df(decode_ontology=False).columns
 
+    def test_df_columns_empty_score_type(self):
+        """Test that df_columns() names the score of an empty score type as to_df() does."""
+        hit = pyopenms.PeptideHit()
+        hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        pep = pyopenms.PeptideIdentification()
+        pep.setHits([hit])
+        pep_list = pyopenms.PeptideIdentificationList()
+        pep_list.append(pep)
+
+        cols = pep_list.df_columns()
+        assert cols == list(pep_list.to_df().columns)
+        # the columns select the score instead of dropping it
+        assert list(pep_list.to_df(columns=cols).columns) == cols
+
     def test_to_df_custom_missing_values(self, peptide_id_list_with_unidentified):
         """Test to_df() with custom default_missing_values."""
         custom_missing = {bool: False, int: 0, float: 0.0, str: 'N/A'}
@@ -639,6 +654,24 @@ class TestBackwardCompatibility:
 
         assert 'rt' in df.columns
         assert 'intensity' in df.columns
+
+
+def test_msexperiment_to_arrow_falls_back_without_the_zero_copy_module(monkeypatch):
+    """Without pyopenms._arrow_zerocopy, to_arrow() warns and exports in Python.
+
+    A local 'import warnings' in another branch of to_arrow() made the name local to the
+    whole function, so this fallback raised UnboundLocalError instead."""
+    pytest.importorskip("pyarrow")
+    monkeypatch.setitem(sys.modules, "pyopenms._arrow_zerocopy", None)  # the import raises
+    spectrum = pyopenms.MSSpectrum()
+    spectrum.setMSLevel(1)
+    spectrum.setRT(1.0)
+    spectrum.set_peaks(([100.0, 200.0], [5.0, 6.0]))
+    exp = pyopenms.MSExperiment()
+    exp.addSpectrum(spectrum)
+    with pytest.warns(UserWarning, match="_arrow_zerocopy"):
+        table = exp.to_arrow()
+    assert table.num_rows == 2
 
 
 class TestMSExperimentUnifiedToArrow:
@@ -1226,6 +1259,118 @@ class TestFeatureMapColumnSelection:
 
         assert 'feature_id' in cols
         assert 'custom_score' in cols
+
+
+class TestFeatureMapPeptideDataFrame:
+    """to_peptide_df() links the assigned PeptideIdentifications to to_df() by feature_id."""
+
+    # above the int64 range, so it only fits the frame as uint64
+    LARGE_ID = 18446744073709551557
+
+    @classmethod
+    def _feature_map(cls, ids=None, annotated=False, score_type='q-value'):
+        """Three features; the last has a PeptideIdentification without hits.
+
+        annotated: the hits carry feature_id as text, as 3.5.0's
+        get_assigned_peptide_identifications() added it.
+        score_type: the score type of every PeptideIdentification.
+        """
+        fmap = pyopenms.FeatureMap()
+        prot = pyopenms.ProteinIdentification()
+        prot.setIdentifier('run1')
+        prot.setPrimaryMSRunPath(['run1.mzML'])
+        fmap.setProteinIdentifications([prot])
+        ids = ids or (cls.LARGE_ID, 7, 9)
+        for unique_id, native_id, identified in zip(ids, ('scan=1', None, 'scan=3'), (True, True, False)):
+            f = pyopenms.Feature()
+            f.setUniqueId(unique_id)
+            if native_id is not None:
+                f.setMetaValue('spectrum_native_id', native_id)
+            pep = pyopenms.PeptideIdentification()
+            pep.setIdentifier('run1')
+            pep.setScoreType(score_type)
+            if identified:
+                hit = pyopenms.PeptideHit()
+                hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+                if annotated:
+                    hit.setMetaValue('feature_id', str(unique_id))
+                pep.setHits([hit])
+            peps = pyopenms.PeptideIdentificationList()
+            peps.push_back(pep)
+            f.setPeptideIdentifications(peps)
+            fmap.push_back(f)
+        return fmap
+
+    def test_assigned_identifications_are_returned_unchanged(self):
+        """get_assigned_peptide_identifications() returns the hits as stored."""
+        fmap = self._feature_map()
+        peps = fmap.get_assigned_peptide_identifications()
+        assert len(peps) == 3
+        # 3.5.0 added these meta values to every hit; 3.6 leaves the hits as stored
+        for key in ('feature_id', 'ID_native_id', 'ID_filename'):
+            assert not peps[0].getHits()[0].metaValueExists(key)
+        assert not fmap[0].getPeptideIdentifications()[0].getHits()[0].metaValueExists('feature_id')
+
+    def test_rows_carry_the_feature_id(self):
+        """Each row carries the ID of its feature as uint64."""
+        fmap = self._feature_map()
+        df = fmap.to_peptide_df()
+        assert list(df.columns[:1]) == ['feature_id']
+        assert df['feature_id'].dtype == 'uint64'
+        assert list(df['feature_id']) == [self.LARGE_ID, 7, 9]
+        # P_ID is the position in get_assigned_peptide_identifications()
+        assert list(df['P_ID']) == [0, 1, 2]
+        identified = fmap.to_peptide_df(export_unidentified=False)
+        assert list(identified['feature_id']) == [self.LARGE_ID, 7]
+        assert list(identified['P_ID']) == [0, 1]
+
+    def test_merge_with_feature_frame(self):
+        """The frame merges and joins with to_df() on feature_id."""
+        import pandas as pd
+        fmap = self._feature_map()
+        merged = pd.merge(fmap.to_df().reset_index(), fmap.to_peptide_df(export_unidentified=False),
+                          on='feature_id', suffixes=('', '_psm'))
+        assert len(merged) == 2
+        assert set(merged['feature_id']) == {self.LARGE_ID, 7}
+        joined = fmap.to_df().join(fmap.to_peptide_df().set_index('feature_id'), rsuffix='_psm')
+        assert len(joined) == 3
+
+    def test_small_ids_are_uint64_too(self):
+        """to_df() uses uint64 even when every ID fits into int64."""
+        # pandas infers int64 when every ID fits. The frames of two maps would then
+        # concatenate to a float64 index, which rounds the IDs.
+        import pandas as pd
+        fmap = self._feature_map(ids=(5, 7, 9))
+        assert fmap.to_df().index.dtype == 'uint64'
+        assert fmap.to_peptide_df()['feature_id'].dtype == 'uint64'
+        both = pd.concat([fmap.to_df(), self._feature_map().to_df()])
+        assert both.index.dtype == 'uint64'
+        assert list(both.index) == [5, 7, 9, self.LARGE_ID, 7, 9]
+
+    def test_columns(self):
+        """peptide_df_columns() lists the columns of to_peptide_df()."""
+        for score_type in ('q-value', ''):
+            fmap = self._feature_map(score_type=score_type)
+            cols = fmap.peptide_df_columns()
+            assert cols == list(fmap.to_peptide_df().columns)
+            assert list(fmap.to_peptide_df(columns=cols).columns) == cols
+        assert list(fmap.to_peptide_df(columns=['id', 'feature_id']).columns) == ['feature_id', 'id']
+
+    def test_feature_id_meta_value_gives_way(self):
+        """A feature_id meta value on the hits gives way to the ID of the feature."""
+        fmap = self._feature_map(annotated=True)
+        df = fmap.to_peptide_df()
+        assert list(df.columns).count('feature_id') == 1
+        assert df['feature_id'].dtype == 'uint64'
+        assert list(df['feature_id']) == [self.LARGE_ID, 7, 9]
+        assert fmap.peptide_df_columns() == list(df.columns)
+
+    def test_empty_map(self):
+        """An empty map gives an empty frame whose feature_id is uint64."""
+        df = pyopenms.FeatureMap().to_peptide_df()
+        assert len(df) == 0
+        assert df.columns[0] == 'feature_id'
+        assert df['feature_id'].dtype == 'uint64'
 
 
 class TestConsensusMapColumnSelection:
