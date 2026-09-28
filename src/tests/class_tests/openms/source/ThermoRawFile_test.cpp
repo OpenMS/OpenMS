@@ -7,6 +7,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/ThermoRawFile.h>
@@ -196,6 +197,35 @@ START_SECTION(round-trip load raw -> mzML -> reload MSExperiment)
   TEST_EQUAL(rt_filter > 0, true)
   TEST_EQUAL(rt_tic > 0, true)
   TEST_EQUAL(rt_window > 0, true)
+}
+END_SECTION
+
+START_SECTION(FileHandler::loadExperiment applies the vendor peak picking)
+{
+  // FileHandler reads .raw as FileConverter does: centroided by Thermo's peak picking.
+  // ThermoRawFile keeps the scans as acquired; the MS1 scans of this file are profile.
+  TEST_EQUAL(ThermoRawFile().getOptions().centroid, false)
+  MSExperiment acquired, centroided;
+  ThermoRawFile().load(THERMO_RAW_TEST_DATA, acquired);
+  FileHandler().loadExperiment(THERMO_RAW_TEST_DATA, centroided, {FileTypes::RAW});
+  TEST_EQUAL(centroided.size(), acquired.size())
+
+  Size same_id = 0, centroid_type = 0, ms1_profile = 0, profile_peaks = 0, picked_peaks = 0;
+  for (Size i = 0; i < acquired.size() && i < centroided.size(); ++i)
+  {
+    if (centroided[i].getNativeID() == acquired[i].getNativeID()) { ++same_id; }
+    if (centroided[i].getType() == SpectrumSettings::SpectrumType::CENTROID) { ++centroid_type; }
+    if (acquired[i].getMSLevel() == 1 && acquired[i].getType() == SpectrumSettings::SpectrumType::PROFILE)
+    {
+      ++ms1_profile;
+      profile_peaks += acquired[i].size();
+      picked_peaks += centroided[i].size();
+    }
+  }
+  TEST_EQUAL(same_id, acquired.size())
+  TEST_EQUAL(centroid_type, centroided.size())
+  TEST_EQUAL(ms1_profile > 0, true)
+  TEST_EQUAL(picked_peaks < profile_peaks, true)
 }
 END_SECTION
 #endif

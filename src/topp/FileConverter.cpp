@@ -80,8 +80,18 @@ needs a .NET 8 (or newer) runtime and supports every output format. Like ThermoR
 vendor peak picking unless -RawToMzML:no_peak_picking is given.
 The external reader (external; the default on windows) converts to mzML using the ThermoRawFileParser
 provided in the THIRDPARTY folder. On windows, a recent .NET framework needs to be installed. On linux and
-mac, the mono runtime needs to be present and accessible via the -NET_executable parameter. The path to the
-ThermoRawFileParser can be set via the -ThermoRaw_executable option.
+mac, the mono runtime, which the OpenMS packages there do not include, needs to be present and accessible via
+the -RawToMzML:NET_executable parameter. The path to the ThermoRawFileParser can be set via the
+-RawToMzML:ThermoRaw_executable option.
+The other tools that accept raw files, except OpenNuXL, which uses ThermoRawFileParser, read them with the
+built-in reader, but without vendor peak picking; see
+<a href="https://openms.readthedocs.io/en/latest/getting-started/vendor-formats.html">Vendor formats</a>.
+
+Bruker timsTOF .d directories, and zipped ones (.d.zip), are read with the built-in reader when OpenMS is
+built with WITH_OPENTIMS (the default). DDA-PASEF data gives one MS1 spectrum per frame, with the ion
+mobility of every peak, and one MS2 spectrum per precursor; DIA-PASEF data gives MS2 spectra per frame and
+isolation window. The advanced bruker:* options select the export mode and control m/z recalibration,
+frame aggregation and centroiding along the ion mobility axis.
 
 For MaxQuant-flavoured mzXML the use of the advanced option '-force_MaxQuant_compatibility' is recommended.
 
@@ -97,6 +107,8 @@ errors from files (e.g. the index), to update file formats to new versions, or t
 reading or writing.
 
 Some information about the supported input types:
+raw (Thermo Fisher, see above)
+d (Bruker timsTOF, see above)
 @ref OpenMS::MzMLFile "mzML"
 @ref OpenMS::MzXMLFile "mzXML"
 @ref OpenMS::MzDataFile "mzData"

@@ -160,12 +160,80 @@ which indicates that the variable ``exp`` has (among others) the functions
     4
     2
 
-and indeed we see that we get information about the underlying MS data. We can
-iterate through the spectra as follows:
+and indeed we see that we get information about the underlying :term:`MS` data.
 
+File Summary
+************
+
+To get an overview of a whole file, use :py:class:`~.FileInfo`, the library
+version of the ``FileInfo`` :term:`TOPP` tool. :py:meth:`~.FileInfo.run`
+determines the file type, loads the file and returns the collected information:
+
+.. code-block:: python
+    :linenos:
+
+    result = oms.FileInfo().run("tiny.mzML")
+
+    print("File type:", result.meta.file_type_name)
+    print("Spectra:", result.peak.num_spectra)
+    print("Spectra per MS level:", result.peak.spectra_per_ms_level)
+    ranges = result.ranges.spectra_overall
+    print("RT:", ranges.rt.min, "to", ranges.rt.max)
+    print("m/z:", ranges.mz.min, "to", ranges.mz.max)
+
+.. code-block:: output
+
+    File type: mzML
+    Spectra: 4
+    Spectra per MS level: {1: 3, 2: 1}
+    RT: -1.0 to 359.43
+    m/z: 0.0 to 18.0
+
+``result.peak`` describes a peak file such as :term:`mzML`; for other file
+types, another part such as ``result.feature``, ``result.ident`` or
+``result.fasta`` is set instead, and the parts that do not apply are ``None``.
+``result.ranges`` also holds the ranges per :term:`MS` level
+(``per_ms_level``), of the chromatograms (``chromatograms``) and of both
+together (``combined``). The retention time range starts at -1 because the
+third spectrum of ``tiny.mzML`` has no retention time, and OpenMS stores a
+missing retention time as -1.
+
+:py:meth:`~.FileInfo.to_text` returns the report that the ``FileInfo`` tool
+prints (also stored in ``result.text``), and :py:meth:`~.FileInfo.to_tsv` its
+tab-separated version. These are the first lines of the report:
+
+.. code-block:: python
+    :linenos:
+
+    report = oms.FileInfo.to_text(result)
+    print("\n".join(report.strip().splitlines()[:11]))
+
+.. code-block:: output
+
+    -- General information --
+
+    File name: tiny.mzML
+    File type: mzML
+
+    Instrument: LCQ Deca
+      Mass Analyzer: Quadrupole ion trap (resolution: 0)
+
+    MS levels: 1, 2
+    Total number of peaks: 65
+    Number of spectra: 4
+
+The report continues with the ranges, the spectra per :term:`MS` level, the
+activation methods, the precursor charges and the chromatograms. To add
+sections, pass a ``FileInfo.Options`` object as second argument to ``run()``;
+for example, ``meta = True`` adds sample, instrument and contact information.
+:py:meth:`~.FileInfo.run_all` adds this, the data processing information and
+summary statistics. With ``validate = True``, ``run()`` validates the file
+instead of summarizing it.
 
 Iteration
 *********
+
+We can iterate through the spectra as follows:
 
 .. note::
 

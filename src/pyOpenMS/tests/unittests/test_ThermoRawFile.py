@@ -89,6 +89,25 @@ def test_load_experiment_from_raw():
 
 
 @needs_raw_file
+def test_load_experiment_from_raw_applies_vendor_peak_picking():
+    """FileHandler applies Thermo's peak picking, like FileConverter; ThermoRawFile
+    keeps the scans as acquired unless its centroid option is set."""
+    exp = pyopenms.MSExperiment()
+    pyopenms.FileHandler().loadExperiment(RAW_FILE, exp)
+    centroid = pyopenms.SpectrumSettings.SpectrumType.CENTROID
+    assert all(s.getType() == centroid for s in exp)
+
+    # Angiotensin_AllScans.raw has profile MS1 scans and centroided MS2 scans.
+    acquired = pyopenms.MSExperiment()
+    pyopenms.ThermoRawFile().load(RAW_FILE, acquired)
+    assert [s.getNativeID() for s in acquired] == [s.getNativeID() for s in exp]
+    profile = pyopenms.SpectrumSettings.SpectrumType.PROFILE
+    ms1 = [(a, c) for a, c in zip(acquired, exp) if a.getMSLevel() == 1]
+    assert ms1 and all(a.getType() == profile for a, _ in ms1)
+    assert sum(c.size() for _, c in ms1) < sum(a.size() for a, _ in ms1)
+
+
+@needs_raw_file
 def test_load_experiment_from_raw_roundtrips_through_mzml(tmp_path):
     """An experiment read from RAW survives a store/load round trip through mzML."""
     exp = pyopenms.MSExperiment()

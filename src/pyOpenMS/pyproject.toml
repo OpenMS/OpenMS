@@ -144,7 +144,6 @@ include = [
     "CMakeLists.txt",
     "pyproject.toml",
     "README.rst",
-    "MANIFEST.in",
     "pyopenms/*.py",
     "pyopenms/*.pyi",
     "pyopenms/py.typed",
