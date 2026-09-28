@@ -18,9 +18,14 @@ that installed each one, and copies that package's license files to
 
 - Linux: the RPM package that owns the library (the manylinux images are RPM based),
   and its license files (rpm --licensefiles, else its COPYING/LICENSE/NOTICE files),
-  to LICENSES/system/<package>/.
+  to LICENSES/system/<package>/. A package without any, such as libgomp, takes those of
+  an installed package built from the same source package (libgcc, from gcc).
 - macOS: the Homebrew keg that holds the library (Cellar/<formula>/<version>), and its
   COPYING/LICENSE/NOTICE files, to LICENSES/homebrew/<formula>/.
+
+--license-file <name>=<file> gives the license text for a package or formula that ships
+none: Homebrew copies only files named exactly LICENSE, COPYING and the like into a keg,
+so boost's LICENSE_1_0.txt does not reach it.
 
 Libraries of the installation itself are skipped, and so are the C and C++ runtime
 (glibc, libgcc_s, libstdc++; on macOS everything under /usr/lib and /System), which the
@@ -32,6 +37,7 @@ Exits with 1, naming the library, if a bundled library has no package or no lice
 
 Usage: collect_wheel_licenses.py --prefix <install prefix> [--skip-prefix <dir> ...]
                                  [--homebrew-formula <header-only formula> ...]
+                                 [--license-file <package or formula>=<file> ...]
 """
 import argparse
 import os
@@ -88,7 +94,7 @@ def linux_dependencies(roots):
     return found, missing
 
 
-def rpm_license_files(package):
+def rpm_own_license_files(package):
     files = [f for f in run("rpm", "-q", "--licensefiles", package).stdout.splitlines()
              if f.startswith("/") and os.path.isfile(f)]
     if not files:  # packages that predate %license list them as documentation
@@ -97,7 +103,27 @@ def rpm_license_files(package):
     return files
 
 
-def collect_linux(roots, skip, dest):
+def rpm_license_files(package):
+    """(license files, the package they belong to) for an RPM package.
+
+    Subpackages of one source package can leave the license files to one of them: gcc's
+    libgomp has none, libgcc has gcc's. Such a package takes those of an installed
+    package built from the same source package.
+    """
+    files = rpm_own_license_files(package)
+    if files:
+        return files, package
+    source = run("rpm", "-q", "--queryformat", "%{SOURCERPM}", package).stdout.strip()
+    if source:
+        installed = run("rpm", "-qa", "--queryformat", "%{NAME}\t%{SOURCERPM}\n").stdout.splitlines()
+        for sibling in sorted(line.split("\t")[0] for line in installed if line.endswith("\t" + source)):
+            files = rpm_own_license_files(sibling) if sibling != package else []
+            if files:
+                return files, sibling
+    return [], None
+
+
+def collect_linux(roots, skip, dest, supplied):
     dependencies, missing = linux_dependencies(roots)
     problems = [f"{soname}: not found by the loader" for soname in missing]
     packages = {}
@@ -113,12 +139,15 @@ def collect_linux(roots, skip, dest):
         packages.setdefault((name, version), []).append(soname)
     index = []
     for (name, version), sonames in sorted(packages.items()):
-        files = rpm_license_files(name)
+        files, owner = rpm_license_files(name)
+        note = f" (license files of {owner}, built from the same source package)" if owner not in (name, None) else ""
+        if not files and name in supplied:
+            files, note = [supplied[name]], " (license text supplied by the build; the package has none)"
         if not files:
             problems.append(f"{', '.join(sonames)}: package {name} has no license file")
             continue
         copy_files(files, os.path.join(dest, "system", name))
-        index.append(f"{', '.join(sorted(sonames))}\t{name} {version}")
+        index.append(f"{', '.join(sorted(sonames))}\t{name} {version}{note}")
     write_index(os.path.join(dest, "system"), index,
                 "Libraries of the build system that the wheel bundles, and the RPM package each comes from.")
     return problems
@@ -196,7 +225,7 @@ def keg_license_files(keg, formula):
     return []
 
 
-def collect_macos(roots, skip, dest, compiled_in):
+def collect_macos(roots, skip, dest, compiled_in, supplied):
     dependencies, unresolved = macos_dependencies(roots)
     problems = [f"{reference}: cannot be resolved" for reference in unresolved]
     kegs = {}
@@ -218,12 +247,14 @@ def collect_macos(roots, skip, dest, compiled_in):
         kegs.setdefault((keg, formula), []).append(os.path.basename(path))
     index = []
     for (keg, formula), libraries in sorted(kegs.items()):
-        files = keg_license_files(keg, formula)
+        files, note = keg_license_files(keg, formula), ""
+        if not files and formula in supplied:
+            files, note = [supplied[formula]], " (license text supplied by the build; the keg has none)"
         if not files:
             problems.append(f"{', '.join(libraries)}: the keg {keg} has no license file")
             continue
         copy_files(files, os.path.join(dest, "homebrew", formula))
-        index.append(f"{', '.join(sorted(libraries))}\t{formula} {os.path.basename(keg)}")
+        index.append(f"{', '.join(sorted(libraries))}\t{formula} {os.path.basename(keg)}{note}")
     write_index(os.path.join(dest, "homebrew"), index,
                 "Homebrew libraries that the wheel bundles, and the formula each comes from.")
     return problems
@@ -254,7 +285,15 @@ def main():
                         help="libraries below this directory are skipped (their licenses come from elsewhere)")
     parser.add_argument("--homebrew-formula", action="append", default=[],
                         help="macOS: a header-only formula whose code libOpenMS compiles in, e.g. eigen")
+    parser.add_argument("--license-file", action="append", default=[], metavar="NAME=FILE",
+                        help="the license text for a package or formula that ships none")
     args = parser.parse_args()
+    supplied = {}
+    for entry in args.license_file:
+        name, _, path = entry.partition("=")
+        if not name or not os.path.isfile(path):
+            parser.error(f"--license-file {entry}: expected <package or formula>=<existing file>")
+        supplied[name] = path
 
     prefix = os.path.realpath(args.prefix)
     skip = [prefix] + [os.path.realpath(p) for p in args.skip_prefix]
@@ -264,9 +303,9 @@ def main():
         print(f"collect_wheel_licenses: no shared libraries in {prefix}/lib", file=sys.stderr)
         return 1
     if sys.platform == "darwin":
-        problems = collect_macos(roots, skip, dest, args.homebrew_formula)
+        problems = collect_macos(roots, skip, dest, args.homebrew_formula, supplied)
     elif sys.platform.startswith("linux"):
-        problems = collect_linux(roots, skip, dest)
+        problems = collect_linux(roots, skip, dest, supplied)
     else:
         print(f"collect_wheel_licenses: nothing to do on {sys.platform}")
         return 0
