@@ -16,6 +16,7 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -188,10 +189,55 @@ static void configure_calibration_params_(ProSEAlgorithm& algo,
 }
 
 // ---------------------------------------------------------------------------
+// Appends @p per_protein spectra per protein of decoy peptides: the pseudo-reversed protein
+// that ProSE generates as decoy (DecoyGenerator::reversePeptides() with trypsin), digested
+// without missed cleavages and with Carbamidomethyl (C), so that a search with decoys
+// yields decoy PSMs by construction. The other synthetic spectra are noise-free and
+// explained by their targets: without these spectra, no decoy is ever a top hit.
+// ---------------------------------------------------------------------------
+void addDecoySpectra(PeakMap& spectra, const std::vector<FASTAFile::FASTAEntry>& fasta_db, Size per_protein, double& rt)
+{
+  ProteaseDigestion digester;
+  digester.setEnzyme("Trypsin");
+  digester.setMissedCleavages(0);
+  const ModifiedPeptideGenerator::MapToResidueType fixed_mods =
+    ModifiedPeptideGenerator::getModifications({"Carbamidomethyl (C)"});
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg_param.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_param);
+  DecoyGenerator decoy_generator;
+  for (const auto& entry : fasta_db)
+  {
+    const AASequence decoy_protein = decoy_generator.reversePeptides(AASequence::fromString(entry.sequence), "Trypsin");
+    std::vector<AASequence> peptides;
+    digester.digest(decoy_protein, peptides, 8, 40);
+    peptides.resize(std::min(peptides.size(), per_protein));
+    for (AASequence& pep : peptides)
+    {
+      ModifiedPeptideGenerator::applyFixedModifications(fixed_mods, pep);
+      MSSpectrum spec;
+      tsg.getSpectrum(spec, pep, 1, 1);
+      spec.sortByPosition();
+      spec.setMSLevel(2);
+      spec.setRT(rt);
+      rt += 0.1;
+      Precursor prec;
+      prec.setMZ(pep.getMZ(2));
+      prec.setCharge(2);
+      spec.setPrecursors({prec});
+      spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
+      spectra.addSpectrum(std::move(spec));
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Shared synthetic search problem for the protein-FDR contract tests below.
-// 10 proteins + many modified-precursor spectra under a wide precursor window, so
-// ProSEAlgorithm with decoys=true reliably produces BOTH target and decoy protein
-// hits — the prerequisite for exercising picked-protein FDR.
+// 10 proteins + many modified-precursor spectra under a wide precursor window, plus
+// spectra of decoy peptides, so ProSEAlgorithm with decoys=true reliably produces BOTH
+// target and decoy protein hits — the prerequisite for exercising picked-protein FDR.
 // ---------------------------------------------------------------------------
 void buildSyntheticProteinFDRData(std::vector<FASTAFile::FASTAEntry>& fasta_db, PeakMap& spectra)
 {
@@ -306,6 +352,7 @@ void buildSyntheticProteinFDRData(std::vector<FASTAFile::FASTAEntry>& fasta_db, 
       created++;
     }
   }
+  addDecoySpectra(spectra, fasta_db, 2, rt);
 }
 
 // A run with one ETD spectrum (c/z+1 ions) and one HCD spectrum, each tagged with its activation
@@ -1073,6 +1120,7 @@ START_SECTION(([EXTRA] FDR-filtered modification discovery))
       created++;
     }
   }
+  addDecoySpectra(spectra, fasta_db, 2, rt); // decoy PSMs for the FDR filter to remove
   TEST_TRUE(spectra.size() > 2000)
 
   // =========================================================================

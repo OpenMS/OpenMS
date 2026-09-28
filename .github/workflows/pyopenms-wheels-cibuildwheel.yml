@@ -423,7 +423,6 @@ jobs:
           fi
           mkdir build && cd build
           # Note: CMAKE_PREFIX_PATH uses semicolons as list separators when passed via -D
-          # BOOST_USE_STATIC=OFF works around Boost's incomplete find_dependency calls
           # ARROW_USE_STATIC=OFF since static Arrow still links to shared abseil libs anyway
           # Install OpenMS so libraries are stripped and use proper install names
           cmake .. \
@@ -433,7 +432,6 @@ jobs:
             -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix libomp)" \
             -DCMAKE_INSTALL_NAME_DIR=${{ github.workspace }}/install/lib \
             -DOpenMP_ROOT=$(brew --prefix libomp) \
-            -DBOOST_USE_STATIC=OFF \
             -DARROW_USE_STATIC=OFF \
             -DPYOPENMS=OFF \
             -DWITH_GUI=OFF \

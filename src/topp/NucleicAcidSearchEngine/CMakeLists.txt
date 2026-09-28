@@ -14,10 +14,6 @@ if(NOT TARGET OpenMS::OpenMS_CLI)
   find_package(OpenMS CONFIG REQUIRED COMPONENTS CLI)
 endif()
 
-if(NOT TARGET Boost::regex)
-  find_package(Boost 1.81 REQUIRED COMPONENTS regex)
-endif()
-
 set(tool_sources
   source/ModifiedNASequenceGenerator.cpp
 )
@@ -27,7 +23,7 @@ set(tool_headers
 
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources} ${tool_headers})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(${PROJECT_NAME} OpenMS::OpenMS_CLI Boost::regex)
+target_link_libraries(${PROJECT_NAME} OpenMS::OpenMS_CLI)
 if(COMMAND openms_add_executable_compiler_flags)
   openms_add_executable_compiler_flags(${PROJECT_NAME})
 endif()

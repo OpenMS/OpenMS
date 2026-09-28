@@ -10,8 +10,7 @@
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "CMAKE_COLOR_DIAGNOSTICS": "ON",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
-                "OPENMS_USE_VCPKG": "ON",
-                "BOOST_USE_STATIC": "OFF"
+                "OPENMS_USE_VCPKG": "ON"
             }
         },
         {
@@ -72,10 +71,7 @@
             "name": "windows-x64-base",
             "hidden": true,
             "inherits": "windows-base",
-            "description": "Windows x64 settings that do not depend on the build type. VCPKG_TARGET_TRIPLET is deliberately NOT set here: unlike Linux and macOS, whose triplets build every dependency in both debug and release form and so suit any configuration, the Windows triplets differ in exactly that respect, so each preset below has to name the one that matches its build type.",
-            "cacheVariables": {
-                "BOOST_USE_STATIC": "ON"
-            }
+            "description": "Windows x64 settings that do not depend on the build type. VCPKG_TARGET_TRIPLET is deliberately NOT set here: unlike Linux and macOS, whose triplets build every dependency in both debug and release form and so suit any configuration, the Windows triplets differ in exactly that respect, so each preset below has to name the one that matches its build type."
         },
         {
             "name": "debug-base",
