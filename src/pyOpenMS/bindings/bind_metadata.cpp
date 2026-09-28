@@ -679,7 +679,7 @@ Extract scan number from a native ID using the accession type
             R"doc(
 Extract the scan number from a native ID using a regular expression
 :param native_id: The native spectrum ID string
-:param scan_regexp: Regular expression whose first capture group holds the scan number (the last match is used)
+:param scan_regexp: Regular expression containing the named group `(?<SCAN>...)` as its first capture group; the last matching value is used as the scan number
 :param no_error: If true, return -1 on failure instead of raising an exception
 :returns: Scan number of the spectrum, or -1 on failure
 )doc")
