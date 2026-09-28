@@ -27,7 +27,9 @@ headings and structure.
    ms_data
    chemistry
    peptides_proteins
+   standards
    oligonucleotides_rna
+   glycans
    fragment_spectrum_generation
    spectrum_alignment
    digestion
@@ -76,6 +78,7 @@ headings and structure.
    export_pandas_dataframe
    query_msexperiment_massql
    memory_management
+   threads
    pyopenms_in_r
    interactive_plots
    interfacing_ml_libraries

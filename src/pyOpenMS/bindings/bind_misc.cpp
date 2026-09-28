@@ -3360,20 +3360,20 @@ File adapter for PEFF (PSI Extended FASTA Format) files
 PEFF extends FASTA with rich annotations for modifications, variants,
 processed regions, and proteoforms.
 Usage:
+
 .. code-block:: python
-# Batch loading
-peff = PEFFFile()
-entries = []
-headers = []
-peff.load("proteins.peff", entries, headers)
-for entry in entries:
-print(entry.identifier, len(entry.modifications))
-# Streaming (memory-efficient for large files)
-peff = PEFFFile()
-peff.readStart("proteins.peff")
-entry = PEFFEntry()
-while peff.readNext(entry):
-print(entry.identifier)
+
+  # Batch loading: load() returns a tuple (entries, headers)
+  peff = PEFFFile()
+  entries, headers = peff.load("proteins.peff")
+  for entry in entries:
+      print(entry.identifier, len(entry.modifications))
+  # Streaming (memory-efficient for large files)
+  peff = PEFFFile()
+  peff.readStart("proteins.peff")
+  entry = PEFFEntry()
+  while peff.readNext(entry):
+      print(entry.identifier)
 )doc")
         .def(nb::init<>())
         .def("load", [](const OpenMS::PEFFFile& self, const std::string& filename) { std::vector<OpenMS::PEFFEntry> entries; std::vector<OpenMS::PEFFDatabaseMetadata> headers; self.load(filename, entries, headers); return std::make_tuple(entries, headers); }, "filename"_a)

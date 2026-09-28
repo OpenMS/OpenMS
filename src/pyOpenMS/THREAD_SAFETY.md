@@ -19,14 +19,14 @@ In particular, an Arrow table or Python buffer that aliases OpenMS storage is sh
 
 ## GIL-releasing binding inventory
 
-The current bindings contain 62 `nb::gil_scoped_release` sites. This is an implementation inventory, not an endorsement of calling the listed operations concurrently.
+The current bindings contain 65 GIL-releasing sites: 64 `nb::gil_scoped_release` scopes and one `nb::call_guard<nb::gil_scoped_release>()` (`ThermoRawFile.load()`). Recount with `grep -o gil_scoped_release src/pyOpenMS/bindings/*.cpp | sort | uniq -c`. This is an implementation inventory, not an endorsement of calling the listed operations concurrently.
 
 | Binding source | Calls | Covered operations |
 | --- | ---: | --- |
 | `bindings/arrow_zerocopy.cpp` | 16 | Arrow import/export, including experimental zero-copy paths |
 | `bindings/bind_experiment.cpp` | 2 | `MSExperiment.sortSpectra()` and `sortChromatograms()` |
-| `bindings/bind_format.cpp` | 13 | FileHandler, imzML, and indexed mzML load/store/validation operations |
-| `bindings/bind_misc.cpp` | 31 | File I/O and long-running feature-finding, deconvolution, indexing, and search operations |
+| `bindings/bind_format.cpp` | 14 | `ThermoRawFile.load()` (only in builds with Thermo RAW support), FileHandler, imzML, and indexed mzML load/store/validation operations |
+| `bindings/bind_misc.cpp` | 33 | File I/O and long-running feature-finding, multiplet resolution (`MultiplexResolverAlgorithm.resolve()`), deconvolution, indexing, search, and transition-list filtering operations |
 
 **Note:** one `bind_misc.cpp` site (`TransitionListEvidenceFilter.filter`) additionally parallelizes internally via a `threads` argument; the active SWATH maps and their spectra, plus derived `candidates`/`precursor_index`, are read by multiple worker threads during the threaded scan. `transition_exp` is read before that phase to build `candidates`.
 

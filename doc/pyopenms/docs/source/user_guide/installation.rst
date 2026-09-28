@@ -36,6 +36,38 @@ If you want the newest features you can also install nightly builds of pyOpenMS 
 
   pip install --index-url https://pypi.openms.de/simple/ pyopenms
 
+Type Stubs
+----------
+
+Since version 3.6, the pyOpenMS wheels contain type stubs (``.pyi`` files with
+the parameter types, return types and docstrings of the classes and functions)
+and the ``py.typed`` marker (:pep:`561`). Editors use the stubs for code
+completion and to show method signatures, and type checkers such as mypy or
+pyright use them to find wrong types before the code runs; no further setup is
+needed. For example, for this script ``check_types.py``:
+
+.. code-block:: python
+    :linenos:
+
+    import pyopenms as oms
+
+    exp = oms.MSExperiment()
+    oms.MzMLFile().load(42, exp)
+    n_spectra: str = exp.getNrSpectra()
+
+mypy, installed in the same environment as pyOpenMS (``pip install mypy``),
+reports both errors:
+
+.. code-block:: bash
+
+  mypy check_types.py
+
+.. code-block:: output
+
+    check_types.py:4: error: Argument 1 to "load" of "MzMLFile" has incompatible type "int"; expected "str"  [arg-type]
+    check_types.py:5: error: Incompatible types in assignment (expression has type "int", variable has type "str")  [assignment]
+    Found 2 errors in 1 file (checked 1 source file)
+
 Source (advanced users)
 -----------------------
 
