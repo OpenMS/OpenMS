@@ -339,8 +339,11 @@ During writing in text-mode on Windows a line-break (`\n`) is expanded to (`\r\n
 
 ### Paths and system functions
 
-Avoid hardcoding e.g.`String tmp_dir = "/tmp";`. This will fail on Windows. Use Qt's `QDir` to get a path to the systems
-temporary directory if required.
+Avoid hardcoding e.g. `std::string tmp_dir = "/tmp";`. This will fail on Windows. Use
+`SystemSettings::getTempDirectory()` (`OpenMS/SYSTEM/SystemSettings.h`) instead: it returns the directory set by the
+`OPENMS_TMPDIR` environment variable or the `temp_dir` entry of the OpenMS.ini, and otherwise the system's temporary
+directory. A `TempDir` (`OpenMS/SYSTEM/TempFiles.h`) creates a uniquely named directory in it and removes it again
+when it goes out of scope.
 
 Avoid names like uname which are only available on Linux.
 

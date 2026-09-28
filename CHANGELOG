@@ -47,7 +47,9 @@ General:
   - BREAKING: OpenMS::String/StringView replaced by std::string/std::string_view;
     StringList is std::vector<std::string>. Use OpenMS::StringUtils free functions for
     conversion, splitting, trimming and substitution. String, StringConversions and
-    StringUtilsSimple shim headers were removed (#9450, #9468).
+    StringUtilsSimple shim headers were removed (#9450, #9468). "Migrating from
+    OpenMS::String" in the developer documentation lists the replacement for each member
+    of String and the changes the compiler does not catch.
   - Core modularization reduces dependencies between KERNEL, FORMAT, PROCESSING,
     APPLICATIONS and QC. Shared utilities cover spectrum-type estimation, resampling,
     alignment defaults, filename recognition, ion-mobility metadata and data-processing
