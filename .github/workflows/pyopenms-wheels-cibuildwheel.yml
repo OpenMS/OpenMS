@@ -204,6 +204,10 @@ jobs:
               cmake --install . --component thirdparty_headers
               cmake --install . --component share
               cmake --install . --component cmake
+              # The licenses of the system libraries auditwheel copies into the wheel. The
+              # contrib libraries are left out: the OpenMS install has theirs already.
+              PY=$(command -v python3 || ls /opt/python/cp3*/bin/python | tail -1)
+              "$PY" /project/tools/ci/collect_wheel_licenses.py --prefix /project/install --skip-prefix /contrib-build
             '
 
       - name: Set pyOpenMS version
@@ -325,6 +329,10 @@ jobs:
               cmake --install . --component thirdparty_headers
               cmake --install . --component share
               cmake --install . --component cmake
+              # The licenses of the system libraries auditwheel copies into the wheel. The
+              # contrib libraries are left out: the OpenMS install has theirs already.
+              PY=$(command -v python3 || ls /opt/python/cp3*/bin/python | tail -1)
+              "$PY" /project/tools/ci/collect_wheel_licenses.py --prefix /project/install --skip-prefix /contrib-build
             '
 
       - name: Set pyOpenMS version
@@ -452,6 +460,10 @@ jobs:
           cmake --install . --component thirdparty_headers
           cmake --install . --component share
           cmake --install . --component cmake
+          # The licenses of the Homebrew libraries delocate copies into the wheel, and of
+          # Eigen, which is header-only and compiled into libOpenMS.
+          python3 ${{ github.workspace }}/tools/ci/collect_wheel_licenses.py \
+            --prefix ${{ github.workspace }}/install --homebrew-formula eigen
 
       - name: Set pyOpenMS version
         run: |
