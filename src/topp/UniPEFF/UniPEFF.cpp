@@ -55,12 +55,14 @@ precursor (e.g. insulin's "Interchain (between B and A chains)"). A bond given
 as a single <code>\<position\></code> (partner cysteine in another molecule) or
 with an endpoint beyond the sequence end gets no connectivity; its in-range
 half-cystines are written as plain modifications (see below for the rest). By
-default only the half-cystines of reported bonds are labeled, in bond order:
-the k-th reported bond labels its two half-cystines
-2k-1 and 2k and is itself labeled k (1-based; see issue 9829). With
+default only the reported bonds and their half-cystines are labeled, in bond
+order: of K reported bonds, the k-th labels its two half-cystines 2k-1 and 2k
+and is itself labeled 2K+k, so the ids 1..3K are unique within the entry, as
+PEFF requires (see issue 9829). With
 @c -annotation_identifiers (PEFF "Option B") every
 annotation tuple instead carries a global sequential 1-based id and
-\\DisulfideBond references those ids.
+\\DisulfideBond references those ids. Each database block with ids declares
+<code># HasAnnotationIdentifiers=true</code>.
 
 Annotations positioned beyond the end of the sequence (malformed input), i.e.
 modifications, variants and processed regions, are omitted with a warning,
@@ -782,23 +784,42 @@ namespace
   }
 
   /// Default mode (no -annotation_identifiers): implement the selective labeling scheme
-  /// from issue #9829 — the k-th (1-based) valid disulfide pair (both half-cystines located
-  /// in this sequence via <begin>/<end>: intrachain, or between chains of one precursor)
-  /// labels its begin half-cystine 2k-1 and its end half-cystine 2k, and the \DisulfideBond
-  /// tuple itself is labeled k, referencing those two ids. All other annotations (including
-  /// half-cystines from single-<position> features, whose partner lies in another molecule)
-  /// stay unlabeled.
+  /// from issue #9829 — of the K valid disulfide pairs (both half-cystines located in this
+  /// sequence via <begin>/<end>: intrachain, or between chains of one precursor), the k-th
+  /// (1-based) labels its begin half-cystine 2k-1 and its end half-cystine 2k, and the
+  /// \DisulfideBond tuple itself is labeled 2K+k, referencing those two ids. The bonds
+  /// follow the half-cystines so that the ids 1..3K are unique within the entry (PEFF 1.0,
+  /// section 3.4.2). All other annotations (including half-cystines from single-<position>
+  /// features, whose partner lies in another molecule) stay unlabeled.
   void assignDisulfideLabels(EntryAnnotations& a)
   {
-    uint32_t next_bond = 1;
+    std::vector<DisulfidePairItem*> reported;
     for (auto& d : a.disulfides)
     {
       if (!d.valid) continue;
       if (d.idx_a >= a.mods.size() || d.idx_b >= a.mods.size()) continue;
-      d.annotation_id = next_bond++;
-      a.mods[d.idx_a].annotation_id = 2 * d.annotation_id - 1;
-      a.mods[d.idx_b].annotation_id = 2 * d.annotation_id;
+      reported.push_back(&d);
     }
+    const auto num_bonds = static_cast<uint32_t>(reported.size());
+    for (uint32_t k = 1; k <= num_bonds; ++k)
+    {
+      DisulfidePairItem& d = *reported[k - 1];
+      a.mods[d.idx_a].annotation_id = 2 * k - 1;
+      a.mods[d.idx_b].annotation_id = 2 * k;
+      d.annotation_id = 2 * num_bonds + k;
+    }
+  }
+
+  /// True when any tuple of @p a carries an annotation identifier; the entry's database
+  /// block must then declare HasAnnotationIdentifiers=true (PEFF 1.0, section 3.4.2).
+  bool hasAnnotationIds(const EntryAnnotations& a)
+  {
+    auto has_id = [](const auto& item) { return item.annotation_id != kNoId; };
+    return std::any_of(a.mods.begin(), a.mods.end(), has_id)
+        || std::any_of(a.simple_variants.begin(), a.simple_variants.end(), has_id)
+        || std::any_of(a.complex_variants.begin(), a.complex_variants.end(), has_id)
+        || std::any_of(a.processed.begin(), a.processed.end(), has_id)
+        || std::any_of(a.disulfides.begin(), a.disulfides.end(), has_id);
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -1175,7 +1196,7 @@ protected:
     registerStringOption_("prefix", "<string>", "", "Force a single PEFF prefix for every entry (e.g. 'sp'); if empty, sp/tr is derived from the UniProt dataset.", false);
     registerStringOption_("dbversion", "<string>", "unknown", "Value for the mandatory '# DbVersion=' PEFF header line.", false);
 
-    registerFlag_("annotation_identifiers", "Emit PEFF Option B: assign a global sequential id: prefix to every annotation tuple, referenced by \\DisulfideBond. By default only the \\DisulfideBond tuples and the half-cystines they reference get ids: bond k (1-based) is labeled k, its half-cystines 2k-1 and 2k.");
+    registerFlag_("annotation_identifiers", "Emit PEFF Option B: assign a global sequential id: prefix to every annotation tuple, referenced by \\DisulfideBond. By default only the \\DisulfideBond tuples and the half-cystines they reference get ids: of K bonds, bond k (1-based) labels its half-cystines 2k-1 and 2k and is itself labeled 2K+k.");
     registerFlag_("omit_molecular_processing", "Skip the \\Processed annotations (initiator methionine, signal/transit peptide, propeptide, chain).");
     registerFlag_("omit_amino_acid_modifications", "Skip \\ModResPsi / \\ModResUnimod / \\ModRes and \\DisulfideBond; ptmlist is not read.");
     registerFlag_("omit_sequence_variations", "Skip \\VariantSimple and \\VariantComplex annotations.");
@@ -1264,6 +1285,7 @@ protected:
       std::string path;
       std::ofstream out;
       int count{0};
+      bool has_annotation_ids{false};  ///< some entry carries ids -> HasAnnotationIdentifiers=true
     };
     std::map<std::string, PrefixSpool> spools;
     std::vector<std::string> prefixes;  // first-seen order
@@ -1319,6 +1341,7 @@ protected:
                        psi_obo, unimod_obo, fallback_tracker,
                        record_processing, record_aa_mods, record_variants);
         ++it->second.count;
+        if (hasAnnotationIds(pe.annotations)) it->second.has_annotation_ids = true;
       });
     }
     if (spool_open_failed)
@@ -1366,7 +1389,9 @@ protected:
       PeffHeader h;
       h.prefix = p;
       h.db_version = dbversion;
-      h.has_annotation_identifiers = option_b;
+      // Option B declares ids for every block; the default mode only for blocks whose
+      // entries carry disulfide labels (PEFF allows the flag per database).
+      h.has_annotation_identifiers = option_b || spools[p].has_annotation_ids;
       h.number_of_entries = spools[p].count;
       writeDbDescriptionBlock(out, h);
     }

@@ -1627,7 +1627,10 @@ START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of
   TEST_EQUAL(headers[1].prefix, "tr")
   TEST_EQUAL(headers[0].number_of_entries, 1)
   TEST_EQUAL(headers[1].number_of_entries, 1)
-  TEST_FALSE(headers[0].has_annotation_identifiers)  // Option A golden
+  // Only the sp block's entry carries (disulfide) annotation ids, so only that block
+  // declares them; PEFF sets the flag per database.
+  TEST_TRUE(headers[0].has_annotation_identifiers)
+  TEST_FALSE(headers[1].has_annotation_identifiers)
 
   // Swiss-Prot kitchen-sink entry: P12345.
   const PEFFEntry& e1 = entries[0];
@@ -1662,17 +1665,17 @@ START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of
   TEST_EQUAL(e1.complex_variants.size(), 5)
   TEST_EQUAL(e1.processed_regions.size(), 5)
 
-  // Default-mode disulfide reporting (issue #9829): the k-th documented <begin>/<end>
-  // bond labels its begin half-cystine 2k-1 and its end half-cystine 2k and is
-  // itself labeled k; \DisulfideBond=(k:2k-1,2k) references those ids. These are
-  // entry-local labels (only bonded half-cystines carry them), NOT Option B global
-  // annotation identifiers — hence has_annotation_identifiers stays false above.
+  // Default-mode disulfide reporting (issue #9829): of the K documented <begin>/<end>
+  // bonds, the k-th labels its begin half-cystine 2k-1 and its end half-cystine 2k and
+  // is itself labeled 2K+k; \DisulfideBond=(2K+k:2k-1,2k) references those ids. Only
+  // the bonds and their half-cystines carry ids (PEFF makes ids optional per
+  // annotation), and the ids 1..3K are unique within the entry.
   TEST_EQUAL(e1.disulfide_bonds.size(), 2)
-  TEST_EQUAL(e1.disulfide_bonds[0].annotation_id, 1)
+  TEST_EQUAL(e1.disulfide_bonds[0].annotation_id, 5)
   TEST_EQUAL(e1.disulfide_bonds[0].id1, "1")
   TEST_EQUAL(e1.disulfide_bonds[0].id2, "2")
   TEST_EQUAL(e1.disulfide_bonds[0].optional_tag, "")
-  TEST_EQUAL(e1.disulfide_bonds[1].annotation_id, 2)
+  TEST_EQUAL(e1.disulfide_bonds[1].annotation_id, 6)
   TEST_EQUAL(e1.disulfide_bonds[1].id1, "3")
   TEST_EQUAL(e1.disulfide_bonds[1].id2, "4")
   TEST_EQUAL(e1.disulfide_bonds[1].optional_tag, "")
