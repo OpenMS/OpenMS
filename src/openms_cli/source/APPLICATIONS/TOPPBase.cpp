@@ -1640,7 +1640,7 @@ namespace OpenMS
         }
         else
         {
-          writeLogWarn_("Input file '" + param_value + "' could not be found (by searching on PATH). "
+          writeLogWarn_("Input file '" + param_value + "' could not be found (by searching on PATH and among the third-party tools that ship with OpenMS). "
                         "Either provide a full filepath via the '-" +
                           param_name + "' option or fix your PATH environment !" +
                     (p.required ? "" : " Since this file is not strictly required, you might also pass the empty string \"\" as "

@@ -820,7 +820,6 @@ namespace OpenMS{
     {
       return true;
     }
-    StringList paths = getPathLocations();
     StringList exe_filenames = { exe_filename };
 #ifdef OPENMS_WINDOWSPLATFORM
     // try extensions like .exe on Windows
@@ -832,18 +831,44 @@ namespace OpenMS{
     }
 #endif
     // try all filenames (on Windows its potentially more than one) in each path...
-    for (const std::string& p : paths)
+    auto search = [&exe_filename, &exe_filenames](const StringList& paths)
     {
-      for (const std::string& fn : exe_filenames)
+      for (const std::string& p : paths)
       {
-        if (exists(p + fn) && !isDirectory(p + fn))
+        for (const std::string& fn : exe_filenames)
         {
-          exe_filename = p + fn;
-          return true;
+          if (exists(p + fn) && !isDirectory(p + fn))
+          {
+            exe_filename = p + fn;
+            return true;
+          }
         }
       }
+      return false;
+    };
+    if (search(getPathLocations()))
+    {
+      return true;
     }
-    return false;
+    // Then the third-party tools that ship with OpenMS, for a plain file name such as the
+    // adapters' default executables ("comet.exe", "sage"). The Windows installer puts their
+    // folders on PATH; the Linux and macOS packages do not.
+    return exe_filename.find_first_of("/\\") == std::string::npos && search(getThirdPartyToolLocations());
+  }
+
+  StringList File::getThirdPartyToolLocations()
+  {
+    return getThirdPartyToolLocations(getOpenMSDataPath());
+  }
+
+  StringList File::getThirdPartyToolLocations(const std::string& data_path)
+  {
+    StringList locations = listDirectories(data_path + "/THIRDPARTY");
+    for (std::string& location : locations)
+    {
+      StringUtils::ensureLastChar(location, '/');
+    }
+    return locations;
   }
 
   std::string File::findSiblingTOPPExecutable(const std::string& toolName)

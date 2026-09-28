@@ -228,10 +228,28 @@ public:
     static StringList getPathLocations(const std::string& path);
 
     /**
+      @brief The folders of the third-party tools that ship with OpenMS
+
+      Every folder in THIRDPARTY of the OpenMS shared-data directory (getOpenMSDataPath()),
+      e.g. share/OpenMS/THIRDPARTY/Comet/, sorted by name. All paths use '/' as separator and
+      end in '/'. Empty if there is no such directory, as in a build tree or in pyOpenMS.
+    */
+    static StringList getThirdPartyToolLocations();
+
+    /**
+      @brief The folders of the third-party tools in THIRDPARTY of the shared-data directory @p data_path
+
+      Note: the directory is passed as input to enable proper testing; getThirdPartyToolLocations() uses getOpenMSDataPath().
+    */
+    static StringList getThirdPartyToolLocations(const std::string& data_path);
+
+    /**
       @brief Searches for an executable with the given name (similar to @em where (Windows) or @em which (Linux/MacOS)
 
       This function can be used to find the full path+filename to an executable in
-      the PATH environment. Only the @em first hit (by order in PATH) is returned.
+      the PATH environment and, for a plain file name, then in the folders of the third-party
+      tools that ship with OpenMS (getThirdPartyToolLocations()): the Linux and macOS packages
+      do not put those on PATH. Only the @em first hit (by order in PATH) is returned.
       If the @p exe_filename has a relative or full path which points to an existing file, PATH information will not be used.
       The function returns true if the filename was found (exists) and false otherwise.
       Note: this does not require the file to have executable permission set (this is not tested)

@@ -499,6 +499,35 @@ START_SECTION(static bool findExecutable(std::string& exe_filename))
 }
 END_SECTION
 
+START_SECTION(static StringList getThirdPartyToolLocations(const std::string& data_path))
+{
+  TempDir tdir;
+  std::string base = tdir.getPath();
+  File::makeDir(base + "/THIRDPARTY/Sage");
+  File::makeDir(base + "/THIRDPARTY/Comet");
+  // a file (should NOT appear in results)
+  {
+    std::ofstream f(std::string(base + "/THIRDPARTY/README.txt"));
+    f << "test";
+  }
+  StringList tools = File::getThirdPartyToolLocations(base);
+  TEST_EQUAL(tools.size(), 2)
+  // sorted, with '/' as separator and at the end
+  TEST_TRUE(StringUtils::hasSuffix(tools[0], "/THIRDPARTY/Comet/"))
+  TEST_TRUE(StringUtils::hasSuffix(tools[1], "/THIRDPARTY/Sage/"))
+
+  // no THIRDPARTY folder, as in a build tree or in pyOpenMS
+  TEST_EQUAL(File::getThirdPartyToolLocations(base + "/THIRDPARTY/Sage").size(), 0)
+}
+END_SECTION
+
+START_SECTION(static StringList getThirdPartyToolLocations())
+{
+  // those of the shared-data directory this build uses
+  TEST_TRUE(File::getThirdPartyToolLocations() == File::getThirdPartyToolLocations(File::getOpenMSDataPath()))
+}
+END_SECTION
+
 START_SECTION(static StringList getPathLocations(const std::string& path))
 {
   // set env-variables is not portable across platforms, thus we inject the PATH values
