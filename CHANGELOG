@@ -1095,11 +1095,11 @@ Fixes:
       last spectrum's and crashed (#10271).
     - mzML: the mass resolving power (MS:1000800) is written in the scan, the only place mzML allows
       it. It used to be written as a userParam of the spectrum, so other readers, such as the
-      original DIAuditor, lost it once a file had been written by OpenMS (#PR_NUMBER).
+      original DIAuditor, lost it once a file had been written by OpenMS (#10313).
     - Thermo .raw: spectra carry the mass resolving power of the scan trailer ('Orbitrap
-      Resolution:', else 'FT Resolution:'), as msconvert reports it (#PR_NUMBER).
+      Resolution:', else 'FT Resolution:'), as msconvert reports it (#10313).
     - Bruker timsTOF .d: the start of the acquisition (with its time zone), the instrument model and
-      its serial number are read from analysis.tdf (#PR_NUMBER).
+      its serial number are read from analysis.tdf (#10313).
     - Fixed INI required/advanced parsing, XQuest FDR-type restoration, mzIdentML missing
       modification locations, PepXML source-run paths/redundant Comet scores and duplicate
       IDMapper spectrum references (#5443, #8905, #9089, #9660, #9763, #9766).
