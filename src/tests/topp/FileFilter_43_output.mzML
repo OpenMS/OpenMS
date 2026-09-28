@@ -724,16 +724,6 @@
 		<chromatogramList count="1" defaultDataProcessingRef="dp_sp_0">
 			<chromatogram id="TIC description &amp; &quot;impsum&quot; &lt;&gt;" index="0" defaultArrayLength="0">
 				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
-					<precursor>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="0">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -779,6 +769,6 @@
 		<offset idRef="TIC description &amp; &quot;impsum&quot; &lt;&gt;">151792</offset>
 	</index>
 </indexList>
-<indexListOffset>153244</indexListOffset>
+<indexListOffset>152855</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

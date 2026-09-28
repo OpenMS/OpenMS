@@ -5,7 +5,9 @@ $Maintainer: Timo Sachsenberg $
 
 import ast
 import importlib.util
+import json
 from pathlib import Path
+import subprocess
 import sys
 from unittest.mock import patch
 
@@ -84,3 +86,72 @@ def test_installed_stubs_are_valid_python():
     assert stubs, "py.typed must not advertise a package without generated stubs"
     for stub in stubs:
         ast.parse(stub.read_text(encoding="utf-8"), filename=str(stub))
+
+
+def exported_names(tree):
+    """Names a stub module exports to a type checker."""
+    names = set()
+    for node in tree.body:
+        if isinstance(node, (ast.ClassDef, ast.FunctionDef)):
+            names.add(node.name)
+        elif isinstance(node, ast.Assign):
+            names.update(target.id for target in node.targets if isinstance(target, ast.Name))
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            names.add(node.target.id)
+        elif isinstance(node, ast.ImportFrom):
+            # A stub re-exports an imported name only in the form "import X as X".
+            names.update(alias.name for alias in node.names if alias.asname == alias.name)
+    return names
+
+
+def fresh_namespace():
+    """{public name: module name, or None} of pyopenms right after "import pyopenms".
+
+    Checked in a new interpreter, as stubgen imports the package: within the test
+    session other tests import submodules such as pyopenms.plotting, which the import
+    system then binds as attributes of the package.
+    """
+    code = (
+        "import inspect, json, pyopenms\n"
+        "names = {name: getattr(pyopenms, name).__name__ if inspect.ismodule(getattr(pyopenms, name)) else None\n"
+        "         for name in dir(pyopenms) if not name.startswith('_')}\n"
+        "print('NAMESPACE ' + json.dumps(names))\n")
+    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=120)
+    assert result.returncode == 0, f"import pyopenms failed:\n{result.stderr}\n{result.stdout}"
+    line = [line for line in result.stdout.splitlines() if line.startswith("NAMESPACE ")][-1]
+    return json.loads(line[len("NAMESPACE "):])
+
+
+def test_installed_stubs_export_the_package_namespace():
+    package = package_dir()
+    if not (package / "py.typed").is_file():
+        pytest.skip("This build has stub generation disabled")
+    init = ast.parse((package / "__init__.pyi").read_text(encoding="utf-8"))
+
+    # Every public name is declared and exported. An alias such as PeakMap was
+    # imported under another name, which is no export, and a stray import such as
+    # ctypes was not declared at all.
+    public = set(fresh_namespace())
+    assert sorted(public - exported_names(init)) == []
+
+    # Every name imported from a module of the package exists there. stubgen used
+    # to import a nested enum such as FileTypes.FileType as a top-level name.
+    unresolved = []
+    for node in init.body:
+        if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("pyopenms."):
+            source = package.joinpath(*node.module.split(".")[1:])
+            stub = source / "__init__.pyi" if source.is_dir() else source.with_suffix(".pyi")
+            names = exported_names(ast.parse(stub.read_text(encoding="utf-8")))
+            unresolved += [f"{node.module}.{alias.name}" for alias in node.names
+                           if alias.name not in names]
+    assert unresolved == []
+
+
+def test_package_namespace_holds_no_stray_imports():
+    namespace = fresh_namespace()
+    stray = [name for name, module in namespace.items()
+             if module is not None and not module.startswith("pyopenms.")]
+    # "from __future__ import annotations" binds a name as well.
+    if "annotations" in namespace:
+        stray.append("annotations")
+    assert stray == []

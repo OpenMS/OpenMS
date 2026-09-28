@@ -15,6 +15,15 @@ class ParamValue:
     EMPTY_VALUE = 6
 
     def __init__(self, value=None):
+        # OpenMS has no boolean value type: a boolean parameter is the string 'true' or
+        # 'false' (see Param.ParamEntry.isBool). Normalise here so valueType(), toString()
+        # and toBool() all agree with the C++ side instead of each deriving its own answer.
+        if isinstance(value, bool):
+            value = "true" if value else "false"
+        # Same rule as the type casters: a bool is not a list element type. Checking here,
+        # not in valueType(), also covers direct toIntVector()/toDoubleVector() calls.
+        elif isinstance(value, list) and any(isinstance(v, bool) for v in value):
+            raise TypeError("ParamValue lists cannot contain bool elements: %r" % (value,))
         self._value = value
 
     def isEmpty(self):
@@ -25,8 +34,6 @@ class ParamValue:
             return self.EMPTY_VALUE
         elif isinstance(self._value, str):
             return self.STRING_VALUE
-        elif isinstance(self._value, bool):
-            return self.INT_VALUE
         elif isinstance(self._value, int):
             return self.INT_VALUE
         elif isinstance(self._value, float):
@@ -48,11 +55,14 @@ class ParamValue:
         return str(self._value)
 
     def toBool(self):
-        if isinstance(self._value, bool):
-            return self._value
-        if isinstance(self._value, str):
-            return self._value.lower() in ("true", "1", "yes")
-        return bool(self._value)
+        # Same rule as C++ ParamValue::toBool(): exactly 'true' or 'false', nothing else.
+        if self._value == "true":
+            return True
+        if self._value == "false":
+            return False
+        raise ValueError(
+            "Could not convert %r to bool. Valid strings are 'true' and 'false'." % (self._value,)
+        )
 
     def toInt(self):
         return int(self._value)

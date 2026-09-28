@@ -293,8 +293,6 @@ DefaultParamHandler
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::AbsoluteQuantitation, OpenMS::DefaultParamHandler>(m, "AbsoluteQuantitation", 
         R"doc(
-DefaultParamHandler
-
 Absolute quantitation using calibration curves and internal standards
 This class supports absolute or relative quantitation for targeted workflows
 using Isotope Dilution Mass Spectrometry (IDMS). A transformation model is
@@ -402,8 +400,6 @@ Apply calibration to calculate concentration
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Biosaur2Algorithm, OpenMS::DefaultParamHandler>(m, "Biosaur2Algorithm", 
         R"doc(
-DefaultParamHandler
-
 C++ implementation of the Biosaur2 feature detection workflow.
 )doc")
         .def(nb::init<>())
@@ -671,8 +667,6 @@ DefaultParamHandler
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::FeatureFinderAlgorithmMetaboIdent, OpenMS::DefaultParamHandler>(m, "FeatureFinderAlgorithmMetaboIdent", 
         R"doc(
-DefaultParamHandler
-
 Perform targeted feature extraction of compounds provided as table and stores them in features
 The algorithms detects quantitative features in MS1 data for a list of targets, typically small molecule/metabolite identifications
 Internally, it uses algorithms for targeted data analysis from the OpenSWATH pipeline
@@ -736,8 +730,6 @@ If there are no MS1 scans in the MSData, features will be returned unchanged.
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::FeatureFinderIdentificationAlgorithm, OpenMS::DefaultParamHandler>(m, "FeatureFinderIdentificationAlgorithm", 
         R"doc(
-DefaultParamHandler
-
 Algorithm class for FeatureFinderIdentification
 Optional seeds from e.g. untargeted FeatureFinders can be added with
 seeds.
@@ -1192,8 +1184,6 @@ DefaultParamHandler
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::IDScoreSwitcherAlgorithm, OpenMS::DefaultParamHandler>(m, "IDScoreSwitcherAlgorithm", 
         R"doc(
-DefaultParamHandler
-
 Algorithm to switch identification scores within identification or consensus feature maps
 This class provides functionality to switch the main scoring type used in peptide or protein
 identification data. It supports switching between different score types, such as raw scores,
@@ -1574,8 +1564,6 @@ DefaultParamHandler
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MRMFeatureFilter, OpenMS::DefaultParamHandler>(m, "MRMFeatureFilter", 
         R"doc(
-DefaultParamHandler
-
 Flags or filters MRM features that do not pass QC criteria
 This class provides comprehensive quality control filtering for MRM/SRM features.
 It can filter based on:
@@ -1783,8 +1771,6 @@ DefaultParamHandler
     // -----------------------------------------------------------------------
     auto metabolitefeaturedeconvolution_class = nb::class_<OpenMS::MetaboliteFeatureDeconvolution, OpenMS::DefaultParamHandler>(m, "MetaboliteFeatureDeconvolution", 
         R"doc(
-DefaultParamHandler
-
 An algorithm to decharge small molecule features (i.e. as found by FeatureFinder)
 )doc")
         .def(nb::init<>())
@@ -1848,8 +1834,6 @@ DefaultParamHandler
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::NLargest, OpenMS::DefaultParamHandler>(m, "NLargest", 
         R"doc(
-DefaultParamHandler
-
 NLargest removes all but the n largest peaks
 )doc")
         .def(nb::init<>())
@@ -1866,8 +1850,6 @@ NLargest removes all but the n largest peaks
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Normalizer, OpenMS::DefaultParamHandler>(m, "Normalizer", 
         R"doc(
-DefaultParamHandler
-
 Normalizes the peak intensities spectrum-wise
 )doc")
         .def(nb::init<>())
@@ -1942,8 +1924,6 @@ DefaultParamHandler
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::PeakIntegrator, OpenMS::DefaultParamHandler>(m, "PeakIntegrator", 
         R"doc(
-DefaultParamHandler
-
 Compute the area, background and shape metrics of a peak
 The area computation is performed in integratePeak() and it supports
 integration by simple sum of the intensity, integration by Simpson's rule
@@ -1993,8 +1973,6 @@ The containers supported by the methods are MSChromatogram and MSSpectrum
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::PeakPickerChromatogram, OpenMS::DefaultParamHandler>(m, "PeakPickerChromatogram", 
         R"doc(
-DefaultParamHandler
-
 The PeakPickerChromatogram finds peaks a single chromatogram
 It uses the PeakPickerHiRes internally to find interesting seed candidates.
 These candidates are then expanded and a right/left border of the peak is
@@ -2184,9 +2162,6 @@ ProgressLogger
     // -----------------------------------------------------------------------
     auto basicproteininferencealgorithm_class = nb::class_<OpenMS::BasicProteinInferenceAlgorithm, OpenMS::DefaultParamHandler>(m, "BasicProteinInferenceAlgorithm", 
         R"doc(
-DefaultParamHandler
-ProgressLogger
-
 Algorithm class that implements simple protein inference by aggregation of peptide scores.
 It has multiple parameter options like the aggregation method, when to distinguish peptidoforms,
 and if you want to use shared peptides ("use_shared_peptides").
@@ -2251,9 +2226,6 @@ Performs basic aggregation-based inference on single ProteinIdentification run. 
     // -----------------------------------------------------------------------
     auto bayesianproteininferencealgorithm_class = nb::class_<OpenMS::BayesianProteinInferenceAlgorithm, OpenMS::DefaultParamHandler>(m, "BayesianProteinInferenceAlgorithm", 
         R"doc(
-DefaultParamHandler
-ProgressLogger
-
 Performs a Bayesian protein inference on Protein/Peptide identifications or ConsensusMap.
 - Filters for best n PSMs per spectrum.
 - Calculates and filters for best peptide per spectrum.
@@ -2681,9 +2653,6 @@ print(entry.identifier)
     // -----------------------------------------------------------------------
     auto flashdeconvalgorithm_class = nb::class_<OpenMS::FLASHDeconvAlgorithm, OpenMS::DefaultParamHandler>(m, "FLASHDeconvAlgorithm", 
         R"doc(
-DefaultParamHandler
-ProgressLogger
-
 FLASHDeconv algorithm: ultrafast mass deconvolution algorithm for top down mass spectrometry dataset.
 From MSSpectrum, this class outputs DeconvolvedSpectrum.
 Deconvolution takes three steps:
@@ -3494,8 +3463,6 @@ The output are the remaining peaks
     // -----------------------------------------------------------------------
     auto peptideindexing_class = nb::class_<OpenMS::PeptideIndexing, OpenMS::DefaultParamHandler>(m, "PeptideIndexing", 
         R"doc(
-DefaultParamHandler
-
 Refreshes the protein references for all peptide hits in a vector of PeptideIdentifications and adds target/decoy information
 All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". For proteins the possible values are "target" and "decoy",
 depending on whether the protein accession contains the decoy pattern (parameter `decoy_string`) as a suffix or prefix, respectively (see parameter `prefix`).
@@ -3683,9 +3650,6 @@ only in decoy proteins, or in both. The target/decoy information is crucial for 
 
     auto prosealgorithm_class = nb::class_<OpenMS::ProSEAlgorithm, OpenMS::DefaultParamHandler>(m, "ProSEAlgorithm",
         R"doc(
-DefaultParamHandler
-ProgressLogger
-
 Fragment-index-based peptide database search algorithm (experimental).
 Provides a self-contained search engine that matches MS/MS spectra against a protein
 database using an FI (Fragment Index). Typical usage:
@@ -3938,8 +3902,6 @@ DefaultParamHandler
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::SpectralDeconvolution, OpenMS::DefaultParamHandler>(m, "SpectralDeconvolution", 
         R"doc(
-DefaultParamHandler
-
 Spectral deconvolution algorithm for top-down MS.
 From MSSpectrum, this class outputs DeconvolvedSpectrum.
 Deconvolution takes three steps:
@@ -4006,8 +3968,6 @@ Constructors
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::SpectrumAlignment, OpenMS::DefaultParamHandler>(m, "SpectrumAlignment", 
         R"doc(
-DefaultParamHandler
-
 Aligns the peaks of two sorted spectra.
 Method 1: Using a banded (width via 'tolerance' parameter) alignment if absolute tolerances are given.
 Scoring function is the m/z distance between peaks. Intensity does not play a role!
@@ -4069,8 +4029,6 @@ Adds ion match statistics to `pi` PeptideIdentifcation
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::SqrtScaler, OpenMS::DefaultParamHandler>(m, "SqrtScaler", 
         R"doc(
-DefaultParamHandler
-
 Scales the intensity of peaks to the sqrt
 )doc")
         .def(nb::init<>())
@@ -4347,8 +4305,6 @@ IsobaricQuantitationMethod
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedSpectraExtractor, OpenMS::DefaultParamHandler>(m, "TargetedSpectraExtractor", 
         R"doc(
-DefaultParamHandler
-
 Filter, annotate, pick, and score spectra based on a target list
 This class processes spectra from DDA experiments against a target transition list.
 It provides a complete pipeline from raw spectra to scored, selected spectra.
@@ -4996,8 +4952,6 @@ Exception: UnableToCreateFile is thrown if the file could not be created
     // -----------------------------------------------------------------------
     auto mzmlfile_class = nb::class_<OpenMS::MzMLFile, OpenMS::Internal::XMLFile>(m, "MzMLFile", 
         R"doc(
-ProgressLogger
-
 File adapter for MzML files
 Provides methods to load and store MzML files.
 PeakFileOptions allow to load a reduced subset of the data into an MSExperiment.
@@ -5070,8 +5024,6 @@ MzMLFile().store("filtered.mzML", exp)
     // -----------------------------------------------------------------------
     auto mzxmlfile_class = nb::class_<OpenMS::MzXMLFile, OpenMS::Internal::XMLFile>(m, "MzXMLFile", 
         R"doc(
-ProgressLogger
-
 File adapter for MzXML files
 Provides methods to load and store MzXML files.
 MzXML is an older format; for new projects consider using MzML instead.
@@ -5121,8 +5073,6 @@ MzXMLFile().load("test.mzXML", exp)
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::OMSSAXMLFile, OpenMS::Internal::XMLFile>(m, "OMSSAXMLFile", 
         R"doc(
-XMLFile
-
 Used to load OMSSAXML files
 This class is used to load documents that implement
 the schema of OMSSAXML files
@@ -5277,10 +5227,6 @@ Not implemented
     // -----------------------------------------------------------------------
     auto qcmlfile_class = nb::class_<OpenMS::QcMLFile, OpenMS::Internal::XMLFile>(m, "QcMLFile",
         R"doc(
-XMLHandler
-XMLFile
-ProgressLogger
-
 File adapter for QcML files used to load and store QcML files
 This Class is supposed to internally collect the data for the qcML File
 )doc")
