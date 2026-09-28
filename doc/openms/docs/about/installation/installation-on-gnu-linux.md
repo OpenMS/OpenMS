@@ -61,7 +61,9 @@ If you encounter errors, troubleshoot using the following steps.
 
 OpenMS reads Thermo Fisher `.raw` files natively through the openms-thermo-bridge, which is
 enabled by default in the release binaries on supported platforms. This requires a **.NET 8
-runtime** to be present at run time so that the managed bridge libraries can be loaded.
+runtime** to be present at run time so that the managed bridge libraries can be loaded. Which
+tools read `.raw` files, and how FileConverter converts them, is described in
+[Vendor formats](/getting-started/vendor-formats.md).
 
 Install it from the [.NET download page](https://dotnet.microsoft.com/download) or via your
 distribution's package manager, for example:

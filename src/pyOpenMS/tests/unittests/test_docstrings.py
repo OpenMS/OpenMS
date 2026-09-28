@@ -272,7 +272,7 @@ class TestDocstringCoverage:
                     with_doc += 1
         pct = 100.0 * with_doc / total if total else 0
         print(f"\nMethod docstring coverage: {with_doc}/{total} ({pct:.1f}%)")
-        # Most nanobind methods get auto-docstrings from wrap-doc
+        # Most nanobind methods get auto-generated signature docstrings
         assert with_doc >= total * 0.8, (
             f"Only {with_doc}/{total} methods ({pct:.1f}%) have docstrings. "
             f"Expected at least 80%."

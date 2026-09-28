@@ -1304,6 +1304,9 @@ Examples:
             if (OpenMS::MzPAF::charToIonSeries(c, series)) return series;
             return std::nullopt;
         }, "c"_a, "Parse ion series from character (returns None if invalid)")
+        .def_static("calculateTheoreticalMZ", [](const OpenMS::MzPAFAnnotation& ann, const OpenMS::AASequence& seq) {
+            return OpenMS::MzPAF::calculateTheoreticalMZ(ann, seq);
+        }, "ann"_a, "sequence"_a, "Calculate theoretical m/z for an annotation and peptide sequence, or None if unsupported")
         ;
 
     // -----------------------------------------------------------------------
@@ -1383,11 +1386,13 @@ the ProForma v2 peptidoform notation standard. It contains nested types that
 form the Abstract Syntax Tree (AST) representation of parsed ProForma strings.
 All methods are static. Use ProForma.parse() to parse a ProForma string.
 Usage example:
+
 .. code-block:: python
-pf = ProForma.parse("EM[UNIMOD:35]K")
-# pf now contains the parsed Peptidoform AST
-s = ProForma.toString(pf, ProForma.WriteMode.LOSSLESS)
-# s is "EM[UNIMOD:35]K"
+
+  pf = ProForma.parse("EM[UNIMOD:35]K")
+  # pf now contains the parsed Peptidoform AST
+  s = ProForma.toString(pf, ProForma.WriteMode.LOSSLESS)
+  # s is "EM[UNIMOD:35]K"
 )doc")
         .def_static("parse", [](const std::string& input) { return OpenMS::ProForma::parse(input); }, "input"_a, "Parse a ProForma string into a Peptidoform AST")
         .def_static("parseIon", [](const std::string& input) { return OpenMS::ProForma::parseIon(input); }, "input"_a, "Parse a ProForma string into a PeptidoformIon AST (with charge state)")
@@ -1804,6 +1809,16 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .def("setBackboneBasicityRight", [](OpenMS::Residue& self, double gb_bb_r) { return self.setBackboneBasicityRight(gb_bb_r); }, "gb_bb_r"_a, "Sets the C-terminal direction backbone basicity")
         .def("hasNeutralLoss", [](const OpenMS::Residue& self) { return self.hasNeutralLoss(); }, "True if the residue has neutral loss")
         .def("hasNTermNeutralLosses", [](const OpenMS::Residue& self) { return self.hasNTermNeutralLosses(); }, "True if N-terminal neutral losses are set")
+        .def("hasVLoss", [](const OpenMS::Residue& self) { return self.hasVLoss(); }, "True if the residue can produce a v-ion via complete side-chain loss")
+        .def("getVLossFormula", [](const OpenMS::Residue& self) { return self.getVLossFormula(); }, "Returns the formula lost in v-ion formation (internal_formula - C2HNO)")
+        .def("hasSatelliteLoss", [](const OpenMS::Residue& self, const std::string& subtype) {
+            char sub = subtype.empty() ? '\0' : subtype[0];
+            return self.hasSatelliteLoss(sub);
+        }, "subtype"_a = "", "True if the residue has a beta-gamma satellite loss (for d/w ions)")
+        .def("getSatelliteLossFormula", [](const OpenMS::Residue& self, const std::string& subtype) {
+            char sub = subtype.empty() ? '\0' : subtype[0];
+            return self.getSatelliteLossFormula(sub);
+        }, "subtype"_a = "", "Returns the formula of the satellite side-chain loss (for d/w ions)")
         .def("getHydrophobicity", [](const OpenMS::Residue& self, OpenMS::HydrophobicityScaleMethod scale) { return self.getHydrophobicity(scale); }, "scale"_a, "Returns the hydrophobicity value of the residue for the given scale (throws for non-standard residues)")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
@@ -1845,6 +1860,9 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .value("YIonMinusNH3", OpenMS::Residue::ResidueType::YIonMinusNH3)
         .value("NonIdentified", OpenMS::Residue::ResidueType::NonIdentified)
         .value("Unannotated", OpenMS::Residue::ResidueType::Unannotated)
+        .value("DIon", OpenMS::Residue::ResidueType::DIon)
+        .value("VIon", OpenMS::Residue::ResidueType::VIon)
+        .value("WIon", OpenMS::Residue::ResidueType::WIon)
         .value("SizeOfResidueType", OpenMS::Residue::ResidueType::SizeOfResidueType)
         .export_values();
 

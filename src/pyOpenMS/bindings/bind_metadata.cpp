@@ -293,13 +293,15 @@ This class encapsulates the mapping between ProteinIdentification identifiers
 and their associated MS run paths. It is useful for resolving the correct
 source file for peptide identifications, especially in merged identification results.
 Example usage:
+
 .. code-block:: python
-# Create mapping from protein identifications
-mapper = oms.IdentifierMSRunMapper(protein_ids)
-# Get MS run paths for a peptide's identifier
-paths = mapper.getMSRunPaths(pep_id.getIdentifier())
-# Build a USI using the mapping
-usi = pep_id.buildUSI(mapper, "PXD000561", False)
+
+  # Create mapping from protein identifications
+  mapper = oms.IdentifierMSRunMapper(protein_ids)
+  # Get MS run paths for a peptide's identifier
+  paths = mapper.getMSRunPaths(pep_id.getIdentifier())
+  # Build a USI using the mapping
+  usi = pep_id.buildUSI(mapper, "PXD000561", False)
 )doc")
         .def(nb::init<>())
         .def(nb::init<std::vector<OpenMS::ProteinIdentification>>())
@@ -675,25 +677,32 @@ Extract scan number from a native ID using the accession type
     // SpectrumNativeIDParser
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::SpectrumNativeIDParser>(m, "SpectrumNativeIDParser", "OpenMS class SpectrumNativeIDParser")
-        .def_static("extractScanNumber", [](const std::string& native_id, const boost::basic_regex<char>& scan_regexp, bool no_error) { return OpenMS::SpectrumNativeIDParser::extractScanNumber(native_id, scan_regexp, no_error); }, "native_id"_a, "scan_regexp"_a, "no_error"_a, 
+        .def_static("extractScanNumber", [](const std::string& native_id, const boost::basic_regex<char>& scan_regexp, bool no_error) { return OpenMS::SpectrumNativeIDParser::extractScanNumber(native_id, scan_regexp, no_error); }, "native_id"_a, "scan_regexp"_a, "no_error"_a,
             R"doc(
-wrap-attach:
-SpectrumNativeIDParser
+Extract the scan number from a native ID using a regular expression
+:param native_id: The native spectrum ID string
+:param scan_regexp: Regular expression containing the named group `(?<SCAN>...)` as its first capture group; the last matching value is used as the scan number
+:param no_error: If true, return -1 on failure instead of raising an exception
+:returns: Scan number of the spectrum, or -1 on failure
 )doc")
-        .def_static("extractScanNumber", [](const std::string& native_id, const std::string& native_id_type_accession) { return OpenMS::SpectrumNativeIDParser::extractScanNumber(native_id, native_id_type_accession); }, "native_id"_a, "native_id_type_accession"_a, 
+        .def_static("extractScanNumber", [](const std::string& native_id, const std::string& native_id_type_accession) { return OpenMS::SpectrumNativeIDParser::extractScanNumber(native_id, native_id_type_accession); }, "native_id"_a, "native_id_type_accession"_a,
             R"doc(
-wrap-attach:
-SpectrumNativeIDParser
+Extract the scan number from a native ID using the CV accession of its format
+:param native_id: The native spectrum ID string
+:param native_id_type_accession: CV accession of the native ID format (e.g. "MS:1000768" for Thermo, "MS:1000770" for WIFF)
+:returns: Scan number of the spectrum, or -1 on failure (WIFF IDs yield cycle * 1000 + experiment; index-based IDs yield index + 1)
 )doc")
-        .def_static("getRegExFromNativeID", [](const std::string& native_id) { return OpenMS::SpectrumNativeIDParser::getRegExFromNativeID(native_id); }, "native_id"_a, 
+        .def_static("getRegExFromNativeID", [](const std::string& native_id) { return OpenMS::SpectrumNativeIDParser::getRegExFromNativeID(native_id); }, "native_id"_a,
             R"doc(
-wrap-attach:
-SpectrumNativeIDParser
+Determine the regular expression that extracts the scan or index number from a native ID
+:param native_id: A native ID string to analyze (its prefix, e.g. "scan=" or "index=", selects the pattern)
+:returns: Regular expression string whose named group GROUP matches the scan or index number
 )doc")
-        .def_static("isNativeID", [](const std::string& id) { return OpenMS::SpectrumNativeIDParser::isNativeID(id); }, "id"_a, 
+        .def_static("isNativeID", [](const std::string& id) { return OpenMS::SpectrumNativeIDParser::isNativeID(id); }, "id"_a,
             R"doc(
-wrap-attach:
-SpectrumNativeIDParser
+Check whether a spectrum identifier is a native ID from a vendor file
+:param id: Spectrum identifier string to check
+:returns: True if the string starts with a known native ID prefix (scan=, scanId=, scanID=, controllerType=, function=, sample=, index=, spectrum=, file=, frame=)
 )doc")
         ;
 

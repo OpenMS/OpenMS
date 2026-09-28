@@ -52,7 +52,7 @@ To add your format to TOPP applications:
 
 - add the file extension to the extensions list of the respective parameter:
   ```
-  e.g. setValidStrings_("in_type", StringList::create("mzData,mzXML,mzML")); in FileInfo
+  e.g. setValidStrings_("in_type", ListUtils::create<std::string>("mzData,mzXML,mzML")); in FileInfo
   ```
 
 ## How to create an icon file for a TOPP tool under Windows?
