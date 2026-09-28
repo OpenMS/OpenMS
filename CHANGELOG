@@ -980,6 +980,12 @@ OpenMS Library:
 
 Fixes:
   Chemistry and identifications:
+    - PercolatorAdapter's in-process backend and Percolator::rescore() read a feature stored as
+      a string meta value as the number it holds, as the percolator executable does when it
+      parses the .pin file. Both went through DataValue's conversion to double, which yields an
+      unrelated number for a string: SageAdapter stores all of Sage's extra features as strings,
+      so they were constant and Percolator weighted them zero, losing identifications (on a small
+      dataset, every PSM). A feature value that is not a number is now an error (#10310).
     - MatchedIterator no longer stops at the first of two target elements with the same value
       (e.g. two peaks with the same m/z). HyperScore, PScore, AScore, SpectrumAlignment (ppm) and
       the QC metrics FragmentMassError and PSMExplainedIonCurrent ignored all peaks above such a

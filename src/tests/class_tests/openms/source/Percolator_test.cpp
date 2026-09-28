@@ -289,6 +289,65 @@ START_SECTION([EXTRA] missing target_decoy meta throws)
 }
 END_SECTION
 
+START_SECTION([EXTRA] string meta values are features with the numbers they hold)
+{
+  // Adapters that read search engine scores from text store them as string meta values
+  // (e.g. SageAdapter). Such features must train the same model as the same numbers stored as
+  // doubles. They used to be read through DataValue's conversion to double, which yields an
+  // unrelated number for a string, so all of them ended up with a weight of zero.
+  std::vector<PeptideIdentification> numeric, text;
+  std::srand(11);
+  auto rand01 = []() { return static_cast<double>(std::rand()) / RAND_MAX; };
+  for (size_t i = 0; i < 400; ++i)
+  {
+    const bool is_decoy = (i % 2 == 1);
+    const double sep = (is_decoy ? 0.0 : 1.0) + 0.6 * (rand01() - 0.5) * 2.0;
+    const double noise = rand01();
+
+    PeptideIdentification pid;
+    pid.setRT(static_cast<double>(i) * 0.1);
+    pid.setIdentifier("run1");
+    PeptideHit hit;
+    hit.setMetaValue("target_decoy", is_decoy ? "decoy" : "target");
+    hit.setMetaValue("feat_sep", sep);
+    hit.setMetaValue("feat_noise", noise);
+    pid.insertHit(hit);
+    numeric.push_back(pid);
+
+    // the same numbers as text, printed as the .pin writer prints them
+    PeptideHit& text_hit = pid.getHits()[0];
+    text_hit.setMetaValue("feat_sep", DataValue(sep).toString());
+    text_hit.setMetaValue("feat_noise", DataValue(noise).toString());
+    TEST_TRUE(text_hit.getMetaValue("feat_sep").valueType() == DataValue::STRING_VALUE)
+    text.push_back(pid);
+  }
+
+  Percolator from_numbers;
+  from_numbers.rescore(numeric, StringList{"feat_sep", "feat_noise"});
+  Percolator from_text;
+  from_text.rescore(text, StringList{"feat_sep", "feat_noise"});
+
+  // one weight vector per cross-validation split
+  const std::vector<std::vector<double>>& numeric_weights = from_numbers.getSvmWeights();
+  const std::vector<std::vector<double>>& text_weights = from_text.getSvmWeights();
+  TEST_FALSE(numeric_weights.empty())
+  TEST_TRUE(text_weights == numeric_weights)
+  for (size_t i = 0; i < numeric.size(); ++i)
+  {
+    const PeptideHit& n = numeric[i].getHits()[0];
+    const PeptideHit& t = text[i].getHits()[0];
+    TEST_EQUAL(double(t.getMetaValue("percolator_score")), double(n.getMetaValue("percolator_score")))
+    TEST_EQUAL(double(t.getMetaValue("percolator_q_value")), double(n.getMetaValue("percolator_q_value")))
+    TEST_EQUAL(double(t.getMetaValue("percolator_pep")), double(n.getMetaValue("percolator_pep")))
+  }
+
+  // text that is not a number is an error, not an unrelated number
+  text[3].getHits()[0].setMetaValue("feat_noise", "n/a");
+  Percolator not_a_number;
+  TEST_EXCEPTION(Exception::InvalidValue, not_a_number.rescore(text, StringList{"feat_sep", "feat_noise"}))
+}
+END_SECTION
+
 START_SECTION([EXTRA] output makes sense on a realistic-scale dataset)
 {
   // Scale-up sanity check: 2000 PSMs (1000 targets + 1000 decoys) with a

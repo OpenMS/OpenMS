@@ -91,10 +91,13 @@ namespace OpenMS
 
       @param peptide_ids Target + decoy PSMs, mixed. Mutated in place.
       @param feature_names Meta-value names on each PeptideHit to use as features.
-                          Must be numeric. If empty, auto-discover from the first hit's
-                          numeric meta values (excluding a blocklist of internal keys).
+                          Must be numeric: integer or floating-point meta values, or
+                          strings holding a number (read as PercolatorInfile::getFeatureValue
+                          does). If empty, auto-discover from the first hit's
+                          integer and floating-point meta values (excluding a blocklist of
+                          internal keys).
       @throws Exception::InvalidValue if sanity checks fail (too few decoys, no
-              discriminative feature, etc.).
+              discriminative feature, a feature without a numeric value, etc.).
     */
     void rescore(std::vector<PeptideIdentification>& peptide_ids,
                  const StringList& feature_names = {});

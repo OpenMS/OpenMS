@@ -143,6 +143,24 @@ namespace OpenMS
         int max_charge,
         PinFeatureMetaValueMap& added_meta_values);
 
+      /**
+       * @brief Numeric value of a PIN feature, as the percolator executable reads it.
+       *
+       * The .pin writer (@ref store) prints every feature as text and the percolator executable
+       * parses that text as a number. So an integer or floating-point meta value counts as it is,
+       * and a string meta value counts as the number it spells: adapters that read search engine
+       * scores from text keep them as strings (e.g. SageAdapter, via @ref load). In-process
+       * rescoring has to read feature values through this function to train on the same numbers
+       * as the executable; DataValue's conversion to double does not parse a string, it yields an
+       * unrelated number.
+       *
+       * @param[in] value Meta value of the feature
+       * @param[in] feature Name of the feature (for the error message)
+       * @return The numeric value
+       * @throws Exception::InvalidValue if @p value is empty, a list, or a string that is not a number
+       */
+      static double getFeatureValue(const DataValue& value, const std::string& feature);
+
     protected:
 
       //id <tab> label <tab> scannr <tab> calcmass <tab> expmass <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM

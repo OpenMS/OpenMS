@@ -4853,6 +4853,30 @@ add_test("TOPP_PercolatorAdapter_CalcMass_check" ${CMAKE_COMMAND}
 set_tests_properties("TOPP_PercolatorAdapter_CalcMass_check" PROPERTIES
                      DEPENDS "TOPP_PercolatorAdapter_CalcMass")
 
+# Search engine scores that an adapter read from text are string meta values (SageAdapter keeps
+# all of its extra features like that). The in-process backend must train on the numbers they
+# hold, as the executable does when it parses the .pin file, so the fixture with its features
+# stored as strings reproduces the reference output of the fixture as it is. The retyped feature
+# lines are passed through unchanged and are the only lines excluded from the comparison.
+add_test("TOPP_PercolatorAdapter_string_features_prepare" ${CMAKE_COMMAND}
+         -DINPUT_FILE=${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML
+         -DOUTPUT_FILE=${TESTS_TEMP_DIR}/PercolatorAdapter_string_features_in.tmp.idXML
+         -P ${DATA_DIR_TOPP}/PercolatorAdapter_string_features_test.cmake)
+add_test("TOPP_PercolatorAdapter_string_features" ${TOPP_BIN_PATH}/PercolatorAdapter -test
+         -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini
+         -use_subprocess false
+         -in ${TESTS_TEMP_DIR}/PercolatorAdapter_string_features_in.tmp.idXML
+         -out ${TESTS_TEMP_DIR}/PercolatorAdapter_string_features_out.tmp.idXML
+         -out_type idXML)
+set_tests_properties("TOPP_PercolatorAdapter_string_features" PROPERTIES
+                     DEPENDS "TOPP_PercolatorAdapter_string_features_prepare")
+add_test("TOPP_PercolatorAdapter_string_features_out" ${DIFF}
+         -in1 ${TESTS_TEMP_DIR}/PercolatorAdapter_string_features_out.tmp.idXML
+         -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML
+         -whitelist ${_topp_percolator_diff_whitelist} "name=\"COMET:" "name=\"MS:1002252\"" "name=\"MS:1002255\"")
+set_tests_properties("TOPP_PercolatorAdapter_string_features_out" PROPERTIES
+                     DEPENDS "TOPP_PercolatorAdapter_string_features")
+
 # CalcMass must survive loadAndCleanupIDFile_ so FFId can reconstruct an
 # unspecified/unlocalized mass before feature detection (#9998). The prepare
 # step derives a one-hit variant of the existing BSA fixture and removes any

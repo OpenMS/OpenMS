@@ -211,6 +211,31 @@ START_SECTION((static void store(const std::string& pin_file, const PeptideIdent
 }
 END_SECTION
 
+START_SECTION((static double getFeatureValue(const DataValue& value, const std::string& feature)))
+{
+  // numeric meta values count as they are
+  TEST_REAL_SIMILAR(PercolatorInfile::getFeatureValue(DataValue(2.5), "f"), 2.5)
+  TEST_REAL_SIMILAR(PercolatorInfile::getFeatureValue(DataValue(-7), "f"), -7.0)
+
+  // Search engine scores read from text are strings (e.g. SageAdapter stores 'SAGE:ln(-poisson)'
+  // like this). They count as the numbers they spell, as for the executable parsing the .pin.
+  TEST_REAL_SIMILAR(PercolatorInfile::getFeatureValue(DataValue("1.527394838114684"), "SAGE:ln(-poisson)"), 1.527394838114684)
+  TEST_REAL_SIMILAR(PercolatorInfile::getFeatureValue(DataValue(" -3e-2 "), "f"), -0.03)
+  TEST_REAL_SIMILAR(PercolatorInfile::getFeatureValue(DataValue("48"), "SAGE:scored_candidates"), 48.0)
+
+  // a double printed as the .pin writer prints it reads back as the same double
+  const double value = 0.1 + 0.2;
+  TEST_EQUAL(PercolatorInfile::getFeatureValue(DataValue(DataValue(value).toString()), "f"), value)
+
+  // no numeric value: an error, not an unrelated number
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue("abc"), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue("1.5 abc"), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(""), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(DoubleList{1.0, 2.0}), "f"))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
