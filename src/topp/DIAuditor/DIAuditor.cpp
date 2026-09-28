@@ -46,8 +46,9 @@ data acquired elsewhere.
 <B>Inputs</B>: mzML files are read spectrum by spectrum, so their size does not matter. Depending on the build, Thermo
 .raw files (the OpenMS Thermo reader, which needs a .NET 8 runtime) and Bruker timsTOF .d directories or .d.zip
 archives (diaPASEF frames are split into their isolation windows) can be given directly. These readers load a whole run
-into memory, so large runs need correspondingly much memory; converting them to mzML first avoids that. Spectra are
-used as they are stored, profile or centroided, which matters for the peak counts. Values a reader does not provide are
+into memory, so large runs need correspondingly much memory; converting them to mzML first avoids that. mzML spectra
+are used as they are stored, profile or centroided, which matters for the peak counts; .raw files are read with Thermo's
+peak picking, as FileConverter does by default. Values a reader does not provide are
 NA: the mass resolving power (MS1Resolution, MassResolvingPower) for .raw and .d input, and the instrument, its serial
 number and the start time for .d input.
 
