@@ -1950,7 +1950,8 @@ namespace OpenMS
     sf.setNativeIDTypeAccession("MS:1002818");
     settings.getSourceFiles().push_back(sf);
 
-    // start of the acquisition and the instrument, from the GlobalMetadata table (as msconvert reads them)
+    // start of the acquisition and the instrument, from the GlobalMetadata table (as msconvert reads them). The settings
+    // may hold the values of another run, so values this run does not provide are reset.
     std::map<std::string, std::string> global;
     try
     {
@@ -1964,7 +1965,6 @@ namespace OpenMS
     catch (const std::exception& e)
     {
       OPENMS_LOG_WARN << "Warning: could not read the acquisition metadata of '" << path << "': " << e.what() << std::endl;
-      return;
     }
     auto value = [&global](const std::string& key)
     {
@@ -1972,6 +1972,8 @@ namespace OpenMS
       return it == global.end() ? std::string() : it->second;
     };
 
+    settings.setDateTime(DateTime());
+    settings.removeMetaValue("mzml_start_time_stamp");
     const std::string date = value("AcquisitionDateTime"); // ISO 8601 with time zone, e.g. "2023-09-19T13:29:04.090-04:00"
     if (date.size() >= 19)
     {
@@ -2008,9 +2010,14 @@ namespace OpenMS
     {
       instrument.setName(name);
     }
-    if (!value("InstrumentSerialNumber").empty())
+    const std::string serial_number = value("InstrumentSerialNumber");
+    if (serial_number.empty())
     {
-      instrument.setMetaValue("instrument serial number", value("InstrumentSerialNumber"));
+      instrument.removeMetaValue("instrument serial number");
+    }
+    else
+    {
+      instrument.setMetaValue("instrument serial number", serial_number);
     }
   }
 

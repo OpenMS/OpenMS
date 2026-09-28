@@ -213,7 +213,7 @@ namespace OpenMS
     };
 
     /// Read DIA SWATH boundaries and spectrum counts from a .d directory (SQL only, no peak data).
-    /// Also populates exp_settings with source file metadata.
+    /// Also populates exp_settings with source file metadata, the start of the acquisition and the instrument.
     DIAStreamingMetadata readDIAMetadata(const std::string& path, ExperimentalSettings& exp_settings);
     /// @overload with explicit configuration
     DIAStreamingMetadata readDIAMetadata(const std::string& path, ExperimentalSettings& exp_settings,
