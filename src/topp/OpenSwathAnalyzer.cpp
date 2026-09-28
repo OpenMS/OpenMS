@@ -17,6 +17,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <fstream>
 #include <memory>
@@ -75,7 +76,7 @@ public:
 
   TOPPOpenSwathAnalyzer() :
   TOPPBase("OpenSwathAnalyzer",
-           "Picks peaks and finds features in an SWATH-MS or SRM experiment.", true)
+           "Picks peaks and finds features in an SWATH-MS or SRM experiment.")
   {
   }
 

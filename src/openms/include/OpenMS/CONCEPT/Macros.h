@@ -12,9 +12,6 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <string>
-#include <cstring>
-
 /**
     @brief General helper macros
 

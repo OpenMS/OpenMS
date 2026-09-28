@@ -1240,8 +1240,14 @@ std::vector<MSChromatogram> extractXICs(
     /// returns a single chromatogram
     MSChromatogram& getChromatogram(Size id);
 
+    /// returns a single chromatogram (immutable)
+    const MSChromatogram& getChromatogram(Size id) const;
+
     /// returns a single spectrum
     MSSpectrum& getSpectrum(Size id);
+
+    /// returns a single spectrum (immutable)
+    const MSSpectrum& getSpectrum(Size id) const;
 
     /// get the total number of spectra available
     Size getNrSpectra() const;

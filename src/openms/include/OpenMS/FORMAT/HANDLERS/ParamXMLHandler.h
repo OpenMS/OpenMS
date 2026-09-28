@@ -32,10 +32,10 @@ public:
       ~ParamXMLHandler() override;
 
       // Docu in base class
-      void endElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname) override;
+      void onEndElement(const char16_t* qname) override;
 
       // Docu in base class
-      void startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
+      void onStartElement(const char16_t* qname, const XMLAttributes& attributes) override;
 
 protected:
       /// The current absolute path (concatenation of nodes_ with <i>:</i> in between)

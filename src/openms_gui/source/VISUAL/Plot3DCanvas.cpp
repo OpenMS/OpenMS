@@ -55,11 +55,11 @@ namespace OpenMS
     linear_gradient_.fromString(param_.getValue("dot:gradient"));
     openglcanvas_ = new Plot3DOpenGLCanvas(this, *this);
     setFocusProxy(openglcanvas_);
-    connect(this, SIGNAL(actionModeChange()), openglcanvas_, SLOT(actionModeChange()));
+    connect(this, &PlotCanvas::actionModeChange, openglcanvas_, &Plot3DOpenGLCanvas::actionModeChange);
     legend_shown_ = true;
 
     //connect preferences change to the right slot
-    connect(this, SIGNAL(preferencesChange()), this, SLOT(currentLayerParamtersChanged_()));
+    connect(this, &PlotCanvas::preferencesChange, this, &Plot3DCanvas::currentLayerParamtersChanged_);
   }
 
   Plot3DCanvas::~Plot3DCanvas() = default;

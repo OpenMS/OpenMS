@@ -18,6 +18,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 
@@ -67,8 +68,7 @@ public:
 
   TOPPOpenSwathRTNormalizer() :
   TOPPBase("OpenSwathRTNormalizer",
-           "Generate a transformation file on how to transform the RT space into the normalized space given a description of RT peptides and their normalized retention time.",
-           true)
+           "Generate a transformation file on how to transform the RT space into the normalized space given a description of RT peptides and their normalized retention time.")
   {
   }
 

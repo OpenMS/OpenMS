@@ -11,6 +11,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <iostream>
 #include <map>

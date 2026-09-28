@@ -40,6 +40,30 @@ START_SECTION((virtual void group(const std::vector<ConsensusMap>& maps, Consens
   NOT_TESTABLE;
 END_SECTION
 
+START_SECTION((group() with two empty FeatureMaps does not crash))
+{
+  // Regression test: two input maps with no features yield an empty mass range.
+  // Previously group_() dereferenced the empty mass range (front()/back()/size()-1)
+  // -> crash/UB. After the fix an early guard runs postprocess_() and returns.
+  FeatureGroupingAlgorithmKD algo;
+  std::vector<FeatureMap> maps(2); // two feature-empty maps
+  // metadata carried by the (feature-empty) maps must NOT be silently dropped by the
+  // empty-input early return: postprocess_() still transfers protein / unassigned IDs.
+  ProteinIdentification prot;
+  prot.setIdentifier("run0");
+  maps[0].getProteinIdentifications().push_back(prot);
+  PeptideIdentification upep;
+  upep.setIdentifier("run0");
+  maps[0].getUnassignedPeptideIdentifications().push_back(upep);
+
+  ConsensusMap out;
+  algo.group(maps, out);
+  TEST_EQUAL(out.size(), 0)
+  TEST_EQUAL(out.getProteinIdentifications().size(), 1)
+  TEST_EQUAL(out.getUnassignedPeptideIdentifications().size(), 1)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

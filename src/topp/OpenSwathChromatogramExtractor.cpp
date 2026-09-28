@@ -16,6 +16,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -117,7 +118,7 @@ class TOPPOpenSwathChromatogramExtractor
 public:
 
   TOPPOpenSwathChromatogramExtractor() 
-    : TOPPBase("OpenSwathChromatogramExtractor", "Extract chromatograms (XIC) from a MS2 map file.", true)
+    : TOPPBase("OpenSwathChromatogramExtractor", "Extract chromatograms (XIC) from a MS2 map file.")
   {
   }
 

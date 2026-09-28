@@ -31,6 +31,10 @@ namespace OpenMS
 
   void MzIdentMLFile::load(const std::string& filename, std::vector<ProteinIdentification>& poid, PeptideIdentificationList& peid)
   {
+    // replace (not accumulate): the DOM handler only appends, so clear the outputs first to match the
+    // behavior of the sibling identification loaders (e.g. IdXMLFile::load) and FileHandler::loadIdentifications.
+    poid.clear();
+    peid.clear();
     Internal::MzIdentMLDOMHandler handler(poid, peid, schema_version_, *this);
     handler.readMzIdentMLFile(filename);
   }

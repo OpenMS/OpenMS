@@ -142,6 +142,17 @@ namespace OpenMS
     // any cluster reaching across boundaries
 
     sort(massrange.begin(), massrange.end());
+
+    // No features in any input map: nothing to link, but still run postprocess_ so
+    // per-map protein IDs / unassigned peptide IDs and metadata are transferred to the
+    // (otherwise empty) output instead of being silently dropped. This also avoids
+    // dereferencing the empty mass range in the partitioning below.
+    if (massrange.empty())
+    {
+      postprocess_(input_maps, out);
+      return;
+    }
+
     int pts_per_partition = massrange.size() / (int)(param_.getValue("nr_partitions"));
 
     double warp_mz_tol = (double)(param_.getValue("warp:mz_tol"));
@@ -494,7 +505,7 @@ namespace OpenMS
       }
       if (kd_data.feature(i)->metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
-        linked_groups.emplace_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP));
+        linked_groups.emplace_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP).toString());
       }
     }
     if (kd_data.feature(best_quality_index)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))

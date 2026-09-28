@@ -9,6 +9,7 @@
 
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <xercesc/util/XMLString.hpp>
 
 using namespace xercesc;
 

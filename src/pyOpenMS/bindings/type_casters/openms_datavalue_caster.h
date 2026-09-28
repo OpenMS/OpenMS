@@ -54,7 +54,7 @@ public:
                    const_name("None | int | float | str | bytes | "
                              "list[str] | list[int] | list[float]"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         // Handle None -> Empty DataValue
         if (src.is_none()) {
             value = OpenMS::DataValue();
@@ -252,7 +252,12 @@ public:
                         Py_DECREF(list);
                         return handle();
                     }
-                    PyList_SET_ITEM(list, i, item);
+                    // PyList_SetItem steals the reference even when it fails, so the item
+                    // must not be released again here; only the partially built list is.
+                    if (PyList_SetItem(list, static_cast<Py_ssize_t>(i), item) != 0) {
+                        Py_DECREF(list);
+                        return handle();
+                    }
                 }
                 return list;
             }
@@ -267,7 +272,12 @@ public:
                         Py_DECREF(list);
                         return handle();
                     }
-                    PyList_SET_ITEM(list, i, item);
+                    // PyList_SetItem steals the reference even when it fails, so the item
+                    // must not be released again here; only the partially built list is.
+                    if (PyList_SetItem(list, static_cast<Py_ssize_t>(i), item) != 0) {
+                        Py_DECREF(list);
+                        return handle();
+                    }
                 }
                 return list;
             }
@@ -282,7 +292,12 @@ public:
                         Py_DECREF(list);
                         return handle();
                     }
-                    PyList_SET_ITEM(list, i, item);
+                    // PyList_SetItem steals the reference even when it fails, so the item
+                    // must not be released again here; only the partially built list is.
+                    if (PyList_SetItem(list, static_cast<Py_ssize_t>(i), item) != 0) {
+                        Py_DECREF(list);
+                        return handle();
+                    }
                 }
                 return list;
             }
@@ -314,7 +329,7 @@ public:
                    const_name("None | int | float | str | bytes | "
                              "list[str] | list[int] | list[float]"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         // Handle None -> Empty ParamValue
         if (src.is_none()) {
             value = OpenMS::ParamValue();
@@ -497,7 +512,12 @@ public:
                         Py_DECREF(list);
                         return handle();
                     }
-                    PyList_SET_ITEM(list, i, item);
+                    // PyList_SetItem steals the reference even when it fails, so the item
+                    // must not be released again here; only the partially built list is.
+                    if (PyList_SetItem(list, static_cast<Py_ssize_t>(i), item) != 0) {
+                        Py_DECREF(list);
+                        return handle();
+                    }
                 }
                 return list;
             }
@@ -512,7 +532,12 @@ public:
                         Py_DECREF(list);
                         return handle();
                     }
-                    PyList_SET_ITEM(list, i, item);
+                    // PyList_SetItem steals the reference even when it fails, so the item
+                    // must not be released again here; only the partially built list is.
+                    if (PyList_SetItem(list, static_cast<Py_ssize_t>(i), item) != 0) {
+                        Py_DECREF(list);
+                        return handle();
+                    }
                 }
                 return list;
             }
@@ -527,7 +552,12 @@ public:
                         Py_DECREF(list);
                         return handle();
                     }
-                    PyList_SET_ITEM(list, i, item);
+                    // PyList_SetItem steals the reference even when it fails, so the item
+                    // must not be released again here; only the partially built list is.
+                    if (PyList_SetItem(list, static_cast<Py_ssize_t>(i), item) != 0) {
+                        Py_DECREF(list);
+                        return handle();
+                    }
                 }
                 return list;
             }

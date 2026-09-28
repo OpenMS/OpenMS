@@ -14,6 +14,8 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <xercesc/util/XMLUniDefs.hpp>
+#include <xercesc/util/XMLString.hpp>
+#include <xercesc/framework/MemoryManager.hpp>
 
 
 using namespace xercesc;

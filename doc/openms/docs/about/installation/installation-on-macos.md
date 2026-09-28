@@ -7,10 +7,17 @@ macOS
 
 ## Install via macOS installer
 
+The installer needs macOS 15 (Sequoia) or newer on a Mac with Apple silicon. OpenMS 3.5 was the
+last release for Macs with Intel processors.
+
 To install OpenMS on macOS, run the following steps:
 
 1. Download and install the macOS drag-and-drop installer from the [archive](https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/latest/).
-2.Double click on the downloaded file. It will start to open the `OpenMS-<version>-macOS.pkg` installer file.
+2. Double click on the downloaded file. It will start to open the `OpenMS-<version>-macOS.pkg` installer file.
+
+Since OpenMS 3.6, the installer is signed and notarized by Apple, so macOS opens it without a
+warning. The installers of earlier versions are not notarized, and macOS shows this warning when
+you open one of them:
 
 ```{image} /_images/installations/macos/Warning-openMS-3.3.0-macOS-Silicon.pkg-Not-Opened.png
 :alt: macOS warning message when opening OpenMS-<version>-macOS.pkg  
@@ -80,11 +87,11 @@ To use {term}`TOPP` as regular app in the shell, add the following lines to the 
 1. Nothing happens when you click OpenMS apps or the validity of the developer could not be confirmed.
    
    This usually means the OpenMS software lands in quarantine even after installation of the `.pkg`. This was more common with our older `.dmg` image but may still happen.
-   Since macOS Catalina (maybe also Mojave) all apps and executables have to be officially notarized by Apple but we
-   currently do not have the resources for a streamlined notarization workflow.
+   Since macOS Catalina, all apps and executables have to be notarized by Apple. The installers of OpenMS 3.6 and
+   later are notarized; installations of earlier versions can be blocked.
 
-   To have a streamlined experience without blocking popups, it is recommended to remove the quarantine flag manually,
-   using the following steps:
+   To avoid the blocking popups for such an installation, remove the quarantine flag manually, using the following
+   steps:
 
    Open the Terminal.app and type the following (replace the first line with the actual installation directory):
    ```bash
@@ -110,6 +117,33 @@ To use {term}`TOPP` as regular app in the shell, add the following lines to the 
 
 ```{include} run-in-container.md
 :start-after: "% start-after"
+```
+
+## Reading Thermo Fisher RAW files
+
+OpenMS reads Thermo Fisher `.raw` files natively through the openms-thermo-bridge, which is
+enabled by default in the release binaries. This requires a **.NET 8 runtime** to be
+present at run time so that the managed bridge libraries can be loaded. Which tools read
+`.raw` files, and how FileConverter converts them, is described in
+[Vendor formats](/getting-started/vendor-formats.md).
+
+Install it from the [.NET download page](https://dotnet.microsoft.com/download), or with
+Homebrew:
+
+```bash
+brew install dotnet
+```
+
+If .NET is installed to a non-standard location, point the `DOTNET_ROOT` environment variable
+at the install directory — the folder that contains the `dotnet` host and the `shared/`
+sub-directory — so the bridge can locate the runtime. Homebrew keeps the runtime under its
+`libexec` directory, while the official installer uses `/usr/local/share/dotnet`:
+
+```bash
+# Homebrew (the path reported by `brew info dotnet`)
+export DOTNET_ROOT="$(brew --prefix)/opt/dotnet/libexec"
+# or, for the official .NET installer:
+# export DOTNET_ROOT=/usr/local/share/dotnet
 ```
 
 ## Build OpenMS from source

@@ -101,6 +101,20 @@ void SimpleSVM::Impl::clear_()
   delete[] data_.y;
   data_.x = nullptr;
   data_.y = nullptr;
+  // Drop all training-derived state so the object stays consistent with model_.
+  // This matters when loadModel() replaces a model previously trained via setup():
+  // stale state must not leak into later calls (e.g. predict()/getFeatureWeights()/
+  // writeXvalResults()). In particular the log2_* grids and performance_ must be
+  // cleared together, or writeXvalResults() would loop over the stale grids while
+  // indexing an emptied performance_ (out of bounds). setup() repopulates all of
+  // these right after calling clear_().
+  nodes_.clear();
+  scaling_.clear();
+  predictor_names_.clear();
+  performance_.clear();
+  log2_C_.clear();
+  log2_gamma_.clear();
+  log2_p_.clear();
 }
 
 void SimpleSVM::Impl::scaleData_(PredictorMap& predictors)
@@ -132,7 +146,21 @@ void SimpleSVM::Impl::scaleData_(PredictorMap& predictors)
 
 void SimpleSVM::Impl::convertData_(const SimpleSVM::PredictorMap& predictors)
 {
-  Size n_obs = predictors.begin()->second.size();
+  // The observation count must come from an INFORMATIVE predictor: scaleData_
+  // (called before this in setup()) empties the value vector of every constant
+  // predictor, so predictors.begin() may be empty. Taking n_obs from it would
+  // yield 0 whenever the alphabetically-first predictor is constant, sizing the
+  // node arrays to 0 and crashing setup() (related to #9661).
+  Size n_obs = 0;
+  for (const auto& predictor : predictors)
+  {
+    if (!predictor.second.empty()) { n_obs = predictor.second.size(); break; }
+  }
+  if (n_obs == 0)
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "All predictors are constant (uninformative); the SVM cannot be trained.");
+  }
   nodes_.clear();
   nodes_.resize(n_obs);
   predictor_names_.clear();
@@ -410,6 +438,17 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& outcome
 
   // count elements for first feature dimension to determine number of observations
   Size n_obs = predictors.begin()->second.size();
+  // All predictors must describe the same observations; an inconsistent length
+  // would desync this n_obs (and the outcome-index guard below) from the node
+  // arrays that convertData_() sizes from the first informative predictor.
+  for (const auto& predictor : predictors)
+  {
+    if (predictor.second.size() != n_obs)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "All predictors must have the same number of observations.", predictor.first);
+    }
+  }
   pimpl_->n_parts_ = param_.getValue("xval");
 
   // clear old models
@@ -500,6 +539,56 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& outcome
            << endl;
 }
 
+void SimpleSVM::loadModel(const std::string& filename)
+{
+  pimpl_->clear_(); // discard any previously trained/loaded model and its state
+  pimpl_->model_ = svm_load_model(filename.c_str());
+  if (pimpl_->model_ == nullptr)
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                filename, "Could not load SVM model");
+  }
+  // A loaded model carries no predictor names or scaling (they are not stored in
+  // the LIBSVM model file), so only the vector-based predict() overload -- which
+  // addresses features positionally -- is meaningful for it.
+}
+
+void SimpleSVM::saveModel(const std::string& filename) const
+{
+  if (pimpl_->model_ == nullptr)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "No SVM model to save (use the 'setup' or "
+                                  "'loadModel' method first)");
+  }
+  if (svm_save_model(filename.c_str(), pimpl_->model_) != 0)
+  {
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        filename);
+  }
+}
+
+double SimpleSVM::predict(const vector<double>& features) const
+{
+  if (pimpl_->model_ == nullptr)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "SVM model has not been trained or loaded (use "
+                                  "the 'setup' or 'loadModel' method)");
+  }
+  // Build a dense LIBSVM node array: feature i -> 1-based index i+1, terminated
+  // by the index == -1 sentinel expected by LIBSVM.
+  vector<svm_node> nodes(features.size() + 1);
+  for (Size i = 0; i < features.size(); ++i)
+  {
+    nodes[i].index = static_cast<int>(i + 1);
+    nodes[i].value = features[i];
+  }
+  nodes[features.size()].index = -1;
+  nodes[features.size()].value = 0.0;
+  return svm_predict(pimpl_->model_, nodes.data());
+}
+
 // predict on (subset) of training data
 void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) const
 {
@@ -576,12 +665,50 @@ void SimpleSVM::predict(PredictorMap& predictors, vector<Prediction>& prediction
                                   "'setup' method)");
   }
 
-  Size n_obs = predictors.begin()->second.size(); // length of the first feature ...
-  Size feature_dim = predictors.size();
-
   scaleDataUsingTrainingRanges(predictors, pimpl_->scaling_);
 
-  //std::cout << "Predicting on novel data with obs./feature dimensionality: " << n_obs << "/" << feature_dim << std::endl;
+  // Build the LIBSVM nodes over the TRAINED feature set, indexed in the exact
+  // order convertData_() used during setup() (recorded in predictor_names_).
+  // Iterating the prediction map by position instead would misalign feature
+  // indices whenever a predictor was constant during training -- and therefore
+  // dropped from the model -- but present here, silently corrupting predictions
+  // (issue #9661).
+  const std::vector<std::string>& names = pimpl_->predictor_names_;
+  const Size feature_dim = names.size();
+
+  // Resolve each trained predictor once, in the model's feature order (looking
+  // them up inside the per-observation loop would do feature_dim * n_obs map
+  // searches). The prediction map may carry extra predictors not in the model
+  // (e.g. constant-in-training ones that were dropped) -- those are ignored; a
+  // trained predictor missing here is an error. The observation count comes from
+  // a trained predictor (predictors.begin() need not be one), and all columns
+  // are checked to share it so the node loop cannot read past a shorter column.
+  if (feature_dim == 0)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "SimpleSVM model has no features.");
+  }
+  std::vector<const std::vector<double>*> columns(feature_dim);
+  for (Size k = 0; k < feature_dim; ++k)
+  {
+    PredictorMap::const_iterator pred_it = predictors.find(names[k]);
+    if (pred_it == predictors.end())
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "SimpleSVM::predict: predictor '" + names[k] + "' used during training "
+        "is missing from the prediction data.");
+    }
+    columns[k] = &pred_it->second;
+  }
+  const Size n_obs = columns[0]->size();
+  for (Size k = 1; k < feature_dim; ++k)
+  {
+    if (columns[k]->size() != n_obs)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "SimpleSVM::predict: predictors have inconsistent observation counts.", names[k]);
+    }
+  }
 
   Size n_classes = svm_get_nr_class(pimpl_->model_);
   vector<int> outcomes(n_classes);
@@ -593,12 +720,10 @@ void SimpleSVM::predict(PredictorMap& predictors, vector<Prediction>& prediction
   svm_node *x = new svm_node[feature_dim + 1];
   for (Size i = 0; i != n_obs; ++i)
   {
-    size_t feature_index{0};
-    for (auto p : predictors) 
+    for (Size k = 0; k < feature_dim; ++k)
     {
-      x[feature_index].index = feature_index + 1;
-      x[feature_index].value = p.second[i]; // feature value for observation i
-      ++feature_index;
+      x[k].index = static_cast<int>(k + 1); // LIBSVM feature indices are 1-based
+      x[k].value = (*columns[k])[i];         // feature value for observation i
     }
     x[feature_dim].index = -1;
     x[feature_dim].value = 0;
@@ -611,7 +736,7 @@ void SimpleSVM::predict(PredictorMap& predictors, vector<Prediction>& prediction
     }
     predictions.push_back(pred);
   }
-  delete[] x;  
+  delete[] x;
 }
 
 // only works in classification mode
@@ -622,6 +747,15 @@ void SimpleSVM::getFeatureWeights(map<std::string, double>& feature_weights) con
     throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   "SVM model has not been trained (use the "
                                   "'setup' method)");
+  }
+  if (pimpl_->predictor_names_.empty())
+  {
+    // A model loaded via loadModel() has no predictor names, so weights cannot be
+    // mapped back to features. Guard against indexing the empty predictor_names_.
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Feature weights require a model trained via the "
+                                  "'setup' method (a model loaded via 'loadModel' "
+                                  "has no predictor names)");
   }
   Size k = pimpl_->model_->nr_class;
   if (k > 2)

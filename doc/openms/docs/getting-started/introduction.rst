@@ -65,7 +65,7 @@ Should you be missing something you can also add new functions or classes to the
 
                 **Use a supported workflow editor to create or run predefined workflows.**
 
-                Use applications such as KNIME, Nextflow, Galaxy or our tool TOPPAS, to apply predefined workflows or custom workflows you have designed on your data.
+                Use applications such as Nextflow, Galaxy or our tool TOPPAS, to apply predefined workflows or custom workflows you have designed on your data.
 
 
             .. grid-item-card:: :octicon:`terminal;5em;sd-text-info` **TOPP Tools**

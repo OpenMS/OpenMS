@@ -9,19 +9,19 @@ SKIP_GUI_DEPS=false
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --skip-doc-deps)
-      SKIP_DOC_DEPS=true
-      shift
-      ;;
-    --skip-gui-deps)
-      SKIP_GUI_DEPS=true
-      shift
-      ;;
-    *)
-      echo "Unknown option: $1"
-      echo "Usage: $0 [--skip-doc-deps] [--skip-gui-deps]"
-      exit 1
-      ;;
+  --skip-doc-deps)
+    SKIP_DOC_DEPS=true
+    shift
+    ;;
+  --skip-gui-deps)
+    SKIP_GUI_DEPS=true
+    shift
+    ;;
+  *)
+    echo "Unknown option: $1"
+    echo "Usage: $0 [--skip-doc-deps] [--skip-gui-deps]"
+    exit 1
+    ;;
   esac
 done
 
@@ -55,24 +55,16 @@ brew update
 # Required dependencies:
 brew install \
   autoconf \
+  autoconf-archive \
   automake \
-  libtool \
-  ninja \
-  libomp \
-  libsvm \
-  xerces-c \
-  boost \
-  eigen \
-  sqlite \
-  coinutils \
-  cbc \
-  cgl \
-  clp \
-  apache-arrow \
-  libzip \
-  zstd \
   bash \
-  uv
+  bison \
+  dotnet \
+  flex \
+  icu4c \
+  libtool \
+  pkg-config \
+  ninja
 
 # GUI dependencies (can be skipped for non-GUI builds):
 if [ "$SKIP_GUI_DEPS" = false ]; then
@@ -82,8 +74,16 @@ fi
 # Optional documentation dependencies:
 if [ "$SKIP_DOC_DEPS" = false ]; then
   brew install \
-    doxygen \
-    ghostscript \
-    graphviz
+    doxygen
 fi
+
+# Graphviz is only needed for the optional 'doc_dot' target (documentation
+# with all dot graphs), so it is not installed here:
+#   brew install graphviz
 # [installation_documentation]
+
+# These are only needed in CI:
+brew install \
+  ccache \
+  rclone \
+  rsync

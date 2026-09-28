@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <iosfwd>
 #include <map>

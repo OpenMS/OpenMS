@@ -9,6 +9,8 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #ifdef _OPENMP
   #include <omp.h>
 #endif

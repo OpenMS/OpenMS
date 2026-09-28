@@ -20,6 +20,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
@@ -239,7 +240,7 @@ namespace OpenMS::Internal
     MzIdentMLHandler::~MzIdentMLHandler()
     = default;
 
-    void MzIdentMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+    void MzIdentMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
       tag_ = sm_.convert(qname);
       open_tags_.push_back(tag_);
@@ -269,11 +270,11 @@ namespace OpenMS::Internal
 
       if (tag_ == "cvParam")
       {
-        static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-        static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
-        static const XMLCh* s_cv_ref = xercesc::XMLString::transcode("cvRef");
-        //~ static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-        static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+        static const char16_t* s_value = u"value";
+        static const char16_t* s_unit_accession = u"unitAccession";
+        static const char16_t* s_cv_ref = u"cvRef";
+        //~ static const char16_t* s_name = u"name";
+        static const char16_t* s_accession = u"accession";
 
         std::string value, unit_accession, cv_ref;
         optionalAttributeAsString_(value, attributes, s_value);
@@ -385,7 +386,7 @@ namespace OpenMS::Internal
       error(LOAD, "MzIdentMLHandler::startElement: Unknown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
     }
 
-    void MzIdentMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+    void MzIdentMLHandler::onCharacters(const char16_t* chars, Size /*length*/)
     {
       if (tag_ == "Customizations")
       {
@@ -411,7 +412,7 @@ namespace OpenMS::Internal
       //error(LOAD, "MzIdentMLHandler::characters: Unknown character section found: '" + tag_ + "', ignoring.");
     }
 
-    void MzIdentMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+    void MzIdentMLHandler::onEndElement(const char16_t* qname)
     {
       static set<std::string> to_ignore;
       if (to_ignore.empty())
@@ -462,7 +463,7 @@ namespace OpenMS::Internal
       error(LOAD, "MzIdentMLHandler::endElement: Unknown element found: '" + tag_ + "', ignoring.");
     }
 
-    void MzIdentMLHandler::handleCVParam_(const std::string& /* parent_parent_tag*/, const std::string& parent_tag, const std::string& accession, /* const std::string& name, */ /* const std::string& value, */ const xercesc::Attributes& attributes, const std::string& cv_ref /* , const std::string& unit_accession */)
+    void MzIdentMLHandler::handleCVParam_(const std::string& /* parent_parent_tag*/, const std::string& parent_tag, const std::string& accession, /* const std::string& name, */ /* const std::string& value, */ const XMLAttributes& attributes, const std::string& cv_ref /* , const std::string& unit_accession */)
     {
       if (parent_tag == "Modification")
       {
@@ -1063,22 +1064,27 @@ namespace OpenMS::Internal
       for (std::map<std::string, std::string>::const_iterator sil_it = sil_map.begin(); sil_it != sil_map.end(); ++sil_it)
       {
         os << "\t\t<SpectrumIdentificationList id=\"" << sil_it->first << "\">\n";
-        os << "\t\t\t<FragmentationTable>\n"
-           << "\t\t\t\t<Measure id=\"Measure_mz\">\n"
-           << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
-           << "\t\t\t\t</Measure>\n"
-           << "\t\t\t\t<Measure id=\"Measure_int\">\n"
-           << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001226\" name=\"product ion intensity\" unitAccession=\"MS:1000131\" unitCvRef=\"UO\" unitName=\"number of detector counts\"/>\n"
-           << "\t\t\t\t</Measure>\n"
-           << "\t\t\t\t<Measure id=\"Measure_error\">\n"
-           << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001227\" name=\"product ion m/z error\" unitAccession=\"MS:1000040\" unitCvRef=\"PSI-MS\" unitName=\"m/z\"/>\n"
-           << "\t\t\t\t</Measure>\n";
-        if (is_ppxl)
+        // The Measure ids must be unique in the whole document, and FragmentArray/@measure_ref may refer to a
+        // Measure in any list: define them once, in the first list (the table is optional in the others).
+        if (sil_it == sil_map.begin())
         {
-            os << "<!-- userParam cross-link_chain will contain a list of chain type corresponding to the indexed ion [alpha|beta] -->\n";
-            os << "<!-- userParam cross-link_ioncategory will contain a list of ion category corresponding to the indexed ion [xi|ci] -->\n";
+          os << "\t\t\t<FragmentationTable>\n"
+             << "\t\t\t\t<Measure id=\"Measure_mz\">\n"
+             << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
+             << "\t\t\t\t</Measure>\n"
+             << "\t\t\t\t<Measure id=\"Measure_int\">\n"
+             << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001226\" name=\"product ion intensity\" unitAccession=\"MS:1000131\" unitCvRef=\"UO\" unitName=\"number of detector counts\"/>\n"
+             << "\t\t\t\t</Measure>\n"
+             << "\t\t\t\t<Measure id=\"Measure_error\">\n"
+             << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001227\" name=\"product ion m/z error\" unitAccession=\"MS:1000040\" unitCvRef=\"PSI-MS\" unitName=\"m/z\"/>\n"
+             << "\t\t\t\t</Measure>\n";
+          if (is_ppxl)
+          {
+              os << "<!-- userParam cross-link_chain will contain a list of chain type corresponding to the indexed ion [alpha|beta] -->\n";
+              os << "<!-- userParam cross-link_ioncategory will contain a list of ion category corresponding to the indexed ion [xi|ci] -->\n";
+          }
+          os << "\t\t\t</FragmentationTable>\n";
         }
-        os << "\t\t\t</FragmentationTable>\n";
         os << sil_it->second;
         os << "\t\t</SpectrumIdentificationList>\n";
       }
@@ -1189,7 +1195,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              s +=std::string(indent + 2, '\t') + "<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>\n";
+              s +=std::string(indent + 2, '\t') + "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>\n";
             }
             s +=std::string(indent + 1, '\t') + "</SearchModification>\n";
           }
@@ -1399,7 +1405,7 @@ namespace OpenMS::Internal
                     double diffmass = mod->getMonoMass() - hit.getSequence()[i].getMonoWeight();
                     p += "\" monoisotopicMassDelta=\"" + StringUtils::toStr(diffmass);
                   }
-                  p += "\">\n\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
+                  p += "\">\n\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
                   p += "\n\t\t</Modification>\n";
                 }
               }
@@ -1820,7 +1826,7 @@ namespace OpenMS::Internal
                   double diffmass = mod->getMonoMass() - peptide_sequence[i].getMonoWeight();
                   p += "\" monoisotopicMassDelta=\"" + StringUtils::toStr(diffmass);
                 }
-                p += "\">\n\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
+                p += "\">\n\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
                 p += "\n\t\t</Modification>\n";
               }
             }

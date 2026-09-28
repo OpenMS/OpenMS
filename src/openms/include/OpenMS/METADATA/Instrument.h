@@ -14,7 +14,7 @@
 #include <OpenMS/METADATA/MassAnalyzer.h>
 #include <OpenMS/METADATA/IonDetector.h>
 #include <OpenMS/METADATA/Software.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 
 #include <vector>
 

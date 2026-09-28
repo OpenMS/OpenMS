@@ -31,7 +31,7 @@ namespace OpenMS
     y_axis_->hide();
 
     // delegate signals from canvas
-    connect(canvas(), SIGNAL(showCurrentPeaksAs2D()), this, SIGNAL(showCurrentPeaksAs2D()));
+    connect(canvas(), &Plot3DCanvas::showCurrentPeaksAs2D, this, &Plot3DWidget::showCurrentPeaksAs2D);
   }
 
   Plot3DWidget::~Plot3DWidget() = default;

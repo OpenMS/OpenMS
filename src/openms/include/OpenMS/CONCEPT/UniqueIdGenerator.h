@@ -9,11 +9,9 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/variate_generator.hpp>
-#include <boost/random/uniform_int.hpp>
+#include <random>
+#include <string>
 
 
 namespace OpenMS
@@ -26,7 +24,10 @@ namespace OpenMS
 
     The unique ids are 64-bit random unsigned random integers.
     The class is implemented as a singleton.
-    The random generator is implemented using boost::random.
+    The random generator is std::mt19937_64 (MT19937-64), whose output sequence is
+    fully specified by the algorithm and therefore identical on every platform and
+    standard library. Ids are the raw 64-bit engine output: drawing them through a
+    uniform distribution over the complete UInt64 range would be the identity.
 
     @ingroup Concept
   */
@@ -37,6 +38,14 @@ public:
 
     /// Returns a new unique id
     static UInt64 getUniqueId();
+
+    /**
+      @brief Returns a new random UUID (version 4)
+
+      Formatted as the standard 36-character string
+      "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".
+    */
+    static std::string getUUID();
 
     /// Initializes random generator using the given value.
     static void setSeed(const UInt64);
@@ -51,8 +60,7 @@ protected:
 private:
     static UInt64 seed_;
     static UniqueIdGenerator* instance_;
-    static boost::mt19937_64* rng_;
-    static boost::uniform_int<UInt64>* dist_;
+    static std::mt19937_64* rng_;
 
     static UniqueIdGenerator& getInstance_();
     void init_();

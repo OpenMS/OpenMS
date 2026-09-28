@@ -11,9 +11,11 @@ set(sources_list_h
   MSDataSqlConsumer.h
   MSDataTransformingConsumer.h
   MSDataWritingConsumer.h
+  MobilogramParquetConsumer.h
   NoopMSDataConsumer.h
   SiriusFragmentAnnotation.h
   SwathFileConsumer.h
+  XIPMParquetConsumer.h
 )
 
 ### add path to the filenames

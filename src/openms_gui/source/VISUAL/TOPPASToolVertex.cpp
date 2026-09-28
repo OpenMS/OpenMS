@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
@@ -20,6 +21,7 @@
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QMessageBox>
@@ -61,10 +63,10 @@ namespace OpenMS
   {
     brush_color_ = brush_color_.lighter(130); // make TOPP tools more white compared to all other nodes
     initParam_();
-    connect(this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
-    connect(this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
-    connect(this, SIGNAL(toolFailed()), this, SLOT(toolFailedSlot()));
-    connect(this, SIGNAL(toolCrashed()), this, SLOT(toolCrashedSlot()));
+    connect(this, &TOPPASToolVertex::toolStarted, this, &TOPPASToolVertex::toolStartedSlot);
+    connect(this, &TOPPASToolVertex::toolFinished, this, &TOPPASToolVertex::toolFinishedSlot);
+    connect(this, &TOPPASToolVertex::toolFailed, this, &TOPPASToolVertex::toolFailedSlot);
+    connect(this, &TOPPASToolVertex::toolCrashed, this, &TOPPASToolVertex::toolCrashedSlot);
   }
 
   TOPPASToolVertex::TOPPASToolVertex(const TOPPASToolVertex& rhs) :
@@ -100,7 +102,7 @@ namespace OpenMS
   bool TOPPASToolVertex::initParam_(const QString& old_ini_file)
   {
     // this is the only exception for writing directly to the tmpDir, instead of a subdir of tmpDir, as scene()->getTempDir() might not be available yet
-    QString ini_file = toQString(File::getTemporaryFile());
+    QString ini_file = toQString(TempFiles::getTemporaryFile());
     QString program = toQString(File::findSiblingTOPPExecutable(name_));
     QStringList arguments;
     arguments << "-write_ini" << ini_file;
@@ -640,10 +642,10 @@ namespace OpenMS
       }
 
       p->setProcessChannelMode(QProcess::MergedChannels);
-      connect(p, SIGNAL(readyReadStandardOutput()), this, SLOT(forwardTOPPOutput()));
-      connect(ts, SIGNAL(terminateCurrentPipeline()), p, SLOT(kill()));
+      connect(p, &QProcess::readyReadStandardOutput, this, &TOPPASToolVertex::forwardTOPPOutput);
+      connect(ts, &TOPPASScene::terminateCurrentPipeline, p, &QProcess::kill);
       // let this node know that round is done
-      connect(p, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(executionFinished(int, QProcess::ExitStatus)));
+      connect(p, &QProcess::finished, this, &TOPPASToolVertex::executionFinished);
 
       // enqueue process
       std::string msg_enqueue =std::string("\nEnqueue: \"") + File::getExecutablePath() + name_ + "\" \"" + fromQString(args.join("\" \"")) + "\"\n";

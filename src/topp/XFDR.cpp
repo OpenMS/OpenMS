@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <cassert>
 
@@ -64,7 +65,7 @@ public TOPPBase
 public:
 
   TOPPXFDR() :
-    TOPPBase("XFDR", "Calculates false discovery rate estimates on crosslink identifications", true)
+    TOPPBase("XFDR", "Calculates false discovery rate estimates on crosslink identifications")
   {
   }
 

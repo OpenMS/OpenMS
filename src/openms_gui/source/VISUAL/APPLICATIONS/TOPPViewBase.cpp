@@ -25,6 +25,7 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/VISUAL/FileWatcher.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
@@ -252,10 +253,15 @@ namespace OpenMS
 
     connect(dm_precursors_2d_, &QAction::toggled, this, &TOPPViewBase::changeLayerFlag);
 
-    projections_2d_ = tool_bar_2d_peak_->addAction(QIcon(":/projections.png"), "Show Projections", this, &TOPPViewBase::toggleProjections);
+    projections_2d_ = tool_bar_2d_peak_->addAction(QIcon(":/projections.png"), "Show Projections");
     projections_2d_->setCheckable(true);
     projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.<BR>(Hotkey: 2)");
     projections_2d_->setShortcut(Qt::Key_2);
+    // drive the *actual* projection visibility from the button's (post-toggle) checked state;
+    // the widget reports the resulting state back via projectionsVisibilityChanged (see showPlotWidgetInWindow)
+    connect(projections_2d_, &QAction::triggered, this, [this](bool checked) {
+      if (Plot2DWidget* w = getActive2DWidget()) { w->setProjectionsVisible(checked); }
+    });
 
     //--2D feature toolbar--
     tool_bar_2d_feat_ = addToolBar("2D feature tool bar");
@@ -400,14 +406,10 @@ namespace OpenMS
     // set current path
     current_path_ = param_.getValue(user_section + "default_path").toString();
 
-    // set plugin search path, create it if it does not already exist
-    if (verbosity_ == VERBOSITY::VERBOSE) 
+    if (verbosity_ == VERBOSITY::VERBOSE)
     {
       tool_scanner_.setVerbose(1);
     }
-
-    std::string plugin_path =std::string(param_.getValue(user_section + "plugins_path").toString());
-    tool_scanner_.setPluginPath(plugin_path, true);
 
     // update the menu
     updateMenu();
@@ -437,7 +439,6 @@ namespace OpenMS
     defaults_.setValue(user_section + "default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue(user_section + "default_path_current", "true", "If the current path is preferred over the default path.");
     defaults_.setValidStrings(user_section + "default_path_current", {"true","false"});
-    defaults_.setValue(user_section + "plugins_path", File::getUserDirectory() + "OpenMS_Plugins", "Default path for loading Plugins");
     defaults_.setValue(user_section + "intensity_cutoff", "off", "Low intensity cutoff for maps.");
     defaults_.setValidStrings(user_section + "intensity_cutoff", {"on","off"});
     defaults_.setValue(user_section + "on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
@@ -1232,6 +1233,8 @@ namespace OpenMS
         if (w2->canvas()->getCurrentLayer().type == LayerDataBase::DT_PEAK)
         {
           dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::P_PRECURSORS));
+          // reflect this window's actual projection state (the button is shared across all 2D windows)
+          projections_2d_->setChecked(w2->projectionsVisible());
           tool_bar_2d_peak_->show();
         }
         // feature draw modes
@@ -1399,6 +1402,11 @@ namespace OpenMS
       connect(sw2, &Plot2DWidget::showSpectrumAsNew1D, selection_view_, &DataSelectionTabs::showSpectrumAsNew1D);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAsIonMobility, this, &TOPPViewBase::showCurrentPeaksAsIonMobility);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAs3D, this, &TOPPViewBase::showCurrentPeaksAs3D);
+      // keep the (shared) toolbar toggle button in sync with this window's projection state.
+      // Only react when the emitting window is the active one (a background window's auto-update must not flip the button).
+      connect(sw2, &Plot2DWidget::projectionsVisibilityChanged, this, [this, sw2](bool visible) {
+        if (getActive2DWidget() == sw2) { projections_2d_->setChecked(visible); }
+      });
       base_name += " (2D)";
     }
 
@@ -1538,12 +1546,6 @@ namespace OpenMS
           param_.insert("tool_params:", tmp.copy("tool_params:", true));
           tool_params_added = true;
         }
-        // If the saved plugin path does not exist
-        if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
-        {
-          // reset it to the default
-          param_.setValue(user_section + "plugins_path", File::getUserDirectory() + "OpenMS_Plugins");
-        }
       }
     }
     else if (filename != default_ini_file)
@@ -1575,12 +1577,6 @@ namespace OpenMS
     {
       tool_scanner_.waitForToolParams();
       param_.insert("tool_params:", tool_scanner_.getToolParams());
-    }
-    // check if the plugin path exists
-    if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
-    {
-      // reset if it does not
-      param_.setValue(user_section + "plugins_path", tool_scanner_.getPluginPath());
     }
 
     // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
@@ -1640,7 +1636,7 @@ namespace OpenMS
     }
 
     // create and store unique file name prefix for files
-    topp_.file_name = File::getTempDirectory() + "/TOPPView_" + File::getUniqueName();
+    topp_.file_name = SystemSettings::getTempDirectory() + "/TOPPView_" + File::getUniqueName();
     // Figure out the correct extension to give the temp file TODO start using OMS and cachedmzml
 
     if (!File::writable(topp_.file_name + "_ini"))
@@ -1656,7 +1652,7 @@ namespace OpenMS
 
     ToolsDialog tools_dialog(this, param_,
                              topp_.file_name + "_ini", current_path_, layer.type,
-                             layer.getName(), &tool_scanner_);
+                             layer.getName());
 
     if (tools_dialog.exec() == QDialog::Accepted)
     {
@@ -1772,21 +1768,18 @@ namespace OpenMS
     // connect slots
     connect(topp_.process, &QProcess::readyReadStandardOutput, this, &TOPPViewBase::updateProcessLog);
     connect(topp_.process, CONNECTCAST(QProcess, finished, (int, QProcess::ExitStatus)), this, &TOPPViewBase::finishTOPPToolExecution);
-    QString tool_executable = toQString(std::string(tool_scanner_.findPluginExecutable(topp_.tool)));
-    if (tool_executable.isEmpty())
+    QString tool_executable;
+    try
     {
-      try
-      {
-        // find correct location of TOPP tool
-        tool_executable = toQString(File::findSiblingTOPPExecutable(topp_.tool));
-      }
-      catch (Exception::FileNotFound & /*ex*/)
-      {
-        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Could not locate executable!",
-                              fromQString(QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(
-                                      toQString(topp_.tool))));
-        return;
-      }
+      // find correct location of TOPP tool
+      tool_executable = toQString(File::findSiblingTOPPExecutable(topp_.tool));
+    }
+    catch (Exception::FileNotFound & /*ex*/)
+    {
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Could not locate executable!",
+                            fromQString(QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(
+                                    toQString(topp_.tool))));
+      return;
     }
 
     // update menu entries according to new state
@@ -1818,14 +1811,14 @@ namespace OpenMS
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, fromQString(QString("Execution of '%1' not successful!").arg(toQString(topp_.tool))),
                       fromQString(QString("The tool crashed during execution. If you want to debug this crash, check the input files in '%1'"
-                              " or enable 'debug' mode in the TOPP ini file.").arg(toQString(File::getTempDirectory()))));
+                              " or enable 'debug' mode in the TOPP ini file.").arg(toQString(SystemSettings::getTempDirectory()))));
     }
     else if (topp_.process->exitCode() != 0) // NormalExit with non-zero exit code
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, fromQString(QString("Execution of '%1' not successful!").arg(toQString(topp_.tool))),
                             fromQString(QString("The tool ended with a non-zero exit code of '%1'. ").arg(topp_.process->exitCode()) +
                             QString("If you want to debug this, check the input files in '%1' or"
-                                    " enable 'debug' mode in the TOPP ini file.").arg(toQString(File::getTempDirectory()))));
+                                    " enable 'debug' mode in the TOPP ini file.").arg(toQString(SystemSettings::getTempDirectory()))));
     }
     else if (!topp_.out.empty())
     {
@@ -1885,24 +1878,6 @@ namespace OpenMS
       return nullptr;
     }
     return &(canvas->getCurrentLayer());
-  }
-
-  void TOPPViewBase::toggleProjections()
-  {
-    Plot2DWidget* w = getActive2DWidget();
-    if (w)
-    {
-      // update minimum size before
-      if (!w->projectionsVisible())
-      {
-        setMinimumSize(700, 700);
-      }
-      else
-      {
-        setMinimumSize(400, 400);
-      }
-      w->toggleProjections();
-    }
   }
 
   void TOPPViewBase::annotateWithAMS()

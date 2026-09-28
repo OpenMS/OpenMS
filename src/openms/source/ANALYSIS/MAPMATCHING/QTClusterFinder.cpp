@@ -264,9 +264,20 @@ namespace OpenMS
     }
     std::sort(massrange.begin(), massrange.end());
 
+    // No features in any input map: nothing to link. Return the already-cleared
+    // (empty) result. This must happen BEFORE the nr_partitions_ == 1 branch, because
+    // run_internal_() -> setParameters_() throws on the resulting invalid maximum m/z,
+    // and before the partition loop, which would dereference the empty mass range via
+    // front()/back()/size()-1. (The <2-maps case is validated by the caller,
+    // FeatureGroupingAlgorithmQT::group_.)
+    if (massrange.empty())
+    {
+      return;
+    }
+
     if (nr_partitions_ == 1)
     {
-      // Only one partition 
+      // Only one partition
       run_internal_(input_maps, result_map, true);
     }
     else
@@ -535,7 +546,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       }
       if (elem_feat.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
-        linked_groups.emplace_back(elem_feat.getMetaValue(Constants::UserParam::ADDUCT_GROUP));
+        linked_groups.emplace_back(elem_feat.getMetaValue(Constants::UserParam::ADDUCT_GROUP).toString());
       }
     }
     if (elements[best_quality_index].feature->getFeature().metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))

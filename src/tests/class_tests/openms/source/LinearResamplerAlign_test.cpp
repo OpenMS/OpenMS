@@ -17,6 +17,8 @@
 
 #include <OpenMS/test_config.h>
 
+#include <cmath>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -626,6 +628,100 @@ START_SECTION([EXTRA] test_linear_res_align_input)
   }
   TEST_REAL_SIMILAR(sum, 0);
 
+}
+END_SECTION
+
+// Regression guards for the single-spike / zero-width-interval edge cases of the
+// folded LinearResampler spike fix (#9127). The area-preserving raster()
+// distributes each raw point's intensity onto its two *grid* neighbours and
+// divides by the grid spacing (never by the raw point distance), so a lone spike
+// or coincident (zero-width interval) raw points must (a) conserve the total
+// intensity, (b) never be amplified into a spurious larger peak, and (c) never
+// produce NaN/Inf.
+
+START_SECTION([EXTRA] raster on a single data point conserves intensity)
+{
+  // A single peak has start_pos == end_pos, i.e. a degenerate (zero-width)
+  // resampling interval that yields exactly one output point.
+  MSSpectrum spec;
+  spec.resize(1);
+  spec[0].setMZ(10.0);
+  spec[0].setIntensity(7.0f);
+
+  LinearResamplerAlign lr;
+  Param param;
+  param.setValue("spacing", 0.5);
+  lr.setParameters(param);
+  lr.raster(spec);
+
+  TEST_EQUAL(spec.size(), 1)
+  TEST_REAL_SIMILAR(spec[0].getMZ(), 10.0)
+  TEST_REAL_SIMILAR(spec[0].getIntensity(), 7.0)
+  TEST_EQUAL(std::isfinite(spec[0].getIntensity()), true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] raster of an isolated spike is conserved localized and not amplified)
+{
+  // One spike at m/z 2.25 (off the resampling grid) flanked by zero-intensity
+  // points. It must spread to its two grid neighbours, conserve the total
+  // intensity, never exceed the original spike (no spurious amplification) and
+  // not leak intensity to the far ends of the spectrum.
+  MSSpectrum spec;
+  spec.resize(3);
+  spec[0].setMZ(0.0);  spec[0].setIntensity(0.0f);
+  spec[1].setMZ(2.25); spec[1].setIntensity(5.0f);
+  spec[2].setMZ(4.0);  spec[2].setIntensity(0.0f);
+
+  LinearResamplerAlign lr;
+  Param param;
+  param.setValue("spacing", 0.5);
+  lr.setParameters(param);
+  lr.raster(spec);
+
+  double sum = 0.0;
+  double max_int = 0.0;
+  double leaked_far = 0.0; // intensity that wrongly ended up far from the spike
+  for (Size i = 0; i < spec.size(); ++i)
+  {
+    const double in = spec[i].getIntensity();
+    TEST_EQUAL(std::isfinite(in), true)
+    sum += in;
+    if (in > max_int) { max_int = in; }
+    if (spec[i].getMZ() < 1.0 || spec[i].getMZ() > 3.5) { leaked_far += in; }
+  }
+  TEST_REAL_SIMILAR(sum, 5.0)             // area preserved
+  TEST_EQUAL(max_int <= 5.0 + 1e-6, true) // no spurious amplification
+  TEST_REAL_SIMILAR(leaked_far, 0.0)      // intensity stays local to the spike
+}
+END_SECTION
+
+START_SECTION([EXTRA] raster with coincident zero-width-interval raw points conserves intensity)
+{
+  // Two raw points share the same m/z (1.0): a zero-width interval in the input.
+  // A naive linear-interpolation form would divide by the raw gap (== 0); the
+  // area-preserving raster() must instead conserve the total intensity with no
+  // NaN/Inf.
+  MSSpectrum spec;
+  spec.resize(4);
+  spec[0].setMZ(0.0); spec[0].setIntensity(2.0f);
+  spec[1].setMZ(1.0); spec[1].setIntensity(3.0f);
+  spec[2].setMZ(1.0); spec[2].setIntensity(4.0f); // coincident with spec[1]
+  spec[3].setMZ(2.0); spec[3].setIntensity(1.0f);
+
+  LinearResamplerAlign lr;
+  Param param;
+  param.setValue("spacing", 0.5);
+  lr.setParameters(param);
+  lr.raster(spec);
+
+  double sum = 0.0;
+  for (Size i = 0; i < spec.size(); ++i)
+  {
+    TEST_EQUAL(std::isfinite(spec[i].getIntensity()), true)
+    sum += spec[i].getIntensity();
+  }
+  TEST_REAL_SIMILAR(sum, 10.0) // 2 + 3 + 4 + 1, conserved despite the zero-width interval
 }
 END_SECTION
 

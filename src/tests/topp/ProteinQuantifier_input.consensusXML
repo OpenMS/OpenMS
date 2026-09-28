@@ -26,7 +26,7 @@
 				<element map="0" id="0" rt="100" mz="100" it="1000" charge="2"/>
 				<element map="2" id="0" rt="100" mz="100" it="1000" charge="2"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="100" RT="100" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="100" RT="100" spectrum_reference="scan=100" >
 				<PeptideHit score="1" sequence="AAAK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
         <UserParam type="int" name="id_merge_index" value="0"/>
@@ -38,7 +38,7 @@
 				<element map="0" id="1" rt="200" mz="200" it="200" charge="2"/>
 				<element map="1" id="1" rt="200" mz="200" it="200" charge="2"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="200" RT="200" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="200" RT="200" spectrum_reference="scan=200" >
 				<PeptideHit score="1" sequence="CCCK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
         <UserParam type="int" name="id_merge_index" value="0"/>
@@ -51,7 +51,7 @@
 				<element map="1" id="2" rt="300" mz="300" it="30" charge="2"/>
 				<element map="2" id="2" rt="300" mz="300" it="30" charge="2"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="300" RT="300" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="300" RT="300" spectrum_reference="scan=300" >
 				<PeptideHit score="1" sequence="EEEK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
         <UserParam type="int" name="id_merge_index" value="1"/>
@@ -63,7 +63,7 @@
 				<element map="0" id="3" rt="400" mz="400" it="4" charge="2"/>
 				<element map="1" id="3" rt="400" mz="400" it="4" charge="2"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="400" RT="400" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="400" RT="400" spectrum_reference="scan=400" >
 				<PeptideHit score="1" sequence="GGG" charge="2" protein_refs="PH_0">
 				</PeptideHit>
         <UserParam type="int" name="id_merge_index" value="2"/>

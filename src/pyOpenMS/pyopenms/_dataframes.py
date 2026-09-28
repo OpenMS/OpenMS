@@ -128,7 +128,7 @@ def experiment_to_dataframe(
 
     if long_format:
         records = []
-        for i, spec in enumerate(experiment):
+        for i, spec in enumerate(experiment.iter_spectrum_views()):  # zero-copy read of each spectrum
             mz, intensity = spec.get_peaks()
             n_peaks = len(mz)
             if n_peaks == 0:
@@ -166,7 +166,7 @@ def experiment_to_dataframe(
         return pd.DataFrame(data)
     else:
         records = []
-        for i, spec in enumerate(experiment):
+        for i, spec in enumerate(experiment.iter_spectrum_views()):  # zero-copy read of each spectrum
             mz, intensity = spec.get_peaks()
             record = {
                 "spectrum_index": i,

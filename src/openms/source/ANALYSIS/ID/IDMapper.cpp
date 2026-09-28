@@ -12,6 +12,7 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <unordered_set>

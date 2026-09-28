@@ -6,11 +6,13 @@
 // $Authors: Mathew The, Leon Bichmann $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
+#include <fstream>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -18,6 +20,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <iostream>
 #include <cmath>
@@ -88,11 +91,11 @@ Journal of proteome research, 2016, 15(3), pp 713-720 DOI: 10.1021/acs.jproteome
 
 
 class MaRaClusterAdapter :
-  public TOPPBase
+  public TOPPExternalToolBase
 {
 public:
   MaRaClusterAdapter() :
-    TOPPBase("MaRaClusterAdapter", "Facilitate input to MaRaCluster and reintegrate.", true,
+    TOPPExternalToolBase("MaRaClusterAdapter", "Facilitate input to MaRaCluster and reintegrate.",
                 { // citation(s), specific for this tool
                  { "The M and Käll L", "MaRaCluster: A Fragment Rarity Metric for Clustering Fragment Spectra in Shotgun Proteomics", "J Proteome Res 2016; 15: 3", "10.1021/acs.jproteome.5b00749"}
                 }
@@ -184,7 +187,7 @@ protected:
     // Advanced parameters
     registerIntOption_("verbose", "<level>", 2, "Set verbosity of output: 0=no processing info, 5=all.", !is_required, is_advanced_option);
     registerDoubleOption_("precursor_tolerance", "<tolerance>", 20.0, "Precursor monoisotopic mass tolerance", !is_required, is_advanced_option);
-    registerStringOption_("precursor_tolerance_units", "<choice>", "ppm", "tolerance_mass_units 0=ppm, 1=Da", !is_required, is_advanced_option);
+    registerStringOption_("precursor_tolerance_units", "<choice>", "ppm", "Unit of 'precursor_tolerance'.", !is_required, is_advanced_option);
     setValidStrings_("precursor_tolerance_units", ListUtils::create<std::string>("ppm,Da"));
 
 
@@ -296,7 +299,7 @@ protected:
     //-------------------------------------------------------------
 
     // create temp directory to store maracluster temporary files
-    File::TempDir tmp_dir(debug_level_ >= 2);
+    TempDir tmp_dir(debug_level_ >= 2);
 
     double pcut = getDoubleOption_("pcut");
 
@@ -327,11 +330,9 @@ protected:
       arguments.push_back("-f"); arguments.push_back(tmp_dir.getPath());
       arguments.push_back("-a"); arguments.push_back(txt_designator);
 
-      map<std::string,int> precursor_tolerance_units;
-      precursor_tolerance_units["ppm"] = 0;
-      precursor_tolerance_units["Da"] = 1;
-
-      arguments.push_back("-p"); arguments.push_back(StringUtils::toStr(getDoubleOption_("precursor_tolerance")) + precursor_tolerance_units[getStringOption_("precursor_tolerance_units")]);
+      // MaRaCluster reads the unit from the suffix of the value ("20.0ppm", "0.05Da") and
+      // assumes ppm without one.
+      arguments.push_back("-p"); arguments.push_back(StringUtils::toStr(getDoubleOption_("precursor_tolerance")) + getStringOption_("precursor_tolerance_units"));
 
       arguments.push_back("-t"); arguments.push_back(StringUtils::toStr(pcut));
       arguments.push_back("-c"); arguments.push_back(StringUtils::toStr(pcut));

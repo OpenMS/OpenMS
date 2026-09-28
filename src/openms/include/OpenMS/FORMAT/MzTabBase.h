@@ -9,7 +9,6 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 

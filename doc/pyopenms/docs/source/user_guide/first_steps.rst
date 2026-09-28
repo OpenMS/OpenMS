@@ -160,17 +160,92 @@ which indicates that the variable ``exp`` has (among others) the functions
     4
     2
 
-and indeed we see that we get information about the underlying MS data. We can
-iterate through the spectra as follows:
+and indeed we see that we get information about the underlying :term:`MS` data.
 
+File Summary
+************
+
+To get an overview of a whole file, use :py:class:`~.FileInfo`, the library
+version of the ``FileInfo`` :term:`TOPP` tool. :py:meth:`~.FileInfo.run`
+determines the file type, loads the file and returns the collected information:
+
+.. code-block:: python
+    :linenos:
+
+    result = oms.FileInfo().run("tiny.mzML")
+
+    print("File type:", result.meta.file_type_name)
+    print("Spectra:", result.peak.num_spectra)
+    print("Spectra per MS level:", result.peak.spectra_per_ms_level)
+    ranges = result.ranges.spectra_overall
+    print("RT:", ranges.rt.min, "to", ranges.rt.max)
+    print("m/z:", ranges.mz.min, "to", ranges.mz.max)
+
+.. code-block:: output
+
+    File type: mzML
+    Spectra: 4
+    Spectra per MS level: {1: 3, 2: 1}
+    RT: -1.0 to 359.43
+    m/z: 0.0 to 18.0
+
+``result.peak`` describes a peak file such as :term:`mzML`; for other file
+types, another part such as ``result.feature``, ``result.ident`` or
+``result.fasta`` is set instead, and the parts that do not apply are ``None``.
+``result.ranges`` also holds the ranges per :term:`MS` level
+(``per_ms_level``), of the chromatograms (``chromatograms``) and of both
+together (``combined``). The retention time range starts at -1 because the
+third spectrum of ``tiny.mzML`` has no retention time, and OpenMS stores a
+missing retention time as -1.
+
+:py:meth:`~.FileInfo.to_text` returns the report that the ``FileInfo`` tool
+prints (also stored in ``result.text``), and :py:meth:`~.FileInfo.to_tsv` its
+tab-separated version. These are the first lines of the report:
+
+.. code-block:: python
+    :linenos:
+
+    report = oms.FileInfo.to_text(result)
+    print("\n".join(report.strip().splitlines()[:11]))
+
+.. code-block:: output
+
+    -- General information --
+
+    File name: tiny.mzML
+    File type: mzML
+
+    Instrument: LCQ Deca
+      Mass Analyzer: Quadrupole ion trap (resolution: 0)
+
+    MS levels: 1, 2
+    Total number of peaks: 65
+    Number of spectra: 4
+
+The report continues with the ranges, the spectra per :term:`MS` level, the
+activation methods, the precursor charges and the chromatograms. To add
+sections, pass a ``FileInfo.Options`` object as second argument to ``run()``;
+for example, ``meta = True`` adds sample, instrument and contact information.
+:py:meth:`~.FileInfo.run_all` adds this, the data processing information and
+summary statistics. With ``validate = True``, ``run()`` validates the file
+instead of summarizing it.
 
 Iteration
 *********
 
+We can iterate through the spectra as follows:
+
+.. note::
+
+   Core classes such as :py:class:`~.MSSpectrum` and :py:class:`~.Peak1D`
+   expose common scalar attributes as snake_case properties (e.g.
+   ``spec.ms_level``, ``spec.rt``, ``peak.mz``, ``peak.intensity``). These are
+   equivalent to the ``getX()`` / ``setX()`` methods, which still work.
+
 .. code-block:: python
 
     for spec in exp:
-        print("MS Level:", spec.getMSLevel())
+        print("MS Level:", spec.ms_level)
 
 .. code-block:: output
 
@@ -183,7 +258,7 @@ This iterates through all available :py:class:`~.MSSpectra`, we can also access 
 
 .. code-block:: python
 
-    print("MS Level:", exp[1].getMSLevel())
+    print("MS Level:", exp[1].ms_level)
 
 .. code-block:: output
 
@@ -209,7 +284,7 @@ slower):
 .. code-block:: python
 
     for peak in spec:
-        print(peak.getIntensity())
+        print(peak.intensity)
 
 .. code-block:: output
 
@@ -223,6 +298,62 @@ slower):
     6.0
     4.0
     2.0
+
+Copies, Not References
+**********************
+
+pyOpenMS containers use **value semantics** for element access: every
+object you retrieve is an independent copy. Whether you use indexing
+(``exp[0]``), iteration (``for spec in exp:``) or a getter
+(``exp.getSpectrum(0)``, ``spec.getPrecursors()``), the returned object
+owns its own data. Editing it does not modify the container, and later
+changes to the container do not affect objects retrieved earlier.
+
+A common pitfall follows directly from this: editing the copy does *not*
+edit the experiment.
+
+.. code-block:: python
+
+    spec = exp[0]
+    spec.setRT(999.9)      # edits only our copy
+    print(exp[0].getRT())  # the experiment is unchanged
+
+.. code-block:: output
+
+    353.43
+
+To change data inside a container, follow the pattern
+**read it, edit it, put it back**:
+
+.. code-block:: python
+
+    spec = exp[0]        # read it
+    spec.setRT(999.9)    # edit it
+    exp[0] = spec        # put it back
+    print(exp[0].getRT())
+
+.. code-block:: output
+
+    999.9
+
+Why does pyOpenMS work this way? Because the alternative -- handing out
+live references into the container's internal storage -- makes ordinary
+code unsafe: appending a spectrum can reallocate the container's memory
+and invalidate every previously returned object (a use-after-free), and
+sorting would silently re-bind held objects to different elements. With
+copies, nothing you hold ever becomes invalid.
+
+Two things complete the picture:
+
+* **The naming is the contract.** As a rule, anything called ``getX()`` or
+  ``get_*`` returns a copy you own. The deliberate exceptions end in
+  ``_view``, ``_views`` or ``_struct``: those return zero-copy *views* that
+  alias the container's storage for speed -- edits through a view land
+  immediately, but the view is only valid until the container is resized or
+  sorted. Views are introduced in the `MS data <ms_data.html>`_ chapter.
+* **Copies cost time on big objects.** For read-only sweeps over large
+  experiments, iterate views instead of copies:
+  ``for spec in exp.iter_spectrum_views(): ...``.
 
 Total Ion Current Calculation
 *****************************

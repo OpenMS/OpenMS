@@ -203,7 +203,7 @@ public:
             "Swath scan does not provide a precursor.");
         }
 
-        const std::vector<Precursor> prec = s.getPrecursors();
+        const std::vector<Precursor>& prec = s.getPrecursors();
         double center = prec[0].getMZ();
         double lower = prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset();
         double upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();

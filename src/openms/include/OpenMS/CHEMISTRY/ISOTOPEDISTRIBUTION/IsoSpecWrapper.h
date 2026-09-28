@@ -13,7 +13,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 #include <OpenMS/KERNEL/Peak1D.h>
 

@@ -292,7 +292,9 @@ namespace OpenMS
       // ModificationsDB's loadFromProviders_() will detect these and handle alias resolution.
       if (it->second.getUniModRecordId() > 0)
       {
-        result.push_back(make_unique<ResidueModification>(it->second));
+        auto alias_ptr = make_unique<ResidueModification>(it->second);
+        alias_ptr->setProvenance(ResidueModification::CV);
+        result.push_back(std::move(alias_ptr));
         continue;
       }
 
@@ -303,6 +305,7 @@ namespace OpenMS
            (it->second.getDiffMonoMass() != 0)))
       {
         auto mod_ptr = make_unique<ResidueModification>(it->second);
+        mod_ptr->setProvenance(ResidueModification::CV); // PSI-MOD / XLMOD are shipped vocabularies
 
         // full ID is auto-generated based on (short) ID, but we want the name instead:
         mod_ptr->setId(it->second.getFullName());

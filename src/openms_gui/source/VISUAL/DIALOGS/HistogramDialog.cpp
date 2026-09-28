@@ -30,13 +30,13 @@ namespace OpenMS
     //ok
     QPushButton * ok_button_ = new QPushButton("&Apply Filter", this);
     ok_button_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    connect(ok_button_, SIGNAL(clicked()), this, SLOT(accept()));
+    connect(ok_button_, &QPushButton::clicked, this, &QDialog::accept);
     layout->addWidget(ok_button_, 1, 1);
 
     //cancel
     QPushButton * cancel_button_ = new QPushButton("&Cancel", this);
     cancel_button_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    connect(cancel_button_, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(cancel_button_, &QPushButton::clicked, this, &QDialog::reject);
     layout->addWidget(cancel_button_, 1, 2);
 
     //distribution

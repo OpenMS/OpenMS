@@ -12,6 +12,7 @@
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
@@ -53,21 +54,21 @@ namespace OpenMS
 
     QHBoxLayout* hbox = new QHBoxLayout;
     QPushButton* load_button = new QPushButton(tr("&Load config from .INI file"));
-    connect(load_button, SIGNAL(clicked()), this, SLOT(loadINI_()));
+    connect(load_button, &QPushButton::clicked, this, &TOPPASToolConfigDialog::loadINI_);
     hbox->addWidget(load_button);
     QPushButton* store_button = new QPushButton(tr("&Store config to .INI file"));
-    connect(store_button, SIGNAL(clicked()), this, SLOT(storeINI_()));
+    connect(store_button, &QPushButton::clicked, this, &TOPPASToolConfigDialog::storeINI_);
     hbox->addWidget(store_button);
     hbox->addStretch();
 
     // cancel button
     QPushButton* cancel_button = new QPushButton(tr("&Cancel"));
-    connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
     hbox->addWidget(cancel_button);
 
     // ok button
     QPushButton* ok_button_ = new QPushButton(tr("&Ok"));
-    connect(ok_button_, SIGNAL(clicked()), this, SLOT(ok_()));
+    connect(ok_button_, &QPushButton::clicked, this, &TOPPASToolConfigDialog::ok_);
     hbox->addWidget(ok_button_);
 
     main_grid->addLayout(hbox, 2, 0, 1, 1);
@@ -159,7 +160,7 @@ namespace OpenMS
     arg_param_.insert(tool_name_ + ":1:", *param_);
     try
     {
-      QString tmp_ini_file = toQString(File::getTempDirectory()) + QDir::separator() + "TOPPAS_" + toQString(tool_name_) + "_";
+      QString tmp_ini_file = toQString(SystemSettings::getTempDirectory()) + QDir::separator() + "TOPPAS_" + toQString(tool_name_) + "_";
       if (!tool_type_.empty())
       {
         tmp_ini_file += toQString(tool_type_) + "_";

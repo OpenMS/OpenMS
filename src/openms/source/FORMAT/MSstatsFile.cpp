@@ -10,6 +10,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <tuple>
 
 using namespace std;
@@ -31,6 +32,31 @@ void MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sa
   if (!sampleSection.hasFactor(bioreplicate))
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sample Section of the experimental design does not contain MSstats_BioReplicate");
+  }
+
+  // A BioReplicate label that recurs under two different Conditions declares the same biological
+  // unit measured in both -- i.e. a paired / repeated-measures design, which MSstats models
+  // differently from an unpaired one. sdrf-pipelines assigns a globally unique id per source name,
+  // so a recurrence normally means a hand-written design and is worth surfacing. It is a legitimate
+  // encoding when intended, so warn rather than refuse (#9864 B7).
+  std::map<std::string, std::set<std::string>> bioreplicate_to_conditions;
+  for (const std::string& sample : sampleSection.getSamples())
+  {
+    bioreplicate_to_conditions[sampleSection.getFactorValue(sample, bioreplicate)].insert(
+      sampleSection.getFactorValue(sample, condition));
+  }
+
+  for (const auto& [replicate, conditions] : bioreplicate_to_conditions)
+  {
+    if (conditions.size() > 1)
+    {
+      OPENMS_LOG_WARN << "Warning: " << bioreplicate << " '" << replicate << "' occurs under "
+                      << conditions.size() << " different " << condition << " values ("
+                      << ListUtils::concatenate(std::vector<std::string>(conditions.begin(), conditions.end()), ", ")
+                      << "). MSstats will treat it as one biological unit measured in each, i.e. a "
+                         "paired design. If these are unrelated samples, give them distinct "
+                      << bioreplicate << " values." << std::endl;
+    }
   }
 }
 

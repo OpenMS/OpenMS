@@ -364,9 +364,15 @@ public:
     For tested decoy strings see DecoyHelper::affixes.
     Both prefix and suffix is tested and if one of the candidates above is found in at least 40% of all proteins,
     it is returned as the winner (see DecoyHelper::Result).
+
+    @param proteins The protein accessions to inspect.
+    @param quiet If true, suppress the ERROR/WARN log messages emitted when no
+                 decoy string can be determined. Useful for callers that treat a
+                 negative result as a normal outcome (e.g. a target-only database)
+                 and handle it themselves.
   */
   template<typename T>
-  static Result findDecoyString(FASTAContainer<T>& proteins)
+  static Result findDecoyString(FASTAContainer<T>& proteins, bool quiet = false)
   {
     // calls function to search for decoys in input data
     DecoyStatistics decoy_stats = countDecoys(proteins);
@@ -381,13 +387,13 @@ public:
     // return default values
     if (static_cast<double>(decoy_stats.all_prefix_occur + decoy_stats.all_suffix_occur) < 0.4 * static_cast<double>(decoy_stats.all_proteins_count))
     {
-      OPENMS_LOG_ERROR << "Unable to determine decoy string (not enough occurrences; <40%)!" << std::endl;
+      if (!quiet) OPENMS_LOG_ERROR << "Unable to determine decoy string (not enough occurrences; <40%)!" << std::endl;
       return {false, "?", true};
     }
 
     if (decoy_stats.all_prefix_occur == decoy_stats.all_suffix_occur)
     {
-      OPENMS_LOG_ERROR << "Unable to determine decoy string (prefix and suffix occur equally often)!" << std::endl;
+      if (!quiet) OPENMS_LOG_ERROR << "Unable to determine decoy string (prefix and suffix occur equally often)!" << std::endl;
       return {false, "?", true};
     }
 
@@ -401,7 +407,7 @@ public:
 
       if (freq_prefix >= 0.8 && freq_prefix_in_proteins >= 0.4)
       {
-        if (prefix_suffix_counts.first != decoy_stats.all_prefix_occur)
+        if (!quiet && prefix_suffix_counts.first != decoy_stats.all_prefix_occur)
         {
           OPENMS_LOG_WARN << "More than one decoy prefix observed!" << std::endl;
           OPENMS_LOG_WARN << "Using most frequent decoy prefix (" << (int)(freq_prefix * 100) << "%)" << std::endl;
@@ -421,7 +427,7 @@ public:
 
       if (freq_suffix >= 0.8 && freq_suffix_in_proteins >= 0.4)
       {
-        if (prefix_suffix_counts.second != decoy_stats.all_suffix_occur)
+        if (!quiet && prefix_suffix_counts.second != decoy_stats.all_suffix_occur)
         {
           OPENMS_LOG_WARN << "More than one decoy suffix observed!" << std::endl;
           OPENMS_LOG_WARN << "Using most frequent decoy suffix (" << (int)(freq_suffix * 100) << "%)" << std::endl;
@@ -431,7 +437,7 @@ public:
       }
     }
 
-    OPENMS_LOG_ERROR << "Unable to determine decoy string and its position. Please provide a decoy string and its position as parameters." << std::endl;
+    if (!quiet) OPENMS_LOG_ERROR << "Unable to determine decoy string and its position. Please provide a decoy string and its position as parameters." << std::endl;
     return {false, "?", true};
   }
 

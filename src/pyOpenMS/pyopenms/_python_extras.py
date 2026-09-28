@@ -83,21 +83,19 @@ class SimpleOpenMSSpectraFactory:
 
     @staticmethod
     def getSpectrumAccessOpenMSPtr(exp):
-      is_cached = False
+        # Deferred import: this module is loaded from pyopenms/__init__.py, so the
+        # binding names are not importable at module level. (Both branches below
+        # raised NameError before this import existed -- nothing ever called them.)
+        from . import SpectrumAccessOpenMS, SpectrumAccessOpenMSCached
 
-      for i in range(exp.size()):
-        for dp in exp[i].getDataProcessing():
-          if dp.metaValueExists("cached_data"):
-            is_cached = True
-
-      for chrom in exp.getChromatograms():
-        for dp in chrom.getDataProcessing():
-          if dp.metaValueExists("cached_data"):
-            is_cached = True
-
-      if is_cached:
-        return SpectrumAccessOpenMSCached( exp.getLoadedFilePath() )
-      else:
-        return SpectrumAccessOpenMS( exp )
+        # Scans C++-side: exp[i] and getChromatograms() hand out owned copies
+        # (see OWNERSHIP.md), so probing the marker from Python would copy
+        # every spectrum in the run just to read DataProcessing metadata.
+        if exp._contains_cached_data_marker():
+            # Same contract as the C++ factory: the metadata file the
+            # experiment was loaded from must have its ".cached" side-car
+            # next to it, or the constructor raises.
+            return SpectrumAccessOpenMSCached(exp.getLoadedFilePath())
+        return SpectrumAccessOpenMS(exp)
 
 

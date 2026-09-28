@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -111,7 +112,7 @@ class TOPPOpenPepXL :
 {
 public:
   TOPPOpenPepXL() :
-    TOPPBase("OpenPepXL", "Protein-protein cross-linking identification using labeled linkers.", true)
+    TOPPBase("OpenPepXL", "Protein-protein cross-linking identification using labeled linkers.")
   {
   }
 

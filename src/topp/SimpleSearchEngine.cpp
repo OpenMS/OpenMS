@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -67,8 +68,7 @@ class SimpleSearchEngine :
   public:
     SimpleSearchEngine() :
       TOPPBase("SimpleSearchEngine",
-        "Annotates MS/MS spectra using SimpleSearchEngine.",
-        true)
+        "Annotates MS/MS spectra using SimpleSearchEngine.")
     {
     }
 

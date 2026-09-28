@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <boost/foreach.hpp> // must be first, otherwise Q_FOREACH macro will wreak havoc
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <boost/regex.hpp>
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -535,6 +536,7 @@ namespace OpenMS
       it->setHigherScoreBetter(false);
       const vector<ProteinHit>& old_hits = it->getHits();
       vector<ProteinHit> new_hits;
+      new_hits.reserve(old_hits.size());
       for (auto hit : old_hits) // NOTE: performs copy
       {
         // Add decoy proteins only if add_decoy_proteins is set

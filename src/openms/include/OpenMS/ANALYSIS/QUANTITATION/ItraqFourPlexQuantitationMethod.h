@@ -36,8 +36,6 @@ public:
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
 
-    const std::string& getMethodName() const override;
-
     const IsobaricChannelList& getChannelInformation() const override;
 
     Size getNumberOfChannels() const override;
@@ -45,16 +43,13 @@ public:
     Matrix<double> getIsotopeCorrectionMatrix() const override;
 
     Size getReferenceChannel() const override;
-    
+
     /// @}
 
 private:
     /// the actual information on the different itraq4plex channels.
     IsobaricChannelList channels_;
 
-    /// The name of the quantitation method.
-    static const std::string name_;
-    
     /// The reference channel for this experiment.
     Size reference_channel_;
 

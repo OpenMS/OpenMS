@@ -6,9 +6,10 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
@@ -22,6 +23,7 @@
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
@@ -77,11 +79,11 @@ Parameter names have been changed to match names found in other search engine ad
 /// @cond TOPPCLASSES
 
 class TOPPNovorAdapter :
-  public TOPPBase
+  public TOPPExternalToolBase
 {
 public:
   TOPPNovorAdapter() :
-    TOPPBase("NovorAdapter", "Performs de novo sequencing of peptides from MS/MS data with Novor.", true, 
+    TOPPExternalToolBase("NovorAdapter", "Performs de novo sequencing of peptides from MS/MS data with Novor.", 
     {
       Citation{"Ma Bin",
                "Novor: Real-Time Peptide de Novo Sequencing Software",
@@ -210,7 +212,7 @@ protected:
     //-------------------------------------------------------------
     
     // tmp_dir
-    File::TempDir tmp_dir(debug_level_ >= 2);
+    TempDir tmp_dir(debug_level_ >= 2);
 
     // parameter file
     std::string tmp_param = tmp_dir.getPath() + "param.txt";    

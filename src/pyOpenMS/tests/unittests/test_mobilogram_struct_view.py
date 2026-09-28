@@ -11,7 +11,7 @@ def test_values_match_get_peaks():
 
     mob.set_peaks([mobility, intensity])
 
-    arr = mob.get_peaks_struct()
+    arr = mob.peaks_struct()
     mob_copy, int_copy = mob.get_peaks()
 
     np.testing.assert_allclose(arr["mobility"], mob_copy)
@@ -26,7 +26,7 @@ def test_zero_copy_modification():
 
     mob.set_peaks([mobility, intensity])
 
-    arr = mob.get_peaks_struct()
+    arr = mob.peaks_struct()
 
     arr["intensity"][0] = 999.0
 
@@ -38,7 +38,7 @@ def test_zero_copy_modification():
 def test_empty_mobilogram():
     mob = oms.Mobilogram()
 
-    arr = mob.get_peaks_struct()
+    arr = mob.peaks_struct()
 
     assert isinstance(arr, np.ndarray)
     assert arr.size == 0
@@ -51,7 +51,7 @@ def test_single_peak():
 
     mob.set_peaks([[1.5], [42.0]])
 
-    arr = mob.get_peaks_struct()
+    arr = mob.peaks_struct()
 
     assert arr.size == 1
     assert np.isclose(arr["mobility"][0], 1.5)
@@ -68,7 +68,7 @@ def test_large_dataset():
 
     mob.set_peaks([mobility, intensity])
 
-    arr = mob.get_peaks_struct()
+    arr = mob.peaks_struct()
 
     assert arr.size == n
 
@@ -87,7 +87,7 @@ def test_memory_lifetime():
 
         mob.set_peaks([mobility, intensity])
 
-        return mob.get_peaks_struct()
+        return mob.peaks_struct()
 
     arr = create_view()
 
@@ -104,7 +104,7 @@ def test_mutation_propagates():
 
     mob.set_peaks([mobility, intensity])
 
-    arr = mob.get_peaks_struct()
+    arr = mob.peaks_struct()
 
     arr["mobility"][1] = 123.0
 

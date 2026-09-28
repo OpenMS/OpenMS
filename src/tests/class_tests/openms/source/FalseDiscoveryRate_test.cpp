@@ -9,6 +9,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -286,6 +288,151 @@ START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
   }
 }
 END_SECTION
+
+START_SECTION((void applyBasicPeptideLevel(PeptideIdentificationList & ids)))
+{
+  // Regression test for issue #9767 finding #3:
+  // addToPeptideScoreMap_() must keep the BEST score per unmodified peptide
+  // sequence, regardless of the order in which duplicate sequences are seen.
+  // Before the fix the try_emplace "inserted" flag was misused, so the map kept
+  // the FIRST-seen score and the peptide-level q-value assigned to a duplicated
+  // sequence depended on input order. We assert order-independence, which needs
+  // no hand-computed FDR values and fails before / passes after the fix.
+  auto build_ids = [](bool dup_worse_first) -> PeptideIdentificationList
+  {
+    PeptideIdentificationList ids;
+    auto add = [&ids](const std::string& seq, double score, const std::string& td)
+    {
+      PeptideHit h;
+      h.setSequence(AASequence::fromString(seq));
+      h.setScore(score);
+      h.setCharge(2);
+      h.setMetaValue("target_decoy", td);
+      PeptideIdentification pid;
+      pid.setScoreType("score");
+      pid.setHigherScoreBetter(true);
+      pid.setHits({h});
+      ids.push_back(pid);
+    };
+    // targets spanning the score range
+    add("AAAAAAAK", 0.90, "target");
+    add("CCCCCCCK", 0.80, "target");
+    add("DDDDDDDK", 0.70, "target");
+    // decoys sitting between the duplicate's two candidate scores (0.10 and 0.95)
+    add("FFFFFFFK", 0.50, "decoy");
+    add("HHHHHHHK", 0.30, "decoy");
+    // the SAME sequence twice (both targets), in the requested order
+    if (dup_worse_first)
+    {
+      add("EEEEEEEK", 0.10, "target");
+      add("EEEEEEEK", 0.95, "target");
+    }
+    else
+    {
+      add("EEEEEEEK", 0.95, "target");
+      add("EEEEEEEK", 0.10, "target");
+    }
+    return ids;
+  };
+
+  // peptide q-value assigned to a surviving EEEEEEEK identification (-1 if absent)
+  auto dup_qvalue = [](const PeptideIdentificationList& ids) -> double
+  {
+    for (const auto& id : ids)
+    {
+      if (id.getHits().empty()) continue;
+      if (id.getHits()[0].getSequence().toUnmodifiedString() == "EEEEEEEK")
+      {
+        return id.getHits()[0].getScore();
+      }
+    }
+    return -1.0;
+  };
+
+  FalseDiscoveryRate fdr;
+
+  PeptideIdentificationList ids_worse_first = build_ids(true);
+  PeptideIdentificationList ids_better_first = build_ids(false);
+
+  fdr.applyBasicPeptideLevel(ids_worse_first);
+  fdr.applyBasicPeptideLevel(ids_better_first);
+
+  const double q_worse_first = dup_qvalue(ids_worse_first);
+  const double q_better_first = dup_qvalue(ids_better_first);
+
+  // both orders must resolve to a real (found) q-value ...
+  TEST_NOT_EQUAL(q_worse_first, -1.0)
+  TEST_NOT_EQUAL(q_better_first, -1.0)
+  // ... and, because the BEST score (0.95) is the representative regardless of
+  // input order, the two runs must agree (before the fix they differed).
+  TEST_REAL_SIMILAR(q_worse_first, q_better_first)
+
+  // Label consistency: when the better duplicate is a TARGET but an earlier duplicate
+  // of the same sequence was a DECOY, the stored representative must become
+  // (best score, target) and not keep the earlier decoy label. Otherwise the result is
+  // again order-dependent (a high-scoring "decoy" would distort the FDR). We assert
+  // order-independence for a mixed-label duplicate.
+  auto build_mixed = [](bool decoy_first, double decoy_score, double target_score) -> PeptideIdentificationList
+  {
+    PeptideIdentificationList ids;
+    auto add = [&ids](const std::string& seq, double score, const std::string& td)
+    {
+      PeptideHit h;
+      h.setSequence(AASequence::fromString(seq));
+      h.setScore(score);
+      h.setCharge(2);
+      h.setMetaValue("target_decoy", td);
+      PeptideIdentification pid;
+      pid.setScoreType("score");
+      pid.setHigherScoreBetter(true);
+      pid.setHits({h});
+      ids.push_back(pid);
+    };
+    add("AAAAAAAK", 0.90, "target");
+    add("CCCCCCCK", 0.80, "target");
+    add("DDDDDDDK", 0.70, "target");
+    add("FFFFFFFK", 0.50, "decoy");
+    add("HHHHHHHK", 0.30, "decoy");
+    // same sequence twice with DIFFERENT labels, in the requested order
+    if (decoy_first)
+    {
+      add("EEEEEEEK", decoy_score, "decoy");
+      add("EEEEEEEK", target_score, "target");
+    }
+    else
+    {
+      add("EEEEEEEK", target_score, "target");
+      add("EEEEEEEK", decoy_score, "decoy");
+    }
+    return ids;
+  };
+
+  // (a) strictly-better target (0.95) over an earlier decoy (0.10)
+  PeptideIdentificationList ids_decoy_first = build_mixed(true, 0.10, 0.95);
+  PeptideIdentificationList ids_target_first = build_mixed(false, 0.10, 0.95);
+  fdr.applyBasicPeptideLevel(ids_decoy_first);
+  fdr.applyBasicPeptideLevel(ids_target_first);
+  const double q_decoy_first = dup_qvalue(ids_decoy_first);   // surviving target EEEEEEEK
+  const double q_target_first = dup_qvalue(ids_target_first);
+  TEST_NOT_EQUAL(q_decoy_first, -1.0)
+  TEST_NOT_EQUAL(q_target_first, -1.0)
+  TEST_REAL_SIMILAR(q_decoy_first, q_target_first)
+
+  // (b) EQUAL scores (tie): a tie between a target and a decoy of the same sequence
+  // must deterministically resolve to the target (as getPickedProteinScores_ does),
+  // so the surviving target's q-value is again independent of input order.
+  PeptideIdentificationList ids_tie_decoy_first = build_mixed(true, 0.95, 0.95);
+  PeptideIdentificationList ids_tie_target_first = build_mixed(false, 0.95, 0.95);
+  fdr.applyBasicPeptideLevel(ids_tie_decoy_first);
+  fdr.applyBasicPeptideLevel(ids_tie_target_first);
+  const double q_tie_decoy_first = dup_qvalue(ids_tie_decoy_first);
+  const double q_tie_target_first = dup_qvalue(ids_tie_target_first);
+  TEST_NOT_EQUAL(q_tie_decoy_first, -1.0)
+  TEST_NOT_EQUAL(q_tie_target_first, -1.0)
+  TEST_REAL_SIMILAR(q_tie_decoy_first, q_tie_target_first)
+}
+END_SECTION
+
 delete ptr;
 
 /////////////////////////////////////////////////////////////

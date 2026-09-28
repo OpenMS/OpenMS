@@ -89,7 +89,7 @@ namespace OpenMS
         list.append("");
         list += restrictions.split(",");
         editor->addItems(list);
-        connect(editor, SIGNAL(activated(int)), this, SLOT(commitAndCloseEditor_()));
+        connect(editor, &QComboBox::activated, this, &Internal::ParamEditorDelegate::commitAndCloseEditor_);
         return editor;
       }
       else if (dtype == "output file")
@@ -125,8 +125,8 @@ namespace OpenMS
       else if (dtype == "string list" && !restrictions.isEmpty())
       {
         ListFilterDialog* editor = new ListFilterDialog(nullptr);
-        connect(editor, SIGNAL(accepted()), this, SLOT(commitAndCloseEditor_()));
-        connect(editor, SIGNAL(rejected()), this, SLOT(closeEditor_()));
+        connect(editor, &QDialog::accepted, this, &Internal::ParamEditorDelegate::commitAndCloseEditor_);
+        connect(editor, &QDialog::rejected, this, &Internal::ParamEditorDelegate::closeEditor_);
         return editor;
       }
       else if (dtype == "string list" || dtype == "int list" || dtype == "double list" || dtype == "input file list" || dtype == "output file list")   // for lists
@@ -135,8 +135,8 @@ namespace OpenMS
         ListEditor* editor = new ListEditor(nullptr, title);
         editor->setTypeName(index.sibling(index.row(), 0).data(Qt::DisplayRole).toString());
         editor->setModal(true);
-        connect(editor, SIGNAL(accepted()), this, SLOT(commitAndCloseEditor_()));
-        connect(editor, SIGNAL(rejected()), this, SLOT(closeEditor_()));
+        connect(editor, &QDialog::accepted, this, &Internal::ParamEditorDelegate::commitAndCloseEditor_);
+        connect(editor, &QDialog::rejected, this, &Internal::ParamEditorDelegate::closeEditor_);
         return editor;
       }
       else 
@@ -452,9 +452,9 @@ namespace OpenMS
     tree_->setHeaderLabels(QStringList() << "parameter" << "value" << "type" << "restrictions");
     dynamic_cast<QVBoxLayout *>(layout())->insertWidget(0, tree_, 1);
     tree_->setItemDelegate(new Internal::ParamEditorDelegate(tree_));       // the delegate from above is set
-    connect(tree_->itemDelegate(), SIGNAL(modified(bool)), this, SLOT(setModified(bool)));
-    connect(ui_->advanced_, SIGNAL(toggled(bool)), this, SLOT(toggleAdvancedMode(bool)));
-    connect(tree_, SIGNAL(selected(const QModelIndex &)), this, SLOT(showDocumentation(const QModelIndex &)));
+    connect(static_cast<Internal::ParamEditorDelegate*>(tree_->itemDelegate()), &Internal::ParamEditorDelegate::modified, this, &ParamEditor::setModified);
+    connect(ui_->advanced_, &QCheckBox::toggled, this, &ParamEditor::toggleAdvancedMode);
+    connect(tree_, &Internal::ParamTree::selected, this, &ParamEditor::showDocumentation);
   }
 
 

@@ -53,12 +53,17 @@ the corresponding features in a consensus map (consensusXML file). Feature
 maps can be created from MS experiments (peak data) using one of the
 FeatureFinder TOPP tools.
 
+@note FeatureLinkerWNet is only built when OpenMS is configured with
+<tt>-DWITH_WNETALIGN=ON</tt> (off by default).
+
 @see @ref TOPP_FeatureLinkerUnlabeledQT @ref TOPP_FeatureLinkerUnlabeledKD
 
+@if WITH_WNETALIGN
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_FeatureLinkerWNet.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_FeatureLinkerWNet.html
+@endif
 */
 
 // We do not want this class to show up in the docu:

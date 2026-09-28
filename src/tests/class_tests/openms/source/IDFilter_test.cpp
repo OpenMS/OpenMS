@@ -18,9 +18,13 @@
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 
 ///////////////////////////
@@ -272,6 +276,126 @@ START_SECTION((static void removeDanglingProteinReferences(PeptideIdentification
 }
 END_SECTION
 
+START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference = false)))
+{
+  // Build a ConsensusMap whose run "run1" knows PROT1/PROT2 but NOT the decoys.
+  // An assigned PSM references PROT1 + DECOY_PROT1; a second assigned PSM
+  // references only DECOY_PROT1; an unassigned PSM references PROT2 + DECOY_PROT2.
+  auto make_cmap = []() {
+    ConsensusMap cmap;
+
+    ProteinIdentification prot;
+    prot.setIdentifier("run1");
+    ProteinHit ph1; ph1.setAccession("PROT1");
+    ProteinHit ph2; ph2.setAccession("PROT2");
+    prot.insertHit(ph1);
+    prot.insertHit(ph2);
+    cmap.setProteinIdentifications({prot});
+
+    // assigned PSMs on a consensus feature
+    PeptideHit hitA;
+    hitA.setSequence(AASequence::fromString("PEPTIDEA"));
+    { PeptideEvidence e; e.setProteinAccession("PROT1"); hitA.addPeptideEvidence(e); }
+    { PeptideEvidence e; e.setProteinAccession("DECOY_PROT1"); hitA.addPeptideEvidence(e); }
+    PeptideHit hitB;
+    hitB.setSequence(AASequence::fromString("PEPTIDEB"));
+    { PeptideEvidence e; e.setProteinAccession("DECOY_PROT1"); hitB.addPeptideEvidence(e); }
+    PeptideIdentification pid;
+    pid.setIdentifier("run1");
+    pid.setHits({hitA, hitB});
+
+    ConsensusFeature cf;
+    cf.setRT(1.0); cf.setMZ(100.0);
+    cf.getPeptideIdentifications().push_back(pid);
+    cmap.push_back(cf);
+
+    // unassigned PSM
+    PeptideHit hitC;
+    hitC.setSequence(AASequence::fromString("PEPTIDEC"));
+    { PeptideEvidence e; e.setProteinAccession("PROT2"); hitC.addPeptideEvidence(e); }
+    { PeptideEvidence e; e.setProteinAccession("DECOY_PROT2"); hitC.addPeptideEvidence(e); }
+    PeptideIdentification upid;
+    upid.setIdentifier("run1");
+    upid.setHits({hitC});
+    cmap.getUnassignedPeptideIdentifications().push_back(upid);
+
+    return cmap;
+  };
+
+  // (1) keep PSMs, drop the dangling (decoy) evidences only
+  {
+    ConsensusMap cmap = make_cmap();
+    IDFilter::removeDanglingProteinReferences(cmap, false);
+
+    const vector<PeptideHit>& assigned = cmap[0].getPeptideIdentifications()[0].getHits();
+    TEST_EQUAL(assigned.size(), 2);
+    TEST_EQUAL(assigned[0].getPeptideEvidences().size(), 1);
+    TEST_STRING_EQUAL(assigned[0].getPeptideEvidences()[0].getProteinAccession(), "PROT1");
+    TEST_EQUAL(assigned[1].getPeptideEvidences().size(), 0); // only DECOY_PROT1 -> removed
+
+    // unassigned PSMs are processed too (include_unassigned defaults to true)
+    const vector<PeptideHit>& unassigned = cmap.getUnassignedPeptideIdentifications()[0].getHits();
+    TEST_EQUAL(unassigned.size(), 1);
+    TEST_EQUAL(unassigned[0].getPeptideEvidences().size(), 1);
+    TEST_STRING_EQUAL(unassigned[0].getPeptideEvidences()[0].getProteinAccession(), "PROT2");
+  }
+
+  // (2) remove_peptides_without_reference: the PSM with only dangling refs is dropped
+  {
+    ConsensusMap cmap = make_cmap();
+    IDFilter::removeDanglingProteinReferences(cmap, true);
+    const vector<PeptideHit>& assigned = cmap[0].getPeptideIdentifications()[0].getHits();
+    TEST_EQUAL(assigned.size(), 1); // hitB removed (no surviving evidence)
+    TEST_STRING_EQUAL(assigned[0].getPeptideEvidences()[0].getProteinAccession(), "PROT1");
+  }
+}
+END_SECTION
+
+START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference = false)))
+{
+  // Filter ALL peptides against a single reference run that knows only PROT1,
+  // so PROT2 (and both decoys) become dangling everywhere -- independent of the
+  // per-run ProteinIdentifications stored on the map.
+  ConsensusMap cmap;
+  ProteinIdentification prot; prot.setIdentifier("run1");
+  ProteinHit ph1; ph1.setAccession("PROT1");
+  ProteinHit ph2; ph2.setAccession("PROT2");
+  prot.insertHit(ph1);
+  prot.insertHit(ph2);
+  cmap.setProteinIdentifications({prot});
+
+  PeptideHit hitA;
+  hitA.setSequence(AASequence::fromString("PEPTIDEA"));
+  { PeptideEvidence e; e.setProteinAccession("PROT1"); hitA.addPeptideEvidence(e); }
+  { PeptideEvidence e; e.setProteinAccession("DECOY_PROT1"); hitA.addPeptideEvidence(e); }
+  PeptideIdentification pid; pid.setIdentifier("run1"); pid.setHits({hitA});
+  ConsensusFeature cf; cf.setRT(1.0); cf.setMZ(100.0);
+  cf.getPeptideIdentifications().push_back(pid);
+  cmap.push_back(cf);
+
+  PeptideHit hitC;
+  hitC.setSequence(AASequence::fromString("PEPTIDEC"));
+  { PeptideEvidence e; e.setProteinAccession("PROT2"); hitC.addPeptideEvidence(e); }
+  PeptideIdentification upid; upid.setIdentifier("run1"); upid.setHits({hitC});
+  cmap.getUnassignedPeptideIdentifications().push_back(upid);
+
+  ProteinIdentification ref_run;
+  ProteinHit only1; only1.setAccession("PROT1");
+  ref_run.insertHit(only1);
+
+  IDFilter::removeDanglingProteinReferences(cmap, ref_run, false);
+
+  // assigned hitA: PROT1 kept, DECOY_PROT1 removed
+  const PeptideHit& a = cmap[0].getPeptideIdentifications()[0].getHits()[0];
+  TEST_EQUAL(a.getPeptideEvidences().size(), 1);
+  TEST_STRING_EQUAL(a.getPeptideEvidences()[0].getProteinAccession(), "PROT1");
+
+  // unassigned hitC: PROT2 is NOT in ref_run -> removed (ref_run overrides per-run)
+  const PeptideHit& c = cmap.getUnassignedPeptideIdentifications()[0].getHits()[0];
+  TEST_EQUAL(c.getPeptideEvidences().size(), 0);
+}
+END_SECTION
+
 START_SECTION((bool updateProteinGroups(vector<ProteinIdentification::ProteinGroup>& groups, const vector<ProteinHit>& hits)))
 {
   vector<ProteinIdentification::ProteinGroup> groups(2);
@@ -312,6 +436,55 @@ START_SECTION((bool updateProteinGroups(vector<ProteinIdentification::ProteinGro
   TEST_EQUAL(groups_copy[0].accessions.size(), 1);
   TEST_EQUAL(groups_copy[0].accessions[0], "C");
   TEST_EQUAL(groups_copy[0].probability, 0.2);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] updateProteinGroups keeps the quantities attached to a group))
+{
+  // The data arrays of a protein group hold the quantities PeptideAndProteinQuant attaches to it, and
+  // they are indexed by sample resp. by (file, channel) - not by group member. Filtering a protein out
+  // of a group therefore does not invalidate them, and rebuilding the group without them silently
+  // threw protein abundances away in every tool that filters after quantification (Epifany,
+  // ProteinInference, FalseDiscoveryRate, PercolatorAdapter, ProteomicsLFQ).
+  vector<ProteinIdentification::ProteinGroup> groups(1);
+  groups[0].accessions = {"A", "B"};
+  groups[0].probability = 0.9;
+  groups[0].getFloatDataArrays().resize(2);
+  groups[0].getFloatDataArrays()[0].setName("abundances");
+  groups[0].getFloatDataArrays()[0].assign({11.0f, 22.0f, 33.0f});
+  groups[0].getFloatDataArrays()[1].setName("file_channel_level_abundance");
+  groups[0].getFloatDataArrays()[1].assign({1.0f, 2.0f});
+  groups[0].getStringDataArrays().resize(1);
+  groups[0].getStringDataArrays()[0].setName("file_channel_level_filename");
+  groups[0].getStringDataArrays()[0].assign({"fA", "fB"});
+  groups[0].getIntegerDataArrays().resize(1);
+  groups[0].getIntegerDataArrays()[0].setName("file_channel_level_channel");
+  groups[0].getIntegerDataArrays()[0].assign({1, 2});
+
+  // drop protein "B", so the group survives with one member fewer
+  vector<ProteinHit> hits(1);
+  hits[0].setAccession("A");
+
+  const bool valid = IDFilter::updateProteinGroups(groups, hits);
+  TEST_EQUAL(valid, false); // a protein was removed from the group
+  TEST_EQUAL(groups.size(), 1);
+  TEST_EQUAL(groups[0].accessions.size(), 1);
+  TEST_EQUAL(groups[0].accessions[0], "A");
+
+  // the quantities must have come along, names and values intact
+  // (ABORT_IF, not TEST_EQUAL: the assertions are soft, so indexing an empty array below would take
+  // the whole test binary down with a segfault instead of reporting which expectation failed)
+  ABORT_IF(groups[0].getFloatDataArrays().size() != 2);
+  ABORT_IF(groups[0].getStringDataArrays().size() != 1);
+  ABORT_IF(groups[0].getIntegerDataArrays().size() != 1);
+  TEST_EQUAL(groups[0].getFloatDataArrays().size(), 2);
+  TEST_EQUAL(groups[0].getFloatDataArrays()[0].getName(), "abundances");
+  TEST_EQUAL(groups[0].getFloatDataArrays()[0].size(), 3);
+  TEST_REAL_SIMILAR(groups[0].getFloatDataArrays()[0][0], 11.0);
+  TEST_REAL_SIMILAR(groups[0].getFloatDataArrays()[0][2], 33.0);
+  TEST_EQUAL(groups[0].getFloatDataArrays()[1].getName(), "file_channel_level_abundance");
+  TEST_EQUAL(groups[0].getStringDataArrays()[0][1], "fB");
+  TEST_EQUAL(groups[0].getIntegerDataArrays()[0][1], 2);
 }
 END_SECTION
 

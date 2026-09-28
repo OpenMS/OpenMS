@@ -62,7 +62,7 @@ namespace OpenMS
 
   bool TIC::Result::operator==(const Result& rhs) const
   {
-    return intensities == rhs.intensities && retention_times == rhs.retention_times && area == rhs.area && fall == rhs.fall && jump == rhs.jump;
+    return intensities == rhs.intensities && relative_intensities == rhs.relative_intensities && retention_times == rhs.retention_times && area == rhs.area && fall == rhs.fall && jump == rhs.jump;
   }
 
   /// Returns the name of the metric

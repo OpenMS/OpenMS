@@ -101,6 +101,66 @@ START_SECTION(([EXTRA] OpenMP - test))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] thread-safe logging from an OpenMP parallel region (issue #9515)))
+{
+  // Regression test for https://github.com/OpenMS/OpenMS/issues/9515:
+  // emitting warnings from inside an OpenMP parallel region must not corrupt the
+  // heap. Before the fix, LogStreamBuf::distribute_()/syncLF_() concurrently
+  //  (a) raced on a function-local 'static' line-assembly buffer,
+  //  (b) wrote to the shared sink (std::cerr) without synchronization, and
+  //  (c) mutated the shared global Colorizer 'yellow' from multiple threads.
+  // We capture cerr (the default WARN sink, with the 'yellow' colorizer) by
+  // swapping its rdbuf, then hammer it with unique messages from many threads.
+  // With the fix the writes are serialized and every message arrives exactly
+  // once and intact; without it the run corrupts the heap / interleaves output.
+
+  // make sure this thread's WARN logger writes to cerr (other sections may have
+  // reconfigured it) and start from a clean cache
+  getThreadLocalLogWarn().rdbuf()->clearCache();
+  getThreadLocalLogWarn().insert(std::cerr); // idempotent if already present
+
+  // redirect cerr into a capture buffer (the std::cerr object - and thus every
+  // thread-local WARN buffer that points at it - keeps writing there)
+  std::ostringstream capture;
+  std::streambuf* old_cerr = std::cerr.rdbuf(capture.rdbuf());
+
+  const int num_iterations = 5000;
+  #ifdef _OPENMP
+  omp_set_num_threads(8);
+  #pragma omp parallel for
+  #endif
+  for (int i = 0; i < num_iterations; ++i)
+  {
+    OPENMS_LOG_WARN << "racing_line_" << i << std::endl;
+  }
+
+  std::cerr.rdbuf(old_cerr); // restore before any assertion/output
+
+  // every unique message must have been distributed exactly once and intact.
+  // A plain occurrence count could be fooled by one dropped + one duplicated
+  // message cancelling out, so verify each id 0..num_iterations-1 appears once.
+  const std::string out = capture.str();
+  std::vector<int> seen((Size)num_iterations, 0);
+  Size out_of_range = 0;
+  boost::regex rx("racing_line_([0-9]+)");
+  for (boost::sregex_iterator it(out.begin(), out.end(), rx), rx_end; it != rx_end; ++it)
+  {
+    const int id = std::stoi((*it)[1].str());
+    if (id >= 0 && id < num_iterations) { ++seen[(Size)id]; }
+    else { ++out_of_range; }
+  }
+  Size missing = 0, duplicated = 0;
+  for (int v : seen)
+  {
+    if (v == 0) { ++missing; }
+    else if (v > 1) { ++duplicated; }
+  }
+  TEST_EQUAL(out_of_range, 0)
+  TEST_EQUAL(missing, 0)
+  TEST_EQUAL(duplicated, 0)
+}
+END_SECTION
+
 LogStream* nullPointer = nullptr;
 
 START_SECTION(LogStream(LogStreamBuf *buf=0, bool delete_buf=true, std::ostream* stream))
@@ -250,13 +310,107 @@ START_SECTION(([EXTRA] LogSinkGuard - RAII removal and re-insertion))
     {
       LogSinkGuard guard1(l1, s); // guard1 removes s
       {
-        LogSinkGuard guard2(l1, s); // guard2 removes s (already removed - no-op)
+        LogSinkGuard guard2(l1, s); // s is already gone, so guard2 has nothing to guard
         l1 << "deeply_removed" << endl;
-      } // guard2 re-inserts s
-      l1 << "once_reinserted" << endl;
-    } // guard1 re-inserts s (already present - safe/idempotent)
+      } // guard2 must NOT re-insert s -- it never removed it, and guard1 is still active
+      l1 << "still_suppressed_by_guard1" << endl;
+    } // guard1 re-inserts s
     l1 << "final" << endl;
-    TEST_EQUAL(s.str(), "once_reinserted\nfinal\n")
+    // Previously this read "once_reinserted\nfinal\n": the inner guard re-attached the sink and
+    // the rest of the outer scope leaked to it. That expectation encoded the bug, not the contract.
+    TEST_EQUAL(s.str(), "final\n")
+  }
+
+  // Test 4: a message that is never flushed by the writer. This is how OpenMS actually logs --
+  // OPENMS_LOG_* messages end in '\n', not std::endl -- so the text is still in the buffer when
+  // the guard goes out of scope. It must be discarded there, not handed to the next flush.
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream s;
+    l1.insert(s);
+
+    {
+      LogSinkGuard guard(l1, s);
+      l1 << "unflushed_while_guarded\n"; // no endl: nothing is written yet
+    } // guard re-inserts s -- but only after dropping the pending text
+
+    l1 << "after_guard" << endl;
+    TEST_EQUAL(s.str(), "after_guard\n") // the guarded message must not resurface here
+  }
+
+  // Test 5: suppressing one sink must not suppress the others -- a message logged while cout is
+  // guarded is not "cancelled", it simply does not go to cout.
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream guarded, kept;
+    l1.insert(guarded);
+    l1.insert(kept);
+
+    {
+      LogSinkGuard guard(l1, guarded);
+      l1 << "one_sink_only\n";
+    }
+
+    TEST_EQUAL(guarded.str(), "")
+    TEST_EQUAL(kept.str(), "one_sink_only\n")
+  }
+
+  // Test 6: a message with no trailing newline, with a second sink attached. Not every OpenMS log
+  // statement terminates its line (e.g. RWrapper's "Running R script ..."), and an unterminated
+  // message is parked in the buffer's incomplete_line_ rather than distributed. If the guard only
+  // flushed complete lines, that text would outlive it and prefix the next line the restored sink
+  // receives.
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream guarded, kept;
+    l1.insert(guarded);
+    l1.insert(kept);
+
+    {
+      LogSinkGuard guard(l1, guarded);
+      l1 << "unterminated_while_guarded"; // no '\n' at all
+    }
+
+    l1 << "after_guard\n";
+    l1.flush();
+    TEST_EQUAL(guarded.str(), "after_guard\n")            // not "unterminated_while_guardedafter_guard\n"
+    TEST_EQUAL(kept.str(), "unterminated_while_guarded\nafter_guard\n") // never guarded, still receives it
+  }
+
+  // Test 7: output pending from BEFORE the guard belongs to the guarded sink and must not be
+  // swallowed by the guard's clean-up. The buffer is shared by all sinks, so it is delivered when
+  // the guard is entered (hence a line of its own) rather than merged with what the scope logs.
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream guarded;
+    l1.insert(guarded);
+
+    l1 << "pending_before_guard"; // no '\n' yet
+    {
+      LogSinkGuard guard(l1, guarded);
+      l1 << "suppressed\n";
+    }
+    l1 << "after_guard\n";
+    l1.flush();
+    TEST_EQUAL(guarded.str(), "pending_before_guard\nafter_guard\n")
+  }
+
+  // Test 8: guarding a sink that is not attached must not attach it. "Temporarily remove" has no
+  // meaning for a stream that was never a destination, and adding one would redirect output the
+  // caller never asked for (and never take it away again).
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream attached, never_attached;
+    l1.insert(attached);
+
+    {
+      LogSinkGuard guard(l1, never_attached);
+      l1 << "while_guarded\n";
+    }
+    l1 << "after_guard\n";
+    l1.flush();
+    TEST_EQUAL(never_attached.str(), "")
+    TEST_EQUAL(attached.str(), "while_guarded\nafter_guard\n") // unrelated sink unaffected
   }
 }
 END_SECTION

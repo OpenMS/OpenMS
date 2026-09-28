@@ -154,10 +154,17 @@ public:
       {}
 
       /**
-        Gets size of isotope distribution. @note Size is not smaller than
-        predefined @c SIZE.
+        Gets the number of accessible isotope peaks of this distribution.
 
-        @return Size of isotope distribution.
+        @note The returned value is clamped to the truncation length given by
+        the static member @c SIZE: it returns <tt>min(number of stored peaks,
+        SIZE)</tt>, i.e. size() is at most @c SIZE (NOT "not smaller than"
+        @c SIZE). @c SIZE is a shared static member; if it is left at its
+        default value of 0, size() returns 0 regardless of how many peaks are
+        actually stored, even though empty() (which checks the stored peaks
+        directly) may return false.
+
+        @return The number of accessible isotope peaks (clamped to @c SIZE).
       */
       size_type size() const { return std::min(peaks_.size(), SIZE); }
 

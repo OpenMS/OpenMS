@@ -794,6 +794,122 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
 }
 END_SECTION
 
+START_SECTION([EXTRA] split() with non-contiguous column keys (map indices 0 and 3))
+{
+  // Column headers are keyed by map index and the keys need not be contiguous (e.g. after
+  // 'FileFilter -consensus:map 0 3'). The k-th FeatureMap must hold the k-th column in key order,
+  // i.e. map index 3 ends up at position 1, not at the (non-existing) position 3.
+  ConsensusMap cm;
+  auto& headers = cm.getColumnHeaders();
+  headers[0].filename = "file.FeatureXML";
+  headers[3].filename = "file4.FeatureXML";
+
+  ConsensusFeature cf;
+  cf.insert(FeatureHandle(0, Peak2D({ 10, 433.33 }, 100000), 0));
+  cf.insert(FeatureHandle(3, Peak2D({ 11, 434.33 }, 200000), 0));
+  PeptideIdentification id3;
+  id3.setRT(11);
+  id3.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("WWW")));
+  id3.setMetaValue("map_index", 3);
+  cf.getPeptideIdentifications().push_back(id3);
+  cf.setMetaValue("test", "some information");
+  cm.push_back(cf);
+
+  PeptideIdentification uid3;
+  uid3.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("KKK")));
+  uid3.setMetaValue("map_index", 3);
+  cm.getUnassignedPeptideIdentifications().push_back(uid3);
+
+  vector<FeatureMap> fmaps = cm.split(ConsensusMap::SplitMeta::COPY_ALL);
+  ABORT_IF(fmaps.size() != 2);
+  ABORT_IF(fmaps[0].size() != 1);
+  ABORT_IF(fmaps[1].size() != 1);
+  // position 0 <-> map index 0
+  TEST_EQUAL(fmaps[0][0].getRT(), 10);
+  TEST_EQUAL(fmaps[0][0].getIntensity(), 100000);
+  TEST_EQUAL(fmaps[0][0].getPeptideIdentifications().empty(), true);
+  TEST_EQUAL(fmaps[0].getUnassignedPeptideIdentifications().empty(), true);
+  // position 1 <-> map index 3
+  TEST_EQUAL(fmaps[1][0].getRT(), 11);
+  TEST_EQUAL(fmaps[1][0].getIntensity(), 200000);
+  ABORT_IF(fmaps[1][0].getPeptideIdentifications().size() != 1);
+  TEST_EQUAL(fmaps[1][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "WWW");
+  ABORT_IF(fmaps[1].getUnassignedPeptideIdentifications().size() != 1);
+  TEST_EQUAL(fmaps[1].getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "KKK");
+  // COPY_ALL: the meta values of the consensus feature reach both maps
+  TEST_EQUAL(fmaps[0][0].getMetaValue("test"), "some information");
+  TEST_EQUAL(fmaps[1][0].getMetaValue("test"), "some information");
+
+  // column keys without map index 0 (e.g. a consensusXML with <map id="1"> and <map id="2"> only)
+  ConsensusMap cm12;
+  cm12.getColumnHeaders()[1].filename = "file2.FeatureXML";
+  cm12.getColumnHeaders()[2].filename = "file3.FeatureXML";
+  ConsensusFeature cf12;
+  cf12.insert(FeatureHandle(1, Peak2D({ 20, 500.5 }, 300000), 0));
+  cf12.insert(FeatureHandle(2, Peak2D({ 21, 501.5 }, 400000), 0));
+  cm12.push_back(cf12);
+  fmaps = cm12.split(ConsensusMap::SplitMeta::DISCARD);
+  ABORT_IF(fmaps.size() != 2);
+  ABORT_IF(fmaps[0].size() != 1);
+  ABORT_IF(fmaps[1].size() != 1);
+  TEST_EQUAL(fmaps[0][0].getRT(), 20);
+  TEST_EQUAL(fmaps[1][0].getRT(), 21);
+}
+END_SECTION
+
+START_SECTION([EXTRA] split() throws Exception::ElementNotFound for a map index without a column header)
+{
+  ConsensusMap cm;
+  cm.getColumnHeaders()[0].filename = "file.FeatureXML";
+  cm.getColumnHeaders()[3].filename = "file4.FeatureXML";
+
+  // a FeatureHandle whose map index is not a column header
+  {
+    ConsensusMap cm_handle(cm);
+    ConsensusFeature cf;
+    cf.insert(FeatureHandle(0, Peak2D({ 10, 433.33 }, 100000), 0));
+    cf.insert(FeatureHandle(2, Peak2D({ 11, 434.33 }, 200000), 0));
+    cm_handle.push_back(cf);
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::ElementNotFound, cm_handle.split(),
+      "the element 'Map index 2 does not name a column of this ConsensusMap. Check input!' could not be found");
+  }
+  // a PeptideIdentification of a ConsensusFeature whose 'map_index' is not a column header
+  {
+    ConsensusMap cm_pep(cm);
+    ConsensusFeature cf;
+    cf.insert(FeatureHandle(0, Peak2D({ 10, 433.33 }, 100000), 0));
+    PeptideIdentification id;
+    id.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("AAA")));
+    id.setMetaValue("map_index", 5);
+    cf.getPeptideIdentifications().push_back(id);
+    cm_pep.push_back(cf);
+    TEST_EXCEPTION(Exception::ElementNotFound, cm_pep.split());
+  }
+  // an unassigned PeptideIdentification whose 'map_index' is not a column header
+  {
+    ConsensusMap cm_upep(cm);
+    PeptideIdentification uid;
+    uid.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("LLL")));
+    uid.setMetaValue("map_index", 7);
+    cm_upep.getUnassignedPeptideIdentifications().push_back(uid);
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::ElementNotFound, cm_upep.split(),
+      "the element 'Map index 7 does not name a column of this ConsensusMap. Check input!' could not be found");
+  }
+  // IsobaricAnalyzer data without any column header: the unassigned identifications would go to
+  // the FeatureMap of map index 0, which does not exist (the result vector is empty)
+  {
+    ConsensusMap cm_iso;
+    DataProcessing p;
+    set<DataProcessing::ProcessingAction> actions;
+    actions.insert(DataProcessing::QUANTITATION);
+    p.setProcessingActions(actions);
+    p.setSoftware(Software("IsobaricAnalyzer"));
+    cm_iso.getDataProcessing().push_back(p);
+    TEST_EXCEPTION(Exception::ElementNotFound, cm_iso.split());
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

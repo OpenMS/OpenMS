@@ -50,7 +50,7 @@ namespace OpenMS
       timer->setInterval((int)(1000.0 * delay_in_seconds_));
       timer->setSingleShot(true);
       timer->setObjectName(QString::number(++timer_id));
-      connect(timer, SIGNAL(timeout()), this, SLOT(timerTriggered_()));
+      connect(timer, &QTimer::timeout, this, &FileWatcher::timerTriggered_);
       timer->start();
       timers_[QString::number(timer_id)] = name;
       //cout << timer_id << endl;

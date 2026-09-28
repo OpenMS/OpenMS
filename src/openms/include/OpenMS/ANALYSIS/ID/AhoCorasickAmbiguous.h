@@ -58,8 +58,9 @@ namespace OpenMS
     '?', // 27 invalid AA (will usually be skipped) -- must be the last AA (AA::operator++ and others rely on it)
   };
 
-  /// Conversion table from 7-bit ASCII char to internal value representation for an amino acid (AA)
-  constexpr char const CharToAA[128] = {
+  /// Conversion table from a full 8-bit byte (unsigned char 0..255) to internal value representation for an amino acid (AA).
+  /// Indices 0..127 cover 7-bit ASCII; indices 128..255 (extended/non-ASCII bytes) all map to 27, the invalid AA ('?').
+  constexpr char const CharToAA[256] = {
     // ASCII char (7-bit Int with values from 0..127) --> amino acid 
     27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, // 0
     27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, // 1
@@ -78,6 +79,16 @@ namespace OpenMS
 
   // p,  q,  r,  s,  t,  u,  v,  w,  x,  y,  z,   ,   ,   ,   ,   ,
     14, 16, 17, 18, 19, 20, 21, 11, 25, 01, 24, 27, 27, 27, 27, 27, // 7
+
+    // bytes 128..255 (high bit set: extended ASCII / UTF-8 continuation bytes) --> invalid AA ('?')
+    27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, // 8
+    27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, // 9
+    27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, // 10
+    27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, // 11
+    27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, // 12
+    27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, // 13
+    27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, // 14
+    27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, // 15
   };
 
   /// Represents a needle found in the query.
@@ -385,9 +396,12 @@ namespace OpenMS
     void setQuery(const std::string& haystack);
 
     /// Where in the text are we currently?
+    /// @note The result is undefined unless setQuery() was called before, since the position is computed
+    ///       relative to the current query (a default-constructed state points into an empty string literal instead)
     size_t textPos() const;
 
     /// Where in the text are we currently?
+    /// @note See textPos(): without a preceding setQuery() this does not point into the query
     const char* textPosIt() const;
 
     /// The current query
@@ -398,10 +412,16 @@ namespace OpenMS
     AA nextValidAA();
 
     std::vector<Hit> hits;             ///< current hits found
-    std::queue<ACScout> scouts;        ///< initial scout points which are currently active and need processing
+    /// initial scout points which are currently active and need processing.
+    /// this needs a deque: ACTrie::nextHitsNoClear_() holds a reference to front()
+    /// while pushing new scouts, which only a deque (not a vector) keeps valid.
+    std::queue<ACScout> scouts;
     Index tree_pos;                    ///< position in trie (for the Primary)
   private:
-    const char* it_q_;                 ///< position in query
+    /// position in query; defaults to an empty string literal, so that a state which never saw a setQuery()
+    /// reads as 'query fully consumed' instead of dereferencing an uninitialized pointer (could happen in OpenMP context,
+    /// with more threads than proteins to search, where some threads never get a protein to search)
+    const char* it_q_ = "";
     std::string query_;                ///< current query ( = haystack = text)
   };
 
@@ -421,7 +441,10 @@ namespace OpenMS
     ~ACTrie();
 
     /// Add a needle to build up the trie.
-    /// Call compressTrie() after the last needle was added before searching
+    /// Call compressTrie() after the last needle was added before searching.
+    /// An empty @p needle is not added to the trie (it would match at every position and is thus meaningless) and a warning is
+    /// issued, but it still consumes a needle index, i.e. the i-th needle passed to this function always has
+    /// needle index i (see Hit::needle_index).
     /// @throw Exception::InvalidValue if @p needle contains an invalid amino acid (such as '*')
     void addNeedle(const std::string& needle);
 
@@ -448,7 +471,7 @@ namespace OpenMS
     */
     void compressTrie();
 
-    /// How many needles were added to the trie?
+    /// How many needles were added to the trie? (this includes empty needles, which are skipped by addNeedle(), but still consume an index)
     size_t getNeedleCount() const;
 
     /// Set maximum number of ambiguous amino acids allowed during search.

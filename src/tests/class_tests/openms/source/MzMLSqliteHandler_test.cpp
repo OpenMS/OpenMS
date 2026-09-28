@@ -14,6 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <filesystem>
@@ -501,6 +502,37 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
 
   // 1:1 mapping of experimental settings ...
   TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp_orig, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] writeRunLevelInformation is safe against SQL injection via the loaded file path)
+{
+  // Regression test for GH #9730: the loaded file path was concatenated into an
+  // INSERT executed via sqlite3_exec, so a path containing a single quote broke
+  // the statement and a crafted path could inject arbitrary SQL.
+  MSExperiment exp_orig;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
+
+  // Leading '/' => setLoadedFilePath keeps it verbatim (treated absolute on all
+  // platforms) instead of prepending the CWD.
+  const std::string evil_path = "/tmp/o'brien'; DROP TABLE RUN;--/run.mzML";
+  exp_orig.setLoadedFilePath(evil_path);
+  TEST_EQUAL(exp_orig.getLoadedFilePath(), evil_path) // sanity: stored verbatim
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::filesystem::remove(tmp_filename);
+
+  MzMLSqliteHandler handler(tmp_filename, 12345);
+  handler.createTables();
+  // With the old concatenating code this throws (malformed SQL) or runs the
+  // injected DROP; with the parameterized fix it must simply succeed.
+  handler.writeExperiment(exp_orig);
+
+  // The RUN table must still exist and hold exactly the one row we wrote: if the
+  // injected "DROP TABLE RUN" had executed, countTableRows() would instead throw.
+  SqliteConnector conn(tmp_filename);
+  TEST_EQUAL(conn.countTableRows("RUN"), 1)
 }
 END_SECTION
 

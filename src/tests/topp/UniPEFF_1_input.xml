@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Comprehensive UniPEFF test fixture. Exercises every parser path (all molecular
+     processing types, every modification routing, all disulfide shapes, every variant
+     shape, unhandled feature types) and every writer path. See README.md. -->
+<uniprot>
+  <entry dataset="Swiss-Prot" version="64">
+    <accession>P12345</accession>
+    <accession>P99999</accession>
+    <name>KSINK_HUMAN</name>
+    <protein>
+      <recommendedName>
+        <fullName>Kitchen-sink protein (test) | alpha\beta :-)</fullName>
+      </recommendedName>
+    </protein>
+    <gene>
+      <name type="synonym">SYN1</name>
+      <name type="primary">GENE1</name>
+    </gene>
+    <organism>
+      <name type="scientific">Homo sapiens</name>
+      <name type="common">Human</name>
+      <dbReference type="NCBI Taxonomy" id="9606"/>
+    </organism>
+    <proteinExistence type="evidence at protein level"/>
+    <!-- Isoforms: the alternative-products comment and the splice-variant (VAR_SEQ) feature MUST be
+         ignored (isoform expansion is not implemented). The isoform <sequence> has no length attr,
+         so it must not be mistaken for the canonical sequence, and P12345-2 must never be emitted. -->
+    <comment type="alternative products">
+      <event type="alternative splicing"/>
+      <isoform>
+        <id>P12345-1</id>
+        <name>1</name>
+        <sequence type="displayed"/>
+      </isoform>
+      <isoform>
+        <id>P12345-2</id>
+        <name>2</name>
+        <sequence type="described" ref="VSP_001"/>
+      </isoform>
+    </comment>
+    <feature type="splice variant" id="VSP_001" description="In isoform 2.">
+      <original>VYEVVLR</original>
+      <variation>X</variation>
+      <location>
+        <begin position="56"/>
+        <end position="62"/>
+      </location>
+    </feature>
+    <feature type="initiator methionine">
+      <location>
+        <position position="1"/>
+      </location>
+    </feature>
+    <feature type="signal peptide">
+      <location>
+        <begin position="2"/>
+        <end position="20"/>
+      </location>
+    </feature>
+    <feature type="transit peptide">
+      <location>
+        <begin position="21"/>
+        <end position="30"/>
+      </location>
+    </feature>
+    <feature type="propeptide">
+      <location>
+        <begin position="31"/>
+        <end position="40"/>
+      </location>
+    </feature>
+    <feature type="chain">
+      <location>
+        <begin position="41"/>
+        <end position="100"/>
+      </location>
+    </feature>
+    <feature type="sequence variant">
+      <original>A</original>
+      <variation>V</variation>
+      <location>
+        <position position="25"/>
+      </location>
+    </feature>
+    <feature type="sequence variant">
+      <original>AB</original>
+      <variation>CD</variation>
+      <location>
+        <begin position="30"/>
+        <end position="31"/>
+      </location>
+    </feature>
+    <feature type="sequence variant">
+      <location>
+        <position position="33"/>
+      </location>
+    </feature>
+    <feature type="sequence variant">
+      <location>
+        <begin position="36"/>
+        <end position="38"/>
+      </location>
+    </feature>
+    <feature type="sequence variant">
+      <original>L</original>
+      <variation>M</variation>
+      <location>
+        <begin position="42"/>
+        <end position="42"/>
+      </location>
+    </feature>
+    <feature type="sequence variant">
+      <original>A</original>
+      <variation>X</variation>
+      <location>
+        <position position="250"/>
+      </location>
+    </feature>
+    <feature type="sequence variant">
+      <original>AB</original>
+      <variation>CD</variation>
+      <location>
+        <begin position="200"/>
+        <end position="201"/>
+      </location>
+    </feature>
+    <feature type="sequence variant">
+      <original>K</original>
+      <location>
+        <position position="44"/>
+      </location>
+    </feature>
+    <feature type="sequence variant">
+      <original>A</original>
+      <variation>APT</variation>
+      <location>
+        <position position="46"/>
+      </location>
+    </feature>
+    <feature type="glycosylation site" description="N-linked (GlcNAc...) asparagine">
+      <location>
+        <position position="48"/>
+      </location>
+    </feature>
+    <feature type="glycosylation site">
+      <location>
+        <position position="68"/>
+      </location>
+    </feature>
+    <feature type="lipid moiety-binding region" description="Test palmitoyl cysteine">
+      <location>
+        <position position="58"/>
+      </location>
+    </feature>
+    <feature type="lipid moiety-binding region" description="Some unlisted lipid">
+      <location>
+        <position position="62"/>
+      </location>
+    </feature>
+    <feature type="cross-link" description="Glycyl lysine isopeptide (Lys-Gly) (interchain with G-Cter in ubiquitin)">
+      <location>
+        <position position="66"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Phosphoserine">
+      <location>
+        <position position="50"/>
+      </location>
+    </feature>
+    <feature type="sequence conflict">
+      <original>K</original>
+      <variation>R</variation>
+      <location>
+        <position position="52"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="(Microbial infection) Phosphothreonine; by XYZ">
+      <location>
+        <position position="55"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Test methylation unimod only">
+      <location>
+        <position position="60"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Test generic mod no accession">
+      <location>
+        <position position="65"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Nonexistent modification">
+      <location>
+        <position position="70"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Phosphoserine">
+      <location>
+        <position status="unknown"/>
+      </location>
+    </feature>
+    <feature type="glycosylation site" description="O-linked unknown-site">
+      <location>
+        <position status="unknown"/>
+      </location>
+    </feature>
+    <feature type="disulfide bond">
+      <location>
+        <begin position="45"/>
+        <end position="80"/>
+      </location>
+    </feature>
+    <feature type="cross-link" description="Isopeptide (Cys-Lys)">
+      <location>
+        <begin position="88"/>
+        <end position="89"/>
+      </location>
+    </feature>
+    <feature type="disulfide bond">
+      <location>
+        <begin status="unknown"/>
+        <end position="90"/>
+      </location>
+    </feature>
+    <feature type="disulfide bond">
+      <location>
+        <position position="95"/>
+      </location>
+    </feature>
+    <!-- Unknown-position processing: MUST be omitted from output (PEFF positions count from 1; "?" is ModRes-only). -->
+    <feature type="propeptide">
+      <location>
+        <begin status="unknown"/>
+        <end position="40"/>
+      </location>
+    </feature>
+    <sequence length="100" mass="11000" version="3">MSEQNNTEMTFQIQRIYTKDISFEAPNAPHVFQKDWQPEVKLDLDTASSQLADDVYEVVLRVTVTASLGEETAFLCEVQQGGKLMNPQRSTVWYACDEFG</sequence>
+  </entry>
+  <entry dataset="TrEMBL" version="2">
+    <accession>Q67890</accession>
+    <accession>Q00001</accession>
+    <name>MINI_HUMAN</name>
+    <protein>
+      <recommendedName>
+        <fullName>Minimal TrEMBL entry &#946;&#233;</fullName>
+      </recommendedName>
+    </protein>
+    <organism>
+      <name type="scientific">Homo sapiens</name>
+      <dbReference type="NCBI Taxonomy" id="9606"/>
+    </organism>
+    <proteinExistence type="predicted"/>
+    <sequence length="31" mass="3000" version="1">MKLDLDTASSQLADDVYEVVLRVTVTASLGE</sequence>
+  </entry>
+  <!-- Validation guard: an entry with NO accession MUST be skipped (>Prefix:DbUniqueId is mandatory). -->
+  <entry dataset="Swiss-Prot">
+    <name>NOACC_TEST</name>
+    <sequence length="10" mass="1000">MKLDLDTASS</sequence>
+  </entry>
+  <!-- Validation guard: an entry with an accession but NO sequence MUST also be skipped. -->
+  <entry dataset="Swiss-Prot">
+    <accession>P00002</accession>
+    <name>NOSEQ_TEST</name>
+  </entry>
+</uniprot>

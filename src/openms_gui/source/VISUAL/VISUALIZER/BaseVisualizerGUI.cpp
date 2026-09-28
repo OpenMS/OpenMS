@@ -44,7 +44,7 @@ namespace OpenMS
     {
       addSeparator_();
       addButton_(undo_button_, "Undo");
-      connect(undo_button_, SIGNAL(clicked()), this, SLOT(undo_()));
+      connect(undo_button_, &QPushButton::clicked, this, &BaseVisualizerGUI::undo_);
     }
     addVSpacer_();
   }

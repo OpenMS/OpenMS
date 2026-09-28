@@ -6,6 +6,7 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/MzTabM.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -183,7 +184,7 @@ namespace OpenMS
     {
       if (software.metaValueExists("reliability"))
       {
-        reliability = MzTabString(std::string(software.getMetaValue("reliability")));
+        reliability = MzTabString(software.getMetaValue("reliability").toString());
       }
       MzTabParameter p_software;
       ControlledVocabulary::CVTerm cvterm;

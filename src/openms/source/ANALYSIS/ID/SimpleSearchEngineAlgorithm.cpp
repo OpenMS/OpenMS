@@ -14,6 +14,7 @@
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
@@ -31,6 +32,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -42,6 +44,7 @@
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
 #include <algorithm>
+#include <array>
 #include <map>
 #ifdef _OPENMP
   #include <omp.h>
@@ -52,6 +55,28 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    // Characters a candidate peptide may contain: one-letter codes of residues with a known
+    // elemental formula. Excludes the ambiguous codes B, X and Z, stop codons ('*') and any other
+    // symbol. AASequence parses '*' as a weightless X, so such a peptide cannot be scored.
+    const std::array<bool, 256>& searchableResidues()
+    {
+      static const std::array<bool, 256> table = []
+      {
+        std::array<bool, 256> searchable{};
+        const ResidueDB* rdb = ResidueDB::getInstance();
+        for (char c = 'A'; c <= 'Z'; ++c)
+        {
+          const Residue* r = rdb->getResidue(static_cast<unsigned char>(c));
+          searchable[static_cast<unsigned char>(c)] = (r != nullptr && !r->getFormula().isEmpty());
+        }
+        return searchable;
+      }();
+      return table;
+    }
+  }
+
   SimpleSearchEngineAlgorithm::SimpleSearchEngineAlgorithm() :
     DefaultParamHandler("SimpleSearchEngineAlgorithm"),
     ProgressLogger()
@@ -220,19 +245,35 @@ namespace OpenMS
 
     NLargest nlargest_filter = NLargest(400);
 
-#pragma omp parallel for default(none) shared(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
+    // Deisotoping requires a fragment tolerance the Deisotoper supports (<= 100 ppm
+    // / <= 0.1 Da); it throws otherwise, and an exception escaping the OpenMP region
+    // below would call std::terminate(). Decide once here and skip deisotoping for
+    // low-resolution (e.g. ion-trap CID) data instead of aborting (OpenMS#9619).
+    const bool do_deisotope = Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+    if (!do_deisotope)
+    {
+      OPENMS_LOG_WARN << "[SimpleSearchEngine] Fragment tolerance " << fragment_mass_tolerance
+                      << (fragment_mass_tolerance_unit_ppm ? " ppm" : " Da")
+                      << " exceeds the deisotoping limit (100 ppm / 0.1 Da); skipping MS2 "
+                      << "deisotoping (expected for low-resolution data)." << endl;
+    }
+
+#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       // sort by mz
       exp[exp_index].sortByPosition();
 
-      // deisotope
-      Deisotoper::deisotopeAndSingleCharge(exp[exp_index], 
-        fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
-        1, 3,   // min / max charge 
-        false,  // keep only deisotoped
-        3, 10,  // min / max isopeaks 
-        true);  // convert fragment m/z to mono-charge
+      // deisotope (skipped for low-resolution data; see do_deisotope above)
+      if (do_deisotope)
+      {
+        Deisotoper::deisotopeAndSingleCharge(exp[exp_index],
+          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
+          1, 3,   // min / max charge
+          false,  // keep only deisotoped
+          3, 10,  // min / max isopeaks
+          true);  // convert fragment m/z to mono-charge
+      }
 
       // remove noise
       window_mower_filter.filterPeakSpectrum(exp[exp_index]);
@@ -344,7 +385,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
 
           // reannotate much more memory heavy AASequence object
-          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
+          const AASequence& fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index];
           ph.setScore(ah.score);
           ph.setSequence(fixed_and_variable_modified_peptide);
 
@@ -493,9 +534,9 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           }
 
           // store PSM
-          phs.push_back(ph);
+          phs.push_back(std::move(ph));
         }
-        pi.setHits(phs);
+        pi.setHits(std::move(phs));
         pi.sort();
 
 #pragma omp critical (peptide_ids_access)
@@ -663,6 +704,18 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     vector<FASTAFile::FASTAEntry> fasta_db;
     FASTAFile().load(in_db, fasta_db);
 
+    // A stop codon ('*') that ends a sequence, as in databases translated from genomes (e.g. SGD),
+    // is not a residue: remove it so the C-terminal peptide stays searchable and decoys are built
+    // from the protein alone. Peptides that contain a stop codon inside the sequence are skipped.
+    for (FASTAFile::FASTAEntry& e : fasta_db)
+    {
+      while (!e.sequence.empty() && e.sequence.back() == '*') { e.sequence.pop_back(); }
+    }
+    // An entry left without residues has nothing to search, and decoy generation needs residues.
+    fasta_db.erase(std::remove_if(fasta_db.begin(), fasta_db.end(),
+                                  [](const FASTAFile::FASTAEntry& e) { return e.sequence.empty(); }),
+                   fasta_db.end());
+
     // generate decoy protein sequences by reversing them
     if (decoys_)
     {
@@ -705,6 +758,9 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     Size count_proteins(0), count_peptides(0);
 
+    const std::array<bool, 256>& searchable = searchableResidues();
+    const auto is_unsearchable = [&searchable](char c) { return !searchable[static_cast<unsigned char>(c)]; };
+
 #pragma omp parallel for schedule(static)
       for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
       {
@@ -723,7 +779,9 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       for (auto const & c : current_digest)
       { 
         const std::string current_peptide = std::string(c);
-        if (current_peptide.find_first_of("XBZ") != std::string::npos)
+        // skip peptides containing unknown or ambiguous AA codes (X, B, Z), stop codons ('*')
+        // or other symbols
+        if (std::any_of(current_peptide.begin(), current_peptide.end(), is_unsearchable))
         {
           continue;
         }

@@ -73,7 +73,7 @@ class TOPPPeakPickerIM : public TOPPBase
 {
 public:
   TOPPPeakPickerIM() :
-      TOPPBase("PeakPickerIM", "Applies PeakPickerIM to an mzML or Bruker .d file", false)
+      TOPPBase("PeakPickerIM", "Applies PeakPickerIM to an mzML or Bruker .d file")
   {}
 
 protected:

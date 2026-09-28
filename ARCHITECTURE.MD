@@ -148,7 +148,7 @@ The OpenMS architecture is designed for extensibility at multiple levels:
 
 ### Workflow Customization
 - Users can combine OpenMS tools with custom scripts (e.g., via pyOpenMS)
-- Support for workflow systems like KNIME and Galaxy
+- Support for workflow systems like Nextflow and Galaxy
 - Parameter files (INI format) for tool configuration and chaining
 - TOPPAS workflow editor for visual pipeline construction
 
@@ -276,6 +276,7 @@ OpenMS/
 ├── share/                   # Shared resources
 ├── src/                     # Source code
 │   ├── openms/              # Core OpenMS library
+│   ├── openms_cli/          # TOPP tool framework (TOPPBase, ToolHandler, ...)
 │   ├── openms_gui/          # GUI components
 │   ├── openswathalgo/       # OpenSWATH algorithms
 │   ├── pyOpenMS/            # Python bindings
@@ -285,6 +286,7 @@ OpenMS/
 │   ├── tests/               # C++ tests
 │   │   ├── class_tests/     # Unit tests for classes
 │   │   │   ├── openms/      # Tests for core library
+│   │   │   ├── openms_cli/  # Tests for the TOPP tool framework
 │   │   │   └── openms_gui/  # Tests for GUI components
 │   │   └── topp/            # Tests for TOPP tools
 │   └── topp/                # TOPP tools implementation

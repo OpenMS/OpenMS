@@ -7,7 +7,6 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -65,29 +64,41 @@ add_subdirectory(thirdparty/percolator)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
+## Note: XercesC::XercesC is PRIVATE — Xerces is fully encapsulated behind the
+## Xerces-free XMLHandler / XMLAttributes / StringManager public API and the
+## internal SAX2HandlerAdapter, so it no longer appears in any installed header
+## and downstream consumers neither include nor link it (see #8547).
+## Note: Boost::boost (header-only) is PUBLIC because the installed public header
+## config.h includes <boost/current_function.hpp> (via Macros.h), so consumers
+## (e.g. pyOpenMS) need Boost's include dir. Only the header-only target is
+## public — it propagates include dirs but no link libraries; the compiled Boost
+## components (date_time/iostreams/regex) stay PRIVATE below.
 set(OPENMS_DEP_LIBRARIES
-  LibSVM::LibSVM
-  XercesC::XercesC
-  CURL::libcurl
+  Boost::boost
 )
 
 ## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
 ## Note: Eigen3::Eigen is PRIVATE because Eigen types are not exposed in the public API
 ## Note: Evergreen is PRIVATE because it's only used internally by BayesianProteinInferenceAlgorithm
+## Note: LibSVM::LibSVM is PRIVATE because LIBSVM types are not exposed in the public API;
+##       they are fully encapsulated by the SimpleSVM wrapper (Pimpl) (see #8547).
 set(OPENMS_DEP_PRIVATE_LIBRARIES
+  CURL::libcurl
+  XercesC::XercesC
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
   BZip2::BZip2
-  Boost::boost
   Boost::date_time
   Boost::iostreams
   Boost::regex
   Eigen3::Eigen
   Evergreen
   GTE
+  LibSVM::LibSVM
   Quadtree
   SIMDe
   SQLiteCpp
+  ${OPENMS_SQLITECPP_EXTRA_LIBS}
   ZLIB::ZLIB
   libzip::zip
   nlohmann_json::nlohmann_json
@@ -96,6 +107,146 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   OpenMS_Percolator
   )
 
+option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
+
+if(WITH_ONNX)
+  if(OPENMS_USE_VCPKG)
+    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES onnxruntime::onnxruntime)
+
+    #vcpkg's onnxruntime::onnxruntime imported target does not set IMPORTED_LOCATION. Without the fallback,
+    #ORT_LIB_PATH silently resolves to NOTFOUND, the install(PROGRAMS ...) step below silently never fires, and cmake
+    #only able to find libonnxruntime for build OpenMS library by the proximity to the built tree. An installed build
+    #would likely fail at runtime with missing shared library error. Only relevant to dynamic triplets i.e., Linux and Mac.
+    #For windows onnxruntime is directly liked to onnxruntime.dll
+    get_target_property(ORT_LIB_PATH onnxruntime::onnxruntime IMPORTED_LOCATION)
+    if(NOT ORT_LIB_PATH)
+      message(STATUS "onnxruntime::onnxruntime has no IMPORTED_LOCATION, falling back to vcpkg installed lib path")
+      if(APPLE)
+        file(GLOB ORT_LIB_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libonnxruntime*.dylib")
+      elseif(UNIX)
+        file(GLOB ORT_LIB_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libonnxruntime.so*")
+      elseif(WIN32)
+        #Added for symmetry. Current openms build using vcpkg uses a static library linkage triplet so this branch never
+        #fires but if in future a dyanmic lib linkage windows triplet is used then this branch will be useful to locate
+        #onnxruntime.dll
+        file(GLOB ORT_LIB_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/onnxruntime.dll")
+      endif()
+      if(ORT_LIB_PATH)
+        list(GET ORT_LIB_PATH 0 ORT_LIB_PATH)
+      endif()
+    endif()
+
+    #On most triplets, INTERFACE_INCLUDE_DIRECTORIES is populated correctly by vcpkg and this fallback is never used. On
+    #Windows triplet(x64-windows-static-md-relsease) it comes back empty, which is error "onnxruntime_cxx_api.h: No such file or directory"
+    #on Windows CI.
+    get_target_property(ORT_INCLUDE_DIRS onnxruntime::onnxruntime INTERFACE_INCLUDE_DIRECTORIES)
+    if(NOT ORT_INCLUDE_DIRS)
+      message(STATUS "onnxruntime::onnxruntime has no INTERFACE_INCLUDE_DIRECTORIES, falling back to vcpkg installed include path")
+      set(ORT_INCLUDE_DIRS "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/onnxruntime")
+    endif()
+    message(STATUS "ORT_INCLUDE_DIRS: ${ORT_INCLUDE_DIRS}")
+  else() 
+    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ONNXRuntime::ONNXRuntime)
+    # Bypass IMPORTED_RUNTIME_ARTIFACTS by grabbing the file path directly.
+    # This avoids the read-only TYPE property error completely.
+    get_target_property(ORT_LIB_PATH ONNXRuntime::ONNXRuntime IMPORTED_LOCATION)
+  endif()
+
+  if(ORT_INCLUDE_DIRS)
+    list(APPEND OPENMS_ONNX_PRIVATE_INCLUDES ${ORT_INCLUDE_DIRS})
+  endif()
+
+  if(ORT_LIB_PATH)
+      # Safely install ONNX shared libraries based on the operating system
+      if(WIN32)
+          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_BIN_DIR}")
+      else()
+          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_LIB_DIR}")
+      endif()
+  endif()
+
+  # Download PeptDeep models once to the OpenMS model directory.
+  # These ONNX files are embedded-weight models and do not require .onnx.data sidecars.
+  set(OPENMS_PEPTDEEP_MODEL_URL "http://archive.openms.de/openms/models" CACHE STRING
+      "Base URL for PeptDeep ONNX model downloads")
+  set(OPENMS_PEPTDEEP_MODEL_DIR "${PROJECT_BINARY_DIR}/share/OpenMS/models" CACHE INTERNAL
+      "Build-tree directory containing downloaded PeptDeep ONNX models")
+
+  set(OPENMS_PEPTDEEP_MODELS
+      peptdeep_ccs_dynamic.onnx
+      peptdeep_ms2_dynamic.onnx
+      peptdeep_rt_dynamic.onnx
+      CACHE INTERNAL "PeptDeep ONNX models required by OpenMS"
+  )
+
+  set(OPENMS_PEPTDEEP_MODEL_SHA256S
+      41816f325cdd838897b7e7dcaf291da5d4d3903a1532fc5dc9db7e0725015801
+      4141ea233d663b6f5b98ad80b8923ee685dae5cfdbe12243e2e30cd9c44ecf00
+      3f3b847ea37a9333ac163409f3d4b343d021471548091c61aed6cfa398ce62fd
+      CACHE INTERNAL "SHA256 checksums for PeptDeep ONNX models"
+  )
+
+  file(MAKE_DIRECTORY "${OPENMS_PEPTDEEP_MODEL_DIR}")
+
+  list(LENGTH OPENMS_PEPTDEEP_MODELS OPENMS_PEPTDEEP_MODEL_COUNT)
+  list(LENGTH OPENMS_PEPTDEEP_MODEL_SHA256S OPENMS_PEPTDEEP_HASH_COUNT)
+
+  if(NOT OPENMS_PEPTDEEP_MODEL_COUNT EQUAL OPENMS_PEPTDEEP_HASH_COUNT)
+    message(FATAL_ERROR
+      "OPENMS_PEPTDEEP_MODELS and OPENMS_PEPTDEEP_MODEL_SHA256S must have the same length")
+  endif()
+
+  math(EXPR OPENMS_PEPTDEEP_LAST_MODEL_INDEX "${OPENMS_PEPTDEEP_MODEL_COUNT} - 1")
+
+  set(OPENMS_PEPTDEEP_MODEL_FILES)
+  foreach(MODEL_INDEX RANGE 0 ${OPENMS_PEPTDEEP_LAST_MODEL_INDEX})
+    list(GET OPENMS_PEPTDEEP_MODELS ${MODEL_INDEX} MODEL)
+    list(GET OPENMS_PEPTDEEP_MODEL_SHA256S ${MODEL_INDEX} EXPECTED_SHA256)
+
+    set(MODEL_PATH "${OPENMS_PEPTDEEP_MODEL_DIR}/${MODEL}")
+    list(APPEND OPENMS_PEPTDEEP_MODEL_FILES "${MODEL_PATH}")
+
+    set(MODEL_IS_VALID FALSE)
+
+    if(EXISTS "${MODEL_PATH}")
+      file(SHA256 "${MODEL_PATH}" ACTUAL_SHA256)
+
+      if(ACTUAL_SHA256 STREQUAL EXPECTED_SHA256)
+        set(MODEL_IS_VALID TRUE)
+      else()
+        message(WARNING
+          "Existing PeptDeep model ${MODEL} has SHA256 checksum ${ACTUAL_SHA256}, "
+          "expected ${EXPECTED_SHA256}; re-downloading.")
+        file(REMOVE "${MODEL_PATH}")
+      endif()
+    endif()
+
+    if(NOT MODEL_IS_VALID)
+      message(STATUS "Fetching PeptDeep model: ${MODEL} from archive...")
+      file(
+        DOWNLOAD "${OPENMS_PEPTDEEP_MODEL_URL}/${MODEL}" "${MODEL_PATH}"
+        STATUS DOWNLOAD_STATUS
+        SHOW_PROGRESS
+        EXPECTED_HASH "SHA256=${EXPECTED_SHA256}"
+      )
+
+      list(GET DOWNLOAD_STATUS 0 DOWNLOAD_CODE)
+      list(GET DOWNLOAD_STATUS 1 DOWNLOAD_MESSAGE)
+
+      if(NOT DOWNLOAD_CODE EQUAL 0)
+        file(REMOVE "${MODEL_PATH}")
+        message(FATAL_ERROR
+          "Failed to download PeptDeep model ${MODEL}: ${DOWNLOAD_MESSAGE}")
+      endif()
+    endif()
+  endforeach()
+
+  # Ensure models are packaged during 'make install'.
+  install(FILES ${OPENMS_PEPTDEEP_MODEL_FILES}
+          DESTINATION "share/OpenMS/models")
+
+endif()
+
 # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
 list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
      ${OPENMS_ARROW_TARGET}
@@ -103,8 +254,9 @@ list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
      ${OPENMS_PARQUET_TARGET})
 if (OPENMS_ARROW_DATASET_TARGET)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_DATASET_TARGET})
-  # Dataset pushdown needs libxml2 when Arrow Dataset is linked statically.
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES LibXml2::LibXml2)
+  # libxml2 is needed by a statically linked Arrow, but listing it here put it
+  # ahead of the archive that references it. cmake_findExternalLibs.cmake now
+  # appends it to Arrow's own link interface instead, where the order is right.
 endif()
 
 if (WITH_OPENTIMS)
@@ -122,12 +274,13 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
     )
 endif()
 
-# Xerces requires linking against CoreFoundation&CoreServices on macOS
+# Xerces requires linking against CoreFoundation&CoreServices on macOS.
+# Xerces is now a PRIVATE dependency, so these frameworks are private too.
 # TODO check if this is still the case
 if(APPLE)
   find_library(CoreFoundation_LIBRARY CoreFoundation )
   find_library(CoreServices_LIBRARY CoreServices )
-  set(OPENMS_DEP_LIBRARIES ${OPENMS_DEP_LIBRARIES}
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
                            ${CoreFoundation_LIBRARY}
                            ${CoreServices_LIBRARY})
 endif()
@@ -144,14 +297,137 @@ openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
                                  ${OpenMS_configured_headers}
-                   INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
-                                     ${CMAKE_CURRENT_BINARY_DIR}/include
-                   PRIVATE_INCLUDES
+                   BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
+                             ${CMAKE_CURRENT_BINARY_DIR}/include
+                   PRIVATE_INCLUDES ${OPENMS_ONNX_PRIVATE_INCLUDES}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
+
+target_sources(OpenMS PRIVATE FILE_SET private_headers TYPE HEADERS
+  BASE_DIRS source include
+  FILES ${OpenMS_private_headers})
+
+# The core library has no QObject classes, including in builds that also find Qt.
+set_target_properties(OpenMS PROPERTIES AUTOMOC OFF)
+
+## When an in-tree executable links libOpenMS.so, the linker has to locate the
+## private shared dependencies of libOpenMS by soname. CMake passes -rpath-link
+## for them only when the imported target is typed SHARED; find modules such as
+## FindCURL and FindXercesC create UNKNOWN targets. Without the hint, a library
+## of the same soname earlier on the search path (e.g. a conda environment on
+## CMAKE_PREFIX_PATH) is picked instead of the one libOpenMS was linked against,
+## and its versioned symbols stay unresolved (#10114). Point the linker at the
+## exact directories. BUILD_INTERFACE keeps this out of the installed export;
+## installed consumers resolve these through the install RPATH of libOpenMS.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # Location an imported target resolves to for one build configuration,
+  # selected the way CMake itself does it (cmGeneratorTarget::GetMappedConfig):
+  # MAP_IMPORTED_CONFIG_<CONFIG> first (an empty entry means the
+  # configuration-less property; a mapping that matches nothing means no other
+  # configuration is acceptable), then the exact configuration, then the
+  # configuration-less property, then the first available configuration.
+  function(_openms_imported_location target config out_var)
+    if(config STREQUAL "")
+      set(config NOCONFIG)
+    endif()
+    string(TOUPPER "${config}" config)
+    set(_location "")
+    get_property(_has_map TARGET ${target} PROPERTY MAP_IMPORTED_CONFIG_${config} SET)
+    if(_has_map)
+      get_target_property(_map ${target} MAP_IMPORTED_CONFIG_${config})
+      if(_map STREQUAL "")
+        set(_map ";")
+      endif()
+      foreach(_mapped IN LISTS _map)
+        if(_mapped STREQUAL "")
+          get_target_property(_location ${target} IMPORTED_LOCATION)
+        else()
+          string(TOUPPER "${_mapped}" _mapped)
+          get_target_property(_location ${target} IMPORTED_LOCATION_${_mapped})
+        endif()
+        if(_location)
+          break()
+        endif()
+      endforeach()
+    else()
+      get_target_property(_location ${target} IMPORTED_LOCATION_${config})
+      if(NOT _location)
+        get_target_property(_location ${target} IMPORTED_LOCATION)
+      endif()
+      if(NOT _location)
+        get_target_property(_available ${target} IMPORTED_CONFIGURATIONS)
+        foreach(_candidate IN LISTS _available)
+          string(TOUPPER "${_candidate}" _candidate)
+          get_target_property(_location ${target} IMPORTED_LOCATION_${_candidate})
+          if(_location)
+            break()
+          endif()
+        endforeach()
+      endif()
+    endif()
+    if(NOT _location)
+      set(_location "")
+    endif()
+    set(${out_var} "${_location}" PARENT_SCOPE)
+  endfunction()
+
+  get_property(_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+  foreach(_dep IN LISTS OPENMS_DEP_PRIVATE_LIBRARIES)
+    if(NOT TARGET "${_dep}")
+      continue()
+    endif()
+    get_target_property(_dep_type ${_dep} TYPE)
+    if(NOT _dep_type STREQUAL "UNKNOWN_LIBRARY")
+      continue()
+    endif()
+    # Multi-config generators get one entry per build configuration guarded by
+    # $<CONFIG:...>, so each configuration searches the directory of the
+    # location it links against (a single entry when they all agree); a
+    # single-config build has exactly one location. The directories are
+    # literal rather than $<TARGET_FILE_DIR:...>: the build-tree export keeps
+    # BUILD_INTERFACE content, and its consumers do not have these targets.
+    if(_multi_config)
+      set(_dep_options)
+      set(_dep_dirs)
+      foreach(_build_config IN LISTS CMAKE_CONFIGURATION_TYPES)
+        _openms_imported_location(${_dep} "${_build_config}" _dep_location)
+        if(_dep_location MATCHES "\\.so(\\.[0-9.]+)?$")
+          get_filename_component(_dep_dir "${_dep_location}" DIRECTORY)
+          list(APPEND _dep_dirs "${_dep_dir}")
+          list(APPEND _dep_options
+            "$<BUILD_INTERFACE:$<$<CONFIG:${_build_config}>:-Wl,-rpath-link,${_dep_dir}>>")
+        endif()
+      endforeach()
+      list(REMOVE_DUPLICATES _dep_dirs)
+      list(LENGTH _dep_dirs _dep_dir_count)
+      list(LENGTH _dep_options _dep_option_count)
+      list(LENGTH CMAKE_CONFIGURATION_TYPES _build_config_count)
+      if(_dep_dir_count EQUAL 1 AND _dep_option_count EQUAL _build_config_count)
+        target_link_options(OpenMS INTERFACE "$<BUILD_INTERFACE:-Wl,-rpath-link,${_dep_dirs}>")
+      elseif(_dep_options)
+        target_link_options(OpenMS INTERFACE ${_dep_options})
+      endif()
+    else()
+      _openms_imported_location(${_dep} "${CMAKE_BUILD_TYPE}" _dep_location)
+      if(_dep_location MATCHES "\\.so(\\.[0-9.]+)?$")
+        get_filename_component(_dep_dir "${_dep_location}" DIRECTORY)
+        target_link_options(OpenMS INTERFACE "$<BUILD_INTERFACE:-Wl,-rpath-link,${_dep_dir}>")
+      endif()
+    endif()
+  endforeach()
+  unset(_multi_config)
+  unset(_build_config_count)
+  unset(_dep_type)
+  unset(_dep_location)
+  unset(_dep_options)
+  unset(_dep_option_count)
+  unset(_dep_dirs)
+  unset(_dep_dir_count)
+  unset(_dep_dir)
+endif()
 
 # The vendored percolator headers (#include "X.h", no subdir) are used only by
 # libOpenMS's Percolator pimpl TU. Their directory is made visible via the
@@ -215,6 +491,7 @@ endif()
 # Note: that slash(/) is important here, otherwise the whole directory
 #       (not its content) will be copied!
 #install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
+
 install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
   DESTINATION ${INSTALL_SHARE_DIR}
   COMPONENT share
@@ -228,12 +505,37 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
   REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
   REGEX "OpenMS/examples" EXCLUDE
 )
-install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
 
-# Devs also need our custom find modules
-install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_CMAKE_DIR}/Modules cmake)
-file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
+## The TOPP tool registry is generated into the build tree rather than checked in
+## (cmake/topp_tool_macros.cmake), so it is installed from there. Because it is written from
+## the tools this build actually declares, there is nothing to filter per build option: a
+## tool that was not built was not declared and is not in the file. It is installed into
+## TOOLS/ rather than beside the other share data so that the directory holds registry files
+## and nothing else: ToolHandler reads every *.tsv it finds there.
+install(FILES ${OPENMS_TOOL_REGISTRY_BUILD_FILE}
+  DESTINATION ${INSTALL_SHARE_DIR}/TOOLS
+  COMPONENT share
+  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+)
+install(FILES ${OPENMS_HOST_DIRECTORY}/License.txt
+  DESTINATION ${INSTALL_SHARE_DIR}/LICENSES
+  RENAME OpenMS-BSD-3-Clause.txt
+  COMPONENT share
+)
+if(INSTALL_OPENMS_EXAMPLES)
+  install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
+endif()
 
-#------------------------------------------------------------------------------
-# register relevant paths for the doxygen doc generation
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
+
+# Add the ONNX source files conditionally
+if(WITH_ONNX)
+  target_sources(OpenMS PRIVATE
+    source/ML/ONNX/ONNXEnvironment.cpp
+    source/ML/ONNX/ONNXPredictorBase.cpp
+    source/ML/PEPTDEEP/PeptDeepCCSInference.cpp
+    source/ML/PEPTDEEP/PeptDeepInput.cpp
+    source/ML/PEPTDEEP/PeptDeepRTInference.cpp
+    source/ML/PEPTDEEP/PeptDeepMS2Inference.cpp
+  )
+endif()

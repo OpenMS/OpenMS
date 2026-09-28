@@ -10,8 +10,6 @@
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
-#include <xercesc/sax/ErrorHandler.hpp>
-
 #include <iostream>
 
 namespace OpenMS
@@ -23,8 +21,7 @@ namespace OpenMS
 
     @ingroup FileIO
   */
-  class OPENMS_DLLAPI XMLValidator :
-    private xercesc::ErrorHandler
+  class OPENMS_DLLAPI XMLValidator
   {
 public:
     /// Constructor
@@ -52,14 +49,12 @@ protected:
     //output stream reference (for error messages)
     std::ostream* os_;
 
-    /// @name Implementation of Xerces ErrorHandler methods
-    //@{
-    void warning(const xercesc::SAXParseException& exception) override;
-    void error(const xercesc::SAXParseException& exception) override;
-    void fatalError(const xercesc::SAXParseException& exception) override;
-    void resetErrors() override;
-    //@}
+    /// Record a validation problem. Called by the internal Xerces ErrorHandler
+    /// bridge (defined in the .cpp); keeps Xerces out of this public header.
+    void logError_(const std::string& kind, const std::string& message, unsigned long line, unsigned long column);
+
+    /// The internal Xerces ErrorHandler bridge needs access to @c logError_.
+    friend class XMLValidatorErrorHandler_;
   };
 
 } // namespace OpenMS
-

@@ -58,6 +58,7 @@ ETISEQ -- an algorithm for automated elution time ion sequencing of concurrently
 
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 using namespace OpenMS;

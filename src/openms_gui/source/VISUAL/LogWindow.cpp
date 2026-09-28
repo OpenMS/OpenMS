@@ -30,7 +30,7 @@ namespace OpenMS
 
     setReadOnly(true);
 
-    connect(this, SIGNAL(textChanged()), this, SLOT(trimText_()));
+    connect(this, &QTextEdit::textChanged, this, &LogWindow::trimText_);
   }
 
   void LogWindow::contextMenuEvent(QContextMenuEvent* event)

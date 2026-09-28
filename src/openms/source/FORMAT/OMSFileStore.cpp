@@ -10,6 +10,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <SQLiteCpp/Database.h>
 #include <SQLiteCpp/Transaction.h>

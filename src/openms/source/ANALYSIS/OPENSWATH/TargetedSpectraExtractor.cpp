@@ -986,15 +986,18 @@ namespace OpenMS
         OpenMS::Feature f;
         f.setUniqueId();
 
-        // parse the identifier
+        // parse the identifier: the PeptideRef is the part before the first '_'.
+        // If there is no '_', leave the PeptideRef empty (as before) rather than
+        // silently using the whole identifier (StringUtils::prefix no longer throws
+        // when the delimiter is absent).
         std::string id_f;
-        try
+        if (f_map.first.find('_') != std::string::npos)
         {
           id_f = StringUtils::prefix(f_map.first, '_');
         }
-        catch (const std::exception& e)
+        else
         {
-          OPENMS_LOG_ERROR << e.what();
+          OPENMS_LOG_ERROR << "Identifier '" << f_map.first << "' has no '_' separator; PeptideRef left empty." << std::endl;
         }
         f.setMetaValue("PeptideRef", id_f);
         f.setMZ(m);

@@ -8,9 +8,11 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/CONCEPT/Types.h>
+
 #include <map>
 #include <iosfwd>
+#include <string>
 
 namespace OpenMS
 {

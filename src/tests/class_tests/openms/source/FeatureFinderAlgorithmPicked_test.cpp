@@ -90,6 +90,62 @@ START_SECTION((virtual void run()))
 
 END_SECTION
 
+START_SECTION(([EXTRA] isotopic_pattern:mz_tolerance and mass_trace:mz_tolerance are not interchangeable (#9247)))
+{
+  // PR #9247 fixed a swap in updateMembers_(): pattern_tolerance_ <- isotopic_pattern:mz_tolerance and
+  // trace_tolerance_ <- mass_trace:mz_tolerance. Pin both asymmetric configurations directionally, so a
+  // repeated assignment swap exchanges the outcomes and fails the test.
+  MzMLFile mzml_file;
+  mzml_file.getOptions().addMSLevel(1);
+  PeakMap input_template;
+  mzml_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.mzML"), input_template);
+  input_template.updateRanges();
+
+  Param base;
+  ParamXMLFile paramFile;
+  paramFile.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.ini"), base);
+  base = base.copy("FeatureFinder:1:algorithm:", true);
+
+  // tight isotope-pattern tolerance, loose mass-trace tolerance
+  Param p1 = base;
+  p1.setValue("isotopic_pattern:mz_tolerance", 0.005);
+  p1.setValue("mass_trace:mz_tolerance", 0.5);
+  FeatureMap out1;
+  {
+    PeakMap in = input_template;
+    FFPP ff;
+    ff.run(std::move(in), out1, p1, FeatureMap());
+  }
+
+  // swapped assignment: loose isotope-pattern tolerance, tight mass-trace tolerance
+  Param p2 = base;
+  p2.setValue("isotopic_pattern:mz_tolerance", 0.5);
+  p2.setValue("mass_trace:mz_tolerance", 0.005);
+  FeatureMap out2;
+  {
+    PeakMap in = input_template;
+    FFPP ff;
+    ff.run(std::move(in), out2, p2, FeatureMap());
+  }
+
+  TEST_EQUAL(out1.size(), 1)
+  TEST_EQUAL(out2.size(), 0)
+
+  if (out1.size() == 1)
+  {
+    TEST_EQUAL(out1[0].getMetaValue(Constants::UserParam::NUM_OF_DATAPOINTS), 33)
+
+    TOLERANCE_ABSOLUTE(0.001);
+    TEST_REAL_SIMILAR(out1[0].getRT(), 4278.1601)
+    TEST_REAL_SIMILAR(out1[0].getMZ(), 653.7722)
+    TEST_REAL_SIMILAR(out1[0].getOverallQuality(), 0.9609)
+
+    TOLERANCE_ABSOLUTE(20.0);
+    TEST_REAL_SIMILAR(out1[0].getIntensity(), 18467.8)
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

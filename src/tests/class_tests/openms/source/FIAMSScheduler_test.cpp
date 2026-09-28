@@ -53,11 +53,15 @@ START_SECTION(FIAMSScheduler)
       tmp_dir
   );
   const vector<map<std::string, std::string>> samples = fia_scheduler.getSamples();
+  TEST_EQUAL(samples.size(), 2);
   TEST_EQUAL(samples[0].at("time"), "10");
+  TEST_EQUAL(samples[1].at("time"), "20");
   fia_scheduler.run();
   std::string outfile =StringUtils::toStr(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/SerumTest_10.mzTab"));
   std::string outfile2 = tmp_dir + "FIAMS_output/SerumTest_10.mzTab";
   TEST_FILE_EQUAL(outfile2.c_str(), outfile.c_str());
+  // verify the second OMP-parallel row also produced output
+  TEST_EQUAL(File::exists(tmp_dir + "FIAMS_output/SerumTest_20.mzTab"), true);
 }
 END_SECTION
 

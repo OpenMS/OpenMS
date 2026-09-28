@@ -28,13 +28,26 @@ namespace OpenMS
     identifier_to_msrunpath_.clear();
     runpath_to_identifier_.clear();
 
+    // First pass: build the forward map (identifier -> ms-run-paths). This direction is
+    // always unambiguous - even when several runs share the same path - and is all that
+    // getPrimaryMSRunPath() needs. Building it completely up front means that if the
+    // reverse-map duplicate check below throws, callers that catch the exception still
+    // see a fully-populated forward map (i.e. USI resolution degrades cleanly, not in an
+    // order-dependent way).
+    for (const auto& prot_id : prot_ids)
+    {
+      StringList ms_run_paths;
+      prot_id.getPrimaryMSRunPath(ms_run_paths);
+      identifier_to_msrunpath_[prot_id.getIdentifier()] = ms_run_paths;
+    }
+
+    // Second pass: build the reverse map (ms-run-paths -> identifier), rejecting ambiguous
+    // input where different identifiers map to the same paths.
     for (const auto& prot_id : prot_ids)
     {
       StringList ms_run_paths;
       prot_id.getPrimaryMSRunPath(ms_run_paths);
       const std::string& identifier = prot_id.getIdentifier();
-
-      identifier_to_msrunpath_[identifier] = ms_run_paths;
 
       // Check for duplicate ms_run_paths (different identifiers mapping to same paths)
       const auto it = runpath_to_identifier_.find(ms_run_paths);
@@ -52,31 +65,76 @@ namespace OpenMS
   {
     const std::string& identifier = pepid.getIdentifier();
     auto it = identifier_to_msrunpath_.find(identifier);
-    if (it == identifier_to_msrunpath_.end())
+    if (it != identifier_to_msrunpath_.end() && !it->second.empty())
     {
-      return std::string();
+      const StringList& ms_run_paths = it->second;
+
+      // Determine which file to use (default to index 0)
+      Size merge_index = 0;
+      if (pepid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+      {
+        merge_index = static_cast<Size>(pepid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX));
+      }
+
+      if (merge_index < ms_run_paths.size())
+      {
+        return ms_run_paths[merge_index];
+      }
     }
 
-    const StringList& ms_run_paths = it->second;
-    if (ms_run_paths.empty())
+    // Legacy fallback: data read from older idXML files or other formats may annotate
+    // the source file directly on the PeptideIdentification via the (deprecated) "base_name"
+    // meta value, instead of via the ProteinIdentification's primary MS run path. Honor it so
+    // that such files keep resolving to a source run after the removal of base_name accessors.
+    if (pepid.metaValueExists(Constants::UserParam::BASE_NAME))
     {
-      return std::string();
+      return StringUtils::toStr(pepid.getMetaValue(Constants::UserParam::BASE_NAME));
     }
 
-    // Determine which file to use (default to index 0)
-    Size merge_index = 0;
-    if (pepid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+    return std::string();
+  }
+
+  void IdentifierMSRunMapper::validateMergeIndex(const PeptideIdentification& pep_id, size_t psm_index) const
+  {
+    const StringList& paths = getMSRunPaths(pep_id.getIdentifier());
+    // Only a merged run can be mis-resolved: with 0 or 1 paths there is no wrong file to pick.
+    //
+    // Deliberately NOT extended to a stale index on a single-path run. That shape is produced by
+    // QPXFile::importFromArrow, whose shell run carries one path while the PSMs it restores keep
+    // their original indices -- and there it is harmless, because each hit also carries a
+    // 'reference_file_name' metavalue that resolution prefers. Refusing it would reject a round
+    // trip that produces correct output. Where no such fallback exists the index simply does not
+    // resolve, which callers see as evidence they could not attribute rather than as a wrong key.
+    if (paths.size() < 2) { return; }
+
+    const bool has_index = pep_id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX);
+
+    const std::string key = std::string(Constants::UserParam::ID_MERGE_INDEX);
+    const std::string where = "PSM #" + StringUtils::toStr(psm_index) + " of identification run '"
+                            + pep_id.getIdentifier() + "' (" + StringUtils::toStr(paths.size())
+                            + " files in the run)";
+
+    if (!has_index)
     {
-      merge_index = static_cast<Size>(pepid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX));
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Multiple files in a run, but no '" + key + "' in PeptideIdentification found: " + where + ".");
     }
 
-    // Check if index is valid
-    if (merge_index >= ms_run_paths.size())
+    const DataValue& dv = pep_id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+    if (dv.valueType() != DataValue::INT_VALUE)
     {
-      return std::string(); // Invalid index
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "'" + key + "' is not an integer: " + where + ".");
     }
 
-    return ms_run_paths[merge_index];
+    // long long, not Size: DataValue's unsigned conversion throws its own ConversionError on a
+    // negative value, which would escape as an undiagnosed exception instead of the message above.
+    const long long merge_index = static_cast<long long>(dv);
+    if (merge_index < 0 || static_cast<size_t>(merge_index) >= paths.size())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "'" + key + "' = " + StringUtils::toStr(merge_index) + " is out of range: " + where + ".");
+    }
   }
 
   bool IdentifierMSRunMapper::hasIdentifier(const std::string& identifier) const

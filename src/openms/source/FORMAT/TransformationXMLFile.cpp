@@ -123,7 +123,7 @@ namespace OpenMS
     os.close();
   }
 
-  void TransformationXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void TransformationXMLFile::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
   {
 
     std::string element = sm_.convert(qname);

@@ -251,6 +251,17 @@ START_SECTION(double dot_bias(const BinnedSpectrum &bin1, const BinnedSpectrum &
   
   TEST_REAL_SIMILAR(ptr->dot_bias(bin1, bin2, 1), 98.585);
   TEST_REAL_SIMILAR(ptr->dot_bias(bin2, bin1, 1), 98.585);
+
+  PeakSpectrum orthogonal1, orthogonal2;
+  peak.setIntensity(1);
+  peak.setMZ(10);
+  orthogonal1.push_back(peak);
+  peak.setMZ(20);
+  orthogonal2.push_back(peak);
+
+  BinnedSpectrum orthogonal_bin1(orthogonal1, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
+  BinnedSpectrum orthogonal_bin2(orthogonal2, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
+  TEST_REAL_SIMILAR(ptr->dot_bias(orthogonal_bin1, orthogonal_bin2), 0.0);
 END_SECTION
 START_SECTION(BinnedSpectrum transform(const PeakSpectrum& spec))
   PeakSpectrum s1;
@@ -283,4 +294,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 
 END_TEST
-

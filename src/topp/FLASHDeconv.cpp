@@ -6,8 +6,11 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <fstream>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -43,7 +46,6 @@ public:
   TOPPFLASHDeconv():
       TOPPBase("FLASHDeconv",
                "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
-               true,
                {Citation {"Jeong K, Kim J, Gaikwad M et al.", "FLASHDeconv: Ultrafast, High-Quality Feature Deconvolution for Top-Down Proteomics",
                           "Cell Syst 2020 Feb 26;10(2):213-218.e6", "10.1016/j.cels.2020.01.003"}})
   {
@@ -192,7 +194,8 @@ protected:
     std::string out_quant_file = getStringOption_("out_quant");
 
     bool write_detail = getFlag_("write_detail");
-    int mzml_charge = getIntOption_("mzml_mass_charge");
+    // The charge state CV param (MS:1000041) for mzML expects a positive number 
+    int mzml_charge = abs(getIntOption_("mzml_mass_charge"));
     double min_mz = getDoubleOption_("min_mz");
     double max_mz = getDoubleOption_("max_mz");
     double min_rt = getDoubleOption_("min_rt") * 60.0;

@@ -93,6 +93,30 @@ namespace OpenMS
     void setup(PredictorMap& predictors, const std::map<Size, double>& outcomes, bool classification = true);
 
     /**
+       @brief Load a pre-trained model from a file (in LIBSVM's native format).
+
+       Any previously trained or loaded model is discarded. The loaded model can be
+       used with the vector-based predict() overload. Note that scaling information
+       is not part of the model file: callers must scale the predictors consistently
+       with how the model was trained before calling predict().
+
+       @param[in] filename Path to the model file (as written by saveModel() or LIBSVM's svm-train).
+
+       @throw Exception::ParseError if the model file cannot be loaded
+    */
+    void loadModel(const std::string& filename);
+
+    /**
+       @brief Save the current model to a file (in LIBSVM's native format).
+
+       @param[in] filename Output path for the model file.
+
+       @throw Exception::Precondition if no model has been trained or loaded
+       @throw Exception::UnableToCreateFile if the model file cannot be written
+    */
+    void saveModel(const std::string& filename) const;
+
+    /**
        @brief Predict class labels or regression values (and probabilities).
 
        @param[out] predictions Output vector of prediction results (same order as @p indexes).
@@ -115,6 +139,22 @@ namespace OpenMS
        @throw Exception::InvalidValue if an invalid index is used in @p indexes
     **/
     void predict(PredictorMap& predictors, std::vector<Prediction>& predictions) const;
+
+    /**
+       @brief Predict the class label (or regression value) for a single observation.
+
+       Unlike the other predict() methods, this operates on a dense, already scaled
+       feature vector and returns the raw predicted label without probability
+       estimates. Feature @p features[i] is passed to the model as the (1-based)
+       LIBSVM feature index i+1, so the ordering must match the model's training
+       features. This is primarily intended for models loaded via loadModel().
+
+       @param[in] features Dense vector of (scaled) predictor values for one observation.
+       @return Predicted class label (or regression value).
+
+       @throw Exception::Precondition if no model has been trained or loaded
+    */
+    double predict(const std::vector<double>& features) const;
 
     /**
        @brief Get the weights used for features (predictors) in the SVM model

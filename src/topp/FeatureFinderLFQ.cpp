@@ -45,6 +45,8 @@
  */
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -72,7 +74,7 @@ class TOPPFeatureFinderLFQ final :
 {
 public:
   TOPPFeatureFinderLFQ() :
-    TOPPBase("FeatureFinderLFQ", "Feature detection for LC-MS1 data (EXPERIMENTAL)", false)
+    TOPPBase("FeatureFinderLFQ", "Feature detection for LC-MS1 data (EXPERIMENTAL)")
   {
   }
 

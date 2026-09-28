@@ -37,12 +37,6 @@
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>203</width>
-          <height>20</height>
-         </size>
-        </property>
        </spacer>
       </item>
       <item>
@@ -60,6 +54,12 @@
         <property name="value">
          <number>1</number>
         </property>
+         <property name="minimumSize">
+           <size>
+             <width>70</width>
+             <height>0</height>
+           </size>
+         </property>
        </widget>
       </item>
      </layout>

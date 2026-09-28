@@ -71,9 +71,9 @@ namespace OpenMS
 
     finishAdding_();
 
-    connect(buttongroup_, SIGNAL(buttonClicked(int)), this, SLOT(remove_(int)));
-    connect(addbutton_, SIGNAL(clicked()), this, SLOT(add_()));
-    connect(clearbutton_, SIGNAL(clicked()), this, SLOT(clear_()));
+    connect(buttongroup_, &QButtonGroup::idClicked, this, &MetaInfoVisualizer::remove_);
+    connect(addbutton_, &QPushButton::clicked, this, &MetaInfoVisualizer::add_);
+    connect(clearbutton_, &QPushButton::clicked, this, &MetaInfoVisualizer::clear_);
   }
 
   //----------------------------------------------------------------------------

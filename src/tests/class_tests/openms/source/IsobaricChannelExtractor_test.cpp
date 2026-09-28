@@ -74,13 +74,17 @@ START_SECTION((IsobaricChannelExtractor& operator=(const IsobaricChannelExtracto
 
 END_SECTION
 
+// IsobaricChannelExtractor_6.mzML is used by several sections below; parse it
+// only once here (read-only) instead of re-parsing the file in each section.
+PeakMap ic6_shared;
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), ic6_shared);
+
 START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & consensus_map)))
 {
   {
     // load test data
-    PeakMap exp;
-    MzMLFile mzmlfile;
-    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
+    // IsobaricChannelExtractor_6.mzML is loaded once at file scope (read-only)
+    const PeakMap& exp = ic6_shared;
 
     // add some more information to the quant method
     Param pItraq = q_method->getParameters();
@@ -255,9 +259,8 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
   }
   {
     // load test data
-    PeakMap exp;
-    MzMLFile mzmlfile;
-    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
+    // IsobaricChannelExtractor_6.mzML is loaded once at file scope (read-only)
+    const PeakMap& exp = ic6_shared;
 
     // add some more information to the quant method
     Param pItraq = q_method->getParameters();
@@ -289,9 +292,8 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
   }
   {
     // load test data
-    PeakMap exp;
-    MzMLFile mzmlfile;
-    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
+    // IsobaricChannelExtractor_6.mzML is loaded once at file scope (read-only)
+    const PeakMap& exp = ic6_shared;
 
     // add some more information to the quant method
     Param pItraq = q_method->getParameters();
@@ -374,9 +376,8 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
   }
   {
     // load test data
-    PeakMap exp;
-    MzMLFile mzmlfile;
-    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
+    // IsobaricChannelExtractor_6.mzML is loaded once at file scope (read-only)
+    const PeakMap& exp = ic6_shared;
 
     // add some more information to the quant method
     Param pItraq = q_method->getParameters();
@@ -441,9 +442,8 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
     // - dataset contains 2 ms1 and 5 ms2 spectra
     //   with the purity values listed below
 
-    PeakMap exp_purity;
-    MzMLFile mzmlfile;
-    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp_purity);
+    // IsobaricChannelExtractor_6.mzML is loaded once at file scope (read-only)
+    const PeakMap& exp_purity = ic6_shared;
 
     Param pItraq = q_method->getParameters();
     pItraq.setValue("channel_114_description", "ref");
@@ -497,9 +497,8 @@ START_SECTION(([EXTRA] purity computation without interpolation))
   // - dataset contains 2 ms1 and 5 ms2 spectra
   //   with the purity values listed below
 
-  PeakMap exp_purity;
-  MzMLFile mzmlfile;
-  mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp_purity);
+  // IsobaricChannelExtractor_6.mzML is loaded once at file scope (read-only)
+  const PeakMap& exp_purity = ic6_shared;
 
   Param pItraq = q_method->getParameters();
   pItraq.setValue("channel_114_description", "ref");

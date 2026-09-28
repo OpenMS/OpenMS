@@ -119,19 +119,9 @@ namespace OpenMS
     }
   }
 
-  TheoreticalSpectrumGeneratorXLMS::TheoreticalSpectrumGeneratorXLMS(const TheoreticalSpectrumGeneratorXLMS & rhs) :
-    DefaultParamHandler(rhs)
-  {
-  }
+  TheoreticalSpectrumGeneratorXLMS::TheoreticalSpectrumGeneratorXLMS(const TheoreticalSpectrumGeneratorXLMS& rhs) = default;
 
-  TheoreticalSpectrumGeneratorXLMS & TheoreticalSpectrumGeneratorXLMS::operator=(const TheoreticalSpectrumGeneratorXLMS & rhs)
-  {
-    if (this != &rhs)
-    {
-      DefaultParamHandler::operator=(rhs);
-    }
-    return *this;
-  }
+  TheoreticalSpectrumGeneratorXLMS& TheoreticalSpectrumGeneratorXLMS::operator=(const TheoreticalSpectrumGeneratorXLMS& rhs) = default;
 
   TheoreticalSpectrumGeneratorXLMS::~TheoreticalSpectrumGeneratorXLMS() = default;
 
@@ -318,7 +308,7 @@ namespace OpenMS
         addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
         if (add_losses_)
         {
-          addLinearIonLosses_(spectrum, charges, ion_names, pos, res_type, frag_index, intensity, charge, ion_type, backward_losses[i]);
+          addLinearIonLosses_(spectrum, charges, ion_names, mono_weight, res_type, frag_index, intensity, charge, ion_type, backward_losses[i]);
         }
         if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
         {
@@ -630,7 +620,8 @@ namespace OpenMS
     spectrum.push_back(p);
     if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
     {
-      double pos = mono_pos + (Constants::C13C12_MASSDIFF_U / static_cast<double>(charge));
+      // mono_pos is still the charged mass here, so the isotope offset has to be added before dividing by the charge
+      double pos = (mono_pos + Constants::C13C12_MASSDIFF_U) / static_cast<double>(charge);
       p.setMZ(pos);
       p.setIntensity(pre_int_);
       if (add_metainfo_)
@@ -660,7 +651,8 @@ namespace OpenMS
     spectrum.push_back(p);
     if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
     {
-      double pos = mono_pos + (Constants::C13C12_MASSDIFF_U / static_cast<double>(charge));
+      // mono_pos is still the charged mass here, so the isotope offset has to be added before dividing by the charge
+      double pos = (mono_pos + Constants::C13C12_MASSDIFF_U) / static_cast<double>(charge);
       p.setMZ(pos);
       p.setIntensity(pre_int_H2O_);
       if (add_metainfo_)
@@ -689,7 +681,8 @@ namespace OpenMS
     spectrum.push_back(p);
     if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
     {
-      double pos = mono_pos + (Constants::C13C12_MASSDIFF_U / static_cast<double>(charge));
+      // mono_pos is still the charged mass here, so the isotope offset has to be added before dividing by the charge
+      double pos = (mono_pos + Constants::C13C12_MASSDIFF_U) / static_cast<double>(charge);
       p.setMZ(pos);
       p.setIntensity(pre_int_NH3_);
       if (add_metainfo_)

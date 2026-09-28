@@ -9,6 +9,7 @@
 #include <fstream>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/ParamValue.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////

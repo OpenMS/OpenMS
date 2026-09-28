@@ -17,12 +17,14 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
 #include <boost/interprocess/sync/file_lock.hpp>
@@ -105,7 +107,7 @@ class MSGFPlusAdapter :
 {
 public:
   MSGFPlusAdapter() :
-    SearchEngineBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", true),
+    SearchEngineBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+."),
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<std::string>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<std::string>("low_res,high_res,TOF,Q_Exactive")),
@@ -545,7 +547,7 @@ protected:
     }
 
     // create temporary directory (and modifications file, if necessary):
-    File::TempDir tmp_dir(debug_level_ >= 2);
+    TempDir tmp_dir(debug_level_ >= 2);
     std::string mzid_temp, mod_file;
     // always create a temporary mzid file first, even if mzid output is requested via "mzid_out"
     // (reason: TOPPAS may pass a filename with wrong extension to "mzid_out", which would cause an error in MzIDToTSVConverter below,
@@ -733,7 +735,9 @@ protected:
           int scan_number = 0;
           if ((elements[2].empty()) || (elements[2] == "-1"))
           {
-            scan_number = StringUtils::toInt32(elements[1]);
+            // SpecID may be "controllerType=0 controllerNumber=1 scan=17"; take the value after the last '='
+            // (suffix() now returns the whole string when '=' is absent, matching develop's previous ternary)
+            scan_number = StringUtils::toInt32(StringUtils::suffix(elements[1], '='));
           }
           else
           {

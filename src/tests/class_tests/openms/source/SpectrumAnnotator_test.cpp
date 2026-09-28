@@ -204,6 +204,44 @@ START_SECTION((void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit
   TEST_EQUAL(unannotated_count, 2) // 2 unmatched peaks
 END_SECTION
 
+START_SECTION((SpectrumAnnotator(const SpectrumAnnotator& source)))
+{
+  // getParameters() cannot see the members updateMembers_() caches, so check that a
+  // copy honours the source's configuration: 'max_series' off means no max_series_* .
+  SpectrumAnnotator configured;
+  Param p(configured.getParameters());
+  p.setValue("max_series", "false");
+  configured.setParameters(p);
+  SpectrumAnnotator configured_copy(configured);
+
+  PeptideIdentification pi_copy;
+  pi_copy.setHits(std::vector<PeptideHit>(1, hit));
+  configured_copy.addIonMatchStatistics(pi_copy, spec, tg, sa);
+  ABORT_IF(pi_copy.getHits().empty())
+  TEST_EQUAL(pi_copy.getHits()[0].metaValueExists("peak_number"), true)      // annotation ran
+  TEST_EQUAL(pi_copy.getHits()[0].metaValueExists("max_series_type"), false) // but max_series was off
+}
+END_SECTION
+
+START_SECTION((SpectrumAnnotator& operator=(const SpectrumAnnotator& source)))
+{
+  // same for assignment
+  SpectrumAnnotator configured;
+  Param p(configured.getParameters());
+  p.setValue("max_series", "false");
+  configured.setParameters(p);
+  SpectrumAnnotator assigned;
+  assigned = configured;
+
+  PeptideIdentification pi_assigned;
+  pi_assigned.setHits(std::vector<PeptideHit>(1, hit));
+  assigned.addIonMatchStatistics(pi_assigned, spec, tg, sa);
+  ABORT_IF(pi_assigned.getHits().empty())
+  TEST_EQUAL(pi_assigned.getHits()[0].metaValueExists("peak_number"), true)
+  TEST_EQUAL(pi_assigned.getHits()[0].metaValueExists("max_series_type"), false)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

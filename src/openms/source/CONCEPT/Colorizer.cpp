@@ -10,7 +10,6 @@
 #include <iostream>
 
 #ifdef OPENMS_WINDOWSPLATFORM
-  #include <OpenMS/APPLICATIONS/ConsoleUtils.h>
   #include <windows.h>
 #endif
 

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/config.h>
@@ -20,28 +21,6 @@
 
 namespace OpenMS
 {
-
-  /**
-    @brief Vector of signed integers.
-
-    @ingroup Datastructures
-  */
-  typedef std::vector<Int> IntList;
-
-  /**
-   @brief Vector of double precision real types.
-
-   @ingroup Datastructures
-   */
-  typedef std::vector<double> DoubleList;
-
-
-  /**
-   @brief Vector of String.
-
-   @ingroup Datastructures
-  */
-  typedef std::vector<std::string> StringList;
 
   /**
     @brief Collection of utility functions for management of vectors.

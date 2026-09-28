@@ -74,16 +74,10 @@ namespace OpenMS
   }
 
 
-  NucleicAcidSpectrumGenerator::NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& source) : DefaultParamHandler(source)
-  {
-  }
+  NucleicAcidSpectrumGenerator::NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& source) = default;
 
 
-  NucleicAcidSpectrumGenerator& NucleicAcidSpectrumGenerator::operator=(const NucleicAcidSpectrumGenerator& source)
-  {
-    DefaultParamHandler::operator=(source);
-    return *this;
-  }
+  NucleicAcidSpectrumGenerator& NucleicAcidSpectrumGenerator::operator=(const NucleicAcidSpectrumGenerator& source) = default;
 
 
   NucleicAcidSpectrumGenerator::~NucleicAcidSpectrumGenerator() = default;
