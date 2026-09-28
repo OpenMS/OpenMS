@@ -238,6 +238,14 @@ START_SECTION((static double getFeatureValue(const DataValue& value, const std::
   TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(""), "f"))
   TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(), "f"))
   TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(DoubleList{1.0, 2.0}), "f"))
+
+  // not finite, as text or as a number: the executable stops at such a feature as well
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue("nan"), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue("inf"), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue("-inf"), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(std::numeric_limits<double>::quiet_NaN()), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(std::numeric_limits<double>::infinity()), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(-std::numeric_limits<double>::infinity()), "f"))
 }
 END_SECTION
 

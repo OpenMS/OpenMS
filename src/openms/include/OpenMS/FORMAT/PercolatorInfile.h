@@ -157,7 +157,8 @@ namespace OpenMS
        * @param[in] value Meta value of the feature
        * @param[in] feature Name of the feature (for the error message)
        * @return The numeric value
-       * @throws Exception::InvalidValue if @p value is empty, a list, or a string that is not a number
+       * @throws Exception::InvalidValue if @p value is empty, a list, a string that is not a number,
+       *         or not finite (NaN, infinity); the executable rejects such a feature as well
        */
       static double getFeatureValue(const DataValue& value, const std::string& feature);
 

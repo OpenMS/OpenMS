@@ -97,7 +97,7 @@ namespace OpenMS
                           integer and floating-point meta values (excluding a blocklist of
                           internal keys).
       @throws Exception::InvalidValue if sanity checks fail (too few decoys, no
-              discriminative feature, a feature without a numeric value, etc.).
+              discriminative feature, a feature without a finite numeric value, etc.).
     */
     void rescore(std::vector<PeptideIdentification>& peptide_ids,
                  const StringList& feature_names = {});

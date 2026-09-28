@@ -15,8 +15,10 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <regex>
+#include <cmath>
 #include <functional>
+#include <limits>
+#include <regex>
 #include <unordered_set>
 
 namespace OpenMS
@@ -554,25 +556,31 @@ namespace OpenMS
 
   double PercolatorInfile::getFeatureValue(const DataValue& value, const std::string& feature)
   {
+    double number = std::numeric_limits<double>::quiet_NaN();
     const DataValue::DataType type = value.valueType();
     if (type == DataValue::INT_VALUE || type == DataValue::DOUBLE_VALUE)
     {
-      return static_cast<double>(value);
+      number = static_cast<double>(value);
     }
-    if (type == DataValue::STRING_VALUE)
+    else if (type == DataValue::STRING_VALUE)
     {
       // the .pin writer prints the string as it is, and the executable parses it as a number
       try
       {
-        return StringUtils::toDouble(value.toString());
+        number = StringUtils::toDouble(value.toString());
       }
       catch (const Exception::ConversionError&)
       {
         // not a number: reported below
       }
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "Percolator feature '" + feature + "' does not have a numeric value", value.toString());
+    // the executable also stops at a feature that is not finite ("Reached strange feature")
+    if (!std::isfinite(number))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Percolator feature '" + feature + "' does not have a finite numeric value", value.toString());
+    }
+    return number;
   }
 
   TextFile PercolatorInfile::preparePin_(
