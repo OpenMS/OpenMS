@@ -16,9 +16,11 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 
@@ -1133,6 +1135,50 @@ START_SECTION([EXTRA] store and load gzip and bzip2 compressed files - round-tri
     file.load(tmp_bz2, exp_bz2);
     TEST_TRUE(exp_bz2 == exp_plain)
   }
+
+  // the suffix counts in any letter case, as it does on input and in the TOPP tools' output check
+  {
+    std::string tmp_gz;
+    NEW_TMP_FILE(tmp_gz);
+    tmp_gz += ".mzML.GZ";
+    file.store(tmp_gz, exp_original);
+
+    std::string magic = first_bytes(tmp_gz, 2);
+    TEST_EQUAL(magic.size(), 2)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[0])), 0x1f)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[1])), 0x8b)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] the streaming mzML writer refuses compressed file names)
+{
+  // PlainMSDataWritingConsumer (behind FileConverter -process_lowmemory and other low-memory modes) writes
+  // plain mzML, so a name that promises compression is refused before anything is written
+  for (const std::string suffix : {".mzML.gz", ".mzML.BZ2", ".mzML.zip"})
+  {
+    std::string tmp;
+    NEW_TMP_FILE(tmp);
+    tmp += suffix;
+    TEST_EXCEPTION(Exception::UnableToCreateFile, PlainMSDataWritingConsumer consumer(tmp))
+    TEST_FALSE(File::exists(tmp))
+  }
+
+  // a plain name still works
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  tmp += ".mzML";
+  {
+    PlainMSDataWritingConsumer consumer(tmp);
+    consumer.setExpectedSize(1, 0);
+    MSSpectrum spec;
+    spec.setRT(1.0);
+    spec.push_back(Peak1D(100.0, 1.0f));
+    consumer.consumeSpectrum(spec);
+  }
+  PeakMap exp;
+  MzMLFile().load(tmp, exp);
+  TEST_EQUAL(exp.size(), 1)
 }
 END_SECTION
 

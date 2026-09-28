@@ -1267,16 +1267,6 @@ protected:
     const bool record_aa_mods    = !omit_aa;
     const bool record_variants   = !omit_var;
 
-    // PEFF is a plain-text format; we do not (yet) write directly into a compressed
-    // container, and TOPPBase's format validation accepts `.peff.gz` etc. via its
-    // recursive suffix stripping. Reject compressed suffixes explicitly rather than
-    // silently writing uncompressed bytes under a compressed file name.
-    if (out_file.ends_with(".gz") || out_file.ends_with(".bz2") || out_file.ends_with(".zip"))
-    {
-      writeLogError_("UniPEFF: compressed PEFF outputs are not supported; pass a plain '.peff' filename.");
-      return ILLEGAL_PARAMETERS;
-    }
-
     // Resolve auxiliary files.
     std::string ptmlist_file = getStringOption_("ptmlist");
     if (record_aa_mods && ptmlist_file.empty())

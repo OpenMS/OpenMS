@@ -43,7 +43,8 @@ General:
     in an OpenMS build without this support (#10003, #10026, #10028, #10036, #10037, #10038, #10039, #10040)
   - Transparent .zip input for the XML formats (except mzIdentML) and Bruker .d directories;
     mzML, mzXML, mzData, featureXML, consensusXML, traML and mzIdentML output is compressed
-    with gzip or bzip2 when the file name ends in .gz or .bz2 (#7560, #9139, #9259).
+    with gzip or bzip2 when the file name ends in .gz or .bz2, in any letter case. TOPP tools
+    refuse a compressed output name for any other format (#7560, #9139, #9259, #10317).
   - BREAKING: OpenMS::String/StringView replaced by std::string/std::string_view;
     StringList is std::vector<std::string>. Use OpenMS::StringUtils free functions for
     conversion, splitting, trimming and substitution. String, StringConversions and
@@ -507,6 +508,15 @@ TOPP tools:
         its '-instance' option accordingly (fixes #10125).
       - BREAKING: repeated command-line parameters use the LAST occurrence, with a warning;
         appended workflow arguments can override earlier values (#8670, fixes #5345).
+      - An output file name ending in .gz, .bz2 or .zip is refused with an error unless the
+        format is written that way: mzML, mzXML, mzData, featureXML, consensusXML, traML,
+        mzIdentML and xquest.xml are compressed with gzip or bzip2 (the suffix in any letter
+        case), and an .oswpq bundle is a ZIP archive anyway. Before, idXML, trafoXML, pepXML,
+        MGF, text formats and every .zip name silently got uncompressed data under the compressed
+        name, and so did mzML that a tool streams to disk: FileConverter -process_lowmemory, the
+        lowmemory processOption of PeakPickerHiRes and NoiseFilterGaussian/SGolay, PeakPickerIM
+        on mzML input and OpenSwathWorkflow -out_chrom. The check covers output file lists too,
+        and replaces UniPEFF's own check for PEFF (#10317).
       - Native Parquet I/O is supported by identification converters/filters/search adapters,
         alignment and feature-linking tools; TextExporter and MzTabExporter read all three
         native formats. Output follows input format where applicable (#9232, #9236, #9237,
@@ -873,6 +883,10 @@ OpenMS Library:
       that BrukerTimsFile unpacks. A compression suffix alone therefore no longer implies compatibility,
       so '.mgf.gz' is rejected where '.mzML.gz' is accepted, and both the CLI and TOPPAS apply the
       same rule. Compressed output is unaffected: XMLFile still selects gzip/bzip2 by filename (#490)
+    - FileTypes::supportsCompressedWriting(type, compression) is the writing counterpart: XMLFile
+      compresses the formats marked with the new FileProperties::COMPRESSED_WRITEABLE with gzip or
+      bzip2 and never writes a ZIP archive, while an OSWPQ bundle is always one. TOPPBase uses it to
+      refuse output names whose writer would store plain data under them (#10317)
     - FileTypes: a file type may now register additional accepted extensions besides its preferred
       one. FileTypes::typeToExtensions() lists them (preferred first) and nameToType() resolves them
       case-insensitively: 'fa'/'faa' for FASTA, 'pep.xml' for pepXML, 'prot.xml' for protXML and
@@ -954,6 +968,11 @@ OpenMS Library:
       preserves protein-group abundance arrays. PeptideIndexer settings and upstream
       IDMapper processing metadata are retained (#8489, #8816, #8852, #9186, #9844).
   API and behavior changes:
+    - XMLFile::save_() matches the .gz/.bz2 suffix in any letter case (FileNameUtils::compressionType()),
+      as input handling does, so 'x.mzML.GZ' is written gzip-compressed rather than plain.
+      MSDataWritingConsumer and PlainMSDataWritingConsumer throw Exception::UnableToCreateFile for a
+      file name ending in .gz, .bz2 or .zip: they stream uncompressed mzML, which such a name would
+      mislabel. Use MzMLFile::store() for compressed mzML (#10317).
     - BREAKING: File settings methods move to SystemSettings (getSystemParameters,
       getTempDirectory, getUserDirectory, findDatabase, getOpenMSHomePath,
       getOpenMSConfigDir). File::TempDir becomes TempDir; File::getTemporaryFile becomes

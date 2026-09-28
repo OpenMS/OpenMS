@@ -293,6 +293,43 @@ START_SECTION((static bool supportsCompressedReading(Type type, Type compression
 }
 END_SECTION
 
+START_SECTION((static bool supportsCompressedWriting(Type type, Type compression)))
+{
+  // XMLFile::save_ writes gzip and bzip2 for the formats it stores, but no ZIP archive
+  for (auto type : {FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::FEATUREXML, FileTypes::CONSENSUSXML,
+                    FileTypes::TRAML, FileTypes::MZIDENTML, FileTypes::XQUESTXML})
+  {
+    TEST_TRUE(FileTypes::supportsCompressedWriting(type, FileTypes::GZ))
+    TEST_TRUE(FileTypes::supportsCompressedWriting(type, FileTypes::BZ2))
+    TEST_FALSE(FileTypes::supportsCompressedWriting(type, FileTypes::ZIP))
+  }
+
+  // readable compressed, but written through a plain stream: a compressed name would hold plain text
+  for (auto comp : {FileTypes::GZ, FileTypes::BZ2, FileTypes::ZIP})
+  {
+    TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::IDXML, comp))
+    TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::TRANSFORMATIONXML, comp))
+    TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::PEPXML, comp))
+    TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::QCML, comp))
+    TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::INI, comp))
+    TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::MGF, comp))
+    TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::TSV, comp))
+    TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::PEFF, comp))
+    TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::IDPARQUET, comp))
+    TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::UNKNOWN, comp))
+  }
+
+  // an OSWPQ bundle is always written as a ZIP archive, so '.oswpq.zip' is fine and '.oswpq.gz' is not
+  TEST_TRUE(FileTypes::supportsCompressedWriting(FileTypes::OSWPQ, FileTypes::ZIP))
+  TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::OSWPQ, FileTypes::GZ))
+  TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::OSWPQ, FileTypes::BZ2))
+
+  // a non-compression type is never a container
+  TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::MZML, FileTypes::MZML))
+  TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::MZML, FileTypes::UNKNOWN))
+}
+END_SECTION
+
   START_SECTION(static FileTypes::FileTypeList typesWithProperties(const std::vector<FileProperties>& features))
   {
     std::vector<FileTypes::FileProperties> f;
