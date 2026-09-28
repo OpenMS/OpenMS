@@ -442,3 +442,43 @@ def test_str_and_repr_of_a_broken_boolean_do_not_raise():
     # the restrictions are the only hint why every accessor raises, so they stay visible
     assert "valid:" in text
     assert repr(p) == "Param({'flag': 'auto'})"
+
+
+# ------------------------------------------------------------- review follow-ups
+
+
+@pytest.mark.parametrize("filter_flag", [None, True])
+def test_update_from_param_refuses_bool_into_non_boolean(filter_flag):
+    p = pyopenms.Param({"n": 1, "other": 2})
+    src = pyopenms.Param({"n": False, "other": 3})
+    with pytest.raises(TypeError):
+        p.update(src, filter_flag)
+    # checked before anything is written
+    assert p["n"] == 1
+    assert p["other"] == 2
+
+
+def test_update_from_param_bool_into_boolean_still_works():
+    p = pyopenms.Param({"flag": True})
+    p.update(pyopenms.Param({"flag": False}))
+    assert p["flag"] is False
+
+
+@pytest.mark.parametrize("value", [b"\xff", [b"\xff"]])
+def test_repr_of_non_utf8_bytes_raises_instead_of_crashing(value):
+    p = pyopenms.Param()
+    p["x"] = value
+    with pytest.raises(UnicodeDecodeError):
+        repr(p)
+    with pytest.raises(UnicodeDecodeError):
+        p["x"]
+
+
+def test_paramentry_repr_of_non_utf8_bytes_raises():
+    with pytest.raises(UnicodeDecodeError):
+        repr(pyopenms.ParamEntry("x", b"\xff", ""))
+
+
+def test_paramentry_rejected_value_raises_typeerror():
+    with pytest.raises(TypeError):
+        pyopenms.ParamEntry("x", {}, "description")

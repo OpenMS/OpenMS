@@ -93,6 +93,16 @@ bool paramEntryReadsAsBool(const OpenMS::Param::ParamEntry& entry)
     return value == "true" || value == "false";
 }
 
+// paramValueToPython() returns an invalid handle with a Python error set when conversion
+// fails (e.g. a stored string that is not valid UTF-8). Surface that error instead of
+// wrapping a null handle.
+nb::object paramValueToPythonChecked(const OpenMS::ParamValue& value)
+{
+    nb::handle h = nb::detail::paramValueToPython(value);
+    if (!h.is_valid()) throw nb::python_error();
+    return nb::steal(h);
+}
+
 // Reading. `key` is passed separately because ParamEntry::name is the leaf name, not the
 // full colon path. Raises for a boolean entry holding an illegal value -- the same
 // strictness C++ has in ParamValue::toBool() and TOPPBase::getParamAsBool_().
@@ -110,15 +120,16 @@ nb::object paramEntryValueToPython(const OpenMS::Param::ParamEntry& entry, const
         }
         return nb::bool_(entry.value.toBool());
     }
-    return nb::steal(nb::detail::paramValueToPython(entry.value));
+    return paramValueToPythonChecked(entry.value);
 }
 
-// Reading for __str__/__repr__, which must never throw: renders the raw value for the
-// broken state above instead of raising.
+// Reading for __str__/__repr__: renders the raw value for the broken boolean state above
+// instead of raising. A value that cannot be converted at all (invalid UTF-8) still raises,
+// as it did before boolean support.
 nb::object paramEntryValueToDisplay(const OpenMS::Param::ParamEntry& entry)
 {
     if (paramEntryReadsAsBool(entry)) return nb::bool_(entry.value.toBool());
-    return nb::steal(nb::detail::paramValueToPython(entry.value));
+    return paramValueToPythonChecked(entry.value);
 }
 
 [[noreturn]] void throwUnsupportedParamValue(const std::string& key, nb::handle value)
@@ -1153,6 +1164,15 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
                 // Param::insert walks the source's node/entry vectors while inserting into
                 // our own, so updating from ourselves has to be a no-op, not aliasing.
                 if (&param_src == &self) return;
+                // Same rule as assigning a bool: a boolean source entry must not turn an
+                // existing non-boolean parameter into the string 'true'/'false'. Checked for
+                // every key before anything is written, so a rejected update changes nothing.
+                for (auto it = param_src.begin(); it != param_src.end(); ++it) {
+                    const std::string key = it.getName();
+                    if (it->isBool() && self.exists(key) && !self.getEntry(key).isBool()) {
+                        throwNotABoolParam(key);
+                    }
+                }
                 if (!filter) {
                     // Whole entries. A key missing here keeps the source's description,
                     // tags and restrictions -- so a boolean parameter stays boolean instead
@@ -1195,9 +1215,12 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
         .def("__deepcopy__", [](const OpenMS::Param::ParamEntry& self, nb::dict) { return OpenMS::Param::ParamEntry(self); }, "memo"_a)
         .def("__init__", [](OpenMS::Param::ParamEntry* self, const std::string& name, nb::handle value,
                             const std::string& description, const std::vector<std::string>& tags) {
-            new (self) OpenMS::Param::ParamEntry(name, OpenMS::ParamValue(), description, tags);
+            // Validate on a temporary first: if the value is rejected after placement new,
+            // nanobind never runs the destructor and the entry's strings would leak.
+            OpenMS::Param::ParamEntry entry(name, OpenMS::ParamValue(), description, tags);
             // A newly built entry: a bool here defines a boolean parameter outright.
-            paramEntrySetValueFromPython(*self, value, name, /*fresh=*/true);
+            paramEntrySetValueFromPython(entry, value, name, /*fresh=*/true);
+            new (self) OpenMS::Param::ParamEntry(std::move(entry));
         }, "name"_a, "value"_a, "description"_a, "tags"_a = std::vector<std::string>(),
             nb::sig("def __init__(self, name: str, value: " PY_PARAM_VALUE_IN ", description: str, tags: list[str] = []) -> None"))
         .def_rw("name", &OpenMS::Param::ParamEntry::name)

@@ -351,8 +351,9 @@ public:
  * function. Removing the caster's C++ -> Python direction turns "someone adds a .def that
  * returns a ParamValue directly" from a silently wrong Python type into a compile error.
  *
- * Returns a NEW reference, or an invalid handle with a Python error already set (only
- * possible on allocation failure). Callers wrap the result in nb::steal().
+ * Returns a NEW reference, or an invalid handle with a Python error already set (on
+ * allocation failure, or when a stored string is not valid UTF-8). Callers must check
+ * the handle before use; see paramValueToPythonChecked() in bind_datastructures.cpp.
  */
 inline handle paramValueToPython(const OpenMS::ParamValue& src) noexcept {
     using ValueType = OpenMS::ParamValue::ValueType;
