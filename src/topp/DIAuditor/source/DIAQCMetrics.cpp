@@ -385,10 +385,13 @@ namespace OpenMS
     const bool im_range = std::isfinite(im_lower) || std::isfinite(im_upper);
     record.ion_mobility_lower = (options_.ion_mobility == IonMobilityKey::AUTO) ? im_lower : NaN;
     record.ion_mobility_upper = (options_.ion_mobility == IonMobilityKey::AUTO) ? im_upper : NaN;
+    const bool im_array = spectrum.containsIMData();
     // a single scan has an ion mobility of its own, but neither the range nor the ion mobility array of a frame
     record.scan_ion_mobility = !faims && spectrum.getDriftTimeUnit() != DriftTimeUnit::NONE &&
-                               spectrum.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET && !im_range &&
-                               !spectrum.containsIMData();
+                               spectrum.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET && !im_range && !im_array;
+    // a frame without the range of its window (e.g. TIMSCONVERT's diaPASEF output): windows that differ only in ion
+    // mobility cannot be told apart
+    record.im_array_without_range = im_array && !im_range;
 
     records_.push_back(record);
   }
@@ -423,6 +426,7 @@ namespace OpenMS
         ++run.ms2_count;
         if (r.precursor_count > 1) ++run.ms2_multiple_precursors;
         if (r.scan_ion_mobility) ++run.ms2_scan_ion_mobility;
+        if (r.has_isolation_window && r.im_array_without_range) ++run.ms2_im_array_without_range;
       }
       // a spectrum without scan start time has a negative retention time
       if (!(r.rt >= 0.0))
