@@ -22,6 +22,9 @@
 
 #include <algorithm>
 #include <fstream>
+#include <iomanip>
+#include <limits>
+#include <sstream>
 #include <vector>
 
 using namespace OpenMS;
@@ -223,9 +226,11 @@ START_SECTION((static double getFeatureValue(const DataValue& value, const std::
   TEST_REAL_SIMILAR(PercolatorInfile::getFeatureValue(DataValue(" -3e-2 "), "f"), -0.03)
   TEST_REAL_SIMILAR(PercolatorInfile::getFeatureValue(DataValue("48"), "SAGE:scored_candidates"), 48.0)
 
-  // a double printed as the .pin writer prints it reads back as the same double
+  // text with all the digits of a double reads back as that double
   const double value = 0.1 + 0.2;
-  TEST_EQUAL(PercolatorInfile::getFeatureValue(DataValue(DataValue(value).toString()), "f"), value)
+  std::ostringstream value_text;
+  value_text << std::setprecision(std::numeric_limits<double>::max_digits10) << value;
+  TEST_EQUAL(PercolatorInfile::getFeatureValue(DataValue(value_text.str()), "f"), value)
 
   // no numeric value: an error, not an unrelated number
   TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue("abc"), "f"))

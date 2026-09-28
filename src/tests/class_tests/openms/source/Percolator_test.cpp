@@ -26,10 +26,13 @@
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
+#include <iomanip>
 #include <iterator>
+#include <limits>
 #include <numeric>
 #include <random>
 #include <set>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -298,6 +301,13 @@ START_SECTION([EXTRA] string meta values are features with the numbers they hold
   std::vector<PeptideIdentification> numeric, text;
   std::srand(11);
   auto rand01 = []() { return static_cast<double>(std::rand()) / RAND_MAX; };
+  // with all the digits a double needs to read back unchanged
+  auto as_text = [](double value)
+  {
+    std::ostringstream text;
+    text << std::setprecision(std::numeric_limits<double>::max_digits10) << value;
+    return text.str();
+  };
   for (size_t i = 0; i < 400; ++i)
   {
     const bool is_decoy = (i % 2 == 1);
@@ -314,10 +324,10 @@ START_SECTION([EXTRA] string meta values are features with the numbers they hold
     pid.insertHit(hit);
     numeric.push_back(pid);
 
-    // the same numbers as text, printed as the .pin writer prints them
+    // the same numbers as text
     PeptideHit& text_hit = pid.getHits()[0];
-    text_hit.setMetaValue("feat_sep", DataValue(sep).toString());
-    text_hit.setMetaValue("feat_noise", DataValue(noise).toString());
+    text_hit.setMetaValue("feat_sep", as_text(sep));
+    text_hit.setMetaValue("feat_noise", as_text(noise));
     TEST_TRUE(text_hit.getMetaValue("feat_sep").valueType() == DataValue::STRING_VALUE)
     text.push_back(pid);
   }
