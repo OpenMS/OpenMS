@@ -1435,6 +1435,12 @@ Build System:
   - The Windows installer no longer includes ProteoWizard (msconvert and the instrument vendors'
     libraries in THIRDPARTY/pwiz-bin). OpenMS does not use it; to convert other vendor formats
     with msconvert, install ProteoWizard from https://proteowizard.sourceforge.io/ (#10292).
+  - The tools the installers bundle from THIRDPARTY now come with their license texts, in each
+    tool's folder: Comet, MaRaCluster (with its NOTICE), Percolator and X!Tandem, and a
+    THIRD-PARTY-NOTICES.txt for the assemblies of ThermoRawFileParser. SpectraST is no longer
+    bundled: it is GPL-licensed and was shipped without its license text or source code.
+    SpectraSTSearchAdapter runs a separately installed spectrast given with -executable
+    (OpenMS/THIRDPARTY abe0956, #10292).
   - TOPPView and TOPPAS show the notice that Thermo's RawFileReader license asks for in the
     About dialog of software that ships it, in builds with the in-process Thermo reader
     (#10292).
