@@ -32,6 +32,7 @@
   #include <OpenMS/SYSTEM/File.h>
   #include <algorithm>
   #include <cctype>
+  #include <cmath>
   #include <cstdlib>
   #include <filesystem>
   #include <limits>
@@ -381,6 +382,11 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
         if (injection) { acquisition.setMetaValue("ion injection time", unit_value(*injection, 28)); }
         const auto mono = Metadata::number(Metadata::trailer(parsed, "Monoisotopic M/Z:"));
         if (mono && *mono > 0) { acquisition.setMetaValue("[Thermo Trailer Extra]Monoisotopic M/Z:", *mono); }
+        // mass resolving power as msconvert takes it: 'Orbitrap Resolution:', else 'FT Resolution:' (older instruments).
+        // Kept with the spectrum, as the mzML reader does; the mzML writer puts it into the scan (MS:1000800).
+        auto resolution = Metadata::number(Metadata::trailer(parsed, "Orbitrap Resolution:"));
+        if (! resolution || *resolution <= 0) { resolution = Metadata::number(Metadata::trailer(parsed, "FT Resolution:")); }
+        if (resolution && *resolution > 0) { spectrum.setMetaValue("mass resolving power", std::llround(*resolution)); }
         const auto voltage_on = Metadata::number(Metadata::trailer(parsed, "FAIMS Voltage On:"));
         const auto voltage = Metadata::number(Metadata::trailer(parsed, "FAIMS CV:"));
         std::string enabled = Metadata::trailer(parsed, "FAIMS Voltage On:");

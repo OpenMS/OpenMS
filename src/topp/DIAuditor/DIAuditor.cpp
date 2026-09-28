@@ -48,9 +48,9 @@ data acquired elsewhere.
 archives (diaPASEF frames are split into their isolation windows) can be given directly. These readers load a whole run
 into memory, so large runs need correspondingly much memory; converting them to mzML first avoids that. mzML spectra
 are used as they are stored, profile or centroided, which matters for the peak counts; .raw files are read with Thermo's
-peak picking, as FileConverter does by default. Values a reader does not provide are
-NA: the mass resolving power (MS1Resolution, MassResolvingPower) for .raw and .d input, and the instrument, its serial
-number and the start time for .d input.
+peak picking, as FileConverter does by default. Values an input does not provide are NA, e.g. the mass resolving power
+(MS1Resolution, MassResolvingPower) for .d input, which has none, and for mzML from converters that do not write it
+(MS:1000800), such as ThermoRawFileParser.
 
 MS2 spectra are grouped into isolation windows by the isolation window of their precursor (target m/z, lower and upper
 offset) and by their ion mobility settings (see @p ion_mobility): the FAIMS compensation voltage, and the ion mobility

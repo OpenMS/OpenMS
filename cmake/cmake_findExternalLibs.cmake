@@ -22,87 +22,15 @@
 find_package(XercesC REQUIRED)
 
 #------------------------------------------------------------------------------
-# Is _path inside a Homebrew prefix? /opt/homebrew on Apple Silicon,
-# /usr/local on Intel, or $HOMEBREW_PREFIX for a relocated install. Used to
-# spot a static boost from brew, which needs the fixups below. cmake_path
-# compares whole path components, so /usr/locale does not count as /usr/local.
-macro(openms_is_homebrew_path _path _out)
-  set(${_out} FALSE)
-  set(_oihp_prefixes "/opt/homebrew" "/usr/local")
-  if (DEFINED ENV{HOMEBREW_PREFIX})
-    list(APPEND _oihp_prefixes "$ENV{HOMEBREW_PREFIX}")
-  endif()
-  foreach (_oihp_prefix ${_oihp_prefixes})
-    cmake_path(IS_PREFIX _oihp_prefix "${_path}" NORMALIZE _oihp_hit)
-    if (_oihp_hit)
-      set(${_out} TRUE)
-    endif()
-  endforeach()
-  unset(_oihp_prefixes)
-  unset(_oihp_prefix)
-  unset(_oihp_hit)
-endmacro()
-
-#------------------------------------------------------------------------------
-# Boost's CMake config does not expose the transitive dependencies of its
-# compiled libraries as imported targets, so a static boost from brew carries
-# plain "-lzstd"-style entries in its link interface instead
-# (https://github.com/boostorg/boost_install/issues/64).
-#
-# Replace the entries of _boost_target's link interface that name library
-# _stem -- "-l<stem>" or a path to "lib<stem>.<ext>" -- with the first of
-# ${ARGN} that exists as an imported target, after looking for _package. Touch
-# nothing else: which libraries boost links depends on how it was built, so
-# substituting one it does not list would invent a dependency, and naming an
-# imported target that no find_package created is a hard error at generate time
-# ("the link interface of target ... contains ZLIB::ZLIB but the target was not
-# found"). When no candidate target exists, boost's own flag is left in place
-# and a warning names _name. Pass an empty _package to skip the find_package,
-# for callers that have already looked the dependency up themselves.
-#
-# The regex is built here rather than passed in: a macro substitutes its
-# arguments as text, so a backslash escape in one would be unescaped a second
-# time ("\\." arriving as ".", which would make the zlib stem match -lzstd).
-macro(openms_boost_flag_to_target _boost_target _name _stem _package)
-  set(_obftt_regex "^(-l|.*lib)${_stem}(\\.|$)")
-  get_target_property(_obftt_libs ${_boost_target} INTERFACE_LINK_LIBRARIES)
-  set(_obftt_hits "${_obftt_libs}")
-  list(FILTER _obftt_hits INCLUDE REGEX "${_obftt_regex}")
-  if (_obftt_hits)
-    if (NOT "${_package}" STREQUAL "")
-      # QUIET: a miss is reported below, with advice specific to this build --
-      # find_package's own "set <pkg>_DIR" wall of text would only compete.
-      find_package(${_package} QUIET)
-    endif()
-    set(_obftt_target "")
-    foreach (_obftt_candidate ${ARGN})
-      if (TARGET ${_obftt_candidate})
-        set(_obftt_target ${_obftt_candidate})
-        break()
-      endif()
-    endforeach()
-    if (_obftt_target)
-      list(FILTER _obftt_libs EXCLUDE REGEX "${_obftt_regex}")
-      list(APPEND _obftt_libs ${_obftt_target})
-      set_target_properties(${_boost_target}
-              PROPERTIES INTERFACE_LINK_LIBRARIES "${_obftt_libs}")
-    else()
-      message(WARNING "${_boost_target} links ${_name}, but no imported target for it was found. Leaving boost's \
-plain link flag for it in place; if linking fails, point CMake at ${_name} through CMAKE_PREFIX_PATH or its _ROOT \
-variable.")
-    endif()
-  endif()
-  unset(_obftt_regex)
-  unset(_obftt_libs)
-  unset(_obftt_hits)
-  unset(_obftt_target)
-  unset(_obftt_candidate)
-endmacro()
-
-#------------------------------------------------------------------------------
 # BOOST
-set(OpenMS_BOOST_COMPONENTS date_time regex CACHE INTERNAL "Boost components for core lib")
-find_boost(iostreams ${OpenMS_BOOST_COMPONENTS})
+# OpenMS uses only header-only Boost libraries (Boost.Regex is header-only since
+# 1.76; FileInfo only needs Boost.Iostreams' filtering_ostream and null_sink,
+# which are templates), so no compiled Boost library is linked and static and
+# shared Boost installations work alike. A static Boost linked into libOpenMS.so
+# failed where it was not built with -fPIC and brought its own dependencies
+# (zstd, lzma, ICU) in as plain link flags (#3319); a compiled component would
+# bring that choice back.
+find_boost()
 
 if(Boost_FOUND)
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
@@ -110,68 +38,8 @@ if(Boost_FOUND)
   set(CF_OPENMS_BOOST_VERSION_MINOR ${Boost_MINOR_VERSION})
   set(CF_OPENMS_BOOST_VERSION_SUBMINOR ${Boost_SUBMINOR_VERSION})
   set(CF_OPENMS_BOOST_VERSION ${Boost_VERSION})
-
-  get_target_property(location Boost::iostreams LOCATION)
-  get_target_property(target_type Boost::iostreams TYPE)
-  openms_is_homebrew_path("${location}" boost_from_brew)
-  if (target_type STREQUAL "STATIC_LIBRARY" AND boost_from_brew)
-    message(WARNING "Statically linked Boost from system installations like brew, are not fully supported yet.
-Either use '-DBOOST_USE_STATIC=OFF' to use the shared library or build boost with our contrib. Nonetheless,
-we are going to try to continue building.")
-    # Swap each compression backend boost listed for its imported target, one
-    # entry at a time (see openms_boost_flag_to_target above). zstd's config
-    # package exports a shared or a static target depending on how it was
-    # built, so take whichever exists -- as the opentims block further down
-    # already does.
-    openms_boost_flag_to_target(Boost::iostreams "zlib"  z    ZLIB    ZLIB::ZLIB)
-    openms_boost_flag_to_target(Boost::iostreams "bzip2" bz2  BZip2   BZip2::BZip2)
-    openms_boost_flag_to_target(Boost::iostreams "zstd"  zstd zstd    zstd::libzstd_shared zstd::libzstd_static)
-    openms_boost_flag_to_target(Boost::iostreams "lzma"  lzma LibLZMA LibLZMA::LibLZMA)
-  endif()
-
-  get_target_property(location Boost::regex LOCATION)
-  get_target_property(target_type Boost::regex TYPE)
-  openms_is_homebrew_path("${location}" boost_from_brew)
-  if (target_type STREQUAL "STATIC_LIBRARY" AND boost_from_brew)
-    get_target_property(libs Boost::regex INTERFACE_LINK_LIBRARIES)
-    # If boost from brew, replace simple "link flags" like "-licuuc" with
-    # find_package calls and their resulting imported targets
-    # since boost CMake does not expose this transitive dependency as targets!
-    # see https://github.com/boostorg/boost_install/issues/64
-    # Ask only for the ICU components boost actually listed: which ones it links
-    # depends on how it was built, so requesting one it does not use would
-    # invent a dependency. Components per FindICU.
-    set(_icu_components)
-    foreach (_icu_component data i18n io le lx test tu uc)
-      set(_icu_hits "${libs}")
-      list(FILTER _icu_hits INCLUDE REGEX "^(-l|.*lib)icu${_icu_component}(\\.|$)")
-      if (_icu_hits)
-        list(APPEND _icu_components ${_icu_component})
-      endif()
-    endforeach()
-    if (_icu_components)
-      # OPTIONAL_COMPONENTS, not COMPONENTS: plain COMPONENTS marks each one
-      # required even without REQUIRED, and FindICU creates every ICU:: target
-      # inside "if(ICU_FOUND)" -- so one missing component would leave us with
-      # no targets at all instead of the ones that are there.
-      find_package(ICU QUIET OPTIONAL_COMPONENTS ${_icu_components})
-      if (ICU_FOUND)
-        foreach (_icu_component ${_icu_components})
-          openms_boost_flag_to_target(Boost::regex "icu${_icu_component}" "icu${_icu_component}" ""
-                  ICU::${_icu_component})
-        endforeach()
-      else()
-        message(WARNING "Boost::regex links ICU, but ICU was not found, so boost's plain -licu* link flags are left \
-in place. Homebrew's icu4c is keg-only and therefore off CMake's default search path: configure with \
--DICU_ROOT=\"$(brew --prefix icu4c)\" if linking fails.")
-      endif()
-    endif()
-    unset(_icu_hits)
-    unset(_icu_component)
-    unset(_icu_components)
-  endif()
 else()
-  message(FATAL_ERROR "Boost or one of its components not found!")
+  message(FATAL_ERROR "Boost not found!")
 endif()
 
 #------------------------------------------------------------------------------
@@ -805,6 +673,19 @@ if (WITH_THERMO_RAW)
 
   if(OpenMSThermoBridge_FOUND)
     message(STATUS "openms-thermo-bridge: using system installation")
+
+    # Ship the Thermo Fisher RawFileReader license with the Thermo assemblies, as the
+    # from-source branch below does. The vcpkg port installs it next to its CMake
+    # package (vcpkg-overlays/ports/openms-thermo-bridge/portfile.cmake).
+    set(_openms_thermo_license_file "${OpenMSThermoBridge_DIR}/ThermoRawFileReader-License.doc")
+    if(EXISTS "${_openms_thermo_license_file}")
+      install(FILES "${_openms_thermo_license_file}"
+              DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
+              COMPONENT share)
+    else()
+      message(WARNING "openms-thermo-bridge: ${_openms_thermo_license_file} not found; "
+                      "the install will not include the Thermo RawFileReader license.")
+    endif()
   else()
     # No system install found — fetch and build from source.
     message(STATUS "openms-thermo-bridge: system installation not found, fetching from git")

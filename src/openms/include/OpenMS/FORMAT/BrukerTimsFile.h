@@ -213,7 +213,7 @@ namespace OpenMS
     };
 
     /// Read DIA SWATH boundaries and spectrum counts from a .d directory (SQL only, no peak data).
-    /// Also populates exp_settings with source file metadata.
+    /// Also populates exp_settings with source file metadata, the start of the acquisition and the instrument.
     DIAStreamingMetadata readDIAMetadata(const std::string& path, ExperimentalSettings& exp_settings);
     /// @overload with explicit configuration
     DIAStreamingMetadata readDIAMetadata(const std::string& path, ExperimentalSettings& exp_settings,
@@ -252,8 +252,9 @@ namespace OpenMS
     /// Detect DDA vs DIA by checking for SWATH windows
     bool isDIA_(const std::string& tdf_path) const;
 
-    /// Populate SourceFile metadata from the .d path (no peak data read)
-    void loadExperimentalSettings_(const std::string& path, ExperimentalSettings& settings);
+    /// Populate SourceFile metadata from the input @p path and the run and instrument metadata from the analysis.tdf of
+    /// the .d directory @p d_path (the unpacked directory for a .d.zip; no peak data read)
+    void loadExperimentalSettings_(const std::string& path, const std::string& d_path, ExperimentalSettings& settings);
 
     /// A '.d.zip' archive unpacked into a temporary directory (defined in the .cpp)
     struct UnpackedArchive;
