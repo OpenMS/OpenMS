@@ -52,8 +52,11 @@ fi
 
 # Optional dependencies:
 sudo apt-get -qq install -y \
-  doxygen \
-  graphviz
+  doxygen
+
+# Graphviz is only needed for the optional 'doc_dot' target (documentation
+# with all dot graphs), so it is not installed here:
+#   sudo apt-get install -y graphviz
 
 # [installation_documentation]
 

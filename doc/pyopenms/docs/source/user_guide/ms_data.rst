@@ -586,6 +586,87 @@ This can be useful for a brief visual inspection of your sample in quality contr
 .. image:: img/Spectra2DOverview.png
 
 
+FAIMS Data
+**********
+
+In FAIMS (high-field asymmetric waveform ion mobility spectrometry), the
+compensation voltage (CV) of the FAIMS device selects which ions reach the mass
+spectrometer, and a run can switch between several CVs. OpenMS stores the CV of
+each spectrum as its drift time, with the unit
+``DriftTimeUnit.FAIMS_COMPENSATION_VOLTAGE``. This file contains a short run
+recorded at three CVs:
+
+.. code-block:: python
+    :linenos:
+
+    from urllib.request import urlretrieve
+
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests"
+    urlretrieve(gh + "/class_tests/openms/data/IM_FAIMS_test.mzML", "faims.mzML")
+    exp = oms.MSExperiment()
+    oms.MzMLFile().load("faims.mzML", exp)
+
+    for i in range(5):
+        spec = exp[i]
+        print(spec.ms_level, spec.drift_time, spec.drift_time_unit)
+
+.. code-block:: output
+
+    1 -55.0 DriftTimeUnit.FAIMS_COMPENSATION_VOLTAGE
+    2 -55.0 DriftTimeUnit.FAIMS_COMPENSATION_VOLTAGE
+    2 -55.0 DriftTimeUnit.FAIMS_COMPENSATION_VOLTAGE
+    1 -65.0 DriftTimeUnit.FAIMS_COMPENSATION_VOLTAGE
+    1 -45.0 DriftTimeUnit.FAIMS_COMPENSATION_VOLTAGE
+
+:py:meth:`~.FAIMSHelper.getCompensationVoltages` returns the set of CVs in an
+experiment (an empty set if no spectrum has a CV). To select the spectra of one
+CV, compare their drift time with it:
+
+.. code-block:: python
+    :linenos:
+
+    print(sorted(oms.FAIMSHelper.getCompensationVoltages(exp)))
+
+    cv_45 = oms.MSExperiment()
+    for spec in exp:
+        if abs(spec.drift_time - (-45.0)) < 0.01:
+            cv_45.addSpectrum(spec)
+    print(cv_45.getNrSpectra(), "spectra at CV -45")
+
+.. code-block:: output
+
+    [-65.0, -55.0, -45.0]
+    6 spectra at CV -45
+
+Here the :term:`MS2` spectra carry a CV, too. If a file has CVs only for the
+:term:`MS1` spectra, give each :term:`MS2` spectrum the CV of the last spectrum
+before it that has one, as OpenMS does when it splits such data by CV.
+
+Search engine adapters such as CometAdapter, :term:`MSGFPlusAdapter` and
+SageAdapter store the CV of the identified spectrum as meta value ``FAIMS_CV``
+of each :py:class:`~.PeptideIdentification`.
+:py:meth:`~.FAIMSHelper.filterPeptidesByFAIMSCV` returns the identifications
+whose ``FAIMS_CV`` differs from the target CV by less than ``cv_tolerance``
+(default 0.01), plus those without ``FAIMS_CV``:
+
+.. code-block:: python
+    :linenos:
+
+    peptide_ids = oms.PeptideIdentificationList()
+    for spec in exp:
+        if spec.ms_level == 2:  # one empty identification per MS2 spectrum
+            pep_id = oms.PeptideIdentification()
+            pep_id.setMetaValue("FAIMS_CV", spec.drift_time)
+            peptide_ids.append(pep_id)
+
+    selected = oms.FAIMSHelper.filterPeptidesByFAIMSCV(peptide_ids, -45.0)
+    print(len(peptide_ids), "identifications,", len(selected), "at CV -45")
+
+.. code-block:: output
+
+    10 identifications, 3 at CV -45
+
+
 Example: Precursor Purity
 **************************
 
@@ -753,7 +834,7 @@ To find a spectrum using their original scan number from their native ID we can 
     # Bruker may have:
     # <spectrum index="0" id="scan=19" defaultArrayLength="15">
     # thus we can use (this would also work for Thermo native IDs)
-    lookup.readSpectra(inp, "scan=(?<SCAN>\d+)")       ## required: creates an internal look-up table
+    lookup.readSpectra(inp, r"scan=(?<SCAN>\d+)")       ## required: creates an internal look-up table
 
     vendor_scan_nrs = [19, 21]  ## our test.mzML contains 4 spectra, starting at scan=19
 
@@ -798,7 +879,7 @@ For this simple example, you can achieve the same thing using :py:class:`~.PeakF
     # Create a PeakFileOptions object
     options = oms.PeakFileOptions()
     options.setMSLevels([2])  # Load only MS level 2
-    options.setMZRange(oms.DRange1(oms.DPosition1(mz_start),oms.DPosition1(mz_end)))
+    options.setMZRange(oms.DRange1(mz_start, mz_end))
 
     # Load the mzML file with the specified options
     mzml = oms.MzMLFile()

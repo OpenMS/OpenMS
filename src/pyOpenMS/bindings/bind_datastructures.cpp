@@ -300,6 +300,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::CalibrationData>(m, "CalibrationData", "A helper class, holding all calibration points")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::CalibrationData &>())
         .def("__copy__", [](const OpenMS::CalibrationData& self) { return OpenMS::CalibrationData(self); })
         .def("__deepcopy__", [](const OpenMS::CalibrationData& self, nb::dict) { return OpenMS::CalibrationData(self); }, "memo"_a)
         .def("getMZ", [](const OpenMS::CalibrationData& self, size_t i) { return self.getMZ(i); }, "i"_a, "Retrieve the observed m/z of the i'th calibration point")
@@ -557,6 +558,7 @@ The following formats are supported:
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Math::GaussFitter::GaussFitResult>(m, "GaussFitResult", "Result of a Gaussian fit")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::Math::GaussFitter::GaussFitResult &>())
         .def("__copy__", [](const OpenMS::Math::GaussFitter::GaussFitResult& self) { return OpenMS::Math::GaussFitter::GaussFitResult(self); })
         .def("__deepcopy__", [](const OpenMS::Math::GaussFitter::GaussFitResult& self, nb::dict) { return OpenMS::Math::GaussFitter::GaussFitResult(self); }, "memo"_a)
         .def(nb::init<double, double, double>())
@@ -580,6 +582,7 @@ The following formats are supported:
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::IsotopeCluster>(m, "IsotopeCluster", "OpenMS class IsotopeCluster")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::IsotopeCluster &>())
         .def("__copy__", [](const OpenMS::IsotopeCluster& self) { return OpenMS::IsotopeCluster(self); })
         .def("__deepcopy__", [](const OpenMS::IsotopeCluster& self, nb::dict) { return OpenMS::IsotopeCluster(self); }, "memo"_a)
         .def_rw("peaks", &OpenMS::IsotopeCluster::peaks)
@@ -1009,6 +1012,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Param::ParamEntry>(m, "ParamEntry", "OpenMS class ParamEntry")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::Param::ParamEntry &>())
         .def("__copy__", [](const OpenMS::Param::ParamEntry& self) { return OpenMS::Param::ParamEntry(self); })
         .def("__deepcopy__", [](const OpenMS::Param::ParamEntry& self, nb::dict) { return OpenMS::Param::ParamEntry(self); }, "memo"_a)
         .def(nb::init<const std::string&, const OpenMS::ParamValue&, const std::string&, const std::vector<std::string>&>(), "name"_a, "value"_a, "description"_a, "tags"_a = std::vector<std::string>())
@@ -1052,6 +1056,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Param::ParamNode>(m, "ParamNode", "OpenMS class ParamNode")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::Param::ParamNode &>())
         .def("__copy__", [](const OpenMS::Param::ParamNode& self) { return OpenMS::Param::ParamNode(self); })
         .def("__deepcopy__", [](const OpenMS::Param::ParamNode& self, nb::dict) { return OpenMS::Param::ParamNode(self); }, "memo"_a)
         .def(nb::init<const std::string&, const std::string&>(), "name"_a, "description"_a)
@@ -1236,6 +1241,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::VersionInfo::VersionDetails>(m, "VersionDetails", "Version details struct")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::VersionInfo::VersionDetails &>())
         .def("__copy__", [](const OpenMS::VersionInfo::VersionDetails& self) { return OpenMS::VersionInfo::VersionDetails(self); })
         .def("__deepcopy__", [](const OpenMS::VersionInfo::VersionDetails& self, nb::dict) { return OpenMS::VersionInfo::VersionDetails(self); }, "memo"_a)
         .def_rw("version_major", &OpenMS::VersionInfo::VersionDetails::version_major)
@@ -1457,7 +1463,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
             "adduct_base"_a, "q_min"_a, "q_max"_a, "max_span"_a, "thresh_logp"_a, "max_neutrals"_a)
         .def("__copy__", [](const OpenMS::MassExplainer& self) { return OpenMS::MassExplainer(self); })
         .def("__deepcopy__", [](const OpenMS::MassExplainer& self, nb::dict) { return OpenMS::MassExplainer(self); }, "memo"_a)
-        .def("compute", &OpenMS::MassExplainer::compute,
+        .def("compute", &OpenMS::MassExplainer::compute, "include_identity"_a = false,
             "Compute all possible mass differences and their explanations")
         .def("setAdductBase", &OpenMS::MassExplainer::setAdductBase, "adduct_base"_a,
             "Set the base set of allowed adducts")

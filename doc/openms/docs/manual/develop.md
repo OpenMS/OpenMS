@@ -70,6 +70,8 @@ Consider the following resources for further information:
    unstable or partially untested code.
    The nightly (unstable) installers are available at the [build archive](https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/nightly/).
 - **Developer FAQ**: Visit the [Developer FAQ](/manual/develop/developer-faq.md) to get answers to frequently asked questions.
+- **Migrating from OpenMS::String**: OpenMS 3.6 replaced its string class with `std::string`. See
+  [Migrating from OpenMS::String](/manual/develop/string-migration.md) to adapt code written for earlier versions.
 
 ```{toctree}
 :maxdepth: 1
@@ -79,5 +81,6 @@ develop/custom-compilation.md
 develop/developer-guidelines-for-adding-new-dependent-libraries.md
 develop/link-external-code-to-openms.md
 develop/developer-faq.md
+develop/string-migration.md
 
 ```

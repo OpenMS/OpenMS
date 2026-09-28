@@ -454,10 +454,16 @@ namespace OpenMS
           if (
             StringUtils::hasSubstring(line_wo_spaces, "MS:1002711") ||
             StringUtils::hasSubstring(line_wo_spaces, "MS:1002712") ||
-            StringUtils::hasSubstring(line_wo_spaces, "MS:1002713")
+            StringUtils::hasSubstring(line_wo_spaces, "MS:1002713") ||
+            StringUtils::hasSubstring(line_wo_spaces, "MS:1003813")
           )
           {
             term.xref_type = CVTerm::XRefType::XSD_STRING; // store list as string
+            continue;
+          }
+          if (StringUtils::hasSubstring(line_wo_spaces, "MS:1001344")) // AA sequence
+          {
+            term.xref_type = CVTerm::XRefType::XSD_STRING;
             continue;
           }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";

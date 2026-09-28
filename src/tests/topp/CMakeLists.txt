@@ -705,6 +705,35 @@ add_test("TOPP_FileConverter_nonascii_out1" ${DIFF} -whitelist "id=" "location="
 set_tests_properties("TOPP_FileConverter_nonascii" PROPERTIES DEPENDS "TOPP_FileConverter_nonascii_prepare")
 set_tests_properties("TOPP_FileConverter_nonascii_out1" PROPERTIES DEPENDS "TOPP_FileConverter_nonascii")
 
+# Thermo .raw: builds with the in-process reader use it by default on linux and mac, where the external
+# ThermoRawFileParser also needs mono, which packages do not provide. Windows keeps the external reader,
+# which runs on the .NET Framework that windows includes (see FileConverter.cpp).
+if (WITH_THERMO_RAW)
+  if (WIN32)
+    set(FileConverter_default_raw_reader "external")
+  else()
+    set(FileConverter_default_raw_reader "inprocess")
+  endif()
+  add_test("TOPP_FileConverter_RAW_default_reader" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter.tmp.ini
+    "-DEXPECTED=<ITEM name=\"reader\" value=\"${FileConverter_default_raw_reader}\""
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_FileConverter_RAW_default_reader" PROPERTIES DEPENDS "TOPPWRITEINI_FileConverter")
+endif()
+# The in-process reader needs no ThermoRawFileParser and, like it, applies vendor peak picking
+# (-RawToMzML:no_peak_picking keeps profile scans). Needs the .NET runtime, hence the fixture gate:
+# THERMO_RAW_TEST_DATA is set only with -DENABLE_THERMO_RAW_TESTS=ON, which is off by default and in
+# the CI presets.
+if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
+  add_test("TOPP_FileConverter_RAW_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA} -RawToMzML:reader inprocess -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_1.tmp.mzML)
+  add_test("TOPP_FileConverter_RAW_1_centroided" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_1.tmp.mzML
+    "-DEXPECTED=name=\"centroid spectrum\""
+    "-DFORBIDDEN=name=\"profile spectrum\""
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_FileConverter_RAW_1_centroided" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_1")
+endif()
+
 #------------------------------------------------------------------------------
 # FileFilter tests
 add_test("TOPP_FileFilter_1" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out ${TESTS_TEMP_DIR}/FileFilter_1.tmp.mzML -rt :30 -mz :1000 -int :20000 -in_type mzML -out_type mzML)
@@ -4749,6 +4778,15 @@ set_tests_properties("TOPP_PercolatorAdapter_1_inproc_out" PROPERTIES DEPENDS "T
 add_test("TOPP_PercolatorAdapter_1_inproc_no_binary" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_no_binary_out.tmp.idXML -out_type idXML)
 add_test("TOPP_PercolatorAdapter_1_inproc_no_binary_out" ${DIFF} -in1 PercolatorAdapter_1_inproc_no_binary_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
 set_tests_properties("TOPP_PercolatorAdapter_1_inproc_no_binary_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc_no_binary")
+
+# The in-process backend writes the -out_pin file itself, without the executable.
+add_test("TOPP_PercolatorAdapter_1_inproc_pin" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_pin_out.tmp.idXML -out_type idXML -out_pin PercolatorAdapter_1_inproc_pin.tmp.tsv)
+add_test("TOPP_PercolatorAdapter_1_inproc_pin_written" ${CMAKE_COMMAND} -E sha256sum PercolatorAdapter_1_inproc_pin.tmp.tsv)
+set_tests_properties("TOPP_PercolatorAdapter_1_inproc_pin_written" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc_pin")
+# An option that only the executable implements (here -weights) runs the executable instead
+# of being ignored, so it needs the executable: with a missing one, the tool says so.
+add_test("TOPP_PercolatorAdapter_1_weights_needs_binary" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_weights_out.tmp.idXML -out_type idXML -weights PercolatorAdapter_1_weights.tmp.tsv)
+set_tests_properties("TOPP_PercolatorAdapter_1_weights_needs_binary" PROPERTIES PASS_REGULAR_EXPRESSION "could not be found .by searching on PATH.")
 
 # An input CalcMass is search-engine data, whereas one synthesized for PIN training
 # is temporary; the in-process backend must preserve only the former (#9997). This

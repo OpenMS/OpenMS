@@ -1,0 +1,14 @@
+// Source of TargetedQuantitation_module_workflow.svg (doc/doxygen/public/Modules.doxygen); regenerate with: dot -Tsvg TargetedQuantitation_module_workflow.dot -o TargetedQuantitation_module_workflow.svg
+digraph TargetedWorkflow {
+  rankdir=TB;
+  node [shape=box, style=filled, fillcolor=lightblue];
+
+  raw [label="Raw Data\n(mzML)"];
+  picking [label="Peak Picking\nMRMTransitionGroupPicker\nPeakIntegrator"];
+  filtering [label="Quality Filtering\nMRMFeatureFilter\nMRMFeatureQC"];
+  selection [label="Feature Selection\nMRMFeatureSelector\nMRMBatchFeatureSelector"];
+  quant [label="Absolute Quantitation\nAbsoluteQuantitation\nAbsoluteQuantitationMethod"];
+  results [label="Quantified Results"];
+
+  raw -> picking -> filtering -> selection -> quant -> results;
+}

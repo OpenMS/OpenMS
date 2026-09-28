@@ -187,7 +187,7 @@ protected:
     // Advanced parameters
     registerIntOption_("verbose", "<level>", 2, "Set verbosity of output: 0=no processing info, 5=all.", !is_required, is_advanced_option);
     registerDoubleOption_("precursor_tolerance", "<tolerance>", 20.0, "Precursor monoisotopic mass tolerance", !is_required, is_advanced_option);
-    registerStringOption_("precursor_tolerance_units", "<choice>", "ppm", "tolerance_mass_units 0=ppm, 1=Da", !is_required, is_advanced_option);
+    registerStringOption_("precursor_tolerance_units", "<choice>", "ppm", "Unit of 'precursor_tolerance'.", !is_required, is_advanced_option);
     setValidStrings_("precursor_tolerance_units", ListUtils::create<std::string>("ppm,Da"));
 
 
@@ -330,11 +330,9 @@ protected:
       arguments.push_back("-f"); arguments.push_back(tmp_dir.getPath());
       arguments.push_back("-a"); arguments.push_back(txt_designator);
 
-      map<std::string,int> precursor_tolerance_units;
-      precursor_tolerance_units["ppm"] = 0;
-      precursor_tolerance_units["Da"] = 1;
-
-      arguments.push_back("-p"); arguments.push_back(StringUtils::toStr(getDoubleOption_("precursor_tolerance")) + precursor_tolerance_units[getStringOption_("precursor_tolerance_units")]);
+      // MaRaCluster reads the unit from the suffix of the value ("20.0ppm", "0.05Da") and
+      // assumes ppm without one.
+      arguments.push_back("-p"); arguments.push_back(StringUtils::toStr(getDoubleOption_("precursor_tolerance")) + getStringOption_("precursor_tolerance_units"));
 
       arguments.push_back("-t"); arguments.push_back(StringUtils::toStr(pcut));
       arguments.push_back("-c"); arguments.push_back(StringUtils::toStr(pcut));
