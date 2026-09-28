@@ -56,19 +56,22 @@ MS2 spectra are grouped into isolation windows by the isolation window of their 
 offset) and by their ion mobility settings (see @p ion_mobility): the FAIMS compensation voltage, and the ion mobility
 range of the window as it is written for diaPASEF frames ('ion mobility lower/upper limit', e.g. by
 <tt>msconvert --combineIonMobilitySpectra</tt> or the OpenMS timsTOF reader). These values are matched with an absolute
-tolerance of 1e-6 (as in OpenSWATH). Windows are listed in the order in which they are first acquired. MS2 spectra
-without an isolation window (no precursor, or no isolation window offsets) are not a DIA isolation window: they are
-listed together in the last row of a run in @p out_windows, without m/z values, and left out of the window count and
-of all other window metrics. Spectra of MS level 3 and higher, and spectra without retention time, are counted but not
-assigned to windows.
+tolerance of 1e-6 (as in OpenSWATH). TIMSCONVERT writes no ion mobility range of a window, only the ion mobility of
+each peak, so the windows of its diaPASEF output are told apart by m/z only. Windows are listed in the order in which
+they are first acquired. MS2 spectra without an isolation window (no precursor, or no isolation window offsets) are not
+a DIA isolation window: they are listed together in the last row of a run in @p out_windows, without m/z values, and
+left out of the window count and of all other window metrics. Spectra of MS level 3 and higher, and spectra without
+retention time, are counted but not assigned to windows.
 
 Peak count quartiles are taken as in DIAuditor: the values at positions n/4, n/2 and n/4 + n/2 (integer division) of
 the n sorted counts.
 
 The tool warns about data it cannot describe well: MS2 spectra that are single ion mobility scans (e.g. diaPASEF
 converted without combining the scans of a frame; every scan then counts as a measurement of its window), MS2 spectra
-with several precursors (multiplexed DIA, e.g. MSX; only the first isolation window is used), MS2 spectra without an
-isolation window, and runs without isolation windows or whose windows are mostly measured once (e.g. DDA).
+with more than one isolation window (several precursor elements, as in multiplexed acquisition such as MSX; only the
+first window is used, so such data should be demultiplexed first), MS2 spectra with an ion mobility array but no ion
+mobility range of their window (with @p ion_mobility 'auto'), MS2 spectra without an isolation window, and runs
+without isolation windows or whose windows are mostly measured once (e.g. DDA).
 
 <B>Outputs</B> (at least one is required)
 - @p out: one row per run, with the columns of DIAuditor's <tt>DIAuditor-byRun.tsv</tt>, followed by run-level
@@ -137,13 +140,15 @@ protected:
     registerInputFileList_("in", "<files>", ListUtils::create<std::string>(""),
                            "Input files, one per run: mzML, Thermo .raw and Bruker timsTOF .d (directory or .d.zip), "
                            "as supported by this build");
-    StringList in_formats = {"mzML"};
+    // one initializer: pushing onto a one-element list trips a false -Warray-bounds of GCC 12/13 at -O3
+    const StringList in_formats = {"mzML",
 #ifdef WITH_THERMO_RAW
-    in_formats.push_back("raw");
+                                   "raw",
 #endif
 #ifdef WITH_OPENTIMS
-    in_formats.push_back("d");
+                                   "d",
 #endif
+    };
     setValidFormats_("in", in_formats);
     registerOutputFile_("out", "<file>", "", "Table with one row per run", false);
     setValidFormats_("out", {"tsv"});
@@ -272,7 +277,17 @@ protected:
       if (run.ms2_multiple_precursors > 0)
       {
         OPENMS_LOG_WARN << "Warning: " << run.ms2_multiple_precursors << " MS2 spectra of '" << file << "' have more than "
-                        << "one precursor (multiplexed DIA?). Only the first isolation window of each is used." << endl;
+                        << "one isolation window (several precursor elements, as in multiplexed acquisition such as MSX). "
+                        << "Only the first window of each is used; demultiplex such data first (e.g. msconvert --filter "
+                        << "demultiplex)." << endl;
+      }
+      if (run.ms2_im_array_without_range > 0 && options.ion_mobility == DIAQCMetrics::IonMobilityKey::AUTO)
+      {
+        OPENMS_LOG_WARN << "Warning: " << run.ms2_im_array_without_range << " MS2 spectra of '" << file << "' have an ion "
+                        << "mobility array, but no ion mobility range of their isolation window (e.g. diaPASEF converted by "
+                        << "TIMSCONVERT). Their windows are told apart by m/z only, so windows with the same m/z range and "
+                        << "different ion mobility ranges count as one. The timsTOF reader (.d input) and msconvert "
+                        << "--combineIonMobilitySpectra provide the ranges." << endl;
       }
       if (run.ms2_scan_ion_mobility > 0)
       {

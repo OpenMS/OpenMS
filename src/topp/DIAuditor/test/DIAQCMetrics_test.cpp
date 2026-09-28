@@ -162,6 +162,7 @@ START_SECTION(RunMetrics compute() const)
   TEST_EQUAL(run.spectra_without_rt, 0)
   TEST_EQUAL(run.ms2_multiple_precursors, 0)
   TEST_EQUAL(run.ms2_scan_ion_mobility, 0)
+  TEST_EQUAL(run.ms2_im_array_without_range, 0)
 
   // windows in order of first acquisition, although C was added first
   TEST_EQUAL(run.window_count, 4)
@@ -259,6 +260,7 @@ START_SECTION(void addSpectrum(const MSSpectrum& spectrum))
   const DIAQCMetrics::RunMetrics im_auto = windowsWith(DIAQCMetrics::IonMobilityKey::AUTO);
   TEST_EQUAL(im_auto.window_count, 7) // A, B, A', C, 900 @ 0.7-0.9, 900 @ 1.0-1.2, 950
   TEST_EQUAL(im_auto.ms2_scan_ion_mobility, 2)
+  TEST_EQUAL(im_auto.ms2_im_array_without_range, 0)
 
   // a frame that also carries a single ion mobility value (e.g. its centre) is not a single scan: it has an ion
   // mobility range or an ion mobility array
@@ -278,6 +280,38 @@ START_SECTION(void addSpectrum(const MSSpectrum& spectrum))
     IMDataConverter::setIMUnit(with_array.getFloatDataArrays()[0], DriftTimeUnit::VSSC);
     frames.addSpectrum(with_array);
     TEST_EQUAL(frames.compute().ms2_scan_ion_mobility, 0)
+  }
+
+  // MS2 spectra with an ion mobility array but no range of their window (e.g. diaPASEF converted by TIMSCONVERT) are
+  // counted for a warning, as their windows are told apart by m/z only; also without retention time. Spectra with a
+  // range, MS2 spectra without an isolation window and MS1 spectra are not counted.
+  {
+    auto withArray = [](double rt, UInt ms_level)
+    {
+      MSSpectrum s = makeSpectrum(rt, ms_level, {1.0, 2.0});
+      s.getFloatDataArrays().resize(1);
+      s.getFloatDataArrays()[0].assign({0.75f, 0.85f});
+      IMDataConverter::setIMUnit(s.getFloatDataArrays()[0], DriftTimeUnit::VSSC);
+      return s;
+    };
+    DIAQCMetrics arrays;
+    for (double rt : {1.0, 2.0, -1.0})
+    {
+      MSSpectrum s = withArray(rt, 2);
+      setWindow(s, 500.0, 12.5, 12.5);
+      arrays.addSpectrum(s);
+    }
+    MSSpectrum with_range = withArray(3.0, 2);
+    setWindow(with_range, 525.0, 12.5, 12.5);
+    with_range.setMetaValue("ion mobility lower limit", 0.7);
+    with_range.setMetaValue("ion mobility upper limit", 0.9);
+    arrays.addSpectrum(with_range);
+    arrays.addSpectrum(withArray(4.0, 2)); // no isolation window
+    arrays.addSpectrum(withArray(5.0, 1));
+    const DIAQCMetrics::RunMetrics ar = arrays.compute();
+    TEST_EQUAL(ar.ms2_im_array_without_range, 3)
+    TEST_EQUAL(ar.ms2_scan_ion_mobility, 0)
+    TEST_EQUAL(ar.window_count, 2)
   }
   ABORT_IF(im_auto.windows.size() != 7)
   TEST_REAL_SIMILAR(im_auto.windows[4].ion_mobility_lower, 0.7)
