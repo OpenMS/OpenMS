@@ -221,7 +221,6 @@
 				<userParam name="maldi_spot_id" type="xsd:string" value="M0"/>
 				<userParam name="sdname" type="xsd:string" value="spectrumdescription1"/>
 				<userParam name="scan rate" type="xsd:double" value="17.170000000000002" unitAccession="MS:1000807" unitName="Th/s" unitCvRef="MS"/>
-				<userParam name="mass resolving power" type="xsd:string" value="4.299"/>
 				<userParam name="mass resolution" type="xsd:string" value="4.3"/>
 				<userParam name="elution time (seconds)" type="xsd:double" value="55.109999999999999"/>
 				<userParam name="filter string" type="xsd:string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
@@ -235,6 +234,7 @@
 					<userParam name="name" type="xsd:string" value="acquisition_list"/>
 					<scan externalSpectrumID="4711">
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000800" name="mass resolving power" value="4.299"/>
 						<userParam name="name" type="xsd:string" value="acquisition1"/>
 						<userParam name="source_file_name" type="xsd:string" value="ac.dta"/>
 						<userParam name="source_file_path" type="xsd:string" value="file:///F:/data/Exp02"/>
@@ -495,15 +495,15 @@
 <indexList count="2">
 	<index name="spectrum">
 		<offset idRef="index=0">13671</offset>
-		<offset idRef="index=1">17758</offset>
-		<offset idRef="index=2">26644</offset>
-		<offset idRef="index=3">31454</offset>
+		<offset idRef="index=1">17774</offset>
+		<offset idRef="index=2">26660</offset>
+		<offset idRef="index=3">31470</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="tic native">32794</offset>
-		<offset idRef="sic native">33888</offset>
+		<offset idRef="tic native">32810</offset>
+		<offset idRef="sic native">33904</offset>
 	</index>
 </indexList>
-<indexListOffset>35080</indexListOffset>
+<indexListOffset>35096</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

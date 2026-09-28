@@ -14,6 +14,9 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/METADATA/Instrument.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
@@ -1935,9 +1938,9 @@ namespace OpenMS
   }
 
   // =====================================================================
-  // loadExperimentalSettings_: populate SourceFile metadata
+  // loadExperimentalSettings_: populate SourceFile, run and instrument metadata
   // =====================================================================
-  void BrukerTimsFile::loadExperimentalSettings_(const std::string& path, ExperimentalSettings& settings)
+  void BrukerTimsFile::loadExperimentalSettings_(const std::string& path, const std::string& d_path, ExperimentalSettings& settings)
   {
     SourceFile sf;
     sf.setNameOfFile(File::basename(path));
@@ -1946,6 +1949,69 @@ namespace OpenMS
     sf.setNativeIDType("Bruker TDF nativeID format");
     sf.setNativeIDTypeAccession("MS:1002818");
     settings.getSourceFiles().push_back(sf);
+
+    // start of the acquisition and the instrument, from the GlobalMetadata table (as msconvert reads them)
+    std::map<std::string, std::string> global;
+    try
+    {
+      SQLite::Database db(d_path + "/analysis.tdf", SQLite::OPEN_READONLY);
+      SQLite::Statement query(db, "SELECT Key, Value FROM GlobalMetadata");
+      while (query.executeStep())
+      {
+        global[query.getColumn(0).getString()] = query.getColumn(1).getString();
+      }
+    }
+    catch (const std::exception& e)
+    {
+      OPENMS_LOG_WARN << "Warning: could not read the acquisition metadata of '" << path << "': " << e.what() << std::endl;
+      return;
+    }
+    auto value = [&global](const std::string& key)
+    {
+      const auto it = global.find(key);
+      return it == global.end() ? std::string() : it->second;
+    };
+
+    const std::string date = value("AcquisitionDateTime"); // ISO 8601 with time zone, e.g. "2023-09-19T13:29:04.090-04:00"
+    if (date.size() >= 19)
+    {
+      try
+      {
+        // DateTime only resolves seconds; the full timestamp is kept for the mzML startTimeStamp (as for Thermo .raw)
+        settings.setDateTime(DateTime::fromString(date.substr(0, 19), "yyyy-MM-ddThh:mm:ss"));
+        settings.setMetaValue("mzml_start_time_stamp", date);
+      }
+      catch (const Exception::BaseException&)
+      {
+        OPENMS_LOG_WARN << "Warning: could not parse the acquisition date '" << date << "' of '" << path << "'" << std::endl;
+      }
+    }
+
+    Instrument& instrument = settings.getInstrument();
+    instrument.setVendor(value("InstrumentVendor"));
+    // The instrument name is the model's PSI-MS name for current instruments (e.g. 'timsTOF Pro 2'), but not for all
+    // (e.g. 'impacTEM-pt'). Otherwise the timsTOF series is reported, as msconvert does for every timsTOF (instrument
+    // family 9). The mzML writer knows a model only by its PSI-MS name.
+    const std::string name = value("InstrumentName");
+    instrument.setModel(name);
+    const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
+    const ControlledVocabulary::CVTerm* model = cv.checkAndGetTermByName(name);
+    if (model != nullptr && cv.isChildOf(model->id, "MS:1000031"))
+    {
+      instrument.setName(model->name);
+    }
+    else if (value("InstrumentFamily") == "9" && cv.exists("MS:1003123"))
+    {
+      instrument.setName(cv.getTerm("MS:1003123").name); // Bruker Daltonics timsTOF series
+    }
+    else
+    {
+      instrument.setName(name);
+    }
+    if (!value("InstrumentSerialNumber").empty())
+    {
+      instrument.setMetaValue("instrument serial number", value("InstrumentSerialNumber"));
+    }
   }
 
   // =====================================================================
@@ -1974,7 +2040,7 @@ namespace OpenMS
         "readDIAMetadata() requires a DIA dataset, but '" + path + "' appears to be DDA.");
     }
 
-    loadExperimentalSettings_(path, exp_settings);
+    loadExperimentalSettings_(path, d_path, exp_settings);
 
     // Read DIA windows (with IM conversion via handle's calibration)
     auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
@@ -2241,7 +2307,7 @@ namespace OpenMS
       loadDIA_(*handle, exp, eff);
     }
 
-    loadExperimentalSettings_(path, exp);
+    loadExperimentalSettings_(path, d_path, exp);
 
     // Sort by RT, interleaved across MS levels
     exp.sortSpectra(true);
@@ -2319,7 +2385,7 @@ namespace OpenMS
 
     // Populate source file metadata (same as load())
     ExperimentalSettings settings;
-    loadExperimentalSettings_(path, settings);
+    loadExperimentalSettings_(path, d_path, settings);
     consumer->setExperimentalSettings(settings);
 
     // NOTE: This loads into a temporary experiment then feeds to consumer.
