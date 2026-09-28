@@ -50,7 +50,10 @@ name = "pyopenms"
 version = "3.6.0"
 description = "Python wrapper for C++ LC-MS library OpenMS"
 readme = "README.rst"
-license = {text = "BSD-3-Clause"}
+# PEP 639. LICENSE is a copy of the repository's License.txt: the build backend
+# takes license files only from inside this directory.
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 authors = [
     {name = "The OpenMS team", email = "webmaster@openms.de"},
@@ -68,7 +71,6 @@ keywords = [
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
@@ -144,6 +146,7 @@ include = [
     "CMakeLists.txt",
     "pyproject.toml",
     "README.rst",
+    "LICENSE",
     "pyopenms/*.py",
     "pyopenms/*.pyi",
     "pyopenms/py.typed",
