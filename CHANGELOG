@@ -601,8 +601,12 @@ TOPP tools:
         of always b/y.
     PercolatorAdapter:
       - Defaults to in-process Percolator 3.08 rescoring; no executable is required for
-        idXML/mzid PSM-level FDR. OSW input and peptide/protein-level FDR require
-        -use_subprocess true (#9218, #10020).
+        idXML/mzid/idparquet PSM-level FDR. OSW input, peptide/protein-level FDR, -doc and
+        -init_weights run the percolator executable automatically, which is then required
+        (#9218, #10020). So do the options only the executable implements (-out_pout_*,
+        -weights, -quick_validation, -static, -test_each_iteration, -override), which the
+        in-process backend ignored; it now writes the -out_pin file itself, and uses three
+        threads for -threads 0 instead of one.
       - Both backends preserve input CalcMass and apply -score:fdr/-best_per_spectrum_only
         consistently. Fixed in-process memory leaks and Debug-build Normalizer assertions
         (#9240, #9257, #9997, #10012, #10049, #10057).
@@ -1167,6 +1171,9 @@ Documentation:
     exception types, the SpectrumAccessSqMass usage example and getSpectraByRT /
     getMultipleSpectra semantics, SqMassFile::store replacement behaviour and the
     OpenSwathScoring fetchSpectrumSwath spectrum counts (#10148, #10244).
+  - The ProteomicsLFQ page describes match-between-runs with PIP-ECHO (-pip_echo) and lists
+    Thermo .raw input. The PercolatorAdapter page describes the in-process backend, when the
+    percolator executable is run instead, and how many threads each backend uses.
   - Expanded experimental-design terminology and LFQ/fractionated/TMT/SILAC examples,
     targeted quantitation, FAIMS, RT units, file conversions, USI and MetaProSIP CSV docs
     (#4400, #8478, #8588, #8597, #8615, #9173, #9909).
