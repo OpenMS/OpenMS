@@ -69,9 +69,11 @@ parent (mirroring UniProt's isoform FASTA convention, which carries no
 per-isoform PE/SV). The isoform flagged "displayed" is identical to the
 canonical sequence and is not emitted again; isoforms typed "external" or
 "not described" have no reconstructable sequence and are reported in the log.
-Position-based annotations are not propagated to isoform entries because
-UniProt feature coordinates refer to the canonical sequence only. Disable
-isoform expansion with @c -omit_isoforms.
+Isoform entries carry no position-based annotations: coordinates on the
+canonical sequence are not mapped onto the spliced sequence, and features
+annotated on an isoform (<code>\<location sequence="..."\></code>, see above)
+are not applied to its entry either. Disable isoform expansion with
+@c -omit_isoforms.
 
 Both plain @c .xml and @c .xml.gz UniProt inputs are accepted (gzip is
 auto-detected by the underlying parser).
@@ -1182,8 +1184,9 @@ namespace
   /// Mirrors UniProt's isoform FASTA convention: "Isoform <name> of <parent name>"
   /// with gene / taxonomy / mnemonic inherited from the parent and no SV/EV/PE
   /// (UniProt versions isoform sequences with the parent entry, not separately).
-  /// Position-based annotations are not propagated: UniProt feature coordinates
-  /// refer to the canonical sequence, not to the spliced one.
+  /// Position-based annotations are not propagated: canonical coordinates are not
+  /// mapped onto the spliced sequence, and features annotated on this isoform
+  /// (&lt;location sequence="..."&gt;) are not applied either.
   void writeIsoformPeffEntry(std::ostream& out, const UniProtEntry& parent, const IsoformEntry& iso,
                              const std::string& prefix)
   {
