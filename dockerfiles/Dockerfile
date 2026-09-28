@@ -42,11 +42,8 @@ RUN apt-get update \
     libhdf5-dev\
     coinor-libcoinmp-dev \
     libeigen3-dev \
-    libboost-date-time-dev \
-    libboost-iostreams-dev \
-    libboost-regex-dev \
-    libboost-math-dev \
-    libboost-random-dev \
+    # Boost headers only: OpenMS links no compiled Boost library
+    libboost-dev \
     qt6-base-dev \
     libglx-dev \
     libgl1-mesa-dev \
@@ -201,11 +198,6 @@ RUN apt-get update \
     libqt6svg6 \
     libxerces-c3.2 \
     coinor-libcoinmp1v5 \
-    libboost-date-time1.83.0 \
-    libboost-iostreams1.83.0 \
-    libboost-regex1.83.0 \
-    libboost-math1.83.0 \
-    libboost-random1.83.0 \
     # ICU is required by the .NET runtime that hosts the openms-thermo-bridge
     libicu74 \
   && wget https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
