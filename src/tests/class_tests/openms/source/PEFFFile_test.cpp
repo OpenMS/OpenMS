@@ -1666,39 +1666,39 @@ START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of
   TEST_EQUAL(e1.processed_regions.size(), 5)
 
   // Default-mode disulfide reporting (issue #9829): of the K documented <begin>/<end>
-  // bonds, the k-th labels its begin half-cystine 2k-1 and its end half-cystine 2k and
-  // is itself labeled 2K+k; \DisulfideBond=(2K+k:2k-1,2k) references those ids. Only
-  // the bonds and their half-cystines carry ids (PEFF makes ids optional per
-  // annotation), and the ids 1..3K are unique within the entry.
+  // bonds, bond k (counting from 0) labels its begin half-cystine 2k and its end
+  // half-cystine 2k+1 and is itself labeled 2K+k; \DisulfideBond=(2K+k:2k,2k+1)
+  // references those ids. Only the bonds and their half-cystines carry ids (PEFF makes
+  // ids optional per annotation), and the ids 0..3K-1 are unique within the entry.
   TEST_EQUAL(e1.disulfide_bonds.size(), 2)
-  TEST_EQUAL(e1.disulfide_bonds[0].annotation_id, 5)
-  TEST_EQUAL(e1.disulfide_bonds[0].id1, "1")
-  TEST_EQUAL(e1.disulfide_bonds[0].id2, "2")
+  TEST_EQUAL(e1.disulfide_bonds[0].annotation_id, 4)
+  TEST_EQUAL(e1.disulfide_bonds[0].id1, "0")
+  TEST_EQUAL(e1.disulfide_bonds[0].id2, "1")
   TEST_EQUAL(e1.disulfide_bonds[0].optional_tag, "")
-  TEST_EQUAL(e1.disulfide_bonds[1].annotation_id, 6)
-  TEST_EQUAL(e1.disulfide_bonds[1].id1, "3")
-  TEST_EQUAL(e1.disulfide_bonds[1].id2, "4")
+  TEST_EQUAL(e1.disulfide_bonds[1].annotation_id, 5)
+  TEST_EQUAL(e1.disulfide_bonds[1].id1, "2")
+  TEST_EQUAL(e1.disulfide_bonds[1].id2, "3")
   TEST_EQUAL(e1.disulfide_bonds[1].optional_tag, "")
   // The half-cystine labels follow BOND order, not position order, so they appear
   // out of ascending order inside the position-sorted \ModResPsi list. Parse order
   // of e1.modifications = the 9 ModResPsi tuples first: 45, 50, 55, 58, 80, 90, 95,
-  // ?(phospho), ?(half cystine). Bond 1 = 45<->80 (labels 1, 2); bond 2 = ?<->90
-  // (labels 3, 4); the half-cystine at 95 (single-<position>, i.e. interchain with
+  // ?(phospho), ?(half cystine). Bond 0 = 45<->80 (labels 0, 1); bond 1 = ?<->90
+  // (labels 2, 3); the half-cystine at 95 (single-<position>, i.e. interchain with
   // another molecule) and all regular mods stay unlabeled.
   const UInt kNotSet = std::numeric_limits<UInt>::max();
   TEST_EQUAL(e1.modifications[0].position, 45)
-  TEST_EQUAL(e1.modifications[0].annotation_id, 1)
+  TEST_EQUAL(e1.modifications[0].annotation_id, 0)
   TEST_EQUAL(e1.modifications[1].position, 50)
   TEST_EQUAL(e1.modifications[1].annotation_id, kNotSet)
   TEST_EQUAL(e1.modifications[4].position, 80)
-  TEST_EQUAL(e1.modifications[4].annotation_id, 2)
+  TEST_EQUAL(e1.modifications[4].annotation_id, 1)
   TEST_EQUAL(e1.modifications[5].position, 90)
-  TEST_EQUAL(e1.modifications[5].annotation_id, 4)
+  TEST_EQUAL(e1.modifications[5].annotation_id, 3)
   TEST_EQUAL(e1.modifications[6].position, 95)
   TEST_EQUAL(e1.modifications[6].annotation_id, kNotSet)
-  TEST_EQUAL(e1.modifications[8].position, 0)  // '?' half cystine, begin of bond 2
+  TEST_EQUAL(e1.modifications[8].position, 0)  // '?' half cystine, begin of bond 1
   TEST_EQUAL(e1.modifications[8].accession, "MOD:00798")
-  TEST_EQUAL(e1.modifications[8].annotation_id, 3)
+  TEST_EQUAL(e1.modifications[8].annotation_id, 2)
 
   // The mixed labeled/unlabeled form must survive a store -> reload round-trip
   // through the OpenMS writer (which emits the id: prefix only where set).

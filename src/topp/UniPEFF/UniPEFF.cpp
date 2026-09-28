@@ -56,11 +56,11 @@ as a single <code>\<position\></code> (partner cysteine in another molecule) or
 with an endpoint beyond the sequence end gets no connectivity; its in-range
 half-cystines are written as plain modifications (see below for the rest). By
 default only the reported bonds and their half-cystines are labeled, in bond
-order: of K reported bonds, the k-th labels its two half-cystines 2k-1 and 2k
-and is itself labeled 2K+k, so the ids 1..3K are unique within the entry, as
-PEFF requires (see issue 9829). With
+order: of K reported bonds, bond k (counting from 0) labels its two
+half-cystines 2k and 2k+1 and is itself labeled 2K+k, so the ids 0..3K-1 are
+unique within the entry, as PEFF requires (see issue 9829). With
 @c -annotation_identifiers (PEFF "Option B") every
-annotation tuple instead carries a global sequential 1-based id and
+annotation tuple instead carries a global sequential id (0, 1, 2, ...) and
 \\DisulfideBond references those ids. Each database block with ids declares
 <code># HasAnnotationIdentifiers=true</code>.
 
@@ -420,7 +420,7 @@ namespace
     bool is_halfcys{false};  ///< for stable tie-break on merge
     const PtmEntry* ptm{nullptr};  ///< nullptr = generic (no accession), description in name
     std::string name;        ///< display name (UniProt PTM ID or fallback description)
-    uint32_t annotation_id{kNoId};  ///< 1-based; all tuples in Option B, paired half-cystines in default mode
+    uint32_t annotation_id{kNoId};  ///< 0-based; all tuples in Option B, paired half-cystines in default mode
   };
 
   struct VariantSimpleItem
@@ -701,7 +701,7 @@ namespace
   // ──────────────────────────────────────────────────────────────────
 
   /// Option B (-annotation_identifiers): walk @p a in UniPEFF's emit order assigning
-  /// monotonically increasing 1-based IDs to every annotation tuple (ModRes split into
+  /// monotonically increasing IDs 0, 1, 2, ... to every annotation tuple (ModRes split into
   /// PSI/Unimod/generic buckets, then VariantSimple, VariantComplex, Processed, finally
   /// DisulfideBond). The disulfide pair items receive IDs of their own; @c idx_a/@c idx_b
   /// already point to half-cystine ModRes items whose IDs have just been stamped.
@@ -710,7 +710,7 @@ namespace
   void assignAnnotationIds(EntryAnnotations& a, const std::string& base_sequence,
                            bool emit_processed, bool emit_aa_mods, bool emit_variants)
   {
-    uint32_t next_id = 1;
+    uint32_t next_id = 0;
     const int seq_len = static_cast<int>(base_sequence.size());
     if (emit_aa_mods)
     {
@@ -785,10 +785,10 @@ namespace
 
   /// Default mode (no -annotation_identifiers): implement the selective labeling scheme
   /// from issue #9829 — of the K valid disulfide pairs (both half-cystines located in this
-  /// sequence via <begin>/<end>: intrachain, or between chains of one precursor), the k-th
-  /// (1-based) labels its begin half-cystine 2k-1 and its end half-cystine 2k, and the
-  /// \DisulfideBond tuple itself is labeled 2K+k, referencing those two ids. The bonds
-  /// follow the half-cystines so that the ids 1..3K are unique within the entry (PEFF 1.0,
+  /// sequence via <begin>/<end>: intrachain, or between chains of one precursor), pair k
+  /// (counting from 0) labels its begin half-cystine 2k and its end half-cystine 2k+1, and
+  /// the \DisulfideBond tuple itself is labeled 2K+k, referencing those two ids. The bonds
+  /// follow the half-cystines so that the ids 0..3K-1 are unique within the entry (PEFF 1.0,
   /// section 3.4.2). All other annotations (including half-cystines from single-<position>
   /// features, whose partner lies in another molecule) stay unlabeled.
   void assignDisulfideLabels(EntryAnnotations& a)
@@ -801,11 +801,11 @@ namespace
       reported.push_back(&d);
     }
     const auto num_bonds = static_cast<uint32_t>(reported.size());
-    for (uint32_t k = 1; k <= num_bonds; ++k)
+    for (uint32_t k = 0; k < num_bonds; ++k)
     {
-      DisulfidePairItem& d = *reported[k - 1];
-      a.mods[d.idx_a].annotation_id = 2 * k - 1;
-      a.mods[d.idx_b].annotation_id = 2 * k;
+      DisulfidePairItem& d = *reported[k];
+      a.mods[d.idx_a].annotation_id = 2 * k;
+      a.mods[d.idx_b].annotation_id = 2 * k + 1;
       d.annotation_id = 2 * num_bonds + k;
     }
   }
@@ -1196,7 +1196,7 @@ protected:
     registerStringOption_("prefix", "<string>", "", "Force a single PEFF prefix for every entry (e.g. 'sp'); if empty, sp/tr is derived from the UniProt dataset.", false);
     registerStringOption_("dbversion", "<string>", "unknown", "Value for the mandatory '# DbVersion=' PEFF header line.", false);
 
-    registerFlag_("annotation_identifiers", "Emit PEFF Option B: assign a global sequential id: prefix to every annotation tuple, referenced by \\DisulfideBond. By default only the \\DisulfideBond tuples and the half-cystines they reference get ids: of K bonds, bond k (1-based) labels its half-cystines 2k-1 and 2k and is itself labeled 2K+k.");
+    registerFlag_("annotation_identifiers", "Emit PEFF Option B: assign a global sequential id: prefix to every annotation tuple, referenced by \\DisulfideBond. By default only the \\DisulfideBond tuples and the half-cystines they reference get ids: of K bonds, bond k (counting from 0) labels its half-cystines 2k and 2k+1 and is itself labeled 2K+k.");
     registerFlag_("omit_molecular_processing", "Skip the \\Processed annotations (initiator methionine, signal/transit peptide, propeptide, chain).");
     registerFlag_("omit_amino_acid_modifications", "Skip \\ModResPsi / \\ModResUnimod / \\ModRes and \\DisulfideBond; ptmlist is not read.");
     registerFlag_("omit_sequence_variations", "Skip \\VariantSimple and \\VariantComplex annotations.");
