@@ -234,7 +234,15 @@ else
   boost_requirement="No Boost: the OpenMS headers do not include it, and find_package(OpenMS)
     does not look for it."
 fi
-awk -v requirement="$boost_requirement" -v major_minor="${version%.*}" -v macos_minimum="$macos_minimum" '
+# The version the README's find_package() example names is the one the package
+# file answers to (OpenMSConfigVersion.cmake, e.g. 3.6.0), not the <version> of
+# the archive name: the release workflow names a nightly after its date.
+package_version=$(sed -n 's/^set(PACKAGE_VERSION "\([0-9][0-9.]*\)")$/\1/p' "$stage/$cmake_dir/OpenMSConfigVersion.cmake")
+if [[ -z "$package_version" ]]; then
+  echo >&2 "ERROR: OpenMSConfigVersion.cmake records no package version"
+  exit 1
+fi
+awk -v requirement="$boost_requirement" -v major_minor="${package_version%.*}" -v macos_minimum="$macos_minimum" '
   index($0, "@BOOST_REQUIREMENT@") { sub(/@BOOST_REQUIREMENT@/, requirement) }
   { gsub(/@OPENMS_VERSION_MAJOR_MINOR@/, major_minor); gsub(/@MACOS_MINIMUM@/, macos_minimum); print }
 ' "$source_dir/cmake/OpenMSSDKReadme.txt" > "$stage/README.txt"
