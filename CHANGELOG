@@ -1344,6 +1344,9 @@ Build System:
   - The Windows installer no longer includes ProteoWizard (msconvert and the instrument vendors'
     libraries in THIRDPARTY/pwiz-bin). OpenMS does not use it; to convert other vendor formats
     with msconvert, install ProteoWizard from https://proteowizard.sourceforge.io/ (#10292).
+  - TOPPView and TOPPAS show the notice that Thermo's RawFileReader license asks for in the
+    About dialog of software that ships it, in builds with the in-process Thermo reader
+    (#10292).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----
