@@ -1175,6 +1175,11 @@ Fixes:
       identification without hits (a crash for hit-less identifications loaded from featureXML,
       e.g. in FeatureLinkerUnlabeledQT with use_identifications), sorts the hits of every
       identification (also of a single one) and uses one score orientation throughout (#10148).
+    - OpenMS.ini: entries that a hand-written file does not set are now taken from the built-in
+      defaults. With a file that set only temp_dir, the search engine adapters reported a database
+      they could not find as an internal error ("the element 'id_db_dir' could not be found"). A
+      file without the current 'version' no longer logs "Broken file" or "deprecated" warnings on
+      every run, since OpenMS never rewrites the file (#3009).
 
 Documentation:
   - New "File formats" page in the OpenMS documentation: which formats tools read and write
@@ -1203,6 +1208,9 @@ Documentation:
     Corrected the FileConverter, FeatureFinderIdentification and FeatureFinderMetaboIdent
     pages, the .NET requirement on the Windows installation page, and the macOS installation
     page (macOS 15, notarized installer).
+  - The user FAQ explains OpenMS.ini: that it is optional, where OpenMS looks for it and which
+    entries it reads. The OpenMSInfo page describes the data, temp and user data paths as they
+    are resolved now (#3009).
 
 Build System:
   - Public headers of OpenMS, OpenSwathAlgo, OpenMS_CLI, OpenMS_GUI and the test

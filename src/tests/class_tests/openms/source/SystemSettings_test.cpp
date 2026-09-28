@@ -21,6 +21,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <optional>
 #include <string>
@@ -119,6 +120,36 @@ START_SECTION(static Param getSystemParameters())
   TEST_TRUE(p.exists("home_dir"))
   TEST_TRUE(p.exists("temp_dir"))
   TEST_TRUE(p.exists("id_db_dir"))
+
+  // A hand-written OpenMS.ini may set only some entries and carry no 'version'; the rest come from
+  // the defaults. Point the config dir at a fresh directory (XDG_CONFIG_HOME applies on unix only).
+  const std::optional<std::string> xdg_backup = readEnv("XDG_CONFIG_HOME");
+  const std::string fake_home = SystemSettings::getTempDirectory() + "/" + File::getUniqueName();
+  setEnv("OPENMS_HOME_PATH", fake_home);
+  setEnv("XDG_CONFIG_HOME", fake_home + "/.config");
+  const std::string config_dir = SystemSettings::getOpenMSConfigDir();
+  TEST_TRUE(File::makeDir(config_dir))
+  {
+    std::ofstream ini(config_dir + "/OpenMS.ini");
+    ini << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
+        << "<PARAMETERS version=\"1.8.0\">\n"
+        << "  <ITEM name=\"temp_dir\" value=\"/openms_test/scratch\" type=\"string\" />\n"
+        << "</PARAMETERS>\n";
+  }
+  Param p_partial = SystemSettings::getSystemParameters();
+  TEST_EQUAL(p_partial.getValue("temp_dir").toString(), "/openms_test/scratch")
+  TEST_EQUAL(p_partial.getValue("version").toString(), VersionInfo::getVersion())
+  TEST_TRUE(p_partial.exists("home_dir"))
+  TEST_TRUE(p_partial.exists("id_db_dir"))
+  TEST_TRUE(p_partial.exists("threads"))
+  // a database that is not found is reported as such, not as a missing 'id_db_dir' entry
+  {
+    Logger::LogSinkGuard quiet(getThreadLocalLogError(), std::cerr);
+    TEST_EXCEPTION(Exception::FileNotFound, SystemSettings::findDatabase("filedoesnotexists"))
+  }
+  restoreEnv("XDG_CONFIG_HOME", xdg_backup);
+  restoreEnv("OPENMS_HOME_PATH", home_backup);
+  File::removeDirRecursively(fake_home);
 END_SECTION
 
 START_SECTION(static std::string findDatabase(const std::string& db_name))

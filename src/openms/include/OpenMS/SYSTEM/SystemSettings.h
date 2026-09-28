@@ -58,9 +58,9 @@ public:
     static std::string getUserDirectory();
 
     /// Returns the OpenMS.ini system parameters, read from getOpenMSConfigDir() + "/OpenMS.ini".
-    /// If that file does not exist, the built-in defaults are returned. If it exists but its
-    /// 'version' is missing or outdated, missing entries are filled in from the defaults (the
-    /// file itself is not rewritten).
+    /// The file is optional and never written by OpenMS. Entries it does not set (all of them, if
+    /// the file does not exist) are taken from the built-in defaults, and 'version' always holds
+    /// the running OpenMS version.
     static Param getSystemParameters();
 
     /// uses File::find() to search for a file names @p db_name

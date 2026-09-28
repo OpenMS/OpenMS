@@ -130,34 +130,17 @@ namespace OpenMS
   {
     std::string filename = SystemSettings::getOpenMSConfigDir() + "/OpenMS.ini";
 
+    // the file is optional and never written by OpenMS, so a hand-written one may set only some entries
     Param p;
-    if (!File::readable(filename)) // no file, lets keep it that way
-    {
-      p = getSystemParameterDefaults_();
-    }
-    else
+    if (File::readable(filename))
     {
       ParamXMLFile paramFile;
       paramFile.load(filename, p);
-
-      // check version
-      if (!p.exists("version") || (p.getValue("version") != VersionInfo::getVersion()))
-      {
-        if (!p.exists("version"))
-        {
-          OPENMS_LOG_WARN << "Broken file '" << filename << "' discovered. The 'version' tag is missing.\n";
-        }
-        else // old version
-        {
-          OPENMS_LOG_WARN << "File '" << filename << "' is deprecated.\n";
-        }
-        OPENMS_LOG_WARN << "Updating missing/wrong entries in '" << filename << "' with defaults!\n";
-        Param p_new = getSystemParameterDefaults_();
-        p.setValue("version", VersionInfo::getVersion()); // update old version, such that p_new:version does not get overwritten during update()
-        p_new.update(p);
-        // no new version is stored
-      }
     }
+    // everything the file does not set (or all entries, without a file) comes from the defaults
+    p.setDefaults(getSystemParameterDefaults_());
+    // a 'version' in the file has no meaning (the file is never rewritten); report the running version
+    p.setValue("version", VersionInfo::getVersion());
     return p;
   }
 
