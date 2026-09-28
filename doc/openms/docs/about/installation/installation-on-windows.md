@@ -51,11 +51,14 @@ The windows installer works with Windows 10 and 11 (older versions might still w
 
 ## Reading Thermo Fisher RAW files
 
-OpenMS reads Thermo Fisher `.raw` files natively through the openms-thermo-bridge, which is
-enabled by default in the release binaries. This requires a **.NET 8 runtime** to be
+On Windows, FileConverter converts `.raw` files with ThermoRawFileParser by default. The
+installer puts it on the `PATH`, and it runs on the .NET Framework that Windows includes. The
+other tools that read `.raw` files, and FileConverter with `-RawToMzML:reader inprocess`, use
+the openms-thermo-bridge that is built into OpenMS. This requires a **.NET 8 runtime** to be
 present at run time so that the managed bridge libraries can be loaded. This is the modern,
 cross-platform .NET runtime and is **not** the same as the .NET Framework 3.5 required by
-ProteoWizard (see the known issues above).
+ProteoWizard (see the known issues above). Which tools read `.raw` files is described in
+[Vendor formats](/getting-started/vendor-formats.md).
 
 Download and install it from the [.NET download page](https://dotnet.microsoft.com/download).
 The official installer registers the runtime globally, so no further configuration is normally

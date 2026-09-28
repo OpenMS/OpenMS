@@ -19,8 +19,7 @@ def df_columns(self, columns='default', export_peptide_identifications=True):
         for f in self.iter_feature_views():
             mvs = []
             f.getKeys(mvs)
-            for m in mvs:
-                meta_values.add(m.decode() if isinstance(m, bytes) else m)
+            meta_values.update(mvs)
         cols.extend(sorted(meta_values))
     return cols
 
@@ -107,10 +106,13 @@ def to_df(self, columns=None, meta_values=None, export_peptide_identifications=T
     if need_pep_ids:
         col_names += ['peptide_sequence', 'peptide_score', 'ID_filename', 'ID_native_id']
     col_names += ['charge', 'rt', 'mz', 'rt_start', 'rt_end', 'mz_start', 'mz_end', 'quality', 'intensity']
-    for m in meta_values:
+    for m in meta_values:  # the caller's meta_values may be bytes
         col_names.append(m.decode() if isinstance(m, bytes) else m)
 
-    df = pd.DataFrame(rows, columns=col_names).set_index('feature_id')
+    df = pd.DataFrame(rows, columns=col_names)
+    # uint64 whatever the values: pandas would infer int64 when every ID happened to fit
+    df['feature_id'] = df['feature_id'].astype(np.uint64)
+    df = df.set_index('feature_id')
 
     if columns is not None:
         available_cols = [c for c in columns if c in df.columns]
@@ -138,14 +140,72 @@ def get_df_columns(self, *args, **kwargs):
 
 @addon("FeatureMap")
 def get_assigned_peptide_identifications(self):
-    """Returns all PeptideIdentifications assigned to features in this map."""
+    """Returns all PeptideIdentifications assigned to features in this map.
+
+    The identifications are returned as the features store them, feature by feature.
+    The list holds copies, so neither the map nor its features change. To relate them
+    to their features, use to_peptide_df(), which adds each one's feature_id.
+    """
     from pyopenms._pyopenms_metadata import PeptideIdentificationList
     result = PeptideIdentificationList()
     for f in self.iter_feature_views():
-        pep_ids = f.getPeptideIdentifications()
-        for pid in pep_ids:
+        for pid in f.getPeptideIdentifications():
             result.push_back(pid)
     return result
+
+
+@addon("FeatureMap")
+def peptide_df_columns(self, decode_ontology=True):
+    """Returns a list of column names that to_peptide_df() would produce."""
+    peps = self.get_assigned_peptide_identifications()
+    return ['feature_id'] + [c for c in peps.df_columns(decode_ontology=decode_ontology) if c != 'feature_id']
+
+
+@addon("FeatureMap")
+def to_peptide_df(self, decode_ontology=True, default_missing_values=None, export_unidentified=True,
+                  columns=None):
+    """Returns the PeptideIdentifications assigned to features as a pandas DataFrame.
+
+    One row per identification, as PeptideIdentificationList.to_df() writes the list
+    that get_assigned_peptide_identifications() returns, preceded by a 'feature_id'
+    column: the unique ID of the identification's feature, as the unsigned 64-bit
+    integer that also indexes to_df(). 'P_ID' is the identification's position in
+    get_assigned_peptide_identifications(). Merge the two frames with::
+
+        merged = pd.merge(fmap.to_df().reset_index(),
+                          fmap.to_peptide_df(export_unidentified=False),
+                          on='feature_id', suffixes=('', '_psm'))
+
+    The merge needs unique feature IDs. Features without one, such as features created
+    in Python, have the ID 0 until FeatureMap.setUniqueIds() assigns them one. A
+    'feature_id' meta value on the hits, as 3.5.0's get_assigned_peptide_identifications()
+    added it, gives way to the 'feature_id' column.
+
+    :param decode_ontology: Decode meta value names using the PSI-MS ontology.
+    :param default_missing_values: Default values for missing data by type.
+    :param export_unidentified: Export PeptideIdentifications without PeptideHit.
+    :param columns: Columns to include after 'feature_id', which is always the first.
+        If None, includes all.
+    :return: DataFrame with one row per assigned peptide identification.
+    """
+    from pyopenms._pyopenms_metadata import PeptideIdentificationList
+    peps = PeptideIdentificationList()
+    feature_ids = []
+    for f in self.iter_feature_views():
+        feature_id = f.getUniqueId()
+        for pid in f.getPeptideIdentifications():
+            peps.push_back(pid)
+            # to_df() writes a row for pid only if this holds
+            if export_unidentified or pid.getHits():
+                feature_ids.append(feature_id)
+    if columns is not None:
+        columns = [c for c in columns if c != 'feature_id']
+    df = peps.to_df(decode_ontology=decode_ontology, default_missing_values=default_missing_values,
+                    export_unidentified=export_unidentified, columns=columns)
+    # a 'feature_id' meta value of the hits gives way to the feature's ID
+    df = df.drop(columns='feature_id', errors='ignore')
+    df.insert(0, 'feature_id', np.array(feature_ids, dtype=np.uint64))
+    return df
 
 
 @addon("FeatureMap")

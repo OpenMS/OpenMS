@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -59,7 +58,6 @@
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 #include <OpenMS/FORMAT/ZipIfstream.h>
-#include <OpenMS/FORMAT/ZipArchiveFile.h>
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
@@ -961,32 +959,10 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
       case FileTypes::BRUKER_TDF:
       {
-        // If the input is a .d.zip archive, extract to a temp directory first.
-        std::unique_ptr<TempDir> temp_dir;
-        std::string load_path = filename;
-        if (!File::isDirectory(filename) && StringUtils::hasSuffix(StringUtils::toLowered(filename), ".zip"))
-        {
-          load_path = ZipArchiveFile::unzipDirectory(filename, temp_dir);
-          // Find the .d directory inside the extracted archive (may be nested)
-          bool found_d = false;
-          for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(load_path)))
-          {
-            if (entry.is_directory() && entry.path().extension() == ".d")
-            {
-              load_path = entry.path().string();
-              found_d = true;
-              break;
-            }
-          }
-          if (!found_d)
-          {
-            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              filename, "ZIP archive does not contain a .d directory");
-          }
-        }
+        // BrukerTimsFile unpacks a .d.zip archive itself.
         BrukerTimsFile f;
         f.setLogType(log);
-        f.load(load_path, exp);
+        f.load(filename, exp);
 
         // BrukerTimsFile loads everything; apply PeakFileOptions filters post-load.
         applyPostLoadOptions_(exp);
@@ -997,8 +973,14 @@ namespace OpenMS
 #ifdef WITH_THERMO_RAW
       case FileTypes::RAW:
       {
+        // Apply Thermo's peak picking, as FileConverter and ThermoRawFileParser do by default:
+        // the tools that read .raw expect centroided spectra. ThermoRawFile itself keeps the
+        // acquired profile scans unless Options::centroid is set.
         ThermoRawFile f;
         f.setLogType(log);
+        ThermoRawFile::Options raw_options = f.getOptions();
+        raw_options.centroid = true;
+        f.setOptions(raw_options);
         f.load(filename, exp);
 
         // ThermoRawFile loads everything; apply PeakFileOptions filters post-load.

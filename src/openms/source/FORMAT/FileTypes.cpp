@@ -290,7 +290,7 @@ namespace OpenMS
     {
       return false;
     }
-    // Bruker's '.d.zip' is unpacked by FileHandler, not by XMLFile, and only for ZIP
+    // Bruker's '.d.zip' is unpacked by BrukerTimsFile, not by XMLFile, and only for ZIP
     if (type == FileTypes::BRUKER_TDF)
     {
       return compression == FileTypes::ZIP;
