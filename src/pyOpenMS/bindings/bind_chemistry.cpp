@@ -1859,7 +1859,7 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .export_values();
 
     // HydrophobicityScaleMethod enum (namespace-scoped, used by Residue::getHydrophobicity)
-    nb::enum_<OpenMS::HydrophobicityScaleMethod>(m, "HydrophobicityScaleMethod", nb::is_arithmetic())
+    nb::enum_<OpenMS::HydrophobicityScaleMethod>(m, "HydrophobicityScaleMethod", "Hydrophobicity scales for Residue.getHydrophobicity", nb::is_arithmetic())
         .value("KYTE_DOOLITTLE", OpenMS::HydrophobicityScaleMethod::KYTE_DOOLITTLE)
         .value("EISENBERG", OpenMS::HydrophobicityScaleMethod::EISENBERG)
         .value("HOPP_WOODS", OpenMS::HydrophobicityScaleMethod::HOPP_WOODS)
@@ -1870,7 +1870,7 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .export_values();
 
     // ProteomicsPkaScale enum (namespace-scoped, used by IsoelectricPoint)
-    nb::enum_<OpenMS::ProteomicsPkaScale>(m, "ProteomicsPkaScale", nb::is_arithmetic())
+    nb::enum_<OpenMS::ProteomicsPkaScale>(m, "ProteomicsPkaScale", "pKa scales for the isoelectric point calculation of IsoelectricPoint", nb::is_arithmetic())
         .value("LEHNINGER", OpenMS::ProteomicsPkaScale::LEHNINGER)
         .value("EMBOSS", OpenMS::ProteomicsPkaScale::EMBOSS)
         .value("SILLERO", OpenMS::ProteomicsPkaScale::SILLERO)

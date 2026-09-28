@@ -15,6 +15,18 @@ else()
   set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-Debian-Linux-${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 
+## A package built from anything but a release (a nightly, a branch) carries its
+## prerelease identifier in the control version too, after a '~': 3.6.0~nightly.2026.09.27.
+## dpkg sorts '~' before everything, even the end of the string, so the package sorts
+## below the release 3.6.0 and a later nightly above an earlier one. With the plain
+## 3.6.0 of before, apt treated a nightly and the release as the same version.
+## Without a Debian revision the version may not contain '-', so every character
+## outside [A-Za-z0-9.+~] becomes '.'.
+if(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER)
+  string(REGEX REPLACE "[^A-Za-z0-9.+~]" "." _openms_deb_prerelease "${OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER}")
+  set(CPACK_DEBIAN_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION}~${_openms_deb_prerelease}")
+endif()
+
 ## CPack issues when building the package.
 ## https://bugs.launchpad.net/ubuntu/+source/cmake/+bug/972419
 ## https://ubuntuforums.org/showthread.php?t=2316865
