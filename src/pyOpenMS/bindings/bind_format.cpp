@@ -110,7 +110,7 @@ NB_MODULE(_pyopenms_format, m) {
     nb::class_<OpenMS::ThermoRawFile::Options>(m, "ThermoRawFileOptions", "Options for metadata-preserving Thermo RAW loading")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ThermoRawFile::Options&>())
-        .def_rw("centroid", &OpenMS::ThermoRawFile::Options::centroid, "Centroid profile scans (matches ThermoRawFileParser peak picking)")
+        .def_rw("centroid", &OpenMS::ThermoRawFile::Options::centroid, "Centroid profile scans (matches ThermoRawFileParser peak picking; FileHandler sets it)")
         .def_rw("charge_data", &OpenMS::ThermoRawFile::Options::charge_data, "Export instrument-assigned centroid charges as an integer data array")
         .def_rw("noise_data", &OpenMS::ThermoRawFile::Options::noise_data, "Export the independently sampled noise/baseline arrays")
         .def_rw("all_detectors", &OpenMS::ThermoRawFile::Options::all_detectors, "Export UV/PDA/analog detector traces and PDA spectra")
@@ -516,7 +516,7 @@ Computes a SHA-1 hash of the file content
         .def("loadExperiment", [](OpenMS::FileHandler& self, const std::string& filename, OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;
             self.loadExperiment(filename, exp);
-        }, "filename"_a, "exp"_a, "Load experiment from file")
+        }, "filename"_a, "exp"_a, "Load experiment from file. Thermo .raw files are centroided with Thermo's peak picking; use ThermoRawFile to keep the scans as acquired")
         .def("loadExperiment", [](OpenMS::FileHandler& self, const std::string& filename, OpenMS::MSExperiment& exp,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log,
              bool rewrite_source_file, bool compute_hash) {
