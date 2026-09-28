@@ -180,6 +180,51 @@ def _generate_spectra(peptides, modifications, target_per_mod=300, seed=42):
     return exp
 
 
+def _pseudo_reverse(protein, protease="Trypsin"):
+    """Mirror DecoyGenerator::reversePeptides(), which ProSE uses for its decoys: reverse every
+    cleavage product except its C-terminal cutting site; reverse the last one completely."""
+    digester = ProteaseDigestion()
+    digester.setEnzyme(protease)
+    digester.setMissedCleavages(0)
+    pieces = []
+    digester.digest(AASequence.fromString(protein), pieces)
+    parts = [p.toUnmodifiedString() for p in pieces]
+    rev = [s[:-1][::-1] + s[-1] for s in parts[:-1]] + [parts[-1][::-1]]
+    return AASequence.fromString("".join(rev))
+
+
+def _add_decoy_spectra(exp, fasta_entries, per_protein=2, rt=100000.0):
+    """Append spectra of decoy peptides so a search with decoys yields decoy PSMs by
+    construction. The other synthetic spectra are noise-free and explained by their targets,
+    so without these no decoy is ever a top hit (see ProSEAlgorithm_test, addDecoySpectra)."""
+    digester = ProteaseDigestion()
+    digester.setEnzyme("Trypsin")
+    digester.setMissedCleavages(0)
+    fixed_mods = ModifiedPeptideGenerator.getModifications([b"Carbamidomethyl (C)"])
+    tsg = TheoreticalSpectrumGenerator()
+    tsg_param = tsg.getParameters()
+    tsg_param.setValue("add_first_prefix_ion", "true")
+    tsg_param.setValue("add_metainfo", "true")
+    tsg.setParameters(tsg_param)
+    for entry in fasta_entries:
+        peptides = []
+        digester.digest(_pseudo_reverse(entry.sequence), peptides, 8, 40)
+        for pep in peptides[:per_protein]:
+            ModifiedPeptideGenerator.applyFixedModifications(fixed_mods, pep)
+            spec = MSSpectrum()
+            tsg.getSpectrum(spec, pep, 1, 1)
+            spec.sortByPosition()
+            spec.setMSLevel(2)
+            spec.setRT(rt)
+            rt += 0.1
+            prec = Precursor()
+            prec.setMZ(pep.getMZ(2))
+            prec.setCharge(2)
+            spec.setPrecursors([prec])
+            spec.setNativeID(f"spectrum={exp.size()}")
+            exp.addSpectrum(spec)
+
+
 def test_synthetic_modification_discovery():
     """End-to-end test: generate modified peptides, create spectra, run open search, verify discovery."""
 
@@ -349,6 +394,7 @@ def test_fdr_filtered_modification_discovery():
     assert len(peptides) > 50
     spectra = _generate_spectra(peptides, TEST_MODIFICATIONS, target_per_mod=300)
     assert spectra.size() > 1000
+    _add_decoy_spectra(spectra, fasta_db)  # decoy PSMs for the FDR filter to remove
 
     # 2. Configure open search with decoys enabled
     algo = ProSEAlgorithm()

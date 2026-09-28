@@ -27,7 +27,32 @@ If the feature causes problems or concerns, it can be disabled by setting the en
 <LI><B>How can I change the temporary directory that %OpenMS uses?</B><BR>
 By default %OpenMS will use the system wide temporary directory (defined
 either by `TMPDIR`, `TEMP` or the `TMP` environmental variable, depending on your Operating System). You can override
-this by setting the environmental variable `OPENMS_TMPDIR`.
+this by setting the environmental variable `OPENMS_TMPDIR`, or the `temp_dir` entry of %OpenMS.ini (see the next question).
+
+<LI><B>Do I need an %OpenMS.ini file, and where does %OpenMS look for it?</B><BR>
+You do not need one. %OpenMS.ini is optional and %OpenMS never creates or changes it; without it, the built-in defaults
+are used. A file you write yourself only needs the entries you want to change:
+<UL>
+<LI>`temp_dir`: the directory for temporary files. The environment variable `OPENMS_TMPDIR` takes precedence.
+<LI>`home_dir`: the user data directory (shown as "Userdata path" by @ref TOPP_OpenMSInfo), for example the default
+output directory of TOPPAS. The environment variable `OPENMS_HOME_PATH` takes precedence.
+<LI>`id_db_dir`: directories in which TOPP tools look for a protein database (FASTA file) that was given by a relative name
+and does not exist as given.
+</UL>
+Example:
+@code{.xml}
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS version="1.8.0">
+  <ITEM name="temp_dir" value="/scratch/openms_tmp" type="string" />
+  <ITEMLIST name="id_db_dir" type="string">
+    <LISTITEM value="/data/fasta"/>
+  </ITEMLIST>
+</PARAMETERS>
+@endcode
+On Linux, %OpenMS reads `$XDG_CONFIG_HOME/OpenMS/OpenMS.ini`, or `~/.config/OpenMS/OpenMS.ini` if `XDG_CONFIG_HOME` is not
+set. On macOS and Windows, it reads `~/.OpenMS/OpenMS.ini`. Here `~` is your home directory, or the directory in
+`OPENMS_HOME_PATH` if that is set.
+If the file is empty or not valid XML, TOPP tools stop with an error that names it; fix or delete the file.
 
 <LI><B>Calling msConvert (of ProteoWizard) results in small mzML files with no peak data.</B><BR>
 The Thermo interface expects an English locale setting. Otherwise it will silently forget to
