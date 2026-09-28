@@ -14,6 +14,8 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 
+#include <algorithm>
+
 using namespace std;
 
 namespace OpenMS
@@ -45,6 +47,9 @@ namespace OpenMS
     defaults_.setValue("use_adducts", "true", "If IDs contain adducts, treat differently adducted variants of the same molecule as different.");
     defaults_.setValidStrings("use_adducts", {"true", "false"});
 
+    defaults_.setValue("auto_reference", "most_ids", "Reference to align to if none is given (neither a reference file nor an input index): 'most_ids' - the input with the most identified sequences; 'consensus' - median RTs per sequence over all inputs. A consensus favors none of the inputs, but only partly corrects larger RT shifts, because every input contributes to the consensus it is aligned to.");
+    defaults_.setValidStrings("auto_reference", {"most_ids", "consensus"});
+
     defaultsToParam_();
   }
 
@@ -75,7 +80,24 @@ namespace OpenMS
     }
     min_score_ = param_.getValue("min_score");
     use_adducts_ = param_.getValue("use_adducts").toBool();
+    consensus_reference_ = (param_.getValue("auto_reference").toString() == "consensus");
 }
+
+  void MapAlignmentAlgorithmIdentification::selectReference_(vector<SeqToList>& rt_data, bool sorted)
+  {
+    if (consensus_reference_ || rt_data.empty()) return;
+
+    // "max_element" returns the first of several largest elements:
+    vector<SeqToList>::iterator ref_it = max_element(
+      rt_data.begin(), rt_data.end(),
+      [](const SeqToList& a, const SeqToList& b) { return a.size() < b.size(); });
+    reference_index_ = ref_it - rt_data.begin();
+    OPENMS_LOG_INFO << "No reference given - aligning to input " << reference_index_ + 1
+                    << ", which has the most identified sequences (" << ref_it->size() << ")."
+                    << endl;
+    computeMedians_(*ref_it, reference_, sorted);
+    rt_data.erase(ref_it);
+  }
 
   // RT lists in "rt_data" will be sorted (unless "sorted" is true)
   void MapAlignmentAlgorithmIdentification::computeMedians_(SeqToList& rt_data,

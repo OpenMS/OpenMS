@@ -51,7 +51,10 @@ vector<double> reference_rts; // needed later
 
 START_SECTION((template <typename DataType> void align(std::vector<DataType>& data, std::vector<TransformationDescription>& transformations, Int reference_index = -1)))
 {
-  // alignment without reference:
+  // alignment without reference, to a consensus of the input maps:
+  Param consensus_params = params;
+  consensus_params.setValue("auto_reference", "consensus");
+  aligner.setParameters(consensus_params);
 	vector<TransformationDescription> transforms;
 	aligner.align(peptides, transforms);
 
@@ -67,6 +70,7 @@ START_SECTION((template <typename DataType> void align(std::vector<DataType>& da
                       transforms[1].getDataPoints()[i].second);
     reference_rts.push_back(transforms[0].getDataPoints()[i].first);
   }
+  aligner.setParameters(params); // back to the default ("most_ids")
 
   // alignment with internal reference:
   transforms.clear();
@@ -76,12 +80,54 @@ START_SECTION((template <typename DataType> void align(std::vector<DataType>& da
   TEST_EQUAL(transforms[0].getModelType(), "identity");
   TEST_EQUAL(transforms[1].getDataPoints().size(), 10);
 
+  map<std::string, double> rts_second; // RTs in the second map, per sequence
   for (Size i = 0; i < transforms[1].getDataPoints().size(); ++i)
   {
     // RT transform should map to RT scale of the reference:
     TEST_REAL_SIMILAR(transforms[1].getDataPoints()[i].second,
                       reference_rts[i]);
+    rts_second[transforms[1].getDataPoints()[i].note] =
+      transforms[1].getDataPoints()[i].first;
   }
+
+  // alignment without reference, to the map with the most identified
+  // sequences - both have ten, so the first map is used:
+  transforms.clear();
+  aligner.align(peptides, transforms);
+
+  TEST_EQUAL(transforms.size(), 2);
+  TEST_EQUAL(transforms[0].getModelType(), "identity");
+  TEST_EQUAL(transforms[1].getDataPoints().size(), 10);
+  for (Size i = 0; i < transforms[1].getDataPoints().size(); ++i)
+  {
+    TEST_REAL_SIMILAR(transforms[1].getDataPoints()[i].second,
+                      reference_rts[i]);
+  }
+
+  // with one ID less in the first map, the second one becomes the reference:
+  vector<PeptideIdentificationList> fewer_in_first = peptides;
+  fewer_in_first[0].erase(fewer_in_first[0].begin());
+  transforms.clear();
+  aligner.align(fewer_in_first, transforms);
+
+  TEST_EQUAL(transforms.size(), 2);
+  TEST_EQUAL(transforms[0].getDataPoints().size(), 9);
+  TEST_EQUAL(transforms[1].getModelType(), "identity");
+  for (const auto& point : transforms[0].getDataPoints())
+  {
+    // RT transform should map to RT scale of the second map:
+    TEST_REAL_SIMILAR(point.second, rts_second[point.note]);
+  }
+
+  // the reference picked in one call must not carry over into the next one
+  // (it would be used as an external reference, so no map would get the
+  // identity transformation):
+  transforms.clear();
+  aligner.align(peptides, transforms);
+
+  TEST_EQUAL(transforms.size(), 2);
+  TEST_EQUAL(transforms[0].getModelType(), "identity");
+  TEST_EQUAL(transforms[1].getDataPoints().size(), 10);
 
   // algorithm works the same way for other input data types -> no extra tests
 }

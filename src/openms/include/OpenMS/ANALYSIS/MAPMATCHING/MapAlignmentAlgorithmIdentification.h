@@ -40,7 +40,10 @@ namespace OpenMS
     Only the best PSM per spectrum is considered as the correct identification.
 
     Each map is aligned to a reference retention time scale.
-    This time scale can either come from a reference file (@p reference parameter) or be computed as a consensus of the input maps (median retention times over all maps of the ID groups).
+    This time scale can come from a separate reference (setReference()) or from one of the input maps (@p reference_index in align()).
+    If neither is given, parameter @p auto_reference decides: by default ("most_ids"), the input map with the most identified sequences becomes the reference;
+    with "consensus", the time scale is computed as a consensus of the input maps (median retention times over all maps of the ID groups).
+    A consensus favors none of the maps, but every map contributes to the consensus it is aligned to, so larger shifts between maps are only partly corrected.
     The maps are then aligned to this scale as follows:\n
     The median retention time of each ID group in a map is mapped to the reference retention time of this group.
     Cubic spline smoothing is used to convert this mapping to a smooth function.
@@ -85,7 +88,7 @@ public:
 
       @param[in] data Vector of input data (FeatureMap, ConsensusMap, or @p PeptideIdentificationList) that should be aligned.
       @param[in] transformations Vector of RT transformations that will be computed.
-      @param[in] reference_index Index in @p data of the reference to align to, if any
+      @param[in] reference_index Index in @p data of the reference to align to, if any. If -1 and no reference was set with setReference(), parameter @p auto_reference determines the reference.
 
       @throw Exception::MissingInformation Not enough suitable RT data to perform alignment
     */
@@ -128,9 +131,15 @@ public:
         }
         all_sorted &= getRetentionTimes_(data[i], rt_data[j++]);
       }
+      if (!use_internal_reference && reference_.empty())
+      {
+        selectReference_(rt_data, all_sorted);
+      }
       setProgress(1);
 
       computeTransformations_(rt_data, transformations, all_sorted);
+      // a reference taken from the input maps must not carry over into the next call:
+      if (reference_index_ >= 0) reference_.clear();
       setProgress(2);
 
       setProgress(3);
@@ -159,6 +168,9 @@ protected:
 
     /// Consider differently adducted IDs as different?
     bool use_adducts_{};
+
+    /// Without a given reference, align to a consensus of all maps (instead of the map with the most IDs)?
+    bool consensus_reference_{};
 
     /// Minimum score to reach for a peptide to be considered
     double min_score_;
@@ -306,6 +318,17 @@ protected:
     void computeTransformations_(std::vector<SeqToList>& rt_data,
                                  std::vector<TransformationDescription>&
                                  transforms, bool sorted = false);
+
+    /**
+      @brief Make the input map with the most identified sequences the reference, unless parameter @p auto_reference asks for a consensus
+
+      Sets #reference_index_ and #reference_ and removes the RT data of the reference map from @p rt_data.
+      In case of ties, the first of the maps is used.
+
+      @param[in,out] rt_data Lists of RT values for diff. peptide sequences, per input map (input, the reference's lists will be sorted)
+      @param[in] sorted Are RT lists already sorted?
+    */
+    void selectReference_(std::vector<SeqToList>& rt_data, bool sorted);
 
     /**
       @brief Check that parameter values are valid
