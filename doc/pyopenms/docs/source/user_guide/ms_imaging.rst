@@ -11,6 +11,9 @@ Loading an imzML file
 :py:class:`~.ImzMLFile` loads a data set into an :py:class:`~.MSImagingExperiment`, which holds one spectrum per
 pixel and the geometry of the image. :py:class:`~.FileHandler` does not read imzML.
 
+The geometry is two-dimensional and covers the first plane (``z = 1``) of a data set. Spectra of other planes are
+loaded too, and ``getMSExperiment()`` returns them, but pixel access, regions and ion images leave them out.
+
 .. code-block:: python
     :linenos:
 
@@ -94,6 +97,11 @@ is needed, so it can open data sets larger than the memory. It extracts ion imag
 
 ``getSpectrumAtCoord`` takes the coordinates as imzML stores them, starting at 1, so ``(1, 1)`` is the pixel
 that :py:class:`~.MSImagingExperiment` calls ``(0, 0)``.
+
+Like :py:class:`~.MSImagingExperiment`, it maps only the plane ``z = 1`` to pixels: ``getSpectrumAtCoord`` raises
+an error for other values of ``z``, and ``extractIonImage`` leaves those spectra out. ``getSpectrum(i)`` reads any
+spectrum by its index, and ``getIndex(i)`` returns its coordinates (``x``, ``y`` and ``z``) without reading the
+peaks.
 
 Writing imzML
 *************

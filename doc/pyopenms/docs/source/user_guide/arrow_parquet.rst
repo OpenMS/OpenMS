@@ -35,6 +35,11 @@ Spectra as Arrow tables
     479455
     ['mz', 'intensity', 'rt', 'spectrum_index', 'ms_level', 'native_id', 'precursor_mz', 'precursor_charge', 'precursor_intensity', 'isolation_lower', 'isolation_upper']
 
+The table has an ``ion_mobility`` column only if the spectra carry ion mobility, which those of BSA1.mzML do
+not; ``include_ion_mobility=False`` leaves it out in any case. The slower Python export, which pyOpenMS uses for
+an empty experiment and, with a warning, when its compiled Arrow export is missing, always adds the column, with
+NaN for spectra without ion mobility.
+
 With ``format="semi_wide"``, the table has one row per spectrum instead, with the m/z and intensity values of its
 peaks as lists. ``ms_levels``, ``min_rt``, ``max_rt``, ``min_mz`` and ``max_mz`` select what goes into the table,
 for example only the :term:`MS1` peaks between m/z 400 and 800:
