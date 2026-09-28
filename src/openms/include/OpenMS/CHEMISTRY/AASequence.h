@@ -77,8 +77,11 @@ namespace OpenMS
       that this tag does not alter the amino acids to the left (R) or right
       (T).  Rather, X represents an amino acid on its own. Be careful when
       converting such AASequence objects to an EmpiricalFormula using
+    /// @throws Exception::InvalidValue for d/v/w ions with an unsupported or modified cleavage residue.
       getFormula(), as tags will not be considered in this case (there exists
+    /// @throws Exception::InvalidValue for d/v/w ions with an unsupported or modified cleavage residue.
       no formula for them).  However, they have an influence on getMonoWeight()
+    /// @throws Exception::InvalidValue for d/v/w ions with an unsupported or modified cleavage residue.
       and getAverageWeight()!
 
       @note For C/N terminal modifications, the absolute mass is assumed to be
@@ -488,7 +491,7 @@ protected:
     /// @note will not (and cannot) control whether the required ion can exist
     /// (e.g. x/c ions for monomers) as it does not do fragmentation but rather
     /// supplementing/deduction of the sequence to its ionic form.
-    /// @throws Exception::InvalidValue if @p charge==0
+    /// @throws Exception::InvalidValue if @p charge==0, or for d/v/w ions with an unsupported or modified cleavage residue.
     double getMZ(Int charge, Residue::ResidueType type = Residue::Full) const;
 
     /// returns a pointer to the residue at given position
@@ -623,6 +626,9 @@ protected:
     explicit AASequence(const char* s, bool permissive);
 
   protected:
+    /// Reject satellite ions whose cleavage residue has no supported loss.
+    void validateSatelliteIon_(Residue::ResidueType type) const;
+
 
     std::vector<const Residue*> peptide_;
 
