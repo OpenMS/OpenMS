@@ -945,6 +945,13 @@ if (WITH_THERMO_RAW)
             COMPONENT share
             PATTERN "*.pdb" EXCLUDE
             PATTERN "*.zip" EXCLUDE)
+    # The licenses of the other assemblies in there, the bridge's own ThermoWrapperManaged,
+    # CommandLineParser and OpenMcdf (MPL-2.0, with the address of its source code), and of
+    # nethost, which the native bridge library links. Thermo's own license is installed under
+    # LICENSES. The notices are those of bridge 0.3.0.
+    install(FILES "${CMAKE_CURRENT_LIST_DIR}/third_party_licenses/openms-thermo-bridge/THIRD-PARTY-NOTICES.txt"
+            DESTINATION "${INSTALL_SHARE_DIR}/openms_thermo_bridge/managed"
+            COMPONENT share)
   else()
     message(WARNING
       "openms-thermo-bridge: OpenMSThermoBridge_MANAGED_DIR is not set; the managed "
