@@ -187,26 +187,37 @@ def resolve_macho(reference, loader_path, rpaths):
 
 
 def macos_dependencies(roots):
-    """Resolved paths of the non-system dylibs the roots load, directly or indirectly."""
-    seen, unresolved, stack = set(), [], list(roots)
-    visited = set()
+    """Resolved paths of the non-system dylibs the roots load, directly or indirectly.
+
+    dyld resolves an @rpath reference against the run paths of the whole chain of images
+    that loads the library: its own LC_RPATHs, then those of the images that led to it.
+    A library reached again with run paths it has not been tried with is walked again.
+    """
+    load_commands = {}
+    seen, stack = set(), [(root, ()) for root in roots]
+    tried = {}                 # path -> the run paths it was walked with
+    failed, resolved = set(), set()
     while stack:
-        current = stack.pop()
-        if current in visited:
+        current, inherited = stack.pop()
+        if current not in load_commands:
+            load_commands[current] = macho_load_commands(current)
+        deps, own = load_commands[current]
+        rpaths = tuple(dict.fromkeys(list(own) + list(inherited)))
+        if current in tried and set(rpaths) <= tried[current]:
             continue
-        visited.add(current)
-        deps, rpaths = macho_load_commands(current)
+        tried.setdefault(current, set()).update(rpaths)
         for reference in deps:
             if reference.startswith(("/usr/lib/", "/System/")):
                 continue
-            path = resolve_macho(reference, current, rpaths)
+            path = resolve_macho(reference, current, list(rpaths))
             if path is None:
-                unresolved.append(f"{reference} (needed by {current})")
+                failed.add((reference, current))
                 continue
+            resolved.add((reference, current))
             real = os.path.realpath(path)
-            if real not in seen:
-                seen.add(real)
-                stack.append(real)
+            seen.add(real)
+            stack.append((real, rpaths))
+    unresolved = [f"{reference} (needed by {loader})" for reference, loader in sorted(failed - resolved)]
     return sorted(seen), unresolved
 
 
