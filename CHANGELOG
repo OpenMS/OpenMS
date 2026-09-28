@@ -1107,6 +1107,14 @@ Fixes:
       as annotations of the canonical entry, although their coordinates refer to that isoform
       (e.g. \ModResPsi phosphoserines on non-S residues or past the sequence end). Such
       features are now skipped and counted in a summary log line.
+    - IDFileConverter: pepXML input with 'mz_file' failed with "Found no experiment with name" unless
+      the run's 'base_name' ended with the exact path given. This broke TPP results on Windows (TPP
+      writes 'c:/...', the tool got 'c:\...'), moved data and OpenMS' own pepXML output, which stores
+      the file name only. 'mz_file' is now matched by its file name; 'mz_name' can give more of the
+      path. PepXMLFile matches the experiment name against whole trailing path components of
+      'base_name', treating '/' and '\' alike, so 'LN1' no longer selects both 'L_LN1' and 'H_LN1'.
+      A name that matches runs with different 'base_name's is an error, and the not-found error lists
+      the 'base_name's in the file (#3502).
   Robustness:
     - mzIdentML writer: the "unknown modification" cvParam (MS:1001460) referenced the undeclared
       controlled vocabulary "MS", although the document declares only "PSI-MS". The writer names
