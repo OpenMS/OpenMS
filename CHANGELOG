@@ -1341,6 +1341,9 @@ Build System:
     licenses of the third-party code that OpenMS carries in its source tree and compiles into
     libOpenMS, such as Percolator with its NOTICE file, evergreen, libkdtree++ and MSNumpress
     (vendored/<name>/) (#10292).
+  - The Windows installer no longer includes ProteoWizard (msconvert and the instrument vendors'
+    libraries in THIRDPARTY/pwiz-bin). OpenMS does not use it; to convert other vendor formats
+    with msconvert, install ProteoWizard from https://proteowizard.sourceforge.io/ (#10292).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----

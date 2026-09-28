@@ -159,6 +159,12 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   ## Automatically recurse over all subfolders in SEARCH_ENGINES_DIRECTORY
   file(GLOB THIRDPARTY_SUBDIRS RELATIVE ${SEARCH_ENGINES_DIRECTORY} ${SEARCH_ENGINES_DIRECTORY}/*)
   foreach(SUBDIR ${THIRDPARTY_SUBDIRS})
+    ## ProteoWizard (pwiz-bin, Windows only) is not shipped. OpenMS does not use it, and it
+    ## carries the libraries of several instrument vendors, each under its own license terms.
+    ## Users get msconvert from ProteoWizard itself.
+    if(SUBDIR STREQUAL "pwiz-bin")
+      continue()
+    endif()
     if(IS_DIRECTORY ${SEARCH_ENGINES_DIRECTORY}/${SUBDIR})
       install_thirdparty_folder("${SUBDIR}")
     endif()
