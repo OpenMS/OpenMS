@@ -15,6 +15,7 @@
 
 #include <vector>
 #include <ostream>
+#include <string>
 
 using namespace OpenMS;
 using namespace std;
@@ -25,6 +26,18 @@ std::ostream& operator<<(std::ostream& os, const MIV& m)
 {
   os << (*m) << "\n";
   return os;
+}
+
+/// all matches of @p it as "refIdx:tgtIdx refIdx:tgtIdx ..."
+template <typename MI>
+std::string matchString(MI it)
+{
+  std::string s;
+  for (; it != it.end(); ++it)
+  {
+    s += (s.empty() ? "" : " ") + std::to_string(it.refIdx()) + ":" + std::to_string(it.tgtIdx());
+  }
+  return s;
 }
 
 START_TEST(MatchedIterator, "$Id$")
@@ -246,6 +259,42 @@ END_SECTION
 START_SECTION(static MatchedIterator end())
 {
   NOT_TESTABLE // tested above
+}
+END_SECTION
+
+START_SECTION([EXTRA] equal target values do not stop the search)
+{
+  // 'target' from above with 2.5 listed twice (e.g. two peaks with the same m/z): the search must
+  // continue past both copies; 3 is as far from 2.5 as from 3.5, so the smaller value (the first 2.5) wins
+  vector<double> target_dup = { -0.01, 2.5, 2.5, 3.5, 7, 11 };
+  TEST_STRING_EQUAL(matchString(MIV(ref, target_dup, 0.5)), "0:0 2:1 3:1 4:3 7:4")
+}
+END_SECTION
+
+START_SECTION([EXTRA] different target values with equal (float) distance do not stop the search)
+{
+  // distances are float: 1000.0 and 1000.00001 are equally far (999 and 1000) from 1 and 2000
+  MSSpectrum r, t;
+  r.emplace_back(1.0, 0.0);
+  r.emplace_back(2000.0, 0.0);
+  t.emplace_back(1000.0, 0.0);
+  t.emplace_back(1000.00001, 0.0);
+  t.emplace_back(2000.0, 0.0);
+  TEST_STRING_EQUAL(matchString(MatchedIterator<MSSpectrum, DaTrait>(r, t, 0.01)), "1:2")
+}
+END_SECTION
+
+START_SECTION([EXTRA] equal target values at the end of the container)
+{
+  vector<double> ref_tail = { 1, 5.4, 9 };
+  vector<double> tgt_tail = { 1, 5, 5 };
+  MIV mi(ref_tail, tgt_tail, 0.5);
+  TEST_STRING_EQUAL(matchString(mi), "0:0 1:1") // 5.4 matches the first 5 (both double distances are equal)
+  while (mi != mi.end())
+  {
+    ++mi;
+  }
+  TEST_EQUAL(mi.tgtIdx(), 1) // target still points to a valid element (the first 5), not to end()
 }
 END_SECTION
 

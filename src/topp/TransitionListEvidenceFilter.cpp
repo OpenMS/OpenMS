@@ -51,6 +51,11 @@ keep_matching; otherwise decoy transitions are removed from the filtered output.
 @experimental This tool is experimental and intended for evaluating prefiltering
 strategies before integrating filtered libraries into production workflows.
 
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_TransitionListEvidenceFilter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_TransitionListEvidenceFilter.html
+
 @ingroup TOPP
 */
 

@@ -678,8 +678,6 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     auto chromatogramsettings_class = nb::class_<OpenMS::ChromatogramSettings>(m, "ChromatogramSettings", 
         R"doc(
-MetaInfoInterface
-
 Description of the chromatogram settings, provides meta-information
 about a single chromatogram.
 )doc")
@@ -757,6 +755,9 @@ about a single chromatogram.
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::Contact, OpenMS::CVTermList>(m, "Contact", "OpenMS class Contact")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Contact &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Contact& self) { return OpenMS::TargetedExperimentHelper::Contact(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Contact& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Contact(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
@@ -858,9 +859,6 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     auto experimentalsettings_class = nb::class_<OpenMS::ExperimentalSettings>(m, "ExperimentalSettings", 
         R"doc(
-DocumentIdentifier
-MetaInfoInterface
-
 Description of the experimental settings, provides meta-information
 about an LC-MS/MS injection.
 )doc")
@@ -939,13 +937,14 @@ about an LC-MS/MS injection.
     // --- TargetedExperiment_Instrument (TargetedExperimentHelper::Instrument) ---
     nb::class_<OpenMS::TargetedExperimentHelper::Instrument, OpenMS::CVTermList>(m, "TargetedExperiment_Instrument",
         R"doc(
-CVTermList
-
 Instrument description used in targeted experiments (TraML).
 This is a lightweight instrument reference with just an id field.
 For the full MS instrument description, use the Instrument class instead.
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Instrument &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Instrument& self) { return OpenMS::TargetedExperimentHelper::Instrument(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Instrument& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Instrument(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
 
@@ -955,8 +954,6 @@ For the full MS instrument description, use the Instrument class instead.
     // --- Instrument (OpenMS::Instrument from METADATA) ---
     auto instrument_class = nb::class_<OpenMS::Instrument, OpenMS::MetaInfoInterface>(m, "Instrument",
         R"doc(
-MetaInfoInterface
-
 Description of a MS instrument.
 Contains information about ion sources, mass analyzers, ion detectors,
 software, vendor, model, and ion optics configuration.
@@ -1391,8 +1388,6 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     auto floatdataarray_class = nb::class_<OpenMS::DataArrays::FloatDataArray>(m, "FloatDataArray", 
         R"doc(
-MetaInfoDescription
-
 The representation of extra float data attached to a spectrum or chromatogram.
 Raw data access is provided by `get_peaks` and `set_peaks`, which yields numpy arrays.
 Commonly used for storing ion mobility values or other per-peak float annotations.
@@ -1498,8 +1493,6 @@ Commonly used for storing ion mobility values or other per-peak float annotation
     // -----------------------------------------------------------------------
     auto integerdataarray_class = nb::class_<OpenMS::DataArrays::IntegerDataArray>(m, "IntegerDataArray", 
         R"doc(
-MetaInfoDescription
-
 The representation of extra integer data attached to a spectrum or chromatogram.
 Raw data access is provided by `get_peaks` and `set_peaks`, which yields numpy arrays.
 Used for storing per-peak integer annotations.
@@ -1639,8 +1632,6 @@ etc) is implicit
     nb::class_<OpenMS::Mobilogram>(m, "Mobilogram",
                                    
         R"doc(
-RangeManagerMobInt
-
 The representation of a 1D ion mobilogram.
 Raw data access is provided by `get_peaks`, `peaks_struct`, and `set_peaks`.
 Indexing and iteration yield copies of the peaks; write changes back with mob[i] = peak
@@ -2079,8 +2070,6 @@ If you want to annotated single peaks with meta data, use RichPeak2D instead
     // -----------------------------------------------------------------------
     auto peptidehit_class = nb::class_<OpenMS::PeptideHit>(m, "PeptideHit",
         R"doc(
-MetaInfoInterface
-
 Represents a single peptide identification hit from a database search
 A PeptideHit stores information about a candidate peptide sequence that was
 matched to a spectrum. Each hit contains:
@@ -2241,8 +2230,6 @@ Adds a single protein mapping
     // -----------------------------------------------------------------------
     auto peptideidentification_class = nb::class_<OpenMS::PeptideIdentification>(m, "PeptideIdentification",
         R"doc(
-MetaInfoInterface
-
 Represents peptide identification results for a single spectrum or feature
 PeptideIdentification stores the results of peptide identification from database
 search engines (e.g., Mascot, X!Tandem, MSGF+). Each PeptideIdentification contains:
@@ -2413,9 +2400,6 @@ Get the spectrum reference (native ID) for this identification.
     // -----------------------------------------------------------------------
     auto precursor_class = nb::class_<OpenMS::Precursor, OpenMS::CVTermList>(m, "Precursor", 
         R"doc(
-Peak1D
-CVTermList
-
 Precursor meta information
 This class contains precursor information:
 - isolation window
@@ -2511,6 +2495,9 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::Prediction, OpenMS::CVTermList>(m, "Prediction", "OpenMS class Prediction")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Prediction &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Prediction& self) { return OpenMS::TargetedExperimentHelper::Prediction(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Prediction& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Prediction(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
@@ -2542,6 +2529,9 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::Protein, OpenMS::CVTermList>(m, "Protein", "OpenMS class Protein")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Protein &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Protein& self) { return OpenMS::TargetedExperimentHelper::Protein(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Protein& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Protein(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
@@ -2554,8 +2544,6 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ProteinHit, OpenMS::MetaInfoInterface>(m, "ProteinHit", 
         R"doc(
-MetaInfoInterface
-
 Represents a single protein identification hit from a database search
 A ProteinHit stores information about a protein that was identified based on
 peptide evidence. Each hit contains:
@@ -2754,6 +2742,9 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::Publication, OpenMS::CVTermList>(m, "Publication", "CVTermList")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Publication &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Publication& self) { return OpenMS::TargetedExperimentHelper::Publication(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Publication& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Publication(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
@@ -2877,8 +2868,6 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
     // -----------------------------------------------------------------------
     auto reactionmonitoringtransition_class = nb::class_<OpenMS::ReactionMonitoringTransition, OpenMS::CVTermList>(m, "ReactionMonitoringTransition", 
         R"doc(
-CVTermList
-
 This class stores a SRM/MRM transition
 This class is capable of representing a <Transition> tag in a TraML
 document completely and contains all associated information
@@ -3266,8 +3255,6 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     auto stringdataarray_class = nb::class_<OpenMS::DataArrays::StringDataArray>(m, "StringDataArray", 
         R"doc(
-MetaInfoDescription
-
 The representation of extra string data attached to a spectrum or chromatogram.
 Commonly used for storing ion annotation names or other per-peak string annotations.
 )doc")
@@ -3341,6 +3328,9 @@ Stores information about the ion type, ordinal, and rank for MS product ions.
 CVTermListInterface
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::Interpretation &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::Interpretation& self) { return OpenMS::TargetedExperimentHelper::Interpretation(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::Interpretation& self, nb::dict) { return OpenMS::TargetedExperimentHelper::Interpretation(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def_rw("ordinal", &OpenMS::TargetedExperimentHelper::Interpretation::ordinal)
@@ -3353,6 +3343,9 @@ CVTermListInterface
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::TraMLProduct, OpenMS::CVTermListInterface>(m, "TraMLProduct", "OpenMS class TraMLProduct")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::TargetedExperimentHelper::TraMLProduct &>())
+        .def("__copy__", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) { return OpenMS::TargetedExperimentHelper::TraMLProduct(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self, nb::dict) { return OpenMS::TargetedExperimentHelper::TraMLProduct(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def("setChargeState", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, int charge) { return self.setChargeState(charge); }, "charge"_a)
         .def("hasCharge", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) { return self.hasCharge(); })
@@ -3395,11 +3388,6 @@ unique id
     // -----------------------------------------------------------------------
     auto consensusmap_class = nb::class_<OpenMS::ConsensusMap>(m, "ConsensusMap", 
         R"doc(
-UniqueIdInterface
-DocumentIdentifier
-RangeManagerRtMzInt
-MetaInfoInterface
-
 A container for consensus elements.
 A ConsensusMap is a container holding 2-dimensional consensus elements
 (ConsensusFeature) which in turn represent analytes that have been
@@ -3555,11 +3543,6 @@ UniqueIdInterface
     // -----------------------------------------------------------------------
     auto featuremap_class = nb::class_<OpenMS::FeatureMap>(m, "FeatureMap", 
         R"doc(
-UniqueIdInterface
-DocumentIdentifier
-RangeManagerRtMzInt
-MetaInfoInterface
-
 A container for LC-MS features with metadata and identification information
 FeatureMap is one of the core data structures in OpenMS for storing detected features
 from LC-MS experiments. A feature represents a detected chemical entity (peptide, protein,
@@ -3795,9 +3778,6 @@ RichPeak2D
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ConsensusFeature, OpenMS::BaseFeature>(m, "ConsensusFeature", 
         R"doc(
-UniqueIdInterface
-BaseFeature
-
 A consensus feature spanning multiple LC-MS/MS experiments.
 A ConsensusFeature represents analytes that have been
 quantified across multiple LC-MS/MS experiments. Each analyte in a
@@ -3860,9 +3840,6 @@ Get access to the underlying features through getFeatureList()
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Feature, OpenMS::BaseFeature>(m, "Feature", 
         R"doc(
-UniqueIdInterface
-RichPeak2D
-
 An LC-MS feature representing a detected analyte signal
 The Feature class represents a two-dimensional (RT and m/z) signal from an analyte
 in LC-MS data. It is one of the core data structures in OpenMS for representing

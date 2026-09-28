@@ -21,8 +21,7 @@ def feature_df_columns(self, columns='default'):
         for f in self.iter_feature_views():
             mvs = []
             f.getKeys(mvs)
-            for m in mvs:
-                meta_values.add(m.decode() if isinstance(m, bytes) else m)
+            meta_values.update(mvs)
         cols.extend(sorted(meta_values))
 
     return cols
@@ -52,7 +51,7 @@ def to_feature_df(self, columns=None, meta_values=None):
 
     features = self.feature_views()  # zero-copy read; the generators below only read
     str_dtype = string_dtype(len(features))
-    # keyed by the decoded (str) name: getKeys() and user-supplied meta_values may be str or bytes
+    # keyed by the str name: the caller's meta_values may be str or bytes
     common_meta_value_types = {
         'label': str_dtype, 'spectrum_index': 'i', 'score_fit': 'f',
         'score_correlation': 'f', 'FWHM': 'f', 'spectrum_native_id': str_dtype,

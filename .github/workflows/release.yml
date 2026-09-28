@@ -28,6 +28,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       version_name: ${{ steps.version.outputs.name }}
       version_type: ${{ steps.version.outputs.type }}
+      source_tarball: ${{ steps.source-name.outputs.tarball }}
 
     steps:
       - uses: actions/checkout@v6
@@ -59,6 +60,23 @@ jobs:
       - name: Parse the Version Number
         id: version
         uses: ./.github/actions/version
+
+      # A release's tarball carries the plain version, the file name the
+      # Bioconda recipe downloads (OpenMS-<version>.tar.gz); any other build
+      # is named after its type, e.g. OpenMS-nightly-<date>.tar.gz.
+      - name: Name the Source Tarball
+        id: source-name
+        shell: bash
+        env:
+          HAS_VERSION: ${{ steps.version.outputs.has_version }}
+          VERSION: ${{ steps.version.outputs.version }}
+          VERSION_NAME: ${{ steps.version.outputs.name }}
+        run: |
+          if [[ "$HAS_VERSION" == "true" ]]; then
+            echo "tarball=OpenMS-${VERSION}.tar.gz" >>"$GITHUB_OUTPUT"
+          else
+            echo "tarball=OpenMS-${VERSION_NAME}.tar.gz" >>"$GITHUB_OUTPUT"
+          fi
 
       - name: Compute Package Type
         id: package-info
@@ -231,9 +249,11 @@ jobs:
       - name: Create a tarball of the Source Code
         if: steps.solo.outputs.solo == 'true'
         env:
-          VERSION: ${{ steps.version.outputs.name }}
+          TARBALL: ${{ steps.source-name.outputs.tarball }}
         run: |
           # FIXME: Why not use `git archive`?
+          # The build also leaves its caches (.ccache, .vcpkg-cache) and the
+          # third-party tools (_thirdparty) in the workspace.
           tar \
             --directory "$GITHUB_WORKSPACE" \
             --exclude='build/*' \
@@ -242,15 +262,18 @@ jobs:
             --exclude='.git/**' \
             --exclude='.github/**' \
             --exclude='vcpkg*/**' \
-            -czf "$RUNNER_TEMP/OpenMS-${VERSION}.tar.gz" .
+            --exclude='.ccache/**' \
+            --exclude='.vcpkg-cache/**' \
+            --exclude='_thirdparty/**' \
+            -czf "$RUNNER_TEMP/$TARBALL" .
 
       - name: Upload Source Code as an Artifact
         if: steps.solo.outputs.solo == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: OpenMS-${{ steps.version.outputs.name }}.tar.gz
+          name: ${{ steps.source-name.outputs.tarball }}
           path: |
-            ${{ runner.temp }}/OpenMS-${{ steps.version.outputs.name }}.tar.gz
+            ${{ runner.temp }}/${{ steps.source-name.outputs.tarball }}
 
   deploy-installer:
     name: "Deploy Installer"
@@ -280,6 +303,10 @@ jobs:
           src: ${{ github.workspace }}/downloads/*
           dst: /OpenMSInstaller/${{ needs.build-and-test.outputs.version_type }}/${{ needs.build-and-test.outputs.version }}
           latest: ${{ needs.build-and-test.outputs.version }}
+          # The archive has no OpenMSInstaller/release/ yet, and rsync creates only
+          # the last directory of dst by itself. A nightly's dated folder sits
+          # below the existing nightly/, so nightlies keep running without it.
+          mkpath: ${{ needs.build-and-test.outputs.has_version }}
 
   deploy-docs:
     name: "Deploy Documentation"
@@ -440,7 +467,7 @@ jobs:
       - name: Download Source Archive
         uses: actions/download-artifact@v8
         with:
-          name: OpenMS-${{ needs.build-and-test.outputs.version_name }}.tar.gz
+          name: ${{ needs.build-and-test.outputs.source_tarball }}
           path: ${{ github.workspace }}/downloads
 
       - name: Publish OpenMS Release

@@ -249,8 +249,8 @@ class TestDeisotoperStaticMethods(unittest.TestCase):
 class TestIMTypesStaticMethods(unittest.TestCase):
     """Test static methods of IMTypes enums.
 
-    Note: These methods use the wrap-attach pattern instead of @staticmethod,
-    as they are free functions in the OpenMS namespace.
+    Note: These are free functions in the OpenMS namespace, exposed as
+    static methods of IMTypes.
     """
 
     def test_toDriftTimeUnit(self):
@@ -311,8 +311,8 @@ class TestMZTrafoModelStaticMethods(unittest.TestCase):
 class TestSpectrumHelperStaticMethods(unittest.TestCase):
     """Test static methods of SpectrumHelper class.
 
-    Note: These methods use the wrap-attach pattern instead of @staticmethod,
-    as they are free template functions in the OpenMS namespace.
+    Note: These are free template functions in the OpenMS namespace, exposed
+    as static methods of a placeholder SpectrumHelper class.
     """
 
     def test_removePeaks_spectrum(self):

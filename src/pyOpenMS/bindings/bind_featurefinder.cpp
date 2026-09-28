@@ -54,6 +54,9 @@ interpolation
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::EmgScoring>(m, "EmgScoring", "OpenMS class EmgScoring")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::EmgScoring &>())
+        .def("__copy__", [](const OpenMS::EmgScoring& self) { return OpenMS::EmgScoring(self); })
+        .def("__deepcopy__", [](const OpenMS::EmgScoring& self, nb::dict) { return OpenMS::EmgScoring(self); }, "memo"_a)
         .def("setFitterParam", [](OpenMS::EmgScoring& self, const OpenMS::Param& param) { return self.setFitterParam(param); }, "param"_a)
         .def("getDefaults", [](OpenMS::EmgScoring& self) { return self.getDefaults(); })
         .def("elutionModelFit", [](const OpenMS::EmgScoring& self, const std::vector<OpenMS::DPosition<2>>& current_section, bool smooth_data) { return self.elutionModelFit(current_section, smooth_data); }, "current_section"_a, "smooth_data"_a)
@@ -222,6 +225,9 @@ for a group of matching peptide features
 )doc")
         .def(nb::init<>())
         .def(nb::init<std::vector<OpenMS::MultiplexDeltaMasses::DeltaMass>>())
+        .def(nb::init<const OpenMS::MultiplexDeltaMasses &>())
+        .def("__copy__", [](const OpenMS::MultiplexDeltaMasses& self) { return OpenMS::MultiplexDeltaMasses(self); })
+        .def("__deepcopy__", [](const OpenMS::MultiplexDeltaMasses& self, nb::dict) { return OpenMS::MultiplexDeltaMasses(self); }, "memo"_a)
         .def("getDeltaMasses", [](OpenMS::MultiplexDeltaMasses& self) -> std::vector<OpenMS::MultiplexDeltaMasses::DeltaMass> { return self.getDeltaMasses(); })
         ;
 
@@ -242,6 +248,7 @@ for a group of matching peptide features
     nb::class_<OpenMS::MultiplexDeltaMasses::DeltaMass>(m, "MultiplexDeltaMasses_DeltaMass", "OpenMS class MultiplexDeltaMasses_DeltaMass")
         .def(nb::init<double, std::multiset<std::string>>())
         .def(nb::init<double, std::string>())
+        .def(nb::init<const OpenMS::MultiplexDeltaMasses::DeltaMass &>())
         .def_rw("delta_mass", &OpenMS::MultiplexDeltaMasses::DeltaMass::delta_mass)
         .def_rw("label_set", &OpenMS::MultiplexDeltaMasses::DeltaMass::label_set)
         ;
@@ -258,6 +265,7 @@ with three isotopic peaks we expect peaks * at relative m/z shifts of
 0, 0.5, 1, 3, 3.5 and 4 Th
 )doc")
         .def(nb::init<int, int, OpenMS::MultiplexDeltaMasses, int>())
+        .def(nb::init<const OpenMS::MultiplexIsotopicPeakPattern &>())
         .def("getCharge", [](const OpenMS::MultiplexIsotopicPeakPattern& self) { return self.getCharge(); }, "Returns charge")
         .def("getPeaksPerPeptide", [](const OpenMS::MultiplexIsotopicPeakPattern& self) { return self.getPeaksPerPeptide(); }, "Returns peaks per peptide")
         .def("getMassShifts", [](const OpenMS::MultiplexIsotopicPeakPattern& self) { return self.getMassShifts(); }, "Returns mass shifts")
@@ -279,6 +287,10 @@ boundaries as reported by the PeakPickerHiRes, the typical peak width is
 estimated for arbitrary m/z using a spline interpolation.
 )doc")
         .def(nb::init<OpenMS::MSExperiment, std::vector<std::vector<OpenMS::PeakPickerHiRes::PeakBoundary>>>())
+        // Not copyable: its C++ copy shares the fitted spline, which the copy and the
+        // original both delete (a double free).
+        .def("__copy__", [](const OpenMS::PeakWidthEstimator&) -> nb::object { throw nb::type_error("PeakWidthEstimator cannot be copied"); })
+        .def("__deepcopy__", [](const OpenMS::PeakWidthEstimator&, nb::dict) -> nb::object { throw nb::type_error("PeakWidthEstimator cannot be copied"); }, "memo"_a)
         .def("getPeakWidth", [](OpenMS::PeakWidthEstimator& self, double mz) { return self.getPeakWidth(mz); }, "mz"_a, "Returns the estimated peak width at m/z")
         ;
 
@@ -332,6 +344,9 @@ For a pandas-based interface see FeatureFinderAlgorithmMetaboIdent.compounds_fro
 Helper struct for a collection of mass traces used in FeatureFinderAlgorithmPicked.
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces &>())
+        .def("__copy__", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces(self); })
+        .def("__deepcopy__", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self, nb::dict) { return OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces(self); }, "memo"_a)
         .def("size", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.size(); }, "Returns the number of mass traces")
         .def("__len__", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.size(); })
         .def("__getitem__", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self, size_t i) -> OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace {
@@ -356,6 +371,9 @@ Helper struct for a collection of mass traces used in FeatureFinderAlgorithmPick
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::SeedListGenerator>(m, "SeedListGenerator", "Generate seed lists for feature detection")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::SeedListGenerator &>())
+        .def("__copy__", [](const OpenMS::SeedListGenerator& self) { return OpenMS::SeedListGenerator(self); })
+        .def("__deepcopy__", [](const OpenMS::SeedListGenerator& self, nb::dict) { return OpenMS::SeedListGenerator(self); }, "memo"_a)
         .def("generateSeedList", [](OpenMS::SeedListGenerator& self, const OpenMS::PeakMap& experiment) {
             OpenMS::SeedListGenerator::SeedList seeds;
             self.generateSeedList(experiment, seeds);
