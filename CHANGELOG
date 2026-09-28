@@ -197,6 +197,12 @@ Dependencies:
     High-severity CVE-2026-45447.
 
 PyOpenMS:
+  - BREAKING: boolean parameters are Python bools (#10116). Reading/writing Params
+    now uses Python bool for boolean entries; assigning bool to non-boolean
+    parameters raises TypeError; boolean-ness is preserved through Param updates,
+    dict conversion, repr and INI round-trips. Param::setDefaults now gives existing
+    string entries the defaults' valid strings (values unchanged), so a partial Param
+    cannot override an algorithm's restrictions.
   - Fixed keyword defaults that did not match the wrapped C++ signatures. Four bindings
     declared a parameter with no default after parameters that had one: the transf
     argument of MultipleTesting.lfdr, spectra in both IDMapper.annotate overloads and
