@@ -807,6 +807,10 @@ GUI tools:
   - Fragment annotations survive viewing and spectrum switches unchanged, including charge
     notation and multiline comments. Corrected duplicate charge display, neutral-loss ion
     ordinals and sequence diagrams with multiple modifications (#8766).
+  - TOPPView's scan list shows each MSn scan under the scan its precursor refers to (mzML
+    spectrumRef), so SPS-MS3 scans that are interleaved with later MS2 scans appear under their
+    own MS2 scan. MS2 scans that follow an MS3 scan are no longer nested under the previous MS2
+    scan (#4215).
   - BREAKING: SwathWizard and FLASHDeconvWizard removed; run the TOPP tools they wrapped,
     such as OpenSwathWorkflow and FLASHDeconv, directly (#9472).
 
