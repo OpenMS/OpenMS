@@ -859,7 +859,7 @@ OpenMS Library:
       DDA native IDs use 'frame=... scan=... precursor=...' for unique identification;
       exported PASEF spectra are marked CENTROID (#8975, #8999, #9151, #9154, #9233,
       #9243, #9380, #9387).
-    - ThermoRawFile: native .raw reading with openms-thermo-bridge 0.3.0 and .NET 8+.
+    - ThermoRawFile: native .raw reading with openms-thermo-bridge 0.3.1 and .NET 8+.
       Preserves sample/method/trailer metadata, SHA-1 provenance, scan/instrument metadata,
       MSn/SPS precursor hierarchy and supplemental activation. Optional centroid charges,
       independent noise arrays and auxiliary detector/PDA data support mzML export.
@@ -1347,9 +1347,9 @@ Build System:
     README that names their versions and source code (contrib/<name>/). The wheel builds add
     the licenses of the libraries the repair tools copy in from the build system: OpenSSL,
     libxml2 and the others on Linux (system/<package>/), the Homebrew libraries on macOS
-    (homebrew/<formula>/). Builds with the in-process Thermo reader install
-    THIRD-PARTY-NOTICES.txt next to its managed assemblies, for the bridge itself,
-    CommandLineParser and OpenMcdf (#10292).
+    (homebrew/<formula>/). Builds with the in-process Thermo reader install the
+    THIRD-PARTY-NOTICES.txt that openms-thermo-bridge 0.3.1 publishes with its managed
+    assemblies, for the bridge itself, CommandLineParser, OpenMcdf and nethost (#10292).
   - The Windows installer no longer includes ProteoWizard (msconvert and the instrument vendors'
     libraries in THIRDPARTY/pwiz-bin). OpenMS does not use it; to convert other vendor formats
     with msconvert, install ProteoWizard from https://proteowizard.sourceforge.io/ (#10292).
