@@ -111,16 +111,16 @@ START_SECTION([EXTRA] the 'keeppeaks' parameter reaches the consensus spectrum)
 	TEST_EQUAL(dropped, 9)
 	TEST_EQUAL(kept, 199)
 
-	// dynprog_() -- the O(n^2) dynamic-programming step that resolves an ambiguous, many-to-many
-	// block of peaks -- reads keeppeaks_ directly (not through the local above, which only covers
-	// operator()'s own single-peak "no partner" branches). A wide 'variation' makes many peaks of
-	// these two real spectra mutually ambiguous, so dynprog_() runs repeatedly. To prove the class
-	// member is genuinely read (not just consistently zero-initialized by chance on this platform),
-	// construct into memory explicitly poisoned to a non-zero pattern beforehand: with the member
-	// correctly (re-)assigned in the constructor, the poison must make no difference to the result.
+	// A wide 'variation' gives many peaks of these two spectra several possible partners, so
+	// operator() hands those blocks to dynprog_(), which has to honor keeppeaks as well.
 	auto count_ambiguous = [&](bool poison, bool keeppeaks) -> Size
 	{
 		alignas(SpectrumCheapDPCorr) unsigned char raw[sizeof(SpectrumCheapDPCorr)];
+		// Construct the object with placement new in storage filled with 0xFF (poison) or 0x00
+		// (reference). In the poisoned run, a member the constructor forgets to initialize holds 0xFF
+		// ('true' for a bool) instead of the zero that fresh memory usually happens to contain, so a
+		// missing initialization changes the result instead of passing by luck. keeppeaks_ used to be
+		// such a member (#10237): poisoned, dynprog_() kept 72 instead of 55 peaks.
 		std::memset(raw, poison ? 0xFF : 0x00, sizeof(raw));
 		SpectrumCheapDPCorr* poisoned_corr = new (raw) SpectrumCheapDPCorr();
 		Param poisoned_param = poisoned_corr->getParameters();
@@ -132,8 +132,14 @@ START_SECTION([EXTRA] the 'keeppeaks' parameter reaches the consensus spectrum)
 		poisoned_corr->~SpectrumCheapDPCorr();
 		return result;
 	};
+	// the result must not depend on what was in memory before construction ...
 	TEST_EQUAL(count_ambiguous(false, false), count_ambiguous(true, false))
 	TEST_EQUAL(count_ambiguous(false, true), count_ambiguous(true, true))
+	// ... and dynprog_() must honor keeppeaks: a keeppeaks_ that is initialized to false but never
+	// set from the parameter passes the checks above, yet drops dynprog_()'s unaligned peaks even
+	// with keeppeaks=1
+	TEST_EQUAL(count_ambiguous(false, false), 55)
+	TEST_EQUAL(count_ambiguous(false, true), 146)
 
 	// a copy keeps the setting
 	SpectrumCheapDPCorr copy(corr);
