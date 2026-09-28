@@ -15,6 +15,7 @@ set(visual_executables_list
   FileWatcher_test
   GUIHelpers_test
   MultiGradient_test
+  SpectraTreeTab_test
 )
 
 set(CMAKE_AUTOMOC ON)

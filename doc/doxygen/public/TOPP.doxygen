@@ -184,6 +184,7 @@
   <b>Quality Control</b>
   - @subpage TOPP_QualityControl - A one-in-all QC tool to generate an augmented mzTab
   - @subpage TOPP_DatabaseSuitability - Calculates the suitability of a database for peptide identification search using a de novo approach.
+  - @subpage TOPP_DIAuditor - Computes quality metrics of data-independent acquisition (DIA) runs, per run and per isolation window.
   - @subpage TOPP_QCCalculator - Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.
   - @subpage TOPP_QCEmbedder - Embeds tables or plots generated externally as attachments to existing quality parameters in qcML files.
   - @subpage TOPP_QCExporter - Extracts several quality parameter from several runs/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.

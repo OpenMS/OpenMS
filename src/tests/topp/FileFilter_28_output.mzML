@@ -559,16 +559,6 @@
 		<chromatogramList count="2" defaultDataProcessingRef="dp_sp_0">
 			<chromatogram id="TIC" index="0" defaultArrayLength="0">
 				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
-					<precursor>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="0">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -586,16 +576,6 @@
 			</chromatogram>
 			<chromatogram id="TIC" index="1" defaultArrayLength="0">
 				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
-					<precursor>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="0">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -620,9 +600,9 @@
 	</index>
 	<index name="chromatogram">
 		<offset idRef="TIC">50996</offset>
-		<offset idRef="TIC">52368</offset>
+		<offset idRef="TIC">51979</offset>
 	</index>
 </indexList>
-<indexListOffset>53774</indexListOffset>
+<indexListOffset>52996</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

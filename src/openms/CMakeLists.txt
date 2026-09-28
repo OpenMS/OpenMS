@@ -70,9 +70,9 @@ add_subdirectory(thirdparty/percolator)
 ## and downstream consumers neither include nor link it (see #8547).
 ## Note: Boost::boost (header-only) is PUBLIC because the installed public header
 ## config.h includes <boost/current_function.hpp> (via Macros.h), so consumers
-## (e.g. pyOpenMS) need Boost's include dir. Only the header-only target is
-## public — it propagates include dirs but no link libraries; the compiled Boost
-## components (date_time/iostreams/regex) stay PRIVATE below.
+## (e.g. pyOpenMS) need Boost's include dir. It propagates include dirs but no
+## link libraries, and it is the only Boost target: OpenMS uses header-only Boost
+## libraries only (see the Boost section of cmake/cmake_findExternalLibs.cmake).
 set(OPENMS_DEP_LIBRARIES
   Boost::boost
 )
@@ -88,9 +88,6 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
   BZip2::BZip2
-  Boost::date_time
-  Boost::iostreams
-  Boost::regex
   Eigen3::Eigen
   Evergreen
   GTE

@@ -140,6 +140,15 @@ Dependencies:
     public dependency interface. Shared-library consumers no longer require CURL/Xerces
     development packages; OpenSwathAlgo's Boost headers are private. See OpenMS Library
     for XMLHandler/Matrix API migration (#8511, #8547, #8558, #9712, #9737, #10084, #10103).
+  - Boost is used header-only: OpenMS, its tools and tests no longer link the compiled
+    Boost.Regex, Boost.Iostreams and Boost.DateTime libraries, of which only header-only
+    parts were used. Building needs just the Boost headers, and a static Boost works as
+    well as a shared one. A static Boost used to be linked into the shared libOpenMS,
+    which could fail at link time: the archives are not always built with -fPIC, and
+    their own dependencies (zstd, lzma, ICU) had to be installed as development packages.
+    The BOOST_USE_STATIC option and the Homebrew static-Boost link fixups (#10187) were
+    removed; passing -DBOOST_USE_STATIC now only triggers CMake's unused-variable
+    warning (#3319).
   - BREAKING (installed headers): two internal headers are no longer installed, and two
     public ones no longer pull in a private dependency.
     DATASTRUCTURES/MatrixEigen.h (the Eigen::Map views on Matrix) and SYSTEM/SIMDe.h
@@ -197,6 +206,12 @@ Dependencies:
     High-severity CVE-2026-45447.
 
 PyOpenMS:
+  - BREAKING: boolean parameters are Python bools (#10116). Reading/writing Params
+    now uses Python bool for boolean entries; assigning bool to non-boolean
+    parameters raises TypeError; boolean-ness is preserved through Param updates,
+    dict conversion, repr and INI round-trips. Param::setDefaults now gives existing
+    string entries the defaults' valid strings (values unchanged), so a partial Param
+    cannot override an algorithm's restrictions.
   - Fixed keyword defaults that did not match the wrapped C++ signatures. Four bindings
     declared a parameter with no default after parameters that had one: the transf
     argument of MultipleTesting.lfdr, spectra in both IDMapper.annotate overloads and
@@ -230,6 +245,15 @@ PyOpenMS:
     platforms, avoiding invalid <lambda> definitions and re-exports in .pyi files.
     Generated stubs are syntax-checked after post-processing, before the build
     writes py.typed and its success stamp.
+  - The type stubs export the aliases PeakMap, PeakSpectrum, Kernel_MassTrace,
+    TM_DataPoint and MZTrafoModel_MODELTYPE, which mypy rejected with "does not
+    explicitly export". The nested enums that pyOpenMS also exports at module level,
+    such as FileType and LogType, now have their types; type checkers saw them as Any.
+    The package no longer exposes names its own imports left behind: the modules c,
+    ctypes, importlib and warnings, and the __future__ feature annotations.
+  - The wheel metadata declares the license as the SPDX expression BSD-3-Clause
+    (Metadata-Version 2.4) and ships the license text as dist-info/licenses/LICENSE.
+    Before, dist-info/LICENSE held only the string "BSD-3-Clause".
   - The Windows wheel bundles the libcurl it was linked against. delvewheel's search
     path lacked contrib/bin and it fell back to PATH, so every Windows wheel so far
     carried an unrelated vcpkg-built libcurl from the CI image and a second zlib.
@@ -774,6 +798,11 @@ TOPP tools:
     - OpenSwathPercolatorScoring: Percolator scoring of OpenSWATH results (#9695).
     - OpenSwathPeakMapExtractor: targeted full-peakmap extraction (#9684).
     - TransitionListEvidenceFilter: filter transition lists using mzML evidence (#9161).
+    - DIAuditor: quality metrics of DIA runs per run and per isolation window (MS1 sampling,
+      window layout incl. FAIMS/1/K0, cycle times, TIC and peak-count distributions), a
+      re-implementation of D. L. Tabb's DIAuditor. Reads mzML, Thermo .raw and Bruker timsTOF .d
+      (diaPASEF) and writes its per-run and per-window tables and an mzQC file with the PSI-MS
+      DIA metrics (MS:4000190-MS:4000199) (#10271).
     - ParquetDiff: compares two Parquet tables by primary key with a numeric tolerance instead of exact
       bytes. FuzzyDiff is string-based and cannot read Parquet, which left the QPX psm/feature/pg exchange
       surface with no comparison route at all. The key is auto-derived from a QPX file's own file_type
@@ -807,6 +836,10 @@ GUI tools:
   - Fragment annotations survive viewing and spectrum switches unchanged, including charge
     notation and multiline comments. Corrected duplicate charge display, neutral-loss ion
     ordinals and sequence diagrams with multiple modifications (#8766).
+  - TOPPView's scan list shows each MSn scan under the scan its precursor refers to (mzML
+    spectrumRef), so SPS-MS3 scans that are interleaved with later MS2 scans appear under their
+    own MS2 scan. MS2 scans that follow an MS3 scan are no longer nested under the previous MS2
+    scan (#4215).
   - BREAKING: SwathWizard and FLASHDeconvWizard removed; run the TOPP tools they wrapped,
     such as OpenSwathWorkflow and FLASHDeconv, directly (#9472).
 
@@ -1075,6 +1108,13 @@ Fixes:
       ion-storage analyzers, and the analyzer invented for incomplete instruments, use the
       generic mass analyzer type; the OpenMS type is kept in a userParam and restored on
       reading. HCID, EThcD and ETciD terms use their PSI-MS names (#8691).
+    - Reading an mzML file only partly (metadata only, or counting its spectra, as the first pass of
+      MzMLFile::transform() does) ends the progress it started, so the progress output of every later
+      file is no longer nested one level deeper (#10271).
+    - mzML chromatograms are written with a precursor or product only if they have one. A TIC used
+      to get an empty precursor and a product isolation window at m/z 0, and an MS1 chromatogram such
+      a product. The original DIAuditor, for example, read that product's isolation window as the
+      last spectrum's and crashed (#10271).
     - Fixed INI required/advanced parsing, XQuest FDR-type restoration, mzIdentML missing
       modification locations, PepXML source-run paths/redundant Comet scores and duplicate
       IDMapper spectrum references (#5443, #8905, #9089, #9660, #9763, #9766).
@@ -1215,6 +1255,10 @@ Documentation:
     are resolved now (#3009).
 
 Build System:
+  - The Debian package of a nightly or branch build carries its prerelease identifier in its
+    control version, for example 3.6.0~nightly.2026.09.27, so it sorts below the release
+    and a later nightly above an earlier one. Before, every build of 3.6.0 was version 3.6.0
+    to apt, whether nightly or release.
   - Public headers of OpenMS, OpenSwathAlgo, OpenMS_CLI, OpenMS_GUI and the test
     framework use CMake header file sets. Installation paths and components stay
     unchanged and private headers remain excluded. Building OpenMS and consuming
@@ -1306,16 +1350,6 @@ Build System:
     unavailable; SIMD-only compilation works without a runtime. Fixed
     YAML CTD parsing and optional WNet tool registration (#8368, #8880, #9056, #9223,
     #8496, #9267, #9388, #9651, #9653, #9783, #9784, #9971).
-  - Fixed the Homebrew static-Boost fallback on macOS: Boost's CMake config does not
-    expose iostreams'/regex's transitive dependencies as targets, so the fallback
-    rewrote their raw -l flags to imported ones, but a malformed "ICU:uc" reached the
-    link line unchanged, a missing find_package could name a target that was never
-    created (a hard configure-time error), and the Apple Silicon path was never taken
-    because the Homebrew-prefix check only matched /usr/local. Each dependency is now
-    translated independently against only the imported targets that were actually
-    found, using OPTIONAL_COMPONENTS so one missing ICU component no longer drops
-    every ICU target, and the Homebrew-prefix check also matches /opt/homebrew and
-    HOMEBREW_PREFIX (#10187).
   - Documentation formulas use MathJax, removing Ghostscript. Removed obsolete developer
     scripts, ENABLE_STYLE_TESTING, doc_xml and stale examples/schemas. Runtime schema
     coverage is retained; QcMLFile/PepXMLFileMascot validation remains unavailable and

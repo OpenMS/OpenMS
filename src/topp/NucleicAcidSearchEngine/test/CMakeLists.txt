@@ -15,4 +15,3 @@ openms_add_tool_class_test(ModifiedNASequenceGenerator_test
   SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../source/ModifiedNASequenceGenerator.cpp
   INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries(ModifiedNASequenceGenerator_test Boost::regex)
