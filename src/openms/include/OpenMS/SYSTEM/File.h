@@ -232,7 +232,9 @@ public:
 
       Every folder in THIRDPARTY of the OpenMS shared-data directory (getOpenMSDataPath()),
       e.g. share/OpenMS/THIRDPARTY/Comet/, sorted by name. All paths use '/' as separator and
-      end in '/'. Empty if there is no such directory, as in a build tree or in pyOpenMS.
+      end in '/'. Empty if there is no such directory, as in a build tree or in pyOpenMS, and
+      if there is no shared-data directory at all (unlike getOpenMSDataPath(), this does not
+      end the process then).
     */
     static StringList getThirdPartyToolLocations();
 
@@ -307,7 +309,10 @@ private:
       std::string source;  ///< human-readable origin, e.g. "the OPENMS_DATA_PATH environment variable"
     };
 
-    /// Resolve (once, thread-safe) and return the OpenMS data path together with where it was found.
+    /// Find (once, thread-safe) the OpenMS data path together with where it was found; an empty path if there is none.
+    static const OpenMSDataPath_& findOpenMSDataPath_();
+
+    /// The OpenMS data path together with where it was found; ends the process if there is none.
     static const OpenMSDataPath_& resolveOpenMSDataPath_();
 
 #ifdef OPENMS_WINDOWSPLATFORM

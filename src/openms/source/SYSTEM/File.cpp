@@ -654,7 +654,7 @@ namespace OpenMS{
     return d + "_" + t + "_" + hostname_str + pid + "_" + (++number);
   }
 
-  const File::OpenMSDataPath_& File::resolveOpenMSDataPath_()
+  const File::OpenMSDataPath_& File::findOpenMSDataPath_()
   {
     // Use immediately evaluated lambda to protect the static from concurrent access (thread-safe static init).
     static const OpenMSDataPath_ info = []() -> OpenMSDataPath_ {
@@ -662,7 +662,6 @@ namespace OpenMS{
       bool path_checked = false;
 
       std::string found_path_from;
-      bool from_env(false);
 
   #if !defined(OPENMS_WINDOWSPLATFORM)
       // Probe the compiled-in install path (baked to CMAKE_INSTALL_PREFIX at build time).
@@ -720,7 +719,6 @@ namespace OpenMS{
       if (!path_checked && getenv("OPENMS_DATA_PATH") != nullptr)
       {
         path = getenv("OPENMS_DATA_PATH");
-        from_env = true;
         path_checked = isOpenMSDataPath_(path);
         if (path_checked)
         {
@@ -728,29 +726,39 @@ namespace OpenMS{
         }
       }
 
+      if (!path_checked)
+      {
+        return OpenMSDataPath_{};
+      }
       // make its a proper path:
       StringUtils::substitute(path, "\\", "/"); StringUtils::ensureLastChar(path, '/'); path = StringUtils::chop(path, 1);
-
-      if (!path_checked) // - now we're in big trouble as './share' is not were its supposed to be...
-      { // - do NOT use OPENMS_LOG_ERROR or similar for the messages below! (it might not even usable at this point)
-        std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
-        if (from_env)
-        {
-          std::string p = getenv("OPENMS_DATA_PATH");
-          std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << p << "', which is incorrect!\n";
-        }
-  #ifdef OPENMS_WINDOWSPLATFORM
-        std::string share_dir = R"(c:\Program Files\OpenMS\share\OpenMS)";
-  #else
-        std::string share_dir = "/usr/share/OpenMS";
-  #endif
-        std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
-        std::cerr << "Exiting now.\n";
-        exit(1);
-      }
       return OpenMSDataPath_{path, found_path_from};
     }();
 
+    return info;
+  }
+
+  const File::OpenMSDataPath_& File::resolveOpenMSDataPath_()
+  {
+    const OpenMSDataPath_& info = findOpenMSDataPath_();
+    if (info.path.empty()) // - now we're in big trouble as './share' is not were its supposed to be...
+    { // - do NOT use OPENMS_LOG_ERROR or similar for the messages below! (it might not even usable at this point)
+      std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
+      // The environment variable is probed last, so it was probed and failed if it is set.
+      if (getenv("OPENMS_DATA_PATH") != nullptr)
+      {
+        std::string p = getenv("OPENMS_DATA_PATH");
+        std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << p << "', which is incorrect!\n";
+      }
+  #ifdef OPENMS_WINDOWSPLATFORM
+      std::string share_dir = R"(c:\Program Files\OpenMS\share\OpenMS)";
+  #else
+      std::string share_dir = "/usr/share/OpenMS";
+  #endif
+      std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
+      std::cerr << "Exiting now.\n";
+      exit(1);
+    }
     return info;
   }
 
@@ -858,7 +866,10 @@ namespace OpenMS{
 
   StringList File::getThirdPartyToolLocations()
   {
-    return getThirdPartyToolLocations(getOpenMSDataPath());
+    // Not getOpenMSDataPath(): findExecutable() consults this after a failed PATH search, and a
+    // failed lookup has to return false rather than end the process when there is no shared data.
+    const std::string& data_path = findOpenMSDataPath_().path;
+    return data_path.empty() ? StringList() : getThirdPartyToolLocations(data_path);
   }
 
   StringList File::getThirdPartyToolLocations(const std::string& data_path)
