@@ -84,3 +84,59 @@ def test_installed_stubs_are_valid_python():
     assert stubs, "py.typed must not advertise a package without generated stubs"
     for stub in stubs:
         ast.parse(stub.read_text(encoding="utf-8"), filename=str(stub))
+
+
+def exported_names(tree):
+    """Names a stub module exports to a type checker."""
+    names = set()
+    for node in tree.body:
+        if isinstance(node, (ast.ClassDef, ast.FunctionDef)):
+            names.add(node.name)
+        elif isinstance(node, ast.Assign):
+            names.update(target.id for target in node.targets if isinstance(target, ast.Name))
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            names.add(node.target.id)
+        elif isinstance(node, ast.ImportFrom):
+            # A stub re-exports an imported name only in the form "import X as X".
+            names.update(alias.name for alias in node.names if alias.asname == alias.name)
+    return names
+
+
+def test_installed_stubs_export_the_package_namespace():
+    import pyopenms
+
+    package = Path(pyopenms.__file__).resolve().parent
+    if not (package / "py.typed").is_file():
+        pytest.skip("This build has stub generation disabled")
+    init = ast.parse((package / "__init__.pyi").read_text(encoding="utf-8"))
+
+    # Every public name is declared and exported. An alias such as PeakMap was
+    # imported under another name, which is no export, and a stray import such as
+    # ctypes was not declared at all.
+    public = {name for name in dir(pyopenms) if not name.startswith("_")}
+    assert sorted(public - exported_names(init)) == []
+
+    # Every name imported from a module of the package exists there. stubgen used
+    # to import a nested enum such as FileTypes.FileType as a top-level name.
+    unresolved = []
+    for node in init.body:
+        if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("pyopenms."):
+            source = package.joinpath(*node.module.split(".")[1:])
+            stub = source / "__init__.pyi" if source.is_dir() else source.with_suffix(".pyi")
+            names = exported_names(ast.parse(stub.read_text(encoding="utf-8")))
+            unresolved += [f"{node.module}.{alias.name}" for alias in node.names
+                           if alias.name not in names]
+    assert unresolved == []
+
+
+def test_package_namespace_holds_no_stray_imports():
+    import inspect
+    import pyopenms
+
+    stray = [name for name in dir(pyopenms) if not name.startswith("_")
+             and inspect.ismodule(getattr(pyopenms, name))
+             and not getattr(pyopenms, name).__name__.startswith("pyopenms.")]
+    # "from __future__ import annotations" binds a name as well.
+    if hasattr(pyopenms, "annotations"):
+        stray.append("annotations")
+    assert stray == []
