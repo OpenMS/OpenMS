@@ -5,7 +5,9 @@ $Maintainer: Timo Sachsenberg $
 
 import ast
 import importlib.util
+import json
 from pathlib import Path
+import subprocess
 import sys
 from unittest.mock import patch
 
@@ -102,10 +104,26 @@ def exported_names(tree):
     return names
 
 
-def test_installed_stubs_export_the_package_namespace():
-    import pyopenms
+def fresh_namespace():
+    """{public name: module name, or None} of pyopenms right after "import pyopenms".
 
-    package = Path(pyopenms.__file__).resolve().parent
+    Checked in a new interpreter, as stubgen imports the package: within the test
+    session other tests import submodules such as pyopenms.plotting, which the import
+    system then binds as attributes of the package.
+    """
+    code = (
+        "import inspect, json, pyopenms\n"
+        "names = {name: getattr(pyopenms, name).__name__ if inspect.ismodule(getattr(pyopenms, name)) else None\n"
+        "         for name in dir(pyopenms) if not name.startswith('_')}\n"
+        "print('NAMESPACE ' + json.dumps(names))\n")
+    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=120)
+    assert result.returncode == 0, f"import pyopenms failed:\n{result.stderr}\n{result.stdout}"
+    line = [line for line in result.stdout.splitlines() if line.startswith("NAMESPACE ")][-1]
+    return json.loads(line[len("NAMESPACE "):])
+
+
+def test_installed_stubs_export_the_package_namespace():
+    package = package_dir()
     if not (package / "py.typed").is_file():
         pytest.skip("This build has stub generation disabled")
     init = ast.parse((package / "__init__.pyi").read_text(encoding="utf-8"))
@@ -113,7 +131,7 @@ def test_installed_stubs_export_the_package_namespace():
     # Every public name is declared and exported. An alias such as PeakMap was
     # imported under another name, which is no export, and a stray import such as
     # ctypes was not declared at all.
-    public = {name for name in dir(pyopenms) if not name.startswith("_")}
+    public = set(fresh_namespace())
     assert sorted(public - exported_names(init)) == []
 
     # Every name imported from a module of the package exists there. stubgen used
@@ -130,13 +148,10 @@ def test_installed_stubs_export_the_package_namespace():
 
 
 def test_package_namespace_holds_no_stray_imports():
-    import inspect
-    import pyopenms
-
-    stray = [name for name in dir(pyopenms) if not name.startswith("_")
-             and inspect.ismodule(getattr(pyopenms, name))
-             and not getattr(pyopenms, name).__name__.startswith("pyopenms.")]
+    namespace = fresh_namespace()
+    stray = [name for name, module in namespace.items()
+             if module is not None and not module.startswith("pyopenms.")]
     # "from __future__ import annotations" binds a name as well.
-    if hasattr(pyopenms, "annotations"):
+    if "annotations" in namespace:
         stray.append("annotations")
     assert stray == []
