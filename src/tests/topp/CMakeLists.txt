@@ -5735,6 +5735,39 @@ set_tests_properties("TOPP_ProteomicsLFQ_8_out_2" PROPERTIES DEPENDS "TOPP_Prote
 add_test("TOPP_ProteomicsLFQ_8_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_8_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_8")
 
+# A fraction whose runs have no identifications at all (e.g. none passed the upstream FDR filter)
+# has no features, so its linker gets only empty maps. That crashed the QT linker (fixed by #9790)
+# and then failed an assertion in Debug builds (#10310). Fraction 2 has no identifications here;
+# fraction 1 must still be quantified.
+add_test("TOPP_ProteomicsLFQ_empty_fraction" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_TOPP}/ProteomicsLFQ_empty_fraction_BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2_empty.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -out_msstats ${TESTS_TEMP_DIR}/BSA_empty_fraction.tmp.csv
+         -threads 1
+         -proteinFDR 0.8
+         -test
+         )
+# The empty fraction must actually have been reached; the output comparison below fails if the tool
+# stopped before writing its results.
+set_tests_properties("TOPP_ProteomicsLFQ_empty_fraction" PROPERTIES PASS_REGULAR_EXPRESSION "fraction 2 \\(2 run\\(s\\)\\) yielded no consensus features")
+add_test("TOPP_ProteomicsLFQ_empty_fraction_out_1" ${DIFF} -whitelist "software" "location" -in1 ${TESTS_TEMP_DIR}/BSA_empty_fraction.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_empty_fraction_out.csv )
+set_tests_properties("TOPP_ProteomicsLFQ_empty_fraction_out_1" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_empty_fraction")
+
 # test single file, no experimental design (regression)
 add_test("TOPP_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
