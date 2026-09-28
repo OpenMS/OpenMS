@@ -7,4 +7,4 @@ separate directories (e.g., `cmake/modules` for `Find*` scripts).
 
 ## Packaging Scripts
 
-- `generate_applications_component_plist.cmake` - Generates ApplicationsComponent.plist for macOS PKG packages, listing all GUI application bundles with their relocatable paths.
+- `generate_applications_component_plist.cmake` - Generates ApplicationsComponent.plist, the component plist of the macOS pkg, which keeps the installer from relocating the app bundles into another folder.

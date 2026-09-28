@@ -95,6 +95,8 @@ macro(add_mac_app_bundle _name)
 		install(TARGETS ${_name} BUNDLE
 						DESTINATION .
 						COMPONENT Applications)
+		## Listed in the component plist of the pkg (cmake/generate_applications_component_plist.cmake)
+		set_property(GLOBAL APPEND PROPERTY OPENMS_APP_BUNDLES ${_name})
 		
 		if("${PACKAGE_TYPE}" STREQUAL "pkg")
 			## Write a qt.conf file with a ref to the plugin dir outside of the bundle (to share)

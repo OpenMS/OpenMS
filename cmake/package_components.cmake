@@ -47,10 +47,11 @@ if(WITH_GUI)
 else()
   set(_openms_applications_depends library_cli)
 endif()
-# Conditionally add PLIST argument for macOS pkg (lists app bundles for productbuild)
-set(_PLIST_ARG)
-if(DEFINED APPLICATIONS_COMPONENT_PLIST AND EXISTS "${APPLICATIONS_COMPONENT_PLIST}")
-    set(_PLIST_ARG PLIST "${APPLICATIONS_COMPONENT_PLIST}")
+## The macOS pkg hands pkgbuild a component plist for the app bundles, which keeps the
+## installer from relocating them (cmake/generate_applications_component_plist.cmake).
+set(_openms_applications_plist)
+if(APPLICATIONS_COMPONENT_PLIST)
+  set(_openms_applications_plist PLIST "${APPLICATIONS_COMPONENT_PLIST}")
 endif()
 ## Capitalized to match the name install_tool() registers (cmake/install_macros.cmake).
 ## CPack folds the name to upper case for the CPACK_COMPONENT_<NAME>_* metadata below,
@@ -60,9 +61,10 @@ cpack_add_component(Applications
                 DESCRIPTION "OpenMS binaries including TOPP tools, TOPPView and TOPPAS."
                 DEPENDS ${_openms_applications_depends}
                 INSTALL_TYPES recommended full minimal
-                ${_PLIST_ARG}
+                ${_openms_applications_plist}
                 )
 unset(_openms_applications_depends)
+unset(_openms_applications_plist)
 cpack_add_component(doc
                 DISPLAY_NAME "Documentation"
                 DESCRIPTION "Class and tool documentation. With tutorials."

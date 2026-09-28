@@ -1,63 +1,64 @@
 # Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-# This script generates an ApplicationsComponent.plist file containing
-# an array of all installed application bundles for the Applications CPack component.
-# This is used by the CPack productbuild generator on macOS.
+## Writes the component property list that pkgbuild gets for the Applications component
+## (PLIST of cpack_add_component in cmake/package_components.cmake) and sets
+## APPLICATIONS_COMPONENT_PLIST to it. Included by cmake/package_mac_productbuild.cmake,
+## after CPACK_PACKAGING_INSTALL_PREFIX is set.
+##
+## pkgbuild marks every app bundle relocatable by default. The installer then looks for a
+## bundle with the same identifier anywhere on the disk and updates that copy instead of
+## installing into the package's folder. Our identifiers (de.openms.<name>) are the same in
+## every version, so the apps of a new OpenMS ended up in the folder of an older one, or in
+## a build tree. pkgbuild reads BundleIsRelocatable only from this plist, not from the
+## Info.plist of a bundle. The other keys keep the values pkgbuild uses by default.
 
-# The plist file will be generated during CMake configure and referenced
-# in cpack_add_component(Applications ...) via the PLIST argument.
-
-# Only generate the plist if we're building for macOS
-if(NOT APPLE)
-  message(STATUS "Skipping ApplicationsComponent.plist generation (not on macOS)")
+## add_mac_app_bundle() (src/openms_gui/add_mac_bundle.cmake) records every bundle it
+## installs; there are none without WITH_GUI.
+get_property(_openms_app_bundles GLOBAL PROPERTY OPENMS_APP_BUNDLES)
+if(NOT _openms_app_bundles)
   return()
 endif()
 
-# Get the list of GUI executables
-include(${PROJECT_SOURCE_DIR}/src/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS/executables.cmake)
+## The path is relative to the root pkgbuild packages, which holds the install prefix:
+## Applications/OpenMS-<version>/TOPPView.app
+string(REGEX REPLACE "^/" "" _openms_bundle_dir "${CPACK_PACKAGING_INSTALL_PREFIX}")
 
-# Check if there are any GUI executables to include
-if(NOT GUI_executables)
-  message(STATUS "No GUI executables found for ApplicationsComponent.plist")
-  return()
-endif()
-
-# Generate the plist file in the build directory
-set(APPLICATIONS_COMPONENT_PLIST "${CMAKE_BINARY_DIR}/ApplicationsComponent.plist")
-
-# Construct the base path for bundles relative to system root
-# CPACK_PACKAGING_INSTALL_PREFIX is like "/Applications/OpenMS-3.6.0"
-# We need to remove the leading "/" to make it relative to root
-string(REGEX REPLACE "^/" "" BUNDLE_BASE_PATH "${CPACK_PACKAGING_INSTALL_PREFIX}")
-
-# Start the plist XML
-set(PLIST_CONTENT "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-set(PLIST_CONTENT "${PLIST_CONTENT}<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n")
-set(PLIST_CONTENT "${PLIST_CONTENT}<plist version=\"1.0\">\n")
-set(PLIST_CONTENT "${PLIST_CONTENT}<array>\n")
-
-# Add an entry for each GUI application bundle
-# Bundles are installed to "." (root of install prefix), so the full path is:
-# RootRelativeBundlePath = BUNDLE_BASE_PATH/AppName.app
-foreach(app_name ${GUI_executables})
-  set(PLIST_CONTENT "${PLIST_CONTENT}    <dict>\n")
-  set(PLIST_CONTENT "${PLIST_CONTENT}        <key>RootRelativeBundlePath</key>\n")
-  set(PLIST_CONTENT "${PLIST_CONTENT}        <string>${BUNDLE_BASE_PATH}/${app_name}.app</string>\n")
-  set(PLIST_CONTENT "${PLIST_CONTENT}        <key>BundleIsRelocatable</key>\n")
-  set(PLIST_CONTENT "${PLIST_CONTENT}        <false/>\n")
-  set(PLIST_CONTENT "${PLIST_CONTENT}    </dict>\n")
+set(_openms_plist_entries "")
+foreach(_openms_app_bundle IN LISTS _openms_app_bundles)
+  string(APPEND _openms_plist_entries
+    "  <dict>\n"
+    "    <key>BundleHasStrictIdentifier</key>\n"
+    "    <true/>\n"
+    "    <key>BundleIsRelocatable</key>\n"
+    "    <false/>\n"
+    "    <key>BundleIsVersionChecked</key>\n"
+    "    <true/>\n"
+    "    <key>BundleOverwriteAction</key>\n"
+    "    <string>upgrade</string>\n"
+    "    <key>RootRelativeBundlePath</key>\n"
+    "    <string>${_openms_bundle_dir}/${_openms_app_bundle}.app</string>\n"
+    "  </dict>\n")
 endforeach()
 
-# Close the array and plist
-set(PLIST_CONTENT "${PLIST_CONTENT}</array>\n")
-set(PLIST_CONTENT "${PLIST_CONTENT}</plist>\n")
+set(APPLICATIONS_COMPONENT_PLIST "${CMAKE_BINARY_DIR}/ApplicationsComponent.plist")
+file(WRITE "${APPLICATIONS_COMPONENT_PLIST}"
+  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+  "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+  "<plist version=\"1.0\">\n"
+  "<array>\n"
+  "${_openms_plist_entries}"
+  "</array>\n"
+  "</plist>\n")
+list(JOIN _openms_app_bundles ", " _openms_app_bundles_text)
+message(STATUS "The installer will not relocate ${_openms_app_bundles_text} (${APPLICATIONS_COMPONENT_PLIST})")
 
-# Write the plist file
-file(WRITE "${APPLICATIONS_COMPONENT_PLIST}" "${PLIST_CONTENT}")
-message(STATUS "Generated ApplicationsComponent.plist with base path: ${BUNDLE_BASE_PATH}")
+unset(_openms_app_bundles)
+unset(_openms_app_bundles_text)
+unset(_openms_bundle_dir)
+unset(_openms_plist_entries)
