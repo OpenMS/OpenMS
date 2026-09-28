@@ -248,6 +248,11 @@ namespace OpenMS::Internal
         // C# captures only the first <variation>.
         capture_ = CaptureTarget::FeatureVariation;
       }
+      else if (tag == "location")
+      {
+        // Only set when the coordinates refer to another isoform, not the canonical sequence.
+        current_feature_.location_sequence = attrValue(attrs, "sequence");
+      }
       return;
     }
 

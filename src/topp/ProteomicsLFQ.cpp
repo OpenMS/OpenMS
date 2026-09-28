@@ -83,16 +83,18 @@ using namespace std;
 /**
 @page TOPP_ProteomicsLFQ ProteomicsLFQ
 
-ProteomicsLFQ performs label-free quantification of peptides and proteins. @n
+@brief Performs label-free quantification of peptides and proteins.
 
 Input: @n
-  - Spectra in mzML format or Bruker .d directories (TimsTOF PASEF)
+  - Spectra in mzML format, Bruker .d directories (TimsTOF PASEF) or Thermo .raw files (read as acquired,
+   without vendor peak picking; see
+   <a href="https://openms.readthedocs.io/en/latest/getting-started/vendor-formats.html">Vendor formats</a>)
   - Identifications in idXML or mzIdentML format with posterior error probabilities
    as score type.
    To generate those we suggest to run:
     1. PeptideIndexer to annotate target and decoy information.
     2. PSMFeatureExtractor to annotate percolator features.
-    3. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)
+    3. PercolatorAdapter tool (score_type = 'q-value', -post_processing_tdc)
     4. IDFilter (pep:score = 0.01) to filter PSMs at 1% FDR
 
    Exactly one identification run per ID file is required, and merged ID runs are not supported.
@@ -118,6 +120,26 @@ ProteomicsLFQ has different methods to extract features: ID-based (targeted only
   2. The second method adds untargeted feature detection to obtain quantities from unidentified features.
      Transfer of Ids (match between runs) is performed by transfering feature identifications to coeluting, unidentified features with similar mass
 and RT in other runs.
+
+@b Match @b between @b runs @b with @b PIP-ECHO (@p -pip_echo @p true): @n
+By default, the second method links the features across runs by QT clustering on their RT and m/z
+(@p Linking:*), without estimating the error rate of the transferred identifications. With @p -pip_echo @p true,
+PIP-ECHO links the features instead and controls the false discovery rate of the transfers. Decoy transfers, which
+look for a peptide at the retention time of an unrelated peptide, estimate the error rate. A support vector machine
+scores each transfer (on intensity, mass error, RT agreement, isotope envelope and, if every run has ion mobility
+data, ion mobility), and the transfers up to @p PipEcho:fdr (default 0.05) are kept.
+@p -pip_echo requires @p -targeted_only @p false (the default).
+  - The RT window in which a transfer is searched is local by default: for each peptide, it is predicted from
+    nearby peptides identified in both runs and sized from their RT scatter (@p PipEcho:local_rt:*), and it is
+    widened if there are too few decoys to resolve the FDR. @p PipEcho:local_rt:enabled @p false uses one global
+    window instead, which ProteomicsLFQ sizes from the alignment error and the chromatographic peak width.
+  - If there are fewer decoy transfers than @p PipEcho:min_decoys (default 20), or too few to resolve the
+    requested FDR, no transfer is kept, and only the direct identifications remain. @p PipEcho:fdr @p 1.0 keeps
+    all transfers.
+  - @p PipEcho:random_seed selects the decoys; with the same seed (default 0), results are reproducible.
+  - @p PipEcho:max_training_points limits how many transfers the support vector machine is trained on in each
+    cross-validation fold (default 50000, 0 = no limit), which bounds the run time on large data sets. All
+    transfers are scored.
 
 @b Resuming @b and @b distributing @b feature @b detection (@p -feat_dir): @n
 Feature detection is the expensive part of the workflow and each MS run is detected independently
@@ -236,7 +258,7 @@ protected:
       "And annotated with PEP as main score.\n"
       "We suggest using:\n"
       "1. PSMFeatureExtractor to annotate percolator features.\n"
-      "2. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)\n"
+      "2. PercolatorAdapter tool (score_type = 'q-value', -post_processing_tdc)\n"
       "3. IDFilter (pep:score = 0.05)\n"
       "To obtain well calibrated PEPs and an initial reduction of PSMs\n"
       "ID files must be provided in same order as spectra files.\n"

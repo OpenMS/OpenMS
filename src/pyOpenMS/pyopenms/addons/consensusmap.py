@@ -324,11 +324,10 @@ def to_feature_arrow(self, reference_file_name=None, columns=None,
         for prot_id in prot_ids:
             for pg in prot_id.getProteinGroups():
                 for acc in pg.accessions:
-                    acc_str = acc.decode() if isinstance(acc, bytes) else str(acc)
-                    if acc_str not in pg_lookup:
-                        pg_lookup[acc_str] = []
-                    pg_lookup[acc_str].extend([a.decode() if isinstance(a, bytes) else str(a) for a in pg.accessions])
-                    pg_qvalue_lookup[acc_str] = pg.probability
+                    if acc not in pg_lookup:
+                        pg_lookup[acc] = []
+                    pg_lookup[acc].extend(pg.accessions)
+                    pg_qvalue_lookup[acc] = pg.probability
 
     for cf in self.iter_consensus_feature_views():
         pep_ids = cf.getPeptideIdentifications()

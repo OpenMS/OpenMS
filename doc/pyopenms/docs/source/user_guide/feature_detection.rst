@@ -102,7 +102,6 @@ For the untargeted detection of small molecule features we can use the :py:class
 
   exp.sortSpectra(True)
 
-  mass_traces = []
   mtd = oms.MassTraceDetection()
   mtd_params = mtd.getDefaults()
   mtd_params.setValue(
@@ -112,23 +111,20 @@ For the untargeted detection of small molecule features we can use the :py:class
       "noise_threshold_int", 3000.0
   )  # adjust to noise level in your data
   mtd.setParameters(mtd_params)
-  mtd.run(exp, mass_traces, 0)
+  mass_traces = mtd.run(exp)
 
-  mass_traces_split = []
-  mass_traces_final = []
   epd = oms.ElutionPeakDetection()
   epd_params = epd.getDefaults()
   epd_params.setValue("width_filtering", "fixed")
   epd.setParameters(epd_params)
-  epd.detectPeaks(mass_traces, mass_traces_split)
+  mass_traces_split = epd.detectPeaks(mass_traces)
 
   if epd.getParameters().getValue("width_filtering") == "auto":
-      epd.filterByPeakWidth(mass_traces_split, mass_traces_final)
+      mass_traces_final = epd.filterByPeakWidth(mass_traces_split)
   else:
       mass_traces_final = mass_traces_split
 
   fm = oms.FeatureMap()
-  feat_chrom = []
   ffm = oms.FeatureFindingMetabo()
   ffm_params = ffm.getDefaults()
   ffm_params.setValue("isotope_filtering_model", "none")
@@ -138,10 +134,10 @@ For the untargeted detection of small molecule features we can use the :py:class
   ffm_params.setValue("mz_scoring_by_elements", "false")
   ffm_params.setValue("report_convex_hulls", "true")
   ffm.setParameters(ffm_params)
-  ffm.run(mass_traces_final, fm, feat_chrom)
+  ffm.run(mass_traces_final, fm)  # fills fm
 
   fm.setUniqueIds()
-  fm.setPrimaryMSRunPath(["ms_data.mzML".encode()])
+  fm.setPrimaryMSRunPath(["ms_data.mzML"])
 
 Metabolomics - Targeted
 ***********************
@@ -241,9 +237,9 @@ Now we can use the following code to detect features with :py:class:`~.FeatureFi
 
   # edit some parameters
   params = ff.getParameters()
-  params[b"extract:mz_window"] = 5.0  # 5 ppm
-  params[b"extract:rt_window"] = 20.0  # 20 seconds
-  params[b"detect:peak_width"] = 3.0  # 3 seconds
+  params["extract:mz_window"] = 5.0  # 5 ppm
+  params["extract:rt_window"] = 20.0  # 20 seconds
+  params["detect:peak_width"] = 3.0  # 3 seconds
   ff.setParameters(params)
 
   # run the FeatureFinderMetaboIdent with the metabo_table and mzML file path -> store results in fm

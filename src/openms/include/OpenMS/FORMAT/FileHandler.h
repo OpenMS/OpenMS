@@ -171,6 +171,8 @@ public:
       @param[in] rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
       @param[out] compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
 
+      @note Thermo .raw files (OpenMS built with WITH_THERMO_RAW) are read with Thermo's peak picking, like FileConverter does by default, so profile scans are returned centroided. Use ThermoRawFile directly to keep the scans as they were acquired.
+
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */

@@ -8,6 +8,7 @@
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 #include <OpenMS/FORMAT/HANDLERS/PASEFHillCentroider.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
@@ -15,6 +16,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <opentims++/opentims.h>
 #include <opentims++/tof2mz_converter.h>
@@ -24,6 +27,7 @@
 
 #include <memory>
 #include <algorithm>
+#include <filesystem>
 #include <numeric>
 #include <vector>
 #include <cmath>
@@ -1433,6 +1437,79 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // Zipped .d directories ('.d.zip')
+  // =====================================================================
+  // opentims only opens directories, so a '.d.zip' archive is unpacked into a temporary
+  // directory that exists as long as this struct.
+  struct BrukerTimsFile::UnpackedArchive
+  {
+    std::string archive;          ///< the archive path as the caller gave it
+    std::unique_ptr<TempDir> dir; ///< owns the extracted files
+    std::string d_path;           ///< the (possibly nested) .d directory inside dir
+  };
+
+  std::shared_ptr<BrukerTimsFile::UnpackedArchive> BrukerTimsFile::unpack_(const std::string& path)
+  {
+    if (File::isDirectory(path) || !StringUtils::hasSuffix(StringUtils::toLowered(path), ".zip"))
+    {
+      return nullptr;
+    }
+    auto unpacked = std::make_shared<UnpackedArchive>();
+    unpacked->archive = path;
+    const std::string root = ZipArchiveFile::unzipDirectory(path, unpacked->dir);
+    // Find the .d directory inside the extracted archive. It may be nested. The iteration order
+    // is unspecified, and archives made on macOS also hold a __MACOSX/<name>.d with AppleDouble
+    // files only, so take the shallowest .d that holds analysis.tdf or analysis.tdf_bin (as
+    // FileHandler::getType() requires of a directory), and the first by name among equals.
+    std::filesystem::path found;
+    int found_depth = std::numeric_limits<int>::max();
+    for (auto it = std::filesystem::recursive_directory_iterator(to_path(root));
+         it != std::filesystem::recursive_directory_iterator(); ++it)
+    {
+      if (!it->is_directory())
+      {
+        continue;
+      }
+      const std::filesystem::path& dir = it->path();
+      if (dir.filename() == "__MACOSX")
+      {
+        it.disable_recursion_pending();
+        continue;
+      }
+      std::error_code ec;
+      if (dir.extension() == ".d"
+          && (std::filesystem::exists(dir / "analysis.tdf", ec) || std::filesystem::exists(dir / "analysis.tdf_bin", ec)))
+      {
+        it.disable_recursion_pending();
+        if (it.depth() < found_depth || (it.depth() == found_depth && dir < found))
+        {
+          found = dir;
+          found_depth = it.depth();
+        }
+      }
+    }
+    if (found.empty())
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        path, "ZIP archive does not contain a .d directory with analysis.tdf");
+    }
+    unpacked->d_path = found.string();
+    return unpacked;
+  }
+
+  std::shared_ptr<BrukerTimsFile::UnpackedArchive> BrukerTimsFile::takeUnpacked_(const std::string& path)
+  {
+    std::shared_ptr<UnpackedArchive> kept;
+    kept.swap(unpacked_);
+    if (kept && kept->archive == path)
+    {
+      return kept;
+    }
+    kept.reset(); // free its disk space before unpacking another archive
+    return unpack_(path);
+  }
+
+  // =====================================================================
   // Helper: open TimsDataHandle with tiered calibration strategy
   // =====================================================================
   using Config = BrukerTimsFile::Config;
@@ -1883,8 +1960,12 @@ namespace OpenMS
   BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata(
       const std::string& path, ExperimentalSettings& exp_settings, const Config& config)
   {
-    auto handle = openTimsDataHandle(path, config);
-    std::string tdf_path = path + "/analysis.tdf";
+    // Keep the extraction for the call that follows, typically loadDIAStreaming(): the consumer
+    // is sized from this metadata, so its spectra must come from the same files.
+    unpacked_ = takeUnpacked_(path);
+    const std::string d_path = unpacked_ ? unpacked_->d_path : path;
+    auto handle = openTimsDataHandle(d_path, config);
+    std::string tdf_path = d_path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     if (!isDIA(db))
@@ -1963,7 +2044,8 @@ namespace OpenMS
   void BrukerTimsFile::loadDIAStreaming(
       const std::string& path, FullSwathFileConsumer& consumer, const Config& config)
   {
-    auto handle = openTimsDataHandle(path, config);
+    const auto unpacked = takeUnpacked_(path); // the files readDIAMetadata() read, if it read path
+    auto handle = openTimsDataHandle(unpacked ? unpacked->d_path : path, config);
     std::string tdf_path = handle->get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
@@ -2127,9 +2209,11 @@ namespace OpenMS
   void BrukerTimsFile::load(const std::string& path, MSExperiment& exp, const Config& config)
   {
     exp.clear(true);
-    auto handle = openTimsDataHandle(path, config);
+    const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
+    const std::string d_path = unpacked ? unpacked->d_path : path;
+    auto handle = openTimsDataHandle(d_path, config);
 
-    std::string tdf_path = path + "/analysis.tdf";
+    std::string tdf_path = d_path + "/analysis.tdf";
 
     // Resolve RT range (if any) to an effective frame_id range; also
     // validates the user-supplied frame_id/rt ranges and emits warnings.
@@ -2174,9 +2258,11 @@ namespace OpenMS
 
   void BrukerTimsFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
   {
-    auto handle = openTimsDataHandle(path, config);
+    const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
+    const std::string d_path = unpacked ? unpacked->d_path : path;
+    auto handle = openTimsDataHandle(d_path, config);
 
-    std::string tdf_path = path + "/analysis.tdf";
+    std::string tdf_path = d_path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     const auto eff = resolveEffectiveConfig(db, config,
