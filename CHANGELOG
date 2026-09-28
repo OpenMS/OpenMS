@@ -1342,9 +1342,10 @@ Build System:
     libOpenMS, such as Percolator with its NOTICE file, evergreen, libkdtree++ and MSNumpress
     (vendored/<name>/) (#10292).
   - The pyOpenMS wheels also ship the license texts of the libraries they contain. A build
-    against the OpenMS contrib installs those of the contrib libraries it links, such as
-    Boost, Xerces-C, COIN-OR, Eigen and Arrow with the libraries Arrow builds itself, with a
-    README that names their versions and source code (contrib/<name>/). The wheel builds add
+    against the OpenMS contrib installs the license folders that the contrib provides for the
+    libraries it links, such as Boost, Xerces-C, COIN-OR, Eigen and Arrow with the libraries
+    Arrow builds itself; each names the source archive of its library (contrib/<name>/). The
+    contrib must be recent enough to provide them (OpenMS/contrib#187). The wheel builds add
     the licenses of the libraries the repair tools copy in from the build system: OpenSSL,
     libxml2 and the others on Linux (system/<package>/), the Homebrew libraries on macOS
     (homebrew/<formula>/). Builds with the in-process Thermo reader install the

@@ -33,9 +33,9 @@
 ##
 ## openms_install_contrib_licenses() installs the licenses of the libraries a build takes
 ## from the OpenMS contrib (OPENMS_CONTRIB_LIBS), as the pyOpenMS wheels do (contrib/<name>/).
-## No package manager accounts for these; the texts are those of the contrib's versions, in
-## cmake/third_party_licenses/contrib. The top-level CMakeLists.txt calls it in every
-## configuration too.
+## No package manager accounts for these. The contrib installs the license and notice files
+## of every library it builds into its share/licenses/<name>/, and these folders are
+## installed. The top-level CMakeLists.txt calls it in every configuration too.
 
 ## Sets <formulae_var> to the Homebrew formulae whose kegs hold the given paths, and
 ## <prefix_var> to the prefix of the Homebrew installation they belong to.
@@ -243,20 +243,20 @@ function(openms_install_vendored_licenses)
 endfunction()
 
 ## Installs contrib/<library> for the libraries this build found inside OPENMS_CONTRIB_LIBS,
-## judged by where the find modules found them, and README.txt with their versions and
-## sources. Libraries from vcpkg, Homebrew or the system are left to
+## judged by where the find modules found them. The contrib installs the license and notice
+## files of each library into share/licenses/<library>/, with SOURCE.txt naming the source
+## archive it was built from; arrow/bundled/ holds those of the libraries Arrow builds and
+## links itself. Libraries from vcpkg, Homebrew or the system are left to
 ## openms_install_third_party_licenses() or to the system's package manager.
 function(openms_install_contrib_licenses)
   if(NOT OPENMS_CONTRIB_LIBS)
     return()
   endif()
   set(_licenses_dir "${INSTALL_SHARE_DIR}/LICENSES/contrib")
-  set(_texts "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/third_party_licenses/contrib")
   cmake_path(SET _contrib NORMALIZE "${OPENMS_CONTRIB_LIBS}")
+  cmake_path(APPEND _contrib "share" "licenses" OUTPUT_VARIABLE _texts)
 
-  ## <folder in _texts>=<variables that hold where a find module found the library>. Arrow
-  ## builds and links snappy, zstd, Thrift, xsimd, RapidJSON and mimalloc itself, so they
-  ## come with it. Its S3 support (the AWS SDK) is built on Unix but not linked by OpenMS.
+  ## <folder in share/licenses>=<variables that hold where a find module found the library>
   set(_libraries
     "boost=Boost_DIR"
     "bzip2=BZIP2_INCLUDE_DIR"
@@ -266,37 +266,48 @@ function(openms_install_contrib_licenses)
     "libsvm=LIBSVM_INCLUDE_DIR"
     "libzip=LIBZIP_INCLUDE_DIR"
     "xerces-c=XercesC_INCLUDE_DIR"
-    "coinmp=COIN_INCLUDE_DIR"
-    "arrow,snappy,zstd,thrift,xsimd,rapidjson,mimalloc=Arrow_DIR")
+    "coin-or=COIN_INCLUDE_DIR"
+    "glpk=GLPK_INCLUDE_DIR"
+    "hdf5=HDF5_INCLUDE_DIRS"
+    "arrow=Arrow_DIR")
   set(_installed)
   foreach(_entry IN LISTS _libraries)
     string(REPLACE "=" ";" _entry "${_entry}")
-    list(GET _entry 0 _folders)
+    list(GET _entry 0 _folder)
     list(GET _entry 1 _variables)
-    string(REPLACE "," ";" _folders "${_folders}")
     string(REPLACE "," ";" _variables "${_variables}")
     set(_from_contrib FALSE)
     foreach(_variable IN LISTS _variables)
-      if(${_variable})
-        cmake_path(IS_PREFIX _contrib "${${_variable}}" NORMALIZE _inside)
+      foreach(_path IN LISTS ${_variable})
+        cmake_path(IS_PREFIX _contrib "${_path}" NORMALIZE _inside)
         if(_inside)
           set(_from_contrib TRUE)
         endif()
-      endif()
+      endforeach()
     endforeach()
     if(_from_contrib)
-      foreach(_folder IN LISTS _folders)
-        install(DIRECTORY "${_texts}/${_folder}"
-                DESTINATION "${_licenses_dir}"
-                COMPONENT share)
-      endforeach()
-      list(APPEND _installed ${_folders})
+      ## An older contrib has no share/licenses. Building still works; installing, which
+      ## packages and wheels do, stops rather than leave the license out.
+      set(_missing
+          "The contrib in ${OPENMS_CONTRIB_LIBS} has no share/licenses/${_folder}, so the "
+          "license of ${_folder} cannot be installed. Use a contrib built from OpenMS/contrib "
+          "d077390 or later, which installs the license files of the libraries it builds.")
+      if(NOT IS_DIRECTORY "${_texts}/${_folder}")
+        message(WARNING ${_missing})
+      endif()
+      string(CONCAT _missing ${_missing})
+      install(CODE "
+        if(NOT IS_DIRECTORY \"${_texts}/${_folder}\")
+          message(FATAL_ERROR \"${_missing}\")
+        endif()"
+        COMPONENT share)
+      install(DIRECTORY "${_texts}/${_folder}"
+              DESTINATION "${_licenses_dir}"
+              COMPONENT share)
+      list(APPEND _installed ${_folder})
     endif()
   endforeach()
   if(_installed)
-    install(FILES "${_texts}/README.txt"
-            DESTINATION "${_licenses_dir}"
-            COMPONENT share)
     list(JOIN _installed ", " _installed)
     message(STATUS "Licenses of the contrib libraries to install: ${_installed}")
   endif()
