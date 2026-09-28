@@ -147,6 +147,28 @@ START_SECTION(static Param getSystemParameters())
     Logger::LogSinkGuard quiet(getThreadLocalLogError(), std::cerr);
     TEST_EXCEPTION(Exception::FileNotFound, SystemSettings::findDatabase("filedoesnotexists"))
   }
+
+  // An entry of the wrong type is reported (on the warning log) and replaced by its default:
+  // 'id_db_dir' given as a single string must not make findDatabase() fail with a ConversionError.
+  {
+    std::ofstream ini(config_dir + "/OpenMS.ini");
+    ini << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
+        << "<PARAMETERS version=\"1.8.0\">\n"
+        << "  <ITEM name=\"id_db_dir\" value=\"/openms_test/fasta\" type=\"string\" />\n"
+        << "</PARAMETERS>\n";
+  }
+  {
+    Logger::LogSinkGuard quiet_warn(getThreadLocalLogWarn(), std::cerr);
+    Param p_mistyped = SystemSettings::getSystemParameters();
+    TEST_EQUAL(p_mistyped.getValue("id_db_dir").valueType(), ParamValue::STRING_LIST)
+    // compare instead of calling toStringVector(), which throws on a regression and would skip the restore below
+    TEST_TRUE(p_mistyped.getValue("id_db_dir") == ParamValue(std::vector<std::string>()))
+  }
+  {
+    Logger::LogSinkGuard quiet_warn(getThreadLocalLogWarn(), std::cerr);
+    Logger::LogSinkGuard quiet_error(getThreadLocalLogError(), std::cerr);
+    TEST_EXCEPTION(Exception::FileNotFound, SystemSettings::findDatabase("filedoesnotexists"))
+  }
   restoreEnv("XDG_CONFIG_HOME", xdg_backup);
   restoreEnv("OPENMS_HOME_PATH", home_backup);
   File::removeDirRecursively(fake_home);

@@ -131,14 +131,16 @@ namespace OpenMS
     std::string filename = SystemSettings::getOpenMSConfigDir() + "/OpenMS.ini";
 
     // the file is optional and never written by OpenMS, so a hand-written one may set only some entries
-    Param p;
+    Param p = getSystemParameterDefaults_();
     if (File::readable(filename))
     {
+      Param p_file;
       ParamXMLFile paramFile;
-      paramFile.load(filename, p);
+      paramFile.load(filename, p_file);
+      // the file's values replace the defaults (unknown entries are kept); a value of the wrong type,
+      // e.g. 'id_db_dir' as a single string instead of a list, is reported and the default kept
+      p.update(p_file, false, true, false, false, OPENMS_LOG_WARN);
     }
-    // everything the file does not set (or all entries, without a file) comes from the defaults
-    p.setDefaults(getSystemParameterDefaults_());
     // a 'version' in the file has no meaning (the file is never rewritten); report the running version
     p.setValue("version", VersionInfo::getVersion());
     return p;

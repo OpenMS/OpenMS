@@ -59,8 +59,8 @@ public:
 
     /// Returns the OpenMS.ini system parameters, read from getOpenMSConfigDir() + "/OpenMS.ini".
     /// The file is optional and never written by OpenMS. Entries it does not set (all of them, if
-    /// the file does not exist) are taken from the built-in defaults, and 'version' always holds
-    /// the running OpenMS version.
+    /// the file does not exist) are taken from the built-in defaults, as are entries of the wrong
+    /// type (with a warning). 'version' always holds the running OpenMS version.
     static Param getSystemParameters();
 
     /// uses File::find() to search for a file names @p db_name
