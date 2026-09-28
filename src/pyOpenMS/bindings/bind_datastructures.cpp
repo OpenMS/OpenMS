@@ -1205,8 +1205,6 @@ Calculates the normalized distance between top_hit and runner_up
     // -----------------------------------------------------------------------
     auto spectrumalignmentscore_class = nb::class_<OpenMS::SpectrumAlignmentScore>(m, "SpectrumAlignmentScore",
         R"doc(
-DefaultParamHandler
-
 Similarity score via spectra alignment
 This class implements a simple scoring based on the alignment of spectra. This alignment
 is implemented in the SpectrumAlignment class and performs a dynamic programming alignment

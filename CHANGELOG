@@ -765,10 +765,12 @@ TOPP tools:
       reference-channel ratio requires a comparison passing min_ratio_count in that fraction group (#10047).
     - FeatureLinkerWNet: Wasserstein network-flow grouping across label-free maps; optional,
       built with WITH_WNETALIGN=ON (#8992, #10255).
-    - UniPEFF: UniProtKB XML-to-PEFF conversion with sequence, modification and variant
-      annotations; optional annotation identifiers and external unimod.obo (#9649). UniProt
-      isoforms are reconstructed from their splice-variant features and emitted as additional
-      entries after the parent entry; disable with -omit_isoforms (#9966, fixes #9830).
+    - UniPEFF: UniProtKB XML-to-PEFF conversion with sequence, modification, variant and
+      disulfide-bond annotations; disulfide connectivity is reported by default via bond-ordered
+      half-cystine labels; optional global annotation identifiers and external
+      unimod.obo (#9649, #9829). UniProt isoforms are reconstructed from their splice-variant
+      features and emitted as additional entries after the parent entry; disable with
+      -omit_isoforms (#9966, fixes #9830).
     - OpenSwathInfer: peptidoform, peptide, protein and gene inference (#9280).
     - OpenSwathExport: TSV/Parquet result export (#9377).
     - OpenSwathPercolatorScoring: Percolator scoring of OpenSWATH results (#9695).
@@ -975,6 +977,10 @@ OpenMS Library:
 
 Fixes:
   Chemistry and identifications:
+    - MatchedIterator no longer stops at the first of two target elements with the same value
+      (e.g. two peaks with the same m/z). HyperScore, PScore, AScore, SpectrumAlignment (ppm) and
+      the QC metrics FragmentMassError and PSMExplainedIonCurrent ignored all peaks above such a
+      pair, so ProSE and SimpleSearchEngine mis-scored spectra with duplicate peaks. (#10291)
     - MzIdentMLFile: search engine scores without a score order in the PSI-MS vocabulary take
       it from OpenMS' score registry, so Comet:expectation value, X!Tandem:expect, OMSSA:evalue,
       OMSSA:pvalue, percolator:Q value and percolator:PEP are read as lower-is-better. Such
@@ -1115,6 +1121,10 @@ Fixes:
       masses are computed with PROTON_MASS_U (the proton mass in Da) instead of PROTON_MASS (the
       proton mass in kg), which had made every mass about 1 u per charge too high
       (#10073, #10075, #10231).
+    - SpectrumCheapDPCorr::operator()(x, y) declared a local "bool keeppeaks_" that shadowed the
+      member of the same name, so the member itself was never assigned: dynprog_(), which resolves
+      ambiguous many-to-many peak alignments, read uninitialized memory instead of the keeppeaks
+      parameter when deciding whether to keep unaligned peaks in the consensus spectrum.
     - mzIdentML output with more than one identification run repeated the Measure ids
       (Measure_mz, Measure_int, Measure_error) in every SpectrumIdentificationList and failed schema
       validation; the Measure definitions are now written once (#10213).

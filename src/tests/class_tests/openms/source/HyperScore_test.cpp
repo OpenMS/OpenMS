@@ -93,6 +93,33 @@ START_SECTION((static double compute(double fragment_mass_tolerance, bool fragme
 }
 END_SECTION
 
+START_SECTION([EXTRA] experimental peak listed twice)
+{
+  // A second peak with the same m/z (as in merged or pseudo-MS/MS spectra) must not hide the peaks
+  // above it: the score and the ion counts equal those of the spectrum without the copy.
+  PeakSpectrum theo_spectrum, exp_spectrum;
+  tsg.getSpectrum(theo_spectrum, AASequence::fromString("LISWYDNEFGYSNR"), 1, 1); // b2-b13, y1-y13
+  for (const Peak1D& p : theo_spectrum)
+  {
+    exp_spectrum.push_back(p);
+  }
+  PeakSpectrum exp_dup = exp_spectrum;
+  exp_dup.push_back(exp_spectrum[0]); // y1 twice, below all other ions
+  exp_dup.sortByPosition();
+
+  for (bool ppm : {true, false})
+  {
+    const double tol = ppm ? 10.0 : 0.01;
+    HyperScore::PSMDetail d, d_dup;
+    TEST_REAL_SIMILAR(HyperScore::computeWithDetail(tol, ppm, exp_spectrum, theo_spectrum, d), 45.7974749)
+    TEST_REAL_SIMILAR(HyperScore::computeWithDetail(tol, ppm, exp_dup, theo_spectrum, d_dup), 45.7974749)
+    TEST_EQUAL(d_dup.matched_prefix_ions, 12)
+    TEST_EQUAL(d_dup.matched_suffix_ions, 13)
+    TEST_REAL_SIMILAR(HyperScore::compute(tol, ppm, exp_dup, theo_spectrum), 45.7974749)
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
