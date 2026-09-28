@@ -140,6 +140,15 @@ Dependencies:
     public dependency interface. Shared-library consumers no longer require CURL/Xerces
     development packages; OpenSwathAlgo's Boost headers are private. See OpenMS Library
     for XMLHandler/Matrix API migration (#8511, #8547, #8558, #9712, #9737, #10084, #10103).
+  - Boost is used header-only: OpenMS, its tools and tests no longer link the compiled
+    Boost.Regex, Boost.Iostreams and Boost.DateTime libraries, of which only header-only
+    parts were used. Building needs just the Boost headers, and a static Boost works as
+    well as a shared one. A static Boost used to be linked into the shared libOpenMS,
+    which could fail at link time: the archives are not always built with -fPIC, and
+    their own dependencies (zstd, lzma, ICU) had to be installed as development packages.
+    The BOOST_USE_STATIC option and the Homebrew static-Boost link fixups (#10187) were
+    removed; passing -DBOOST_USE_STATIC now only triggers CMake's unused-variable
+    warning (#3319).
   - BREAKING (installed headers): two internal headers are no longer installed, and two
     public ones no longer pull in a private dependency.
     DATASTRUCTURES/MatrixEigen.h (the Eigen::Map views on Matrix) and SYSTEM/SIMDe.h
@@ -1296,16 +1305,6 @@ Build System:
     unavailable; SIMD-only compilation works without a runtime. Fixed
     YAML CTD parsing and optional WNet tool registration (#8368, #8880, #9056, #9223,
     #8496, #9267, #9388, #9651, #9653, #9783, #9784, #9971).
-  - Fixed the Homebrew static-Boost fallback on macOS: Boost's CMake config does not
-    expose iostreams'/regex's transitive dependencies as targets, so the fallback
-    rewrote their raw -l flags to imported ones, but a malformed "ICU:uc" reached the
-    link line unchanged, a missing find_package could name a target that was never
-    created (a hard configure-time error), and the Apple Silicon path was never taken
-    because the Homebrew-prefix check only matched /usr/local. Each dependency is now
-    translated independently against only the imported targets that were actually
-    found, using OPTIONAL_COMPONENTS so one missing ICU component no longer drops
-    every ICU target, and the Homebrew-prefix check also matches /opt/homebrew and
-    HOMEBREW_PREFIX (#10187).
   - Documentation formulas use MathJax, removing Ghostscript. Removed obsolete developer
     scripts, ENABLE_STYLE_TESTING, doc_xml and stale examples/schemas. Runtime schema
     coverage is retained; QcMLFile/PepXMLFileMascot validation remains unavailable and

@@ -98,8 +98,8 @@ endif()
 # Boost: the header-only target Boost::boost is PUBLIC because installed headers
 # use Boost (config.h includes <boost/current_function.hpp> via Macros.h, other
 # public headers Boost.MultiIndex, Boost.Math, ...), so those headers become part
-# of the consumer's translation units. The compiled Boost components are PRIVATE
-# and not needed.
+# of the consumer's translation units. OpenMS links no compiled Boost library, so
+# none is needed.
 find_dependency(Boost ${_openms_boost_version})
 unset(_openms_boost_version)
 
