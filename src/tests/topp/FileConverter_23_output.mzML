@@ -457,16 +457,6 @@
 			<chromatogram id="tic native" index="0" defaultArrayLength="0">
 				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
 				<cvParam cvRef="MS" accession="MS:1000809" name="chromatogram title" value="chromatograms rule!" />
-					<precursor>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="0">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -484,16 +474,6 @@
 			</chromatogram>
 			<chromatogram id="sic native" index="1" defaultArrayLength="10">
 				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
-					<precursor>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="108">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -521,9 +501,9 @@
 	</index>
 	<index name="chromatogram">
 		<offset idRef="tic native">32794</offset>
-		<offset idRef="sic native">34277</offset>
+		<offset idRef="sic native">33888</offset>
 	</index>
 </indexList>
-<indexListOffset>35858</indexListOffset>
+<indexListOffset>35080</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
