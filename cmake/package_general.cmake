@@ -165,10 +165,13 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   ## Automatically recurse over all subfolders in SEARCH_ENGINES_DIRECTORY
   file(GLOB THIRDPARTY_SUBDIRS RELATIVE ${SEARCH_ENGINES_DIRECTORY} ${SEARCH_ENGINES_DIRECTORY}/*)
   foreach(SUBDIR ${THIRDPARTY_SUBDIRS})
-    ## ProteoWizard (pwiz-bin, Windows only) is not shipped. OpenMS does not use it, and it
-    ## carries the libraries of several instrument vendors, each under its own license terms.
-    ## Users get msconvert from ProteoWizard itself.
-    if(SUBDIR STREQUAL "pwiz-bin")
+    ## Not shipped, although THIRDPARTY has them:
+    ## - ProteoWizard (pwiz-bin, Windows only). OpenMS does not use it, and it carries the
+    ##   libraries of several instrument vendors, each under its own license terms. Users get
+    ##   msconvert from ProteoWizard itself.
+    ## - X!Tandem (XTandem). No OpenMS tool runs it since XTandemAdapter was removed in 3.4.0,
+    ##   and its Linux build embeds expat 2.0.1, which Critical CVEs affect.
+    if(SUBDIR STREQUAL "pwiz-bin" OR SUBDIR STREQUAL "XTandem")
       continue()
     endif()
     if(IS_DIRECTORY ${SEARCH_ENGINES_DIRECTORY}/${SUBDIR})

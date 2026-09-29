@@ -1532,7 +1532,7 @@ Build System:
     grouped by where they come from, and each text once. The DEB also installs it, after the
     OpenMS license, as /usr/share/doc/openms/copyright, and License.txt points to it (#10292).
   - The tools the installers bundle from THIRDPARTY come with their license texts: Comet,
-    MaRaCluster, Percolator, X!Tandem and the assemblies of ThermoRawFileParser, and so do the
+    MaRaCluster, Percolator and the assemblies of ThermoRawFileParser, and so do the
     assemblies of the in-process Thermo reader (openms-thermo-bridge 0.3.1). SpectraST is no
     longer bundled: it is GPL-licensed and was shipped without its license text or source code.
     SpectraSTSearchAdapter runs a separately installed spectrast given with -executable
@@ -1540,6 +1540,10 @@ Build System:
   - The Windows installer no longer includes ProteoWizard (msconvert and the instrument vendors'
     libraries in THIRDPARTY/pwiz-bin). OpenMS does not use it; to convert other vendor formats
     with msconvert, install ProteoWizard from https://proteowizard.sourceforge.io/ (#10292).
+  - The Windows installer and the Linux x86_64 DEB no longer include X!Tandem
+    (THIRDPARTY/XTandem). No OpenMS tool has run it since XTandemAdapter was removed in 3.4.0,
+    and its Linux build embeds expat 2.0.1, which Critical CVEs such as CVE-2016-0718 affect.
+    OpenMS still reads X!Tandem's result files (#10344).
   - TOPPView and TOPPAS show the notice that Thermo's RawFileReader license asks for in their
     About dialog, in builds with the in-process Thermo reader (#10292).
 

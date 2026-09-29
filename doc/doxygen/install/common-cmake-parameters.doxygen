@@ -126,7 +126,7 @@ The most important CMake variables are:
   </tr>
   <tr>
     <th valign="top">SEARCH_ENGINES_DIRECTORY (optional)</td>
-    <td>The location where thirdparty search engines (X!Tandem, MSGF+)
+    <td>The location where thirdparty search engines (such as Comet and MSGF+)
     are located. This directory should have the same structure as the example
     in the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.
     /.
