@@ -4838,6 +4838,21 @@ add_test("TOPP_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_
 add_test("TOPP_ProteomicsLFQ_requires_output" ${TOPP_BIN_PATH}/ProteomicsLFQ -test)
 set_tests_properties("TOPP_ProteomicsLFQ_requires_output" PROPERTIES PASS_REGULAR_EXPRESSION "out/out_msstats/out_cxml/out_qpx")
 
+# Do not discard per-peak ion-mobility arrays from mzML before centroiding/correction.
+add_test("TOPP_ProteomicsLFQ_rejects_per_peak_ion_mobility_mzML" ${TOPP_BIN_PATH}/ProteomicsLFQ -test
+         -in ${DATA_DIR_TOPP}/PeakPickerIM_input_1.mzML
+         -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -out ${TESTS_TEMP_DIR}/ProteomicsLFQ_IM_rejected.tmp.mzTab
+         -out_cxml ${TESTS_TEMP_DIR}/ProteomicsLFQ_IM_rejected.tmp.consensusXML
+         -proteinFDR 1.0
+         -threads 1)
+set_tests_properties("TOPP_ProteomicsLFQ_rejects_per_peak_ion_mobility_mzML" PROPERTIES
+                     WILL_FAIL TRUE
+                     PASS_REGULAR_EXPRESSION "ProteomicsLFQ cannot process mzML with per-peak ion mobility data yet")
+
 # Reference test for the default in-process backend. It needs no external
 # percolator (-percolator_executable is optional and unused by that backend), so
 # it is registered here instead of under the PERCOLATOR_BINARY gate in THIRDPARTY,

@@ -112,6 +112,10 @@ General:
     LaTeX tutorial handout and the .knwf workflow collection under doc/tutorials (still
     available in the archived OpenMS/Tutorials repository). CTD generation is unaffected:
     -write_ctd and -write_cwl continue to work for Galaxy and CWL (#10135).
+  - Precursor correction now requires matching FAIMS compensation voltages for the parent
+    MS1 and uses spectrum/precursor indices rather than RT to identify correction targets.
+    ProteomicsLFQ rejects mzML with per-peak ion-mobility arrays instead of discarding them
+    before centroiding (#10080).
   - The API documentation no longer generates Graphviz (dot) graphs: include, included-by,
     collaboration, directory and graphical class-hierarchy graphs are gone, class
     inheritance diagrams use doxygen's built-in renderer, and the few hand-drawn

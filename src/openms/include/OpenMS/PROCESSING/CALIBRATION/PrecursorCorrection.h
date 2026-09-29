@@ -45,13 +45,12 @@ class OPENMS_DLLAPI PrecursorCorrection
      @param[in] exp: Spectra with precursors
      @param[out] precursors: vector of all precursors in @p exp (can be more than one per MSn spectrum)
      @param[out] precursors_rt: vector double of precursors retention time (same length as @p precursors)
-     @param[out] precursor_scan_index: Indices into @p exp, which have a precursor
+     @param[out] precursor_scan_index: Spectrum index for each entry in @p precursors
      */
      static void getPrecursors(const MSExperiment & exp,
                               std::vector<Precursor> & precursors,
                               std::vector<double> & precursors_rt,
                               std::vector<Size> & precursor_scan_index);
-
 
      /**
      @brief Writer can be used in association with correctToNearestMS1Peak or correctToHighestIntensityMS1Peak.
@@ -76,7 +75,7 @@ class OPENMS_DLLAPI PrecursorCorrection
      /**
      @brief Selection of the peak in closest proximity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da).
 
-     For each MS2 spectrum the corresponding MS1 spectrum is determined by using the rt information of the precursor.
+     For each precursor, its MS2 spectrum is identified by index and the corresponding MS1 spectrum is determined.
      In the MS1, the peak closest to the uncorrected precursor m/z is selected and used as corrected precursor m/z.
 
      @param[in] exp: MSExperiment.
@@ -97,7 +96,7 @@ class OPENMS_DLLAPI PrecursorCorrection
      /**
      @brief Selection of the peak with the highest intensity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da)
 
-     For each MS2 spectrum the corresponding MS1 spectrum is determined by using the rt information of the precursor.
+     For each precursor, its MS2 spectrum is identified by index and the corresponding MS1 spectrum is determined.
      In the MS1, the peak with the highest intensity in a given mass range to the uncorrected precursor m/z is selected and used as corrected precursor m/z.
 
      @param[in] exp: MSExperiment.

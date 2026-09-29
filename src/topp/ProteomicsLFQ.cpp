@@ -69,6 +69,7 @@
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <iomanip>
 #include <sstream>
@@ -524,6 +525,17 @@ protected:
 
     PeakMap ms_raw;
     FileHandler().loadExperiment(mz_file, ms_raw, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+
+    // PeakPickerHiRes and precursor correction do not preserve or use per-peak
+    // ion mobility. Refuse such mzML input instead of silently discarding the arrays.
+    if (FileHandler::getType(mz_file) == FileTypes::MZML
+        && std::any_of(ms_raw.begin(), ms_raw.end(), [](const MSSpectrum& spectrum) { return spectrum.containsIMData(); }))
+    {
+      OPENMS_LOG_WARN << "ProteomicsLFQ cannot process mzML with per-peak ion mobility data yet. "
+                         "Use Bruker .d input to retain mobility information.\n";
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+
     ms_raw.clearMetaDataArrays();
     ms_raw.updateRanges();
 

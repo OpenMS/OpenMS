@@ -1149,6 +1149,9 @@ std::vector<MSChromatogram> extractXICs(
       for comparisons -> Works for multiple precursor ranges from the same precursor scan
       but not for multiple precursor ranges from different precursor scans.
       If none are present, picks the first scan of a lower level.
+
+      For FAIMS spectra, a candidate parent must also have the same compensation voltage.
+      An explicit reference to a spectrum at a different voltage is considered invalid.
     */
     ConstIterator getPrecursorSpectrum(ConstIterator iterator) const;
 

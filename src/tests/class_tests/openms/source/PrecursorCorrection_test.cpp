@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
@@ -298,6 +299,94 @@ std::cout << dmz_2[2] << std::endl;
 TEST_REAL_SIMILAR(dmz_2[0], 0.0001);
 TEST_REAL_SIMILAR(dmz_2[1], -0.0003);
 TEST_REAL_SIMILAR(dmz_2[2], -0.0004);
+}
+END_SECTION
+
+START_SECTION((FAIMS correction uses an MS1 spectrum with the same compensation voltage))
+{
+  MSExperiment faims_exp;
+  MSSpectrum ms1_cv45, ms1_cv65, ms2_cv45;
+  ms1_cv45.setMSLevel(1);
+  ms1_cv45.setRT(10.0);
+  ms1_cv45.setNativeID("ms1_cv45");
+  ms1_cv45.setDriftTime(-45.0);
+  ms1_cv45.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms1_cv45.push_back(Peak1D(500.001, 1000.0));
+  ms1_cv45.push_back(Peak1D(600.001, 1000.0));
+
+  ms1_cv65.setMSLevel(1);
+  ms1_cv65.setRT(10.5);
+  ms1_cv65.setNativeID("ms1_cv65");
+  ms1_cv65.setDriftTime(-65.0);
+  ms1_cv65.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms1_cv65.push_back(Peak1D(500.006, 2000.0));
+  ms1_cv65.push_back(Peak1D(600.006, 2000.0));
+
+  ms2_cv45.setMSLevel(2);
+  ms2_cv45.setRT(11.0);
+  ms2_cv45.setDriftTime(-45.0);
+  ms2_cv45.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  Precursor precursor;
+  precursor.setMZ(500.0);
+  ms2_cv45.getPrecursors().push_back(precursor);
+  precursor.setMZ(600.0);
+  ms2_cv45.getPrecursors().push_back(precursor);
+
+  faims_exp.addSpectrum(ms1_cv45);
+  faims_exp.addSpectrum(ms1_cv65);
+  faims_exp.addSpectrum(ms2_cv45);
+
+  vector<double> delta_mzs, mzs, rts;
+  PrecursorCorrection::correctToHighestIntensityMS1Peak(faims_exp, 0.01, false, delta_mzs, mzs, rts);
+  TEST_REAL_SIMILAR(faims_exp[2].getPrecursors()[0].getMZ(), 500.001)
+  TEST_REAL_SIMILAR(faims_exp[2].getPrecursors()[1].getMZ(), 600.001)
+
+  faims_exp[2].getPrecursors()[0].setMZ(500.0);
+  faims_exp[2].getPrecursors()[1].setMZ(600.0);
+  delta_mzs.clear();
+  mzs.clear();
+  rts.clear();
+  PrecursorCorrection::correctToNearestMS1Peak(faims_exp, 0.01, false, delta_mzs, mzs, rts);
+  TEST_REAL_SIMILAR(faims_exp[2].getPrecursors()[0].getMZ(), 500.001)
+  TEST_REAL_SIMILAR(faims_exp[2].getPrecursors()[1].getMZ(), 600.001)
+
+  // Equal-RT MS2 scans must still map to their own precursor metadata and parent CV.
+  MSExperiment equal_rt_exp;
+  MSSpectrum cv45_parent, cv65_parent, cv45_product, cv65_product;
+  cv45_parent.setMSLevel(1);
+  cv45_parent.setRT(10.0);
+  cv45_parent.setDriftTime(-45.0);
+  cv45_parent.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  cv45_parent.push_back(Peak1D(500.001, 1000.0));
+  cv45_parent.push_back(Peak1D(600.001, 1000.0));
+  cv65_parent.setMSLevel(1);
+  cv65_parent.setRT(10.0);
+  cv65_parent.setDriftTime(-65.0);
+  cv65_parent.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  cv65_parent.push_back(Peak1D(500.006, 2000.0));
+  cv65_parent.push_back(Peak1D(600.006, 2000.0));
+  cv45_product.setMSLevel(2);
+  cv45_product.setRT(11.0);
+  cv45_product.setDriftTime(-45.0);
+  cv45_product.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  precursor.setMZ(500.0);
+  cv45_product.getPrecursors().push_back(precursor);
+  cv65_product.setMSLevel(2);
+  cv65_product.setRT(11.0);
+  cv65_product.setDriftTime(-65.0);
+  cv65_product.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  precursor.setMZ(600.0);
+  cv65_product.getPrecursors().push_back(precursor);
+  equal_rt_exp.addSpectrum(cv45_parent);
+  equal_rt_exp.addSpectrum(cv65_parent);
+  equal_rt_exp.addSpectrum(cv45_product);
+  equal_rt_exp.addSpectrum(cv65_product);
+  delta_mzs.clear();
+  mzs.clear();
+  rts.clear();
+  PrecursorCorrection::correctToHighestIntensityMS1Peak(equal_rt_exp, 0.01, false, delta_mzs, mzs, rts);
+  TEST_REAL_SIMILAR(equal_rt_exp[2].getPrecursors()[0].getMZ(), 500.001)
+  TEST_REAL_SIMILAR(equal_rt_exp[3].getPrecursors()[0].getMZ(), 600.006)
 }
 END_SECTION
 
