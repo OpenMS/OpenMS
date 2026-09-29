@@ -168,7 +168,7 @@
 
         The <tt>&lt;generator&gt;</tt> must be a Visual Studio generator if you want a solution file. Type `cmake --help` to see a list of available generators.
         Without <tt>-G</tt>, the presets use Ninja and you build from the command line with `cmake --build --preset <preset>` instead (see @ref install_vcpkg_generator).
-        Use the <tt>-A x64</tt> flag to build a 64-bit %OpenMS library and TOPP executables (32-bit does not really make any sense for LC-MS data processing)!
+        With a Visual Studio generator, use the <tt>-A x64</tt> flag to build a 64-bit %OpenMS library and TOPP executables (32-bit does not really make any sense for LC-MS data processing)!
         The <tt>windows-x64-release</tt> and <tt>windows-x64-relwithdebinfo</tt> presets only provide release versions of the third-party libraries, so a Visual Studio solution
         configured with them cannot build the Debug configuration.
 
@@ -186,7 +186,7 @@
 
     \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"
 
-    Now there should be a <tt>OpenMS_host.sln</tt> file in your build directory (<tt>build/windows-x64-debug</tt> in the example above), which you can open using Visual Studio.
+    With a Visual Studio generator, there should now be a <tt>OpenMS_host.sln</tt> file in your build directory (<tt>build/windows-x64-debug</tt> in the example above), which you can open using Visual Studio.
     If you want to work on only a subset of %OpenMS (e.g., OpenMS_GUI) you can open the specific solution that you will find in the `src/` folder of your
     build folder and below (e.g. `src/openms_gui/OpenMS_GUI.sln`).
 

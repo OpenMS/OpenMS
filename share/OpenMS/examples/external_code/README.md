@@ -18,6 +18,7 @@ Assuming everything happens in the directory `~/dev`, e.g., the OpenMS sources a
  3. Call CMake from within the new directory, with the source dir for the external code as last argument (e.g., `cmake -G "<generator used for OpenMS>" ~/dev/OpenMS/share/OpenMS/examples/external_code/`). You can also copy `~/dev/OpenMS/share/OpenMS/examples/external_code/` to any other place and reference that instead.
     If OpenMS was built with vcpkg (e.g. with `cmake --preset <preset>`), pass the same vcpkg toolchain and installation, so that CMake finds the libraries OpenMS depends on (e.g., Boost):
     `-DCMAKE_TOOLCHAIN_FILE=$HOME/dev/OpenMS/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_INSTALLED_DIR=$HOME/dev/OpenMS/build/<preset>/vcpkg_installed -DVCPKG_TARGET_TRIPLET=<triplet of the preset>`.
+    `VCPKG_INSTALLED_DIR` is the `vcpkg_installed` folder of the OpenMS build directory: `build/<preset>/vcpkg_installed` in the source tree by default, or e.g. `~/dev/OpenMS-build/vcpkg_installed` if you configured OpenMS with `-B ~/dev/OpenMS-build`.
  
 **Note**: In general you should try to use the same setup (compiler etc.) for OpenMS and your project. Especially on Windows you need to use the same CMake Generator for OpenMS and the new project. 
  
