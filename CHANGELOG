@@ -190,9 +190,10 @@ Dependencies:
     CMake 3.24: find_package(OpenMS) rejects older versions with an explanatory message
     instead of failing later (#10158).
   - The contrib (OpenMS/contrib) is deprecated and will be removed after 3.6: vcpkg
-    builds the dependencies (see the vcpkg install guide and the CMake presets). It is
-    still a git submodule in this release (#9155). Configuring with OPENMS_CONTRIB_LIBS,
-    which requires OPENMS_USE_VCPKG=OFF, prints a deprecation warning (#10327).
+    builds the dependencies (see the vcpkg install guide and the CMake presets). It is no
+    longer a git submodule; a build that still needs it takes it from a separate clone of
+    OpenMS/contrib. Configuring with OPENMS_CONTRIB_LIBS, which requires
+    OPENMS_USE_VCPKG=OFF, prints a deprecation warning (#10327).
   - The dev container (.devcontainer/) builds with the vcpkg presets on Ubuntu 24.04 instead of
     the contrib image. The Gitpod configuration and tools/quickbuild.sh/quickbuild-osx.sh, which
     built contrib, were removed; use cmake --preset <platform>-release instead (#10327).
@@ -825,8 +826,8 @@ TOPP tools:
       disulfide-bond annotations; disulfide connectivity is reported by default via bond-ordered
       half-cystine labels; optional global annotation identifiers and external
       unimod.obo (#9649, #9829). UniProt isoforms are reconstructed from their splice-variant
-      features and emitted as additional entries after the parent entry; disable with
-      -omit_isoforms (#9966, fixes #9830).
+      features and emitted as additional entries after the parent entry, with the features
+      UniProt annotates on that isoform; disable with -omit_isoforms (#9966, fixes #9830).
     - OpenSwathInfer: peptidoform, peptide, protein and gene inference (#9280).
     - OpenSwathExport: TSV/Parquet result export (#9377).
     - OpenSwathPercolatorScoring: Percolator scoring of OpenSWATH results (#9695).
@@ -1211,7 +1212,8 @@ Fixes:
     - UniPEFF wrote UniProt features whose <location sequence="..."> names another isoform
       as annotations of the canonical entry, although their coordinates refer to that isoform
       (e.g. \ModResPsi phosphoserines on non-S residues or past the sequence end). Such
-      features are now skipped and counted in a summary log line.
+      features now go to the entry of their isoform when UniPEFF writes one; otherwise they
+      are skipped and counted in a summary log line.
     - IDFileConverter: pepXML input with 'mz_file' failed with "Found no experiment with name" unless
       the run's 'base_name' ended with the exact path given. This broke TPP results on Windows (TPP
       writes 'c:/...', the tool got 'c:\...'), moved data and OpenMS' own pepXML output, which stores
