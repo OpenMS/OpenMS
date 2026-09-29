@@ -610,8 +610,16 @@ TOPP tools:
         <= 0.1 Da / <= 100 ppm, calibrated otherwise. scoring:fragment_charges=auto follows
         the resolved scorer (single for hyperscore, multiple for calibrated). Selection is
         fixed before mass calibration and recorded alongside the requested settings.
-        High-resolution defaults are unchanged; wider tolerances now use calibrated/multiple.
+        High-resolution scoring is unchanged; wider tolerances now use calibrated/multiple.
         Set hyperscore/single explicitly to retain legacy low-resolution scoring.
+      - New peaks:window_type=auto keeps the full local peak quota in the final
+        high-resolution m/z window, preserving isolated high-mass fragments. Low-resolution
+        filtering retains its previous behavior. Set jump explicitly for legacy filtering,
+        or jump_full to retain the full quota regardless of resolution.
+      - Optional fragment:query_spectrum=raw retrieves candidates from original peaks
+        before deisotoping and peak filtering, while scoring uses the processed spectrum.
+        Applies to calibration, single-file and chunked multi-file searches. Additional
+        peak lists are released before PSM post-processing; processed is the default.
       - Optional annotate:local_fragment_evidence adds native local peak-density surprise
         and fragment-assignment competition as Percolator features, including charge-scaled
         neutral-loss alternatives. Retains peaks before window/top-N filtering for these

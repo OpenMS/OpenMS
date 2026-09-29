@@ -606,7 +606,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     /// @brief Filter, deisotope and decharge spectra. Optionally retain a spectrum-aligned
     /// copy after deisotoping but before window/top-N filtering for local fragment evidence.
-    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top, PeakMap* evidence_spectra = nullptr);
+    /// query_spectra optionally receives aligned original peaks before deisotoping or filtering.
+    static void preprocessSpectra_(PeakMap& exp,
+                                   double fragment_mass_tolerance,
+                                   bool fragment_mass_tolerance_unit_ppm,
+                                   bool deisotope_requested,
+                                   Size peaks_keep_n,
+                                   Int peaks_window_top,
+                                   PeakMap* evidence_spectra = nullptr,
+                                   const std::string& window_type = "auto",
+                                   PeakMap* query_spectra = nullptr);
+
+    /// Keep the strongest peaks in each non-overlapping 100 Da window, including a short final window.
+    static void filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window);
 
     /// How decoys are obtained/recognised for a search (parameter "decoys").
     enum class DecoyMode_
@@ -773,18 +785,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *                pool, one entry per spectrum. Accumulated rather than overwritten,
      *                so chunked callers can pass the same vector for every chunk.
      * @param[in] progress_label Label shown by the progress logger for this scoring pass.
+     * @param[in] query_spectra Optional original peaks aligned with spectra, for candidate retrieval only.
      */
-    void scoreSpectraAgainstIndex_(
-        const PeakMap& spectra,
-        FragmentIndex& fi,
-        const std::vector<FASTAFile::FASTAEntry>& db,
-        const SpectrumGenerators_& generators,
-        double effective_fragment_tol,
-        bool fragment_mass_tolerance_unit_ppm,
-        bool open_search_mode,
-        std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
-        std::vector<CandidatePoolStats_>& pool_stats,
-        const std::string& progress_label) const;
+    void scoreSpectraAgainstIndex_(const PeakMap& spectra,
+                                   FragmentIndex& fi,
+                                   const std::vector<FASTAFile::FASTAEntry>& db,
+                                   const SpectrumGenerators_& generators,
+                                   double effective_fragment_tol,
+                                   bool fragment_mass_tolerance_unit_ppm,
+                                   bool open_search_mode,
+                                   std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
+                                   std::vector<CandidatePoolStats_>& pool_stats,
+                                   const std::string& progress_label,
+                                   const PeakMap* query_spectra = nullptr) const;
 
     /**
      * @brief Filter and annotate search results.
@@ -865,6 +878,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool deisotope_requested_{true};
     Size peaks_keep_n_{0};     ///< NLargest cap on MS2 peaks before scoring; 0 = resolution-aware auto (peaks:keep_n)
     Int peaks_window_top_{20}; ///< WindowMower peaks-per-100Da before scoring (peaks:window_top)
+    bool query_raw_spectrum_ {false};        ///< Keep original peaks for candidate retrieval
+    std::string peaks_window_type_ {"auto"}; ///< Resolution-aware treatment of the final peak window
 
     StringList modifications_fixed_;
 
@@ -973,11 +988,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] spectra  Preprocessed MS/MS spectra (subset is selected internally by TIC).
      * @param[in,out] fragment_index  Pre-built fragment index for candidate lookup.
      * @param[in] db  Protein database (for sequence reconstruction of candidates).
+     * @param[in] query_spectra Optional original peaks aligned with spectra, as in the final search.
      * @return CalibrationResult_ with estimated tolerances, or success=false if insufficient PSMs.
      */
     CalibrationResult_ runCalibrationPass_(PeakMap& spectra,
                                            FragmentIndex& fragment_index,
-                                           const std::vector<FASTAFile::FASTAEntry>& db) const;
+                                           const std::vector<FASTAFile::FASTAEntry>& db,
+                                           const PeakMap* query_spectra = nullptr) const;
 
     /// Helper: does @p accession carry the decoy @p marker at the given position?
     /// Empty marker → false. Pure std::string (no String dependency).

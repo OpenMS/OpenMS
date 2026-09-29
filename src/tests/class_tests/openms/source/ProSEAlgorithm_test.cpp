@@ -2721,6 +2721,20 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   // values are observable via last_calibration_result_, which is checked above.
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_lower_, 20.0)
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_upper_, 30.0)
+
+  // Original-peak retrieval must also be used during the independent calibration pass.
+  const auto processed_calibration = cal;
+  Param raw_params = algo.getParameters();
+  raw_params.setValue("fragment:query_spectrum", "raw");
+  algo.setParameters(raw_params);
+  spectra = build_calibration_spectra_(ppm_shifts);
+  vector<ProteinIdentification> raw_proteins;
+  PeptideIdentificationList raw_peptides;
+  algo.search(spectra, fasta_db, raw_proteins, raw_peptides);
+  TEST_TRUE(algo.last_calibration_result_.success)
+  TEST_REAL_SIMILAR(algo.last_calibration_result_.cal_lower, processed_calibration.cal_lower)
+  TEST_REAL_SIMILAR(algo.last_calibration_result_.cal_upper, processed_calibration.cal_upper)
+  TEST_REAL_SIMILAR(algo.last_calibration_result_.fragment_tolerance, processed_calibration.fragment_tolerance)
 }
 END_SECTION
 
@@ -2914,6 +2928,161 @@ START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the
     ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, false, 0, 20);
     TEST_EQUAL(exp.size(), 1)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] raw retrieval recovers a candidate removed by scoring peak selection))
+{
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> db = {{"P01", "", peptide.toString()}, {"P02", "", "VLVLDTDYK"}};
+  MSSpectrum spectrum;
+  TheoreticalSpectrumGenerator().getSpectrum(spectrum, peptide, 1, 1);
+  spectrum.setMSLevel(2);
+  spectrum.setNativeID("scan=1");
+  Precursor precursor;
+  precursor.setMZ(peptide.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  PeakMap input;
+  input.addSpectrum(spectrum);
+  std::string input_file;
+  NEW_TMP_FILE(input_file)
+  FileHandler().storeExperiment(input_file, input, {FileTypes::MZML});
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_EQUAL(p.getValue("fragment:query_spectrum").toString(), "processed")
+  TEST_EQUAL(p.getValue("peaks:window_type").toString(), "auto")
+  p.setValue("peaks:keep_n", 1);
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("decoys", "ignore");
+  p.setValue("calibration:enabled", "false");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+  for (const std::string mode : {"processed", "raw"})
+  {
+    p.setValue("fragment:query_spectrum", mode);
+    for (Int chunk_size : {0, 1})
+    {
+      p.setValue("database:chunk_size", chunk_size);
+      algo.setParameters(p);
+      PeakMap spectra = input;
+      vector<ProteinIdentification> proteins;
+      PeptideIdentificationList peptides;
+      algo.search(spectra, db, proteins, peptides);
+      TEST_EQUAL(peptides.size(), mode == "raw" ? 1 : 0)
+      if (! peptides.empty())
+      {
+        TEST_EQUAL(peptides[0].getHits()[0].getSequence(), peptide)
+        TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), std::log(2.0))
+        TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:query_spectrum").toString(), "raw")
+      }
+      const auto files = algo.searchWithModificationAnalysis(vector<std::string> {input_file, input_file}, db, vector<std::string> {}, "", false);
+      TEST_EQUAL(files.per_file.size(), 2)
+      for (const auto& result : files.per_file)
+      {
+        TEST_EQUAL(result.peptide_ids.size(), peptides.size())
+        if (! result.peptide_ids.empty())
+        {
+          TEST_EQUAL(result.peptide_ids[0].getHits()[0].getSequence(), peptide)
+          TEST_REAL_SIMILAR(result.peptide_ids[0].getHits()[0].getScore(), std::log(2.0))
+        }
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] raw candidate spectra retain original isotope peaks and stay aligned))
+{
+  PeakMap spectra, evidence, query;
+  for (int i : {2, 1})
+  {
+    MSSpectrum spectrum;
+    spectrum.setRT(i);
+    spectrum.setNativeID("scan=" + std::to_string(i));
+    spectrum.emplace_back(300.0, 0.0);
+    spectrum.emplace_back(500.0, 100.0);
+    spectrum.emplace_back(500.0 + Constants::C13C12_MASSDIFF_U / 2.0, 50.0);
+    spectrum.emplace_back(500.0 + Constants::C13C12_MASSDIFF_U, 25.0);
+    spectrum.emplace_back(750.0, 1.0);
+    spectra.addSpectrum(spectrum);
+  }
+  ProSEAlgorithm_test::preprocessSpectra_(spectra, 20.0, true, true, 1, 20, &evidence, "auto", &query);
+  TEST_EQUAL(query.size(), 2)
+  TEST_EQUAL(query[0].getNativeID(), "scan=1")
+  for (Size i = 0; i < query.size(); ++i)
+  {
+    TEST_EQUAL(query[i].getNativeID(), spectra[i].getNativeID())
+    TEST_EQUAL(query[i].getNativeID(), evidence[i].getNativeID())
+    TEST_EQUAL(query[i].size(), 4)
+    TEST_REAL_SIMILAR(query[i][0].getMZ(), 500.0)
+    TEST_EQUAL(evidence[i].size(), 2)
+    TEST_EQUAL(spectra[i].size(), 1)
+    TEST_REAL_SIMILAR(spectra[i][0].getMZ(), 1000.0 - Constants::PROTON_MASS_U)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] high - resolution local filtering preserves short final windows and aligned peak data))
+{
+  auto filter = [](double tolerance, bool ppm, const std::string& mode) {
+    PeakMap exp;
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(2);
+    spectrum.setNativeID("scan=17");
+    const std::vector<double> mz {100.0, 110.0, 120.0, 300.0, 301.0};
+    const std::vector<float> intensity {5.0f, 5.0f, 1.0f, 7.0f, 2.0f};
+    spectrum.getIntegerDataArrays().emplace_back();
+    spectrum.getIntegerDataArrays().back().setName("original_index");
+    for (Size i = 0; i < mz.size(); ++i)
+    {
+      Peak1D peak;
+      peak.setMZ(mz[i]);
+      peak.setIntensity(intensity[i]);
+      spectrum.push_back(peak);
+      spectrum.getIntegerDataArrays().back().push_back(static_cast<Int>(i));
+    }
+    exp.addSpectrum(spectrum);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, tolerance, ppm, false, 400, 2, nullptr, mode);
+    return exp[0];
+  };
+
+  const MSSpectrum full = filter(20.0, true, "auto");
+  TEST_EQUAL(full.size(), 4)
+  TEST_EQUAL(full.getNativeID(), "scan=17")
+  TEST_REAL_SIMILAR(full[0].getMZ(), 100.0)
+  TEST_REAL_SIMILAR(full[1].getMZ(), 110.0)
+  TEST_REAL_SIMILAR(full[2].getMZ(), 300.0)
+  TEST_REAL_SIMILAR(full[3].getMZ(), 301.0)
+  TEST_EQUAL(full.getIntegerDataArrays()[0][0], 0)
+  TEST_EQUAL(full.getIntegerDataArrays()[0][1], 1)
+  TEST_EQUAL(full.getIntegerDataArrays()[0][2], 3)
+  TEST_EQUAL(full.getIntegerDataArrays()[0][3], 4)
+  TEST_TRUE(full == filter(20.0, true, "jump_full"))
+  TEST_TRUE(full == filter(0.1, false, "auto"))
+  TEST_TRUE(full == filter(0.5, false, "jump_full"))
+
+  // Legacy jump filtering rounds the short final window's quota down to zero.
+  const MSSpectrum legacy = filter(20.0, true, "jump");
+  TEST_EQUAL(legacy.size(), 2)
+  TEST_TRUE(legacy == filter(0.5, false, "auto"))
+  TEST_TRUE(legacy == filter(101.0, true, "auto"))
+
+  PeakMap singleton;
+  MSSpectrum spectrum;
+  Peak1D peak;
+  peak.setMZ(1000.0);
+  peak.setIntensity(1000.0);
+  spectrum.push_back(peak);
+  singleton.addSpectrum(spectrum);
+  ProSEAlgorithm_test::preprocessSpectra_(singleton, 20.0, true, false, 400, 20);
+  TEST_EQUAL(singleton[0].size(), 1)
+  TEST_REAL_SIMILAR(singleton[0][0].getMZ(), 1000.0)
 }
 END_SECTION
 
