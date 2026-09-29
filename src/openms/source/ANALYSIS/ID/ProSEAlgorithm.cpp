@@ -16,6 +16,7 @@
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -165,6 +166,12 @@ namespace OpenMS
         Constants::UserParam::COMPLEMENTARY_IONS_FRACTION}
       );
 
+    defaults_.setValue("annotate:local_fragment_evidence", "false",
+      "Add experimental chance_match_surprise and mass_competition_evidence annotations and Percolator features. "
+      "Uses local peak density and alternative intact/neutral-loss fragment assignments; intended for CID. "
+      "Retains an additional peak list before window/top-N filtering, increasing memory use. "
+      "Does not change native scores or candidate selection. Independent of annotate:PSM.", {"advanced"});
+    defaults_.setValidStrings("annotate:local_fragment_evidence", {"true", "false"});
     defaults_.setSectionDescription("annotate", "Annotation Options");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
@@ -299,10 +306,11 @@ namespace OpenMS
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
     // Reject invalid tolerances before entering the parallel scoring loops.
-    if (calibrated_score_ && (!std::isfinite(fragment_mass_tolerance_) || fragment_mass_tolerance_ <= 0.0))
+    if ((calibrated_score_ || param_.getValue("annotate:local_fragment_evidence").toBool())
+      && (!std::isfinite(fragment_mass_tolerance_) || fragment_mass_tolerance_ <= 0.0))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "scoring:method=calibrated requires a finite, positive fragment:mass_tolerance.");
+        "Calibrated scoring and local fragment evidence require a finite, positive fragment:mass_tolerance.");
     }
 
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
@@ -434,6 +442,72 @@ namespace OpenMS
     return generators;
   }
 
+  std::vector<double> ProSEAlgorithm::localPeakDensities_(const MSSpectrum& spectrum)
+  {
+    // Both bounds only move forward: O(number of peaks), once per spectrum.
+    constexpr double half_window = 50.0;
+    std::vector<double> densities(spectrum.size());
+    Size left = 0, right = 0;
+    for (Size i = 0; i < spectrum.size(); ++i)
+    {
+      const double mz = spectrum[i].getMZ();
+      while (left < spectrum.size() && spectrum[left].getMZ() < mz - half_window) ++left;
+      while (right < spectrum.size() && spectrum[right].getMZ() <= mz + half_window) ++right;
+      densities[i] = static_cast<double>(right - left) / (2.0 * half_window);
+    }
+    return densities;
+  }
+
+  ProSEAlgorithm::LocalFragmentEvidence_ ProSEAlgorithm::localFragmentEvidence_(
+      const MSSpectrum& spectrum, const MSSpectrum& theoretical,
+      const std::vector<double>& densities, double tolerance, bool ppm)
+  {
+    LocalFragmentEvidence_ evidence;
+    if (spectrum.empty() || theoretical.empty()) return evidence;
+    OPENMS_PRECONDITION(densities.size() == spectrum.size(), "One local density per experimental peak required")
+    OPENMS_PRECONDITION(!theoretical.getIntegerDataArrays().empty()
+      && theoretical.getIntegerDataArrays()[0].size() == theoretical.size(), "Aligned fragment charges required")
+
+    static const double water_mass = EmpiricalFormula("H2O").getMonoWeight();
+    static const double ammonia_mass = EmpiricalFormula("NH3").getMonoWeight();
+    const auto& charges = theoretical.getIntegerDataArrays()[0];
+    std::vector<double> alternatives;
+    alternatives.reserve(3 * theoretical.size());
+    for (Size i = 0; i < theoretical.size(); ++i)
+    {
+      OPENMS_PRECONDITION(charges[i] > 0, "Positive fragment charge required")
+      const double mz = theoretical[i].getMZ();
+      alternatives.push_back(mz);
+      for (const double loss : {water_mass, ammonia_mass})
+      {
+        const double loss_mz = mz - loss / charges[i];
+        if (loss_mz > 0.0) alternatives.push_back(loss_mz);
+      }
+    }
+    std::sort(alternatives.begin(), alternatives.end());
+
+    for (const auto& ion : theoretical)
+    {
+      const double mz = ion.getMZ();
+      const double width = ppm ? mz * tolerance * 1e-6 : tolerance;
+      const Size nearest = spectrum.findNearest(mz);
+      const double observed = spectrum[nearest].getMZ();
+      if (std::abs(mz - observed) > width) continue;
+
+      // The matched peak itself is in its density window, hence density > 0.
+      const double density = densities[nearest];
+      evidence.chance_match_surprise += std::max(0.0, -std::log(2.0 * width * density));
+      const auto first = std::lower_bound(alternatives.begin(), alternatives.end(), observed - width);
+      const auto last = std::upper_bound(first, alternatives.end(), observed + width);
+      // One intact hypothesis is the ion currently being scored. All other
+      // hypotheses, including coincident ions, represent alternative assignments.
+      const Size count = static_cast<Size>(last - first);
+      const Size competing = count > 0 ? count - 1 : 0;
+      evidence.mass_competition_evidence += 1.0 / (1.0 + competing + density);
+    }
+    return evidence;
+  }
+
   bool ProSEAlgorithm::isElectronActivated_(const MSSpectrum& spectrum)
   {
     if (spectrum.getPrecursors().empty()) return false;
@@ -455,7 +529,7 @@ namespace OpenMS
                                            [](const MSSpectrum& spectrum) { return isElectronActivated_(spectrum); }));
   }
 
-  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top)
+  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top, PeakMap* evidence_spectra)
   {
     // Intensity threshold + normalization used to run here as two extra SERIAL full-map
     // passes. Both are strictly per-spectrum: ThresholdMower::filterPeakMap and
@@ -474,6 +548,11 @@ namespace OpenMS
     // spectra (it does not touch peak order, see MSExperiment::sortSpectra) and therefore
     // commutes with the per-spectrum filters that now run inside the loop.
     exp.sortSpectra(false);
+    if (evidence_spectra != nullptr)
+    {
+      evidence_spectra->clear(true);
+      evidence_spectra->resize(exp.size());
+    }
 
     // filter settings
     WindowMower window_mower_filter;
@@ -517,7 +596,7 @@ namespace OpenMS
     const bool do_deisotope = deisotope_requested &&
       Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
-#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, threshold_mower_filter, normalizer, window_mower_filter, nlargest_filter)
+#pragma omp parallel for default(none) shared(exp, evidence_spectra, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, threshold_mower_filter, normalizer, window_mower_filter, nlargest_filter)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       // remove 0 intensities, then normalize (formerly two serial full-map passes)
@@ -536,6 +615,14 @@ namespace OpenMS
           false,  // keep only deisotoped
           3, 10,  // min / max isopeaks
           true);  // convert fragment m/z to mono-charge
+      }
+
+      // Candidate generation and scoring still use the sparse peak list below.
+      // Retained candidates can additionally explain weaker peaks in this list.
+      // Capture AFTER deconvolution: density and matching must use the same m/z space.
+      if (evidence_spectra != nullptr)
+      {
+        (*evidence_spectra)[exp_index] = exp[exp_index];
       }
 
       // remove noise
@@ -576,7 +663,8 @@ namespace OpenMS
         const Int precursor_min_charge,
         const Int precursor_max_charge,
         const std::string& enzyme,
-        const std::string& database_name) const
+        const std::string& database_name,
+        const PeakMap* evidence_spectra) const
   {
     // Candidate-pool features (delta score, z-score, candidate count) are derived
     // from @p pool_stats rather than from @p annotated_hits: scoreSpectraAgainstIndex_
@@ -628,6 +716,12 @@ namespace OpenMS
     bool annotation_ln_num_candidates = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LN_NUM_CANDIDATES) != annotate_psm_.end();
     bool annotation_matched_ion_current_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_ION_CURRENT_FRACTION) != annotate_psm_.end();
     bool annotation_complementary_ions_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::COMPLEMENTARY_IONS_FRACTION) != annotate_psm_.end();
+    const bool annotation_local_evidence = param_.getValue("annotate:local_fragment_evidence").toBool();
+    if (annotation_local_evidence && (evidence_spectra == nullptr || evidence_spectra->size() != exp.size()))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Local fragment evidence requires the aligned peak lists retained during preprocessing.");
+    }
 
     // "ALL" adds all annotations
     if (std::find(annotate_psm_.begin(), annotate_psm_.end(), "ALL") != annotate_psm_.end())
@@ -702,6 +796,9 @@ namespace OpenMS
         // computed once here rather than per hit.
         const double spectrum_tic =
           annotation_matched_ion_current_fraction ? spec.calculateTIC() : 0.0;
+        const MSSpectrum& evidence_spec = annotation_local_evidence ? (*evidence_spectra)[scan_index] : spec;
+        const std::vector<double> local_densities = annotation_local_evidence
+          ? localPeakDensities_(evidence_spec) : std::vector<double>{};
 
         // create full peptide hit structure from annotated hits
         vector<PeptideHit> phs;
@@ -920,6 +1017,18 @@ namespace OpenMS
           }
 
 
+          if (annotation_local_evidence)
+          {
+            // Always use the actually scored charges, also with the legacy
+            // scorer whose older annotations can include additional charges.
+            MSSpectrum evidence_theory;
+            tsg.getSpectrum(evidence_theory, ah.sequence, 1, scoringMaxCharge_(static_cast<int>(used_charge)));
+            const auto evidence = localFragmentEvidence_(evidence_spec, evidence_theory, local_densities,
+              fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm == "ppm");
+            ph.setMetaValue(Constants::UserParam::CHANCE_MATCH_SURPRISE, evidence.chance_match_surprise);
+            ph.setMetaValue(Constants::UserParam::MASS_COMPETITION_EVIDENCE, evidence.mass_competition_evidence);
+          }
+
           // Add isotope error metavalue (always; exposed as Percolator feature)
           ph.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, ah.isotope_error);
 
@@ -1012,6 +1121,11 @@ namespace OpenMS
     if (annotation_complementary_ions_fraction) feature_set.push_back(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION);
     if (annotation_hyperscore_zscore) feature_set.push_back(Constants::UserParam::HYPERSCORE_ZSCORE);
     if (annotation_ln_num_candidates) feature_set.push_back(Constants::UserParam::LN_NUM_CANDIDATES);
+    if (annotation_local_evidence)
+    {
+      feature_set.push_back(Constants::UserParam::CHANCE_MATCH_SURPRISE);
+      feature_set.push_back(Constants::UserParam::MASS_COMPETITION_EVIDENCE);
+    }
     feature_set.push_back(Constants::UserParam::DELTA_SCORE);
     feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
     // note: precursor error is calculated by percolator itself
@@ -1020,6 +1134,7 @@ namespace OpenMS
     search_parameters.setMetaValue("open_search", isOpenSearchMode_() ? "true" : "false");
     search_parameters.setMetaValue("scoring:method", param_.getValue("scoring:method"));
     search_parameters.setMetaValue("scoring:fragment_charges", param_.getValue("scoring:fragment_charges"));
+    search_parameters.setMetaValue("annotate:local_fragment_evidence", param_.getValue("annotate:local_fragment_evidence"));
     search_parameters.setMetaValue("fragment:max_charge", param_.getValue("fragment:max_charge"));
 
     search_parameters.enzyme_term_specificity = peptide_enzyme_specificity_;
@@ -1575,7 +1690,9 @@ namespace OpenMS
 
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
     bool open_search_mode = isOpenSearchMode_();
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
+    PeakMap evidence_spectra;
+    PeakMap* evidence_ptr = param_.getValue("annotate:local_fragment_evidence").toBool() ? &evidence_spectra : nullptr;
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_, evidence_ptr);
 
     // ions:by_activation: the chunk indices hold c and z+1 ions if electron-activated spectra are searched
     const Size n_electron_activated = countElectronActivated_(spectra);
@@ -1720,8 +1837,10 @@ namespace OpenMS
       precursor_min_charge_,
       precursor_max_charge_,
       enzyme_,
-      "" // no database filename for in-memory search
+      "", // no database filename for in-memory search
+      evidence_ptr
       );
+    evidence_spectra.clear(true); // Release the additional peak lists before PeptideIndexing.
     endProgress();
 
     // 7. PeptideIndexing against the FULL database (not per-chunk).
@@ -1830,7 +1949,9 @@ namespace OpenMS
                     << precursor_mass_tolerance_unit_ << ")" << std::endl;
 
     startProgress(0, 1, "Filtering spectra...");
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
+    PeakMap evidence_spectra;
+    PeakMap* evidence_ptr = param_.getValue("annotate:local_fragment_evidence").toBool() ? &evidence_spectra : nullptr;
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_, evidence_ptr);
     endProgress();
 
     // ions:by_activation: electron-activated spectra are also scored with c and z+1 ions, so the
@@ -1992,8 +2113,10 @@ namespace OpenMS
       precursor_min_charge_,
       precursor_max_charge_,
       enzyme_,
-      "" // no database filename for in-memory search
+      "", // no database filename for in-memory search
+      evidence_ptr
       );
+    evidence_spectra.clear(true);
     endProgress();
     sw_search.stop();
     last_run_stats_.seconds_search = sw_search.getClockTime();
@@ -2380,6 +2503,8 @@ namespace OpenMS
 
       // Phase 1: Load + preprocess all files.
       std::vector<PeakMap> all_spectra(in_spectra_files.size());
+      const bool retain_evidence = param_.getValue("annotate:local_fragment_evidence").toBool();
+      std::vector<PeakMap> all_evidence_spectra(retain_evidence ? in_spectra_files.size() : 0);
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
@@ -2390,7 +2515,8 @@ namespace OpenMS
         f.getOptions() = options;
         f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         all_spectra[i].sortSpectra(true);
-        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
+        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_,
+          retain_evidence ? &all_evidence_spectra[i] : nullptr);
       }
 
       // ions:by_activation: the chunk indices, shared by all files, hold c and z+1 ions if any file has
@@ -2592,7 +2718,10 @@ namespace OpenMS
                    per_file_cal[i].effective_precursor_tol_upper),
           per_file_cal[i].effective_fragment_tol,
           precursor_mass_tolerance_unit_, fragment_mass_tolerance_unit_,
-          precursor_min_charge_, precursor_max_charge_, enzyme_, "");
+          precursor_min_charge_, precursor_max_charge_, enzyme_, "",
+          retain_evidence ? &all_evidence_spectra[i] : nullptr);
+
+        if (retain_evidence) all_evidence_spectra[i].clear(true);
 
         PeptideIndexing indexer;
         Param param_pi = indexer.getParameters();

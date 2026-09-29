@@ -597,8 +597,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double zScore() const;
     };
 
-    /// @brief filter, deisotope, decharge spectra
-    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top);
+    /// @brief Filter, deisotope and decharge spectra. Optionally retain a spectrum-aligned
+    /// copy after deisotoping but before window/top-N filtering for local fragment evidence.
+    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top, PeakMap* evidence_spectra = nullptr);
 
     /// How decoys are obtained/recognised for a search (parameter "decoys").
     enum class DecoyMode_
@@ -657,6 +658,39 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     /// Generators for scoring, annotation and calibration, configured from the ions:* parameters
     SpectrumGenerators_ spectrumGenerators_() const;
+
+    /// Experimental annotations, independent of the score used to select candidates.
+    struct LocalFragmentEvidence_
+    {
+      double chance_match_surprise = 0.0;
+      double mass_competition_evidence = 0.0;
+    };
+
+    /// Peak counts per Da in a fixed +/-50 m/z window around each peak of a sorted spectrum.
+    static std::vector<double> localPeakDensities_(const MSSpectrum& spectrum);
+
+    /**
+     * @brief Compute experimental local fragment-match evidence before top-N peak filtering.
+     *
+     * Matches each intact theoretical ion to its nearest experimental peak. Surprise is
+     * sum(max(0, -log(2 * tolerance_Da * local_density))). Competition evidence is
+     * sum(1 / (1 + alternative_assignments + local_density)). Alternative hypotheses
+     * include all configured intact ions and generic H2O/NH3 losses, divided by the
+     * fragment charge. Losses only discount ambiguous matches; they are not scored as
+     * additional matches and do not require sequence-specific loss eligibility.
+     *
+     * @param[in] spectrum Sorted experimental spectrum after zero-intensity removal and
+     *                    optional deisotoping, before window/top-N peak filtering.
+     * @param[in] theoretical Sorted intact ions, with the TSG's aligned integer charge array.
+     * @param[in] densities Result of localPeakDensities_(spectrum), reused for all candidates.
+     * @param[in] tolerance Positive, finite matching tolerance.
+     * @param[in] ppm Whether tolerance is given in ppm rather than Da.
+     * @return Two additive annotations; zero without matches. Neither is a calibrated PSM p-value.
+     */
+    static LocalFragmentEvidence_ localFragmentEvidence_(const MSSpectrum& spectrum,
+                                                        const MSSpectrum& theoretical,
+                                                        const std::vector<double>& densities,
+                                                        double tolerance, bool ppm);
 
     /// True if the precursor of @p spectrum was activated by electrons (ETD, ECD, EThcD or ETciD)
     static bool isElectronActivated_(const MSSpectrum& spectrum);
@@ -788,7 +822,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       const Int precursor_min_charge,
       const Int precursor_max_charge,
       const std::string& enzyme,
-      const std::string& database_name) const;
+      const std::string& database_name,
+      const PeakMap* evidence_spectra = nullptr) const;
 
     /// Calibration overwrites these with the calibrated magnitudes for the duration of
     /// search(); pure runtime-state mutation that does not affect the logical const-ness

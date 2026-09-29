@@ -605,6 +605,10 @@ TOPP tools:
         factorial rewards with binomial fragment-match evidence; combine with
         scoring:fragment_charges=multiple to score higher fragment charges. Both final
         scoring and precursor calibration use these options. Defaults remain unchanged.
+      - Optional annotate:local_fragment_evidence adds native local peak-density surprise
+        and fragment-assignment competition as Percolator features, including charge-scaled
+        neutral-loss alternatives. Retains peaks before window/top-N filtering for these
+        annotations; candidate selection and native scores are unchanged.
       - BREAKING: renamed from PeptideDataBaseSearchFI. -out replaced by -out_idxml
         (one per input), -out_qpx and -out_parquet (native tables); directory outputs require
         unique input basenames (#9137, #9146).
