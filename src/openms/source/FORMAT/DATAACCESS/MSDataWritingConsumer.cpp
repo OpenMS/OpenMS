@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 // TODO move getVersion to Handler
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -27,6 +28,16 @@ namespace OpenMS
     chromatograms_expected_(0),
     add_dataprocessing_(false)
   {
+    // Spectra are streamed to a plain file. Unlike MzMLFile::store(), nothing here compresses, so a
+    // '.gz', '.bz2' or '.zip' name would label uncompressed mzML as compressed: refuse it instead.
+    // (Checked before anything is allocated: the destructor does not run if the constructor throws.)
+    if (FileNameUtils::hasCompressionSuffix(filename))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+        "The streaming mzML writer (used e.g. by the low-memory modes of TOPP tools) cannot compress. "
+        "Remove the '" + filename.substr(filename.rfind('.')) + "' suffix, or compress the file afterwards.");
+    }
+
     validator_ = new Internal::MzMLValidator(this->mapping_, this->cv_);
 
     // open file in binary mode to avoid any line ending conversions

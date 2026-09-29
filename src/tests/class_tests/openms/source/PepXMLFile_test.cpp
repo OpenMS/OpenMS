@@ -19,6 +19,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
@@ -289,6 +290,65 @@ START_SECTION([EXTRA] void load(const std::string& filename, std::vector<Protein
 
   // throw an exception if the pepXML file does not exist:
   TEST_EXCEPTION(Exception::FileNotFound, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", proteins, peptides, exp_name));
+}
+END_SECTION
+
+START_SECTION([EXTRA] void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name = "") - matching of experiment names)
+{
+  // runs "c:/tpp/data/light/run1", "c:/tpp/data/heavy/run1" and "c:/tpp/data/light/prerun1" with one PSM each
+  // (the TPP writes '/' in "base_name" also on Windows, see issue #3502)
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_base_names.pepxml");
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  // sequence of the PSM loaded for 'experiment_name', empty unless exactly one run and PSM were loaded
+  auto loadedSequence = [&](const std::string& experiment_name)
+  {
+    PepXMLFile().load(filename, proteins, peptides, experiment_name);
+    if (proteins.size() != 1 || peptides.size() != 1) return std::string();
+    return peptides[0].getHits()[0].getSequence().toString();
+  };
+  // message of the Exception::ParseError that loading 'experiment_name' throws, empty if it loads
+  auto parseErrorMessage = [&](const std::string& experiment_name)
+  {
+    try
+    {
+      PepXMLFile().load(filename, proteins, peptides, experiment_name);
+    }
+    catch (const Exception::ParseError& e)
+    {
+      return std::string(e.what());
+    }
+    return std::string();
+  };
+
+  // path separators do not matter, e.g. for a native Windows path of the spectra file:
+  TEST_EQUAL(loadedSequence("c:\\tpp\\data\\light\\run1.mzML"), "PEPTIDEK")
+  TEST_EQUAL(loadedSequence("c:/tpp/data/light/run1"), "PEPTIDEK")
+  TEST_EQUAL(loadedSequence("heavy\\run1.mzML"), "SAMPLEK")
+  TEST_EQUAL(loadedSequence("light/run1"), "PEPTIDEK")
+  TEST_EQUAL(loadedSequence("prerun1.mzML"), "TESTK")
+
+  // only whole path components match: "un1" selects no run, and the error lists the runs:
+  std::string message = parseErrorMessage("un1");
+  TEST_EQUAL(StringUtils::hasSubstring(message, "Found no experiment with name 'un1'"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(message, "'c:/tpp/data/light/run1', 'c:/tpp/data/heavy/run1', 'c:/tpp/data/light/prerun1'"), true)
+  // an absolute path has to match the whole "base_name":
+  TEST_EQUAL(StringUtils::hasSubstring(parseErrorMessage("/data/light/run1"), "Found no experiment with name"), true)
+  // "run1" matches runs of two different spectra files (but not "prerun1"), which are not merged:
+  message = parseErrorMessage("run1.mzML");
+  TEST_EQUAL(StringUtils::hasSubstring(message, "matches runs with different 'base_name's: 'c:/tpp/data/light/run1', 'c:/tpp/data/heavy/run1'. "), true)
+
+  // no experiment name: all runs
+  PepXMLFile().load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 3)
+  TEST_EQUAL(peptides.size(), 3)
+
+  // loading again after an error starts from scratch:
+  PepXMLFile reused;
+  TEST_EXCEPTION(Exception::ParseError, reused.load(filename, proteins, peptides, "run1"))
+  reused.load(filename, proteins, peptides, "heavy/run1");
+  TEST_EQUAL(peptides.size(), 1)
+  TEST_EQUAL(peptides[0].getHits()[0].getSequence().toString(), "SAMPLEK")
 }
 END_SECTION
 

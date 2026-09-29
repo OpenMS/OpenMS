@@ -236,6 +236,11 @@ macro(install_thirdparty_folder foldername)
     ## maps the library to runtimes/linux-x64, runtimes/osx-x64 and
     ## runtimes/osx-arm64, and to nothing else.
     ##
+    ## The selection below goes by the target architecture, not by that file, so a
+    ## linux-arm64 build keeps runtimes/linux-arm64 although the config does not
+    ## map it: the helper is native to that host, which is all dpkg-shlibdeps
+    ## needs, and a later ThermoRawFileParser whose config maps it will find it.
+    ##
     ## Seven of the nine carry a .so, so CPackDeb hands all seven to
     ## dpkg-shlibdeps and five are foreign on any given host; the two osx ones
     ## are Mach-O and never reach it.

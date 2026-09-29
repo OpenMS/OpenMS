@@ -12,8 +12,9 @@ cmake_minimum_required(VERSION 3.24 FATAL_ERROR) ## Subdirectories pulled
 ## for that directory to the older version
 
 # The vcpkg toolchain must be selected before project() initializes compilers.
-# Existing system/contrib dependency discovery remains the default.
-option(OPENMS_USE_VCPKG "Use vcpkg manifest mode for dependency management." OFF)
+# The CMake presets set OPENMS_USE_VCPKG=ON and build the dependencies with vcpkg.
+# A configure without a preset takes them from system packages and CMAKE_PREFIX_PATH.
+option(OPENMS_USE_VCPKG "Use vcpkg manifest mode for dependency management (OFF: system packages and CMAKE_PREFIX_PATH)." OFF)
 
 if(OPENMS_USE_VCPKG AND NOT CMAKE_TOOLCHAIN_FILE)
   set(_openms_submodule_vcpkg_toolchain "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
@@ -22,8 +23,14 @@ if(OPENMS_USE_VCPKG AND NOT CMAKE_TOOLCHAIN_FILE)
     set(CMAKE_TOOLCHAIN_FILE "${_openms_submodule_vcpkg_toolchain}" CACHE FILEPATH "CMake toolchain file")
   else()
     message(FATAL_ERROR
-      "OPENMS_USE_VCPKG is ON, but no vcpkg toolchain was found. Initialize the "
-      "vcpkg submodule or set CMAKE_TOOLCHAIN_FILE.")
+      "OPENMS_USE_VCPKG is ON, but no vcpkg toolchain was found.\n"
+      "Either\n"
+      "  - build the dependencies with vcpkg: run 'git submodule update --init vcpkg' "
+      "(or clone with --recurse-submodules) and configure with a preset, e.g. "
+      "'cmake --preset linux-x64-release' ('cmake --list-presets' lists them), or set "
+      "CMAKE_TOOLCHAIN_FILE to <vcpkg root>/scripts/buildsystems/vcpkg.cmake; or\n"
+      "  - take the dependencies from system packages or CMAKE_PREFIX_PATH: configure "
+      "with -DOPENMS_USE_VCPKG=OFF.")
   endif()
 
   unset(_openms_submodule_vcpkg_toolchain)
@@ -56,6 +63,17 @@ if(WIN32 AND DEFINED ENV{VCToolsVersion} AND "$ENV{VCToolsVersion}" VERSION_LESS
 endif()
 
 project("OpenMS_host" LANGUAGES CXX)
+
+# A toolchain file given by the user (cross compiling, conda, ...) is not
+# necessarily vcpkg's. vcpkg.cmake sets VCPKG_TOOLCHAIN; a different toolchain
+# would otherwise only surface as missing dependencies much later.
+if(OPENMS_USE_VCPKG AND NOT VCPKG_TOOLCHAIN)
+  message(FATAL_ERROR
+    "OPENMS_USE_VCPKG is ON, but the toolchain file '${CMAKE_TOOLCHAIN_FILE}' "
+    "is not vcpkg's. Pass vcpkg's toolchain (<vcpkg root>/scripts/buildsystems/vcpkg.cmake) and "
+    "chain-load your own with -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=<file>, or configure with "
+    "-DOPENMS_USE_VCPKG=OFF to take the dependencies from system packages or CMAKE_PREFIX_PATH.")
+endif()
 
 # required for cmake < 3.13 if ccache is used
 set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
@@ -307,12 +325,15 @@ if (MINGW OR MSYS)
 endif()
 
 #------------------------------------------------------------------------------
-# Setup CMAKE_PREFIX_PATH for finding external libs (contrib or system)
+# Setup CMAKE_PREFIX_PATH for finding external libs (vcpkg, system or contrib)
 #------------------------------------------------------------------------------
 if(OPENMS_USE_VCPKG)
   message(STATUS "Dependency provider: vcpkg (${CMAKE_TOOLCHAIN_FILE})")
+elseif(OPENMS_CONTRIB_LIBS)
+  message(STATUS "Dependency provider: contrib (${OPENMS_CONTRIB_LIBS}), deprecated")
 else()
-  message(STATUS "Dependency provider: system/contrib")
+  message(STATUS "Dependency provider: system packages and CMAKE_PREFIX_PATH "
+                 "(the CMake presets, see 'cmake --list-presets', build the dependency set CI tests with vcpkg)")
 endif()
 include(cmake/setup_lib_find_paths.cmake)
 

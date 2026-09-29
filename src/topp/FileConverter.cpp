@@ -580,7 +580,7 @@ protected:
         const std::string raw_dir = File::path(File::absolutePath(in));
         for (SourceFile& source_file : exp.getSourceFiles())
         {
-          source_file.setPathToFile((StringUtils::hasPrefix(raw_dir, "/") ? "file://" : "file:///") + raw_dir);
+          source_file.setPathToFile(File::toFileURI(raw_dir));
         }
         // Fall through to generic output writing — supports any output format.
       }

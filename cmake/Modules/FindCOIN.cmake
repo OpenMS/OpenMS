@@ -189,17 +189,21 @@ macro(_coin_find_lib _libname _libname_camel _lib_file_names _lib_file_names_deb
 endmacro()
 
 
+set(_coin_define_link_deps FALSE)
 if(NOT TARGET CoinOR::CoinOR)
   add_library(CoinOR::CoinOR INTERFACE IMPORTED)
+  set(_coin_define_link_deps TRUE)
   if (VCPKG_TOOLCHAIN)
-    # Currently coin-or from vcpkg requires BLAS and LAPACK
+    # Currently coin-or from vcpkg requires BLAS and LAPACK (and CoinUtils zlib and
+    # bzip2); they are attached to CoinOR::COINUTILS below.
     # TODO: Find a better way to do this. Ideal would be if Coin exports a CMake config
     #  Maybe we can parse a header file? Or try_compile?
     #  The current approach fails if VCPKG toolchain is used but CMake somehow finds
     #  an external coin-or. Should be rare to impossible.
     find_package(BLAS REQUIRED)
     find_package(LAPACK REQUIRED)
-    target_link_libraries(CoinOR::CoinOR INTERFACE BLAS::BLAS LAPACK::LAPACK)
+    find_package(ZLIB REQUIRED)
+    find_package(BZip2 REQUIRED)
   endif()
 endif()
 
@@ -209,6 +213,24 @@ _coin_find_lib("CLP" "Clp" "libClp;Clp" "libClpd;Clp")
 _coin_find_lib("COINUTILS" "CoinUtils" "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils")
 _coin_find_lib("OSI" "Osi" "libOsi;Osi" "libOsid;Osi")
 _coin_find_lib("OSI_CLP" "Clp" "libOsiClp;OsiClp" "libOsiClpd;OsiClp")
+
+# The dependencies between the libraries, so that CMake orders them on the link line.
+# Shared libraries record their own dependencies, but static ones (the static vcpkg
+# triplets of the Linux wheels) are only searched for the symbols still undefined
+# when the linker reaches them: with LAPACK ahead of CoinUtils, libOpenMS.so linked
+# with dgetrf_ unresolved and failed to load.
+if(_coin_define_link_deps)
+  set_property(TARGET CoinOR::OSI APPEND PROPERTY INTERFACE_LINK_LIBRARIES CoinOR::COINUTILS)
+  set_property(TARGET CoinOR::CLP APPEND PROPERTY INTERFACE_LINK_LIBRARIES CoinOR::COINUTILS)
+  set_property(TARGET CoinOR::OSI_CLP APPEND PROPERTY INTERFACE_LINK_LIBRARIES CoinOR::CLP CoinOR::OSI)
+  set_property(TARGET CoinOR::CGL APPEND PROPERTY INTERFACE_LINK_LIBRARIES CoinOR::OSI_CLP CoinOR::CLP CoinOR::OSI)
+  set_property(TARGET CoinOR::CBC APPEND PROPERTY INTERFACE_LINK_LIBRARIES CoinOR::CGL CoinOR::OSI_CLP CoinOR::CLP CoinOR::OSI)
+  if (VCPKG_TOOLCHAIN)
+    set_property(TARGET CoinOR::COINUTILS APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+      LAPACK::LAPACK BLAS::BLAS ZLIB::ZLIB BZip2::BZip2)
+  endif()
+endif()
+unset(_coin_define_link_deps)
 
 # TODO allow for COMPONENTS and version parsing/checking
 include(FindPackageHandleStandardArgs)

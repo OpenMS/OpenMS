@@ -14,23 +14,26 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# Specify the path to the contrib-build. Will be added to CMAKE_PREFIX_PATH
-# for searching and as first entry in the includes/libraries to avoid
-# mismatches with installed system libraries
-
-# When using vcpkg, skip contrib path setup. The vcpkg toolchain configures
-# CMake's package search paths.
-if(OPENMS_USE_VCPKG AND OPENMS_CONTRIB_LIBS) 
-    message(FATAL_ERROR "OPENMS_CONTRIB_LIBS is ignored because OPENMS_USE_VCPKG is ON.")
-else()
-  if(NOT OPENMS_CONTRIB_LIBS)
-    message("Note: OPENMS_CONTRIB_LIBS not set. Unless you are certain that you have all contributing libraries in system paths, please specify an explicit path to the built contrib libraries via
-  -DOPENMS_CONTRIB_LIBS")
-  else()
-    list(INSERT CMAKE_PREFIX_PATH 0 ${OPENMS_CONTRIB_LIBS})
-    list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
-    list(REMOVE_ITEM CMAKE_PREFIX_PATH "") # Remove empty entries
+# OPENMS_CONTRIB_LIBS: the prefix of a contrib build (OpenMS/contrib), searched
+# before the rest of CMAKE_PREFIX_PATH to avoid mismatches with installed system
+# libraries. The contrib is retired in favour of vcpkg (#10327): the option is
+# deprecated and goes away after OpenMS 3.6. vcpkg builds get their search paths
+# from the vcpkg toolchain, all other builds from CMAKE_PREFIX_PATH.
+if(OPENMS_CONTRIB_LIBS)
+  if(OPENMS_USE_VCPKG)
+    message(FATAL_ERROR
+      "OPENMS_CONTRIB_LIBS cannot be combined with OPENMS_USE_VCPKG=ON, which takes the "
+      "dependencies from vcpkg. Remove OPENMS_CONTRIB_LIBS, or set OPENMS_USE_VCPKG=OFF "
+      "to build against the contrib.")
   endif()
+  message(DEPRECATION
+    "OPENMS_CONTRIB_LIBS is deprecated and will be removed after OpenMS 3.6, together "
+    "with the contrib. Build the dependencies with vcpkg (cmake --preset <platform>-release, "
+    "see the vcpkg install guide), or install them with a package manager and add their "
+    "prefix to CMAKE_PREFIX_PATH.")
+  list(INSERT CMAKE_PREFIX_PATH 0 ${OPENMS_CONTRIB_LIBS})
+  list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
+  list(REMOVE_ITEM CMAKE_PREFIX_PATH "") # Remove empty entries
 endif()
 
 #------------------------------------------------------------------------------

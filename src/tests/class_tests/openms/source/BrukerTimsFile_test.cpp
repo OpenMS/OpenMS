@@ -447,6 +447,15 @@ START_SECTION(DDA loading integration test)
 
   // Verify source file metadata was populated (I4)
   TEST_NOT_EQUAL(exp.getSourceFiles().size(), 0);
+
+  // Start of the acquisition and the instrument, from GlobalMetadata. This instrument calls itself 'impacTEM-pt', which
+  // is no PSI-MS model name, so the timsTOF series is reported (as msconvert does).
+  TEST_EQUAL(exp.getDateTime().get(), "2021-05-10 10:10:44")
+  TEST_EQUAL(exp.getMetaValue("mzml_start_time_stamp").toString(), "2021-05-10T10:10:44.193+01:00")
+  TEST_EQUAL(exp.getInstrument().getName(), "Bruker Daltonics timsTOF series")
+  TEST_EQUAL(exp.getInstrument().getModel(), "impacTEM-pt")
+  TEST_EQUAL(exp.getInstrument().getVendor(), "Bruker")
+  TEST_EQUAL(exp.getInstrument().getMetaValue("instrument serial number").toString(), "1854399.00095")
 }
 END_SECTION
 
@@ -798,6 +807,11 @@ START_SECTION(DDA round-trip test: load .d -> write mzML -> reload -> verify)
       break;
     }
   }
+
+  // The start of the acquisition (with its time zone), the instrument model and its serial number survive as well
+  TEST_EQUAL(reloaded.getMetaValue("mzml_start_time_stamp").toString(), "2021-05-10T10:10:44.193+01:00")
+  TEST_EQUAL(reloaded.getInstrument().getName(), "Bruker Daltonics timsTOF series")
+  TEST_EQUAL(reloaded.getInstrument().getMetaValue("instrument serial number").toString(), "1854399.00095")
 }
 END_SECTION
 

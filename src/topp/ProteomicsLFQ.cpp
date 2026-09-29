@@ -753,7 +753,6 @@ protected:
     }
 
     OPENMS_LOG_INFO << "Size of consensus fraction: " << consensus_fraction.size() << endl;
-    assert(! consensus_fraction.empty());
   }
 
   /// Align and link.
@@ -2097,6 +2096,16 @@ protected:
     }
 
     alignAndLink_(feature_maps, consensus_fraction, transformations, fraction_fwhm);
+
+    // Nothing to link is not an error: typically no run of the fraction has a feature because none
+    // of its identifications passed the upstream FDR filter, so targeted feature detection had
+    // nothing to look for (#10310). The other fractions are quantified as usual.
+    if (consensus_fraction.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: fraction " << fraction << " (" << ms_files.second.size()
+                      << " run(s)) yielded no consensus features and contributes no quantities. "
+                      << "Check the identifications of its runs, e.g. whether any passed FDR filtering.\n";
+    }
 
     if (feature_maps.size() > 1)
     {

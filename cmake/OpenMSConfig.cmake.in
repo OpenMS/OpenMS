@@ -82,8 +82,12 @@ set(OpenMS_BUILD_TOPP_TOOLS "@BUILD_TOPP_TOOLS@")
 # HDF5, Arrow, ...).
 
 # Dependency lookup mimics the OpenMS build: a contrib installation given via
-# OPENMS_CONTRIB_LIBS is searched first.
-if(DEFINED OPENMS_CONTRIB_LIBS)
+# OPENMS_CONTRIB_LIBS is searched first. Deprecated together with the contrib
+# (#10327); consumers add the prefix to CMAKE_PREFIX_PATH instead.
+if(OPENMS_CONTRIB_LIBS)
+  message(DEPRECATION
+    "OPENMS_CONTRIB_LIBS is deprecated and will be removed after OpenMS 3.6. "
+    "Add the prefix of the dependencies to CMAKE_PREFIX_PATH instead.")
   list(PREPEND CMAKE_PREFIX_PATH ${OPENMS_CONTRIB_LIBS})
 endif()
 
