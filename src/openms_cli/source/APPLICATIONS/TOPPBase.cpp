@@ -1652,6 +1652,11 @@ namespace OpenMS
     }
   }
 
+  bool TOPPBase::findExecutable_(std::string& executable) const
+  {
+    return File::findExecutable(executable);
+  }
+
   void TOPPBase::fileParamValidityCheck_(std::string& param_value, const std::string& param_name, const ParameterInformation& p) const
   {
     // check if files are readable/writable
@@ -1659,7 +1664,7 @@ namespace OpenMS
     {
       if (ListUtils::contains(p.tags, "is_executable"))
       { // will update to absolute path
-        if (File::findExecutable(param_value))
+        if (findExecutable_(param_value))
         {
           writeDebug_("Input file resolved to '" + param_value + "'", 2);
         }

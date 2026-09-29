@@ -1279,16 +1279,41 @@ START_SECTION(([EXTRA] chromatograms are stored with a precursor or product only
 }
 END_SECTION
 
-START_SECTION(([EXTRA] the mass resolving power is stored in the scan))
+START_SECTION(([EXTRA] scan attributes are stored in the scan, also those kept under their accession))
 {
-  // The reader keeps MS:1000800 with the spectrum, but mzML allows it only in a scan. It used to be written as a
-  // userParam of the spectrum, which other readers do not find.
+  // The reader keeps some scan attributes with the spectrum, as MSSpectrum has no member for them, but mzML allows them
+  // only in a scan. Other scan attributes it keeps with the scan, under their accession. Both used to be written as
+  // userParams, which other readers do not find.
   PeakMap exp;
-  MSSpectrum with_scan;
+  MSSpectrum with_scan; // all values as the mzML reader stores them
   with_scan.setNativeID("scan=1");
   with_scan.setRT(1.0);
-  with_scan.setMetaValue("mass resolving power", "60000"); // as the mzML reader stores it
+  DataValue dwell(0.25);
+  dwell.setUnit(10); // UO:0000010 second
+  dwell.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+  with_scan.setMetaValue("dwell time", dwell);
+  with_scan.setMetaValue("mass resolution", "4.3");
+  DataValue rate(17.5);
+  rate.setUnit(1000807); // MS:1000807 Th/s
+  rate.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+  with_scan.setMetaValue("scan rate", rate);
+  with_scan.setMetaValue("filter string", "FTMS + p NSI Full ms [350.0000-1400.0000]");
+  with_scan.setMetaValue("preset scan configuration", "1");
+  with_scan.setMetaValue("mass resolving power", "60000");
+  DataValue offset(-4.5);
+  offset.setUnit(1000040); // MS:1000040 m/z
+  offset.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+  with_scan.setMetaValue("analyzer scan offset", offset);
+  DataValue delay(0.5);
+  delay.setUnit(10); // UO:0000010 second
+  delay.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+  with_scan.setMetaValue("interchannel delay", delay);
+  with_scan.setMetaValue("elution time (seconds)", 55.5); // without its unit
   with_scan.getAcquisitionInfo().push_back(Acquisition());
+  DataValue injection(12.5);
+  injection.setUnit(28); // UO:0000028 millisecond
+  injection.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+  with_scan.getAcquisitionInfo().back().setMetaValue("MS:1000927", injection); // ion injection time
   exp.addSpectrum(with_scan);
   MSSpectrum without_scan; // written with a scan of its own
   without_scan.setNativeID("scan=2");
@@ -1325,13 +1350,37 @@ START_SECTION(([EXTRA] the mass resolving power is stored in the scan))
     for (Size pos = text.find(pattern); pos != std::string::npos; pos = text.find(pattern, pos + 1)) ++n;
     return n;
   };
-  const std::string term = "accession=\"MS:1000800\" name=\"mass resolving power\" value=\"";
-  TEST_FALSE(StringUtils::hasSubstring(out, "userParam name=\"mass resolving power\""))
+  const std::vector<std::string> names = {"dwell time", "mass resolution", "scan rate", "elution time", "filter string",
+                                          "analyzer scan offset", "preset scan configuration", "mass resolving power",
+                                          "interchannel delay", "ion injection time"};
+  for (const std::string& name : names)
+  {
+    TEST_FALSE(StringUtils::hasSubstring(out, "<userParam name=\"" + name))
+  }
+  TEST_FALSE(StringUtils::hasSubstring(out, "<userParam name=\"MS:1000927\""))
   for (const char* id : {"scan=1", "scan=2", "scan=3", "scan=4"})
   {
-    TEST_FALSE(StringUtils::hasSubstring(spectrumXML(id).first, "mass resolving power"))
+    for (const std::string& name : names)
+    {
+      TEST_FALSE(StringUtils::hasSubstring(spectrumXML(id).first, name))
+    }
   }
-  TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=1").second, term + "60000\""))
+  const std::vector<std::string> scan_terms = {
+    "accession=\"MS:1000502\" name=\"dwell time\" value=\"0.25\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"/>",
+    "accession=\"MS:1000011\" name=\"mass resolution\" value=\"4.3\"/>",
+    "accession=\"MS:1000015\" name=\"scan rate\" value=\"17.5\" unitAccession=\"MS:1000807\" unitName=\"Th/s\" unitCvRef=\"MS\"/>",
+    "accession=\"MS:1000512\" name=\"filter string\" value=\"FTMS + p NSI Full ms [350.0000-1400.0000]\"/>",
+    "accession=\"MS:1000616\" name=\"preset scan configuration\" value=\"1\"/>",
+    "accession=\"MS:1000800\" name=\"mass resolving power\" value=\"60000\"/>",
+    "accession=\"MS:1000803\" name=\"analyzer scan offset\" value=\"-4.5\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\"/>",
+    "accession=\"MS:1000880\" name=\"interchannel delay\" value=\"0.5\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"/>",
+    "accession=\"MS:1000826\" name=\"elution time\" value=\"55.5\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"/>",
+    "accession=\"MS:1000927\" name=\"ion injection time\" value=\"12.5\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\"/>"};
+  for (const std::string& scan_term : scan_terms)
+  {
+    TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=1").second, scan_term))
+  }
+  const std::string term = "accession=\"MS:1000800\" name=\"mass resolving power\" value=\"";
   TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=2").second, term + "30000\""))
   TEST_EQUAL(count(spectrumXML("scan=3").second, "mass resolving power"), 1)
   TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=3").second, term + "17500\""))
@@ -1344,10 +1393,21 @@ START_SECTION(([EXTRA] the mass resolving power is stored in the scan))
   TEST_EQUAL(errors.size(), 0)
   TEST_EQUAL(warnings.size(), 0)
 
-  // read back as the value of the spectrum, as from mzML written by other software
+  // read back as before, as from mzML written by other software
   PeakMap reloaded;
   file.load(tmp_filename, reloaded);
   ABORT_IF(reloaded.size() != 4)
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("dwell time"), 0.25)
+  TEST_EQUAL(reloaded[0].getMetaValue("mass resolution").toString(), "4.3")
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("scan rate"), 17.5)
+  TEST_EQUAL(reloaded[0].getMetaValue("filter string").toString(), "FTMS + p NSI Full ms [350.0000-1400.0000]")
+  TEST_EQUAL(reloaded[0].getMetaValue("preset scan configuration").toString(), "1")
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("analyzer scan offset"), -4.5)
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("interchannel delay"), 0.5)
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("elution time (seconds)"), 55.5)
+  ABORT_IF(reloaded[0].getAcquisitionInfo().size() != 1)
+  TEST_REAL_SIMILAR((double)reloaded[0].getAcquisitionInfo()[0].getMetaValue("MS:1000927"), 12.5)
+  TEST_EQUAL(reloaded[0].getAcquisitionInfo()[0].getMetaValue("MS:1000927").getUnit(), 28)
   TEST_EQUAL(reloaded[0].getMetaValue("mass resolving power").toString(), "60000")
   TEST_EQUAL(reloaded[1].getMetaValue("mass resolving power").toString(), "30000")
   TEST_EQUAL(reloaded[2].getMetaValue("mass resolving power").toString(), "17500")

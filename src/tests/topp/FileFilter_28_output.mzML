@@ -505,12 +505,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1849775.625"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="232.234497070313" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1501.71716308594" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="ITMS + c NSI d w Full ms2 832.92@cid40.00 [215.00-1680.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="2"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="11745.0283203125" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="ITMS + c NSI d w Full ms2 832.92@cid40.00 [215.00-1680.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="2"/>
 						<userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:double" value="832.924743652344"/>
 						<scanWindowList count="1">
 							<scanWindow>
@@ -599,10 +599,10 @@
 		<offset idRef="spectrum=19">37211</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="TIC">50996</offset>
-		<offset idRef="TIC">51979</offset>
+		<offset idRef="TIC">51028</offset>
+		<offset idRef="TIC">52011</offset>
 	</index>
 </indexList>
-<indexListOffset>52996</indexListOffset>
+<indexListOffset>53028</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

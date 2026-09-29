@@ -1,9 +1,0 @@
-[
-  {
-    "name": "Default",
-    "compilers": {
-        "C": "/usr/bin/gcc",
-        "CXX": "/usr/bin/g++"
-    }
-  }
-]

@@ -189,8 +189,14 @@ Dependencies:
     the package's former lookups of dependencies that are PRIVATE now. Consuming projects need
     CMake 3.24: find_package(OpenMS) rejects older versions with an explanatory message
     instead of failing later (#10158).
-  - contrib is a git submodule: clone with --recurse-submodules or run
-    git submodule update --init (#9155).
+  - The contrib (OpenMS/contrib) is deprecated and will be removed after 3.6: vcpkg
+    builds the dependencies (see the vcpkg install guide and the CMake presets). It is no
+    longer a git submodule; a build that still needs it takes it from a separate clone of
+    OpenMS/contrib. Configuring with OPENMS_CONTRIB_LIBS, which requires
+    OPENMS_USE_VCPKG=OFF, prints a deprecation warning (#10327).
+  - The dev container (.devcontainer/) builds with the vcpkg presets on Ubuntu 24.04 instead of
+    the contrib image. The Gitpod configuration and tools/quickbuild.sh/quickbuild-osx.sh, which
+    built contrib, were removed; use cmake --preset <platform>-release instead (#10327).
   - Optional readers: WITH_OPENTIMS enables timsTOF support (default ON); opentims_DIR or
     opentims_ROOT selects a system installation before downloading. WITH_THERMO_RAW is
     ON by default on every supported platform; .NET 8+ is required at runtime (#9147,
@@ -260,9 +266,17 @@ PyOpenMS:
   - The wheel metadata declares the license as the SPDX expression BSD-3-Clause
     (Metadata-Version 2.4) and ships the license text as dist-info/licenses/LICENSE.
     Before, dist-info/LICENSE held only the string "BSD-3-Clause".
-  - The Windows wheel bundles the libcurl it was linked against. delvewheel's search
-    path lacked contrib/bin and it fell back to PATH, so every Windows wheel so far
-    carried an unrelated vcpkg-built libcurl from the CI image and a second zlib.
+  - The Windows wheel is built against vcpkg's static libraries (triplet
+    x64-windows-static-md-release) instead of the prebuilt contrib. Every dependency
+    is linked into OpenMS.dll, so the only native DLLs the wheel bundles besides
+    OpenMS's own are those of the MSVC runtime; the managed Thermo RawFileReader
+    assemblies ship as before. Earlier Windows wheels carried an unrelated libcurl
+    and a second zlib from the CI image. The dependency versions are those the main
+    CI tests, e.g. Arrow 24, Xerces-C 3.3, bzip2 1.0.8 and libsvm 3.35 (#10327).
+  - The Linux wheels (x86_64 and aarch64) are built in the stock manylinux_2_34 images
+    against static vcpkg libraries instead of the contrib. They carry the libraries the
+    other builds already test, e.g. bzip2 1.0.8 instead of 1.0.5 (CVE-2019-12900),
+    Xerces-C 3.3.0 instead of 3.2.0 (CVE-2018-1311), libsvm 3.35 and Arrow 24 (#10327).
   - The custom type casters build their result lists with the checked
     PyList_SetItem() instead of the PyList_SET_ITEM() macro, which is unavailable
     under the Limited API. Behaviour is unchanged; failures release the partially
@@ -525,6 +539,10 @@ TOPP tools:
         ProteomicsLFQ and OpenSwathWorkflow. Bruker .d input: FileConverter, CometAdapter,
         ProteomicsLFQ, OpenSwathWorkflow and PeakPickerIM (#8975, #9019, #9022, #9030,
         #9126, #9418).
+      - Adapters find the search engines that ship with OpenMS. When an engine such as Comet or
+        Sage is not on the PATH, they look for it in share/OpenMS/THIRDPARTY, which the Linux and
+        macOS packages do not put on the PATH; without '-<engine>_executable' they stopped with
+        exit code 14 there (#10304).
       - Tools that read Thermo .raw get the spectra centroided by Thermo's peak picking, as
         FileConverter writes them by default. For profile spectra, convert with FileConverter
         -RawToMzML:no_peak_picking first; in C++ and pyOpenMS, ThermoRawFile keeps the scans as
@@ -807,7 +825,9 @@ TOPP tools:
     - UniPEFF: UniProtKB XML-to-PEFF conversion with sequence, modification, variant and
       disulfide-bond annotations; disulfide connectivity is reported by default via bond-ordered
       half-cystine labels; optional global annotation identifiers and external
-      unimod.obo (#9649, #9829).
+      unimod.obo (#9649, #9829). UniProt isoforms are reconstructed from their splice-variant
+      features and emitted as additional entries after the parent entry; disable with
+      -omit_isoforms (#9966, fixes #9830).
     - OpenSwathInfer: peptidoform, peptide, protein and gene inference (#9280).
     - OpenSwathExport: TSV/Parquet result export (#9377).
     - OpenSwathPercolatorScoring: Percolator scoring of OpenSWATH results (#9695).
@@ -817,7 +837,10 @@ TOPP tools:
       window layout incl. FAIMS/1/K0, cycle times, TIC and peak-count distributions), a
       re-implementation of D. L. Tabb's DIAuditor. Reads mzML, Thermo .raw and Bruker timsTOF .d
       (diaPASEF) and writes its per-run and per-window tables and an mzQC file with the PSI-MS
-      DIA metrics (MS:4000190-MS:4000199) (#10271).
+      DIA metrics (MS:4000190-MS:4000199). Warns when spectra carry several isolation windows
+      (e.g. MSX; demultiplex first) and when diaPASEF windows have an ion mobility array but no
+      ion mobility range, as TIMSCONVERT writes them, so windows differing only in ion mobility
+      count as one (#10271, #10312).
     - ParquetDiff: compares two Parquet tables by primary key with a numeric tolerance instead of exact
       bytes. FuzzyDiff is string-based and cannot read Parquet, which left the QPX psm/feature/pg exchange
       surface with no comparison route at all. The key is auto-derived from a QPX file's own file_type
@@ -1153,6 +1176,11 @@ Fixes:
       Resolution:', else 'FT Resolution:'), as msconvert reports it (#10313).
     - Bruker timsTOF .d: the start of the acquisition (with its time zone), the instrument model and
       its serial number are read from analysis.tdf (#10313).
+    - mzML: the other scan attributes the reader keeps with the spectrum (filter string, preset scan
+      configuration, dwell time, scan rate, mass resolution, elution time, analyzer scan offset and
+      interchannel delay) are written in the scan as well, and scan terms it keeps under their
+      accession, such as the ion injection time (MS:1000927), as CV terms. Both used to be written
+      as userParams, which other readers do not find.
     - Fixed INI required/advanced parsing, XQuest FDR-type restoration, mzIdentML missing
       modification locations, PepXML source-run paths/redundant Comet scores and duplicate
       IDMapper spectrum references (#5443, #8905, #9089, #9660, #9763, #9766).
@@ -1185,6 +1213,14 @@ Fixes:
       as annotations of the canonical entry, although their coordinates refer to that isoform
       (e.g. \ModResPsi phosphoserines on non-S residues or past the sequence end). Such
       features are now skipped and counted in a summary log line.
+    - IDFileConverter: pepXML input with 'mz_file' failed with "Found no experiment with name" unless
+      the run's 'base_name' ended with the exact path given. This broke TPP results on Windows (TPP
+      writes 'c:/...', the tool got 'c:\...'), moved data and OpenMS' own pepXML output, which stores
+      the file name only. 'mz_file' is now matched by its file name; 'mz_name' can give more of the
+      path. PepXMLFile matches the experiment name against whole trailing path components of
+      'base_name', treating '/' and '\' alike, so 'LN1' no longer selects both 'L_LN1' and 'H_LN1'.
+      A name that matches runs with different 'base_name's is an error, and the not-found error lists
+      the 'base_name's in the file (#3502).
   Robustness:
     - mzIdentML writer: the "unknown modification" cvParam (MS:1001460) referenced the undeclared
       controlled vocabulary "MS", although the document declares only "PSI-MS". The writer names
@@ -1291,6 +1327,10 @@ Documentation:
   - The user FAQ explains OpenMS.ini: that it is optional, where OpenMS looks for it and which
     entries it reads. The OpenMSInfo page describes the data, temp and user data paths as they
     are resolved now (#3009).
+  - The Windows installation page builds with the vcpkg presets instead of the contrib package,
+    and the developer FAQ, the guide to adding a dependency (now via vcpkg.json and overlay
+    ports), the external-code pages and the agent notes no longer refer to contrib. The
+    orphaned install-contrib page is removed (#10144).
 
 Build System:
   - The Debian package of a nightly or branch build carries its prerelease identifier in its
@@ -1423,6 +1463,12 @@ Build System:
     names made their "t64 | non-t64" alternatives unenforceable; nothing links yaml-cpp
     dynamically; and SQLite ships inside the package, so libsqlite3-0 was never used
     (#10259).
+  - The DEB installed the 53 third-party libraries it bundles and the Thermo bridge
+    world-writable (mode 0777) in /usr/lib, among them libssl.so.3 and libcrypto.so.3, so any
+    local user could replace code that the OpenMS tools load, also when root runs them. The
+    macOS package installed the headers and resources of its Qt frameworks world-writable.
+    Bundled libraries are now writable by their owner only (0755), like any installed library
+    (#10324).
   - The container image build failed on every nightly run once WITH_THERMO_RAW defaulted
     to ON on Linux aarch64 (#10206): the Dockerfile still installed the .NET SDK/runtime
     that openms-thermo-bridge needs only for amd64, so the arm64 build could not find

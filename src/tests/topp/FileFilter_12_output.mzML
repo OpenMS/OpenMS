@@ -224,13 +224,6 @@
 				<cvParam cvRef="MS" accession="MS:1000798" name="peak list raw scans" value="16 scans"/>
 				<userParam name="maldi_spot_id" type="xsd:string" value="M0"/>
 				<userParam name="sdname" type="xsd:string" value="spectrumdescription1"/>
-				<userParam name="scan rate" type="xsd:double" value="17.170000000000002" unitAccession="MS:1000807" unitName="Th/s" unitCvRef="MS"/>
-				<userParam name="mass resolution" type="xsd:string" value="4.3"/>
-				<userParam name="elution time (seconds)" type="xsd:double" value="55.109999999999999"/>
-				<userParam name="filter string" type="xsd:string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="3 abc"/>
-				<userParam name="analyzer scan offset" type="xsd:double" value="-4.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="dwell time" type="xsd:double" value="123.450000000000003" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				<userParam name="mzname" type="xsd:string" value="mzarray1"/>
 				<userParam name="itname" type="xsd:string" value="itarray1"/>
 				<scanList count="2">
@@ -238,6 +231,13 @@
 					<userParam name="name" type="xsd:string" value="acquisition_list"/>
 					<scan externalSpectrumID="4711">
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000502" name="dwell time" value="123.450000000000003" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
+						<cvParam cvRef="MS" accession="MS:1000011" name="mass resolution" value="4.3"/>
+						<cvParam cvRef="MS" accession="MS:1000015" name="scan rate" value="17.170000000000002" unitAccession="MS:1000807" unitName="Th/s" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000826" name="elution time" value="55.109999999999999" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000803" name="analyzer scan offset" value="-4.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="3 abc"/>
 						<cvParam cvRef="MS" accession="MS:1000800" name="mass resolving power" value="4.299"/>
 						<userParam name="name" type="xsd:string" value="acquisition1"/>
 						<userParam name="source_file_name" type="xsd:string" value="ac.dta"/>
@@ -281,15 +281,15 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.66755e07"/>
 				<userParam name="maldi_spot_id" type="xsd:string" value="M1"/>
 				<userParam name="sdname" type="xsd:string" value="spectrumdescription2"/>
-				<userParam name="mass resolution" type="xsd:string" value="4.1"/>
-				<userParam name="filter string" type="xsd:string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="4"/>
 				<userParam name="mzname" type="xsd:string" value="mzarray2"/>
 				<userParam name="itname" type="xsd:string" value="itarray2"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan externalSpectrumID="0">
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.2" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000011" name="mass resolution" value="4.1"/>
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="4"/>
 						<scanWindowList count="3">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -398,13 +398,13 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.66755e07"/>
 				<userParam name="maldi_spot_id" type="xsd:string" value="M2"/>
 				<userParam name="sdname" type="xsd:string" value="spectrumdescription3"/>
-				<userParam name="filter string" type="xsd:string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="3"/>
 				<scanList count="2">
 					<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra" />
 					<userParam name="name" type="xsd:string" value="acquisition_list"/>
 					<scan externalSpectrumID="4711">
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.3" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="3"/>
 						<userParam name="name" type="xsd:string" value="acquisition1"/>
 						<scanWindowList count="1">
 							<scanWindow>
@@ -456,10 +456,10 @@
 <indexList count="1">
 	<index name="spectrum">
 		<offset idRef="index=0">14176</offset>
-		<offset idRef="index=1">19335</offset>
-		<offset idRef="index=2">28221</offset>
+		<offset idRef="index=1">19497</offset>
+		<offset idRef="index=2">28431</offset>
 	</index>
 </indexList>
-<indexListOffset>33061</indexListOffset>
+<indexListOffset>33303</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

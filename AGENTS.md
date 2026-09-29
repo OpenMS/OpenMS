@@ -8,7 +8,7 @@ This file provides context and instructions for AI coding agents working on Open
 - Modify files in `src/openms/extern/` or `src/openms/thirdparty/` (third-party vendored code; use the provided sync scripts to update vendored libraries)
 - Commit secrets, credentials, or `.env` files
 - Add `using namespace` or `using std::...` in header files
-- Modify the contrib tree or third-party dependencies
+- Modify the `vcpkg` submodule or third-party dependencies
 - Skip tests when making code changes
 
 **Before opening a pull request, always build the changes locally and run the relevant tests.**
@@ -18,7 +18,11 @@ build or test failures before opening the PR; do not defer this validation to CI
 ## Quick Commands
 
 ```bash
-# Configure (from OpenMS-build/ directory, adjust paths as needed)
+# Configure with vcpkg-provided dependencies (from the source directory; needs the vcpkg submodule,
+# `cmake --list-presets` lists the presets, -B overrides the preset's build/<preset> directory)
+cmake --preset linux-x64-debug -B ../OpenMS-build
+
+# Or configure against system packages (from OpenMS-build/ directory, adjust paths as needed)
 cmake -DCMAKE_BUILD_TYPE=Debug ../OpenMS
 
 # Build everything (includes tests)
@@ -27,6 +31,7 @@ cmake --build . -j$(nproc)
 
 # Run tests with verbose output
 ctest -R MyTest -V
+```
 
 
 ## Known build workarounds
@@ -69,8 +74,9 @@ OpenMS/
 - Public headers are declared in `FILE_SET HEADERS`; generated export headers are added by `openms_add_library()`. Private headers under `source/` and `include/` belong to the private file set. File sets supply the build and installed include directories.
 - Linux x64 CI builds `all_verify_interface_header_sets`; developers can opt in with `OPENMS_VERIFY_INTERFACE_HEADER_SETS=ON`. Keep the JSON guard because shared include roots can hide private dependencies.
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
-- Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
-- **contrib is a git submodule**: run `git submodule update --init contrib` (or clone with `--recurse-submodules`) before building if you need the vendored third-party libraries.
+- Dependencies via vcpkg: configure with a preset from `CMakePresets.json` (`cmake --preset <preset>`, `cmake --list-presets`). The presets set `OPENMS_USE_VCPKG=ON` and use the toolchain of the `vcpkg` submodule; vcpkg then builds the dependencies declared in the manifest `vcpkg.json` (optional ones as manifest features, enabled with `VCPKG_MANIFEST_FEATURES` next to the matching `WITH_*` option), using the overlay ports and triplets in `vcpkg-overlays/`. Qt is not in the manifest: pass its prefix with `CMAKE_PREFIX_PATH` if CMake does not find it.
+- **vcpkg is a git submodule**: run `git submodule update --init vcpkg` (or clone with `--recurse-submodules`) before configuring with a preset.
+- Builds without vcpkg use distro or Homebrew packages; set `CMAKE_PREFIX_PATH` as needed.
 - pyOpenMS build deps: install via `uv sync --only-group build` or `pip install -e .[dev]` (see `src/pyOpenMS/pyproject.toml`); enable with `-DPYOPENMS=ON`.
 - Style checks: formatting is `.clang-format`. Static analysis runs in CI (the `cppcheck-test` workflow), not from the build system.
 
@@ -89,10 +95,10 @@ OpenMS/
 ### Windows
 - **MSYS/MinGW NOT supported** — must use Visual Studio environment
 - **Minimum compiler versions are defined once** in `cmake/min_compiler_versions.cmake`, which both enforces them at configure time and feeds the numbers quoted in the doxygen install docs (via `ALIASES` in `doc/doxygen/Doxyfile.in`). Edit them there, not in the docs
-- **64-bit only**. The presets in `CMakePresets.json` build with **Ninja** on every platform, Windows included, so `cmake --preset windows-x64-*` produces a Ninja tree and no `.sln`. Pass `-G "Visual Studio 17 2022" -A x64` on the configure line to get a solution instead; the older contrib-based instructions in `install-win.doxygen` still require a Visual Studio generator, because some contrib libraries cannot be built with anything else
+- **64-bit only**. The presets in `CMakePresets.json` build with **Ninja** on every platform, Windows included, so `cmake --preset windows-x64-*` produces a Ninja tree and no `.sln`. Pass `-G "Visual Studio 17 2022" -A x64` on the configure line to get a solution instead
 - **Keep build paths short** to avoid path length issues
 - **Never mix Release/Debug libraries** — causes stack corruption and segfaults
-- Compiler must match between contrib and OpenMS builds
+- The Windows triplets fix the runtime: `windows-x64-debug` uses `x64-windows-static-md` (dependencies in debug and release form, so it is the preset for a Debug or multi-configuration build), the release presets use `x64-windows-static-md-release` (release dependencies only)
 - HDF5 forced to static linking on MSVC
 - OpenMP requires `/openmp:experimental` flag (set automatically) for SIMD support
 - Nested OpenMP (`MT_ENABLE_NESTED_OPENMP`) defaults to OFF on MSVC
@@ -108,7 +114,7 @@ OpenMS/
 - `fix_dependencies.rb` script fixes RPATH for relocatable binaries
 
 ### Linux
-- Package manager preferred for dependencies; contrib is fallback
+- Dependencies via the vcpkg presets (`linux-x64-*`, `linux-arm64-*`) or distro packages
 - `-fPIC` flag applied automatically for shared library compatibility
 - `QT_QPA_PLATFORM=minimal` for headless GUI test runs
 - STL debug mode (`_GLIBCXX_DEBUG`) only supported with GCC in Debug builds
@@ -121,7 +127,7 @@ OpenMS/
 - Required components: Core; GUI components need Gui, Widgets, Svg, OpenGLWidgets
 
 ### Boost
-- OpenMS links only Boost's headers (`Boost::boost`), so static and shared Boost installs (distro, Homebrew, vcpkg, contrib) work alike
+- OpenMS links only Boost's headers (`Boost::boost`), so static and shared Boost installs (distro, Homebrew, vcpkg) work alike
 - Do not link compiled Boost libraries (`Boost::regex`, `Boost::iostreams`, ...): a static one has to go into the shared libOpenMS and brings its own link dependencies (#3319)
 
 ### Common CMake Issues
@@ -576,7 +582,7 @@ perf report
 
 - Example external CMake project: `share/OpenMS/examples/external_code/`.
 - External test project: `src/tests/external/`.
-- Use the same compiler/generator as OpenMS; set `OPENMS_CONTRIB_LIBS` and `OpenMS_DIR` when configuring.
+- Use the same compiler/generator as OpenMS; set `OpenMS_DIR` when configuring. For an OpenMS built with vcpkg, also pass its `CMAKE_TOOLCHAIN_FILE`, `VCPKG_INSTALLED_DIR` and `VCPKG_TARGET_TRIPLET` (as the installed-consumer tests in `src/tests/CMakeLists.txt` do).
 - `find_package(OpenMS CONFIG)` provides the imported targets `OpenMS::OpenMS`, `OpenMS::OpenSwathAlgo` and
   `OpenMS::OpenMS_CLI` (the TOPP tool framework: TOPPBase, ToolHandler, ...; TOPP-style tools link this one
   and request `COMPONENTS CLI`) (`OpenMS::OpenMS_GUI` via `COMPONENTS GUI`); every installed target also has
@@ -595,8 +601,7 @@ perf report
 ## CI, Packaging, and Containers
 
 - CI runs in GitHub Actions; CDash collects nightly results.
-- Jenkins packaging uses `tools/jenkins/os_compiler_matrix.tsv` (edit only if needed).
-- PR commands/labels: `/reformat`, label `NoJenkins`, comment `rebuild jenkins`.
+- PR commands: `/reformat`.
 - Container images: see `dockerfiles/README.md` and GHCR packages.
 - macOS code signing/notarization: see `cmake/MacOSX/README.md`.
 
