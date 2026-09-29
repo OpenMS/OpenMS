@@ -664,11 +664,14 @@ TOPP tools:
         concatMULTISEPeptideIds, mergeMULTISEPeptideIds, addMULTISEFeatures and
         addCONCATSEFeatures were also removed from C++/Python.
     MapAlignerIdentification, MapAlignerPoseClustering, MapAlignerTreeGuided:
-      - BREAKING: MapAlignerIdentification without a reference aligns to the input with the most
-        identified sequences, as ProteomicsLFQ ('star' alignment) and MS1LabeledWorkflow already
-        documented. The per-peptide RT consensus over all inputs used before left part of larger
-        RT shifts uncorrected, because every input contributed to the consensus it was aligned to;
-        it remains available as 'algorithm:auto_reference consensus' (fixes #2541).
+      - BREAKING: MapAlignerIdentification without a reference aligns to the input that shares the
+        most identified sequences with every other input, so that each input can be aligned to it;
+        ProteomicsLFQ ('star' alignment) and MS1LabeledWorkflow, whose docs already described a
+        single reference run, change with it. The per-peptide RT consensus over all inputs used
+        before left part of larger RT shifts uncorrected, because every input contributed to the
+        consensus it was aligned to. It remains available as 'algorithm:auto_reference consensus',
+        and is used when no input shares at least two sequences with every other input
+        (fixes #2541).
       - Optional -in_spectra_files/-out_spectra_files transform mzML alongside maps (#8536).
       - Fixed tree-guided transformation/residual estimates and reference-state leakage
         across repeated identification alignment calls. Pose clustering uses identity

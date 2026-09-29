@@ -70,7 +70,7 @@ START_SECTION((template <typename DataType> void align(std::vector<DataType>& da
                       transforms[1].getDataPoints()[i].second);
     reference_rts.push_back(transforms[0].getDataPoints()[i].first);
   }
-  aligner.setParameters(params); // back to the default ("most_ids")
+  aligner.setParameters(params); // back to the default ("best_run")
 
   // alignment with internal reference:
   transforms.clear();
@@ -90,8 +90,9 @@ START_SECTION((template <typename DataType> void align(std::vector<DataType>& da
       transforms[1].getDataPoints()[i].first;
   }
 
-  // alignment without reference, to the map with the most identified
-  // sequences - both have ten, so the first map is used:
+  // alignment without reference, to the map that shares the most sequences
+  // with every other map - with two maps a tie, and both have ten sequences,
+  // so the first map is used:
   transforms.clear();
   aligner.align(peptides, transforms);
 
@@ -104,7 +105,7 @@ START_SECTION((template <typename DataType> void align(std::vector<DataType>& da
                       reference_rts[i]);
   }
 
-  // with one ID less in the first map, the second one becomes the reference:
+  // with one ID less in the first map, the second one (more IDs) wins the tie:
   vector<PeptideIdentificationList> fewer_in_first = peptides;
   fewer_in_first[0].erase(fewer_in_first[0].begin());
   transforms.clear();
@@ -175,6 +176,75 @@ START_SECTION([EXTRA] repeated align() with internal reference does not leak sta
                       first_transforms[1].getDataPoints()[i].first);
     TEST_REAL_SIMILAR(second_transforms[1].getDataPoints()[i].second,
                       first_transforms[1].getDataPoints()[i].second);
+  }
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] the automatic reference shares IDs with every other input)
+{
+  const std::string residues = "ACDEFGHIKLMNPQRSTVWY";
+  auto sequence = [&residues](Size i)
+  {
+    return "PEPTIDE" + std::string(1, residues[i / 20]) + residues[i % 20];
+  };
+  auto add_id = [](PeptideIdentificationList& run, const std::string& seq, double rt)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(seq));
+    hit.setScore(1.0);
+    PeptideIdentification pep;
+    pep.setRT(rt);
+    pep.setHits({hit});
+    run.push_back(pep);
+  };
+
+  // A has the most IDs (20 shared with B, 40 only its own), but shares none
+  // with C; B shares 20 with each of the others, so it becomes the reference:
+  vector<PeptideIdentificationList> runs(3);
+  for (Size i = 0; i < 20; ++i)
+  {
+    double rt = 100.0 + 30.0 * i;
+    add_id(runs[0], sequence(i), rt);
+    add_id(runs[1], sequence(i), rt + 10.0);
+    add_id(runs[1], sequence(20 + i), rt + 10.0);
+    add_id(runs[2], sequence(20 + i), rt + 50.0);
+  }
+  for (Size i = 0; i < 40; ++i)
+  {
+    add_id(runs[0], sequence(40 + i), 100.0 + 15.0 * i);
+  }
+
+  MapAlignmentAlgorithmIdentification auto_aligner;
+  vector<TransformationDescription> transforms;
+  auto_aligner.align(runs, transforms);
+
+  TEST_EQUAL(transforms.size(), 3);
+  TEST_EQUAL(transforms[0].getDataPoints().size(), 20);
+  TEST_EQUAL(transforms[1].getModelType(), "identity");
+  TEST_EQUAL(transforms[2].getDataPoints().size(), 20);
+  for (TransformationDescription& trafo : transforms)
+  {
+    trafo.fitModel("b_spline"); // throws if a run has too few data points
+  }
+
+  // each pair of runs shares only one sequence, so no run can be the
+  // reference for both others - the runs are aligned to a consensus instead:
+  vector<PeptideIdentificationList> sparse(3);
+  add_id(sparse[0], sequence(0), 100.0);
+  add_id(sparse[1], sequence(0), 110.0);
+  add_id(sparse[1], sequence(1), 200.0);
+  add_id(sparse[2], sequence(1), 250.0);
+  add_id(sparse[2], sequence(2), 300.0);
+  add_id(sparse[0], sequence(2), 290.0);
+
+  transforms.clear();
+  auto_aligner.align(sparse, transforms);
+
+  TEST_EQUAL(transforms.size(), 3);
+  for (const TransformationDescription& trafo : transforms)
+  {
+    TEST_EQUAL(trafo.getDataPoints().size(), 2);
   }
 }
 END_SECTION

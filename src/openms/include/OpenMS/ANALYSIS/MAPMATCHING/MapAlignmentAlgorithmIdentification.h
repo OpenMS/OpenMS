@@ -41,8 +41,9 @@ namespace OpenMS
 
     Each map is aligned to a reference retention time scale.
     This time scale can come from a separate reference (setReference()) or from one of the input maps (@p reference_index in align()).
-    If neither is given, parameter @p auto_reference decides: by default ("most_ids"), the input map with the most identified sequences becomes the reference;
-    with "consensus", the time scale is computed as a consensus of the input maps (median retention times over all maps of the ID groups).
+    If neither is given, parameter @p auto_reference decides: by default ("best_run"), the input map that shares the most identified sequences with every other map becomes the reference,
+    i.e. the map whose smallest number of shared sequences with any other map is largest (on ties, the map with the most identified sequences), so that every map can be aligned to it;
+    with "consensus", or if no map shares at least two sequences with every other map, the time scale is computed as a consensus of the input maps (median retention times over all maps of the ID groups).
     A consensus favors none of the maps, but every map contributes to the consensus it is aligned to, so larger shifts between maps are only partly corrected.
     The maps are then aligned to this scale as follows:\n
     The median retention time of each ID group in a map is mapped to the reference retention time of this group.
@@ -169,7 +170,7 @@ protected:
     /// Consider differently adducted IDs as different?
     bool use_adducts_{};
 
-    /// Without a given reference, align to a consensus of all maps (instead of the map with the most IDs)?
+    /// Without a given reference, align to a consensus of all maps (instead of the map that shares the most IDs with the others)?
     bool consensus_reference_{};
 
     /// Minimum score to reach for a peptide to be considered
@@ -320,10 +321,11 @@ protected:
                                  transforms, bool sorted = false);
 
     /**
-      @brief Make the input map with the most identified sequences the reference, unless parameter @p auto_reference asks for a consensus
+      @brief Make the input map that shares the most identified sequences with every other map the reference, unless parameter @p auto_reference asks for a consensus
 
-      Sets #reference_index_ and #reference_ and removes the RT data of the reference map from @p rt_data.
-      In case of ties, the first of the maps is used.
+      Only sequences that occur in at least @p min_run_occur maps count. The reference is the map whose smallest number of shared sequences with any other map is largest;
+      on ties, the map with the most identified sequences (then the first of those) is used. If no map shares at least two sequences with every other map, no reference is set, so that a consensus is used.
+      Otherwise sets #reference_index_ and #reference_ and removes the RT data of the reference map from @p rt_data.
 
       @param[in,out] rt_data Lists of RT values for diff. peptide sequences, per input map (input, the reference's lists will be sorted)
       @param[in] sorted Are RT lists already sorted?

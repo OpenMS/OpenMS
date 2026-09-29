@@ -154,7 +154,7 @@ In contrast to :py:class:`~.MapAlignmentAlgorithmPoseClustering`, which always f
         
     aligner = oms.MapAlignmentAlgorithmIdentification()
     ## we could set a reference map; but we don't. Instead, we rely on the algorithm to pick one
-    ref_index = -1   # -1: parameter "auto_reference" decides - by default the map with the most identified sequences
+    ref_index = -1   # -1: parameter "auto_reference" decides - by default the map that shares the most identified sequences with the others
 
     ## let's change some default parameters of MapAlignmentAlgorithmIdentification, just to see how it's done:
     p = aligner.getParameters()

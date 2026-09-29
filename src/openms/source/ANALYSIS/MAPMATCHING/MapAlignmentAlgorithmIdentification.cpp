@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 
 #include <algorithm>
+#include <numeric>
 
 using namespace std;
 
@@ -47,8 +48,8 @@ namespace OpenMS
     defaults_.setValue("use_adducts", "true", "If IDs contain adducts, treat differently adducted variants of the same molecule as different.");
     defaults_.setValidStrings("use_adducts", {"true", "false"});
 
-    defaults_.setValue("auto_reference", "most_ids", "Reference to align to if none is given (neither a reference file nor an input index): 'most_ids' - the input with the most identified sequences; 'consensus' - median RTs per sequence over all inputs. A consensus favors none of the inputs, but only partly corrects larger RT shifts, because every input contributes to the consensus it is aligned to.");
-    defaults_.setValidStrings("auto_reference", {"most_ids", "consensus"});
+    defaults_.setValue("auto_reference", "best_run", "Reference to align to if none is given (neither a reference file nor an input index): 'best_run' - the input that shares the most identified sequences with every other input (on ties, the one with the most identified sequences); if none shares at least two with every other input, a consensus is used instead. 'consensus' - median RTs per sequence over all inputs. A consensus favors none of the inputs, but only partly corrects larger RT shifts, because every input contributes to the consensus it is aligned to.");
+    defaults_.setValidStrings("auto_reference", {"best_run", "consensus"});
 
     defaultsToParam_();
   }
@@ -87,16 +88,93 @@ namespace OpenMS
   {
     if (consensus_reference_ || rt_data.empty()) return;
 
-    // "max_element" returns the first of several largest elements:
-    vector<SeqToList>::iterator ref_it = max_element(
-      rt_data.begin(), rt_data.end(),
-      [](const SeqToList& a, const SeqToList& b) { return a.size() < b.size(); });
-    reference_index_ = ref_it - rt_data.begin();
-    OPENMS_LOG_INFO << "No reference given - aligning to input " << reference_index_ + 1
-                    << ", which has the most identified sequences (" << ref_it->size() << ")."
-                    << endl;
-    computeMedians_(*ref_it, reference_, sorted);
-    rt_data.erase(ref_it);
+    Size best = 0;
+    if (rt_data.size() > 1)
+    {
+      // only sequences that occur in at least "min_run_occur" inputs are used for the alignment;
+      // number them, so that the inputs can be compared quickly:
+      map<std::string, Size> n_inputs;
+      for (const SeqToList& input : rt_data)
+      {
+        for (const auto& entry : input) ++n_inputs[entry.first];
+      }
+      map<std::string, Size> seq_index;
+      for (const auto& entry : n_inputs)
+      {
+        if (entry.second >= max(min_run_occur_, Size(2)))
+        {
+          seq_index.emplace_hint(seq_index.end(), entry.first, seq_index.size());
+        }
+      }
+      vector<vector<Size>> usable(rt_data.size()); // sorted, like "seq_index"
+      for (Size i = 0; i < rt_data.size(); ++i)
+      {
+        for (const auto& entry : rt_data[i])
+        {
+          auto pos = seq_index.find(entry.first);
+          if (pos != seq_index.end()) usable[i].push_back(pos->second);
+        }
+      }
+      auto n_shared = [&usable](Size i, Size j)
+      {
+        Size count = 0;
+        auto it_i = usable[i].begin(), it_j = usable[j].begin();
+        while ((it_i != usable[i].end()) && (it_j != usable[j].end()))
+        {
+          if (*it_i < *it_j) ++it_i;
+          else if (*it_j < *it_i) ++it_j;
+          else { ++count; ++it_i; ++it_j; }
+        }
+        return count;
+      };
+
+      // Every other input is aligned using the sequences it shares with the reference, so the
+      // reference is the input whose smallest number of shared sequences with any other input
+      // is largest. On ties, the input with the most identified sequences wins (then the first).
+      vector<Size> candidates(rt_data.size());
+      iota(candidates.begin(), candidates.end(), 0);
+      stable_sort(candidates.begin(), candidates.end(),
+                  [&rt_data](Size i, Size j) { return rt_data[i].size() > rt_data[j].size(); });
+      // inputs with few usable sequences limit the overlap most, so compare with those first:
+      vector<Size> others(rt_data.size());
+      iota(others.begin(), others.end(), 0);
+      stable_sort(others.begin(), others.end(),
+                  [&usable](Size i, Size j) { return usable[i].size() < usable[j].size(); });
+      Size best_overlap = 0;
+      bool found = false;
+      for (Size candidate : candidates)
+      {
+        if (found && (usable[candidate].size() <= best_overlap)) continue; // can't do better
+        Size overlap = numeric_limits<Size>::max();
+        for (Size other : others)
+        {
+          if (other == candidate) continue;
+          overlap = min(overlap, n_shared(candidate, other));
+          if (found && (overlap <= best_overlap)) break;
+        }
+        if (!found || (overlap > best_overlap))
+        {
+          best = candidate;
+          best_overlap = overlap;
+          found = true;
+        }
+      }
+
+      if (best_overlap < 2) // too few for any transformation model
+      {
+        OPENMS_LOG_WARN << "No reference given, and no input shares at least two identified "
+                        << "sequences with every other input - aligning to a consensus of all "
+                        << "inputs instead." << endl;
+        return;
+      }
+      OPENMS_LOG_INFO << "No reference given - aligning to input " << best + 1
+                      << ", which shares at least " << best_overlap
+                      << " identified sequences with every other input." << endl;
+    }
+
+    reference_index_ = best;
+    computeMedians_(rt_data[best], reference_, sorted);
+    rt_data.erase(rt_data.begin() + best);
   }
 
   // RT lists in "rt_data" will be sorted (unless "sorted" is true)
