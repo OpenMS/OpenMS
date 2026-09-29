@@ -49,9 +49,9 @@ If you encounter errors, troubleshoot using the following steps.
 
 3. Adapters are not finding thirdparty applications
 
-   Executables for thirdparty applications can be found in:
-   `/usr/share/OpenMS/THIRDPARTY`
-   Add the folders in your `PATH` for a convenient use of the adapters.
+   The package installs the bundled thirdparty applications in `/usr/share/OpenMS/THIRDPARTY`. Since OpenMS 3.6,
+   an adapter looks for its application on the `PATH` first and then in these folders. To use another version, put
+   it on the `PATH` or give its location with the adapter's `-..._executable` option.
 
 ```{include} run-in-container.md
 :start-after: "% start-after"

@@ -525,6 +525,10 @@ TOPP tools:
         ProteomicsLFQ and OpenSwathWorkflow. Bruker .d input: FileConverter, CometAdapter,
         ProteomicsLFQ, OpenSwathWorkflow and PeakPickerIM (#8975, #9019, #9022, #9030,
         #9126, #9418).
+      - Adapters find the search engines that ship with OpenMS. When an engine such as Comet or
+        Sage is not on the PATH, they look for it in share/OpenMS/THIRDPARTY, which the Linux and
+        macOS packages do not put on the PATH; without '-<engine>_executable' they stopped with
+        exit code 14 there (#10304).
       - Tools that read Thermo .raw get the spectra centroided by Thermo's peak picking, as
         FileConverter writes them by default. For profile spectra, convert with FileConverter
         -RawToMzML:no_peak_picking first; in C++ and pyOpenMS, ThermoRawFile keeps the scans as
