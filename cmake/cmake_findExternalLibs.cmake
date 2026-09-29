@@ -669,7 +669,9 @@ endif()
 #------------------------------------------------------------------------------
 # openms-thermo-bridge (Thermo RAW file reading)
 if (WITH_THERMO_RAW)
-  find_package(OpenMSThermoBridge 0.3 QUIET)
+  # 0.3.1 is the first release that publishes THIRD-PARTY-NOTICES.txt with its managed
+  # assemblies; the install below takes it from there.
+  find_package(OpenMSThermoBridge 0.3.1 QUIET)
 
   if(OpenMSThermoBridge_FOUND)
     message(STATUS "openms-thermo-bridge: using system installation")
@@ -682,6 +684,8 @@ if (WITH_THERMO_RAW)
       install(FILES "${_openms_thermo_license_file}"
               DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
               COMPONENT share)
+      openms_add_third_party_notice("LICENSES/ThermoRawFileReader-License.doc"
+                                    "${_openms_thermo_license_file}")
     else()
       message(WARNING "openms-thermo-bridge: ${_openms_thermo_license_file} not found; "
                       "the install will not include the Thermo RawFileReader license.")
@@ -695,9 +699,9 @@ if (WITH_THERMO_RAW)
       OpenMSThermoBridge
       GIT_REPOSITORY https://github.com/OpenMS/openms-thermo-bridge.git
       # Pin to a specific reviewed upstream revision to keep builds reproducible.
-      # This is the commit the v0.3.0 release tag points at; tools/ci/fetch_thermo_assets.sh
-      # checks that its own pin matches and downloads the v0.3.0 release assets.
-      GIT_TAG        2c66c9260ad78f499527c7d1c85a920afab9aa2d  # v0.3.0
+      # This is the commit the v0.3.1 release tag points at; tools/ci/fetch_thermo_assets.sh
+      # checks that its own pin matches and downloads the v0.3.1 release assets.
+      GIT_TAG        d809f8ac6264d00c81da4b7abe456a08f124f804  # v0.3.1
     )
 
     # Configure the thermo bridge build options
@@ -803,6 +807,8 @@ if (WITH_THERMO_RAW)
                 DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
                 RENAME "ThermoRawFileReader-License.doc"
                 COMPONENT share)
+        openms_add_third_party_notice("LICENSES/ThermoRawFileReader-License.doc"
+                                      "${_openms_thermo_license_file}")
       endif()
     endif()
   endif()
@@ -826,6 +832,21 @@ if (WITH_THERMO_RAW)
             COMPONENT share
             PATTERN "*.pdb" EXCLUDE
             PATTERN "*.zip" EXCLUDE)
+    # The bridge publishes THIRD-PARTY-NOTICES.txt with these assemblies, so the copy above
+    # installs it: the licenses of the bridge's own ThermoWrapperManaged, of CommandLineParser
+    # and OpenMcdf (MPL-2.0, with the address of its source code), and of nethost, which the
+    # native bridge library links. Thermo's own license is installed under LICENSES. A managed
+    # directory without the file (e.g. a pre-built one from a bridge older than 0.3.1) stops
+    # the installation instead of shipping the assemblies without their licenses.
+    install(CODE "
+      if(NOT EXISTS \"${OpenMSThermoBridge_MANAGED_DIR}/THIRD-PARTY-NOTICES.txt\")
+        message(FATAL_ERROR \"openms-thermo-bridge: ${OpenMSThermoBridge_MANAGED_DIR} has no \"
+                            \"THIRD-PARTY-NOTICES.txt; use openms-thermo-bridge 0.3.1 or newer.\")
+      endif()"
+      COMPONENT share)
+    ## The file may not exist yet: the build publishes the assemblies when it builds the bridge.
+    openms_add_third_party_notice("openms_thermo_bridge/managed/THIRD-PARTY-NOTICES.txt"
+                                  "${OpenMSThermoBridge_MANAGED_DIR}/THIRD-PARTY-NOTICES.txt")
   else()
     message(WARNING
       "openms-thermo-bridge: OpenMSThermoBridge_MANAGED_DIR is not set; the managed "

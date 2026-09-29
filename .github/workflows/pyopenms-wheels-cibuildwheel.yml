@@ -464,6 +464,15 @@ jobs:
           cmake --install . --component thirdparty_headers
           cmake --install . --component share
           cmake --install . --component cmake
+          # The licenses of the Homebrew libraries delocate copies into the wheel, and of
+          # Eigen, which is header-only and compiled into libOpenMS. The boost keg has no
+          # license file (Homebrew does not copy LICENSE_1_0.txt), so pass the text.
+          python3 ${{ github.workspace }}/tools/ci/collect_wheel_licenses.py \
+            --prefix ${{ github.workspace }}/install --homebrew-formula eigen \
+            --license-file boost=${{ github.workspace }}/cmake/third_party_licenses/homebrew/boost/LICENSE_1_0.txt
+          # THIRD-PARTY-NOTICES.txt again, now with the licenses collected above.
+          cmake -DSHARE_DIR=${{ github.workspace }}/install/share/OpenMS \
+            -P ${{ github.workspace }}/cmake/third_party_notices.cmake
 
       - name: Set pyOpenMS version
         run: |
