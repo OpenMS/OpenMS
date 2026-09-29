@@ -193,6 +193,9 @@ Dependencies:
     builds the dependencies (see the vcpkg install guide and the CMake presets). It is
     still a git submodule in this release (#9155). Configuring with OPENMS_CONTRIB_LIBS,
     which requires OPENMS_USE_VCPKG=OFF, prints a deprecation warning (#10327).
+  - The dev container (.devcontainer/) builds with the vcpkg presets on Ubuntu 24.04 instead of
+    the contrib image. The Gitpod configuration and tools/quickbuild.sh/quickbuild-osx.sh, which
+    built contrib, were removed; use cmake --preset <platform>-release instead (#10327).
   - Optional readers: WITH_OPENTIMS enables timsTOF support (default ON); opentims_DIR or
     opentims_ROOT selects a system installation before downloading. WITH_THERMO_RAW is
     ON by default on every supported platform; .NET 8+ is required at runtime (#9147,
