@@ -1313,6 +1313,10 @@ Documentation:
   - The user FAQ explains OpenMS.ini: that it is optional, where OpenMS looks for it and which
     entries it reads. The OpenMSInfo page describes the data, temp and user data paths as they
     are resolved now (#3009).
+  - The Windows installation page builds with the vcpkg presets instead of the contrib package,
+    and the developer FAQ, the guide to adding a dependency (now via vcpkg.json and overlay
+    ports), the external-code pages and the agent notes no longer refer to contrib. The
+    orphaned install-contrib page is removed (#10144).
 
 Build System:
   - The Debian package of a nightly or branch build carries its prerelease identifier in its
