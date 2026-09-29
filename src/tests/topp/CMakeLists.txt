@@ -3602,9 +3602,11 @@ set_tests_properties("TOPP_OpenPepXL_1_out_4" PROPERTIES DEPENDS "TOPP_OpenPepXL
 #------------------------------------------------------------------------------
 # UniPEFF tests — convert UniProtKB XML to PEFF and byte-exact-diff against
 # golden output. The goldens originate from the upstream C# UniPEFF tool
-# (feat/merge-half-cystines branch) but intentionally diverge since #9829:
-# annotation identifiers are 1-based, and the default (no-flag) output labels
-# disulfide-bonded half-cystines and emits \DisulfideBond connectivity.
+# (feat/merge-half-cystines branch) but intentionally diverge: the default
+# (no-flag) output labels disulfide-bonded half-cystines and emits
+# \DisulfideBond connectivity (#9829), and the isoform entries (and the
+# NumberOfEntries counts including them) are an OpenMS extension (issue #9830)
+# hand-verified against UniProt's official isoform FASTA reconstruction rules.
 # The PSI-MOD / Unimod OBO files are overridden because the test fixture
 # uses synthetic accessions whose canonical names diverge from the real CVs.
 add_test("TOPP_UniPEFF_1" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_1_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
@@ -3673,6 +3675,21 @@ set_tests_properties("TOPP_UniPEFF_10_out" PROPERTIES DEPENDS "TOPP_UniPEFF_10")
 add_test("TOPP_UniPEFF_11" ${TOPP_BIN_PATH}/UniPEFF -test -annotation_identifiers -in ${DATA_DIR_TOPP}/UniPEFF_3_input_disulfide_bounds.xml -out ${TESTS_TEMP_DIR}/UniPEFF_11_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
 add_test("TOPP_UniPEFF_11_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_11_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_3_output_B.peff)
 set_tests_properties("TOPP_UniPEFF_11_out" PROPERTIES DEPENDS "TOPP_UniPEFF_11")
+
+# -omit_isoforms suppresses the additional isoform entries, restoring the output
+# without isoform expansion byte-exactly.
+add_test("TOPP_UniPEFF_13" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_13_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo -omit_isoforms)
+add_test("TOPP_UniPEFF_13_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_13_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_2_output_omitiso.peff)
+set_tests_properties("TOPP_UniPEFF_13_out" PROPERTIES DEPENDS "TOPP_UniPEFF_13")
+
+# Isoform expansion (issue #9830): "described" isoforms are reconstructed from
+# splice-variant features (deletion, replacement, single-position extension,
+# multi-VSP applied C- to N-terminal) and emitted after their parent entry;
+# displayed / external / not-described / dangling-ref / original-mismatch /
+# overlapping / out-of-bounds isoforms are skipped with a log message.
+add_test("TOPP_UniPEFF_14" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_3_input_isoforms.xml -out ${TESTS_TEMP_DIR}/UniPEFF_14_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_14_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_14_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_3_output_isoforms.peff)
+set_tests_properties("TOPP_UniPEFF_14_out" PROPERTIES DEPENDS "TOPP_UniPEFF_14")
 
 #------------------------------------------------------------------------------
 # XFDR tests

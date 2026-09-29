@@ -807,7 +807,9 @@ TOPP tools:
     - UniPEFF: UniProtKB XML-to-PEFF conversion with sequence, modification, variant and
       disulfide-bond annotations; disulfide connectivity is reported by default via bond-ordered
       half-cystine labels; optional global annotation identifiers and external
-      unimod.obo (#9649, #9829).
+      unimod.obo (#9649, #9829). UniProt isoforms are reconstructed from their splice-variant
+      features and emitted as additional entries after the parent entry; disable with
+      -omit_isoforms (#9966, fixes #9830).
     - OpenSwathInfer: peptidoform, peptide, protein and gene inference (#9280).
     - OpenSwathExport: TSV/Parquet result export (#9377).
     - OpenSwathPercolatorScoring: Percolator scoring of OpenSWATH results (#9695).
