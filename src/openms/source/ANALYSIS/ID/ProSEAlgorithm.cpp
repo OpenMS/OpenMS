@@ -224,10 +224,20 @@ namespace OpenMS
 
     // Fragment and scoring limits
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
-    defaults_.setValue("scoring:method", "hyperscore", "Native scoring method. 'calibrated' replaces factorial rewards with binomial match evidence; experimental, intended for ion-trap CID.", {"advanced"});
-    defaults_.setValidStrings("scoring:method", {"hyperscore", "calibrated"});
-    defaults_.setValue("scoring:fragment_charges", "single", "Final scoring fragment charges: 'single' retains legacy behavior; 'multiple' uses up to min(precursor charge - 1, fragment:max_charge). Experimental for CID; adding charges to uncalibrated HyperScore can reduce sensitivity.", {"advanced"});
-    defaults_.setValidStrings("scoring:fragment_charges", {"single", "multiple"});
+    defaults_.setValue("scoring:method", "hyperscore",
+                       "Native scoring method. 'calibrated' replaces factorial rewards with binomial match evidence; experimental, intended for "
+                       "ion-trap CID. 'auto' selects hyperscore for a configured fragment tolerance <= 0.1 Da or <= 100 ppm, otherwise calibrated. "
+                       "This resolution proxy applies to the entire search, irrespective of activation metadata, and is fixed before mass "
+                       "calibration. Set scoring:fragment_charges=auto as well for automatic charge selection.",
+                       {"advanced"});
+    defaults_.setValidStrings("scoring:method", {"hyperscore", "calibrated", "auto"});
+    defaults_.setValue(
+      "scoring:fragment_charges", "single",
+      "Final scoring fragment charges: 'single' retains legacy behavior; 'multiple' uses up to min(precursor charge - 1, fragment:max_charge). "
+      "'auto' uses multiple for the resolved calibrated scorer, single for hyperscore. Explicit single/multiple choices override automatic charge "
+      "selection. Experimental for CID; adding charges to uncalibrated HyperScore can reduce sensitivity.",
+      {"advanced"});
+    defaults_.setValidStrings("scoring:fragment_charges", {"single", "multiple", "auto"});
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
@@ -298,19 +308,20 @@ namespace OpenMS
     precursor_max_charge_ = param_.getValue("precursor:max_charge");
 
     precursor_isotopes_ = param_.getValue("precursor:isotopes");
-    calibrated_score_ = param_.getValue("scoring:method").toString() == "calibrated";
-    scoring_multiple_charges_ = param_.getValue("scoring:fragment_charges").toString() == "multiple";
+    const std::string scoring_method = param_.getValue("scoring:method").toString();
+    const std::string scoring_charges = param_.getValue("scoring:fragment_charges").toString();
     scoring_max_charge_ = static_cast<int>(param_.getValue("fragment:max_charge"));
     peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
     peaks_window_top_ = (Int)param_.getValue("peaks:window_top");
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
     // Reject invalid tolerances before entering the parallel scoring loops.
-    if ((calibrated_score_ || param_.getValue("annotate:local_fragment_evidence").toBool())
-      && (!std::isfinite(fragment_mass_tolerance_) || fragment_mass_tolerance_ <= 0.0))
+    if ((scoring_method != "hyperscore" || scoring_charges == "auto" || param_.getValue("annotate:local_fragment_evidence").toBool())
+        && (! std::isfinite(fragment_mass_tolerance_) || fragment_mass_tolerance_ <= 0.0))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Calibrated scoring and local fragment evidence require a finite, positive fragment:mass_tolerance.");
+      throw Exception::InvalidParameter(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Automatic scoring, calibrated scoring and local fragment evidence require a finite, positive fragment:mass_tolerance.");
     }
 
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
@@ -325,6 +336,11 @@ namespace OpenMS
     const std::string deisotope_mode = param_.getValue("fragment:deisotope").toString();
     const bool deisotope_supported =
       Deisotoper::isToleranceSupported(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ == "ppm");
+    // Resolve from the configured tolerance once, using the same resolution boundary
+    // as preprocessing. All files/chunks, calibration and annotations then use the same
+    // score scale. Tightening the tolerance during calibration must not switch scorers.
+    calibrated_score_ = scoring_method == "calibrated" || (scoring_method == "auto" && ! deisotope_supported);
+    scoring_multiple_charges_ = scoring_charges == "multiple" || (scoring_charges == "auto" && calibrated_score_);
     deisotope_requested_ = (deisotope_mode != "false");
     if (deisotope_mode == "true" && !deisotope_supported)
     {
@@ -1134,6 +1150,8 @@ namespace OpenMS
     search_parameters.setMetaValue("open_search", isOpenSearchMode_() ? "true" : "false");
     search_parameters.setMetaValue("scoring:method", param_.getValue("scoring:method"));
     search_parameters.setMetaValue("scoring:fragment_charges", param_.getValue("scoring:fragment_charges"));
+    search_parameters.setMetaValue("scoring:method_resolved", calibrated_score_ ? "calibrated" : "hyperscore");
+    search_parameters.setMetaValue("scoring:fragment_charges_resolved", scoring_multiple_charges_ ? "multiple" : "single");
     search_parameters.setMetaValue("annotate:local_fragment_evidence", param_.getValue("annotate:local_fragment_evidence"));
     search_parameters.setMetaValue("fragment:max_charge", param_.getValue("fragment:max_charge"));
 

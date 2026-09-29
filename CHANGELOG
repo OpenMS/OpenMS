@@ -605,6 +605,10 @@ TOPP tools:
         factorial rewards with binomial fragment-match evidence; combine with
         scoring:fragment_charges=multiple to score higher fragment charges. Both final
         scoring and precursor calibration use these options. Defaults remain unchanged.
+      - Optional scoring:method=auto selects hyperscore at configured fragment tolerances
+        <= 0.1 Da / <= 100 ppm, calibrated otherwise. scoring:fragment_charges=auto follows
+        the resolved scorer (single for hyperscore, multiple for calibrated). Selection is
+        fixed before mass calibration and recorded alongside the requested settings.
       - Optional annotate:local_fragment_evidence adds native local peak-density surprise
         and fragment-assignment competition as Percolator features, including charge-scaled
         neutral-loss alternatives. Retains peaks before window/top-N filtering for these

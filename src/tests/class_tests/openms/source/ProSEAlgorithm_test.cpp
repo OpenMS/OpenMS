@@ -23,12 +23,12 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
-#include <OpenMS/IONMOBILITY/IMTypes.h>
-
 #include <algorithm>
+#include <limits>
 #include <map>
 #include <numeric>
 #include <random>
@@ -50,19 +50,21 @@ using namespace std;
 class ProSEAlgorithm_test : public ProSEAlgorithm
 {
 public:
-  using ProSEAlgorithm::precursor_mass_tolerance_lower_;
-  using ProSEAlgorithm::precursor_mass_tolerance_upper_;
-  using ProSEAlgorithm::precursor_mass_tolerance_unit_;
+  using ProSEAlgorithm::buildDecoyAugmentedDB_;
+  using ProSEAlgorithm::calibrated_score_;
+  using ProSEAlgorithm::CalibrationResult_;
   using ProSEAlgorithm::computeModMatchTolerance_;
+  using ProSEAlgorithm::DecoyStrategy_;
   using ProSEAlgorithm::last_calibration_result_;
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
-  using ProSEAlgorithm::CalibrationResult_;
+  using ProSEAlgorithm::localFragmentEvidence_;
+  using ProSEAlgorithm::localPeakDensities_;
+  using ProSEAlgorithm::precursor_mass_tolerance_lower_;
+  using ProSEAlgorithm::precursor_mass_tolerance_unit_;
+  using ProSEAlgorithm::precursor_mass_tolerance_upper_;
   using ProSEAlgorithm::preprocessSpectra_;
   using ProSEAlgorithm::resolveDecoyStrategy_;
-  using ProSEAlgorithm::DecoyStrategy_;
-  using ProSEAlgorithm::buildDecoyAugmentedDB_;
-  using ProSEAlgorithm::localPeakDensities_;
-  using ProSEAlgorithm::localFragmentEvidence_;
+  using ProSEAlgorithm::scoringMaxCharge_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -1663,23 +1665,28 @@ START_SECTION(([EXTRA] ions:by_activation gives each file of a multi-file search
     }
   };
 
-  for (int chunk_size : {0, 1})
+  for (const std::string scoring_mode : {"hyperscore", "auto"})
   {
-    p.setValue("database:chunk_size", chunk_size);
-    algo.setParameters(p);
-    auto hcd_first = algo.searchWithModificationAnalysis(vector<std::string>{hcd_file, etd_file}, fasta_db, vector<std::string>{}, "", false);
-    auto etd_first = algo.searchWithModificationAnalysis(vector<std::string>{etd_file, hcd_file}, fasta_db, vector<std::string>{}, "", false);
-    ABORT_IF(hcd_first.per_file.size() != 2 || etd_first.per_file.size() != 2)
-    for (const auto* res : {&hcd_first, &etd_first})
+    p.setValue("scoring:method", scoring_mode);
+    p.setValue("scoring:fragment_charges", scoring_mode == "auto" ? "auto" : "single");
+    for (int chunk_size : {0, 1})
     {
-      TEST_EQUAL(res->shared.chunked, chunk_size > 0)
-      TEST_EQUAL(res->shared.indexed_peptides, electron_ctx.fragment_index.getPeptides().size())
-      TEST_EQUAL(res->shared.indexed_fragments, electron_fragments)
+      p.setValue("database:chunk_size", chunk_size);
+      algo.setParameters(p);
+      auto hcd_first = algo.searchWithModificationAnalysis(vector<std::string> {hcd_file, etd_file}, fasta_db, vector<std::string> {}, "", false);
+      auto etd_first = algo.searchWithModificationAnalysis(vector<std::string> {etd_file, hcd_file}, fasta_db, vector<std::string> {}, "", false);
+      ABORT_IF(hcd_first.per_file.size() != 2 || etd_first.per_file.size() != 2)
+      for (const auto* res : {&hcd_first, &etd_first})
+      {
+        TEST_EQUAL(res->shared.chunked, chunk_size > 0)
+        TEST_EQUAL(res->shared.indexed_peptides, electron_ctx.fragment_index.getPeptides().size())
+        TEST_EQUAL(res->shared.indexed_fragments, electron_fragments)
+      }
+      test_same_top_hit(hcd_first.per_file[0].peptide_ids, hcd_alone);
+      test_same_top_hit(etd_first.per_file[1].peptide_ids, hcd_alone);
+      test_same_top_hit(hcd_first.per_file[1].peptide_ids, etd_alone);
+      test_same_top_hit(etd_first.per_file[0].peptide_ids, etd_alone);
     }
-    test_same_top_hit(hcd_first.per_file[0].peptide_ids, hcd_alone);
-    test_same_top_hit(etd_first.per_file[1].peptide_ids, hcd_alone);
-    test_same_top_hit(hcd_first.per_file[1].peptide_ids, etd_alone);
-    test_same_top_hit(etd_first.per_file[0].peptide_ids, etd_alone);
   }
 }
 END_SECTION
@@ -2468,6 +2475,61 @@ START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragme
 }
 END_SECTION
 
+START_SECTION(([EXTRA] automatic scoring resolves from configured resolution and respects explicit choices))
+{
+  ProSEAlgorithm_test algo;
+  Param p = algo.getParameters();
+  p.setValue("scoring:method", "auto");
+  p.setValue("scoring:fragment_charges", "auto");
+  for (const std::string unit : {"Da", "ppm"})
+  {
+    p.setValue("fragment:mass_tolerance_unit", unit);
+    const double boundary = unit == "Da" ? 0.1 : 100.0;
+    for (double scale : {0.2, 1.0, 1.01, 5.0})
+    {
+      p.setValue("fragment:mass_tolerance", boundary * scale);
+      algo.setParameters(p);
+      TEST_EQUAL(algo.calibrated_score_, scale > 1.0)
+      TEST_EQUAL(algo.scoringMaxCharge_(3), scale > 1.0 ? 2 : 1)
+      TEST_EQUAL(algo.scoringMaxCharge_(2), 1)
+      TEST_EQUAL(algo.scoringMaxCharge_(1), 1)
+    }
+  }
+  // The charge auto mode follows an explicit scorer too; explicit charge choices win.
+  p.setValue("scoring:method", "hyperscore");
+  algo.setParameters(p);
+  TEST_FALSE(algo.calibrated_score_)
+  TEST_EQUAL(algo.scoringMaxCharge_(3), 1)
+  p.setValue("scoring:method", "calibrated");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  algo.setParameters(p);
+  TEST_TRUE(algo.calibrated_score_)
+  TEST_EQUAL(algo.scoringMaxCharge_(3), 2)
+  p.setValue("fragment:max_charge", 1);
+  algo.setParameters(p);
+  TEST_EQUAL(algo.scoringMaxCharge_(3), 1)
+  p.setValue("fragment:max_charge", 2);
+  p.setValue("scoring:fragment_charges", "single");
+  algo.setParameters(p);
+  TEST_EQUAL(algo.scoringMaxCharge_(3), 1)
+  p.setValue("scoring:method", "auto");
+  p.setValue("fragment:mass_tolerance", 500.0);
+  algo.setParameters(p);
+  TEST_TRUE(algo.calibrated_score_)
+  TEST_EQUAL(algo.scoringMaxCharge_(3), 1)
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("scoring:fragment_charges", "multiple");
+  algo.setParameters(p);
+  TEST_FALSE(algo.calibrated_score_)
+  TEST_EQUAL(algo.scoringMaxCharge_(3), 2)
+  for (double invalid : {0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()})
+  {
+    p.setValue("fragment:mass_tolerance", invalid);
+    TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p))
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] native CID scoring includes higher fragment charges only when requested))
 {
   const AASequence peptide = AASequence::fromString("THQPSANLDIK");
@@ -2546,7 +2608,35 @@ START_SECTION(([EXTRA] native CID scoring includes higher fragment charges only 
   p.setValue("fragment:max_charge", 1);
   TEST_TRUE(search(p, 3, proteins).empty()) // Respect the explicit fragment charge cap.
 
+  // Low-resolution auto must reproduce explicit calibrated/multiple scores, annotations
+  // and local evidence, including missing activation metadata and chunked searches.
+  p.setValue("fragment:max_charge", 2);
+  p.setValue("fragment:mass_tolerance", 0.5);
+  const auto explicit_cid = search(p, 3, proteins);
+  ABORT_IF(explicit_cid.size() != 1)
+  p.setValue("scoring:method", "auto");
+  p.setValue("scoring:fragment_charges", "auto");
+  for (int chunk_size : {0, 1})
+  {
+    p.setValue("database:chunk_size", chunk_size);
+    for (bool activation_present : {true, false})
+    {
+      spec.getPrecursors()[0].setActivationMethods(activation_present ? std::set<Precursor::ActivationMethod> {Precursor::ActivationMethod::CID}
+                                                                      : std::set<Precursor::ActivationMethod> {});
+      const auto automatic_cid = search(p, 3, proteins);
+      ABORT_IF(automatic_cid.size() != 1)
+      TEST_EQUAL(automatic_cid[0].getScoreType(), explicit_cid[0].getScoreType())
+      TEST_TRUE(automatic_cid[0].getHits() == explicit_cid[0].getHits())
+      const auto& params = proteins[0].getSearchParameters();
+      TEST_EQUAL(params.getMetaValue("scoring:method").toString(), "auto")
+      TEST_EQUAL(params.getMetaValue("scoring:fragment_charges").toString(), "auto")
+      TEST_EQUAL(params.getMetaValue("scoring:method_resolved").toString(), "calibrated")
+      TEST_EQUAL(params.getMetaValue("scoring:fragment_charges_resolved").toString(), "multiple")
+    }
+  }
+
   // The independent precursor-calibration pass must use the same ion charges.
+  p.setValue("database:chunk_size", 0);
   p.setValue("fragment:max_charge", 2);
   p.setValue("calibration:enabled", "true");
   p.setValue("calibration:subset_ratio", 1.0);
@@ -2559,6 +2649,9 @@ START_SECTION(([EXTRA] native CID scoring includes higher fragment charges only 
   TEST_TRUE(calibrated.search(spectra, fasta_db, proteins, peptide_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
   TEST_TRUE(calibrated.last_calibration_result_.success)
   TEST_EQUAL(peptide_ids.size(), 1)
+  TEST_TRUE(calibrated.calibrated_score_)
+  TEST_EQUAL(calibrated.scoringMaxCharge_(3), 2)
+  TEST_EQUAL(peptide_ids[0].getScoreType(), "calibrated fragment score")
 
   p.setValue("fragment:mass_tolerance", 0.0);
   TEST_EXCEPTION(Exception::InvalidParameter, calibrated.setParameters(p))

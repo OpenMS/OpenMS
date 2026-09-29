@@ -41,6 +41,13 @@ class TheoreticalSpectrumGenerator;
     outputs (ProteinIdentification and PeptideIdentificationList)
   - Intended for educational/prototyping use and to demonstrate FI-backed searching
 
+  Set @c scoring:method=auto and @c scoring:fragment_charges=auto to select native
+  scoring from the configured fragment tolerance: hyperscore/single at <= 0.1 Da
+  or <= 100 ppm, calibrated/multiple otherwise. The selection applies to all input
+  files and is fixed before mass calibration; activation metadata is not a resolution
+  estimate. Search files needing different tolerance regimes separately. Explicit
+  method and charge settings remain available; the defaults are hyperscore/single.
+
   Notes:
   - Used by the ProSE TOPP tool
   - Experimental; interfaces and behavior may change
@@ -841,8 +848,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     std::string fragment_mass_tolerance_unit_;
 
-    bool calibrated_score_{false};        ///< Use native binomial match evidence.
-    bool scoring_multiple_charges_{false}; ///< Include higher fragment charge hypotheses.
+    bool calibrated_score_ {false};         ///< Resolved native scorer, fixed before mass calibration.
+    bool scoring_multiple_charges_ {false}; ///< Resolved inclusion of higher fragment charge hypotheses.
     int scoring_max_charge_{2};           ///< Upper fragment charge bound.
 
     /// Final-scoring charge bound also used by the precursor-calibration pass.
