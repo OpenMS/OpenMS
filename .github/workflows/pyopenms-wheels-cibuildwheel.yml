@@ -217,8 +217,9 @@ jobs:
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-x64 }}
           CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_34_x86_64
-          # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file
-          CIBW_BEFORE_ALL: dnf install -y ninja-build dotnet-runtime-8.0
+          # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file. EPEL is
+          # not needed and its mirrors can be out of sync (tools/ci/build_openms_manylinux.sh).
+          CIBW_BEFORE_ALL: dnf install -y --disablerepo='epel*' ninja-build dotnet-runtime-8.0
           # Use install directory with stripped libraries, and the vcpkg tree it was
           # built against (Arrow, Boost and Eigen for the bindings).
           # PYOPENMS_THERMO_RAW_TEST_FILE enables the Thermo RAW tests in the wheel test suite.
@@ -343,8 +344,9 @@ jobs:
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-arm64 }}
           CIBW_MANYLINUX_AARCH64_IMAGE: quay.io/pypa/manylinux_2_34_aarch64
-          # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file
-          CIBW_BEFORE_ALL: dnf install -y ninja-build dotnet-runtime-8.0
+          # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file. EPEL is
+          # not needed and its mirrors can be out of sync (tools/ci/build_openms_manylinux.sh).
+          CIBW_BEFORE_ALL: dnf install -y --disablerepo='epel*' ninja-build dotnet-runtime-8.0
           # Use install directory with stripped libraries, and the vcpkg tree it was
           # built against (Arrow, Boost and Eigen for the bindings).
           # PYOPENMS_THERMO_RAW_TEST_FILE enables the Thermo RAW tests in the wheel test suite.

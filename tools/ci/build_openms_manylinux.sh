@@ -53,7 +53,10 @@ git config --global --add safe.directory "${src}/vcpkg"
 #   flex                       thrift (for Arrow's Parquet support)
 #   perl modules               OpenSSL's Configure
 #   libicu                     the .NET SDK installed below
-dnf install -y \
+# All of them are in the AlmaLinux repositories. EPEL, which the image enables too,
+# is left out: its mirrors are not always in sync, and a mirror serving stale
+# metadata fails the whole install.
+dnf install -y --disablerepo='epel*' \
   ninja-build \
   zip \
   autoconf-archive \
