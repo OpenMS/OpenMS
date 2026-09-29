@@ -296,8 +296,7 @@ namespace OpenMS
     const Param & mrm_mapping_param,
     MobilogramParquetConsumer * mobilogram_consumer,
     int innerBatchSize,
-    int maxConcurrentSwaths,
-    OpenSwathOSWWriter::OSWData* deferred_osw_output)
+    int maxConcurrentSwaths)
   {
     // Suppress repeated resampling-spacing warnings for this workflow call
     // only, so embedded use does not affect later resampling in the process.
@@ -316,7 +315,7 @@ namespace OpenMS
 
       FeatureMap featureFile;
       scoreAllChromatograms_(filtered_chroms, std::vector<MSChromatogram>(), swath_maps, transition_exp,
-                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false, mobilogram_consumer, deferred_osw_output);
+                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false, mobilogram_consumer);
 
       std::vector<MSChromatogram> empty_ms1_chromatograms;
 
@@ -357,7 +356,7 @@ namespace OpenMS
       const OpenSwath::LightTargetedExperiment& transition_exp_used = transition_exp;
       scoreAllChromatograms_(std::vector<MSChromatogram>(), ms1_chromatograms, swath_maps, transition_exp_used,
                 feature_finder_param, trafo,
-                cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, true, mobilogram_consumer, deferred_osw_output);
+                cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, true, mobilogram_consumer);
 
       // write features to output if so desired
       std::vector< OpenMS::MSChromatogram > chromatograms;
@@ -504,7 +503,6 @@ namespace OpenMS
         std::vector<MSChromatogram> ms1_chromatograms;
         PeakMap chrom_exp;
         FeatureMap feature_file;
-        OpenSwathOSWWriter::OSWData osw_output;
       };
 
       std::vector<SwathSchedulerContext> contexts(swath_maps.size());
@@ -778,10 +776,6 @@ namespace OpenMS
         {
           writeOutFeaturesAndChroms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms,
               context.feature_file, out_featureFile, store_features, chromConsumer);
-          if (deferred_osw_output != nullptr && !context.osw_output.empty())
-          {
-            deferred_osw_output->append(std::move(context.osw_output));
-          }
         }
 
         context.finalized = true;
@@ -860,10 +854,6 @@ namespace OpenMS
                   context.feature_file.getProteinIdentifications().push_back(*protid_it);
                 }
               }
-              if (deferred_osw_output != nullptr && !job_osw_output.empty())
-              {
-                context.osw_output.append(std::move(job_osw_output));
-              }
 
               --context.remaining_score_jobs;
               context_ready_to_finalize = context.remaining_score_jobs == 0;
@@ -915,7 +905,6 @@ namespace OpenMS
         context.ms1_chromatograms.shrink_to_fit();
         context.chrom_exp = PeakMap();
         context.feature_file = FeatureMap();
-        context.osw_output = OpenSwathOSWWriter::OSWData();
         context.active = false;
         context.finalized = true;
       }
@@ -1133,10 +1122,9 @@ namespace OpenMS
             FeatureMap featureFile;
             std::vector< OpenSwath::SwathMap > tmp = {swath_maps[i]};
             tmp.back().sptr = current_swath_map_inner;
-            OpenSwathOSWWriter::OSWData local_osw_output;
             scoreAllChromatograms_(chrom_exp.getChromatograms(), ms1_chromatograms, tmp, transition_exp_used,
               feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
-              mobilogram_consumer, deferred_osw_output != nullptr ? &local_osw_output : nullptr);
+              mobilogram_consumer);
 
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
@@ -1144,10 +1132,6 @@ namespace OpenMS
             #pragma omp critical (osw_write_out)
             {
               writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
-              if (deferred_osw_output != nullptr && !local_osw_output.empty())
-              {
-                deferred_osw_output->append(std::move(local_osw_output));
-              }
             }
           }
 
@@ -1315,9 +1299,8 @@ namespace OpenMS
     {
       assay_map[transition_exp.getTransitions()[i].getPeptideRef()].push_back(&transition_exp.getTransitions()[i]);
     }
-    const bool collect_osw_rows = osw_writer.isActive() || deferred_osw_output != nullptr;
     OpenSwathOSWWriter::OSWData to_osw_output;
-    if (collect_osw_rows)
+    if (osw_writer.isActive())
     {
       const int stop_report_after_feature =
         static_cast<int>(feature_finder_param.getValue("stop_report_after_feature"));
@@ -1398,7 +1381,7 @@ namespace OpenMS
       }
 
       // currently  .osw and .featureXML are mutually exclusive
-      if (collect_osw_rows) { output.clear(); }
+      if (osw_writer.isActive()) { output.clear(); }
 
       // 2. Set the MS1 chromatograms for the different isotopes, if available
       // (note that for 3 isotopes, we include the monoisotopic peak plus three
@@ -1540,7 +1523,7 @@ namespace OpenMS
       }
 
       // 5. Add to the output osw if given
-      if (collect_osw_rows && !output.empty()) // implies that detection_assay_it was set
+      if (osw_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
       {
         // Compound and transition are currently unused by the OSW row writer.
         osw_writer.prepareRowsInto(to_osw_output,
@@ -1553,7 +1536,7 @@ namespace OpenMS
 
     // Only write at the very end since this is a step that needs a barrier.
     // Schedulers can batch these rows and pass them through the bounded writer.
-    if (collect_osw_rows)
+    if (osw_writer.isActive())
     {
       if (deferred_osw_output != nullptr)
       {
@@ -1561,7 +1544,6 @@ namespace OpenMS
         return;
       }
 
-      OPENMS_PRECONDITION(osw_writer.isActive(), "Direct OSW row writing requires an active OSW writer.")
 #ifdef _OPENMP
 #pragma omp critical (osw_write_tsv)
 #endif
