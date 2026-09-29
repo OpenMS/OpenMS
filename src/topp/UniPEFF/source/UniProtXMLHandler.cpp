@@ -72,8 +72,6 @@ namespace OpenMS::Internal
     /// codepoints to '?' before the consumer has a chance to choose a different
     /// fallback. UniProt taxonomy names contain Greek letters (β, …) and accented
     /// Latin letters; we need both visible to the PEFF emitter's NFKD-style helper.
-    bool isEmpty(const char16_t* ch) { return ch == nullptr || *ch == 0; }
-
     std::string xmlchToString(const char16_t* ch)
     {
       if (ch == nullptr) return std::string();
