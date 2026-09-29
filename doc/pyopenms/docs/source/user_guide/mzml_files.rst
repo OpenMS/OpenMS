@@ -216,4 +216,26 @@ discussed above, however this is at the price of accuracy.
 Different numpress compression schemes result in different accuracy, the LINEAR
 compression scheme introduced an inaccuracy of 10e-10 while the PIC (positive
 integer compression) can only store positive integers and results in greater
-loss of accuracy. 
+loss of accuracy.
+
+Zstandard Compression
+---------------------
+
+Instead of zlib, mzML binary data arrays can be compressed with
+`Zstandard <https://facebook.github.io/zstd/>`_ (zstd). This is lossless and can
+be combined with numpress. Reading zstd-compressed mzML files is automatic; to
+write them, enable the option on the ``PeakFileOptions`` of the file handler:
+
+.. code-block:: python
+
+    exp = oms.MSExperiment()
+    oms.MzMLFile().load("input.mzML", exp)
+
+    f = oms.MzMLFile()
+    opts = f.getOptions()
+    opts.setZstdCompression(True)
+    f.setOptions(opts)
+    f.store("output_zstd.mzML", exp)
+
+.. note::
+    Not all external tools can read zstd-compressed mzML files yet.
