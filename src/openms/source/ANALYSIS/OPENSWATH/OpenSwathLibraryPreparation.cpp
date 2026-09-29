@@ -21,6 +21,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <cstdlib>
 #include <utility>
@@ -516,11 +517,11 @@ namespace OpenMS
     const Param& reader_parameters,
     const std::string& scratch_directory) const
   {
-    std::unique_ptr<File::TempDir> temp_dir;
+    std::unique_ptr<TempDir> temp_dir;
     std::string working_dir = scratch_directory;
     if (working_dir.empty())
     {
-      temp_dir = std::make_unique<File::TempDir>(true);
+      temp_dir = std::make_unique<TempDir>(true);
       working_dir = temp_dir->getPath();
     }
     else

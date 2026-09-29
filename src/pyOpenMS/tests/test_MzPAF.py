@@ -1,0 +1,176 @@
+"""Regression tests for mzPAF satellite-ion annotations (OpenMS #10175)."""
+
+import copy
+
+import pytest
+
+import pyopenms as p
+
+
+@pytest.mark.parametrize(
+    "text,series,ordinal,subtype",
+    [
+        ("d5", p.MzPAFIonSeries.D, 5, None),
+        ("v7", p.MzPAFIonSeries.V, 7, None),
+        ("w3", p.MzPAFIonSeries.W, 3, None),
+        ("da12", p.MzPAFIonSeries.D, 12, "a"),
+        ("db4", p.MzPAFIonSeries.D, 4, "b"),
+        ("wa12", p.MzPAFIonSeries.W, 12, "a"),
+        ("wb4", p.MzPAFIonSeries.W, 4, "b"),
+    ],
+)
+def test_satellite_roundtrip(text, series, ordinal, subtype):
+    ann = p.MzPAF.parse(text)
+    assert ann.ion_series == series
+    assert ann.ordinal == ordinal
+    assert ann.satellite_subtype == subtype
+    assert ann.isValid()
+    assert p.MzPAF.isMzPAFFormat(text)
+    assert p.MzPAF.isPeptideFragmentIon(series)
+    assert p.MzPAF.ionSeriesToChar(series) == text[0]
+    assert p.MzPAF.charToIonSeries(text[0]) == series
+    assert p.MzPAF.toString(ann) == text
+    assert p.MzPAF.parse(p.MzPAF.toString(ann)) == ann
+    assert copy.copy(ann) == ann
+    assert copy.deepcopy(ann) == ann
+
+    constructed = p.MzPAFAnnotation()
+    assert constructed.satellite_subtype is None
+    constructed.ion_series = series
+    constructed.ordinal = ordinal
+    constructed.satellite_subtype = subtype
+    assert constructed == ann
+    assert p.MzPAF.toString(constructed) == text
+
+
+@pytest.mark.parametrize("prefix", ["d", "v", "w", "da", "db", "wa", "wb"])
+def test_satellite_modifiers_and_peak_annotation(prefix):
+    ann = p.MzPAF.parse(f"1@{prefix}3{{LIR}}-H2O+2i^2/-1.4ppm*0.75")
+    assert ann.analyte_index == 1
+    assert ann.embedded_sequence == "LIR"
+    assert len(ann.neutral_losses) == 1
+    assert ann.isotope_offset == 2
+    assert ann.charge == 2
+    assert ann.mass_delta.value == pytest.approx(-1.4)
+    assert ann.mass_delta.unit == p.MzPAFDeltaUnit.PPM
+    assert ann.confidence == pytest.approx(0.75)
+    assert p.MzPAF.parse(p.MzPAF.toString(ann)) == ann
+
+    peak = p.MzPAF.toPeakAnnotation(ann, 500.123, 1000.0)
+    assert peak.charge == 2
+    assert peak.mz == pytest.approx(500.123)
+    assert peak.intensity == pytest.approx(1000.0)
+    restored = p.MzPAF.fromPeakAnnotation(peak)
+    assert restored.size() == 1
+    assert restored.annotations[0] == ann
+
+
+def test_multiple_satellite_annotations():
+    text = "d5,da5,db5,v7,w3,wa3,wb3,y4^2"
+    anns = p.MzPAF.parseMultiple(text)
+    assert anns.size() == 8
+    assert p.MzPAF.toStringMultiple(anns) == text
+    assert p.MzPAF.parseMultiple(p.MzPAF.toStringMultiple(anns)) == anns
+
+
+def test_satellite_subtype_validation_and_equality():
+    ann = p.MzPAF.parse("wa3")
+    ann.satellite_subtype = "b"
+    assert ann.isValid()
+    assert ann == p.MzPAF.parse("wb3")
+    assert not ann == p.MzPAF.parse("wa3")
+    ann.satellite_subtype = None
+    assert ann == p.MzPAF.parse("w3")
+
+    ann.ordinal = None
+    assert not ann.isValid()
+    ann.ordinal = 3
+    ann.satellite_subtype = "c"
+    assert not ann.isValid()
+    # toString() stays total: the non-conformant subtype is dropped, not raised on.
+    assert p.MzPAF.toString(ann) == "w3"
+
+    ann.satellite_subtype = "a"
+    ann.ion_series = p.MzPAFIonSeries.V
+    assert not ann.isValid()
+    assert p.MzPAF.toString(ann) == "v3"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "d", "v", "w", "da", "db", "wa", "wb", "va3", "vb3",
+        "aa3", "ba3", "ca3", "xa3", "ya3", "za3", "dc3", "wc3",
+        "daa3", "wba3", "wA3", "d3a", "da^2", "wb-H2O",
+        "da99999999999999999999", "va 3", "dc 3", "wafoo 3",
+    ],
+)
+def test_reject_malformed_satellite_annotations(text):
+    assert p.MzPAF.tryParse(text) is None
+    assert not p.MzPAF.isMzPAFFormat(text)
+    assert p.MzPAF.tryParseMultiple(f"y4,{text}") is None
+    with pytest.raises(RuntimeError):
+        p.MzPAF.parse(text)
+
+
+def test_satellite_ions_theoretical_mz():
+    """Test theoretical m/z calculations for d, v, and w satellite ions."""
+    seq = p.AASequence.fromString("PEPTIDER")
+    assert p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse("d3"), seq) is None
+
+    mz_da5 = p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse("da5"), seq)
+    mz_db5 = p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse("db5"), seq)
+    assert mz_da5 is not None
+    assert mz_db5 is not None
+    assert pytest.approx(mz_da5 - mz_db5, abs=1e-3) == p.EmpiricalFormula("CH2").getMonoWeight()
+
+    mz_wa4 = p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse("wa4"), seq)
+    mz_wb4 = p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse("wb4"), seq)
+    assert mz_wa4 is not None
+    assert mz_wb4 is not None
+    assert pytest.approx(mz_wa4 - mz_wb4, abs=1e-3) == p.EmpiricalFormula("CH2").getMonoWeight()
+
+    mz_v4 = p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse("v4"), seq)
+    assert mz_v4 is not None
+
+    assert p.Residue.ResidueType.DIon is not None
+    assert p.Residue.ResidueType.VIon is not None
+    assert p.Residue.ResidueType.WIon is not None
+
+
+@pytest.mark.parametrize("sequence,annotation,fragment,ion_type,expected_mz", [
+    ("ALA", "d2", "AL", p.Residue.ResidueType.DIon, 115.086589785771),
+    ("ALA", "v2", "LA", p.Residue.ResidueType.VIon, 145.060769721971),
+    # MS-Product 6.9.0 independently gives RALAR da3 = 271.1877 and AAAACAK wa3 = 272.1605.
+    ("RALAR", "d3", "RAL", p.Residue.ResidueType.DIon, 271.187701168571),
+    ("AAAACAK", "w3", "CAK", p.Residue.ResidueType.WIon, 272.160484136671),
+])
+@pytest.mark.parametrize("charge", [1, 2, 3])
+def test_satellite_absolute_masses(sequence, annotation, fragment, ion_type, expected_mz, charge):
+    expected = (expected_mz + (charge - 1) * 1.007276466771) / charge
+    ann = p.MzPAF.parse(annotation + (f"^{charge}" if charge > 1 else ""))
+    assert p.MzPAF.calculateTheoreticalMZ(ann, p.AASequence.fromString(sequence)) == pytest.approx(expected, abs=1e-6)
+    seq = p.AASequence.fromString(fragment)
+    assert seq.getMZ(charge, ion_type) == pytest.approx(expected, abs=1e-6)
+    assert seq.getFormula(ion_type, charge).getMonoWeight() == pytest.approx(expected * charge, abs=1e-6)
+
+
+@pytest.mark.parametrize("ion_type", [p.Residue.ResidueType.DIon, p.Residue.ResidueType.VIon, p.Residue.ResidueType.WIon])
+@pytest.mark.parametrize("residue", ["G", "M(Oxidation)"])
+def test_unsupported_satellite_mass_apis(ion_type, residue):
+    sequence = "A" + residue if ion_type == p.Residue.ResidueType.DIon else residue + "A"
+    seq = p.AASequence.fromString(sequence)
+    res = p.AASequence.fromString(residue)[0]
+    for obj in (seq, res):
+        for method in (obj.getFormula, obj.getMonoWeight, obj.getAverageWeight):
+            with pytest.raises(RuntimeError, match="unsupported or modified"):
+                if obj is seq:
+                    method(ion_type, 0)
+                else:
+                    method(ion_type)
+
+
+def test_modified_satellite_cleavage_mzpaf():
+    seq = p.AASequence.fromString("AM(Oxidation)EPTIDER")
+    for annotation in ("d2", "v8", "w8"):
+        assert p.MzPAF.calculateTheoreticalMZ(p.MzPAF.parse(annotation), seq) is None

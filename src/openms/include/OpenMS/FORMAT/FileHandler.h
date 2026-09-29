@@ -8,8 +8,9 @@
 
 #pragma once
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+
 #include <OpenMS/config.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -19,6 +20,7 @@
 // as references/pointers in method signatures, so full definitions are not needed.
 namespace OpenMS
 {
+  class TransformationDescription;
   class PeakFileOptions;
   class MSSpectrum;
   class MSExperiment;
@@ -168,6 +170,8 @@ public:
       @param[in] log Progress logging mode
       @param[in] rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
       @param[out] compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
+
+      @note Thermo .raw files (OpenMS built with WITH_THERMO_RAW) are read with Thermo's peak picking, like FileConverter does by default, so profile scans are returned centroided. Use ThermoRawFile directly to keep the scans as they were acquired.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -425,4 +429,3 @@ private:
   };
 
 } //namespace
-

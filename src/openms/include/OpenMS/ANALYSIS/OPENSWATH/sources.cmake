@@ -25,11 +25,12 @@ set(sources_list_h
   MRMRTNormalizer.h
   MRMScoring.h
   MRMTransitionGroupPicker.h
-  OpenSwathGeneInference.h
   OpenSwathHelper.h
+  OpenSwathLibraryIDNormalizer.h
+  OpenSwathLibraryPreparation.h
+  OpenSwathPeptidoformInference.h
   OpenSwathExportConfig.h
   OpenSwathExportData.h
-  OpenSwathLibraryPreparation.h
   OpenSwathMatrixExporter.h
   OpenSwathParquetExporter.h
   OpenSwathInferenceConfig.h
@@ -48,9 +49,6 @@ set(sources_list_h
   PeakIntegrator.h
   PeakPickerChromatogram.h
   PeakPickerMobilogram.h
-  OpenSwathPeptideInference.h
-  OpenSwathPeptidoformInference.h
-  OpenSwathProteinInference.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
   SwathQC.h

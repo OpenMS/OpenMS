@@ -8,6 +8,7 @@
 
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -61,7 +62,7 @@ namespace OpenMS
     // e.g.: OpenMS_Default_Win_64_FeatureFinderCentroided_2.0.0
     std::string tool_version_string;
     // resolve the per-user OpenMS config dir (same location as OpenMS.ini)
-    std::string config_path = File::getOpenMSConfigDir();
+    std::string config_path = SystemSettings::getOpenMSConfigDir();
     tool_version_string =std::string("OpenMS") + "_" + "Default_" + platform + "_" + architecture + "_" + tool_name + "_" + version;
 
     std::string version_file_name = config_path + "/" + tool_name + ".ver";

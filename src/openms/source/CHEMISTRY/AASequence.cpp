@@ -380,8 +380,21 @@ namespace OpenMS
     return false;
   }
 
+  void AASequence::validateSatelliteIon_(Residue::ResidueType type) const
+  {
+    if (peptide_.empty()) return;
+    if ((type == Residue::DIon && !peptide_.back()->hasSatelliteLoss()) ||
+        (type == Residue::WIon && !peptide_.front()->hasSatelliteLoss()) ||
+        (type == Residue::VIon && !peptide_.front()->hasVLoss()))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Cannot calculate " + Residue::getResidueTypeName(type) + " for unsupported or modified cleavage residue.", toString());
+    }
+  }
+
   EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const
   {
+    validateSatelliteIon_(type);
     if (!peptide_.empty())
     {
       // Initialize with the missing/additional protons
@@ -392,6 +405,7 @@ namespace OpenMS
       if (n_term_mod_ != nullptr &&
         (type == Residue::Full || type == Residue::AIon ||
          type == Residue::BIon || type == Residue::CIon ||
+         type == Residue::DIon ||
          type == Residue::NTerminal))
       {
         ef += n_term_mod_->getDiffFormula();
@@ -401,6 +415,8 @@ namespace OpenMS
       if (c_term_mod_ != nullptr &&
         (type == Residue::Full || type == Residue::XIon ||
          type == Residue::YIon || type == Residue::ZIon ||
+         type == Residue::Zp1Ion || type == Residue::Zp2Ion ||
+         type == Residue::VIon || type == Residue::WIon ||
          type == Residue::CTerminal))
       {
         ef += c_term_mod_->getDiffFormula();
@@ -462,6 +478,26 @@ namespace OpenMS
         {
           return ef + Residue::getInternalToZIon();
         }
+        case Residue::Zp1Ion:
+        {
+          return ef + Residue::getInternalToZp1Ion();
+        }
+        case Residue::Zp2Ion:
+        {
+          return ef + Residue::getInternalToZp2Ion();
+        }
+        case Residue::DIon:
+        {
+          return ef + Residue::getInternalToAIon() + EmpiricalFormula("H") - peptide_.back()->getSatelliteLossFormula();
+        }
+        case Residue::VIon:
+        {
+          return ef + Residue::getInternalToYIon() - peptide_.front()->getVLossFormula();
+        }
+        case Residue::WIon:
+        {
+          return ef + Residue::getInternalToZp1Ion() - peptide_.front()->getSatelliteLossFormula();
+        }
         default:
           OPENMS_LOG_ERROR << "AASequence::getFormula: unknown ResidueType\n";
       }
@@ -506,6 +542,7 @@ namespace OpenMS
 
   double AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
   {
+    validateSatelliteIon_(type);
     if (!peptide_.empty())
     {
       double mono_weight(Constants::PROTON_MASS_U * charge);
@@ -514,6 +551,7 @@ namespace OpenMS
       if (n_term_mod_ != nullptr &&
           (type == Residue::Full || type == Residue::AIon ||
            type == Residue::BIon || type == Residue::CIon ||
+           type == Residue::DIon ||
            type == Residue::NTerminal))
       {
         mono_weight += n_term_mod_->getDiffMonoMass();
@@ -522,6 +560,8 @@ namespace OpenMS
       if (c_term_mod_ != nullptr &&
           (type == Residue::Full || type == Residue::XIon ||
            type == Residue::YIon || type == Residue::ZIon ||
+           type == Residue::Zp1Ion || type == Residue::Zp2Ion ||
+           type == Residue::VIon || type == Residue::WIon ||
            type == Residue::CTerminal))
       {
         mono_weight += c_term_mod_->getDiffMonoMass();
@@ -582,6 +622,26 @@ namespace OpenMS
         case Residue::ZIon:
         {
           return mono_weight + Residue::getInternalToZIon().getMonoWeight();
+        }
+        case Residue::Zp1Ion:
+        {
+          return mono_weight + Residue::getInternalToZp1Ion().getMonoWeight();
+        }
+        case Residue::Zp2Ion:
+        {
+          return mono_weight + Residue::getInternalToZp2Ion().getMonoWeight();
+        }
+        case Residue::DIon:
+        {
+          return mono_weight + Residue::getInternalToAIon().getMonoWeight() + EmpiricalFormula("H").getMonoWeight() - peptide_.back()->getSatelliteLossFormula().getMonoWeight();
+        }
+        case Residue::VIon:
+        {
+          return mono_weight + Residue::getInternalToYIon().getMonoWeight() - peptide_.front()->getVLossFormula().getMonoWeight();
+        }
+        case Residue::WIon:
+        {
+          return mono_weight + Residue::getInternalToZp1Ion().getMonoWeight() - peptide_.front()->getSatelliteLossFormula().getMonoWeight();
         }
         default:
           OPENMS_LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType\n";
@@ -1076,7 +1136,11 @@ namespace OpenMS
     double tolerance = 0.5; // for integer mass values
     if (!integer_mass) // float mass values -> adapt tolerance to decimal precision
     {
-      size_t n_decimals = mod.size() - decimal_pos - 2;
+      // number of digits written after the decimal point (a leading '+'/'-' does not affect it)
+      size_t n_decimals = mod.size() - decimal_pos - 1;
+      // match with the precision the mass was written with, i.e. allow one unit in the last
+      // written digit. Note that this used to under-count the decimals by one, so e.g. "[-0.5]"
+      // was matched with a tolerance of 1.0 Da and could pick up an arbitrary modification.
       tolerance = std::pow(10.0, -int(n_decimals));
     }
     bool delta_mass = (mod[0] == '+') || (mod[0] == '-');
@@ -1466,26 +1530,34 @@ namespace OpenMS
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, peptide_.size());
     }
 
+    const ResidueDB* residue_db = ResidueDB::getInstance();
+    const Residue* base_residue = residue_db->getResidue(peptide_[index]->getOneLetterCode());
+    const bool has_existing_modification = peptide_[index]->isModified();
+    const double combined_diff_mono_mass =
+      diffMonoMass + (has_existing_modification ? peptide_[index]->getMonoWeight() - base_residue->getMonoWeight() : 0.0);
+
     const ModificationsDB* mod_db = ModificationsDB::getInstance();
     bool multimatch = false;
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
-    std::string diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
-    const ResidueModification* mod = mod_db->searchModificationsFast(peptide_[index]->getOneLetterCode() + diffMonoMassStr, multimatch);
+    const std::string diff_mono_mass_str = ResidueModification::getDiffMonoMassWithBracket(combined_diff_mono_mass);
+    const ResidueModification* mod = mod_db->searchModificationsFast(base_residue->getOneLetterCode() + diff_mono_mass_str, multimatch);
     const double tol = 0.002;
-    if (mod == nullptr)
+    if (mod == nullptr && !has_existing_modification)
     {
-      mod = mod_db->getBestModificationByDiffMonoMass(diffMonoMass, tol, peptide_[index]->getOneLetterCode(), ResidueModification::ANYWHERE);
+      mod = mod_db->getBestModificationByDiffMonoMass(combined_diff_mono_mass, tol, base_residue->getOneLetterCode(), ResidueModification::ANYWHERE);
     }
     if (mod == nullptr)
     {
-      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification.\n";
-      mod = ResidueModification::createUnknownFromMassString(StringUtils::toStr(diffMonoMass),
-                                                                        diffMonoMass,
-                                                                        true,
-                                                                        ResidueModification::ANYWHERE,
-                                                                        peptide_[index]);
+      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diff_mono_mass_str << " not found in databases with tolerance " << tol
+                      << ". Adding unknown modification.\n";
+      mod = ResidueModification::createUnknownFromMassString(
+        ResidueModification::getDiffMonoMassString(combined_diff_mono_mass),
+        combined_diff_mono_mass,
+        true,
+        ResidueModification::ANYWHERE,
+        base_residue);
     }
-    peptide_[index] = ResidueDB::getInstance()->getModifiedResidue(peptide_[index], mod);
+    peptide_[index] = residue_db->getModifiedResidue(base_residue, mod);
   }
 
   void AASequence::setModification(Size index, const Residue* modification)
@@ -1608,18 +1680,18 @@ namespace OpenMS
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
     std::string diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
     // TODO make a distinction in the FullID about protein vs peptide term??
-    const ResidueModification* n_term_mod_ = mod_db->searchModificationsFast(".c"+diffMonoMassStr, multimatch);
+    c_term_mod_ = mod_db->searchModificationsFast(".c"+diffMonoMassStr, multimatch);
     std::string residue;
-    if (n_term_mod_ == nullptr)
+    if (c_term_mod_ == nullptr)
     {
-        n_term_mod_ = ModificationsDB::getInstance()
+        c_term_mod_ = ModificationsDB::getInstance()
           ->getBestModificationByDiffMonoMass(diffMonoMass, tol, residue, term);
     }
-    if (n_term_mod_ == nullptr)
+    if (c_term_mod_ == nullptr)
     {
 
       OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification.\n";
-      n_term_mod_ = ResidueModification::createUnknownFromMassString(StringUtils::toStr(diffMonoMass),
+      c_term_mod_ = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,
                                                                         term);
@@ -1638,7 +1710,7 @@ namespace OpenMS
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
     std::string diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
     // TODO make a distinction in the FullID about protein vs peptide term??
-    const ResidueModification* n_term_mod_ = mod_db->searchModificationsFast(".n"+diffMonoMassStr, multimatch);
+    n_term_mod_ = mod_db->searchModificationsFast(".n"+diffMonoMassStr, multimatch);
     std::string residue;
     if (n_term_mod_ == nullptr)
     {
@@ -1649,7 +1721,7 @@ namespace OpenMS
     {
 
       OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification.\n";
-      n_term_mod_ = ResidueModification::createUnknownFromMassString(StringUtils::toStr(diffMonoMass),
+      n_term_mod_ = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,
                                                                         term);

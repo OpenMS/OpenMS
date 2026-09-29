@@ -12,6 +12,7 @@
 #include <OpenMS/SYSTEM/SIMDe.h>
 
 #include <xercesc/util/XMLString.hpp>
+#include <xercesc/util/TransService.hpp>
 
 #include <bit>
 #include <cstdint>
@@ -69,7 +70,8 @@ namespace OpenMS::Internal
     }
     else
     {
-      r = (unique_xerces_ptr<char>(xercesc::XMLString::transcode(reinterpret_cast<const XMLCh*>(str))).get());
+      const xercesc::TranscodeToStr utf8(reinterpret_cast<const XMLCh*>(str), "UTF-8");
+      r.assign(reinterpret_cast<const char*>(utf8.str()), utf8.length());
     }
     return r;
   }
@@ -192,7 +194,7 @@ namespace OpenMS::Internal
     Size remainder = length % 8;
 
     const char16_t* inputPtr = chars;
-    simde__m128i mask = simde_mm_set1_epi16(0xFF00);
+    simde__m128i mask = simde_mm_set1_epi16(0xFF80);
 
     // Process blocks of 8 UTF-16 characters using SIMD
     for (Size i = 0; i < fullBlocks; ++i)
@@ -213,7 +215,7 @@ namespace OpenMS::Internal
     // Check remaining characters individually
     for (Size i = 0; i < remainder; ++i)
     {
-      if (inputPtr[i] & 0xFF00)
+      if (inputPtr[i] & 0xFF80)
       {
         return false;
       }

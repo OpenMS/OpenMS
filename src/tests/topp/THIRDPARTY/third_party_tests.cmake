@@ -216,15 +216,30 @@ endif()
 #------------------------------------------------------------------------------
 if (NOT (${MARACLUSTER_BINARY} STREQUAL "MARACLUSTER_BINARY-NOTFOUND"))
   ### NOT needs to be added after the binarys have been included
+  ## MaRaCluster's macOS arm64 build computes some consensus m/z values one bit off the Linux
+  ## x86_64 build the reference comes from (436.1713680071879 vs 436.17136800718794). FuzzyDiff
+  ## compares the base64-encoded peak arrays as text, so macOS skips them, as
+  ## ZLIB_NG_MZML_WHITELIST does for zlib-ng; the spectra and precursors are still compared.
+  set(_maracluster_consensus_whitelist "")
+  if (APPLE)
+    set(_maracluster_consensus_whitelist "<binary>")
+  endif()
   add_test("TOPP_MaRaClusterAdapter_1" ${TOPP_BIN_PATH}/MaRaClusterAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_1.mzML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_2.mzML -consensus_out MaRaClusterAdapter_1_out_1.tmp.mzML -maracluster_executable "${MARACLUSTER_BINARY}")
-  add_test("TOPP_MaRaClusterAdapter_1_out_1" ${DIFF} -in1 MaRaClusterAdapter_1_out_1.tmp.part1.mzML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_out_1.part1.mzML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "sourceFile id=" "fileChecksum" "cvParam cvRef=\"MS\" accession=\"MS:1000569\" name=\"SHA-1\"" "software id=\"MaRaCluster\" version=" "cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\"" "cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" version=" "software id=\"pwiz_3.0" "processingMethod order=\"0\" softwareRef=")
+  add_test("TOPP_MaRaClusterAdapter_1_out_1" ${DIFF} -in1 MaRaClusterAdapter_1_out_1.tmp.part1.mzML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_out_1.part1.mzML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "sourceFile id=" "fileChecksum" "cvParam cvRef=\"MS\" accession=\"MS:1000569\" name=\"SHA-1\"" "software id=\"MaRaCluster\" version=" "cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\"" "cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" version=" "software id=\"pwiz_3.0" "processingMethod order=\"0\" softwareRef=" ${_maracluster_consensus_whitelist})
   set_tests_properties("TOPP_MaRaClusterAdapter_1_out_1" PROPERTIES DEPENDS "TOPP_MaRaClusterAdapter_1")
   add_test("TOPP_MaRaClusterAdapter_2" ${TOPP_BIN_PATH}/MaRaClusterAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_2.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_1.mzML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_2.mzML -id_in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_3.idXML -out MaRaClusterAdapter_2_out_1.tmp.idXML -maracluster_executable "${MARACLUSTER_BINARY}")
   add_test("TOPP_MaRaClusterAdapter_2_out_1" ${DIFF} -in1 MaRaClusterAdapter_2_out_1.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_2_out_1.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"file_origin\" value=")
   set_tests_properties("TOPP_MaRaClusterAdapter_2_out_1" PROPERTIES DEPENDS "TOPP_MaRaClusterAdapter_2")
+  ## -precursor_tolerance_units has to reach MaRaCluster as the unit suffix of -p, which it
+  ## reads as ppm without one; -debug 4 makes the adapter log the command line it runs.
+  add_test("TOPP_MaRaClusterAdapter_3" ${TOPP_BIN_PATH}/MaRaClusterAdapter -test -debug 4 -ini ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_1.mzML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_2.mzML -consensus_out MaRaClusterAdapter_3_out_1.tmp.mzML -precursor_tolerance 0.05 -precursor_tolerance_units Da -maracluster_executable "${MARACLUSTER_BINARY}")
+  set_tests_properties("TOPP_MaRaClusterAdapter_3" PROPERTIES PASS_REGULAR_EXPRESSION " -p 0\\.05Da ")
 endif()
 
 #------------------------------------------------------------------------------
+# Shared by the in-process tests in CMakeLists.txt and the subprocess tests below,
+# so it must be defined outside the PERCOLATOR_BINARY gate.
+set(_topp_percolator_diff_whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "search_engine_version=" "Percolator:cpos" "Percolator:cneg")
 if (NOT (${PERCOLATOR_BINARY} STREQUAL "PERCOLATOR_BINARY-NOTFOUND"))
   ### NOT needs to be added after the binarys have been included
   ### TOPP_PercolatorAdapter_1 has TWO variants — one per backend — so a
@@ -233,11 +248,7 @@ if (NOT (${PERCOLATOR_BINARY} STREQUAL "PERCOLATOR_BINARY-NOTFOUND"))
   ### other. Each compares against its own reference idXML; the in-process
   ### path also stamps additional metadata via stampPercolatorAdapterMetadata_
   ### that previously only the subprocess path produced.
-  set(_topp_percolator_diff_whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "search_engine_version=" "Percolator:cpos" "Percolator:cneg")
   ### in-process backend (default — no -use_subprocess flag)
-  add_test("TOPP_PercolatorAdapter_1_inproc" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_out.tmp.idXML -out_type idXML -percolator_executable "${PERCOLATOR_BINARY}")
-  add_test("TOPP_PercolatorAdapter_1_inproc_out" ${DIFF} -in1 PercolatorAdapter_1_inproc_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
-  set_tests_properties("TOPP_PercolatorAdapter_1_inproc_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc")
   ### subprocess backend (forced via -use_subprocess true)
   add_test("TOPP_PercolatorAdapter_1_subprocess" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess true -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_subprocess_out.tmp.idXML -out_type idXML -percolator_executable "${PERCOLATOR_BINARY}")
   add_test("TOPP_PercolatorAdapter_1_subprocess_out" ${DIFF} -in1 PercolatorAdapter_1_subprocess_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_subprocess_out.idXML -whitelist ${_topp_percolator_diff_whitelist})

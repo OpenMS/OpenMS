@@ -27,8 +27,10 @@
 
   More information about TOPPAS can be found in the @ref TOPPAS_tutorial.
 
+  @if WITH_GUI
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_TOPPAS.cli
+  @endif
 */
 
 //QT

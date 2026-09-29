@@ -10,6 +10,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
@@ -59,10 +60,12 @@ It can be exported from TOPPAS (<TT>File -> Save TOPPAS resource file</TT>). For
 </PARAMETERS>
 \endcode
 
+@if WITH_GUI
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_ExecutePipeline.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_ExecutePipeline.html
+@endif
 */
 
 // We do not want this class to show up in the docu:
@@ -101,7 +104,7 @@ protected:
 
     //set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
     QString new_tmp_dir = toQString(File::getUniqueName());
-    QDir qd(toQString(File::getTempDirectory()));
+    QDir qd(toQString(SystemSettings::getTempDirectory()));
     qd.mkdir(new_tmp_dir);
     qd.cd(new_tmp_dir);
     QString tmp_path = qd.absolutePath();
@@ -162,7 +165,7 @@ protected:
     {
       // delete temporary files
       // safety measure: only delete if subdirectory of Temp path; we do not want to delete / or c:
-      if (StringUtils::hasPrefix(StringUtils::substituted(fromQString(tmp_path), "\\", "/"), StringUtils::substituted(File::getTempDirectory(), "\\", "/") + "/"))
+      if (StringUtils::hasPrefix(StringUtils::substituted(fromQString(tmp_path), "\\", "/"), StringUtils::substituted(SystemSettings::getTempDirectory(), "\\", "/") + "/"))
       {
         File::removeDirRecursively(fromQString(tmp_path));
       }

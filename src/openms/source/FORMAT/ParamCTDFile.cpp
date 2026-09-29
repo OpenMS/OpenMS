@@ -8,7 +8,8 @@
 
 #include <OpenMS/FORMAT/ParamCTDFile.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ParamTags.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <cstdint>
 #include <fstream>
@@ -111,25 +112,25 @@ namespace OpenMS
             os << param_it->value.toString() << R"(" type="double")";
             break;
           case ParamValue::STRING_VALUE:
-            if (tag_list.contains(TOPPBase::TAG_INPUT_FILE))
+            if (tag_list.contains(ParamTags::TAG_INPUT_FILE))
             {
               os << escapeXML(param_it->value.toString()) << R"(" type="input-file")";
-              tag_list.erase(TOPPBase::TAG_INPUT_FILE);
+              tag_list.erase(ParamTags::TAG_INPUT_FILE);
             }
-            else if (tag_list.contains(TOPPBase::TAG_OUTPUT_FILE))
+            else if (tag_list.contains(ParamTags::TAG_OUTPUT_FILE))
             {
               os << escapeXML(param_it->value.toString()) << R"(" type="output-file")";
-              tag_list.erase(TOPPBase::TAG_OUTPUT_FILE);
+              tag_list.erase(ParamTags::TAG_OUTPUT_FILE);
             }
-            else if (tag_list.contains(TOPPBase::TAG_OUTPUT_DIR))
+            else if (tag_list.contains(ParamTags::TAG_OUTPUT_DIR))
             {
               os << escapeXML(param_it->value.toString()) << R"(" type="output-dir")";
-              tag_list.erase(TOPPBase::TAG_OUTPUT_DIR);
+              tag_list.erase(ParamTags::TAG_OUTPUT_DIR);
             }
-            else if (tag_list.contains(TOPPBase::TAG_OUTPUT_PREFIX))
+            else if (tag_list.contains(ParamTags::TAG_OUTPUT_PREFIX))
             {
               os << escapeXML(param_it->value.toString()) << R"(" type="output-prefix")";
-              tag_list.erase(TOPPBase::TAG_OUTPUT_PREFIX);
+              tag_list.erase(ParamTags::TAG_OUTPUT_PREFIX);
             }
             else if (param_it->valid_strings.size() == 2 && param_it->valid_strings[0] == "true" && param_it->valid_strings[1] == "false" && param_it->value == "false")
             {
@@ -147,15 +148,15 @@ namespace OpenMS
             }
             break;
           case ParamValue::STRING_LIST:
-            if (tag_list.contains(TOPPBase::TAG_INPUT_FILE))
+            if (tag_list.contains(ParamTags::TAG_INPUT_FILE))
             {
               os << R"(" type="input-file")";
-              tag_list.erase(TOPPBase::TAG_INPUT_FILE);
+              tag_list.erase(ParamTags::TAG_INPUT_FILE);
             }
-            else if (tag_list.contains(TOPPBase::TAG_OUTPUT_FILE))
+            else if (tag_list.contains(ParamTags::TAG_OUTPUT_FILE))
             {
               os << R"(" type="output-file")";
-              tag_list.erase(TOPPBase::TAG_OUTPUT_FILE);
+              tag_list.erase(ParamTags::TAG_OUTPUT_FILE);
             }
             else
             {

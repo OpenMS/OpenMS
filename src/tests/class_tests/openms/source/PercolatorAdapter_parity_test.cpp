@@ -26,6 +26,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <algorithm>
 #include <cmath>
@@ -100,8 +101,8 @@ int runAdapter(const std::string& adapter_bin,
                const std::string& out_idxml,
                const std::string& extra_args = "")
 {
-  const std::string stdout_log = File::getTemporaryFile();
-  const std::string stderr_log = File::getTemporaryFile();
+  const std::string stdout_log = TempFiles::getTemporaryFile();
+  const std::string stderr_log = TempFiles::getTemporaryFile();
 
   std::ostringstream cmd;
   cmd << "\"" << adapter_bin << "\""
@@ -164,8 +165,8 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
     const std::string in_idxml =
       OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/CometAdapter_4_out.idXML");
 
-    const std::string out_sub = File::getTemporaryFile() + ".idxml";
-    const std::string out_inp = File::getTemporaryFile() + ".idxml";
+    const std::string out_sub = TempFiles::getTemporaryFile() + ".idxml";
+    const std::string out_inp = TempFiles::getTemporaryFile() + ".idxml";
 
     TEST_EQUAL(runAdapter(adapter_bin, percolator_bin, /*use_subprocess=*/true,
                           in_idxml, out_sub,

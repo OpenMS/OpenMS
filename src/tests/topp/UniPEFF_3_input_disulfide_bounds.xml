@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- UniPEFF disulfide-bounds fixture (30 residues; Cys at 5, 10, 12, 20, 30). Valid against
+     uniprot.xsd (mass and checksum computed as UniProt does), but semantically malformed on
+     purpose: bonds 1 and 2 have an endpoint beyond the sequence end. They MUST NOT get
+     connectivity (no labels, no \DisulfideBond tuple) and MUST NOT consume a bond number; their
+     half-cystines beyond the end (31, 35, 150) MUST be omitted, the in-range one (5) written
+     unlabeled. Bond 3 ends exactly on the last residue and MUST be kept. -->
+<uniprot xmlns="http://uniprot.org/uniprot" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://uniprot.org/uniprot http://www.uniprot.org/docs/uniprot.xsd">
+  <entry dataset="Swiss-Prot" created="2026-09-24" modified="2026-09-24" version="1">
+    <accession>P00003</accession>
+    <name>SSBND_HUMAN</name>
+    <protein>
+      <recommendedName>
+        <fullName>Disulfide bounds test protein</fullName>
+      </recommendedName>
+    </protein>
+    <organism>
+      <name type="scientific">Homo sapiens</name>
+      <dbReference type="NCBI Taxonomy" id="9606"/>
+    </organism>
+    <reference key="1">
+      <citation type="submission" date="2026-09" db="UniProtKB">
+        <title>Synthetic entry for the OpenMS UniPEFF tests.</title>
+      </citation>
+      <scope>SYNTHETIC TEST ENTRY</scope>
+    </reference>
+    <proteinExistence type="evidence at protein level"/>
+    <!-- Bond 1: end beyond the sequence end. -->
+    <feature type="disulfide bond">
+      <location>
+        <begin position="5"/>
+        <end position="150"/>
+      </location>
+    </feature>
+    <!-- Bond 2: both endpoints beyond the sequence end. -->
+    <feature type="disulfide bond">
+      <location>
+        <begin position="31"/>
+        <end position="35"/>
+      </location>
+    </feature>
+    <!-- Bond 3: ends exactly on the last residue (in range). -->
+    <feature type="disulfide bond">
+      <location>
+        <begin position="10"/>
+        <end position="30"/>
+      </location>
+    </feature>
+    <!-- Bond 4: in range. -->
+    <feature type="disulfide bond">
+      <location>
+        <begin position="12"/>
+        <end position="20"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Phosphoserine">
+      <location>
+        <position position="8"/>
+      </location>
+    </feature>
+    <sequence length="30" mass="3261" checksum="0FF17752E13BF21D" modified="2026-09-24" version="1">MKTACLLSGCACDEFGHIKCLMNPQRSTVC</sequence>
+  </entry>
+</uniprot>

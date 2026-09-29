@@ -25,6 +25,7 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/VISUAL/FileWatcher.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
@@ -1635,7 +1636,7 @@ namespace OpenMS
     }
 
     // create and store unique file name prefix for files
-    topp_.file_name = File::getTempDirectory() + "/TOPPView_" + File::getUniqueName();
+    topp_.file_name = SystemSettings::getTempDirectory() + "/TOPPView_" + File::getUniqueName();
     // Figure out the correct extension to give the temp file TODO start using OMS and cachedmzml
 
     if (!File::writable(topp_.file_name + "_ini"))
@@ -1810,14 +1811,14 @@ namespace OpenMS
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, fromQString(QString("Execution of '%1' not successful!").arg(toQString(topp_.tool))),
                       fromQString(QString("The tool crashed during execution. If you want to debug this crash, check the input files in '%1'"
-                              " or enable 'debug' mode in the TOPP ini file.").arg(toQString(File::getTempDirectory()))));
+                              " or enable 'debug' mode in the TOPP ini file.").arg(toQString(SystemSettings::getTempDirectory()))));
     }
     else if (topp_.process->exitCode() != 0) // NormalExit with non-zero exit code
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, fromQString(QString("Execution of '%1' not successful!").arg(toQString(topp_.tool))),
                             fromQString(QString("The tool ended with a non-zero exit code of '%1'. ").arg(topp_.process->exitCode()) +
                             QString("If you want to debug this, check the input files in '%1' or"
-                                    " enable 'debug' mode in the TOPP ini file.").arg(toQString(File::getTempDirectory()))));
+                                    " enable 'debug' mode in the TOPP ini file.").arg(toQString(SystemSettings::getTempDirectory()))));
     }
     else if (!topp_.out.empty())
     {

@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <arrow/api.h>
 #include <sqlite3.h>
@@ -76,7 +77,7 @@ namespace
   struct ExtractedArchive
   {
     std::string base_dir;
-    std::unique_ptr<File::TempDir> temp_dir;
+    std::unique_ptr<TempDir> temp_dir;
   };
 
   ExtractedArchive unzipArchive_(const std::string& archive_path)

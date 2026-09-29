@@ -195,7 +195,7 @@
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>
-	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2007-06-27T15:23:45" defaultSourceFileRef="sf_ru_0">
+	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2007-06-27T15:23:45.00035" defaultSourceFileRef="sf_ru_0">
 		<cvParam cvRef="MS" accession="MS:1000858" name="fraction identifier" value="the_best_fraction_ever" />
 		<userParam name="mzml_id" type="xsd:string" value="document_id"/>
 		<userParam name="int" type="xsd:integer" value="5"/>
@@ -221,7 +221,6 @@
 				<userParam name="maldi_spot_id" type="xsd:string" value="M0"/>
 				<userParam name="sdname" type="xsd:string" value="spectrumdescription1"/>
 				<userParam name="scan rate" type="xsd:double" value="17.170000000000002" unitAccession="MS:1000807" unitName="Th/s" unitCvRef="MS"/>
-				<userParam name="mass resolving power" type="xsd:string" value="4.299"/>
 				<userParam name="mass resolution" type="xsd:string" value="4.3"/>
 				<userParam name="elution time (seconds)" type="xsd:double" value="55.109999999999999"/>
 				<userParam name="filter string" type="xsd:string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
@@ -235,6 +234,7 @@
 					<userParam name="name" type="xsd:string" value="acquisition_list"/>
 					<scan externalSpectrumID="4711">
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000800" name="mass resolving power" value="4.299"/>
 						<userParam name="name" type="xsd:string" value="acquisition1"/>
 						<userParam name="source_file_name" type="xsd:string" value="ac.dta"/>
 						<userParam name="source_file_path" type="xsd:string" value="file:///F:/data/Exp02"/>
@@ -456,16 +456,7 @@
 		<chromatogramList count="2" defaultDataProcessingRef="dp_sp_0">
 			<chromatogram id="tic native" index="0" defaultArrayLength="0">
 				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
-					<precursor>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
+				<cvParam cvRef="MS" accession="MS:1000809" name="chromatogram title" value="chromatograms rule!" />
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="0">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -483,16 +474,6 @@
 			</chromatogram>
 			<chromatogram id="sic native" index="1" defaultArrayLength="10">
 				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
-					<precursor>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="108">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -513,16 +494,16 @@
 </mzML>
 <indexList count="2">
 	<index name="spectrum">
-		<offset idRef="index=0">13665</offset>
-		<offset idRef="index=1">17752</offset>
-		<offset idRef="index=2">26638</offset>
-		<offset idRef="index=3">31448</offset>
+		<offset idRef="index=0">13671</offset>
+		<offset idRef="index=1">17774</offset>
+		<offset idRef="index=2">26660</offset>
+		<offset idRef="index=3">31470</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="tic native">32788</offset>
-		<offset idRef="sic native">34167</offset>
+		<offset idRef="tic native">32810</offset>
+		<offset idRef="sic native">33904</offset>
 	</index>
 </indexList>
-<indexListOffset>35748</indexListOffset>
+<indexListOffset>35096</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

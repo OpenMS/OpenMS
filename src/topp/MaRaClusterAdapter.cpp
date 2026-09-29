@@ -20,6 +20,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <iostream>
 #include <cmath>
@@ -94,7 +95,7 @@ class MaRaClusterAdapter :
 {
 public:
   MaRaClusterAdapter() :
-    TOPPExternalToolBase("MaRaClusterAdapter", "Facilitate input to MaRaCluster and reintegrate.", true,
+    TOPPExternalToolBase("MaRaClusterAdapter", "Facilitate input to MaRaCluster and reintegrate.",
                 { // citation(s), specific for this tool
                  { "The M and Käll L", "MaRaCluster: A Fragment Rarity Metric for Clustering Fragment Spectra in Shotgun Proteomics", "J Proteome Res 2016; 15: 3", "10.1021/acs.jproteome.5b00749"}
                 }
@@ -186,7 +187,7 @@ protected:
     // Advanced parameters
     registerIntOption_("verbose", "<level>", 2, "Set verbosity of output: 0=no processing info, 5=all.", !is_required, is_advanced_option);
     registerDoubleOption_("precursor_tolerance", "<tolerance>", 20.0, "Precursor monoisotopic mass tolerance", !is_required, is_advanced_option);
-    registerStringOption_("precursor_tolerance_units", "<choice>", "ppm", "tolerance_mass_units 0=ppm, 1=Da", !is_required, is_advanced_option);
+    registerStringOption_("precursor_tolerance_units", "<choice>", "ppm", "Unit of 'precursor_tolerance'.", !is_required, is_advanced_option);
     setValidStrings_("precursor_tolerance_units", ListUtils::create<std::string>("ppm,Da"));
 
 
@@ -298,7 +299,7 @@ protected:
     //-------------------------------------------------------------
 
     // create temp directory to store maracluster temporary files
-    File::TempDir tmp_dir(debug_level_ >= 2);
+    TempDir tmp_dir(debug_level_ >= 2);
 
     double pcut = getDoubleOption_("pcut");
 
@@ -321,37 +322,49 @@ protected:
     }
     os.close();
 
-    std::vector<std::string> arguments;
+    // Options of both the index and the batch step. They must be the same for both, so that batch
+    // finds the index: -f and -a name its files, and -p sets its precursor m/z bins.
+    std::vector<std::string> common_arguments;
     // Check all set parameters and get them into arguments StringList
     {
-      arguments.push_back("batch");
-      arguments.push_back("-b"); arguments.push_back(input_file_list);
-      arguments.push_back("-f"); arguments.push_back(tmp_dir.getPath());
-      arguments.push_back("-a"); arguments.push_back(txt_designator);
+      common_arguments.push_back("-b"); common_arguments.push_back(input_file_list);
+      common_arguments.push_back("-f"); common_arguments.push_back(tmp_dir.getPath());
+      common_arguments.push_back("-a"); common_arguments.push_back(txt_designator);
 
-      map<std::string,int> precursor_tolerance_units;
-      precursor_tolerance_units["ppm"] = 0;
-      precursor_tolerance_units["Da"] = 1;
-
-      arguments.push_back("-p"); arguments.push_back(StringUtils::toStr(getDoubleOption_("precursor_tolerance")) + precursor_tolerance_units[getStringOption_("precursor_tolerance_units")]);
-
-      arguments.push_back("-t"); arguments.push_back(StringUtils::toStr(pcut));
-      arguments.push_back("-c"); arguments.push_back(StringUtils::toStr(pcut));
+      // MaRaCluster reads the unit from the suffix of the value ("20.0ppm", "0.05Da") and
+      // assumes ppm without one.
+      common_arguments.push_back("-p"); common_arguments.push_back(StringUtils::toStr(getDoubleOption_("precursor_tolerance")) + getStringOption_("precursor_tolerance_units"));
 
       Int verbose_level = getIntOption_("verbose");
       if (verbose_level != 2)
       {
-        arguments.push_back("-v"); arguments.push_back(StringUtils::toStr(verbose_level));
+        common_arguments.push_back("-v"); common_arguments.push_back(StringUtils::toStr(verbose_level));
       }
     }
+    std::vector<std::string> index_arguments{"index"};
+    index_arguments.insert(index_arguments.end(), common_arguments.begin(), common_arguments.end());
+    std::vector<std::string> arguments{"batch"};
+    arguments.insert(arguments.end(), common_arguments.begin(), common_arguments.end());
+    arguments.push_back("-t"); arguments.push_back(StringUtils::toStr(pcut));
+    arguments.push_back("-c"); arguments.push_back(StringUtils::toStr(pcut));
     writeLogInfo_("Prepared maracluster command.");
 
     //-------------------------------------------------------------
     // run MaRaCluster for idXML output
     //-------------------------------------------------------------
-    // MaRaCluster execution with the executable and the arguments StringList
+    // The batch step first converts the input files, one OpenMP thread per file, and opening
+    // several files at once can crash MaRaCluster: its Windows build (1.04.1) does so in about one
+    // run in ten, with an access violation. MaRaCluster's own consensus step opens its files one at
+    // a time for that reason. So convert them in the index step, single-threaded; batch then reuses
+    // the converted files and clusters with all threads.
+    writeLogInfo_("Executing maracluster index ...");
+    auto exit_code = runExternalProcess_(maracluster_executable, index_arguments, "", {{"OMP_NUM_THREADS", "1"}});
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
     writeLogInfo_("Executing maracluster ...");
-    auto exit_code = runExternalProcess_(maracluster_executable, arguments);
+    exit_code = runExternalProcess_(maracluster_executable, arguments);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;

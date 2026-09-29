@@ -28,7 +28,6 @@
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[TMTTenPlexMethod_test.mzML]"/>
 			<UserParam type="string" name="indistinguishable_proteins_0" value="0.333333333333333,PH_0"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_0_abundances" value="[1.58439697265625e04, 1.53290546875e04, 1.22351796875e04, 1.1452109375e04, 1.0915654296875e04, 1.2617064453125e04, 1.2190318359375e04, 1.31605400390625e04, 1.4012568359375e04, 1.31917734375e04]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_file_channel_level_abundance" value="[1.58439697265625e04, 1.53290546875e04, 1.22351796875e04, 1.1452109375e04, 1.0915654296875e04, 1.2617064453125e04, 1.2190318359375e04, 1.31605400390625e04, 1.4012568359375e04, 1.31917734375e04]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_abundance" value="[1.58439697265625e04, 1.53290546875e04, 1.22351796875e04, 1.1452109375e04, 1.0915654296875e04, 1.2617064453125e04, 1.2190318359375e04, 1.31605400390625e04, 1.4012568359375e04, 1.31917734375e04]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_0_file_channel_level_channel" value="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"/>
@@ -37,9 +36,8 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_0_file_channel_level_filename" value="[TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test,TMTTenPlexMethod_test]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_0_quantified_proteins" value="[PROTA]"/>
 			<UserParam type="string" name="indistinguishable_proteins_1" value="0.333333333333333,PH_1"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_1_abundances" value="[8650.75, 7452.32861328125, 4292.02294921875, 6278.6962890625, 9257.294921875, 6562.1044921875, 5371.19189453125, 4838.69970703125, 7885.1943359375, 5965.33154296875]"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_1_file_channel_level_abundance" value="[8650.75, 7452.32861328125, 4292.02294921875, 6278.6962890625, 9257.294921875, 6562.1044921875, 5371.19189453125, 4838.69970703125, 7885.1943359375, 5965.33154296875]"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_1_fraction_group_level_abundance" value="[8650.75, 7452.32861328125, 4292.02294921875, 6278.6962890625, 9257.294921875, 6562.1044921875, 5371.19189453125, 4838.69970703125, 7885.1943359375, 5965.33154296875]"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_1_file_channel_level_abundance" value="[1.73015e04, 7452.32861328125, 8584.0458984375, 6278.6962890625, 9257.294921875, 1.3124208984375e04, 1.07423837890625e04, 4838.69970703125, 1.5770388671875e04, 1.19306630859375e04]"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_1_fraction_group_level_abundance" value="[1.73015e04, 7452.32861328125, 8584.0458984375, 6278.6962890625, 9257.294921875, 1.3124208984375e04, 1.07423837890625e04, 4838.69970703125, 1.5770388671875e04, 1.19306630859375e04]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_file_channel_level_channel" value="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_fraction_group" value="[1, 1, 1, 1, 1, 1, 1, 1, 1, 1]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_label" value="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"/>
@@ -140,7 +138,7 @@
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_0" quality="0.0" charge="2">
+		<consensusElement id="e_17749660155506638460" quality="0.0" charge="2">
 			<centroid rt="4881.494759999999587" mz="436.70350000000002" it="9.891816e04"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="4881.494759999999587" mz="126.127725999999996" it="1.1835926e04"/>
@@ -166,7 +164,7 @@
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24221"/>
 			<UserParam type="float" name="precursor_intensity" value="3.4732815625e05"/>
 		</consensusElement>
-		<consensusElement id="e_0" quality="0.0" charge="2">
+		<consensusElement id="e_7804704400743266335" quality="0.0" charge="2">
 			<centroid rt="4880.568540000000212" mz="768.950003899738022" it="1.6297831e05"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="4880.568540000000212" mz="126.127725999999996" it="1.9852014e04"/>
@@ -192,7 +190,7 @@
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24217"/>
 			<UserParam type="float" name="precursor_intensity" value="2.6571885e06"/>
 		</consensusElement>
-		<consensusElement id="e_0" quality="0.0" charge="2">
+		<consensusElement id="e_15004869347769368353" quality="0.0" charge="2">
 			<centroid rt="4880.800140000000283" mz="544.812999999999988" it="9455.597656"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="4880.800140000000283" mz="126.127725999999996" it="0.0"/>
@@ -218,7 +216,7 @@
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24218"/>
 			<UserParam type="float" name="precursor_intensity" value="2.60765953125e05"/>
 		</consensusElement>
-		<consensusElement id="e_0" quality="0.0" charge="2">
+		<consensusElement id="e_3332699010107892018" quality="0.0" charge="2">
 			<centroid rt="4881.031619999999748" mz="489.278535890616979" it="1.2365164e05"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="4881.031619999999748" mz="126.127725999999996" it="1.73015e04"/>
@@ -244,7 +242,7 @@
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24219"/>
 			<UserParam type="float" name="precursor_intensity" value="5.108075625e05"/>
 		</consensusElement>
-		<consensusElement id="e_0" quality="0.0" charge="2">
+		<consensusElement id="e_13440783915218733453" quality="0.0" charge="2">
 			<centroid rt="4881.263160000000425" mz="479.744303406725976" it="3563.425781"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="4881.263160000000425" mz="126.127725999999996" it="4.309975e-13"/>

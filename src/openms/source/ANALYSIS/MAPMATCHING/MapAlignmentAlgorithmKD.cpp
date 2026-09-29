@@ -196,6 +196,7 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
 
     // charges compatible?
     set<int> charges;
+    bool charge_conflict = false;
     for (vector<Size>::const_iterator idx_it = cc.begin(); idx_it != cc.end(); ++idx_it)
     {
       int z = kd_data.charge(*idx_it);
@@ -206,8 +207,14 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
       if (charges.size() > 1)
       {
         // nope
-        continue;
+        charge_conflict = true;
+        break;
       }
+    }
+    if (charge_conflict)
+    {
+      // reject CCs with mixed charge states
+      continue;
     }
 
     // check for conflicts

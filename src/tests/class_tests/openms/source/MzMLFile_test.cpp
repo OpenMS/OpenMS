@@ -7,15 +7,20 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/FORMAT/MzMLFile.h>
 ///////////////////////////
 
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 
@@ -1130,6 +1135,50 @@ START_SECTION([EXTRA] store and load gzip and bzip2 compressed files - round-tri
     file.load(tmp_bz2, exp_bz2);
     TEST_TRUE(exp_bz2 == exp_plain)
   }
+
+  // the suffix counts in any letter case, as it does on input and in the TOPP tools' output check
+  {
+    std::string tmp_gz;
+    NEW_TMP_FILE(tmp_gz);
+    tmp_gz += ".mzML.GZ";
+    file.store(tmp_gz, exp_original);
+
+    std::string magic = first_bytes(tmp_gz, 2);
+    TEST_EQUAL(magic.size(), 2)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[0])), 0x1f)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[1])), 0x8b)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] the streaming mzML writer refuses compressed file names)
+{
+  // PlainMSDataWritingConsumer (behind FileConverter -process_lowmemory and other low-memory modes) writes
+  // plain mzML, so a name that promises compression is refused before anything is written
+  for (const std::string suffix : {".mzML.gz", ".mzML.BZ2", ".mzML.zip"})
+  {
+    std::string tmp;
+    NEW_TMP_FILE(tmp);
+    tmp += suffix;
+    TEST_EXCEPTION(Exception::UnableToCreateFile, PlainMSDataWritingConsumer consumer(tmp))
+    TEST_FALSE(File::exists(tmp))
+  }
+
+  // a plain name still works
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  tmp += ".mzML";
+  {
+    PlainMSDataWritingConsumer consumer(tmp);
+    consumer.setExpectedSize(1, 0);
+    MSSpectrum spec;
+    spec.setRT(1.0);
+    spec.push_back(Peak1D(100.0, 1.0f));
+    consumer.consumeSpectrum(spec);
+  }
+  PeakMap exp;
+  MzMLFile().load(tmp, exp);
+  TEST_EQUAL(exp.size(), 1)
 }
 END_SECTION
 
@@ -1146,9 +1195,13 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     // store map in our output buffer
     std::string out;
     file.storeBuffer(out, exp_original);
-    TEST_EQUAL(out.size(), 38070)
-    TEST_EQUAL(StringUtils::substr(out, 0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(StringUtils::substr(out, 38070 - 99, 38070 - 1), "</indexList>\n<indexListOffset>37622</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_TRUE(out.size() > 0)
+    TEST_TRUE(StringUtils::hasPrefix(out, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"))
+    PeakMap reloaded;
+    file.loadBuffer(out, reloaded);
+    TEST_EQUAL(reloaded.size(), exp_original.size())
+    TEST_EQUAL(reloaded.getChromatograms().size(), exp_original.getChromatograms().size())
+    TEST_TRUE(StringUtils::hasSubstring(out, "</indexedmzML>"))
 
     TEST_EQUAL(StringUtils::hasSubstring(std::string(out), "<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
     TEST_EQUAL(StringUtils::hasSubstring(std::string(out), "<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
@@ -1161,11 +1214,144 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     //store map
     std::string out;
     file.storeBuffer(out, empty);
-    TEST_EQUAL(out.size(), 3167)
-    TEST_EQUAL(StringUtils::substr(out, 0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(StringUtils::substr(out, 3167-98, 3167-1), "</indexList>\n<indexListOffset>2978</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_TRUE(out.size() > 0)
+    TEST_TRUE(StringUtils::hasPrefix(out, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"))
+    PeakMap reloaded;
+    file.loadBuffer(out, reloaded);
+    TEST_TRUE(reloaded.empty())
+    TEST_TRUE(StringUtils::hasSubstring(out, "</indexedmzML>"))
   }
 
+}
+END_SECTION
+
+START_SECTION(([EXTRA] chromatograms are stored with a precursor or product only if they have one))
+{
+  // a TIC has neither, an MS1 chromatogram has no product; they used to be written with an empty precursor and a
+  // product isolation window at m/z 0
+  MSChromatogram tic;
+  tic.setNativeID("TIC");
+  tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+  tic.push_back(ChromatogramPeak(1.0, 10.0));
+  MSChromatogram ms1(tic);
+  ms1.setNativeID("MS1");
+  ms1.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_ION_CURRENT_CHROMATOGRAM);
+  Precursor precursor;
+  precursor.setMZ(500.25);
+  ms1.setPrecursor(precursor);
+  MSChromatogram srm(ms1);
+  srm.setNativeID("SRM");
+  srm.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  Product product;
+  product.setMZ(600.5);
+  srm.setProduct(product);
+  PeakMap exp;
+  exp.addChromatogram(tic);
+  exp.addChromatogram(ms1);
+  exp.addChromatogram(srm);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  MzMLFile().store(tmp_filename, exp);
+  std::ifstream is(tmp_filename);
+  std::string out((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+  auto chromatogramXML = [&out](const std::string& id)
+  {
+    Size start = out.find("<chromatogram id=\"" + id + "\"");
+    return out.substr(start, out.find("</chromatogram>", start) - start);
+  };
+  TEST_FALSE(StringUtils::hasSubstring(chromatogramXML("TIC"), "<precursor"))
+  TEST_FALSE(StringUtils::hasSubstring(chromatogramXML("TIC"), "<product"))
+  TEST_TRUE(StringUtils::hasSubstring(chromatogramXML("MS1"), "<precursor"))
+  TEST_FALSE(StringUtils::hasSubstring(chromatogramXML("MS1"), "<product"))
+  TEST_TRUE(StringUtils::hasSubstring(chromatogramXML("SRM"), "<precursor"))
+  TEST_TRUE(StringUtils::hasSubstring(chromatogramXML("SRM"), "<product"))
+
+  PeakMap reloaded;
+  MzMLFile().load(tmp_filename, reloaded);
+  TEST_EQUAL(reloaded.getChromatograms().size(), 3)
+  TEST_TRUE(reloaded.getChromatograms()[0].getPrecursor() == Precursor())
+  TEST_TRUE(reloaded.getChromatograms()[0].getProduct() == Product())
+  TEST_REAL_SIMILAR(reloaded.getChromatograms()[1].getPrecursor().getMZ(), 500.25)
+  TEST_TRUE(reloaded.getChromatograms()[1].getProduct() == Product())
+  TEST_REAL_SIMILAR(reloaded.getChromatograms()[2].getPrecursor().getMZ(), 500.25)
+  TEST_REAL_SIMILAR(reloaded.getChromatograms()[2].getProduct().getMZ(), 600.5)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the mass resolving power is stored in the scan))
+{
+  // The reader keeps MS:1000800 with the spectrum, but mzML allows it only in a scan. It used to be written as a
+  // userParam of the spectrum, which other readers do not find.
+  PeakMap exp;
+  MSSpectrum with_scan;
+  with_scan.setNativeID("scan=1");
+  with_scan.setRT(1.0);
+  with_scan.setMetaValue("mass resolving power", "60000"); // as the mzML reader stores it
+  with_scan.getAcquisitionInfo().push_back(Acquisition());
+  exp.addSpectrum(with_scan);
+  MSSpectrum without_scan; // written with a scan of its own
+  without_scan.setNativeID("scan=2");
+  without_scan.setRT(2.0);
+  without_scan.setMetaValue("mass resolving power", 30000);
+  exp.addSpectrum(without_scan);
+  MSSpectrum also_in_scan; // a value of the scan itself is written once, and takes precedence
+  also_in_scan.setNativeID("scan=3");
+  also_in_scan.setRT(3.0);
+  also_in_scan.setMetaValue("mass resolving power", 15000);
+  also_in_scan.getAcquisitionInfo().push_back(Acquisition());
+  also_in_scan.getAcquisitionInfo().back().setMetaValue("mass resolving power", 17500);
+  exp.addSpectrum(also_in_scan);
+  MSSpectrum none;
+  none.setNativeID("scan=4");
+  none.setRT(4.0);
+  exp.addSpectrum(none);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  MzMLFile().store(tmp_filename, exp);
+  std::ifstream is(tmp_filename);
+  std::string out((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+  // the spectrum element up to its scan list, and the scan list
+  auto spectrumXML = [&out](const std::string& id)
+  {
+    const Size start = out.find("<spectrum id=\"" + id + "\"");
+    const Size scans = out.find("<scanList", start);
+    return std::make_pair(out.substr(start, scans - start), out.substr(scans, out.find("</scanList>", scans) - scans));
+  };
+  auto count = [](const std::string& text, const std::string& pattern)
+  {
+    Size n = 0;
+    for (Size pos = text.find(pattern); pos != std::string::npos; pos = text.find(pattern, pos + 1)) ++n;
+    return n;
+  };
+  const std::string term = "accession=\"MS:1000800\" name=\"mass resolving power\" value=\"";
+  TEST_FALSE(StringUtils::hasSubstring(out, "userParam name=\"mass resolving power\""))
+  for (const char* id : {"scan=1", "scan=2", "scan=3", "scan=4"})
+  {
+    TEST_FALSE(StringUtils::hasSubstring(spectrumXML(id).first, "mass resolving power"))
+  }
+  TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=1").second, term + "60000\""))
+  TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=2").second, term + "30000\""))
+  TEST_EQUAL(count(spectrumXML("scan=3").second, "mass resolving power"), 1)
+  TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=3").second, term + "17500\""))
+  TEST_FALSE(StringUtils::hasSubstring(spectrumXML("scan=4").second, "mass resolving power"))
+
+  MzMLFile file;
+  StringList errors, warnings;
+  TEST_TRUE(file.isValid(tmp_filename))
+  TEST_TRUE(file.isSemanticallyValid(tmp_filename, errors, warnings))
+  TEST_EQUAL(errors.size(), 0)
+  TEST_EQUAL(warnings.size(), 0)
+
+  // read back as the value of the spectrum, as from mzML written by other software
+  PeakMap reloaded;
+  file.load(tmp_filename, reloaded);
+  ABORT_IF(reloaded.size() != 4)
+  TEST_EQUAL(reloaded[0].getMetaValue("mass resolving power").toString(), "60000")
+  TEST_EQUAL(reloaded[1].getMetaValue("mass resolving power").toString(), "30000")
+  TEST_EQUAL(reloaded[2].getMetaValue("mass resolving power").toString(), "17500")
+  TEST_FALSE(reloaded[3].metaValueExists("mass resolving power"))
 }
 END_SECTION
 
@@ -1211,7 +1397,7 @@ START_SECTION(bool isSemanticallyValid(const std::string& filename, StringList& 
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
   TEST_EQUAL(errors.size(),0)
-  TEST_EQUAL(warnings.size(),2) // add mappings for chromatogram/precursor/activation and selectedIon to reduce that count
+  TEST_EQUAL(warnings.size(),0) // its chromatograms have no precursor, whose activation would have no mapping rule
 
   //valid file
   TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), errors, warnings),true)
@@ -1231,6 +1417,11 @@ START_SECTION(bool isSemanticallyValid(const std::string& filename, StringList& 
   TEST_EQUAL(errors.size(), 0)
   TEST_EQUAL(warnings.size(), 0)
 
+  //value of a term whose value type is a list (MS:1003820 coordinate spacing model: list of doubles)
+  TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_list_value.mzML"), errors, warnings),true)
+  TEST_EQUAL(errors.size(), 0)
+  TEST_EQUAL(warnings.size(), 0)
+
   //invalid file
   TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_3_invalid.mzML"), errors, warnings),false)
   TEST_EQUAL(errors.size(), 8)
@@ -1243,6 +1434,106 @@ START_SECTION(bool isSemanticallyValid(const std::string& filename, StringList& 
   //  {
   //    cout << "WARNING: " << warnings[i] << endl;
   //  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] combined activation methods and legacy mass analyzer types are stored as valid mzML))
+{
+  // PSI-MS lists the combined dissociation methods (EThcD, ETciD) as precursor activation attributes and no longer
+  // lists SWIFT or cyclotron as mass analyzer types, but mzML requires a dissociation method and a mass analyzer type
+  std::string tmp_filename;
+  MzMLFile file;
+  StringList errors, warnings;
+  PeakMap exp;
+
+  Instrument instrument;
+  IonSource source;
+  source.setOrder(1);
+  source.setIonizationMethod(IonSource::IonizationMethod::ESI);
+  instrument.getIonSources().push_back(source);
+  const std::vector<MassAnalyzer::AnalyzerType> analyzer_types = {MassAnalyzer::AnalyzerType::CYCLOTRON, MassAnalyzer::AnalyzerType::SWIFT,
+                                                                  MassAnalyzer::AnalyzerType::IONSTORAGE, MassAnalyzer::AnalyzerType::ANALYZERNULL};
+  for (Size i = 0; i < analyzer_types.size(); ++i)
+  {
+    MassAnalyzer analyzer;
+    analyzer.setOrder(2 + static_cast<Int>(i));
+    analyzer.setType(analyzer_types[i]);
+    instrument.getMassAnalyzers().push_back(analyzer);
+  }
+  instrument.getMassAnalyzers().back().setMetaValue("legacy mass analyzer type", "no analyzer type"); // not a type: stays a meta value
+  IonDetector detector;
+  detector.setOrder(6);
+  detector.setType(IonDetector::Type::ELECTRONMULTIPLIER);
+  instrument.getIonDetectors().push_back(detector);
+  exp.setInstrument(instrument);
+
+  using Method = Precursor::ActivationMethod;
+  const std::vector<std::set<Method>> activations = {{Method::EThcD}, {Method::ETciD}, {Method::HCID}, {}, {Method::ETD, Method::EThcD}};
+  for (Size i = 0; i < activations.size(); ++i)
+  {
+    MSSpectrum spec;
+    spec.setNativeID("scan=" + std::to_string(i + 1));
+    spec.setRT(i + 1.0);
+    spec.setMSLevel(2);
+    spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+    Precursor precursor;
+    precursor.setMZ(500.0);
+    precursor.getActivationMethods() = activations[i];
+    spec.getPrecursors().push_back(precursor);
+    exp.addSpectrum(spec);
+  }
+  // ETD with supplemental beam-type CID (as written by ThermoRawFileParser): no combined term needed
+  exp[4].getPrecursors()[0].setMetaValue("supplemental beam-type collision-induced dissociation", "");
+
+  NEW_TMP_FILE(tmp_filename);
+  file.store(tmp_filename, exp);
+  TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings), true)
+  TEST_EQUAL(errors.size(), 0)
+  TEST_EQUAL(warnings.size(), 0)
+  for (const auto& error : errors)
+  {
+    cout << "ERROR: " << error << endl;
+  }
+
+  // the generic dissociation method is written for EThcD only, ETciD only and no activation method
+  std::string encoded;
+  file.storeBuffer(encoded, exp);
+  Size generic_methods = 0;
+  for (Size pos = encoded.find("accession=\"MS:1000044\""); pos != std::string::npos; pos = encoded.find("accession=\"MS:1000044\"", pos + 1))
+  {
+    ++generic_methods;
+  }
+  TEST_EQUAL(generic_methods, 3)
+
+  PeakMap loaded;
+  file.load(tmp_filename, loaded);
+  TEST_EQUAL(loaded.size(), activations.size())
+  for (Size i = 0; i < loaded.size(); ++i)
+  {
+    TEST_TRUE(loaded[i].getPrecursors()[0].getActivationMethods() == activations[i])
+  }
+  const auto& analyzers = loaded.getInstrument().getMassAnalyzers();
+  TEST_EQUAL(analyzers.size(), analyzer_types.size())
+  for (Size i = 0; i < analyzers.size(); ++i)
+  {
+    TEST_EQUAL(analyzers[i].getType(), analyzer_types[i])
+  }
+  TEST_FALSE(analyzers[0].metaValueExists("legacy mass analyzer type"))
+  TEST_EQUAL(analyzers[3].getMetaValue("legacy mass analyzer type"), "no analyzer type")
+
+  // an instrument without mass analyzer gets an invented generic one
+  PeakMap source_only;
+  Instrument partial;
+  partial.getIonSources().push_back(source);
+  source_only.setInstrument(partial);
+  NEW_TMP_FILE(tmp_filename);
+  file.store(tmp_filename, source_only);
+  TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings), true)
+  TEST_EQUAL(errors.size(), 0)
+  TEST_EQUAL(warnings.size(), 0)
+  file.load(tmp_filename, loaded);
+  TEST_EQUAL(loaded.getInstrument().getMassAnalyzers().size(), 1)
+  TEST_EQUAL(loaded.getInstrument().getMassAnalyzers()[0].getType(), MassAnalyzer::AnalyzerType::ANALYZERNULL)
 }
 END_SECTION
 
@@ -1291,6 +1582,42 @@ START_SECTION(void transform(const std::string& filename_in, Interfaces::IMSData
 }
 END_SECTION
 
+START_SECTION([EXTRA] transform() ends the progress of a first pass that stops before the end of the file)
+{
+  // records the nesting depth of every progress started with it
+  class DepthRecorder : public ProgressLogger::ProgressLoggerImpl
+  {
+  public:
+    explicit DepthRecorder(std::vector<int>& depths) : depths_(depths) {}
+    void startProgress(const SignedSize, const SignedSize, const std::string&, const int current_recursion_depth) const override
+    {
+      depths_.push_back(current_recursion_depth);
+    }
+    void setProgress(const SignedSize, const int) const override {}
+    SignedSize nextProgress() const override { return 0; }
+    void endProgress(const int, UInt64) const override {}
+
+  private:
+    std::vector<int>& depths_;
+  };
+
+  // the first pass stops at the spectrum list (metadata only) or at the chromatogram list (counting); the progress of
+  // the next file must not be nested deeper
+  for (bool skip_full_count : {true, false})
+  {
+    std::vector<int> first, second;
+    MzMLFile mzml;
+    MSDataTransformingConsumer consumer;
+    mzml.setLogger(new DepthRecorder(first));
+    mzml.transform(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), &consumer, skip_full_count);
+    mzml.setLogger(new DepthRecorder(second));
+    mzml.transform(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), &consumer, skip_full_count);
+    TEST_FALSE(first.empty())
+    TEST_TRUE(first == second)
+  }
+}
+END_SECTION
+
 START_SECTION((void testSkipChromatograms()))
 {
   MzMLFile file;
@@ -1336,5 +1663,173 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-END_TEST
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
 
+
+START_SECTION((XML metadata uses UTF-8 and a strict ASCII fast path))
+{
+  TEST_TRUE(Internal::StringManager::isASCII(u"ASCII", 5))
+  TEST_FALSE(Internal::StringManager::isASCII(u"M\u00fcller", 6))
+  TEST_FALSE(Internal::StringManager::isASCII(u"1234567\u00fc", 8))
+  // UTF-8 spelled out in bytes: MSVC narrow literals follow the system code page, not UTF-8
+  TEST_EQUAL(Internal::StringManager::convert(u"M\u00fcller \u03b1 \U0001f9ea"), std::string("M\xC3\xBC" "ller \xCE\xB1 \xF0\x9F\xA7\xAA"))
+}
+END_SECTION
+
+START_SECTION((Thermo metadata survives mzML serialization, sorting, and reloading))
+{
+  PeakMap original;
+  original.setDateTime(DateTime::fromString("2024-01-02T03:04:05", "yyyy-MM-ddThh:mm:ss"));
+  original.setMetaValue("mzml_start_time_stamp", "2024-01-02T03:04:05.1234567Z");
+  original.setMetaValue("Thermo instrument methods", "[\"method\\nsecond line\"]");
+  original.getSample().setMetaValue("Thermo sample volume", 2.5);
+  const std::string utf8_sample_name("M\xC3\xBC" "ller & sample \xCE\xB1 \xF0\x9F\xA7\xAA"); // "Müller & sample α 🧪" as UTF-8 bytes
+  original.getSample().setName(utf8_sample_name);
+  original.getSample().setComment("first line\nsecond line\tend");
+  Instrument instrument;
+  instrument.setName("Orbitrap Astral");
+  instrument.setMetaValue("instrument serial number", "serial-123");
+  IonSource source;
+  source.setOrder(1);
+  source.setIonizationMethod(IonSource::IonizationMethod::ESI);
+  instrument.getIonSources().push_back(source);
+  MassAnalyzer analyzer;
+  analyzer.setOrder(2);
+  analyzer.setType(MassAnalyzer::AnalyzerType::ORBITRAP);
+  instrument.getMassAnalyzers().push_back(analyzer);
+  IonDetector detector;
+  detector.setOrder(3);
+  detector.setType(IonDetector::Type::INDUCTIVEDETECTOR);
+  instrument.getIonDetectors().push_back(detector);
+  original.setInstrument(instrument);
+  instrument.getMassAnalyzers()[0].setMetaValue("mass analyzer accession", "MS:1003379");
+  original.getInstrumentConfigurations()["astral"] = instrument;
+
+  MSSpectrum parent;
+  parent.setNativeID("controllerType=0 controllerNumber=1 scan=10");
+  parent.setRT(1);
+  parent.setMSLevel(1);
+  parent.setType(SpectrumSettings::SpectrumType::CENTROID);
+  Peak1D peak;
+  peak.setMZ(501); peak.setIntensity(10); parent.push_back(peak);
+  peak.setMZ(499); peak.setIntensity(20); parent.push_back(peak);
+  // Three independently sampled points versus two spectrum peaks; double precision matters.
+  const vector<double> noise_mz = {498.123456789012, 500.345678901234, 502.567890123456};
+  parent.setMetaValue("sampled noise m/z array", noise_mz);
+  parent.setMetaValue("sampled noise intensity array", vector<double>{1, 2, 3});
+  parent.setMetaValue("sampled noise baseline array", vector<double>{0.1, 0.2, 0.3});
+  MSSpectrum::IntegerDataArray charges;
+  charges.setName("charge array"); charges.push_back(1); charges.push_back(2);
+  parent.getIntegerDataArrays().push_back(charges);
+  Acquisition acquisition;
+  acquisition.setMetaValue("Thermo trailer extra", "[{\"label\":\"example:\",\"value\":\"a & b\"}]");
+  parent.getAcquisitionInfo().push_back(acquisition);
+  original.addSpectrum(parent);
+
+  MSSpectrum child;
+  child.setNativeID("controllerType=0 controllerNumber=1 scan=11");
+  child.setRT(2); child.setMSLevel(2);
+  child.setType(SpectrumSettings::SpectrumType::CENTROID);
+  child.push_back(peak);
+  acquisition.setMetaValue("instrument_configuration_ref", "astral");
+  child.getAcquisitionInfo().push_back(acquisition);
+  Precursor precursor;
+  precursor.setMZ(500);
+  precursor.setMetaValue("selected ion m/z", 499.5);
+  precursor.setIsolationWindowLowerOffset(0);
+  precursor.setIsolationWindowUpperOffset(2);
+  precursor.setMetaValue("isolation window lower offset", 0.0);
+  precursor.setMetaValue("spectrum_ref", parent.getNativeID());
+  precursor.setIntensity(30);
+  precursor.setMetaValue("peak intensity unit accession", "MS:1000131");
+  precursor.getActivationMethods().insert(Precursor::ActivationMethod::ETD);
+  precursor.setMetaValue("supplemental beam-type collision-induced dissociation", "");
+  DataValue energy(25.0);
+  energy.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY); energy.setUnit(266);
+  precursor.setMetaValue("collision energy", energy);
+  precursor.setMetaValue("supplemental collision energy", energy);
+  child.getPrecursors().push_back(precursor);
+  original.addSpectrum(child);
+
+  MSSpectrum pda;
+  pda.setNativeID("controllerType=4 controllerNumber=1 scan=1");
+  pda.setRT(3); pda.setMSLevel(0); pda.setType(SpectrumSettings::SpectrumType::PROFILE);
+  pda.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::ABSORPTION);
+  pda.setMetaValue("mzml coordinate array", "wavelength");
+  pda.setMetaValue("mzml intensity array", "absorption");
+  peak.setMZ(220); peak.setIntensity(0.25); pda.push_back(peak);
+  peak.setMZ(500); peak.setIntensity(0.5); pda.push_back(peak);
+  ScanWindow window;
+  window.begin = 220; window.end = 500; window.setMetaValue("unit_accession", "UO:0000018");
+  pda.getInstrumentSettings().getScanWindows().push_back(window);
+  original.addSpectrum(pda);
+
+  MSChromatogram pressure;
+  pressure.setNativeID("Analog#1_Pressure");
+  pressure.setMetaValue("chromatogram type accession", "MS:1003019");
+  pressure.setMetaValue("mzml intensity array", "pressure");
+  pressure.setMetaValue("Thermo detector units", "bar");
+  pressure.push_back(ChromatogramPeak(1, 200));
+  pressure.push_back(ChromatogramPeak(2, 210));
+  original.addChromatogram(pressure);
+
+  MzMLFile file;
+  string encoded;
+  file.storeBuffer(encoded, original);
+  for (const string& accession : {"MS:1000529", "MS:1003379", "MS:1002678", "MS:1002680", "MS:1002743", "MS:1002744", "MS:1002745", "MS:1000516", "MS:1000617", "MS:1003019", "MS:1000821"})
+  {
+    TEST_TRUE(StringUtils::hasSubstring(encoded, accession))
+  }
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "2024-01-02T03:04:05.1234567Z"))
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "instrumentConfigurationRef=\"astral\""))
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "&#252;"))
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "&#129514;"))
+  PeakMap loaded;
+  file.loadBuffer(encoded, loaded);
+  TEST_EQUAL(loaded.size(), 3)
+  TEST_EQUAL(loaded.getSample().getName(), utf8_sample_name)
+  TEST_EQUAL(loaded.getSample().getComment(), "first line\nsecond line\tend")
+  TEST_EQUAL(loaded.getInstrumentConfigurations().size(), 1)
+  TEST_EQUAL(loaded.getInstrumentConfigurations().at("astral").getMassAnalyzers()[0].getMetaValue("mass analyzer accession"), "MS:1003379")
+  TEST_EQUAL(loaded[0].getMetaValue("sampled noise m/z array").toDoubleList(), noise_mz)
+  TEST_EQUAL(loaded[0].getFloatDataArrays().size(), 0)
+  TEST_EQUAL(loaded[0].getIntegerDataArrays()[0].size(), 2)
+  TEST_EQUAL(loaded[0].getIntegerDataArrays()[0][0], 2) // charge follows sorted peak
+  TEST_REAL_SIMILAR(loaded[1].getPrecursors()[0].getMZ(), 499.5)
+  TEST_EQUAL(loaded[1].getPrecursors()[0].getMetaValue("isolation window target m/z"), 500.0)
+  TEST_EQUAL(loaded[1].getPrecursors()[0].getMetaValue("spectrum_ref"), parent.getNativeID())
+  TEST_EQUAL(loaded[1].getPrecursors()[0].getMetaValue("peak intensity unit accession"), "MS:1000131")
+  TEST_TRUE(loaded[1].getPrecursors()[0].metaValueExists("supplemental collision energy"))
+  TEST_EQUAL(loaded[2].size(), 2)
+  TEST_REAL_SIMILAR(loaded[2][0].getMZ(), 220)
+  TEST_EQUAL(loaded[2].getMetaValue("mzml intensity array"), "absorption")
+  TEST_EQUAL(loaded.getChromatograms().size(), 1)
+  TEST_EQUAL(loaded.getChromatograms()[0].size(), 2)
+  TEST_EQUAL(loaded.getChromatograms()[0].getMetaValue("mzml intensity array"), "pressure")
+  TEST_EQUAL(loaded.getChromatograms()[0].getMetaValue("Thermo detector units"), "bar")
+  // Re-export must retain CV terms instead of falling back to unrelated generic arrays.
+  string encoded_again;
+  file.storeBuffer(encoded_again, loaded);
+  TEST_TRUE(StringUtils::hasSubstring(encoded_again, "MS:1002743"))
+  TEST_TRUE(StringUtils::hasSubstring(encoded_again, "MS:1000617"))
+  TEST_TRUE(StringUtils::hasSubstring(encoded_again, "MS:1002678"))
+
+  // A zero-valued measurement is distinct from an absent intensity: the "peak intensity"
+  // meta value forces the export of a zero intensity (as ThermoRawFileParser does). Editing
+  // a previously zero isolation offset must override its preservation metadata.
+  auto& edited_precursor = loaded[1].getPrecursors()[0];
+  edited_precursor.setIntensity(0);
+  edited_precursor.setMetaValue("peak intensity", 0.0);
+  edited_precursor.setIsolationWindowLowerOffset(1.25);
+  file.storeBuffer(encoded_again, loaded);
+  TEST_TRUE(StringUtils::hasSubstring(encoded_again, "name=\"peak intensity\" value=\"0\""))
+  PeakMap edited;
+  file.loadBuffer(encoded_again, edited);
+  TEST_REAL_SIMILAR(edited[1].getPrecursors()[0].getIsolationWindowLowerOffset(), 1.25)
+  TEST_REAL_SIMILAR(edited[1].getPrecursors()[0].getIntensity(), 0)
+  TEST_EQUAL(edited[1].getPrecursors()[0].getMetaValue("peak intensity unit accession"), "MS:1000131")
+}
+END_SECTION
+
+END_TEST

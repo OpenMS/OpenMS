@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Simon Gene Gottlieb $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/FORMAT/ParamCTDFile.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ToolInfo.h>
 
 namespace OpenMS
 {

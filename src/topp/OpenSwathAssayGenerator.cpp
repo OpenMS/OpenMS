@@ -82,7 +82,7 @@ class TOPPOpenSwathAssayGenerator :
 public:
 
   TOPPOpenSwathAssayGenerator() :
-    TOPPBase("OpenSwathAssayGenerator", "Generates assays according to different models for a specific TraML", true)
+    TOPPBase("OpenSwathAssayGenerator", "Generates assays according to different models for a specific TraML")
   {
   }
 

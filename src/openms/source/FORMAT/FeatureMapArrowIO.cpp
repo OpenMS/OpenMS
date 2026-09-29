@@ -10,11 +10,13 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
@@ -615,7 +617,6 @@ namespace // anonymous
     std::string uuid_str(buf);
 
     std::vector<std::pair<std::string, std::string>> md_pairs = {
-      {"qpx_version", "1.0"},
       {"creator", "OpenMS"},
       {"file_type", file_type},
       {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
@@ -685,11 +686,34 @@ namespace // anonymous
       *table, arrow::default_memory_pool(), outfile,
       config.row_group_size, writer_props, arrow_props);
 
+    // FileOutputStream::Open above already created (and truncated) the file, so any failure from
+    // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a
+    // reader reports it as corrupt rather than as the smaller table it looks like. Close before
+    // removing: on Windows an open handle blocks the unlink.
+    const auto abandon = [&](const std::string& what)
+    {
+      OPENMS_LOG_ERROR << "FeatureMapArrowIO: " << what << std::endl;
+      (void)outfile->Close();
+      if (!File::remove(filename))
+      {
+        OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to remove incomplete output "
+                         << filename << std::endl;
+      }
+      return false;
+    };
+
     if (!write_status.ok())
     {
-      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to write Parquet: "
-                       << write_status.ToString() << std::endl;
-      return false;
+      return abandon("Failed to write Parquet: " + write_status.ToString());
+    }
+
+    // Close explicitly rather than leaving it to the destructor, which swallows the error: the
+    // final flush is where a full disk surfaces, and reporting success there would hand back a
+    // truncated file.
+    auto close_status = outfile->Close();
+    if (!close_status.ok())
+    {
+      return abandon("Failed to close " + filename + ": " + close_status.ToString());
     }
 
     return true;
@@ -1244,6 +1268,10 @@ bool FeatureMapArrowIO::exportToParquet(
   feature_map_metadata["loaded_file_type"] = FileTypes::typeToName(feature_map.getLoadedFileType());
   feature_map_metadata["data_processing"] = serializeDataProcessing_(feature_map.getDataProcessing());
   feature_map_metadata["fmap_metavalues"] = serializeMetaValues_(feature_map);
+  // The map's own UniqueIdInterface value -- distinct from the per-feature unique ids in the
+  // table and from DocumentIdentifier above. Consumers key on it: ProteomicsLFQ copies it into
+  // the consensus column header of the run the map came from.
+  feature_map_metadata["map_unique_id"] = std::to_string(feature_map.getUniqueId());
 
   if (!writeArrowTableToParquet_(features_table, directory + "/features.parquet", "features", config, feature_map_metadata))
   {
@@ -1275,7 +1303,8 @@ bool FeatureMapArrowIO::exportToParquet(
     return false;
   }
   if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(
-          prot_ids, directory + "/search_params.parquet", config))
+          prot_ids, directory + "/search_params.parquet", config,
+          ModificationDefinitionIO::encodeByRun(prot_ids, ModificationDefinitionIO::collect(feature_map))))
   {
     return false;
   }
@@ -1756,9 +1785,16 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       }
       else
       {
-        OPENMS_LOG_WARN << "FeatureMapArrowIO: Could not find feature with id "
-                        << group.feature_id << " for PSM. Adding as unassigned." << std::endl;
-        feature_map.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
+        // Refuse rather than re-file the identification as unassigned. The two identification
+        // lists of a FeatureMap partition the PSMs, and which list a PSM is in is part of the
+        // result: FDR is estimated over both together, and every exporter reports them
+        // separately. Silently moving one across that boundary yields a map that parses
+        // cleanly and describes a different experiment from the one that was written, which
+        // is the failure mode that is hardest to notice afterwards.
+        OPENMS_LOG_ERROR << "FeatureMapArrowIO: PSM references feature unique id "
+                         << group.feature_id << ", which is not in features.parquet. The file is "
+                         << "inconsistent." << std::endl;
+        return false;
       }
     }
   }
@@ -1818,6 +1854,22 @@ bool FeatureMapArrowIO::importFromParquet(
     if (idx >= 0)
     {
       deserializeMetaValues_(schema_md->value(idx), feature_map);
+    }
+
+    // The map's own unique id. Absent in files written before it was stored, which then keep
+    // the invalid id the map starts with, exactly as they did before.
+    idx = schema_md->FindKey("map_unique_id");
+    if (idx >= 0)
+    {
+      try
+      {
+        feature_map.setUniqueId(static_cast<UInt64>(std::stoull(schema_md->value(idx))));
+      }
+      catch (const std::exception&)
+      {
+        OPENMS_LOG_WARN << "FeatureMapArrowIO: could not read map_unique_id '"
+                        << schema_md->value(idx) << "'; leaving the map id unset." << std::endl;
+      }
     }
   }
 

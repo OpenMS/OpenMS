@@ -96,6 +96,15 @@ namespace OpenMS
       appendInteger(key, std::bit_cast<std::uint32_t>(value));
     }
 
+    /// Append a nullable float key component; a null is its own value, distinct from any float.
+    void appendNullableFloat(
+      std::string& key, const std::shared_ptr<arrow::FloatArray>& values, int64_t row)
+    {
+      if (values->IsNull(row)) { key += "N|"; return; }
+      key += "F|";
+      appendFloat(key, values->Value(row));
+    }
+
     std::shared_ptr<arrow::Schema> schemaFor(QPXValueValidation::View view)
     {
       switch (view)
@@ -116,6 +125,18 @@ namespace OpenMS
         case QPXValueValidation::View::PROTEIN_GROUP: return "pg";
       }
       return "unknown";
+    }
+
+    /// The view's mandatory opaque identity column, which is also its declared primary key
+    std::string idColumnName(QPXValueValidation::View view)
+    {
+      switch (view)
+      {
+        case QPXValueValidation::View::PSM:           return QPXPSMSchema::PSM_ID;
+        case QPXValueValidation::View::FEATURE:       return QPXFeatureSchema::FEATURE_ID;
+        case QPXValueValidation::View::PROTEIN_GROUP: return QPXPgSchema::PG_ID;
+      }
+      return "";
     }
 
     void requiredColumnsHaveValues(
@@ -264,6 +285,9 @@ namespace OpenMS
     View view;
     std::unordered_set<std::string> primary_keys;
     std::unordered_set<std::string> pg_run_keys;
+    /// Identities seen in earlier batches; a streaming writer validates one batch at a time,
+    /// so uniqueness has to hold across the whole file, not within a batch.
+    std::unordered_set<Int64> ids;
   };
 
   std::string QPXValueValidation::Result::toString() const
@@ -287,6 +311,7 @@ namespace OpenMS
   {
     impl_->primary_keys.clear();
     impl_->pg_run_keys.clear();
+    impl_->ids.clear();
   }
 
   QPXValueValidation::Result QPXValueValidation::validate(
@@ -318,6 +343,33 @@ namespace OpenMS
       return result;
     }
     requiredColumnsHaveValues(table, expected, result);
+
+    std::unordered_set<Int64> new_ids;
+
+    // The opaque identity column. QPX declares it non-nullable AND the view's primary key, so
+    // uniqueness is checked here rather than left to the reader: a hash collision, or a producer
+    // deriving two rows' ids from the same composite, must surface as a refusal instead of a
+    // silently unjoinable file. This runs alongside -- not instead of -- the natural-key check
+    // below: the natural key is what the id is derived FROM, so a natural-key duplicate implies
+    // an id duplicate, but the reverse would be a genuine collision worth naming separately.
+    {
+      const std::string id_column = idColumnName(impl_->view);
+      auto ids = std::static_pointer_cast<arrow::Int64Array>(combinedColumn(table, id_column, result));
+      if (!ids) { return result; }
+      for (int64_t row = 0; row < table->num_rows(); ++row)
+      {
+        if (ids->IsNull(row))
+        {
+          addError(result, "row " + std::to_string(row) + " has a null '" + id_column + "'");
+          continue;
+        }
+        if (impl_->ids.contains(ids->Value(row)) || !new_ids.insert(ids->Value(row)).second)
+        {
+          addError(result, "row " + std::to_string(row) + " repeats the QPX " + viewName(impl_->view)
+                           + " identity '" + id_column + "'");
+        }
+      }
+    }
 
     std::unordered_set<std::string> new_primary_keys;
     std::unordered_set<std::string> new_pg_run_keys;
@@ -404,9 +456,11 @@ namespace OpenMS
         combinedColumn(table, QPXFeatureSchema::RUN_FILE_NAME, result));
       auto rt = std::static_pointer_cast<arrow::FloatArray>(
         combinedColumn(table, QPXFeatureSchema::RT, result));
+      auto observed_mz = std::static_pointer_cast<arrow::FloatArray>(
+        combinedColumn(table, QPXFeatureSchema::OBSERVED_MZ, result));
       auto intensities = std::static_pointer_cast<arrow::ListArray>(
         combinedColumn(table, QPXFeatureSchema::INTENSITIES, result));
-      if (!peptidoform || !charge || !run || !rt || !intensities) { return result; }
+      if (!peptidoform || !charge || !run || !rt || !observed_mz || !intensities) { return result; }
 
       const auto intensity_values = std::static_pointer_cast<arrow::StructArray>(intensities->values());
       const auto labels = std::static_pointer_cast<arrow::StringArray>(intensity_values->field(0));
@@ -415,8 +469,13 @@ namespace OpenMS
       for (int64_t row = 0; row < table->num_rows(); ++row)
       {
         // QPX explicitly permits unmapped features; OpenMS represents their unknown peptidoform
-        // as an empty string and the RT still distinguishes their primary key. The run identity,
-        // unlike the optional mapping, must always be present.
+        // as an empty string. The run identity, unlike the optional mapping, must always be
+        // present.
+        //
+        // 'observed_mz' is in the key (see the class documentation) for the sake of those
+        // unmapped rows: without it the key collapses to (charge, run_file_name, rt), and 'rt' is
+        // float32 on write - one ULP is 244 us at 3000 s - so two co-eluting unmapped features of
+        // one charge in one run would collide. Do not drop it back out.
         const bool strings_valid = nonEmptyString(
           run, row, QPXFeatureSchema::RUN_FILE_NAME, result);
         const bool peptidoform_valid = !peptidoform->IsNull(row);
@@ -438,23 +497,26 @@ namespace OpenMS
                            + " has a non-finite 'rt' primary-key value");
           rt_valid = false;
         }
-        if (strings_valid && peptidoform_valid && charge_valid && rt_valid)
+        bool observed_mz_valid = true;
+        if (!observed_mz->IsNull(row) && !std::isfinite(observed_mz->Value(row)))
+        {
+          addError(result, "row " + std::to_string(row)
+                           + " has a non-finite 'observed_mz' primary-key value");
+          observed_mz_valid = false;
+        }
+        if (strings_valid && peptidoform_valid && charge_valid && rt_valid && observed_mz_valid)
         {
           std::string key;
           appendString(key, peptidoform->GetString(row));
           appendInteger(key, charge->Value(row));
           appendString(key, run->GetString(row));
-          if (rt->IsNull(row)) { key += "N|"; }
-          else
-          {
-            key += "F|";
-            appendFloat(key, rt->Value(row));
-          }
+          appendNullableFloat(key, rt, row);
+          appendNullableFloat(key, observed_mz, row);
           if (impl_->primary_keys.contains(key) || !new_primary_keys.insert(key).second)
           {
             addError(result, "row " + std::to_string(row)
                              + " repeats the QPX feature primary key "
-                               "(peptidoform, charge, run_file_name, rt)");
+                               "(peptidoform, charge, run_file_name, rt, observed_mz)");
           }
         }
 
@@ -500,18 +562,54 @@ namespace OpenMS
     {
       auto anchor = std::static_pointer_cast<arrow::StringArray>(
         combinedColumn(table, QPXPgSchema::ANCHOR_PROTEIN, result));
+      auto pg_accessions = std::static_pointer_cast<arrow::ListArray>(
+        combinedColumn(table, QPXPgSchema::PG_ACCESSIONS, result));
       auto grouped_runs = std::static_pointer_cast<arrow::ListArray>(
         combinedColumn(table, QPXPgSchema::GROUPED_RUNS, result));
       auto label = std::static_pointer_cast<arrow::StringArray>(
         combinedColumn(table, QPXPgSchema::LABEL, result));
       auto intensity = std::static_pointer_cast<arrow::FloatArray>(
         combinedColumn(table, QPXPgSchema::INTENSITY, result));
-      if (!anchor || !grouped_runs || !label || !intensity) { return result; }
+      if (!anchor || !pg_accessions || !grouped_runs || !label || !intensity) { return result; }
       const auto run_values = std::static_pointer_cast<arrow::StringArray>(grouped_runs->values());
+      const auto accession_values =
+        std::static_pointer_cast<arrow::StringArray>(pg_accessions->values());
 
       for (int64_t row = 0; row < table->num_rows(); ++row)
       {
+        // anchor_protein is non-nullable in the schema, so it is still required -- but it is a
+        // descriptive field, not part of the key. What identifies the group is its membership.
         bool key_valid = nonEmptyString(anchor, row, QPXPgSchema::ANCHOR_PROTEIN, result);
+
+        // The group's membership, canonicalized the way pg_id keys on it
+        // (QPXIdentity::PG_COMPOSITE): a set, so neither the order inference happens to list the
+        // accessions in nor a repeated accession makes two rows look distinct to this check when
+        // the identity calls them the same row.
+        std::vector<std::string> accessions;
+        if (pg_accessions->IsNull(row) || pg_accessions->value_length(row) == 0)
+        {
+          addError(result, "row " + std::to_string(row)
+                           + " has an empty 'pg_accessions' primary-key value");
+          key_valid = false;
+        }
+        else
+        {
+          accessions.reserve(static_cast<size_t>(pg_accessions->value_length(row)));
+          for (int64_t i = 0; i < pg_accessions->value_length(row); ++i)
+          {
+            const int64_t index = pg_accessions->value_offset(row) + i;
+            if (accession_values->IsNull(index) || isBlank(accession_values->GetString(index)))
+            {
+              addError(result, "row " + std::to_string(row)
+                               + " has an empty member in pg_accessions");
+              key_valid = false;
+              continue;
+            }
+            accessions.push_back(accession_values->GetString(index));
+          }
+          std::sort(accessions.begin(), accessions.end());
+          accessions.erase(std::unique(accessions.begin(), accessions.end()), accessions.end());
+        }
         std::vector<std::string> runs;
         std::unordered_set<std::string> row_runs;
         if (grouped_runs->IsNull(row) || grouped_runs->value_length(row) == 0)
@@ -576,30 +674,36 @@ namespace OpenMS
         std::sort(runs.begin(), runs.end());
         if (!key_valid) { continue; }
 
-        std::string key;
-        appendString(key, anchor->GetString(row));
+        // Built from the same three values pg_id hashes, so this check and the identity agree on
+        // what "the same pg row" means. Keying on anchor_protein instead would refuse two
+        // legitimately distinct groups that happen to share a leading protein -- rows the
+        // identity gives distinct pg_ids.
+        std::string membership;
+        appendInteger(membership, accessions.size());
+        for (const auto& accession : accessions) { appendString(membership, accession); }
+
+        std::string key = membership;
         appendInteger(key, runs.size());
         for (const auto& run_name : runs) { appendString(key, run_name); }
         appendNullableString(key, label_value);
         if (impl_->primary_keys.contains(key) || !new_primary_keys.insert(key).second)
         {
           addError(result, "row " + std::to_string(row)
-                           + " repeats the QPX pg primary key "
-                             "(anchor_protein, grouped_runs, label)");
+                           + " repeats the QPX pg identity "
+                             "(pg_accessions, grouped_runs, label)");
         }
 
-        // One raw file may contribute to at most one protein quantity at this
-        // (anchor_protein, label). Otherwise the same measurement is double-counted.
+        // One raw file may contribute to at most one protein quantity of the same group at this
+        // label. Otherwise the same measurement is double-counted.
         for (const auto& run_name : runs)
         {
-          std::string run_key;
-          appendString(run_key, anchor->GetString(row));
+          std::string run_key = membership;
           appendNullableString(run_key, label_value);
           appendString(run_key, run_name);
           if (impl_->pg_run_keys.contains(run_key) || !new_pg_run_keys.insert(run_key).second)
           {
             addError(result, "row " + std::to_string(row) + " reuses run '" + run_name
-                             + "' in another pg row with the same (anchor_protein, label)");
+                             + "' in another pg row with the same (pg_accessions, label)");
           }
         }
       }
@@ -611,6 +715,7 @@ namespace OpenMS
     {
       impl_->primary_keys.insert(new_primary_keys.begin(), new_primary_keys.end());
       impl_->pg_run_keys.insert(new_pg_run_keys.begin(), new_pg_run_keys.end());
+      impl_->ids.insert(new_ids.begin(), new_ids.end());
     }
     return result;
   }

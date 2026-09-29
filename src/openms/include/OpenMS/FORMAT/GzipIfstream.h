@@ -10,7 +10,15 @@
 
 #include <OpenMS/config.h>
 
-#include <zlib.h>
+#include <cstddef>  // for size_t (used to come in through <zlib.h>)
+
+// <zlib.h> is deliberately not included here: zlib is a PRIVATE dependency of
+// libOpenMS, so no installed header may require its include directory. The only
+// zlib type this class needs is gzFile, which both zlib and zlib-ng's drop-in
+// compatibility header declare as `typedef struct gzFile_s *gzFile;`, so a
+// forward declaration of that opaque struct is enough. GzipIfstream.cpp includes
+// <zlib.h> and calls the API.
+struct gzFile_s;
 
 namespace OpenMS
 {
@@ -89,8 +97,10 @@ public:
 
 protected:
 
-    ///a gzFile object(void*) . Necessary for decompression
-    gzFile gzfile_;
+    ///the open zlib file handle; this is zlib's @c gzFile, spelled as a pointer to
+    ///the opaque @c gzFile_s forward-declared above so that this header does not
+    ///have to include @c <zlib.h> . Necessary for decompression
+    gzFile_s * gzfile_;
     ///counts the last read duffer
     int n_buffer_;
     ///saves the last returned error by the read function

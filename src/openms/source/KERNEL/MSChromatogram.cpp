@@ -8,6 +8,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
@@ -373,12 +374,11 @@ void MSChromatogram::checkDataArraySizes_() const
 
 MSChromatogram& MSChromatogram::select(const std::vector<Size>& indices)
 {
-  const Size snew = indices.size();
+  // The range check is the guarantee of this entry point: an out-of-range index is rejected before
+  // any storage is touched, so the chromatogram is left unchanged. selectUnchecked() then performs
+  // the actual reordering.
   const Size peaks_old = size();
-
-  // Validate everything *before* touching any storage, so a rejected call leaves
-  // the chromatogram exactly as it was instead of half-permuted.
-  for (Size i = 0; i < snew; ++i)
+  for (Size i = 0; i < indices.size(); ++i)
   {
     if (indices[i] >= peaks_old)
     {
@@ -387,7 +387,30 @@ MSChromatogram& MSChromatogram::select(const std::vector<Size>& indices)
                                       StringUtils::toStr(peaks_old));
     }
   }
+  return selectUnchecked(indices);
+}
+
+MSChromatogram& MSChromatogram::selectUnchecked(const std::vector<Size>& indices)
+{
+  const Size snew = indices.size();
+
+  // Cheap and independent of the indices: guards a mis-sized data array from being indexed out of
+  // bounds during the reorder below.
   checkDataArraySizes_();
+
+  // Duplicate indices are undefined behaviour: every element is moved, so a repeated index would
+  // read a moved-from value. Assert uniqueness (and in-range) in debug builds only.
+#ifdef OPENMS_ASSERTIONS
+  {
+    std::vector<bool> seen(size(), false);
+    for (Size i = 0; i < snew; ++i)
+    {
+      OPENMS_PRECONDITION(indices[i] < seen.size() && !seen[indices[i]],
+                          "selectUnchecked(): indices must be in range and duplicate-free");
+      seen[indices[i]] = true;
+    }
+  }
+#endif
 
   ContainerType tmp;
   tmp.reserve(snew);
@@ -424,9 +447,7 @@ MSChromatogram& MSChromatogram::select(const std::vector<Size>& indices)
     mda_tmp_str.reserve(snew);
     for (Size j = 0; j < snew; ++j)
     {
-      // copy, not move: 'indices' may name the same source entry twice, and a
-      // moved-from std::string would yield an empty second copy
-      mda_tmp_str.push_back(string_data_arrays_[i][indices[j]]);
+      mda_tmp_str.push_back(std::move(string_data_arrays_[i][indices[j]]));
     }
     std::swap(string_data_arrays_[i], mda_tmp_str);
   }

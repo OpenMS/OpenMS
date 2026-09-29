@@ -8,6 +8,7 @@
 #include <OpenMS/ML/PEPTDEEP/PeptDeepMS2Inference.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepInput.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <algorithm>
 #include <cmath>
@@ -56,6 +57,32 @@ static const string& csvField(const vector<string>& fields, const map<string, si
     return fields[it->second];
 }
 
+// Helper to pull AlphaPeptDeep modified sequences and strip terminal underscores
+static string getSequenceFromCSV(const vector<string>& fields, const map<string, size_t>& index)
+{
+    string pep_seq;
+    if (index.find("modified_sequence") != index.end()) {
+        pep_seq = csvField(fields, index, "modified_sequence");
+        if (!pep_seq.empty() && pep_seq.front() == '_') pep_seq.erase(0, 1);
+        if (!pep_seq.empty() && pep_seq.back() == '_') pep_seq.pop_back();
+    } else {
+        pep_seq = csvField(fields, index, "sequence");
+    }
+    return pep_seq;
+}
+
+// Helper to parse strings into OpenMS::AASequence objects for builder tests
+static std::vector<OpenMS::AASequence> parsePeptides(const std::vector<std::string>& peptides)
+{
+    std::vector<OpenMS::AASequence> parsed;
+    parsed.reserve(peptides.size());
+    for (const std::string& p : peptides)
+    {
+        parsed.push_back(OpenMS::AASequence::fromString(p));
+    }
+    return parsed;
+}
+
 START_TEST(PeptDeepInference, "$Id$")
 
 // Note: These paths will be resolved by the OpenMS CMake testing environment
@@ -91,7 +118,7 @@ START_SECTION(PeptDeepInputBuilder)
     STATUS("Testing shared PeptDeep input featurization...");
 
     vector<string> peptides = {"AGHCEWQMKYR", "PEPTIDE"};
-    ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildUnmodifiedPeptideBatch(peptides);
+    ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(peptides));
 
     TEST_EQUAL(batch.batch_size, 2);
     TEST_EQUAL(batch.sequence_length, 13);
@@ -107,7 +134,8 @@ START_SECTION(PeptDeepInputBuilder)
     vector<float> charges = {2.0f, 3.0f};
     vector<float> nces = {30.0f, 27.0f};
     vector<int64_t> instruments = {0, 2};
-    ML::PeptDeepInputBatch instrument_batch = ML::PeptDeepInputBuilder::buildUnmodifiedInstrumentBatch(peptides, charges, nces, instruments);
+
+    ML::PeptDeepInputBatch instrument_batch = ML::PeptDeepInputBuilder::buildProductMetaBatch(parsePeptides(peptides), charges, nces, instruments);
 
     TEST_REAL_SIMILAR(instrument_batch.charges[0], 0.2f);
     TEST_REAL_SIMILAR(instrument_batch.charges[1], 0.3f);
@@ -115,16 +143,87 @@ START_SECTION(PeptDeepInputBuilder)
     TEST_REAL_SIMILAR(instrument_batch.nces[1], 0.27f);
     TEST_EQUAL(instrument_batch.instrument_indices[1], 2);
 
-    bool threw_on_modified_peptide = false;
-    try
-    {
-        ML::PeptDeepInputBuilder::buildUnmodifiedPeptideBatch({"PEP(UniMod:21)TIDE"});
-    }
-    catch (...)
-    {
-        threw_on_modified_peptide = true;
-    }
-    TEST_EQUAL(threw_on_modified_peptide, true);
+    STATUS("Testing native getDiffFormula() modification featurization (mod_x tensor)...");
+
+    std::vector<std::string> mod_peptides = {"PEP(Oxidation)TIDE", "M(Oxidation)Y(Phospho)PEP"};
+    ML::PeptDeepInputBatch mod_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(mod_peptides));
+
+    TEST_EQUAL(mod_batch.batch_size, 2);
+    TEST_EQUAL(mod_batch.sequence_length, 9);
+    TEST_EQUAL(mod_batch.mod_x.size(), 2 * 9 * ML::PEPTDEEP_MOD_ELEMENTS);
+
+    // 1. Verify "PEP(Oxidation)TIDE"
+    size_t pep_mod_pos = 3;
+    size_t pep_oxygen_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (pep_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
+    TEST_REAL_SIMILAR(mod_batch.mod_x[pep_oxygen_idx], 1.0f);
+    TEST_REAL_SIMILAR(mod_batch.mod_x[pep_oxygen_idx - 1], 0.0f);
+
+    // 2. Verify "M(Oxidation)Y(Phospho)PEP"
+    size_t phos_mod_pos = 2;
+    size_t phos_h_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (phos_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 1;
+    size_t phos_o_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (phos_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
+    size_t phos_p_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (phos_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 4;
+
+    TEST_REAL_SIMILAR(mod_batch.mod_x[phos_h_idx], 1.0f);
+    TEST_REAL_SIMILAR(mod_batch.mod_x[phos_o_idx], 3.0f);
+    TEST_REAL_SIMILAR(mod_batch.mod_x[phos_p_idx], 1.0f);
+
+    STATUS("Testing terminal modifications...");
+    std::vector<std::string> term_peptides = {"(Acetyl)PEPTIDE"};
+    ML::PeptDeepInputBatch term_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(term_peptides));
+
+    size_t acetyl_c_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (0 * ML::PEPTDEEP_MOD_ELEMENTS) + 0;
+    size_t acetyl_h_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (0 * ML::PEPTDEEP_MOD_ELEMENTS) + 1;
+    size_t acetyl_o_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (0 * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
+
+    TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_c_idx], 2.0f);
+    TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_h_idx], 2.0f);
+    TEST_REAL_SIMILAR(term_batch.mod_x[acetyl_o_idx], 1.0f);
+
+    STATUS("Testing isotope tracking to specific channels...");
+    std::vector<std::string> iso_peptides = {"K(Label:13C(6)15N(2))PEPTIDE"};
+    ML::PeptDeepInputBatch iso_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(iso_peptides));
+
+    size_t k_mod_pos = 1; // K is at index 1 (N-term padding is 0)
+    size_t iso_13c_idx = (0 * 10 * ML::PEPTDEEP_MOD_ELEMENTS) + (k_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 105;
+    size_t iso_15n_idx = (0 * 10 * ML::PEPTDEEP_MOD_ELEMENTS) + (k_mod_pos * ML::PEPTDEEP_MOD_ELEMENTS) + 106;
+
+    TEST_REAL_SIMILAR(iso_batch.mod_x[iso_13c_idx], 6.0f);
+    TEST_REAL_SIMILAR(iso_batch.mod_x[iso_15n_idx], 2.0f);
+
+    STATUS("Testing parsed-length grouping logic...");
+    std::vector<std::string> length_peptides = {"M(Oxidation)PEPT"};
+    ML::PeptDeepInputBatch length_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(length_peptides));
+    TEST_EQUAL(length_batch.sequence_length, 7);
+
+    STATUS("Testing engine boundaries: Multi-modifications, batch mixing, and exceptions...");
+    std::vector<std::string> mixed_peptides = {
+        "PEPTIDE",                             // Row 0: No mods
+        "M(Oxidation)M(Oxidation)M(Oxidation)" // Row 1: Max mods
+    };
+    ML::PeptDeepInputBatch mixed_batch = ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(mixed_peptides));
+
+    TEST_EQUAL(mixed_batch.batch_size, 2);
+    TEST_EQUAL(mixed_batch.sequence_length, 9);
+    TEST_EQUAL(mixed_batch.mod_x.size(), 2 * 9 * ML::PEPTDEEP_MOD_ELEMENTS);
+
+    size_t row0_oxygen_idx = (0 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (1 * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
+    TEST_REAL_SIMILAR(mixed_batch.mod_x[row0_oxygen_idx], 0.0f);
+
+    size_t row1_m1_oxygen_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (1 * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
+    size_t row1_m3_oxygen_idx = (1 * 9 * ML::PEPTDEEP_MOD_ELEMENTS) + (3 * ML::PEPTDEEP_MOD_ELEMENTS) + 3;
+    TEST_REAL_SIMILAR(mixed_batch.mod_x[row1_m1_oxygen_idx], 1.0f);
+    TEST_REAL_SIMILAR(mixed_batch.mod_x[row1_m3_oxygen_idx], 1.0f);
+
+    STATUS("Testing out-of-bounds heap corruption guard and invalid modification traps...");
+    ML::PeptDeepInputConfig strict_config;
+    strict_config.fixed_sequence_length = 5;
+    std::vector<std::string> long_peptides = {"PEPTIDEK"};
+    TEST_EXCEPTION(Exception::IllegalArgument, ML::PeptDeepInputBuilder::buildPeptideBatch(parsePeptides(long_peptides), strict_config));
+
+    std::vector<std::string> fake_peptides = {"PEP(FakeMod)TIDE"};
+    TEST_EXCEPTION(Exception::InvalidValue, parsePeptides(fake_peptides));
+
 END_SECTION
 
 START_SECTION(PeptDeepRTInference)
@@ -195,8 +294,7 @@ START_SECTION(PeptDeepRTInference ONNX parity with AlphaPeptDeep Python predicti
             }
 
             vector<string> fields = splitCSVLine(line);
-
-            peptides.push_back(csvField(fields, index, "sequence"));
+            peptides.push_back(getSequenceFromCSV(fields, index));
             expected_rt_preds.push_back(static_cast<float>(stod(csvField(fields, index, "rt_pred_onnx"))));
         }
 
@@ -245,7 +343,7 @@ START_SECTION(PeptDeepCCSInference ONNX parity with AlphaPeptDeep Python predict
             }
 
             vector<string> fields = splitCSVLine(line);
-            peptides.push_back(csvField(fields, index, "sequence"));
+            peptides.push_back(getSequenceFromCSV(fields, index));
             charges.push_back(static_cast<float>(stod(csvField(fields, index, "charge"))));
             expected_ccs_preds.push_back(static_cast<float>(stod(csvField(fields, index, "ccs_pred_onnx"))));
         }
@@ -282,13 +380,9 @@ START_SECTION(PeptDeepMS2Inference)
     TEST_EQUAL(ms2_preds.size(), 1);
 
     // PEPTIDEK length = 8. Valid fragments = 7.
-    // AlphaPeptDeep outputs 8 ion types per fragment (b1, b2, y1, y2, etc.)
-    // Exact expected length = (8 - 1) * 8 = 56
     size_t expected_length = (ms2_peptides[0].length() - 1) * 8;
     TEST_EQUAL(ms2_preds[0].size(), expected_length);
 
-    // Verify Base Peak Normalization
-    // Since we applied Base Peak Normalization, the max value in the spectrum MUST be exactly 1.0
     float max_intensity = 0.0f;
     for (float val : ms2_preds[0]) {
         if (val > max_intensity) {
@@ -300,7 +394,7 @@ START_SECTION(PeptDeepMS2Inference)
 END_SECTION
 
 START_SECTION(PeptDeepMS2Inference ONNX parity with Python ONNX Runtime predictions)
-    STATUS("Verifying MS2 fragment intensities against saved Python ONNX Runtime intensity_onnx values...");
+    STATUS("Verifying MS2 fragment intensities against saved Python ONNX Runtime intensity_onnx values using forced chunking (batch_size=2)...");
 
     ifstream spectra_input(ms2_spectra_data);
     ifstream expected_input(ms2_reference_data);
@@ -328,7 +422,7 @@ START_SECTION(PeptDeepMS2Inference ONNX parity with Python ONNX Runtime predicti
             }
 
             vector<string> fields = splitCSVLine(line);
-            peptides.push_back(csvField(fields, spectra_index, "sequence"));
+            peptides.push_back(getSequenceFromCSV(fields, spectra_index));
             charges.push_back(static_cast<float>(stod(csvField(fields, spectra_index, "charge"))));
             nces.push_back(static_cast<float>(stod(csvField(fields, spectra_index, "nce"))));
             instruments.push_back(static_cast<int64_t>(stoll(csvField(fields, spectra_index, "instrument_index"))));
@@ -368,24 +462,26 @@ START_SECTION(PeptDeepMS2Inference ONNX parity with Python ONNX Runtime predicti
             expected_intensities[row_id][offset] = intensity;
         }
 
-        PeptDeepMS2Inference ms2_engine(ms2_model);
+        // Initialize engine with a forced batch size of 2 to exercise the batch chunking logic on mixed sequence lengths
+        PeptDeepMS2Inference ms2_engine(ms2_model, 1, 2);
 
         float max_abs_error = 0.0f;
+        auto actual_batched = ms2_engine.predictMS2(peptides, charges, nces, instruments);
+
+        TEST_EQUAL(actual_batched.size(), peptides.size());
+
         for (size_t i = 0; i < peptides.size(); ++i)
         {
-            auto actual = ms2_engine.predictMS2({peptides[i]}, {charges[i]}, {nces[i]}, {instruments[i]});
+            TEST_EQUAL(actual_batched[i].size(), expected_intensities[i].size());
 
-            TEST_EQUAL(actual.size(), 1);
-            TEST_EQUAL(actual[0].size(), expected_intensities[i].size());
-
-            const size_t n = min(actual[0].size(), expected_intensities[i].size());
+            const size_t n = min(actual_batched[i].size(), expected_intensities[i].size());
             for (size_t j = 0; j < n; ++j)
             {
-                max_abs_error = max(max_abs_error, static_cast<float>(fabs(actual[0][j] - expected_intensities[i][j])));
+                max_abs_error = max(max_abs_error, static_cast<float>(fabs(actual_batched[i][j] - expected_intensities[i][j])));
             }
         }
 
-        STATUS("Maximum absolute MS2 intensity error: " << max_abs_error);
+        STATUS("Maximum absolute MS2 intensity error across batched sets: " << max_abs_error);
         TEST_EQUAL(max_abs_error < 1e-4f, true);
     }
 END_SECTION

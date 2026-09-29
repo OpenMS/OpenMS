@@ -11,12 +11,10 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/config.h>
 #include <cstdlib>
-#include <mutex>
 
 
 namespace OpenMS
 {
-  class Param;
   class TOPPBase;
 
   /**
@@ -27,42 +25,6 @@ namespace OpenMS
   class OPENMS_DLLAPI File
   {
 public:
-    /**
-      @brief Class representing a temporary directory
-    
-    */
-    class OPENMS_DLLAPI TempDir
-    {
-    public:
-      
-      /// Construct temporary folder under system temp directory
-      /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
-      TempDir(bool keep_dir = false);
-
-      /// Construct temporary folder under a custom base directory
-      /// Creates a unique subdirectory with a generated name under base_dir.
-      /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
-      /// @param base_dir The base directory under which to create the temp folder (e.g., user-specified temp path)
-      /// @param keep_dir If true, the folder will not be deleted on destruction
-      TempDir(const std::string& base_dir, bool keep_dir = false);
-
-      /// Destroy temporary folder (can be prohibited in Constructor)
-      ~TempDir();
-
-      /// delete all means to copy or move a TempDir
-      TempDir(const TempDir&) = delete;
-      TempDir& operator=(const TempDir&) = delete;
-      TempDir(TempDir&&) = delete;
-      TempDir& operator=(TempDir&&) = delete;
-
-      /// Return path to temporary folder
-      const std::string& getPath() const;
-
-    private:
-      std::string temp_dir_;
-      bool keep_dir_;
-    };
-
     /// Retrieve path of current executable (useful to find other TOPP tools)
     /// The returned path is either just an EMPTY string if the call to system subroutines failed
     /// or the complete path including a trailing "/", to enable usage of this function as
@@ -80,6 +42,17 @@ public:
 
     /// The filesize in bytes (or -1 on error, e.g. if the file does not exist)
     static UInt64 fileSize(const std::string& file);
+
+    /**
+       @brief Last modification time of @p file, in seconds since the Unix epoch (or -1 on error).
+
+       Reported against the Unix epoch rather than as a std::filesystem::file_time_type, whose
+       clock epoch is implementation-defined: two standard libraries report different numbers for
+       the same file. That distinction only matters once the value leaves the process -- written
+       to a file, or compared against one another machine recorded -- which is exactly what a
+       caller doing change detection tends to do with it.
+    */
+    static Int64 getModificationTime(const std::string& file);
 
     /**
        @brief Rename a file
@@ -233,43 +206,6 @@ public:
     */
     static const std::string& getOpenMSDataPathSource();
 
-    /// Returns the OpenMS home path (environment variable overwrites the default home path)
-    static std::string getOpenMSHomePath();
-
-    /// @brief Returns the per-user OpenMS configuration directory (the directory that holds OpenMS.ini)
-    ///
-    /// Follows the XDG base directory specification on unix-like systems
-    /// (&lt;XDG_CONFIG_HOME&gt;/OpenMS or &lt;home&gt;/.config/OpenMS) and uses &lt;home&gt;/.OpenMS otherwise.
-    /// The returned path has no trailing separator and the directory is not guaranteed to exist.
-    /// @return String containing the per-user OpenMS configuration directory path
-    static std::string getOpenMSConfigDir();
-
-    /// The current OpenMS temporary data path (for temporary files).
-    /// Looks up the following locations, taking the first one which is non-null:
-    ///   - environment variable OPENMS_TMPDIR
-    ///   - 'temp_dir' in the ~/OpenMS.ini file
-    ///   - System temp directory (usually defined by environment 'TMP' or 'TEMP'
-    static std::string getTempDirectory();
-
-    /// The current OpenMS user data path (for result files)
-    /// Tries to set the user directory in following order:
-    ///   1. OPENMS_HOME_DIR if environmental variable set
-    ///   2. "home_dir" entry in OpenMS.ini
-    ///   3. user home directory
-    static std::string getUserDirectory();
-
-    /// get the system's default OpenMS.ini file in the users home directory (&lt;home&gt;/OpenMS/OpenMS.ini)
-    /// or create/repair it if required
-    /// order:
-    ///   1. &lt;OPENMS_HOME_DIR&gt;/OpenMS/OpenMS.ini if environmental variable set
-    ///   2. user home directory &lt;home&gt;/OpenMS/OpenMS.ini
-    static Param getSystemParameters();
-
-    /// uses File::find() to search for a file names @p db_name
-    /// in the 'id_db_dir' param of the OpenMS system parameters
-    /// @exception FileNotFound is thrown, if the file is not found
-    static std::string findDatabase(const std::string& db_name);
-
     /**
       @brief Extract list of directories from a concatenated string (usually $PATH).
 
@@ -314,25 +250,6 @@ public:
     */
     static std::string findSiblingTOPPExecutable(const std::string& toolName);
 
-    /**
-      @brief Obtain a temporary filename, ensuring automatic deletion upon exit
-
-      The file is not actually created and only deleted at exit if it exists.
-      
-      However, if 'alternative_file' is given and not empty, no temporary filename
-      is created and 'alternative_file' is returned (and not destroyed upon exit).
-      This is useful if you have an optional
-      output file, which may, or may not be requested, but you need its content regardless,
-      e.g. for intermediate plotting with R.
-      Thus you can just call this function to get a file which can be used and gets automatically
-      destroyed if needed.
-
-      @param[in] alternative_file If this string is not empty, no action is taken and it is used as return value
-      @return Full path to a temporary file
-    */
-    static std::string getTemporaryFile(const std::string& alternative_file = "");
-
-
     enum class MatchingFileListsStatus 
     {
         MATCH = 0,           // Everything matches perfectly
@@ -361,9 +278,6 @@ public:
                                                        bool ignore_extension = true);
 
 private:
-
-    /// get defaults for the system's Temp-path, user home directory etc.
-    static Param getSystemParameterDefaults_();
 
     /// Check if the given path is a valid OPENMS_DATA_PATH
     static bool isOpenMSDataPath_(const std::string& path);
@@ -399,27 +313,5 @@ private:
     */
     static StringList executableExtensions_(const std::string& ext);
 #endif
-
-    /**
-      @brief Internal helper class, which holds temporary filenames and deletes these files at program exit
-    */
-    class TemporaryFiles_
-    {
-      public:
-        TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
-        TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
-        TemporaryFiles_();
-        /// create a new filename and queue internally for deletion
-        std::string newFile();
-
-        ~TemporaryFiles_();
-      private:
-        StringList filenames_;
-        std::mutex mtx_;
-    };
-
-
-    /// private list of temporary filenames, which are deleted upon program exit
-    static TemporaryFiles_ temporary_files_;
   };
 }

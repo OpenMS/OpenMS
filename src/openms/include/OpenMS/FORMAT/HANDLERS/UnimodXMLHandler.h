@@ -51,12 +51,30 @@ private:
 
       EmpiricalFormula diff_formula_;
 
+      /**
+          @brief Whether \<element\> children currently contribute to #diff_formula_
+
+          Only \<delta\> (the composition of the modification itself) and \<NeutralLoss\> (the
+          composition of a neutral loss) describe the chemistry of the modification. \<Ignore\>
+          (reagent fragments a search must not consider), \<aa\> and \<brick\> carry
+          \<element\> children as well, and folding those into the formula would leave it
+          inconsistent with the recorded delta mass.
+      */
+      bool collect_elements_{false};
+
       std::vector<EmpiricalFormula> neutral_loss_diff_formula_;
+
+      /// masses of the \<NeutralLoss\> currently open; the \<delta\> masses live in #mono_mass_ / #avge_mass_
+      double neutral_loss_mono_mass_{0.0};
+      double neutral_loss_avge_mass_{0.0};
 
       bool was_valid_peptide_modification_;
       std::vector<std::vector<EmpiricalFormula>> neutral_loss_diff_formulas_;
       std::vector<double> neutral_loss_mono_masses_;
       std::vector<double> neutral_loss_avg_masses_;
+      /// one entry per specificity, parallel to #neutral_loss_diff_formulas_
+      std::vector<std::vector<double>> neutral_loss_mono_masses_all_;
+      std::vector<std::vector<double>> neutral_loss_avg_masses_all_;
 
       ResidueModification* modification_;
 

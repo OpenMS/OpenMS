@@ -45,6 +45,21 @@ START_SECTION(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& s
   ptr = new TheoreticalSpectrumGenerator();
   TheoreticalSpectrumGenerator copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // getParameters() cannot see the members updateMembers_() caches, so also check
+  // that a copy of a configured generator produces the same spectrum
+  TheoreticalSpectrumGenerator configured;
+  Param p(configured.getParameters());
+  p.setValue("add_a_ions", "true");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
+  TheoreticalSpectrumGenerator configured_copy(configured);
+
+  AASequence seq = AASequence::fromString("IFSQVGK");
+  PeakSpectrum from_source, from_copy;
+  configured.getSpectrum(from_source, seq, 1, 1);
+  configured_copy.getSpectrum(from_copy, seq, 1, 1);
+  TEST_EQUAL(from_copy == from_source, true)
 END_SECTION
 
 START_SECTION(~TheoreticalSpectrumGenerator())
@@ -58,6 +73,20 @@ START_SECTION(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectru
   TheoreticalSpectrumGenerator copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // same for assignment
+  TheoreticalSpectrumGenerator configured;
+  Param p(configured.getParameters());
+  p.setValue("add_a_ions", "true");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
+  TheoreticalSpectrumGenerator assigned;
+  assigned = configured;
+
+  PeakSpectrum from_source, from_assigned;
+  configured.getSpectrum(from_source, peptide, 1, 1);
+  assigned.getSpectrum(from_assigned, peptide, 1, 1);
+  TEST_EQUAL(from_assigned == from_source, true)
 END_SECTION
 
 START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge = 1, Int max_charge = 1))

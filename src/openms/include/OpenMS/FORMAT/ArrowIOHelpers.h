@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>  // for ParquetWriteConfig
 
@@ -16,6 +17,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <unordered_set>
 #include <vector>
 
@@ -31,6 +33,7 @@ namespace OpenMS
 {
 class ConsensusMap;
 class MetaInfoInterface;
+namespace MS1LabelState { struct Keys; }
 
 /**
   @brief Public helpers for writing and concatenating Arrow tables to Parquet files
@@ -51,6 +54,20 @@ namespace ArrowIOHelpers
     @return UUID string, e.g. "550e8400-e29b-41d4-a716-446655440000"
   */
   OPENMS_DLLAPI std::string generateUuidV4();
+
+  /**
+    @brief Number of rows in an Arrow table, or 0 when it is null.
+
+    Exists so that a TOPP tool can ask "did this table come out empty?" without calling an
+    Arrow member function itself. Arrow is deliberately confined to libOpenMS' implementation
+    (see the note on ParquetTableComparator), and on Windows its symbols are @c dllimport, so a
+    tool that calls @c arrow::Table::num_rows() directly fails to link there while building
+    fine on Linux.
+
+    @param[in] table the table to measure; may be null
+    @return the row count, or 0 for a null table
+  */
+  OPENMS_DLLAPI Size tableRowCount(const std::shared_ptr<arrow::Table>& table);
 
   /**
     @brief Write an Arrow table to a Parquet file
@@ -101,6 +118,11 @@ namespace ArrowIOHelpers
     writer schema and every batch — each call mints a fresh @c uuid and
     @c creation_date, so calling it per batch would produce mismatched schemas.
 
+    For a known @p file_type it also stamps @c primary_key and @c identity_composite, the
+    declaration a reader needs to re-derive the view's opaque row ids (see QPXIdentity). Done
+    here rather than per exporter so that a producer cannot emit ids without saying what they
+    were derived from.
+
     @param[in] file_type QPX view token: @c "psm_file", @c "feature_file" or @c "pg_file"
     @param[in] config Write configuration; supplies @c compression_format
     @param[in] extra Additional keys, e.g. <tt>{{"scan_format", "scan"}}</tt>
@@ -143,6 +165,66 @@ namespace ArrowIOHelpers
     @return The stem, e.g. <tt>S1_Frontal_1</tt>; empty input yields an empty result.
   */
   OPENMS_DLLAPI std::string qpxRunFileName(const std::string& ms_run_path);
+
+  /**
+    @brief The QPX @c scan column value for one spectrum reference
+
+    QPX stores @c scan as a list of integer components. OpenMS derives it from the spectrum's
+    native ID, whose format is auto-detected.
+
+    Shared by the psm and feature views on purpose. @c scan is part of both views'
+    identity composites, so the id linking a PSM to its feature is only reproducible while both
+    extract the same number from the same reference -- two verbatim copies of this would be one
+    edit away from a collection whose cross-references silently stop resolving.
+
+    @param[in] spectrum_reference Native ID, e.g. <tt>controllerType=0 controllerNumber=1 scan=2075</tt>
+    @return The components, in order; empty when the reference is empty or carries no
+            recognizable scan number (which is a legitimate value, e.g. for an unidentified
+            feature)
+  */
+  OPENMS_DLLAPI std::vector<Int32> qpxScanComponents(const std::string& spectrum_reference);
+
+  /**
+    @brief MetaInfo indices qpxPsmRunFileName() consults, resolved once
+
+    Construct one per export, outside the row loop. Resolving a metavalue key by name takes the
+    MetaInfoRegistry's @c omp @c critical lock, which is why the exporters resolve every key they
+    use up front rather than per row.
+  */
+  struct OPENMS_DLLAPI QPXRunFileNameKeys
+  {
+    /// Resolve the keys against the current registry
+    QPXRunFileNameKeys();
+    /// Index of @c reference_file_name, or @c UInt(-1) when it is not registered
+    UInt reference_file_name;
+    /// Index of @c run_file_name, or @c UInt(-1) when it is not registered
+    UInt run_file_name;
+  };
+
+  /**
+    @brief The QPX @c run_file_name the psm view writes for one identification and hit
+
+    Prefers a per-hit or per-identification file reference over the identification run's
+    resolved path, then reduces it with qpxRunFileName().
+
+    Shared with the feature view for the same reason as qpxScanComponents(): the feature view
+    has to reproduce this exactly to decide which of its rows a given PSM belongs to.
+
+    The metavalue keys are passed as pre-resolved MetaInfoRegistry indices rather than looked up
+    by name: MetaInfoRegistry::getIndex() takes an @c omp @c critical lock, and this runs once per
+    row inside the exporters' parallel batch build, where a per-row lock would serialize it.
+    Resolve them once outside the row loop with QPXRunFileNameKeys.
+
+    @param[in] hit The PSM's hit; consulted for @c reference_file_name / @c run_file_name
+    @param[in] identification The PSM; consulted for @c reference_file_name
+    @param[in] resolved_run_file Fallback path from IdentifierMSRunMapper::getPrimaryMSRunPath()
+    @param[in] keys Pre-resolved metavalue indices
+    @return The bare run name, or empty when no source could be resolved at all
+  */
+  OPENMS_DLLAPI std::string qpxPsmRunFileName(const MetaInfoInterface& hit,
+                                              const MetaInfoInterface& identification,
+                                              const std::string& resolved_run_file,
+                                              const QPXRunFileNameKeys& keys);
 
   /**
     @brief Warn once per export about source files that collapse onto one @c run_file_name
@@ -216,6 +298,26 @@ namespace ArrowIOHelpers
     @return true if @p label is a canonical QPX channel token
   */
   OPENMS_DLLAPI bool qpxIsCanonicalIntensityLabel(const std::string& label);
+
+  /**
+    @brief The meta values of an identification that QPX carries as @c cv_params
+
+    QPX reserves @c cv_params, a list of {cv_name, cv_value} pairs, on the feature and psm views for
+    annotations outside the fixed schema. OpenMS uses it for the label state of an MS1-labeled
+    identification, i.e. the MS1LabelState meta values @c MS1Label:labeled_sequence, @c MS1Label:removed_labels and
+    @c MS1Label:channel that MS1LabeledWorkflow records on the PeptideHit.
+
+    Only these keys are exported, so identifications without a label state (label-free, isobaric)
+    keep a null @c cv_params, as before.
+
+    @param[in] hit The PeptideHit (or any MetaInfoInterface) to read the keys from
+    @return (cv_name, cv_value) pairs in the order above, only for the keys present; empty if none is
+  */
+  OPENMS_DLLAPI std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit);
+
+  /// qpxCvParams() with the registry indices resolved once (MS1LabelState::Keys), for a loop over many hits
+  OPENMS_DLLAPI std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit,
+                                                                              const MS1LabelState::Keys& keys);
 
   // ---------------------------------------------------------------------------
   // Read helpers

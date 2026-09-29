@@ -29,7 +29,6 @@
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
 // - scanWindowList for each acquisition separately (currently for the whole spectrum only)
-// - instrumentConfigurationRef attribute for scan (why should the instrument change between scans? - warning if used)
 // - scanSettingsRef attribute for instrumentConfiguration tag (currently no information there because of missing mapping file entry - warning if used)
 
 // xs:id/xs:idref prefix list
@@ -340,6 +339,10 @@ protected:
       /// Helper method that writes a software
       void writeSoftware_(std::ostream& os, const std::string& id, const Software& software, const Internal::MzMLValidator& validator);
 
+      /// Write one instrument configuration, including its components.
+      void writeInstrument_(std::ostream& os, const std::string& id, const Instrument& instrument,
+                            const std::string& software_id, const Internal::MzMLValidator& validator);
+
       /// Helper method that writes a source file
       void writeSourceFile_(std::ostream& os, const std::string& id, const SourceFile& software, const Internal::MzMLValidator& validator);
 
@@ -404,6 +407,7 @@ protected:
       std::map<std::string, Software> software_;
       /// The data processing list: id => Instrument
       std::map<std::string, Instrument> instruments_;
+      std::string default_instrument_configuration_ref_;
       /// CV terms-path-combinations that have been checked in validateCV_()
       mutable std::map<std::pair<std::string, std::string>, bool> cached_terms_;
       /// The data processing list: id => Instrument

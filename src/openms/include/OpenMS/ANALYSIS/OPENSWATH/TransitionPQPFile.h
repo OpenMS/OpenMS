@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
 namespace OpenMS
@@ -233,7 +234,9 @@ private:
      *
      * @param[in] filename The input file
      * @param[out] exp The output LightTargetedExperiment
-     * @param[in] legacy_traml_id Should legacy TraML IDs be used (boolean)?
+     * @param[in] legacy_traml_id If false (default), use canonical PQP PRECURSOR.ID /
+     * TRANSITION.ID values for OpenSWATH processing. If true, restore legacy TRAML_ID
+     * values for compatibility/conversion workflows.
      *
     */
     void streamPQPToLightTargetedExperiment_(const char* filename, OpenSwath::LightTargetedExperiment& exp, bool legacy_traml_id = false);
@@ -263,13 +266,32 @@ public:
     */
     void convertTargetedExperimentToPQP(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
-    /** @brief Write out a targeted experiment (Light structure) into a PQP file
+    /** @brief Write a canonical LightTargetedExperiment into a PQP file.
+     *
+     * PRECURSOR.ID and TRANSITION.ID are preserved exactly from LightCompound.id and
+     * LightTransition.transition_name, including zero and sparse values. The input must
+     * already satisfy OpenSwathLibraryIDNormalizer::validateCanonicalIDs().
      *
       @param[in] filename The output file
-      @param[in] targeted_exp The targeted experiment (Light structure)
+      @param[in] targeted_exp The canonical targeted experiment (Light structure)
      *
     */
-    void convertLightTargetedExperimentToPQP(const char* filename, const OpenSwath::LightTargetedExperiment& targeted_exp);
+    /// Compatibility overload: preserves canonical input as-is, otherwise canonicalizes a source-style Light experiment once before writing.
+    void convertLightTargetedExperimentToPQP(
+      const char* filename,
+      const OpenSwath::LightTargetedExperiment& targeted_exp);
+
+    /** @brief Write a canonical LightTargetedExperiment into a PQP file with optional source precursor provenance.
+     *
+     * @param[in] filename The output file
+     * @param[in] targeted_exp The canonical targeted experiment (Light structure)
+     * @param[in] source_ids Optional source-ID provenance. When supplied, PRECURSOR.TRAML_ID
+     *            stores the original/source identifier while PRECURSOR.ID remains canonical.
+     */
+    void convertLightTargetedExperimentToPQP(
+      const char* filename,
+      const OpenSwath::LightTargetedExperiment& targeted_exp,
+      const OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids);
 
     /** @brief Read in a PQP file and construct a targeted experiment (TraML structure)
      *
@@ -284,17 +306,34 @@ public:
      *
      * @param[out] filename The input file
      * @param[out] targeted_exp The output targeted experiment
-     * @param[in] legacy_traml_id Should legacy TraML IDs be used (boolean)?
+     * @param[in] legacy_traml_id If false (default), use canonical PQP PRECURSOR.ID /
+     * TRANSITION.ID values for OpenSWATH processing. If true, restore legacy TRAML_ID
+     * values for compatibility/conversion workflows.
      *
     */
     void convertPQPToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp, bool legacy_traml_id = false);
 
-    /** @brief Creates an undordered map between the traml_id and the pqp id
-     * 
+    /** @brief Creates an unordered map between the TRAML_ID and the persistent PQP ID.
+     *
      * @param[in] filename The input file
-     * @param[in] tableName The name of the table (can be "PRECURSOR" or "TRANSITION" since theses are the only tables that have a TRAML_ID)
+     * @param[in] tableName The table to query; must be @c PRECURSOR or @c TRANSITION
+     * @throws Exception::IllegalArgument If @p tableName is not @c PRECURSOR or @c TRANSITION
      */
     std::unordered_map<std::string, std::string> getPQPIDToTraMLIDMap(const char* filename, std::string tableName);
+
+    /** @brief Return persistent PQP IDs mapped to their source TRAML_ID values.
+     *
+     * Unlike getPQPIDToTraMLIDMap(), this direction is keyed by the persistent
+     * numeric ID and therefore preserves provenance for duplicate source transition
+     * identifiers. Empty TRAML_ID values are returned as empty strings.
+     *
+     * @param[in] filename The input file
+     * @param[in] tableName The table to query; must be @c PRECURSOR or @c TRANSITION
+     * @throws Exception::IllegalArgument If @p tableName is not @c PRECURSOR or @c TRANSITION
+     */
+    std::unordered_map<std::string, std::string> getPQPCurrentIDToTraMLIDMap(
+      const char* filename,
+      const std::string& tableName);
 
   };
 }

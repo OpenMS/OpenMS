@@ -16,7 +16,7 @@ obtain release versions (`bioconda` channel) and nightly versions (`openms` chan
 
 2. We recommend to create a new environment with one of the supported python version versions:
    ```bash
-    conda create -n openms python=3.10
+    conda create -n openms python=3.11
    ```
 
 2. Add some channels to find dependencies:

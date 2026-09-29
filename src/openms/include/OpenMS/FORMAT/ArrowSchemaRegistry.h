@@ -216,6 +216,10 @@ namespace OpenMS
   /// peptide-spectrum match data in the QPX format. Used by QPXFile for export.
   struct OPENMS_DLLAPI QPXPSMSchema
   {
+    /// Mandatory opaque identity and primary key; see QPXIdentity
+    static constexpr const char* PSM_ID = "psm_id";
+    /// Optional cross-reference to QPXFeatureSchema::FEATURE_ID; null when the PSM is unlinked
+    static constexpr const char* FEATURE_ID = "feature_id";
     static constexpr const char* SEQUENCE = "sequence";
     static constexpr const char* PEPTIDOFORM = "peptidoform";
     static constexpr const char* MODIFICATIONS = "modifications";
@@ -249,7 +253,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::DataType> cvParamsType();
     /// @brief Arrow type for cross-links: list<struct{xl_type, partner_sequence, ...}>
     static std::shared_ptr<arrow::DataType> crossLinksType();
-    /// @brief Complete Arrow schema for QPX PSM table (24 fields)
+    /// @brief Complete Arrow schema for QPX PSM table (26 fields)
     static std::shared_ptr<arrow::Schema> schema();
   };
 
@@ -259,6 +263,10 @@ namespace OpenMS
   /// consensus feature data in the QPX format. Used by ConsensusMapArrowExport.
   struct OPENMS_DLLAPI QPXFeatureSchema
   {
+    /// Mandatory opaque identity and primary key; see QPXIdentity
+    static constexpr const char* FEATURE_ID = "feature_id";
+    /// Optional cross-reference to the QPXPSMSchema::PSM_ID values this feature was quantified from
+    static constexpr const char* PSM_IDS = "psm_ids";
     static constexpr const char* SEQUENCE = "sequence";
     static constexpr const char* PEPTIDOFORM = "peptidoform";
     static constexpr const char* MODIFICATIONS = "modifications";
@@ -305,7 +313,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::DataType> pgAccessionsType();
     /// @brief Arrow type for protein group positions: list<struct{protein_accession, start, end}>
     static std::shared_ptr<arrow::DataType> pgPositionsType();
-    /// @brief Complete Arrow schema for QPX feature table (31 fields)
+    /// @brief Complete Arrow schema for QPX feature table (33 fields)
     static std::shared_ptr<arrow::Schema> schema();
   };
 
@@ -321,6 +329,8 @@ namespace OpenMS
   ///       intensity representation.
   struct OPENMS_DLLAPI QPXPgSchema
   {
+    /// Mandatory opaque identity and primary key; see QPXIdentity
+    static constexpr const char* PG_ID = "pg_id";
     static constexpr const char* PG_ACCESSIONS = "pg_accessions";
     static constexpr const char* PG_NAMES = "pg_names";
     static constexpr const char* GG_ACCESSIONS = "gg_accessions";
@@ -357,7 +367,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::DataType> additionalScoresType();
     /// @brief Arrow type for CV params (delegates to QPXPSMSchema::cvParamsType)
     static std::shared_ptr<arrow::DataType> cvParamsType();
-    /// @brief Complete Arrow schema for QPX pg table (21 fields)
+    /// @brief Complete Arrow schema for QPX pg table (22 fields)
     static std::shared_ptr<arrow::Schema> schema();
   };
 

@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -142,7 +143,19 @@ namespace OpenMS
       }
       last_spec->push_back(im_frame[i]);// copy the m/z of the peak
     }
-    out.sortSpectra(true);
+    // Only the per-spectrum m/z sort is wanted here. sortSpectra() would also sort the
+    // spectra by RT, and every spectrum emitted above carries the frame's retention time
+    // (see addSpectrum), so that sort runs on an all-equal key. MSExperiment::sortSpectra
+    // uses std::sort, which is not stable, so it would permute the spectra arbitrarily and
+    // destroy the ascending ion-mobility order the loop above just established and asserts.
+    // Downstream that axis becomes the x axis of mass traces (PeakPickerIM reinterprets the
+    // drift time as RT), and mass-trace detection walks spectrum indices, so a permutation
+    // silently builds traces from unrelated peaks and makes the output depend on the
+    // standard-library implementation (#10051).
+    for (auto& s : out)
+    {
+      s.sortByPosition();
+    }
     out.updateRanges();
     return out;
   }
@@ -311,73 +324,12 @@ namespace OpenMS
 
   void IMDataConverter::setIMUnit(DataArrays::FloatDataArray& fda, const DriftTimeUnit unit)
   {
-    const auto& cv = ControlledVocabulary::getPSIMSCV();
-    switch (unit)
-    {
-      case DriftTimeUnit::MILLISECOND: 
-        fda.setName(cv.getTerm("MS:1002816").name); // MS:1002816 ! mean ion mobility array
-        return;
-      case DriftTimeUnit::VSSC:
-        fda.setName(cv.getTerm("MS:1003008").name); // MS:1003008 ! raw inverse reduced ion mobility array
-        return;
-      default:
-        // invalid enum ...
-        // There is no CV term which can be used to describe the FDA
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit is not a valid IM unit for float data arrays", driftTimeUnitToString(unit));
-    }
+    IMDataArrayUtils::setIMUnit(fda, unit);
   }
 
   bool IMDataConverter::getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit)
   {
-    const auto& cv = ControlledVocabulary::getPSIMSCV();
-    if (StringUtils::hasPrefix(fda.getName(), Constants::UserParam::ION_MOBILITY) ||
-        StringUtils::hasPrefix(fda.getName(), Constants::UserParam::INVERSE_REDUCED_ION_MOBILITY) ||
-        StringUtils::hasPrefix(fda.getName(), Constants::UserParam::MEAN_INVERSE_REDUCED_ION_MOBILITY_ARRAY))
-    { // fallback for non-standard IM arrays (as created by Mobi-DIK, "Ion Mobility Centroid" from PeakPickerIM, "inverse reduced ion mobility" from MSConvert, or "mean inverse reduced ion mobility array" from Bruker)
-      if (StringUtils::hasSubstring(fda.getName(), "MS:1002815") || StringUtils::hasSubstring(fda.getName(), "MS:1003006"))
-      {
-        unit = DriftTimeUnit::VSSC;
-      }
-      else if (StringUtils::hasSubstring(fda.getName(), "MS:1002954"))
-      {
-        unit = DriftTimeUnit::CCS;
-      }
-      else
-      {
-        unit = DriftTimeUnit::MILLISECOND;
-      }
-      return true;
-    }
-    try
-    {
-      const auto& cv_term = cv.getTermByName(fda.getName()); // may throw if term is unknown
-
-      if (cv.isChildOf(cv_term.id, "MS:1002893")) // is child of generic 'ion mobility array'?
-      {
-        if (cv_term.units.contains("MS:1002814"))
-        { // MS:1002814 ! volt-second per square centimeter
-          unit = DriftTimeUnit::VSSC;
-        }
-        else if (cv_term.units.contains("UO:0000028"))
-        { // UO:0000028 ! millisecond
-          unit = DriftTimeUnit::MILLISECOND;
-        }
-        else if (cv_term.units.contains("UO:0000324"))
-        { // UO:0000324 ! square angstrom (CCS)
-          unit = DriftTimeUnit::CCS;
-        }
-        else
-        { // fallback
-          OPENMS_LOG_WARN << "Warning: FloatDataArray for IonMobility data '" << cv_term.id << " " << cv_term.name << "' does not contain proper units!" << std::endl;
-          unit = DriftTimeUnit::NONE;
-        }
-        return true;
-      }
-    }
-    catch (...)
-    {
-    }
-    return false;
+    return IMDataArrayUtils::getIMUnit(fda, unit);
   }
 
 }  //end namespace OpenMS

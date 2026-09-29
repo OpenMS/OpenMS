@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+
+#include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport_impl.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -43,6 +45,61 @@ using namespace OpenMS::Internal;
 
 namespace // anonymous
 {
+
+/**
+  @brief Channel ratios of one protein group, at (fraction group, label) grain
+
+  MS1LabeledWorkflow annotates a labeled experiment's ratios on the group as parallel arrays next to
+  PeptideAndProteinQuant's abundance arrays (see MS1LabeledRatioQuantifier). They key on exactly the
+  (fraction group, label) pair a pg row is emitted for, so the ratio is reported in that row's
+  additional_intensities and the contributing peptide count in its cv_params. A group, or a whole
+  experiment, without them yields an empty map and the columns are written as before (empty).
+*/
+struct GroupRatio
+{
+  double ratio = 0.0;
+  double normalized = 0.0;
+  bool has_normalized = false; ///< the producer normalized; otherwise only the raw ratio is reported
+  Int count = 0;
+};
+
+std::map<std::pair<UInt, UInt>, GroupRatio> fractionGroupRatios(
+  const ProteinIdentification::ProteinGroup& group)
+{
+  const ProteinIdentification::ProteinGroup::FloatDataArray* ratios = nullptr;
+  const ProteinIdentification::ProteinGroup::FloatDataArray* normalized = nullptr;
+  const ProteinIdentification::ProteinGroup::IntegerDataArray* fraction_groups = nullptr;
+  const ProteinIdentification::ProteinGroup::IntegerDataArray* labels = nullptr;
+  const ProteinIdentification::ProteinGroup::IntegerDataArray* counts = nullptr;
+  for (const auto& array : group.getFloatDataArrays())
+  {
+    if (array.getName() == "fraction_group_level_ratio") { ratios = &array; }
+    else if (array.getName() == "fraction_group_level_ratio_normalized") { normalized = &array; }
+  }
+  for (const auto& array : group.getIntegerDataArrays())
+  {
+    if (array.getName() == "fraction_group_level_ratio_fraction_group") { fraction_groups = &array; }
+    else if (array.getName() == "fraction_group_level_ratio_label") { labels = &array; }
+    else if (array.getName() == "fraction_group_level_ratio_count") { counts = &array; }
+  }
+
+  std::map<std::pair<UInt, UInt>, GroupRatio> result;
+  if (ratios == nullptr || fraction_groups == nullptr || labels == nullptr) { return result; }
+  const Size n = ratios->size();
+  if (fraction_groups->size() != n || labels->size() != n) { return result; }
+  for (Size i = 0; i < n; ++i)
+  {
+    if ((*fraction_groups)[i] <= 0 || (*labels)[i] <= 0) { continue; }
+    GroupRatio entry;
+    entry.ratio = (*ratios)[i];
+    entry.has_normalized = normalized != nullptr && normalized->size() == n;
+    entry.normalized = entry.has_normalized ? (*normalized)[i] : (*ratios)[i];
+    entry.count = (counts != nullptr && counts->size() == n) ? (*counts)[i] : 0;
+    result[{static_cast<UInt>((*fraction_groups)[i]), static_cast<UInt>((*labels)[i])}] = entry;
+  }
+  return result;
+}
+
   /// accession -> runs in which that accession has identification evidence.
   using AccessionRuns = std::unordered_map<std::string, std::set<std::string>>;
 
@@ -312,6 +369,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
 
   // -- Simple column builders --
   arrow::StringBuilder anchor_protein_builder;
+  arrow::Int64Builder pg_id_builder;
   auto grouped_runs_vb = std::make_shared<arrow::StringBuilder>();
   arrow::ListBuilder grouped_runs_builder(arrow::default_memory_pool(), grouped_runs_vb);
   arrow::DoubleBuilder global_qvalue_builder, pg_qvalue_builder, gg_qvalue_builder;
@@ -446,11 +504,19 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   auto emitRow = [&](const ProteinIdentification::ProteinGroup& group,
                      const std::vector<std::string>& runs,
                      const std::optional<std::string>& label,
-                     const std::optional<float>& intensity)
+                     const std::optional<float>& intensity,
+                     const std::vector<std::pair<std::string, std::string>>& row_cv_params = {},
+                     const std::vector<std::pair<std::string, float>>& row_additional_intensities = {})
   {
     const std::string& anchor = group.accessions.empty() ? "" : group.accessions[0];
     // anchor_protein
     (void)anchor_protein_builder.Append(anchor);
+
+    // pg_id -- derived from the three columns that make up this view's identity. No floats in
+    // this composite, so a pg identity is stable across platforms. Keyed on the whole membership
+    // rather than on `anchor`: two groups sharing a leading protein would otherwise collide, and
+    // pg_id is this view's primary key.
+    (void)pg_id_builder.Append(QPXIdentity::pgId(group.accessions, runs, label));
 
     // grouped_runs -- the raw files aggregated into this quantity.
     // Deliberately no File::stemName() here: the values are already QPX run names, and
@@ -517,9 +583,29 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       (void)intensity_builder.Append(*intensity);
     }
 
-    // additional_intensities - empty for quantified rows, null for identification-only rows.
-    if (label.has_value()) { (void)additional_intensities_builder.Append(); }
-    else                   { (void)additional_intensities_builder.AppendNull(); }
+    // additional_intensities - the further named quantities of this row's channel, currently the
+    // channel ratio of a labeled experiment (see fractionGroupRatios). Empty for a quantified row
+    // without them, null for an identification-only row, which has no channel to name.
+    if (label.has_value())
+    {
+      (void)additional_intensities_builder.Append();
+      if (!row_additional_intensities.empty())
+      {
+        (void)ai_struct_b->Append();
+        (void)ai_label_b->Append(*label);
+        (void)ip_list_b->Append();
+        for (const auto& [name, value] : row_additional_intensities)
+        {
+          (void)ip_struct_b->Append();
+          (void)ip_name_b->Append(name);
+          (void)ip_value_b->Append(value);
+        }
+      }
+    }
+    else
+    {
+      (void)additional_intensities_builder.AppendNull();
+    }
 
     // is_decoy
     auto anchor_it = hit_lookup.find(anchor);
@@ -649,8 +735,15 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       (void)as_hb_b->Append(prot_id.isHigherScoreBetter());
     }
 
-    // cv_params - empty for now
+    // cv_params - the channel ratio of this (protein group, fraction group, label), when the
+    // workflow computed one; empty otherwise.
     (void)cv_params_builder.Append();
+    for (const auto& [name, value] : row_cv_params)
+    {
+      (void)cv_struct_b->Append();
+      (void)cv_name_b->Append(name);
+      (void)cv_value_b->Append(value);
+    }
   };
 
   // Build (run stem, 1-based channel) -> QPX intensity label from the column headers.
@@ -706,10 +799,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   Size unattributable_groups = 0;
   for (const auto& group : groups)
   {
-    // The legacy sample abundance array identifies a quantified group and remains part of the
-    // mzTab-facing annotation. QPX must read the new fraction-group/label arrays: a sample may
-    // occur in multiple fraction groups, so its experiment-wide abundance cannot be split back
-    // into the independent quantities after protein aggregation.
+    // QPX identifies a quantified group through the fraction-group/label arrays themselves: a
+    // sample may occur in multiple fraction groups, so a legacy experiment-wide sample abundance
+    // cannot be split back into the independent quantities after protein aggregation.
     const auto* sample_abundances = sampleAbundances(group);
     const FractionGroupAbundanceData quantities = fractionGroupAbundances(group);
     const std::string annotation_error = validateQuantificationAnnotations(
@@ -722,16 +814,31 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       return nullptr;
     }
 
-    const bool quantified = sample_abundances != nullptr || quantities.present;
+    const bool quantified = quantities.present;
     if (quantified)
     {
+      const auto ratios = fractionGroupRatios(group);
       // One scalar row per label in each fraction group, matching the active QPX 1.1 primary key.
       for (const auto& unit : units.units())
       {
         for (const auto& channel : unit.channels)
         {
           const auto value = quantities.values.find({unit.fraction_group, channel.label});
-          emitRow(group, unit.runs, channel.qpx_label, value->second);
+          std::vector<std::pair<std::string, std::string>> row_cv_params;
+          std::vector<std::pair<std::string, float>> row_additional_intensities;
+          if (const auto ratio = ratios.find({unit.fraction_group, channel.label}); ratio != ratios.end())
+          {
+            // The ratio is a further quantity of this channel, so it belongs in the typed,
+            // label-keyed additional_intensities rather than in the free-form cv_params. The
+            // number of contributing peptides stays there: it is a count, not an intensity.
+            row_additional_intensities.emplace_back("ratio", static_cast<float>(ratio->second.ratio));
+            if (ratio->second.has_normalized)
+            {
+              row_additional_intensities.emplace_back("ratio_normalized", static_cast<float>(ratio->second.normalized));
+            }
+            row_cv_params.emplace_back("ratio_count", std::to_string(ratio->second.count));
+          }
+          emitRow(group, unit.runs, channel.qpx_label, value->second, row_cv_params, row_additional_intensities);
         }
       }
     }
@@ -818,6 +925,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: molecular_weight Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = additional_scores_builder.Finish(&arr_add_scores);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: additional_scores Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  std::shared_ptr<arrow::Array> arr_pg_id;
+  status = pg_id_builder.Finish(&arr_pg_id);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: pg_id Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = cv_params_builder.Finish(&arr_cv_params);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: cv_params Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
@@ -826,6 +936,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   // registry anyway, and Table::Make + Validate() below catches any type the builders emit that
   // the registry does not declare.
   auto table = arrow::Table::Make(QPXPgSchema::schema(), {
+    arr_pg_id,
     arr_pg_acc, arr_pg_names, arr_gg_acc, arr_gg_names,
     arr_gg_qval, arr_anchor, arr_grouped_runs,
     arr_global_qval, arr_pg_qval,
@@ -940,6 +1051,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   // one quantity: every grouped_runs list holds exactly the one run that keyed the row -- the
   // single-element form the QPX 1.1 schema documents for unfractionated input.
   arrow::StringBuilder anchor_protein_builder;
+  arrow::Int64Builder pg_id_builder;
   auto grouped_runs_vb = std::make_shared<arrow::StringBuilder>();
   arrow::ListBuilder grouped_runs_builder(arrow::default_memory_pool(), grouped_runs_vb,
                                           QPXPgSchema::groupedRunsType());
@@ -1173,6 +1285,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
         // anchor_protein
         (void)anchor_protein_builder.Append(anchor);
 
+        // pg_id -- an identification-only row carries no quantity, so its label is null, and
+        // that null is part of the key rather than a missing value.
+        (void)pg_id_builder.Append(QPXIdentity::pgId(group.accessions, {run_file}, std::nullopt));
+
         // grouped_runs
         (void)grouped_runs_builder.Append();
         (void)grouped_runs_vb->Append(run_file);
@@ -1381,10 +1497,14 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): molecular_weight Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = additional_scores_builder.Finish(&arr_add_scores);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): additional_scores Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  std::shared_ptr<arrow::Array> arr_pg_id;
+  status = pg_id_builder.Finish(&arr_pg_id);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: pg_id Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = cv_params_builder.Finish(&arr_cv_params);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): cv_params Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
   auto table = arrow::Table::Make(target_schema, {
+    arr_pg_id,
     arr_pg_acc, arr_pg_names, arr_gg_acc, arr_gg_names,
     arr_gg_qval, arr_anchor, arr_grouped_runs,
     arr_global_qval, arr_pg_qval,

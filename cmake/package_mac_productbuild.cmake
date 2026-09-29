@@ -21,16 +21,27 @@ set(CPACK_PRODUCTBUILD_BACKGROUND ${OPENMS_LOGOSMALL_NAME})
 set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
 set(CPACK_PRODUCTBUILD_BACKGROUND_SCALING "none")
 
-# Allow installing to every Domain if supported by current CMake version (https://gitlab.kitware.com/cmake/cmake/-/merge_requests/6825)
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.23.0")
-  set(CPACK_PRODUCTBUILD_DOMAINS TRUE) # system-wide
-  set(CPACK_PRODUCTBUILD_DOMAINS_USER TRUE) # user folder
-endif()
+# Allow installing to every Domain (https://gitlab.kitware.com/cmake/cmake/-/merge_requests/6825).
+set(CPACK_PRODUCTBUILD_DOMAINS TRUE) # system-wide
+set(CPACK_PRODUCTBUILD_DOMAINS_USER TRUE) # user folder
 
-# TODO we might need to set a user-defined template for the installer anyway due to missing architecture support
-# in CMake (https://gitlab.kitware.com/cmake/cmake/-/issues/21734)
-# The template would go in cmake/Modules which is already in our Module path.
-# Official template is here: https://gitlab.kitware.com/cmake/cmake/-/blob/v3.27.4/Modules/Internal/CPack/CPack.distribution.dist.in?ref_type=tags
+# The installer refuses a macOS older than the deployment target, which package builds set
+# through MACOSX_DEPLOYMENT_TARGET (.github/actions/build/action.yml). The Distribution file
+# comes from cmake/Modules/CPack.distribution.dist.in: CPack looks for that template in
+# CMAKE_MODULE_PATH before its own, and ours is CMake's plus a <volume-check>, the only
+# parent Apple's Distribution XML reference allows for <allowed-os-versions>; its script
+# attribute is required. Setting CPACK_APPLE_PKG_INSTALLER_CONTENT instead does not work:
+# CPack generates that variable.
+# TODO the template could also declare hostArchitectures, which CMake does not support
+# (https://gitlab.kitware.com/cmake/cmake/-/issues/21734).
+# Single quotes: CPack copies CPACK_* values into CPackConfig.cmake without escaping them.
+if(CMAKE_OSX_DEPLOYMENT_TARGET)
+  set(CPACK_OPENMS_ALLOWED_OS_VERSIONS
+      "<volume-check script='true'><allowed-os-versions><os-version min='${CMAKE_OSX_DEPLOYMENT_TARGET}'/></allowed-os-versions></volume-check>")
+else()
+  set(CPACK_OPENMS_ALLOWED_OS_VERSIONS "")
+  message(WARNING "CMAKE_OSX_DEPLOYMENT_TARGET is not set, so the installer will not check the macOS version. Set MACOSX_DEPLOYMENT_TARGET to the macOS the build and its bundled libraries target.")
+endif()
 
 if(NOT DEFINED CPACK_PRODUCTBUILD_IDENTITY_NAME)
   message(WARNING "CPACK_PRODUCTBUILD_IDENTITY_NAME not set. PKG will not be signed. Make sure to specify an identity with a Developer ID: Installer certificate (not Application certificate).")
@@ -84,17 +95,8 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README.md
                     WORLD_READ
         COMPONENT   TOPPShell)
 
-## Not needed unless we need Qt plugins for TOPP again
-## Install the qt.conf file so we can find the libraries
-## add qt.conf to the bin directory for DMGs/pkgs
-#file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-#"[Paths]\nPlugins = ../${INSTALL_PLUGIN_DIR}\n")
-#install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
-#        DESTINATION ./${INSTALL_BIN_DIR}
-#        PERMISSIONS OWNER_WRITE OWNER_READ
-#                    GROUP_READ
-#                    WORLD_READ
-#        COMPONENT   Applications)
+## bin/qt.conf, which ExecutePipeline needs to find the Qt platform plugin, is installed in
+## src/openms_gui/CMakeLists.txt.
 
 ## Fix OpenMS dependencies for all executables in the install directory under bin.
 ## That affects everything but the bundles (whose Framework folders are symlinked to lib anyway).
@@ -115,14 +117,24 @@ install(CODE "
         message('\${topp_sign_out}')"
         COMPONENT Dependencies
         )
-install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -e @rpath/ -n -c)"
-        COMPONENT library
-        )
-install(CODE "
-        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE lib_sign_out ERROR_VARIABLE lib_sign_out)
-        message('\${lib_sign_out}')"
-        COMPONENT library
-        )
+## The libraries come in layered components (cmake/install_macros.cmake):
+## library, library_cli and library_gui. productbuild stages each component in
+## its own prefix, so each one fixes and signs the libraries it holds.
+set(_openms_library_components library library_cli)
+if(WITH_GUI)
+  list(APPEND _openms_library_components library_gui)
+endif()
+foreach(_library_component IN LISTS _openms_library_components)
+  install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -e @rpath/ -n -c)"
+          COMPONENT ${_library_component}
+          )
+  install(CODE "
+          execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE lib_sign_out ERROR_VARIABLE lib_sign_out)
+          message('\${lib_sign_out}')"
+          COMPONENT ${_library_component}
+          )
+endforeach()
+unset(_openms_library_components)
 
 ## Sign thirdparty components
 foreach(component IN LISTS THIRDPARTY_COMPONENT_GROUP)
@@ -154,6 +166,10 @@ set(CPACK_POSTFLIGHT_APPLICATIONS_SCRIPT ${OPENMS_HOST_BINARY_DIRECTORY}/cmake/M
 ## processed, so it picks up every real component.
 get_cmake_property(CPACK_COMPONENTS_ALL COMPONENTS)
 list(REMOVE_ITEM CPACK_COMPONENTS_ALL python_modules)
+## Drop the class-test framework archive and its headers (dev tool, not product
+## payload). Both install rules are EXCLUDE_FROM_ALL, but productbuild enumerates
+## components explicitly and installs each one by name, which ignores that flag.
+list(REMOVE_ITEM CPACK_COMPONENTS_ALL OpenMSTestFramework OpenMSTestFramework_headers)
 
 ## Create own target because you cannot "depend" on the internal target 'package'
 add_custom_target(dist

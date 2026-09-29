@@ -16,10 +16,15 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+#include <algorithm>
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 
 namespace OpenMS
 {
@@ -143,6 +148,90 @@ bool QPXCollectionExport::requireExportable(const ConsensusMap& cmap, const Expe
   }
 
   return true;
+}
+
+namespace
+{
+  /// The three files a QPX collection consists of, in the order the views write them.
+  const char* const QPX_COLLECTION_FILES[] = {"/quantms.feature.parquet",
+                                              "/quantms.psm.parquet",
+                                              "/quantms.pg.parquet"};
+}
+
+QPXCollectionExport::Transaction::Transaction(const std::string& directory) :
+  directory_(directory)
+{
+  // Remember what was already here. Re-running a pipeline into the same output directory is
+  // normal, and a failed re-run must not delete the previous result: only files this export
+  // creates may be removed again.
+  for (const char* name : QPX_COLLECTION_FILES)
+  {
+    const std::string path = directory_ + name;
+    if (File::exists(path))
+    {
+      preexisting_.push_back(path);
+    }
+  }
+}
+
+void QPXCollectionExport::Transaction::commit()
+{
+  committed_ = true;
+}
+
+QPXCollectionExport::Transaction::~Transaction()
+{
+  if (committed_)
+  {
+    return;
+  }
+
+  // Runs during stack unwinding when a writer threw, so nothing here may escape.
+  try
+  {
+    std::vector<std::string> kept;
+    for (const char* name : QPX_COLLECTION_FILES)
+    {
+      const std::string path = directory_ + name;
+      if (!File::exists(path))
+      {
+        continue;
+      }
+      if (std::find(preexisting_.begin(), preexisting_.end(), path) != preexisting_.end())
+      {
+        kept.push_back(path);
+        continue;
+      }
+      if (File::remove(path))
+      {
+        OPENMS_LOG_INFO << "QPXCollectionExport: removed " << path
+                        << " -- the QPX collection was not written in full.\n";
+      }
+      else
+      {
+        OPENMS_LOG_ERROR << "QPXCollectionExport: failed to remove " << path
+                         << ", which is part of an incomplete QPX collection. Delete the "
+                            "directory before using it.\n";
+      }
+    }
+    if (!kept.empty())
+    {
+      // A view that ran before the failure overwrote its file in place, so what is left is a
+      // mixture of this run and the previous one. Say which files those are rather than let the
+      // directory look like a complete collection.
+      OPENMS_LOG_WARN << "QPXCollectionExport: the QPX collection was not written in full, and "
+                      << directory_ << " already held a collection before this export. These "
+                         "files predate the guard and were left in place, but a view that ran "
+                         "before the failure may have overwritten them, so the directory may now "
+                         "mix two exports: "
+                      << ListUtils::concatenate(kept, ", ") << "\n";
+    }
+  }
+  catch (...) // NOLINT(bugprone-empty-catch)
+  {
+    // A destructor that throws during unwinding terminates the process, which would replace a
+    // reported export failure with a crash. There is nothing left to report to.
+  }
 }
 
 } // namespace OpenMS

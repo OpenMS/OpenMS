@@ -33,9 +33,7 @@ class TestMSNumpressCoder(unittest.TestCase):
         config.np_compression = pyopenms.MSNumpressCoder.NumpressCompression.SLOF
         config.estimate_fixed_point = True
 
-        out_ = pyopenms.String()
-        coder.encodeNP(self.testData, out_, False, config)
-        out = out_.c_str()
+        out = coder.encodeNP(self.testData, False, config).encode("utf-8")
 
         self.assertEqual( len(out),  24)
         self.assertEqual( out,  b"QMVagAAAAAAZxX3ivPP8/w==")
@@ -60,9 +58,7 @@ class TestMSNumpressCoder(unittest.TestCase):
         config.np_compression = pyopenms.MSNumpressCoder.NumpressCompression.PIC
         config.estimate_fixed_point = True
 
-        out_ = pyopenms.String()
-        coder.encodeNP(self.testData, out_, False, config)
-        out = out_.c_str()
+        out = coder.encodeNP(self.testData, False, config).encode("utf-8")
 
         self.assertEqual( len(out),  12)
         self.assertEqual( out, b"ZGaMXCFQkQ==")
@@ -87,9 +83,7 @@ class TestMSNumpressCoder(unittest.TestCase):
         config.np_compression = pyopenms.MSNumpressCoder.NumpressCompression.LINEAR
         config.estimate_fixed_point = True
 
-        out_ = pyopenms.String()
-        coder.encodeNP(self.testData, out_, False, config)
-        out = out_.c_str()
+        out = coder.encodeNP(self.testData, False, config).encode("utf-8")
 
         self.assertEqual( len(out),  28)
         self.assertEqual( out,  b"QWR64UAAAADo//8/0P//f1kSgA==")
@@ -124,9 +118,7 @@ class TestMSNumpressCoderRaw(unittest.TestCase):
         config.np_compression = pyopenms.MSNumpressCoder.NumpressCompression.SLOF
         config.estimate_fixed_point = True
 
-        out_ = pyopenms.String()
-        coder.encodeNPRaw(self.testData, out_, config)
-        out = out_.c_str()
+        out = coder.encodeNPRaw(self.testData, config)
 
         self.assertEqual( len(out),  16)
         self.assertEqual( out,  b'@\xc5Z\x80\x00\x00\x00\x00\x19\xc5}\xe2\xbc\xf3\xfc\xff' )
@@ -151,9 +143,7 @@ class TestMSNumpressCoderRaw(unittest.TestCase):
         config.np_compression = pyopenms.MSNumpressCoder.NumpressCompression.PIC
         config.estimate_fixed_point = True
 
-        out_ = pyopenms.String()
-        coder.encodeNPRaw(self.testData, out_, config)
-        out = out_.c_str()
+        out = coder.encodeNPRaw(self.testData, config)
 
         self.assertEqual( len(out),  7)
         self.assertEqual( out, b'df\x8c\\!P\x91')
@@ -178,9 +168,7 @@ class TestMSNumpressCoderRaw(unittest.TestCase):
         config.np_compression = pyopenms.MSNumpressCoder.NumpressCompression.LINEAR
         config.estimate_fixed_point = True
 
-        out_ = pyopenms.String()
-        coder.encodeNPRaw(self.testData, out_, config)
-        out = out_.c_str()
+        out = coder.encodeNPRaw(self.testData, config)
 
         self.assertEqual( len(out),  19)
         self.assertEqual( out,  b'Adz\xe1@\x00\x00\x00\xe8\xff\xff?\xd0\xff\xff\x7fY\x12\x80')

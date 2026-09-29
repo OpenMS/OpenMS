@@ -23,7 +23,6 @@
 #include <vector>
 #include <memory>
 #include <mutex>
-#include <unordered_map>
 
 namespace OpenMS
 {
@@ -100,8 +99,6 @@ namespace OpenMS
     OpenMS::UInt64 run_id_ = 0;
     bool doWrite_;
     bool enable_uis_scoring_;
-    std::unordered_map<std::string, Int64> canonical_precursor_ids_;
-    std::unordered_map<std::string, Int64> canonical_transition_ids_;
     // persistent sqlite connector to avoid reopening DB on each write
     mutable std::unique_ptr<SqliteConnector> conn_;
     mutable std::mutex conn_mutex_;
@@ -225,13 +222,6 @@ namespace OpenMS
 
     /// Set the current run id used when prepareLine generates FEATURE entries.
     void setRunId(const UInt64 run_id);
-
-    /// Set canonical integer identifiers for precursor and transition references.
-    void setCanonicalLibraryMapping(const std::unordered_map<std::string, Int64>& precursor_ids_by_ref,
-                                    const std::unordered_map<std::string, Int64>& transition_ids_by_ref);
-
-    /// Clear any canonical precursor/transition identifier mapping.
-    void clearCanonicalLibraryMapping();
 
     /**
      * @brief Prepare scores for SQLite insertion

@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -21,6 +23,15 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <fstream>
+#include <sstream>
+#include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 using namespace OpenMS;
@@ -31,6 +42,60 @@ DRange<1> makeRange(double a, double b)
 {
   DPosition<1> pa(a), pb(b);
   return DRange<1>(pa, pb);
+}
+
+namespace
+{
+  // registers a tool-defined modification; ModificationsDB is process-wide, so every section uses its own name
+  const ResidueModification* defineMod4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return ModificationsDB::getInstance()->registerDefinition(d);
+  }
+
+  // a definition record for a name that is NOT registered in this process
+  std::string freshRecord4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return d.toDefinitionString();
+  }
+
+  std::string slurp4b(const std::string& path)
+  {
+    std::ifstream in(path);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    return ss.str();
+  }
+
+  bool fileContains4b(const std::string& path, const std::string& needle)
+  {
+    return slurp4b(path).find(needle) != std::string::npos;
+  }
+
+  // first occurrence only; returns false when @p from is absent
+  bool replaceInFile4b(const std::string& path, const std::string& from, const std::string& to)
+  {
+    std::string s = slurp4b(path);
+    const std::size_t pos = s.find(from);
+    if (pos == std::string::npos) return false;
+    s.replace(pos, from.size(), to);
+    std::ofstream out(path);
+    out << s;
+    return true;
+  }
 }
 
 START_TEST(ConsensusXMLFile, "$Id$")
@@ -278,21 +343,23 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
 
   group.getFloatDataArrays().resize(4);
   group.getStringDataArrays().resize(2);
-  group.getIntegerDataArrays().resize(2);
-  group.getFloatDataArrays()[0].setName("abundances");
-  group.getFloatDataArrays()[0].assign({1.5f, 2.5f});
-  group.getFloatDataArrays()[1].setName("psm_count");
-  group.getFloatDataArrays()[1].resize(2); // all zero, as produced today
-  group.getFloatDataArrays()[2].setName("distinct_peptides");
-  group.getFloatDataArrays()[2].resize(2); // all zero, as produced today
-  group.getFloatDataArrays()[3].setName("file_channel_level_abundance");
-  group.getFloatDataArrays()[3].assign({10.0f, 20.0f, 30.0f, 40.0f});
+  group.getIntegerDataArrays().resize(4);
+  group.getFloatDataArrays()[0].setName("psm_count");
+  group.getFloatDataArrays()[1].setName("distinct_peptides");
+  group.getFloatDataArrays()[2].setName("file_channel_level_abundance");
+  group.getFloatDataArrays()[2].assign({10.0f, 20.0f, 30.0f, 40.0f});
+  group.getFloatDataArrays()[3].setName("fraction_group_level_abundance");
+  group.getFloatDataArrays()[3].assign({1.5f, 2.5f});
   group.getStringDataArrays()[0].setName("file_channel_level_filename");
   group.getStringDataArrays()[0].assign({"fileA", "fileA", "fileB", "fileB"});
   group.getStringDataArrays()[1].setName("file_level_filename");
   group.getIntegerDataArrays()[0].setName("file_channel_level_channel");
   group.getIntegerDataArrays()[0].assign({1, 2, 1, 2});
   group.getIntegerDataArrays()[1].setName("file_level_psm_count");
+  group.getIntegerDataArrays()[2].setName("fraction_group_level_fraction_group");
+  group.getIntegerDataArrays()[2].assign({1, 2});
+  group.getIntegerDataArrays()[3].setName("fraction_group_level_label");
+  group.getIntegerDataArrays()[3].assign({1, 1});
 
   prot.insertIndistinguishableProteins(group);
 
@@ -306,21 +373,21 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
   TEST_EQUAL(loaded.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 1)
   const ProteinIdentification::ProteinGroup& rt = loaded.getProteinIdentifications()[0].getIndistinguishableProteins()[0];
 
-  // the positional layout consumers rely on (MzTab, ProteinGroupArrowExport) is restored
+  // The assay-only layout is restored without inventing a legacy sample array.
   TEST_EQUAL(rt.getFloatDataArrays().size(), 4)
   TEST_EQUAL(rt.getStringDataArrays().size(), 2)
-  TEST_EQUAL(rt.getIntegerDataArrays().size(), 2)
-  TEST_EQUAL(rt.getFloatDataArrays()[0].getName(), "abundances")
-  TEST_EQUAL(rt.getFloatDataArrays()[3].getName(), "file_channel_level_abundance")
+  TEST_EQUAL(rt.getIntegerDataArrays().size(), 4)
+  TEST_EQUAL(rt.getFloatDataArrays()[2].getName(), "file_channel_level_abundance")
+  TEST_EQUAL(rt.getFloatDataArrays()[3].getName(), "fraction_group_level_abundance")
   TEST_EQUAL(rt.getStringDataArrays()[0].getName(), "file_channel_level_filename")
   TEST_EQUAL(rt.getIntegerDataArrays()[0].getName(), "file_channel_level_channel")
 
-  TEST_EQUAL(rt.getFloatDataArrays()[0].size(), 2)
-  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[0][0], 1.5)
-  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[0][1], 2.5)
-  TEST_EQUAL(rt.getFloatDataArrays()[3].size(), 4)
-  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[3][0], 10.0)
-  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[3][3], 40.0)
+  TEST_EQUAL(rt.getFloatDataArrays()[2].size(), 4)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[2][0], 10.0)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[2][3], 40.0)
+  TEST_EQUAL(rt.getFloatDataArrays()[3].size(), 2)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[3][0], 1.5)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[3][1], 2.5)
   TEST_EQUAL(rt.getStringDataArrays()[0].size(), 4)
   TEST_EQUAL(rt.getStringDataArrays()[0][0], "fileA")
   TEST_EQUAL(rt.getStringDataArrays()[0][3], "fileB")
@@ -328,22 +395,21 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
   TEST_EQUAL(rt.getIntegerDataArrays()[0][0], 1)
   TEST_EQUAL(rt.getIntegerDataArrays()[0][3], 2)
 
-  // all-zero arrays are not written, but keep their in-memory shape
-  TEST_EQUAL(rt.getFloatDataArrays()[1].size(), 2)
-  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[1][0], 0.0)
-  TEST_EQUAL(rt.getFloatDataArrays()[2].size(), 2)
+  // All-zero count arrays are not written and no longer borrow a length from sample abundances.
+  TEST_TRUE(rt.getFloatDataArrays()[0].empty())
+  TEST_TRUE(rt.getFloatDataArrays()[1].empty())
 
   // no leftovers of the encoding on the ProteinIdentification
   std::vector<std::string> keys;
   loaded.getProteinIdentifications()[0].getKeys(keys);
   for (const std::string& key : keys)
   {
-    TEST_EQUAL(StringUtils::hasSubstring(key, "_abundances"), false)
-    TEST_EQUAL(StringUtils::hasSubstring(key, "_quantified_proteins"), false)
+    TEST_FALSE(StringUtils::hasSubstring(key, "_abundances"))
+    TEST_FALSE(StringUtils::hasSubstring(key, "_quantified_proteins"))
   }
 
   // and the file is still schema-valid
-  TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true)
+  TEST_TRUE(f.isValid(tmp_filename, std::cerr))
 
   // storing again must be stable
   std::string tmp_filename2;
@@ -351,7 +417,7 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
   f.store(tmp_filename2, loaded);
   ConsensusMap loaded2;
   f.load(tmp_filename2, loaded2);
-  TEST_EQUAL(loaded2.getProteinIdentifications()[0].getIndistinguishableProteins()[0] == rt, true)
+  TEST_TRUE(loaded2.getProteinIdentifications()[0].getIndistinguishableProteins()[0] == rt)
 }
 END_SECTION
 
@@ -436,11 +502,10 @@ START_SECTION([EXTRA] Quantities whose owner no longer matches the group are dis
 }
 END_SECTION
 
-START_SECTION([EXTRA] All-zero abundances keep their length across a round-trip)
+START_SECTION([EXTRA] Legacy all-zero sample abundances keep their length across a round-trip)
 {
-  // A protein quantified as zero in every sample must not come back with a zero-LENGTH "abundances"
-  // array: MzTab::getQuantStudyVariables_ reads its size and would report no quantities for the whole
-  // file, and ProteinGroupArrowExport would silently omit the group's row.
+  // Preserve the shape of old consensusXML annotations even though sample abundances no longer
+  // identify a quantified group. This compatibility path must not invent assay arrays.
   ConsensusXMLFile f;
   ConsensusMap map;
   f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
@@ -520,6 +585,111 @@ START_SECTION([EXTRA] Protein groups without quantities are written unchanged)
 }
 END_SECTION
 
+START_SECTION([EXTRA] store/load - tool-defined modifications on assigned and unassigned identifications travel with their definitions)
+{
+  TEST_TRUE(defineMod4b("TestCXML:Assigned", 'K', "C2H2O") != nullptr)
+  TEST_TRUE(defineMod4b("TestCXML:Unassigned", 'R', "CH2") != nullptr)
+  ConsensusMap map;
+  map.ensureUniqueId();
+  map.getColumnHeaders()[0].filename = "file0.mzML";
+  map.getColumnHeaders()[0].size = 1;
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b");
+  prot.setDateTime(DateTime::now());
+  map.getProteinIdentifications().push_back(prot);
+
+  ConsensusFeature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0);
+  f.ensureUniqueId();
+  f.insert(FeatureHandle(0, f));
+  PeptideIdentification pa;
+  pa.setIdentifier("run4b");
+  PeptideHit ha;
+  ha.setSequence(AASequence::fromString("PEPK(TestCXML:Assigned)IDE"));
+  pa.insertHit(ha);
+  f.getPeptideIdentifications().push_back(pa);
+  map.push_back(f);
+
+  PeptideIdentification pu;
+  pu.setIdentifier("run4b");
+  PeptideHit hu;
+  hu.setSequence(AASequence::fromString("PEPR(TestCXML:Unassigned)IDE"));
+  pu.insertHit(hu);
+  map.getUnassignedPeptideIdentifications().push_back(pu);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename)
+  ConsensusXMLFile().store(tmp_filename, map);
+  TEST_TRUE(fileContains4b(tmp_filename, "name=\"modification_definitions\""))
+  TEST_TRUE(fileContains4b(tmp_filename, "1|TestCXML:Assigned|TestCXML:Assigned (K)|"))
+  TEST_TRUE(fileContains4b(tmp_filename, "1|TestCXML:Unassigned|TestCXML:Unassigned (R)|"))
+
+  ConsensusMap in;
+  ConsensusXMLFile().load(tmp_filename, in);
+  TEST_EQUAL(in.size(), 1)
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
+  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPK(TestCXML:Assigned)IDE")
+  }
+  if (in.getUnassignedPeptideIdentifications().size() == 1 && !in.getUnassignedPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPR(TestCXML:Unassigned)IDE")
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] load - definitions are registered before the sequences are parsed)
+{
+  const ModificationsDB* db = ModificationsDB::getInstance();
+  TEST_FALSE(db->hasDefinedModification("TestCXML:Fresh"))
+  ConsensusMap map;
+  map.ensureUniqueId();
+  map.getColumnHeaders()[0].filename = "file0.mzML";
+  map.getColumnHeaders()[0].size = 1;
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b_fresh");
+  prot.setDateTime(DateTime::now());
+  ProteinIdentification::SearchParameters sp;
+  sp.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, freshRecord4b("TestCXML:Fresh", 'K', "C2H2O"));
+  prot.setSearchParameters(sp);
+  map.getProteinIdentifications().push_back(prot);
+  ConsensusFeature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0);
+  f.ensureUniqueId();
+  f.insert(FeatureHandle(0, f));
+  PeptideIdentification pep;
+  pep.setIdentifier("run4b_fresh");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTKIDE"));
+  pep.insertHit(hit);
+  f.getPeptideIdentifications().push_back(pep);
+  map.push_back(f);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename)
+  ConsensusXMLFile().store(tmp_filename, map);
+  TEST_FALSE(db->hasDefinedModification("TestCXML:Fresh")) // storing registers nothing
+  // a hit using the not-yet-registered name, as a file from another process would carry it
+  TEST_TRUE(replaceInFile4b(tmp_filename, "sequence=\"PEPTKIDE\"", "sequence=\"PEPTK(TestCXML:Fresh)IDE\""))
+
+  ConsensusMap in;
+  ConsensusXMLFile().load(tmp_filename, in);
+  TEST_TRUE(db->hasDefinedModification("TestCXML:Fresh"))
+  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTK(TestCXML:Fresh)IDE")
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST

@@ -11,16 +11,14 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathExportConfig.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathGeneInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryPreparation.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathMatrixExporter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathParquetExporter.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPeptideInference.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/LevelContextInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPeptidoformInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathProteinInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathResultsExporter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
@@ -42,6 +40,9 @@
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
+
+#include "OpenDIACanonicalLibraryMappingHelper.h"
 
 #include <algorithm>
 #include <array>
@@ -54,7 +55,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include "../openms/source/ANALYSIS/OPENSWATH/OpenSwathCanonicalLibraryMappingHelper.h"
 
 using namespace OpenMS;
 using namespace std;
@@ -96,7 +96,7 @@ class TOPPOpenDIA final :
 {
 public:
   TOPPOpenDIA() :
-    TOPPOpenSwathBase("OpenDIA", "High-level DIA workflow front-end built on the OpenSWATH/OpenMS stack.", true)
+    TOPPOpenSwathBase("OpenDIA", "High-level DIA workflow front-end built on the OpenSWATH/OpenMS stack.")
   {
   }
 
@@ -149,7 +149,7 @@ protected:
   struct WorkingDirectory
   {
     std::string path;
-    std::unique_ptr<File::TempDir> temp_dir;
+    std::unique_ptr<TempDir> temp_dir;
     bool remove_on_success = false;
   };
 
@@ -159,7 +159,7 @@ protected:
     std::string base_dir;
     bool archive_input = false;
     bool dirty = false;
-    std::unique_ptr<File::TempDir> temp_dir;
+    std::unique_ptr<TempDir> temp_dir;
   };
 
   struct PreparedLibraryPrecursor_
@@ -3863,18 +3863,15 @@ protected:
       std::vector<LevelContextResultRow> results;
       if (task.level == InferenceLevel::Peptide)
       {
-        OpenSwathPeptideInference inference;
-        results = inference.infer(input_rows, config);
+        results = LevelContextInference::infer(input_rows, config);
       }
       else if (task.level == InferenceLevel::Protein)
       {
-        OpenSwathProteinInference inference;
-        results = inference.infer(input_rows, config);
+        results = LevelContextInference::infer(input_rows, config);
       }
       else
       {
-        OpenSwathGeneInference inference;
-        results = inference.infer(input_rows, config);
+        results = LevelContextInference::infer(input_rows, config);
       }
 
       auto& level_results = results_by_level[task.level];
@@ -4972,9 +4969,6 @@ protected:
     UInt64 total_extracted_features = 0;
     if (write_osw)
     {
-      const auto canonical_mapping = Internal::buildOpenSwathCanonicalLibraryMapping(transition_exp);
-      oswwriter.setCanonicalLibraryMapping(canonical_mapping.compound_to_precursor,
-                                           canonical_mapping.transition_to_id);
       oswwriter.writeHeader();
     }
 
@@ -4992,10 +4986,10 @@ protected:
       bool auto_pasef_ms1_im_window = false;
 
       std::string per_run_tmp = tmp_dir;
-      std::unique_ptr<File::TempDir> per_run_temp_dir;
+      std::unique_ptr<TempDir> per_run_temp_dir;
       if (readoptions == "cache")
       {
-        per_run_temp_dir = std::make_unique<File::TempDir>(tmp_dir, keep_cached_files);
+        per_run_temp_dir = std::make_unique<TempDir>(tmp_dir, keep_cached_files);
         per_run_tmp = per_run_temp_dir->getPath();
       }
 
@@ -5279,7 +5273,7 @@ protected:
       const double original_user_rt_window = cp.rt_extraction_window;
 
       auto run_extraction_attempt = [&](const ChromExtractParams& extraction_cp,
-                                        OpenSwathOSWWriter::OSWData& attempt_osw_rows,
+                                        FeatureMap& attempt_features,
                                         const bool reset_outputs) -> UInt64
       {
         if (reset_outputs)
@@ -5310,15 +5304,14 @@ protected:
         }
         oswwriter.setRunId(cur_run);
 
-        FeatureMap run_feature_file;
-        const bool store_features_in_feature_file = false;
+        attempt_features.clear();
+        const bool store_features_in_feature_file = write_parquet;
         OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im_current, prm, pasef, mrm_mode, outer_loop_threads);
         wf.setLogType(log_type_);
         wf.performExtraction(swath_maps, trafo_rtnorm, extraction_cp, cp_ms1_current, feature_finder_param_run,
-                             transition_exp, run_feature_file, store_features_in_feature_file, oswwriter, attempt_chromatogram_consumer,
+                             transition_exp, attempt_features, store_features_in_feature_file, oswwriter, attempt_chromatogram_consumer,
                              batchSize, ms1_isotopes, load_into_memory, mrm_map_param,
-                             attempt_mobilogram_consumer.get(), innerBatchSize, maxConcurrentSwaths,
-                             write_parquet ? &attempt_osw_rows : nullptr);
+                             attempt_mobilogram_consumer.get(), innerBatchSize, maxConcurrentSwaths);
 
         if (attempt_mobilogram_consumer)
         {
@@ -5327,12 +5320,12 @@ protected:
         delete attempt_chromatogram_consumer;
 
         return write_parquet ?
-          static_cast<UInt64>(attempt_osw_rows.feature_rows.size()) :
+          static_cast<UInt64>(attempt_features.size()) :
           countOSWFeaturesForRun_(workflow_output, cur_run);
       };
 
-      OpenSwathOSWWriter::OSWData run_osw_rows;
-      UInt64 run_feature_count = run_extraction_attempt(cp_current, run_osw_rows, false);
+      FeatureMap run_features;
+      UInt64 run_feature_count = run_extraction_attempt(cp_current, run_features, false);
 
       const bool estimated_rt_window_narrowed =
         rt_window_estimation_enabled &&
@@ -5354,8 +5347,8 @@ protected:
         {
           clearOSWRunData_(workflow_output, cur_run);
         }
-        run_osw_rows = OpenSwathOSWWriter::OSWData();
-        run_feature_count = run_extraction_attempt(retry_cp, run_osw_rows, true);
+        run_features.clear();
+        run_feature_count = run_extraction_attempt(retry_cp, run_features, true);
         if (run_feature_count > 0)
         {
           OPENMS_LOG_INFO << "Retry with the original RT window recovered " << run_feature_count
@@ -5373,7 +5366,7 @@ protected:
       total_extracted_features += run_feature_count;
       if (write_parquet)
       {
-        parquet_writer.write(workflow_output, transition_exp, run_osw_rows, cur_run, current_run_files[0], enable_uis_scoring);
+        parquet_writer.write(workflow_output, transition_exp, run_features, cur_run, current_run_files[0], enable_uis_scoring);
       }
       ++run_index;
     }
@@ -5444,18 +5437,15 @@ protected:
       std::vector<LevelContextResultRow> results;
       if (task.level == InferenceLevel::Peptide)
       {
-        OpenSwathPeptideInference inference;
-        results = inference.infer(input_rows, config);
+        results = LevelContextInference::infer(input_rows, config);
       }
       else if (task.level == InferenceLevel::Protein)
       {
-        OpenSwathProteinInference inference;
-        results = inference.infer(input_rows, config);
+        results = LevelContextInference::infer(input_rows, config);
       }
       else
       {
-        OpenSwathGeneInference inference;
-        results = inference.infer(input_rows, config);
+        results = LevelContextInference::infer(input_rows, config);
       }
 
       osw.writeLevelContextResults("", task.level, config.context, results);

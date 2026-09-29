@@ -331,10 +331,12 @@ inline FractionGroupAbundanceData fractionGroupAbundances(
 
   for (Size i = 0; i < abundances->size(); ++i)
   {
-    if ((*fraction_groups)[i] < 0 || (*labels)[i] <= 0)
+    // Both keys are 1-based: MSFileSectionEntry defaults fraction_group to 1 and
+    // ExperimentalDesign::isValid_() requires the set to start at 1.
+    if ((*fraction_groups)[i] <= 0 || (*labels)[i] <= 0)
     {
       result.valid = false;
-      result.error = "a fraction-group key is negative or a label key is not 1-based";
+      result.error = "a fraction-group or label key is not 1-based";
       return result;
     }
     const auto key = std::make_pair(static_cast<UInt>((*fraction_groups)[i]),
@@ -378,12 +380,17 @@ inline std::string validateQuantificationAnnotations(
          + " samples, so the design does not belong to this quantification";
   }
 
+  // A group carrying only the removed sample-level "abundances" array was quantified, by a version
+  // of OpenMS that wrote a grain this one can no longer interpret. Refuse it rather than treating
+  // it as identification-only: that would put the protein in the pg view with a null intensity,
+  // which is indistinguishable from "not quantified" and would hand back a complete-looking
+  // collection with no quantities in it, exit code 0. Re-quantify the map instead.
   const bool quantified = sample_abundances != nullptr || quantities.present;
   if (!quantified) { return {}; }
   if (!quantities.present)
   {
-    return "carries sample abundances but no fraction-group/label abundances from the QPX 1.1 "
-           "quantification path";
+    return "carries only the legacy sample-level abundances of an older OpenMS; the QPX "
+           "quantification unit is (fraction group, label), so this map has to be re-quantified";
   }
   if (units.empty())
   {

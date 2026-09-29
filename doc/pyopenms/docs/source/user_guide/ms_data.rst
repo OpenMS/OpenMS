@@ -69,7 +69,9 @@ Note how lines 12-13 (as well as line 16) use the direct access to the
 is convenient but slow since a new :py:class:`~.Peak1D` object needs to be created each
 time).
 The following example uses the faster access through numpy arrays with :py:meth:`~.MSSpectrum.get_peaks` or
-:py:meth:`~.MSSpectrum.set_peaks`. Direct iteration is only shown for demonstration purposes and should not be used in
+:py:meth:`~.MSSpectrum.set_peaks` (which copy the peak data in and out; the zero-copy alternative
+``peaks_struct()`` returns a writable structured numpy view into the spectrum's own storage).
+Direct iteration is only shown for demonstration purposes and should not be used in
 production code.
 
 .. code-block:: python
@@ -174,7 +176,11 @@ activation energy). Additional instrument settings allow to set e.g. the polarit
 We next add actual peaks into the spectrum (a single peak at Lmath:`401.5` m/z and :math:`900\ intensity`).
 Additional metadata can be stored in data arrays for each peak
 (e.g. use cases care peak annotations or  "Signal to Noise" values for each
-peak. Finally, we add the spectrum to an :py:class:`~.MSExperiment` container to save it using the
+peak. Reading such an array back through ``getFloatDataArrays()`` copies it;
+for zero-copy access chain the views instead:
+``spectrum.float_data_array_view(0).data_view()`` returns a writable numpy
+array backed directly by the spectrum's own storage.
+Finally, we add the spectrum to an :py:class:`~.MSExperiment` container to save it using the
 :py:class:`~.MzMLFile` class in a file called ``testfile.mzML``.
 
 You can now open the resulting mass spectrum in a mass spectrum viewer. We use the OpenMS
@@ -423,7 +429,39 @@ certain conditions:
 .. code-block:: output
 
     700.0
-		
+
+
+Every spectrum obtained this way -- by iteration, indexing or
+:py:meth:`~.MSExperiment.getSpectrum` -- is an independent copy: editing it
+does not change the experiment until you write it back (for example with
+``exp[i] = spectrum``). That is the safe default, but duplicating every
+spectrum is wasteful when sweeping over large amounts of peak data. For
+those cases pyOpenMS offers zero-copy **views**: ``spectrum_view(i)``
+returns a live view of one spectrum, ``spectrum_views()`` a list of views,
+and ``iter_spectrum_views()`` iterates over views (``chromatogram_view``
+and friends exist likewise). Edits through a view land directly in the
+experiment, and no peak data is copied:
+
+.. code-block:: python
+    :linenos:
+
+    # The same sum as above, but zero-copy: no spectrum is duplicated
+    print(
+        sum(
+            p.getIntensity()
+            for s in exp.iter_spectrum_views()
+            if s.getRT() >= 2.0 and s.getRT() <= 3.0
+            for p in s
+        )
+    )
+
+.. caution::
+
+    A view aliases the experiment's internal storage, so it is only valid
+    while the spectrum list is left untouched: adding, removing or sorting
+    spectra invalidates every outstanding view. The naming is the contract
+    -- methods ending in ``_view``/``_views``/``_struct`` alias their
+    parent, while anything called ``get_*`` returns a copy you own.
 
 We could store the resulting experiment containing the six mass spectra as mzML
 using the :py:class:`~.MzMLFile` object:
@@ -458,7 +496,7 @@ provided by OpenMS.
 
     def plot_spectra_2D(exp, ms_level=1, marker_size=5):
         exp.updateRanges()
-        for spec in exp:
+        for spec in exp.iter_spectrum_views():  # zero-copy read of each spectrum
             if spec.getMSLevel() == ms_level:
                 mz, intensity = spec.get_peaks()
                 p = intensity.argsort()  # sort by intensity to plot highest on top
@@ -546,6 +584,87 @@ This can be useful for a brief visual inspection of your sample in quality contr
     plot_spectra_2D_overview(exp)
 
 .. image:: img/Spectra2DOverview.png
+
+
+FAIMS Data
+**********
+
+In FAIMS (high-field asymmetric waveform ion mobility spectrometry), the
+compensation voltage (CV) of the FAIMS device selects which ions reach the mass
+spectrometer, and a run can switch between several CVs. OpenMS stores the CV of
+each spectrum as its drift time, with the unit
+``DriftTimeUnit.FAIMS_COMPENSATION_VOLTAGE``. This file contains a short run
+recorded at three CVs:
+
+.. code-block:: python
+    :linenos:
+
+    from urllib.request import urlretrieve
+
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests"
+    urlretrieve(gh + "/class_tests/openms/data/IM_FAIMS_test.mzML", "faims.mzML")
+    exp = oms.MSExperiment()
+    oms.MzMLFile().load("faims.mzML", exp)
+
+    for i in range(5):
+        spec = exp[i]
+        print(spec.ms_level, spec.drift_time, spec.drift_time_unit)
+
+.. code-block:: output
+
+    1 -55.0 DriftTimeUnit.FAIMS_COMPENSATION_VOLTAGE
+    2 -55.0 DriftTimeUnit.FAIMS_COMPENSATION_VOLTAGE
+    2 -55.0 DriftTimeUnit.FAIMS_COMPENSATION_VOLTAGE
+    1 -65.0 DriftTimeUnit.FAIMS_COMPENSATION_VOLTAGE
+    1 -45.0 DriftTimeUnit.FAIMS_COMPENSATION_VOLTAGE
+
+:py:meth:`~.FAIMSHelper.getCompensationVoltages` returns the set of CVs in an
+experiment (an empty set if no spectrum has a CV). To select the spectra of one
+CV, compare their drift time with it:
+
+.. code-block:: python
+    :linenos:
+
+    print(sorted(oms.FAIMSHelper.getCompensationVoltages(exp)))
+
+    cv_45 = oms.MSExperiment()
+    for spec in exp:
+        if abs(spec.drift_time - (-45.0)) < 0.01:
+            cv_45.addSpectrum(spec)
+    print(cv_45.getNrSpectra(), "spectra at CV -45")
+
+.. code-block:: output
+
+    [-65.0, -55.0, -45.0]
+    6 spectra at CV -45
+
+Here the :term:`MS2` spectra carry a CV, too. If a file has CVs only for the
+:term:`MS1` spectra, give each :term:`MS2` spectrum the CV of the last spectrum
+before it that has one, as OpenMS does when it splits such data by CV.
+
+Search engine adapters such as CometAdapter, :term:`MSGFPlusAdapter` and
+SageAdapter store the CV of the identified spectrum as meta value ``FAIMS_CV``
+of each :py:class:`~.PeptideIdentification`.
+:py:meth:`~.FAIMSHelper.filterPeptidesByFAIMSCV` returns the identifications
+whose ``FAIMS_CV`` differs from the target CV by less than ``cv_tolerance``
+(default 0.01), plus those without ``FAIMS_CV``:
+
+.. code-block:: python
+    :linenos:
+
+    peptide_ids = oms.PeptideIdentificationList()
+    for spec in exp:
+        if spec.ms_level == 2:  # one empty identification per MS2 spectrum
+            pep_id = oms.PeptideIdentification()
+            pep_id.setMetaValue("FAIMS_CV", spec.drift_time)
+            peptide_ids.append(pep_id)
+
+    selected = oms.FAIMSHelper.filterPeptidesByFAIMSCV(peptide_ids, -45.0)
+    print(len(peptide_ids), "identifications,", len(selected), "at CV -45")
+
+.. code-block:: output
+
+    10 identifications, 3 at CV -45
 
 
 Example: Precursor Purity
@@ -715,7 +834,7 @@ To find a spectrum using their original scan number from their native ID we can 
     # Bruker may have:
     # <spectrum index="0" id="scan=19" defaultArrayLength="15">
     # thus we can use (this would also work for Thermo native IDs)
-    lookup.readSpectra(inp, "scan=(?<SCAN>\d+)")       ## required: creates an internal look-up table
+    lookup.readSpectra(inp, r"scan=(?<SCAN>\d+)")       ## required: creates an internal look-up table
 
     vendor_scan_nrs = [19, 21]  ## our test.mzML contains 4 spectra, starting at scan=19
 
@@ -760,7 +879,7 @@ For this simple example, you can achieve the same thing using :py:class:`~.PeakF
     # Create a PeakFileOptions object
     options = oms.PeakFileOptions()
     options.setMSLevels([2])  # Load only MS level 2
-    options.setMZRange(oms.DRange1(oms.DPosition1(mz_start),oms.DPosition1(mz_end)))
+    options.setMZRange(oms.DRange1(mz_start, mz_end))
 
     # Load the mzML file with the specified options
     mzml = oms.MzMLFile()

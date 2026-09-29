@@ -69,7 +69,6 @@ OpenMS is developed by a group of `core developers <https://openms.de/contributo
     :caption: Tutorials
     :hidden:
 
-    tutorials/knime-user-tutorial.rst
     tutorials/toppview-user-tutorial.md
 
 

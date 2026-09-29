@@ -9,6 +9,8 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 
+#include <algorithm>
+
 using namespace std;
 
 namespace OpenMS
@@ -122,25 +124,47 @@ namespace OpenMS
 
   void BaseFeature::sortPeptideIdentifications()
   {
-    std::sort(peptides_.rbegin(),peptides_.rend(),
-              [](PeptideIdentification& p1, PeptideIdentification& p2)
-              {p1.sort();p2.sort();
-              if (p1.empty())
-              {
-                return true;
-              }
-              if (p2.empty())
-              {
-                return false;
-              }
-              if (p1.isHigherScoreBetter())
-              {
-                return p1.getHits()[0].getScore() < p2.getHits()[0].getScore();
-              }
-              else
-              {
-                return p1.getHits()[0].getScore() > p2.getHits()[0].getScore();
-              }});
+    // Sort the hits of every identification in a pass of its own. Doing it inside the comparator
+    // skips every identification the sort never compares (e.g. the only identification of a
+    // feature) and lets the comparator modify its arguments.
+    for (PeptideIdentification& pep : peptides_)
+    {
+      pep.sort();
+    }
+
+    // Read the score orientation once, from the first identification that has hits (default:
+    // higher is better), and use it for every comparison. Taking it from the left operand makes
+    // the comparator asymmetric as soon as two identifications disagree on isHigherScoreBetter(),
+    // and the sort requires a strict weak ordering.
+    bool higher_score_better = true;
+    for (const PeptideIdentification& pep : peptides_)
+    {
+      if (!pep.getHits().empty())
+      {
+        higher_score_better = pep.isHigherScoreBetter();
+        break;
+      }
+    }
+
+    // Best first: the identification whose first (= best) hit scores best comes first,
+    // identifications without hits go last, and ties keep their relative order (stable sort).
+    // Hit presence is the guard, not PeptideIdentification::empty(): an identification with an
+    // identifier or score type but no hits is not empty(), yet it has no first hit to read.
+    std::stable_sort(peptides_.begin(), peptides_.end(),
+                     [higher_score_better](const PeptideIdentification& p1, const PeptideIdentification& p2)
+                     {
+                       if (p1.getHits().empty())
+                       {
+                         return false; // no hits: never precedes anything
+                       }
+                       if (p2.getHits().empty())
+                       {
+                         return true; // hits precede no hits
+                       }
+                       const double s1 = p1.getHits()[0].getScore();
+                       const double s2 = p2.getHits()[0].getScore();
+                       return higher_score_better ? (s1 > s2) : (s1 < s2);
+                     });
   }
 
   BaseFeature::AnnotationState BaseFeature::getAnnotationState() const
