@@ -595,8 +595,7 @@ perf report
 ## CI, Packaging, and Containers
 
 - CI runs in GitHub Actions; CDash collects nightly results.
-- Jenkins packaging uses `tools/jenkins/os_compiler_matrix.tsv` (edit only if needed).
-- PR commands/labels: `/reformat`, label `NoJenkins`, comment `rebuild jenkins`.
+- PR commands: `/reformat`.
 - Container images: see `dockerfiles/README.md` and GHCR packages.
 - macOS code signing/notarization: see `cmake/MacOSX/README.md`.
 
