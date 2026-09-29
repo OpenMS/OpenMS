@@ -10,7 +10,8 @@
 # taken from the bridge's pre-built release zip via tools/ci/fetch_thermo_assets.sh
 # (retried, SHA-256 pinned, cached between runs) when one is published for the pinned
 # bridge revision; otherwise the bridge publishes it with the .NET SDK during the OpenMS
-# build (NuGet restore + Thermo package download), which is how Linux aarch64 gets them.
+# build (NuGet restore + Thermo package download). The Linux wheels take the bridge from
+# the openms-thermo-bridge vcpkg port, which publishes the managed half the same way.
 # Compiling the native bridge always needs the nethost headers from a .NET SDK. The
 # finished wheels are smoke-tested by loading a real RAW file.
 
@@ -117,7 +118,9 @@ jobs:
   #----------------------------------------------------------------------------
   # Build OpenMS on each platform first
   #----------------------------------------------------------------------------
-  # Linux x64: Build OpenMS and wheels in same job to preserve absolute library paths
+  # Linux x64: Build OpenMS and wheels in same job to preserve absolute library paths.
+  # Both phases run in the stock manylinux image; the dependencies come from vcpkg,
+  # built as static libraries (tools/ci/build_openms_manylinux.sh).
   build-wheels-linux:
     needs: [setup]
     runs-on: ubuntu-latest
@@ -132,12 +135,37 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
+      - name: Init vcpkg submodule
+        run: git submodule update --init vcpkg
+
+      # A cold vcpkg build (Arrow with the AWS SDK, Boost, ...) needs more disk than
+      # the runner image leaves free. Nothing below uses these preinstalled toolchains:
+      # the build runs in the manylinux container.
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      # rclone is the cache action's read-only fallback when the SSH secrets are not
+      # available (pull requests from forks).
+      - name: Install the cache tools
+        run: sudo apt-get -qq update && sudo apt-get -qq install -y rsync rclone
+
+      # vcpkg binary cache, as in .github/actions/dependencies but under its own key:
+      # the manylinux gcc-toolset is not the compiler the main CI builds with, so the
+      # two sets of binaries never match, and the cache action replaces the whole
+      # remote directory of a key when it saves. Saved when the job succeeds.
+      - name: vcpkg binary cache
+        uses: OpenMS/ci-tools/actions/rsync-cache@b0622a9a8ecfe12fa6e896795f45fddad12faa6c
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          name: vcpkg-cache
+          path: ${{ runner.temp }}/vcpkg-cache
+          key: manylinux_2_34-${{ runner.arch }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
 
       - name: Cache Thermo bridge assets
         uses: actions/cache@v4
@@ -147,64 +175,31 @@ jobs:
             thermo-testdata
           key: thermo-assets-linux-x64-${{ hashFiles('tools/ci/fetch_thermo_assets.sh') }}
 
-      # Idempotent: reuses cached files after verifying their SHA-256, downloads
-      # (with retries) only what is missing.
-      - name: Fetch Thermo bridge assets (prebuilt managed assemblies + RAW test file)
+      # Only the RAW test file is used here: the managed bridge assemblies come from
+      # the openms-thermo-bridge vcpkg port. Idempotent: reuses cached files after
+      # verifying their SHA-256, downloads (with retries) only what is missing.
+      - name: Fetch Thermo RAW test file
         run: bash tools/ci/fetch_thermo_assets.sh linux-x64 "$GITHUB_WORKSPACE"
 
       - name: Build and install OpenMS in container
         run: |
-          # Build and install OpenMS so libraries are stripped and paths are clean
           docker run --rm \
-            -v $GITHUB_WORKSPACE:/project \
+            -v "$GITHUB_WORKSPACE:/project" \
+            -v "$RUNNER_TEMP/vcpkg-cache:/vcpkg-cache" \
+            -e VCPKG_BINARY_SOURCES="clear;files,/vcpkg-cache,readwrite" \
             -w /project \
-            ghcr.io/openms/contrib_manylinux_2_34:latest-amd64 \
-            bash -c '
-              # The bind-mounted workspace is owned by another user, so without this git
-              # exits 128 and the wheels carry a placeholder version instead of the commit.
-              git config --global --add safe.directory /project
-              # The native thermo bridge compiles against the nethost headers/library
-              # from the .NET host pack, and the same SDK publishes the managed
-              # assemblies unless tools/ci/fetch_thermo_assets.sh provided pre-built
-              # ones. The pinned, SHA-512 verified SDK tarball is used instead of the
-              # distro dotnet-sdk-8.0 RPM, whose host pack is named with the
-              # rhel.9-x64 RID that the bridge does not search (see
-              # tools/ci/install_dotnet_sdk_linux.sh). libicu is the only dependency
-              # the SDK needs.
-              yum install -y cmake ninja-build libcurl-devel libicu
-              bash tools/ci/install_dotnet_sdk_linux.sh /usr/share/dotnet
-              export DOTNET_ROOT=/usr/share/dotnet
-              export PATH="$DOTNET_ROOT:$PATH"
-              export DOTNET_CLI_TELEMETRY_OPTOUT=1
-              THERMO_MANAGED_OPT=""
-              if [ -f /project/thermo-managed/ThermoWrapperManaged.dll ]; then
-                THERMO_MANAGED_OPT="-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=/project/thermo-managed"
-              fi
-              mkdir build && cd build
-              cmake .. \
-                -G Ninja \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_INSTALL_PREFIX=/project/install \
-                -DCMAKE_PREFIX_PATH=/contrib-build \
-                -DOPENMS_CONTRIB_LIBS=/contrib-build \
-                -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
-                -DPYOPENMS=OFF \
-                -DWITH_GUI=OFF \
-                -DBUILD_TOPP_TOOLS=OFF \
-                -DINSTALL_OPENMS_EXAMPLES=OFF \
-                -DWITH_THERMO_RAW=ON \
-                $THERMO_MANAGED_OPT \
-                -DENABLE_TUTORIALS=OFF \
-                -DENABLE_DOCS=OFF
-              # core layer only (libOpenMS, libOpenSwathAlgo): the CLI layer is a separate install component
-              ninja OpenMS OpenSwathAlgo
-              cmake --install . --component library --strip
-              cmake --install . --component OpenMS_headers
-              cmake --install . --component OpenSwathAlgo_headers
-              cmake --install . --component thirdparty_headers
-              cmake --install . --component share
-              cmake --install . --component cmake
-            '
+            quay.io/pypa/manylinux_2_34_x86_64 \
+            bash tools/ci/build_openms_manylinux.sh /project
+
+      - name: Upload vcpkg build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vcpkg-logs-linux-x64
+          path: |
+            vcpkg/buildtrees/**/*.log
+            vcpkg_installed/vcpkg/issue_body.md
+          if-no-files-found: ignore
 
       - name: Set pyOpenMS version
         run: |
@@ -221,25 +216,37 @@ jobs:
           output-dir: wheelhouse
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-x64 }}
-          CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
+          CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_34_x86_64
           # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file
-          CIBW_BEFORE_ALL: yum install -y libcurl-devel dotnet-runtime-8.0
-          # Use install directory with stripped libraries.
+          CIBW_BEFORE_ALL: dnf install -y ninja-build dotnet-runtime-8.0
+          # Use install directory with stripped libraries, and the vcpkg tree it was
+          # built against (Arrow, Boost and Eigen for the bindings).
           # PYOPENMS_THERMO_RAW_TEST_FILE enables the Thermo RAW tests in the wheel test suite.
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT=/project/install
-            CMAKE_PREFIX_PATH=/contrib-build:/project/install
+            CMAKE_PREFIX_PATH=/project/vcpkg_installed/x64-linux:/project/install
             CMAKE_BUILD_PARALLEL_LEVEL=2
             DOTNET_ROOT=/usr/lib64/dotnet
             PYOPENMS_THERMO_RAW_TEST_FILE=/project/thermo-testdata/Angiotensin_AllScans.raw
           CIBW_BUILD_VERBOSITY: 1
+
+      # The dependencies are linked statically, so auditwheel should have grafted only
+      # OpenMS's own libraries and system ones (libgomp, libgfortran, ...).
+      - name: Show the libraries bundled into the wheel
+        run: |
+          python3 -m venv "$RUNNER_TEMP/auditwheel"
+          "$RUNNER_TEMP/auditwheel/bin/pip" install -q auditwheel
+          "$RUNNER_TEMP/auditwheel/bin/auditwheel" show wheelhouse/*.whl
+          unzip -l wheelhouse/*.whl | grep -E '\.libs/' || true
 
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-linux-x64
           path: wheelhouse/*.whl
 
-  # Linux ARM64: Build OpenMS and wheels in same job to preserve absolute library paths
+  # Linux ARM64: Build OpenMS and wheels in same job to preserve absolute library paths.
+  # Both phases run in the stock manylinux image; the dependencies come from vcpkg,
+  # built as static libraries (tools/ci/build_openms_manylinux.sh).
   build-wheels-linux-arm:
     needs: [setup]
     runs-on: ubuntu-22.04-arm
@@ -254,12 +261,37 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
+      - name: Init vcpkg submodule
+        run: git submodule update --init vcpkg
+
+      # A cold vcpkg build (Arrow with the AWS SDK, Boost, ...) needs more disk than
+      # the runner image leaves free. Nothing below uses these preinstalled toolchains:
+      # the build runs in the manylinux container.
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      # rclone is the cache action's read-only fallback when the SSH secrets are not
+      # available (pull requests from forks).
+      - name: Install the cache tools
+        run: sudo apt-get -qq update && sudo apt-get -qq install -y rsync rclone
+
+      # vcpkg binary cache, as in .github/actions/dependencies but under its own key:
+      # the manylinux gcc-toolset is not the compiler the main CI builds with, so the
+      # two sets of binaries never match, and the cache action replaces the whole
+      # remote directory of a key when it saves. Saved when the job succeeds.
+      - name: vcpkg binary cache
+        uses: OpenMS/ci-tools/actions/rsync-cache@b0622a9a8ecfe12fa6e896795f45fddad12faa6c
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          name: vcpkg-cache
+          path: ${{ runner.temp }}/vcpkg-cache
+          key: manylinux_2_34-${{ runner.arch }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
 
       - name: Cache Thermo bridge assets
         uses: actions/cache@v4
@@ -269,63 +301,31 @@ jobs:
             thermo-testdata
           key: thermo-assets-linux-arm64-${{ hashFiles('tools/ci/fetch_thermo_assets.sh') }}
 
-      # Idempotent: reuses cached files after verifying their SHA-256, downloads
-      # (with retries) only what is missing.
-      - name: Fetch Thermo bridge assets (prebuilt managed assemblies + RAW test file)
+      # Only the RAW test file is used here: the managed bridge assemblies come from
+      # the openms-thermo-bridge vcpkg port. Idempotent: reuses cached files after
+      # verifying their SHA-256, downloads (with retries) only what is missing.
+      - name: Fetch Thermo RAW test file
         run: bash tools/ci/fetch_thermo_assets.sh linux-arm64 "$GITHUB_WORKSPACE"
 
       - name: Build and install OpenMS in container
         run: |
-          # Build and install OpenMS so libraries are stripped and paths are clean
           docker run --rm \
-            -v $GITHUB_WORKSPACE:/project \
+            -v "$GITHUB_WORKSPACE:/project" \
+            -v "$RUNNER_TEMP/vcpkg-cache:/vcpkg-cache" \
+            -e VCPKG_BINARY_SOURCES="clear;files,/vcpkg-cache,readwrite" \
             -w /project \
-            ghcr.io/openms/contrib_manylinux_2_34:latest-arm64 \
-            bash -c '
-              # The bind-mounted workspace is owned by another user, so without this git
-              # exits 128 and the wheels carry a placeholder version instead of the commit.
-              git config --global --add safe.directory /project
-              # Same SDK story as the x86_64 job above; the script pins the
-              # linux-arm64 tarball and host pack here. No pre-built managed
-              # bridge is published for this platform, so the SDK also runs the
-              # dotnet publish step that produces ThermoWrapperManaged.dll.
-              # Keep apostrophes out of this block: it is the body of a
-              # single-quoted docker run ... bash -c argument, and one would
-              # end that string early and silently truncate the script.
-              yum install -y cmake ninja-build libcurl-devel libicu
-              bash tools/ci/install_dotnet_sdk_linux.sh /usr/share/dotnet
-              export DOTNET_ROOT=/usr/share/dotnet
-              export PATH="$DOTNET_ROOT:$PATH"
-              export DOTNET_CLI_TELEMETRY_OPTOUT=1
-              THERMO_MANAGED_OPT=""
-              if [ -f /project/thermo-managed/ThermoWrapperManaged.dll ]; then
-                THERMO_MANAGED_OPT="-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=/project/thermo-managed"
-              fi
-              mkdir build && cd build
-              cmake .. \
-                -G Ninja \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_INSTALL_PREFIX=/project/install \
-                -DCMAKE_PREFIX_PATH=/contrib-build \
-                -DOPENMS_CONTRIB_LIBS=/contrib-build \
-                -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
-                -DPYOPENMS=OFF \
-                -DWITH_GUI=OFF \
-                -DBUILD_TOPP_TOOLS=OFF \
-                -DINSTALL_OPENMS_EXAMPLES=OFF \
-                -DWITH_THERMO_RAW=ON \
-                $THERMO_MANAGED_OPT \
-                -DENABLE_TUTORIALS=OFF \
-                -DENABLE_DOCS=OFF
-              # core layer only (libOpenMS, libOpenSwathAlgo): the CLI layer is a separate install component
-              ninja OpenMS OpenSwathAlgo
-              cmake --install . --component library --strip
-              cmake --install . --component OpenMS_headers
-              cmake --install . --component OpenSwathAlgo_headers
-              cmake --install . --component thirdparty_headers
-              cmake --install . --component share
-              cmake --install . --component cmake
-            '
+            quay.io/pypa/manylinux_2_34_aarch64 \
+            bash tools/ci/build_openms_manylinux.sh /project
+
+      - name: Upload vcpkg build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vcpkg-logs-linux-arm64
+          path: |
+            vcpkg/buildtrees/**/*.log
+            vcpkg_installed/vcpkg/issue_body.md
+          if-no-files-found: ignore
 
       - name: Set pyOpenMS version
         run: |
@@ -342,18 +342,28 @@ jobs:
           output-dir: wheelhouse
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-arm64 }}
-          CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
+          CIBW_MANYLINUX_AARCH64_IMAGE: quay.io/pypa/manylinux_2_34_aarch64
           # dotnet-runtime-8.0: the wheel test suite loads a Thermo RAW file
-          CIBW_BEFORE_ALL: yum install -y libcurl-devel dotnet-runtime-8.0
-          # Use install directory with stripped libraries.
+          CIBW_BEFORE_ALL: dnf install -y ninja-build dotnet-runtime-8.0
+          # Use install directory with stripped libraries, and the vcpkg tree it was
+          # built against (Arrow, Boost and Eigen for the bindings).
           # PYOPENMS_THERMO_RAW_TEST_FILE enables the Thermo RAW tests in the wheel test suite.
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT=/project/install
-            CMAKE_PREFIX_PATH=/contrib-build:/project/install
+            CMAKE_PREFIX_PATH=/project/vcpkg_installed/arm64-linux:/project/install
             CMAKE_BUILD_PARALLEL_LEVEL=2
             DOTNET_ROOT=/usr/lib64/dotnet
             PYOPENMS_THERMO_RAW_TEST_FILE=/project/thermo-testdata/Angiotensin_AllScans.raw
           CIBW_BUILD_VERBOSITY: 1
+
+      # The dependencies are linked statically, so auditwheel should have grafted only
+      # OpenMS's own libraries and system ones (libgomp, libgfortran, ...).
+      - name: Show the libraries bundled into the wheel
+        run: |
+          python3 -m venv "$RUNNER_TEMP/auditwheel"
+          "$RUNNER_TEMP/auditwheel/bin/pip" install -q auditwheel
+          "$RUNNER_TEMP/auditwheel/bin/auditwheel" show wheelhouse/*.whl
+          unzip -l wheelhouse/*.whl | grep -E '\.libs/' || true
 
       - uses: actions/upload-artifact@v4
         with:

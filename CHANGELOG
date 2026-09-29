@@ -263,6 +263,10 @@ PyOpenMS:
   - The Windows wheel bundles the libcurl it was linked against. delvewheel's search
     path lacked contrib/bin and it fell back to PATH, so every Windows wheel so far
     carried an unrelated vcpkg-built libcurl from the CI image and a second zlib.
+  - The Linux wheels (x86_64 and aarch64) are built in the stock manylinux_2_34 images
+    against static vcpkg libraries instead of the contrib. They carry the libraries the
+    other builds already test, e.g. bzip2 1.0.8 instead of 1.0.5 (CVE-2019-12900),
+    Xerces-C 3.3.0 instead of 3.2.0 (CVE-2018-1311), libsvm 3.35 and Arrow 24.
   - The custom type casters build their result lists with the checked
     PyList_SetItem() instead of the PyList_SET_ITEM() macro, which is unavailable
     under the Limited API. Behaviour is unchanged; failures release the partially
