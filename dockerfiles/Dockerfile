@@ -164,7 +164,9 @@ RUN <<-EOF
         *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
     esac
     
+    # dependencies from the apt packages above, not from vcpkg
     cmake \
+        -DOPENMS_USE_VCPKG=OFF \
         -DQt6_DIR="/usr/lib/${DEB_ARCH}/cmake/Qt6" \
         -DCMAKE_BUILD_TYPE='Release' \
         -DCMAKE_PREFIX_PATH="/usr/;/usr/local" \

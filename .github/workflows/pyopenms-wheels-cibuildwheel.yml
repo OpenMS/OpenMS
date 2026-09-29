@@ -437,8 +437,10 @@ jobs:
           # Note: CMAKE_PREFIX_PATH uses semicolons as list separators when passed via -D
           # ARROW_USE_STATIC=OFF since static Arrow still links to shared abseil libs anyway
           # Install OpenMS so libraries are stripped and use proper install names
+          # OPENMS_USE_VCPKG=OFF: the dependencies come from Homebrew, not vcpkg
           cmake .. \
             -G Ninja \
+            -DOPENMS_USE_VCPKG=OFF \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install \
             -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix libomp)" \

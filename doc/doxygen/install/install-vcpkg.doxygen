@@ -105,6 +105,33 @@
         cmake --build .
         \endcode
 
+    @subsection install_vcpkg_tarball Building from a source tarball
+
+    The source tarball of a release does not contain the `vcpkg` submodule, but it does contain `vcpkg.json`,
+    `vcpkg-configuration.json` and `vcpkg-overlays/`. Enable vcpkg and point CMake to the toolchain of a vcpkg checkout of your own
+    (vcpkg needs network access to fetch the registry baseline named in `vcpkg-configuration.json`):
+
+    \code
+    cmake -S OpenMS-<version> -B openms_build -DOPENMS_USE_VCPKG=ON \
+          -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+    \endcode
+
+    or build against system packages as described in @ref install_vcpkg_without.
+
+    @subsection install_vcpkg_without Building without vcpkg (system packages)
+
+    The presets use vcpkg (`OPENMS_USE_VCPKG=ON`). Without a preset, `OPENMS_USE_VCPKG` is `OFF` and %OpenMS takes its
+    dependencies from the system (apt, Homebrew, conda/Bioconda) and from the prefixes in `CMAKE_PREFIX_PATH`:
+
+    \code
+    cmake -S OpenMS -B openms_build -DCMAKE_PREFIX_PATH="<prefix1>;<prefix2>"
+    \endcode
+
+    The installed libraries must meet the minimum versions of %OpenMS; the presets build the dependency set that CI
+    tests. `dockerfiles/Dockerfile` is an example of a build on Ubuntu packages. If you set `-DOPENMS_USE_VCPKG=ON`
+    without a preset, pass the vcpkg toolchain as shown above, otherwise the configure stops with an error that names
+    the alternatives.
+
     @subsection install_vcpkg_generator Choosing a CMake generator
 
     Every preset builds with **Ninja**, which is set once in the hidden `base` preset that all the others inherit. A `cmake --preset ...` therefore always produces a Ninja build tree — on Windows that means you get *no* Visual Studio solution file. Ninja has to be on your `PATH`: on Windows it ships with Visual Studio and is already on the path inside a Developer Command Prompt, and on Linux/macOS it comes from your package manager.

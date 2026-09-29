@@ -23,7 +23,7 @@ build or test failures before opening the PR; do not defer this validation to CI
 cmake --preset linux-x64-debug -B ../OpenMS-build
 
 # Or configure against system packages (from OpenMS-build/ directory, adjust paths as needed)
-cmake -DCMAKE_BUILD_TYPE=Debug ../OpenMS
+cmake -DOPENMS_USE_VCPKG=OFF -DCMAKE_BUILD_TYPE=Debug ../OpenMS
 
 # Build everything (includes tests)
 cmake --build . -j$(nproc)

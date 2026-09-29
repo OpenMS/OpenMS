@@ -97,6 +97,9 @@ toolchain from the `vcpkg` submodule, so vcpkg provides the third-party librarie
 Cache variables given with `-D` on the same command line override the preset, e.g.
 `cmake --preset linux-x64-release -D WITH_GUI=OFF`.
 
+Without a preset, `OPENMS_USE_VCPKG` is `OFF` (the default) and OpenMS takes its dependencies from system packages
+(apt, Homebrew, conda) and `CMAKE_PREFIX_PATH`.
+
 Everything else can be edited using `ccmake` afterwards.
 
 The following options are of interest:
