@@ -266,7 +266,6 @@ jobs:
             --directory "$GITHUB_WORKSPACE" \
             --exclude='build/*' \
             --exclude='THIRDPARTY/**' \
-            --exclude='contrib/**' \
             --exclude='.git/**' \
             --exclude='.github/**' \
             --exclude='./vcpkg/*' \
