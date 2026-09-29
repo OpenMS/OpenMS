@@ -72,10 +72,11 @@ namespace OpenMS
 
       Writers disagree on the width at the type boundaries: the mzML specification and mzd.cpp's writer
       use 8 bit indices for up to 255 values, mzd.cpp's reader expects 16 bit indices for 255 values, and
-      mzdata uses 8 bit indices for up to 256 values (16 bit for up to 65536). If the number of array
-      elements @p count is known, the width actually used is given by @p index_bytes / @p count. It is
-      accepted if it is 1, 2, 4 or 8 bytes and adjacent to the specification's width (i.e. a boundary
-      convention of one of the writers above); otherwise indexWidth() is used.
+      the Rust library mzdata (mobiusklein/mzdata) uses 8 bit indices for up to 256 values (16 bit for up
+      to 65536). If the number of array elements @p count is known, the width actually used is given by
+      @p index_bytes / @p count. It is accepted if it is 1, 2, 4 or 8 bytes and adjacent to the
+      specification's width (i.e. a boundary convention of one of the writers above); otherwise
+      indexWidth() is used.
     */
     size_t indexWidth(uint64_t n_values, size_t index_bytes, size_t count)
     {

@@ -269,10 +269,11 @@ START_SECTION((static void dictionaryDecode(const void* data, size_t nr_bytes, s
   TEST_EQUAL(decoded, toBytes(i_values))
 
   // index widths at the type boundaries: the specification uses 8 bit indices for up to 255 values,
-  // mzdata 8 bit indices for up to 256 values, mzd.cpp's reader 16 bit indices for 255 values
+  // the Rust library mzdata (mobiusklein/mzdata) 8 bit indices for up to 256 values and mzd.cpp's
+  // reader 16 bit indices for 255 values
   std::string plain;
   const size_t count = 300;
-  // 256 values, 8 bit indices (mzdata): decodable with the array length
+  // 256 values, 8 bit indices (Rust library mzdata, mobiusklein/mzdata): decodable with the array length
   std::string dict = buildDictionary(256, count, 1, plain);
   ZstdCompression::dictionaryDecode(dict.data(), dict.size(), 2, decoded, count);
   TEST_EQUAL(decoded == plain, true)
