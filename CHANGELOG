@@ -211,6 +211,9 @@ Dependencies:
   - vcpkg builds use OpenSSL 3.6.4, and the Linux DEBs and the macOS package bundle it (the 3.5.0 DEBs
     bundled 3.0.2). vcpkg.json pins the version because the baseline's 3.6.2 is affected by the
     High-severity CVE-2026-45447.
+  - The SQLite amalgamation vendored with SQLiteCpp is updated from 3.49.2, which
+    CVE-2025-6965 affects, to 3.53.1, the version vcpkg builds. Builds with
+    USE_EXTERNAL_SQLITECPP=OFF, the default, compile it into libOpenMS.
   - The bundled MaRaCluster is updated from 0.05.0 to 1.04.1 on Linux and Windows x86_64,
     and the macOS arm64 packages now include it too. MaRaClusterAdapter now converts the
     input files in MaRaCluster's index step, single-threaded, before it clusters them:
