@@ -861,6 +861,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     std::string fragment_mass_tolerance_unit_;
 
+    bool mass_accuracy_score_ {false};      ///< Experimental mass-accuracy-weighted HyperScore
+    double mass_error_sd_ppm_ {7.0};        ///< Width of the mass-accuracy weighting kernel
     bool calibrated_score_ {false};         ///< Resolved native scorer, fixed before mass calibration.
     bool scoring_multiple_charges_ {false}; ///< Resolved inclusion of higher fragment charge hypotheses.
     int scoring_max_charge_{2};           ///< Upper fragment charge bound.

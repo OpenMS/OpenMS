@@ -2937,6 +2937,11 @@ START_SECTION(([EXTRA] raw retrieval recovers a candidate removed by scoring pea
   const vector<FASTAFile::FASTAEntry> db = {{"P01", "", peptide.toString()}, {"P02", "", "VLVLDTDYK"}};
   MSSpectrum spectrum;
   TheoreticalSpectrumGenerator().getSpectrum(spectrum, peptide, 1, 1);
+  // A known fragment error makes the weighted scorer distinguishable from HyperScore.
+  for (auto& peak : spectrum)
+  {
+    peak.setMZ(peak.getMZ() * (1.0 + 7e-6));
+  }
   spectrum.setMSLevel(2);
   spectrum.setNativeID("scan=1");
   Precursor precursor;
@@ -2963,36 +2968,76 @@ START_SECTION(([EXTRA] raw retrieval recovers a candidate removed by scoring pea
   p.setValue("FDR:PSM", 0.0);
   p.setValue("modifications:fixed", vector<string> {});
   p.setValue("modifications:variable", vector<string> {});
-  for (const std::string mode : {"processed", "raw"})
+  for (const std::string method : {"auto", "mass_accuracy"})
   {
-    p.setValue("fragment:query_spectrum", mode);
-    for (Int chunk_size : {0, 1})
+    p.setValue("scoring:method", method);
+    const double expected_score = std::log1p(method == "mass_accuracy" ? std::exp(-0.5) : 1.0);
+    for (const std::string mode : {"processed", "raw"})
     {
-      p.setValue("database:chunk_size", chunk_size);
-      algo.setParameters(p);
-      PeakMap spectra = input;
-      vector<ProteinIdentification> proteins;
-      PeptideIdentificationList peptides;
-      algo.search(spectra, db, proteins, peptides);
-      TEST_EQUAL(peptides.size(), mode == "raw" ? 1 : 0)
-      if (! peptides.empty())
+      p.setValue("fragment:query_spectrum", mode);
+      for (Int chunk_size : {0, 1})
       {
-        TEST_EQUAL(peptides[0].getHits()[0].getSequence(), peptide)
-        TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), std::log(2.0))
-        TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:query_spectrum").toString(), "raw")
-      }
-      const auto files = algo.searchWithModificationAnalysis(vector<std::string> {input_file, input_file}, db, vector<std::string> {}, "", false);
-      TEST_EQUAL(files.per_file.size(), 2)
-      for (const auto& result : files.per_file)
-      {
-        TEST_EQUAL(result.peptide_ids.size(), peptides.size())
-        if (! result.peptide_ids.empty())
+        p.setValue("database:chunk_size", chunk_size);
+        algo.setParameters(p);
+        PeakMap spectra = input;
+        vector<ProteinIdentification> proteins;
+        PeptideIdentificationList peptides;
+        algo.search(spectra, db, proteins, peptides);
+        TEST_EQUAL(peptides.size(), mode == "raw" ? 1 : 0)
+        if (! peptides.empty())
         {
-          TEST_EQUAL(result.peptide_ids[0].getHits()[0].getSequence(), peptide)
-          TEST_REAL_SIMILAR(result.peptide_ids[0].getHits()[0].getScore(), std::log(2.0))
+          TEST_EQUAL(peptides[0].getHits()[0].getSequence(), peptide)
+          TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), expected_score)
+          TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:query_spectrum").toString(), "raw")
+          TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:method_resolved").toString(),
+                     method == "mass_accuracy" ? "mass_accuracy" : "hyperscore")
+          TEST_EQUAL(peptides[0].getScoreType(), method == "mass_accuracy" ? "mass-accuracy hyperscore" : "ln(hyperscore)")
+        }
+        const auto files = algo.searchWithModificationAnalysis(vector<std::string> {input_file, input_file}, db, vector<std::string> {}, "", false);
+        TEST_EQUAL(files.per_file.size(), 2)
+        for (const auto& result : files.per_file)
+        {
+          TEST_EQUAL(result.peptide_ids.size(), peptides.size())
+          if (! result.peptide_ids.empty())
+          {
+            TEST_EQUAL(result.peptide_ids[0].getHits()[0].getSequence(), peptide)
+            TEST_REAL_SIMILAR(result.peptide_ids[0].getHits()[0].getScore(), expected_score)
+          }
         }
       }
     }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mass accuracy scoring retains its kernel during calibration))
+{
+  ProSEAlgorithm_test algo;
+  configure_calibration_params_(algo, 20.0, 30.0, 3);
+  Param p = algo.getParameters();
+  p.setValue("scoring:method", "mass_accuracy");
+  p.setValue("scoring:mass_error_sd", 9.0);
+  p.setValue("fragment:query_spectrum", "raw");
+  algo.setParameters(p);
+  PeakMap spectra = build_calibration_spectra_({0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0});
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  TEST_TRUE(algo.search(spectra, calibration_fasta_db_(), proteins, peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_TRUE(algo.last_calibration_result_.success)
+  TEST_FALSE(peptides.empty())
+  ABORT_IF(proteins.empty())
+  const auto& params = proteins[0].getSearchParameters();
+  TEST_EQUAL(params.getMetaValue("scoring:method_resolved").toString(), "mass_accuracy")
+  TEST_EQUAL(params.getMetaValue("scoring:fragment_charges_resolved").toString(), "single")
+  TEST_REAL_SIMILAR(static_cast<double>(params.getMetaValue("scoring:mass_error_sd")), 9.0)
+  for (const auto& peptide : peptides)
+  {
+    TEST_EQUAL(peptide.getScoreType(), "mass-accuracy hyperscore")
+  }
+  for (double invalid : {std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()})
+  {
+    p.setValue("scoring:mass_error_sd", invalid);
+    TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p))
   }
 }
 END_SECTION

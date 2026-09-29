@@ -81,6 +81,31 @@ struct OPENMS_DLLAPI HyperScore
                                  const PeakSpectrum& theo_spectrum,
                                  PSMDetail& detail);
 
+  /**
+   * @brief Experimental HyperScore with mass-accuracy-weighted fragment evidence.
+   *
+   * A matched ion with signed mass error e (ppm) contributes exp(-0.5*(e/sigma)^2)
+   * to its terminal ion count and intensity product. Fractional factorial rewards
+   * use max(0, lgamma(count+1)), agreeing with HyperScore for exact matches.
+   * This ranking statistic assumes errors centered at zero; it is not a PSM p-value.
+   *
+   * @param[in] fragment_mass_tolerance Positive finite match tolerance (Da or ppm).
+   * @param[in] fragment_mass_tolerance_unit_ppm Whether matching tolerance is in ppm.
+   * @param[in] exp_spectrum Experimental spectrum, sorted by m/z.
+   * @param[in] theo_spectrum Theoretical spectrum, sorted by m/z, with ion names.
+   * @param[in] mass_error_sd_ppm Positive finite Gaussian standard deviation in ppm.
+   * @param[out] detail Unweighted match counts and mean absolute error in matching units.
+   * @return Nonnegative weighted log HyperScore; zero without matches.
+   * @throws Exception::InvalidParameter for invalid tolerance or standard deviation.
+   * @throws Exception::InvalidValue for incomplete theoretical ion annotations.
+   */
+  static double computeMassAccuracy(double fragment_mass_tolerance,
+                                    bool fragment_mass_tolerance_unit_ppm,
+                                    const PeakSpectrum& exp_spectrum,
+                                    const PeakSpectrum& theo_spectrum,
+                                    double mass_error_sd_ppm,
+                                    PSMDetail& detail);
+
   /* @brief compute the (ln transformed) X!Tandem HyperScore only matching peaks that match in charge
    *  1. the dot product of peak intensities between matching peaks in experimental and theoretical spectrum is calculated
    *  2. the HyperScore is calculated from the dot product by multiplying by factorials of matching b- and y-ions

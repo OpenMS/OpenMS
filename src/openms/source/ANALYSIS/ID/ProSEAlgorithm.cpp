@@ -235,13 +235,20 @@ namespace OpenMS
 
     // Fragment and scoring limits
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
-    defaults_.setValue("scoring:method", "auto",
-                       "Native scoring method. 'calibrated' replaces factorial rewards with binomial match evidence; experimental, intended for "
-                       "ion-trap CID. 'auto' selects hyperscore for a configured fragment tolerance <= 0.1 Da or <= 100 ppm, otherwise calibrated. "
-                       "This resolution proxy applies to the entire search, irrespective of activation metadata, and is fixed before mass "
-                       "calibration. Set scoring:fragment_charges=auto as well for automatic charge selection.",
+    defaults_.setValue(
+      "scoring:method", "auto",
+      "Native scoring method. 'calibrated' replaces factorial rewards with binomial match evidence; experimental, intended for "
+      "ion-trap CID. 'auto' selects hyperscore for a configured fragment tolerance <= 0.1 Da or <= 100 ppm, otherwise calibrated. "
+      "This resolution proxy applies to the entire search, irrespective of activation metadata, and is fixed before mass "
+      "calibration. Experimental 'mass_accuracy' weights HyperScore fragment counts and intensities by mass accuracy; "
+      "it is opt-in and intended for high-resolution fragments. Set scoring:fragment_charges=auto as well for automatic charge selection.",
+      {"advanced"});
+    defaults_.setValidStrings("scoring:method", {"hyperscore", "calibrated", "mass_accuracy", "auto"});
+    defaults_.setValue("scoring:mass_error_sd", 7.0,
+                       "Gaussian fragment mass-error standard deviation in ppm for scoring:method=mass_accuracy. "
+                       "Assumes fragment errors centered at zero; independent of the matching tolerance and not fitted during precursor calibration.",
                        {"advanced"});
-    defaults_.setValidStrings("scoring:method", {"hyperscore", "calibrated", "auto"});
+    defaults_.setMinFloat("scoring:mass_error_sd", 1e-6);
     defaults_.setValue(
       "scoring:fragment_charges", "auto",
       "Final scoring fragment charges: 'single' retains legacy behavior; 'multiple' uses up to min(precursor charge - 1, fragment:max_charge). "
@@ -353,6 +360,12 @@ namespace OpenMS
     // as preprocessing. All files/chunks, calibration and annotations then use the same
     // score scale. Tightening the tolerance during calibration must not switch scorers.
     calibrated_score_ = scoring_method == "calibrated" || (scoring_method == "auto" && ! deisotope_supported);
+    mass_accuracy_score_ = scoring_method == "mass_accuracy";
+    mass_error_sd_ppm_ = param_.getValue("scoring:mass_error_sd");
+    if (mass_accuracy_score_ && (! std::isfinite(mass_error_sd_ppm_) || mass_error_sd_ppm_ <= 0.0))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "scoring:mass_error_sd must be finite and positive.");
+    }
     scoring_multiple_charges_ = scoring_charges == "multiple" || (scoring_charges == "auto" && calibrated_score_);
     deisotope_requested_ = (deisotope_mode != "false");
     if (deisotope_mode == "true" && !deisotope_supported)
@@ -855,7 +868,7 @@ namespace OpenMS
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-        pi.setScoreType(calibrated_score_ ? "calibrated fragment score" : "ln(hyperscore)");
+        pi.setScoreType(calibrated_score_ ? "calibrated fragment score" : (mass_accuracy_score_ ? "mass-accuracy hyperscore" : "ln(hyperscore)"));
         pi.setHigherScoreBetter(true);
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
@@ -1210,8 +1223,10 @@ namespace OpenMS
     // record whether open-search mode was used
     search_parameters.setMetaValue("open_search", isOpenSearchMode_() ? "true" : "false");
     search_parameters.setMetaValue("scoring:method", param_.getValue("scoring:method"));
+    search_parameters.setMetaValue("scoring:mass_error_sd", mass_error_sd_ppm_);
     search_parameters.setMetaValue("scoring:fragment_charges", param_.getValue("scoring:fragment_charges"));
-    search_parameters.setMetaValue("scoring:method_resolved", calibrated_score_ ? "calibrated" : "hyperscore");
+    search_parameters.setMetaValue("scoring:method_resolved",
+                                   calibrated_score_ ? "calibrated" : (mass_accuracy_score_ ? "mass_accuracy" : "hyperscore"));
     search_parameters.setMetaValue("scoring:fragment_charges_resolved", scoring_multiple_charges_ ? "multiple" : "single");
     search_parameters.setMetaValue("annotate:local_fragment_evidence", param_.getValue("annotate:local_fragment_evidence"));
     search_parameters.setMetaValue("fragment:max_charge", param_.getValue("fragment:max_charge"));
@@ -1650,9 +1665,13 @@ namespace OpenMS
         // sortByPosition() pass here was a redundant O(N) scan per candidate.
 
         HyperScore::PSMDetail detail;
-        const double score = calibrated_score_
-          ? HyperScore::computeCalibrated(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail)
-          : HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
+        const double score
+          = calibrated_score_
+              ? HyperScore::computeCalibrated(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail)
+            : mass_accuracy_score_
+              ? HyperScore::computeMassAccuracy(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum,
+                                                mass_error_sd_ppm_, detail)
+              : HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
 
         // Summarise the candidate before it can be dropped below or pruned at the
         // end of the loop: the pool-derived PSM features describe the whole search
@@ -3493,9 +3512,11 @@ namespace OpenMS
         tsg.getSpectrum(theo, seq, 1, scoringMaxCharge_(sms.precursor_charge_));
 
         HyperScore::PSMDetail detail;
-        double score = calibrated_score_
-          ? HyperScore::computeCalibrated(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail)
-          : HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
+        double score
+          = calibrated_score_ ? HyperScore::computeCalibrated(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail)
+            : mass_accuracy_score_
+              ? HyperScore::computeMassAccuracy(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)
+              : HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
 
         if (score > best_score)
         {
