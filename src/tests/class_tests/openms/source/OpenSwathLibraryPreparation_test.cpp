@@ -30,6 +30,11 @@ namespace
     return File::absolutePath(std::string(OPENMS_GET_TEST_DATA_PATH("")) + "../../../topp/" + filename);
   }
 
+  std::string classTestDataPath_(const std::string& filename)
+  {
+    return File::absolutePath(std::string(OPENMS_GET_TEST_DATA_PATH("")) + filename);
+  }
+
   std::vector<std::string> sortedLines_(const std::string& filename)
   {
     TextFile text_file;
@@ -250,15 +255,20 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP preserves decoy flags when he
   assay_params.enable_ipf = false;
   assay_params.unimod_file.clear();
 
-  auto decoy_params = makeDeterministicDecoyParameters_();
-  decoy_params.min_decoy_fraction = 0.0;
+  // Force the assay-preparation stage to produce an empty intermediate so this
+  // regression deterministically exercises the direct heavy-TraML fallback.
+  // The selected fixture is specifically designed for MRM decoy generation and
+  // independently satisfies the normal 40% minimum decoy-coverage requirement.
+  assay_params.min_transitions = 1000;
+
+  const auto decoy_params = makeDeterministicDecoyParameters_();
 
   std::string output_pqp;
   NEW_TMP_FILE(output_pqp);
   output_pqp += ".pqp";
 
   const auto stats = prep.prepareEmpiricalLibraryToPQP(
-    toppDataPath_("OpenSwathWorkflow_1_input.TraML"),
+    classTestDataPath_("MRMDecoyGenerator_input.TraML"),
     FileTypes::TRAML,
     output_pqp,
     assay_params,
