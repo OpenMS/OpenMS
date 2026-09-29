@@ -202,8 +202,9 @@ Key cibuildwheel settings (in `pyproject.toml`):
 
 ```toml
 [tool.cibuildwheel.linux]
-# Custom manylinux containers with pre-built OpenMS dependencies
-manylinux-x86_64-image = "ghcr.io/openms/contrib_manylinux_2_34:latest-amd64"
+# Stock manylinux images; OpenMS and its static vcpkg dependencies are built in the
+# same image first (tools/ci/build_openms_manylinux.sh)
+manylinux-x86_64-image = "quay.io/pypa/manylinux_2_34_x86_64"
 repair-wheel-command = ["auditwheel repair -w {dest_dir} {wheel}"]
 
 [tool.cibuildwheel.macos]
