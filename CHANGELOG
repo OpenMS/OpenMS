@@ -1445,6 +1445,12 @@ Build System:
     names made their "t64 | non-t64" alternatives unenforceable; nothing links yaml-cpp
     dynamically; and SQLite ships inside the package, so libsqlite3-0 was never used
     (#10259).
+  - The DEB installed the 53 third-party libraries it bundles and the Thermo bridge
+    world-writable (mode 0777) in /usr/lib, among them libssl.so.3 and libcrypto.so.3, so any
+    local user could replace code that the OpenMS tools load, also when root runs them. The
+    macOS package installed the headers and resources of its Qt frameworks world-writable.
+    Bundled libraries are now writable by their owner only (0755), like any installed library
+    (#10324).
   - The container image build failed on every nightly run once WITH_THERMO_RAW defaulted
     to ON on Linux aarch64 (#10206): the Dockerfile still installed the .NET SDK/runtime
     that openms-thermo-bridge needs only for amd64, so the arm64 build could not find
