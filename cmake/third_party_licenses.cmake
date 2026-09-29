@@ -12,10 +12,11 @@
 ## type includes.
 ##
 ## openms_install_vcpkg_licenses() installs vcpkg/<port>.txt: the license text of every vcpkg
-## port of the target triplet, which vcpkg installs as share/<port>/copyright. An
-## installation carries the code of each port: as a library next to libOpenMS
-## (install(RUNTIME_DEPENDENCY_SET) in package_general.cmake), linked into it (the Windows
-## triplets and those of the Linux wheels are static), or compiled in (header-only ports).
+## port of the target triplet, which vcpkg installs as share/<port>/copyright, except the
+## build helpers such as vcpkg-cmake. An installation carries the code of each port: as a
+## library next to libOpenMS (install(RUNTIME_DEPENDENCY_SET) in package_general.cmake),
+## linked into it (the Windows triplets and those of the Linux wheels are static), or
+## compiled in (header-only ports).
 ## The top-level CMakeLists.txt calls it in every configuration, so that the wheels built
 ## with vcpkg carry the texts too.
 ##
@@ -68,24 +69,52 @@ function(openms_homebrew_formulae_of formulae_var prefix_var)
 endfunction()
 
 ## Installs share/OpenMS/LICENSES/vcpkg/<port>.txt for every port of the target triplet, if
-## the build takes its dependencies from vcpkg.
+## the build takes its dependencies from vcpkg. Left out are the build helpers such as
+## vcpkg-cmake: ports that install nothing but their own share/<port> folder (CMake scripts
+## for the builds of other ports), so no installation contains anything of them. They are in
+## the target triplet's tree when it is also the host triplet, as in the Linux builds. vcpkg
+## lists the files of each port in vcpkg/info/<port>_<version>_<triplet>.list, one
+## <triplet>/<path> per line and folders with a trailing slash; a port without such a list
+## keeps its license.
 function(openms_install_vcpkg_licenses)
   if(NOT (OPENMS_USE_VCPKG AND VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET))
     return()
   endif()
   file(GLOB _copyrights LIST_DIRECTORIES false
        "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share/*/copyright")
+  set(_count 0)
+  set(_helpers)
   foreach(_copyright IN LISTS _copyrights)
     get_filename_component(_port_dir "${_copyright}" DIRECTORY)
     get_filename_component(_port "${_port_dir}" NAME)
+    ## Port and triplet names consist of lowercase letters, digits and dashes, so they need
+    ## no escaping in the patterns.
+    file(GLOB _lists "${VCPKG_INSTALLED_DIR}/vcpkg/info/${_port}_*_${VCPKG_TARGET_TRIPLET}.list")
+    if(_lists)
+      set(_files)
+      foreach(_list IN LISTS _lists)
+        file(STRINGS "${_list}" _entries REGEX "[^/]$")
+        list(APPEND _files ${_entries})
+      endforeach()
+      list(FILTER _files EXCLUDE REGEX "^${VCPKG_TARGET_TRIPLET}/share/${_port}/")
+      if(NOT _files)
+        list(APPEND _helpers "${_port}")
+        continue()
+      endif()
+    endif()
     install(FILES "${_copyright}"
             DESTINATION "${INSTALL_SHARE_DIR}/LICENSES/vcpkg"
             RENAME "${_port}.txt"
             COMPONENT share)
     openms_add_third_party_notice("LICENSES/vcpkg/${_port}.txt" "${_copyright}")
+    math(EXPR _count "${_count} + 1")
   endforeach()
-  list(LENGTH _copyrights _count)
   message(STATUS "Installing the license texts of ${_count} vcpkg ports")
+  if(_helpers)
+    list(JOIN _helpers ", " _helpers)
+    message(STATUS "Not installing those of the build helpers ${_helpers}, which install "
+                   "nothing but their share folder")
+  endif()
 endfunction()
 
 ## openms_install_third_party_licenses([QT_VERSION <version>]
