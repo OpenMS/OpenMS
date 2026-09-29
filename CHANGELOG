@@ -20,8 +20,9 @@ General:
   - Updated the bundled PSI-MS controlled vocabulary from 4.1.155 to 4.2.2, including CV
     term-name changes in mzML/TraML output and vocabulary versions in mzTab-M/mzQC output
     (#8691)
-  - New native readers for Bruker timsTOF .d, Thermo .raw, imzML and Bruker MALDI imaging;
-    see OpenMS Library for capabilities and runtime requirements.
+  - New native readers for Bruker timsTOF .d and Thermo .raw, which FileConverter and many other
+    tools use, and for imzML (library and pyOpenMS) and Bruker MALDI imaging (library only); no
+    TOPP tool reads imaging data yet. See OpenMS Library for capabilities and runtime requirements.
   - New .idparquet, .featureparquet and .consensusparquet directory formats for native
     identification, feature and consensus-map storage, supported across TOPP tools
     (#9225, #9232, #9236, #9237, #9241, #9242, #9396, #9405).
@@ -40,12 +41,16 @@ General:
     OpenNuXL is the first consumer (see OpenNuXL below). BREAKING: an idXML, featureXML or consensusXML
     file naming such a modification is a hard load failure ("Cannot convert string to peptide modification")
     in an OpenMS build without this support (#10003, #10026, #10028, #10036, #10037, #10038, #10039, #10040)
-  - Transparent .zip input for XML formats and Bruker .d directories; XML output supports
-    .gz/.bz2 compression selected by filename extension (#7560, #9139, #9259).
+  - Transparent .zip input for the XML formats (except mzIdentML) and Bruker .d directories;
+    mzML, mzXML, mzData, featureXML, consensusXML, traML and mzIdentML output is compressed
+    with gzip or bzip2 when the file name ends in .gz or .bz2, in any letter case. TOPP tools
+    refuse a compressed output name for any other format (#7560, #9139, #9259, #10317).
   - BREAKING: OpenMS::String/StringView replaced by std::string/std::string_view;
     StringList is std::vector<std::string>. Use OpenMS::StringUtils free functions for
     conversion, splitting, trimming and substitution. String, StringConversions and
-    StringUtilsSimple shim headers were removed (#9450, #9468).
+    StringUtilsSimple shim headers were removed (#9450, #9468). "Migrating from
+    OpenMS::String" in the developer documentation lists the replacement for each member
+    of String and the changes the compiler does not catch.
   - Core modularization reduces dependencies between KERNEL, FORMAT, PROCESSING,
     APPLICATIONS and QC. Shared utilities cover spectrum-type estimation, resampling,
     alignment defaults, filename recognition, ion-mobility metadata and data-processing
@@ -138,6 +143,15 @@ Dependencies:
     public dependency interface. Shared-library consumers no longer require CURL/Xerces
     development packages; OpenSwathAlgo's Boost headers are private. See OpenMS Library
     for XMLHandler/Matrix API migration (#8511, #8547, #8558, #9712, #9737, #10084, #10103).
+  - Boost is used header-only: OpenMS, its tools and tests no longer link the compiled
+    Boost.Regex, Boost.Iostreams and Boost.DateTime libraries, of which only header-only
+    parts were used. Building needs just the Boost headers, and a static Boost works as
+    well as a shared one. A static Boost used to be linked into the shared libOpenMS,
+    which could fail at link time: the archives are not always built with -fPIC, and
+    their own dependencies (zstd, lzma, ICU) had to be installed as development packages.
+    The BOOST_USE_STATIC option and the Homebrew static-Boost link fixups (#10187) were
+    removed; passing -DBOOST_USE_STATIC now only triggers CMake's unused-variable
+    warning (#3319).
   - BREAKING (installed headers): two internal headers are no longer installed, and two
     public ones no longer pull in a private dependency.
     DATASTRUCTURES/MatrixEigen.h (the Eigen::Map views on Matrix) and SYSTEM/SIMDe.h
@@ -177,8 +191,14 @@ Dependencies:
     the package's former lookups of dependencies that are PRIVATE now. Consuming projects need
     CMake 3.24: find_package(OpenMS) rejects older versions with an explanatory message
     instead of failing later (#10158).
-  - contrib is a git submodule: clone with --recurse-submodules or run
-    git submodule update --init (#9155).
+  - The contrib (OpenMS/contrib) is deprecated and will be removed after 3.6: vcpkg
+    builds the dependencies (see the vcpkg install guide and the CMake presets). It is no
+    longer a git submodule; a build that still needs it takes it from a separate clone of
+    OpenMS/contrib. Configuring with OPENMS_CONTRIB_LIBS, which requires
+    OPENMS_USE_VCPKG=OFF, prints a deprecation warning (#10327).
+  - The dev container (.devcontainer/) builds with the vcpkg presets on Ubuntu 24.04 instead of
+    the contrib image. The Gitpod configuration and tools/quickbuild.sh/quickbuild-osx.sh, which
+    built contrib, were removed; use cmake --preset <platform>-release instead (#10327).
   - Optional readers: WITH_OPENTIMS enables timsTOF support (default ON); opentims_DIR or
     opentims_ROOT selects a system installation before downloading. WITH_THERMO_RAW is
     ON by default on every supported platform; .NET 8+ is required at runtime (#9147,
@@ -193,8 +213,19 @@ Dependencies:
   - vcpkg builds use OpenSSL 3.6.4, and the Linux DEBs and the macOS package bundle it (the 3.5.0 DEBs
     bundled 3.0.2). vcpkg.json pins the version because the baseline's 3.6.2 is affected by the
     High-severity CVE-2026-45447.
+  - The bundled MaRaCluster is updated from 0.05.0 to 1.04.1 on Linux and Windows x86_64,
+    and the macOS arm64 packages now include it too. MaRaClusterAdapter now converts the
+    input files in MaRaCluster's index step, single-threaded, before it clusters them:
+    1.04.1's Windows build crashes in about one run in ten when it converts several files
+    in parallel (OpenMS/THIRDPARTY#113, #10259).
 
 PyOpenMS:
+  - BREAKING: boolean parameters are Python bools (#10116). Reading/writing Params
+    now uses Python bool for boolean entries; assigning bool to non-boolean
+    parameters raises TypeError; boolean-ness is preserved through Param updates,
+    dict conversion, repr and INI round-trips. Param::setDefaults now gives existing
+    string entries the defaults' valid strings (values unchanged), so a partial Param
+    cannot override an algorithm's restrictions.
   - Fixed keyword defaults that did not match the wrapped C++ signatures. Four bindings
     declared a parameter with no default after parameters that had one: the transf
     argument of MultipleTesting.lfdr, spectra in both IDMapper.annotate overloads and
@@ -228,9 +259,26 @@ PyOpenMS:
     platforms, avoiding invalid <lambda> definitions and re-exports in .pyi files.
     Generated stubs are syntax-checked after post-processing, before the build
     writes py.typed and its success stamp.
-  - The Windows wheel bundles the libcurl it was linked against. delvewheel's search
-    path lacked contrib/bin and it fell back to PATH, so every Windows wheel so far
-    carried an unrelated vcpkg-built libcurl from the CI image and a second zlib.
+  - The type stubs export the aliases PeakMap, PeakSpectrum, Kernel_MassTrace,
+    TM_DataPoint and MZTrafoModel_MODELTYPE, which mypy rejected with "does not
+    explicitly export". The nested enums that pyOpenMS also exports at module level,
+    such as FileType and LogType, now have their types; type checkers saw them as Any.
+    The package no longer exposes names its own imports left behind: the modules c,
+    ctypes, importlib and warnings, and the __future__ feature annotations.
+  - The wheel metadata declares the license as the SPDX expression BSD-3-Clause
+    (Metadata-Version 2.4) and ships the license text as dist-info/licenses/LICENSE.
+    Before, dist-info/LICENSE held only the string "BSD-3-Clause".
+  - The Windows wheel is built against vcpkg's static libraries (triplet
+    x64-windows-static-md-release) instead of the prebuilt contrib. Every dependency
+    is linked into OpenMS.dll, so the only native DLLs the wheel bundles besides
+    OpenMS's own are those of the MSVC runtime; the managed Thermo RawFileReader
+    assemblies ship as before. Earlier Windows wheels carried an unrelated libcurl
+    and a second zlib from the CI image. The dependency versions are those the main
+    CI tests, e.g. Arrow 24, Xerces-C 3.3, bzip2 1.0.8 and libsvm 3.35 (#10327).
+  - The Linux wheels (x86_64 and aarch64) are built in the stock manylinux_2_34 images
+    against static vcpkg libraries instead of the contrib. They carry the libraries the
+    other builds already test, e.g. bzip2 1.0.8 instead of 1.0.5 (CVE-2019-12900),
+    Xerces-C 3.3.0 instead of 3.2.0 (CVE-2018-1311), libsvm 3.35 and Arrow 24 (#10327).
   - The custom type casters build their result lists with the checked
     PyList_SetItem() instead of the PyList_SET_ITEM() macro, which is unavailable
     under the Limited API. Behaviour is unchanged; failures release the partially
@@ -451,6 +499,12 @@ PyOpenMS:
     still exposed but cannot be used: RealMassDecomposer(weights),
     SignalToNoiseEstimatorMedianRapid.estimateNoise(), ConsensusFeature.addRatio(),
     setRatios() and getRatios(), and SplineInterpolatedPeaks.getNavigator().
+  - User guide: new pages on ProForma, USI and mzPAF, on glycans and glycopeptide fragment
+    spectra, and on threads and parallel processing; new sections on PEFF files, FAIMS
+    data, file summaries with FileInfo and the type stubs. Corrected the PEFFFile docstring
+    (load() returns a tuple) and four PEFFEntry method docstrings that carried the
+    description of their neighbour; the docstring examples of ProForma,
+    IdentifierMSRunMapper and PEFFFile now render as code blocks.
 
 TOPP tools:
   Changes:
@@ -470,6 +524,15 @@ TOPP tools:
         its '-instance' option accordingly (fixes #10125).
       - BREAKING: repeated command-line parameters use the LAST occurrence, with a warning;
         appended workflow arguments can override earlier values (#8670, fixes #5345).
+      - An output file name ending in .gz, .bz2 or .zip is refused with an error unless the
+        format is written that way: mzML, mzXML, mzData, featureXML, consensusXML, traML,
+        mzIdentML and xquest.xml are compressed with gzip or bzip2 (the suffix in any letter
+        case), and an .oswpq bundle is a ZIP archive anyway. Before, idXML, trafoXML, pepXML,
+        MGF, text formats and every .zip name silently got uncompressed data under the compressed
+        name, and so did mzML that a tool streams to disk: FileConverter -process_lowmemory, the
+        lowmemory processOption of PeakPickerHiRes and NoiseFilterGaussian/SGolay, PeakPickerIM
+        on mzML input and OpenSwathWorkflow -out_chrom. The check covers output file lists too,
+        and replaces UniPEFF's own check for PEFF (#10317).
       - Native Parquet I/O is supported by identification converters/filters/search adapters,
         alignment and feature-linking tools; TextExporter and MzTabExporter read all three
         native formats. Output follows input format where applicable (#9232, #9236, #9237,
@@ -478,6 +541,14 @@ TOPP tools:
         ProteomicsLFQ and OpenSwathWorkflow. Bruker .d input: FileConverter, CometAdapter,
         ProteomicsLFQ, OpenSwathWorkflow and PeakPickerIM (#8975, #9019, #9022, #9030,
         #9126, #9418).
+      - Adapters find the search engines that ship with OpenMS. When an engine such as Comet or
+        Sage is not on the PATH, they look for it in share/OpenMS/THIRDPARTY, which the Linux and
+        macOS packages do not put on the PATH; without '-<engine>_executable' they stopped with
+        exit code 14 there (#10304).
+      - Tools that read Thermo .raw get the spectra centroided by Thermo's peak picking, as
+        FileConverter writes them by default. For profile spectra, convert with FileConverter
+        -RawToMzML:no_peak_picking first; in C++ and pyOpenMS, ThermoRawFile keeps the scans as
+        acquired unless its centroid option is set (#10303).
       - On Linux and macOS, FileConverter reads Thermo .raw in-process by default
         (-RawToMzML:reader inprocess): the packages there provide neither mono nor
         ThermoRawFileParser on the PATH, which the external reader needs. The in-process reader
@@ -581,10 +652,20 @@ TOPP tools:
         stop codon, as in genome-translated databases such as SGD's, is removed so the C-terminal
         peptide is searched; peptides containing a stop codon or another symbol are skipped like
         X/B/Z (#10262).
+      - Spectra activated by electrons (ETD, ECD, EThcD or ETciD, as recorded in the input file)
+        are also searched with c and z+1 (z-dot) ions, their main fragments; other spectra, also
+        in the same run, are not affected. Switch this off with ions:by_activation. The new
+        ions:add_zp1_ions adds z+1 ions for all spectra; ions:add_z_ions generates z ions
+        (y - NH3), which miss them. Calibration now scores with the configured ion series instead
+        of always b/y.
     PercolatorAdapter:
       - Defaults to in-process Percolator 3.08 rescoring; no executable is required for
-        idXML/mzid PSM-level FDR. OSW input and peptide/protein-level FDR require
-        -use_subprocess true (#9218, #10020).
+        idXML/mzid/idparquet PSM-level FDR. OSW input, peptide/protein-level FDR, -doc and
+        -init_weights run the percolator executable automatically, which is then required
+        (#9218, #10020). So do the options only the executable implements (-out_pout_*,
+        -weights, -quick_validation, -static, -test_each_iteration, -override), which the
+        in-process backend ignored; it now writes the -out_pin file itself, and uses three
+        threads for -threads 0 instead of one.
       - Both backends preserve input CalcMass and apply -score:fdr/-best_per_spectrum_only
         consistently. Fixed in-process memory leaks and Debug-build Normalizer assertions
         (#9240, #9257, #9997, #10012, #10049, #10057).
@@ -743,13 +824,25 @@ TOPP tools:
       reference-channel ratio requires a comparison passing min_ratio_count in that fraction group (#10047).
     - FeatureLinkerWNet: Wasserstein network-flow grouping across label-free maps; optional,
       built with WITH_WNETALIGN=ON (#8992, #10255).
-    - UniPEFF: UniProtKB XML-to-PEFF conversion with sequence, modification and variant
-      annotations; optional annotation identifiers and external unimod.obo (#9649).
+    - UniPEFF: UniProtKB XML-to-PEFF conversion with sequence, modification, variant and
+      disulfide-bond annotations; disulfide connectivity is reported by default via bond-ordered
+      half-cystine labels; optional global annotation identifiers and external
+      unimod.obo (#9649, #9829). UniProt isoforms are reconstructed from their splice-variant
+      features and emitted as additional entries after the parent entry, with the features
+      UniProt annotates on that isoform; disable with -omit_isoforms (#9966, fixes #9830).
     - OpenSwathInfer: peptidoform, peptide, protein and gene inference (#9280).
     - OpenSwathExport: TSV/Parquet result export (#9377).
     - OpenSwathPercolatorScoring: Percolator scoring of OpenSWATH results (#9695).
     - OpenSwathPeakMapExtractor: targeted full-peakmap extraction (#9684).
     - TransitionListEvidenceFilter: filter transition lists using mzML evidence (#9161).
+    - DIAuditor: quality metrics of DIA runs per run and per isolation window (MS1 sampling,
+      window layout incl. FAIMS/1/K0, cycle times, TIC and peak-count distributions), a
+      re-implementation of D. L. Tabb's DIAuditor. Reads mzML, Thermo .raw and Bruker timsTOF .d
+      (diaPASEF) and writes its per-run and per-window tables and an mzQC file with the PSI-MS
+      DIA metrics (MS:4000190-MS:4000199). Warns when spectra carry several isolation windows
+      (e.g. MSX; demultiplex first) and when diaPASEF windows have an ion mobility array but no
+      ion mobility range, as TIMSCONVERT writes them, so windows differing only in ion mobility
+      count as one (#10271, #10312).
     - ParquetDiff: compares two Parquet tables by primary key with a numeric tolerance instead of exact
       bytes. FuzzyDiff is string-based and cannot read Parquet, which left the QPX psm/feature/pg exchange
       surface with no comparison route at all. The key is auto-derived from a QPX file's own file_type
@@ -783,6 +876,10 @@ GUI tools:
   - Fragment annotations survive viewing and spectrum switches unchanged, including charge
     notation and multiline comments. Corrected duplicate charge display, neutral-loss ion
     ordinals and sequence diagrams with multiple modifications (#8766).
+  - TOPPView's scan list shows each MSn scan under the scan its precursor refers to (mzML
+    spectrumRef), so SPS-MS3 scans that are interleaved with later MS2 scans appear under their
+    own MS2 scan. MS2 scans that follow an MS3 scan are no longer nested under the previous MS2
+    scan (#4215).
   - BREAKING: SwathWizard and FLASHDeconvWizard removed; run the TOPP tools they wrapped,
     such as OpenSwathWorkflow and FLASHDeconv, directly (#9472).
 
@@ -795,6 +892,8 @@ OpenMS Library:
     diagnostic/oxonium and bounded B/Y/C/Z ions, structural and internal glycan fragments,
     and HCD/ETD/EThcD glycopeptide backbone retention with configurable stubs (#10176, #10204).
     Includes mzPAF annotations, neutral losses, resource limits, and pyOpenMS bindings.
+  - Added DIon, VIon and WIon to Residue::ResidueType, with side-chain loss methods on Residue,
+    fragment mass calculation in AASequence and MzPAF, TraML support and pyOpenMS bindings (#10175).
   Added:
     - File type aliases are now honoured end to end: TOPP tools accept an alias wherever they accept
       the preferred extension (and a tool declaring an alias accepts the preferred extension),
@@ -808,10 +907,15 @@ OpenMS Library:
       specific container, and FileNameUtils::compressionType() reports which container a filename
       carries (hasCompressionSuffix() answers the same question as a bool). The pair takes the
       container because support is not uniform: the XML-based readers decompress .gz, .bz2 and .zip
-      transparently through CompressedInputSource, while Bruker TDF accepts only a '.d.zip' archive
+      transparently through CompressedInputSource (except the mzIdentML reader, which parses the
+      file itself and cannot read a compressed one), while Bruker TDF accepts only a '.d.zip' archive
       that BrukerTimsFile unpacks. A compression suffix alone therefore no longer implies compatibility,
       so '.mgf.gz' is rejected where '.mzML.gz' is accepted, and both the CLI and TOPPAS apply the
       same rule. Compressed output is unaffected: XMLFile still selects gzip/bzip2 by filename (#490)
+    - FileTypes::supportsCompressedWriting(type, compression) is the writing counterpart: XMLFile
+      compresses the formats marked with the new FileProperties::COMPRESSED_WRITEABLE with gzip or
+      bzip2 and never writes a ZIP archive, while an OSWPQ bundle is always one. TOPPBase uses it to
+      refuse output names whose writer would store plain data under them (#10317)
     - FileTypes: a file type may now register additional accepted extensions besides its preferred
       one. FileTypes::typeToExtensions() lists them (preferred first) and nameToType() resolves them
       case-insensitively: 'fa'/'faa' for FASTA, 'pep.xml' for pepXML, 'prot.xml' for protXML and
@@ -876,7 +980,10 @@ OpenMS Library:
       construction; SpectrumNativeIDParser (#8637, #8648, #8684, #8686).
     - MzPAF accepts and writes d/v/w satellite ions and the da/db/wa/wb subtypes,
       including validation, peak annotation conversion and pyOpenMS bindings (#10175).
-      Satellite-ion mass calculation and theoretical spectrum generation remain unsupported.
+      Satellite mass calculations use d = a + H - radical side-chain loss and
+      v = y - HR. Direct residue/sequence mass and formula APIs reject unsupported
+      or modified cleavage residues instead of returning the parent-ion mass.
+      Theoretical spectrum generation for satellite ions remains unsupported.
     - Added IsoelectricPoint, hydrophobicity profiles, protein SequenceCoverage,
       ModifiedSincSmoother, programmatic FileInfo, CCS conversion and MSExperiment
       rasterization. Extended PeakFileOptions and on-disc filtering, peak annotations,
@@ -890,6 +997,11 @@ OpenMS Library:
       preserves protein-group abundance arrays. PeptideIndexer settings and upstream
       IDMapper processing metadata are retained (#8489, #8816, #8852, #9186, #9844).
   API and behavior changes:
+    - XMLFile::save_() matches the .gz/.bz2 suffix in any letter case (FileNameUtils::compressionType()),
+      as input handling does, so 'x.mzML.GZ' is written gzip-compressed rather than plain.
+      MSDataWritingConsumer and PlainMSDataWritingConsumer throw Exception::UnableToCreateFile for a
+      file name ending in .gz, .bz2 or .zip: they stream uncompressed mzML, which such a name would
+      mislabel. Use MzMLFile::store() for compressed mzML (#10317).
     - BREAKING: File settings methods move to SystemSettings (getSystemParameters,
       getTempDirectory, getUserDirectory, findDatabase, getOpenMSHomePath,
       getOpenMSConfigDir). File::TempDir becomes TempDir; File::getTemporaryFile becomes
@@ -949,6 +1061,17 @@ OpenMS Library:
 
 Fixes:
   Chemistry and identifications:
+    - PercolatorAdapter's in-process backend and Percolator::rescore() read a feature stored as
+      a string meta value as the number it holds, as the percolator executable does when it
+      parses the .pin file. Both went through DataValue's conversion to double, which yields an
+      unrelated number for a string: SageAdapter stores all of Sage's extra features as strings,
+      so they were constant and Percolator weighted them zero, losing identifications (on a small
+      dataset, every PSM). A feature value that is not a finite number is now an error, as for
+      the executable (#10310).
+    - MatchedIterator no longer stops at the first of two target elements with the same value
+      (e.g. two peaks with the same m/z). HyperScore, PScore, AScore, SpectrumAlignment (ppm) and
+      the QC metrics FragmentMassError and PSMExplainedIonCurrent ignored all peaks above such a
+      pair, so ProSE and SimpleSearchEngine mis-scored spectra with duplicate peaks. (#10291)
     - MzIdentMLFile: search engine scores without a score order in the PSI-MS vocabulary take
       it from OpenMS' score registry, so Comet:expectation value, X!Tandem:expect, OMSSA:evalue,
       OMSSA:pvalue, percolator:Q value and percolator:PEP are read as lower-is-better. Such
@@ -1045,6 +1168,25 @@ Fixes:
       ion-storage analyzers, and the analyzer invented for incomplete instruments, use the
       generic mass analyzer type; the OpenMS type is kept in a userParam and restored on
       reading. HCID, EThcD and ETciD terms use their PSI-MS names (#8691).
+    - Reading an mzML file only partly (metadata only, or counting its spectra, as the first pass of
+      MzMLFile::transform() does) ends the progress it started, so the progress output of every later
+      file is no longer nested one level deeper (#10271).
+    - mzML chromatograms are written with a precursor or product only if they have one. A TIC used
+      to get an empty precursor and a product isolation window at m/z 0, and an MS1 chromatogram such
+      a product. The original DIAuditor, for example, read that product's isolation window as the
+      last spectrum's and crashed (#10271).
+    - mzML: the mass resolving power (MS:1000800) is written in the scan, the only place mzML allows
+      it. It used to be written as a userParam of the spectrum, so other readers, such as the
+      original DIAuditor, lost it once a file had been written by OpenMS (#10313).
+    - Thermo .raw: spectra carry the mass resolving power of the scan trailer ('Orbitrap
+      Resolution:', else 'FT Resolution:'), as msconvert reports it (#10313).
+    - Bruker timsTOF .d: the start of the acquisition (with its time zone), the instrument model and
+      its serial number are read from analysis.tdf (#10313).
+    - mzML: the other scan attributes the reader keeps with the spectrum (filter string, preset scan
+      configuration, dwell time, scan rate, mass resolution, elution time, analyzer scan offset and
+      interchannel delay) are written in the scan as well, and scan terms it keeps under their
+      accession, such as the ion injection time (MS:1000927), as CV terms. Both used to be written
+      as userParams, which other readers do not find.
     - Fixed INI required/advanced parsing, XQuest FDR-type restoration, mzIdentML missing
       modification locations, PepXML source-run paths/redundant Comet scores and duplicate
       IDMapper spectrum references (#5443, #8905, #9089, #9660, #9763, #9766).
@@ -1073,6 +1215,19 @@ Fixes:
       ProteomicsLFQ/MSstatsConverter or put garbage into MSstats/Triqler condition and replicate
       columns. SampleSection::getFactorValue throws MissingInformation for a row without a value
       for the factor instead of reading past its end (#10148).
+    - UniPEFF wrote UniProt features whose <location sequence="..."> names another isoform
+      as annotations of the canonical entry, although their coordinates refer to that isoform
+      (e.g. \ModResPsi phosphoserines on non-S residues or past the sequence end). Such
+      features now go to the entry of their isoform when UniPEFF writes one; otherwise they
+      are skipped and counted in a summary log line.
+    - IDFileConverter: pepXML input with 'mz_file' failed with "Found no experiment with name" unless
+      the run's 'base_name' ended with the exact path given. This broke TPP results on Windows (TPP
+      writes 'c:/...', the tool got 'c:\...'), moved data and OpenMS' own pepXML output, which stores
+      the file name only. 'mz_file' is now matched by its file name; 'mz_name' can give more of the
+      path. PepXMLFile matches the experiment name against whole trailing path components of
+      'base_name', treating '/' and '\' alike, so 'LN1' no longer selects both 'L_LN1' and 'H_LN1'.
+      A name that matches runs with different 'base_name's is an error, and the not-found error lists
+      the 'base_name's in the file (#3502).
   Robustness:
     - mzIdentML writer: the "unknown modification" cvParam (MS:1001460) referenced the undeclared
       controlled vocabulary "MS", although the document declares only "PSI-MS". The writer names
@@ -1085,6 +1240,10 @@ Fixes:
       masses are computed with PROTON_MASS_U (the proton mass in Da) instead of PROTON_MASS (the
       proton mass in kg), which had made every mass about 1 u per charge too high
       (#10073, #10075, #10231).
+    - SpectrumCheapDPCorr::operator()(x, y) declared a local "bool keeppeaks_" that shadowed the
+      member of the same name, so the member itself was never assigned: dynprog_(), which resolves
+      ambiguous many-to-many peak alignments, read uninitialized memory instead of the keeppeaks
+      parameter when deciding whether to keep unaligned peaks in the consensus spectrum.
     - mzIdentML output with more than one identification run repeated the Measure ids
       (Measure_mz, Measure_int, Measure_error) in every SpectrumIdentificationList and failed schema
       validation; the Measure definitions are now written once (#10213).
@@ -1137,20 +1296,54 @@ Fixes:
       identification without hits (a crash for hit-less identifications loaded from featureXML,
       e.g. in FeatureLinkerUnlabeledQT with use_identifications), sorts the hits of every
       identification (also of a single one) and uses one score orientation throughout (#10148).
+    - OpenMS.ini: entries that a hand-written file does not set are now taken from the built-in
+      defaults, as are entries of the wrong type (with a warning). With a file that set only
+      temp_dir, the search engine adapters reported a database they could not find as an internal
+      error ("the element 'id_db_dir' could not be found"), and with id_db_dir given as a single
+      string instead of a list, as a conversion error. A file without the current 'version' no
+      longer logs "Broken file" or "deprecated" warnings on every run, since OpenMS never rewrites
+      the file (#3009).
 
 Documentation:
+  - New "File formats" page in the OpenMS documentation: which formats tools read and write
+    compressed, the .idparquet, .featureparquet and .consensusparquet bundles (their files, the
+    tools that use them, how to convert), and that imzML is read by the library and pyOpenMS
+    only. The TextExporter page lists the Parquet bundles it reads.
   - Corrected misleading Doxygen contracts in the sqMass/SQLite stack: countTableRows
     exception types, the SpectrumAccessSqMass usage example and getSpectraByRT /
     getMultipleSpectra semantics, SqMassFile::store replacement behaviour and the
     OpenSwathScoring fetchSpectrumSwath spectrum counts (#10148, #10244).
+  - The ProteomicsLFQ page describes match-between-runs with PIP-ECHO (-pip_echo) and lists
+    Thermo .raw input. The PercolatorAdapter page describes the in-process backend, when the
+    percolator executable is run instead, and how many threads each backend uses.
   - Expanded experimental-design terminology and LFQ/fractionated/TMT/SILAC examples,
     targeted quantitation, FAIMS, RT units, file conversions, USI and MetaProSIP CSV docs
     (#4400, #8478, #8588, #8597, #8615, #9173, #9909).
+  - New pyOpenMS user-guide pages "Arrow and Parquet" (to_arrow() of spectra, feature maps,
+    consensus maps and identifications; reading and writing the Parquet bundles) and "Mass
+    Spectrometry Imaging" (loading imzML, ion images, regions, on-disc access, writing).
   - Updated pyOpenMS type hints, docstrings, wrapping/ownership guidance and test templates;
     documented native-reader requirements, core-only builds and vcpkg configuration
     (#8483, #8507, #8548, #8561, #8674, #9162, #9629, #9736, #9752, #9792, #9812, #9928).
+  - New "Vendor formats" pages in the OpenMS and pyOpenMS documentation: the tools that read
+    Thermo .raw files and Bruker timsTOF .d directories, FileConverter's two Thermo readers
+    and their defaults, and that the other tools apply Thermo's peak picking too (#10303).
+    Corrected the FileConverter, FeatureFinderIdentification and FeatureFinderMetaboIdent
+    pages, the .NET requirement on the Windows installation page, and the macOS installation
+    page (macOS 15, notarized installer).
+  - The user FAQ explains OpenMS.ini: that it is optional, where OpenMS looks for it and which
+    entries it reads. The OpenMSInfo page describes the data, temp and user data paths as they
+    are resolved now (#3009).
+  - The Windows installation page builds with the vcpkg presets instead of the contrib package,
+    and the developer FAQ, the guide to adding a dependency (now via vcpkg.json and overlay
+    ports), the external-code pages and the agent notes no longer refer to contrib. The
+    orphaned install-contrib page is removed (#10144).
 
 Build System:
+  - The Debian package of a nightly or branch build carries its prerelease identifier in its
+    control version, for example 3.6.0~nightly.2026.09.27, so it sorts below the release
+    and a later nightly above an earlier one. Before, every build of 3.6.0 was version 3.6.0
+    to apt, whether nightly or release.
   - Public headers of OpenMS, OpenSwathAlgo, OpenMS_CLI, OpenMS_GUI and the test
     framework use CMake header file sets. Installation paths and components stay
     unchanged and private headers remain excluded. Building OpenMS and consuming
@@ -1242,16 +1435,6 @@ Build System:
     unavailable; SIMD-only compilation works without a runtime. Fixed
     YAML CTD parsing and optional WNet tool registration (#8368, #8880, #9056, #9223,
     #8496, #9267, #9388, #9651, #9653, #9783, #9784, #9971).
-  - Fixed the Homebrew static-Boost fallback on macOS: Boost's CMake config does not
-    expose iostreams'/regex's transitive dependencies as targets, so the fallback
-    rewrote their raw -l flags to imported ones, but a malformed "ICU:uc" reached the
-    link line unchanged, a missing find_package could name a target that was never
-    created (a hard configure-time error), and the Apple Silicon path was never taken
-    because the Homebrew-prefix check only matched /usr/local. Each dependency is now
-    translated independently against only the imported targets that were actually
-    found, using OPTIONAL_COMPONENTS so one missing ICU component no longer drops
-    every ICU target, and the Homebrew-prefix check also matches /opt/homebrew and
-    HOMEBREW_PREFIX (#10187).
   - Documentation formulas use MathJax, removing Ghostscript. Removed obsolete developer
     scripts, ENABLE_STYLE_TESTING, doc_xml and stale examples/schemas. Runtime schema
     coverage is retained; QcMLFile/PepXMLFileMascot validation remains unavailable and
@@ -1269,6 +1452,30 @@ Build System:
     installed now; the parser's own Mono.Unix.dll.config maps the library to linux-x64,
     osx-x64 and osx-arm64 and to nothing else, so the others could never be loaded
     (#10202, #10207, #10211).
+  - Debian package clean-up (#10230). Libraries no longer carry empty RUNPATH entries,
+    which the dynamic loader reads as the current working directory: the release
+    workflow links under PACKAGE_TYPE=none, whose install RPATH also names the build
+    tree's vcpkg directory, and packages after reconfiguring, so CMake kept most of the
+    ':' padding of the longer build-tree RPATH. libOpenSwathAlgo (and on arm64 the
+    Thermo bridge) shipped with $ORIGIN/../lib/ and about 90 empty entries; CPack now
+    removes them before building the package. The arm64 build takes the Thermo bridge
+    from vcpkg, as every other platform does: vcpkg.json still left it out on
+    linux & arm64 from when Thermo RAW reading was off there (#10206 turned it on), so
+    the arm64 build fetched and built the bridge itself and packaged the bridge's
+    headers, CMake package, .pdb and a second copy of its managed assemblies. The vcpkg
+    port also installs the Thermo RawFileReader license now, so every package ships it
+    under share/OpenMS/LICENSES as the from-source build did; before, only the arm64
+    package had it. Depends is now exactly what dpkg-shlibdeps derives. The hand-written
+    entries had gone stale: the Qt ones are derived anyway, and the derived plain t64
+    names made their "t64 | non-t64" alternatives unenforceable; nothing links yaml-cpp
+    dynamically; and SQLite ships inside the package, so libsqlite3-0 was never used
+    (#10259).
+  - The DEB installed the 53 third-party libraries it bundles and the Thermo bridge
+    world-writable (mode 0777) in /usr/lib, among them libssl.so.3 and libcrypto.so.3, so any
+    local user could replace code that the OpenMS tools load, also when root runs them. The
+    macOS package installed the headers and resources of its Qt frameworks world-writable.
+    Bundled libraries are now writable by their owner only (0755), like any installed library
+    (#10324).
   - The container image build failed on every nightly run once WITH_THERMO_RAW defaulted
     to ON on Linux aarch64 (#10206): the Dockerfile still installed the .NET SDK/runtime
     that openms-thermo-bridge needs only for amd64, so the arm64 build could not find

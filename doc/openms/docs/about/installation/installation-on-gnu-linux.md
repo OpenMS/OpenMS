@@ -49,9 +49,9 @@ If you encounter errors, troubleshoot using the following steps.
 
 3. Adapters are not finding thirdparty applications
 
-   Executables for thirdparty applications can be found in:
-   `/usr/share/OpenMS/THIRDPARTY`
-   Add the folders in your `PATH` for a convenient use of the adapters.
+   The package installs the bundled thirdparty applications in `/usr/share/OpenMS/THIRDPARTY`. Since OpenMS 3.6,
+   an adapter looks for its application on the `PATH` first and then in these folders. To use another version, put
+   it on the `PATH` or give its location with the adapter's `-..._executable` option.
 
 ```{include} run-in-container.md
 :start-after: "% start-after"
@@ -61,7 +61,9 @@ If you encounter errors, troubleshoot using the following steps.
 
 OpenMS reads Thermo Fisher `.raw` files natively through the openms-thermo-bridge, which is
 enabled by default in the release binaries on supported platforms. This requires a **.NET 8
-runtime** to be present at run time so that the managed bridge libraries can be loaded.
+runtime** to be present at run time so that the managed bridge libraries can be loaded. Which
+tools read `.raw` files, and how FileConverter converts them, is described in
+[Vendor formats](/getting-started/vendor-formats.md).
 
 Install it from the [.NET download page](https://dotnet.microsoft.com/download) or via your
 distribution's package manager, for example:

@@ -88,27 +88,26 @@ Type `cmake` into a console. This will list the available code generators availa
 
 ### What are user definable CMake cache variables?
 
-They allow the user to pass options to `CMake` which will influence the build system. The most important option which
-should be given when calling `CMake.exe` is:
+They allow the user to pass options to `CMake` which will influence the build system.
 
-`CMAKE_FIND_ROOT_PATH`, which is where `CMake` will search for additional libraries if they are not found in the default
-system paths. By default we add `OpenMS/contrib`.
-
-If you have installed all libraries on your system already, there is no need to change `CMAKE_FIND_ROOT_PATH`. For
-`contrib` libraries, set the variable `CMAKE_FIND_ROOT_PATH`.
-
-On Windows, `contrib` folder is required, as there are no system developer packages. To pass this variable to
-`CMake` use the `-D` switch e.g. `cmake -D CMAKE_FIND_ROOT_PATH:PATH="D:\\somepath\\contrib"`.
+The recommended way to configure OpenMS is with one of the presets in `CMakePresets.json` (run `cmake --list-presets`
+to list them), e.g. `cmake --preset linux-x64-release`. The presets set `OPENMS_USE_VCPKG=ON` and use the vcpkg
+toolchain from the `vcpkg` submodule, so vcpkg provides the third-party libraries (see the
+[vcpkg build guide](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/install_vcpkg.html)).
+Cache variables given with `-D` on the same command line override the preset, e.g.
+`cmake --preset linux-x64-release -D WITH_GUI=OFF`.
 
 Everything else can be edited using `ccmake` afterwards.
 
 The following options are of interest:
 
-- `CMAKE_BUILD_TYPE` To build Debug or Release version of OpenMS. Release is the default.
-- `CMAKE_FIND_ROOT_PATH` The path to the `contrib` libraries.
+- `CMAKE_BUILD_TYPE` To build Debug or Release version of OpenMS. Release is the default. The presets set it for you.
+- `CMAKE_PREFIX_PATH` Additional installation prefixes where `CMake` searches for libraries that are not found in the
+  default system paths, e.g. Qt on Windows, which vcpkg does not provide, or libraries you installed yourself when
+  building without vcpkg.
    ```{tip}
-    Provide more then one value here (e.g., `-D CMAKE_FIND_ROOT_PATH="/path/to/contrib;/usr/"` will search in your
-    `contrib` path and in `/usr` for the required libraries)
+    Provide more than one value separated by `;` (e.g., `-D CMAKE_PREFIX_PATH="/opt/qt6;/usr/local"` will search in both
+    prefixes for the required libraries)
    ```
 - `STL_DEBUG` Enables STL debug mode.
 -  `DB_TEST` (deprecated) Enables database testing.
@@ -129,7 +128,7 @@ calling `ccmake`. For Visual Studio, this is not necessary as all configurations
 like within the IDE itself. The 'Debug' configuration enabled debug information. The 'Release' configuration disables
 debug information and enables optimisation.
 
-### I changed the `contrib` path, but re-running `CMake` won't change the library paths?
+### I changed a library path (e.g. `CMAKE_PREFIX_PATH`), but re-running `CMake` won't change the library paths?
 
 Once a library is found and its location is stored in a cache variable, it will only be searched again if the
 corresponding entry in the cache file is set to false.
@@ -339,8 +338,11 @@ During writing in text-mode on Windows a line-break (`\n`) is expanded to (`\r\n
 
 ### Paths and system functions
 
-Avoid hardcoding e.g.`String tmp_dir = "/tmp";`. This will fail on Windows. Use Qt's `QDir` to get a path to the systems
-temporary directory if required.
+Avoid hardcoding e.g. `std::string tmp_dir = "/tmp";`. This will fail on Windows. Use
+`SystemSettings::getTempDirectory()` (`OpenMS/SYSTEM/SystemSettings.h`) instead: it returns the directory set by the
+`OPENMS_TMPDIR` environment variable or the `temp_dir` entry of the OpenMS.ini, and otherwise the system's temporary
+directory. A `TempDir` (`OpenMS/SYSTEM/TempFiles.h`) creates a uniquely named directory in it and removes it again
+when it goes out of scope.
 
 Avoid names like uname which are only available on Linux.
 

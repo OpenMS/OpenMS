@@ -68,11 +68,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 217.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -104,11 +99,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 218.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -140,11 +130,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 219.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -176,11 +161,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 220.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -212,11 +192,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 221.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -248,11 +223,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 222.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -284,11 +254,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 223.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -320,11 +285,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 245.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -356,11 +316,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 246.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -392,11 +347,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 247.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -428,11 +378,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 248.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -464,11 +409,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 249.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -500,11 +440,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 250.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -536,11 +471,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 307.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -572,11 +502,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 308.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -608,11 +533,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 309.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -644,11 +564,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 310.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -680,11 +595,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 311.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -716,11 +626,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 357.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -752,11 +657,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 358.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -788,11 +688,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 359.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -824,11 +719,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 360.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="24">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -860,11 +750,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 400.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -896,11 +781,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 401.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -932,11 +812,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 402.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -968,11 +843,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 403.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1004,11 +874,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 404.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1040,11 +905,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 445.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1076,11 +936,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 446.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1112,11 +967,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 447.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1148,11 +998,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 448.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1184,11 +1029,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 449.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1220,11 +1060,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 471.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1256,11 +1091,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 472.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1292,11 +1122,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 473.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1328,11 +1153,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 474.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1364,11 +1184,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 475.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1400,11 +1215,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 476.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1436,11 +1246,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 765.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1472,11 +1277,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 767.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1508,11 +1308,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 769.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1544,11 +1339,6 @@
 							<userParam name="description" type="xsd:string" value="XIC @ 770.0"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -1570,49 +1360,49 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="XIC mz=217.0">3584</offset>
-		<offset idRef="XIC mz=218.0">5529</offset>
-		<offset idRef="XIC mz=219.0">7474</offset>
-		<offset idRef="XIC mz=220.0">9439</offset>
-		<offset idRef="XIC mz=221.0">11404</offset>
-		<offset idRef="XIC mz=222.0">13369</offset>
-		<offset idRef="XIC mz=223.0">15285</offset>
-		<offset idRef="XIC mz=245.0">17201</offset>
-		<offset idRef="XIC mz=246.0">19117</offset>
-		<offset idRef="XIC mz=247.0">21033</offset>
-		<offset idRef="XIC mz=248.0">22949</offset>
-		<offset idRef="XIC mz=249.0">24866</offset>
-		<offset idRef="XIC mz=250.0">26783</offset>
-		<offset idRef="XIC mz=307.0">28700</offset>
-		<offset idRef="XIC mz=308.0">30617</offset>
-		<offset idRef="XIC mz=309.0">32534</offset>
-		<offset idRef="XIC mz=310.0">34451</offset>
-		<offset idRef="XIC mz=311.0">36368</offset>
-		<offset idRef="XIC mz=357.0">38285</offset>
-		<offset idRef="XIC mz=358.0">40231</offset>
-		<offset idRef="XIC mz=359.0">42177</offset>
-		<offset idRef="XIC mz=360.0">44123</offset>
-		<offset idRef="XIC mz=400.0">46057</offset>
-		<offset idRef="XIC mz=401.0">47974</offset>
-		<offset idRef="XIC mz=402.0">49891</offset>
-		<offset idRef="XIC mz=403.0">51808</offset>
-		<offset idRef="XIC mz=404.0">53725</offset>
-		<offset idRef="XIC mz=445.0">55642</offset>
-		<offset idRef="XIC mz=446.0">57559</offset>
-		<offset idRef="XIC mz=447.0">59476</offset>
-		<offset idRef="XIC mz=448.0">61393</offset>
-		<offset idRef="XIC mz=449.0">63310</offset>
-		<offset idRef="XIC mz=471.0">65227</offset>
-		<offset idRef="XIC mz=472.0">67144</offset>
-		<offset idRef="XIC mz=473.0">69061</offset>
-		<offset idRef="XIC mz=474.0">70978</offset>
-		<offset idRef="XIC mz=475.0">72895</offset>
-		<offset idRef="XIC mz=476.0">74812</offset>
-		<offset idRef="XIC mz=765.0">76729</offset>
-		<offset idRef="XIC mz=767.0">78646</offset>
-		<offset idRef="XIC mz=769.0">80563</offset>
-		<offset idRef="XIC mz=770.0">82480</offset>
+		<offset idRef="XIC mz=218.0">5294</offset>
+		<offset idRef="XIC mz=219.0">7004</offset>
+		<offset idRef="XIC mz=220.0">8734</offset>
+		<offset idRef="XIC mz=221.0">10464</offset>
+		<offset idRef="XIC mz=222.0">12194</offset>
+		<offset idRef="XIC mz=223.0">13875</offset>
+		<offset idRef="XIC mz=245.0">15556</offset>
+		<offset idRef="XIC mz=246.0">17237</offset>
+		<offset idRef="XIC mz=247.0">18918</offset>
+		<offset idRef="XIC mz=248.0">20599</offset>
+		<offset idRef="XIC mz=249.0">22281</offset>
+		<offset idRef="XIC mz=250.0">23963</offset>
+		<offset idRef="XIC mz=307.0">25645</offset>
+		<offset idRef="XIC mz=308.0">27327</offset>
+		<offset idRef="XIC mz=309.0">29009</offset>
+		<offset idRef="XIC mz=310.0">30691</offset>
+		<offset idRef="XIC mz=311.0">32373</offset>
+		<offset idRef="XIC mz=357.0">34055</offset>
+		<offset idRef="XIC mz=358.0">35766</offset>
+		<offset idRef="XIC mz=359.0">37477</offset>
+		<offset idRef="XIC mz=360.0">39188</offset>
+		<offset idRef="XIC mz=400.0">40887</offset>
+		<offset idRef="XIC mz=401.0">42569</offset>
+		<offset idRef="XIC mz=402.0">44251</offset>
+		<offset idRef="XIC mz=403.0">45933</offset>
+		<offset idRef="XIC mz=404.0">47615</offset>
+		<offset idRef="XIC mz=445.0">49297</offset>
+		<offset idRef="XIC mz=446.0">50979</offset>
+		<offset idRef="XIC mz=447.0">52661</offset>
+		<offset idRef="XIC mz=448.0">54343</offset>
+		<offset idRef="XIC mz=449.0">56025</offset>
+		<offset idRef="XIC mz=471.0">57707</offset>
+		<offset idRef="XIC mz=472.0">59389</offset>
+		<offset idRef="XIC mz=473.0">61071</offset>
+		<offset idRef="XIC mz=474.0">62753</offset>
+		<offset idRef="XIC mz=475.0">64435</offset>
+		<offset idRef="XIC mz=476.0">66117</offset>
+		<offset idRef="XIC mz=765.0">67799</offset>
+		<offset idRef="XIC mz=767.0">69481</offset>
+		<offset idRef="XIC mz=769.0">71163</offset>
+		<offset idRef="XIC mz=770.0">72845</offset>
 	</index>
 </indexList>
-<indexListOffset>84431</indexListOffset>
+<indexListOffset>74561</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

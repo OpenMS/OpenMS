@@ -7,6 +7,7 @@ the nightly builds as described in the**
 
 In pyOpenMS some data structures can be converted to a tabular format as a ``pandas.DataFrame``.
 This allows convenient access to data and meta values of spectra, features and identifications.
+The same data structures also convert to Apache Arrow tables; see :doc:`arrow_parquet`.
 
 Required imports for the examples:
 

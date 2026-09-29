@@ -99,6 +99,27 @@ namespace OpenMS
       return compression == FileTypes::UNKNOWN || FileTypes::supportsCompressedReading(type, compression);
     }
 
+    /// The output counterpart of compressionSupported(): refuses an output name whose compression suffix
+    /// the writer for its format does not produce. Only XMLFile compresses, with gzip or bzip2 (see
+    /// FileTypes::supportsCompressedWriting); any other writer would store plain data under the compressed
+    /// name. A name whose inner format is unknown is left to the tool, like an unknown extension.
+    void checkOutputCompression(const std::string& filename, const std::string& param_name)
+    {
+      const FileTypes::Type compression = FileNameUtils::compressionType(filename);
+      if (compression == FileTypes::UNKNOWN) return;
+      const FileTypes::Type type = FileNameUtils::getTypeByFileName(filename);
+      if (type == FileTypes::UNKNOWN || FileTypes::supportsCompressedWriting(type, compression)) return;
+
+      const std::string suffix = filename.substr(filename.rfind('.'));
+      const std::string format = FileTypes::typeToName(type);
+      const std::string hint = FileTypes::supportsCompressedWriting(type, FileTypes::GZ)
+        ? "OpenMS compresses " + format + " with gzip or bzip2 only: use '.gz' or '.bz2' instead."
+        : "OpenMS cannot write " + format + " compressed: remove the '" + suffix + "' suffix, and compress the file afterwards if needed.";
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Output file '" + filename + "' (parameter '-" + param_name + "') ends in '" + suffix +
+        "', but it would be written uncompressed. " + hint);
+    }
+
     /// Expand declared formats to every accepted extension, as '*.ext' patterns for INI/CTD metadata.
     /// 'fasta' becomes {*.fasta, *.fa, *.faa}; an unrecognized custom extension is passed through as-is.
     /// Order is stable (declaration order, preferred extension before its aliases) and duplicates are dropped.
@@ -1625,6 +1646,15 @@ namespace OpenMS
         }
       }
     }
+    else if (p.type == ParameterInformation::OUTPUT_FILE_LIST)
+    {
+      for (const std::string& t : param_value) checkOutputCompression(t, param_name);
+    }
+  }
+
+  bool TOPPBase::findExecutable_(std::string& executable) const
+  {
+    return File::findExecutable(executable);
   }
 
   void TOPPBase::fileParamValidityCheck_(std::string& param_value, const std::string& param_name, const ParameterInformation& p) const
@@ -1634,7 +1664,7 @@ namespace OpenMS
     {
       if (ListUtils::contains(p.tags, "is_executable"))
       { // will update to absolute path
-        if (File::findExecutable(param_value))
+        if (findExecutable_(param_value))
         {
           writeDebug_("Input file resolved to '" + param_value + "'", 2);
         }
@@ -1660,7 +1690,11 @@ namespace OpenMS
     }
 
     // check restrictions
-    if (p.valid_strings.empty()) return;
+    if (p.valid_strings.empty())
+    {
+      if (p.type == ParameterInformation::OUTPUT_FILE) checkOutputCompression(param_value, param_name);
+      return;
+    }
 
     switch (p.type)
     {
@@ -1710,6 +1744,7 @@ namespace OpenMS
             std::string("Invalid output file extension for file '") + param_value + "'. Valid file extensions are: '" +
             ListUtils::concatenate(p.valid_strings, "','") + "'.");
         }
+        checkOutputCompression(param_value, param_name);
         break;
       }
       case ParameterInformation::OUTPUT_PREFIX: /* no file extension check for out prefixes */

@@ -17,6 +17,9 @@ The recommended way is to inherit from the class TOPPBase as in existing TOPP to
   registers it: the build generates the tool registry `share/OpenMS/TOOLS/OpenMS.tsv` that `ToolHandler` reads at
   run time, so there is no C++ list and no registry file to edit, and a tool cannot be built without being
   registered. Pick `<Category>` from the set used in `doc/doxygen/public/TOPP.doxygen`.
+  A tool built outside the OpenMS source tree registers itself with a line holding its name and category, separated by a tab,
+  in a `*.tsv` file of `share/OpenMS/TOOLS`, or of a directory named by the `OPENMS_TOOL_REGISTRY_PATH` environment
+  variable (`OPENMS_TTD_INTERNAL_PATH`, its name in earlier releases, is still read); OpenMS need not be rebuilt.
   Registration creates a doxygen page with the `--help` output of the tool (using `TOPPDocumenter`). This page must be
   included at the end of the doxygen documentation of your tool (see other tools for an example).
 - Add it to the TOPP docu page (in `doc/doxygen/public/TOPP.doxygen`)
@@ -52,7 +55,7 @@ To add your format to TOPP applications:
 
 - add the file extension to the extensions list of the respective parameter:
   ```
-  e.g. setValidStrings_("in_type", StringList::create("mzData,mzXML,mzML")); in FileInfo
+  e.g. setValidStrings_("in_type", ListUtils::create<std::string>("mzData,mzXML,mzML")); in FileInfo
   ```
 
 ## How to create an icon file for a TOPP tool under Windows?

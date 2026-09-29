@@ -110,7 +110,7 @@ NB_MODULE(_pyopenms_format, m) {
     nb::class_<OpenMS::ThermoRawFile::Options>(m, "ThermoRawFileOptions", "Options for metadata-preserving Thermo RAW loading")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ThermoRawFile::Options&>())
-        .def_rw("centroid", &OpenMS::ThermoRawFile::Options::centroid, "Centroid profile scans (matches ThermoRawFileParser peak picking)")
+        .def_rw("centroid", &OpenMS::ThermoRawFile::Options::centroid, "Centroid profile scans (matches ThermoRawFileParser peak picking; FileHandler sets it)")
         .def_rw("charge_data", &OpenMS::ThermoRawFile::Options::charge_data, "Export instrument-assigned centroid charges as an integer data array")
         .def_rw("noise_data", &OpenMS::ThermoRawFile::Options::noise_data, "Export the independently sampled noise/baseline arrays")
         .def_rw("all_detectors", &OpenMS::ThermoRawFile::Options::all_detectors, "Export UV/PDA/analog detector traces and PDA spectra")
@@ -516,7 +516,7 @@ Computes a SHA-1 hash of the file content
         .def("loadExperiment", [](OpenMS::FileHandler& self, const std::string& filename, OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;
             self.loadExperiment(filename, exp);
-        }, "filename"_a, "exp"_a, "Load experiment from file")
+        }, "filename"_a, "exp"_a, "Load experiment from file. Thermo .raw files are centroided with Thermo's peak picking; use ThermoRawFile to keep the scans as acquired")
         .def("loadExperiment", [](OpenMS::FileHandler& self, const std::string& filename, OpenMS::MSExperiment& exp,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log,
              bool rewrite_source_file, bool compute_hash) {
@@ -1475,17 +1475,19 @@ proteoforms: List of proteoforms in ProForma notation
         .def("__deepcopy__", [](const OpenMS::PEFFEntry& self, nb::dict) { return OpenMS::PEFFEntry(self); }, "memo"_a)
         .def("toFASTAEntry", [](const OpenMS::PEFFEntry& self) { return self.toFASTAEntry(); })
         .def_static("fromFASTAEntry", [](const OpenMS::FASTAFile::FASTAEntry& fasta) { return OpenMS::PEFFEntry::fromFASTAEntry(fasta); }, "fasta"_a)
-        .def("getSequence", [](const OpenMS::PEFFEntry& self) { return self.getSequence(); }, "Convert to a FASTAEntry (loses PEFF-specific annotations)")
-        .def("getModifiedSequence", [](const OpenMS::PEFFEntry& self) { return self.getModifiedSequence(); }, "Get the base AASequence for this entry (unmodified sequence)")
+        .def("getSequence", [](const OpenMS::PEFFEntry& self) { return self.getSequence(); }, "Get the base AASequence for this entry (unmodified sequence)")
+        .def("getModifiedSequence", [](const OpenMS::PEFFEntry& self) { return self.getModifiedSequence(); }, "Get an AASequence with all annotated modifications applied. Modifications with unknown positions (position == 0) or that cannot be resolved are skipped.")
         .def("getVariantSequences", [](const OpenMS::PEFFEntry& self, bool include_complex) { std::vector<std::basic_string<char>> descriptions; std::vector<OpenMS::AASequence> sequences; self.getVariantSequences(descriptions, sequences, include_complex); return std::make_tuple(descriptions, sequences); }, "include_complex"_a, 
             R"doc(
-Get an AASequence with all annotated modifications applied.
-Modifications with unknown positions (position == 0) are skipped.
+Get all variant sequences (each variant applied individually).
+:param include_complex: If True, also include complex variants; otherwise only simple variants
+:return: Tuple (descriptions, sequences) of variant descriptions and AASequences
 )doc")
         .def("getProcessedSequence", [](const OpenMS::PEFFEntry& self, const std::string& region_accession) { return self.getProcessedSequence(region_accession); }, "region_accession"_a, 
             R"doc(
 Get processed sequence (e.g., mature protein without signal peptide).
-Uses default region accession "PEFF:0001021" (signal peptide).
+:param region_accession: PEFF CV accession of the region type (e.g., "PEFF:0001021" for signal peptide)
+:return: Processed AASequence, or an empty AASequence if no region has this accession
 )doc")
         .def_rw("prefix", &OpenMS::PEFFEntry::prefix)
         .def_rw("identifier", &OpenMS::PEFFEntry::identifier)
