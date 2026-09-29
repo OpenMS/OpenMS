@@ -1492,15 +1492,15 @@ Build System:
     debug builds failed on x86_64 machines with AVX-512 (#10264).
   - The installers and the pyOpenMS wheels ship the license texts of the third-party code they
     contain; before, share/OpenMS/LICENSES held only the OpenMS license. It now also holds the
-    licenses of the vcpkg ports (vcpkg/), of Qt with where to get its source (Qt/, Windows and
-    macOS), of the Homebrew formulae whose libraries the macOS package and wheel bundle
-    (homebrew/), of the contrib libraries the wheels link, with their source archives (contrib/,
-    OpenMS/contrib#187), of the libraries the wheel repair tools copy in (system/), and of the
-    code that OpenMS carries in its source tree and compiles into libOpenMS, such as Percolator
-    with its NOTICE file (vendored/). share/OpenMS/THIRD-PARTY-NOTICES.txt gathers them in one
-    file: the third-party components, grouped by where they come from, and each text once. The
-    DEB also installs it, after the OpenMS license, as /usr/share/doc/openms/copyright, and
-    License.txt points to it (#10292).
+    licenses of the vcpkg ports, which the packages and the Linux and Windows wheels contain
+    (vcpkg/), of Qt with where to get its source (Qt/, Windows and macOS), of the Homebrew
+    formulae whose libraries the macOS package and wheel bundle (homebrew/), of the system
+    libraries the wheel repair tools copy in, such as GCC's OpenMP and Fortran runtimes
+    (system/), and of the code that OpenMS carries in its source tree and compiles into
+    libOpenMS, such as Percolator with its NOTICE file (vendored/).
+    share/OpenMS/THIRD-PARTY-NOTICES.txt gathers them in one file: the third-party components,
+    grouped by where they come from, and each text once. The DEB also installs it, after the
+    OpenMS license, as /usr/share/doc/openms/copyright, and License.txt points to it (#10292).
   - The tools the installers bundle from THIRDPARTY come with their license texts: Comet,
     MaRaCluster, Percolator, X!Tandem and the assemblies of ThermoRawFileParser, and so do the
     assemblies of the in-process Thermo reader (openms-thermo-bridge 0.3.1). SpectraST is no

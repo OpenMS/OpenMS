@@ -30,7 +30,7 @@ so boost's LICENSE_1_0.txt does not reach it.
 Libraries of the installation itself are skipped, and so are the C and C++ runtime
 (glibc, libgcc_s, libstdc++; on macOS everything under /usr/lib and /System), which the
 repair tools leave out as well. Libraries under a --skip-prefix are skipped, too: the
-OpenMS build installs the licenses of the contrib libraries itself
+OpenMS build installs the licenses of the vcpkg ports itself
 (cmake/third_party_licenses.cmake).
 
 Exits with 1, naming the library, if a bundled library has no package or no license file.

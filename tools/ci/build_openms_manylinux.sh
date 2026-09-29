@@ -128,6 +128,13 @@ for lib in "${src}"/install/lib/libOpenMS.so "${src}"/install/lib/libOpenSwathAl
   python3 -c 'import ctypes, os, sys; ctypes.CDLL(sys.argv[1], os.RTLD_NOW); print("loads:", sys.argv[1])' "${lib}"
 done
 
+# The licenses of the system libraries auditwheel copies into the wheel (GCC's libgomp,
+# libgfortran and libquadmath), from the packages of this image. The vcpkg ports are
+# skipped: the install of the component share put their texts into LICENSES/vcpkg.
+python3 tools/ci/collect_wheel_licenses.py --prefix "${src}/install" --skip-prefix "${src}/vcpkg_installed"
+# THIRD-PARTY-NOTICES.txt again, now with the licenses collected above.
+cmake -DSHARE_DIR="${src}/install/share/OpenMS" -P cmake/third_party_notices.cmake
+
 # cibuildwheel copies the whole project directory into its container. The OpenMS
 # build tree and vcpkg's download and package staging areas are not needed there.
 rm -rf build vcpkg/buildtrees vcpkg/packages vcpkg/downloads

@@ -6,17 +6,21 @@
 # $Authors: Timo Sachsenberg $
 # --------------------------------------------------------------------------
 
-## The packages bundle third-party libraries, and most of their licenses require the
-## license text to accompany the binaries. openms_install_third_party_licenses() installs
-## these texts under share/OpenMS/LICENSES, in the component 'share' that every
-## installation type includes. cmake/package_general.cmake calls it; the top-level
-## CMakeLists.txt includes this file in every configuration, so that CI parses it.
+## The packages and the pyOpenMS wheels bundle third-party libraries, and most of their
+## licenses require the license text to accompany the binaries. The functions below install
+## these texts under share/OpenMS/LICENSES, in the component 'share' that every installation
+## type includes.
 ##
-## - vcpkg/<port>.txt: the license text of every vcpkg port of the target triplet, which
-##   vcpkg installs as share/<port>/copyright. The packages carry the code of each port:
-##   as a library next to libOpenMS (install(RUNTIME_DEPENDENCY_SET) in
-##   package_general.cmake), linked into it (the Windows triplets are static), or compiled
-##   in (header-only ports).
+## openms_install_vcpkg_licenses() installs vcpkg/<port>.txt: the license text of every vcpkg
+## port of the target triplet, which vcpkg installs as share/<port>/copyright. An
+## installation carries the code of each port: as a library next to libOpenMS
+## (install(RUNTIME_DEPENDENCY_SET) in package_general.cmake), linked into it (the Windows
+## triplets and those of the Linux wheels are static), or compiled in (header-only ports).
+## The top-level CMakeLists.txt calls it in every configuration, so that the wheels built
+## with vcpkg carry the texts too.
+##
+## openms_install_third_party_licenses() installs the texts of what only the packages bundle;
+## cmake/package_general.cmake calls it:
 ## - Qt/: Qt is not a vcpkg port. The Windows and macOS packages bundle it; the DEB depends
 ##   on the distribution's Qt instead. OpenMS uses Qt under the LGPL version 3, which
 ##   requires its text, the text of the GPL version 3 that it supplements, and a note on
@@ -30,12 +34,6 @@
 ## OpenMS carries in its own source tree and compiles into its libraries (vendored/<name>/).
 ## Every installation of libOpenMS contains that code, the Python wheels too, so the
 ## top-level CMakeLists.txt calls it in every configuration, not only for packages.
-##
-## openms_install_contrib_licenses() installs the licenses of the libraries a build takes
-## from the OpenMS contrib (OPENMS_CONTRIB_LIBS), as the pyOpenMS wheels do (contrib/<name>/).
-## No package manager accounts for these. The contrib installs the license and notice files
-## of every library it builds into its share/licenses/<name>/, and these folders are
-## installed. The top-level CMakeLists.txt calls it in every configuration too.
 ##
 ## Each of them also records the files it installs, for share/OpenMS/THIRD-PARTY-NOTICES.txt,
 ## which gathers the texts in one file (cmake/third_party_notices.cmake).
@@ -69,6 +67,27 @@ function(openms_homebrew_formulae_of formulae_var prefix_var)
   set(${prefix_var} "${_prefixes}" PARENT_SCOPE)
 endfunction()
 
+## Installs share/OpenMS/LICENSES/vcpkg/<port>.txt for every port of the target triplet, if
+## the build takes its dependencies from vcpkg.
+function(openms_install_vcpkg_licenses)
+  if(NOT (OPENMS_USE_VCPKG AND VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET))
+    return()
+  endif()
+  file(GLOB _copyrights LIST_DIRECTORIES false
+       "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share/*/copyright")
+  foreach(_copyright IN LISTS _copyrights)
+    get_filename_component(_port_dir "${_copyright}" DIRECTORY)
+    get_filename_component(_port "${_port_dir}" NAME)
+    install(FILES "${_copyright}"
+            DESTINATION "${INSTALL_SHARE_DIR}/LICENSES/vcpkg"
+            RENAME "${_port}.txt"
+            COMPONENT share)
+    openms_add_third_party_notice("LICENSES/vcpkg/${_port}.txt" "${_copyright}")
+  endforeach()
+  list(LENGTH _copyrights _count)
+  message(STATUS "Installing the license texts of ${_count} vcpkg ports")
+endfunction()
+
 ## openms_install_third_party_licenses([QT_VERSION <version>]
 ##                                     [HOMEBREW_PREFIX <prefix> HOMEBREW_FORMULAE <formula>...])
 ##   QT_VERSION         the version of the Qt the package bundles; empty if it bundles none
@@ -78,22 +97,6 @@ endfunction()
 function(openms_install_third_party_licenses)
   cmake_parse_arguments(PARSE_ARGV 0 arg "" "QT_VERSION;HOMEBREW_PREFIX" "HOMEBREW_FORMULAE")
   set(_licenses_dir "${INSTALL_SHARE_DIR}/LICENSES")
-
-  if(OPENMS_USE_VCPKG AND VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
-    file(GLOB _copyrights LIST_DIRECTORIES false
-         "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share/*/copyright")
-    foreach(_copyright IN LISTS _copyrights)
-      get_filename_component(_port_dir "${_copyright}" DIRECTORY)
-      get_filename_component(_port "${_port_dir}" NAME)
-      install(FILES "${_copyright}"
-              DESTINATION "${_licenses_dir}/vcpkg"
-              RENAME "${_port}.txt"
-              COMPONENT share)
-      openms_add_third_party_notice("LICENSES/vcpkg/${_port}.txt" "${_copyright}")
-    endforeach()
-    list(LENGTH _copyrights _count)
-    message(STATUS "Packaging the license texts of ${_count} vcpkg ports")
-  endif()
 
   if(arg_QT_VERSION)
     set(_qt_licenses "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/third_party_licenses/Qt")
@@ -205,7 +208,7 @@ endfunction()
 ## and of the third-party code in other OpenMS source files (libkdtree++ in KDTree.h,
 ## MSNumpress), under share/OpenMS/LICENSES/vendored. A library of src/openms/extern that the
 ## build takes from vcpkg or the system instead (USE_EXTERNAL_<name>) is left out; for a vcpkg
-## port, openms_install_third_party_licenses() installs its license.
+## port, openms_install_vcpkg_licenses() installs its license.
 ## Installs <files> to share/OpenMS/LICENSES/vendored/<library> and records them for
 ## THIRD-PARTY-NOTICES.txt.
 function(_openms_install_vendored_license library)
@@ -260,77 +263,5 @@ function(openms_install_vendored_licenses)
             COMPONENT share)
     openms_add_third_party_notice_directory("LICENSES/vendored/tool_description_lib"
                                             "${_openms}/extern/tool_description_lib/LICENSES")
-  endif()
-endfunction()
-
-## Installs contrib/<library> for the libraries this build found inside OPENMS_CONTRIB_LIBS,
-## judged by where the find modules found them. The contrib installs the license and notice
-## files of each library into share/licenses/<library>/, with SOURCE.txt naming the source
-## archive it was built from; arrow/bundled/ holds those of the libraries Arrow builds and
-## links itself. Libraries from vcpkg, Homebrew or the system are left to
-## openms_install_third_party_licenses() or to the system's package manager.
-function(openms_install_contrib_licenses)
-  if(NOT OPENMS_CONTRIB_LIBS)
-    return()
-  endif()
-  set(_licenses_dir "${INSTALL_SHARE_DIR}/LICENSES/contrib")
-  cmake_path(SET _contrib NORMALIZE "${OPENMS_CONTRIB_LIBS}")
-  cmake_path(APPEND _contrib "share" "licenses" OUTPUT_VARIABLE _texts)
-
-  ## <folder in share/licenses>=<variables that hold where a find module found the library>
-  set(_libraries
-    "boost=Boost_DIR"
-    "bzip2=BZIP2_INCLUDE_DIR"
-    "zlib=ZLIB_INCLUDE_DIR"
-    "curl=CURL_INCLUDE_DIR,CURL_DIR"
-    "eigen=Eigen3_DIR,EIGEN3_INCLUDE_DIR"
-    "libsvm=LIBSVM_INCLUDE_DIR"
-    "libzip=LIBZIP_INCLUDE_DIR"
-    "xerces-c=XercesC_INCLUDE_DIR"
-    "coin-or=COIN_INCLUDE_DIR"
-    "glpk=GLPK_INCLUDE_DIR"
-    "hdf5=HDF5_INCLUDE_DIRS"
-    "arrow=Arrow_DIR")
-  set(_installed)
-  foreach(_entry IN LISTS _libraries)
-    string(REPLACE "=" ";" _entry "${_entry}")
-    list(GET _entry 0 _folder)
-    list(GET _entry 1 _variables)
-    string(REPLACE "," ";" _variables "${_variables}")
-    set(_from_contrib FALSE)
-    foreach(_variable IN LISTS _variables)
-      foreach(_path IN LISTS ${_variable})
-        cmake_path(IS_PREFIX _contrib "${_path}" NORMALIZE _inside)
-        if(_inside)
-          set(_from_contrib TRUE)
-        endif()
-      endforeach()
-    endforeach()
-    if(_from_contrib)
-      ## An older contrib has no share/licenses. Building still works; installing, which
-      ## packages and wheels do, stops rather than leave the license out.
-      set(_missing
-          "The contrib in ${OPENMS_CONTRIB_LIBS} has no share/licenses/${_folder}, so the "
-          "license of ${_folder} cannot be installed. Use a contrib built from OpenMS/contrib "
-          "d077390 or later, which installs the license files of the libraries it builds.")
-      if(NOT IS_DIRECTORY "${_texts}/${_folder}")
-        message(WARNING ${_missing})
-      endif()
-      string(CONCAT _missing ${_missing})
-      install(CODE "
-        if(NOT IS_DIRECTORY \"${_texts}/${_folder}\")
-          message(FATAL_ERROR \"${_missing}\")
-        endif()"
-        COMPONENT share)
-      install(DIRECTORY "${_texts}/${_folder}"
-              DESTINATION "${_licenses_dir}"
-              COMPONENT share)
-      openms_add_third_party_notice_directory("LICENSES/contrib/${_folder}" "${_texts}/${_folder}")
-      list(APPEND _installed ${_folder})
-    endif()
-  endforeach()
-  if(_installed)
-    list(JOIN _installed ", " _installed)
-    message(STATUS "Licenses of the contrib libraries to install: ${_installed}")
   endif()
 endfunction()

@@ -135,9 +135,10 @@ install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
 #...
 
 ########################################################### Third-party licenses
-## The license texts of the bundled libraries (cmake/third_party_licenses.cmake).
-## The DEB depends on the distribution's Qt (libQt6 is excluded above); the Windows and
-## macOS packages bundle theirs.
+## The license texts of what only the packages bundle: Qt and, on macOS, the Homebrew
+## formulae (cmake/third_party_licenses.cmake). Those of the vcpkg ports are installed for
+## every installation (CMakeLists.txt). The DEB depends on the distribution's Qt (libQt6 is
+## excluded above); the Windows and macOS packages bundle theirs.
 set(_openms_bundled_qt_version "")
 set(_openms_qt_formulae "")
 set(_openms_qt_homebrew_prefix "")
