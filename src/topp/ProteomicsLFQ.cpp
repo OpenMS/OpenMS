@@ -408,7 +408,7 @@ protected:
     // hide entries
     for (const auto& s :
          {"align_algorithm:use_unassigned_peptides", "align_algorithm:use_feature_rt", "align_algorithm:score_cutoff", "align_algorithm:min_score",
-          "align_algorithm:auto_reference"})
+          "align_algorithm:auto_reference", "align_algorithm:auto_reference_min_points"})
     {
       ma_defaults.addTag(s, "advanced");
     }

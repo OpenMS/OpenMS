@@ -333,7 +333,7 @@ protected:
     ma_defaults.setValue("max_rt_shift", 0.1);
     ma_defaults.setValue("use_unassigned_peptides", "false");
     ma_defaults.setValue("use_feature_rt", "true");
-    for (const auto& s : {"score_type", "score_cutoff", "min_score", "use_unassigned_peptides", "use_feature_rt", "use_adducts", "auto_reference"})
+    for (const auto& s : {"score_type", "score_cutoff", "min_score", "use_unassigned_peptides", "use_feature_rt", "use_adducts", "auto_reference", "auto_reference_min_points"})
     {
       ma_defaults.addTag(s, "advanced");
     }

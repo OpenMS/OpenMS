@@ -250,6 +250,88 @@ START_SECTION([EXTRA] the automatic reference shares IDs with every other input)
 END_SECTION
 
 
+START_SECTION([EXTRA] fallback to a consensus if the automatic reference provides too few alignment points)
+{
+  const std::string residues = "ACDEFGHIKLMNPQRSTVWY";
+  auto sequence = [&residues](Size i)
+  {
+    return "PEPTIDE" + std::string(1, residues[i / 20]) + residues[i % 20];
+  };
+  auto add_id = [](PeptideIdentificationList& run, const std::string& seq, double rt)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(seq));
+    hit.setScore(1.0);
+    PeptideIdentification pep;
+    pep.setRT(rt);
+    pep.setHits({hit});
+    run.push_back(pep);
+  };
+
+  // four runs, each pair shares four sequences that no other run has: any run
+  // as reference gives the others only four points each, while a consensus
+  // gives every run all of its twelve sequences:
+  vector<PeptideIdentificationList> runs(4);
+  Size pair_index = 0;
+  for (Size i = 0; i < 4; ++i)
+  {
+    for (Size j = i + 1; j < 4; ++j, ++pair_index)
+    {
+      for (Size k = 0; k < 4; ++k)
+      {
+        Size s = 4 * pair_index + k;
+        add_id(runs[i], sequence(s), 100.0 + 30.0 * s + 10.0 * i);
+        add_id(runs[j], sequence(s), 100.0 + 30.0 * s + 10.0 * j);
+      }
+    }
+  }
+
+  MapAlignmentAlgorithmIdentification fallback_aligner;
+  vector<TransformationDescription> transforms;
+  fallback_aligner.align(runs, transforms);
+
+  TEST_EQUAL(transforms.size(), 4);
+  for (const TransformationDescription& trafo : transforms)
+  {
+    TEST_EQUAL(trafo.getDataPoints().size(), 12);
+  }
+
+  // four points are enough if the threshold says so - then the first run
+  // (tie) stays the reference:
+  Param fallback_params = fallback_aligner.getParameters();
+  fallback_params.setValue("auto_reference_min_points", 4);
+  fallback_aligner.setParameters(fallback_params);
+  transforms.clear();
+  fallback_aligner.align(runs, transforms);
+
+  TEST_EQUAL(transforms.size(), 4);
+  TEST_EQUAL(transforms[0].getModelType(), "identity");
+  for (Size i = 1; i < 4; ++i)
+  {
+    TEST_EQUAL(transforms[i].getDataPoints().size(), 4);
+  }
+
+  // a run with few IDs overall gets no more points from a consensus, so it
+  // does not pull the other runs away from the reference:
+  vector<PeptideIdentificationList> with_sparse(3);
+  for (Size s = 0; s < 33; ++s)
+  {
+    add_id(with_sparse[0], sequence(s), 100.0 + 30.0 * s);
+    add_id(with_sparse[1], sequence(s), 110.0 + 30.0 * s);
+    if (s >= 30) add_id(with_sparse[2], sequence(s), 150.0 + 30.0 * s);
+  }
+  MapAlignmentAlgorithmIdentification sparse_aligner;
+  transforms.clear();
+  sparse_aligner.align(with_sparse, transforms);
+
+  TEST_EQUAL(transforms.size(), 3);
+  TEST_EQUAL(transforms[0].getModelType(), "identity");
+  TEST_EQUAL(transforms[1].getDataPoints().size(), 33);
+  TEST_EQUAL(transforms[2].getDataPoints().size(), 3);
+}
+END_SECTION
+
+
 START_SECTION((template <typename DataType> void setReference(DataType& data)))
 {
   // alignment with external reference:

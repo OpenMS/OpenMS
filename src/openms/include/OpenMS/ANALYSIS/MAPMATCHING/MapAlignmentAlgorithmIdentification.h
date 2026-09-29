@@ -42,8 +42,10 @@ namespace OpenMS
     Each map is aligned to a reference retention time scale.
     This time scale can come from a separate reference (setReference()) or from one of the input maps (@p reference_index in align()).
     If neither is given, parameter @p auto_reference decides: by default ("best_run"), the input map that shares the most identified sequences with every other map becomes the reference,
-    i.e. the map whose smallest number of shared sequences with any other map is largest (on ties, the map with the most identified sequences), so that every map can be aligned to it;
-    with "consensus", or if no map shares at least two sequences with every other map, the time scale is computed as a consensus of the input maps (median retention times over all maps of the ID groups).
+    i.e. the map whose smallest number of shared sequences with any other map is largest (on ties, the map with the most identified sequences), so that every map can be aligned to it.
+    With "consensus", the time scale is computed as a consensus of the input maps (median retention times over all maps of the ID groups).
+    A consensus is also used if no map shares at least two sequences with every other map, or if the chosen map leaves another map with fewer than @p auto_reference_min_points alignment points
+    and a consensus raises the smallest number of alignment points of any map.
     A consensus favors none of the maps, but every map contributes to the consensus it is aligned to, so larger shifts between maps are only partly corrected.
     The maps are then aligned to this scale as follows:\n
     The median retention time of each ID group in a map is mapped to the reference retention time of this group.
@@ -132,13 +134,16 @@ public:
         }
         all_sorted &= getRetentionTimes_(data[i], rt_data[j++]);
       }
-      if (!use_internal_reference && reference_.empty())
-      {
-        selectReference_(rt_data, all_sorted);
-      }
       setProgress(1);
 
-      computeTransformations_(rt_data, transformations, all_sorted);
+      if (!use_internal_reference && reference_.empty())
+      {
+        alignToAutoReference_(rt_data, transformations, all_sorted);
+      }
+      else
+      {
+        computeTransformations_(rt_data, transformations, all_sorted);
+      }
       // a reference taken from the input maps must not carry over into the next call:
       if (reference_index_ >= 0) reference_.clear();
       setProgress(2);
@@ -172,6 +177,9 @@ protected:
 
     /// Without a given reference, align to a consensus of all maps (instead of the map that shares the most IDs with the others)?
     bool consensus_reference_{};
+
+    /// Number of alignment points that the automatically chosen reference map should provide for every other map (else a consensus is tried)
+    Size auto_reference_min_points_{};
 
     /// Minimum score to reach for a peptide to be considered
     double min_score_;
@@ -321,16 +329,29 @@ protected:
                                  transforms, bool sorted = false);
 
     /**
-      @brief Make the input map that shares the most identified sequences with every other map the reference, unless parameter @p auto_reference asks for a consensus
+      @brief Choose the input map that shares the most identified sequences with every other map as the reference
 
       Only sequences that occur in at least @p min_run_occur maps count. The reference is the map whose smallest number of shared sequences with any other map is largest;
-      on ties, the map with the most identified sequences (then the first of those) is used. If no map shares at least two sequences with every other map, no reference is set, so that a consensus is used.
-      Otherwise sets #reference_index_ and #reference_ and removes the RT data of the reference map from @p rt_data.
+      on ties, the map with the most identified sequences (then the first of those) is used.
 
-      @param[in,out] rt_data Lists of RT values for diff. peptide sequences, per input map (input, the reference's lists will be sorted)
+      @param[in] rt_data Lists of RT values for diff. peptide sequences, per input map
+      @return Index of the reference map in @p rt_data, or -1 if no map shares at least two sequences with every other map (so that a consensus should be used)
+    */
+    Int selectReference_(const std::vector<SeqToList>& rt_data) const;
+
+    /**
+      @brief Compute RT transformations without a given reference, as parameter @p auto_reference asks
+
+      With "best_run", aligns to the map chosen by selectReference_() and sets #reference_index_ accordingly. If that leaves a map with fewer than @p auto_reference_min_points
+      alignment points, a consensus of all maps is computed as well, and used instead if it raises the smallest number of alignment points of any map.
+
+      @param[in,out] rt_data Lists of RT values for diff. peptide sequences, per input map (input, will be sorted)
+      @param[out] transforms Resulting transformations, per input map (output)
       @param[in] sorted Are RT lists already sorted?
     */
-    void selectReference_(std::vector<SeqToList>& rt_data, bool sorted);
+    void alignToAutoReference_(std::vector<SeqToList>& rt_data,
+                               std::vector<TransformationDescription>& transforms,
+                               bool sorted);
 
     /**
       @brief Check that parameter values are valid

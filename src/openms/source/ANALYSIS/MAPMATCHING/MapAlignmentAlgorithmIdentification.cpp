@@ -48,8 +48,11 @@ namespace OpenMS
     defaults_.setValue("use_adducts", "true", "If IDs contain adducts, treat differently adducted variants of the same molecule as different.");
     defaults_.setValidStrings("use_adducts", {"true", "false"});
 
-    defaults_.setValue("auto_reference", "best_run", "Reference to align to if none is given (neither a reference file nor an input index): 'best_run' - the input that shares the most identified sequences with every other input (on ties, the one with the most identified sequences); if none shares at least two with every other input, a consensus is used instead. 'consensus' - median RTs per sequence over all inputs. A consensus favors none of the inputs, but only partly corrects larger RT shifts, because every input contributes to the consensus it is aligned to.");
+    defaults_.setValue("auto_reference", "best_run", "Reference to align to if none is given (neither a reference file nor an input index): 'best_run' - the input that shares the most identified sequences with every other input (on ties, the one with the most identified sequences). A consensus is used instead if no input shares at least two sequences with every other input, or if the chosen input leaves another input with too few alignment points (see 'auto_reference_min_points'). 'consensus' - median RTs per sequence over all inputs. A consensus favors none of the inputs, but only partly corrects larger RT shifts, because every input contributes to the consensus it is aligned to.");
     defaults_.setValidStrings("auto_reference", {"best_run", "consensus"});
+
+    defaults_.setValue("auto_reference_min_points", 11, "If 'auto_reference' is 'best_run': number of alignment points (after removing outliers, see 'max_rt_shift') that the chosen input should provide for every other input. If an input gets fewer, the inputs are aligned to a consensus instead, provided that raises the smallest number of alignment points of any input. The default is the smallest number of points to which ProteomicsLFQ and MS1LabeledWorkflow fit an RT model. 0 disables the check.");
+    defaults_.setMinInt("auto_reference_min_points", 0);
 
     defaultsToParam_();
   }
@@ -82,11 +85,12 @@ namespace OpenMS
     min_score_ = param_.getValue("min_score");
     use_adducts_ = param_.getValue("use_adducts").toBool();
     consensus_reference_ = (param_.getValue("auto_reference").toString() == "consensus");
+    auto_reference_min_points_ = Size(int(param_.getValue("auto_reference_min_points")));
 }
 
-  void MapAlignmentAlgorithmIdentification::selectReference_(vector<SeqToList>& rt_data, bool sorted)
+  Int MapAlignmentAlgorithmIdentification::selectReference_(const vector<SeqToList>& rt_data) const
   {
-    if (consensus_reference_ || rt_data.empty()) return;
+    if (rt_data.empty()) return -1;
 
     Size best = 0;
     if (rt_data.size() > 1)
@@ -165,16 +169,74 @@ namespace OpenMS
         OPENMS_LOG_WARN << "No reference given, and no input shares at least two identified "
                         << "sequences with every other input - aligning to a consensus of all "
                         << "inputs instead." << endl;
-        return;
+        return -1;
       }
       OPENMS_LOG_INFO << "No reference given - aligning to input " << best + 1
                       << ", which shares at least " << best_overlap
                       << " identified sequences with every other input." << endl;
     }
 
-    reference_index_ = best;
-    computeMedians_(rt_data[best], reference_, sorted);
+    return Int(best);
+  }
+
+  void MapAlignmentAlgorithmIdentification::alignToAutoReference_(
+    vector<SeqToList>& rt_data, vector<TransformationDescription>& transforms, bool sorted)
+  {
+    Int best = consensus_reference_ ? -1 : selectReference_(rt_data);
+    if (best < 0) // align to a consensus of all inputs
+    {
+      computeTransformations_(rt_data, transforms, sorted);
+      return;
+    }
+
+    // align to the chosen input:
+    SeqToList best_data;
+    best_data.swap(rt_data[best]);
     rt_data.erase(rt_data.begin() + best);
+    reference_index_ = best;
+    computeMedians_(best_data, reference_, sorted);
+    computeTransformations_(rt_data, transforms, sorted);
+    reference_.clear(); // taken from the inputs, so it must not carry over into the next call
+
+    // (number of alignment points, index) of the input with the fewest points:
+    auto fewest_points = [](const vector<TransformationDescription>& trafos, Int skip)
+    {
+      pair<Size, Size> fewest(numeric_limits<Size>::max(), 0);
+      for (Size i = 0; i < trafos.size(); ++i)
+      {
+        if (Int(i) != skip) fewest = min(fewest, make_pair(trafos[i].getDataPoints().size(), i));
+      }
+      return fewest;
+    };
+    pair<Size, Size> fewest = fewest_points(transforms, best);
+    if (fewest.first >= auto_reference_min_points_) return;
+
+    // too few points for an input - put the chosen input back and try a consensus of all inputs:
+    OPENMS_LOG_INFO << "Input " << fewest.second + 1 << " gets only " << fewest.first
+                    << " alignment points from input " << best + 1
+                    << " (fewer than 'auto_reference_min_points') - trying a consensus of all inputs."
+                    << endl;
+    rt_data.insert(rt_data.begin() + best, SeqToList());
+    rt_data[best].swap(best_data);
+    reference_index_ = -1;
+    vector<TransformationDescription> consensus_transforms;
+    computeTransformations_(rt_data, consensus_transforms, sorted);
+    pair<Size, Size> fewest_consensus = fewest_points(consensus_transforms, -1);
+    if (fewest_consensus.first > fewest.first)
+    {
+      OPENMS_LOG_WARN << "Aligning to a consensus of all inputs instead of input " << best + 1
+                      << ", because it gives every input at least " << fewest_consensus.first
+                      << " alignment points (input " << best + 1 << " as reference: "
+                      << fewest.first << " for input " << fewest.second + 1 << ")." << endl;
+      transforms.swap(consensus_transforms);
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "Keeping input " << best + 1 << " as reference: a consensus of all inputs "
+                      << "would not raise the smallest number of alignment points of any input "
+                      << "(with the consensus: " << fewest_consensus.first << ")." << endl;
+      reference_index_ = best;
+    }
   }
 
   // RT lists in "rt_data" will be sorted (unless "sorted" is true)
