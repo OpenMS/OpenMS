@@ -279,6 +279,16 @@ START_SECTION((static std::string absolutePath(const std::string &file)))
   NOT_TESTABLE
 END_SECTION
 
+START_SECTION((static std::string toFileURI(const std::string& file)))
+#ifdef OPENMS_WINDOWSPLATFORM
+  TEST_STRING_EQUAL(File::toFileURI("C:\\data\\run\\sample.mzML"), "file:///C:/data/run/sample.mzML")
+  TEST_STRING_EQUAL(File::toFileURI("/data\\run\\sample.mzML"), "file:///data/run/sample.mzML")
+  TEST_STRING_EQUAL(File::toFileURI("\\\\server\\share\\sample.mzML"), "file://server/share/sample.mzML")
+#else
+  TEST_STRING_EQUAL(File::toFileURI("/data/run/sample.mzML"), "file:///data/run/sample.mzML")
+#endif
+END_SECTION
+
 START_SECTION((static std::string path(const std::string &file)))
   TEST_EQUAL(File::path("/source/config/bla/bluff.h"), "/source/config/bla");
   TEST_EQUAL(File::path("c:\\config\\bla\\tuff.h"), "c:\\config\\bla");
