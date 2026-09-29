@@ -101,11 +101,6 @@ namespace OpenMS::Internal
     /// Per-isoform working state (used between startElement("isoform") and endElement("isoform")).
     UniProtIsoform current_isoform_;
 
-    /// Whether the next &lt;name&gt; encountered inside the current &lt;gene&gt; subtree is a primary name.
-    bool gene_name_is_primary_{false};
-    /// Whether the next &lt;name&gt; encountered inside the current &lt;organism&gt; subtree is the scientific name.
-    bool organism_name_is_scientific_{false};
-
     /// Clear all per-entry state so the next &lt;entry&gt; starts fresh.
     void resetEntry_();
     /// Clear all per-feature state so the next &lt;feature&gt; starts fresh.
