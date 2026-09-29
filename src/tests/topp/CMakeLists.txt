@@ -1594,7 +1594,8 @@ set_tests_properties("TOPP_MapAlignerPoseClustering_6_out1" PROPERTIES DEPENDS "
 
 #------------------------------------------------------------------------------
 # MapAlignerIdentification tests:
-add_test("TOPP_MapAlignerIdentification_1" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML -out ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output1.tmp.featureXML ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output2.tmp.featureXML)
+# without a reference, to a consensus of the inputs:
+add_test("TOPP_MapAlignerIdentification_1" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML -out ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output1.tmp.featureXML ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output2.tmp.featureXML -algorithm:auto_reference consensus)
 add_test("TOPP_MapAlignerIdentification_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_1_output1.featureXML )
 set_tests_properties("TOPP_MapAlignerIdentification_1_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_1")
 add_test("TOPP_MapAlignerIdentification_1_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output2.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_1_output2.featureXML )
@@ -1614,8 +1615,17 @@ add_test("TOPP_MapAlignerIdentification_4_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/M
 set_tests_properties("TOPP_MapAlignerIdentification_4_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_4")
 add_test("TOPP_MapAlignerIdentification_4_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_4_output2.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_3_output1.featureXML )
 set_tests_properties("TOPP_MapAlignerIdentification_4_out2" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_4")
+# without a reference, to the input that shares the most identified sequences with every other input:
+# with two inputs that is a tie, and both have seven sequences, so the first one (here: input2) is used -
+# the result must equal test 3, where it is set as reference explicitly
+add_test("TOPP_MapAlignerIdentification_9" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML -out ${TESTS_TEMP_DIR}/MapAlignerIdentification_9_output1.tmp.featureXML ${TESTS_TEMP_DIR}/MapAlignerIdentification_9_output2.tmp.featureXML)
+set_tests_properties("TOPP_MapAlignerIdentification_9" PROPERTIES PASS_REGULAR_EXPRESSION "No reference given - aligning to input 1, which shares at least")
+add_test("TOPP_MapAlignerIdentification_9_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_9_output1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_3_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerIdentification_9_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_9")
+add_test("TOPP_MapAlignerIdentification_9_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_9_output2.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_2_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerIdentification_9_out2" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_9")
 # consensusXML input:
-add_test("TOPP_MapAlignerIdentification_5" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_5_input1.consensusXML ${DATA_DIR_TOPP}/MapAlignerIdentification_5_input2.consensusXML -out ${TESTS_TEMP_DIR}/MapAlignerIdentification_5_output1.tmp.consensusXML ${TESTS_TEMP_DIR}/MapAlignerIdentification_5_output2.tmp.consensusXML)
+add_test("TOPP_MapAlignerIdentification_5" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_5_input1.consensusXML ${DATA_DIR_TOPP}/MapAlignerIdentification_5_input2.consensusXML -out ${TESTS_TEMP_DIR}/MapAlignerIdentification_5_output1.tmp.consensusXML ${TESTS_TEMP_DIR}/MapAlignerIdentification_5_output2.tmp.consensusXML -algorithm:auto_reference consensus)
 add_test("TOPP_MapAlignerIdentification_5_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_5_output1.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_5_output1.consensusXML )
 set_tests_properties("TOPP_MapAlignerIdentification_5_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_5")
 add_test("TOPP_MapAlignerIdentification_5_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_5_output2.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_5_output2.consensusXML )

@@ -363,7 +363,7 @@ protected:
     registerStringOption_("mass_recalibration", "<option>", "false", "Mass recalibration.", false, true);
     setValidStrings_("mass_recalibration", ListUtils::create<std::string>("true,false"));
 
-    registerStringOption_("alignment_order", "<option>", "star", "If star, aligns all maps to the reference with most IDs. If tree_guided, aligns maps in tree order (most similar pairs first).", false, true);
+    registerStringOption_("alignment_order", "<option>", "star", "If star, aligns all maps to the map that shares the most IDs with every other map. If tree_guided, aligns maps in tree order (most similar pairs first).", false, true);
     setValidStrings_("alignment_order", ListUtils::create<std::string>("star,tree_guided"));
 
     registerStringOption_("keep_feature_top_psm_only", "<option>", "true", "If false, also keeps lower ranked PSMs that have the top-scoring"
@@ -407,7 +407,8 @@ protected:
 
     // hide entries
     for (const auto& s :
-         {"align_algorithm:use_unassigned_peptides", "align_algorithm:use_feature_rt", "align_algorithm:score_cutoff", "align_algorithm:min_score"})
+         {"align_algorithm:use_unassigned_peptides", "align_algorithm:use_feature_rt", "align_algorithm:score_cutoff", "align_algorithm:min_score",
+          "align_algorithm:auto_reference", "align_algorithm:auto_reference_min_points"})
     {
       ma_defaults.addTag(s, "advanced");
     }

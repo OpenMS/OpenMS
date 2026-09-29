@@ -51,7 +51,10 @@ vector<double> reference_rts; // needed later
 
 START_SECTION((template <typename DataType> void align(std::vector<DataType>& data, std::vector<TransformationDescription>& transformations, Int reference_index = -1)))
 {
-  // alignment without reference:
+  // alignment without reference, to a consensus of the input maps:
+  Param consensus_params = params;
+  consensus_params.setValue("auto_reference", "consensus");
+  aligner.setParameters(consensus_params);
 	vector<TransformationDescription> transforms;
 	aligner.align(peptides, transforms);
 
@@ -67,6 +70,7 @@ START_SECTION((template <typename DataType> void align(std::vector<DataType>& da
                       transforms[1].getDataPoints()[i].second);
     reference_rts.push_back(transforms[0].getDataPoints()[i].first);
   }
+  aligner.setParameters(params); // back to the default ("best_run")
 
   // alignment with internal reference:
   transforms.clear();
@@ -76,12 +80,55 @@ START_SECTION((template <typename DataType> void align(std::vector<DataType>& da
   TEST_EQUAL(transforms[0].getModelType(), "identity");
   TEST_EQUAL(transforms[1].getDataPoints().size(), 10);
 
+  map<std::string, double> rts_second; // RTs in the second map, per sequence
   for (Size i = 0; i < transforms[1].getDataPoints().size(); ++i)
   {
     // RT transform should map to RT scale of the reference:
     TEST_REAL_SIMILAR(transforms[1].getDataPoints()[i].second,
                       reference_rts[i]);
+    rts_second[transforms[1].getDataPoints()[i].note] =
+      transforms[1].getDataPoints()[i].first;
   }
+
+  // alignment without reference, to the map that shares the most sequences
+  // with every other map - with two maps a tie, and both have ten sequences,
+  // so the first map is used:
+  transforms.clear();
+  aligner.align(peptides, transforms);
+
+  TEST_EQUAL(transforms.size(), 2);
+  TEST_EQUAL(transforms[0].getModelType(), "identity");
+  TEST_EQUAL(transforms[1].getDataPoints().size(), 10);
+  for (Size i = 0; i < transforms[1].getDataPoints().size(); ++i)
+  {
+    TEST_REAL_SIMILAR(transforms[1].getDataPoints()[i].second,
+                      reference_rts[i]);
+  }
+
+  // with one ID less in the first map, the second one (more IDs) wins the tie:
+  vector<PeptideIdentificationList> fewer_in_first = peptides;
+  fewer_in_first[0].erase(fewer_in_first[0].begin());
+  transforms.clear();
+  aligner.align(fewer_in_first, transforms);
+
+  TEST_EQUAL(transforms.size(), 2);
+  TEST_EQUAL(transforms[0].getDataPoints().size(), 9);
+  TEST_EQUAL(transforms[1].getModelType(), "identity");
+  for (const auto& point : transforms[0].getDataPoints())
+  {
+    // RT transform should map to RT scale of the second map:
+    TEST_REAL_SIMILAR(point.second, rts_second[point.note]);
+  }
+
+  // the reference picked in one call must not carry over into the next one
+  // (it would be used as an external reference, so no map would get the
+  // identity transformation):
+  transforms.clear();
+  aligner.align(peptides, transforms);
+
+  TEST_EQUAL(transforms.size(), 2);
+  TEST_EQUAL(transforms[0].getModelType(), "identity");
+  TEST_EQUAL(transforms[1].getDataPoints().size(), 10);
 
   // algorithm works the same way for other input data types -> no extra tests
 }
@@ -130,6 +177,214 @@ START_SECTION([EXTRA] repeated align() with internal reference does not leak sta
     TEST_REAL_SIMILAR(second_transforms[1].getDataPoints()[i].second,
                       first_transforms[1].getDataPoints()[i].second);
   }
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] the automatic reference shares IDs with every other input)
+{
+  const std::string residues = "ACDEFGHIKLMNPQRSTVWY";
+  auto sequence = [&residues](Size i)
+  {
+    return "PEPTIDE" + std::string(1, residues[i / 20]) + residues[i % 20];
+  };
+  auto add_id = [](PeptideIdentificationList& run, const std::string& seq, double rt)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(seq));
+    hit.setScore(1.0);
+    PeptideIdentification pep;
+    pep.setRT(rt);
+    pep.setHits({hit});
+    run.push_back(pep);
+  };
+
+  // A has the most IDs (20 shared with B, 40 only its own), but shares none
+  // with C; B shares 20 with each of the others, so it becomes the reference:
+  vector<PeptideIdentificationList> runs(3);
+  for (Size i = 0; i < 20; ++i)
+  {
+    double rt = 100.0 + 30.0 * i;
+    add_id(runs[0], sequence(i), rt);
+    add_id(runs[1], sequence(i), rt + 10.0);
+    add_id(runs[1], sequence(20 + i), rt + 10.0);
+    add_id(runs[2], sequence(20 + i), rt + 50.0);
+  }
+  for (Size i = 0; i < 40; ++i)
+  {
+    add_id(runs[0], sequence(40 + i), 100.0 + 15.0 * i);
+  }
+
+  MapAlignmentAlgorithmIdentification auto_aligner;
+  vector<TransformationDescription> transforms;
+  auto_aligner.align(runs, transforms);
+
+  TEST_EQUAL(transforms.size(), 3);
+  TEST_EQUAL(transforms[0].getDataPoints().size(), 20);
+  TEST_EQUAL(transforms[1].getModelType(), "identity");
+  TEST_EQUAL(transforms[2].getDataPoints().size(), 20);
+  for (TransformationDescription& trafo : transforms)
+  {
+    trafo.fitModel("b_spline"); // throws if a run has too few data points
+  }
+
+  // each pair of runs shares only one sequence, so no run can be the
+  // reference for both others - the runs are aligned to a consensus instead:
+  vector<PeptideIdentificationList> sparse(3);
+  add_id(sparse[0], sequence(0), 100.0);
+  add_id(sparse[1], sequence(0), 110.0);
+  add_id(sparse[1], sequence(1), 200.0);
+  add_id(sparse[2], sequence(1), 250.0);
+  add_id(sparse[2], sequence(2), 300.0);
+  add_id(sparse[0], sequence(2), 290.0);
+
+  transforms.clear();
+  auto_aligner.align(sparse, transforms);
+
+  TEST_EQUAL(transforms.size(), 3);
+  for (const TransformationDescription& trafo : transforms)
+  {
+    TEST_EQUAL(trafo.getDataPoints().size(), 2);
+  }
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] other references or a consensus if the automatic reference provides too few alignment points)
+{
+  const std::string residues = "ACDEFGHIKLMNPQRSTVWY";
+  auto sequence = [&residues](Size i)
+  {
+    return "PEPTIDE" + std::string(1, residues[i / 20]) + residues[i % 20];
+  };
+  auto add_id = [](PeptideIdentificationList& run, const std::string& seq, double rt)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(seq));
+    hit.setScore(1.0);
+    PeptideIdentification pep;
+    pep.setRT(rt);
+    pep.setHits({hit});
+    run.push_back(pep);
+  };
+
+  // four runs, each pair shares four sequences that no other run has: any run
+  // as reference gives the others only four points each, while a consensus
+  // gives every run all of its twelve sequences:
+  vector<PeptideIdentificationList> runs(4);
+  Size pair_index = 0;
+  for (Size i = 0; i < 4; ++i)
+  {
+    for (Size j = i + 1; j < 4; ++j, ++pair_index)
+    {
+      for (Size k = 0; k < 4; ++k)
+      {
+        Size s = 4 * pair_index + k;
+        add_id(runs[i], sequence(s), 100.0 + 30.0 * s + 10.0 * i);
+        add_id(runs[j], sequence(s), 100.0 + 30.0 * s + 10.0 * j);
+      }
+    }
+  }
+
+  MapAlignmentAlgorithmIdentification fallback_aligner;
+  vector<TransformationDescription> transforms;
+  fallback_aligner.align(runs, transforms);
+
+  TEST_EQUAL(transforms.size(), 4);
+  for (const TransformationDescription& trafo : transforms)
+  {
+    TEST_EQUAL(trafo.getDataPoints().size(), 12);
+  }
+
+  // four points are enough if the threshold says so - then the first run
+  // (tie) stays the reference:
+  Param fallback_params = fallback_aligner.getParameters();
+  fallback_params.setValue("auto_reference_min_points", 4);
+  fallback_aligner.setParameters(fallback_params);
+  transforms.clear();
+  fallback_aligner.align(runs, transforms);
+
+  TEST_EQUAL(transforms.size(), 4);
+  TEST_EQUAL(transforms[0].getModelType(), "identity");
+  for (Size i = 1; i < 4; ++i)
+  {
+    TEST_EQUAL(transforms[i].getDataPoints().size(), 4);
+  }
+
+  // a run with few IDs overall can't get enough points from any reference, so
+  // the first choice is kept:
+  vector<PeptideIdentificationList> with_sparse(3);
+  for (Size s = 0; s < 33; ++s)
+  {
+    add_id(with_sparse[0], sequence(s), 100.0 + 30.0 * s);
+    add_id(with_sparse[1], sequence(s), 110.0 + 30.0 * s);
+    if (s >= 30) add_id(with_sparse[2], sequence(s), 150.0 + 30.0 * s);
+  }
+  MapAlignmentAlgorithmIdentification sparse_aligner;
+  transforms.clear();
+  sparse_aligner.align(with_sparse, transforms);
+
+  TEST_EQUAL(transforms.size(), 3);
+  TEST_EQUAL(transforms[0].getModelType(), "identity");
+  TEST_EQUAL(transforms[1].getDataPoints().size(), 33);
+  TEST_EQUAL(transforms[2].getDataPoints().size(), 3);
+
+  // such a sparse run (D) must not hide another run (B) that a different
+  // reference can give enough points: with sequence sets X (30), Y (5),
+  // W (30), Z (2) and U (100), every run shares at least two sequences with
+  // every other, and A (most IDs) is the first choice, but gives B only 7
+  // points - C gives A and B 32 each:
+  const Size x = 0, y = 30, w = 35, z = 65, u = 67, n_seqs = 167;
+  vector<PeptideIdentificationList> sparse_and_short(4);
+  const double offsets[] = {0.0, 180.0, 60.0, 90.0};
+  auto add_range = [&](Size run, Size from, Size to)
+  {
+    for (Size s = from; s < to; ++s)
+    {
+      add_id(sparse_and_short[run], sequence(s), 300.0 + 50.0 * (s % 67) + offsets[run]);
+    }
+  };
+  add_range(0, x, w); // A: X + Y
+  add_range(0, z, n_seqs); // A: Z + U
+  add_range(1, y, u); // B: Y + W + Z
+  add_range(2, x, y); // C: X
+  add_range(2, w, u); // C: W + Z
+  add_range(3, z, u); // D: Z
+  MapAlignmentAlgorithmIdentification switch_aligner;
+  transforms.clear();
+  switch_aligner.align(sparse_and_short, transforms);
+
+  TEST_EQUAL(transforms.size(), 4);
+  TEST_EQUAL(transforms[0].getDataPoints().size(), 32);
+  TEST_EQUAL(transforms[1].getDataPoints().size(), 32);
+  TEST_EQUAL(transforms[2].getModelType(), "identity");
+  TEST_EQUAL(transforms[3].getDataPoints().size(), 2);
+
+  // the choice considers outliers ("max_rt_shift"): with the same 100
+  // sequences in four runs, shifted by 0, 240, 480 and 0 seconds, the first
+  // run leaves the third without points (shift over 10% of the RT range);
+  // the second run gives every run all points:
+  vector<PeptideIdentificationList> shifted(4);
+  const double shifts[] = {0.0, 240.0, 480.0, 0.0};
+  for (Size run = 0; run < 4; ++run)
+  {
+    for (Size s = 0; s < 100; ++s)
+    {
+      add_id(shifted[run], sequence(s), 300.0 + 30.0 * s + shifts[run]);
+    }
+  }
+  MapAlignmentAlgorithmIdentification shift_aligner;
+  Param shift_params = shift_aligner.getParameters();
+  shift_params.setValue("max_rt_shift", 0.1);
+  shift_aligner.setParameters(shift_params);
+  transforms.clear();
+  shift_aligner.align(shifted, transforms);
+
+  TEST_EQUAL(transforms.size(), 4);
+  TEST_EQUAL(transforms[0].getDataPoints().size(), 100);
+  TEST_EQUAL(transforms[1].getModelType(), "identity");
+  TEST_EQUAL(transforms[2].getDataPoints().size(), 100);
+  TEST_EQUAL(transforms[3].getDataPoints().size(), 100);
 }
 END_SECTION
 
