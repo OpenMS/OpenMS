@@ -3696,6 +3696,10 @@ namespace OpenMS::Internal
         {
           bool writtenAsCVTerm = false;
           const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(*key);
+          if (c == nullptr && cv_.exists(*key))
+          {
+            c = &cv_.getTerm(*key); // the reader keeps scan terms it has no member for under their accession, e.g. MS:1000927
+          }
           if (c != nullptr)
           {
             if (validateCV_(*c, path, validator))
@@ -5403,19 +5407,46 @@ namespace OpenMS::Internal
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\" />\n";
       }
 
-      // The reader keeps the mass resolving power with the spectrum, but mzML allows MS:1000800 only in a scan. So it is
-      // left out here and written in the first scan, as a CV term whatever the type of its value (the vocabulary declares
-      // a string, the value is usually a number): other readers would not find a userParam. A value of the scan itself
-      // takes precedence.
-      writeUserParam_(os, spec, 4, "/mzML/run/spectrumList/spectrum/cvParam/@accession", validator,
-                      {"mzml coordinate array", "mzml intensity array", "sampled noise m/z array", "sampled noise intensity array", "sampled noise baseline array",
-                       "mass resolving power"});
-      auto writeResolvingPower = [&](const MetaInfoInterface& scan_meta, bool first_scan)
+      // The reader keeps these scan attributes with the spectrum, as MSSpectrum has no member for them (listed in the
+      // order in which the reader handles them). mzML allows them only in a scan, so they are left out here and written
+      // in the first scan, as CV terms whatever the type of their value (e.g. the vocabulary declares a string for the
+      // mass resolving power, which is usually a number): other readers would not find a userParam. A value of the scan
+      // itself takes precedence. The terms are given by accession, as a name can belong to several terms (e.g. 'mass
+      // resolving power' to MS:1000234 and MS:1000800).
+      static const std::vector<std::pair<std::string, std::string>> scan_attributes = {
+        {"dwell time", "MS:1000502"}, {"mass resolution", "MS:1000011"}, {"scan rate", "MS:1000015"},
+        {"elution time (seconds)", "MS:1000826"}, // stored in seconds, without the unit
+        {"filter string", "MS:1000512"}, {"analyzer scan offset", "MS:1000803"}, {"preset scan configuration", "MS:1000616"},
+        {"mass resolving power", "MS:1000800"}, {"interchannel delay", "MS:1000880"}};
+      static const std::set<std::string> spectrum_exclude = []
       {
-        const std::string key = "mass resolving power";
-        const MetaInfoInterface* source = scan_meta.metaValueExists(key) ? &scan_meta :
-                                          (first_scan && spec.metaValueExists(key)) ? &spec : nullptr;
-        if (source != nullptr) os << "\t\t\t\t\t\t" << writeCV_(cv_.getTerm("MS:1000800"), source->getMetaValue(key));
+        std::set<std::string> keys = {"mzml coordinate array", "mzml intensity array", "sampled noise m/z array",
+                                      "sampled noise intensity array", "sampled noise baseline array"};
+        for (const auto& attribute : scan_attributes) keys.insert(attribute.first);
+        return keys;
+      }();
+      static const std::set<std::string> scan_exclude = []
+      {
+        std::set<std::string> keys = {"instrument_configuration_ref"};
+        for (const auto& attribute : scan_attributes) keys.insert(attribute.first);
+        return keys;
+      }();
+      writeUserParam_(os, spec, 4, "/mzML/run/spectrumList/spectrum/cvParam/@accession", validator, spectrum_exclude);
+      auto writeScanAttributes = [&](const MetaInfoInterface& scan_meta, bool first_scan)
+      {
+        for (const auto& [key, accession] : scan_attributes)
+        {
+          const MetaInfoInterface* source = scan_meta.metaValueExists(key) ? &scan_meta :
+                                            (first_scan && spec.metaValueExists(key)) ? &spec : nullptr;
+          if (source == nullptr) continue;
+          DataValue value = source->getMetaValue(key);
+          if (accession == "MS:1000826" && !value.hasUnit())
+          {
+            value.setUnit(10); // UO:0000010 second
+            value.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+          }
+          os << "\t\t\t\t\t\t" << writeCV_(cv_.getTerm(accession), value);
+        }
       };
       //--------------------------------------------------------------------------------------------
       //scan list
@@ -5484,8 +5515,8 @@ namespace OpenMS::Internal
             }
           }
         }
-        writeResolvingPower(ac, j == 0);
-        writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator, {"instrument_configuration_ref", "mass resolving power"});
+        writeScanAttributes(ac, j == 0);
+        writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator, scan_exclude);
 
         if (spec.getInstrumentSettings().getZoomScan())
         {
@@ -5516,7 +5547,7 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t\t\t<scan>\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
-        writeResolvingPower(Acquisition(), true);
+        writeScanAttributes(Acquisition(), true);
 
         if (spec.getInstrumentSettings().getZoomScan())
         {

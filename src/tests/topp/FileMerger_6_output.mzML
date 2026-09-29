@@ -140,12 +140,12 @@
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.34699999999998" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.66755e07"/>
 				<userParam name="name" type="xsd:string" value="scan1"/>
-				<userParam name="filter string" type="xsd:string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="3"/>
 				<scanList count="2">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan externalSpectrumID="4711">
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.89050006866455" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="3"/>
 						<userParam name="name" type="xsd:string" value="acquisition1"/>
 						<scanWindowList count="1">
 							<scanWindow>
@@ -183,12 +183,12 @@
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.34699999999998" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.66755e07"/>
 				<userParam name="name" type="xsd:string" value="scan2"/>
-				<userParam name="filter string" type="xsd:string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="4"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan externalSpectrumID="0">
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.99049997329712" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="4"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="110" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -246,10 +246,10 @@
 <indexList count="1">
 	<index name="spectrum">
 		<offset idRef="spectrum=0">8789</offset>
-		<offset idRef="spectrum=1">11998</offset>
-		<offset idRef="spectrum=2">15821</offset>
+		<offset idRef="spectrum=1">12030</offset>
+		<offset idRef="spectrum=2">15888</offset>
 	</index>
 </indexList>
-<indexListOffset>16660</indexListOffset>
+<indexListOffset>16727</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

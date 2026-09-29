@@ -1153,6 +1153,11 @@ Fixes:
       Resolution:', else 'FT Resolution:'), as msconvert reports it (#10313).
     - Bruker timsTOF .d: the start of the acquisition (with its time zone), the instrument model and
       its serial number are read from analysis.tdf (#10313).
+    - mzML: the other scan attributes the reader keeps with the spectrum (filter string, preset scan
+      configuration, dwell time, scan rate, mass resolution, elution time, analyzer scan offset and
+      interchannel delay) are written in the scan as well, and scan terms it keeps under their
+      accession, such as the ion injection time (MS:1000927), as CV terms. Both used to be written
+      as userParams, which other readers do not find.
     - Fixed INI required/advanced parsing, XQuest FDR-type restoration, mzIdentML missing
       modification locations, PepXML source-run paths/redundant Comet scores and duplicate
       IDMapper spectrum references (#5443, #8905, #9089, #9660, #9763, #9766).
