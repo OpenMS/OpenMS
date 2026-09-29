@@ -2479,8 +2479,8 @@ START_SECTION(([EXTRA] automatic scoring resolves from configured resolution and
 {
   ProSEAlgorithm_test algo;
   Param p = algo.getParameters();
-  p.setValue("scoring:method", "auto");
-  p.setValue("scoring:fragment_charges", "auto");
+  TEST_EQUAL(p.getValue("scoring:method").toString(), "auto")
+  TEST_EQUAL(p.getValue("scoring:fragment_charges").toString(), "auto")
   for (const std::string unit : {"Da", "ppm"})
   {
     p.setValue("fragment:mass_tolerance_unit", unit);
@@ -2548,8 +2548,8 @@ START_SECTION(([EXTRA] native CID scoring includes higher fragment charges only 
 
   ProSEAlgorithm algo;
   Param p = algo.getParameters();
-  TEST_EQUAL(p.getValue("scoring:method").toString(), "hyperscore")
-  TEST_EQUAL(p.getValue("scoring:fragment_charges").toString(), "single")
+  TEST_EQUAL(p.getValue("scoring:method").toString(), "auto")
+  TEST_EQUAL(p.getValue("scoring:fragment_charges").toString(), "auto")
   p.setValue("fragment:mass_tolerance", 0.01);
   p.setValue("fragment:mass_tolerance_unit", "Da");
   p.setValue("fragment:deisotope", "false");
@@ -2579,6 +2579,7 @@ START_SECTION(([EXTRA] native CID scoring includes higher fragment charges only 
     return peptides;
   };
   vector<ProteinIdentification> proteins;
+  p.setValue("scoring:fragment_charges", "single");
   auto single = search(p, 3, proteins);
   TEST_TRUE(single.empty()) // 1+ theory cannot explain the doubly charged peaks.
 

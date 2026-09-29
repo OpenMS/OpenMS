@@ -41,12 +41,12 @@ class TheoreticalSpectrumGenerator;
     outputs (ProteinIdentification and PeptideIdentificationList)
   - Intended for educational/prototyping use and to demonstrate FI-backed searching
 
-  Set @c scoring:method=auto and @c scoring:fragment_charges=auto to select native
+  The defaults @c scoring:method=auto and @c scoring:fragment_charges=auto select native
   scoring from the configured fragment tolerance: hyperscore/single at <= 0.1 Da
   or <= 100 ppm, calibrated/multiple otherwise. The selection applies to all input
   files and is fixed before mass calibration; activation metadata is not a resolution
   estimate. Search files needing different tolerance regimes separately. Explicit
-  method and charge settings remain available; the defaults are hyperscore/single.
+  method and charge settings remain available; use hyperscore/single for legacy scoring.
 
   Notes:
   - Used by the ProSE TOPP tool

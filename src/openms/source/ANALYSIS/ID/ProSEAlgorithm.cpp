@@ -224,7 +224,7 @@ namespace OpenMS
 
     // Fragment and scoring limits
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
-    defaults_.setValue("scoring:method", "hyperscore",
+    defaults_.setValue("scoring:method", "auto",
                        "Native scoring method. 'calibrated' replaces factorial rewards with binomial match evidence; experimental, intended for "
                        "ion-trap CID. 'auto' selects hyperscore for a configured fragment tolerance <= 0.1 Da or <= 100 ppm, otherwise calibrated. "
                        "This resolution proxy applies to the entire search, irrespective of activation metadata, and is fixed before mass "
@@ -232,7 +232,7 @@ namespace OpenMS
                        {"advanced"});
     defaults_.setValidStrings("scoring:method", {"hyperscore", "calibrated", "auto"});
     defaults_.setValue(
-      "scoring:fragment_charges", "single",
+      "scoring:fragment_charges", "auto",
       "Final scoring fragment charges: 'single' retains legacy behavior; 'multiple' uses up to min(precursor charge - 1, fragment:max_charge). "
       "'auto' uses multiple for the resolved calibrated scorer, single for hyperscore. Explicit single/multiple choices override automatic charge "
       "selection. Experimental for CID; adding charges to uncalibrated HyperScore can reduce sensitivity.",

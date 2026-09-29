@@ -604,11 +604,14 @@ TOPP tools:
       - Experimental native CID scoring: scoring:method=calibrated replaces HyperScore's
         factorial rewards with binomial fragment-match evidence; combine with
         scoring:fragment_charges=multiple to score higher fragment charges. Both final
-        scoring and precursor calibration use these options. Defaults remain unchanged.
-      - Optional scoring:method=auto selects hyperscore at configured fragment tolerances
+        scoring and precursor calibration use these options.
+      - Changed scoring defaults to scoring:method=auto and scoring:fragment_charges=auto.
+        Auto selects hyperscore at configured fragment tolerances
         <= 0.1 Da / <= 100 ppm, calibrated otherwise. scoring:fragment_charges=auto follows
         the resolved scorer (single for hyperscore, multiple for calibrated). Selection is
         fixed before mass calibration and recorded alongside the requested settings.
+        High-resolution defaults are unchanged; wider tolerances now use calibrated/multiple.
+        Set hyperscore/single explicitly to retain legacy low-resolution scoring.
       - Optional annotate:local_fragment_evidence adds native local peak-density surprise
         and fragment-assignment competition as Percolator features, including charge-scaled
         neutral-loss alternatives. Retains peaks before window/top-N filtering for these

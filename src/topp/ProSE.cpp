@@ -71,11 +71,11 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref
 TOPP_IDFileConverter if necessary.
-@note Automatic native scoring is opt-in: set '-Search:scoring:method auto' and '-Search:scoring:fragment_charges auto'. A configured fragment
+@note Native scoring defaults to '-Search:scoring:method auto' and '-Search:scoring:fragment_charges auto'. A configured fragment
 tolerance <= 0.1 Da or <= 100 ppm selects hyperscore with singly charged fragments; a wider tolerance selects the experimental calibrated scorer with
 multiple fragment charges (intended for ion-trap CID). This uses the configured tolerance as a resolution proxy, not activation metadata. The choice
 is shared by all input files and fixed before mass calibration; search files requiring different tolerance regimes separately. Explicit scoring/charge
-settings override their respective automatic choices. Defaults remain hyperscore/single; local fragment evidence remains a separate option.
+settings override their respective automatic choices. Use hyperscore/single for legacy scoring; local fragment evidence remains a separate opt-in.
 @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit
 open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
 @note Decoy handling is controlled by '-Search:decoys'. The default 'auto' ensures decoys are available for target-decoy FDR: it reuses decoys already
