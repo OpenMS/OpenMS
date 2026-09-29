@@ -33,7 +33,7 @@
 
 namespace OpenMS
 {
-  // @brief stores model defaults for map aligner algorithms
+  /// @brief Stores the model defaults for the map aligner algorithms
   struct OPENMS_CLI_DLLAPI MapAlignerBase
   {
     static Param getModelDefaults(const std::string& default_model);

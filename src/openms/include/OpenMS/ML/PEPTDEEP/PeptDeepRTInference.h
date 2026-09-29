@@ -15,6 +15,13 @@
 
 namespace OpenMS
 {
+    /**
+      @brief Predicts peptide retention times with the PeptDeep RT model (@c peptdeep_rt_dynamic.onnx)
+
+      Runs the model through ONNXPredictorBase and returns one predicted retention time per peptide
+      sequence, processing at most @c batch_size peptides per model run. Available in builds with
+      @c WITH_ONNX.
+    */
     class OPENMS_DLLAPI PeptDeepRTInference
     {
     public:

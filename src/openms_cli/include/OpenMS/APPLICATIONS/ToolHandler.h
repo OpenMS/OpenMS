@@ -19,6 +19,9 @@
 
 namespace OpenMS
 {
+  /// Map: TOPP tool name -> its @ref Internal::ToolDescription (category + per-type configuration).
+  typedef std::map<std::string, Internal::ToolDescription> ToolListType;
+
   /**
     @brief Registry of TOPP tools and their TOPPAS categories.
 
@@ -57,10 +60,6 @@ namespace OpenMS
 
     @ingroup System
   */
-
-  /// Map: TOPP tool name -> its @ref Internal::ToolDescription (category + per-type configuration).
-  typedef std::map<std::string, Internal::ToolDescription> ToolListType;
-
   class OPENMS_CLI_DLLAPI ToolHandler
   {
 public:

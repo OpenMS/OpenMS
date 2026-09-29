@@ -97,6 +97,8 @@ In addition to the usual CMake options you can set for the OpenMS C++ toolkit, e
 - `-DNO_DEPENDENCIES=ON`- When not distributing a wheel, you can use this to avoid copying dependencies into the pyopenms build folder. Make sure that the pyopenms shared modules find their dependencies at the original places with correct RPATH/INSTALL_NAME_DIR CMake settings.
 - `-DWITH_UV=OFF` - Do not use uv to create a new venv. If disabled, make sure the found (or specified, see Python_EXECUTABLE) Python executable has access to all required dependencies.
 - `-DPYOPENMS_UV_PYTHON_VERSION=3.12` - Specify the python version that uv should use to create the venv. This will decide with which python version the extension module and the pyopenms wheel will be compatible with. Note: If such a python version is not available on the system, uv will download it for you.
+- `-DPYOPENMS_GENERATE_STUBS=OFF` - Do not generate the `.pyi` stub files (type information) for the `pyopenms` package (default: `ON`). If stubs cannot be generated, a wheel build stops with an error, and a local build turns stub generation off with a warning.
+- `-DPYOPENMS_STABLE_ABI_VERSION=3.11` - The CPython stable-ABI floor of a split-mode build (`PYOPENMS_SPLIT_MODE=ON`). It defaults to `abi3_minimum_cpython_version` in `pyproject.toml`, which also sets the wheel's `cp<N>-abi3` tag; keep the two in step.
 
 **Available CMake Targets when `PYOPENMS=ON`:**
 
