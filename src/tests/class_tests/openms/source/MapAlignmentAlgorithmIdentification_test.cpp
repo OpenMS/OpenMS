@@ -250,7 +250,7 @@ START_SECTION([EXTRA] the automatic reference shares IDs with every other input)
 END_SECTION
 
 
-START_SECTION([EXTRA] fallback to a consensus if the automatic reference provides too few alignment points)
+START_SECTION([EXTRA] other references or a consensus if the automatic reference provides too few alignment points)
 {
   const std::string residues = "ACDEFGHIKLMNPQRSTVWY";
   auto sequence = [&residues](Size i)
@@ -311,8 +311,8 @@ START_SECTION([EXTRA] fallback to a consensus if the automatic reference provide
     TEST_EQUAL(transforms[i].getDataPoints().size(), 4);
   }
 
-  // a run with few IDs overall gets no more points from a consensus, so it
-  // does not pull the other runs away from the reference:
+  // a run with few IDs overall can't get enough points from any reference, so
+  // the first choice is kept:
   vector<PeptideIdentificationList> with_sparse(3);
   for (Size s = 0; s < 33; ++s)
   {
@@ -328,6 +328,63 @@ START_SECTION([EXTRA] fallback to a consensus if the automatic reference provide
   TEST_EQUAL(transforms[0].getModelType(), "identity");
   TEST_EQUAL(transforms[1].getDataPoints().size(), 33);
   TEST_EQUAL(transforms[2].getDataPoints().size(), 3);
+
+  // such a sparse run (D) must not hide another run (B) that a different
+  // reference can give enough points: with sequence sets X (30), Y (5),
+  // W (30), Z (2) and U (100), every run shares at least two sequences with
+  // every other, and A (most IDs) is the first choice, but gives B only 7
+  // points - C gives A and B 32 each:
+  const Size x = 0, y = 30, w = 35, z = 65, u = 67, n_seqs = 167;
+  vector<PeptideIdentificationList> sparse_and_short(4);
+  const double offsets[] = {0.0, 180.0, 60.0, 90.0};
+  auto add_range = [&](Size run, Size from, Size to)
+  {
+    for (Size s = from; s < to; ++s)
+    {
+      add_id(sparse_and_short[run], sequence(s), 300.0 + 50.0 * (s % 67) + offsets[run]);
+    }
+  };
+  add_range(0, x, w); // A: X + Y
+  add_range(0, z, n_seqs); // A: Z + U
+  add_range(1, y, u); // B: Y + W + Z
+  add_range(2, x, y); // C: X
+  add_range(2, w, u); // C: W + Z
+  add_range(3, z, u); // D: Z
+  MapAlignmentAlgorithmIdentification switch_aligner;
+  transforms.clear();
+  switch_aligner.align(sparse_and_short, transforms);
+
+  TEST_EQUAL(transforms.size(), 4);
+  TEST_EQUAL(transforms[0].getDataPoints().size(), 32);
+  TEST_EQUAL(transforms[1].getDataPoints().size(), 32);
+  TEST_EQUAL(transforms[2].getModelType(), "identity");
+  TEST_EQUAL(transforms[3].getDataPoints().size(), 2);
+
+  // the choice considers outliers ("max_rt_shift"): with the same 100
+  // sequences in four runs, shifted by 0, 240, 480 and 0 seconds, the first
+  // run leaves the third without points (shift over 10% of the RT range);
+  // the second run gives every run all points:
+  vector<PeptideIdentificationList> shifted(4);
+  const double shifts[] = {0.0, 240.0, 480.0, 0.0};
+  for (Size run = 0; run < 4; ++run)
+  {
+    for (Size s = 0; s < 100; ++s)
+    {
+      add_id(shifted[run], sequence(s), 300.0 + 30.0 * s + shifts[run]);
+    }
+  }
+  MapAlignmentAlgorithmIdentification shift_aligner;
+  Param shift_params = shift_aligner.getParameters();
+  shift_params.setValue("max_rt_shift", 0.1);
+  shift_aligner.setParameters(shift_params);
+  transforms.clear();
+  shift_aligner.align(shifted, transforms);
+
+  TEST_EQUAL(transforms.size(), 4);
+  TEST_EQUAL(transforms[0].getDataPoints().size(), 100);
+  TEST_EQUAL(transforms[1].getModelType(), "identity");
+  TEST_EQUAL(transforms[2].getDataPoints().size(), 100);
+  TEST_EQUAL(transforms[3].getDataPoints().size(), 100);
 }
 END_SECTION
 
