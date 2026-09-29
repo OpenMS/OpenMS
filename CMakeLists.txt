@@ -635,6 +635,10 @@ endif()
 # Find core dependencies here, so all projects have access to the same variables and
 # do not have to re-search for the core components
 
+## Defines openms_add_third_party_notice(), with which the code that installs third-party
+## license files (the Thermo bridge in cmake_findExternalLibs.cmake among it) records them
+## for share/OpenMS/THIRD-PARTY-NOTICES.txt.
+include(cmake/third_party_notices.cmake)
 include(cmake/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
@@ -731,6 +735,10 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
   include(CPack)
   include(cmake/package_components.cmake)
 endif()
+
+## share/OpenMS/THIRD-PARTY-NOTICES.txt, made from the license files recorded above. Last, so
+## that it covers all of them.
+openms_install_third_party_notices()
 
 #------------------------------------------------------------------------------
 # Some final messages for the users

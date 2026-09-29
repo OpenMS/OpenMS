@@ -1441,6 +1441,13 @@ Build System:
     bundled: it is GPL-licensed and was shipped without its license text or source code.
     SpectraSTSearchAdapter runs a separately installed spectrast given with -executable
     (OpenMS/THIRDPARTY abe0956, #10292).
+  - share/OpenMS/THIRD-PARTY-NOTICES.txt gathers these texts in one file, in every
+    installation and every wheel: a list of the third-party components, grouped by where they
+    come from, each with the numbers of the texts that apply to it, and then the texts, each
+    only once. The DEB also installs it, after the OpenMS license, as
+    /usr/share/doc/openms/copyright, the file Debian's policy asks every package to have.
+    License.txt, which the installers show and the wheels carry as their license file, points
+    to it instead of ending with a list of third-party code that named one entry (#10292).
   - TOPPView and TOPPAS show the notice that Thermo's RawFileReader license asks for in the
     About dialog of software that ships it, in builds with the in-process Thermo reader
     (#10292).

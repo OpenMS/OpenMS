@@ -684,6 +684,8 @@ if (WITH_THERMO_RAW)
       install(FILES "${_openms_thermo_license_file}"
               DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
               COMPONENT share)
+      openms_add_third_party_notice("LICENSES/ThermoRawFileReader-License.doc"
+                                    "${_openms_thermo_license_file}")
     else()
       message(WARNING "openms-thermo-bridge: ${_openms_thermo_license_file} not found; "
                       "the install will not include the Thermo RawFileReader license.")
@@ -805,6 +807,8 @@ if (WITH_THERMO_RAW)
                 DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
                 RENAME "ThermoRawFileReader-License.doc"
                 COMPONENT share)
+        openms_add_third_party_notice("LICENSES/ThermoRawFileReader-License.doc"
+                                      "${_openms_thermo_license_file}")
       endif()
     endif()
   endif()
@@ -840,6 +844,9 @@ if (WITH_THERMO_RAW)
                             \"THIRD-PARTY-NOTICES.txt; use openms-thermo-bridge 0.3.1 or newer.\")
       endif()"
       COMPONENT share)
+    ## The file may not exist yet: the build publishes the assemblies when it builds the bridge.
+    openms_add_third_party_notice("openms_thermo_bridge/managed/THIRD-PARTY-NOTICES.txt"
+                                  "${OpenMSThermoBridge_MANAGED_DIR}/THIRD-PARTY-NOTICES.txt")
   else()
     message(WARNING
       "openms-thermo-bridge: OpenMSThermoBridge_MANAGED_DIR is not set; the managed "

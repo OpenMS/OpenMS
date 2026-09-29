@@ -167,6 +167,13 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
     endif()
     if(IS_DIRECTORY ${SEARCH_ENGINES_DIRECTORY}/${SUBDIR})
       install_thirdparty_folder("${SUBDIR}")
+      ## The license and notice files the tool ships with, for THIRD-PARTY-NOTICES.txt.
+      openms_third_party_notice_files_of_tool(_openms_tool_notices
+                                              "${SEARCH_ENGINES_DIRECTORY}/${SUBDIR}")
+      foreach(_openms_tool_notice IN LISTS _openms_tool_notices)
+        openms_add_third_party_notice("THIRDPARTY/${SUBDIR}/${_openms_tool_notice}"
+                                      "${SEARCH_ENGINES_DIRECTORY}/${SUBDIR}/${_openms_tool_notice}")
+      endforeach()
     endif()
   endforeach()
 endif()

@@ -36,6 +36,9 @@
 ## No package manager accounts for these. The contrib installs the license and notice files
 ## of every library it builds into its share/licenses/<name>/, and these folders are
 ## installed. The top-level CMakeLists.txt calls it in every configuration too.
+##
+## Each of them also records the files it installs, for share/OpenMS/THIRD-PARTY-NOTICES.txt,
+## which gathers the texts in one file (cmake/third_party_notices.cmake).
 
 ## Sets <formulae_var> to the Homebrew formulae whose kegs hold the given paths, and
 ## <prefix_var> to the prefix of the Homebrew installation they belong to.
@@ -86,6 +89,7 @@ function(openms_install_third_party_licenses)
               DESTINATION "${_licenses_dir}/vcpkg"
               RENAME "${_port}.txt"
               COMPONENT share)
+      openms_add_third_party_notice("LICENSES/vcpkg/${_port}.txt" "${_copyright}")
     endforeach()
     list(LENGTH _copyrights _count)
     message(STATUS "Packaging the license texts of ${_count} vcpkg ports")
@@ -105,11 +109,16 @@ function(openms_install_third_party_licenses)
     endif()
     configure_file("${_qt_licenses}/README.txt.in"
                    "${PROJECT_BINARY_DIR}/third_party_licenses/Qt/README.txt" @ONLY)
-    install(FILES "${_qt_licenses}/LGPL-3.0-only.txt"
+    set(_qt_files "${_qt_licenses}/LGPL-3.0-only.txt"
                   "${_qt_licenses}/GPL-3.0-only.txt"
-                  "${PROJECT_BINARY_DIR}/third_party_licenses/Qt/README.txt"
+                  "${PROJECT_BINARY_DIR}/third_party_licenses/Qt/README.txt")
+    install(FILES ${_qt_files}
             DESTINATION "${_licenses_dir}/Qt"
             COMPONENT share)
+    foreach(_file IN LISTS _qt_files)
+      get_filename_component(_name "${_file}" NAME)
+      openms_add_third_party_notice("LICENSES/Qt/${_name}" "${_file}")
+    endforeach()
     message(STATUS "Packaging the Qt ${arg_QT_VERSION} licenses")
   endif()
 
@@ -174,6 +183,10 @@ function(openms_install_third_party_licenses)
         install(FILES ${_license_files}
                 DESTINATION "${_licenses_dir}/homebrew/${_formula}"
                 COMPONENT share)
+        foreach(_file IN LISTS _license_files)
+          get_filename_component(_name "${_file}" NAME)
+          openms_add_third_party_notice("LICENSES/homebrew/${_formula}/${_name}" "${_file}")
+        endforeach()
       else()
         list(APPEND _without_license "${_formula}")
       endif()
@@ -193,6 +206,18 @@ endfunction()
 ## MSNumpress), under share/OpenMS/LICENSES/vendored. A library of src/openms/extern that the
 ## build takes from vcpkg or the system instead (USE_EXTERNAL_<name>) is left out; for a vcpkg
 ## port, openms_install_third_party_licenses() installs its license.
+## Installs <files> to share/OpenMS/LICENSES/vendored/<library> and records them for
+## THIRD-PARTY-NOTICES.txt.
+function(_openms_install_vendored_license library)
+  install(FILES ${ARGN}
+          DESTINATION "${INSTALL_SHARE_DIR}/LICENSES/vendored/${library}"
+          COMPONENT share)
+  foreach(_file IN LISTS ARGN)
+    get_filename_component(_name "${_file}" NAME)
+    openms_add_third_party_notice("LICENSES/vendored/${library}/${_name}" "${_file}")
+  endforeach()
+endfunction()
+
 function(openms_install_vendored_licenses)
   set(_licenses_dir "${INSTALL_SHARE_DIR}/LICENSES/vendored")
   set(_openms "${OPENMS_HOST_DIRECTORY}/src/openms")
@@ -200,17 +225,13 @@ function(openms_install_vendored_licenses)
 
   ## Percolator is under the Apache License 2.0, whose NOTICE file has to accompany it. The
   ## NOTICE file also holds the license of the LIBLINEAR code that Percolator contains.
-  install(FILES "${_openms}/thirdparty/percolator/LICENSE-Apache-2.0.txt"
-                "${_openms}/thirdparty/percolator/NOTICE-percolator.txt"
-          DESTINATION "${_licenses_dir}/percolator"
-          COMPONENT share)
-  install(FILES "${_texts}/libkdtree/README.txt"
-                "${_texts}/libkdtree/Artistic-2.0.txt"
-          DESTINATION "${_licenses_dir}/libkdtree"
-          COMPONENT share)
-  install(FILES "${_texts}/MSNumpress/LICENSE.txt"
-          DESTINATION "${_licenses_dir}/MSNumpress"
-          COMPONENT share)
+  _openms_install_vendored_license(percolator
+                                   "${_openms}/thirdparty/percolator/LICENSE-Apache-2.0.txt"
+                                   "${_openms}/thirdparty/percolator/NOTICE-percolator.txt")
+  _openms_install_vendored_license(libkdtree
+                                   "${_texts}/libkdtree/README.txt"
+                                   "${_texts}/libkdtree/Artistic-2.0.txt")
+  _openms_install_vendored_license(MSNumpress "${_texts}/MSNumpress/LICENSE.txt")
 
   ## <directory in src/openms/extern>/<its license file>
   set(_extern_licenses evergreen/LICENSE GTE/LICENSE Quadtree/LICENSE)
@@ -231,14 +252,14 @@ function(openms_install_vendored_licenses)
   endif()
   foreach(_license IN LISTS _extern_licenses)
     get_filename_component(_library "${_license}" DIRECTORY)
-    install(FILES "${_openms}/extern/${_license}"
-            DESTINATION "${_licenses_dir}/${_library}"
-            COMPONENT share)
+    _openms_install_vendored_license("${_library}" "${_openms}/extern/${_license}")
   endforeach()
   if(ENABLE_TDL)
     install(DIRECTORY "${_openms}/extern/tool_description_lib/LICENSES/"
             DESTINATION "${_licenses_dir}/tool_description_lib"
             COMPONENT share)
+    openms_add_third_party_notice_directory("LICENSES/vendored/tool_description_lib"
+                                            "${_openms}/extern/tool_description_lib/LICENSES")
   endif()
 endfunction()
 
@@ -304,6 +325,7 @@ function(openms_install_contrib_licenses)
       install(DIRECTORY "${_texts}/${_folder}"
               DESTINATION "${_licenses_dir}"
               COMPONENT share)
+      openms_add_third_party_notice_directory("LICENSES/contrib/${_folder}" "${_texts}/${_folder}")
       list(APPEND _installed ${_folder})
     endif()
   endforeach()

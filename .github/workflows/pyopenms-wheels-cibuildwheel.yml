@@ -208,6 +208,8 @@ jobs:
               # contrib libraries are left out: the OpenMS install has theirs already.
               PY=$(command -v python3 || ls /opt/python/cp3*/bin/python | tail -1)
               "$PY" /project/tools/ci/collect_wheel_licenses.py --prefix /project/install --skip-prefix /contrib-build
+              # THIRD-PARTY-NOTICES.txt again, now with the licenses collected above.
+              cmake -DSHARE_DIR=/project/install/share/OpenMS -P /project/cmake/third_party_notices.cmake
             '
 
       - name: Set pyOpenMS version
@@ -333,6 +335,8 @@ jobs:
               # contrib libraries are left out: the OpenMS install has theirs already.
               PY=$(command -v python3 || ls /opt/python/cp3*/bin/python | tail -1)
               "$PY" /project/tools/ci/collect_wheel_licenses.py --prefix /project/install --skip-prefix /contrib-build
+              # THIRD-PARTY-NOTICES.txt again, now with the licenses collected above.
+              cmake -DSHARE_DIR=/project/install/share/OpenMS -P /project/cmake/third_party_notices.cmake
             '
 
       - name: Set pyOpenMS version
@@ -464,6 +468,9 @@ jobs:
           python3 ${{ github.workspace }}/tools/ci/collect_wheel_licenses.py \
             --prefix ${{ github.workspace }}/install --homebrew-formula eigen \
             --license-file boost=${{ github.workspace }}/cmake/third_party_licenses/homebrew/boost/LICENSE_1_0.txt
+          # THIRD-PARTY-NOTICES.txt again, now with the licenses collected above.
+          cmake -DSHARE_DIR=${{ github.workspace }}/install/share/OpenMS \
+            -P ${{ github.workspace }}/cmake/third_party_notices.cmake
 
       - name: Set pyOpenMS version
         run: |
