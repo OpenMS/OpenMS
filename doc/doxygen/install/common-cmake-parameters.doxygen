@@ -205,6 +205,12 @@ The most important CMake variables are:
     (Default: Off)</td>
   </tr>
   <tr>
+    <th valign="top">OPENMS_PEPTDEEP_MODEL_URL</td>
+    <td>[with <code>WITH_ONNX</code>] Base URL from which the PeptDeep ONNX model files are downloaded
+    during configuration, e.g. a mirror for a build without access to archive.openms.de.
+    (Default: <code>http://archive.openms.de/openms/models</code>)</td>
+  </tr>
+  <tr>
     <th valign="top">CMAKE_INSTALL_PREFIX</td>
     <td>the path where the bin/ and lib/ directories should be installed to
         (when <pre>sudo make install</pre> is wished for a system-wide
