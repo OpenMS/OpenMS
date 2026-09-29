@@ -58,6 +58,29 @@ struct OPENMS_DLLAPI HyperScore
                         PSMDetail& d
                        );
 
+  /**
+   * @brief Experimental intensity score with binomial fragment-match evidence.
+   *
+   * Replaces HyperScore's factorial rewards with negative log binomial tails,
+   * accounting for the number of theoretical ions and experimental peak density.
+   * Fragment matches are dependent, so this score is not a calibrated PSM p-value.
+   * Spectra must be sorted by m/z and theoretical peaks need IonNames annotations.
+   *
+   * @param[in] fragment_mass_tolerance Fragment matching tolerance (Da or ppm).
+   * @param[in] fragment_mass_tolerance_unit_ppm Whether tolerance is in ppm.
+   * @param[in] exp_spectrum Experimental spectrum.
+   * @param[in] theo_spectrum Annotated theoretical spectrum.
+   * @param[out] detail Counts and mean absolute error for the selected matches.
+   * @return Natural-log intensity plus prefix/suffix match evidence; zero without matches.
+   * @throws Exception::InvalidParameter if the tolerance is not finite and positive.
+   * @throws Exception::InvalidValue if the theoretical ion annotations are missing or incomplete.
+   */
+  static double computeCalibrated(double fragment_mass_tolerance,
+                                 bool fragment_mass_tolerance_unit_ppm,
+                                 const PeakSpectrum& exp_spectrum,
+                                 const PeakSpectrum& theo_spectrum,
+                                 PSMDetail& detail);
+
   /* @brief compute the (ln transformed) X!Tandem HyperScore only matching peaks that match in charge
    *  1. the dot product of peak intensities between matching peaks in experimental and theoretical spectrum is calculated
    *  2. the HyperScore is calculated from the dot product by multiplying by factorials of matching b- and y-ions

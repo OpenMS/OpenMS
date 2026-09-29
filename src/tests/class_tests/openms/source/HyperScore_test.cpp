@@ -122,5 +122,67 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION((static double computeCalibrated(double, bool, const PeakSpectrum&, const PeakSpectrum&, PSMDetail&)))
+{
+  MSSpectrum exp, theory;
+  exp.push_back(Peak1D(100.0, 1.0));
+  exp.push_back(Peak1D(200.0, 1.0));
+  theory.push_back(Peak1D(100.0, 1.0));
+  theory.push_back(Peak1D(200.0, 1.0));
+  MSSpectrum::StringDataArray names;
+  names.setName("IonNames"); names.push_back("b1+"); names.push_back("y1+");
+  theory.getStringDataArrays().push_back(names);
+  HyperScore::PSMDetail detail;
+
+  // Two disjoint 1-Da windows in a 101-Da range; one success per series.
+  const double expected = std::log(3.0) - 2.0 * std::log(2.0 / 101.0);
+  const double score = HyperScore::computeCalibrated(0.5, false, exp, theory, detail);
+  TEST_REAL_SIMILAR(score, expected)
+  TEST_EQUAL(detail.matched_prefix_ions, 1)
+  TEST_EQUAL(detail.matched_suffix_ions, 1)
+  TEST_REAL_SIMILAR(detail.mean_error, 0.0)
+
+  // An extra unmatched ion must lower the score, not receive a count reward.
+  MSSpectrum extra = theory;
+  extra.push_back(Peak1D(150.0, 1.0)); extra.getStringDataArrays()[0].push_back("b2+");
+  extra.sortByPosition();
+  TEST_TRUE(HyperScore::computeCalibrated(0.5, false, exp, extra, detail) < score)
+
+  // Overlapping experimental windows count their union, not their sum.
+  MSSpectrum overlap = exp;
+  overlap.push_back(Peak1D(100.25, 1.0)); overlap.sortByPosition();
+  const double overlap_expected = std::log(3.0) - 2.0 * std::log(2.25 / 101.0);
+  TEST_REAL_SIMILAR(HyperScore::computeCalibrated(0.5, false, overlap, theory, detail), overlap_expected)
+
+  // Restrict trials to the observable range, matching the numerator.
+  MSSpectrum outside = theory;
+  outside.push_back(Peak1D(300.0, 1.0)); outside.getStringDataArrays()[0].push_back("b3+");
+  TEST_REAL_SIMILAR(HyperScore::computeCalibrated(0.5, false, exp, outside, detail), score)
+
+  const double ppm_score = HyperScore::computeCalibrated(10.0, true, exp, theory, detail);
+  TEST_TRUE(std::isfinite(ppm_score))
+  TEST_TRUE(ppm_score > score)
+  TEST_EQUAL(detail.matched_prefix_ions, 1)
+
+  // Complete interval coverage contributes no binomial match evidence (p=1).
+  TEST_REAL_SIMILAR(HyperScore::computeCalibrated(100.0, false, exp, theory, detail), std::log(3.0))
+  MSSpectrum no_match = theory;
+  no_match[0].setMZ(140.0);
+  no_match[1].setMZ(160.0);
+  TEST_REAL_SIMILAR(HyperScore::computeCalibrated(0.5, false, exp, no_match, detail), 0.0)
+  TEST_EQUAL(detail.matched_prefix_ions, 0)
+  TEST_EQUAL(detail.matched_suffix_ions, 0)
+
+  MSSpectrum empty;
+  TEST_REAL_SIMILAR(HyperScore::computeCalibrated(0.5, false, empty, theory, detail), 0.0)
+  TEST_EQUAL(detail.matched_prefix_ions, 0)
+  TEST_EQUAL(detail.matched_suffix_ions, 0)
+  TEST_EXCEPTION(Exception::InvalidParameter, HyperScore::computeCalibrated(0.0, false, exp, theory, detail))
+  theory.getStringDataArrays().clear();
+  TEST_EXCEPTION(Exception::InvalidValue, HyperScore::computeCalibrated(0.5, false, exp, theory, detail))
+}
+END_SECTION
+
 END_TEST
 

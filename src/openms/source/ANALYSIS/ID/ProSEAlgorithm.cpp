@@ -217,6 +217,10 @@ namespace OpenMS
 
     // Fragment and scoring limits
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
+    defaults_.setValue("scoring:method", "hyperscore", "Native scoring method. 'calibrated' replaces factorial rewards with binomial match evidence; experimental, intended for ion-trap CID.", {"advanced"});
+    defaults_.setValidStrings("scoring:method", {"hyperscore", "calibrated"});
+    defaults_.setValue("scoring:fragment_charges", "single", "Final scoring fragment charges: 'single' retains legacy behavior; 'multiple' uses up to min(precursor charge - 1, fragment:max_charge). Experimental for CID; adding charges to uncalibrated HyperScore can reduce sensitivity.", {"advanced"});
+    defaults_.setValidStrings("scoring:fragment_charges", {"single", "multiple"});
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
@@ -287,10 +291,19 @@ namespace OpenMS
     precursor_max_charge_ = param_.getValue("precursor:max_charge");
 
     precursor_isotopes_ = param_.getValue("precursor:isotopes");
+    calibrated_score_ = param_.getValue("scoring:method").toString() == "calibrated";
+    scoring_multiple_charges_ = param_.getValue("scoring:fragment_charges").toString() == "multiple";
+    scoring_max_charge_ = static_cast<int>(param_.getValue("fragment:max_charge"));
     peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
     peaks_window_top_ = (Int)param_.getValue("peaks:window_top");
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
+    // Reject invalid tolerances before entering the parallel scoring loops.
+    if (calibrated_score_ && (!std::isfinite(fragment_mass_tolerance_) || fragment_mass_tolerance_ <= 0.0))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "scoring:method=calibrated requires a finite, positive fragment:mass_tolerance.");
+    }
 
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
 
@@ -671,7 +684,7 @@ namespace OpenMS
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-        pi.setScoreType("ln(hyperscore)");
+        pi.setScoreType(calibrated_score_ ? "calibrated fragment score" : "ln(hyperscore)");
         pi.setHigherScoreBetter(true);
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
@@ -706,7 +719,11 @@ namespace OpenMS
           MSSpectrum theoretical_spec;
           if (need_alignment)
           {
-            const int max_frag_z = (charge >= 2) ? std::min<int>(charge - 1, 2) : 1;
+            // Keep legacy annotations for the default scorer. Experimental modes
+            // annotate the charges actually scored, including an inferred precursor charge.
+            const int max_frag_z = (calibrated_score_ || scoring_multiple_charges_)
+              ? scoringMaxCharge_(static_cast<int>(used_charge))
+              : ((charge >= 2) ? std::min<int>(charge - 1, 2) : 1);
             tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
             sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
           }
@@ -1001,6 +1018,9 @@ namespace OpenMS
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
     // record whether open-search mode was used
     search_parameters.setMetaValue("open_search", isOpenSearchMode_() ? "true" : "false");
+    search_parameters.setMetaValue("scoring:method", param_.getValue("scoring:method"));
+    search_parameters.setMetaValue("scoring:fragment_charges", param_.getValue("scoring:fragment_charges"));
+    search_parameters.setMetaValue("fragment:max_charge", param_.getValue("fragment:max_charge"));
 
     search_parameters.enzyme_term_specificity = peptide_enzyme_specificity_;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
@@ -1415,13 +1435,15 @@ namespace OpenMS
         // Clear peaks + data arrays (ion names / charges) before refilling for the
         // next candidate; getSpectrum appends to whatever is there.
         theo_spectrum.clear(true);
-        spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, 1);
+        spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, scoringMaxCharge_(sms.precursor_charge_));
         // Note: TSG emits sorted output when add_metainfo=true (see the
         // sortByPositionPresorted() call at the tail of getSpectrum_); the extra
         // sortByPosition() pass here was a redundant O(N) scan per candidate.
 
         HyperScore::PSMDetail detail;
-        const double& score = HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
+        const double score = calibrated_score_
+          ? HyperScore::computeCalibrated(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail)
+          : HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
 
         // Summarise the candidate before it can be dropped below or pruned at the
         // end of the loop: the pool-derived PSM features describe the whole search
@@ -1435,7 +1457,8 @@ namespace OpenMS
         AnnotatedHit_ ah;
         ah.sequence = std::move(mod_candidate);
         ah.score = score;
-        double seq_length = (double)ah.sequence.size();
+        // Account for the additional charge hypotheses in the ion-count fractions.
+        double seq_length = static_cast<double>(ah.sequence.size()) * scoringMaxCharge_(sms.precursor_charge_);
         ah.prefix_fraction = static_cast<float>(detail.matched_prefix_ions / seq_length);
         ah.suffix_fraction = static_cast<float>(detail.matched_suffix_ions / seq_length);
         ah.mean_error = static_cast<float>(detail.mean_error);
@@ -3239,11 +3262,12 @@ namespace OpenMS
         // Clear peaks + data arrays before refilling; getSpectrum appends to
         // whatever is there. Its output is already sorted with add_metainfo=true.
         theo.clear(true);
-        tsg.getSpectrum(theo, seq, 1, 1);
+        tsg.getSpectrum(theo, seq, 1, scoringMaxCharge_(sms.precursor_charge_));
 
         HyperScore::PSMDetail detail;
-        double score = HyperScore::computeWithDetail(
-            fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
+        double score = calibrated_score_
+          ? HyperScore::computeCalibrated(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail)
+          : HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
 
         if (score > best_score)
         {

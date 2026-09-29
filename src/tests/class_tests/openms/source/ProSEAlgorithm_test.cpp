@@ -2342,6 +2342,101 @@ START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragme
 }
 END_SECTION
 
+START_SECTION(([EXTRA] native CID scoring includes higher fragment charges only when requested))
+{
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> fasta_db = {{"P01", "Test", peptide.toString()}};
+  TheoreticalSpectrumGenerator tsg;
+  MSSpectrum spec;
+  tsg.getSpectrum(spec, peptide, 2, 2); // Only doubly charged fragments of a 3+ precursor.
+  spec.setMSLevel(2);
+  spec.setRT(100.0);
+  spec.setNativeID("scan=1");
+  Precursor prec;
+  prec.setMZ(peptide.getMZ(3));
+  prec.setCharge(3);
+  prec.setActivationMethods({Precursor::ActivationMethod::CID});
+  spec.setPrecursors({prec});
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_EQUAL(p.getValue("scoring:method").toString(), "hyperscore")
+  TEST_EQUAL(p.getValue("scoring:fragment_charges").toString(), "single")
+  p.setValue("fragment:mass_tolerance", 0.01);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("decoys", "ignore");
+  p.setValue("calibration:enabled", "false");
+  p.setValue("modifications:fixed", vector<string>{});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("annotate:PSM", vector<string>{"ALL"});
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("scoring:method", "calibrated");
+
+  auto search = [&](const Param& params, int charge, vector<ProteinIdentification>& proteins)
+  {
+    algo.setParameters(params);
+    PeakMap spectra;
+    MSSpectrum input = spec;
+    input.getPrecursors()[0].setCharge(charge);
+    input.getPrecursors()[0].setMZ(peptide.getMZ(charge));
+    spectra.addSpectrum(input);
+    PeptideIdentificationList peptides;
+    const auto result = algo.search(spectra, fasta_db, proteins, peptides);
+    TEST_TRUE(result == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    return peptides;
+  };
+  vector<ProteinIdentification> proteins;
+  auto single = search(p, 3, proteins);
+  TEST_TRUE(single.empty()) // 1+ theory cannot explain the doubly charged peaks.
+
+  p.setValue("scoring:fragment_charges", "multiple");
+  auto multiple = search(p, 3, proteins);
+  TEST_EQUAL(multiple.size(), 1)
+  if (!multiple.empty() && !multiple[0].getHits().empty())
+  {
+    TEST_EQUAL(multiple[0].getScoreType(), "calibrated fragment score")
+    TEST_TRUE(multiple[0].isHigherScoreBetter())
+    TEST_EQUAL(multiple[0].getHits()[0].getSequence(), peptide)
+    TEST_TRUE(multiple[0].getHits()[0].getScore() > 0.0)
+    TEST_TRUE(static_cast<int>(multiple[0].getHits()[0].getMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS)) >= 10)
+    const PeptideHit& hit = multiple[0].getHits()[0];
+    const double matched_prefix = hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS);
+    TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION)), matched_prefix / (2.0 * peptide.size()))
+    TEST_FALSE(hit.getPeakAnnotations().empty())
+    for (const auto& annotation : hit.getPeakAnnotations())
+    {
+      TEST_EQUAL(annotation.charge, 2)
+    }
+    TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:method").toString(), "calibrated")
+    TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges").toString(), "multiple")
+  }
+  TEST_TRUE(search(p, 2, proteins).empty()) // Do not allow 2+ fragments for a 2+ precursor.
+  p.setValue("fragment:max_charge", 1);
+  TEST_TRUE(search(p, 3, proteins).empty()) // Respect the explicit fragment charge cap.
+
+  // The independent precursor-calibration pass must use the same ion charges.
+  p.setValue("fragment:max_charge", 2);
+  p.setValue("calibration:enabled", "true");
+  p.setValue("calibration:subset_ratio", 1.0);
+  p.setValue("calibration:min_psms", 1);
+  ProSEAlgorithm_test calibrated;
+  calibrated.setParameters(p);
+  PeakMap spectra;
+  spectra.addSpectrum(spec);
+  PeptideIdentificationList peptide_ids;
+  TEST_TRUE(calibrated.search(spectra, fasta_db, proteins, peptide_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_TRUE(calibrated.last_calibration_result_.success)
+  TEST_EQUAL(peptide_ids.size(), 1)
+
+  p.setValue("fragment:mass_tolerance", 0.0);
+  TEST_EXCEPTION(Exception::InvalidParameter, calibrated.setParameters(p))
+}
+END_SECTION
+
 START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
 {
   // User sets an asymmetric [20, 30] ppm window (skewed toward a known positive

@@ -554,6 +554,12 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
         .def(nb::init<const OpenMS::HyperScore &>())
         .def("__copy__", [](const OpenMS::HyperScore& self) { return OpenMS::HyperScore(self); })
         .def("__deepcopy__", [](const OpenMS::HyperScore& self, nb::dict) { return OpenMS::HyperScore(self); }, "memo"_a)
+        .def_static("computeCalibrated", [](double tolerance, bool ppm, const OpenMS::MSSpectrum& exp, const OpenMS::MSSpectrum& theo) {
+            OpenMS::HyperScore::PSMDetail detail;
+            const double score = OpenMS::HyperScore::computeCalibrated(tolerance, ppm, exp, theo, detail);
+            return nb::make_tuple(score, detail.matched_prefix_ions, detail.matched_suffix_ions, detail.mean_error);
+        }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "theo_spectrum"_a,
+           "Experimental native binomial fragment score. Returns (score, prefix_matches, suffix_matches, mean_error).")
         .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& theo_spectrum) { return OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum); }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "theo_spectrum"_a)
         .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::DataArrays::IntegerDataArray& exp_charges, const OpenMS::MSSpectrum& theo_spectrum, const OpenMS::DataArrays::IntegerDataArray& theo_charges) { return OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, exp_charges, theo_spectrum, theo_charges); }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "exp_charges"_a, "theo_spectrum"_a, "theo_charges"_a)
         .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::DataArrays::IntegerDataArray& exp_charges, const OpenMS::MSSpectrum& theo_spectrum, const OpenMS::DataArrays::IntegerDataArray& theo_charges, std::vector<double> intensity_sum) {

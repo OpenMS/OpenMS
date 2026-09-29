@@ -11,6 +11,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <algorithm>
+#include <limits>
 
 
 using std::vector;
@@ -178,6 +180,95 @@ namespace OpenMS
     d.matched_suffix_ions = suffix_ion_count;
     d.mean_error = (prefix_ion_count + suffix_ion_count) > 0 ? abs_error / (double)(prefix_ion_count + suffix_ion_count) : 0.0;
     return hyperScore;
+  }
+
+
+  namespace
+  {
+    // Log-space recurrence avoids underflow for highly significant matches.
+    double negativeLogBinomialTail(int n, int k, double p)
+    {
+      if (k == 0 || n == 0 || p >= 1.0) return 0.0;
+      p = std::max(p, std::numeric_limits<double>::min());
+      double term = std::lgamma(n + 1.0) - std::lgamma(k + 1.0) - std::lgamma(n - k + 1.0)
+        + k * std::log(p) + (n - k) * std::log1p(-p);
+      double total = term;
+      for (int j = k; j < n; ++j)
+      {
+        term += std::log(double(n - j) / double(j + 1)) + std::log(p) - std::log1p(-p);
+        const double hi = std::max(total, term);
+        total = hi + std::log1p(std::exp(std::min(total, term) - hi));
+      }
+      return std::max(0.0, -total);
+    }
+
+    int terminalSeries(const std::string& name)
+    {
+      if (name.empty()) return -1;
+      const Size pos = name.find('$');
+      const char c = pos != std::string::npos && pos + 1 < name.size() ? name[pos + 1] : name[0];
+      if (c == 'a' || c == 'b' || c == 'c') return 0;
+      if (c == 'x' || c == 'y' || c == 'z') return 1;
+      return -1;
+    }
+  }
+
+  double HyperScore::computeCalibrated(double tolerance, bool ppm,
+                                      const PeakSpectrum& exp, const PeakSpectrum& theo,
+                                      PSMDetail& detail)
+  {
+    detail = PSMDetail{};
+    if (!std::isfinite(tolerance) || tolerance <= 0.0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Fragment tolerance must be finite and positive.");
+    }
+    if (exp.empty() || theo.empty()) return 0.0;
+    if (theo.getStringDataArrays().empty() || theo.getStringDataArrays()[0].size() != theo.size())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Theoretical spectrum needs one ion name per peak", "IonNames");
+    }
+    const auto& names = theo.getStringDataArrays()[0];
+    const auto width = [tolerance, ppm](double mz) { return ppm ? tolerance * mz * 1e-6 : tolerance; };
+    const double low = exp.front().getMZ() - width(exp.front().getMZ());
+    const double high = exp.back().getMZ() + width(exp.back().getMZ());
+    if (high <= low) return 0.0;
+
+    // Union, rather than sum, of the matching intervals: overlapping windows
+    // must not inflate the expected random-match probability.
+    double covered = 0.0, right = low;
+    for (const auto& peak : exp)
+    {
+      const double left = std::max(low, peak.getMZ() - width(peak.getMZ()));
+      const double end = std::min(high, peak.getMZ() + width(peak.getMZ()));
+      covered += std::max(0.0, end - std::max(left, right));
+      right = std::max(right, end);
+    }
+    const double probability = std::clamp(covered / (high - low), 0.0, 1.0);
+    int trials[2] = {0, 0}, matches[2] = {0, 0};
+    double intensity = 0.0, error_sum = 0.0;
+    for (Size i = 0; i < theo.size(); ++i)
+    {
+      const int series = terminalSeries(names[i]);
+      const double mz = theo[i].getMZ();
+      if (series < 0 || mz < low || mz > high) continue;
+      ++trials[series];
+      const Size j = exp.findNearest(mz);
+      const double error = std::abs(exp[j].getMZ() - mz);
+      if (error <= width(mz))
+      {
+        ++matches[series];
+        intensity += exp[j].getIntensity() * theo[i].getIntensity();
+        error_sum += ppm ? Math::getPPMAbs(exp[j].getMZ(), mz) : error;
+      }
+    }
+    detail.matched_prefix_ions = matches[0];
+    detail.matched_suffix_ions = matches[1];
+    const int matched_count = matches[0] + matches[1];
+    detail.mean_error = matched_count == 0 ? 0.0 : error_sum / matched_count;
+    return std::log1p(intensity) + negativeLogBinomialTail(trials[0], matches[0], probability)
+      + negativeLogBinomialTail(trials[1], matches[1], probability);
   }
 
   double HyperScore::compute(double fragment_mass_tolerance, 
