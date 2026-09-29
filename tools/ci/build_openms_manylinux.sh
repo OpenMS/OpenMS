@@ -82,8 +82,11 @@ export DOTNET_NOLOGO=1
 ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
 # Manifest features: the options this build turns on that have a vcpkg port
-# (WITH_THERMO_RAW and WITH_OPENTIMS, both ON by default). The libraries OpenMS
-# vendors (USE_EXTERNAL_* OFF) stay vendored, as in the earlier contrib-based wheels.
+# (WITH_THERMO_RAW and WITH_OPENTIMS, both ON by default), and sqlitecpp. SQLiteCpp
+# and SQLite come from vcpkg (USE_EXTERNAL_SQLITECPP), as in the packages; opentims
+# links vcpkg's SQLite, so with the vendored copy libOpenMS would be linked against
+# two. The other libraries OpenMS vendors (USE_EXTERNAL_* OFF) stay vendored, as in
+# the earlier contrib-based wheels.
 #
 # ARROW_USE_STATIC is ON by default; it is spelled out because the standalone
 # pyOpenMS build that links _arrow_zerocopy against the same Arrow is configured
@@ -99,7 +102,8 @@ cmake -S . -B build \
   -DVCPKG_TARGET_TRIPLET="${triplet}" \
   -DVCPKG_HOST_TRIPLET="${triplet}" \
   -DVCPKG_INSTALLED_DIR="${src}/vcpkg_installed" \
-  -DVCPKG_MANIFEST_FEATURES="openms-thermo-bridge;opentims" \
+  -DVCPKG_MANIFEST_FEATURES="openms-thermo-bridge;opentims;sqlitecpp" \
+  -DUSE_EXTERNAL_SQLITECPP=ON \
   -DVCPKG_INSTALL_OPTIONS="--clean-after-build" \
   -DARROW_USE_STATIC=ON \
   -DCMAKE_INSTALL_PREFIX="${src}/install" \
