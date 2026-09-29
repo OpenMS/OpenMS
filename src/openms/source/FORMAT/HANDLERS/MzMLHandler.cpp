@@ -1126,7 +1126,7 @@ namespace OpenMS::Internal
         {
           std::string normal_path = path_to_file;
           StringUtils::substitute(normal_path, std::string("file://"), std::string("")); // remove URI prefix
-          path_to_file =std::string("file://") + File::absolutePath(normal_path); // on linux this e.g. file:///home... on win: file://C:/...
+          path_to_file = File::toFileURI(normal_path);
         }
 
         // absolute path to the root: remove additional / otherwise we will get file://// on concatenation
