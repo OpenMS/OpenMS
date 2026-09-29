@@ -81,6 +81,11 @@ For developers who want to build OpenMS from source:
 - [Build on Windows](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_win.html) - Build instructions for Windows.
 - [Build on macOS](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html) - Build instructions for macOS.
 
+The CMake presets build the third-party libraries with [vcpkg](https://vcpkg.io), as CI does: clone with
+`--recurse-submodules` (or run `git submodule update --init vcpkg`) and configure with a preset, e.g.
+`cmake --preset linux-x64-release` (`cmake --list-presets` lists them). Without a preset, OpenMS takes its
+dependencies from system packages and `CMAKE_PREFIX_PATH` (`OPENMS_USE_VCPKG=OFF`, the default).
+
 For more detailed instructions, see the [Developer Tutorial](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_tutorial.html).
 
 Citation
