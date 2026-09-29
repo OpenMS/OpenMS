@@ -1303,6 +1303,10 @@ Fixes:
       string instead of a list, as a conversion error. A file without the current 'version' no
       longer logs "Broken file" or "deprecated" warnings on every run, since OpenMS never rewrites
       the file (#3009).
+    - ProteomicsLFQ crashed in the QT feature linker (QTClusterFinder) when no run of a fraction
+      had a feature, e.g. because none of their identifications passed the FDR filter. Such a
+      fraction now contributes no quantities, a warning names it, and Debug builds no longer fail
+      an assertion on it (#9790, #10310).
 
 Documentation:
   - New "File formats" page in the OpenMS documentation: which formats tools read and write
