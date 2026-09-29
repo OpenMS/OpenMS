@@ -189,13 +189,10 @@ Dependencies:
     the package's former lookups of dependencies that are PRIVATE now. Consuming projects need
     CMake 3.24: find_package(OpenMS) rejects older versions with an explanatory message
     instead of failing later (#10158).
-  - BREAKING (build): OPENMS_USE_VCPKG defaults to ON, so vcpkg provides the third-party
-    libraries also in a configure without a preset. Without a vcpkg toolchain (the vcpkg
-    submodule, e.g. absent from the source tarball, or CMAKE_TOOLCHAIN_FILE) the configure
-    stops with an error. Builds against system packages or CMAKE_PREFIX_PATH, e.g. by
-    distributions, Bioconda, Homebrew or the dockerfiles/ images, must pass
-    -DOPENMS_USE_VCPKG=OFF. The source tarball now contains vcpkg-overlays/, so it builds
-    with an external vcpkg as well (#10327).
+  - The source tarball contains vcpkg.json, vcpkg-configuration.json and vcpkg-overlays/, so
+    it builds with an external vcpkg (CMAKE_TOOLCHAIN_FILE) as well as against system packages.
+    With OPENMS_USE_VCPKG=ON, a missing or non-vcpkg toolchain stops the configure with a
+    message that names the alternatives (#10327).
   - The contrib (OpenMS/contrib) is deprecated and will be removed after 3.6: vcpkg
     builds the dependencies (see the vcpkg install guide and the CMake presets). It is
     still a git submodule in this release (#9155). Configuring with OPENMS_CONTRIB_LIBS,

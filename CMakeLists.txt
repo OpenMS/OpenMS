@@ -12,10 +12,9 @@ cmake_minimum_required(VERSION 3.24 FATAL_ERROR) ## Subdirectories pulled
 ## for that directory to the older version
 
 # The vcpkg toolchain must be selected before project() initializes compilers.
-# vcpkg is the default dependency provider. Builds against system packages (apt,
-# Homebrew, conda/Bioconda) or other CMAKE_PREFIX_PATH prefixes pass
-# -DOPENMS_USE_VCPKG=OFF.
-option(OPENMS_USE_VCPKG "Use vcpkg manifest mode for dependency management (OFF: system packages and CMAKE_PREFIX_PATH)." ON)
+# The CMake presets set OPENMS_USE_VCPKG=ON and build the dependencies with vcpkg.
+# A configure without a preset takes them from system packages and CMAKE_PREFIX_PATH.
+option(OPENMS_USE_VCPKG "Use vcpkg manifest mode for dependency management (OFF: system packages and CMAKE_PREFIX_PATH)." OFF)
 
 if(OPENMS_USE_VCPKG AND NOT CMAKE_TOOLCHAIN_FILE)
   set(_openms_submodule_vcpkg_toolchain "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
@@ -24,7 +23,7 @@ if(OPENMS_USE_VCPKG AND NOT CMAKE_TOOLCHAIN_FILE)
     set(CMAKE_TOOLCHAIN_FILE "${_openms_submodule_vcpkg_toolchain}" CACHE FILEPATH "CMake toolchain file")
   else()
     message(FATAL_ERROR
-      "OPENMS_USE_VCPKG is ON (the default since OpenMS 3.6), but no vcpkg toolchain was found.\n"
+      "OPENMS_USE_VCPKG is ON, but no vcpkg toolchain was found.\n"
       "Either\n"
       "  - build the dependencies with vcpkg: run 'git submodule update --init vcpkg' "
       "(or clone with --recurse-submodules) and configure with a preset, e.g. "
@@ -70,7 +69,7 @@ project("OpenMS_host" LANGUAGES CXX)
 # would otherwise only surface as missing dependencies much later.
 if(OPENMS_USE_VCPKG AND NOT VCPKG_TOOLCHAIN)
   message(FATAL_ERROR
-    "OPENMS_USE_VCPKG is ON (the default since OpenMS 3.6), but the toolchain file '${CMAKE_TOOLCHAIN_FILE}' "
+    "OPENMS_USE_VCPKG is ON, but the toolchain file '${CMAKE_TOOLCHAIN_FILE}' "
     "is not vcpkg's. Pass vcpkg's toolchain (<vcpkg root>/scripts/buildsystems/vcpkg.cmake) and "
     "chain-load your own with -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=<file>, or configure with "
     "-DOPENMS_USE_VCPKG=OFF to take the dependencies from system packages or CMAKE_PREFIX_PATH.")
@@ -333,7 +332,8 @@ if(OPENMS_USE_VCPKG)
 elseif(OPENMS_CONTRIB_LIBS)
   message(STATUS "Dependency provider: contrib (${OPENMS_CONTRIB_LIBS}), deprecated")
 else()
-  message(STATUS "Dependency provider: system packages and CMAKE_PREFIX_PATH")
+  message(STATUS "Dependency provider: system packages and CMAKE_PREFIX_PATH "
+                 "(the CMake presets, see 'cmake --list-presets', build the dependency set CI tests with vcpkg)")
 endif()
 include(cmake/setup_lib_find_paths.cmake)
 

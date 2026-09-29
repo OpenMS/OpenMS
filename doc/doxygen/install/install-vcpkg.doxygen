@@ -120,17 +120,17 @@
 
     @subsection install_vcpkg_without Building without vcpkg (system packages)
 
-    `OPENMS_USE_VCPKG` is `ON` by default since %OpenMS 3.6. A configure without the vcpkg toolchain (no preset, an
-    uninitialized `vcpkg` submodule, e.g. in a source tarball, and no `CMAKE_TOOLCHAIN_FILE`) stops with an error that
-    names the two ways out. To take the dependencies from the system (apt, Homebrew, conda/Bioconda) or from prefixes
-    in `CMAKE_PREFIX_PATH` instead, configure with `-DOPENMS_USE_VCPKG=OFF`:
+    The presets use vcpkg (`OPENMS_USE_VCPKG=ON`). Without a preset, `OPENMS_USE_VCPKG` is `OFF` and %OpenMS takes its
+    dependencies from the system (apt, Homebrew, conda/Bioconda) and from the prefixes in `CMAKE_PREFIX_PATH`:
 
     \code
-    cmake -S OpenMS -B openms_build -DOPENMS_USE_VCPKG=OFF -DCMAKE_PREFIX_PATH="<prefix1>;<prefix2>"
+    cmake -S OpenMS -B openms_build -DCMAKE_PREFIX_PATH="<prefix1>;<prefix2>"
     \endcode
 
-    Downstream packagers (distributions, Bioconda, Homebrew formulae, container images) have to pass
-    `-DOPENMS_USE_VCPKG=OFF`. `dockerfiles/Dockerfile` is an example of such a build on Ubuntu packages.
+    The installed libraries must meet the minimum versions of %OpenMS; the presets build the dependency set that CI
+    tests. `dockerfiles/Dockerfile` is an example of a build on Ubuntu packages. If you set `-DOPENMS_USE_VCPKG=ON`
+    without a preset, pass the vcpkg toolchain as shown above, otherwise the configure stops with an error that names
+    the alternatives.
 
     @subsection install_vcpkg_generator Choosing a CMake generator
 
