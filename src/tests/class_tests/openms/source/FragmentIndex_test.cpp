@@ -3081,4 +3081,81 @@ START_SECTION((SNES query honors multi-charge precursor when charge is unset))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] rebuilding replaces the previous peptide and fragment buffers))
+{
+  const vector<FASTAFile::FASTAEntry> first = {{"P1", "", "THQPSANLDIK"}};
+  const vector<FASTAFile::FASTAEntry> second = {{"P2", "", "VLVLDTDYK"}};
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("decoys", "false");
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+  for (const string deduplicate : {"false", "true"})
+  {
+    p.setValue("peptide:deduplicate", deduplicate);
+    fi.setParameters(p);
+    fi.build(first);
+    const Size fragments = fi.getNumFragments();
+    fi.build(first);
+    TEST_EQUAL(fi.getPeptides().size(), 1)
+    TEST_EQUAL(fi.getNumFragments(), fragments)
+    fi.build(second);
+    ABORT_IF(fi.getPeptides().size() != 1)
+    TEST_EQUAL(fi.reconstructModifiedSequence(fi.getPeptides()[0], second).toString(), "VLVLDTDYK")
+    FragmentIndex fresh;
+    fresh.setParameters(p);
+    fresh.build(second);
+    TEST_EQUAL(fi.getNumFragments(), fresh.getNumFragments())
+    TEST_TRUE(fi.isBuild())
+  }
+  const vector<FASTAFile::FASTAEntry> invalid = {{"too_long", "", string(65536, 'A')}};
+  TEST_EXCEPTION(Exception::InvalidParameter, fi.build(invalid))
+  TEST_FALSE(fi.isBuild())
+  TEST_TRUE(fi.getPeptides().empty())
+  TEST_EQUAL(fi.getNumFragments(), 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] optional peptidoform deduplication preserves modification sites and terminal contexts))
+{
+  const vector<FASTAFile::FASTAEntry> db
+    = {{"P1", "", "MPEPCIDEMK"}, {"P2", "", "MPEPCIDEMK"}, {"P3", "", "AKMPEPCIDEMK"}, {"DECOY_shared", "", "MPEPCIDEMK"}};
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("decoys", "false");
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("modifications:fixed", vector<string> {"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string> {"Oxidation (M)", "Acetyl (Protein N-term)"});
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  p.setValue("peptide:deduplicate", "false");
+  fi.setParameters(p);
+  fi.build(db);
+  set<string> expected;
+  for (const auto& peptide : fi.getPeptides())
+  {
+    expected.insert(fi.reconstructModifiedSequence(peptide, db).toString());
+  }
+  TEST_EQUAL(expected.size(), 4) // Fixed-only, oxidation at either M, protein-N acetyl.
+  const Size original_count = fi.getPeptides().size();
+  TEST_TRUE(original_count > expected.size())
+  p.setValue("peptide:deduplicate", "true");
+  fi.setParameters(p);
+  fi.build(db);
+  set<string> observed;
+  for (const auto& peptide : fi.getPeptides())
+  {
+    observed.insert(fi.reconstructModifiedSequence(peptide, db).toString());
+  }
+  TEST_TRUE(observed == expected)
+  TEST_EQUAL(fi.getPeptides().size(), expected.size())
+
+  // Rebuilding with legacy behavior restores occurrences; clear carries no identity state.
+  fi.clear();
+  p.setValue("peptide:deduplicate", "false");
+  fi.setParameters(p);
+  fi.build(db);
+  TEST_EQUAL(fi.getPeptides().size(), original_count)
+}
+END_SECTION
+
 END_TEST

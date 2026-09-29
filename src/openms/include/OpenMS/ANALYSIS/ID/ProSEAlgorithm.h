@@ -8,22 +8,21 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
-
-#include <algorithm>   // std::min (used by inline computeModMatchTolerance_)
-#include <iosfwd>      // std::ostream (renderRunSummary / renderModificationSummary)
+#include <algorithm> // std::min (used by inline computeModMatchTolerance_)
+#include <iosfwd>    // std::ostream (renderRunSummary / renderModificationSummary)
 #include <map>
-#include <string>      // std::string (renderRunSummaryJson return / manifest)
-#include <utility>     // std::pair (renderRunSummaryJson manifest)
+#include <string> // std::string (renderRunSummaryJson return / manifest)
+#include <unordered_set>
+#include <utility> // std::pair (renderRunSummaryJson manifest)
 #include <vector>
 
 namespace OpenMS
@@ -557,7 +556,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * before pruning and before zero-scoring candidates are dropped -- so the
      * summary reflects the full pool. Instances accumulate across chunks in the
      * chunked search paths, where each chunk contributes its own candidates for
-     * the same spectrum.
+     * the same spectrum. With peptide:deduplicate enabled for a non-SNES index,
+     * repeated peptidoform/charge/isotope hypotheses in later chunks are skipped
+     * before add(). The per-chunk candidate cap still determines which distinct
+     * hypotheses enter the pool; chunked and unchunked pools can therefore differ.
      */
     struct CandidatePoolStats_
     {
@@ -566,6 +568,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double best = 0.0;        ///< best candidate score (HyperScore is non-negative, so 0 doubles as "none seen")
       double second_best = 0.0; ///< runner-up candidate score
       Size count = 0;           ///< number of candidates scored
+      /// Exact peptide/charge/isotope keys already scored in earlier database chunks.
+      /// Empty in non-chunked searches; full keys resolve hash collisions by equality.
+      std::unordered_set<std::string> seen_candidates;
 
       /// Fold one freshly scored candidate into the summary.
       void add(double score)

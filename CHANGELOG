@@ -601,6 +601,15 @@ TOPP tools:
         groups; every other shipped mzTab reference has exactly one (fraction_group, label) per sample
         and is byte-identical (#9868, part of #9864)
     ProSE:
+      - Fixed FragmentIndex::build reusing old peptide coordinates on a second build;
+        rebuilding now replaces the previous index and failed builds remain unbuilt.
+      - New peptide:deduplicate=true collapses repeated occurrences of exact modified
+        peptides before fragment indexing and candidate selection. Full protein mappings
+        and target/decoy annotations are recovered against the complete FASTA. Chunked
+        scoring counts each peptide/charge/isotope hypothesis once across chunks;
+        retaining queried identity keys increases chunked-search memory. SNES mother
+        indices keep their existing behavior. Set false for legacy occurrence-based
+        candidates; FragmentIndex as a standalone API retains false as its default.
       - Optional scoring:method=mass_accuracy weights HyperScore fragment counts and
         intensity products by Gaussian mass accuracy, using scoring:mass_error_sd (7 ppm
         by default). Matching tolerances and unweighted match annotations are unchanged.

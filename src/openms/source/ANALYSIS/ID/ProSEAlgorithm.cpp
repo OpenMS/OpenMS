@@ -188,6 +188,12 @@ namespace OpenMS
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
     defaults_.setValue("peptide:max_size", 40, "Maximum size a peptide must have after digestion to be considered in the search (0 = disabled).");
     defaults_.setValue("peptide:missed_cleavages", 1, "Number of missed cleavages.");
+    defaults_.setValue("peptide:deduplicate", "true",
+                       "Index each exact peptidoform once before candidate selection. Protein mappings are recovered from the full database. "
+                       "Across database chunks, count each peptide/charge/isotope hypothesis once; retaining queried keys adds memory per spectrum. "
+                       "SNES mother indices retain their existing behavior. Set false for occurrence-based legacy candidates.",
+                       {"advanced"});
+    defaults_.setValidStrings("peptide:deduplicate", {"true", "false"});
     defaults_.setValue("peptide:enzyme_specificity", "full",
       "Enzyme cleavage specificity required for both peptide termini.\n"
       "  'full' : both termini must be enzyme-specific (canonical, e.g. tryptic).\n"
@@ -1223,6 +1229,7 @@ namespace OpenMS
     // record whether open-search mode was used
     search_parameters.setMetaValue("open_search", isOpenSearchMode_() ? "true" : "false");
     search_parameters.setMetaValue("scoring:method", param_.getValue("scoring:method"));
+    search_parameters.setMetaValue("peptide:deduplicate", param_.getValue("peptide:deduplicate"));
     search_parameters.setMetaValue("scoring:mass_error_sd", mass_error_sd_ppm_);
     search_parameters.setMetaValue("scoring:fragment_charges", param_.getValue("scoring:fragment_charges"));
     search_parameters.setMetaValue("scoring:method_resolved",
@@ -1569,10 +1576,11 @@ namespace OpenMS
     // referencing namespace-scope constants inside the loop without explicit sharing.
     const double c13c12_massdiff_u = Constants::C13C12_MASSDIFF_U;
     const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
+    const bool deduplicate_chunks = param_.getValue("peptide:deduplicate").toBool() && database_chunk_size_ > 0 && ! fi.isSnesMode();
 
 #pragma omp parallel for schedule(dynamic) default(none)                                                                                            \
   shared(annotated_hits, pool_stats, query_spectra, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, \
-           proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep)
+           proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep, deduplicate_chunks)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
       #pragma omp atomic
@@ -1654,6 +1662,16 @@ namespace OpenMS
         else
         {
           mod_candidate = fi.reconstructModifiedSequence(sms_pep, db);
+        }
+
+        // Index construction already removes repeated occurrences within a
+        // chunk. Across chunks, skip the same hypothesis before updating either
+        // scores or pool statistics. Charge and isotope hypotheses stay distinct.
+        if (deduplicate_chunks)
+        {
+          std::string key = mod_candidate.toString();
+          key += "\t" + std::to_string(sms.precursor_charge_) + "\t" + std::to_string(sms.isotope_error_);
+          if (! pool_stats[scan_index].seen_candidates.insert(std::move(key)).second) { continue; }
         }
 
         // Clear peaks + data arrays (ion names / charges) before refilling for the
@@ -1928,6 +1946,10 @@ namespace OpenMS
       }
     } // end chunk loop
     query_spectra.clear(true);
+    for (auto& stats : pool_stats)
+    {
+      std::unordered_set<std::string>().swap(stats.seen_candidates);
+    }
 
     // 6. Post-process merged hits (sort, annotate, PeptideIndexing, FDR).
     //    This runs once on ALL hits accumulated across all chunks.
@@ -2815,6 +2837,13 @@ namespace OpenMS
       } // end chunk loop
 
       // Phase 3: Per-file postprocess with per-file calibrated tolerances.
+      for (auto& file_stats : per_file_pool_stats)
+      {
+        for (auto& stats : file_stats)
+        {
+          std::unordered_set<std::string>().swap(stats.seen_candidates);
+        }
+      }
       mfres.per_file.reserve(in_spectra_files.size());
 
       for (Size i = 0; i < in_spectra_files.size(); ++i)

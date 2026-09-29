@@ -36,12 +36,13 @@
 #endif
 #include <algorithm>
 #include <bit>
+#include <boost/sort/sort.hpp>
 #include <cmath>
 #include <functional>
 #include <mutex>
 #include <string_view>
 #include <unordered_map>
-#include <boost/sort/sort.hpp>
+#include <unordered_set>
 
 using namespace std;
 
@@ -1126,28 +1127,77 @@ namespace OpenMS
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
-      protein_lengths_.clear();
-      protein_lengths_.reserve(fasta_entries.size());
-      for (const auto& e : fasta_entries)
+    // A rebuild replaces the previous database. Stale peptide coordinates
+    // would otherwise be appended and interpreted against the new FASTA.
+    clear();
+    protein_lengths_.reserve(fasta_entries.size());
+    for (const auto& e : fasta_entries)
+    {
+      // Peptide coordinates (start offset, length) are stored as 16-bit values in
+      // Peptide::sequence_, so a FASTA entry must not exceed 65535 residues. Beyond that,
+      // the start-offset cast to uint16_t in generatePeptides()/generateSNESMothers_ would
+      // wrap modulo 65536 and silently index fragments from the wrong subsequence. Fail loud
+      // instead: long metaproteomic contigs / six-frame-translated frames must be split first.
+      if (e.sequence.size() > std::numeric_limits<uint16_t>::max())
       {
-        // Peptide coordinates (start offset, length) are stored as 16-bit values in
-        // Peptide::sequence_, so a FASTA entry must not exceed 65535 residues. Beyond that,
-        // the start-offset cast to uint16_t in generatePeptides()/generateSNESMothers_ would
-        // wrap modulo 65536 and silently index fragments from the wrong subsequence. Fail loud
-        // instead: long metaproteomic contigs / six-frame-translated frames must be split first.
-        if (e.sequence.size() > std::numeric_limits<uint16_t>::max())
-        {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "FragmentIndex: FASTA entry '" + e.identifier + "' has " + std::to_string(e.sequence.size())
-            + " residues, exceeding the supported maximum of 65535 (peptide offsets are stored as 16-bit). "
-            "Split long contigs / six-frame-translated frames into windows of at most 65535 residues "
-            "(with overlap >= peptide:max_size so no peptide is lost across a split) before building the index.");
-        }
-        protein_lengths_.push_back(static_cast<uint32_t>(e.sequence.size()));
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "FragmentIndex: FASTA entry '" + e.identifier + "' has " + std::to_string(e.sequence.size())
+                                            + " residues, exceeding the supported maximum of 65535 (peptide offsets are stored as 16-bit). "
+                                              "Split long contigs / six-frame-translated frames into windows of at most 65535 residues "
+                                              "(with overlap >= peptide:max_size so no peptide is lost across a split) before building the index.");
       }
+      protein_lengths_.push_back(static_cast<uint32_t>(e.sequence.size()));
+    }
 
       /// generate all Peptides (also initializes residue mass table and mod tables)
       generatePeptides(fasta_entries);
+
+      // Protein occurrences are not distinct peptide hypotheses. Collapse exact
+      // peptidoforms before fragment emission and the per-spectrum candidate cap.
+      // Keep one source coordinate for reconstruction; ProSE maps retained hits
+      // against the complete FASTA later, including shared target/decoy sequences.
+      // SNES entries are mother peptides with different anchors, not scored forms.
+      if (param_.getValue("peptide:deduplicate").toBool() && ! is_snes_mode_)
+      {
+        // Keep compact fingerprints rather than one allocated string per database
+        // peptide. Hashes only identify groups to check: equality is always checked
+        // on the full peptidoform, so collisions cannot merge different candidates.
+        std::vector<std::pair<size_t, Size>> fingerprints(fi_peptides_.size());
+#pragma omp parallel for default(none) shared(fingerprints, fasta_entries)
+        for (SignedSize i = 0; i < static_cast<SignedSize>(fi_peptides_.size()); ++i)
+        {
+          fingerprints[i] = {std::hash<std::string> {}(reconstructModifiedSequence(fi_peptides_[i], fasta_entries).toString()), static_cast<Size>(i)};
+        }
+        // Original index breaks hash ties so the first representative is stable.
+        std::sort(fingerprints.begin(), fingerprints.end());
+        std::vector<uint8_t> duplicate(fi_peptides_.size(), 0);
+        for (Size begin = 0; begin < fingerprints.size();)
+        {
+          Size end = begin + 1;
+          while (end < fingerprints.size() && fingerprints[end].first == fingerprints[begin].first)
+          {
+            ++end;
+          }
+          if (end - begin > 1)
+          {
+            std::unordered_set<std::string> seen;
+            for (Size i = begin; i < end; ++i)
+            {
+              const Size index = fingerprints[i].second;
+              duplicate[index] = ! seen.insert(reconstructModifiedSequence(fi_peptides_[index], fasta_entries).toString()).second;
+            }
+          }
+          begin = end;
+        }
+        Size retained = 0;
+        for (Size i = 0; i < fi_peptides_.size(); ++i)
+        {
+          if (! duplicate[i]) { fi_peptides_[retained++] = fi_peptides_[i]; }
+        }
+        const Size removed = fi_peptides_.size() - retained;
+        fi_peptides_.erase(fi_peptides_.begin() + retained, fi_peptides_.end());
+        OPENMS_LOG_INFO << "Collapsed " << removed << " repeated peptidoform occurrences." << std::endl;
+      }
 
       const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
 
@@ -2540,6 +2590,11 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
 
     defaults_.setValue("peptide:missed_cleavages", 1, "Missed cleavages for digestion");
+    defaults_.setValue("peptide:deduplicate", "false",
+                       "Index each exact modified peptide once, retaining one representative protein coordinate. "
+                       "Callers must recover complete protein mappings separately. Does not apply to SNES mother indices.",
+                       {"advanced"});
+    defaults_.setValidStrings("peptide:deduplicate", {"true", "false"});
     defaults_.setValue("peptide:enzyme_specificity", "full",
       "Enzyme cleavage specificity required for both peptide termini.\n"
       "  'full' : both termini must be enzyme-specific (canonical, e.g. tryptic).\n"
