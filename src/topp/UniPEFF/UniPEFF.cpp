@@ -16,6 +16,7 @@
 #include <cctype>
 #include <cstdint>
 #include <fstream>
+#include <limits>
 #include <map>
 #include <sstream>
 #include <string>
@@ -39,13 +40,38 @@ This is an OpenMS-native port of the standalone C# UniPEFF tool
 (David L. Tabb, UMC Groningen). For each entry it emits a PEFF descriptor
 line with \\PName \\GName \\NcbiTaxId \\TaxName \\Length \\SV \\EV \\PE \\ID
 \\AltAC \\ModResPsi \\ModResUnimod \\ModRes \\VariantSimple \\VariantComplex
-\\Processed, plus \\DisulfideBond when @c -annotation_identifiers is set.
+\\Processed and \\DisulfideBond (the latter unless
+@c -omit_amino_acid_modifications is set).
 
 UniProt's <code>\<feature type="disulfide bond"\></code> entries are translated
 into half-cystine modifications (PSI-MOD:00798) which are then merged into
-the main modified-residue list in position-sorted order; in Option B
-(@c -AnnotationIdentifiers) the resulting half-cystines are referenced by
-annotation id from <code>\\DisulfideBond=(id1,id2)</code>.
+the main modified-residue list in position-sorted order. Disulfide
+connectivity is reported as <code>\\DisulfideBond=(bond:idA,idB)</code>
+tuples referencing <code>id:</code> prefixes on the half-cystine tuples
+inside \\ModResPsi, for every bond whose two half-cystines UniProt locates in
+this sequence (<code>\<begin\></code>/<code>\<end\></code>). These are mostly
+intrachain bonds, but also bonds between chains cleaved from the same
+precursor (e.g. insulin's "Interchain (between B and A chains)"). A bond given
+as a single <code>\<position\></code> (partner cysteine in another molecule) or
+with an endpoint beyond the sequence end gets no connectivity; its in-range
+half-cystines are written as plain modifications (see below for the rest). By
+default only the reported bonds and their half-cystines are labeled, in bond
+order: of K reported bonds, bond k (counting from 0) labels its two
+half-cystines 2k and 2k+1 and is itself labeled 2K+k, so the ids 0..3K-1 are
+unique within the entry, as PEFF requires (see issue 9829). With
+@c -annotation_identifiers (PEFF "Option B") every
+annotation tuple instead carries a global sequential id (0, 1, 2, ...) and
+\\DisulfideBond references those ids. Each database block with ids declares
+<code># HasAnnotationIdentifiers=true</code>.
+
+Annotations positioned beyond the end of the sequence (malformed input), i.e.
+modifications, variants and processed regions, are omitted with a warning,
+since PEFF treats such a position as an error in the file.
+
+Features whose <code>\<location sequence="..."\></code> names another isoform
+carry coordinates of that isoform, not of the entry's canonical sequence. They
+are not applied to the canonical entry; a summary log line counts those that
+would otherwise have become annotations.
 
 Modification accession lookup uses UniProt's <em>ptmlist.txt</em> (a snapshot
 is bundled under @c share/OpenMS/CHEMISTRY/UniProt_ptmlist.txt); override
@@ -390,20 +416,23 @@ namespace
   // Intermediate annotation structures (built per UniProtEntry)
   // ──────────────────────────────────────────────────────────────────
 
+  /// Sentinel for "no annotation identifier assigned": the tuple is emitted without an id: prefix.
+  constexpr uint32_t kNoId = std::numeric_limits<uint32_t>::max();
+
   struct ModResItem
   {
     int  position{0};        ///< 0 = unknown ('?')
     bool is_halfcys{false};  ///< for stable tie-break on merge
     const PtmEntry* ptm{nullptr};  ///< nullptr = generic (no accession), description in name
     std::string name;        ///< display name (UniProt PTM ID or fallback description)
-    uint32_t annotation_id{0};  ///< assigned in Option B
+    uint32_t annotation_id{kNoId};  ///< 0-based; all tuples in Option B, paired half-cystines in default mode
   };
 
   struct VariantSimpleItem
   {
     int  position{0};
     char new_aa{'?'};
-    uint32_t annotation_id{0};
+    uint32_t annotation_id{kNoId};  ///< assigned in Option B only
   };
 
   struct VariantComplexItem
@@ -411,7 +440,7 @@ namespace
     int begin{0};
     int end{0};
     std::string new_seq;
-    uint32_t annotation_id{0};
+    uint32_t annotation_id{kNoId};  ///< assigned in Option B only
   };
 
   struct ProcessedItem
@@ -420,7 +449,7 @@ namespace
     int end{0};
     std::string cv;          ///< PEFF CV accession, e.g. "PEFF:0001021"
     std::string type_name;   ///< human name, e.g. "signal peptide"
-    uint32_t annotation_id{0};
+    uint32_t annotation_id{kNoId};  ///< assigned in Option B only
   };
 
   struct DisulfidePairItem
@@ -428,7 +457,8 @@ namespace
     /// Indices into EntryAnnotations::mods after merge — resolved to annotation_ids during emission.
     size_t idx_a{0};
     size_t idx_b{0};
-    bool valid{false};       ///< true only when both endpoints come from a <begin>/<end> half-cystine pair
+    bool valid{false};       ///< true when both endpoints come from a <begin>/<end> location; cleared by invalidateOutOfRangeDisulfides()
+    uint32_t annotation_id{kNoId};  ///< id of the \DisulfideBond tuple itself (kNoId = not emitted)
   };
 
   struct EntryAnnotations
@@ -470,32 +500,32 @@ namespace
       if (f.type == "chain")
       {
         ProcessedItem p{f.has_range ? f.begin : 0, f.has_range ? f.end : 0,
-                        "PEFF:0001020", "mature protein", 0};
+                        "PEFF:0001020", "mature protein"};
         a.processed.push_back(std::move(p));
         return;
       }
       if (f.type == "initiator methionine")
       {
         const int pos = f.has_position ? f.position : 0;
-        a.processed.push_back(ProcessedItem{pos, pos, "PEFF:0001035", "initiator methionine", 0});
+        a.processed.push_back(ProcessedItem{pos, pos, "PEFF:0001035", "initiator methionine"});
         return;
       }
       if (f.type == "propeptide")
       {
         a.processed.push_back(ProcessedItem{f.has_range ? f.begin : 0, f.has_range ? f.end : 0,
-                                            "PEFF:0001034", "propeptide", 0});
+                                            "PEFF:0001034", "propeptide"});
         return;
       }
       if (f.type == "signal peptide")
       {
         a.processed.push_back(ProcessedItem{f.has_range ? f.begin : 0, f.has_range ? f.end : 0,
-                                            "PEFF:0001021", "signal peptide", 0});
+                                            "PEFF:0001021", "signal peptide"});
         return;
       }
       if (f.type == "transit peptide")
       {
         a.processed.push_back(ProcessedItem{f.has_range ? f.begin : 0, f.has_range ? f.end : 0,
-                                            "PEFF:0001022", "transit peptide", 0});
+                                            "PEFF:0001022", "transit peptide"});
         return;
       }
     }
@@ -509,12 +539,12 @@ namespace
         // Generic ModRes (no CV accession) per UniPEFF policy.
         if (f.has_range)
         {
-          a.regular_mods.push_back(ModResItem{f.begin, false, nullptr, desc, 0});
-          a.regular_mods.push_back(ModResItem{f.end,   false, nullptr, desc, 0});
+          a.regular_mods.push_back(ModResItem{f.begin, false, nullptr, desc});
+          a.regular_mods.push_back(ModResItem{f.end,   false, nullptr, desc});
         }
         else
         {
-          a.regular_mods.push_back(ModResItem{mod_position, false, nullptr, desc, 0});
+          a.regular_mods.push_back(ModResItem{mod_position, false, nullptr, desc});
         }
         return;
       }
@@ -523,15 +553,15 @@ namespace
         const PtmEntry* hc = findPtm(ptms, "Half cystine");
         if (f.has_range)
         {
-          a.halfcys.push_back(ModResItem{f.begin, true, hc, hc ? hc->id : "half cystine", 0});
+          a.halfcys.push_back(ModResItem{f.begin, true, hc, hc ? hc->id : "half cystine"});
           const size_t first_idx = a.halfcys.size() - 1;
-          a.halfcys.push_back(ModResItem{f.end,   true, hc, hc ? hc->id : "half cystine", 0});
+          a.halfcys.push_back(ModResItem{f.end,   true, hc, hc ? hc->id : "half cystine"});
           const size_t second_idx = a.halfcys.size() - 1;
           a.disulfides.push_back(DisulfidePairItem{first_idx, second_idx, true});
         }
         else
         {
-          a.halfcys.push_back(ModResItem{mod_position, true, hc, hc ? hc->id : "half cystine", 0});
+          a.halfcys.push_back(ModResItem{mod_position, true, hc, hc ? hc->id : "half cystine"});
         }
         return;
       }
@@ -539,7 +569,7 @@ namespace
       {
         std::string desc = cleanPtmDescription(f.description);
         if (desc.empty()) desc = "glycosylation site";
-        a.regular_mods.push_back(ModResItem{mod_position, false, nullptr, desc, 0});
+        a.regular_mods.push_back(ModResItem{mod_position, false, nullptr, desc});
         return;
       }
       if (f.type == "lipid moiety-binding region")
@@ -547,7 +577,7 @@ namespace
         std::string desc = cleanPtmDescription(f.description);
         if (desc.empty()) desc = "lipid moiety-binding region";
         const PtmEntry* p = findPtm(ptms, desc);
-        a.regular_mods.push_back(ModResItem{mod_position, false, p, p ? p->id : desc, 0});
+        a.regular_mods.push_back(ModResItem{mod_position, false, p, p ? p->id : desc});
         return;
       }
       if (f.type == "modified residue")
@@ -556,7 +586,7 @@ namespace
         const PtmEntry* p = findPtm(ptms, desc);
         if (p != nullptr)
         {
-          a.regular_mods.push_back(ModResItem{mod_position, false, p, p->id, 0});
+          a.regular_mods.push_back(ModResItem{mod_position, false, p, p->id});
         }
         else
         {
@@ -577,7 +607,7 @@ namespace
           OPENMS_LOG_WARN << "UniPEFF: " << accession << " sequence variant with unknown range; omitted." << std::endl;
           return;
         }
-        a.complex_variants.push_back(VariantComplexItem{f.begin, f.end, new_seq, 0});
+        a.complex_variants.push_back(VariantComplexItem{f.begin, f.end, new_seq});
       }
       else if (f.has_position)
       {
@@ -588,11 +618,11 @@ namespace
         }
         if (new_seq.size() == 1 && isResidueCode(new_seq[0]))
         {
-          a.simple_variants.push_back(VariantSimpleItem{f.position, new_seq[0], 0});
+          a.simple_variants.push_back(VariantSimpleItem{f.position, new_seq[0]});
         }
         else
         {
-          a.complex_variants.push_back(VariantComplexItem{f.position, f.position, new_seq, 0});
+          a.complex_variants.push_back(VariantComplexItem{f.position, f.position, new_seq});
         }
       }
     }
@@ -643,42 +673,74 @@ namespace
     a.halfcys.clear();
   }
 
+  /// Invalidate disulfide pairs with an endpoint beyond the sequence end (malformed
+  /// input): the pair then gets no labels and no \DisulfideBond tuple in either mode,
+  /// matching how out-of-bounds variants and processed regions are omitted. Unknown
+  /// (position 0) endpoints stay valid — UniProt documents such bonds and they are
+  /// emitted as '?'. An in-range half-cystine of such a pair is still written as a plain
+  /// modification; the out-of-range one is omitted by the writer, like any modification
+  /// beyond the sequence end.
+  void invalidateOutOfRangeDisulfides(EntryAnnotations& a, const std::string& base_sequence,
+                                      const std::string& accession)
+  {
+    const int seq_len = static_cast<int>(base_sequence.size());
+    if (seq_len == 0) return;
+    for (auto& d : a.disulfides)
+    {
+      if (!d.valid) continue;
+      if (d.idx_a >= a.mods.size() || d.idx_b >= a.mods.size()) continue;
+      const int pos_a = a.mods[d.idx_a].position;
+      const int pos_b = a.mods[d.idx_b].position;
+      if (pos_a > seq_len || pos_b > seq_len)
+      {
+        OPENMS_LOG_WARN << "UniPEFF: " << accession << " disulfide bond " << positionOrUnknown(pos_a)
+                        << "-" << positionOrUnknown(pos_b) << " exceeds sequence length " << seq_len
+                        << "; connectivity omitted.\n";
+        d.valid = false;
+      }
+    }
+  }
+
   // ──────────────────────────────────────────────────────────────────
-  // Annotation-ID assignment (Option B)
+  // Annotation-ID assignment
   // ──────────────────────────────────────────────────────────────────
 
-  /// Walk @p a in UniPEFF's emit order assigning monotonically increasing IDs
-  /// to every annotation tuple (ModRes split into PSI/Unimod/generic buckets,
-  /// then VariantSimple, VariantComplex, Processed, finally DisulfideBond).
-  /// The disulfide pair items receive IDs too; @c idx_a/@c idx_b already point
-  /// to half-cystine ModRes items whose IDs have just been stamped.
+  /// Option B (-annotation_identifiers): walk @p a in UniPEFF's emit order assigning
+  /// monotonically increasing IDs 0, 1, 2, ... to every annotation tuple (ModRes split into
+  /// PSI/Unimod/generic buckets, then VariantSimple, VariantComplex, Processed, finally
+  /// DisulfideBond). The disulfide pair items receive IDs of their own; @c idx_a/@c idx_b
+  /// already point to half-cystine ModRes items whose IDs have just been stamped.
+  /// Tuples skipped here (unknown/out-of-bounds positions) keep @c kNoId — the writer
+  /// skips exactly the same tuples, so every emitted tuple carries an id.
   void assignAnnotationIds(EntryAnnotations& a, const std::string& base_sequence,
-                           uint32_t& next_id, bool emit_processed, bool emit_aa_mods,
-                           bool emit_variants)
+                           bool emit_processed, bool emit_aa_mods, bool emit_variants)
   {
+    uint32_t next_id = 0;
+    const int seq_len = static_cast<int>(base_sequence.size());
     if (emit_aa_mods)
     {
+      // Modifications beyond the sequence end are not written (see writePeffEntry).
+      auto in_range = [seq_len](const ModResItem& m) { return !(seq_len > 0 && m.position > seq_len); };
       // PSI-MOD bucket: ModRes whose PTM has a PSI-MOD accession.
       for (auto& m : a.mods)
       {
-        if (m.ptm != nullptr && !m.ptm->psi_mod.empty()) m.annotation_id = next_id++;
+        if (in_range(m) && m.ptm != nullptr && !m.ptm->psi_mod.empty()) m.annotation_id = next_id++;
       }
       // Unimod bucket: ModRes with Unimod but no PSI-MOD.
       for (auto& m : a.mods)
       {
-        if (m.ptm != nullptr && m.ptm->psi_mod.empty() && !m.ptm->unimod.empty()) m.annotation_id = next_id++;
+        if (in_range(m) && m.ptm != nullptr && m.ptm->psi_mod.empty() && !m.ptm->unimod.empty()) m.annotation_id = next_id++;
       }
       // Generic bucket: ModRes with no CV accession (or no PTM at all).
       for (auto& m : a.mods)
       {
-        if (m.ptm == nullptr || (m.ptm->psi_mod.empty() && m.ptm->unimod.empty())) m.annotation_id = next_id++;
+        if (in_range(m) && (m.ptm == nullptr || (m.ptm->psi_mod.empty() && m.ptm->unimod.empty()))) m.annotation_id = next_id++;
       }
     }
 
     if (emit_variants)
     {
       // VariantSimple: real simple list, then complex entries that get demoted to simple.
-      const int seq_len = static_cast<int>(base_sequence.size());
       for (auto& v : a.simple_variants)
       {
         if (v.position == 0) continue;
@@ -704,7 +766,6 @@ namespace
 
     if (emit_processed)
     {
-      const int seq_len = static_cast<int>(base_sequence.size());
       for (auto& p : a.processed)
       {
         if (p.begin == 0 || p.end == 0) continue;
@@ -715,20 +776,55 @@ namespace
 
     if (emit_aa_mods)
     {
-      // Disulfide bonds get IDs only for valid pairs whose endpoints have IDs.
+      // Disulfide tuples continue the id sequence; only valid pairs whose endpoints
+      // exist in the merged mod list get one (same guards as the writer). Valid pairs
+      // have both endpoints in range, so both carry an id from the buckets above.
       for (auto& d : a.disulfides)
       {
         if (!d.valid) continue;
         if (d.idx_a >= a.mods.size() || d.idx_b >= a.mods.size()) continue;
-        // Both endpoints must be PSI-MOD half-cystines that received IDs above
-        // (annotation_id != 0 OR explicitly zero — distinguishable here only by
-        // the fact that we just assigned them; use a sentinel-free check).
-        // In practice both endpoints' IDs are non-zero in Option B; in Option A
-        // this branch is not entered at all.
-        ++next_id;  // reserve an ID for the disulfide tuple
-        // store via a sentinel — see emitEntry which reconstructs from idx_a/idx_b.
+        d.annotation_id = next_id++;
       }
     }
+  }
+
+  /// Default mode (no -annotation_identifiers): implement the selective labeling scheme
+  /// from issue #9829 — of the K valid disulfide pairs (both half-cystines located in this
+  /// sequence via <begin>/<end>: intrachain, or between chains of one precursor), pair k
+  /// (counting from 0) labels its begin half-cystine 2k and its end half-cystine 2k+1, and
+  /// the \DisulfideBond tuple itself is labeled 2K+k, referencing those two ids. The bonds
+  /// follow the half-cystines so that the ids 0..3K-1 are unique within the entry (PEFF 1.0,
+  /// section 3.4.2). All other annotations (including half-cystines from single-<position>
+  /// features, whose partner lies in another molecule) stay unlabeled.
+  void assignDisulfideLabels(EntryAnnotations& a)
+  {
+    std::vector<DisulfidePairItem*> reported;
+    for (auto& d : a.disulfides)
+    {
+      if (!d.valid) continue;
+      if (d.idx_a >= a.mods.size() || d.idx_b >= a.mods.size()) continue;
+      reported.push_back(&d);
+    }
+    const auto num_bonds = static_cast<uint32_t>(reported.size());
+    for (uint32_t k = 0; k < num_bonds; ++k)
+    {
+      DisulfidePairItem& d = *reported[k];
+      a.mods[d.idx_a].annotation_id = 2 * k;
+      a.mods[d.idx_b].annotation_id = 2 * k + 1;
+      d.annotation_id = 2 * num_bonds + k;
+    }
+  }
+
+  /// True when any tuple of @p a carries an annotation identifier; the entry's database
+  /// block must then declare HasAnnotationIdentifiers=true (PEFF 1.0, section 3.4.2).
+  bool hasAnnotationIds(const EntryAnnotations& a)
+  {
+    auto has_id = [](const auto& item) { return item.annotation_id != kNoId; };
+    return std::any_of(a.mods.begin(), a.mods.end(), has_id)
+        || std::any_of(a.simple_variants.begin(), a.simple_variants.end(), has_id)
+        || std::any_of(a.complex_variants.begin(), a.complex_variants.end(), has_id)
+        || std::any_of(a.processed.begin(), a.processed.end(), has_id)
+        || std::any_of(a.disulfides.begin(), a.disulfides.end(), has_id);
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -801,11 +897,39 @@ namespace
     return m.name;  // UniProt PTM ID
   }
 
+  /// A feature with &lt;location sequence="..."&gt; is annotated on another isoform:
+  /// its coordinates do not refer to the entry's canonical sequence.
+  bool isIsoformScoped(const UniProtFeature& f)
+  {
+    return !f.location_sequence.empty();
+  }
+
+  /// True if classifyAndAppend() added anything to @p a (checked before mergeHalfCystines()).
+  bool hasClassifiedAnnotations(const EntryAnnotations& a)
+  {
+    return !(a.regular_mods.empty() && a.halfcys.empty() && a.simple_variants.empty()
+             && a.complex_variants.empty() && a.processed.empty());
+  }
+
+  /// Counts, over all entries, the isoform-scoped features that were left out although
+  /// they would otherwise have become annotations of the canonical entry.
+  struct IsoformScopedTracker
+  {
+    size_t total{0};
+    size_t entries{0};
+
+    void add(size_t skipped_in_entry)
+    {
+      total += skipped_in_entry;
+      if (skipped_in_entry > 0) ++entries;
+    }
+  };
+
   /// Write the descriptor + sequence for one entry. OBO-name fallbacks taken during
   /// emission are accumulated into @p tracker so the final report can distinguish
   /// "N occurrences across M distinct accessions".
   void writePeffEntry(std::ostream& out, const UniProtEntry& e, EntryAnnotations& a,
-                      const std::string& prefix, bool option_b,
+                      const std::string& prefix,
                       const OboNameMap& psi_obo, const OboNameMap& unimod_obo,
                       OboFallbackTracker& tracker,
                       bool emit_processed, bool emit_aa_mods, bool emit_variants)
@@ -848,8 +972,10 @@ namespace
       tag_kv("AltAC", val);
     }
 
-    // Modifications grouped by accession kind. Note: in Option B, IDs were
-    // already stamped by assignAnnotationIds() in this exact bucket order.
+    // Modifications grouped by accession kind. IDs were stamped beforehand —
+    // by assignAnnotationIds() (Option B, every tuple, in this exact bucket
+    // order) or by assignDisulfideLabels() (default mode, paired half-cystines
+    // only) — and a tuple prints an "id:" prefix iff it carries one.
     auto writeMods = [&](const std::string& key,
                          std::function<bool(const ModResItem&)> belongs,
                          std::function<std::string(const ModResItem&)> accession_of)
@@ -858,8 +984,14 @@ namespace
       for (const ModResItem& m : a.mods)
       {
         if (!belongs(m)) continue;
+        if (seq_len > 0 && m.position > seq_len)
+        {
+          OPENMS_LOG_WARN << "UniPEFF: " << e.accession << " " << key << " position " << m.position
+                          << " exceeds sequence length " << seq_len << "; omitted.\n";
+          continue;
+        }
         val.push_back('(');
-        if (option_b) { val += std::to_string(m.annotation_id); val.push_back(':'); }
+        if (m.annotation_id != kNoId) { val += std::to_string(m.annotation_id); val.push_back(':'); }
         val += positionOrUnknown(m.position);
         const std::string acc = accession_of(m);
         val.push_back('|');
@@ -903,7 +1035,7 @@ namespace
             continue;
           }
           val.push_back('(');
-          if (option_b) { val += std::to_string(v.annotation_id); val.push_back(':'); }
+          if (v.annotation_id != kNoId) { val += std::to_string(v.annotation_id); val.push_back(':'); }
           val += std::to_string(v.position);
           val.push_back('|');
           val += escapePeff(std::string(1, v.new_aa));
@@ -915,7 +1047,7 @@ namespace
               && !(seq_len > 0 && v.begin > seq_len))
           {
             val.push_back('(');
-            if (option_b) { val += std::to_string(v.annotation_id); val.push_back(':'); }
+            if (v.annotation_id != kNoId) { val += std::to_string(v.annotation_id); val.push_back(':'); }
             val += std::to_string(v.begin);
             val.push_back('|');
             val += escapePeff(v.new_seq);
@@ -938,7 +1070,7 @@ namespace
           }
           if (v.begin == v.end && v.new_seq.size() == 1 && isResidueCode(v.new_seq[0])) continue;
           val.push_back('(');
-          if (option_b) { val += std::to_string(v.annotation_id); val.push_back(':'); }
+          if (v.annotation_id != kNoId) { val += std::to_string(v.annotation_id); val.push_back(':'); }
           val += std::to_string(v.begin);
           val.push_back('|');
           val += std::to_string(v.end);
@@ -963,7 +1095,7 @@ namespace
           continue;
         }
         val.push_back('(');
-        if (option_b) { val += std::to_string(p.annotation_id); val.push_back(':'); }
+        if (p.annotation_id != kNoId) { val += std::to_string(p.annotation_id); val.push_back(':'); }
         val += std::to_string(p.begin);
         val.push_back('|');
         val += std::to_string(p.end);
@@ -976,40 +1108,25 @@ namespace
       if (!val.empty()) tag_kv("Processed", val);
     }
 
-    if (option_b && emit_aa_mods)
+    if (emit_aa_mods)
     {
-      // \DisulfideBond=(annotation_id:idA,idB) — the annotation_id for the
-      // disulfide tuple itself is taken from the running counter, see below.
-      // We reserved those IDs in assignAnnotationIds(), so we compute them
-      // here by walking the disulfides in order using the same arithmetic.
-      // To keep this simple we re-derive: the disulfide IDs follow the
-      // last assigned annotation_id in the entry. We use the highest
-      // observed id + 1 as the next id and increment.
-      uint32_t next_id = 0;
-      for (const auto& m : a.mods) next_id = std::max(next_id, m.annotation_id);
-      for (const auto& v : a.simple_variants) next_id = std::max(next_id, v.annotation_id);
-      for (const auto& v : a.complex_variants) next_id = std::max(next_id, v.annotation_id);
-      for (const auto& p : a.processed) next_id = std::max(next_id, p.annotation_id);
-      if (!a.mods.empty() || !a.simple_variants.empty() || !a.complex_variants.empty()
-          || !a.processed.empty())
-      {
-        ++next_id;  // first disulfide gets max(...) + 1
-      }
+      // \DisulfideBond=(bond_id:idA,idB) — one tuple per valid <begin>/<end> disulfide pair,
+      // referencing the ids its two half-cystines carry inside \ModResPsi. The ids were
+      // stamped by whichever assignment pass ran (issue #9829 selective labels in the
+      // default mode; global annotation identifiers in Option B); a pair without an id
+      // (endpoint beyond the sequence end) is not emitted. Single-<position> disulfide
+      // features never form a pair.
       std::string val;
       for (const auto& d : a.disulfides)
       {
-        if (!d.valid) continue;
-        if (d.idx_a >= a.mods.size() || d.idx_b >= a.mods.size()) continue;
-        const uint32_t id_a = a.mods[d.idx_a].annotation_id;
-        const uint32_t id_b = a.mods[d.idx_b].annotation_id;
+        if (d.annotation_id == kNoId) continue;
         val.push_back('(');
-        val += std::to_string(next_id);
+        val += std::to_string(d.annotation_id);
         val.push_back(':');
-        val += std::to_string(id_a);
+        val += std::to_string(a.mods[d.idx_a].annotation_id);
         val.push_back(',');
-        val += std::to_string(id_b);
+        val += std::to_string(a.mods[d.idx_b].annotation_id);
         val.push_back(')');
-        ++next_id;
       }
       if (!val.empty()) tag_kv("DisulfideBond", val);
     }
@@ -1035,10 +1152,13 @@ namespace
   {
     UniProtEntry source;
     EntryAnnotations annotations;
+    size_t isoform_scoped_skipped{0};  ///< isoform-scoped features left out that would otherwise have become annotations
     std::string prefix;       ///< sp/tr or user override
   };
 
-  /// Prepare one entry: classify features, merge halfcys, (Option B) stamp IDs.
+  /// Prepare one entry: classify features, merge halfcys, drop disulfide pairs with
+  /// out-of-range endpoints, then stamp annotation IDs (global in Option B, selective
+  /// disulfide labels otherwise).
   PreparedEntry prepareEntry(UniProtEntry&& e, const PtmMap& ptms, const std::string& prefix_override,
                              bool option_b, bool record_processing, bool record_aa_mods,
                              bool record_variants)
@@ -1049,16 +1169,38 @@ namespace
 
     for (const auto& f : pe.source.features)
     {
+      if (isIsoformScoped(f))
+      {
+        // Never applied to the canonical entry. Classifying it into a scratch list tells whether
+        // it would otherwise have become an annotation, so the summary counts only those
+        // (not e.g. sequence conflicts, which UniPEFF never writes).
+        EntryAnnotations not_applied;
+        classifyAndAppend(f, ptms, not_applied, record_processing, record_aa_mods,
+                          record_variants, pe.source.accession);
+        if (hasClassifiedAnnotations(not_applied))
+        {
+          ++pe.isoform_scoped_skipped;
+          OPENMS_LOG_DEBUG << "UniPEFF: " << pe.source.accession << " " << f.type << " '" << f.description
+                           << "' is annotated on isoform " << f.location_sequence << "; not applied to the canonical entry.\n";
+        }
+        continue;
+      }
       classifyAndAppend(f, ptms, pe.annotations, record_processing, record_aa_mods,
                         record_variants, pe.source.accession);
     }
     mergeHalfCystines(pe.annotations);
+    invalidateOutOfRangeDisulfides(pe.annotations, pe.source.sequence, pe.source.accession);
 
     if (option_b)
     {
-      uint32_t next_id = 0;
-      assignAnnotationIds(pe.annotations, pe.source.sequence, next_id,
+      assignAnnotationIds(pe.annotations, pe.source.sequence,
                           record_processing, record_aa_mods, record_variants);
+    }
+    else
+    {
+      // No-op when the entry has no documented disulfide pairs
+      // (including under -omit_amino_acid_modifications).
+      assignDisulfideLabels(pe.annotations);
     }
     return pe;
   }
@@ -1104,7 +1246,7 @@ protected:
     registerStringOption_("prefix", "<string>", "", "Force a single PEFF prefix for every entry (e.g. 'sp'); if empty, sp/tr is derived from the UniProt dataset.", false);
     registerStringOption_("dbversion", "<string>", "unknown", "Value for the mandatory '# DbVersion=' PEFF header line.", false);
 
-    registerFlag_("annotation_identifiers", "Emit PEFF Option B: assign a sequential id: prefix to every annotation tuple and emit \\DisulfideBond connectivity.");
+    registerFlag_("annotation_identifiers", "Emit PEFF Option B: assign a global sequential id: prefix to every annotation tuple, referenced by \\DisulfideBond. By default only the \\DisulfideBond tuples and the half-cystines they reference get ids: of K bonds, bond k (counting from 0) labels its half-cystines 2k and 2k+1 and is itself labeled 2K+k.");
     registerFlag_("omit_molecular_processing", "Skip the \\Processed annotations (initiator methionine, signal/transit peptide, propeptide, chain).");
     registerFlag_("omit_amino_acid_modifications", "Skip \\ModResPsi / \\ModResUnimod / \\ModRes and \\DisulfideBond; ptmlist is not read.");
     registerFlag_("omit_sequence_variations", "Skip \\VariantSimple and \\VariantComplex annotations.");
@@ -1124,16 +1266,6 @@ protected:
     const bool record_processing = !omit_proc;
     const bool record_aa_mods    = !omit_aa;
     const bool record_variants   = !omit_var;
-
-    // PEFF is a plain-text format; we do not (yet) write directly into a compressed
-    // container, and TOPPBase's format validation accepts `.peff.gz` etc. via its
-    // recursive suffix stripping. Reject compressed suffixes explicitly rather than
-    // silently writing uncompressed bytes under a compressed file name.
-    if (out_file.ends_with(".gz") || out_file.ends_with(".bz2") || out_file.ends_with(".zip"))
-    {
-      writeLogError_("UniPEFF: compressed PEFF outputs are not supported; pass a plain '.peff' filename.");
-      return ILLEGAL_PARAMETERS;
-    }
 
     // Resolve auxiliary files.
     std::string ptmlist_file = getStringOption_("ptmlist");
@@ -1193,6 +1325,7 @@ protected:
       std::string path;
       std::ofstream out;
       int count{0};
+      bool has_annotation_ids{false};  ///< some entry carries ids -> HasAnnotationIdentifiers=true
     };
     std::map<std::string, PrefixSpool> spools;
     std::vector<std::string> prefixes;  // first-seen order
@@ -1210,6 +1343,7 @@ protected:
     bool spool_open_failed = false;
     std::string spool_open_failed_path;
     OboFallbackTracker fallback_tracker;
+    IsoformScopedTracker isoform_scoped_tracker;
     {
       UniProtXMLFile xml;
       xml.loadStreaming(in_file, [&](UniProtEntry&& entry) {
@@ -1244,10 +1378,12 @@ protected:
           it = spools.emplace(pe.prefix, std::move(s)).first;
           prefixes.push_back(pe.prefix);
         }
-        writePeffEntry(it->second.out, pe.source, pe.annotations, pe.prefix, option_b,
+        isoform_scoped_tracker.add(pe.isoform_scoped_skipped);
+        writePeffEntry(it->second.out, pe.source, pe.annotations, pe.prefix,
                        psi_obo, unimod_obo, fallback_tracker,
                        record_processing, record_aa_mods, record_variants);
         ++it->second.count;
+        if (hasAnnotationIds(pe.annotations)) it->second.has_annotation_ids = true;
       });
     }
     if (spool_open_failed)
@@ -1295,7 +1431,9 @@ protected:
       PeffHeader h;
       h.prefix = p;
       h.db_version = dbversion;
-      h.has_annotation_identifiers = option_b;
+      // Option B declares ids for every block; the default mode only for blocks whose
+      // entries carry disulfide labels (PEFF allows the flag per database).
+      h.has_annotation_identifiers = option_b || spools[p].has_annotation_ids;
       h.number_of_entries = spools[p].count;
       writeDbDescriptionBlock(out, h);
     }
@@ -1321,6 +1459,12 @@ protected:
                       << fallback_tracker.distinct.size() << " distinct accession(s) fell back to UniProt ptmlist IDs "
                          "(no OBO 'name:' entry found). Provide an updated -psimod_obo / -unimod_obo for strict PEFF "
                          "conformance." << std::endl;
+    }
+    if (isoform_scoped_tracker.total > 0)
+    {
+      OPENMS_LOG_INFO << "UniPEFF: " << isoform_scoped_tracker.total << " feature(s) annotated on other "
+                         "isoforms (location/@sequence) were not applied to canonical entries ("
+                      << isoform_scoped_tracker.entries << " entries affected).\n";
     }
     return EXECUTION_OK;
   }

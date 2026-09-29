@@ -30,7 +30,6 @@ ctest -R MyTest -V
 
 
 ## Known build workarounds
-- **Boost static libs on macOS**: Boost's CMake config has incomplete `find_dependency()` calls for transitive dependencies. Use `-DBOOST_USE_STATIC_LIBS=OFF` to avoid linker errors. This is a 5+ year old upstream issue.
 - **CMAKE_PREFIX_PATH separators** (per [CMake docs](https://cmake.org/cmake/help/latest/variable/CMAKE_PREFIX_PATH.html)): When passing via `-D` option, use semicolons (`;`) as list separators (e.g., `-DCMAKE_PREFIX_PATH="/path/one;/path/two"`). Environment variables use OS-native separators (`:` on Unix, `;` on Windows).
 - **Build**: CMake 3.24+, out-of-tree builds in `OpenMS-build/`
 - **Testing**: CTest, GoogleTest-style macros, pytest for Python
@@ -121,10 +120,9 @@ OpenMS/
 - WebEngineWidgets optional; if missing, JavaScript views disabled in TOPPView (warning only)
 - Required components: Core; GUI components need Gui, Widgets, Svg, OpenGLWidgets
 
-### Boost from Homebrew Warning
-- Statically linked Boost from system installs (brew) NOT fully supported
-- Issue: Boost CMake doesn't expose transitive dependencies as targets
-- Workaround: Use `-DBOOST_USE_STATIC=OFF` for shared libraries OR build Boost with contrib
+### Boost
+- OpenMS links only Boost's headers (`Boost::boost`), so static and shared Boost installs (distro, Homebrew, vcpkg, contrib) work alike
+- Do not link compiled Boost libraries (`Boost::regex`, `Boost::iostreams`, ...): a static one has to go into the shared libOpenMS and brings its own link dependencies (#3319)
 
 ### Common CMake Issues
 - **CMAKE_SIZEOF_VOID_P bug**: Variable vanishes on CMake version updates → delete `CMakeFiles/` and `CMakeCache.txt`, rerun cmake

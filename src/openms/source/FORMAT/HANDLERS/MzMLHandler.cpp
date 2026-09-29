@@ -969,8 +969,11 @@ namespace OpenMS::Internal
         default_processing_ = attributeAsString_(attributes, s_default_data_processing_ref);
 
         //Abort if we need meta data only
+        //(parsing ends before </mzML>, so the progress started at <mzML> is ended here, as are the ones below;
+        // otherwise the nesting of progress output would grow with every file read this way)
         if (options_.getMetadataOnly())
         {
+          pg_outer.endProgress();
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
         scan_count_total_ = attributeAsInt_(attributes, s_count);
@@ -979,7 +982,12 @@ namespace OpenMS::Internal
         // we only want total scan count and chrom count
         if (load_detail_ == XMLHandler::LD_RAWCOUNTS)
         { // in case chromatograms came before spectra, we have all information --> end parsing
-          if (chrom_count_total_ != -1) throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+          if (chrom_count_total_ != -1)
+          {
+            logger_.endProgress();
+            pg_outer.endProgress();
+            throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+          }
           // or skip the remaining spectra until </spectrumList>
           skip_spectrum_ = true;
         }
@@ -1002,6 +1010,7 @@ namespace OpenMS::Internal
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
         {
+          pg_outer.endProgress();
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
         chrom_count_total_ = attributeAsInt_(attributes, s_count);
@@ -1013,6 +1022,8 @@ namespace OpenMS::Internal
         { // in case spectra came before chroms, we have all information --> end parsing
           if (scan_count_total_ != -1)
           {
+            logger_.endProgress();
+            pg_outer.endProgress();
             throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
           }
           // or skip the remaining chroms until </chromatogramList>
@@ -5392,8 +5403,20 @@ namespace OpenMS::Internal
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\" />\n";
       }
 
+      // The reader keeps the mass resolving power with the spectrum, but mzML allows MS:1000800 only in a scan. So it is
+      // left out here and written in the first scan, as a CV term whatever the type of its value (the vocabulary declares
+      // a string, the value is usually a number): other readers would not find a userParam. A value of the scan itself
+      // takes precedence.
       writeUserParam_(os, spec, 4, "/mzML/run/spectrumList/spectrum/cvParam/@accession", validator,
-                      {"mzml coordinate array", "mzml intensity array", "sampled noise m/z array", "sampled noise intensity array", "sampled noise baseline array"});
+                      {"mzml coordinate array", "mzml intensity array", "sampled noise m/z array", "sampled noise intensity array", "sampled noise baseline array",
+                       "mass resolving power"});
+      auto writeResolvingPower = [&](const MetaInfoInterface& scan_meta, bool first_scan)
+      {
+        const std::string key = "mass resolving power";
+        const MetaInfoInterface* source = scan_meta.metaValueExists(key) ? &scan_meta :
+                                          (first_scan && spec.metaValueExists(key)) ? &spec : nullptr;
+        if (source != nullptr) os << "\t\t\t\t\t\t" << writeCV_(cv_.getTerm("MS:1000800"), source->getMetaValue(key));
+      };
       //--------------------------------------------------------------------------------------------
       //scan list
       //--------------------------------------------------------------------------------------------
@@ -5461,7 +5484,8 @@ namespace OpenMS::Internal
             }
           }
         }
-        writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator, {"instrument_configuration_ref"});
+        writeResolvingPower(ac, j == 0);
+        writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator, {"instrument_configuration_ref", "mass resolving power"});
 
         if (spec.getInstrumentSettings().getZoomScan())
         {
@@ -5492,6 +5516,7 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t\t\t<scan>\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+        writeResolvingPower(Acquisition(), true);
 
         if (spec.getInstrumentSettings().getZoomScan())
         {
@@ -5950,8 +5975,16 @@ namespace OpenMS::Internal
       }
       writeUserParam_(os, chromatogram, 4, "/mzML/run/chromatogramList/chromatogram/cvParam/@accession", validator,
                       {"mzml intensity array", "mzml coordinate array", "chromatogram type accession"});
-      writePrecursor_(os, chromatogram.getPrecursor(), validator);
-      writeProduct_(os, chromatogram.getProduct(), validator);
+      // precursor and product are optional: a chromatogram without them (e.g. a TIC, or the product of an MS1
+      // chromatogram) would otherwise get an empty precursor and a product isolation window at m/z 0
+      if (chromatogram.getPrecursor() != Precursor())
+      {
+        writePrecursor_(os, chromatogram.getPrecursor(), validator);
+      }
+      if (chromatogram.getProduct() != Product())
+      {
+        writeProduct_(os, chromatogram.getProduct(), validator);
+      }
 
       //--------------------------------------------------------------------------------------------
       //binary data array list

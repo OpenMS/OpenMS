@@ -46,8 +46,6 @@ NB_MODULE(_pyopenms_experiment, m)
   // -----------------------------------------------------------------------
   auto msexperiment_class = nb::class_<OpenMS::MSExperiment, OpenMS::ExperimentalSettings>(m, "MSExperiment",
         R"doc(
-ExperimentalSettings
-
 In-Memory representation of a mass spectrometry experiment.
 Contains the data and metadata of an experiment performed with an MS (or
 HPLC and MS). This representation of an MS experiment is organized as list

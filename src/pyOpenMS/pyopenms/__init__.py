@@ -389,3 +389,10 @@ from ._dataframes_compat import peptide_identifications_to_df, update_scores_fro
 # Clean up namespace
 del _import_submodules, apply_addons, DataFrameMixin
 del os, here, sys
+# Names the imports above bound as a side effect: the __future__ feature, the
+# standard modules, and the modules "from ._sysinfo import *" brings in (ctypes
+# on Linux, as both "c" and "ctypes"; win32api on Windows with pywin32). None of
+# them is pyOpenMS API.
+for _cleanup_var in ('annotations', 'c', 'ctypes', 'importlib', 'warnings', 'win32api'):
+    globals().pop(_cleanup_var, None)
+del _cleanup_var
