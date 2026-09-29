@@ -108,11 +108,11 @@
     @subsection install_vcpkg_tarball Building from a source tarball
 
     The source tarball of a release does not contain the `vcpkg` submodule, but it does contain `vcpkg.json`,
-    `vcpkg-configuration.json` and `vcpkg-overlays/`. Point CMake to the toolchain of a vcpkg checkout of your own
+    `vcpkg-configuration.json` and `vcpkg-overlays/`. Enable vcpkg and point CMake to the toolchain of a vcpkg checkout of your own
     (vcpkg needs network access to fetch the registry baseline named in `vcpkg-configuration.json`):
 
     \code
-    cmake -S OpenMS-<version> -B openms_build \
+    cmake -S OpenMS-<version> -B openms_build -DOPENMS_USE_VCPKG=ON \
           -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
     \endcode
 

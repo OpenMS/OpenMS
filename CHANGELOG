@@ -190,7 +190,8 @@ Dependencies:
     CMake 3.24: find_package(OpenMS) rejects older versions with an explanatory message
     instead of failing later (#10158).
   - The source tarball contains vcpkg.json, vcpkg-configuration.json and vcpkg-overlays/, so
-    it builds with an external vcpkg (CMAKE_TOOLCHAIN_FILE) as well as against system packages.
+    it builds with an external vcpkg (OPENMS_USE_VCPKG=ON and its CMAKE_TOOLCHAIN_FILE) as well
+    as against system packages.
     With OPENMS_USE_VCPKG=ON, a missing or non-vcpkg toolchain stops the configure with a
     message that names the alternatives (#10327).
   - The contrib (OpenMS/contrib) is deprecated and will be removed after 3.6: vcpkg
