@@ -254,6 +254,13 @@ jobs:
           # FIXME: Why not use `git archive`?
           # The build also leaves its caches (.ccache, .vcpkg-cache) and the
           # third-party tools (_thirdparty) in the workspace.
+          # Of vcpkg, only the vcpkg/ submodule (and a vcpkg_installed/ tree) is
+          # left out: vcpkg.json, vcpkg-configuration.json and vcpkg-overlays/
+          # (overlay ports and triplets) are shipped, so the tarball builds with an
+          # external vcpkg (-DCMAKE_TOOLCHAIN_FILE=<vcpkg root>/scripts/buildsystems/vcpkg.cmake)
+          # as well as with -DOPENMS_USE_VCPKG=OFF against system packages.
+          # './vcpkg/*' only matches at the top level, unlike 'vcpkg*/**', which
+          # also dropped vcpkg-overlays/ and any 'vcpkg' directory deeper in the tree.
           tar \
             --directory "$GITHUB_WORKSPACE" \
             --exclude='build/*' \
@@ -261,7 +268,8 @@ jobs:
             --exclude='contrib/**' \
             --exclude='.git/**' \
             --exclude='.github/**' \
-            --exclude='vcpkg*/**' \
+            --exclude='./vcpkg/*' \
+            --exclude='./vcpkg_installed/*' \
             --exclude='.ccache/**' \
             --exclude='.vcpkg-cache/**' \
             --exclude='_thirdparty/**' \

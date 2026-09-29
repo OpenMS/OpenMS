@@ -97,6 +97,10 @@ toolchain from the `vcpkg` submodule, so vcpkg provides the third-party librarie
 Cache variables given with `-D` on the same command line override the preset, e.g.
 `cmake --preset linux-x64-release -D WITH_GUI=OFF`.
 
+`OPENMS_USE_VCPKG` is `ON` by default since OpenMS 3.6, also without a preset: CMake then uses the toolchain of the
+`vcpkg` submodule, or stops with an error if it is not initialized and no `CMAKE_TOOLCHAIN_FILE` is given. To build
+against system packages (apt, Homebrew, conda) instead, configure with `-DOPENMS_USE_VCPKG=OFF`.
+
 Everything else can be edited using `ccmake` afterwards.
 
 The following options are of interest:

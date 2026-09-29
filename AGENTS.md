@@ -22,8 +22,9 @@ build or test failures before opening the PR; do not defer this validation to CI
 # `cmake --list-presets` lists the presets, -B overrides the preset's build/<preset> directory)
 cmake --preset linux-x64-debug -B ../OpenMS-build
 
-# Or configure against system packages (from OpenMS-build/ directory, adjust paths as needed)
-cmake -DCMAKE_BUILD_TYPE=Debug ../OpenMS
+# Or configure against system packages (from OpenMS-build/ directory, adjust paths as needed;
+# OPENMS_USE_VCPKG is ON by default and needs the vcpkg toolchain)
+cmake -DOPENMS_USE_VCPKG=OFF -DCMAKE_BUILD_TYPE=Debug ../OpenMS
 
 # Build everything (includes tests)
 cmake --build . -j$(nproc)
