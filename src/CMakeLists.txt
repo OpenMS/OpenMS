@@ -10,15 +10,22 @@
 project("OpenMS_src")
 
 #------------------------------------------------------------------------------
-# OpenSWATHAlgo lib
+# The libraries. A build against an installed OpenMS (OPENMS_USE_INSTALLED_LIBRARY)
+# takes OpenSwathAlgo, OpenMS and OpenMS_CLI from that installation instead
+# (cmake/find_installed_openms.cmake) and builds only the applications on top.
 #------------------------------------------------------------------------------
-add_subdirectory(openswathalgo)
+if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+  #------------------------------------------------------------------------------
+  # OpenSWATHAlgo lib
+  #------------------------------------------------------------------------------
+  add_subdirectory(openswathalgo)
 
-#------------------------------------------------------------------------------
-# OpenMS core lib
-#------------------------------------------------------------------------------
-add_subdirectory(openms)
-add_subdirectory(openms_cli)
+  #------------------------------------------------------------------------------
+  # OpenMS core lib
+  #------------------------------------------------------------------------------
+  add_subdirectory(openms)
+  add_subdirectory(openms_cli)
+endif()
 
 #------------------------------------------------------------------------------
 # Class-test framework lib (ClassTest macros, FuzzyStringComparator);
@@ -38,6 +45,9 @@ option(WITH_UV "Install Python dependencies with uv" ON)
 # Example: "3.11". Only used when WITH_UV=ON.
 set(PYOPENMS_UV_PYTHON_VERSION "" CACHE STRING "Python version (e.g. 3.11) for creating pyOpenMS .venv when WITH_UV=ON")
 
+if(PYOPENMS AND OPENMS_USE_INSTALLED_LIBRARY)
+  message(FATAL_ERROR "PYOPENMS is not supported together with OPENMS_USE_INSTALLED_LIBRARY.")
+endif()
 if(PYOPENMS)
   if(WITH_UV)
     # Discover uv executable
@@ -82,6 +92,8 @@ openms_reset_topp_tools()
 if(BUILD_TOPP_TOOLS)
   add_subdirectory(topp)
 endif()
+## the tools declared by src/topp, for the per-layer registry below
+set(_openms_topp_layer_tools ${TOPP_TOOLS})
 
 if(WITH_GUI)
   #------------------------------------------------------------------------------
@@ -103,9 +115,53 @@ endif()
 # build option that does not build a tool does not declare it either, so nothing has to
 # filter the registry afterwards, at run time or at install time.
 #------------------------------------------------------------------------------
-openms_write_tool_registry("${OPENMS_TOOL_REGISTRY_BUILD_FILE}")
+#
+# It is installed into TOOLS/ rather than beside the other share data so that the directory
+# holds registry files and nothing else: ToolHandler reads every *.tsv it finds there.
+#
+# A build of the whole of OpenMS writes one registry, OpenMS.tsv, which belongs to the shared
+# data. A build against an installed OpenMS library (OPENMS_USE_INSTALLED_LIBRARY) is one
+# layer of a split installation: it writes one registry per group of tools it builds, installed
+# with those tools, so each layer contributes its own file to a TOOLS directory they share
+# (see OPENMS_INSTALL_DATA_PATH in src/openms/configh.cmake):
+#   OpenMS-TOPP.tsv  the tools of src/topp          (install component Applications)
+#   OpenMS-GUI.tsv   the TOPP tools of src/openms_gui (install component GUIApplications)
+#------------------------------------------------------------------------------
+function(_openms_install_tool_registry file component)
+  if(EXISTS "${file}")
+    install(FILES "${file}"
+      DESTINATION ${INSTALL_SHARE_DIR}/TOOLS
+      COMPONENT ${component}
+      PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+    )
+  endif()
+endfunction()
+
+if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+  openms_write_tool_registry("${OPENMS_TOOL_REGISTRY_BUILD_FILE}")
+  _openms_install_tool_registry("${OPENMS_TOOL_REGISTRY_BUILD_FILE}" share)
+  ## the registry files of a layered build of an earlier configure of this build directory
+  file(REMOVE "${OPENMS_TOOL_REGISTRY_BUILD_DIR}/OpenMS-TOPP.tsv" "${OPENMS_TOOL_REGISTRY_BUILD_DIR}/OpenMS-GUI.tsv")
+else()
+  set(_openms_gui_layer_tools ${TOPP_TOOLS})
+  list(REMOVE_ITEM _openms_gui_layer_tools ${_openms_topp_layer_tools})
+  foreach(_layer IN ITEMS TOPP GUI)
+    string(TOLOWER "${_layer}" _layer_lower)
+    set(_registry_file "${OPENMS_TOOL_REGISTRY_BUILD_DIR}/OpenMS-${_layer}.tsv")
+    openms_write_tool_registry("${_registry_file}" TOOLS ${_openms_${_layer_lower}_layer_tools})
+    if(_layer STREQUAL "TOPP")
+      _openms_install_tool_registry("${_registry_file}" Applications)
+    else()
+      _openms_install_tool_registry("${_registry_file}" ${OPENMS_GUI_APPLICATIONS_COMPONENT})
+    endif()
+  endforeach()
+  ## the registry file of a full build of an earlier configure of this build directory
+  file(REMOVE "${OPENMS_TOOL_REGISTRY_BUILD_FILE}")
+endif()
 
 #------------------------------------------------------------------------------
-# Tests
+# Tests (they need the library targets of this build)
 #------------------------------------------------------------------------------
-add_subdirectory(tests)
+if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+  add_subdirectory(tests)
+endif()

@@ -73,7 +73,8 @@ set(CPACK_DEBIAN_PACKAGE_DEBUG ON)
 ## name and a mismatch would package none of the TOPP tools.
 set(CPACK_COMPONENTS_ALL Applications doc library library_cli share ${THIRDPARTY_COMPONENT_GROUP})
 if(WITH_GUI)
-  list(APPEND CPACK_COMPONENTS_ALL library_gui)
+  ## the GUI applications (install_tool() in src/openms_gui/CMakeLists.txt)
+  list(APPEND CPACK_COMPONENTS_ALL library_gui ${OPENMS_GUI_APPLICATIONS_COMPONENT})
 endif()
 
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
