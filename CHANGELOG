@@ -189,8 +189,10 @@ Dependencies:
     the package's former lookups of dependencies that are PRIVATE now. Consuming projects need
     CMake 3.24: find_package(OpenMS) rejects older versions with an explanatory message
     instead of failing later (#10158).
-  - contrib is a git submodule: clone with --recurse-submodules or run
-    git submodule update --init (#9155).
+  - The contrib (OpenMS/contrib) is deprecated and will be removed after 3.6: vcpkg
+    builds the dependencies (see the vcpkg install guide and the CMake presets). It is
+    still a git submodule in this release (#9155). Configuring with OPENMS_CONTRIB_LIBS,
+    which requires OPENMS_USE_VCPKG=OFF, prints a deprecation warning (#10327).
   - The dev container (.devcontainer/) builds with the vcpkg presets on Ubuntu 24.04 instead of
     the contrib image. The Gitpod configuration and tools/quickbuild.sh/quickbuild-osx.sh, which
     built contrib, were removed; use cmake --preset <platform>-release instead (#10327).
@@ -263,9 +265,13 @@ PyOpenMS:
   - The wheel metadata declares the license as the SPDX expression BSD-3-Clause
     (Metadata-Version 2.4) and ships the license text as dist-info/licenses/LICENSE.
     Before, dist-info/LICENSE held only the string "BSD-3-Clause".
-  - The Windows wheel bundles the libcurl it was linked against. delvewheel's search
-    path lacked contrib/bin and it fell back to PATH, so every Windows wheel so far
-    carried an unrelated vcpkg-built libcurl from the CI image and a second zlib.
+  - The Windows wheel is built against vcpkg's static libraries (triplet
+    x64-windows-static-md-release) instead of the prebuilt contrib. Every dependency
+    is linked into OpenMS.dll, so the only native DLLs the wheel bundles besides
+    OpenMS's own are those of the MSVC runtime; the managed Thermo RawFileReader
+    assemblies ship as before. Earlier Windows wheels carried an unrelated libcurl
+    and a second zlib from the CI image. The dependency versions are those the main
+    CI tests, e.g. Arrow 24, Xerces-C 3.3, bzip2 1.0.8 and libsvm 3.35 (#10327).
   - The custom type casters build their result lists with the checked
     PyList_SetItem() instead of the PyList_SET_ITEM() macro, which is unavailable
     under the Limited API. Behaviour is unchanged; failures release the partially
@@ -1316,6 +1322,10 @@ Documentation:
   - The user FAQ explains OpenMS.ini: that it is optional, where OpenMS looks for it and which
     entries it reads. The OpenMSInfo page describes the data, temp and user data paths as they
     are resolved now (#3009).
+  - The Windows installation page builds with the vcpkg presets instead of the contrib package,
+    and the developer FAQ, the guide to adding a dependency (now via vcpkg.json and overlay
+    ports), the external-code pages and the agent notes no longer refer to contrib. The
+    orphaned install-contrib page is removed (#10144).
 
 Build System:
   - The Debian package of a nightly or branch build carries its prerelease identifier in its
