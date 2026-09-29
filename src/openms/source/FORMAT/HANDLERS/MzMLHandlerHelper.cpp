@@ -46,7 +46,7 @@ namespace OpenMS::Internal
       std::string compressed;
       Base64::decodeSingleString(bindata.base64, compressed, false);
       std::string decoded;
-      ZstdCompression::decode(compressed.data(), compressed.size(), bindata.zstd_transform, sizeof(T), decoded);
+      ZstdCompression::decode(compressed.data(), compressed.size(), bindata.zstd_transform, sizeof(T), decoded, bindata.size);
       if (decoded.size() % sizeof(T) != 0)
       {
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

@@ -67,6 +67,32 @@ namespace OpenMS
       return 8;
     }
 
+    /**
+      @brief Byte width of the dictionary indices of a buffer with @p n_values distinct values and @p index_bytes index bytes
+
+      Writers disagree on the width at the type boundaries: the mzML specification and mzd.cpp's writer
+      use 8 bit indices for up to 255 values, mzd.cpp's reader expects 16 bit indices for 255 values, and
+      mzdata uses 8 bit indices for up to 256 values (16 bit for up to 65536). If the number of array
+      elements @p count is known, the width actually used is given by @p index_bytes / @p count. It is
+      accepted if it is 1, 2, 4 or 8 bytes and adjacent to the specification's width (i.e. a boundary
+      convention of one of the writers above); otherwise indexWidth() is used.
+    */
+    size_t indexWidth(uint64_t n_values, size_t index_bytes, size_t count)
+    {
+      const size_t spec_width = indexWidth(n_values);
+      if (count == 0 || index_bytes % count != 0)
+      {
+        return spec_width;
+      }
+      const size_t width = index_bytes / count;
+      if ((width == 1 || width == 2 || width == 4 || width == 8) &&
+          (width == spec_width || width == indexWidth(n_values - 1) || width == indexWidth(n_values + 1)))
+      {
+        return width;
+      }
+      return spec_width;
+    }
+
     uint64_t loadIndex(const unsigned char* p, size_t width)
     {
       switch (width)
@@ -160,7 +186,7 @@ namespace OpenMS
     compressed_data.resize(used);
   }
 
-  void ZstdCompression::uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out)
+  void ZstdCompression::uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out, size_t expected_size)
   {
     out.clear();
     if (nr_bytes == 0)
@@ -171,7 +197,7 @@ namespace OpenMS
     // Use the content size stored in the (first) frame header as initial buffer size. Streaming
     // decompression is used so that frames without a recorded size, multiple frames and headers
     // claiming an incorrect size are handled gracefully: the buffer simply grows when needed.
-    size_t capacity = ZSTD_DStreamOutSize();
+    unsigned long long capacity = ZSTD_DStreamOutSize();
     const unsigned long long content_size = ZSTD_getFrameContentSize(compressed_data, nr_bytes);
     if (content_size == ZSTD_CONTENTSIZE_ERROR)
     {
@@ -179,9 +205,12 @@ namespace OpenMS
     }
     if (content_size != ZSTD_CONTENTSIZE_UNKNOWN)
     {
-      // guard against absurd sizes in (malformed) frame headers; the buffer grows if required
-      capacity = static_cast<size_t>(std::min<unsigned long long>(std::max<unsigned long long>(content_size, 1), 1ull << 28));
+      capacity = content_size;
     }
+    // Do not trust the frame header alone: cap the initial allocation at the size expected by the
+    // caller or, if unknown, at a small multiple of the input size (and at 256 MB in any case).
+    const unsigned long long limit = expected_size > 0 ? expected_size : 16ull * nr_bytes;
+    capacity = std::max<unsigned long long>(std::min({capacity, limit, 1ull << 28}), 1);
 
     std::unique_ptr<ZSTD_DCtx, DCtxDeleter> dctx(ZSTD_createDCtx());
     if (!dctx)
@@ -189,7 +218,7 @@ namespace OpenMS
       throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sizeof(ZSTD_DCtx*));
     }
 
-    out.resize(capacity);
+    out.resize(static_cast<size_t>(capacity));
     size_t produced = 0;
     ZSTD_inBuffer input = {compressed_data, nr_bytes, 0};
     while (true)
@@ -268,7 +297,7 @@ namespace OpenMS
     }
   }
 
-  void ZstdCompression::dictionaryDecode(const void* data, size_t nr_bytes, size_t element_size, std::string& out)
+  void ZstdCompression::dictionaryDecode(const void* data, size_t nr_bytes, size_t element_size, std::string& out, size_t array_length)
   {
     checkElementSize(0, element_size, true);
     out.clear();
@@ -305,8 +334,8 @@ namespace OpenMS
                                        "Malformed dictionary-encoded array: " + std::to_string(n_values) + " dictionary values do not occupy " +
                                        std::to_string(values_bytes) + " bytes with an element size of " + std::to_string(element_size) + " bytes.");
     }
-    const size_t width = indexWidth(n_values);
     const size_t index_bytes = nr_bytes - static_cast<size_t>(offset);
+    const size_t width = indexWidth(n_values, index_bytes, array_length);
     if (index_bytes % width != 0)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -355,27 +384,34 @@ namespace OpenMS
     compressData(transformed.data(), transformed.size(), out, level);
   }
 
-  void ZstdCompression::decode(const void* data, size_t nr_bytes, ByteTransform transform, size_t element_size, std::string& out)
+  void ZstdCompression::decode(const void* data, size_t nr_bytes, ByteTransform transform, size_t element_size, std::string& out, size_t array_length)
   {
     out.clear();
     if (nr_bytes == 0)
     {
       return;
     }
+    // expected size of the uncompressed payload (0 if unknown or if the computation would overflow)
+    size_t expected_size = 0;
+    if (array_length > 0 && element_size > 0 && array_length <= (std::numeric_limits<size_t>::max() - 16) / (element_size + 8))
+    {
+      // a dictionary-encoded payload holds a 16 byte header, at most array_length values and array_length indices of at most 8 bytes
+      expected_size = transform == ByteTransform::DICTIONARY ? 16 + array_length * (element_size + 8) : array_length * element_size;
+    }
     if (transform == ByteTransform::NONE)
     {
-      uncompressData(data, nr_bytes, out);
+      uncompressData(data, nr_bytes, out, expected_size);
       return;
     }
     std::string uncompressed;
-    uncompressData(data, nr_bytes, uncompressed);
+    uncompressData(data, nr_bytes, uncompressed, expected_size);
     if (transform == ByteTransform::BYTE_SHUFFLE)
     {
       byteUnshuffle(uncompressed.data(), uncompressed.size(), element_size, out);
     }
     else
     {
-      dictionaryDecode(uncompressed.data(), uncompressed.size(), element_size, out);
+      dictionaryDecode(uncompressed.data(), uncompressed.size(), element_size, out, array_length);
     }
   }
 

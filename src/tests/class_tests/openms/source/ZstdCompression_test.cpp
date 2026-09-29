@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/ZstdCompression.h>
 ///////////////////////////
 
+#include <cstdint>
 #include <cstring>
 #include <vector>
 
@@ -64,6 +65,41 @@ namespace
   {
     return std::string(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(T));
   }
+
+  // Hand-built dictionary-encoded buffer (MS:1003782 layout) of 16 bit values with @p index_width byte
+  // indices: n_values distinct values (0, 3, 6, ...) and count elements referring to value (j % n_values).
+  // Returns the buffer and stores the plain little-endian array in @p plain.
+  std::string buildDictionary(size_t n_values, size_t count, size_t index_width, std::string& plain)
+  {
+    std::string values(n_values * 2, '\0');
+    for (size_t i = 0; i < n_values; ++i)
+    {
+      values[2 * i] = static_cast<char>((i * 3) & 0xFF);
+      values[2 * i + 1] = static_cast<char>((i * 3) >> 8);
+    }
+    std::string indices(count * index_width, '\0');
+    plain.clear();
+    for (size_t j = 0; j < count; ++j)
+    {
+      const size_t index = j % n_values;
+      for (size_t b = 0; b < index_width; ++b)
+      {
+        indices[j * index_width + b] = static_cast<char>((index >> (8 * b)) & 0xFF);
+      }
+      plain.append(values, 2 * index, 2);
+    }
+    std::string shuffled_values, shuffled_indices;
+    ZstdCompression::byteShuffle(values.data(), values.size(), 2, shuffled_values);
+    ZstdCompression::byteShuffle(indices.data(), indices.size(), index_width, shuffled_indices);
+    std::string header(16, '\0');
+    const uint64_t offset = 16 + values.size();
+    for (size_t b = 0; b < 8; ++b)
+    {
+      header[b] = static_cast<char>((offset >> (8 * b)) & 0xFF);
+      header[8 + b] = static_cast<char>((uint64_t(n_values) >> (8 * b)) & 0xFF);
+    }
+    return header + shuffled_values + shuffled_indices;
+  }
 }
 
 START_TEST(ZstdCompression, "$Id$")
@@ -100,7 +136,7 @@ START_SECTION((static void compressData(const void* raw_data, size_t in_length, 
 }
 END_SECTION
 
-START_SECTION((static void uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out)))
+START_SECTION((static void uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out, size_t expected_size = 0)))
 {
   std::string out;
   ZstdCompression::uncompressData(d_plain.data(), d_plain.size(), out);
@@ -126,10 +162,18 @@ START_SECTION((static void uncompressData(const void* compressed_data, size_t nr
   ZstdCompression::uncompressData(compressed.data(), compressed.size(), uncompressed);
   TEST_EQUAL(uncompressed == large, true)
 
+  // the expected size only limits the initial allocation: too small, exact or too large sizes yield the same result
+  for (size_t expected_size : {size_t(1), size_t(1000), large.size(), 10 * large.size()})
+  {
+    ZstdCompression::uncompressData(compressed.data(), compressed.size(), uncompressed, expected_size);
+    TEST_EQUAL(uncompressed == large, true)
+  }
+
   // invalid and truncated data
   const std::string invalid = "this is not zstd";
   TEST_EXCEPTION(Exception::ConversionError, ZstdCompression::uncompressData(invalid.data(), invalid.size(), uncompressed))
   TEST_EXCEPTION(Exception::ConversionError, ZstdCompression::uncompressData(compressed.data(), compressed.size() / 2, uncompressed))
+  TEST_EXCEPTION(Exception::ConversionError, ZstdCompression::uncompressData(compressed.data(), compressed.size() / 2, uncompressed, large.size()))
 }
 END_SECTION
 
@@ -207,7 +251,7 @@ START_SECTION((static void dictionaryEncode(const void* data, size_t nr_bytes, s
 }
 END_SECTION
 
-START_SECTION((static void dictionaryDecode(const void* data, size_t nr_bytes, size_t element_size, std::string& out)))
+START_SECTION((static void dictionaryDecode(const void* data, size_t nr_bytes, size_t element_size, std::string& out, size_t array_length = 0)))
 {
   std::string decoded;
   ZstdCompression::dictionaryDecode(i_dict_raw.data(), i_dict_raw.size(), sizeof(Int32), decoded);
@@ -219,6 +263,38 @@ START_SECTION((static void dictionaryDecode(const void* data, size_t nr_bytes, s
   TEST_EXCEPTION(Exception::ConversionError, ZstdCompression::dictionaryDecode(wrong_offset.data(), wrong_offset.size(), sizeof(Int32), decoded))
   // element size 8 does not match the dictionary of 4 values starting at offset 32
   TEST_EXCEPTION(Exception::ConversionError, ZstdCompression::dictionaryDecode(i_dict_raw.data(), i_dict_raw.size(), sizeof(double), decoded))
+
+  // a (correct) array length does not change the result for buffers following the specification
+  ZstdCompression::dictionaryDecode(i_dict_raw.data(), i_dict_raw.size(), sizeof(Int32), decoded, i_values.size());
+  TEST_EQUAL(decoded, toBytes(i_values))
+
+  // index widths at the type boundaries: the specification uses 8 bit indices for up to 255 values,
+  // mzdata 8 bit indices for up to 256 values, mzd.cpp's reader 16 bit indices for 255 values
+  std::string plain;
+  const size_t count = 300;
+  // 256 values, 8 bit indices (mzdata): decodable with the array length
+  std::string dict = buildDictionary(256, count, 1, plain);
+  ZstdCompression::dictionaryDecode(dict.data(), dict.size(), 2, decoded, count);
+  TEST_EQUAL(decoded == plain, true)
+  // 256 values, 16 bit indices (specification): decodable with and without the array length
+  dict = buildDictionary(256, count, 2, plain);
+  ZstdCompression::dictionaryDecode(dict.data(), dict.size(), 2, decoded, count);
+  TEST_EQUAL(decoded == plain, true)
+  ZstdCompression::dictionaryDecode(dict.data(), dict.size(), 2, decoded);
+  TEST_EQUAL(decoded == plain, true)
+  // 255 values, 16 bit indices (mzd.cpp reader): decodable with the array length
+  dict = buildDictionary(255, count, 2, plain);
+  ZstdCompression::dictionaryDecode(dict.data(), dict.size(), 2, decoded, count);
+  TEST_EQUAL(decoded == plain, true)
+  // 255 values, 8 bit indices (specification): decodable with and without the array length
+  dict = buildDictionary(255, count, 1, plain);
+  ZstdCompression::dictionaryDecode(dict.data(), dict.size(), 2, decoded, count);
+  TEST_EQUAL(decoded == plain, true)
+  ZstdCompression::dictionaryDecode(dict.data(), dict.size(), 2, decoded);
+  TEST_EQUAL(decoded == plain, true)
+  // an array length that does not match the index region falls back to the specification's width
+  ZstdCompression::dictionaryDecode(dict.data(), dict.size(), 2, decoded, count + 1);
+  TEST_EQUAL(decoded == plain, true)
 }
 END_SECTION
 
@@ -240,7 +316,7 @@ START_SECTION((static void encode(const void* data, size_t nr_bytes, ByteTransfo
 }
 END_SECTION
 
-START_SECTION((static void decode(const void* data, size_t nr_bytes, ByteTransform transform, size_t element_size, std::string& out)))
+START_SECTION((static void decode(const void* data, size_t nr_bytes, ByteTransform transform, size_t element_size, std::string& out, size_t array_length = 0)))
 {
   std::string decoded;
   ZstdCompression::decode(d_plain.data(), d_plain.size(), BT::NONE, sizeof(double), decoded);
@@ -251,6 +327,22 @@ START_SECTION((static void decode(const void* data, size_t nr_bytes, ByteTransfo
   TEST_EQUAL(toVector<double>(decoded) == d_values, true)
   ZstdCompression::decode(i_dict.data(), i_dict.size(), BT::DICTIONARY, sizeof(Int32), decoded);
   TEST_EQUAL(toVector<Int32>(decoded) == i_values, true)
+
+  // with array length
+  ZstdCompression::decode(d_plain.data(), d_plain.size(), BT::NONE, sizeof(double), decoded, d_values.size());
+  TEST_EQUAL(toVector<double>(decoded) == d_values, true)
+  ZstdCompression::decode(d_shuffle.data(), d_shuffle.size(), BT::BYTE_SHUFFLE, sizeof(double), decoded, d_values.size());
+  TEST_EQUAL(toVector<double>(decoded) == d_values, true)
+  ZstdCompression::decode(i_dict.data(), i_dict.size(), BT::DICTIONARY, sizeof(Int32), decoded, i_values.size());
+  TEST_EQUAL(toVector<Int32>(decoded) == i_values, true)
+
+  // the array length is passed on to the dictionary decoder (256 values with 8 bit indices)
+  std::string plain;
+  const std::string dict = buildDictionary(256, 300, 1, plain);
+  std::string compressed;
+  ZstdCompression::compressData(dict.data(), dict.size(), compressed);
+  ZstdCompression::decode(compressed.data(), compressed.size(), BT::DICTIONARY, 2, decoded, 300);
+  TEST_EQUAL(decoded == plain, true)
 }
 END_SECTION
 

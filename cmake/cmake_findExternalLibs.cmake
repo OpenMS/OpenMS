@@ -567,9 +567,6 @@ endif()
 #------------------------------------------------------------------------------
 # opentims (Bruker TimsTOF .d file reading)
 if (WITH_OPENTIMS)
-  # Enable C language for bundled ZSTD fallback (zstddeclib.c)
-  enable_language(C)
-
   find_package(Opentims QUIET)
 
   if(Opentims_FOUND)
@@ -650,20 +647,8 @@ if (WITH_OPENTIMS)
     target_include_directories(opentims_cpp PRIVATE
       "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
 
-    # ZSTD: prefer system; fall back to opentims's bundled decoder.
-    set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
-    find_package(zstd QUIET)
-    if(TARGET zstd::libzstd_shared)
-      target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_shared)
-      message(STATUS "opentims: using system zstd (shared)")
-    elseif(TARGET zstd::libzstd_static)
-      target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_static)
-      message(STATUS "opentims: using system zstd (static)")
-    else()
-      target_sources(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd/zstddeclib.c")
-      target_include_directories(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd")
-      message(STATUS "opentims: using bundled zstd decoder (system zstd not found)")
-    endif()
+    # ZSTD: use the same zstd that OpenMS itself links (required, see above).
+    target_link_libraries(opentims_cpp PRIVATE ${OPENMS_ZSTD_TARGET})
 
     # Suppress warnings from third-party code
     target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)

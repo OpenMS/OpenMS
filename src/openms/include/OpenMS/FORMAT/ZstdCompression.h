@@ -40,6 +40,9 @@ namespace OpenMS
     of distinct values @em n, the byte-shuffled sorted distinct values, and finally the byte-shuffled
     indices. The indices use the smallest unsigned integer type able to address all values
     (8 bit if @em n < 2^8, 16 bit if @em n < 2^16, 32 bit if @em n < 2^32, otherwise 64 bit).
+    Since implementations disagree on the index width at these boundaries (e.g. 8 bit indices for
+    exactly 256 values), the decoder derives the width from the size of the index region if the
+    number of array elements is known (see dictionaryDecode()).
 
     All array transforms operate on raw byte buffers holding a contiguous array of fixed-size
     elements in little-endian byte order (the byte order mandated by mzML). The data is treated
@@ -84,13 +87,18 @@ public:
       Multiple concatenated frames and frames without a recorded content size are supported.
       An empty input yields an empty output.
 
+      The output buffer is initially sized from the content size recorded in the frame header, capped at
+      @p expected_size (or, if that is 0, at a small multiple of @p nr_bytes), and grows as needed. The
+      expected size therefore only affects the initial allocation, not the result.
+
       @param[in]  compressed_data Pointer to the zstd-compressed bytes.
       @param[in]  nr_bytes        Length of @p compressed_data in bytes.
       @param[out] out             Receives the decompressed bytes; any previous contents are replaced.
+      @param[in]  expected_size   Expected size of the decompressed data in bytes (0 if unknown).
 
       @throws Exception::ConversionError if the data is not valid zstd data or is truncated.
     */
-    static void uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out);
+    static void uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out, size_t expected_size = 0);
 
     /**
       @brief Byte-shuffle an array of @p element_size byte elements.
@@ -140,15 +148,22 @@ public:
 
       An empty input yields an empty output.
 
+      If @p array_length is given, the index width is taken from the size of the index region divided by
+      @p array_length, provided that this is 1, 2, 4 or 8 bytes and adjacent to the width defined by the
+      specification. This accepts buffers written with the diverging boundary conventions of other
+      implementations (e.g. 8 bit indices for 256 values or 16 bit indices for 255 values). Otherwise,
+      the width defined by the specification is used.
+
       @param[in]  data         Pointer to the dictionary-encoded bytes.
       @param[in]  nr_bytes     Length of @p data in bytes.
       @param[in]  element_size Size of a single array element in bytes (1, 2, 4 or 8).
       @param[out] out          Receives the decoded array bytes; any previous contents are replaced.
+      @param[in]  array_length Number of elements of the encoded array, e.g. the mzML arrayLength (0 if unknown).
 
       @throws Exception::InvalidValue    if @p element_size is not 1, 2, 4 or 8.
       @throws Exception::ConversionError if the buffer is malformed or its values do not have @p element_size bytes.
     */
-    static void dictionaryDecode(const void* data, size_t nr_bytes, size_t element_size, std::string& out);
+    static void dictionaryDecode(const void* data, size_t nr_bytes, size_t element_size, std::string& out, size_t array_length = 0);
 
     /**
       @brief Apply @p transform to an array of little-endian @p element_size byte elements and compress the result with zstd.
@@ -175,13 +190,15 @@ public:
       @param[in]  data         Pointer to the compressed bytes.
       @param[in]  nr_bytes     Length of @p data in bytes.
       @param[in]  transform    The transform that was applied before compression.
-      @param[in]  element_size Size of a single array element in bytes (ignored for ByteTransform::NONE).
+      @param[in]  element_size Size of a single array element in bytes (for ByteTransform::NONE only used together with @p array_length).
       @param[out] out          Receives the decoded array bytes; any previous contents are replaced.
+      @param[in]  array_length Number of elements of the array (0 if unknown). Limits the initial allocation for
+                               the decompressed data (see uncompressData()) and is passed on to dictionaryDecode().
 
       @throws Exception::InvalidValue    if @p element_size is invalid for @p transform.
       @throws Exception::ConversionError if the data is malformed.
     */
-    static void decode(const void* data, size_t nr_bytes, ByteTransform transform, size_t element_size, std::string& out);
+    static void decode(const void* data, size_t nr_bytes, ByteTransform transform, size_t element_size, std::string& out, size_t array_length = 0);
   };
 
 } // namespace OpenMS

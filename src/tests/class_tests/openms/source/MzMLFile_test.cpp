@@ -1161,6 +1161,19 @@ START_SECTION([EXTRA] load and store zstd compressed binary data arrays)
   file.loadBuffer(encoded, exp_np_zlib);
   TEST_EQUAL(exp_np_zstd.size(), exp_np_zlib.size())
   TEST_EQUAL(exp_np_zstd == exp_np_zlib, true)
+
+  // the same for numpress pic followed by zstd
+  np_int.setCompression("pic");
+  file.getOptions().setNumpressConfigurationIntensity(np_int);
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1002747"))
+  file.loadBuffer(encoded, exp_np_zlib);
+  file.getOptions().setZstdCompression(true);
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003784"))
+  file.loadBuffer(encoded, exp_np_zstd);
+  TEST_EQUAL(exp_np_zstd.size(), exp_np_zlib.size())
+  TEST_EQUAL(exp_np_zstd == exp_np_zlib, true)
 }
 END_SECTION
 
