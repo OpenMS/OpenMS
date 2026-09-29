@@ -43,6 +43,19 @@ START_SECTION(~PepXMLFile())
 delete ptr;
 END_SECTION
 
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides) - missing optional no_cut)
+{
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  const std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_missing_no_cut.pepXML");
+  file.load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1);
+  TEST_FALSE(peptides.empty());
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "user-defined,unknown_enzyme,,,C");
+  TEST_TRUE(proteins[0].getSearchParameters().digestion_enzyme.getRegEx().empty());
+}
+END_SECTION
+
 START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name, SpectrumMetaDataLookup& lookup))
 {
   vector<ProteinIdentification> proteins;
