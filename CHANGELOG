@@ -260,9 +260,13 @@ PyOpenMS:
   - The wheel metadata declares the license as the SPDX expression BSD-3-Clause
     (Metadata-Version 2.4) and ships the license text as dist-info/licenses/LICENSE.
     Before, dist-info/LICENSE held only the string "BSD-3-Clause".
-  - The Windows wheel bundles the libcurl it was linked against. delvewheel's search
-    path lacked contrib/bin and it fell back to PATH, so every Windows wheel so far
-    carried an unrelated vcpkg-built libcurl from the CI image and a second zlib.
+  - The Windows wheel is built against vcpkg's static libraries (triplet
+    x64-windows-static-md-release) instead of the prebuilt contrib. Every dependency
+    is linked into OpenMS.dll, so the only native DLLs the wheel bundles besides
+    OpenMS's own are those of the MSVC runtime; the managed Thermo RawFileReader
+    assemblies ship as before. Earlier Windows wheels carried an unrelated libcurl
+    and a second zlib from the CI image. The dependency versions are those the main
+    CI tests, e.g. Arrow 24, Xerces-C 3.3, bzip2 1.0.8 and libsvm 3.35 (#10327).
   - The custom type casters build their result lists with the checked
     PyList_SetItem() instead of the PyList_SET_ITEM() macro, which is unavailable
     under the Limited API. Behaviour is unchanged; failures release the partially
