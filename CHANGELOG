@@ -280,6 +280,9 @@ PyOpenMS:
     against static vcpkg libraries instead of the contrib. They carry the libraries the
     other builds already test, e.g. bzip2 1.0.8 instead of 1.0.5 (CVE-2019-12900),
     Xerces-C 3.3.0 instead of 3.2.0 (CVE-2018-1311), libsvm 3.35 and Arrow 24 (#10327).
+  - The Linux and Windows wheels take SQLiteCpp and SQLite from vcpkg, as the packages do,
+    instead of the copies OpenMS vendors, which the macOS wheel keeps. All wheels carry
+    SQLite 3.53.1 instead of 3.49.2 (#10327).
   - The custom type casters build their result lists with the checked
     PyList_SetItem() instead of the PyList_SET_ITEM() macro, which is unavailable
     under the Limited API. Behaviour is unchanged; failures release the partially

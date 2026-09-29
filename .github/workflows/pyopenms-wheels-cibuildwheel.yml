@@ -581,7 +581,9 @@ jobs:
       # The feature openms-thermo-bridge provides WITH_THERMO_RAW, and
       # CMAKE_REQUIRE_FIND_PACKAGE_OpenMSThermoBridge makes a failed lookup an error
       # rather than a silent fallback to building the bridge with FetchContent.
-      # opentims is fetched and compiled in, as before.
+      # opentims is fetched and compiled in, as before. The feature sqlitecpp and
+      # USE_EXTERNAL_SQLITECPP take SQLiteCpp and SQLite from vcpkg, as the packages
+      # do, instead of the copies vendored in src/openms/extern.
       - name: Configure OpenMS
         shell: bash
         run: |
@@ -592,7 +594,8 @@ jobs:
             -DOPENMS_USE_VCPKG=ON \
             -DCMAKE_TOOLCHAIN_FILE="$ws/vcpkg/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET="$VCPKG_TRIPLET" \
-            -DVCPKG_MANIFEST_FEATURES="openms-thermo-bridge" \
+            -DVCPKG_MANIFEST_FEATURES="openms-thermo-bridge;sqlitecpp" \
+            -DUSE_EXTERNAL_SQLITECPP=ON \
             -DCMAKE_REQUIRE_FIND_PACKAGE_OpenMSThermoBridge=ON \
             -DPYOPENMS=OFF \
             -DWITH_GUI=OFF \
