@@ -121,6 +121,13 @@ cmake --install build --component thirdparty_headers
 cmake --install build --component share
 cmake --install build --component cmake
 
+# A shared library may link with undefined symbols; with static dependencies that is
+# how a missing or misordered one shows up, and only when pyOpenMS is imported. Load
+# the libraries with every symbol resolved now, so it fails here instead.
+for lib in "${src}"/install/lib/libOpenMS.so "${src}"/install/lib/libOpenSwathAlgo.so; do
+  python3 -c 'import ctypes, os, sys; ctypes.CDLL(sys.argv[1], os.RTLD_NOW); print("loads:", sys.argv[1])' "${lib}"
+done
+
 # cibuildwheel copies the whole project directory into its container. The OpenMS
 # build tree and vcpkg's download and package staging areas are not needed there.
 rm -rf build vcpkg/buildtrees vcpkg/packages vcpkg/downloads
