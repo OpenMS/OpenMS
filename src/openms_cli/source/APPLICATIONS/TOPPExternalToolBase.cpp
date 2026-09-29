@@ -11,7 +11,9 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace std;
 
@@ -20,6 +22,65 @@ namespace OpenMS
 
   // constructors are inherited from TOPPBase (see header); the out-of-line dtor anchors the vtable here
   TOPPExternalToolBase::~TOPPExternalToolBase() = default;
+
+  StringList TOPPExternalToolBase::getThirdPartyToolLocations()
+  {
+    return getThirdPartyToolLocations(File::getOpenMSDataPath());
+  }
+
+  StringList TOPPExternalToolBase::getThirdPartyToolLocations(const std::string& data_path)
+  {
+    StringList locations = File::listDirectories(data_path + "/THIRDPARTY");
+    for (std::string& location : locations)
+    {
+      StringUtils::ensureLastChar(location, '/');
+    }
+    return locations;
+  }
+
+  namespace
+  {
+    // A name with a directory part is meant as it is, and an empty name is not a name.
+    bool isPlainFileName(const std::string& exe_filename)
+    {
+      return !exe_filename.empty() && exe_filename.find_first_of("/\\") == std::string::npos;
+    }
+  }
+
+  bool TOPPExternalToolBase::findThirdPartyExecutable(std::string& exe_filename)
+  {
+    // checked here as well, so that such a name does not need the shared-data directory
+    if (!isPlainFileName(exe_filename))
+    {
+      return false;
+    }
+    return findThirdPartyExecutable(exe_filename, getThirdPartyToolLocations());
+  }
+
+  bool TOPPExternalToolBase::findThirdPartyExecutable(std::string& exe_filename, const StringList& locations)
+  {
+    if (!isPlainFileName(exe_filename))
+    {
+      return false;
+    }
+    for (const std::string& location : locations)
+    {
+      const std::string candidate = location + exe_filename;
+      if (File::exists(candidate) && !File::isDirectory(candidate))
+      {
+        exe_filename = candidate;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool TOPPExternalToolBase::findExecutable_(std::string& executable) const
+  {
+    // The PATH first, then the third-party tools that ship with OpenMS: the Linux and macOS
+    // packages install them under share/OpenMS/THIRDPARTY without putting them on the PATH.
+    return File::findExecutable(executable) || findThirdPartyExecutable(executable);
+  }
 
   TOPPBase::ExitCodes TOPPExternalToolBase::runExternalProcess_(const std::string& executable, const std::vector<std::string>& arguments, const std::string& workdir, const std::map<std::string, std::string>& env) const
   {
