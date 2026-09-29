@@ -113,13 +113,18 @@ else()
   set(POST_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*" ".*/libstdc\\+\\+\\..*" ".*/libgcc_s.*" ".*/libgomp\\..*" ".*/libQt6.*")
 endif()
 
-# TODO check if we can reduce the permissions
+## The bundled libraries are writable by their owner only (0755), like any installed
+## library. With GROUP_WRITE and WORLD_WRITE they were world-writable: the DEB's in
+## /usr/lib, where any local user could replace code that the OpenMS tools load, also when
+## root runs them, and the files of the Qt frameworks in the macOS package. The packaging
+## steps that modify the staged libraries (code signing on macOS, the RUNPATH clean-up of
+## the DEB) run as their owner.
 install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
         DESTINATION ${INSTALL_LIB_DIR}
         PERMISSIONS
           OWNER_READ OWNER_WRITE OWNER_EXECUTE
-          GROUP_READ GROUP_WRITE GROUP_EXECUTE
-          WORLD_READ WORLD_WRITE WORLD_EXECUTE
+          GROUP_READ GROUP_EXECUTE
+          WORLD_READ WORLD_EXECUTE
         COMPONENT Dependencies
         PRE_EXCLUDE_REGEXES ${PRE_EXCLUDE}
         POST_EXCLUDE_REGEXES ${POST_EXCLUDE}
