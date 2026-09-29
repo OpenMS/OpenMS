@@ -61,6 +61,20 @@ target_link_libraries(FuzzyDiff OpenMSTestFramework)
 target_link_libraries(IsobaricWorkflow Eigen3::Eigen)
 target_link_libraries(MetaProSIP Eigen3::Eigen)
 
+# OpenDIA directly uses Apache Arrow APIs for its Parquet workflow.
+target_link_libraries(OpenDIA ${OPENMS_ARROW_TARGET})
+
+# OpenDIA also directly uses the SQLite C API. Link the concrete SQLite
+# implementation explicitly because it is not guaranteed to propagate
+# transitively through libOpenMS/OpenMS_CLI on all platforms.
+if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
+  target_link_libraries(OpenDIA unofficial::sqlite3::sqlite3)
+elseif(TARGET SQLite::SQLite3)
+  target_link_libraries(OpenDIA SQLite::SQLite3)
+elseif(TARGET SQLiteCpp)
+  target_link_libraries(OpenDIA SQLiteCpp ${OPENMS_SQLITECPP_EXTRA_LIBS})
+endif()
+
 
 # collection target
 add_custom_target(TOPP)

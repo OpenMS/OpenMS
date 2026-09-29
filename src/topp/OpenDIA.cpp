@@ -79,10 +79,11 @@ The downstream run then executes:
 
 By default intermediate files are removed after success. Use
 @p workflow:keep_intermediate_files to retain them, or
-@p workflow:intermediate_dir to control their location. If it is set to the
-same directory as @p out_dir while @p workflow:keep_intermediate_files is false,
-OpenDIA uses a nested @c OpenDIA_intermediates working directory to avoid
-removing final exports during cleanup.
+@p workflow:intermediate_dir to control their location. When cleanup is enabled,
+OpenDIA creates a unique run-owned child directory beneath the selected
+intermediate location and recursively removes only that child after success.
+User-supplied directories and unrelated pre-existing contents are never
+recursively removed.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_OpenDIA.cli
@@ -499,7 +500,7 @@ protected:
     setValidStrings_("workflow:working_format", {"sqlite", "parquet"});
     registerStringOption_("workflow:keep_intermediate_files", "<true|false>", "false", "Whether to retain prepared_library.pqp and the single working workflow.osw (.sqlite workflow) or workflow.oswpq (.parquet archive workflow) after success.", false);
     setValidStrings_("workflow:keep_intermediate_files", {"true", "false"});
-    registerOutputDir_("workflow:intermediate_dir", "<dir>", "", "Optional working directory for intermediate workflow files. Preserved automatically on failure. When left empty, OpenDIA uses a nested OpenDIA_intermediates subdirectory under out_dir. If it matches out_dir while workflow:keep_intermediate_files=false, OpenDIA also uses that nested OpenDIA_intermediates subdirectory to protect final exports.", false, false);
+    registerOutputDir_("workflow:intermediate_dir", "<dir>", "", "Optional parent directory for intermediate workflow files. Preserved automatically on failure. When cleanup is enabled, OpenDIA creates a unique run-owned child beneath this directory and removes only that child after success. When left empty, OpenDIA uses a run-owned child beneath OpenDIA_intermediates under out_dir.", false, false);
   }
 
   void registerTargetedDataExtractionOptions_()
@@ -1341,46 +1342,55 @@ protected:
     if (!requested_dir.empty())
     {
       const std::string requested_dir_abs = File::absolutePath(requested_dir);
-      if (!keep_intermediate_files && requested_dir_abs == out_dir_abs)
+      File::makeDir(requested_dir_abs);
+
+      if (keep_intermediate_files)
       {
-        File::makeDir(out_dir_abs);
-        working_dir.path = out_dir_abs + "/OpenDIA_intermediates";
-        File::makeDir(working_dir.path);
-        working_dir.remove_on_success = true;
-        OPENMS_LOG_INFO << "workflow:intermediate_dir matches out_dir while workflow:keep_intermediate_files=false; using nested intermediate directory '"
-                        << working_dir.path
-                        << "' to protect final exports." << std::endl;
+        // The user explicitly requested retention, so keep the historical behavior:
+        // write intermediates directly into the requested directory and never delete it.
+        working_dir.path = requested_dir_abs;
         return working_dir;
       }
 
-      working_dir.path = requested_dir_abs;
-      File::makeDir(working_dir.path);
-      working_dir.remove_on_success = !keep_intermediate_files;
-      return working_dir;
-    }
-
-    if (keep_intermediate_files)
-    {
-      File::makeDir(out_dir_abs);
-      working_dir.path = out_dir_abs + "/OpenDIA_intermediates";
-      File::makeDir(working_dir.path);
+      // The requested directory is a parent supplied by the user, not a directory
+      // owned by this OpenDIA run. Allocate a unique child and only ever recursively
+      // delete that run-owned child. Keep the TempDir itself so its unique path remains
+      // reserved for the lifetime of the workflow. Automatic TempDir cleanup is disabled
+      // because OpenDIA intentionally preserves intermediates on failure.
+      working_dir.temp_dir = std::make_unique<TempDir>(requested_dir_abs, true);
+      working_dir.path = working_dir.temp_dir->getPath();
+      working_dir.remove_on_success = true;
+      OPENMS_LOG_INFO << "Using run-owned intermediate directory '" << working_dir.path
+                      << "' under workflow:intermediate_dir '" << requested_dir_abs << "'." << std::endl;
       return working_dir;
     }
 
     File::makeDir(out_dir_abs);
-    working_dir.path = out_dir_abs + "/OpenDIA_intermediates";
-    File::makeDir(working_dir.path);
+    const std::string intermediate_parent = out_dir_abs + "/OpenDIA_intermediates";
+    File::makeDir(intermediate_parent);
+
+    if (keep_intermediate_files)
+    {
+      working_dir.path = intermediate_parent;
+      return working_dir;
+    }
+
+    // As above, only the unique directory created for this invocation is eligible
+    // for recursive deletion. The parent may pre-exist and may contain unrelated data.
+    working_dir.temp_dir = std::make_unique<TempDir>(intermediate_parent, true);
+    working_dir.path = working_dir.temp_dir->getPath();
     working_dir.remove_on_success = true;
-    OPENMS_LOG_INFO << "workflow:intermediate_dir not set; using nested intermediate directory '"
-                    << working_dir.path
-                    << "' under out_dir." << std::endl;
+    OPENMS_LOG_INFO << "workflow:intermediate_dir not set; using run-owned intermediate directory '"
+                    << working_dir.path << "' under out_dir." << std::endl;
     return working_dir;
   }
 
   void cleanupWorkingDirectory_(const WorkingDirectory& working_dir) const
   {
-    if (working_dir.remove_on_success && !working_dir.path.empty())
+    if (working_dir.remove_on_success && working_dir.temp_dir && !working_dir.path.empty())
     {
+      // Recursive cleanup is deliberately restricted to a unique directory allocated
+      // by this run. Never recursively delete workflow:intermediate_dir itself.
       File::removeDirRecursively(working_dir.path);
     }
   }
