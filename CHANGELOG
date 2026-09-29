@@ -823,7 +823,10 @@ TOPP tools:
       window layout incl. FAIMS/1/K0, cycle times, TIC and peak-count distributions), a
       re-implementation of D. L. Tabb's DIAuditor. Reads mzML, Thermo .raw and Bruker timsTOF .d
       (diaPASEF) and writes its per-run and per-window tables and an mzQC file with the PSI-MS
-      DIA metrics (MS:4000190-MS:4000199) (#10271).
+      DIA metrics (MS:4000190-MS:4000199). Warns when spectra carry several isolation windows
+      (e.g. MSX; demultiplex first) and when diaPASEF windows have an ion mobility array but no
+      ion mobility range, as TIMSCONVERT writes them, so windows differing only in ion mobility
+      count as one (#10271, #10312).
     - ParquetDiff: compares two Parquet tables by primary key with a numeric tolerance instead of exact
       bytes. FuzzyDiff is string-based and cannot read Parquet, which left the QPX psm/feature/pg exchange
       surface with no comparison route at all. The key is auto-derived from a QPX file's own file_type
