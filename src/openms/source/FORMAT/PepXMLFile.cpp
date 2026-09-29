@@ -18,14 +18,29 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <fstream>
 
 using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// "'a', 'b', ..." for error messages (only the first few names are listed)
+    std::string quotedList(const std::vector<std::string>& names)
+    {
+      if (names.empty()) return "none";
+      const Size max_listed = 10;
+      std::vector<std::string> listed(names.begin(), names.begin() + std::min(names.size(), max_listed));
+      std::string result = "'" + ListUtils::concatenate(listed, "', '") + "'";
+      if (names.size() > max_listed) result += ", ... (" + StringUtils::toStr(names.size()) + " in total)";
+      return result;
+    }
+  }
 
   std::string PepXMLFile::AminoAcidModification::toUnimodLikeString() const
   {
@@ -964,6 +979,25 @@ namespace OpenMS
     }
   }
 
+  bool PepXMLFile::isExperimentOfInterest_(std::string base_name)
+  {
+    StringUtils::substitute(base_name, '\\', '/'); // same separators as in "exp_name_"
+    if (base_name.empty()) return false;
+    if (std::find(base_names_.begin(), base_names_.end(), base_name) == base_names_.end())
+    {
+      base_names_.push_back(base_name);
+    }
+    // only whole path components may match, otherwise e.g. "LN1" would select both "L_LN1" and "H_LN1":
+    if (!StringUtils::hasSuffix(base_name, exp_name_)) return false;
+    const Size start = base_name.size() - exp_name_.size();
+    if (start > 0 && base_name[start - 1] != '/') return false;
+    if (std::find(matched_base_names_.begin(), matched_base_names_.end(), base_name) == matched_base_names_.end())
+    {
+      matched_base_names_.push_back(base_name);
+    }
+    return true;
+  }
+
   void PepXMLFile::setParseUnknownScores(bool parse_unknown_scores)
   {
     this->parse_unknown_scores_ = parse_unknown_scores;
@@ -987,6 +1021,7 @@ namespace OpenMS
     exp_name_ = "";
     prot_id_ = "";
     charge_ = 0;
+    lookup_ = nullptr; // a previous call may have thrown before resetting it
     peptides.clear();
     peptides_ = &peptides;
     proteins.clear();
@@ -999,20 +1034,29 @@ namespace OpenMS
     if (!experiment_name.empty())
     {
       exp_name_ = FileHandler::stripExtension(experiment_name);
+      // TPP writes "base_name" with '/' even on Windows, while users give native paths with '\'
+      StringUtils::substitute(exp_name_, '\\', '/');
       lookup_ = &lookup;
     }
 
     analysis_summary_ = false;
     wrong_experiment_ = false;
-    // without experiment name, don't care about these two:
-    seen_experiment_ = exp_name_.empty();
+    base_names_.clear();
+    matched_base_names_.clear();
+    // without experiment name, don't care about this:
     checked_base_name_ = exp_name_.empty();
 
     parse_(filename, this);
 
-    if (!seen_experiment_)
+    if (!exp_name_.empty() && matched_base_names_.empty())
     {
-      fatalError(LOAD, "Found no experiment with name '" + experiment_name + "'");
+      fatalError(LOAD, "Found no experiment with name '" + experiment_name + "'. It has to match the end of a run's 'base_name', "
+                 "e.g. its file name (IDFileConverter: 'mz_name'). 'base_name's in this file: " + quotedList(base_names_));
+    }
+    if (matched_base_names_.size() > 1) // e.g. equally named spectra files in different folders
+    {
+      fatalError(LOAD, "Experiment name '" + experiment_name + "' matches runs with different 'base_name's: " + quotedList(matched_base_names_) +
+                 ". Give more of the path to select one of them (IDFileConverter: 'mz_name').");
     }
     // clean up duplicate ProteinHits in each ProteinIdentification separately:
     // (can't use "sort" and "unique" because no "op<" defined for ProteinHit)
@@ -1100,8 +1144,7 @@ namespace OpenMS
       {
         if (!base_name.empty())
         {
-          wrong_experiment_ = !StringUtils::hasSuffix(base_name, exp_name_);
-          seen_experiment_ = seen_experiment_ || !wrong_experiment_;
+          wrong_experiment_ = !isExperimentOfInterest_(base_name);
           checked_base_name_ = true;
         }
         else // really shouldn't happen, but does for Mascot export to pepXML
@@ -1836,11 +1879,7 @@ namespace OpenMS
       optionalAttributeAsString_(current_base_name_, attributes, "base_name");
       if (!checked_base_name_) // work-around for files exported by Mascot
       {
-        if (StringUtils::hasSuffix(current_base_name_, exp_name_))
-        {
-          seen_experiment_ = true;
-        }
-        else // wrong experiment after all - roll back changes that were made
+        if (!isExperimentOfInterest_(current_base_name_)) // wrong experiment after all - roll back changes that were made
         {
           proteins_->pop_back();
           current_proteins_.clear();

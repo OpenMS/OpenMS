@@ -1285,6 +1285,12 @@ set_tests_properties("TOPP_IDFileConverter_1_out1" PROPERTIES DEPENDS "TOPP_IDFi
 add_test("TOPP_IDFileConverter_2" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/PepXMLFile_test.pepxml -mz_file ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -mz_name PepXMLFile_test -out ${TESTS_TEMP_DIR}/IDFileConverter_2_output.tmp.idXML -out_type idXML)
 add_test("TOPP_IDFileConverter_2_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFileConverter_2_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFileConverter_2_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_2_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_2")
+# pepXML to idXML, run selected by the file name of 'mz_file' (no 'mz_name'; the path of 'mz_file' differs from 'base_name'):
+add_test("TOPP_IDFileConverter_2_mz_file" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/PepXMLFile_test.pepxml -mz_file ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -out ${TESTS_TEMP_DIR}/IDFileConverter_2_mz_file_output.tmp.idXML -out_type idXML)
+add_test("TOPP_IDFileConverter_2_mz_file_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFileConverter_2_mz_file_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFileConverter_2_output.idXML )
+set_tests_properties("TOPP_IDFileConverter_2_mz_file_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_2_mz_file")
+# same with real SpectraST output, whose 'base_name' is the path of the spectra on the machine the search ran on:
+add_test("TOPP_IDFileConverter_2_mz_file_spectrast" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/SpectrastAdapter_1_output.pep.xml -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra_spectrast.mzXML -out ${TESTS_TEMP_DIR}/IDFileConverter_2_mz_file_spectrast_output.tmp.idXML -out_type idXML)
 # protXML to idXML:
 add_test("TOPP_IDFileConverter_3" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_3_input.protXML -out ${TESTS_TEMP_DIR}/IDFileConverter_3_output.tmp.idXML -out_type idXML)
 add_test("TOPP_IDFileConverter_3_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFileConverter_3_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFileConverter_3_output.idXML )
