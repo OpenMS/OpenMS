@@ -1412,45 +1412,28 @@ Build System:
     build on to later builds and to the packages. The 2026-09-24 nightlies shipped an OpenBLAS
     that needs AVX2 on x86_64 and SVE on arm64, which not every supported CPU has, and clang
     debug builds failed on x86_64 machines with AVX-512 (#10264).
-  - The installers ship the license texts of the third-party code they bundle, under
-    share/OpenMS/LICENSES; before, that directory held only the OpenMS license. Every package
-    has the license of each vcpkg port the build uses (vcpkg/<port>.txt). The Windows and
-    macOS packages, which bundle Qt, also have the Qt licenses (LGPL-3.0 and GPL-3.0) and
-    where to get Qt's source code (Qt/). The macOS package also has the license files of the
-    Homebrew formulae whose libraries it bundles: Qt's and those they depend on, such as glib
-    and ICU (homebrew/<formula>/). Every installation, the Python wheels included, has the
-    licenses of the third-party code that OpenMS carries in its source tree and compiles into
-    libOpenMS, such as Percolator with its NOTICE file, evergreen, libkdtree++ and MSNumpress
-    (vendored/<name>/) (#10292).
-  - The pyOpenMS wheels also ship the license texts of the libraries they contain. A build
-    against the OpenMS contrib installs the license folders that the contrib provides for the
-    libraries it links, such as Boost, Xerces-C, COIN-OR, Eigen and Arrow with the libraries
-    Arrow builds itself; each names the source archive of its library (contrib/<name>/). The
-    contrib must be recent enough to provide them (OpenMS/contrib#187). The wheel builds add
-    the licenses of the libraries the repair tools copy in from the build system: OpenSSL,
-    libxml2 and the others on Linux (system/<package>/), the Homebrew libraries on macOS
-    (homebrew/<formula>/). Builds with the in-process Thermo reader install the
-    THIRD-PARTY-NOTICES.txt that openms-thermo-bridge 0.3.1 publishes with its managed
-    assemblies, for the bridge itself, CommandLineParser, OpenMcdf and nethost (#10292).
+  - The installers and the pyOpenMS wheels ship the license texts of the third-party code they
+    contain; before, share/OpenMS/LICENSES held only the OpenMS license. It now also holds the
+    licenses of the vcpkg ports (vcpkg/), of Qt with where to get its source (Qt/, Windows and
+    macOS), of the Homebrew formulae whose libraries the macOS package and wheel bundle
+    (homebrew/), of the contrib libraries the wheels link, with their source archives (contrib/,
+    OpenMS/contrib#187), of the libraries the wheel repair tools copy in (system/), and of the
+    code that OpenMS carries in its source tree and compiles into libOpenMS, such as Percolator
+    with its NOTICE file (vendored/). share/OpenMS/THIRD-PARTY-NOTICES.txt gathers them in one
+    file: the third-party components, grouped by where they come from, and each text once. The
+    DEB also installs it, after the OpenMS license, as /usr/share/doc/openms/copyright, and
+    License.txt points to it (#10292).
+  - The tools the installers bundle from THIRDPARTY come with their license texts: Comet,
+    MaRaCluster, Percolator, X!Tandem and the assemblies of ThermoRawFileParser, and so do the
+    assemblies of the in-process Thermo reader (openms-thermo-bridge 0.3.1). SpectraST is no
+    longer bundled: it is GPL-licensed and was shipped without its license text or source code.
+    SpectraSTSearchAdapter runs a separately installed spectrast given with -executable
+    (OpenMS/THIRDPARTY abe0956, #10292).
   - The Windows installer no longer includes ProteoWizard (msconvert and the instrument vendors'
     libraries in THIRDPARTY/pwiz-bin). OpenMS does not use it; to convert other vendor formats
     with msconvert, install ProteoWizard from https://proteowizard.sourceforge.io/ (#10292).
-  - The tools the installers bundle from THIRDPARTY now come with their license texts, in each
-    tool's folder: Comet, MaRaCluster (with its NOTICE), Percolator and X!Tandem, and a
-    THIRD-PARTY-NOTICES.txt for the assemblies of ThermoRawFileParser. SpectraST is no longer
-    bundled: it is GPL-licensed and was shipped without its license text or source code.
-    SpectraSTSearchAdapter runs a separately installed spectrast given with -executable
-    (OpenMS/THIRDPARTY abe0956, #10292).
-  - share/OpenMS/THIRD-PARTY-NOTICES.txt gathers these texts in one file, in every
-    installation and every wheel: a list of the third-party components, grouped by where they
-    come from, each with the numbers of the texts that apply to it, and then the texts, each
-    only once. The DEB also installs it, after the OpenMS license, as
-    /usr/share/doc/openms/copyright, the file Debian's policy asks every package to have.
-    License.txt, which the installers show and the wheels carry as their license file, points
-    to it instead of ending with a list of third-party code that named one entry (#10292).
-  - TOPPView and TOPPAS show the notice that Thermo's RawFileReader license asks for in the
-    About dialog of software that ships it, in builds with the in-process Thermo reader
-    (#10292).
+  - TOPPView and TOPPAS show the notice that Thermo's RawFileReader license asks for in their
+    About dialog, in builds with the in-process Thermo reader (#10292).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----
