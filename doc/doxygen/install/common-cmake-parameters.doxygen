@@ -55,7 +55,7 @@ The most important CMake variables are:
     GUI library with TOPPView, TOPPAS and the other GUI applications (<code>WITH_GUI</code>) --
     against an installed OpenMS library of the same version, instead of building the libraries.
     Point <code>OpenMS_DIR</code> (or <code>CMAKE_PREFIX_PATH</code>) at that installation. Tests,
-    documentation and pyOpenMS are not built in this mode. See @ref install_layered below. (Default: Off)</td>
+    documentation and pyOpenMS are not built in this mode. See "Building OpenMS in layers" below. (Default: Off)</td>
   </tr>
   <tr>
     <th valign="top">OPENMS_INSTALL_DATA_PATH</td>
@@ -241,7 +241,6 @@ The most important CMake variables are:
   </tr>
 </table>
 
-@anchor install_layered
 <b>Building OpenMS in layers</b>
 
 The same source tree can be built and installed as three layers, e.g. to package them separately:
