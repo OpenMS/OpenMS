@@ -54,6 +54,24 @@ set. On macOS and Windows, it reads `~/.OpenMS/OpenMS.ini`. Here `~` is your hom
 `OPENMS_HOME_PATH` if that is set.
 If the file is empty or not valid XML, TOPP tools stop with an error that names it; fix or delete the file.
 
+<LI><B>Which environment variables does %OpenMS read?</B><BR>
+None of them is needed for a normal installation.
+<UL>
+<LI>`OPENMS_DATA_PATH`: the %OpenMS shared-data directory (`share/OpenMS`), if %OpenMS cannot find it by itself.
+<LI>`OPENMS_HOME_PATH`: the directory used instead of your home directory, e.g. for %OpenMS.ini (see above).
+<LI>`OPENMS_TMPDIR`: the directory for temporary files (see above).
+<LI>`OPENMS_DISABLE_UPDATE_CHECK`: set to "ON" to turn off the update check (see above).
+<LI>`OPENMS_BRUKER_SDK_PATH`: the path of Bruker's SDK library (`timsdata.dll` or `libtimsdata.so`), to convert the ion
+mobility of Bruker `.d` input with Bruker's own code. It is not needed to read `.d` input.
+<LI>`OPENMS_THERMO_MANAGED_DIR`: a folder with the managed assemblies of the Thermo reader, used instead of the copy in the
+shared-data directory. A folder without them is reported and ignored.
+<LI>`OPENMS_TOOL_REGISTRY_PATH`: an additional directory with `*.tsv` files that register TOPP tools built outside
+%OpenMS. `OPENMS_TTD_INTERNAL_PATH`, its name in earlier releases, is still read.
+<LI>`MSFRAGGER_PATH`, `NOVOR_PATH`: the MSFragger and Novor executables, which %OpenMS does not ship. MSFraggerAdapter and
+NovorAdapter use them when `-executable` is empty.
+</UL>
+For developers, `OPENMS_DUMP_CORE` makes an uncaught exception end the process with a core dump.
+
 <LI><B>Calling msConvert (of ProteoWizard) results in small mzML files with no peak data.</B><BR>
 The Thermo interface expects an English locale setting. Otherwise it will silently forget to
 return peak data. Set your locale to English and it should work.

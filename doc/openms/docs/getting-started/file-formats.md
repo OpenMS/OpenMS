@@ -25,15 +25,16 @@ compressed file of such a format. A Bruker `.d` directory packed into a ZIP arch
 ### Writing
 
 mzML, mzXML, mzData, featureXML, consensusXML, traML and mzIdentML output is compressed when the output file name
-ends in `.gz` (gzip) or `.bz2` (bzip2), in lower case:
+ends in `.gz` (gzip) or `.bz2` (bzip2):
 
 ```bash
 FileConverter -in sample.mzML -out sample.mzML.gz
 ```
 
-The other formats, idXML and trafoXML among them, cannot be written compressed, and ZIP output is not supported:
-give such output an uncompressed file name. The low-memory modes that write spectra one by one, for example
-FileConverter with `-process_lowmemory`, also write uncompressed mzML.
+The other formats, idXML and trafoXML among them, cannot be written compressed, and ZIP output is not supported.
+A tool refuses such an output name with an error rather than write an uncompressed file under it: give the output
+an uncompressed name, and compress the file afterwards if needed. The same applies to the modes that write spectra
+one by one, for example FileConverter with `-process_lowmemory`: they write uncompressed mzML only.
 
 ## Parquet bundles
 

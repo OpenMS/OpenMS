@@ -307,12 +307,14 @@ if (MINGW OR MSYS)
 endif()
 
 #------------------------------------------------------------------------------
-# Setup CMAKE_PREFIX_PATH for finding external libs (contrib or system)
+# Setup CMAKE_PREFIX_PATH for finding external libs (vcpkg, system or contrib)
 #------------------------------------------------------------------------------
 if(OPENMS_USE_VCPKG)
   message(STATUS "Dependency provider: vcpkg (${CMAKE_TOOLCHAIN_FILE})")
+elseif(OPENMS_CONTRIB_LIBS)
+  message(STATUS "Dependency provider: contrib (${OPENMS_CONTRIB_LIBS}), deprecated")
 else()
-  message(STATUS "Dependency provider: system/contrib")
+  message(STATUS "Dependency provider: system packages and CMAKE_PREFIX_PATH")
 endif()
 include(cmake/setup_lib_find_paths.cmake)
 

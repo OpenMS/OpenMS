@@ -693,6 +693,14 @@ set_tests_properties("TOPP_FileConverter_36_out1" PROPERTIES DEPENDS "TOPP_FileC
 add_test("TOPP_FileConverter_37" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_44_input.mzML -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_37.tmp.consensusXML -out_type consensusXML)
 add_test("TOPP_FileConverter_37_out1" ${DIFF} -whitelist "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_37.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_37_output.consensusXML)
 set_tests_properties("TOPP_FileConverter_37_out1" PROPERTIES DEPENDS "TOPP_FileConverter_37")
+# TOPP_FileConverter_38/39: an output name whose compression suffix the writer does not produce is refused
+# instead of holding plain data. 38: the low-memory mode streams plain mzML, so '.mzML.gz' is refused there
+# (the in-memory path writes gzip); 39: MGF is always written plain. PASS_REGULAR_EXPRESSION ignores the
+# exit code, so the message itself is the check.
+add_test("TOPP_FileConverter_38" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out ${TESTS_TEMP_DIR}/FileConverter_38.tmp.mzML.gz -process_lowmemory -in_type mzML -out_type mzML)
+set_tests_properties("TOPP_FileConverter_38" PROPERTIES PASS_REGULAR_EXPRESSION "The streaming mzML writer .* cannot compress")
+add_test("TOPP_FileConverter_39" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out ${TESTS_TEMP_DIR}/FileConverter_39.tmp.mgf.gz)
+set_tests_properties("TOPP_FileConverter_39" PROPERTIES PASS_REGULAR_EXPRESSION "ends in '.gz', but it would be written uncompressed. OpenMS cannot write mgf compressed")
 
 # TOPP_FileConverter_nonascii: read AND write through a non-ASCII (UTF-8) path. This guards against
 # regressions in non-ASCII path handling. The non-ASCII name is materialized into the temp dir at test time (not
@@ -1277,6 +1285,12 @@ set_tests_properties("TOPP_IDFileConverter_1_out1" PROPERTIES DEPENDS "TOPP_IDFi
 add_test("TOPP_IDFileConverter_2" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/PepXMLFile_test.pepxml -mz_file ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -mz_name PepXMLFile_test -out ${TESTS_TEMP_DIR}/IDFileConverter_2_output.tmp.idXML -out_type idXML)
 add_test("TOPP_IDFileConverter_2_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFileConverter_2_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFileConverter_2_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_2_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_2")
+# pepXML to idXML, run selected by the file name of 'mz_file' (no 'mz_name'; the path of 'mz_file' differs from 'base_name'):
+add_test("TOPP_IDFileConverter_2_mz_file" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/PepXMLFile_test.pepxml -mz_file ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -out ${TESTS_TEMP_DIR}/IDFileConverter_2_mz_file_output.tmp.idXML -out_type idXML)
+add_test("TOPP_IDFileConverter_2_mz_file_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFileConverter_2_mz_file_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFileConverter_2_output.idXML )
+set_tests_properties("TOPP_IDFileConverter_2_mz_file_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_2_mz_file")
+# same with real SpectraST output, whose 'base_name' is the path of the spectra on the machine the search ran on:
+add_test("TOPP_IDFileConverter_2_mz_file_spectrast" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/SpectrastAdapter_1_output.pep.xml -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra_spectrast.mzXML -out ${TESTS_TEMP_DIR}/IDFileConverter_2_mz_file_spectrast_output.tmp.idXML -out_type idXML)
 # protXML to idXML:
 add_test("TOPP_IDFileConverter_3" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_3_input.protXML -out ${TESTS_TEMP_DIR}/IDFileConverter_3_output.tmp.idXML -out_type idXML)
 add_test("TOPP_IDFileConverter_3_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFileConverter_3_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFileConverter_3_output.idXML )
@@ -3594,9 +3608,11 @@ set_tests_properties("TOPP_OpenPepXL_1_out_4" PROPERTIES DEPENDS "TOPP_OpenPepXL
 #------------------------------------------------------------------------------
 # UniPEFF tests — convert UniProtKB XML to PEFF and byte-exact-diff against
 # golden output. The goldens originate from the upstream C# UniPEFF tool
-# (feat/merge-half-cystines branch) but intentionally diverge since #9829:
-# annotation identifiers are 1-based, and the default (no-flag) output labels
-# disulfide-bonded half-cystines and emits \DisulfideBond connectivity.
+# (feat/merge-half-cystines branch) but intentionally diverge: the default
+# (no-flag) output labels disulfide-bonded half-cystines and emits
+# \DisulfideBond connectivity (#9829), and the isoform entries (and the
+# NumberOfEntries counts including them) are an OpenMS extension (issue #9830)
+# hand-verified against UniProt's official isoform FASTA reconstruction rules.
 # The PSI-MOD / Unimod OBO files are overridden because the test fixture
 # uses synthetic accessions whose canonical names diverge from the real CVs.
 add_test("TOPP_UniPEFF_1" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_1_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
@@ -3632,7 +3648,7 @@ add_test("TOPP_UniPEFF_7" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/Un
 add_test("TOPP_UniPEFF_7_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_7_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_2_output_omitvar.peff)
 set_tests_properties("TOPP_UniPEFF_7_out" PROPERTIES DEPENDS "TOPP_UniPEFF_7")
 
-# Compressed -out filenames (.peff.gz/.bz2/.zip) MUST be rejected — we don't write compressed PEFF.
+# Compressed -out filenames (.peff.gz/.bz2/.zip) MUST be rejected — we don't write compressed PEFF (TOPPBase refuses them).
 add_test("TOPP_UniPEFF_8_reject_gz" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_8_should_not_be_written.peff.gz -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
 set_tests_properties("TOPP_UniPEFF_8_reject_gz" PROPERTIES WILL_FAIL TRUE)
 
@@ -3665,6 +3681,21 @@ set_tests_properties("TOPP_UniPEFF_10_out" PROPERTIES DEPENDS "TOPP_UniPEFF_10")
 add_test("TOPP_UniPEFF_11" ${TOPP_BIN_PATH}/UniPEFF -test -annotation_identifiers -in ${DATA_DIR_TOPP}/UniPEFF_3_input_disulfide_bounds.xml -out ${TESTS_TEMP_DIR}/UniPEFF_11_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
 add_test("TOPP_UniPEFF_11_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_11_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_3_output_B.peff)
 set_tests_properties("TOPP_UniPEFF_11_out" PROPERTIES DEPENDS "TOPP_UniPEFF_11")
+
+# -omit_isoforms suppresses the additional isoform entries, restoring the output
+# without isoform expansion byte-exactly.
+add_test("TOPP_UniPEFF_13" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_13_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo -omit_isoforms)
+add_test("TOPP_UniPEFF_13_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_13_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_2_output_omitiso.peff)
+set_tests_properties("TOPP_UniPEFF_13_out" PROPERTIES DEPENDS "TOPP_UniPEFF_13")
+
+# Isoform expansion (issue #9830): "described" isoforms are reconstructed from
+# splice-variant features (deletion, replacement, single-position extension,
+# multi-VSP applied C- to N-terminal) and emitted after their parent entry;
+# displayed / external / not-described / dangling-ref / original-mismatch /
+# overlapping / out-of-bounds isoforms are skipped with a log message.
+add_test("TOPP_UniPEFF_14" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_3_input_isoforms.xml -out ${TESTS_TEMP_DIR}/UniPEFF_14_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_14_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_14_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_3_output_isoforms.peff)
+set_tests_properties("TOPP_UniPEFF_14_out" PROPERTIES DEPENDS "TOPP_UniPEFF_14")
 
 #------------------------------------------------------------------------------
 # XFDR tests
@@ -4852,6 +4883,30 @@ add_test("TOPP_PercolatorAdapter_CalcMass_check" ${CMAKE_COMMAND}
          -P ${DATA_DIR_TOPP}/PercolatorAdapter_CalcMass_test.cmake)
 set_tests_properties("TOPP_PercolatorAdapter_CalcMass_check" PROPERTIES
                      DEPENDS "TOPP_PercolatorAdapter_CalcMass")
+
+# Search engine scores that an adapter read from text are string meta values (SageAdapter keeps
+# all of its extra features like that). The in-process backend must train on the numbers they
+# hold, as the executable does when it parses the .pin file, so the fixture with its features
+# stored as strings reproduces the reference output of the fixture as it is. The retyped feature
+# lines are passed through unchanged and are the only lines excluded from the comparison.
+add_test("TOPP_PercolatorAdapter_string_features_prepare" ${CMAKE_COMMAND}
+         -DINPUT_FILE=${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML
+         -DOUTPUT_FILE=${TESTS_TEMP_DIR}/PercolatorAdapter_string_features_in.tmp.idXML
+         -P ${DATA_DIR_TOPP}/PercolatorAdapter_string_features_test.cmake)
+add_test("TOPP_PercolatorAdapter_string_features" ${TOPP_BIN_PATH}/PercolatorAdapter -test
+         -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini
+         -use_subprocess false
+         -in ${TESTS_TEMP_DIR}/PercolatorAdapter_string_features_in.tmp.idXML
+         -out ${TESTS_TEMP_DIR}/PercolatorAdapter_string_features_out.tmp.idXML
+         -out_type idXML)
+set_tests_properties("TOPP_PercolatorAdapter_string_features" PROPERTIES
+                     DEPENDS "TOPP_PercolatorAdapter_string_features_prepare")
+add_test("TOPP_PercolatorAdapter_string_features_out" ${DIFF}
+         -in1 ${TESTS_TEMP_DIR}/PercolatorAdapter_string_features_out.tmp.idXML
+         -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML
+         -whitelist ${_topp_percolator_diff_whitelist} "name=\"COMET:" "name=\"MS:1002252\"" "name=\"MS:1002255\"")
+set_tests_properties("TOPP_PercolatorAdapter_string_features_out" PROPERTIES
+                     DEPENDS "TOPP_PercolatorAdapter_string_features")
 
 # CalcMass must survive loadAndCleanupIDFile_ so FFId can reconstruct an
 # unspecified/unlocalized mass before feature detection (#9998). The prepare

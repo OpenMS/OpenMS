@@ -134,8 +134,11 @@ namespace OpenMS
       Size msn_count = 0;                 ///< spectra of MS level 2 and higher
       Size ms2_count = 0;                 ///< spectra of MS level 2
       Size spectra_without_rt = 0;        ///< spectra without retention time (not used for other metrics)
-      Size ms2_multiple_precursors = 0;   ///< MS2 spectra with more than one precursor (e.g. multiplexed DIA); only the first is used
+      Size ms2_multiple_precursors = 0;   ///< MS2 spectra with more than one isolation window, i.e. precursor element (e.g.
+                                          ///< multiplexed acquisition such as MSX); only the first is used
       Size ms2_scan_ion_mobility = 0;     ///< MS2 spectra that look like single ion mobility scans (no range or IM array)
+      Size ms2_im_array_without_range = 0; ///< MS2 spectra with an isolation window and an ion mobility array, but no ion
+                                           ///< mobility range of the window (e.g. diaPASEF from TIMSCONVERT)
       double precursor_mz_min;            ///< lowest precursor m/z of the MSn spectra (selected ion, or isolation target)
       double precursor_mz_max;            ///< highest precursor m/z of the MSn spectra
 
@@ -236,6 +239,7 @@ namespace OpenMS
       double ion_mobility_lower = 0.0;    // NaN if none
       double ion_mobility_upper = 0.0;    // NaN if none
       bool scan_ion_mobility = false;     // the spectrum looks like a single ion mobility scan
+      bool im_array_without_range = false; // an ion mobility array, but no ion mobility range of the window
       Size precursor_count = 0;
     };
 
