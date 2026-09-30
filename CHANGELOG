@@ -41,6 +41,12 @@ Build System:
     (#10351). It still requires the glibc of the release it is built on, currently 2.38,
     so not Ubuntu 22.04 or Debian 12 (#10352, #10367).
 
+TOPP tools:
+    ProSE:
+      - FIX: The MS2 intensity cutoff applied before normalization removes only peaks without
+        intensity (zero or negative). It was the ThresholdMower default of 0.05 absolute, which
+        deleted real peaks from intensity-scaled input such as spectra normalized to a base peak of 1.
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
 ------------------------------------------------------------------------------------------
