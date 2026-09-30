@@ -274,7 +274,8 @@ and in the <code>bin</code> directory next to the <code>share/OpenMS</code> of
 <code>OPENMS_INSTALL_DATA_PATH</code>, so that they find the tools of another layer in the merged
 tree. The GUI layer does not install a CMake package of its own:
 <code>find_package(OpenMS COMPONENTS GUI)</code> needs a build of the libraries with
-<code>WITH_GUI=ON</code>.
+<code>WITH_GUI=ON</code>. Conversely, the GUI layer has to be built against an installation without the
+GUI library.
 
 A full list of the CMake variables is shown when you execute:
 

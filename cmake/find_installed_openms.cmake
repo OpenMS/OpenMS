@@ -34,6 +34,14 @@ endif()
 ## The applications are compiled from the same sources as the library they link, so
 ## the installation has to be of this very version.
 find_package(OpenMS ${OPENMS_PACKAGE_VERSION} EXACT CONFIG REQUIRED COMPONENTS CLI)
+## The GUI library is built here (src/openms_gui), so it must not come from the
+## installation as well: its imported target would clash with the one built here and
+## its installed headers would compete with those of the source tree.
+if(WITH_GUI AND OpenMS_WITH_GUI)
+  message(FATAL_ERROR "The OpenMS installation in ${OpenMS_DIR} already includes the GUI library. "
+          "Build the GUI (WITH_GUI=ON) against an installation without it (built with WITH_GUI=OFF, "
+          "or installed without the components library_gui and cmake_gui).")
+endif()
 message(STATUS "Building against the installed OpenMS ${OpenMS_VERSION} in ${OpenMS_DIR}")
 message(STATUS "  shared data of that installation: ${OPENMS_DATA_DIR}")
 
