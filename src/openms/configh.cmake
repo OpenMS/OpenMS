@@ -10,7 +10,16 @@
 set(CF_OPENMS_DATA_PATH ${OPENMS_HOST_DIRECTORY}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
 set(CF_OPENMS_DOC_PATH ${OPENMS_HOST_DIRECTORY}/doc CACHE INTERNAL "Path to the documentation of OpenMS.")
 ## and the corresponding ones when installed (careful, you have to rebuild if you change -DCMAKE_PREFIX_PATH). Also, does not work after deployment.
-set(CF_OPENMS_INSTALL_DATA_PATH ${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR} CACHE INTERNAL "Path to the installed shared documents of OpenMS.")
+## OPENMS_INSTALL_DATA_PATH overrides the compiled-in location, for installations whose shared data
+## ends up somewhere else than below CMAKE_INSTALL_PREFIX. Package managers that install OpenMS in
+## layers (library, TOPP tools, GUI) into separate prefixes and link them into one tree (e.g.
+## Homebrew) point it at the merged share/OpenMS, where the tool registries of all layers meet.
+set(OPENMS_INSTALL_DATA_PATH "" CACHE PATH "Compiled-in location of the installed shared data (share/OpenMS) of OpenMS. Empty: <CMAKE_INSTALL_PREFIX>/<INSTALL_SHARE_DIR>.")
+if(OPENMS_INSTALL_DATA_PATH)
+  set(CF_OPENMS_INSTALL_DATA_PATH ${OPENMS_INSTALL_DATA_PATH} CACHE INTERNAL "Path to the installed shared documents of OpenMS." FORCE)
+else()
+  set(CF_OPENMS_INSTALL_DATA_PATH ${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR} CACHE INTERNAL "Path to the installed shared documents of OpenMS." FORCE)
+endif()
 
 ## the generated TOPP tool registry of this build tree (see cmake/topp_tool_macros.cmake)
 set(CF_OPENMS_BUILD_TOOL_REGISTRY_PATH ${OPENMS_TOOL_REGISTRY_BUILD_DIR} CACHE INTERNAL "Path to the TOPP tool registry generated in this build tree.")

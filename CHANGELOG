@@ -13,8 +13,31 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.6.0     (under development)              ----
+----                                OpenMS 3.7.0     (under development)              ----
 ------------------------------------------------------------------------------------------
+
+Dependencies:
+  - Every release ships a developer SDK archive per platform
+    (OpenMS-SDK-<version>-<platform>.tar.gz, .zip on Windows) next to the installers:
+    the core and CLI layers (OpenMS, OpenSwathAlgo, OpenMS_CLI) with their headers, the
+    CMake package, share/OpenMS and the shared libraries those layers load, relocatable
+    and without Qt or the GUI library. Point CMAKE_PREFIX_PATH at the extracted archive
+    and use find_package(OpenMS CONFIG COMPONENTS CLI). The archive's README.txt lists the
+    requirements (Boost headers of at least the version it was built against, MSVC
+    Release /MD on Windows, Ubuntu 24.04 as the Linux baseline). The CI presets now build
+    with WITH_ONNX=ON (ONNX Runtime from vcpkg), so the installers and the SDK include the
+    PeptDeep classes, their ONNX models (share/OpenMS/models) and the ONNX Runtime library,
+    which were not installed before (#10248).
+
+ 
+------------------------------------------------------------------------------------------
+----                                OpenMS 3.6.0     (Released September 2026)        ----
+------------------------------------------------------------------------------------------
+
+OpenMS 3.6.0 is a substantial release and an important step toward our next major version. It addresses many feature requests, 
+including extended support for ion mobility (FAIMS and PASEF), arrow and parquet support, and new nanobind-based pyOpenMS bindings that enable more Pythonic and faster code. 
+A restructured build system now supports building OpenMS with vcpkg, replacing the deprecated contrib repository. 
+These are just a few of the many improvements in this release.
 
 General:
   - FIX: Normalize source-file paths when converting them to file URIs, including Windows paths with mixed separators (#10275)
@@ -130,6 +153,8 @@ Dependencies:
   - C++23 is required (#9037). The minimum compilers are GCC 13, Clang 17, AppleClang 16
     (Xcode 16) and Visual Studio 2022 17.14; configuring with an older one stops with a
     message.
+  - Zstandard (zstd) is now a required dependency (mzML zstd binary array compression; #9033).
+    It is found via its CMake config package or as a plain library (e.g. libzstd-dev).
   - Qt6 is required only with WITH_GUI=ON. Core/non-GUI code now uses standard C++ and
     platform APIs, libcurl for HTTP, boost-process for subprocesses and nlohmann/json.
     ZIP support uses libzip instead of minizip-ng. ExecutePipeline, INIUpdater and
@@ -190,17 +215,6 @@ Dependencies:
     the package's former lookups of dependencies that are PRIVATE now. Consuming projects need
     CMake 3.24: find_package(OpenMS) rejects older versions with an explanatory message
     instead of failing later (#10158).
-  - Every release ships a developer SDK archive per platform
-    (OpenMS-SDK-<version>-<platform>.tar.gz, .zip on Windows) next to the installers:
-    the core and CLI layers (OpenMS, OpenSwathAlgo, OpenMS_CLI) with their headers, the
-    CMake package, share/OpenMS and the shared libraries those layers load, relocatable
-    and without Qt or the GUI library. Point CMAKE_PREFIX_PATH at the extracted archive
-    and use find_package(OpenMS CONFIG COMPONENTS CLI). The archive's README.txt lists the
-    requirements (Boost headers of at least the version it was built against, MSVC
-    Release /MD on Windows, Ubuntu 24.04 as the Linux baseline). The CI presets now build
-    with WITH_ONNX=ON (ONNX Runtime from vcpkg), so the installers and the SDK include the
-    PeptDeep classes, their ONNX models (share/OpenMS/models) and the ONNX Runtime library,
-    which were not installed before (#10248).
   - The source tarball contains vcpkg.json, vcpkg-configuration.json and vcpkg-overlays/, so
     it builds with an external vcpkg (OPENMS_USE_VCPKG=ON and its CMAKE_TOOLCHAIN_FILE) as well
     as against system packages.
@@ -228,6 +242,9 @@ Dependencies:
   - vcpkg builds use OpenSSL 3.6.4, and the Linux DEBs and the macOS package bundle it (the 3.5.0 DEBs
     bundled 3.0.2). vcpkg.json pins the version because the baseline's 3.6.2 is affected by the
     High-severity CVE-2026-45447.
+  - The SQLite amalgamation vendored with SQLiteCpp is updated from 3.49.2, which
+    CVE-2025-6965 affects, to 3.53.1, the version vcpkg builds. Builds with
+    USE_EXTERNAL_SQLITECPP=OFF, the default, compile it into libOpenMS.
   - The bundled MaRaCluster is updated from 0.05.0 to 1.04.1 on Linux and Windows x86_64,
     and the macOS arm64 packages now include it too. MaRaClusterAdapter now converts the
     input files in MaRaCluster's index step, single-threaded, before it clusters them:
@@ -294,6 +311,9 @@ PyOpenMS:
     against static vcpkg libraries instead of the contrib. They carry the libraries the
     other builds already test, e.g. bzip2 1.0.8 instead of 1.0.5 (CVE-2019-12900),
     Xerces-C 3.3.0 instead of 3.2.0 (CVE-2018-1311), libsvm 3.35 and Arrow 24 (#10327).
+  - The Linux and Windows wheels take SQLiteCpp and SQLite from vcpkg, as the packages do,
+    instead of the copies OpenMS vendors, which the macOS wheel keeps. All wheels carry
+    SQLite 3.53.1 instead of 3.49.2 (#10327).
   - The custom type casters build their result lists with the checked
     PyList_SetItem() instead of the PyList_SET_ITEM() macro, which is unavailable
     under the Limited API. Behaviour is unchanged; failures release the partially
@@ -632,6 +652,12 @@ TOPP tools:
         groups; every other shipped mzTab reference has exactly one (fraction_group, label) per sample
         and is byte-identical (#9868, part of #9864)
     ProSE:
+      - FIX: Preserve strong peaks in the short final 100 Da window for high-resolution searches.
+        New peaks:window_type=auto keeps the full local quota at <=0.1 Da / <=100 ppm;
+        low-resolution filtering is unchanged. jump restores the previous filter and jump_full
+        forces a full quota. Peak-associated data arrays stay aligned.
+      - Fixed FragmentIndex::build reusing old peptide coordinates on a second build;
+        rebuilding now replaces the previous index and failed builds remain unbuilt.
       - BREAKING: renamed from PeptideDataBaseSearchFI. -out replaced by -out_idxml
         (one per input), -out_qpx and -out_parquet (native tables); directory outputs require
         unique input basenames (#9137, #9146).
@@ -738,6 +764,18 @@ TOPP tools:
         concatMULTISEPeptideIds, mergeMULTISEPeptideIds, addMULTISEFeatures and
         addCONCATSEFeatures were also removed from C++/Python.
     MapAlignerIdentification, MapAlignerPoseClustering, MapAlignerTreeGuided:
+      - BREAKING: MapAlignerIdentification without a reference aligns to the input that shares the
+        most identified sequences with every other input, so that each input can be aligned to it;
+        ProteomicsLFQ ('star' alignment) and MS1LabeledWorkflow, whose docs already described a
+        single reference run, change with it. The per-peptide RT consensus over all inputs used
+        before left part of larger RT shifts uncorrected, because every input contributed to the
+        consensus it was aligned to. It remains available as 'algorithm:auto_reference consensus',
+        and is used when no input shares at least two sequences with every other input. If the
+        chosen input leaves other inputs with fewer alignment points than
+        'algorithm:auto_reference_min_points' (default 11, the smallest number of points to which
+        ProteomicsLFQ and MS1LabeledWorkflow fit an RT model), the other inputs and the consensus
+        are tried as the reference as well, and the one that gives the most inputs that many points
+        is used (fixes #2541).
       - Optional -in_spectra_files/-out_spectra_files transform mzML alongside maps (#8536).
       - Fixed tree-guided transformation/residual estimates and reference-state leakage
         across repeated identification alignment calls. Pose clustering uses identity
@@ -899,6 +937,10 @@ GUI tools:
     such as OpenSwathWorkflow and FLASHDeconv, directly (#9472).
 
 OpenMS Library:
+  - mzML: read and write Zstandard (zstd) compressed binary data arrays (MS:1003780 zstd,
+    MS:1003781 byte-shuffled zstd, MS:1003782 dictionary-encoded zstd and MS:1003783-MS:1003785
+    MS-Numpress followed by zstd). Writing is enabled with PeakFileOptions::setZstdCompression(),
+    FileConverter -zstd_compression or FileFilter -peak_options:zstd_compression (#9033).
   - Added GlycanStructure and TheoreticalGlycanSpectrumGenerator for composition-based
     diagnostic/oxonium and bounded B/Y/C/Z ions, structural and internal glycan fragments,
     and HCD/ETD/EThcD glycopeptide backbone retention with configurable stubs (#10176, #10204).
@@ -953,7 +995,7 @@ OpenMS Library:
       DDA native IDs use 'frame=... scan=... precursor=...' for unique identification;
       exported PASEF spectra are marked CENTROID (#8975, #8999, #9151, #9154, #9233,
       #9243, #9380, #9387).
-    - ThermoRawFile: native .raw reading with openms-thermo-bridge 0.3.0 and .NET 8+.
+    - ThermoRawFile: native .raw reading with openms-thermo-bridge 0.3.1 and .NET 8+.
       Preserves sample/method/trailer metadata, SHA-1 provenance, scan/instrument metadata,
       MSn/SPS precursor hierarchy and supplemental activation. Optional centroid charges,
       independent noise arrays and auxiliary detector/PDA data support mzML export.
@@ -1355,10 +1397,26 @@ Documentation:
     orphaned install-contrib page is removed (#10144).
 
 Build System:
+  - OpenMS can be built and installed in layers from the same source tree, e.g. for separate
+    packages of the libraries, the TOPP tools and the GUI: the new option
+    OPENMS_USE_INSTALLED_LIBRARY builds only the TOPP tools (BUILD_TOPP_TOOLS) and/or the
+    GUI library and applications (WITH_GUI) against an installed OpenMS library of the same
+    version (OpenMS_DIR). Such a build installs its own tool registry, share/OpenMS/TOOLS/
+    OpenMS-TOPP.tsv or OpenMS-GUI.tsv, with its tools; a build of the libraries alone installs
+    none. The GUI applications and the Qt-based TOPP tools ExecutePipeline and ImageCreator
+    moved from the install component Applications to the new component GUIApplications
+    (except in the macOS .pkg installer); the installers still contain all of them. The new
+    cache variable OPENMS_INSTALL_DATA_PATH overrides the compiled-in location of the
+    installed shared data, for layers installed into separate prefixes and linked into one
+    tree (e.g. Homebrew); the GUI applications also look for TOPP tools in the bin directory
+    of that tree. macOS app bundles installed without packaging (into bin/) now find the
+    installed libraries. OpenMSConfig.cmake reports OpenMS_WITH_WNETALIGN.
   - The Debian package of a nightly or branch build carries its prerelease identifier in its
     control version, for example 3.6.0~nightly.2026.09.27, so it sorts below the release
     and a later nightly above an earlier one. Before, every build of 3.6.0 was version 3.6.0
     to apt, whether nightly or release.
+  - Debian package dependencies retain dpkg-shlibdeps detection while allowing Qt6 core,
+    gui and widgets runtime packages with either the t64 or non-t64 Ubuntu package name.
   - Public headers of OpenMS, OpenSwathAlgo, OpenMS_CLI, OpenMS_GUI and the test
     framework use CMake header file sets. Installation paths and components stay
     unchanged and private headers remain excluded. Building OpenMS and consuming
@@ -1513,6 +1571,45 @@ Build System:
     build on to later builds and to the packages. The 2026-09-24 nightlies shipped an OpenBLAS
     that needs AVX2 on x86_64 and SVE on arm64, which not every supported CPU has, and clang
     debug builds failed on x86_64 machines with AVX-512 (#10264).
+  - The installers and the pyOpenMS wheels ship the license texts of the third-party code they
+    contain; before, share/OpenMS/LICENSES held only the OpenMS license. It now also holds the
+    licenses of the vcpkg ports, which the packages and the Linux and Windows wheels contain
+    (vcpkg/), of Qt with where to get its source (Qt/, Windows and macOS), of the Homebrew
+    formulae whose libraries the macOS package and wheel bundle (homebrew/), of the system
+    libraries the wheel repair tools copy in, such as GCC's OpenMP and Fortran runtimes
+    (system/), and of the code that OpenMS carries in its source tree and compiles into
+    libOpenMS, such as Percolator with its NOTICE file (vendored/).
+    share/OpenMS/THIRD-PARTY-NOTICES.txt gathers them in one file: the third-party components,
+    grouped by where they come from, and each text once. The DEB also installs it, after the
+    OpenMS license, as /usr/share/doc/openms/copyright, and License.txt points to it (#10292).
+  - The tools the installers bundle from THIRDPARTY come with their license texts: Comet,
+    MaRaCluster, Percolator and the assemblies of ThermoRawFileParser, and so do the
+    assemblies of the in-process Thermo reader (openms-thermo-bridge 0.3.1). SpectraST is no
+    longer bundled: it is GPL-licensed and was shipped without its license text or source code.
+    SpectraSTSearchAdapter runs a separately installed spectrast given with -executable
+    (OpenMS/THIRDPARTY abe0956, #10292).
+  - The Windows installer no longer includes ProteoWizard (msconvert and the instrument vendors'
+    libraries in THIRDPARTY/pwiz-bin). OpenMS does not use it; to convert other vendor formats
+    with msconvert, install ProteoWizard from https://proteowizard.sourceforge.io/ (#10292).
+  - The Windows installer and the Linux x86_64 DEB no longer include X!Tandem
+    (THIRDPARTY/XTandem). No OpenMS tool has run it since XTandemAdapter was removed in 3.4.0,
+    and its Linux build embeds expat 2.0.1, which Critical CVEs such as CVE-2016-0718 affect.
+    OpenMS still reads X!Tandem's result files (#10344).
+  - TOPPView and TOPPAS show the notice that Thermo's RawFileReader license asks for in their
+    About dialog, in builds with the in-process Thermo reader (#10292).
+
+Known issues:
+  - Three search engines that the installers bundle from THIRDPARTY contain outdated library code:
+    Comet embeds zlib 1.2.11 and expat 2.2.9, MaRaCluster zlib 1.2.3, and Sage SQLite 3.41.2.
+    Published vulnerabilities of these versions, such as CVE-2022-25235 (expat), CVE-2016-9841
+    (zlib) and CVE-2025-6965 (SQLite), concern malformed input or SQL statements, so run these
+    engines only on files you trust. They will be rebuilt against current versions after this
+    release.
+  - All installers and pyOpenMS wheels contain OpenSSL 3.6.4, which 13 advisories published with
+    OpenSSL 3.6.5 on 2026-09-29 affect. The only one rated High, CVE-2026-84782, concerns DTLS
+    connections, which OpenMS does not open. The other twelve are rated Low; among them,
+    CVE-2026-35189 lets a malicious HTTPS server make OpenMS use excessive memory with a crafted
+    certificate.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----

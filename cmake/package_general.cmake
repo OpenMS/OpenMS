@@ -134,6 +134,30 @@ install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
 #install(RUNTIME_DEPENDENCY_SET TOPPAS_DEPS)
 #...
 
+########################################################### Third-party licenses
+## The license texts of what only the packages bundle: Qt and, on macOS, the Homebrew
+## formulae (cmake/third_party_licenses.cmake). Those of the vcpkg ports are installed for
+## every installation (CMakeLists.txt). The DEB depends on the distribution's Qt (libQt6 is
+## excluded above); the Windows and macOS packages bundle theirs.
+set(_openms_bundled_qt_version "")
+set(_openms_qt_formulae "")
+set(_openms_qt_homebrew_prefix "")
+if(WITH_GUI AND Qt6Core_FOUND AND (WIN32 OR APPLE))
+  set(_openms_bundled_qt_version "${Qt6Core_VERSION}")
+  if(APPLE)
+    ## On macOS Qt comes from Homebrew (tools/ci/deps-macos.sh). Its formulae are the kegs
+    ## that hold its CMake packages.
+    set(_openms_qt_dirs "")
+    foreach(_openms_qt_component IN ITEMS Core ${OpenMS_GUI_QT_COMPONENTS})
+      list(APPEND _openms_qt_dirs "${Qt6${_openms_qt_component}_DIR}")
+    endforeach()
+    openms_homebrew_formulae_of(_openms_qt_formulae _openms_qt_homebrew_prefix ${_openms_qt_dirs})
+  endif()
+endif()
+openms_install_third_party_licenses(QT_VERSION "${_openms_bundled_qt_version}"
+                                    HOMEBREW_PREFIX "${_openms_qt_homebrew_prefix}"
+                                    HOMEBREW_FORMULAE ${_openms_qt_formulae})
+
 ########################################################### SEARCHENGINES
 set(THIRDPARTY_COMPONENT_GROUP)
 ## populates the THIRDPARTY_COMPONENT_GROUP list
@@ -141,8 +165,24 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   ## Automatically recurse over all subfolders in SEARCH_ENGINES_DIRECTORY
   file(GLOB THIRDPARTY_SUBDIRS RELATIVE ${SEARCH_ENGINES_DIRECTORY} ${SEARCH_ENGINES_DIRECTORY}/*)
   foreach(SUBDIR ${THIRDPARTY_SUBDIRS})
+    ## Not shipped, although THIRDPARTY has them:
+    ## - ProteoWizard (pwiz-bin, Windows only). OpenMS does not use it, and it carries the
+    ##   libraries of several instrument vendors, each under its own license terms. Users get
+    ##   msconvert from ProteoWizard itself.
+    ## - X!Tandem (XTandem). No OpenMS tool runs it since XTandemAdapter was removed in 3.4.0,
+    ##   and its Linux build embeds expat 2.0.1, which Critical CVEs affect.
+    if(SUBDIR STREQUAL "pwiz-bin" OR SUBDIR STREQUAL "XTandem")
+      continue()
+    endif()
     if(IS_DIRECTORY ${SEARCH_ENGINES_DIRECTORY}/${SUBDIR})
       install_thirdparty_folder("${SUBDIR}")
+      ## The license and notice files the tool ships with, for THIRD-PARTY-NOTICES.txt.
+      openms_third_party_notice_files_of_tool(_openms_tool_notices
+                                              "${SEARCH_ENGINES_DIRECTORY}/${SUBDIR}")
+      foreach(_openms_tool_notice IN LISTS _openms_tool_notices)
+        openms_add_third_party_notice("THIRDPARTY/${SUBDIR}/${_openms_tool_notice}"
+                                      "${SEARCH_ENGINES_DIRECTORY}/${SUBDIR}/${_openms_tool_notice}")
+      endforeach()
     endif()
   endforeach()
 endif()

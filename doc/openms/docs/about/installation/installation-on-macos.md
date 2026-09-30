@@ -12,7 +12,7 @@ last release for Macs with Intel processors.
 
 To install OpenMS on macOS, run the following steps:
 
-1. Download and install the macOS drag-and-drop installer from the [archive](https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/latest/).
+1. Download and install the macOS drag-and-drop installer from the [archive](https://archive.openms.de/openms/OpenMSInstaller/release/latest/).
 2. Double click on the downloaded file. It will start to open the `OpenMS-<version>-macOS.pkg` installer file.
 
 Since OpenMS 3.6, the installer is signed and notarized by Apple, so macOS opens it without a
@@ -148,7 +148,7 @@ export DOTNET_ROOT="$(brew --prefix)/opt/dotnet/libexec"
 
 ## Build OpenMS from source
 
-To build OpenMS from source, follow the build instructions for [macOS](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html).
+To build OpenMS from source, follow the build instructions for [macOS](https://archive.openms.de/openms/Documentation/release/latest/html/install_mac.html).
 
 ## OpenMP / SIMD on macOS
 

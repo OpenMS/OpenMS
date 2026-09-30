@@ -38,25 +38,39 @@ if(WITH_GUI)
                   )
 endif()
 ## Every TOPP tool links the TOPP tool framework, so the binaries do not start
-## without the CLI layer; in a WITH_GUI build the component also holds TOPPView
-## and TOPPAS, which need the GUI layer on top of it (library_gui DEPENDS
-## library_cli). Selecting the binaries without their libraries installs tools
-## that fail at startup with a loader error for libOpenMS_CLI.
-if(WITH_GUI)
+## without the CLI layer; TOPPView, TOPPAS and the other GUI applications need the
+## GUI layer on top of it (library_gui DEPENDS library_cli). Selecting the
+## binaries without their libraries installs tools that fail at startup with a
+## loader error for libOpenMS_CLI.
+## The GUI applications have a component of their own, GUIApplications, except in
+## the productbuild installer, which keeps them in Applications
+## (OPENMS_GUI_APPLICATIONS_COMPONENT in the top-level CMakeLists.txt).
+if(WITH_GUI AND OPENMS_GUI_APPLICATIONS_COMPONENT STREQUAL "Applications")
   set(_openms_applications_depends library_gui)
+  set(_openms_applications_description "OpenMS binaries including TOPP tools, TOPPView and TOPPAS.")
 else()
   set(_openms_applications_depends library_cli)
+  set(_openms_applications_description "The TOPP tools.")
 endif()
 ## Capitalized to match the name install_tool() registers (cmake/install_macros.cmake).
 ## CPack folds the name to upper case for the CPACK_COMPONENT_<NAME>_* metadata below,
 ## but compares it verbatim when selecting what to install, so the two must agree.
 cpack_add_component(Applications
                 DISPLAY_NAME "OpenMS binaries"
-                DESCRIPTION "OpenMS binaries including TOPP tools, TOPPView and TOPPAS."
+                DESCRIPTION "${_openms_applications_description}"
                 DEPENDS ${_openms_applications_depends}
                 INSTALL_TYPES recommended full minimal
                 )
 unset(_openms_applications_depends)
+unset(_openms_applications_description)
+if(WITH_GUI AND NOT OPENMS_GUI_APPLICATIONS_COMPONENT STREQUAL "Applications")
+  cpack_add_component(${OPENMS_GUI_APPLICATIONS_COMPONENT}
+                  DISPLAY_NAME "OpenMS GUI applications"
+                  DESCRIPTION "TOPPView, TOPPAS and the other GUI applications, and the TOPP tools that need the GUI library."
+                  DEPENDS library_gui
+                  INSTALL_TYPES recommended full minimal
+                  )
+endif()
 cpack_add_component(doc
                 DISPLAY_NAME "Documentation"
                 DESCRIPTION "Class and tool documentation. With tutorials."

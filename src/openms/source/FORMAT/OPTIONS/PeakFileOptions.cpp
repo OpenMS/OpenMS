@@ -162,6 +162,16 @@ namespace OpenMS
     return zlib_compression_;
   }
 
+  void PeakFileOptions::setZstdCompression(bool zstd)
+  {
+    zstd_compression_ = zstd;
+  }
+
+  bool PeakFileOptions::getZstdCompression() const
+  {
+    return zstd_compression_;
+  }
+
   bool PeakFileOptions::getAlwaysAppendData() const
   {
     return always_append_data_;
