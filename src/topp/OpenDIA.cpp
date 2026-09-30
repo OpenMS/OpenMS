@@ -1523,84 +1523,6 @@ protected:
     }
   }
 
-  static UInt64 countOSWFeaturesForRun_(const std::string& osw_path, const UInt64 run_id)
-  {
-    if (!File::exists(osw_path))
-    {
-      return 0;
-    }
-
-    SqliteConnector conn(osw_path, SqliteConnector::SqlOpenMode::READ_ONLY);
-    if (!conn.tableExists("FEATURE"))
-    {
-      return 0;
-    }
-
-    sqlite3* db = Sql::getNativeHandle(conn);
-    sqlite3_stmt* stmt = nullptr;
-    const std::string sql = "SELECT COUNT(*) FROM FEATURE WHERE RUN_ID = ?1;";
-    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
-    {
-      throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Failed to prepare feature-count query.");
-    }
-    const sqlite3_int64 run_id_sql = static_cast<sqlite3_int64>(Sql::clearSignBit(run_id));
-    if (sqlite3_bind_int64(stmt, 1, run_id_sql) != SQLITE_OK)
-    {
-      sqlite3_finalize(stmt);
-      throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Failed to bind RUN_ID while counting extracted OSW features.");
-    }
-
-    const int step_rc = sqlite3_step(stmt);
-    if (step_rc != SQLITE_ROW && step_rc != SQLITE_DONE)
-    {
-      sqlite3_finalize(stmt);
-      throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Failed to execute feature-count query.");
-    }
-    const UInt64 feature_count = step_rc == SQLITE_ROW ?
-      static_cast<UInt64>(sqlite3_column_int64(stmt, 0)) :
-      0;
-    sqlite3_finalize(stmt);
-    return feature_count;
-  }
-
-  static void clearOSWRunData_(const std::string& osw_path, const UInt64 run_id)
-  {
-    if (!File::exists(osw_path))
-    {
-      return;
-    }
-
-    SqliteConnector conn(osw_path, SqliteConnector::SqlOpenMode::READWRITE);
-    const UInt64 run_id_clean = Sql::clearSignBit(run_id);
-    const std::string run_id_sql = StringUtils::toStr(run_id_clean);
-
-    conn.executeStatement("BEGIN TRANSACTION;");
-    try
-    {
-      conn.executeStatement("DELETE FROM FEATURE_MS1 WHERE FEATURE_ID IN (SELECT ID FROM FEATURE WHERE RUN_ID = " + run_id_sql + ");");
-      conn.executeStatement("DELETE FROM FEATURE_MS2 WHERE FEATURE_ID IN (SELECT ID FROM FEATURE WHERE RUN_ID = " + run_id_sql + ");");
-      conn.executeStatement("DELETE FROM FEATURE_PRECURSOR WHERE FEATURE_ID IN (SELECT ID FROM FEATURE WHERE RUN_ID = " + run_id_sql + ");");
-      conn.executeStatement("DELETE FROM FEATURE_TRANSITION WHERE FEATURE_ID IN (SELECT ID FROM FEATURE WHERE RUN_ID = " + run_id_sql + ");");
-      conn.executeStatement("DELETE FROM FEATURE WHERE RUN_ID = " + run_id_sql + ";");
-      conn.executeStatement("DELETE FROM RUN WHERE ID = " + run_id_sql + ";");
-      conn.executeStatement("COMMIT;");
-    }
-    catch (...)
-    {
-      try
-      {
-        conn.executeStatement("ROLLBACK;");
-      }
-      catch (...)
-      {
-      }
-      throw;
-    }
-  }
-
   static void checkpointSQLiteDatabase_(const std::string& sqlite_path, const std::string& label)
   {
     const std::string wal_path = sqlite_path + "-wal";
@@ -5331,7 +5253,7 @@ protected:
 
         return write_parquet ?
           static_cast<UInt64>(attempt_features.size()) :
-          countOSWFeaturesForRun_(workflow_output, cur_run);
+          oswwriter.countFeaturesForRun(cur_run);
       };
 
       FeatureMap run_features;
@@ -5355,7 +5277,7 @@ protected:
         retry_cp.rt_extraction_window = original_user_rt_window;
         if (write_osw)
         {
-          clearOSWRunData_(workflow_output, cur_run);
+          oswwriter.clearRunData(cur_run);
         }
         run_features.clear();
         run_feature_count = run_extraction_attempt(retry_cp, run_features, true);

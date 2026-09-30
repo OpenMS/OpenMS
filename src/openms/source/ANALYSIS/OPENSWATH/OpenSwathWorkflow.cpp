@@ -507,12 +507,16 @@ namespace OpenMS
 
       std::vector<SwathSchedulerContext> contexts(swath_maps.size());
       std::unique_ptr<OSWBufferedWriter> buffered_osw_writer;
-      if (osw_writer.isActive())
+      if (osw_writer.isActive() && scoring_threads > 1)
       {
         OPENMS_LOG_INFO << "Use buffered OSW writer with "
                         << bytesToHumanReadable(scheduler_options.osw_buffer_bytes)
                         << " queue budget and a single writer thread." << std::endl;
         buffered_osw_writer = std::make_unique<OSWBufferedWriter>(osw_writer, scheduler_options.osw_buffer_bytes);
+      }
+      else if (osw_writer.isActive())
+      {
+        OPENMS_LOG_INFO << "Use direct OSW writes with a single SWATH scoring thread." << std::endl;
       }
 
       struct InnerBatchScoringJob
