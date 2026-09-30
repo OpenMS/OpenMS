@@ -36,6 +36,20 @@ A tool refuses such an output name with an error rather than write an uncompress
 an uncompressed name, and compress the file afterwards if needed. The same applies to the modes that write spectra
 one by one, for example FileConverter with `-process_lowmemory`: they write uncompressed mzML only.
 
+### Compressing the peak data inside mzML
+
+The peak data inside an mzML file can be compressed as well. With `-zstd_compression`, new in OpenMS 3.6,
+FileConverter compresses it with Zstandard (zstd); FileFilter has the same option as
+`-peak_options:zstd_compression true`:
+
+```bash
+FileConverter -in sample.mzML -out sample_zstd.mzML -zstd_compression
+```
+
+zstd is lossless and usually gives smaller files than zlib, and it can be combined with the lossy numpress compression
+of `-lossy_compression`. Tools read such files like any other mzML file. Not every program outside OpenMS reads
+zstd-compressed mzML yet, so leave the option off for files that other software has to read.
+
 ## Parquet bundles
 
 OpenMS 3.6 can store identifications, feature maps and consensus maps as [Apache Parquet](https://parquet.apache.org/)
