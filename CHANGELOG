@@ -13,7 +13,7 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.6.0     (under development)              ----
+----                                OpenMS 3.6.0     (Released September 2026)        ----
 ------------------------------------------------------------------------------------------
 
 General:
@@ -1554,11 +1554,12 @@ Build System:
     About dialog, in builds with the in-process Thermo reader (#10292).
 
 Known issues:
-  - Two search engines that the installers bundle from THIRDPARTY contain outdated library code:
-    Comet embeds zlib 1.2.11 and expat 2.2.9, MaRaCluster zlib 1.2.3. Published vulnerabilities
-    of these versions, such as CVE-2022-25235 (expat) and CVE-2016-9841 (zlib), can be triggered
-    by malformed input files, so run these engines only on files you trust. They will be rebuilt
-    against current versions after this release.
+  - Three search engines that the installers bundle from THIRDPARTY contain outdated library code:
+    Comet embeds zlib 1.2.11 and expat 2.2.9, MaRaCluster zlib 1.2.3, and Sage SQLite 3.41.2.
+    Published vulnerabilities of these versions, such as CVE-2022-25235 (expat), CVE-2016-9841
+    (zlib) and CVE-2025-6965 (SQLite), concern malformed input or SQL statements, so run these
+    engines only on files you trust. They will be rebuilt against current versions after this
+    release.
   - All installers and pyOpenMS wheels contain OpenSSL 3.6.4, which 13 advisories published with
     OpenSSL 3.6.5 on 2026-09-29 affect. The only one rated High, CVE-2026-84782, concerns DTLS
     connections, which OpenMS does not open. The other twelve are rated Low; among them,
