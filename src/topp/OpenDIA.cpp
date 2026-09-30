@@ -158,6 +158,8 @@ protected:
     bool archive_input = false;
     bool dirty = false;
     std::unique_ptr<TempDir> temp_dir;
+    mutable std::shared_ptr<arrow::Table> runs_table_cache;
+    mutable std::unordered_map<Int64, std::shared_ptr<arrow::Table>> feature_table_cache;
   };
 
   struct PreparedLibraryPrecursor_
@@ -1449,6 +1451,34 @@ protected:
     return it != columns.end() ? it->second : nullptr;
   }
 
+  static std::shared_ptr<arrow::Table> getOSWPQRunsTable_(const OSWPQWorkspace& workspace)
+  {
+    if (workspace.runs_table_cache == nullptr)
+    {
+      workspace.runs_table_cache = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    }
+    return workspace.runs_table_cache;
+  }
+
+  static std::shared_ptr<arrow::Table> getOSWPQFeatureTable_(const OSWPQWorkspace& workspace, const Int64 run_id)
+  {
+    const auto cached = workspace.feature_table_cache.find(run_id);
+    if (cached != workspace.feature_table_cache.end())
+    {
+      return cached->second;
+    }
+
+    auto table = ParquetFile::readTable(
+      workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet");
+    workspace.feature_table_cache.emplace(run_id, table);
+    return table;
+  }
+
+  static void invalidateOSWPQFeatureTable_(OSWPQWorkspace& workspace, const Int64 run_id)
+  {
+    workspace.feature_table_cache.erase(run_id);
+  }
+
   static void replaceParquetColumns_(const std::string& file_path,
                                      const std::unordered_set<std::string>& columns_to_replace,
                                      const std::vector<std::shared_ptr<arrow::Field>>& extra_fields,
@@ -2051,7 +2081,7 @@ protected:
 
   static std::map<Int64, std::string> readOSWPQRunBasenames_(const OSWPQWorkspace& workspace)
   {
-    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    auto runs_table = getOSWPQRunsTable_(workspace);
     const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
     const auto filename_col = ParquetFile::getOptionalColumn(runs_table, "filename");
     std::map<Int64, std::string> basenames;
@@ -2236,7 +2266,7 @@ protected:
                                     "Direct OSWPQ level-context inference does not support peptidoform rows.");
     }
 
-    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    auto runs_table = getOSWPQRunsTable_(workspace);
     const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
     std::map<std::pair<Int64, Int64>, LevelContextInputRow> best_rows;
 
@@ -2244,7 +2274,7 @@ protected:
     {
       const Int64 run_id = ParquetFile::getInt64(run_id_col, run_row, 0, false);
       const std::string features_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet";
-      auto features_table = ParquetFile::readTable(features_path);
+      auto features_table = getOSWPQFeatureTable_(workspace, run_id);
       const auto precursor_id_array = ParquetFile::getColumn(features_table, "precursor_id");
       const auto score_ms2_array = ParquetFile::getOptionalColumn(features_table, "score_ms2_score");
       if (score_ms2_array == nullptr)
@@ -2336,7 +2366,7 @@ protected:
       result_maps[level] = buildLevelContextResultMaps_(results);
     }
 
-    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    auto runs_table = getOSWPQRunsTable_(workspace);
     const auto run_id_array = ParquetFile::getColumn(runs_table, "run_id");
 
     std::unordered_set<std::string> replace_columns;
@@ -2354,7 +2384,7 @@ protected:
     {
       const Int64 run_id = ParquetFile::getInt64(run_id_array, run_row, 0, false);
       const std::string features_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet";
-      auto features_table = ParquetFile::readTable(features_path);
+      auto features_table = getOSWPQFeatureTable_(workspace, run_id);
       const auto precursor_id_array = ParquetFile::getColumn(features_table, "precursor_id");
 
       std::vector<std::unique_ptr<arrow::DoubleBuilder>> double_builders;
@@ -2466,6 +2496,7 @@ protected:
       }
 
       replaceParquetColumns_(features_path, replace_columns, extra_fields, extra_arrays);
+      invalidateOSWPQFeatureTable_(workspace, run_id);
       progress_logger.setProgress(run_row + 1);
     }
 
@@ -2611,7 +2642,7 @@ protected:
                                                                                   const double max_transition_pep) const
   {
     std::unordered_map<Int64, TransitionAggregation_> aggregations;
-    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    auto runs_table = getOSWPQRunsTable_(workspace);
     const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
 
     for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
@@ -2670,7 +2701,7 @@ protected:
                                                          const OpenSwathParquetExportConfig& config) const
   {
     OpenSwathFeatureScoreTable table;
-    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    auto runs_table = getOSWPQRunsTable_(workspace);
     const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
     const auto filename_col = ParquetFile::getOptionalColumn(runs_table, "filename");
     bool discovered_dynamic_columns = false;
@@ -2680,7 +2711,7 @@ protected:
       const Int64 run_id = ParquetFile::getInt64(run_id_col, run_row, 0, false);
       const std::string filename = (filename_col != nullptr && !filename_col->IsNull(run_row)) ? ParquetFile::getString(filename_col, run_row) : "";
       const std::string features_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet";
-      auto features_table = ParquetFile::readTable(features_path);
+      auto features_table = getOSWPQFeatureTable_(workspace, run_id);
       const auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
       const auto precursor_id_col = ParquetFile::getColumn(features_table, "precursor_id");
 
@@ -2734,6 +2765,77 @@ protected:
           }
         }
         discovered_dynamic_columns = true;
+      }
+
+      const auto delta_rt_col = getOptionalParquetColumn_(feature_columns, "delta_rt");
+      const auto exp_im_col = getOptionalParquetColumn_(feature_columns, "exp_im");
+      const auto exp_im_leftwidth_col = getOptionalParquetColumn_(feature_columns, "exp_im_leftwidth");
+      const auto exp_im_rightwidth_col = getOptionalParquetColumn_(feature_columns, "exp_im_rightwidth");
+      const auto exp_rt_col = getOptionalParquetColumn_(feature_columns, "exp_rt");
+      const auto ipf_peptide_id_col = getOptionalParquetColumn_(feature_columns, "ipf_peptide_id");
+      const auto left_width_col = getOptionalParquetColumn_(feature_columns, "left_width");
+      const auto norm_rt_col = getOptionalParquetColumn_(feature_columns, "norm_rt");
+      const auto right_width_col = getOptionalParquetColumn_(feature_columns, "right_width");
+      const auto score_gene_experiment_wide_pep_col = getOptionalParquetColumn_(feature_columns, "score_gene_experiment_wide_pep");
+      const auto score_gene_experiment_wide_pvalue_col = getOptionalParquetColumn_(feature_columns, "score_gene_experiment_wide_pvalue");
+      const auto score_gene_experiment_wide_qvalue_col = getOptionalParquetColumn_(feature_columns, "score_gene_experiment_wide_qvalue");
+      const auto score_gene_experiment_wide_score_col = getOptionalParquetColumn_(feature_columns, "score_gene_experiment_wide_score");
+      const auto score_gene_global_pep_col = getOptionalParquetColumn_(feature_columns, "score_gene_global_pep");
+      const auto score_gene_global_pvalue_col = getOptionalParquetColumn_(feature_columns, "score_gene_global_pvalue");
+      const auto score_gene_global_qvalue_col = getOptionalParquetColumn_(feature_columns, "score_gene_global_qvalue");
+      const auto score_gene_global_score_col = getOptionalParquetColumn_(feature_columns, "score_gene_global_score");
+      const auto score_gene_run_specific_pep_col = getOptionalParquetColumn_(feature_columns, "score_gene_run_specific_pep");
+      const auto score_gene_run_specific_pvalue_col = getOptionalParquetColumn_(feature_columns, "score_gene_run_specific_pvalue");
+      const auto score_gene_run_specific_qvalue_col = getOptionalParquetColumn_(feature_columns, "score_gene_run_specific_qvalue");
+      const auto score_gene_run_specific_score_col = getOptionalParquetColumn_(feature_columns, "score_gene_run_specific_score");
+      const auto score_ipf_pep_col = getOptionalParquetColumn_(feature_columns, "score_ipf_pep");
+      const auto score_ipf_precursor_peakgroup_pep_col = getOptionalParquetColumn_(feature_columns, "score_ipf_precursor_peakgroup_pep");
+      const auto score_ipf_qvalue_col = getOptionalParquetColumn_(feature_columns, "score_ipf_qvalue");
+      const auto score_ms1_peak_group_rank_col = getOptionalParquetColumn_(feature_columns, "score_ms1_peak_group_rank");
+      const auto score_ms1_pep_col = getOptionalParquetColumn_(feature_columns, "score_ms1_pep");
+      const auto score_ms1_pvalue_col = getOptionalParquetColumn_(feature_columns, "score_ms1_pvalue");
+      const auto score_ms1_qvalue_col = getOptionalParquetColumn_(feature_columns, "score_ms1_qvalue");
+      const auto score_ms1_score_col = getOptionalParquetColumn_(feature_columns, "score_ms1_score");
+      const auto score_ms2_peak_group_rank_col = getOptionalParquetColumn_(feature_columns, "score_ms2_peak_group_rank");
+      const auto score_ms2_pep_col = getOptionalParquetColumn_(feature_columns, "score_ms2_pep");
+      const auto score_ms2_pvalue_col = getOptionalParquetColumn_(feature_columns, "score_ms2_pvalue");
+      const auto score_ms2_qvalue_col = getOptionalParquetColumn_(feature_columns, "score_ms2_qvalue");
+      const auto score_ms2_score_col = getOptionalParquetColumn_(feature_columns, "score_ms2_score");
+      const auto score_peptide_experiment_wide_pep_col = getOptionalParquetColumn_(feature_columns, "score_peptide_experiment_wide_pep");
+      const auto score_peptide_experiment_wide_pvalue_col = getOptionalParquetColumn_(feature_columns, "score_peptide_experiment_wide_pvalue");
+      const auto score_peptide_experiment_wide_qvalue_col = getOptionalParquetColumn_(feature_columns, "score_peptide_experiment_wide_qvalue");
+      const auto score_peptide_experiment_wide_score_col = getOptionalParquetColumn_(feature_columns, "score_peptide_experiment_wide_score");
+      const auto score_peptide_global_pep_col = getOptionalParquetColumn_(feature_columns, "score_peptide_global_pep");
+      const auto score_peptide_global_pvalue_col = getOptionalParquetColumn_(feature_columns, "score_peptide_global_pvalue");
+      const auto score_peptide_global_qvalue_col = getOptionalParquetColumn_(feature_columns, "score_peptide_global_qvalue");
+      const auto score_peptide_global_score_col = getOptionalParquetColumn_(feature_columns, "score_peptide_global_score");
+      const auto score_peptide_run_specific_pep_col = getOptionalParquetColumn_(feature_columns, "score_peptide_run_specific_pep");
+      const auto score_peptide_run_specific_pvalue_col = getOptionalParquetColumn_(feature_columns, "score_peptide_run_specific_pvalue");
+      const auto score_peptide_run_specific_qvalue_col = getOptionalParquetColumn_(feature_columns, "score_peptide_run_specific_qvalue");
+      const auto score_peptide_run_specific_score_col = getOptionalParquetColumn_(feature_columns, "score_peptide_run_specific_score");
+      const auto score_protein_experiment_wide_pep_col = getOptionalParquetColumn_(feature_columns, "score_protein_experiment_wide_pep");
+      const auto score_protein_experiment_wide_pvalue_col = getOptionalParquetColumn_(feature_columns, "score_protein_experiment_wide_pvalue");
+      const auto score_protein_experiment_wide_qvalue_col = getOptionalParquetColumn_(feature_columns, "score_protein_experiment_wide_qvalue");
+      const auto score_protein_experiment_wide_score_col = getOptionalParquetColumn_(feature_columns, "score_protein_experiment_wide_score");
+      const auto score_protein_global_pep_col = getOptionalParquetColumn_(feature_columns, "score_protein_global_pep");
+      const auto score_protein_global_pvalue_col = getOptionalParquetColumn_(feature_columns, "score_protein_global_pvalue");
+      const auto score_protein_global_qvalue_col = getOptionalParquetColumn_(feature_columns, "score_protein_global_qvalue");
+      const auto score_protein_global_score_col = getOptionalParquetColumn_(feature_columns, "score_protein_global_score");
+      const auto score_protein_run_specific_pep_col = getOptionalParquetColumn_(feature_columns, "score_protein_run_specific_pep");
+      const auto score_protein_run_specific_pvalue_col = getOptionalParquetColumn_(feature_columns, "score_protein_run_specific_pvalue");
+      const auto score_protein_run_specific_qvalue_col = getOptionalParquetColumn_(feature_columns, "score_protein_run_specific_qvalue");
+      const auto score_protein_run_specific_score_col = getOptionalParquetColumn_(feature_columns, "score_protein_run_specific_score");
+      std::vector<std::shared_ptr<arrow::Array>> feature_ms1_columns;
+      feature_ms1_columns.reserve(table.feature_ms1_column_names.size());
+      for (const auto& name : table.feature_ms1_column_names)
+      {
+        feature_ms1_columns.push_back(ParquetFile::getOptionalColumn(features_table, name));
+      }
+      std::vector<std::shared_ptr<arrow::Array>> feature_ms2_columns;
+      feature_ms2_columns.reserve(table.feature_ms2_column_names.size());
+      for (const auto& name : table.feature_ms2_column_names)
+      {
+        feature_ms2_columns.push_back(ParquetFile::getOptionalColumn(features_table, name));
       }
 
       for (int64_t row = 0; row < features_table->num_rows(); ++row)
@@ -2795,7 +2897,7 @@ protected:
               OpenSwathFeatureScoreRow score_row;
               score_row.protein_id = protein_id.value_or(-1);
               score_row.peptide_id = peptide_id;
-              score_row.ipf_peptide_id = parquetOptionalInt64_(getOptionalParquetColumn_(feature_columns, "ipf_peptide_id"), row);
+              score_row.ipf_peptide_id = parquetOptionalInt64_(ipf_peptide_id_col, row);
               score_row.precursor_id = precursor_id;
               score_row.unmodified_sequence = peptide_it->second.unmodified_sequence;
               score_row.modified_sequence = peptide_it->second.modified_sequence;
@@ -2811,75 +2913,75 @@ protected:
               score_row.run_id = run_id;
               score_row.filename = filename;
               score_row.feature_id = ParquetFile::getInt64(feature_id_col, row, 0, false);
-              score_row.exp_rt = ParquetFile::getDouble(getOptionalParquetColumn_(feature_columns, "exp_rt"), row, 0.0, true);
-              score_row.exp_im = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "exp_im"), row);
-              score_row.norm_rt = ParquetFile::getDouble(getOptionalParquetColumn_(feature_columns, "norm_rt"), row, 0.0, true);
-              score_row.delta_rt = ParquetFile::getDouble(getOptionalParquetColumn_(feature_columns, "delta_rt"), row, 0.0, true);
-              score_row.left_width = ParquetFile::getDouble(getOptionalParquetColumn_(feature_columns, "left_width"), row, 0.0, true);
-              score_row.right_width = ParquetFile::getDouble(getOptionalParquetColumn_(feature_columns, "right_width"), row, 0.0, true);
-              score_row.im_left_width = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "exp_im_leftwidth"), row);
-              score_row.im_right_width = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "exp_im_rightwidth"), row);
+              score_row.exp_rt = ParquetFile::getDouble(exp_rt_col, row, 0.0, true);
+              score_row.exp_im = parquetOptionalDouble_(exp_im_col, row);
+              score_row.norm_rt = ParquetFile::getDouble(norm_rt_col, row, 0.0, true);
+              score_row.delta_rt = ParquetFile::getDouble(delta_rt_col, row, 0.0, true);
+              score_row.left_width = ParquetFile::getDouble(left_width_col, row, 0.0, true);
+              score_row.right_width = ParquetFile::getDouble(right_width_col, row, 0.0, true);
+              score_row.im_left_width = parquetOptionalDouble_(exp_im_leftwidth_col, row);
+              score_row.im_right_width = parquetOptionalDouble_(exp_im_rightwidth_col, row);
 
-              for (const auto& name : table.feature_ms1_column_names)
+              for (const auto& column : feature_ms1_columns)
               {
-                score_row.feature_ms1_values.push_back(ParquetFile::getDouble(ParquetFile::getOptionalColumn(features_table, name), row, 0.0, true));
+                score_row.feature_ms1_values.push_back(ParquetFile::getDouble(column, row, 0.0, true));
               }
-              for (const auto& name : table.feature_ms2_column_names)
+              for (const auto& column : feature_ms2_columns)
               {
-                score_row.feature_ms2_values.push_back(ParquetFile::getDouble(ParquetFile::getOptionalColumn(features_table, name), row, 0.0, true));
+                score_row.feature_ms2_values.push_back(ParquetFile::getDouble(column, row, 0.0, true));
               }
 
-              score_row.score_ms1_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms1_score"), row);
-              const auto score_ms1_rank = parquetOptionalInt64_(getOptionalParquetColumn_(feature_columns, "score_ms1_peak_group_rank"), row);
+              score_row.score_ms1_score = parquetOptionalDouble_(score_ms1_score_col, row);
+              const auto score_ms1_rank = parquetOptionalInt64_(score_ms1_peak_group_rank_col, row);
               if (score_ms1_rank.has_value()) score_row.score_ms1_rank = static_cast<Int32>(*score_ms1_rank);
-              score_row.score_ms1_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms1_pvalue"), row);
-              score_row.score_ms1_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms1_qvalue"), row);
-              score_row.score_ms1_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms1_pep"), row);
-              score_row.score_ms2_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms2_score"), row);
-              const auto score_ms2_rank = parquetOptionalInt64_(getOptionalParquetColumn_(feature_columns, "score_ms2_peak_group_rank"), row);
+              score_row.score_ms1_pvalue = parquetOptionalDouble_(score_ms1_pvalue_col, row);
+              score_row.score_ms1_qvalue = parquetOptionalDouble_(score_ms1_qvalue_col, row);
+              score_row.score_ms1_pep = parquetOptionalDouble_(score_ms1_pep_col, row);
+              score_row.score_ms2_score = parquetOptionalDouble_(score_ms2_score_col, row);
+              const auto score_ms2_rank = parquetOptionalInt64_(score_ms2_peak_group_rank_col, row);
               if (score_ms2_rank.has_value()) score_row.score_ms2_peak_group_rank = static_cast<Int32>(*score_ms2_rank);
-              score_row.score_ms2_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms2_pvalue"), row);
-              score_row.score_ms2_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms2_qvalue"), row);
-              score_row.score_ms2_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ms2_pep"), row);
-              score_row.score_ipf_precursor_peakgroup_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ipf_precursor_peakgroup_pep"), row);
-              score_row.score_ipf_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ipf_pep"), row);
-              score_row.score_ipf_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_ipf_qvalue"), row);
-              score_row.score_peptide_global_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_global_score"), row);
-              score_row.score_peptide_global_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_global_pvalue"), row);
-              score_row.score_peptide_global_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_global_qvalue"), row);
-              score_row.score_peptide_global_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_global_pep"), row);
-              score_row.score_peptide_experiment_wide_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_experiment_wide_score"), row);
-              score_row.score_peptide_experiment_wide_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_experiment_wide_pvalue"), row);
-              score_row.score_peptide_experiment_wide_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_experiment_wide_qvalue"), row);
-              score_row.score_peptide_experiment_wide_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_experiment_wide_pep"), row);
-              score_row.score_peptide_run_specific_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_run_specific_score"), row);
-              score_row.score_peptide_run_specific_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_run_specific_pvalue"), row);
-              score_row.score_peptide_run_specific_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_run_specific_qvalue"), row);
-              score_row.score_peptide_run_specific_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_peptide_run_specific_pep"), row);
-              score_row.score_protein_global_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_global_score"), row);
-              score_row.score_protein_global_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_global_pvalue"), row);
-              score_row.score_protein_global_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_global_qvalue"), row);
-              score_row.score_protein_global_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_global_pep"), row);
-              score_row.score_protein_experiment_wide_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_experiment_wide_score"), row);
-              score_row.score_protein_experiment_wide_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_experiment_wide_pvalue"), row);
-              score_row.score_protein_experiment_wide_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_experiment_wide_qvalue"), row);
-              score_row.score_protein_experiment_wide_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_experiment_wide_pep"), row);
-              score_row.score_protein_run_specific_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_run_specific_score"), row);
-              score_row.score_protein_run_specific_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_run_specific_pvalue"), row);
-              score_row.score_protein_run_specific_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_run_specific_qvalue"), row);
-              score_row.score_protein_run_specific_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_protein_run_specific_pep"), row);
-              score_row.score_gene_global_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_global_score"), row);
-              score_row.score_gene_global_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_global_pvalue"), row);
-              score_row.score_gene_global_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_global_qvalue"), row);
-              score_row.score_gene_global_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_global_pep"), row);
-              score_row.score_gene_experiment_wide_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_experiment_wide_score"), row);
-              score_row.score_gene_experiment_wide_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_experiment_wide_pvalue"), row);
-              score_row.score_gene_experiment_wide_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_experiment_wide_qvalue"), row);
-              score_row.score_gene_experiment_wide_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_experiment_wide_pep"), row);
-              score_row.score_gene_run_specific_score = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_run_specific_score"), row);
-              score_row.score_gene_run_specific_pvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_run_specific_pvalue"), row);
-              score_row.score_gene_run_specific_qvalue = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_run_specific_qvalue"), row);
-              score_row.score_gene_run_specific_pep = parquetOptionalDouble_(getOptionalParquetColumn_(feature_columns, "score_gene_run_specific_pep"), row);
+              score_row.score_ms2_pvalue = parquetOptionalDouble_(score_ms2_pvalue_col, row);
+              score_row.score_ms2_qvalue = parquetOptionalDouble_(score_ms2_qvalue_col, row);
+              score_row.score_ms2_pep = parquetOptionalDouble_(score_ms2_pep_col, row);
+              score_row.score_ipf_precursor_peakgroup_pep = parquetOptionalDouble_(score_ipf_precursor_peakgroup_pep_col, row);
+              score_row.score_ipf_pep = parquetOptionalDouble_(score_ipf_pep_col, row);
+              score_row.score_ipf_qvalue = parquetOptionalDouble_(score_ipf_qvalue_col, row);
+              score_row.score_peptide_global_score = parquetOptionalDouble_(score_peptide_global_score_col, row);
+              score_row.score_peptide_global_pvalue = parquetOptionalDouble_(score_peptide_global_pvalue_col, row);
+              score_row.score_peptide_global_qvalue = parquetOptionalDouble_(score_peptide_global_qvalue_col, row);
+              score_row.score_peptide_global_pep = parquetOptionalDouble_(score_peptide_global_pep_col, row);
+              score_row.score_peptide_experiment_wide_score = parquetOptionalDouble_(score_peptide_experiment_wide_score_col, row);
+              score_row.score_peptide_experiment_wide_pvalue = parquetOptionalDouble_(score_peptide_experiment_wide_pvalue_col, row);
+              score_row.score_peptide_experiment_wide_qvalue = parquetOptionalDouble_(score_peptide_experiment_wide_qvalue_col, row);
+              score_row.score_peptide_experiment_wide_pep = parquetOptionalDouble_(score_peptide_experiment_wide_pep_col, row);
+              score_row.score_peptide_run_specific_score = parquetOptionalDouble_(score_peptide_run_specific_score_col, row);
+              score_row.score_peptide_run_specific_pvalue = parquetOptionalDouble_(score_peptide_run_specific_pvalue_col, row);
+              score_row.score_peptide_run_specific_qvalue = parquetOptionalDouble_(score_peptide_run_specific_qvalue_col, row);
+              score_row.score_peptide_run_specific_pep = parquetOptionalDouble_(score_peptide_run_specific_pep_col, row);
+              score_row.score_protein_global_score = parquetOptionalDouble_(score_protein_global_score_col, row);
+              score_row.score_protein_global_pvalue = parquetOptionalDouble_(score_protein_global_pvalue_col, row);
+              score_row.score_protein_global_qvalue = parquetOptionalDouble_(score_protein_global_qvalue_col, row);
+              score_row.score_protein_global_pep = parquetOptionalDouble_(score_protein_global_pep_col, row);
+              score_row.score_protein_experiment_wide_score = parquetOptionalDouble_(score_protein_experiment_wide_score_col, row);
+              score_row.score_protein_experiment_wide_pvalue = parquetOptionalDouble_(score_protein_experiment_wide_pvalue_col, row);
+              score_row.score_protein_experiment_wide_qvalue = parquetOptionalDouble_(score_protein_experiment_wide_qvalue_col, row);
+              score_row.score_protein_experiment_wide_pep = parquetOptionalDouble_(score_protein_experiment_wide_pep_col, row);
+              score_row.score_protein_run_specific_score = parquetOptionalDouble_(score_protein_run_specific_score_col, row);
+              score_row.score_protein_run_specific_pvalue = parquetOptionalDouble_(score_protein_run_specific_pvalue_col, row);
+              score_row.score_protein_run_specific_qvalue = parquetOptionalDouble_(score_protein_run_specific_qvalue_col, row);
+              score_row.score_protein_run_specific_pep = parquetOptionalDouble_(score_protein_run_specific_pep_col, row);
+              score_row.score_gene_global_score = parquetOptionalDouble_(score_gene_global_score_col, row);
+              score_row.score_gene_global_pvalue = parquetOptionalDouble_(score_gene_global_pvalue_col, row);
+              score_row.score_gene_global_qvalue = parquetOptionalDouble_(score_gene_global_qvalue_col, row);
+              score_row.score_gene_global_pep = parquetOptionalDouble_(score_gene_global_pep_col, row);
+              score_row.score_gene_experiment_wide_score = parquetOptionalDouble_(score_gene_experiment_wide_score_col, row);
+              score_row.score_gene_experiment_wide_pvalue = parquetOptionalDouble_(score_gene_experiment_wide_pvalue_col, row);
+              score_row.score_gene_experiment_wide_qvalue = parquetOptionalDouble_(score_gene_experiment_wide_qvalue_col, row);
+              score_row.score_gene_experiment_wide_pep = parquetOptionalDouble_(score_gene_experiment_wide_pep_col, row);
+              score_row.score_gene_run_specific_score = parquetOptionalDouble_(score_gene_run_specific_score_col, row);
+              score_row.score_gene_run_specific_pvalue = parquetOptionalDouble_(score_gene_run_specific_pvalue_col, row);
+              score_row.score_gene_run_specific_qvalue = parquetOptionalDouble_(score_gene_run_specific_qvalue_col, row);
+              score_row.score_gene_run_specific_pep = parquetOptionalDouble_(score_gene_run_specific_pep_col, row);
 
               if (protein_id.has_value())
               {
@@ -2933,7 +3035,7 @@ protected:
     }
 
     std::unordered_map<Int64, std::vector<FeatureTransitionObservation_>> observations_by_transition;
-    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    auto runs_table = getOSWPQRunsTable_(workspace);
     const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
     bool discovered_dynamic_columns = false;
 
@@ -3080,12 +3182,12 @@ protected:
 
   static bool oswpqHasIPFColumns_(const OSWPQWorkspace& workspace)
   {
-    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    auto runs_table = getOSWPQRunsTable_(workspace);
     const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
     for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
     {
       const Int64 run_id = ParquetFile::getInt64(run_id_col, run_row, 0, false);
-      auto feature_table = ParquetFile::readTable(workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet");
+      auto feature_table = getOSWPQFeatureTable_(workspace, run_id);
       if (ParquetFile::getOptionalColumn(feature_table, "score_ipf_qvalue") != nullptr ||
           ParquetFile::getOptionalColumn(feature_table, "score_ipf_pep") != nullptr)
       {
@@ -3135,7 +3237,7 @@ protected:
       buildTransitionAggregations_(workspace, lookup, config.max_transition_pep) :
       std::unordered_map<Int64, TransitionAggregation_>{};
 
-    auto runs_table = ParquetFile::readTable(workspace.base_dir + "/runs/runs.parquet");
+    auto runs_table = getOSWPQRunsTable_(workspace);
     const auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
     const auto filename_col = ParquetFile::getOptionalColumn(runs_table, "filename");
     std::vector<OpenSwathExportRow> rows;
@@ -3145,7 +3247,7 @@ protected:
       const Int64 run_id = ParquetFile::getInt64(run_id_col, run_row, 0, false);
       const std::string filename = (filename_col != nullptr && !filename_col->IsNull(run_row)) ? ParquetFile::getString(filename_col, run_row) : "";
       const std::string features_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet";
-      auto features_table = ParquetFile::readTable(features_path);
+      auto features_table = getOSWPQFeatureTable_(workspace, run_id);
       const auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
       const auto precursor_id_col = ParquetFile::getColumn(features_table, "precursor_id");
       const auto exp_rt_col = ParquetFile::getOptionalColumn(features_table, "exp_rt");
@@ -4228,6 +4330,8 @@ protected:
       const LibraryMode requested_library_mode = getLibraryMode_();
       LibraryMode resolved_library_mode = requested_library_mode;
       bool prepared_library_ready = false;
+      std::string empirical_library_input = input_library;
+      FileTypes::Type empirical_library_type = tr_type;
       const auto assay_parameters = getAssayGeneratorParameters_();
       if (requested_library_mode != LibraryMode::PREPARED)
       {
@@ -4248,7 +4352,21 @@ protected:
         {
           resolved_library_mode = LibraryMode::EMPIRICAL;
           OPENMS_LOG_INFO << "Auto-detected transition_list library input because no decoy transitions were found. Running peptide query preparation.\n";
-          if (File::exists(prepared_library_pqp) && !File::remove(prepared_library_pqp))
+
+          // normalizeLibraryToPQP() has already parsed light-weight inputs and materialized
+          // them as PQP. Reuse that normalized representation for assay preparation instead
+          // of reparsing the original TSV/MRM/PQP/OSWPQ source a second time. TraML stays on
+          // the heavy TargetedExperiment path to preserve its existing preparation semantics.
+          const bool can_reuse_normalized_probe =
+            tr_type == FileTypes::TSV || tr_type == FileTypes::MRM ||
+            tr_type == FileTypes::PQP || tr_type == FileTypes::OSWPQ;
+          if (can_reuse_normalized_probe)
+          {
+            empirical_library_input = prepared_library_pqp;
+            empirical_library_type = FileTypes::PQP;
+            OPENMS_LOG_INFO << "Reusing the normalized PQP from AUTO library detection for empirical assay preparation.\n";
+          }
+          else if (File::exists(prepared_library_pqp) && !File::remove(prepared_library_pqp))
           {
             throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prepared_library_pqp);
           }
@@ -4273,7 +4391,8 @@ protected:
                                         "Peptidoform inference was requested, but PeptideQueryParameters:AssayGenerator:enable_ipf is false. Enable IPF-capable empirical library preparation first.");
         }
         library_stats = library_preparation.prepareEmpiricalLibraryToPQP(
-          input_library, tr_type, prepared_library_pqp, assay_parameters, decoy_parameters, reader_parameters, working_dir.path);
+          empirical_library_input, empirical_library_type, prepared_library_pqp,
+          assay_parameters, decoy_parameters, reader_parameters, working_dir.path);
       }
 
       if (!library_stats.hasDecoys())

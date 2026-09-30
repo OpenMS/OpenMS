@@ -273,8 +273,7 @@ namespace OpenSwath
       rt(std::numeric_limits<double>::quiet_NaN()),
       rt_start(std::numeric_limits<double>::quiet_NaN()),
       rt_end(std::numeric_limits<double>::quiet_NaN()),
-      charge(0),
-      decoy(-1)
+      charge(0)
     {
     }
 
@@ -305,7 +304,6 @@ namespace OpenSwath
     std::string label_type;                      ///< Label type (e.g. "heavy" or "light")
     std::string smiles;                          ///< SMILES representation (metabolomics)
     std::string adducts;                         ///< Adducts (metabolomics)
-    int8_t decoy;                               ///< Precursor decoy flag: -1 unknown, 0 target, 1 decoy
 
     // By convention, if there is no (metabolic) compound name, it is a peptide 
     bool isPeptide() const
@@ -331,26 +329,6 @@ namespace OpenSwath
     double getDriftTime() const
     {
       return drift_time;
-    }
-
-    bool hasDecoy() const
-    {
-      return decoy != -1;
-    }
-
-    bool getDecoy() const
-    {
-      return decoy == 1;
-    }
-
-    void setDecoy(bool d)
-    {
-      decoy = d ? 1 : 0;
-    }
-
-    void clearDecoy()
-    {
-      decoy = -1;
     }
 
     std::vector<LightModification> modifications;

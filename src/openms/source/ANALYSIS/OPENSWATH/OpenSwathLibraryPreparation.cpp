@@ -185,21 +185,19 @@ namespace OpenMS
     void saveHeavyLibrary_(const std::string& output_file,
                            const FileTypes::Type output_type,
                            const ProgressLogger::LogType log_type,
-                           const TargetedExperiment& targeted_exp)
+                           TargetedExperiment& targeted_exp)
     {
       if (output_type == FileTypes::TSV)
       {
-        TargetedExperiment writable_exp(targeted_exp);
         TransitionTSVFile tsv_writer;
         tsv_writer.setLogType(log_type);
-        tsv_writer.convertTargetedExperimentToTSV(output_file.c_str(), writable_exp);
+        tsv_writer.convertTargetedExperimentToTSV(output_file.c_str(), targeted_exp);
       }
       else if (output_type == FileTypes::PQP)
       {
-        TargetedExperiment writable_exp(targeted_exp);
         TransitionPQPFile pqp_writer;
         pqp_writer.setLogType(log_type);
-        pqp_writer.convertTargetedExperimentToPQP(output_file.c_str(), writable_exp);
+        pqp_writer.convertTargetedExperimentToPQP(output_file.c_str(), targeted_exp);
       }
       else if (output_type == FileTypes::TRAML)
       {
@@ -374,8 +372,9 @@ namespace OpenMS
     {
       TargetedExperiment targeted_exp;
       loadHeavyLibrary_(input_file, input_type, reader_parameters, log_type_, targeted_exp);
+      const LibraryStats stats = collectStats_(targeted_exp);
       saveHeavyLibrary_(output_pqp, FileTypes::PQP, log_type_, targeted_exp);
-      return collectStats_(targeted_exp);
+      return stats;
     }
 
     OpenSwath::LightTargetedExperiment light_exp;
@@ -462,8 +461,9 @@ namespace OpenMS
       assays.restrictTransitions(targeted_exp, parameters.product_lower_mz_limit, parameters.product_upper_mz_limit, {});
     }
 
+    const LibraryStats stats = collectStats_(targeted_exp);
     saveHeavyLibrary_(output_file, output_type, log_type_, targeted_exp);
-    return collectStats_(targeted_exp);
+    return stats;
   }
 
   OpenSwathLibraryPreparation::LibraryStats OpenSwathLibraryPreparation::generateDecoys(
@@ -549,8 +549,9 @@ namespace OpenMS
       targeted_merged += std::move(targeted_decoy);
     }
 
+    const LibraryStats stats = collectStats_(targeted_merged);
     saveHeavyLibrary_(output_file, output_type, log_type_, targeted_merged);
-    return collectStats_(targeted_merged);
+    return stats;
   }
 
   OpenSwathLibraryPreparation::LibraryStats OpenSwathLibraryPreparation::prepareEmpiricalLibraryToPQP(

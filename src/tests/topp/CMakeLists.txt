@@ -2581,6 +2581,89 @@ if(NOT DISABLE_OPENSWATH)
     -level ms2)
   set_tests_properties("TOPP_OpenSwathPercolatorScoring_2" PROPERTIES DEPENDS "TOPP_OpenSwathPercolatorScoring_2_prepare")
 
+  # Positive end-to-end OpenDIA regression. Reuse the existing
+  # OpenSwathWorkflow_17 transition-list fixture and derive a temporary decoy copy
+  # at test runtime. The decoy rows keep the same extraction coordinates but use
+  # distinct precursor/transition IDs and Decoy=1. This avoids maintaining a
+  # second checked-in transition-list fixture while still yielding twelve
+  # target+decoy precursor groups (crossing numeric precursor ID 10).
+  add_test("TOPP_OpenDIA_success_prepare"
+    bash -c "rm -rf ${TESTS_TEMP_DIR}/OpenDIA_success_library.tmp.tsv ${TESTS_TEMP_DIR}/OpenDIA_success_library.tmp.pqp ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite_intermediates ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite_out ${TESTS_TEMP_DIR}/OpenDIA_success_parquet_intermediates ${TESTS_TEMP_DIR}/OpenDIA_success_parquet_out ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv ${TESTS_TEMP_DIR}/OpenDIA_success_parquet.identity.tsv && awk -F '\\t' 'BEGIN { OFS=\"\\t\" } NR==1 { for (i=1; i<=NF; ++i) h[$i]=i; print; next } { print; for (i=1; i<=NF; ++i) f[i]=$i; f[h[\"TransitionGroupId\"]]=\"DECOY_\" f[h[\"TransitionGroupId\"]]; f[h[\"TransitionId\"]]=\"DECOY_\" f[h[\"TransitionId\"]]; f[h[\"Decoy\"]]=1; out=f[1]; for (i=2; i<=NF; ++i) out=out OFS f[i]; print out }' ${OPENDIA_TRANSITION_LIST_LIBRARY} > ${TESTS_TEMP_DIR}/OpenDIA_success_library.tmp.tsv && \"${TOPP_BIN_PATH}/TargetedFileConverter\" -test -in ${TESTS_TEMP_DIR}/OpenDIA_success_library.tmp.tsv -out ${TESTS_TEMP_DIR}/OpenDIA_success_library.tmp.pqp -out_type pqp")
+
+  set(OPENDIA_SUCCESS_COMMON_ARGS
+    -test
+    -in ${OPENDIA_TRANSITION_LIST_INPUT_MZML}
+    -tr ${TESTS_TEMP_DIR}/OpenDIA_success_library.tmp.pqp
+    -workflow:library_mode prepared_pqp
+    -workflow:keep_intermediate_files false
+    -Rescoring:level ms2
+    -Inference:peptide:global false
+    -Inference:peptide:experiment_wide false
+    -Inference:peptide:run_specific false
+    -Inference:protein:global false
+    -Inference:protein:experiment_wide false
+    -Inference:protein:run_specific false
+    -Inference:gene:global false
+    -Inference:gene:experiment_wide false
+    -Inference:gene:run_specific false
+    -Export:parquet:run false
+    -Export:results:run true
+    -Export:results:format tsv
+    -Export:results:ipf disable
+    -Export:results:transition_quantification false
+    -Export:results:max_rs_peakgroup_qvalue 1.01
+    -Export:results:use_peptide_scores false
+    -Export:results:use_protein_scores false
+    -Export:results:use_gene_scores false
+    -Export:results:use_alignment false
+    -Export:results:exclude_decoys false
+    -Export:matrix:precursor false
+    -Export:matrix:peptide false
+    -Export:matrix:protein false
+    -Export:matrix:gene false
+    -TargetedDataExtraction:enable_ipf false
+    -TargetedDataExtraction:readOptions workingInMemory
+    -TargetedDataExtraction:mz_extraction_window 0.05
+    -TargetedDataExtraction:mz_extraction_window_unit Th
+    -TargetedDataExtraction:ms1_isotopes 0
+    -TargetedDataExtraction:ion_mobility_window 0.05
+    -TargetedDataExtraction:use_ms1_ion_mobility false
+    -TargetedDataExtraction:Scoring:TransitionGroupPicker:compute_peak_quality true
+    -TargetedDataExtraction:Scoring:Scores:use_ms1_mi false
+    -TargetedDataExtraction:Scoring:Scores:use_mi_score false
+    -TargetedDataExtraction:Scoring:Scores:use_ion_mobility_scores true
+    -TargetedDataExtraction:Calibration:auto_irt:enabled false
+    -TargetedDataExtraction:Calibration:windows:estimate_rt false
+    -TargetedDataExtraction:Calibration:windows:estimate_mz false
+    -TargetedDataExtraction:Calibration:windows:estimate_im false)
+
+  add_test("TOPP_OpenDIA_success_sqlite"
+    ${TOPP_BIN_PATH}/OpenDIA ${OPENDIA_SUCCESS_COMMON_ARGS}
+    -workflow:working_format sqlite
+    -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite_intermediates
+    -out_dir ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite_out)
+  set_tests_properties("TOPP_OpenDIA_success_sqlite" PROPERTIES DEPENDS "TOPP_OpenDIA_success_prepare")
+  add_test("TOPP_OpenDIA_success_sqlite_out"
+    bash -c "result=${TESTS_TEMP_DIR}/OpenDIA_success_sqlite_out/${OPENDIA_TRANSITION_LIST_BASENAME}.results.tsv; test -s $result && test $(wc -l < $result) -gt 1")
+  set_tests_properties("TOPP_OpenDIA_success_sqlite_out" PROPERTIES DEPENDS "TOPP_OpenDIA_success_sqlite")
+
+  add_test("TOPP_OpenDIA_success_parquet"
+    ${TOPP_BIN_PATH}/OpenDIA ${OPENDIA_SUCCESS_COMMON_ARGS}
+    -workflow:working_format parquet
+    -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_success_parquet_intermediates
+    -out_dir ${TESTS_TEMP_DIR}/OpenDIA_success_parquet_out)
+  set_tests_properties("TOPP_OpenDIA_success_parquet" PROPERTIES DEPENDS "TOPP_OpenDIA_success_prepare")
+  add_test("TOPP_OpenDIA_success_parquet_out"
+    bash -c "result=${TESTS_TEMP_DIR}/OpenDIA_success_parquet_out/${OPENDIA_TRANSITION_LIST_BASENAME}.results.tsv; test -s $result && test $(wc -l < $result) -gt 1")
+  set_tests_properties("TOPP_OpenDIA_success_parquet_out" PROPERTIES DEPENDS "TOPP_OpenDIA_success_parquet")
+
+  # Compare stable identity/annotation columns rather than classifier floating-point
+  # scores. This catches precursor metadata joins while remaining robust to harmless
+  # cross-platform score differences.
+  add_test("TOPP_OpenDIA_success_sqlite_parquet_identity"
+    bash -c "sqlite=${TESTS_TEMP_DIR}/OpenDIA_success_sqlite_out/${OPENDIA_TRANSITION_LIST_BASENAME}.results.tsv; parquet=${TESTS_TEMP_DIR}/OpenDIA_success_parquet_out/${OPENDIA_TRANSITION_LIST_BASENAME}.results.tsv; awk -F '\\t' 'NR==1 { for (i=1;i<=NF;i++) h[$i]=i; next } { print $h[\"precursor_id\"] \"\\t\" $h[\"decoy\"] \"\\t\" $h[\"Sequence\"] \"\\t\" $h[\"FullPeptideName\"] \"\\t\" $h[\"ProteinName\"] \"\\t\" $h[\"Charge\"] \"\\t\" $h[\"mz\"] }' $sqlite | sort > ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv && awk -F '\\t' 'NR==1 { for (i=1;i<=NF;i++) h[$i]=i; next } { print $h[\"precursor_id\"] \"\\t\" $h[\"decoy\"] \"\\t\" $h[\"Sequence\"] \"\\t\" $h[\"FullPeptideName\"] \"\\t\" $h[\"ProteinName\"] \"\\t\" $h[\"Charge\"] \"\\t\" $h[\"mz\"] }' $parquet | sort > ${TESTS_TEMP_DIR}/OpenDIA_success_parquet.identity.tsv && test $(wc -l < ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv) -gt 0 && diff -u ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv ${TESTS_TEMP_DIR}/OpenDIA_success_parquet.identity.tsv")
+  set_tests_properties("TOPP_OpenDIA_success_sqlite_parquet_identity" PROPERTIES DEPENDS "TOPP_OpenDIA_success_sqlite_out;TOPP_OpenDIA_success_parquet_out")
+
   add_test("TOPP_OpenDIA_prepared_missing_decoys_failure"
     bash -c "rm -rf ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys_intermediates ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys_out && \"${TOPP_BIN_PATH}/OpenDIA\" -test -in ${OPENDIA_INPUT_MZML} -tr ${OPENDIA_TARGET_LIBRARY} -workflow:library_mode prepared_pqp -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys_intermediates -out_dir ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys_out -TargetedDataExtraction:enable_ipf false -TargetedDataExtraction:readOptions workingInMemory -TargetedDataExtraction:ion_mobility_window 0.1 -TargetedDataExtraction:use_ms1_ion_mobility false -TargetedDataExtraction:Calibration:auto_irt:enabled false -TargetedDataExtraction:Calibration:windows:estimate_rt false -TargetedDataExtraction:Calibration:windows:estimate_mz false -TargetedDataExtraction:Calibration:windows:estimate_im false -TargetedDataExtraction:Scoring:Scores:use_ion_mobility_scores true -TargetedDataExtraction:pasef > ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys.log 2>&1; rc=$?; test $rc -ne 0 && grep -q \"does not contain decoy transitions\" ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys.log && test -d ${TESTS_TEMP_DIR}/OpenDIA_prepared_missing_decoys_intermediates")
 
@@ -2603,7 +2686,7 @@ if(NOT DISABLE_OPENSWATH)
     bash -c "\"${TOPP_BIN_PATH}/OpenDIA\" -test -in ${OPENDIA_INPUT_MZML} -tr ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_6_light.tsv -tr_type pqp -workflow:library_mode auto -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_tr_type_mismatch_intermediates -out_dir ${TESTS_TEMP_DIR}/OpenDIA_tr_type_mismatch_out > ${TESTS_TEMP_DIR}/OpenDIA_tr_type_mismatch.log 2>&1; rc=$?; test $rc -ne 0 && grep -q \"Explicit library type '-tr_type pqp' does not match the detected file type 'tsv'\" ${TESTS_TEMP_DIR}/OpenDIA_tr_type_mismatch.log")
 
   add_test("TOPP_OpenDIA_auto_transition_list_sqlite"
-    bash -c "rm -rf ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite_intermediates ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite_out && \"${TOPP_BIN_PATH}/OpenDIA\" -test -in ${OPENDIA_TRANSITION_LIST_INPUT_MZML} -tr ${OPENDIA_TRANSITION_LIST_LIBRARY} -workflow:library_mode auto -workflow:working_format sqlite -workflow:keep_intermediate_files false -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite_intermediates -out_dir ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite_out -PeptideQueryParameters:DecoyGenerator:min_decoy_fraction 0.0 -TargetedDataExtraction:readOptions workingInMemory -TargetedDataExtraction:ion_mobility_window 0.05 -TargetedDataExtraction:use_ms1_ion_mobility false -TargetedDataExtraction:Scoring:Scores:use_ion_mobility_scores true -TargetedDataExtraction:Calibration:auto_irt:enabled false -TargetedDataExtraction:Calibration:windows:estimate_rt false -TargetedDataExtraction:Calibration:windows:estimate_mz false -TargetedDataExtraction:Calibration:windows:estimate_im false > ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite.log 2>&1; rc=$?; test $rc -ne 0 && grep -q \"Auto-detected transition_list library input\" ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite.log && grep -q \"Using transition_list library mode: running peptide query preparation.\" ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite.log && grep -q \"Assay preparation produced zero transitions. Refusing to bypass the configured assay filters\" ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite.log && test $(find ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite_intermediates -mindepth 2 -maxdepth 2 -type f -name prepared_library.pqp | wc -l) -eq 0")
+    bash -c "rm -rf ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite_intermediates ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite_out && \"${TOPP_BIN_PATH}/OpenDIA\" -test -in ${OPENDIA_TRANSITION_LIST_INPUT_MZML} -tr ${OPENDIA_TRANSITION_LIST_LIBRARY} -workflow:library_mode auto -workflow:working_format sqlite -workflow:keep_intermediate_files false -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite_intermediates -out_dir ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite_out -PeptideQueryParameters:DecoyGenerator:min_decoy_fraction 0.0 -TargetedDataExtraction:readOptions workingInMemory -TargetedDataExtraction:ion_mobility_window 0.05 -TargetedDataExtraction:use_ms1_ion_mobility false -TargetedDataExtraction:Scoring:Scores:use_ion_mobility_scores true -TargetedDataExtraction:Calibration:auto_irt:enabled false -TargetedDataExtraction:Calibration:windows:estimate_rt false -TargetedDataExtraction:Calibration:windows:estimate_mz false -TargetedDataExtraction:Calibration:windows:estimate_im false > ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite.log 2>&1; rc=$?; test $rc -ne 0 && grep -q \"Auto-detected transition_list library input\" ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite.log && grep -q \"Reusing the normalized PQP from AUTO library detection for empirical assay preparation.\" ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite.log && grep -q \"Using transition_list library mode: running peptide query preparation.\" ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite.log && grep -q \"Assay preparation produced zero transitions. Refusing to bypass the configured assay filters\" ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite.log && test $(find ${TESTS_TEMP_DIR}/OpenDIA_auto_transition_list_sqlite_intermediates -mindepth 2 -maxdepth 2 -type f -name prepared_library.pqp | wc -l) -eq 1")
 
   add_test("TOPP_OpenDIA_auto_prepared_detection_failure"
     bash -c "rm -rf ${TESTS_TEMP_DIR}/OpenDIA_auto_prepared_intermediates ${TESTS_TEMP_DIR}/OpenDIA_auto_prepared_out && \"${TOPP_BIN_PATH}/OpenDIA\" -test -in ${OPENDIA_INPUT_MZML} -tr ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_6_light.tsv -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_auto_prepared_intermediates -out_dir ${TESTS_TEMP_DIR}/OpenDIA_auto_prepared_out -Inference:peptidoform:run true > ${TESTS_TEMP_DIR}/OpenDIA_auto_prepared.log 2>&1; rc=$?; test $rc -ne 0 && grep -q \"Auto-detected prepared_pqp library input\" ${TESTS_TEMP_DIR}/OpenDIA_auto_prepared.log && grep -q \"does not contain identifying/IPF transitions\" ${TESTS_TEMP_DIR}/OpenDIA_auto_prepared.log && test -d ${TESTS_TEMP_DIR}/OpenDIA_auto_prepared_intermediates")
