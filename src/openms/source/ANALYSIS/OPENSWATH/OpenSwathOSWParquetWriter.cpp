@@ -18,6 +18,7 @@
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <fstream>
@@ -324,7 +325,7 @@ namespace OpenMS
 
     const UInt64 run_id_clean = Internal::SqliteHelper::clearSignBit(run_id);
     const bool output_is_dir = File::isDirectory(output_path);
-    std::unique_ptr<File::TempDir> temp_dir;
+    std::unique_ptr<TempDir> temp_dir;
     std::string base_dir = output_path;
     if (!output_is_dir)
     {
@@ -339,7 +340,7 @@ namespace OpenMS
       }
       else
       {
-        temp_dir = std::make_unique<File::TempDir>();
+        temp_dir = std::make_unique<TempDir>();
         base_dir = temp_dir->getPath() + "/oswpq_output";
       }
     }

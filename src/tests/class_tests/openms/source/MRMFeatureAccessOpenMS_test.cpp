@@ -282,8 +282,11 @@ START_SECTION(([SignalToNoiseOpenMS] double getValueAtRT(double RT)))
 
   // the peak point has a far higher S/N than the baseline
   TEST_EQUAL(sn_apex > sn_base, true)
-  // S/N is linear in intensity (shared noise estimate): apex (1000) is 100x baseline (10)
-  TEST_REAL_SIMILAR(sn_apex / sn_base, 100.0)
+  // S/N is roughly linear in intensity: apex (1000) is ~100x baseline (10).
+  // The noise estimate is interpolated within the median histogram bin, so it
+  // depends slightly on the window composition (the apex window holds all 30
+  // points, the baseline window only 18), giving 100 * (9/17)/(15/29) here.
+  TEST_REAL_SIMILAR(sn_apex / sn_base, 102.352941176471)
 
   // an empty chromatogram yields the -1 sentinel
   MSChromatogram empty;

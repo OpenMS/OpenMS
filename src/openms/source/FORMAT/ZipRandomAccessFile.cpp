@@ -5,6 +5,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ZipRandomAccessFile.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <filesystem>
@@ -120,7 +121,7 @@ private:
 
 arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> ZipRandomAccessFile::Open(const std::string& archive_path,
 																																											const std::string& entry_name,
-											std::unique_ptr<File::TempDir>& temp_dir)
+											std::unique_ptr<TempDir>& temp_dir)
 {
     // temp_dir is only used on the extraction fallback path; silence unused-parameter
     // warnings when building with libzip support enabled.

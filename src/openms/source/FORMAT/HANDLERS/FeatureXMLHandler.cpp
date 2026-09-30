@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 
@@ -107,6 +108,7 @@ namespace OpenMS::Internal
 
     // write identification runs
     Size prot_count = 0;
+    const auto definitions = ModificationDefinitionIO::collect(feature_map);
     for (Size i = 0; i < feature_map.getProteinIdentifications().size(); ++i)
     {
       const ProteinIdentification& current_prot_id = feature_map.getProteinIdentifications()[i];
@@ -118,7 +120,11 @@ namespace OpenMS::Internal
       os << "search_engine_version=\"" << writeXMLEscape(current_prot_id.getSearchEngineVersion()) << "\">\n";
 
       //write search parameters
-      const ProteinIdentification::SearchParameters& search_param = current_prot_id.getSearchParameters();
+      ProteinIdentification::SearchParameters search_param = current_prot_id.getSearchParameters();
+      if (const auto d = definitions.find(current_prot_id.getIdentifier()); d != definitions.end())
+      {
+        ModificationDefinitionIO::attach(search_param, d->second);
+      }
       os << "\t\t<SearchParameters "
          << "db=\"" << writeXMLEscape(search_param.db) << "\" "
          << "db_version=\"" << writeXMLEscape(search_param.db_version) << "\" "
@@ -792,6 +798,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "SearchParameters")
     {
+      ModificationDefinitionIO::registerFrom(search_param_); // before any peptide sequence is parsed
       prot_id_.setSearchParameters(search_param_);
       search_param_ = ProteinIdentification::SearchParameters();
     }

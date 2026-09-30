@@ -75,27 +75,36 @@ through the ``py_help`` function:
     idXML=ropenms$IdXMLFile
     py_help(idXML)
 
-    Help on class IdXMLFile in module pyopenms.pyopenms_4:
+    Help on class IdXMLFile in module pyopenms._pyopenms_misc:
 
-    class IdXMLFile(__builtin__.object)
-    |  Methods defined here:
-    |
-    |  __init__(...)
-    |      Cython signature: void IdXMLFile()
-    |
-    |  load(...)
-    |      Cython signature: void load(String filename, libcpp_vector[ProteinIdentification] & protein_ids, libcpp_vector[PeptideIdentification] & peptide_ids)
-    [...]
+    class IdXMLFile(XMLFile)
+     |  IdXMLFile(*args, **kwargs)
+     |
+     |  File adapter for idXML files
+     [...]
+     |  Methods defined here:
+     |
+     |  __init__(...)
+     |      __init__(self) -> None
+     |
+     |  load(self, filename, protein_ids=None, peptide_ids=None) from pyopenms.addons.idxmlfile
+     |      Load identifications from an idXML file.
+     |
+     |      Supports both the new API (returns tuple) and the old API
+     |      (fills provided lists in place).
+     [...]
 
 Alternatively, the autocompletion functionality of RStudio can be used:
 
 .. image:: img/R_autocompletion.png
 
-In this case, the help function indicates that the ``idXML$load()`` function requires
+In this case, the help function indicates that the ``idXML$load()`` function takes
 
        - a filename as string
-       - an empty vector for pyopenms.ProteinIdentification objects
-       - an empty vector for pyopenms.PeptideIdentification objects
+       - optionally, a container to fill with pyopenms.ProteinIdentification objects
+       - optionally, a container to fill with pyopenms.PeptideIdentification objects
+
+If the two containers are omitted, ``load()`` returns the identifications as a tuple instead.
 
 In order to read peptide identification data, we can download the `idXML example file <https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/examples/BSA/BSA1_OMSSA.idXML>`_
 
@@ -155,16 +164,22 @@ We can now inspect the properties of this object:
     :linenos:
 
     py_help(exp)
-    Help on MSExperiment object:
+    Help on MSExperiment in module pyopenms._pyopenms_experiment object:
 
-    class MSExperiment(__builtin__.object)
+    class MSExperiment(pyopenms._pyopenms_kernel.ExperimentalSettings)
+     |  MSExperiment(*args, **kwargs)
+     ...
      |  Methods defined here:
      ...
      |  getNrChromatograms(...)
-     |      Cython signature: size_t getNrChromatograms()
+     |      getNrChromatograms(self) -> int
+     |
+     |      Returns the number of chromatograms
      |
      |  getNrSpectra(...)
-     |      Cython signature: size_t getNrSpectra()
+     |      getNrSpectra(self) -> int
+     |
+     |      Returns the number of MS spectra
      |
      ...
 

@@ -123,7 +123,6 @@ public:
   TOPPFeatureFinderCentroided() :
     TOPPBase("FeatureFinderCentroided", 
              "Detects two-dimensional features in LC-MS data.",
-             true,
              {
                Citation{ "Sturm M",
                          "A novel feature detection algorithm for centroided data",

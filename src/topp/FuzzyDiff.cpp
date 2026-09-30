@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 #include <algorithm>
 #include <fstream>
@@ -167,7 +168,7 @@ protected:
         std::sort(lines.begin(), lines.end());
 
         // Write to temp file
-        output_file = File::getTempDirectory() + "/" + File::basename(input_file) + ".sorted." + File::getUniqueName() + ".tmp";
+        output_file = SystemSettings::getTempDirectory() + "/" + File::basename(input_file) + ".sorted." + File::getUniqueName() + ".tmp";
         std::ofstream outfile(output_file);
         if (!outfile)
         {

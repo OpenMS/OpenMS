@@ -126,12 +126,12 @@
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.34699999999998" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.66755e07"/>
 				<userParam name="name" type="xsd:string" value="scan2"/>
-				<userParam name="filter string" type="xsd:string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="4"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan externalSpectrumID="0">
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.99049997329712" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="4"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="110" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -141,7 +141,7 @@
 					</scan>
 				</scanList>
 				<precursorList count="1">
-					<precursor spectrumRef="index=1">
+					<precursor spectrumRef="spectrum=0">
 						<selectedIonList count="1">
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="445.34" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -193,13 +193,13 @@
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.34699999999998" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.66755e07"/>
 				<userParam name="name" type="xsd:string" value="scan2"/>
-				<userParam name="filter string" type="xsd:string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="4"/>
 				<userParam name="original_RT" type="xsd:double" value="5.990499973297119"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan externalSpectrumID="0">
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="16.0904998779705" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="4"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="110" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -209,7 +209,7 @@
 					</scan>
 				</scanList>
 				<precursorList count="1">
-					<precursor spectrumRef="index=1">
+					<precursor spectrumRef="spectrum=2">
 						<selectedIonList count="1">
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="445.34" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -258,11 +258,11 @@
 <indexList count="1">
 	<index name="spectrum">
 		<offset idRef="spectrum=0">8020</offset>
-		<offset idRef="spectrum=1">11843</offset>
-		<offset idRef="spectrum=2">12624</offset>
-		<offset idRef="spectrum=3">16527</offset>
+		<offset idRef="spectrum=1">11878</offset>
+		<offset idRef="spectrum=2">12659</offset>
+		<offset idRef="spectrum=3">16597</offset>
 	</index>
 </indexList>
-<indexListOffset>17446</indexListOffset>
+<indexListOffset>17516</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

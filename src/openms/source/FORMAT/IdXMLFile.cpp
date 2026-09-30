@@ -16,6 +16,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -111,14 +112,25 @@ namespace OpenMS
     }
     os << " xsi:noNamespaceSchemaLocation=\"https://www.openms.de/xml-schema/IdXML_1_5.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
-    // look up different search parameters
+    // look up different search parameters. SearchParameters::operator== ignores meta values, so runs
+    // collapse onto one block; the block carries the modification definitions of all of them.
+    const auto definitions = ModificationDefinitionIO::collect(protein_ids, peptide_ids);
     std::vector<ProteinIdentification::SearchParameters> params;
+    std::vector<std::set<const ResidueModification*>> params_defs;
     for (std::vector<ProteinIdentification>::const_iterator it = protein_ids.begin(); it != protein_ids.end(); ++it)
     {
-      if (find(params.begin(), params.end(), it->getSearchParameters()) == params.end())
+      const Size idx = static_cast<Size>(find(params.begin(), params.end(), it->getSearchParameters()) - params.begin());
+      if (idx == params.size())
       {
         params.push_back(it->getSearchParameters());
+        params_defs.emplace_back();
       }
+      const auto d = definitions.find(it->getIdentifier());
+      if (d != definitions.end()) params_defs[idx].insert(d->second.begin(), d->second.end());
+    }
+    for (Size i = 0; i != params.size(); ++i)
+    {
+      ModificationDefinitionIO::attach(params[i], params_defs[i]);
     }
 
     // write search parameters
@@ -174,7 +186,20 @@ namespace OpenMS
     //empty search parameters
     if (params.empty())
     {
-      os << "<SearchParameters charges=\"+0, +0\" id=\"ID_1\" db_version=\"0\" mass_type=\"monoisotopic\" peak_mass_tolerance=\"0.0\" precursor_peak_tolerance=\"0.0\" db=\"Unknown\"/>\n";
+      std::set<const ResidueModification*> all_defs;
+      for (const auto& d : definitions) all_defs.insert(d.second.begin(), d.second.end());
+      if (all_defs.empty())
+      {
+        os << "<SearchParameters charges=\"+0, +0\" id=\"ID_1\" db_version=\"0\" mass_type=\"monoisotopic\" peak_mass_tolerance=\"0.0\" precursor_peak_tolerance=\"0.0\" db=\"Unknown\"/>\n";
+      }
+      else
+      {
+        os << "<SearchParameters charges=\"+0, +0\" id=\"ID_1\" db_version=\"0\" mass_type=\"monoisotopic\" peak_mass_tolerance=\"0.0\" precursor_peak_tolerance=\"0.0\" db=\"Unknown\">\n";
+        ProteinIdentification::SearchParameters sp;
+        ModificationDefinitionIO::attach(sp, all_defs);
+        writeUserParam_("UserParam", os, sp, 4);
+        os << "\t</SearchParameters>\n";
+      }
     }
 
     // throws if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
@@ -835,6 +860,7 @@ namespace OpenMS
         }
       }
       last_meta_ = nullptr;
+      ModificationDefinitionIO::registerFrom(param_); // before any peptide sequence is parsed
       parameters_[id_] = param_;
     }
     else if (tag == "FixedModification")

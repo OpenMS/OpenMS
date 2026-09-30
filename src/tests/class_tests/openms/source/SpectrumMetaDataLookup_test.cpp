@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 ///////////////////////////
 

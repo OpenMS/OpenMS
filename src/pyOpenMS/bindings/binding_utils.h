@@ -126,9 +126,9 @@ void def_DocumentIdentifier(Class& cls)
         .def("setLoadedFileType", [](T& self, const std::string& file_name) {
             return self.setLoadedFileType(file_name);
         }, "file_name"_a, "Sets the file_type according to the type of the file loaded from, preferably done whilst loading")
-        .def("getLoadedFileType", [](const T& self) -> const OpenMS::FileTypes::Type & {
+        .def("getLoadedFileType", [](const T& self) -> OpenMS::FileTypes::Type {
             return self.getLoadedFileType();
-        }, nb::rv_policy::reference_internal, "Returns the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded")
+        }, "Returns the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded")
         ;
 }
 
@@ -140,21 +140,21 @@ void def_DefaultParamHandler(Class& cls)
         .def("setParameters", [](T& self, const OpenMS::Param& param) {
             return self.setParameters(param);
         }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const T& self) -> const OpenMS::Param & {
+        .def("getParameters", [](const T& self) -> OpenMS::Param {
             return self.getParameters();
-        }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const T& self) -> const OpenMS::Param & {
+        }, "Returns a copy of the parameters")
+        .def("getDefaults", [](const T& self) -> OpenMS::Param {
             return self.getDefaults();
-        }, nb::rv_policy::reference_internal, "Returns the default parameters")
+        }, "Returns a copy of the default parameters")
         .def("getName", [](const T& self) {
             return self.getName();
         }, "Returns the name")
         .def("setName", [](T& self, const std::string& name) {
             return self.setName(name);
         }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const T& self) -> const std::vector<std::string> & {
+        .def("getSubsections", [](const T& self) -> std::vector<std::string> {
             return self.getSubsections();
-        }, nb::rv_policy::reference_internal)
+        })
         ;
 }
 
@@ -202,9 +202,9 @@ void def_CVTermList(Class& cls)
         .def("consumeCVTerms", [](T& self, const std::map<std::string, std::vector<OpenMS::CVTerm>>& cv_term_map) {
             return self.consumeCVTerms(cv_term_map);
         }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const T& self) -> const std::map<std::string, std::vector<OpenMS::CVTerm>> & {
+        .def("getCVTerms", [](const T& self) -> std::map<std::string, std::vector<OpenMS::CVTerm>> {
             return self.getCVTerms();
-        }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
+        }, "Returns a copy of the CV terms, keyed by CV accession")
         .def("addCVTerm", [](T& self, const OpenMS::CVTerm& term) {
             return self.addCVTerm(term);
         }, "term"_a, "Adds a CV term")
@@ -312,7 +312,7 @@ void checkPeakMetadataAlignment(const Container& self, size_t n, PeakMetadataPol
 /// Drop the data arrays that a peak count of @p n stranded. Only PeakMetadataPolicy::Clear acts.
 ///
 /// Call this *after* the peaks have been written, never before. The incoming intensity/position
-/// arrays may alias the very storage this releases -- FloatDataArray.get_data_view() hands out a
+/// arrays may alias the very storage this releases -- FloatDataArray.data_view() hands out a
 /// zero-copy view into a data array, and getFloatDataArrays() exposes the container's own arrays
 /// by reference -- so releasing it up front would leave the fill loop reading freed memory.
 /// Deferring also means a throwing resize() cannot leave the arrays already dropped.

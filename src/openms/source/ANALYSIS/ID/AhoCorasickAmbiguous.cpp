@@ -54,6 +54,16 @@ namespace OpenMS
 
   void ACTrie::addNeedle(const std::string& needle)
   {
+    if (needle.empty())
+    { // An empty needle would flag the root node as a hit. Since the root's suffix link points to itself, addHits_()
+      // would then never leave the root and collect hits until memory runs out (see issue #2987).
+      // Skip it, but still consume a needle index, so callers which rely on 'the i-th needle added has index i'
+      // (e.g. PeptideIndexing) stay in sync.
+      OPENMS_LOG_WARN << "ACTrie: Skipping an empty peptide that was used as input.\n";
+      ++needle_count_;
+      return;
+    }
+
     Index cn {0}; // start at root
     for (auto c : needle) // OMS_CODING_TEST_EXCLUDE
     {
@@ -265,6 +275,10 @@ namespace OpenMS
       // and a lot less memory (since only hits from current scouts are found)
       while (!state.scouts.empty())
       {
+        // Note: 'sp' is held across stepScout_(), which may push new scouts onto the very same queue.
+        //       This is only safe because std::queue defaults to a std::deque, where inserting at either
+        //       end never invalidates references to existing elements. Re-specifying the queue with a
+        //       std::vector container would turn this into a dangling reference on reallocation.
         ACScout& sp = state.scouts.front();
         // let scout traverse the tree until it dies. This might add new scouts to the queue.
         while (stepScout_(sp, state));

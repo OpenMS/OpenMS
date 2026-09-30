@@ -21,6 +21,7 @@
 #include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <arrow/api.h>
 #include <sqlite3.h>
@@ -92,7 +93,7 @@ namespace OpenMS
       String base_dir;
       String output_path;
       bool output_is_archive = false;
-      std::unique_ptr<File::TempDir> temp_dir;
+      std::unique_ptr<TempDir> temp_dir;
     };
 
     template <typename K>

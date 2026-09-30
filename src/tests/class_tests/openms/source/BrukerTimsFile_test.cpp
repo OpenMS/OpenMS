@@ -15,10 +15,15 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
+
+#include <fstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -113,6 +118,109 @@ START_SECTION(void load(const std::string& path, MSExperiment& exp, const Config
   BrukerTimsFile f;
   MSExperiment exp;
   TEST_EXCEPTION(Exception::FileNotReadable, f.load("/nonexistent/path.d", exp));
+}
+END_SECTION
+
+START_SECTION([EXTRA] load() of a zipped .d directory (.d.zip))
+{
+  // opentims only opens directories, so load() unpacks a '.d.zip' archive and reads the
+  // (possibly nested) .d directory inside it. SDK-free: neither archive holds TDF data.
+  TempDir tmp;
+  BrukerTimsFile f;
+  MSExperiment exp;
+
+  // No .d directory in the archive: reported as such, instead of handing the archive
+  // itself to opentims ("... .d.zip (opentims: Not a directory)").
+  const std::string no_d = tmp.getPath() + "/no_d";
+  File::makeDir(no_d);
+  { std::ofstream os((no_d + "/readme.txt").c_str()); os << "no Bruker data"; }
+  const std::string no_d_zip = tmp.getPath() + "/no_d.d.zip";
+  ZipArchiveFile::zipDirectory(no_d, no_d_zip);
+  TEST_EXCEPTION(Exception::ParseError, f.load(no_d_zip, exp));
+
+  // A nested .d directory is what reaches opentims (which rejects it: no TDF data).
+  const std::string nested = tmp.getPath() + "/nested";
+  File::makeDir(nested + "/outer/run.d");
+  { std::ofstream os((nested + "/outer/run.d/analysis.tdf").c_str()); os << "no TDF data"; }
+  const std::string nested_zip = tmp.getPath() + "/run.d.zip";
+  ZipArchiveFile::zipDirectory(nested, nested_zip);
+  std::string message;
+  try
+  {
+    f.load(nested_zip, exp);
+  }
+  catch (const Exception::FileNotReadable& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.find("run.d (opentims") != std::string::npos, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] load() reads the shallowest .d directory with analysis.tdf in a .d.zip)
+{
+  // Archives made with macOS's "Compress" also hold __MACOSX/<name>.d with AppleDouble files
+  // only, and a directory lists its entries in no specified order. SDK-free: no TDF data.
+  TempDir tmp;
+  BrukerTimsFile f;
+  MSExperiment exp;
+  auto write = [](const std::string& file) { std::ofstream os(file.c_str()); os << "no TDF data"; };
+
+  // Only an AppleDouble twin and a .d without analysis.tdf: nothing to hand to opentims.
+  const std::string mac_only = tmp.getPath() + "/mac_only";
+  File::makeDir(mac_only + "/__MACOSX/run.d");
+  write(mac_only + "/__MACOSX/run.d/._analysis.tdf");
+  File::makeDir(mac_only + "/notes.d");
+  write(mac_only + "/notes.d/readme.txt");
+  const std::string mac_only_zip = tmp.getPath() + "/mac_only.d.zip";
+  ZipArchiveFile::zipDirectory(mac_only, mac_only_zip);
+  TEST_EXCEPTION(Exception::ParseError, f.load(mac_only_zip, exp))
+
+  // The run beside its AppleDouble twin and a deeper run: the shallow run.d reaches opentims.
+  const std::string mixed = tmp.getPath() + "/mixed";
+  File::makeDir(mixed + "/run.d");
+  write(mixed + "/run.d/analysis.tdf");
+  File::makeDir(mixed + "/__MACOSX/run.d");
+  write(mixed + "/__MACOSX/run.d/._analysis.tdf");
+  File::makeDir(mixed + "/backup/old.d");
+  write(mixed + "/backup/old.d/analysis.tdf");
+  const std::string mixed_zip = tmp.getPath() + "/mixed.d.zip";
+  ZipArchiveFile::zipDirectory(mixed, mixed_zip);
+  std::string message;
+  try
+  {
+    f.load(mixed_zip, exp);
+  }
+  catch (const Exception::FileNotReadable& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.find("run.d (opentims") != std::string::npos, true)
+  TEST_EQUAL(message.find("__MACOSX") == std::string::npos, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] readDIAMetadata() keeps its .d.zip extraction for the next call)
+{
+  // SwathFile sizes its consumer from readDIAMetadata() and then streams the spectra with
+  // loadDIAStreaming(). The second call reads the files the first one unpacked, so both see the
+  // same data and the archive is unpacked once. Data-free: the archive is deleted after
+  // readDIAMetadata(), so only kept files let the next call reach opentims again.
+  TempDir tmp;
+  const std::string src = tmp.getPath() + "/src";
+  File::makeDir(src + "/run.d");
+  { std::ofstream os((src + "/run.d/analysis.tdf").c_str()); os << "no TDF data"; }
+  const std::string archive = tmp.getPath() + "/run.d.zip";
+  ZipArchiveFile::zipDirectory(src, archive);
+
+  BrukerTimsFile f;
+  ExperimentalSettings settings;
+  TEST_EXCEPTION(Exception::FileNotReadable, f.readDIAMetadata(archive, settings)) // opentims: no TDF data
+  File::remove(archive);
+  RegularSwathFileConsumer consumer;
+  TEST_EXCEPTION(Exception::FileNotReadable, f.loadDIAStreaming(archive, consumer)) // the kept files
+  MSExperiment exp;
+  TEST_EXCEPTION(Exception::FileNotFound, f.load(archive, exp)) // nothing kept any more
 }
 END_SECTION
 
@@ -339,6 +447,15 @@ START_SECTION(DDA loading integration test)
 
   // Verify source file metadata was populated (I4)
   TEST_NOT_EQUAL(exp.getSourceFiles().size(), 0);
+
+  // Start of the acquisition and the instrument, from GlobalMetadata. This instrument calls itself 'impacTEM-pt', which
+  // is no PSI-MS model name, so the timsTOF series is reported (as msconvert does).
+  TEST_EQUAL(exp.getDateTime().get(), "2021-05-10 10:10:44")
+  TEST_EQUAL(exp.getMetaValue("mzml_start_time_stamp").toString(), "2021-05-10T10:10:44.193+01:00")
+  TEST_EQUAL(exp.getInstrument().getName(), "Bruker Daltonics timsTOF series")
+  TEST_EQUAL(exp.getInstrument().getModel(), "impacTEM-pt")
+  TEST_EQUAL(exp.getInstrument().getVendor(), "Bruker")
+  TEST_EQUAL(exp.getInstrument().getMetaValue("instrument serial number").toString(), "1854399.00095")
 }
 END_SECTION
 
@@ -664,7 +781,7 @@ START_SECTION(DDA round-trip test: load .d -> write mzML -> reload -> verify)
   // Write to temporary mzML — avoid NEW_TMP_FILE because the test
   // framework validates all registered .mzML files, and the IM data
   // array CV term MS:1003008 fails semantic validation (known issue).
-  std::string tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_dda_roundtrip.mzML";
+  std::string tmp_mzml = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_dda_roundtrip.mzML";
   MzMLFile().store(tmp_mzml, orig);
 
   // Reload from mzML
@@ -690,6 +807,11 @@ START_SECTION(DDA round-trip test: load .d -> write mzML -> reload -> verify)
       break;
     }
   }
+
+  // The start of the acquisition (with its time zone), the instrument model and its serial number survive as well
+  TEST_EQUAL(reloaded.getMetaValue("mzml_start_time_stamp").toString(), "2021-05-10T10:10:44.193+01:00")
+  TEST_EQUAL(reloaded.getInstrument().getName(), "Bruker Daltonics timsTOF series")
+  TEST_EQUAL(reloaded.getInstrument().getMetaValue("instrument serial number").toString(), "1854399.00095")
 }
 END_SECTION
 
@@ -1204,7 +1326,7 @@ START_SECTION(DIA round-trip test: load .d -> write mzML -> reload -> verify)
   f.load(OPENTIMS_DIA_TEST_DATA, orig);
 
   // Write to temporary mzML — avoid NEW_TMP_FILE (see DDA round-trip comment)
-  std::string tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_dia_roundtrip.mzML";
+  std::string tmp_mzml = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_dia_roundtrip.mzML";
   MzMLFile().store(tmp_mzml, orig);
 
   // Reload from mzML

@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <string>
 
@@ -44,7 +45,7 @@ START_SECTION(bool isActive() const)
   OpenSwathOSWWriter inactive_writer("", false);
   TEST_EQUAL(inactive_writer.isActive(), false)
 
-  std::string temp_file = File::getTemporaryFile();
+  std::string temp_file = TempFiles::getTemporaryFile();
   OpenSwathOSWWriter active_writer(temp_file, false);
   TEST_EQUAL(active_writer.isActive(), true)
   File::remove(temp_file);
@@ -62,7 +63,7 @@ START_SECTION([EXTRA] RUN.ID is stored as INTEGER not BLOB (regression test for 
   //   1. typeof(RUN.ID) == 'integer'     (was 'blob' before the fix)
   //   2. A JOIN between RUN and FEATURE on run_id returns rows when expected
 
-  std::string temp_file = File::getTemporaryFile();
+  std::string temp_file = TempFiles::getTemporaryFile();
 
   // Use a large 64-bit value that previously triggered the BLOB storage bug
   const UInt64 large_run_id = 6130996817540441879ULL;
@@ -118,7 +119,7 @@ END_SECTION
 
 START_SECTION([EXTRA] prepareLine indexes masserror_ppm by MS2 subordinate position)
 {
-  std::string temp_file = File::getTemporaryFile();
+  std::string temp_file = TempFiles::getTemporaryFile();
 
   {
     OpenSwathOSWWriter writer(temp_file, false);
@@ -172,7 +173,7 @@ END_SECTION
 
 START_SECTION([EXTRA] prepareLine uses available UIS transition names instead of reported count)
 {
-  std::string temp_file = File::getTemporaryFile();
+  std::string temp_file = TempFiles::getTemporaryFile();
 
   {
     OpenSwathOSWWriter writer(temp_file, true);

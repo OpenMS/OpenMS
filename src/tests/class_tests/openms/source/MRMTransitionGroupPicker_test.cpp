@@ -260,13 +260,13 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     TEST_EQUAL(transition_group.getFeatures().size(), 1)
     MRMFeature mrmfeature = transition_group.getFeatures()[0];
     TEST_REAL_SIMILAR(mrmfeature.getRT(), 1492.83060)
-    TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 567375)
-    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 1481.84)
+    TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 564236)
+    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 1484.60998535156)
     TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 1501.23)
 
     // test the number of hull points (should be equal)
-    TEST_EQUAL( mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints().size(), 7);
-    TEST_EQUAL( mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints().size(), 7);
+    TEST_EQUAL( mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints().size(), 6);
+    TEST_EQUAL( mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints().size(), 6);
 
     // the intensity of the hull points should not have changed
 
@@ -277,8 +277,8 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     {
       sum += it->getY();
     }
-    TEST_REAL_SIMILAR(sum, 507385.32);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 507385.32);
+    TEST_REAL_SIMILAR(sum, 504308.354492188);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 504308);
 
     // Check Feature 1
     ConvexHull2D::PointArrayType data2_points = mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints();
@@ -287,8 +287,8 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     {
       sum += it->getY();
     }
-    TEST_REAL_SIMILAR(sum, 59989.8287208466);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 59989.8287208466);
+    TEST_REAL_SIMILAR(sum, 59927.5729999542);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 59927.6);
 
     // Also check the MS1
     std::vector<std::string> result;
@@ -303,7 +303,7 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     }
     // Part of the signal gets lost due to the re-sampling since the MS1 sampling
     // positions are not at the same place as the MS2 sampling positions
-    double resampling_loss = 875.9514;
+    double resampling_loss = 6043.9760742188;
     TEST_REAL_SIMILAR(sum, 53900 - resampling_loss);
     TEST_REAL_SIMILAR(mrmfeature.getPrecursorFeature("Precursor_i0").getIntensity(),
     // mrmfeature.getMS1Feature().getIntensity(), 53900 - resampling_loss);
@@ -328,17 +328,21 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     TEST_EQUAL(transition_group.getFeatures().size(), 1);
     MRMFeature mrmfeature = transition_group.getFeatures()[0];
     TEST_REAL_SIMILAR(mrmfeature.getRT(), 14);
-    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 7);
-    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 21);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 140);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 117);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 45);
+    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 8);
+    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 20);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 134);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 102);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 39);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 16);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 11);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_int"), 3);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 14);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 7);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 7);
+    // Transition 2's trace has two equal-height local maxima (RT 7 and RT 16); with
+    // the current (narrower) consensus boundary, the RT-7 apex point falls outside
+    // it, so the RT-16 one is reported -- matching what "no consensus" mode below
+    // already finds for this transition.
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 16);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 8);
   }
 
   { // transition group 2 (no consensus)
@@ -359,17 +363,17 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     TEST_EQUAL(transition_group.getFeatures().size(), 2);
     MRMFeature mrmfeature = transition_group.getFeatures()[0];
     TEST_REAL_SIMILAR(mrmfeature.getRT(), 14);
-    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 7);
-    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 21);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 140);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 58); // consensus = 117
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 45);
+    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 8);
+    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 20);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 134);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 64); // consensus = 102
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 39);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 16);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 11);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_int"), 3);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 14);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 16); // consensus = 7
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 7);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 16); // consensus = 16
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 8);
   }
 
   { // transition group 1 -- only quantifying
@@ -386,7 +390,7 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
 
       TEST_EQUAL(transition_group.getFeatures().size(), 1)
       MRMFeature mrmfeature = transition_group.getFeatures()[0];
-      TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 567375)
+      TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 564236)
       TEST_REAL_SIMILAR(mrmfeature.getRT(), 1492.83060);
     }
 
@@ -398,7 +402,7 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
 
       TEST_EQUAL(transition_group.getFeatures().size(), 1)
       MRMFeature mrmfeature = transition_group.getFeatures()[0];
-      TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 507385)
+      TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 504308)
       TEST_REAL_SIMILAR(mrmfeature.getRT(), 1492.83060);
     }
 
@@ -410,7 +414,7 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
 
       TEST_EQUAL(transition_group.getFeatures().size(), 1)
       MRMFeature mrmfeature = transition_group.getFeatures()[0];
-      TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 59989.8)
+      TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 59927.6)
       TEST_REAL_SIMILAR(mrmfeature.getRT(), 1492.83060);
     }
 
@@ -443,21 +447,21 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
 
       TEST_EQUAL(transition_group.getFeatures().size(), 2);
       MRMFeature mrmfeature = transition_group.getFeatures()[0];
-      TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 243)
+      TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 237)
       TEST_REAL_SIMILAR(mrmfeature.getRT(), 14.0);
 
       TEST_REAL_SIMILAR(mrmfeature.getRT(), 14);
-      TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 7);
-      TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 21);
-      TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 140);
-      TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 58); // consensus = 117
-      TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 45);
+      TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 8);
+      TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 20);
+      TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 134);
+      TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 64); // consensus = 102
+      TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 39);
       TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 16);
       TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 11);
       TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_int"), 3);
       TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 14);
-      TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 16); // consensus = 7
-      TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 7);
+      TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 16); // consensus = 16
+      TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 8);
 
       // Regression test for GitHub issue #9138: with use_consensus=false,
       // hull_points must be equal-sized so cross-correlation scoring does

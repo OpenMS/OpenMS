@@ -11,6 +11,9 @@ set(CF_OPENMS_DATA_PATH ${OPENMS_HOST_DIRECTORY}/share/OpenMS CACHE INTERNAL "Pa
 set(CF_OPENMS_DOC_PATH ${OPENMS_HOST_DIRECTORY}/doc CACHE INTERNAL "Path to the documentation of OpenMS.")
 ## and the corresponding ones when installed (careful, you have to rebuild if you change -DCMAKE_PREFIX_PATH). Also, does not work after deployment.
 set(CF_OPENMS_INSTALL_DATA_PATH ${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR} CACHE INTERNAL "Path to the installed shared documents of OpenMS.")
+
+## the generated TOPP tool registry of this build tree (see cmake/topp_tool_macros.cmake)
+set(CF_OPENMS_BUILD_TOOL_REGISTRY_PATH ${OPENMS_TOOL_REGISTRY_BUILD_DIR} CACHE INTERNAL "Path to the TOPP tool registry generated in this build tree.")
 set(CF_OPENMS_INSTALL_DOC_PATH ${CMAKE_INSTALL_PREFIX}/${INSTALL_DOC_DIR} CACHE INTERNAL "Path to the installed documentation of OpenMS." )
 
 #------------------------------------------------------------------------------
@@ -34,13 +37,6 @@ TEST_BIG_ENDIAN(OPENMS_BIG_ENDIAN)
 ## check 32/64 bit architecture (defined above!)
 if (NOT DEFINED OPENMS_64BIT_ARCHITECTURE)
 	message(FATAL_ERROR "Cmake script was re-ordered and is now invalid! Please make sure that OPENMS_64BIT_ARCHITECTURE is defined when config.h.in is configured!")
-endif()
-
-## conditionally include //@dot commands in doxygen using using #ifdef OPENMS_HASDOXYGENDOT
-if (DOXYGEN_HAVE_DOT)
-  set(CF_OPENMS_HASDOXYGENDOT 1)
-else()
-  set(CF_OPENMS_HASDOXYGENDOT 0)
 endif()
 
 #------------------------------------------------------------------------------

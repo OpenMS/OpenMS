@@ -28,6 +28,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       version_name: ${{ steps.version.outputs.name }}
       version_type: ${{ steps.version.outputs.type }}
+      source_tarball: ${{ steps.source-name.outputs.tarball }}
 
     steps:
       - uses: actions/checkout@v6
@@ -47,13 +48,35 @@ jobs:
           fi
 
       - name: Build OpenMS
+        id: build-openms
         uses: ./.github/actions/build
         with:
           compiler: ${{ matrix.compiler }}
+          ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
 
       - name: Parse the Version Number
         id: version
         uses: ./.github/actions/version
+
+      # A release's tarball carries the plain version, the file name the
+      # Bioconda recipe downloads (OpenMS-<version>.tar.gz); any other build
+      # is named after its type, e.g. OpenMS-nightly-<date>.tar.gz.
+      - name: Name the Source Tarball
+        id: source-name
+        shell: bash
+        env:
+          HAS_VERSION: ${{ steps.version.outputs.has_version }}
+          VERSION: ${{ steps.version.outputs.version }}
+          VERSION_NAME: ${{ steps.version.outputs.name }}
+        run: |
+          if [[ "$HAS_VERSION" == "true" ]]; then
+            echo "tarball=OpenMS-${VERSION}.tar.gz" >>"$GITHUB_OUTPUT"
+          else
+            echo "tarball=OpenMS-${VERSION_NAME}.tar.gz" >>"$GITHUB_OUTPUT"
+          fi
 
       - name: Compute Package Type
         id: package-info
@@ -108,8 +131,9 @@ jobs:
             SIGNING_IDENTITY: "Developer ID Application: OpenMS Inc. (C64UCGJ5PL)"
             SIGNING_EMAIL: "apple@openms.de"
             CPACK_PRODUCTBUILD_IDENTITY_NAME: "Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)"
+            PRESET: ${{ steps.build-openms.outputs.preset }}
         run: |
-          cd build || exit 1
+          cd "build/$PRESET" || exit 1
 
           cmake_options=(
             "-DPACKAGE_TYPE=$PACKAGE_TYPE"
@@ -124,14 +148,35 @@ jobs:
             )
           fi
 
-          cmake "${cmake_options[@]}" ..
+          # makensis.exe opens every staged file (including the Doxygen HTML
+          # docs) through the plain Win32 file APIs, which are bound by
+          # MAX_PATH (260 chars). Deeply-mangled template filenames in the
+          # docs (e.g. GridSearch's nested Looper struct) combined with
+          # CPack's default staging path under this already-long build
+          # directory push some files past that limit and abort the NSIS
+          # build. Stage the CPack package build in a short, fixed directory
+          # on Windows instead, so the full staged path stays well under
+          # MAX_PATH; the resulting installer is moved back next to the
+          # other build output below so later steps don't need to know.
+          WIN_CPACK_STAGE_DIR="C:/cpk"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            rm -rf "/c/cpk"
+            mkdir -p "/c/cpk"
+            cmake_options+=("-DCPACK_PACKAGE_DIRECTORY=$WIN_CPACK_STAGE_DIR")
+          fi
+
+          cmake "${cmake_options[@]}" ../..
 
           if ! ninja dist; then
             if [[ "$RUNNER_OS" == "Windows" ]]; then
-              cat _CPack_Packages/win64/NSIS/NSISOutput.log
+              cat /c/cpk/_CPack_Packages/win64/NSIS/NSISOutput.log
             fi
 
             exit 1
+          fi
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            mv /c/cpk/*.exe .
           fi
 
       # Notarize macOS packages for Gatekeeper approval
@@ -142,9 +187,10 @@ jobs:
         env:
           APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD }}
           TEAM_ID: "C64UCGJ5PL"
+          PRESET: ${{ steps.build-openms.outputs.preset }}
         run: |
           echo "=== Starting macOS package notarization ==="
-          cd build
+          cd "build/$PRESET"
 
           # Find the generated .pkg file
           PKG_FILE=$(ls -1 *.pkg 2>/dev/null | head -1)
@@ -163,7 +209,7 @@ jobs:
             "apple@openms.de" \
             "APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD" \
             "$TEAM_ID" \
-            "$GITHUB_WORKSPACE/build/"
+            "$GITHUB_WORKSPACE/build/$PRESET"
 
           echo "=== Notarization complete ==="
 
@@ -177,9 +223,9 @@ jobs:
         with:
           name: ${{ format('installer-{0}-{1}-{2}', steps.version.outputs.name, runner.os, runner.arch) }}
           path: |
-            ${{ github.workspace }}/build/*.exe
-            ${{ github.workspace }}/build/*.deb
-            ${{ github.workspace }}/build/*.pkg
+            ${{ github.workspace }}/build/${{ steps.build-openms.outputs.preset }}/*.exe
+            ${{ github.workspace }}/build/${{ steps.build-openms.outputs.preset }}/*.deb
+            ${{ github.workspace }}/build/${{ steps.build-openms.outputs.preset }}/*.pkg
 
       # Zip the documentation first, since there are :: which make the
       # upload action choke.
@@ -188,7 +234,7 @@ jobs:
         uses: thedoctor0/zip-release@0.7.6
         with:
           type: 'zip'
-          directory: ${{ github.workspace }}/build/doc
+          directory: ${{ github.workspace }}/build/${{ steps.build-openms.outputs.preset }}/doc
           exclusions: '/CMakeFiles/* /doxygen/* /code_examples/*'
           filename: 'documentation.zip'
 
@@ -198,31 +244,44 @@ jobs:
         with:
           name: documentation
           path: |
-            ${{ github.workspace }}/build/doc/documentation.zip
+            ${{ github.workspace }}/build/${{ steps.build-openms.outputs.preset }}/doc/documentation.zip
 
       - name: Create a tarball of the Source Code
         if: steps.solo.outputs.solo == 'true'
         env:
-          VERSION: ${{ steps.version.outputs.name }}
+          TARBALL: ${{ steps.source-name.outputs.tarball }}
         run: |
           # FIXME: Why not use `git archive`?
+          # The build also leaves its caches (.ccache, .vcpkg-cache) and the
+          # third-party tools (_thirdparty) in the workspace.
+          # Of vcpkg, only the vcpkg/ submodule (and a vcpkg_installed/ tree) is
+          # left out: vcpkg.json, vcpkg-configuration.json and vcpkg-overlays/
+          # (overlay ports and triplets) are shipped, so the tarball builds with an
+          # external vcpkg (-DOPENMS_USE_VCPKG=ON
+          # -DCMAKE_TOOLCHAIN_FILE=<vcpkg root>/scripts/buildsystems/vcpkg.cmake)
+          # as well as against system packages (the default, OPENMS_USE_VCPKG=OFF).
+          # './vcpkg/*' only matches at the top level, unlike 'vcpkg*/**', which
+          # also dropped vcpkg-overlays/ and any 'vcpkg' directory deeper in the tree.
           tar \
             --directory "$GITHUB_WORKSPACE" \
             --exclude='build/*' \
             --exclude='THIRDPARTY/**' \
-            --exclude='contrib/**' \
             --exclude='.git/**' \
             --exclude='.github/**' \
-            --exclude='vcpkg*/**' \
-            -czf "$RUNNER_TEMP/OpenMS-${VERSION}.tar.gz" .
+            --exclude='./vcpkg/*' \
+            --exclude='./vcpkg_installed/*' \
+            --exclude='.ccache/**' \
+            --exclude='.vcpkg-cache/**' \
+            --exclude='_thirdparty/**' \
+            -czf "$RUNNER_TEMP/$TARBALL" .
 
       - name: Upload Source Code as an Artifact
         if: steps.solo.outputs.solo == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: OpenMS-${{ steps.version.outputs.name }}.tar.gz
+          name: ${{ steps.source-name.outputs.tarball }}
           path: |
-            ${{ runner.temp }}/OpenMS-${{ steps.version.outputs.name }}.tar.gz
+            ${{ runner.temp }}/${{ steps.source-name.outputs.tarball }}
 
   deploy-installer:
     name: "Deploy Installer"
@@ -252,6 +311,10 @@ jobs:
           src: ${{ github.workspace }}/downloads/*
           dst: /OpenMSInstaller/${{ needs.build-and-test.outputs.version_type }}/${{ needs.build-and-test.outputs.version }}
           latest: ${{ needs.build-and-test.outputs.version }}
+          # The archive has no OpenMSInstaller/release/ yet, and rsync creates only
+          # the last directory of dst by itself. A nightly's dated folder sits
+          # below the existing nightly/, so nightlies keep running without it.
+          mkpath: ${{ needs.build-and-test.outputs.has_version }}
 
   deploy-docs:
     name: "Deploy Documentation"
@@ -356,11 +419,13 @@ jobs:
           VERSION_TYPE: ${{ needs.build-and-test.outputs.version_type }}
         shell: bash
         run: |
+          # Fill the template with the version and the CHANGELOG section in file $1.
           # Okay, maybe this is over the top.
+          function render() {
           awk \
             --assign VERSION_TYPE="$VERSION_TYPE" \
             --assign VERSION="$VERSION" \
-            --assign CHANGELOG_FILE="release-changelog.txt" \
+            --assign CHANGELOG_FILE="$1" \
             --source '
               BEGIN {
                 cl_text = ""
@@ -393,7 +458,59 @@ jobs:
                 }
 
                 print line
-              }' <.github/workflows/release-announcement.txt >release-announcement.txt
+              }' <.github/workflows/release-announcement.txt
+          }
+
+          # The full announcement, for the website.
+          render release-changelog.txt >release-announcement.txt
+
+          # GitHub keeps only the first 125,000 characters of a release body, and the
+          # 3.6.0 announcement was longer: its notes stopped mid-word and lost "Known
+          # issues". If the announcement is too long, the release notes keep the
+          # introduction and "Known issues" (moved up), then as many whole sections as
+          # fit, and link the full CHANGELOG for the rest.
+          python3 - <<'EOF'
+          import os
+          import re
+
+          LIMIT = 124000  # characters; GitHub's limit is 125,000
+
+          with open("release-changelog.txt", encoding="utf-8") as f:
+              changelog = f.read()
+          with open("release-announcement.txt", encoding="utf-8") as f:
+              announcement = f.read()
+
+          notes = changelog
+          if len(announcement) > LIMIT:
+              # Sections start with a heading line such as "General:" or "Known issues:".
+              parts = re.split(r"(?m)^(?=[A-Z][^\n]{0,40}:[ \t]*$)", changelog)
+              intro, sections = parts[0], parts[1:]
+              known = [s for s in sections if s.startswith("Known issues:")]
+              others = [s for s in sections if not s.startswith("Known issues:")]
+              url = "{}/{}/blob/{}/CHANGELOG".format(
+                  os.environ["GITHUB_SERVER_URL"], os.environ["GITHUB_REPOSITORY"], os.environ["GITHUB_REF_NAME"])
+              # room for the template around the CHANGELOG section and for the note below
+              budget = LIMIT - (len(announcement) - len(changelog)) - 1000
+              budget -= len(intro) + sum(len(s) for s in known)
+              kept, omitted = [], []
+              for s in others:
+                  if not omitted and len(s) <= budget:
+                      kept.append(s)
+                      budget -= len(s)
+                  else:
+                      omitted.append(s.split("\n", 1)[0].strip().rstrip(":"))
+              notes = (intro + "".join(known) + "".join(kept)
+                       + "Not shown here because of GitHub's length limit for release notes: "
+                       + ", ".join(omitted) + ". The complete list of changes is in the CHANGELOG, "
+                       + url + "\n")
+
+          with open("release-notes-changelog.txt", "w", encoding="utf-8") as f:
+              f.write(notes)
+          EOF
+
+          # The release notes on GitHub.
+          render release-notes-changelog.txt >release-notes.txt
+          echo "Release announcement: $(wc -m <release-announcement.txt) characters, release notes: $(wc -m <release-notes.txt)"
 
       - name: Upload Release Announcement as Artifact
         uses: actions/upload-artifact@v7
@@ -412,7 +529,7 @@ jobs:
       - name: Download Source Archive
         uses: actions/download-artifact@v8
         with:
-          name: OpenMS-${{ needs.build-and-test.outputs.version_name }}.tar.gz
+          name: ${{ needs.build-and-test.outputs.source_tarball }}
           path: ${{ github.workspace }}/downloads
 
       - name: Publish OpenMS Release
@@ -420,7 +537,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           name: Release ${{ needs.build-and-test.outputs.version }}
-          body_path: release-announcement.txt
+          body_path: release-notes.txt
           make_latest: true
           files: downloads/*
 

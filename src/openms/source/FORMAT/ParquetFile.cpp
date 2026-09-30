@@ -15,6 +15,9 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <parquet/file_reader.h>
+#include <parquet/arrow/reader.h>
+#include <parquet/arrow/writer.h>
+#include <arrow/io/file.h>
 #include <filesystem>
 #include <fstream>
 #include <vector>

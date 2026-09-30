@@ -438,23 +438,24 @@ LPWrapper::SolverParam param4;
 lp4.solve(param4);
 START_SECTION((SolverStatus getStatus()))
 {
-  if(lp4.getSolver() == LPWrapper::SOLVER_GLPK)
-    {
-      TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
-    }
-#ifdef OPENMS_HAS_COINOR
-  else if (lp4.getSolver() == LPWrapper::SOLVER_COINOR)
-  {
-    TEST_EQUAL(lp4.getStatus(),LPWrapper::UNDEFINED)
-  }
-#endif
-#ifdef OPENMS_HAS_HIGHS
-  else if (lp4.getSolver() == LPWrapper::SOLVER_HIGHS)
-  {
-    TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
-  }
-#endif
+  // all backends report OPTIMAL for this simple, solvable integer problem
+  TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
 
+  // an infeasible problem must not report a usable solution on any backend (see issue #9944)
+  LPWrapper lp5;
+  Int col = lp5.addColumn();
+  lp5.setColumnBounds(col, 0.0, 10.0, LPWrapper::DOUBLE_BOUNDED);
+  lp5.setColumnType(col, LPWrapper::INTEGER);
+  lp5.setObjective(col, 1.0);
+  lp5.setObjectiveSense(LPWrapper::MAX);
+  std::vector<Int> idx5(1, col);
+  std::vector<double> val5(1, 1.0);
+  lp5.addRow(idx5, val5, std::string("le1"), 0.0, 1.0, LPWrapper::UPPER_BOUND_ONLY); // x <= 1
+  lp5.addRow(idx5, val5, std::string("ge2"), 2.0, 0.0, LPWrapper::LOWER_BOUND_ONLY); // x >= 2 -> infeasible
+  LPWrapper::SolverParam param5;
+  lp5.solve(param5);
+  LPWrapper::SolverStatus status5 = lp5.getStatus();
+  TEST_EQUAL(status5 == LPWrapper::OPTIMAL || status5 == LPWrapper::FEASIBLE, false)
 }
 END_SECTION
 

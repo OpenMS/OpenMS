@@ -64,8 +64,9 @@ START_SECTION(isASCII(const XMLCh * chars, const size_t length))
   isAscii = StringManager::isASCII(empty,e_length);
   TEST_TRUE(isAscii)
 
+  // U+00FF is Latin-1, not ASCII: it needs the UTF-8 transcoding path
   isAscii = StringManager::isASCII(upperBoundary,u_length);
-  TEST_TRUE(isAscii)
+  TEST_FALSE(isAscii)
 END_SECTION
 
 const XMLCh eight_block_negative[] = {0x0148,0x0165,0x016C,0x016C,0x016F,0x012C,0x0157,0x016F};

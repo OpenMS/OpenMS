@@ -233,7 +233,7 @@ namespace OpenMS
     //Make sure the list is empty
     QStringList list;
 
-    const auto& tools = ToolHandler::getTOPPToolList();
+    const auto& tools = ToolHandler::getTOPPToolListRef();
 
     for (auto& pair : tools)
     {

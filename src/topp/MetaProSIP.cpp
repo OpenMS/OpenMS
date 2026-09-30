@@ -34,6 +34,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 
 #include <boost/math/distributions/normal.hpp>
@@ -2983,7 +2984,7 @@ protected:
     Size n_heatmap_bins = getIntOption_("heatmap_bins");
     double score_plot_y_axis_min = getDoubleOption_("score_plot_yaxis_min");
 
-    std::string tmp_path = File::getTempDirectory();
+    std::string tmp_path = SystemSettings::getTempDirectory();
     StringUtils::substitute(tmp_path, '\\', '/');
 
     // Do we want to create a qc report?

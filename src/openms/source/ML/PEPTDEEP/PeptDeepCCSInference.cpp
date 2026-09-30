@@ -10,6 +10,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepInput.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <onnxruntime_cxx_api.h>
 
@@ -21,7 +22,12 @@ namespace OpenMS
 {
   PeptDeepCCSInference::PeptDeepCCSInference(const std::string& model_path, int intra_op_threads, size_t batch_size)
     : model_(model_path, intra_op_threads), batch_size_(batch_size)
-  {}
+  {
+    if (batch_size_ == 0)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Batch size cannot be zero.");
+    }
+  }
 
   PeptDeepCCSInference::~PeptDeepCCSInference() = default;
 
@@ -38,6 +44,14 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide and charge input vectors must have the same size.");
     }
 
+    std::vector<OpenMS::AASequence> parsed_peptides;
+    parsed_peptides.reserve(peptides.size());
+    for (const std::string& pep : peptides)
+    {
+        ML::validatePeptide(pep);
+        parsed_peptides.push_back(OpenMS::AASequence::fromString(pep));
+    }
+
     ML::PeptDeepInputConfig input_config;
     const std::vector<int64_t> input_shape = model_.getInputShape(0);
     if (input_shape.size() >= 2 && input_shape[1] > 0)
@@ -49,8 +63,8 @@ namespace OpenMS
     if (input_config.fixed_sequence_length > 0)
     {
       groups.push_back({});
-      groups.back().reserve(peptides.size());
-      for (size_t i = 0; i < peptides.size(); ++i)
+      groups.back().reserve(parsed_peptides.size());
+      for (size_t i = 0; i < parsed_peptides.size(); ++i)
       {
         groups.back().push_back(i);
       }
@@ -58,9 +72,9 @@ namespace OpenMS
     else
     {
       std::map<size_t, std::vector<size_t>> indices_by_encoded_length;
-      for (size_t i = 0; i < peptides.size(); ++i)
+      for (size_t i = 0; i < parsed_peptides.size(); ++i)
       {
-        indices_by_encoded_length[peptides[i].size() + 2].push_back(i);
+        indices_by_encoded_length[parsed_peptides[i].size() + 2].push_back(i);
       }
       for (auto& item : indices_by_encoded_length)
       {
@@ -68,7 +82,7 @@ namespace OpenMS
       }
     }
 
-    std::vector<float> predictions(peptides.size(), 0.0f);
+    std::vector<float> predictions(parsed_peptides.size(), 0.0f);
     const std::vector<std::string> input_names = model_.getInputNames();
     std::vector<const char*> input_names_chars;
     input_names_chars.reserve(input_names.size());
@@ -87,7 +101,7 @@ namespace OpenMS
       {
         size_t current_chunk_size = std::min(batch_size_, group_indices.size() - chunk_start);
 
-        std::vector<std::string> chunk_peptides;
+        std::vector<OpenMS::AASequence> chunk_peptides;
         std::vector<float> chunk_charges;
         chunk_peptides.reserve(current_chunk_size);
         chunk_charges.reserve(current_chunk_size);
@@ -95,11 +109,11 @@ namespace OpenMS
         for (size_t j = 0; j < current_chunk_size; ++j)
         {
           size_t original_idx = group_indices[chunk_start + j];
-          chunk_peptides.push_back(peptides[original_idx]);
+          chunk_peptides.push_back(parsed_peptides[original_idx]);
           chunk_charges.push_back(charges[original_idx]);
         }
 
-        ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildUnmodifiedChargedBatch(chunk_peptides, chunk_charges, input_config);
+        ML::PeptDeepInputBatch batch = ML::PeptDeepInputBuilder::buildPrecursorBatch(chunk_peptides, chunk_charges, input_config);
         const int64_t batch_size_cast = static_cast<int64_t>(batch.batch_size);
         const int64_t sequence_length = static_cast<int64_t>(batch.sequence_length);
 

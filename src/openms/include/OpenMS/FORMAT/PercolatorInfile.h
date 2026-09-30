@@ -12,6 +12,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
+#include <map>
 #include <set>
 #include <utility>
 #include <vector>
@@ -26,6 +27,9 @@ namespace OpenMS
   class OPENMS_DLLAPI PercolatorInfile
   {
     public:
+      /// PIN meta values added to each hit, keyed by (peptide ID index, hit index).
+      using PinFeatureMetaValueMap = std::map<std::pair<size_t, size_t>, std::set<std::string>>;
+
       static void store(const std::string& pin_file, 
         const PeptideIdentificationList& peptide_ids, 
         const StringList& feature_set, 
@@ -116,6 +120,47 @@ namespace OpenMS
         const std::string& enz,
         int min_charge,
         int max_charge);
+
+      /**
+       * @brief Compute and stamp PIN-equivalent meta values, recording newly added keys.
+       *
+       * This overload additionally records, for every kept hit, the meta-value keys
+       * that did not exist before stamping. Callers that temporarily stamp hits can
+       * use this record to remove only adapter-generated values afterwards while
+       * preserving input metadata with the same names.
+       *
+       * @param[in,out] peptide_ids Mutated in place; each kept hit gets PIN meta values.
+       * @param[in] enz Enzyme name (same values accepted as for @ref store).
+       * @param[in] min_charge Lower bound for the charge{N} one-hot features.
+       * @param[in] max_charge Upper bound for the charge{N} one-hot features.
+       * @param[out] added_meta_values Newly added keys per (peptide ID, hit) index.
+       * @return Indices of skipped hits as (pid_index, hit_index) pairs.
+       */
+      static std::set<std::pair<size_t, size_t>> stampPinFeaturesOnHits(
+        PeptideIdentificationList& peptide_ids,
+        const std::string& enz,
+        int min_charge,
+        int max_charge,
+        PinFeatureMetaValueMap& added_meta_values);
+
+      /**
+       * @brief Numeric value of a PIN feature, as the percolator executable reads it.
+       *
+       * The .pin writer (@ref store) prints every feature as text and the percolator executable
+       * parses that text as a number. So an integer or floating-point meta value counts as it is,
+       * and a string meta value counts as the number it spells: adapters that read search engine
+       * scores from text keep them as strings (e.g. SageAdapter, via @ref load). In-process
+       * rescoring has to read feature values through this function to train on the same numbers
+       * as the executable; DataValue's conversion to double does not parse a string, it yields an
+       * unrelated number.
+       *
+       * @param[in] value Meta value of the feature
+       * @param[in] feature Name of the feature (for the error message)
+       * @return The numeric value
+       * @throws Exception::InvalidValue if @p value is empty, a list, a string that is not a number,
+       *         or not finite (NaN, infinity); the executable rejects such a feature as well
+       */
+      static double getFeatureValue(const DataValue& value, const std::string& feature);
 
     protected:
 

@@ -362,6 +362,25 @@ START_SECTION(void setModificationByDiffMonoMass(double diffMonoMass))
 }
 END_SECTION
 
+START_SECTION([EXTRA] setModification with a modification that has no mass difference)
+{
+  // Issue #10029: PSI-MOD stores the mass and formula of the residue as it occurs inside a
+  // peptide chain, i.e. without the water that Residue's (free amino acid) mass and formula
+  // include. Adopting those absolute values for a term that describes no difference at all -
+  // e.g. 'MOD:00026 L-threonine residue' - stripped a water from the residue.
+  Residue thr(*db->getResidue("Thr"));
+  const double mono_weight = thr.getMonoWeight();
+  const double average_weight = thr.getAverageWeight();
+  const EmpiricalFormula formula = thr.getFormula();
+
+  thr.setModification("MOD:00026");
+  TEST_EQUAL(thr.isModified(), true)
+  TEST_REAL_SIMILAR(thr.getMonoWeight(), mono_weight)
+  TEST_REAL_SIMILAR(thr.getAverageWeight(), average_weight)
+  TEST_EQUAL(thr.getFormula() == formula, true)
+}
+END_SECTION
+
 START_SECTION(std::string Residue::toString() const)
 {
   auto rr(*db->getResidue("Met"));
@@ -780,7 +799,7 @@ START_SECTION(([EXTRA] std::hash<Residue>))
   r1.setName("TestResidue");
   r1.setThreeLetterCode("TST");
   r1.setOneLetterCode("T");
-  r1.setFormula(EmpiricalFormula("C4H8N2O3"));
+  r1.setFormula(EmpiricalFormula("C4H10N2O3"));
   r1.setAverageWeight(132.0);
   r1.setMonoWeight(132.05);
   r1.setPka(2.1);
@@ -794,7 +813,7 @@ START_SECTION(([EXTRA] std::hash<Residue>))
   r2.setName("TestResidue");
   r2.setThreeLetterCode("TST");
   r2.setOneLetterCode("T");
-  r2.setFormula(EmpiricalFormula("C4H8N2O3"));
+  r2.setFormula(EmpiricalFormula("C4H10N2O3"));
   r2.setAverageWeight(132.0);
   r2.setMonoWeight(132.05);
   r2.setPka(2.1);
@@ -863,6 +882,121 @@ START_SECTION(([EXTRA] std::hash<Residue>))
   std::size_t original_hash = std::hash<Residue>{}(r1_copy);
   r1_copy.setName("ChangedName");
   TEST_NOT_EQUAL(std::hash<Residue>{}(r1_copy), original_hash)
+}
+END_SECTION
+
+START_SECTION((Satellite ion methods and types))
+{
+  TEST_EQUAL(Residue::getResidueTypeName(Residue::DIon), "d-ion")
+  TEST_EQUAL(Residue::getResidueTypeName(Residue::VIon), "v-ion")
+  TEST_EQUAL(Residue::getResidueTypeName(Residue::WIon), "w-ion")
+
+  TEST_EQUAL(Residue::residueTypeToIonLetter(Residue::DIon), "d")
+  TEST_EQUAL(Residue::residueTypeToIonLetter(Residue::VIon), "v")
+  TEST_EQUAL(Residue::residueTypeToIonLetter(Residue::WIon), "w")
+
+  const ResidueDB* rdb = ResidueDB::getInstance();
+  const Residue* gly = rdb->getResidue("Gly");
+  const Residue* ala = rdb->getResidue("Ala");
+  const Residue* val = rdb->getResidue("Val");
+  const Residue* leu = rdb->getResidue("Leu");
+  const Residue* ile = rdb->getResidue("Ile");
+  const Residue* thr = rdb->getResidue("Thr");
+
+  // v-loss tests
+  TEST_EQUAL(gly->hasVLoss(), false)
+  TEST_EQUAL(gly->getVLossFormula(), EmpiricalFormula(""))
+  TEST_EQUAL(ala->hasVLoss(), true)
+  TEST_EQUAL(ala->getVLossFormula(), EmpiricalFormula("CH4"))
+  TEST_EQUAL(leu->hasVLoss(), true)
+  TEST_EQUAL(leu->getVLossFormula(), EmpiricalFormula("C4H10"))
+
+  // satellite loss tests
+  TEST_EQUAL(gly->hasSatelliteLoss(), false)
+  TEST_EQUAL(ala->hasSatelliteLoss(), false)
+  TEST_EQUAL(val->hasSatelliteLoss(), true)
+  TEST_EQUAL(val->getSatelliteLossFormula(), EmpiricalFormula("CH3"))
+
+  TEST_EQUAL(leu->hasSatelliteLoss(), true)
+  TEST_EQUAL(leu->getSatelliteLossFormula(), EmpiricalFormula("C3H7"))
+
+  // Ile subtype a (-CH3, 15 Da) vs subtype b (-C2H5, 29 Da)
+  TEST_EQUAL(ile->hasSatelliteLoss('a'), true)
+  TEST_EQUAL(ile->hasSatelliteLoss('b'), true)
+  TEST_EQUAL(ile->getSatelliteLossFormula('a'), EmpiricalFormula("CH3"))
+  TEST_EQUAL(ile->getSatelliteLossFormula('b'), EmpiricalFormula("C2H5"))
+
+  // Thr subtype a (-OH) vs subtype b (-CH3)
+  TEST_EQUAL(thr->hasSatelliteLoss('a'), true)
+  TEST_EQUAL(thr->hasSatelliteLoss('b'), true)
+  TEST_EQUAL(thr->getSatelliteLossFormula('a'), EmpiricalFormula("OH"))
+  TEST_EQUAL(thr->getSatelliteLossFormula('b'), EmpiricalFormula("CH3"))
+
+  const Residue* arg = rdb->getResidue("Arg");
+  TEST_EQUAL(arg->hasSatelliteLoss(), true)
+  TEST_EQUAL(arg->getSatelliteLossFormula(), EmpiricalFormula("C3H8N3"))
+
+  // Invalid subtype 'c' must be rejected
+  TEST_EQUAL(leu->hasSatelliteLoss('c'), false)
+  TEST_EQUAL(leu->getSatelliteLossFormula('c'), EmpiricalFormula(""))
+  TEST_EQUAL(ile->hasSatelliteLoss('c'), false)
+  TEST_EQUAL(ile->getSatelliteLossFormula('c'), EmpiricalFormula(""))
+
+  // Modified residues must reject satellite and v losses
+  Residue mod_met(*rdb->getResidue("Met"));
+  mod_met.setModification("Oxidation");
+  TEST_EQUAL(mod_met.hasSatelliteLoss(), false)
+  TEST_EQUAL(mod_met.getSatelliteLossFormula(), EmpiricalFormula(""))
+  TEST_EQUAL(mod_met.hasVLoss(), false)
+  TEST_EQUAL(mod_met.getVLossFormula(), EmpiricalFormula(""))
+
+  // Residue weights and formulas for DIon, VIon, WIon
+  TOLERANCE_ABSOLUTE(0.001)
+  TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::DIon), leu->getMonoWeight(Residue::AIon) - EmpiricalFormula("C3H6").getMonoWeight())
+  TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::VIon), leu->getMonoWeight(Residue::YIon) - EmpiricalFormula("C4H10").getMonoWeight())
+  TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::WIon), leu->getMonoWeight(Residue::Zp1Ion) - EmpiricalFormula("C3H7").getMonoWeight())
+
+  TEST_EQUAL(leu->getFormula(Residue::DIon), leu->getFormula(Residue::AIon) - EmpiricalFormula("C3H6"))
+  TEST_EQUAL(leu->getFormula(Residue::VIon), leu->getFormula(Residue::YIon) - EmpiricalFormula("C4H10"))
+  TEST_EQUAL(leu->getFormula(Residue::WIon), leu->getFormula(Residue::Zp1Ion) - EmpiricalFormula("C3H7"))
+
+  // Independently specified formulas exercise all three Residue APIs.
+  const vector<pair<Residue::ResidueType, EmpiricalFormula>> expected = {
+    {Residue::DIon, EmpiricalFormula("C2H5N")},
+    {Residue::VIon, EmpiricalFormula("C2H3NO2")},
+    {Residue::WIon, EmpiricalFormula("C3H4O2")}
+  };
+  for (const auto& [type, formula] : expected)
+  {
+    TEST_EQUAL(leu->getFormula(type), formula)
+    TEST_REAL_SIMILAR(leu->getMonoWeight(type), formula.getMonoWeight())
+    TEST_REAL_SIMILAR(leu->getAverageWeight(type), formula.getAverageWeight())
+    TEST_EXCEPTION(Exception::InvalidValue, gly->getFormula(type))
+    TEST_EXCEPTION(Exception::InvalidValue, gly->getMonoWeight(type))
+    TEST_EXCEPTION(Exception::InvalidValue, gly->getAverageWeight(type))
+    TEST_EXCEPTION(Exception::InvalidValue, mod_met.getFormula(type))
+    TEST_EXCEPTION(Exception::InvalidValue, mod_met.getMonoWeight(type))
+    TEST_EXCEPTION(Exception::InvalidValue, mod_met.getAverageWeight(type))
+  }
+  for (const auto type : {Residue::DIon, Residue::WIon})
+  {
+    for (const auto* residue : {ala, rdb->getResidue("Pro")})
+    {
+      TEST_EXCEPTION(Exception::InvalidValue, residue->getFormula(type))
+      TEST_EXCEPTION(Exception::InvalidValue, residue->getMonoWeight(type))
+      TEST_EXCEPTION(Exception::InvalidValue, residue->getAverageWeight(type))
+    }
+  }
+
+  // Absolute-mass regression: w-ion is a radical z+1 fragment minus the satellite
+  // side-chain loss, not a plain z-ion minus the loss (that would be missing one H).
+  // Cys satellite loss is HS; the radical z-ion (Zp1Ion) already carries the extra H
+  // relative to the even-electron z-ion (ZIon), so w = Zp1Ion - HS, not ZIon - HS.
+  const Residue* cys = rdb->getResidue("Cys");
+  TEST_EQUAL(cys->hasSatelliteLoss(), true)
+  TEST_EQUAL(cys->getSatelliteLossFormula(), EmpiricalFormula("HS"))
+  TEST_EQUAL(cys->getFormula(Residue::WIon), cys->getFormula(Residue::Zp1Ion) - EmpiricalFormula("HS"))
+  TEST_NOT_EQUAL(cys->getFormula(Residue::WIon), cys->getFormula(Residue::ZIon) - EmpiricalFormula("HS"))
 }
 END_SECTION
 

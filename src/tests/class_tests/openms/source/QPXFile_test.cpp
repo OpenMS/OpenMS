@@ -14,6 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ProteinHit.h>
@@ -32,6 +33,8 @@
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/reader.h>
+
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -1098,6 +1101,57 @@ START_SECTION(([EXTRA] importFromArrow_round_trip))
   TEST_REAL_SIMILAR(pep_ids_out[1].getMZ(), 678.90);
   TEST_STRING_EQUAL(pep_ids_out[1].getIdentifier(), "run_1");
   TEST_STRING_EQUAL(pep_ids_out[1].getSpectrumReference(), "scan=99");
+}
+END_SECTION
+
+START_SECTION(([EXTRA] import warns when an unknown peptidoform modification is lost))
+{
+  ProteinIdentification prot;
+  prot.setIdentifier("run_1");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+  vector<ProteinIdentification> prot_ids{prot};
+
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("AEADNLDDKK"));
+  hit.setCharge(2);
+  hit.setScore(0.1);
+
+  PeptideIdentification pid;
+  pid.setIdentifier("run_1");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+  pid.setRT(17.8);
+  pid.setMZ(712.7828);
+  pid.setSpectrumReference("scan=9");
+  pid.setHits({hit});
+  PeptideIdentificationList pep_ids{pid};
+
+  auto table = QPXFile::exportToArrow(prot_ids, pep_ids, /*export_all_psms=*/true);
+  TEST_NOT_EQUAL(table, nullptr)
+
+  arrow::StringBuilder peptidoform_builder;
+  TEST_TRUE(peptidoform_builder.Append("AEADNLDDK[NuXL:U-H2O]K").ok())
+  table = replaceColumn(table, PSMSchema::PEPTIDOFORM,
+                        peptidoform_builder.Finish().ValueOrDie());
+
+  arrow::DoubleBuilder calculated_mz_builder;
+  TEST_TRUE(calculated_mz_builder.Append(712.7824985834709).ok())
+  table = replaceColumn(table, PSMSchema::CALCULATED_MZ,
+                        calculated_mz_builder.Finish().ValueOrDie());
+
+  vector<ProteinIdentification> prot_ids_out = prot_ids;
+  PeptideIdentificationList pep_ids_out;
+  ostringstream captured_warn;
+  OPENMS_LOG_WARN.insert(captured_warn);
+  const bool imported = QPXFile::importFromArrow(table, prot_ids_out, pep_ids_out);
+  OPENMS_LOG_WARN.remove(captured_warn);
+
+  TEST_TRUE(imported)
+  TEST_EQUAL(pep_ids_out.size(), 1)
+  TEST_STRING_EQUAL(pep_ids_out[0].getHits()[0].getSequence().toString(), "AEADNLDDKK")
+  TEST_TRUE(captured_warn.str().find("NuXL:U-H2O") != string::npos)
+  TEST_TRUE(captured_warn.str().find("calculated m/z") != string::npos)
 }
 END_SECTION
 

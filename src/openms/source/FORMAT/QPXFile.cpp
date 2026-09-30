@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
@@ -32,6 +33,7 @@
 #include <parquet/properties.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <exception>
@@ -1033,6 +1035,7 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   // Resolved once for the whole range, like every other metavalue key here: looking one up by
   // name takes the MetaInfoRegistry's `omp critical` lock, and this runs inside a parallel build.
   const ArrowIOHelpers::QPXRunFileNameKeys run_file_name_keys;
+  const MS1LabelState::Keys label_state_keys; // resolved once; see MS1LabelState::Keys
   // Presence check against a pre-resolved index; UInt(-1) is guarded because the index overload of
   // metaValueExists() does not special-case the sentinel the way the string overload does.
   auto metaHas = [](const MetaInfoInterface& m, UInt idx) -> bool
@@ -1072,7 +1075,17 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
     for (Size hit_idx = 0; hit_idx < num_hits; ++hit_idx)
     {
       const PeptideHit& hit = hits[hit_idx];
-      const auto& seq = hit.getSequence();
+      // The psm view describes the spectrum match: a hit reduced to a peptide identity reports the
+      // peptidoform it was matched with (MS1LabelState); every sequence-derived column and the psm
+      // identity below use it, and the feature view derives its psm_ids from the same peptidoform.
+      const AASequence* seq_ptr = &hit.getSequence();
+      AASequence matched_seq;
+      if (MS1LabelState::hasMatchedSequence(hit, label_state_keys))
+      {
+        matched_seq = MS1LabelState::matchedSequence(hit, label_state_keys);
+        seq_ptr = &matched_seq;
+      }
+      const AASequence& seq = *seq_ptr;
 
       // === sequence (non-nullable) ===
       (void)sequence_builder.Append(seq.toUnmodifiedString());
@@ -1287,8 +1300,26 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       if (run_stem.empty()) { ++unattributable_psms; }
       (void)run_file_name_builder.Append(run_stem);
 
-      // === cv_params (list<struct>, nullable - null for now) ===
-      (void)cv_params_builder.AppendNull();
+      // === cv_params (list<struct>, nullable) ===
+      // The label state of an MS1-labeled identification (see ArrowIOHelpers::qpxCvParams); null
+      // for every other identification, as before.
+      {
+        const auto cv_params = ArrowIOHelpers::qpxCvParams(hit, label_state_keys);
+        if (cv_params.empty())
+        {
+          (void)cv_params_builder.AppendNull();
+        }
+        else
+        {
+          (void)cv_params_builder.Append();
+          for (const auto& [name, value] : cv_params)
+          {
+            (void)cv_struct_b->Append();
+            (void)cv_name_b->Append(name);
+            (void)cv_value_b->Append(value);
+          }
+        }
+      }
 
       // === scan (list<int32>, non-nullable) ===
       const std::vector<Int32> scan_components = ArrowIOHelpers::qpxScanComponents(spec_ref);
@@ -1876,6 +1907,7 @@ bool QPXFile::importFromArrow(
   auto col_peptidoform = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDOFORM, /*required=*/false);
   auto col_sequence = ArrowIOHelpers::getColumn(tbl, PSMSchema::SEQUENCE, /*required=*/false);
   auto col_charge = ArrowIOHelpers::getColumn(tbl, PSMSchema::PRECURSOR_CHARGE);
+  auto col_calculated_mz = ArrowIOHelpers::getColumn(tbl, PSMSchema::CALCULATED_MZ, /*required=*/false);
   auto col_score = ArrowIOHelpers::getColumn(tbl, PSMSchema::SCORE);
   auto col_score_type = ArrowIOHelpers::getColumn(tbl, PSMSchema::SCORE_TYPE);
   // hit_index column is intentionally not consulted on import: it is a positional
@@ -1989,20 +2021,50 @@ bool QPXFile::importFromArrow(
     }
 
     PeptideHit hit;
+    const Int charge = static_cast<Int>(ArrowIOHelpers::getInt32Value(col_charge, row, 0));
+    hit.setCharge(charge);
+
     bool sequence_set = false;
+    std::string peptidoform_str;
     if (col_peptidoform && !ArrowIOHelpers::isNull(col_peptidoform, row))
     {
-      const std::string peptidoform_str = ArrowIOHelpers::getStringValue(col_peptidoform, row);
+      peptidoform_str = ArrowIOHelpers::getStringValue(col_peptidoform, row);
       if (!peptidoform_str.empty())
       {
         try
         {
           auto pf = ProForma::parse(peptidoform_str);
+          const auto conversion_issues = ProForma::getAASequenceConversionIssues(pf);
+          if (!conversion_issues.empty())
+          {
+            OPENMS_LOG_WARN << "QPXFile: peptidoform '" << peptidoform_str
+              << "' cannot be represented completely as an AASequence. "
+                 "BEST_EFFORT conversion will skip unsupported modification data:";
+            for (const auto& issue : conversion_issues)
+            {
+              OPENMS_LOG_WARN << " " << issue.description << ";";
+            }
+            OPENMS_LOG_WARN << std::endl;
+          }
           hit.setSequence(ProForma::toAASequence(pf, ProForma::ConversionPolicy::BEST_EFFORT));
           sequence_set = true;
         }
+        catch (const Exception::BaseException& e)
+        {
+          OPENMS_LOG_WARN << "QPXFile: failed to parse peptidoform '" << peptidoform_str
+            << "' (" << e.getMessage() << "); falling back to the unmodified sequence column."
+            << std::endl;
+        }
+        catch (const std::exception& e)
+        {
+          OPENMS_LOG_WARN << "QPXFile: failed to parse peptidoform '" << peptidoform_str
+            << "' (" << e.what() << "); falling back to the unmodified sequence column."
+            << std::endl;
+        }
         catch (...)
         {
+          OPENMS_LOG_WARN << "QPXFile: failed to parse peptidoform '" << peptidoform_str
+            << "'; falling back to the unmodified sequence column." << std::endl;
         }
       }
     }
@@ -2011,7 +2073,22 @@ bool QPXFile::importFromArrow(
       hit.setSequence(AASequence::fromString(ArrowIOHelpers::getStringValue(col_sequence, row)));
     }
 
-    hit.setCharge(static_cast<Int>(ArrowIOHelpers::getInt32Value(col_charge, row, 0)));
+    if (col_calculated_mz && !ArrowIOHelpers::isNull(col_calculated_mz, row)
+        && charge != 0 && !hit.getSequence().empty())
+    {
+      const double stored_calculated_mz = ArrowIOHelpers::getDoubleValue(col_calculated_mz, row);
+      const double reconstructed_mz = hit.getSequence().getMZ(charge);
+      constexpr double MZ_WARNING_TOLERANCE_DA = 1e-4;
+      if (std::abs(reconstructed_mz - stored_calculated_mz) > MZ_WARNING_TOLERANCE_DA)
+      {
+        OPENMS_LOG_WARN << "QPXFile: reconstructed sequence for peptidoform '"
+          << peptidoform_str << "' has calculated m/z " << reconstructed_mz
+          << ", but the row stores " << stored_calculated_mz << " (difference "
+          << std::abs(reconstructed_mz - stored_calculated_mz)
+          << " Da). Unsupported modification data may have been lost." << std::endl;
+      }
+    }
+
     hit.setScore(ArrowIOHelpers::getDoubleValue(col_score, row, 0.0));
 
     if (col_is_decoy && !ArrowIOHelpers::isNull(col_is_decoy, row))
