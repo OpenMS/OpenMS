@@ -2678,7 +2678,16 @@ protected:
 
         const Int64 transition_id = ParquetFile::getInt64(transition_id_col, row, 0, false);
         const auto transition_it = lookup.transitions.find(transition_id);
-        if (transition_it == lookup.transitions.end() || transition_it->second.decoy)
+        if (transition_it == lookup.transitions.end())
+        {
+          continue;
+        }
+
+        // Match OSWFile::readOpenSwathExportRows(): without transition-level
+        // rescoring, aggregate every feature transition. Once transition PEP
+        // scores are present, exclude decoy transitions and apply the PEP
+        // threshold just like the SQLite SCORE_TRANSITION query.
+        if (filter_by_transition_pep && transition_it->second.decoy)
         {
           continue;
         }

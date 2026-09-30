@@ -563,51 +563,36 @@ namespace OpenMS
     const Param& reader_parameters,
     const std::string& scratch_directory) const
   {
+    // Always isolate the assay-preparation intermediate in a unique TempDir.
+    // When a scratch_directory is supplied it is only the parent; callers may
+    // safely share that parent without sharing prepared_assays.pqp.
     std::unique_ptr<TempDir> temp_dir;
-    std::string working_dir = scratch_directory;
-    if (working_dir.empty())
+    if (scratch_directory.empty())
     {
       temp_dir = std::make_unique<TempDir>();
-      working_dir = temp_dir->getPath();
     }
     else
     {
-      File::makeDir(working_dir);
+      const std::string scratch_base = File::absolutePath(scratch_directory);
+      File::makeDir(scratch_base);
+      temp_dir = std::make_unique<TempDir>(scratch_base);
     }
 
-    const std::string assay_output = File::absolutePath(working_dir + "/prepared_assays.pqp");
+    const std::string assay_output = File::absolutePath(temp_dir->getPath() + "/prepared_assays.pqp");
     const LibraryStats assay_stats = prepareAssays(input_file, input_type, assay_output, FileTypes::PQP, assay_parameters, reader_parameters);
-    const auto removeAssayOutput = [&]()
-    {
-      if (assay_output != output_pqp && File::exists(assay_output))
-      {
-        File::remove(assay_output);
-      }
-    };
 
     if (assay_stats.transition_count == 0)
     {
-      removeAssayOutput();
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Assay preparation produced zero transitions. Refusing to bypass the configured assay filters by falling back to the raw empirical library.");
     }
 
-    try
+    const LibraryStats stats = generateDecoys(assay_output, FileTypes::PQP, output_pqp, FileTypes::PQP, decoy_parameters, reader_parameters);
+    if (!stats.hasDecoys())
     {
-      const LibraryStats stats = generateDecoys(assay_output, FileTypes::PQP, output_pqp, FileTypes::PQP, decoy_parameters, reader_parameters);
-      if (!stats.hasDecoys())
-      {
-        removeAssayOutput();
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Decoy generation on the assay-prepared library produced zero decoy transitions.");
-      }
-      removeAssayOutput();
-      return stats;
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Decoy generation on the assay-prepared library produced zero decoy transitions.");
     }
-    catch (...)
-    {
-      removeAssayOutput();
-      throw;
-    }
+    return stats;
   }
 } // namespace OpenMS

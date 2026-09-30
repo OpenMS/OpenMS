@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <algorithm>
 #include <string>
@@ -199,6 +200,14 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP runs assay preparation plus d
   assay_params.unimod_file.clear();
   const auto decoy_params = makeDeterministicDecoyParameters_();
 
+  // A caller-provided scratch directory is a shared parent, not an invocation-owned
+  // workspace. A pre-existing prepared_assays.pqp must never be overwritten or removed.
+  TempDir shared_scratch_parent;
+  const std::string scratch_sentinel = shared_scratch_parent.getPath() + "/prepared_assays.pqp";
+  TextFile sentinel;
+  sentinel.addLine("must survive");
+  sentinel.store(scratch_sentinel);
+
   std::string output_pqp_1;
   NEW_TMP_FILE_EXT(output_pqp_1, ".pqp");
 
@@ -216,7 +225,11 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP runs assay preparation plus d
     assay_params,
     decoy_params,
     Param(),
-    File::path(output_pqp_1));
+    shared_scratch_parent.getPath());
+
+  const auto sentinel_after_first = sortedLines_(scratch_sentinel);
+  TEST_EQUAL(sentinel_after_first.size(), 1)
+  TEST_EQUAL(sentinel_after_first[0], "must survive")
 
   const auto stats_2 = prep.prepareEmpiricalLibraryToPQP(
     classTestDataPath_("MRMDecoyGenerator_input.TraML"),
@@ -225,7 +238,11 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP runs assay preparation plus d
     assay_params,
     decoy_params,
     Param(),
-    File::path(output_pqp_2));
+    shared_scratch_parent.getPath());
+
+  const auto sentinel_after_second = sortedLines_(scratch_sentinel);
+  TEST_EQUAL(sentinel_after_second.size(), 1)
+  TEST_EQUAL(sentinel_after_second[0], "must survive")
 
   TEST_TRUE(File::exists(output_pqp_1))
   TEST_TRUE(File::exists(output_pqp_2))
@@ -265,6 +282,12 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP fails closed when assay prepa
 
   const auto decoy_params = makeDeterministicDecoyParameters_();
 
+  TempDir shared_scratch_parent;
+  const std::string scratch_sentinel = shared_scratch_parent.getPath() + "/prepared_assays.pqp";
+  TextFile sentinel;
+  sentinel.addLine("must survive failure");
+  sentinel.store(scratch_sentinel);
+
   std::string output_pqp;
   NEW_TMP_FILE_EXT(output_pqp, ".pqp");
 
@@ -274,8 +297,14 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP fails closed when assay prepa
       FileTypes::TRAML,
       output_pqp,
       assay_params,
-      decoy_params))
+      decoy_params,
+      Param(),
+      shared_scratch_parent.getPath()))
   TEST_FALSE(File::exists(output_pqp))
+
+  const auto sentinel_after_failure = sortedLines_(scratch_sentinel);
+  TEST_EQUAL(sentinel_after_failure.size(), 1)
+  TEST_EQUAL(sentinel_after_failure[0], "must survive failure")
 }
 END_SECTION
 

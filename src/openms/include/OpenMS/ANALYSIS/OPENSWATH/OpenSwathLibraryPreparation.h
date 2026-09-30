@@ -139,7 +139,14 @@ namespace OpenMS
                                 const DecoyGeneratorParameters& parameters,
                                 const Param& reader_parameters = Param()) const;
 
-    /// Prepare an empirical library by running assay generation and decoy generation into a final PQP.
+    /**
+     * @brief Prepare an empirical library by running assay generation and decoy generation into a final PQP.
+     *
+     * @param scratch_directory Optional parent directory for temporary assay-preparation files.
+     *        A unique per-invocation child directory is always created below this parent so concurrent
+     *        callers cannot share or overwrite the same intermediate. The child directory is removed
+     *        automatically on both success and failure.
+     */
     LibraryStats prepareEmpiricalLibraryToPQP(const std::string& input_file,
                                               FileTypes::Type input_type,
                                               const std::string& output_pqp,
