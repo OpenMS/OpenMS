@@ -612,6 +612,7 @@ protected:
     setValidFormats_("PeptideQueryParameters:AssayGenerator:swath_windows_file", {"txt"});
     registerInputFile_("PeptideQueryParameters:AssayGenerator:unimod_file", "<file>", "", "Optional Unimod XML file used for IPF transition generation.", false, false);
     setValidFormats_("PeptideQueryParameters:AssayGenerator:unimod_file", {"xml"});
+    registerFlag_("PeptideQueryParameters:AssayGenerator:reuse_existing_modifications_db", "Explicitly reuse an already-initialized ModificationsDB for IPF.", true);
     registerFlag_("PeptideQueryParameters:AssayGenerator:enable_ipf", "Generate identifying transitions for IPF during transition-list library preparation.");
     registerIntOption_("PeptideQueryParameters:AssayGenerator:max_num_alternative_localizations", "<int>", 10000, "IPF: maximum number of site-localization permutations.", false, true);
     registerFlag_("PeptideQueryParameters:AssayGenerator:disable_identification_ms2_precursors", "IPF: disable MS2 precursor ions for identification transitions.", true);
@@ -643,6 +644,11 @@ protected:
 
   void registerRescoringOptions_()
   {
+    // Register twice intentionally: registerSubsection_ exposes the algorithm
+    // defaults returned by getSubsectionDefaults_(), while
+    // registerTOPPSubsection_ groups the explicitly registered Rescoring:level
+    // option in --help/--helphelp output.
+    registerSubsection_("Rescoring", "In-process Percolator rescoring parameters.");
     registerTOPPSubsection_("Rescoring", "In-process Percolator rescoring parameters.");
     registerStringList_("Rescoring:level", "<levels>", StringList{"ms1ms2"},
                         "One or more rescoring levels to run sequentially. Transition rescoring is appended automatically when peptidoform inference is enabled.",
@@ -1002,6 +1008,7 @@ protected:
     parameters.ipf_decoy_seed = getIntOption_("PeptideQueryParameters:AssayGenerator:ipf_decoy_seed");
     parameters.test_mode = getFlag_("test");
     parameters.unimod_file = getStringOption_("PeptideQueryParameters:AssayGenerator:unimod_file");
+    parameters.reuse_existing_modifications_db = getFlag_("PeptideQueryParameters:AssayGenerator:reuse_existing_modifications_db");
 
     const std::string swath_windows_file = getStringOption_("PeptideQueryParameters:AssayGenerator:swath_windows_file");
     if (!swath_windows_file.empty())
@@ -1856,8 +1863,7 @@ protected:
       }
       const auto precursor_decoy_it = canonical_mapping.precursor_decoy_by_id.find(precursor_id);
       precursor.decoy = precursor_decoy_it != canonical_mapping.precursor_decoy_by_id.end() ?
-        precursor_decoy_it->second :
-        (compound.hasDecoy() ? compound.getDecoy() : false);
+        precursor_decoy_it->second : false;
       lookup.precursors[precursor_id] = std::move(precursor);
 
       if (!compound.isPeptide())
@@ -1919,9 +1925,8 @@ protected:
     if (load_transition_metadata)
     {
       lookup.transitions.reserve(targeted_exp.transitions.size());
-      for (Size i = 0; i < targeted_exp.transitions.size(); ++i)
+      for (const auto& transition : targeted_exp.transitions)
       {
-        const auto& transition = targeted_exp.transitions[i];
         const auto precursor_id_it = canonical_mapping.compound_to_precursor.find(transition.peptide_ref);
         if (precursor_id_it == canonical_mapping.compound_to_precursor.end())
         {
@@ -1929,7 +1934,7 @@ protected:
         }
 
         PreparedLibraryTransition_ transition_entry;
-        transition_entry.transition_id = static_cast<Int64>(i);
+        transition_entry.transition_id = StringUtils::toInt64(transition.transition_name);
         transition_entry.precursor_ids.push_back(precursor_id_it->second);
         transition_entry.traml_id = transition.transition_name;
         transition_entry.product_mz = transition.product_mz;
@@ -5466,6 +5471,20 @@ protected:
       File::makeDir(out_dir);
       const std::string prepared_library_pqp = working_dir.path + "/prepared_library.pqp";
       const WorkflowFormat workflow_format = getWorkflowFormat_();
+      if (workflow_format == WorkflowFormat::OSWPQ)
+      {
+        if (isPeptidoformInferenceRequested_())
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "workflow:working_format parquet does not support peptidoform/IPF inference. Use workflow:working_format sqlite.");
+        }
+        if (toBool_(getStringOption_("Export:results:use_alignment")) ||
+            toBool_(getStringOption_("Export:matrix:use_alignment")))
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "workflow:working_format parquet does not support Export:*:use_alignment because alignment parquet tables are not written yet.");
+        }
+      }
       const std::string workflow_output = workflow_format == WorkflowFormat::OSWPQ ?
         working_dir.path + "/workflow.oswpq" :
         working_dir.path + "/workflow.osw";
@@ -5478,6 +5497,11 @@ protected:
       const LibraryMode requested_library_mode = getLibraryMode_();
       LibraryMode resolved_library_mode = requested_library_mode;
       bool prepared_library_ready = false;
+      const auto assay_parameters = getAssayGeneratorParameters_();
+      if (requested_library_mode != LibraryMode::PREPARED)
+      {
+        library_preparation.ensureUnimodLoaded(assay_parameters);
+      }
 
       if (requested_library_mode == LibraryMode::AUTO)
       {
@@ -5511,7 +5535,6 @@ protected:
       else
       {
         OPENMS_LOG_INFO << "Using transition_list library mode: running peptide query preparation.\n";
-        const auto assay_parameters = getAssayGeneratorParameters_();
         const auto decoy_parameters = getDecoyGeneratorParameters_();
         if (isPeptidoformInferenceRequested_() && !assay_parameters.enable_ipf)
         {

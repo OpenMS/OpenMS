@@ -86,6 +86,7 @@ namespace OpenMS
       int ipf_decoy_seed = -1;
       bool test_mode = false;
       std::string unimod_file;
+      bool reuse_existing_modifications_db = false;
     };
 
     struct OPENMS_DLLAPI DecoyGeneratorParameters
@@ -112,6 +113,9 @@ namespace OpenMS
     void setLogType(ProgressLogger::LogType log_type);
 
     ProgressLogger::LogType getLogType() const;
+
+    /// Ensure the requested Unimod source is loaded before modified sequences are parsed.
+    void ensureUnimodLoaded(const AssayGeneratorParameters& parameters) const;
 
     /// Normalize a prepared library into internal PQP format.
     LibraryStats normalizeLibraryToPQP(const std::string& input_file,

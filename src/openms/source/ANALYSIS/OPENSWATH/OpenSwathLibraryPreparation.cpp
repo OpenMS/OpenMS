@@ -252,16 +252,29 @@ namespace OpenMS
                                           "Please provide a valid Unimod XML file for IPF.");
       }
 
+      static std::string helper_initialized_unimod;
+      const std::string requested_unimod = File::absolutePath(parameters.unimod_file);
       if (!ModificationsDB::isInstantiated())
       {
         const ModificationsDB* ptr = ModificationsDB::initializeModificationsDB(parameters.unimod_file, std::string(""), std::string(""));
+        helper_initialized_unimod = requested_unimod;
         OPENMS_LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications()
                         << " modification types and residue specificities imported from file: "
                         << parameters.unimod_file << std::endl;
       }
+      else if (!helper_initialized_unimod.empty() && helper_initialized_unimod == requested_unimod)
+      {
+        return;
+      }
+      else if (parameters.reuse_existing_modifications_db)
+      {
+        OPENMS_LOG_INFO << "ModificationsDB is already initialized; explicitly reusing the existing modification database for IPF.\n";
+      }
       else
       {
-        OPENMS_LOG_INFO << "ModificationsDB is already initialized; reusing the existing modification database for IPF.\n";
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "ModificationsDB was initialized before the configured Unimod XML could be loaded. "
+                                      "Initialize the requested Unimod source before parsing modified sequences, or explicitly opt in to reusing the existing database.");
       }
     }
 
@@ -286,17 +299,20 @@ namespace OpenMS
                                 const Size decoy_proteins,
                                 const double min_decoy_fraction)
     {
-      if (target_compounds == 0 || target_proteins == 0)
+      if (target_compounds == 0 && target_proteins == 0)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "The input experiment has no compounds or proteins.");
+                                         "The input experiment has no compounds/peptides or proteins.");
       }
 
-      if (static_cast<double>(decoy_compounds) / static_cast<double>(target_compounds) < min_decoy_fraction ||
-          static_cast<double>(decoy_proteins) / static_cast<double>(target_proteins) < min_decoy_fraction)
+      const bool compounds_low = target_compounds > 0 &&
+        static_cast<double>(decoy_compounds) / static_cast<double>(target_compounds) < min_decoy_fraction;
+      const bool proteins_low = target_proteins > 0 &&
+        static_cast<double>(decoy_proteins) / static_cast<double>(target_proteins) < min_decoy_fraction;
+      if (compounds_low || proteins_low)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "The number of decoys for peptides or proteins is below the threshold of " +
+                                         "The number of decoys for compounds/peptides or proteins is below the threshold of " +
                                          StringUtils::toStr(min_decoy_fraction * 100) + "% of the number of targets.");
       }
     }
@@ -312,6 +328,11 @@ namespace OpenMS
   ProgressLogger::LogType OpenSwathLibraryPreparation::getLogType() const
   {
     return log_type_;
+  }
+
+  void OpenSwathLibraryPreparation::ensureUnimodLoaded(const AssayGeneratorParameters& parameters) const
+  {
+    ensureUnimodLoaded_(parameters);
   }
 
   OpenSwathLibraryPreparation::LibraryStats OpenSwathLibraryPreparation::normalizeLibraryToPQP(
@@ -353,6 +374,8 @@ namespace OpenMS
     const AssayGeneratorParameters& parameters,
     const Param& reader_parameters) const
   {
+    ensureUnimodLoaded(parameters);
+
     if (useLightPath_(input_type, output_type))
     {
       OpenSwath::LightTargetedExperiment light_exp;
@@ -369,7 +392,6 @@ namespace OpenMS
 
       if (parameters.enable_ipf)
       {
-        ensureUnimodLoaded_(parameters);
         const auto [uis_seed, disable_decoy_transitions] = resolveIPFDecoySettings_(parameters);
         std::vector<std::pair<double, double>> uis_swathes = buildUISSwathes_(parameters);
         assays.uisTransitionsLight(light_exp,
@@ -405,7 +427,6 @@ namespace OpenMS
 
     if (parameters.enable_ipf)
     {
-      ensureUnimodLoaded_(parameters);
       const auto [uis_seed, disable_decoy_transitions] = resolveIPFDecoySettings_(parameters);
       std::vector<std::pair<double, double>> uis_swathes = buildUISSwathes_(parameters);
       assays.uisTransitions(targeted_exp,
@@ -490,8 +511,10 @@ namespace OpenMS
                           parameters.allowed_fragment_charges, parameters.enable_detection_specific_losses,
                           parameters.enable_detection_unspecific_losses);
 
-    validateDecoyCoverage_(targeted_exp.getPeptides().size(), targeted_exp.getProteins().size(),
-                           targeted_decoy.getPeptides().size(), targeted_decoy.getProteins().size(),
+    validateDecoyCoverage_(targeted_exp.getPeptides().size() + targeted_exp.getCompounds().size(),
+                           targeted_exp.getProteins().size(),
+                           targeted_decoy.getPeptides().size() + targeted_decoy.getCompounds().size(),
+                           targeted_decoy.getProteins().size(),
                            parameters.min_decoy_fraction);
 
     if (parameters.separate)
@@ -521,7 +544,7 @@ namespace OpenMS
     std::string working_dir = scratch_directory;
     if (working_dir.empty())
     {
-      temp_dir = std::make_unique<TempDir>(true);
+      temp_dir = std::make_unique<TempDir>();
       working_dir = temp_dir->getPath();
     }
     else
@@ -541,31 +564,27 @@ namespace OpenMS
 
     if (assay_stats.transition_count == 0)
     {
-      OPENMS_LOG_WARN << "Assay preparation produced an empty intermediate library; "
-                      << "falling back to direct decoy generation on the empirical input library.\n";
       removeAssayOutput();
-      return generateDecoys(input_file, input_type, output_pqp, FileTypes::PQP, decoy_parameters, reader_parameters);
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Assay preparation produced zero transitions. Refusing to bypass the configured assay filters by falling back to the raw empirical library.");
     }
 
     try
     {
       const LibraryStats stats = generateDecoys(assay_output, FileTypes::PQP, output_pqp, FileTypes::PQP, decoy_parameters, reader_parameters);
-      if (stats.hasDecoys())
+      if (!stats.hasDecoys())
       {
         removeAssayOutput();
-        return stats;
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Decoy generation on the assay-prepared library produced zero decoy transitions.");
       }
-
-      OPENMS_LOG_WARN << "Decoy generation on the assay-prepared intermediate did not yield decoy transitions; "
-                      << "falling back to direct decoy generation on the empirical input library.\n";
+      removeAssayOutput();
+      return stats;
     }
-    catch (const Exception::IllegalArgument& e)
+    catch (...)
     {
-      OPENMS_LOG_WARN << "Decoy generation on the assay-prepared intermediate failed (" << e.what() << "); "
-                      << "falling back to direct decoy generation on the empirical input library.\n";
+      removeAssayOutput();
+      throw;
     }
-
-    removeAssayOutput();
-    return generateDecoys(input_file, input_type, output_pqp, FileTypes::PQP, decoy_parameters, reader_parameters);
   }
 } // namespace OpenMS

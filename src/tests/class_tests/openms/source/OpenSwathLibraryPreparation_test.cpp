@@ -94,14 +94,21 @@ START_SECTION(~OpenSwathLibraryPreparation())
 }
 END_SECTION
 
+START_SECTION([EXTRA] ensureUnimodLoaded initializes the requested IPF modification source before library parsing)
+{
+  OpenSwathLibraryPreparation prep;
+  prep.setLogType(ProgressLogger::NONE);
+  prep.ensureUnimodLoaded(makeIPFTestParameters_());
+}
+END_SECTION
+
 START_SECTION([EXTRA] normalizeLibraryToPQP normalizes a prepared decoy-containing TSV library to PQP)
 {
   OpenSwathLibraryPreparation prep;
   prep.setLogType(ProgressLogger::NONE);
 
   std::string output_pqp;
-  NEW_TMP_FILE(output_pqp);
-  output_pqp += ".pqp";
+  NEW_TMP_FILE_EXT(output_pqp, ".pqp");
 
   const auto stats = prep.normalizeLibraryToPQP(
     toppDataPath_("OpenSwathDecoyGenerator_output_6_light.tsv"),
@@ -136,12 +143,10 @@ START_SECTION([EXTRA] prepareAssays remains deterministic for IPF test-mode outp
   prep.setLogType(ProgressLogger::NONE);
 
   std::string output_pqp_1;
-  NEW_TMP_FILE(output_pqp_1);
-  output_pqp_1 += ".pqp";
+  NEW_TMP_FILE_EXT(output_pqp_1, ".pqp");
 
   std::string output_pqp_2;
-  NEW_TMP_FILE(output_pqp_2);
-  output_pqp_2 += ".pqp";
+  NEW_TMP_FILE_EXT(output_pqp_2, ".pqp");
 
   const auto stats_1 = prep.prepareAssays(
     toppDataPath_("OpenSwathAssayGenerator_input_4.pqp"),
@@ -195,16 +200,18 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP runs assay preparation plus d
   const auto decoy_params = makeDeterministicDecoyParameters_();
 
   std::string output_pqp_1;
-  NEW_TMP_FILE(output_pqp_1);
-  output_pqp_1 += ".pqp";
+  NEW_TMP_FILE_EXT(output_pqp_1, ".pqp");
 
   std::string output_pqp_2;
-  NEW_TMP_FILE(output_pqp_2);
-  output_pqp_2 += ".pqp";
+  NEW_TMP_FILE_EXT(output_pqp_2, ".pqp");
 
+  // Use a fixture that remains decoyable after assay preparation at the normal
+  // 40% coverage gate. The former TSV fixture relied on the now-removed raw-library
+  // fallback after assay filtering, so it is intentionally covered by the separate
+  // fail-closed regression below instead of serving as a positive-path fixture.
   const auto stats_1 = prep.prepareEmpiricalLibraryToPQP(
-    toppDataPath_("OpenSwathDecoyGenerator_input_4.tsv"),
-    FileTypes::TSV,
+    classTestDataPath_("MRMDecoyGenerator_input.TraML"),
+    FileTypes::TRAML,
     output_pqp_1,
     assay_params,
     decoy_params,
@@ -212,8 +219,8 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP runs assay preparation plus d
     File::path(output_pqp_1));
 
   const auto stats_2 = prep.prepareEmpiricalLibraryToPQP(
-    toppDataPath_("OpenSwathDecoyGenerator_input_4.tsv"),
-    FileTypes::TSV,
+    classTestDataPath_("MRMDecoyGenerator_input.TraML"),
+    FileTypes::TRAML,
     output_pqp_2,
     assay_params,
     decoy_params,
@@ -246,7 +253,7 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP runs assay preparation plus d
 }
 END_SECTION
 
-START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP preserves decoy flags when heavy TraML fallback is normalized to PQP)
+START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP fails closed when assay preparation yields zero transitions)
 {
   OpenSwathLibraryPreparation prep;
   prep.setLogType(ProgressLogger::NONE);
@@ -254,24 +261,39 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP preserves decoy flags when he
   auto assay_params = makeIPFTestParameters_();
   assay_params.enable_ipf = false;
   assay_params.unimod_file.clear();
-
-  // Force the assay-preparation stage to produce an empty intermediate so this
-  // regression deterministically exercises the direct heavy-TraML fallback.
-  // The selected fixture is specifically designed for MRM decoy generation and
-  // independently satisfies the normal 40% minimum decoy-coverage requirement.
   assay_params.min_transitions = 1000;
 
   const auto decoy_params = makeDeterministicDecoyParameters_();
 
   std::string output_pqp;
-  NEW_TMP_FILE(output_pqp);
-  output_pqp += ".pqp";
+  NEW_TMP_FILE_EXT(output_pqp, ".pqp");
 
-  const auto stats = prep.prepareEmpiricalLibraryToPQP(
+  TEST_EXCEPTION(Exception::Precondition,
+    prep.prepareEmpiricalLibraryToPQP(
+      classTestDataPath_("MRMDecoyGenerator_input.TraML"),
+      FileTypes::TRAML,
+      output_pqp,
+      assay_params,
+      decoy_params))
+  TEST_FALSE(File::exists(output_pqp))
+}
+END_SECTION
+
+START_SECTION([EXTRA] generateDecoys preserves decoy flags when heavy TraML is normalized to PQP)
+{
+  OpenSwathLibraryPreparation prep;
+  prep.setLogType(ProgressLogger::NONE);
+
+  const auto decoy_params = makeDeterministicDecoyParameters_();
+
+  std::string output_pqp;
+  NEW_TMP_FILE_EXT(output_pqp, ".pqp");
+
+  const auto stats = prep.generateDecoys(
     classTestDataPath_("MRMDecoyGenerator_input.TraML"),
     FileTypes::TRAML,
     output_pqp,
-    assay_params,
+    FileTypes::PQP,
     decoy_params);
 
   TEST_TRUE(File::exists(output_pqp))
