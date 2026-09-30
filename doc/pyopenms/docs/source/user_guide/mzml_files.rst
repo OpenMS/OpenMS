@@ -223,10 +223,11 @@ Zstandard Compression
 
 Since version 3.6, pyOpenMS can also compress the data arrays of an :term:`mzML`
 file with :index:`Zstandard <zstd compression>` (zstd) instead of zlib. Like
-zlib, zstd is lossless. Numeric arrays are byte-shuffled before they are
-compressed (``MS:1003781``, "byte-shuffled zstd compression"), which usually
-makes the file smaller than with zlib. We enable it in the options of
-:py:class:`~.MzMLFile` and store the data that we loaded from ``test.mzML``:
+zlib, zstd is lossless. Numeric arrays without numpress encoding are
+byte-shuffled before they are compressed (``MS:1003781``, "byte-shuffled zstd
+compression"), which usually makes the file smaller than with zlib. We enable it
+in the options of :py:class:`~.MzMLFile` and store the data that we loaded from
+``test.mzML``:
 
 .. code-block:: python
     :linenos:
