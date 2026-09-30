@@ -528,8 +528,8 @@ protected:
 
     registerDoubleOption_("TargetedDataExtraction:min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the upper edge of a SWATH window to still consider a precursor, in Thomson.", false, true);
     registerFlag_("TargetedDataExtraction:pasef", "Treat the input as PASEF / diaPASEF data.");
-    registerStringOption_("TargetedDataExtraction:ion_mobility_mode", "<choice>", "auto", "How to use the ion mobility dimension. 'auto' detects ion mobility SWATH windows and enables PASEF-style extraction/scoring automatically, filling negative IM extraction windows with 0.06 1/K0 defaults. 'enabled' keeps ion mobility enabled whenever such data are present. 'disabled' disables ion mobility extraction, calibration, and scoring even if the input contains ion mobility.", false);
-    setValidStrings_("TargetedDataExtraction:ion_mobility_mode", {"auto", "enabled", "disabled"});
+    registerStringOption_("TargetedDataExtraction:ion_mobility_mode", "<choice>", "auto", "How to use the ion mobility dimension. 'auto' detects ion mobility SWATH windows and enables PASEF-style extraction/scoring automatically, filling negative IM extraction windows with 0.06 1/K0 defaults. 'disabled' disables ion mobility extraction, calibration, and scoring even if the input contains ion mobility.", false);
+    setValidStrings_("TargetedDataExtraction:ion_mobility_mode", {"auto", "disabled"});
 
     registerDoubleOption_("TargetedDataExtraction:rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract the whole range; 600 means +/- 300 s around the expected elution).", false);
     registerDoubleOption_("TargetedDataExtraction:extra_rt_extraction_window", "<double>", 0.0, "Optional extra RT padding for the written chromatogram output.", false, true);
@@ -639,7 +639,6 @@ protected:
     registerFlag_("PeptideQueryParameters:DecoyGenerator:enable_detection_unspecific_losses", "Allow unspecific neutral losses for decoy generation.", true);
     registerStringOption_("PeptideQueryParameters:DecoyGenerator:switchKR", "<true/false>", "true", "Whether to switch terminal K and R to achieve different precursor masses.", false);
     setValidStrings_("PeptideQueryParameters:DecoyGenerator:switchKR", {"true", "false"});
-    registerFlag_("PeptideQueryParameters:DecoyGenerator:separate", "Write only decoys instead of appending them to the targets.", true);
   }
 
   void registerRescoringOptions_()
@@ -1048,7 +1047,8 @@ protected:
     parameters.enable_detection_specific_losses = getFlag_("PeptideQueryParameters:DecoyGenerator:enable_detection_specific_losses");
     parameters.enable_detection_unspecific_losses = getFlag_("PeptideQueryParameters:DecoyGenerator:enable_detection_unspecific_losses");
     parameters.switch_kr = getStringOption_("PeptideQueryParameters:DecoyGenerator:switchKR") == "true";
-    parameters.separate = getFlag_("PeptideQueryParameters:DecoyGenerator:separate");
+    // OpenDIA requires targets and decoys in the same prepared library for rescoring/FDR.
+    parameters.separate = false;
     return parameters;
   }
 
@@ -4398,6 +4398,21 @@ protected:
                                     "Direct OSWPQ export currently supports standard OpenSWATH-style exports only. Use Export:*:ipf disable or workflow:working_format sqlite for IPF-aware export.");
     }
 
+    const bool has_peptide_scores = File::exists(inferenceParquetPath_(workspace, InferenceLevel::Peptide));
+    const bool has_protein_scores = File::exists(inferenceParquetPath_(workspace, InferenceLevel::Protein));
+    const bool has_gene_scores = File::exists(inferenceParquetPath_(workspace, InferenceLevel::Gene));
+    if (config.peptide && !has_peptide_scores)
+    {
+      OPENMS_LOG_INFO << "Peptide-score export filtering requested, but no peptide inference table is present; leaving peptide filtering disabled for this export." << std::endl;
+    }
+    if (config.protein && !has_protein_scores)
+    {
+      OPENMS_LOG_INFO << "Protein-score export filtering requested, but no protein inference table is present; leaving protein filtering disabled for this export." << std::endl;
+    }
+    if (config.gene && !has_gene_scores)
+    {
+      OPENMS_LOG_INFO << "Gene-score export filtering requested, but no gene inference table is present; leaving gene filtering disabled for this export." << std::endl;
+    }
     const auto peptide_results = readLevelContextResultsParquet_(workspace, InferenceLevel::Peptide);
     const auto protein_results = readLevelContextResultsParquet_(workspace, InferenceLevel::Protein);
     const auto gene_results = readLevelContextResultsParquet_(workspace, InferenceLevel::Gene);
@@ -4559,7 +4574,7 @@ protected:
     {
       rows.erase(std::remove_if(rows.begin(), rows.end(), [](const auto& row) { return row.decoy; }), rows.end());
     }
-    if (config.peptide)
+    if (config.peptide && has_peptide_scores)
     {
       rows.erase(std::remove_if(rows.begin(), rows.end(),
                                 [&](const auto& row)
@@ -4569,7 +4584,7 @@ protected:
                                 }),
                  rows.end());
     }
-    if (config.protein)
+    if (config.protein && has_protein_scores)
     {
       rows.erase(std::remove_if(rows.begin(), rows.end(),
                                 [&](const auto& row)
@@ -4579,7 +4594,7 @@ protected:
                                 }),
                  rows.end());
     }
-    if (config.gene)
+    if (config.gene && has_gene_scores)
     {
       rows.erase(std::remove_if(rows.begin(), rows.end(),
                                 [&](const auto& row)
@@ -4700,7 +4715,6 @@ protected:
 
     std::string readoptions = getStringOption_("TargetedDataExtraction:readOptions");
     const bool keep_cached_files = getFlag_("TargetedDataExtraction:keep_cached_files");
-    const std::string tmp_dir = readoptions == "cache" ? resolveCachedInputTempBaseDir_(out_dir) : "";
 
     bool load_into_memory = false;
     if (readoptions == "cacheWorkingInMemory")
@@ -4713,6 +4727,11 @@ protected:
       readoptions = "normal";
       load_into_memory = true;
     }
+
+    // Resolve the cache base from the effective read mode. In particular,
+    // cacheWorkingInMemory is normalized to cache above and must honor
+    // TargetedDataExtraction:tempDirectory (or the out_dir fallback).
+    const std::string tmp_dir = readoptions == "cache" ? resolveCachedInputTempBaseDir_(out_dir) : "";
 
     Param irt_calibration_params = getParam_().copy("TargetedDataExtraction:Calibration:", true);
     bool auto_irt = irt_calibration_params.getValue("auto_irt:enabled").toString() == "true";
@@ -5626,7 +5645,15 @@ protected:
         {
           runInferenceOSWPQ_(workflow_workspace, prepared_library_lookup);
           runExportsOSWPQ_(workflow_workspace, prepared_library_lookup, input_files, out_dir);
-          commitOSWPQWorkspace_(workflow_workspace);
+          if (working_dir.remove_on_success)
+          {
+            OPENMS_LOG_INFO << "Skipping workflow.oswpq repack because the run-owned intermediate directory will be removed on success." << std::endl;
+            workflow_workspace.dirty = false;
+          }
+          else
+          {
+            commitOSWPQWorkspace_(workflow_workspace);
+          }
         }
         catch (...)
         {

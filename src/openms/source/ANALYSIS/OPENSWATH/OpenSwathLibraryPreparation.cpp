@@ -308,14 +308,21 @@ namespace OpenMS
                                 const Size target_proteins,
                                 const Size decoy_compounds,
                                 const Size decoy_proteins,
-                                const double min_decoy_fraction)
+                                const double min_decoy_fraction,
+                                const bool require_compounds,
+                                const bool require_proteins)
     {
-      if (target_compounds == 0 && target_proteins == 0)
+      if ((require_compounds && target_compounds == 0) ||
+          (require_proteins && target_proteins == 0))
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "The input experiment has no compounds/peptides or proteins.");
+                                         "The input experiment has no compounds or proteins.");
       }
 
+      // The heavy TraML path historically permits peptide-only/protein-less and
+      // compound-only inputs. Only validate entity classes that are actually
+      // populated; small-molecule TargetedExperiment::Compound entries are not
+      // peptide-decoy targets and are therefore excluded by the heavy caller.
       const bool compounds_low = target_compounds > 0 &&
         static_cast<double>(decoy_compounds) / static_cast<double>(target_compounds) < min_decoy_fraction;
       const bool proteins_low = target_proteins > 0 &&
@@ -484,9 +491,11 @@ namespace OpenMS
                                  parameters.allowed_fragment_charges, parameters.enable_detection_specific_losses,
                                  parameters.enable_detection_unspecific_losses);
 
+      // Preserve the historical light-path contract: both compounds and
+      // protein annotations are required for TSV/PQP/OpenSwath light libraries.
       validateDecoyCoverage_(light_exp.getCompounds().size(), light_exp.getProteins().size(),
                              light_decoy.getCompounds().size(), light_decoy.getProteins().size(),
-                             parameters.min_decoy_fraction);
+                             parameters.min_decoy_fraction, true, true);
 
       if (parameters.separate)
       {
@@ -522,11 +531,13 @@ namespace OpenMS
                           parameters.allowed_fragment_charges, parameters.enable_detection_specific_losses,
                           parameters.enable_detection_unspecific_losses);
 
-    validateDecoyCoverage_(targeted_exp.getPeptides().size() + targeted_exp.getCompounds().size(),
+    // MRMDecoy generates peptide/protein decoys, not small-molecule compound
+    // decoys. Do not count TargetedExperiment::Compound entries in this ratio.
+    validateDecoyCoverage_(targeted_exp.getPeptides().size(),
                            targeted_exp.getProteins().size(),
-                           targeted_decoy.getPeptides().size() + targeted_decoy.getCompounds().size(),
+                           targeted_decoy.getPeptides().size(),
                            targeted_decoy.getProteins().size(),
-                           parameters.min_decoy_fraction);
+                           parameters.min_decoy_fraction, false, false);
 
     if (parameters.separate)
     {

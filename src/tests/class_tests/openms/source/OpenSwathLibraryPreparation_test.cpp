@@ -279,6 +279,44 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP fails closed when assay prepa
 }
 END_SECTION
 
+
+START_SECTION([EXTRA] generateDecoys preserves the historical light-path requirement for protein annotations)
+{
+  OpenSwathLibraryPreparation prep;
+  prep.setLogType(ProgressLogger::NONE);
+
+  TransitionTSVFile tsv;
+  OpenSwath::LightTargetedExperiment light_exp;
+  tsv.convertTSVToTargetedExperiment(
+    toppDataPath_("OpenSwathWorkflow_23_input.tsv").c_str(),
+    FileTypes::TSV,
+    light_exp);
+  light_exp.proteins.clear();
+  for (auto& compound : light_exp.compounds)
+  {
+    compound.protein_refs.clear();
+  }
+
+  std::string proteinless_tsv;
+  NEW_TMP_FILE_EXT(proteinless_tsv, ".tsv");
+  tsv.convertLightTargetedExperimentToTSV(proteinless_tsv.c_str(), light_exp);
+
+  std::string output_tsv;
+  NEW_TMP_FILE_EXT(output_tsv, ".tsv");
+
+  auto decoy_params = makeDeterministicDecoyParameters_();
+  decoy_params.min_decoy_fraction = 0.0;
+
+  TEST_EXCEPTION(Exception::IllegalArgument,
+    prep.generateDecoys(
+      proteinless_tsv,
+      FileTypes::TSV,
+      output_tsv,
+      FileTypes::TSV,
+      decoy_params))
+}
+END_SECTION
+
 START_SECTION([EXTRA] generateDecoys preserves decoy flags when heavy TraML is normalized to PQP)
 {
   OpenSwathLibraryPreparation prep;
