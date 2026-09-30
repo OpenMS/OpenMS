@@ -18,7 +18,7 @@
 #   * on windows we need the *.lib versions (dlls alone won't do for linking)
 #   * never mix Release/Debug versions of libraries. Leads to strange segfaults,
 #     stack corruption etc, due to different runtime libs ...
-# compiler-wise: use the same compiler for contrib and OpenMS!
+# compiler-wise: build the dependencies with the same compiler as OpenMS!
 find_package(XercesC REQUIRED)
 
 #------------------------------------------------------------------------------
@@ -157,11 +157,12 @@ find_package(BZip2 REQUIRED)
 #------------------------------------------------------------------------------
 # zstd (Zstandard, used for mzML binary data array compression, MS:1003780 ff.)
 # zstd is also a dependency of Apache Arrow/Parquet, so vcpkg and distribution
-# packages of Arrow already provide it (a contrib-built Arrow bundles a private
-# copy, so install the system package there). Its config package exports a
-# shared or a static target depending on how it was built (zstd >= 1.5.6
-# additionally provides zstd::libzstd), so take whichever exists. Fall back to a
-# plain header/library search for installations without the config package.
+# packages of Arrow already provide it (an Arrow built with bundled dependencies
+# carries a private copy, so install the system package there). Its config
+# package exports a shared or a static target depending on how it was built
+# (zstd >= 1.5.6 additionally provides zstd::libzstd), so take whichever exists.
+# Fall back to a plain header/library search for installations without the
+# config package.
 find_package(zstd CONFIG QUIET)
 if(TARGET zstd::libzstd)
   set(OPENMS_ZSTD_TARGET zstd::libzstd)
@@ -363,10 +364,12 @@ if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static"
    OR (OPENMS_ARROW_DATASET_TARGET AND
        OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static"))
   # Deliberately not REQUIRED: only the platforms that actually resolve those
-  # symbols against a system libxml2 need it. MSVC has no --as-needed and the
-  # Windows contrib build links a static Arrow with no system libxml2 present at
-  # all, so a mandatory lookup would turn a link-order workaround into a hard
-  # build dependency everywhere and fail configuration where it is not needed.
+  # symbols against a system libxml2 need it. MSVC has no --as-needed, and the
+  # Windows vcpkg triplets link a static Arrow that vcpkg builds against its own
+  # ports, without the azure feature (see vcpkg.json), so the Windows builds need
+  # no libxml2 through Arrow; attaching it where it is found anyway is harmless.
+  # A mandatory lookup would turn a link-order workaround into a hard build
+  # dependency everywhere and fail configuration where it is not needed.
   find_package(LibXml2 QUIET)
   if(LibXml2_FOUND)
     if(TARGET Arrow::arrow_bundled_dependencies)
@@ -485,10 +488,10 @@ if(WITH_WNETALIGN)
 endif()
 
 #------------------------------------------------------------------------------
-# Done finding contrib libraries
+# Done finding external libraries
 #------------------------------------------------------------------------------
 
-#except for the contrib libs, prefer shared libraries
+# for the libraries found below, prefer shared libraries
 if(NOT MSVC AND NOT APPLE)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
 endif()

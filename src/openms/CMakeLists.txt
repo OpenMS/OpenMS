@@ -39,7 +39,7 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 add_subdirectory(extern)
 
 #------------------------------------------------------------------------------
-# external libs (contrib or system)
+# external libs (vcpkg or system)
 #------------------------------------------------------------------------------
 #include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
 
