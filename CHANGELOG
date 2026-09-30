@@ -645,6 +645,10 @@ TOPP tools:
         groups; every other shipped mzTab reference has exactly one (fraction_group, label) per sample
         and is byte-identical (#9868, part of #9864)
     ProSE:
+      - FIX: Preserve strong peaks in the short final 100 Da window for high-resolution searches.
+        New peaks:window_type=auto keeps the full local quota at <=0.1 Da / <=100 ppm;
+        low-resolution filtering is unchanged. jump restores the previous filter and jump_full
+        forces a full quota. Peak-associated data arrays stay aligned.
       - Fixed FragmentIndex::build reusing old peptide coordinates on a second build;
         rebuilding now replaces the previous index and failed builds remain unbuilt.
       - BREAKING: renamed from PeptideDataBaseSearchFI. -out replaced by -out_idxml
@@ -1386,10 +1390,26 @@ Documentation:
     orphaned install-contrib page is removed (#10144).
 
 Build System:
+  - OpenMS can be built and installed in layers from the same source tree, e.g. for separate
+    packages of the libraries, the TOPP tools and the GUI: the new option
+    OPENMS_USE_INSTALLED_LIBRARY builds only the TOPP tools (BUILD_TOPP_TOOLS) and/or the
+    GUI library and applications (WITH_GUI) against an installed OpenMS library of the same
+    version (OpenMS_DIR). Such a build installs its own tool registry, share/OpenMS/TOOLS/
+    OpenMS-TOPP.tsv or OpenMS-GUI.tsv, with its tools; a build of the libraries alone installs
+    none. The GUI applications and the Qt-based TOPP tools ExecutePipeline and ImageCreator
+    moved from the install component Applications to the new component GUIApplications
+    (except in the macOS .pkg installer); the installers still contain all of them. The new
+    cache variable OPENMS_INSTALL_DATA_PATH overrides the compiled-in location of the
+    installed shared data, for layers installed into separate prefixes and linked into one
+    tree (e.g. Homebrew); the GUI applications also look for TOPP tools in the bin directory
+    of that tree. macOS app bundles installed without packaging (into bin/) now find the
+    installed libraries. OpenMSConfig.cmake reports OpenMS_WITH_WNETALIGN.
   - The Debian package of a nightly or branch build carries its prerelease identifier in its
     control version, for example 3.6.0~nightly.2026.09.27, so it sorts below the release
     and a later nightly above an earlier one. Before, every build of 3.6.0 was version 3.6.0
     to apt, whether nightly or release.
+  - Debian package dependencies retain dpkg-shlibdeps detection while allowing Qt6 core,
+    gui and widgets runtime packages with either the t64 or non-t64 Ubuntu package name.
   - Public headers of OpenMS, OpenSwathAlgo, OpenMS_CLI, OpenMS_GUI and the test
     framework use CMake header file sets. Installation paths and components stay
     unchanged and private headers remain excluded. Building OpenMS and consuming

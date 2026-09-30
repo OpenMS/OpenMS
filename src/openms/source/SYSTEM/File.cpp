@@ -903,6 +903,15 @@ namespace OpenMS{
     exec = File::getExecutablePath() + "../../../bin/" + toolName;
     if (File::exists(exec)) return exec;
 #endif
+#ifndef OPENMS_WINDOWSPLATFORM
+    // layered installs (e.g. Homebrew kegs for library, TOPP tools and GUI) merge their files into a common
+    // prefix, whose share/OpenMS is compiled in as OPENMS_INSTALL_DATA_PATH: probe the bin/ of that prefix
+    if (!std::string(OPENMS_INSTALL_DATA_PATH).empty())
+    {
+      exec = std::string(OPENMS_INSTALL_DATA_PATH) + "/../../bin/" + toolName;
+      if (File::exists(exec) && !File::isDirectory(exec)) return exec;
+    }
+#endif
     // TODO(aiche): probe in PATH
 
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, toolName);
