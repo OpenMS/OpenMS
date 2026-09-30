@@ -1553,6 +1553,16 @@ Build System:
   - TOPPView and TOPPAS show the notice that Thermo's RawFileReader license asks for in their
     About dialog, in builds with the in-process Thermo reader (#10292).
 
+Known issues:
+  - Two search engines that the installers bundle from THIRDPARTY contain outdated library code:
+    Comet embeds zlib 1.2.11 and expat 2.2.9, MaRaCluster zlib 1.2.3. Published vulnerabilities
+    of these versions, such as CVE-2022-25235 (expat) and CVE-2016-9841 (zlib), can be triggered
+    by malformed input files, so run these engines only on files you trust. They will be rebuilt
+    against current versions after this release.
+  - The Linux and macOS installers and pyOpenMS wheels contain OpenSSL 3.6.4.
+    CVE-2026-84782, fixed in OpenSSL 3.6.5, concerns only DTLS connections, which OpenMS does
+    not open.
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----
 ------------------------------------------------------------------------------------------
