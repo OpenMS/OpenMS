@@ -60,9 +60,13 @@ jobs:
               ## Manual run: publish under the user-provided name
               TAG="$INPUT_TAG"
             elif [[ "$REF" == refs/tags/* ]]; then
-              ## Release tag (e.g. Release3.6.0 or Release/3.6.0) -> 3.6.0
+              ## Release tag (e.g. v3.6.0, Release3.6.0 or Release/3.6.0) -> 3.6.0,
+              ## the name the installation pages give (docker pull ...:<version>)
               TAG="${REF_NAME#Release}"
               TAG="${TAG#/}"
+              if [[ "$TAG" =~ ^v[0-9] ]]; then
+                TAG="${TAG#v}"
+              fi
             elif [[ "$REF_NAME" == "develop" || "$REF_NAME" == "nightly" || "$REF_NAME" == "feat/singularity" ]]; then
               ## use latest to follow docker conventions
               TAG="latest"
