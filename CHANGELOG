@@ -622,8 +622,9 @@ TOPP tools:
         intensity products by Gaussian mass accuracy, using scoring:mass_error_sd (7 ppm
         by default). Matching tolerances and unweighted match annotations are unchanged.
         Applies to final scoring and precursor calibration, including chunked/multi-file
-        searches. Experimental high-resolution mode: assumes errors centered at zero;
-        the kernel width is not fitted during calibration. Auto selection is unchanged.
+        searches. Experimental high-resolution mode; with calibration, the kernel center and
+        width are fitted per run (see the calibration:enabled entry above). Auto selection is
+        unchanged.
       - Experimental native CID scoring: scoring:method=calibrated replaces HyperScore's
         factorial rewards with binomial fragment-match evidence; combine with
         scoring:fragment_charges=multiple to score higher fragment charges. Both final
