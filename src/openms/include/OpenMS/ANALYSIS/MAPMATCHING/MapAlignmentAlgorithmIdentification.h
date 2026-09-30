@@ -40,7 +40,14 @@ namespace OpenMS
     Only the best PSM per spectrum is considered as the correct identification.
 
     Each map is aligned to a reference retention time scale.
-    This time scale can either come from a reference file (@p reference parameter) or be computed as a consensus of the input maps (median retention times over all maps of the ID groups).
+    This time scale can come from a separate reference (setReference()) or from one of the input maps (@p reference_index in align()).
+    If neither is given, parameter @p auto_reference decides: by default ("best_run"), the input map that shares the most identified sequences with every other map becomes the reference,
+    i.e. the map whose smallest number of shared sequences with any other map is largest (on ties, the map with the most identified sequences), so that every map can be aligned to it.
+    With "consensus", the time scale is computed as a consensus of the input maps (median retention times over all maps of the ID groups).
+    A consensus is also used if no map shares at least two sequences with every other map.
+    If the chosen map leaves other maps with fewer than @p auto_reference_min_points alignment points (after removing outliers, see @p max_rt_shift), and one of them shares at least that many sequences with other maps,
+    every map and a consensus are tried as the reference, and the choice that gives the most maps at least that many points is used (on ties, the first choice is kept, and a map is preferred over a consensus).
+    A consensus favors none of the maps, but every map contributes to the consensus it is aligned to, so larger shifts between maps are only partly corrected.
     The maps are then aligned to this scale as follows:\n
     The median retention time of each ID group in a map is mapped to the reference retention time of this group.
     Cubic spline smoothing is used to convert this mapping to a smooth function.
@@ -85,7 +92,7 @@ public:
 
       @param[in] data Vector of input data (FeatureMap, ConsensusMap, or @p PeptideIdentificationList) that should be aligned.
       @param[in] transformations Vector of RT transformations that will be computed.
-      @param[in] reference_index Index in @p data of the reference to align to, if any
+      @param[in] reference_index Index in @p data of the reference to align to, if any. If -1 and no reference was set with setReference(), parameter @p auto_reference determines the reference.
 
       @throw Exception::MissingInformation Not enough suitable RT data to perform alignment
     */
@@ -130,7 +137,16 @@ public:
       }
       setProgress(1);
 
-      computeTransformations_(rt_data, transformations, all_sorted);
+      if (!use_internal_reference && reference_.empty())
+      {
+        alignToAutoReference_(rt_data, transformations, all_sorted);
+      }
+      else
+      {
+        computeTransformations_(rt_data, transformations, all_sorted);
+      }
+      // a reference taken from the input maps must not carry over into the next call:
+      if (reference_index_ >= 0) reference_.clear();
       setProgress(2);
 
       setProgress(3);
@@ -159,6 +175,12 @@ protected:
 
     /// Consider differently adducted IDs as different?
     bool use_adducts_{};
+
+    /// Without a given reference, align to a consensus of all maps (instead of the map that shares the most IDs with the others)?
+    bool consensus_reference_{};
+
+    /// Number of alignment points that the automatically chosen reference map should provide for every other map (else a consensus is tried)
+    Size auto_reference_min_points_{};
 
     /// Minimum score to reach for a peptide to be considered
     double min_score_;
@@ -302,10 +324,53 @@ protected:
       @param[in] rt_data Lists of RT values for diff. peptide sequences, per dataset (input, will be sorted)
       @param[out] transforms Resulting transformations, per dataset (output)
       @param[in] sorted Are RT lists already sorted?
+      @param[in] verbose Log the number of alignment points per dataset?
     */
     void computeTransformations_(std::vector<SeqToList>& rt_data,
                                  std::vector<TransformationDescription>&
-                                 transforms, bool sorted = false);
+                                 transforms, bool sorted = false, bool verbose = true);
+
+    /**
+      @brief Choose the input map that shares the most identified sequences with every other map as the reference
+
+      Only sequences that occur in at least @p min_run_occur maps count. The reference is the map whose smallest number of shared sequences with any other map is largest;
+      on ties, the map with the most identified sequences (then the first of those) is used.
+
+      @param[in] rt_data Lists of RT values for diff. peptide sequences, per input map
+      @return Index of the reference map in @p rt_data, or -1 if no map shares at least two sequences with every other map (so that a consensus should be used)
+    */
+    Int selectReference_(const std::vector<SeqToList>& rt_data) const;
+
+    /**
+      @brief Compute RT transformations without a given reference, as parameter @p auto_reference asks
+
+      With "best_run", aligns to the map chosen by selectReference_() and sets #reference_index_ accordingly. If that leaves maps with fewer than @p auto_reference_min_points
+      alignment points, and one of them shares at least that many sequences with other maps, every map and a consensus of all maps are tried as the reference.
+      The choice that gives the most maps at least that many points (the reference counts) is used; on ties, the first choice is kept, then the map with
+      the largest smallest number of points among those maps is preferred, and a map is preferred over a consensus.
+
+      @param[in,out] rt_data Lists of RT values for diff. peptide sequences, per input map (input, will be sorted)
+      @param[out] transforms Resulting transformations, per input map (output)
+      @param[in] sorted Are RT lists already sorted?
+    */
+    void alignToAutoReference_(std::vector<SeqToList>& rt_data,
+                               std::vector<TransformationDescription>& transforms,
+                               bool sorted);
+
+    /**
+      @brief Compute RT transformations with one of the input maps as the reference
+
+      Sets #reference_index_ to @p index. @p rt_data is unchanged afterwards, except that its RT lists are sorted.
+
+      @param[in,out] rt_data Lists of RT values for diff. peptide sequences, per input map (input, will be sorted)
+      @param[in] index Index of the reference map in @p rt_data
+      @param[out] transforms Resulting transformations, per input map (output)
+      @param[in] sorted Are RT lists already sorted?
+      @param[in] verbose Log the number of alignment points per map?
+    */
+    void alignToInput_(std::vector<SeqToList>& rt_data, Size index,
+                       std::vector<TransformationDescription>& transforms,
+                       bool sorted, bool verbose);
 
     /**
       @brief Check that parameter values are valid

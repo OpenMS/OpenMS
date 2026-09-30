@@ -1084,7 +1084,8 @@ protected:
             for (const std::string& f : numeric_features)
             {
               if (!hit.metaValueExists(f)) { ok = false; break; }
-              row.push_back(static_cast<double>(hit.getMetaValue(f)));
+              // as the executable reads the .pin: search engine scores may be stored as strings
+              row.push_back(PercolatorInfile::getFeatureValue(hit.getMetaValue(f), f));
             }
             if (!ok) continue;
 
@@ -1098,7 +1099,7 @@ protected:
             ri.exp_masses.push_back(
               static_cast<double>(hit.getMetaValue("ExpMass")));
             ri.calc_masses.push_back(
-              static_cast<double>(hit.getMetaValue("CalcMass")));
+              PercolatorInfile::getFeatureValue(hit.getMetaValue("CalcMass"), "CalcMass"));
             hit_locs.emplace_back(i, j);
           }
         }

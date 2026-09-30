@@ -119,6 +119,7 @@ namespace OpenMS
       PROVIDES_TRANSFORMATIONS,     //
       PROVIDES_QC,                  //
       COMPRESSED_READABLE,          // the reader transparently decompresses .gz/.bz2/.zip input (XMLFile via CompressedInputSource)
+      COMPRESSED_WRITEABLE,         // the writer compresses .gz/.bz2 output, chosen by the file name (XMLFile::save_)
       SIZE_OF_FILEPROPERTIES        // Not a property, just the number of 'em
     };
 
@@ -168,6 +169,20 @@ namespace OpenMS
       @param[in] compression GZ, BZ2 or ZIP; anything else returns false
     */
     static bool supportsCompressedReading(Type type, Type compression);
+
+    /**
+      @brief Does the writer for @p type produce the compression that @p compression names?
+
+      The counterpart of supportsCompressedReading(). XMLFile compresses what it stores with gzip or
+      bzip2 when the file name ends in '.gz' or '.bz2' (any letter case), which covers the formats
+      marked COMPRESSED_WRITEABLE; it never writes a ZIP archive. OSWPQ is the exception: its writers
+      always produce a ZIP archive, so a '.oswpq.zip' name matches what is written. Every other writer
+      stores plain data whatever the file name says, so a TOPP tool refuses such an output name.
+
+      @param[in] type The format to write
+      @param[in] compression GZ, BZ2 or ZIP; anything else returns false
+    */
+    static bool supportsCompressedWriting(Type type, Type compression);
 
     /**
       @brief Do two declared format strings denote the same format?

@@ -15,9 +15,12 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 ///////////////////////////
 
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 
@@ -1066,6 +1069,114 @@ START_SECTION((template <typename MapType> void store(const std::string& filenam
 }
 END_SECTION
 
+START_SECTION([EXTRA] load and store zstd compressed binary data arrays)
+{
+  MzMLFile file;
+
+  // externally generated file (Python numpy + zstandard) using all zstd compression variants
+  PeakMap exp;
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_zstd.mzML"), exp);
+  TEST_EQUAL(exp.size(), 2)
+  ABORT_IF(exp.size() != 2)
+  TEST_EQUAL(exp[0].size(), 5)
+  ABORT_IF(exp[0].size() != 5)
+  const std::vector<double> mz = {100.5, 200.25, 300.125, 400.0, 500.0625}; // byte-shuffled zstd
+  const std::vector<double> intensity = {10, 20, 10, 30, 20}; // dictionary-encoded zstd
+  for (Size i = 0; i < mz.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(exp[0][i].getMZ(), mz[i])
+    TEST_REAL_SIMILAR(exp[0][i].getIntensity(), intensity[i])
+  }
+  TEST_EQUAL(exp[0].getFloatDataArrays().size(), 1)
+  ABORT_IF(exp[0].getFloatDataArrays().size() != 1)
+  TEST_EQUAL(exp[0].getFloatDataArrays()[0].getName(), "float values")
+  TEST_EQUAL(exp[0].getFloatDataArrays()[0].size(), 5)
+  ABORT_IF(exp[0].getFloatDataArrays()[0].size() != 5)
+  TEST_REAL_SIMILAR(exp[0].getFloatDataArrays()[0][0], 0.5)
+  TEST_REAL_SIMILAR(exp[0].getFloatDataArrays()[0][4], 4.5)
+  TEST_EQUAL(exp[0].getIntegerDataArrays().size(), 2)
+  ABORT_IF(exp[0].getIntegerDataArrays().size() != 2)
+  TEST_EQUAL(exp[0].getIntegerDataArrays()[0].getName(), "int32 values")
+  const std::vector<Int> int32_values = {7, -1, 7, 7, 300};
+  const auto& int32_array = exp[0].getIntegerDataArrays()[0];
+  TEST_EQUAL(std::vector<Int>(int32_array.begin(), int32_array.end()) == int32_values, true)
+  TEST_EQUAL(exp[0].getIntegerDataArrays()[1].getName(), "int64 values")
+  TEST_EQUAL(exp[0].getIntegerDataArrays()[1].size(), 5)
+  ABORT_IF(exp[0].getIntegerDataArrays()[1].size() != 5)
+  TEST_EQUAL(exp[0].getIntegerDataArrays()[1][2], 3)
+  TEST_EQUAL(exp[0].getStringDataArrays().size(), 1)
+  ABORT_IF(exp[0].getStringDataArrays().size() != 1)
+  TEST_EQUAL(exp[0].getStringDataArrays()[0].size(), 3)
+  ABORT_IF(exp[0].getStringDataArrays()[0].size() != 3)
+  TEST_EQUAL(exp[0].getStringDataArrays()[0][0], "alpha")
+  TEST_EQUAL(exp[0].getStringDataArrays()[0][2], "gamma")
+  TEST_EQUAL(exp[1].size(), 0) // empty arrays
+  TEST_EQUAL(exp.getChromatograms().size(), 1)
+  ABORT_IF(exp.getChromatograms().size() != 1)
+  TEST_EQUAL(exp.getChromatograms()[0].size(), 3)
+  ABORT_IF(exp.getChromatograms()[0].size() != 3)
+  TEST_REAL_SIMILAR(exp.getChromatograms()[0][1].getRT(), 2.0)
+  TEST_REAL_SIMILAR(exp.getChromatograms()[0][1].getIntensity(), 200.0)
+
+  // lossless round-trip (32/64 bit floats, 32/64 bit integers, null terminated strings)
+  PeakMap exp_original;
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"), exp_original);
+  file.getOptions().setZstdCompression(true);
+  std::string encoded;
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003781")) // numeric arrays
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003780")) // string arrays
+  TEST_FALSE(StringUtils::hasSubstring(encoded, "MS:1000574"))
+  TEST_FALSE(StringUtils::hasSubstring(encoded, "MS:1000576"))
+  PeakMap exp_zstd;
+  file.loadBuffer(encoded, exp_zstd);
+  TEST_EQUAL(exp_zstd == exp_original, true)
+
+  // zstd takes precedence over zlib
+  file.getOptions().setCompression(true);
+  std::string encoded_both;
+  file.storeBuffer(encoded_both, exp_original);
+  TEST_EQUAL(encoded_both, encoded)
+  file.getOptions().setCompression(false);
+
+  // numpress followed by zstd yields the same values as numpress followed by zlib
+  MSNumpressCoder::NumpressConfig np_mz, np_int;
+  np_mz.setCompression("linear");
+  np_mz.estimate_fixed_point = true;
+  np_int.setCompression("slof");
+  np_int.estimate_fixed_point = true;
+  file.getOptions().setNumpressConfigurationMassTime(np_mz);
+  file.getOptions().setNumpressConfigurationIntensity(np_int);
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003783"))
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003785"))
+  PeakMap exp_np_zstd;
+  file.loadBuffer(encoded, exp_np_zstd);
+
+  file.getOptions().setZstdCompression(false);
+  file.getOptions().setCompression(true);
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1002746"))
+  PeakMap exp_np_zlib;
+  file.loadBuffer(encoded, exp_np_zlib);
+  TEST_EQUAL(exp_np_zstd.size(), exp_np_zlib.size())
+  TEST_EQUAL(exp_np_zstd == exp_np_zlib, true)
+
+  // the same for numpress pic followed by zstd
+  np_int.setCompression("pic");
+  file.getOptions().setNumpressConfigurationIntensity(np_int);
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1002747"))
+  file.loadBuffer(encoded, exp_np_zlib);
+  file.getOptions().setZstdCompression(true);
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003784"))
+  file.loadBuffer(encoded, exp_np_zstd);
+  TEST_EQUAL(exp_np_zstd.size(), exp_np_zlib.size())
+  TEST_EQUAL(exp_np_zstd == exp_np_zlib, true)
+}
+END_SECTION
+
 START_SECTION([EXTRA] store and load gzip and bzip2 compressed files - round-trip)
 {
   // The file format is inferred from the extension before the compression
@@ -1132,6 +1243,50 @@ START_SECTION([EXTRA] store and load gzip and bzip2 compressed files - round-tri
     file.load(tmp_bz2, exp_bz2);
     TEST_TRUE(exp_bz2 == exp_plain)
   }
+
+  // the suffix counts in any letter case, as it does on input and in the TOPP tools' output check
+  {
+    std::string tmp_gz;
+    NEW_TMP_FILE(tmp_gz);
+    tmp_gz += ".mzML.GZ";
+    file.store(tmp_gz, exp_original);
+
+    std::string magic = first_bytes(tmp_gz, 2);
+    TEST_EQUAL(magic.size(), 2)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[0])), 0x1f)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[1])), 0x8b)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] the streaming mzML writer refuses compressed file names)
+{
+  // PlainMSDataWritingConsumer (behind FileConverter -process_lowmemory and other low-memory modes) writes
+  // plain mzML, so a name that promises compression is refused before anything is written
+  for (const std::string suffix : {".mzML.gz", ".mzML.BZ2", ".mzML.zip"})
+  {
+    std::string tmp;
+    NEW_TMP_FILE(tmp);
+    tmp += suffix;
+    TEST_EXCEPTION(Exception::UnableToCreateFile, PlainMSDataWritingConsumer consumer(tmp))
+    TEST_FALSE(File::exists(tmp))
+  }
+
+  // a plain name still works
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  tmp += ".mzML";
+  {
+    PlainMSDataWritingConsumer consumer(tmp);
+    consumer.setExpectedSize(1, 0);
+    MSSpectrum spec;
+    spec.setRT(1.0);
+    spec.push_back(Peak1D(100.0, 1.0f));
+    consumer.consumeSpectrum(spec);
+  }
+  PeakMap exp;
+  MzMLFile().load(tmp, exp);
+  TEST_EQUAL(exp.size(), 1)
 }
 END_SECTION
 
@@ -1178,6 +1333,196 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
 }
 END_SECTION
 
+START_SECTION(([EXTRA] chromatograms are stored with a precursor or product only if they have one))
+{
+  // a TIC has neither, an MS1 chromatogram has no product; they used to be written with an empty precursor and a
+  // product isolation window at m/z 0
+  MSChromatogram tic;
+  tic.setNativeID("TIC");
+  tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+  tic.push_back(ChromatogramPeak(1.0, 10.0));
+  MSChromatogram ms1(tic);
+  ms1.setNativeID("MS1");
+  ms1.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_ION_CURRENT_CHROMATOGRAM);
+  Precursor precursor;
+  precursor.setMZ(500.25);
+  ms1.setPrecursor(precursor);
+  MSChromatogram srm(ms1);
+  srm.setNativeID("SRM");
+  srm.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  Product product;
+  product.setMZ(600.5);
+  srm.setProduct(product);
+  PeakMap exp;
+  exp.addChromatogram(tic);
+  exp.addChromatogram(ms1);
+  exp.addChromatogram(srm);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  MzMLFile().store(tmp_filename, exp);
+  std::ifstream is(tmp_filename);
+  std::string out((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+  auto chromatogramXML = [&out](const std::string& id)
+  {
+    Size start = out.find("<chromatogram id=\"" + id + "\"");
+    return out.substr(start, out.find("</chromatogram>", start) - start);
+  };
+  TEST_FALSE(StringUtils::hasSubstring(chromatogramXML("TIC"), "<precursor"))
+  TEST_FALSE(StringUtils::hasSubstring(chromatogramXML("TIC"), "<product"))
+  TEST_TRUE(StringUtils::hasSubstring(chromatogramXML("MS1"), "<precursor"))
+  TEST_FALSE(StringUtils::hasSubstring(chromatogramXML("MS1"), "<product"))
+  TEST_TRUE(StringUtils::hasSubstring(chromatogramXML("SRM"), "<precursor"))
+  TEST_TRUE(StringUtils::hasSubstring(chromatogramXML("SRM"), "<product"))
+
+  PeakMap reloaded;
+  MzMLFile().load(tmp_filename, reloaded);
+  TEST_EQUAL(reloaded.getChromatograms().size(), 3)
+  TEST_TRUE(reloaded.getChromatograms()[0].getPrecursor() == Precursor())
+  TEST_TRUE(reloaded.getChromatograms()[0].getProduct() == Product())
+  TEST_REAL_SIMILAR(reloaded.getChromatograms()[1].getPrecursor().getMZ(), 500.25)
+  TEST_TRUE(reloaded.getChromatograms()[1].getProduct() == Product())
+  TEST_REAL_SIMILAR(reloaded.getChromatograms()[2].getPrecursor().getMZ(), 500.25)
+  TEST_REAL_SIMILAR(reloaded.getChromatograms()[2].getProduct().getMZ(), 600.5)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] scan attributes are stored in the scan, also those kept under their accession))
+{
+  // The reader keeps some scan attributes with the spectrum, as MSSpectrum has no member for them, but mzML allows them
+  // only in a scan. Other scan attributes it keeps with the scan, under their accession. Both used to be written as
+  // userParams, which other readers do not find.
+  PeakMap exp;
+  MSSpectrum with_scan; // all values as the mzML reader stores them
+  with_scan.setNativeID("scan=1");
+  with_scan.setRT(1.0);
+  DataValue dwell(0.25);
+  dwell.setUnit(10); // UO:0000010 second
+  dwell.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+  with_scan.setMetaValue("dwell time", dwell);
+  with_scan.setMetaValue("mass resolution", "4.3");
+  DataValue rate(17.5);
+  rate.setUnit(1000807); // MS:1000807 Th/s
+  rate.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+  with_scan.setMetaValue("scan rate", rate);
+  with_scan.setMetaValue("filter string", "FTMS + p NSI Full ms [350.0000-1400.0000]");
+  with_scan.setMetaValue("preset scan configuration", "1");
+  with_scan.setMetaValue("mass resolving power", "60000");
+  DataValue offset(-4.5);
+  offset.setUnit(1000040); // MS:1000040 m/z
+  offset.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+  with_scan.setMetaValue("analyzer scan offset", offset);
+  DataValue delay(0.5);
+  delay.setUnit(10); // UO:0000010 second
+  delay.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+  with_scan.setMetaValue("interchannel delay", delay);
+  with_scan.setMetaValue("elution time (seconds)", 55.5); // without its unit
+  with_scan.getAcquisitionInfo().push_back(Acquisition());
+  DataValue injection(12.5);
+  injection.setUnit(28); // UO:0000028 millisecond
+  injection.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+  with_scan.getAcquisitionInfo().back().setMetaValue("MS:1000927", injection); // ion injection time
+  exp.addSpectrum(with_scan);
+  MSSpectrum without_scan; // written with a scan of its own
+  without_scan.setNativeID("scan=2");
+  without_scan.setRT(2.0);
+  without_scan.setMetaValue("mass resolving power", 30000);
+  exp.addSpectrum(without_scan);
+  MSSpectrum also_in_scan; // a value of the scan itself is written once, and takes precedence
+  also_in_scan.setNativeID("scan=3");
+  also_in_scan.setRT(3.0);
+  also_in_scan.setMetaValue("mass resolving power", 15000);
+  also_in_scan.getAcquisitionInfo().push_back(Acquisition());
+  also_in_scan.getAcquisitionInfo().back().setMetaValue("mass resolving power", 17500);
+  exp.addSpectrum(also_in_scan);
+  MSSpectrum none;
+  none.setNativeID("scan=4");
+  none.setRT(4.0);
+  exp.addSpectrum(none);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  MzMLFile().store(tmp_filename, exp);
+  std::ifstream is(tmp_filename);
+  std::string out((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+  // the spectrum element up to its scan list, and the scan list
+  auto spectrumXML = [&out](const std::string& id)
+  {
+    const Size start = out.find("<spectrum id=\"" + id + "\"");
+    const Size scans = out.find("<scanList", start);
+    return std::make_pair(out.substr(start, scans - start), out.substr(scans, out.find("</scanList>", scans) - scans));
+  };
+  auto count = [](const std::string& text, const std::string& pattern)
+  {
+    Size n = 0;
+    for (Size pos = text.find(pattern); pos != std::string::npos; pos = text.find(pattern, pos + 1)) ++n;
+    return n;
+  };
+  const std::vector<std::string> names = {"dwell time", "mass resolution", "scan rate", "elution time", "filter string",
+                                          "analyzer scan offset", "preset scan configuration", "mass resolving power",
+                                          "interchannel delay", "ion injection time"};
+  for (const std::string& name : names)
+  {
+    TEST_FALSE(StringUtils::hasSubstring(out, "<userParam name=\"" + name))
+  }
+  TEST_FALSE(StringUtils::hasSubstring(out, "<userParam name=\"MS:1000927\""))
+  for (const char* id : {"scan=1", "scan=2", "scan=3", "scan=4"})
+  {
+    for (const std::string& name : names)
+    {
+      TEST_FALSE(StringUtils::hasSubstring(spectrumXML(id).first, name))
+    }
+  }
+  const std::vector<std::string> scan_terms = {
+    "accession=\"MS:1000502\" name=\"dwell time\" value=\"0.25\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"/>",
+    "accession=\"MS:1000011\" name=\"mass resolution\" value=\"4.3\"/>",
+    "accession=\"MS:1000015\" name=\"scan rate\" value=\"17.5\" unitAccession=\"MS:1000807\" unitName=\"Th/s\" unitCvRef=\"MS\"/>",
+    "accession=\"MS:1000512\" name=\"filter string\" value=\"FTMS + p NSI Full ms [350.0000-1400.0000]\"/>",
+    "accession=\"MS:1000616\" name=\"preset scan configuration\" value=\"1\"/>",
+    "accession=\"MS:1000800\" name=\"mass resolving power\" value=\"60000\"/>",
+    "accession=\"MS:1000803\" name=\"analyzer scan offset\" value=\"-4.5\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\"/>",
+    "accession=\"MS:1000880\" name=\"interchannel delay\" value=\"0.5\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"/>",
+    "accession=\"MS:1000826\" name=\"elution time\" value=\"55.5\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"/>",
+    "accession=\"MS:1000927\" name=\"ion injection time\" value=\"12.5\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\"/>"};
+  for (const std::string& scan_term : scan_terms)
+  {
+    TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=1").second, scan_term))
+  }
+  const std::string term = "accession=\"MS:1000800\" name=\"mass resolving power\" value=\"";
+  TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=2").second, term + "30000\""))
+  TEST_EQUAL(count(spectrumXML("scan=3").second, "mass resolving power"), 1)
+  TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=3").second, term + "17500\""))
+  TEST_FALSE(StringUtils::hasSubstring(spectrumXML("scan=4").second, "mass resolving power"))
+
+  MzMLFile file;
+  StringList errors, warnings;
+  TEST_TRUE(file.isValid(tmp_filename))
+  TEST_TRUE(file.isSemanticallyValid(tmp_filename, errors, warnings))
+  TEST_EQUAL(errors.size(), 0)
+  TEST_EQUAL(warnings.size(), 0)
+
+  // read back as before, as from mzML written by other software
+  PeakMap reloaded;
+  file.load(tmp_filename, reloaded);
+  ABORT_IF(reloaded.size() != 4)
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("dwell time"), 0.25)
+  TEST_EQUAL(reloaded[0].getMetaValue("mass resolution").toString(), "4.3")
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("scan rate"), 17.5)
+  TEST_EQUAL(reloaded[0].getMetaValue("filter string").toString(), "FTMS + p NSI Full ms [350.0000-1400.0000]")
+  TEST_EQUAL(reloaded[0].getMetaValue("preset scan configuration").toString(), "1")
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("analyzer scan offset"), -4.5)
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("interchannel delay"), 0.5)
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("elution time (seconds)"), 55.5)
+  ABORT_IF(reloaded[0].getAcquisitionInfo().size() != 1)
+  TEST_REAL_SIMILAR((double)reloaded[0].getAcquisitionInfo()[0].getMetaValue("MS:1000927"), 12.5)
+  TEST_EQUAL(reloaded[0].getAcquisitionInfo()[0].getMetaValue("MS:1000927").getUnit(), 28)
+  TEST_EQUAL(reloaded[0].getMetaValue("mass resolving power").toString(), "60000")
+  TEST_EQUAL(reloaded[1].getMetaValue("mass resolving power").toString(), "30000")
+  TEST_EQUAL(reloaded[2].getMetaValue("mass resolving power").toString(), "17500")
+  TEST_FALSE(reloaded[3].metaValueExists("mass resolving power"))
+}
+END_SECTION
+
 START_SECTION(bool isValid(const std::string& filename, std::ostream& os = std::cerr))
 {
   std::string tmp_filename;
@@ -1220,7 +1565,7 @@ START_SECTION(bool isSemanticallyValid(const std::string& filename, StringList& 
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
   TEST_EQUAL(errors.size(),0)
-  TEST_EQUAL(warnings.size(),2) // add mappings for chromatogram/precursor/activation and selectedIon to reduce that count
+  TEST_EQUAL(warnings.size(),0) // its chromatograms have no precursor, whose activation would have no mapping rule
 
   //valid file
   TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), errors, warnings),true)
@@ -1402,6 +1747,42 @@ START_SECTION(void transform(const std::string& filename_in, Interfaces::IMSData
   TEST_REAL_SIMILAR(consumer.TIC, 350)
 
   TEST_EQUAL(map.getNrSpectra(), 4)
+}
+END_SECTION
+
+START_SECTION([EXTRA] transform() ends the progress of a first pass that stops before the end of the file)
+{
+  // records the nesting depth of every progress started with it
+  class DepthRecorder : public ProgressLogger::ProgressLoggerImpl
+  {
+  public:
+    explicit DepthRecorder(std::vector<int>& depths) : depths_(depths) {}
+    void startProgress(const SignedSize, const SignedSize, const std::string&, const int current_recursion_depth) const override
+    {
+      depths_.push_back(current_recursion_depth);
+    }
+    void setProgress(const SignedSize, const int) const override {}
+    SignedSize nextProgress() const override { return 0; }
+    void endProgress(const int, UInt64) const override {}
+
+  private:
+    std::vector<int>& depths_;
+  };
+
+  // the first pass stops at the spectrum list (metadata only) or at the chromatogram list (counting); the progress of
+  // the next file must not be nested deeper
+  for (bool skip_full_count : {true, false})
+  {
+    std::vector<int> first, second;
+    MzMLFile mzml;
+    MSDataTransformingConsumer consumer;
+    mzml.setLogger(new DepthRecorder(first));
+    mzml.transform(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), &consumer, skip_full_count);
+    mzml.setLogger(new DepthRecorder(second));
+    mzml.transform(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), &consumer, skip_full_count);
+    TEST_FALSE(first.empty())
+    TEST_TRUE(first == second)
+  }
 }
 END_SECTION
 

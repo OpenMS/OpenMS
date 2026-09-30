@@ -304,6 +304,7 @@ set(format_executables_list
   XTandemInfile_test
   XTandemXMLFile_test
   ZlibCompression_test
+  ZstdCompression_test
   Libzip_test
   ZipArchiveFile_test
   ZipIfstream_test
@@ -765,30 +766,6 @@ if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list OpenSwathResultsExporter_test)
   list(APPEND swath_executables_list OpenSwathParquetExporter_test)
 endif()
-
-set(Boost_dependent_tests
-  DIAHelper_test
-  EmgModel_test
-  FASTAContainer_test
-  LogConfigHandler_test
-  LogStream_test
-  MRMDecoy_test
-  MRMFeatureFinderScoring_test
-  MRMTransitionGroupPicker_test
-  OpenSwathDataAccessHelper_test
-  OpenSwathHelper_test
-  OpenSwathMRMFeatureAccessOpenMS_test
-  OpenSwathSpectrumAccessOpenMS_test
-  PeakPickerChromatogram_test
-  PeakPickerMobilogram_test
-  SpectrumNativeIDParser_test
-  SpectrumLookup_test
-  SpectrumMetaDataLookup_test
-  StatisticFunctions_test
-  String_test
-  TransitionTSVFile_test
-  TransitionPQPFile_test
-)
 
 ### collect test executables
 set(TEST_executables

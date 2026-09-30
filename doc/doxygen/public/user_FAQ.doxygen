@@ -27,7 +27,50 @@ If the feature causes problems or concerns, it can be disabled by setting the en
 <LI><B>How can I change the temporary directory that %OpenMS uses?</B><BR>
 By default %OpenMS will use the system wide temporary directory (defined
 either by `TMPDIR`, `TEMP` or the `TMP` environmental variable, depending on your Operating System). You can override
-this by setting the environmental variable `OPENMS_TMPDIR`.
+this by setting the environmental variable `OPENMS_TMPDIR`, or the `temp_dir` entry of %OpenMS.ini (see the next question).
+
+<LI><B>Do I need an %OpenMS.ini file, and where does %OpenMS look for it?</B><BR>
+You do not need one. %OpenMS.ini is optional and %OpenMS never creates or changes it; without it, the built-in defaults
+are used. A file you write yourself only needs the entries you want to change:
+<UL>
+<LI>`temp_dir`: the directory for temporary files. The environment variable `OPENMS_TMPDIR` takes precedence.
+<LI>`home_dir`: the user data directory (shown as "Userdata path" by @ref TOPP_OpenMSInfo), for example the default
+output directory of TOPPAS. The environment variable `OPENMS_HOME_PATH` takes precedence.
+<LI>`id_db_dir`: directories in which TOPP tools look for a protein database (FASTA file) that was given by a relative name
+and does not exist as given.
+</UL>
+Example:
+@code{.xml}
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS version="1.8.0">
+  <ITEM name="temp_dir" value="/scratch/openms_tmp" type="string" />
+  <ITEMLIST name="id_db_dir" type="string">
+    <LISTITEM value="/data/fasta"/>
+  </ITEMLIST>
+</PARAMETERS>
+@endcode
+On Linux, %OpenMS reads `$XDG_CONFIG_HOME/OpenMS/OpenMS.ini`, or `~/.config/OpenMS/OpenMS.ini` if `XDG_CONFIG_HOME` is not
+set. On macOS and Windows, it reads `~/.OpenMS/OpenMS.ini`. Here `~` is your home directory, or the directory in
+`OPENMS_HOME_PATH` if that is set.
+If the file is empty or not valid XML, TOPP tools stop with an error that names it; fix or delete the file.
+
+<LI><B>Which environment variables does %OpenMS read?</B><BR>
+None of them is needed for a normal installation.
+<UL>
+<LI>`OPENMS_DATA_PATH`: the %OpenMS shared-data directory (`share/OpenMS`), if %OpenMS cannot find it by itself.
+<LI>`OPENMS_HOME_PATH`: the directory used instead of your home directory, e.g. for %OpenMS.ini (see above).
+<LI>`OPENMS_TMPDIR`: the directory for temporary files (see above).
+<LI>`OPENMS_DISABLE_UPDATE_CHECK`: set to "ON" to turn off the update check (see above).
+<LI>`OPENMS_BRUKER_SDK_PATH`: the path of Bruker's SDK library (`timsdata.dll` or `libtimsdata.so`), to convert the ion
+mobility of Bruker `.d` input with Bruker's own code. It is not needed to read `.d` input.
+<LI>`OPENMS_THERMO_MANAGED_DIR`: a folder with the managed assemblies of the Thermo reader, used instead of the copy in the
+shared-data directory. A folder without them is reported and ignored.
+<LI>`OPENMS_TOOL_REGISTRY_PATH`: an additional directory with `*.tsv` files that register TOPP tools built outside
+%OpenMS. `OPENMS_TTD_INTERNAL_PATH`, its name in earlier releases, is still read.
+<LI>`MSFRAGGER_PATH`, `NOVOR_PATH`: the MSFragger and Novor executables, which %OpenMS does not ship. MSFraggerAdapter and
+NovorAdapter use them when `-executable` is empty.
+</UL>
+For developers, `OPENMS_DUMP_CORE` makes an uncaught exception end the process with a core dump.
 
 <LI><B>Calling msConvert (of ProteoWizard) results in small mzML files with no peak data.</B><BR>
 The Thermo interface expects an English locale setting. Otherwise it will silently forget to

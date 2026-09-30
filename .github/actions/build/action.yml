@@ -226,9 +226,8 @@ runs:
         # Also sets LSMinimumSystemVersion of the GUI apps (src/openms_gui/add_mac_bundle.cmake)
         # and the installer's minimum macOS (cmake/package_mac_productbuild.cmake).
         MACOSX_DEPLOYMENT_TARGET: "${{ inputs.macosx_deployment_target }}"
-        #-DOPENMS_CONTRIB_LIBS, -DYOPENMS and DBOOST_USE_STATIC are dropped since
-        # pyOpenMS is not build in this workflow and BOOST_USE_STATIC is already set
-        # in CMakePresets.json.
+        #-DOPENMS_CONTRIB_LIBS and -DPYOPENMS are dropped since pyOpenMS is not
+        # built in this workflow.
 
       run: |
         set -ex

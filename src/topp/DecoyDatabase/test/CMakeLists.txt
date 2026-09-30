@@ -15,4 +15,3 @@ openms_add_tool_class_test(NeighborSeq_test
   SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../source/NeighborSeq.cpp
   INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries(NeighborSeq_test Boost::regex)

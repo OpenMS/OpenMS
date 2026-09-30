@@ -81,8 +81,12 @@ set(OpenMS_BUILD_TOPP_TOOLS "@BUILD_TOPP_TOOLS@")
 # HDF5, Arrow, ...).
 
 # Dependency lookup mimics the OpenMS build: a contrib installation given via
-# OPENMS_CONTRIB_LIBS is searched first.
-if(DEFINED OPENMS_CONTRIB_LIBS)
+# OPENMS_CONTRIB_LIBS is searched first. Deprecated together with the contrib
+# (#10327); consumers add the prefix to CMAKE_PREFIX_PATH instead.
+if(OPENMS_CONTRIB_LIBS)
+  message(DEPRECATION
+    "OPENMS_CONTRIB_LIBS is deprecated and will be removed after OpenMS 3.6. "
+    "Add the prefix of the dependencies to CMAKE_PREFIX_PATH instead.")
   list(PREPEND CMAKE_PREFIX_PATH ${OPENMS_CONTRIB_LIBS})
 endif()
 
@@ -98,8 +102,8 @@ endif()
 # Boost: the header-only target Boost::boost is PUBLIC because installed headers
 # use Boost (config.h includes <boost/current_function.hpp> via Macros.h, other
 # public headers Boost.MultiIndex, Boost.Math, ...), so those headers become part
-# of the consumer's translation units. The compiled Boost components are PRIVATE
-# and not needed.
+# of the consumer's translation units. OpenMS links no compiled Boost library, so
+# none is needed.
 find_dependency(Boost ${_openms_boost_version})
 unset(_openms_boost_version)
 

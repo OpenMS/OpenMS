@@ -2,13 +2,13 @@ if(NOT VCPKG_TARGET_IS_WINDOWS)
     vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
 endif()
 
-# Pin both native and managed sources to the same reviewed revision. Build the
-# managed component locally until a matching 0.3.0 release asset is available.
+# Pin both native and managed sources to the same reviewed revision, the one the
+# v0.3.1 release tag points at, and build the managed component locally.
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO OpenMS/openms-thermo-bridge
-    REF 4c0edddf5a49879e0470b0ca08cfe9955ceba3c9
-    SHA512 9fac239823fde8ddab1fb51aa5bf480189a6d85a68e6f3b832df0cd138b0d1c97de0a50a9a66280846eb3293a99f8c9e5c377fbdbc333671a90116144ca609d4
+    REF d809f8ac6264d00c81da4b7abe456a08f124f804
+    SHA512 4a079bd7d9eb88ce896b2760b7c505d4f0f6b365802c1db185eb6e9941a9fb21701fe45b7c04e6976f05dc8141d644bf6fb474dbe9864440ddc0f2089e7aeb91
     HEAD_REF main
     PATCHES
         vcpkg-nethost-use.patch
@@ -78,3 +78,9 @@ vcpkg_download_distfile(THERMO_LICENSE_PATH
 )
 
 vcpkg_install_copyright(FILE_LIST "${THERMO_LICENSE_PATH}" "${SOURCE_PATH}/LICENSE")
+
+# The copyright file above concatenates the notice (a Word document) with the
+# bridge's LICENSE, so it cannot be shipped as the notice itself. Install the
+# document next to the CMake package as well; OpenMS ships it from there, as it
+# does for a bridge built from source (cmake/cmake_findExternalLibs.cmake).
+file(INSTALL "${THERMO_LICENSE_PATH}" DESTINATION "${CURRENT_PACKAGES_DIR}/share/OpenMSThermoBridge")

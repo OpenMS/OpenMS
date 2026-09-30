@@ -64,15 +64,15 @@ namespace OpenMS
        @brief Extract the scan number from the native ID of a spectrum using a regular expression
 
        @param[in] native_id Spectrum native ID string
-       @param[in] scan_regexp Regular expression to use (must contain the named group "?<SCAN>")
+       @param[in] scan_regexp Regular expression whose first capture group matches the scan number,
+                  e.g. `scan=(?<SCAN>\d+)` (naming the group is optional)
        @param[in] no_error Suppress the exception on failure and return -1 instead
 
        @throw Exception::ParseError if the scan number could not be extracted (unless @p no_error is set)
 
        @return Scan number of the spectrum (or -1 on failure to extract)
 
-       @note The regular expression must contain a capture group, and the last matching
-             subgroup is used as the scan number.
+       @note If the regular expression matches several times, the value from the last match is used.
     */
     static Int extractScanNumber(const std::string& native_id,
                                  const boost::regex& scan_regexp,
@@ -103,12 +103,12 @@ namespace OpenMS
 
        This function examines the prefix of the native ID to determine the appropriate
        regular expression pattern:
-       - `scan=`, `controllerType=`, `function=` → `scan=(?<GROUP>\d+)`
+       - `scan=`, `controllerType=`, `function=`, `frame=` → `scan=(?<GROUP>\d+)`
        - `index=` → `index=(?<GROUP>\d+)`
        - `scanId=`, `scanID=` → `scanId=(?<GROUP>\d+)` or `scanID=(?<GROUP>\d+)`
        - `spectrum=` → `spectrum=(?<GROUP>\d+)`
        - `file=` → `file=(?<GROUP>\d+)`
-       - Plain number → `(?<GROUP>\d+)`
+       - Anything else (e.g. a plain number) → `(?<GROUP>\d+)`
     */
     static std::string getRegExFromNativeID(const std::string& native_id);
 
@@ -119,7 +119,7 @@ namespace OpenMS
 
        @return True if the string matches a known native ID prefix pattern
 
-       Recognized prefixes: scan=, scanId=, scanID=, controllerType=, function=, sample=, index=, spectrum=, file=
+       Recognized prefixes: scan=, scanId=, scanID=, controllerType=, function=, sample=, index=, spectrum=, file=, frame=
     */
     static bool isNativeID(const std::string& id);
 

@@ -19,6 +19,7 @@
 #include <OpenMS/SYSTEM/SystemSettings.h>
 
 #include <cmath>
+#include <map>
 #include <set>
 
 using namespace OpenMS;
@@ -153,10 +154,13 @@ START_SECTION(round-trip load raw -> mzML -> reload MSExperiment)
   TEST_EQUAL(has_orbitrap, true)
 
   // --- Extended per-spectrum metadata ---
-  Size with_filter = 0, with_tic = 0, with_basepeak = 0, with_window = 0, with_mzrange = 0, with_injection = 0;
+  Size with_filter = 0, with_tic = 0, with_basepeak = 0, with_window = 0, with_mzrange = 0, with_injection = 0,
+       with_resolving_power = 0;
   for (const MSSpectrum& s : original.getSpectra())
   {
     if (s.metaValueExists("filter string")) { ++with_filter; }
+    // the resolution trailer of the FTMS scans, as msconvert reports it (MS:1000800)
+    if (s.metaValueExists("mass resolving power")) { ++with_resolving_power; }
     if (s.metaValueExists("total ion current")) { ++with_tic; }
     if (s.metaValueExists("base peak m/z")) { ++with_basepeak; }
     if (s.metaValueExists("lowest observed m/z") && s.metaValueExists("highest observed m/z")) { ++with_mzrange; }
@@ -172,6 +176,7 @@ START_SECTION(round-trip load raw -> mzML -> reload MSExperiment)
   TEST_EQUAL(with_mzrange > 0, true)
   TEST_EQUAL(with_window > 0, true)
   TEST_EQUAL(with_injection > 0, true)
+  TEST_EQUAL(with_resolving_power > 0, true)
 
   // --- TIC chromatogram extracted and surviving the mzML round-trip ---
   TEST_EQUAL(original.getChromatograms().empty(), false)
@@ -187,16 +192,24 @@ START_SECTION(round-trip load raw -> mzML -> reload MSExperiment)
   TEST_EQUAL(reloaded_has_tic, true)
 
   // --- Spectrum metadata survives the mzML round-trip ---
-  Size rt_filter = 0, rt_tic = 0, rt_window = 0;
+  Size rt_filter = 0, rt_tic = 0, rt_window = 0, rt_resolving_power = 0;
   for (const MSSpectrum& s : reloaded.getSpectra())
   {
     if (s.metaValueExists("filter string")) { ++rt_filter; }
     if (s.metaValueExists("total ion current")) { ++rt_tic; }
     if (!s.getInstrumentSettings().getScanWindows().empty()) { ++rt_window; }
+    if (s.metaValueExists("mass resolving power")) { ++rt_resolving_power; }
   }
   TEST_EQUAL(rt_filter > 0, true)
   TEST_EQUAL(rt_tic > 0, true)
   TEST_EQUAL(rt_window > 0, true)
+  // written as MS:1000800 in the scan and read back as the same value
+  TEST_EQUAL(rt_resolving_power, with_resolving_power)
+  for (Size i = 0; i < original.size() && i < reloaded.size(); ++i)
+  {
+    if (!original[i].metaValueExists("mass resolving power")) { continue; }
+    TEST_EQUAL(reloaded[i].getMetaValue("mass resolving power").toString(), original[i].getMetaValue("mass resolving power").toString())
+  }
 }
 END_SECTION
 
@@ -245,9 +258,11 @@ START_SECTION(real Thermo FAIMS-DIA RAW -> FAIMS-aware SWATH maps)
   Size explicit_faims_count = 0;
   Size dia_ms2_count = 0;
   std::set<double> faims_cvs;
+  std::map<std::pair<UInt, std::string>, Size> resolving_powers; // (MS level, value) -> spectra
 
   for (const MSSpectrum& spectrum : exp.getSpectra())
   {
+    ++resolving_powers[{spectrum.getMSLevel(), spectrum.getMetaValue("mass resolving power", "none").toString()}];
     if (spectrum.getMSLevel() == 1)
     {
       ++ms1_count;
@@ -286,6 +301,10 @@ START_SECTION(real Thermo FAIMS-DIA RAW -> FAIMS-aware SWATH maps)
   {
     TEST_REAL_SIMILAR(*faims_cvs.begin(), -5.0)
   }
+  // resolving power from the resolution entry of the scan trailer: 120000 for MS1, 30000 for MS2 (as msconvert reports it)
+  TEST_EQUAL(resolving_powers.size(), 2)
+  TEST_EQUAL((resolving_powers[{1, "120000"}]), 1974)
+  TEST_EQUAL((resolving_powers[{2, "30000"}]), 90804)
 
   cout << "Thermo FAIMS-DIA validation: spectra=" << exp.size()
        << ", MS1=" << ms1_count
