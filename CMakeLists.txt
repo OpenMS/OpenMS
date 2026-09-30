@@ -132,6 +132,16 @@ option(ENABLE_THERMO_FAIMS_DIA_TESTS "Download Thermo FAIMS-DIA test data for in
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
 
+## Build only the applications (TOPP tools and/or the GUI) against an installed OpenMS
+## library of the same version instead of building the libraries, e.g. to package OpenMS in
+## layers (see cmake/find_installed_openms.cmake). Point OpenMS_DIR or CMAKE_PREFIX_PATH at
+## the installation. Tests, documentation and pyOpenMS need the library targets of this build
+## and are not built in this mode.
+option(OPENMS_USE_INSTALLED_LIBRARY "Build the TOPP tools and/or the GUI against an installed OpenMS library instead of building the libraries." OFF)
+if(OPENMS_USE_INSTALLED_LIBRARY AND ENABLE_CWL_GENERATION)
+  message(FATAL_ERROR "ENABLE_CWL_GENERATION is not supported together with OPENMS_USE_INSTALLED_LIBRARY.")
+endif()
+
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
 endif()
@@ -492,6 +502,19 @@ set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_T
 message(STATUS "Package type is '${PACKAGE_TYPE}'")
 is_valid_package(${PACKAGE_TYPE})
 
+## The install component of the GUI applications (TOPPView, TOPPAS, ..., and the TOPP tools
+## that need the GUI library, ExecutePipeline and ImageCreator), separate from the TOPP tools
+## (component Applications) so the two can be installed and packaged independently (see
+## OPENMS_USE_INSTALLED_LIBRARY). The macOS productbuild installer keeps them in
+## Applications: it stages every component in a prefix of its own, and fixing up and
+## signing bin/ (cmake/package_mac_productbuild.cmake) addresses the staging prefix of
+## Applications.
+if("${PACKAGE_TYPE}" STREQUAL "pkg")
+  set(OPENMS_GUI_APPLICATIONS_COMPONENT Applications)
+else()
+  set(OPENMS_GUI_APPLICATIONS_COMPONENT GUIApplications)
+endif()
+
 ## macOS code signing and notarization configuration
 ## Required for code signing:
 ##   SIGNING_IDENTITY - Developer ID Application certificate identity (e.g., "Developer ID Application: Your Name (TEAMID)")
@@ -660,7 +683,11 @@ endif()
 ## license files (the Thermo bridge in cmake_findExternalLibs.cmake among it) records them
 ## for share/OpenMS/THIRD-PARTY-NOTICES.txt.
 include(cmake/third_party_notices.cmake)
-include(cmake/cmake_findExternalLibs.cmake)
+if(OPENMS_USE_INSTALLED_LIBRARY)
+  include(cmake/find_installed_openms.cmake)
+else()
+  include(cmake/cmake_findExternalLibs.cmake)
+endif()
 
 #------------------------------------------------------------------------------
 # find the Doxygen (required by /doc and /src/OpenMS)
@@ -669,9 +696,11 @@ include(cmake/cmake_findExternalLibs.cmake)
 ## not run dot (HAVE_DOT = NO in doc/doxygen/Doxyfile.in). Provides the Doxygen::doxygen /
 ## Doxygen::dot imported targets and the modern Doxygen_FOUND, Doxygen_VERSION,
 ## Doxygen_dot_FOUND result variables.
-find_package(Doxygen OPTIONAL_COMPONENTS dot)
+if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+  find_package(Doxygen OPTIONAL_COMPONENTS dot)
+endif()
 
-if(WITH_ONNX)
+if(WITH_ONNX AND NOT OPENMS_USE_INSTALLED_LIBRARY)
   # 1. Tell CMake to look for the package ONLY if the switch is ON.
   if(OPENMS_USE_VCPKG)
     find_package(onnxruntime CONFIG REQUIRED)
@@ -689,7 +718,9 @@ add_subdirectory(src)
 #------------------------------------------------------------------------------
 # Documentation
 #------------------------------------------------------------------------------
-add_subdirectory(doc)
+if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+  add_subdirectory(doc)
+endif()
 
 #------------------------------------------------------------------------------
 # Thirdparty search engines (shipped with the installers)
@@ -705,8 +736,13 @@ endif()
 
 #------------------------------------------------------------------------------
 # Handle export of targets and install them
-openms_export_targets()
-install_export_targets()
+## A build against an installed OpenMS library does not provide a CMake package: the
+## installation it builds on already does (OpenMSConfig.cmake), and a second one would
+## collide with it where the layers are installed into one prefix.
+if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+  openms_export_targets()
+  install_export_targets()
+endif()
 
 #------------------------------------------------------------------------------
 # Installation and packaging:
@@ -716,8 +752,12 @@ install_export_targets()
 ## openms_install_vendored_licenses() and openms_install_vcpkg_licenses(), which every
 ## installation needs, the pyOpenMS wheels among them.
 include(cmake/third_party_licenses.cmake)
-openms_install_vendored_licenses()
-openms_install_vcpkg_licenses()
+## The libraries' licenses and THIRD-PARTY-NOTICES.txt come with the installation that a
+## build against an installed OpenMS library builds on.
+if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+  openms_install_vendored_licenses()
+  openms_install_vcpkg_licenses()
+endif()
 
 if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
 
@@ -759,7 +799,9 @@ endif()
 
 ## share/OpenMS/THIRD-PARTY-NOTICES.txt, made from the license files recorded above. Last, so
 ## that it covers all of them.
-openms_install_third_party_notices()
+if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+  openms_install_third_party_notices()
+endif()
 
 #------------------------------------------------------------------------------
 # Some final messages for the users

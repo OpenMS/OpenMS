@@ -257,6 +257,10 @@ public:
     /**
       @brief Searches for an executable with the given name.
 
+      Looks next to the current executable (and, on macOS, next to the app bundle it is in) and finally,
+      for layered installs, in the bin/ directory of the prefix whose share/OpenMS is the compiled-in
+      install data path (see CMake option OPENMS_INSTALL_DATA_PATH).
+
       @param[in] toolName The executable to search for.
       @exception FileNotFound is thrown, if the tool executable was not found.
     */
