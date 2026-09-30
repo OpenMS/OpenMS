@@ -64,7 +64,7 @@ The library therefore needs a vcpkg port that builds on every triplet OpenMS use
    or different build options, add a port under `vcpkg-overlays/ports/<name>/` (a `vcpkg.json`, a `portfile.cmake`, and
    patches created with `git diff` or `diff -Naur`). A port there replaces the registry port of the same name.
    `vcpkg-configuration.json` already points vcpkg to this directory. See the
-   [vcpkg build guide](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/install_vcpkg.html)
+   [vcpkg build guide](https://archive.openms.de/openms/Documentation/nightly/latest/html/install_vcpkg.html)
    and the vcpkg documentation on [overlay ports](https://learn.microsoft.com/en-us/vcpkg/concepts/overlay-ports).
 
 3. **Find it in CMake.** Add the `find_package()` call and the target to link to `cmake/cmake_findExternalLibs.cmake`,

@@ -598,7 +598,16 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /// @brief filter, deisotope, decharge spectra
-    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top);
+    static void preprocessSpectra_(PeakMap& exp,
+                                   double fragment_mass_tolerance,
+                                   bool fragment_mass_tolerance_unit_ppm,
+                                   bool deisotope_requested,
+                                   Size peaks_keep_n,
+                                   Int peaks_window_top,
+                                   const std::string& window_type = "auto");
+
+    /// Keep the strongest peaks in each non-overlapping 100 Da window, including a short final window.
+    static void filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window);
 
     /// How decoys are obtained/recognised for a search (parameter "decoys").
     enum class DecoyMode_
@@ -813,6 +822,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool deisotope_requested_{true};
     Size peaks_keep_n_{0};     ///< NLargest cap on MS2 peaks before scoring; 0 = resolution-aware auto (peaks:keep_n)
     Int peaks_window_top_{20}; ///< WindowMower peaks-per-100Da before scoring (peaks:window_top)
+    std::string peaks_window_type_ {"auto"}; ///< Resolution-aware treatment of the final peak window
 
     StringList modifications_fixed_;
 

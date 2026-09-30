@@ -84,4 +84,4 @@ export DOTNET_ROOT=/usr/share/dotnet
 
 ## Build OpenMS from source
 
-To build OpenMS from source, follow the build instructions for [Linux](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_linux.html).
+To build OpenMS from source, follow the build instructions for [Linux](https://archive.openms.de/openms/Documentation/release/latest/html/install_linux.html).
