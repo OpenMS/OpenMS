@@ -20,7 +20,7 @@ reserved.
 
 ### Converting with FileConverter
 
-[FileConverter](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/TOPP_FileConverter.html)
+[FileConverter](https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPP_FileConverter.html)
 converts `.raw` files with one of two readers, chosen with `-RawToMzML:reader`:
 
 | | `inprocess` | `external` |

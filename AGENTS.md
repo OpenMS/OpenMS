@@ -551,8 +551,8 @@ cd OpenMS-build && ctest -R pyopenms -V
 **Online resources:**
 - [OpenMS Documentation](https://openms.readthedocs.io/en/latest)
 - [pyOpenMS API Reference](https://pyopenms.readthedocs.io/en/latest/apidocs/index.html)
-- [Developer Coding Conventions](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_coding_conventions.html)
-- [How to Write Tests](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_how_to_write_tests.html)
+- [Developer Coding Conventions](https://archive.openms.de/openms/Documentation/release/latest/html/developer_coding_conventions.html)
+- [How to Write Tests](https://archive.openms.de/openms/Documentation/release/latest/html/developer_how_to_write_tests.html)
 - [GitHub Wiki](https://github.com/OpenMS/OpenMS/wiki)
 
 ## Common Gotchas
@@ -611,22 +611,22 @@ perf report
 - http://www.openms.org/
 - http://www.OpenMS.de
 - https://openms.readthedocs.io/en/latest
-- https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html
-- https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/index.html
+- https://archive.openms.de/openms/Documentation/release/latest/html/index.html
+- https://archive.openms.de/openms/Documentation/nightly/latest/html/index.html
 - http://www.openms.de/current_doxygen/html/
 - https://pyopenms.readthedocs.io/en/latest/index.html
 - https://pyopenms.readthedocs.io/en/latest/apidocs/index.html
-- https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/
-- https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/nightly/
+- https://archive.openms.de/openms/OpenMSInstaller/
+- https://archive.openms.de/openms/OpenMSInstaller/nightly/
 - http://www.psidev.info/
 
 ### Doxygen Developer Pages (release/latest)
-- https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_tutorial.html
-- https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_coding_conventions.html
-- https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_cpp_guide.html
-- https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_how_to_write_tests.html
-- https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/howto_commit_messages.html
-- https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_faq.html
+- https://archive.openms.de/openms/Documentation/release/latest/html/developer_tutorial.html
+- https://archive.openms.de/openms/Documentation/release/latest/html/developer_coding_conventions.html
+- https://archive.openms.de/openms/Documentation/release/latest/html/developer_cpp_guide.html
+- https://archive.openms.de/openms/Documentation/release/latest/html/developer_how_to_write_tests.html
+- https://archive.openms.de/openms/Documentation/release/latest/html/howto_commit_messages.html
+- https://archive.openms.de/openms/Documentation/release/latest/html/developer_faq.html
 
 ### Developer Workflow and Contribution
 - https://github.com/OpenMS/OpenMS
@@ -647,9 +647,9 @@ perf report
 - https://github.com/OpenMS/OpenMS/tags
 
 ### Build/Install Guides
-- https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_linux.html
-- https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html
-- https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_win.html
+- https://archive.openms.de/openms/Documentation/release/latest/html/install_linux.html
+- https://archive.openms.de/openms/Documentation/release/latest/html/install_mac.html
+- https://archive.openms.de/openms/Documentation/release/latest/html/install_win.html
 - https://github.com/OpenMS/THIRDPARTY
 - https://pkgs.org/search/?q=openms
 - http://manpages.ubuntu.com/manpages/hardy/man1/ctest.1.html
