@@ -147,7 +147,7 @@ specified in an assay library (a tab-separated text file). Detected features are
 stored in a :py:class:`~.FeatureXMLFile`. This tool is useful for the targeted extraction of features for a well-defined set of compounds
 with known sum formulas and retention times.
 For more information on the format of the assay library and available parameters visit the `FeatureFinderMetaboIdent documentation
-<https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/UTILS_FeatureFinderMetaboIdent.html>`_.
+<https://archive.openms.de/openms/Documentation/release/latest/html/TOPP_FeatureFinderMetaboIdent.html>`_.
 
 
 The pyOpenMS :py:class:`~.FeatureFinderAlgorithmMetaboIdent` needs a list of :py:class:`~.FeatureFinderMetaboIdentCompound` objects as an assay libray for it's

@@ -11,7 +11,7 @@ The following section provides general information to new contributors.
 
 * Check out the development version of OpenMS (see website).
 * Build OpenMS by following the installation instructions or [from source](/about/installation.rst).
-* Read the [OpenMS Coding Conventions](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/coding_conventions.html)
+* Read the [OpenMS Coding Conventions](https://archive.openms.de/openms/Documentation/nightly/latest/html/developer_coding_conventions.html)
 * Read the [TOPPView User Tutorial](/tutorials/toppview-user-tutorial.md).
 * Create a GitHub account.
 * Subscribe to the [open-ms-general](https://sourceforge.net/projects/open-ms/lists/open-ms-general) 
@@ -19,7 +19,7 @@ The following section provides general information to new contributors.
 
 ### I have written a class for OpenMS. What should I do?
 
-Follow the [OpenMS coding conventions](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/coding_conventions.html).
+Follow the [OpenMS coding conventions](https://archive.openms.de/openms/Documentation/nightly/latest/html/developer_coding_conventions.html).
 
 Coding style (brackets, variable names, etc.) must conform to the conventions.
 
@@ -46,7 +46,7 @@ Insert round brackets around the method declaration.
 
 ### Where can I find the binary installers created?
 
-View the binary installers at the [build archive](https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/nightly/).
+View the binary installers at the [build archive](https://archive.openms.de/openms/OpenMSInstaller/nightly/).
 Please verify the creation date of the individual installers, as there may have been an error while creating 
 the installer.
 
@@ -93,7 +93,7 @@ They allow the user to pass options to `CMake` which will influence the build sy
 The recommended way to configure OpenMS is with one of the presets in `CMakePresets.json` (run `cmake --list-presets`
 to list them), e.g. `cmake --preset linux-x64-release`. The presets set `OPENMS_USE_VCPKG=ON` and use the vcpkg
 toolchain from the `vcpkg` submodule, so vcpkg provides the third-party libraries (see the
-[vcpkg build guide](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/install_vcpkg.html)).
+[vcpkg build guide](https://archive.openms.de/openms/Documentation/nightly/latest/html/install_vcpkg.html)).
 Cache variables given with `-D` on the same command line override the preset, e.g.
 `cmake --preset linux-x64-release -D WITH_GUI=OFF`.
 
