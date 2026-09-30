@@ -2939,6 +2939,68 @@ START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the
 }
 END_SECTION
 
+START_SECTION(([EXTRA] preprocessSpectra_ removes only peaks without intensity, so results do not depend on the intensity scale))
+{
+  // Zero-intensity peaks are dropped; every positive intensity survives, however small on an
+  // absolute scale. The ThresholdMower default of 0.05 absolute, applied before normalization,
+  // deleted real peaks from intensity-scaled spectra.
+  {
+    PeakMap exp;
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(1.0);
+    Precursor prec;
+    prec.setMZ(500.0);
+    prec.setCharge(2);
+    s.getPrecursors().push_back(prec);
+    const std::vector<std::pair<double, float>> peaks = {
+      {110.07, 0.0f}, {120.08, 1e-4f}, {130.10, 0.01f}, {200.10, 0.04f}, {300.20, 0.5f}, {350.25, 1.0f}};
+    for (const auto& [mz, intensity] : peaks) s.emplace_back(mz, intensity);
+    exp.addSpectrum(s);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, false, 0, 20);
+    ABORT_IF(exp.size() != 1)
+    TEST_EQUAL(exp[0].size(), 5) // the empty peak is gone, the weak ones stay
+    TEST_REAL_SIMILAR(exp[0][0].getMZ(), 120.08)
+    TEST_TRUE(exp[0][0].getIntensity() > 0.0f)
+  }
+
+  // Spectra scaled to a base peak of 1e-3 (every peak below the old cutoff) give the same
+  // identifications and scores as the unscaled spectra.
+  const vector<double> no_shift(12, 0.0);
+  PeakMap spectra = build_calibration_spectra_(no_shift);
+  PeakMap scaled = spectra;
+  for (MSSpectrum& spectrum : scaled)
+  {
+    for (Peak1D& peak : spectrum) peak.setIntensity(peak.getIntensity() * 1e-3f);
+  }
+  auto fasta_db = calibration_fasta_db_();
+
+  ProSEAlgorithm algo;
+  configure_calibration_params_(algo, 20.0, 30.0, 3);
+  Param p = algo.getParameters();
+  p.setValue("calibration:enabled", "false");
+  algo.setParameters(p);
+
+  vector<ProteinIdentification> prot_ids, scaled_prot_ids;
+  PeptideIdentificationList pep_ids, scaled_pep_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(algo.search(scaled, fasta_db, scaled_prot_ids, scaled_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  const std::map<std::string, PeptideHit> hits = top_hits_by_spectrum_(pep_ids);
+  const std::map<std::string, PeptideHit> scaled_hits = top_hits_by_spectrum_(scaled_pep_ids);
+  TEST_TRUE(hits.size() > 0)
+  TEST_EQUAL(scaled_hits.size(), hits.size())
+  for (const auto& [reference, hit] : hits)
+  {
+    const auto it = scaled_hits.find(reference);
+    TEST_EQUAL(it != scaled_hits.end(), true)
+    if (it == scaled_hits.end()) continue;
+    TEST_EQUAL(it->second.getSequence(), hit.getSequence())
+    TEST_EQUAL(it->second.getCharge(), hit.getCharge())
+    TEST_REAL_SIMILAR(it->second.getScore(), hit.getScore())
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] peptidoform deduplication preserves protein evidence and candidate statistics across chunks))
 {
   const AASequence peptide = AASequence::fromString("THQPSANLDIK");

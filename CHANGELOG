@@ -613,6 +613,9 @@ TOPP tools:
       - Optional scoring:method=mass_accuracy weights HyperScore fragment counts and
         intensity products by Gaussian mass accuracy, using scoring:mass_error_sd (7 ppm
         by default). Matching tolerances and unweighted match annotations are unchanged.
+      - The MS2 intensity cutoff applied before normalization removes only peaks without
+        intensity. It was the ThresholdMower default of 0.05 absolute, which deleted real
+        peaks from intensity-scaled input such as spectra normalized to a base peak of 1.
         Applies to final scoring and precursor calibration, including chunked/multi-file
         searches. Experimental high-resolution mode: assumes errors centered at zero;
         the kernel width is not fitted during calibration. Auto selection is unchanged.

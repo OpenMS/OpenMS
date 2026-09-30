@@ -622,7 +622,14 @@ namespace OpenMS
     // Normalizer::filterPeakSpectrum is const (reads the resolved 'method_' only), and
     // ThresholdMower only re-reads its 'threshold' Param into a member on every call -- the
     // same idempotent same-value write the already-shared WindowMower performs.
+    // Peaks without intensity (zero or negative, e.g. empty centroids) would still count as
+    // matched ions, so they are removed. Nothing else is: the ThresholdMower default of 0.05
+    // is an absolute cutoff on the raw intensities before normalization and deleted real
+    // peaks from intensity-scaled input (e.g. spectra normalized to a base peak of 1).
     ThresholdMower threshold_mower_filter;
+    Param threshold_param = threshold_mower_filter.getParameters();
+    threshold_param.setValue("threshold", static_cast<double>(std::numeric_limits<float>::min()));
+    threshold_mower_filter.setParameters(threshold_param);
     Normalizer normalizer;
 
     // sort by rt; done before the loop because sortSpectra(false) only permutes whole
