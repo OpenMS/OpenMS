@@ -14,6 +14,14 @@
 
 ///////////////////////////
 
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+
+#include <string>
+#include <vector>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -42,6 +50,38 @@ END_SECTION
 START_SECTION((virtual void group(const std::vector<ConsensusMap>& maps, ConsensusMap& out)))
 	// This is tested extensively in TEST/TOPP
 	NOT_TESTABLE;
+END_SECTION
+
+START_SECTION(([EXTRA] group() with only empty FeatureMaps and use_identifications does not crash))
+{
+  // Regression test for #10310: ProteomicsLFQ links the runs of a fraction with
+  // use_identifications=true. When no run of the fraction keeps an identification (e.g. none
+  // passes the FDR filter), feature detection finds nothing and every map is empty. The
+  // QTClusterFinder then read the first element of the empty mass range (segfault).
+  std::vector<FeatureMap> maps(3); // three feature-empty maps
+  // metadata carried by the (feature-empty) maps must NOT be silently dropped:
+  // postprocess_() still transfers protein / unassigned IDs.
+  for (Size i = 0; i < maps.size(); ++i)
+  {
+    ProteinIdentification prot;
+    prot.setIdentifier("run" + std::to_string(i));
+    maps[i].getProteinIdentifications().push_back(prot);
+    PeptideIdentification upep;
+    upep.setIdentifier("run" + std::to_string(i));
+    maps[i].getUnassignedPeptideIdentifications().push_back(upep);
+  }
+
+  FeatureGroupingAlgorithmQT algo;
+  Param param = algo.getParameters();
+  param.setValue("use_identifications", "true");
+  algo.setParameters(param);
+
+  ConsensusMap out;
+  algo.group(maps, out);
+  TEST_EQUAL(out.size(), 0)
+  TEST_EQUAL(out.getProteinIdentifications().size(), 3)
+  TEST_EQUAL(out.getUnassignedPeptideIdentifications().size(), 3)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -5,6 +5,14 @@ The most important CMake variables are:
 
 <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
   <tr>
+    <th valign="top">OPENMS_USE_VCPKG=On/Off</th>
+    <td>Take the third-party libraries from vcpkg (On) or from system packages and
+    <code>CMAKE_PREFIX_PATH</code> (Off). With On, CMake needs the vcpkg toolchain: the
+    presets and the initialized <code>vcpkg</code> submodule provide it, or pass
+    <code>-DCMAKE_TOOLCHAIN_FILE=&lt;vcpkg root&gt;/scripts/buildsystems/vcpkg.cmake</code>.
+    See @ref install_vcpkg_without. (Default: Off; the presets set On)</td>
+  </tr>
+  <tr>
     <th valign="top">CMAKE_PREFIX_PATH</td>
     <td>Additional search path for libraries.
 
@@ -118,7 +126,7 @@ The most important CMake variables are:
   </tr>
   <tr>
     <th valign="top">SEARCH_ENGINES_DIRECTORY (optional)</td>
-    <td>The location where thirdparty search engines (X!Tandem, MSGF+)
+    <td>The location where thirdparty search engines (such as Comet and MSGF+)
     are located. This directory should have the same structure as the example
     in the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.
     /.

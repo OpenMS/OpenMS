@@ -15,9 +15,12 @@ the installation page for [Linux](/about/installation/installation-on-gnu-linux.
 [macOS](/about/installation/installation-on-macos.md#reading-thermo-fisher-raw-files) and
 [Windows](/about/installation/installation-on-windows.md#reading-thermo-fisher-raw-files).
 
+RawFileReader reading tool. Copyright © 2016 by Thermo Fisher Scientific, Inc. All rights
+reserved.
+
 ### Converting with FileConverter
 
-[FileConverter](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/TOPP_FileConverter.html)
+[FileConverter](https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPP_FileConverter.html)
 converts `.raw` files with one of two readers, chosen with `-RawToMzML:reader`:
 
 | | `inprocess` | `external` |

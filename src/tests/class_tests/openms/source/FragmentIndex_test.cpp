@@ -3108,6 +3108,8 @@ START_SECTION(([EXTRA] rebuilding replaces the previous peptide and fragment buf
     TEST_EQUAL(fi.getNumFragments(), fresh.getNumFragments())
     TEST_TRUE(fi.isBuild())
   }
+
+  // A failed rebuild must not leave the previous index marked as built.
   const vector<FASTAFile::FASTAEntry> invalid = {{"too_long", "", string(65536, 'A')}};
   TEST_EXCEPTION(Exception::InvalidParameter, fi.build(invalid))
   TEST_FALSE(fi.isBuild())

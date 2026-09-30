@@ -97,13 +97,13 @@ Nightly tests: <a href="http://cdash.seqan.de/index.php?project=OpenMS">CDASH</a
 <br>
 <b>Experimental Installers</b><br>
 We automatically build installers for different platforms. These usually contain unstable or partially untested code - so use them at your own risk.
-The nightly (unstable) installers are available <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/">here</a>.
+The nightly (unstable) installers are available <a href="https://archive.openms.de/openms/OpenMSInstaller/">here</a>.
 <br>
 <br>
 <b>Technical Documentation</b><br>
 Documentation of classes and tools is automatically generated using doxygen:
 See the documentation for <a href="http://www.openms.de/current_doxygen/html/">HEAD</a>
-See the documentation for the latest <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html">release branch</a>
+See the documentation for the latest <a href="https://archive.openms.de/openms/Documentation/release/latest/html/index.html">release branch</a>
 <br>
 <br>
 <b>Building %OpenMS</b><br>
