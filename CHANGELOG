@@ -634,6 +634,11 @@ TOPP tools:
         groups; every other shipped mzTab reference has exactly one (fraction_group, label) per sample
         and is byte-identical (#9868, part of #9864)
     ProSE:
+      - Search initial methionine loss by default (peptide:clip_nterm_methionine=true), retaining
+        the original protein coordinates and protein N-terminal variable modifications.
+        The false setting restores the previous search space; standalone FragmentIndex defaults
+        to false. Length, mass and missed-cleavage limits apply after clipping. Generated decoys
+        retain the initial M when clipping is enabled; supplied decoys are searched as provided.
       - Fixed FragmentIndex::build reusing old peptide coordinates on a second build;
         rebuilding now replaces the previous index and failed builds remain unbuilt.
       - BREAKING: renamed from PeptideDataBaseSearchFI. -out replaced by -out_idxml
