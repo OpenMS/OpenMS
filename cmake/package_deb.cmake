@@ -42,11 +42,18 @@ set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
 ## how that leaves them behind). The script removes them before the package is built.
 list(APPEND CPACK_PRE_BUILD_SCRIPTS "${CMAKE_CURRENT_LIST_DIR}/cpack_clean_runpath.cmake")
 
-## Derive the dependencies from the built binaries; a hand-written list goes stale and
-## installs on systems the binaries cannot run on. Depends is what this derives and
-## nothing else. A library the package ships itself (SQLite, in lib/) needs no Debian
-## package, and a hand-written "<pkg>t64 | <pkg>" alternative would not help: Depends
-## entries are ANDed, and dpkg-shlibdeps derives the plain <pkg>t64 name.
+## dpkg-shlibdeps resolves package names in the build environment. Rewrite the Qt6
+## runtime package names whose t64 transition differs between Ubuntu releases after
+## CPack has generated Depends, keeping the detected version constraints on both sides.
+## This replaces each detected dependency in place; adding a separate manual Depends
+## entry would leave the strict auto-detected dependency in place and defeat the OR.
+list(APPEND CPACK_POST_BUILD_SCRIPTS "${CMAKE_CURRENT_LIST_DIR}/cpack_deb_t64_dependencies.cmake")
+
+## Derive dependencies from the built binaries; a hand-written list goes stale and
+## installs on systems the binaries cannot run on. A library the package ships itself
+## (SQLite, in lib/) needs no Debian package. The post-build script above expands the
+## detected Qt6 runtime dependencies for cross-release compatibility and leaves all
+## other dpkg-shlibdeps output unchanged.
 ##
 ## This was on once before (#10202) and had to come off again (#10207), because the
 ## staging tree carried foreign-architecture binaries: ThermoRawFileParser's NuGet
