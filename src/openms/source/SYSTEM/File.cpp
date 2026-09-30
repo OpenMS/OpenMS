@@ -467,6 +467,22 @@ namespace OpenMS{
 #endif
       return 0;
     }
+
+    /**
+      @brief The compiled-in install path @p path, with its length taken at run time.
+
+      Relocatable packages (conda) rewrite the install prefix inside such strings in the
+      binary when they are installed, and pad the shorter result with NUL bytes. A
+      std::string made directly from the literal gets the literal's original length, which
+      the compiler folds into the code, so it would keep the padding NULs, and every file
+      name built from it would name the directory instead. Reading the pointer through a
+      volatile variable makes the length a run-time strlen().
+    */
+    std::string installPath_(const char* path)
+    {
+      const char* volatile p = path;
+      return std::string(p);
+    }
   } // namespace
 
   bool File::readable(const std::string& file)
@@ -619,7 +635,7 @@ namespace OpenMS{
     search_dirs.push_back(std::string(OPENMS_SOURCE_PATH) + "/../../doc/");
     search_dirs.push_back(getOpenMSDataPath() + "/../../doc/");
     search_dirs.push_back(OPENMS_DOC_PATH);
-    search_dirs.push_back(OPENMS_INSTALL_DOC_PATH);
+    search_dirs.push_back(installPath_(OPENMS_INSTALL_DOC_PATH));
 
     // needed for OpenMS Mac OS X packages where documentation is stored in <package-root>/Documentation
 #if defined(__APPLE__)
@@ -686,7 +702,7 @@ namespace OpenMS{
       // unrelated OpenMS installation. On Linux/macOS the baked prefix is genuinely correct.
       if (!path_checked)
       {
-        path = OPENMS_INSTALL_DATA_PATH;
+        path = installPath_(OPENMS_INSTALL_DATA_PATH);
         path_checked = isOpenMSDataPath_(path);
         if (path_checked)
         {
