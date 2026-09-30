@@ -253,15 +253,30 @@ message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION}")
 include(GetGitRevisionDescription)
 option(GIT_TRACKING "Embedding of Git version control information into the OpenMS library (and OpenMSInfo tool). Note that if activated, every branch-switch or commit will trigger re-generation of the build system (MakeFiles, VS Solutions etc)." ON)
 if (GIT_TRACKING)
-  ## will configure an include file
-  git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE OPENMS_GIT_INFO_FOUND)
-  ## The Release workflow builds a release from its tag, a detached checkout whose refspec is "HEAD".
-  ## If HEAD is the tag v<version> of this version, use the tag as refspec, so that the packages
-  ## carry the plain version below instead of <version>-pre-HEAD-<date>.
-  if(OPENMS_GIT_INFO_FOUND AND OPENMS_GIT_SHORT_REFSPEC STREQUAL "HEAD")
-    git_get_exact_tag(_openms_release_tag --tags --match "v${OPENMS_PACKAGE_VERSION}")
-    if(_openms_release_tag STREQUAL "v${OPENMS_PACKAGE_VERSION}")
-      set(OPENMS_GIT_SHORT_REFSPEC "${_openms_release_tag}")
+  ## A source tree made by git archive (the Release workflow's source tarball, GitHub's source
+  ## archives) has no .git of its own, but carries its commit in .git_archival.txt. That takes
+  ## precedence: a .git further up the tree would belong to another repository.
+  git_archival_info(_openms_archival_describe OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE OPENMS_GIT_ARCHIVAL_FOUND)
+  if(OPENMS_GIT_ARCHIVAL_FOUND)
+    ## The archive of the tag v<version> of this version carries the plain version below; any
+    ## other archive is marked as exported, as before.
+    if(_openms_archival_describe STREQUAL "v${OPENMS_PACKAGE_VERSION}")
+      set(OPENMS_GIT_SHORT_REFSPEC "${_openms_archival_describe}")
+    else()
+      set(OPENMS_GIT_SHORT_REFSPEC "exported")
+    endif()
+    set(OPENMS_GIT_INFO_FOUND TRUE)
+  else()
+    ## will configure an include file
+    git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE OPENMS_GIT_INFO_FOUND)
+    ## The Release workflow builds a release from its tag, a detached checkout whose refspec is "HEAD".
+    ## If HEAD is the tag v<version> of this version, use the tag as refspec, so that the packages
+    ## carry the plain version below instead of <version>-pre-HEAD-<date>.
+    if(OPENMS_GIT_INFO_FOUND AND OPENMS_GIT_SHORT_REFSPEC STREQUAL "HEAD")
+      git_get_exact_tag(_openms_release_tag --tags --match "v${OPENMS_PACKAGE_VERSION}")
+      if(_openms_release_tag STREQUAL "v${OPENMS_PACKAGE_VERSION}")
+        set(OPENMS_GIT_SHORT_REFSPEC "${_openms_release_tag}")
+      endif()
     endif()
   endif()
 endif()
@@ -291,7 +306,11 @@ else()
   message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
   message(STATUS "  - Repository branch ${OPENMS_GIT_SHORT_REFSPEC}")
   message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
-  message(STATUS "  [CMake is tracking Git commits and branching ('-D GIT_TRACKING=On')]")
+  if(OPENMS_GIT_ARCHIVAL_FOUND)
+    message(STATUS "  [Git information from .git_archival.txt, filled in by git archive ('-D GIT_TRACKING=On')]")
+  else()
+    message(STATUS "  [CMake is tracking Git commits and branching ('-D GIT_TRACKING=On')]")
+  endif()
 endif()
 
 # Additional versioning information for packaging

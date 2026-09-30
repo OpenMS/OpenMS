@@ -251,29 +251,22 @@ jobs:
         env:
           TARBALL: ${{ steps.source-name.outputs.tarball }}
         run: |
-          # FIXME: Why not use `git archive`?
-          # The build also leaves its caches (.ccache, .vcpkg-cache) and the
-          # third-party tools (_thirdparty) in the workspace.
-          # Of vcpkg, only the vcpkg/ submodule (and a vcpkg_installed/ tree) is
-          # left out: vcpkg.json, vcpkg-configuration.json and vcpkg-overlays/
-          # (overlay ports and triplets) are shipped, so the tarball builds with an
-          # external vcpkg (-DOPENMS_USE_VCPKG=ON
+          # git archive packs the files of the commit and nothing else from the
+          # workspace, where the build leaves build/, its caches (.ccache,
+          # .vcpkg-cache), the third-party tools (_thirdparty) and test output.
+          # It also fills in .git_archival.txt (export-subst): the tarball has no
+          # .git, so CMake takes the commit from there, and for the tag v<version>
+          # the plain version.
+          # Left out are .github and the submodules THIRDPARTY and vcpkg, which git
+          # archive would add as empty directories. vcpkg.json,
+          # vcpkg-configuration.json and vcpkg-overlays/ (overlay ports and
+          # triplets) are shipped, so the tarball builds with an external vcpkg
+          # (-DOPENMS_USE_VCPKG=ON
           # -DCMAKE_TOOLCHAIN_FILE=<vcpkg root>/scripts/buildsystems/vcpkg.cmake)
           # as well as against system packages (the default, OPENMS_USE_VCPKG=OFF).
-          # './vcpkg/*' only matches at the top level, unlike 'vcpkg*/**', which
-          # also dropped vcpkg-overlays/ and any 'vcpkg' directory deeper in the tree.
-          tar \
-            --directory "$GITHUB_WORKSPACE" \
-            --exclude='build/*' \
-            --exclude='THIRDPARTY/**' \
-            --exclude='.git/**' \
-            --exclude='.github/**' \
-            --exclude='./vcpkg/*' \
-            --exclude='./vcpkg_installed/*' \
-            --exclude='.ccache/**' \
-            --exclude='.vcpkg-cache/**' \
-            --exclude='_thirdparty/**' \
-            -czf "$RUNNER_TEMP/$TARBALL" .
+          git -C "$GITHUB_WORKSPACE" archive --format=tar.gz \
+            --output="$RUNNER_TEMP/$TARBALL" HEAD -- \
+            . ':(exclude).github' ':(exclude)THIRDPARTY' ':(exclude)vcpkg'
 
       - name: Upload Source Code as an Artifact
         if: steps.solo.outputs.solo == 'true'
