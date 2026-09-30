@@ -419,11 +419,13 @@ jobs:
           VERSION_TYPE: ${{ needs.build-and-test.outputs.version_type }}
         shell: bash
         run: |
+          # Fill the template with the version and the CHANGELOG section in file $1.
           # Okay, maybe this is over the top.
+          function render() {
           awk \
             --assign VERSION_TYPE="$VERSION_TYPE" \
             --assign VERSION="$VERSION" \
-            --assign CHANGELOG_FILE="release-changelog.txt" \
+            --assign CHANGELOG_FILE="$1" \
             --source '
               BEGIN {
                 cl_text = ""
@@ -456,7 +458,59 @@ jobs:
                 }
 
                 print line
-              }' <.github/workflows/release-announcement.txt >release-announcement.txt
+              }' <.github/workflows/release-announcement.txt
+          }
+
+          # The full announcement, for the website.
+          render release-changelog.txt >release-announcement.txt
+
+          # GitHub keeps only the first 125,000 characters of a release body, and the
+          # 3.6.0 announcement was longer: its notes stopped mid-word and lost "Known
+          # issues". If the announcement is too long, the release notes keep the
+          # introduction and "Known issues" (moved up), then as many whole sections as
+          # fit, and link the full CHANGELOG for the rest.
+          python3 - <<'EOF'
+          import os
+          import re
+
+          LIMIT = 124000  # characters; GitHub's limit is 125,000
+
+          with open("release-changelog.txt", encoding="utf-8") as f:
+              changelog = f.read()
+          with open("release-announcement.txt", encoding="utf-8") as f:
+              announcement = f.read()
+
+          notes = changelog
+          if len(announcement) > LIMIT:
+              # Sections start with a heading line such as "General:" or "Known issues:".
+              parts = re.split(r"(?m)^(?=[A-Z][^\n]{0,40}:[ \t]*$)", changelog)
+              intro, sections = parts[0], parts[1:]
+              known = [s for s in sections if s.startswith("Known issues:")]
+              others = [s for s in sections if not s.startswith("Known issues:")]
+              url = "{}/{}/blob/{}/CHANGELOG".format(
+                  os.environ["GITHUB_SERVER_URL"], os.environ["GITHUB_REPOSITORY"], os.environ["GITHUB_REF_NAME"])
+              # room for the template around the CHANGELOG section and for the note below
+              budget = LIMIT - (len(announcement) - len(changelog)) - 1000
+              budget -= len(intro) + sum(len(s) for s in known)
+              kept, omitted = [], []
+              for s in others:
+                  if not omitted and len(s) <= budget:
+                      kept.append(s)
+                      budget -= len(s)
+                  else:
+                      omitted.append(s.split("\n", 1)[0].strip().rstrip(":"))
+              notes = (intro + "".join(known) + "".join(kept)
+                       + "Not shown here because of GitHub's length limit for release notes: "
+                       + ", ".join(omitted) + ". The complete list of changes is in the CHANGELOG, "
+                       + url + "\n")
+
+          with open("release-notes-changelog.txt", "w", encoding="utf-8") as f:
+              f.write(notes)
+          EOF
+
+          # The release notes on GitHub.
+          render release-notes-changelog.txt >release-notes.txt
+          echo "Release announcement: $(wc -m <release-announcement.txt) characters, release notes: $(wc -m <release-notes.txt)"
 
       - name: Upload Release Announcement as Artifact
         uses: actions/upload-artifact@v7
@@ -483,7 +537,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           name: Release ${{ needs.build-and-test.outputs.version }}
-          body_path: release-announcement.txt
+          body_path: release-notes.txt
           make_latest: true
           files: downloads/*
 
