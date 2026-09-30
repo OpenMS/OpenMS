@@ -49,16 +49,6 @@ message(STATUS "  shared data of that installation: ${OPENMS_DATA_DIR}")
 set(WITH_WNETALIGN ${OpenMS_WITH_WNETALIGN})
 
 #------------------------------------------------------------------------------
-# Eigen: IsobaricWorkflow and MetaProSIP use it directly (src/topp/CMakeLists.txt).
-# Same two-step lookup as in cmake/cmake_findExternalLibs.cmake.
-if(BUILD_TOPP_TOOLS)
-  find_package(Eigen3 3.4.0...<6 QUIET)
-  if(NOT TARGET Eigen3::Eigen)
-    find_package(Eigen3 3.4.0 REQUIRED)
-  endif()
-endif()
-
-#------------------------------------------------------------------------------
 # nlohmann::json: DIAuditor and OpenNuXL use it directly. It is a private dependency of
 # libOpenMS, so the installation does not provide it; take it from where the library
 # build does (src/openms/extern/CMakeLists.txt): the vendored copy, or an external one

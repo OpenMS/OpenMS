@@ -82,8 +82,11 @@ export DOTNET_NOLOGO=1
 ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
 # Manifest features: the options this build turns on that have a vcpkg port
-# (WITH_THERMO_RAW and WITH_OPENTIMS, both ON by default). The libraries OpenMS
-# vendors (USE_EXTERNAL_* OFF) stay vendored, as in the earlier contrib-based wheels.
+# (WITH_THERMO_RAW and WITH_OPENTIMS, both ON by default), and sqlitecpp. SQLiteCpp
+# and SQLite come from vcpkg (USE_EXTERNAL_SQLITECPP), as in the packages; opentims
+# links vcpkg's SQLite, so with the vendored copy libOpenMS would be linked against
+# two. The other libraries OpenMS vendors (USE_EXTERNAL_* OFF) stay vendored, as in
+# the earlier contrib-based wheels.
 #
 # ARROW_USE_STATIC is ON by default; it is spelled out because the standalone
 # pyOpenMS build that links _arrow_zerocopy against the same Arrow is configured
@@ -99,7 +102,8 @@ cmake -S . -B build \
   -DVCPKG_TARGET_TRIPLET="${triplet}" \
   -DVCPKG_HOST_TRIPLET="${triplet}" \
   -DVCPKG_INSTALLED_DIR="${src}/vcpkg_installed" \
-  -DVCPKG_MANIFEST_FEATURES="openms-thermo-bridge;opentims" \
+  -DVCPKG_MANIFEST_FEATURES="openms-thermo-bridge;opentims;sqlitecpp" \
+  -DUSE_EXTERNAL_SQLITECPP=ON \
   -DVCPKG_INSTALL_OPTIONS="--clean-after-build" \
   -DARROW_USE_STATIC=ON \
   -DCMAKE_INSTALL_PREFIX="${src}/install" \
@@ -127,6 +131,13 @@ cmake --install build --component cmake
 for lib in "${src}"/install/lib/libOpenMS.so "${src}"/install/lib/libOpenSwathAlgo.so; do
   python3 -c 'import ctypes, os, sys; ctypes.CDLL(sys.argv[1], os.RTLD_NOW); print("loads:", sys.argv[1])' "${lib}"
 done
+
+# The licenses of the system libraries auditwheel copies into the wheel (GCC's libgomp,
+# libgfortran and libquadmath), from the packages of this image. The vcpkg ports are
+# skipped: the install of the component share put their texts into LICENSES/vcpkg.
+python3 tools/ci/collect_wheel_licenses.py --prefix "${src}/install" --skip-prefix "${src}/vcpkg_installed"
+# THIRD-PARTY-NOTICES.txt again, now with the licenses collected above.
+cmake -DSHARE_DIR="${src}/install/share/OpenMS" -P cmake/third_party_notices.cmake
 
 # cibuildwheel copies the whole project directory into its container. The OpenMS
 # build tree and vcpkg's download and package staging areas are not needed there.

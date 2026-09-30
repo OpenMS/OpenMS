@@ -1594,7 +1594,8 @@ set_tests_properties("TOPP_MapAlignerPoseClustering_6_out1" PROPERTIES DEPENDS "
 
 #------------------------------------------------------------------------------
 # MapAlignerIdentification tests:
-add_test("TOPP_MapAlignerIdentification_1" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML -out ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output1.tmp.featureXML ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output2.tmp.featureXML)
+# without a reference, to a consensus of the inputs:
+add_test("TOPP_MapAlignerIdentification_1" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML -out ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output1.tmp.featureXML ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output2.tmp.featureXML -algorithm:auto_reference consensus)
 add_test("TOPP_MapAlignerIdentification_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_1_output1.featureXML )
 set_tests_properties("TOPP_MapAlignerIdentification_1_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_1")
 add_test("TOPP_MapAlignerIdentification_1_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output2.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_1_output2.featureXML )
@@ -1614,8 +1615,17 @@ add_test("TOPP_MapAlignerIdentification_4_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/M
 set_tests_properties("TOPP_MapAlignerIdentification_4_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_4")
 add_test("TOPP_MapAlignerIdentification_4_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_4_output2.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_3_output1.featureXML )
 set_tests_properties("TOPP_MapAlignerIdentification_4_out2" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_4")
+# without a reference, to the input that shares the most identified sequences with every other input:
+# with two inputs that is a tie, and both have seven sequences, so the first one (here: input2) is used -
+# the result must equal test 3, where it is set as reference explicitly
+add_test("TOPP_MapAlignerIdentification_9" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML -out ${TESTS_TEMP_DIR}/MapAlignerIdentification_9_output1.tmp.featureXML ${TESTS_TEMP_DIR}/MapAlignerIdentification_9_output2.tmp.featureXML)
+set_tests_properties("TOPP_MapAlignerIdentification_9" PROPERTIES PASS_REGULAR_EXPRESSION "No reference given - aligning to input 1, which shares at least")
+add_test("TOPP_MapAlignerIdentification_9_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_9_output1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_3_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerIdentification_9_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_9")
+add_test("TOPP_MapAlignerIdentification_9_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_9_output2.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_2_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerIdentification_9_out2" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_9")
 # consensusXML input:
-add_test("TOPP_MapAlignerIdentification_5" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_5_input1.consensusXML ${DATA_DIR_TOPP}/MapAlignerIdentification_5_input2.consensusXML -out ${TESTS_TEMP_DIR}/MapAlignerIdentification_5_output1.tmp.consensusXML ${TESTS_TEMP_DIR}/MapAlignerIdentification_5_output2.tmp.consensusXML)
+add_test("TOPP_MapAlignerIdentification_5" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_5_input1.consensusXML ${DATA_DIR_TOPP}/MapAlignerIdentification_5_input2.consensusXML -out ${TESTS_TEMP_DIR}/MapAlignerIdentification_5_output1.tmp.consensusXML ${TESTS_TEMP_DIR}/MapAlignerIdentification_5_output2.tmp.consensusXML -algorithm:auto_reference consensus)
 add_test("TOPP_MapAlignerIdentification_5_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_5_output1.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_5_output1.consensusXML )
 set_tests_properties("TOPP_MapAlignerIdentification_5_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_5")
 add_test("TOPP_MapAlignerIdentification_5_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_5_output2.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_5_output2.consensusXML )
@@ -3662,7 +3672,7 @@ set_tests_properties("TOPP_UniPEFF_12_out" PROPERTIES DEPENDS "TOPP_UniPEFF_12")
 ## annotations (5 in 2 entries; not the sequence conflict). Own invocation: PASS_REGULAR_EXPRESSION makes
 ## ctest ignore the exit code, which would weaken TOPP_UniPEFF_12's check that the tool succeeded.
 add_test("TOPP_UniPEFF_12_summary" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_4_input_location_sequence.xml -out ${TESTS_TEMP_DIR}/UniPEFF_12_summary.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
-set_tests_properties("TOPP_UniPEFF_12_summary" PROPERTIES PASS_REGULAR_EXPRESSION "UniPEFF: 5 feature.s. annotated on other isoforms .location/@sequence. were not applied to canonical entries .2 entries affected.")
+set_tests_properties("TOPP_UniPEFF_12_summary" PROPERTIES PASS_REGULAR_EXPRESSION "UniPEFF: 5 feature.s. annotated on isoforms that are not written .location/@sequence. were not applied .2 entries affected.")
 
 # Whitespace-stripped UniProtKB XML (no inter-element whitespace) MUST parse identically.
 # Guards against future regression to a whitespace-sensitive parser.
@@ -3696,6 +3706,29 @@ set_tests_properties("TOPP_UniPEFF_13_out" PROPERTIES DEPENDS "TOPP_UniPEFF_13")
 add_test("TOPP_UniPEFF_14" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_3_input_isoforms.xml -out ${TESTS_TEMP_DIR}/UniPEFF_14_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
 add_test("TOPP_UniPEFF_14_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_14_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_3_output_isoforms.peff)
 set_tests_properties("TOPP_UniPEFF_14_out" PROPERTIES DEPENDS "TOPP_UniPEFF_14")
+
+# Features annotated on an isoform (<location sequence="...">) are written to that isoform's
+# entry, in its coordinates: on P55555-2 a phosphoserine, a disulfide bond (labeled, with
+# \DisulfideBond) and a variant past the canonical end. Features on the external P55555-3 and
+# the unreconstructable P55555-4 are not applied; one on the displayed P55555-1 stays canonical.
+# Checked in the default mode, with -annotation_identifiers and with -omit_isoforms.
+add_test("TOPP_UniPEFF_15" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_5_input_isoform_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_15_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_15_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_15_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_5_output_A.peff)
+set_tests_properties("TOPP_UniPEFF_15_out" PROPERTIES DEPENDS "TOPP_UniPEFF_15")
+
+add_test("TOPP_UniPEFF_16" ${TOPP_BIN_PATH}/UniPEFF -test -annotation_identifiers -in ${DATA_DIR_TOPP}/UniPEFF_5_input_isoform_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_16_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_16_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_16_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_5_output_B.peff)
+set_tests_properties("TOPP_UniPEFF_16_out" PROPERTIES DEPENDS "TOPP_UniPEFF_16")
+
+add_test("TOPP_UniPEFF_17" ${TOPP_BIN_PATH}/UniPEFF -test -omit_isoforms -in ${DATA_DIR_TOPP}/UniPEFF_5_input_isoform_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_17_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_17_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_17_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_5_output_omitiso.peff)
+set_tests_properties("TOPP_UniPEFF_17_out" PROPERTIES DEPENDS "TOPP_UniPEFF_17")
+## The two summary lines, one invocation each: PASS_REGULAR_EXPRESSION passes on any one
+## matching expression (and ignores the exit code, which TOPP_UniPEFF_15 checks).
+add_test("TOPP_UniPEFF_15_summary_applied" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_5_input_isoform_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_15_summary_applied.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+set_tests_properties("TOPP_UniPEFF_15_summary_applied" PROPERTIES PASS_REGULAR_EXPRESSION "UniPEFF: 3 feature.s. annotated on isoforms .location/@sequence. were written to their isoform entries .1 entries affected.")
+add_test("TOPP_UniPEFF_15_summary_skipped" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_5_input_isoform_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_15_summary_skipped.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+set_tests_properties("TOPP_UniPEFF_15_summary_skipped" PROPERTIES PASS_REGULAR_EXPRESSION "UniPEFF: 2 feature.s. annotated on isoforms that are not written .location/@sequence. were not applied .1 entries affected.")
 
 #------------------------------------------------------------------------------
 # XFDR tests
@@ -5789,6 +5822,39 @@ add_test("TOPP_ProteomicsLFQ_8_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_8_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_8")
 add_test("TOPP_ProteomicsLFQ_8_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub_8.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_8_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_8")
+
+# A fraction whose runs have no identifications at all (e.g. none passed the upstream FDR filter)
+# has no features, so its linker gets only empty maps. That crashed the QT linker (fixed by #9790)
+# and then failed an assertion in Debug builds (#10310). Fraction 2 has no identifications here;
+# fraction 1 must still be quantified.
+add_test("TOPP_ProteomicsLFQ_empty_fraction" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_TOPP}/ProteomicsLFQ_empty_fraction_BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2_empty.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -out_msstats ${TESTS_TEMP_DIR}/BSA_empty_fraction.tmp.csv
+         -threads 1
+         -proteinFDR 0.8
+         -test
+         )
+# The empty fraction must actually have been reached; the output comparison below fails if the tool
+# stopped before writing its results.
+set_tests_properties("TOPP_ProteomicsLFQ_empty_fraction" PROPERTIES PASS_REGULAR_EXPRESSION "fraction 2 \\(2 run\\(s\\)\\) yielded no consensus features")
+add_test("TOPP_ProteomicsLFQ_empty_fraction_out_1" ${DIFF} -whitelist "software" "location" -in1 ${TESTS_TEMP_DIR}/BSA_empty_fraction.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_empty_fraction_out.csv )
+set_tests_properties("TOPP_ProteomicsLFQ_empty_fraction_out_1" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_empty_fraction")
 
 # test single file, no experimental design (regression)
 add_test("TOPP_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ

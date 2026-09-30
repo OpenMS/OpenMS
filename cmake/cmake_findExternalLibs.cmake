@@ -155,6 +155,37 @@ endif()
 find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
+# zstd (Zstandard, used for mzML binary data array compression, MS:1003780 ff.)
+# zstd is also a dependency of Apache Arrow/Parquet, so vcpkg and distribution
+# packages of Arrow already provide it (a contrib-built Arrow bundles a private
+# copy, so install the system package there). Its config package exports a
+# shared or a static target depending on how it was built (zstd >= 1.5.6
+# additionally provides zstd::libzstd), so take whichever exists. Fall back to a
+# plain header/library search for installations without the config package.
+find_package(zstd CONFIG QUIET)
+if(TARGET zstd::libzstd)
+  set(OPENMS_ZSTD_TARGET zstd::libzstd)
+elseif(TARGET zstd::libzstd_shared)
+  set(OPENMS_ZSTD_TARGET zstd::libzstd_shared)
+elseif(TARGET zstd::libzstd_static)
+  set(OPENMS_ZSTD_TARGET zstd::libzstd_static)
+else()
+  find_path(OPENMS_ZSTD_INCLUDE_DIR NAMES zstd.h)
+  find_library(OPENMS_ZSTD_LIBRARY NAMES zstd libzstd zstd_static libzstd_static)
+  if(NOT OPENMS_ZSTD_INCLUDE_DIR OR NOT OPENMS_ZSTD_LIBRARY)
+    message(FATAL_ERROR "zstd (Zstandard) not found. Install the zstd development package "
+                        "(e.g. libzstd-dev, libzstd-devel or 'brew install zstd') or point CMake to it "
+                        "via CMAKE_PREFIX_PATH.")
+  endif()
+  add_library(OpenMS_zstd UNKNOWN IMPORTED)
+  set_target_properties(OpenMS_zstd PROPERTIES
+    IMPORTED_LOCATION "${OPENMS_ZSTD_LIBRARY}"
+    INTERFACE_INCLUDE_DIRECTORIES "${OPENMS_ZSTD_INCLUDE_DIR}")
+  set(OPENMS_ZSTD_TARGET OpenMS_zstd)
+endif()
+message(STATUS "Using zstd target: ${OPENMS_ZSTD_TARGET}")
+
+#------------------------------------------------------------------------------
 # libzip (ZIP64 archive support)
 # Uses our FindLibzip.cmake module which does a manual header+library search.
 # We intentionally avoid CONFIG mode because libzip <= 1.10 ships a CMake
@@ -480,9 +511,6 @@ include(${OPENMS_HOST_DIRECTORY}/cmake/cmake_findQt.cmake)
 #------------------------------------------------------------------------------
 # opentims (Bruker TimsTOF .d file reading)
 if (WITH_OPENTIMS)
-  # Enable C language for bundled ZSTD fallback (zstddeclib.c)
-  enable_language(C)
-
   find_package(Opentims QUIET)
 
   if(Opentims_FOUND)
@@ -563,20 +591,8 @@ if (WITH_OPENTIMS)
     target_include_directories(opentims_cpp PRIVATE
       "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
 
-    # ZSTD: prefer system; fall back to opentims's bundled decoder.
-    set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
-    find_package(zstd QUIET)
-    if(TARGET zstd::libzstd_shared)
-      target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_shared)
-      message(STATUS "opentims: using system zstd (shared)")
-    elseif(TARGET zstd::libzstd_static)
-      target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_static)
-      message(STATUS "opentims: using system zstd (static)")
-    else()
-      target_sources(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd/zstddeclib.c")
-      target_include_directories(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd")
-      message(STATUS "opentims: using bundled zstd decoder (system zstd not found)")
-    endif()
+    # ZSTD: use the same zstd that OpenMS itself links (required, see above).
+    target_link_libraries(opentims_cpp PRIVATE ${OPENMS_ZSTD_TARGET})
 
     # Suppress warnings from third-party code
     target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
@@ -613,7 +629,9 @@ endif()
 #------------------------------------------------------------------------------
 # openms-thermo-bridge (Thermo RAW file reading)
 if (WITH_THERMO_RAW)
-  find_package(OpenMSThermoBridge 0.3 QUIET)
+  # 0.3.1 is the first release that publishes THIRD-PARTY-NOTICES.txt with its managed
+  # assemblies; the install below takes it from there.
+  find_package(OpenMSThermoBridge 0.3.1 QUIET)
 
   if(OpenMSThermoBridge_FOUND)
     message(STATUS "openms-thermo-bridge: using system installation")
@@ -626,6 +644,8 @@ if (WITH_THERMO_RAW)
       install(FILES "${_openms_thermo_license_file}"
               DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
               COMPONENT share)
+      openms_add_third_party_notice("LICENSES/ThermoRawFileReader-License.doc"
+                                    "${_openms_thermo_license_file}")
     else()
       message(WARNING "openms-thermo-bridge: ${_openms_thermo_license_file} not found; "
                       "the install will not include the Thermo RawFileReader license.")
@@ -639,9 +659,9 @@ if (WITH_THERMO_RAW)
       OpenMSThermoBridge
       GIT_REPOSITORY https://github.com/OpenMS/openms-thermo-bridge.git
       # Pin to a specific reviewed upstream revision to keep builds reproducible.
-      # This is the commit the v0.3.0 release tag points at; tools/ci/fetch_thermo_assets.sh
-      # checks that its own pin matches and downloads the v0.3.0 release assets.
-      GIT_TAG        2c66c9260ad78f499527c7d1c85a920afab9aa2d  # v0.3.0
+      # This is the commit the v0.3.1 release tag points at; tools/ci/fetch_thermo_assets.sh
+      # checks that its own pin matches and downloads the v0.3.1 release assets.
+      GIT_TAG        d809f8ac6264d00c81da4b7abe456a08f124f804  # v0.3.1
     )
 
     # Configure the thermo bridge build options
@@ -747,6 +767,8 @@ if (WITH_THERMO_RAW)
                 DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
                 RENAME "ThermoRawFileReader-License.doc"
                 COMPONENT share)
+        openms_add_third_party_notice("LICENSES/ThermoRawFileReader-License.doc"
+                                      "${_openms_thermo_license_file}")
       endif()
     endif()
   endif()
@@ -770,6 +792,21 @@ if (WITH_THERMO_RAW)
             COMPONENT share
             PATTERN "*.pdb" EXCLUDE
             PATTERN "*.zip" EXCLUDE)
+    # The bridge publishes THIRD-PARTY-NOTICES.txt with these assemblies, so the copy above
+    # installs it: the licenses of the bridge's own ThermoWrapperManaged, of CommandLineParser
+    # and OpenMcdf (MPL-2.0, with the address of its source code), and of nethost, which the
+    # native bridge library links. Thermo's own license is installed under LICENSES. A managed
+    # directory without the file (e.g. a pre-built one from a bridge older than 0.3.1) stops
+    # the installation instead of shipping the assemblies without their licenses.
+    install(CODE "
+      if(NOT EXISTS \"${OpenMSThermoBridge_MANAGED_DIR}/THIRD-PARTY-NOTICES.txt\")
+        message(FATAL_ERROR \"openms-thermo-bridge: ${OpenMSThermoBridge_MANAGED_DIR} has no \"
+                            \"THIRD-PARTY-NOTICES.txt; use openms-thermo-bridge 0.3.1 or newer.\")
+      endif()"
+      COMPONENT share)
+    ## The file may not exist yet: the build publishes the assemblies when it builds the bridge.
+    openms_add_third_party_notice("openms_thermo_bridge/managed/THIRD-PARTY-NOTICES.txt"
+                                  "${OpenMSThermoBridge_MANAGED_DIR}/THIRD-PARTY-NOTICES.txt")
   else()
     message(WARNING
       "openms-thermo-bridge: OpenMSThermoBridge_MANAGED_DIR is not set; the managed "

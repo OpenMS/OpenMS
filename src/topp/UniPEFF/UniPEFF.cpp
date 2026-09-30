@@ -70,8 +70,11 @@ since PEFF treats such a position as an error in the file.
 
 Features whose <code>\<location sequence="..."\></code> names another isoform
 carry coordinates of that isoform, not of the entry's canonical sequence. They
-are not applied to the canonical entry; a summary log line counts those that
-would otherwise have become annotations.
+are never applied to the canonical entry. If that isoform is written as an entry
+of its own (see below), they become annotations of that entry, in its
+coordinates; otherwise they are not applied. Summary log lines count both kinds
+among the features that would otherwise have become annotations. A location
+naming the "displayed" isoform refers to the canonical sequence.
 
 Modification accession lookup uses UniProt's <em>ptmlist.txt</em> (a snapshot
 is bundled under @c share/OpenMS/CHEMISTRY/UniProt_ptmlist.txt); override
@@ -90,11 +93,11 @@ parent (mirroring UniProt's isoform FASTA convention, which carries no
 per-isoform PE/SV). The isoform flagged "displayed" is identical to the
 canonical sequence and is not emitted again; isoforms typed "external" or
 "not described" have no reconstructable sequence and are reported in the log.
-Isoform entries carry no position-based annotations: coordinates on the
-canonical sequence are not mapped onto the spliced sequence, and features
-annotated on an isoform (<code>\<location sequence="..."\></code>, see above)
-are not applied to its entry either. Disable isoform expansion with
-@c -omit_isoforms.
+An isoform entry carries the features UniProt annotates on that isoform
+(<code>\<location sequence="..."\></code>, see above), with ids and
+\\DisulfideBond connectivity as for canonical entries; the canonical entry's
+annotations are not mapped onto the spliced sequence. Disable isoform expansion
+with @c -omit_isoforms.
 
 Both plain @c .xml and @c .xml.gz UniProt inputs are accepted (gzip is
 auto-detected by the underlying parser).
@@ -433,14 +436,6 @@ namespace
   // Isoform reconstruction (UniProt "alternative products")
   // ──────────────────────────────────────────────────────────────────
 
-  /// One reconstructed isoform, ready for emission as its own PEFF entry.
-  struct IsoformEntry
-  {
-    std::string accession;  ///< isoform accession, e.g. "P02768-2"
-    std::string name;       ///< isoform &lt;name&gt;, e.g. "2" or "VEGF121"
-    std::string sequence;   ///< canonical sequence with the referenced splice variants applied
-  };
-
   /// Isoforms without a reconstructable sequence ("external": stored as its own
   /// UniProt entry; "not described": sequence unknown), counted per sequence type
   /// so the run reports them in one summary line instead of one line per isoform.
@@ -588,6 +583,15 @@ namespace
 
     /// Final merged + sorted list (built by classifyAndMerge).
     std::vector<ModResItem> mods;
+  };
+
+  /// One reconstructed isoform, ready for emission as its own PEFF entry.
+  struct IsoformEntry
+  {
+    std::string accession;  ///< isoform accession, e.g. "P02768-2"
+    std::string name;       ///< isoform &lt;name&gt;, e.g. "2" or "VEGF121"
+    std::string sequence;   ///< canonical sequence with the referenced splice variants applied
+    EntryAnnotations annotations;  ///< features UniProt annotates on this isoform (&lt;location sequence="..."&gt;)
   };
 
   // ──────────────────────────────────────────────────────────────────
@@ -1033,26 +1037,204 @@ namespace
     return !f.location_sequence.empty();
   }
 
-  /// True if classifyAndAppend() added anything to @p a (checked before mergeHalfCystines()).
-  bool hasClassifiedAnnotations(const EntryAnnotations& a)
+  /// Number of tuples classifyAndAppend() has added to @p a (valid before mergeHalfCystines()).
+  size_t classifiedAnnotationCount(const EntryAnnotations& a)
   {
-    return !(a.regular_mods.empty() && a.halfcys.empty() && a.simple_variants.empty()
-             && a.complex_variants.empty() && a.processed.empty());
+    return a.regular_mods.size() + a.halfcys.size() + a.simple_variants.size()
+           + a.complex_variants.size() + a.processed.size();
   }
 
-  /// Counts, over all entries, the isoform-scoped features that were left out although
-  /// they would otherwise have become annotations of the canonical entry.
+  /// Counts, over all entries, the isoform-scoped features that would become annotations:
+  /// those written to their isoform's entry, and those left out because that isoform is
+  /// not written (external, not described, not reconstructable, or -omit_isoforms).
   struct IsoformScopedTracker
   {
-    size_t total{0};
-    size_t entries{0};
+    size_t applied{0};
+    size_t applied_entries{0};
+    size_t skipped{0};
+    size_t skipped_entries{0};
 
-    void add(size_t skipped_in_entry)
+    void add(size_t applied_in_entry, size_t skipped_in_entry)
     {
-      total += skipped_in_entry;
-      if (skipped_in_entry > 0) ++entries;
+      applied += applied_in_entry;
+      if (applied_in_entry > 0) ++applied_entries;
+      skipped += skipped_in_entry;
+      if (skipped_in_entry > 0) ++skipped_entries;
     }
   };
+
+  /// Write the annotation tags (\\ModResPsi ... \\DisulfideBond) of one entry, canonical or isoform.
+  /// Positions beyond @p seq_len are omitted with a warning naming @p accession. OBO-name
+  /// fallbacks taken here are accumulated into @p tracker.
+  void writeAnnotationTags(std::ostream& out, const std::string& accession, int seq_len,
+                           const EntryAnnotations& a,
+                           const OboNameMap& psi_obo, const OboNameMap& unimod_obo,
+                           OboFallbackTracker& tracker,
+                           bool emit_processed, bool emit_aa_mods, bool emit_variants)
+  {
+    auto tag_kv = [&](const std::string& key, const std::string& value) {
+      out << " \\" << key << "=" << value;
+    };
+
+    // Modifications grouped by accession kind. IDs were stamped beforehand —
+    // by assignAnnotationIds() (Option B, every tuple, in this exact bucket
+    // order) or by assignDisulfideLabels() (default mode, paired half-cystines
+    // only) — and a tuple prints an "id:" prefix iff it carries one.
+    auto writeMods = [&](const std::string& key,
+                         std::function<bool(const ModResItem&)> belongs,
+                         std::function<std::string(const ModResItem&)> accession_of)
+    {
+      std::string val;
+      for (const ModResItem& m : a.mods)
+      {
+        if (!belongs(m)) continue;
+        if (seq_len > 0 && m.position > seq_len)
+        {
+          OPENMS_LOG_WARN << "UniPEFF: " << accession << " " << key << " position " << m.position
+                          << " exceeds sequence length " << seq_len << "; omitted.\n";
+          continue;
+        }
+        val.push_back('(');
+        if (m.annotation_id != kNoId) { val += std::to_string(m.annotation_id); val.push_back(':'); }
+        val += positionOrUnknown(m.position);
+        const std::string acc = accession_of(m);
+        val.push_back('|');
+        val += escapePeff(acc);
+        const std::string display = resolveDisplayName(m, acc, psi_obo, unimod_obo, tracker);
+        if (!display.empty())
+        {
+          val.push_back('|');
+          val += escapePeff(display);
+        }
+        val.push_back(')');
+      }
+      if (!val.empty()) tag_kv(key, val);
+    };
+
+    if (emit_aa_mods)
+    {
+      writeMods("ModResPsi",
+                [](const ModResItem& m) { return m.ptm != nullptr && !m.ptm->psi_mod.empty(); },
+                [](const ModResItem& m) { return m.ptm->psi_mod; });
+      writeMods("ModResUnimod",
+                [](const ModResItem& m) { return m.ptm != nullptr && m.ptm->psi_mod.empty() && !m.ptm->unimod.empty(); },
+                [](const ModResItem& m) { return std::string("UNIMOD:") + m.ptm->unimod; });
+      writeMods("ModRes",
+                [](const ModResItem& m) { return m.ptm == nullptr || (m.ptm->psi_mod.empty() && m.ptm->unimod.empty()); },
+                [](const ModResItem&) { return std::string(); });
+    }
+
+    if (emit_variants)
+    {
+      // VariantSimple: real simples + demoted complex-as-simple.
+      {
+        std::string val;
+        for (const auto& v : a.simple_variants)
+        {
+          if (v.position == 0) continue;
+          if (seq_len > 0 && v.position > seq_len)
+          {
+            OPENMS_LOG_WARN << "UniPEFF: " << accession << " VariantSimple position " << v.position
+                            << " exceeds sequence length " << seq_len << "; omitted." << std::endl;
+            continue;
+          }
+          val.push_back('(');
+          if (v.annotation_id != kNoId) { val += std::to_string(v.annotation_id); val.push_back(':'); }
+          val += std::to_string(v.position);
+          val.push_back('|');
+          val += escapePeff(std::string(1, v.new_aa));
+          val.push_back(')');
+        }
+        for (const auto& v : a.complex_variants)
+        {
+          if (v.begin != 0 && v.begin == v.end && v.new_seq.size() == 1 && isResidueCode(v.new_seq[0])
+              && !(seq_len > 0 && v.begin > seq_len))
+          {
+            val.push_back('(');
+            if (v.annotation_id != kNoId) { val += std::to_string(v.annotation_id); val.push_back(':'); }
+            val += std::to_string(v.begin);
+            val.push_back('|');
+            val += escapePeff(v.new_seq);
+            val.push_back(')');
+          }
+        }
+        if (!val.empty()) tag_kv("VariantSimple", val);
+      }
+      // VariantComplex: range substitutions/deletions/insertions (excluding demoted).
+      {
+        std::string val;
+        for (const auto& v : a.complex_variants)
+        {
+          if (v.begin == 0 || v.end == 0) continue;
+          if (v.begin > v.end || (seq_len > 0 && (v.begin > seq_len || v.end > seq_len)))
+          {
+            OPENMS_LOG_WARN << "UniPEFF: " << accession << " VariantComplex " << v.begin << "-" << v.end
+                            << " is out of bounds (length " << seq_len << "); omitted." << std::endl;
+            continue;
+          }
+          if (v.begin == v.end && v.new_seq.size() == 1 && isResidueCode(v.new_seq[0])) continue;
+          val.push_back('(');
+          if (v.annotation_id != kNoId) { val += std::to_string(v.annotation_id); val.push_back(':'); }
+          val += std::to_string(v.begin);
+          val.push_back('|');
+          val += std::to_string(v.end);
+          val.push_back('|');
+          val += escapePeff(v.new_seq);
+          val.push_back(')');
+        }
+        if (!val.empty()) tag_kv("VariantComplex", val);
+      }
+    }
+
+    if (emit_processed)
+    {
+      std::string val;
+      for (const auto& p : a.processed)
+      {
+        if (p.begin == 0 || p.end == 0) continue;
+        if (p.begin > p.end || (seq_len > 0 && (p.begin > seq_len || p.end > seq_len)))
+        {
+          OPENMS_LOG_WARN << "UniPEFF: " << accession << " Processed " << p.begin << "-" << p.end
+                          << " is out of bounds (length " << seq_len << "); omitted." << std::endl;
+          continue;
+        }
+        val.push_back('(');
+        if (p.annotation_id != kNoId) { val += std::to_string(p.annotation_id); val.push_back(':'); }
+        val += std::to_string(p.begin);
+        val.push_back('|');
+        val += std::to_string(p.end);
+        val.push_back('|');
+        val += escapePeff(p.cv);
+        val.push_back('|');
+        val += escapePeff(p.type_name);
+        val.push_back(')');
+      }
+      if (!val.empty()) tag_kv("Processed", val);
+    }
+
+    if (emit_aa_mods)
+    {
+      // \DisulfideBond=(bond_id:idA,idB) — one tuple per valid <begin>/<end> disulfide pair,
+      // referencing the ids its two half-cystines carry inside \ModResPsi. The ids were
+      // stamped by whichever assignment pass ran (issue #9829 selective labels in the
+      // default mode; global annotation identifiers in Option B); a pair without an id
+      // (endpoint beyond the sequence end) is not emitted. Single-<position> disulfide
+      // features never form a pair.
+      std::string val;
+      for (const auto& d : a.disulfides)
+      {
+        if (d.annotation_id == kNoId) continue;
+        val.push_back('(');
+        val += std::to_string(d.annotation_id);
+        val.push_back(':');
+        val += std::to_string(a.mods[d.idx_a].annotation_id);
+        val.push_back(',');
+        val += std::to_string(a.mods[d.idx_b].annotation_id);
+        val.push_back(')');
+      }
+      if (!val.empty()) tag_kv("DisulfideBond", val);
+    }
+  }
 
   /// Write the descriptor + sequence for one entry. OBO-name fallbacks taken during
   /// emission are accumulated into @p tracker so the final report can distinguish
@@ -1101,164 +1283,8 @@ namespace
       tag_kv("AltAC", val);
     }
 
-    // Modifications grouped by accession kind. IDs were stamped beforehand —
-    // by assignAnnotationIds() (Option B, every tuple, in this exact bucket
-    // order) or by assignDisulfideLabels() (default mode, paired half-cystines
-    // only) — and a tuple prints an "id:" prefix iff it carries one.
-    auto writeMods = [&](const std::string& key,
-                         std::function<bool(const ModResItem&)> belongs,
-                         std::function<std::string(const ModResItem&)> accession_of)
-    {
-      std::string val;
-      for (const ModResItem& m : a.mods)
-      {
-        if (!belongs(m)) continue;
-        if (seq_len > 0 && m.position > seq_len)
-        {
-          OPENMS_LOG_WARN << "UniPEFF: " << e.accession << " " << key << " position " << m.position
-                          << " exceeds sequence length " << seq_len << "; omitted.\n";
-          continue;
-        }
-        val.push_back('(');
-        if (m.annotation_id != kNoId) { val += std::to_string(m.annotation_id); val.push_back(':'); }
-        val += positionOrUnknown(m.position);
-        const std::string acc = accession_of(m);
-        val.push_back('|');
-        val += escapePeff(acc);
-        const std::string display = resolveDisplayName(m, acc, psi_obo, unimod_obo, tracker);
-        if (!display.empty())
-        {
-          val.push_back('|');
-          val += escapePeff(display);
-        }
-        val.push_back(')');
-      }
-      if (!val.empty()) tag_kv(key, val);
-    };
-
-    if (emit_aa_mods)
-    {
-      writeMods("ModResPsi",
-                [](const ModResItem& m) { return m.ptm != nullptr && !m.ptm->psi_mod.empty(); },
-                [](const ModResItem& m) { return m.ptm->psi_mod; });
-      writeMods("ModResUnimod",
-                [](const ModResItem& m) { return m.ptm != nullptr && m.ptm->psi_mod.empty() && !m.ptm->unimod.empty(); },
-                [](const ModResItem& m) { return std::string("UNIMOD:") + m.ptm->unimod; });
-      writeMods("ModRes",
-                [](const ModResItem& m) { return m.ptm == nullptr || (m.ptm->psi_mod.empty() && m.ptm->unimod.empty()); },
-                [](const ModResItem&) { return std::string(); });
-    }
-
-    if (emit_variants)
-    {
-      // VariantSimple: real simples + demoted complex-as-simple.
-      {
-        std::string val;
-        for (const auto& v : a.simple_variants)
-        {
-          if (v.position == 0) continue;
-          if (seq_len > 0 && v.position > seq_len)
-          {
-            OPENMS_LOG_WARN << "UniPEFF: " << e.accession << " VariantSimple position " << v.position
-                            << " exceeds sequence length " << seq_len << "; omitted." << std::endl;
-            continue;
-          }
-          val.push_back('(');
-          if (v.annotation_id != kNoId) { val += std::to_string(v.annotation_id); val.push_back(':'); }
-          val += std::to_string(v.position);
-          val.push_back('|');
-          val += escapePeff(std::string(1, v.new_aa));
-          val.push_back(')');
-        }
-        for (const auto& v : a.complex_variants)
-        {
-          if (v.begin != 0 && v.begin == v.end && v.new_seq.size() == 1 && isResidueCode(v.new_seq[0])
-              && !(seq_len > 0 && v.begin > seq_len))
-          {
-            val.push_back('(');
-            if (v.annotation_id != kNoId) { val += std::to_string(v.annotation_id); val.push_back(':'); }
-            val += std::to_string(v.begin);
-            val.push_back('|');
-            val += escapePeff(v.new_seq);
-            val.push_back(')');
-          }
-        }
-        if (!val.empty()) tag_kv("VariantSimple", val);
-      }
-      // VariantComplex: range substitutions/deletions/insertions (excluding demoted).
-      {
-        std::string val;
-        for (const auto& v : a.complex_variants)
-        {
-          if (v.begin == 0 || v.end == 0) continue;
-          if (v.begin > v.end || (seq_len > 0 && (v.begin > seq_len || v.end > seq_len)))
-          {
-            OPENMS_LOG_WARN << "UniPEFF: " << e.accession << " VariantComplex " << v.begin << "-" << v.end
-                            << " is out of bounds (length " << seq_len << "); omitted." << std::endl;
-            continue;
-          }
-          if (v.begin == v.end && v.new_seq.size() == 1 && isResidueCode(v.new_seq[0])) continue;
-          val.push_back('(');
-          if (v.annotation_id != kNoId) { val += std::to_string(v.annotation_id); val.push_back(':'); }
-          val += std::to_string(v.begin);
-          val.push_back('|');
-          val += std::to_string(v.end);
-          val.push_back('|');
-          val += escapePeff(v.new_seq);
-          val.push_back(')');
-        }
-        if (!val.empty()) tag_kv("VariantComplex", val);
-      }
-    }
-
-    if (emit_processed)
-    {
-      std::string val;
-      for (const auto& p : a.processed)
-      {
-        if (p.begin == 0 || p.end == 0) continue;
-        if (p.begin > p.end || (seq_len > 0 && (p.begin > seq_len || p.end > seq_len)))
-        {
-          OPENMS_LOG_WARN << "UniPEFF: " << e.accession << " Processed " << p.begin << "-" << p.end
-                          << " is out of bounds (length " << seq_len << "); omitted." << std::endl;
-          continue;
-        }
-        val.push_back('(');
-        if (p.annotation_id != kNoId) { val += std::to_string(p.annotation_id); val.push_back(':'); }
-        val += std::to_string(p.begin);
-        val.push_back('|');
-        val += std::to_string(p.end);
-        val.push_back('|');
-        val += escapePeff(p.cv);
-        val.push_back('|');
-        val += escapePeff(p.type_name);
-        val.push_back(')');
-      }
-      if (!val.empty()) tag_kv("Processed", val);
-    }
-
-    if (emit_aa_mods)
-    {
-      // \DisulfideBond=(bond_id:idA,idB) — one tuple per valid <begin>/<end> disulfide pair,
-      // referencing the ids its two half-cystines carry inside \ModResPsi. The ids were
-      // stamped by whichever assignment pass ran (issue #9829 selective labels in the
-      // default mode; global annotation identifiers in Option B); a pair without an id
-      // (endpoint beyond the sequence end) is not emitted. Single-<position> disulfide
-      // features never form a pair.
-      std::string val;
-      for (const auto& d : a.disulfides)
-      {
-        if (d.annotation_id == kNoId) continue;
-        val.push_back('(');
-        val += std::to_string(d.annotation_id);
-        val.push_back(':');
-        val += std::to_string(a.mods[d.idx_a].annotation_id);
-        val.push_back(',');
-        val += std::to_string(a.mods[d.idx_b].annotation_id);
-        val.push_back(')');
-      }
-      if (!val.empty()) tag_kv("DisulfideBond", val);
-    }
+    writeAnnotationTags(out, e.accession, seq_len, a, psi_obo, unimod_obo, tracker,
+                        emit_processed, emit_aa_mods, emit_variants);
 
     out << "\n";
     writeWrappedSequence(out, e.sequence);
@@ -1268,11 +1294,14 @@ namespace
   /// Mirrors UniProt's isoform FASTA convention: "Isoform <name> of <parent name>"
   /// with gene / taxonomy / mnemonic inherited from the parent and no SV/EV/PE
   /// (UniProt versions isoform sequences with the parent entry, not separately).
-  /// Position-based annotations are not propagated: canonical coordinates are not
-  /// mapped onto the spliced sequence, and features annotated on this isoform
-  /// (&lt;location sequence="..."&gt;) are not applied either.
+  /// Its annotations are the features UniProt annotates on this isoform
+  /// (&lt;location sequence="..."&gt;), in the isoform's coordinates; the canonical
+  /// entry's annotations are not mapped onto the spliced sequence.
   void writeIsoformPeffEntry(std::ostream& out, const UniProtEntry& parent, const IsoformEntry& iso,
-                             const std::string& prefix)
+                             const std::string& prefix,
+                             const OboNameMap& psi_obo, const OboNameMap& unimod_obo,
+                             OboFallbackTracker& tracker,
+                             bool emit_processed, bool emit_aa_mods, bool emit_variants)
   {
     out << ">" << prefix << ":" << iso.accession;
 
@@ -1289,6 +1318,9 @@ namespace
     tag_kv("Length", std::to_string(iso.sequence.size()));
     if (!parent.name.empty()) tag_kv("ID", escapePeff(parent.name));
 
+    writeAnnotationTags(out, iso.accession, static_cast<int>(iso.sequence.size()), iso.annotations,
+                        psi_obo, unimod_obo, tracker, emit_processed, emit_aa_mods, emit_variants);
+
     out << "\n";
     writeWrappedSequence(out, iso.sequence);
   }
@@ -1301,15 +1333,18 @@ namespace
   {
     UniProtEntry source;
     EntryAnnotations annotations;
-    size_t isoform_scoped_skipped{0};  ///< isoform-scoped features left out that would otherwise have become annotations
+    size_t isoform_scoped_applied{0};  ///< isoform-scoped features written to their isoform's entry
+    size_t isoform_scoped_skipped{0};  ///< isoform-scoped features left out (isoform not written) that would otherwise have become annotations
     std::string prefix;       ///< sp/tr or user override
     std::vector<IsoformEntry> isoforms;  ///< reconstructed alternative products (emitted after the entry)
   };
 
-  /// Prepare one entry: classify features, merge halfcys, drop disulfide pairs with
-  /// out-of-range endpoints, stamp annotation IDs (global in Option B, selective
-  /// disulfide labels otherwise), and reconstruct the emittable isoform sequences
-  /// ("external" / "not described" isoforms are counted in @p skipped_isoforms).
+  /// Prepare one entry: reconstruct the emittable isoform sequences ("external" / "not
+  /// described" isoforms are counted in @p skipped_isoforms), classify each feature into the
+  /// canonical entry or, if its &lt;location sequence="..."&gt; names an emitted isoform, into
+  /// that isoform's entry; then, per entry, merge halfcys, drop disulfide pairs with
+  /// out-of-range endpoints and stamp annotation IDs (global in Option B, selective disulfide
+  /// labels otherwise).
   PreparedEntry prepareEntry(UniProtEntry&& e, const PtmMap& ptms, const std::string& prefix_override,
                              bool option_b, bool record_processing, bool record_aa_mods,
                              bool record_variants, bool record_isoforms,
@@ -1318,42 +1353,6 @@ namespace
     PreparedEntry pe;
     pe.source = std::move(e);
     pe.prefix = prefix_override.empty() ? prefixForDataset(pe.source.dataset) : prefix_override;
-
-    for (const auto& f : pe.source.features)
-    {
-      if (isIsoformScoped(f))
-      {
-        // Never applied to the canonical entry. Classifying it into a scratch list tells whether
-        // it would otherwise have become an annotation, so the summary counts only those
-        // (not e.g. sequence conflicts, which UniPEFF never writes).
-        EntryAnnotations not_applied;
-        classifyAndAppend(f, ptms, not_applied, record_processing, record_aa_mods,
-                          record_variants, pe.source.accession);
-        if (hasClassifiedAnnotations(not_applied))
-        {
-          ++pe.isoform_scoped_skipped;
-          OPENMS_LOG_DEBUG << "UniPEFF: " << pe.source.accession << " " << f.type << " '" << f.description
-                           << "' is annotated on isoform " << f.location_sequence << "; not applied to the canonical entry.\n";
-        }
-        continue;
-      }
-      classifyAndAppend(f, ptms, pe.annotations, record_processing, record_aa_mods,
-                        record_variants, pe.source.accession);
-    }
-    mergeHalfCystines(pe.annotations);
-    invalidateOutOfRangeDisulfides(pe.annotations, pe.source.sequence, pe.source.accession);
-
-    if (option_b)
-    {
-      assignAnnotationIds(pe.annotations, pe.source.sequence,
-                          record_processing, record_aa_mods, record_variants);
-    }
-    else
-    {
-      // No-op when the entry has no documented disulfide pairs
-      // (including under -omit_amino_acid_modifications).
-      assignDisulfideLabels(pe.annotations);
-    }
 
     if (record_isoforms && !pe.source.isoforms.empty())
     {
@@ -1390,9 +1389,73 @@ namespace
                           << error << "; omitted.\n";
           continue;
         }
-        pe.isoforms.push_back(IsoformEntry{iso.id, iso.name, std::move(seq)});
+        pe.isoforms.push_back(IsoformEntry{iso.id, iso.name, std::move(seq), {}});
       }
     }
+
+    // Isoform-scoped features go to the entry of the isoform they are annotated on. The
+    // "displayed" isoform is the canonical sequence, so its features stay with the canonical entry.
+    std::unordered_map<std::string, size_t> emitted_isoform;  // isoform accession -> index in pe.isoforms
+    for (size_t i = 0; i < pe.isoforms.size(); ++i) emitted_isoform.emplace(pe.isoforms[i].accession, i);
+    std::vector<std::string> displayed_ids;
+    for (const auto& iso : pe.source.isoforms)
+    {
+      if (iso.sequence_type == "displayed" && !iso.id.empty()) displayed_ids.push_back(iso.id);
+    }
+
+    for (const auto& f : pe.source.features)
+    {
+      if (!isIsoformScoped(f)
+          || std::find(displayed_ids.begin(), displayed_ids.end(), f.location_sequence) != displayed_ids.end())
+      {
+        classifyAndAppend(f, ptms, pe.annotations, record_processing, record_aa_mods,
+                          record_variants, pe.source.accession);
+        continue;
+      }
+      auto target = emitted_isoform.find(f.location_sequence);
+      if (target != emitted_isoform.end())
+      {
+        IsoformEntry& iso = pe.isoforms[target->second];
+        const size_t before = classifiedAnnotationCount(iso.annotations);
+        classifyAndAppend(f, ptms, iso.annotations, record_processing, record_aa_mods,
+                          record_variants, iso.accession);
+        if (classifiedAnnotationCount(iso.annotations) > before) ++pe.isoform_scoped_applied;
+        continue;
+      }
+      // The isoform is not written (external, not described, not reconstructable, or
+      // -omit_isoforms). Classifying the feature into a scratch list tells whether it would
+      // otherwise have become an annotation, so the summary counts only those (not e.g.
+      // sequence conflicts, which UniPEFF never writes).
+      EntryAnnotations not_applied;
+      classifyAndAppend(f, ptms, not_applied, record_processing, record_aa_mods,
+                        record_variants, f.location_sequence);
+      if (classifiedAnnotationCount(not_applied) > 0)
+      {
+        ++pe.isoform_scoped_skipped;
+        OPENMS_LOG_DEBUG << "UniPEFF: " << pe.source.accession << " " << f.type << " '" << f.description
+                         << "' is annotated on isoform " << f.location_sequence
+                         << ", which is not written; not applied.\n";
+      }
+    }
+
+    // The canonical entry and each isoform entry are finished against their own sequence.
+    auto finish = [&](EntryAnnotations& a, const std::string& sequence, const std::string& accession)
+    {
+      mergeHalfCystines(a);
+      invalidateOutOfRangeDisulfides(a, sequence, accession);
+      if (option_b)
+      {
+        assignAnnotationIds(a, sequence, record_processing, record_aa_mods, record_variants);
+      }
+      else
+      {
+        // No-op when the entry has no documented disulfide pairs
+        // (including under -omit_amino_acid_modifications).
+        assignDisulfideLabels(a);
+      }
+    };
+    finish(pe.annotations, pe.source.sequence, pe.source.accession);
+    for (IsoformEntry& iso : pe.isoforms) finish(iso.annotations, iso.sequence, iso.accession);
     return pe;
   }
 
@@ -1575,7 +1638,7 @@ protected:
           it = spools.emplace(pe.prefix, std::move(s)).first;
           prefixes.push_back(pe.prefix);
         }
-        isoform_scoped_tracker.add(pe.isoform_scoped_skipped);
+        isoform_scoped_tracker.add(pe.isoform_scoped_applied, pe.isoform_scoped_skipped);
         writePeffEntry(it->second.out, pe.source, pe.annotations, pe.prefix,
                        psi_obo, unimod_obo, fallback_tracker,
                        record_processing, record_aa_mods, record_variants);
@@ -1585,9 +1648,12 @@ protected:
         // this prefix's `# NumberOfEntries=` like any other entry.
         for (const IsoformEntry& iso : pe.isoforms)
         {
-          writeIsoformPeffEntry(it->second.out, pe.source, iso, pe.prefix);
+          writeIsoformPeffEntry(it->second.out, pe.source, iso, pe.prefix,
+                                psi_obo, unimod_obo, fallback_tracker,
+                                record_processing, record_aa_mods, record_variants);
           ++it->second.count;
           ++isoforms_written;
+          if (hasAnnotationIds(iso.annotations)) it->second.has_annotation_ids = true;
         }
       });
     }
@@ -1684,11 +1750,17 @@ protected:
                          "(no OBO 'name:' entry found). Provide an updated -psimod_obo / -unimod_obo for strict PEFF "
                          "conformance." << std::endl;
     }
-    if (isoform_scoped_tracker.total > 0)
+    if (isoform_scoped_tracker.applied > 0)
     {
-      OPENMS_LOG_INFO << "UniPEFF: " << isoform_scoped_tracker.total << " feature(s) annotated on other "
-                         "isoforms (location/@sequence) were not applied to canonical entries ("
-                      << isoform_scoped_tracker.entries << " entries affected).\n";
+      OPENMS_LOG_INFO << "UniPEFF: " << isoform_scoped_tracker.applied << " feature(s) annotated on isoforms "
+                         "(location/@sequence) were written to their isoform entries ("
+                      << isoform_scoped_tracker.applied_entries << " entries affected).\n";
+    }
+    if (isoform_scoped_tracker.skipped > 0)
+    {
+      OPENMS_LOG_INFO << "UniPEFF: " << isoform_scoped_tracker.skipped << " feature(s) annotated on isoforms "
+                         "that are not written (location/@sequence) were not applied ("
+                      << isoform_scoped_tracker.skipped_entries << " entries affected).\n";
     }
     return EXECUTION_OK;
   }

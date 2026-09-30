@@ -31,6 +31,7 @@ RUN apt-get update \
     libglpk-dev \
     libzip-dev \
     zlib1g-dev \
+    libzstd-dev \
     libzip4 \
     zlib1g \
     # ICU is needed by the .NET SDK/runtime for the openms-thermo-bridge build
@@ -164,7 +165,9 @@ RUN <<-EOF
         *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
     esac
     
+    # dependencies from the apt packages above, not from vcpkg
     cmake \
+        -DOPENMS_USE_VCPKG=OFF \
         -DQt6_DIR="/usr/lib/${DEB_ARCH}/cmake/Qt6" \
         -DCMAKE_BUILD_TYPE='Release' \
         -DCMAKE_PREFIX_PATH="/usr/;/usr/local" \
@@ -192,6 +195,7 @@ RUN apt-get update \
     libsvm3 \
     libzip4 \
     zlib1g \
+    libzstd1 \
     libbz2-1.0 \
     libcurl4 \
     libgomp1 \

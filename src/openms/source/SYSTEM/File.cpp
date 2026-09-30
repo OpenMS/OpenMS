@@ -357,6 +357,21 @@ namespace OpenMS{
     return fs::absolute(to_path(file)).generic_string();
   }
 
+  std::string File::toFileURI(const std::string& file)
+  {
+    std::string path = absolutePath(file);
+#ifdef OPENMS_WINDOWSPLATFORM
+    std::replace(path.begin(), path.end(), '\\', '/');
+    // A UNC path has an authority (server name), so keep only two slashes after
+    // the scheme instead of treating it like a local path.
+    if (StringUtils::hasPrefix(path, "//") && path.size() > 2 && path[2] != '/')
+    {
+      return "file:" + path;
+    }
+#endif
+    return StringUtils::hasPrefix(path, "/") ? "file://" + path : "file:///" + path;
+  }
+
   std::string File::basename(const std::string& file)
   {
     return PathUtils::basename(file);
