@@ -634,6 +634,10 @@ TOPP tools:
         groups; every other shipped mzTab reference has exactly one (fraction_group, label) per sample
         and is byte-identical (#9868, part of #9864)
     ProSE:
+      - FIX: Preserve strong peaks in the short final 100 Da window for high-resolution searches.
+        New peaks:window_type=auto keeps the full local quota at <=0.1 Da / <=100 ppm;
+        low-resolution filtering is unchanged. jump restores the previous filter and jump_full
+        forces a full quota. Peak-associated data arrays stay aligned.
       - Fixed FragmentIndex::build reusing old peptide coordinates on a second build;
         rebuilding now replaces the previous index and failed builds remain unbuilt.
       - BREAKING: renamed from PeptideDataBaseSearchFI. -out replaced by -out_idxml
