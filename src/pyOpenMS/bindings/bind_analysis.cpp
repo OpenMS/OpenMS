@@ -560,12 +560,18 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
             return nb::make_tuple(score, detail.matched_prefix_ions, detail.matched_suffix_ions, detail.mean_error);
         }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "theo_spectrum"_a,
            "Experimental native binomial fragment score. Returns (score, prefix_matches, suffix_matches, mean_error).")
-        .def_static("computeMassAccuracy", [](double tolerance, bool ppm, const OpenMS::MSSpectrum& exp, const OpenMS::MSSpectrum& theo, double mass_error_sd_ppm) {
+        .def_static("computeMassAccuracy", [](double tolerance, bool ppm, const OpenMS::MSSpectrum& exp, const OpenMS::MSSpectrum& theo, double mass_error_sd_ppm, double mass_error_shift_ppm) {
             OpenMS::HyperScore::PSMDetail detail;
-            const double score = OpenMS::HyperScore::computeMassAccuracy(tolerance, ppm, exp, theo, mass_error_sd_ppm, detail);
+            const double score = OpenMS::HyperScore::computeMassAccuracy(tolerance, ppm, exp, theo, mass_error_sd_ppm, detail, mass_error_shift_ppm);
             return nb::make_tuple(score, detail.matched_prefix_ions, detail.matched_suffix_ions, detail.mean_error);
-        }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "theo_spectrum"_a, "mass_error_sd_ppm"_a,
-           "Experimental mass-accuracy-weighted HyperScore. SD is in ppm; assumes errors centered at zero. Returns (score, unweighted prefix_matches, unweighted suffix_matches, mean_error).")
+        }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "theo_spectrum"_a, "mass_error_sd_ppm"_a, "mass_error_shift_ppm"_a = 0.0,
+           "Experimental mass-accuracy-weighted HyperScore. SD and kernel center (shift) are in ppm. Returns (score, unweighted prefix_matches, unweighted suffix_matches, mean_error).")
+        .def_static("matchedFragmentErrorsPpm", [](double tolerance, bool ppm, const OpenMS::MSSpectrum& exp, const OpenMS::MSSpectrum& theo) {
+            std::vector<double> errors;
+            OpenMS::HyperScore::matchedFragmentErrorsPpm(tolerance, ppm, exp, theo, errors);
+            return errors;
+        }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "theo_spectrum"_a,
+           "Signed ppm errors (observed minus theoretical) of the theoretical ions matched within the tolerance.")
         .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& theo_spectrum) { return OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum); }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "theo_spectrum"_a)
         .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::DataArrays::IntegerDataArray& exp_charges, const OpenMS::MSSpectrum& theo_spectrum, const OpenMS::DataArrays::IntegerDataArray& theo_charges) { return OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, exp_charges, theo_spectrum, theo_charges); }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "exp_charges"_a, "theo_spectrum"_a, "theo_charges"_a)
         .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::DataArrays::IntegerDataArray& exp_charges, const OpenMS::MSSpectrum& theo_spectrum, const OpenMS::DataArrays::IntegerDataArray& theo_charges, std::vector<double> intensity_sum) {

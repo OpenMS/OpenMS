@@ -251,8 +251,10 @@ namespace OpenMS
       {"advanced"});
     defaults_.setValidStrings("scoring:method", {"hyperscore", "calibrated", "mass_accuracy", "auto"});
     defaults_.setValue("scoring:mass_error_sd", 7.0,
-                       "Gaussian fragment mass-error standard deviation in ppm for scoring:method=mass_accuracy. "
-                       "Assumes fragment errors centered at zero; independent of the matching tolerance and not fitted during precursor calibration.",
+                       "Gaussian fragment mass-error standard deviation in ppm for scoring:method=mass_accuracy, centered at zero. "
+                       "Used as configured when calibration is off or fits no kernel; otherwise the main search replaces center and width "
+                       "by the median and 1.4826 * MAD of the signed fragment errors of the calibration pass' confident PSMs (recorded as "
+                       "scoring:mass_error_shift_resolved and scoring:mass_error_sd_resolved). Independent of the matching tolerance.",
                        {"advanced"});
     defaults_.setMinFloat("scoring:mass_error_sd", 1e-6);
     defaults_.setValue(
@@ -284,12 +286,14 @@ namespace OpenMS
     defaults_.setValidStrings("ions:by_activation", {"true","false"});
     defaults_.setSectionDescription("ions", "Theoretical ion series toggles");
 
-    defaults_.setValue("calibration:enabled", "false",
-      "If enabled, run a fast calibration pass on a subset of spectra before the main search. "
-      "Estimates tighter precursor and fragment tolerances from confident PSMs. "
+    defaults_.setValue("calibration:enabled", "auto",
+      "Run a fast calibration pass on a subset of spectra before the main search. "
+      "Estimates tighter precursor and fragment tolerances from confident PSMs, and the center and width of the "
+      "fragment mass-error kernel used by scoring:method=mass_accuracy. "
       "The fragment index is NOT rebuilt — only query-time tolerances are tightened. "
-      "Inspired by MSFragger's calibrate_mass and OpenNuXL's autotune.");
-    defaults_.setValidStrings("calibration:enabled", {"true", "false"});
+      "'auto' enables the pass for high-resolution fragment tolerances (<= 0.1 Da or <= 100 ppm) and disables it "
+      "otherwise; 'true' and 'false' force it. Inspired by MSFragger's calibrate_mass and OpenNuXL's autotune.");
+    defaults_.setValidStrings("calibration:enabled", {"auto", "true", "false"});
     defaults_.setValue("calibration:subset_ratio", 0.1,
       "Fraction of spectra (by TIC, highest first) used for the calibration pass (0.0-1.0).");
     defaults_.setMinFloat("calibration:subset_ratio", 0.01);
@@ -439,7 +443,10 @@ namespace OpenMS
 
     database_chunk_size_ = param_.getValue("database:chunk_size");
 
-    calibration_enabled_ = param_.getValue("calibration:enabled") == "true";
+    // 'auto' follows the resolution proxy of the scorer selection above: high-resolution
+    // searches calibrate by default, low-resolution ones keep their configured windows.
+    const std::string calibration_mode = param_.getValue("calibration:enabled").toString();
+    calibration_enabled_ = calibration_mode == "true" || (calibration_mode == "auto" && deisotope_supported);
     calibration_subset_ratio_ = param_.getValue("calibration:subset_ratio");
     calibration_min_psms_ = param_.getValue("calibration:min_psms");
   }
@@ -1556,6 +1563,7 @@ namespace OpenMS
                                                  bool open_search_mode,
                                                  std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
                                                  std::vector<CandidatePoolStats_>& pool_stats,
+                                                 const MassAccuracyKernel_& kernel,
                                                  const std::string& progress_label,
                                                  const PeakMap* query_spectra) const
   {
@@ -1580,7 +1588,7 @@ namespace OpenMS
 
 #pragma omp parallel for schedule(dynamic) default(none)                                                                                            \
   shared(annotated_hits, pool_stats, query_spectra, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, \
-           proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep, deduplicate_chunks)
+           proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep, deduplicate_chunks, kernel)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
       #pragma omp atomic
@@ -1688,7 +1696,7 @@ namespace OpenMS
               ? HyperScore::computeCalibrated(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail)
             : mass_accuracy_score_
               ? HyperScore::computeMassAccuracy(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum,
-                                                mass_error_sd_ppm_, detail)
+                                                kernel.sd_ppm, detail, kernel.shift_ppm)
               : HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
 
         // Summarise the candidate before it can be dropped below or pruned at the
@@ -1849,6 +1857,9 @@ namespace OpenMS
     const double orig_prec_tol_lower = precursor_mass_tolerance_lower_;
     const double orig_prec_tol_upper = precursor_mass_tolerance_upper_;
     bool calibration_applied = false;
+    // Mass-accuracy kernel of the main search: configured unless calibration fits one.
+    MassAccuracyKernel_ kernel = configuredKernel_();
+    bool kernel_fitted = false;
 
     // Optional calibration on a strided sample of the full DB. The sample size is
     // bounded (see buildCalibrationSample_) so calibration memory stays O(chunk)
@@ -1862,9 +1873,12 @@ namespace OpenMS
       cal_fi.build(cal_db);
 
       CalibrationResult_ cal = runCalibrationPass_(spectra, cal_fi, cal_db, query_ptr);
+      last_calibration_result_ = cal;
       if (cal.success)
       {
         effective_fragment_tol = cal.fragment_tolerance;
+        kernel = effectiveKernel_(cal);
+        kernel_fitted = cal.fragment_kernel_valid;
         if (!cal.extreme_bias)
         {
           effective_precursor_tol_lower = cal.cal_lower;
@@ -1923,7 +1937,7 @@ namespace OpenMS
 
       // Score all spectra against this chunk's index.
       scoreSpectraAgainstIndex_(spectra, chunk_fi, chunk_db, generators, effective_fragment_tol, fragment_mass_tolerance_unit_ppm, open_search_mode,
-                                annotated_hits, pool_stats, "Scoring chunk " + StringUtils::toStr(chunk_idx) + "...", query_ptr);
+                                annotated_hits, pool_stats, kernel, "Scoring chunk " + StringUtils::toStr(chunk_idx) + "...", query_ptr);
 
       // Prune to top-N per spectrum after each chunk to bound memory growth.
       // Without this, K chunks × T candidates per spectrum could accumulate
@@ -1978,6 +1992,7 @@ namespace OpenMS
       );
     evidence_spectra.clear(true); // Release the additional peak lists before PeptideIndexing.
     endProgress();
+    recordMassAccuracyKernel_(protein_ids, kernel, kernel_fitted);
 
     // 7. PeptideIndexing against the FULL database (not per-chunk).
     PeptideIndexing indexer;
@@ -2136,6 +2151,9 @@ namespace OpenMS
     const double orig_precursor_mass_tolerance_lower = precursor_mass_tolerance_lower_;
     const double orig_precursor_mass_tolerance_upper = precursor_mass_tolerance_upper_;
     bool fi_params_modified = false;
+    // Mass-accuracy kernel of the main search: configured unless calibration fits one.
+    MassAccuracyKernel_ kernel = configuredKernel_();
+    bool kernel_fitted = false;
 
     // --- Optional calibration pass ---
     if (calibration_enabled_ && !open_search)
@@ -2155,6 +2173,8 @@ namespace OpenMS
         Param fi_params = fi_params_original;
         fi_params.setValue("fragment:mass_tolerance", cal.fragment_tolerance);
         effective_fragment_tol = cal.fragment_tolerance;
+        kernel = effectiveKernel_(cal);
+        kernel_fitted = cal.fragment_kernel_valid;
 
         if (!cal.extreme_bias)
         {
@@ -2217,7 +2237,7 @@ namespace OpenMS
 
     StopWatch sw_search; sw_search.start();
     scoreSpectraAgainstIndex_(spectra, fragment_index_, db, generators, effective_fragment_tol, fragment_mass_tolerance_unit_ppm, open_search_mode,
-                              annotated_hits, pool_stats, "Scoring peptide models against spectra...", query_ptr);
+                              annotated_hits, pool_stats, kernel, "Scoring peptide models against spectra...", query_ptr);
     query_spectra.clear(true);
 
     // M1: release the fragment index eagerly when the caller opted in (single-
@@ -2255,6 +2275,7 @@ namespace OpenMS
       );
     evidence_spectra.clear(true);
     endProgress();
+    recordMassAccuracyKernel_(protein_ids, kernel, kernel_fitted);
     sw_search.stop();
     last_run_stats_.seconds_search = sw_search.getClockTime();
 
@@ -2683,6 +2704,8 @@ namespace OpenMS
         double effective_precursor_tol_upper;
         double effective_fragment_tol;
         double mod_match_tol;  // for open-search mod analysis
+        MassAccuracyKernel_ kernel; // mass-accuracy kernel of this file's main search
+        bool kernel_fitted = false;
       };
       std::vector<PerFileCalibration> per_file_cal(in_spectra_files.size());
 
@@ -2693,6 +2716,7 @@ namespace OpenMS
         cal.effective_precursor_tol_upper = precursor_mass_tolerance_upper_;
         cal.effective_fragment_tol = fragment_mass_tolerance_;
         cal.mod_match_tol = computeModMatchTolerance_();
+        cal.kernel = configuredKernel_();
       }
 
       if (calibration_enabled_ && !open_search_mode)
@@ -2711,9 +2735,12 @@ namespace OpenMS
           OPENMS_LOG_INFO << "[ProSE] Calibration for " << in_spectra_files[i]
                           << " (strided sample, " << cal_db.size() << " proteins)" << std::endl;
           CalibrationResult_ cal = runCalibrationPass_(all_spectra[i], cal_fi, cal_db, query_raw_spectrum_ ? &all_query_spectra[i] : nullptr);
+          last_calibration_result_ = cal;
           if (cal.success)
           {
             per_file_cal[i].effective_fragment_tol = cal.fragment_tolerance;
+            per_file_cal[i].kernel = effectiveKernel_(cal);
+            per_file_cal[i].kernel_fitted = cal.fragment_kernel_valid;
             if (!cal.extreme_bias)
             {
               per_file_cal[i].effective_precursor_tol_lower = cal.cal_lower;
@@ -2810,7 +2837,7 @@ namespace OpenMS
           }
           scoreSpectraAgainstIndex_(all_spectra[i], chunk_fi, chunk_db, generators, per_file_cal[i].effective_fragment_tol,
                                     fragment_mass_tolerance_unit_ppm, open_search_mode, per_file_hits[i], per_file_pool_stats[i],
-                                    "  file " + StringUtils::toStr(i + 1) + " chunk " + StringUtils::toStr(chunk_idx),
+                                    per_file_cal[i].kernel, "  file " + StringUtils::toStr(i + 1) + " chunk " + StringUtils::toStr(chunk_idx),
                                     query_raw_spectrum_ ? &all_query_spectra[i] : nullptr);
         }
         // Restore base FI params for next chunk (in case calibration modified them).
@@ -2869,6 +2896,7 @@ namespace OpenMS
           retain_evidence ? &all_evidence_spectra[i] : nullptr);
 
         if (retain_evidence) all_evidence_spectra[i].clear(true);
+        recordMassAccuracyKernel_(result.protein_ids, per_file_cal[i].kernel, per_file_cal[i].kernel_fitted);
 
         PeptideIndexing indexer;
         Param param_pi = indexer.getParameters();
@@ -3450,6 +3478,33 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // Mass-accuracy kernel: the calibrated one when the pass fitted it, else configured.
+  // =====================================================================
+  ProSEAlgorithm::MassAccuracyKernel_ ProSEAlgorithm::effectiveKernel_(const CalibrationResult_& calibration) const
+  {
+    if (calibration.success && calibration.fragment_kernel_valid)
+    {
+      return {calibration.fragment_error_sd_ppm, calibration.fragment_error_shift_ppm};
+    }
+    return configuredKernel_();
+  }
+
+  // static
+  void ProSEAlgorithm::recordMassAccuracyKernel_(std::vector<ProteinIdentification>& protein_ids,
+                                                 const MassAccuracyKernel_& kernel,
+                                                 bool fitted)
+  {
+    if (protein_ids.empty()) return;
+    // The configured width stays under scoring:mass_error_sd (see postProcessHits_); these
+    // record what the main search scored with, so downstream steps can tell fitted from configured.
+    ProteinIdentification::SearchParameters search_parameters = protein_ids[0].getSearchParameters();
+    search_parameters.setMetaValue("scoring:mass_error_sd_resolved", kernel.sd_ppm);
+    search_parameters.setMetaValue("scoring:mass_error_shift_resolved", kernel.shift_ppm);
+    search_parameters.setMetaValue("scoring:mass_error_kernel", fitted ? "calibrated" : "configured");
+    protein_ids[0].setSearchParameters(search_parameters);
+  }
+
+  // =====================================================================
   // Helper: run calibration pass on a subset of spectra
   // =====================================================================
   ProSEAlgorithm::CalibrationResult_ ProSEAlgorithm::runCalibrationPass_(PeakMap& spectra,
@@ -3494,8 +3549,9 @@ namespace OpenMS
     // the fragment index was built from (e.g. c/z+1 for ETD, where b/y would match nothing)
     const SpectrumGenerators_ generators = spectrumGenerators_();
 
-    // Collect per-spectrum best hits with scores and errors
-    struct CalHit { double score; double prec_error; double frag_error; };
+    // Collect per-spectrum best hits with scores and errors. frag_errors_ppm holds the signed
+    // errors of the best hit's matched ions, pooled below into the mass-accuracy kernel fit.
+    struct CalHit { double score; double prec_error; double frag_error; std::vector<double> frag_errors_ppm; };
     vector<CalHit> cal_hits;
 
     // Parallelize over the calibration subset, mirroring the main scoring loop
@@ -3525,6 +3581,7 @@ namespace OpenMS
       int best_isotope_error = 0;
       uint16_t best_charge = 0;
       float best_mean_error = 0;
+      PeakSpectrum best_theo; // theoretical spectrum of the best hit, for its per-ion errors
 
       // Reused across this spectrum's candidates — same rationale as the main
       // scoring loop: a fresh PeakSpectrum per candidate churns its DataArrays
@@ -3554,6 +3611,7 @@ namespace OpenMS
           best_isotope_error = sms.isotope_error_;
           best_charge = sms.precursor_charge_;
           best_mean_error = static_cast<float>(detail.mean_error);
+          best_theo = theo;
         }
       }
 
@@ -3579,8 +3637,14 @@ namespace OpenMS
                           ? Math::getPPM(corrected_exp_mz, theo_mz)
                           : (corrected_exp_mz - theo_mz);
 
+      // Signed per-ion errors of the best hit, matched exactly as the scorers match, for the
+      // mass-accuracy kernel fit. Always collected: the estimate is cheap and reported for
+      // every scorer, and only scoring:method=mass_accuracy consumes it.
+      std::vector<double> frag_errors_ppm;
+      HyperScore::matchedFragmentErrorsPpm(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, best_theo, frag_errors_ppm);
+
 #pragma omp critical (prose_calibration_hits)
-      cal_hits.push_back({best_score, prec_err, static_cast<double>(best_mean_error)});
+      cal_hits.push_back({best_score, prec_err, static_cast<double>(best_mean_error), std::move(frag_errors_ppm)});
     }
 
     // Filter to high-confidence PSMs: keep only top 50% by score (robust against
@@ -3607,12 +3671,14 @@ namespace OpenMS
     // real matches when the user has compensated an instrument bias.
     vector<double> precursor_errors;
     vector<double> fragment_errors_abs;
+    vector<double> fragment_errors_signed_ppm;
     for (const auto& h : cal_hits)
     {
       if (h.prec_error < -precursor_mass_tolerance_upper_ ||
           h.prec_error > precursor_mass_tolerance_lower_) continue; // wrong match
       precursor_errors.push_back(h.prec_error);
       if (h.frag_error > 0) fragment_errors_abs.push_back(h.frag_error);
+      fragment_errors_signed_ppm.insert(fragment_errors_signed_ppm.end(), h.frag_errors_ppm.begin(), h.frag_errors_ppm.end());
     }
 
     if (precursor_errors.size() < calibration_min_psms_)
@@ -3692,6 +3758,22 @@ namespace OpenMS
       result.fragment_tolerance = fragment_mass_tolerance_;
     }
 
+    // Mass-accuracy kernel: center and robust width of the signed per-ion errors pooled over
+    // the confident PSMs. Median and MAD are robust to the chance matches that survive the
+    // score crop. Too few ions leave the configured kernel in place (fragment_kernel_valid
+    // stays false); the width is floored so exact synthetic errors cannot collapse the kernel.
+    const Size kernel_min_ions = std::max<Size>(calibration_min_psms_, 50);
+    if (fragment_errors_signed_ppm.size() >= kernel_min_ions)
+    {
+      std::sort(fragment_errors_signed_ppm.begin(), fragment_errors_signed_ppm.end());
+      const double shift = Math::median(fragment_errors_signed_ppm.begin(), fragment_errors_signed_ppm.end(), /*sorted=*/true);
+      const double mad = Math::MAD(fragment_errors_signed_ppm.begin(), fragment_errors_signed_ppm.end(), shift);
+      result.fragment_error_shift_ppm = shift;
+      result.fragment_error_sd_ppm = std::max(1.4826 * mad, 0.1);
+      result.fragment_error_ions = fragment_errors_signed_ppm.size();
+      result.fragment_kernel_valid = true;
+    }
+
     result.success = true;
 
     OPENMS_LOG_INFO << "[ProSE] Calibration: " << precursor_errors.size() << " PSMs used (top "
@@ -3703,6 +3785,16 @@ namespace OpenMS
                     << (result.extreme_bias ? " (extreme bias, discarded)" : "") << std::endl;
     OPENMS_LOG_INFO << "[ProSE]   Fragment tolerance:  " << fragment_mass_tolerance_
                     << " -> " << result.fragment_tolerance << " " << fragment_mass_tolerance_unit_ << std::endl;
+    if (result.fragment_kernel_valid)
+    {
+      OPENMS_LOG_INFO << "[ProSE]   Fragment error kernel: shift=" << result.fragment_error_shift_ppm << " ppm, sd="
+                      << result.fragment_error_sd_ppm << " ppm (" << result.fragment_error_ions << " matched ions)" << std::endl;
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "[ProSE]   Fragment error kernel: " << fragment_errors_signed_ppm.size() << " matched ions < "
+                      << kernel_min_ions << ", keeping the configured kernel" << std::endl;
+    }
 
     return result;
   }

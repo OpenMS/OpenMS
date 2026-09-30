@@ -84,10 +84,11 @@ struct OPENMS_DLLAPI HyperScore
   /**
    * @brief Experimental HyperScore with mass-accuracy-weighted fragment evidence.
    *
-   * A matched ion with signed mass error e (ppm) contributes exp(-0.5*(e/sigma)^2)
+   * A matched ion with signed mass error e (ppm) contributes exp(-0.5*((e-shift)/sigma)^2)
    * to its terminal ion count and intensity product. Fractional factorial rewards
-   * use max(0, lgamma(count+1)), agreeing with HyperScore for exact matches.
-   * This ranking statistic assumes errors centered at zero; it is not a PSM p-value.
+   * use max(0, lgamma(count+1)), agreeing with HyperScore for matches at the kernel center.
+   * The kernel center defaults to zero; a search can center it on the systematic fragment
+   * error of a run. This ranking statistic is not a PSM p-value.
    *
    * @param[in] fragment_mass_tolerance Positive finite match tolerance (Da or ppm).
    * @param[in] fragment_mass_tolerance_unit_ppm Whether matching tolerance is in ppm.
@@ -95,8 +96,9 @@ struct OPENMS_DLLAPI HyperScore
    * @param[in] theo_spectrum Theoretical spectrum, sorted by m/z, with ion names.
    * @param[in] mass_error_sd_ppm Positive finite Gaussian standard deviation in ppm.
    * @param[out] detail Unweighted match counts and mean absolute error in matching units.
+   * @param[in] mass_error_shift_ppm Finite kernel center in ppm (signed, observed minus theoretical).
    * @return Nonnegative weighted log HyperScore; zero without matches.
-   * @throws Exception::InvalidParameter for invalid tolerance or standard deviation.
+   * @throws Exception::InvalidParameter for invalid tolerance, standard deviation or shift.
    * @throws Exception::InvalidValue for incomplete theoretical ion annotations.
    */
   static double computeMassAccuracy(double fragment_mass_tolerance,
@@ -104,7 +106,29 @@ struct OPENMS_DLLAPI HyperScore
                                     const PeakSpectrum& exp_spectrum,
                                     const PeakSpectrum& theo_spectrum,
                                     double mass_error_sd_ppm,
-                                    PSMDetail& detail);
+                                    PSMDetail& detail,
+                                    double mass_error_shift_ppm = 0.0);
+
+  /**
+   * @brief Signed ppm errors (observed minus theoretical) of the theoretical ions matched within the tolerance.
+   *
+   * Uses the same closest-peak matching as computeWithDetail() and computeMassAccuracy(), so the
+   * errors describe exactly the matches those scorers count. One value per matched theoretical
+   * ion is appended to @p errors_ppm; nothing is appended for unmatched ions or empty spectra.
+   * Both spectra must be sorted by m/z.
+   *
+   * @param[in] fragment_mass_tolerance Positive finite match tolerance (Da or ppm).
+   * @param[in] fragment_mass_tolerance_unit_ppm Whether the tolerance is in ppm.
+   * @param[in] exp_spectrum Experimental spectrum, sorted by m/z.
+   * @param[in] theo_spectrum Theoretical spectrum, sorted by m/z.
+   * @param[out] errors_ppm Receives the signed errors of the matched ions (appended).
+   * @throws Exception::InvalidParameter if the tolerance is not finite and positive.
+   */
+  static void matchedFragmentErrorsPpm(double fragment_mass_tolerance,
+                                       bool fragment_mass_tolerance_unit_ppm,
+                                       const PeakSpectrum& exp_spectrum,
+                                       const PeakSpectrum& theo_spectrum,
+                                       std::vector<double>& errors_ppm);
 
   /* @brief compute the (ln transformed) X!Tandem HyperScore only matching peaks that match in charge
    *  1. the dot product of peak intensities between matching peaks in experimental and theoretical spectrum is calculated

@@ -601,6 +601,14 @@ TOPP tools:
         groups; every other shipped mzTab reference has exactly one (fraction_group, label) per sample
         and is byte-identical (#9868, part of #9864)
     ProSE:
+      - calibration:enabled now defaults to 'auto', which runs the calibration pass for
+        high-resolution fragment tolerances (<= 0.1 Da / <= 100 ppm) and skips it otherwise.
+        The pass also fits the fragment mass-error kernel of scoring:method=mass_accuracy: the
+        main search centers the Gaussian on the median signed error of the confident PSMs'
+        matched ions and uses 1.4826 * MAD as its width instead of the fixed scoring:mass_error_sd
+        (recorded as scoring:mass_error_kernel, scoring:mass_error_sd_resolved and
+        scoring:mass_error_shift_resolved). HyperScore::computeMassAccuracy takes an optional
+        kernel center; HyperScore::matchedFragmentErrorsPpm exposes the matched ions' errors.
       - Fixed FragmentIndex::build reusing old peptide coordinates on a second build;
         rebuilding now replaces the previous index and failed builds remain unbuilt.
       - New peptide:deduplicate=true collapses repeated occurrences of exact modified

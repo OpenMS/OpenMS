@@ -213,18 +213,51 @@ namespace OpenMS
     }
   }
 
+  void HyperScore::matchedFragmentErrorsPpm(double tolerance,
+                                            bool ppm,
+                                            const PeakSpectrum& exp,
+                                            const PeakSpectrum& theo,
+                                            std::vector<double>& errors_ppm)
+  {
+    if (! std::isfinite(tolerance) || tolerance <= 0.0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Matching tolerance must be finite and positive.");
+    }
+    if (exp.empty() || theo.empty()) { return; }
+    // Same closest-peak matching as the scorers, so the errors describe the matches they count.
+    if (ppm)
+    {
+      for (MatchedIterator<PeakSpectrum, PpmTrait, true> it(theo, exp, tolerance); it != it.end(); ++it)
+      {
+        errors_ppm.push_back(Math::getPPM((*it).getMZ(), theo[it.refIdx()].getMZ()));
+      }
+    }
+    else
+    {
+      for (MatchedIterator<PeakSpectrum, DaTrait, true> it(theo, exp, tolerance); it != it.end(); ++it)
+      {
+        errors_ppm.push_back(Math::getPPM((*it).getMZ(), theo[it.refIdx()].getMZ()));
+      }
+    }
+  }
+
   double HyperScore::computeMassAccuracy(double tolerance,
                                          bool ppm,
                                          const PeakSpectrum& exp,
                                          const PeakSpectrum& theo,
                                          double mass_error_sd_ppm,
-                                         PSMDetail& detail)
+                                         PSMDetail& detail,
+                                         double mass_error_shift_ppm)
   {
     detail = PSMDetail {};
     if (! std::isfinite(tolerance) || tolerance <= 0.0 || ! std::isfinite(mass_error_sd_ppm) || mass_error_sd_ppm <= 0.0)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "Matching tolerance and mass-error SD must be finite and positive.");
+    }
+    if (! std::isfinite(mass_error_shift_ppm))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Mass-error shift must be finite.");
     }
     if (exp.empty() || theo.empty()) { return 0.0; }
     if (theo.getStringDataArrays().empty() || theo.getStringDataArrays()[0].size() != theo.size())
@@ -236,7 +269,8 @@ namespace OpenMS
     auto add_match = [&](Size index, const Peak1D& observed) {
       const auto& predicted = theo[index];
       const double error_ppm = Math::getPPM(observed.getMZ(), predicted.getMZ());
-      const double scaled = error_ppm / mass_error_sd_ppm;
+      // The kernel is centered on the run's systematic error; the reported mean error stays unshifted.
+      const double scaled = (error_ppm - mass_error_shift_ppm) / mass_error_sd_ppm;
       const double weight = std::exp(-0.5 * scaled * scaled);
       dot_product += weight * observed.getIntensity() * predicted.getIntensity();
       abs_error += ppm ? std::abs(error_ppm) : std::abs(observed.getMZ() - predicted.getMZ());
