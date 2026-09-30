@@ -16,7 +16,15 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.7.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
- 
+Build System:
+  - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
+    64-bit time_t transition, Depends also accepts the package under its old name.
+    dpkg-shlibdeps names the packages of the build host (libqt6core6t64 (>= 6.4.0)); CPack
+    adds the old name with the same version constraint as an alternative
+    (| libqt6core6 (>= 6.4.0)) wherever the renamed package provides it, i.e. on amd64 and
+    arm64. This covers every such library, among them Qt's OpenGLWidgets. The package still
+    requires the glibc of the release it is built on, currently 2.38 (#10352).
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
 ------------------------------------------------------------------------------------------
@@ -1402,8 +1410,6 @@ Build System:
     control version, for example 3.6.0~nightly.2026.09.27, so it sorts below the release
     and a later nightly above an earlier one. Before, every build of 3.6.0 was version 3.6.0
     to apt, whether nightly or release.
-  - Debian package dependencies retain dpkg-shlibdeps detection while allowing Qt6 core,
-    gui and widgets runtime packages with either the t64 or non-t64 Ubuntu package name.
   - Public headers of OpenMS, OpenSwathAlgo, OpenMS_CLI, OpenMS_GUI and the test
     framework use CMake header file sets. Installation paths and components stay
     unchanged and private headers remain excluded. Building OpenMS and consuming
