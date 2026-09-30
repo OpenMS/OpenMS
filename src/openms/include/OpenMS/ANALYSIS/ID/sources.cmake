@@ -22,6 +22,7 @@ FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
 FragmentIndex.h
+FragmentIonLikelihoodModel.h
 HyperScore.h
 IDBoostGraph.h
 IDDecoyProbability.h

@@ -7,6 +7,7 @@
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSScheduler.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIonLikelihoodModel.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
@@ -572,6 +573,74 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
             auto score = OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, exp_charges, theo_spectrum, theo_charges, intensity_sum);
             return nb::make_tuple(score, intensity_sum);
         }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "exp_charges"_a, "theo_spectrum"_a, "theo_charges"_a, "intensity_sum"_a)
+        ;
+
+    // -----------------------------------------------------------------------
+    // FragmentIonLikelihoodModel
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FragmentIonLikelihoodModel::Context>(m, "FragmentIonLikelihoodModel_Context",
+            "Context of one theoretical ion: series (0 prefix, 1 suffix), precursor charge bucket, fragment charge bucket and position bin")
+        .def(nb::init<>())
+        .def_rw("series", &OpenMS::FragmentIonLikelihoodModel::Context::series)
+        .def_rw("precursor_bucket", &OpenMS::FragmentIonLikelihoodModel::Context::precursor_bucket)
+        .def_rw("fragment_charge", &OpenMS::FragmentIonLikelihoodModel::Context::fragment_charge)
+        .def_rw("position_bin", &OpenMS::FragmentIonLikelihoodModel::Context::position_bin)
+        ;
+
+    nb::class_<OpenMS::FragmentIonLikelihoodModel::Features>(m, "FragmentIonLikelihoodModel_Features",
+            "Features of one PSM under a FragmentIonLikelihoodModel: summed log-likelihood ratio, explained presence, observed fraction of the top predicted ions, matched and theoretical ion counts")
+        .def(nb::init<>())
+        .def_ro("log_likelihood_ratio", &OpenMS::FragmentIonLikelihoodModel::Features::log_likelihood_ratio)
+        .def_ro("explained_presence", &OpenMS::FragmentIonLikelihoodModel::Features::explained_presence)
+        .def_ro("top_predicted_observed", &OpenMS::FragmentIonLikelihoodModel::Features::top_predicted_observed)
+        .def_ro("matched_ions", &OpenMS::FragmentIonLikelihoodModel::Features::matched_ions)
+        .def_ro("theoretical_ions", &OpenMS::FragmentIonLikelihoodModel::Features::theoretical_ions)
+        ;
+
+    nb::class_<OpenMS::FragmentIonLikelihoodModel>(m, "FragmentIonLikelihoodModel",
+            "Per-run likelihood model of fragment ion presence and intensity rank, learned from confident PSMs and their reversed sequences (ProSE annotate:self_trained_ion_priors). Train with addObservations(), then finalize(), then score().")
+        .def(nb::init<>())
+        .def(nb::init<double>(), "pseudo_count"_a)
+        .def(nb::init<const OpenMS::FragmentIonLikelihoodModel &>())
+        .def("__copy__", [](const OpenMS::FragmentIonLikelihoodModel& self) { return OpenMS::FragmentIonLikelihoodModel(self); })
+        .def("__deepcopy__", [](const OpenMS::FragmentIonLikelihoodModel& self, nb::dict) { return OpenMS::FragmentIonLikelihoodModel(self); }, "memo"_a)
+        .def_prop_ro_static("RANK_BINS", [](nb::handle) { return OpenMS::FragmentIonLikelihoodModel::RANK_BINS; })
+        .def_prop_ro_static("ABSENT", [](nb::handle) { return OpenMS::FragmentIonLikelihoodModel::ABSENT; })
+        .def_prop_ro_static("OUTCOMES", [](nb::handle) { return OpenMS::FragmentIonLikelihoodModel::OUTCOMES; })
+        .def_static("intensityRanks", [](const OpenMS::MSSpectrum& spectrum) { return OpenMS::FragmentIonLikelihoodModel::intensityRanks(spectrum); }, "spectrum"_a,
+            "Intensity ranks (1 = most intense; ties by peak order) of the peaks, in peak order")
+        .def_static("rankOutcome", [](OpenMS::Size rank) { return OpenMS::FragmentIonLikelihoodModel::rankOutcome(rank); }, "rank"_a,
+            "Outcome (rank bin) of a matched peak with the given 1-based intensity rank")
+        .def_static("contextOf", [](bool prefix, int precursor_charge, int fragment_charge, OpenMS::Size fragment_length, OpenMS::Size peptide_length) {
+            return OpenMS::FragmentIonLikelihoodModel::contextOf(prefix, precursor_charge, fragment_charge, fragment_length, peptide_length);
+        }, "prefix"_a, "precursor_charge"_a, "fragment_charge"_a, "fragment_length"_a, "peptide_length"_a,
+            "Context of a theoretical ion of the given series, charges, ordinal and peptide length")
+        .def_static("parseIonName", [](const std::string& name) {
+            bool prefix = false;
+            OpenMS::Size ordinal = 0;
+            const bool recognised = OpenMS::FragmentIonLikelihoodModel::parseIonName(name, prefix, ordinal);
+            return nb::make_tuple(recognised, prefix, ordinal);
+        }, "name"_a, "Returns (recognised, prefix, ordinal) of an ion name as TheoreticalSpectrumGenerator writes it, e.g. 'y3++'")
+        .def("addObservations", [](OpenMS::FragmentIonLikelihoodModel& self, const OpenMS::MSSpectrum& spectrum, const std::vector<OpenMS::Size>& ranks, const OpenMS::MSSpectrum& theoretical, OpenMS::Size peptide_length, int precursor_charge, double tolerance, bool ppm, bool noise) {
+            self.addObservations(spectrum, ranks, theoretical, peptide_length, precursor_charge, tolerance, ppm, noise);
+        }, "spectrum"_a, "ranks"_a, "theoretical"_a, "peptide_length"_a, "precursor_charge"_a, "tolerance"_a, "ppm"_a, "noise"_a,
+            "Add the ions of one PSM to the signal (noise=False) or noise (noise=True) counts. ranks = intensityRanks(spectrum); theoretical needs ion names (add_metainfo).")
+        .def("finalize", [](OpenMS::FragmentIonLikelihoodModel& self) { self.finalize(); },
+            "Turn the counts into smoothed probabilities; required before scoring")
+        .def("isTrained", [](const OpenMS::FragmentIonLikelihoodModel& self) { return self.isTrained(); })
+        .def("signalPsms", [](const OpenMS::FragmentIonLikelihoodModel& self) { return self.signalPsms(); })
+        .def("noisePsms", [](const OpenMS::FragmentIonLikelihoodModel& self) { return self.noisePsms(); })
+        .def("pseudoCount", [](const OpenMS::FragmentIonLikelihoodModel& self) { return self.pseudoCount(); })
+        .def("logLikelihoodRatio", [](const OpenMS::FragmentIonLikelihoodModel& self, const OpenMS::FragmentIonLikelihoodModel::Context& context, OpenMS::Size outcome) {
+            return self.logLikelihoodRatio(context, outcome);
+        }, "context"_a, "outcome"_a, "ln P(outcome | signal, context) - ln P(outcome | noise, context)")
+        .def("presenceProbability", [](const OpenMS::FragmentIonLikelihoodModel& self, const OpenMS::FragmentIonLikelihoodModel::Context& context) {
+            return self.presenceProbability(context);
+        }, "context"_a, "Probability that an ion of this context is present in the spectrum of its peptide")
+        .def("score", [](const OpenMS::FragmentIonLikelihoodModel& self, const OpenMS::MSSpectrum& spectrum, const std::vector<OpenMS::Size>& ranks, const OpenMS::MSSpectrum& theoretical, OpenMS::Size peptide_length, int precursor_charge, double tolerance, bool ppm, OpenMS::Size top_k) {
+            return self.score(spectrum, ranks, theoretical, peptide_length, precursor_charge, tolerance, ppm, top_k);
+        }, "spectrum"_a, "ranks"_a, "theoretical"_a, "peptide_length"_a, "precursor_charge"_a, "tolerance"_a, "ppm"_a, "top_k"_a = 6,
+            "Features of one PSM (parameters as in addObservations); top_k bounds top_predicted_observed")
         ;
 
     // -----------------------------------------------------------------------

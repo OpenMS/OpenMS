@@ -76,6 +76,11 @@ tolerance <= 0.1 Da or <= 100 ppm selects hyperscore with singly charged fragmen
 multiple fragment charges (intended for ion-trap CID). This uses the configured tolerance as a resolution proxy, not activation metadata. The choice
 is shared by all input files and fixed before mass calibration; search files requiring different tolerance regimes separately. Explicit scoring/charge
 settings override their respective automatic choices. Use hyperscore/single for legacy scoring; local fragment evidence remains a separate opt-in.
+@note Per-run fragment ion priors: '-Search:annotate:self_trained_ion_priors' learns presence and intensity-rank likelihoods of the fragment
+ions from each file's confident target PSMs (target-decoy competition q <= '-Search:annotate:ion_prior_train_fdr' of the native score), with
+their reversed sequences as noise model, and adds the Percolator features ion_prior_llr, ion_prior_explained and ion_prior_topk_observed to
+every PSM. Nothing is pre-trained: a file with fewer than '-Search:annotate:ion_prior_min_psms' confident PSMs, or searched without decoys,
+gets zeros (and a warning). Native scores and the reported candidates are unchanged.
 @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit
 open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
 @note Decoy handling is controlled by '-Search:decoys'. The default 'auto' ensures decoys are available for target-decoy FDR: it reuses decoys already
