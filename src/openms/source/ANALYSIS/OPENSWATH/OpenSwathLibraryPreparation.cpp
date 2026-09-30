@@ -24,6 +24,7 @@
 #include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <cstdlib>
+#include <mutex>
 #include <utility>
 
 namespace OpenMS
@@ -241,18 +242,27 @@ namespace OpenMS
 
     void ensureUnimodLoaded_(const OpenSwathLibraryPreparation::AssayGeneratorParameters& parameters)
     {
-      if (!parameters.enable_ipf)
-      {
-        return;
-      }
-
-      if (parameters.unimod_file.empty())
+      if (parameters.enable_ipf && parameters.unimod_file.empty())
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "Please provide a valid Unimod XML file for IPF.");
       }
 
+      // Preserve the historical TOPP behavior: an explicitly supplied Unimod file
+      // is loaded even when IPF is disabled. With no requested file there is
+      // nothing for this helper to initialize.
+      if (parameters.unimod_file.empty())
+      {
+        return;
+      }
+
+      // ModificationsDB is a process-global singleton. Serialize both the
+      // check/initialization sequence and the helper-owned provenance marker so
+      // concurrent library preparation cannot race here.
+      static std::mutex unimod_init_mutex;
       static std::string helper_initialized_unimod;
+      const std::lock_guard<std::mutex> lock(unimod_init_mutex);
+
       const std::string requested_unimod = File::absolutePath(parameters.unimod_file);
       if (!ModificationsDB::isInstantiated())
       {
@@ -274,7 +284,8 @@ namespace OpenMS
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "ModificationsDB was initialized before the configured Unimod XML could be loaded. "
-                                      "Initialize the requested Unimod source before parsing modified sequences, or explicitly opt in to reusing the existing database.");
+                                      "Initialize the requested Unimod source through OpenSwathLibraryPreparation before parsing modified sequences, "
+                                      "or explicitly opt in to reusing the existing database.");
       }
     }
 

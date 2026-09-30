@@ -22,7 +22,6 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <iostream>
 
@@ -225,20 +224,6 @@ protected:
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please provide a valid Unimod XML file for IPF.");
     }
 
-    // Load Unimod file
-    if (!unimod_file.empty())
-    {
-      if (!ModificationsDB::isInstantiated()) // We need to ensure that ModificationsDB was not instantiated before!
-      {
-        const ModificationsDB* ptr = ModificationsDB::initializeModificationsDB(unimod_file, std::string(""), std::string(""));
-        OPENMS_LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications() << " modification types and residue specificities imported from file: " << unimod_file << std::endl;
-      }
-      else
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ModificationsDB has been instantiated before and can not be generated from the provided Unimod XML file.");
-      }
-    }
-
     std::vector<std::pair<double, double> > swathes;
     // Check swath window input
     if (!swath_windows_file.empty())
@@ -283,6 +268,9 @@ protected:
 
     OpenSwathLibraryPreparation preparation;
     preparation.setLogType(log_type_);
+    // Use the shared initialization path before prepareAssays() parses any
+    // modified sequences. prepareAssays() repeats this guard idempotently.
+    preparation.ensureUnimodLoaded(prep_parameters);
     preparation.prepareAssays(in, in_type, out, out_type, prep_parameters, getParam_().copy("algorithm:", true));
 
     return EXECUTION_OK;
