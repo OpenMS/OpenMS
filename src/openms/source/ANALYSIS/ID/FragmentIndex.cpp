@@ -1126,7 +1126,11 @@ namespace OpenMS
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
-      protein_lengths_.clear();
+      // A rebuild replaces the previous database. generatePeptides() and the fragment
+      // merge below append, so stale peptides/fragments would otherwise be kept and their
+      // coordinates interpreted against the new FASTA. Also leaves isBuild() false if
+      // this build throws.
+      clear();
       protein_lengths_.reserve(fasta_entries.size());
       for (const auto& e : fasta_entries)
       {

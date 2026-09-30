@@ -634,6 +634,8 @@ TOPP tools:
         groups; every other shipped mzTab reference has exactly one (fraction_group, label) per sample
         and is byte-identical (#9868, part of #9864)
     ProSE:
+      - Fixed FragmentIndex::build reusing old peptide coordinates on a second build;
+        rebuilding now replaces the previous index and failed builds remain unbuilt.
       - BREAKING: renamed from PeptideDataBaseSearchFI. -out replaced by -out_idxml
         (one per input), -out_qpx and -out_parquet (native tables); directory outputs require
         unique input basenames (#9137, #9146).
