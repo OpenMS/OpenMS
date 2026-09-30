@@ -94,6 +94,14 @@ TOPP tools:
         envelope's monoisotopic peak, and the ion was removed as its isotope. Every TMT/TMTpro-labelled
         fragment has such a peak from the reagent's isotope impurity, so labelled searches lost a fifth
         of their matchable fragment peaks; dense Orbitrap Astral and timsTOF spectra lost about 5%.
+      - New annotate:self_trained_ion_priors=true (off by default) learns per-run fragment
+        ion likelihoods (presence and intensity rank per ion series, precursor charge,
+        fragment charge and position) from the confident target PSMs of each file, with their
+        reversed sequences as noise model, and adds the Percolator features ion_prior_llr,
+        ion_prior_explained and ion_prior_topk_observed to every hit. Training needs decoys
+        and annotate:ion_prior_min_psms PSMs at annotate:ion_prior_train_fdr; otherwise the
+        features are 0 and a warning is logged. Native scores and candidate selection are
+        unchanged. The model is the new FragmentIonLikelihoodModel class, also in pyOpenMS.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----

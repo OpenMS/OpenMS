@@ -12,6 +12,7 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIonLikelihoodModel.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
@@ -172,6 +173,22 @@ namespace OpenMS
         Constants::UserParam::COMPLEMENTARY_IONS_FRACTION}
       );
 
+    defaults_.setValue("annotate:self_trained_ion_priors", "false",
+      "Learn per-run fragment ion likelihoods from the confident PSMs of each file and add the Percolator features "
+      "ion_prior_llr, ion_prior_explained and ion_prior_topk_observed to every hit. Training PSMs are the rank-one target "
+      "hits at target-decoy competition q <= annotate:ion_prior_train_fdr of the native score; their reversed sequences "
+      "matched against the same spectra provide the noise model. Presence and intensity rank of each theoretical ion are "
+      "learned per ion series, precursor charge, fragment charge and relative position with pseudo-count back-off. Requires "
+      "decoys and annotate:ion_prior_min_psms training PSMs, otherwise the features are 0. Native scores and candidate "
+      "selection are unchanged. Independent of annotate:PSM.", {"advanced"});
+    defaults_.setValidStrings("annotate:self_trained_ion_priors", {"true", "false"});
+    defaults_.setValue("annotate:ion_prior_train_fdr", 0.01,
+      "Target-decoy competition q-value threshold selecting the training PSMs of annotate:self_trained_ion_priors.", {"advanced"});
+    defaults_.setMinFloat("annotate:ion_prior_train_fdr", 0.0);
+    defaults_.setMaxFloat("annotate:ion_prior_train_fdr", 1.0);
+    defaults_.setValue("annotate:ion_prior_min_psms", 100,
+      "Minimum number of training PSMs of annotate:self_trained_ion_priors; with fewer, the features are 0.", {"advanced"});
+    defaults_.setMinInt("annotate:ion_prior_min_psms", 1);
     defaults_.setSectionDescription("annotate", "Annotation Options");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
@@ -367,6 +384,9 @@ namespace OpenMS
     else                                 { decoy_mode_ = DecoyMode_::AUTO; }
     decoy_prefix_ = param_.getValue("decoy_prefix").toString();
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
+    self_trained_ion_priors_ = param_.getValue("annotate:self_trained_ion_priors").toBool();
+    ion_prior_train_fdr_ = param_.getValue("annotate:ion_prior_train_fdr");
+    ion_prior_min_psms_ = static_cast<Size>(static_cast<int>(param_.getValue("annotate:ion_prior_min_psms")));
     fdr_psm_ = param_.getValue("FDR:PSM");
     fdr_protein_ = param_.getValue("FDR:protein");
 
@@ -1071,6 +1091,7 @@ namespace OpenMS
     search_parameters.setMetaValue("open_search", isOpenSearchMode_() ? "true" : "false");
 
     search_parameters.setMetaValue("peptide:clip_nterm_methionine", param_.getValue("peptide:clip_nterm_methionine"));
+    search_parameters.setMetaValue("annotate:self_trained_ion_priors", param_.getValue("annotate:self_trained_ion_priors"));
     search_parameters.setMetaValue("peaks:window_type", peaks_window_type_);
     search_parameters.setMetaValue(
       "peaks:window_type_resolved",
@@ -1829,6 +1850,10 @@ namespace OpenMS
     //    searchWithModificationAnalysis apply protein FDR post-call).
     const bool has_decoys = strategy.have_decoys;
 
+    // Optional per-run ion priors need the target/decoy labels and the native scores: after
+    // PeptideIndexing, before FDR overwrites the scores.
+    annotateIonPriors_(spectra, protein_ids, peptide_ids);
+
     // Pre-FDR stats (target/decoy counts + HyperScore distribution).
     capturePreFdrStats_(peptide_ids, last_run_stats_);
 
@@ -2111,6 +2136,10 @@ namespace OpenMS
     // PSM-level FDR filtering. The context records whether decoys are present
     // (generated internally, or external decoys reused from the input FASTA).
     const bool has_decoys = ctx.have_decoys;
+
+    // Optional per-run ion priors need the target/decoy labels and the native scores: after
+    // PeptideIndexing, before FDR overwrites the scores.
+    annotateIonPriors_(spectra, protein_ids, peptide_ids);
 
     // Capture pre-FDR stats now — BEFORE FDR, which drops pure-decoy hits
     // (FalseDiscoveryRate default add_decoy_peptides=false), may strip decoys
@@ -2690,6 +2719,8 @@ namespace OpenMS
         // protein-FDR finalization step performed by ProSE.cpp. have_decoys is the marker-aware
         // result from resolveDecoyStrategy_ (prefix or suffix, generated or external).
         const bool has_decoys = strategy.have_decoys;
+        // Optional per-run ion priors, after PeptideIndexing and before FDR (see search()).
+        annotateIonPriors_(all_spectra[i], result.protein_ids, result.peptide_ids);
         // Pre-FDR stats (target/decoy counts + HyperScore distribution).
         capturePreFdrStats_(result.peptide_ids, result.stats);
         if (fdr_psm_ > 0.0 && has_decoys)
@@ -3232,6 +3263,174 @@ namespace OpenMS
       stats.frag_err_recommended = std::ceil(med + 3.0 * mad);
       stats.frag_tol_valid = true;
     }
+  }
+
+  // =====================================================================
+  // Self-trained ion priors: learn presence and intensity rank of fragment
+  // ions from the confident PSMs of this run, annotate every hit with them.
+  // =====================================================================
+  // static
+  AASequence ProSEAlgorithm::reversedNoiseSequence_(const AASequence& sequence)
+  {
+    // Reverse all but the C-terminal residue and keep every residue's modification, so the noise
+    // hypothesis shares composition, mass and enzymatic C-terminus with the peptide.
+    const Size n = sequence.size();
+    if (n < 3) return sequence;
+    AASequence reversed;
+    for (Size i = n - 1; i-- > 0;) { reversed += &sequence[i]; }
+    reversed += &sequence[n - 1];
+    if (sequence.hasNTerminalModification()) { reversed.setNTerminalModification(sequence.getNTerminalModification()); }
+    if (sequence.hasCTerminalModification()) { reversed.setCTerminalModification(sequence.getCTerminalModification()); }
+    return reversed;
+  }
+
+  void ProSEAlgorithm::annotateIonPriors_(const PeakMap& spectra,
+                                          std::vector<ProteinIdentification>& protein_ids,
+                                          PeptideIdentificationList& peptide_ids) const
+  {
+    if (! self_trained_ion_priors_) return;
+    const bool ppm = fragment_mass_tolerance_unit_ == "ppm";
+    const SpectrumGenerators_ generators = spectrumGenerators_();
+    // The model sees the ions native scoring matches: singly charged fragments (see scoreSpectraAgainstIndex_).
+    constexpr int max_fragment_charge = 1;
+
+    // Spectrum of a PSM via the scan_index postProcessHits_ stores; -1 if the PSM cannot be scored.
+    auto scan_of = [&spectra](const PeptideIdentification& pi) -> SignedSize {
+      if (pi.getHits().empty() || ! pi.metaValueExists("scan_index")) return -1;
+      const SignedSize scan = static_cast<int>(pi.getMetaValue("scan_index"));
+      const bool usable = scan >= 0 && static_cast<Size>(scan) < spectra.size() && ! spectra[static_cast<Size>(scan)].empty();
+      return usable ? scan : -1;
+    };
+
+    // Best hit of a PSM by the identification's score orientation (postProcessHits_ sorts them, but
+    // the annotation must not depend on it).
+    auto best_hit = [](const PeptideIdentification& pi) -> const PeptideHit& {
+      const std::vector<PeptideHit>& hits = pi.getHits();
+      const bool higher_better = pi.isHigherScoreBetter();
+      Size best = 0;
+      for (Size h = 1; h < hits.size(); ++h)
+      {
+        if (higher_better ? hits[h].getScore() > hits[best].getScore() : hits[h].getScore() < hits[best].getScore()) best = h;
+      }
+      return hits[best];
+    };
+
+    // 1. Training PSMs: best target hits at TDC q <= threshold over the native score. Decoys win
+    //    exact ties, as in the native yield evaluation, which keeps the selection conservative.
+    struct Row { double score; bool decoy; Size index; };
+    std::vector<Row> rows;
+    bool decoys_present = false;
+    for (Size i = 0; i < peptide_ids.size(); ++i)
+    {
+      if (scan_of(peptide_ids[i]) < 0) continue;
+      const PeptideHit& top = best_hit(peptide_ids[i]);
+      if (! top.metaValueExists(Constants::UserParam::TARGET_DECOY)) continue;
+      const bool decoy = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString() == "decoy";
+      decoys_present = decoys_present || decoy;
+      rows.push_back({peptide_ids[i].isHigherScoreBetter() ? top.getScore() : -top.getScore(), decoy, i});
+    }
+    std::vector<Size> training;
+    if (decoys_present)
+    {
+      std::sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) {
+        if (a.score != b.score) return a.score > b.score;
+        if (a.decoy != b.decoy) return a.decoy;
+        return a.index < b.index;
+      });
+      std::vector<double> q(rows.size(), 1.0);
+      Size targets = 0, decoys = 0;
+      for (Size i = 0; i < rows.size(); ++i)
+      {
+        if (rows[i].decoy) { ++decoys; }
+        else { ++targets; }
+        q[i] = static_cast<double>(decoys + 1) / static_cast<double>(std::max<Size>(targets, 1));
+      }
+      for (Size i = rows.size(); i-- > 1;) { q[i - 1] = std::min(q[i - 1], q[i]); }
+      for (Size i = 0; i < rows.size(); ++i)
+      {
+        if (! rows[i].decoy && q[i] <= ion_prior_train_fdr_) training.push_back(rows[i].index);
+      }
+    }
+
+    // 2. Train on the confident PSMs; their reversed sequences on the same spectra are the noise.
+    FragmentIonLikelihoodModel model;
+    const bool trained = training.size() >= ion_prior_min_psms_;
+    if (trained)
+    {
+      PeakSpectrum theo;
+      for (const Size index : training)
+      {
+        const PeptideIdentification& pi = peptide_ids[index];
+        const MSSpectrum& spec = spectra[static_cast<Size>(scan_of(pi))];
+        const PeptideHit& hit = best_hit(pi);
+        const int charge = static_cast<int>(hit.getCharge());
+        const std::vector<Size> ranks = FragmentIonLikelihoodModel::intensityRanks(spec);
+        const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
+        theo.clear(true);
+        tsg.getSpectrum(theo, hit.getSequence(), 1, max_fragment_charge);
+        model.addObservations(spec, ranks, theo, hit.getSequence().size(), charge, fragment_mass_tolerance_, ppm, false);
+        const AASequence noise = reversedNoiseSequence_(hit.getSequence());
+        if (noise == hit.getSequence()) continue;
+        theo.clear(true);
+        tsg.getSpectrum(theo, noise, 1, max_fragment_charge);
+        model.addObservations(spec, ranks, theo, noise.size(), charge, fragment_mass_tolerance_, ppm, true);
+      }
+      model.finalize();
+      OPENMS_LOG_INFO << "[ProSE] Ion priors: trained on " << training.size() << " PSMs at q <= " << ion_prior_train_fdr_
+                      << " (" << model.noisePsms() << " reversed noise sequences)." << std::endl;
+    }
+    else
+    {
+      OPENMS_LOG_WARN << "[ProSE] Ion priors: " << training.size() << " confident training PSMs < " << ion_prior_min_psms_
+                      << (decoys_present ? "" : " (no decoy hits to estimate confidence)")
+                      << "; the ion_prior_* features are 0 for this file." << std::endl;
+    }
+
+    // 3. Annotate every hit. Untrained runs write zeros so the feature columns stay complete.
+#pragma omp parallel for schedule(dynamic)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
+    {
+      PeptideIdentification& pi = peptide_ids[i];
+      const SignedSize scan = scan_of(pi);
+      const bool scorable = trained && scan >= 0;
+      std::vector<Size> ranks;
+      if (scorable) ranks = FragmentIonLikelihoodModel::intensityRanks(spectra[static_cast<Size>(scan)]);
+      PeakSpectrum theo;
+      for (PeptideHit& hit : pi.getHits())
+      {
+        FragmentIonLikelihoodModel::Features features;
+        if (scorable)
+        {
+          const MSSpectrum& spec = spectra[static_cast<Size>(scan)];
+          const int charge = static_cast<int>(hit.getCharge());
+          theo.clear(true);
+          generators.forSpectrum(spec).getSpectrum(theo, hit.getSequence(), 1, max_fragment_charge);
+          features = model.score(spec, ranks, theo, hit.getSequence().size(), charge, fragment_mass_tolerance_, ppm);
+        }
+        hit.setMetaValue(Constants::UserParam::ION_PRIOR_LLR, features.log_likelihood_ratio);
+        hit.setMetaValue(Constants::UserParam::ION_PRIOR_EXPLAINED, features.explained_presence);
+        hit.setMetaValue(Constants::UserParam::ION_PRIOR_TOPK_OBSERVED, features.top_predicted_observed);
+      }
+    }
+
+    // 4. Percolator sees the new columns; the search parameters record the training set.
+    if (protein_ids.empty()) return;
+    ProteinIdentification::SearchParameters search_parameters = protein_ids[0].getSearchParameters();
+    StringList features;
+    if (search_parameters.metaValueExists("extra_features"))
+    {
+      const std::string existing = search_parameters.getMetaValue("extra_features").toString();
+      if (! existing.empty()) features = ListUtils::create<std::string>(existing);
+    }
+    for (const std::string& name : {Constants::UserParam::ION_PRIOR_LLR, Constants::UserParam::ION_PRIOR_EXPLAINED,
+                                    Constants::UserParam::ION_PRIOR_TOPK_OBSERVED})
+    {
+      if (std::find(features.begin(), features.end(), name) == features.end()) features.push_back(name);
+    }
+    search_parameters.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
+    search_parameters.setMetaValue("ion_prior:trained", trained ? "true" : "false");
+    search_parameters.setMetaValue("ion_prior:training_psms", static_cast<int>(training.size()));
+    protein_ids[0].setSearchParameters(search_parameters);
   }
 
   // =====================================================================

@@ -83,6 +83,12 @@ peaks in every 100 Da window, including the short final window, for high-resolut
 (tolerance <= 0.1 Da or <= 100 ppm). Low-resolution auto retains the legacy width-scaled final
 quota. Use `jump` for legacy filtering at every resolution, or `jump_full` to always retain
 the full quota. This changes high-resolution preprocessing, not the scoring formula.
+@note Per-run fragment ion priors: `Search:annotate:self_trained_ion_priors` learns presence and intensity-rank
+likelihoods of the fragment ions from each file's confident target PSMs (target-decoy competition
+q <= `Search:annotate:ion_prior_train_fdr` of the native score), with their reversed sequences as noise model,
+and adds the Percolator features ion_prior_llr, ion_prior_explained and ion_prior_topk_observed to every PSM.
+Nothing is pre-trained: a file with fewer than `Search:annotate:ion_prior_min_psms` confident PSMs, or searched
+without decoys, gets zeros (and a warning). Native scores and the reported candidates are unchanged.
 
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.

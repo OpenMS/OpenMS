@@ -411,6 +411,15 @@ namespace OpenMS
       // complementary suffix ion were matched
       inline const std::string COMPLEMENTARY_IONS_FRACTION = "complementary_ions_fraction";
 
+      /// Summed log-likelihood ratio of the fragment ion outcomes (presence and intensity rank) under a per-run learned ion model.
+      inline const std::string ION_PRIOR_LLR = "ion_prior_llr";
+
+      /// Fraction of the fragment ion presence predicted by a per-run learned ion model that was observed.
+      inline const std::string ION_PRIOR_EXPLAINED = "ion_prior_explained";
+
+      /// Fraction of the fragment ions a per-run learned ion model predicts as most likely present that were observed.
+      inline const std::string ION_PRIOR_TOPK_OBSERVED = "ion_prior_topk_observed";
+
       /** User parameter name to indicate a peptide q-value
               String
       */

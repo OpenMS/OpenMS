@@ -799,6 +799,29 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       const std::string& enzyme,
       const std::string& database_name) const;
 
+    /**
+     * @brief Learn per-run fragment ion likelihoods from confident PSMs and annotate every hit with them.
+     *
+     * Implements annotate:self_trained_ion_priors. Training PSMs are the rank-one target hits at
+     * target-decoy competition q <= annotate:ion_prior_train_fdr of the native score, read from the
+     * target/decoy annotations PeptideIndexing added; their reversed sequences matched against the
+     * same spectra provide the noise counts (see FragmentIonLikelihoodModel). With fewer than
+     * annotate:ion_prior_min_psms training PSMs, or without decoy hits, the features are 0 and a
+     * warning is logged. Adds the feature names to the search parameters' extra_features and
+     * records the training set as ion_prior:trained / ion_prior:training_psms. Native scores and
+     * the retained candidates are unchanged.
+     *
+     * @param[in] spectra Preprocessed spectra, indexed by the scan_index meta value of the PSMs.
+     * @param[in,out] protein_ids Search parameters of protein_ids[0] receive the feature names and training facts.
+     * @param[in,out] peptide_ids Every hit receives the ion_prior_llr, ion_prior_explained and ion_prior_topk_observed meta values.
+     */
+    void annotateIonPriors_(const PeakMap& spectra,
+                            std::vector<ProteinIdentification>& protein_ids,
+                            PeptideIdentificationList& peptide_ids) const;
+
+    /// Reversed sequence keeping the C-terminal residue and every residue's modification: the noise hypothesis of a confident PSM
+    static AASequence reversedNoiseSequence_(const AASequence& sequence);
+
     /// Calibration overwrites these with the calibrated magnitudes for the duration of
     /// search(); pure runtime-state mutation that does not affect the logical const-ness
     /// of search(), matching the `mutable` pattern used by last_calibration_result_.
@@ -839,6 +862,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     double fdr_protein_{0.0};
 
     StringList annotate_psm_;
+
+    bool self_trained_ion_priors_{false}; ///< annotate:self_trained_ion_priors
+    double ion_prior_train_fdr_{0.01};    ///< annotate:ion_prior_train_fdr: TDC q-value threshold of the training PSMs
+    Size ion_prior_min_psms_{100};        ///< annotate:ion_prior_min_psms: training PSMs required to fit the model
 
     Size peptide_min_size_;
     Size peptide_max_size_;
