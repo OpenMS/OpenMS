@@ -142,6 +142,12 @@ namespace OpenMS
     /**
      * @brief Prepare an empirical library by running assay generation and decoy generation into a final PQP.
      *
+     * @param input_file Input transition library file.
+     * @param input_type File type of the input transition library.
+     * @param output_pqp Output path for the prepared target/decoy PQP library.
+     * @param assay_parameters Assay-generation parameters applied before decoy generation.
+     * @param decoy_parameters Decoy-generation parameters used for the prepared assays.
+     * @param reader_parameters Optional parameters passed to the transition-library reader.
      * @param scratch_directory Optional parent directory for temporary assay-preparation files.
      *        A unique per-invocation child directory is always created below this parent so concurrent
      *        callers cannot share or overwrite the same intermediate. The child directory is removed
