@@ -1176,6 +1176,7 @@ namespace OpenMS
       protein.setDateTime(date_);
       prot_id_ = "unknown_" + date_.getDate();
       enzyme_ = "unknown_enzyme";
+      params_.digestion_enzyme = DigestionEnzymeProtein();
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
       // Record the spectra file as the run's primary MS run path now, so pepXML files
@@ -1892,9 +1893,10 @@ namespace OpenMS
       variable_modifications_.clear();
       const auto digestion_enzyme = params_.digestion_enzyme;
       params_ = ProteinIdentification::SearchParameters();
-      if (ProteaseDB::getInstance()->hasEnzyme(StringUtils::toLower(enzyme_)))
+      const std::string enzyme_name = StringUtils::toLower(enzyme_);
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_name))
       {
-        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name));
       }
       else
       {
