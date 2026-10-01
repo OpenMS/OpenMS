@@ -47,6 +47,7 @@ std::vector<std::vector<float>> PeptDeepMS2Inference::predictMS2(
     if (charges.size() != peptides.size() || nces.size() != peptides.size() || instrument_indices.size() != peptides.size()) {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input vectors must have the same size.");
     }
+    ML::validateInstrumentIndices(instrument_indices);
 
     std::vector<OpenMS::AASequence> parsed_peptides;
     parsed_peptides.reserve(peptides.size());

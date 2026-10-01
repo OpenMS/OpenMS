@@ -18,6 +18,9 @@
 #ifdef WITH_ONNX
 #include <OpenMS/ANALYSIS/ID/PeptDeepRescoring.h>
 #endif
+// Not guarded: header-only constants with no ONNX dependency, needed to register the same
+// 'peptdeep:instrument' values in either build.
+#include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -62,6 +65,7 @@
 #include <map>
 #include <set>
 #include <sstream>
+#include <string_view>
 #include <tuple>
 
 #ifdef _OPENMP
@@ -197,8 +201,13 @@ namespace OpenMS
     defaults_.setValidStrings("peptdeep:enable", {"true", "false"});
     defaults_.setValue("peptdeep:ms2_model", "models/peptdeep_ms2_dynamic.onnx", "PeptDeep MS2 fragment-intensity ONNX model, used when 'peptdeep:enable' is true. A relative name is resolved against OpenMS' shared-data directory; an absolute path is used as given.");
     defaults_.setValue("peptdeep:rt_model", "models/peptdeep_rt_dynamic.onnx", "PeptDeep retention-time ONNX model. See 'peptdeep:ms2_model'.");
-    defaults_.setValue("peptdeep:instrument", "QE", "Instrument class passed to the PeptDeep MS2 model.");
-    defaults_.setValidStrings("peptdeep:instrument", {"Lumos", "QE", "timsTOF", "SciexTOF"});
+    defaults_.setValue("peptdeep:instrument", "QE", "Instrument class passed to the PeptDeep MS2 model. An instrument that is not in this list is best approximated by the closest one that is.");
+    // peptdeep's own names, in peptdeep's own order, and registered whether or not this build has
+    // ONNX so that an ini file means the same thing either way.
+    std::vector<std::string> peptdeep_instruments;
+    peptdeep_instruments.reserve(ML::ALPHAPEPTDEEP_INSTRUMENTS.size());
+    for (const std::string_view name : ML::ALPHAPEPTDEEP_INSTRUMENTS) { peptdeep_instruments.emplace_back(name); }
+    defaults_.setValidStrings("peptdeep:instrument", peptdeep_instruments);
     defaults_.setValue("peptdeep:nce", -1.0, "Normalised collision energy for the PeptDeep MS2 model. Negative selects it automatically from the collision energy recorded in the spectra, refined by scoring a small grid on confident PSMs.");
     defaults_.setValue("peptdeep:rt_model_type", "b_spline", "Model mapping predicted onto observed retention time.", {"advanced"});
     defaults_.setValidStrings("peptdeep:rt_model_type", {"b_spline", "lowess", "linear"});

@@ -14,8 +14,10 @@
 #include <cmath>
 #include <fstream>
 #include <map>
+#include <set>
 #include <stdexcept>
 #include <sstream>
+#include <string_view>
 
 using namespace OpenMS;
 using namespace std;
@@ -112,6 +114,59 @@ START_SECTION(AminoAcidVocabulary and Utilities)
     for (size_t i = 0; i < expected.size(); ++i) {
         TEST_EQUAL(actual[i], expected[i]);
     }
+END_SECTION
+
+START_SECTION(InstrumentEncoding)
+    STATUS("Testing peptdeep's instrument encoding...");
+
+    // These indices are peptdeep's, from model_const.yaml, and the models are trained against
+    // them -- "We MUST keep the order of these instruments for models", as that file puts it. The
+    // MS2 reference fixture agrees: every row of proteomicsml_test_data_ms2_spectra.csv pairs
+    // instrument "QE" with instrument_index 0.
+    TEST_EQUAL(ML::instrumentIndex("QE"), 0)
+    TEST_EQUAL(ML::instrumentIndex("Lumos"), 1)
+    TEST_EQUAL(ML::instrumentIndex("timsTOF"), 2)
+    TEST_EQUAL(ML::instrumentIndex("SciexTOF"), 3)
+    TEST_EQUAL(ML::instrumentIndex("ThermoTOF"), 4)
+
+    // Case-insensitive, as peptdeep's own parse_instrument_indices() is.
+    TEST_EQUAL(ML::instrumentIndex("qe"), 0)
+    TEST_EQUAL(ML::instrumentIndex("TIMSTOF"), 2)
+    TEST_EQUAL(ML::instrumentIndex("sciextof"), 3)
+
+    // Anything unknown goes to the catch-all slot rather than to a neighbouring instrument, so a
+    // name that is merely close to a known one must not be rounded onto it.
+    TEST_EQUAL(ML::instrumentIndex("Astral"), ML::PEPTDEEP_UNKNOWN_INSTRUMENT_INDEX)
+    TEST_EQUAL(ML::instrumentIndex("Q Exactive HF"), ML::PEPTDEEP_UNKNOWN_INSTRUMENT_INDEX)
+    TEST_EQUAL(ML::instrumentIndex("Q"), ML::PEPTDEEP_UNKNOWN_INSTRUMENT_INDEX)
+    TEST_EQUAL(ML::instrumentIndex("QE2"), ML::PEPTDEEP_UNKNOWN_INSTRUMENT_INDEX)
+    TEST_EQUAL(ML::instrumentIndex(""), ML::PEPTDEEP_UNKNOWN_INSTRUMENT_INDEX)
+    TEST_EQUAL(ML::PEPTDEEP_UNKNOWN_INSTRUMENT_INDEX, 7)
+
+    // Every name has to be encodable, and no two may share a slot.
+    TEST_EQUAL(ML::ALPHAPEPTDEEP_INSTRUMENTS.size() <= size_t(ML::PEPTDEEP_MAX_INSTRUMENT_NUM), true)
+    set<int64_t> indices;
+    for (const std::string_view name : ML::ALPHAPEPTDEEP_INSTRUMENTS)
+    {
+        const int64_t index = ML::instrumentIndex(name);
+        TEST_EQUAL(index >= 0 && index < ML::PEPTDEEP_MAX_INSTRUMENT_NUM, true)
+        indices.insert(index);
+    }
+    TEST_EQUAL(indices.size(), ML::ALPHAPEPTDEEP_INSTRUMENTS.size())
+
+    // An index the one-hot cannot represent has to be refused here: ONNX's OneHot would answer it
+    // with an all-off row, dropping the instrument from the prediction instead of failing.
+    vector<int64_t> every_slot;
+    for (int64_t i = 0; i < ML::PEPTDEEP_MAX_INSTRUMENT_NUM; ++i) { every_slot.push_back(i); }
+    ML::validateInstrumentIndices(every_slot);
+    TEST_EQUAL(every_slot.size(), size_t(ML::PEPTDEEP_MAX_INSTRUMENT_NUM))
+
+    const vector<int64_t> one_past_the_last = {ML::PEPTDEEP_MAX_INSTRUMENT_NUM};
+    const vector<int64_t> negative = {-1};
+    const vector<int64_t> good_then_bad = {0, 1, 99};
+    TEST_EXCEPTION(Exception::IllegalArgument, ML::validateInstrumentIndices(one_past_the_last))
+    TEST_EXCEPTION(Exception::IllegalArgument, ML::validateInstrumentIndices(negative))
+    TEST_EXCEPTION(Exception::IllegalArgument, ML::validateInstrumentIndices(good_then_bad))
 END_SECTION
 
 START_SECTION(PeptDeepInputBuilder)
@@ -373,7 +428,7 @@ START_SECTION(PeptDeepMS2Inference)
     vector<string> ms2_peptides = {"PEPTIDEK"};
     vector<float> charges = {2.0f};
     vector<float> nces = {30.0f};
-    vector<int64_t> instruments = {0}; // 0 = Lumos
+    vector<int64_t> instruments = {ML::instrumentIndex("QE")}; // 0, see ML::ALPHAPEPTDEEP_INSTRUMENTS
 
     auto ms2_preds = ms2_engine.predictMS2(ms2_peptides, charges, nces, instruments);
 
