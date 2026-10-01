@@ -112,6 +112,18 @@ public:
     /// Replaces the relative path in the argument with the absolute path.
     static std::string absolutePath(const std::string& file);
 
+    /**
+      @brief Convert a local path to an absolute file URI.
+
+      The returned URI uses forward slashes on every platform and the standard
+      three-slash form for local absolute paths (e.g. `file:///C:/data/run.mzML`
+      on Windows).
+
+      @param[in] file Local file or directory path
+      @return Absolute file URI
+    */
+    static std::string toFileURI(const std::string& file);
+
     /// Returns the basename of the file (without the path).
     /// No checking is done on the filesystem, i.e. '/path/some_entity' will return 'some_entity', irrespective of 'some_entity' is a file or a directory.
     /// However, '/path/some_entity/' will return ''.
@@ -244,6 +256,10 @@ public:
 
     /**
       @brief Searches for an executable with the given name.
+
+      Looks next to the current executable (and, on macOS, next to the app bundle it is in) and finally,
+      for layered installs, in the bin/ directory of the prefix whose share/OpenMS is the compiled-in
+      install data path (see CMake option OPENMS_INSTALL_DATA_PATH).
 
       @param[in] toolName The executable to search for.
       @exception FileNotFound is thrown, if the tool executable was not found.

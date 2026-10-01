@@ -14,29 +14,6 @@ macro (OPENMS_FINDBINARY varname binaryname name)
   endif()
 endmacro (OPENMS_FINDBINARY)
 
-macro (openms_check_tandem_version binary valid)
-  if(NOT (${XTANDEM_BINARY} STREQUAL "XTANDEM_BINARY-NOTFOUND"))
-    set(${valid} FALSE)
-    execute_process(COMMAND "${XTANDEM_BINARY}"
-      RESULT_VARIABLE _tandem_result
-      OUTPUT_VARIABLE _tandem_output
-      ERROR_VARIABLE _tandem_output  ## write to the same variable, in case Tandem decides to use std::cerr one day
-      INPUT_FILE ${DATA_DIR_TOPP}/THIRDPARTY/tandem_break.txt  ## provide some input, otherwise tandem.exe will block and not finish
-    )
-
-    # we are looking for something like (2013.09.01.1)
-    string(REGEX MATCH "\([0-9]+[.][0-9]+[.][0-9]+([.][0-9]+)\)"
-          _tandem_version "${_tandem_output}")
-
-    if("${_tandem_version}" VERSION_LESS "2013.09.01")
-      message(STATUS "  - X! Tandem too old (${_tandem_version}). Please provide an X! Tandem version >= 2013.09.01 to enable the tests.")
-    else()
-      message(STATUS "  + X! Tandem version: ${_tandem_version}.")
-      set(${valid} TRUE)
-    endif()
-  endif()
-endmacro (openms_check_tandem_version)
-
 # Build PATH environment for tests that need to find built TOPP tools at runtime.
 # On Windows, semicolons in PATH must be escaped to prevent CMake from interpreting
 # them as list separators in set_tests_properties(ENVIRONMENT ...).
@@ -60,11 +37,6 @@ OPENMS_FINDBINARY(COMET_BINARY "comet.exe" "Comet")
 #------------------------------------------------------------------------------
 # Sage
 OPENMS_FINDBINARY(SAGE_BINARY "sage;sage.exe" "Sage")
-
-#------------------------------------------------------------------------------
-# X!Tandem
-OPENMS_FINDBINARY(XTANDEM_BINARY "tandem;tandem.exe" "X! Tandem")
-openms_check_tandem_version(${XTANDEM_BINARY} xtandem_valid)
 
 #------------------------------------------------------------------------------
 # MS-GF+

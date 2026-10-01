@@ -38,8 +38,8 @@ set -euo pipefail
 # Commit of openms-thermo-bridge; must equal the FetchContent GIT_TAG in
 # cmake/cmake_findExternalLibs.cmake (checked below). BRIDGE_TAG is the release tag
 # that points at this commit; the release assets are named after it.
-BRIDGE_COMMIT="2c66c9260ad78f499527c7d1c85a920afab9aa2d"
-BRIDGE_TAG="v0.3.0"
+BRIDGE_COMMIT="d809f8ac6264d00c81da4b7abe456a08f124f804"
+BRIDGE_TAG="v0.3.1"
 RAW_URL="https://archive.openms.de/openms/testfiles/Angiotensin_AllScans.raw"
 RAW_SHA256="3a0236f719e7c91e3c958f57f4e66ae422803ec3e6a997b9af4d2af395332b9f"
 
@@ -51,9 +51,9 @@ dest="${2:-.}"
 # while no release asset exists for BRIDGE_TAG (the bridge then builds the managed
 # assemblies itself, see above).
 case "$platform" in
-  linux-x64)   managed_sha256="a26d846a584d57bb0febab5f3552c34a4a2e6d4a29881f5ebe420166748814fd" ;;
-  osx-arm64)   managed_sha256="402c927f2062cafa66ca67254203e265f769bb8f6d2845a0264a9167680ad924" ;;
-  win-x64)     managed_sha256="bbbebd847bbe08b3168aab63185a0b6950cb3fa8e4a4c150ed55672e586ac195" ;;
+  linux-x64)   managed_sha256="6da5c79581ad5cf1e48ab9ff61e21deb2eac1fe5ca53f196a527118dd488097f" ;;
+  osx-arm64)   managed_sha256="7158a6ae289e2141214da998457872180054d1b54f759379dd3164f84ff30e36" ;;
+  win-x64)     managed_sha256="e67d7b5318fbb0e1b6f8698c8c836cefa723c9e6d6c2f193a92f62a82f27d640" ;;
   # The managed assemblies are architecture-neutral IL, but ${BRIDGE_TAG} publishes
   # no linux-arm64 zip, so this platform takes the empty-digest path above and lets
   # the .NET SDK publish them during the build.

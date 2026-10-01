@@ -232,10 +232,12 @@ build-verbosity = 1
 ]
 
 [tool.cibuildwheel.linux]
-# Use OpenMS manylinux containers with pre-built dependencies
+# Stock manylinux images. OpenMS is built and installed in the same image first, against
+# static vcpkg dependencies (tools/ci/build_openms_manylinux.sh); point OpenMS_ROOT at
+# that installation and CMAKE_PREFIX_PATH at it and at vcpkg_installed/<triplet>.
 archs = ["x86_64", "aarch64"]
-manylinux-x86_64-image = "ghcr.io/openms/contrib_manylinux_2_34:latest-amd64"
-manylinux-aarch64-image = "ghcr.io/openms/contrib_manylinux_2_34:latest-arm64"
+manylinux-x86_64-image = "quay.io/pypa/manylinux_2_34_x86_64"
+manylinux-aarch64-image = "quay.io/pypa/manylinux_2_34_aarch64"
 
 # Install additional build tools
 before-all = [
@@ -245,6 +247,16 @@ before-all = [
 # Bundle shared libraries into wheel
 repair-wheel-command = [
     "auditwheel repair -w {dest_dir} {wheel}",
+]
+
+# Replaces the [tool.cibuildwheel.config-settings] table above on Linux, so it repeats
+# its entries. libOpenMS links vcpkg's static Arrow, and so must _arrow_zerocopy: the
+# standalone build does not see the OpenMS build's ARROW_USE_STATIC default.
+[tool.cibuildwheel.linux.config-settings]
+"override" = [
+    "cmake.options.NO_DEPENDENCIES=ON",
+    "cmake.options.PYOPENMS_PREPARE_WHEEL_REPAIR=ON",
+    "cmake.options.ARROW_USE_STATIC=ON",
 ]
 
 [tool.cibuildwheel.macos]

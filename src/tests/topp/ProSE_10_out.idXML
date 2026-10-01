@@ -6,6 +6,18 @@
 		<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,complementary_ions_fraction,hyperscore_zscore,ln_num_candidates,delta_score,isotope_error"/>
 				<UserParam type="string" name="open_search" value="false"/>
+				<UserParam type="string" name="scoring:method" value="auto"/>
+				<UserParam type="string" name="peptide:deduplicate" value="true"/>
+				<UserParam type="float" name="scoring:mass_error_sd" value="7.0"/>
+				<UserParam type="string" name="scoring:fragment_charges" value="auto"/>
+				<UserParam type="string" name="scoring:method_resolved" value="hyperscore"/>
+				<UserParam type="string" name="scoring:fragment_charges_resolved" value="single"/>
+				<UserParam type="string" name="annotate:local_fragment_evidence" value="false"/>
+				<UserParam type="int" name="fragment:max_charge" value="2"/>
+				<UserParam type="string" name="fragment:query_spectrum" value="processed"/>
+				<UserParam type="string" name="peaks:window_type" value="auto"/>
+				<UserParam type="string" name="peaks:window_type_resolved" value="jump_full"/>
+				<UserParam type="string" name="peptide:clip_nterm_methionine" value="true"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string" value="DECOY_"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="prefix"/>
 				<UserParam type="string" name="PeptideIndexer:enzyme" value="Trypsin"/>

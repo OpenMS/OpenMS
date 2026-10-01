@@ -304,6 +304,7 @@ set(format_executables_list
   XTandemInfile_test
   XTandemXMLFile_test
   ZlibCompression_test
+  ZstdCompression_test
   Libzip_test
   ZipArchiveFile_test
   ZipIfstream_test
@@ -720,7 +721,9 @@ if(NOT DISABLE_OPENSWATH)
     PeakMapExtractor_test
     OpenSwathHelper_test
     OpenSwathLibraryIDNormalizer_test
+    OpenSwathLibraryPreparation_test
     OpenSwathOSWWriter_test
+    OpenSwathPeptidoformInference_test
     TransitionListEvidenceFilter_test
     OpenSwathScoring_test
     OpenSwathScores_test

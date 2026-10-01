@@ -58,8 +58,9 @@ endforeach(i)
 # special requirements of some tools
 # FuzzyDiff wraps the FuzzyStringComparator, which lives in the (static) class-test framework library
 target_link_libraries(FuzzyDiff OpenMSTestFramework)
-target_link_libraries(IsobaricWorkflow Eigen3::Eigen)
-target_link_libraries(MetaProSIP Eigen3::Eigen)
+
+# OpenDIA directly uses Apache Arrow APIs for its Parquet workflow.
+target_link_libraries(OpenDIA ${OPENMS_ARROW_TARGET})
 
 
 # collection target

@@ -169,7 +169,7 @@ The following tools are offered:
 
   OpenMS provides tools to measure the quality of LC-MS data. For more information, view the [Quality control](types-of-topp-tools/quality-control.md) section.
 
-For the full list of TOPP tools, visit the [API reference](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/TOPP_documentation.html) website.
+For the full list of TOPP tools, visit the [API reference](https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPP_documentation.html) website.
 
 
 ```{toctree}
