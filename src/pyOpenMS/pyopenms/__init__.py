@@ -197,9 +197,9 @@ if sys.platform.startswith("linux") and os.path.exists(os.path.join(here, "libOp
 # dependent DLLs; only the module's own directory, System32 and directories
 # registered via os.add_dll_directory() are searched. A wheel ships OpenMS.dll and
 # its dependencies next to the modules (found automatically), but an in-tree build
-# with NO_DEPENDENCIES=ON keeps them elsewhere (the OpenMS bin and contrib lib
-# folders). PYOPENMS_DLL_PATH (os.pathsep-separated) lets the caller point pyOpenMS
-# at those directories. Because it is an environment variable it also propagates to
+# with NO_DEPENDENCIES=ON keeps them elsewhere (the OpenMS bin folder and the bin
+# folder of the dependency prefix). PYOPENMS_DLL_PATH (os.pathsep-separated) lets
+# the caller point pyOpenMS at those directories. Because it is an environment variable it also propagates to
 # child processes that `import pyopenms` (e.g. the subprocess probes in the test
 # suite), which os.add_dll_directory() alone cannot do. Inert when unset.
 _dll_directory_handles = []  # keep handles alive for the process lifetime

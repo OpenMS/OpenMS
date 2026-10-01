@@ -14,7 +14,6 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
-#include <boost/range/combine.hpp>
 
 #include <functional>
 #include <vector>

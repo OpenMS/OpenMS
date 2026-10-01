@@ -19,6 +19,7 @@
 #include <QApplication>
 #include <QtCore/QDir>
 
+#include <clocale>
 #include <iostream>
 
 using namespace OpenMS;
@@ -101,6 +102,8 @@ protected:
     int num_jobs = getIntOption_("num_jobs");
 
     QApplication a(argc, const_cast<char **>(argv), false);
+    // QApplication sets the C locale from the environment; keep number parsing locale-independent
+    setlocale(LC_NUMERIC, "C");
 
     //set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
     QString new_tmp_dir = toQString(File::getUniqueName());

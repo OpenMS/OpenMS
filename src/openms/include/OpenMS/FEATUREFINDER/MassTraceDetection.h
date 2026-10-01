@@ -14,7 +14,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <boost/dynamic_bitset.hpp>
+#include <vector>
 
 namespace OpenMS
 {
@@ -146,12 +146,12 @@ namespace OpenMS
 
         /// Check if peak candidate meets acceptance criteria
         bool isPeakAcceptable_(const PeakCandidate& candidate,
-                              double centroid_mz,
-                              double ftl_sd,
-                              double centroid_im,
-                              Size spectrum_idx,
-                              const std::vector<Size>& spec_offsets,
-                              const boost::dynamic_bitset<>& peak_visited) const;
+                               double centroid_mz,
+                               double ftl_sd,
+                               double centroid_im,
+                               Size spectrum_idx,
+                               const std::vector<Size>& spec_offsets,
+                               const std::vector<bool>& peak_visited) const;
 
         /// Process a single peak during trace extension
         void processPeak_(const PeakCandidate& candidate,

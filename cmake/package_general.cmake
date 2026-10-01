@@ -94,7 +94,7 @@ if(WIN32)
                   "hvsi" "pdmutilities"  ## make all lower case, since this is what CMake extracts from the targets and the regex is case sensitive
                   ## MSVC runtime DLLs are handled separately by InstallRequiredSystemLibraries (in package_nsis.cmake).
                   ## Exclude them here to avoid "Multiple conflicting paths" errors when the same DLL
-                  ## exists in multiple search directories (e.g. Conda env and contrib/bin). CMake 4.x
+                  ## exists in multiple search directories (e.g. a Conda env and another prefix's bin/). CMake 4.x
                   ## treats such conflicts as fatal errors.
                   "vcruntime" "msvcp" "concrt" "vccorlib" "ucrtbase"
                   )

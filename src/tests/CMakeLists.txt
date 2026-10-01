@@ -31,6 +31,10 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
   ## configure the regular class ..
   if(ENABLE_CLASS_TESTING)
     add_subdirectory(class_tests)
+    # the version of a source tree made by git archive (cmake/Modules/GetGitRevisionDescription.cmake)
+    add_test(NAME GitArchivalInfo
+      COMMAND ${CMAKE_COMMAND} "-DBINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}/git_archival"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/git_archival/run.cmake")
   endif()
   # TOPP Test project ..
   if(ENABLE_TOPP_TESTING)
@@ -246,6 +250,17 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
     set_tests_properties(TestExternalCode_noeigen_configure PROPERTIES
       FIXTURES_REQUIRED TestExternalCode_installed
       LABELS installed_consumer)
+  endif()
+
+  # Prove that every installed core header compiles with Boost unavailable.
+  if(BUILD_SHARED_LIBS)
+    list(GET Boost_INCLUDE_DIRS 0 _boost_header_root)
+    _openms_add_installed_consumer_tests(TestExternalCodeNoBoost
+      "${CMAKE_SOURCE_DIR}/src/tests/external/boost_free"
+      "${CMAKE_BINARY_DIR}/installed-consumer/prefix-no-boost"
+      "${CMAKE_BINARY_DIR}/installed-consumer/build-no-boost"
+      COMPONENTS library OpenMS_headers OpenSwathAlgo_headers thirdparty_headers cmake
+      CONFIGURE_ARGS "-DOPENMS_BOOST_HEADER_ROOT=${_boost_header_root}")
   endif()
 
   # 2. The core-only installation: exactly the components the pyOpenMS wheel

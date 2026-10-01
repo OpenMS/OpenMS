@@ -59,9 +59,34 @@ endforeach(i)
 # FuzzyDiff wraps the FuzzyStringComparator, which lives in the (static) class-test framework library
 target_link_libraries(FuzzyDiff OpenMSTestFramework)
 
+# OpenDIA directly uses Apache Arrow APIs for its Parquet workflow.
+target_link_libraries(OpenDIA ${OPENMS_ARROW_TARGET})
+
 
 # collection target
 add_custom_target(TOPP)
 add_dependencies(TOPP ${TOPP_TOOLS})
 
 openms_doc_path("${PROJECT_SOURCE_DIR}")
+
+# Boost used directly by these implementation/test translation units. Tools that live in
+# their own directory resolve Boost in their own CMakeLists instead, so that they still
+# build standalone against an installed OpenMS SDK.
+foreach(_boost_consumer IN ITEMS
+  Digestor
+  FeatureFinderMultiplex
+  FileInfo
+  FileMerger
+  MSGFPlusAdapter
+  MSstatsConverter
+  MaRaClusterAdapter
+  MetaProSIP
+  PercolatorAdapter
+  SageAdapter
+  TextExporter
+)
+  if(TARGET ${_boost_consumer})
+    target_link_libraries(${_boost_consumer} Boost::boost)
+  endif()
+endforeach()
+unset(_boost_consumer)

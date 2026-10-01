@@ -48,7 +48,7 @@ find_path(COIN_VCPKG_INCLUDE_DIR coin-or/CoinUtilsConfig.h
   ${COIN_ROOT_DIR}/include
 )
 
-# find for contrib and system
+# find for system packages (e.g. Debian's coinor-*-dev, which keep the headers in coin/)
 find_path(COIN_SYS_INCLUDE_DIR coin/CoinUtilsConfig.h coinutils/coin/CoinUtilsConfig.h
   HINTS
   ${COIN_ROOT_DIR}/include
@@ -80,10 +80,10 @@ macro(_coin_find_lib _libname _libname_camel _lib_file_names _lib_file_names_deb
       # Take the libraries from the vcpkg tree only. The headers already come from
       # there (COIN_VCPKG_INCLUDE_DIR above), and mixing the two providers is what
       # a plain search produces here: find_library() also scans the directories in
-      # %PATH% on Windows, and the contrib install instructions ask you to put
-      # <contrib_build>/lib on PATH, so a leftover contrib coin-or wins and the
-      # version skew only shows up much later as unresolved symbols at link time
-      # (e.g. CglCutGenerator::needsOriginalModel).
+      # %PATH% on Windows, so any other coin-or on PATH (for example a leftover
+      # build of the retired OpenMS contrib, whose instructions put its lib/ there)
+      # wins and the version skew only shows up much later as unresolved symbols
+      # at link time (e.g. CglCutGenerator::needsOriginalModel).
       #
       # NO_DEFAULT_PATH rather than HINTS on purpose: HINTS are consulted *after*
       # CMAKE_PREFIX_PATH, which vcpkg populates with both <triplet> and
@@ -94,8 +94,8 @@ macro(_coin_find_lib _libname _libname_camel _lib_file_names _lib_file_names_deb
       # below resolves to the release library for both.
       #
       # NAMES_PER_DIR: by default find_library() takes one name at a time and scans
-      # every directory for it, so the contrib-style "libCgl" would be preferred over
-      # the vcpkg-style "Cgl" regardless of directory order.
+      # every directory for it, so a "libCgl" (the naming of the retired contrib)
+      # would be preferred over the vcpkg-style "Cgl" regardless of directory order.
       #
       # find_library() reuses an existing (non-NOTFOUND) cache entry without looking
       # at PATHS again, so a build directory that is reconfigured for another triplet

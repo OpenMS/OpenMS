@@ -72,7 +72,8 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, msg);
     }
-    container.modify(ref, [&key, &value](typename ContainerType::value_type& element)
+    auto position = ref; // modify() updates the position it is given; a meta value is no key
+    container.modify(position, [&key, &value](typename ContainerType::value_type& element)
     {
       element.setMetaValue(key, value);
     });
@@ -938,10 +939,16 @@ namespace OpenMS
            group_it != group_set.groups.end(); )
       {
         Size old_size = group_it->parent_refs.size();
-        group_set.groups.modify(group_it, [&](ParentGroup& group)
+        // A group whose remaining members equal another group's is erased by modify(),
+        // which then leaves group_it at the next group.
+        if (!group_set.groups.modify(group_it, [&](ParentGroup& group)
         {
           removeFromSetIfNotHashed_(group.parent_refs, parent_lookup_);
-        });
+        }))
+        {
+          warn = true;
+          continue;
+        }
         if (group_it->parent_refs.empty())
         {
           group_it = group_set.groups.erase(group_it);
@@ -968,10 +975,14 @@ namespace OpenMS
          group_it != observation_match_groups_.end(); )
     {
       Size old_size = group_it->observation_match_refs.size();
-      observation_match_groups_.modify(group_it, [&](ObservationMatchGroup& group)
+      if (!observation_match_groups_.modify(group_it, [&](ObservationMatchGroup& group)
       {
         removeFromSetIfNotHashed_(group.observation_match_refs, observation_match_lookup_);
-      });
+      }))
+      {
+        warn = true;
+        continue;
+      }
       if (group_it->observation_match_refs.empty())
       {
         group_it = observation_match_groups_.erase(group_it);
@@ -1350,7 +1361,8 @@ namespace OpenMS
       std::string msg = "invalid reference to an observation match";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
     }
-    observation_matches_.modify(ref, [&key](ObservationMatch& element)
+    auto position = ref;
+    observation_matches_.modify(position, [&key](ObservationMatch& element)
     {
       element.removeMetaValue(key);
     });

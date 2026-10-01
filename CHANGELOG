@@ -16,7 +16,49 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.7.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
- 
+OpenMS Library:
+  - FIX: File::getOpenMSDataPath() and the documentation path no longer keep NUL padding from
+    the compiled-in install paths. Relocated packages (e.g. conda, which rewrites the install
+    prefix inside the binary) could not read share/OpenMS data files, and OPENMS_DATA_PATH was
+    never consulted (#10353).
+  - FIX: Number parsing (StringUtils::toDouble/toFloat/extractDouble) is now independent of the
+    C locale on libc++ (macOS). In a decimal-comma region (e.g. de_DE), TOPPView, TOPPAS and
+    INIFileEditor failed to load mzML files with a ConversionError, because "60.5" was read as
+    60. The imzML and Arrow/Parquet readers no longer use the locale-dependent std::stod, and
+    the GUI tools reset LC_NUMERIC to "C" after starting Qt.
+
+Dependencies:
+  - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
+    deprecation in 3.6. Configuring with it stops with an error: add the prefix of the
+    dependencies to CMAKE_PREFIX_PATH, or let vcpkg build them (cmake --preset
+    <platform>-release). A build directory that still has it cached needs
+    cmake -U OPENMS_CONTRIB_LIBS. find_package(OpenMS) no longer reads it either (#10327).
+
+TOPP tools:
+  Changes:
+    UniPEFF:
+      - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
+        file names, e.g. 2025_07_05 for uniprotkb_proteome_UP000005640_2025_07_05.xml.gz,
+        and stays 'unknown' if the input file name has none. -dbversion now defaults to empty.
+
+Build System:
+  - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
+    64-bit time_t transition, Depends also accepts the package under its old name.
+    dpkg-shlibdeps names the packages of the build host (libqt6gui6t64 (>= 6.4.0)); a
+    CPack post-build script adds the old name with the same version constraint as an
+    alternative (| libqt6gui6 (>= 6.4.0)) wherever the renamed package provides it, i.e.
+    on amd64 and arm64. Later releases went back to the old names for most Qt libraries
+    (libqt6gui6, libqt6widgets6, libqt6opengl6, libqt6openglwidgets6 in Debian 13 and
+    Ubuntu 25.10 and 26.04), so the package built on Ubuntu 24.04 now installs there too
+    (#10351). It still requires the glibc of the release it is built on, currently 2.38,
+    so not Ubuntu 22.04 or Debian 12 (#10352, #10367).
+  - Source tarball: the Release workflow packs it with git archive, so it holds exactly the
+    tracked files. The 3.6.0 tarball lacked src/tests/topp/THIRDPARTY/ and a few other files,
+    and carried empty .git/, build/, THIRDPARTY/ and vcpkg/ directories. git archive fills in
+    .git_archival.txt, from which CMake takes the commit, so a build from the source tarball of
+    a release (or from GitHub's source archive of its tag) reports the plain version instead of
+    <version>-pre-exported-<date> (#10359).
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
 ------------------------------------------------------------------------------------------
@@ -27,6 +69,7 @@ A restructured build system now supports building OpenMS with vcpkg, replacing t
 These are just a few of the many improvements in this release.
 
 General:
+  - DOC: Explicitly enable pre-release upgrades in the pyOpenMS nightly installation instructions.
   - FIX: Normalize source-file paths when converting them to file URIs, including Windows paths with mixed separators (#10275)
   - Updated the bundled PSI-MS controlled vocabulary from 4.1.155 to 4.2.2, including CV
     term-name changes in mzML/TraML output and vocabulary versions in mzTab-M/mzQC output
@@ -132,6 +175,39 @@ General:
     no longer used, was removed (#10265).
 
 Dependencies:
+  - Boost is now private to the shared OpenMS library. Installed headers and the CMake
+    package of a shared build no longer require Boost development packages; a static
+    build keeps Boost among its link dependencies, so its consumers still need them,
+    and builds of OpenMS itself still use Boost. A consumer test compiles every
+    installed core header with Boost headers blocked.
+  - BREAKING (C++ API/ABI): regex parameters now use OpenMS::RegularExpression;
+    MetaInfo::MapType uses sorted vector storage, and identification collections are
+    std::set-based (IDDataContainer) instead of Boost.MultiIndex containers: their
+    iterators are the set's, modify() takes the position by reference and updates it,
+    and getStepsAndScoresByStep() returns a lookup view (find/end/modify) by value.
+    RandomShuffler holds a std::mt19937_64 (same sequence as before) and exposes seed()
+    instead of the Boost engine constructor/member, and IDBoostGraph.h is internal: use
+    the new BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups() to compute
+    indistinguishable protein groups without it.
+    Rebuild downstream C++ code and Python extensions; code using Boost directly
+    must declare its own dependency. A TOPP or GUI layer built against an installed
+    OpenMS (OPENMS_USE_INSTALLED_LIBRARY) finds the Boost headers itself.
+  - The internal headers FORMAT/ParquetFile.h, FORMAT/ZipRandomAccessFile.h (Arrow) and
+    FORMAT/RationalScan2ImConverter.h (OpenTIMS) are no longer installed. They take,
+    return or derive from Arrow and OpenTIMS types and were usable only where those
+    development files happened to be on the include path; the installed Parquet and
+    Bruker readers expose OpenMS types as before, and the OpenSWATH helpers built on
+    them live in libOpenMS (#10247).
+    ML/CLUSTERING/HashGrid.h is no longer installed either: it keeps Boost.Unordered,
+    because QTClusterFinder numbers its clusters in the grid's bucket order and only
+    Boost orders the buckets identically on every platform. QTClusterFinder::Grid is
+    an opaque type now, like its Heap.
+  - Configuring OpenMS fails if an installed header includes anything but OpenMS
+    headers, the C++ standard library, operating-system headers and the headers of a
+    public dependency (OpenMP; Qt in the GUI layer). This allowlist replaces a list of
+    known private dependencies, so a dependency added later cannot slip into the
+    installed headers unnoticed. A library allows the headers of its own public
+    dependencies with openms_add_library(... ALLOWED_PUBLIC_INCLUDES ...).
   - Minimum versions: CMake 3.24, Eigen 3.4.0, Boost 1.81, Arrow/Parquet 23 and nanobind
     3.1. Arrow/Parquet is required on all platforms; WITH_PARQUET was removed and
     versions 24+ are accepted. Compiler minimums are checked before vcpkg runs
@@ -639,6 +715,11 @@ TOPP tools:
         groups; every other shipped mzTab reference has exactly one (fraction_group, label) per sample
         and is byte-identical (#9868, part of #9864)
     ProSE:
+      - Search initial methionine loss by default (peptide:clip_nterm_methionine=true), retaining
+        the original protein coordinates and protein N-terminal variable modifications.
+        The false setting restores the previous search space; standalone FragmentIndex defaults
+        to false. Length, mass and missed-cleavage limits apply after clipping. Generated decoys
+        retain the initial M when clipping is enabled; supplied decoys are searched as provided.
       - FIX: Preserve strong peaks in the short final 100 Da window for high-resolution searches.
         New peaks:window_type=auto keeps the full local quota at <=0.1 Da / <=100 ppm;
         low-resolution filtering is unchanged. jump restores the previous filter and jump_full
@@ -1402,8 +1483,6 @@ Build System:
     control version, for example 3.6.0~nightly.2026.09.27, so it sorts below the release
     and a later nightly above an earlier one. Before, every build of 3.6.0 was version 3.6.0
     to apt, whether nightly or release.
-  - Debian package dependencies retain dpkg-shlibdeps detection while allowing Qt6 core,
-    gui and widgets runtime packages with either the t64 or non-t64 Ubuntu package name.
   - Public headers of OpenMS, OpenSwathAlgo, OpenMS_CLI, OpenMS_GUI and the test
     framework use CMake header file sets. Installation paths and components stay
     unchanged and private headers remain excluded. Building OpenMS and consuming
