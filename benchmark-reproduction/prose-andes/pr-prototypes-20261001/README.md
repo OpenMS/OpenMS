@@ -1,0 +1,123 @@
+# Prototype fixes for #10378 and #10379: 20-file benchmark (2026-10-01)
+
+Supplement to OpenMS issue [#10364](https://github.com/OpenMS/OpenMS/issues/10364). Follow-up to the
+[untangled-PR benchmark](../pr-untangled-20261001/README.md). Each prototype adds switches to the head of one PR,
+so every variant can be run as its own arm on that PR's code. Each prototype's defaults reproduce its PR head, which
+the identity checks below confirm.
+
+The changes are prototypes, not pushed to the PRs. Several of them follow what ANDES (`bigbio/andes` `b7eaece`) does
+in the same places:
+- ANDES models fragment charges 1–3 on ion-trap data and only charge 1 on deisotoped data.
+- ANDES narrows only the precursor window, to median ± max(2, 3σ + 0.5) ppm.
+- ANDES fits no fragment kernel.
+
+## Prototypes
+
+| Build | Base | Commit (patch in this folder) | New parameters (default reproduces the PR head) |
+| --- | --- | --- | --- |
+| `proto10379` | #10379 head `16ff0344` | `377d3c7a` (`proto-10379-calibration-switches.patch`) | `calibration:apply` = `both` / `precursor` / `fragment` / `none`; `calibration:precursor_window` = `quantile` / `robust` (median ± max(2 ppm, 3·1.4826·MAD + 0.5 ppm)); `calibration:subset` = `top_tic` / `stride`; `scoring:mass_error_kernel_fit` = `full` / `shift` / `none` |
+| `proto10378` | #10378 head `241f9a70` | `129e4d4c` (`proto-10378-ion-prior-context.patch`) | `annotate:ion_prior_fragment_charges` = `1` / `auto` (`auto`: charge 1 if deisotoped, otherwise up to min(z − 1, 3)); `annotate:ion_prior_residue_context` = `false` / `true` (adds a level for proline C-terminal / D,E N-terminal of the cleavage below the position context) |
+
+Both builds pass `HyperScore_test`, `FragmentIndex_test` and `ProSEAlgorithm_test`, and for `proto10378` also
+`FragmentIonLikelihoodModel_test`, which gains sections for the residue context. `sources.json` gives the arms with
+their parameter deltas and files, and the build hashes.
+
+**Identity checks** (`checks.tsv`, 17 of 17 pass):
+- `proto10379` with default parameters gives byte-identical PIN and native TSV to the #10379 head on all 14
+  high-resolution files.
+- `proto10378` with default parameters does the same against the #10378 head on two files.
+- On deisotoped HF-X data, `fragment_charges=auto` gives a PIN identical to charge 1.
+
+## Protocol
+
+Unchanged from the untangled-PR benchmark:
+- Frozen `native_dedup:<dataset>:default` parameters plus the listed delta.
+- Percolator 3.09.0 `-Y -U`, seeds 1, 42 and 137; target PSMs at q ≤ 0.01.
+- Mean over seeds within a file, then over files within a group.
+- Native counts use rank-one TDC, (D+1)/T ≤ 0.01.
+- The develop and PR-head arms are the runs from the untangled-PR benchmark.
+- #10379 arms run on the 14 ppm (high-resolution) files.
+- Fragment-charge arms run on the 6 low-resolution files, plus `hfx_A2` as the deisotoped control.
+
+A container restart interrupted 2 of the 14 `m_shift_frag` searches. Their incomplete folders were deleted and both
+searches were rerun from the start (`run_proto2.log`). 161 searches, 0 failures.
+
+Seed-to-seed relative SD within a file is 0.1–2.1% (Lumos LFQ 0.1–0.2%, Velos/Astral/timsTOF up to 2%).
+
+## Results
+
+### A. #10379 calibration windows, HyperScore
+Cells are % vs develop / native TDC delta vs develop.
+
+| Arm | HF-X HCD | Astral HCD | Lumos HCD LFQ | Exploris 480 TMTpro | timsTOF HT |
+| --- | --- | --- | --- | --- | --- |
+| develop (PSMs) | 4380.3 | 2189.6 | 5496.1 | 2244.9 | 1015.0 |
+| #10379 head: `auto` = precursor + fragment windows | -3.34% / -4 | +5.09% / +331 | -4.16% / -142 | +0.61% / +174 | +0.79% / -4 |
+| precursor window only | -2.83% / -9 | -3.46% / -5 | -3.71% / -148 | -0.87% / -2 | +0.79% / -4 |
+| **fragment window only** | **-0.91% / +27** | **+5.48% / +349** | **-0.43% / +15** | **+1.94% / +206** | **+0.00% / +0** |
+| robust precursor window only (ANDES-style) | -4.73% / -68 | -5.15% / +159 | -7.24% / -302 | -5.97% / -67 | -0.57% / -6 |
+| robust precursor window, stride sample | -6.40% / -119 | -4.44% / +167 | -7.09% / -287 | -7.34% / -69 | -3.12% / -26 |
+
+**Fragment window only:**
+- Per file, it beats the #10379 head on 11 of 14 files (exceptions: `astral_A2` −0.6%, timsTOF −0.2/−1.4%), by up to +7.5% on `lumos_lfq_5192`.
+- It keeps the whole Astral gain and adds +1.9% on TMTpro.
+
+**Precursor narrowing loses in every form:**
+- Most clearly on the robust window, which is much narrower (Lumos LFQ 3.4–4.0 ppm, Astral 4.4–4.7 ppm, HF-X and TMTpro 7.7–9.2 ppm).
+- On Astral the PR's quantile window barely moves (`astral_A2`: [−19.8, +18.2] ppm). The native TDC count stays
+  unchanged, yet Percolator loses 3.2–3.7% on each file.
+- A likely reason (not tested): Percolator learns from the wrong candidates at the window edge.
+
+### B. Mass-accuracy scorer
+Cells are % vs develop (in parentheses: vs the scorer with the fixed 7 ppm kernel and no calibration) / native TDC
+delta vs develop.
+
+| Arm | HF-X HCD | Astral HCD | Lumos HCD LFQ | Exploris 480 TMTpro | timsTOF HT |
+| --- | --- | --- | --- | --- | --- |
+| scorer, fixed 7 ppm kernel, no calibration | +0.34% / -13 | +4.13% / +417 | -0.14% / +37 | -0.07% / +231 | +0.62% / +10 |
+| #10379 head: fitted kernel + both windows | -3.04% (-3.37) / -601 | +3.10% (-0.98) / -186 | -3.39% (-3.26) / -269 | +1.22% (+1.29) / +72 | +1.25% (+0.62) / +48 |
+| fitted kernel (center + width), windows unchanged | +0.25% (-0.09) / -714 | +0.42% (-3.56) / -204 | -0.17% (-0.03) / -194 | -0.07% (-0.00) / +52 | -0.72% (-1.34) / +52 |
+| fitted center only, windows unchanged | +0.09% (-0.25) / +10 | +4.95% (+0.79) / +383 | -0.08% (+0.06) / +35 | -0.45% (-0.38) / +227 | -0.57% (-1.19) / +61 |
+| **fitted center only + fragment window** | **-0.85% (-1.19) / +12** | **+6.52% (+2.30) / +404** | **-0.44% (-0.30) / +18** | **+2.22% (+2.29) / +232** | **-0.57% (-1.19) / +61** |
+| fitted center only + robust precursor window, stride | -5.39% (-5.71) / -138 | -0.97% (-4.90) / +412 | -7.15% (-7.02) / -312 | -8.10% (-8.03) / +86 | -3.96% (-4.55) / +22 |
+
+**Fitted width:**
+- Against the fixed 7 ppm kernel, it lowers the native TDC count by 701 (HF-X), 621 (Astral) and 231 (Lumos LFQ)
+  per file on average. The fitted SDs are 1.8–3.5 ppm on the Orbitrap and Astral files.
+- It costs 3.6% Percolator yield on Astral (`astral_B3` −9.4%, fitted SD 1.76 ppm).
+
+**Fitted center only:** about neutral against the fixed kernel (−1.2 to +0.8% per group). Native counts are within −34 to +51 of it.
+
+**Best arm in this table:** the fixed-width kernel with the fitted center, plus the fragment window. It reaches +6.5%
+on Astral and +2.2% on TMTpro, and −0.4% to −0.9% on HF-X, Lumos LFQ and timsTOF. Compared with HyperScore and the
+fragment window (table A), the scorer adds about +1.0% on Astral and +0.3% on TMTpro, and −0.6% on timsTOF. The two
+arms' fragment windows differ slightly, because each calibration pass scores with its arm's scorer.
+
+### C. #10378 ion priors
+Cells are % vs develop (in parentheses: vs the #10378 head). Native scores are unchanged by design.
+
+| Arm | Velos CID | HF-X HCD | Astral HCD | Lumos HCD LFQ | Lumos CID TMT | Exploris 480 TMTpro | timsTOF HT |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| #10378 head (fragment charge 1) | -0.37% | +0.30% | +4.60% | -0.11% | +0.92% | +1.76% | +2.35% |
+| **fragment charges `auto`** | **+6.20% (+6.59)** | identical (1 file, deisotoped) | – | – | **+3.14% (+2.19)** | – | – |
+| cleavage-residue context | +0.54% (+0.91) | +0.63% (+0.33) | +4.82% (+0.20) | -0.04% (+0.07) | +1.92% (+0.99) | +1.44% (-0.32) | +1.72% (-0.61) |
+| both | +6.16% (+6.55) | – | – | – | +4.03% (+3.08) | – | – |
+
+**Fragment charges `auto`:**
+- Gains on every low-resolution file: Velos +5.4/+6.5/+8.0%, Lumos CID TMT +1.6/+2.2/+2.8% against the PR head.
+- It turns Velos CID, the PR's weakest group, into its largest gain.
+
+**Residue context:** within seed noise overall (−0.6 to +1.0% per group). Adding it on top of `auto` changes −0.7
+to +3.0% per file (mean +0.4%).
+
+## Files
+
+| File | Contents |
+| --- | --- |
+| `proto-10379-calibration-switches.patch`, `proto-10378-ion-prior-context.patch` | The prototype commits (`git am` onto the PR heads) |
+| `sources.json`, `checks.tsv` | Builds, arms with files and parameter deltas, identity checks |
+| `proto_per_group.tsv`, `proto_per_file.tsv`, `tables_proto.md` | Results against develop and against the PR heads, per group and per file, with resolved windows and kernels |
+| `pr-prototypes-reproduction.zip` (+ `.sha256`) | Scripts (`run.py` arms, `evaluate_proto.py`, `tables_proto.py`, pipelines, harness), build records, logs and per-job `summary.json` / parameters / search and Percolator logs for all 161 searches |
+
+The inputs, nightly and Percolator are those of the 2026-09-30 reproduction bundle referenced in the untangled-PR
+supplement.

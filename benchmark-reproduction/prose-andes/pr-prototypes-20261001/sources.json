@@ -1,0 +1,354 @@
+{
+  "date": "2026-10-01",
+  "builds": {
+    "base": {
+      "source_commit": "f5ea2d043f7b2767cd41f5fc27560a3675f9ecf7",
+      "source_tree": "bffd7981e72a0d5dd2a415360807d98e421e8002",
+      "binary_sha256": "96145b3eb9952eb608f05f37e1888f6e20a41cf396aa6744349ee426f7fe68f5",
+      "tests_passed": true,
+      "driver_note": "prose driver relinked after harness main.cpp change (skip unknown keys, JSON booleans); class-test binaries unchanged"
+    },
+    "pr10366": {
+      "source_commit": "241f9a7090536e7e01210fead10c2153756804f0",
+      "source_tree": "4a81a8de1d171ad92aec59d1e463f37ae92f1a89",
+      "binary_sha256": "6f1e102cbbd983c21d98dc28802095610c586f3b2bbf0e172930e5242b0519a3",
+      "tests_passed": true,
+      "note": "later commits change TOPP references and a class test only; the benchmarked prose binary sources are unchanged",
+      "driver_note": "prose driver relinked after harness main.cpp change (skip unknown keys, JSON booleans); class-test binaries unchanged"
+    },
+    "pr10365_scorer": {
+      "source_commit": "825c33bbbd39d25e97bf501471267d887d1a4c37",
+      "source_tree": "07b16646d28157a3ab0eb35a7d5593dc0e6fca5c",
+      "binary_sha256": "d975370ce895b1735236bc011030f0a0c5de27b330820f9d8bcc6f7752d89af3",
+      "tests_passed": true,
+      "driver_note": "prose driver relinked after harness main.cpp change (skip unknown keys, JSON booleans); class-test binaries unchanged",
+      "note": "commit amended to add TOPP reference lines and message only; compiled sources identical to the built commit"
+    },
+    "pr10365": {
+      "source_commit": "16ff0344b6a14e825b69c28cef7160f33667742d",
+      "source_tree": "d5a7662cc77b31130cc18217377bd8b4b925bbba",
+      "binary_sha256": "5a8d9324e87f41725d168213c15e4d0bba4e8e9c714a2896597693aba4147ca0",
+      "tests_passed": true,
+      "driver_note": "prose driver relinked after harness main.cpp change (skip unknown keys, JSON booleans); class-test binaries unchanged",
+      "note": "commit amended to add TOPP reference lines and message only; compiled sources identical to the built commit"
+    },
+    "proto10379": {
+      "source_commit": "377d3c7af86e44a46cfff7f86ef11a0ef8149e77",
+      "source_tree": "ee5a2e6878141fe7a739bcfc851ebcbc128061b1",
+      "binary_sha256": "fa0abe6eca9107d798927b8ff7a7ac7f2338177566ae94437255e7edb40fae57",
+      "tests_passed": true
+    },
+    "proto10378": {
+      "source_commit": "129e4d4c57d134bca964aa7f411ce27f45aff07d",
+      "source_tree": "3830e416a824a9116df04e9c1c806d608e7431c9",
+      "binary_sha256": "72c3b9b76ea1629ebb486b547b354f2465e99bc35df0f3d749e147dba8dac00d",
+      "tests_passed": true
+    }
+  },
+  "prototype_branches": {
+    "proto10379": {
+      "base": "16ff0344b6a14e825b69c28cef7160f33667742d (#10379 head)",
+      "commit": "377d3c7af86e44a46cfff7f86ef11a0ef8149e77",
+      "patch": "proto-10379-calibration-switches.patch"
+    },
+    "proto10378": {
+      "base": "241f9a7090536e7e01210fead10c2153756804f0 (#10378 head)",
+      "commit": "129e4d4c57d134bca964aa7f411ce27f45aff07d",
+      "patch": "proto-10378-ion-prior-context.patch"
+    }
+  },
+  "arms": {
+    "c_default": {
+      "build": "proto10379",
+      "parameter_delta": {
+        "calibration:enabled": "auto"
+      },
+      "files": [
+        "hfx_A2",
+        "hfx_B1",
+        "hfx_B3",
+        "astral_A2",
+        "astral_B1",
+        "astral_B3",
+        "lumos_lfq_5192",
+        "lumos_lfq_5194",
+        "lumos_lfq_5199",
+        "eclipse_tmtpro_10855",
+        "eclipse_tmtpro_10858",
+        "eclipse_tmtpro_10863",
+        "tims_plasma_30min",
+        "tims_plasma_50min"
+      ]
+    },
+    "h_prec": {
+      "build": "proto10379",
+      "parameter_delta": {
+        "calibration:enabled": "true",
+        "calibration:apply": "precursor"
+      },
+      "files": [
+        "hfx_A2",
+        "hfx_B1",
+        "hfx_B3",
+        "astral_A2",
+        "astral_B1",
+        "astral_B3",
+        "lumos_lfq_5192",
+        "lumos_lfq_5194",
+        "lumos_lfq_5199",
+        "eclipse_tmtpro_10855",
+        "eclipse_tmtpro_10858",
+        "eclipse_tmtpro_10863",
+        "tims_plasma_30min",
+        "tims_plasma_50min"
+      ]
+    },
+    "h_frag": {
+      "build": "proto10379",
+      "parameter_delta": {
+        "calibration:enabled": "true",
+        "calibration:apply": "fragment"
+      },
+      "files": [
+        "hfx_A2",
+        "hfx_B1",
+        "hfx_B3",
+        "astral_A2",
+        "astral_B1",
+        "astral_B3",
+        "lumos_lfq_5192",
+        "lumos_lfq_5194",
+        "lumos_lfq_5199",
+        "eclipse_tmtpro_10855",
+        "eclipse_tmtpro_10858",
+        "eclipse_tmtpro_10863",
+        "tims_plasma_30min",
+        "tims_plasma_50min"
+      ]
+    },
+    "h_prec_robust": {
+      "build": "proto10379",
+      "parameter_delta": {
+        "calibration:enabled": "true",
+        "calibration:apply": "precursor",
+        "calibration:precursor_window": "robust"
+      },
+      "files": [
+        "hfx_A2",
+        "hfx_B1",
+        "hfx_B3",
+        "astral_A2",
+        "astral_B1",
+        "astral_B3",
+        "lumos_lfq_5192",
+        "lumos_lfq_5194",
+        "lumos_lfq_5199",
+        "eclipse_tmtpro_10855",
+        "eclipse_tmtpro_10858",
+        "eclipse_tmtpro_10863",
+        "tims_plasma_30min",
+        "tims_plasma_50min"
+      ]
+    },
+    "h_prec_robust_stride": {
+      "build": "proto10379",
+      "parameter_delta": {
+        "calibration:enabled": "true",
+        "calibration:apply": "precursor",
+        "calibration:precursor_window": "robust",
+        "calibration:subset": "stride"
+      },
+      "files": [
+        "hfx_A2",
+        "hfx_B1",
+        "hfx_B3",
+        "astral_A2",
+        "astral_B1",
+        "astral_B3",
+        "lumos_lfq_5192",
+        "lumos_lfq_5194",
+        "lumos_lfq_5199",
+        "eclipse_tmtpro_10855",
+        "eclipse_tmtpro_10858",
+        "eclipse_tmtpro_10863",
+        "tims_plasma_30min",
+        "tims_plasma_50min"
+      ]
+    },
+    "m_full_noapply": {
+      "build": "proto10379",
+      "parameter_delta": {
+        "scoring:method": "mass_accuracy",
+        "calibration:enabled": "true",
+        "calibration:apply": "none",
+        "scoring:mass_error_kernel_fit": "full"
+      },
+      "files": [
+        "hfx_A2",
+        "hfx_B1",
+        "hfx_B3",
+        "astral_A2",
+        "astral_B1",
+        "astral_B3",
+        "lumos_lfq_5192",
+        "lumos_lfq_5194",
+        "lumos_lfq_5199",
+        "eclipse_tmtpro_10855",
+        "eclipse_tmtpro_10858",
+        "eclipse_tmtpro_10863",
+        "tims_plasma_30min",
+        "tims_plasma_50min"
+      ]
+    },
+    "m_shift_noapply": {
+      "build": "proto10379",
+      "parameter_delta": {
+        "scoring:method": "mass_accuracy",
+        "calibration:enabled": "true",
+        "calibration:apply": "none",
+        "scoring:mass_error_kernel_fit": "shift"
+      },
+      "files": [
+        "hfx_A2",
+        "hfx_B1",
+        "hfx_B3",
+        "astral_A2",
+        "astral_B1",
+        "astral_B3",
+        "lumos_lfq_5192",
+        "lumos_lfq_5194",
+        "lumos_lfq_5199",
+        "eclipse_tmtpro_10855",
+        "eclipse_tmtpro_10858",
+        "eclipse_tmtpro_10863",
+        "tims_plasma_30min",
+        "tims_plasma_50min"
+      ]
+    },
+    "m_shift_prec_robust_stride": {
+      "build": "proto10379",
+      "parameter_delta": {
+        "scoring:method": "mass_accuracy",
+        "calibration:enabled": "true",
+        "calibration:apply": "precursor",
+        "calibration:precursor_window": "robust",
+        "calibration:subset": "stride",
+        "scoring:mass_error_kernel_fit": "shift"
+      },
+      "files": [
+        "hfx_A2",
+        "hfx_B1",
+        "hfx_B3",
+        "astral_A2",
+        "astral_B1",
+        "astral_B3",
+        "lumos_lfq_5192",
+        "lumos_lfq_5194",
+        "lumos_lfq_5199",
+        "eclipse_tmtpro_10855",
+        "eclipse_tmtpro_10858",
+        "eclipse_tmtpro_10863",
+        "tims_plasma_30min",
+        "tims_plasma_50min"
+      ]
+    },
+    "m_shift_frag": {
+      "build": "proto10379",
+      "parameter_delta": {
+        "scoring:method": "mass_accuracy",
+        "calibration:enabled": "true",
+        "calibration:apply": "fragment",
+        "scoring:mass_error_kernel_fit": "shift"
+      },
+      "files": [
+        "hfx_A2",
+        "hfx_B1",
+        "hfx_B3",
+        "astral_A2",
+        "astral_B1",
+        "astral_B3",
+        "lumos_lfq_5192",
+        "lumos_lfq_5194",
+        "lumos_lfq_5199",
+        "eclipse_tmtpro_10855",
+        "eclipse_tmtpro_10858",
+        "eclipse_tmtpro_10863",
+        "tims_plasma_30min",
+        "tims_plasma_50min"
+      ]
+    },
+    "p_default": {
+      "build": "proto10378",
+      "parameter_delta": {
+        "annotate:self_trained_ion_priors": "true"
+      },
+      "files": [
+        "velos_125_R1",
+        "hfx_A2"
+      ]
+    },
+    "p_zauto": {
+      "build": "proto10378",
+      "parameter_delta": {
+        "annotate:self_trained_ion_priors": "true",
+        "annotate:ion_prior_fragment_charges": "auto"
+      },
+      "files": [
+        "velos_125_R1",
+        "velos_5000_R2",
+        "velos_25000_R3",
+        "hfx_A2",
+        "lumos_tmt_5058",
+        "lumos_tmt_5059",
+        "lumos_tmt_5066"
+      ]
+    },
+    "p_residue": {
+      "build": "proto10378",
+      "parameter_delta": {
+        "annotate:self_trained_ion_priors": "true",
+        "annotate:ion_prior_residue_context": "true"
+      },
+      "files": [
+        "velos_125_R1",
+        "velos_5000_R2",
+        "velos_25000_R3",
+        "hfx_A2",
+        "hfx_B1",
+        "hfx_B3",
+        "astral_A2",
+        "astral_B1",
+        "astral_B3",
+        "lumos_lfq_5192",
+        "lumos_lfq_5194",
+        "lumos_lfq_5199",
+        "lumos_tmt_5058",
+        "lumos_tmt_5059",
+        "lumos_tmt_5066",
+        "eclipse_tmtpro_10855",
+        "eclipse_tmtpro_10858",
+        "eclipse_tmtpro_10863",
+        "tims_plasma_30min",
+        "tims_plasma_50min"
+      ]
+    },
+    "p_zauto_residue": {
+      "build": "proto10378",
+      "parameter_delta": {
+        "annotate:self_trained_ion_priors": "true",
+        "annotate:ion_prior_fragment_charges": "auto",
+        "annotate:ion_prior_residue_context": "true"
+      },
+      "files": [
+        "velos_125_R1",
+        "velos_5000_R2",
+        "velos_25000_R3",
+        "lumos_tmt_5058",
+        "lumos_tmt_5059",
+        "lumos_tmt_5066"
+      ]
+    }
+  },
+  "nightly": "pyOpenMS 3.7.0.dev20261001 (e25ac61)",
+  "percolator": "3.09.0 -Y -U, seeds 1/42/137"
+}

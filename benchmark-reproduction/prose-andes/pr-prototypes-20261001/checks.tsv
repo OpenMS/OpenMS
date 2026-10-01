@@ -1,0 +1,18 @@
+dataset	check	ok
+hfx_A2	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+hfx_B1	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+hfx_B3	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+astral_A2	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+astral_B1	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+astral_B3	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+lumos_lfq_5192	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+lumos_lfq_5194	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+lumos_lfq_5199	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+eclipse_tmtpro_10855	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+eclipse_tmtpro_10858	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+eclipse_tmtpro_10863	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+tims_plasma_30min	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+tims_plasma_50min	c_default (prototype defaults) identical to pr65_default (PR head): PIN and native TSV	True
+velos_125_R1	p_default (prototype defaults) identical to pr66_priors (PR head): PIN and native TSV	True
+hfx_A2	p_default (prototype defaults) identical to pr66_priors (PR head): PIN and native TSV	True
+hfx_A2	p_zauto on deisotoped data resolves to charge 1: PIN identical to pr66_priors	True

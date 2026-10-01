@@ -1,0 +1,152 @@
+From 377d3c7af86e44a46cfff7f86ef11a0ef8149e77 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 1 Oct 2026 17:17:29 +0000
+Subject: [PATCH] [PROTOTYPE] ProSE: switches for calibration windows,
+ calibration sample and kernel fit
+
+calibration:apply (both|precursor|fragment|none), calibration:precursor_window
+(quantile|robust), calibration:subset (top_tic|stride) and
+scoring:mass_error_kernel_fit (full|shift|none). Defaults reproduce 16ff034.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01D1N3pC2AqJt57Q3v87bWxz
+---
+ .../OpenMS/ANALYSIS/ID/ProSEAlgorithm.h       |  4 ++
+ .../source/ANALYSIS/ID/ProSEAlgorithm.cpp     | 58 +++++++++++++++++--
+ 2 files changed, 58 insertions(+), 4 deletions(-)
+
+diff --git a/src/openms/include/OpenMS/ANALYSIS/ID/ProSEAlgorithm.h b/src/openms/include/OpenMS/ANALYSIS/ID/ProSEAlgorithm.h
+index 5eae1f4..ff4b2c1 100644
+--- a/src/openms/include/OpenMS/ANALYSIS/ID/ProSEAlgorithm.h
++++ b/src/openms/include/OpenMS/ANALYSIS/ID/ProSEAlgorithm.h
+@@ -895,6 +895,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
+     bool calibration_enabled_{false};
+     double calibration_subset_ratio_{0.1};
+     Size calibration_min_psms_{50};
++    std::string calibration_apply_{"both"};   ///< calibration:apply
++    bool calibration_robust_window_{false};   ///< calibration:precursor_window == "robust"
++    bool calibration_stride_subset_{false};   ///< calibration:subset == "stride"
++    std::string mass_error_kernel_fit_{"full"}; ///< scoring:mass_error_kernel_fit
+ 
+     /**
+      * @brief Result of a calibration pass.
+diff --git a/src/openms/source/ANALYSIS/ID/ProSEAlgorithm.cpp b/src/openms/source/ANALYSIS/ID/ProSEAlgorithm.cpp
+index 1c836a5..d451727 100644
+--- a/src/openms/source/ANALYSIS/ID/ProSEAlgorithm.cpp
++++ b/src/openms/source/ANALYSIS/ID/ProSEAlgorithm.cpp
+@@ -243,6 +243,11 @@ namespace OpenMS
+                        "scoring:mass_error_shift_resolved and scoring:mass_error_sd_resolved). Independent of the matching tolerance.",
+                        {"advanced"});
+     defaults_.setMinFloat("scoring:mass_error_sd", 1e-6);
++    defaults_.setValue("scoring:mass_error_kernel_fit", "full",
++                       "What a successful calibration pass fits of the mass-accuracy kernel: 'full' (center and width), 'shift' (center only; "
++                       "the width stays scoring:mass_error_sd) or 'none' (the configured kernel is kept).",
++                       {"advanced"});
++    defaults_.setValidStrings("scoring:mass_error_kernel_fit", {"full", "shift", "none"});
+     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
+ 
+     // Ion series toggles
+@@ -280,6 +285,21 @@ namespace OpenMS
+       "Minimum number of confident PSMs required for calibration. If fewer are found, "
+       "calibration is skipped and the user-configured tolerances are used.");
+     defaults_.setMinInt("calibration:min_psms", 1);
++    defaults_.setValue("calibration:apply", "both",
++      "Calibrated windows the main search uses: 'both' (precursor and fragment), 'precursor', 'fragment' or 'none'. "
++      "A window not applied stays as configured. The mass-accuracy kernel fit (scoring:mass_error_kernel_fit) does not depend on this choice.",
++      {"advanced"});
++    defaults_.setValidStrings("calibration:apply", {"both", "precursor", "fragment", "none"});
++    defaults_.setValue("calibration:precursor_window", "quantile",
++      "Calibrated precursor window: 'quantile' spans the 0.5% to 99.5% quantiles of the signed precursor errors; 'robust' is "
++      "median +/- max(2 ppm, 3 * 1.4826 * MAD + 0.5 ppm). 'robust' applies to ppm tolerances; Da tolerances use 'quantile'.",
++      {"advanced"});
++    defaults_.setValidStrings("calibration:precursor_window", {"quantile", "robust"});
++    defaults_.setValue("calibration:subset", "top_tic",
++      "Spectra of the calibration pass: 'top_tic' takes the calibration:subset_ratio fraction with the highest total ion current, "
++      "'stride' the same number evenly spaced over the run.",
++      {"advanced"});
++    defaults_.setValidStrings("calibration:subset", {"top_tic", "stride"});
+ 
+     defaults_.setValue("database:chunk_size", 0,
+       "Split the protein database into chunks of at most this many proteins for fragment index "
+@@ -404,9 +424,13 @@ namespace OpenMS
+     calibration_enabled_ = calibration_mode == "true" || (calibration_mode == "auto" && deisotope_supported);
+     calibration_subset_ratio_ = param_.getValue("calibration:subset_ratio");
+     calibration_min_psms_ = param_.getValue("calibration:min_psms");
++    calibration_apply_ = param_.getValue("calibration:apply").toString();
++    calibration_robust_window_ = param_.getValue("calibration:precursor_window").toString() == "robust";
++    calibration_stride_subset_ = param_.getValue("calibration:subset").toString() == "stride";
+ 
+     mass_accuracy_score_ = param_.getValue("scoring:method").toString() == "mass_accuracy";
+     mass_error_sd_ppm_ = param_.getValue("scoring:mass_error_sd");
++    mass_error_kernel_fit_ = param_.getValue("scoring:mass_error_kernel_fit").toString();
+     if (mass_accuracy_score_ && (! std::isfinite(mass_error_sd_ppm_) || mass_error_sd_ppm_ <= 0.0))
+     {
+       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "scoring:mass_error_sd must be finite and positive.");
+@@ -3332,6 +3356,12 @@ namespace OpenMS
+     std::sort(tic_index.rbegin(), tic_index.rend());
+     Size subset_size = std::max<Size>(1, static_cast<Size>(spectra.size() * calibration_subset_ratio_));
+     if (subset_size > tic_index.size()) subset_size = tic_index.size();
++    if (calibration_stride_subset_)
++    {
++      // Evenly spaced over the run instead of the most intense spectra, whose precursors are
++      // measured more precisely than the run's typical precursor.
++      for (Size k = 0; k < subset_size; ++k) { tic_index[k] = {0.0, (k * spectra.size()) / subset_size}; }
++    }
+ 
+     OPENMS_LOG_INFO << "[ProSE] Calibration: scoring " << subset_size << " / " << spectra.size()
+                     << " spectra (top TIC)..." << std::endl;
+@@ -3519,9 +3549,19 @@ namespace OpenMS
+     result.precursor_spread = std::max(cal_lower_raw, cal_upper_raw);  // diagnostic only
+     if (!result.extreme_bias)
+     {
++      double cal_lower = cal_lower_raw;
++      double cal_upper = cal_upper_raw;
++      if (calibration_robust_window_ && precursor_mass_tolerance_unit_ == "ppm")
++      {
++        // Robust window around the bias: median +/- max(2 ppm, 3 sigma + 0.5 ppm), sigma = 1.4826 * MAD.
++        const double sigma = 1.4826 * Math::MAD(sorted_errs.begin(), sorted_errs.end(), result.precursor_shift);
++        const double half_width = std::max(2.0, 3.0 * sigma + 0.5);
++        cal_lower = std::max(min_tolerance, result.precursor_shift + half_width);
++        cal_upper = std::max(min_tolerance, half_width - result.precursor_shift);
++      }
+       // Only tighten — cap against user-configured bounds.
+-      result.cal_lower = std::min(cal_lower_raw, precursor_mass_tolerance_lower_);
+-      result.cal_upper = std::min(cal_upper_raw, precursor_mass_tolerance_upper_);
++      result.cal_lower = std::min(cal_lower, precursor_mass_tolerance_lower_);
++      result.cal_upper = std::min(cal_upper, precursor_mass_tolerance_upper_);
+     }
+     // else: cal_lower/cal_upper stay at 0; writeback block skips the calibration result.
+ 
+@@ -3551,17 +3591,27 @@ namespace OpenMS
+     // score crop. Too few ions leave the configured kernel in place (fragment_kernel_valid
+     // stays false); the width is floored so exact synthetic errors cannot collapse the kernel.
+     const Size kernel_min_ions = std::max<Size>(calibration_min_psms_, 50);
+-    if (fragment_errors_signed_ppm.size() >= kernel_min_ions)
++    if (mass_error_kernel_fit_ != "none" && fragment_errors_signed_ppm.size() >= kernel_min_ions)
+     {
+       std::sort(fragment_errors_signed_ppm.begin(), fragment_errors_signed_ppm.end());
+       const double shift = Math::median(fragment_errors_signed_ppm.begin(), fragment_errors_signed_ppm.end(), /*sorted=*/true);
+       const double mad = Math::MAD(fragment_errors_signed_ppm.begin(), fragment_errors_signed_ppm.end(), shift);
+       result.fragment_error_shift_ppm = shift;
+-      result.fragment_error_sd_ppm = std::max(1.4826 * mad, 0.1);
++      result.fragment_error_sd_ppm = mass_error_kernel_fit_ == "shift" ? mass_error_sd_ppm_ : std::max(1.4826 * mad, 0.1);
+       result.fragment_error_ions = fragment_errors_signed_ppm.size();
+       result.fragment_kernel_valid = true;
+     }
+ 
++    // calibration:apply: a window that is not applied keeps its configured value.
++    const bool apply_precursor = calibration_apply_ == "both" || calibration_apply_ == "precursor";
++    const bool apply_fragment = calibration_apply_ == "both" || calibration_apply_ == "fragment";
++    if (!apply_fragment) { result.fragment_tolerance = fragment_mass_tolerance_; }
++    if (!apply_precursor && !result.extreme_bias)
++    {
++      result.cal_lower = precursor_mass_tolerance_lower_;
++      result.cal_upper = precursor_mass_tolerance_upper_;
++    }
++
+     result.success = true;
+ 
+     OPENMS_LOG_INFO << "[ProSE] Calibration: " << precursor_errors.size() << " PSMs used (top "
+-- 
+2.43.0
+

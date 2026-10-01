@@ -1,0 +1,415 @@
+From 129e4d4c57d134bca964aa7f411ce27f45aff07d Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 1 Oct 2026 17:19:38 +0000
+Subject: [PATCH] [PROTOTYPE] ProSE ion priors: fragment charges by
+ deisotoping; optional cleavage-residue context
+
+annotate:ion_prior_fragment_charges (1|auto): 'auto' models fragments up to
+min(precursor charge - 1, 3) when spectra are not deisotoped (low-resolution
+data). annotate:ion_prior_residue_context: condition the outcome on proline
+C-terminal / D,E N-terminal of the cleavage, backing off to the position
+context. Defaults reproduce 241f9a7.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01D1N3pC2AqJt57Q3v87bWxz
+---
+ .../ANALYSIS/ID/FragmentIonLikelihoodModel.h  | 29 ++++++--
+ .../OpenMS/ANALYSIS/ID/ProSEAlgorithm.h       |  2 +
+ .../ID/FragmentIonLikelihoodModel.cpp         | 68 ++++++++++++++-----
+ .../source/ANALYSIS/ID/ProSEAlgorithm.cpp     | 36 +++++++---
+ .../FragmentIonLikelihoodModel_test.cpp       | 55 +++++++++++++++
+ 5 files changed, 160 insertions(+), 30 deletions(-)
+
+diff --git a/src/openms/include/OpenMS/ANALYSIS/ID/FragmentIonLikelihoodModel.h b/src/openms/include/OpenMS/ANALYSIS/ID/FragmentIonLikelihoodModel.h
+index 5cd7846..4a92b66 100644
+--- a/src/openms/include/OpenMS/ANALYSIS/ID/FragmentIonLikelihoodModel.h
++++ b/src/openms/include/OpenMS/ANALYSIS/ID/FragmentIonLikelihoodModel.h
+@@ -51,7 +51,8 @@ namespace OpenMS
+     static constexpr Size RANK_BINS = 7;         ///< matched peak intensity rank bins
+     static constexpr Size ABSENT = RANK_BINS;    ///< outcome of an unmatched ion
+     static constexpr Size OUTCOMES = RANK_BINS + 1;
+-    static constexpr Size CONTEXTS = SERIES * PRECURSOR_BUCKETS * FRAGMENT_CHARGES * POSITION_BINS;
++    static constexpr Size RESIDUE_CLASSES = 3;   ///< residues at the cleavage: other, proline C-terminal of it, D/E N-terminal of it
++    static constexpr Size CONTEXTS = SERIES * PRECURSOR_BUCKETS * FRAGMENT_CHARGES * POSITION_BINS * RESIDUE_CLASSES;
+ 
+     /// Context of one theoretical ion
+     struct Context
+@@ -60,6 +61,7 @@ namespace OpenMS
+       Size precursor_bucket = 0; ///< 0: charge 1-2, 1: charge 3, 2: charge >= 4
+       Size fragment_charge = 0;  ///< 0: charge 1, 1: charge >= 2
+       Size position_bin = 0;     ///< POSITION_BINS * fragment length / peptide length, capped
++      Size residue_class = 0;    ///< 0: other, 1: proline C-terminal of the cleavage, 2: D or E N-terminal of it (residue context only)
+     };
+ 
+     /// Features of one PSM
+@@ -125,7 +127,23 @@ namespace OpenMS
+                          int precursor_charge,
+                          double tolerance,
+                          bool ppm,
+-                         bool noise);
++                         bool noise,
++                         const std::string& residues = std::string());
++
++    /**
++      @brief Residue class of the cleavage that forms an ion (see Context::residue_class).
++
++      @param residues One-letter residues of the peptide; an empty or mismatching string gives class 0.
++      @param prefix Whether the ion is an N-terminal (a/b/c) ion.
++      @param ordinal The ion's number of residues.
++    */
++    static Size residueClass(const std::string& residues, bool prefix, Size ordinal);
++
++    /// Condition the outcome on the residues at the cleavage as well (off by default). Set before the first observation.
++    void setResidueContext(bool on) { residue_context_ = on; finalized_ = false; }
++
++    /// Whether the outcome is conditioned on the residues at the cleavage
++    bool residueContext() const { return residue_context_; }
+ 
+     /// Turn the counts into smoothed log-probabilities. Required before scoring; observations added later need another call.
+     void finalize();
+@@ -167,7 +185,8 @@ namespace OpenMS
+                    int precursor_charge,
+                    double tolerance,
+                    bool ppm,
+-                   Size top_k = 6) const;
++                   Size top_k = 6,
++                   const std::string& residues = std::string()) const;
+ 
+   private:
+     /// One theoretical ion after matching
+@@ -188,10 +207,11 @@ namespace OpenMS
+                            int precursor_charge,
+                            double tolerance,
+                            bool ppm,
++                           const std::string& residues,
+                            std::vector<Ion_>& ions);
+ 
+     /// Smoothed log-probabilities of one count table, backing off over the context hierarchy
+-    static std::vector<double> smooth_(const std::vector<double>& counts, double pseudo_count);
++    static std::vector<double> smooth_(const std::vector<double>& counts, double pseudo_count, bool residue_level);
+ 
+     /// Throws unless finalize() was called after the last observation
+     void requireTrained_() const;
+@@ -204,5 +224,6 @@ namespace OpenMS
+     Size noise_psms_ = 0;
+     double pseudo_count_ = 20.0;
+     bool finalized_ = false;
++    bool residue_context_ = false;
+   };
+ } // namespace OpenMS
+diff --git a/src/openms/include/OpenMS/ANALYSIS/ID/ProSEAlgorithm.h b/src/openms/include/OpenMS/ANALYSIS/ID/ProSEAlgorithm.h
+index 4b7b34b..2fa21b7 100644
+--- a/src/openms/include/OpenMS/ANALYSIS/ID/ProSEAlgorithm.h
++++ b/src/openms/include/OpenMS/ANALYSIS/ID/ProSEAlgorithm.h
+@@ -865,6 +865,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
+ 
+     bool self_trained_ion_priors_{false}; ///< annotate:self_trained_ion_priors
+     double ion_prior_train_fdr_{0.01};    ///< annotate:ion_prior_train_fdr: TDC q-value threshold of the training PSMs
++    bool ion_prior_auto_charges_{false};    ///< annotate:ion_prior_fragment_charges == "auto"
++    bool ion_prior_residue_context_{false}; ///< annotate:ion_prior_residue_context
+     Size ion_prior_min_psms_{100};        ///< annotate:ion_prior_min_psms: training PSMs required to fit the model
+ 
+     Size peptide_min_size_;
+diff --git a/src/openms/source/ANALYSIS/ID/FragmentIonLikelihoodModel.cpp b/src/openms/source/ANALYSIS/ID/FragmentIonLikelihoodModel.cpp
+index d4c69a7..65fbe4a 100644
+--- a/src/openms/source/ANALYSIS/ID/FragmentIonLikelihoodModel.cpp
++++ b/src/openms/source/ANALYSIS/ID/FragmentIonLikelihoodModel.cpp
+@@ -94,10 +94,21 @@ namespace OpenMS
+     return ordinal > 0;
+   }
+ 
++  Size FragmentIonLikelihoodModel::residueClass(const std::string& residues, bool prefix, Size ordinal)
++  {
++    // The cleavage that forms the ion lies between residues left and left + 1 (0-based).
++    const Size n = residues.size();
++    if (ordinal == 0 || ordinal >= n) return 0;
++    const Size left = prefix ? ordinal - 1 : n - ordinal - 1;
++    if (residues[left + 1] == 'P') return 1;
++    if (residues[left] == 'D' || residues[left] == 'E') return 2;
++    return 0;
++  }
++
+   Size FragmentIonLikelihoodModel::index_(const Context& context, Size outcome)
+   {
+-    const Size cell = ((context.series * PRECURSOR_BUCKETS + context.precursor_bucket) * FRAGMENT_CHARGES + context.fragment_charge) * POSITION_BINS
+-                      + context.position_bin;
++    const Size cell = (((context.series * PRECURSOR_BUCKETS + context.precursor_bucket) * FRAGMENT_CHARGES + context.fragment_charge) * POSITION_BINS
++                       + context.position_bin) * RESIDUE_CLASSES + context.residue_class;
+     return cell * OUTCOMES + outcome;
+   }
+ 
+@@ -108,6 +119,7 @@ namespace OpenMS
+                                               int precursor_charge,
+                                               double tolerance,
+                                               bool ppm,
++                                              const std::string& residues,
+                                               std::vector<Ion_>& ions)
+   {
+     if (! std::isfinite(tolerance) || tolerance <= 0.0)
+@@ -144,7 +156,9 @@ namespace OpenMS
+         const Int nearest = spectrum.findNearest(mz, width);
+         if (nearest >= 0) outcome = rankOutcome(ranks[static_cast<Size>(nearest)]);
+       }
+-      ions.push_back({contextOf(prefix, precursor_charge, fragment_charge, ordinal, peptide_length), outcome});
++      Context context = contextOf(prefix, precursor_charge, fragment_charge, ordinal, peptide_length);
++      context.residue_class = residueClass(residues, prefix, ordinal);
++      ions.push_back({context, outcome});
+     }
+   }
+ 
+@@ -155,10 +169,12 @@ namespace OpenMS
+                                                    int precursor_charge,
+                                                    double tolerance,
+                                                    bool ppm,
+-                                                   bool noise)
++                                                   bool noise,
++                                                   const std::string& residues)
+   {
+     std::vector<Ion_> ions;
+-    matchIons_(spectrum, ranks, theoretical, peptide_length, precursor_charge, tolerance, ppm, ions);
++    matchIons_(spectrum, ranks, theoretical, peptide_length, precursor_charge, tolerance, ppm,
++               residue_context_ ? residues : std::string(), ions);
+     std::vector<double>& counts = noise ? noise_counts_ : signal_counts_;
+     for (const Ion_& ion : ions)
+     {
+@@ -169,7 +185,7 @@ namespace OpenMS
+     finalized_ = false;
+   }
+ 
+-  std::vector<double> FragmentIonLikelihoodModel::smooth_(const std::vector<double>& counts, double pseudo_count)
++  std::vector<double> FragmentIonLikelihoodModel::smooth_(const std::vector<double>& counts, double pseudo_count, bool residue_level)
+   {
+     // Three back-off levels above the full context: (series, precursor bucket, fragment charge),
+     // (series) and the global outcome distribution with a flat Laplace prior. Each level's
+@@ -201,8 +217,11 @@ namespace OpenMS
+         {
+           for (Size position = 0; position < POSITION_BINS; ++position)
+           {
+-            const Size cell = index_({series, bucket, charge, position}, 0);
+-            for (Size o = 0; o < OUTCOMES; ++o) series_counts[o] += counts[cell + o];
++            for (Size residue = 0; residue < RESIDUE_CLASSES; ++residue)
++            {
++              const Size cell = index_({series, bucket, charge, position, residue}, 0);
++              for (Size o = 0; o < OUTCOMES; ++o) series_counts[o] += counts[cell + o];
++            }
+           }
+         }
+       }
+@@ -211,19 +230,30 @@ namespace OpenMS
+       {
+         for (Size charge = 0; charge < FRAGMENT_CHARGES; ++charge)
+         {
++          // Counts of each position, summed over the residue classes.
++          std::vector<std::vector<double>> position_counts(POSITION_BINS, std::vector<double>(OUTCOMES, 0.0));
+           std::vector<double> charge_counts(OUTCOMES, 0.0);
+           for (Size position = 0; position < POSITION_BINS; ++position)
+           {
+-            const Size cell = index_({series, bucket, charge, position}, 0);
+-            for (Size o = 0; o < OUTCOMES; ++o) charge_counts[o] += counts[cell + o];
++            for (Size residue = 0; residue < RESIDUE_CLASSES; ++residue)
++            {
++              const Size cell = index_({series, bucket, charge, position, residue}, 0);
++              for (Size o = 0; o < OUTCOMES; ++o) position_counts[position][o] += counts[cell + o];
++            }
++            for (Size o = 0; o < OUTCOMES; ++o) charge_counts[o] += position_counts[position][o];
+           }
+           const std::vector<double> charge_p = blend(charge_counts, series_p);
+           for (Size position = 0; position < POSITION_BINS; ++position)
+           {
+-            const Size cell = index_({series, bucket, charge, position}, 0);
+-            const std::vector<double> own(counts.begin() + cell, counts.begin() + cell + OUTCOMES);
+-            const std::vector<double> p = blend(own, charge_p);
+-            for (Size o = 0; o < OUTCOMES; ++o) logp[cell + o] = std::log(p[o]);
++            const std::vector<double> position_p = blend(position_counts[position], charge_p);
++            for (Size residue = 0; residue < RESIDUE_CLASSES; ++residue)
++            {
++              // Without the residue level every residue class shares its position's probabilities.
++              const Size cell = index_({series, bucket, charge, position, residue}, 0);
++              const std::vector<double> own(counts.begin() + cell, counts.begin() + cell + OUTCOMES);
++              const std::vector<double> p = residue_level ? blend(own, position_p) : position_p;
++              for (Size o = 0; o < OUTCOMES; ++o) logp[cell + o] = std::log(p[o]);
++            }
+           }
+         }
+       }
+@@ -233,8 +263,8 @@ namespace OpenMS
+ 
+   void FragmentIonLikelihoodModel::finalize()
+   {
+-    signal_logp_ = smooth_(signal_counts_, pseudo_count_);
+-    noise_logp_ = smooth_(noise_counts_, pseudo_count_);
++    signal_logp_ = smooth_(signal_counts_, pseudo_count_, residue_context_);
++    noise_logp_ = smooth_(noise_counts_, pseudo_count_, residue_context_);
+     finalized_ = true;
+   }
+ 
+@@ -266,11 +296,13 @@ namespace OpenMS
+                                                                          int precursor_charge,
+                                                                          double tolerance,
+                                                                          bool ppm,
+-                                                                         Size top_k) const
++                                                                         Size top_k,
++                                                                         const std::string& residues) const
+   {
+     requireTrained_();
+     std::vector<Ion_> ions;
+-    matchIons_(spectrum, ranks, theoretical, peptide_length, precursor_charge, tolerance, ppm, ions);
++    matchIons_(spectrum, ranks, theoretical, peptide_length, precursor_charge, tolerance, ppm,
++               residue_context_ ? residues : std::string(), ions);
+     Features features;
+     features.theoretical_ions = ions.size();
+     if (ions.empty()) return features;
+diff --git a/src/openms/source/ANALYSIS/ID/ProSEAlgorithm.cpp b/src/openms/source/ANALYSIS/ID/ProSEAlgorithm.cpp
+index 9a325c3..8cdcf3a 100644
+--- a/src/openms/source/ANALYSIS/ID/ProSEAlgorithm.cpp
++++ b/src/openms/source/ANALYSIS/ID/ProSEAlgorithm.cpp
+@@ -189,6 +189,14 @@ namespace OpenMS
+     defaults_.setValue("annotate:ion_prior_min_psms", 100,
+       "Minimum number of training PSMs of annotate:self_trained_ion_priors; with fewer, the features are 0.", {"advanced"});
+     defaults_.setMinInt("annotate:ion_prior_min_psms", 1);
++    defaults_.setValue("annotate:ion_prior_fragment_charges", "1",
++      "Fragment charges of the ions annotate:self_trained_ion_priors models: '1' singly charged only; 'auto' singly charged "
++      "for deisotoped spectra, otherwise up to min(precursor charge - 1, 3).", {"advanced"});
++    defaults_.setValidStrings("annotate:ion_prior_fragment_charges", {"1", "auto"});
++    defaults_.setValue("annotate:ion_prior_residue_context", "false",
++      "Condition the ion priors on the residues at the cleavage as well: proline C-terminal of it, D or E N-terminal of it, or other.",
++      {"advanced"});
++    defaults_.setValidStrings("annotate:ion_prior_residue_context", {"true", "false"});
+     defaults_.setSectionDescription("annotate", "Annotation Options");
+ 
+     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
+@@ -387,6 +395,8 @@ namespace OpenMS
+     self_trained_ion_priors_ = param_.getValue("annotate:self_trained_ion_priors").toBool();
+     ion_prior_train_fdr_ = param_.getValue("annotate:ion_prior_train_fdr");
+     ion_prior_min_psms_ = static_cast<Size>(static_cast<int>(param_.getValue("annotate:ion_prior_min_psms")));
++    ion_prior_auto_charges_ = param_.getValue("annotate:ion_prior_fragment_charges").toString() == "auto";
++    ion_prior_residue_context_ = param_.getValue("annotate:ion_prior_residue_context").toBool();
+     fdr_psm_ = param_.getValue("FDR:PSM");
+     fdr_protein_ = param_.getValue("FDR:protein");
+ 
+@@ -3274,8 +3284,14 @@ namespace OpenMS
+     if (! self_trained_ion_priors_) return;
+     const bool ppm = fragment_mass_tolerance_unit_ == "ppm";
+     const SpectrumGenerators_ generators = spectrumGenerators_();
+-    // The model sees the ions native scoring matches: singly charged fragments (see scoreSpectraAgainstIndex_).
+-    constexpr int max_fragment_charge = 1;
++    // Deisotoped spectra carry singly charged fragments only. Without deisotoping (low-resolution data), 'auto'
++    // models fragments up to min(precursor charge - 1, 3), as charge 2 and 3 fragments of higher precursor
++    // charges stay at their own m/z there.
++    const bool deisotoped = deisotope_requested_ && Deisotoper::isToleranceSupported(fragment_mass_tolerance_, ppm);
++    auto max_fragment_charge = [this, deisotoped](int precursor_charge) {
++      if (! ion_prior_auto_charges_ || deisotoped) return 1;
++      return std::max(1, std::min(precursor_charge - 1, 3));
++    };
+ 
+     // Spectrum of a PSM via the scan_index postProcessHits_ stores; -1 if the PSM cannot be scored.
+     auto scan_of = [&spectra](const PeptideIdentification& pi) -> SignedSize {
+@@ -3337,6 +3353,7 @@ namespace OpenMS
+ 
+     // 2. Train on the confident PSMs; their reversed sequences on the same spectra are the noise.
+     FragmentIonLikelihoodModel model;
++    model.setResidueContext(ion_prior_residue_context_);
+     const bool trained = training.size() >= ion_prior_min_psms_;
+     if (trained)
+     {
+@@ -3350,13 +3367,15 @@ namespace OpenMS
+         const std::vector<Size> ranks = FragmentIonLikelihoodModel::intensityRanks(spec);
+         const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
+         theo.clear(true);
+-        tsg.getSpectrum(theo, hit.getSequence(), 1, max_fragment_charge);
+-        model.addObservations(spec, ranks, theo, hit.getSequence().size(), charge, fragment_mass_tolerance_, ppm, false);
++        tsg.getSpectrum(theo, hit.getSequence(), 1, max_fragment_charge(charge));
++        model.addObservations(spec, ranks, theo, hit.getSequence().size(), charge, fragment_mass_tolerance_, ppm, false,
++                              hit.getSequence().toUnmodifiedString());
+         const AASequence noise = reversedNoiseSequence_(hit.getSequence());
+         if (noise == hit.getSequence()) continue;
+         theo.clear(true);
+-        tsg.getSpectrum(theo, noise, 1, max_fragment_charge);
+-        model.addObservations(spec, ranks, theo, noise.size(), charge, fragment_mass_tolerance_, ppm, true);
++        tsg.getSpectrum(theo, noise, 1, max_fragment_charge(charge));
++        model.addObservations(spec, ranks, theo, noise.size(), charge, fragment_mass_tolerance_, ppm, true,
++                              noise.toUnmodifiedString());
+       }
+       model.finalize();
+       OPENMS_LOG_INFO << "[ProSE] Ion priors: trained on " << training.size() << " PSMs at q <= " << ion_prior_train_fdr_
+@@ -3387,8 +3406,9 @@ namespace OpenMS
+           const MSSpectrum& spec = spectra[static_cast<Size>(scan)];
+           const int charge = static_cast<int>(hit.getCharge());
+           theo.clear(true);
+-          generators.forSpectrum(spec).getSpectrum(theo, hit.getSequence(), 1, max_fragment_charge);
+-          features = model.score(spec, ranks, theo, hit.getSequence().size(), charge, fragment_mass_tolerance_, ppm);
++          generators.forSpectrum(spec).getSpectrum(theo, hit.getSequence(), 1, max_fragment_charge(charge));
++          features = model.score(spec, ranks, theo, hit.getSequence().size(), charge, fragment_mass_tolerance_, ppm, 6,
++                                 hit.getSequence().toUnmodifiedString());
+         }
+         hit.setMetaValue(Constants::UserParam::ION_PRIOR_LLR, features.log_likelihood_ratio);
+         hit.setMetaValue(Constants::UserParam::ION_PRIOR_EXPLAINED, features.explained_presence);
+diff --git a/src/tests/class_tests/openms/source/FragmentIonLikelihoodModel_test.cpp b/src/tests/class_tests/openms/source/FragmentIonLikelihoodModel_test.cpp
+index 83f2ccf..cf3135d 100644
+--- a/src/tests/class_tests/openms/source/FragmentIonLikelihoodModel_test.cpp
++++ b/src/tests/class_tests/openms/source/FragmentIonLikelihoodModel_test.cpp
+@@ -183,6 +183,61 @@ START_SECTION((static Context contextOf(bool prefix, int precursor_charge, int f
+ }
+ END_SECTION
+ 
++START_SECTION((static Size residueClass(const std::string& residues, bool prefix, Size ordinal)))
++{
++  using Model = FragmentIonLikelihoodModel;
++  TEST_EQUAL(Model::residueClass("ADPK", true, 2), 1)  // b2 | P
++  TEST_EQUAL(Model::residueClass("ADPK", false, 2), 1) // y2 = PK, same cleavage
++  TEST_EQUAL(Model::residueClass("AEGK", true, 2), 2)  // E | G
++  TEST_EQUAL(Model::residueClass("AEGK", false, 2), 2)
++  TEST_EQUAL(Model::residueClass("AGGK", true, 2), 0)
++  TEST_EQUAL(Model::residueClass("AGGK", true, 4), 0)  // no cleavage after the last residue
++  TEST_EQUAL(Model::residueClass("AGGK", false, 0), 0)
++  TEST_EQUAL(Model::residueClass("", true, 1), 0)
++}
++END_SECTION
++
++START_SECTION((void setResidueContext(bool on)))
++{
++  // Without residue context every ion of a position shares its probabilities, so the residues do not matter;
++  // with it, the proline cleavage learns its own outcome distribution.
++  const AASequence peptide = AASequence::fromString("ADPKLGEVK");
++  const std::string residues = peptide.toUnmodifiedString();
++  TheoreticalSpectrumGenerator tsg;
++  Param p = tsg.getParameters();
++  p.setValue("add_metainfo", "true");
++  tsg.setParameters(p);
++  PeakSpectrum theo;
++  tsg.getSpectrum(theo, peptide, 1, 1);
++  // Observed: only y7 (cleavage D|P) is present, intense.
++  MSSpectrum spec;
++  for (Size i = 0; i < theo.size(); ++i)
++  {
++    if (theo.getStringDataArrays()[0][i] == "y7+") { Peak1D peak(theo[i].getMZ(), 100.0f); spec.push_back(peak); }
++  }
++  spec.push_back(Peak1D(150.0, 1.0f));
++  spec.sortByPosition();
++  const std::vector<Size> ranks = FragmentIonLikelihoodModel::intensityRanks(spec);
++  FragmentIonLikelihoodModel plain, with_residues;
++  with_residues.setResidueContext(true);
++  TEST_EQUAL(with_residues.residueContext(), true)
++  for (Size i = 0; i < 30; ++i)
++  {
++    plain.addObservations(spec, ranks, theo, peptide.size(), 2, 0.02, false, false, residues);
++    with_residues.addObservations(spec, ranks, theo, peptide.size(), 2, 0.02, false, false, residues);
++  }
++  plain.finalize();
++  with_residues.finalize();
++  FragmentIonLikelihoodModel::Context proline = FragmentIonLikelihoodModel::contextOf(false, 2, 1, 7, peptide.size());
++  FragmentIonLikelihoodModel::Context other = proline;
++  proline.residue_class = 1;
++  // Without residue context both classes of the position are the same cell distribution.
++  TEST_REAL_SIMILAR(plain.presenceProbability(proline), plain.presenceProbability(other))
++  // With it, the always observed proline cleavage is more likely present than the class it was split from.
++  TEST_EQUAL(with_residues.presenceProbability(proline) > plain.presenceProbability(proline), true)
++}
++END_SECTION
++
+ START_SECTION((static bool parseIonName(const std::string& name, bool& prefix, Size& ordinal)))
+ {
+   bool prefix = false;
+-- 
+2.43.0
+
