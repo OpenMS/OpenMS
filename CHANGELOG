@@ -69,6 +69,7 @@ A restructured build system now supports building OpenMS with vcpkg, replacing t
 These are just a few of the many improvements in this release.
 
 General:
+  - DOC: Explicitly enable pre-release upgrades in the pyOpenMS nightly installation instructions.
   - FIX: Normalize source-file paths when converting them to file URIs, including Windows paths with mixed separators (#10275)
   - Updated the bundled PSI-MS controlled vocabulary from 4.1.155 to 4.2.2, including CV
     term-name changes in mzML/TraML output and vocabulary versions in mzTab-M/mzQC output
