@@ -266,7 +266,8 @@ if (GIT_TRACKING)
   ## A source tree made by git archive (the Release workflow's source tarball, GitHub's source
   ## archives) has no .git of its own, but carries its commit in .git_archival.txt. That takes
   ## precedence: a .git further up the tree would belong to another repository.
-  git_archival_info(_openms_archival_describe OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE OPENMS_GIT_ARCHIVAL_FOUND)
+  git_archival_info("${CMAKE_CURRENT_SOURCE_DIR}/.git_archival.txt"
+    _openms_archival_describe OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE OPENMS_GIT_ARCHIVAL_FOUND)
   if(OPENMS_GIT_ARCHIVAL_FOUND)
     ## The archive of the tag v<version> of this version carries the plain version below; any
     ## other archive is marked as exported, as before.
