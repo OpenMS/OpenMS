@@ -76,9 +76,10 @@ tolerance <= 0.1 Da or <= 100 ppm selects hyperscore with singly charged fragmen
 multiple fragment charges (intended for ion-trap CID). This uses the configured tolerance as a resolution proxy, not activation metadata. The choice
 is shared by all input files and fixed before mass calibration; search files requiring different tolerance regimes separately. Explicit scoring/charge
 settings override their respective automatic choices. Use hyperscore/single for legacy scoring; local fragment evidence remains a separate opt-in.
-@note Mass calibration defaults to '-Search:calibration:enabled auto': the calibration pass runs for high-resolution fragment tolerances
-(<= 0.1 Da or <= 100 ppm) and is skipped otherwise. Besides tightening the tolerances, the pass fits the fragment mass-error kernel of
-'-Search:scoring:method mass_accuracy' (center and width of the Gaussian) from its confident PSMs; the kernel the main search used is recorded
+@note Mass calibration ('-Search:calibration:enabled') is off by default. 'auto' runs the calibration pass for high-resolution fragment tolerances
+(<= 0.1 Da or <= 100 ppm) and skips it otherwise; 'true' always runs it. Besides tightening the tolerances, the pass fits the fragment mass-error kernel
+of '-Search:scoring:method mass_accuracy' from its confident PSMs: the Gaussian is centered on their median signed error, and its width is the fitted
+robust width when that is wider than '-Search:scoring:mass_error_sd' (the fit never narrows the kernel). The kernel the main search used is recorded
 in the output search parameters (UserParams 'scoring:mass_error_kernel', 'scoring:mass_error_sd_resolved', 'scoring:mass_error_shift_resolved').
 @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit
 open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.

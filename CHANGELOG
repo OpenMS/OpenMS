@@ -601,13 +601,14 @@ TOPP tools:
         groups; every other shipped mzTab reference has exactly one (fraction_group, label) per sample
         and is byte-identical (#9868, part of #9864)
     ProSE:
-      - calibration:enabled now defaults to 'auto', which runs the calibration pass for
-        high-resolution fragment tolerances (<= 0.1 Da / <= 100 ppm) and skips it otherwise.
-        The pass also fits the fragment mass-error kernel of scoring:method=mass_accuracy: the
-        main search centers the Gaussian on the median signed error of the confident PSMs'
-        matched ions and uses 1.4826 * MAD as its width instead of the fixed scoring:mass_error_sd
-        (recorded as scoring:mass_error_kernel, scoring:mass_error_sd_resolved and
-        scoring:mass_error_shift_resolved). HyperScore::computeMassAccuracy takes an optional
+      - calibration:enabled accepts 'auto', which runs the calibration pass for high-resolution
+        fragment tolerances (<= 0.1 Da / <= 100 ppm) and skips it otherwise; the default stays
+        'false'. The pass also fits the fragment mass-error kernel of scoring:method=mass_accuracy:
+        the main search centers the Gaussian on the median signed error of the confident PSMs'
+        matched ions and uses 1.4826 * MAD as its width when that is wider than
+        scoring:mass_error_sd (the fit never narrows the kernel). The kernel used is recorded as
+        scoring:mass_error_kernel, scoring:mass_error_sd_resolved and
+        scoring:mass_error_shift_resolved. HyperScore::computeMassAccuracy takes an optional
         kernel center; HyperScore::matchedFragmentErrorsPpm exposes the matched ions' errors.
       - Fixed FragmentIndex::build reusing old peptide coordinates on a second build;
         rebuilding now replaces the previous index and failed builds remain unbuilt.
@@ -622,9 +623,9 @@ TOPP tools:
         intensity products by Gaussian mass accuracy, using scoring:mass_error_sd (7 ppm
         by default). Matching tolerances and unweighted match annotations are unchanged.
         Applies to final scoring and precursor calibration, including chunked/multi-file
-        searches. Experimental high-resolution mode; with calibration, the kernel center and
-        width are fitted per run (see the calibration:enabled entry above). Auto selection is
-        unchanged.
+        searches. Experimental high-resolution mode; with calibration, the kernel center is
+        fitted per run and the width can only widen (see the calibration:enabled entry above).
+        Auto selection is unchanged.
       - Experimental native CID scoring: scoring:method=calibrated replaces HyperScore's
         factorial rewards with binomial fragment-match evidence; combine with
         scoring:fragment_charges=multiple to score higher fragment charges. Both final

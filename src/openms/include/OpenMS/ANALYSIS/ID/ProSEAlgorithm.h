@@ -708,7 +708,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// The kernel of the configured parameters: zero-centered with scoring:mass_error_sd
     MassAccuracyKernel_ configuredKernel_() const { return {mass_error_sd_ppm_, 0.0}; }
 
-    /// The fitted kernel of a successful calibration with enough matched ions, else the configured one
+    /// The fitted kernel of a successful calibration with enough matched ions (fitted center; the fitted
+    /// width only when wider than scoring:mass_error_sd), else the configured one
     MassAccuracyKernel_ effectiveKernel_(const CalibrationResult_& calibration) const;
 
     /// Record the kernel the main search scored with in the search parameters of @p protein_ids
@@ -973,7 +974,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double fragment_tolerance{0};  ///< estimated fragment tolerance (same unit as configured)
       double fragment_shift{0};      ///< reserved for future fragment m/z shift correction
       double fragment_error_shift_ppm{0}; ///< median signed fragment error (observed - theoretical, ppm) of the confident PSMs' matched ions
-      double fragment_error_sd_ppm{0};    ///< robust width of those errors: 1.4826 * MAD, floored at 0.1 ppm
+      double fragment_error_sd_ppm{0};    ///< robust width of those errors: 1.4826 * MAD, floored at 0.1 ppm (effectiveKernel_ floors it at scoring:mass_error_sd)
       Size fragment_error_ions{0};        ///< matched ions the two fragment-error estimates are based on
       bool fragment_kernel_valid{false};  ///< enough matched ions to replace the configured mass-accuracy kernel
       bool extreme_bias{false};      ///< |shift| >= spread — writeback skipped (test observability)

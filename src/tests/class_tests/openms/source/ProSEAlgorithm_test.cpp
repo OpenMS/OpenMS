@@ -3363,9 +3363,12 @@ END_SECTION
 START_SECTION(([EXTRA] calibration:enabled=auto follows the fragment tolerance resolution))
 {
   ProSEAlgorithm_test algo;
-  TEST_EQUAL(algo.getParameters().getValue("calibration:enabled").toString(), "auto")
-  TEST_TRUE(algo.calibration_enabled_) // the default fragment tolerance (20 ppm) is high-resolution
+  TEST_EQUAL(algo.getParameters().getValue("calibration:enabled").toString(), "false")
+  TEST_FALSE(algo.calibration_enabled_) // off by default
   Param p = algo.getParameters();
+  p.setValue("calibration:enabled", "auto");
+  algo.setParameters(p);
+  TEST_TRUE(algo.calibration_enabled_) // the default fragment tolerance (20 ppm) is high-resolution
   p.setValue("fragment:mass_tolerance", 0.5);
   p.setValue("fragment:mass_tolerance_unit", "Da");
   algo.setParameters(p);
@@ -3391,6 +3394,8 @@ START_SECTION(([EXTRA] calibration fits the mass-accuracy kernel from confident 
   // Fragment peaks carry a cyclic signed ppm error pattern (median +4 ppm, MAD 1.5 ppm) on top of
   // the fixture's precursor errors. The fit must recover center and width from the matched ions,
   // and only the main search may use them: the calibration pass scores with the configured kernel.
+  // The main search always takes the fitted center, but the fitted width only when it is wider
+  // than the configured scoring:mass_error_sd.
   const vector<double> pattern = {1.0, 2.5, 4.0, 5.5, 7.0};
   auto build = [&]()
   {
@@ -3445,7 +3450,7 @@ START_SECTION(([EXTRA] calibration fits the mass-accuracy kernel from confident 
   {
     const auto [kernel, sd, shift] = kernel_of(proteins);
     TEST_EQUAL(kernel, "calibrated")
-    TEST_REAL_SIMILAR(sd, cal.fragment_error_sd_ppm)
+    TEST_REAL_SIMILAR(sd, 9.0) // the fitted width (about 2 ppm) is narrower than the configured one, which is kept
     TEST_REAL_SIMILAR(shift, cal.fragment_error_shift_ppm)
     TEST_REAL_SIMILAR(static_cast<double>(proteins[0].getSearchParameters().getMetaValue("scoring:mass_error_sd")), 9.0) // configured width is kept
     TEST_EQUAL(peptides[0].getScoreType(), "mass-accuracy hyperscore")
@@ -3453,7 +3458,8 @@ START_SECTION(([EXTRA] calibration fits the mass-accuracy kernel from confident 
   std::map<std::string, double> calibrated_scores;
   for (const auto& peptide : peptides) calibrated_scores[peptide.getSpectrumReference()] = peptide.getHits()[0].getScore();
 
-  // Without calibration the configured, zero-centered kernel scores the same hits differently.
+  // Without calibration the configured, zero-centered kernel scores the same hits differently
+  // (same width, so this is the effect of the fitted center).
   p.setValue("calibration:enabled", "false");
   algo.setParameters(p);
   spectra = build();
@@ -3475,10 +3481,31 @@ START_SECTION(([EXTRA] calibration fits the mass-accuracy kernel from confident 
   }
   TEST_TRUE(changed > 0)
 
+  // A configured width narrower than the fit is widened to the fitted width.
+  p.setValue("calibration:enabled", "true");
+  p.setValue("scoring:mass_error_sd", 1.0);
+  algo.setParameters(p);
+  spectra = build();
+  PeptideIdentificationList widened;
+  TEST_TRUE(algo.search(spectra, fasta_db, proteins, widened) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  const ProSEAlgorithm_test::CalibrationResult_ cal_narrow = algo.last_calibration_result_;
+  TEST_TRUE(cal_narrow.success)
+  TEST_TRUE(cal_narrow.fragment_kernel_valid)
+  TEST_TRUE(cal_narrow.fragment_error_sd_ppm > 1.0 && cal_narrow.fragment_error_sd_ppm < 3.5)
+  TEST_TRUE(cal_narrow.fragment_error_shift_ppm > 3.0 && cal_narrow.fragment_error_shift_ppm < 5.0)
+  ABORT_IF(proteins.empty())
+  {
+    const auto [kernel, sd, shift] = kernel_of(proteins);
+    TEST_EQUAL(kernel, "calibrated")
+    TEST_REAL_SIMILAR(sd, cal_narrow.fragment_error_sd_ppm)
+    TEST_REAL_SIMILAR(shift, cal_narrow.fragment_error_shift_ppm)
+    TEST_REAL_SIMILAR(static_cast<double>(proteins[0].getSearchParameters().getMetaValue("scoring:mass_error_sd")), 1.0)
+  }
+  TEST_TRUE(top_hits_explained(widened))
+
   // The chunked single-file path and the chunk-major multi-file path fit and record the same kernel.
   auto chunked_db = fasta_db;
   chunked_db.push_back({"P02", "Filler", "MKAAAAAAAAGGGGGGGGLLLLLLLLKRVVVVVVVVVK"});
-  p.setValue("calibration:enabled", "true");
   p.setValue("database:chunk_size", 1);
   algo.setParameters(p);
   spectra = build();
@@ -3488,8 +3515,8 @@ START_SECTION(([EXTRA] calibration fits the mass-accuracy kernel from confident 
   {
     const auto [kernel, sd, shift] = kernel_of(proteins);
     TEST_EQUAL(kernel, "calibrated")
-    TEST_REAL_SIMILAR(sd, cal.fragment_error_sd_ppm)
-    TEST_REAL_SIMILAR(shift, cal.fragment_error_shift_ppm)
+    TEST_REAL_SIMILAR(sd, cal_narrow.fragment_error_sd_ppm)
+    TEST_REAL_SIMILAR(shift, cal_narrow.fragment_error_shift_ppm)
   }
   TEST_TRUE(top_hits_explained(chunked))
 
@@ -3504,8 +3531,8 @@ START_SECTION(([EXTRA] calibration fits the mass-accuracy kernel from confident 
     ABORT_IF(file.protein_ids.empty())
     const auto [kernel, sd, shift] = kernel_of(file.protein_ids);
     TEST_EQUAL(kernel, "calibrated")
-    TEST_REAL_SIMILAR(sd, cal.fragment_error_sd_ppm)
-    TEST_REAL_SIMILAR(shift, cal.fragment_error_shift_ppm)
+    TEST_REAL_SIMILAR(sd, cal_narrow.fragment_error_sd_ppm)
+    TEST_REAL_SIMILAR(shift, cal_narrow.fragment_error_shift_ppm)
     TEST_TRUE(top_hits_explained(file.peptide_ids))
   }
 }

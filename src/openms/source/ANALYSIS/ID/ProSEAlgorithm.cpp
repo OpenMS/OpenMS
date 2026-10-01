@@ -286,13 +286,15 @@ namespace OpenMS
     defaults_.setValidStrings("ions:by_activation", {"true","false"});
     defaults_.setSectionDescription("ions", "Theoretical ion series toggles");
 
-    defaults_.setValue("calibration:enabled", "auto",
+    defaults_.setValue("calibration:enabled", "false",
       "Run a fast calibration pass on a subset of spectra before the main search. "
       "Estimates tighter precursor and fragment tolerances from confident PSMs, and the center and width of the "
-      "fragment mass-error kernel used by scoring:method=mass_accuracy. "
+      "fragment mass-error kernel used by scoring:method=mass_accuracy (the fitted width is only used when it is "
+      "wider than scoring:mass_error_sd). "
       "The fragment index is NOT rebuilt — only query-time tolerances are tightened. "
       "'auto' enables the pass for high-resolution fragment tolerances (<= 0.1 Da or <= 100 ppm) and disables it "
-      "otherwise; 'true' and 'false' force it. Inspired by MSFragger's calibrate_mass and OpenNuXL's autotune.");
+      "otherwise; 'true' and 'false' force it. Off by default: the tightened precursor window can exclude real PSMs "
+      "on runs whose precursor errors have heavy tails. Inspired by MSFragger's calibrate_mass and OpenNuXL's autotune.");
     defaults_.setValidStrings("calibration:enabled", {"auto", "true", "false"});
     defaults_.setValue("calibration:subset_ratio", 0.1,
       "Fraction of spectra (by TIC, highest first) used for the calibration pass (0.0-1.0).");
@@ -444,7 +446,7 @@ namespace OpenMS
     database_chunk_size_ = param_.getValue("database:chunk_size");
 
     // 'auto' follows the resolution proxy of the scorer selection above: high-resolution
-    // searches calibrate by default, low-resolution ones keep their configured windows.
+    // searches calibrate, low-resolution ones keep their configured windows.
     const std::string calibration_mode = param_.getValue("calibration:enabled").toString();
     calibration_enabled_ = calibration_mode == "true" || (calibration_mode == "auto" && deisotope_supported);
     calibration_subset_ratio_ = param_.getValue("calibration:subset_ratio");
@@ -3484,7 +3486,12 @@ namespace OpenMS
   {
     if (calibration.success && calibration.fragment_kernel_valid)
     {
-      return {calibration.fragment_error_sd_ppm, calibration.fragment_error_shift_ppm};
+      // The width is fitted on the matched ions of the most confident PSMs, whose intense
+      // fragments are more accurate than the weaker true fragments of borderline PSMs. A
+      // kernel narrower than the configured one penalizes those (large native-yield losses on
+      // Orbitrap and Astral data), so the fit can only widen the kernel. The center is always
+      // taken from the fit.
+      return {std::max(calibration.fragment_error_sd_ppm, mass_error_sd_ppm_), calibration.fragment_error_shift_ppm};
     }
     return configuredKernel_();
   }
@@ -3788,7 +3795,8 @@ namespace OpenMS
     if (result.fragment_kernel_valid)
     {
       OPENMS_LOG_INFO << "[ProSE]   Fragment error kernel: shift=" << result.fragment_error_shift_ppm << " ppm, sd="
-                      << result.fragment_error_sd_ppm << " ppm (" << result.fragment_error_ions << " matched ions)" << std::endl;
+                      << result.fragment_error_sd_ppm << " ppm (" << result.fragment_error_ions
+                      << " matched ions; the main search widens sd to scoring:mass_error_sd when the fit is narrower)" << std::endl;
     }
     else
     {
