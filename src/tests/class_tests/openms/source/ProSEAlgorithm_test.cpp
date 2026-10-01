@@ -2605,6 +2605,86 @@ START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the
 }
 END_SECTION
 
+START_SECTION(([EXTRA] high resolution local filtering preserves short final windows and aligned peak data))
+{
+  auto filter = [](double tolerance, bool ppm, const std::string& mode) {
+    PeakMap exp;
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(2);
+    spectrum.setNativeID("scan=17");
+    const std::vector<double> mz {100.0, 110.0, 120.0, 200.0, 201.0};
+    const std::vector<float> intensity {5.0f, 5.0f, 5.0f, 7.0f, 2.0f};
+    spectrum.getFloatDataArrays().emplace_back();
+    spectrum.getFloatDataArrays().back().setName("ion_mobility");
+    spectrum.getStringDataArrays().emplace_back();
+    spectrum.getStringDataArrays().back().setName("annotation");
+    spectrum.getIntegerDataArrays().emplace_back();
+    spectrum.getIntegerDataArrays().back().setName("original_index");
+    for (Size i = 0; i < mz.size(); ++i)
+    {
+      Peak1D peak;
+      peak.setMZ(mz[i]);
+      peak.setIntensity(intensity[i]);
+      spectrum.push_back(peak);
+      spectrum.getIntegerDataArrays().back().push_back(static_cast<Int>(i));
+      spectrum.getFloatDataArrays().back().push_back(static_cast<float>(i) / 10.0f);
+      spectrum.getStringDataArrays().back().push_back(std::to_string(i));
+    }
+    exp.addSpectrum(spectrum);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, tolerance, ppm, false, 400, 2, mode);
+    return exp[0];
+  };
+
+  const MSSpectrum full = filter(20.0, true, "auto");
+  TEST_EQUAL(full.size(), 4)
+  TEST_EQUAL(full.getNativeID(), "scan=17")
+  TEST_REAL_SIMILAR(full[0].getMZ(), 100.0)
+  TEST_REAL_SIMILAR(full[1].getMZ(), 110.0)
+  TEST_REAL_SIMILAR(full[2].getMZ(), 200.0)
+  TEST_REAL_SIMILAR(full[3].getMZ(), 201.0)
+  TEST_EQUAL(full.getIntegerDataArrays()[0][0], 0)
+  TEST_EQUAL(full.getIntegerDataArrays()[0][1], 1)
+  TEST_EQUAL(full.getIntegerDataArrays()[0][2], 3)
+  TEST_EQUAL(full.getIntegerDataArrays()[0][3], 4)
+  TEST_EQUAL(full.getFloatDataArrays()[0].getName(), "ion_mobility")
+  TEST_EQUAL(full.getStringDataArrays()[0].getName(), "annotation")
+  for (Size i = 0; i < full.size(); ++i)
+  {
+    const Int original_index = full.getIntegerDataArrays()[0][i];
+    TEST_REAL_SIMILAR(full.getFloatDataArrays()[0][i], original_index / 10.0)
+    TEST_EQUAL(full.getStringDataArrays()[0][i], std::to_string(original_index))
+  }
+  TEST_TRUE(full == filter(20.0, true, "jump_full"))
+  TEST_TRUE(full == filter(100.0, true, "auto"))
+  TEST_TRUE(full == filter(0.1, false, "auto"))
+  TEST_TRUE(full == filter(0.5, false, "jump_full"))
+
+  // Legacy jump filtering rounds the short final window's quota down to zero.
+  const MSSpectrum legacy = filter(20.0, true, "jump");
+  TEST_EQUAL(legacy.size(), 2)
+  TEST_TRUE(legacy == filter(0.5, false, "auto"))
+  TEST_TRUE(legacy == filter(101.0, true, "auto"))
+  TEST_TRUE(legacy == filter(0.1001, false, "auto"))
+
+  PeakMap empty;
+  empty.addSpectrum(MSSpectrum());
+  ProSEAlgorithm_test::preprocessSpectra_(empty, 20.0, true, false, 400, 20);
+  TEST_TRUE(empty[0].empty())
+
+  PeakMap singleton;
+  MSSpectrum spectrum;
+  Peak1D peak;
+  peak.setMZ(1000.0);
+  peak.setIntensity(1000.0);
+  spectrum.push_back(peak);
+  singleton.addSpectrum(spectrum);
+  ProSEAlgorithm_test::preprocessSpectra_(singleton, 20.0, true, false, 400, 20);
+  TEST_EQUAL(singleton[0].size(), 1)
+  TEST_REAL_SIMILAR(singleton[0][0].getMZ(), 1000.0)
+}
+END_SECTION
+
+
 START_SECTION(([EXTRA] auto peak retention (peaks:keep_n=0) is resolution-aware))
 {
   // Low-resolution fragment tolerances admit many spurious matches; auto retention keeps far

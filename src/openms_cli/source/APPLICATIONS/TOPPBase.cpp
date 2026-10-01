@@ -236,7 +236,7 @@ namespace OpenMS
                                         __LINE__,
                                         OPENMS_PRETTY_FUNCTION,
                                         std::string("The TOPP tool registry at '" + ToolHandler::getToolRegistryPath() +
-                                                    "' is empty or unreadable, so no tool can be looked up. This installation is incomplete: it needs the *.tsv files of the 'share' component."),
+                                                    "' is empty or unreadable, so no tool can be looked up. This installation is incomplete: it needs the *.tsv files of the 'share' component (or, for OpenMS installed in layers, of the component that installs the tools)."),
                                         tool_name_);
         }
         // Three ways out, because a tool reaching this point can be any of three things: part
