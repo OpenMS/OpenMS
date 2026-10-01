@@ -87,6 +87,7 @@ the full quota. This changes high-resolution preprocessing, not the scoring form
 likelihoods of the fragment ions from each file's confident target PSMs (target-decoy competition
 q <= `Search:annotate:ion_prior_train_fdr` of the native score), with their reversed sequences as noise model,
 and adds the Percolator features ion_prior_llr, ion_prior_explained and ion_prior_topk_observed to every PSM.
+The model is cross-fitted over 3 spectrum folds: each PSM is scored by a model trained on the other folds only.
 The model covers singly charged fragments for deisotoped (high-resolution) spectra and fragments up to
 min(precursor charge - 1, 3) otherwise, e.g. for ion-trap CID. Nothing is pre-trained: a file with fewer than `Search:annotate:ion_prior_min_psms` confident PSMs, or searched
 without decoys, gets zeros (and a warning). Native scores and the reported candidates are unchanged.

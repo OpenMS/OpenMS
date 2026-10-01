@@ -48,6 +48,14 @@ def test_train_and_score():
     absent = oms.FragmentIonLikelihoodModel.ABSENT
     assert model.logLikelihoodRatio(context, 0) > model.logLikelihoodRatio(context, absent)
 
+    # Contexts outside the model's tables are rejected instead of read.
+    invalid = oms.FragmentIonLikelihoodModel.contextOf(False, 2, 1, 3, len(peptide))
+    invalid.series = 2
+    with pytest.raises(Exception):
+        model.presenceProbability(invalid)
+    with pytest.raises(Exception):
+        model.logLikelihoodRatio(invalid, 0)
+
 
 def test_static_helpers():
     assert oms.FragmentIonLikelihoodModel.parseIonName("y3++") == (True, False, 3)

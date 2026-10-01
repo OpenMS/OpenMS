@@ -2889,6 +2889,8 @@ START_SECTION(([EXTRA] self-trained ion priors annotate every hit without changi
   TEST_TRUE(training_psms >= 5)
   // 20 ppm fragments are deisotoped: the model covers singly charged fragments
   TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:fragment_charges").toString(), "1")
+  // cross-fitted: each hit is scored by a model trained on the other spectrum folds
+  TEST_EQUAL(static_cast<int>(sp.getMetaValue("ion_prior:cross_fit_folds")), 3)
   for (const std::string& feature : ion_prior_features_)
   {
     TEST_EQUAL(lists_feature_(prot_ids[0], feature), true)

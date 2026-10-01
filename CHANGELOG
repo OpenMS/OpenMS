@@ -98,11 +98,14 @@ TOPP tools:
         ion likelihoods (presence and intensity rank per ion series, precursor charge,
         fragment charge and position) from the confident target PSMs of each file, with their
         reversed sequences as noise model, and adds the Percolator features ion_prior_llr,
-        ion_prior_explained and ion_prior_topk_observed to every hit. Training needs decoys
-        and annotate:ion_prior_min_psms PSMs at annotate:ion_prior_train_fdr; otherwise the
-        features are 0 and a warning is logged. Fragment charges follow the deisotoping
-        decision: 1 for deisotoped (high-resolution) spectra, otherwise up to min(precursor
-        charge - 1, 3). Native scores and candidate selection are unchanged. The model is the new FragmentIonLikelihoodModel class, also in pyOpenMS.
+        ion_prior_explained and ion_prior_topk_observed to every hit. The model is
+        cross-fitted over 3 spectrum folds, so no hit's own spectrum or label informs its
+        features. Training needs decoys and annotate:ion_prior_min_psms PSMs at
+        annotate:ion_prior_train_fdr; otherwise the features are 0 and a warning is logged.
+        Fragment charges follow the deisotoping decision: 1 for deisotoped (high-resolution)
+        spectra, otherwise up to min(precursor charge - 1, 3). Native scores and candidate
+        selection are unchanged. The model is the new FragmentIonLikelihoodModel class, also
+        in pyOpenMS.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----

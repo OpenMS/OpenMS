@@ -145,12 +145,14 @@ namespace OpenMS
     /**
       @brief ln P(outcome | signal, context) - ln P(outcome | noise, context)
       @throws Exception::Precondition if the model is not finalized.
+      @throws Exception::InvalidValue if a dimension of @p context is out of range.
     */
     double logLikelihoodRatio(const Context& context, Size outcome) const;
 
     /**
       @brief Probability that an ion of this context is present in the spectrum of its peptide.
       @throws Exception::Precondition if the model is not finalized.
+      @throws Exception::InvalidValue if a dimension of @p context is out of range.
     */
     double presenceProbability(const Context& context) const;
 
@@ -195,6 +197,9 @@ namespace OpenMS
 
     /// Throws unless finalize() was called after the last observation
     void requireTrained_() const;
+
+    /// Throws Exception::InvalidValue unless every dimension of @p context lies inside the tables
+    static void requireValidContext_(const Context& context);
 
     std::vector<double> signal_counts_; ///< CONTEXTS * OUTCOMES counts of confident ions
     std::vector<double> noise_counts_;  ///< CONTEXTS * OUTCOMES counts of reversed ions

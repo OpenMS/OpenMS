@@ -320,6 +320,17 @@ START_SECTION((double logLikelihoodRatio(const Context& context, Size outcome) c
   }
   TEST_TRUE(model.logLikelihoodRatio(unseen, 0) > 0.0)
   TEST_TRUE(model.logLikelihoodRatio(unseen, FragmentIonLikelihoodModel::ABSENT) < 0.0)
+  // contexts outside the tables are rejected, not read
+  for (Size dimension = 0; dimension < 4; ++dimension)
+  {
+    FragmentIonLikelihoodModel::Context invalid = suffix;
+    if (dimension == 0) invalid.series = FragmentIonLikelihoodModel::SERIES;
+    if (dimension == 1) invalid.precursor_bucket = FragmentIonLikelihoodModel::PRECURSOR_BUCKETS;
+    if (dimension == 2) invalid.fragment_charge = FragmentIonLikelihoodModel::FRAGMENT_CHARGES;
+    if (dimension == 3) invalid.position_bin = FragmentIonLikelihoodModel::POSITION_BINS;
+    TEST_EXCEPTION(Exception::InvalidValue, model.logLikelihoodRatio(invalid, 0))
+    TEST_EXCEPTION(Exception::InvalidValue, model.presenceProbability(invalid))
+  }
 }
 END_SECTION
 

@@ -246,9 +246,20 @@ namespace OpenMS
     }
   }
 
+  void FragmentIonLikelihoodModel::requireValidContext_(const Context& context)
+  {
+    // Contexts come from callers (also through pyOpenMS); every dimension must lie inside the tables.
+    if (context.series >= SERIES || context.precursor_bucket >= PRECURSOR_BUCKETS || context.fragment_charge >= FRAGMENT_CHARGES
+        || context.position_bin >= POSITION_BINS)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Context dimension out of range (see contextOf())", "Context");
+    }
+  }
+
   double FragmentIonLikelihoodModel::logLikelihoodRatio(const Context& context, Size outcome) const
   {
     requireTrained_();
+    requireValidContext_(context);
     const Size i = index_(context, std::min(outcome, ABSENT));
     return signal_logp_[i] - noise_logp_[i];
   }
@@ -256,6 +267,7 @@ namespace OpenMS
   double FragmentIonLikelihoodModel::presenceProbability(const Context& context) const
   {
     requireTrained_();
+    requireValidContext_(context);
     return 1.0 - std::exp(signal_logp_[index_(context, ABSENT)]);
   }
 
