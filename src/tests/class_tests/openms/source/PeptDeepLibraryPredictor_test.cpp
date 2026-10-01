@@ -3,6 +3,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeptDeepLibraryPredictor.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
@@ -26,7 +27,8 @@ const string ms2_model = "data/peptdeep_ms2_dynamic.onnx";
 START_SECTION((OpenSwath::LightTargetedExperiment predict(const std::vector<PeptDeepLibraryPrecursor>& precursors)))
 {
   const AASequence peptide = AASequence::fromString("PEPTIDEK");
-  const AASequence modified_peptide = AASequence::fromString("M(Oxidation)PEPTIDE");
+  AASequence modified_peptide = AASequence::fromString("M(Oxidation)PEPTIDE");
+  modified_peptide.setCTerminalModification("UniMod:2");
   const vector<string> peptide_strings{peptide.toString(), modified_peptide.toString()};
   const vector<float> charges{2.0f, 3.0f};
   const vector<float> nces{30.0f, 27.0f};
@@ -94,9 +96,15 @@ START_SECTION((OpenSwath::LightTargetedExperiment predict(const std::vector<Pept
 
   const auto& modified_compound = experiment.compounds[1];
   TEST_STRING_EQUAL(modified_compound.sequence, modified_peptide.toUniModString())
-  TEST_EQUAL(modified_compound.modifications.size(), 1)
-  TEST_EQUAL(modified_compound.modifications.front().location, 0)
-  TEST_EQUAL(modified_compound.modifications.front().unimod_id, 35)
+  TEST_EQUAL(modified_compound.modifications.size(), 2)
+  TEST_EQUAL(modified_compound.modifications[0].location, 0)
+  TEST_EQUAL(modified_compound.modifications[0].unimod_id, 35)
+  TEST_EQUAL(modified_compound.modifications[1].location, static_cast<int>(modified_peptide.size()))
+  TEST_EQUAL(modified_compound.modifications[1].unimod_id, 2)
+
+  AASequence reconstructed;
+  OpenSwathDataAccessHelper::convertPeptideToAASequence(modified_compound, reconstructed);
+  TEST_STRING_EQUAL(reconstructed.toUniModString(), modified_peptide.toUniModString())
 
   const auto& b1_z1 = experiment.transitions[0];
   const auto& b1_z2 = experiment.transitions[1];
