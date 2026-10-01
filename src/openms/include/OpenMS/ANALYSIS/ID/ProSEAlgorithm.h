@@ -815,6 +815,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     std::string fragment_mass_tolerance_unit_;
 
+    bool mass_accuracy_score_ {false}; ///< Experimental mass-accuracy-weighted HyperScore (scoring:method=mass_accuracy)
+    double mass_error_sd_ppm_ {7.0};   ///< Width of the mass-accuracy weighting kernel (scoring:mass_error_sd)
+
     /// Resolved MS2 deisotoping request (param fragment:deisotope != "false").
     /// preprocessSpectra_ still gates on Deisotoper::isToleranceSupported() so the
     /// deisotoper is never called out of range (it would throw -> terminate in the

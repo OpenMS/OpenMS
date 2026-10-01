@@ -11,6 +11,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <algorithm>
 
 #include <cmath>
 
@@ -178,6 +179,79 @@ namespace OpenMS
     d.matched_suffix_ions = suffix_ion_count;
     d.mean_error = (prefix_ion_count + suffix_ion_count) > 0 ? abs_error / (double)(prefix_ion_count + suffix_ion_count) : 0.0;
     return hyperScore;
+  }
+
+  namespace
+  {
+    /// 0 for N-terminal (a, b, c), 1 for C-terminal (x, y, z) ions, -1 otherwise; honours a '$' prefix of the ion name
+    int terminalSeries(const std::string& name)
+    {
+      if (name.empty()) return -1;
+      const Size pos = name.find('$');
+      const char c = pos != std::string::npos && pos + 1 < name.size() ? name[pos + 1] : name[0];
+      if (c == 'a' || c == 'b' || c == 'c') return 0;
+      if (c == 'x' || c == 'y' || c == 'z') return 1;
+      return -1;
+    }
+  }
+
+  double HyperScore::computeMassAccuracy(double tolerance,
+                                         bool ppm,
+                                         const PeakSpectrum& exp,
+                                         const PeakSpectrum& theo,
+                                         double mass_error_sd_ppm,
+                                         PSMDetail& detail)
+  {
+    detail = PSMDetail {};
+    if (! std::isfinite(tolerance) || tolerance <= 0.0 || ! std::isfinite(mass_error_sd_ppm) || mass_error_sd_ppm <= 0.0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Matching tolerance and mass-error SD must be finite and positive.");
+    }
+    if (exp.empty() || theo.empty()) { return 0.0; }
+    if (theo.getStringDataArrays().empty() || theo.getStringDataArrays()[0].size() != theo.size())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Theoretical spectrum needs one ion name per peak", "IonNames");
+    }
+    const auto& names = theo.getStringDataArrays()[0];
+    double weighted_prefix = 0.0, weighted_suffix = 0.0, dot_product = 0.0, abs_error = 0.0;
+    auto add_match = [&](Size index, const Peak1D& observed) {
+      const auto& predicted = theo[index];
+      const double error_ppm = Math::getPPM(observed.getMZ(), predicted.getMZ());
+      const double scaled = error_ppm / mass_error_sd_ppm;
+      const double weight = std::exp(-0.5 * scaled * scaled);
+      dot_product += weight * observed.getIntensity() * predicted.getIntensity();
+      abs_error += ppm ? std::abs(error_ppm) : std::abs(observed.getMZ() - predicted.getMZ());
+      const int series = terminalSeries(names[index]);
+      if (series == 0)
+      {
+        weighted_prefix += weight;
+        ++detail.matched_prefix_ions;
+      }
+      else if (series == 1)
+      {
+        weighted_suffix += weight;
+        ++detail.matched_suffix_ions;
+      }
+    };
+    if (ppm)
+    {
+      for (MatchedIterator<PeakSpectrum, PpmTrait, true> it(theo, exp, tolerance); it != it.end(); ++it)
+      {
+        add_match(it.refIdx(), *it);
+      }
+    }
+    else
+    {
+      for (MatchedIterator<PeakSpectrum, DaTrait, true> it(theo, exp, tolerance); it != it.end(); ++it)
+      {
+        add_match(it.refIdx(), *it);
+      }
+    }
+    const Size matched = detail.matched_prefix_ions + detail.matched_suffix_ions;
+    detail.mean_error = matched > 0 ? abs_error / matched : 0.0;
+    // lgamma(1+x) is negative for 0<x<1; partial evidence must not become a penalty.
+    return std::log1p(dot_product) + std::max(0.0, std::lgamma(weighted_prefix + 1.0)) + std::max(0.0, std::lgamma(weighted_suffix + 1.0));
   }
 
   double HyperScore::compute(double fragment_mass_tolerance, 

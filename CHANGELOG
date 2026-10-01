@@ -95,6 +95,15 @@ TOPP tools:
         fragment has such a peak from the reagent's isotope impurity, so labelled searches lost a fifth
         of their matchable fragment peaks; dense Orbitrap Astral and timsTOF spectra lost about 5%.
 
+TOPP tools:
+    ProSE:
+      - Optional scoring:method=mass_accuracy weights HyperScore fragment counts and
+        intensity products by Gaussian mass accuracy, using scoring:mass_error_sd (7 ppm
+        by default). Matching tolerances and unweighted match annotations are unchanged.
+        Applies to final scoring and precursor calibration, including chunked/multi-file
+        searches. Experimental high-resolution mode; scoring:method=hyperscore (default)
+        is unchanged.
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
 ------------------------------------------------------------------------------------------

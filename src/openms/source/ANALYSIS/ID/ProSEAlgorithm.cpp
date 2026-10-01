@@ -230,6 +230,17 @@ namespace OpenMS
     // Fragment and scoring limits
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
+    defaults_.setValue("scoring:method", "hyperscore",
+                       "Native scoring method. 'hyperscore' is the X!Tandem HyperScore. Experimental 'mass_accuracy' weights HyperScore "
+                       "fragment counts and intensity products by a Gaussian fragment mass-error kernel (scoring:mass_error_sd); it is "
+                       "opt-in and intended for high-resolution fragments. Matching tolerances and unweighted match annotations are unchanged.",
+                       {"advanced"});
+    defaults_.setValidStrings("scoring:method", {"hyperscore", "mass_accuracy"});
+    defaults_.setValue("scoring:mass_error_sd", 7.0,
+                       "Gaussian fragment mass-error standard deviation in ppm for scoring:method=mass_accuracy. "
+                       "Assumes fragment errors centered at zero; independent of the matching tolerance and not fitted during precursor calibration.",
+                       {"advanced"});
+    defaults_.setMinFloat("scoring:mass_error_sd", 1e-6);
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
     // Ion series toggles
@@ -386,6 +397,13 @@ namespace OpenMS
     calibration_enabled_ = param_.getValue("calibration:enabled") == "true";
     calibration_subset_ratio_ = param_.getValue("calibration:subset_ratio");
     calibration_min_psms_ = param_.getValue("calibration:min_psms");
+
+    mass_accuracy_score_ = param_.getValue("scoring:method").toString() == "mass_accuracy";
+    mass_error_sd_ppm_ = param_.getValue("scoring:mass_error_sd");
+    if (mass_accuracy_score_ && (! std::isfinite(mass_error_sd_ppm_) || mass_error_sd_ppm_ <= 0.0))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "scoring:mass_error_sd must be finite and positive.");
+    }
   }
 
   // static
@@ -739,7 +757,7 @@ namespace OpenMS
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-        pi.setScoreType("ln(hyperscore)");
+        pi.setScoreType(mass_accuracy_score_ ? "mass-accuracy hyperscore" : "ln(hyperscore)");
         pi.setHigherScoreBetter(true);
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
@@ -1069,6 +1087,8 @@ namespace OpenMS
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
     // record whether open-search mode was used
     search_parameters.setMetaValue("open_search", isOpenSearchMode_() ? "true" : "false");
+    search_parameters.setMetaValue("scoring:method", param_.getValue("scoring:method"));
+    search_parameters.setMetaValue("scoring:mass_error_sd", mass_error_sd_ppm_);
 
     search_parameters.setMetaValue("peptide:clip_nterm_methionine", param_.getValue("peptide:clip_nterm_methionine"));
     search_parameters.setMetaValue("peaks:window_type", peaks_window_type_);
@@ -1502,7 +1522,10 @@ namespace OpenMS
         // sortByPosition() pass here was a redundant O(N) scan per candidate.
 
         HyperScore::PSMDetail detail;
-        const double& score = HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
+        const double score = mass_accuracy_score_
+          ? HyperScore::computeMassAccuracy(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum,
+                                            mass_error_sd_ppm_, detail)
+          : HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
 
         // Summarise the candidate before it can be dropped below or pruned at the
         // end of the loop: the pool-derived PSM features describe the whole search
@@ -3326,8 +3349,9 @@ namespace OpenMS
         tsg.getSpectrum(theo, seq, 1, 1);
 
         HyperScore::PSMDetail detail;
-        double score = HyperScore::computeWithDetail(
-            fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
+        double score = mass_accuracy_score_
+          ? HyperScore::computeMassAccuracy(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)
+          : HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
 
         if (score > best_score)
         {

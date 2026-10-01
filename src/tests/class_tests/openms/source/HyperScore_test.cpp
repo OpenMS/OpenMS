@@ -47,6 +47,58 @@ START_SECTION(~HyperScore())
 }
 END_SECTION
 
+START_SECTION(([EXTRA] mass - accuracy score preserves exact HyperScore and discounts dispersed matches))
+{
+  MSSpectrum theory;
+  theory.getStringDataArrays().emplace_back();
+  for (Size i = 0; i < 4; ++i)
+  {
+    theory.emplace_back(500.0 + i * 100.0, 1.0);
+    theory.getStringDataArrays()[0].push_back(i < 2 ? "b2+" : "y2+");
+  }
+  HyperScore::PSMDetail detail, original;
+  const double baseline = HyperScore::computeWithDetail(20.0, true, theory, theory, original);
+  TEST_REAL_SIMILAR(HyperScore::computeMassAccuracy(20.0, true, theory, theory, 7.0, detail), baseline)
+  TEST_EQUAL(detail.matched_prefix_ions, 2)
+  TEST_EQUAL(detail.matched_suffix_ions, 2)
+  TEST_REAL_SIMILAR(detail.mean_error, 0.0)
+  for (double sign : {-1.0, 1.0})
+  {
+    MSSpectrum shifted = theory;
+    for (auto& peak : shifted)
+      peak.setMZ(peak.getMZ() * (1.0 + sign * 7e-6));
+    const double weight = std::exp(-0.5);
+    const double expected = std::log1p(4.0 * weight) + 2.0 * std::lgamma(2.0 * weight + 1.0);
+    const double score = HyperScore::computeMassAccuracy(20.0, true, shifted, theory, 7.0, detail);
+    TEST_REAL_SIMILAR(score, expected)
+    TEST_TRUE(score < baseline)
+    TEST_EQUAL(detail.matched_prefix_ions, 2)
+    TEST_EQUAL(detail.matched_suffix_ions, 2)
+    TEST_REAL_SIMILAR(detail.mean_error, 7.0)
+    TEST_REAL_SIMILAR(HyperScore::computeMassAccuracy(0.02, false, shifted, theory, 7.0, detail), expected)
+    TEST_REAL_SIMILAR(detail.mean_error, 0.00455)
+  }
+  MSSpectrum singleton;
+  singleton.emplace_back(500.0035, 1.0);
+  const double single = HyperScore::computeMassAccuracy(20.0, true, singleton, theory, 7.0, detail);
+  TEST_REAL_SIMILAR(single, std::log1p(std::exp(-0.5)))
+  TEST_TRUE(single > 0.0)
+  TEST_REAL_SIMILAR(HyperScore::computeMassAccuracy(20.0, true, MSSpectrum {}, theory, 7.0, detail), 0.0)
+  TEST_EQUAL(detail.matched_prefix_ions, 0)
+  TEST_REAL_SIMILAR(detail.mean_error, 0.0)
+  MSSpectrum outside;
+  outside.emplace_back(100.0, 1.0);
+  TEST_REAL_SIMILAR(HyperScore::computeMassAccuracy(20.0, true, outside, theory, 7.0, detail), 0.0)
+  for (double invalid : {0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()})
+  {
+    TEST_EXCEPTION(Exception::InvalidParameter, HyperScore::computeMassAccuracy(20.0, true, theory, theory, invalid, detail))
+    TEST_EXCEPTION(Exception::InvalidParameter, HyperScore::computeMassAccuracy(invalid, true, theory, theory, 7.0, detail))
+  }
+  theory.getStringDataArrays().clear();
+  TEST_EXCEPTION(Exception::InvalidValue, HyperScore::computeMassAccuracy(20.0, true, theory, theory, 7.0, detail))
+}
+END_SECTION
+
 START_SECTION((static double compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum &exp_spectrum, const RichPeakSpectrum &theo_spectrum)))
 {
   PeakSpectrum exp_spectrum;
