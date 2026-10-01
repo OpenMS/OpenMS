@@ -42,18 +42,19 @@ set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
 ## how that leaves them behind). The script removes them before the package is built.
 list(APPEND CPACK_PRE_BUILD_SCRIPTS "${CMAKE_CURRENT_LIST_DIR}/cpack_clean_runpath.cmake")
 
-## dpkg-shlibdeps resolves package names in the build environment. Rewrite the Qt6
-## runtime package names whose t64 transition differs between Ubuntu releases after
-## CPack has generated Depends, keeping the detected version constraints on both sides.
-## This replaces each detected dependency in place; adding a separate manual Depends
-## entry would leave the strict auto-detected dependency in place and defeat the OR.
+## dpkg-shlibdeps names the packages of the build host, which in Ubuntu 24.04 carry
+## the t64 suffix of the 64-bit time_t transition (libqt6gui6t64). Older releases, and
+## also Debian 13 and Ubuntu 25.10 and 26.04, name most Qt libraries without it
+## (libqt6gui6). After CPack has written the package, the script adds the old name as an
+## alternative wherever the renamed package provides it (libqt6gui6t64 (>= X) |
+## libqt6gui6 (>= X)), keeping the version constraint. It has to edit the derived entries: a hand-written
+## "t64 | non-t64" entry would be ANDed with the derived plain t64 one.
 list(APPEND CPACK_POST_BUILD_SCRIPTS "${CMAKE_CURRENT_LIST_DIR}/cpack_deb_t64_dependencies.cmake")
 
 ## Derive dependencies from the built binaries; a hand-written list goes stale and
 ## installs on systems the binaries cannot run on. A library the package ships itself
-## (SQLite, in lib/) needs no Debian package. The post-build script above expands the
-## detected Qt6 runtime dependencies for cross-release compatibility and leaves all
-## other dpkg-shlibdeps output unchanged.
+## (SQLite, in lib/) needs no Debian package. Apart from the alternatives the
+## post-build script above adds, Depends is what dpkg-shlibdeps derives.
 ##
 ## This was on once before (#10202) and had to come off again (#10207), because the
 ## staging tree carried foreign-architecture binaries: ThermoRawFileParser's NuGet
