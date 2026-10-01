@@ -27,6 +27,8 @@ set(sources_list
   MRMTransitionGroupPicker.cpp
   OpenSwathHelper.cpp
   OpenSwathLibraryIDNormalizer.cpp
+  OpenSwathLibraryPreparation.cpp
+  OpenSwathPeptidoformInference.cpp
   OpenSwathMatrixExporter.cpp
   OpenSwathParquetExporter.cpp
   OpenSwathScores.cpp

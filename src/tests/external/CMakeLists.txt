@@ -6,9 +6,6 @@ project("OpenMS_ExternalCodeTest")
 include(CTest)
 
 message("Received CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-if (DEFINED OPENMS_CONTRIB_LIBS)
-  message("Received OPENMS_CONTRIB_LIBS: ${OPENMS_CONTRIB_LIBS}")
-endif()
 
 ## list all your executables here (a corresponding .cpp file should exist, e.g. TestExternalCode.cpp)
 set(my_executables
