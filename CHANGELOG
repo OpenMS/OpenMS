@@ -62,6 +62,12 @@ Build System:
     .git_archival.txt, from which CMake takes the commit, so a build from the source tarball of
     a release (or from GitHub's source archive of its tag) reports the plain version instead of
     <version>-pre-exported-<date> (#10359).
+  - The macOS package puts TOPPView, TOPPAS and INIFileEditor into the folder of the version
+    being installed. pkgbuild marks app bundles relocatable by default, so the installer
+    updated an app with the same bundle identifier wherever it found one, such as in an older
+    OpenMS or in a build tree, and left the new folder without it. The package now gives
+    pkgbuild a component plist that turns relocation off; the BundleIsRelocatable key in the
+    apps' Info.plist, which pkgbuild does not read, is gone (#8477, #8479).
 
 TOPP tools:
     ProSE:
