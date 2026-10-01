@@ -335,12 +335,10 @@ if (MINGW OR MSYS)
 endif()
 
 #------------------------------------------------------------------------------
-# Setup CMAKE_PREFIX_PATH for finding external libs (vcpkg, system or contrib)
+# Setup CMAKE_PREFIX_PATH for finding external libs (vcpkg or system)
 #------------------------------------------------------------------------------
 if(OPENMS_USE_VCPKG)
   message(STATUS "Dependency provider: vcpkg (${CMAKE_TOOLCHAIN_FILE})")
-elseif(OPENMS_CONTRIB_LIBS)
-  message(STATUS "Dependency provider: contrib (${OPENMS_CONTRIB_LIBS}), deprecated")
 else()
   message(STATUS "Dependency provider: system packages and CMAKE_PREFIX_PATH "
                  "(the CMake presets, see 'cmake --list-presets', build the dependency set CI tests with vcpkg)")
@@ -601,7 +599,7 @@ if(UNIX)
   endif()
 
   # Installed binaries must find the shared dependencies they were linked against
-  # (contrib, Homebrew, conda, ...) on their own: add the directories of those
+  # (Homebrew, conda, ...) on their own: add the directories of those
   # libraries to the install RPATH. Consumers of an installed libOpenMS then link
   # and run without LD_LIBRARY_PATH; the linker also uses this RPATH to resolve
   # the private dependencies of libOpenMS. System directories and directories

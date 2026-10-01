@@ -16,14 +16,23 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.7.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
+Dependencies:
+  - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
+    deprecation in 3.6. Configuring with it stops with an error: add the prefix of the
+    dependencies to CMAKE_PREFIX_PATH, or let vcpkg build them (cmake --preset
+    <platform>-release). A build directory that still has it cached needs
+    cmake -U OPENMS_CONTRIB_LIBS. find_package(OpenMS) no longer reads it either (#10327).
+
 Build System:
   - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
     64-bit time_t transition, Depends also accepts the package under its old name.
-    dpkg-shlibdeps names the packages of the build host (libqt6core6t64 (>= 6.4.0)); CPack
-    adds the old name with the same version constraint as an alternative
-    (| libqt6core6 (>= 6.4.0)) wherever the renamed package provides it, i.e. on amd64 and
-    arm64. This covers every such library, among them Qt's OpenGLWidgets. The package still
-    requires the glibc of the release it is built on, currently 2.38 (#10352).
+    dpkg-shlibdeps names the packages of the build host (libqt6core6t64 (>= 6.4.0)); a
+    CPack post-build script adds the old name with the same version constraint as an
+    alternative (| libqt6core6 (>= 6.4.0)) wherever the renamed package provides it, i.e.
+    on amd64 and arm64. This covers every such library, among them Qt's OpenGL and
+    OpenGLWidgets. The package still requires the glibc of the release it is built on,
+    currently 2.38: of the releases with the old names, that admits Ubuntu 23.10, not
+    Ubuntu 22.04 or Debian 12 (#10352, #10367).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
