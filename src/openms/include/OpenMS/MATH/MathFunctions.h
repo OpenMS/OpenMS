@@ -15,8 +15,9 @@
 #include <OpenMS/KERNEL/RangeManager.h>
 
 #include <cmath>
-#include <memory>
+#include <cstdint>
 #include <limits>
+#include <random>
 #include <utility> // for std::pair
 #include <vector>
 
@@ -467,24 +468,22 @@ namespace Math
     return (1.0 - h) * qs + h * x[hi];
   }
 
-  /// Portable random shuffle with a reproducible, platform-independent random sequence.
+  /**
+    @brief Portable random shuffle with a reproducible, platform-independent random sequence.
+
+    The engine is the standard MT19937-64; the index distribution that makes the sequence
+    platform-independent is drawn in the implementation. A copy continues the sequence
+    independently of its source.
+  */
   class OPENMS_DLLAPI RandomShuffler
   {
   public:
     /// Default constructor; the engine starts from its default seed
-    RandomShuffler();
+    RandomShuffler() = default;
     /// Constructor seeding the engine with @p seed
-    explicit RandomShuffler(int seed);
-    /// Copy constructor; the copy continues the source's sequence independently
-    RandomShuffler(const RandomShuffler& other);
-    /// Move constructor; the moved-from shuffler reseeds itself on next use
-    RandomShuffler(RandomShuffler&& other) noexcept;
-    /// Copy assignment; see the copy constructor
-    RandomShuffler& operator=(const RandomShuffler& other);
-    /// Move assignment; see the move constructor
-    RandomShuffler& operator=(RandomShuffler&& other) noexcept;
-    /// Destructor (out of line: the engine is an incomplete type here)
-    ~RandomShuffler();
+    explicit RandomShuffler(int seed): rng_(static_cast<std::uint64_t>(seed))
+    {
+    }
 
     template<class RandomAccessIterator>
     void portable_random_shuffle(RandomAccessIterator first, RandomAccessIterator last)
@@ -495,11 +494,14 @@ namespace Math
       }
     }
 
-    void seed(uint64_t value);
+    void seed(uint64_t value)
+    {
+      rng_.seed(value);
+    }
 
   private:
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
+    std::mt19937_64 rng_;
+    /// A uniform index in [0, @p upper], drawn so that every platform gets the same one
     std::ptrdiff_t randomIndex_(std::ptrdiff_t upper);
   };
 

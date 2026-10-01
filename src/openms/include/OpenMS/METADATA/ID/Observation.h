@@ -54,8 +54,7 @@ namespace OpenMS
     };
 
     // combination of input file and data ID must be unique:
-    using Observations = IDDataContainer<Observation, std::tuple<InputFileRef, std::string>, InputFileRef>;
-    extern template class OPENMS_DLLAPI IDDataContainer<Observation, std::tuple<InputFileRef, std::string>, InputFileRef>;
+    using Observations = IDDataContainer<Observation, std::tuple<InputFileRef, std::string>, InputFileRef, &Observation::input_file, &Observation::data_id>;
     typedef IteratorWrapper<Observations::iterator> ObservationRef;
   }
 }

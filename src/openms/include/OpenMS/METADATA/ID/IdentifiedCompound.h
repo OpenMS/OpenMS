@@ -45,8 +45,7 @@ namespace OpenMS
     };
 
     // identified compounds indexed by their identifiers:
-    using IdentifiedCompounds = IDDataContainer<IdentifiedCompound, std::string, std::string>;
-    extern template class OPENMS_DLLAPI IDDataContainer<IdentifiedCompound, std::string, std::string>;
+    using IdentifiedCompounds = IDDataContainer<IdentifiedCompound, std::string, std::string, &IdentifiedCompound::identifier>;
     typedef IteratorWrapper<IdentifiedCompounds::iterator> IdentifiedCompoundRef;
   }
 }

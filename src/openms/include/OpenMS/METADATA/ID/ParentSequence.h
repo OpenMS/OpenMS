@@ -85,8 +85,7 @@ namespace OpenMS
 
     // parent sequences indexed by their accessions:
     // @TODO: allow querying/iterating over proteins and RNAs separately
-    using ParentSequences = IDDataContainer<ParentSequence, std::string, std::string>;
-    extern template class OPENMS_DLLAPI IDDataContainer<ParentSequence, std::string, std::string>;
+    using ParentSequences = IDDataContainer<ParentSequence, std::string, std::string, &ParentSequence::accession>;
     typedef IteratorWrapper<ParentSequences::iterator> ParentSequenceRef;
 
   }

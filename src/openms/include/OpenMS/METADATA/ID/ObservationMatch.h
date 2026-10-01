@@ -107,8 +107,7 @@ namespace OpenMS
 
     // all matches for the same observation should be consecutive, so make sure
     // the observation is used as the first member in the composite key:
-    using ObservationMatches = IDDataContainer<ObservationMatch, std::tuple<ObservationRef, IdentifiedMolecule, AdductOpt>, ObservationRef>;
-    extern template class OPENMS_DLLAPI IDDataContainer<ObservationMatch, std::tuple<ObservationRef, IdentifiedMolecule, AdductOpt>, ObservationRef>;
+    using ObservationMatches = IDDataContainer<ObservationMatch, std::tuple<ObservationRef, IdentifiedMolecule, AdductOpt>, ObservationRef, &ObservationMatch::observation_ref, &ObservationMatch::identified_molecule_var, &ObservationMatch::adduct_opt>;
 
     typedef IteratorWrapper<ObservationMatches::iterator> ObservationMatchRef;
   }

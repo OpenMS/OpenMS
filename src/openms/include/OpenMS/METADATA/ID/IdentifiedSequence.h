@@ -80,13 +80,11 @@ namespace OpenMS
     typedef IdentifiedSequence<NASequence> IdentifiedOligo;
 
     // identified peptides indexed by their sequences:
-    using IdentifiedPeptides = IDDataContainer<IdentifiedPeptide, AASequence, AASequence>;
-    extern template class OPENMS_DLLAPI IDDataContainer<IdentifiedPeptide, AASequence, AASequence>;
+    using IdentifiedPeptides = IDDataContainer<IdentifiedPeptide, AASequence, AASequence, &IdentifiedPeptide::sequence>;
     typedef IteratorWrapper<IdentifiedPeptides::iterator> IdentifiedPeptideRef;
 
     // identified oligos indexed by their sequences:
-    using IdentifiedOligos = IDDataContainer<IdentifiedOligo, NASequence, NASequence>;
-    extern template class OPENMS_DLLAPI IDDataContainer<IdentifiedOligo, NASequence, NASequence>;
+    using IdentifiedOligos = IDDataContainer<IdentifiedOligo, NASequence, NASequence, &IdentifiedOligo::sequence>;
     typedef IteratorWrapper<IdentifiedOligos::iterator> IdentifiedOligoRef;
 
   }

@@ -27,8 +27,7 @@ namespace OpenMS
       std::set<ParentSequenceRef> parent_refs;
     };
 
-    using ParentGroups = IDDataContainer<ParentGroup, std::set<ParentSequenceRef>, std::set<ParentSequenceRef>>;
-    extern template class OPENMS_DLLAPI IDDataContainer<ParentGroup, std::set<ParentSequenceRef>, std::set<ParentSequenceRef>>;
+    using ParentGroups = IDDataContainer<ParentGroup, std::set<ParentSequenceRef>, std::set<ParentSequenceRef>, &ParentGroup::parent_refs>;
     typedef IteratorWrapper<ParentGroups::iterator> ParentGroupRef;
 
     /** @brief Set of groups of ambiguously identified parent sequences (e.g. results of running a protein inference algorithm)

@@ -93,7 +93,6 @@ namespace OpenMS
 
     // we want to keep track of the processing steps in sequence (order of
     // application), but also ensure there are no duplicate steps:
-    using AppliedProcessingSteps = IDDataContainer<AppliedProcessingStep, std::optional<ProcessingStepRef>, std::optional<ProcessingStepRef>>;
-    extern template class OPENMS_DLLAPI IDDataContainer<AppliedProcessingStep, std::optional<ProcessingStepRef>, std::optional<ProcessingStepRef>>;
+    using AppliedProcessingSteps = IDSequencedContainer<AppliedProcessingStep, std::optional<ProcessingStepRef>, &AppliedProcessingStep::processing_step_opt>;
   }
 }

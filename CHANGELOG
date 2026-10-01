@@ -128,10 +128,12 @@ Dependencies:
     and builds of OpenMS itself still use Boost. A consumer test compiles every
     installed core header with Boost headers blocked.
   - BREAKING (C++ API/ABI): regex parameters now use OpenMS::RegularExpression;
-    MetaInfo::MapType uses sorted vector storage, and identification collections
-    expose OpenMS iterators and ordered views instead of Boost.MultiIndex types.
-    getStepsAndScoresByStep() returns a view by value. RandomShuffler exposes seed()
-    instead of a Boost engine constructor/member, and IDBoostGraph.h is internal: use
+    MetaInfo::MapType uses sorted vector storage, and identification collections are
+    std::set-based (IDDataContainer) instead of Boost.MultiIndex containers: their
+    iterators are the set's, modify() takes the position by reference and updates it,
+    and getStepsAndScoresByStep() returns a lookup view (find/end/modify) by value.
+    RandomShuffler holds a std::mt19937_64 (same sequence as before) and exposes seed()
+    instead of the Boost engine constructor/member, and IDBoostGraph.h is internal: use
     the new BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups() to compute
     indistinguishable protein groups without it.
     Rebuild downstream C++ code and Python extensions; code using Boost directly

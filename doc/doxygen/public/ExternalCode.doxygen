@@ -96,10 +96,12 @@ string and the explicit @p no_error argument; the two-argument overload still
 accepts a native-ID CV accession.
 
 IdentificationData collections preserve uniqueness, ordered traversal and stable
-references, but their concrete container/iterator types have changed. Use the
-OpenMS aliases instead of naming Boost.MultiIndex types. Boost-specific container
-operations outside the IDDataContainer interface need to be adapted. The ordered
-processing-step view returned by getStepsAndScoresByStep() is a lightweight value.
+references, but they are std::set-based IDDataContainers now, and their iterators
+are the set's. Use the OpenMS aliases instead of naming Boost.MultiIndex types.
+Boost-specific container operations outside the IDDataContainer interface need to
+be adapted: modify() takes the position by reference and leaves it on the record
+(or, after a rejected duplicate, on the next one), and getStepsAndScoresByStep()
+returns a lightweight lookup view (find(), end(), modify()) by value.
 Internal headers such as ANALYSIS/ID/IDBoostGraph.h are not part of the installed interface.
 Indistinguishable protein groups are available through
 BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups().

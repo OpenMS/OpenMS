@@ -8,140 +8,98 @@
 
 #pragma once
 
-#include <OpenMS/config.h>
 #include <algorithm>
 #include <concepts>
 #include <cstddef>
-#include <functional>
 #include <initializer_list>
 #include <iterator>
-#include <memory>
+#include <set>
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace OpenMS::IdentificationDataInternal
 {
+namespace Detail
+{
+  template<typename T>
+  inline constexpr bool is_tuple = false;
+  template<typename... T>
+  inline constexpr bool is_tuple<std::tuple<T...>> = true;
+
+  /// Lexicographic "less" over the leading elements two tuples have in common, so a key
+  /// prefix (e.g. the input file of an observation) compares against a full key.
+  template<std::size_t I = 0, typename A, typename B>
+  bool tupleLess(const A& a, const B& b)
+  {
+    constexpr std::size_t n = std::min(std::tuple_size_v<A>, std::tuple_size_v<B>);
+    if constexpr (I == n) return false;
+    else
+    {
+      if (std::get<I>(a) < std::get<I>(b)) return true;
+      if (std::get<I>(b) < std::get<I>(a)) return false;
+      return tupleLess<I + 1>(a, b);
+    }
+  }
+} // namespace Detail
+
 /**
-  @brief An indexed collection of identification records with stable references.
+  @brief A collection of identification records, unique and ordered by the key formed from
+  the members @p KeyMembers.
 
-  The implementation retains ordered uniqueness, constant-time iterator movement,
-  and stable references on insertion and successful modification. The underlying
-  indexing library is private to OpenMS. A modification that violates uniqueness
-  erases the modified record and returns false, invalidating references to it.
-  Copying copies records; moving and swapping preserve references to records.
+  A std::set underneath: references and iterators to records stay valid on insertion and on a
+  modification that keeps the record's key, and they are 8-byte iterators that step inline.
+  Lookup takes the key (a std::tuple for a composite key) or a @p Prefix of it. Copying copies
+  the records; moving and swapping keep references to them.
 
-  Only the explicitly instantiated identification record types are supported.
+  modify() changes a record in place. A modification that changes the key moves the record to
+  its new position (references to it stay valid); one that duplicates another record's key
+  erases the record instead and returns false, as Boost.MultiIndex did.
 */
-template<typename Value, typename Key, typename Prefix = Key>
+template<typename Value, typename Key, typename Prefix = Key, auto... KeyMembers>
 class IDDataContainer
 {
-  struct Impl;
+  static_assert(sizeof...(KeyMembers) > 0, "the key members of the record type are required");
+
+  // A record compares by its key members, a key or prefix by itself, both as tuples.
+  template<typename T>
+  static decltype(auto) keyView(const T& x)
+  {
+    if constexpr (std::is_same_v<T, Value>) return std::tie(x.*KeyMembers...);
+    else if constexpr (Detail::is_tuple<T>) return (x);
+    else return std::tie(x);
+  }
+  struct Compare
+  {
+    using is_transparent = void;
+    template<typename A, typename B>
+    bool operator()(const A& a, const B& b) const
+    { return Detail::tupleLess(keyView(a), keyView(b)); }
+  };
+  using Set = std::set<Value, Compare>;
+  Set records_;
 
 public:
   using value_type = Value;
   using key_type = Key;
   using size_type = std::size_t;
-
-  class iterator
-  {
-    friend class IDDataContainer;
-
-  protected:
-    const Impl* owner_ = nullptr;
-    const Value* value_ = nullptr;
-    iterator(const Impl* owner, const Value* value): owner_(owner), value_(value)
-    {
-    }
-
-  public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = Value;
-    using difference_type = std::ptrdiff_t;
-    using pointer = const Value*;
-    using reference = const Value&;
-    iterator() = default;
-    reference operator*() const
-    { return *value_; }
-    pointer operator->() const
-    { return value_; }
-    iterator& operator++()
-    {
-      value_ = advance_(owner_, value_, true, false);
-      return *this;
-    }
-    iterator operator++(int)
-    {
-      auto old = *this;
-      ++*this;
-      return old;
-    }
-    iterator& operator--()
-    {
-      value_ = advance_(owner_, value_, false, false);
-      return *this;
-    }
-    iterator operator--(int)
-    {
-      auto old = *this;
-      --*this;
-      return old;
-    }
-    bool operator==(const iterator& other) const
-    { return owner_ == other.owner_ && value_ == other.value_; }
-  };
-  /// Iterator for the ordered processing-step view, with no per-iterator allocation.
-  class ordered_iterator : public iterator
-  {
-    friend class IDDataContainer;
-    ordered_iterator(const Impl* owner, const Value* value): iterator(owner, value)
-    {
-    }
-
-  public:
-    ordered_iterator() = default;
-    ordered_iterator& operator++()
-    {
-      this->value_ = advance_(this->owner_, this->value_, true, true);
-      return *this;
-    }
-    ordered_iterator operator++(int)
-    {
-      auto old = *this;
-      ++*this;
-      return old;
-    }
-    ordered_iterator& operator--()
-    {
-      this->value_ = advance_(this->owner_, this->value_, false, true);
-      return *this;
-    }
-    ordered_iterator operator--(int)
-    {
-      auto old = *this;
-      --*this;
-      return old;
-    }
-  };
+  using iterator = typename Set::const_iterator;
   using const_iterator = iterator;
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = reverse_iterator;
 
-  IDDataContainer();
-  IDDataContainer(const IDDataContainer& other);
-  IDDataContainer(IDDataContainer&& other) noexcept;
-  IDDataContainer& operator=(const IDDataContainer& other);
-  IDDataContainer& operator=(IDDataContainer&& other) noexcept;
-  ~IDDataContainer();
-  IDDataContainer(std::initializer_list<Value> values): IDDataContainer()
+  IDDataContainer() = default;
+  IDDataContainer(std::initializer_list<Value> values)
   {
     for (const auto& value : values)
       insert(value);
   }
 
-  iterator begin() const;
+  iterator begin() const
+  { return records_.begin(); }
   iterator end() const
-  { return iterator(impl_.get(), nullptr); }
+  { return records_.end(); }
   iterator cbegin() const
   { return begin(); }
   iterator cend() const
@@ -155,12 +113,15 @@ public:
   const Value& back() const
   { return *--end(); }
   bool empty() const
-  { return size() == 0; }
-  size_type size() const;
-  void clear();
+  { return records_.empty(); }
+  size_type size() const
+  { return records_.size(); }
+  void clear()
+  { records_.clear(); }
   void swap(IDDataContainer& other) noexcept
-  { impl_.swap(other.impl_); }
-  std::pair<iterator, bool> insert(const Value& value);
+  { records_.swap(other.records_); }
+  std::pair<iterator, bool> insert(const Value& value)
+  { return records_.insert(value); }
   std::pair<iterator, bool> push_back(const Value& value)
   { return insert(value); }
   template<typename... Args>
@@ -169,40 +130,161 @@ public:
   template<typename... Args>
   std::pair<iterator, bool> emplace_back(Args&&... args)
   { return emplace(std::forward<Args>(args)...); }
-  iterator erase(iterator position);
-  /// Changes the record at @p position in place by calling @p modifier(Value&); see the class
-  /// description for a change that breaks uniqueness.
-  template<typename Modifier>
-  bool modify(iterator position, Modifier&& modifier)
-  {
-    // Passed to the out-of-line modify_() as a plain function pointer and a pointer to the
-    // caller's callable: unlike std::function, this never copies or allocates the callable.
-    using Callable = std::remove_reference_t<Modifier>;
-    auto call = [](void* context, Value& value) { (*static_cast<Callable*>(context))(value); };
-    return modify_(position, call, const_cast<void*>(static_cast<const void*>(std::addressof(modifier))));
-  }
-  iterator find(const Key& key) const;
-  std::pair<iterator, iterator> equal_range(const Prefix& key) const;
+  iterator erase(iterator position)
+  { return records_.erase(position); }
+  /**
+    @brief Calls @p modifier(Value&) on the record at @p position.
 
-  /// Ordered view of a sequenced collection (applied processing steps).
+    @p position follows the record: it keeps pointing at it after a key change, and after a
+    modification that was rejected as a duplicate it points at the record after the erased one.
+  */
+  template<typename Modifier>
+  bool modify(iterator& position, Modifier&& modifier)
+  {
+    // The set exposes its records as const to protect their order; the key is checked below.
+    modifier(const_cast<Value&>(*position));
+    if (stillOrdered_(position)) return true;
+    auto next = std::next(position);
+    auto node = records_.extract(position);
+    auto result = records_.insert(std::move(node));
+    if (result.inserted)
+    {
+      position = result.position;
+      return true;
+    }
+    position = next;
+    return false;
+  }
+  iterator find(const Key& key) const
+  { return records_.find(key); }
+  std::pair<iterator, iterator> equal_range(const Prefix& key) const
+  { return records_.equal_range(key); }
+
+  /// Value equality is available only for equality-comparable record types.
+  friend bool operator==(const IDDataContainer& lhs, const IDDataContainer& rhs)
+    requires std::equality_comparable<Value>
+  { return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin()); }
+
+private:
+  /// True if the record at @p position still sorts strictly between its neighbours.
+  bool stillOrdered_(iterator position) const
+  {
+    const auto& less = records_.key_comp();
+    if (position != records_.begin() && ! less(*std::prev(position), *position)) return false;
+    auto next = std::next(position);
+    return next == records_.end() || less(*position, *next);
+  }
+};
+
+/**
+  @brief Records kept in the order they were added, unique by the member @p KeyMember.
+
+  Used for the processing steps applied to a record: a handful per record, looked up by step.
+  get<1>() gives the lookup view by key that Boost.MultiIndex's second index used to provide.
+*/
+template<typename Value, typename Key, auto KeyMember>
+class IDSequencedContainer
+{
+  std::vector<Value> records_;
+
+public:
+  using value_type = Value;
+  using key_type = Key;
+  using size_type = std::size_t;
+  using iterator = typename std::vector<Value>::const_iterator;
+  using const_iterator = iterator;
+  using reverse_iterator = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = reverse_iterator;
+
+  IDSequencedContainer() = default;
+  IDSequencedContainer(std::initializer_list<Value> values)
+  {
+    for (const auto& value : values)
+      push_back(value);
+  }
+
+  iterator begin() const
+  { return records_.begin(); }
+  iterator end() const
+  { return records_.end(); }
+  iterator cbegin() const
+  { return begin(); }
+  iterator cend() const
+  { return end(); }
+  reverse_iterator rbegin() const
+  { return reverse_iterator(end()); }
+  reverse_iterator rend() const
+  { return reverse_iterator(begin()); }
+  const Value& front() const
+  { return records_.front(); }
+  const Value& back() const
+  { return records_.back(); }
+  bool empty() const
+  { return records_.empty(); }
+  size_type size() const
+  { return records_.size(); }
+  void clear()
+  { records_.clear(); }
+  void swap(IDSequencedContainer& other) noexcept
+  { records_.swap(other.records_); }
+  /// Appends @p value unless a record with its key exists; then that record and false
+  std::pair<iterator, bool> push_back(const Value& value)
+  {
+    auto position = find(value.*KeyMember);
+    if (position != end()) return {position, false};
+    records_.push_back(value);
+    return {std::prev(end()), true};
+  }
+  std::pair<iterator, bool> insert(const Value& value)
+  { return push_back(value); }
+  template<typename... Args>
+  std::pair<iterator, bool> emplace_back(Args&&... args)
+  { return push_back(Value(std::forward<Args>(args)...)); }
+  template<typename... Args>
+  std::pair<iterator, bool> emplace(Args&&... args)
+  { return emplace_back(std::forward<Args>(args)...); }
+  iterator erase(iterator position)
+  { return records_.erase(position); }
+  iterator find(const Key& key) const
+  {
+    return std::find_if(records_.begin(), records_.end(), [&key](const Value& value) { return value.*KeyMember == key; });
+  }
+  std::pair<iterator, iterator> equal_range(const Key& key) const
+  {
+    auto position = find(key);
+    return {position, position == end() ? position : std::next(position)};
+  }
+  /// As IDDataContainer::modify(): a modification that duplicates another record's key erases the record.
+  template<typename Modifier>
+  bool modify(iterator& position, Modifier&& modifier)
+  {
+    Value& value = records_[position - begin()];
+    modifier(value);
+    for (auto it = begin(); it != end(); ++it)
+    {
+      if (it != position && (*it).*KeyMember == value.*KeyMember)
+      {
+        position = erase(position);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Lookup of records by key
   class ConstOrderedView
   {
   protected:
-    const IDDataContainer* owner_;
+    const IDSequencedContainer* owner_;
 
   public:
-    explicit ConstOrderedView(const IDDataContainer* owner): owner_(owner)
+    explicit ConstOrderedView(const IDSequencedContainer* owner): owner_(owner)
     {
     }
-    ordered_iterator begin() const
-    { return owner_->orderedBegin_(); }
-    ordered_iterator end() const
-    { return ordered_iterator(owner_->impl_.get(), nullptr); }
-    ordered_iterator find(const Key& key) const
-    {
-      auto position = owner_->find(key);
-      return ordered_iterator(owner_->impl_.get(), position == owner_->end() ? nullptr : std::addressof(*position));
-    }
+    iterator find(const Key& key) const
+    { return owner_->find(key); }
+    iterator end() const
+    { return owner_->end(); }
     size_type size() const
     { return owner_->size(); }
     bool empty() const
@@ -210,14 +292,14 @@ public:
   };
   class OrderedView : public ConstOrderedView
   {
-    IDDataContainer* mutable_owner_;
+    IDSequencedContainer* mutable_owner_;
 
   public:
-    explicit OrderedView(IDDataContainer* owner): ConstOrderedView(owner), mutable_owner_(owner)
+    explicit OrderedView(IDSequencedContainer* owner): ConstOrderedView(owner), mutable_owner_(owner)
     {
     }
     template<typename Modifier>
-    bool modify(iterator position, Modifier&& modifier)
+    bool modify(iterator& position, Modifier&& modifier)
     { return mutable_owner_->modify(position, std::forward<Modifier>(modifier)); }
   };
   template<int Index>
@@ -240,14 +322,8 @@ public:
   }
 
   /// Value equality is available only for equality-comparable record types.
-  friend bool operator==(const IDDataContainer& lhs, const IDDataContainer& rhs)
+  friend bool operator==(const IDSequencedContainer& lhs, const IDSequencedContainer& rhs)
     requires std::equality_comparable<Value>
-  { return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin()); }
-
-private:
-  std::unique_ptr<Impl> impl_;
-  ordered_iterator orderedBegin_() const;
-  bool modify_(iterator position, void (*call)(void*, Value&), void* context);
-  static const Value* advance_(const Impl* owner, const Value* value, bool forward, bool ordered);
+  { return lhs.records_ == rhs.records_; }
 };
 } // namespace OpenMS::IdentificationDataInternal

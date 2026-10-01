@@ -122,16 +122,38 @@ START_SECTION((composite - key ranges and processing - step order))
   TEST_TRUE(steps.begin()->processing_step_opt == step)
   TEST_TRUE(steps.rbegin()->processing_step_opt == std::nullopt)
   const auto& const_steps = steps;
-  auto ordered = const_steps.get<1>();
-  TEST_EQUAL(std::distance(ordered.begin(), ordered.end()), 2)
-  auto position = ordered.begin();
-  TEST_TRUE(position->processing_step_opt == std::nullopt)
-  TEST_TRUE((++position)->processing_step_opt == step)
-  TEST_TRUE(++position == ordered.end())
-  TEST_TRUE((--position)->processing_step_opt == step)
-  TEST_TRUE((--position)->processing_step_opt == std::nullopt)
+  auto by_step = const_steps.get<1>();
+  TEST_TRUE(by_step.find(step) == steps.begin())
+  TEST_TRUE(by_step.find(std::nullopt) == std::prev(steps.end()))
+  TEST_EQUAL(by_step.size(), 2)
   auto step_range = steps.equal_range(step);
   TEST_EQUAL(std::distance(step_range.first, step_range.second), 1)
+
+  // a step whose key is changed to another step's is erased; the position moves on
+  auto first_step = steps.begin();
+  TEST_FALSE(steps.get<1>().modify(first_step, [&](AppliedProcessingStep& applied) { applied.processing_step_opt = std::nullopt; }))
+  TEST_EQUAL(steps.size(), 1)
+  TEST_TRUE(first_step == steps.begin())
+  TEST_TRUE(steps.begin()->processing_step_opt == std::nullopt)
+}
+END_SECTION
+
+START_SECTION((a key change keeps the record and its references))
+{
+  InputFiles records;
+  auto a = records.insert(InputFile("a")).first;
+  auto c = records.insert(InputFile("c")).first;
+  const auto* address = &*c;
+  TEST_TRUE(records.modify(c, [](InputFile& value) { value.name = "b"; }))
+  TEST_TRUE(&*c == address)
+  TEST_TRUE(c == std::next(a))
+  TEST_TRUE(records.find("b") == c)
+  TEST_TRUE(records.find("c") == records.end())
+  // the moved record is reordered, not copied: a reference taken before still sees it
+  TEST_TRUE(records.modify(c, [](InputFile& value) { value.name = "0"; }))
+  TEST_TRUE(&*c == address)
+  TEST_TRUE(c == records.begin())
+  TEST_TRUE(std::next(c) == a)
 }
 END_SECTION
 

@@ -64,8 +64,7 @@ namespace OpenMS
       }
     };
 
-    using ObservationMatchGroups = IDDataContainer<ObservationMatchGroup, std::set<ObservationMatchRef>, std::set<ObservationMatchRef>>;
-    extern template class OPENMS_DLLAPI IDDataContainer<ObservationMatchGroup, std::set<ObservationMatchRef>, std::set<ObservationMatchRef>>;
+    using ObservationMatchGroups = IDDataContainer<ObservationMatchGroup, std::set<ObservationMatchRef>, std::set<ObservationMatchRef>, &ObservationMatchGroup::observation_match_refs>;
     typedef IteratorWrapper<ObservationMatchGroups::iterator> MatchGroupRef;
   }
 }

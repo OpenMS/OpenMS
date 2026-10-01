@@ -60,8 +60,7 @@ namespace OpenMS
       }
     };
 
-    using InputFiles = IDDataContainer<InputFile, std::string, std::string>;
-    extern template class OPENMS_DLLAPI IDDataContainer<InputFile, std::string, std::string>;
+    using InputFiles = IDDataContainer<InputFile, std::string, std::string, &InputFile::name>;
     typedef IteratorWrapper<InputFiles::iterator> InputFileRef;
 
   }

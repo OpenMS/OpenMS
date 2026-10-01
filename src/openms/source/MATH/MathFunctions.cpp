@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/MATH/MathFunctions.h>
-#include <boost/random/mersenne_twister.hpp> // for mt19937_64
 #include <boost/random/uniform_int.hpp>
 #include <boost/math/special_functions/binomial.hpp>
 #include <boost/math/special_functions/gamma.hpp>
@@ -17,35 +16,13 @@
 
 namespace OpenMS::Math
 {
-struct RandomShuffler::Impl
-{ boost::mt19937_64 rng; };
-
-RandomShuffler::RandomShuffler(): impl_(std::make_unique<Impl>())
-{
-}
-RandomShuffler::RandomShuffler(int value): RandomShuffler()
-{ impl_->rng.seed(value); }
-RandomShuffler::RandomShuffler(const RandomShuffler& other): impl_(other.impl_ ? std::make_unique<Impl>(*other.impl_) : std::make_unique<Impl>())
-{
-}
-RandomShuffler::RandomShuffler(RandomShuffler&& other) noexcept = default;
-RandomShuffler& RandomShuffler::operator=(const RandomShuffler& other)
-{
-  if (this != &other) impl_ = other.impl_ ? std::make_unique<Impl>(*other.impl_) : std::make_unique<Impl>();
-  return *this;
-}
-RandomShuffler& RandomShuffler::operator=(RandomShuffler&& other) noexcept = default;
-RandomShuffler::~RandomShuffler() = default;
-void RandomShuffler::seed(uint64_t value)
-{
-  if (! impl_) impl_ = std::make_unique<Impl>();
-  impl_->rng.seed(value);
-}
 std::ptrdiff_t RandomShuffler::randomIndex_(std::ptrdiff_t upper)
 {
-  if (! impl_) impl_ = std::make_unique<Impl>();
+  // Boost's distribution, not the standard library's: how a draw is reduced to the index
+  // range is implementation-defined for std::uniform_int_distribution, so only this one
+  // gives the same sequence on every platform. It works with the standard engine.
   boost::uniform_int<std::ptrdiff_t> distribution(0, upper);
-  return distribution(impl_->rng);
+  return distribution(rng_);
 }
 
 double log_binomial_coef(unsigned n, unsigned k)
