@@ -2887,6 +2887,8 @@ START_SECTION(([EXTRA] self-trained ion priors annotate every hit without changi
   TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:trained").toString(), "true")
   const int training_psms = sp.getMetaValue("ion_prior:training_psms");
   TEST_TRUE(training_psms >= 5)
+  // 20 ppm fragments are deisotoped: the model covers singly charged fragments
+  TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:fragment_charges").toString(), "1")
   for (const std::string& feature : ion_prior_features_)
   {
     TEST_EQUAL(lists_feature_(prot_ids[0], feature), true)
@@ -2943,6 +2945,33 @@ START_SECTION(([EXTRA] self-trained ion priors annotate every hit without changi
   {
     TEST_TRUE(top_llr / static_cast<double>(top) > other_llr / static_cast<double>(others))
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] self-trained ion priors model multiply charged fragments without deisotoping))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  // A low-resolution fragment tolerance is outside the deisotoper's range: spectra keep their charge states,
+  // and the model covers fragments up to min(precursor charge - 1, 3).
+  ProSEAlgorithm algo;
+  configure_ion_prior_params_(algo, 5, 0.5);
+  Param p = algo.getParameters();
+  p.setValue("fragment:mass_tolerance", 0.3);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  algo.setParameters(p);
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  ABORT_IF(prot_ids.empty() || pep_ids.empty())
+  const ProteinIdentification::SearchParameters& sp = prot_ids[0].getSearchParameters();
+  TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:trained").toString(), "true")
+  TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:fragment_charges").toString(), "1..min(z-1,3)")
+  const auto [hits, violations] = check_ion_prior_annotations_(pep_ids, false);
+  TEST_TRUE(hits > 0)
+  TEST_EQUAL(violations, 0)
 }
 END_SECTION
 

@@ -178,7 +178,8 @@ namespace OpenMS
       "ion_prior_llr, ion_prior_explained and ion_prior_topk_observed to every hit. Training PSMs are the rank-one target "
       "hits at target-decoy competition q <= annotate:ion_prior_train_fdr of the native score; their reversed sequences "
       "matched against the same spectra provide the noise model. Presence and intensity rank of each theoretical ion are "
-      "learned per ion series, precursor charge, fragment charge and relative position with pseudo-count back-off. Requires "
+      "learned per ion series, precursor charge, fragment charge and relative position with pseudo-count back-off. Fragment "
+      "charges follow fragment:deisotope: 1 for deisotoped spectra, otherwise up to min(precursor charge - 1, 3). Requires "
       "decoys and annotate:ion_prior_min_psms training PSMs, otherwise the features are 0. Native scores and candidate "
       "selection are unchanged. Independent of annotate:PSM.", {"advanced"});
     defaults_.setValidStrings("annotate:self_trained_ion_priors", {"true", "false"});
@@ -3291,8 +3292,13 @@ namespace OpenMS
     if (! self_trained_ion_priors_) return;
     const bool ppm = fragment_mass_tolerance_unit_ == "ppm";
     const SpectrumGenerators_ generators = spectrumGenerators_();
-    // The model sees the ions native scoring matches: singly charged fragments (see scoreSpectraAgainstIndex_).
-    constexpr int max_fragment_charge = 1;
+    // Fragment charges follow the deisotoping decision of preprocessSpectra_: deisotoped (high-resolution)
+    // spectra carry singly charged fragments only. Without deisotoping, as for ion-trap CID, multiply charged
+    // fragments stay at their own m/z, so a precursor of charge z contributes fragments up to min(z - 1, 3).
+    const bool deisotoped = deisotope_requested_ && Deisotoper::isToleranceSupported(fragment_mass_tolerance_, ppm);
+    auto max_fragment_charge = [deisotoped](int precursor_charge) {
+      return deisotoped ? 1 : std::max(1, std::min(precursor_charge - 1, 3));
+    };
 
     // Spectrum of a PSM via the scan_index postProcessHits_ stores; -1 if the PSM cannot be scored.
     auto scan_of = [&spectra](const PeptideIdentification& pi) -> SignedSize {
@@ -3367,12 +3373,12 @@ namespace OpenMS
         const std::vector<Size> ranks = FragmentIonLikelihoodModel::intensityRanks(spec);
         const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
         theo.clear(true);
-        tsg.getSpectrum(theo, hit.getSequence(), 1, max_fragment_charge);
+        tsg.getSpectrum(theo, hit.getSequence(), 1, max_fragment_charge(charge));
         model.addObservations(spec, ranks, theo, hit.getSequence().size(), charge, fragment_mass_tolerance_, ppm, false);
         const AASequence noise = reversedNoiseSequence_(hit.getSequence());
         if (noise == hit.getSequence()) continue;
         theo.clear(true);
-        tsg.getSpectrum(theo, noise, 1, max_fragment_charge);
+        tsg.getSpectrum(theo, noise, 1, max_fragment_charge(charge));
         model.addObservations(spec, ranks, theo, noise.size(), charge, fragment_mass_tolerance_, ppm, true);
       }
       model.finalize();
@@ -3404,7 +3410,7 @@ namespace OpenMS
           const MSSpectrum& spec = spectra[static_cast<Size>(scan)];
           const int charge = static_cast<int>(hit.getCharge());
           theo.clear(true);
-          generators.forSpectrum(spec).getSpectrum(theo, hit.getSequence(), 1, max_fragment_charge);
+          generators.forSpectrum(spec).getSpectrum(theo, hit.getSequence(), 1, max_fragment_charge(charge));
           features = model.score(spec, ranks, theo, hit.getSequence().size(), charge, fragment_mass_tolerance_, ppm);
         }
         hit.setMetaValue(Constants::UserParam::ION_PRIOR_LLR, features.log_likelihood_ratio);
@@ -3430,6 +3436,7 @@ namespace OpenMS
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
     search_parameters.setMetaValue("ion_prior:trained", trained ? "true" : "false");
     search_parameters.setMetaValue("ion_prior:training_psms", static_cast<int>(training.size()));
+    search_parameters.setMetaValue("ion_prior:fragment_charges", deisotoped ? "1" : "1..min(z-1,3)");
     protein_ids[0].setSearchParameters(search_parameters);
   }
 
