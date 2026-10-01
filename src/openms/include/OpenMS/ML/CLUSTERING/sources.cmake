@@ -12,7 +12,6 @@ CompleteLinkage.h
 EuclideanSimilarity.h
 GridBasedCluster.h
 GridBasedClustering.h
-HashGrid.h
 SingleLinkage.h
 )
 
@@ -26,4 +25,13 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\ML\\CLUSTERING" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
+
+### Private (non-installed) header: HashGrid uses Boost.Unordered because QTClusterFinder
+### derives its cluster order from the grid's bucket order, and only Boost gives the same
+### order on every platform (the std containers' bucket policies differ, which showed up as
+### a Windows-only FeatureLinkerUnlabeledQT regression). QTClusterFinder hands out an opaque
+### Grid instead of this template, so Boost stays out of the installed interface.
+set(private_sources_h ${directory}/HashGrid.h)
+source_group("Header Files\\OpenMS\\ML\\CLUSTERING" FILES ${private_sources_h})
+set(OpenMS_private_headers ${OpenMS_private_headers} ${private_sources_h})
 

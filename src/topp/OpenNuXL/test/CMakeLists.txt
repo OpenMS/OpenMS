@@ -41,3 +41,10 @@ if(NOT TARGET nlohmann_json::nlohmann_json)
   find_package(nlohmann_json CONFIG REQUIRED)
 endif()
 target_link_libraries(NuXLParameterParsing_test nlohmann_json::nlohmann_json)
+
+# NuXLReport.cpp uses Boost.Math, and openms_add_tool_class_test() links ${OpenMS_LIBRARIES},
+# which no longer carries Boost now that it is private to libOpenMS.
+if(NOT TARGET Boost::boost)
+  find_package(Boost 1.81 REQUIRED)
+endif()
+target_link_libraries(NuXLReport_test Boost::boost)

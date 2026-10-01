@@ -24,6 +24,7 @@ UniqueIdGenerator.h
 UniqueIdIndexer.h
 UniqueIdInterface.h
 VersionInfo.h
+CheckedCast.h
 )
 
 ### add path to the filenames

@@ -15,7 +15,7 @@
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <boost/dynamic_bitset.hpp>
+#include <memory>
 #include <iostream>
 
 namespace OpenMS
@@ -171,15 +171,27 @@ namespace OpenMS
     /// precalculated averagine distributions for fast averagine generation
     FLASHHelperClasses::PrecalculatedAveragine avg_;
 
-    /// mass bins that are targeted for FLASHIda global targeting mode
-    boost::dynamic_bitset<> target_mass_bins_;
+    /// Value-semantic holder for the implementation's bitsets.
+    struct OPENMS_DLLAPI Bitsets
+    {
+      struct Impl;
+      std::unique_ptr<Impl> impl;
+      Bitsets();
+      Bitsets(const Bitsets& other);
+      Bitsets(Bitsets&& other) noexcept;
+      Bitsets& operator=(const Bitsets& other);
+      Bitsets& operator=(Bitsets&& other) noexcept;
+      ~Bitsets();
+    };
+    Bitsets bitsets_;
+
+    /// monoisotopic masses that are targeted for FLASHIda global targeting mode
     std::vector<double> target_mono_masses_;
 
     /// mass bins that are excluded for FLASHIda global targeting mode
     std::vector<double> excluded_masses_;
 
-    /// mass bins that are previously deconvolved and excluded for decoy mass generation
-    boost::dynamic_bitset<> excluded_mass_bins_for_decoy_runs_;
+    /// previously deconvolved masses excluded for decoy mass generation
     std::vector<double> excluded_peak_masses_for_decoy_runs_;
     std::vector<double> excluded_masses_for_decoy_runs_;
 
@@ -187,11 +199,6 @@ namespace OpenMS
     std::vector<LogMzPeak> log_mz_peaks_;
     /// selected_peak_groups_ stores the deconvolved mass peak groups
     DeconvolvedSpectrum deconvolved_spectrum_;
-    /// binned_log_masses_ stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
-    boost::dynamic_bitset<> binned_log_masses_;
-    /// binned_log_mz_peaks_ stores the binned log mz peaks
-    boost::dynamic_bitset<> binned_log_mz_peaks_;
-
     /// This stores the "universal pattern"
     std::vector<double> universal_pattern_;
     /// This stores the patterns for harmonic reduction
@@ -304,4 +311,4 @@ namespace OpenMS
 
     bool isPeakGroupInExcludedMassForDecoyRuns_(const PeakGroup& peak_group, double tol, int offset = 0) const;
   };
-} // namespace OpenMS
+  } // namespace OpenMS
