@@ -29,6 +29,13 @@ Dependencies:
     <platform>-release). A build directory that still has it cached needs
     cmake -U OPENMS_CONTRIB_LIBS. find_package(OpenMS) no longer reads it either (#10327).
 
+TOPP tools:
+  Changes:
+    UniPEFF:
+      - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
+        file names, e.g. 2025_07_05 for uniprotkb_proteome_UP000005640_2025_07_05.xml.gz,
+        and stays 'unknown' if the input file name has none. -dbversion now defaults to empty.
+
 Build System:
   - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
     64-bit time_t transition, Depends also accepts the package under its old name.

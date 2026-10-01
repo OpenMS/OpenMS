@@ -3870,6 +3870,19 @@ set_tests_properties("TOPP_UniPEFF_15_summary_applied" PROPERTIES PASS_REGULAR_E
 add_test("TOPP_UniPEFF_15_summary_skipped" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_5_input_isoform_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_15_summary_skipped.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
 set_tests_properties("TOPP_UniPEFF_15_summary_skipped" PROPERTIES PASS_REGULAR_EXPRESSION "UniPEFF: 2 feature.s. annotated on isoforms that are not written .location/@sequence. were not applied .1 entries affected.")
 
+# Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its file names. The dated
+# name is materialized in the temp dir at test time. An explicit -dbversion (here 'unknown') wins over that
+# date, so TOPP_UniPEFF_19 equals the conversion of the undated input (TOPP_UniPEFF_9).
+add_test("TOPP_UniPEFF_18_prepare" ${CMAKE_COMMAND} -E copy ${DATA_DIR_TOPP}/UniPEFF_2_input_compact.xml ${TESTS_TEMP_DIR}/uniprotkb_proteome_UP000005640_2025_07_05.xml)
+add_test("TOPP_UniPEFF_18" ${TOPP_BIN_PATH}/UniPEFF -test -in ${TESTS_TEMP_DIR}/uniprotkb_proteome_UP000005640_2025_07_05.xml -out ${TESTS_TEMP_DIR}/UniPEFF_18_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_18_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_18_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_2_output_compact_dbversion.peff)
+set_tests_properties("TOPP_UniPEFF_18" PROPERTIES DEPENDS "TOPP_UniPEFF_18_prepare")
+set_tests_properties("TOPP_UniPEFF_18_out" PROPERTIES DEPENDS "TOPP_UniPEFF_18")
+add_test("TOPP_UniPEFF_19" ${TOPP_BIN_PATH}/UniPEFF -test -dbversion unknown -in ${TESTS_TEMP_DIR}/uniprotkb_proteome_UP000005640_2025_07_05.xml -out ${TESTS_TEMP_DIR}/UniPEFF_19_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_19_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_19_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_2_output_compact.peff)
+set_tests_properties("TOPP_UniPEFF_19" PROPERTIES DEPENDS "TOPP_UniPEFF_18_prepare")
+set_tests_properties("TOPP_UniPEFF_19_out" PROPERTIES DEPENDS "TOPP_UniPEFF_19")
+
 #------------------------------------------------------------------------------
 # XFDR tests
 add_test("TOPP_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -in ${DATA_DIR_TOPP}/XFDR_test_in1.idXML -out_idXML ${TESTS_TEMP_DIR}/XFDR_test_out1_temp.idXML -out_mzIdentML ${TESTS_TEMP_DIR}/XFDR_test_out1_temp.mzid -out_xquest ${TESTS_TEMP_DIR}/XFDR_test_out1_temp.xquest.xml)
