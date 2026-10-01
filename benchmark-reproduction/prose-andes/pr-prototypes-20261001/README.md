@@ -121,3 +121,45 @@ to +3.0% per file (mean +0.4%).
 
 The inputs, nightly and Percolator are those of the 2026-09-30 reproduction bundle referenced in the untangled-PR
 supplement.
+
+## Final PR commits, per-file robustness and entrapment (added 2026-10-01)
+
+The prototypes were applied to the PRs: #10378 `b02b538` (fragment charges from the deisotoping decision, no new
+parameter) and #10379 `eb74991` (`auto` applies the fragment window only; `scoring:mass_error_kernel_fit=shift`
+by default). Each final build reproduces its prototype arm byte for byte (PIN and native TSV):
+- `b02b538` against `p_zauto` on all six low-resolution files, and against the #10378 head on `hfx_A2` and
+  `astral_A2`.
+- `eb74991` against `h_frag` (default) and `m_shift_frag` (mass-accuracy) on all 14 high-resolution files, and
+  against develop on two low-resolution files.
+
+**Per-file robustness** (`robustness.py`, `robustness.tsv`):
+- Each file's mean over seeds is compared with develop.
+- z is the difference over the seed-to-seed standard error. A file counts as up at z ≥ 2 and down at z ≤ −2.
+- Seed variance does not capture data-sampling variance; on Lumos LFQ it is tiny, so small changes reach large z.
+
+| Candidate | Files up / flat / down | Where it gains | Where it loses |
+| --- | --- | --- | --- |
+| #10377 (cutoff) | 0 / 20 / 0 | intensity-scaled input only (see the untangled-PR supplement) | – |
+| #10378 `b02b538`, priors on | 10 / 10 / 0 | Velos +4.1 to +7.8%, Lumos CID TMT +2.8 to +3.5%, Astral +2.1 to +6.7% | – |
+| #10379 `eb74991` default | 2 / 15 / 3 | Astral +2.4 to +8.8%, TMTpro +1.1 to +3.8% | HF-X −0.7 to −1.3%, Lumos LFQ −0.2 to −0.6% (every file negative) |
+| #10379 `eb74991` + mass-accuracy | 5 / 6 / 3 (of 14) | Astral +3.1 to +8.7%, TMTpro +1.6 to +2.8% | HF-X −0.6 to −1.2%, Lumos LFQ −0.7% on 2 files |
+| #10335 merged | 4 / 16 / 0 | Velos +8.9 to +16.3%, Lumos CID TMT +1.5 to +5.4% | – |
+
+**Entrapment on the Velos UPS1/yeast files** (`entrapment_velos.py`, `entrapment_velos.tsv`):
+- **Design:** the samples (PXD001819) contain yeast and the 48 human UPS1 proteins, but the database holds all
+  20.5k reviewed human proteins. A PSM whose peptide (I = L) occurs only in non-UPS1 human proteins is false.
+- **Estimator:** the combined FDP estimate is N_E·(1 + 1/r)/N, with r = 3.38 entrapment-only per sample peptide of
+  the tryptic space.
+- **Scope:** sums over 3 files × 3 seeds at Percolator q ≤ 0.01.
+
+| Arm | PSMs | Entrapment PSMs | FDP (combined) | Extra PSMs vs develop | FDP of the extra PSMs |
+| --- | --- | --- | --- | --- | --- |
+| develop | 23403 | 172 | 0.95% | – | – |
+| #10378 `b02b538`, priors on | 24854 | 185 | 0.97% | +1451 | 1.2% |
+| #10335 merged | 26136 | 231 | 1.15% | +2733 | 2.8% |
+
+**What the entrapment check shows:**
+- **#10378:** the Velos gain keeps the nominal 1% FDR.
+- **#10335:** most of its Velos gain is real, but its FDP rises to 1.15% because the extra PSMs are less clean.
+- **Coverage:** the other groups have no entrapment design (HYE samples contain all three species; TMTpro and
+  plasma are human only).

@@ -1,0 +1,6 @@
+arm	psms_sum_3files_3seeds	sample	ups1	entrapment	unknown	fdp_lower	fdp_combined	gained_vs_base	gained_entrapment	gained_fdp_combined
+base	23403	22762	469	172	0	0.735	0.953	0	0	
+p_zauto	24854	24171	498	185	0	0.744	0.965	1900	85	5.8
+f78_priors	24854	24171	498	185	0	0.744	0.965	1900	85	5.8
+pr10335	26136	25386	519	231	0	0.884	1.146	3161	134	5.49
+pr66_priors	23317	22683	478	156	0	0.669	0.867	692	43	8.05
