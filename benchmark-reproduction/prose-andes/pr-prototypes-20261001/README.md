@@ -163,3 +163,24 @@ by default). Each final build reproduces its prototype arm byte for byte (PIN an
 - **#10335:** most of its Velos gain is real, but its FDP rises to 1.15% because the extra PSMs are less clean.
 - **Coverage:** the other groups have no entrapment design (HYE samples contain all three species; TMTpro and
   plasma are human only).
+
+## #10378 cross-fitted (added 2026-10-01, later)
+
+Review of #10378 found that the ion-prior model, trained on a run's confident PSMs, also scored those PSMs. The PR now
+cross-fits the model (`523214b`):
+- Spectra fall into 3 folds by scan index.
+- Each fold is scored by a model whose training PSMs are selected, gated and fitted on the other two folds only.
+
+`ef0dcee` was searched on all 20 files (`f78x_priors` in `robustness.tsv`). `523214b` gives an identical PIN and
+native TSV on `velos_125_R1` and `astral_A2`; every fold model has 503 or more training PSMs, against a gate of 100.
+
+**Per-group results** (% vs. develop):
+
+| | Velos | HF-X | Astral | Lumos LFQ | Lumos CID TMT | TMTpro | timsTOF |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `b02b538` (not cross-fitted) | +6.20% | +0.30% | +4.60% | -0.11% | +3.14% | +1.76% | +2.35% |
+| `523214b` (cross-fitted) | +5.51% | +0.05% | +3.54% | -0.19% | +3.05% | +0.76% | +0.66% |
+
+- **Per file:** 8 up, 11 flat, 1 down (`lumos_lfq_5192`, −0.34%).
+- **Velos entrapment:** combined FDP 0.91% (develop 0.95%, `b02b538` 0.97%). The 1290 extra PSMs bring one extra
+  entrapment hit.

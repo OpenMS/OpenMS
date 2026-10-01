@@ -20,6 +20,7 @@ CANDIDATES = {
     "#10377 (cutoff)": ["pr68"],
     "#10378 head 241f9a7 (priors on)": ["pr66_priors"],
     "#10378 b02b538 (priors on)": ["p_zauto", "f78_priors", "pr66_priors"],  # Da files: p_zauto (identical PIN); ppm files: unchanged code path
+    "#10378 523214b (priors on, cross-fitted)": ["f78x_priors"],
     "#10379 head 16ff034 (default)": ["pr65_default"],
     "#10379 eb74991 (default)": ["f79_default", "h_frag", "base"],
     "#10379 eb74991 + mass_accuracy": ["f79_mass", "m_shift_frag"],
