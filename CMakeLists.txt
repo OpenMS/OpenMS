@@ -123,6 +123,7 @@ option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." 
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
+option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
 # Every platform we build for reads RAW files: the Thermo CommonCore assemblies are
 # architecture-neutral IL, and only the bridge around them is compiled per target.

@@ -100,8 +100,6 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   OpenMS_Percolator
   )
 
-option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
-
 if(WITH_ONNX)
   if(OPENMS_USE_VCPKG)
     list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES onnxruntime::onnxruntime)

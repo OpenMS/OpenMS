@@ -62,13 +62,6 @@ target_link_libraries(FuzzyDiff OpenMSTestFramework)
 # OpenDIA directly uses Apache Arrow APIs for its Parquet workflow.
 target_link_libraries(OpenDIA ${OPENMS_ARROW_TARGET})
 
-# OpenDIA keeps predicted-library support optional so the TOPP tool remains
-# available in builds without ONNX Runtime. The WITH_ONNX CMake option is not
-# otherwise propagated as a C++ preprocessor definition to TOPP executables.
-if(WITH_ONNX)
-  target_compile_definitions(OpenDIA PRIVATE WITH_ONNX)
-endif()
-
 
 # collection target
 add_custom_target(TOPP)
