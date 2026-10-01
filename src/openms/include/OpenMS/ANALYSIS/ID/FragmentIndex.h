@@ -756,6 +756,10 @@ private:
     std::string digestion_enzyme_;
     EnzymaticDigestion::Specificity enzyme_specificity_{EnzymaticDigestion::SPEC_FULL}; ///< 'full' (default), 'semi' (semi-tryptic), or 'none' (e.g. immunopeptidomics)
 
+    /// Whether a position is the original or, with Met clipping enabled, mature protein N-terminus.
+    bool isProteinNTerminal_(const std::string& protein, Size start) const;
+
+    bool clip_nterm_methionine_ {false}; ///< Include initial Met loss (enabled by ProSE).
     size_t missed_cleavages_; ///< number of missed cleavages
     float peptide_min_mass_;
     float peptide_max_mass_;

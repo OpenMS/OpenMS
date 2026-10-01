@@ -159,9 +159,15 @@ namespace OpenMS
           setValueLimits(tdl::DoubleValue {static_cast<double>(param_it->value), param_it->min_float, param_it->max_float});
           break;
         case ParamValue::STRING_VALUE:
-          if (param_it->valid_strings.size() == 2 && param_it->valid_strings[0] == "true" && param_it->valid_strings[1] == "false" && param_it->value == "false")
+          // every parameter restricted to 'true' and 'false' is a boolean, whatever the order of
+          // the two and whichever of them is the default: the CWL description is generated once
+          // per tool, so its type must not depend on the value the parameters happen to carry.
+          // ParamJSONFile::load, which reads the inputs back from the runner, also treats all of
+          // them as booleans. A 'true' default is unproblematic because the generated CWL passes
+          // the inputs as '-ini cwl_inputs.json' instead of building command-line flags.
+          if (param_it->isBool())
           {
-            std::get<tdl::Node::Children>(stack.back().value).push_back(tdl::Node {param_it->name, param_it->description, tags, false});
+            std::get<tdl::Node::Children>(stack.back().value).push_back(tdl::Node {param_it->name, param_it->description, tags, param_it->value == "true"});
           }
           else
           {

@@ -13,6 +13,29 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 
 ------------------------------------------------------------------------------------------
+----                                OpenMS 3.7.0     (under development)              ----
+------------------------------------------------------------------------------------------
+
+Dependencies:
+  - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
+    deprecation in 3.6. Configuring with it stops with an error: add the prefix of the
+    dependencies to CMAKE_PREFIX_PATH, or let vcpkg build them (cmake --preset
+    <platform>-release). A build directory that still has it cached needs
+    cmake -U OPENMS_CONTRIB_LIBS. find_package(OpenMS) no longer reads it either (#10327).
+
+Build System:
+  - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
+    64-bit time_t transition, Depends also accepts the package under its old name.
+    dpkg-shlibdeps names the packages of the build host (libqt6gui6t64 (>= 6.4.0)); a
+    CPack post-build script adds the old name with the same version constraint as an
+    alternative (| libqt6gui6 (>= 6.4.0)) wherever the renamed package provides it, i.e.
+    on amd64 and arm64. Later releases went back to the old names for most Qt libraries
+    (libqt6gui6, libqt6widgets6, libqt6opengl6, libqt6openglwidgets6 in Debian 13 and
+    Ubuntu 25.10 and 26.04), so the package built on Ubuntu 24.04 now installs there too
+    (#10351). It still requires the glibc of the release it is built on, currently 2.38,
+    so not Ubuntu 22.04 or Debian 12 (#10352, #10367).
+
+------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
 ------------------------------------------------------------------------------------------
 
@@ -634,6 +657,15 @@ TOPP tools:
         groups; every other shipped mzTab reference has exactly one (fraction_group, label) per sample
         and is byte-identical (#9868, part of #9864)
     ProSE:
+      - Search initial methionine loss by default (peptide:clip_nterm_methionine=true), retaining
+        the original protein coordinates and protein N-terminal variable modifications.
+        The false setting restores the previous search space; standalone FragmentIndex defaults
+        to false. Length, mass and missed-cleavage limits apply after clipping. Generated decoys
+        retain the initial M when clipping is enabled; supplied decoys are searched as provided.
+      - FIX: Preserve strong peaks in the short final 100 Da window for high-resolution searches.
+        New peaks:window_type=auto keeps the full local quota at <=0.1 Da / <=100 ppm;
+        low-resolution filtering is unchanged. jump restores the previous filter and jump_full
+        forces a full quota. Peak-associated data arrays stay aligned.
       - Fixed FragmentIndex::build reusing old peptide coordinates on a second build;
         rebuilding now replaces the previous index and failed builds remain unbuilt.
       - BREAKING: renamed from PeptideDataBaseSearchFI. -out replaced by -out_idxml
@@ -1375,6 +1407,20 @@ Documentation:
     orphaned install-contrib page is removed (#10144).
 
 Build System:
+  - OpenMS can be built and installed in layers from the same source tree, e.g. for separate
+    packages of the libraries, the TOPP tools and the GUI: the new option
+    OPENMS_USE_INSTALLED_LIBRARY builds only the TOPP tools (BUILD_TOPP_TOOLS) and/or the
+    GUI library and applications (WITH_GUI) against an installed OpenMS library of the same
+    version (OpenMS_DIR). Such a build installs its own tool registry, share/OpenMS/TOOLS/
+    OpenMS-TOPP.tsv or OpenMS-GUI.tsv, with its tools; a build of the libraries alone installs
+    none. The GUI applications and the Qt-based TOPP tools ExecutePipeline and ImageCreator
+    moved from the install component Applications to the new component GUIApplications
+    (except in the macOS .pkg installer); the installers still contain all of them. The new
+    cache variable OPENMS_INSTALL_DATA_PATH overrides the compiled-in location of the
+    installed shared data, for layers installed into separate prefixes and linked into one
+    tree (e.g. Homebrew); the GUI applications also look for TOPP tools in the bin directory
+    of that tree. macOS app bundles installed without packaging (into bin/) now find the
+    installed libraries. OpenMSConfig.cmake reports OpenMS_WITH_WNETALIGN.
   - The Debian package of a nightly or branch build carries its prerelease identifier in its
     control version, for example 3.6.0~nightly.2026.09.27, so it sorts below the release
     and a later nightly above an earlier one. Before, every build of 3.6.0 was version 3.6.0

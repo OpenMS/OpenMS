@@ -42,11 +42,19 @@ set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
 ## how that leaves them behind). The script removes them before the package is built.
 list(APPEND CPACK_PRE_BUILD_SCRIPTS "${CMAKE_CURRENT_LIST_DIR}/cpack_clean_runpath.cmake")
 
-## Derive the dependencies from the built binaries; a hand-written list goes stale and
-## installs on systems the binaries cannot run on. Depends is what this derives and
-## nothing else. A library the package ships itself (SQLite, in lib/) needs no Debian
-## package, and a hand-written "<pkg>t64 | <pkg>" alternative would not help: Depends
-## entries are ANDed, and dpkg-shlibdeps derives the plain <pkg>t64 name.
+## dpkg-shlibdeps names the packages of the build host, which in Ubuntu 24.04 carry
+## the t64 suffix of the 64-bit time_t transition (libqt6gui6t64). Older releases, and
+## also Debian 13 and Ubuntu 25.10 and 26.04, name most Qt libraries without it
+## (libqt6gui6). After CPack has written the package, the script adds the old name as an
+## alternative wherever the renamed package provides it (libqt6gui6t64 (>= X) |
+## libqt6gui6 (>= X)), keeping the version constraint. It has to edit the derived entries: a hand-written
+## "t64 | non-t64" entry would be ANDed with the derived plain t64 one.
+list(APPEND CPACK_POST_BUILD_SCRIPTS "${CMAKE_CURRENT_LIST_DIR}/cpack_deb_t64_dependencies.cmake")
+
+## Derive dependencies from the built binaries; a hand-written list goes stale and
+## installs on systems the binaries cannot run on. A library the package ships itself
+## (SQLite, in lib/) needs no Debian package. Apart from the alternatives the
+## post-build script above adds, Depends is what dpkg-shlibdeps derives.
 ##
 ## This was on once before (#10202) and had to come off again (#10207), because the
 ## staging tree carried foreign-architecture binaries: ThermoRawFileParser's NuGet
@@ -73,7 +81,8 @@ set(CPACK_DEBIAN_PACKAGE_DEBUG ON)
 ## name and a mismatch would package none of the TOPP tools.
 set(CPACK_COMPONENTS_ALL Applications doc library library_cli share ${THIRDPARTY_COMPONENT_GROUP})
 if(WITH_GUI)
-  list(APPEND CPACK_COMPONENTS_ALL library_gui)
+  ## the GUI applications (install_tool() in src/openms_gui/CMakeLists.txt)
+  list(APPEND CPACK_COMPONENTS_ALL library_gui ${OPENMS_GUI_APPLICATIONS_COMPONENT})
 endif()
 
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
