@@ -118,8 +118,8 @@ START_SECTION(FragmentIonLikelihoodModel(double pseudo_count))
   TEST_REAL_SIMILAR(model.pseudoCount(), 5.0)
   TEST_EXCEPTION(Exception::InvalidParameter, FragmentIonLikelihoodModel(0.0))
   TEST_EXCEPTION(Exception::InvalidParameter, FragmentIonLikelihoodModel(-1.0))
-  TEST_EXCEPTION(Exception::InvalidParameter, FragmentIonLikelihoodModel(std::numeric_limits<double>::quiet_NaN()))
-  TEST_EXCEPTION(Exception::InvalidParameter, FragmentIonLikelihoodModel(std::numeric_limits<double>::infinity()))
+  TEST_EXCEPTION(Exception::InvalidParameter, FragmentIonLikelihoodModel{std::numeric_limits<double>::quiet_NaN()})
+  TEST_EXCEPTION(Exception::InvalidParameter, FragmentIonLikelihoodModel{std::numeric_limits<double>::infinity()})
 }
 END_SECTION
 
