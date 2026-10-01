@@ -618,6 +618,9 @@ namespace OpenMS
     const LibraryStats stats = generateDecoys(assay_output, FileTypes::PQP, output_pqp, FileTypes::PQP, decoy_parameters, reader_parameters);
     if (!stats.hasDecoys())
     {
+      // Fail closed: generateDecoys has already written output_pqp, so do not leave a
+      // target-only library at the caller's output path.
+      File::remove(output_pqp);
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Decoy generation on the assay-prepared library produced zero decoy transitions.");
     }

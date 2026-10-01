@@ -324,6 +324,42 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP fails closed when assay prepa
 }
 END_SECTION
 
+START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP fails closed when decoy generation yields zero decoys)
+{
+  OpenSwathLibraryPreparation prep;
+  prep.setLogType(ProgressLogger::NONE);
+
+  auto assay_params = makeIPFTestParameters_();
+  assay_params.enable_ipf = false;
+  assay_params.unimod_file.clear();
+
+  // Disable the coverage gate and request no decoys, so decoy generation succeeds and
+  // writes a target-only library before the zero-decoy check rejects it.
+  auto decoy_params = makeDeterministicDecoyParameters_();
+  decoy_params.min_decoy_fraction = 0.0;
+  decoy_params.aim_decoy_fraction = 0.0;
+
+  TempDir scratch_dir;
+  std::string output_pqp;
+  NEW_TMP_FILE_EXT(output_pqp, ".pqp");
+
+  TEST_EXCEPTION(Exception::Precondition,
+    prep.prepareEmpiricalLibraryToPQP(
+      classTestDataPath_("MRMDecoyGenerator_input.TraML"),
+      FileTypes::TRAML,
+      output_pqp,
+      assay_params,
+      decoy_params,
+      Param(),
+      scratch_dir.getPath()))
+  TEST_FALSE(File::exists(output_pqp))
+
+  StringList leftover_files;
+  File::fileList(scratch_dir.getPath(), "*", leftover_files);
+  TEST_EQUAL(leftover_files.size(), 0)
+}
+END_SECTION
+
 
 START_SECTION([EXTRA] generateDecoys preserves the historical light-path requirement for protein annotations)
 {
