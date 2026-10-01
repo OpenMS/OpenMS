@@ -39,8 +39,8 @@ Dependencies:
     CMake package, share/OpenMS and the shared libraries those layers load, relocatable
     and without Qt or the GUI library. Point CMAKE_PREFIX_PATH at the extracted archive
     and use find_package(OpenMS CONFIG COMPONENTS CLI). The archive's README.txt lists the
-    requirements (Boost headers of at least the version it was built against, MSVC
-    Release /MD on Windows, Ubuntu 24.04 as the Linux baseline). The CI presets now build
+    requirements (no Boost, MSVC Release /MD on Windows, Ubuntu 24.04 as the Linux
+    baseline). The CI presets now build
     with WITH_ONNX=ON (ONNX Runtime from vcpkg), so the installers and the SDK include the
     PeptDeep classes, their ONNX models (share/OpenMS/models) and the ONNX Runtime library,
     which were not installed before (#10248).

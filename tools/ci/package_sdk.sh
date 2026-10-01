@@ -24,8 +24,7 @@
 # Before the archive is accepted, it is extracted to a different location and
 # src/tests/external is configured against it through CMAKE_PREFIX_PATH (the way
 # the SDK README tells users to), built and its tests are run. The consumer gets
-# only the toolchain of the OpenMS build (compiler, vcpkg), which is how it
-# obtains the Boost headers when the OpenMS package requires them.
+# only the toolchain of the OpenMS build (compiler, vcpkg).
 set -euo pipefail
 
 if [[ $# -ne 3 ]]; then
@@ -218,22 +217,19 @@ if [[ "$(uname -s)" == Darwin ]]; then
   macos_minimum=", deployment target macOS $openms_minimum or newer"
 fi
 
-# The README names what a consumer needs, read off the installed package file:
-# while the public headers include Boost, OpenMSConfig.cmake records the Boost
-# version the build used in _openms_boost_version (falling back to 1.81.0 when the
-# build recorded none) and requires it from the consumer; once Boost is a private
-# dependency of the shared library, the file has no such entry and a consumer
-# needs no Boost development files at all.
+# Boost is a private dependency of the shared OpenMS library (#10223): no installed
+# header includes it, and OpenMSConfig.cmake resolves Boost only for a static export,
+# which the SDK never is (the OpenMS build sets BUILD_SHARED_LIBS unconditionally).
+# Should the package file ever require Boost from every consumer again (an
+# unconditional find_dependency(Boost ...) or _openms_boost_version at its top
+# level), stop here rather than ship a README that says otherwise.
 config_file="$stage/$cmake_dir/OpenMSConfig.cmake"
-if grep -q '^set(_openms_boost_version ' "$config_file"; then
-  boost_version=$(sed -n 's/^set(_openms_boost_version "\(.*\)")$/\1/p' "$config_file")
-  boost_requirement="Boost headers, version ${boost_version:-1.81.0} or newer (the version this SDK was built
-    against; find_package(OpenMS) requires at least that): public OpenMS headers
-    include Boost. No compiled Boost library is needed."
-else
-  boost_requirement="No Boost: the OpenMS headers do not include it, and find_package(OpenMS)
-    does not look for it."
+if grep -Eq '^(set\(_openms_boost_version |find_dependency\(Boost)' "$config_file"; then
+  echo >&2 "ERROR: $config_file requires Boost from consumers of the SDK; update the requirements in cmake/OpenMSSDKReadme.txt"
+  exit 1
 fi
+boost_requirement="No Boost: the OpenMS headers do not include it, and find_package(OpenMS)
+    does not look for it."
 # The version the README's find_package() example names is the one the package
 # file answers to (OpenMSConfigVersion.cmake, e.g. 3.6.0), not the <version> of
 # the archive name: the release workflow names a nightly after its date.
