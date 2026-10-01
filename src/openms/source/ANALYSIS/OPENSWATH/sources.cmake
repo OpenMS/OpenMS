@@ -55,6 +55,10 @@ set(sources_list
   TransitionPQPFile.cpp
 )
 
+if(WITH_ONNX)
+  list(APPEND sources_list PeptDeepLibraryPredictor.cpp)
+endif()
+
 ### add path to the filenames
 set(sources)
 foreach(i ${sources_list})

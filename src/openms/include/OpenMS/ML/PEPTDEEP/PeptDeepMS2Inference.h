@@ -38,7 +38,8 @@ public:
     /// @param nces A vector of normalized collision energies (must match peptides size).
     /// @param instrument_indices A vector of categorical integers representing MS instruments (e.g., 0=Lumos, 1=QE, 2=timsTOF, 3=Sciex).
     /// @return A vector of flattened fragment intensity arrays, one for each peptide.
-    ///         Native shape ordering is contiguous by fragment and ion type [b_1, y_1, b_2, y_2...].
+    ///         Each cleavage position contains eight contiguous AlphaPeptDeep channels in this order:
+    ///         [b_z1, b_z2, y_z1, y_z2, b_modloss_z1, b_modloss_z2, y_modloss_z1, y_modloss_z2].
     /// @throws Exception::IllegalArgument if peptides is empty, size constraints fail, or a sequence is chemically invalid.
     std::vector<std::vector<float>> predictMS2(
         const std::vector<std::string>& peptides,
