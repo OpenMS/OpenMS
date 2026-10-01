@@ -15,10 +15,12 @@
 # time_t when they moved their 32-bit architectures to a 64-bit time_t: libqt6core6
 # became libqt6core6t64, and so on. dpkg-shlibdeps names the packages installed on the
 # build host, so a package built on such a release depends on the new names, which
-# older releases do not have. On architectures whose time_t was 64-bit already (amd64,
-# arm64, ...) the ABI did not change, and the renamed package provides and replaces
-# its old name. There this script adds the old name as an alternative, with the same
-# version constraint:
+# older releases do not have. Later releases went back to the old names for many of
+# these libraries: Debian 13 and Ubuntu 25.10 and 26.04 ship libqt6gui6 and
+# libqt6openglwidgets6, with no t64 package. On architectures whose time_t was 64-bit
+# already (amd64, arm64, ...) the ABI did not change, and the renamed package provides
+# and replaces its old name. There this script adds the old name as an alternative,
+# with the same version constraint:
 #   libqt6core6t64 (>= 6.2.2)  ->  libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2)
 # The old names come from the build host's dpkg database, which dpkg-shlibdeps has
 # just read. On armhf, where the ABI changed, the renamed packages do not provide

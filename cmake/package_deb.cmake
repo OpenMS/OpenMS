@@ -42,11 +42,12 @@ set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
 ## how that leaves them behind). The script removes them before the package is built.
 list(APPEND CPACK_PRE_BUILD_SCRIPTS "${CMAKE_CURRENT_LIST_DIR}/cpack_clean_runpath.cmake")
 
-## dpkg-shlibdeps names the packages of the build host, which since Ubuntu 24.04 carry
-## the t64 suffix of the 64-bit time_t transition (libqt6core6t64). After CPack has
-## written the package, the script adds the old name as an alternative wherever the
-## renamed package provides it (libqt6core6t64 (>= X) | libqt6core6 (>= X)), keeping
-## the version constraint. It has to edit the derived entries: a hand-written
+## dpkg-shlibdeps names the packages of the build host, which in Ubuntu 24.04 carry
+## the t64 suffix of the 64-bit time_t transition (libqt6gui6t64). Older releases, and
+## also Debian 13 and Ubuntu 25.10 and 26.04, name most Qt libraries without it
+## (libqt6gui6). After CPack has written the package, the script adds the old name as an
+## alternative wherever the renamed package provides it (libqt6gui6t64 (>= X) |
+## libqt6gui6 (>= X)), keeping the version constraint. It has to edit the derived entries: a hand-written
 ## "t64 | non-t64" entry would be ANDed with the derived plain t64 one.
 list(APPEND CPACK_POST_BUILD_SCRIPTS "${CMAKE_CURRENT_LIST_DIR}/cpack_deb_t64_dependencies.cmake")
 
