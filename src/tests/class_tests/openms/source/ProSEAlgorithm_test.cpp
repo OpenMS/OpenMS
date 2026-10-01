@@ -210,7 +210,12 @@ void addDecoySpectra(PeakMap& spectra, const std::vector<FASTAFile::FASTAEntry>&
   DecoyGenerator decoy_generator;
   for (const auto& entry : fasta_db)
   {
-    const AASequence decoy_protein = decoy_generator.reversePeptides(AASequence::fromString(entry.sequence), "Trypsin");
+    // Match ProSE's default: preserve the initial Met when generating decoys.
+    const bool preserve_met = entry.sequence.size() > 1 && entry.sequence[0] == 'M';
+    std::string decoy_sequence
+      = decoy_generator.reversePeptides(AASequence::fromString(preserve_met ? entry.sequence.substr(1) : entry.sequence), "Trypsin").toString();
+    if (preserve_met) { decoy_sequence.insert(decoy_sequence.begin(), 'M'); }
+    const AASequence decoy_protein = AASequence::fromString(decoy_sequence);
     std::vector<AASequence> peptides;
     digester.digest(decoy_protein, peptides, 8, 40);
     peptides.resize(std::min(peptides.size(), per_protein));
@@ -2737,4 +2742,126 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION(([EXTRA] ProSE searches initial methionine loss by default in single and chunked multi - file searches))
+{
+  const vector<FASTAFile::FASTAEntry> database {{"target", "", "MPEPTIDER"}, {"DECOY_control", "", "MPEPTIDEK"}};
+  vector<AASequence> sequences {AASequence::fromString("PEPTIDER"), AASequence::fromString("PEPTIDER"), AASequence::fromString("PEPTIDEK"),
+                                AASequence::fromString("MPEPTIDER")};
+  sequences[1].setNTerminalModification("Acetyl (Protein N-term)");
+  PeakMap original;
+  for (Size i = 0; i < sequences.size(); ++i)
+  {
+    MSSpectrum spectrum;
+    TheoreticalSpectrumGenerator().getSpectrum(spectrum, sequences[i], 1, 1);
+    spectrum.sortByPosition();
+    spectrum.setMSLevel(2);
+    spectrum.setRT(i + 1);
+    spectrum.setNativeID("scan=" + std::to_string(i + 1));
+    Precursor precursor;
+    precursor.setCharge(2);
+    precursor.setMZ(sequences[i].getMZ(2));
+    spectrum.setPrecursors({precursor});
+    original.addSpectrum(spectrum);
+  }
+  std::string spectrum_file;
+  NEW_TMP_FILE(spectrum_file)
+  spectrum_file += ".mzML";
+  FileHandler().storeExperiment(spectrum_file, original, {FileTypes::MZML});
+  ProSEAlgorithm algo;
+  auto p = algo.getParameters();
+  TEST_TRUE(p.getValue("peptide:clip_nterm_methionine").toBool())
+  p.setValue("calibration:enabled", "false");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("modifications:fixed", StringList {});
+  p.setValue("modifications:variable", StringList {"Acetyl (Protein N-term)"});
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  p.setValue("peptide:missed_cleavages", 0);
+  algo.setParameters(p);
+
+  auto check = [&](const vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides, bool enabled) {
+    TEST_EQUAL(peptides.size(), enabled ? 4 : 1)
+    TEST_EQUAL(proteins.size(), 1)
+    if (! proteins.empty()) { TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("peptide:clip_nterm_methionine").toBool(), enabled) }
+    for (const auto& id : peptides)
+    {
+      const Size i = static_cast<Size>(std::stoi(id.getSpectrumReference().substr(5)) - 1);
+      TEST_EQUAL(id.getHits().size(), 1)
+      if (id.getHits().empty() || i >= sequences.size()) { continue; }
+      const auto& hit = id.getHits()[0];
+      TEST_EQUAL(hit.getSequence(), sequences[i])
+      TEST_EQUAL(hit.getMetaValue("target_decoy").toString(), i == 2 ? "decoy" : "target")
+      TEST_TRUE(hit.getScore() > 0)
+      TEST_EQUAL(hit.getPeptideEvidences().size(), 1)
+      for (const auto& evidence : hit.getPeptideEvidences())
+      {
+        TEST_EQUAL(evidence.getStart(), i == 3 ? 0 : 1)
+        TEST_EQUAL(evidence.getEnd(), 8)
+        if (i != 3) { TEST_EQUAL(evidence.getAABefore(), 'M') }
+      }
+    }
+  };
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  PeakMap spectra = original;
+  TEST_TRUE(algo.search(spectra, database, proteins, peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  check(proteins, peptides, true);
+
+  for (bool enabled : {true, false})
+  {
+    p.setValue("peptide:clip_nterm_methionine", enabled ? "true" : "false");
+    for (int chunk_size : {0, 1})
+    {
+      p.setValue("database:chunk_size", chunk_size);
+      algo.setParameters(p);
+      auto result = algo.searchWithModificationAnalysis(vector<string> {spectrum_file, spectrum_file}, database, {}, "", false);
+      TEST_EQUAL(result.per_file.size(), 2)
+      TEST_EQUAL(result.shared.chunked, chunk_size > 0)
+      for (const auto& file : result.per_file)
+      {
+        check(file.protein_ids, file.peptide_ids, enabled);
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] generated decoys preserve initial methionine when clipping is enabled))
+{
+  const vector<FASTAFile::FASTAEntry> database {{"protein", "", "MACDEKAGHILR"}, {"non_m", "", "ACDEKAGHILR"}, {"single_m", "", "M"}};
+  for (bool enabled : {false, true})
+  {
+    for (const string specificity : {"full", "none"})
+    {
+      ProSEAlgorithm_test algo;
+      auto p = algo.getParameters();
+      p.setValue("decoys", "generate");
+      p.setValue("peptide:clip_nterm_methionine", enabled ? "true" : "false");
+      p.setValue("peptide:enzyme_specificity", specificity);
+      algo.setParameters(p);
+      auto strategy = algo.resolveDecoyStrategy_(database);
+      auto result = algo.buildDecoyAugmentedDB_(database, strategy);
+      TEST_EQUAL(result.size(), 6)
+      DecoyGenerator generator;
+      for (const auto& original : database)
+      {
+        auto expected = original.sequence;
+        const bool preserve_met = enabled && expected.size() > 1 && expected[0] == 'M';
+        if (preserve_met) { expected.erase(0, 1); }
+        const auto seq = AASequence::fromString(expected);
+        expected = (specificity == "none" ? generator.reverseProtein(seq) : generator.reversePeptides(seq, "Trypsin")).toString();
+        if (preserve_met) { expected.insert(expected.begin(), 'M'); }
+        for (const auto& entry : result)
+        {
+          if (entry.identifier == original.identifier) { TEST_EQUAL(entry.sequence, original.sequence) }
+          if (entry.identifier == "DECOY_" + original.identifier) { TEST_EQUAL(entry.sequence, expected) }
+        }
+      }
+    }
+  }
+}
+END_SECTION
+
 END_TEST
