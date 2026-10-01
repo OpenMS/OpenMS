@@ -30,6 +30,14 @@ OpenMS Library:
     INIFileEditor failed to load mzML files with a ConversionError, because "60.5" was read as
     60. The imzML and Arrow/Parquet readers no longer use the locale-dependent std::stod, and
     the GUI tools reset LC_NUMERIC to "C" after starting Qt.
+  - NEW: PeptDeepLibraryPredictor turns peptide precursors into an OpenSWATH assay library
+    (LightTargetedExperiment) with the native PeptDeep ONNX models: predicted retention time,
+    optionally CCS (stored as 1/K0), and b/y fragment intensities (four canonical non-loss
+    channels). It only predicts; digestion, filtering and decoys stay with the calling
+    workflow. Available in builds with WITH_ONNX (#10380).
+  - NEW: OpenSwathLibraryPreparation holds the library preparation (normalization to PQP, assay
+    generation, decoy generation) shared by OpenSwathAssayGenerator, OpenSwathDecoyGenerator
+    and OpenDIA (#10373).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -39,6 +47,13 @@ Dependencies:
     cmake -U OPENMS_CONTRIB_LIBS. find_package(OpenMS) no longer reads it either (#10327).
 
 TOPP tools:
+  New tools:
+    OpenDIA:
+      - High-level DIA workflow in one call: library preparation (prepared PQP/TSV/OSWPQ/TraML
+        library or empirical transition list, mode chosen automatically from the presence of
+        decoys), OpenSWATH extraction and scoring, in-process Percolator rescoring,
+        peptide/protein/gene/peptidoform inference and export. Intermediate files are removed
+        on success unless workflow:keep_intermediate_files is set (#10373).
   Changes:
     UniPEFF:
       - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
