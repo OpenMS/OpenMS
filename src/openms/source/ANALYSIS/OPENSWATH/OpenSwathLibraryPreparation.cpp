@@ -332,6 +332,24 @@ namespace OpenMS
                                          StringUtils::toStr(min_decoy_fraction * 100) + "% of the number of targets.");
       }
     }
+
+    /// Removes an intermediate file when leaving scope, on success and on error.
+    struct ScratchFileRemover_
+    {
+      std::string path;
+
+      ~ScratchFileRemover_()
+      {
+        try
+        {
+          File::remove(path);
+        }
+        catch (...)
+        {
+          // Never throw from a destructor; a leftover scratch file is harmless.
+        }
+      }
+    };
   } // namespace
 
   OpenSwathLibraryPreparation::OpenSwathLibraryPreparation() = default;
@@ -563,22 +581,32 @@ namespace OpenMS
     const Param& reader_parameters,
     const std::string& scratch_directory) const
   {
-    // Always isolate the assay-preparation intermediate in a unique TempDir.
-    // When a scratch_directory is supplied it is only the parent; callers may
-    // safely share that parent without sharing prepared_assays.pqp.
+    // Always isolate the assay-preparation intermediate per invocation. A supplied
+    // scratch_directory is only a (possibly shared) parent, so write a uniquely named
+    // file into it rather than nesting another TempDir: callers such as OpenDIA already
+    // pass a unique TempDir here, and a second ~90-character TempDir segment pushes the
+    // path past the Windows MAX_PATH limit.
     std::unique_ptr<TempDir> temp_dir;
+    std::string scratch_base;
     if (scratch_directory.empty())
     {
       temp_dir = std::make_unique<TempDir>();
+      scratch_base = temp_dir->getPath();
     }
     else
     {
-      const std::string scratch_base = File::absolutePath(scratch_directory);
+      scratch_base = File::absolutePath(scratch_directory);
       File::makeDir(scratch_base);
-      temp_dir = std::make_unique<TempDir>(scratch_base);
     }
+    StringUtils::ensureLastChar(scratch_base, '/');
 
-    const std::string assay_output = File::absolutePath(temp_dir->getPath() + "/prepared_assays.pqp");
+    std::string assay_output;
+    do
+    {
+      assay_output = scratch_base + "prepared_assays_" + File::getUniqueName(false) + ".pqp";
+    } while (File::exists(assay_output));
+    const ScratchFileRemover_ assay_output_remover{assay_output};
+
     const LibraryStats assay_stats = prepareAssays(input_file, input_type, assay_output, FileTypes::PQP, assay_parameters, reader_parameters);
 
     if (assay_stats.transition_count == 0)

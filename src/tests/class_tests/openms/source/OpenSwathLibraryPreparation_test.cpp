@@ -45,6 +45,20 @@ namespace
     return lines;
   }
 
+  // The scratch directory must hold nothing but what the caller put there: no
+  // leftover intermediate and no nested directory (which would lengthen paths).
+  void testScratchDirectoryUntouched_(const std::string& scratch_dir, const std::string& expected_file)
+  {
+    StringList files;
+    File::fileList(scratch_dir, "*", files);
+    TEST_EQUAL(files.size(), 1)
+    if (!files.empty())
+    {
+      TEST_EQUAL(files[0], expected_file)
+    }
+    TEST_EQUAL(File::listDirectories(scratch_dir).size(), 0)
+  }
+
   void testSortedFilesEqual_(const std::string& actual_file, const std::string& expected_file)
   {
     const auto actual_lines = sortedLines_(actual_file);
@@ -243,6 +257,7 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP runs assay preparation plus d
   const auto sentinel_after_second = sortedLines_(scratch_sentinel);
   TEST_EQUAL(sentinel_after_second.size(), 1)
   TEST_EQUAL(sentinel_after_second[0], "must survive")
+  testScratchDirectoryUntouched_(shared_scratch_parent.getPath(), "prepared_assays.pqp");
 
   TEST_TRUE(File::exists(output_pqp_1))
   TEST_TRUE(File::exists(output_pqp_2))
@@ -305,6 +320,7 @@ START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP fails closed when assay prepa
   const auto sentinel_after_failure = sortedLines_(scratch_sentinel);
   TEST_EQUAL(sentinel_after_failure.size(), 1)
   TEST_EQUAL(sentinel_after_failure[0], "must survive failure")
+  testScratchDirectoryUntouched_(shared_scratch_parent.getPath(), "prepared_assays.pqp");
 }
 END_SECTION
 

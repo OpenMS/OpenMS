@@ -148,10 +148,11 @@ namespace OpenMS
      * @param assay_parameters Assay-generation parameters applied before decoy generation.
      * @param decoy_parameters Decoy-generation parameters used for the prepared assays.
      * @param reader_parameters Optional parameters passed to the transition-library reader.
-     * @param scratch_directory Optional parent directory for temporary assay-preparation files.
-     *        A unique per-invocation child directory is always created below this parent so concurrent
-     *        callers cannot share or overwrite the same intermediate. The child directory is removed
-     *        automatically on both success and failure.
+     * @param scratch_directory Optional directory for the temporary assay-preparation file. The
+     *        intermediate gets a unique per-invocation file name, so concurrent callers can share this
+     *        directory without sharing or overwriting the same intermediate. No subdirectory is created,
+     *        which keeps paths short on Windows. The file is removed on both success and failure. When
+     *        empty, a fresh system temporary directory is used.
      */
     LibraryStats prepareEmpiricalLibraryToPQP(const std::string& input_file,
                                               FileTypes::Type input_type,

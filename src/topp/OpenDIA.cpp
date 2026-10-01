@@ -159,7 +159,6 @@ protected:
     bool dirty = false;
     std::unique_ptr<TempDir> temp_dir;
     mutable std::shared_ptr<arrow::Table> runs_table_cache;
-    mutable std::unordered_map<Int64, std::shared_ptr<arrow::Table>> feature_table_cache;
   };
 
   struct PreparedLibraryPrecursor_
@@ -1460,23 +1459,13 @@ protected:
     return workspace.runs_table_cache;
   }
 
+  // Deliberately not cached: callers process one run at a time, and keeping every
+  // run's features table resident would make peak memory scale with the whole
+  // experiment instead of the largest run.
   static std::shared_ptr<arrow::Table> getOSWPQFeatureTable_(const OSWPQWorkspace& workspace, const Int64 run_id)
   {
-    const auto cached = workspace.feature_table_cache.find(run_id);
-    if (cached != workspace.feature_table_cache.end())
-    {
-      return cached->second;
-    }
-
-    auto table = ParquetFile::readTable(
+    return ParquetFile::readTable(
       workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet");
-    workspace.feature_table_cache.emplace(run_id, table);
-    return table;
-  }
-
-  static void invalidateOSWPQFeatureTable_(OSWPQWorkspace& workspace, const Int64 run_id)
-  {
-    workspace.feature_table_cache.erase(run_id);
   }
 
   static void replaceParquetColumns_(const std::string& file_path,
@@ -2496,7 +2485,6 @@ protected:
       }
 
       replaceParquetColumns_(features_path, replace_columns, extra_fields, extra_arrays);
-      invalidateOSWPQFeatureTable_(workspace, run_id);
       progress_logger.setProgress(run_row + 1);
     }
 
