@@ -25,6 +25,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
@@ -64,6 +65,7 @@ public:
   using ProSEAlgorithm::DecoyStrategy_;
   using ProSEAlgorithm::buildDecoyAugmentedDB_;
   using ProSEAlgorithm::calibration_enabled_;
+  using ProSEAlgorithm::calibration_precursor_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -3083,6 +3085,7 @@ START_SECTION(([EXTRA] calibration:enabled=auto follows the fragment tolerance r
   ProSEAlgorithm_test algo;
   TEST_EQUAL(algo.getParameters().getValue("calibration:enabled").toString(), "auto")
   TEST_TRUE(algo.calibration_enabled_) // the default fragment tolerance (20 ppm) is high-resolution
+  TEST_FALSE(algo.calibration_precursor_) // 'auto' applies the fragment calibration only
   Param p = algo.getParameters();
   p.setValue("fragment:mass_tolerance", 0.5);
   p.setValue("fragment:mass_tolerance_unit", "Da");
@@ -3091,6 +3094,7 @@ START_SECTION(([EXTRA] calibration:enabled=auto follows the fragment tolerance r
   p.setValue("calibration:enabled", "true");
   algo.setParameters(p);
   TEST_TRUE(algo.calibration_enabled_) // explicit choices override the resolution proxy
+  TEST_TRUE(algo.calibration_precursor_) // 'true' applies the calibrated precursor window as well
   p.setValue("calibration:enabled", "false");
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
@@ -3101,6 +3105,93 @@ START_SECTION(([EXTRA] calibration:enabled=auto follows the fragment tolerance r
   p.setValue("fragment:mass_tolerance_unit", "Da");
   algo.setParameters(p);
   TEST_TRUE(algo.calibration_enabled_) // 0.1 Da is the (inclusive) resolution boundary
+}
+END_SECTION
+
+START_SECTION(([EXTRA] calibration:enabled=auto applies the fragment calibration only))
+{
+  // The calibration spectra with precursor errors of 0 to 14 ppm calibrate the precursor window to
+  // [-0, +14] ppm. A sparse copy (every other peak, hence the lowest total ion current) of an identifiable
+  // spectrum at -10 ppm is left out of the calibration subset, which takes all spectra but the one with the
+  // lowest TIC. 'true' applies the calibrated window and loses its match; 'auto' keeps the configured
+  // [-20, +30] ppm window and finds it, in the single-file, chunked and chunk-major multi-file paths. The
+  // window also reaches the open-search modification analysis (last_mod_match_tolerance_used_).
+  const vector<double> shifts = {0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0};
+  const std::string weak_spectrum = "spectrum=" + StringUtils::toStr(shifts.size());
+  auto build = [&]()
+  {
+    PeakMap spectra = build_calibration_spectra_(shifts);
+    MSSpectrum weak = spectra[1];
+    // spectra[1] carries a +2 ppm precursor error; move it to -10 ppm
+    Precursor precursor = weak.getPrecursors()[0];
+    precursor.setMZ(precursor.getMZ() / (1.0 + 2e-6) * (1.0 - 10e-6));
+    weak.setPrecursors({precursor});
+    MSSpectrum sparse = weak;
+    sparse.clear(false);
+    for (Size i = 0; i < weak.size(); i += 2) sparse.push_back(weak[i]);
+    weak = sparse;
+    weak.setRT(spectra.getSpectra().back().getRT() + 1.0);
+    weak.setNativeID(weak_spectrum);
+    spectra.addSpectrum(std::move(weak));
+    return spectra;
+  };
+  // Whether the weak spectrum has a hit at its -10 ppm precursor error
+  auto weak_matched = [&](const PeptideIdentificationList& peptides)
+  {
+    const double precursor_mz = build().getSpectra().back().getPrecursors()[0].getMZ();
+    for (const auto& peptide : peptides)
+    {
+      if (peptide.getSpectrumReference() != weak_spectrum) continue;
+      for (const auto& hit : peptide.getHits())
+      {
+        const double error = Math::getPPM(precursor_mz, hit.getSequence().getMZ(hit.getCharge()));
+        if (std::abs(error + 10.0) < 0.5) return true;
+      }
+    }
+    return false;
+  };
+  auto chunked_db = calibration_fasta_db_();
+  chunked_db.push_back({"P02", "Filler", "MKAAAAAAAAGGGGGGGGLLLLLLLLKRVVVVVVVVVK"});
+  std::string input_file;
+  NEW_TMP_FILE(input_file)
+  FileHandler().storeExperiment(input_file, build(), {FileTypes::MZML});
+
+  for (const std::string& mode : {"true", "auto"})
+  {
+    ProSEAlgorithm_test algo;
+    configure_calibration_params_(algo, 20.0, 30.0, 3);
+    Param p = algo.getParameters();
+    p.setValue("calibration:enabled", mode);
+    p.setValue("calibration:subset_ratio", 0.93); // all spectra but the weak one
+    algo.setParameters(p);
+    const bool expect_match = mode == "auto";
+
+    PeakMap spectra = build();
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    TEST_TRUE(algo.search(spectra, calibration_fasta_db_(), proteins, peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    const auto& cal = algo.last_calibration_result_;
+    TEST_TRUE(cal.success)
+    TEST_FALSE(cal.extreme_bias)
+    TEST_TRUE(cal.cal_upper < 1.0) // the calibrated window excludes negative errors
+    TEST_EQUAL(weak_matched(peptides), expect_match)
+    TEST_REAL_SIMILAR(algo.last_mod_match_tolerance_used_, expect_match ? 20.0 : std::min(cal.cal_lower, cal.cal_upper))
+
+    p.setValue("database:chunk_size", 1);
+    algo.setParameters(p);
+    spectra = build();
+    PeptideIdentificationList chunked;
+    TEST_TRUE(algo.search(spectra, chunked_db, proteins, chunked) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_EQUAL(weak_matched(chunked), expect_match)
+
+    const auto multi = algo.searchWithModificationAnalysis(vector<string> {input_file, input_file}, chunked_db, vector<string> {}, "", false);
+    TEST_EQUAL(multi.per_file.size(), 2)
+    for (const auto& file : multi.per_file)
+    {
+      TEST_TRUE(file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+      TEST_EQUAL(weak_matched(file.peptide_ids), expect_match)
+    }
+  }
 }
 END_SECTION
 
@@ -3146,6 +3237,7 @@ START_SECTION(([EXTRA] calibration fits the mass-accuracy kernel from confident 
   Param p = algo.getParameters();
   p.setValue("scoring:method", "mass_accuracy");
   p.setValue("scoring:mass_error_sd", 9.0);
+  p.setValue("scoring:mass_error_kernel_fit", "full");
   algo.setParameters(p);
 
   PeakMap spectra = build();
@@ -3170,6 +3262,26 @@ START_SECTION(([EXTRA] calibration fits the mass-accuracy kernel from confident 
   }
   std::map<std::string, double> calibrated_scores;
   for (const auto& peptide : peptides) calibrated_scores[peptide.getSpectrumReference()] = peptide.getHits()[0].getScore();
+
+  // The default fit ('shift') centers the configured width on the fitted shift; 'none' keeps the configured kernel.
+  for (const std::string& fit : {"shift", "none"})
+  {
+    ProSEAlgorithm_test fit_algo;
+    Param fit_param = p;
+    fit_param.setValue("scoring:mass_error_kernel_fit", fit);
+    fit_algo.setParameters(fit_param);
+    PeakMap fit_spectra = build();
+    vector<ProteinIdentification> fit_proteins;
+    PeptideIdentificationList fit_peptides;
+    TEST_TRUE(fit_algo.search(fit_spectra, fasta_db, fit_proteins, fit_peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_TRUE(top_hits_explained(fit_peptides))
+    ABORT_IF(fit_proteins.empty())
+    const auto [kernel, sd, shift] = kernel_of(fit_proteins);
+    TEST_EQUAL(kernel, fit == "shift" ? "calibrated" : "configured")
+    TEST_REAL_SIMILAR(sd, 9.0)
+    TEST_REAL_SIMILAR(shift, fit == "shift" ? cal.fragment_error_shift_ppm : 0.0)
+  }
+  TEST_EQUAL(ProSEAlgorithm().getParameters().getValue("scoring:mass_error_kernel_fit").toString(), "shift")
 
   // Without calibration the configured, zero-centered kernel scores the same hits differently.
   p.setValue("calibration:enabled", "false");

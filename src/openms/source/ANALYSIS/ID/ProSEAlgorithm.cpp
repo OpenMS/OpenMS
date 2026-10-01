@@ -237,12 +237,18 @@ namespace OpenMS
                        {"advanced"});
     defaults_.setValidStrings("scoring:method", {"hyperscore", "mass_accuracy"});
     defaults_.setValue("scoring:mass_error_sd", 7.0,
-                       "Gaussian fragment mass-error standard deviation in ppm for scoring:method=mass_accuracy, centered at zero. "
-                       "Used as configured when calibration is off or fits no kernel; otherwise the main search replaces center and width "
-                       "by the median and 1.4826 * MAD of the signed fragment errors of the calibration pass' confident PSMs (recorded as "
-                       "scoring:mass_error_shift_resolved and scoring:mass_error_sd_resolved). Independent of the matching tolerance.",
+                       "Gaussian fragment mass-error standard deviation in ppm for scoring:method=mass_accuracy, centered at zero unless "
+                       "calibration fits the center (see scoring:mass_error_kernel_fit). Independent of the matching tolerance.",
                        {"advanced"});
     defaults_.setMinFloat("scoring:mass_error_sd", 1e-6);
+    defaults_.setValue("scoring:mass_error_kernel_fit", "shift",
+                       "What a successful calibration pass fits of the scoring:method=mass_accuracy kernel from the signed fragment errors "
+                       "of its confident PSMs' matched ions (at least max(calibration:min_psms, 50) ions): 'shift' centers the Gaussian on "
+                       "their median and keeps the width scoring:mass_error_sd; 'full' also replaces the width by 1.4826 * MAD (floored at "
+                       "0.1 ppm); 'none' keeps the configured kernel. The kernel the main search used is recorded as "
+                       "scoring:mass_error_kernel, scoring:mass_error_shift_resolved and scoring:mass_error_sd_resolved.",
+                       {"advanced"});
+    defaults_.setValidStrings("scoring:mass_error_kernel_fit", {"shift", "full", "none"});
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
     // Ion series toggles
@@ -266,11 +272,13 @@ namespace OpenMS
 
     defaults_.setValue("calibration:enabled", "auto",
       "Run a fast calibration pass on a subset of spectra before the main search. "
-      "Estimates tighter precursor and fragment tolerances from confident PSMs, and the center and width of the "
-      "fragment mass-error kernel used by scoring:method=mass_accuracy. "
+      "Estimates tighter precursor and fragment tolerances from confident PSMs, and the fragment mass-error kernel "
+      "used by scoring:method=mass_accuracy (see scoring:mass_error_kernel_fit). "
       "The fragment index is NOT rebuilt — only query-time tolerances are tightened. "
-      "'auto' enables the pass for high-resolution fragment tolerances (<= 0.1 Da or <= 100 ppm) and disables it "
-      "otherwise; 'true' and 'false' force it. Inspired by MSFragger's calibrate_mass and OpenNuXL's autotune.");
+      "'auto' runs the pass for high-resolution fragment tolerances (<= 0.1 Da or <= 100 ppm) and applies only the "
+      "calibrated fragment tolerance, keeping the configured precursor window; it is skipped otherwise. 'true' runs the "
+      "pass at any resolution and applies the calibrated precursor window as well; 'false' disables it. "
+      "Inspired by MSFragger's calibrate_mass and OpenNuXL's autotune.");
     defaults_.setValidStrings("calibration:enabled", {"auto", "true", "false"});
     defaults_.setValue("calibration:subset_ratio", 0.1,
       "Fraction of spectra (by TIC, highest first) used for the calibration pass (0.0-1.0).");
@@ -402,11 +410,15 @@ namespace OpenMS
     // searches calibrate by default, low-resolution ones keep their configured windows.
     const std::string calibration_mode = param_.getValue("calibration:enabled").toString();
     calibration_enabled_ = calibration_mode == "true" || (calibration_mode == "auto" && deisotope_supported);
+    // Narrowing the precursor window cost identifications on unlabelled HCD data (#10364), so 'auto'
+    // applies only the fragment calibration; 'true' keeps the full two-window calibration.
+    calibration_precursor_ = calibration_mode == "true";
     calibration_subset_ratio_ = param_.getValue("calibration:subset_ratio");
     calibration_min_psms_ = param_.getValue("calibration:min_psms");
 
     mass_accuracy_score_ = param_.getValue("scoring:method").toString() == "mass_accuracy";
     mass_error_sd_ppm_ = param_.getValue("scoring:mass_error_sd");
+    mass_error_kernel_fit_ = param_.getValue("scoring:mass_error_kernel_fit").toString();
     if (mass_accuracy_score_ && (! std::isfinite(mass_error_sd_ppm_) || mass_error_sd_ppm_ <= 0.0))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "scoring:mass_error_sd must be finite and positive.");
@@ -1710,8 +1722,8 @@ namespace OpenMS
       {
         effective_fragment_tol = cal.fragment_tolerance;
         kernel = effectiveKernel_(cal);
-        kernel_fitted = cal.fragment_kernel_valid;
-        if (!cal.extreme_bias)
+        kernel_fitted = kernelFitted_(cal);
+        if (applyPrecursorCalibration_(cal))
         {
           effective_precursor_tol_lower = cal.cal_lower;
           effective_precursor_tol_upper = cal.cal_upper;
@@ -1722,6 +1734,10 @@ namespace OpenMS
                           << " " << precursor_mass_tolerance_unit_
                           << " -> window [-" << cal.cal_lower << ", +" << cal.cal_upper << "]"
                           << " fragment=" << cal.fragment_tolerance << std::endl;
+        }
+        else if (! calibration_precursor_)
+        {
+          logFragmentOnlyCalibration_(cal);
         }
         else
         {
@@ -1998,9 +2014,9 @@ namespace OpenMS
         fi_params.setValue("fragment:mass_tolerance", cal.fragment_tolerance);
         effective_fragment_tol = cal.fragment_tolerance;
         kernel = effectiveKernel_(cal);
-        kernel_fitted = cal.fragment_kernel_valid;
+        kernel_fitted = kernelFitted_(cal);
 
-        if (!cal.extreme_bias)
+        if (applyPrecursorCalibration_(cal))
         {
           // Precursor calibration is representable in the positive-magnitude schema —
           // apply the calibrated bounds.
@@ -2019,6 +2035,10 @@ namespace OpenMS
                           << precursor_mass_tolerance_unit_
                           << " -> window [-" << cal.cal_lower << ", +" << cal.cal_upper << "]"
                           << std::endl;
+        }
+        else if (! calibration_precursor_)
+        {
+          logFragmentOnlyCalibration_(cal);
         }
         else
         {
@@ -2558,8 +2578,9 @@ namespace OpenMS
           {
             per_file_cal[i].effective_fragment_tol = cal.fragment_tolerance;
             per_file_cal[i].kernel = effectiveKernel_(cal);
-            per_file_cal[i].kernel_fitted = cal.fragment_kernel_valid;
-            if (!cal.extreme_bias)
+            per_file_cal[i].kernel_fitted = kernelFitted_(cal);
+            const bool apply_precursor = applyPrecursorCalibration_(cal);
+            if (apply_precursor)
             {
               per_file_cal[i].effective_precursor_tol_lower = cal.cal_lower;
               per_file_cal[i].effective_precursor_tol_upper = cal.cal_upper;
@@ -2567,6 +2588,10 @@ namespace OpenMS
                               << " " << precursor_mass_tolerance_unit_
                               << " -> window [-" << cal.cal_lower << ", +" << cal.cal_upper << "]"
                               << " fragment=" << cal.fragment_tolerance << std::endl;
+            }
+            else if (! calibration_precursor_)
+            {
+              logFragmentOnlyCalibration_(cal);
             }
             else
             {
@@ -2577,7 +2602,7 @@ namespace OpenMS
             // Temporarily set member variables, compute, then restore.
             const double orig_lower = precursor_mass_tolerance_lower_;
             const double orig_upper = precursor_mass_tolerance_upper_;
-            if (!cal.extreme_bias)
+            if (apply_precursor)
             {
               precursor_mass_tolerance_lower_ = cal.cal_lower;
               precursor_mass_tolerance_upper_ = cal.cal_upper;
@@ -3287,21 +3312,46 @@ namespace OpenMS
   // =====================================================================
   // Mass-accuracy kernel: the calibrated one when the pass fitted it, else configured.
   // =====================================================================
-  ProSEAlgorithm::MassAccuracyKernel_ ProSEAlgorithm::effectiveKernel_(const CalibrationResult_& calibration) const
+  bool ProSEAlgorithm::kernelFitted_(const CalibrationResult_& calibration) const
   {
-    if (calibration.success && calibration.fragment_kernel_valid)
-    {
-      return {calibration.fragment_error_sd_ppm, calibration.fragment_error_shift_ppm};
-    }
-    return configuredKernel_();
+    return calibration.success && calibration.fragment_kernel_valid && mass_error_kernel_fit_ != "none";
   }
 
-  // static
+  ProSEAlgorithm::MassAccuracyKernel_ ProSEAlgorithm::effectiveKernel_(const CalibrationResult_& calibration) const
+  {
+    if (! kernelFitted_(calibration)) return configuredKernel_();
+    // A fitted width narrower than the configured one cost identifications on high-resolution data (#10364);
+    // by default ('shift') only the center is fitted.
+    const double sd = mass_error_kernel_fit_ == "full" ? calibration.fragment_error_sd_ppm : mass_error_sd_ppm_;
+    return {sd, calibration.fragment_error_shift_ppm};
+  }
+
+  bool ProSEAlgorithm::applyPrecursorCalibration_(const CalibrationResult_& calibration) const
+  {
+    return calibration_precursor_ && ! calibration.extreme_bias;
+  }
+
+  void ProSEAlgorithm::logFragmentOnlyCalibration_(const CalibrationResult_& calibration) const
+  {
+    OPENMS_LOG_INFO << "[ProSE] Calibration: fragment tolerance " << calibration.fragment_tolerance << " "
+                    << fragment_mass_tolerance_unit_ << "; precursor window kept as configured (calibration:enabled=auto";
+    if (calibration.extreme_bias)
+    {
+      OPENMS_LOG_INFO << "; extreme bias, no calibrated window)." << std::endl;
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "; calibration:enabled=true would apply [-" << calibration.cal_lower << ", +" << calibration.cal_upper << "] "
+                      << precursor_mass_tolerance_unit_ << ")." << std::endl;
+    }
+  }
+
   void ProSEAlgorithm::recordMassAccuracyKernel_(std::vector<ProteinIdentification>& protein_ids,
                                                  const MassAccuracyKernel_& kernel,
-                                                 bool fitted)
+                                                 bool fitted) const
   {
-    if (protein_ids.empty()) return;
+    // Only the mass-accuracy score uses a kernel; other scores record none.
+    if (! mass_accuracy_score_ || protein_ids.empty()) return;
     // The configured width stays under scoring:mass_error_sd (see postProcessHits_); these
     // record what the main search scored with, so downstream steps can tell fitted from configured.
     ProteinIdentification::SearchParameters search_parameters = protein_ids[0].getSearchParameters();

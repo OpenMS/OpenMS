@@ -738,13 +738,22 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// The kernel of the configured parameters: zero-centered with scoring:mass_error_sd
     MassAccuracyKernel_ configuredKernel_() const { return {mass_error_sd_ppm_, 0.0}; }
 
-    /// The fitted kernel of a successful calibration with enough matched ions, else the configured one
+    /// Whether the main search scores with a kernel fitted by @p calibration (scoring:mass_error_kernel_fit != none)
+    bool kernelFitted_(const CalibrationResult_& calibration) const;
+
+    /// The kernel of the main search: fitted center (and, with scoring:mass_error_kernel_fit=full, width) when kernelFitted_(), else the configured one
     MassAccuracyKernel_ effectiveKernel_(const CalibrationResult_& calibration) const;
 
-    /// Record the kernel the main search scored with in the search parameters of @p protein_ids
-    static void recordMassAccuracyKernel_(std::vector<ProteinIdentification>& protein_ids,
-                                          const MassAccuracyKernel_& kernel,
-                                          bool fitted);
+    /// Whether the calibrated precursor window of @p calibration is applied: calibration:enabled=true and no extreme bias
+    bool applyPrecursorCalibration_(const CalibrationResult_& calibration) const;
+
+    /// Log a calibration that applies the fragment tolerance only (calibration:enabled=auto)
+    void logFragmentOnlyCalibration_(const CalibrationResult_& calibration) const;
+
+    /// Record the kernel the main search scored with in the search parameters of @p protein_ids (scoring:method=mass_accuracy only)
+    void recordMassAccuracyKernel_(std::vector<ProteinIdentification>& protein_ids,
+                                   const MassAccuracyKernel_& kernel,
+                                   bool fitted) const;
 
     /**
      * @brief Score all spectra against one FragmentIndex.
@@ -845,6 +854,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     bool mass_accuracy_score_ {false}; ///< Experimental mass-accuracy-weighted HyperScore (scoring:method=mass_accuracy)
     double mass_error_sd_ppm_ {7.0};   ///< Configured width of the mass-accuracy weighting kernel (scoring:mass_error_sd)
+    std::string mass_error_kernel_fit_ {"shift"}; ///< scoring:mass_error_kernel_fit: shift, full or none
 
     /// Resolved MS2 deisotoping request (param fragment:deisotope != "false").
     /// preprocessSpectra_ still gates on Deisotoper::isToleranceSupported() so the
@@ -893,6 +903,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     /// Resolved calibration:enabled: 'auto' enables the pass for high-resolution fragment tolerances
     bool calibration_enabled_{false};
+    /// calibration:enabled=true: apply the calibrated precursor window too ('auto' applies the fragment tolerance only)
+    bool calibration_precursor_{false};
     double calibration_subset_ratio_{0.1};
     Size calibration_min_psms_{50};
 
