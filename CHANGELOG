@@ -58,6 +58,12 @@ Build System:
     .git_archival.txt, from which CMake takes the commit, so a build from the source tarball of
     a release (or from GitHub's source archive of its tag) reports the plain version instead of
     <version>-pre-exported-<date> (#10359).
+  - The macOS package puts TOPPView, TOPPAS and INIFileEditor into the folder of the version
+    being installed. pkgbuild marks app bundles relocatable by default, so the installer
+    updated an app with the same bundle identifier wherever it found one, such as in an older
+    OpenMS or in a build tree, and left the new folder without it. The package now gives
+    pkgbuild a component plist that turns relocation off; the BundleIsRelocatable key in the
+    apps' Info.plist, which pkgbuild does not read, is gone (#8477, #8479).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
@@ -1631,12 +1637,6 @@ Build System:
     Homebrew libraries are built for, instead of 14. The installer refuses older versions,
     and TOPPView, TOPPAS and INIFileEditor declare the build's target in their Info.plist
     instead of macOS 12 (#10286).
-  - The macOS package puts TOPPView, TOPPAS and INIFileEditor into the folder of the version
-    being installed. pkgbuild marks app bundles relocatable by default, so the installer
-    updated an app with the same bundle identifier wherever it found one, such as in an older
-    OpenMS or in a build tree, and left the new folder without it. The package now gives
-    pkgbuild a component plist that turns relocation off; the BundleIsRelocatable key in the
-    apps' Info.plist, which pkgbuild does not read, is gone (#8479).
   - vcpkg builds OpenBLAS, which COIN-OR's LAPACK pulls in, for a fixed CPU target on Linux:
     CORE2 (SSSE3, the baseline OpenMS itself is compiled for) on x86_64 and ARMV8 on arm64. It
     used to take the kernels for the CPU of the build machine, and the binary cache passed that
