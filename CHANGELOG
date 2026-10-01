@@ -25,6 +25,11 @@ OpenMS Library:
     deviations (StdevErrorAll, StdevErrorTop7, StdevRelErrorAll, StdevRelErrorTop7) to 0 if
     MS-GF+ reported them as NaN (identical fragment errors). PercolatorAdapter rejects non-finite
     features, so MSGFPlusAdapter/PSMFeatureExtractor output could fail rescoring (e.g. quantms TMT).
+  - FIX: Number parsing (StringUtils::toDouble/toFloat/extractDouble) is now independent of the
+    C locale on libc++ (macOS). In a decimal-comma region (e.g. de_DE), TOPPView, TOPPAS and
+    INIFileEditor failed to load mzML files with a ConversionError, because "60.5" was read as
+    60. The imzML and Arrow/Parquet readers no longer use the locale-dependent std::stod, and
+    the GUI tools reset LC_NUMERIC to "C" after starting Qt.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
