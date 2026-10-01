@@ -46,6 +46,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <filesystem>
 #include <limits>
 #include <iterator>
 #include <map>
@@ -279,6 +280,75 @@ protected:
   static bool toBool_(const std::string& value)
   {
     return value == "true";
+  }
+
+  static void replaceFilePreservingExisting_(const std::string& source,
+                                             const std::string& destination)
+  {
+    if (File::isDirectory(destination))
+    {
+      throw Exception::FileNotWritable(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, destination);
+    }
+
+    const std::string staged =
+      destination + ".tmp." + File::getUniqueName(false);
+
+    if (!File::copy(source, staged))
+    {
+      File::remove(staged);
+      throw Exception::FileNotWritable(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, destination);
+    }
+
+    // The staged file is a sibling of the destination, so this is a same-filesystem
+    // rename. POSIX replaces an existing destination atomically. Some platforms
+    // (notably Windows) reject rename-over-existing, in which case use the
+    // backup/restore path below without deleting the old library first.
+    std::error_code rename_error;
+    std::filesystem::rename(staged, destination, rename_error);
+    if (!rename_error)
+    {
+      return;
+    }
+
+    if (!File::exists(destination))
+    {
+      File::remove(staged);
+      throw Exception::FileNotWritable(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, destination);
+    }
+
+    const std::string backup =
+      destination + ".bak." + File::getUniqueName(false);
+
+    if (!File::rename(destination, backup, false))
+    {
+      File::remove(staged);
+      throw Exception::FileNotWritable(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, destination);
+    }
+
+    if (!File::rename(staged, destination, false))
+    {
+      const bool restored = File::rename(backup, destination, false);
+      File::remove(staged);
+      if (!restored)
+      {
+        OPENMS_LOG_ERROR
+          << "Failed to restore the previous reusable predicted library from '"
+          << backup << "' to '" << destination << "'." << std::endl;
+      }
+      throw Exception::FileNotWritable(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, destination);
+    }
+
+    if (!File::remove(backup))
+    {
+      OPENMS_LOG_WARN
+        << "Could not remove backup of the previous reusable predicted library: "
+        << backup << std::endl;
+    }
   }
 
   static StringList validRescoreLevels_()
@@ -4562,14 +4632,7 @@ protected:
         const std::string prepared_library_abs = File::absolutePath(prepared_library_pqp);
         if (reusable_pqp_abs != prepared_library_abs)
         {
-          if (File::exists(reusable_pqp_abs) && !File::remove(reusable_pqp_abs))
-          {
-            throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, reusable_pqp_abs);
-          }
-          if (!File::copy(prepared_library_abs, reusable_pqp_abs))
-          {
-            throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, reusable_pqp_abs);
-          }
+          replaceFilePreservingExisting_(prepared_library_abs, reusable_pqp_abs);
         }
         OPENMS_LOG_INFO << "Wrote reusable prepared predicted library: " << reusable_pqp_abs << std::endl;
       }
