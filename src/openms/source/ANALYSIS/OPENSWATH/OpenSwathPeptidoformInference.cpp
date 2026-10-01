@@ -6,7 +6,7 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include "OpenSwathPeptidoformInference.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPeptidoformInference.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/MATH/STATISTICS/MultipleTesting.h>

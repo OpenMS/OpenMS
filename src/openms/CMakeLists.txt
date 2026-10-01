@@ -39,7 +39,7 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 add_subdirectory(extern)
 
 #------------------------------------------------------------------------------
-# external libs (contrib or system)
+# external libs (vcpkg or system)
 #------------------------------------------------------------------------------
 #include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
 
@@ -476,11 +476,6 @@ endif()
 if(WITH_WNETALIGN)
   target_include_directories(OpenMS SYSTEM PRIVATE ${WNETALIGN_INCLUDE_DIRS})
   target_compile_definitions(OpenMS PRIVATE LEMON_ONLY_TEMPLATES OPENMS_HAS_WNETALIGN)
-endif()
-
-## Enable test-only hooks when class tests are being built.
-if(ENABLE_CLASS_TESTING)
-  target_compile_definitions(OpenMS PRIVATE OPENMS_ENABLE_TESTING_HOOKS=1)
 endif()
 
 #------------------------------------------------------------------------------

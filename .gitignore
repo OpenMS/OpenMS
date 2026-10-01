@@ -35,8 +35,6 @@ _deps
 /openms-build
 /openms_build
 
-/contrib-build
-/contrib_build
 DartConfiguration.tcl
 install_manifest.txt
 Makefile
