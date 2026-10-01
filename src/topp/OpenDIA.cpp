@@ -10,8 +10,10 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathExportConfig.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryPreparation.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathMatrixExporter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
@@ -32,10 +34,12 @@
 #endif
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
@@ -50,9 +54,9 @@
 
 #include <algorithm>
 #include <array>
-#include <charconv>
 #include <cmath>
 #include <limits>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <optional>
@@ -129,19 +133,20 @@ protected:
 
   struct PredictedLibraryParameters_
   {
-    std::string enzyme = "Trypsin";
-    Size missed_cleavages = 2;
-    Size min_peptide_length = 7;
-    Size max_peptide_length = 30;
-    std::vector<Int> precursor_charges{2, 3};
+    std::string enzyme;
+    Size missed_cleavages{};
+    Size min_peptide_length{};
+    Size max_peptide_length{};
+    std::vector<Int> precursor_charges;
     StringList fixed_modifications;
     StringList variable_modifications;
-    Size max_variable_modifications = 1;
-    Size prediction_batch_size = 500;
-    Int inference_threads = 4;
-    double nce = 30.0;
-    Int instrument_index = 0;
-    bool predict_ccs = true;
+    Size max_variable_modifications{};
+    bool clip_nterm_methionine{};
+    Size prediction_batch_size{};
+    Int inference_threads{};
+    double nce{};
+    Int instrument_index{};
+    bool predict_ccs{};
     std::string rt_model_path;
     std::string ccs_model_path;
     std::string ms2_model_path;
@@ -655,17 +660,23 @@ protected:
 
     registerTOPPSubsection_("PeptideQueryParameters:LibraryPrediction", "FASTA digestion and native PeptDeep prediction parameters used when workflow:library_mode=predicted.");
     registerStringOption_("PeptideQueryParameters:LibraryPrediction:enzyme", "<name>", "Trypsin", "Protease used for in-silico FASTA digestion.", false);
+    std::vector<std::string> protease_names;
+    ProteaseDB::getInstance()->getAllNames(protease_names);
+    setValidStrings_("PeptideQueryParameters:LibraryPrediction:enzyme", protease_names);
     registerIntOption_("PeptideQueryParameters:LibraryPrediction:missed_cleavages", "<int>", 2, "Maximum number of missed cleavages.", false);
     setMinInt_("PeptideQueryParameters:LibraryPrediction:missed_cleavages", 0);
     registerIntOption_("PeptideQueryParameters:LibraryPrediction:min_peptide_length", "<int>", 7, "Minimum peptide length retained for prediction.", false);
     setMinInt_("PeptideQueryParameters:LibraryPrediction:min_peptide_length", 2);
     registerIntOption_("PeptideQueryParameters:LibraryPrediction:max_peptide_length", "<int>", 30, "Maximum peptide length retained for prediction.", false);
     setMinInt_("PeptideQueryParameters:LibraryPrediction:max_peptide_length", 2);
-    registerStringOption_("PeptideQueryParameters:LibraryPrediction:precursor_charges", "<list>", "2,3", "Comma-separated precursor charge states to predict.", false);
-    registerStringList_("PeptideQueryParameters:LibraryPrediction:fixed_modifications", "<mods>", StringList(), "Fixed OpenMS/UniMod modification names applied before prediction.", false);
+    registerIntList_("PeptideQueryParameters:LibraryPrediction:precursor_charges", "<list>", IntList{2, 3}, "Precursor charge states to predict.", false);
+    setMinInt_("PeptideQueryParameters:LibraryPrediction:precursor_charges", 1);
+    registerStringList_("PeptideQueryParameters:LibraryPrediction:fixed_modifications", "<mods>", StringList{"Carbamidomethyl (C)"}, "Fixed OpenMS/UniMod modification names applied before prediction.", false);
     registerStringList_("PeptideQueryParameters:LibraryPrediction:variable_modifications", "<mods>", StringList(), "Variable OpenMS/UniMod modification names enumerated before prediction.", false);
     registerIntOption_("PeptideQueryParameters:LibraryPrediction:max_variable_modifications", "<int>", 1, "Maximum number of variable modifications per peptide.", false);
     setMinInt_("PeptideQueryParameters:LibraryPrediction:max_variable_modifications", 0);
+    registerStringOption_("PeptideQueryParameters:LibraryPrediction:clip_nterm_methionine", "<true|false>", "true", "Also digest the mature protein sequence after initiator-methionine removal.", false);
+    setValidStrings_("PeptideQueryParameters:LibraryPrediction:clip_nterm_methionine", {"true", "false"});
     registerIntOption_("PeptideQueryParameters:LibraryPrediction:prediction_batch_size", "<int>", 500, "Number of precursors predicted per materialization batch.", false);
     setMinInt_("PeptideQueryParameters:LibraryPrediction:prediction_batch_size", 1);
     registerIntOption_("PeptideQueryParameters:LibraryPrediction:inference_threads", "<int>", 4, "ONNX Runtime intra-op thread count for each PeptDeep predictor.", false);
@@ -1022,34 +1033,21 @@ protected:
                                         "PeptideQueryParameters:LibraryPrediction:max_peptide_length must be >= min_peptide_length.");
     }
 
-    std::vector<std::string> charge_strings;
-    StringUtils::split(getStringOption_("PeptideQueryParameters:LibraryPrediction:precursor_charges"), ",", charge_strings);
-    parameters.precursor_charges.clear();
-    std::set<Int> unique_charges;
-    for (const auto& charge_token : charge_strings)
-    {
-      const std::string charge_string = StringUtils::trimmed(charge_token);
-      Int charge = 0;
-      const char* begin = charge_string.data();
-      const char* end = begin + charge_string.size();
-      const auto [parsed_end, error] = std::from_chars(begin, end, charge);
-      if (charge_string.empty() || error != std::errc{} || parsed_end != end || charge <= 0)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "PeptideQueryParameters:LibraryPrediction:precursor_charges must contain only positive integers.");
-      }
-      unique_charges.insert(charge);
-    }
-    if (unique_charges.empty())
+    parameters.precursor_charges = getIntList_("PeptideQueryParameters:LibraryPrediction:precursor_charges");
+    std::sort(parameters.precursor_charges.begin(), parameters.precursor_charges.end());
+    parameters.precursor_charges.erase(
+      std::unique(parameters.precursor_charges.begin(), parameters.precursor_charges.end()),
+      parameters.precursor_charges.end());
+    if (parameters.precursor_charges.empty())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "PeptideQueryParameters:LibraryPrediction:precursor_charges cannot be empty.");
     }
-    parameters.precursor_charges.assign(unique_charges.begin(), unique_charges.end());
 
     parameters.fixed_modifications = getStringList_("PeptideQueryParameters:LibraryPrediction:fixed_modifications");
     parameters.variable_modifications = getStringList_("PeptideQueryParameters:LibraryPrediction:variable_modifications");
     parameters.max_variable_modifications = static_cast<Size>(getIntOption_("PeptideQueryParameters:LibraryPrediction:max_variable_modifications"));
+    parameters.clip_nterm_methionine = getStringOption_("PeptideQueryParameters:LibraryPrediction:clip_nterm_methionine") == "true";
     parameters.prediction_batch_size = static_cast<Size>(getIntOption_("PeptideQueryParameters:LibraryPrediction:prediction_batch_size"));
     parameters.inference_threads = getIntOption_("PeptideQueryParameters:LibraryPrediction:inference_threads");
     parameters.nce = getDoubleOption_("PeptideQueryParameters:LibraryPrediction:nce");
@@ -4414,7 +4412,8 @@ protected:
     const OpenSwathLibraryPreparation::DecoyGeneratorParameters& decoy_parameters,
     const Param& reader_parameters,
     const std::string& scratch_directory,
-    OpenSwathLibraryPreparation& library_preparation) const
+    OpenSwathLibraryPreparation& library_preparation,
+    const PredictedLibraryParameters_& parameters) const
   {
     struct Candidate
     {
@@ -4423,7 +4422,6 @@ protected:
       std::set<std::string> protein_refs;
     };
 
-    const PredictedLibraryParameters_ parameters = getPredictedLibraryParameters_();
     ProteaseDigestion digestion;
     digestion.setEnzyme(parameters.enzyme);
     digestion.setMissedCleavages(parameters.missed_cleavages);
@@ -4449,8 +4447,46 @@ protected:
     reject_protein_terminal_modifications(fixed_modifications);
     reject_protein_terminal_modifications(variable_modifications);
 
+    PeptDeepLibraryPredictor::Config predictor_config;
+    predictor_config.rt_model_path = parameters.rt_model_path;
+    predictor_config.ccs_model_path = parameters.ccs_model_path;
+    predictor_config.ms2_model_path = parameters.ms2_model_path;
+    predictor_config.intra_op_threads = parameters.inference_threads;
+    predictor_config.batch_size = parameters.prediction_batch_size;
+    predictor_config.predict_ccs = parameters.predict_ccs;
+    PeptDeepLibraryPredictor predictor(predictor_config);
+
+    std::map<std::string, std::set<std::string>> peptide_proteins;
     std::map<std::string, Candidate> candidates;
     Size fasta_proteins = 0;
+    Size skipped_decoy_proteins = 0;
+    Size skipped_ambiguous_peptides = 0;
+
+    FASTAContainer<TFI_File> decoy_scan(input_fasta);
+    const DecoyHelper::Result decoy = DecoyHelper::findDecoyString(decoy_scan, true);
+    const auto is_decoy_accession = [&](const std::string& accession)
+    {
+      if (!decoy.success) return false;
+      return decoy.is_prefix ? StringUtils::hasPrefix(accession, decoy.name)
+                             : StringUtils::hasSuffix(accession, decoy.name);
+    };
+
+    const auto collect_digested = [&](const AASequence& protein, const std::string& protein_id)
+    {
+      std::vector<AASequence> digested_peptides;
+      digestion.digest(protein, digested_peptides, parameters.min_peptide_length, parameters.max_peptide_length);
+      for (const auto& peptide : digested_peptides)
+      {
+        const std::string sequence = peptide.toUnmodifiedString();
+        if (sequence.find_first_not_of("ACDEFGHIKLMNPQRSTVWY") != std::string::npos)
+        {
+          ++skipped_ambiguous_peptides;
+          continue;
+        }
+        peptide_proteins[sequence].insert(protein_id);
+      }
+    };
+
     FASTAFile fasta;
     fasta.readStart(input_fasta);
     FASTAFile::FASTAEntry entry;
@@ -4462,40 +4498,55 @@ protected:
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, entry.identifier,
                                       "FASTA entries used for predicted libraries require a non-empty protein identifier.");
       }
-
-      const AASequence protein = AASequence::fromString(entry.sequence);
-      std::vector<AASequence> digested_peptides;
-      digestion.digest(protein, digested_peptides, parameters.min_peptide_length, parameters.max_peptide_length);
-      for (auto peptide : digested_peptides)
+      if (is_decoy_accession(entry.identifier))
       {
-        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, peptide);
+        ++skipped_decoy_proteins;
+        continue;
+      }
 
-        std::vector<AASequence> peptidoforms;
-        if (parameters.variable_modifications.empty() || parameters.max_variable_modifications == 0)
-        {
-          peptidoforms.push_back(std::move(peptide));
-        }
-        else
-        {
-          ModifiedPeptideGenerator::applyVariableModifications(
-            variable_modifications, peptide, parameters.max_variable_modifications, peptidoforms, true);
-        }
+      const std::string protein_sequence = StringUtils::toUppered(entry.sequence);
+      const AASequence protein = AASequence::fromString(protein_sequence);
+      collect_digested(protein, entry.identifier);
+      if (parameters.clip_nterm_methionine && protein.size() > 1 && !protein_sequence.empty() && protein_sequence.front() == 'M')
+      {
+        collect_digested(protein.getSubsequence(1, static_cast<UInt>(protein.size() - 1)), entry.identifier);
+      }
+    }
 
-        for (const auto& peptidoform : peptidoforms)
+    for (const auto& [sequence, protein_refs] : peptide_proteins)
+    {
+      AASequence peptide = AASequence::fromString(sequence, false);
+      ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, peptide);
+      std::vector<AASequence> peptidoforms;
+      if (parameters.variable_modifications.empty() || parameters.max_variable_modifications == 0)
+      {
+        peptidoforms.push_back(std::move(peptide));
+      }
+      else
+      {
+        ModifiedPeptideGenerator::applyVariableModifications(
+          variable_modifications, peptide, parameters.max_variable_modifications, peptidoforms, true);
+      }
+
+      for (const auto& peptidoform : peptidoforms)
+      {
+        const std::string peptidoform_id = peptidoform.toUniModString();
+        for (const Int charge : parameters.precursor_charges)
         {
-          for (const Int charge : parameters.precursor_charges)
+          const double precursor_mz = peptidoform.getMZ(charge);
+          if (precursor_mz < assay_parameters.precursor_lower_mz_limit ||
+              precursor_mz > assay_parameters.precursor_upper_mz_limit)
           {
-            const double precursor_mz = peptidoform.getMZ(charge);
-            if (precursor_mz < assay_parameters.precursor_lower_mz_limit ||
-                precursor_mz > assay_parameters.precursor_upper_mz_limit)
-            {
-              continue;
-            }
-
-            const std::string id = peptidoform.toUniModString() + "/" + std::to_string(charge);
-            auto candidate_it = candidates.try_emplace(id, Candidate{peptidoform, charge, {}}).first;
-            candidate_it->second.protein_refs.insert(entry.identifier);
+            continue;
           }
+          const std::string id = peptidoform_id + "/" + std::to_string(charge);
+          auto [candidate_it, inserted] = candidates.try_emplace(id);
+          if (inserted)
+          {
+            candidate_it->second.peptide = peptidoform;
+            candidate_it->second.charge = charge;
+          }
+          candidate_it->second.protein_refs.insert(protein_refs.begin(), protein_refs.end());
         }
       }
     }
@@ -4509,23 +4560,27 @@ protected:
     {
       throw Exception::InvalidValue(
         __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, input_fasta,
-        "FASTA digestion/modification/charge enumeration produced no precursor candidates inside the configured precursor m/z range.");
+        "FASTA digestion/modification/charge enumeration produced no supported precursor candidates inside the configured precursor m/z range.");
     }
 
+    if (decoy.success)
+    {
+      OPENMS_LOG_INFO << "Detected FASTA decoy " << (decoy.is_prefix ? "prefix" : "suffix")
+                      << " '" << decoy.name << "'; skipped " << skipped_decoy_proteins << " decoy protein entries." << std::endl;
+    }
+    if (skipped_ambiguous_peptides > 0)
+    {
+      OPENMS_LOG_WARN << "Skipped " << skipped_ambiguous_peptides
+                      << " digested peptide occurrence(s) containing residues outside ACDEFGHIKLMNPQRSTVWY." << std::endl;
+    }
     OPENMS_LOG_INFO << "Predicted library candidates: " << candidates.size() << " unique precursors from "
                     << fasta_proteins << " FASTA proteins." << std::endl;
 
-    PeptDeepLibraryPredictor::Config predictor_config;
-    predictor_config.rt_model_path = parameters.rt_model_path;
-    predictor_config.ccs_model_path = parameters.ccs_model_path;
-    predictor_config.ms2_model_path = parameters.ms2_model_path;
-    predictor_config.intra_op_threads = parameters.inference_threads;
-    predictor_config.batch_size = parameters.prediction_batch_size;
-    predictor_config.predict_ccs = parameters.predict_ccs;
-    PeptDeepLibraryPredictor predictor(predictor_config);
 
     OpenSwath::LightTargetedExperiment predicted_library;
     std::unordered_set<std::string> protein_ids;
+    MRMAssay batch_assay;
+    batch_assay.setLogType(log_type_);
     std::vector<PeptDeepLibraryPrecursor> batch;
     batch.reserve(parameters.prediction_batch_size);
 
@@ -4533,10 +4588,27 @@ protected:
     {
       if (batch.empty()) return;
       OpenSwath::LightTargetedExperiment predicted_batch = predictor.predict(batch);
-      predicted_library.compounds.insert(predicted_library.compounds.end(),
-                                         predicted_batch.compounds.begin(), predicted_batch.compounds.end());
-      predicted_library.transitions.insert(predicted_library.transitions.end(),
-                                           predicted_batch.transitions.begin(), predicted_batch.transitions.end());
+
+      // Apply only the detection-transition steps that are precursor-local. UIS/IPF
+      // generation stays in the final global preparation pass.
+      batch_assay.reannotateTransitionsLight(
+        predicted_batch, assay_parameters.precursor_mz_threshold, assay_parameters.product_mz_threshold,
+        assay_parameters.allowed_fragment_types, assay_parameters.allowed_fragment_charges,
+        assay_parameters.enable_detection_specific_losses, assay_parameters.enable_detection_unspecific_losses);
+      batch_assay.restrictTransitionsLight(
+        predicted_batch, assay_parameters.product_lower_mz_limit, assay_parameters.product_upper_mz_limit,
+        assay_parameters.swathes);
+      batch_assay.detectingTransitionsLight(
+        predicted_batch, assay_parameters.min_transitions, assay_parameters.max_transitions);
+
+      predicted_library.compounds.insert(
+        predicted_library.compounds.end(),
+        std::make_move_iterator(predicted_batch.compounds.begin()),
+        std::make_move_iterator(predicted_batch.compounds.end()));
+      predicted_library.transitions.insert(
+        predicted_library.transitions.end(),
+        std::make_move_iterator(predicted_batch.transitions.begin()),
+        std::make_move_iterator(predicted_batch.transitions.end()));
       for (auto& protein : predicted_batch.proteins)
       {
         if (protein_ids.insert(protein.id).second)
@@ -4566,7 +4638,8 @@ protected:
 
     const std::string raw_predicted_pqp = scratch_directory + "/predicted_library.raw.pqp";
     TransitionPQPFile writer;
-    writer.convertLightTargetedExperimentToPQP(raw_predicted_pqp.c_str(), predicted_library);
+    const auto source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(predicted_library);
+    writer.convertLightTargetedExperimentToPQP(raw_predicted_pqp.c_str(), predicted_library, &source_ids);
 
     const auto stats = library_preparation.prepareEmpiricalLibraryToPQP(
       raw_predicted_pqp, FileTypes::PQP, output_pqp, assay_parameters, decoy_parameters, reader_parameters, scratch_directory);
@@ -4682,6 +4755,29 @@ protected:
         }
       }
 
+      std::optional<PredictedLibraryParameters_> predicted_parameters;
+      const std::string requested_prediction_output = getStringOption_("PeptideQueryParameters:LibraryPrediction:out");
+      if (resolved_library_mode == LibraryMode::PREDICTED)
+      {
+        predicted_parameters = getPredictedLibraryParameters_();
+        const Param calibration_parameters = getParam_().copy("TargetedDataExtraction:Calibration:", true);
+        if (!calibration_parameters.getValue("files:linear_irt_file").toString().empty() ||
+            !calibration_parameters.getValue("rt_norm").toString().empty() ||
+            !calibration_parameters.getValue("tr_irt_priority_sampling").toString().empty())
+        {
+          throw Exception::InvalidParameter(
+            __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Predicted libraries use PeptDeep normalized RT coordinates. External linear-iRT, rt_norm, "
+            "or priority-sampling RT files are not accepted because their RT space is not declared compatible.");
+        }
+      }
+      else if (!requested_prediction_output.empty())
+      {
+        throw Exception::InvalidParameter(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "PeptideQueryParameters:LibraryPrediction:out is only valid when the resolved workflow library mode is predicted.");
+      }
+
       if (resolved_library_mode == LibraryMode::PREPARED)
       {
         if (!prepared_library_ready)
@@ -4705,7 +4801,7 @@ protected:
           OPENMS_LOG_INFO << "Using predicted library mode: digesting FASTA and materializing native PeptDeep predictions.\n";
           library_stats = preparePredictedLibraryToPQP_(
             input_library, prepared_library_pqp, assay_parameters, decoy_parameters, reader_parameters,
-            working_dir.path, library_preparation);
+            working_dir.path, library_preparation, *predicted_parameters);
 #else
           throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "workflow:library_mode=predicted requires an OpenMS build configured with WITH_ONNX=ON.");
@@ -4731,35 +4827,22 @@ protected:
                                       "Peptidoform inference was requested, but the prepared library does not contain identifying/IPF transitions.");
       }
 
-      if (resolved_library_mode == LibraryMode::PREDICTED)
+      if (resolved_library_mode == LibraryMode::PREDICTED && !predicted_parameters->output_pqp.empty())
       {
-        const std::string reusable_pqp = getPredictedLibraryParameters_().output_pqp;
-        if (!reusable_pqp.empty())
+        const std::string reusable_pqp_abs = File::absolutePath(predicted_parameters->output_pqp);
+        const std::string prepared_library_abs = File::absolutePath(prepared_library_pqp);
+        if (reusable_pqp_abs != prepared_library_abs)
         {
-          const std::string reusable_pqp_abs = File::absolutePath(reusable_pqp);
-          const std::string prepared_library_abs = File::absolutePath(prepared_library_pqp);
-          if (reusable_pqp_abs == prepared_library_abs)
+          if (File::exists(reusable_pqp_abs) && !File::remove(reusable_pqp_abs))
           {
-            if (working_dir.remove_on_success)
-            {
-              working_dir.remove_on_success = false;
-              OPENMS_LOG_INFO << "Reusable prepared predicted library is the run-owned working library; "
-                              << "preserving intermediate directory: " << working_dir.path << std::endl;
-            }
+            throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, reusable_pqp_abs);
           }
-          else
+          if (!File::copy(prepared_library_abs, reusable_pqp_abs))
           {
-            if (File::exists(reusable_pqp_abs) && !File::remove(reusable_pqp_abs))
-            {
-              throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, reusable_pqp_abs);
-            }
-            if (!File::copy(prepared_library_abs, reusable_pqp_abs))
-            {
-              throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, reusable_pqp_abs);
-            }
+            throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, reusable_pqp_abs);
           }
-          OPENMS_LOG_INFO << "Wrote reusable prepared predicted library: " << reusable_pqp_abs << std::endl;
         }
+        OPENMS_LOG_INFO << "Wrote reusable prepared predicted library: " << reusable_pqp_abs << std::endl;
       }
 
       bool enable_uis_scoring = getStringOption_("TargetedDataExtraction:enable_ipf") == "true";
