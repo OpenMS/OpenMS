@@ -109,7 +109,8 @@ The most important CMake variables are:
   </tr>
   <tr>
     <th valign="top">GIT_TRACKING=On/Off</td>
-    <td>Embed Git checksum into the library.
+    <td>Embed Git checksum into the library. A source tree made by git archive, such as the source tarball of a
+    release, takes it from <code>.git_archival.txt</code>.
     (Default: On)</td>
   </tr>
   <tr>
