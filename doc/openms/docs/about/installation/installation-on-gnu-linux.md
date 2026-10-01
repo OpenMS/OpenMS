@@ -27,8 +27,8 @@ Some thirdparty software used via adapter tools in OpenMS might also require an 
 
 For Debian-based Linux users, it is suggested to use the Debian package attached to each
 [OpenMS release](https://github.com/OpenMS/OpenMS/releases/latest), built for x86_64 and for aarch64 (ARM64).
-It is tested on Ubuntu 24.04 and needs glibc 2.38 or newer, so it does not install on Ubuntu 22.04 or Debian 12. On
-older distributions, use conda (see above) or a container (see below).
+It is built on Ubuntu 24.04 and installs there, on Ubuntu 26.04 and on Debian 13. It needs glibc 2.38 or newer, so it
+does not install on Ubuntu 22.04 or Debian 12. On older distributions, use conda (see above) or a container (see below).
 
 Install it with `apt`, which resolves its dependencies, such as Qt 6, from your distribution's repositories:
 

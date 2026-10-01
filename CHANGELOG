@@ -23,6 +23,18 @@ Dependencies:
     <platform>-release). A build directory that still has it cached needs
     cmake -U OPENMS_CONTRIB_LIBS. find_package(OpenMS) no longer reads it either (#10327).
 
+Build System:
+  - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
+    64-bit time_t transition, Depends also accepts the package under its old name.
+    dpkg-shlibdeps names the packages of the build host (libqt6gui6t64 (>= 6.4.0)); a
+    CPack post-build script adds the old name with the same version constraint as an
+    alternative (| libqt6gui6 (>= 6.4.0)) wherever the renamed package provides it, i.e.
+    on amd64 and arm64. Later releases went back to the old names for most Qt libraries
+    (libqt6gui6, libqt6widgets6, libqt6opengl6, libqt6openglwidgets6 in Debian 13 and
+    Ubuntu 25.10 and 26.04), so the package built on Ubuntu 24.04 now installs there too
+    (#10351). It still requires the glibc of the release it is built on, currently 2.38,
+    so not Ubuntu 22.04 or Debian 12 (#10352, #10367).
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
 ------------------------------------------------------------------------------------------
@@ -1408,8 +1420,6 @@ Build System:
     control version, for example 3.6.0~nightly.2026.09.27, so it sorts below the release
     and a later nightly above an earlier one. Before, every build of 3.6.0 was version 3.6.0
     to apt, whether nightly or release.
-  - Debian package dependencies retain dpkg-shlibdeps detection while allowing Qt6 core,
-    gui and widgets runtime packages with either the t64 or non-t64 Ubuntu package name.
   - Public headers of OpenMS, OpenSwathAlgo, OpenMS_CLI, OpenMS_GUI and the test
     framework use CMake header file sets. Installation paths and components stay
     unchanged and private headers remain excluded. Building OpenMS and consuming
