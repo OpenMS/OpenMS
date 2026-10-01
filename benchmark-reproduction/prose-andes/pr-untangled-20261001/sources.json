@@ -1,0 +1,69 @@
+{
+  "base": {
+    "ref": "develop",
+    "pr": null,
+    "commit": "f5ea2d043f7b2767cd41f5fc27560a3675f9ecf7",
+    "tree": "bffd7981e72a0d5dd2a415360807d98e421e8002",
+    "parents": [
+      "c376f78acf52ba6b2443dc284f3094820d97e37f"
+    ],
+    "binary_sha256": "96145b3eb9952eb608f05f37e1888f6e20a41cf396aa6744349ee426f7fe68f5",
+    "class_tests_passed": true
+  },
+  "pr10368": {
+    "ref": "claude/quirky-galileo-tkpwe4-prose-zero-intensity",
+    "pr": "#10377 (standalone #10368)",
+    "commit": "a44c46c4aeaf13e957694e4c255974873dbab867",
+    "tree": "91d9aad7371816fe26edb08e5499859e9eb4f714",
+    "parents": [
+      "f5ea2d043f7b2767cd41f5fc27560a3675f9ecf7"
+    ],
+    "binary_sha256": "090a2cd4aaefd3e250d8ad1fbe33a2b3131fbf0f23b1b6181bf0e4fa5bb0f5ff",
+    "class_tests_passed": true
+  },
+  "pr10366": {
+    "ref": "claude/quirky-galileo-tkpwe4-prose-ion-priors",
+    "pr": "#10378 (standalone #10366)",
+    "commit": "241f9a7090536e7e01210fead10c2153756804f0",
+    "tree": "4a81a8de1d171ad92aec59d1e463f37ae92f1a89",
+    "parents": [
+      "e0d77a6a683b2958dbba288c946abba3f26cd3b4"
+    ],
+    "binary_sha256": "6f1e102cbbd983c21d98dc28802095610c586f3b2bbf0e172930e5242b0519a3",
+    "class_tests_passed": true
+  },
+  "pr10365_scorer": {
+    "ref": "claude/quirky-galileo-tkpwe4-prose-mass-accuracy-kernel~1",
+    "pr": "#10379 commit 1 (mass-accuracy scorer)",
+    "commit": "825c33bbbd39d25e97bf501471267d887d1a4c37",
+    "tree": "07b16646d28157a3ab0eb35a7d5593dc0e6fca5c",
+    "parents": [
+      "f5ea2d043f7b2767cd41f5fc27560a3675f9ecf7"
+    ],
+    "binary_sha256": "d975370ce895b1735236bc011030f0a0c5de27b330820f9d8bcc6f7752d89af3",
+    "class_tests_passed": true
+  },
+  "pr10365": {
+    "ref": "claude/quirky-galileo-tkpwe4-prose-mass-accuracy-kernel",
+    "pr": "#10379 (standalone #10365 incl. scorer)",
+    "commit": "16ff0344b6a14e825b69c28cef7160f33667742d",
+    "tree": "d5a7662cc77b31130cc18217377bd8b4b925bbba",
+    "parents": [
+      "825c33bbbd39d25e97bf501471267d887d1a4c37"
+    ],
+    "binary_sha256": "5a8d9324e87f41725d168213c15e4d0bba4e8e9c714a2896597693aba4147ca0",
+    "class_tests_passed": true
+  },
+  "pr10335": {
+    "ref": "local merge of codex/native-cid c1b2f202 with develop f5ea2d04 (see pr10335-on-develop.patch)",
+    "pr": "#10335 merged with develop",
+    "commit": "dffc0f722340fc8bf80c6123d98476442c780238",
+    "tree": "c2eccd668ecbbf58a73b49b173fd995c97dde959",
+    "parents": [
+      "c1b2f202742270273a045ef4b56e7aa346e9871f",
+      "f5ea2d043f7b2767cd41f5fc27560a3675f9ecf7"
+    ],
+    "binary_sha256": "d1c1ecda5c3120caf6044a3acb53181223cd821153bbb0699d08c2b2ed505344",
+    "class_tests_passed": true
+  }
+}

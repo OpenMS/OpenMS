@@ -1,0 +1,75 @@
+dataset	check	ok
+velos_125_R1	pr68 PIN identical to develop	True
+velos_125_R1	pr66 native TSV identical to develop	True
+velos_125_R1	pr66 PIN identical to develop without ion_prior_* columns	True
+velos_5000_R2	pr68 PIN identical to develop	True
+velos_5000_R2	pr66 native TSV identical to develop	True
+velos_5000_R2	pr66 PIN identical to develop without ion_prior_* columns	True
+velos_25000_R3	pr68 PIN identical to develop	True
+velos_25000_R3	pr66 native TSV identical to develop	True
+velos_25000_R3	pr66 PIN identical to develop without ion_prior_* columns	True
+hfx_A2	pr68 PIN identical to develop	True
+hfx_A2	pr66 native TSV identical to develop	True
+hfx_A2	pr66 PIN identical to develop without ion_prior_* columns	True
+hfx_A2	kernel pair: identical calibrated tolerances	True
+hfx_B1	pr68 PIN identical to develop	True
+hfx_B1	pr66 native TSV identical to develop	True
+hfx_B1	pr66 PIN identical to develop without ion_prior_* columns	True
+hfx_B1	kernel pair: identical calibrated tolerances	True
+hfx_B3	pr68 PIN identical to develop	True
+hfx_B3	pr66 native TSV identical to develop	True
+hfx_B3	pr66 PIN identical to develop without ion_prior_* columns	True
+hfx_B3	kernel pair: identical calibrated tolerances	True
+astral_A2	pr68 PIN identical to develop	True
+astral_A2	pr66 native TSV identical to develop	True
+astral_A2	pr66 PIN identical to develop without ion_prior_* columns	True
+astral_A2	kernel pair: identical calibrated tolerances	True
+astral_B1	pr68 PIN identical to develop	True
+astral_B1	pr66 native TSV identical to develop	True
+astral_B1	pr66 PIN identical to develop without ion_prior_* columns	True
+astral_B1	kernel pair: identical calibrated tolerances	True
+astral_B3	pr68 PIN identical to develop	True
+astral_B3	pr66 native TSV identical to develop	True
+astral_B3	pr66 PIN identical to develop without ion_prior_* columns	True
+astral_B3	kernel pair: identical calibrated tolerances	True
+lumos_lfq_5192	pr68 PIN identical to develop	True
+lumos_lfq_5192	pr66 native TSV identical to develop	True
+lumos_lfq_5192	pr66 PIN identical to develop without ion_prior_* columns	True
+lumos_lfq_5192	kernel pair: identical calibrated tolerances	True
+lumos_lfq_5194	pr68 PIN identical to develop	True
+lumos_lfq_5194	pr66 native TSV identical to develop	True
+lumos_lfq_5194	pr66 PIN identical to develop without ion_prior_* columns	True
+lumos_lfq_5194	kernel pair: identical calibrated tolerances	True
+lumos_lfq_5199	pr68 PIN identical to develop	True
+lumos_lfq_5199	pr66 native TSV identical to develop	True
+lumos_lfq_5199	pr66 PIN identical to develop without ion_prior_* columns	True
+lumos_lfq_5199	kernel pair: identical calibrated tolerances	True
+lumos_tmt_5058	pr68 PIN identical to develop	True
+lumos_tmt_5058	pr66 native TSV identical to develop	True
+lumos_tmt_5058	pr66 PIN identical to develop without ion_prior_* columns	True
+lumos_tmt_5059	pr68 PIN identical to develop	True
+lumos_tmt_5059	pr66 native TSV identical to develop	True
+lumos_tmt_5059	pr66 PIN identical to develop without ion_prior_* columns	True
+lumos_tmt_5066	pr68 PIN identical to develop	True
+lumos_tmt_5066	pr66 native TSV identical to develop	True
+lumos_tmt_5066	pr66 PIN identical to develop without ion_prior_* columns	True
+eclipse_tmtpro_10855	pr68 PIN identical to develop	True
+eclipse_tmtpro_10855	pr66 native TSV identical to develop	True
+eclipse_tmtpro_10855	pr66 PIN identical to develop without ion_prior_* columns	True
+eclipse_tmtpro_10855	kernel pair: identical calibrated tolerances	True
+eclipse_tmtpro_10858	pr68 PIN identical to develop	True
+eclipse_tmtpro_10858	pr66 native TSV identical to develop	True
+eclipse_tmtpro_10858	pr66 PIN identical to develop without ion_prior_* columns	True
+eclipse_tmtpro_10858	kernel pair: identical calibrated tolerances	True
+eclipse_tmtpro_10863	pr68 PIN identical to develop	True
+eclipse_tmtpro_10863	pr66 native TSV identical to develop	True
+eclipse_tmtpro_10863	pr66 PIN identical to develop without ion_prior_* columns	True
+eclipse_tmtpro_10863	kernel pair: identical calibrated tolerances	True
+tims_plasma_30min	pr68 PIN identical to develop	True
+tims_plasma_30min	pr66 native TSV identical to develop	True
+tims_plasma_30min	pr66 PIN identical to develop without ion_prior_* columns	True
+tims_plasma_30min	kernel pair: identical calibrated tolerances	True
+tims_plasma_50min	pr68 PIN identical to develop	True
+tims_plasma_50min	pr66 native TSV identical to develop	True
+tims_plasma_50min	pr66 PIN identical to develop without ion_prior_* columns	True
+tims_plasma_50min	kernel pair: identical calibrated tolerances	True
