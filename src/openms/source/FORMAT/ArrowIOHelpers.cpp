@@ -798,7 +798,7 @@ void readMetaValues(
     }
     else if (type_str == "double" || type_str == "float")
     {
-      try { target.setMetaValue(name, std::stod(value_str)); }
+      try { target.setMetaValue(name, StringUtils::toDouble(value_str)); }
       catch (...) { target.setMetaValue(name, value_str); }
     }
     else if (type_str == "int_list")
