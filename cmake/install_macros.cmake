@@ -133,13 +133,26 @@ endfunction()
 
 #------------------------------------------------------------------------------
 # Installs the tool tool_target_name
+#
+# install_tool(<target> [COMPONENT <component>])
+#
 # @param tool_target_name The target name of the tool that should be installed
-macro(install_tool tool_target_name)
+# @param COMPONENT        The install component; 'Applications' (the TOPP tools) when
+#                         omitted. The GUI applications use
+#                         ${OPENMS_GUI_APPLICATIONS_COMPONENT} (see the top-level CMakeLists.txt).
+function(install_tool tool_target_name)
+    cmake_parse_arguments(_install_tool "" "COMPONENT" "" ${ARGN})
+    if(_install_tool_UNPARSED_ARGUMENTS)
+      message(FATAL_ERROR "install_tool(${tool_target_name}): unexpected arguments ${_install_tool_UNPARSED_ARGUMENTS}")
+    endif()
+    if(NOT _install_tool_COMPONENT)
+      set(_install_tool_COMPONENT Applications)
+    endif()
     install(TARGETS ${tool_target_name} RUNTIME_DEPENDENCY_SET OPENMS_DEPS
-      RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
-      BUNDLE DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
+      RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT ${_install_tool_COMPONENT}
+      BUNDLE DESTINATION ${INSTALL_BIN_DIR} COMPONENT ${_install_tool_COMPONENT}
       )
-endmacro()
+endfunction()
 
 #------------------------------------------------------------------------------
 # Installs a given directory

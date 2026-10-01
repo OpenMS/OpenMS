@@ -3081,4 +3081,37 @@ START_SECTION((SNES query honors multi-charge precursor when charge is unset))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] rebuilding replaces the previous peptide and fragment buffers))
+{
+  const vector<FASTAFile::FASTAEntry> first = {{"P1", "", "THQPSANLDIK"}};
+  const vector<FASTAFile::FASTAEntry> second = {{"P2", "", "VLVLDTDYK"}};
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("decoys", "false");
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+  fi.setParameters(p);
+  fi.build(first);
+  const Size fragments = fi.getNumFragments();
+  fi.build(first);
+  TEST_EQUAL(fi.getPeptides().size(), 1)
+  TEST_EQUAL(fi.getNumFragments(), fragments)
+  fi.build(second);
+  ABORT_IF(fi.getPeptides().size() != 1)
+  TEST_EQUAL(fi.reconstructModifiedSequence(fi.getPeptides()[0], second).toString(), "VLVLDTDYK")
+  FragmentIndex fresh;
+  fresh.setParameters(p);
+  fresh.build(second);
+  TEST_EQUAL(fi.getNumFragments(), fresh.getNumFragments())
+  TEST_TRUE(fi.isBuild())
+
+  // A failed rebuild must not leave the previous index marked as built.
+  const vector<FASTAFile::FASTAEntry> invalid = {{"too_long", "", string(65536, 'A')}};
+  TEST_EXCEPTION(Exception::InvalidParameter, fi.build(invalid))
+  TEST_FALSE(fi.isBuild())
+  TEST_TRUE(fi.getPeptides().empty())
+  TEST_EQUAL(fi.getNumFragments(), 0)
+}
+END_SECTION
+
 END_TEST

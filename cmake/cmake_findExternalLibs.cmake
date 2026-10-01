@@ -18,7 +18,7 @@
 #   * on windows we need the *.lib versions (dlls alone won't do for linking)
 #   * never mix Release/Debug versions of libraries. Leads to strange segfaults,
 #     stack corruption etc, due to different runtime libs ...
-# compiler-wise: use the same compiler for contrib and OpenMS!
+# compiler-wise: build the dependencies with the same compiler as OpenMS!
 find_package(XercesC REQUIRED)
 
 #------------------------------------------------------------------------------
@@ -153,6 +153,38 @@ endif()
 #------------------------------------------------------------------------------
 # bzip2
 find_package(BZip2 REQUIRED)
+
+#------------------------------------------------------------------------------
+# zstd (Zstandard, used for mzML binary data array compression, MS:1003780 ff.)
+# zstd is also a dependency of Apache Arrow/Parquet, so vcpkg and distribution
+# packages of Arrow already provide it (an Arrow built with bundled dependencies
+# carries a private copy, so install the system package there). Its config
+# package exports a shared or a static target depending on how it was built
+# (zstd >= 1.5.6 additionally provides zstd::libzstd), so take whichever exists.
+# Fall back to a plain header/library search for installations without the
+# config package.
+find_package(zstd CONFIG QUIET)
+if(TARGET zstd::libzstd)
+  set(OPENMS_ZSTD_TARGET zstd::libzstd)
+elseif(TARGET zstd::libzstd_shared)
+  set(OPENMS_ZSTD_TARGET zstd::libzstd_shared)
+elseif(TARGET zstd::libzstd_static)
+  set(OPENMS_ZSTD_TARGET zstd::libzstd_static)
+else()
+  find_path(OPENMS_ZSTD_INCLUDE_DIR NAMES zstd.h)
+  find_library(OPENMS_ZSTD_LIBRARY NAMES zstd libzstd zstd_static libzstd_static)
+  if(NOT OPENMS_ZSTD_INCLUDE_DIR OR NOT OPENMS_ZSTD_LIBRARY)
+    message(FATAL_ERROR "zstd (Zstandard) not found. Install the zstd development package "
+                        "(e.g. libzstd-dev, libzstd-devel or 'brew install zstd') or point CMake to it "
+                        "via CMAKE_PREFIX_PATH.")
+  endif()
+  add_library(OpenMS_zstd UNKNOWN IMPORTED)
+  set_target_properties(OpenMS_zstd PROPERTIES
+    IMPORTED_LOCATION "${OPENMS_ZSTD_LIBRARY}"
+    INTERFACE_INCLUDE_DIRECTORIES "${OPENMS_ZSTD_INCLUDE_DIR}")
+  set(OPENMS_ZSTD_TARGET OpenMS_zstd)
+endif()
+message(STATUS "Using zstd target: ${OPENMS_ZSTD_TARGET}")
 
 #------------------------------------------------------------------------------
 # libzip (ZIP64 archive support)
@@ -332,10 +364,12 @@ if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static"
    OR (OPENMS_ARROW_DATASET_TARGET AND
        OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static"))
   # Deliberately not REQUIRED: only the platforms that actually resolve those
-  # symbols against a system libxml2 need it. MSVC has no --as-needed and the
-  # Windows contrib build links a static Arrow with no system libxml2 present at
-  # all, so a mandatory lookup would turn a link-order workaround into a hard
-  # build dependency everywhere and fail configuration where it is not needed.
+  # symbols against a system libxml2 need it. MSVC has no --as-needed, and the
+  # Windows vcpkg triplets link a static Arrow that vcpkg builds against its own
+  # ports, without the azure feature (see vcpkg.json), so the Windows builds need
+  # no libxml2 through Arrow; attaching it where it is found anyway is harmless.
+  # A mandatory lookup would turn a link-order workaround into a hard build
+  # dependency everywhere and fail configuration where it is not needed.
   find_package(LibXml2 QUIET)
   if(LibXml2_FOUND)
     if(TARGET Arrow::arrow_bundled_dependencies)
@@ -454,10 +488,10 @@ if(WITH_WNETALIGN)
 endif()
 
 #------------------------------------------------------------------------------
-# Done finding contrib libraries
+# Done finding external libraries
 #------------------------------------------------------------------------------
 
-#except for the contrib libs, prefer shared libraries
+# for the libraries found below, prefer shared libraries
 if(NOT MSVC AND NOT APPLE)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
 endif()
@@ -475,70 +509,11 @@ find_package (Threads REQUIRED)
 #------------------------------------------------------------------------------
 # QT (only needed for GUI)
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "6.1.0")
-
-if (WITH_GUI)
-  find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS Core QUIET)
-
-  IF (Qt6Core_FOUND)
-    message(STATUS "Found Qt ${Qt6Core_VERSION}")
-  ELSE()
-    message(FATAL_ERROR "Qt6Core not found — required when WITH_GUI=ON. Use -DWITH_GUI=OFF to build without GUI.")
-  ENDIF()
-
-  # --------------------------------------------------------------------------
-  # Find additional Qt libs
-  #---------------------------------------------------------------------------
-  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg OpenGLWidgets)
-
-  # On macOS the platform plugin of QT requires PrintSupport. We link
-  # so it's packaged via the bundling/dependency tools/scripts
-  if (APPLE)
-    set (TEMP_OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} PrintSupport)
-  endif()
-
-  set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT components for GUI lib")
-
-  if(NOT NO_WEBENGINE_WIDGETS)
-    set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
-  endif()
-
-  find_package(Qt6 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
-
-  IF (NOT Qt6Widgets_FOUND OR NOT Qt6Gui_FOUND OR NOT Qt6Svg_FOUND)
-    message(STATUS "Qt6Widgets not found!")
-    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
-  ENDIF()
-  find_package(Qt6 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
-
-  # TODO only works if WebEngineWidgets is the only optional component
-  set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-  if(Qt6WebEngineWidgets_FOUND)
-    list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
-  else()
-    message(WARNING "Qt6WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
-  endif()
-
-  # The GUI applications derive from TOPPBase and discover tools through ToolHandler,
-  # so the tool framework is part of the GUI library's public link interface.
-  set(OpenMS_GUI_DEP_LIBRARIES "OpenMS" "OpenMS_CLI")
-
-  foreach(COMP IN LISTS OpenMS_GUI_QT_COMPONENTS)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
-  endforeach()
-
-  foreach(COMP IN LISTS OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
-  endforeach()
-
-endif()
+include(${OPENMS_HOST_DIRECTORY}/cmake/cmake_findQt.cmake)
 
 #------------------------------------------------------------------------------
 # opentims (Bruker TimsTOF .d file reading)
 if (WITH_OPENTIMS)
-  # Enable C language for bundled ZSTD fallback (zstddeclib.c)
-  enable_language(C)
-
   find_package(Opentims QUIET)
 
   if(Opentims_FOUND)
@@ -619,20 +594,8 @@ if (WITH_OPENTIMS)
     target_include_directories(opentims_cpp PRIVATE
       "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
 
-    # ZSTD: prefer system; fall back to opentims's bundled decoder.
-    set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
-    find_package(zstd QUIET)
-    if(TARGET zstd::libzstd_shared)
-      target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_shared)
-      message(STATUS "opentims: using system zstd (shared)")
-    elseif(TARGET zstd::libzstd_static)
-      target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_static)
-      message(STATUS "opentims: using system zstd (static)")
-    else()
-      target_sources(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd/zstddeclib.c")
-      target_include_directories(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd")
-      message(STATUS "opentims: using bundled zstd decoder (system zstd not found)")
-    endif()
+    # ZSTD: use the same zstd that OpenMS itself links (required, see above).
+    target_link_libraries(opentims_cpp PRIVATE ${OPENMS_ZSTD_TARGET})
 
     # Suppress warnings from third-party code
     target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)

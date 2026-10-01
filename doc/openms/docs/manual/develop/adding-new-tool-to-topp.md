@@ -6,7 +6,7 @@ Adding New Tool to The TOPP suite
 Any tool that is written with the OpenMS library can easily be made into a TOPP tool by simply using the OpenMS command
 line parser which is able to parse ParamXML, a powerful XML based description of the tool. Hence most analysis algorithms
 in OpenMS are available as a stand-alone tool which can be called on the command line or integrated into workflow engines
-via the CTD mechanism. A current list of TOPP tools can be found in [the documentation](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/TOPP_documentation.html).
+via the CTD mechanism. A current list of TOPP tools can be found in [the documentation](https://archive.openms.de/openms/Documentation/release/latest/html/TOPP_documentation.html).
 
 ## What do I have to do to add a new TOPP tool?
 

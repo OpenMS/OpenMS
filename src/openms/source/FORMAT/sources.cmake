@@ -101,6 +101,7 @@ XQuestResultXMLFile.cpp
 XTandemInfile.cpp
 XTandemXMLFile.cpp
 ZlibCompression.cpp
+ZstdCompression.cpp
 MRMFile.cpp
 TargetedDataFileLoader.cpp
 )

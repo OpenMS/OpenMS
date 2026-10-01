@@ -37,7 +37,7 @@
 ###   OpenMS_GUI_FOUND                      the GUI component was requested and satisfied
 ###   OpenMS_WITH_GUI                       the GUI library is part of this installation
 ###   OpenMS_WITH_HDF5, OpenMS_WITH_OPENTIMS, OpenMS_WITH_THERMO_RAW,
-###   OpenMS_WITH_OPENMP, OpenMS_BUILD_TOPP_TOOLS
+###   OpenMS_WITH_OPENMP, OpenMS_WITH_WNETALIGN, OpenMS_BUILD_TOPP_TOOLS
 ###                                         build options of this installation
 ###   OPENMS_DATA_DIR (= OPENMS_SHARE_DIR), OPENMS_LIB_DIR, OPENMS_BIN_DIR, OPENMS_DOC_DIR
 ###                                         directories of this installation
@@ -71,6 +71,7 @@ set(OpenMS_WITH_HDF5 "@WITH_HDF5@")
 set(OpenMS_WITH_OPENTIMS "@WITH_OPENTIMS@")
 set(OpenMS_WITH_THERMO_RAW "@WITH_THERMO_RAW@")
 set(OpenMS_WITH_OPENMP "@OPENMP_FOUND@")
+set(OpenMS_WITH_WNETALIGN "@WITH_WNETALIGN@")
 set(OpenMS_BUILD_TOPP_TOOLS "@BUILD_TOPP_TOOLS@")
 
 #------------------------------------------------------------------------------
@@ -79,16 +80,6 @@ set(OpenMS_BUILD_TOPP_TOOLS "@BUILD_TOPP_TOOLS@")
 # through its own RPATH/soname, and consumers need neither the CMake packages nor
 # the development files of those libraries (CURL, Xerces-C, libsvm, SQLite,
 # HDF5, Arrow, ...).
-
-# Dependency lookup mimics the OpenMS build: a contrib installation given via
-# OPENMS_CONTRIB_LIBS is searched first. Deprecated together with the contrib
-# (#10327); consumers add the prefix to CMAKE_PREFIX_PATH instead.
-if(OPENMS_CONTRIB_LIBS)
-  message(DEPRECATION
-    "OPENMS_CONTRIB_LIBS is deprecated and will be removed after OpenMS 3.6. "
-    "Add the prefix of the dependencies to CMAKE_PREFIX_PATH instead.")
-  list(PREPEND CMAKE_PREFIX_PATH ${OPENMS_CONTRIB_LIBS})
-endif()
 
 include(CMakeFindDependencyMacro)
 

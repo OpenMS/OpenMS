@@ -305,6 +305,7 @@ set(format_executables_list
   XTandemInfile_test
   XTandemXMLFile_test
   ZlibCompression_test
+  ZstdCompression_test
   Libzip_test
   ZipArchiveFile_test
   ZipIfstream_test

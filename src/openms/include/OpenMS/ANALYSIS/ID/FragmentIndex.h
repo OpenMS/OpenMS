@@ -186,6 +186,7 @@ namespace OpenMS
     /** @brief Given a set of Fasta files, builds the Fragment Index datastructure (FID). First all fragments are sorted
      * by their own mass. Next they are placed in buckets. The min-fragment mass is stored for each bucket, whereupon
      * the fragments are sorted within the buckets by their originating precursor mass.
+     * Replaces any previously built index; a failed build leaves isBuild() false.
      *
      * @param[in] fasta_entries The FASTA entries used to build the index.
      */
