@@ -153,8 +153,8 @@ In contrast to :py:class:`~.MapAlignmentAlgorithmPoseClustering`, which always f
     :linenos:
         
     aligner = oms.MapAlignmentAlgorithmIdentification()
-    ## we could set a reference map; but we don't. Instead, we rely on the algorithm to use an internal average of all maps
-    ref_index = -1   # -1 means 'take the median' for this algorithm
+    ## we could set a reference map; but we don't. Instead, we rely on the algorithm to pick one
+    ref_index = -1   # -1: parameter "auto_reference" decides - by default the map that shares the most identified sequences with the others
 
     ## let's change some default parameters of MapAlignmentAlgorithmIdentification, just to see how it's done:
     p = aligner.getParameters()

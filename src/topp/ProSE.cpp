@@ -96,6 +96,17 @@ every output (target+decoy evidence with scores). To obtain a clean, decoy-free 
 set — a single input file, or the pooled '-out_merged' set of a multi-file run. For a multi-file run with '-Search:FDR:protein' > 0 but no
 '-out_merged', protein FDR is NOT applied (no output represents a complete experiment); ProSE warns and leaves the per-file outputs as intermediates
 (decoys retained).
+@note `Search:peptide:clip_nterm_methionine=true` also searches the mature N-terminal
+peptide after loss of exactly the initial methionine of an M-leading protein.
+Both forms are searched with the configured length, mass and missed-cleavage limits.
+Protein N-terminal variable modifications also apply after clipping. Set false to
+restore the previous search space; internal methionines are not clipped. Generated
+decoys retain the initial M when enabled; supplied decoys are searched as provided.
+@note Local peak filtering: `Search:peaks:window_type=auto` retains up to `Search:peaks:window_top`
+peaks in every 100 Da window, including the short final window, for high-resolution fragments
+(tolerance <= 0.1 Da or <= 100 ppm). Low-resolution auto retains the legacy width-scaled final
+quota. Use `jump` for legacy filtering at every resolution, or `jump_full` to always retain
+the full quota. This changes high-resolution preprocessing, not the scoring formula.
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking
 active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once
 and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across

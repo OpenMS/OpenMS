@@ -163,7 +163,7 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      the precursor; distinct spectra of one peptide on distinct multiplets are all kept, and their channel values
      add up per peptide and charge in the quantification.
   -# Per fraction: retention time alignment of the runs (@p alignment, identification-based, aligned to the
-     run with most identifications) and linking of the multiplets across runs (@p linking); the channels of
+     run that shares the most identifications with every other run) and linking of the multiplets across runs (@p linking); the channels of
      every run are kept as sub-features, so the linked map has one column per (run, channel). Fractions are
      linked separately and then combined column-wise, exactly like ProteomicsLFQ does; a fraction measured in a
      single run is passed through. With @p match_between_runs, unidentified multiplets take part in the linking
@@ -333,7 +333,7 @@ protected:
     ma_defaults.setValue("max_rt_shift", 0.1);
     ma_defaults.setValue("use_unassigned_peptides", "false");
     ma_defaults.setValue("use_feature_rt", "true");
-    for (const auto& s : {"score_type", "score_cutoff", "min_score", "use_unassigned_peptides", "use_feature_rt", "use_adducts"})
+    for (const auto& s : {"score_type", "score_cutoff", "min_score", "use_unassigned_peptides", "use_feature_rt", "use_adducts", "auto_reference", "auto_reference_min_points"})
     {
       ma_defaults.addTag(s, "advanced");
     }
@@ -1025,7 +1025,7 @@ protected:
 
     try
     {
-      // the reference is determined from the data (the run with most identifications)
+      // the reference is determined from the data (the run that shares the most identifications with every other run)
       MapAlignmentAlgorithmIdentification aligner;
       aligner.setLogType(log_type_);
       aligner.setParameters(ma_param);

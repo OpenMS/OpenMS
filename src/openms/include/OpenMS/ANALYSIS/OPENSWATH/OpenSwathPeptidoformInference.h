@@ -25,7 +25,7 @@ namespace OpenMS
 
     @ingroup TargetedQuantitation
   */
-  class OpenSwathPeptidoformInference
+  class OPENMS_DLLAPI OpenSwathPeptidoformInference
   {
   public:
     /**

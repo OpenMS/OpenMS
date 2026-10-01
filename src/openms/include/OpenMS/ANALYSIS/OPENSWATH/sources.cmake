@@ -27,6 +27,8 @@ set(sources_list_h
   MRMTransitionGroupPicker.h
   OpenSwathHelper.h
   OpenSwathLibraryIDNormalizer.h
+  OpenSwathLibraryPreparation.h
+  OpenSwathPeptidoformInference.h
   OpenSwathExportConfig.h
   OpenSwathExportData.h
   OpenSwathMatrixExporter.h

@@ -47,8 +47,11 @@ Building OpenMS and consuming its CMake package both require CMake 3.24 or newer
 ```{note}
 CMake finds OpenMS through `OpenMS_DIR`, the directory holding `OpenMSConfig.cmake`: `<prefix>/lib/cmake/OpenMS` of an
 installation (`<prefix>/CMake` on Windows) or the OpenMS build directory. Alternatively add `<prefix>` to
-`CMAKE_PREFIX_PATH`. Use the same compiler, generator and dependency locations (e.g. `OPENMS_CONTRIB_LIBS`) as for
-the OpenMS build.
+`CMAKE_PREFIX_PATH`. Use the same compiler, generator and dependency locations as for the OpenMS build. For an
+OpenMS built with vcpkg (e.g. with `cmake --preset <preset>`), pass the same toolchain and vcpkg installation, so that
+CMake finds the libraries OpenMS depends on:
+`-DCMAKE_TOOLCHAIN_FILE=<OpenMS>/vcpkg/scripts/buildsystems/vcpkg.cmake
+-DVCPKG_INSTALLED_DIR=<OpenMS>/build/<preset>/vcpkg_installed -DVCPKG_TARGET_TRIPLET=<triplet of the preset>`.
 ```
 
 The example that follows will be explained in details:
@@ -130,9 +133,11 @@ In short:
 - copy the `OpenMS/share/OpenMS` directory to the client machine (e.g `<client/my_dir>/share`) and set the environment
   variable `OPENMS_DATA_PATH` to this directory
 - copy the OpenMS library (`OpenMS.dll` for Windows or `OpenMS.so/.dylib` for Linux/macOS) to `<client/my_dir>/bin`.
-- copy all Qt4 libraries to the client `<client/my_dir>/bin` or on Linux/macOS make sure you have installed the Qt4 
+- copy all Qt6 libraries to the client `<client/my_dir>/bin` or on Linux/macOS make sure you have installed the Qt6
   package.
-- [Windows only] copy Xerces dll (see `contrib/lib`) to `<client/my_dir>/bin`
+- copy the shared libraries OpenMS depends on, if any: an OpenMS built with vcpkg links them statically on Windows, and
+  on Linux/macOS they are in `<OpenMS source>/build/<preset>/vcpkg_installed/<triplet>/lib`. A build without vcpkg uses
+  the system's libraries, so install the same packages on the client machine.
 - [Windows only] install the VS redistributable package (see Microsoft Homepage) on the client machine which corresponds
   to the VS version that was used to compile your code (use the correct redistributable package!, i.e., architecture
   32|64bit, VS version, VS Service Pack version). If you choose the wrong redistributable package, you will get
