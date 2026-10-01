@@ -21,6 +21,11 @@ OpenMS Library:
     the compiled-in install paths. Relocated packages (e.g. conda, which rewrites the install
     prefix inside the binary) could not read share/OpenMS data files, and OPENMS_DATA_PATH was
     never consulted (#10353).
+  - FIX: Number parsing (StringUtils::toDouble/toFloat/extractDouble) is now independent of the
+    C locale on libc++ (macOS). In a decimal-comma region (e.g. de_DE), TOPPView, TOPPAS and
+    INIFileEditor failed to load mzML files with a ConversionError, because "60.5" was read as
+    60. The imzML and Arrow/Parquet readers no longer use the locale-dependent std::stod, and
+    the GUI tools reset LC_NUMERIC to "C" after starting Qt.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
