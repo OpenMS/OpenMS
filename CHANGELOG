@@ -21,6 +21,10 @@ OpenMS Library:
     the compiled-in install paths. Relocated packages (e.g. conda, which rewrites the install
     prefix inside the binary) could not read share/OpenMS data files, and OPENMS_DATA_PATH was
     never consulted (#10353).
+  - FIX: PercolatorFeatureSetHelper::addMSGFFeatures sets the MS-GF+ fragment error standard
+    deviations (StdevErrorAll, StdevErrorTop7, StdevRelErrorAll, StdevRelErrorTop7) to 0 if
+    MS-GF+ reported them as NaN (identical fragment errors). PercolatorAdapter rejects non-finite
+    features, so MSGFPlusAdapter/PSMFeatureExtractor output could fail rescoring (e.g. quantms TMT).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
