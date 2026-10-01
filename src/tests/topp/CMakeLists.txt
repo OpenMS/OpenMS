@@ -4795,6 +4795,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   set_tests_properties("TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA_psm_count"
     PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA")
 
+  # Uncalibrated baseline: calibration:enabled defaults to auto, which calibrates at 20 ppm, so it is set to false here.
   add_test("TOPP_ProSE_DDA" ${TOPP_BIN_PATH}/ProSE -test
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
@@ -4807,7 +4808,8 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -Search:enzyme Trypsin/P
     -Search:peptide:missed_cleavages 2
     "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
-    -Search:decoys auto)
+    -Search:decoys auto
+    -Search:calibration:enabled false)
 
   add_test("TOPP_FalseDiscoveryRate_ProSEDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
     -in ${TESTS_TEMP_DIR}/ProSE_DDA_out.tmp.idXML
@@ -4837,7 +4839,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -Search:peptide:missed_cleavages 2
     "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
     -Search:decoys auto
-    -Search:calibration:enabled)
+    -Search:calibration:enabled true)
 
   add_test("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
     -in ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_out.tmp.idXML
@@ -4875,7 +4877,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -Search:peptide:missed_cleavages 2
     "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
     -Search:decoys auto
-    -Search:calibration:enabled
+    -Search:calibration:enabled true
     -Search:database:chunk_size 5000)
 
   add_test("TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test

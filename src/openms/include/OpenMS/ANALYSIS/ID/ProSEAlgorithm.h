@@ -721,6 +721,32 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         PeptideIdentificationList& peptide_ids) const;
 
     /**
+     * @brief Gaussian fragment mass-error kernel of scoring:method=mass_accuracy, in ppm.
+     *
+     * The configured kernel is centered at zero with the width scoring:mass_error_sd. A
+     * calibration pass replaces it for the main search by the center (median) and robust width
+     * (1.4826 * MAD) of the signed fragment errors of its confident PSMs, see runCalibrationPass_().
+     * The calibration pass itself always scores with the configured kernel.
+     */
+    struct CalibrationResult_;
+    struct MassAccuracyKernel_
+    {
+      double sd_ppm = 7.0;    ///< Standard deviation
+      double shift_ppm = 0.0; ///< Center: systematic signed error, observed minus theoretical
+    };
+
+    /// The kernel of the configured parameters: zero-centered with scoring:mass_error_sd
+    MassAccuracyKernel_ configuredKernel_() const { return {mass_error_sd_ppm_, 0.0}; }
+
+    /// The fitted kernel of a successful calibration with enough matched ions, else the configured one
+    MassAccuracyKernel_ effectiveKernel_(const CalibrationResult_& calibration) const;
+
+    /// Record the kernel the main search scored with in the search parameters of @p protein_ids
+    static void recordMassAccuracyKernel_(std::vector<ProteinIdentification>& protein_ids,
+                                          const MassAccuracyKernel_& kernel,
+                                          bool fitted);
+
+    /**
      * @brief Score all spectra against one FragmentIndex.
      *
      * Shared by the non-chunked and chunked search paths. Appends per-scan
@@ -740,6 +766,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in,out] pool_stats Per-spectrum summary of the full (unpruned) candidate
      *                pool, one entry per spectrum. Accumulated rather than overwritten,
      *                so chunked callers can pass the same vector for every chunk.
+     * @param[in] kernel Gaussian fragment mass-error kernel of the mass-accuracy scorer (ignored by HyperScore).
      * @param[in] progress_label Label shown by the progress logger for this scoring pass.
      */
     void scoreSpectraAgainstIndex_(
@@ -752,6 +779,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         bool open_search_mode,
         std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
         std::vector<CandidatePoolStats_>& pool_stats,
+        const MassAccuracyKernel_& kernel,
         const std::string& progress_label) const;
 
     /**
@@ -816,7 +844,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string fragment_mass_tolerance_unit_;
 
     bool mass_accuracy_score_ {false}; ///< Experimental mass-accuracy-weighted HyperScore (scoring:method=mass_accuracy)
-    double mass_error_sd_ppm_ {7.0};   ///< Width of the mass-accuracy weighting kernel (scoring:mass_error_sd)
+    double mass_error_sd_ppm_ {7.0};   ///< Configured width of the mass-accuracy weighting kernel (scoring:mass_error_sd)
 
     /// Resolved MS2 deisotoping request (param fragment:deisotope != "false").
     /// preprocessSpectra_ still gates on Deisotoper::isToleranceSupported() so the
@@ -863,6 +891,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     Size database_chunk_size_{0};  ///< 0 = disabled; >0 = chunk DB into groups of this many proteins
 
+    /// Resolved calibration:enabled: 'auto' enables the pass for high-resolution fragment tolerances
     bool calibration_enabled_{false};
     double calibration_subset_ratio_{0.1};
     Size calibration_min_psms_{50};
@@ -882,6 +911,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double cal_upper{0};           ///< calibrated upper magnitude (valid iff !extreme_bias && success)
       double fragment_tolerance{0};  ///< estimated fragment tolerance (same unit as configured)
       double fragment_shift{0};      ///< reserved for future fragment m/z shift correction
+      double fragment_error_shift_ppm{0}; ///< median signed fragment error (observed - theoretical, ppm) of the confident PSMs' matched ions
+      double fragment_error_sd_ppm{0};    ///< robust width of those errors: 1.4826 * MAD, floored at 0.1 ppm
+      Size fragment_error_ions{0};        ///< matched ions the two fragment-error estimates are based on
+      bool fragment_kernel_valid{false};  ///< enough matched ions to replace the configured mass-accuracy kernel
       bool extreme_bias{false};      ///< |shift| >= spread — writeback skipped (test observability)
       bool success{false};           ///< true if enough PSMs were found for reliable estimation
     };

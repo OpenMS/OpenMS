@@ -11,6 +11,9 @@
 				<UserParam type="string" name="peptide:clip_nterm_methionine" value="true"/>
 				<UserParam type="string" name="peaks:window_type" value="auto"/>
 				<UserParam type="string" name="peaks:window_type_resolved" value="jump_full"/>
+				<UserParam type="float" name="scoring:mass_error_sd_resolved" value="7.0"/>
+				<UserParam type="float" name="scoring:mass_error_shift_resolved" value="0.0"/>
+				<UserParam type="string" name="scoring:mass_error_kernel" value="configured"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string" value="DECOY_"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="prefix"/>
 				<UserParam type="string" name="PeptideIndexer:enzyme" value="Trypsin"/>

@@ -99,6 +99,47 @@ START_SECTION(([EXTRA] mass - accuracy score preserves exact HyperScore and disc
 }
 END_SECTION
 
+START_SECTION(([EXTRA] mass - accuracy kernel center and matched fragment errors))
+{
+  PeakSpectrum theoretical;
+  tsg.getSpectrum(theoretical, AASequence::fromString("PEPTIDEKR"), 1, 1);
+  PeakSpectrum observed = theoretical;
+  for (auto& peak : observed) peak.setMZ(peak.getMZ() * (1.0 + 7e-6));
+
+  HyperScore::PSMDetail exact, uncentered, centered;
+  const double reference = HyperScore::computeMassAccuracy(20.0, true, theoretical, theoretical, 7.0, exact);
+  const double discounted = HyperScore::computeMassAccuracy(20.0, true, observed, theoretical, 7.0, uncentered);
+  const double recentered = HyperScore::computeMassAccuracy(20.0, true, observed, theoretical, 7.0, centered, 7.0);
+  TEST_TRUE(discounted < reference)
+  // A kernel centered on the systematic error credits the shifted matches in full again,
+  // while the unweighted counts and the reported mean error stay unshifted.
+  TEST_REAL_SIMILAR(recentered, reference)
+  TEST_EQUAL(centered.matched_prefix_ions, exact.matched_prefix_ions)
+  TEST_EQUAL(centered.matched_suffix_ions, exact.matched_suffix_ions)
+  TEST_REAL_SIMILAR(centered.mean_error, 7.0)
+  TEST_TRUE(HyperScore::computeMassAccuracy(20.0, true, observed, theoretical, 7.0, centered, -7.0) < discounted)
+  for (double invalid : {std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()})
+  {
+    TEST_EXCEPTION(Exception::InvalidParameter, HyperScore::computeMassAccuracy(20.0, true, observed, theoretical, 7.0, centered, invalid))
+  }
+
+  // One signed error per matched ion, identical for ppm and Da matching; nothing for empty input.
+  std::vector<double> errors;
+  HyperScore::matchedFragmentErrorsPpm(20.0, true, observed, theoretical, errors);
+  TEST_EQUAL(errors.size(), exact.matched_prefix_ions + exact.matched_suffix_ions)
+  for (const double error : errors) TEST_REAL_SIMILAR(error, 7.0)
+  std::vector<double> errors_da;
+  HyperScore::matchedFragmentErrorsPpm(0.02, false, observed, theoretical, errors_da);
+  TEST_EQUAL(errors_da.size(), errors.size())
+  errors.clear();
+  HyperScore::matchedFragmentErrorsPpm(1.0, true, observed, theoretical, errors);
+  TEST_EQUAL(errors.size(), 0)
+  HyperScore::matchedFragmentErrorsPpm(20.0, true, PeakSpectrum {}, theoretical, errors);
+  TEST_EQUAL(errors.size(), 0)
+  TEST_EXCEPTION(Exception::InvalidParameter, HyperScore::matchedFragmentErrorsPpm(0.0, true, observed, theoretical, errors))
+}
+END_SECTION
+
 START_SECTION((static double compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum &exp_spectrum, const RichPeakSpectrum &theo_spectrum)))
 {
   PeakSpectrum exp_spectrum;

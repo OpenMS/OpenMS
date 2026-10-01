@@ -25,6 +25,17 @@ def test_mass_accuracy_score_and_detail():
     assert 0 < shifted[0] < exact[0]
     assert shifted[1:3] == exact[1:3]
     assert shifted[3] == pytest.approx(7.0)
+    # Centering the kernel on the systematic error restores full credit; the reported error stays unshifted.
+    centered = oms.HyperScore.computeMassAccuracy(20.0, True, observed, theoretical, 7.0, 7.0)
+    assert centered[0] == pytest.approx(exact[0])
+    assert centered[1:3] == exact[1:3]
+    assert centered[3] == pytest.approx(7.0)
+    errors = oms.HyperScore.matchedFragmentErrorsPpm(20.0, True, observed, theoretical)
+    assert len(errors) == exact[1] + exact[2]
+    assert np.allclose(errors, 7.0)
     for invalid in (0.0, -1.0, np.inf, np.nan):
         with pytest.raises(Exception):
             oms.HyperScore.computeMassAccuracy(20.0, True, observed, theoretical, invalid)
+    for invalid in (np.inf, np.nan):
+        with pytest.raises(Exception):
+            oms.HyperScore.computeMassAccuracy(20.0, True, observed, theoretical, 7.0, invalid)

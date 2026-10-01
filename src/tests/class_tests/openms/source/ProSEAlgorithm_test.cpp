@@ -63,6 +63,7 @@ public:
   using ProSEAlgorithm::resolveDecoyStrategy_;
   using ProSEAlgorithm::DecoyStrategy_;
   using ProSEAlgorithm::buildDecoyAugmentedDB_;
+  using ProSEAlgorithm::calibration_enabled_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -3073,6 +3074,157 @@ START_SECTION(([EXTRA] mass accuracy scoring retains its kernel during calibrati
   for (const auto& peptide : peptides)
   {
     TEST_EQUAL(peptide.getScoreType(), "mass-accuracy hyperscore")
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] calibration:enabled=auto follows the fragment tolerance resolution))
+{
+  ProSEAlgorithm_test algo;
+  TEST_EQUAL(algo.getParameters().getValue("calibration:enabled").toString(), "auto")
+  TEST_TRUE(algo.calibration_enabled_) // the default fragment tolerance (20 ppm) is high-resolution
+  Param p = algo.getParameters();
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  algo.setParameters(p);
+  TEST_FALSE(algo.calibration_enabled_)
+  p.setValue("calibration:enabled", "true");
+  algo.setParameters(p);
+  TEST_TRUE(algo.calibration_enabled_) // explicit choices override the resolution proxy
+  p.setValue("calibration:enabled", "false");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  algo.setParameters(p);
+  TEST_FALSE(algo.calibration_enabled_)
+  p.setValue("calibration:enabled", "auto");
+  p.setValue("fragment:mass_tolerance", 0.1);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  algo.setParameters(p);
+  TEST_TRUE(algo.calibration_enabled_) // 0.1 Da is the (inclusive) resolution boundary
+}
+END_SECTION
+
+START_SECTION(([EXTRA] calibration fits the mass-accuracy kernel from confident fragment errors))
+{
+  // Fragment peaks carry a cyclic signed ppm error pattern (median +4 ppm, MAD 1.5 ppm) on top of
+  // the fixture's precursor errors. The fit must recover center and width from the matched ions,
+  // and only the main search may use them: the calibration pass scores with the configured kernel.
+  const vector<double> pattern = {1.0, 2.5, 4.0, 5.5, 7.0};
+  auto build = [&]()
+  {
+    PeakMap spectra = build_calibration_spectra_({0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0});
+    for (auto& spectrum : spectra)
+    {
+      for (Size i = 0; i < spectrum.size(); ++i)
+      {
+        spectrum[i].setMZ(spectrum[i].getMZ() * (1.0 + pattern[i % pattern.size()] * 1e-6));
+      }
+    }
+    return spectra;
+  };
+  const auto fasta_db = calibration_fasta_db_();
+  auto top_hits_explained = [&](const PeptideIdentificationList& peptides)
+  {
+    if (peptides.empty()) return false;
+    for (const auto& peptide : peptides)
+    {
+      if (peptide.getHits().empty()) return false;
+      if (fasta_db[0].sequence.find(peptide.getHits()[0].getSequence().toUnmodifiedString()) == std::string::npos) return false;
+    }
+    return true;
+  };
+  auto kernel_of = [](const vector<ProteinIdentification>& proteins)
+  {
+    const auto& params = proteins.at(0).getSearchParameters();
+    return std::make_tuple(params.getMetaValue("scoring:mass_error_kernel").toString(),
+                           static_cast<double>(params.getMetaValue("scoring:mass_error_sd_resolved")),
+                           static_cast<double>(params.getMetaValue("scoring:mass_error_shift_resolved")));
+  };
+
+  ProSEAlgorithm_test algo;
+  configure_calibration_params_(algo, 20.0, 30.0, 3);
+  Param p = algo.getParameters();
+  p.setValue("scoring:method", "mass_accuracy");
+  p.setValue("scoring:mass_error_sd", 9.0);
+  algo.setParameters(p);
+
+  PeakMap spectra = build();
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  TEST_TRUE(algo.search(spectra, fasta_db, proteins, peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  const ProSEAlgorithm_test::CalibrationResult_ cal = algo.last_calibration_result_;
+  TEST_TRUE(cal.success)
+  TEST_TRUE(cal.fragment_kernel_valid)
+  TEST_TRUE(cal.fragment_error_ions >= 50)
+  TEST_TRUE(cal.fragment_error_shift_ppm > 3.0 && cal.fragment_error_shift_ppm < 5.0)
+  TEST_TRUE(cal.fragment_error_sd_ppm > 1.0 && cal.fragment_error_sd_ppm < 3.5)
+  TEST_TRUE(top_hits_explained(peptides))
+  ABORT_IF(proteins.empty())
+  {
+    const auto [kernel, sd, shift] = kernel_of(proteins);
+    TEST_EQUAL(kernel, "calibrated")
+    TEST_REAL_SIMILAR(sd, cal.fragment_error_sd_ppm)
+    TEST_REAL_SIMILAR(shift, cal.fragment_error_shift_ppm)
+    TEST_REAL_SIMILAR(static_cast<double>(proteins[0].getSearchParameters().getMetaValue("scoring:mass_error_sd")), 9.0) // configured width is kept
+    TEST_EQUAL(peptides[0].getScoreType(), "mass-accuracy hyperscore")
+  }
+  std::map<std::string, double> calibrated_scores;
+  for (const auto& peptide : peptides) calibrated_scores[peptide.getSpectrumReference()] = peptide.getHits()[0].getScore();
+
+  // Without calibration the configured, zero-centered kernel scores the same hits differently.
+  p.setValue("calibration:enabled", "false");
+  algo.setParameters(p);
+  spectra = build();
+  PeptideIdentificationList uncalibrated;
+  TEST_TRUE(algo.search(spectra, fasta_db, proteins, uncalibrated) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  ABORT_IF(proteins.empty())
+  {
+    const auto [kernel, sd, shift] = kernel_of(proteins);
+    TEST_EQUAL(kernel, "configured")
+    TEST_REAL_SIMILAR(sd, 9.0)
+    TEST_REAL_SIMILAR(shift, 0.0)
+  }
+  TEST_TRUE(top_hits_explained(uncalibrated))
+  TEST_EQUAL(uncalibrated.size(), peptides.size())
+  Size changed = 0;
+  for (const auto& peptide : uncalibrated)
+  {
+    if (std::abs(calibrated_scores[peptide.getSpectrumReference()] - peptide.getHits()[0].getScore()) > 1e-9) ++changed;
+  }
+  TEST_TRUE(changed > 0)
+
+  // The chunked single-file path and the chunk-major multi-file path fit and record the same kernel.
+  auto chunked_db = fasta_db;
+  chunked_db.push_back({"P02", "Filler", "MKAAAAAAAAGGGGGGGGLLLLLLLLKRVVVVVVVVVK"});
+  p.setValue("calibration:enabled", "true");
+  p.setValue("database:chunk_size", 1);
+  algo.setParameters(p);
+  spectra = build();
+  PeptideIdentificationList chunked;
+  TEST_TRUE(algo.search(spectra, chunked_db, proteins, chunked) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  ABORT_IF(proteins.empty())
+  {
+    const auto [kernel, sd, shift] = kernel_of(proteins);
+    TEST_EQUAL(kernel, "calibrated")
+    TEST_REAL_SIMILAR(sd, cal.fragment_error_sd_ppm)
+    TEST_REAL_SIMILAR(shift, cal.fragment_error_shift_ppm)
+  }
+  TEST_TRUE(top_hits_explained(chunked))
+
+  std::string input_file;
+  NEW_TMP_FILE(input_file)
+  FileHandler().storeExperiment(input_file, build(), {FileTypes::MZML});
+  const auto multi = algo.searchWithModificationAnalysis(vector<string> {input_file, input_file}, chunked_db, vector<string> {}, "", false);
+  TEST_EQUAL(multi.per_file.size(), 2)
+  for (const auto& file : multi.per_file)
+  {
+    TEST_TRUE(file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    ABORT_IF(file.protein_ids.empty())
+    const auto [kernel, sd, shift] = kernel_of(file.protein_ids);
+    TEST_EQUAL(kernel, "calibrated")
+    TEST_REAL_SIMILAR(sd, cal.fragment_error_sd_ppm)
+    TEST_REAL_SIMILAR(shift, cal.fragment_error_shift_ppm)
+    TEST_TRUE(top_hits_explained(file.peptide_ids))
   }
 }
 END_SECTION

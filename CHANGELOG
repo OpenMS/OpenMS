@@ -101,8 +101,19 @@ TOPP tools:
         intensity products by Gaussian mass accuracy, using scoring:mass_error_sd (7 ppm
         by default). Matching tolerances and unweighted match annotations are unchanged.
         Applies to final scoring and precursor calibration, including chunked/multi-file
-        searches. Experimental high-resolution mode; scoring:method=hyperscore (default)
-        is unchanged.
+        searches. Experimental high-resolution mode; with calibration, the kernel center and
+        width are fitted per run (see the calibration:enabled entry below).
+        scoring:method=hyperscore (default) is unchanged.
+      - BEHAVIOR: calibration:enabled now defaults to 'auto', which runs the calibration pass for
+        high-resolution fragment tolerances (<= 0.1 Da / <= 100 ppm) and skips it otherwise.
+        The pass also fits the fragment mass-error kernel of scoring:method=mass_accuracy: the
+        main search centers the Gaussian on the median signed error of the confident PSMs'
+        matched ions and uses 1.4826 * MAD as its width instead of the fixed scoring:mass_error_sd
+        (recorded as scoring:mass_error_kernel, scoring:mass_error_sd_resolved and
+        scoring:mass_error_shift_resolved). HyperScore::computeMassAccuracy takes an optional
+        kernel center; HyperScore::matchedFragmentErrorsPpm exposes the matched ions' errors.
+        As the parameter now takes three values, a bare -Search:calibration:enabled on the
+        command line is no longer read as 'true'; pass true or false explicitly.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
