@@ -81,6 +81,14 @@ namespace OpenMS
         return parameters.swathes;
       }
 
+      if (parameters.precursor_mz_threshold <= 0.0)
+      {
+        throw Exception::InvalidParameter(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "AssayGeneratorParameters::precursor_mz_threshold must be greater than zero "
+          "when constructing fallback UIS SWATH windows.");
+      }
+
       std::vector<std::pair<double, double>> uis_swathes;
       const int num_precursor_windows = static_cast<int>(Math::round(
         (parameters.precursor_upper_mz_limit - parameters.precursor_lower_mz_limit) /
@@ -100,6 +108,14 @@ namespace OpenMS
       const OpenSwathLibraryPreparation::AssayGeneratorParameters& parameters,
       const ProgressLogger::LogType log_type)
     {
+      std::vector<std::pair<double, double>> uis_swathes;
+      if (parameters.enable_ipf)
+      {
+        // Build/validate fallback UIS windows before transition processing so a
+        // non-positive precursor threshold fails deterministically before use.
+        uis_swathes = buildPredictedUISSwathes_(parameters);
+      }
+
       prepareDetectionTransitions_(experiment, parameters, log_type);
       if (!parameters.enable_ipf)
       {
@@ -119,7 +135,6 @@ namespace OpenMS
 
       MRMAssay assays;
       assays.setLogType(log_type);
-      const auto uis_swathes = buildPredictedUISSwathes_(parameters);
       assays.uisTransitionsLight(
         experiment,
         parameters.allowed_fragment_types,

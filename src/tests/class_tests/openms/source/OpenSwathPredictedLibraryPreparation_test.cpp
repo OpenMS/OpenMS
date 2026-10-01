@@ -123,6 +123,23 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
       protein.id.find("DECOY_DECOY_") != std::string::npos;
   }
   TEST_EQUAL(saw_double_decoy_protein, false)
+
+  // Fallback UIS/SWATH construction divides the precursor m/z range by the
+  // precursor threshold. Reject a non-positive threshold before that division.
+  OpenSwathLibraryPreparation::AssayGeneratorParameters invalid_uis_assay = assay;
+  invalid_uis_assay.enable_ipf = true;
+  invalid_uis_assay.enable_swath_specifity = false;
+  invalid_uis_assay.swathes.clear();
+  invalid_uis_assay.precursor_mz_threshold = 0.0;
+
+  std::string invalid_output_pqp;
+  NEW_TMP_FILE(invalid_output_pqp)
+  File::remove(invalid_output_pqp);
+
+  TEST_EXCEPTION(
+    Exception::InvalidParameter,
+    prep.preparePredictedLibraryToPQP(
+      fasta_file, invalid_output_pqp, invalid_uis_assay, decoy, prediction))
 }
 END_SECTION
 
