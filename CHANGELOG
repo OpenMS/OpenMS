@@ -37,6 +37,17 @@ Dependencies:
     dependencies to CMAKE_PREFIX_PATH, or let vcpkg build them (cmake --preset
     <platform>-release). A build directory that still has it cached needs
     cmake -U OPENMS_CONTRIB_LIBS. find_package(OpenMS) no longer reads it either (#10327).
+  - Every release ships a developer SDK archive per platform
+    (OpenMS-SDK-<version>-<platform>.tar.gz, .zip on Windows) next to the installers:
+    the core and CLI layers (OpenMS, OpenSwathAlgo, OpenMS_CLI) with their headers, the
+    CMake package, share/OpenMS and the shared libraries those layers load, relocatable
+    and without Qt or the GUI library. Point CMAKE_PREFIX_PATH at the extracted archive
+    and use find_package(OpenMS CONFIG COMPONENTS CLI). The archive's README.txt lists the
+    requirements (no Boost, MSVC Release /MD on Windows, Ubuntu 24.04 as the Linux
+    baseline). The CI presets now build
+    with WITH_ONNX=ON (ONNX Runtime from vcpkg), so the installers and the SDK include the
+    PeptDeep classes, their ONNX models (share/OpenMS/models) and the ONNX Runtime library,
+    which were not installed before (#10248).
 
 TOPP tools:
   Changes:
