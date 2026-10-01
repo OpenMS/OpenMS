@@ -52,6 +52,12 @@ else()
   set(_openms_applications_depends library_cli)
   set(_openms_applications_description "The TOPP tools.")
 endif()
+## The macOS pkg hands pkgbuild a component plist for the app bundles, which keeps the
+## installer from relocating them (cmake/generate_applications_component_plist.cmake).
+set(_openms_applications_plist)
+if(APPLICATIONS_COMPONENT_PLIST)
+  set(_openms_applications_plist PLIST "${APPLICATIONS_COMPONENT_PLIST}")
+endif()
 ## Capitalized to match the name install_tool() registers (cmake/install_macros.cmake).
 ## CPack folds the name to upper case for the CPACK_COMPONENT_<NAME>_* metadata below,
 ## but compares it verbatim when selecting what to install, so the two must agree.
@@ -60,9 +66,11 @@ cpack_add_component(Applications
                 DESCRIPTION "${_openms_applications_description}"
                 DEPENDS ${_openms_applications_depends}
                 INSTALL_TYPES recommended full minimal
+                ${_openms_applications_plist}
                 )
 unset(_openms_applications_depends)
 unset(_openms_applications_description)
+unset(_openms_applications_plist)
 if(WITH_GUI AND NOT OPENMS_GUI_APPLICATIONS_COMPONENT STREQUAL "Applications")
   cpack_add_component(${OPENMS_GUI_APPLICATIONS_COMPONENT}
                   DISPLAY_NAME "OpenMS GUI applications"

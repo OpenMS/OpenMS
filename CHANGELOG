@@ -21,6 +21,10 @@ OpenMS Library:
     the compiled-in install paths. Relocated packages (e.g. conda, which rewrites the install
     prefix inside the binary) could not read share/OpenMS data files, and OPENMS_DATA_PATH was
     never consulted (#10353).
+  - FIX: PercolatorFeatureSetHelper::addMSGFFeatures sets the MS-GF+ fragment error standard
+    deviations (StdevErrorAll, StdevErrorTop7, StdevRelErrorAll, StdevRelErrorTop7) to 0 if
+    MS-GF+ reported them as NaN (identical fragment errors). PercolatorAdapter rejects non-finite
+    features, so MSGFPlusAdapter/PSMFeatureExtractor output could fail rescoring (e.g. quantms TMT).
   - FIX: Number parsing (StringUtils::toDouble/toFloat/extractDouble) is now independent of the
     C locale on libc++ (macOS). In a decimal-comma region (e.g. de_DE), TOPPView, TOPPAS and
     INIFileEditor failed to load mzML files with a ConversionError, because "60.5" was read as
@@ -33,6 +37,17 @@ Dependencies:
     dependencies to CMAKE_PREFIX_PATH, or let vcpkg build them (cmake --preset
     <platform>-release). A build directory that still has it cached needs
     cmake -U OPENMS_CONTRIB_LIBS. find_package(OpenMS) no longer reads it either (#10327).
+  - Every release ships a developer SDK archive per platform
+    (OpenMS-SDK-<version>-<platform>.tar.gz, .zip on Windows) next to the installers:
+    the core and CLI layers (OpenMS, OpenSwathAlgo, OpenMS_CLI) with their headers, the
+    CMake package, share/OpenMS and the shared libraries those layers load, relocatable
+    and without Qt or the GUI library. Point CMAKE_PREFIX_PATH at the extracted archive
+    and use find_package(OpenMS CONFIG COMPONENTS CLI). The archive's README.txt lists the
+    requirements (no Boost, MSVC Release /MD on Windows, Ubuntu 24.04 as the Linux
+    baseline). The CI presets now build
+    with WITH_ONNX=ON (ONNX Runtime from vcpkg), so the installers and the SDK include the
+    PeptDeep classes, their ONNX models (share/OpenMS/models) and the ONNX Runtime library,
+    which were not installed before (#10248).
 
 TOPP tools:
   Changes:
@@ -58,6 +73,18 @@ Build System:
     .git_archival.txt, from which CMake takes the commit, so a build from the source tarball of
     a release (or from GitHub's source archive of its tag) reports the plain version instead of
     <version>-pre-exported-<date> (#10359).
+  - The macOS package puts TOPPView, TOPPAS and INIFileEditor into the folder of the version
+    being installed. pkgbuild marks app bundles relocatable by default, so the installer
+    updated an app with the same bundle identifier wherever it found one, such as in an older
+    OpenMS or in a build tree, and left the new folder without it. The package now gives
+    pkgbuild a component plist that turns relocation off; the BundleIsRelocatable key in the
+    apps' Info.plist, which pkgbuild does not read, is gone (#8477, #8479).
+
+TOPP tools:
+    ProSE:
+      - FIX: The MS2 intensity cutoff applied before normalization removes only peaks without
+        intensity (zero or negative). It was the ThresholdMower default of 0.05 absolute, which
+        deleted real peaks from intensity-scaled input such as spectra normalized to a base peak of 1.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
