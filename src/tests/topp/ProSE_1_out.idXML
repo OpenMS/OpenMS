@@ -13,6 +13,7 @@
 				<UserParam type="string" name="scoring:method_resolved" value="hyperscore"/>
 				<UserParam type="string" name="scoring:fragment_charges_resolved" value="single"/>
 				<UserParam type="string" name="annotate:local_fragment_evidence" value="false"/>
+				<UserParam type="string" name="annotate:self_trained_ion_priors" value="false"/>
 				<UserParam type="int" name="fragment:max_charge" value="2"/>
 				<UserParam type="string" name="fragment:query_spectrum" value="processed"/>
 				<UserParam type="string" name="peaks:window_type" value="auto"/>
