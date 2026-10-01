@@ -87,9 +87,10 @@ the full quota. This changes high-resolution preprocessing, not the scoring form
 likelihoods of the fragment ions from each file's confident target PSMs (target-decoy competition
 q <= `Search:annotate:ion_prior_train_fdr` of the native score), with their reversed sequences as noise model,
 and adds the Percolator features ion_prior_llr, ion_prior_explained and ion_prior_topk_observed to every PSM.
-The model is cross-fitted over 3 spectrum folds: each PSM is scored by a model trained on the other folds only.
+The model is cross-fitted over 3 spectrum folds: each PSM is scored by a model whose training PSMs are selected and
+fitted from the other folds only.
 The model covers singly charged fragments for deisotoped (high-resolution) spectra and fragments up to
-min(precursor charge - 1, 3) otherwise, e.g. for ion-trap CID. Nothing is pre-trained: a file with fewer than `Search:annotate:ion_prior_min_psms` confident PSMs, or searched
+min(precursor charge - 1, 3) otherwise, e.g. for ion-trap CID. Nothing is pre-trained: a file with fewer than `Search:annotate:ion_prior_min_psms` confident PSMs for a fold model, or searched
 without decoys, gets zeros (and a warning). Native scores and the reported candidates are unchanged.
 
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).

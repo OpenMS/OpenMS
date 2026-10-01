@@ -177,8 +177,8 @@ namespace OpenMS
       "Learn per-run fragment ion likelihoods from the confident PSMs of each file and add the Percolator features "
       "ion_prior_llr, ion_prior_explained and ion_prior_topk_observed to every hit. Training PSMs are the rank-one target "
       "hits at target-decoy competition q <= annotate:ion_prior_train_fdr of the native score; their reversed sequences "
-      "matched against the same spectra provide the noise model. The model is cross-fitted: spectra fall into 3 folds, and "
-      "each hit is scored by a model trained on the other folds' PSMs only. Presence and intensity rank of each theoretical ion are "
+      "matched against the same spectra provide the noise model. The model is cross-fitted: spectra fall into 3 folds by "
+      "scan index, and each hit is scored by a model whose training PSMs are selected and fitted from the other two folds only. Presence and intensity rank of each theoretical ion are "
       "learned per ion series, precursor charge, fragment charge and relative position with pseudo-count back-off. Fragment "
       "charges follow fragment:deisotope: 1 for deisotoped spectra, otherwise up to min(precursor charge - 1, 3). Requires "
       "decoys and annotate:ion_prior_min_psms training PSMs, otherwise the features are 0. Native scores and candidate "
@@ -189,7 +189,8 @@ namespace OpenMS
     defaults_.setMinFloat("annotate:ion_prior_train_fdr", 0.0);
     defaults_.setMaxFloat("annotate:ion_prior_train_fdr", 1.0);
     defaults_.setValue("annotate:ion_prior_min_psms", 100,
-      "Minimum number of training PSMs of annotate:self_trained_ion_priors; with fewer, the features are 0.", {"advanced"});
+      "Minimum number of training PSMs of each of the three cross-fitted models of annotate:self_trained_ion_priors; if a "
+      "model has fewer, the features are 0 for the whole file.", {"advanced"});
     defaults_.setMinInt("annotate:ion_prior_min_psms", 1);
     defaults_.setSectionDescription("annotate", "Annotation Options");
 
@@ -3322,87 +3323,104 @@ namespace OpenMS
       return hits[best];
     };
 
-    // 1. Training PSMs: best target hits at TDC q <= threshold over the native score. Decoys win
-    //    exact ties, as in the native yield evaluation, which keeps the selection conservative.
-    struct Row { double score; bool decoy; Size index; };
+    // 1. Folds: spectra fall into ion_prior_folds folds by scan index. The model that scores a fold is fitted
+    //    on the other folds only, and its whole training set is derived from those folds: the target-decoy
+    //    competition that selects confident PSMs and the minimum-PSM gate. No PSM's own spectrum, score or
+    //    label therefore enters the model that scores it. (Percolator draws its own folds; these are not
+    //    aligned with them.)
+    constexpr Size ion_prior_folds = 3;
+    struct Row { double score; bool decoy; Size index; Size fold; };
     std::vector<Row> rows;
     bool decoys_present = false;
     for (Size i = 0; i < peptide_ids.size(); ++i)
     {
-      if (scan_of(peptide_ids[i]) < 0) continue;
+      const SignedSize scan = scan_of(peptide_ids[i]);
+      if (scan < 0) continue;
       const PeptideHit& top = best_hit(peptide_ids[i]);
       if (! top.metaValueExists(Constants::UserParam::TARGET_DECOY)) continue;
       const bool decoy = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString() == "decoy";
       decoys_present = decoys_present || decoy;
-      rows.push_back({peptide_ids[i].isHigherScoreBetter() ? top.getScore() : -top.getScore(), decoy, i});
+      rows.push_back({peptide_ids[i].isHigherScoreBetter() ? top.getScore() : -top.getScore(), decoy, i,
+                      static_cast<Size>(scan) % ion_prior_folds});
     }
-    std::vector<Size> training;
-    if (decoys_present)
-    {
-      std::sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) {
+
+    // Best target hits at TDC q <= threshold over the native score among the rows of every fold but
+    // @p held_out. Decoys win exact ties, as in the native yield evaluation, which keeps the selection
+    // conservative. Without decoys there is no confidence estimate and nothing is selected.
+    auto confident_targets = [&](Size held_out) {
+      std::vector<Row> subset;
+      for (const Row& row : rows)
+      {
+        if (row.fold != held_out) subset.push_back(row);
+      }
+      std::vector<Size> selected;
+      if (std::none_of(subset.begin(), subset.end(), [](const Row& row) { return row.decoy; })) return selected;
+      std::sort(subset.begin(), subset.end(), [](const Row& a, const Row& b) {
         if (a.score != b.score) return a.score > b.score;
         if (a.decoy != b.decoy) return a.decoy;
         return a.index < b.index;
       });
-      std::vector<double> q(rows.size(), 1.0);
+      std::vector<double> q(subset.size(), 1.0);
       Size targets = 0, decoys = 0;
-      for (Size i = 0; i < rows.size(); ++i)
+      for (Size i = 0; i < subset.size(); ++i)
       {
-        if (rows[i].decoy) { ++decoys; }
+        if (subset[i].decoy) { ++decoys; }
         else { ++targets; }
         q[i] = static_cast<double>(decoys + 1) / static_cast<double>(std::max<Size>(targets, 1));
       }
-      for (Size i = rows.size(); i-- > 1;) { q[i - 1] = std::min(q[i - 1], q[i]); }
-      for (Size i = 0; i < rows.size(); ++i)
+      for (Size i = subset.size(); i-- > 1;) { q[i - 1] = std::min(q[i - 1], q[i]); }
+      for (Size i = 0; i < subset.size(); ++i)
       {
-        if (! rows[i].decoy && q[i] <= ion_prior_train_fdr_) training.push_back(rows[i].index);
+        if (! subset[i].decoy && q[i] <= ion_prior_train_fdr_) selected.push_back(subset[i].index);
       }
-    }
+      return selected;
+    };
 
-    // 2. Cross-fitted models: spectra fall into ion_prior_folds folds by scan index, and the model of a fold
-    //    is trained only on the confident PSMs of the other folds. No PSM's own spectrum or target label
-    //    informs its features, so Percolator's cross-validation sees out-of-fold features. Each training
-    //    PSM's reversed sequence on the same spectrum is its noise observation.
-    constexpr Size ion_prior_folds = 3;
+    // 2. One model per fold, trained on its confident PSMs with their reversed sequences on the same spectra
+    //    as noise. Features are written only if every fold's model reaches annotate:ion_prior_min_psms.
+    std::vector<std::vector<Size>> training(ion_prior_folds);
+    std::set<Size> confident; // distinct confident PSMs over all folds' training sets (reported)
+    bool trained = true;
+    for (Size fold = 0; fold < ion_prior_folds; ++fold)
+    {
+      training[fold] = confident_targets(fold);
+      confident.insert(training[fold].begin(), training[fold].end());
+      trained = trained && training[fold].size() >= ion_prior_min_psms_;
+    }
     std::vector<FragmentIonLikelihoodModel> models(ion_prior_folds);
-    std::vector<Size> fold_training(ion_prior_folds, 0); // signal PSMs each fold's model was trained on
-    const bool trained = training.size() >= ion_prior_min_psms_;
     if (trained)
     {
-      PeakSpectrum theo, theo_noise;
-      for (const Size index : training)
+      PeakSpectrum theo;
+      for (Size fold = 0; fold < ion_prior_folds; ++fold)
       {
-        const PeptideIdentification& pi = peptide_ids[index];
-        const Size scan = static_cast<Size>(scan_of(pi));
-        const MSSpectrum& spec = spectra[scan];
-        const PeptideHit& hit = best_hit(pi);
-        const int charge = static_cast<int>(hit.getCharge());
-        const std::vector<Size> ranks = FragmentIonLikelihoodModel::intensityRanks(spec);
-        const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
-        theo.clear(true);
-        tsg.getSpectrum(theo, hit.getSequence(), 1, max_fragment_charge(charge));
-        const AASequence noise = reversedNoiseSequence_(hit.getSequence());
-        const bool has_noise = noise != hit.getSequence();
-        if (has_noise)
+        for (const Size index : training[fold])
         {
-          theo_noise.clear(true);
-          tsg.getSpectrum(theo_noise, noise, 1, max_fragment_charge(charge));
-        }
-        for (Size fold = 0; fold < ion_prior_folds; ++fold)
-        {
-          if (fold == scan % ion_prior_folds) continue; // the PSM's own fold
+          const PeptideIdentification& pi = peptide_ids[index];
+          const MSSpectrum& spec = spectra[static_cast<Size>(scan_of(pi))];
+          const PeptideHit& hit = best_hit(pi);
+          const int charge = static_cast<int>(hit.getCharge());
+          const std::vector<Size> ranks = FragmentIonLikelihoodModel::intensityRanks(spec);
+          const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
+          theo.clear(true);
+          tsg.getSpectrum(theo, hit.getSequence(), 1, max_fragment_charge(charge));
           models[fold].addObservations(spec, ranks, theo, hit.getSequence().size(), charge, fragment_mass_tolerance_, ppm, false);
-          ++fold_training[fold];
-          if (has_noise) models[fold].addObservations(spec, ranks, theo_noise, noise.size(), charge, fragment_mass_tolerance_, ppm, true);
+          const AASequence noise = reversedNoiseSequence_(hit.getSequence());
+          if (noise == hit.getSequence()) continue;
+          theo.clear(true);
+          tsg.getSpectrum(theo, noise, 1, max_fragment_charge(charge));
+          models[fold].addObservations(spec, ranks, theo, noise.size(), charge, fragment_mass_tolerance_, ppm, true);
         }
+        models[fold].finalize();
       }
-      for (FragmentIonLikelihoodModel& model : models) model.finalize();
-      OPENMS_LOG_INFO << "[ProSE] Ion priors: trained on " << training.size() << " PSMs at q <= " << ion_prior_train_fdr_
-                      << ", cross-fitted over " << ion_prior_folds << " spectrum folds." << std::endl;
+      OPENMS_LOG_INFO << "[ProSE] Ion priors: cross-fitted over " << ion_prior_folds << " spectrum folds on "
+                      << confident.size() << " PSMs at q <= " << ion_prior_train_fdr_ << " (per fold model: "
+                      << training[0].size() << ", " << training[1].size() << ", " << training[2].size() << ")." << std::endl;
     }
     else
     {
-      OPENMS_LOG_WARN << "[ProSE] Ion priors: " << training.size() << " confident training PSMs < " << ion_prior_min_psms_
+      Size fewest = training[0].size();
+      for (const auto& fold_training : training) fewest = std::min(fewest, fold_training.size());
+      OPENMS_LOG_WARN << "[ProSE] Ion priors: " << fewest << " confident training PSMs for a fold model < " << ion_prior_min_psms_
                       << (decoys_present ? "" : " (no decoy hits to estimate confidence)")
                       << "; the ion_prior_* features are 0 for this file." << std::endl;
     }
@@ -3414,8 +3432,8 @@ namespace OpenMS
       PeptideIdentification& pi = peptide_ids[i];
       const SignedSize scan = scan_of(pi);
       const Size fold = scan >= 0 ? static_cast<Size>(scan) % ion_prior_folds : 0;
-      // Scored by the model of its own fold, trained without this spectrum; a fold model without training PSMs gives zeros.
-      const bool scorable = trained && scan >= 0 && fold_training[fold] > 0;
+      // Scored by the model of its own fold, which was fitted without this fold's spectra, scores and labels.
+      const bool scorable = trained && scan >= 0;
       std::vector<Size> ranks;
       if (scorable) ranks = FragmentIonLikelihoodModel::intensityRanks(spectra[static_cast<Size>(scan)]);
       PeakSpectrum theo;
@@ -3452,7 +3470,7 @@ namespace OpenMS
     }
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
     search_parameters.setMetaValue("ion_prior:trained", trained ? "true" : "false");
-    search_parameters.setMetaValue("ion_prior:training_psms", static_cast<int>(training.size()));
+    search_parameters.setMetaValue("ion_prior:training_psms", static_cast<int>(confident.size()));
     search_parameters.setMetaValue("ion_prior:fragment_charges", deisotoped ? "1" : "1..min(z-1,3)");
     search_parameters.setMetaValue("ion_prior:cross_fit_folds", static_cast<int>(ion_prior_folds));
     protein_ids[0].setSearchParameters(search_parameters);
