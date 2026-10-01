@@ -153,7 +153,8 @@ Dependencies:
     the new BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups() to compute
     indistinguishable protein groups without it.
     Rebuild downstream C++ code and Python extensions; code using Boost directly
-    must declare its own dependency.
+    must declare its own dependency. A TOPP or GUI layer built against an installed
+    OpenMS (OPENMS_USE_INSTALLED_LIBRARY) finds the Boost headers itself.
   - The internal headers FORMAT/ParquetFile.h, FORMAT/ZipRandomAccessFile.h (Arrow) and
     FORMAT/RationalScan2ImConverter.h (OpenTIMS) are no longer installed. They take,
     return or derive from Arrow and OpenTIMS types and were usable only where those
