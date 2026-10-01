@@ -24,6 +24,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepMS2Inference.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepRTInference.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
@@ -33,6 +34,7 @@
 #include <set>
 #include <numeric>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <vector>
 
@@ -147,15 +149,6 @@ namespace
     return s;
   }
 
-  /// peptdeep's categorical instrument encoding.
-  int64_t instrumentIndex_(const std::string& name)
-  {
-    if (name == "Lumos") { return 0; }
-    if (name == "QE") { return 1; }
-    if (name == "timsTOF") { return 2; }
-    if (name == "SciexTOF") { return 3; }
-    return 1;
-  }
 }
 
 namespace OpenMS
@@ -166,8 +159,12 @@ namespace OpenMS
     defaults_.setValue("ms2_model", "", "Path to the PeptDeep MS2 fragment-intensity ONNX model. Required.");
     defaults_.setValue("rt_model", "", "Path to the PeptDeep retention-time ONNX model. Required.");
 
-    defaults_.setValue("instrument", "QE", "Instrument class passed to the MS2 model.");
-    defaults_.setValidStrings("instrument", {"Lumos", "QE", "timsTOF", "SciexTOF"});
+    defaults_.setValue("instrument", "QE", "Instrument class passed to the MS2 model. An instrument that is not in this list is best approximated by the closest one that is; the automatic NCE calibration absorbs some of the difference.");
+    // Taken from the model rather than restated: these are peptdeep's names, in peptdeep's order.
+    std::vector<std::string> instrument_names;
+    instrument_names.reserve(ML::ALPHAPEPTDEEP_INSTRUMENTS.size());
+    for (const std::string_view name : ML::ALPHAPEPTDEEP_INSTRUMENTS) { instrument_names.emplace_back(name); }
+    defaults_.setValidStrings("instrument", instrument_names);
 
     defaults_.setValue("nce", -1.0, "Normalised collision energy for the MS2 model. Negative selects it automatically: a grid centred on the collision energy recorded in the spectra is scored on a sample of confident PSMs and the best is kept. The instrument's own value is only a starting point -- the model's NCE scale does not coincide with it.");
     defaults_.setValue("nce_grid_halfwidth", 6.0, "Half-width of the automatic NCE search grid around its centre.", {"advanced"});
@@ -430,7 +427,7 @@ namespace OpenMS
     const Size n_conf = std::max<Size>(1, static_cast<Size>(by_score.size() * (1.0 - calibration_quantile_)));
     std::vector<Size> confident(by_score.begin(), by_score.begin() + std::min(n_conf, by_score.size()));
 
-    const int64_t instrument = instrumentIndex_(instrument_);
+    const int64_t instrument = ML::instrumentIndex(instrument_);
 
     // ---- normalised collision energy ----
     double nce = nce_;
