@@ -126,10 +126,9 @@ START_SECTION((Size findByReference(const std::string&) const))
 END_SECTION
 
 
-START_SECTION((static Int extractScanNumber(const std::string&,
-                                            const boost::regex&)))
+START_SECTION((static Int extractScanNumber(const std::string&, const RegularExpression&)))
 {
-  boost::regex re("spectrum=(?<SCAN>\\d+)");
+  RegularExpression re("spectrum=(?<SCAN>\\d+)");
   TEST_EQUAL(SpectrumLookup::extractScanNumber("spectrum=42", re), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", re, true), -1);
 

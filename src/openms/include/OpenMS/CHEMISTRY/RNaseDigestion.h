@@ -12,7 +12,7 @@
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
-#include <boost/regex.hpp>
+#include <OpenMS/DATASTRUCTURES/RegularExpression.h>
 
 namespace OpenMS
 {
@@ -52,8 +52,9 @@ namespace OpenMS
   protected:
     const Ribonucleotide* five_prime_gain_; ///< 5' mod added by the enzyme
     const Ribonucleotide* three_prime_gain_; ///< 3' mod added by the enzyme
-    std::vector<boost::regex> cuts_after_regexes_; ///< a vector of reg. exp. for enzyme cutting pattern, each regex represents a single nucleotide
-    std::vector<boost::regex> cuts_before_regexes_; ///< a vector reg. exp. for enzyme cutting pattern
+    std::vector<RegularExpression>
+      cuts_after_regexes_; ///< a vector of reg. exp. for enzyme cutting pattern, each regex represents a single nucleotide
+    std::vector<RegularExpression> cuts_before_regexes_; ///< a vector reg. exp. for enzyme cutting pattern
 
     /**
        @brief Returns the positions of digestion products in the RNA as pairs: (start, length)

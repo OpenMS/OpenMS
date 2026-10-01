@@ -69,6 +69,13 @@ if(BUILD_TOPP_TOOLS)
 endif()
 
 #------------------------------------------------------------------------------
+# Boost (header-only): a few TOPP tools (FileInfo, FileMerger, TextExporter, ...; the
+# list in src/topp/CMakeLists.txt) and the GUI library use it directly. It is a private
+# dependency of libOpenMS, so the installation does not provide it; find it as the
+# library build does.
+find_boost()
+
+#------------------------------------------------------------------------------
 # Qt for the GUI library and applications
 if(WITH_GUI)
   include(${OPENMS_HOST_DIRECTORY}/cmake/cmake_findQt.cmake)

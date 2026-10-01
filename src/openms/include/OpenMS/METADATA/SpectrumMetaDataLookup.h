@@ -236,10 +236,10 @@ namespace OpenMS
 
        Scan number and precursor RT, respectively, are only extracted if @p scan_regexp/@p precursor_rts are not empty.
     */
-    static void getSpectrumMetaData(
-      const MSSpectrum& spectrum, SpectrumMetaData& meta,
-      const boost::regex& scan_regexp = boost::regex(),
-      const std::map<Size, double>& precursor_rts = (std::map<Size, double>()));
+    static void getSpectrumMetaData(const MSSpectrum& spectrum,
+                                    SpectrumMetaData& meta,
+                                    const RegularExpression& scan_regexp = RegularExpression(),
+                                    const std::map<Size, double>& precursor_rts = (std::map<Size, double>()));
 
     /**
        @brief Extract meta data via a spectrum reference

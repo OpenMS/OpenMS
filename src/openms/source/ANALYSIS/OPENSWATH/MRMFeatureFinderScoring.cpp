@@ -6,6 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 
 // data access
@@ -633,7 +634,7 @@ namespace OpenMS
     const bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
     const double detection_precursor_mz = !transition_group_detection.getTransitions().empty() ?
       transition_group_detection.getTransitions()[0].getPrecursorMZ() : -1.0;
-    const int group_size = boost::numeric_cast<int>(transition_group_detection.size());
+    const int group_size = checkedCast<int>(transition_group_detection.size());
     if (group_size == 0 && !ms1only)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -1353,7 +1354,7 @@ namespace OpenMS
     chromatogram_map.reserve(nr_chromatograms);
     for (Size i = 0; i < nr_chromatograms; i++)
     {
-      chromatogram_map[input->getChromatogramNativeID(i)] = boost::numeric_cast<int>(i);
+      chromatogram_map[input->getChromatogramNativeID(i)] = checkedCast<int>(i);
     }
 
     // Iterate through all transitions and store the transition with the

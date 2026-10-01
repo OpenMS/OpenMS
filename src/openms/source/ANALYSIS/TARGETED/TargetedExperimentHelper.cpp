@@ -6,6 +6,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
@@ -51,7 +52,7 @@ namespace OpenMS::TargetedExperimentHelper
         // Step 1: First look whether the UniMod ID is set (we don't use a CVTerm any more but a member)
         if (it->unimod_id != -1)
         {
-          setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), 
+          setModification(it->location, checkedCast<int>(peptide.sequence.size()), 
               "UniMod:" + StringUtils::toStr(it->unimod_id), aas);
           continue;
         }
@@ -67,7 +68,7 @@ namespace OpenMS::TargetedExperimentHelper
           it->mono_mass_delta, 1.0, std::string(1, peptide.sequence[it->location]));
         if (mod != nullptr)
         {
-          setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), mod->getId(), aas);
+          setModification(it->location, checkedCast<int>(peptide.sequence.size()), mod->getId(), aas);
         }
         else
         {

@@ -37,6 +37,11 @@ set(_headers include/OpenMS/API.h
 if(BAD_HEADER STREQUAL "json")
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/include/OpenMS/bad.h" "#include <nlohmann/json.hpp>\n")
   list(APPEND _headers "${CMAKE_CURRENT_BINARY_DIR}/include/OpenMS/bad.h")
+elseif(BAD_HEADER STREQUAL "unlisted")
+  # A dependency nobody has heard of yet, next to includes that are all allowed.
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/include/OpenMS/bad.h"
+    "#include <OpenMS/configured.h>\n#include <vector>\n#include \"newdep/api.h\"\n")
+  list(APPEND _headers "${CMAKE_CURRENT_BINARY_DIR}/include/OpenMS/bad.h")
 endif()
 
 openms_add_library(TARGET_NAME OpenMSHeaderProbe

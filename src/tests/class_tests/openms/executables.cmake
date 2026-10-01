@@ -95,6 +95,7 @@ set(metadata_executables_list
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
+  IDDataContainer_test
   IdentificationData_test
   IdentificationDataConverter_test
   IdentifiedMolecule_test
@@ -758,6 +759,10 @@ if(NOT DISABLE_OPENSWATH)
     CachedMzMLHandler_test
   )
 endif(NOT DISABLE_OPENSWATH)
+
+if(WITH_ONNX AND NOT DISABLE_OPENSWATH)
+  list(APPEND swath_executables_list PeptDeepLibraryPredictor_test)
+endif()
 
 if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list TransitionParquetFile_test)
