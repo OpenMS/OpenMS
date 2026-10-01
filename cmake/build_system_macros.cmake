@@ -21,12 +21,6 @@ macro(find_boost)
   add_definitions(/DBOOST_ALL_NO_LIB) ## disable auto-linking of boost libs (boost tends to guess wrong lib names)
   set(Boost_COMPILER "")
   
-  ## since boost 1.66 they add an architecture tag if you build with layout=versioned and since 1.69 even when you
-  ## build with layout=tagged (which we do in the contrib)
-  if(NOT Boost_ARCHITECTURE)
-    set(Boost_ARCHITECTURE "-x64")
-  endif()
-
   # help boost finding it's packages
   set(Boost_ADDITIONAL_VERSIONS
     "1.87.1" "1.87.0" "1.87"

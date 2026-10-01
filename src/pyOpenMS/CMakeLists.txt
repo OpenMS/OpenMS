@@ -131,19 +131,15 @@ endif()
 # the stub generator) has to be handed the directories holding OpenMS.dll and
 # its transitive dependencies.
 #
-# Collected once here rather than at each use site, because the two hand-rolled
-# lists that existed were each missing a different piece. Both were built from
-# OPENMS_CONTRIB_LIBS -- not defined when src/pyOpenMS is the top-level project
-# under py-build-cmake -- and QT_INSTALL_BINS, which is never defined here at
-# all (cmake/knime_package_support.cmake sets it, and the root project includes
-# that after add_subdirectory(src), only for KNIME packaging). And neither
-# looked in a contrib *bin* directory at all. On Windows CMake installs DLLs to
-# <prefix>/bin (RUNTIME) and import libraries to <prefix>/lib (ARCHIVE), so a
-# contrib built with BUILD_SHARED_LIBS=ON puts its DLLs where a lib-only list
-# can never find them. That is not hypothetical: the wheel workflow builds
-# libcurl shared into contrib/bin, and libcurl.dll is a load-time import of
-# OpenMS.dll, so every extension module failed to load with the loader's
-# unhelpful "The specified module could not be found" (#10141).
+# Collected once here rather than at each use site, because the hand-rolled
+# lists that existed were each missing a different piece (#10141). On Windows
+# CMake installs DLLs to <prefix>/bin (RUNTIME) and import libraries to
+# <prefix>/lib (ARCHIVE), so a list that names only lib/ can never find a DLL of
+# a shared dependency; OpenMS.dll then fails to load with the loader's
+# unhelpful "The specified module could not be found". Hence every dependency
+# prefix contributes both directories. QT_INSTALL_BINS is not used: it is never
+# defined here (cmake/knime_package_support.cmake sets it, and the root project
+# includes that after add_subdirectory(src), only for KNIME packaging).
 function(_pyopenms_windows_dll_dirs out_var)
   # Caller-supplied directories come first: the environment is the only way an
   # enclosing build or a CI job can point at something CMake cannot know about.
@@ -165,11 +161,14 @@ function(_pyopenms_windows_dll_dirs out_var)
 
   # Every prefix this build was pointed at contributes both of its runtime
   # directories. Same transform cmake/package_general.cmake uses to feed
-  # install(RUNTIME_DEPENDENCY_SET), and it is what picks up contrib/bin
-  # without anyone having to name it. CMAKE_PREFIX_PATH is read as both a CMake
-  # variable and an environment variable: find_package() consults both, but
-  # only the variable is visible to ordinary script code, and the wheel
-  # workflow supplies the environment one.
+  # install(RUNTIME_DEPENDENCY_SET), and it is what picks up the bin/ directory
+  # of the dependency prefix (for vcpkg, vcpkg_installed/<triplet>/bin, which
+  # the vcpkg toolchain adds to CMAKE_PREFIX_PATH) without anyone having to
+  # name it. CMAKE_PREFIX_PATH is read as both a CMake variable and an
+  # environment variable: find_package() consults both, but only the variable
+  # is visible to ordinary script code, and the wheel workflow supplies the
+  # environment one. (No Qt entry: the core library does not link Qt, and a Qt
+  # prefix that is on CMAKE_PREFIX_PATH is already covered here.)
   set(_prefixes ${CMAKE_PREFIX_PATH})
   if(NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
     list(APPEND _prefixes "$ENV{CMAKE_PREFIX_PATH}")
@@ -179,16 +178,6 @@ function(_pyopenms_windows_dll_dirs out_var)
       list(APPEND _dirs "${_prefix}/bin" "${_prefix}/lib")
     endif()
   endforeach()
-
-  # An in-tree build knows the contrib prefix directly; a standalone one does not.
-  # (No Qt entry: the core library does not link Qt, and a Qt prefix that is on
-  # CMAKE_PREFIX_PATH is already covered above.)
-  if(OPENMS_CONTRIB_LIBS)
-    list(APPEND _dirs
-      "${OPENMS_CONTRIB_LIBS}/bin"
-      "${OPENMS_CONTRIB_LIBS}/lib"
-      "${OPENMS_CONTRIB_LIBS}/lib64")
-  endif()
 
   # Only removes textual duplicates: two generator expressions that expand to the
   # same directory both survive. Registering a directory twice is harmless -- the
@@ -881,22 +870,32 @@ else()
       )
       add_dependencies(pyopenms_fix_deps pyopenms_copy_deps)
     else()
-      # Linux/Windows: Copy transitive dependencies (contrib libs, etc.)
+      # Linux/Windows: Copy transitive dependencies
       #
       # On Windows the lookup directories are the same list the stub preflight
       # and the ctest suite are given, so a library the preflight can load is
-      # also one this step can find and copy. With a separate, contrib-only list
-      # a standalone build (OPENMS_CONTRIB_LIBS unset) searched nothing useful,
-      # and the preflight -- whose search path did cover contrib/bin -- would
-      # have passed a package that was about to ship without libcurl.dll.
-      # Elsewhere the contrib layout is all there is; the former
-      # QT_INSTALL_BINS/QT_INSTALL_LIBS entries are gone because they were
-      # always empty here (set by cmake/knime_package_support.cmake, which the
-      # root project includes after add_subdirectory(src)).
+      # also one this step can find and copy; a separate list could let the
+      # preflight pass a package that was about to ship without a DLL (#10141).
+      # On Linux get_prerequisites() puts the lookup directories on
+      # LD_LIBRARY_PATH for ldd; libraries in the standard locations are found
+      # without them. Every dependency prefix contributes its lib/ and lib64/.
       if(WIN32)
         _pyopenms_windows_dll_dirs(_pyopenms_copy_lookup_dirs)
       else()
-        set(_pyopenms_copy_lookup_dirs "${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64")
+        set(_pyopenms_copy_lookup_dirs "")
+        set(_prefixes ${CMAKE_PREFIX_PATH})
+        if(NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
+          string(REPLACE ":" ";" _env_prefixes "$ENV{CMAKE_PREFIX_PATH}")
+          list(APPEND _prefixes ${_env_prefixes})
+        endif()
+        foreach(_prefix IN LISTS _prefixes)
+          if(NOT _prefix STREQUAL "")
+            list(APPEND _pyopenms_copy_lookup_dirs "${_prefix}/lib" "${_prefix}/lib64")
+          endif()
+        endforeach()
+        list(REMOVE_DUPLICATES _pyopenms_copy_lookup_dirs)
+        # One command argument, as for the Windows list.
+        list(JOIN _pyopenms_copy_lookup_dirs "$<SEMICOLON>" _pyopenms_copy_lookup_dirs)
       endif()
       foreach(PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
         add_custom_command(
@@ -1026,9 +1025,9 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   # `import pyopenms`. Harmless no-op when the dependencies are already bundled
   # (NO_DEPENDENCIES=OFF) and on non-Windows.
   #
-  # Same directory list as the stub generator uses -- in particular it now covers
-  # the contrib *bin* directory, where a contrib built with shared libraries puts
-  # its DLLs (#10141); this list previously named only contrib/lib.
+  # Same directory list as the stub generator uses -- in particular it covers
+  # the bin/ directory of every dependency prefix, where shared dependencies keep
+  # their DLLs (#10141).
   set(_pyopenms_test_cmd_prefix "")
   if(WIN32)
     _pyopenms_windows_dll_dirs(_pyopenms_dll_dirs)
