@@ -220,3 +220,48 @@ bundle. Effects are % Percolator PSMs at q ≤ 0.01 against develop, mean over s
   applies the top-20 filter only to TMT/iTRAQ ("regresses high-res Astral ~14%"). No TOF model is bundled, so timsTOF
   falls back to `cid_lowres_tryp`; that is the only group where ANDES trails develop (−5.1%; +1.3% with
   `hcd_qexactive_tryp` forced). Its largest lead, +41% on Astral, comes with a dedicated `hcd_astral_tryp` model.
+
+## Dense-spectrum peak quota (added 2026-10-02)
+
+Folder `peak-filter/`. Prototype `20b6e75` on branch `claude/quirky-galileo-tkpwe4-prose-peak-filter` (off develop
+`ea3f2c1`; `peakfilter-dense-quota.patch`). Where the local filter keeps full quotas (high resolution), a spectrum in
+which `peaks:window_top` (20) peaks per 100 Da window would remove more than `peaks:dense_intensity_loss` (0.2) of its
+deisotoped intensity keeps `peaks:dense_window_top` (100) peaks per window. It was benchmarked as build
+`peakfilter_bench`, the same patch on `f5ea2d04`: develop's Boost change (#10223) adds library symbols the pinned nightly
+lacks. All three class tests pass, and the TOPP replays differ from develop only by the two recorded parameters.
+
+**20-file suite** (`pf_eval.py` → `pf_per_file.tsv`, `pf_eval.log`; z ≥ 2 counts as up):
+
+| Arm | Files up / flat / down | Astral | timsTOF | HF-X | Lumos LFQ | TMTpro | Ion trap |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `peaks:window_top` 40, all spectra | 7 / 10 / 3 | +7.0% | +4.4% | +0.6% | +0.2% | +0.9% | −1.1 to −2.8% |
+| `peaks:window_top` 100, all spectra | 7 / 11 / 2 | +8.8% | +4.4% | +1.2% | +0.2% | −0.6% | −0.5 to −2.3% |
+| Dense quota, loss 0.1 | 4 / 10 / 0 | +8.2% | +2.2% | +0.6% | +0.3% | 0.0% | not run (unchanged) |
+| **Dense quota, loss 0.2** | 3 / 17 / 0 | +9.0% | +2.1% | +0.2% | −0.15% | −0.7% | identical |
+| Dense quota, loss 0.3 | 2 / 12 / 0 | +7.0% | +1.3% | identical | −0.06% | +0.4% | not run (unchanged) |
+
+- **Spectra counted dense** at loss 0.2: Astral 96%, timsTOF 26%, Orbitrap 1–5% (`filter_loss_processed.tsv` has the
+  per-spectrum distribution).
+- **Identity:** with `peaks:dense_window_top` 0 (4 files), and on all ion-trap files, PIN and native TSV are
+  byte-identical to develop.
+- **Native TDC:** falls 1–2% on Astral in every variant.
+
+**Doubled search spaces** (`entrapment_E.tsv`, `entrapment_F.tsv`; Percolator q ≤ 0.01, 3 seeds; combined FDP 2·N_E/N):
+- `_E`: targets plus one shuffled entrapment protein per target (`make_entrapment.py`). K, R and P stay fixed and the
+  other residues of each segment are shuffled, so every target peptide has a same-mass, same-composition twin (r = 1).
+- `_F`: the same size, but with fully shuffled proteins of unrelated peptide masses, like a foreign proteome
+  (`make_foreign.py`).
+- Database hashes are in `entrapment-databases.sha256`.
+
+| Arm | Astral (A2 / B1 / B3) | timsTOF (30 / 50 min) | Astral combined FDP |
+| --- | --- | --- | --- |
+| Dense quota vs develop, benchmark database | +18.3 / +3.3 / +5.4% | −0.7 / +4.8% | — |
+| Dense quota vs develop, `_E` | −5.2 / +2.9 / +2.2% | −1.2 / +2.9% | 1.88% → 1.87% |
+| Dense quota vs develop, `_F` | +7.3 / −2.4 / −1.3% | +2.9 / +4.4% | 1.40% → 1.20% |
+| #10378 (`523214b`, priors on) vs develop, `_E` | +2.5 / +4.2 / +0.9% | −1.3 / +1.4% | 1.88% → 1.67% |
+
+Neither change inflates the error rate. The dense quota's Astral gain, however, does not survive a change of the search
+space, while #10378's does. The dense quota is therefore not proposed.
+
+`peak-filter-results.zip` (+ `.sha256`) holds `run.py` with all arms, the build records, run logs and, for every
+search, `summary.json`, parameters, and search and Percolator logs.

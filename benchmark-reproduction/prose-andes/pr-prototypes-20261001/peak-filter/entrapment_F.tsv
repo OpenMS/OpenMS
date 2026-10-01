@@ -1,0 +1,11 @@
+dataset	arm	psms	entrapment	fdp_lower_pct	fdp_combined_pct	gained_psms	gained_entrapment	gained_fdp_combined_pct
+astral_A2	base_F	1796.7	8	0.45	0.89	0	0	
+astral_A2	pf_F	1927.3	13	0.67	1.35	1037	32	6.2
+astral_B1	base_F	2189.3	16	0.73	1.46	0	0	
+astral_B1	pf_F	2136.3	13.3	0.62	1.25	902	27	6.0
+astral_B3	base_F	2108.7	18.7	0.89	1.77	0	0	
+astral_B3	pf_F	2082	10.7	0.51	1.02	926	21	4.5
+tims_plasma_30min	base_F	959.7	4	0.42	0.83	0	0	
+tims_plasma_30min	pf_F	988	5.7	0.57	1.15	170	10	11.8
+tims_plasma_50min	base_F	970.7	7.3	0.76	1.51	0	0	
+tims_plasma_50min	pf_F	1013	10.3	1.02	2.04	239	15	12.6
