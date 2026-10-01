@@ -139,6 +139,29 @@ START_SECTION((OpenSwath::LightTargetedExperiment predict(const std::vector<Pept
 }
 END_SECTION
 
+START_SECTION((default bundled model discovery))
+{
+  PeptDeepLibraryPredictor::Config config;
+  config.intra_op_threads = 1;
+  config.batch_size = 1;
+
+  // Leave all model paths empty on purpose. This exercises the default
+  // build-tree/installed share/OpenMS/models lookup.
+  PeptDeepLibraryPredictor predictor(config);
+
+  PeptDeepLibraryPrecursor precursor;
+  precursor.peptide = AASequence::fromString("PEPTIDEK");
+  precursor.id = "PEPTIDEK/2";
+  precursor.charge = 2;
+  precursor.protein_refs = {"P01234"};
+
+  const auto experiment = predictor.predict({precursor});
+  TEST_EQUAL(experiment.compounds.size(), 1)
+  TEST_EQUAL(experiment.transitions.size(), 28)
+  TEST_EQUAL(experiment.compounds.front().drift_time > 0.0, true)
+}
+END_SECTION
+
 START_SECTION((input validation and optional CCS prediction))
 {
   PeptDeepLibraryPredictor::Config config;

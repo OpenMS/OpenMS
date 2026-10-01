@@ -12,6 +12,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h>
 
 #include <cstdint>
 #include <unordered_set>
@@ -32,7 +33,14 @@ namespace OpenMS
       {
         return configured_path;
       }
-      return File::find(std::string("models/") + model_name);
+
+      // PeptDeep models are downloaded into the build tree's share/OpenMS/models
+      // directory and installed into the normal OpenMS data directory. Search the
+      // build-tree data directory first, then let File::find() fall back to the
+      // resolved installed/source OpenMS data path.
+      return File::find(
+        std::string("models/") + model_name,
+        {std::string(OPENMS_BINARY_PATH) + "/share/OpenMS"});
     }
 
     void addModifications_(const AASequence& peptide, OpenSwath::LightCompound& compound)
