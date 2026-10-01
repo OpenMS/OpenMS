@@ -184,3 +184,39 @@ native TSV on `velos_125_R1` and `astral_A2`; every fold model has 503 or more t
 - **Per file:** 8 up, 11 flat, 1 down (`lumos_lfq_5192`, −0.34%).
 - **Velos entrapment:** combined FDP 0.91% (develop 0.95%, `b02b538` 0.97%). The 1290 extra PSMs bring one extra
   entrapment hit.
+
+## Why the gains differ between instruments (added 2026-10-01, later)
+
+Folder `pattern/`. The scripts run from the harness directory of the untangled-PR benchmark with `PYTHONPATH=.`
+(they import `evaluate.py`); the ones that read spectra or idXML also need the pyOpenMS nightly of the reproduction
+bundle. Effects are % Percolator PSMs at q ≤ 0.01 against develop, mean over seeds 1/42/137, then over files.
+
+| File | Contents |
+| --- | --- |
+| `spectra.py` → `spectra.tsv` | Raw MS2 properties of the 8,000 benchmark spectra per file: peak count, peaks per 100 Da, share of peaks and intensity a top-20-per-100-Da filter keeps, intensity below m/z 200 |
+| `filter_loss.py` → `filter_loss.tsv` | Peaks and intensity at m/z ≥ 200 removed by a top-20 / 40 / 100 per 100 Da filter, and the share of spectra with a 100 Da bin above 20 peaks |
+| `fragment_tails.py` → `fragment_tails.tsv` | Signed ppm errors of the matched ions in develop's search, for accepted targets and decoys: robust SD, SD of weak (< 5% of base peak) and strong (≥ 20%) peaks, and the share beyond the calibrated fragment window of #10379 (high-resolution files) |
+| `covariates.py` → `covariates.tsv` | Per file: ID rate, near-threshold share N(q ≤ 0.05) / N(q ≤ 0.01) − 1, share of precursors with charge ≥ 3, and the effects of #10378 (`523214b`), #10335, the #10379 fragment window and the mass-accuracy scorer; prints Spearman correlations |
+| `classes.py` → `classes.tsv` | The above by analyzer class and by group, with ANDES (auto model) against develop |
+| `peak_filter.py` → `peak_filter.tsv` | New arms `wt40` and `wt100`: the develop build with `peaks:window_top` 40 or 100 instead of 20, on the 14 high-resolution files; seeds, z and native TDC change |
+| `peak-filter-results.zip` (+ `.sha256`) | `run.py` with the arms, the run log and, for the 28 searches, `summary.json`, parameters, and search and Percolator logs |
+
+**Findings:**
+- **Near-threshold PSMs.** Across files, every PR's gain rises with the near-threshold share (Spearman ρ: #10378
+  +0.62, #10379 fragment window +0.83, mass-accuracy scorer +0.52, #10335 +0.41). High-ID-rate Lumos LFQ and HF-X
+  gain nothing from any of them.
+- **Fragment charges (low resolution).** Ion-trap spectra are not deisotoped and 39–52% of their precursors have
+  charge ≥ 3. #10335 (+7.4%) and #10378 after its fragment-charge fix (+4.3%) gain there; #10378 was flat on Velos
+  before the fix.
+- **Fragment window.** The calibrated window helps where weak peaks stay accurate: Astral 2.8 ppm, Exploris TMTpro
+  3.5 ppm (+5.5% / +2.0%), against HF-X 5.8 ppm and Lumos LFQ 6.0 ppm (−0.9% / −0.4%). On timsTOF (5.6 ppm) the window
+  never narrows below the 20 ppm cap.
+- **Peak filter.** The top-20-per-100-Da filter removes 41% of the fragment intensity on Astral, 23% on the ion
+  traps, 13% on timsTOF and 4–8% on the Orbitraps. Keeping 100 peaks per 100 Da gains Astral +8.8% (3 of 3 files up)
+  and timsTOF +4.4% (2 of 2); the Orbitraps are flat (HF-X +1.2%, Lumos LFQ +0.2%, TMTpro −0.6%). Native TDC
+  counts fall on most files, so the gain comes through Percolator's features. Ion-trap files were not run.
+- **ANDES.** It selects one of its trained models by instrument class (LowRes, Q Exactive, Orbitrap Astral, TOF,
+  timsTOF). Its high-resolution models deconvolute, its low-resolution models model fragment charges 1–3, and it
+  applies the top-20 filter only to TMT/iTRAQ ("regresses high-res Astral ~14%"). No TOF model is bundled, so timsTOF
+  falls back to `cid_lowres_tryp`; that is the only group where ANDES trails develop (−5.1%; +1.3% with
+  `hcd_qexactive_tryp` forced). Its largest lead, +41% on Astral, comes with a dedicated `hcd_astral_tryp` model.
