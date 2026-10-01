@@ -353,7 +353,7 @@ namespace OpenMS
       if (it.unimod_id != -1)
       {
         TargetedExperimentHelper::setModification(it.location,
-                                                  int(peptide.sequence.size()),
+                                                  int(aa_sequence.size()),
                                                   "UniMod:" + StringUtils::toStr(it.unimod_id), aa_sequence);
       }
     }
