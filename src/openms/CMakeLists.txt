@@ -39,7 +39,7 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 add_subdirectory(extern)
 
 #------------------------------------------------------------------------------
-# external libs (contrib or system)
+# external libs (vcpkg or system)
 #------------------------------------------------------------------------------
 #include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
 
@@ -70,9 +70,9 @@ add_subdirectory(thirdparty/percolator)
 ## and downstream consumers neither include nor link it (see #8547).
 ## Note: Boost::boost (header-only) is PUBLIC because the installed public header
 ## config.h includes <boost/current_function.hpp> (via Macros.h), so consumers
-## (e.g. pyOpenMS) need Boost's include dir. Only the header-only target is
-## public — it propagates include dirs but no link libraries; the compiled Boost
-## components (date_time/iostreams/regex) stay PRIVATE below.
+## (e.g. pyOpenMS) need Boost's include dir. It propagates include dirs but no
+## link libraries, and it is the only Boost target: OpenMS uses header-only Boost
+## libraries only (see the Boost section of cmake/cmake_findExternalLibs.cmake).
 set(OPENMS_DEP_LIBRARIES
   Boost::boost
 )
@@ -88,9 +88,6 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
   BZip2::BZip2
-  Boost::date_time
-  Boost::iostreams
-  Boost::regex
   Eigen3::Eigen
   Evergreen
   GTE
@@ -100,6 +97,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   SQLiteCpp
   ${OPENMS_SQLITECPP_EXTRA_LIBS}
   ZLIB::ZLIB
+  ${OPENMS_ZSTD_TARGET}
   libzip::zip
   nlohmann_json::nlohmann_json
   IsoSpec
@@ -480,17 +478,13 @@ if(WITH_WNETALIGN)
   target_compile_definitions(OpenMS PRIVATE LEMON_ONLY_TEMPLATES OPENMS_HAS_WNETALIGN)
 endif()
 
-## Enable test-only hooks when class tests are being built.
-if(ENABLE_CLASS_TESTING)
-  target_compile_definitions(OpenMS PRIVATE OPENMS_ENABLE_TESTING_HOOKS=1)
-endif()
-
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation
 # here
 # Note: that slash(/) is important here, otherwise the whole directory
 #       (not its content) will be copied!
 #install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
+
 install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
   DESTINATION ${INSTALL_SHARE_DIR}
   COMPONENT share
@@ -504,6 +498,9 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
   REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
   REGEX "OpenMS/examples" EXCLUDE
 )
+
+## The TOPP tool registry is generated into the build tree rather than checked in
+## (cmake/topp_tool_macros.cmake) and installed from src/CMakeLists.txt, where it is written.
 install(FILES ${OPENMS_HOST_DIRECTORY}/License.txt
   DESTINATION ${INSTALL_SHARE_DIR}/LICENSES
   RENAME OpenMS-BSD-3-Clause.txt

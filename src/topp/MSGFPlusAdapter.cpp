@@ -107,7 +107,7 @@ class MSGFPlusAdapter :
 {
 public:
   MSGFPlusAdapter() :
-    SearchEngineBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", true),
+    SearchEngineBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+."),
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<std::string>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<std::string>("low_res,high_res,TOF,Q_Exactive")),

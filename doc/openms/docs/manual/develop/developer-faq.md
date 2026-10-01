@@ -11,7 +11,7 @@ The following section provides general information to new contributors.
 
 * Check out the development version of OpenMS (see website).
 * Build OpenMS by following the installation instructions or [from source](/about/installation.rst).
-* Read the [OpenMS Coding Conventions](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/coding_conventions.html)
+* Read the [OpenMS Coding Conventions](https://archive.openms.de/openms/Documentation/nightly/latest/html/developer_coding_conventions.html)
 * Read the [TOPPView User Tutorial](/tutorials/toppview-user-tutorial.md).
 * Create a GitHub account.
 * Subscribe to the [open-ms-general](https://sourceforge.net/projects/open-ms/lists/open-ms-general) 
@@ -19,7 +19,7 @@ The following section provides general information to new contributors.
 
 ### I have written a class for OpenMS. What should I do?
 
-Follow the [OpenMS coding conventions](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/coding_conventions.html).
+Follow the [OpenMS coding conventions](https://archive.openms.de/openms/Documentation/nightly/latest/html/developer_coding_conventions.html).
 
 Coding style (brackets, variable names, etc.) must conform to the conventions.
 
@@ -46,7 +46,7 @@ Insert round brackets around the method declaration.
 
 ### Where can I find the binary installers created?
 
-View the binary installers at the [build archive](https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/nightly/).
+View the binary installers at the [build archive](https://archive.openms.de/openms/OpenMSInstaller/nightly/).
 Please verify the creation date of the individual installers, as there may have been an error while creating 
 the installer.
 
@@ -88,27 +88,29 @@ Type `cmake` into a console. This will list the available code generators availa
 
 ### What are user definable CMake cache variables?
 
-They allow the user to pass options to `CMake` which will influence the build system. The most important option which
-should be given when calling `CMake.exe` is:
+They allow the user to pass options to `CMake` which will influence the build system.
 
-`CMAKE_FIND_ROOT_PATH`, which is where `CMake` will search for additional libraries if they are not found in the default
-system paths. By default we add `OpenMS/contrib`.
+The recommended way to configure OpenMS is with one of the presets in `CMakePresets.json` (run `cmake --list-presets`
+to list them), e.g. `cmake --preset linux-x64-release`. The presets set `OPENMS_USE_VCPKG=ON` and use the vcpkg
+toolchain from the `vcpkg` submodule, so vcpkg provides the third-party libraries (see the
+[vcpkg build guide](https://archive.openms.de/openms/Documentation/nightly/latest/html/install_vcpkg.html)).
+Cache variables given with `-D` on the same command line override the preset, e.g.
+`cmake --preset linux-x64-release -D WITH_GUI=OFF`.
 
-If you have installed all libraries on your system already, there is no need to change `CMAKE_FIND_ROOT_PATH`. For
-`contrib` libraries, set the variable `CMAKE_FIND_ROOT_PATH`.
-
-On Windows, `contrib` folder is required, as there are no system developer packages. To pass this variable to
-`CMake` use the `-D` switch e.g. `cmake -D CMAKE_FIND_ROOT_PATH:PATH="D:\\somepath\\contrib"`.
+Without a preset, `OPENMS_USE_VCPKG` is `OFF` (the default) and OpenMS takes its dependencies from system packages
+(apt, Homebrew, conda) and `CMAKE_PREFIX_PATH`.
 
 Everything else can be edited using `ccmake` afterwards.
 
 The following options are of interest:
 
-- `CMAKE_BUILD_TYPE` To build Debug or Release version of OpenMS. Release is the default.
-- `CMAKE_FIND_ROOT_PATH` The path to the `contrib` libraries.
+- `CMAKE_BUILD_TYPE` To build Debug or Release version of OpenMS. Release is the default. The presets set it for you.
+- `CMAKE_PREFIX_PATH` Additional installation prefixes where `CMake` searches for libraries that are not found in the
+  default system paths, e.g. Qt on Windows, which vcpkg does not provide, or libraries you installed yourself when
+  building without vcpkg.
    ```{tip}
-    Provide more then one value here (e.g., `-D CMAKE_FIND_ROOT_PATH="/path/to/contrib;/usr/"` will search in your
-    `contrib` path and in `/usr` for the required libraries)
+    Provide more than one value separated by `;` (e.g., `-D CMAKE_PREFIX_PATH="/opt/qt6;/usr/local"` will search in both
+    prefixes for the required libraries)
    ```
 - `STL_DEBUG` Enables STL debug mode.
 -  `DB_TEST` (deprecated) Enables database testing.
@@ -129,7 +131,7 @@ calling `ccmake`. For Visual Studio, this is not necessary as all configurations
 like within the IDE itself. The 'Debug' configuration enabled debug information. The 'Release' configuration disables
 debug information and enables optimisation.
 
-### I changed the `contrib` path, but re-running `CMake` won't change the library paths?
+### I changed a library path (e.g. `CMAKE_PREFIX_PATH`), but re-running `CMake` won't change the library paths?
 
 Once a library is found and its location is stored in a cache variable, it will only be searched again if the
 corresponding entry in the cache file is set to false.
@@ -339,8 +341,11 @@ During writing in text-mode on Windows a line-break (`\n`) is expanded to (`\r\n
 
 ### Paths and system functions
 
-Avoid hardcoding e.g.`String tmp_dir = "/tmp";`. This will fail on Windows. Use Qt's `QDir` to get a path to the systems
-temporary directory if required.
+Avoid hardcoding e.g. `std::string tmp_dir = "/tmp";`. This will fail on Windows. Use
+`SystemSettings::getTempDirectory()` (`OpenMS/SYSTEM/SystemSettings.h`) instead: it returns the directory set by the
+`OPENMS_TMPDIR` environment variable or the `temp_dir` entry of the OpenMS.ini, and otherwise the system's temporary
+directory. A `TempDir` (`OpenMS/SYSTEM/TempFiles.h`) creates a uniquely named directory in it and removes it again
+when it goes out of scope.
 
 Avoid names like uname which are only available on Linux.
 
@@ -366,7 +371,8 @@ generates a html table with the parameters. This table can then be included in t
 following `doxygen` command:`@htmlinclude OpenMS_<class name>.parameters`.
 
 ```{note}
-Parameter documentation is automatically generated for `TOPP` included in the static `ToolHandler.cpp` tools list.
+Parameter documentation is automatically generated for `TOPP` tools registered in the tool registry
+(`share/OpenMS/TOOLS/*.tsv`, generated from the `openms_topp_tool()` declarations), which is what `ToolHandler` lists.
 ```
 
 To include TOPP parameter documentation use following `doxygen` command:
@@ -378,8 +384,9 @@ Test if everything worked by calling `make doc_param_internal`. The parameters d
 
 ### How is the command line documentation for TOPP tools created?
 
-The program `OpenMS/doc/doxygen/parameters/TOPPDocumenter.cpp` creates the command line documentation for all classes
-that are included in the static `ToolHandler.cpp` tools list. It can be included in the documentation using the 
+The program `OpenMS/doc/doxygen/parameters/TOPPDocumenter.cpp` creates the command line documentation for all tools
+that are registered in the tool registry (`share/OpenMS/TOOLS/*.tsv`), which is what `ToolHandler` lists.
+It can be included in the documentation using the 
 following `doxygen` command:
 
 `@verbinclude TOPP_<tool name>.cli`

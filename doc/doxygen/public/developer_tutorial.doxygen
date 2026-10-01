@@ -97,13 +97,13 @@ Nightly tests: <a href="http://cdash.seqan.de/index.php?project=OpenMS">CDASH</a
 <br>
 <b>Experimental Installers</b><br>
 We automatically build installers for different platforms. These usually contain unstable or partially untested code - so use them at your own risk.
-The nightly (unstable) installers are available <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/">here</a>.
+The nightly (unstable) installers are available <a href="https://archive.openms.de/openms/OpenMSInstaller/">here</a>.
 <br>
 <br>
 <b>Technical Documentation</b><br>
 Documentation of classes and tools is automatically generated using doxygen:
 See the documentation for <a href="http://www.openms.de/current_doxygen/html/">HEAD</a>
-See the documentation for the latest <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html">release branch</a>
+See the documentation for the latest <a href="https://archive.openms.de/openms/Documentation/release/latest/html/index.html">release branch</a>
 <br>
 <br>
 <b>Building %OpenMS</b><br>
@@ -217,7 +217,7 @@ The extensible %OpenMS library implements common mass spectrometric data process
 <caption>Directory structure of src folder (/src)</caption>
  <tr><th>Folder        <th>Description
  <tr><td>openms</td><td>Source code of core library</td></tr>
- <tr><td>openms_cli</td><td>Source code of the TOPP tool framework (TOPPBase, ToolHandler, INIUpdater, ...), library OpenMS_CLI</td></tr>
+ <tr><td>openms_cli</td><td>Source code of the TOPP tool framework (TOPPBase, ToolHandler, ...), library OpenMS_CLI</td></tr>
  <tr><td>openms_gui</td><td>Source code of GUI applications (e.g.: TOPPView)</td></tr>
  <tr><td>topp</td><td>Source code of (stable) %OpenMS Tools</td></tr>
  <tr><td>pyOpenMS</td><td>Source files providing the python bindings</td></tr>
@@ -530,7 +530,9 @@ Template for %OpenMS tool development
 \snippet Tutorial_Template.cpp doxygen_snippet_Template
 
 - Now add a line with %DatabaseFilter to src/topp/executables.cmake. This registers the novel tool in the %OpenMS build system. 
-- Then add the tool to getTOPPToolList() in src/openms_cli/source/APPLICATIONS/ToolHandler.cpp 
+- That one line also registers the tool: openms_topp_tool() records the category, and the build generates
+  the tool registry share/OpenMS/TOOLS/OpenMS.tsv that ToolHandler reads at run time from those declarations.
+  There is no C++ list and no registry file to edit, and a tool cannot be built without being registered.
 This creates a manual (doxygen) page with the information –help output of the tool (using TOPPDocumenter). This page must be included at the end of the doxygen documentation of your tool (see other tools for an example).
 - Add yourself as Maintainer/Author
 - Write the basic documentation (doxygen docu). You probably need to refine it later but you can already insert the correct Toolname etc..

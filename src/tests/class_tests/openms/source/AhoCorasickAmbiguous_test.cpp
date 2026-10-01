@@ -17,7 +17,12 @@
 
 #include <array>
 #include <cassert>
+#include <numeric>
 #include <string_view>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -415,7 +420,53 @@ END_SECTION
 START_SECTION(AA nextValidAA())
   NOT_TESTABLE // tested above
 END_SECTION
-  
+
+START_SECTION([EXTRA] searching with more threads than proteins)
+{
+  // PeptideIndexing gives every thread its own ACTrieState, but with fewer proteins than threads some threads
+  // never receive a protein, i.e. never call setQuery() on their state. Such a state must report 'query fully
+  // consumed' instead of dereferencing an uninitialized query iterator.
+  ACTrie t(0, 0);
+  vector<string> needles = {"MDD", "DEADC"};
+  t.addNeedlesAndCompress(needles);
+
+  // a state which never saw a query finds nothing (instead of reading from an uninitialized pointer)
+  ACTrieState untouched;
+  TEST_EQUAL(t.nextHits(untouched), false)
+  TEST_EQUAL(untouched.hits.size(), 0)
+
+  const vector<string> proteins = {"MDDDEADC", "AMDDA"}; // MDD@0 + DEADC@3, and MDD@1 --> 3 hits in total
+  size_t total_hits = 0;
+#ifdef _OPENMP
+  omp_set_num_threads(8); // deliberately more threads than proteins
+  vector<size_t> hits_per_thread(omp_get_max_threads(), 0);
+  #pragma omp parallel
+  {
+    ACTrieState state; // one state per thread; idle threads never call setQuery() on theirs
+    size_t hits = 0;
+    #pragma omp for schedule(dynamic) nowait
+    for (int i = 0; i < (int)proteins.size(); ++i)
+    {
+      state.setQuery(proteins[i]);
+      while (t.nextHits(state)) hits += state.hits.size();
+    }
+    // drain every state once more, including those of threads which never got a protein (this used to be UB)
+    while (t.nextHits(state)) hits += state.hits.size();
+    hits_per_thread[omp_get_thread_num()] = hits;
+  }
+  total_hits = std::accumulate(hits_per_thread.begin(), hits_per_thread.end(), size_t(0));
+#else
+  for (const auto& prot : proteins)
+  {
+    ACTrieState state;
+    state.setQuery(prot);
+    while (t.nextHits(state)) total_hits += state.hits.size();
+  }
+#endif
+  TEST_EQUAL(total_hits, 3)
+}
+END_SECTION
+
 
 /////////////////////////////////////
 //// testing AA

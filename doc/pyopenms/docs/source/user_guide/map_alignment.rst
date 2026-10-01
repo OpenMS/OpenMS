@@ -139,8 +139,7 @@ Now, let's run an algorithm. Since the interfaces of the aligners differ slightl
     
     # perform alignment and transformation of feature maps to the reference map (exclude reference map)
     for feature_map in feature_maps_to_align:
-        trafo = oms.TransformationDescription()
-        aligner.align(feature_map, trafo)
+        trafo = aligner.align(feature_map)
         transformer = oms.MapAlignmentTransformer()
         transformer.transformRetentionTimes(
             feature_map, trafo, True
@@ -154,8 +153,8 @@ In contrast to :py:class:`~.MapAlignmentAlgorithmPoseClustering`, which always f
     :linenos:
         
     aligner = oms.MapAlignmentAlgorithmIdentification()
-    ## we could set a reference map; but we don't. Instead, we rely on the algorithm to use an internal average of all maps
-    ref_index = -1   # -1 means 'take the median' for this algorithm
+    ## we could set a reference map; but we don't. Instead, we rely on the algorithm to pick one
+    ref_index = -1   # -1: parameter "auto_reference" decides - by default the map that shares the most identified sequences with the others
 
     ## let's change some default parameters of MapAlignmentAlgorithmIdentification, just to see how it's done:
     p = aligner.getParameters()

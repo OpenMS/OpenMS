@@ -113,6 +113,57 @@ START_SECTION((bool ParamJSONFile::load(const std::string& filename, Param& para
 }
 END_SECTION
 
+START_SECTION([EXTRA] bool ParamJSONFile::load() accepts 'true'/'false' as JSON strings)
+{
+  // CWL descriptions generated before the boolean fix declared a parameter with a 'true' default
+  // as a string, so a runner writes "true" instead of true into cwl_inputs.json; hand-written JSON
+  // does the same. That used to throw a json::type_error and abort the tool (issue #10118).
+  std::string filename;
+  NEW_TMP_FILE(filename)
+
+  auto makeParam = []() {
+    Param param;
+    param.setValue("test:1:flag_on", "true");
+    param.setValidStrings("test:1:flag_on", {"true", "false"});
+    param.setValue("test:1:flag_off", "false");
+    param.setValidStrings("test:1:flag_off", {"false", "true"});
+    return param;
+  };
+
+  std::ofstream ofs(filename.c_str(), std::ios::out);
+  ofs << "{\n"
+         "  \"flag_on\": \"false\",\n"
+         "  \"flag_off\": \"true\"\n"
+         "}\n";
+  ofs.close();
+  Param param = makeParam();
+  TEST_EQUAL(ParamJSONFile::load(filename.c_str(), param), true)
+  TEST_EQUAL(param.getValue("test:1:flag_on").toBool(), false);
+  TEST_EQUAL(param.getValue("test:1:flag_off").toBool(), true);
+
+  // a JSON boolean keeps working, in both orders of the valid strings
+  ofs.open(filename.c_str(), std::ios::out);
+  ofs << "{\n"
+         "  \"flag_on\": false,\n"
+         "  \"flag_off\": true\n"
+         "}\n";
+  ofs.close();
+  param = makeParam();
+  TEST_EQUAL(ParamJSONFile::load(filename.c_str(), param), true)
+  TEST_EQUAL(param.getValue("test:1:flag_on").toBool(), false);
+  TEST_EQUAL(param.getValue("test:1:flag_off").toBool(), true);
+
+  // any other string is rejected instead of being silently taken as 'false'
+  ofs.open(filename.c_str(), std::ios::out);
+  ofs << "{\n"
+         "  \"flag_on\": \"yes\"\n"
+         "}\n";
+  ofs.close();
+  param = makeParam();
+  TEST_EXCEPTION(Exception::ParseError, ParamJSONFile::load(filename.c_str(), param))
+}
+END_SECTION
+
 START_SECTION([EXTRA] bool ParamJSONFile::load() reads every JSON shape of a file parameter)
 {
   // A CWL runner serializes a 'File[]' input as an array of 'File' objects. That shape used to

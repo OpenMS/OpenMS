@@ -9,7 +9,7 @@
 project("OpenMS_CLI")
 
 #------------------------------------------------------------------------------
-# The TOPP tool framework (TOPPBase, ToolHandler, INIUpdater, ParameterInformation,
+# The TOPP tool framework (TOPPBase, ToolHandler, ParameterInformation,
 # SearchEngineBase, TOPPExternalToolBase, MapAlignerBase, OpenSwathBase) as its own
 # shared library. It links libOpenMS publicly and nothing in libOpenMS links back,
 # so the scientific library's exported interface stays free of the command-line

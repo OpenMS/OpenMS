@@ -50,26 +50,26 @@ namespace OpenMS
     TypeNameBinding(FileTypes::UNKNOWN, "unknown", "unknown file extension", {}),
     TypeNameBinding(FileTypes::DTA, "dta", "dta raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::PROVIDES_SPECTRUM, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::DTA2D, "dta2d", "dta2d raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE}),
-    TypeNameBinding(FileTypes::MZDATA, "mzData", "mzData raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}),
-    TypeNameBinding(FileTypes::MZXML, "mzXML", "mzXML raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}),
-    TypeNameBinding(FileTypes::FEATUREXML, "featureXML", "OpenMS feature map", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}),
+    TypeNameBinding(FileTypes::MZDATA, "mzData", "mzData raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
+    TypeNameBinding(FileTypes::MZXML, "mzXML", "mzXML raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
+    TypeNameBinding(FileTypes::FEATUREXML, "featureXML", "OpenMS feature map", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
     TypeNameBinding(FileTypes::IDXML, "idXML", "OpenMS peptide identification file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}),
-    TypeNameBinding(FileTypes::CONSENSUSXML, "consensusXML", "OpenMS consensus feature map", {PROP::PROVIDES_CONSENSUSFEATURES, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}),
+    TypeNameBinding(FileTypes::CONSENSUSXML, "consensusXML", "OpenMS consensus feature map", {PROP::PROVIDES_CONSENSUSFEATURES, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
     TypeNameBinding(FileTypes::MGF, "mgf", "mascot generic format file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::INI, "ini", "OpenMS parameter file", {PROP::READABLE, PROP::COMPRESSED_READABLE}),
     TypeNameBinding(FileTypes::TOPPAS, "toppas", "OpenMS TOPPAS pipeline", {PROP::READABLE, PROP::COMPRESSED_READABLE}),
     TypeNameBinding(FileTypes::TRANSFORMATIONXML, "trafoXML", "RT transformation file", {PROP::PROVIDES_TRANSFORMATIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}),
-    TypeNameBinding(FileTypes::MZML, "mzML", "mzML raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}),
+    TypeNameBinding(FileTypes::MZML, "mzML", "mzML raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
     //TODO: Add support for cachedMZML as a first class file type
     TypeNameBinding(FileTypes::CACHEDMZML, "cachedMzML", "cachedMzML raw data file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::MS2, "ms2", "ms2 file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE}),
     TypeNameBinding(FileTypes::PEPXML, "pepXML", "pepXML file", {PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}, {"pep.xml"}), //Supported for loading and storing identifications but TODO integrate this into fileHandler
     TypeNameBinding(FileTypes::PROTXML, "protXML", "protXML file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::COMPRESSED_READABLE}, {"prot.xml"}),
-    TypeNameBinding(FileTypes::MZIDENTML, "mzid", "mzIdentML file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}),
+    TypeNameBinding(FileTypes::MZIDENTML, "mzid", "mzIdentML file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
     TypeNameBinding(FileTypes::QCML, "qcml", "quality control file", {PROP::PROVIDES_QC, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}), //TODO add load functions for QC
     TypeNameBinding(FileTypes::MZQC, "mzqc", "quality control file in json format", {PROP::PROVIDES_QC, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::GELML, "gelML", "gelML file", {}),
-    TypeNameBinding(FileTypes::TRAML, "traML", "transition file", {PROP::PROVIDES_TRANSITIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}),
+    TypeNameBinding(FileTypes::TRAML, "traML", "transition file", {PROP::PROVIDES_TRANSITIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
     TypeNameBinding(FileTypes::MSP, "msp", "NIST spectra library file format", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::OMSSAXML, "omssaXML", "omssaXML file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::COMPRESSED_READABLE}),
     TypeNameBinding(FileTypes::MASCOTXML, "mascotXML", "mascotXML file", {PROP::COMPRESSED_READABLE}),
@@ -104,7 +104,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::PARAMXML, "paramXML", "OpenMS internal XML file", {PROP::COMPRESSED_READABLE}),
     TypeNameBinding(FileTypes::SPLIB, "splib", "SpectraST binary spectral library file", {}),
     TypeNameBinding(FileTypes::NOVOR, "novor", "Novor custom parameter file", {}),
-    TypeNameBinding(FileTypes::XQUESTXML, "xquest.xml", "xquest.xml file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}),
+    TypeNameBinding(FileTypes::XQUESTXML, "xquest.xml", "xquest.xml file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
     TypeNameBinding(FileTypes::SPECXML, "spec.xml", "spec.xml file", {}),
     TypeNameBinding(FileTypes::JSON, "json", "JavaScript Object Notation file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE}),
@@ -290,7 +290,7 @@ namespace OpenMS
     {
       return false;
     }
-    // Bruker's '.d.zip' is unpacked by FileHandler, not by XMLFile, and only for ZIP
+    // Bruker's '.d.zip' is unpacked by BrukerTimsFile, not by XMLFile, and only for ZIP
     if (type == FileTypes::BRUKER_TDF)
     {
       return compression == FileTypes::ZIP;
@@ -300,6 +300,29 @@ namespace OpenMS
       if (t_info.type == type)
       {
         return std::find(t_info.features.begin(), t_info.features.end(), PROP::COMPRESSED_READABLE) != t_info.features.end();
+      }
+    }
+    return false;
+  }
+
+
+  bool FileTypes::supportsCompressedWriting(Type type, Type compression)
+  {
+    // OSWPQ writers store a ZIP archive whatever the name, so only '.oswpq.zip' describes the result
+    if (type == FileTypes::OSWPQ)
+    {
+      return compression == FileTypes::ZIP;
+    }
+    // XMLFile::save_ writes gzip or bzip2 but no ZIP archive
+    if (compression != FileTypes::GZ && compression != FileTypes::BZ2)
+    {
+      return false;
+    }
+    for (const auto& t_info : type_with_annotation__)
+    {
+      if (t_info.type == type)
+      {
+        return std::find(t_info.features.begin(), t_info.features.end(), PROP::COMPRESSED_WRITEABLE) != t_info.features.end();
       }
     }
     return false;

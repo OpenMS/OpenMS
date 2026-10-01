@@ -12,8 +12,9 @@
   instead of building %OpenMS from sources.
   For more information read the install instructions for the TOPP binaries.
 
-  This document especially considers the installation of several libraries which are required by %OpenMS.
-  Most of these libraries are made available in our "contrib-package" (see below).
+  Most third-party libraries required by %OpenMS (Boost, Eigen, Xerces-C, Apache Arrow, ...) are obtained automatically through vcpkg
+  when you configure %OpenMS with one of its CMake presets; see @ref install_vcpkg for the general guide.
+  This page covers the Windows-specific parts: the compiler, Qt (which you install yourself) and building in Visual Studio.
   <br>
   If you encounter errors during configuring/compiling our software,
   search in our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>,
@@ -25,7 +26,7 @@
 
   <b>Notation of this tutorial</b>
      <ul>
-        <li>A string in &lt;&gt; is something the user needs to choose e.g. &lt;path_to_contrib&gt; means that this string should be replaced by the path where the user put the %OpenMS contrib package.
+        <li>A string in &lt;&gt; is something the user needs to choose e.g. &lt;path_to_OpenMS&gt; means that this string should be replaced by the path where the user cloned the %OpenMS source code.
             Usually all commands where this is necessary come with examples, so don't worry.
         <li>Whenever you added a path to your Windows PATH Environment variable, every Command Prompt which is already open will not contain these changes. Please open a new Command Prompt.
      </ul>
@@ -44,9 +45,9 @@
             Other compilers which are close to the VS toolchain might work, but are not tested.
       <li><b>CMake</b>: Have CMake (>= @minCMake) installed (see http://www.cmake.org). <br>
 	      If you are using Visual Studio 2019+ as IDE, make sure CMake's Generator (-G flag) supports your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
-      <li><b>7-Zip</b>: To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
-        <br>7z.exe is searched in `C:\Program Files\7-Zip\` and `C:\Programme\7-Zip\`. Make sure it is in either of these locations or add
-        the installation directory to your PATH.
+      <li><b>Ninja</b>: The CMake presets build with Ninja. It ships with Visual Studio and is on the PATH inside a Developer Command Prompt;
+        otherwise install it, e.g. with Chocolatey (see @ref install_vcpkg_prereqs_windows).
+      <li><b>Git</b>: Needed to clone %OpenMS and its submodules, including the vcpkg submodule (see https://gitforwindows.org/).
     </ul>
 
   @section install_win_required Installing required dependency libraries
@@ -89,65 +90,26 @@
   </ul>
   <br>Use our <tt>tools/load_vcvarsall.sh</tt> if you are building in bash on Windows.
   
-  @subsection install_win_contrib Contrib installation
-        
-    %OpenMS depends on several other libraries. On a Windows system, these are usually not present.
-    In order to make the installation of the remaining required libraries easier, we composed a
-    "contrib-package" containing the libraries Boost, Eigen, CoinMP, libSVM, libHDF5, glpk, zlib, libbz2 and Xerces-C.
-    This contrib package has several advantages over manual installation
-    <ul>
-        <li>You get all the libraries in versions tested with %OpenMS.</li>
-        <li>It contains a batch script that builds all the libraries in one step.</li>
-        <li>You don't have to spend hours reading installation instructions of all the libraries.</li>
-        <li>We applied some patches to the libraries to fix some bugs. <BR><b>These bugs may be fatal if you do not use the contrib package.</b></li>
-    </ul>
-
-    @b Download:
+  @subsection install_win_source Obtaining the source code
 
     For development and cutting edge functionalities we recommend using the Git version of %OpenMS from GitHub.
 
-    We will now clone %OpenMS and checkout with the <b>contrib submodule</b> (and other submodules e.g. for search engines along with it).<br>
-    The contrib sources are located in the `contrib` subfolder of the %OpenMS source repository.
-    
-    To obtain the latest (potentially unstable) version of %OpenMS (and its contrib) use:
+    Clone %OpenMS together with its submodules. This also checks out the <tt>vcpkg</tt> submodule, which %OpenMS uses to obtain its
+    third-party libraries (see @ref install_vcpkg):
     \code
     git clone --recurse-submodules https://github.com/OpenMS/OpenMS
     \endcode
-    
+
+    If you already have a clone without submodules, fetch the vcpkg submodule with `git submodule update --init vcpkg`.
+
     If you want to use a release version of %OpenMS, use the corresponding Release-tagged version
     on GitHub (https://github.com/OpenMS/OpenMS/tags), e.g.
     \code
-    git clone --recurse-submodules https://github.com/OpenMS/OpenMS --branch release/3.2.0
+    git clone --recurse-submodules https://github.com/OpenMS/OpenMS --branch release/<version>
     \endcode
-    
+    Releases before %OpenMS 3.6.0 do not use vcpkg; follow the build instructions in the documentation of that release instead.
 
-    @b Installation:
-
-    After you got the source code for the contrib package follow these steps:
-
-    <ol>
-      <li>Create a build directory for the %OpenMS contrib<br>
-          e.g. <tt>mkdir contrib_build</tt>
-      <li>Call CMake to build the contrib<br>
-
-        \code
-        cd <path_to_contrib_build>
-        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=8 -G "<generator>" -A x64 "<path_to_contrib>"
-        \endcode
-
-        The <tt>&lt;generator&gt;</tt> you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
-        If you are lucky, CMake chooses the correct Generator even without specifying.
-        Use the <tt>-A x64</tt> flag to build 64-bit libraries for the contrib to make double sure you build 64-bit. (32-bit does not really make any sense for LC-MS data processing)
-        Type <tt>cmake -help</tt> to see a list of available generators.<br>
-
-        Example:
-        \code
-        cd c:\dev\contrib_build
-        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=8 -G "Visual Studio 17 2022" -A x64 "c:\dev\OpenMS\contrib"
-        \endcode
-
-      <li>Add the <tt>&lt;path_to_contrib_build&gt;/lib</tt> directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
-    </ol>
+    You do not need to build the third-party libraries (except Qt, see above) yourself: vcpkg builds them the first time you configure %OpenMS (see below).
 
   @section create_doc Building the documentation (optional)
 
@@ -170,10 +132,11 @@
       </ul>
     <li>
       Optional:<br>
-        You can create dependency graphs using a doxygen plug-in called <tt>dot</tt>.
+        Graphviz (the <tt>dot</tt> tool) is only needed for the optional <tt>doc_dot</tt> target, which builds the documentation
+        with all dependency graphs (include, collaboration and directory graphs). The regular documentation targets do not need it.
         <ul>
-            <li> Download binaries for windows from http://www.graphviz.org (we tested: graphviz-2.18.exe)
-            <li> The installer should have added dot.exe to the Windows PATH Environment (please recheck)
+            <li> Download binaries for Windows from https://graphviz.org/download/ (or run <tt>choco install graphviz</tt>)
+            <li> Make sure <tt>dot.exe</tt> is on the Windows PATH Environment (please recheck)
         </ul>
   </ol>
 
@@ -183,42 +146,47 @@
 
   @section install_win_openms Installing OpenMS
 
-    This part assumes section @ref install_win_contrib and @ref install_qt have been completed!
-    I.e. we assume you have the %OpenMS source code and will now build the %OpenMS library, TOPP tools, class tests etc.    
+    This part assumes sections @ref install_win_source and @ref install_qt have been completed!
+    I.e. we assume you have the %OpenMS source code and will now build the %OpenMS library, TOPP tools, class tests etc.
+
+    %OpenMS is configured with one of the <tt>windows-x64-*</tt> CMake presets, as described in @ref install_vcpkg_build.
+    The presets set <tt>OPENMS_USE_VCPKG=ON</tt> and point CMake to the vcpkg toolchain, so all third-party libraries except Qt are built by vcpkg.
 
     To create the build system:
     <ol>
-      <li>Open a Visual Studio Command Line (use x64 version if you want 64bit apps -- and yes, you want that!)
-      <li>Create a build directory for %OpenMS, e.g. <tt>mkdir OpenMS_build</tt>
-      @note Due to Windows restrictions concerning the maximum length of a file path (of 260 characters) and the rather deep folder hierarchies created by CMake and Visual Studio, we advise to restrict the length of the base path to your build directory. We suggest less than 40 characters if possible.
-      <li>Call CMake to create the build system
+      <li>Open a Visual Studio Developer Command Prompt for x64 (see @ref correct_cmd_line)
+      @note Due to Windows restrictions concerning the maximum length of a file path (of 260 characters) and the rather deep folder hierarchies created by CMake, vcpkg and Visual Studio,
+      we advise to keep the path of your %OpenMS source directory short (e.g. <tt>C:\\dev\\OpenMS</tt>): each preset builds into <tt>build/&lt;preset&gt;</tt> inside it. We suggest less than 40 characters if possible.
+      <li>Call CMake with a preset to create the build system. For a Visual Studio solution that can build both Debug and Release, use the debug preset together with a Visual Studio generator:
         \code
-        cd <path_to_OpenMS_build>
-        cmake -D OPENMS_CONTRIB_LIBS="<path_to_contrib_build>" -D CMAKE_PREFIX_PATH=<path_to_QT6_prefix> -G "<generator>" -A x64 -T host=x64 "<path_to_OpenMS>"
+        cd <path_to_OpenMS>
+        cmake --preset windows-x64-debug -G "<generator>" -A x64 -D CMAKE_PREFIX_PATH=<path_to_QT6_prefix>
         \endcode
 
-        The CMAKE_PREFIX_PATH should hold the path to your Qt6 build/binary directory where `Qt6Config.cmake` resides (see example below). Note that it is NOT the main Qt6 directory, 
+        The CMAKE_PREFIX_PATH should hold the path to your Qt6 build/binary directory where `Qt6Config.cmake` resides (see example below). Note that it is NOT the main Qt6 directory,
         but the subfolder which is named after the toolchain it was build with (e.g. `CMAKE_PREFIX_PATH=C:\dev\qt6_2\6.7.3\msvc2022_64\lib\cmake\Qt6`).
-        
-        The choice of <tt>&lt;generator&gt;</tt> depends on your system. Type <tt>cmake --help</tt> to see a list of available generators.
-        
-        @note We strongly recommend the Visual Studio Generator and it should be identical to the one used for building the contrib. Other generators (such as nmake) are not supported! If you need compiling on the command line, you can use <tt>MSBuild</tt> also on VS solution files!
-        This applies to the contrib-based build described on this page. The vcpkg presets in @ref install_vcpkg take the opposite default: they build with Ninja, and a Visual Studio solution is opt-in via <tt>-G</tt>.
-        Use the <tt>-A x64</tt> flag to build a 64-bit %OpenMS library and TOPP executables (32-bit does not really make any sense for LC-MS data processing)!
-        The <tt>-T host=x64</tt> flag instructs Visual Studio to use a 64bit compiler and linker toolchain to avoid linker errors (<tt>LNK1210: exceeded internal ILK size limit; link with /INCREMNTAL:NO</tt>) during development (if the flag is omitted the 32bit toolchain is used to generate 64bit binaries).
-        
+
+        The <tt>&lt;generator&gt;</tt> must be a Visual Studio generator if you want a solution file. Type `cmake --help` to see a list of available generators.
+        Without <tt>-G</tt>, the presets use Ninja and you build from the command line with `cmake --build --preset <preset>` instead (see @ref install_vcpkg_generator).
+        With a Visual Studio generator, use the <tt>-A x64</tt> flag to build a 64-bit %OpenMS library and TOPP executables (32-bit does not really make any sense for LC-MS data processing)!
+        The <tt>windows-x64-release</tt> and <tt>windows-x64-relwithdebinfo</tt> presets only provide release versions of the third-party libraries, so a Visual Studio solution
+        configured with them cannot build the Debug configuration.
+
+        The first configure takes a while, since vcpkg builds all third-party libraries from source; later configures reuse them from <tt>build/&lt;preset&gt;/vcpkg_installed</tt>.
+        vcpkg builds them as static libraries with the matching (debug or release) runtime, so no third-party DLLs need to be added to your PATH.
+
         Example:
 
         \code
-        cd c:\dev\OpenMS_build
-        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_build" -D CMAKE_PREFIX_PATH=C:\dev\qt6_2\6.7.3\msvc2022_64\lib\cmake\Qt6 -G "Visual Studio 17 2022" -A x64 -T host=x64 ../OpenMS
+        cd c:\dev\OpenMS
+        cmake --preset windows-x64-debug -G "Visual Studio 17 2022" -A x64 -D CMAKE_PREFIX_PATH=C:\dev\qt6_2\6.7.3\msvc2022_64\lib\cmake\Qt6
         \endcode
 
     </ol>
-    
+
     \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"
 
-    Now there should be a <tt>OpenMS_host.sln</tt> file in your build directory, which you can open using Visual Studio.
+    With a Visual Studio generator, there should now be a <tt>OpenMS_host.sln</tt> file in your build directory (<tt>build/windows-x64-debug</tt> in the example above), which you can open using Visual Studio.
     If you want to work on only a subset of %OpenMS (e.g., OpenMS_GUI) you can open the specific solution that you will find in the `src/` folder of your
     build folder and below (e.g. `src/openms_gui/OpenMS_GUI.sln`).
 
@@ -227,7 +195,7 @@
     `OpenMSd.dll`, in release mode its called `OpenMS.dll`.<br>
     As a last step you should add the location of the binaries (dll's and executables) to your PATH environment. This makes calling TOPPView and TOPP tools more convenient if you are working the command line.
     Also, external projects (see @subpage external_code) require the %OpenMS dll (OpenMS.dll or OpenMSd.dll) to be in the PATH. Depending on the generator and
-    configuration used you will find the dll in [OpenMS_build]/bin/Release or [OpenMS_build]/bin/Debug (for VS) or just [OpenMS_build]/bin (nmake). In the same folder the
+    configuration used you will find the dll in [OpenMS_build]/bin/Release or [OpenMS_build]/bin/Debug (for VS) or just [OpenMS_build]/bin (Ninja). In the same folder the
     TOPP tools will reside once build (see next section).
     Be aware that the order of directories in the PATH variable determines which dll or executable is used, if no absolute path was given when the executable was called.
     So the PATH might need to be updated (add/delete/reorder entries) if you are working with multiple installations or configurations of %OpenMS.
@@ -282,21 +250,21 @@
     This section is for users that already have a little experience with IDEs like VS Code or JetBrains CLion.
     Especially the first step requires to read through the beginning of this documentation.
     <ol>
-      <li> Download and install requirements (Git, CMake, 7zip, VS Build Tools, Qt) and make sure they are in your PATH
+      <li> Download and install requirements (Git, CMake, Ninja, VS Build Tools, Qt) and make sure they are in your PATH
       <li> Download and install VS Code
       <li> Install C++ Extension Pack, CMake Tools, CMake Test Explorer and potentially some GitHub extensions
       <li> Ctrl+Shift+P and find <code>Git: clone</code>, then type and search for OpenMS/OpenMS. Select a folder. Wait for clone to finish. Open clone. Trust authors.
-      <li> Open bash Terminal from within VS Code and type <code>source tools/loadvcvarsall.sh && load_msenv && git submodule update --init contrib && mkdir contrib-build && cd contrib-build && cmake -DBUILD_TYPE=ALL ../contrib</code>
+      <li> If you cloned without submodules, open a Terminal from within VS Code and type `git submodule update --init vcpkg`
       <li> Adapt (to your paths) and add
         \code
         "cmake.configureArgs": [
-          "-DOPENMS_CONTRIB_LIBS=C:\\git\\contrib-build",
           "-DCMAKE_PREFIX_PATH=C:\\dev\\qt6_2\\6.7.3\\msvc2022_64\\lib\\cmake\\Qt6"
         ]
         \endcode
         to your settings or configure manually in your user-config.yml or via the VS Code command runner.
-      <li> Ctrl+Shift+P and find <code>\> CMake: Select Kit</code>, select preferably "Visual Studio Build Tools Release @minMSVCYear - amd64"
-      <li> Ctrl+Shift+P and find <code>\> CMake: Configure</code>
+      <li> Ctrl+Shift+P and find <code>\> CMake: Select Configure Preset</code>, select a <tt>windows-x64-*</tt> preset (e.g. "Windows x64 Debug").
+        Start VS Code from a Developer Command Prompt for x64 (see @ref correct_cmd_line), so that the compiler and Ninja are found.
+      <li> Ctrl+Shift+P and find <code>\> CMake: Configure</code>. The first configure builds the third-party libraries through vcpkg and takes a while.
       <li> Select a build configuration and a target in the VS Code task bar (the usually blue bar on the very bottom of the program).
         The default target is all. Then press the gear for building, the play button for building and running (if it is an executable target),
         or the bug button for debugging.

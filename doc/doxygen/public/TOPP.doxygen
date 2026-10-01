@@ -6,7 +6,10 @@
 // $Authors: Marc Sturm, Chris Bielow, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-// If you add a new (or update an existing) tool below, make sure to update 'openms_cli/source/APPLICATIONS/ToolHandler.cpp' as well!
+// If you add a new (or update an existing) tool below, make sure its openms_topp_tool()
+// declaration uses a matching category. Tools are declared in 'src/topp/executables.cmake',
+// except those needing the GUI library (ExecutePipeline, ImageCreator), which are declared
+// in 'src/openms_gui/CMakeLists.txt'.
 
 /**
   @page TOPP_documentation TOPP documentation
@@ -181,6 +184,7 @@
   <b>Quality Control</b>
   - @subpage TOPP_QualityControl - A one-in-all QC tool to generate an augmented mzTab
   - @subpage TOPP_DatabaseSuitability - Calculates the suitability of a database for peptide identification search using a de novo approach.
+  - @subpage TOPP_DIAuditor - Computes quality metrics of data-independent acquisition (DIA) runs, per run and per isolation window.
   - @subpage TOPP_QCCalculator - Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.
   - @subpage TOPP_QCEmbedder - Embeds tables or plots generated externally as attachments to existing quality parameters in qcML files.
   - @subpage TOPP_QCExporter - Extracts several quality parameter from several runs/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.
@@ -206,7 +210,6 @@
   - @subpage TOPP_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
   - @subpage TOPP_INIUpdater - Updates INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have change
   - @subpage TOPP_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
-  - @subpage TOPP_MetaProSIP - Performs proteinSIP on peptide features for elemental flux analysis.
   - @subpage TOPP_OpenMSInfo - Print system information.
   - @subpage TOPP_TICCalculator - Calculates the TIC of a raw mass spectrometric file.
 

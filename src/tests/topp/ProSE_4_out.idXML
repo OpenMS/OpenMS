@@ -6,6 +6,9 @@
 		<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,complementary_ions_fraction,hyperscore_zscore,ln_num_candidates,delta_score,isotope_error"/>
 				<UserParam type="string" name="open_search" value="false"/>
+				<UserParam type="string" name="peptide:clip_nterm_methionine" value="true"/>
+				<UserParam type="string" name="peaks:window_type" value="auto"/>
+				<UserParam type="string" name="peaks:window_type_resolved" value="jump_full"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string" value="DECOY_"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="prefix"/>
 				<UserParam type="string" name="PeptideIndexer:enzyme" value="Trypsin"/>
@@ -69,7 +72,7 @@
 				<UserParam type="float" name="hyperscore_zscore" value="0.0"/>
 				<UserParam type="float" name="ln_num_candidates" value="0.6931471824646"/>
 				<UserParam type="float" name="matched_ion_current" value="7.5986542776227"/>
-				<UserParam type="float" name="matched_ion_current_fraction" value="0.368901306184672"/>
+				<UserParam type="float" name="matched_ion_current_fraction" value="0.367828337858959"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="9"/>
 				<UserParam type="float" name="complementary_ions_fraction" value="0.074074074074074"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
@@ -92,7 +95,7 @@
 				<UserParam type="float" name="hyperscore_zscore" value="0.0"/>
 				<UserParam type="float" name="ln_num_candidates" value="0.6931471824646"/>
 				<UserParam type="float" name="matched_ion_current" value="8.439524745568633"/>
-				<UserParam type="float" name="matched_ion_current_fraction" value="0.528297039173417"/>
+				<UserParam type="float" name="matched_ion_current_fraction" value="0.525469672608485"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="12"/>
 				<UserParam type="float" name="complementary_ions_fraction" value="0.181818181818182"/>
 				<UserParam type="int" name="isotope_error" value="0"/>

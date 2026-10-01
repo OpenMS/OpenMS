@@ -114,11 +114,9 @@ namespace OpenMS
 
       @param[in] name Tool name.
       @param[in] description Short description of the tool (one line).
-      @param[in] official If this is an official TOPP tool contained in the OpenMS/TOPP release.
-             If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
       @param[in] citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
     */
-    TOPPOpenSwathBase(std::string name, std::string description, bool official = true, const std::vector<Citation>& citations = {});
+    TOPPOpenSwathBase(std::string name, std::string description, const std::vector<Citation>& citations = {});
 
     /// Destructor
     ~TOPPOpenSwathBase() override;

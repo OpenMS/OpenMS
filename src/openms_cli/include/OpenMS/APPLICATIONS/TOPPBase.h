@@ -97,12 +97,13 @@ public:
 
       @param[in] name Tool name.
       @param[in] description Short description of the tool (one line).
-      @param[in] official If this is an official TOPP tool contained in the OpenMS/TOPP release.
-             If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
       @param[in] citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
-      @param[in] toolhandler_test Check if this tool is registered with the ToolHandler (disable for unit tests only)
+      @param[in] toolhandler_test Whether this name has to be in the tool registry. Every tool is registered by
+             its openms_topp_tool() declaration, so leave this at @em true. Pass @em false only for something
+             that is not a TOPP tool at all and therefore has no declaration: the fake tools of TOPPBase's own
+             class tests, and the templates under doc/code_examples.
     */
-    TOPPBase(const std::string& name, const std::string& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
+    TOPPBase(const std::string& name, const std::string& description, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 
     /// Destructor
     virtual ~TOPPBase();
@@ -310,9 +311,6 @@ protected:
 
     /// Version string including additional revision/date time information. Note: This differs from version_ only if not provided by the user.
     std::string verboseVersion_;
-
-    /// Flag indicating if this an official TOPP tool
-    bool official_;
 
     /// Papers, specific for this tool (will be shown in '--help')
     std::vector<Citation> citations_;
@@ -774,7 +772,7 @@ protected:
       Checks if String/Format restrictions are met (or throws InvalidParameter() otherwise).
       
       For InputFile(s), it checks if the file is readable/findable. 
-      If 'is_executable' is specified as a tag, the filename is searched on PATH and upon success, the full absolute path is returned.
+      If 'is_executable' is specified as a tag, the filename is searched with findExecutable_() (on PATH) and upon success, the full absolute path is returned.
       
       For OutputFile(s), it checks if the file is writeable.
 
@@ -784,6 +782,17 @@ protected:
 
     */
     void fileParamValidityCheck_(std::string& param_value, const std::string& param_name, const ParameterInformation& p) const;
+
+    /**
+      @brief Searches for the executable an input file parameter tagged 'is_executable' names
+
+      This implementation searches the PATH (File::findExecutable()). TOPPExternalToolBase also
+      searches the third-party tools that ship with OpenMS.
+
+      @param[in,out] executable The parameter value; replaced by the full path of the executable if found
+      @return true if the executable was found
+    */
+    virtual bool findExecutable_(std::string& executable) const;
 
     /**
       @brief Checks if the parameters of the provided ini file are applicable to this tool

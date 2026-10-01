@@ -234,6 +234,11 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       /// True when `db` contains decoy entries (generated or external), i.e.
       /// target-decoy FDR is possible.
       bool have_decoys = false;
+      /// True when `fragment_index` also holds c and z+1 ions for electron-activated
+      /// spectra (ions:by_activation); only those spectra are matched against them. See
+      /// prepareContext(). search() does not add them to a context: for such spectra and
+      /// a context without these ions, it builds a temporary index for the call.
+      bool electron_ions = false;
     };
 
     /**
@@ -376,12 +381,29 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @return Prepared SearchContext containing the (possibly decoy-augmented)
      *         database and the built FragmentIndex.
      *
-     * Thread-safety: the returned context's FragmentIndex is read-only during
-     * subsequent search() calls; concurrent search() calls reading the same
-     * SearchContext are safe (per FragmentIndex query thread-safety contract).
+     * Thread-safety: concurrent search() calls reading the same SearchContext are
+     * safe (per FragmentIndex query thread-safety contract) as long as
+     * calibration:enabled is off. A successful calibration sets the calibrated
+     * tolerances as query parameters of the context's FragmentIndex until the call
+     * returns, so calibrated searches must not share a context concurrently.
      * Do not call prepareContext() concurrently on the same algorithm instance.
      */
     SearchContext prepareContext(const std::vector<FASTAFile::FASTAEntry>& fasta_db) const;
+
+    /**
+     * @brief Build a SearchContext whose FragmentIndex also holds c and z+1 ions.
+     *
+     * As prepareContext(fasta_db). With @p electron_ions, the index also holds c and z+1
+     * ions, which ions:by_activation scores for electron-activated spectra (ETD, ECD, EThcD,
+     * ETciD). Only those spectra are matched against them, so other spectra get the same
+     * candidates as from prepareContext(fasta_db). Use it when the spectra to search contain
+     * such spectra: search() otherwise builds a temporary index with these ions for each call.
+     *
+     * @param[in] fasta_db Protein sequence database as FASTA entries.
+     * @param[in] electron_ions Also index c and z+1 ions.
+     * @return Prepared SearchContext.
+     */
+    SearchContext prepareContext(const std::vector<FASTAFile::FASTAEntry>& fasta_db, bool electron_ions) const;
 
     /**
      * @brief In-memory search using a pre-built SearchContext.
@@ -576,7 +598,16 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /// @brief filter, deisotope, decharge spectra
-    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top);
+    static void preprocessSpectra_(PeakMap& exp,
+                                   double fragment_mass_tolerance,
+                                   bool fragment_mass_tolerance_unit_ppm,
+                                   bool deisotope_requested,
+                                   Size peaks_keep_n,
+                                   Int peaks_window_top,
+                                   const std::string& window_type = "auto");
+
+    /// Keep the strongest peaks in each non-overlapping 100 Da window, including a short final window.
+    static void filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window);
 
     /// How decoys are obtained/recognised for a search (parameter "decoys").
     enum class DecoyMode_
@@ -623,8 +654,24 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * auto/generate/ignore enum and manages decoys at the database level, so
      * forwarding it verbatim would trip FragmentIndex's validation. This returns
      * getParameters() with "decoys" overridden to "false".
+     *
+     * @param[in] electron_ions Also index c and z+1 ions, for electron-activated spectra
+     *            (ions:by_activation).
      */
-    Param fragmentIndexParameters_() const;
+    Param fragmentIndexParameters_(bool electron_ions = false) const;
+
+    /// Theoretical spectrum generators for the configured ion series and for electron-activated
+    /// spectra (ions:by_activation); defined in the source file
+    struct SpectrumGenerators_;
+
+    /// Generators for scoring, annotation and calibration, configured from the ions:* parameters
+    SpectrumGenerators_ spectrumGenerators_() const;
+
+    /// True if the precursor of @p spectrum was activated by electrons (ETD, ECD, EThcD or ETciD)
+    static bool isElectronActivated_(const MSSpectrum& spectrum);
+
+    /// Number of spectra that ions:by_activation also scores with c and z+1 ions (0 if it is off)
+    Size countElectronActivated_(const PeakMap& spectra) const;
 
     /**
      * @brief Build the searched database according to @p strategy.
@@ -685,7 +732,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] spectra Preprocessed MS2 spectra to score.
      * @param[in] fi Pre-built FragmentIndex to query for candidates.
      * @param[in] db Database the FragmentIndex was built from, used to reconstruct candidate sequences.
-     * @param[in] spectrum_generator Generator for the theoretical spectrum of each candidate.
+     * @param[in] generators Generators for the theoretical spectrum of each candidate, chosen per spectrum.
      * @param[in] effective_fragment_tol Fragment mass tolerance to score with (calibrated, if calibration ran).
      * @param[in] fragment_mass_tolerance_unit_ppm Whether @p effective_fragment_tol is in ppm rather than Da.
      * @param[in] open_search_mode Whether to record the precursor delta mass on each hit.
@@ -699,7 +746,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         const PeakMap& spectra,
         FragmentIndex& fi,
         const std::vector<FASTAFile::FASTAEntry>& db,
-        const TheoreticalSpectrumGenerator& spectrum_generator,
+        const SpectrumGenerators_& generators,
         double effective_fragment_tol,
         bool fragment_mass_tolerance_unit_ppm,
         bool open_search_mode,
@@ -775,6 +822,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool deisotope_requested_{true};
     Size peaks_keep_n_{0};     ///< NLargest cap on MS2 peaks before scoring; 0 = resolution-aware auto (peaks:keep_n)
     Int peaks_window_top_{20}; ///< WindowMower peaks-per-100Da before scoring (peaks:window_top)
+    std::string peaks_window_type_ {"auto"}; ///< Resolution-aware treatment of the final peak window
 
     StringList modifications_fixed_;
 
@@ -807,6 +855,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool add_x_ions_{false};
     bool add_y_ions_{true};
     bool add_z_ions_{false};
+    bool add_zp1_ions_{false};
+    bool ions_by_activation_{true}; ///< add c and z+1 ions for electron-activated spectra
 
     Size database_chunk_size_{0};  ///< 0 = disabled; >0 = chunk DB into groups of this many proteins
 

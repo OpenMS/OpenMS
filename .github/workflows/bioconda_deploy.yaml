@@ -133,7 +133,14 @@ jobs:
       - name: Build pyopenms package
         run: |
           cd bioconda-recipes
-          bioconda-utils build --docker --mulled-test --package-dir $GITHUB_WORKSPACE/output --packages pyopenms
+          # bioconda-utils renamed --mulled-test to --mulled-build-and-test (same
+          # behavior: build a mulled container and run the recipe's tests in it).
+          # The old name still worked when this line was written but bioconda-utils
+          # is deliberately unpinned here (see "Prepare output directory"), so a
+          # newer release now rejects it outright: "Error: No such option:
+          # --mulled-test (Possible options: --mulled-build-and-test,
+          # --mulled-conda-image)".
+          bioconda-utils build --docker --mulled-build-and-test --package-dir $GITHUB_WORKSPACE/output --packages pyopenms
           python -m conda_index $GITHUB_WORKSPACE/output
 
       - name: Upload Conda packages

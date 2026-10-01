@@ -32,28 +32,8 @@ SHOW_DIRECTORIES       = YES
 
 WARN_LOGFILE           = @CF_OPENMS_BIN_PATH@/doxygen/doxygen-dot-error.log
 
-INPUT                  = @CF_OPENMS_SRC_PATH@/include/OpenMS/ \
-                         @CF_OPENMS_SRC_PATH@/source/ \
-                         @CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/ \
-                         @CF_OPENMS_SRC_PATH@/doc/doxygen/public/ \
-                         @CF_OPENMS_SRC_PATH@/doc/doxygen/install/
-
-FILE_PATTERNS          = *.cpp \
-                         *.C \
-                         *.h \
-                         *.doxygen
-
-RECURSIVE              = YES
-
-EXCLUDE                = @CF_OPENMS_SRC_PATH@/source/TEST/
-
-EXCLUDE_SYMLINKS       = NO
-
-EXCLUDE_PATTERNS       = */.git/* \
-                         *_moc* \
-                         */UIC/* \
-						 */contrib/* \
-					     */backup/*
+# INPUT, FILE_PATTERNS, RECURSIVE and the EXCLUDE* settings are inherited from
+# Doxyfile, so this target documents the same sources as the 'doc' target.
 
 SOURCE_BROWSER         = YES
 
@@ -85,7 +65,7 @@ USE_MATHJAX            = YES
 HTML_HEADER            =
 HTML_FOOTER            = @CF_OPENMS_SRC_PATH@/doc/doxygen/common/footer.html
 
-HTML_OUTPUT            = @CF_OPENMS_BIN_PATH@/doc/html-dot
+HTML_OUTPUT            = @CF_OPENMS_BIN_PATH@/html-dot
 
 DISABLE_INDEX          = NO
 
@@ -232,7 +212,7 @@ DIRECTORY_GRAPH        = YES
 
 DOT_IMAGE_FORMAT       = png
 
-DOT_PATH               = @CF_OPENMS_SRC_PATH@/doc/doxygen
+DOT_PATH               = "@CF_DOXYGEN_DOT_EXECUTABLE@"
 
 DOTFILE_DIRS           =
 

@@ -28,6 +28,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       version_name: ${{ steps.version.outputs.name }}
       version_type: ${{ steps.version.outputs.type }}
+      source_tarball: ${{ steps.source-name.outputs.tarball }}
 
     steps:
       - uses: actions/checkout@v6
@@ -59,6 +60,23 @@ jobs:
       - name: Parse the Version Number
         id: version
         uses: ./.github/actions/version
+
+      # A release's tarball carries the plain version, the file name the
+      # Bioconda recipe downloads (OpenMS-<version>.tar.gz); any other build
+      # is named after its type, e.g. OpenMS-nightly-<date>.tar.gz.
+      - name: Name the Source Tarball
+        id: source-name
+        shell: bash
+        env:
+          HAS_VERSION: ${{ steps.version.outputs.has_version }}
+          VERSION: ${{ steps.version.outputs.version }}
+          VERSION_NAME: ${{ steps.version.outputs.name }}
+        run: |
+          if [[ "$HAS_VERSION" == "true" ]]; then
+            echo "tarball=OpenMS-${VERSION}.tar.gz" >>"$GITHUB_OUTPUT"
+          else
+            echo "tarball=OpenMS-${VERSION_NAME}.tar.gz" >>"$GITHUB_OUTPUT"
+          fi
 
       - name: Compute Package Type
         id: package-info
@@ -231,26 +249,32 @@ jobs:
       - name: Create a tarball of the Source Code
         if: steps.solo.outputs.solo == 'true'
         env:
-          VERSION: ${{ steps.version.outputs.name }}
+          TARBALL: ${{ steps.source-name.outputs.tarball }}
         run: |
-          # FIXME: Why not use `git archive`?
-          tar \
-            --directory "$GITHUB_WORKSPACE" \
-            --exclude='build/*' \
-            --exclude='THIRDPARTY/**' \
-            --exclude='contrib/**' \
-            --exclude='.git/**' \
-            --exclude='.github/**' \
-            --exclude='vcpkg*/**' \
-            -czf "$RUNNER_TEMP/OpenMS-${VERSION}.tar.gz" .
+          # git archive packs the files of the commit and nothing else from the
+          # workspace, where the build leaves build/, its caches (.ccache,
+          # .vcpkg-cache), the third-party tools (_thirdparty) and test output.
+          # It also fills in .git_archival.txt (export-subst): the tarball has no
+          # .git, so CMake takes the commit from there, and for the tag v<version>
+          # the plain version.
+          # Left out are .github and the submodules THIRDPARTY and vcpkg, which git
+          # archive would add as empty directories. vcpkg.json,
+          # vcpkg-configuration.json and vcpkg-overlays/ (overlay ports and
+          # triplets) are shipped, so the tarball builds with an external vcpkg
+          # (-DOPENMS_USE_VCPKG=ON
+          # -DCMAKE_TOOLCHAIN_FILE=<vcpkg root>/scripts/buildsystems/vcpkg.cmake)
+          # as well as against system packages (the default, OPENMS_USE_VCPKG=OFF).
+          git -C "$GITHUB_WORKSPACE" archive --format=tar.gz \
+            --output="$RUNNER_TEMP/$TARBALL" HEAD -- \
+            . ':(exclude).github' ':(exclude)THIRDPARTY' ':(exclude)vcpkg'
 
       - name: Upload Source Code as an Artifact
         if: steps.solo.outputs.solo == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: OpenMS-${{ steps.version.outputs.name }}.tar.gz
+          name: ${{ steps.source-name.outputs.tarball }}
           path: |
-            ${{ runner.temp }}/OpenMS-${{ steps.version.outputs.name }}.tar.gz
+            ${{ runner.temp }}/${{ steps.source-name.outputs.tarball }}
 
   deploy-installer:
     name: "Deploy Installer"
@@ -280,6 +304,10 @@ jobs:
           src: ${{ github.workspace }}/downloads/*
           dst: /OpenMSInstaller/${{ needs.build-and-test.outputs.version_type }}/${{ needs.build-and-test.outputs.version }}
           latest: ${{ needs.build-and-test.outputs.version }}
+          # The archive has no OpenMSInstaller/release/ yet, and rsync creates only
+          # the last directory of dst by itself. A nightly's dated folder sits
+          # below the existing nightly/, so nightlies keep running without it.
+          mkpath: ${{ needs.build-and-test.outputs.has_version }}
 
   deploy-docs:
     name: "Deploy Documentation"
@@ -384,11 +412,13 @@ jobs:
           VERSION_TYPE: ${{ needs.build-and-test.outputs.version_type }}
         shell: bash
         run: |
+          # Fill the template with the version and the CHANGELOG section in file $1.
           # Okay, maybe this is over the top.
+          function render() {
           awk \
             --assign VERSION_TYPE="$VERSION_TYPE" \
             --assign VERSION="$VERSION" \
-            --assign CHANGELOG_FILE="release-changelog.txt" \
+            --assign CHANGELOG_FILE="$1" \
             --source '
               BEGIN {
                 cl_text = ""
@@ -421,7 +451,59 @@ jobs:
                 }
 
                 print line
-              }' <.github/workflows/release-announcement.txt >release-announcement.txt
+              }' <.github/workflows/release-announcement.txt
+          }
+
+          # The full announcement, for the website.
+          render release-changelog.txt >release-announcement.txt
+
+          # GitHub keeps only the first 125,000 characters of a release body, and the
+          # 3.6.0 announcement was longer: its notes stopped mid-word and lost "Known
+          # issues". If the announcement is too long, the release notes keep the
+          # introduction and "Known issues" (moved up), then as many whole sections as
+          # fit, and link the full CHANGELOG for the rest.
+          python3 - <<'EOF'
+          import os
+          import re
+
+          LIMIT = 124000  # characters; GitHub's limit is 125,000
+
+          with open("release-changelog.txt", encoding="utf-8") as f:
+              changelog = f.read()
+          with open("release-announcement.txt", encoding="utf-8") as f:
+              announcement = f.read()
+
+          notes = changelog
+          if len(announcement) > LIMIT:
+              # Sections start with a heading line such as "General:" or "Known issues:".
+              parts = re.split(r"(?m)^(?=[A-Z][^\n]{0,40}:[ \t]*$)", changelog)
+              intro, sections = parts[0], parts[1:]
+              known = [s for s in sections if s.startswith("Known issues:")]
+              others = [s for s in sections if not s.startswith("Known issues:")]
+              url = "{}/{}/blob/{}/CHANGELOG".format(
+                  os.environ["GITHUB_SERVER_URL"], os.environ["GITHUB_REPOSITORY"], os.environ["GITHUB_REF_NAME"])
+              # room for the template around the CHANGELOG section and for the note below
+              budget = LIMIT - (len(announcement) - len(changelog)) - 1000
+              budget -= len(intro) + sum(len(s) for s in known)
+              kept, omitted = [], []
+              for s in others:
+                  if not omitted and len(s) <= budget:
+                      kept.append(s)
+                      budget -= len(s)
+                  else:
+                      omitted.append(s.split("\n", 1)[0].strip().rstrip(":"))
+              notes = (intro + "".join(known) + "".join(kept)
+                       + "Not shown here because of GitHub's length limit for release notes: "
+                       + ", ".join(omitted) + ". The complete list of changes is in the CHANGELOG, "
+                       + url + "\n")
+
+          with open("release-notes-changelog.txt", "w", encoding="utf-8") as f:
+              f.write(notes)
+          EOF
+
+          # The release notes on GitHub.
+          render release-notes-changelog.txt >release-notes.txt
+          echo "Release announcement: $(wc -m <release-announcement.txt) characters, release notes: $(wc -m <release-notes.txt)"
 
       - name: Upload Release Announcement as Artifact
         uses: actions/upload-artifact@v7
@@ -440,7 +522,7 @@ jobs:
       - name: Download Source Archive
         uses: actions/download-artifact@v8
         with:
-          name: OpenMS-${{ needs.build-and-test.outputs.version_name }}.tar.gz
+          name: ${{ needs.build-and-test.outputs.source_tarball }}
           path: ${{ github.workspace }}/downloads
 
       - name: Publish OpenMS Release
@@ -448,7 +530,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           name: Release ${{ needs.build-and-test.outputs.version }}
-          body_path: release-announcement.txt
+          body_path: release-notes.txt
           make_latest: true
           files: downloads/*
 

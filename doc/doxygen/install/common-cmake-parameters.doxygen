@@ -5,6 +5,14 @@ The most important CMake variables are:
 
 <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
   <tr>
+    <th valign="top">OPENMS_USE_VCPKG=On/Off</th>
+    <td>Take the third-party libraries from vcpkg (On) or from system packages and
+    <code>CMAKE_PREFIX_PATH</code> (Off). With On, CMake needs the vcpkg toolchain: the
+    presets and the initialized <code>vcpkg</code> submodule provide it, or pass
+    <code>-DCMAKE_TOOLCHAIN_FILE=&lt;vcpkg root&gt;/scripts/buildsystems/vcpkg.cmake</code>.
+    See @ref install_vcpkg_without. (Default: Off; the presets set On)</td>
+  </tr>
+  <tr>
     <th valign="top">CMAKE_PREFIX_PATH</td>
     <td>Additional search path for libraries.
 
@@ -50,6 +58,23 @@ The most important CMake variables are:
     "On". (Default: On)</td>
   </tr>
   <tr>
+    <th valign="top">OPENMS_USE_INSTALLED_LIBRARY=On/Off</td>
+    <td>Build only the applications -- the TOPP tools (<code>BUILD_TOPP_TOOLS</code>) and/or the
+    GUI library with TOPPView, TOPPAS and the other GUI applications (<code>WITH_GUI</code>) --
+    against an installed OpenMS library of the same version, instead of building the libraries.
+    Point <code>OpenMS_DIR</code> (or <code>CMAKE_PREFIX_PATH</code>) at that installation. Tests,
+    documentation and pyOpenMS are not built in this mode. See "Building OpenMS in layers" below. (Default: Off)</td>
+  </tr>
+  <tr>
+    <th valign="top">OPENMS_INSTALL_DATA_PATH</td>
+    <td>The location of the installed shared data (<code>share/OpenMS</code>) compiled into the
+    OpenMS library, where it looks for its data and the TOPP tool registries
+    (<code>share/OpenMS/TOOLS/&lowast;.tsv</code>) first. Set it when the shared data of the
+    installation ends up somewhere else than below <code>CMAKE_INSTALL_PREFIX</code>, e.g. when
+    package layers installed into separate prefixes are linked into one tree.
+    (Default: empty, i.e. <code>&lt;CMAKE_INSTALL_PREFIX&gt;/share/OpenMS</code>)</td>
+  </tr>
+  <tr>
     <th valign="top">INSTALL_OPENMS_EXAMPLES=On/Off</td>
     <td>Install the OpenMS example data alongside the library/tools. Set to "Off" to
     skip installing example data, e.g. for a minimal standalone SDK install. (Default: On)</td>
@@ -62,8 +87,11 @@ The most important CMake variables are:
     When enabled, OpenMS will attempt to locate a system installation of
     opentims; if none is found, it is fetched and built automatically from
     source via CMake FetchContent.
-    Affects FileConverter, PeakPickerIM, OpenSwathWorkflow, CometAdapter, and
-    ProteomicsLFQ.
+    Adds <code>.d</code> (and <code>.d.zip</code>) input to CometAdapter,
+    FeatureFinderIdentification, FeatureFinderLFQ, FeatureFinderMetaboIdent, FileConverter,
+    IonMobilityBinning, MetaboliteSpectralMatcher, NucleicAcidSearchEngine,
+    OpenSwathPeakMapExtractor, OpenSwathWorkflow, PeakPickerIM, ProSE, ProteomicsLFQ,
+    SageAdapter, SimpleSearchEngine and TransitionListEvidenceFilter.
     (Default: On)</td>
   </tr>
   <tr>
@@ -81,7 +109,8 @@ The most important CMake variables are:
   </tr>
   <tr>
     <th valign="top">GIT_TRACKING=On/Off</td>
-    <td>Embed Git checksum into the library.
+    <td>Embed Git checksum into the library. A source tree made by git archive, such as the source tarball of a
+    release, takes it from <code>.git_archival.txt</code>.
     (Default: On)</td>
   </tr>
   <tr>
@@ -115,7 +144,7 @@ The most important CMake variables are:
   </tr>
   <tr>
     <th valign="top">SEARCH_ENGINES_DIRECTORY (optional)</td>
-    <td>The location where thirdparty search engines (X!Tandem, MSGF+)
+    <td>The location where thirdparty search engines (such as Comet and MSGF+)
     are located. This directory should have the same structure as the example
     in the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.
     /.
@@ -171,8 +200,7 @@ The most important CMake variables are:
     published with every openms-thermo-bridge release) or
     <code>-DOPENMS_THERMO_BRIDGE_DOWNLOAD_PREBUILT_MANAGED=ON</code>; the native bridge then only needs the
     nethost headers from a .NET SDK / host pack.
-    Disabled automatically on Linux/aarch64 targets.
-    (Default: On on supported platforms)</td>
+    (Default: On)</td>
   </tr>
   <tr>
     <th valign="top">ENABLE_THERMO_RAW_TESTS=On/Off</td>
@@ -184,7 +212,7 @@ The most important CMake variables are:
     <th valign="top">WITH_WNETALIGN=On/Off</td>
     <td>Enable the Wasserstein network alignment feature (FeatureLinkerWNet TOPP tool).
     When enabled, the three header-only libraries <code>pylmcf</code>, <code>wnet</code>, and
-    <code>wnetalign</code> are fetched automatically via FetchContent. (Default: On)</td>
+    <code>wnetalign</code> are fetched automatically via FetchContent. (Default: Off)</td>
   </tr>
   <tr>
     <th valign="top">WITH_ONNX=On/Off</td>
@@ -203,6 +231,12 @@ The most important CMake variables are:
     (Default: Off)</td>
   </tr>
   <tr>
+    <th valign="top">OPENMS_PEPTDEEP_MODEL_URL</td>
+    <td>[with <code>WITH_ONNX</code>] Base URL from which the PeptDeep ONNX model files are downloaded
+    during configuration, e.g. a mirror for a build without access to archive.openms.de.
+    (Default: <code>http://archive.openms.de/openms/models</code>)</td>
+  </tr>
+  <tr>
     <th valign="top">CMAKE_INSTALL_PREFIX</td>
     <td>the path where the bin/ and lib/ directories should be installed to
         (when <pre>sudo make install</pre> is wished for a system-wide
@@ -215,6 +249,42 @@ The most important CMake variables are:
    </td>
   </tr>
 </table>
+
+<b>Building OpenMS in layers</b>
+
+The same source tree can be built and installed as three layers, e.g. to package them separately:
+
+\code
+# 1. the libraries (OpenSwathAlgo, OpenMS, OpenMS_CLI), headers, CMake package and share/OpenMS
+cmake -S OpenMS -B build-lib -DBUILD_TOPP_TOOLS=OFF -DWITH_GUI=OFF -DCMAKE_INSTALL_PREFIX=<lib-prefix> \
+      -DOPENMS_INSTALL_DATA_PATH=<shared-prefix>/share/OpenMS   # only if the layers are merged elsewhere
+cmake --build build-lib && cmake --install build-lib
+
+# 2. the TOPP tools, against the installed libraries
+cmake -S OpenMS -B build-topp -DOPENMS_USE_INSTALLED_LIBRARY=ON -DBUILD_TOPP_TOOLS=ON -DWITH_GUI=OFF \
+      -DOpenMS_DIR=<lib-prefix>/lib/cmake/OpenMS -DCMAKE_INSTALL_PREFIX=<topp-prefix>
+cmake --build build-topp && cmake --install build-topp
+
+# 3. the GUI library and applications, against the installed libraries
+cmake -S OpenMS -B build-gui -DOPENMS_USE_INSTALLED_LIBRARY=ON -DBUILD_TOPP_TOOLS=OFF -DWITH_GUI=ON \
+      -DOpenMS_DIR=<lib-prefix>/lib/cmake/OpenMS -DCMAKE_INSTALL_PREFIX=<gui-prefix>
+cmake --build build-gui && cmake --install build-gui
+\endcode
+
+Each application layer installs the registry of the tools it builds into
+<code>share/OpenMS/TOOLS</code>: <code>OpenMS-TOPP.tsv</code> (install component
+<code>Applications</code>) and <code>OpenMS-GUI.tsv</code> (for ExecutePipeline and ImageCreator,
+install component <code>GUIApplications</code>). A tool finds the registries in the shared data
+directory of the library (see <code>OPENMS_INSTALL_DATA_PATH</code>) or, failing that, in
+<code>../share/OpenMS/TOOLS</code> next to its executable; <code>OPENMS_TOOL_REGISTRY_PATH</code>
+names an additional directory. Installed into one prefix, or linked into one tree, all layers
+meet in the same directory. TOPPView and TOPPAS look for the tool executables next to themselves
+and in the <code>bin</code> directory next to the <code>share/OpenMS</code> of
+<code>OPENMS_INSTALL_DATA_PATH</code>, so that they find the tools of another layer in the merged
+tree. The GUI layer does not install a CMake package of its own:
+<code>find_package(OpenMS COMPONENTS GUI)</code> needs a build of the libraries with
+<code>WITH_GUI=ON</code>. Conversely, the GUI layer has to be built against an installation without the
+GUI library.
 
 A full list of the CMake variables is shown when you execute:
 

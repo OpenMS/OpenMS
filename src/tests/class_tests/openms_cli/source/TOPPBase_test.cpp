@@ -38,7 +38,7 @@ class TOPPBaseTest
     ExitCodes exit_code;
 
     TOPPBaseTest()
-      : TOPPBase("TOPPBaseTest", "A test class", false, {}, false)
+      : TOPPBase("TOPPBaseTest", "A test class", {}, false)
     {
       char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -50,7 +50,7 @@ class TOPPBaseTest
     }
 
     TOPPBaseTest(int argc ,const char** argv)
-      : TOPPBase("TOPPBaseTest", "A test class", false, {}, false)
+      : TOPPBase("TOPPBaseTest", "A test class", {}, false)
     {
       char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -174,7 +174,7 @@ class TOPPBaseTestNOP
 {
   public:
     TOPPBaseTestNOP()
-      : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false, {}, false)
+      : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", {}, false)
     {
       char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -186,7 +186,7 @@ class TOPPBaseTestNOP
     }
 
     TOPPBaseTestNOP(int argc , const char** argv)
-      : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false, {}, false)
+      : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", {}, false)
     {
       char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -243,12 +243,54 @@ class TOPPBaseTestNOP
     }
 };
 
+// Test class for the checks on output file names: outputs with and without a format restriction, and a list
+class TOPPBaseTestOutputs
+  : public TOPPBase
+{
+  public:
+    TOPPBaseTestOutputs(int argc, const char** argv)
+      : TOPPBase("TOPPBaseTestOutputs", "A test class with output file parameters", {}, false)
+    {
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
+      main(argc, argv);
+    }
+
+    void registerOptionsAndFlags_() override
+    {
+      registerOutputFile_("out", "<file>", "", "output file with a format restriction", false);
+      setValidFormats_("out", {"mzML", "idXML", "oswpq"});
+      registerOutputFile_("out_any", "<file>", "", "output file without a format restriction", false);
+      registerOutputFileList_("out_list", "<files>", StringList(), "output file list", false);
+      setValidFormats_("out_list", {"featureXML", "consensusXML", "trafoXML"});
+    }
+
+    std::string getStringOption(const std::string& name) const
+    {
+      return getStringOption_(name);
+    }
+
+    StringList getStringList(const std::string& name) const
+    {
+      return getStringList_(name);
+    }
+
+    ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
+    {
+      return EXECUTION_OK;
+    }
+};
+
 // Test class for parameters derived from a Param object
 class TOPPBaseTestParam: public TOPPBase
 {
   public:
     TOPPBaseTestParam(const Param& param):
-			TOPPBase("TOPPBaseTestParam", "A test class with parameters derived from Param", false, {}, false), test_param_(param)
+			TOPPBase("TOPPBaseTestParam", "A test class with parameters derived from Param", {}, false), test_param_(param)
     {
       static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -285,7 +327,7 @@ class TOPPBaseCmdParseTest
 
 public:
   TOPPBaseCmdParseTest()
-    : TOPPBase("TOPPBaseCmdParseTest", "A test class to test parts of the cmd parser functionality", false, {}, false)
+    : TOPPBase("TOPPBaseCmdParseTest", "A test class to test parts of the cmd parser functionality", {}, false)
   {}
 
   void registerOptionsAndFlags_() override
@@ -321,7 +363,7 @@ class TOPPBaseBoolOptionTest
 {
 public:
   TOPPBaseBoolOptionTest()
-    : TOPPBase("TOPPBaseBoolOptionTest", "A test class for boolean string options", false, {}, false)
+    : TOPPBase("TOPPBaseBoolOptionTest", "A test class for boolean string options", {}, false)
   {}
   void registerOptionsAndFlags_() override
   {
@@ -364,7 +406,7 @@ class TOPPBaseCmdParseSubsectionsTest
 
 public:
   TOPPBaseCmdParseSubsectionsTest()
-  : TOPPBase("TOPPBaseCmdParseSubsectionsTest", "A test class to test parts of the cmd parser functionality", false, {}, false)
+  : TOPPBase("TOPPBaseCmdParseSubsectionsTest", "A test class to test parts of the cmd parser functionality", {}, false)
   {}
 
   void registerOptionsAndFlags_() override
@@ -429,7 +471,7 @@ public:
 
 TOPPBaseTest* ptr = nullptr;
 TOPPBaseTest* nullPointer = nullptr;
-START_SECTION(TOPPBase(const std::string& name, const std::string& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true))
+START_SECTION(TOPPBase(const std::string& name, const std::string& description, const std::vector<Citation>& citations = {}, bool toolhandler_test = true))
 	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
@@ -722,6 +764,77 @@ START_SECTION(([EXTRA]void outputFileWritable_(const std::string& filename, cons
 	TextFile dummy;
   dummy.addLine("");dummy.addLine("");dummy.addLine("");dummy.addLine("");dummy.addLine("");
 	dummy.store(filename);
+END_SECTION
+
+START_SECTION(([EXTRA] output file names whose compression suffix the writer does not produce are refused))
+{
+  // only the suffixes matter here; the base name just has to be writable
+  std::string base;
+  NEW_TMP_FILE(base);
+  const char* tool = "TOPPBaseTestOutputs";
+
+  // XMLFile writes gzip and bzip2 (suffix in any letter case); an OSWPQ bundle is always a ZIP archive
+  for (const std::string& name : {base + ".mzML.gz", base + ".mzML.bz2", base + ".mzML.GZ", base + ".mzML", base + ".oswpq.zip"})
+  {
+    const char* cl[3] = {tool, "-out", name.c_str()};
+    TOPPBaseTestOutputs t(3, cl);
+    TEST_STRING_EQUAL(t.getStringOption("out"), name)
+  }
+
+  // plain writers, ZIP for an XMLFile format, and anything but ZIP for an OSWPQ bundle
+  for (const std::string& name : {base + ".idXML.gz", base + ".idXML.BZ2", base + ".idXML.zip", base + ".mzML.zip", base + ".oswpq.gz"})
+  {
+    const char* cl[3] = {tool, "-out", name.c_str()};
+    TOPPBaseTestOutputs t(3, cl);
+    TEST_EXCEPTION(Exception::InvalidParameter, t.getStringOption("out"))
+  }
+
+  // the message names the file, the parameter and what to do
+  {
+    const std::string name = base + ".idXML.gz";
+    const char* cl[3] = {tool, "-out", name.c_str()};
+    TOPPBaseTestOutputs t(3, cl);
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, t.getStringOption("out"),
+      "Output file '" + name + "' (parameter '-out') ends in '.gz', but it would be written uncompressed. "
+      "OpenMS cannot write idXML compressed: remove the '.gz' suffix, and compress the file afterwards if needed.")
+  }
+  {
+    const std::string name = base + ".mzML.zip";
+    const char* cl[3] = {tool, "-out", name.c_str()};
+    TOPPBaseTestOutputs t(3, cl);
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, t.getStringOption("out"),
+      "Output file '" + name + "' (parameter '-out') ends in '.zip', but it would be written uncompressed. "
+      "OpenMS compresses mzML with gzip or bzip2 only: use '.gz' or '.bz2' instead.")
+  }
+
+  // without a format restriction, a known format is still checked; an unknown one is left to the tool
+  {
+    const std::string name = base + ".tsv.gz";
+    const char* cl[3] = {tool, "-out_any", name.c_str()};
+    TOPPBaseTestOutputs t(3, cl);
+    TEST_EXCEPTION(Exception::InvalidParameter, t.getStringOption("out_any"))
+  }
+  {
+    const std::string name = base + ".gz";
+    const char* cl[3] = {tool, "-out_any", name.c_str()};
+    TOPPBaseTestOutputs t(3, cl);
+    TEST_STRING_EQUAL(t.getStringOption("out_any"), name)
+  }
+
+  // every entry of an output file list is checked
+  {
+    const std::string a = base + "_a.featureXML.gz", b = base + "_b.consensusXML.bz2";
+    const char* cl[4] = {tool, "-out_list", a.c_str(), b.c_str()};
+    TOPPBaseTestOutputs t(4, cl);
+    TEST_EQUAL(t.getStringList("out_list").size(), 2)
+  }
+  {
+    const std::string a = base + "_a.featureXML", b = base + "_b.trafoXML.bz2";
+    const char* cl[4] = {tool, "-out_list", a.c_str(), b.c_str()};
+    TOPPBaseTestOutputs t(4, cl);
+    TEST_EXCEPTION(Exception::InvalidParameter, t.getStringList("out_list"))
+  }
+}
 END_SECTION
 
 START_SECTION(([EXTRA]void parseRange_(const std::string& text, double& low, double& high) const))

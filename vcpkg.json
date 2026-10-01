@@ -1,6 +1,6 @@
 {
   "name": "openms",
-  "version-string": "3.6.0",
+  "version-string": "3.7.0",
   "dependencies": [
     {
       "name": "arrow",
@@ -54,9 +54,10 @@
     "libxml2",
     "libzip",
     "xerces-c",
-    "zlib"
+    "zlib",
+    "zstd"
   ],
-  "overrides": [{ "name": "openssl", "version": "3.0.8" }],
+  "overrides": [{ "name": "openssl", "version": "3.6.4", "port-version": 1 }],
   "features": {
     "hdf5": {
       "description": "HDF5 C and C++ libraries for builds configured with -DWITH_HDF5=ON.",
@@ -141,8 +142,7 @@
       "description": "Enable native reading of Thermo Fisher RAW files via the openms-thermo-bridge C++/.NET library via -DWITH_THERMO_RAW=ON.",
       "dependencies": [
         {
-          "name": "openms-thermo-bridge",
-          "platform": "!(linux & arm64)"
+          "name": "openms-thermo-bridge"
         }
       ]
     },

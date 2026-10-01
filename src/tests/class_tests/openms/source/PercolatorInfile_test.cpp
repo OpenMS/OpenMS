@@ -22,6 +22,9 @@
 
 #include <algorithm>
 #include <fstream>
+#include <iomanip>
+#include <limits>
+#include <sstream>
 #include <vector>
 
 using namespace OpenMS;
@@ -208,6 +211,41 @@ START_SECTION((static void store(const std::string& pin_file, const PeptideIdent
   TEST_STRING_EQUAL(row[col("enzC")], "1")           // tryptic C-terminus
   TEST_STRING_EQUAL(row[col("Peptide")], "K.SAMPLER.S")
   TEST_STRING_EQUAL(row[col("Proteins")], "PROT1")
+}
+END_SECTION
+
+START_SECTION((static double getFeatureValue(const DataValue& value, const std::string& feature)))
+{
+  // numeric meta values count as they are
+  TEST_REAL_SIMILAR(PercolatorInfile::getFeatureValue(DataValue(2.5), "f"), 2.5)
+  TEST_REAL_SIMILAR(PercolatorInfile::getFeatureValue(DataValue(-7), "f"), -7.0)
+
+  // Search engine scores read from text are strings (e.g. SageAdapter stores 'SAGE:ln(-poisson)'
+  // like this). They count as the numbers they spell, as for the executable parsing the .pin.
+  TEST_REAL_SIMILAR(PercolatorInfile::getFeatureValue(DataValue("1.527394838114684"), "SAGE:ln(-poisson)"), 1.527394838114684)
+  TEST_REAL_SIMILAR(PercolatorInfile::getFeatureValue(DataValue(" -3e-2 "), "f"), -0.03)
+  TEST_REAL_SIMILAR(PercolatorInfile::getFeatureValue(DataValue("48"), "SAGE:scored_candidates"), 48.0)
+
+  // text with all the digits of a double reads back as that double
+  const double value = 0.1 + 0.2;
+  std::ostringstream value_text;
+  value_text << std::setprecision(std::numeric_limits<double>::max_digits10) << value;
+  TEST_EQUAL(PercolatorInfile::getFeatureValue(DataValue(value_text.str()), "f"), value)
+
+  // no numeric value: an error, not an unrelated number
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue("abc"), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue("1.5 abc"), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(""), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(DoubleList{1.0, 2.0}), "f"))
+
+  // not finite, as text or as a number: the executable stops at such a feature as well
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue("nan"), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue("inf"), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue("-inf"), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(std::numeric_limits<double>::quiet_NaN()), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(std::numeric_limits<double>::infinity()), "f"))
+  TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(-std::numeric_limits<double>::infinity()), "f"))
 }
 END_SECTION
 

@@ -276,6 +276,39 @@ START_SECTION([EXTRA] convert(PeakMap) without MS1 peaks yields an empty Consens
 }
 END_SECTION
 
+START_SECTION([EXTRA] convert(PeakMap) orders equal intensities by RT and m/z)
+{
+  // many peaks with the same intensity: which of them are kept (and in which order) must not depend on
+  // the standard library's partial_sort
+  PeakMap ties;
+  for (int s = 0; s < 3; ++s)
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(30.0 - 10.0 * s); // RT 30, 20, 10
+    for (int p = 0; p < 20; ++p)
+    {
+      spec.push_back(Peak1D(900.0 - 10.0 * p, 5.0f)); // m/z 900, 890, ..., 710
+    }
+    ties.addSpectrum(spec);
+  }
+  ties[1][7].setIntensity(9.0f); // RT 20, m/z 830 is the most intense peak
+
+  ConsensusMap out;
+  MapConversion::convert(map_index, ties, out, 4);
+  TEST_EQUAL(out.size(), 4)
+  ABORT_IF(out.size() != 4)
+  TEST_REAL_SIMILAR(out[0].getRT(), 20.0)
+  TEST_REAL_SIMILAR(out[0].getMZ(), 830.0)
+  TEST_REAL_SIMILAR(out[1].getRT(), 10.0)
+  TEST_REAL_SIMILAR(out[1].getMZ(), 710.0)
+  TEST_REAL_SIMILAR(out[2].getRT(), 10.0)
+  TEST_REAL_SIMILAR(out[2].getMZ(), 720.0)
+  TEST_REAL_SIMILAR(out[3].getRT(), 10.0)
+  TEST_REAL_SIMILAR(out[3].getMZ(), 730.0)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

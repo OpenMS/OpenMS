@@ -60,9 +60,6 @@ NB_MODULE(_pyopenms_chromatogram, m) {
     // -----------------------------------------------------------------------
     auto mschromatogram_class = nb::class_<OpenMS::MSChromatogram>(m, "MSChromatogram",
         R"doc(
-ChromatogramSettings
-RangeManagerRtInt
-
 The representation of a chromatogram.
 Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
 Indexing and iteration yield copies of the peaks; write changes back with chrom[i] = peak

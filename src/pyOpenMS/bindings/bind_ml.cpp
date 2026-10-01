@@ -78,6 +78,7 @@ retention time) coordinates from multiplex filtering * * @see
 LocalClustering
 )doc")
         .def(nb::init<std::vector<double>, std::vector<double>>())
+        .def(nb::init<const OpenMS::ClusteringGrid &>())
         .def("getGridSpacingX", [](const OpenMS::ClusteringGrid& self) { return self.getGridSpacingX(); })
         .def("getGridSpacingY", [](const OpenMS::ClusteringGrid& self) { return self.getGridSpacingY(); })
         .def("addCluster", [](OpenMS::ClusteringGrid& self, const std::pair<int, int>& cell_index, const int& cluster_index) { return self.addCluster(cell_index, cluster_index); }, "cell_index"_a, "cluster_index"_a, "Adds a cluster to this grid cell")
@@ -94,6 +95,7 @@ LocalClustering
     nb::class_<OpenMS::GridBasedCluster>(m, "GridBasedCluster", "basic data structure for clustering")
         .def(nb::init<OpenMS::DPosition<2>, OpenMS::DBoundingBox<2>, std::vector<int>, int, std::vector<int>>())
         .def(nb::init<OpenMS::DPosition<2>, OpenMS::DBoundingBox<2>, std::vector<int>>())
+        .def(nb::init<const OpenMS::GridBasedCluster &>())
         .def("getCentre", [](const OpenMS::GridBasedCluster& self) -> OpenMS::DPosition<2> { return self.getCentre(); }, "Returns cluster centre")
         .def("getBoundingBox", [](const OpenMS::GridBasedCluster& self) -> OpenMS::DBoundingBox<2> { return self.getBoundingBox(); }, "Returns bounding box")
         .def("getPoints", [](const OpenMS::GridBasedCluster& self) -> const std::vector<int> & { return self.getPoints(); }, "Returns indices of points in cluster")

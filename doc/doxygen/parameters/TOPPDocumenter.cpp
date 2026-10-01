@@ -16,10 +16,7 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 
-#include <QtCore/QString>
-#include <QtCore/QStringList>
-#include <QtCore/QProcess> // for qputenv
-
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -27,6 +24,20 @@
 using namespace std;
 using namespace OpenMS;
 using namespace Internal;
+
+namespace
+{
+  /// Set an environment variable, overwriting any existing value.
+  /// Replaces Qt's qputenv(): with WITH_GUI=OFF this program links no Qt (see doc/CMakeLists.txt).
+  void setEnvVar(const char* name, const char* value)
+  {
+#ifdef _WIN32
+    _putenv_s(name, value);
+#else
+    setenv(name, value, 1);
+#endif
+  }
+} // namespace
 
 void convertINI2HTML(const Param& p, ostream& os)
 {
@@ -213,10 +224,10 @@ void convertINI2HTML(const Param& p, ostream& os)
 bool generate(const ToolListType& tools, const std::string& prefix, const std::string& binary_directory)
 {
   // Add an environment variable (used by each TOPP tool to determine width of help text (see TOPPBase))
-  qputenv("COLUMNS", "110"); 
+  setEnvVar("COLUMNS", "110"); 
   // Add Global environment variable to suppress stty errors
-  qputenv("TERM", "dumb");
-  qputenv("STTY", "/bin/true"); 
+  setEnvVar("TERM", "dumb");
+  setEnvVar("STTY", "/bin/true"); 
   
   bool errors_occured = false;
   for (ToolListType::const_iterator it = tools.begin(); it != tools.end(); ++it)
@@ -322,8 +333,12 @@ int main(int argc, char** argv)
 
   //TOPP tools
   ToolListType topp_tools = ToolHandler::getTOPPToolList();
+#ifdef WITH_GUI
+  // Only documented when they were built: a WITH_GUI=OFF build has no such executables,
+  // and generate() below runs each tool to capture its help output.
   topp_tools["TOPPView"] = Internal::ToolDescription(); // these two need to be excluded from writing an INI file later!
   topp_tools["TOPPAS"] = Internal::ToolDescription();
+#endif
 
   bool errors_occured = generate(topp_tools, "TOPP_", binary_directory);
 

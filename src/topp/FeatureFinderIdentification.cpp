@@ -107,12 +107,12 @@ Features representing the same analyte detected at different CV values are merge
 No special preparation of the input mzML file is required.
 
 @b Bruker @b TimsTOF (trapped ion mobility):
-TimsTOF data requires special preparation of the mzML file. The ion mobility spectra must be concatenated into
-single spectra per frame using msconvert with the @p --combineIonMobilitySpectra option:
+The .d directory (or a zipped .d.zip) can be given as input directly: its MS1 data is read as one spectrum per
+frame, with the ion mobility of every peak. An mzML file with the same layout can be created with msconvert and
+its @p --combineIonMobilitySpectra option:
 @code
 msconvert input.d --mzML --combineIonMobilitySpectra -o output_dir
 @endcode
-The resulting mzML file contains one spectrum per frame with ion mobility values stored per peak.
 Ion mobility values from peptide identifications (if present in the idXML) are used for IM-aware feature detection.
 The extraction window is controlled by @p extract:IM_window.
 
@@ -135,7 +135,7 @@ public:
   // TODO
   // cppcheck-suppress uninitMemberVar
   TOPPFeatureFinderIdentification() :
-      TOPPBase("FeatureFinderIdentification", "Detects features in MS1 data based on peptide identifications.", true,
+      TOPPBase("FeatureFinderIdentification", "Detects features in MS1 data based on peptide identifications.",
                {{"Weisser H, Choudhary JS", "Targeted Feature Detection for Data-Dependent Shotgun Proteomics", "J. Proteome Res. 2017; 16, 8:2964-2974", "10.1021/acs.jproteome.7b00248"}})
   {
   }

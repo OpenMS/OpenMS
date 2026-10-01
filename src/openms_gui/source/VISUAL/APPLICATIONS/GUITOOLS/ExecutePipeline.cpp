@@ -60,10 +60,12 @@ It can be exported from TOPPAS (<TT>File -> Save TOPPAS resource file</TT>). For
 </PARAMETERS>
 \endcode
 
+@if WITH_GUI
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_ExecutePipeline.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_ExecutePipeline.html
+@endif
 */
 
 // We do not want this class to show up in the docu:

@@ -47,18 +47,13 @@ namespace OpenMS
 
       @param[in] name             Tool name.
       @param[in] description      One-line tool description.
-      @param[in] official         If @c true, the tool is treated as an
-                                  official TOPP tool: the name is
-                                  cross-checked against the TOPP-tool
-                                  list and a warning is printed if it
-                                  is missing.
       @param[in] citations        Citations associated with this TOPP
                                   tool; printed during @c --help.
-      @param[in] toolhandler_test Whether to check that the tool is
-                                  registered with the @ref ToolHandler.
-                                  Disable for unit tests only.
+      @param[in] toolhandler_test Whether this name has to be in the
+                                  tool registry. Leave at @c true for a
+                                  tool; see @ref TOPPBase.
     */
-    SearchEngineBase(const std::string& name, const std::string& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
+    SearchEngineBase(const std::string& name, const std::string& description, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 
     /// Destructor.
     ~SearchEngineBase() override;

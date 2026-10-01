@@ -11,7 +11,8 @@
 // Std-only: no libOpenMS or third-party headers, so tests of every OpenMS library
 // (incl. ones that don't link libOpenMS, like OpenSwathAlgo) can use it and
 // recompiles stay cheap. Utilities are its own (ClassTestUtils.h); OpenMS behavior
-// is registered by the test projects (openms/source/OpenMSTestSupport.cpp).
+// is registered by the OpenMSTestSupport target (src/tests/class_tests), which
+// every class test of a libOpenMS-linking project links.
 #include <OpenMS/CONCEPT/ClassTestUtils.h>
 #include <OpenMS/CONCEPT/MacrosTest.h>
 
@@ -367,7 +368,7 @@ namespace OpenMS
 
         The framework itself knows only @c std::exception. Test projects register
         translators for their library's exception hierarchy -- see
-        src/tests/class_tests/openms/source/OpenMSTestSupport.cpp -- which is how
+        src/tests/class_tests/source/OpenMSTestSupport.cpp -- which is how
         failure reports show OpenMS exception names without the framework
         depending on libOpenMS. (Same design as Catch2's exception translators.)
       */
@@ -426,8 +427,9 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  Because the framework knows nothing about the library under test,
  library-specific behavior is <em>registered</em> by the test project
- (see <code>src/tests/class_tests/openms/source/OpenMSTestSupport.cpp</code>,
- compiled into every openms/openms_gui test executable):
+ (see <code>src/tests/class_tests/source/OpenMSTestSupport.cpp</code>, built as
+ the <code>OpenMSTestSupport</code> target, which every class test of a project
+ that links libOpenMS links in turn):
 
  - OpenMS::Internal::ClassTest::registerExceptionTranslator() — so failure
    reports show the name and origin of unexpected OpenMS exceptions (the

@@ -41,6 +41,15 @@ START_SECTION((static ToolListType getTOPPToolList()))
   ToolListType list = ToolHandler::getTOPPToolList();
   TEST_TRUE(list.find("DecoyDatabase") != list.end())
   TEST_TRUE(list.size() > 30)  // assume we have over 30 tools in there
+  // the registry comes from the registry files of the share directory; an empty list means they
+  // were not found, which would let every check below pass vacuously
+  TEST_TRUE(!list.empty())
+  // the key and the description's own name are the same thing: the name the registry entry declares
+  TEST_EQUAL(list.find("DecoyDatabase")->second.name, "DecoyDatabase")
+  TEST_EQUAL(list.find("QCShrinker")->second.name, "QCShrinker")
+  // a tool behind a build option is listed only by a build that has the option: the
+  // openms_topp_tool() declaration is inside that option's if(), so a build without it
+  // neither builds the tool nor writes it to the generated registry
 #ifdef WITH_GUI
   TEST_TRUE(list.find("ImageCreator") != list.end())
 #else
@@ -54,16 +63,30 @@ START_SECTION((static ToolListType getTOPPToolList()))
 }
 END_SECTION
 
+START_SECTION((static const ToolListType& getTOPPToolListRef()))
+{
+  const ToolListType& list = ToolHandler::getTOPPToolListRef();
+  TEST_EQUAL(list.size(), ToolHandler::getTOPPToolList().size())
+  TEST_TRUE(list.find("DecoyDatabase") != list.end())
+  // served from the process-wide cache, so the reference is the same one every time
+  TEST_EQUAL(&list, &ToolHandler::getTOPPToolListRef())
+}
+END_SECTION
+
 START_SECTION((static StringList getTypes(const std::string &toolname)))
 {
   TEST_EQUAL(ToolHandler::getTypes("IsobaricAnalyzer").empty(), true);
   TEST_EQUAL(ToolHandler::getTypes("IDMapper").empty(), true);
+  // An unknown tool has no types rather than being an error: a tool that is not in this
+  // installation's registry still has to be able to write its own CTD/CWL description
+  // (TOPPBase::handleWriteCommands_ asks for the types to know how many files to write).
+  TEST_EQUAL(ToolHandler::getTypes("DOESNOTEXIST").empty(), true);
 }
 END_SECTION
 
-START_SECTION((static std::string getInternalToolsPath()))
+START_SECTION((static std::string getToolRegistryPath()))
 {
-  TEST_NOT_EQUAL(ToolHandler::getInternalToolsPath(), std::string())
+  TEST_NOT_EQUAL(ToolHandler::getToolRegistryPath(), std::string())
 }
 END_SECTION
 

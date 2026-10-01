@@ -64,8 +64,8 @@ namespace OpenMS
     }
   }
 
-  TOPPOpenSwathBase::TOPPOpenSwathBase(std::string name, std::string description, bool official, const std::vector<Citation>& citations) :
-    TOPPBase(name, description, official, citations)
+  TOPPOpenSwathBase::TOPPOpenSwathBase(std::string name, std::string description, const std::vector<Citation>& citations) :
+    TOPPBase(name, description, citations)
   {
   }
 

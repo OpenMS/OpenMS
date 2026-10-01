@@ -19,13 +19,13 @@ ElementDB.h
 EmpiricalFormula.h
 EnzymaticDigestion.h
 EnzymeXMLDataProvider.h
+GlycanStructure.h
 HydrophobicityProfile.h
 IonNaming.h
 IsoelectricPoint.h
 ModificationDataProvider.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
-ModifiedNASequenceGenerator.h
 ModifiedPeptideGenerator.h
 ModificationsDB.h
 ModomicsJSONDataProvider.h
@@ -50,6 +50,7 @@ SequenceCoverage.h
 SimpleTSGXLMS.h
 SpectrumAnnotator.h
 Tagger.h
+TheoreticalGlycanSpectrumGenerator.h
 TheoreticalSpectrumGenerator.h
 TheoreticalSpectrumGeneratorXLMS.h
 UnimodXMLDataProvider.h

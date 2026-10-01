@@ -38,6 +38,10 @@
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #endif
 
+#ifdef WITH_THERMO_RAW
+#include <OpenMS/FORMAT/ThermoRawFile.h>
+#endif
+
 
 using namespace OpenMS;
 using namespace std;
@@ -70,10 +74,24 @@ Maybe most importantly, data from MS experiments in a number of different format
 the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and
 supports traceability of analysis steps.)
 
-Thermo raw files can be converted to mzML using the ThermoRawFileParser provided in the THIRDPARTY folder.
-On windows, a recent .NET framwork needs to be installed. On linux and mac, the mono runtime needs to be
-present and accessible via the -NET_executable parameter. The path to the ThermoRawFileParser can be set
-via the -ThermoRaw_executable option.
+Thermo raw files are read by one of two readers, chosen with -RawToMzML:reader.
+The built-in reader (inprocess; the default on linux and mac when OpenMS is built with WITH_THERMO_RAW)
+needs a .NET 8 (or newer) runtime and supports every output format. Like ThermoRawFileParser, it applies
+vendor peak picking unless -RawToMzML:no_peak_picking is given.
+The external reader (external; the default on windows) converts to mzML using the ThermoRawFileParser
+provided in the THIRDPARTY folder. On windows, a recent .NET framework needs to be installed. On linux and
+mac, the mono runtime, which the OpenMS packages there do not include, needs to be present and accessible via
+the -RawToMzML:NET_executable parameter. The path to the ThermoRawFileParser can be set via the
+-RawToMzML:ThermoRaw_executable option.
+The other tools that accept raw files, except OpenNuXL, which uses ThermoRawFileParser, read them with the
+built-in reader, but without vendor peak picking; see
+<a href="https://openms.readthedocs.io/en/latest/getting-started/vendor-formats.html">Vendor formats</a>.
+
+Bruker timsTOF .d directories, and zipped ones (.d.zip), are read with the built-in reader when OpenMS is
+built with WITH_OPENTIMS (the default). DDA-PASEF data gives one MS1 spectrum per frame, with the ion
+mobility of every peak, and one MS2 spectrum per precursor; DIA-PASEF data gives MS2 spectra per frame and
+isolation window. The advanced bruker:* options select the export mode and control m/z recalibration,
+frame aggregation and centroiding along the ion mobility axis.
 
 For MaxQuant-flavoured mzXML the use of the advanced option '-force_MaxQuant_compatibility' is recommended.
 
@@ -89,6 +107,8 @@ errors from files (e.g. the index), to update file formats to new versions, or t
 reading or writing.
 
 Some information about the supported input types:
+raw (Thermo Fisher, see above)
+d (Bruker timsTOF, see above)
 @ref OpenMS::MzMLFile "mzML"
 @ref OpenMS::MzXMLFile "mzXML"
 @ref OpenMS::MzDataFile "mzData"
@@ -147,6 +167,9 @@ public:
   }
 
 protected:
+  /// Default of RawToMzML:ThermoRaw_executable
+  static constexpr const char* THERMO_RAW_PARSER_DEFAULT = "ThermoRawFileParser.exe";
+
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
@@ -177,6 +200,7 @@ protected:
     registerStringOption_("write_scan_index", "<toggle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
     setValidStrings_("write_scan_index", ListUtils::create<std::string>("true,false"));
     registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size using linear compression for m/z domain and slof for intensity and float data arrays (attention: may cause small loss of precision; only for mzML data).", true);
+    registerFlag_("zstd_compression", "[mzML output only] Compress binary data arrays with Zstandard (zstd) instead of zlib (lossless; can be combined with 'lossy_compression'). Attention: not all external tools can read zstd-compressed mzML files yet.", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
@@ -339,16 +363,27 @@ protected:
     setValidStrings_("bruker:expose_hill_bounds", {"true", "false"});
 #endif
 
-    registerTOPPSubsection_("RawToMzML", "Options for converting raw files to mzML (uses ThermoRawFileParser)");
-    registerInputFile_("RawToMzML:NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, {"is_executable"});
-    registerInputFile_("RawToMzML:ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, {"is_executable"});
+    registerTOPPSubsection_("RawToMzML", "Options for converting Thermo raw files");
+    registerInputFile_("RawToMzML:NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac (external reader only).", false, true, {"is_executable"});
+    registerInputFile_("RawToMzML:ThermoRaw_executable", "<file>", THERMO_RAW_PARSER_DEFAULT, "The ThermoRawFileParser executable (external reader only).", false, true, {"is_executable"});
     setValidFormats_("RawToMzML:ThermoRaw_executable", {"exe"});
     registerFlag_("RawToMzML:no_peak_picking", "Disables vendor peak picking for raw files.", true);
-    registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
+    registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem (external reader only).", true);
     registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
-    registerStringOption_("RawToMzML:reader", "<mode>", "external",
-      "Reader for Thermo .raw files. 'external' uses ThermoRawFileParser (external .NET process, mzML output only); "
-      "'inprocess' uses the built-in ThermoRawFile (in-process, supports any output format; requires WITH_THERMO_RAW build).",
+    // Packages always contain the in-process reader (WITH_THERMO_RAW is ON on every supported
+    // platform), which needs a .NET 8 runtime. 'external' needs ThermoRawFileParser.exe on the PATH
+    // and, on linux and mac, mono, which the packages there do not provide, so linux and mac default
+    // to the in-process reader. The windows installer puts ThermoRawFileParser on the PATH, where it
+    // runs on the .NET Framework that windows includes, but does not bundle .NET 8, so windows
+    // keeps 'external'.
+#if defined(WITH_THERMO_RAW) && !defined(OPENMS_WINDOWSPLATFORM)
+    const std::string default_raw_reader = "inprocess";
+#else
+    const std::string default_raw_reader = "external";
+#endif
+    registerStringOption_("RawToMzML:reader", "<mode>", default_raw_reader,
+      "Reader for Thermo .raw files. 'external' uses ThermoRawFileParser (external .NET process, mzML output only; the default on windows); "
+      "'inprocess' uses the built-in ThermoRawFile (in-process, supports any output format; requires WITH_THERMO_RAW build and a .NET 8 runtime; the default on linux and mac).",
       false, true);
     std::vector<std::string> raw_reader_modes = {"external"};
 #ifdef WITH_THERMO_RAW
@@ -423,6 +458,7 @@ protected:
     bool convert_to_chromatograms = getFlag_("convert_to_chromatograms");
     bool lossy_compression = getFlag_("lossy_compression");
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
+    bool zstd_compression = getFlag_("zstd_compression");
 
     // prepare data structures for lossy compression (note that we compress any float data arrays the same as intensity arrays)
     MSNumpressCoder::NumpressConfig npconfig_mz, npconfig_int, npconfig_fda;
@@ -501,14 +537,54 @@ protected:
 #ifdef WITH_THERMO_RAW
       if (raw_reader == "inprocess")
       {
-        if (getFlag_("RawToMzML:no_peak_picking") || getFlag_("RawToMzML:no_zlib_compression") || getFlag_("RawToMzML:include_noise"))
+        if (getFlag_("RawToMzML:no_zlib_compression"))
         {
-          OPENMS_LOG_WARN << "RawToMzML:no_peak_picking, no_zlib_compression, and include_noise are "
-                          << "specific to the external ThermoRawFileParser; they are ignored when "
-                          << "RawToMzML:reader=inprocess." << std::endl;
+          OPENMS_LOG_WARN << "RawToMzML:no_zlib_compression is specific to the external ThermoRawFileParser; "
+                          << "it is ignored when RawToMzML:reader=inprocess." << std::endl;
+        }
+        // Pipelines written for the old default may still name the external reader's executables.
+        // Compare raw values: getStringOption_() would search the PATH for them and throw.
+        const std::pair<std::string, std::string> external_only[] = {
+          {"RawToMzML:ThermoRaw_executable", THERMO_RAW_PARSER_DEFAULT}, {"RawToMzML:NET_executable", ""}};
+        for (const auto& [option, default_value] : external_only)
+        {
+          if (getParam_().getValue(option).toString() != default_value)
+          {
+            OPENMS_LOG_WARN << option << " is specific to the external ThermoRawFileParser; it is ignored "
+                            << "when RawToMzML:reader=inprocess. Pass '-RawToMzML:reader external' to use it."
+                            << std::endl;
+          }
+        }
+        // Read like ThermoRawFileParser does by default: vendor peak picking unless
+        // no_peak_picking is set, noise arrays on request. Otherwise the reader choice would
+        // change what is written (ThermoRawFile keeps profile scans by default). FileHandler
+        // cannot pass these options, so ThermoRawFile is used directly (like BrukerTimsFile below).
+        ThermoRawFile raw_file;
+        raw_file.setLogType(log_type_);
+        ThermoRawFile::Options raw_options = raw_file.getOptions();
+        raw_options.centroid = !getFlag_("RawToMzML:no_peak_picking");
+        raw_options.noise_data = getFlag_("RawToMzML:include_noise");
+        raw_file.setOptions(raw_options);
+        try
+        {
+          raw_file.load(in, exp);
+        }
+        catch (const Exception::ParseError&)
+        {
+          // This reader is the default on linux and mac, so name the way back to the external one
+          OPENMS_LOG_ERROR << "The in-process Thermo reader failed. It needs the .NET 8 runtime; if that is "
+                           << "missing, install it, or pass '-RawToMzML:reader external' to convert with "
+                           << "ThermoRawFileParser instead." << std::endl;
+          throw;
+        }
+        // Record the source directory as absolute file URI, as FileHandler::loadExperiment() does
+        // (ThermoRawFile stores the path as given, which is empty for a bare file name).
+        const std::string raw_dir = File::path(File::absolutePath(in));
+        for (SourceFile& source_file : exp.getSourceFiles())
+        {
+          source_file.setPathToFile(File::toFileURI(raw_dir));
         }
         // Fall through to generic output writing — supports any output format.
-        fh.loadExperiment(in, exp, {FileTypes::RAW}, log_type_, true, true);
       }
       else
 #endif
@@ -651,6 +727,7 @@ protected:
           consumer.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
           consumer.getOptions().setCompression(true);
         }
+        consumer.getOptions().setZstdCompression(zstd_compression);
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
 
         // for different input file type
@@ -735,6 +812,7 @@ protected:
         mzmlFile.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
         mzmlFile.getOptions().setCompression(true);
       }
+      mzmlFile.getOptions().setZstdCompression(zstd_compression);
 
       if (convert_to_chromatograms)
       {
@@ -891,7 +969,16 @@ protected:
       }
       else // experimental data
       {
-        MapConversion::convert(0, exp, cm, exp.size());
+        MapConversion::convert(0, exp, cm);
+        // the consensus features built from peaks have no unique IDs yet
+        if (uid_postprocessing == "ensure")
+        {
+          cm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+        }
+        else if (uid_postprocessing == "reassign")
+        {
+          cm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        }
       }
       for (auto& pepID : cm.getUnassignedPeptideIdentifications())
       {

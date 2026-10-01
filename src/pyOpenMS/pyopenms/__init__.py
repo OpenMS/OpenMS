@@ -197,9 +197,9 @@ if sys.platform.startswith("linux") and os.path.exists(os.path.join(here, "libOp
 # dependent DLLs; only the module's own directory, System32 and directories
 # registered via os.add_dll_directory() are searched. A wheel ships OpenMS.dll and
 # its dependencies next to the modules (found automatically), but an in-tree build
-# with NO_DEPENDENCIES=ON keeps them elsewhere (the OpenMS bin and contrib lib
-# folders). PYOPENMS_DLL_PATH (os.pathsep-separated) lets the caller point pyOpenMS
-# at those directories. Because it is an environment variable it also propagates to
+# with NO_DEPENDENCIES=ON keeps them elsewhere (the OpenMS bin folder and the bin
+# folder of the dependency prefix). PYOPENMS_DLL_PATH (os.pathsep-separated) lets
+# the caller point pyOpenMS at those directories. Because it is an environment variable it also propagates to
 # child processes that `import pyopenms` (e.g. the subprocess probes in the test
 # suite), which os.add_dll_directory() alone cannot do. Inert when unset.
 _dll_directory_handles = []  # keep handles alive for the process lifetime
@@ -389,3 +389,10 @@ from ._dataframes_compat import peptide_identifications_to_df, update_scores_fro
 # Clean up namespace
 del _import_submodules, apply_addons, DataFrameMixin
 del os, here, sys
+# Names the imports above bound as a side effect: the __future__ feature, the
+# standard modules, and the modules "from ._sysinfo import *" brings in (ctypes
+# on Linux, as both "c" and "ctypes"; win32api on Windows with pywin32). None of
+# them is pyOpenMS API.
+for _cleanup_var in ('annotations', 'c', 'ctypes', 'importlib', 'warnings', 'win32api'):
+    globals().pop(_cleanup_var, None)
+del _cleanup_var

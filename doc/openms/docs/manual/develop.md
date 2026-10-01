@@ -4,7 +4,7 @@ Developers
 To contribute to OpenMS:
 
 - Familiarise yourself with the OpenMS technical documentation.
-- Check out the [OpenMS tutorial for developers](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/tutorial.html#tutorial_developing).
+- Check out the [OpenMS tutorial for developers](https://archive.openms.de/openms/Documentation/nightly/latest/html/developer_tutorial.html#tutorial_developing).
 
 For any questions, please [contact us](/about/communication.md).
 
@@ -16,9 +16,9 @@ automated continuous integration tests but no manual tests.
 ```
 
 View the documentation for the nightly snapshot of [OpenMS develop branch](https://github.com/OpenMS/OpenMS/tree/develop)
-at the [build archive](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/index.html).
+at the [build archive](https://archive.openms.de/openms/Documentation/nightly/latest/html/index.html).
 
-See the documentation for the [latest release](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html).
+See the documentation for the [latest release](https://archive.openms.de/openms/Documentation/release/latest/html/index.html).
 
 ## Contribution guidelines
 
@@ -39,10 +39,10 @@ To create a fork:
 
 ### Coding conventions
 
-See the manual for coding style recommended by OpenMS: [Coding conventions](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/coding_conventions.html).
+See the manual for coding style recommended by OpenMS: [Coding conventions](https://archive.openms.de/openms/Documentation/nightly/latest/html/developer_coding_conventions.html).
 
 ```{seealso}
-[C++ Guide](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/developer_faq.html).
+[C++ Guide](https://archive.openms.de/openms/Documentation/nightly/latest/html/developer_faq.html).
 ```
 
 [clang-format](https://github.com/OpenMS/OpenMS/blob/develop/.clang-format) is used for formatting the cpp code.
@@ -68,8 +68,10 @@ Consider the following resources for further information:
 - **Guidelines for adding new dependency libraries**: View the guidelines for [adding new dependency libraries](/manual/develop/developer-guidelines-for-adding-new-dependent-libraries.md).
 -  **Experimental installers**: We automatically build installers for different platforms. These usually contain
    unstable or partially untested code.
-   The nightly (unstable) installers are available at the [build archive](https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/nightly/).
+   The nightly (unstable) installers are available at the [build archive](https://archive.openms.de/openms/OpenMSInstaller/nightly/).
 - **Developer FAQ**: Visit the [Developer FAQ](/manual/develop/developer-faq.md) to get answers to frequently asked questions.
+- **Migrating from OpenMS::String**: OpenMS 3.6 replaced its string class with `std::string`. See
+  [Migrating from OpenMS::String](/manual/develop/string-migration.md) to adapt code written for earlier versions.
 
 ```{toctree}
 :maxdepth: 1
@@ -79,5 +81,6 @@ develop/custom-compilation.md
 develop/developer-guidelines-for-adding-new-dependent-libraries.md
 develop/link-external-code-to-openms.md
 develop/developer-faq.md
+develop/string-migration.md
 
 ```

@@ -24,6 +24,13 @@ namespace OpenMS
     RawFileReader through the .NET host runtime. Reads spectra (MS1 and MSn)
     including retention times, precursor information, and instrument metadata.
 
+    By default, scans are returned as they were acquired (profile or centroided);
+    Options::centroid applies Thermo's peak picking. FileHandler::loadExperiment(),
+    through which most TOPP tools read .raw input, sets it.
+
+    RawFileReader reading tool. Copyright &copy; 2016 by Thermo Fisher Scientific, Inc.
+    All rights reserved.
+
     Requires a .NET 8 (or newer) runtime on the machine and the
     openms-thermo-bridge managed runtime files (ThermoWrapperManaged.dll, its
     runtimeconfig.json and the Thermo CommonCore assemblies). These are looked

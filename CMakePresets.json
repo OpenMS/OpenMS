@@ -10,8 +10,7 @@
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "CMAKE_COLOR_DIAGNOSTICS": "ON",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
-                "OPENMS_USE_VCPKG": "ON",
-                "BOOST_USE_STATIC": "OFF"
+                "OPENMS_USE_VCPKG": "ON"
             }
         },
         {
@@ -72,10 +71,7 @@
             "name": "windows-x64-base",
             "hidden": true,
             "inherits": "windows-base",
-            "description": "Windows x64 settings that do not depend on the build type. VCPKG_TARGET_TRIPLET is deliberately NOT set here: unlike Linux and macOS, whose triplets build every dependency in both debug and release form and so suit any configuration, the Windows triplets differ in exactly that respect, so each preset below has to name the one that matches its build type.",
-            "cacheVariables": {
-                "BOOST_USE_STATIC": "ON"
-            }
+            "description": "Windows x64 settings that do not depend on the build type. VCPKG_TARGET_TRIPLET is deliberately NOT set here: unlike Linux and macOS, whose triplets build every dependency in both debug and release form and so suit any configuration, the Windows triplets differ in exactly that respect, so each preset below has to name the one that matches its build type."
         },
         {
             "name": "debug-base",
@@ -114,7 +110,7 @@
                 "WITH_ONNX": "OFF",
                 "WITH_OPENTIMS":"ON",
                 "ENABLE_OPENTIMS_TESTS": "OFF",
-                "WITH_WNETALIGN": "ON",
+                "WITH_WNETALIGN": "OFF",
                 "USE_EXTERNAL_JSON": "ON",
                 "USE_EXTERNAL_SQLITECPP": "ON",
                 "USE_EXTERNAL_SIMDE": "ON",
@@ -122,7 +118,7 @@
                 "USE_EXTERNAL_EOLBSPLINE":"ON",
                 "WITH_HDF5": "OFF",
                 "PYOPENMS":"OFF",
-                "VCPKG_MANIFEST_FEATURES":"isospec;eol-bspline;simde;nlohmann-json;sqlitecpp;wnetalign;openms-thermo-bridge;opentims"
+                "VCPKG_MANIFEST_FEATURES":"isospec;eol-bspline;simde;nlohmann-json;sqlitecpp;openms-thermo-bridge;opentims"
             }
         },
         {
@@ -263,11 +259,7 @@
                 "linux-arm64-base",
                 "release-base",
                 "ci-base"
-            ],
-            "cacheVariables": {
-                "WITH_THERMO_RAW":"OFF",
-                "ENABLE_THERMO_RAW_TESTS": "OFF"
-            }
+            ]
         },
         {
             "name": "macos-arm64-ci",

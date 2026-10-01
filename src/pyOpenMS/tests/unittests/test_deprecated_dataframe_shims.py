@@ -13,6 +13,10 @@ DataFrame helpers were renamed onto ``PeptideIdentificationList``. Each must
 
 then forward to the replacement. The general dataframe tests call these wrappers
 but never assert the warning; this pins the deprecate-and-forward contract.
+
+``MSExperiment.get_df()`` and ``get_df_columns()`` forward to ``to_df()`` and
+``df_columns()`` the same way. They also accept ``long``, pyOpenMS 3.5.0's name
+for ``long_format`` (OpenMS issue #10260).
 """
 
 import pytest
@@ -81,7 +85,50 @@ def test_update_scores_from_df_warns_and_forwards():
     assert via_wrapper == via_direct == [10.0, 20.0]
 
 
+def _make_experiment():
+    """An MSExperiment with two MS1 and one MS2 spectrum of two peaks each."""
+    exp = pyopenms.MSExperiment()
+    for rt, ms_level in [(1.0, 1), (2.0, 2), (3.0, 1)]:
+        spec = pyopenms.MSSpectrum()
+        spec.setRT(rt)
+        spec.setMSLevel(ms_level)
+        spec.set_peaks(([500.0 + rt, 600.0 + rt], [10.0, 20.0]))
+        exp.addSpectrum(spec)
+    return exp
+
+
+def test_msexperiment_get_df_warns_and_forwards():
+    exp = _make_experiment()
+
+    with pytest.warns(DeprecationWarning, match="to_df"):
+        df = exp.get_df(ms_levels=[1])
+    assert df.equals(exp.to_df(ms_levels=[1]))
+
+    # pyOpenMS 3.5.0 called long_format "long", by keyword or by position
+    with pytest.warns(DeprecationWarning, match="to_df"):
+        df_long = exp.get_df(long=True)
+    assert df_long.equals(exp.to_df(long_format=True))
+    assert df_long.shape == (6, 4)
+    with pytest.warns(DeprecationWarning, match="to_df"):
+        assert exp.get_df(None, None, True).equals(df_long)
+
+    with pytest.warns(DeprecationWarning, match="to_df"):
+        with pytest.raises(TypeError, match="long_format"):
+            exp.get_df(long=True, long_format=False)
+
+
+def test_msexperiment_get_df_columns_warns_and_forwards():
+    exp = _make_experiment()
+
+    with pytest.warns(DeprecationWarning, match="df_columns"):
+        assert exp.get_df_columns() == exp.df_columns()
+    with pytest.warns(DeprecationWarning, match="df_columns"):
+        assert exp.get_df_columns(long=True) == exp.df_columns(long_format=True)
+
+
 if __name__ == "__main__":
     test_peptide_identifications_to_df_warns_and_forwards()
     test_update_scores_from_df_warns_and_forwards()
+    test_msexperiment_get_df_warns_and_forwards()
+    test_msexperiment_get_df_columns_warns_and_forwards()
     print("All deprecated-dataframe-shim tests passed!")

@@ -194,7 +194,7 @@ public:
                                   "\n"
                                   "For details, please see the supplied license file or                                           \n"
 				  "https://raw.githubusercontent.com/OpenMS/THIRDPARTY/master/All/MSFragger/License.txt           \n"    
-    , false,
+    ,
              {
                  {"Kong AT, Leprevost FV, Avtonomov DM, Mellacheruvu D, Nesvizhskii AI",
                   "MSFragger: ultrafast and comprehensive peptide identification in mass spectrometry–based proteomics",

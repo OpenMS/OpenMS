@@ -30,8 +30,6 @@ OpenMS.files
 OpenMS.includes
 **/.DS_Store
 .vscode
-contrib-build
-contrib_build
 openms-build
 openms_build
 *.swp

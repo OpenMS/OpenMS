@@ -190,7 +190,8 @@ namespace OpenMS
        @brief Extract the scan number from the native ID of a spectrum
 
        @param[in] native_id Spectrum native ID
-       @param[in] scan_regexp Regular expression to use (must contain the named group "?<SCAN>")
+       @param[in] scan_regexp Regular expression whose first capture group matches the scan number,
+                  e.g. `scan=(?<SCAN>\d+)` (naming the group is optional)
        @param[in] no_error Suppress the exception on failure
 
        @throw Exception::ParseError if the scan number could not be extracted (unless @p no_error is set)

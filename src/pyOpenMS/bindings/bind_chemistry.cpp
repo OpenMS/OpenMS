@@ -43,6 +43,7 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CHEMISTRY/SequenceCoverage.h>
 #include <OpenMS/CHEMISTRY/Tagger.h>
+#include <OpenMS/CHEMISTRY/TheoreticalGlycanSpectrumGenerator.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <iomanip>
 #include <nanobind/make_iterator.h>
@@ -54,6 +55,7 @@
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/set.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <sstream>
 
@@ -411,6 +413,7 @@ Methods to generate isobaric decoy sequences for DDA target-decoy
 searches
 )doc")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::DecoyGenerator &>())
         .def("__copy__", [](const OpenMS::DecoyGenerator& self) { return OpenMS::DecoyGenerator(self); })
         .def("__deepcopy__", [](const OpenMS::DecoyGenerator& self, nb::dict) { return OpenMS::DecoyGenerator(self); }, "memo"_a)
         .def("setSeed", [](OpenMS::DecoyGenerator& self, size_t seed) { return self.setSeed(seed); }, "seed"_a)
@@ -455,8 +458,6 @@ Generate decoy protein sequences using shuffle algorithm. Digests protein using 
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::DigestionEnzymeProtein, OpenMS::DigestionEnzyme>(m, "DigestionEnzymeProtein", 
         R"doc(
-DigestionEnzyme
-
 Representation of a digestion enzyme for proteins (protease)
 )doc")
         .def(nb::init<>())
@@ -464,7 +465,9 @@ Representation of a digestion enzyme for proteins (protease)
         .def(nb::init<const OpenMS::DigestionEnzymeProtein &>())
         .def("__copy__", [](const OpenMS::DigestionEnzymeProtein& self) { return OpenMS::DigestionEnzymeProtein(self); })
         .def("__deepcopy__", [](const OpenMS::DigestionEnzymeProtein& self, nb::dict) { return OpenMS::DigestionEnzymeProtein(self); }, "memo"_a)
-        .def(nb::init<std::string, std::string, std::set<std::string>, std::string, OpenMS::EmpiricalFormula, OpenMS::EmpiricalFormula, std::string, std::string, int, int, int>())
+        .def(nb::init<std::string, std::string, std::set<std::string>, std::string, OpenMS::EmpiricalFormula, OpenMS::EmpiricalFormula, std::string, std::string, int, int, int>(),
+             "name"_a, "cleavage_regex"_a, "synonyms"_a, "regex_description"_a, "n_term_gain"_a, "c_term_gain"_a, "psi_id"_a, "xtandem_id"_a,
+             "comet_id"_a = -1, "msgf_id"_a = -1, "omssa_id"_a = -1)
         .def("setNTermGain", [](OpenMS::DigestionEnzymeProtein& self, const OpenMS::EmpiricalFormula& value) { return self.setNTermGain(value); }, "value"_a, "Sets the N-term gain")
         .def("getNTermGain", [](const OpenMS::DigestionEnzymeProtein& self) { return self.getNTermGain(); }, "Returns the N-term gain")
         .def("setCTermGain", [](OpenMS::DigestionEnzymeProtein& self, const OpenMS::EmpiricalFormula& value) { return self.setCTermGain(value); }, "value"_a, "Sets the C-term gain")
@@ -501,8 +504,6 @@ Representation of a digestion enzyme for proteins (protease)
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::DigestionEnzymeRNA, OpenMS::DigestionEnzyme>(m, "DigestionEnzymeRNA", 
         R"doc(
-DigestionEnzyme
-
 Representation of a digestion enzyme for RNA (RNase)
 The cutting sites of these enzymes are defined using two different mechanisms:
 First, a single regular expression that is applied to strings of unmodified RNA sequence and defines cutting sites via zero-length matches (using lookahead/lookbehind assertions).
@@ -726,7 +727,7 @@ the absolute parameter specifies for individual peak thresholding
 if the threshold is absolute or relative.
 )doc")
         .def(nb::init<>())
-        .def(nb::init<double, bool, bool>())
+        .def(nb::init<double, bool, bool>(), "stop_condition"_a, "use_total_prob"_a = true, "absolute"_a = false)
         .def("run", [](const OpenMS::FineIsotopePatternGenerator& self, const OpenMS::EmpiricalFormula& ef) { return self.run(ef); }, "ef"_a)
         .def("setThreshold", [](OpenMS::FineIsotopePatternGenerator& self, double stop_condition) { return self.setThreshold(stop_condition); }, "stop_condition"_a)
         .def("getThreshold", [](const OpenMS::FineIsotopePatternGenerator& self) { return self.getThreshold(); })
@@ -745,6 +746,7 @@ if the threshold is absolute or relative.
         .def("__copy__", [](const OpenMS::ProForma::FormulaTag& self) { return OpenMS::ProForma::FormulaTag(self); })
         .def("__deepcopy__", [](const OpenMS::ProForma::FormulaTag& self, nb::dict) { return OpenMS::ProForma::FormulaTag(self); }, "memo"_a)
         .def_rw("formula_string", &OpenMS::ProForma::FormulaTag::formula_string)
+        .def_rw("charge", &OpenMS::ProForma::FormulaTag::charge)
         ;
 
     // -----------------------------------------------------------------------
@@ -805,7 +807,7 @@ algorithm described in details in paper:
 Boecker et al. "Decomposing metabolic isotope patterns" WABI 2006. doi: 10.1007/11851561_2
 Folding with itself is done using Russian Multiplication Scheme
 )doc")
-        .def(nb::init<unsigned int>())
+        .def(nb::init<unsigned int>(), "nominal_mass"_a = 0)
         .def(nb::init<double>())
         .def(nb::init<std::vector<OpenMS::ims::IMSIsotopeDistribution::Peak>, unsigned int>())
         .def(nb::init<const OpenMS::ims::IMSIsotopeDistribution &>())
@@ -997,8 +999,8 @@ up to a specific mass.
         .def(nb::init<const OpenMS::ModificationDefinition &>())
         .def("__copy__", [](const OpenMS::ModificationDefinition& self) { return OpenMS::ModificationDefinition(self); })
         .def("__deepcopy__", [](const OpenMS::ModificationDefinition& self, nb::dict) { return OpenMS::ModificationDefinition(self); }, "memo"_a)
-        .def(nb::init<std::string, bool, unsigned int>())
-        .def(nb::init<OpenMS::ResidueModification, bool, unsigned int>())
+        .def(nb::init<std::string, bool, unsigned int>(), "mod"_a, "fixed"_a = true, "max_occur"_a = 0)
+        .def(nb::init<OpenMS::ResidueModification, bool, unsigned int>(), "mod"_a, "fixed"_a = true, "max_occur"_a = 0)
         .def("setFixedModification", [](OpenMS::ModificationDefinition& self, bool fixed) { return self.setFixedModification(fixed); }, "fixed"_a, "Sets whether this modification definition is fixed or variable (modification must occur vs. can occur)")
         .def("isFixedModification", [](const OpenMS::ModificationDefinition& self) { return self.isFixedModification(); }, "Returns if the modification if fixed true, else false")
         .def("setMaxOccurrences", [](OpenMS::ModificationDefinition& self, unsigned int num) { return self.setMaxOccurrences(num); }, "num"_a, "Sets the maximal number of occurrences per peptide (unbounded if 0)")
@@ -1298,6 +1300,9 @@ Examples:
             if (OpenMS::MzPAF::charToIonSeries(c, series)) return series;
             return std::nullopt;
         }, "c"_a, "Parse ion series from character (returns None if invalid)")
+        .def_static("calculateTheoreticalMZ", [](const OpenMS::MzPAFAnnotation& ann, const OpenMS::AASequence& seq) {
+            return OpenMS::MzPAF::calculateTheoreticalMZ(ann, seq);
+        }, "ann"_a, "sequence"_a, "Calculate theoretical m/z for an annotation and peptide sequence, or None if unsupported")
         ;
 
     // -----------------------------------------------------------------------
@@ -1377,11 +1382,13 @@ the ProForma v2 peptidoform notation standard. It contains nested types that
 form the Abstract Syntax Tree (AST) representation of parsed ProForma strings.
 All methods are static. Use ProForma.parse() to parse a ProForma string.
 Usage example:
+
 .. code-block:: python
-pf = ProForma.parse("EM[UNIMOD:35]K")
-# pf now contains the parsed Peptidoform AST
-s = ProForma.toString(pf, ProForma.WriteMode.LOSSLESS)
-# s is "EM[UNIMOD:35]K"
+
+  pf = ProForma.parse("EM[UNIMOD:35]K")
+  # pf now contains the parsed Peptidoform AST
+  s = ProForma.toString(pf, ProForma.WriteMode.LOSSLESS)
+  # s is "EM[UNIMOD:35]K"
 )doc")
         .def_static("parse", [](const std::string& input) { return OpenMS::ProForma::parse(input); }, "input"_a, "Parse a ProForma string into a Peptidoform AST")
         .def_static("parseIon", [](const std::string& input) { return OpenMS::ProForma::parseIon(input); }, "input"_a, "Parse a ProForma string into a PeptidoformIon AST (with charge state)")
@@ -1509,8 +1516,6 @@ The enzymes are read from share/CHEMISTRY/Enzymes.xml.
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ProteaseDigestion, OpenMS::EnzymaticDigestion>(m, "ProteaseDigestion", 
         R"doc(
-EnzymaticDigestion
-
 Class for the enzymatic digestion of proteins
 Digestion can be performed using simple regular expressions, e.g. [KR] | [^P] for trypsin.
 Also missed cleavages can be modeled, i.e. adjacent peptides are not cleaved
@@ -1650,8 +1655,6 @@ The enzymes are read from share/CHEMISTRY/Enzymes_RNA.xml.
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::RNaseDigestion, OpenMS::EnzymaticDigestion>(m, "RNaseDigestion", 
         R"doc(
-EnzymaticDigestion
-
 Class for the enzymatic digestion of RNA
 Usage:
 .. code-block:: python
@@ -1724,6 +1727,7 @@ non-integer weights with an error allowed
         .def("__copy__", [](const OpenMS::Residue& self) { return OpenMS::Residue(self); })
         .def("__deepcopy__", [](const OpenMS::Residue& self, nb::dict) { return OpenMS::Residue(self); }, "memo"_a)
         .def(nb::init<std::string, std::string, std::string, OpenMS::EmpiricalFormula, double, double, double, double, double, double, std::set<std::string>>())
+        .def(nb::init<std::string, std::string, std::string, OpenMS::EmpiricalFormula>(), "name"_a, "three_letter_code"_a, "one_letter_code"_a, "formula"_a)
         .def_static("getInternalToFull", []() { return OpenMS::Residue::getInternalToFull(); })
         .def_static("getInternalToNTerm", []() { return OpenMS::Residue::getInternalToNTerm(); })
         .def_static("getInternalToCTerm", []() { return OpenMS::Residue::getInternalToCTerm(); })
@@ -1757,10 +1761,13 @@ non-integer weights with an error allowed
         .def("getNTermLossNames", [](const OpenMS::Residue& self) -> const std::vector<std::string> & { return self.getNTermLossNames(); }, "Returns the N-terminal loss names")
         .def("setFormula", [](OpenMS::Residue& self, const OpenMS::EmpiricalFormula& formula) { return self.setFormula(formula); }, "formula"_a, "Sets empirical formula of the residue (must be full, with N and C-terminus)")
         .def("getFormula", [](const OpenMS::Residue& self, OpenMS::Residue::ResidueType res_type) { return self.getFormula(res_type); }, "res_type"_a)
+        .def("getFormula", [](const OpenMS::Residue& self) { return self.getFormula(); }, "Returns the formula of the full residue (ResidueType.Full)")
         .def("setAverageWeight", [](OpenMS::Residue& self, double weight) { return self.setAverageWeight(weight); }, "weight"_a, "Sets average weight of the residue (must be full, with N and C-terminus)")
         .def("getAverageWeight", [](const OpenMS::Residue& self, OpenMS::Residue::ResidueType res_type) { return self.getAverageWeight(res_type); }, "res_type"_a)
+        .def("getAverageWeight", [](const OpenMS::Residue& self) { return self.getAverageWeight(); }, "Returns the average weight of the full residue (ResidueType.Full)")
         .def("setMonoWeight", [](OpenMS::Residue& self, double weight) { return self.setMonoWeight(weight); }, "weight"_a, "Sets monoisotopic weight of the residue (must be full, with N and C-terminus)")
         .def("getMonoWeight", [](const OpenMS::Residue& self, OpenMS::Residue::ResidueType res_type) { return self.getMonoWeight(res_type); }, "res_type"_a)
+        .def("getMonoWeight", [](const OpenMS::Residue& self) { return self.getMonoWeight(); }, "Returns the monoisotopic weight of the full residue (ResidueType.Full)")
         .def("getModification", [](const OpenMS::Residue& self) -> std::optional<OpenMS::ResidueModification> {
             const OpenMS::ResidueModification* mod = self.getModification();
             if (mod == nullptr) return std::nullopt;
@@ -1794,6 +1801,16 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .def("setBackboneBasicityRight", [](OpenMS::Residue& self, double gb_bb_r) { return self.setBackboneBasicityRight(gb_bb_r); }, "gb_bb_r"_a, "Sets the C-terminal direction backbone basicity")
         .def("hasNeutralLoss", [](const OpenMS::Residue& self) { return self.hasNeutralLoss(); }, "True if the residue has neutral loss")
         .def("hasNTermNeutralLosses", [](const OpenMS::Residue& self) { return self.hasNTermNeutralLosses(); }, "True if N-terminal neutral losses are set")
+        .def("hasVLoss", [](const OpenMS::Residue& self) { return self.hasVLoss(); }, "True if the residue can produce a v-ion via complete side-chain loss")
+        .def("getVLossFormula", [](const OpenMS::Residue& self) { return self.getVLossFormula(); }, "Returns the formula lost in v-ion formation (internal_formula - C2HNO)")
+        .def("hasSatelliteLoss", [](const OpenMS::Residue& self, const std::string& subtype) {
+            char sub = subtype.empty() ? '\0' : subtype[0];
+            return self.hasSatelliteLoss(sub);
+        }, "subtype"_a = "", "True if the residue has a beta-gamma satellite loss (for d/w ions)")
+        .def("getSatelliteLossFormula", [](const OpenMS::Residue& self, const std::string& subtype) {
+            char sub = subtype.empty() ? '\0' : subtype[0];
+            return self.getSatelliteLossFormula(sub);
+        }, "subtype"_a = "", "Returns the formula of the satellite side-chain loss (for d/w ions)")
         .def("getHydrophobicity", [](const OpenMS::Residue& self, OpenMS::HydrophobicityScaleMethod scale) { return self.getHydrophobicity(scale); }, "scale"_a, "Returns the hydrophobicity value of the residue for the given scale (throws for non-standard residues)")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
@@ -1835,11 +1852,14 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .value("YIonMinusNH3", OpenMS::Residue::ResidueType::YIonMinusNH3)
         .value("NonIdentified", OpenMS::Residue::ResidueType::NonIdentified)
         .value("Unannotated", OpenMS::Residue::ResidueType::Unannotated)
+        .value("DIon", OpenMS::Residue::ResidueType::DIon)
+        .value("VIon", OpenMS::Residue::ResidueType::VIon)
+        .value("WIon", OpenMS::Residue::ResidueType::WIon)
         .value("SizeOfResidueType", OpenMS::Residue::ResidueType::SizeOfResidueType)
         .export_values();
 
     // HydrophobicityScaleMethod enum (namespace-scoped, used by Residue::getHydrophobicity)
-    nb::enum_<OpenMS::HydrophobicityScaleMethod>(m, "HydrophobicityScaleMethod", nb::is_arithmetic())
+    nb::enum_<OpenMS::HydrophobicityScaleMethod>(m, "HydrophobicityScaleMethod", "Hydrophobicity scales for Residue.getHydrophobicity", nb::is_arithmetic())
         .value("KYTE_DOOLITTLE", OpenMS::HydrophobicityScaleMethod::KYTE_DOOLITTLE)
         .value("EISENBERG", OpenMS::HydrophobicityScaleMethod::EISENBERG)
         .value("HOPP_WOODS", OpenMS::HydrophobicityScaleMethod::HOPP_WOODS)
@@ -1850,7 +1870,7 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .export_values();
 
     // ProteomicsPkaScale enum (namespace-scoped, used by IsoelectricPoint)
-    nb::enum_<OpenMS::ProteomicsPkaScale>(m, "ProteomicsPkaScale", nb::is_arithmetic())
+    nb::enum_<OpenMS::ProteomicsPkaScale>(m, "ProteomicsPkaScale", "pKa scales for the isoelectric point calculation of IsoelectricPoint", nb::is_arithmetic())
         .value("LEHNINGER", OpenMS::ProteomicsPkaScale::LEHNINGER)
         .value("EMBOSS", OpenMS::ProteomicsPkaScale::EMBOSS)
         .value("SILLERO", OpenMS::ProteomicsPkaScale::SILLERO)
@@ -2119,9 +2139,12 @@ Also `max_tag_length` should be >= `min_tag_length`
 :param fixed_mods: A list of modification names. The modified residues replace the unmodified versions
 :param var_mods: A list of modification names. The modified residues are added as additional entries to the list of residues
 )doc")
+        .def(nb::init<const OpenMS::Tagger &>())
         .def("__copy__", [](const OpenMS::Tagger& self) { return OpenMS::Tagger(self); })
         .def("__deepcopy__", [](const OpenMS::Tagger& self, nb::dict) { return OpenMS::Tagger(self); }, "memo"_a)
-        .def(nb::init<size_t, double, size_t, size_t, size_t, std::vector<std::string>, std::vector<std::string>, bool>())
+        .def(nb::init<size_t, double, size_t, size_t, size_t, std::vector<std::string>, std::vector<std::string>, bool>(),
+              "min_tag_length"_a, "tolerance"_a, "max_tag_length"_a = 65535, "min_charge"_a = 1, "max_charge"_a = 1,
+              "fixed_mods"_a = std::vector<std::string>(), "var_mods"_a = std::vector<std::string>(), "tol_is_ppm"_a = true)
         .def("getTag", [](const OpenMS::Tagger& self, const std::vector<double>& mzs) { std::vector<std::string> tags; self.getTag(mzs, tags); return tags; }, "mzs"_a)
         .def("getTag", [](const OpenMS::Tagger& self, const OpenMS::MSSpectrum& spec) { std::vector<std::string> tags; self.getTag(spec, tags); return tags; }, "spec"_a)
         .def("setMaxCharge", [](OpenMS::Tagger& self, size_t max_charge) { return self.setMaxCharge(max_charge); }, "max_charge"_a, 
@@ -2307,6 +2330,7 @@ the fixed and variable modifications given to the constructor
     nb::class_<OpenMS::SimpleTSGXLMS::SimplePeak>(m, "SimplePeak",
         "Simple peak struct with m/z and charge")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::SimpleTSGXLMS::SimplePeak &>())
         .def("__copy__", [](const OpenMS::SimpleTSGXLMS::SimplePeak& self) { return OpenMS::SimpleTSGXLMS::SimplePeak(self); })
         .def("__deepcopy__", [](const OpenMS::SimpleTSGXLMS::SimplePeak& self, nb::dict) { return OpenMS::SimpleTSGXLMS::SimplePeak(self); }, "memo"_a)
         .def(nb::init<double, int>(), "mz"_a, "charge"_a)
@@ -2378,4 +2402,93 @@ the fixed and variable modifications given to the constructor
         ;
     m.def("__static_AdductInfo_parseAdductString", [](const std::string& adduct) -> OpenMS::AdductInfo { return OpenMS::AdductInfo::parseAdductString(adduct); }, "adduct"_a);
 
+    // --- GlycanStructure and TheoreticalGlycanSpectrumGenerator ---
+    using GlycanGenerator = OpenMS::TheoreticalGlycanSpectrumGenerator;
+    nb::class_<OpenMS::ProForma::GlycanComposition>(m, "GlycanComposition", "ProForma glycan residue composition")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ProForma::GlycanComposition&>())
+        .def_rw("components", &OpenMS::ProForma::GlycanComposition::components,
+                "List of (monosaccharide name or FormulaTag, count) pairs");
+
+    auto glycan_tree = nb::class_<OpenMS::GlycanStructure>(m, "GlycanStructure", "Rooted glycan tree with stable node indices");
+    nb::class_<OpenMS::GlycanStructure::Node>(glycan_tree, "Node")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::GlycanStructure::Node&>())
+        .def_ro("monosaccharide", &OpenMS::GlycanStructure::Node::monosaccharide)
+        .def_ro("parent", &OpenMS::GlycanStructure::Node::parent)
+        .def_ro("linkage", &OpenMS::GlycanStructure::Node::linkage);
+    glycan_tree.def(nb::init<>())
+        .def(nb::init<const OpenMS::GlycanStructure&>())
+        .def("add_monosaccharide", &OpenMS::GlycanStructure::addMonosaccharide,
+             "monosaccharide"_a, "parent"_a = nb::none(), "linkage"_a = "")
+        .def("get_nodes", &OpenMS::GlycanStructure::getNodes)
+        .def("get_composition", &OpenMS::GlycanStructure::getComposition);
+
+    auto glycan_generator = nb::class_<GlycanGenerator>(m, "TheoreticalGlycanSpectrumGenerator",
+        "Diagnostic, composition, structural and localized glycopeptide fragment generation");
+    nb::enum_<GlycanGenerator::IonType>(glycan_generator, "IonType")
+        .value("DIAGNOSTIC", GlycanGenerator::IonType::DIAGNOSTIC)
+        .value("B", GlycanGenerator::IonType::B)
+        .value("C", GlycanGenerator::IonType::C)
+        .value("Y", GlycanGenerator::IonType::Y)
+        .value("Z", GlycanGenerator::IonType::Z)
+        .value("PEPTIDE", GlycanGenerator::IonType::PEPTIDE);
+    nb::enum_<GlycanGenerator::FragmentationMethod>(glycan_generator, "FragmentationMethod")
+        .value("HCD", GlycanGenerator::FragmentationMethod::HCD)
+        .value("ETD", GlycanGenerator::FragmentationMethod::ETD)
+        .value("ETHCD", GlycanGenerator::FragmentationMethod::ETHCD);
+    nb::class_<GlycanGenerator::PeptideRetention>(glycan_generator, "PeptideRetention")
+        .def(nb::init<>())
+        .def(nb::init<const GlycanGenerator::PeptideRetention&>())
+        .def_rw("intact", &GlycanGenerator::PeptideRetention::intact)
+        .def_rw("stripped", &GlycanGenerator::PeptideRetention::stripped)
+        .def_rw("stubs", &GlycanGenerator::PeptideRetention::stubs);
+    nb::class_<GlycanGenerator::Options>(glycan_generator, "Options")
+        .def(nb::init<>())
+        .def(nb::init<const GlycanGenerator::Options&>())
+        .def_rw("add_diagnostic_ions", &GlycanGenerator::Options::add_diagnostic_ions)
+        .def_rw("add_b_ions", &GlycanGenerator::Options::add_b_ions)
+        .def_rw("add_y_ions", &GlycanGenerator::Options::add_y_ions)
+        .def_rw("add_c_ions", &GlycanGenerator::Options::add_c_ions)
+        .def_rw("add_z_ions", &GlycanGenerator::Options::add_z_ions)
+        .def_rw("add_internal_fragments", &GlycanGenerator::Options::add_internal_fragments)
+        .def_rw("allow_structural", &GlycanGenerator::Options::allow_structural)
+        .def_rw("min_composition_size", &GlycanGenerator::Options::min_composition_size)
+        .def_rw("max_composition_size", &GlycanGenerator::Options::max_composition_size)
+        .def_rw("max_cleavages", &GlycanGenerator::Options::max_cleavages)
+        .def_rw("max_fragments", &GlycanGenerator::Options::max_fragments)
+        .def_rw("max_states", &GlycanGenerator::Options::max_states)
+        .def_rw("min_charge", &GlycanGenerator::Options::min_charge)
+        .def_rw("max_charge", &GlycanGenerator::Options::max_charge)
+        .def_rw("min_oxonium_charge", &GlycanGenerator::Options::min_oxonium_charge)
+        .def_rw("max_oxonium_charge", &GlycanGenerator::Options::max_oxonium_charge)
+        .def_rw("neutral_losses", &GlycanGenerator::Options::neutral_losses)
+        .def_rw("specific_neutral_losses", &GlycanGenerator::Options::specific_neutral_losses)
+        .def_rw("peptide_retention", &GlycanGenerator::Options::peptide_retention);
+    nb::class_<GlycanGenerator::Fragment>(glycan_generator, "Fragment")
+        .def(nb::init<>())
+        .def(nb::init<const GlycanGenerator::Fragment&>())
+        .def_ro("ion_type", &GlycanGenerator::Fragment::ion_type)
+        .def_ro("composition", &GlycanGenerator::Fragment::composition)
+        .def_ro("neutral_mass", &GlycanGenerator::Fragment::neutral_mass)
+        .def_ro("charge", &GlycanGenerator::Fragment::charge)
+        .def_ro("attachment_position", &GlycanGenerator::Fragment::attachment_position)
+        .def_ro("attachment_residue", &GlycanGenerator::Fragment::attachment_residue)
+        .def_ro("root_cleavage", &GlycanGenerator::Fragment::root_cleavage)
+        .def_ro("branch_cleavages", &GlycanGenerator::Fragment::branch_cleavages)
+        .def_ro("name", &GlycanGenerator::Fragment::name)
+        .def("get_mz", &GlycanGenerator::Fragment::getMZ)
+        .def("get_annotation", &GlycanGenerator::Fragment::getAnnotation);
+    glycan_generator.def(nb::init<>())
+        .def(nb::init<const GlycanGenerator&>())
+        .def(nb::init<const GlycanGenerator::Options&>())
+        .def("set_options", &GlycanGenerator::setOptions, "options"_a)
+        .def("get_options", &GlycanGenerator::getOptions, nb::rv_policy::copy)
+        .def("get_fragments", nb::overload_cast<const GlycanGenerator::Composition&>(&GlycanGenerator::getFragments, nb::const_), "composition"_a)
+        .def("get_fragments", nb::overload_cast<const OpenMS::GlycanStructure&>(&GlycanGenerator::getFragments, nb::const_), "structure"_a)
+        .def("get_glycopeptide_fragments", nb::overload_cast<const OpenMS::AASequence&, const GlycanGenerator::Composition&, OpenMS::Size, GlycanGenerator::FragmentationMethod>(&GlycanGenerator::getGlycopeptideFragments, nb::const_),
+             "peptide"_a, "composition"_a, "attachment_position"_a, "method"_a)
+        .def("get_glycopeptide_fragments", nb::overload_cast<const OpenMS::AASequence&, const OpenMS::GlycanStructure&, OpenMS::Size, GlycanGenerator::FragmentationMethod>(&GlycanGenerator::getGlycopeptideFragments, nb::const_),
+             "peptide"_a, "structure"_a, "attachment_position"_a, "method"_a)
+        .def_static("to_spectrum", &GlycanGenerator::toSpectrum, "fragments"_a);
 }

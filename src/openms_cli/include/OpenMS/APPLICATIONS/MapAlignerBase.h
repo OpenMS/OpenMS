@@ -33,7 +33,7 @@
 
 namespace OpenMS
 {
-  // @brief stores model defaults for map aligner algorithms
+  /// @brief Stores the model defaults for the map aligner algorithms
   struct OPENMS_CLI_DLLAPI MapAlignerBase
   {
     static Param getModelDefaults(const std::string& default_model);
@@ -45,8 +45,8 @@ class OPENMS_CLI_DLLAPI TOPPMapAlignerBase :
 {
 
 public:
-  TOPPMapAlignerBase(std::string name, std::string description, bool official = true) :
-    TOPPBase(name, description, official), ref_params_(REF_NONE)
+  TOPPMapAlignerBase(std::string name, std::string description) :
+    TOPPBase(name, description), ref_params_(REF_NONE)
   {
   }
 

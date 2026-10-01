@@ -20,6 +20,15 @@ macro(add_mac_app_bundle _name)
 	set(INFO_PLIST_TEMPLATE "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${_name}-resources/${_name}.plist.in")
 	get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
 
+	# LSMinimumSystemVersion in the Info.plist template: the macOS the build targets. Package
+	# builds set it through MACOSX_DEPLOYMENT_TARGET. A build without a target runs on the
+	# macOS it was built on, so it keeps the permissive 12.0 the templates used to hardcode.
+	if(CMAKE_OSX_DEPLOYMENT_TARGET)
+		set(OPENMS_BUNDLE_MINIMUM_SYSTEM_VERSION "${CMAKE_OSX_DEPLOYMENT_TARGET}")
+	else()
+		set(OPENMS_BUNDLE_MINIMUM_SYSTEM_VERSION "12.0")
+	endif()
+
 	## TODO do we need a different RPATH for apps? Doesnt CMAKE do that automatically
 	# we also need the icns in the app
 	add_executable(
@@ -28,21 +37,27 @@ macro(add_mac_app_bundle _name)
 		${GUI_DIR}/${_name}.cpp
 		${ICON_FILE_PATH})
 	
+	## packaged bundles live in the root of the package (next to lib/), plain installs put them into ${INSTALL_BIN_DIR}
+	if("${PACKAGE_TYPE}" STREQUAL "dmg" OR "${PACKAGE_TYPE}" STREQUAL "pkg")
+		set(_bundle_lib_rpath "@executable_path/../../../lib")
+	else()
+		set(_bundle_lib_rpath "@executable_path/../../../${INSTALL_LIB_PATH_REL_TO_BIN}")
+	endif()
 	set_target_properties(${_name}
-												PROPERTIES INSTALL_RPATH "@executable_path/../Frameworks;@executable_path/../../../lib")
+												PROPERTIES INSTALL_RPATH "@executable_path/../Frameworks;${_bundle_lib_rpath}")
 
 	string(TIMESTAMP MY_YEAR "%Y")
 
 	set_target_properties(${_name} PROPERTIES
 		# we want our own info.plist template
 		MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
-		MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright ${MY_YEAR} The OpenMS Team."
+		MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${OPENMS_PACKAGE_VERSION}, Copyright ${MY_YEAR} The OpenMS Team."
 		MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
 		MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${_name}"
-		MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}"
+		MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${OPENMS_PACKAGE_VERSION}"
 		MACOSX_BUNDLE_BUNDLE_NAME ${_name}
-		MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
-		MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
+		MACOSX_BUNDLE_SHORT_VERSION_STRING "${OPENMS_PACKAGE_VERSION}"
+		MACOSX_BUNDLE_BUNDLE_VERSION "${OPENMS_PACKAGE_VERSION}"
 		MACOSX_BUNDLE_COPYRIGHT "Copyright ${MY_YEAR}, The OpenMS Team. All Rights Reserved."
 	)
 
@@ -63,8 +78,8 @@ macro(add_mac_app_bundle _name)
 			set (APP_FOLDER "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name}.app")
 			## Install Qt6 plugins needed on mac and save them in a var for fixing their dependencies later
 			set (PLUGIN_VAR_NAME QT_PLUGINS_APPS_${_name})
-			install_qt6_plugin_builddir("Qt6::QCocoaIntegrationPlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" Applications)
-			install_qt6_plugin_builddir("Qt6::QMacStylePlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" Applications)
+			install_qt6_plugin_builddir("Qt6::QCocoaIntegrationPlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" ${OPENMS_GUI_APPLICATIONS_COMPONENT})
+			install_qt6_plugin_builddir("Qt6::QMacStylePlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" ${OPENMS_GUI_APPLICATIONS_COMPONENT})
 			
 			set (QT_PLUGINS_TO_FIX ${${PLUGIN_VAR_NAME}})
 			## Find Qt library folder
@@ -78,14 +93,14 @@ macro(add_mac_app_bundle _name)
 					include(BundleUtilities)
 					fixup_bundle(${APP_FOLDER} \"${QT_PLUGINS_TO_FIX}\" \"${QT_LIBRARY_DIR}\")
 					"
-					COMPONENT Applications)
+					COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT})
 		endif()
 		
 		
 		## Copy bundle to the target install destination. Not to bin folder but root of package/dmg.
 		install(TARGETS ${_name} BUNDLE
 						DESTINATION .
-						COMPONENT Applications)
+						COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT})
 		
 		if("${PACKAGE_TYPE}" STREQUAL "pkg")
 			## Write a qt.conf file with a ref to the plugin dir outside of the bundle (to share)
@@ -94,7 +109,7 @@ macro(add_mac_app_bundle _name)
 			install(FILES "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
 							DESTINATION "${_name}.app/Contents/Resources/"
 							RENAME "qt.conf"
-							COMPONENT Applications)
+							COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT})
       # Get the actual plugin files, resolving symlinks
       get_target_property(_cocoa_plugin_path "Qt6::QCocoaIntegrationPlugin" LOCATION)
       get_filename_component(_cocoa_plugin_path "${_cocoa_plugin_path}" REALPATH)
@@ -109,11 +124,11 @@ macro(add_mac_app_bundle _name)
               COMPONENT Dependencies)
 			# Instead of softlinking, it is recommended by Apple to use RPATHs
       #install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_LIB_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/Frameworks)"
-			#				COMPONENT Applications)
+			#				COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT})
       #install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_PLUGIN_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/PlugIns)"
-	  		  # 			COMPONENT Applications)
+	  		  # 			COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT})
 			install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/MacOS/ -e @rpath/ -n -c)"
-							COMPONENT Applications)
+							COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT})
     else() # dmg
     		## Write a qt.conf file with a ref to the plugin dir in app bundles = PlugIns
 				file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
@@ -121,7 +136,7 @@ macro(add_mac_app_bundle _name)
 				install(FILES "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
 								DESTINATION "${_name}.app/Contents/Resources/"
 								RENAME "qt.conf"
-								COMPONENT Applications)
+								COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT})
 		endif()
 
 		
@@ -135,28 +150,28 @@ macro(add_mac_app_bundle _name)
 				## which needs to be unlocked. Play around with keychain argument otherwise.
 				 install(CODE "
 execute_process(COMMAND codesign --deep --force --options runtime --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" -i de.openms.${_name} \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_out ERROR_VARIABLE sign_out)
-message('\${sign_out}')" COMPONENT Applications)
+message('\${sign_out}')" COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT})
 
 				 install(CODE "
 execute_process(COMMAND codesign -dv \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_check_out ERROR_VARIABLE sign_check_out)
-message('\${sign_check_out}')" COMPONENT Applications)
+message('\${sign_check_out}')" COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT})
 
 				if("${PACKAGE_TYPE}" STREQUAL "dmg")
 				 install(CODE "
 execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize.sh \${CMAKE_INSTALL_PREFIX}/${_name}.app de.openms.${_name} ${SIGNING_EMAIL} APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD ${OPENMS_HOST_BINARY_DIRECTORY} OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
-message('\${notarize_out}')" COMPONENT Applications)
+message('\${notarize_out}')" COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT})
 
 				 install(CODE "
 execute_process(COMMAND spctl -a -v \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE verify_out ERROR_VARIABLE verify_out)
-message('\${verify_out}')" COMPONENT Applications)
+message('\${verify_out}')" COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT})
    			endif()
 			endif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
 		endif()
 	else()
 	  ## Just install to the usual bin dir without fixing it up
 		install(TARGETS ${_name} RUNTIME_DEPENDENCY_SET ${_name}_DEPS
-						RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
-						BUNDLE DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
+						RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT}
+						BUNDLE DESTINATION ${INSTALL_BIN_DIR} COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT}
 						)
 	endif()
 endmacro()

@@ -14,29 +14,6 @@ macro (OPENMS_FINDBINARY varname binaryname name)
   endif()
 endmacro (OPENMS_FINDBINARY)
 
-macro (openms_check_tandem_version binary valid)
-  if(NOT (${XTANDEM_BINARY} STREQUAL "XTANDEM_BINARY-NOTFOUND"))
-    set(${valid} FALSE)
-    execute_process(COMMAND "${XTANDEM_BINARY}"
-      RESULT_VARIABLE _tandem_result
-      OUTPUT_VARIABLE _tandem_output
-      ERROR_VARIABLE _tandem_output  ## write to the same variable, in case Tandem decides to use std::cerr one day
-      INPUT_FILE ${DATA_DIR_TOPP}/THIRDPARTY/tandem_break.txt  ## provide some input, otherwise tandem.exe will block and not finish
-    )
-
-    # we are looking for something like (2013.09.01.1)
-    string(REGEX MATCH "\([0-9]+[.][0-9]+[.][0-9]+([.][0-9]+)\)"
-          _tandem_version "${_tandem_output}")
-
-    if("${_tandem_version}" VERSION_LESS "2013.09.01")
-      message(STATUS "  - X! Tandem too old (${_tandem_version}). Please provide an X! Tandem version >= 2013.09.01 to enable the tests.")
-    else()
-      message(STATUS "  + X! Tandem version: ${_tandem_version}.")
-      set(${valid} TRUE)
-    endif()
-  endif()
-endmacro (openms_check_tandem_version)
-
 # Build PATH environment for tests that need to find built TOPP tools at runtime.
 # On Windows, semicolons in PATH must be escaped to prevent CMake from interpreting
 # them as list separators in set_tests_properties(ENVIRONMENT ...).
@@ -60,11 +37,6 @@ OPENMS_FINDBINARY(COMET_BINARY "comet.exe" "Comet")
 #------------------------------------------------------------------------------
 # Sage
 OPENMS_FINDBINARY(SAGE_BINARY "sage;sage.exe" "Sage")
-
-#------------------------------------------------------------------------------
-# X!Tandem
-OPENMS_FINDBINARY(XTANDEM_BINARY "tandem;tandem.exe" "X! Tandem")
-openms_check_tandem_version(${XTANDEM_BINARY} xtandem_valid)
 
 #------------------------------------------------------------------------------
 # MS-GF+
@@ -216,12 +188,24 @@ endif()
 #------------------------------------------------------------------------------
 if (NOT (${MARACLUSTER_BINARY} STREQUAL "MARACLUSTER_BINARY-NOTFOUND"))
   ### NOT needs to be added after the binarys have been included
+  ## MaRaCluster's macOS arm64 build computes some consensus m/z values one bit off the Linux
+  ## x86_64 build the reference comes from (436.1713680071879 vs 436.17136800718794). FuzzyDiff
+  ## compares the base64-encoded peak arrays as text, so macOS skips them, as
+  ## ZLIB_NG_MZML_WHITELIST does for zlib-ng; the spectra and precursors are still compared.
+  set(_maracluster_consensus_whitelist "")
+  if (APPLE)
+    set(_maracluster_consensus_whitelist "<binary>")
+  endif()
   add_test("TOPP_MaRaClusterAdapter_1" ${TOPP_BIN_PATH}/MaRaClusterAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_1.mzML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_2.mzML -consensus_out MaRaClusterAdapter_1_out_1.tmp.mzML -maracluster_executable "${MARACLUSTER_BINARY}")
-  add_test("TOPP_MaRaClusterAdapter_1_out_1" ${DIFF} -in1 MaRaClusterAdapter_1_out_1.tmp.part1.mzML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_out_1.part1.mzML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "sourceFile id=" "fileChecksum" "cvParam cvRef=\"MS\" accession=\"MS:1000569\" name=\"SHA-1\"" "software id=\"MaRaCluster\" version=" "cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\"" "cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" version=" "software id=\"pwiz_3.0" "processingMethod order=\"0\" softwareRef=")
+  add_test("TOPP_MaRaClusterAdapter_1_out_1" ${DIFF} -in1 MaRaClusterAdapter_1_out_1.tmp.part1.mzML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_out_1.part1.mzML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "sourceFile id=" "fileChecksum" "cvParam cvRef=\"MS\" accession=\"MS:1000569\" name=\"SHA-1\"" "software id=\"MaRaCluster\" version=" "cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\"" "cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" version=" "software id=\"pwiz_3.0" "processingMethod order=\"0\" softwareRef=" ${_maracluster_consensus_whitelist})
   set_tests_properties("TOPP_MaRaClusterAdapter_1_out_1" PROPERTIES DEPENDS "TOPP_MaRaClusterAdapter_1")
   add_test("TOPP_MaRaClusterAdapter_2" ${TOPP_BIN_PATH}/MaRaClusterAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_2.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_1.mzML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_2.mzML -id_in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_3.idXML -out MaRaClusterAdapter_2_out_1.tmp.idXML -maracluster_executable "${MARACLUSTER_BINARY}")
   add_test("TOPP_MaRaClusterAdapter_2_out_1" ${DIFF} -in1 MaRaClusterAdapter_2_out_1.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_2_out_1.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"file_origin\" value=")
   set_tests_properties("TOPP_MaRaClusterAdapter_2_out_1" PROPERTIES DEPENDS "TOPP_MaRaClusterAdapter_2")
+  ## -precursor_tolerance_units has to reach MaRaCluster as the unit suffix of -p, which it
+  ## reads as ppm without one; -debug 4 makes the adapter log the command line it runs.
+  add_test("TOPP_MaRaClusterAdapter_3" ${TOPP_BIN_PATH}/MaRaClusterAdapter -test -debug 4 -ini ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_1.mzML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_2.mzML -consensus_out MaRaClusterAdapter_3_out_1.tmp.mzML -precursor_tolerance 0.05 -precursor_tolerance_units Da -maracluster_executable "${MARACLUSTER_BINARY}")
+  set_tests_properties("TOPP_MaRaClusterAdapter_3" PROPERTIES PASS_REGULAR_EXPRESSION " -p 0\\.05Da ")
 endif()
 
 #------------------------------------------------------------------------------
