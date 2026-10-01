@@ -31,6 +31,10 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
   ## configure the regular class ..
   if(ENABLE_CLASS_TESTING)
     add_subdirectory(class_tests)
+    # the version of a source tree made by git archive (cmake/Modules/GetGitRevisionDescription.cmake)
+    add_test(NAME GitArchivalInfo
+      COMMAND ${CMAKE_COMMAND} "-DBINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}/git_archival"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/git_archival/run.cmake")
   endif()
   # TOPP Test project ..
   if(ENABLE_TOPP_TESTING)

@@ -40,6 +40,12 @@ Build System:
     Ubuntu 25.10 and 26.04), so the package built on Ubuntu 24.04 now installs there too
     (#10351). It still requires the glibc of the release it is built on, currently 2.38,
     so not Ubuntu 22.04 or Debian 12 (#10352, #10367).
+  - Source tarball: the Release workflow packs it with git archive, so it holds exactly the
+    tracked files. The 3.6.0 tarball lacked src/tests/topp/THIRDPARTY/ and a few other files,
+    and carried empty .git/, build/, THIRDPARTY/ and vcpkg/ directories. git archive fills in
+    .git_archival.txt, from which CMake takes the commit, so a build from the source tarball of
+    a release (or from GitHub's source archive of its tag) reports the plain version instead of
+    <version>-pre-exported-<date> (#10359).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
