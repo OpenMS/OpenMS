@@ -10,7 +10,8 @@
 #
 # openms_topp_tool(<Name> <Category>) is the single place a TOPP tool is declared. It says
 # both that the tool exists (so the build produces it) and which category TOPPAS groups it
-# under (so ToolHandler can list it). The registry share/OpenMS/TOOLS/OpenMS.tsv is written
+# under (so ToolHandler can list it). The registry share/OpenMS/TOOLS/OpenMS.tsv (one file per
+# layer in a build against an installed library, see src/CMakeLists.txt) is written
 # from these declarations by openms_write_tool_registry(), which is why there is no
 # hand-maintained list to keep in step with the build: a tool that a build option does not
 # build is not declared, so it is not registered either, and a tool cannot be built without
@@ -65,10 +66,18 @@ function(openms_topp_tool name category)
 endfunction()
 
 #------------------------------------------------------------------------------
-# openms_write_tool_registry(<out_file>)
+# openms_write_tool_registry(<out_file> [TOOLS <name>...])
 #
 # Write the registry of every tool declared so far. Call it once, after every
 # add_subdirectory() that declares tools.
+#
+# TOOLS restricts the file to the given subset of the declared tools. A build against an
+# installed OpenMS library (OPENMS_USE_INSTALLED_LIBRARY) writes one registry per layer it
+# builds, so the TOPP tools and the GUI tools can be installed (and packaged) separately and
+# ToolHandler still finds all of them in one TOOLS directory.
+#
+# Without any tool to list, no file is written and a file an earlier configure of this build
+# directory left behind is removed: a build of the libraries alone registers nothing.
 #
 # The format is the tab-separated one the rest of share/OpenMS uses for tabular data, read
 # back by ToolHandler through CsvFile:
@@ -79,6 +88,10 @@ endfunction()
 # The third column is the list of '-type' sub-modes a tool offers and is omitted by tools
 # that have none, which is all of them today.
 function(openms_write_tool_registry out_file)
+  cmake_parse_arguments(PARSE_ARGV 1 _registry "" "" "TOOLS")
+  if(_registry_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "openms_write_tool_registry(${out_file}): unexpected arguments '${_registry_UNPARSED_ARGUMENTS}'")
+  endif()
   list(LENGTH TOPP_TOOLS _tool_count)
   list(LENGTH TOPP_TOOL_CATEGORIES _category_count)
   if(NOT _tool_count EQUAL _category_count)
@@ -90,6 +103,20 @@ function(openms_write_tool_registry out_file)
   ## byte-identical file. Sorting the names themselves rather than "name<sep>category" pairs:
   ## any separator sorts somewhere among the letters and would order 'FooBar' before 'Foo'.
   set(_sorted_names ${TOPP_TOOLS})
+  if("TOOLS" IN_LIST ARGN)
+    foreach(_name IN LISTS _registry_TOOLS)
+      if(NOT _name IN_LIST TOPP_TOOLS)
+        message(FATAL_ERROR "openms_write_tool_registry(${out_file}): '${_name}' is not a declared tool")
+      endif()
+    endforeach()
+    set(_sorted_names ${_registry_TOOLS})
+  endif()
+  list(LENGTH _sorted_names _tool_count)
+  if(_tool_count EQUAL 0)
+    file(REMOVE "${out_file}")
+    message(STATUS "TOPP tool registry: no tools, ${out_file} not written")
+    return()
+  endif()
   list(SORT _sorted_names CASE INSENSITIVE)
 
   set(_content

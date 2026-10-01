@@ -22,6 +22,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <algorithm>
 #include <limits>
+#include <set>
 
 /*
   FragmentIndex tests
@@ -3157,6 +3158,207 @@ START_SECTION(([EXTRA] optional peptidoform deduplication preserves modification
   fi.setParameters(p);
   fi.build(db);
   TEST_EQUAL(fi.getPeptides().size(), original_count)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] initial methionine clipping preserves coordinates and digestion limits))
+{
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  TEST_FALSE(p.getValue("peptide:clip_nterm_methionine").toBool())
+  p.setValue("peptide:clip_nterm_methionine", "true");
+  p.setValue("peptide:min_size", 1);
+  p.setValue("peptide:max_size", 40);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("modifications:fixed", StringList {});
+  p.setValue("modifications:variable", StringList {});
+  p.setValue("peptide:missed_cleavages", 0);
+  const vector<FASTAFile::FASTAEntry> entries {{"target", "", "MPEPTIDER"},      {"DECOY_test", "", "MPEPTIDEK"}, {"non_m", "", "APEPTIDER"},
+                                               {"internal_m", "", "KMPEPTIDER"}, {"two_m", "", "MMPEPTIDER"},     {"single_m", "", "M"}};
+  auto sequences = [&](UInt32 protein) {
+    set<string> result;
+    for (const auto& pep : fi.getPeptides())
+    {
+      if (pep.protein_idx != protein) { continue; }
+      const auto sequence = fi.reconstructModifiedSequence(pep, entries);
+      result.insert(sequence.toUnmodifiedString());
+      TEST_REAL_SIMILAR(pep.precursor_mz_, sequence.getMZ(1))
+      if (sequence.toUnmodifiedString() == "PEPTIDER")
+      {
+        TEST_EQUAL(pep.sequence_.first, 1)
+        TEST_EQUAL(pep.sequence_.second, 8)
+      }
+    }
+    return result;
+  };
+  fi.setParameters(p);
+  fi.build(entries);
+  TEST_TRUE(sequences(0) == set<string>({"MPEPTIDER", "PEPTIDER"}))
+  TEST_TRUE(sequences(1) == set<string>({"MPEPTIDEK", "PEPTIDEK"}))
+  TEST_TRUE(sequences(2) == set<string>({"APEPTIDER"}))
+  TEST_TRUE(sequences(3) == set<string>({"K", "MPEPTIDER"}))
+  TEST_TRUE(sequences(4) == set<string>({"MMPEPTIDER", "MPEPTIDER"}))
+  TEST_TRUE(sequences(5) == set<string>({"M"}))
+
+  // The mature peptide qualifies even when the retained-M form is too long.
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 8);
+  fi.setParameters(p);
+  fi.build(entries);
+  TEST_TRUE(sequences(0) == set<string>({"PEPTIDER"}))
+  p.setValue("peptide:clip_nterm_methionine", "false");
+  fi.setParameters(p);
+  fi.build(entries);
+  TEST_TRUE(sequences(0).empty())
+  p.setValue("peptide:clip_nterm_methionine", "true");
+  p.setValue("peptide:min_size", 9);
+  p.setValue("peptide:max_size", 9);
+  fi.setParameters(p);
+  fi.build(entries);
+  TEST_TRUE(sequences(0) == set<string>({"MPEPTIDER"}))
+
+  const vector<FASTAFile::FASTAEntry> missed {{"missed", "", "MACDEKAGHILR"}};
+  p.setValue("peptide:min_size", 1);
+  p.setValue("peptide:max_size", 40);
+  for (int mc : {0, 1})
+  {
+    p.setValue("peptide:missed_cleavages", mc);
+    fi.setParameters(p);
+    fi.build(missed);
+    set<string> mature;
+    for (const auto& pep : fi.getPeptides())
+    {
+      if (pep.sequence_.first == 1) { mature.insert(fi.reconstructModifiedSequence(pep, missed).toUnmodifiedString()); }
+    }
+    TEST_EQUAL(mature.count("ACDEK"), 1)
+    TEST_EQUAL(mature.count("ACDEKAGHILR"), mc)
+  }
+
+  // No-cleavage still includes both complete proteoforms. Semi/non-specific
+  // digestion must not emit an unmodified coordinate twice.
+  const vector<FASTAFile::FASTAEntry> simple {{"p", "", "MPEPTIDE"}};
+  p.setValue("enzyme", "no cleavage");
+  p.setValue("peptide:missed_cleavages", 0);
+  fi.setParameters(p);
+  fi.build(simple);
+  TEST_EQUAL(fi.getPeptides().size(), 2)
+  for (const string specificity : {"semi", "none"})
+  {
+    p.setValue("peptide:enzyme_specificity", specificity);
+    fi.setParameters(p);
+    fi.build(simple);
+    set<pair<uint16_t, uint16_t>> coordinates;
+    for (const auto& pep : fi.getPeptides())
+    {
+      TEST_TRUE(coordinates.insert(pep.sequence_).second)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] clipped methionine peptides retain protein N - terminal variable modifications))
+{
+  const vector<FASTAFile::FASTAEntry> entries {{"nterm", "", "MPEPTIDER"}, {"internal", "", "KPEPTIDER"}};
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("enzyme", "Trypsin/P"); // also cleave K-P in the internal-peptide control
+  p.setValue("peptide:clip_nterm_methionine", "true");
+  p.setValue("peptide:min_size", 7);
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("modifications:fixed", StringList {});
+  p.setValue("modifications:variable", StringList {"Acetyl (Protein N-term)", "Oxidation (M)"});
+  p.setValue("modifications:variable_max_per_peptide", 2);
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  fi.setParameters(p);
+  fi.build(entries);
+  Size acetylated_mature = 0;
+  for (const auto& pep : fi.getPeptides())
+  {
+    const auto seq = fi.reconstructModifiedSequence(pep, entries);
+    TEST_REAL_SIMILAR(pep.precursor_mz_, seq.getMZ(1))
+    if (pep.protein_idx == 1) { TEST_FALSE(seq.hasNTerminalModification()) }
+    if (pep.protein_idx == 0 && pep.sequence_.first == 1)
+    {
+      TEST_EQUAL(seq.toUnmodifiedString(), "PEPTIDER")
+      for (Size i = 0; i < seq.size(); ++i)
+      {
+        TEST_FALSE(seq[i].isModified())
+      }
+      if (seq.hasNTerminalModification())
+      {
+        ++acetylated_mature;
+        TEST_EQUAL(seq.getNTerminalModification()->getFullId(), "Acetyl (Protein N-term)")
+        // Verify fragment emission and reconstruction agree for the new variant.
+        MSSpectrum spectrum;
+        TheoreticalSpectrumGenerator().getSpectrum(spectrum, seq, 1, 1);
+        Precursor precursor;
+        precursor.setMZ(seq.getMZ(2));
+        precursor.setCharge(2);
+        spectrum.setPrecursors({precursor});
+        spectrum.setMSLevel(2);
+        spectrum.sortByPosition();
+        FragmentIndex::SpectrumMatchesTopN matches;
+        fi.querySpectrum(spectrum, entries, matches);
+        bool found = false;
+        for (const auto& match : matches.hits_)
+        {
+          found |= fi.reconstructModifiedSequence(fi.getPeptides()[match.peptide_idx_], entries) == seq;
+        }
+        TEST_TRUE(found)
+      }
+    }
+  }
+  TEST_EQUAL(acetylated_mature, 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] SNES recognizes the mature protein N - terminus after initial methionine loss))
+{
+  const vector<FASTAFile::FASTAEntry> entries {{"mature", "", "MACDEFGHILNPQR"}, {"internal", "", "KMACDEFGHILNPQR"}};
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("modifications:fixed", StringList {});
+  p.setValue("modifications:variable", StringList {"Acetyl (Protein N-term)"});
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  p.setValue("snes_enabled", "true");
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  AASequence peptide = AASequence::fromString("ACDEFGHI");
+  MSSpectrum spectrum;
+  TheoreticalSpectrumGenerator().getSpectrum(spectrum, peptide, 1, 1);
+  peptide.setNTerminalModification("Acetyl (Protein N-term)");
+  Precursor precursor;
+  precursor.setCharge(2);
+  precursor.setMZ(peptide.getMZ(2));
+  spectrum.setPrecursors({precursor});
+  spectrum.setMSLevel(2);
+  spectrum.sortByPosition();
+  for (bool enabled : {false, true})
+  {
+    p.setValue("peptide:clip_nterm_methionine", enabled ? "true" : "false");
+    fi.setParameters(p);
+    fi.build(entries);
+    FragmentIndex::SpectrumMatchesTopN matches;
+    fi.querySpectrum(spectrum, entries, matches);
+    bool found = false;
+    for (const auto& match : matches.hits_)
+    {
+      if (match.subset_bitmask_ == 0) { continue; }
+      const auto& mother = fi.getPeptides()[match.peptide_idx_];
+      TEST_EQUAL(mother.protein_idx, 0)
+      TEST_EQUAL(mother.sequence_.first, 1)
+      const auto reconstructed = fi.reconstructRealizedSubSequence(mother, entries, 8, match.subset_bitmask_);
+      found |= reconstructed == peptide;
+    }
+    TEST_EQUAL(found, enabled)
+  }
 }
 END_SECTION
 

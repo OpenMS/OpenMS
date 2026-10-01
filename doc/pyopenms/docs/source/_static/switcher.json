@@ -5,6 +5,11 @@
       "url": "https://pyopenms.readthedocs.io/en/latest/"
   },
   {
+      "name": "3.6.0",
+      "version": "3.6.0",
+      "url": "https://pyopenms.readthedocs.io/en/v3.6.0/"
+  },
+  {
       "name": "3.5.0",
       "version": "3.5.0",
       "url": "https://pyopenms.readthedocs.io/en/release-3.5.0/"

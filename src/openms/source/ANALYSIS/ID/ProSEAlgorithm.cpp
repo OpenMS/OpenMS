@@ -188,6 +188,11 @@ namespace OpenMS
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
     defaults_.setValue("peptide:max_size", 40, "Maximum size a peptide must have after digestion to be considered in the search (0 = disabled).");
     defaults_.setValue("peptide:missed_cleavages", 1, "Number of missed cleavages.");
+    defaults_.setValue("peptide:clip_nterm_methionine", "true",
+                       "Also search protein N-terminal peptides after removal of their initial methionine. "
+                       "The retained-M form is still searched; length, mass and missed-cleavage limits apply to each form. "
+                       "Set false for the previous search space.");
+    defaults_.setValidStrings("peptide:clip_nterm_methionine", {"true", "false"});
     defaults_.setValue("peptide:deduplicate", "true",
                        "Index each exact peptidoform once before candidate selection. Protein mappings are recovered from the full database. "
                        "Across database chunks, count each peptide/charge/isotope hypothesis once; retaining queried keys adds memory per spectrum. "
@@ -589,7 +594,9 @@ namespace OpenMS
     {
       Size end = begin + 1;
       while (end < spectrum.size() && spectrum[end].getMZ() - spectrum[begin].getMZ() < 100.0)
+      {
         ++end;
+      }
       const Size keep = std::min(peaks_per_window, end - begin);
       std::partial_sort(indices.begin() + begin, indices.begin() + begin + keep, indices.begin() + end, [&spectrum](Size a, Size b) {
         if (spectrum[a].getIntensity() != spectrum[b].getIntensity()) { return spectrum[a].getIntensity() > spectrum[b].getIntensity(); }
@@ -1245,6 +1252,8 @@ namespace OpenMS
         ? (Deisotoper::isToleranceSupported(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ == "ppm") ? "jump_full" : "jump")
         : peaks_window_type_);
 
+    search_parameters.setMetaValue("peptide:clip_nterm_methionine", param_.getValue("peptide:clip_nterm_methionine"));
+
     search_parameters.enzyme_term_specificity = peptide_enzyme_specificity_;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
 
@@ -1435,10 +1444,15 @@ namespace OpenMS
       for (size_t i = 0; i != old_size; ++i)
       {
         FASTAFile::FASTAEntry e = db[i];
+        // Keep an initial Met on generated decoys as well: otherwise clipping
+        // expands the target N-terminal search space without its decoy counterpart.
+        const bool preserve_met = param_.getValue("peptide:clip_nterm_methionine").toBool() && e.sequence.size() > 1 && e.sequence[0] == 'M';
+        if (preserve_met) { e.sequence.erase(0, 1); }
         if (peptide_enzyme_specificity_ == EnzymaticDigestion::SPEC_NONE)
           e.sequence = decoy_generator.reverseProtein(AASequence::fromString(e.sequence)).toString();
         else
           e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+        if (preserve_met) { e.sequence.insert(e.sequence.begin(), 'M'); }
         e.identifier = strategy.decoy_string + e.identifier;  // decoy_string is the prefix to add
         db.push_back(std::move(e));
       }

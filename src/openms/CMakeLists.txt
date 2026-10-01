@@ -39,7 +39,7 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 add_subdirectory(extern)
 
 #------------------------------------------------------------------------------
-# external libs (contrib or system)
+# external libs (vcpkg or system)
 #------------------------------------------------------------------------------
 #include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
 
@@ -478,11 +478,6 @@ if(WITH_WNETALIGN)
   target_compile_definitions(OpenMS PRIVATE LEMON_ONLY_TEMPLATES OPENMS_HAS_WNETALIGN)
 endif()
 
-## Enable test-only hooks when class tests are being built.
-if(ENABLE_CLASS_TESTING)
-  target_compile_definitions(OpenMS PRIVATE OPENMS_ENABLE_TESTING_HOOKS=1)
-endif()
-
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation
 # here
@@ -505,16 +500,7 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
 )
 
 ## The TOPP tool registry is generated into the build tree rather than checked in
-## (cmake/topp_tool_macros.cmake), so it is installed from there. Because it is written from
-## the tools this build actually declares, there is nothing to filter per build option: a
-## tool that was not built was not declared and is not in the file. It is installed into
-## TOOLS/ rather than beside the other share data so that the directory holds registry files
-## and nothing else: ToolHandler reads every *.tsv it finds there.
-install(FILES ${OPENMS_TOOL_REGISTRY_BUILD_FILE}
-  DESTINATION ${INSTALL_SHARE_DIR}/TOOLS
-  COMPONENT share
-  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
-)
+## (cmake/topp_tool_macros.cmake) and installed from src/CMakeLists.txt, where it is written.
 install(FILES ${OPENMS_HOST_DIRECTORY}/License.txt
   DESTINATION ${INSTALL_SHARE_DIR}/LICENSES
   RENAME OpenMS-BSD-3-Clause.txt
