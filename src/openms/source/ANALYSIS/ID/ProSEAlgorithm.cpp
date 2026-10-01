@@ -189,8 +189,8 @@ namespace OpenMS
     defaults_.setMinFloat("annotate:ion_prior_train_fdr", 0.0);
     defaults_.setMaxFloat("annotate:ion_prior_train_fdr", 1.0);
     defaults_.setValue("annotate:ion_prior_min_psms", 100,
-      "Minimum number of training PSMs of each of the three cross-fitted models of annotate:self_trained_ion_priors; if a "
-      "model has fewer, the features are 0 for the whole file.", {"advanced"});
+      "Minimum number of training PSMs of each of the three cross-fitted models of annotate:self_trained_ion_priors; the "
+      "hits of a fold whose model has fewer get features of 0.", {"advanced"});
     defaults_.setMinInt("annotate:ion_prior_min_psms", 1);
     defaults_.setSectionDescription("annotate", "Annotation Options");
 
@@ -3377,22 +3377,26 @@ namespace OpenMS
     };
 
     // 2. One model per fold, trained on its confident PSMs with their reversed sequences on the same spectra
-    //    as noise. Features are written only if every fold's model reaches annotate:ion_prior_min_psms.
+    //    as noise. A fold's hits get features only if its own model reaches annotate:ion_prior_min_psms, so
+    //    not even that decision depends on the fold's own hits.
     std::vector<std::vector<Size>> training(ion_prior_folds);
     std::set<Size> confident; // distinct confident PSMs over all folds' training sets (reported)
-    bool trained = true;
+    std::vector<bool> fold_trained(ion_prior_folds, false);
+    Size trained_folds = 0;
     for (Size fold = 0; fold < ion_prior_folds; ++fold)
     {
       training[fold] = confident_targets(fold);
       confident.insert(training[fold].begin(), training[fold].end());
-      trained = trained && training[fold].size() >= ion_prior_min_psms_;
+      fold_trained[fold] = training[fold].size() >= ion_prior_min_psms_;
+      trained_folds += fold_trained[fold];
     }
     std::vector<FragmentIonLikelihoodModel> models(ion_prior_folds);
-    if (trained)
+    if (trained_folds > 0)
     {
       PeakSpectrum theo;
       for (Size fold = 0; fold < ion_prior_folds; ++fold)
       {
+        if (! fold_trained[fold]) continue;
         for (const Size index : training[fold])
         {
           const PeptideIdentification& pi = peptide_ids[index];
@@ -3416,13 +3420,12 @@ namespace OpenMS
                       << confident.size() << " PSMs at q <= " << ion_prior_train_fdr_ << " (per fold model: "
                       << training[0].size() << ", " << training[1].size() << ", " << training[2].size() << ")." << std::endl;
     }
-    else
+    if (trained_folds < ion_prior_folds)
     {
-      Size fewest = training[0].size();
-      for (const auto& fold_training : training) fewest = std::min(fewest, fold_training.size());
-      OPENMS_LOG_WARN << "[ProSE] Ion priors: " << fewest << " confident training PSMs for a fold model < " << ion_prior_min_psms_
+      OPENMS_LOG_WARN << "[ProSE] Ion priors: " << (ion_prior_folds - trained_folds) << " of " << ion_prior_folds
+                      << " fold models have fewer than " << ion_prior_min_psms_ << " confident training PSMs"
                       << (decoys_present ? "" : " (no decoy hits to estimate confidence)")
-                      << "; the ion_prior_* features are 0 for this file." << std::endl;
+                      << "; the ion_prior_* features of their folds are 0." << std::endl;
     }
 
     // 3. Annotate every hit. Untrained runs write zeros so the feature columns stay complete.
@@ -3433,7 +3436,7 @@ namespace OpenMS
       const SignedSize scan = scan_of(pi);
       const Size fold = scan >= 0 ? static_cast<Size>(scan) % ion_prior_folds : 0;
       // Scored by the model of its own fold, which was fitted without this fold's spectra, scores and labels.
-      const bool scorable = trained && scan >= 0;
+      const bool scorable = scan >= 0 && fold_trained[fold];
       std::vector<Size> ranks;
       if (scorable) ranks = FragmentIonLikelihoodModel::intensityRanks(spectra[static_cast<Size>(scan)]);
       PeakSpectrum theo;
@@ -3469,7 +3472,7 @@ namespace OpenMS
       if (std::find(features.begin(), features.end(), name) == features.end()) features.push_back(name);
     }
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
-    search_parameters.setMetaValue("ion_prior:trained", trained ? "true" : "false");
+    search_parameters.setMetaValue("ion_prior:trained", trained_folds == ion_prior_folds ? "true" : (trained_folds == 0 ? "false" : "partial"));
     search_parameters.setMetaValue("ion_prior:training_psms", static_cast<int>(confident.size()));
     search_parameters.setMetaValue("ion_prior:fragment_charges", deisotoped ? "1" : "1..min(z-1,3)");
     search_parameters.setMetaValue("ion_prior:cross_fit_folds", static_cast<int>(ion_prior_folds));

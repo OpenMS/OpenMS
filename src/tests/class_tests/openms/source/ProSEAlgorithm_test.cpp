@@ -64,6 +64,7 @@ public:
   using ProSEAlgorithm::resolveDecoyStrategy_;
   using ProSEAlgorithm::DecoyStrategy_;
   using ProSEAlgorithm::buildDecoyAugmentedDB_;
+  using ProSEAlgorithm::annotateIonPriors_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -2974,6 +2975,81 @@ START_SECTION(([EXTRA] self-trained ion priors model multiply charged fragments 
   const auto [hits, violations] = check_ion_prior_annotations_(pep_ids, false);
   TEST_TRUE(hits > 0)
   TEST_EQUAL(violations, 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] self-trained ion priors: the scores and labels of a fold never reach the model of that fold))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  // Hits of a plain search, then annotated directly. search() leaves the spectra preprocessed, as annotated.
+  ProSEAlgorithm_test algo;
+  configure_ion_prior_params_(algo, 5, 0.5);
+  Param p = algo.getParameters();
+  p.setValue("annotate:self_trained_ion_priors", "false");
+  algo.setParameters(p);
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  ABORT_IF(prot_ids.empty() || pep_ids.empty())
+  p.setValue("annotate:self_trained_ion_priors", "true");
+  algo.setParameters(p);
+  auto annotate = [&](PeptideIdentificationList ids, std::string& trained) {
+    std::vector<ProteinIdentification> proteins = prot_ids;
+    algo.annotateIonPriors_(spectra, proteins, ids);
+    trained = proteins[0].getSearchParameters().getMetaValue("ion_prior:trained").toString();
+    return ids;
+  };
+  auto fold_of = [](const PeptideIdentification& pid) { return static_cast<Size>(static_cast<int>(pid.getMetaValue("scan_index"))) % 3; };
+
+  std::string trained;
+  const PeptideIdentificationList reference = annotate(pep_ids, trained);
+  TEST_STRING_EQUAL(trained, "true")
+
+  // Every target top hit of fold 0 turns into a decoy that outscores all hits. This rewrites the target-decoy
+  // competition of the other folds' models (and can fail their minimum-PSM gate), but not fold 0's model,
+  // which is selected, gated and fitted on folds 1 and 2 alone.
+  double best_score = -std::numeric_limits<double>::infinity();
+  for (const auto& pid : pep_ids)
+  {
+    for (const auto& hit : pid.getHits()) best_score = std::max(best_score, hit.getScore());
+  }
+  PeptideIdentificationList perturbed_input = pep_ids;
+  Size flipped = 0;
+  for (auto& pid : perturbed_input)
+  {
+    if (! pid.metaValueExists("scan_index") || pid.getHits().empty() || fold_of(pid) != 0) continue;
+    TEST_EQUAL(pid.isHigherScoreBetter(), true)
+    PeptideHit& top = pid.getHits()[0];
+    if (top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString() == "decoy") continue;
+    top.setMetaValue(Constants::UserParam::TARGET_DECOY, "decoy");
+    top.setScore(std::abs(best_score) * 10.0 + 100.0 + static_cast<double>(flipped++));
+  }
+  TEST_TRUE(flipped > 0)
+  const PeptideIdentificationList perturbed = annotate(perturbed_input, trained);
+
+  Size fold0_hits = 0, fold0_same = 0, other_changed = 0;
+  for (Size i = 0; i < reference.size(); ++i)
+  {
+    if (! reference[i].metaValueExists("scan_index")) continue;
+    const bool fold0 = fold_of(reference[i]) == 0;
+    for (Size h = 0; h < reference[i].getHits().size(); ++h)
+    {
+      bool same = true;
+      for (const std::string& feature : ion_prior_features_)
+      {
+        same = same && static_cast<double>(reference[i].getHits()[h].getMetaValue(feature))
+                         == static_cast<double>(perturbed[i].getHits()[h].getMetaValue(feature));
+      }
+      if (fold0) { ++fold0_hits; fold0_same += same; }
+      else if (! same) { ++other_changed; }
+    }
+  }
+  TEST_TRUE(fold0_hits > 0)
+  TEST_EQUAL(fold0_same, fold0_hits) // fold 0's model is unaffected
+  TEST_TRUE(other_changed > 0)       // the change does reach the models of the other folds
 }
 END_SECTION
 

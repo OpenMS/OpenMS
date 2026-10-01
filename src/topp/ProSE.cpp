@@ -90,8 +90,8 @@ and adds the Percolator features ion_prior_llr, ion_prior_explained and ion_prio
 The model is cross-fitted over 3 spectrum folds: each PSM is scored by a model whose training PSMs are selected and
 fitted from the other folds only.
 The model covers singly charged fragments for deisotoped (high-resolution) spectra and fragments up to
-min(precursor charge - 1, 3) otherwise, e.g. for ion-trap CID. Nothing is pre-trained: a file with fewer than `Search:annotate:ion_prior_min_psms` confident PSMs for a fold model, or searched
-without decoys, gets zeros (and a warning). Native scores and the reported candidates are unchanged.
+min(precursor charge - 1, 3) otherwise, e.g. for ion-trap CID. Nothing is pre-trained: the hits of a fold whose model has fewer than `Search:annotate:ion_prior_min_psms` confident PSMs,
+and every hit of a file searched without decoys, get zeros (and a warning). Native scores and the reported candidates are unchanged.
 
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
