@@ -50,6 +50,7 @@
 
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <cmath>
 #include <limits>
 #include <map>
@@ -1025,10 +1026,14 @@ protected:
     StringUtils::split(getStringOption_("PeptideQueryParameters:LibraryPrediction:precursor_charges"), ",", charge_strings);
     parameters.precursor_charges.clear();
     std::set<Int> unique_charges;
-    for (const auto& charge_string : charge_strings)
+    for (const auto& charge_token : charge_strings)
     {
-      const Int charge = static_cast<Int>(std::atoi(charge_string.c_str()));
-      if (charge <= 0)
+      const std::string charge_string = StringUtils::trimmed(charge_token);
+      Int charge = 0;
+      const char* begin = charge_string.data();
+      const char* end = begin + charge_string.size();
+      const auto [parsed_end, error] = std::from_chars(begin, end, charge);
+      if (charge_string.empty() || error != std::errc{} || parsed_end != end || charge <= 0)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "PeptideQueryParameters:LibraryPrediction:precursor_charges must contain only positive integers.");
@@ -4733,7 +4738,16 @@ protected:
         {
           const std::string reusable_pqp_abs = File::absolutePath(reusable_pqp);
           const std::string prepared_library_abs = File::absolutePath(prepared_library_pqp);
-          if (reusable_pqp_abs != prepared_library_abs)
+          if (reusable_pqp_abs == prepared_library_abs)
+          {
+            if (working_dir.remove_on_success)
+            {
+              working_dir.remove_on_success = false;
+              OPENMS_LOG_INFO << "Reusable prepared predicted library is the run-owned working library; "
+                              << "preserving intermediate directory: " << working_dir.path << std::endl;
+            }
+          }
+          else
           {
             if (File::exists(reusable_pqp_abs) && !File::remove(reusable_pqp_abs))
             {
