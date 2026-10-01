@@ -68,6 +68,16 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    void logDenseSpectra(Size dense, Size total)
+    {
+      if (dense == 0) return;
+      OPENMS_LOG_INFO << "[ProSE] " << dense << " of " << total
+                      << " MS2 spectra are dense and keep peaks:dense_window_top peaks per 100 Da window." << std::endl;
+    }
+  }
+
   ProSEAlgorithm::ProSEAlgorithm() :
     DefaultParamHandler("ProSEAlgorithm"),
     ProgressLogger()
@@ -122,6 +132,19 @@ namespace OpenMS
                        "'jump' scales the last window's peak quota by its observed width; 'jump_full' keeps the full quota in every window.",
                        {"advanced"});
     defaults_.setValidStrings("peaks:window_type", {"auto", "jump", "jump_full"});
+    defaults_.setValue("peaks:dense_window_top", 100,
+                       "Peaks kept per 100 Da window in dense spectra, wherever the local filter keeps full quotas "
+                       "(peaks:window_type 'auto' at high resolution, or 'jump_full'). A spectrum is dense when keeping "
+                       "peaks:window_top peaks per window would remove more than peaks:dense_intensity_loss of its intensity, "
+                       "as in Orbitrap Astral and many timsTOF spectra. 0, or a value not above peaks:window_top, disables this.",
+                       {"advanced"});
+    defaults_.setMinInt("peaks:dense_window_top", 0);
+    defaults_.setValue("peaks:dense_intensity_loss", 0.2,
+                       "Share of a spectrum's intensity (after deisotoping) that the peaks:window_top filter may remove before "
+                       "the spectrum counts as dense and keeps peaks:dense_window_top peaks per window instead.",
+                       {"advanced"});
+    defaults_.setMinFloat("peaks:dense_intensity_loss", 0.0);
+    defaults_.setMaxFloat("peaks:dense_intensity_loss", 1.0);
 
     defaults_.setSectionDescription("fragment", "Fragments (Product Ion) Options");
 
@@ -302,6 +325,8 @@ namespace OpenMS
     peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
     peaks_window_top_ = (Int)param_.getValue("peaks:window_top");
     peaks_window_type_ = param_.getValue("peaks:window_type").toString();
+    peaks_dense_window_top_ = (Size)(int)param_.getValue("peaks:dense_window_top");
+    peaks_dense_intensity_loss_ = (double)param_.getValue("peaks:dense_intensity_loss");
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
 
@@ -455,14 +480,15 @@ namespace OpenMS
                                            [](const MSSpectrum& spectrum) { return isElectronActivated_(spectrum); }));
   }
 
-  void ProSEAlgorithm::filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window)
+  bool ProSEAlgorithm::filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window, Size dense_peaks_per_window,
+                                         double dense_intensity_loss)
   {
     // Work on indices so all peak-associated data arrays survive the selection.
     // An isolated high-m/z ion is still evidence; its window's observed width
     // must not round the retention quota down to zero.
     std::vector<Size> indices(spectrum.size()), selected;
     std::iota(indices.begin(), indices.end(), 0);
-    selected.reserve(spectrum.size());
+    std::vector<std::pair<Size, Size>> windows;
     for (Size begin = 0; begin < spectrum.size();)
     {
       Size end = begin + 1;
@@ -470,25 +496,55 @@ namespace OpenMS
       {
         ++end;
       }
-      const Size keep = std::min(peaks_per_window, end - begin);
-      std::partial_sort(indices.begin() + begin, indices.begin() + begin + keep, indices.begin() + end, [&spectrum](Size a, Size b) {
-        if (spectrum[a].getIntensity() != spectrum[b].getIntensity()) { return spectrum[a].getIntensity() > spectrum[b].getIntensity(); }
-        return a < b;
-      });
-      selected.insert(selected.end(), indices.begin() + begin, indices.begin() + begin + keep);
+      windows.emplace_back(begin, end);
       begin = end;
+    }
+    // Rank each window by intensity once, deep enough for either quota; ties keep m/z order, so the
+    // strongest k peaks of a window are the same for every k.
+    const bool dense_enabled = dense_peaks_per_window > peaks_per_window;
+    const Size ranked = dense_enabled ? dense_peaks_per_window : peaks_per_window;
+    for (const auto& [begin, end] : windows)
+    {
+      std::partial_sort(indices.begin() + begin, indices.begin() + begin + std::min(ranked, end - begin), indices.begin() + end,
+                        [&spectrum](Size a, Size b) {
+                          if (spectrum[a].getIntensity() != spectrum[b].getIntensity()) { return spectrum[a].getIntensity() > spectrum[b].getIntensity(); }
+                          return a < b;
+                        });
+    }
+    bool dense = false;
+    if (dense_enabled)
+    {
+      double total = 0.0, kept = 0.0;
+      for (const auto& [begin, end] : windows)
+      {
+        for (Size i = begin; i < end; ++i)
+        {
+          total += spectrum[indices[i]].getIntensity();
+          if (i < begin + peaks_per_window) kept += spectrum[indices[i]].getIntensity();
+        }
+      }
+      dense = total > 0.0 && (total - kept) > dense_intensity_loss * total;
+    }
+    const Size quota = dense ? dense_peaks_per_window : peaks_per_window;
+    selected.reserve(spectrum.size());
+    for (const auto& [begin, end] : windows)
+    {
+      selected.insert(selected.end(), indices.begin() + begin, indices.begin() + begin + std::min(quota, end - begin));
     }
     std::sort(selected.begin(), selected.end());
     spectrum.select(selected);
+    return dense;
   }
 
-  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp,
+  Size ProSEAlgorithm::preprocessSpectra_(PeakMap& exp,
                                           double fragment_mass_tolerance,
                                           bool fragment_mass_tolerance_unit_ppm,
                                           bool deisotope_requested,
                                           Size peaks_keep_n,
                                           Int peaks_window_top,
-                                          const std::string& window_type)
+                                          const std::string& window_type,
+                                          Size dense_window_top,
+                                          double dense_intensity_loss)
   {
     // Intensity threshold + normalization used to run here as two extra SERIAL full-map
     // passes. Both are strictly per-spectrum: ThresholdMower::filterPeakMap and
@@ -561,8 +617,10 @@ namespace OpenMS
     const bool do_deisotope = deisotope_requested &&
       Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
+    Size dense_spectra = 0;
 #pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, threshold_mower_filter, \
-                                                normalizer, window_mower_filter, nlargest_filter, full_window_quota, peaks_window_top)
+                                                normalizer, window_mower_filter, nlargest_filter, full_window_quota, peaks_window_top, \
+                                                dense_window_top, dense_intensity_loss) reduction(+ : dense_spectra)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       // remove 0 intensities, then normalize (formerly two serial full-map passes)
@@ -584,13 +642,17 @@ namespace OpenMS
       }
 
       // remove noise
-      if (full_window_quota) { filterLocalPeaks_(exp[exp_index], static_cast<Size>(peaks_window_top)); }
+      if (full_window_quota)
+      {
+        if (filterLocalPeaks_(exp[exp_index], static_cast<Size>(peaks_window_top), dense_window_top, dense_intensity_loss)) { ++dense_spectra; }
+      }
       else { window_mower_filter.filterPeakSpectrum(exp[exp_index]); }
       nlargest_filter.filterPeakSpectrum(exp[exp_index]);
 
       // sort (nlargest changes order)
       exp[exp_index].sortByPosition();
     }
+    return dense_spectra;
   }
 
   double ProSEAlgorithm::CandidatePoolStats_::zScore() const
@@ -1068,6 +1130,8 @@ namespace OpenMS
       peaks_window_type_ == "auto"
         ? (Deisotoper::isToleranceSupported(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ == "ppm") ? "jump_full" : "jump")
         : peaks_window_type_);
+    search_parameters.setMetaValue("peaks:dense_window_top", static_cast<int>(peaks_dense_window_top_));
+    search_parameters.setMetaValue("peaks:dense_intensity_loss", peaks_dense_intensity_loss_);
 
     search_parameters.enzyme_term_specificity = peptide_enzyme_specificity_;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
@@ -1624,8 +1688,9 @@ namespace OpenMS
 
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
     bool open_search_mode = isOpenSearchMode_();
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_,
-                       peaks_window_type_);
+    logDenseSpectra(preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_,
+                                       peaks_window_top_, peaks_window_type_, peaks_dense_window_top_, peaks_dense_intensity_loss_),
+                    spectra.size());
 
     // ions:by_activation: the chunk indices hold c and z+1 ions if electron-activated spectra are searched
     const Size n_electron_activated = countElectronActivated_(spectra);
@@ -1880,8 +1945,9 @@ namespace OpenMS
                     << precursor_mass_tolerance_unit_ << ")" << std::endl;
 
     startProgress(0, 1, "Filtering spectra...");
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_,
-                       peaks_window_type_);
+    logDenseSpectra(preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_,
+                                       peaks_window_top_, peaks_window_type_, peaks_dense_window_top_, peaks_dense_intensity_loss_),
+                    spectra.size());
     endProgress();
 
     // ions:by_activation: electron-activated spectra are also scored with c and z+1 ions, so the
@@ -2441,8 +2507,10 @@ namespace OpenMS
         f.getOptions() = options;
         f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         all_spectra[i].sortSpectra(true);
-        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_,
-                           peaks_window_top_, peaks_window_type_);
+        logDenseSpectra(preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_,
+                                           peaks_keep_n_, peaks_window_top_, peaks_window_type_, peaks_dense_window_top_,
+                                           peaks_dense_intensity_loss_),
+                        all_spectra[i].size());
       }
 
       // ions:by_activation: the chunk indices, shared by all files, hold c and z+1 ions if any file has

@@ -597,17 +597,36 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double zScore() const;
     };
 
-    /// @brief filter, deisotope, decharge spectra
-    static void preprocessSpectra_(PeakMap& exp,
+    /**
+      @brief filter, deisotope, decharge spectra
+
+      @p dense_window_top and @p dense_intensity_loss configure the dense-spectrum quota of the full-quota
+      local filter (see filterLocalPeaks_); the defaults disable it.
+
+      @return the number of spectra filtered with the dense quota
+    */
+    static Size preprocessSpectra_(PeakMap& exp,
                                    double fragment_mass_tolerance,
                                    bool fragment_mass_tolerance_unit_ppm,
                                    bool deisotope_requested,
                                    Size peaks_keep_n,
                                    Int peaks_window_top,
-                                   const std::string& window_type = "auto");
+                                   const std::string& window_type = "auto",
+                                   Size dense_window_top = 0,
+                                   double dense_intensity_loss = 1.0);
 
-    /// Keep the strongest peaks in each non-overlapping 100 Da window, including a short final window.
-    static void filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window);
+    /**
+      @brief Keep the strongest peaks in each non-overlapping 100 Da window, including a short final window.
+
+      A spectrum is dense when keeping @p peaks_per_window peaks per window would remove more than
+      @p dense_intensity_loss of its intensity. A dense spectrum keeps @p dense_peaks_per_window peaks per window
+      instead, if that is larger. Dense spectra (Orbitrap Astral, timsTOF) carry fragment ions far below the
+      strongest peaks of a window; a fixed quota removes them.
+
+      @return whether the spectrum was filtered with the dense quota
+    */
+    static bool filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window, Size dense_peaks_per_window = 0,
+                                  double dense_intensity_loss = 1.0);
 
     /// How decoys are obtained/recognised for a search (parameter "decoys").
     enum class DecoyMode_
@@ -823,6 +842,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     Size peaks_keep_n_{0};     ///< NLargest cap on MS2 peaks before scoring; 0 = resolution-aware auto (peaks:keep_n)
     Int peaks_window_top_{20}; ///< WindowMower peaks-per-100Da before scoring (peaks:window_top)
     std::string peaks_window_type_ {"auto"}; ///< Resolution-aware treatment of the final peak window
+    Size peaks_dense_window_top_{100};        ///< Peaks per 100 Da window kept in dense spectra (peaks:dense_window_top)
+    double peaks_dense_intensity_loss_{0.2};  ///< Intensity share whose removal marks a spectrum as dense (peaks:dense_intensity_loss)
 
     StringList modifications_fixed_;
 

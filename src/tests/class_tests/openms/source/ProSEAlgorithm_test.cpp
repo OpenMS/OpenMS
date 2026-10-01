@@ -58,6 +58,7 @@ public:
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
   using ProSEAlgorithm::preprocessSpectra_;
+  using ProSEAlgorithm::filterLocalPeaks_;
   using ProSEAlgorithm::resolveDecoyStrategy_;
   using ProSEAlgorithm::DecoyStrategy_;
   using ProSEAlgorithm::buildDecoyAugmentedDB_;
@@ -2706,6 +2707,69 @@ START_SECTION(([EXTRA] auto peak retention (peaks:keep_n=0) is resolution-aware)
   PeakMap ov = dense();                    // explicit value overrides auto, any resolution
   ProSEAlgorithm_test::preprocessSpectra_(ov, 0.5, false, false, 50, 20);
   TEST_TRUE(ov[0].size() <= 50)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] dense spectra keep peaks:dense_window_top peaks per window))
+{
+  // One 100 Da window (0.5 Da spacing): 20 strong peaks and n weak ones. With 80 weak peaks the top-20 filter removes 80 of
+  // 280 intensity units (29%), so the spectrum is dense; with 10 weak peaks it removes 10 of 210 (5%).
+  auto window = [](Size weak)
+  {
+    MSSpectrum s;
+    s.setMSLevel(2);
+    for (Size i = 0; i < 20 + weak; ++i) { s.emplace_back(200.0 + i * 0.5, i < 20 ? 10.0f : 1.0f); }
+    s.sortByPosition();
+    return s;
+  };
+
+  MSSpectrum dense = window(80);
+  TEST_EQUAL(ProSEAlgorithm_test::filterLocalPeaks_(dense, 20, 100, 0.2), true)
+  TEST_EQUAL(dense.size(), 100)
+
+  MSSpectrum sparse = window(10);
+  TEST_EQUAL(ProSEAlgorithm_test::filterLocalPeaks_(sparse, 20, 100, 0.2), false)
+  TEST_EQUAL(sparse.size(), 20)
+  for (const Peak1D& p : sparse) { TEST_REAL_SIMILAR(p.getIntensity(), 10.0) }
+
+  // A larger allowed loss, a dense quota of 0 or one not above the regular quota keep the regular quota.
+  MSSpectrum tolerant = window(80);
+  TEST_EQUAL(ProSEAlgorithm_test::filterLocalPeaks_(tolerant, 20, 100, 0.3), false)
+  TEST_EQUAL(tolerant.size(), 20)
+  MSSpectrum disabled = window(80);
+  TEST_EQUAL(ProSEAlgorithm_test::filterLocalPeaks_(disabled, 20, 0, 0.2), false)
+  TEST_EQUAL(disabled.size(), 20)
+  MSSpectrum not_larger = window(80);
+  TEST_EQUAL(ProSEAlgorithm_test::filterLocalPeaks_(not_larger, 20, 20, 0.2), false)
+  TEST_EQUAL(not_larger.size(), 20)
+
+  // The dense quota still caps each window: 150 weak peaks, 100 of 170 peaks kept, the strongest first.
+  MSSpectrum capped = window(150);
+  TEST_EQUAL(ProSEAlgorithm_test::filterLocalPeaks_(capped, 20, 100, 0.2), true)
+  TEST_EQUAL(capped.size(), 100)
+  TEST_EQUAL(std::count_if(capped.begin(), capped.end(), [](const Peak1D& p) { return p.getIntensity() == 10.0f; }), 20)
+
+  // preprocessSpectra_ applies it only where the local filter keeps full quotas (high resolution under 'auto',
+  // or 'jump_full') and reports the number of dense spectra. The legacy 'jump' filter is unchanged.
+  auto run = [&window](double tolerance, bool ppm, const std::string& type, Size dense_top)
+  {
+    PeakMap exp;
+    exp.addSpectrum(window(80));
+    exp.addSpectrum(window(10));
+    const Size n_dense = ProSEAlgorithm_test::preprocessSpectra_(exp, tolerance, ppm, false, 400, 20, type, dense_top, 0.2);
+    return std::make_tuple(n_dense, exp[0].size(), exp[1].size());
+  };
+  TEST_TRUE(run(20.0, true, "auto", 100) == std::make_tuple(Size(1), Size(100), Size(20)))
+  TEST_TRUE(run(0.5, false, "jump_full", 100) == std::make_tuple(Size(1), Size(100), Size(20)))
+  TEST_TRUE(run(20.0, true, "auto", 0) == std::make_tuple(Size(0), Size(20), Size(20)))
+  TEST_EQUAL(std::get<0>(run(0.5, false, "auto", 100)), 0)
+  TEST_TRUE(run(0.5, false, "auto", 100) == run(0.5, false, "auto", 0))
+  TEST_EQUAL(std::get<0>(run(20.0, true, "jump", 100)), 0)
+  TEST_TRUE(run(20.0, true, "jump", 100) == run(20.0, true, "jump", 0))
+
+  ProSEAlgorithm_test algo;
+  TEST_EQUAL(int(algo.getParameters().getValue("peaks:dense_window_top")), 100)
+  TEST_REAL_SIMILAR(double(algo.getParameters().getValue("peaks:dense_intensity_loss")), 0.2)
 }
 END_SECTION
 

@@ -83,6 +83,10 @@ peaks in every 100 Da window, including the short final window, for high-resolut
 (tolerance <= 0.1 Da or <= 100 ppm). Low-resolution auto retains the legacy width-scaled final
 quota. Use `jump` for legacy filtering at every resolution, or `jump_full` to always retain
 the full quota. This changes high-resolution preprocessing, not the scoring formula.
+Where the full quota applies, a dense spectrum keeps `Search:peaks:dense_window_top` (100) peaks per
+window instead: one in which `Search:peaks:window_top` peaks per window would remove more than
+`Search:peaks:dense_intensity_loss` (20%) of its intensity after deisotoping. Orbitrap Astral and many
+timsTOF spectra are dense; Orbitrap spectra rarely are. Set `Search:peaks:dense_window_top` to 0 to disable.
 
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
