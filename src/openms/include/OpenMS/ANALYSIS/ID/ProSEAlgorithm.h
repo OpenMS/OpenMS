@@ -892,6 +892,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string peptide_motif_;
 
     Size report_top_hits_;
+    /// report:isotope_error_convention: the PSMs report isotope_error as observed minus theoretical (true) or with the
+    /// sign of the search offset, theoretical minus observed (false)
+    bool isotope_error_observed_minus_theoretical_{true};
 
     bool add_a_ions_{false};
     bool add_b_ions_{true};

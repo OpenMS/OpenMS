@@ -243,6 +243,17 @@ namespace OpenMS
     defaults_.setValidStrings("snes_enabled", {"true", "false"});
 
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
+    defaults_.setValue("report:isotope_error_convention", "observed_minus_theoretical",
+                       "Sign of the precursor isotope error reported for each PSM (meta value 'isotope_error', in 13C "
+                       "spacings of 1.00336 Da). 'observed_minus_theoretical': +1 means the observed precursor lies one "
+                       "13C spacing above the peptide (its first 13C isotope peak was selected), as in MS-GF+, pepXML and "
+                       "Sage; PercolatorInfile and PercolatorAdapter (-out_pin, -percolator_executable) remove the offset "
+                       "from the precursor mass difference with this sign. The search parameters of the result record it "
+                       "as 'isotope_error_convention'. 'theoretical_minus_observed': the opposite sign, as written by "
+                       "earlier ProSE versions (no record in the search parameters); with it the Percolator input "
+                       "doubles the offset in dm/absdm instead of removing it.",
+                       {"advanced"});
+    defaults_.setValidStrings("report:isotope_error_convention", {"observed_minus_theoretical", "theoretical_minus_observed"});
     defaults_.setSectionDescription("report", "Reporting Options");
 
     defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Target and decoy PSMs are filtered alike by the q-value threshold; decoys that pass are kept (no decoy-specific stripping here — decoys are removed only at protein-FDR finalization). Requires '-decoys' to be set.");
@@ -260,9 +271,16 @@ namespace OpenMS
     // Fragment-level filtering
     defaults_.setValue("fragment:min_matched_ions", 5, "Minimal number of matched ions to report a PSM");
 
-    // Precursor isotope error handling
-    defaults_.setValue("precursor:isotope_error_min", -1, "Minimum allowed precursor isotope error");
-    defaults_.setValue("precursor:isotope_error_max", 1, "Maximum allowed precursor isotope error");
+    // Precursor isotope error handling. The search convention (theoretical minus observed) is kept for these two
+    // parameters; the reported isotope_error follows report:isotope_error_convention.
+    defaults_.setValue("precursor:isotope_error_min", -1,
+                       "Minimum precursor isotope error searched, in 13C spacings (1.00336 Da) added to the observed "
+                       "precursor mass: -1 finds a peptide whose first 13C isotope peak was selected as the precursor. "
+                       "The PSM meta value 'isotope_error' reports the opposite sign by default (see "
+                       "report:isotope_error_convention).");
+    defaults_.setValue("precursor:isotope_error_max", 1,
+                       "Maximum precursor isotope error searched, with the sign of precursor:isotope_error_min: +1 finds "
+                       "a peptide whose precursor was selected one 13C spacing below its monoisotopic peak.");
 
     // Fragment and scoring limits
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
@@ -414,6 +432,8 @@ namespace OpenMS
     peptide_motif_ = param_.getValue("peptide:motif").toString(); // TODO: remove unused parameters
 
     report_top_hits_ = param_.getValue("report:top_hits");
+    isotope_error_observed_minus_theoretical_ =
+      param_.getValue("report:isotope_error_convention").toString() == "observed_minus_theoretical";
 
     const std::string decoy_mode_str = param_.getValue("decoys").toString();
     if (decoy_mode_str == "generate")   { decoy_mode_ = DecoyMode_::GENERATE; }
@@ -1009,7 +1029,8 @@ namespace OpenMS
     // still registered inside the loop, after the ones below, as before (checked: the registry
     // contents after a search are the same as before this change, at 1 and at 16 threads).
     const bool open_search_mode = isOpenSearchMode_();
-    UInt mv_scan_index{}, mv_fragment_error{}, mv_precursor_error{}, mv_prefix_fraction{}, mv_suffix_fraction{},
+    const int isotope_error_sign = isotope_error_observed_minus_theoretical_ ? -1 : 1;
+    UInt mv_scan_index{},mv_fragment_error{}, mv_precursor_error{}, mv_prefix_fraction{}, mv_suffix_fraction{},
          mv_num_matched_peaks{}, mv_matched_prefix_ions{}, mv_matched_suffix_ions{}, mv_delta_score{},
          mv_hyperscore_zscore{}, mv_ln_num_candidates{}, mv_matched_ion_current{}, mv_matched_ion_current_fraction{},
          mv_longest_ion_run{}, mv_complementary_ions_fraction{}, mv_isotope_error{}, mv_delta_mass{};
@@ -1124,6 +1145,7 @@ namespace OpenMS
             // shifted_mass = precursor_mass + isotope_error * C13C12, so M_theo ≈ N_obs
             // + isotope_error * C13C12, and the observed-to-monoiso correction in m/z is
             //   corrected_mz = observed_mz + isotope_error * C13C12 / charge
+            // (ah.isotope_error is this search offset, whatever sign the PSM reports).
             // Without this, a ±1 Da FI match reports ~1000 ppm / charge for the Percolator
             // feature, corrupting target/decoy discrimination.
             const double corrected_mz = mz
@@ -1297,8 +1319,10 @@ namespace OpenMS
           }
 
 
-          // Add isotope error metavalue (always; exposed as Percolator feature)
-          ph.setMetaValue(mv_isotope_error, ah.isotope_error);
+          // Add isotope error metavalue (always; exposed as Percolator feature). ah.isotope_error is the offset
+          // FragmentIndex added to the observed mass (theoretical minus observed); report:isotope_error_convention
+          // selects the reported sign.
+          ph.setMetaValue(mv_isotope_error, isotope_error_sign * ah.isotope_error);
 
           // Add delta mass metavalue for open search
           if (open_search_mode)
@@ -1396,6 +1420,12 @@ namespace OpenMS
     feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
     // note: precursor error is calculated by percolator itself
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+    // Readers tell the sign of the PSMs' isotope_error by this record; without it (earlier ProSE versions, or
+    // report:isotope_error_convention=theoretical_minus_observed) the sign is theoretical minus observed.
+    if (isotope_error_observed_minus_theoretical_)
+    {
+      search_parameters.setMetaValue("isotope_error_convention", "observed_minus_theoretical");
+    }
     // record whether open-search mode was used
     search_parameters.setMetaValue("open_search", isOpenSearchMode_() ? "true" : "false");
 
