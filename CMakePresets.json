@@ -283,6 +283,19 @@
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-release"
             }
+        },
+        {
+            "name": "windows-x64-debug-ci",
+            "displayName": "Windows x64 Debug CI",
+            "description": "The CI preset for the Windows Debug SDK (.github/workflows/release.yml): the same options as windows-x64-ci, built Debug. A Debug build links the debug CRT (/MDd), so it uses the x64-windows-static-md triplet, which builds every dependency in both forms (see windows-x64-debug).",
+            "inherits": [
+                "windows-x64-base",
+                "debug-base",
+                "ci-base"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
+            }
         }
     ],
     "buildPresets": [
@@ -349,6 +362,10 @@
         {
             "name": "windows-x64-ci",
             "configurePreset": "windows-x64-ci"
+        },
+        {
+            "name": "windows-x64-debug-ci",
+            "configurePreset": "windows-x64-debug-ci"
         }
     ],
     "testPresets": [
@@ -447,6 +464,11 @@
         {
             "name": "windows-x64-ci",
             "configurePreset": "windows-x64-ci",
+            "inherits": ["test-base","test-base-ci"]
+        },
+        {
+            "name": "windows-x64-debug-ci",
+            "configurePreset": "windows-x64-debug-ci",
             "inherits": ["test-base","test-base-ci"]
         }
     ]
