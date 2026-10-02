@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cmath>
 #include <exception>
 #include <fstream>
 #include <numeric>
@@ -340,6 +341,7 @@ namespace OpenMS
         std::vector<std::string> names; // registry index -> name; registered names are not empty, so "" is not resolved yet
         std::vector<UInt> keys;
         std::vector<Size> order;
+        std::vector<PeptideHit> sorted_hits;
         std::vector<std::string> protein_accessions;
       };
 
@@ -392,15 +394,26 @@ namespace OpenMS
         out << ">\n";
 
         // write peptide hits, in the order of PeptideIdentification::sort() (a stable sort by score)
-        const vector<PeptideHit>& pep_hits = pep_id.getHits();
+        const vector<PeptideHit>* pep_hits = &pep_id.getHits();
         const auto comparator = PeptideIdentification::getScoreComparator(pep_id.isHigherScoreBetter());
-        scratch.order.resize(pep_hits.size());
+        scratch.order.resize(pep_hits->size());
         std::iota(scratch.order.begin(), scratch.order.end(), Size(0));
-        std::stable_sort(scratch.order.begin(), scratch.order.end(), [&](Size x, Size y) { return comparator(pep_hits[x], pep_hits[y]); });
+        if (std::any_of(pep_hits->begin(), pep_hits->end(), [](const PeptideHit& hit) { return std::isnan(hit.getScore()); }))
+        {
+          // NaN scores are not a strict weak order, so the result depends on the sorting algorithm, which may differ
+          // between sorting indices and sorting the hits (e.g. libc++): sort a copy of the hits, as sort() does
+          scratch.sorted_hits = *pep_hits;
+          std::stable_sort(scratch.sorted_hits.begin(), scratch.sorted_hits.end(), comparator);
+          pep_hits = &scratch.sorted_hits;
+        }
+        else
+        {
+          std::stable_sort(scratch.order.begin(), scratch.order.end(), [&](Size x, Size y) { return comparator((*pep_hits)[x], (*pep_hits)[y]); });
+        }
 
         for (const Size h : scratch.order)
         {
-          const PeptideHit& p_hit = pep_hits[h];
+          const PeptideHit& p_hit = (*pep_hits)[h];
           out << "\t\t\t<PeptideHit"
               << " score=\"" << StringUtils::toStr(p_hit.getScore()) << "\""
               << " sequence=\"" << writeXMLEscape(p_hit.getSequence().toString()) << "\""

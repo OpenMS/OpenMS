@@ -22,8 +22,10 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <fstream>
+#include <limits>
 #include <sstream>
 
 #ifdef _OPENMP
@@ -674,6 +676,77 @@ START_SECTION([EXTRA] store - many peptide identifications are written in input 
 #ifdef _OPENMP
   omp_set_num_threads(max_threads);
 #endif
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - hits with NaN scores are written in the order of PeptideIdentification::sort() with any number of threads)
+{
+  // NaN scores are not a strict weak order; the hits must still be written in the order that sorting them gives
+  std::vector<ProteinIdentification> prots(3);
+  for (Size r = 0; r < prots.size(); ++r)
+  {
+    prots[r].setIdentifier("runNaN" + StringUtils::toStr(r));
+    prots[r].setDateTime(DateTime::now());
+  }
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  const std::vector<std::vector<double>> patterns = {{2.0, 1.0, nan, 5.0, nan, nan}, {nan, 1.0}, {1.0, nan, 2.0},
+                                                     {nan, nan, 3.0, 1.0, 2.0, 4.0, nan, 0.5}, {3.0, 1.0, 2.0}};
+  const std::string residues = "ACDEFGHI";
+  const Size n = 120;
+  PeptideIdentificationList peps(n);
+  for (Size l = 0; l < n; ++l)
+  {
+    PeptideIdentification& pep = peps[l];
+    pep.setIdentifier("runNaN" + StringUtils::toStr(l % prots.size()));
+    pep.setScoreType("score");
+    pep.setHigherScoreBetter(l % 7 < 4);
+    const std::vector<double>& scores = patterns[l % patterns.size()];
+    for (Size h = 0; h < scores.size(); ++h)
+    {
+      pep.insertHit(PeptideHit(scores[h], 0, 2, AASequence::fromString(std::string("SAMPLE") + residues[h])));
+    }
+  }
+
+  std::string file_1, file_n;
+  NEW_TMP_FILE(file_1)
+  NEW_TMP_FILE(file_n)
+#ifdef _OPENMP
+  const int max_threads = omp_get_max_threads();
+  omp_set_num_threads(1);
+#endif
+  IdXMLFile().store(file_1, prots, peps);
+#ifdef _OPENMP
+  omp_set_num_threads(std::max(max_threads, 4));
+#endif
+  IdXMLFile().store(file_n, prots, peps);
+#ifdef _OPENMP
+  omp_set_num_threads(max_threads);
+#endif
+  TEST_EQUAL(slurp4b(file_1) == slurp4b(file_n), true)
+
+  std::vector<ProteinIdentification> prots_in;
+  PeptideIdentificationList peps_in;
+  IdXMLFile().load(file_n, prots_in, peps_in);
+  TEST_EQUAL(peps_in.size(), n)
+  ABORT_IF(peps_in.size() != n)
+  bool same_order = true;
+  Size k = 0;
+  for (Size r = 0; r < prots.size(); ++r)
+  {
+    for (Size l = r; l < n; l += prots.size(), ++k)
+    {
+      PeptideIdentification sorted = peps[l];
+      sorted.sort();
+      const std::vector<PeptideHit>& hits_in = peps_in[k].getHits();
+      same_order &= hits_in.size() == sorted.getHits().size();
+      for (Size h = 0; same_order && h < hits_in.size(); ++h)
+      {
+        same_order &= hits_in[h].getSequence() == sorted.getHits()[h].getSequence();
+        same_order &= std::isnan(hits_in[h].getScore()) == std::isnan(sorted.getHits()[h].getScore());
+      }
+    }
+  }
+  TEST_EQUAL(same_order, true)
 }
 END_SECTION
 
