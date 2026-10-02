@@ -403,13 +403,15 @@ protected:
    */
   struct Fragment
   {
-      Fragment() = default;
+      /// Leaves the members uninitialised on purpose: std::vector<Fragment>::resize() then writes nothing,
+      /// so build() can fill the index in parallel instead of zeroing it serially first.
+      Fragment() {}
       Fragment(UInt32 peptide_idx, float fragment_mz):
           peptide_idx_(peptide_idx),
           fragment_mz_(fragment_mz)
       {}
-      UInt32 peptide_idx_{}; // 32 bit in sage
-      float fragment_mz_{};
+      UInt32 peptide_idx_; // 32 bit in sage
+      float fragment_mz_;
   };
 
     bool is_build_{false};              ///< true, if the database has been populated with fragments

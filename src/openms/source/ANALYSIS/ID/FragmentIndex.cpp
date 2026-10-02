@@ -1148,6 +1148,127 @@ namespace OpenMS
       OPENMS_LOG_INFO << "done." << std::endl;
   }
 
+  namespace
+  {
+    // build() partitions the fragments into m/z bins (mergeFragmentsIntoMzBins) and sortAndBucketFragments_()
+    // finishes the bins independently of each other. A bin holds the fragments whose m/z bit patterns agree
+    // in all but the lowest MZ_BIN_SHIFT bits (1 Th wide at m/z 512-1024, 2 Th at 1024-2048, ...). For floats
+    // that are neither negative nor NaN the IEEE-754 bit pattern orders like the value, so the bins ascend
+    // in m/z and the low bits ("cell") order the m/z values inside a bin.
+    constexpr int MZ_BIN_SHIFT = 14;
+    constexpr uint32_t MZ_BIN_END = 0x7F800000u >> MZ_BIN_SHIFT; // first bin of infinity, NaN and negative m/z
+    constexpr size_t MAX_MZ_BINS = 8192;
+
+    template <typename FragmentT>
+    inline uint32_t mzBin(const FragmentT& fragment)
+    {
+      return std::bit_cast<uint32_t>(fragment.fragment_mz_) >> MZ_BIN_SHIFT;
+    }
+
+    // Moves the fragments of all blocks into merged and releases the blocks.
+    // The fragments end up partitioned into ascending m/z bins, in no particular order inside a bin, unless
+    // their m/z values cannot be binned (then they are just concatenated). The partitioning is parallel and
+    // needs no intermediate copy; which fragments share a bin does not depend on the number of threads or
+    // on how the fragments are spread over the blocks.
+    template <typename FragmentT>
+    void mergeFragmentsIntoMzBins(std::vector<std::vector<FragmentT>>& blocks, std::vector<FragmentT>& merged)
+    {
+      size_t total = 0;
+      for (const auto& v : blocks) total += v.size();
+
+      // Work items: pieces of the blocks
+      struct Chunk
+      {
+        size_t source, begin, end;
+      };
+      const size_t chunk_size = size_t(1) << 20;
+      std::vector<Chunk> chunks;
+      for (size_t s = 0; s < blocks.size(); ++s)
+      {
+        for (size_t begin = 0; begin < blocks[s].size(); begin += chunk_size)
+        {
+          chunks.push_back({s, begin, std::min(begin + chunk_size, blocks[s].size())});
+        }
+      }
+      const SignedSize num_chunks = static_cast<SignedSize>(chunks.size());
+
+      // Range of bins in use
+      std::vector<uint32_t> chunk_min(chunks.size()), chunk_max(chunks.size());
+      #pragma omp parallel for schedule(dynamic)
+      for (SignedSize c = 0; c < num_chunks; ++c)
+      {
+        const FragmentT* source = blocks[chunks[c].source].data();
+        uint32_t lowest = std::numeric_limits<uint32_t>::max();
+        uint32_t highest = 0;
+        for (size_t k = chunks[c].begin; k < chunks[c].end; ++k)
+        {
+          const uint32_t bits = std::bit_cast<uint32_t>(source[k].fragment_mz_);
+          lowest = std::min(lowest, bits);
+          highest = std::max(highest, bits);
+        }
+        chunk_min[c] = lowest >> MZ_BIN_SHIFT;
+        chunk_max[c] = highest >> MZ_BIN_SHIFT;
+      }
+      const uint32_t first_bin = chunks.empty() ? 0 : *std::min_element(chunk_min.begin(), chunk_min.end());
+      const uint32_t last_bin = chunks.empty() ? 0 : *std::max_element(chunk_max.begin(), chunk_max.end());
+
+      if (chunks.empty() || !merged.empty() || last_bin >= MZ_BIN_END || last_bin - first_bin >= MAX_MZ_BINS)
+      {
+        // Nothing to partition, or not possible: concatenate (sortAndBucketFragments_() copes with any order)
+        merged.reserve(merged.size() + total);
+        for (auto& v : blocks)
+        {
+          merged.insert(merged.end(), v.begin(), v.end());
+          std::vector<FragmentT>().swap(v);
+        }
+        return;
+      }
+      const size_t num_bins = last_bin - first_bin + 1;
+
+      // Fragments per chunk and bin, turned into the position at which each chunk fills each bin
+      std::vector<size_t> positions(chunks.size() * num_bins, 0);
+      #pragma omp parallel for schedule(dynamic)
+      for (SignedSize c = 0; c < num_chunks; ++c)
+      {
+        const FragmentT* source = blocks[chunks[c].source].data();
+        size_t* count = &positions[c * num_bins];
+        for (size_t k = chunks[c].begin; k < chunks[c].end; ++k) ++count[mzBin(source[k]) - first_bin];
+      }
+      size_t position = 0;
+      for (size_t b = 0; b < num_bins; ++b)
+      {
+        for (size_t c = 0; c < chunks.size(); ++c)
+        {
+          const size_t count = positions[c * num_bins + b];
+          positions[c * num_bins + b] = position;
+          position += count;
+        }
+      }
+
+      // Fragment's default constructor leaves the new elements uninitialised: the threads below write them first
+      merged.resize(total);
+
+      // Scatter. The chunks are handed out in order and a block is released with its last chunk, so that
+      // blocks and merged together need little more memory than the fragments.
+      std::vector<size_t> open_chunks(blocks.size(), 0);
+      for (const Chunk& chunk : chunks) ++open_chunks[chunk.source];
+      FragmentT* destination = merged.data();
+      #pragma omp parallel for schedule(dynamic)
+      for (SignedSize c = 0; c < num_chunks; ++c)
+      {
+        const FragmentT* source = blocks[chunks[c].source].data();
+        size_t* next = &positions[c * num_bins];
+        for (size_t k = chunks[c].begin; k < chunks[c].end; ++k) destination[next[mzBin(source[k]) - first_bin]++] = source[k];
+
+        bool source_done = false;
+        #pragma omp critical (FragmentIndex_mergeFragmentsIntoMzBins)
+        source_done = (--open_chunks[chunks[c].source] == 0);
+        if (source_done) std::vector<FragmentT>().swap(blocks[chunks[c].source]);
+      }
+      blocks.clear(); // also those without fragments
+    }
+  }
+
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
       // A rebuild replaces the previous database. generatePeptides() and the fragment
@@ -1188,18 +1309,39 @@ namespace OpenMS
       const int num_threads = 1;
 #endif
       const size_t est_per_thread = (fi_peptides_.size() * 2 * peptide_min_length_) / num_threads + 1;
-      vector<vector<Fragment>> thread_fragments(num_threads);
-      vector<vector<Fragment>> thread_electron_fragments(num_threads); // ions:electron_ions
+      // Each vector object gets cache lines of its own: the generators update its size with every fragment,
+      // which slows down the threads working on vector objects in the same cache line (false sharing).
+      struct alignas(128) ThreadFragments : vector<Fragment> {};
+      vector<ThreadFragments> thread_fragments(num_threads);
+      vector<ThreadFragments> thread_electron_fragments(num_threads); // ions:electron_ions
       for (int t = 0; t < num_threads; ++t)
       {
         thread_fragments[t].reserve(est_per_thread);
         if (electron_ions_) thread_electron_fragments[t].reserve(est_per_thread);
       }
 
+      // A vector that has grown to block_size is set aside, so that the merge below can release the
+      // fragments block by block. (Blocks of this size are returned to the system when freed.)
+      const size_t block_size = size_t(1) << 22;
+      vector<vector<Fragment>> fragment_blocks;
+      vector<vector<Fragment>> electron_fragment_blocks;
+      auto set_aside_if_full = [block_size](vector<Fragment>& fragments, vector<vector<Fragment>>& blocks)
+      {
+        if (fragments.size() < block_size) return;
+        vector<Fragment> next;
+        next.reserve(block_size + 4096);
+        fragments.swap(next);
+        #pragma omp critical (FragmentIndex_build_blocks)
+        blocks.push_back(std::move(next));
+      };
+
       // Unified fragment generation path for all cases.
       // For modified peptides: reconstruct per-residue deltas from bitmask + mod tables.
       // No AASequence construction, no ModifiedPeptideGenerator.
-      #pragma omp parallel for
+      // The peptides are sorted by mass and heavier ones have more fragments: hand them out in small
+      // portions so that all threads stay busy. (Which thread generates a fragment does not matter,
+      // the fragments are sorted below.)
+      #pragma omp parallel for schedule(dynamic, 1024)
       for (SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
       {
 #ifdef _OPENMP
@@ -1207,6 +1349,8 @@ namespace OpenMS
 #else
         const int tid = 0;
 #endif
+        set_aside_if_full(thread_fragments[tid], fragment_blocks);
+        set_aside_if_full(thread_electron_fragments[tid], electron_fragment_blocks);
         const Peptide& pep = fi_peptides_[peptide_idx];
         const char* seq_ptr = fasta_entries[pep.protein_idx].sequence.c_str() + pep.sequence_.first;
         size_t seq_len = pep.sequence_.second;
@@ -1342,20 +1486,14 @@ namespace OpenMS
         }
       }
 
-      // Merge per-thread vectors into the global fragment arrays
-      auto merge_thread_fragments = [num_threads](vector<vector<Fragment>>& per_thread, vector<Fragment>& merged)
+      // Merge the blocks into the global fragment arrays, partitioned into m/z bins
+      for (int t = 0; t < num_threads; ++t)
       {
-        size_t total_fragments = 0;
-        for (int t = 0; t < num_threads; ++t) total_fragments += per_thread[t].size();
-        merged.reserve(total_fragments);
-        for (int t = 0; t < num_threads; ++t)
-        {
-          merged.insert(merged.end(), per_thread[t].begin(), per_thread[t].end());
-          vector<Fragment>().swap(per_thread[t]);
-        }
-      };
-      merge_thread_fragments(thread_fragments, fi_fragments_);
-      merge_thread_fragments(thread_electron_fragments, electron_fragments_);
+        fragment_blocks.push_back(std::move(thread_fragments[t]));
+        electron_fragment_blocks.push_back(std::move(thread_electron_fragments[t]));
+      }
+      mergeFragmentsIntoMzBins(fragment_blocks, fi_fragments_);
+      mergeFragmentsIntoMzBins(electron_fragment_blocks, electron_fragments_);
 
       OPENMS_LOG_INFO << "Sorting fragments..." << std::endl;
 
@@ -1386,11 +1524,212 @@ namespace OpenMS
       OPENMS_LOG_INFO << "Fragment index built!" << endl;
   }
 
+  namespace
+  {
+    // Does the work of sortAndBucketFragments_() for fragments that arrive partitioned into ascending m/z
+    // bins (see mergeFragmentsIntoMzBins): identical result, linear time, each bin handled in the cache.
+    // Returns false if the fragments are not partitioned like that; it may have reordered them by then.
+    //
+    // The result is fixed by the fragments alone: bucket k holds those of rank [k * bucketsize,
+    // (k + 1) * bucketsize) in the order (m/z, peptide index), sorted by (peptide index, m/z), and
+    // bucket_min_mz[k] is the m/z of rank k * bucketsize. Fragments that agree in both are bitwise
+    // identical, so it does not matter how these are computed. Here, a bin is first brought into peptide
+    // order; walking it in that order, the number of fragments with a smaller m/z plus the number of those
+    // with this m/z seen so far is the rank of a fragment, which names its bucket, and the fragments of a
+    // bucket are met in peptide order.
+    template <typename FragmentT>
+    bool sortAndBucketBinnedFragments(std::vector<FragmentT>& fragments, std::vector<float>& bucket_min_mz, const size_t bucketsize)
+    {
+      const size_t size = fragments.size();
+      FragmentT* const data = fragments.data();
+      const auto by_mz_then_peptide = [](const FragmentT& a, const FragmentT& b)
+      {
+        return std::tie(a.fragment_mz_, a.peptide_idx_) < std::tie(b.fragment_mz_, b.peptide_idx_);
+      };
+      const auto by_peptide_then_mz = [](const FragmentT& a, const FragmentT& b)
+      {
+        return std::tie(a.peptide_idx_, a.fragment_mz_) < std::tie(b.peptide_idx_, b.fragment_mz_);
+      };
+      const int bucket_shift = std::has_single_bit(bucketsize) ? std::countr_zero(bucketsize) : -1;
+      const auto bucket_of = [bucketsize, bucket_shift](size_t rank) { return bucket_shift >= 0 ? rank >> bucket_shift : rank / bucketsize; };
+
+      // Locate the bins. Whether every fragment lies in its bin is checked when the bin is processed.
+      struct Bin
+      {
+        uint32_t id;
+        size_t begin;
+      };
+      std::vector<Bin> bins;
+      for (size_t i = 0; i < size;)
+      {
+        const uint32_t id = mzBin(data[i]);
+        if (id >= MZ_BIN_END || bins.size() == MAX_MZ_BINS || (!bins.empty() && id <= bins.back().id)) return false;
+        bins.push_back({id, i});
+        i = std::partition_point(data + i + 1, data + size, [id](const FragmentT& f) { return mzBin(f) <= id; }) - data;
+      }
+      const SignedSize num_bins = static_cast<SignedSize>(bins.size());
+      bins.push_back({MZ_BIN_END, size});
+
+      bucket_min_mz.resize((size + bucketsize - 1) / bucketsize);
+
+      constexpr size_t num_cells = size_t(1) << MZ_BIN_SHIFT; // distinct m/z values of a bin
+      constexpr int radix_bits = 12;
+      constexpr size_t radix_size = size_t(1) << radix_bits;
+      constexpr int radix_passes = 3; // 12 + 12 + 8 bits of the peptide index
+      bool binned = true;
+      #pragma omp parallel
+      {
+        std::vector<FragmentT> scratch;
+        std::vector<uint32_t> cell_rank(num_cells);
+        std::vector<uint32_t> digit_count(radix_passes * radix_size);
+        std::vector<size_t> bucket_next;
+
+        #pragma omp for schedule(dynamic)
+        for (SignedSize b = 0; b < num_bins; ++b)
+        {
+          const uint32_t id = bins[b].id;
+          const size_t begin = bins[b].begin;
+          const size_t n = bins[b + 1].begin - begin;
+          FragmentT* const bin = data + begin;
+          // The bin starts in bucket first_bucket, lead fragments after the start of that bucket. Ranks are
+          // counted from the start of that bucket.
+          const size_t first_bucket = bucket_of(begin);
+          const size_t lead = begin - first_bucket * bucketsize;
+
+          // (a bin too large for 32-bit ranks is treated like fragments outside their bin: the general way)
+          bool in_bin = (n < std::numeric_limits<uint32_t>::max() - bucketsize);
+          if (in_bin && n < num_cells / 4)
+          {
+            // Few fragments: not worth the tables below, sort by comparison
+            for (size_t k = 0; k < n; ++k) in_bin &= (mzBin(bin[k]) == id);
+            if (in_bin)
+            {
+              std::sort(bin, bin + n, by_mz_then_peptide);
+              for (size_t piece = 0; piece < n;)
+              {
+                const size_t piece_end = std::min(n, (bucket_of(lead + piece) + 1) * bucketsize - lead);
+                if (bucket_of(lead + piece) * bucketsize == lead + piece) bucket_min_mz[bucket_of(lead + piece) + first_bucket] = bin[piece].fragment_mz_;
+                std::sort(bin + piece, bin + piece_end, by_peptide_then_mz);
+                piece = piece_end;
+              }
+              continue;
+            }
+          }
+
+          // Fragments per m/z value; is the bin in peptide order already?
+          bool peptide_order = true;
+          if (in_bin)
+          {
+            std::fill(cell_rank.begin(), cell_rank.end(), 0u);
+            uint32_t previous = 0;
+            for (size_t k = 0; k < n; ++k)
+            {
+              const uint32_t bits = std::bit_cast<uint32_t>(bin[k].fragment_mz_);
+              in_bin &= ((bits >> MZ_BIN_SHIFT) == id);
+              ++cell_rank[bits & (num_cells - 1)];
+              peptide_order &= (bin[k].peptide_idx_ >= previous);
+              previous = bin[k].peptide_idx_;
+            }
+          }
+          if (!in_bin)
+          {
+            #pragma omp critical (FragmentIndex_sortAndBucketBinnedFragments)
+            binned = false;
+            continue;
+          }
+
+          if (scratch.size() < n) scratch.resize(n);
+          FragmentT* from = bin;
+          FragmentT* to = scratch.data();
+          if (!peptide_order)
+          {
+            // LSD radix sort by peptide index; a digit in which all indices agree needs no pass
+            std::fill(digit_count.begin(), digit_count.end(), 0u);
+            for (size_t k = 0; k < n; ++k)
+            {
+              const uint32_t peptide = from[k].peptide_idx_;
+              for (int pass = 0; pass < radix_passes; ++pass) ++digit_count[pass * radix_size + ((peptide >> (pass * radix_bits)) & (radix_size - 1))];
+            }
+            for (int pass = 0; pass < radix_passes; ++pass)
+            {
+              uint32_t* next = &digit_count[pass * radix_size];
+              const int shift = pass * radix_bits;
+              if (next[(from[0].peptide_idx_ >> shift) & (radix_size - 1)] == n) continue;
+              uint32_t sum = 0;
+              for (size_t digit = 0; digit < radix_size; ++digit)
+              {
+                const uint32_t count = next[digit];
+                next[digit] = sum;
+                sum += count;
+              }
+              for (size_t k = 0; k < n; ++k) to[next[(from[k].peptide_idx_ >> shift) & (radix_size - 1)]++] = from[k];
+              std::swap(from, to);
+            }
+          }
+
+          // Turn the counts into the rank of the first fragment of each m/z value. The m/z value that covers
+          // the first rank of a bucket is the smallest of that bucket.
+          uint32_t rank = static_cast<uint32_t>(lead);
+          size_t bucket = (lead == 0) ? 0 : 1; // next bucket to start, relative to first_bucket
+          for (size_t cell = 0; cell < num_cells; ++cell)
+          {
+            const uint32_t count = cell_rank[cell];
+            cell_rank[cell] = rank;
+            rank += count;
+            for (; bucket * bucketsize < rank; ++bucket)
+            {
+              bucket_min_mz[first_bucket + bucket] = std::bit_cast<float>(static_cast<uint32_t>((id << MZ_BIN_SHIFT) | cell));
+            }
+          }
+
+          // Place the fragments, in peptide order, into the next free slot of their bucket
+          bucket_next.resize(bucket_of(lead + n - 1) + 1);
+          bucket_next[0] = 0;
+          for (size_t k = 1; k < bucket_next.size(); ++k) bucket_next[k] = k * bucketsize - lead;
+          for (size_t k = 0; k < n; ++k)
+          {
+            const uint32_t fragment_rank = cell_rank[std::bit_cast<uint32_t>(from[k].fragment_mz_) & (num_cells - 1)]++;
+            to[bucket_next[bucket_of(fragment_rank)]++] = from[k];
+          }
+          if (to != bin) std::copy(to, to + n, bin);
+
+          // Several fragments of one peptide in a bucket are next to each other now: order them by m/z
+          for (size_t k = 1; k < n; ++k)
+          {
+            for (size_t i = k; i > 0 && bin[i - 1].peptide_idx_ == bin[i].peptide_idx_ && bin[i].fragment_mz_ < bin[i - 1].fragment_mz_; --i)
+            {
+              std::swap(bin[i - 1], bin[i]);
+            }
+          }
+        }
+      }
+      if (!binned) return false;
+
+      // A bucket that extends over several bins consists of one sorted piece per bin: merge them
+      #pragma omp parallel for schedule(dynamic)
+      for (SignedSize b = 1; b < num_bins; ++b)
+      {
+        const size_t bucket_begin = bucket_of(bins[b].begin) * bucketsize;
+        if (bins[b].begin == bucket_begin || bins[b - 1].begin > bucket_begin) continue; // not cut, or done with an earlier bin
+        const size_t bucket_end = std::min(bucket_begin + bucketsize, size);
+        for (SignedSize piece = b; piece < num_bins && bins[piece].begin < bucket_end; ++piece)
+        {
+          std::inplace_merge(data + bucket_begin, data + bins[piece].begin, data + std::min(bins[piece + 1].begin, bucket_end), by_peptide_then_mz);
+        }
+      }
+      return true;
+    }
+  }
+
   void FragmentIndex::sortAndBucketFragments_(std::vector<Fragment>& fragments,
                                               std::vector<float>& bucket_min_mz,
                                               int num_threads)
   {
       if (fragments.empty()) return;
+
+      // build() delivers the fragments partitioned into m/z bins, which are finished without a global sort.
+      // The general way below remains for fragments in any other order and defines the result.
+      if (sortAndBucketBinnedFragments(fragments, bucket_min_mz, bucketsize_)) return;
 
       /// 1.) First all Fragments are sorted by their own mass (parallel via Boost.Sort).
       /// Boost defaults to std::thread::hardware_concurrency() threads, which ignores both
