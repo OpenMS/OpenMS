@@ -18,7 +18,9 @@
 
 
 #include <array>
+#include <memory>
 #include <mutex>
+#include <type_traits>
 #include <vector>
 #include <functional>
 #include <algorithm>   // std::max (used by inline static isOpenSearchMode)
@@ -402,6 +404,9 @@ protected:
 
 
   /**@brief One entry in the fragment index
+   *
+   * Default construction leaves both members uninitialized (use Fragment{} for zeros), so that
+   * the index arrays can be allocated without a serial zero fill (see FragmentVector_).
    */
   struct Fragment
   {
@@ -410,9 +415,29 @@ protected:
           peptide_idx_(peptide_idx),
           fragment_mz_(fragment_mz)
       {}
-      UInt32 peptide_idx_{}; // 32 bit in sage
-      float fragment_mz_{};
+      UInt32 peptide_idx_; // 32 bit in sage
+      float fragment_mz_;
   };
+
+  /// Allocator whose resize() default-initializes instead of value-initializing. Fragments are
+  /// written to their final position by several threads; a value-initializing resize() would
+  /// first zero the whole array (and take all of its page faults) on one thread.
+  template <typename T>
+  struct NoInitAllocator_ : std::allocator<T>
+  {
+    template <typename U> struct rebind { using other = NoInitAllocator_<U>; };
+    NoInitAllocator_() noexcept = default;
+    template <typename U> NoInitAllocator_(const NoInitAllocator_<U>&) noexcept {}
+    template <typename U> void construct(U* p) noexcept(std::is_nothrow_default_constructible_v<U>)
+    {
+      ::new (static_cast<void*>(p)) U;
+    }
+    template <typename U, typename... Args> void construct(U* p, Args&&... args)
+    {
+      ::new (static_cast<void*>(p)) U(std::forward<Args>(args)...);
+    }
+  };
+  using FragmentVector_ = std::vector<Fragment, NoInitAllocator_<Fragment>>;
 
     bool is_build_{false};              ///< true, if the database has been populated with fragments
 
@@ -562,73 +587,22 @@ protected:
     };
     static IonOffsets ion_offsets_;
 
-    /// Lightweight fragment generation: compute b/y ion m/z directly from amino acid chars.
-    /// Bypasses AASequence::fromString and TheoreticalSpectrumGenerator.
-    /// Uses the class-level @c add_b_ions_ / @c add_y_ions_ / ... flags for the ion
-    /// series selection. See @ref generateFragmentsForSeries_ for the explicit-flag
-    /// variant used by the SNES mother path.
-    /// @param[out] fragments  Output vector to append Fragment entries to
-    /// @param[out] electron_fragments  Output vector for the c and z+1 ions of ions:electron_ions
-    ///             that the series above lack (untouched if ions:electron_ions is off)
-    /// @param[in]  sequence   Raw amino acid string (no modifications)
-    /// @param[in]  seq_len    Length of sequence
-    /// @param[in]  peptide_idx Index of this peptide in fi_peptides_
-    /// @param[in]  n_term_mod_mass  Mass delta from N-terminal modification (0 if none)
-    /// @param[in]  c_term_mod_mass  Mass delta from C-terminal modification (0 if none)
-    /// @param[in]  residue_mod_masses  Per-residue modification mass deltas (nullptr if none; array of seq_len doubles)
-    void generateFragmentsLightweight_(
-      std::vector<Fragment>& fragments,
-      std::vector<Fragment>& electron_fragments,
-      const char* sequence,
-      size_t seq_len,
-      UInt32 peptide_idx,
-      double n_term_mod_mass,
-      double c_term_mod_mass,
-      const double* residue_mod_masses) const;
-
-    /// Fragment generation with explicit per-call ion-series selection.
-    ///
-    /// Called by the SNES mother path to restrict a Single-N mother to b-ions and a
-    /// Single-C mother to y-ions regardless of the class-level @c add_*_ions_ flags.
-    /// @c generateFragmentsLightweight_ forwards to this function after packing the
-    /// class flags; both share a single implementation.
-    ///
-    /// @param[out] fragments Output vector to append Fragment entries to
-    /// @param[in] sequence Raw amino acid string (no modifications)
-    /// @param[in] seq_len Length of sequence
-    /// @param[in] peptide_idx Index of this peptide in fi_peptides_
-    /// @param[in] n_term_mod_mass Mass delta from N-terminal modification (0 if none)
-    /// @param[in] c_term_mod_mass Mass delta from C-terminal modification (0 if none)
-    /// @param[in] residue_mod_masses Per-residue modification mass deltas (nullptr if none; array of seq_len doubles)
-    /// @param[in] add_b Emit b-ions (prefix).
-    /// @param[in] add_a Emit a-ions (prefix).
-    /// @param[in] add_c Emit c-ions (prefix).
-    /// @param[in] add_y Emit y-ions (suffix).
-    /// @param[in] add_x Emit x-ions (suffix).
-    /// @param[in] add_z Emit z-ions (suffix).
-    /// @param[in] add_zp1 Emit z+1 ions (z-dot, suffix).
-    void generateFragmentsForSeries_(
-      std::vector<Fragment>& fragments,
-      const char* sequence,
-      size_t seq_len,
-      UInt32 peptide_idx,
-      double n_term_mod_mass,
-      double c_term_mod_mass,
-      const double* residue_mod_masses,
-      bool add_b,
-      bool add_a,
-      bool add_c,
-      bool add_y,
-      bool add_x,
-      bool add_z,
-      bool add_zp1) const;
-
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
-    std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
+    FragmentVector_ fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
     /// The c and z+1 ions of ions:electron_ions that fi_fragments_ lacks. They are bucketed on their
     /// own (electron_bucket_min_mz_) and matched only when a query asks for them.
-    std::vector<Fragment> electron_fragments_;
+    FragmentVector_ electron_fragments_;
     std::vector<float> electron_bucket_min_mz_; ///< smallest fragment m/z of each bucket of electron_fragments_
+
+    /// Skip tables, so that the first fragment of a peptide range is found without a binary search
+    /// over the bucket: the peptide indices are cut into SKIP_SLOTS_ slots of skip_step_ peptides,
+    /// and entry s of a bucket is the position (within the bucket) of its first fragment whose
+    /// peptide index is at least s * skip_step_. Bucket b owns the entries
+    /// [b * SKIP_SLOTS_, (b + 1) * SKIP_SLOTS_).
+    std::vector<uint16_t> bucket_skip_;
+    std::vector<uint16_t> electron_bucket_skip_; ///< skip table of electron_fragments_
+    static constexpr size_t SKIP_SLOTS_ = 256;
+    size_t skip_step_{1}; ///< peptides per skip table slot
 
     /// Protein lengths indexed by protein_idx, populated at build() time.
     /// Used by SNES v1.1 to gate PROTEIN_C_TERM variable-mod bin walks.
@@ -692,32 +666,47 @@ private:
                             const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                             SpectrumMatchesTopN& sms);
 
+    /// One (precursor charge, isotope error) block of a query: the peptides whose precursor mass
+    /// lies in the window of this isotope error.
+    struct PrecursorBlock_
+    {
+      std::pair<size_t, size_t> range; ///< half-open [first, second) range of peptide indices
+      int16_t isotope_error;
+    };
+
     /**
-     * @brief Counts fragment matches for ONE (precursor charge, isotope error) block and appends
-     * the surviving candidates to @p candidates.
+     * @brief Counts fragment matches for the (precursor charge, isotope error) blocks of one
+     * precursor charge and appends the surviving candidates to @p candidates.
      *
      * Every peak of @p spectrum is walked against the fragment buckets at fragment charges
      * 1..min(@p precursor_charge, @c fragment:max_charge) and the hits are counted per peptide
-     * of @p candidates_range. Only candidates reaching @c fragment:min_matched_ions — clamped to
-     * at least one matched peak, so a candidate that matched nothing is never a candidate — are
-     * emitted, in ascending peptide index within the block. Candidates that could not survive
-     * trimHits are therefore never materialized.
+     * and block. One walk over the buckets serves all blocks: a matching fragment counts for
+     * every block whose peptide range holds its peptide. Only candidates reaching
+     * @c fragment:min_matched_ions — clamped to at least one matched peak, so a candidate that
+     * matched nothing is never a candidate — are emitted: block by block in the given order,
+     * in ascending peptide index within a block. Candidates that could not survive trimHits are
+     * therefore never materialized.
      *
-     * @param[in,out] candidates Accumulator the block's matches are APPENDED to. Must NOT be
+     * @param[in,out] candidates Accumulator the matches are APPENDED to. Must NOT be
      *                pre-sized — entries are appended, never indexed into. Pre-existing entries
-     *                are preserved, so one container can accumulate several blocks.
+     *                are preserved, so one container can accumulate several calls.
      * @param[in] spectrum The queried experimental spectrum
-     * @param[in] candidates_range The half-open [first, second) range of peptides the precursor could belong to
-     * @param[in] isotope_error The applied isotope error
+     * @param[in] blocks The blocks to count, in emission order (ascending isotope error)
      * @param[in] precursor_charge The applied precursor charge
      * @param[in] with_electron_ions Also count matches to the c and z+1 ions of ions:electron_ions
      */
     void queryPeaks(SpectrumMatchesTopN& candidates,
                    const MSSpectrum& spectrum,
-                   const std::pair<size_t, size_t>& candidates_range,
-                   const int16_t isotope_error,
+                   const std::vector<PrecursorBlock_>& blocks,
                    const uint16_t precursor_charge,
                    const bool with_electron_ions);
+
+    /// Index of the first fragment of bucket @p bucket at or after @p from (an absolute index into
+    /// @p fragments, within the bucket) whose peptide index is at least @p peptide_idx; @p end (the
+    /// end of the bucket) if there is none. Same result as std::lower_bound over [from, end), found
+    /// with the skip table @p skip.
+    size_t lowerBoundInBucket_(const FragmentVector_& fragments, const std::vector<uint16_t>& skip,
+                               size_t bucket, size_t from, size_t end, UInt32 peptide_idx) const;
     /**
      * @brief If closed search loops over all isotope errors. For each iteration loop over all peaks with queryPeaks.
      * @brief If open search applies a precursor-mass window
@@ -733,11 +722,74 @@ private:
                                         uint16_t charge,
                                         bool with_electron_ions);
 
-    /// Sorts @p fragments by m/z, cuts them into buckets of bucketsize_ and sorts each bucket by
-    /// peptide index; @p bucket_min_mz receives the smallest m/z of each bucket.
-    void sortAndBucketFragments_(std::vector<Fragment>& fragments,
-                                 std::vector<float>& bucket_min_mz,
-                                 int num_threads);
+    /// The indices of fi_peptides_, grouped by protein (in index order within a protein).
+    std::vector<UInt32> peptidesByProtein_() const;
+
+    /// The strings AASequence::toString() writes for the residues (plain and with each modification
+    /// that can be set on them) and for the terminal modifications of this index.
+    struct PeptidoformTokens_
+    {
+      std::array<std::string, 128> plain;
+      std::array<std::vector<std::pair<const ResidueModification*, std::string>>, 128> modified;
+      std::vector<std::pair<const ResidueModification*, std::string>> terminal;
+    };
+    PeptidoformTokens_ peptidoformTokens_() const;
+
+    /// Writes reconstructModifiedSequence(@p peptide, @p fasta_entries).toString(), from @p tokens
+    /// and without building an AASequence, as pieces to @p write(const char*, size_t).
+    /// @p mods is scratch space. (Defined and used in FragmentIndex.cpp only.)
+    template <typename Writer>
+    void writePeptidoform_(const Peptide& peptide,
+                           const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                           const PeptidoformTokens_& tokens,
+                           Writer&& write,
+                           std::vector<const ResidueModification*>& mods) const;
+
+    /// Lightweight fragment generation: computes the m/z of the ions of the selected series
+    /// directly from the amino acid chars (no AASequence, no TheoreticalSpectrumGenerator) and
+    /// calls @p sink(float mz) for each one within [fragment:min_mz, fragment:max_mz].
+    /// (Defined and used in FragmentIndex.cpp only.)
+    /// @param[in] sequence Raw amino acid string (no modifications)
+    /// @param[in] seq_len Length of sequence
+    /// @param[in] n_term_mod_mass Mass delta from N-terminal modification (0 if none)
+    /// @param[in] c_term_mod_mass Mass delta from C-terminal modification (0 if none)
+    /// @param[in] residue_mod_masses Per-residue modification mass deltas (nullptr if none; array of seq_len doubles)
+    /// @param[in] add_b, add_a, add_c Emit b-, a-, c-ions (prefix).
+    /// @param[in] add_y, add_x, add_z, add_zp1 Emit y-, x-, z-, z+1 ions (suffix).
+    /// @param[in] sink Receives the m/z of each fragment
+    template <typename Sink>
+    void forEachSeriesFragment_(const char* sequence,
+                                size_t seq_len,
+                                double n_term_mod_mass,
+                                double c_term_mod_mass,
+                                const double* residue_mod_masses,
+                                bool add_b, bool add_a, bool add_c,
+                                bool add_y, bool add_x, bool add_z, bool add_zp1,
+                                Sink&& sink) const;
+
+    /// Calls @p sink(float mz) for each fragment of peptide @p peptide_idx: the ion series of the
+    /// ions:add_*_ions parameters with its fixed and variable modifications (a SNES mother: its
+    /// b- or y-ions only), and @p electron_sink(float mz) for each of its c and z+1 ions of
+    /// ions:electron_ions that these series lack. @p mod_masses is scratch space.
+    /// (Defined and used in FragmentIndex.cpp only.)
+    template <typename Sink, typename ElectronSink>
+    void forEachPeptideFragment_(Size peptide_idx,
+                                 const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                 std::vector<double>& mod_masses,
+                                 Sink&& sink,
+                                 ElectronSink&& electron_sink) const;
+
+    /// Generates the fragments of all peptides and arranges them into buckets: the fragments in
+    /// the order of (m/z, peptide index) are cut into buckets of bucketsize_, and each bucket is
+    /// ordered by (peptide index, m/z). Fills fi_fragments_ / electron_fragments_, their bucket
+    /// m/z minima and skip tables.
+    ///
+    /// The fragments are generated twice: once to count them per m/z bin and once to write them
+    /// to their final position in their bin. Bins that hold a bucket boundary are ordered by finer
+    /// m/z bins, and only the fine bins cut by a boundary are split at its rank; each bucket is then
+    /// finished in linear time by a radix sort on the peptide index. There is no comparison sort
+    /// of the whole array and no merged copy.
+    void buildFragmentBuckets_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries, int num_threads);
 
     /** @brief places the k-largest elements in the front of the input array. Inside of the k-largest elements and outside the elements are not sorted
      *

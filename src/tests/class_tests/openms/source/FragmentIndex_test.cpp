@@ -107,7 +107,7 @@ public:
     return count;
   }
 
-  const std::vector<Fragment>& getFragments() const { return fi_fragments_; }
+  const FragmentVector_& getFragments() const { return fi_fragments_; }
 
   std::vector<double> exposeComputeSnesSigmaDeltaSet(bool include_prot_nterm_mods,
                                                       bool include_prot_cterm_mods) const
