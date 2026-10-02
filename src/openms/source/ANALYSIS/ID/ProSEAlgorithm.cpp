@@ -4101,11 +4101,17 @@ namespace OpenMS
           ctx.electron_ions = true;
           endProgress();
         }
-        else if (!full_db.empty())
+        else
         {
-          // chunk_size was set but augmented DB fits in one chunk — reuse the
-          // already-built decoy-augmented DB instead of re-augmenting inside
-          // prepareContext.
+          // As prepareContext(fasta_db, electron_ions), but with the decoy strategy resolved above
+          // instead of detecting the decoys of fasta_db a second time. If chunk_size was set but the
+          // augmented DB fits in one chunk, full_db holds it already.
+          if (full_db.empty())
+          {
+            startProgress(0, 1, "Generate decoys...");
+            full_db = buildDecoyAugmentedDB_(fasta_db, strategy);
+            endProgress();
+          }
           ctx.db = std::move(full_db);
           ctx.decoy_string = strategy.decoy_string;
           ctx.decoy_is_prefix = strategy.is_prefix;
@@ -4115,10 +4121,6 @@ namespace OpenMS
           ctx.fragment_index.build(ctx.db);
           ctx.electron_ions = electron_ions;
           endProgress();
-        }
-        else
-        {
-          ctx = prepareContext(fasta_db, electron_ions);
         }
         sw_idx.stop();
 
