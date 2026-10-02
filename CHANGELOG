@@ -48,6 +48,11 @@ Dependencies:
     with WITH_ONNX=ON (ONNX Runtime from vcpkg), so the installers and the SDK include the
     PeptDeep classes, their ONNX models (share/OpenMS/models) and the ONNX Runtime library,
     which were not installed before (#10248).
+  - Windows also gets a Debug SDK, OpenMS-SDK-<version>-Windows-x64-Debug.zip: the libraries
+    built Debug against the debug CRT (/MDd), with their .pdb files next to the DLLs, so a
+    Debug build of your own code links and a debugger steps into OpenMS code. MSVC's debug
+    and release runtimes cannot be mixed, which is why the two configurations are separate
+    archives; the README of each names the other.
 
 TOPP tools:
   Changes:

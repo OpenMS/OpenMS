@@ -33,7 +33,7 @@ Using it from CMake (3.24 or newer)
 
 Configure your project with the SDK on the prefix path:
 
-  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/path/to/OpenMS-SDK-<version>-<platform>
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=@BUILD_TYPE@ -DCMAKE_PREFIX_PATH=/path/to/OpenMS-SDK-<version>-<platform>
 
 A complete example project (library, plain program and TOPP-style tool) is in
 the OpenMS sources under src/tests/external.
@@ -47,9 +47,7 @@ Requirements of your project
     library (OpenMS::OpenMS_GUI) is not part of the SDK; build OpenMS from source
     if you need it.
   * The same compiler family the SDK was built with:
-      - Windows: MSVC (Visual Studio 2022 17.14 or newer), x64, Release configuration
-        with the dynamic runtime (/MD). A Debug build of your code (/MDd) must not
-        be linked against this SDK; build OpenMS from source for that.
+      - @MSVC_REQUIREMENT@
       - macOS: Apple Clang, arm64@MACOS_MINIMUM@.
       - Linux: GCC with a glibc and libstdc++ at least as new as those of
         Ubuntu 24.04, on which the SDK is built.

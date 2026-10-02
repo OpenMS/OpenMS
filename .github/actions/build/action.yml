@@ -4,6 +4,18 @@ inputs:
   compiler:
     description: "The name of the compiler to use"
     required: true
+  preset:
+    description: >-
+      The CMake preset to configure, build and test with. By default the CI
+      preset of the runner (linux-x64-ci, macos-arm64-ci, windows-x64-ci, ...).
+      A build with another preset gets its own compiler and vcpkg caches, so it
+      neither evicts the default build's objects nor races it for the cache.
+    required: false
+    default: ""
+  run_tests:
+    description: "Whether to run the test suite after the build (ctest --preset)"
+    required: false
+    default: "true"
   macosx_deployment_target:
     description: >-
       The oldest macOS the binaries run on (-mmacosx-version-min). Keep it at the
@@ -47,6 +59,7 @@ runs:
       uses: ./.github/actions/dependencies
       with:
         compiler: ${{ inputs.compiler }}
+        cache_key_suffix: ${{ inputs.preset && format('-{0}', inputs.preset) || '' }}
         ssh_key: ${{ inputs.ssh_key }}
         ssh_host: ${{ inputs.ssh_host }}
         ssh_port: ${{ inputs.ssh_port }}
@@ -129,6 +142,19 @@ runs:
       run: echo "name=${{ github.event.pull_request && github.event.number || github.ref_name }}" >>$GITHUB_OUTPUT
 
     ############################################################################
+    # A build with a preset other than the runner's default one keeps its own
+    # compiler cache: its objects differ in flags from the default build's, and
+    # the two together exceed the cache size, so sharing one cache would make
+    # each build evict the other's objects.  The default build's keys stay as
+    # they are, so its existing caches remain reachable.
+    - name: Compute the Cache Key Suffix
+      id: cache-suffix
+      shell: bash
+      env:
+        preset: ${{ inputs.preset }}
+      run: echo "suffix=${preset:+-$preset}" >>"$GITHUB_OUTPUT"
+
+    ############################################################################
     # NOTE: restore/save are deliberately split instead of using the combined
     # actions/cache action.  The combined action only writes the cache in its
     # post step when the *primary* key missed, so a static key (as used here
@@ -142,7 +168,7 @@ runs:
       uses: actions/cache/restore@v5
       with:
         path: .ccache
-        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}${{ steps.cache-suffix.outputs.suffix }}-ccache-${{ steps.pr.outputs.name }}-${{ github.run_id }}-${{ github.run_attempt }}
 
         # Restoring: from the current branch/PR, otherwise from develop, otherwise the newest
         # other cache that is still in scope -- not "any branch", see below.
@@ -155,9 +181,9 @@ runs:
         # cache is the only one every pull request can read, and the daily workflow_dispatch on
         # develop keeps it fresh now that saving works at all.
         restore-keys: |
-          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}-
-          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-develop-
-          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-
+          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}${{ steps.cache-suffix.outputs.suffix }}-ccache-${{ steps.pr.outputs.name }}-
+          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}${{ steps.cache-suffix.outputs.suffix }}-ccache-develop-
+          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}${{ steps.cache-suffix.outputs.suffix }}-ccache-
 
     ############################################################################
     - name: Configure Build Caching
@@ -203,7 +229,13 @@ runs:
     - name: Resolve CMake presets
       id: preset
       shell: bash
+      env:
+        preset: ${{ inputs.preset }}
       run: |
+        if [[ -n "$preset" ]]; then
+          echo "name=$preset" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
         case "$RUNNER_OS-$RUNNER_ARCH" in
           Linux-X64) preset=linux-x64-ci ;;
           Linux-ARM64) preset=linux-arm64-ci ;;
@@ -261,6 +293,7 @@ runs:
 
     ############################################################################
     - name: Test
+      if: ${{ inputs.run_tests == 'true' }}
       shell: bash
       run: ctest --preset "${{ steps.preset.outputs.name }}"
 
