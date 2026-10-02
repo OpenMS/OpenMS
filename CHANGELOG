@@ -140,10 +140,13 @@ TOPP tools:
         on one; the native results and the idXML and PIN output are unchanged at any thread count. The
         fragment index is built without sorting all fragments (counted and written to their final
         m/z bin, buckets finished by a radix sort), the peptides are sorted in parallel in the order
-        std::sort gives them, and peptide:deduplicate no longer builds a peptide sequence per index
-        entry. One walk over the index serves all isotope errors, with per-bucket skip tables. The
-        spectra are read while the database is read and the index is built; the index is released
-        before the peptides are mapped to proteins.
+        libstdc++'s std::sort gives them, and peptide:deduplicate no longer builds a peptide sequence
+        per index entry. One walk over the index serves all isotope errors, with per-bucket skip
+        tables. The spectra are read while the database is read and the index is built; the index is
+        released before the peptides are mapped to proteins. The parallel sort is the same code with
+        every compiler and standard library, so Windows and macOS builds (MSVC STL, libc++) now put
+        peptides of equal precursor m/z and protein in the same order as Linux builds; before, their
+        std::sort ordered them differently, which could change ties between equally scored candidates.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
