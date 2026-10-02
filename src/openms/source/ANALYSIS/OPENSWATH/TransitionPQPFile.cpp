@@ -1792,6 +1792,10 @@ namespace OpenMS
     std::unordered_map<std::string, sqlite3_int64> gene_map;
     std::unordered_map<int64_t, double> precursor_mz_map;
     std::unordered_map<int64_t, bool> precursor_decoy_map;
+    std::unordered_set<sqlite3_int64> decoy_peptide_ids;
+    std::unordered_set<sqlite3_int64> decoy_compound_ids;
+    std::unordered_set<sqlite3_int64> decoy_protein_ids;
+    std::unordered_set<sqlite3_int64> decoy_gene_ids;
 
     peptide_vec.reserve(targeted_exp.compounds.size());
     protein_vec.reserve(targeted_exp.proteins.size());
@@ -1803,6 +1807,7 @@ namespace OpenMS
       {
         peptide_vec.push_back(compound.sequence);
         gene_vec.push_back(compound.gene_name.empty() ? "NA" : compound.gene_name);
+        protein_vec.insert(protein_vec.end(), compound.protein_refs.begin(), compound.protein_refs.end());
       }
       else
       {
@@ -2026,6 +2031,7 @@ namespace OpenMS
     for (const auto& compound : targeted_exp.compounds)
     {
       const int64_t precursor_id = group_map.at(compound.id);
+      const bool precursor_is_decoy = precursor_decoy_map[precursor_id];
 
       if (compound.isPeptide())
       {
@@ -2034,16 +2040,19 @@ namespace OpenMS
         insert_precursor_peptide_mapping.bindInt(2, peptide_id);
         insert_precursor_peptide_mapping.step();
 
+        if (precursor_is_decoy) decoy_peptide_ids.insert(peptide_id);
+
         for (const auto& protein_ref : compound.protein_refs)
         {
-          const auto protein_it = protein_map.find(protein_ref);
-          if (protein_it == protein_map.end()) continue;
+          const sqlite3_int64 protein_id = protein_map.at(protein_ref);
 
           insert_peptide_protein_mapping.bindInt(1, peptide_id);
-          insert_peptide_protein_mapping.bindInt(2, protein_it->second);
+          insert_peptide_protein_mapping.bindInt(2, protein_id);
           insert_peptide_protein_mapping.bindInt(3, peptide_id);
-          insert_peptide_protein_mapping.bindInt(4, protein_it->second);
+          insert_peptide_protein_mapping.bindInt(4, protein_id);
           insert_peptide_protein_mapping.step();
+
+          if (precursor_is_decoy) decoy_protein_ids.insert(protein_id);
         }
 
         const std::string gene_name = compound.gene_name.empty() ? "NA" : compound.gene_name;
@@ -2053,12 +2062,17 @@ namespace OpenMS
         insert_peptide_gene_mapping.bindInt(3, peptide_id);
         insert_peptide_gene_mapping.bindInt(4, gene_id);
         insert_peptide_gene_mapping.step();
+
+        if (precursor_is_decoy) decoy_gene_ids.insert(gene_id);
       }
       else
       {
+        const sqlite3_int64 compound_id = compound_map.at(compound.id);
         insert_precursor_compound_mapping.bindInt(1, precursor_id);
-        insert_precursor_compound_mapping.bindInt(2, compound_map.at(compound.id));
+        insert_precursor_compound_mapping.bindInt(2, compound_id);
         insert_precursor_compound_mapping.step();
+
+        if (precursor_is_decoy) decoy_compound_ids.insert(compound_id);
       }
 
       std::string source_precursor_id = compound.id;
@@ -2094,31 +2108,40 @@ namespace OpenMS
       }
       insert_precursor.bindDouble(6, compound.drift_time);
       insert_precursor.bindDouble(7, compound.rt);
-      insert_precursor.bindInt(8, precursor_decoy_map[precursor_id]);
+      insert_precursor.bindInt(8, precursor_is_decoy);
       insert_precursor.step();
     }
 
-    conn.executeStatement(
-      "UPDATE PEPTIDE SET DECOY = 1 WHERE ID IN "
-      "(SELECT PEPTIDE.ID FROM PRECURSOR "
-      " JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID "
-      " JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID "
-      " WHERE PRECURSOR.DECOY = 1); "
-      "UPDATE COMPOUND SET DECOY = 1 WHERE ID IN "
-      "(SELECT COMPOUND.ID FROM PRECURSOR "
-      " JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID "
-      " JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID "
-      " WHERE PRECURSOR.DECOY = 1); "
-      "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN "
-      "(SELECT PROTEIN.ID FROM PEPTIDE "
-      " JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID "
-      " JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID "
-      " WHERE PEPTIDE.DECOY = 1); "
-      "UPDATE GENE SET DECOY = 1 WHERE ID IN "
-      "(SELECT GENE.ID FROM PEPTIDE "
-      " JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID "
-      " JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID "
-      " WHERE PEPTIDE.DECOY = 1);");
+    // Decoy flags are monotonic (0 -> 1). Only rows linked to decoy precursors
+    // appended in this batch can become newly decoy, so update those IDs directly
+    // instead of rescanning the complete persisted library after every append.
+    PreparedInsert update_peptide_decoy(db, "UPDATE PEPTIDE SET DECOY = 1 WHERE ID = ?;");
+    for (const auto id : decoy_peptide_ids)
+    {
+      update_peptide_decoy.bindInt(1, id);
+      update_peptide_decoy.step();
+    }
+
+    PreparedInsert update_compound_decoy(db, "UPDATE COMPOUND SET DECOY = 1 WHERE ID = ?;");
+    for (const auto id : decoy_compound_ids)
+    {
+      update_compound_decoy.bindInt(1, id);
+      update_compound_decoy.step();
+    }
+
+    PreparedInsert update_protein_decoy(db, "UPDATE PROTEIN SET DECOY = 1 WHERE ID = ?;");
+    for (const auto id : decoy_protein_ids)
+    {
+      update_protein_decoy.bindInt(1, id);
+      update_protein_decoy.step();
+    }
+
+    PreparedInsert update_gene_decoy(db, "UPDATE GENE SET DECOY = 1 WHERE ID = ?;");
+    for (const auto id : decoy_gene_ids)
+    {
+      update_gene_decoy.bindInt(1, id);
+      update_gene_decoy.step();
+    }
 
     conn.executeStatement("END TRANSACTION");
   }

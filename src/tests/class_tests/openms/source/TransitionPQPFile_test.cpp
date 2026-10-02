@@ -504,34 +504,65 @@ START_SECTION([EXTRA] canonical Light PQP batches can be appended without materi
   source_b.precursor_canonical_to_source = {{"7", "PEPTIDEK/3"}};
   source_b.transition_canonical_to_source = {{"100", "PEPTIDEK/3_y5^1"}};
 
+  OpenSwath::LightTargetedExperiment batch_c;
+
+  // ProteinA was persisted by batch_a, but is intentionally not repeated in
+  // batch_c.proteins. Cross-batch append must still preserve this mapping.
+  OpenSwath::LightCompound precursor_c;
+  precursor_c.id = "8";
+  precursor_c.sequence = "TESTPEPK";
+  precursor_c.charge = 2;
+  precursor_c.rt = 12.0;
+  precursor_c.protein_refs = {"ProteinA"};
+  batch_c.compounds.push_back(precursor_c);
+
+  OpenSwath::LightTransition transition_c;
+  transition_c.transition_name = "101";
+  transition_c.peptide_ref = "8";
+  transition_c.precursor_mz = 430.2;
+  transition_c.product_mz = 602.3;
+  transition_c.fragment_charge = 1;
+  transition_c.setFragmentType("y");
+  transition_c.fragment_nr = 5;
+  transition_c.library_intensity = 400.0;
+  transition_c.setDetectingTransition(true);
+  transition_c.setDecoy(true);
+  batch_c.transitions.push_back(transition_c);
+
+  OpenSwathLibraryIDNormalizer::SourceIDMapping source_c;
+  source_c.precursor_canonical_to_source = {{"8", "TESTPEPK/2"}};
+  source_c.transition_canonical_to_source = {{"101", "TESTPEPK/2_y5^1"}};
+
   std::string pqp_file;
   NEW_TMP_FILE(pqp_file);
   File::remove(pqp_file);
 
   writer.appendLightTargetedExperimentToPQP(pqp_file.c_str(), batch_a, &source_a);
   writer.appendLightTargetedExperimentToPQP(pqp_file.c_str(), batch_b, &source_b);
+  writer.appendLightTargetedExperimentToPQP(pqp_file.c_str(), batch_c, &source_c);
 
   {
     SqliteConnector conn(pqp_file);
-    TEST_EQUAL(conn.countTableRows("PRECURSOR"), 2)
-    TEST_EQUAL(conn.countTableRows("TRANSITION"), 2)
-    TEST_EQUAL(conn.countTableRows("PEPTIDE"), 1)
+    TEST_EQUAL(conn.countTableRows("PRECURSOR"), 3)
+    TEST_EQUAL(conn.countTableRows("TRANSITION"), 3)
+    TEST_EQUAL(conn.countTableRows("PEPTIDE"), 2)
     TEST_EQUAL(conn.countTableRows("PROTEIN"), 2)
-    TEST_EQUAL(conn.countTableRows("PEPTIDE_PROTEIN_MAPPING"), 2)
+    TEST_EQUAL(conn.countTableRows("PEPTIDE_PROTEIN_MAPPING"), 3)
   }
 
   OpenSwath::LightTargetedExperiment roundtrip;
   writer.convertPQPToTargetedExperiment(pqp_file.c_str(), roundtrip);
   OpenSwathLibraryIDNormalizer::validateCanonicalIDs(roundtrip);
 
-  TEST_EQUAL(roundtrip.compounds.size(), 2)
-  TEST_EQUAL(roundtrip.transitions.size(), 2)
+  TEST_EQUAL(roundtrip.compounds.size(), 3)
+  TEST_EQUAL(roundtrip.transitions.size(), 3)
   TEST_EQUAL(roundtrip.proteins.size(), 2)
 
   std::set<std::string> precursor_ids;
   for (const auto& compound : roundtrip.compounds) precursor_ids.insert(compound.id);
   TEST_EQUAL(precursor_ids.count("0"), 1)
   TEST_EQUAL(precursor_ids.count("7"), 1)
+  TEST_EQUAL(precursor_ids.count("8"), 1)
 
   std::map<std::string, std::string> transition_to_precursor;
   for (const auto& transition : roundtrip.transitions)
@@ -540,14 +571,17 @@ START_SECTION([EXTRA] canonical Light PQP batches can be appended without materi
   }
   TEST_EQUAL(transition_to_precursor.at("0"), "0")
   TEST_EQUAL(transition_to_precursor.at("100"), "7")
+  TEST_EQUAL(transition_to_precursor.at("101"), "8")
 
   const auto precursor_provenance = writer.getPQPCurrentIDToTraMLIDMap(pqp_file.c_str(), "PRECURSOR");
   TEST_EQUAL(precursor_provenance.at("0"), "PEPTIDEK/2")
   TEST_EQUAL(precursor_provenance.at("7"), "PEPTIDEK/3")
+  TEST_EQUAL(precursor_provenance.at("8"), "TESTPEPK/2")
 
   const auto transition_provenance = writer.getPQPCurrentIDToTraMLIDMap(pqp_file.c_str(), "TRANSITION");
   TEST_EQUAL(transition_provenance.at("0"), "PEPTIDEK/2_y6^1")
   TEST_EQUAL(transition_provenance.at("100"), "PEPTIDEK/3_y5^1")
+  TEST_EQUAL(transition_provenance.at("101"), "TESTPEPK/2_y5^1")
 
   // Duplicate canonical IDs are a caller error and must not be silently remapped.
   TEST_EXCEPTION(Exception::SqlOperationFailed,
@@ -556,11 +590,11 @@ START_SECTION([EXTRA] canonical Light PQP batches can be appended without materi
   // A failed append is transactional: no partial helper rows/mappings survive.
   {
     SqliteConnector conn(pqp_file);
-    TEST_EQUAL(conn.countTableRows("PRECURSOR"), 2)
-    TEST_EQUAL(conn.countTableRows("TRANSITION"), 2)
-    TEST_EQUAL(conn.countTableRows("PEPTIDE"), 1)
+    TEST_EQUAL(conn.countTableRows("PRECURSOR"), 3)
+    TEST_EQUAL(conn.countTableRows("TRANSITION"), 3)
+    TEST_EQUAL(conn.countTableRows("PEPTIDE"), 2)
     TEST_EQUAL(conn.countTableRows("PROTEIN"), 2)
-    TEST_EQUAL(conn.countTableRows("PEPTIDE_PROTEIN_MAPPING"), 2)
+    TEST_EQUAL(conn.countTableRows("PEPTIDE_PROTEIN_MAPPING"), 3)
   }
 }
 END_SECTION
