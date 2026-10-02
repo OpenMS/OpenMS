@@ -3823,4 +3823,128 @@ START_SECTION(([EXTRA] the prefilter totals count every candidate with a matched
 }
 END_SECTION
 
+START_SECTION((void getProteinOccurrences(Size peptide_idx, const std::vector<FASTAFile::FASTAEntry>& fasta_entries, std::vector<std::pair<UInt32, UInt32>>& occurrences) const))
+{
+  // Every entry lists the spans of the digest with its residues (each once), with and without deduplication, which
+  // records the removed occurrences for this. Proteins repeat peptides in every protein-terminal context.
+  const vector<string> blocks = {"MPEPCIDEMK", "QPEPTIDEMR", "AMDEQK", "MSTQMPEPK", "GGQMSTMK", "CMQEDK", "QQMMCR", "PEPTIDEK"};
+  std::mt19937 rng(23);
+  vector<FASTAFile::FASTAEntry> db;
+  for (int i = 0; i < 40; ++i)
+  {
+    string sequence = (i % 3 == 0) ? "M" : "";
+    const int n_blocks = 1 + static_cast<int>(rng() % 4);
+    for (int b = 0; b < n_blocks; ++b) sequence += blocks[rng() % blocks.size()];
+    db.push_back({(i % 2 == 0 ? "P" : "DECOY_P") + std::to_string(i), "", sequence});
+  }
+  struct Config { vector<string> fixed, variable; };
+  const vector<Config> configs = {
+    {{}, {}},
+    {{"Carbamidomethyl (C)"}, {"Oxidation (M)"}},
+    {{"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (N-term)"}},
+    {{"Carbamidomethyl (C)", "TMT6plex (N-term)", "TMT6plex (K)"}, {"Oxidation (M)", "Gln->pyro-Glu (N-term Q)"}},
+    {{"Carbamidomethyl (C)"}, {"Carbamidomethyl (C)", "Oxidation (M)"}}}; // fixed and variable: deduplicated as strings
+  using Occurrences = vector<pair<UInt32, UInt32>>;
+  Size checked = 0, mismatches = 0, repeated = 0, removed = 0;
+  for (const Config& config : configs)
+  {
+    for (const string clip : {"false", "true"})
+    {
+      for (const int max_mods : {1, 2})
+      {
+        FragmentIndex fi;
+        Param p = fi.getParameters();
+        p.setValue("decoys", "false");
+        p.setValue("peptide:min_size", 5);
+        p.setValue("peptide:missed_cleavages", 2);
+        p.setValue("peptide:clip_nterm_methionine", clip);
+        p.setValue("modifications:fixed", config.fixed);
+        p.setValue("modifications:variable", config.variable);
+        p.setValue("modifications:variable_max_per_peptide", max_mods);
+        p.setValue("peptide:deduplicate", "false");
+        fi.setParameters(p);
+        fi.build(db);
+        TEST_TRUE(fi.hasProteinOccurrences(db))
+        // the spans of every residue sequence, from all entries
+        map<string, set<pair<UInt32, UInt32>>> expected;
+        const auto residues = [&db](const FragmentIndex::Peptide& peptide)
+        {
+          return db[peptide.protein_idx].sequence.substr(peptide.sequence_.first, peptide.sequence_.second);
+        };
+        for (const auto& peptide : fi.getPeptides())
+        {
+          expected[residues(peptide)].insert({peptide.protein_idx, peptide.sequence_.first});
+        }
+        const Size all_entries = fi.getPeptides().size();
+        for (const string deduplicate : {"false", "true"})
+        {
+          p.setValue("peptide:deduplicate", deduplicate);
+          fi.setParameters(p);
+          fi.build(db);
+          TEST_TRUE(fi.hasProteinOccurrences(db))
+          removed += all_entries - fi.getPeptides().size();
+          for (Size i = 0; i < fi.getPeptides().size(); ++i)
+          {
+            Occurrences occurrences;
+            fi.getProteinOccurrences(i, db, occurrences);
+            const set<pair<UInt32, UInt32>> observed(occurrences.begin(), occurrences.end());
+            repeated += occurrences.size() - observed.size();
+            mismatches += (observed == expected[residues(fi.getPeptides()[i])]) ? 0 : 1;
+            ++checked;
+          }
+        }
+      }
+    }
+  }
+  TEST_TRUE(checked > 1000)
+  TEST_EQUAL(mismatches, 0)
+  TEST_EQUAL(repeated, 0)
+  TEST_TRUE(removed > 0)
+}
+END_SECTION
+
+START_SECTION((bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const))
+{
+  const vector<FASTAFile::FASTAEntry> db = {{"P1", "", "MPEPCIDEMKAMDEQK"}, {"P2", "", "GGQMSTMKPEPTIDEK"}};
+  FragmentIndex fi;
+  TEST_FALSE(fi.hasProteinOccurrences(db)) // not built
+  Param p = fi.getParameters();
+  p.setValue("decoys", "false");
+  p.setValue("peptide:min_size", 5);
+  p.setValue("modifications:fixed", vector<string> {"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string> {"Oxidation (M)"});
+  p.setValue("peptide:deduplicate", "true");
+  fi.setParameters(p);
+  fi.build(db);
+  TEST_TRUE(fi.hasProteinOccurrences(db))
+  vector<FASTAFile::FASTAEntry> other = db;
+  other[1].sequence += "R";
+  TEST_FALSE(fi.hasProteinOccurrences(other)) // not built from these entries
+  other = db;
+  other.pop_back();
+  TEST_FALSE(fi.hasProteinOccurrences(other))
+  fi.clear();
+  TEST_FALSE(fi.hasProteinOccurrences(db))
+  // protein-terminal modifications: the entries of a span depend on where it lies in its protein
+  for (const auto& [fixed, variable] : vector<pair<vector<string>, vector<string>>> {
+         {{}, {"Acetyl (Protein N-term)"}}, {{}, {"Amidated (Protein C-term)"}}, {{"Acetyl (Protein N-term)"}, {}}})
+  {
+    p.setValue("modifications:fixed", fixed);
+    p.setValue("modifications:variable", variable);
+    fi.setParameters(p);
+    fi.build(db);
+    TEST_FALSE(fi.hasProteinOccurrences(db))
+  }
+  // SNES: the entries are mother peptides
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(db);
+  TEST_TRUE(fi.isSnesMode())
+  TEST_FALSE(fi.hasProteinOccurrences(db))
+}
+END_SECTION
+
 END_TEST

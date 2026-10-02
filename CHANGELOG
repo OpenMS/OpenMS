@@ -48,6 +48,10 @@ OpenMS Library:
     peptide, from at most 31 sites (a warning counts peptides with more). The default precursor
     isotope range of FragmentIndex is [-2, 0] (it searched [0, +2], precursors picked below the
     monoisotopic peak).
+  - FragmentIndex::getProteinOccurrences() lists every span of the digest with the residues of an index peptide,
+    including the occurrences that peptide:deduplicate removed from getPeptides() (recorded by the deduplication);
+    hasProteinOccurrences() tells whether the list is complete (not in SNES mode or with protein-terminal
+    modifications).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
