@@ -3446,18 +3446,45 @@ namespace OpenMS
       }
     }
 
-    // The MS2 spectra of a spectrum file (mzML, Bruker .d or Thermo .raw), sorted by RT.
-    PeakMap loadMS2Spectra(const std::string& filename)
+    // The MS2 spectra of a spectrum file (mzML, Bruker .d or Thermo .raw), sorted by RT, read with
+    // @p threads OpenMP threads.
+    PeakMap loadMS2Spectra(const std::string& filename, int threads)
     {
       PeakMap spectra;
       FileHandler f;
-      PeakFileOptions options;
-      options.clearMSLevels();
-      options.addMSLevel(2);
-      f.getOptions() = options;
+      f.getOptions().clearMSLevels();
+      f.getOptions().addMSLevel(2);
+      // MzMLHandler decodes the spectra in a parallel region every maxDataPoolSize spectra (100 by
+      // default): with several threads, fewer and larger regions
+      if (threads > 1) { f.getOptions().setMaxDataPoolSize(1000); }
       f.loadExperiment(filename, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
       spectra.sortSpectra(true);
       return spectra;
+    }
+
+    // The OpenMP threads a spectrum file is read with: those of this thread, at most 16.
+    int readerThreads()
+    {
+#ifdef _OPENMP
+      return std::min(omp_get_max_threads(), 16);
+#else
+      return 1;
+#endif
+    }
+
+    // loadMS2Spectra() on a helper thread. The helper sets its OpenMP threads (readerThreads() of this
+    // thread): a new thread starts with the default of the process (OMP_NUM_THREADS or all cores), not
+    // with what was set for this one (e.g. by TOPPBase from -threads).
+    std::future<PeakMap> loadMS2SpectraAsync(const std::string& filename)
+    {
+      const int threads = readerThreads();
+      return std::async(std::launch::async, [&filename, threads]()
+      {
+#ifdef _OPENMP
+        omp_set_num_threads(threads);
+#endif
+        return loadMS2Spectra(filename, threads);
+      });
     }
 
     // Whether the first MBs of an mzML file name an electron-based activation (the terms that
@@ -3493,7 +3520,6 @@ namespace OpenMS
   {
     // load MS2 map
     PeakMap spectra;
-    const auto load_spectra = [&]() { spectra = loadMS2Spectra(in_spectra); };
 
     vector<FASTAFile::FASTAEntry> fasta_db;
     DecoyStrategy_ strategy; // decoys of the searched database, for protein FDR below
@@ -3512,7 +3538,7 @@ namespace OpenMS
       // they did when the spectra were read first (decoding them was the first parallel region):
       // started next to a busy helper, they more often end up on another NUMA node than this
       // thread, which slows down the index build and the scoring.
-      std::future<void> spectra_ready = std::async(std::launch::async, load_spectra);
+      std::future<PeakMap> spectra_ready = loadMS2SpectraAsync(in_spectra);
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -3526,7 +3552,7 @@ namespace OpenMS
       // builds.
       const bool spectra_read = spectra_ready.wait_for(std::chrono::seconds(0)) == std::future_status::ready
                                 || (ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra));
-      if (spectra_read) { spectra_ready.get(); }
+      if (spectra_read) { spectra = spectra_ready.get(); }
       // The context takes the entries over instead of copying them. fasta_db is not read
       // afterwards: protein FDR below takes the decoy marker from the context, which holds what
       // resolveDecoyStrategy_(fasta_db) returned.
@@ -3537,7 +3563,7 @@ namespace OpenMS
       strategy_resolved = true;
       if (!spectra_read)
       {
-        spectra_ready.get();
+        spectra = spectra_ready.get();
         if (countElectronActivated_(spectra) > 0)
         {
           startProgress(0, 1, "Building fragment index with c and z+1 ions...");
@@ -3553,7 +3579,7 @@ namespace OpenMS
     }
     else
     {
-      load_spectra();
+      spectra = loadMS2Spectra(in_spectra, readerThreads());
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -3698,7 +3724,7 @@ namespace OpenMS
     {
       if (read_in_background && i < in_spectra_files.size() && is_mzml(i))
       {
-        next_spectra = std::async(std::launch::async, loadMS2Spectra, std::cref(in_spectra_files[i]));
+        next_spectra = loadMS2SpectraAsync(in_spectra_files[i]);
       }
     };
     read_next(0);
@@ -3798,7 +3824,7 @@ namespace OpenMS
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
-        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i]);
+        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads());
         logDenseSpectra(preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_,
                                            peaks_keep_n_, peaks_window_top_, peaks_window_type_, peaks_dense_window_top_,
                                            peaks_dense_intensity_loss_, deisotoping_,
@@ -4188,7 +4214,7 @@ namespace OpenMS
         OPENMS_LOG_INFO << "[ProSE] [" << (i + 1) << "/" << in_spectra_files.size()
                         << "] Searching " << in_spectra << std::endl;
 
-        PeakMap spectra = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra);
+        PeakMap spectra = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads());
         read_next(i + 1);
         prepare_context(countElectronActivated_(spectra) > 0);
 
