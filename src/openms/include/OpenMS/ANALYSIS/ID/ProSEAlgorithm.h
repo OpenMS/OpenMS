@@ -658,6 +658,11 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       (annotate:self_trained_ion_priors): the peaks after deisotoping, before the window and top-N filters, or, with
       @p ion_evidence_scored_peaks, the peaks that are scored. The lists are indexed like @p exp after its sort by RT.
 
+      With @p query_spectra, a copy of each spectrum after zero-intensity removal and m/z sorting, before
+      deisotoping and local filtering, is kept for candidate retrieval (fragment:query_spectrum=raw); with
+      @p evidence_spectra, a copy after deisotoping, before window/top-N filtering (annotate:local_fragment_evidence).
+      Both are aligned with @p exp after its sort by RT.
+
       @return the number of spectra filtered with the dense quota
     */
     static Size preprocessSpectra_(PeakMap& exp,
@@ -671,7 +676,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                    double dense_intensity_loss,
                                    const DeisotopingSettings_& deisotoping,
                                    FragmentIonLikelihoodModel::PeakLists* ion_evidence = nullptr,
-                                   bool ion_evidence_scored_peaks = false);
+                                   bool ion_evidence_scored_peaks = false,
+                                   PeakMap* evidence_spectra = nullptr,
+                                   PeakMap* query_spectra = nullptr);
 
     /// preprocessSpectra_() with the DeisotopingSettings_ defaults (the behaviour before its parameters existed)
     static Size preprocessSpectra_(PeakMap& exp,
@@ -785,6 +792,48 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// Generators for scoring, annotation and calibration, configured from the ions:* parameters
     SpectrumGenerators_ spectrumGenerators_() const;
 
+    /// Local fragment evidence of one candidate (annotate:local_fragment_evidence).
+    struct LocalFragmentEvidence_
+    {
+      double chance_match_surprise = 0.0;
+      double mass_competition_evidence = 0.0;
+    };
+
+    /// Peak counts per Da in a fixed +/-50 m/z window around each peak of a sorted spectrum.
+    static std::vector<double> localPeakDensities_(const MSSpectrum& spectrum);
+
+    /**
+     * @brief Compute local fragment-match evidence on the spectrum before window/top-N peak filtering.
+     *
+     * Matches each intact theoretical ion to its nearest experimental peak. Surprise is
+     * sum(max(0, -log(2 * tolerance_Da * local_density))). Competition evidence is
+     * sum(1 / (1 + alternative_assignments + local_density)). Alternative hypotheses
+     * include all configured intact ions and generic H2O/NH3 losses, divided by the
+     * fragment charge. Losses only discount ambiguous matches; they are not scored as
+     * additional matches and do not require sequence-specific loss eligibility.
+     *
+     * @param[in] spectrum Sorted experimental spectrum after zero-intensity removal and
+     *                    optional deisotoping, before window/top-N peak filtering.
+     * @param[in] theoretical Sorted intact ions, with the TSG's aligned integer charge array.
+     * @param[in] densities Result of localPeakDensities_(spectrum), reused for all candidates.
+     * @param[in] tolerance Positive, finite matching tolerance.
+     * @param[in] ppm Whether tolerance is given in ppm rather than Da.
+     * @return Two additive annotations; zero without matches. Neither is a calibrated PSM p-value.
+     */
+    static LocalFragmentEvidence_ localFragmentEvidence_(const MSSpectrum& spectrum,
+                                                        const MSSpectrum& theoretical,
+                                                        const std::vector<double>& densities,
+                                                        double tolerance, bool ppm);
+
+    /// localFragmentEvidence_() restricted to the ions of @p theoretical with charge <= @p max_charge, with a
+    /// caller-owned buffer for the sorted alternative assignments (reused across candidates).
+    static LocalFragmentEvidence_ localFragmentEvidence_(const MSSpectrum& spectrum,
+                                                        const MSSpectrum& theoretical,
+                                                        int max_charge,
+                                                        const std::vector<double>& densities,
+                                                        double tolerance, bool ppm,
+                                                        std::vector<double>& alternatives);
+
     /// True if the precursor of @p spectrum was activated by electrons (ETD, ECD, EThcD or ETciD)
     static bool isElectronActivated_(const MSSpectrum& spectrum);
 
@@ -867,6 +916,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *                pool, one entry per spectrum. Accumulated rather than overwritten,
      *                so chunked callers can pass the same vector for every chunk.
      * @param[in] progress_label Label shown by the progress logger for this scoring pass.
+     * @param[in] query_spectra Optional spectra for candidate retrieval, aligned with @p spectra
+     *                          (fragment:query_spectrum=raw); scoring always uses @p spectra.
      */
     void scoreSpectraAgainstIndex_(
         const PeakMap& spectra,
@@ -878,7 +929,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         bool open_search_mode,
         std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
         std::vector<CandidatePoolStats_>& pool_stats,
-        const std::string& progress_label) const;
+        const std::string& progress_label,
+        const PeakMap* query_spectra = nullptr) const;
 
     /**
      * @brief Isotope-corrected precursor m/z error (ppm) of @p hit in @p spectrum.
@@ -916,6 +968,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] precursor_max_charge Maximum precursor charge considered.
      * @param[in] enzyme Digestion enzyme name.
      * @param[out] database_name Database file name used for the search (stored in protein_ids).
+     * @param[in] evidence_spectra Peak lists retained before local/top-N filtering, aligned with @p exp;
+     *                             required when annotate:local_fragment_evidence is enabled, otherwise unused.
      */
     void postProcessHits_(const PeakMap& exp,
       std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
@@ -933,7 +987,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       const Int precursor_min_charge,
       const Int precursor_max_charge,
       const std::string& enzyme,
-      const std::string& database_name) const;
+      const std::string& database_name,
+      const PeakMap* evidence_spectra = nullptr) const;
 
     /// Calibration overwrites these with the calibrated magnitudes for the duration of
     /// search(); pure runtime-state mutation that does not affect the logical const-ness
@@ -970,6 +1025,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     Size peaks_dense_window_top_{100};        ///< Peaks per 100 Da window kept in dense spectra (peaks:dense_window_top)
     double peaks_dense_intensity_loss_{1.0};  ///< Intensity share whose removal marks a spectrum as dense (peaks:dense_intensity_loss; 1.0 = off)
     DeisotopingSettings_ deisotoping_;        ///< MS2 deisotoping rule (fragment:deisotope_*)
+    bool query_raw_spectrum_{false}; ///< Retrieve candidates with the spectrum before deisotoping and local filtering (fragment:query_spectrum)
 
     StringList modifications_fixed_;
 
@@ -1106,11 +1162,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] spectra  Preprocessed MS/MS spectra (subset is selected internally by TIC).
      * @param[in,out] fragment_index  Pre-built fragment index for candidate lookup.
      * @param[in] db  Protein database (for sequence reconstruction of candidates).
+     * @param[in] query_spectra Optional spectra for candidate retrieval, aligned with @p spectra.
      * @return CalibrationResult_ with estimated tolerances, or success=false if insufficient PSMs.
      */
     CalibrationResult_ runCalibrationPass_(PeakMap& spectra,
                                            FragmentIndex& fragment_index,
-                                           const std::vector<FASTAFile::FASTAEntry>& db) const;
+                                           const std::vector<FASTAFile::FASTAEntry>& db,
+                                           const PeakMap* query_spectra = nullptr) const;
 
     /// Helper: does @p accession carry the decoy @p marker at the given position?
     /// Empty marker → false. Pure std::string (no String dependency).

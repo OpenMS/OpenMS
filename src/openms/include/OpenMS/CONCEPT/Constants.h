@@ -438,6 +438,11 @@ namespace OpenMS
 
       /// Fraction of the fragment ions a per-run learned ion model predicts as most likely present that were observed.
       inline const std::string ION_PRIOR_TOPK_OBSERVED = "ion_prior_topk_observed";
+      /// Sum of local peak-density-based surprise over matched theoretical fragments.
+      inline const std::string CHANCE_MATCH_SURPRISE = "chance_match_surprise";
+
+      /// Matched-fragment evidence discounted by alternative assignments and local peak density.
+      inline const std::string MASS_COMPETITION_EVIDENCE = "mass_competition_evidence";
 
       /** User parameter name to indicate a peptide q-value
               String
