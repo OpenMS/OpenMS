@@ -562,10 +562,8 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
         #pragma omp critical(PeptideIndexer_joinAC)
         {
           s.start();
-          // hits
+          // hits (sorted once, after the parallel region)
           func.merge(func_threads);
-          // sort hits by peptide index
-          std::sort(func.pep_to_prot.begin(), func.pep_to_prot.end());
           // accession -> index
           acc_to_prot.insert(acc_to_prot_thread.begin(), acc_to_prot_thread.end());
           acc_to_prot_thread.clear();
@@ -573,6 +571,9 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
         } // OMP end critical
       } // end readChunk
     } // OMP end parallel
+    // sort hits by peptide index (then protein index, position and flanking residues: a total order, so the
+    // result does not depend on the order in which the threads joined)
+    std::sort(func.pep_to_prot.begin(), func.pep_to_prot.end());
     this->endProgress();
     std::cout << "Merge took: " << s.toString() << "\n";
     mu.after();
