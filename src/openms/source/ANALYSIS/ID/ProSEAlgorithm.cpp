@@ -254,6 +254,8 @@ namespace OpenMS
                        "grows with the number of theoretical ions, so when multiply charged fragments are scored for precursors of "
                        "charge 3 and above but not for charge 2, a pooled competition is dominated by the higher precursor charges. "
                        "With singly charged fragments only (deisotoped, high-resolution spectra) there is one group, as with 'pooled'. "
+                       "With fragment:max_charge above 2, precursor charges of 4 and above form further groups, which accept few PSMs "
+                       "per run (tens), so their q-values (D/T, as FalseDiscoveryRate) are coarse. "
                        "A group without decoy or without target PSMs falls back to 'pooled'.",
                        {"advanced"});
     defaults_.setValidStrings("FDR:PSM_groups", {"scored_charges", "pooled"});
@@ -4011,6 +4013,10 @@ namespace OpenMS
         theo.clear(true);
         tsg.getSpectrum(theo, seq, 1, scoringMaxCharge_(sms.precursor_charge_));
 
+        // The calibration PSMs are selected with the search's own score (upstream 825c33bb). The mass-accuracy score
+        // favours PSMs with small fragment errors, so it narrows the fragment tolerance estimated from them below
+        // (2-10% narrower than with HyperScore on 12 of 14 ppm runs); selecting by HyperScore instead did not
+        // change the yield measurably.
         HyperScore::PSMDetail detail;
         double score = mass_accuracy_score_
           ? HyperScore::computeMassAccuracy(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)

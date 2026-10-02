@@ -3539,13 +3539,14 @@ START_SECTION((void annotatePsmQValues(PeptideIdentificationList& peptide_ids) c
   const auto q_two = reference([&](const PeptideIdentification& id) { return best_charge(id) == 2; });
   const auto q_more = reference([&](const PeptideIdentification& id) { return best_charge(id) >= 3; });
 
-  auto annotate = [&make_ids](double tolerance, const std::string& unit, const std::string& groups)
+  auto annotate = [&make_ids](double tolerance, const std::string& unit, const std::string& groups, int max_charge = 2)
   {
     ProSEAlgorithm algo;
     Param p = algo.getParameters();
     TEST_EQUAL(p.getValue("FDR:PSM_groups").toString(), "scored_charges")
     p.setValue("fragment:mass_tolerance", tolerance);
     p.setValue("fragment:mass_tolerance_unit", unit);
+    p.setValue("fragment:max_charge", max_charge);
     p.setValue("FDR:PSM_groups", groups);
     algo.setParameters(p);
     PeptideIdentificationList ids = make_ids();
@@ -3573,6 +3574,16 @@ START_SECTION((void annotatePsmQValues(PeptideIdentificationList& peptide_ids) c
   TEST_EQUAL(grouped.back().getHits().size(), 0)
   TEST_EQUAL(grouped.back().getScoreType(), "q-value")
   TEST_EQUAL(accepted(grouped), 601) // all 2+, 3+ and 4+ targets
+
+  // fragment:max_charge 3: the 4+ PSM is scored with three fragment charges, so it forms a competition of its own.
+  // That competition has no decoy here, so all PSMs compete together.
+  const PeptideIdentificationList grouped_three = annotate(0.5, "Da", "scored_charges", 3);
+  ABORT_IF(grouped_three.size() != grouped.size())
+  for (Size i = 0; i + 1 < grouped_three.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(grouped_three[i].getHits()[0].getScore(), q_pooled.at(i))
+  }
+  TEST_EQUAL(accepted(grouped_three), 301)
 
   const PeptideIdentificationList pooled = annotate(0.5, "Da", "pooled");
   for (Size i = 0; i + 1 < pooled.size(); ++i)

@@ -10,10 +10,13 @@
 				<UserParam type="string" name="peptide:deduplicate" value="true"/>
 				<UserParam type="string" name="scoring:fragment_charges" value="auto"/>
 				<UserParam type="string" name="scoring:fragment_charges_resolved" value="single"/>
+				<UserParam type="string" name="scoring:method" value="auto"/>
+				<UserParam type="string" name="scoring:method_resolved" value="mass_accuracy"/>
+				<UserParam type="float" name="scoring:mass_error_sd" value="7.0"/>
 				<UserParam type="string" name="peaks:window_type" value="auto"/>
 				<UserParam type="string" name="peaks:window_type_resolved" value="jump_full"/>
 				<UserParam type="int" name="peaks:dense_window_top" value="100"/>
-				<UserParam type="float" name="peaks:dense_intensity_loss" value="0.2"/>
+				<UserParam type="float" name="peaks:dense_intensity_loss" value="1.0"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string" value="DECOY_"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="prefix"/>
 				<UserParam type="string" name="PeptideIndexer:enzyme" value="Trypsin"/>
@@ -34,7 +37,7 @@
 			<UserParam type="stringList" name="spectra_data" value="[file://ProSE_10_duplicate_peaks.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="882.404829999999947" RT="600.0" spectrum_reference="scan=1" >
-			<PeptideHit score="30.325570613797836" sequence="LISWYDNEFGYSNR" charge="2" aa_before="K" aa_after="V" start="309" end="322" protein_refs="PH_0" >
+			<PeptideHit score="30.325536129894001" sequence="LISWYDNEFGYSNR" charge="2" aa_before="K" aa_after="V" start="309" end="322" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="175.118950000000012,0.600000023841858,1,&quot;y1+&quot;|227.175399999999996,0.25,1,&quot;b2+&quot;|289.161879999999996,0.150000005960464,1,&quot;y2+&quot;|314.207429999999988,0.100000001490116,1,&quot;b3+&quot;|376.193910000000017,0.119999997317791,1,&quot;y3+&quot;|500.286749999999984,0.180000007152557,1,&quot;b4+&quot;|539.257240000000024,0.300000011920929,1,&quot;y4+&quot;|596.278699999999958,0.219999998807907,1,&quot;y5+&quot;|663.35006999999996,0.150000005960464,1,&quot;b5+&quot;|743.347110000000043,0.400000005960464,1,&quot;y6+&quot;|778.377020000000016,0.119999997317791,1,&quot;b6+&quot;|872.389710000000036,0.349999994039536,1,&quot;y7+&quot;|892.419949999999972,0.079999998211861,1,&quot;b7+&quot;|986.432630000000017,0.479999989271164,1,&quot;y8+&quot;|1021.46253999999999,0.050000000745058,1,&quot;b8+&quot;|1101.45957999999996,1.0,1,&quot;y9+&quot;|1264.522909999999911,0.280000001192093,1,&quot;y10+&quot;|1450.602219999999988,0.200000002980232,1,&quot;y11+&quot;|1537.634250000000065,0.100000001490116,1,&quot;y12+&quot;"/>
 				<UserParam type="float" name="fragment_mz_error_median_ppm" value="4.093088127619542e-03"/>
 				<UserParam type="float" name="precursor_mz_error_ppm" value="-8.173924217819778e-04"/>
@@ -43,7 +46,7 @@
 				<UserParam type="int" name="num_matched_peaks" value="19"/>
 				<UserParam type="int" name="matched_prefix_ions" value="7"/>
 				<UserParam type="int" name="matched_suffix_ions" value="12"/>
-				<UserParam type="float" name="delta_score" value="30.325571060180664"/>
+				<UserParam type="float" name="delta_score" value="30.325536727905273"/>
 				<UserParam type="float" name="hyperscore_zscore" value="0.0"/>
 				<UserParam type="float" name="ln_num_candidates" value="0.6931471824646"/>
 				<UserParam type="float" name="matched_ion_current" value="5.130000043660402"/>
@@ -57,7 +60,7 @@
 			<UserParam type="int" name="scan_index" value="0"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="882.404829999999947" RT="601.0" spectrum_reference="scan=2" >
-			<PeptideHit score="30.325570613797836" sequence="LISWYDNEFGYSNR" charge="2" aa_before="K" aa_after="V" start="309" end="322" protein_refs="PH_0" >
+			<PeptideHit score="30.325536129894001" sequence="LISWYDNEFGYSNR" charge="2" aa_before="K" aa_after="V" start="309" end="322" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="175.118950000000012,0.600000023841858,1,&quot;y1+&quot;|227.175399999999996,0.25,1,&quot;b2+&quot;|289.161879999999996,0.150000005960464,1,&quot;y2+&quot;|314.207429999999988,0.100000001490116,1,&quot;b3+&quot;|376.193910000000017,0.119999997317791,1,&quot;y3+&quot;|500.286749999999984,0.180000007152557,1,&quot;b4+&quot;|539.257240000000024,0.300000011920929,1,&quot;y4+&quot;|596.278699999999958,0.219999998807907,1,&quot;y5+&quot;|663.35006999999996,0.150000005960464,1,&quot;b5+&quot;|743.347110000000043,0.400000005960464,1,&quot;y6+&quot;|778.377020000000016,0.119999997317791,1,&quot;b6+&quot;|872.389710000000036,0.349999994039536,1,&quot;y7+&quot;|892.419949999999972,0.079999998211861,1,&quot;b7+&quot;|986.432630000000017,0.479999989271164,1,&quot;y8+&quot;|1021.46253999999999,0.050000000745058,1,&quot;b8+&quot;|1101.45957999999996,1.0,1,&quot;y9+&quot;|1264.522909999999911,0.280000001192093,1,&quot;y10+&quot;|1450.602219999999988,0.200000002980232,1,&quot;y11+&quot;|1537.634250000000065,0.100000001490116,1,&quot;y12+&quot;"/>
 				<UserParam type="float" name="fragment_mz_error_median_ppm" value="4.093088127619542e-03"/>
 				<UserParam type="float" name="precursor_mz_error_ppm" value="-8.173924217819778e-04"/>
@@ -66,7 +69,7 @@
 				<UserParam type="int" name="num_matched_peaks" value="19"/>
 				<UserParam type="int" name="matched_prefix_ions" value="7"/>
 				<UserParam type="int" name="matched_suffix_ions" value="12"/>
-				<UserParam type="float" name="delta_score" value="30.325571060180664"/>
+				<UserParam type="float" name="delta_score" value="30.325536727905273"/>
 				<UserParam type="float" name="hyperscore_zscore" value="0.0"/>
 				<UserParam type="float" name="ln_num_candidates" value="0.6931471824646"/>
 				<UserParam type="float" name="matched_ion_current" value="5.130000043660402"/>
