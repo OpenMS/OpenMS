@@ -3446,6 +3446,20 @@ namespace OpenMS
       }
     }
 
+    // The MS2 spectra of a spectrum file (mzML, Bruker .d or Thermo .raw), sorted by RT.
+    PeakMap loadMS2Spectra(const std::string& filename)
+    {
+      PeakMap spectra;
+      FileHandler f;
+      PeakFileOptions options;
+      options.clearMSLevels();
+      options.addMSLevel(2);
+      f.getOptions() = options;
+      f.loadExperiment(filename, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+      spectra.sortSpectra(true);
+      return spectra;
+    }
+
     // Whether the first MBs of an mzML file name an electron-based activation (the terms that
     // MzMLHandler reads as ECD, ETD, ETciD or EThcD). A cheap prediction of what the spectra will
     // hold, used only to decide when to build the index, not what the index holds.
@@ -3479,16 +3493,7 @@ namespace OpenMS
   {
     // load MS2 map
     PeakMap spectra;
-    FileHandler f;
-    PeakFileOptions options;
-    options.clearMSLevels();
-    options.addMSLevel(2);
-    f.getOptions() = options;
-    const auto load_spectra = [&]()
-    {
-      f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
-      spectra.sortSpectra(true);
-    };
+    const auto load_spectra = [&]() { spectra = loadMS2Spectra(in_spectra); };
 
     vector<FASTAFile::FASTAEntry> fasta_db;
     DecoyStrategy_ strategy; // decoys of the searched database, for protein FDR below
@@ -3674,6 +3679,30 @@ namespace OpenMS
       return mfres;
     }
 
+    // Multi-threaded: a helper thread reads the spectra of an mzML file while this thread works, the
+    // first file from here on while the database is prepared and the index built, and, in the
+    // unchunked search below, file i + 1 while file i is searched. The OpenMP threads of this thread
+    // are started first, as in search(file).
+    // Registry order: idXML writes the UserParams of an object in the order in which their names were
+    // registered. The mzML reader registers names (CV terms and user parameters of the file, and its
+    // own, see MzMLHandler) while it runs. Preparing the database and building the index register
+    // none, so with the first file the registry ends up as if the file had been read first. While
+    // file i is searched, the search registers the names of what it writes (scan_index, the PSM
+    // features, target_decoy, PeptideIndexer:*, spectra_data, ...); if the reader of file i + 1
+    // registers names in between, these keep their order relative to each other. ProSE writes none
+    // of the reader's names, unless a file carries a user parameter that is named like one of them.
+    const bool read_in_background = startOpenMPThreads() > 1;
+    const auto is_mzml = [&in_spectra_files](Size i) { return FileHandler::getTypeByFileName(in_spectra_files[i]) == FileTypes::MZML; };
+    std::future<PeakMap> next_spectra; // the spectra of the next file to search, if read in the background
+    const auto read_next = [&](Size i)
+    {
+      if (read_in_background && i < in_spectra_files.size() && is_mzml(i))
+      {
+        next_spectra = std::async(std::launch::async, loadMS2Spectra, std::cref(in_spectra_files[i]));
+      }
+    };
+    read_next(0);
+
     // Resolve decoy handling once from the shared input FASTA; reused for the
     // chunk-major path, the single-context path, and the downstream FDR steps.
     const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
@@ -3769,13 +3798,7 @@ namespace OpenMS
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
-        FileHandler f;
-        PeakFileOptions options;
-        options.clearMSLevels();
-        options.addMSLevel(2);
-        f.getOptions() = options;
-        f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
-        all_spectra[i].sortSpectra(true);
+        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i]);
         logDenseSpectra(preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_,
                                            peaks_keep_n_, peaks_window_top_, peaks_window_type_, peaks_dense_window_top_,
                                            peaks_dense_intensity_loss_, deisotoping_,
@@ -4148,6 +4171,15 @@ namespace OpenMS
 
       mfres.per_file.reserve(in_spectra_files.size());
 
+      // While the first file is read: build the index, as search(file) does without c and z+1 ions
+      // unless the spectra are read already or the file names an electron-based activation early on.
+      // prepare_context() below adds them if the spectra need them after all.
+      if (next_spectra.valid() && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready
+          && !(ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra_files[0])))
+      {
+        prepare_context(false);
+      }
+
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         const std::string& in_spectra = in_spectra_files[i];
@@ -4156,16 +4188,8 @@ namespace OpenMS
         OPENMS_LOG_INFO << "[ProSE] [" << (i + 1) << "/" << in_spectra_files.size()
                         << "] Searching " << in_spectra << std::endl;
 
-        PeakMap spectra;
-        {
-          FileHandler f;
-          PeakFileOptions options;
-          options.clearMSLevels();
-          options.addMSLevel(2);
-          f.getOptions() = options;
-          f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
-        }
-        spectra.sortSpectra(true);
+        PeakMap spectra = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra);
+        read_next(i + 1);
         prepare_context(countElectronActivated_(spectra) > 0);
 
         SearchResult result;
