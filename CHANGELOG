@@ -30,6 +30,10 @@ OpenMS Library:
     INIFileEditor failed to load mzML files with a ConversionError, because "60.5" was read as
     60. The imzML and Arrow/Parquet readers no longer use the locale-dependent std::stod, and
     the GUI tools reset LC_NUMERIC to "C" after starting Qt.
+  - FIX: HyperScore::computeWithDetail reported a mean fragment error of 0 for Da tolerances on
+    Linux arm64: an unqualified abs() bound to the integer overload there and truncated every
+    error. ProSE's fragment calibration therefore kept the configured Da tolerance on arm64,
+    while x86-64 and macOS tightened it.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -85,6 +89,11 @@ TOPP tools:
       - FIX: The MS2 intensity cutoff applied before normalization removes only peaks without
         intensity (zero or negative). It was the ThresholdMower default of 0.05 absolute, which
         deleted real peaks from intensity-scaled input such as spectra normalized to a base peak of 1.
+      - FIX: MS2 deisotoping (high-resolution fragments) requires isotope intensities to fall from the
+        monoisotopic peak. A small peak one isotope spacing below a fragment ion was taken as the
+        envelope's monoisotopic peak, and the ion was removed as its isotope. Every TMT/TMTpro-labelled
+        fragment has such a peak from the reagent's isotope impurity, so labelled searches lost a fifth
+        of their matchable fragment peaks; dense Orbitrap Astral and timsTOF spectra lost about 5%.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
