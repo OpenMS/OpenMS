@@ -1456,6 +1456,11 @@ Fixes:
       and logs a warning. TOPPASEdge falls back to extension-based file type detection when
       content-based detection returns UNKNOWN, and no longer mishandles an edge whose referenced
       vertex was removed (#9054).
+    - idXML keeps the search parameter meta values of every identification run. Runs whose search
+      settings are equal shared one <SearchParameters> block, and the block carried the meta values
+      of the first run only, so after reading such a file back every run reported the search engine
+      of the first one (SE:<engine>) - e.g. several engines run with the same database and
+      tolerances, merged into one file (#10318).
     - FileMerger renamed the merged spectra but left precursor spectrumRef attributes pointing to the
       original native IDs, so MS2 spectra lost the link to their parent scan and the mzML output
       failed schema validation. The references are now updated together with the IDs (#10200).
