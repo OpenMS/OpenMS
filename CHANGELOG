@@ -34,6 +34,11 @@ OpenMS Library:
     Linux arm64: an unqualified abs() bound to the integer overload there and truncated every
     error. ProSE's fragment calibration therefore kept the configured Da tolerance on arm64,
     while x86-64 and macOS tightened it.
+  - EnzymaticDigestion finds the cleavage sites of patterns like those of all proteases in
+    Enzymes.xml ('(?<=[KR])(?!P)' etc.) by a scan instead of the regular expression, with the
+    same results. New digestUnmodifiedWithInitialResidueLoss(). SpectrumAlignment's banded
+    alignment (absolute tolerances) uses flat arrays instead of nested maps, and FASTAFile::load
+    parses large files on several threads; both give the same results as before.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -130,6 +135,15 @@ TOPP tools:
         features. Computed on the peak list before local/top-N filtering; candidates and native scores
         do not change. Requires a finite, positive fragment:mass_tolerance; set it to false to search
         with other tolerances.
+      - Faster, with the same results: on files of the #10364 suite (8,000 MS2 spectra, human-yeast(-E.
+        coli) target/decoy databases) a search takes 3.2-3.7x less time at 4 threads and 2.6-2.9x less
+        on one; the native results and the idXML and PIN output are unchanged at any thread count. The
+        fragment index is built without sorting all fragments (counted and written to their final
+        m/z bin, buckets finished by a radix sort), the peptides are sorted in parallel in the order
+        std::sort gives them, and peptide:deduplicate no longer builds a peptide sequence per index
+        entry. One walk over the index serves all isotope errors, with per-bucket skip tables. The
+        spectra are read while the database is read and the index is built; the index is released
+        before the peptides are mapped to proteins.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
