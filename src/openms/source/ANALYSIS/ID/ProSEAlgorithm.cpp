@@ -49,7 +49,11 @@
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <fstream>
+#include <functional>
+#include <future>
 #include <limits>
 #include <numeric>
 #include <iomanip>
@@ -2457,6 +2461,40 @@ namespace OpenMS
                     << protein_fdr * 100 << "% FDR." << std::endl;
   }
 
+  namespace
+  {
+    // Starts the OpenMP threads of the calling thread, if they do not run yet, and returns their
+    // number: 1 without OpenMP, with a single OpenMP thread, and inside a parallel region.
+    Size startOpenMPThreads()
+    {
+      Size threads = 0;
+#pragma omp parallel reduction(+ : threads)
+      {
+        ++threads;
+      }
+      return threads;
+    }
+
+    // Whether the first MBs of an mzML file name an electron-based activation (the terms that
+    // MzMLHandler reads as ECD, ETD, ETciD or EThcD). A cheap prediction of what the spectra will
+    // hold, used only to decide when to build the index, not what the index holds.
+    bool mzMLHeadNamesElectronActivation(const std::string& filename)
+    {
+      std::string head(Size(8) << 20, '\0');
+      std::ifstream in(filename, std::ios::binary);
+      in.read(head.data(), static_cast<std::streamsize>(head.size()));
+      head.resize(static_cast<Size>(in.gcount()));
+      for (const std::string accession : {"MS:1000250", "MS:1000598", "MS:1003182", "MS:1002631"})
+      {
+        if (std::search(head.begin(), head.end(), std::boyer_moore_horspool_searcher(accession.begin(), accession.end())) != head.end())
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+
   // =====================================================================
   // File-based search: thin I/O wrapper that delegates to in-memory search
   // =====================================================================
@@ -2472,15 +2510,69 @@ namespace OpenMS
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
-    spectra.sortSpectra(true);
+    const auto load_spectra = [&]()
+    {
+      f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+      spectra.sortSpectra(true);
+    };
 
-    // load FASTA
     vector<FASTAFile::FASTAEntry> fasta_db;
-    FASTAFile().load(in_db, fasta_db);
+    ExitCodes ec;
+    if (database_chunk_size_ == 0 && FileHandler::getTypeByFileName(in_spectra) == FileTypes::MZML && startOpenMPThreads() > 1)
+    {
+      // Unchunked, multi-threaded search of an mzML file: a helper thread reads the spectra while
+      // this thread reads the FASTA file and builds the fragment index; then the search continues
+      // as search(spectra, fasta_db, ...) does. The two sides share no data: the spectra are used
+      // here only after get(), and the registries of OpenMS are written only by the mzML reader
+      // in the meantime (FASTA reading, decoys and the index build register no meta value names),
+      // so they end up as after reading the spectra first. Other readers (.d, .raw) have not
+      // been checked for this and keep the order below.
+      // The OpenMP threads of this thread run before the helper starts (see the condition), as
+      // they did when the spectra were read first (decoding them was the first parallel region):
+      // started next to a busy helper, they more often end up on another NUMA node than this
+      // thread, which slows down the index build and the scoring.
+      std::future<void> spectra_ready = std::async(std::launch::async, load_spectra);
 
-    // delegate to in-memory search
-    ExitCodes ec = search(spectra, fasta_db, protein_ids, peptide_ids);
+      // load FASTA
+      FASTAFile().load(in_db, fasta_db);
+
+      // ions:by_activation: the index needs c and z+1 ions if electron-activated spectra are
+      // searched, which is known once the spectra are read. Wait for them if they are read already
+      // (or failed to be read: get() rethrows) or if the file names an electron-based activation
+      // early on. Otherwise build the index without these ions meanwhile, which is what most data
+      // need, and rebuild it should such spectra turn up after all (as the multi-file search does
+      // when a later file has them): the index searched is the one prepareContext(fasta_db, true)
+      // builds.
+      const bool spectra_read = spectra_ready.wait_for(std::chrono::seconds(0)) == std::future_status::ready
+                                || (ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra));
+      if (spectra_read) { spectra_ready.get(); }
+      SearchContext ctx = prepareContext(fasta_db, spectra_read && countElectronActivated_(spectra) > 0);
+      if (!spectra_read)
+      {
+        spectra_ready.get();
+        if (countElectronActivated_(spectra) > 0)
+        {
+          startProgress(0, 1, "Building fragment index with c and z+1 ions...");
+          ctx.fragment_index.clear();
+          ctx.fragment_index.setParameters(fragmentIndexParameters_(true));
+          ctx.fragment_index.build(ctx.db);
+          ctx.electron_ions = true;
+          endProgress();
+        }
+      }
+      ctx.release_fragment_index_after_scoring = true; // single-use ctx (M1)
+      ec = search(spectra, ctx, protein_ids, peptide_ids);
+    }
+    else
+    {
+      load_spectra();
+
+      // load FASTA
+      FASTAFile().load(in_db, fasta_db);
+
+      // delegate to in-memory search
+      ec = search(spectra, fasta_db, protein_ids, peptide_ids);
+    }
 
     if (ec != ExitCodes::EXECUTION_OK)
     {
@@ -2491,13 +2583,17 @@ namespace OpenMS
     // Must run before decoy removal so both target and decoy proteins
     // receive aggregated scores from BPIA. Resolve the decoy strategy from the
     // same input FASTA the search used so the marker/position match.
-    const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
-    if (fdr_protein_ > 0.0 && strategy.have_decoys)
+    // The strategy is only needed for protein FDR: do not scan the accessions again without it.
+    if (fdr_protein_ > 0.0)
     {
-      // Single input file = complete experiment, so picked-protein FDR is valid. Use the resolved
-      // decoy marker (prefix or suffix, detected by DecoyHelper in resolveDecoyStrategy_) so the
-      // shared finalization recognises the same decoys that were searched.
-      applyCompleteSetProteinFDR(protein_ids, peptide_ids, strategy.decoy_string, strategy.is_prefix, fdr_protein_);
+      const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
+      if (strategy.have_decoys)
+      {
+        // Single input file = complete experiment, so picked-protein FDR is valid. Use the resolved
+        // decoy marker (prefix or suffix, detected by DecoyHelper in resolveDecoyStrategy_) so the
+        // shared finalization recognises the same decoys that were searched.
+        applyCompleteSetProteinFDR(protein_ids, peptide_ids, strategy.decoy_string, strategy.is_prefix, fdr_protein_);
+      }
     }
 
     // patch file-specific metadata
