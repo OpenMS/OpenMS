@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
 
 #include "OpenDIACanonicalLibraryMappingHelper.h"
@@ -306,7 +307,7 @@ protected:
     // (notably Windows) reject rename-over-existing, in which case use the
     // backup/restore path below without deleting the old library first.
     std::error_code rename_error;
-    std::filesystem::rename(staged, destination, rename_error);
+    std::filesystem::rename(to_path(staged), to_path(destination), rename_error);
     if (!rename_error)
     {
       return;
@@ -731,9 +732,9 @@ protected:
     registerDoubleOption_("PeptideQueryParameters:LibraryPrediction:nce", "<double>", 30.0, "Normalized collision energy supplied to PeptDeep MS2 prediction.", false);
     setMinFloat_("PeptideQueryParameters:LibraryPrediction:nce", 0.0);
     setMaxFloat_("PeptideQueryParameters:LibraryPrediction:nce", 100.0);
-    registerIntOption_("PeptideQueryParameters:LibraryPrediction:instrument_index", "<int>", 0, "PeptDeep instrument category (0=Lumos, 1=QE, 2=timsTOF, 3=Sciex).", false);
+    registerIntOption_("PeptideQueryParameters:LibraryPrediction:instrument_index", "<int>", 0, "PeptDeep instrument category (0=QE, 1=Lumos, 2=timsTOF, 3=SciexTOF, 4=ThermoTOF, 7=other/unknown).", false);
     setMinInt_("PeptideQueryParameters:LibraryPrediction:instrument_index", 0);
-    setMaxInt_("PeptideQueryParameters:LibraryPrediction:instrument_index", 3);
+    setMaxInt_("PeptideQueryParameters:LibraryPrediction:instrument_index", 7);
     registerStringOption_("PeptideQueryParameters:LibraryPrediction:predict_ccs", "<true|false>", "true", "Predict CCS and store converted 1/K0 values in the materialized library.", false);
     setValidStrings_("PeptideQueryParameters:LibraryPrediction:predict_ccs", {"true", "false"});
     registerInputFile_("PeptideQueryParameters:LibraryPrediction:rt_model", "<file>", "", "Optional explicit PeptDeep RT ONNX model. Empty uses the installed OpenMS model.", false, true);
@@ -4462,6 +4463,55 @@ protected:
     try
     {
       const FileTypes::Type tr_type = resolveTransitionLibraryType_(input_library);
+      // Validate the predicted-mode options before any library I/O or working-directory setup.
+      const LibraryMode requested_library_mode = getLibraryMode_();
+      if (requested_library_mode == LibraryMode::PREDICTED && tr_type != FileTypes::FASTA)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "workflow:library_mode=predicted requires FASTA input for '-tr'.");
+      }
+      if (tr_type == FileTypes::FASTA && requested_library_mode != LibraryMode::AUTO && requested_library_mode != LibraryMode::PREDICTED)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "FASTA input for '-tr' requires workflow:library_mode=auto or predicted.");
+      }
+
+      const bool predicted_mode = requested_library_mode == LibraryMode::PREDICTED ||
+        (requested_library_mode == LibraryMode::AUTO && tr_type == FileTypes::FASTA);
+      std::optional<PredictedLibraryParameters_> predicted_parameters;
+      const std::string requested_prediction_output = getStringOption_("PeptideQueryParameters:LibraryPrediction:out");
+      if (predicted_mode)
+      {
+        predicted_parameters = getPredictedLibraryParameters_();
+        const Param calibration_parameters = getParam_().copy("TargetedDataExtraction:Calibration:", true);
+        if (!calibration_parameters.getValue("files:linear_irt_file").toString().empty() ||
+            !calibration_parameters.getValue("rt_norm").toString().empty() ||
+            !calibration_parameters.getValue("tr_irt_priority_sampling").toString().empty())
+        {
+          throw Exception::InvalidParameter(
+            __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Predicted libraries use PeptDeep normalized RT coordinates. External linear-iRT, rt_norm, "
+            "or priority-sampling RT files are not accepted because their RT space is not declared compatible.");
+        }
+        // Without auto_irt, a null RT transformation is used, so a finite RT window
+        // would be centred on the normalized library RTs instead of run RTs.
+        if (calibration_parameters.getValue("auto_irt:enabled").toString() != "true" &&
+            getDoubleOption_("TargetedDataExtraction:rt_extraction_window") >= 0.0)
+        {
+          throw Exception::InvalidParameter(
+            __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Predicted libraries use PeptDeep normalized RT coordinates, which only auto_irt maps to run RT. "
+            "Enable TargetedDataExtraction:Calibration:auto_irt:enabled or set "
+            "TargetedDataExtraction:rt_extraction_window to -1 to extract the full RT range.");
+        }
+      }
+      else if (!requested_prediction_output.empty())
+      {
+        throw Exception::InvalidParameter(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "PeptideQueryParameters:LibraryPrediction:out is only valid when the resolved workflow library mode is predicted.");
+      }
+
       working_dir = prepareWorkingDirectory_(out_dir);
       OPENMS_LOG_INFO << "OpenDIA working directory: " << working_dir.path << std::endl;
 
@@ -4491,7 +4541,6 @@ protected:
       const Param reader_parameters = getParam_().copy("TargetedDataExtraction:Library:", true);
       OpenSwathLibraryPreparation::LibraryStats library_stats;
 
-      const LibraryMode requested_library_mode = getLibraryMode_();
       LibraryMode resolved_library_mode = requested_library_mode;
       bool prepared_library_ready = false;
       std::string empirical_library_input = input_library;
@@ -4500,17 +4549,6 @@ protected:
       if (requested_library_mode != LibraryMode::PREPARED)
       {
         library_preparation.ensureUnimodLoaded(assay_parameters);
-      }
-
-      if (requested_library_mode == LibraryMode::PREDICTED && tr_type != FileTypes::FASTA)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "workflow:library_mode=predicted requires FASTA input for '-tr'.");
-      }
-      if (tr_type == FileTypes::FASTA && requested_library_mode != LibraryMode::AUTO && requested_library_mode != LibraryMode::PREDICTED)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "FASTA input for '-tr' requires workflow:library_mode=auto or predicted.");
       }
 
       if (requested_library_mode == LibraryMode::AUTO)
@@ -4554,40 +4592,6 @@ protected:
             }
           }
         }
-      }
-
-      std::optional<PredictedLibraryParameters_> predicted_parameters;
-      const std::string requested_prediction_output = getStringOption_("PeptideQueryParameters:LibraryPrediction:out");
-      if (resolved_library_mode == LibraryMode::PREDICTED)
-      {
-        predicted_parameters = getPredictedLibraryParameters_();
-        const Param calibration_parameters = getParam_().copy("TargetedDataExtraction:Calibration:", true);
-        if (!calibration_parameters.getValue("files:linear_irt_file").toString().empty() ||
-            !calibration_parameters.getValue("rt_norm").toString().empty() ||
-            !calibration_parameters.getValue("tr_irt_priority_sampling").toString().empty())
-        {
-          throw Exception::InvalidParameter(
-            __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Predicted libraries use PeptDeep normalized RT coordinates. External linear-iRT, rt_norm, "
-            "or priority-sampling RT files are not accepted because their RT space is not declared compatible.");
-        }
-        // Without auto_irt, a null RT transformation is used, so a finite RT window
-        // would be centred on the normalized library RTs instead of run RTs.
-        if (calibration_parameters.getValue("auto_irt:enabled").toString() != "true" &&
-            getDoubleOption_("TargetedDataExtraction:rt_extraction_window") >= 0.0)
-        {
-          throw Exception::InvalidParameter(
-            __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Predicted libraries use PeptDeep normalized RT coordinates, which only auto_irt maps to run RT. "
-            "Enable TargetedDataExtraction:Calibration:auto_irt:enabled or set "
-            "TargetedDataExtraction:rt_extraction_window to -1 to extract the full RT range.");
-        }
-      }
-      else if (!requested_prediction_output.empty())
-      {
-        throw Exception::InvalidParameter(
-          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "PeptideQueryParameters:LibraryPrediction:out is only valid when the resolved workflow library mode is predicted.");
       }
 
       if (resolved_library_mode == LibraryMode::PREPARED)
