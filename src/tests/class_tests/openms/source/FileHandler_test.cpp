@@ -16,19 +16,20 @@
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 ///////////////////////////
 
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/SystemSettings.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Constants.h>
-
+#include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -131,6 +132,21 @@ START_SECTION((static FileTypes::Type getTypeByContent(const std::string &filena
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FileHandler_MGFbyContent2.mgf")), FileTypes::MGF) // detect via 'BEGIN IONS\n'
 
   TEST_EXCEPTION(Exception::FileNotFound, tmp.getTypeByContent("/bli/bla/bluff"))
+END_SECTION
+
+START_SECTION([EXTRA] Detects and hashes uncompressed files with UTF - 8 paths)
+{
+  TempDir workspace;
+  const std::string directory = workspace.getPath() + "/\xE4\xB8\xAD\xE6\x96\x87";
+  std::filesystem::create_directories(to_path(directory));
+  const std::string filename = directory + "/\xC3\xA4 \xE4\xB8\xAD.unknown";
+  {
+    std::ofstream stream(to_path(filename), std::ios::binary);
+    stream << ">unicode\nPEPTIDE\n";
+  }
+  TEST_EQUAL(FileHandler::getTypeByContent(filename), FileTypes::FASTA)
+  TEST_EQUAL(FileHandler::computeFileHash(filename), "df82dcc39994d79a649e46cfa16d8648446559ab")
+}
 END_SECTION
 
 START_SECTION((static FileTypes::Type getType(const std::string &filename)))

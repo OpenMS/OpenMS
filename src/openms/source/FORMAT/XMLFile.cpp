@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/SAX2HandlerAdapter.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
 #include <OpenMS/FORMAT/CompressedInputSource.h>
@@ -120,7 +121,6 @@ private:
       // reader, e.g. FeatureXMLFile, is used again)
       XMLCleaner_ clean(handler);
 
-      StringManager sm;
       //try to open file
       if (!File::exists(filename))
       {
@@ -140,16 +140,16 @@ private:
 
 
       // peak ahead into the file: is it bzip2 or gzip compressed?
-      std::string bz;
+      std::string bz(2, '\0');
       {
-        std::ifstream file(filename.c_str());
-        char tmp_bz[3];
-        file.read(tmp_bz, 2);
-        tmp_bz[2] = '\0';
-        bz =std::string(tmp_bz);
+        std::ifstream file(to_path(filename), std::ios::binary);
+        file.read(bz.data(), 2);
       }
 
       unique_ptr<xercesc::InputSource> source;
+      // Xerces expects UTF-16; its native-codepage transcoder corrupts UTF-8 paths on Windows.
+      const auto native_filename = to_path(filename).u16string();
+      const std::basic_string<XMLCh> xml_filename(native_filename.begin(), native_filename.end());
 
       char g1 = 0x1f;
       char g2 = 0;
@@ -160,11 +160,11 @@ private:
       //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
       if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2) || (bz[0] == 'P' && bz[1] == 'K'))
       {
-        source.reset(new CompressedInputSource(sm.convert(filename).c_str(), bz));
+        source.reset(new CompressedInputSource(xml_filename.c_str(), bz));
       }
       else
       {
-        source.reset(new xercesc::LocalFileInputSource(sm.convert(filename).c_str()));
+        source.reset(new xercesc::LocalFileInputSource(xml_filename.c_str()));
       }
       // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
       if (!enforced_encoding_.empty())

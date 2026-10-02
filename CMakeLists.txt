@@ -521,7 +521,7 @@ message(STATUS "Package type is '${PACKAGE_TYPE}'")
 is_valid_package(${PACKAGE_TYPE})
 
 ## The install component of the GUI applications (TOPPView, TOPPAS, ..., and the TOPP tools
-## that need the GUI library, ExecutePipeline and ImageCreator), separate from the TOPP tools
+## that need the GUI library, such as ImageCreator), separate from the TOPP tools
 ## (component Applications) so the two can be installed and packaged independently (see
 ## OPENMS_USE_INSTALLED_LIBRARY). The macOS productbuild installer keeps them in
 ## Applications: it stages every component in a prefix of its own, and fixing up and

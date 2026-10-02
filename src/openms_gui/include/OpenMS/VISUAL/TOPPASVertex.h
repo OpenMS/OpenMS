@@ -54,7 +54,6 @@
 #include <QtWidgets/QGraphicsItem>
 #include <QtWidgets/QMenu>
 
-#include <QtCore/QProcess>
 #include <QtCore/QStringList>
 
 namespace OpenMS
@@ -146,14 +145,6 @@ public:
       DFS_BLACK
     };
 
-    /// The color of a vertex during depth-first search
-    enum SUBSTREESTATUS
-    {
-      TV_ALLFINISHED,  ///< all downstream nodes are done (including the ones which are feed by a parallel subtree)
-      TV_UNFINISHED,   ///< some direct downstream node is not done
-      TV_UNFINISHED_INBRANCH ///< a parallel subtree which merged with some downstream node A was not done (which prevented processing of the node A)
-    };
-
     /// Default Constructor
     TOPPASVertex();
     /// Copy constructor
@@ -168,11 +159,6 @@ public:
 
     /// base paint method for all derived classes. should be called first in child-class paint
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/, bool round_shape = true);
-
-    /// get the round package for this node from upstream
-    /// -- indices in 'RoundPackage' mapping are thus referring to incoming edges of this node
-    /// returns false on failure
-    bool buildRoundPackages(RoundPackages & pkg, std::string & error_msg);
 
     /// check if all upstream nodes are ready to go ( 'finished_' is true)
     bool isUpstreamFinished() const;
@@ -205,8 +191,6 @@ public:
     DFS_COLOR getDFSColor();
     /// Sets the DFS color of this node
     void setDFSColor(DFS_COLOR color);
-    /// Checks if all tools in the subtree below this node are finished
-    TOPPASVertex::SUBSTREESTATUS getSubtreeStatus() const;
     /// Returns whether the vertex has been marked already (during topological sort)
     bool isTopoSortMarked() const;
     /// (Un)marks the vertex (during topological sort)
@@ -250,12 +234,11 @@ public:
     // get the output structure directly
     const RoundPackages & getOutputFiles() const;
 
+    /// Update the graphical projection of executor results (never schedules work).
+    void setExecutionResult(const RoundPackages& outputs, Size completed, Size total, bool finished);
 
-    /// check if all upstream nodes are finished
-    bool allInputsReady() const;
 
-
-public slots:
+  public slots:
 
     /// Called by an incoming edge when it has changed
     virtual void inEdgeHasChanged();
@@ -299,7 +282,7 @@ protected:
     /// "marked" flag for topological sort
     bool topo_sort_marked_{false};
     /// The number in a topological sort of the entire graph
-    UInt topo_nr_;
+    UInt topo_nr_ {0};
     /// Stores the current output file names for each output parameter
     RoundPackages output_files_;
     /// number of rounds this node will do ('Merge All' nodes will pass everything, thus do only one round)

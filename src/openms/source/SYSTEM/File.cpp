@@ -11,34 +11,31 @@
 // temporary directories and files in TempFiles (both in OpenMS/SYSTEM/),
 // which keeps Param and ParamXMLFile out of this translation unit.
 
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/openms_data_path.h>
-
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/Exception.h>
-
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <set>
+#include <sys/stat.h> // for stat()/_wstat64() in getModificationTime()
+#include <sys/types.h>
 #include <vector>
 
-#include <sys/stat.h>  // for stat()/_wstat64() in getModificationTime()
-#include <sys/types.h>
-
 #ifdef OPENMS_WINDOWSPLATFORM
-#include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName() && GetComputerNameA()
-#include <Shlwapi.h> // for PathMatchSpecA
-#include <io.h>      // for _access_s(), _sopen_s() and _close()
-#include <share.h>   // for _SH_DENYNO
-#pragma comment(lib, "Shlwapi.lib")
+  #include <Shlwapi.h> // for PathMatchSpecA
+  #include <Windows.h> // for GetCurrentProcessId(), GetModuleFileNameW() and GetComputerNameA()
+  #include <io.h>      // for _waccess_s(), _wsopen_s() and _close()
+  #include <share.h>   // for _SH_DENYNO
+  #pragma comment(lib, "Shlwapi.lib")
 #else
 #include <fnmatch.h>
 #include <unistd.h> // for gethostname() and close()
@@ -66,17 +63,34 @@ namespace OpenMS{
     // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe/1024937#1024937 for more OS' (if needed)
     // Use immediately evaluated lambda to protect static variable from concurrent access.
     static const std::string spath = [&]() -> std::string {
+#ifdef OPENMS_WINDOWSPLATFORM
+      std::vector<wchar_t> buffer(1024);
+      for (;;)
+      {
+        const DWORD length = GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
+        if (length == 0) break;
+        if (length < buffer.size())
+        {
+          const auto parent = fs::path(std::wstring(buffer.data(), length)).parent_path().generic_u8string();
+          std::string result(parent.begin(), parent.end());
+          StringUtils::ensureLastChar(result, '/');
+          return result;
+        }
+        // A full buffer means truncation, even when GetLastError is unchanged.
+        if (buffer.size() >= 32768) break;
+        buffer.resize(buffer.size() * 2);
+      }
+      std::cerr << "Cannot get Executable Path! Not using a path prefix!\n";
+      return {};
+#else
         std::string rpath;
 
         char path[1024]; // maximum path length
 
-#ifdef OPENMS_WINDOWSPLATFORM
-        int size = sizeof(path);
-        if (GetModuleFileNameA(NULL, path, size))
-#elif  defined(__APPLE__)
+  #if defined(__APPLE__)
         uint size = sizeof(path);
         if (_NSGetExecutablePath(path, &size) == 0)
-#else // LINUX
+  #else // LINUX
         // note: implementation as suggested by readlink man page
         ssize_t len = ::readlink("/proc/self/exe", path, sizeof(path)-1);
         if (len != -1) //add 0 terminator at end
@@ -85,7 +99,7 @@ namespace OpenMS{
         }
 
         if (len != -1)
-#endif
+  #endif
         {
           rpath = File::path(std::string(path));
           if (File::exists(rpath)) // check if directory exists
@@ -103,6 +117,7 @@ namespace OpenMS{
         }
 
         return rpath;
+#endif
     }();
     return spath;
   }
@@ -437,7 +452,7 @@ namespace OpenMS{
     {
       errno = 0;
 #ifdef OPENMS_WINDOWSPLATFORM
-      if (_access_s(file.c_str(), mode) == 0) return 0;
+      if (_waccess_s(to_path(file).c_str(), mode) == 0) return 0;
 #else
       if (access(file.c_str(), mode) == 0) return 0;
 #endif
@@ -457,7 +472,7 @@ namespace OpenMS{
       errno = 0;
 #ifdef OPENMS_WINDOWSPLATFORM
       int fd = -1;
-      const int err = _sopen_s(&fd, file.c_str(), _O_CREAT | _O_EXCL | _O_WRONLY, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+      const int err = _wsopen_s(&fd, to_path(file).c_str(), _O_CREAT | _O_EXCL | _O_WRONLY, _SH_DENYNO, _S_IREAD | _S_IWRITE);
       if (err != 0) return errno != 0 ? errno : err;
       _close(fd);
 #else
@@ -530,7 +545,11 @@ namespace OpenMS{
       const int create_err = createExclusive_(probe);
       if (create_err == 0)
       {
+#ifdef OPENMS_WINDOWSPLATFORM
+        _wremove(to_path(probe).c_str());
+#else
         std::remove(probe.c_str());
+#endif
         return true;
       }
       if (create_err == EEXIST) continue; // somebody holds that name -- retry with a fresh one

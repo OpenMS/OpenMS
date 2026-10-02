@@ -24,10 +24,8 @@ namespace OpenMS
   /**
       @brief A vertex representing a TOPP tool
 
-      Besides TOPPASScene, this class contains most of the remaining functionality of
-      TOPPAS regarding the execution of pipelines. Once a pipeline run is started
-      from TOPPASScene, the execution is propagated from tool to tool and the
-      TOPP tools are actually called from here.
+      Presents tool parameters, ports and execution results. TOPPASScene runs the
+      shared Qt-independent PipelineExecutor; this item does not own a process.
 
       @ingroup TOPPAS_elements
   */
@@ -70,10 +68,7 @@ public:
       /// Comparison operator
       bool operator<(const IOInfo& rhs) const
       {
-        if (type != rhs.type)
-        {
-          return type == IOT_FILE;
-        }
+        if (type != rhs.type) { return type < rhs.type; }
         else
         {
           return param_name.compare(rhs.param_name) < 0;
@@ -142,16 +137,12 @@ public:
     void setTopoNr(UInt nr) override;
     // documented in base class
     void reset(bool reset_all_files = false) override;
-    /// Sets the Param object of this tool
+    /// Applies saved values to the current schema; rejects unknown or invalid values
     void setParam(const Param& param);
     /// Returns the Param object of this tool
     const Param& getParam();
     /// Checks if all parent nodes have finished the tool execution and, if so, runs the tool
     void run() override;
-    /// Updates the vector containing the lists of current output files for all output parameters
-    /// using the input files as guidance
-    /// Returns true on success, on failure the error_message is filled
-    bool updateCurrentOutputFileNames(const RoundPackages& pkg, std::string& error_message);
     /// return if tool failed or is ready etc.
     TOOLSTATUS getStatus() const;
     /// Lets the user edit the parameters of the tool
@@ -162,8 +153,6 @@ public:
     std::string getFullOutputDirectory() const;
     /// Returns the directory where this tool stores its output files
     std::string getOutputDir() const;
-    /// Creates all necessary directories
-    void createDirs();
     /// Opens the folder where the file is contained
     void openContainingFolder() const;
     /// Opens the files in TOPPView
@@ -174,17 +163,13 @@ public:
     bool isToolReady() const;
     /// Toggle breakpoint
     void toggleBreakpoint();
-    /// Called when the QProcess in the queue is called: emits 'toolStarted()'
+    /// Emits the presentation signal for a started tool
     virtual void emitToolStarted();
     /// invert status of recycling (overriding base class)
     bool invertRecylingMode() override;
 
 public slots:
 
-    /// Called when the execution of this tool has finished
-    void executionFinished(int ec, QProcess::ExitStatus es);
-    /// Called when the running TOPP tool produces output
-    void forwardTOPPOutput();
     /// Called when the tool is started
     void toolStartedSlot();
     /// Called when the tool has finished
@@ -226,8 +211,6 @@ protected:
 
     /// determines if according to current status_, a parameter change would invalidate the pipeline status (e.g., because this node was already processed)
     bool doesParamChangeInvalidate_();
-    /// renames SUFFICES of the output files created by the TOPP tool by inspecting file content
-    bool renameOutput_();
     /// Initializes the parameters with standard values (from -write_ini), uses the parameters from the old_ini_file if given, returns if parameters have changed (if old_ini_file was given)
     bool initParam_(const QString& old_ini_file = "");
     /// returns input/output file/list parameters. If @p input_params is true, input params are returned, otherwise output params.
@@ -236,10 +219,6 @@ protected:
     void writeParam_(const Param& param, const QString& ini_file);
     /// Helper method for finding good boundaries for wrapping the tool name. Returns a string with whitespaces at the preferred boundaries.
     QString toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str);
-    /// smart naming of round-based filenames
-    /// when basename is not unique we take the preceding directory name
-    void smartFileNames_(std::vector<QStringList>& filenames);
-
     /// The name of the tool
     std::string name_;
     /// The type of the tool, or "" if it does not have a type
