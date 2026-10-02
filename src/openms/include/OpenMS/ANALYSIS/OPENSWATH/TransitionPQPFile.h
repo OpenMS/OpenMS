@@ -293,6 +293,28 @@ public:
       const OpenSwath::LightTargetedExperiment& targeted_exp,
       const OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids);
 
+    /** @brief Append a canonical LightTargetedExperiment batch to a PQP file.
+     *
+     * This is the bounded-memory companion to convertLightTargetedExperimentToPQP().
+     * If @p filename does not yet exist, the batch is written as a new PQP file.
+     * Otherwise the canonical precursor and transition IDs are preserved and the
+     * batch is merged into the existing PQP. Peptides, proteins, and genes are
+     * deduplicated against existing rows and their mapping tables are extended.
+     *
+     * The caller must provide globally unique canonical precursor/transition IDs
+     * across appended batches. Duplicate canonical IDs fail through the PQP primary
+     * key constraints rather than being silently renumbered. Calls are serialized
+     * through an SQLite write transaction; concurrent appenders are not supported.
+     *
+     * @param[in] filename Destination PQP file.
+     * @param[in] targeted_exp Canonical batch to append.
+     * @param[in] source_ids Optional source-ID provenance for this batch.
+     */
+    void appendLightTargetedExperimentToPQP(
+      const char* filename,
+      const OpenSwath::LightTargetedExperiment& targeted_exp,
+      const OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids = nullptr);
+
     /** @brief Read in a PQP file and construct a targeted experiment (TraML structure)
      *
       @param[out] filename The input file
