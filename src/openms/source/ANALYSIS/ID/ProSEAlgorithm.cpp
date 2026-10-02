@@ -1543,7 +1543,25 @@ namespace OpenMS
       }
     }
 
-#pragma omp parallel for
+    // With an empty list to start from, every spectrum with hits gets a slot in scan order: the identifications
+    // end up in scan order without a lock and without the sort below (which orders them by scan_index, i.e. the
+    // same order). Otherwise they are appended under a lock and sorted, as before.
+    const bool slots = peptide_ids.empty();
+    std::vector<Size> slot_of_scan;
+    if (slots)
+    {
+      slot_of_scan.resize(annotated_hits.size());
+      Size used_slots = 0;
+      for (Size scan_index = 0; scan_index < annotated_hits.size(); ++scan_index)
+      {
+        slot_of_scan[scan_index] = used_slots;
+        if (!annotated_hits[scan_index].empty()) ++used_slots;
+      }
+      peptide_ids.resize(used_slots);
+    }
+
+    // The work per spectrum varies with its number of hits: hand out small blocks
+#pragma omp parallel for schedule(dynamic, 16)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       if (!annotated_hits[scan_index].empty())
@@ -1914,17 +1932,24 @@ namespace OpenMS
                            << " top_isotope_error=" << (int)top_hit.getMetaValue(mv_isotope_error)
                            << std::endl;
         }
-#pragma omp critical (peptide_ids_access)
+        if (slots)
         {
-          //clang-tidy: seems to be a false-positive in combination with omp
-          peptide_ids.push_back(std::move(pi));
+          peptide_ids[slot_of_scan[scan_index]] = std::move(pi);
+        }
+        else
+        {
+#pragma omp critical (peptide_ids_access)
+          {
+            //clang-tidy: seems to be a false-positive in combination with omp
+            peptide_ids.push_back(std::move(pi));
+          }
         }
       }
     }
 
 #ifdef _OPENMP
     // we need to sort the peptide_ids by scan_index in order to have the same output in the idXML-file
-    if (omp_get_max_threads() > 1)
+    if (omp_get_max_threads() > 1 && !slots)
     {
       // one registry lookup for the whole sort instead of two (locked) lookups per comparison;
       // getMetaValue(name) is getMetaValue(getIndex(name)), so the comparisons are unchanged
