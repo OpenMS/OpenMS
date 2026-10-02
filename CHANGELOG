@@ -129,6 +129,20 @@ TOPP tools:
         for deisotoped (high-resolution) spectra, whose results do not change. The calibration pass and
         the peak annotations use the same charges; the ion-count fractions divide by the number of
         charges scored.
+      - New scoring:method (auto, hyperscore, mass_accuracy) and scoring:mass_error_sd (7 ppm).
+        'mass_accuracy' weights each matched fragment's share of HyperScore's ion counts and intensity
+        product by a Gaussian of its mass error, so that a match at the edge of the tolerance counts
+        less than one at the theoretical m/z; exact matches score as HyperScore, and matching
+        tolerances and candidates do not change. 'auto', the default, uses it for fragment tolerances
+        in ppm up to 100 ppm and HyperScore otherwise, so low-resolution (Da) searches do not change.
+        The calibration pass scores the same way. Search results record the method when it is used;
+        the score type stays 'ln(hyperscore)'.
+      - New FDR:PSM_groups (scored_charges, pooled). FDR:PSM computes q-values separately for PSMs
+        scored with different numbers of fragment charges ('scored_charges', the default). Since
+        scoring:fragment_charges scores 2+ fragments of precursors of charge 3 and above in spectra
+        that are not deisotoped, their HyperScores are larger for targets and decoys alike, and one
+        pooled competition left fewer charge-2 PSMs below the threshold. High-resolution searches
+        score charge-1 fragments only and form one group, as before.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----

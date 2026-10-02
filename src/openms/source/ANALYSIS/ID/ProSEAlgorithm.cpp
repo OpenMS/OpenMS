@@ -255,6 +255,17 @@ namespace OpenMS
     defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Target and decoy PSMs are filtered alike by the q-value threshold; decoys that pass are kept (no decoy-specific stripping here — decoys are removed only at protein-FDR finalization). Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
+    defaults_.setValue("FDR:PSM_groups", "scored_charges",
+                       "Target-decoy competitions of FDR:PSM. 'pooled' ranks all PSMs together. 'scored_charges' computes q-values "
+                       "separately for PSMs scored with different numbers of fragment charges (scoring:fragment_charges): HyperScore "
+                       "grows with the number of theoretical ions, so when multiply charged fragments are scored for precursors of "
+                       "charge 3 and above but not for charge 2, a pooled competition is dominated by the higher precursor charges. "
+                       "With singly charged fragments only (deisotoped, high-resolution spectra) there is one group, as with 'pooled'. "
+                       "With fragment:max_charge above 2, precursor charges of 4 and above form further groups, which accept few PSMs "
+                       "per run (tens), so their q-values (D/T, as FalseDiscoveryRate) are coarse. "
+                       "A group without decoy or without target PSMs falls back to 'pooled'.",
+                       {"advanced"});
+    defaults_.setValidStrings("FDR:PSM_groups", {"scored_charges", "pooled"});
     defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR on a complete protein set (single file, or the -out_merged aggregate). Setting this > 0 finalizes the result: identified decoys are removed. With 0, decoys are retained for downstream/merged FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:protein", 0.0);
     defaults_.setMaxFloat("FDR:protein", 1.0);
@@ -289,6 +300,22 @@ namespace OpenMS
       "as for ion-trap CID) and 'single' otherwise, because deisotoping converts fragments to charge 1.",
       {"advanced"});
     defaults_.setValidStrings("scoring:fragment_charges", {"auto", "single", "multiple"});
+    defaults_.setValue("scoring:method", "auto",
+                       "Native score. 'hyperscore' is the X!Tandem HyperScore. 'mass_accuracy' weights each matched fragment's "
+                       "contribution to HyperScore's ion counts and intensity product by exp(-0.5 * (error / scoring:mass_error_sd)^2), "
+                       "with the error in ppm, so that matches near the theoretical m/z count fully and matches at the edge of the "
+                       "tolerance count little; exact matches score as HyperScore. The kernel is centred at 0 and suits high-resolution "
+                       "fragments only. 'auto' (default) uses 'mass_accuracy' for fragment tolerances in ppm within the high-resolution "
+                       "range (<= 100 ppm) and 'hyperscore' otherwise (Da tolerances, e.g. ion-trap CID). Matching tolerances, candidates "
+                       "and the unweighted match annotations are unchanged. The score type stays 'ln(hyperscore)'; the search parameters "
+                       "record scoring:method_resolved when the weighted score is used.",
+                       {"advanced"});
+    defaults_.setValidStrings("scoring:method", {"hyperscore", "mass_accuracy", "auto"});
+    defaults_.setValue("scoring:mass_error_sd", 7.0,
+                       "Standard deviation in ppm of the Gaussian fragment mass-error kernel of scoring:method 'mass_accuracy'. "
+                       "Fixed (not fitted) and independent of the matching tolerance and of calibration.",
+                       {"advanced"});
+    defaults_.setMinFloat("scoring:mass_error_sd", 1e-6);
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
     // Ion series toggles
@@ -399,6 +426,23 @@ namespace OpenMS
     scoring_multiple_charges_ = fragment_charges == "multiple" || (fragment_charges == "auto" && ! deisotoped);
     scoring_max_charge_ = static_cast<int>(param_.getValue("fragment:max_charge"));
 
+    // Mass-accuracy weighting needs fragment errors of a few ppm; 'auto' uses it for high-resolution ppm tolerances only.
+    const std::string scoring_method = param_.getValue("scoring:method").toString();
+    const bool high_resolution_ppm = fragment_mass_tolerance_unit_ == "ppm" && deisotope_supported;
+    mass_accuracy_score_ = scoring_method == "mass_accuracy" || (scoring_method == "auto" && high_resolution_ppm);
+    mass_error_sd_ppm_ = param_.getValue("scoring:mass_error_sd");
+    if (mass_accuracy_score_ && (! std::isfinite(mass_error_sd_ppm_) || mass_error_sd_ppm_ <= 0.0))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "scoring:mass_error_sd must be finite and positive.");
+    }
+    if (scoring_method == "mass_accuracy" && ! high_resolution_ppm)
+    {
+      OPENMS_LOG_WARN << "[ProSE] scoring:method=mass_accuracy weights fragment matches by a " << mass_error_sd_ppm_
+                      << " ppm kernel, but the fragment tolerance is " << fragment_mass_tolerance_
+                      << (fragment_mass_tolerance_unit_ == "ppm" ? " ppm" : " Da")
+                      << "; matches far from the theoretical m/z score little. 'auto' uses HyperScore for such tolerances." << endl;
+    }
+
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
     set<std::string> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
     if (fixed_unique.size() != modifications_fixed_.size())
@@ -445,6 +489,7 @@ namespace OpenMS
     decoy_prefix_ = param_.getValue("decoy_prefix").toString();
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
     fdr_psm_ = param_.getValue("FDR:PSM");
+    fdr_psm_by_scored_charges_ = param_.getValue("FDR:PSM_groups").toString() == "scored_charges";
     fdr_protein_ = param_.getValue("FDR:protein");
 
     // Open search mode is automatically determined based on precursor tolerance in isOpenSearchMode_()
@@ -1079,7 +1124,7 @@ namespace OpenMS
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
         pi.setMetaValue(mv_scan_index, static_cast<unsigned int>(scan_index));
-        pi.setScoreType("ln(hyperscore)");
+        pi.setScoreType("ln(hyperscore)"); // also for scoring:method mass_accuracy, a log-space HyperScore (recorded in the search parameters)
         pi.setHigherScoreBetter(true);
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
@@ -1437,6 +1482,12 @@ namespace OpenMS
     search_parameters.setMetaValue("peptide:deduplicate", param_.getValue("peptide:deduplicate"));
     search_parameters.setMetaValue("scoring:fragment_charges", param_.getValue("scoring:fragment_charges"));
     search_parameters.setMetaValue("scoring:fragment_charges_resolved", scoring_multiple_charges_ ? "multiple" : "single");
+    if (mass_accuracy_score_) // recorded when it changes the score, so HyperScore searches keep their parameter list
+    {
+      search_parameters.setMetaValue("scoring:method", param_.getValue("scoring:method"));
+      search_parameters.setMetaValue("scoring:method_resolved", "mass_accuracy");
+      search_parameters.setMetaValue("scoring:mass_error_sd", mass_error_sd_ppm_);
+    }
     search_parameters.setMetaValue("peaks:window_type", peaks_window_type_);
     search_parameters.setMetaValue(
       "peaks:window_type_resolved",
@@ -1925,7 +1976,10 @@ namespace OpenMS
         // sortByPosition() pass here was a redundant O(N) scan per candidate.
 
         HyperScore::PSMDetail detail;
-        const double& score = HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
+        const double score = mass_accuracy_score_
+          ? HyperScore::computeMassAccuracy(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum,
+                                            mass_error_sd_ppm_, detail)
+          : HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
 
         // Summarise the candidate before it can be dropped below or pruned at the
         // end of the loop: the pool-derived PSM features describe the whole search
@@ -2269,11 +2323,7 @@ namespace OpenMS
       // Categorical decoy removal happens only at protein-FDR finalization (file-based
       // single-file search below, or ProSE.cpp).
       StopWatch sw_fdr; sw_fdr.start();
-      FalseDiscoveryRate fdr;
-      Param fdr_params = fdr.getParameters();
-      fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
-      fdr.setParameters(fdr_params);
-      fdr.apply(peptide_ids);
+      annotatePsmQValues(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
       last_run_stats_.fdr_applied = true;
       last_run_stats_.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
@@ -2555,11 +2605,7 @@ namespace OpenMS
       // Categorical decoy removal happens only at protein-FDR finalization (file-based
       // single-file search below, or ProSE.cpp).
       StopWatch sw_fdr; sw_fdr.start();
-      FalseDiscoveryRate fdr;
-      Param fdr_params = fdr.getParameters();
-      fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
-      fdr.setParameters(fdr_params);
-      fdr.apply(peptide_ids);
+      annotatePsmQValues(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
       last_run_stats_.fdr_applied = true;
       last_run_stats_.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
@@ -2643,6 +2689,65 @@ namespace OpenMS
     OPENMS_LOG_INFO << "[ProSE] Protein inference + picked-protein FDR: "
                     << protein_ids[0].getHits().size() << " proteins at "
                     << protein_fdr * 100 << "% FDR." << std::endl;
+  }
+
+  void ProSEAlgorithm::annotatePsmQValues(PeptideIdentificationList& peptide_ids) const
+  {
+    FalseDiscoveryRate fdr;
+    Param fdr_params = fdr.getParameters();
+    fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
+    fdr.setParameters(fdr_params);
+
+    // Group the spectra by the number of fragment charges their best hit was scored with. FalseDiscoveryRate
+    // competes the best hit of each spectrum (stable score order, as sort() below).
+    std::map<int, std::vector<Size>> groups;
+    bool separate = fdr_psm_by_scored_charges_ && scoring_multiple_charges_;
+    if (separate)
+    {
+      std::map<int, std::pair<bool, bool>> has_target_decoy;
+      std::vector<Size> without_hits;
+      for (Size i = 0; i < peptide_ids.size(); ++i)
+      {
+        PeptideIdentification& id = peptide_ids[i];
+        if (id.getHits().empty())
+        {
+          without_hits.push_back(i);
+          continue;
+        }
+        id.sort();
+        const PeptideHit& best = id.getHits()[0];
+        const int group = scoringMaxCharge_(best.getCharge());
+        groups[group].push_back(i);
+        auto& [has_target, has_decoy] = has_target_decoy[group];
+        (best.isDecoy() ? has_decoy : has_target) = true;
+      }
+      separate = groups.size() > 1
+                 && std::all_of(has_target_decoy.begin(), has_target_decoy.end(),
+                                [](const auto& entry) { return entry.second.first && entry.second.second; });
+      if (groups.size() > 1 && ! separate)
+      {
+        OPENMS_LOG_WARN << "[ProSE] FDR:PSM_groups: a group of PSMs scored with the same number of fragment charges has no "
+                        << "target or no decoy PSM; computing q-values over all PSMs together." << std::endl;
+      }
+      if (separate && ! without_hits.empty()) // they carry no score, but get the q-value score type with the others
+      {
+        auto& first = groups.begin()->second;
+        first.insert(first.end(), without_hits.begin(), without_hits.end());
+      }
+    }
+    if (! separate)
+    {
+      fdr.apply(peptide_ids);
+      return;
+    }
+    for (const auto& [group, indices] : groups)
+    {
+      PeptideIdentificationList part;
+      part.reserve(indices.size());
+      for (Size i : indices) { part.push_back(std::move(peptide_ids[i])); }
+      fdr.apply(part);
+      for (Size k = 0; k < indices.size(); ++k) { peptide_ids[indices[k]] = std::move(part[k]); }
+    }
   }
 
   namespace
@@ -3339,11 +3444,7 @@ namespace OpenMS
         if (fdr_psm_ > 0.0 && has_decoys)
         {
           StopWatch sw_fdr; sw_fdr.start();
-          FalseDiscoveryRate fdr;
-          Param fdr_params = fdr.getParameters();
-          fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
-          fdr.setParameters(fdr_params);
-          fdr.apply(result.peptide_ids);
+          annotatePsmQValues(result.peptide_ids);
           IDFilter::filterHitsByScore(result.peptide_ids, fdr_psm_);
           result.stats.fdr_applied = true;
           result.stats.achieved_psm_fdr = maxRetainedScore_(result.peptide_ids);
@@ -3969,9 +4070,14 @@ namespace OpenMS
         theo.clear(true);
         tsg.getSpectrum(theo, seq, 1, scoringMaxCharge_(sms.precursor_charge_));
 
+        // The calibration PSMs are selected with the search's own score (upstream 825c33bb). The mass-accuracy score
+        // favours PSMs with small fragment errors, so it narrows the fragment tolerance estimated from them below
+        // (2-10% narrower than with HyperScore on 12 of 14 ppm runs); selecting by HyperScore instead did not
+        // change the yield measurably.
         HyperScore::PSMDetail detail;
-        double score = HyperScore::computeWithDetail(
-            fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
+        double score = mass_accuracy_score_
+          ? HyperScore::computeMassAccuracy(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)
+          : HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
 
         if (score > best_score)
         {

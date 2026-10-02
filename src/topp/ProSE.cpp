@@ -458,11 +458,7 @@ class ProSE :
                                 << " — skipping PSM FDR filtering for this file." << endl;
                 continue;
               }
-              FalseDiscoveryRate fdr;
-              Param fdr_params = fdr.getParameters();
-              fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
-              fdr.setParameters(fdr_params);
-              fdr.apply(result.peptide_ids);
+              sse.annotatePsmQValues(result.peptide_ids); // FDR:PSM_groups as in the algorithm's own FDR:PSM
             }
 
             IDFilter::filterHitsByScore(result.peptide_ids, user_psm_fdr);
