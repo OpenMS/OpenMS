@@ -21,8 +21,14 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <algorithm>
+#include <cstdio>
 #include <fstream>
 #include <sstream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 ///////////////////////////
 
@@ -525,6 +531,148 @@ START_SECTION([EXTRA] load - definitions are registered before the sequences are
     TEST_EQUAL(back.toString(), "PEPTK(TestIdXML:Fresh)IDE")
     TEST_REAL_SIMILAR(back.getMonoWeight(), AASequence::fromString("PEPTKIDE").getMonoWeight() + EmpiricalFormula("C2H2O").getMonoWeight())
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - many peptide identifications are written in input order with any number of threads and the first error is reported)
+{
+  // more peptide identifications than one block of the parallel writer, in two runs; hits not in score order
+  std::vector<ProteinIdentification> prots(2);
+  prots[0].setIdentifier("runPar1");
+  prots[1].setIdentifier("runPar2");
+  prots[0].insertHit(ProteinHit(0.0, 1, "ACC1", ""));
+  prots[1].insertHit(ProteinHit(0.0, 1, "ACC2", ""));
+  for (ProteinIdentification& prot : prots) prot.setDateTime(DateTime::now());
+
+  const Size n = 400;
+  const std::vector<std::string> sequences = {"PEPTIDEA", "PEPTIDEB", "PEPTIDEC"};
+  const std::vector<double> scores = {1.0, 3.0, 3.0}; // B and C tie: they keep their order
+  PeptideIdentificationList peps(n);
+  for (Size l = 0; l < n; ++l)
+  {
+    PeptideIdentification& pep = peps[l];
+    pep.setIdentifier(l % 2 == 0 ? "runPar1" : "runPar2");
+    pep.setScoreType("score");
+    pep.setHigherScoreBetter(true);
+    pep.setRT(double(l));
+    pep.setMZ(500.0 + double(l));
+    pep.setSpectrumReference("scan=" + StringUtils::toStr(l));
+    pep.setMetaValue("par_test_index", int(l));
+    if (l % 50 == 7) continue; // no hits: not written
+    for (Size h = 0; h < sequences.size(); ++h)
+    {
+      PeptideHit hit(scores[h], 0, 2, AASequence::fromString(sequences[h]));
+      hit.addPeptideEvidence(PeptideEvidence(l % 2 == 0 ? "ACC1" : "ACC2", 8 * int(h), 8 * int(h) + 7, '-', 'P'));
+      hit.setMetaValue("par_test_int", int(3 * l + h));
+      hit.setMetaValue("par_test_double", double(l) + 0.25 * double(h));
+      hit.setMetaValue("par_test_string", std::string("a<b&\"c\""));
+      hit.setMetaValue("par_test_strings", StringList{"x,y", "z"});
+      hit.setMetaValue("par_test_ints", IntList{1, int(l)});
+      hit.setMetaValue("par_test_doubles", DoubleList{0.5, double(l)});
+      PeptideHit::PeakAnnotation annotation;
+      annotation.annotation = "y1";
+      annotation.charge = 1;
+      annotation.mz = 100.0 + double(l);
+      annotation.intensity = 1.0;
+      hit.setPeakAnnotations({annotation});
+      pep.insertHit(hit);
+    }
+  }
+
+  // the same file with one and with several threads
+  std::string file_1, file_n;
+  NEW_TMP_FILE(file_1)
+  NEW_TMP_FILE(file_n)
+#ifdef _OPENMP
+  const int max_threads = omp_get_max_threads();
+  omp_set_num_threads(1);
+#endif
+  IdXMLFile().store(file_1, prots, peps);
+#ifdef _OPENMP
+  omp_set_num_threads(std::max(max_threads, 4));
+#endif
+  IdXMLFile().store(file_n, prots, peps);
+  TEST_EQUAL(slurp4b(file_1) == slurp4b(file_n), true)
+
+  // run by run, in input order
+  std::vector<Size> expected;
+  for (Size l = 0; l < n; l += 2) expected.push_back(l);
+  for (Size l = 1; l < n; l += 2) if (l % 50 != 7) expected.push_back(l);
+  std::vector<ProteinIdentification> prots_in;
+  PeptideIdentificationList peps_in;
+  IdXMLFile().load(file_n, prots_in, peps_in);
+  TEST_EQUAL(prots_in.size(), 2)
+  TEST_EQUAL(peps_in.size(), expected.size())
+  ABORT_IF(peps_in.size() != expected.size())
+  bool in_order = true;
+  for (Size k = 0; k < expected.size(); ++k)
+  {
+    const PeptideIdentification& pep = peps_in[k];
+    const Size l = expected[k];
+    in_order &= pep.getIdentifier() == prots_in[l % 2].getIdentifier(); // idXML does not keep the identifiers
+    in_order &= pep.getRT() == double(l) && pep.getSpectrumReference() == "scan=" + StringUtils::toStr(l);
+    in_order &= int(pep.getMetaValue("par_test_index")) == int(l);
+    in_order &= pep.getHits().size() == 3 && pep.getHits()[0].getSequence().toString() == "PEPTIDEB" &&
+                pep.getHits()[1].getSequence().toString() == "PEPTIDEC" && pep.getHits()[2].getSequence().toString() == "PEPTIDEA";
+  }
+  TEST_EQUAL(in_order, true)
+  for (const Size k : {Size(0), Size(17), expected.size() - 1})
+  {
+    const Size l = expected[k];
+    const PeptideHit& hit = peps_in[k].getHits()[0];
+    TEST_EQUAL(int(hit.getMetaValue("par_test_int")), int(3 * l + 1))
+    TEST_EQUAL(double(hit.getMetaValue("par_test_double")), double(l) + 0.25)
+    TEST_EQUAL(hit.getMetaValue("par_test_string").toString(), "a<b&\"c\"")
+    TEST_EQUAL(ListUtils::concatenate(hit.getMetaValue("par_test_strings").toStringList(), ";"), "x,y;z")
+    TEST_EQUAL(ListUtils::concatenate(hit.getMetaValue("par_test_ints").toIntList(), ";"), "1;" + StringUtils::toStr(l))
+    TEST_EQUAL(ListUtils::concatenate(hit.getMetaValue("par_test_doubles").toDoubleList(), ";"), "0.5;" + StringUtils::toStr(double(l)))
+    TEST_EQUAL(hit.getPeakAnnotations().size(), 1)
+    TEST_EQUAL(hit.getPeakAnnotations()[0].mz, 100.0 + double(l))
+    TEST_EQUAL(hit.getPeptideEvidences().size(), 1)
+    TEST_EQUAL(hit.getPeptideEvidences()[0].getProteinAccession(), l % 2 == 0 ? "ACC1" : "ACC2")
+  }
+
+  // unknown accessions in two peptide identifications of the first run: the one first in input order is reported
+  PeptideIdentificationList bad = peps;
+  for (PeptideHit& hit : bad[36].getHits()) hit.setPeptideEvidences({PeptideEvidence("UNKNOWN_A", 0, 7, '-', 'P')});
+  for (PeptideHit& hit : bad[300].getHits()) hit.setPeptideEvidences({PeptideEvidence("UNKNOWN_B", 0, 7, '-', 'P')});
+  std::string file_bad;
+  NEW_TMP_FILE(file_bad)
+  for (int repeat = 0; repeat < 5; ++repeat)
+  {
+    std::string message;
+    try
+    {
+      IdXMLFile().store(file_bad, prots, bad);
+    }
+    catch (const Exception::ElementNotFound& e)
+    {
+      message = e.what();
+    }
+    TEST_EQUAL(message.find("No accession UNKNOWN_A found in run 'runPar1'") != std::string::npos, true)
+  }
+  // all of them unknown: every block fails, the first one is reported
+  for (Size l = 0; l < n; ++l)
+  {
+    for (PeptideHit& hit : bad[l].getHits()) hit.setPeptideEvidences({PeptideEvidence("UNKNOWN_" + StringUtils::toStr(l), 0, 7, '-', 'P')});
+  }
+  for (int repeat = 0; repeat < 5; ++repeat)
+  {
+    std::string message;
+    try
+    {
+      IdXMLFile().store(file_bad, prots, bad);
+    }
+    catch (const Exception::ElementNotFound& e)
+    {
+      message = e.what();
+    }
+    TEST_EQUAL(message.find("No accession UNKNOWN_0 found in run 'runPar1'") != std::string::npos, true)
+  }
+  std::remove(file_bad.c_str()); // incomplete, not to be validated
+#ifdef _OPENMP
+  omp_set_num_threads(max_threads);
+#endif
 }
 END_SECTION
 
