@@ -2700,6 +2700,8 @@ START_SECTION(([EXTRA] peptidoform deduplication preserves protein evidence and 
   p.setValue("modifications:fixed", vector<string> {});
   p.setValue("modifications:variable", vector<string> {});
   p.setValue("annotate:PSM", vector<string> {"ALL"});
+  // The prefilter totals of a chunked search count the shared peptide once per chunk (see annotate:prefilter_poisson).
+  p.setValue("annotate:prefilter_poisson", "false");
   p.setValue("peptide:deduplicate", "false");
   algo.setParameters(p);
   PeakMap spectra = input;
@@ -2811,6 +2813,162 @@ START_SECTION(([EXTRA] peptidoform deduplication keeps separate charge and isoto
       TEST_TRUE(hypotheses == (unknown_charge ? set<int> {2, 3} : set<int> {0, 1}))
     }
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] candidate-competition PSM features (annotate:per_psm_pool_features, prefilter_poisson, precursor_ppm, matched_intensity_rank, top_ion_mass_errors, delta_best)))
+{
+  // One spectrum of THQPSANLDIK; three isobaric rearrangements compete for it. Fragment intensities rise with m/z
+  // (the most intense peak is the heaviest), fragment m/z are off by +3 / -3 ppm in turn, the precursor by +5 ppm.
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> db = {{"P1", "", "THQPSANLDIK"}, {"P2", "", "THQPSALNDIK"},
+                                            {"P3", "", "THQPSADNLIK"}, {"P4", "", "THQPASNLDIK"}};
+  TheoreticalSpectrumGenerator generator;
+  Param gp = generator.getParameters();
+  gp.setValue("add_first_prefix_ion", "true");
+  generator.setParameters(gp);
+  PeakSpectrum theo;
+  generator.getSpectrum(theo, peptide, 1, 1);
+  theo.sortByPosition();
+  MSSpectrum spectrum;
+  for (Size i = 0; i < theo.size(); ++i)
+  {
+    spectrum.emplace_back(theo[i].getMZ() * (1.0 + (i % 2 == 0 ? 3e-6 : -3e-6)), static_cast<float>(10 + i));
+  }
+  spectrum.setMSLevel(2);
+  spectrum.setNativeID("scan=1");
+  Precursor precursor;
+  precursor.setMZ(peptide.getMZ(2) * (1.0 + 5e-6));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("calibration:enabled", "false");
+  p.setValue("decoys", "ignore");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+  p.setValue("annotate:PSM", vector<string> {"ALL"});
+  // search with the given top_hits and settings; returns the hits and (via the out parameters) the search parameters
+  // and the preprocessed spectrum
+  auto search = [&](Size top_hits, const map<string, string>& settings, ProteinIdentification::SearchParameters* sp = nullptr,
+                    MSSpectrum* processed = nullptr)
+  {
+    Param q = p;
+    q.setValue("report:top_hits", static_cast<int>(top_hits));
+    for (const auto& [key, value] : settings) q.setValue(key, value);
+    algo.setParameters(q);
+    PeakMap spectra;
+    spectra.addSpectrum(spectrum);
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList ids;
+    algo.search(spectra, db, proteins, ids);
+    if (sp != nullptr) *sp = proteins[0].getSearchParameters();
+    if (processed != nullptr) *processed = spectra[0];
+    return ids.size() == 1 ? ids[0].getHits() : vector<PeptideHit> {};
+  };
+  auto value = [](const PeptideHit& hit, const string& key) { return static_cast<double>(hit.getMetaValue(key)); };
+
+  ProteinIdentification::SearchParameters sp;
+  MSSpectrum processed;
+  const vector<PeptideHit> all = search(4, {}, &sp, &processed);
+  ABORT_IF(all.size() != 4)
+  TEST_EQUAL(all[0].getSequence(), peptide)
+
+  // per-PSM delta_score (to the next hit; the last one has none) and hyperscore_zscore (decreasing with the score)
+  for (Size r = 0; r < all.size(); ++r)
+  {
+    const double next = r + 1 < all.size() ? all[r + 1].getScore() : 0.0;
+    TEST_EQUAL(static_cast<float>(value(all[r], Constants::UserParam::DELTA_SCORE)), static_cast<float>(all[r].getScore() - next))
+    if (r > 0) { TEST_TRUE(value(all[r], Constants::UserParam::HYPERSCORE_ZSCORE) <= value(all[r - 1], Constants::UserParam::HYPERSCORE_ZSCORE)) }
+  }
+  // the last of two reported hits takes its margin to the best unreported candidate
+  const vector<PeptideHit> two = search(2, {});
+  ABORT_IF(two.size() != 2)
+  TEST_EQUAL(static_cast<float>(value(two[1], Constants::UserParam::DELTA_SCORE)), static_cast<float>(all[1].getScore() - all[2].getScore()))
+
+  // spectrum-level form: every hit carries the top hit's values, which the per-PSM form keeps for the top hit
+  const vector<PeptideHit> legacy = search(4, {{"annotate:per_psm_pool_features", "false"}});
+  ABORT_IF(legacy.size() != 4)
+  for (const PeptideHit& hit : legacy)
+  {
+    TEST_EQUAL(value(hit, Constants::UserParam::DELTA_SCORE), value(all[0], Constants::UserParam::DELTA_SCORE))
+    TEST_EQUAL(value(hit, Constants::UserParam::HYPERSCORE_ZSCORE), value(all[0], Constants::UserParam::HYPERSCORE_ZSCORE))
+  }
+  // with one reported hit the two forms are the same
+  TEST_TRUE(search(1, {}) == search(1, {{"annotate:per_psm_pool_features", "false"}}))
+
+  // delta_best (off by default): margin to the top hit
+  TEST_EQUAL(all[0].metaValueExists(Constants::UserParam::DELTA_BEST), false)
+  const vector<PeptideHit> with_best = search(4, {{"annotate:delta_best", "true"}});
+  ABORT_IF(with_best.size() != 4)
+  for (const PeptideHit& hit : with_best)
+  {
+    TEST_EQUAL(static_cast<float>(value(hit, Constants::UserParam::DELTA_BEST)), static_cast<float>(with_best[0].getScore() - hit.getScore()))
+  }
+
+  // prefilter Poisson feature: non-negative, positive for the top hit (it matched more fragments than the mean)
+  for (const PeptideHit& hit : all) { TEST_TRUE(value(hit, Constants::UserParam::PREFILTER_POISSON_SURPRISE) >= 0.0) }
+  TEST_TRUE(value(all[0], Constants::UserParam::PREFILTER_POISSON_SURPRISE) > 0.0)
+
+  // precursor ppm, centered on the run's offset: a single spectrum is its own offset (+5 ppm)
+  TOLERANCE_ABSOLUTE(1e-6)
+  TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("precursor_mz_error_ppm_offset")), value(all[0], Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
+  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM), 5.0)
+  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::LN_PRECURSOR_ERROR_PPM), 0.0)
+  ProteinIdentification::SearchParameters sp_raw;
+  const vector<PeptideHit> raw = search(4, {{"annotate:precursor_ppm", "raw"}}, &sp_raw);
+  ABORT_IF(raw.empty())
+  TEST_REAL_SIMILAR(value(raw[0], Constants::UserParam::LN_PRECURSOR_ERROR_PPM), std::log1p(5.0))
+  TEST_EQUAL(sp_raw.metaValueExists("precursor_mz_error_ppm_offset"), false)
+
+  // singly charged ion evidence of the true peptide: every peak is matched once, so the mean intensity rank is that
+  // of all peaks; the 7 most intense are the heaviest, with errors of +3 / -3 ppm by position
+  const Size n = processed.size();
+  TEST_EQUAL(n, theo.size())
+  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::MATCHED_INTENSITY_RANK_MEAN), (n + 1) / 2.0)
+  double mean = 0.0;
+  for (Size i = n - 7; i < n; ++i) mean += (i % 2 == 0 ? 3.0 : -3.0) / 7.0;
+  TOLERANCE_ABSOLUTE(1e-4)
+  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN), 3.0)
+  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_SD), 0.0)
+  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::TOP_IONS_ERROR_PPM_MEAN), mean)
+  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::TOP_IONS_ERROR_PPM_SD), std::sqrt(9.0 - mean * mean))
+
+  // the new features are listed for Percolator; switched off, neither they nor their names appear
+  const string extra = sp.getMetaValue("extra_features").toString();
+  for (const string& feature : {Constants::UserParam::PREFILTER_POISSON_SURPRISE, Constants::UserParam::LN_PRECURSOR_ERROR_PPM,
+                                Constants::UserParam::MATCHED_INTENSITY_RANK_MEAN, Constants::UserParam::TOP_IONS_ERROR_PPM_SD})
+  {
+    TEST_TRUE(extra.find(feature) != string::npos)
+  }
+  ProteinIdentification::SearchParameters sp_off;
+  const vector<PeptideHit> off = search(4, {{"annotate:per_psm_pool_features", "false"}, {"annotate:prefilter_poisson", "false"},
+                                            {"annotate:precursor_ppm", "false"}, {"annotate:matched_intensity_rank", "false"},
+                                            {"annotate:top_ion_mass_errors", "false"}}, &sp_off);
+  ABORT_IF(off.size() != 4)
+  // legacy (above) differs from off only by the four added feature sets
+  vector<string> keys_off, keys_legacy;
+  off[1].getKeys(keys_off);
+  legacy[1].getKeys(keys_legacy);
+  TEST_EQUAL(keys_off.size() + 7, keys_legacy.size())
+  TEST_EQUAL(sp_off.getMetaValue("extra_features").toString(),
+             "score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,"
+             "matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,complementary_ions_fraction,"
+             "hyperscore_zscore,ln_num_candidates,delta_score,isotope_error")
+  TEST_EQUAL(sp_off.metaValueExists("precursor_mz_error_ppm_offset"), false)
 }
 END_SECTION
 

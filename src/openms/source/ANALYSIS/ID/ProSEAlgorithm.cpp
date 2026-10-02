@@ -203,6 +203,53 @@ namespace OpenMS
         Constants::UserParam::COMPLEMENTARY_IONS_FRACTION}
       );
 
+    // Candidate-competition features. Each is computed alike for target and decoy candidates from scores, match
+    // counts and m/z values only, and none changes the candidates, their native scores or their order.
+    defaults_.setValue("annotate:per_psm_pool_features", "true",
+      "Compute delta_score and hyperscore_zscore for each reported PSM rather than once per spectrum: delta_score is "
+      "the score minus that of the next lower-ranked candidate (Sage's delta_next; one more candidate than "
+      "report:top_hits is kept for the last reported hit), hyperscore_zscore is the standard score of the PSM's own "
+      "score in its spectrum's candidate pool. The top hit's values are the same either way, so with "
+      "report:top_hits=1 nothing changes. 'false': every hit of a spectrum carries its top hit's values, which "
+      "carries the top hit's margin onto lower-ranked PSMs when several PSMs per spectrum are exported to a rescorer.",
+      {"advanced"});
+    defaults_.setValidStrings("annotate:per_psm_pool_features", {"true", "false"});
+    defaults_.setValue("annotate:prefilter_poisson", "true",
+      "Add the PSM feature " + Constants::UserParam::PREFILTER_POISSON_SURPRISE + " = ln(1 + max(0, -log10 "
+      "Poisson(k; lambda))), with k the candidate's matched fragments in the fragment-index prefilter and lambda the "
+      "mean of k over every candidate of the spectrum with at least one matched fragment (Sage's Poisson feature with "
+      "the prefilter count). Upper tail only: 0 for k <= lambda. 0 in SNES searches. In chunked searches "
+      "(database:chunk_size) lambda counts a peptidoform once per chunk that holds it.",
+      {"advanced"});
+    defaults_.setValidStrings("annotate:prefilter_poisson", {"true", "false"});
+    defaults_.setValue("annotate:precursor_ppm", "centered",
+      "Add the PSM feature " + Constants::UserParam::LN_PRECURSOR_ERROR_PPM + " = ln(1 + |e - offset|), with e the "
+      "isotope-corrected precursor m/z error in ppm (as " + Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM + "). "
+      "'centered': offset = median e of the top-scoring 10% of the spectra's top hits (by native score, per run; "
+      "recorded as search parameter precursor_mz_error_ppm_offset), which removes a run's mass calibration offset. "
+      "'raw': offset = 0 (Sage's ln(precursor ppm)). 'false': no feature. Not added in open-search mode.",
+      {"advanced"});
+    defaults_.setValidStrings("annotate:precursor_ppm", {"centered", "raw", "false"});
+    defaults_.setValue("annotate:matched_intensity_rank", "true",
+      "Add the PSM feature " + Constants::UserParam::MATCHED_INTENSITY_RANK_MEAN + ": the mean intensity rank (1 = most "
+      "intense) within the preprocessed spectrum of the peaks matched by singly charged fragment ions (ANDES' "
+      "MeanMatchedIntensityRank; 0 without such a match).",
+      {"advanced"});
+    defaults_.setValidStrings("annotate:matched_intensity_rank", {"true", "false"});
+    defaults_.setValue("annotate:top_ion_mass_errors", "true",
+      "Add the PSM features " + Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN + ", "
+      + Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_SD + ", " + Constants::UserParam::TOP_IONS_ERROR_PPM_MEAN + " and "
+      + Constants::UserParam::TOP_IONS_ERROR_PPM_SD + ": mean and population standard deviation of the absolute and of "
+      "the signed fragment m/z error (ppm) of the 7 most intense peaks matched by singly charged fragment ions "
+      "(ANDES' MeanErrorTop7, StdevErrorTop7, MeanRelErrorTop7, StdevRelErrorTop7; 0 without such a match).",
+      {"advanced"});
+    defaults_.setValidStrings("annotate:top_ion_mass_errors", {"true", "false"});
+    defaults_.setValue("annotate:delta_best", "false",
+      "Add the PSM feature " + Constants::UserParam::DELTA_BEST + " = score of the spectrum's top hit minus the PSM's "
+      "score (Sage's delta_best; 0 for the top hit, so it marks the rank of the PSM).",
+      {"advanced"});
+    defaults_.setValidStrings("annotate:delta_best", {"true", "false"});
+
     defaults_.setSectionDescription("annotate", "Annotation Options");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
@@ -421,6 +468,15 @@ namespace OpenMS
     else                                 { decoy_mode_ = DecoyMode_::AUTO; }
     decoy_prefix_ = param_.getValue("decoy_prefix").toString();
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
+    annotate_per_psm_pool_features_ = param_.getValue("annotate:per_psm_pool_features").toBool();
+    annotate_prefilter_poisson_ = param_.getValue("annotate:prefilter_poisson").toBool();
+    const std::string precursor_ppm = param_.getValue("annotate:precursor_ppm").toString();
+    annotate_precursor_ppm_ = precursor_ppm == "centered" ? PrecursorPpmFeature_::CENTERED
+                            : precursor_ppm == "raw"      ? PrecursorPpmFeature_::RAW
+                                                          : PrecursorPpmFeature_::OFF;
+    annotate_matched_intensity_rank_ = param_.getValue("annotate:matched_intensity_rank").toBool();
+    annotate_top_ion_mass_errors_ = param_.getValue("annotate:top_ion_mass_errors").toBool();
+    annotate_delta_best_ = param_.getValue("annotate:delta_best").toBool();
     fdr_psm_ = param_.getValue("FDR:PSM");
     fdr_protein_ = param_.getValue("FDR:protein");
 
@@ -693,14 +749,14 @@ namespace OpenMS
     return dense_spectra;
   }
 
-  double ProSEAlgorithm::CandidatePoolStats_::zScore() const
+  double ProSEAlgorithm::CandidatePoolStats_::zScoreOf(double score) const
   {
     if (count < 2) return 0.0;
     const double n = static_cast<double>(count);
     const double mean = sum / n;
     const double var = std::max(0.0, sumsq / n - mean * mean);
-    if (var <= 0.0) return 0.0; // every candidate scored the same: the best one is not an outlier
-    return (best - mean) / std::sqrt(var);
+    if (var <= 0.0) return 0.0; // every candidate scored the same: none of them is an outlier
+    return (score - mean) / std::sqrt(var);
   }
 
   namespace
@@ -875,6 +931,51 @@ namespace OpenMS
     }
   }
 
+  double ProSEAlgorithm::precursorErrorPpm_(const MSSpectrum& spectrum, const AnnotatedHit_& hit)
+  {
+    // Subtract out the isotope offset FI matched at — FragmentIndex searches
+    // shifted_mass = precursor_mass + isotope_error * C13C12, so M_theo ≈ N_obs
+    // + isotope_error * C13C12, and the observed-to-monoiso correction in m/z is
+    //   corrected_mz = observed_mz + isotope_error * C13C12 / charge
+    // Without this, a ±1 Da FI match reports ~1000 ppm / charge for the Percolator
+    // feature, corrupting target/decoy discrimination.
+    const Precursor& precursor = spectrum.getPrecursors()[0];
+    const Size charge = precursor.getCharge();
+    const Size used_charge = (charge > 0) ? charge : static_cast<Size>(hit.applied_charge);
+    const double corrected_mz = precursor.getMZ()
+      + static_cast<double>(hit.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
+    return Math::getPPM(corrected_mz, hit.sequence.getMZ(used_charge));
+  }
+
+  namespace
+  {
+    /**
+      @brief The PSM feature annotate:prefilter_poisson: ln(1 + max(0, -log10 Poisson(k; lambda))) of a candidate's
+      @p k matched fragments in the fragment-index prefilter, lambda = @p matches / @p candidates (the mean over all
+      candidates of the spectrum with at least one matched fragment).
+
+      Upper tail only: 0 for k <= lambda, where a low match count would otherwise look as surprising as a high one.
+      0 without prefilter totals (SNES).
+    */
+    double prefilterPoissonSurprise(uint16_t k, uint64_t candidates, uint64_t matches)
+    {
+      if (candidates == 0) return 0.0;
+      const double lambda = static_cast<double>(matches) / static_cast<double>(candidates); // >= 1: every candidate matched
+      const double kd = static_cast<double>(k);
+      if (kd <= lambda) return 0.0;
+      // ln k! from a table for the counts that occur (lgamma also writes the global signgam)
+      static const std::vector<double> ln_factorial = []
+      {
+        std::vector<double> table(1024);
+        for (Size i = 0; i < table.size(); ++i) table[i] = std::lgamma(static_cast<double>(i) + 1.0);
+        return table;
+      }();
+      const double ln_k_factorial = k < ln_factorial.size() ? ln_factorial[k] : std::lgamma(kd + 1.0);
+      const double neg_log10_p = -(kd * std::log(lambda) - lambda - ln_k_factorial) / std::log(10.0);
+      return std::log1p(std::max(0.0, neg_log10_p));
+    }
+  }
+
   void ProSEAlgorithm::postProcessHits_(const PeakMap& exp,
         std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
         const std::vector<CandidatePoolStats_>& pool_stats,
@@ -908,12 +1009,23 @@ namespace OpenMS
         "Candidate-pool statistics must hold one entry per spectrum.");
     }
 
+    const bool open_search_mode = isOpenSearchMode_();
+    const bool per_psm_pool_features = annotate_per_psm_pool_features_;
+    // The precursor m/z error of an open search holds the modification mass: no feature there.
+    const bool precursor_ppm_feature = annotate_precursor_ppm_ != PrecursorPpmFeature_::OFF && !open_search_mode;
+    const bool center_precursor_ppm = precursor_ppm_feature && annotate_precursor_ppm_ == PrecursorPpmFeature_::CENTERED;
+
     // One value per spectrum, kept in side vectors so scoring does not have to carry
     // them on every AnnotatedHit_ candidate.
     std::vector<float> delta_scores(annotated_hits.size(), 0.0f);
     std::vector<float> hyperscore_zscores(annotated_hits.size(), 0.0f);
     std::vector<float> ln_num_candidates(annotated_hits.size(), 0.0f);
-#pragma omp parallel for default(none) shared(annotated_hits, top_hits, pool_stats, delta_scores, hyperscore_zscores, ln_num_candidates)
+    // annotate:per_psm_pool_features: the score of the best candidate below the reported ones (0 if there is none),
+    // for the delta_score of the last reported hit
+    std::vector<double> next_unreported_scores(per_psm_pool_features ? annotated_hits.size() : 0, 0.0);
+    // annotate:precursor_ppm=centered: the precursor m/z error (ppm) of each spectrum's top hit
+    std::vector<double> top_hit_precursor_ppm(center_precursor_ppm ? annotated_hits.size() : 0, 0.0);
+#pragma omp parallel for default(none) shared(exp, annotated_hits, top_hits, pool_stats, delta_scores, hyperscore_zscores, ln_num_candidates, per_psm_pool_features, next_unreported_scores, center_precursor_ppm, top_hit_precursor_ppm)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       const CandidatePoolStats_& stats = pool_stats[scan_index];
@@ -928,8 +1040,40 @@ namespace OpenMS
       auto& hits = annotated_hits[scan_index];
       Size topn = top_hits > hits.size() ? hits.size() : top_hits;
       std::partial_sort(hits.begin(), hits.begin() + topn, hits.end(), AnnotatedHit_::hasBetterScore);
+      if (per_psm_pool_features && topn < hits.size())
+      {
+        next_unreported_scores[scan_index] = std::min_element(hits.begin() + topn, hits.end(), AnnotatedHit_::hasBetterScore)->score;
+      }
       hits.resize(topn);
       hits.shrink_to_fit();
+      if (center_precursor_ppm && !hits.empty())
+      {
+        top_hit_precursor_ppm[scan_index] = precursorErrorPpm_(exp[scan_index], hits.front());
+      }
+    }
+
+    // annotate:precursor_ppm=centered: a run's precursor m/z calibration offset, as the median error of the
+    // confident top hits - those of the top-scoring tenth of the spectra (by native score; ties by spectrum order).
+    // Computed from scores and m/z values only, alike for targets and decoys.
+    double precursor_ppm_offset = 0.0;
+    if (center_precursor_ppm)
+    {
+      std::vector<std::pair<double, Size>> top_hits_by_score; // (score, spectrum)
+      for (Size scan_index = 0; scan_index < annotated_hits.size(); ++scan_index)
+      {
+        if (!annotated_hits[scan_index].empty()) top_hits_by_score.emplace_back(annotated_hits[scan_index].front().score, scan_index);
+      }
+      if (!top_hits_by_score.empty())
+      {
+        const Size confident = std::max<Size>(1, top_hits_by_score.size() / 10);
+        std::partial_sort(top_hits_by_score.begin(), top_hits_by_score.begin() + confident, top_hits_by_score.end(),
+                          [](const std::pair<double, Size>& a, const std::pair<double, Size>& b)
+                          { return a.first != b.first ? a.first > b.first : a.second < b.second; });
+        std::vector<double> errors;
+        errors.reserve(confident);
+        for (Size i = 0; i < confident; ++i) errors.push_back(top_hit_precursor_ppm[top_hits_by_score[i].second]);
+        precursor_ppm_offset = Math::median(errors.begin(), errors.end());
+      }
     }
 
     bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
@@ -968,8 +1112,13 @@ namespace OpenMS
 
     // Alignment is needed for fragment error, fragment annotations, longest ion run, MIC,
     // normalized MIC, and complementary ion pairs
+    // annotate:matched_intensity_rank and annotate:top_ion_mass_errors: evidence of the singly charged fragment ions
+    const bool matched_intensity_rank = annotate_matched_intensity_rank_;
+    const bool top_ion_mass_errors = annotate_top_ion_mass_errors_;
+    const bool need_ion_evidence = matched_intensity_rank || top_ion_mass_errors;
     const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run
-      || annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction;
+      || annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction
+      || need_ion_evidence;
 
     // Both configurations depend only on the fragment tolerance, so they are
     // shared read-only by every thread of the loop below: getSpectrum() and
@@ -1008,11 +1157,13 @@ namespace OpenMS
     // string-keyed (spectrum reference, IM, rank; at most one lookup per spectrum or hit) are
     // still registered inside the loop, after the ones below, as before (checked: the registry
     // contents after a search are the same as before this change, at 1 and at 16 threads).
-    const bool open_search_mode = isOpenSearchMode_();
+    // The candidate-competition features (annotate:*) come after all of these and are registered only when enabled.
     UInt mv_scan_index{}, mv_fragment_error{}, mv_precursor_error{}, mv_prefix_fraction{}, mv_suffix_fraction{},
          mv_num_matched_peaks{}, mv_matched_prefix_ions{}, mv_matched_suffix_ions{}, mv_delta_score{},
          mv_hyperscore_zscore{}, mv_ln_num_candidates{}, mv_matched_ion_current{}, mv_matched_ion_current_fraction{},
-         mv_longest_ion_run{}, mv_complementary_ions_fraction{}, mv_isotope_error{}, mv_delta_mass{};
+         mv_longest_ion_run{}, mv_complementary_ions_fraction{}, mv_isotope_error{}, mv_delta_mass{},
+         mv_delta_best{}, mv_prefilter_poisson{}, mv_ln_precursor_error{}, mv_intensity_rank{},
+         mv_top_abs_error_mean{}, mv_top_abs_error_sd{}, mv_top_error_mean{}, mv_top_error_sd{};
     {
       const auto first_with_hits = std::find_if(annotated_hits.begin(), annotated_hits.end(),
                                                 [](const std::vector<AnnotatedHit_>& hits) { return !hits.empty(); });
@@ -1040,6 +1191,17 @@ namespace OpenMS
         if (annotation_complementary_ions_fraction) mv_complementary_ions_fraction = registry.registerName(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION);
         mv_isotope_error = registry.registerName(Constants::UserParam::ISOTOPE_ERROR);
         if (open_search_mode) mv_delta_mass = registry.registerName("DeltaMass");
+        if (annotate_delta_best_) mv_delta_best = registry.registerName(Constants::UserParam::DELTA_BEST);
+        if (annotate_prefilter_poisson_) mv_prefilter_poisson = registry.registerName(Constants::UserParam::PREFILTER_POISSON_SURPRISE);
+        if (precursor_ppm_feature) mv_ln_precursor_error = registry.registerName(Constants::UserParam::LN_PRECURSOR_ERROR_PPM);
+        if (matched_intensity_rank) mv_intensity_rank = registry.registerName(Constants::UserParam::MATCHED_INTENSITY_RANK_MEAN);
+        if (top_ion_mass_errors)
+        {
+          mv_top_abs_error_mean = registry.registerName(Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN);
+          mv_top_abs_error_sd = registry.registerName(Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_SD);
+          mv_top_error_mean = registry.registerName(Constants::UserParam::TOP_IONS_ERROR_PPM_MEAN);
+          mv_top_error_sd = registry.registerName(Constants::UserParam::TOP_IONS_ERROR_PPM_SD);
+        }
       }
     }
 
@@ -1075,10 +1237,25 @@ namespace OpenMS
 
         AlignmentScratch_ alignment_scratch; // reused by all hits of this spectrum
 
-        // create full peptide hit structure from annotated hits
-        vector<PeptideHit> phs;
-        for (const auto& ah : annotated_hits[scan_index])
+        // annotate:matched_intensity_rank: the intensity rank of every peak (1 = most intense; ties by position)
+        std::vector<Size> intensity_rank;
+        if (matched_intensity_rank)
         {
+          std::vector<Size> by_intensity(spec.size());
+          std::iota(by_intensity.begin(), by_intensity.end(), Size(0));
+          std::stable_sort(by_intensity.begin(), by_intensity.end(),
+                           [&spec](Size a, Size b) { return spec[a].getIntensity() > spec[b].getIntensity(); });
+          intensity_rank.resize(spec.size());
+          for (Size rank = 0; rank < by_intensity.size(); ++rank) intensity_rank[by_intensity[rank]] = rank + 1;
+        }
+
+        // create full peptide hit structure from annotated hits
+        const std::vector<AnnotatedHit_>& hits_of_spectrum = annotated_hits[scan_index];
+        const CandidatePoolStats_& pool = pool_stats[scan_index];
+        vector<PeptideHit> phs;
+        for (Size hit_index = 0; hit_index < hits_of_spectrum.size(); ++hit_index)
+        {
+          const AnnotatedHit_& ah = hits_of_spectrum[hit_index];
           PeptideHit ph;
           // Prefer spectrum charge; if absent (0), fall back to the charge actually used by FI for this candidate
           const Size used_charge = (charge > 0) ? charge : static_cast<Size>(ah.applied_charge);
@@ -1120,17 +1297,7 @@ namespace OpenMS
 
           if (annotation_precursor_error_ppm)
           {
-            // Subtract out the isotope offset FI matched at — FragmentIndex searches
-            // shifted_mass = precursor_mass + isotope_error * C13C12, so M_theo ≈ N_obs
-            // + isotope_error * C13C12, and the observed-to-monoiso correction in m/z is
-            //   corrected_mz = observed_mz + isotope_error * C13C12 / charge
-            // Without this, a ±1 Da FI match reports ~1000 ppm / charge for the Percolator
-            // feature, corrupting target/decoy discrimination.
-            const double corrected_mz = mz
-              + static_cast<double>(ah.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
-            double theo_mz = ah.sequence.getMZ(used_charge);
-            double ppm_difference = Math::getPPM(corrected_mz, theo_mz);
-            ph.setMetaValue(mv_precursor_error, ppm_difference);
+            ph.setMetaValue(mv_precursor_error, precursorErrorPpm_(spec, ah));
           }
 
           if (annotation_prefix_fraction)
@@ -1157,21 +1324,47 @@ namespace OpenMS
             ph.setMetaValue(mv_matched_suffix_ions, static_cast<int>(ah.matched_suffix_ions));
           }
 
-          ph.setMetaValue(mv_delta_score, delta_scores[scan_index]);
+          if (per_psm_pool_features)
+          {
+            // Sage's delta_next: the margin to the next lower-ranked candidate, the next reported hit or the best
+            // unreported one. For the top hit this is the spectrum-level value.
+            const double next_score = hit_index + 1 < hits_of_spectrum.size() ? hits_of_spectrum[hit_index + 1].score
+                                                                               : next_unreported_scores[scan_index];
+            ph.setMetaValue(mv_delta_score, static_cast<float>(ah.score - next_score));
+          }
+          else
+          {
+            ph.setMetaValue(mv_delta_score, delta_scores[scan_index]);
+          }
 
           if (annotation_hyperscore_zscore)
           {
-            ph.setMetaValue(mv_hyperscore_zscore, hyperscore_zscores[scan_index]);
+            ph.setMetaValue(mv_hyperscore_zscore,
+                            per_psm_pool_features ? static_cast<float>(pool.zScoreOf(ah.score)) : hyperscore_zscores[scan_index]);
           }
           if (annotation_ln_num_candidates)
           {
             ph.setMetaValue(mv_ln_num_candidates, ln_num_candidates[scan_index]);
           }
 
-          // Fragment annotations, longest ion run, MIC, normalized MIC, and complementary
-          // ion pairs all iterate the alignment + ion names
+          if (annotate_delta_best_)
+          {
+            ph.setMetaValue(mv_delta_best, static_cast<float>(hits_of_spectrum.front().score - ah.score));
+          }
+          if (annotate_prefilter_poisson_)
+          {
+            ph.setMetaValue(mv_prefilter_poisson,
+                            prefilterPoissonSurprise(ah.prefilter_matches, pool.prefilter_candidates, pool.prefilter_matches));
+          }
+          if (precursor_ppm_feature)
+          {
+            ph.setMetaValue(mv_ln_precursor_error, std::log1p(std::fabs(precursorErrorPpm_(spec, ah) - precursor_ppm_offset)));
+          }
+
+          // Fragment annotations, longest ion run, MIC, normalized MIC, complementary ion pairs
+          // and the singly charged ion evidence all iterate the alignment + ion names
           if (annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current
-            || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction)
+            || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction || need_ion_evidence)
           {
             const auto& ion_names = theoretical_spec.getStringDataArrays()[0];
             const auto& ion_charges = theoretical_spec.getIntegerDataArrays()[0];
@@ -1192,9 +1385,13 @@ namespace OpenMS
             // when MIC is actually requested.
             std::vector<char> counted_exp_peaks(need_mic ? spec.size() : 0, 0);
             peak_annotations.reserve(alignment.size());
+            // the matches of singly charged ions, as (theoretical, experimental) peak
+            std::vector<std::pair<Size, Size>> charge1_matches;
 
             for (const auto& [theo_idx, exp_idx] : alignment)
             {
+              if (need_ion_evidence && ion_charges[theo_idx] == 1) { charge1_matches.emplace_back(theo_idx, exp_idx); }
+
               if (annotation_fragment_annotations)
               {
                 PeptideHit::PeakAnnotation pa;
@@ -1236,6 +1433,44 @@ namespace OpenMS
             if (annotation_fragment_annotations)
             {
               ph.setPeakAnnotations(std::move(peak_annotations));
+            }
+
+            // ANDES' model-free evidence of the singly charged ions: true fragment ions explain the intense peaks,
+            // and their mass errors are small and consistent. 0 without a singly charged match.
+            if (matched_intensity_rank)
+            {
+              double rank_sum = 0.0;
+              for (const auto& match : charge1_matches) rank_sum += static_cast<double>(intensity_rank[match.second]);
+              ph.setMetaValue(mv_intensity_rank, charge1_matches.empty() ? 0.0 : rank_sum / static_cast<double>(charge1_matches.size()));
+            }
+            if (top_ion_mass_errors)
+            {
+              // the 7 most intense matched peaks (ties in alignment order)
+              std::stable_sort(charge1_matches.begin(), charge1_matches.end(),
+                               [&spec](const std::pair<Size, Size>& a, const std::pair<Size, Size>& b)
+                               { return spec[a.second].getIntensity() > spec[b.second].getIntensity(); });
+              const Size n_top = std::min<Size>(7, charge1_matches.size());
+              double abs_sum = 0.0, sum = 0.0, square_sum = 0.0;
+              for (Size i = 0; i < n_top; ++i)
+              {
+                const double error = Math::getPPM(spec[charge1_matches[i].second].getMZ(), theoretical_spec[charge1_matches[i].first].getMZ());
+                abs_sum += std::fabs(error);
+                sum += error;
+                square_sum += error * error;
+              }
+              double abs_mean = 0.0, abs_sd = 0.0, mean = 0.0, sd = 0.0;
+              if (n_top > 0)
+              {
+                const double n = static_cast<double>(n_top);
+                abs_mean = abs_sum / n;
+                mean = sum / n;
+                abs_sd = std::sqrt(std::max(0.0, square_sum / n - abs_mean * abs_mean)); // population SD; |e|^2 = e^2
+                sd = std::sqrt(std::max(0.0, square_sum / n - mean * mean));
+              }
+              ph.setMetaValue(mv_top_abs_error_mean, abs_mean);
+              ph.setMetaValue(mv_top_abs_error_sd, abs_sd);
+              ph.setMetaValue(mv_top_error_mean, mean);
+              ph.setMetaValue(mv_top_error_sd, sd);
             }
 
             if (annotation_matched_ion_current)
@@ -1394,8 +1629,20 @@ namespace OpenMS
     if (annotation_ln_num_candidates) feature_set.push_back(Constants::UserParam::LN_NUM_CANDIDATES);
     feature_set.push_back(Constants::UserParam::DELTA_SCORE);
     feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
-    // note: precursor error is calculated by percolator itself
+    // note: Percolator computes the precursor error (dm, absdm in Da) itself; annotate:precursor_ppm adds it in ppm
+    if (annotate_delta_best_) feature_set.push_back(Constants::UserParam::DELTA_BEST);
+    if (annotate_prefilter_poisson_) feature_set.push_back(Constants::UserParam::PREFILTER_POISSON_SURPRISE);
+    if (precursor_ppm_feature) feature_set.push_back(Constants::UserParam::LN_PRECURSOR_ERROR_PPM);
+    if (matched_intensity_rank) feature_set.push_back(Constants::UserParam::MATCHED_INTENSITY_RANK_MEAN);
+    if (top_ion_mass_errors)
+    {
+      feature_set.push_back(Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN);
+      feature_set.push_back(Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_SD);
+      feature_set.push_back(Constants::UserParam::TOP_IONS_ERROR_PPM_MEAN);
+      feature_set.push_back(Constants::UserParam::TOP_IONS_ERROR_PPM_SD);
+    }
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+    if (center_precursor_ppm) search_parameters.setMetaValue("precursor_mz_error_ppm_offset", precursor_ppm_offset);
     // record whether open-search mode was used
     search_parameters.setMetaValue("open_search", isOpenSearchMode_() ? "true" : "false");
 
@@ -1763,7 +2010,7 @@ namespace OpenMS
     // Hoisted out of the omp parallel block: clang with `default(none)` forbids
     // referencing namespace-scope constants inside the loop without explicit sharing.
     const double c13c12_massdiff_u = Constants::C13C12_MASSDIFF_U;
-    const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
+    const Size keep = keptHitsPerSpectrum_();
     const bool deduplicate_chunks = param_.getValue("peptide:deduplicate").toBool() && database_chunk_size_ > 0 && ! fi.isSnesMode();
 
 #pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep, deduplicate_chunks)
@@ -1780,6 +2027,9 @@ namespace OpenMS
       // ions:by_activation: only electron-activated spectra are matched against the c and z+1 ions,
       // so that these ions do not change which candidates the other spectra keep
       fi.querySpectrum(exp_spectrum, db, top_sms, generators.electronIons(exp_spectrum));
+      // Each scan_index is owned by exactly one thread (see pool_stats[scan_index].add() below).
+      pool_stats[scan_index].prefilter_candidates += top_sms.scored_candidates_;
+      pool_stats[scan_index].prefilter_matches += top_sms.matched_peaks_;
 
       const bool snes_mode = fi.isSnesMode();
       const bool prec_tol_ppm = precursor_mass_tolerance_unit_ == "ppm";
@@ -1889,6 +2139,7 @@ namespace OpenMS
         ah.mean_error = static_cast<float>(detail.mean_error);
         ah.matched_prefix_ions = static_cast<uint16_t>(detail.matched_prefix_ions);
         ah.matched_suffix_ions = static_cast<uint16_t>(detail.matched_suffix_ions);
+        ah.prefilter_matches = static_cast<uint16_t>(std::min<uint32_t>(sms.num_matched_, std::numeric_limits<uint16_t>::max()));
         ah.isotope_error = sms.isotope_error_;
         ah.applied_charge = sms.precursor_charge_;
         ah.delta_mass = 0.0;
@@ -2110,7 +2361,7 @@ namespace OpenMS
       // peptide databases with many chunks. The pruning is correct because
       // scores are independent across chunks: a hit that fails to place in the
       // current top-N cannot improve when more chunks are added.
-      const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
+      const Size keep = keptHitsPerSpectrum_();
 #pragma omp parallel for default(none) shared(annotated_hits, keep)
       for (SignedSize si = 0; si < (SignedSize)annotated_hits.size(); ++si)
       {
@@ -3195,7 +3446,7 @@ namespace OpenMS
           chunk_fi.setParameters(base_fi_params);
 
         // Per-chunk pruning for each file.
-        const Size keep = std::max(report_top_hits_, Size(2));
+        const Size keep = keptHitsPerSpectrum_();
         for (Size i = 0; i < in_spectra_files.size(); ++i)
         {
 #pragma omp parallel for default(none) shared(per_file_hits, i, keep)
