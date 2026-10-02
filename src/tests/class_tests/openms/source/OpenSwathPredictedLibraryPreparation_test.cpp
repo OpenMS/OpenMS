@@ -42,9 +42,9 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
   FASTAContainer<TFI_File> decoy_scan(fasta_file);
   const DecoyHelper::Result detected_decoy =
     DecoyHelper::findDecoyString(decoy_scan, true);
-  TEST_EQUAL(detected_decoy.success, true)
+  TEST_TRUE(detected_decoy.success)
   TEST_EQUAL(detected_decoy.name, "DECOY_")
-  TEST_EQUAL(detected_decoy.is_prefix, true)
+  TEST_TRUE(detected_decoy.is_prefix)
 
   std::string output_pqp;
   NEW_TMP_FILE(output_pqp)
@@ -84,10 +84,10 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
   const auto stats = prep.preparePredictedLibraryToPQP(
     fasta_file, output_pqp, assay, decoy, prediction);
 
-  TEST_EQUAL(File::exists(output_pqp), true)
-  TEST_EQUAL(stats.compound_count > 0, true)
-  TEST_EQUAL(stats.transition_count > 0, true)
-  TEST_EQUAL(stats.decoy_transition_count > 0, true)
+  TEST_TRUE(File::exists(output_pqp))
+  TEST_TRUE(stats.compound_count > 0)
+  TEST_TRUE(stats.transition_count > 0)
+  TEST_TRUE(stats.decoy_transition_count > 0)
 
   OpenSwath::LightTargetedExperiment library;
   TransitionPQPFile reader;
@@ -110,10 +110,10 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
       compound.sequence.find("QQQWQQQK") != std::string::npos;
   }
 
-  TEST_EQUAL(saw_cam, true)
-  TEST_EQUAL(saw_clipped_methionine, true)
-  TEST_EQUAL(saw_ambiguous, false)
-  TEST_EQUAL(saw_input_decoy_sequence, false)
+  TEST_TRUE(saw_cam)
+  TEST_TRUE(saw_clipped_methionine)
+  TEST_FALSE(saw_ambiguous)
+  TEST_FALSE(saw_input_decoy_sequence)
 
   bool saw_double_decoy_protein = false;
   for (const auto& protein : library.proteins)
@@ -122,7 +122,7 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
       saw_double_decoy_protein ||
       protein.id.find("DECOY_DECOY_") != std::string::npos;
   }
-  TEST_EQUAL(saw_double_decoy_protein, false)
+  TEST_FALSE(saw_double_decoy_protein)
 
   // Entries carrying the configured decoy tag are skipped even when they are
   // too rare for DecoyHelper to detect a database-wide decoy affix.
@@ -138,7 +138,7 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
       << ">DECOY_ProteinA\nQQQQQQQK\n";
   }
   FASTAContainer<TFI_File> sparse_decoy_scan(sparse_decoy_fasta);
-  TEST_EQUAL(DecoyHelper::findDecoyString(sparse_decoy_scan, true).success, false)
+  TEST_FALSE(DecoyHelper::findDecoyString(sparse_decoy_scan, true).success)
 
   std::string sparse_decoy_pqp;
   NEW_TMP_FILE(sparse_decoy_pqp)
@@ -155,7 +155,7 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
       saw_sparse_decoy_sequence ||
       compound.sequence.find("QQQQQQQK") != std::string::npos;
   }
-  TEST_EQUAL(saw_sparse_decoy_sequence, false)
+  TEST_FALSE(saw_sparse_decoy_sequence)
   bool saw_sparse_double_decoy_protein = false;
   for (const auto& protein : sparse_decoy_library.proteins)
   {
@@ -163,7 +163,7 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
       saw_sparse_double_decoy_protein ||
       protein.id.find("DECOY_DECOY_") != std::string::npos;
   }
-  TEST_EQUAL(saw_sparse_double_decoy_protein, false)
+  TEST_FALSE(saw_sparse_double_decoy_protein)
 
   // Fallback UIS/SWATH construction divides the precursor m/z range by the
   // precursor threshold. Reject a non-positive threshold before that division.
@@ -187,6 +187,30 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
       fasta_file, invalid_output_pqp, invalid_uis_assay, decoy, prediction),
     "AssayGeneratorParameters::precursor_mz_threshold must be greater than zero "
     "when constructing fallback UIS SWATH windows.")
+
+  // Library callers do not get TOPP option checks, so invalid settings must be
+  // rejected before any model or FASTA work starts.
+  auto short_peptides = prediction;
+  short_peptides.min_peptide_length = 1;
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter,
+    prep.preparePredictedLibraryToPQP(fasta_file, invalid_output_pqp, assay, decoy, short_peptides),
+    "PredictedLibraryParameters::min_peptide_length must be at least 2.")
+  auto no_max_length = prediction;
+  no_max_length.max_peptide_length = 0;
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter,
+    prep.preparePredictedLibraryToPQP(fasta_file, invalid_output_pqp, assay, decoy, no_max_length),
+    "PredictedLibraryParameters::max_peptide_length must be >= min_peptide_length.")
+  auto bad_instrument = prediction;
+  bad_instrument.instrument_index = 8;
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter,
+    prep.preparePredictedLibraryToPQP(fasta_file, invalid_output_pqp, assay, decoy, bad_instrument),
+    "PredictedLibraryParameters::instrument_index must be between 0 and 7.")
+  auto bad_enzyme = prediction;
+  bad_enzyme.enzyme = "NoSuchProtease";
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter,
+    prep.preparePredictedLibraryToPQP(fasta_file, invalid_output_pqp, assay, decoy, bad_enzyme),
+    "PredictedLibraryParameters::enzyme 'NoSuchProtease' is not a known protease.")
+  TEST_FALSE(File::exists(invalid_output_pqp))
 }
 END_SECTION
 

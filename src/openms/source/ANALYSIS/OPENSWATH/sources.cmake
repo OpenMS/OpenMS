@@ -28,7 +28,6 @@ set(sources_list
   OpenSwathHelper.cpp
   OpenSwathLibraryIDNormalizer.cpp
   OpenSwathLibraryPreparation.cpp
-  OpenSwathPredictedLibraryPreparation.cpp
   OpenSwathPeptidoformInference.cpp
   OpenSwathMatrixExporter.cpp
   OpenSwathParquetExporter.cpp
