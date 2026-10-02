@@ -15,6 +15,7 @@
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
+#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
@@ -4824,6 +4825,44 @@ START_SECTION(([EXTRA] self-trained ion priors are learned per file and agree be
       TEST_EQUAL(per_file.protein_ids[0].getSearchParameters().getMetaValue("ion_prior:training_psms"),
                  prot_ids[0].getSearchParameters().getMetaValue("ion_prior:training_psms"))
       TEST_EQUAL(ion_prior_rows_(per_file.peptide_ids) == single_rows, true)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] resolveDecoyStrategy_ detects the decoy marker of large databases as DecoyHelper does))
+{
+  // Large enough for the parallel detection; checked against DecoyHelper::findDecoyString()
+  const auto make_db = [](const std::function<string(Size)>& identifier)
+  {
+    vector<FASTAFile::FASTAEntry> db;
+    for (Size i = 0; i < 10000; ++i) db.push_back({identifier(i), "", "PEPTIDEK"});
+    return db;
+  };
+  const vector<vector<FASTAFile::FASTAEntry>> dbs = {
+    make_db([](Size i) { return (i % 2 ? "DECOY_" : "") + string("P") + std::to_string(i); }),
+    make_db([](Size i) { return (i % 2 ? (i < 9000 ? "DECOY_" : "decoy_") : "") + string("P") + std::to_string(i); }), // last spelling
+    make_db([](Size i) { return (i % 5 < 3 ? "rev_" : "") + string("sp|P") + std::to_string(i); }),
+    make_db([](Size i) { return string("P") + std::to_string(i) + (i % 2 ? "_REVERSED" : ""); }),
+    make_db([](Size i) { return string("P") + std::to_string(i) + (i % 2 ? "_rev" : ""); }),
+    make_db([](Size i) { return (i % 4 == 1 ? "DECOY_" : "") + string("P") + std::to_string(i) + (i % 4 == 3 ? "_decoy" : ""); }), // as often
+    make_db([](Size i) { return (i % 10 == 1 ? "XXX_" : "") + string("P") + std::to_string(i); }), // too few
+    make_db([](Size i) { return (i % 2 ? (i % 3 ? "DECOY_" : "REV_") : "") + string("P") + std::to_string(i); })}; // no single one
+  for (const auto& db : dbs)
+  {
+    FASTAContainer<TFI_Vector> container(db);
+    const DecoyHelper::Result expected = DecoyHelper::findDecoyString(container, true);
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "auto");
+    p.setValue("decoy_prefix", "NOT_IN_THE_DATABASE_");
+    algo.setParameters(p);
+    const ProSEAlgorithm_test::DecoyStrategy_ s = algo.resolveDecoyStrategy_(db);
+    TEST_EQUAL(s.generate, !expected.success)
+    if (expected.success)
+    {
+      TEST_STRING_EQUAL(s.decoy_string, expected.name)
+      TEST_EQUAL(s.is_prefix, expected.is_prefix)
     }
   }
 }

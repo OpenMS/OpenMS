@@ -178,6 +178,8 @@ TOPP tools:
         features. Computed on the peak list before local/top-N filtering; candidates and native scores
         do not change. Requires a finite, positive fragment:mass_tolerance; set it to false to search
         with other tolerances.
+      - The PSMs are annotated in per-spectrum slots (no lock, no sort afterwards), and the decoy marker of large
+        databases is detected with all threads. Results are unchanged.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----

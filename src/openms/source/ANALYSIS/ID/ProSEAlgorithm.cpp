@@ -2097,6 +2097,103 @@ namespace OpenMS
     return p;
   }
 
+  namespace
+  {
+    /**
+      @brief DecoyHelper::findDecoyString(@p db, quiet = true), with the OpenMP threads for large databases.
+
+      DecoyHelper::countDecoys() sums, over the proteins, the matches of the prefix and the suffix pattern and keeps,
+      per match, the spelling of its last occurrence (within a protein the suffix after the prefix). Chunks of
+      consecutive proteins counted on their own and joined in their order give the same. The decision is the one of
+      findDecoyString() for these statistics; it does not depend on the order in which it looks at the matches,
+      since at most one prefix and one suffix can reach 80% of all prefixes or suffixes.
+    */
+    DecoyHelper::Result findDecoyStringInParallel(const std::vector<FASTAFile::FASTAEntry>& db)
+    {
+#ifdef _OPENMP
+      const int threads = omp_in_parallel() ? 1 : omp_get_max_threads();
+#else
+      const int threads = 1;
+#endif
+      if (threads < 2 || db.size() < 8192)
+      {
+        FASTAContainer<TFI_Vector> container(db);
+        return DecoyHelper::findDecoyString(container, /*quiet=*/true);
+      }
+      struct Counts
+      {
+        std::map<std::string, std::pair<Size, Size>> count; ///< match -> occurrences as prefix, as suffix
+        std::map<std::string, std::string> spelling;        ///< match -> spelling of its last occurrence
+        Size prefixes = 0, suffixes = 0;
+      };
+      const SignedSize n = static_cast<SignedSize>(db.size());
+      const SignedSize num_chunks = 4 * static_cast<SignedSize>(threads);
+      std::vector<Counts> chunks(num_chunks);
+#pragma omp parallel num_threads(threads)
+      {
+        const RegularExpression prefix_pattern(DecoyHelper::regexstr_prefix);
+        const RegularExpression suffix_pattern(DecoyHelper::regexstr_suffix);
+        std::string lower, match;
+#pragma omp for schedule(dynamic, 1)
+        for (SignedSize c = 0; c < num_chunks; ++c)
+        {
+          Counts& chunk = chunks[c];
+          for (SignedSize i = n * c / num_chunks; i < n * (c + 1) / num_chunks; ++i)
+          {
+            const std::string& identifier = db[i].identifier;
+            lower = identifier;
+            StringUtils::toLower(lower);
+            if (prefix_pattern.search(lower, &match))
+            {
+              ++chunk.prefixes;
+              ++chunk.count[match].first;
+              chunk.spelling[match] = StringUtils::prefix(identifier, match.length());
+            }
+            if (suffix_pattern.search(lower, &match))
+            {
+              ++chunk.suffixes;
+              ++chunk.count[match].second;
+              chunk.spelling[match] = StringUtils::suffix(identifier, match.length());
+            }
+          }
+        }
+      }
+      Counts all;
+      for (const Counts& chunk : chunks) // in order: later chunks hold later proteins
+      {
+        all.prefixes += chunk.prefixes;
+        all.suffixes += chunk.suffixes;
+        for (const auto& [match, count] : chunk.count)
+        {
+          all.count[match].first += count.first;
+          all.count[match].second += count.second;
+        }
+        for (const auto& [match, spelling] : chunk.spelling) all.spelling[match] = spelling;
+      }
+      // DecoyHelper::findDecoyString()'s decision
+      const double proteins = static_cast<double>(db.size());
+      if (static_cast<double>(all.prefixes + all.suffixes) < 0.4 * proteins || all.prefixes == all.suffixes)
+      {
+        return {false, "?", true};
+      }
+      for (const auto& [match, count] : all.count)
+      {
+        if (static_cast<double>(count.first) / static_cast<double>(all.prefixes) >= 0.8 && static_cast<double>(count.first) / proteins >= 0.4)
+        {
+          return {true, all.spelling[match], true};
+        }
+      }
+      for (const auto& [match, count] : all.count)
+      {
+        if (static_cast<double>(count.second) / static_cast<double>(all.suffixes) >= 0.8 && static_cast<double>(count.second) / proteins >= 0.4)
+        {
+          return {true, all.spelling[match], false};
+        }
+      }
+      return {false, "?", true};
+    }
+  }
+
   ProSEAlgorithm::DecoyStrategy_
   ProSEAlgorithm::resolveDecoyStrategy_(const std::vector<FASTAFile::FASTAEntry>& db) const
   {
@@ -2104,11 +2201,10 @@ namespace OpenMS
     // (DecoyHelper: "decoy", "rev", "xxx", ... as prefix or suffix), then a
     // literal fall-back to the configured decoy_prefix so custom markers
     // outside the vocabulary are still recognised.
-    FASTAContainer<TFI_Vector> container(db);
     // quiet=true: a target-only database is a normal case here (auto/generate
     // then synthesise decoys), so suppress DecoyHelper's "unable to determine
     // decoy string" ERROR/WARN noise — we handle the negative result ourselves.
-    const DecoyHelper::Result det = DecoyHelper::findDecoyString(container, /*quiet=*/true);
+    const DecoyHelper::Result det = findDecoyStringInParallel(db);
 
     bool existing = det.success;
     std::string ext_string = det.success ? det.name : decoy_prefix_;
