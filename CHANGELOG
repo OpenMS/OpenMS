@@ -143,6 +143,15 @@ TOPP tools:
         that are not deisotoped, their HyperScores are larger for targets and decoys alike, and one
         pooled competition left fewer charge-2 PSMs below the threshold. High-resolution searches
         score charge-1 fragments only and form one group, as before.
+      - MS2 deisotoping uses a Sage-like envelope rule, with three new advanced parameters: two isotope
+        peaks make an envelope (fragment:deisotope_min_peaks=2; 3 before), the monoisotopic peak carries
+        the envelope's summed intensity (fragment:deisotope_sum_intensity=true), and charges are tried up
+        to the precursor charge, at most 3 (fragment:deisotope_charge_cap=precursor; 1-3 for every
+        spectrum before). Only high-resolution (deisotoped) searches change; 3 / none / false restores
+        the earlier output. It gave more PSMs after Percolator on high-resolution Orbitrap data, but fewer
+        PSMs after native-score FDR pooled over precursor charges (FDR:PSM, FalseDiscoveryRate) on
+        timsTOF data (-3.6% on two files, although each precursor charge on its own gained). The search
+        parameters of the idXML output record the three settings.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----

@@ -65,6 +65,8 @@ public:
   using ProSEAlgorithm::CalibrationResult_;
   using ProSEAlgorithm::preprocessSpectra_;
   using ProSEAlgorithm::mass_accuracy_score_;
+  using ProSEAlgorithm::DeisotopingSettings_;
+  using ProSEAlgorithm::deisotoping_;
   using ProSEAlgorithm::filterLocalPeaks_;
   using ProSEAlgorithm::resolveDecoyStrategy_;
   using ProSEAlgorithm::DecoyStrategy_;
@@ -2657,6 +2659,109 @@ START_SECTION(([EXTRA] deisotoping keeps a fragment ion that has a small peak on
 }
 END_SECTION
 
+START_SECTION(([EXTRA] fragment:deisotope_* settings: two-peak envelopes, summed intensity, charges up to the precursor charge))
+{
+  // One spectrum of a 2+ precursor (20 ppm) with four isotope situations:
+  //  - a singly charged ion with its M+1 peak only (two-peak 1+ envelope),
+  //  - a regular three-peak 2+ envelope,
+  //  - an ion with a weaker peak 1/3 Th above it by chance (a two-peak "3+" envelope),
+  //  - an ion with its M+1 peak 1/2 Th above it (a two-peak 2+ envelope).
+  using Settings = ProSEAlgorithm_test::DeisotopingSettings_;
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+  const std::vector<std::pair<double, float>> peaks = {
+    {400.2000, 1.00f}, {400.2000 + c13, 0.40f},                              // 1+ ion and M+1
+    {450.2500, 0.50f}, {450.2500 + c13 / 2, 0.20f}, {450.2500 + c13, 0.05f}, // 2+ envelope, three peaks
+    {600.0000, 0.80f}, {600.0000 + c13 / 3, 0.10f},                          // 1+ ion and a chance peak 1/3 Th above
+    {750.0000, 0.60f}, {750.0000 + c13 / 2, 0.20f}};                         // two-peak 2+ envelope
+  auto run = [&peaks](const Settings& settings, int precursor_charge, double precursor_mz)
+  {
+    PeakMap exp;
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(1.0);
+    Precursor prec;
+    prec.setMZ(precursor_mz);
+    prec.setCharge(precursor_charge);
+    s.getPrecursors().push_back(prec);
+    for (const auto& [mz, intensity] : peaks) s.emplace_back(mz, intensity);
+    exp.addSpectrum(s);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, true, 0, 20, "auto", 0, 1.0, settings);
+    return exp[0];
+  };
+  // intensity of the peak at mz, or -1 if there is none
+  auto intensity = [](const MSSpectrum& s, double mz)
+  {
+    for (const Peak1D& p : s) { if (std::fabs(p.getMZ() - mz) <= 20e-6 * mz) return static_cast<double>(p.getIntensity()); }
+    return -1.0;
+  };
+  const double two_plus_mz = 450.2500 * 2 - Constants::PROTON_MASS_U;
+  const double chance_three_plus_mz = 600.0 * 3 - 2 * Constants::PROTON_MASS_U;
+  const double two_peak_two_plus_mz = 750.0 * 2 - Constants::PROTON_MASS_U;
+
+  // Earlier behaviour (the defaults of DeisotopingSettings_): three peaks, charges 1-3, own intensity.
+  {
+    const MSSpectrum s = run(Settings{}, 2, 1000.0);
+    TEST_EQUAL(s.size(), 7)
+    TEST_REAL_SIMILAR(intensity(s, 400.2000), 1.0)
+    TEST_REAL_SIMILAR(intensity(s, 400.2000 + c13), 0.4)  // M+1 of the two-peak envelope stays
+    TEST_REAL_SIMILAR(intensity(s, two_plus_mz), 0.5)     // the three-peak 2+ envelope is converted, own intensity
+    TEST_REAL_SIMILAR(intensity(s, 600.0), 0.8)
+    TEST_REAL_SIMILAR(intensity(s, 750.0), 0.6)
+  }
+  // Two-peak envelopes with summed intensity, charges 1-3.
+  Settings two_peaks;
+  two_peaks.min_peaks = 2;
+  two_peaks.sum_intensity = true;
+  {
+    const MSSpectrum s = run(two_peaks, 2, 1000.0);
+    TEST_EQUAL(s.size(), 4)
+    TEST_REAL_SIMILAR(intensity(s, 400.2000), 1.4)        // the monoisotopic peak carries the envelope's intensity ...
+    TEST_REAL_SIMILAR(intensity(s, 400.2000 + c13), -1.0) // ... and its M+1 peak is gone
+    TEST_REAL_SIMILAR(intensity(s, two_plus_mz), 0.75)
+    TEST_REAL_SIMILAR(intensity(s, 600.0), -1.0)          // the chance pair moves the 1+ ion to a "3+" m/z
+    TEST_REAL_SIMILAR(intensity(s, chance_three_plus_mz), 0.9)
+    TEST_REAL_SIMILAR(intensity(s, two_peak_two_plus_mz), 0.8) // the two-peak 2+ envelope is converted
+  }
+  // Charges up to the precursor charge (2): the chance "3+" pair is not tried; 2+ envelopes still are.
+  Settings capped = two_peaks;
+  capped.charge_cap_precursor = true;
+  {
+    const MSSpectrum s = run(capped, 2, 1000.0);
+    TEST_EQUAL(s.size(), 5)
+    TEST_REAL_SIMILAR(intensity(s, 400.2000), 1.4)
+    TEST_REAL_SIMILAR(intensity(s, two_plus_mz), 0.75)
+    TEST_REAL_SIMILAR(intensity(s, 600.0), 0.8)
+    TEST_REAL_SIMILAR(intensity(s, 600.0 + c13 / 3), 0.1)
+    TEST_REAL_SIMILAR(intensity(s, chance_three_plus_mz), -1.0)
+    TEST_REAL_SIMILAR(intensity(s, two_peak_two_plus_mz), 0.8)
+  }
+  // A 1+ precursor admits singly charged envelopes only; an unknown precursor charge (0) admits charges 1-3.
+  {
+    const MSSpectrum s = run(capped, 1, 2000.0);
+    TEST_REAL_SIMILAR(intensity(s, 750.0), 0.6)
+    TEST_REAL_SIMILAR(intensity(s, two_peak_two_plus_mz), -1.0)
+    const MSSpectrum u = run(capped, 0, 2000.0);
+    TEST_REAL_SIMILAR(intensity(u, 750.0), -1.0)
+    TEST_REAL_SIMILAR(intensity(u, two_peak_two_plus_mz), 0.8)
+    TEST_REAL_SIMILAR(intensity(u, chance_three_plus_mz), 0.9)
+  }
+
+  // Parameters: the defaults are the Sage-like rule; the earlier rule (= DeisotopingSettings_{}) maps as named.
+  ProSEAlgorithm_test algo;
+  TEST_EQUAL(algo.deisotoping_.min_peaks, 2)
+  TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, true)
+  TEST_EQUAL(algo.deisotoping_.sum_intensity, true)
+  Param p = algo.getParameters();
+  p.setValue("fragment:deisotope_min_peaks", 3);
+  p.setValue("fragment:deisotope_charge_cap", "none");
+  p.setValue("fragment:deisotope_sum_intensity", "false");
+  algo.setParameters(p);
+  TEST_EQUAL(algo.deisotoping_.min_peaks, Settings{}.min_peaks)
+  TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, Settings{}.charge_cap_precursor)
+  TEST_EQUAL(algo.deisotoping_.sum_intensity, Settings{}.sum_intensity)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] peptidoform deduplication preserves protein evidence and candidate statistics across chunks))
 {
   // Eight target proteins and one decoy hold the same peptide. Without deduplication its copies fill
@@ -2937,6 +3042,10 @@ START_SECTION(([EXTRA] scoring:fragment_charges scores multiply charged fragment
   search(p, 3, proteins);
   ABORT_IF(proteins.size() != 1)
   TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "single")
+  // the deisotoping rule is recorded with the search parameters
+  TEST_EQUAL(static_cast<int>(proteins[0].getSearchParameters().getMetaValue("fragment:deisotope_min_peaks")), 2)
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:deisotope_charge_cap").toString(), "precursor")
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:deisotope_sum_intensity").toString(), "true")
 
   // The precursor-calibration pass scores with the same fragment charges.
   p.setValue("fragment:deisotope", "false");

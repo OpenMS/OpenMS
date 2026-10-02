@@ -618,13 +618,41 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /**
+      @brief MS2 deisotoping rule of preprocessSpectra_().
+
+      Filled from the parameters fragment:deisotope_* by updateMembers_(), whose defaults are the Sage-like rule
+      (min_peaks = 2, charge_cap_precursor: charges up to the precursor charge, at most 3, and sum_intensity). The member
+      defaults are the behaviour before these parameters existed (envelopes of at least three peaks, charges 1-3 in every
+      spectrum, the monoisotopic peak keeps its own intensity); the preprocessSpectra_() overload without settings uses them.
+    */
+    struct DeisotopingSettings_
+    {
+      unsigned int min_peaks{3};          ///< fragment:deisotope_min_peaks
+      bool charge_cap_precursor{false};   ///< fragment:deisotope_charge_cap = precursor
+      bool sum_intensity{false};          ///< fragment:deisotope_sum_intensity
+    };
+
+    /**
       @brief filter, deisotope, decharge spectra
 
       @p dense_window_top and @p dense_intensity_loss configure the dense-spectrum quota of the full-quota
-      local filter (see filterLocalPeaks_); the defaults disable it.
+      local filter (see filterLocalPeaks_); the defaults disable it. @p deisotoping sets the envelope rule of
+      the deisotoper (see DeisotopingSettings_).
 
       @return the number of spectra filtered with the dense quota
     */
+    static Size preprocessSpectra_(PeakMap& exp,
+                                   double fragment_mass_tolerance,
+                                   bool fragment_mass_tolerance_unit_ppm,
+                                   bool deisotope_requested,
+                                   Size peaks_keep_n,
+                                   Int peaks_window_top,
+                                   const std::string& window_type,
+                                   Size dense_window_top,
+                                   double dense_intensity_loss,
+                                   const DeisotopingSettings_& deisotoping);
+
+    /// preprocessSpectra_() with the DeisotopingSettings_ defaults (the behaviour before its parameters existed)
     static Size preprocessSpectra_(PeakMap& exp,
                                    double fragment_mass_tolerance,
                                    bool fragment_mass_tolerance_unit_ppm,
@@ -880,6 +908,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string peaks_window_type_ {"auto"}; ///< Resolution-aware treatment of the final peak window
     Size peaks_dense_window_top_{100};        ///< Peaks per 100 Da window kept in dense spectra (peaks:dense_window_top)
     double peaks_dense_intensity_loss_{1.0};  ///< Intensity share whose removal marks a spectrum as dense (peaks:dense_intensity_loss; 1.0 = off)
+    DeisotopingSettings_ deisotoping_;        ///< MS2 deisotoping rule (fragment:deisotope_*)
 
     StringList modifications_fixed_;
 

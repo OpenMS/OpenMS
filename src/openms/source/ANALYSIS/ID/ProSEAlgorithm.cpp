@@ -117,6 +117,28 @@ namespace OpenMS
 
     defaults_.setValue("fragment:deisotope", "auto", "MS2 deisotoping (single-charge deconvolution) before searching. 'auto' deisotopes only when the fragment tolerance is within the high-resolution deisotoper range (<= 0.1 Da / <= 100 ppm) and skips it for low-resolution (e.g. ion-trap CID) data; 'true' always deisotopes (requires a high-resolution fragment tolerance); 'false' never deisotopes.");
     defaults_.setValidStrings("fragment:deisotope", {"auto", "true", "false"});
+    defaults_.setValue("fragment:deisotope_min_peaks", 2,
+                       "Minimum number of peaks, the monoisotopic peak included, of an isotope envelope that MS2 deisotoping "
+                       "collapses into its monoisotopic peak. With 2 (Sage-like), an ion whose M+2 peak is lost in the noise loses its "
+                       "M+1 peak too, so the M+1 peak no longer takes a place in the per-window peak quota, and a multiply charged ion "
+                       "seen with two isotope peaks is converted to charge 1; in dense spectra (e.g. timsTOF) more of the two-peak "
+                       "multiply charged envelopes are chance pairs. 3 is the earlier behaviour.",
+                       {"advanced"});
+    defaults_.setMinInt("fragment:deisotope_min_peaks", 2);
+    defaults_.setMaxInt("fragment:deisotope_min_peaks", 10);
+    defaults_.setValue("fragment:deisotope_charge_cap", "precursor",
+                       "Fragment charges that MS2 deisotoping tries. 'precursor' tries charges up to the precursor charge, but at most 3 "
+                       "(1-3 when the precursor charge is unknown): a fragment cannot carry more charges than its precursor, so a chance "
+                       "peak 1/3 Th above an ion of a 2+ precursor cannot turn the ion into a '3+' envelope at a wrong m/z. This is "
+                       "Sage-like; Sage caps at the precursor charge without the limit of 3 and counts an unknown charge as 3. 'none' "
+                       "tries charges 1-3 in every spectrum (the earlier behaviour).",
+                       {"advanced"});
+    defaults_.setValidStrings("fragment:deisotope_charge_cap", {"precursor", "none"});
+    defaults_.setValue("fragment:deisotope_sum_intensity", "true",
+                       "Give the monoisotopic peak of each isotope envelope the summed intensity of the envelope (Sage-like). "
+                       "'false' keeps the monoisotopic peak's own intensity (the earlier behaviour).",
+                       {"advanced"});
+    defaults_.setValidStrings("fragment:deisotope_sum_intensity", {"true", "false"});
 
 
     defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
@@ -418,6 +440,9 @@ namespace OpenMS
                       << " exceeds the deisotoping limit (100 ppm / 0.1 Da); skipping MS2 "
                       << "deisotoping (expected for low-resolution data)." << endl;
     }
+    deisotoping_.min_peaks = static_cast<unsigned int>(static_cast<int>(param_.getValue("fragment:deisotope_min_peaks")));
+    deisotoping_.charge_cap_precursor = param_.getValue("fragment:deisotope_charge_cap").toString() == "precursor";
+    deisotoping_.sum_intensity = param_.getValue("fragment:deisotope_sum_intensity").toBool();
 
     // Spectra that are not deisotoped keep multiply charged fragments at their own m/z;
     // deisotoped spectra hold charge-1 fragments only.
@@ -643,6 +668,21 @@ namespace OpenMS
                                           Size dense_window_top,
                                           double dense_intensity_loss)
   {
+    return preprocessSpectra_(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, deisotope_requested, peaks_keep_n,
+                              peaks_window_top, window_type, dense_window_top, dense_intensity_loss, DeisotopingSettings_{});
+  }
+
+  Size ProSEAlgorithm::preprocessSpectra_(PeakMap& exp,
+                                          double fragment_mass_tolerance,
+                                          bool fragment_mass_tolerance_unit_ppm,
+                                          bool deisotope_requested,
+                                          Size peaks_keep_n,
+                                          Int peaks_window_top,
+                                          const std::string& window_type,
+                                          Size dense_window_top,
+                                          double dense_intensity_loss,
+                                          const DeisotopingSettings_& deisotoping)
+  {
     // Intensity threshold + normalization used to run here as two extra SERIAL full-map
     // passes. Both are strictly per-spectrum: ThresholdMower::filterPeakMap and
     // Normalizer::filterPeakMap are literally "for (auto& s : exp) filterSpectrum(s);" and
@@ -716,7 +756,7 @@ namespace OpenMS
 
     Size dense_spectra = 0;
 #pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, \
-                                                full_window_quota, peaks_window_top, dense_window_top, dense_intensity_loss) \
+                                                full_window_quota, peaks_window_top, dense_window_top, dense_intensity_loss, deisotoping) \
                                          firstprivate(threshold_mower_filter, normalizer, window_mower_filter, nlargest_filter) \
                                          reduction(+ : dense_spectra)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
@@ -734,18 +774,34 @@ namespace OpenMS
       // became the envelope's monoisotopic peak and the ion itself was removed as its isotope.
       // TMT/TMTpro-labelled fragments carry such a peak (reagent isotope impurity), and dense
       // Orbitrap Astral and timsTOF spectra often hold one by chance.
+      // The envelope rule is set by fragment:deisotope_min_peaks, _charge_cap and _sum_intensity; their defaults
+      // are Sage-like (two peaks, charges up to the precursor charge but at most 3, summed intensity; the earlier
+      // rule was three peaks, charges 1-3, own intensity). The Sage-like rule differs from Sage itself: Sage links isotope
+      // pairs with a fixed 10 ppm tolerance, requires each isotope peak to be weaker than its parent and does not
+      // cap the charge at 3, while the OpenMS deisotoper extends an envelope from its monoisotopic peak with the
+      // search tolerance and stops at the first isotope peak that is more intense than its predecessor.
+      // The deisotoper does not exclude peaks that already belong to an earlier envelope, so an isotope peak can be
+      // claimed by two monoisotopic peaks and, with summing, counted in both (two-peak envelopes make this more
+      // frequent; Sage likewise adds a peak to several parents of the same charge). It does not depend on labels.
       if (do_deisotope)
       {
+        int max_charge = 3;
+        if (deisotoping.charge_cap_precursor && ! exp[exp_index].getPrecursors().empty())
+        {
+          const int precursor_charge = exp[exp_index].getPrecursors()[0].getCharge();
+          if (precursor_charge > 0) { max_charge = std::min(max_charge, precursor_charge); }
+        }
         Deisotoper::deisotopeAndSingleCharge(exp[exp_index],
           fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
-          1, 3,   // min / max charge
+          1, max_charge,  // min / max charge
           false,  // keep only deisotoped
-          3, 10,  // min / max isopeaks
+          deisotoping.min_peaks, 10,  // min / max isopeaks
           true,   // convert fragment m/z to mono-charge
           false,  // annotate charge
           false,  // annotate isotopic peak counts
           true,   // decreasing isotope intensities
-          1);     // start the intensity check at the monoisotopic peak
+          1,      // start the intensity check at the monoisotopic peak
+          deisotoping.sum_intensity);  // the monoisotopic peak carries the envelope's intensity
       }
 
       // remove noise
@@ -1496,6 +1552,10 @@ namespace OpenMS
         : peaks_window_type_);
     search_parameters.setMetaValue("peaks:dense_window_top", static_cast<int>(peaks_dense_window_top_));
     search_parameters.setMetaValue("peaks:dense_intensity_loss", peaks_dense_intensity_loss_);
+    // MS2 deisotoping rule (used only when the spectra are deisotoped, see fragment:deisotope)
+    search_parameters.setMetaValue("fragment:deisotope_min_peaks", static_cast<int>(deisotoping_.min_peaks));
+    search_parameters.setMetaValue("fragment:deisotope_charge_cap", deisotoping_.charge_cap_precursor ? "precursor" : "none");
+    search_parameters.setMetaValue("fragment:deisotope_sum_intensity", deisotoping_.sum_intensity ? "true" : "false");
 
     search_parameters.enzyme_term_specificity = peptide_enzyme_specificity_;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
@@ -2112,7 +2172,8 @@ namespace OpenMS
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
     bool open_search_mode = isOpenSearchMode_();
     logDenseSpectra(preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_,
-                                       peaks_window_top_, peaks_window_type_, peaks_dense_window_top_, peaks_dense_intensity_loss_),
+                                       peaks_window_top_, peaks_window_type_, peaks_dense_window_top_, peaks_dense_intensity_loss_,
+                                       deisotoping_),
                     spectra.size());
 
     // ions:by_activation: the chunk indices hold c and z+1 ions if electron-activated spectra are searched
@@ -2369,7 +2430,8 @@ namespace OpenMS
 
     startProgress(0, 1, "Filtering spectra...");
     logDenseSpectra(preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_,
-                                       peaks_window_top_, peaks_window_type_, peaks_dense_window_top_, peaks_dense_intensity_loss_),
+                                       peaks_window_top_, peaks_window_type_, peaks_dense_window_top_, peaks_dense_intensity_loss_,
+                                       deisotoping_),
                     spectra.size());
     endProgress();
 
@@ -3192,7 +3254,7 @@ namespace OpenMS
         all_spectra[i].sortSpectra(true);
         logDenseSpectra(preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_,
                                            peaks_keep_n_, peaks_window_top_, peaks_window_type_, peaks_dense_window_top_,
-                                           peaks_dense_intensity_loss_),
+                                           peaks_dense_intensity_loss_, deisotoping_),
                         all_spectra[i].size());
       }
 
