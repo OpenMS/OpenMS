@@ -917,6 +917,90 @@ namespace OpenMS
                     << skipped_peptides.load() << " spans skipped — shorter than peptide:min_size)." << std::endl;
   }
 
+  namespace
+  {
+    // Cleavage rule of the form "(?<=[KRX])" or "(?<=[KRX])(?!P)" (Trypsin/P, Trypsin, Lys-C, Arg-C, ...):
+    // cleave after a residue of the first set unless the next residue is the blocking one.
+    struct SimpleCleavageRule
+    {
+      std::array<bool, 256> after{};      ///< residues N-terminal of a cleavage site
+      std::array<bool, 256> not_before{}; ///< residues C-terminal of a site that prevent the cleavage
+    };
+
+    // True (and @p rule filled) if the enzyme regex is exactly "(?<=[" + A-Z letters + "])", optionally followed
+    // by "(?!" + one A-Z letter + ")". Everything else is left to the regex-based library digest.
+    bool parseSimpleCleavageRule(const std::string& regex, SimpleCleavageRule& rule)
+    {
+      const auto is_letter = [](char c) { return c >= 'A' && c <= 'Z'; };
+      if (regex.compare(0, 5, "(?<=[") != 0) return false;
+      size_t i = 5;
+      for (; i < regex.size() && is_letter(regex[i]); ++i) rule.after[static_cast<unsigned char>(regex[i])] = true;
+      if (i == 5 || regex.compare(i, 2, "])") != 0) return false;
+      i += 2;
+      if (i == regex.size()) return true;
+      if (regex.size() != i + 5 || regex.compare(i, 3, "(?!") != 0 || !is_letter(regex[i + 3]) || regex[i + 4] != ')') return false;
+      rule.not_before[static_cast<unsigned char>(regex[i + 3])] = true;
+      return true;
+    }
+
+    // Fully specific digest of a non-empty @p seq with a SimpleCleavageRule, without regex, substr copy or std::set.
+    // Appends to @p out exactly the (start, length) spans, in the same order, that generatePeptides() otherwise gets
+    // from EnzymaticDigestion::digestUnmodified() followed by its initial-Met-loss block:
+    //  - tokenize_() yields 0 and every position 0 < p < size matched by the (zero-width) regex,
+    //  - digestAfterTokenize_() emits the products with 0, then 1, 2, ... missed cleavages, each from N- to C-terminus,
+    //  - the Met-loss block appends the N-terminal products of seq.substr(1) not yet present as (1, length).
+    // @p sites is scratch space (kept by the caller to avoid an allocation per protein).
+    void digestSimpleCleavage(const SimpleCleavageRule& rule, const std::string& seq, size_t missed_cleavages,
+                              size_t min_length, size_t max_length, bool clip_nterm_methionine,
+                              std::vector<size_t>& sites, std::vector<std::pair<size_t, size_t>>& out)
+    {
+      const size_t n = seq.size();
+      sites.clear();
+      sites.push_back(0);
+      for (size_t p = 1; p < n; ++p)
+      {
+        if (rule.after[static_cast<unsigned char>(seq[p - 1])] && !rule.not_before[static_cast<unsigned char>(seq[p])]) sites.push_back(p);
+      }
+      const size_t count = sites.size();
+      sites.push_back(n); // sentinel: the last product of every missed-cleavage level ends at the sequence end
+
+      // digestUnmodified(): a maximum of 0 or beyond the sequence length means "no upper limit"
+      const auto upper_limit = [max_length](size_t length) { return (max_length == 0 || max_length > length) ? length : max_length; };
+      if (n >= min_length)
+      {
+        const size_t max_len = upper_limit(n);
+        for (size_t mc = 0; mc <= missed_cleavages && mc < count; ++mc)
+        {
+          for (size_t j = 1; j + mc <= count; ++j)
+          {
+            const size_t l = sites[j + mc] - sites[j - 1];
+            if (l >= min_length && l <= max_len) out.emplace_back(sites[j - 1], l);
+          }
+        }
+      }
+
+      // Initial-Met loss. Removing the first residue moves every cleavage site p >= 2 to p - 1 (the rule only looks
+      // at the residues next to a site) and turns a site at 1 into the new start, so the N-terminal products of
+      // seq.substr(1) end at the sites behind position 1 (or at the sequence end).
+      if (clip_nterm_methionine && n > 1 && seq[0] == 'M' && n - 1 >= min_length)
+      {
+        const size_t n_spans = out.size();
+        const size_t first = (sites[1] == 1) ? 2 : 1;     // index of the first site (or the end) behind position 1
+        const size_t clipped_count = count - (first - 1); // number of sites of seq.substr(1), including its start
+        const size_t max_len = upper_limit(n - 1);
+        for (size_t mc = 0; mc <= missed_cleavages && mc < clipped_count; ++mc)
+        {
+          const size_t l = sites[first + mc] - 1;
+          if (l < min_length || l > max_len) continue;
+          // spans starting at 1 exist already only if 1 is a cleavage site (enzyme cleaving after M)
+          const auto spans_end = out.begin() + n_spans;
+          if (first == 2 && std::find(out.begin(), spans_end, std::make_pair(size_t(1), l)) != spans_end) continue;
+          out.emplace_back(1, l);
+        }
+      }
+    }
+  } // namespace
+
   void FragmentIndex::generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
       initResidueMassTable_();
@@ -946,6 +1030,13 @@ namespace OpenMS
       digestor.setMissedCleavages(missed_cleavages_);
       digestor.setSpecificity(enzyme_specificity_);
 
+      // Regex-free digest for fully specific searches with a simple cleavage rule (same spans, same order);
+      // every other enzyme / specificity keeps using the library digest.
+      SimpleCleavageRule cleavage_rule;
+      const bool simple_digest = enzyme_specificity_ == EnzymaticDigestion::SPEC_FULL
+                                 && digestor.getEnzymeName() != EnzymaticDigestion::UnspecificCleavage
+                                 && parseSimpleCleavageRule(ProteaseDB::getInstance()->getEnzyme(digestion_enzyme_)->getRegEx(), cleavage_rule);
+
       OPENMS_LOG_INFO << "Generating peptides..." << std::endl;
 
       // Per-thread peptide vectors to avoid omp critical
@@ -954,8 +1045,15 @@ namespace OpenMS
 #else
       const int num_threads = 1;
 #endif
-      vector<vector<Peptide>> thread_peptides(num_threads);
-      const size_t est_per_thread = (fasta_entries.size() * 5) / num_threads + 1;
+      // One cache line per thread: emplace_back() rewrites the vector's end pointer for every peptide, and adjacent
+      // std::vector objects (24 bytes each) would make the threads bounce the same line back and forth.
+      struct alignas(64) PaddedPeptides : vector<Peptide> {};
+      vector<PaddedPeptides> thread_peptides(num_threads);
+      // A tryptic digest with two missed cleavages yields about one peptide per three residues. Reserving one per two
+      // spares the per-thread vectors their reallocation copies in the common case; untouched pages cost nothing.
+      size_t total_residues = 0;
+      for (const FASTAFile::FASTAEntry& entry : fasta_entries) total_residues += entry.sequence.size();
+      const size_t est_per_thread = std::max(fasta_entries.size() * 5, total_residues / 2) / num_threads + 1;
       for (int t = 0; t < num_threads; ++t)
         thread_peptides[t].reserve(est_per_thread);
 
@@ -963,7 +1061,8 @@ namespace OpenMS
       const auto is_unindexable = [&indexable](char c) { return !indexable[static_cast<unsigned char>(c)]; };
 
       vector<pair<size_t, size_t>> digested_peptides;
-      #pragma omp parallel for private(digested_peptides)
+      vector<size_t> cleavage_sites;
+      #pragma omp parallel for private(digested_peptides, cleavage_sites)
       for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
       {
 #ifdef _OPENMP
@@ -973,23 +1072,31 @@ namespace OpenMS
 #endif
         digested_peptides.clear();
         const FASTAFile::FASTAEntry& protein = fasta_entries[protein_idx];
-        digestor.digestUnmodified(protein.sequence, digested_peptides, peptide_min_length_, peptide_max_length_);
-        if (clip_nterm_methionine_ && protein.sequence.size() > 1 && protein.sequence[0] == 'M'
-            && enzyme_specificity_ != EnzymaticDigestion::SPEC_NONE)
+        if (simple_digest && !protein.sequence.empty())
         {
-          // Digest the mature sequence separately so length and missed-cleavage limits
-          // apply AFTER loss of the initial Met. Keep only its N-terminal spans:
-          // internal peptides already exist in the ordinary digest.
-          vector<pair<size_t, size_t>> clipped_peptides;
-          digestor.digestUnmodified(protein.sequence.substr(1), clipped_peptides, peptide_min_length_, peptide_max_length_);
-          std::set<size_t> existing_lengths;
-          for (const auto& span : digested_peptides)
+          digestSimpleCleavage(cleavage_rule, protein.sequence, missed_cleavages_, peptide_min_length_, peptide_max_length_,
+                               clip_nterm_methionine_, cleavage_sites, digested_peptides);
+        }
+        else
+        {
+          digestor.digestUnmodified(protein.sequence, digested_peptides, peptide_min_length_, peptide_max_length_);
+          if (clip_nterm_methionine_ && protein.sequence.size() > 1 && protein.sequence[0] == 'M'
+              && enzyme_specificity_ != EnzymaticDigestion::SPEC_NONE)
           {
-            if (span.first == 1) { existing_lengths.insert(span.second); }
-          }
-          for (const auto& span : clipped_peptides)
-          {
-            if (span.first == 0 && existing_lengths.insert(span.second).second) { digested_peptides.emplace_back(1, span.second); }
+            // Digest the mature sequence separately so length and missed-cleavage limits
+            // apply AFTER loss of the initial Met. Keep only its N-terminal spans:
+            // internal peptides already exist in the ordinary digest.
+            vector<pair<size_t, size_t>> clipped_peptides;
+            digestor.digestUnmodified(protein.sequence.substr(1), clipped_peptides, peptide_min_length_, peptide_max_length_);
+            std::set<size_t> existing_lengths;
+            for (const auto& span : digested_peptides)
+            {
+              if (span.first == 1) { existing_lengths.insert(span.second); }
+            }
+            for (const auto& span : clipped_peptides)
+            {
+              if (span.first == 0 && existing_lengths.insert(span.second).second) { digested_peptides.emplace_back(1, span.second); }
+            }
           }
         }
 
