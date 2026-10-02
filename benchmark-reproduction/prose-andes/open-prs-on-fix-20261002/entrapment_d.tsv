@@ -1,0 +1,11 @@
+group	arm	psms	entrapment	combined_fdp_pct
+HF-X HCD	develop + fix	12571.0	85.0	1.35
+HF-X HCD	#10378 priors	12574.0	81.7	1.30
+HF-X HCD	#10379 default	12577.3	88.3	1.40
+Astral HCD	develop + fix	6463.3	55.7	1.72
+Astral HCD	#10378 priors	6731.0	68.7	2.04
+Astral HCD	#10379 default	6734.0	57.7	1.71
+Exploris 480 TMTpro	develop + fix	7346.7	39.0	1.06
+Exploris 480 TMTpro	#10378 priors	7457.3	51.0	1.37
+Exploris 480 TMTpro	#10379 default	7415.7	40.0	1.08
+# check hfx_A2: d_base_E (4199, 29.333333333333332) vs hds1_E (4199, 29.333333333333332)

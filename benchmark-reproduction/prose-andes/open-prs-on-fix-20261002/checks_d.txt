@@ -1,0 +1,42 @@
+d_base vs base velos_125_R1           tsv same, pin same
+d_base vs base velos_5000_R2          tsv same, pin same
+d_base vs base velos_25000_R3         tsv same, pin same
+d_base vs ds1  hfx_A2                 tsv same, pin same
+d_base vs ds1  hfx_B1                 tsv same, pin same
+d_base vs ds1  hfx_B3                 tsv same, pin same
+d_base vs ds1  astral_A2              tsv same, pin same
+d_base vs ds1  astral_B1              tsv same, pin same
+d_base vs ds1  astral_B3              tsv same, pin same
+d_base vs ds1  lumos_lfq_5192         tsv same, pin same
+d_base vs ds1  lumos_lfq_5194         tsv same, pin same
+d_base vs ds1  lumos_lfq_5199         tsv same, pin same
+d_base vs base lumos_tmt_5058         tsv same, pin same
+d_base vs base lumos_tmt_5059         tsv same, pin same
+d_base vs base lumos_tmt_5066         tsv same, pin same
+d_base vs ds1  eclipse_tmtpro_10855   tsv same, pin same
+d_base vs ds1  eclipse_tmtpro_10858   tsv same, pin same
+d_base vs ds1  eclipse_tmtpro_10863   tsv same, pin same
+d_base vs ds1  tims_plasma_30min      tsv same, pin same
+d_base vs ds1  tims_plasma_50min      tsv same, pin same
+d_79 vs d_base  velos_125_R1           tsv same, pin same
+d_79 vs d_base  lumos_tmt_5058         tsv same, pin same
+d_priors vs d_base (no ion_prior_*) velos_125_R1           tsv same, pin same
+d_priors vs d_base (no ion_prior_*) velos_5000_R2          tsv same, pin same
+d_priors vs d_base (no ion_prior_*) velos_25000_R3         tsv same, pin same
+d_priors vs d_base (no ion_prior_*) hfx_A2                 tsv same, pin same
+d_priors vs d_base (no ion_prior_*) hfx_B1                 tsv same, pin same
+d_priors vs d_base (no ion_prior_*) hfx_B3                 tsv same, pin same
+d_priors vs d_base (no ion_prior_*) astral_A2              tsv same, pin same
+d_priors vs d_base (no ion_prior_*) astral_B1              tsv same, pin same
+d_priors vs d_base (no ion_prior_*) astral_B3              tsv same, pin same
+d_priors vs d_base (no ion_prior_*) lumos_lfq_5192         tsv same, pin same
+d_priors vs d_base (no ion_prior_*) lumos_lfq_5194         tsv same, pin same
+d_priors vs d_base (no ion_prior_*) lumos_lfq_5199         tsv same, pin same
+d_priors vs d_base (no ion_prior_*) lumos_tmt_5058         tsv same, pin same
+d_priors vs d_base (no ion_prior_*) lumos_tmt_5059         tsv same, pin same
+d_priors vs d_base (no ion_prior_*) lumos_tmt_5066         tsv same, pin same
+d_priors vs d_base (no ion_prior_*) eclipse_tmtpro_10855   tsv same, pin same
+d_priors vs d_base (no ion_prior_*) eclipse_tmtpro_10858   tsv same, pin same
+d_priors vs d_base (no ion_prior_*) eclipse_tmtpro_10863   tsv same, pin same
+d_priors vs d_base (no ion_prior_*) tims_plasma_30min      tsv same, pin same
+d_priors vs d_base (no ion_prior_*) tims_plasma_50min      tsv same, pin same

@@ -1,0 +1,26 @@
+{
+ "dev_fix": {
+  "source_commit": "fbdbc227085f24964069212bf8276dee0a081c28",
+  "source_tree": "f1b32b44da0eea0ca66da1a2bcae855fbea80330",
+  "binary_sha256": "e429d8fe05c9acf8488eecb90467143ed37b67d36a60e910439df370abcf964b",
+  "tests_passed": true
+ },
+ "ip_merge": {
+  "source_commit": "b378ddb20a6c2ceb7df5dd838137364433847ef3",
+  "source_tree": "593229aa71d0ea2d6562ac1118ab2a16f732b8aa",
+  "binary_sha256": "91fa0cdb6c31d72fd65dfd1b7292b5d74f350c00eb5539fdf3dbd068ad9f0d14",
+  "tests_passed": true
+ },
+ "mak_val": {
+  "source_commit": "2be4b7643857860170c69c3d0f600bd66bc0c165",
+  "source_tree": "7f79496544b4b837be25a383ac82e1389bd88f3e",
+  "binary_sha256": "bc65dbd5b3da47e9ba04c4babefd179149d552335ba59b2262712a2df2989dd9",
+  "tests_passed": true
+ },
+ "p35_val": {
+  "source_commit": "6c549d4ff39ba49fb10a607ddee213062a9a5b5f",
+  "source_tree": "69537956f6ecb1a53f33891c28d0ad6332d592e0",
+  "binary_sha256": "6e1d5c5f69c7ac8221eff76ad245453570ea3f1f0e46450cf1e165b6644fe45b",
+  "tests_passed": true
+ }
+}

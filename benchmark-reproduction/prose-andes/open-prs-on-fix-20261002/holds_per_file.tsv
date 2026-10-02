@@ -1,0 +1,149 @@
+candidate	when	dataset	group	arm	base	mean	delta_pct	z	verdict	native_delta
+#10378 priors on (opt-in)	old	velos_125_R1	Velos CID	f78x_priors	2529	2702.67	6.87	4.48	up	0
+#10378 priors on (opt-in)	new	velos_125_R1	Velos CID	d_priors	2529	2702.67	6.87	4.48	up	0
+#10378 priors on (opt-in)	old	velos_5000_R2	Velos CID	f78x_priors	2725.33	2809	3.07	3.23	up	0
+#10378 priors on (opt-in)	new	velos_5000_R2	Velos CID	d_priors	2725.33	2809	3.07	3.23	up	0
+#10378 priors on (opt-in)	old	velos_25000_R3	Velos CID	f78x_priors	2546.67	2719.33	6.78	16.62	up	0
+#10378 priors on (opt-in)	new	velos_25000_R3	Velos CID	d_priors	2546.67	2719.33	6.78	16.62	up	0
+#10378 priors on (opt-in)	old	hfx_A2	HF-X HCD	f78x_priors	4477.33	4493	0.35	0.44	flat	0
+#10378 priors on (opt-in)	new	hfx_A2	HF-X HCD	d_priors	4471.67	4491.33	0.44	1.35	flat	0
+#10378 priors on (opt-in)	old	hfx_B1	HF-X HCD	f78x_priors	4284	4309	0.58	0.88	flat	0
+#10378 priors on (opt-in)	new	hfx_B1	HF-X HCD	d_priors	4297.33	4328	0.71	1.09	flat	0
+#10378 priors on (opt-in)	old	hfx_B3	HF-X HCD	f78x_priors	4379.67	4345	-0.79	-1.13	flat	0
+#10378 priors on (opt-in)	new	hfx_B3	HF-X HCD	d_priors	4397.67	4396.33	-0.03	-0.05	flat	0
+#10378 priors on (opt-in)	old	astral_A2	Astral HCD	f78x_priors	1955.33	2013.33	2.97	1.96	flat	0
+#10378 priors on (opt-in)	new	astral_A2	Astral HCD	d_priors	2100	2301	9.57	4.9	up	0
+#10378 priors on (opt-in)	old	astral_B1	Astral HCD	f78x_priors	2373	2443	2.95	2.47	up	0
+#10378 priors on (opt-in)	new	astral_B1	Astral HCD	d_priors	2431.33	2539	4.43	5.85	up	0
+#10378 priors on (opt-in)	old	astral_B3	Astral HCD	f78x_priors	2240.33	2345	4.67	5.16	up	0
+#10378 priors on (opt-in)	new	astral_B3	Astral HCD	d_priors	2310.33	2424.67	4.95	4.41	up	0
+#10378 priors on (opt-in)	old	lumos_lfq_5192	Lumos HCD LFQ	f78x_priors	5500	5481.33	-0.34	-2.19	down	0
+#10378 priors on (opt-in)	new	lumos_lfq_5192	Lumos HCD LFQ	d_priors	5502.67	5507.33	0.08	0.58	flat	0
+#10378 priors on (opt-in)	old	lumos_lfq_5194	Lumos HCD LFQ	f78x_priors	5470	5460.33	-0.18	-1.29	flat	0
+#10378 priors on (opt-in)	new	lumos_lfq_5194	Lumos HCD LFQ	d_priors	5476.33	5465.67	-0.19	-0.97	flat	0
+#10378 priors on (opt-in)	old	lumos_lfq_5199	Lumos HCD LFQ	f78x_priors	5518.33	5514.67	-0.07	-0.29	flat	0
+#10378 priors on (opt-in)	new	lumos_lfq_5199	Lumos HCD LFQ	d_priors	5526	5519.33	-0.12	-1.11	flat	0
+#10378 priors on (opt-in)	old	lumos_tmt_5058	Lumos CID TMT	f78x_priors	2251.67	2310.67	2.62	2.5	up	0
+#10378 priors on (opt-in)	new	lumos_tmt_5058	Lumos CID TMT	d_priors	2251.67	2310.67	2.62	2.5	up	0
+#10378 priors on (opt-in)	old	lumos_tmt_5059	Lumos CID TMT	f78x_priors	2338	2408	2.99	1.85	flat	0
+#10378 priors on (opt-in)	new	lumos_tmt_5059	Lumos CID TMT	d_priors	2338	2408	2.99	1.85	flat	0
+#10378 priors on (opt-in)	old	lumos_tmt_5066	Lumos CID TMT	f78x_priors	2392.33	2476.33	3.51	2.79	up	0
+#10378 priors on (opt-in)	new	lumos_tmt_5066	Lumos CID TMT	d_priors	2392.33	2476.33	3.51	2.79	up	0
+#10378 priors on (opt-in)	old	eclipse_tmtpro_10855	Exploris 480 TMTpro	f78x_priors	2418.33	2429.33	0.45	0.89	flat	0
+#10378 priors on (opt-in)	new	eclipse_tmtpro_10855	Exploris 480 TMTpro	d_priors	2638.67	2658.33	0.75	1.34	flat	0
+#10378 priors on (opt-in)	old	eclipse_tmtpro_10858	Exploris 480 TMTpro	f78x_priors	2132.33	2094	-1.8	-1.32	flat	0
+#10378 priors on (opt-in)	new	eclipse_tmtpro_10858	Exploris 480 TMTpro	d_priors	2460.33	2445.67	-0.6	-0.81	flat	0
+#10378 priors on (opt-in)	old	eclipse_tmtpro_10863	Exploris 480 TMTpro	f78x_priors	2184	2262.33	3.59	3.73	up	0
+#10378 priors on (opt-in)	new	eclipse_tmtpro_10863	Exploris 480 TMTpro	d_priors	2456	2482.67	1.09	2.73	up	0
+#10378 priors on (opt-in)	old	tims_plasma_30min	timsTOF HT	f78x_priors	1030.33	1049.67	1.88	1.25	flat	0
+#10378 priors on (opt-in)	new	tims_plasma_30min	timsTOF HT	d_priors	1055.67	1043.33	-1.17	-1.0	flat	0
+#10378 priors on (opt-in)	old	tims_plasma_50min	timsTOF HT	f78x_priors	999.67	993.67	-0.6	-0.33	flat	0
+#10378 priors on (opt-in)	new	tims_plasma_50min	timsTOF HT	d_priors	995.33	1018.67	2.34	1.06	flat	0
+#10379 default (calibration auto)	old	velos_125_R1	Velos CID	f79_default	2529	2529	0.0	0.0	flat	0
+#10379 default (calibration auto)	new	velos_125_R1	Velos CID	d_79	2529	2529	0.0	0.0	flat	0
+#10379 default (calibration auto)	old	velos_5000_R2	Velos CID	base	2725.33	2725.33	0.0	0.0	flat	0
+#10379 default (calibration auto)	new	velos_5000_R2	Velos CID	d_base	2725.33	2725.33	0.0	0.0	flat	0
+#10379 default (calibration auto)	old	velos_25000_R3	Velos CID	base	2546.67	2546.67	0.0	0.0	flat	0
+#10379 default (calibration auto)	new	velos_25000_R3	Velos CID	d_base	2546.67	2546.67	0.0	0.0	flat	0
+#10379 default (calibration auto)	old	hfx_A2	HF-X HCD	f79_default	4477.33	4444.33	-0.74	-1.11	flat	40
+#10379 default (calibration auto)	new	hfx_A2	HF-X HCD	d_79	4471.67	4437.33	-0.77	-1.97	flat	71
+#10379 default (calibration auto)	old	hfx_B1	HF-X HCD	f79_default	4284	4228.33	-1.3	-1.81	flat	41
+#10379 default (calibration auto)	new	hfx_B1	HF-X HCD	d_79	4297.33	4316	0.43	1.08	flat	9
+#10379 default (calibration auto)	old	hfx_B3	HF-X HCD	f79_default	4379.67	4349.33	-0.69	-0.89	flat	1
+#10379 default (calibration auto)	new	hfx_B3	HF-X HCD	d_79	4397.67	4354.67	-0.98	-1.67	flat	46
+#10379 default (calibration auto)	old	astral_A2	Astral HCD	f79_default	1955.33	2061	5.4	1.88	flat	354
+#10379 default (calibration auto)	new	astral_A2	Astral HCD	d_79	2100	2122.33	1.06	0.61	flat	324
+#10379 default (calibration auto)	old	astral_B1	Astral HCD	f79_default	2373	2430.67	2.43	1.8	flat	287
+#10379 default (calibration auto)	new	astral_B1	Astral HCD	d_79	2431.33	2499.33	2.8	2.31	up	256
+#10379 default (calibration auto)	old	astral_B3	Astral HCD	f79_default	2240.33	2437	8.78	14.52	up	406
+#10379 default (calibration auto)	new	astral_B3	Astral HCD	d_79	2310.33	2552.67	10.49	33.11	up	318
+#10379 default (calibration auto)	old	lumos_lfq_5192	Lumos HCD LFQ	f79_default	5500	5476.67	-0.42	-2.66	down	-34
+#10379 default (calibration auto)	new	lumos_lfq_5192	Lumos HCD LFQ	d_79	5502.67	5487.67	-0.27	-3.51	down	88
+#10379 default (calibration auto)	old	lumos_lfq_5194	Lumos HCD LFQ	f79_default	5470	5457.33	-0.23	-2.14	down	50
+#10379 default (calibration auto)	new	lumos_lfq_5194	Lumos HCD LFQ	d_79	5476.33	5464.67	-0.21	-0.82	flat	34
+#10379 default (calibration auto)	old	lumos_lfq_5199	Lumos HCD LFQ	f79_default	5518.33	5483	-0.64	-4.56	down	30
+#10379 default (calibration auto)	new	lumos_lfq_5199	Lumos HCD LFQ	d_79	5526	5511.33	-0.27	-2.56	down	27
+#10379 default (calibration auto)	old	lumos_tmt_5058	Lumos CID TMT	f79_default	2251.67	2251.67	0.0	0.0	flat	0
+#10379 default (calibration auto)	new	lumos_tmt_5058	Lumos CID TMT	d_79	2251.67	2251.67	0.0	0.0	flat	0
+#10379 default (calibration auto)	old	lumos_tmt_5059	Lumos CID TMT	base	2338	2338	0.0	0.0	flat	0
+#10379 default (calibration auto)	new	lumos_tmt_5059	Lumos CID TMT	d_base	2338	2338	0.0	0.0	flat	0
+#10379 default (calibration auto)	old	lumos_tmt_5066	Lumos CID TMT	base	2392.33	2392.33	0.0	0.0	flat	0
+#10379 default (calibration auto)	new	lumos_tmt_5066	Lumos CID TMT	d_base	2392.33	2392.33	0.0	0.0	flat	0
+#10379 default (calibration auto)	old	eclipse_tmtpro_10855	Exploris 480 TMTpro	f79_default	2418.33	2443.67	1.05	1.73	flat	245
+#10379 default (calibration auto)	new	eclipse_tmtpro_10855	Exploris 480 TMTpro	d_79	2638.67	2709.33	2.68	4.72	up	143
+#10379 default (calibration auto)	old	eclipse_tmtpro_10858	Exploris 480 TMTpro	f79_default	2132.33	2212.67	3.77	2.18	up	143
+#10379 default (calibration auto)	new	eclipse_tmtpro_10858	Exploris 480 TMTpro	d_79	2460.33	2460.33	0.0	0.0	flat	78
+#10379 default (calibration auto)	old	eclipse_tmtpro_10863	Exploris 480 TMTpro	f79_default	2184	2209	1.14	0.89	flat	231
+#10379 default (calibration auto)	new	eclipse_tmtpro_10863	Exploris 480 TMTpro	d_79	2456	2443	-0.53	-0.45	flat	132
+#10379 default (calibration auto)	old	tims_plasma_30min	timsTOF HT	f79_default	1030.33	1030.33	0.0	0.0	flat	0
+#10379 default (calibration auto)	new	tims_plasma_30min	timsTOF HT	d_79	1055.67	1055.67	0.0	0.0	flat	0
+#10379 default (calibration auto)	old	tims_plasma_50min	timsTOF HT	f79_default	999.67	999.67	0.0	0.0	flat	0
+#10379 default (calibration auto)	new	tims_plasma_50min	timsTOF HT	d_79	995.33	995.33	0.0	0.0	flat	0
+#10379 + mass_accuracy (opt-in)	old	hfx_A2	HF-X HCD	f79_mass	4477.33	4440.67	-0.82	-1.24	flat	33
+#10379 + mass_accuracy (opt-in)	new	hfx_A2	HF-X HCD	d_79_mass	4471.67	4427	-1.0	-2.08	down	6
+#10379 + mass_accuracy (opt-in)	old	hfx_B1	HF-X HCD	f79_mass	4284	4234	-1.17	-2.77	down	-57
+#10379 + mass_accuracy (opt-in)	new	hfx_B1	HF-X HCD	d_79_mass	4297.33	4282.33	-0.35	-0.79	flat	-78
+#10379 + mass_accuracy (opt-in)	old	hfx_B3	HF-X HCD	f79_mass	4379.67	4354	-0.59	-0.95	flat	61
+#10379 + mass_accuracy (opt-in)	new	hfx_B3	HF-X HCD	d_79_mass	4397.67	4352	-1.04	-1.77	flat	-2
+#10379 + mass_accuracy (opt-in)	old	astral_A2	Astral HCD	f79_mass	1955.33	2114.67	8.15	6.46	up	375
+#10379 + mass_accuracy (opt-in)	new	astral_A2	Astral HCD	d_79_mass	2100	2108.33	0.4	0.06	flat	438
+#10379 + mass_accuracy (opt-in)	old	astral_B1	Astral HCD	f79_mass	2373	2446	3.08	1.63	flat	454
+#10379 + mass_accuracy (opt-in)	new	astral_B1	Astral HCD	d_79_mass	2431.33	2447.33	0.66	0.83	flat	385
+#10379 + mass_accuracy (opt-in)	old	astral_B3	Astral HCD	f79_mass	2240.33	2436	8.73	22.68	up	384
+#10379 + mass_accuracy (opt-in)	new	astral_B3	Astral HCD	d_79_mass	2310.33	2575.33	11.47	38.7	up	383
+#10379 + mass_accuracy (opt-in)	old	lumos_lfq_5192	Lumos HCD LFQ	f79_mass	5500	5459.67	-0.73	-4.34	down	-65
+#10379 + mass_accuracy (opt-in)	new	lumos_lfq_5192	Lumos HCD LFQ	d_79_mass	5502.67	5482	-0.38	-4.81	down	54
+#10379 + mass_accuracy (opt-in)	old	lumos_lfq_5194	Lumos HCD LFQ	f79_mass	5470	5473.67	0.07	0.28	flat	72
+#10379 + mass_accuracy (opt-in)	new	lumos_lfq_5194	Lumos HCD LFQ	d_79_mass	5476.33	5462	-0.26	-1.25	flat	74
+#10379 + mass_accuracy (opt-in)	old	lumos_lfq_5199	Lumos HCD LFQ	f79_mass	5518.33	5482.33	-0.65	-4.04	down	46
+#10379 + mass_accuracy (opt-in)	new	lumos_lfq_5199	Lumos HCD LFQ	d_79_mass	5526	5491	-0.63	-6.43	down	52
+#10379 + mass_accuracy (opt-in)	old	eclipse_tmtpro_10855	Exploris 480 TMTpro	f79_mass	2418.33	2457.67	1.63	3.15	up	240
+#10379 + mass_accuracy (opt-in)	new	eclipse_tmtpro_10855	Exploris 480 TMTpro	d_79_mass	2638.67	2717.33	2.98	6.51	up	106
+#10379 + mass_accuracy (opt-in)	old	eclipse_tmtpro_10858	Exploris 480 TMTpro	f79_mass	2132.33	2192.33	2.81	2.08	up	200
+#10379 + mass_accuracy (opt-in)	new	eclipse_tmtpro_10858	Exploris 480 TMTpro	d_79_mass	2460.33	2466	0.23	1.05	flat	80
+#10379 + mass_accuracy (opt-in)	old	eclipse_tmtpro_10863	Exploris 480 TMTpro	f79_mass	2184	2234	2.29	2.38	up	255
+#10379 + mass_accuracy (opt-in)	new	eclipse_tmtpro_10863	Exploris 480 TMTpro	d_79_mass	2456	2416	-1.63	-1.96	flat	90
+#10379 + mass_accuracy (opt-in)	old	tims_plasma_30min	timsTOF HT	f79_mass	1030.33	1023	-0.71	-0.54	flat	59
+#10379 + mass_accuracy (opt-in)	new	tims_plasma_30min	timsTOF HT	d_79_mass	1055.67	1034.67	-1.99	-2.32	down	38
+#10379 + mass_accuracy (opt-in)	old	tims_plasma_50min	timsTOF HT	f79_mass	999.67	995.33	-0.43	-0.23	flat	63
+#10379 + mass_accuracy (opt-in)	new	tims_plasma_50min	timsTOF HT	d_79_mass	995.33	1021	2.58	1.17	flat	150
+#10335 merged with develop	old	velos_125_R1	Velos CID	pr10335	2529	2941.67	16.32	7.57	up	583
+#10335 merged with develop	new	velos_125_R1	Velos CID	d_35	2529	2941.67	16.32	7.57	up	583
+#10335 merged with develop	old	velos_5000_R2	Velos CID	pr10335	2725.33	2968.33	8.92	15.41	up	506
+#10335 merged with develop	new	velos_5000_R2	Velos CID	d_35	2725.33	2968.33	8.92	15.41	up	506
+#10335 merged with develop	old	velos_25000_R3	Velos CID	pr10335	2546.67	2802	10.03	9.16	up	440
+#10335 merged with develop	new	velos_25000_R3	Velos CID	d_35	2546.67	2802	10.03	9.16	up	440
+#10335 merged with develop	old	hfx_A2	HF-X HCD	pr10335	4477.33	4485.33	0.18	0.21	flat	0
+#10335 merged with develop	new	hfx_A2	HF-X HCD	d_35	4471.67	4457	-0.33	-0.91	flat	0
+#10335 merged with develop	old	hfx_B1	HF-X HCD	pr10335	4284	4310	0.61	0.83	flat	0
+#10335 merged with develop	new	hfx_B1	HF-X HCD	d_35	4297.33	4310.33	0.3	0.5	flat	0
+#10335 merged with develop	old	hfx_B3	HF-X HCD	pr10335	4379.67	4376	-0.08	-0.09	flat	0
+#10335 merged with develop	new	hfx_B3	HF-X HCD	d_35	4397.67	4421.67	0.55	0.94	flat	0
+#10335 merged with develop	old	astral_A2	Astral HCD	pr10335	1955.33	1975.33	1.02	0.62	flat	0
+#10335 merged with develop	new	astral_A2	Astral HCD	d_35	2100	2162	2.95	1.9	flat	0
+#10335 merged with develop	old	astral_B1	Astral HCD	pr10335	2373	2325.67	-1.99	-1.26	flat	0
+#10335 merged with develop	new	astral_B1	Astral HCD	d_35	2431.33	2449.33	0.74	1.74	flat	0
+#10335 merged with develop	old	astral_B3	Astral HCD	pr10335	2240.33	2258	0.79	0.55	flat	0
+#10335 merged with develop	new	astral_B3	Astral HCD	d_35	2310.33	2356	1.98	6.19	up	0
+#10335 merged with develop	old	lumos_lfq_5192	Lumos HCD LFQ	pr10335	5500	5504	0.07	0.45	flat	0
+#10335 merged with develop	new	lumos_lfq_5192	Lumos HCD LFQ	d_35	5502.67	5510	0.13	1.62	flat	0
+#10335 merged with develop	old	lumos_lfq_5194	Lumos HCD LFQ	pr10335	5470	5481.33	0.21	1.96	flat	0
+#10335 merged with develop	new	lumos_lfq_5194	Lumos HCD LFQ	d_35	5476.33	5480.67	0.08	0.31	flat	0
+#10335 merged with develop	old	lumos_lfq_5199	Lumos HCD LFQ	pr10335	5518.33	5515.33	-0.05	-0.36	flat	0
+#10335 merged with develop	new	lumos_lfq_5199	Lumos HCD LFQ	d_35	5526	5519	-0.13	-0.71	flat	0
+#10335 merged with develop	old	lumos_tmt_5058	Lumos CID TMT	pr10335	2251.67	2285	1.48	1.3	flat	294
+#10335 merged with develop	new	lumos_tmt_5058	Lumos CID TMT	d_35	2251.67	2285	1.48	1.3	flat	294
+#10335 merged with develop	old	lumos_tmt_5059	Lumos CID TMT	pr10335	2338	2387.33	2.11	1.74	flat	168
+#10335 merged with develop	new	lumos_tmt_5059	Lumos CID TMT	d_35	2338	2387.33	2.11	1.74	flat	168
+#10335 merged with develop	old	lumos_tmt_5066	Lumos CID TMT	pr10335	2392.33	2522	5.42	16.28	up	274
+#10335 merged with develop	new	lumos_tmt_5066	Lumos CID TMT	d_35	2392.33	2522	5.42	16.28	up	274
+#10335 merged with develop	old	eclipse_tmtpro_10855	Exploris 480 TMTpro	pr10335	2418.33	2399.67	-0.77	-0.91	flat	0
+#10335 merged with develop	new	eclipse_tmtpro_10855	Exploris 480 TMTpro	d_35	2638.67	2649.67	0.42	0.89	flat	0
+#10335 merged with develop	old	eclipse_tmtpro_10858	Exploris 480 TMTpro	pr10335	2132.33	2139.67	0.34	0.36	flat	0
+#10335 merged with develop	new	eclipse_tmtpro_10858	Exploris 480 TMTpro	d_35	2460.33	2466	0.23	0.39	flat	0
+#10335 merged with develop	old	eclipse_tmtpro_10863	Exploris 480 TMTpro	pr10335	2184	2215	1.42	0.7	flat	0
+#10335 merged with develop	new	eclipse_tmtpro_10863	Exploris 480 TMTpro	d_35	2456	2475.33	0.79	1.52	flat	0
+#10335 merged with develop	old	tims_plasma_30min	timsTOF HT	pr10335	1030.33	1030.67	0.03	0.03	flat	0
+#10335 merged with develop	new	tims_plasma_30min	timsTOF HT	d_35	1055.67	1045.67	-0.95	-0.31	flat	0
+#10335 merged with develop	old	tims_plasma_50min	timsTOF HT	pr10335	999.67	973.33	-2.63	-0.96	flat	0
+#10335 merged with develop	new	tims_plasma_50min	timsTOF HT	d_35	995.33	1039.67	4.45	1.83	flat	0

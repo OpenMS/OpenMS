@@ -1,0 +1,6 @@
+d_priors_E  Astral HCD           entrapment up in 8, down in 1 of 9 (sign test p = 0.039); PSMs/entrapment per file x seed: +0/+1 +163/+11 +46/+4 +42/+1 +59/-3 +68/+4 +169/+11 +107/+3 +149/+7
+d_priors_E  Exploris 480 TMTpro  entrapment up in 6, down in 1 of 9 (sign test p = 0.125); PSMs/entrapment per file x seed: +21/+6 +5/+0 +3/+0 -11/+5 +73/+6 +39/+10 +102/+5 +78/+5 +22/-1
+d_priors_E  HF-X HCD             entrapment up in 3, down in 3 of 9 (sign test p = 1.000); PSMs/entrapment per file x seed: +40/+0 +64/+1 -5/+0 -12/+0 +48/+5 -2/+4 -58/-9 -47/-8 -19/-3
+d_79_E      Astral HCD           entrapment up in 4, down in 3 of 9 (sign test p = 1.000); PSMs/entrapment per file x seed: +20/+0 +119/+6 +13/+0 +140/-3 +19/-14 +66/-4 +184/+10 +150/+3 +101/+8
+d_79_E      Exploris 480 TMTpro  entrapment up in 5, down in 4 of 9 (sign test p = 1.000); PSMs/entrapment per file x seed: +13/-1 +27/+2 +47/+3 +13/+2 +19/-4 -33/-4 +71/+4 +33/-1 +17/+2
+d_79_E      HF-X HCD             entrapment up in 6, down in 2 of 9 (sign test p = 0.289); PSMs/entrapment per file x seed: +64/+4 +79/+10 +0/+4 -53/+2 +30/+2 -74/-3 +30/+0 -79/-10 +22/+1
