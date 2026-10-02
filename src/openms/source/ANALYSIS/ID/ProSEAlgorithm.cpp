@@ -31,10 +31,12 @@
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -53,6 +55,7 @@
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <cstring>
 #include <fstream>
 #include <functional>
 #include <future>
@@ -3446,8 +3449,238 @@ namespace OpenMS
       }
     }
 
+    // MzMLFile::load() with @p threads OpenMP threads (at least 2). The spectra are cut into chunks at
+    // their <spectrum> start tags; every chunk is parsed together with the file's header and closing
+    // tags by an MzMLFile of its own (MzMLFile::loadBuffer), and the spectra are joined in file order.
+    // The last chunk runs up to </run>, so it also holds the chromatograms. Each thread reads its chunks
+    // from the file itself, so the data held beyond the spectra is at most about 9 MB per thread,
+    // whatever the size of the file. The header is parsed first on this thread: it gives the experimental
+    // settings, registers its meta value names in file order and initialises the XML parser.
+    // Returns false if the file does not have the layout the chunks rely on (compressed; a comment,
+    // CDATA section or DOCTYPE before the end of the run; not exactly one spectrum list; a count
+    // attribute other than the number of spectra found; few spectra) or a chunk fails to parse. The
+    // caller then reads the file with MzMLFile::load(), which also reports its errors.
+    bool loadMzMLChunked(const std::string& filename, const PeakFileOptions& options, int threads, PeakMap& exp)
+    {
+      std::ifstream in(filename, std::ios::binary);
+      if (!in) { return false; }
+      in.seekg(0, std::ios::end);
+      const Size size = static_cast<Size>(in.tellg());
+      char magic[2] = {0, 0};
+      in.seekg(0);
+      in.read(magic, 2);
+      if (!in || (magic[0] == 'B' && magic[1] == 'Z') || (magic[0] == '\x1f' && magic[1] == '\x8b') || (magic[0] == 'P' && magic[1] == 'K'))
+      {
+        return false; // compressed (bzip2, gzip, zip) or too short
+      }
+
+      // 1. Where the markup of interest starts, found by the threads in blocks of the file.
+      enum class Mark : unsigned char { spectrum, list_start, list_end, run_end, declaration };
+      const auto is_tag = [](std::string_view text, std::string_view name)
+      {
+        return text.size() > name.size() && text.substr(0, name.size()) == name
+               && std::string_view(" \t\r\n>/").find(text[name.size()]) != std::string_view::npos;
+      };
+      constexpr Size block = Size(1) << 20;
+      constexpr Size lookahead = 16; // longer than the longest name compared below, "</spectrumList" plus one
+      const Size n_blocks = (size + block - 1) / block;
+      std::vector<std::vector<std::pair<Size, Mark>>> marks(n_blocks);
+      bool ok = true;
+#pragma omp parallel num_threads(threads)
+      {
+        std::ifstream file(filename, std::ios::binary);
+        std::string buffer;
+#pragma omp for schedule(dynamic, 1)
+        for (SignedSize sb = 0; sb < static_cast<SignedSize>(n_blocks); ++sb)
+        {
+          const Size b = static_cast<Size>(sb);
+          const Size from = b * block;
+          const Size end = std::min(block, size - from); // marks starting before end belong to this block
+          buffer.resize(std::min(block + lookahead, size - from));
+          file.seekg(static_cast<std::streamoff>(from));
+          file.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+          if (!file)
+          {
+#pragma omp atomic write
+            ok = false;
+            file.clear();
+            continue;
+          }
+          for (Size i = 0; i < end; ++i)
+          {
+            const char* p = static_cast<const char*>(std::memchr(buffer.data() + i, '<', end - i));
+            if (p == nullptr) { break; }
+            i = static_cast<Size>(p - buffer.data());
+            const std::string_view text(p, std::min(lookahead, buffer.size() - i));
+            if (is_tag(text, "<spectrumList")) { marks[b].emplace_back(from + i, Mark::list_start); }
+            else if (is_tag(text, "<spectrum")) { marks[b].emplace_back(from + i, Mark::spectrum); }
+            else if (is_tag(text, "</spectrumList")) { marks[b].emplace_back(from + i, Mark::list_end); }
+            else if (is_tag(text, "</run")) { marks[b].emplace_back(from + i, Mark::run_end); }
+            else if (text.substr(0, 2) == "<!") { marks[b].emplace_back(from + i, Mark::declaration); }
+          }
+        }
+      }
+      constexpr Size none = std::numeric_limits<Size>::max();
+      Size list_start = none, list_end = none, run_end = none;
+      std::vector<Size> starts; // of the spectra
+      for (const auto& block_marks : marks)
+      {
+        for (const auto& [pos, mark] : block_marks)
+        {
+          switch (mark)
+          {
+            case Mark::list_start: ok = ok && list_start == none; list_start = pos; break;
+            case Mark::spectrum: ok = ok && list_start != none && list_end == none; starts.push_back(pos); break;
+            case Mark::list_end: ok = ok && list_start != none && list_end == none; list_end = pos; break;
+            case Mark::run_end: if (run_end == none) { ok = ok && list_end != none; run_end = pos; } break;
+            case Mark::declaration: ok = ok && run_end != none; break;
+          }
+        }
+      }
+      marks = {};
+      if (!ok || run_end == none || starts.size() < 64) { return false; }
+
+      // 2. The header (everything before the first spectrum) and the count attribute of its
+      //    <spectrumList>, which each chunk sets to its own number of spectra.
+      std::string header(starts[0], '\0');
+      in.seekg(0);
+      in.read(header.data(), static_cast<std::streamsize>(header.size()));
+      if (!in) { return false; }
+      Size count_begin = none, count_end = none;
+      for (Size p = list_start + std::string_view("<spectrumList").size();;)
+      {
+        p = header.find_first_not_of(" \t\r\n", p);
+        if (p == std::string::npos) { return false; }
+        if (header[p] == '>') { break; }
+        const Size name_end = header.find_first_of("= \t\r\n>", p);
+        Size q = header.find_first_not_of(" \t\r\n", name_end);
+        if (name_end == std::string::npos || q == std::string::npos || header[q] != '=') { return false; }
+        q = header.find_first_not_of(" \t\r\n", q + 1);
+        if (q == std::string::npos || (header[q] != '"' && header[q] != '\'')) { return false; }
+        const Size value_end = header.find(header[q], q + 1);
+        if (value_end == std::string::npos) { return false; }
+        if (std::string_view(header).substr(p, name_end - p) == "count") { count_begin = q + 1; count_end = value_end; }
+        p = value_end + 1;
+      }
+      if (count_begin == none || header.compare(count_begin, count_end - count_begin, std::to_string(starts.size())) != 0)
+      {
+        return false;
+      }
+      const std::string end_of_run = std::string("</run></mzML>") + (header.find("<indexedmzML") != std::string::npos ? "</indexedmzML>" : "");
+      const auto chunk_text = [&](Size n_spectra, std::string& text)
+      {
+        text.assign(header, 0, count_begin);
+        text += std::to_string(n_spectra);
+        text.append(header, count_end, std::string::npos);
+      };
+
+      // 3. Chunks of about equal size: two per thread (the threads do not parse equally fast; every chunk
+      //    costs the set-up of a parser and handler), of at most 8 MB, and of at least 16 spectra.
+      constexpr Size max_chunk_bytes = Size(8) << 20;
+      const Size n = starts.size();
+      const Size bytes = list_end - starts[0];
+      const Size n_chunks = std::min(n / 16, std::max(2 * static_cast<Size>(threads), (bytes + max_chunk_bytes - 1) / max_chunk_bytes));
+      std::vector<Size> first{0}; // the first spectrum of each chunk
+      for (Size c = 1; c < n_chunks; ++c)
+      {
+        const Size f = static_cast<Size>(std::lower_bound(starts.begin(), starts.end(), starts[0] + bytes / n_chunks * c) - starts.begin());
+        if (f > first.back() && f < n) { first.push_back(f); }
+      }
+      first.push_back(n);
+
+      // A chunk decodes its spectra on its thread; in batches of the default size, so that it does not
+      // hold the encoded data of all its spectra at once.
+      PeakFileOptions chunk_options = options;
+      chunk_options.setMaxDataPoolSize(PeakFileOptions().getMaxDataPoolSize());
+      try
+      {
+        std::string text;
+        chunk_text(0, text);
+        text += "</spectrumList>" + end_of_run;
+        MzMLFile mzml;
+        mzml.getOptions() = chunk_options;
+        mzml.loadBuffer(text, exp);
+      }
+      catch (...)
+      {
+        return false;
+      }
+      // A slot for every spectrum of the file (MzMLHandler reserves as many): a chunk moves the spectra it
+      // keeps into the first of its slots right after parsing, so that only the chunks being parsed hold
+      // spectra of their own.
+      const Size n_chunks_used = first.size() - 1;
+      std::vector<MSSpectrum> spectra(n);
+      std::vector<Size> kept(n_chunks_used, 0);
+      std::vector<MSChromatogram> chromatograms;
+#pragma omp parallel num_threads(threads)
+      {
+        std::ifstream file(filename, std::ios::binary);
+        std::string chunk;
+#pragma omp for schedule(dynamic, 1)
+        for (SignedSize sc = 0; sc < static_cast<SignedSize>(n_chunks_used); ++sc)
+        {
+          const Size c = static_cast<Size>(sc);
+          const bool last = c + 1 == n_chunks_used;
+          const Size from = starts[first[c]];
+          const Size to = last ? run_end : starts[first[c + 1]];
+          chunk_text(first[c + 1] - first[c], chunk);
+          const Size at = chunk.size();
+          chunk.resize(at + (to - from));
+          file.seekg(static_cast<std::streamoff>(from));
+          file.read(chunk.data() + at, static_cast<std::streamsize>(to - from));
+          bool parsed = static_cast<bool>(file);
+          if (parsed)
+          {
+            chunk += last ? end_of_run : "</spectrumList>" + end_of_run;
+            try // exceptions must not leave the parallel region
+            {
+              MzMLFile mzml;
+              mzml.getOptions() = chunk_options;
+              PeakMap part;
+              mzml.loadBuffer(chunk, part);
+              parsed = part.size() <= first[c + 1] - first[c];
+              if (parsed)
+              {
+                std::move(part.begin(), part.end(), spectra.begin() + static_cast<SignedSize>(first[c]));
+                kept[c] = part.size();
+                if (last) { chromatograms = std::move(part.getChromatograms()); }
+              }
+            }
+            catch (...)
+            {
+              parsed = false;
+            }
+          }
+          if (!parsed)
+          {
+#pragma omp atomic write
+            ok = false;
+            file.clear();
+          }
+        }
+      }
+      if (!ok) { return false; }
+
+      Size kept_total = 0; // the spectra in file order: each chunk's slots, without the unused ones
+      for (Size c = 0; c < n_chunks_used; ++c)
+      {
+        for (Size i = first[c]; i < first[c] + kept[c]; ++i, ++kept_total)
+        {
+          if (kept_total != i) { spectra[kept_total] = std::move(spectra[i]); }
+        }
+      }
+      spectra.erase(spectra.begin() + static_cast<SignedSize>(kept_total), spectra.end());
+      exp.setSpectra(std::move(spectra));
+      exp.setChromatograms(std::move(chromatograms));
+      exp.setLoadedFileType(filename);
+      exp.setLoadedFilePath(filename);
+      exp.updateRanges();
+      return true;
+    }
+
     // The MS2 spectra of a spectrum file (mzML, Bruker .d or Thermo .raw), sorted by RT, read with
-    // @p threads OpenMP threads.
+    // @p threads OpenMP threads: an mzML file in chunks parsed in parallel (loadMzMLChunked) with two
+    // or more, otherwise with FileHandler.
     PeakMap loadMS2Spectra(const std::string& filename, int threads)
     {
       PeakMap spectra;
@@ -3457,27 +3690,39 @@ namespace OpenMS
       // MzMLHandler decodes the spectra in a parallel region every maxDataPoolSize spectra (100 by
       // default): with several threads, fewer and larger regions
       if (threads > 1) { f.getOptions().setMaxDataPoolSize(1000); }
-      f.loadExperiment(filename, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+      if (threads > 1 && FileHandler::getTypeByFileName(filename) == FileTypes::MZML
+          && loadMzMLChunked(filename, f.getOptions(), threads, spectra))
+      {
+        ChromatogramTools().convertSpectraToChromatograms<PeakMap>(spectra, true); // as FileHandler::loadExperiment()
+      }
+      else
+      {
+        f.loadExperiment(filename, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+      }
       spectra.sortSpectra(true);
       return spectra;
     }
 
-    // The OpenMP threads a spectrum file is read with: those of this thread, at most 16.
-    int readerThreads()
+    // The OpenMP threads a spectrum file is read with: those of this thread, at most 16 (the chunked
+    // read gets no faster with more). A read in the background, next to the index build or the search
+    // of another file, gets a quarter of them, at least 2: with all of them, it slowed the index build
+    // down when the read was hidden behind it anyway.
+    int readerThreads(bool background)
     {
 #ifdef _OPENMP
-      return std::min(omp_get_max_threads(), 16);
+      const int threads = omp_get_max_threads();
+      return background ? std::clamp(threads / 4, std::min(threads, 2), 16) : std::min(threads, 16);
 #else
       return 1;
 #endif
     }
 
-    // loadMS2Spectra() on a helper thread. The helper sets its OpenMP threads (readerThreads() of this
-    // thread): a new thread starts with the default of the process (OMP_NUM_THREADS or all cores), not
-    // with what was set for this one (e.g. by TOPPBase from -threads).
+    // loadMS2Spectra() on a helper thread. The helper sets its OpenMP threads (readerThreads(true) of
+    // this thread): a new thread starts with the default of the process (OMP_NUM_THREADS or all cores),
+    // not with what was set for this one (e.g. by TOPPBase from -threads).
     std::future<PeakMap> loadMS2SpectraAsync(const std::string& filename)
     {
-      const int threads = readerThreads();
+      const int threads = readerThreads(true);
       return std::async(std::launch::async, [&filename, threads]()
       {
 #ifdef _OPENMP
@@ -3579,7 +3824,7 @@ namespace OpenMS
     }
     else
     {
-      spectra = loadMS2Spectra(in_spectra, readerThreads());
+      spectra = loadMS2Spectra(in_spectra, readerThreads(false));
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -3824,7 +4069,7 @@ namespace OpenMS
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
-        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads());
+        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads(false));
         logDenseSpectra(preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_,
                                            peaks_keep_n_, peaks_window_top_, peaks_window_type_, peaks_dense_window_top_,
                                            peaks_dense_intensity_loss_, deisotoping_,
@@ -4214,7 +4459,7 @@ namespace OpenMS
         OPENMS_LOG_INFO << "[ProSE] [" << (i + 1) << "/" << in_spectra_files.size()
                         << "] Searching " << in_spectra << std::endl;
 
-        PeakMap spectra = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads());
+        PeakMap spectra = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false));
         read_next(i + 1);
         prepare_context(countElectronActivated_(spectra) > 0);
 

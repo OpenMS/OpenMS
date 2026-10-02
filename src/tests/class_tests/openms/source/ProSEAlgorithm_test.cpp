@@ -24,6 +24,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
@@ -39,6 +40,10 @@
 #include <set>
 #include <sstream>
 #include <iomanip>
+
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -2350,7 +2355,112 @@ END_SECTION
 
 START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<std::string>&, const std::string&, const std::vector<std::string>&, const std::string&, bool) const))
 {
-  NOT_TESTABLE // tested via TOPP tool (multi-file integration test)
+  // With several threads, the file-based searches read an mzML file on a helper thread while the
+  // index is built (the multi-file search the next file while the current one is searched), in
+  // chunks of spectra parsed in parallel. Two files with MS1 spectra between the MS2 spectra and a
+  // chromatogram, the first one indexed: each must get exactly the PSMs of the in-memory search of
+  // its MS2 spectra, read with FileHandler: from search(file) those of search(spectra, ...), from the
+  // multi-file search those of searchWithModificationAnalysis(spectra, ...), which, like it, also
+  // annotates the PSMs of an open search with the modification analysis.
+  vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap synthetic;
+  buildSyntheticProteinFDRData(fasta_db, synthetic);
+  std::string fasta_file;
+  NEW_TMP_FILE(fasta_file)
+  fasta_file += ".fasta";
+  FASTAFile().store(fasta_file, fasta_db);
+
+  vector<std::string> files(2);
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    PeakMap run;
+    for (Size i = f; i < synthetic.size(); i += files.size())
+    {
+      if (i % 4 == f) // an MS1 spectrum before every other MS2 spectrum
+      {
+        MSSpectrum ms1 = synthetic[i];
+        ms1.setMSLevel(1);
+        ms1.setPrecursors({});
+        ms1.setNativeID(synthetic[i].getNativeID() + " ms1");
+        run.addSpectrum(std::move(ms1));
+      }
+      run.addSpectrum(synthetic[i]);
+    }
+    MSChromatogram tic;
+    tic.setNativeID("TIC");
+    tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+    for (const MSSpectrum& spectrum : run) { tic.push_back(ChromatogramPeak(spectrum.getRT(), spectrum.calculateTIC())); }
+    run.addChromatogram(std::move(tic));
+    NEW_TMP_FILE(files[f])
+    files[f] += "_" + StringUtils::toStr(f) + ".mzML";
+    MzMLFile mzml;
+    mzml.getOptions().setWriteIndex(f == 0);
+    mzml.store(files[f], run);
+  }
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0); // the spectra carry modification mass shifts
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "generate");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("FDR:protein", 0.0);
+  algo.setParameters(p);
+
+  // the run identifier holds the time of the search
+  const auto same_psms = [](PeptideIdentificationList a, PeptideIdentificationList b)
+  {
+    if (a.size() != b.size()) { return false; }
+    for (Size i = 0; i < a.size(); ++i)
+    {
+      a[i].setIdentifier("");
+      b[i].setIdentifier("");
+      if (a[i] != b[i]) { return false; }
+    }
+    return true;
+  };
+  vector<PeptideIdentificationList> expected(files.size()), expected_analysed(files.size());
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    PeakMap spectra;
+    FileHandler fh;
+    fh.getOptions().clearMSLevels();
+    fh.getOptions().addMSLevel(2);
+    fh.loadExperiment(files[f], spectra, {FileTypes::MZML});
+    spectra.sortSpectra(true);
+    PeakMap spectra_copy = spectra; // the searches preprocess the spectra in place
+    vector<ProteinIdentification> prot_ids;
+    algo.search(spectra, fasta_db, prot_ids, expected[f]);
+    TEST_TRUE(expected[f].size() > 500)
+    expected_analysed[f] = algo.searchWithModificationAnalysis(spectra_copy, fasta_db, "").peptide_ids;
+  }
+
+#ifdef _OPENMP
+  const int threads = omp_get_max_threads();
+  omp_set_num_threads(8);
+#endif
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_EQUAL(algo.search(files[f], fasta_file, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(same_psms(pep_ids, expected[f]), true)
+  }
+  ProSEAlgorithm::MultiFileSearchResult res = algo.searchWithModificationAnalysis(files, fasta_file, vector<std::string>{}, "", false);
+#ifdef _OPENMP
+  omp_set_num_threads(threads);
+#endif
+  ABORT_IF(res.per_file.size() != files.size())
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    TEST_EQUAL(res.per_file[f].exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(same_psms(res.per_file[f].peptide_ids, expected_analysed[f]), true)
+    TEST_EQUAL(res.per_file[f].protein_ids[0].getSearchParameters().db, fasta_file)
+  }
 }
 END_SECTION
 
