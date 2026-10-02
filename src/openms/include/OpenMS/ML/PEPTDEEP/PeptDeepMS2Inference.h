@@ -36,7 +36,11 @@ public:
     /// @param peptides A vector of peptide strings. Supports OpenMS AASequence modification notation (e.g., "PEPTIDEK", "M(Oxidation)PEP").
     /// @param charges A vector of precursor charge states (must match peptides size).
     /// @param nces A vector of normalized collision energies (must match peptides size).
-    /// @param instrument_indices A vector of categorical integers representing MS instruments (e.g., 0=Lumos, 1=QE, 2=timsTOF, 3=Sciex).
+    /// @param instrument_indices One peptdeep instrument index per peptide. Derive these with
+    ///        ML::instrumentIndex() rather than writing literals: the encoding is positional and
+    ///        belongs to peptdeep (ML::ALPHAPEPTDEEP_INSTRUMENTS), where 0 is QE and 1 is Lumos.
+    ///        Indices outside [0, ML::PEPTDEEP_MAX_INSTRUMENT_NUM) are rejected, because the
+    ///        model's OneHot would otherwise answer them with an all-off row.
     /// @return A vector of flattened fragment intensity arrays, one for each peptide.
     ///         Each cleavage position contains eight contiguous AlphaPeptDeep channels in this order:
     ///         [b_z1, b_z2, y_z1, y_z2, b_modloss_z1, b_modloss_z2, y_modloss_z1, y_modloss_z2].

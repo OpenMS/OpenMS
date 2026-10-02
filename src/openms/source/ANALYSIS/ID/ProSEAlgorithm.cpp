@@ -15,6 +15,12 @@
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
+#ifdef WITH_ONNX
+#include <OpenMS/ANALYSIS/ID/PeptDeepRescoring.h>
+#endif
+// Not guarded: header-only constants with no ONNX dependency, needed to register the same
+// 'peptdeep:instrument' values in either build.
+#include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -25,6 +31,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -59,6 +66,7 @@
 #include <map>
 #include <set>
 #include <sstream>
+#include <string_view>
 #include <tuple>
 
 #ifdef _OPENMP
@@ -189,6 +197,24 @@ namespace OpenMS
       "Does not change native scores or candidate selection. Independent of annotate:PSM.", {"advanced"});
     defaults_.setValidStrings("annotate:local_fragment_evidence", {"true", "false"});
     defaults_.setSectionDescription("annotate", "Annotation Options");
+
+    defaults_.setValue("peptdeep:enable", "false", "Add PeptDeep prediction-based rescoring features (ms2_cosine, ms2_spectral_angle, ms2_pearson, ms2_frac_pred_found, rt_abs_error) to every PSM. Uses the models shipped in OpenMS' 'share/OpenMS/models' unless 'peptdeep:ms2_model'/'peptdeep:rt_model' name others. Requires an OpenMS built with ONNX support.");
+    defaults_.setValidStrings("peptdeep:enable", {"true", "false"});
+    defaults_.setValue("peptdeep:ms2_model", "models/peptdeep_ms2_dynamic.onnx", "PeptDeep MS2 fragment-intensity ONNX model, used when 'peptdeep:enable' is true. A relative name is resolved against OpenMS' shared-data directory; an absolute path is used as given.");
+    defaults_.setValue("peptdeep:rt_model", "models/peptdeep_rt_dynamic.onnx", "PeptDeep retention-time ONNX model. See 'peptdeep:ms2_model'.");
+    defaults_.setValue("peptdeep:instrument", "QE", "Instrument class passed to the PeptDeep MS2 model. An instrument that is not in this list is best approximated by the closest one that is.");
+    // peptdeep's own names, in peptdeep's own order, and registered whether or not this build has
+    // ONNX so that an ini file means the same thing either way.
+    std::vector<std::string> peptdeep_instruments;
+    peptdeep_instruments.reserve(ML::ALPHAPEPTDEEP_INSTRUMENTS.size());
+    for (const std::string_view name : ML::ALPHAPEPTDEEP_INSTRUMENTS) { peptdeep_instruments.emplace_back(name); }
+    defaults_.setValidStrings("peptdeep:instrument", peptdeep_instruments);
+    defaults_.setValue("peptdeep:nce", -1.0, "Normalised collision energy for the PeptDeep MS2 model. Negative selects it automatically from the collision energy recorded in the spectra, refined by scoring a small grid on confident PSMs.");
+    defaults_.setValue("peptdeep:rt_model_type", "b_spline", "Model mapping predicted onto observed retention time.", {"advanced"});
+    defaults_.setValidStrings("peptdeep:rt_model_type", {"b_spline", "lowess", "linear"});
+    defaults_.setValue("peptdeep:batch_size", 500, "Peptides per ONNX inference call.", {"advanced"});
+    defaults_.setMinInt("peptdeep:batch_size", 1);
+    defaults_.setSectionDescription("peptdeep", "PeptDeep (ONNX) prediction-based rescoring features");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
     defaults_.setValue("peptide:max_size", 40, "Maximum size a peptide must have after digestion to be considered in the search (0 = disabled).");
@@ -327,6 +353,14 @@ namespace OpenMS
 
     precursor_min_charge_ = param_.getValue("precursor:min_charge");
     precursor_max_charge_ = param_.getValue("precursor:max_charge");
+
+    peptdeep_enable_ = param_.getValue("peptdeep:enable").toString() == "true";
+    peptdeep_ms2_model_ = param_.getValue("peptdeep:ms2_model").toString();
+    peptdeep_rt_model_ = param_.getValue("peptdeep:rt_model").toString();
+    peptdeep_instrument_ = param_.getValue("peptdeep:instrument").toString();
+    peptdeep_nce_ = param_.getValue("peptdeep:nce");
+    peptdeep_rt_model_type_ = param_.getValue("peptdeep:rt_model_type").toString();
+    peptdeep_batch_size_ = param_.getValue("peptdeep:batch_size");
 
     precursor_isotopes_ = param_.getValue("precursor:isotopes");
     peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
@@ -741,6 +775,47 @@ namespace OpenMS
     const double var = std::max(0.0, sumsq / n - mean * mean);
     if (var <= 0.0) return 0.0; // every candidate scored the same: the best one is not an outlier
     return (best - mean) / std::sqrt(var);
+  }
+
+  void ProSEAlgorithm::annotatePeptDeepFeatures_(const PeakMap& spectra,
+      std::vector<ProteinIdentification>& protein_ids,
+      PeptideIdentificationList& peptide_ids) const
+  {
+    if (!peptdeep_enable_) { return; }
+#ifdef WITH_ONNX
+    startProgress(0, 1, "Adding PeptDeep rescoring features...");
+    PeptDeepRescoring rescoring;
+    Param p = rescoring.getParameters();
+    // A bare name resolves against share/OpenMS, an absolute path is returned unchanged.
+    // The hint is needed because the compiled-in data path is the *source* share/OpenMS, which has
+    // no models/ -- they are downloaded into the build tree. On an installed OpenMS the hint is a
+    // dead path and File::find falls through to the installed data path, where 'make install' puts
+    // them. This is the same resolution PeptDeepLibraryPredictor uses, deliberately: not relative
+    // to the executable, which would only hold for a tool sitting in bin/.
+    const StringList model_dirs = {std::string(OPENMS_BINARY_PATH) + "/share/OpenMS"};
+    p.setValue("ms2_model", File::find(peptdeep_ms2_model_, model_dirs));
+    p.setValue("rt_model", File::find(peptdeep_rt_model_, model_dirs));
+    p.setValue("instrument", peptdeep_instrument_);
+    p.setValue("nce", peptdeep_nce_);
+    p.setValue("rt_model_type", peptdeep_rt_model_type_);
+    p.setValue("batch_size", peptdeep_batch_size_);
+    // Inference otherwise runs at its own default while the search around it scales with
+    // the thread count the user actually asked for.
+#ifdef _OPENMP
+    p.setValue("threads", std::max(1, omp_get_max_threads()));
+#else
+    p.setValue("threads", 1);
+#endif
+    rescoring.setParameters(p);
+    rescoring.setLogType(getLogType());
+    rescoring.annotate(spectra, protein_ids, peptide_ids);
+    endProgress();
+#else
+    (void)spectra; (void)protein_ids; (void)peptide_ids;
+    OPENMS_LOG_WARN << "[ProSE] 'peptdeep:enable' is set, but this OpenMS was built without "
+                       "ONNX support (WITH_ONNX=OFF); the prediction-based rescoring features "
+                       "are not added." << '\n';
+#endif
   }
 
   void ProSEAlgorithm::postProcessHits_(const PeakMap& exp,
@@ -1977,6 +2052,8 @@ namespace OpenMS
     evidence_spectra.clear(true); // Release the additional peak list before PeptideIndexing.
     endProgress();
 
+    annotatePeptDeepFeatures_(spectra, protein_ids, peptide_ids);
+
     // 7. PeptideIndexing against the FULL database (not per-chunk).
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
@@ -2255,6 +2332,8 @@ namespace OpenMS
       );
     evidence_spectra.clear(true); // Release the additional peak list before PeptideIndexing.
     endProgress();
+
+    annotatePeptDeepFeatures_(spectra, protein_ids, peptide_ids);
     sw_search.stop();
     last_run_stats_.seconds_search = sw_search.getClockTime();
 
@@ -2870,6 +2949,11 @@ namespace OpenMS
           precursor_min_charge_, precursor_max_charge_, enzyme_, "",
           retain_evidence ? &all_evidence_spectra[i] : nullptr);
         if (retain_evidence) all_evidence_spectra[i].clear(true);
+
+        // Per input file, while each file is still its own identification run. Moving this
+        // after the merge below would leave one run to calibrate NCE and RT on, which are
+        // per-run quantities; see the note on PeptDeepRescoring::annotate().
+        annotatePeptDeepFeatures_(all_spectra[i], result.protein_ids, result.peptide_ids);
 
         PeptideIndexing indexer;
         Param param_pi = indexer.getParameters();

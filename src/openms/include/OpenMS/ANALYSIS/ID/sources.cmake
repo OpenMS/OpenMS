@@ -48,6 +48,12 @@ SiriusExportAlgorithm.h
 SiriusMSConverter.h
 )
 
+if (WITH_ONNX)
+    list(APPEND sources_list_h
+        PeptDeepRescoring.h
+    )
+endif()
+
 ### add path to the filenames
 set(sources_h)
 foreach(i ${sources_list_h})
