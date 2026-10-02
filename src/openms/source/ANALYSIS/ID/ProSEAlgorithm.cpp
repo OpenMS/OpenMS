@@ -2357,7 +2357,8 @@ namespace OpenMS
 
   ProSEAlgorithm::SearchContext
   ProSEAlgorithm::prepareContext_(
-      std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions) const
+      std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions,
+      const std::function<const PeakMap*()>& searched_spectra) const
   {
     SearchContext ctx;
 
@@ -2373,7 +2374,7 @@ namespace OpenMS
     startProgress(0, 1, "Building fragment index...");
     Param this_params = fragmentIndexParameters_(electron_ions);
     ctx.fragment_index.setParameters(this_params);
-    ctx.fragment_index.build(ctx.db);
+    ctx.fragment_index.build(ctx.db, searched_spectra);
     ctx.electron_ions = electron_ions;
     endProgress();
 
@@ -2607,7 +2608,10 @@ namespace OpenMS
     const bool electron_ions = countElectronActivated_(spectra) > 0;
     if (database_chunk_size_ == 0)
     {
-      SearchContext ctx = prepareContext(fasta_db, electron_ions);
+      // single use: index only the peptides these spectra can reach
+      std::function<const PeakMap*()> searched_spectra;
+      if (restrictIndexToSpectra_()) { searched_spectra = [&spectra]() { return &spectra; }; }
+      SearchContext ctx = prepareContext_(std::vector<FASTAFile::FASTAEntry>(fasta_db), electron_ions, searched_spectra);
       ctx.release_fragment_index_after_scoring = true;
       return search(spectra, ctx, protein_ids, peptide_ids);
     }
@@ -3345,6 +3349,11 @@ namespace OpenMS
       return threads;
     }
 
+    // With up to this many threads, the index build waits for the spectra that are read meanwhile, to index only the
+    // peptides they can reach: generating the fragments it skips would take longer than the rest of the read. (Measured
+    // on 8,000-spectrum files: faster for all instrument types up to 4 threads, slower for some from 6 threads on.)
+    constexpr Size MAX_THREADS_WAITING_FOR_SPECTRA = 4;
+
     // FASTAFile::load() with the OpenMP threads: the file is cut into pieces at starts of entries,
     // the threads read the pieces with FASTAFile::readNext(), and the pieces are joined in file
     // order. Same entries as load(): readNext() reads an entry from its '>' up to a line break
@@ -3494,7 +3503,8 @@ namespace OpenMS
     DecoyStrategy_ strategy; // decoys of the searched database, for protein FDR below
     bool strategy_resolved = false;
     ExitCodes ec;
-    if (database_chunk_size_ == 0 && FileHandler::getTypeByFileName(in_spectra) == FileTypes::MZML && startOpenMPThreads() > 1)
+    const Size threads = startOpenMPThreads();
+    if (database_chunk_size_ == 0 && FileHandler::getTypeByFileName(in_spectra) == FileTypes::MZML && threads > 1)
     {
       // Unchunked, multi-threaded search of an mzML file: a helper thread reads the spectra while
       // this thread reads the FASTA file and builds the fragment index; then the search continues
@@ -3522,23 +3532,48 @@ namespace OpenMS
       const bool spectra_read = spectra_ready.wait_for(std::chrono::seconds(0)) == std::future_status::ready
                                 || (ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra));
       if (spectra_read) { spectra_ready.get(); }
+      bool spectra_waited = spectra_read;
+      // The single-use index holds only the peptides the spectra can reach if they are read by the time the
+      // peptides are generated, or if waiting for them pays off (see MAX_THREADS_WAITING_FOR_SPECTRA).
+      std::function<const PeakMap*()> searched_spectra;
+      if (restrictIndexToSpectra_())
+      {
+        searched_spectra = [&]() -> const PeakMap*
+        {
+          if (!spectra_waited)
+          {
+            if (threads > MAX_THREADS_WAITING_FOR_SPECTRA
+                && spectra_ready.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+            {
+              return nullptr;
+            }
+            spectra_ready.get();
+            spectra_waited = true;
+          }
+          return &spectra;
+        };
+      }
       // The context takes the entries over instead of copying them. fasta_db is not read
       // afterwards: protein FDR below takes the decoy marker from the context, which holds what
       // resolveDecoyStrategy_(fasta_db) returned.
-      SearchContext ctx = prepareContext_(std::move(fasta_db), spectra_read && countElectronActivated_(spectra) > 0);
+      SearchContext ctx = prepareContext_(std::move(fasta_db), spectra_read && countElectronActivated_(spectra) > 0, searched_spectra);
       strategy.have_decoys = ctx.have_decoys;
       strategy.decoy_string = ctx.decoy_string;
       strategy.is_prefix = ctx.decoy_is_prefix;
       strategy_resolved = true;
       if (!spectra_read)
       {
-        spectra_ready.get();
+        if (!spectra_waited)
+        {
+          spectra_ready.get();
+          spectra_waited = true;
+        }
         if (countElectronActivated_(spectra) > 0)
         {
           startProgress(0, 1, "Building fragment index with c and z+1 ions...");
           ctx.fragment_index.clear();
           ctx.fragment_index.setParameters(fragmentIndexParameters_(true));
-          ctx.fragment_index.build(ctx.db);
+          ctx.fragment_index.build(ctx.db, searched_spectra);
           ctx.electron_ions = true;
           endProgress();
         }
@@ -4088,7 +4123,9 @@ namespace OpenMS
       // spectra, by rebuilding it. Only such spectra are matched against these ions (see
       // scoreSpectraAgainstIndex_), so the results of the other files depend neither on whether
       // the index holds them nor on the input order, and no file has to be read in advance.
-      auto prepare_context = [&](bool electron_ions)
+      // A single file is the only search of the context: its index holds only the peptides that the
+      // spectra (read before) can reach.
+      auto prepare_context = [&](bool electron_ions, const PeakMap* searched_spectra)
       {
         if (ctx_built && (ctx.electron_ions || !electron_ions)) { return; }
         StopWatch sw_idx; sw_idx.start();
@@ -4118,7 +4155,9 @@ namespace OpenMS
         }
         else
         {
-          ctx = prepareContext(fasta_db, electron_ions);
+          std::function<const PeakMap*()> spectra_of_search;
+          if (searched_spectra != nullptr) { spectra_of_search = [searched_spectra]() { return searched_spectra; }; }
+          ctx = prepareContext_(std::vector<FASTAFile::FASTAEntry>(fasta_db), electron_ions, spectra_of_search);
         }
         sw_idx.stop();
 
@@ -4164,7 +4203,8 @@ namespace OpenMS
           f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         }
         spectra.sortSpectra(true);
-        prepare_context(countElectronActivated_(spectra) > 0);
+        prepare_context(countElectronActivated_(spectra) > 0,
+                        (in_spectra_files.size() == 1 && restrictIndexToSpectra_()) ? &spectra : nullptr);
 
         SearchResult result;
         result.is_open_search = isOpenSearchMode_();

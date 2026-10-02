@@ -1681,6 +1681,12 @@ namespace OpenMS
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
+    build(fasta_entries, {});
+  }
+
+  void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                            const std::function<const MSExperiment*()>& searched_spectra)
+  {
       // A rebuild replaces the previous database. generatePeptides() appends, so stale
       // peptides would otherwise be kept and their coordinates interpreted against the
       // new FASTA. Also leaves isBuild() false if this build throws.
@@ -1752,6 +1758,15 @@ namespace OpenMS
       {
         const Size removed = deduplicateByString_(fasta_entries);
         OPENMS_LOG_INFO << "Collapsed " << removed << " repeated peptidoform occurrences." << std::endl;
+      }
+
+      // Peptides that no spectrum can reach need no fragments (the open search windows reach nearly all peptides).
+      // After the deduplication by strings: equal renderings may have different precursor m/z there, so the kept
+      // entry of a peptidoform has to be chosen among all of its entries, not only among those in a window. The
+      // deduplication in runs of equal precursor m/z below keeps or drops a run as a whole and may follow.
+      if (searched_spectra && !is_snes_mode_ && !isOpenSearchMode_())
+      {
+        if (const MSExperiment* spectra = searched_spectra()) { keepPeptidesInPrecursorWindows_(*spectra); }
       }
       const bool deduplicate = deduplicate_requested && !deduplicate_by_string;
       const size_t num_peptides = fi_peptides_.size();
@@ -2491,6 +2506,84 @@ namespace OpenMS
     }
     return {-static_cast<float>(precursor_mass_tolerance_lower_),
              static_cast<float>(precursor_mass_tolerance_upper_)};
+  }
+
+  void FragmentIndex::keepPeptidesInPrecursorWindows_(const MSExperiment& spectra)
+  {
+    // The windows of querySpectrum(), with its charges and isotope errors and the float arithmetic of
+    // searchDifferentPrecursorRanges() and getPeptidesInMassWindow(). The margin only covers a different
+    // rounding of the same expressions (e.g. fused multiply-adds in one place only); it is far smaller
+    // than a window.
+    std::vector<std::pair<float, float>> windows;
+    std::vector<uint16_t> charges;
+    for (const MSSpectrum& spectrum : spectra)
+    {
+      if (spectrum.empty() || spectrum.getMSLevel() != 2 || spectrum.getPrecursors().size() != 1) { continue; } // not searched
+      const Precursor& precursor = spectrum.getPrecursors()[0];
+      charges.clear();
+      if (precursor.getCharge()) { charges.push_back(static_cast<uint16_t>(precursor.getCharge())); }
+      else
+      {
+        for (uint16_t charge = min_precursor_charge_; charge <= max_precursor_charge_; ++charge) { charges.push_back(charge); }
+      }
+      for (const uint16_t charge : charges)
+      {
+        const float precursor_mass = (float)precursor.getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
+        for (int16_t isotope_error = min_isotope_error_; isotope_error <= max_isotope_error_; ++isotope_error)
+        {
+          const float shifted_mass = precursor_mass
+            + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
+          const auto window = computeMassWindow_(shifted_mass);
+          const float margin = 1e-3f + 1e-6f * std::fabs(shifted_mass);
+          const float lo = shifted_mass + window.first - margin;
+          const float hi = shifted_mass + window.second + margin;
+          // a NaN bound gives the query an arbitrary peptide range: keep them all
+          if (std::isnan(lo) || std::isnan(hi)) { return; }
+          windows.emplace_back(lo, hi);
+        }
+      }
+    }
+    if (windows.empty()) { return; } // nothing will be searched
+    std::sort(windows.begin(), windows.end());
+
+    // Moves the peptides of the merged windows to the front, in their order (the windows ascend).
+    const size_t num_peptides = fi_peptides_.size();
+    struct KeptRange { size_t begin, end, new_begin; }; // [begin, end) moved to new_begin
+    std::vector<KeptRange> kept_ranges;
+    auto kept_end = fi_peptides_.begin();
+    auto from = fi_peptides_.begin();
+    for (size_t w = 0; w < windows.size();)
+    {
+      const float lo = windows[w].first;
+      float hi = windows[w].second;
+      for (++w; w < windows.size() && windows[w].first <= hi; ++w) { hi = std::max(hi, windows[w].second); }
+      const auto first = std::lower_bound(from, fi_peptides_.end(), lo, [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
+      from = std::upper_bound(first, fi_peptides_.end(), hi, [](float b, const Peptide& a) { return b < a.precursor_mz_; });
+      if (first == from) { continue; }
+      kept_ranges.push_back({static_cast<size_t>(first - fi_peptides_.begin()), static_cast<size_t>(from - fi_peptides_.begin()),
+                             static_cast<size_t>(kept_end - fi_peptides_.begin())});
+      kept_end = (kept_end == first) ? from : std::copy(first, from, kept_end);
+    }
+    fi_peptides_.erase(kept_end, fi_peptides_.end());
+
+    // Occurrences removed by a deduplication before (ordered by their kept entry): those of the kept entries follow
+    // them to their new index, the others go with them.
+    if (!removed_occurrences_.empty())
+    {
+      size_t num_kept = 0;
+      auto range = kept_ranges.cbegin();
+      for (const RemovedOccurrence& occurrence : removed_occurrences_)
+      {
+        while (range != kept_ranges.cend() && range->end <= occurrence.peptide_idx) { ++range; }
+        if (range == kept_ranges.cend()) { break; }
+        if (occurrence.peptide_idx < range->begin) { continue; }
+        RemovedOccurrence moved = occurrence;
+        moved.peptide_idx = static_cast<UInt32>(range->new_begin + (occurrence.peptide_idx - range->begin));
+        removed_occurrences_[num_kept++] = moved;
+      }
+      removed_occurrences_.resize(num_kept);
+    }
+    OPENMS_LOG_INFO << "The precursor windows of the spectra reach " << fi_peptides_.size() << " of " << num_peptides << " peptides." << std::endl;
   }
 
   vector<FragmentIndex::Hit> FragmentIndex::query(const OpenMS::Peak1D& peak,
