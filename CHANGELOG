@@ -34,6 +34,20 @@ OpenMS Library:
     Linux arm64: an unqualified abs() bound to the integer overload there and truncated every
     error. ProSE's fragment calibration therefore kept the configured Da tolerance on arm64,
     while x86-64 and macOS tightened it.
+  - FIX: PercolatorInfile (store, stampPinFeaturesOnHits; used by PercolatorAdapter and ProSE
+    -out_pin) keeps ExpMass and mass at the observed precursor m/z for every PSM of a spectrum and
+    removes the precursor isotope error from dm, absdm and deltamass only. Percolator takes PSMs
+    with the same ScanNr but different ExpMass for different spectra, so PSMs of one spectrum at
+    different isotope errors no longer pass target-decoy competition side by side.
+  - FIX: FragmentIndex rejects fixed terminal modifications it applied to every peptide although
+    they apply to some only (protein-terminal or residue-specific ones, e.g. Acetyl (Protein
+    N-term), Gln->pyro-Glu (N-term Q); search them as variable modifications) and a second fixed
+    modification on one terminus. A variable modification of a whole terminus is not applied
+    where a fixed one sits (as in ModifiedPeptideGenerator); the index used to add both masses.
+    Variable modifications are enumerated only up to modifications:variable_max_per_peptide per
+    peptide, from at most 31 sites (a warning counts peptides with more). The default precursor
+    isotope range of FragmentIndex is [-2, 0] (it searched [0, +2], precursors picked below the
+    monoisotopic peak).
   - PERF: IdXMLFile::store formats the PeptideIdentifications in parallel (at most 16 threads) and
     writes them in input order, so the output is unchanged; 12% less wall time for ProSE's 20
     benchmark searches of #10364 at 4 threads, 26% less for one search at 16 threads.
@@ -100,6 +114,23 @@ Build System:
 
 TOPP tools:
     ProSE:
+      - The PSM meta value isotope_error is observed minus theoretical precursor mass in 13C spacings
+        (+1: the first 13C isotope peak was selected), as in MS-GF+, pepXML and Sage and as
+        PercolatorInfile/PercolatorAdapter expect; ProSE wrote the opposite sign, so -out_pin,
+        -percolator_executable and PercolatorAdapter doubled the isotope offset in dm/absdm instead
+        of removing it. The search parameters record isotope_error_convention=observed_minus_theoretical;
+        the new report:isotope_error_convention=theoretical_minus_observed writes the previous sign
+        (and no record). precursor:isotope_error_min/max keep their meaning. PercolatorAdapter warns
+        about ProSE input without the record.
+      - BREAKING: precursor:isotopes was removed. It was never used (the searched isotope errors are
+        precursor:isotope_error_min/max); ini files that still set it are rejected as outdated: remove
+        the item or update them with INIUpdater.
+      - Fixed terminal modifications: see FragmentIndex above (an invalid one stops ProSE when the
+        parameters are set). A warning names variable terminal modifications that a fixed one excludes.
+      - A warning when decoys=auto reuses the database's decoys with peptide:clip_nterm_methionine and
+        they start with M much less often than the targets (e.g. fully reversed decoys), because
+        clipping then enlarges the target search space only.
+      - FIX: the MS2 preprocessing filters are per thread (they were shared between threads).
       - FIX: The MS2 intensity cutoff applied before normalization removes only peaks without
         intensity (zero or negative). It was the ThresholdMower default of 0.05 absolute, which
         deleted real peaks from intensity-scaled input such as spectra normalized to a base peak of 1.
@@ -123,6 +154,29 @@ TOPP tools:
         for deisotoped (high-resolution) spectra, whose results do not change. The calibration pass and
         the peak annotations use the same charges; the ion-count fractions divide by the number of
         charges scored.
+      - New scoring:method (auto, hyperscore, mass_accuracy) and scoring:mass_error_sd (7 ppm).
+        'mass_accuracy' weights each matched fragment's share of HyperScore's ion counts and intensity
+        product by a Gaussian of its mass error, so that a match at the edge of the tolerance counts
+        less than one at the theoretical m/z; exact matches score as HyperScore, and matching
+        tolerances and candidates do not change. 'auto', the default, uses it for fragment tolerances
+        in ppm up to 100 ppm and HyperScore otherwise, so low-resolution (Da) searches do not change.
+        The calibration pass scores the same way. Search results record the method when it is used;
+        the score type stays 'ln(hyperscore)'.
+      - New FDR:PSM_groups (scored_charges, pooled). FDR:PSM computes q-values separately for PSMs
+        scored with different numbers of fragment charges ('scored_charges', the default). Since
+        scoring:fragment_charges scores 2+ fragments of precursors of charge 3 and above in spectra
+        that are not deisotoped, their HyperScores are larger for targets and decoys alike, and one
+        pooled competition left fewer charge-2 PSMs below the threshold. High-resolution searches
+        score charge-1 fragments only and form one group, as before.
+      - MS2 deisotoping uses a Sage-like envelope rule, with three new advanced parameters: two isotope
+        peaks make an envelope (fragment:deisotope_min_peaks=2; 3 before), the monoisotopic peak carries
+        the envelope's summed intensity (fragment:deisotope_sum_intensity=true), and charges are tried up
+        to the precursor charge, at most 3 (fragment:deisotope_charge_cap=precursor; 1-3 for every
+        spectrum before). Only high-resolution (deisotoped) searches change; 3 / none / false restores
+        the earlier output. It gave more PSMs after Percolator on high-resolution Orbitrap data, but fewer
+        PSMs after native-score FDR pooled over precursor charges (FDR:PSM, FalseDiscoveryRate) on
+        timsTOF data (-3.6% on two files, although each precursor charge on its own gained). The search
+        parameters of the idXML output record the three settings.
       - New fragment:query_spectrum (auto, raw, processed). 'raw' retrieves candidates from the fragment
         index with all positive-intensity peaks, before deisotoping and local/top-N peak filtering, also
         in the calibration pass; scoring still uses the processed peak list. More spectra get
@@ -135,6 +189,26 @@ TOPP tools:
         features. Computed on the peak list before local/top-N filtering; candidates and native scores
         do not change. Requires a finite, positive fragment:mass_tolerance; set it to false to search
         with other tolerances.
+      - PERF: about 4.5x faster searches with unchanged output (20 searches of #10364 at 4 threads:
+        431 s -> 96 s): the fragment index bins fragments by m/z instead of sorting them globally and
+        writes them straight into their bins; regex-free digestion; a multi-threaded peptide sort that
+        reproduces std::sort exactly; one bucket walk for all precursor isotope errors, with skip tables
+        and prefetching; PSM meta value keys resolved once; flat-storage Da alignment for the peak
+        annotation; the mzML is read while the fragment index is built; parallel FASTA reading and index
+        release, no database copy. peptide:deduplicate is evaluated inside the index build.
+      - New annotate:self_trained_ion_priors (on by default) learns per-run fragment ion likelihoods from
+        the confident target PSMs of each file (target-decoy competition q <= annotate:ion_prior_train_fdr
+        of the native score), with their reversed sequences on the same spectra as noise model: presence,
+        intensity rank among all peaks before the window and top-N filters, and mass error, per ion
+        series, precursor and fragment charge, position, cleavage-site residues and complementary-ion
+        presence (annotate:ion_prior_model rich; basic as in the self-trained ion priors of #10378). The
+        spectra are split into two halves by scan parity and every PSM is scored by the model of the
+        other half, so no PSM is scored by a model that saw its spectrum or its label. Adds the
+        Percolator features ion_prior_llr and ion_prior_explained (annotate:ion_prior_features) to every
+        hit; native scores and candidates are unchanged. Files with fewer than annotate:ion_prior_min_psms
+        confident PSMs in either half get zeros and a warning; target-only searches (decoys=ignore) get
+        nothing. The search parameters record the annotate:ion_prior_* settings and the training set
+        (ion_prior:*). The model is the new FragmentIonLikelihoodModel class.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----

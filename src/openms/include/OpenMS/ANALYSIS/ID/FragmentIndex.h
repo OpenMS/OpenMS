@@ -224,6 +224,35 @@ namespace OpenMS
       return std::max(lower_magnitude, upper_magnitude) > threshold;
     }
 
+    /**
+     * @brief Rejects fixed terminal modifications that the index cannot restrict to the peptides they apply to.
+     *
+     * A fixed terminal modification adds one N- or C-terminal mass to every peptide of the index. A protein-terminal
+     * fixed modification (e.g. 'Acetyl (Protein N-term)') or a residue-specific terminal one (e.g.
+     * 'Gln->pyro-Glu (N-term Q)') applies to some peptides only, and a terminus carries one modification. As variable
+     * modifications (modifications:variable) they are applied to the eligible peptides only.
+     *
+     * @param[in] fixed_modifications Names of the fixed modifications (as in modifications:fixed)
+     * @throws Exception::InvalidParameter for a protein-terminal or residue-specific terminal fixed modification, or
+     *         for a second fixed modification on the same terminus
+     */
+    static void checkFixedModifications(const StringList& fixed_modifications);
+
+    /**
+     * @brief Variable modifications of a whole terminus that a fixed terminal modification excludes.
+     *
+     * A terminus carries one modification. A variable modification of the whole peptide or protein N- or C-terminus
+     * (no residue preference, e.g. 'Acetyl (Protein N-term)') is therefore not searched where a fixed one (e.g.
+     * 'TMT6plex (N-term)') sits on that terminus, as in ModifiedPeptideGenerator. Residue-specific terminal variable
+     * modifications (e.g. 'Gln->pyro-Glu (N-term Q)') modify the residue and are searched as before.
+     *
+     * @param[in] fixed_modifications Names of the fixed modifications (as in modifications:fixed)
+     * @param[in] variable_modifications Names of the variable modifications (as in modifications:variable)
+     * @return Full ids of the variable modifications that the index does not apply
+     */
+    static StringList shadowedVariableTerminalModifications(const StringList& fixed_modifications,
+                                                            const StringList& variable_modifications);
+
     /// @name SNES (Speedy Non-specific Enzyme Search) bit encoding
     ///
     /// When the index is built in SNES mode (@ref isSnesMode), a @ref Peptide entry
@@ -405,13 +434,15 @@ protected:
    */
   struct Fragment
   {
-      Fragment() = default;
+      /// Leaves the members uninitialised on purpose: std::vector<Fragment>::resize() then writes nothing,
+      /// so build() can fill the index in parallel instead of zeroing it serially first.
+      Fragment() {}
       Fragment(UInt32 peptide_idx, float fragment_mz):
           peptide_idx_(peptide_idx),
           fragment_mz_(fragment_mz)
       {}
-      UInt32 peptide_idx_{}; // 32 bit in sage
-      float fragment_mz_{};
+      UInt32 peptide_idx_; // 32 bit in sage
+      float fragment_mz_;
   };
 
     bool is_build_{false};              ///< true, if the database has been populated with fragments
@@ -448,6 +479,69 @@ protected:
      * @param[in] fasta_entries  Protein database (same semantics as generatePeptides).
      */
     void generateSNESMothers_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
+
+    /**@brief Sorts @p peptides by (precursor_mz_, protein_idx), exactly as std::sort does with that comparator.
+     *
+     * "Exactly" includes the order of peptides with equal keys: the comparator covers neither mod_bitmask_ nor
+     * sequence_, std::sort is not stable, and the resulting order defines the peptide indices and thereby the
+     * search results. With libstdc++ and OpenMP, inputs of more than @p min_task_size peptides are sorted by a
+     * multi-threaded reproduction of libstdc++'s std::sort; everything else calls std::sort.
+     *
+     * @param[in,out] peptides       Peptides to sort
+     * @param[in]     min_task_size  Parts of at most this many peptides are sorted by the thread that created them
+     */
+    static void sortPeptides_(std::vector<Peptide>& peptides, size_t min_task_size = 8192);
+
+    /// Rendering classes of the configured modifications, for samePeptidoform_() (peptide:deduplicate)
+    struct PeptidoformRendering_
+    {
+      /// Modification -> class of its toString(); classes start at 256, above the residue bytes
+      std::vector<std::pair<const ResidueModification*, uint32_t>> mod_class;
+      /// Alike rendered modifications have the same mass and residue, and none is configured both fixed and variable:
+      /// equal peptidoforms then have equal residues and bitwise equal precursor_mz_, i.e. lie in one run of
+      /// equal precursor_mz_ after sortPeptides_().
+      bool runs_hold_peptidoforms{true};
+      /// No two variable modifications render alike
+      bool unique_variable_renderings{true};
+      /// A variable modification is protein-terminal: buildModSlots_() depends on where a peptide lies in its protein
+      bool slots_depend_on_context{false};
+
+      /// Class of @p mod (0 for nullptr or a modification not configured)
+      uint32_t classOf(const ResidueModification* mod) const
+      {
+        for (const auto& [ptr, cls] : mod_class)
+        {
+          if (ptr == mod) return cls;
+        }
+        return 0;
+      }
+    };
+
+    /// Rendering classes of the configured modifications. Requires the modification tables (generatePeptides()).
+    PeptidoformRendering_ peptidoformRendering_() const;
+
+    /// Token sequence of reconstructModifiedSequence(@p peptide).toString(): [N-term, residue 0, ..., residue len-1,
+    /// C-term]; a residue byte or modification class each, 0 for no terminal modification.
+    void renderPeptidoform_(const Peptide& peptide, const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                            const PeptidoformRendering_& rendering, std::vector<uint32_t>& tokens) const;
+
+    /**@brief Whether reconstructModifiedSequence() renders @p a and @p b to the same AASequence::toString().
+     *
+     * Compares residues and the rendering of the modification at each position instead of building the strings.
+     * Requires @p rendering.runs_hold_peptidoforms. @p tokens_a and @p tokens_b are scratch buffers.
+     */
+    bool samePeptidoform_(const Peptide& a, const Peptide& b, const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                          const PeptidoformRendering_& rendering, std::vector<uint32_t>& tokens_a,
+                          std::vector<uint32_t>& tokens_b) const;
+
+    /**@brief Keeps the first entry of fi_peptides_ of every reconstructModifiedSequence(...).toString(), in order.
+     *
+     * peptide:deduplicate for configurations in which equal peptidoforms need not lie in one run of equal
+     * precursor_mz_ (see PeptidoformRendering_::runs_hold_peptidoforms); build() handles the others while it
+     * generates the fragments.
+     * @return Number of entries removed
+     */
+    Size deduplicateByString_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
     /** @brief Entry in the per-AA variable modification lookup table. */
     struct VarModEntry
@@ -567,23 +661,28 @@ protected:
     /// Uses the class-level @c add_b_ions_ / @c add_y_ions_ / ... flags for the ion
     /// series selection. See @ref generateFragmentsForSeries_ for the explicit-flag
     /// variant used by the SNES mother path.
-    /// @param[out] fragments  Output vector to append Fragment entries to
-    /// @param[out] electron_fragments  Output vector for the c and z+1 ions of ions:electron_ions
+    /// @param[out] fragments  Receives the fragments through emplace_back(peptide_idx, mz): a vector of
+    ///             Fragment, or one of the counting / placing sinks of build()
+    /// @param[out] electron_fragments  The same for the c and z+1 ions of ions:electron_ions
     ///             that the series above lack (untouched if ions:electron_ions is off)
     /// @param[in]  sequence   Raw amino acid string (no modifications)
     /// @param[in]  seq_len    Length of sequence
     /// @param[in]  peptide_idx Index of this peptide in fi_peptides_
     /// @param[in]  n_term_mod_mass  Mass delta from N-terminal modification (0 if none)
     /// @param[in]  c_term_mod_mass  Mass delta from C-terminal modification (0 if none)
+    /// @param[in]  residue_masses  Mass of a residue by its character (128 doubles): residue_mass_table_,
+    ///             or that with the deltas of the fixed modifications added
     /// @param[in]  residue_mod_masses  Per-residue modification mass deltas (nullptr if none; array of seq_len doubles)
+    template <typename FragmentSink>
     void generateFragmentsLightweight_(
-      std::vector<Fragment>& fragments,
-      std::vector<Fragment>& electron_fragments,
+      FragmentSink& fragments,
+      FragmentSink& electron_fragments,
       const char* sequence,
       size_t seq_len,
       UInt32 peptide_idx,
       double n_term_mod_mass,
       double c_term_mod_mass,
+      const double* residue_masses,
       const double* residue_mod_masses) const;
 
     /// Fragment generation with explicit per-call ion-series selection.
@@ -593,12 +692,13 @@ protected:
     /// @c generateFragmentsLightweight_ forwards to this function after packing the
     /// class flags; both share a single implementation.
     ///
-    /// @param[out] fragments Output vector to append Fragment entries to
+    /// @param[out] fragments Receives the fragments through emplace_back(peptide_idx, mz)
     /// @param[in] sequence Raw amino acid string (no modifications)
     /// @param[in] seq_len Length of sequence
     /// @param[in] peptide_idx Index of this peptide in fi_peptides_
     /// @param[in] n_term_mod_mass Mass delta from N-terminal modification (0 if none)
     /// @param[in] c_term_mod_mass Mass delta from C-terminal modification (0 if none)
+    /// @param[in] residue_masses Mass of a residue by its character (128 doubles)
     /// @param[in] residue_mod_masses Per-residue modification mass deltas (nullptr if none; array of seq_len doubles)
     /// @param[in] add_b Emit b-ions (prefix).
     /// @param[in] add_a Emit a-ions (prefix).
@@ -607,13 +707,15 @@ protected:
     /// @param[in] add_x Emit x-ions (suffix).
     /// @param[in] add_z Emit z-ions (suffix).
     /// @param[in] add_zp1 Emit z+1 ions (z-dot, suffix).
+    template <typename FragmentSink>
     void generateFragmentsForSeries_(
-      std::vector<Fragment>& fragments,
+      FragmentSink& fragments,
       const char* sequence,
       size_t seq_len,
       UInt32 peptide_idx,
       double n_term_mod_mass,
       double c_term_mod_mass,
+      const double* residue_masses,
       const double* residue_mod_masses,
       bool add_b,
       bool add_a,
@@ -692,34 +794,53 @@ private:
                             const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                             SpectrumMatchesTopN& sms);
 
+    /// One (precursor charge, isotope error) block of a queryPeaks() call
+    struct CandidateBlock_
+    {
+      size_t first;           ///< half-open range [first, second) of peptides the precursor could belong to
+      size_t second;
+      size_t cell_offset;     ///< sum of the range sizes of the preceding blocks of the call
+      int16_t isotope_error;  ///< the applied isotope error
+    };
+
     /**
-     * @brief Counts fragment matches for ONE (precursor charge, isotope error) block and appends
-     * the surviving candidates to @p candidates.
+     * @brief Counts fragment matches for the (isotope error) blocks of ONE precursor charge and
+     * appends the surviving candidates to @p candidates.
      *
      * Every peak of @p spectrum is walked against the fragment buckets at fragment charges
-     * 1..min(@p precursor_charge, @c fragment:max_charge) and the hits are counted per peptide
-     * of @p candidates_range. Only candidates reaching @c fragment:min_matched_ions — clamped to
-     * at least one matched peak, so a candidate that matched nothing is never a candidate — are
-     * emitted, in ascending peptide index within the block. Candidates that could not survive
-     * trimHits are therefore never materialized.
+     * 1..min(@p precursor_charge, @c fragment:max_charge) — once for all blocks — and the hits are
+     * counted per block and peptide of its range. Only candidates reaching
+     * @c fragment:min_matched_ions — clamped to at least one matched peak, so a candidate that
+     * matched nothing is never a candidate — are emitted, block after block and in ascending
+     * peptide index within a block. Candidates that could not survive trimHits are therefore
+     * never materialized.
      *
-     * @param[in,out] candidates Accumulator the block's matches are APPENDED to. Must NOT be
+     * @param[in,out] candidates Accumulator the blocks' matches are APPENDED to. Must NOT be
      *                pre-sized — entries are appended, never indexed into. Pre-existing entries
-     *                are preserved, so one container can accumulate several blocks.
+     *                are preserved, so one container can accumulate several calls.
      * @param[in] spectrum The queried experimental spectrum
-     * @param[in] candidates_range The half-open [first, second) range of peptides the precursor could belong to
-     * @param[in] isotope_error The applied isotope error
+     * @param[in] blocks The candidate ranges and their isotope errors; non-empty ranges, disjoint
+     *            and ascending (first of a block >= second of its predecessor)
      * @param[in] precursor_charge The applied precursor charge
      * @param[in] with_electron_ions Also count matches to the c and z+1 ions of ions:electron_ions
      */
     void queryPeaks(SpectrumMatchesTopN& candidates,
                    const MSSpectrum& spectrum,
-                   const std::pair<size_t, size_t>& candidates_range,
-                   const int16_t isotope_error,
+                   const std::vector<CandidateBlock_>& blocks,
                    const uint16_t precursor_charge,
                    const bool with_electron_ions);
+
+    /// Skip tables of fi_fragments_ and electron_fragments_ for queryPeaks(): the peptide_idx_ of
+    /// every SKIP_STRIDE_-th fragment of each bucket, skip_per_bucket_ entries per bucket.
+    static constexpr size_t SKIP_STRIDE_ = 64;
+    size_t skip_per_bucket_{0};
+    std::vector<UInt32> bucket_skip_;
+    std::vector<UInt32> electron_bucket_skip_;
+    /// Fills the skip tables; called by build() once the buckets are sorted.
+    void buildSkipTables_();
+
     /**
-     * @brief If closed search loops over all isotope errors. For each iteration loop over all peaks with queryPeaks.
+     * @brief If closed search collects the candidate ranges of all isotope errors and loops over all peaks once for them with queryPeaks.
      * @brief If open search applies a precursor-mass window
      * @param[in] spectrum experimental query-spectrum
      * @param[in] precursor_mass The mass of the precursor (mz * charge)
