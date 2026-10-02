@@ -322,9 +322,9 @@ namespace OpenMS
       // a string of its own, and the blocks are written in input order as soon as they are ready: the same bytes as
       // formatting them one after the other into os, while at most one block per thread is held in memory. Meta values
       // are read by registry index and their names cached per thread (MetaInfoRegistry takes a process-wide lock for
-      // every name), and the hits are visited in the order of PeptideIdentification::sort() instead of sorting a copy.
-      // If formatting fails, neither the failing block nor any later one is written, and the error of the first failing
-      // block in input order is rethrown.
+      // every name), and the hits are visited in the order of PeptideIdentification::sort() without copying them (unless
+      // a score is NaN). If formatting fails, neither the failing block nor any later one is written, and the error of
+      // the first failing block in input order is rethrown.
 
       const std::vector<Size>& to_write = run_peptide_ids[i];
       const Size count_empty = run_empty_count[i];
