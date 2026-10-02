@@ -44,6 +44,19 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    ProSE:
+      - New annotate:self_trained_ion_priors (on by default) learns per-run fragment ion likelihoods from
+        the confident target PSMs of each file (target-decoy competition q <= annotate:ion_prior_train_fdr
+        of the native score), with their reversed sequences on the same spectra as noise model: presence,
+        intensity rank among all peaks before the window and top-N filters, and mass error, per ion
+        series, precursor and fragment charge, position, cleavage-site residues and complementary-ion
+        presence (annotate:ion_prior_model rich; basic as in the self-trained ion priors of #10378). The
+        spectra are split into two halves by scan parity and every PSM is scored by the model of the
+        other half, so no PSM is scored by a model that saw its spectrum or its label. Adds the
+        Percolator features ion_prior_llr and ion_prior_explained (annotate:ion_prior_features) to every
+        hit; native scores and candidates are unchanged. Files with fewer than annotate:ion_prior_min_psms
+        confident PSMs in either half, or without decoys, get zeros and a warning. The model is the new
+        FragmentIonLikelihoodModel class.
     UniPEFF:
       - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
         file names, e.g. 2025_07_05 for uniprotkb_proteome_UP000005640_2025_07_05.xml.gz,
