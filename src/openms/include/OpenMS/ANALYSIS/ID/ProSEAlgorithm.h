@@ -542,6 +542,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       uint16_t applied_charge = 0; ///< precursor charge used for this PSM
       uint16_t matched_prefix_ions = 0; ///< number of matched prefix ions (a/b/c)
       uint16_t matched_suffix_ions = 0; ///< number of matched suffix ions (x/y/z)
+      uint16_t prefilter_matches = 0; ///< matched fragments of this candidate in the fragment-index prefilter (saturating)
 
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
@@ -553,7 +554,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /**
      * @brief Running summary of the *complete* candidate pool of one spectrum.
      *
-     * scoreSpectraAgainstIndex_() prunes each spectrum to max(report_top_hits_, 2)
+     * scoreSpectraAgainstIndex_() prunes each spectrum to keptHitsPerSpectrum_()
      * candidates as soon as it has scored them, so by the time postProcessHits_()
      * runs the surviving hits are no longer a sample of the search space: with the
      * default report:top_hits=1 only two candidates remain, and derived features
@@ -576,6 +577,11 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double best = 0.0;        ///< best candidate score (HyperScore is non-negative, so 0 doubles as "none seen")
       double second_best = 0.0; ///< runner-up candidate score
       Size count = 0;           ///< number of candidates scored
+      /// Prefilter totals of the fragment index over all its candidates with at least one matched fragment
+      /// (FragmentIndex::SpectrumMatchesTopN), summed over the database chunks: the mean count of the Poisson
+      /// prefilter feature (annotate:prefilter_poisson)
+      uint64_t prefilter_candidates = 0;
+      uint64_t prefilter_matches = 0;
       /// Exact peptide/charge/isotope keys already scored in earlier database chunks.
       /// Empty in non-chunked searches; full keys resolve hash collisions by equality.
       std::unordered_set<std::string> seen_candidates;
@@ -614,7 +620,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
        * candidate scored the same -- in both cases the best candidate does not
        * stand out from the pool.
        */
-      double zScore() const;
+      double zScore() const { return zScoreOf(best); }
+
+      /**
+       * @brief Standard score of the candidate score @p score against the same pool (see zScore()).
+       *
+       * The per-PSM form of zScore() (annotate:per_psm_pool_features): zScoreOf(best) == zScore(). Returns 0 under the
+       * same conditions as zScore().
+       */
+      double zScoreOf(double score) const;
     };
 
     /**
@@ -800,7 +814,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *
      * Shared by the non-chunked and chunked search paths. Appends per-scan
      * AnnotatedHit_ entries to annotated_hits and prunes each spectrum to
-     * max(report_top_hits_, 2) candidates to bound memory. Expects a pre-built
+     * keptHitsPerSpectrum_() candidates to bound memory. Expects a pre-built
      * FragmentIndex whose parameters already reflect any calibrated tolerances
      * the caller wants to apply.
      *
@@ -830,6 +844,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         const std::string& progress_label) const;
 
     /**
+     * @brief Isotope-corrected precursor m/z error (ppm) of @p hit in @p spectrum.
+     *
+     * The search matches precursor_mass + isotope_error * C13C12 against the peptide mass, so the observed m/z is
+     * corrected by isotope_error * C13C12 / charge before the comparison (charge: the spectrum's precursor charge,
+     * or the one the hit was searched with if that is unknown).
+     */
+    static double precursorErrorPpm_(const MSSpectrum& spectrum, const AnnotatedHit_& hit);
+
+    /**
      * @brief Filter and annotate search results.
      *
      * Trims per-spectrum candidate hits to the top N and converts them into
@@ -840,7 +863,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in,out] annotated_hits Per-spectrum candidate hits (trimmed to @p top_hits in-place).
      * @param[in] pool_stats Per-spectrum summary of the full candidate pool as collected
      *            by scoreSpectraAgainstIndex_(), used for the pool-derived PSM features
-     *            (delta score, z-score, candidate count). Must match @p annotated_hits in size.
+     *            (delta score, z-score, candidate count, prefilter Poisson feature). Must match
+     *            @p annotated_hits in size.
      * @param[out] protein_ids Output container for protein-level identification and search metadata.
      * @param[out] peptide_ids Output container for spectrum-level peptide identifications (PSMs).
      * @param[in] top_hits Number of top-scoring hits to retain per spectrum (report_top_hits_).
@@ -926,6 +950,21 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     double fdr_protein_{0.0};
 
     StringList annotate_psm_;
+
+    /// Candidate-competition PSM features (annotate:*): see the parameter descriptions
+    bool annotate_per_psm_pool_features_{false};  ///< annotate:per_psm_pool_features
+    bool annotate_prefilter_poisson_{false};      ///< annotate:prefilter_poisson
+    enum class PrecursorPpmFeature_ { OFF, RAW, CENTERED };
+    PrecursorPpmFeature_ annotate_precursor_ppm_{PrecursorPpmFeature_::CENTERED}; ///< annotate:precursor_ppm
+    bool annotate_top_ion_mass_errors_{true};     ///< annotate:top_ion_mass_errors
+    bool annotate_delta_best_{false};             ///< annotate:delta_best
+
+    /// Candidates kept per spectrum after scoring: the reported ones (report:top_hits) plus, for the per-PSM
+    /// delta_score of the last of them, the next one; at least 2 (the spectrum-level delta_score needs a runner-up)
+    Size keptHitsPerSpectrum_() const
+    {
+      return std::max(report_top_hits_ + (annotate_per_psm_pool_features_ ? 1 : 0), Size(2));
+    }
 
     Size peptide_min_size_;
     Size peptide_max_size_;

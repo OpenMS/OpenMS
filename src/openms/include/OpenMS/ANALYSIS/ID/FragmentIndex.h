@@ -85,27 +85,33 @@ namespace OpenMS
     struct SpectrumMatchesTopN
     {
       std::vector<SpectrumMatch> hits_;     ///< The preliminary candidates
-
+      /// Prefilter totals over every candidate (peptide x isotope error x precursor charge) of the queried precursor
+      /// windows with at least one matched fragment, before the fragment:min_matched_ions gate and the
+      /// scoring:max_candidates_per_spectrum cap (Sage's scored_candidates / matched_peaks). Filled by the non-SNES
+      /// query; SNES queries leave them 0.
+      uint64_t scored_candidates_ = 0;      ///< candidates with at least one matched fragment
+      uint64_t matched_peaks_ = 0;          ///< matched (peak, fragment) pairs summed over these candidates
 
       SpectrumMatchesTopN() = default;
 
       /**
-       * @brief Appends the a SpectrumMatchesTopN to another one. Add the number of all matched peaks up. Same for number of scored candidates
-       * The
+       * @brief Appends a SpectrumMatchesTopN to another one and adds up the prefilter totals.
        * @param[in] other The appended struct
        * @return The struct after the attachment
        */
       SpectrumMatchesTopN& operator+=(const SpectrumMatchesTopN& other)
       {
-
         this->hits_.insert(this->hits_.end(), other.hits_.begin(), other.hits_.end());
+        this->scored_candidates_ += other.scored_candidates_;
+        this->matched_peaks_ += other.matched_peaks_;
         return *this;
       }
 
       void clear()
       {
         hits_.clear();
-
+        scored_candidates_ = 0;
+        matched_peaks_ = 0;
       }
     };
     /**
@@ -153,6 +159,30 @@ namespace OpenMS
      * thread mutates the index (e.g., build()/clear()).
      */
     const std::vector<Peptide>& getPeptides() const;
+
+    /**
+     * @brief A protein occurrence of an indexed peptidoform that peptide:deduplicate removed from the index.
+     *
+     * The removed entry had the same peptidoform (reconstructModifiedSequence(...).toString()) as the kept entry
+     * getPeptides()[peptide_idx], hence the same length; it started at @p start in protein @p protein_idx.
+     */
+    struct RemovedOccurrence
+    {
+      UInt32 peptide_idx;   ///< index into getPeptides() of the kept entry of the same peptidoform
+      UInt32 protein_idx;   ///< protein of the removed entry (index into the FASTA entries passed to build())
+      uint16_t start;       ///< 0-based start of the removed entry in that protein
+    };
+
+    /**
+     * @brief The protein occurrences that peptide:deduplicate removed, ordered by RemovedOccurrence::peptide_idx and,
+     * for one kept entry, in the order of the entries before deduplication (sortPeptides_() order).
+     *
+     * A kept entry's protein occurrences are its own coordinate plus its removed occurrences, so a caller can map
+     * the indexed peptides to proteins without searching the database again. Empty without deduplication (and for
+     * SNES indices, which are not deduplicated); released by clear(). In chunked searches every chunk has its own
+     * index, and a peptidoform that occurs in several chunks is listed in each of them.
+     */
+    const std::vector<RemovedOccurrence>& getRemovedOccurrences() const noexcept { return removed_occurrences_; }
 
     /// Number of theoretical fragments stored in the index (0 before build()), including the c and
     /// z+1 ions of ions:electron_ions.
@@ -538,7 +568,7 @@ protected:
      *
      * peptide:deduplicate for configurations in which equal peptidoforms need not lie in one run of equal
      * precursor_mz_ (see PeptidoformRendering_::runs_hold_peptidoforms); build() handles the others while it
-     * generates the fragments.
+     * generates the fragments. Records the removed entries in removed_occurrences_.
      * @return Number of entries removed
      */
     Size deduplicateByString_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
@@ -726,6 +756,7 @@ protected:
       bool add_zp1) const;
 
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
+    std::vector<RemovedOccurrence> removed_occurrences_; ///< occurrences removed by peptide:deduplicate (getRemovedOccurrences())
     std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
     /// The c and z+1 ions of ions:electron_ions that fi_fragments_ lacks. They are bucketed on their
     /// own (electron_bucket_min_mz_) and matched only when a query asks for them.
@@ -813,7 +844,8 @@ private:
      * @c fragment:min_matched_ions — clamped to at least one matched peak, so a candidate that
      * matched nothing is never a candidate — are emitted, block after block and in ascending
      * peptide index within a block. Candidates that could not survive trimHits are therefore
-     * never materialized.
+     * never materialized. Every candidate with at least one matched fragment is added to the
+     * prefilter totals of @p candidates (SpectrumMatchesTopN::scored_candidates_, matched_peaks_).
      *
      * @param[in,out] candidates Accumulator the blocks' matches are APPENDED to. Must NOT be
      *                pre-sized — entries are appended, never indexed into. Pre-existing entries
