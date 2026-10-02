@@ -2882,6 +2882,25 @@ START_SECTION(([EXTRA] scoring:fragment_charges scores multiply charged fragment
   }
   TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges").toString(), "multiple")
   TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "multiple")
+  // Unknown precursor charge: the hit takes the charge that was scored, and so do its annotations.
+  {
+    algo.setParameters(p);
+    PeakMap spectra;
+    MSSpectrum input = spec;
+    input.getPrecursors()[0].setCharge(0);
+    spectra.addSpectrum(input);
+    PeptideIdentificationList unknown_charge;
+    TEST_TRUE(algo.search(spectra, fasta_db, proteins, unknown_charge) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    ABORT_IF(unknown_charge.size() != 1 || unknown_charge[0].getHits().empty())
+    const PeptideHit& unknown_hit = unknown_charge[0].getHits()[0];
+    TEST_EQUAL(unknown_hit.getSequence(), peptide)
+    TEST_EQUAL(unknown_hit.getCharge(), 3)
+    TEST_FALSE(unknown_hit.getPeakAnnotations().empty())
+    for (const auto& annotation : unknown_hit.getPeakAnnotations())
+    {
+      TEST_EQUAL(annotation.charge, 2)
+    }
+  }
   TEST_TRUE(search(p, 2, proteins).empty()) // A 2+ precursor gets no 2+ fragments.
   p.setValue("fragment:max_charge", 1);
   TEST_TRUE(search(p, 3, proteins).empty()) // The fragment charge cap applies.

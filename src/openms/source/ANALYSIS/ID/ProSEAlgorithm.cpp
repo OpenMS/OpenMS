@@ -1090,7 +1090,7 @@ namespace OpenMS
           if (need_alignment)
           {
             // Annotate the charges actually scored when higher charges are scored.
-            const int max_frag_z = scoring_multiple_charges_ ? scoringMaxCharge_(static_cast<int>(charge))
+            const int max_frag_z = scoring_multiple_charges_ ? scoringMaxCharge_(static_cast<int>(used_charge))
                                                              : ((charge >= 2) ? std::min<int>(charge - 1, 2) : 1);
             tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
             if (sa_absolute)
