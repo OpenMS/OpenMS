@@ -224,14 +224,36 @@ namespace OpenMS
     }
     accession_to_id.reserve(protein_count); // expect this many keys (avoid rehashing)
 
-    // identifiers of protein identifications that are already written
-    std::vector<std::string> done_identifiers;
+    // assign the peptide identifications to their runs in one pass, keeping the input order
+    std::unordered_map<std::string, Size> run_of_identifier;
+    run_of_identifier.reserve(protein_ids.size());
+    for (Size i = 0; i < protein_ids.size(); ++i)
+    {
+      run_of_identifier.emplace(protein_ids[i].getIdentifier(), i);
+    }
+    std::vector<std::vector<Size>> run_peptide_ids(protein_ids.size()); // the ones with hits, written
+    std::vector<Size> run_empty_count(protein_ids.size(), 0); // the ones without hits, omitted
+    std::vector<Size> without_run; // the ones whose identifier names no run, omitted
+    for (Size l = 0; l < peptide_ids.size(); ++l)
+    {
+      const auto run = run_of_identifier.find(peptide_ids[l].getIdentifier());
+      if (run == run_of_identifier.end())
+      {
+        without_run.push_back(l);
+      }
+      else if (peptide_ids[l].getHits().empty())
+      {
+        ++run_empty_count[run->second];
+      }
+      else
+      {
+        run_peptide_ids[run->second].push_back(l);
+      }
+    }
 
     // write ProteinIdentification Runs
     for (Size i = 0; i < protein_ids.size(); ++i)
     {
-      done_identifiers.push_back(protein_ids[i].getIdentifier());
-
       os << "\t<IdentificationRun ";
       os << "date=\"" << protein_ids[i].getDateTime().getDate() << "T" << protein_ids[i].getDateTime().getTime() << "\" ";
       os << "search_engine=\"" << writeXMLEscape(protein_ids[i].getSearchEngine()) << "\" ";
@@ -294,16 +316,17 @@ namespace OpenMS
 
       //write PeptideIdentifications
       //
-      // The peptide identifications are formatted in parallel, in blocks of consecutive ones, each block into a string
-      // of its own, and the blocks are written in input order as soon as they are ready: the same bytes as formatting
-      // them one after the other into os, while at most one block per thread is held in memory. Meta values are read by
-      // registry index and their names cached per thread (MetaInfoRegistry takes a process-wide lock for every name), and
-      // the hits are visited in the order of PeptideIdentification::sort() instead of sorting a copy. If formatting
-      // fails, neither the failing block nor any later one is written, and the error of the first failing block in
-      // input order is rethrown.
+      // The peptide identifications of the run are formatted in parallel, in blocks of consecutive ones, each block into
+      // a string of its own, and the blocks are written in input order as soon as they are ready: the same bytes as
+      // formatting them one after the other into os, while at most one block per thread is held in memory. Meta values
+      // are read by registry index and their names cached per thread (MetaInfoRegistry takes a process-wide lock for
+      // every name), and the hits are visited in the order of PeptideIdentification::sort() instead of sorting a copy.
+      // If formatting fails, neither the failing block nor any later one is written, and the error of the first failing
+      // block in input order is rethrown.
 
-      Size count_wrong_id(0);
-      Size count_empty(0);
+      const std::vector<Size>& to_write = run_peptide_ids[i];
+      const Size count_empty = run_empty_count[i];
+      const Size count_wrong_id = peptide_ids.size() - to_write.size() - count_empty;
 
       const std::string& run_identifier = protein_ids[i].getIdentifier();
       const MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
@@ -441,20 +464,24 @@ namespace OpenMS
       };
 
       const Size block_size = 16;
-      const SignedSize num_blocks = static_cast<SignedSize>((peptide_ids.size() + block_size - 1) / block_size);
+      const SignedSize num_blocks = static_cast<SignedSize>((to_write.size() + block_size - 1) / block_size);
       const std::streamsize precision = os.precision();
       std::exception_ptr error;
       std::atomic<bool> failed(false);
 
-      // at most 16 threads: with more, the formatting outruns the serial write into the file and the threads only wait
-#pragma omp parallel if (num_blocks > 1) num_threads(std::min(omp_get_max_threads(), 16)) reduction(+ : count_wrong_id, count_empty)
+#ifdef _OPENMP
+      // at most one thread per block and at most 16: with more, the formatting outruns the serial write into the file and
+      // the threads only wait
+      const int team_size = static_cast<int>(std::min<SignedSize>({omp_get_max_threads(), 16, std::max<SignedSize>(num_blocks, 1)}));
+#endif
+#pragma omp parallel if (num_blocks > 1) num_threads(team_size)
       {
         Scratch scratch;
 #pragma omp for ordered schedule(dynamic, 1)
         for (SignedSize b = 0; b < num_blocks; ++b)
         {
           const Size begin = static_cast<Size>(b) * block_size;
-          const Size end = std::min(peptide_ids.size(), begin + block_size);
+          const Size end = std::min(to_write.size(), begin + block_size);
           std::string text;
           std::exception_ptr block_error;
           if (!failed.load(std::memory_order_relaxed))
@@ -463,20 +490,9 @@ namespace OpenMS
             {
               std::ostringstream block_os;
               block_os.precision(precision);
-              for (Size l = begin; l < end; ++l)
+              for (Size k = begin; k < end; ++k)
               {
-                if (peptide_ids[l].getIdentifier() != run_identifier)
-                {
-                  ++count_wrong_id;
-                }
-                else if (peptide_ids[l].getHits().empty())
-                {
-                  ++count_empty;
-                }
-                else
-                {
-                  write_peptide_identification(block_os, peptide_ids[l], scratch);
-                }
+                write_peptide_identification(block_os, peptide_ids[to_write[k]], scratch);
               }
               text = block_os.str();
             }
@@ -497,7 +513,7 @@ namespace OpenMS
               else
               {
                 os.write(text.data(), static_cast<std::streamsize>(text.size()));
-                setProgress(end - 1);
+                setProgress(to_write[end - 1]);
               }
             }
           }
@@ -518,12 +534,9 @@ namespace OpenMS
       os << "<IdentificationRun date=\"1900-01-01T01:01:01.0Z\" search_engine=\"Unknown\" search_parameters_ref=\"ID_1\" search_engine_version=\"0\"/>\n";
     }
 
-    for (Size i = 0; i < peptide_ids.size(); ++i)
+    for (const Size l : without_run)
     {
-      if (find(done_identifiers.begin(), done_identifiers.end(), peptide_ids[i].getIdentifier()) == done_identifiers.end())
-      {
-        warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + peptide_ids[i].getIdentifier() + "' while writing '" + filename + "'!");
-      }
+      warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + peptide_ids[l].getIdentifier() + "' while writing '" + filename + "'!");
     }
     // write footer
     os << "</IdXML>\n";
