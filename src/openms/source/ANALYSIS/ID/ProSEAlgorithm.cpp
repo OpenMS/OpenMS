@@ -597,11 +597,11 @@ namespace OpenMS
     // Normalizer::filterPeakMap are literally "for (auto& s : exp) filterSpectrum(s);" and
     // neither iterates chromatograms. They are therefore applied at the top of the parallel
     // loop below instead, which is per-spectrum equivalent and removes two full sweeps over
-    // the peak data. Both objects are configured once here and shared across the OpenMP
-    // threads, exactly like window_mower_filter / nlargest_filter below:
-    // Normalizer::filterPeakSpectrum is const (reads the resolved 'method_' only), and
-    // ThresholdMower only re-reads its 'threshold' Param into a member on every call -- the
-    // same idempotent same-value write the already-shared WindowMower performs.
+    // the peak data. Both objects are configured once here; like window_mower_filter and
+    // nlargest_filter below, each OpenMP thread works on its own copy (firstprivate):
+    // ThresholdMower stores its 'threshold' Param in a member on every call and WindowMower
+    // its window size and peak count, and concurrent writes are a data race even when every
+    // thread writes the same value. One copy per thread costs a few Param copies per search.
     // Peaks without intensity (zero or negative, e.g. empty centroids) would still count as
     // matched ions, so they are removed. Nothing else is (every positive float intensity,
     // subnormal ones included, passes): the ThresholdMower default of 0.05 is an absolute
@@ -664,9 +664,10 @@ namespace OpenMS
       Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
     Size dense_spectra = 0;
-#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, threshold_mower_filter, \
-                                                normalizer, window_mower_filter, nlargest_filter, full_window_quota, peaks_window_top, \
-                                                dense_window_top, dense_intensity_loss) reduction(+ : dense_spectra)
+#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, \
+                                                full_window_quota, peaks_window_top, dense_window_top, dense_intensity_loss) \
+                                         firstprivate(threshold_mower_filter, normalizer, window_mower_filter, nlargest_filter) \
+                                         reduction(+ : dense_spectra)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       // remove 0 intensities, then normalize (formerly two serial full-map passes)
