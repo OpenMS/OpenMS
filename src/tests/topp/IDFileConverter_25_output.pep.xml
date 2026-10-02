@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">
-<msms_run_summary base_name="IDFileConverter_25_output_tmp" raw_data_type="raw" raw_data=".mzML" search_engine="Comet">
+<msms_run_summary base_name="IDFileConverter_25_output_tmp" raw_data_type="raw" raw_data=".mzML">
 	<sample_enzyme name="unspecific cleavage">
 		<specificity cut="A" sense="C"/>
 	</sample_enzyme>
