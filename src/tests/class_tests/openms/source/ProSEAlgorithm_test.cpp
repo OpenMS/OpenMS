@@ -2740,19 +2740,22 @@ START_SECTION(([EXTRA] fragment:deisotope_* settings: two-peak envelopes, summed
     TEST_REAL_SIMILAR(intensity(u, chance_three_plus_mz), 0.9)
   }
 
-  // Parameters: defaults (Sage's rule) and their mapping.
+  // Parameters: the defaults keep the earlier rule (= DeisotopingSettings_{}); the Sage-like setting maps as named.
   ProSEAlgorithm_test algo;
-  TEST_EQUAL(algo.deisotoping_.min_peaks, 2)
-  TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, true)
-  TEST_EQUAL(algo.deisotoping_.sum_intensity, true)
-  Param p = algo.getParameters();
-  p.setValue("fragment:deisotope_min_peaks", 3);
-  p.setValue("fragment:deisotope_charge_cap", "none");
-  p.setValue("fragment:deisotope_sum_intensity", "false");
-  algo.setParameters(p);
   TEST_EQUAL(algo.deisotoping_.min_peaks, 3)
   TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, false)
   TEST_EQUAL(algo.deisotoping_.sum_intensity, false)
+  TEST_EQUAL(algo.deisotoping_.min_peaks, Settings{}.min_peaks)
+  TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, Settings{}.charge_cap_precursor)
+  TEST_EQUAL(algo.deisotoping_.sum_intensity, Settings{}.sum_intensity)
+  Param p = algo.getParameters();
+  p.setValue("fragment:deisotope_min_peaks", 2);
+  p.setValue("fragment:deisotope_charge_cap", "precursor");
+  p.setValue("fragment:deisotope_sum_intensity", "true");
+  algo.setParameters(p);
+  TEST_EQUAL(algo.deisotoping_.min_peaks, 2)
+  TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, true)
+  TEST_EQUAL(algo.deisotoping_.sum_intensity, true)
 }
 END_SECTION
 

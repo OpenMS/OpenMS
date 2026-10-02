@@ -607,9 +607,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /**
       @brief MS2 deisotoping rule of preprocessSpectra_().
 
-      Filled from the parameters fragment:deisotope_* by updateMembers_(). The member defaults are the behaviour
-      before these parameters existed: envelopes of at least three peaks, charges 1-3 in every spectrum, and the
-      monoisotopic peak keeps its own intensity.
+      Filled from the parameters fragment:deisotope_* by updateMembers_(). The member defaults, like the parameter
+      defaults, are the behaviour before these parameters existed: envelopes of at least three peaks, charges 1-3 in
+      every spectrum, and the monoisotopic peak keeps its own intensity. The Sage-like rule is min_peaks = 2,
+      charge_cap_precursor (charges up to the precursor charge, at most 3) and sum_intensity.
     */
     struct DeisotopingSettings_
     {
