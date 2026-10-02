@@ -4170,6 +4170,9 @@ namespace OpenMS
 
         SearchResult result;
         result.is_open_search = isOpenSearchMode_();
+        // No file after this one: search() releases the index right after scoring (in parallel, and
+        // before the post-processing allocates) instead of the context's destructor at the end.
+        ctx.release_fragment_index_after_scoring = i + 1 == in_spectra_files.size();
         result.exit_code = search(spectra, ctx, result.protein_ids, result.peptide_ids);
 
         if (result.exit_code != ExitCodes::EXECUTION_OK)
