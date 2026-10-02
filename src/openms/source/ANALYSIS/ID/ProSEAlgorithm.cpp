@@ -410,7 +410,9 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "Duplicate fixed modification provided. Making them unique." << endl;
       modifications_fixed_.assign(fixed_unique.begin(), fixed_unique.end());
-    }    
+    }
+    // fixed terminal modifications the fragment index cannot restrict: fail here, not after reading the database
+    FragmentIndex::checkFixedModifications(modifications_fixed_);
 
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
     set<std::string> var_unique(modifications_variable_.begin(), modifications_variable_.end());

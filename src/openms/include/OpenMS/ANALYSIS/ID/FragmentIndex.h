@@ -224,6 +224,20 @@ namespace OpenMS
       return std::max(lower_magnitude, upper_magnitude) > threshold;
     }
 
+    /**
+     * @brief Rejects fixed terminal modifications that the index cannot restrict to the peptides they apply to.
+     *
+     * A fixed terminal modification adds one N- or C-terminal mass to every peptide of the index. A protein-terminal
+     * fixed modification (e.g. 'Acetyl (Protein N-term)') or a residue-specific terminal one (e.g.
+     * 'Gln->pyro-Glu (N-term Q)') applies to some peptides only, and a terminus carries one modification. As variable
+     * modifications (modifications:variable) they are applied to the eligible peptides only.
+     *
+     * @param[in] fixed_modifications Names of the fixed modifications (as in modifications:fixed)
+     * @throws Exception::InvalidParameter for a protein-terminal or residue-specific terminal fixed modification, or
+     *         for a second fixed modification on the same terminus
+     */
+    static void checkFixedModifications(const StringList& fixed_modifications);
+
     /// @name SNES (Speedy Non-specific Enzyme Search) bit encoding
     ///
     /// When the index is built in SNES mode (@ref isSnesMode), a @ref Peptide entry

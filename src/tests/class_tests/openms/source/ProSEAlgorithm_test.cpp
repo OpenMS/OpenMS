@@ -21,6 +21,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -3408,6 +3409,25 @@ START_SECTION(([EXTRA] report:isotope_error_convention: isotope_error is reporte
     TEST_EQUAL(sp.metaValueExists("isotope_error_convention"), sign == 1)
     if (sign == 1) { TEST_STRING_EQUAL(sp.getMetaValue("isotope_error_convention").toString(), "observed_minus_theoretical") }
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fixed terminal modifications that apply to some peptides only are rejected with the parameters))
+{
+  // FragmentIndex::checkFixedModifications() at setParameters(), before any input is read
+  for (const StringList& fixed : vector<StringList>{{"Acetyl (Protein N-term)"}, {"Gln->pyro-Glu (N-term Q)"},
+                                                    {"TMT6plex (N-term)", "Acetyl (N-term)"}})
+  {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("modifications:fixed", fixed);
+    TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p))
+  }
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("modifications:fixed", StringList {"Carbamidomethyl (C)", "TMT6plex (K)", "TMT6plex (N-term)"});
+  algo.setParameters(p);
+  TEST_EQUAL(ListUtils::toStringList<std::string>(algo.getParameters().getValue("modifications:fixed")).size(), 3)
 }
 END_SECTION
 

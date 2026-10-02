@@ -116,9 +116,47 @@ namespace OpenMS
     });
   }
 
+  void FragmentIndex::checkFixedModifications(const StringList& fixed_modifications)
+  {
+    if (fixed_modifications.empty()) return;
+    // The index has one N- and one C-terminal fixed mass for all peptides (fixed_nterm_delta_ / fixed_cterm_delta_,
+    // used for the precursor mass, the fragments and the reconstructed sequence alike).
+    const ResidueModification* fixed_terminal[2] = {nullptr, nullptr}; // N-, C-terminus
+    for (const auto& [mod_ptr, residue_ptr] : ModifiedPeptideGenerator::getModifications(fixed_modifications).val)
+    {
+      const ResidueModification::TermSpecificity term_spec = mod_ptr->getTermSpecificity();
+      if (term_spec == ResidueModification::ANYWHERE) continue;
+      const bool n_term = term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::PROTEIN_N_TERM;
+      const std::string terminus = n_term ? "N-terminus" : "C-terminus";
+      const std::string use_variable = ", but a fixed terminal modification is applied to every peptide. "
+                                       "Specify it as a variable modification (modifications:variable) instead.";
+      if (term_spec == ResidueModification::PROTEIN_N_TERM || term_spec == ResidueModification::PROTEIN_C_TERM)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Fixed modification '" + mod_ptr->getFullId() + "' applies to the protein " + terminus + " only" + use_variable);
+      }
+      const char origin = mod_ptr->getOrigin();
+      if (origin != 'X' && origin != '.')
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Fixed modification '" + mod_ptr->getFullId() + "' applies only to peptides with " + std::string(1, origin)
+          + " at the " + terminus + use_variable);
+      }
+      const ResidueModification*& previous = fixed_terminal[n_term ? 0 : 1];
+      if (previous != nullptr)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Fixed modifications '" + previous->getFullId() + "' and '" + mod_ptr->getFullId() + "' both modify the peptide "
+          + terminus + ", which carries one modification. Keep one of them as a fixed modification.");
+      }
+      previous = mod_ptr;
+    }
+  }
+
   void FragmentIndex::initModificationTables_()
   {
     if (mod_tables_initialized_) return;
+    checkFixedModifications(modifications_fixed_);
 
     fixed_mod_deltas_.fill(0.0);
     fixed_mod_ptrs_.fill(nullptr);
@@ -155,9 +193,9 @@ namespace OpenMS
         }
         else
         {
-          // Residue-specific fixed mod (e.g., Carbamidomethyl on C)
-          // For ANYWHERE: applies at all matching positions
-          // For N_TERM/C_TERM: only at terminal positions (handled during enumeration)
+          // Residue-specific fixed mod (e.g., Carbamidomethyl on C): applies at all matching positions.
+          // Residue-specific terminal ones are rejected by checkFixedModifications() above (they would need a
+          // per-peptide terminal mass); the branches below are kept for completeness.
           if (term_spec == ResidueModification::ANYWHERE)
           {
             fixed_mod_deltas_[static_cast<unsigned char>(origin)] = delta;

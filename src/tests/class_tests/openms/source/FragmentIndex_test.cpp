@@ -3566,4 +3566,47 @@ START_SECTION(([EXTRA] peptidoform deduplication keeps the first entry of every 
 }
 END_SECTION
 
+START_SECTION((static void checkFixedModifications(const StringList& fixed_modifications)))
+{
+  // A fixed terminal modification is one N- or C-terminal mass for every peptide. Those that apply to some peptides
+  // only are rejected (they are searched as variable modifications), as is a second one on the same terminus.
+  const vector<StringList> rejected = {
+    {"Acetyl (Protein N-term)"},
+    {"Amidated (Protein C-term)"},
+    {"Gln->pyro-Glu (N-term Q)"},
+    {"Carbamidomethyl (C)", "TMT6plex (N-term)", "Acetyl (N-term)"}};
+  for (const StringList& fixed : rejected)
+  {
+    TEST_EXCEPTION(Exception::InvalidParameter, FragmentIndex::checkFixedModifications(fixed))
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    p.setValue("modifications:fixed", fixed);
+    TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p))
+  }
+  // peptide-terminal fixed modifications of any residue, one per terminus, plus residue modifications
+  const StringList accepted = {"Carbamidomethyl (C)", "TMT6plex (K)", "TMT6plex (N-term)", "Amidated (C-term)"};
+  FragmentIndex::checkFixedModifications(accepted);
+  FragmentIndex::checkFixedModifications({});
+
+  // ... and they are applied to every peptide, internal ones included
+  const vector<FASTAFile::FASTAEntry> db {{"p", "p", "MCAPEPTIDEKQLGSVTAKQMNPEPTIDER"}};
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("peptide:min_size", 5);
+  p.setValue("peptide:missed_cleavages", 1);
+  p.setValue("modifications:fixed", accepted);
+  p.setValue("modifications:variable", StringList {});
+  fi.setParameters(p);
+  fi.build(db);
+  TEST_TRUE(fi.getPeptides().size() >= 4)
+  for (const auto& peptide : fi.getPeptides())
+  {
+    const AASequence seq = fi.reconstructModifiedSequence(peptide, db);
+    TEST_TRUE(seq.hasNTerminalModification())
+    TEST_TRUE(seq.hasCTerminalModification())
+    TEST_REAL_SIMILAR(peptide.precursor_mz_, seq.getMZ(1))
+  }
+}
+END_SECTION
+
 END_TEST
