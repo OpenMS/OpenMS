@@ -98,6 +98,13 @@ TOPP tools:
         for deisotoped (high-resolution) spectra, whose results do not change. The calibration pass and
         the peak annotations use the same charges; the ion-count fractions divide by the number of
         charges scored.
+      - MS2 deisotoping follows Sage's envelope rule, with three new parameters: two isotope peaks make
+        an envelope (fragment:deisotope_min_peaks=2; 3 before), the monoisotopic peak carries the
+        envelope's summed intensity (fragment:deisotope_sum_intensity=true), and charges are tried up
+        to the precursor charge only (fragment:deisotope_charge_cap=precursor; 1-3 for every spectrum
+        before). An ion whose M+2 peak was lost in the noise kept its M+1 peak, which took a place in
+        the per-window peak quota, and multiply charged fragments seen with two isotope peaks were
+        neither converted to charge 1 nor scored. Only high-resolution (deisotoped) searches change.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
