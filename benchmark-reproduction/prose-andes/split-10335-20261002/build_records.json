@@ -1,0 +1,44 @@
+{
+ "dev_fix": {
+  "source_commit": "fbdbc227085f24964069212bf8276dee0a081c28",
+  "source_tree": "f1b32b44da0eea0ca66da1a2bcae855fbea80330",
+  "binary_sha256": "e429d8fe05c9acf8488eecb90467143ed37b67d36a60e910439df370abcf964b",
+  "tests_passed": true
+ },
+ "dd_val": {
+  "source_commit": "b86636e234ae34416c3a66674835a2b907b3fb02",
+  "source_tree": "fedfa4285b6424a2bcd4fd46fb2bb4f13079ae7c",
+  "binary_sha256": "ebb607f62a2814cf28a8bd836f33378c12bb243db43e48cebd8749158ae9f0ac",
+  "tests_passed": true
+ },
+ "fc_val": {
+  "source_commit": "f327d412eec0cab338e77057a96599b47beb5945",
+  "source_tree": "02293f2697e389835d1f570882d84d99dc25284c",
+  "binary_sha256": "7c9b5ffba73c41e961c2a37cdf174e735b4ad41852a35f60d29d5807a9104397",
+  "tests_passed": true
+ },
+ "p35_val": {
+  "source_commit": "6c549d4ff39ba49fb10a607ddee213062a9a5b5f",
+  "source_tree": "69537956f6ecb1a53f33891c28d0ad6332d592e0",
+  "binary_sha256": "6e1d5c5f69c7ac8221eff76ad245453570ea3f1f0e46450cf1e165b6644fe45b",
+  "tests_passed": true
+ },
+ "uc_val": {
+  "source_commit": "4037f68bf38297dfe483092b50502697249a0936",
+  "source_tree": "215322b7c9c213dec424a524461824c3b3131ca3",
+  "binary_sha256": "fa83a00f028429f98996d86905d19f59046b8763eff602439bbd7129d9a4b625",
+  "tests_passed": true
+ },
+ "re_val": {
+  "source_commit": "db664ed9362f028fda9dfe647d30c8dde6b5b382",
+  "source_tree": "3ab7fe950e9f42913824b4cfcf539dc7abe46a31",
+  "binary_sha256": "ac8ec57c2d1e76d1bb7da5afe004c5ddba545e8f757c401a90e046394d1fba70",
+  "tests_passed": true
+ },
+ "re_on": {
+  "source_commit": "fb581fceedecfa50d1878f9750ed8b63e4995997",
+  "source_tree": "6da04892f125c6636d1758a3abf9153753e27c7a",
+  "binary_sha256": "5f121396f4c5d5922b62629cff4468e2daa4ecc3f563d511a7acf177ecadbceb",
+  "tests_passed": true
+ }
+}

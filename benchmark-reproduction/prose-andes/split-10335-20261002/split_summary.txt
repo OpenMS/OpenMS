@@ -1,0 +1,137 @@
+## #10394 deduplication (d_dedup vs d_base): files up 5 / flat 15 / down 0 of 20
+  Velos CID               3    2600.3    2654.6   +2.09%  +3.5(+2.3) -0.4(-0.4) +3.4(+2.2)
+  HF-X HCD                3    4388.9    4396.3   +0.17%  -0.3(-0.9) +0.3(+0.5) +0.5(+0.9)
+  Astral HCD              3    2280.6    2322.4   +1.84%  +3.0(+1.9) +0.7(+1.7) +2.0(+6.2)
+  Lumos HCD LFQ           3    5501.7    5503.2   +0.03%  +0.1(+1.6) +0.1(+0.3) -0.1(-0.7)
+  Lumos CID TMT           3    2327.3    2367.8   +1.74%  -0.2(-0.1) +2.9(+2.2) +2.4(+6.3)
+  Exploris 480 TMTpro     3    2518.3    2530.3   +0.48%  +0.4(+0.9) +0.2(+0.4) +0.8(+1.5)
+  timsTOF HT              2    1025.5    1042.7   +1.67%  -0.9(-0.3) +4.5(+1.8)
+
+## #10335 on develop with #10394 (d_35 vs d_dedup): files up 4 / flat 16 / down 0 of 20
+  Velos CID               3    2654.6    2904.0   +9.40%  +12.4(+8.0) +9.4(+10.5) +6.4(+3.7)
+  HF-X HCD                3    4396.3    4396.3   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+  Astral HCD              3    2322.4    2322.4   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+  Lumos HCD LFQ           3    5503.2    5503.2   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+  Lumos CID TMT           3    2367.8    2398.1   +1.28%  +1.6(+1.5) -0.7(-0.9) +2.9(+11.4)
+  Exploris 480 TMTpro     3    2530.3    2530.3   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+  timsTOF HT              2    1042.7    1042.7   +0.00%  +0.0(+0.0) +0.0(+0.0) identical
+
+## #10397 multiply charged fragments (d_fc+d_fc_hr vs d_dedup): files up 4 / flat 16 / down 0 of 20
+  Velos CID               3    2654.6    2889.2   +8.84%  +12.4(+22.0) +8.7(+9.5) +5.5(+2.9)
+  HF-X HCD                3    4396.3    4396.3   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+  Astral HCD              3    2322.4    2322.4   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+  Lumos HCD LFQ           3    5503.2    5503.2   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+  Lumos CID TMT           3    2367.8    2396.8   +1.22%  +1.3(+0.7) +0.9(+1.0) +1.5(+2.2)
+  Exploris 480 TMTpro     3    2530.3    2530.3   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+  timsTOF HT              2    1042.7    1042.7   +0.00%  +0.0(+0.0) +0.0(+0.0) identical
+
+## #10335 on develop with #10397 (2f30b40) (d_35 vs d_fc): files up 1 / flat 6 / down 1 of 8
+  Velos CID               3    2889.2    2904.0   +0.51%  +0.0(+0.0) +0.6(+1.2) +0.9(+0.6)
+  HF-X HCD                1    4457.0    4457.0   +0.00%  +0.0(+0.0) identical
+  Astral HCD              1    2162.0    2162.0   +0.00%  +0.0(+0.0) identical
+  Lumos CID TMT           3    2396.8    2398.1   +0.06%  +0.4(+0.2) -1.6(-2.2) +1.4(+2.2)
+
+## #10335 build: HyperScore, single charge (a35_hs_single vs d_dedup): files up 0 / flat 6 / down 0 of 6
+  Velos CID               3    2654.6    2654.6   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+  Lumos CID TMT           3    2367.8    2367.8   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+
+## #10335 build: HyperScore, multiple charges (a35_hs_multi vs d_dedup): files up 4 / flat 2 / down 0 of 6
+  Velos CID               3    2654.6    2889.2   +8.84%  +12.4(+22.0) +8.7(+9.5) +5.5(+2.9)
+  Lumos CID TMT           3    2367.8    2396.8   +1.22%  +1.3(+0.7) +0.9(+1.0) +1.5(+2.2)
+
+## #10335 build: calibrated, single charge (a35_cal_single vs d_dedup): files up 0 / flat 0 / down 6 of 6
+  Velos CID               3    2654.6    2407.9   -9.29%  -12.5(-8.8) -5.4(-4.7) -10.2(-3.4)
+  Lumos CID TMT           3    2367.8    2268.7   -4.19%  -4.4(-4.2) -5.0(-4.4) -3.3(-9.4)
+
+## #10335 build: calibrated, multiple charges (= #10335 default) (d_35 vs d_dedup): files up 4 / flat 16 / down 0 of 20
+  Velos CID               3    2654.6    2904.0   +9.40%  +12.4(+8.0) +9.4(+10.5) +6.4(+3.7)
+  HF-X HCD                3    4396.3    4396.3   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+  Astral HCD              3    2322.4    2322.4   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+  Lumos HCD LFQ           3    5503.2    5503.2   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+  Lumos CID TMT           3    2367.8    2398.1   +1.28%  +1.6(+1.5) -0.7(-0.9) +2.9(+11.4)
+  Exploris 480 TMTpro     3    2530.3    2530.3   +0.00%  +0.0(+0.0) +0.0(+0.0) +0.0(+0.0) identical
+  timsTOF HT              2    1042.7    1042.7   +0.00%  +0.0(+0.0) +0.0(+0.0) identical
+
+## #10335 opt-in: fragment:query_spectrum=raw (a35_raw vs d_35): files up 5 / flat 9 / down 0 of 14
+  HF-X HCD                3    4396.3    4392.1   -0.10%  +1.0(+1.9) -0.2(-0.5) -1.0(-1.8)
+  Astral HCD              3    2322.4    2411.9   +3.85%  -0.8(-0.5) +3.4(+3.9) +8.6(+10.8)
+  Lumos HCD LFQ           3    5503.2    5548.2   +0.82%  +0.5(+3.1) +1.1(+6.9) +0.8(+5.0)
+  Exploris 480 TMTpro     3    2530.3    2528.7   -0.07%  -0.0(-0.1) -0.2(-0.4) +0.1(+0.1)
+  timsTOF HT              2    1042.7    1036.5   -0.59%  +1.7(+0.6) -2.9(-1.3)
+
+## #10335 opt-in: raw + annotate:local_fragment_evidence (a35_raw_local vs d_35): files up 8 / flat 6 / down 0 of 14
+  HF-X HCD                3    4396.3    4445.6   +1.12%  +2.1(+5.3) +0.3(+0.4) +0.9(+2.8)
+  Astral HCD              3    2322.4    2655.3  +14.33%  +9.0(+5.1) +15.3(+35.1) +18.3(+10.2)
+  Lumos HCD LFQ           3    5503.2    5552.6   +0.90%  +0.9(+9.7) +1.1(+6.2) +0.7(+4.5)
+  Exploris 480 TMTpro     3    2530.3    2548.9   +0.73%  +1.0(+1.5) +0.8(+1.3) +0.4(+0.5)
+  timsTOF HT              2    1042.7    1041.2   -0.14%  +0.5(+0.1) -0.8(-0.3)
+
+## #10335 opt-in: annotate:local_fragment_evidence (a35_local vs d_35): files up 0 / flat 6 / down 0 of 6
+  Velos CID               3    2904.0    2930.4   +0.91%  +0.2(+0.1) +1.1(+2.0) +1.5(+1.6)
+  Lumos CID TMT           3    2398.1    2414.0   +0.66%  +0.6(+0.5) +0.9(+1.9) +0.4(+0.8)
+
+## #10335 opt-in: local evidence, high-resolution files (a35_local_hr vs d_35): files up 7 / flat 7 / down 0 of 14
+  HF-X HCD                3    4396.3    4434.1   +0.86%  +1.5(+3.0) +0.3(+0.6) +0.8(+1.9)
+  Astral HCD              3    2322.4    2536.8   +9.23%  +7.7(+5.5) +9.0(+6.5) +10.9(+14.1)
+  Lumos HCD LFQ           3    5503.2    5512.1   +0.16%  +0.3(+3.2) +0.1(+0.8) +0.1(+0.4)
+  Exploris 480 TMTpro     3    2530.3    2562.8   +1.28%  +1.9(+6.2) +0.4(+0.7) +1.5(+2.1)
+  timsTOF HT              2    1042.7    1041.2   -0.14%  -0.9(-0.3) +0.6(+0.4)
+
+## port: raw retrieval, low-resolution files (re_r vs d_fc): files up 0 / flat 0 / down 6 of 6
+  Velos CID               3    2889.2    1746.9  -39.54%  -39.6(-57.3) -41.9(-106.4) -37.0(-29.4)
+  Lumos CID TMT           3    2396.8     851.6  -64.47%  -61.7(-42.1) -67.5(-58.7) -64.0(-76.3)
+
+## port: raw + local evidence (re_rl vs d_fc+d_fc_hr): files up 8 / flat 6 / down 6 of 20
+  Velos CID               3    2889.2    1755.9  -39.23%  -40.3(-61.4) -41.3(-80.0) -35.9(-30.4)
+  HF-X HCD                3    4396.3    4445.6   +1.12%  +2.1(+5.3) +0.3(+0.4) +0.9(+2.8)
+  Astral HCD              3    2322.4    2655.3  +14.33%  +9.0(+5.1) +15.3(+35.1) +18.3(+10.2)
+  Lumos HCD LFQ           3    5503.2    5552.6   +0.90%  +0.9(+9.7) +1.1(+6.2) +0.7(+4.5)
+  Lumos CID TMT           3    2396.8     867.9  -63.79%  -61.7(-40.5) -67.4(-51.1) -62.2(-75.0)
+  Exploris 480 TMTpro     3    2530.3    2548.9   +0.73%  +1.0(+1.5) +0.8(+1.3) +0.4(+0.5)
+  timsTOF HT              2    1042.7    1041.2   -0.14%  +0.5(+0.1) -0.8(-0.3)
+
+## PR defaults (query_spectrum=auto, local evidence on) (re_auto vs d_fc+d_fc_hr): files up 8 / flat 12 / down 0 of 20
+  Velos CID               3    2889.2    2940.0   +1.76%  +1.3(+1.2) +1.5(+1.8) +2.5(+1.8)
+  HF-X HCD                3    4396.3    4445.6   +1.12%  +2.1(+5.3) +0.3(+0.4) +0.9(+2.8)
+  Astral HCD              3    2322.4    2655.3  +14.33%  +9.0(+5.1) +15.3(+35.1) +18.3(+10.2)
+  Lumos HCD LFQ           3    5503.2    5552.6   +0.90%  +0.9(+9.7) +1.1(+6.2) +0.7(+4.5)
+  Lumos CID TMT           3    2396.8    2414.9   +0.76%  +2.2(+1.2) -0.9(-1.2) +1.0(+1.5)
+  Exploris 480 TMTpro     3    2530.3    2548.9   +0.73%  +1.0(+1.5) +0.8(+1.3) +0.4(+0.5)
+  timsTOF HT              2    1042.7    1041.2   -0.14%  +0.5(+0.1) -0.8(-0.3)
+
+## Identity checks (native TSV and PIN SHA-256)
+  PASS d_dedup_off == d_base on 3/3 files (peptide:deduplicate=false restores develop 3a47278): velos_125_R1 astral_A2 eclipse_tmtpro_10855
+  PASS d_fc+d_fc_hr == d_dedup on 14/14 files (#10397 leaves deisotoped (high-resolution) spectra unchanged): hfx_A2 hfx_B1 hfx_B3 astral_A2 astral_B1 astral_B3 lumos_lfq_5192 lumos_lfq_5194 lumos_lfq_5199 eclipse_tmtpro_10855 eclipse_tmtpro_10858 eclipse_tmtpro_10863 tims_plasma_30min tims_plasma_50min
+  PASS d_fc == a35_hs_multi on 6/6 files (#10397 equals #10335 with HyperScore and multiple charges): velos_125_R1 velos_5000_R2 velos_25000_R3 lumos_tmt_5058 lumos_tmt_5059 lumos_tmt_5066
+  PASS d_35 == d_dedup on 14/14 files (#10335 equals develop with #10394 on deisotoped spectra): hfx_A2 hfx_B1 hfx_B3 astral_A2 astral_B1 astral_B3 lumos_lfq_5192 lumos_lfq_5194 lumos_lfq_5199 eclipse_tmtpro_10855 eclipse_tmtpro_10858 eclipse_tmtpro_10863 tims_plasma_30min tims_plasma_50min
+  PASS re_off == d_fc+d_fc_hr on 3/3 files (the port with both options off equals develop): velos_125_R1 astral_A2 eclipse_tmtpro_10855
+  PASS re_rl == a35_raw_local on 14/14 files (the port reproduces #10335's raw + local arm on high-resolution files): hfx_A2 hfx_B1 hfx_B3 astral_A2 astral_B1 astral_B3 lumos_lfq_5192 lumos_lfq_5194 lumos_lfq_5199 eclipse_tmtpro_10855 eclipse_tmtpro_10858 eclipse_tmtpro_10863 tims_plasma_30min tims_plasma_50min
+  PASS re_auto == re_rl on 14/14 files (the PR defaults equal raw + local on high-resolution files): hfx_A2 hfx_B1 hfx_B3 astral_A2 astral_B1 astral_B3 lumos_lfq_5192 lumos_lfq_5194 lumos_lfq_5199 eclipse_tmtpro_10855 eclipse_tmtpro_10858 eclipse_tmtpro_10863 tims_plasma_30min tims_plasma_50min
+
+## Velos natural entrapment (r = 3.376; combined FDP = N_E (1 + 1/r) / N over 3 files x 3 seeds)
+  arm                   N  N_E     FDP
+  d_base            23403  172  0.953%
+  d_dedup           23891  190  1.031%
+  d_35              26136  231  1.146%
+  d_fc              26003  220  1.097%
+  a35_hs_single     23891  190  1.031%
+  a35_hs_multi      26003  220  1.097%
+  a35_cal_single    21671  181  1.083%
+  a35_local         26374  212  1.042%
+  re_r              15722  102  0.841%
+  re_rl             15803   80  0.656%
+  re_auto           26460  211  1.034%
+
+## Shuffled paired-mass entrapment (r = 1; combined FDP = 2 N_E / N, seed means summed over files)
+  HF-X HCD             develop 3a47278  N  12571.0  N_E  85.0  FDP 1.35%
+  HF-X HCD             #10394 (= 2f30b40) N  12659.0  N_E  94.3  FDP 1.49%
+  HF-X HCD             + local evidence N  12870.0  N_E  95.0  FDP 1.48%
+  HF-X HCD             + raw + local    N  12822.7  N_E  86.7  FDP 1.35%
+  Astral HCD           develop 3a47278  N   6463.3  N_E  55.7  FDP 1.72%
+  Astral HCD           #10394 (= 2f30b40) N   6486.0  N_E  63.0  FDP 1.94%
+  Astral HCD           + local evidence N   7172.7  N_E  61.3  FDP 1.71%
+  Astral HCD           + raw + local    N   7131.0  N_E  50.0  FDP 1.40%
+  Exploris 480 TMTpro  develop 3a47278  N   7346.7  N_E  39.0  FDP 1.06%
+  Exploris 480 TMTpro  #10394 (= 2f30b40) N   7451.3  N_E  41.3  FDP 1.11%
+  Exploris 480 TMTpro  + local evidence N   7515.7  N_E  44.0  FDP 1.17%
+  Exploris 480 TMTpro  + raw + local    N   7460.7  N_E  40.0  FDP 1.07%

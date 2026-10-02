@@ -1,0 +1,3 @@
+DDA                      floor 4350  uc_val 4548 (+0.00%)  re_on 4533 (-0.33%)
+DDA_calibrated           floor 4650  uc_val 4606 (+0.00%)  re_on 4616 (+0.22%)
+DDA_chunked_calibrated   floor None  uc_val 4572 (+0.00%)  re_on 4536 (-0.79%)
