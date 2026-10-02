@@ -1,0 +1,49 @@
+identity {'dataset': 'velos_125_R1', 'arm': 'pf_off', 'identical_to_develop': True}
+identity {'dataset': 'velos_125_R1', 'arm': 'pf', 'identical_to_develop': True}
+identity {'dataset': 'velos_5000_R2', 'arm': 'pf', 'identical_to_develop': True}
+identity {'dataset': 'velos_25000_R3', 'arm': 'pf', 'identical_to_develop': True}
+identity {'dataset': 'hfx_A2', 'arm': 'pf_off', 'identical_to_develop': True}
+identity {'dataset': 'astral_A2', 'arm': 'pf_off', 'identical_to_develop': True}
+identity {'dataset': 'lumos_tmt_5058', 'arm': 'pf', 'identical_to_develop': True}
+identity {'dataset': 'lumos_tmt_5059', 'arm': 'pf', 'identical_to_develop': True}
+identity {'dataset': 'lumos_tmt_5066', 'arm': 'pf', 'identical_to_develop': True}
+identity {'dataset': 'tims_plasma_30min', 'arm': 'pf_off', 'identical_to_develop': True}
+
+== ds1: up 6 / flat 8 / down 0 of 14
+  HF-X HCD               dense   0.0%   +0.20%  native  -0.2%  -0.1(-0.2) +0.3(+0.6) +0.4(+0.5)
+  Astral HCD             dense   0.0%   +4.33%  native  +6.2%  +7.4(+4.1) +2.5(+2.1) +3.1(+11.0)
+  Lumos HCD LFQ          dense   0.0%   +0.10%  native  -0.5%  +0.1(+0.3) +0.1(+0.5) +0.1(+1.0)
+  Exploris 480 TMTpro    dense   0.0%  +12.31%  native +25.7%  +9.1(+12.9) +15.4(+16.8) +12.4(+12.9)
+  timsTOF HT             dense   0.0%   +1.01%  native  -4.9%  +2.5(+2.0) -0.4(-0.2)
+
+== fz2: up 7 / flat 11 / down 2 of 20
+  Velos CID              dense   0.0%   +7.29%  native -21.9%  +10.1(+5.2) +4.8(+9.5) +7.0(+14.5)
+  HF-X HCD               dense   0.0%   -0.03%  native -13.5%  -0.4(-0.6) +0.7(+1.4) -0.4(-0.6)
+  Astral HCD             dense   0.0%   -3.67%  native -24.1%  -7.3(-1.9) -3.3(-1.8) -0.4(-1.1)
+  Lumos HCD LFQ          dense   0.0%   -0.30%  native -10.8%  -0.4(-2.4) -0.6(-4.1) +0.1(+1.0)
+  Lumos CID TMT          dense   0.0%   +0.37%  native -36.6%  -0.9(-0.7) +0.0(+0.0) +2.0(+5.0)
+  Exploris 480 TMTpro    dense   0.0%   +3.26%  native -11.9%  +1.0(+1.1) +3.2(+2.4) +5.6(+4.7)
+  timsTOF HT             dense   0.0%   +0.89%  native -29.7%  -2.5(-1.7) +4.3(+2.8)
+
+== ds1_fz2: up 9 / flat 10 / down 1 of 20
+  Velos CID              dense   0.0%   +7.29%  native -21.9%  +10.1(+5.2) +4.8(+9.5) +7.0(+14.5)
+  HF-X HCD               dense   0.0%   -0.08%  native -14.2%  -0.7(-0.8) +0.0(+0.1) +0.4(+0.5)
+  Astral HCD             dense   0.0%   +2.31%  native -17.5%  +2.2(+1.3) +0.6(+0.3) +4.1(+3.2)
+  Lumos HCD LFQ          dense   0.0%   -0.03%  native  -9.9%  -0.2(-1.0) -0.4(-2.3) +0.5(+2.5)
+  Lumos CID TMT          dense   0.0%   +0.37%  native -36.6%  -0.9(-0.7) +0.0(+0.0) +2.0(+5.0)
+  Exploris 480 TMTpro    dense   0.0%  +13.05%  native +11.0%  +10.0(+19.1) +16.4(+14.9) +12.8(+13.7)
+  timsTOF HT             dense   0.0%   -0.46%  native -25.7%  -2.0(-0.8) +1.1(+0.5)
+
+== ds1_mm4: up 12 / flat 2 / down 0 of 14
+  HF-X HCD               dense   0.0%   +3.24%  native  -0.2%  +1.9(+2.5) +4.7(+7.4) +3.1(+5.0)
+  Astral HCD             dense   0.0%   +5.57%  native  +6.2%  +10.7(+6.9) +2.3(+1.6) +3.7(+3.1)
+  Lumos HCD LFQ          dense   0.0%   +2.16%  native  -0.4%  +2.4(+12.2) +2.4(+9.0) +1.7(+6.8)
+  Exploris 480 TMTpro    dense   0.0%  +13.20%  native +25.7%  +10.7(+13.9) +16.3(+14.9) +12.6(+10.4)
+  timsTOF HT             dense   0.0%   +1.93%  native  -4.8%  +4.1(+2.8) -0.3(-0.1)
+
+== ds1_mm3: up 9 / flat 5 / down 0 of 14
+  HF-X HCD               dense   0.0%   +2.15%  native  -0.2%  +1.1(+1.3) +4.3(+7.8) +1.1(+1.7)
+  Astral HCD             dense   0.0%   +4.32%  native  +6.2%  +6.5(+3.8) +4.9(+3.4) +1.6(+0.8)
+  Lumos HCD LFQ          dense   0.0%   +2.28%  native  -0.4%  +3.1(+18.0) +2.5(+12.3) +1.2(+9.1)
+  Exploris 480 TMTpro    dense   0.0%  +13.80%  native +25.7%  +10.2(+18.9) +16.6(+17.1) +14.6(+16.1)
+  timsTOF HT             dense   0.0%   +0.83%  native  -4.8%  -0.4(-0.2) +2.0(+1.0)

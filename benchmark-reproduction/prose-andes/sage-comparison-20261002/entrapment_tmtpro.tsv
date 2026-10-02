@@ -1,0 +1,7 @@
+dataset	arm	psms	entrapment	fdp_lower_pct	fdp_combined_pct	gained_psms	gained_entrapment	gained_fdp_combined_pct
+eclipse_tmtpro_10855	tbase_E	2226	20.7	0.93	1.86	0	0	
+eclipse_tmtpro_10855	tds1_E	2605.7	13.7	0.52	1.05	1413	9	1.3
+eclipse_tmtpro_10858	tbase_E	2048.7	17.3	0.85	1.69	0	0	
+eclipse_tmtpro_10858	tds1_E	2364.7	13	0.55	1.1	1221	29	4.8
+eclipse_tmtpro_10863	tbase_E	2050	12.7	0.62	1.24	0	0	
+eclipse_tmtpro_10863	tds1_E	2376.3	12.3	0.52	1.04	1235	18	2.9

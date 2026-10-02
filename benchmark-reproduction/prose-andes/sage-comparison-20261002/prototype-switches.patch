@@ -1,0 +1,134 @@
+diff --git a/src/openms/include/OpenMS/ANALYSIS/ID/ProSEAlgorithm.h b/src/openms/include/OpenMS/ANALYSIS/ID/ProSEAlgorithm.h
+index 57d6b03..0b16979 100644
+--- a/src/openms/include/OpenMS/ANALYSIS/ID/ProSEAlgorithm.h
++++ b/src/openms/include/OpenMS/ANALYSIS/ID/ProSEAlgorithm.h
+@@ -604,7 +604,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
+                                    bool deisotope_requested,
+                                    Size peaks_keep_n,
+                                    Int peaks_window_top,
+-                                   const std::string& window_type = "auto");
++                                   const std::string& window_type = "auto",
++                                   unsigned int deisotope_start_check = 2);
+ 
+     /// Keep the strongest peaks in each non-overlapping 100 Da window, including a short final window.
+     static void filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window);
+@@ -823,6 +824,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
+     Size peaks_keep_n_{0};     ///< NLargest cap on MS2 peaks before scoring; 0 = resolution-aware auto (peaks:keep_n)
+     Int peaks_window_top_{20}; ///< WindowMower peaks-per-100Da before scoring (peaks:window_top)
+     std::string peaks_window_type_ {"auto"}; ///< Resolution-aware treatment of the final peak window
++    unsigned int deisotope_start_check_{2}; ///< Deisotoper start_intensity_check (fragment:deisotope_start_check)
++    Int scoring_max_fragment_charge_{1}; ///< Highest fragment charge scored, capped at precursor charge - 1 (scoring:max_fragment_charge)
++    /// Highest fragment charge scored for a candidate of the given precursor charge.
++    int scoredFragmentCharge_(int precursor_charge) const { return std::max(1, std::min(precursor_charge - 1, scoring_max_fragment_charge_)); }
+ 
+     StringList modifications_fixed_;
+ 
+diff --git a/src/openms/source/ANALYSIS/ID/ProSEAlgorithm.cpp b/src/openms/source/ANALYSIS/ID/ProSEAlgorithm.cpp
+index 3c5cdd5..ed401b8 100644
+--- a/src/openms/source/ANALYSIS/ID/ProSEAlgorithm.cpp
++++ b/src/openms/source/ANALYSIS/ID/ProSEAlgorithm.cpp
+@@ -230,6 +230,13 @@ namespace OpenMS
+     // Fragment and scoring limits
+     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
+     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
++    defaults_.setValue("scoring:max_fragment_charge", 1, "Highest fragment charge in the theoretical spectra that are scored, "
++                       "capped at the precursor charge minus 1. 1 scores singly charged fragments only.", {"advanced"});
++    defaults_.setMinInt("scoring:max_fragment_charge", 1);
++    defaults_.setValue("fragment:deisotope_start_check", 2, "Deisotoper start_intensity_check: 2 lets the first isotope step rise "
++                       "(the second peak may exceed the first), 1 requires intensities to fall from the monoisotopic peak.", {"advanced"});
++    defaults_.setMinInt("fragment:deisotope_start_check", 1);
++    defaults_.setMaxInt("fragment:deisotope_start_check", 2);
+     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
+ 
+     // Ion series toggles
+@@ -302,6 +309,8 @@ namespace OpenMS
+     peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
+     peaks_window_top_ = (Int)param_.getValue("peaks:window_top");
+     peaks_window_type_ = param_.getValue("peaks:window_type").toString();
++    scoring_max_fragment_charge_ = (Int)param_.getValue("scoring:max_fragment_charge");
++    deisotope_start_check_ = (unsigned int)(int)param_.getValue("fragment:deisotope_start_check");
+ 
+     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
+ 
+@@ -488,7 +497,8 @@ namespace OpenMS
+                                           bool deisotope_requested,
+                                           Size peaks_keep_n,
+                                           Int peaks_window_top,
+-                                          const std::string& window_type)
++                                          const std::string& window_type,
++                                          unsigned int deisotope_start_check)
+   {
+     // Intensity threshold + normalization used to run here as two extra SERIAL full-map
+     // passes. Both are strictly per-spectrum: ThresholdMower::filterPeakMap and
+@@ -554,7 +564,7 @@ namespace OpenMS
+       Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+ 
+ #pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, threshold_mower_filter, \
+-                                                normalizer, window_mower_filter, nlargest_filter, full_window_quota, peaks_window_top)
++                                                normalizer, window_mower_filter, nlargest_filter, full_window_quota, peaks_window_top, deisotope_start_check)
+     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
+     {
+       // remove 0 intensities, then normalize (formerly two serial full-map passes)
+@@ -572,7 +582,8 @@ namespace OpenMS
+           1, 3,   // min / max charge
+           false,  // keep only deisotoped
+           3, 10,  // min / max isopeaks
+-          true);  // convert fragment m/z to mono-charge
++          true,   // convert fragment m/z to mono-charge
++          false, false, true, deisotope_start_check);
+       }
+ 
+       // remove noise
+@@ -1055,6 +1066,7 @@ namespace OpenMS
+ 
+     search_parameters.setMetaValue("peptide:clip_nterm_methionine", param_.getValue("peptide:clip_nterm_methionine"));
+     search_parameters.setMetaValue("peaks:window_type", peaks_window_type_);
++    search_parameters.setMetaValue("fragment:deisotope_start_check", static_cast<int>(deisotope_start_check_));
+     search_parameters.setMetaValue(
+       "peaks:window_type_resolved",
+       peaks_window_type_ == "auto"
+@@ -1479,7 +1491,7 @@ namespace OpenMS
+         // Clear peaks + data arrays (ion names / charges) before refilling for the
+         // next candidate; getSpectrum appends to whatever is there.
+         theo_spectrum.clear(true);
+-        spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, 1);
++        spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, scoredFragmentCharge_(sms.precursor_charge_));
+         // Note: TSG emits sorted output when add_metainfo=true (see the
+         // sortByPositionPresorted() call at the tail of getSpectrum_); the extra
+         // sortByPosition() pass here was a redundant O(N) scan per candidate.
+@@ -1617,7 +1629,7 @@ namespace OpenMS
+     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
+     bool open_search_mode = isOpenSearchMode_();
+     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_,
+-                       peaks_window_type_);
++                       peaks_window_type_, deisotope_start_check_);
+ 
+     // ions:by_activation: the chunk indices hold c and z+1 ions if electron-activated spectra are searched
+     const Size n_electron_activated = countElectronActivated_(spectra);
+@@ -1873,7 +1885,7 @@ namespace OpenMS
+ 
+     startProgress(0, 1, "Filtering spectra...");
+     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_,
+-                       peaks_window_type_);
++                       peaks_window_type_, deisotope_start_check_);
+     endProgress();
+ 
+     // ions:by_activation: electron-activated spectra are also scored with c and z+1 ions, so the
+@@ -2434,7 +2446,7 @@ namespace OpenMS
+         f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+         all_spectra[i].sortSpectra(true);
+         preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_,
+-                           peaks_window_top_, peaks_window_type_);
++                           peaks_window_top_, peaks_window_type_, deisotope_start_check_);
+       }
+ 
+       // ions:by_activation: the chunk indices, shared by all files, hold c and z+1 ions if any file has
+@@ -3306,7 +3318,7 @@ namespace OpenMS
+         // Clear peaks + data arrays before refilling; getSpectrum appends to
+         // whatever is there. Its output is already sorted with add_metainfo=true.
+         theo.clear(true);
+-        tsg.getSpectrum(theo, seq, 1, 1);
++        tsg.getSpectrum(theo, seq, 1, scoredFragmentCharge_(sms.precursor_charge_));
+ 
+         HyperScore::PSMDetail detail;
+         double score = HyperScore::computeWithDetail(

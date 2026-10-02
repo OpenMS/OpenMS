@@ -1,0 +1,15 @@
+dataset	group	arm	sage	prose	both_same	conflict	sage_only_no_candidate	sage_only_absent_top10	sage_only_below_rank1	sage_only_rank1_not_accepted	prose_only_no_candidate	prose_only_absent_top10	prose_only_below_rank1	prose_only_rank1_not_accepted
+hfx_A2	HF-X HCD	ds1	4437	4463	4068	84	121	38	24	102	0	58	112	141
+hfx_B1	HF-X HCD	ds1	4551	4298	4046	44	271	40	26	124	1	46	64	97
+hfx_B3	HF-X HCD	ds1	4463	4395	4034	95	141	33	25	135	1	55	93	117
+astral_A2	Astral HCD	ds1	2157	2111	1755	43	54	40	38	227	1	71	109	132
+astral_B1	Astral HCD	ds1	2157	2433	1901	31	56	41	24	104	0	86	168	247
+astral_B3	Astral HCD	ds1	2310	2322	1900	39	80	68	46	177	2	89	119	173
+lumos_lfq_5192	Lumos HCD LFQ	ds1	5642	5497	5274	116	138	45	19	50	0	66	26	15
+lumos_lfq_5194	Lumos HCD LFQ	ds1	5601	5481	5274	101	133	38	8	47	0	55	34	17
+lumos_lfq_5199	Lumos HCD LFQ	ds1	5581	5521	5237	153	90	44	17	40	0	65	28	38
+eclipse_tmtpro_10855	Exploris 480 TMTpro	ds1	2710	2643	2542	32	28	6	6	96	0	13	16	40
+eclipse_tmtpro_10858	Exploris 480 TMTpro	ds1	2546	2457	2358	23	62	17	9	77	0	6	23	47
+eclipse_tmtpro_10863	Exploris 480 TMTpro	ds1	2539	2461	2356	32	55	9	7	80	0	10	25	38
+tims_plasma_30min	timsTOF HT	ds1	1079	1056	1002	1	22	2	4	48	1	3	6	43
+tims_plasma_50min	timsTOF HT	ds1	1033	1006	926	1	27	5	6	68	0	2	12	65

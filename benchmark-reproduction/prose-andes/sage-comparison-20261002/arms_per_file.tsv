@@ -1,0 +1,83 @@
+arm	dataset	group	dense_pct	develop	mean	delta_pct	z	verdict	native_delta_pct
+fz2	velos_125_R1	Velos CID		2529	2784.3	10.1	5.2	up	-21.8
+ds1_fz2	velos_125_R1	Velos CID		2529	2784.3	10.1	5.2	up	-21.8
+fz2	velos_5000_R2	Velos CID		2725.3	2855	4.76	9.5	up	-18.3
+ds1_fz2	velos_5000_R2	Velos CID		2725.3	2855	4.76	9.5	up	-18.3
+fz2	velos_25000_R3	Velos CID		2546.7	2725.3	7.02	14.5	up	-25.7
+ds1_fz2	velos_25000_R3	Velos CID		2546.7	2725.3	7.02	14.5	up	-25.7
+ds1	hfx_A2	HF-X HCD		4477.3	4471.7	-0.13	-0.2	flat	-1.5
+fz2	hfx_A2	HF-X HCD		4477.3	4459	-0.41	-0.6	flat	-9.9
+ds1_fz2	hfx_A2	HF-X HCD		4477.3	4447.3	-0.67	-0.8	flat	-8.6
+ds1_mm4	hfx_A2	HF-X HCD		4477.3	4562	1.89	2.5	up	-1.5
+ds1_mm3	hfx_A2	HF-X HCD		4477.3	4525.7	1.08	1.3	flat	-1.5
+ds1	hfx_B1	HF-X HCD		4284	4297.3	0.31	0.6	flat	0.5
+fz2	hfx_B1	HF-X HCD		4284	4314.3	0.71	1.4	flat	-15.1
+ds1_fz2	hfx_B1	HF-X HCD		4284	4285.7	0.04	0.1	flat	-15.5
+ds1_mm4	hfx_B1	HF-X HCD		4284	4484	4.67	7.4	up	0.7
+ds1_mm3	hfx_B1	HF-X HCD		4284	4468.7	4.31	7.8	up	0.7
+ds1	hfx_B3	HF-X HCD		4379.7	4397.7	0.41	0.5	flat	0.3
+fz2	hfx_B3	HF-X HCD		4379.7	4362.7	-0.39	-0.6	flat	-15.5
+ds1_fz2	hfx_B3	HF-X HCD		4379.7	4396.3	0.38	0.5	flat	-18.4
+ds1_mm4	hfx_B3	HF-X HCD		4379.7	4517.7	3.15	5.0	up	0.3
+ds1_mm3	hfx_B3	HF-X HCD		4379.7	4426.3	1.07	1.7	flat	0.3
+ds1	astral_A2	Astral HCD		1955.3	2100	7.4	4.1	up	6.9
+fz2	astral_A2	Astral HCD		1955.3	1811.7	-7.35	-1.9	flat	-21.2
+ds1_fz2	astral_A2	Astral HCD		1955.3	1999.3	2.25	1.3	flat	-15.5
+ds1_mm4	astral_A2	Astral HCD		1955.3	2165.3	10.74	6.9	up	6.9
+ds1_mm3	astral_A2	Astral HCD		1955.3	2082.7	6.51	3.8	up	6.9
+ds1	astral_B1	Astral HCD		2373	2431.3	2.46	2.1	up	5.8
+fz2	astral_B1	Astral HCD		2373	2294.7	-3.3	-1.8	flat	-24.7
+ds1_fz2	astral_B1	Astral HCD		2373	2386.7	0.58	0.3	flat	-21.5
+ds1_mm4	astral_B1	Astral HCD		2373	2427.7	2.3	1.6	flat	5.8
+ds1_mm3	astral_B1	Astral HCD		2373	2488.3	4.86	3.4	up	5.8
+ds1	astral_B3	Astral HCD		2240.3	2310.3	3.12	11.0	up	6.0
+fz2	astral_B3	Astral HCD		2240.3	2232	-0.37	-1.1	flat	-26.4
+ds1_fz2	astral_B3	Astral HCD		2240.3	2332	4.09	3.2	up	-15.6
+ds1_mm4	astral_B3	Astral HCD		2240.3	2322.3	3.66	3.1	up	6.0
+ds1_mm3	astral_B3	Astral HCD		2240.3	2276	1.59	0.8	flat	6.0
+ds1	lumos_lfq_5192	Lumos HCD LFQ		5500	5502.7	0.05	0.3	flat	-2.2
+fz2	lumos_lfq_5192	Lumos HCD LFQ		5500	5479	-0.38	-2.4	down	-12.0
+ds1_fz2	lumos_lfq_5192	Lumos HCD LFQ		5500	5491.3	-0.16	-1.0	flat	-11.8
+ds1_mm4	lumos_lfq_5192	Lumos HCD LFQ		5500	5633	2.42	12.2	up	-2.1
+ds1_mm3	lumos_lfq_5192	Lumos HCD LFQ		5500	5670	3.09	18.0	up	-2.1
+ds1	lumos_lfq_5194	Lumos HCD LFQ		5470	5476.3	0.12	0.5	flat	0.4
+fz2	lumos_lfq_5194	Lumos HCD LFQ		5470	5436	-0.62	-4.1	down	-10.1
+ds1_fz2	lumos_lfq_5194	Lumos HCD LFQ		5470	5445.7	-0.44	-2.3	down	-8.5
+ds1_mm4	lumos_lfq_5194	Lumos HCD LFQ		5470	5598.7	2.35	9.0	up	0.6
+ds1_mm3	lumos_lfq_5194	Lumos HCD LFQ		5470	5606	2.49	12.3	up	0.6
+ds1	lumos_lfq_5199	Lumos HCD LFQ		5518.3	5526	0.14	1.0	flat	0.2
+fz2	lumos_lfq_5199	Lumos HCD LFQ		5518.3	5524.3	0.11	1.0	flat	-10.4
+ds1_fz2	lumos_lfq_5199	Lumos HCD LFQ		5518.3	5545.7	0.5	2.5	up	-9.5
+ds1_mm4	lumos_lfq_5199	Lumos HCD LFQ		5518.3	5612.3	1.7	6.8	up	0.4
+ds1_mm3	lumos_lfq_5199	Lumos HCD LFQ		5518.3	5587.3	1.25	9.1	up	0.4
+fz2	lumos_tmt_5058	Lumos CID TMT		2251.7	2230.3	-0.95	-0.7	flat	-35.5
+ds1_fz2	lumos_tmt_5058	Lumos CID TMT		2251.7	2230.3	-0.95	-0.7	flat	-35.5
+fz2	lumos_tmt_5059	Lumos CID TMT		2338	2339	0.04	0.0	flat	-39.1
+ds1_fz2	lumos_tmt_5059	Lumos CID TMT		2338	2339	0.04	0.0	flat	-39.1
+fz2	lumos_tmt_5066	Lumos CID TMT		2392.3	2440.7	2.02	5.0	up	-35.2
+ds1_fz2	lumos_tmt_5066	Lumos CID TMT		2392.3	2440.7	2.02	5.0	up	-35.2
+ds1	eclipse_tmtpro_10855	Exploris 480 TMTpro		2418.3	2638.7	9.11	12.9	up	23.1
+fz2	eclipse_tmtpro_10855	Exploris 480 TMTpro		2418.3	2443	1.02	1.1	flat	-14.5
+ds1_fz2	eclipse_tmtpro_10855	Exploris 480 TMTpro		2418.3	2660.3	10.01	19.1	up	15.1
+ds1_mm4	eclipse_tmtpro_10855	Exploris 480 TMTpro		2418.3	2677.3	10.71	13.9	up	23.1
+ds1_mm3	eclipse_tmtpro_10855	Exploris 480 TMTpro		2418.3	2666	10.24	18.9	up	23.1
+ds1	eclipse_tmtpro_10858	Exploris 480 TMTpro		2132.3	2460.3	15.38	16.8	up	30.6
+fz2	eclipse_tmtpro_10858	Exploris 480 TMTpro		2132.3	2200.3	3.19	2.4	up	-9.8
+ds1_fz2	eclipse_tmtpro_10858	Exploris 480 TMTpro		2132.3	2481.7	16.38	14.9	up	14.7
+ds1_mm4	eclipse_tmtpro_10858	Exploris 480 TMTpro		2132.3	2480.7	16.34	14.9	up	30.6
+ds1_mm3	eclipse_tmtpro_10858	Exploris 480 TMTpro		2132.3	2485.3	16.55	17.1	up	30.6
+ds1	eclipse_tmtpro_10863	Exploris 480 TMTpro		2184	2456	12.45	12.9	up	23.5
+fz2	eclipse_tmtpro_10863	Exploris 480 TMTpro		2184	2305.3	5.56	4.7	up	-11.5
+ds1_fz2	eclipse_tmtpro_10863	Exploris 480 TMTpro		2184	2463	12.77	13.7	up	3.1
+ds1_mm4	eclipse_tmtpro_10863	Exploris 480 TMTpro		2184	2458	12.55	10.4	up	23.5
+ds1_mm3	eclipse_tmtpro_10863	Exploris 480 TMTpro		2184	2503.3	14.62	16.1	up	23.5
+ds1	tims_plasma_30min	timsTOF HT		1030.3	1055.7	2.46	2.0	flat	2.4
+fz2	tims_plasma_30min	timsTOF HT		1030.3	1004.7	-2.49	-1.7	flat	-22.7
+ds1_fz2	tims_plasma_30min	timsTOF HT		1030.3	1009.3	-2.04	-0.8	flat	-19.2
+ds1_mm4	tims_plasma_30min	timsTOF HT		1030.3	1073	4.14	2.8	up	2.4
+ds1_mm3	tims_plasma_30min	timsTOF HT		1030.3	1026.7	-0.36	-0.2	flat	2.4
+ds1	tims_plasma_50min	timsTOF HT		999.7	995.3	-0.43	-0.2	flat	-12.2
+fz2	tims_plasma_50min	timsTOF HT		999.7	1042.3	4.27	2.8	up	-36.7
+ds1_fz2	tims_plasma_50min	timsTOF HT		999.7	1011	1.13	0.5	flat	-32.2
+ds1_mm4	tims_plasma_50min	timsTOF HT		999.7	997	-0.27	-0.1	flat	-12.1
+ds1_mm3	tims_plasma_50min	timsTOF HT		999.7	1020	2.03	1.0	flat	-12.1
