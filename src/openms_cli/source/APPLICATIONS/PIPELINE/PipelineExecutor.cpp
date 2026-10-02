@@ -324,7 +324,7 @@ namespace
   {
     fs::create_directories(target.parent_path());
     if (fs::exists(target) && fs::equivalent(source, target)) return;
-    const fs::path staged = target.parent_path() / (".pipeline-copy-" + File::getUniqueName() + ".part");
+    const fs::path staged = target.parent_path() / (Tool::temporaryName(".cp-") + ".part");
     try
     {
       fs::copy_file(source, staged);
@@ -527,7 +527,7 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
     TemporaryDirectory temporary {{}, options.keep_temporary_files};
     for (Size attempt = 0; attempt < 10 && temporary.path.empty(); ++attempt)
     {
-      const auto candidate = parent / ("OpenMS_pipeline_" + File::getUniqueName());
+      const auto candidate = parent / Tool::temporaryName("omp-");
       if (fs::create_directory(candidate)) temporary.path = fs::absolute(candidate);
     }
     if (temporary.path.empty()) throw Failure(TOPPBase::CANNOT_WRITE_OUTPUT_FILE, "Could not create an exclusive temporary run directory.");

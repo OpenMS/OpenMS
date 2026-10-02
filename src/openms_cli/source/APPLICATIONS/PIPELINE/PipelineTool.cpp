@@ -18,7 +18,9 @@
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <algorithm>
 #include <cctype>
+#include <charconv>
 #include <filesystem>
+#include <functional>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -185,12 +187,23 @@ namespace
   }
 } // namespace
 
+std::string PipelineTool::temporaryName(const std::string& prefix)
+{
+  // Hostnames and timestamps can consume most of MAX_PATH once repeated in a
+  // run directory and its filename probe. Hash their unique token instead;
+  // exclusive creation remains responsible for handling any name collision.
+  const auto value = std::hash<std::string> {}(File::getUniqueName(false));
+  char buffer[2 * sizeof(value)];
+  const auto converted = std::to_chars(std::begin(buffer), std::end(buffer), value, 16);
+  return prefix + std::string(buffer, converted.ptr);
+}
+
 PipelinePathClaims::PipelinePathClaims(const fs::path& root): root_(fs::weakly_canonical(fs::absolute(root)))
 {
   fs::create_directories(root_);
   for (Size attempt = 0; attempt < 10; ++attempt)
   {
-    const auto candidate = root_ / (".pipeline-paths-" + File::getUniqueName());
+    const auto candidate = root_ / PipelineTool::temporaryName(".pc-");
     if (fs::create_directory(candidate))
     {
       probe_ = candidate;
@@ -532,14 +545,13 @@ void PipelineTool::finalizeOutputs(Rounds& outputs)
   // Two-phase renaming handles swaps and suffix collisions without deleting a source file.
   try
   {
-    Size serial = 0;
     for (auto& rename : renames)
     {
       if (rename.source == rename.target) { continue; }
       fs::path candidate;
       do
       {
-        candidate = rename.source.parent_path() / (".pipeline-rename-" + File::getUniqueName() + "-" + std::to_string(serial++));
+        candidate = rename.source.parent_path() / temporaryName(".rn-");
       } while (fs::exists(candidate) || targets.count(candidate));
       fs::rename(rename.source, candidate);
       rename.staged = std::move(candidate);

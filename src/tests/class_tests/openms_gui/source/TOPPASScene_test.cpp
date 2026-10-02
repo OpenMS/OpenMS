@@ -6,6 +6,7 @@
 #include <OpenMS/APPLICATIONS/PIPELINE/PipelineFile.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
@@ -17,6 +18,7 @@
 #include <QElapsedTimer>
 #include <QTemporaryDir>
 #include <QTimer>
+#include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <thread>
@@ -111,7 +113,7 @@ START_SECTION((shared execution, layout edits, and definitions - only include))
   auto* copied_input = qobject_cast<TOPPASInputFileListVertex*>(*included.verticesBegin());
   TEST_NOT_EQUAL(copied_input, nullptr)
   TEST_EQUAL(copied_input->getFileNames().size(), 1)
-  TEST_EQUAL(fromQString(copied_input->getFileNames().front()), input_file)
+  TEST_TRUE(std::filesystem::equivalent(to_path(fromQString(copied_input->getFileNames().front())), to_path(input_file)))
   for (auto it = included.verticesBegin(); it != included.verticesEnd(); ++it)
   {
     TEST_FALSE((*it)->isFinished())
@@ -444,9 +446,9 @@ START_SECTION((editing input files during a run preserves the new selection))
   source_vertex->parameterChanged(true);
   TEST_FALSE(scene.isPipelineRunning())
   TEST_EQUAL(source_vertex->getFileNames().size(), 1)
-  TEST_EQUAL(fromQString(source_vertex->getFileNames().front()), replacement)
+  TEST_TRUE(std::filesystem::equivalent(to_path(fromQString(source_vertex->getFileNames().front())), to_path(replacement)))
   QApplication::processEvents();
-  TEST_EQUAL(fromQString(source_vertex->getFileNames().front()), replacement)
+  TEST_TRUE(std::filesystem::equivalent(to_path(fromQString(source_vertex->getFileNames().front())), to_path(replacement)))
 
   Param parameters = tool->getParam();
   parameters.setValue("delay_ms", 0);
@@ -455,7 +457,7 @@ START_SECTION((editing input files during a run preserves the new selection))
   scene.runPipeline();
   TEST_TRUE(finish(scene))
   TEST_EQUAL(tool->getStatus(), TOPPASToolVertex::TOOL_SUCCESS)
-  TEST_EQUAL(fromQString(source_vertex->getFileNames().front()), replacement)
+  TEST_TRUE(std::filesystem::equivalent(to_path(fromQString(source_vertex->getFileNames().front())), to_path(replacement)))
   const auto published = (*(scene.verticesBegin() + 2))->getFileNames();
   TEST_EQUAL(published.size(), 1)
   if (! published.empty())

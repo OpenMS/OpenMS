@@ -36,6 +36,10 @@ struct PipelineTool
   using FileBundle = PipelineExecutor::FileBundle;
   using Rounds = PipelineExecutor::Rounds;
 
+  /// Short private names keep generated paths within native Windows path limits.
+  /// Callers still reserve them exclusively or check for existing destinations.
+  static std::string temporaryName(const std::string& prefix);
+
   struct Port
   {
     enum class Kind

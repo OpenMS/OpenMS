@@ -425,6 +425,33 @@ START_SECTION([EXTRA] A symlinked temporary parent preserves valid output paths)
 }
 END_SECTION
 
+START_SECTION([EXTRA] Deep temporary parents support real execution and content renaming)
+{
+  Fixture fixture;
+  auto temporary = fs::weakly_canonical(fixture.directory) / "deep temporary";
+  // Windows user-profile temp paths are substantially longer than /tmp. Use a
+  // realistic deep parent on every platform, without requiring long-path mode.
+  if (temporary.native().size() < 127) { temporary /= std::string(127 - temporary.native().size(), 'd'); }
+  fs::create_directories(temporary);
+  fixture.options.temp_directory = pathString(temporary);
+  fixture.options.keep_temporary_files = false;
+  const auto input = fixture.input("sample");
+  for (const std::string port : {"out", "untyped_out"})
+  {
+    auto graph = singleToolGraph({input});
+    graph.edges.back().source_port = port;
+    PipelineExecutor executor;
+    const auto result = executor.run(graph, fixture.options);
+    TEST_EQUAL(result.exit_code, 0)
+    TEST_EQUAL(result.error_message, "")
+    const auto published = fixture.writtenFiles();
+    TEST_EQUAL(published.size(), 1)
+    TEST_EQUAL(readFile(published.at(0)), readFile(input))
+    TEST_TRUE(fs::is_empty(temporary))
+  }
+}
+END_SECTION
+
 #ifndef _WIN32
 START_SECTION([EXTRA] Long valid basenames survive content renaming and publication)
 {

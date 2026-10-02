@@ -270,20 +270,26 @@ START_SECTION([EXTRA] Workflow input paths retain symlink and parent directory s
       const auto text = path.generic_u8string();
       return std::string(text.begin(), text.end());
     };
+    const auto input = directory / "shortcut" / ".." / "sample.mzML";
+#ifndef _WIN32
+    TEST_TRUE(fs::equivalent(input, directory / "actual" / "sample.mzML"))
+#endif
+    // Preserve the native resolution: Windows removes .. before traversing
+    // the symlink, whereas POSIX traverses the symlink first.
     auto graph = exampleGraph();
     graph.node(10).files = {"shortcut/../sample.mzML"};
     const auto workflow = path_string(directory / "workflow.toppas");
     PipelineGraph loaded;
     PipelineFile().loadParam(PipelineFile().storeParam(graph), loaded, workflow);
-    TEST_TRUE(fs::equivalent(to_path(loaded.node(0).files.front()), directory / "actual" / "sample.mzML"))
+    TEST_TRUE(fs::equivalent(to_path(loaded.node(0).files.front()), input))
 
-    graph.node(10).files = {path_string(directory / "shortcut" / ".." / "sample.mzML")};
+    graph.node(10).files = {path_string(input)};
     PipelineFile().store(workflow, graph);
     PipelineFile().load(workflow, loaded);
-    TEST_TRUE(fs::equivalent(to_path(loaded.node(0).files.front()), directory / "actual" / "sample.mzML"))
+    TEST_TRUE(fs::equivalent(to_path(loaded.node(0).files.front()), input))
 
-    // A workflow opened through a directory symlink cannot use a lexical ../
-    // path to refer to the symlink's sibling: that would select actual/sample.
+    // Preserve file identity when opening a workflow through a directory symlink;
+    // on POSIX, a lexical ../ path here would select actual/sample instead.
     const auto linked_workflow = path_string(directory / "shortcut" / "workflow.toppas");
     graph.node(10).files = {path_string(directory / "sample.mzML")};
     PipelineFile().store(linked_workflow, graph);
