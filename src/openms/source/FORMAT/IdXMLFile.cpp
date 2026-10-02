@@ -30,6 +30,10 @@
 #include <sstream>
 #include <unordered_map>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace std;
 
 namespace OpenMS
@@ -442,7 +446,8 @@ namespace OpenMS
       std::exception_ptr error;
       std::atomic<bool> failed(false);
 
-#pragma omp parallel if (num_blocks > 1) reduction(+ : count_wrong_id, count_empty)
+      // at most 16 threads: with more, the formatting outruns the serial write into the file and the threads only wait
+#pragma omp parallel if (num_blocks > 1) num_threads(std::min(omp_get_max_threads(), 16)) reduction(+ : count_wrong_id, count_empty)
       {
         Scratch scratch;
 #pragma omp for ordered schedule(dynamic, 1)
