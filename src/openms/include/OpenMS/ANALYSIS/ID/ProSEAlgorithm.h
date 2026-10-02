@@ -703,6 +703,14 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         const std::vector<FASTAFile::FASTAEntry>& fasta_db,
         const DecoyStrategy_& strategy) const;
 
+    /// As above, but takes the entries of @p fasta_db over instead of copying them
+    std::vector<FASTAFile::FASTAEntry> buildDecoyAugmentedDB_(
+        std::vector<FASTAFile::FASTAEntry>&& fasta_db,
+        const DecoyStrategy_& strategy) const;
+
+    /// prepareContext(fasta_db, electron_ions) that takes the entries of @p fasta_db over instead of copying them
+    SearchContext prepareContext_(std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions) const;
+
     /**
      * @brief Build a strided protein sample for chunked calibration.
      *

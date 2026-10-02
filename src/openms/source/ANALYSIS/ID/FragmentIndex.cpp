@@ -43,6 +43,12 @@
 #include <string_view>
 #include <unordered_map>
 #include <boost/sort/sort.hpp>
+#if defined(__linux__) && defined(_OPENMP)
+  #include <cstdint>
+  #include <type_traits>
+  #include <sys/mman.h> // madvise (releasePagesInParallel)
+  #include <unistd.h>
+#endif
 #if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_IX86))
   #include <intrin.h> // _mm_prefetch (queryPeaks)
 #endif
@@ -458,8 +464,42 @@ namespace OpenMS
   }
 #endif
 
+  namespace
+  {
+    // Gives the memory pages of a large buffer back to the operating system with the OpenMP
+    // threads, so that the deallocation that follows has no pages left to unmap. Unmapping the
+    // ~2 GB of a proteome-wide index is otherwise a serial step of 0.2 - 0.4 s per search.
+    // The content of the buffer is lost: the caller deallocates it right away and does not read
+    // it before, so no result depends on this. Failing calls leave the pages to the deallocation.
+    template <typename T>
+    void releasePagesInParallel(std::vector<T>& buffer)
+    {
+#if defined(__linux__) && defined(_OPENMP)
+      static_assert(std::is_trivially_destructible<T>::value, "destructors would read the released pages");
+      const std::uintptr_t page = static_cast<std::uintptr_t>(sysconf(_SC_PAGESIZE));
+      const std::uintptr_t slice = (std::uintptr_t(32) << 20) / page * page;
+      // whole pages inside the buffer only: its first and last page may hold other data
+      const std::uintptr_t begin = (reinterpret_cast<std::uintptr_t>(buffer.data()) + page - 1) / page * page;
+      const std::uintptr_t end = (reinterpret_cast<std::uintptr_t>(buffer.data()) + buffer.capacity() * sizeof(T)) / page * page;
+      if (omp_get_max_threads() < 2 || omp_in_parallel() || end < begin + 2 * slice) { return; }
+      const SignedSize slices = static_cast<SignedSize>((end - begin + slice - 1) / slice);
+      #pragma omp parallel for schedule(dynamic)
+      for (SignedSize i = 0; i < slices; ++i)
+      {
+        const std::uintptr_t from = begin + static_cast<std::uintptr_t>(i) * slice;
+        madvise(reinterpret_cast<void*>(from), std::min(slice, end - from), MADV_DONTNEED);
+      }
+#else
+      (void) buffer;
+#endif
+    }
+  }
+
   void FragmentIndex::clear()
   {
+    releasePagesInParallel(fi_fragments_);
+    releasePagesInParallel(electron_fragments_);
+    releasePagesInParallel(fi_peptides_);
     // swap-to-empty ensures the underlying heap capacity is actually released.
     // std::vector::clear() alone only resets size; capacity stays resident, which
     // defeats the M1 optimization of freeing the fragment index before downstream

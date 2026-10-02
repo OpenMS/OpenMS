@@ -57,11 +57,13 @@
 #include <limits>
 #include <numeric>
 #include <iomanip>
+#include <iterator>
 #include <locale>
 #include <ostream>
 #include <map>
 #include <set>
 #include <sstream>
+#include <string_view>
 #include <tuple>
 
 #ifdef _OPENMP
@@ -1513,8 +1515,17 @@ namespace OpenMS
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
       const DecoyStrategy_& strategy) const
   {
-    std::vector<FASTAFile::FASTAEntry> db;
-    db.reserve(fasta_db.size() * (strategy.generate ? 2 : 1));
+    return buildDecoyAugmentedDB_(std::vector<FASTAFile::FASTAEntry>(fasta_db), strategy);
+  }
+
+  std::vector<FASTAFile::FASTAEntry>
+  ProSEAlgorithm::buildDecoyAugmentedDB_(
+      std::vector<FASTAFile::FASTAEntry>&& fasta_db,
+      const DecoyStrategy_& strategy) const
+  {
+    // The entries are filtered in place instead of being copied one by one: the same entries
+    // in the same order.
+    std::vector<FASTAFile::FASTAEntry> db = std::move(fasta_db);
 
     // decoys=auto reusing pre-existing decoys logs nothing otherwise; surface the auto-detected
     // marker so a rare DecoyHelper misdetection (a target DB whose accessions start with a decoy
@@ -1526,25 +1537,30 @@ namespace OpenMS
                       << (strategy.is_prefix ? "prefix" : "suffix") << ")." << std::endl;
     }
 
-    // 1. Copy targets, dropping pre-existing decoys when requested. A stop codon ('*') that ends
+    // 1. Keep targets, dropping pre-existing decoys when requested. A stop codon ('*') that ends
     //    a sequence, as in databases translated from genomes (e.g. SGD), is not a residue: remove
     //    it so the C-terminal peptide stays searchable and decoys are built from the protein
     //    alone. FragmentIndex skips peptides that contain a stop codon inside the sequence.
     //    An entry left without residues has nothing to search, and decoy generation needs
     //    residues: drop it.
-    for (const FASTAFile::FASTAEntry& e : fasta_db)
+    auto kept = db.begin();
+    for (FASTAFile::FASTAEntry& e : db)
     {
       const bool is_existing_decoy = strategy.strip_existing &&
         (strategy.strip_is_prefix ? StringUtils::hasPrefix(e.identifier, strategy.strip_string)
                                   : StringUtils::hasSuffix(e.identifier, strategy.strip_string));
       if (!is_existing_decoy)
       {
-        db.push_back(e);
-        std::string& sequence = db.back().sequence;
+        std::string& sequence = e.sequence;
         while (!sequence.empty() && sequence.back() == '*') { sequence.pop_back(); }
-        if (sequence.empty()) { db.pop_back(); }
+        if (!sequence.empty())
+        {
+          if (&*kept != &e) { *kept = std::move(e); }
+          ++kept;
+        }
       }
     }
+    db.erase(kept, db.end());
 
     // 2. Generate decoys by reversing the (remaining) target proteins.
     if (strategy.generate)
@@ -1655,11 +1671,18 @@ namespace OpenMS
   ProSEAlgorithm::prepareContext(
       const std::vector<FASTAFile::FASTAEntry>& fasta_db, bool electron_ions) const
   {
+    return prepareContext_(std::vector<FASTAFile::FASTAEntry>(fasta_db), electron_ions);
+  }
+
+  ProSEAlgorithm::SearchContext
+  ProSEAlgorithm::prepareContext_(
+      std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions) const
+  {
     SearchContext ctx;
 
     startProgress(0, 1, "Generate decoys...");
     const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
-    ctx.db = buildDecoyAugmentedDB_(fasta_db, strategy);
+    ctx.db = buildDecoyAugmentedDB_(std::move(fasta_db), strategy);
     ctx.decoy_string = strategy.decoy_string;
     ctx.decoy_is_prefix = strategy.is_prefix;
     ctx.have_decoys = strategy.have_decoys;
@@ -2526,6 +2549,107 @@ namespace OpenMS
       return threads;
     }
 
+    // FASTAFile::load() with the OpenMP threads: the file is cut into pieces at starts of entries,
+    // the threads read the pieces with FASTAFile::readNext(), and the pieces are joined in file
+    // order. Same entries as load(): readNext() reads an entry from its '>' up to a line break
+    // followed by '>'. A piece starts at a '>' after a line break whose line holds no '>': that
+    // line is not a header (whose line break would not end an entry), so the reader of load()
+    // starts an entry there as well, and the reader of the piece before stops when it arrives
+    // there. Whenever this does not work out (small file, no such place, a reader that fails or
+    // does not arrive at the next piece), load() reads the file and reports errors as before.
+    void loadFASTA(const std::string& filename, std::vector<FASTAFile::FASTAEntry>& entries)
+    {
+      std::vector<std::streamoff> pieces{0}; // where each piece starts; the first one where readStart() starts
+#ifdef _OPENMP
+      if (!omp_in_parallel() && omp_get_max_threads() > 1)
+      {
+        std::ifstream in(filename, std::ios::binary);
+        in.seekg(0, std::ios::end);
+        const std::streamoff size = in.tellg();
+        // several pieces per thread: the threads do not read equally fast
+        const std::streamoff count = std::min<std::streamoff>(4 * omp_get_max_threads(), size / (std::streamoff(1) << 18));
+        std::string window(Size(1) << 16, '\0');
+        for (std::streamoff i = 1; i < count && in.good(); ++i)
+        {
+          const std::streamoff from = size / count * i;
+          in.seekg(from);
+          in.read(window.data(), static_cast<std::streamsize>(window.size()));
+          const std::string_view text(window.data(), static_cast<Size>(in.gcount()));
+          in.clear(); // reading up to the end of the file is fine
+          // lines of the window that are complete: between two line breaks
+          for (Size line = text.find('\n'); line != std::string_view::npos && line + 1 < text.size();)
+          {
+            const Size next = text.find('\n', line + 1);
+            if (next == std::string_view::npos || next + 1 >= text.size()) { break; }
+            if (text[next + 1] == '>' && text.substr(line + 1, next - line - 1).find('>') == std::string_view::npos)
+            {
+              if (from + static_cast<std::streamoff>(next) + 1 > pieces.back()) { pieces.push_back(from + static_cast<std::streamoff>(next) + 1); }
+              break;
+            }
+            line = next;
+          }
+        }
+      }
+#endif
+      if (pieces.size() < 2)
+      {
+        FASTAFile().load(filename, entries);
+        return;
+      }
+
+      std::vector<std::vector<FASTAFile::FASTAEntry>> read(pieces.size());
+      bool complete = true;
+#pragma omp parallel for schedule(dynamic, 1)
+      for (SignedSize i = 0; i < static_cast<SignedSize>(pieces.size()); ++i)
+      {
+        bool ok = false;
+        try // exceptions must not leave the parallel region
+        {
+          FASTAFile file;
+          FASTAFile::FASTAEntry entry;
+          file.readStart(filename);
+          ok = i == 0 || file.setPosition(pieces[i]);
+          if (ok && i + 1 == static_cast<SignedSize>(pieces.size()))
+          { // the last piece: up to the end of the file, as load()
+            while (file.readNext(entry)) { read[i].push_back(std::move(entry)); }
+          }
+          else if (ok)
+          {
+            const std::streampos end = pieces[i + 1];
+            while (ok && file.position() < end)
+            {
+              ok = file.readNext(entry);
+              if (ok) { read[i].push_back(std::move(entry)); }
+            }
+            ok = ok && file.position() == end;
+          }
+        }
+        catch (...)
+        {
+          ok = false;
+        }
+        if (!ok)
+        {
+#pragma omp critical (ProSEAlgorithm_loadFASTA)
+          complete = false;
+        }
+      }
+      if (!complete)
+      {
+        FASTAFile().load(filename, entries);
+        return;
+      }
+
+      Size total = 0;
+      for (const auto& piece : read) { total += piece.size(); }
+      entries.clear();
+      entries.reserve(total);
+      for (auto& piece : read)
+      {
+        entries.insert(entries.end(), std::make_move_iterator(piece.begin()), std::make_move_iterator(piece.end()));
+      }
+    }
+
     // Whether the first MBs of an mzML file name an electron-based activation (the terms that
     // MzMLHandler reads as ECD, ETD, ETciD or EThcD). A cheap prediction of what the spectra will
     // hold, used only to decide when to build the index, not what the index holds.
@@ -2535,9 +2659,12 @@ namespace OpenMS
       std::ifstream in(filename, std::ios::binary);
       in.read(head.data(), static_cast<std::streamsize>(head.size()));
       head.resize(static_cast<Size>(in.gcount()));
-      for (const std::string accession : {"MS:1000250", "MS:1000598", "MS:1003182", "MS:1002631"})
+      // MS:1000250, MS:1000598, MS:1003182 and MS:1002631: one pass for what they share
+      const std::string_view text(head);
+      for (Size pos = text.find("MS:100"); pos != std::string_view::npos; pos = text.find("MS:100", pos + 1))
       {
-        if (std::search(head.begin(), head.end(), std::boyer_moore_horspool_searcher(accession.begin(), accession.end())) != head.end())
+        const std::string_view number = text.substr(pos + 6, 4);
+        if (number == "0250" || number == "0598" || number == "3182" || number == "2631")
         {
           return true;
         }
@@ -2568,6 +2695,8 @@ namespace OpenMS
     };
 
     vector<FASTAFile::FASTAEntry> fasta_db;
+    DecoyStrategy_ strategy; // decoys of the searched database, for protein FDR below
+    bool strategy_resolved = false;
     ExitCodes ec;
     if (database_chunk_size_ == 0 && FileHandler::getTypeByFileName(in_spectra) == FileTypes::MZML && startOpenMPThreads() > 1)
     {
@@ -2585,7 +2714,7 @@ namespace OpenMS
       std::future<void> spectra_ready = std::async(std::launch::async, load_spectra);
 
       // load FASTA
-      FASTAFile().load(in_db, fasta_db);
+      loadFASTA(in_db, fasta_db);
 
       // ions:by_activation: the index needs c and z+1 ions if electron-activated spectra are
       // searched, which is known once the spectra are read. Wait for them if they are read already
@@ -2597,7 +2726,14 @@ namespace OpenMS
       const bool spectra_read = spectra_ready.wait_for(std::chrono::seconds(0)) == std::future_status::ready
                                 || (ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra));
       if (spectra_read) { spectra_ready.get(); }
-      SearchContext ctx = prepareContext(fasta_db, spectra_read && countElectronActivated_(spectra) > 0);
+      // The context takes the entries over instead of copying them. fasta_db is not read
+      // afterwards: protein FDR below takes the decoy marker from the context, which holds what
+      // resolveDecoyStrategy_(fasta_db) returned.
+      SearchContext ctx = prepareContext_(std::move(fasta_db), spectra_read && countElectronActivated_(spectra) > 0);
+      strategy.have_decoys = ctx.have_decoys;
+      strategy.decoy_string = ctx.decoy_string;
+      strategy.is_prefix = ctx.decoy_is_prefix;
+      strategy_resolved = true;
       if (!spectra_read)
       {
         spectra_ready.get();
@@ -2619,7 +2755,7 @@ namespace OpenMS
       load_spectra();
 
       // load FASTA
-      FASTAFile().load(in_db, fasta_db);
+      loadFASTA(in_db, fasta_db);
 
       // delegate to in-memory search
       ec = search(spectra, fasta_db, protein_ids, peptide_ids);
@@ -2637,7 +2773,7 @@ namespace OpenMS
     // The strategy is only needed for protein FDR: do not scan the accessions again without it.
     if (fdr_protein_ > 0.0)
     {
-      const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
+      if (!strategy_resolved) { strategy = resolveDecoyStrategy_(fasta_db); } // else: known from the context
       if (strategy.have_decoys)
       {
         // Single input file = complete experiment, so picked-protein FDR is valid. Use the resolved
@@ -3374,7 +3510,7 @@ namespace OpenMS
   {
     // load FASTA once
     vector<FASTAFile::FASTAEntry> fasta_db;
-    FASTAFile().load(in_db, fasta_db);
+    loadFASTA(in_db, fasta_db);
 
     MultiFileSearchResult mfres = searchWithModificationAnalysis(
       in_spectra_files, fasta_db, output_base_names, aggregate_base_name, build_pooled_aggregate);
