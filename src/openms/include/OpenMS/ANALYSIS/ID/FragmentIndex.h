@@ -134,6 +134,18 @@ namespace OpenMS
     ~FragmentIndex() override = default;
 
     /**
+     * @brief Copy and move operations.
+     *
+     * Declared explicitly because the user-declared destructor above suppresses the implicit move
+     * operations: without them, every move of a FragmentIndex (and of a ProSEAlgorithm::SearchContext
+     * that holds one) copies the whole index.
+     */
+    FragmentIndex(const FragmentIndex&) = default;
+    FragmentIndex& operator=(const FragmentIndex&) = default;
+    FragmentIndex(FragmentIndex&&) = default;
+    FragmentIndex& operator=(FragmentIndex&&) = default;
+
+    /**
      * @brief Indicates whether the fragment index has been built.
      *
      * @return true if build() has completed successfully and the index is ready
