@@ -692,34 +692,53 @@ private:
                             const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                             SpectrumMatchesTopN& sms);
 
+    /// One (precursor charge, isotope error) block of a queryPeaks() call
+    struct CandidateBlock_
+    {
+      size_t first;           ///< half-open range [first, second) of peptides the precursor could belong to
+      size_t second;
+      size_t cell_offset;     ///< sum of the range sizes of the preceding blocks of the call
+      int16_t isotope_error;  ///< the applied isotope error
+    };
+
     /**
-     * @brief Counts fragment matches for ONE (precursor charge, isotope error) block and appends
-     * the surviving candidates to @p candidates.
+     * @brief Counts fragment matches for the (isotope error) blocks of ONE precursor charge and
+     * appends the surviving candidates to @p candidates.
      *
      * Every peak of @p spectrum is walked against the fragment buckets at fragment charges
-     * 1..min(@p precursor_charge, @c fragment:max_charge) and the hits are counted per peptide
-     * of @p candidates_range. Only candidates reaching @c fragment:min_matched_ions — clamped to
-     * at least one matched peak, so a candidate that matched nothing is never a candidate — are
-     * emitted, in ascending peptide index within the block. Candidates that could not survive
-     * trimHits are therefore never materialized.
+     * 1..min(@p precursor_charge, @c fragment:max_charge) — once for all blocks — and the hits are
+     * counted per block and peptide of its range. Only candidates reaching
+     * @c fragment:min_matched_ions — clamped to at least one matched peak, so a candidate that
+     * matched nothing is never a candidate — are emitted, block after block and in ascending
+     * peptide index within a block. Candidates that could not survive trimHits are therefore
+     * never materialized.
      *
-     * @param[in,out] candidates Accumulator the block's matches are APPENDED to. Must NOT be
+     * @param[in,out] candidates Accumulator the blocks' matches are APPENDED to. Must NOT be
      *                pre-sized — entries are appended, never indexed into. Pre-existing entries
-     *                are preserved, so one container can accumulate several blocks.
+     *                are preserved, so one container can accumulate several calls.
      * @param[in] spectrum The queried experimental spectrum
-     * @param[in] candidates_range The half-open [first, second) range of peptides the precursor could belong to
-     * @param[in] isotope_error The applied isotope error
+     * @param[in] blocks The candidate ranges and their isotope errors; non-empty ranges, disjoint
+     *            and ascending (first of a block >= second of its predecessor)
      * @param[in] precursor_charge The applied precursor charge
      * @param[in] with_electron_ions Also count matches to the c and z+1 ions of ions:electron_ions
      */
     void queryPeaks(SpectrumMatchesTopN& candidates,
                    const MSSpectrum& spectrum,
-                   const std::pair<size_t, size_t>& candidates_range,
-                   const int16_t isotope_error,
+                   const std::vector<CandidateBlock_>& blocks,
                    const uint16_t precursor_charge,
                    const bool with_electron_ions);
+
+    /// Skip tables of fi_fragments_ and electron_fragments_ for queryPeaks(): the peptide_idx_ of
+    /// every SKIP_STRIDE_-th fragment of each bucket, skip_per_bucket_ entries per bucket.
+    static constexpr size_t SKIP_STRIDE_ = 64;
+    size_t skip_per_bucket_{0};
+    std::vector<UInt32> bucket_skip_;
+    std::vector<UInt32> electron_bucket_skip_;
+    /// Fills the skip tables; called by build() once the buckets are sorted.
+    void buildSkipTables_();
+
     /**
-     * @brief If closed search loops over all isotope errors. For each iteration loop over all peaks with queryPeaks.
+     * @brief If closed search collects the candidate ranges of all isotope errors and loops over all peaks once for them with queryPeaks.
      * @brief If open search applies a precursor-mass window
      * @param[in] spectrum experimental query-spectrum
      * @param[in] precursor_mass The mass of the precursor (mz * charge)
