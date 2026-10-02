@@ -1357,7 +1357,6 @@ namespace OpenMS
     // string-keyed (spectrum reference, IM, rank; at most one lookup per spectrum or hit) are
     // still registered inside the loop, after the ones below, as before (checked: the registry
     // contents after a search are the same as before this change, at 1 and at 16 threads).
-    const bool open_search_mode = isOpenSearchMode_();
     const int isotope_error_sign = isotope_error_observed_minus_theoretical_ ? -1 : 1;
     // The candidate-competition features (annotate:*) come after all of these and are registered only when enabled.
     UInt mv_scan_index{}, mv_fragment_error{}, mv_precursor_error{}, mv_prefix_fraction{}, mv_suffix_fraction{},
