@@ -210,8 +210,9 @@ namespace OpenMS
       "by scan parity. Each half trains a model on its rank-one target hits at target-decoy competition q <= "
       "annotate:ion_prior_train_fdr of the native score (their reversed sequences on the same spectra are the noise "
       "model), and every hit is scored by the model of the other half, so no PSM is scored by a model that saw its "
-      "spectrum or its label. Requires decoys and annotate:ion_prior_min_psms training PSMs in each half, otherwise the "
-      "features are 0. Native scores and candidate selection are unchanged. Independent of annotate:PSM.", {"advanced"});
+      "spectrum or its label. Needs annotate:ion_prior_min_psms training PSMs in each half, otherwise the features are 0. "
+      "Not applied to target-only searches (decoys=ignore), which get no features. Native scores and candidate selection "
+      "are unchanged. Independent of annotate:PSM.", {"advanced"});
     defaults_.setValidStrings("annotate:self_trained_ion_priors", {"true", "false"});
     defaults_.setValue("annotate:ion_prior_model", "rich",
       "Contexts and outcomes of the ion priors. 'rich': ion series, precursor charge, fragment charge, relative position, "
@@ -482,6 +483,13 @@ namespace OpenMS
                         << "no ion priors are learned." << endl;
         self_trained_ion_priors_ = false;
       }
+    }
+    if (self_trained_ion_priors_ && decoy_mode_ == DecoyMode_::IGNORE)
+    {
+      // A target-only search has no target-decoy competition to select training PSMs, and Percolator cannot use its
+      // output: nothing is learned or written (the output equals the one with the ion priors switched off).
+      OPENMS_LOG_INFO << "[ProSE] annotate:self_trained_ion_priors: not applied to a target-only search (decoys=ignore)." << endl;
+      self_trained_ion_priors_ = false;
     }
     fdr_psm_ = param_.getValue("FDR:PSM");
     fdr_protein_ = param_.getValue("FDR:protein");
@@ -3993,10 +4001,10 @@ namespace OpenMS
 
     // 2. Training PSMs of each half (fold = scan parity): its best target hits at TDC q <= threshold over the
     //    native score, computed within the half, so the other half's labels are not used. Decoys win exact
-    //    ties, as in the native yield evaluation, which keeps the selection conservative.
+    //    ties, as in the native yield evaluation, which keeps the selection conservative. The search has decoys
+    //    (target-only searches never get here), so (D + 1) / T is an estimate even in a half without a decoy hit.
     struct Row { double score; bool decoy; Size index; };
     std::array<std::vector<Row>, 2> rows;
-    std::array<bool, 2> decoys_present{false, false};
     for (Size i = 0; i < n_ids; ++i)
     {
       if (scans[i] < 0) continue;
@@ -4004,14 +4012,12 @@ namespace OpenMS
       if (!top.metaValueExists(Constants::UserParam::TARGET_DECOY)) continue;
       const bool decoy = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString() == "decoy";
       const Size fold = static_cast<Size>(scans[i]) % 2;
-      decoys_present[fold] = decoys_present[fold] || decoy;
       rows[fold].push_back({peptide_ids[i].isHigherScoreBetter() ? top.getScore() : -top.getScore(), decoy, i});
     }
     std::array<std::vector<Size>, 2> training;
     for (Size fold = 0; fold < 2; ++fold)
     {
       std::vector<Row>& fold_rows = rows[fold];
-      if (!decoys_present[fold]) continue; // no confidence estimate
       std::sort(fold_rows.begin(), fold_rows.end(), [](const Row& a, const Row& b) {
         if (a.score != b.score) return a.score > b.score;
         if (a.decoy != b.decoy) return a.decoy;
@@ -4073,7 +4079,6 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "[ProSE] Ion priors: " << training[0].size() << " and " << training[1].size()
                       << " confident training PSMs in the two halves of the spectra, fewer than " << ion_prior_min_psms_
-                      << ((decoys_present[0] && decoys_present[1]) ? "" : " (or no decoy hits to estimate confidence)")
                       << "; the ion_prior_* features are 0 for this file." << std::endl;
     }
     sw_train.stop();
@@ -4123,7 +4128,8 @@ namespace OpenMS
                     << " s; peak lists " << evidence.totalPeaks() << " peaks of " << evidence.size() << " spectra, "
                     << static_cast<double>(evidence.memoryUsage()) / (1024.0 * 1024.0) << " MiB." << std::endl;
 
-    // 5. Percolator sees the new columns; the search parameters record the model and its training set.
+    // 5. Percolator sees the new columns; the search parameters record every setting that determines the features
+    //    (model, peaks, fragment charges, training threshold and minimum) and the training set.
     if (protein_ids.empty()) return;
     ProteinIdentification::SearchParameters& search_parameters = protein_ids[0].getSearchParameters();
     StringList features;
@@ -4146,6 +4152,8 @@ namespace OpenMS
     search_parameters.setMetaValue("annotate:ion_prior_model", rich ? "rich" : "basic");
     search_parameters.setMetaValue("annotate:ion_prior_peaks", ion_prior_scored_peaks_ ? "scored" : "all");
     search_parameters.setMetaValue("annotate:ion_prior_max_fragment_charge", ion_prior_max_fragment_charge_);
+    search_parameters.setMetaValue("annotate:ion_prior_train_fdr", ion_prior_train_fdr_);
+    search_parameters.setMetaValue("annotate:ion_prior_min_psms", static_cast<int>(ion_prior_min_psms_));
     search_parameters.setMetaValue("ion_prior:trained", trained ? "true" : "false");
     search_parameters.setMetaValue("ion_prior:training_psms", static_cast<int>(training[0].size() + training[1].size()));
     search_parameters.setMetaValue("ion_prior:fold_training_psms",

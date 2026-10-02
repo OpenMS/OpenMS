@@ -638,10 +638,11 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * reversed sequences matched against the same spectra as noise. Every hit is then scored by the model of the
      * other fold (cross-fitting), so neither a PSM's own spectrum nor its label, nor any label of its fold, enters
      * its features; targets and decoys are scored alike. Both folds need annotate:ion_prior_min_psms training PSMs
-     * (and decoy hits); otherwise all features are 0 and a warning is logged. Adds the feature names to the search
-     * parameters' extra_features and records the model and its training set (ion_prior:*). Native scores and the
-     * retained candidates are unchanged. Call after PeptideIndexing (target/decoy labels) and before FDR (which
-     * overwrites the native scores).
+     * (a fold without a decoy hit has the estimate (0 + 1) / T); otherwise all features are 0 and a warning is logged. Adds the feature names to the search
+     * parameters' extra_features and records the settings that determine the features (annotate:ion_prior_*) and the
+     * training set (ion_prior:*). Native scores and the retained candidates are unchanged. Call after PeptideIndexing
+     * (target/decoy labels) and before FDR (which overwrites the native scores). Does nothing when the ion priors are
+     * off, which includes target-only searches (decoys=ignore).
      *
      * @param[in] spectra Preprocessed spectra, indexed by the scan_index meta value of the PSMs (precursor
      *            activation selects the ion series).

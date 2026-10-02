@@ -55,8 +55,9 @@ TOPP tools:
         other half, so no PSM is scored by a model that saw its spectrum or its label. Adds the
         Percolator features ion_prior_llr and ion_prior_explained (annotate:ion_prior_features) to every
         hit; native scores and candidates are unchanged. Files with fewer than annotate:ion_prior_min_psms
-        confident PSMs in either half, or without decoys, get zeros and a warning. The model is the new
-        FragmentIonLikelihoodModel class.
+        confident PSMs in either half get zeros and a warning; target-only searches (decoys=ignore) get
+        nothing. The search parameters record the annotate:ion_prior_* settings and the training set
+        (ion_prior:*). The model is the new FragmentIonLikelihoodModel class.
     UniPEFF:
       - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
         file names, e.g. 2025_07_05 for uniprotkb_proteome_UP000005640_2025_07_05.xml.gz,
