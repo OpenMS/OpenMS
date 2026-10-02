@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 
+#include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
@@ -19,6 +20,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
@@ -51,6 +53,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <fstream>
@@ -338,11 +341,20 @@ namespace OpenMS
                        "Set false for the previous search space.");
     defaults_.setValidStrings("peptide:clip_nterm_methionine", {"true", "false"});
     defaults_.setValue("peptide:deduplicate", "true",
-                       "Index each exact peptidoform once before candidate selection. Protein mappings are recovered from the full database. "
+                       "Index each exact peptidoform once before candidate selection. Protein mappings still list every protein occurrence. "
                        "Across database chunks, count each peptide/charge/isotope hypothesis once; retaining queried keys adds memory per spectrum. "
                        "SNES mother indices retain their existing behavior. Set false for occurrence-based legacy candidates.",
                        {"advanced"});
     defaults_.setValidStrings("peptide:deduplicate", {"true", "false"});
+    defaults_.setValue("peptide:protein_mapping", "index",
+                       "How the hits are mapped to their proteins (peptide evidences, target_decoy, protein_references, protein hits). "
+                       "'index': from the digest of the fragment index, which holds every protein occurrence of a candidate; the result is "
+                       "that of PeptideIndexing, which runs instead wherever the index cannot reproduce it exactly (e.g. SNES, a specificity "
+                       "other than full, protein-terminal modifications, a chunked database, symbols other than letters or long stretches "
+                       "of ambiguous residues in the database). 'PeptideIndexing': always search every hit in the whole database "
+                       "(Aho-Corasick), as before.",
+                       {"advanced"});
+    defaults_.setValidStrings("peptide:protein_mapping", {"index", "PeptideIndexing"});
     defaults_.setValue("peptide:enzyme_specificity", "full",
       "Enzyme cleavage specificity required for both peptide termini.\n"
       "  'full' : both termini must be enzyme-specific (canonical, e.g. tryptic).\n"
@@ -676,6 +688,7 @@ namespace OpenMS
     add_z_ions_ = param_.getValue("ions:add_z_ions").toBool();
     add_zp1_ions_ = param_.getValue("ions:add_zp1_ions").toBool();
     ions_by_activation_ = param_.getValue("ions:by_activation").toBool();
+    protein_mapping_from_index_ = param_.getValue("peptide:protein_mapping").toString() == "index";
 
     database_chunk_size_ = param_.getValue("database:chunk_size");
 
@@ -2094,6 +2107,7 @@ namespace OpenMS
     // annotation-only parameters of ProSE (see annotateIonPriors_)
     p.remove("annotate:self_trained_ion_priors");
     p.removeAll("annotate:ion_prior_");
+    p.remove("peptide:protein_mapping"); // ProSE's own (FragmentIndex::getProteinOccurrences() serves it)
     return p;
   }
 
@@ -2670,6 +2684,7 @@ namespace OpenMS
         ah.prefilter_matches = static_cast<uint16_t>(std::min<uint32_t>(sms.num_matched_, std::numeric_limits<uint16_t>::max()));
         ah.isotope_error = sms.isotope_error_;
         ah.applied_charge = sms.precursor_charge_;
+        ah.index_peptide = static_cast<UInt32>(sms.peptide_idx_);
         ah.delta_mass = 0.0;
         if (open_search_mode)
         {
@@ -3029,6 +3044,543 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // Protein mapping from the fragment index (peptide:protein_mapping = index):
+  // what PeptideIndexing::run() writes, without searching the database
+  // =====================================================================
+  namespace
+  {
+    bool isAmbiguousResidue(const char c)
+    {
+      return c == 'B' || c == 'J' || c == 'Z' || c == 'X';
+    }
+
+    // The residues AhoCorasickAmbiguous matches an ambiguous protein residue with: B = D or N, J = I or L,
+    // Z = E or Q, X = any of its unambiguous amino acids (every other letter, O and U included)
+    const std::string& residuesMatchedBy(const char ambiguous)
+    {
+      static const std::string b = "DN", j = "IL", z = "EQ";
+      static const std::string x = []
+      {
+        std::string all;
+        for (char c = 'A'; c <= 'Z'; ++c)
+        {
+          if (!AA(c).isAmbiguous()) all += c;
+        }
+        return all;
+      }();
+      switch (ambiguous)
+      {
+        case 'B': return b;
+        case 'J': return j;
+        case 'Z': return z;
+        default: return x;
+      }
+    }
+
+    // The first @p length (<= 8) residues of @p residues as a number that sorts like them
+    uint64_t residueKey(const std::string_view residues, const Size length)
+    {
+      uint64_t key = 0;
+      for (Size i = 0; i < length; ++i) key = (key << 8) | static_cast<unsigned char>(residues[i]);
+      return key;
+    }
+
+    using Occurrence = std::pair<UInt32, UInt32>; // {protein index, position}
+  }
+
+  ProSEAlgorithm::ProteinMapping_ ProSEAlgorithm::buildProteinMapping_(const FragmentIndex& index,
+                                                                      const std::vector<FASTAFile::FASTAEntry>& db,
+                                                                      std::vector<UInt32> candidates,
+                                                                      const Param& indexer_parameters)
+  {
+    ProteinMapping_ mapping;
+
+    // PeptideIndexing settings the mapping reproduces (see ProteinMapping_)
+    if (static_cast<Int>(indexer_parameters.getValue("mismatches_max")) != 0
+        || indexer_parameters.getValue("IL_equivalent").toBool()
+        || !indexer_parameters.getValue("allow_nterm_protein_cleavage").toBool()
+        || indexer_parameters.getValue("write_protein_sequence").toBool()
+        || indexer_parameters.getValue("write_protein_description").toBool()
+        || indexer_parameters.getValue("keep_unreferenced_proteins").toBool()
+        || indexer_parameters.getValue("decoy_string").toString().empty())
+    {
+      mapping.fallback_reason = "PeptideIndexing settings other than no mismatches, no I/L equivalence, N-terminal methionine "
+                                "cleavage, no protein sequences or descriptions, no unreferenced proteins and a given decoy string";
+      return mapping;
+    }
+    const std::string enzyme_name = indexer_parameters.getValue("enzyme:name").toString();
+    const std::string specificity = indexer_parameters.getValue("enzyme:specificity").toString();
+    const Param index_parameters = index.getParameters();
+    if (specificity != EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_FULL]
+        || enzyme_name == EnzymaticDigestion::UnspecificCleavage || enzyme_name == EnzymaticDigestion::NoCleavage
+        || index_parameters.getValue("enzyme").toString() != enzyme_name
+        || index_parameters.getValue("peptide:enzyme_specificity").toString() != specificity)
+    {
+      mapping.fallback_reason = "not a fully specific digestion with the enzyme of the fragment index";
+      return mapping;
+    }
+    if (!index.hasProteinOccurrences(db))
+    {
+      mapping.fallback_reason = "the fragment index does not list every protein occurrence of its peptides "
+                                "(SNES, protein-terminal modifications, or not built from this database)";
+      return mapping;
+    }
+    const Size aaa_max = static_cast<Size>(static_cast<Int>(indexer_parameters.getValue("aaa_max")));
+    ProteaseDigestion enzyme;
+    enzyme.setEnzyme(enzyme_name);
+    enzyme.setSpecificity(EnzymaticDigestion::SPEC_FULL);
+
+    // The database: letters A-Z only (PeptideIndexing removes '*' and skips other symbols, which shifts positions),
+    // and no stretch of more than aaa_max X (PeptideIndexing splits proteins at such stretches)
+    std::array<uint8_t, 256> residue_class{}; // 0: unambiguous letter, 1: ambiguous letter, 2: anything else
+    residue_class.fill(2);
+    for (char c = 'A'; c <= 'Z'; ++c) residue_class[static_cast<unsigned char>(c)] = isAmbiguousResidue(c) ? 1 : 0;
+    std::vector<uint8_t> protein_class(db.size(), 0); // OR of its residue classes
+    bool letters_only = true, short_stretches = true;
+#pragma omp parallel for schedule(dynamic, 256) reduction(&& : letters_only, short_stretches)
+    for (SignedSize p = 0; p < static_cast<SignedSize>(db.size()); ++p)
+    {
+      uint8_t classes = 0;
+      for (const char c : db[p].sequence) classes |= residue_class[static_cast<unsigned char>(c)];
+      protein_class[p] = classes;
+      letters_only = letters_only && classes < 2;
+      if (classes == 1)
+      {
+        Size stretch = 0;
+        for (const char c : db[p].sequence)
+        {
+          stretch = (c == 'X') ? stretch + 1 : 0;
+          short_stretches = short_stretches && stretch <= aaa_max;
+        }
+      }
+    }
+    if (!letters_only || !short_stretches)
+    {
+      mapping.fallback_reason = letters_only ? "the database has stretches of more than aaa_max X"
+                                             : "the database has symbols other than the letters A-Z";
+      return mapping;
+    }
+
+    // 1. the spans of the digest: per candidate, then per sequence
+    std::sort(candidates.begin(), candidates.end());
+    candidates.erase(std::unique(candidates.begin(), candidates.end()), candidates.end());
+    const std::vector<FragmentIndex::Peptide>& peptides = index.getPeptides();
+    if (!candidates.empty() && candidates.back() >= peptides.size())
+    {
+      mapping.fallback_reason = "a candidate the fragment index does not hold";
+      return mapping;
+    }
+    const auto residues_of = [&](const UInt32 candidate)
+    {
+      const FragmentIndex::Peptide& peptide = peptides[candidate];
+      return std::string_view(db[peptide.protein_idx].sequence).substr(peptide.sequence_.first, peptide.sequence_.second);
+    };
+    std::vector<std::vector<Occurrence>> candidate_occurrences(candidates.size());
+    bool unambiguous_candidates = true;
+#pragma omp parallel for schedule(dynamic, 64) reduction(&& : unambiguous_candidates)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(candidates.size()); ++i)
+    {
+      const std::string_view residues = residues_of(candidates[i]);
+      unambiguous_candidates = unambiguous_candidates && std::none_of(residues.begin(), residues.end(), isAmbiguousResidue);
+      index.getProteinOccurrences(candidates[i], db, candidate_occurrences[i]);
+    }
+    if (!unambiguous_candidates)
+    {
+      mapping.fallback_reason = "a hit with an ambiguous residue";
+      return mapping;
+    }
+    // One entry per sequence (the candidates of a sequence differ in their modifications only: they have the same
+    // spans). The sequences go to ProteinMapping_::SHARDS hash tables by their hash, filled in parallel; the entries
+    // are numbered table by table, in the order of the candidates.
+    constexpr Size shards = ProteinMapping_::SHARDS;
+    std::vector<Size> shard_of(candidates.size());
+#pragma omp parallel for schedule(static)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(candidates.size()); ++i)
+    {
+      shard_of[i] = std::hash<std::string_view>{}(residues_of(candidates[i])) % shards;
+    }
+    std::vector<std::vector<Size>> shard_candidates(shards);
+    for (Size i = 0; i < candidates.size(); ++i) shard_candidates[shard_of[i]].push_back(i);
+    mapping.entries.resize(shards);
+    std::vector<std::vector<Size>> shard_entries(shards); // per table: the candidate of each of its entries
+#pragma omp parallel for schedule(dynamic, 1)
+    for (SignedSize shard = 0; shard < static_cast<SignedSize>(shards); ++shard)
+    {
+      auto& table = mapping.entries[shard];
+      table.reserve(shard_candidates[shard].size());
+      for (const Size i : shard_candidates[shard])
+      {
+        const auto [entry, added] = table.try_emplace(residues_of(candidates[i]), shard_entries[shard].size());
+        if (added)
+        {
+          shard_entries[shard].push_back(i);
+        }
+        else
+        { // another modified form of the same residues: the same spans (merged and made unique below)
+          std::vector<Occurrence>& first = candidate_occurrences[shard_entries[shard][entry->second]];
+          first.insert(first.end(), candidate_occurrences[i].begin(), candidate_occurrences[i].end());
+        }
+      }
+    }
+    std::vector<Size> shard_start(shards + 1, 0);
+    for (Size shard = 0; shard < shards; ++shard) shard_start[shard + 1] = shard_start[shard] + shard_entries[shard].size();
+    mapping.sequences.resize(shard_start[shards]);
+    mapping.occurrences.resize(shard_start[shards]);
+#pragma omp parallel for schedule(dynamic, 1)
+    for (SignedSize shard = 0; shard < static_cast<SignedSize>(shards); ++shard)
+    {
+      for (auto& [sequence, entry] : mapping.entries[shard]) entry += shard_start[shard];
+      for (Size k = 0; k < shard_entries[shard].size(); ++k)
+      {
+        const Size i = shard_entries[shard][k];
+        mapping.sequences[shard_start[shard] + k] = residues_of(candidates[i]);
+        mapping.occurrences[shard_start[shard] + k] = std::move(candidate_occurrences[i]);
+      }
+    }
+    if (mapping.sequences.empty()) return mapping;
+    Size min_length = std::numeric_limits<Size>::max(), max_length = 0;
+    for (const std::string_view sequence : mapping.sequences)
+    {
+      min_length = std::min(min_length, sequence.size());
+      max_length = std::max(max_length, sequence.size());
+    }
+    std::vector<uint8_t> length_used(max_length + 1, 0);
+    for (const std::string_view sequence : mapping.sequences) length_used[sequence.size()] = 1;
+
+    std::vector<std::tuple<Size, UInt32, UInt32>> extra; // spans of 2. and 3.: {sequence entry, protein, position}
+
+    // 2. positions 1 and 2 of proteins that start with M: found through their first residues
+    {
+      // {key of the residues from the position on, protein, position}, sorted. Filled in parallel by chunks of
+      // proteins, grouped by the first residue (the highest byte of the key), then each group sorted on its own.
+      const Size key_length = std::min<Size>(min_length, 8);
+      using Start = std::tuple<uint64_t, UInt32, UInt32>;
+      const auto is_start = [&](const std::string& protein, Size position)
+      {
+        return position + min_length <= protein.size() && protein[0] == 'M';
+      };
+      constexpr Size letters = 26;
+      const Size num_chunks = std::max<Size>(1, std::min<Size>(256, db.size() / 1024));
+      std::vector<Size> offset(num_chunks * letters + 1, 0); // [letter][chunk]: count, then where the chunk fills it
+#pragma omp parallel for schedule(dynamic, 1)
+      for (SignedSize chunk = 0; chunk < static_cast<SignedSize>(num_chunks); ++chunk)
+      {
+        for (Size p = db.size() * chunk / num_chunks; p < db.size() * (chunk + 1) / num_chunks; ++p)
+        {
+          const std::string& protein = db[p].sequence;
+          for (Size position = 1; position <= 2; ++position)
+          {
+            if (is_start(protein, position)) ++offset[(protein[position] - 'A') * num_chunks + chunk + 1];
+          }
+        }
+      }
+      for (Size i = 1; i < offset.size(); ++i) offset[i] += offset[i - 1];
+      std::vector<Start> starts(offset.back());
+#pragma omp parallel for schedule(dynamic, 1)
+      for (SignedSize chunk = 0; chunk < static_cast<SignedSize>(num_chunks); ++chunk)
+      {
+        for (Size p = db.size() * chunk / num_chunks; p < db.size() * (chunk + 1) / num_chunks; ++p)
+        {
+          const std::string& protein = db[p].sequence;
+          for (Size position = 1; position <= 2; ++position)
+          {
+            if (!is_start(protein, position)) continue;
+            starts[offset[(protein[position] - 'A') * num_chunks + chunk]++] =
+              Start(residueKey(std::string_view(protein).substr(position), key_length), static_cast<UInt32>(p), static_cast<UInt32>(position));
+          }
+        }
+      }
+#pragma omp parallel for schedule(dynamic, 1)
+      for (SignedSize letter = 0; letter < static_cast<SignedSize>(letters); ++letter)
+      {
+        // after the fill, offset[letter * num_chunks + num_chunks - 1] is where the letter's group ends
+        const Size begin = letter == 0 ? 0 : offset[letter * num_chunks - 1];
+        const Size end = offset[(letter + 1) * num_chunks - 1];
+        std::sort(starts.begin() + begin, starts.begin() + end);
+      }
+#pragma omp parallel
+      {
+        const ProteaseDigestion thread_enzyme = enzyme; // as PeptideIndexing: one per thread
+        std::vector<std::tuple<Size, UInt32, UInt32>> found;
+#pragma omp for schedule(dynamic, 256) nowait
+        for (SignedSize entry = 0; entry < static_cast<SignedSize>(mapping.sequences.size()); ++entry)
+        {
+          const std::string_view sequence = mapping.sequences[entry];
+          const uint64_t key = residueKey(sequence, key_length);
+          for (auto s = std::lower_bound(starts.begin(), starts.end(), std::make_tuple(key, UInt32(0), UInt32(0)));
+               s != starts.end() && std::get<0>(*s) == key; ++s)
+          {
+            const UInt32 protein = std::get<1>(*s), position = std::get<2>(*s);
+            const std::string& protein_sequence = db[protein].sequence;
+            if (position + sequence.size() <= protein_sequence.size() && protein_sequence.compare(position, sequence.size(), sequence) == 0
+                && thread_enzyme.isValidProduct(protein_sequence, static_cast<int>(position), static_cast<int>(sequence.size()), true, true, false))
+            {
+              found.emplace_back(static_cast<Size>(entry), protein, position);
+            }
+          }
+        }
+#pragma omp critical (ProSEAlgorithm_proteinMapping)
+        extra.insert(extra.end(), found.begin(), found.end());
+      }
+    }
+
+    // 3. spans over ambiguous residues: each with every residue its ambiguous ones match (at most 22^aaa_max
+    //    sequences per span; beyond a budget PeptideIndexing does this better)
+    {
+      std::vector<Occurrence> ambiguous; // {protein, position}
+      for (Size p = 0; p < db.size(); ++p)
+      {
+        if (protein_class[p] != 1) continue;
+        const std::string& protein = db[p].sequence;
+        for (Size position = 0; position < protein.size(); ++position)
+        {
+          if (isAmbiguousResidue(protein[position])) ambiguous.emplace_back(static_cast<UInt32>(p), static_cast<UInt32>(position));
+        }
+      }
+      // work items: an ambiguous residue and a length of the sequences (a few residues with several ambiguous ones
+      // around them would otherwise be the critical path)
+      std::vector<std::pair<Size, Size>> items; // {index into ambiguous, length}
+      for (Size a = 0; a < ambiguous.size(); ++a)
+      {
+        const Size protein_length = db[ambiguous[a].first].sequence.size();
+        for (Size length = min_length; length <= max_length && length <= protein_length; ++length)
+        {
+          if (length_used[length]) items.emplace_back(a, length);
+        }
+      }
+      constexpr Size budget = Size(1) << 22; // sequences looked up
+      std::atomic<Size> looked_up{0};
+#pragma omp parallel
+      {
+        const ProteaseDigestion thread_enzyme = enzyme;
+        std::vector<std::tuple<Size, UInt32, UInt32>> found;
+        std::string window;
+        std::vector<Size> where; // offsets of the ambiguous residues in the window
+        std::vector<Size> choice;
+#pragma omp for schedule(dynamic, 1) nowait
+        for (SignedSize item = 0; item < static_cast<SignedSize>(items.size()); ++item)
+        {
+          const auto [protein, ambiguous_position] = ambiguous[items[item].first];
+          const std::string& protein_sequence = db[protein].sequence;
+          const Size length = items[item].second;
+          const Size first = ambiguous_position + 1 >= length ? ambiguous_position + 1 - length : 0;
+          for (Size start = first; start <= ambiguous_position && start + length <= protein_sequence.size(); ++start)
+          {
+            // each span once: from its first ambiguous residue
+            where.clear();
+            Size combinations = 1;
+            for (Size i = 0; i < length; ++i)
+            {
+              if (!isAmbiguousResidue(protein_sequence[start + i])) continue;
+              where.push_back(i);
+              combinations *= residuesMatchedBy(protein_sequence[start + i]).size();
+            }
+            if (start + where.front() != ambiguous_position || where.size() > aaa_max) continue;
+            if (looked_up.fetch_add(combinations, std::memory_order_relaxed) + combinations > budget) break;
+            window.assign(protein_sequence, start, length);
+            choice.assign(where.size(), 0);
+            while (true)
+            {
+              for (Size w = 0; w < where.size(); ++w) window[where[w]] = residuesMatchedBy(protein_sequence[start + where[w]])[choice[w]];
+              const Size entry = mapping.find(window);
+              if (entry < mapping.sequences.size()
+                  && thread_enzyme.isValidProduct(protein_sequence, static_cast<int>(start), static_cast<int>(length), true, true, false))
+              {
+                found.emplace_back(entry, protein, static_cast<UInt32>(start));
+              }
+              Size w = 0; // the next combination
+              for (; w < where.size(); ++w)
+              {
+                if (++choice[w] < residuesMatchedBy(protein_sequence[start + where[w]]).size()) break;
+                choice[w] = 0;
+              }
+              if (w == where.size()) break;
+            }
+          }
+        }
+#pragma omp critical (ProSEAlgorithm_proteinMapping)
+        extra.insert(extra.end(), found.begin(), found.end());
+      }
+      if (looked_up.load() > budget)
+      {
+        mapping.fallback_reason = "too many spans over ambiguous residues in the database";
+        return mapping;
+      }
+    }
+
+    // all spans of every sequence, ascending and once (2. and 3. may find spans of 1. again)
+    for (const auto& [entry, protein, position] : extra) mapping.occurrences[entry].emplace_back(protein, position);
+#pragma omp parallel for schedule(dynamic, 256)
+    for (SignedSize k = 0; k < static_cast<SignedSize>(mapping.occurrences.size()); ++k)
+    {
+      std::vector<Occurrence>& occurrences = mapping.occurrences[k];
+      std::sort(occurrences.begin(), occurrences.end());
+      occurrences.erase(std::unique(occurrences.begin(), occurrences.end()), occurrences.end());
+    }
+    return mapping;
+  }
+
+  bool ProSEAlgorithm::applyProteinMapping_(const ProteinMapping_& mapping,
+                                            const std::vector<FASTAFile::FASTAEntry>& db,
+                                            const Param& indexer_parameters,
+                                            std::vector<ProteinIdentification>& protein_ids,
+                                            PeptideIdentificationList& peptide_ids,
+                                            std::string& fallback_reason)
+  {
+    if (!mapping.fallback_reason.empty())
+    {
+      fallback_reason = mapping.fallback_reason;
+      return false;
+    }
+    if (protein_ids.size() != 1)
+    {
+      fallback_reason = "not exactly one identification run";
+      return false;
+    }
+    {
+      // PeptideIndexing changes its cleavage rules for results of X! Tandem and MS-GF+
+      std::string engine = protein_ids[0].getOriginalSearchEngineName();
+      StringUtils::toUpper(engine);
+      const ProteinIdentification::SearchParameters& search_parameters = protein_ids[0].getSearchParameters();
+      if (engine == "XTANDEM" || engine == "MS-GF+" || engine == "MSGFPLUS"
+          || search_parameters.metaValueExists("SE:XTandem") || search_parameters.metaValueExists("SE:MS-GF+"))
+      {
+        fallback_reason = "results of X! Tandem or MS-GF+";
+        return false;
+      }
+    }
+
+    // the sequence entry of every hit (PeptideIndexing maps the unmodified sequence)
+    std::vector<Size> first_hit(peptide_ids.size() + 1, 0);
+    for (Size i = 0; i < peptide_ids.size(); ++i) first_hit[i + 1] = first_hit[i] + peptide_ids[i].getHits().size();
+    if (first_hit.back() == 0)
+    {
+      fallback_reason = "no peptide hits"; // PeptideIndexing's own handling (PEPTIDE_IDS_EMPTY)
+      return false;
+    }
+    std::vector<Size> hit_entry(first_hit.back());
+    bool all_mapped = true;
+#pragma omp parallel for schedule(dynamic, 64) reduction(&& : all_mapped)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
+    {
+      const std::vector<PeptideHit>& hits = peptide_ids[i].getHits();
+      for (Size h = 0; h < hits.size(); ++h)
+      {
+        const Size entry = mapping.find(hits[h].getSequence().toUnmodifiedString());
+        const bool mapped = entry < mapping.sequences.size() && !mapping.occurrences[entry].empty();
+        all_mapped = all_mapped && mapped;
+        if (mapped) hit_entry[first_hit[i] + h] = entry;
+      }
+    }
+    if (!all_mapped)
+    {
+      fallback_reason = "a hit whose sequence was not mapped from the fragment index";
+      return false;
+    }
+
+    const std::string decoy_string = indexer_parameters.getValue("decoy_string").toString();
+    const bool decoy_prefix = indexer_parameters.getValue("decoy_string_position").toString() == "prefix";
+    std::vector<uint8_t> is_decoy(db.size());
+#pragma omp parallel for schedule(static)
+    for (SignedSize p = 0; p < static_cast<SignedSize>(db.size()); ++p)
+    {
+      is_decoy[p] = decoy_prefix ? StringUtils::hasPrefix(db[p].identifier, decoy_string) : StringUtils::hasSuffix(db[p].identifier, decoy_string);
+    }
+    // the proteins of the hits
+    std::vector<uint8_t> entry_used(mapping.occurrences.size(), 0);
+    for (const Size entry : hit_entry) entry_used[entry] = 1;
+    std::vector<uint8_t> protein_used(db.size(), 0);
+    for (Size entry = 0; entry < entry_used.size(); ++entry)
+    {
+      if (!entry_used[entry]) continue;
+      for (const Occurrence& occurrence : mapping.occurrences[entry]) protein_used[occurrence.first] = 1;
+    }
+    std::vector<UInt32> proteins; // in database order (PeptideIndexing's std::set of protein indices)
+    bool any_decoy = false;
+    for (Size p = 0; p < db.size(); ++p)
+    {
+      if (!protein_used[p]) continue;
+      proteins.push_back(static_cast<UInt32>(p));
+      any_decoy = any_decoy || is_decoy[p];
+    }
+    if (!any_decoy && indexer_parameters.getValue("missing_decoy_action").toString() != "silent")
+    {
+      fallback_reason = "no hit maps to a decoy"; // PeptideIndexing's warning or error
+      return false;
+    }
+
+    // The meta value names in the order in which PeptideIndexing registers them (its first hit is mapped): MetaInfo
+    // keeps, and idXML writes, the values of a hit ordered by registry index
+    MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+    const UInt target_decoy = registry.registerName("target_decoy");
+    const UInt protein_references = registry.registerName("protein_references");
+    const DataValue target("target"), decoy("decoy"), target_and_decoy("target+decoy"), unique("unique"), non_unique("non-unique");
+
+    // the evidences of every hit, in PeptideIndexing's order (protein, position)
+#pragma omp parallel for schedule(dynamic, 64)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
+    {
+      std::vector<PeptideHit>& hits = peptide_ids[i].getHits();
+      for (Size h = 0; h < hits.size(); ++h)
+      {
+        PeptideHit& hit = hits[h];
+        const std::vector<Occurrence>& occurrences = mapping.occurrences[hit_entry[first_hit[i] + h]];
+        const Size length = hit.getSequence().size();
+        std::vector<PeptideEvidence> evidences;
+        evidences.reserve(occurrences.size());
+        bool in_target = false, in_decoy = false;
+        Size protein_count = 0;
+        UInt32 last_protein = std::numeric_limits<UInt32>::max();
+        for (const auto& [protein, position] : occurrences)
+        {
+          const std::string& sequence = db[protein].sequence;
+          const char before = (position == 0) ? PeptideEvidence::N_TERMINAL_AA : sequence[position - 1];
+          const char after = (position + length >= sequence.size()) ? PeptideEvidence::C_TERMINAL_AA : sequence[position + length];
+          evidences.emplace_back(db[protein].identifier, static_cast<Int>(position), static_cast<Int>(position + length) - 1, before, after);
+          if (protein != last_protein)
+          {
+            last_protein = protein;
+            ++protein_count;
+          }
+          (is_decoy[protein] ? in_decoy : in_target) = true;
+        }
+        hit.setPeptideEvidences(std::move(evidences));
+        hit.setMetaValue(target_decoy, (in_target && in_decoy) ? target_and_decoy : (in_target ? target : decoy));
+        hit.setMetaValue(protein_references, protein_count == 1 ? unique : non_unique);
+      }
+    }
+
+    // the protein hits: the proteins of the hits (keep_unreferenced_proteins = false), in database order
+    std::vector<ProteinHit> protein_hits(proteins.size());
+#pragma omp parallel for schedule(static)
+    for (SignedSize k = 0; k < static_cast<SignedSize>(proteins.size()); ++k)
+    {
+      protein_hits[k].setAccession(db[proteins[k]].identifier);
+      protein_hits[k].setMetaValue(target_decoy, is_decoy[proteins[k]] ? decoy : target);
+    }
+    protein_ids[0].getHits() = std::move(protein_hits);
+
+    // PeptideIndexing's settings, as it records them
+    ProteaseDigestion enzyme;
+    enzyme.setEnzyme(indexer_parameters.getValue("enzyme:name").toString());
+    enzyme.setSpecificity(ProteaseDigestion::getSpecificityByName(indexer_parameters.getValue("enzyme:specificity").toString()));
+    ProteinIdentification::SearchParameters search_parameters = protein_ids[0].getSearchParameters();
+    search_parameters.setMetaValue("PeptideIndexer:decoy_string", decoy_string);
+    search_parameters.setMetaValue("PeptideIndexer:decoy_string_position", decoy_prefix ? "prefix" : "suffix");
+    search_parameters.setMetaValue("PeptideIndexer:enzyme", enzyme.getEnzymeName());
+    search_parameters.setMetaValue("PeptideIndexer:enzyme_specificity", EnzymaticDigestion::NamesOfSpecificity[enzyme.getSpecificity()]);
+    search_parameters.setMetaValue("PeptideIndexer:aaa_max", static_cast<Int>(indexer_parameters.getValue("aaa_max")));
+    search_parameters.setMetaValue("PeptideIndexer:mismatches_max", static_cast<Int>(indexer_parameters.getValue("mismatches_max")));
+    search_parameters.setMetaValue("PeptideIndexer:IL_equivalent", indexer_parameters.getValue("IL_equivalent").toBool() ? "true" : "false");
+    search_parameters.setMetaValue("PeptideIndexer:allow_nterm_protein_cleavage",
+                                   indexer_parameters.getValue("allow_nterm_protein_cleavage").toBool() ? "true" : "false");
+    search_parameters.setMetaValue("PeptideIndexer:unmatched_action", indexer_parameters.getValue("unmatched_action").toString());
+    search_parameters.setMetaValue("PeptideIndexer:missing_decoy_action", indexer_parameters.getValue("missing_decoy_action").toString());
+    protein_ids[0].setSearchParameters(std::move(search_parameters));
+    return true;
+  }
+
+  // =====================================================================
   // In-memory search using a pre-built SearchContext (no index rebuild).
   // Takes the context by non-const reference because the underlying
   // FragmentIndex::querySpectrum() and PeptideIndexing::run() APIs are both
@@ -3194,6 +3746,36 @@ namespace OpenMS
                               "Scoring peptide models against spectra...", query_ptr);
     query_spectra.clear(true);
 
+    // The PeptideIndexing that maps the hits to their proteins below.
+    // The PeptideIndexer drops peptides whose termini do not match the configured
+    // specificity, so it must agree with the search-time setting — otherwise
+    // semi-specific / non-specific PSMs would be silently filtered out here.
+    PeptideIndexing indexer;
+    {
+      Param param_pi = indexer.getParameters();
+      // Use the effective decoy marker/position recorded in the context (the same
+      // decoys that were searched), avoiding PeptideIndexing's own auto-detection.
+      param_pi.setValue("decoy_string", ctx.decoy_string.empty() ? decoy_prefix_ : ctx.decoy_string);
+      param_pi.setValue("decoy_string_position", ctx.decoy_is_prefix ? "prefix" : "suffix");
+      param_pi.setValue("enzyme:name", enzyme_);
+      param_pi.setValue("enzyme:specificity",
+                        EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
+      param_pi.setValue("missing_decoy_action", "silent");
+      indexer.setParameters(param_pi);
+    }
+    // peptide:protein_mapping = index: the protein occurrences of the hits' candidates are read from the index
+    // while it is still there (the index holds them all, PeptideIndexing searches the whole database for them)
+    ProteinMapping_ protein_mapping;
+    if (protein_mapping_from_index_)
+    {
+      std::vector<UInt32> candidates;
+      for (const auto& hits : annotated_hits)
+      {
+        for (const auto& ah : hits) candidates.push_back(ah.index_peptide);
+      }
+      protein_mapping = buildProteinMapping_(fragment_index_, db, std::move(candidates), indexer.getParameters());
+    }
+
     // M1: release the fragment index eagerly when the caller opted in (single-
     // use context). All downstream work (postProcessHits_, open-search mod
     // analysis, PeptideIndexing) is FI-independent, and the subsequent
@@ -3232,23 +3814,24 @@ namespace OpenMS
     sw_search.stop();
     last_run_stats_.seconds_search = sw_search.getClockTime();
 
-    // reindex peptides to proteins.
-    // The PeptideIndexer drops peptides whose termini do not match the configured
-    // specificity, so it must agree with the search-time setting — otherwise
-    // semi-specific / non-specific PSMs would be silently filtered out here.
-    PeptideIndexing indexer;
-    Param param_pi = indexer.getParameters();
-    // Use the effective decoy marker/position recorded in the context (the same
-    // decoys that were searched), avoiding PeptideIndexing's own auto-detection.
-    param_pi.setValue("decoy_string", ctx.decoy_string.empty() ? decoy_prefix_ : ctx.decoy_string);
-    param_pi.setValue("decoy_string_position", ctx.decoy_is_prefix ? "prefix" : "suffix");
-    param_pi.setValue("enzyme:name", enzyme_);
-    param_pi.setValue("enzyme:specificity",
-                      EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
-    param_pi.setValue("missing_decoy_action", "silent");
-    indexer.setParameters(param_pi);
-
-    PeptideIndexing::ExitCodes indexer_exit = indexer.run(db, protein_ids, peptide_ids);
+    // map the hits to their proteins: from the index, or with PeptideIndexing (the same result)
+    PeptideIndexing::ExitCodes indexer_exit = PeptideIndexing::ExitCodes::EXECUTION_OK;
+    std::string fallback_reason;
+    if (protein_mapping_from_index_
+        && applyProteinMapping_(protein_mapping, db, indexer.getParameters(), protein_ids, peptide_ids, fallback_reason))
+    {
+      OPENMS_LOG_INFO << "[ProSE] Protein mapping from the fragment index: " << protein_mapping.sequences.size()
+                      << " sequences, " << protein_ids[0].getHits().size() << " proteins." << std::endl;
+    }
+    else
+    {
+      if (protein_mapping_from_index_)
+      {
+        OPENMS_LOG_INFO << "[ProSE] Protein mapping with PeptideIndexing (" << fallback_reason << ")." << std::endl;
+      }
+      indexer_exit = indexer.run(db, protein_ids, peptide_ids);
+    }
+    protein_mapping = ProteinMapping_(); // released before the FDR
 
     // Helper lambda: restore FragmentIndex parameters AND algo-level tolerance members
     // before returning if calibration modified them, so the shared SearchContext and the

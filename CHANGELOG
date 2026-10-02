@@ -182,6 +182,13 @@ TOPP tools:
         features. Computed on the peak list before local/top-N filtering; candidates and native scores
         do not change. Requires a finite, positive fragment:mass_tolerance; set it to false to search
         with other tolerances.
+      - New peptide:protein_mapping (index, PeptideIndexing): the hits are mapped to their proteins from the digest of
+        the fragment index, which knows every protein occurrence of a candidate, instead of searching every hit in the
+        whole database (PeptideIndexing). Peptide evidences, target_decoy, protein_references, the protein hits and the
+        PeptideIndexer:* search parameters are the same; PeptideIndexing still runs where the index cannot reproduce it
+        exactly (SNES, a specificity other than full, protein-terminal modifications, a chunked database, symbols other
+        than letters or stretches of X in the database). With the post-processing below, a search of 8,000 spectra takes
+        0.2-0.9 s less at 4 threads (11% over the 20 files of OpenMS#10364).
       - The PSMs are annotated in per-spectrum slots (no lock, no sort afterwards), and the decoy marker of large
         databases is detected with all threads. Results are unchanged.
 
