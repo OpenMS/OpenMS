@@ -21,6 +21,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <algorithm>
+#include <bit>
 #include <limits>
 #include <numeric>
 #include <random>
@@ -3605,6 +3606,56 @@ START_SECTION((static void checkFixedModifications(const StringList& fixed_modif
     TEST_TRUE(seq.hasNTerminalModification())
     TEST_TRUE(seq.hasCTerminalModification())
     TEST_REAL_SIMILAR(peptide.precursor_mz_, seq.getMZ(1))
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] variable modification enumeration: subsets up to variable_max_per_peptide, at most 31 sites))
+{
+  // A peptide with n Met has n Oxidation (M) sites, so with at most k variable modifications per peptide the index
+  // holds sum_{j <= k} C(n, j) forms of it. The enumeration visits only those subsets (it used to visit all 2^n, which
+  // does not finish for 25 sites and is undefined for 32), and at most the first 31 sites take part.
+  auto forms = [](Size n, Size k) {
+    Size total = 0, c = 1; // c = C(n, j)
+    for (Size j = 0; j <= k && j <= n; ++j) { total += c; c = c * (n - j) / (j + 1); }
+    return total;
+  };
+  for (const Size n : {Size(3), Size(25), Size(31), Size(32), Size(35)})
+  {
+    for (const Size k : {Size(0), Size(1), Size(2)})
+    {
+      const vector<FASTAFile::FASTAEntry> db {{"p", "p", "G" + string(n, 'M') + "K"}};
+      FragmentIndex_test fi;
+      Param p = fi.getParameters();
+      p.setValue("enzyme", "no cleavage");
+      p.setValue("peptide:min_size", 0);
+      p.setValue("peptide:max_size", 100);
+      p.setValue("peptide:min_mass", 0);
+      p.setValue("peptide:max_mass", 50000);
+      p.setValue("fragment:min_mz", 0);
+      p.setValue("fragment:max_mz", 50000);
+      p.setValue("modifications:fixed", StringList {});
+      p.setValue("modifications:variable", StringList {"Oxidation (M)"});
+      p.setValue("modifications:variable_max_per_peptide", static_cast<int>(k));
+      p.setValue("peptide:deduplicate", "false");
+      fi.setParameters(p);
+      fi.build(db);
+      const Size sites = std::min<Size>(n, 31);
+      TEST_EQUAL(fi.getPeptides().size(), forms(sites, k))
+      set<uint32_t> masks;
+      for (const auto& peptide : fi.getPeptides())
+      {
+        masks.insert(peptide.mod_bitmask_);
+        TEST_TRUE(static_cast<Size>(std::popcount(peptide.mod_bitmask_)) <= k)
+        TEST_EQUAL(peptide.mod_bitmask_ >> sites, 0u) // the slots beyond the 31st stay unmodified
+        const AASequence seq = fi.reconstructModifiedSequence(peptide, db);
+        Size oxidized = 0;
+        for (Size i = 0; i < seq.size(); ++i) { oxidized += seq[i].isModified() ? 1 : 0; }
+        TEST_EQUAL(oxidized, static_cast<Size>(std::popcount(peptide.mod_bitmask_)))
+        TEST_REAL_SIMILAR(peptide.precursor_mz_, seq.getMZ(1))
+      }
+      TEST_EQUAL(masks.size(), fi.getPeptides().size())
+    }
   }
 }
 END_SECTION

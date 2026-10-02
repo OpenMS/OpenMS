@@ -1143,6 +1143,19 @@ namespace OpenMS
         }
       }
     }
+
+    // Variable-modification slots a non-SNES peptide may use: bit 31 of mod_bitmask_ marks Single-C mothers in SNES
+    // mode, and the reconstruction masks it off (SNES_SLOT_MASK) in either mode.
+    constexpr size_t MAX_ENUMERATED_SLOTS = 31;
+
+    // The smallest x' >= x with at most max_set_bits bits set, or a value >= end if there is none below end
+    // (end <= 2^32). Every number in [x, x + lowest set bit of x) keeps all bits of x and has at least as many set;
+    // so while x has too many, the next candidate is x plus its lowest set bit.
+    uint64_t nextSubsetWithin(uint64_t x, size_t max_set_bits, uint64_t end)
+    {
+      while (x < end && static_cast<size_t>(std::popcount(x)) > max_set_bits) x += x & (~x + 1);
+      return x;
+    }
   } // namespace
 
   void FragmentIndex::generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
@@ -1168,6 +1181,7 @@ namespace OpenMS
       }
 
       size_t skipped_peptides = 0;
+      size_t capped_peptides = 0; // peptides with more variable-modification slots than MAX_ENUMERATED_SLOTS
 
       ProteaseDigestion digestor;
       digestor.setEnzyme(digestion_enzyme_);
@@ -1277,6 +1291,13 @@ namespace OpenMS
             bool is_prot_cterm = (digested_peptide.first + seq_len == protein.sequence.size());
             ModSlot slots[MAX_MOD_SLOTS];
             size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
+            if (n_slots > MAX_ENUMERATED_SLOTS)
+            {
+              // buildModSlots_() stops at MAX_MOD_SLOTS; the first 31 slots keep their bits
+              n_slots = MAX_ENUMERATED_SLOTS;
+              #pragma omp atomic
+              capped_peptides++;
+            }
 
             if (n_slots == 0)
             {
@@ -1308,13 +1329,13 @@ namespace OpenMS
                 }
               }
 
-              // Enumerate all valid bitmask subsets
-              uint32_t max_bitmask = (1u << n_slots);
-              for (uint32_t bitmask = 0; bitmask < max_bitmask; ++bitmask)
+              // Enumerate the slot subsets with at most max_variable_mods_per_peptide_ slots, in increasing bitmask
+              // order (the emission order fixes the order of equal-mass variants in the index). nextSubsetWithin()
+              // skips the subsets with more slots instead of visiting all 2^n_slots of them.
+              const uint64_t end_bitmask = uint64_t{1} << n_slots;
+              for (uint64_t subset = 0; subset < end_bitmask; subset = nextSubsetWithin(subset + 1, max_variable_mods_per_peptide_, end_bitmask))
               {
-                // Check max variable mods constraint
-                unsigned int popcount = std::popcount(bitmask);
-                if (popcount > max_variable_mods_per_peptide_) continue;
+                const uint32_t bitmask = static_cast<uint32_t>(subset);
 
                 // Check position conflicts: no two set bits can map to the same position
                 bool conflict = false;
@@ -1374,6 +1395,12 @@ namespace OpenMS
       if (skipped_peptides > 0)
       {
         OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unknown or ambiguous AA (X/B/Z), stop codons or other symbols\n";
+      }
+      if (capped_peptides > 0)
+      {
+        OPENMS_LOG_WARN << capped_peptides << " peptide(s) have more than " << MAX_ENUMERATED_SLOTS
+                        << " sites for variable modifications; only the first " << MAX_ENUMERATED_SLOTS
+                        << " sites are considered for them (see modifications:variable)." << std::endl;
       }
 
       // Merge per-thread peptide vectors.
