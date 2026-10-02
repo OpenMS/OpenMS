@@ -7,6 +7,7 @@
 				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,complementary_ions_fraction,hyperscore_zscore,ln_num_candidates,delta_score,isotope_error"/>
 				<UserParam type="string" name="open_search" value="false"/>
 				<UserParam type="string" name="peptide:clip_nterm_methionine" value="true"/>
+				<UserParam type="string" name="peptide:deduplicate" value="true"/>
 				<UserParam type="string" name="peaks:window_type" value="auto"/>
 				<UserParam type="string" name="peaks:window_type_resolved" value="jump_full"/>
 				<UserParam type="int" name="peaks:dense_window_top" value="100"/>

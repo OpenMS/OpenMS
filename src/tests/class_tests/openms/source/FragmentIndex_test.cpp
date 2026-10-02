@@ -3448,4 +3448,122 @@ START_SECTION([EXTRA] sortPeptides_() leaves exactly the order of std::sort)
 }
 END_SECTION
 
+START_SECTION(([EXTRA] optional peptidoform deduplication preserves modification sites and terminal contexts))
+{
+  const vector<FASTAFile::FASTAEntry> db
+    = {{"P1", "", "MPEPCIDEMK"}, {"P2", "", "MPEPCIDEMK"}, {"P3", "", "AKMPEPCIDEMK"}, {"DECOY_shared", "", "MPEPCIDEMK"}};
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("decoys", "false");
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("modifications:fixed", vector<string> {"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string> {"Oxidation (M)", "Acetyl (Protein N-term)"});
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  p.setValue("peptide:deduplicate", "false");
+  fi.setParameters(p);
+  fi.build(db);
+  set<string> expected;
+  for (const auto& peptide : fi.getPeptides())
+  {
+    expected.insert(fi.reconstructModifiedSequence(peptide, db).toString());
+  }
+  TEST_EQUAL(expected.size(), 4) // Fixed-only, oxidation at either M, protein-N acetyl.
+  const Size original_count = fi.getPeptides().size();
+  TEST_TRUE(original_count > expected.size())
+  p.setValue("peptide:deduplicate", "true");
+  fi.setParameters(p);
+  fi.build(db);
+  set<string> observed;
+  for (const auto& peptide : fi.getPeptides())
+  {
+    observed.insert(fi.reconstructModifiedSequence(peptide, db).toString());
+  }
+  TEST_TRUE(observed == expected)
+  TEST_EQUAL(fi.getPeptides().size(), expected.size())
+
+  // Rebuilding with the default restores every occurrence; clear() carries no identity state.
+  fi.clear();
+  p.setValue("peptide:deduplicate", "false");
+  fi.setParameters(p);
+  fi.build(db);
+  TEST_EQUAL(fi.getPeptides().size(), original_count)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] peptidoform deduplication keeps the first entry of every rendered peptidoform))
+{
+  // peptide:deduplicate compares entries within runs of equal precursor m/z, residue by residue and modification by
+  // modification (or, for the last configuration, as strings). By definition it keeps, of all entries with the same
+  // reconstructModifiedSequence(...).toString(), the first one. Build both ways on proteins that repeat peptides in
+  // every protein-terminal context.
+  const vector<string> blocks = {"MPEPCIDEMK", "QPEPTIDEMR", "AMDEQK", "MSTQMPEPK", "GGQMSTMK", "CMQEDK", "QQMMCR", "PEPTIDEK"};
+  std::mt19937 rng(17);
+  vector<FASTAFile::FASTAEntry> db;
+  for (int i = 0; i < 40; ++i)
+  {
+    string sequence = (i % 3 == 0) ? "M" : "";
+    const int n_blocks = 1 + static_cast<int>(rng() % 4);
+    for (int b = 0; b < n_blocks; ++b) sequence += blocks[rng() % blocks.size()];
+    db.push_back({"P" + std::to_string(i), "", sequence});
+  }
+  struct Config { vector<string> fixed, variable; };
+  const vector<Config> configs = {
+    {{}, {}},
+    {{"Carbamidomethyl (C)"}, {"Oxidation (M)"}},
+    {{"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (Protein N-term)"}},
+    {{"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (N-term)", "Acetyl (Protein N-term)"}}, // two modifications rendered alike
+    {{"Carbamidomethyl (C)", "TMT6plex (N-term)", "TMT6plex (K)"}, {"Oxidation (M)", "Gln->pyro-Glu (N-term Q)"}}, // terminal residue modification
+    {{}, {"Oxidation (M)", "Amidated (Protein C-term)", "Deamidated (Q)"}},
+    {{"Carbamidomethyl (C)"}, {"Carbamidomethyl (C)", "Oxidation (M)"}}}; // fixed and variable: compared as strings
+  Size checked = 0, mismatches = 0, removed = 0;
+  for (const Config& config : configs)
+  {
+    for (const string clip : {"false", "true"})
+    {
+      for (const int max_mods : {1, 2})
+      {
+        for (const string specificity : {"full", "semi"})
+        {
+          FragmentIndex fi;
+          Param p = fi.getParameters();
+          p.setValue("decoys", "false");
+          p.setValue("peptide:min_size", 5);
+          p.setValue("peptide:missed_cleavages", 2);
+          p.setValue("peptide:clip_nterm_methionine", clip);
+          p.setValue("peptide:enzyme_specificity", specificity);
+          p.setValue("modifications:fixed", config.fixed);
+          p.setValue("modifications:variable", config.variable);
+          p.setValue("modifications:variable_max_per_peptide", max_mods);
+          p.setValue("peptide:deduplicate", "false");
+          fi.setParameters(p);
+          fi.build(db);
+          vector<FragmentIndex::Peptide> expected;
+          set<string> seen;
+          for (const auto& peptide : fi.getPeptides())
+          {
+            if (seen.insert(fi.reconstructModifiedSequence(peptide, db).toString()).second) { expected.push_back(peptide); }
+          }
+          removed += fi.getPeptides().size() - expected.size();
+          p.setValue("peptide:deduplicate", "true");
+          fi.setParameters(p);
+          fi.build(db);
+          const auto& observed = fi.getPeptides();
+          bool same = observed.size() == expected.size();
+          for (Size i = 0; same && i < observed.size(); ++i)
+          {
+            same = observed[i].protein_idx == expected[i].protein_idx && observed[i].mod_bitmask_ == expected[i].mod_bitmask_
+                   && observed[i].sequence_ == expected[i].sequence_ && observed[i].precursor_mz_ == expected[i].precursor_mz_;
+          }
+          mismatches += same ? 0 : 1;
+          ++checked;
+        }
+      }
+    }
+  }
+  TEST_EQUAL(checked, configs.size() * 8)
+  TEST_EQUAL(mismatches, 0)
+  TEST_TRUE(removed > 0)
+}
+END_SECTION
+
 END_TEST

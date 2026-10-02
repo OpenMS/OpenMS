@@ -37,11 +37,14 @@
 #include <algorithm>
 #include <bit>
 #include <cmath>
+#include <cstring>
 #include <functional>
+#include <map>
 #include <mutex>
 #include <set>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <boost/sort/sort.hpp>
 #if defined(__linux__) && defined(_OPENMP)
   #include <cstdint>
@@ -1355,6 +1358,176 @@ namespace OpenMS
       OPENMS_LOG_INFO << "done." << std::endl;
   }
 
+  FragmentIndex::PeptidoformRendering_ FragmentIndex::peptidoformRendering_() const
+  {
+    // AASequence::toString() writes the N-terminal modification, one token per residue (its one-letter code, or its
+    // modification's toString()) and the C-terminal modification. Modifications are compared by that rendering:
+    // different ResidueModification objects may render alike (Acetyl (N-term) and Acetyl (Protein N-term) are both
+    // ".(Acetyl)"). Classes start at 256, above the residue bytes; 0 is "no terminal modification".
+    PeptidoformRendering_ rendering;
+    if (modifications_fixed_.empty() && modifications_variable_.empty()) return rendering;
+    struct Member
+    {
+      const ResidueModification* mod;
+      bool variable;
+    };
+    std::map<std::string, std::vector<Member>> members; // rendering -> modifications
+    const auto add = [&](const ResidueModification* mod, const bool variable)
+    {
+      if (mod == nullptr) return;
+      auto& list = members[mod->toString()];
+      if (std::none_of(list.begin(), list.end(), [&](const Member& m) { return m.mod == mod && m.variable == variable; }))
+      {
+        list.push_back({mod, variable});
+      }
+    };
+    for (const ResidueModification* mod : fixed_mod_ptrs_) add(mod, false);
+    add(fixed_nterm_mod_ptr_, false);
+    add(fixed_cterm_mod_ptr_, false);
+    const auto add_variable = [&](const VarModEntry& entry)
+    {
+      add(entry.mod_ptr, true);
+      rendering.slots_depend_on_context |= (entry.term_spec == ResidueModification::PROTEIN_N_TERM
+                                            || entry.term_spec == ResidueModification::PROTEIN_C_TERM);
+    };
+    for (const auto& entries : variable_mod_table_)
+    {
+      for (const VarModEntry& entry : entries) add_variable(entry);
+    }
+    for (const VarModEntry& entry : variable_nterm_mods_) add_variable(entry);
+    for (const VarModEntry& entry : variable_cterm_mods_) add_variable(entry);
+
+    uint32_t cls = 256;
+    for (const auto& [text, list] : members)
+    {
+      const auto& first = list.front();
+      size_t variable_count = 0;
+      for (const Member& m : list)
+      {
+        if (std::none_of(rendering.mod_class.begin(), rendering.mod_class.end(), [&](const auto& c) { return c.first == m.mod; }))
+        {
+          rendering.mod_class.emplace_back(m.mod, cls);
+        }
+        variable_count += m.variable ? 1 : 0;
+        // Alike rendered modifications that differ in mass or residue, or a fixed one that a variable one renders
+        // like (its mass is added on top), can give equal peptidoforms different precursor m/z or residues.
+        rendering.runs_hold_peptidoforms &= (m.mod->getDiffMonoMass() == first.mod->getDiffMonoMass()
+                                             && m.mod->getOrigin() == first.mod->getOrigin()
+                                             && m.variable == first.variable);
+      }
+      rendering.unique_variable_renderings &= (variable_count <= 1);
+      ++cls;
+    }
+    return rendering;
+  }
+
+  void FragmentIndex::renderPeptidoform_(const Peptide& peptide,
+                                         const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                         const PeptidoformRendering_& rendering,
+                                         std::vector<uint32_t>& tokens) const
+  {
+    // [N-term, residue 0, ..., residue len-1, C-term], with the modifications reconstructModifiedSequence() sets
+    const std::string& protein = fasta_entries[peptide.protein_idx].sequence;
+    const size_t start = peptide.sequence_.first;
+    const size_t len = peptide.sequence_.second;
+    const char* seq = protein.data() + start;
+    tokens.assign(len + 2, 0);
+    for (size_t i = 0; i < len; ++i) tokens[i + 1] = static_cast<unsigned char>(seq[i]);
+    if (modifications_fixed_.empty() && modifications_variable_.empty()) return;
+    tokens[0] = rendering.classOf(fixed_nterm_mod_ptr_);
+    tokens[len + 1] = rendering.classOf(fixed_cterm_mod_ptr_);
+    for (size_t i = 0; i < len; ++i)
+    {
+      const ResidueModification* fixed = fixed_mod_ptrs_[static_cast<unsigned char>(seq[i])];
+      if (fixed != nullptr) tokens[i + 1] = rendering.classOf(fixed);
+    }
+    const uint32_t slot_bits = peptide.mod_bitmask_ & SNES_SLOT_MASK;
+    if (slot_bits == 0) return;
+    ModSlot slots[MAX_MOD_SLOTS];
+    const size_t n_slots = buildModSlots_(seq, len, slots, isProteinNTerminal_(protein, start), start + len == protein.size());
+    for (size_t s = 0; s < n_slots; ++s)
+    {
+      if (!(slot_bits & (1u << s))) continue;
+      const uint32_t cls = rendering.classOf(slots[s].mod_ptr); // replaces a fixed modification at the same place
+      if (slots[s].position == ModSlot::NTERM_SLOT) tokens[0] = cls;
+      else if (slots[s].position == ModSlot::CTERM_SLOT) tokens[len + 1] = cls;
+      else tokens[slots[s].position + 1] = cls;
+    }
+  }
+
+  bool FragmentIndex::samePeptidoform_(const Peptide& a, const Peptide& b,
+                                       const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                       const PeptidoformRendering_& rendering,
+                                       std::vector<uint32_t>& tokens_a, std::vector<uint32_t>& tokens_b) const
+  {
+    // With rendering.runs_hold_peptidoforms, equal renderings imply equal residues (every rendered modification
+    // names one residue).
+    const size_t len = a.sequence_.second;
+    if (b.sequence_.second != len) return false;
+    const std::string& protein_a = fasta_entries[a.protein_idx].sequence;
+    const std::string& protein_b = fasta_entries[b.protein_idx].sequence;
+    const size_t start_a = a.sequence_.first;
+    const size_t start_b = b.sequence_.first;
+    if (std::memcmp(protein_a.data() + start_a, protein_b.data() + start_b, len) != 0) return false;
+    // No variable modification: the fixed modifications depend on the residues only.
+    if (a.mod_bitmask_ == 0 && b.mod_bitmask_ == 0) return true;
+    // The same slots (buildModSlots_() sees the same residues and protein-terminal context): the same active slots
+    // set the same modifications; different ones set differently rendered ones, unless two variable modifications
+    // render alike.
+    if (!rendering.slots_depend_on_context
+        || (isProteinNTerminal_(protein_a, start_a) == isProteinNTerminal_(protein_b, start_b)
+            && (start_a + len == protein_a.size()) == (start_b + len == protein_b.size())))
+    {
+      if (a.mod_bitmask_ == b.mod_bitmask_) return true;
+      if (rendering.unique_variable_renderings) return false;
+    }
+    renderPeptidoform_(a, fasta_entries, rendering, tokens_a);
+    renderPeptidoform_(b, fasta_entries, rendering, tokens_b);
+    return tokens_a == tokens_b;
+  }
+
+  Size FragmentIndex::deduplicateByString_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
+  {
+    // The definition of peptide:deduplicate, literally (OpenMS #10394): group by a hash of the rendered sequence,
+    // compare the strings within a group, keep the first entry of every string. build() uses it only for
+    // configurations in which equal renderings need not have equal precursor m/z (see PeptidoformRendering_).
+    std::vector<std::pair<size_t, Size>> fingerprints(fi_peptides_.size());
+#pragma omp parallel for default(none) shared(fingerprints, fasta_entries)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(fi_peptides_.size()); ++i)
+    {
+      fingerprints[i] = {std::hash<std::string> {}(reconstructModifiedSequence(fi_peptides_[i], fasta_entries).toString()), static_cast<Size>(i)};
+    }
+    // Original index breaks hash ties so the first representative is stable.
+    std::sort(fingerprints.begin(), fingerprints.end());
+    std::vector<uint8_t> duplicate(fi_peptides_.size(), 0);
+    for (Size begin = 0; begin < fingerprints.size();)
+    {
+      Size end = begin + 1;
+      while (end < fingerprints.size() && fingerprints[end].first == fingerprints[begin].first)
+      {
+        ++end;
+      }
+      if (end - begin > 1)
+      {
+        std::unordered_set<std::string> seen;
+        for (Size i = begin; i < end; ++i)
+        {
+          const Size index = fingerprints[i].second;
+          duplicate[index] = ! seen.insert(reconstructModifiedSequence(fi_peptides_[index], fasta_entries).toString()).second;
+        }
+      }
+      begin = end;
+    }
+    Size retained = 0;
+    for (Size i = 0; i < fi_peptides_.size(); ++i)
+    {
+      if (! duplicate[i]) { fi_peptides_[retained++] = fi_peptides_[i]; }
+    }
+    const Size removed = fi_peptides_.size() - retained;
+    fi_peptides_.erase(fi_peptides_.begin() + retained, fi_peptides_.end());
+    return removed;
+  }
+
   namespace
   {
     // build() generates the fragments partitioned into m/z bins and sortAndBucketFragments_() finishes the
@@ -1435,8 +1608,29 @@ namespace OpenMS
       const uint32_t first_bin = binnable ? mzBinFrom(lowest_mz, 0, MZ_BIN_END) : 0;
       const uint32_t last = binnable ? mzBinFrom(fragment_max_mz_, first_bin, MAX_MZ_BINS - 1) : 0; // last bin, counted from first_bin
       const size_t num_bins = size_t(last) + 1;
-      const size_t num_peptides = fi_peptides_.size();
       const size_t portion_size = std::max<size_t>(4 * num_bins, 1024); // peptides; the tables below take 2 bytes per peptide
+
+      // peptide:deduplicate - protein occurrences are not distinct peptide hypotheses: of every peptidoform
+      // (reconstructModifiedSequence(...).toString()) only the first entry is kept. ProSE maps the hits against the
+      // complete FASTA later, including target/decoy shared sequences. SNES entries are mother peptides with
+      // different anchors, not scored forms.
+      // The entries of a peptidoform normally have equal residues and bitwise equal precursor_mz_ (generatePeptides()
+      // adds the same masses in the same order), so they lie in one run of equal precursor_mz_. The first pass meets
+      // them one after the other, their sequences in the cache, and keeps the first entry of every peptidoform
+      // (samePeptidoform_()): its portions start at runs, and each moves its kept entries to its front, in place
+      // (fresh memory would cost more page faults than the comparisons cost time). The portions are then closed up,
+      // and the second pass works on what is left of each. Otherwise (a modification configured fixed and variable,
+      // or alike rendered ones of different mass or residue) the rendered strings are compared beforehand.
+      const bool deduplicate_requested = param_.getValue("peptide:deduplicate").toBool() && !is_snes_mode_;
+      const PeptidoformRendering_ rendering = deduplicate_requested ? peptidoformRendering_() : PeptidoformRendering_{};
+      const bool deduplicate_by_string = deduplicate_requested && !rendering.runs_hold_peptidoforms;
+      if (deduplicate_by_string)
+      {
+        const Size removed = deduplicateByString_(fasta_entries);
+        OPENMS_LOG_INFO << "Collapsed " << removed << " repeated peptidoform occurrences." << std::endl;
+      }
+      const bool deduplicate = deduplicate_requested && !deduplicate_by_string;
+      const size_t num_peptides = fi_peptides_.size();
       const SignedSize num_portions = static_cast<SignedSize>((num_peptides + portion_size - 1) / portion_size);
 
       // Per portion and bin: the number of fragments (first pass), then the position of the next one (second pass)
@@ -1601,32 +1795,96 @@ namespace OpenMS
         }
       };
 
-      // One pass over all peptides; make_sink(fragments, table row of the portion) returns what a set of
-      // fragments is written to. The peptides are sorted by mass and heavier ones have more fragments: the
-      // portions are handed out one by one so that all threads stay busy.
-      const auto generate_fragments = [&](const auto make_sink)
+      // Portion p takes the peptides [portion_start[p], portion_start[p + 1]). With deduplication, the first pass's
+      // portions start at the first run of equal precursor_mz_ that begins at or after their nominal start.
+      vector<size_t> portion_start(num_portions + 1, num_peptides);
+      for (SignedSize portion = 0; portion < num_portions; ++portion)
+      {
+        size_t start = static_cast<size_t>(portion) * portion_size;
+        while (deduplicate && start > 0 && start < num_peptides && fi_peptides_[start].precursor_mz_ == fi_peptides_[start - 1].precursor_mz_) ++start;
+        portion_start[portion] = start;
+      }
+      vector<size_t> kept_count(deduplicate ? num_portions : 0); // first pass: entries kept of each portion
+      // Key of a peptide within its run: a hash of its length and of up to 8 residues after the first and before the
+      // last one, and of its active modification slots where these name the peptidoform (the same residues give the
+      // same slots, and no two variable modifications render alike). Equal peptidoforms agree in them, the peptides
+      // of a run mostly differ in them (distinct ones of one composition, or the sites of a modification). 32 bits,
+      // so that the comparison with all keys of a run vectorises; equal keys are only candidates.
+      const bool key_has_slots = !rendering.slots_depend_on_context && rendering.unique_variable_renderings;
+      const auto runKey = [&fasta_entries, key_has_slots](const Peptide& peptide)
+      {
+        uint64_t residues = 0;
+        const size_t length = peptide.sequence_.second;
+        const char* sequence = fasta_entries[peptide.protein_idx].sequence.data() + peptide.sequence_.first;
+        if (length >= sizeof(residues) + 2) std::memcpy(&residues, sequence + 1, sizeof(residues));
+        else if (length > 2) std::memcpy(&residues, sequence + 1, length - 2);
+        const uint64_t slots = key_has_slots ? peptide.mod_bitmask_ : 0;
+        const uint64_t mixed = (residues ^ (static_cast<uint64_t>(length) << 48)) * 0x9E3779B97F4A7C15ull + slots * 0xC2B2AE3D27D4EB4Full;
+        return static_cast<uint32_t>(mixed >> 32);
+      };
+
+      // One pass over all peptides (first_pass: the counting one); make_sink(fragments, table row of the portion)
+      // returns what a set of fragments is written to. The peptides are sorted by mass and heavier ones have more
+      // fragments: the portions are handed out one by one so that all threads stay busy.
+      const auto generate_fragments = [&](const auto make_sink, const bool first_pass)
       {
         #pragma omp parallel
         {
           vector<double> mod_masses;
+          vector<uint32_t> run_keys;           // keys of the kept entries of the current run
+          vector<Peptide> run_entries;         // the kept entries of the current run
+          vector<uint32_t> tokens_a, tokens_b; // samePeptidoform_()
+          const size_t size = fi_peptides_.size();
           #pragma omp for schedule(dynamic)
           for (SignedSize portion = 0; portion < num_portions; ++portion)
           {
             auto fragment_sink = make_sink(fi_fragments_, positions.data() + portion * num_bins);
             auto electron_sink = make_sink(electron_fragments_, electron_positions.empty() ? nullptr : electron_positions.data() + portion * num_bins);
-            const size_t portion_end = std::min(num_peptides, (static_cast<size_t>(portion) + 1) * portion_size);
-            for (size_t peptide_idx = static_cast<size_t>(portion) * portion_size; peptide_idx < portion_end; ++peptide_idx)
+            const size_t begin = portion_start[portion];
+            const size_t end = portion_start[portion + 1];
+            const bool deduplicating = deduplicate && first_pass;
+            // Deduplicating portions rewrite their entries: look ahead only within the own portion then.
+            const size_t ahead_end = deduplicating ? end : size;
+            size_t kept = 0;
+            for (size_t peptide_idx = begin; peptide_idx < end; ++peptide_idx)
             {
               // Sorted by mass, the peptides come from the proteins in no order: fetch the sequences of the
               // next ones (first the string object, then its characters) while this one is worked on
-              if (peptide_idx + 16 < num_peptides)
+              if (peptide_idx + 16 < ahead_end)
               {
                 prefetchForRead(&fasta_entries[fi_peptides_[peptide_idx + 16].protein_idx].sequence, 0);
                 const Peptide& ahead = fi_peptides_[peptide_idx + 8];
                 prefetchForRead(fasta_entries[ahead.protein_idx].sequence.data(), ahead.sequence_.first);
               }
-              generate_fragments_of(peptide_idx, mod_masses, fragment_sink, electron_sink);
+              if (!deduplicating)
+              {
+                generate_fragments_of(peptide_idx, mod_masses, fragment_sink, electron_sink);
+                continue;
+              }
+              const Peptide peptide = fi_peptides_[peptide_idx];
+              if (peptide_idx == begin || peptide.precursor_mz_ != run_entries.front().precursor_mz_)
+              {
+                run_keys.clear();
+                run_entries.clear();
+              }
+              const uint32_t key = runKey(peptide);
+              // Long runs are mostly distinct peptides of one composition: test all keys at once, without branches,
+              // and compare entries only where a key matches.
+              bool candidate = false;
+              for (const uint32_t earlier : run_keys) candidate |= (earlier == key);
+              bool repeats = false;
+              for (size_t k = 0; candidate && !repeats && k < run_keys.size(); ++k)
+              {
+                repeats = run_keys[k] == key && samePeptidoform_(run_entries[k], peptide, fasta_entries, rendering, tokens_a, tokens_b);
+              }
+              if (repeats) continue;
+              run_keys.push_back(key);
+              run_entries.push_back(peptide);
+              fi_peptides_[begin + kept] = peptide; // at or before peptide_idx
+              generate_fragments_of(begin + kept, mod_masses, fragment_sink, electron_sink); // the counter ignores the index
+              ++kept;
             }
+            if (deduplicating) kept_count[portion] = kept;
             fragment_sink.flush();
             electron_sink.flush();
           }
@@ -1634,7 +1892,46 @@ namespace OpenMS
       };
 
       // First pass: count
-      generate_fragments([&](vector<Fragment>& /*fragments*/, size_t* count) { return BinCounter{count, first_bin, last}; });
+      generate_fragments([&](vector<Fragment>& /*fragments*/, size_t* count) { return BinCounter{count, first_bin, last}; }, true);
+
+      if (deduplicate)
+      {
+        // Close up the portions: the kept entries of each are numbered on from those of the portions before. Each
+        // portion moves to the left, onto kept entries of earlier portions only, after these have moved: in waves, a
+        // portion one wave after the latest of the portions whose entries it covers.
+        const vector<size_t> source = portion_start;
+        for (SignedSize portion = 0; portion < num_portions; ++portion)
+        {
+          portion_start[portion + 1] = portion_start[portion] + kept_count[portion];
+        }
+        const size_t kept_total = portion_start[num_portions];
+        vector<int> wave(num_portions, -1); // -1: stays
+        int num_waves = 0;
+        for (SignedSize portion = 0; portion < num_portions; ++portion)
+        {
+          const size_t to = portion_start[portion];
+          if (kept_count[portion] == 0 || to == source[portion]) continue;
+          int w = 0;
+          for (SignedSize q = portion - 1; q >= 0 && source[q] + kept_count[q] > to; --q)
+          {
+            if (wave[q] >= 0 && source[q] < to + kept_count[portion]) w = std::max(w, wave[q] + 1);
+          }
+          wave[portion] = w;
+          num_waves = std::max(num_waves, w + 1);
+        }
+        for (int w = 0; w < num_waves; ++w)
+        {
+          #pragma omp parallel for schedule(dynamic)
+          for (SignedSize portion = 0; portion < num_portions; ++portion)
+          {
+            if (wave[portion] != w) continue;
+            const auto from = fi_peptides_.begin() + source[portion];
+            std::copy(from, from + kept_count[portion], fi_peptides_.begin() + portion_start[portion]);
+          }
+        }
+        OPENMS_LOG_INFO << "Collapsed " << (num_peptides - kept_total) << " repeated peptidoform occurrences." << std::endl;
+        fi_peptides_.erase(fi_peptides_.begin() + kept_total, fi_peptides_.end());
+      }
 
       // Turn the counts into the position at which each portion fills each bin; returns the number of fragments
       const auto counts_to_positions = [num_bins](vector<size_t>& table)
@@ -1667,7 +1964,7 @@ namespace OpenMS
       electron_fragments_.resize(counts_to_positions(electron_positions));
 
       // Second pass: write
-      generate_fragments([&](vector<Fragment>& fragments, size_t* next) { return BinWriter{fragments.data(), next, first_bin, last}; });
+      generate_fragments([&](vector<Fragment>& fragments, size_t* next) { return BinWriter{fragments.data(), next, first_bin, last}; }, false);
 
       OPENMS_LOG_INFO << "Sorting fragments..." << std::endl;
 
@@ -3255,6 +3552,11 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       "Also consider loss of the initial M of a protein. Length and missed-cleavage limits apply to the clipped peptide, "
       "which remains eligible for protein N-terminal variable modifications. Non-specific searches already include these sequences.");
     defaults_.setValidStrings("peptide:clip_nterm_methionine", {"true", "false"});
+    defaults_.setValue("peptide:deduplicate", "false",
+                       "Index each exact modified peptide once, retaining one representative protein coordinate. "
+                       "Callers must recover complete protein mappings separately. Does not apply to SNES mother indices.",
+                       {"advanced"});
+    defaults_.setValidStrings("peptide:deduplicate", {"true", "false"});
     defaults_.setValue("peptide:enzyme_specificity", "full",
       "Enzyme cleavage specificity required for both peptide termini.\n"
       "  'full' : both termini must be enzyme-specific (canonical, e.g. tryptic).\n"

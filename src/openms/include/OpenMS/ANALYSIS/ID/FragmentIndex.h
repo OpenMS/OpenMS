@@ -143,6 +143,8 @@ namespace OpenMS
      *
      * Provides read-only access to all peptides currently held by the index,
      * typically populated during build().
+     * With peptide:deduplicate=true, non-SNES entries retain one representative
+     * protein coordinate per exact peptidoform, not every protein occurrence.
      *
      * @return const reference to the internal std::vector of Peptide.
      *
@@ -460,6 +462,57 @@ protected:
      * @param[in]     min_task_size  Parts of at most this many peptides are sorted by the thread that created them
      */
     static void sortPeptides_(std::vector<Peptide>& peptides, size_t min_task_size = 8192);
+
+    /// Rendering classes of the configured modifications, for samePeptidoform_() (peptide:deduplicate)
+    struct PeptidoformRendering_
+    {
+      /// Modification -> class of its toString(); classes start at 256, above the residue bytes
+      std::vector<std::pair<const ResidueModification*, uint32_t>> mod_class;
+      /// Alike rendered modifications have the same mass and residue, and none is configured both fixed and variable:
+      /// equal peptidoforms then have equal residues and bitwise equal precursor_mz_, i.e. lie in one run of
+      /// equal precursor_mz_ after sortPeptides_().
+      bool runs_hold_peptidoforms{true};
+      /// No two variable modifications render alike
+      bool unique_variable_renderings{true};
+      /// A variable modification is protein-terminal: buildModSlots_() depends on where a peptide lies in its protein
+      bool slots_depend_on_context{false};
+
+      /// Class of @p mod (0 for nullptr or a modification not configured)
+      uint32_t classOf(const ResidueModification* mod) const
+      {
+        for (const auto& [ptr, cls] : mod_class)
+        {
+          if (ptr == mod) return cls;
+        }
+        return 0;
+      }
+    };
+
+    /// Rendering classes of the configured modifications. Requires the modification tables (generatePeptides()).
+    PeptidoformRendering_ peptidoformRendering_() const;
+
+    /// Token sequence of reconstructModifiedSequence(@p peptide).toString(): [N-term, residue 0, ..., residue len-1,
+    /// C-term]; a residue byte or modification class each, 0 for no terminal modification.
+    void renderPeptidoform_(const Peptide& peptide, const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                            const PeptidoformRendering_& rendering, std::vector<uint32_t>& tokens) const;
+
+    /**@brief Whether reconstructModifiedSequence() renders @p a and @p b to the same AASequence::toString().
+     *
+     * Compares residues and the rendering of the modification at each position instead of building the strings.
+     * Requires @p rendering.runs_hold_peptidoforms. @p tokens_a and @p tokens_b are scratch buffers.
+     */
+    bool samePeptidoform_(const Peptide& a, const Peptide& b, const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                          const PeptidoformRendering_& rendering, std::vector<uint32_t>& tokens_a,
+                          std::vector<uint32_t>& tokens_b) const;
+
+    /**@brief Keeps the first entry of fi_peptides_ of every reconstructModifiedSequence(...).toString(), in order.
+     *
+     * peptide:deduplicate for configurations in which equal peptidoforms need not lie in one run of equal
+     * precursor_mz_ (see PeptidoformRendering_::runs_hold_peptidoforms); build() handles the others while it
+     * generates the fragments.
+     * @return Number of entries removed
+     */
+    Size deduplicateByString_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
     /** @brief Entry in the per-AA variable modification lookup table. */
     struct VarModEntry
