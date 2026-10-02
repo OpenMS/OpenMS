@@ -177,8 +177,9 @@ namespace OpenMS
     defaults_.setValue("peaks:dense_intensity_loss", 1.0,
                        "Share of a spectrum's intensity (after deisotoping) that the peaks:window_top filter may remove before "
                        "the spectrum counts as dense and keeps peaks:dense_window_top peaks per window instead. "
-                       "1.0 (default) disables the dense-spectrum quota: its extra Astral identifications did not hold in a "
-                       "doubled-search-space entrapment control (about 4% false among the added PSMs).",
+                       "1.0 (default) disables the dense-spectrum quota (as in develop). In a doubled-search-space entrapment "
+                       "control its extra Astral identifications carried about 1.3% false discoveries (pooled over three "
+                       "entrapment shuffles; nominal 1%).",
                        {"advanced"});
     defaults_.setMinFloat("peaks:dense_intensity_loss", 0.0);
     defaults_.setMaxFloat("peaks:dense_intensity_loss", 1.0);
