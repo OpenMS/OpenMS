@@ -3643,12 +3643,18 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     //Search-related params
 
     defaults_.setValue("fragment:min_matched_ions", 5, "Minimal number of matched ions to report a PSM");
-    // Default iso range [0, +2]: Orbitrap/QExactive/tims monoisotopic peak picking
+    // Default iso range [-2, 0]: Orbitrap/QExactive/tims monoisotopic peak picking
     // fails predominantly *upward* (picks the +1 or +2 isotope instead of the true
-    // monoisotopic). Symmetric ranges like [-1, +1] waste a query slot on the
-    // rare downward mispick. Matches MetaMorpheus/MSFragger defaults.
-    defaults_.setValue("precursor:isotope_error_min", 0, "Minimum allowed precursor isotope error");
-    defaults_.setValue("precursor:isotope_error_max", 2, "Maximum allowed precursor isotope error");
+    // monoisotopic). The query matches observed mass + isotope_error * C13C12, so an
+    // upward mispick needs a negative isotope error. Symmetric ranges like [-1, +1]
+    // waste a query slot on the rare downward mispick. Matches the MetaMorpheus/MSFragger
+    // defaults (0, +1, +2 there, counted as observed minus theoretical).
+    defaults_.setValue("precursor:isotope_error_min", -2,
+                       "Minimum precursor isotope error searched, in 13C spacings (1.00336 Da) added to the observed "
+                       "precursor mass: -1 finds a peptide whose first 13C isotope peak was selected as the precursor.");
+    defaults_.setValue("precursor:isotope_error_max", 0,
+                       "Maximum precursor isotope error searched, with the sign of precursor:isotope_error_min: +1 finds "
+                       "a peptide whose precursor was selected one 13C spacing below its monoisotopic peak.");
 
     // SNES (Speedy Non-specific Enzyme Search): only takes effect when
     // peptide:enzyme_specificity is "none". For full/semi tryptic searches this flag
@@ -3696,9 +3702,6 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setSectionDescription("report", "Reporting Options");
     defaults_.setValue("peptide:motif", "", "If set, only peptides that contain this motif (provided as RegEx) will be considered.");
     defaults_.setSectionDescription("peptide", "Peptide Options");
-
-    IntList isotopes = {0, 1};
-    defaults_.setValue("precursor:isotopes", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)");
 
     defaultsToParam_();
 }

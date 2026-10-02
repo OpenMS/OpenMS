@@ -106,10 +106,6 @@ namespace OpenMS
       "Precursor (Parent Ion) Options. mass_tolerance_lower/_upper are positive magnitudes "
       "applied as [-lower, +upper] around the precursor mass.");
 
-    // consider one before annotated monoisotopic peak and the annotated one
-    IntList isotopes = {0, 1};
-    defaults_.setValue("precursor:isotopes", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)");
-
     defaults_.setValue("fragment:mass_tolerance", 20.0, "Fragment mass tolerance");
 
     std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
@@ -361,7 +357,6 @@ namespace OpenMS
     precursor_min_charge_ = param_.getValue("precursor:min_charge");
     precursor_max_charge_ = param_.getValue("precursor:max_charge");
 
-    precursor_isotopes_ = param_.getValue("precursor:isotopes");
     peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
     peaks_window_top_ = (Int)param_.getValue("peaks:window_top");
     peaks_window_type_ = param_.getValue("peaks:window_type").toString();

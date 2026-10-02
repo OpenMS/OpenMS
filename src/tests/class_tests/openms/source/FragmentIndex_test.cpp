@@ -3660,4 +3660,43 @@ START_SECTION(([EXTRA] variable modification enumeration: subsets up to variable
 }
 END_SECTION
 
+START_SECTION(([EXTRA] the default isotope error range covers precursors selected at the first and second 13C peak))
+{
+  // The query matches observed mass + isotope_error * C13C12: the default [-2, 0] finds a peptide whose precursor was
+  // selected one or two 13C spacings above the monoisotopic peak, not one below it.
+  FragmentIndex fi;
+  TEST_EQUAL(static_cast<int>(fi.getParameters().getValue("precursor:isotope_error_min")), -2)
+  TEST_EQUAL(static_cast<int>(fi.getParameters().getValue("precursor:isotope_error_max")), 0)
+  const vector<FASTAFile::FASTAEntry> db {{"p", "p", "EVAEAATGEDASSPPPK"}};
+  Param p = fi.getParameters();
+  p.setValue("enzyme", "no cleavage");
+  p.setValue("modifications:fixed", StringList {});
+  p.setValue("modifications:variable", StringList {});
+  p.setValue("fragment:min_mz", 0);
+  fi.setParameters(p);
+  fi.build(db);
+  const AASequence peptide = AASequence::fromString("EVAEAATGEDASSPPPK");
+  PeakSpectrum ions;
+  TheoreticalSpectrumGenerator().getSpectrum(ions, peptide, 1, 1);
+  for (int observed_minus_theoretical = -1; observed_minus_theoretical <= 2; ++observed_minus_theoretical)
+  {
+    MSSpectrum spectrum;
+    for (const auto& ion : ions) { spectrum.push_back(ion); }
+    spectrum.setMSLevel(2);
+    Precursor precursor;
+    precursor.setCharge(2);
+    precursor.setMZ(peptide.getMZ(2) + observed_minus_theoretical * Constants::C13C12_MASSDIFF_U / 2);
+    spectrum.setPrecursors({precursor});
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi.querySpectrum(spectrum, sms);
+    bool found = false;
+    for (const auto& hit : sms.hits_)
+    {
+      found |= hit.precursor_charge_ == 2 && hit.isotope_error_ == -observed_minus_theoretical;
+    }
+    TEST_EQUAL(found, observed_minus_theoretical >= 0)
+  }
+}
+END_SECTION
+
 END_TEST

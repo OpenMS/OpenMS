@@ -843,8 +843,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     Size precursor_min_charge_;
     Size precursor_max_charge_;
 
-    IntList precursor_isotopes_;
-
     double fragment_mass_tolerance_;
 
     std::string fragment_mass_tolerance_unit_;
