@@ -252,6 +252,80 @@ START_SECTION([EXTRA] annotate() writes every feature and registers them per run
 }
 END_SECTION
 
+START_SECTION([EXTRA] lower-ranked hits and decoys do not enter the calibration)
+{
+  if (!File::exists(ms2_model_path) || !File::exists(rt_model_path))
+  {
+    STATUS("PeptDeep ONNX models not found next to the test; skipping the calibration-set section.")
+  }
+  else
+  {
+    const std::vector<std::pair<std::string, double>> peaks =
+      {{"b2", 500.0}, {"y3", 900.0}, {"y4", 750.0}, {"b3", 300.0}, {"y5", 620.0}, {"y6", 410.0}};
+    const std::vector<std::string> seqs =
+      {"PEPTIDEK", "TESTPEPTIDER", "ELVISLIVESK", "SAMPLERPEPTIDEK",
+       "LNGGKPVDEK", "VATVSLPRK", "AGGDLSTVEK", "YLDGTSLSPK",
+       "IADPEHLVK", "GFTVSGNLTK", "SLYPQEDVK", "NVLDTGAPIK"};
+    // Second-ranked candidates scoring just below their spectrum's best hit, and decoys
+    // scoring above every target, at retention times that break the trend.
+    const std::vector<std::string> others =
+      {"KEDITPEP", "RDITPEPTSET", "KSEVILSIVLE", "KEDITPEPRELPMAS",
+       "KEDVPKGGNL", "KRPLSVTAV", "KEVTSLDGGA", "KPSLSTGDLY",
+       "KVLHEPDAI", "KTLNGSVTFG", "KVDEQPYLS", "KIPAGTDLVN"};
+
+    auto run = [&](bool with_others, PeptideIdentificationList& peps)
+    {
+      for (Size i = 0; i < seqs.size(); ++i)
+      {
+        PeptideIdentification pi = makeId_("run_A", 100.0 + 40.0 * i, makeHit_(seqs[i], 2, 20.0 - i, peaks));
+        if (with_others)
+        {
+          std::vector<PeptideHit> hits = pi.getHits();
+          hits.push_back(makeHit_(others[i], 2, 19.5 - i, peaks));
+          pi.setHits(hits);
+        }
+        peps.push_back(pi);
+      }
+      if (with_others)
+      {
+        for (Size i = 0; i < 6; ++i)
+        {
+          PeptideHit decoy = makeHit_(others[i], 2, 30.0 + i, peaks);
+          decoy.setTargetDecoyType(PeptideHit::TargetDecoyType::DECOY);
+          peps.push_back(makeId_("run_A", 500.0 - 80.0 * i, decoy));
+        }
+      }
+      std::vector<ProteinIdentification> prot(1);
+      prot[0].setIdentifier("run_A");
+      PeptDeepRescoring r;
+      Param p = r.getParameters();
+      p.setValue("ms2_model", ms2_model_path);
+      p.setValue("rt_model", rt_model_path);
+      p.setValue("nce", 30.0);
+      p.setValue("rt_model_type", "linear");
+      r.setParameters(p);
+      PeakMap exp;
+      r.annotate(exp, prot, peps);
+      return r.getRTCalibrationError();
+    };
+
+    PeptideIdentificationList alone, mixed;
+    const double error_alone = run(false, alone);
+    const double error_mixed = run(true, mixed);
+    TEST_EQUAL(error_alone >= 0.0, true)
+    // The same six best target hits calibrate both runs, so the fit, and with it every
+    // best hit's residual, is the same.
+    TOLERANCE_ABSOLUTE(1e-3)
+    TEST_REAL_SIMILAR(error_mixed, error_alone)
+    for (Size i = 0; i < seqs.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(double(mixed[i].getHits()[0].getMetaValue(Constants::UserParam::RT_ABS_ERROR)),
+                        double(alone[i].getHits()[0].getMetaValue(Constants::UserParam::RT_ABS_ERROR)))
+    }
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] a run without peak annotations is reported rather than silently zeroed)
 {
   if (!File::exists(ms2_model_path) || !File::exists(rt_model_path))

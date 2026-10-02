@@ -175,7 +175,7 @@ namespace OpenMS
     defaults_.setValue("nce_sample_size", 2000, "Number of confident PSMs scored per candidate NCE.", {"advanced"});
     defaults_.setMinInt("nce_sample_size", 50);
 
-    defaults_.setValue("calibration_quantile", 0.5, "Fraction of PSMs, ranked by search score, held out of the calibration sets. 0.5 fits on the better-scoring half. Selection uses the search score rather than spectral similarity, so the RT feature stays independent of the MS2 features.", {"advanced"});
+    defaults_.setValue("calibration_quantile", 0.5, "Fraction of the calibration candidates (the best-scoring hit of each spectrum, if it is not a decoy), ranked by search score, held out of the calibration sets. 0.5 fits on the better-scoring half. Selection uses the search score rather than spectral similarity, so the RT feature stays independent of the MS2 features.", {"advanced"});
     defaults_.setMinFloat("calibration_quantile", 0.0);
     defaults_.setMaxFloat("calibration_quantile", 0.99);
 
@@ -271,6 +271,14 @@ namespace OpenMS
     for (Size pi = 0; pi < peptide_ids.size(); ++pi)
     {
       const std::vector<PeptideHit>& hits = peptide_ids[pi].getHits();
+      // Only a spectrum's best hit can calibrate, and only if it is not a decoy: the other
+      // hits are wrong for every spectrum that has a correct best hit.
+      const bool higher_better = peptide_ids[pi].isHigherScoreBetter();
+      Size best = 0;
+      for (Size h = 1; h < hits.size(); ++h)
+      {
+        if (higher_better ? hits[h].getScore() > hits[best].getScore() : hits[h].getScore() < hits[best].getScore()) { best = h; }
+      }
       for (Size h = 0; h < hits.size(); ++h)
       {
         const AASequence& seq = hits[h].getSequence();
@@ -292,7 +300,7 @@ namespace OpenMS
         // The run identifier is what keeps NCE and RT calibration per-run, so it has to
         // still distinguish the runs by the time we get here -- see the note on annotate().
         rows_by_run[peptide_ids[pi].getIdentifier()].push_back(rows.size());
-        rows.push_back(Row{pi, h, seq.size(), it->second, hits[h].getScore()});
+        rows.push_back(Row{pi, h, seq.size(), it->second, hits[h].getScore(), h == best && !hits[h].isDecoy()});
       }
     }
     if (rows.empty()) { return; }
@@ -421,7 +429,12 @@ namespace OpenMS
 
     // Confident PSMs of this run, used both to score NCE candidates and to fit the RT
     // calibration. Ranking by search score keeps this independent of the MS2 features.
-    std::vector<Size> by_score(run_rows);
+    std::vector<Size> by_score;
+    for (Size i : run_rows)
+    {
+      if (rows[i].calibration_candidate) { by_score.push_back(i); }
+    }
+    if (by_score.empty()) { by_score = run_rows; } // e.g. a run holding only decoy hits
     std::sort(by_score.begin(), by_score.end(), [&](Size a, Size b)
       { return higher_better ? rows[a].score > rows[b].score : rows[a].score < rows[b].score; });
     const Size n_conf = std::max<Size>(1, static_cast<Size>(by_score.size() * (1.0 - calibration_quantile_)));
