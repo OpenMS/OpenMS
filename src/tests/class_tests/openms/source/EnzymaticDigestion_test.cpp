@@ -585,6 +585,48 @@ START_SECTION(Size countInternalCleavageSites(const std::string& sequence) )
   TEST_EQUAL(ed.countInternalCleavageSites("EEEEEEEEEEEEEEE"), 0); // has 0 internal cleavage sites
 END_SECTION
 
+START_SECTION((Size digestUnmodifiedWithInitialResidueLoss(const std::string_view& sequence, std::vector<std::pair<Size, Size>>& output, std::vector<std::pair<Size, Size>>& clipped_output, Size min_length, Size max_length) const))
+{
+  // The same as digesting the sequence and the sequence without its first residue on their own,
+  // for enzymes with a look-behind (CNBr cleaves after M), a look-ahead (Asp-N) and both.
+  const std::vector<std::string> sequences = {"MKPEPTIDEKRAPEPMK", "MDKDEPRKKM", "MK", "MM", "MDDD", "MPKRKR"};
+  for (const std::string enzyme : {"Trypsin", "Trypsin/P", "Asp-N", "CNBr", "Formic_acid", "proline endopeptidase", "unspecific cleavage", "no cleavage"})
+  {
+    for (const auto specificity : {EnzymaticDigestion::SPEC_FULL, EnzymaticDigestion::SPEC_SEMI})
+    {
+      EnzymaticDigestion ed;
+      ed.setEnzyme(ProteaseDB::getInstance()->getEnzyme(enzyme));
+      ed.setSpecificity(specificity);
+      ed.setMissedCleavages(2);
+      for (const std::string& s : sequences)
+      {
+        for (Size min_length : {1, 2, 4})
+        {
+          std::vector<std::pair<Size, Size>> out, clipped, expected, expected_clipped;
+          const Size wrong = ed.digestUnmodifiedWithInitialResidueLoss(s, out, clipped, min_length, 6);
+          const Size expected_wrong = ed.digestUnmodified(s, expected, min_length, 6)
+                                      + ed.digestUnmodified(std::string_view(s).substr(1), expected_clipped, min_length, 6);
+          TEST_EQUAL(out == expected, true)
+          TEST_EQUAL(clipped == expected_clipped, true)
+          TEST_EQUAL(wrong, expected_wrong)
+        }
+      }
+    }
+  }
+
+  // Trypsin: the products of the sequence after the loss of the initial M
+  EnzymaticDigestion ed;
+  ed.setMissedCleavages(1);
+  std::vector<std::pair<Size, Size>> out, clipped;
+  ed.digestUnmodifiedWithInitialResidueLoss("MAKPEKR", out, clipped);
+  // AKPEK: K before P is no cleavage site
+  TEST_EQUAL(clipped.size(), 3)
+  TEST_EQUAL(clipped[0] == std::make_pair(Size(0), Size(5)), true)
+  TEST_EQUAL(clipped[1] == std::make_pair(Size(5), Size(1)), true)
+  TEST_EQUAL(clipped[2] == std::make_pair(Size(0), Size(6)), true)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

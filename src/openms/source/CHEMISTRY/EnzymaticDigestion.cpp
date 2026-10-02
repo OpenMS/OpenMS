@@ -10,6 +10,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <algorithm>
 #include <string_view>
 #include <OpenMS/SYSTEM/File.h>
 #include <boost/regex.hpp>
@@ -27,6 +28,7 @@ namespace OpenMS
       missed_cleavages_(0),
       enzyme_(ProteaseDB::getInstance()->getEnzyme("Trypsin")), // @TODO: keep trypsin as default?
       re_(enzyme_->getRegEx()),
+      scan_(parseCleavageScan_(enzyme_->getRegEx())),
       specificity_(SPEC_FULL)
   {
   }
@@ -50,7 +52,120 @@ namespace OpenMS
   void EnzymaticDigestion::setEnzyme(const DigestionEnzyme* enzyme)
   {
     enzyme_ = enzyme;
+    setRegEx_();
+  }
+
+  void EnzymaticDigestion::setRegEx_()
+  {
     re_.assign(enzyme_->getRegEx());
+    scan_ = parseCleavageScan_(enzyme_->getRegEx());
+  }
+
+  EnzymaticDigestion::CleavageScan_ EnzymaticDigestion::parseCleavageScan_(const std::string& pattern)
+  {
+    CleavageScan_ scan;
+    auto is_letter = [](char c) { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'); };
+    // A residue class at pattern[pos]: a letter or a bracket expression of letters and letter
+    // ranges. Marks its residues with bit @p bit.
+    auto parse_class = [&](size_t& pos, int bit) -> bool
+    {
+      if (pos >= pattern.size()) return false;
+      if (is_letter(pattern[pos]))
+      {
+        scan.classes[static_cast<unsigned char>(pattern[pos])] |= static_cast<std::uint8_t>(1u << bit);
+        ++pos;
+        return true;
+      }
+      if (pattern[pos] != '[') return false;
+      ++pos;
+      bool any = false;
+      while (pos < pattern.size() && pattern[pos] != ']')
+      {
+        if (!is_letter(pattern[pos])) return false;
+        char low = pattern[pos], high = pattern[pos];
+        if (pos + 2 < pattern.size() && pattern[pos + 1] == '-' && is_letter(pattern[pos + 2]))
+        {
+          high = pattern[pos + 2];
+          pos += 3;
+        }
+        else
+        {
+          ++pos;
+        }
+        if (high < low) return false;
+        for (int c = low; c <= high; ++c) scan.classes[static_cast<unsigned char>(c)] |= static_cast<std::uint8_t>(1u << bit);
+        any = true;
+      }
+      if (pos >= pattern.size() || !any) return false;
+      ++pos; // ']'
+      return true;
+    };
+
+    size_t pos = 0;
+    if (pattern.compare(pos, 4, "(?<=") == 0)
+    {
+      pos += 4;
+      while (pos < pattern.size() && pattern[pos] != ')')
+      {
+        if (scan.behind == 7 || !parse_class(pos, scan.behind)) return CleavageScan_{};
+        ++scan.behind;
+      }
+      if (pos >= pattern.size() || scan.behind == 0) return CleavageScan_{};
+      ++pos; // ')'
+    }
+    if (pattern.compare(pos, 3, "(?=") == 0 || pattern.compare(pos, 3, "(?!") == 0)
+    {
+      scan.ahead = pattern[pos + 2] == '=' ? 1 : -1;
+      pos += 3;
+      if (!parse_class(pos, 7) || pos >= pattern.size() || pattern[pos] != ')') return CleavageScan_{};
+      ++pos; // ')'
+    }
+    if (pos != pattern.size() || (scan.behind == 0 && scan.ahead == 0)) return CleavageScan_{};
+    scan.valid = true;
+    return scan;
+  }
+
+  std::vector<int> EnzymaticDigestion::tokenizeByScan_(const std::string_view& sequence, int start, int end) const
+  {
+    // Same boundaries and result as tokenize_() with the regular expression. Matches are found in
+    // [start, end) as if it were the whole string: a site at position p is preceded by the residues
+    // of the look-behind and followed by (or, negated, not by) a residue of the look-ahead class.
+    // Splitting at the sites yields the fields that begin at 'start' and at every site, except at a
+    // site at the very end (it would begin an empty last field) -- including a site at 'start'
+    // itself, which yields an empty first field.
+    std::vector<int> positions;
+    start = std::max(0, start);
+    if (end < 0 || end > (int)sequence.size())
+      end = (int)sequence.size();
+    const int n = end - start;
+    if (n < 0) return positions;
+    const unsigned char* residues = reinterpret_cast<const unsigned char*>(sequence.data()) + start;
+    const int behind = scan_.behind;
+    auto is_site = [&](int p) -> bool
+    {
+      if (p < behind) return false;
+      for (int k = 0; k < behind; ++k)
+      {
+        if (!(scan_.classes[residues[p - behind + k]] & (1u << k))) return false;
+      }
+      if (scan_.ahead != 0)
+      {
+        const bool in_class = p < n && (scan_.classes[residues[p]] & 0x80u);
+        if (in_class != (scan_.ahead > 0)) return false;
+      }
+      return true;
+    };
+    if (n == 0)
+    {
+      if (is_site(0)) positions.push_back(start);
+      return positions;
+    }
+    positions.push_back(start);
+    for (int p = 0; p < n; ++p)
+    {
+      if (is_site(p)) positions.push_back(start + p);
+    }
+    return positions;
   }
 
   std::string EnzymaticDigestion::getEnzymeName() const
@@ -80,6 +195,10 @@ namespace OpenMS
 
   std::vector<int> EnzymaticDigestion::tokenize_(const std::string& sequence, int start, int end) const
   {
+    if (scan_.valid)
+    {
+      return tokenizeByScan_(sequence, start, end);
+    }
     std::vector<int> positions;
     // set proper boundaries
     start = std::max(0, start);
@@ -471,7 +590,7 @@ namespace OpenMS
     }
 
     // naive cleavage sites — fully-specific products + missed cleavages
-    std::vector<int> fragment_positions = tokenize_(std::string(sequence));
+    std::vector<int> fragment_positions = scan_.valid ? tokenizeByScan_(sequence, 0, -1) : tokenize_(std::string(sequence));
     Size wrong_size = digestAfterTokenize_(fragment_positions, sequence, output, min_length, max_length);
 
     // Semi-specific: in addition to the fully-specific products above, generate variants
@@ -531,7 +650,23 @@ namespace OpenMS
     }
 
     // naive cleavage sites — fully-specific products + missed cleavages
-    std::vector<int> fragment_positions = tokenize_(std::string(sequence));
+    std::vector<int> fragment_positions = scan_.valid ? tokenizeByScan_(sequence, 0, -1) : tokenize_(std::string(sequence));
+    return digestUnmodifiedAfterTokenize_(fragment_positions, sequence, output, min_length, max_length);
+  }
+
+  Size EnzymaticDigestion::digestUnmodifiedAfterTokenize_(std::vector<int>& fragment_positions, const std::string_view& sequence,
+                                                          std::vector<std::pair<Size, Size>>& output, Size min_length, Size max_length) const
+  {
+    output.clear();
+    if (max_length == 0 || max_length > sequence.size())
+    {
+      max_length = sequence.size();
+    }
+    if (sequence.size() < min_length)
+    {
+      return 0;
+    }
+
     Size wrong_size = digestAfterTokenize_(fragment_positions, sequence, output, min_length, max_length);
 
     // Semi-specific: in addition to the fully-specific products above, generate variants
@@ -549,6 +684,37 @@ namespace OpenMS
       }
     }
 
+    return wrong_size;
+  }
+
+  Size EnzymaticDigestion::digestUnmodifiedWithInitialResidueLoss(const std::string_view& sequence, std::vector<std::pair<Size, Size>>& output,
+                                                                  std::vector<std::pair<Size, Size>>& clipped_output,
+                                                                  Size min_length, Size max_length) const
+  {
+    if (sequence.size() < 2 || !scan_.valid || enzyme_->getName() == UnspecificCleavage || specificity_ == SPEC_NONE)
+    {
+      Size wrong_size = digestUnmodified(sequence, output, min_length, max_length);
+      if (sequence.empty())
+      {
+        clipped_output.clear();
+        return wrong_size;
+      }
+      return wrong_size + digestUnmodified(sequence.substr(1), clipped_output, min_length, max_length);
+    }
+
+    std::vector<int> sites = tokenizeByScan_(sequence, 0, -1);
+    // The sites of the sequence without its first residue: a site at p >= 1 is a site at p - 1 there,
+    // unless the look-behind reaches the removed residue (p <= behind).
+    std::vector<int> clipped_sites;
+    clipped_sites.reserve(sites.size());
+    clipped_sites.push_back(0);
+    const int first_site = std::max(1, static_cast<int>(scan_.behind) + 1);
+    for (size_t k = 1; k < sites.size(); ++k)
+    {
+      if (sites[k] >= first_site) clipped_sites.push_back(sites[k] - 1);
+    }
+    Size wrong_size = digestUnmodifiedAfterTokenize_(sites, sequence, output, min_length, max_length);
+    wrong_size += digestUnmodifiedAfterTokenize_(clipped_sites, sequence.substr(1), clipped_output, min_length, max_length);
     return wrong_size;
   }
 
