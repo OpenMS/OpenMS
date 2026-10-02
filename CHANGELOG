@@ -1392,6 +1392,10 @@ Fixes:
       member of the same name, so the member itself was never assigned: dynprog_(), which resolves
       ambiguous many-to-many peak alignments, read uninitialized memory instead of the keeppeaks
       parameter when deciding whether to keep unaligned peaks in the consensus spectrum.
+    - PeakPickerMobilogram::remove_overlapping_ (the cached form of the remove_overlapping_peaks
+      parameter) was declared but never assigned in updateMembers_(), so overlapping peak
+      boundaries were merged or not depending on uninitialized memory, regardless of what the
+      parameter was set to. It is now read like every other cached parameter.
     - mzIdentML output with more than one identification run repeated the Measure ids
       (Measure_mz, Measure_int, Measure_error) in every SpectrumIdentificationList and failed schema
       validation; the Measure definitions are now written once (#10213).
