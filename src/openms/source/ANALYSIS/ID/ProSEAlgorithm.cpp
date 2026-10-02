@@ -31,6 +31,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -786,10 +787,12 @@ namespace OpenMS
     PeptDeepRescoring rescoring;
     Param p = rescoring.getParameters();
     // A bare name resolves against share/OpenMS, an absolute path is returned unchanged.
-    // The models are downloaded to the build tree's share/OpenMS/models, which is not the
-    // compiled-in data path, so search relative to the executable as well: '../share/OpenMS'
-    // holds them both in a build tree (bin/../share) and in an install tree.
-    const StringList model_dirs = {File::getExecutablePath() + "../share/OpenMS"};
+    // The hint is needed because the compiled-in data path is the *source* share/OpenMS, which has
+    // no models/ -- they are downloaded into the build tree. On an installed OpenMS the hint is a
+    // dead path and File::find falls through to the installed data path, where 'make install' puts
+    // them. This is the same resolution PeptDeepLibraryPredictor uses, deliberately: not relative
+    // to the executable, which would only hold for a tool sitting in bin/.
+    const StringList model_dirs = {std::string(OPENMS_BINARY_PATH) + "/share/OpenMS"};
     p.setValue("ms2_model", File::find(peptdeep_ms2_model_, model_dirs));
     p.setValue("rt_model", File::find(peptdeep_rt_model_, model_dirs));
     p.setValue("instrument", peptdeep_instrument_);
