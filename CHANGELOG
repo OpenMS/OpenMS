@@ -34,6 +34,11 @@ OpenMS Library:
     Linux arm64: an unqualified abs() bound to the integer overload there and truncated every
     error. ProSE's fragment calibration therefore kept the configured Da tolerance on arm64,
     while x86-64 and macOS tightened it.
+  - PERF: IdXMLFile::store formats the PeptideIdentifications in parallel (at most 16 threads) and
+    writes them in input order, so the output is unchanged; 12% less wall time for ProSE's 20
+    benchmark searches of #10364 at 4 threads, 26% less for one search at 16 threads.
+    XMLHandler::writeUserParamValue_() writes a single meta value as UserParam (used by
+    writeUserParam_).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
