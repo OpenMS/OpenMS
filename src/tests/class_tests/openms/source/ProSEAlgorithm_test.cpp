@@ -2606,6 +2606,42 @@ START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the
 }
 END_SECTION
 
+START_SECTION(([EXTRA] deisotoping keeps a fragment ion that has a small peak one isotope spacing below it))
+{
+  // b2 of TMTpro-YMATQLLAK-TMTpro (eclipse_tmtpro_10855, scan 30241): the TMTpro label's isotope
+  // impurity puts a 5% peak 1.00335 Da below the ion. That peak must not become the monoisotopic
+  // peak of the envelope; previously the ion and its +1 isotope were removed as its isotopes.
+  // Regular envelopes are still deisotoped: a 1+ envelope keeps its monoisotopic peak only, and
+  // a 2+ envelope is converted to its singly charged m/z.
+  PeakMap exp;
+  MSSpectrum s;
+  s.setMSLevel(2);
+  s.setRT(1.0);
+  Precursor prec;
+  prec.setMZ(600.0);
+  prec.setCharge(3);
+  s.getPrecursors().push_back(prec);
+  const std::vector<std::pair<double, float>> peaks = {
+    {450.2500, 0.50f}, {450.7517, 0.20f}, {451.2534, 0.05f},     // 2+ envelope
+    {598.3157, 0.04f}, {599.3193, 0.74f}, {600.3250, 0.10f},     // shadow peak, ion, +1 isotope
+    {700.4000, 1.00f}, {701.4034, 0.35f}, {702.4067, 0.08f}};    // 1+ envelope
+  for (const auto& [mz, intensity] : peaks) s.emplace_back(mz, intensity);
+  exp.addSpectrum(s);
+  ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, true, 0, 20);
+
+  auto has_peak = [&exp](double mz)
+  {
+    return std::any_of(exp[0].begin(), exp[0].end(), [mz](const Peak1D& p) { return std::fabs(p.getMZ() - mz) <= 20e-6 * mz; });
+  };
+  TEST_EQUAL(has_peak(599.3193), true)   // the fragment ion survives
+  TEST_EQUAL(has_peak(700.4000), true)   // 1+ envelope: monoisotopic peak kept ...
+  TEST_EQUAL(has_peak(701.4034), false)  // ... isotopes removed
+  TEST_EQUAL(has_peak(702.4067), false)
+  TEST_EQUAL(has_peak(450.2500), false)  // 2+ envelope converted ...
+  TEST_EQUAL(has_peak(450.2500 * 2.0 - Constants::PROTON_MASS_U), true)  // ... to its 1+ m/z
+}
+END_SECTION
+
 START_SECTION(([EXTRA] high resolution local filtering preserves short final windows and aligned peak data))
 {
   auto filter = [](double tolerance, bool ppm, const std::string& mode) {
