@@ -37,8 +37,9 @@
 #include <map>
 #include <optional>
 #include <set>
+#include <algorithm>
 #include <string_view>
-#include <unordered_set>
+#include <unordered_map>
 #endif
 
 #include <cstdlib>
@@ -852,9 +853,20 @@ namespace OpenMS
     }
 
     // Each precursor ID derives from exactly one unmodified sequence, so precursors
-    // can be streamed into prediction batches without a global candidate map.
-    OpenSwath::LightTargetedExperiment predicted_library;
-    std::unordered_set<std::string> protein_ids;
+    // can be streamed into prediction batches without a global candidate map. Persist
+    // each filtered prediction batch immediately so the prediction phase never retains
+    // the complete target LightTargetedExperiment in memory.
+    TempDir predicted_target_temp_dir;
+    std::string predicted_target_spill = predicted_target_temp_dir.getPath();
+    StringUtils::ensureLastChar(predicted_target_spill, '/');
+    predicted_target_spill += "predicted_targets.pqp";
+
+    TransitionPQPFile writer;
+    writer.setLogType(log_type_);
+
+    Int64 next_precursor_id = 0;
+    Int64 next_transition_id = 0;
+    Size persisted_batches = 0;
     std::vector<PeptDeepLibraryPrecursor> batch;
     batch.reserve(parameters.prediction_batch_size);
     Size precursor_count = 0;
@@ -865,23 +877,60 @@ namespace OpenMS
       OpenSwath::LightTargetedExperiment predicted_batch = predictor->predict(batch);
       batch.clear();
 
-      // Bound the materialized transition set before retaining the batch. These
-      // steps act per precursor, so running them per batch equals a global pass.
+      // These operations act independently per precursor. detectingTransitionsLight_
+      // removes compounds/proteins that no longer have a retained transition, so the
+      // persisted batch exactly matches what the old materialized path retained.
       prepareDetectionTransitionsLight_(predicted_batch, assay_parameters, ProgressLogger::NONE);
+      if (predicted_batch.transitions.empty()) return;
 
-      predicted_library.compounds.insert(predicted_library.compounds.end(),
-                                         std::make_move_iterator(predicted_batch.compounds.begin()),
-                                         std::make_move_iterator(predicted_batch.compounds.end()));
-      predicted_library.transitions.insert(predicted_library.transitions.end(),
-                                           std::make_move_iterator(predicted_batch.transitions.begin()),
-                                           std::make_move_iterator(predicted_batch.transitions.end()));
-      for (auto& protein : predicted_batch.proteins)
+      std::optional<OpenSwathLibraryIDNormalizer::SourceIDMapping> source_ids{std::in_place};
+      OpenSwath::LightTargetedExperiment persisted_batch;
+      persisted_batch.proteins = std::move(predicted_batch.proteins);
+      persisted_batch.compounds.reserve(predicted_batch.compounds.size());
+      persisted_batch.transitions.reserve(predicted_batch.transitions.size());
+
+      // Assign temporary canonical IDs in the original materialization order. They
+      // only need to be globally unique for the incremental PQP writer; source IDs
+      // remain in TRAML_ID and are restored before global assay preparation.
+      std::unordered_map<std::string, std::string> precursor_ids;
+      precursor_ids.reserve(predicted_batch.compounds.size());
+      for (auto& compound : predicted_batch.compounds)
       {
-        if (protein_ids.insert(protein.id).second)
+        const std::string source_id = compound.id;
+        const std::string canonical_id = StringUtils::toStr(next_precursor_id++);
+        if (!precursor_ids.emplace(source_id, canonical_id).second)
         {
-          predicted_library.proteins.push_back(std::move(protein));
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        source_id, "Predicted batch contains duplicate precursor source IDs.");
         }
+        source_ids->precursor_source_to_canonical.emplace(source_id, canonical_id);
+        source_ids->precursor_canonical_to_source.emplace(canonical_id, source_id);
+        compound.id = canonical_id;
+        persisted_batch.compounds.push_back(std::move(compound));
       }
+
+      for (auto& transition : predicted_batch.transitions)
+      {
+        const std::string source_transition_id = transition.transition_name;
+        const auto precursor_it = precursor_ids.find(transition.peptide_ref);
+        if (precursor_it == precursor_ids.end())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        transition.peptide_ref,
+                                        "Predicted transition references an unknown precursor source ID.");
+        }
+
+        const std::string canonical_transition_id = StringUtils::toStr(next_transition_id++);
+        source_ids->transition_canonical_to_source.emplace(canonical_transition_id, source_transition_id);
+        transition.transition_name = canonical_transition_id;
+        transition.peptide_ref = precursor_it->second;
+        persisted_batch.transitions.push_back(std::move(transition));
+      }
+
+      OpenSwathLibraryIDNormalizer::validateCanonicalIDs(persisted_batch);
+      writer.appendLightTargetedExperimentToPQP(
+        predicted_target_spill, persisted_batch, source_ids);
+      ++persisted_batches;
     };
 
     ProgressLogger progress;
@@ -955,6 +1004,71 @@ namespace OpenMS
     OPENMS_LOG_INFO << "Predicted library candidates: " << precursor_count
                     << " unique precursors from " << fasta_proteins << " FASTA proteins." << std::endl;
 
+    if (persisted_batches == 0)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Predicted assay preparation produced zero transitions.");
+    }
+
+    OPENMS_LOG_INFO << "Persisted predicted targets in " << persisted_batches
+                    << " bounded prediction batch(es) before global library preparation." << std::endl;
+
+    // Read the temporary canonical IDs, restore their original ordering explicitly,
+    // and then recover source identifiers from PQP TRAML_ID. This avoids relying on
+    // SQLite query order for large libraries where the generic reader skips ORDER BY.
+    OpenSwath::LightTargetedExperiment persisted_library;
+    writer.convertPQPToTargetedExperiment(predicted_target_spill.c_str(), persisted_library);
+    std::sort(persisted_library.compounds.begin(), persisted_library.compounds.end(),
+      [](const auto& left, const auto& right)
+      {
+        return StringUtils::toInt64(left.id) < StringUtils::toInt64(right.id);
+      });
+    std::sort(persisted_library.transitions.begin(), persisted_library.transitions.end(),
+      [](const auto& left, const auto& right)
+      {
+        return StringUtils::toInt64(left.transition_name) < StringUtils::toInt64(right.transition_name);
+      });
+
+    const auto precursor_sources =
+      writer.getPQPCurrentIDToTraMLIDMap(predicted_target_spill.c_str(), "PRECURSOR");
+    const auto transition_sources =
+      writer.getPQPCurrentIDToTraMLIDMap(predicted_target_spill.c_str(), "TRANSITION");
+
+    OpenSwath::LightTargetedExperiment predicted_library;
+    predicted_library.proteins = std::move(persisted_library.proteins);
+    predicted_library.compounds.reserve(persisted_library.compounds.size());
+    predicted_library.transitions.reserve(persisted_library.transitions.size());
+
+    std::unordered_map<std::string, std::string> precursor_source_by_canonical;
+    precursor_source_by_canonical.reserve(persisted_library.compounds.size());
+    for (auto& compound : persisted_library.compounds)
+    {
+      const std::string canonical_id = compound.id;
+      const auto source_it = precursor_sources.find(canonical_id);
+      if (source_it == precursor_sources.end())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Missing precursor TRAML_ID provenance in predicted-target spill PQP.");
+      }
+      precursor_source_by_canonical.emplace(canonical_id, source_it->second);
+      compound.id = source_it->second;
+      predicted_library.compounds.push_back(std::move(compound));
+    }
+
+    for (auto& transition : persisted_library.transitions)
+    {
+      const auto transition_it = transition_sources.find(transition.transition_name);
+      const auto precursor_it = precursor_source_by_canonical.find(transition.peptide_ref);
+      if (transition_it == transition_sources.end() || precursor_it == precursor_source_by_canonical.end())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Missing transition/precursor TRAML_ID provenance in predicted-target spill PQP.");
+      }
+      transition.transition_name = transition_it->second;
+      transition.peptide_ref = precursor_it->second;
+      predicted_library.transitions.push_back(std::move(transition));
+    }
+
     if (assay_parameters.enable_ipf)
     {
       addUISTransitionsLight_(predicted_library, assay_parameters, uis_swathes, log_type_);
@@ -980,8 +1094,6 @@ namespace OpenMS
                                     "Predicted library decoy generation produced zero decoy transitions.");
     }
 
-    TransitionPQPFile writer;
-    writer.setLogType(log_type_);
     const auto source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(prepared_library);
     writer.convertLightTargetedExperimentToPQP(output_pqp.c_str(), prepared_library, &source_ids);
     return stats;
