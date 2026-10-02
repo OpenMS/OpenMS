@@ -512,6 +512,7 @@ namespace OpenMS
     std::vector<Fragment>().swap(fi_fragments_);
     std::vector<Fragment>().swap(electron_fragments_);
     std::vector<Peptide>().swap(fi_peptides_);
+    std::vector<RemovedOccurrence>().swap(removed_occurrences_);
     std::vector<float>().swap(bucket_min_mz_);
     std::vector<float>().swap(electron_bucket_min_mz_);
     std::vector<UInt32>().swap(bucket_skip_);
@@ -1500,6 +1501,8 @@ namespace OpenMS
     // Original index breaks hash ties so the first representative is stable.
     std::sort(fingerprints.begin(), fingerprints.end());
     std::vector<uint8_t> duplicate(fi_peptides_.size(), 0);
+    // Removed entries as (index of their kept entry, index of the removed entry), both before compaction
+    std::vector<std::pair<Size, Size>> removed_entries;
     for (Size begin = 0; begin < fingerprints.size();)
     {
       Size end = begin + 1;
@@ -1509,19 +1512,33 @@ namespace OpenMS
       }
       if (end - begin > 1)
       {
-        std::unordered_set<std::string> seen;
+        std::unordered_map<std::string, Size> first_of; // rendered peptidoform -> its first (kept) entry
         for (Size i = begin; i < end; ++i)
         {
           const Size index = fingerprints[i].second;
-          duplicate[index] = ! seen.insert(reconstructModifiedSequence(fi_peptides_[index], fasta_entries).toString()).second;
+          const auto [it, inserted] = first_of.emplace(reconstructModifiedSequence(fi_peptides_[index], fasta_entries).toString(), index);
+          duplicate[index] = ! inserted;
+          if (! inserted) removed_entries.emplace_back(it->second, index);
         }
       }
       begin = end;
     }
+    // Ordered by kept entry, then by the position of the removed entry: getRemovedOccurrences()
+    std::sort(removed_entries.begin(), removed_entries.end());
+    removed_occurrences_.clear();
+    removed_occurrences_.reserve(removed_entries.size());
+    auto next_removed = removed_entries.begin();
     Size retained = 0;
     for (Size i = 0; i < fi_peptides_.size(); ++i)
     {
-      if (! duplicate[i]) { fi_peptides_[retained++] = fi_peptides_[i]; }
+      if (duplicate[i]) continue;
+      // removed entries come after their kept entry, which is therefore still in place here
+      for (; next_removed != removed_entries.end() && next_removed->first == i; ++next_removed)
+      {
+        const Peptide& occurrence = fi_peptides_[next_removed->second];
+        removed_occurrences_.push_back({static_cast<UInt32>(retained), occurrence.protein_idx, occurrence.sequence_.first});
+      }
+      fi_peptides_[retained++] = fi_peptides_[i];
     }
     const Size removed = fi_peptides_.size() - retained;
     fi_peptides_.erase(fi_peptides_.begin() + retained, fi_peptides_.end());
@@ -1805,6 +1822,9 @@ namespace OpenMS
         portion_start[portion] = start;
       }
       vector<size_t> kept_count(deduplicate ? num_portions : 0); // first pass: entries kept of each portion
+      // First pass: the entries each portion removed, with the position of their kept entry within the portion,
+      // in the order met (getRemovedOccurrences())
+      vector<vector<RemovedOccurrence>> removed_of_portion(deduplicate ? num_portions : 0);
       // Key of a peptide within its run: a hash of its length and of up to 8 residues after the first and before the
       // last one, and of its active modification slots where these name the peptidoform (the same residues give the
       // same slots, and no two variable modifications render alike). Equal peptidoforms agree in them, the peptides
@@ -1833,6 +1853,7 @@ namespace OpenMS
           vector<double> mod_masses;
           vector<uint32_t> run_keys;           // keys of the kept entries of the current run
           vector<Peptide> run_entries;         // the kept entries of the current run
+          vector<UInt32> run_positions;        // their positions within the portion's kept entries
           vector<uint32_t> tokens_a, tokens_b; // samePeptidoform_()
           const size_t size = fi_peptides_.size();
           #pragma omp for schedule(dynamic)
@@ -1866,20 +1887,30 @@ namespace OpenMS
               {
                 run_keys.clear();
                 run_entries.clear();
+                run_positions.clear();
               }
               const uint32_t key = runKey(peptide);
               // Long runs are mostly distinct peptides of one composition: test all keys at once, without branches,
               // and compare entries only where a key matches.
               bool candidate = false;
               for (const uint32_t earlier : run_keys) candidate |= (earlier == key);
-              bool repeats = false;
-              for (size_t k = 0; candidate && !repeats && k < run_keys.size(); ++k)
+              size_t repeated = run_keys.size(); // the kept entry this one repeats, if any
+              for (size_t k = 0; candidate && k < run_keys.size(); ++k)
               {
-                repeats = run_keys[k] == key && samePeptidoform_(run_entries[k], peptide, fasta_entries, rendering, tokens_a, tokens_b);
+                if (run_keys[k] == key && samePeptidoform_(run_entries[k], peptide, fasta_entries, rendering, tokens_a, tokens_b))
+                {
+                  repeated = k;
+                  break;
+                }
               }
-              if (repeats) continue;
+              if (repeated < run_keys.size())
+              {
+                removed_of_portion[portion].push_back({run_positions[repeated], peptide.protein_idx, peptide.sequence_.first});
+                continue;
+              }
               run_keys.push_back(key);
               run_entries.push_back(peptide);
+              run_positions.push_back(static_cast<UInt32>(kept));
               fi_peptides_[begin + kept] = peptide; // at or before peptide_idx
               generate_fragments_of(begin + kept, mod_masses, fragment_sink, electron_sink); // the counter ignores the index
               ++kept;
@@ -1931,6 +1962,22 @@ namespace OpenMS
         }
         OPENMS_LOG_INFO << "Collapsed " << (num_peptides - kept_total) << " repeated peptidoform occurrences." << std::endl;
         fi_peptides_.erase(fi_peptides_.begin() + kept_total, fi_peptides_.end());
+
+        // The removed occurrences under the final index of their kept entry; stable, so that the occurrences of an
+        // entry stay in the order met (a run, and so every kept entry with its repeats, lies in one portion)
+        removed_occurrences_.clear();
+        removed_occurrences_.reserve(num_peptides - kept_total);
+        for (SignedSize portion = 0; portion < num_portions; ++portion)
+        {
+          for (RemovedOccurrence occurrence : removed_of_portion[portion])
+          {
+            occurrence.peptide_idx += static_cast<UInt32>(portion_start[portion]);
+            removed_occurrences_.push_back(occurrence);
+          }
+          vector<RemovedOccurrence>().swap(removed_of_portion[portion]);
+        }
+        std::stable_sort(removed_occurrences_.begin(), removed_occurrences_.end(),
+                         [](const RemovedOccurrence& a, const RemovedOccurrence& b) { return a.peptide_idx < b.peptide_idx; });
       }
 
       // Turn the counts into the position at which each portion fills each bin; returns the number of fragments
@@ -2596,6 +2643,13 @@ namespace OpenMS
         }
       }
       while (num_scanned < num_queued) scan(pipeline[num_scanned++ % pipeline_depth]);
+
+      // Prefilter totals of all candidates with at least one matched fragment (SpectrumMatchesTopN): touched lists
+      // exactly these cells, and each cell's count is its number of matched (peak, fragment) pairs.
+      uint64_t matched_pairs = 0;
+      for (UInt32 cell : touched) matched_pairs += counts[cell];
+      candidates.scored_candidates_ += touched.size();
+      candidates.matched_peaks_ += matched_pairs;
 
       // trimHits sorts by num_matched_ descending first and then drops everything below
       // min_matched_peaks_, so a below-threshold candidate can neither displace an

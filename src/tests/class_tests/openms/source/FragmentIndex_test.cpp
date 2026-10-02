@@ -22,6 +22,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <algorithm>
 #include <limits>
+#include <map>
 #include <numeric>
 #include <random>
 #include <set>
@@ -3538,11 +3539,18 @@ START_SECTION(([EXTRA] peptidoform deduplication keeps the first entry of every 
           fi.setParameters(p);
           fi.build(db);
           vector<FragmentIndex::Peptide> expected;
-          set<string> seen;
+          // the removed occurrences: (kept entry, protein, start), by kept entry and then in index order
+          map<string, Size> kept_index;
+          vector<tuple<Size, UInt32, uint16_t>> expected_removed;
           for (const auto& peptide : fi.getPeptides())
           {
-            if (seen.insert(fi.reconstructModifiedSequence(peptide, db).toString()).second) { expected.push_back(peptide); }
+            const auto [it, inserted] = kept_index.emplace(fi.reconstructModifiedSequence(peptide, db).toString(), expected.size());
+            if (inserted) { expected.push_back(peptide); }
+            else { expected_removed.emplace_back(it->second, peptide.protein_idx, peptide.sequence_.first); }
           }
+          std::stable_sort(expected_removed.begin(), expected_removed.end(),
+                           [](const auto& a, const auto& b) { return std::get<0>(a) < std::get<0>(b); });
+          TEST_TRUE(fi.getRemovedOccurrences().empty())
           removed += fi.getPeptides().size() - expected.size();
           p.setValue("peptide:deduplicate", "true");
           fi.setParameters(p);
@@ -3554,6 +3562,13 @@ START_SECTION(([EXTRA] peptidoform deduplication keeps the first entry of every 
             same = observed[i].protein_idx == expected[i].protein_idx && observed[i].mod_bitmask_ == expected[i].mod_bitmask_
                    && observed[i].sequence_ == expected[i].sequence_ && observed[i].precursor_mz_ == expected[i].precursor_mz_;
           }
+          const auto& occurrences = fi.getRemovedOccurrences();
+          same = same && occurrences.size() == expected_removed.size();
+          for (Size i = 0; same && i < occurrences.size(); ++i)
+          {
+            same = occurrences[i].peptide_idx == std::get<0>(expected_removed[i]) && occurrences[i].protein_idx == std::get<1>(expected_removed[i])
+                   && occurrences[i].start == std::get<2>(expected_removed[i]);
+          }
           mismatches += same ? 0 : 1;
           ++checked;
         }
@@ -3563,6 +3578,68 @@ START_SECTION(([EXTRA] peptidoform deduplication keeps the first entry of every 
   TEST_EQUAL(checked, configs.size() * 8)
   TEST_EQUAL(mismatches, 0)
   TEST_TRUE(removed > 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the prefilter totals count every candidate with a matched fragment, before the gate and the cap))
+{
+  // SpectrumMatchesTopN::scored_candidates_ / matched_peaks_ are taken before fragment:min_matched_ions and
+  // scoring:max_candidates_per_spectrum: with a gate of 1 and no cap, the hits are exactly the counted candidates.
+  const vector<FASTAFile::FASTAEntry> db{
+    {"L0", "L0", "MAGDEFHILNPKSAMPLEPEPTIDERWYVTSNMLIHGFEDCAK"},
+    {"L1", "L1", "GASTCVLIMPFWKANOTHERLONGERSEQRHKDENQSTGAVLK"},
+    {"L2", "L2", "PQSTVWYACDEFGHILMNKMKVLAGDESTPNQRIHFYWCAETK"}};
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum spectrum;
+  const AASequence target = AASequence::fromString("SAMPLEPEPTIDER");
+  tsg.getSpectrum(spectrum, target, 1, 2);
+  Precursor precursor;
+  precursor.setMZ(target.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  spectrum.setMSLevel(2);
+
+  auto query = [&](Int min_matched_ions, Int max_candidates)
+  {
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    p.setValue("precursor:mass_tolerance_lower", 1000.0); // every peptide is a candidate
+    p.setValue("precursor:mass_tolerance_upper", 1000.0);
+    p.setValue("precursor:mass_tolerance_unit", "Da");
+    p.setValue("fragment:mass_tolerance", 0.5);
+    p.setValue("fragment:mass_tolerance_unit", "Da");
+    p.setValue("fragment:min_mz", 0);
+    p.setValue("fragment:min_ion_index", 0);
+    p.setValue("modifications:variable", vector<string>{});
+    p.setValue("modifications:fixed", vector<string>{});
+    p.setValue("peptide:min_size", 4);
+    p.setValue("fragment:min_matched_ions", min_matched_ions);
+    p.setValue("scoring:max_candidates_per_spectrum", max_candidates);
+    fi.setParameters(p);
+    fi.build(db);
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi.querySpectrum(spectrum, sms);
+    return sms;
+  };
+  const FragmentIndex::SpectrumMatchesTopN all = query(1, 100000);
+  uint64_t matched = 0;
+  for (const auto& hit : all.hits_) matched += hit.num_matched_;
+  TEST_TRUE(all.hits_.size() > 3)
+  TEST_EQUAL(all.scored_candidates_, all.hits_.size())
+  TEST_EQUAL(all.matched_peaks_, matched)
+
+  const FragmentIndex::SpectrumMatchesTopN gated = query(5, 3);
+  TEST_TRUE(gated.hits_.size() <= 3)
+  TEST_EQUAL(gated.scored_candidates_, all.scored_candidates_)
+  TEST_EQUAL(gated.matched_peaks_, all.matched_peaks_)
+
+  FragmentIndex::SpectrumMatchesTopN sum = all;
+  sum += gated;
+  TEST_EQUAL(sum.scored_candidates_, 2 * all.scored_candidates_)
+  TEST_EQUAL(sum.matched_peaks_, 2 * all.matched_peaks_)
+  sum.clear();
+  TEST_EQUAL(sum.scored_candidates_, 0)
+  TEST_EQUAL(sum.matched_peaks_, 0)
 }
 END_SECTION
 
