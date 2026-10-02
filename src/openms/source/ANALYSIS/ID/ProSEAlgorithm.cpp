@@ -961,6 +961,54 @@ namespace OpenMS
     const bool sa_absolute = !sa.getParameters().getValue("is_relative_tolerance").toBool();
     const double sa_tolerance = (double)sa.getParameters().getValue("tolerance");
 
+    // Meta value keys of the loop below, resolved to registry indices once per call: every
+    // string-keyed setMetaValue()/getMetaValue() takes the registry's process-wide lock (also for
+    // names that are already registered), which serialised the annotation threads.
+    // Identity: MetaInfo keeps (and idXML writes) the values of a hit ordered by registry index, so
+    // new names must get their indices in the order in which the loop registered them: the first
+    // spectrum with hits registers "scan_index", then IM if it carries a drift time, then its first
+    // hit registers the per-hit names in the order they are set below. All hits set the same names,
+    // so no thread could register a later name before an earlier one and this order did not depend
+    // on the thread count. registerName() only looks up names that are already known, and without
+    // any hit nothing was registered, so nothing is registered here either. Names that stay
+    // string-keyed (spectrum reference, IM, rank; at most one lookup per spectrum or hit) are
+    // still registered inside the loop, after the ones below, as before (checked: the registry
+    // contents after a search are the same as before this change, at 1 and at 16 threads).
+    const bool open_search_mode = isOpenSearchMode_();
+    UInt mv_scan_index{}, mv_fragment_error{}, mv_precursor_error{}, mv_prefix_fraction{}, mv_suffix_fraction{},
+         mv_num_matched_peaks{}, mv_matched_prefix_ions{}, mv_matched_suffix_ions{}, mv_delta_score{},
+         mv_hyperscore_zscore{}, mv_ln_num_candidates{}, mv_matched_ion_current{}, mv_matched_ion_current_fraction{},
+         mv_longest_ion_run{}, mv_complementary_ions_fraction{}, mv_isotope_error{}, mv_delta_mass{};
+    {
+      const auto first_with_hits = std::find_if(annotated_hits.begin(), annotated_hits.end(),
+                                                [](const std::vector<AnnotatedHit_>& hits) { return !hits.empty(); });
+      if (first_with_hits != annotated_hits.end())
+      {
+        MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+        mv_scan_index = registry.registerName("scan_index");
+        if (IMTypes::determineIMFormat(exp[first_with_hits - annotated_hits.begin()]) == IMFormat::IM_SPECTRUM)
+        {
+          registry.registerName(Constants::UserParam::IM);
+        }
+        if (annotation_fragment_error_ppm) mv_fragment_error = registry.registerName(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM);
+        if (annotation_precursor_error_ppm) mv_precursor_error = registry.registerName(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
+        if (annotation_prefix_fraction) mv_prefix_fraction = registry.registerName(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION);
+        if (annotation_suffix_fraction) mv_suffix_fraction = registry.registerName(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION);
+        if (annotation_num_matched_peaks) mv_num_matched_peaks = registry.registerName(Constants::UserParam::NUM_MATCHED_PEAKS);
+        if (annotation_matched_prefix_ions) mv_matched_prefix_ions = registry.registerName(Constants::UserParam::MATCHED_PREFIX_IONS);
+        if (annotation_matched_suffix_ions) mv_matched_suffix_ions = registry.registerName(Constants::UserParam::MATCHED_SUFFIX_IONS);
+        mv_delta_score = registry.registerName(Constants::UserParam::DELTA_SCORE);
+        if (annotation_hyperscore_zscore) mv_hyperscore_zscore = registry.registerName(Constants::UserParam::HYPERSCORE_ZSCORE);
+        if (annotation_ln_num_candidates) mv_ln_num_candidates = registry.registerName(Constants::UserParam::LN_NUM_CANDIDATES);
+        if (annotation_matched_ion_current) mv_matched_ion_current = registry.registerName(Constants::UserParam::MATCHED_ION_CURRENT);
+        if (annotation_matched_ion_current_fraction) mv_matched_ion_current_fraction = registry.registerName(Constants::UserParam::MATCHED_ION_CURRENT_FRACTION);
+        if (annotation_longest_ion_run) mv_longest_ion_run = registry.registerName(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE);
+        if (annotation_complementary_ions_fraction) mv_complementary_ions_fraction = registry.registerName(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION);
+        mv_isotope_error = registry.registerName(Constants::UserParam::ISOTOPE_ERROR);
+        if (open_search_mode) mv_delta_mass = registry.registerName("DeltaMass");
+      }
+    }
+
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -971,7 +1019,7 @@ namespace OpenMS
         // create empty PeptideIdentification object and fill meta data
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
-        pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
+        pi.setMetaValue(mv_scan_index, static_cast<unsigned int>(scan_index));
         pi.setScoreType("ln(hyperscore)");
         pi.setHigherScoreBetter(true);
         double mz = spec.getPrecursors()[0].getMZ();
@@ -1031,7 +1079,7 @@ namespace OpenMS
             }
             double median_ppm_error(0);
             if (!err.empty()) { median_ppm_error = Math::median(err.begin(), err.end(), false); }
-            ph.setMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, median_ppm_error);
+            ph.setMetaValue(mv_fragment_error, median_ppm_error);
           }
 
           if (annotation_precursor_error_ppm)
@@ -1046,42 +1094,42 @@ namespace OpenMS
               + static_cast<double>(ah.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
             double theo_mz = ah.sequence.getMZ(used_charge);
             double ppm_difference = Math::getPPM(corrected_mz, theo_mz);
-            ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
+            ph.setMetaValue(mv_precursor_error, ppm_difference);
           }
 
           if (annotation_prefix_fraction)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION, ah.prefix_fraction);
+            ph.setMetaValue(mv_prefix_fraction, ah.prefix_fraction);
           }
 
           if (annotation_suffix_fraction)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION, ah.suffix_fraction);
+            ph.setMetaValue(mv_suffix_fraction, ah.suffix_fraction);
           }
 
           // Matched ion counts (from scoring, no alignment needed)
           if (annotation_num_matched_peaks)
           {
-            ph.setMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS, static_cast<int>(ah.matched_prefix_ions + ah.matched_suffix_ions));
+            ph.setMetaValue(mv_num_matched_peaks, static_cast<int>(ah.matched_prefix_ions + ah.matched_suffix_ions));
           }
           if (annotation_matched_prefix_ions)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS, static_cast<int>(ah.matched_prefix_ions));
+            ph.setMetaValue(mv_matched_prefix_ions, static_cast<int>(ah.matched_prefix_ions));
           }
           if (annotation_matched_suffix_ions)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS, static_cast<int>(ah.matched_suffix_ions));
+            ph.setMetaValue(mv_matched_suffix_ions, static_cast<int>(ah.matched_suffix_ions));
           }
 
-          ph.setMetaValue(Constants::UserParam::DELTA_SCORE, delta_scores[scan_index]);
+          ph.setMetaValue(mv_delta_score, delta_scores[scan_index]);
 
           if (annotation_hyperscore_zscore)
           {
-            ph.setMetaValue(Constants::UserParam::HYPERSCORE_ZSCORE, hyperscore_zscores[scan_index]);
+            ph.setMetaValue(mv_hyperscore_zscore, hyperscore_zscores[scan_index]);
           }
           if (annotation_ln_num_candidates)
           {
-            ph.setMetaValue(Constants::UserParam::LN_NUM_CANDIDATES, ln_num_candidates[scan_index]);
+            ph.setMetaValue(mv_ln_num_candidates, ln_num_candidates[scan_index]);
           }
 
           // Fragment annotations, longest ion run, MIC, normalized MIC, and complementary
@@ -1156,12 +1204,12 @@ namespace OpenMS
 
             if (annotation_matched_ion_current)
             {
-              ph.setMetaValue(Constants::UserParam::MATCHED_ION_CURRENT, matched_ion_current);
+              ph.setMetaValue(mv_matched_ion_current, matched_ion_current);
             }
 
             if (annotation_matched_ion_current_fraction)
             {
-              ph.setMetaValue(Constants::UserParam::MATCHED_ION_CURRENT_FRACTION,
+              ph.setMetaValue(mv_matched_ion_current_fraction,
                               spectrum_tic > 0 ? matched_ion_current / spectrum_tic : 0.0);
             }
 
@@ -1187,7 +1235,7 @@ namespace OpenMS
 
               if (annotation_longest_ion_run)
               {
-                ph.setMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE, std::max(longest_prefix, longest_suffix));
+                ph.setMetaValue(mv_longest_ion_run, std::max(longest_prefix, longest_suffix));
               }
 
               if (annotation_complementary_ions_fraction)
@@ -1207,19 +1255,19 @@ namespace OpenMS
                   }
                   complementary_fraction = static_cast<double>(n_complementary) / static_cast<double>(pep_len - 1);
                 }
-                ph.setMetaValue(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION, complementary_fraction);
+                ph.setMetaValue(mv_complementary_ions_fraction, complementary_fraction);
               }
             }
           }
 
 
           // Add isotope error metavalue (always; exposed as Percolator feature)
-          ph.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, ah.isotope_error);
+          ph.setMetaValue(mv_isotope_error, ah.isotope_error);
 
           // Add delta mass metavalue for open search
-          if (isOpenSearchMode_())
+          if (open_search_mode)
           {
-            ph.setMetaValue("DeltaMass", ah.delta_mass);
+            ph.setMetaValue(mv_delta_mass, ah.delta_mass);
           }
 
           // store PSM
@@ -1244,7 +1292,7 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << "[ProSE] scan_index=" << scan_index
                            << " top_ln(hyperscore)=" << top_hit.getScore()
                            << " top_charge=" << top_hit.getCharge()
-                           << " top_isotope_error=" << (int)top_hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR)
+                           << " top_isotope_error=" << (int)top_hit.getMetaValue(mv_isotope_error)
                            << std::endl;
         }
 #pragma omp critical (peptide_ids_access)
@@ -1259,9 +1307,12 @@ namespace OpenMS
     // we need to sort the peptide_ids by scan_index in order to have the same output in the idXML-file
     if (omp_get_max_threads() > 1)
     {
-      std::sort(peptide_ids.begin(), peptide_ids.end(), [](const PeptideIdentification& a, const PeptideIdentification& b)
+      // one registry lookup for the whole sort instead of two (locked) lookups per comparison;
+      // getMetaValue(name) is getMetaValue(getIndex(name)), so the comparisons are unchanged
+      const UInt scan_index_key = MetaInfoInterface::metaRegistry().getIndex("scan_index");
+      std::sort(peptide_ids.begin(), peptide_ids.end(), [scan_index_key](const PeptideIdentification& a, const PeptideIdentification& b)
       {
-        return a.getMetaValue("scan_index") < b.getMetaValue("scan_index");
+        return a.getMetaValue(scan_index_key) < b.getMetaValue(scan_index_key);
       });
     }
 #endif
