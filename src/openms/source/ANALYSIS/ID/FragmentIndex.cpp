@@ -352,39 +352,43 @@ namespace OpenMS
     return n_slots;
   }
 
+  template <typename FragmentSink>
   void FragmentIndex::generateFragmentsLightweight_(
-    std::vector<Fragment>& fragments,
-    std::vector<Fragment>& electron_fragments,
+    FragmentSink& fragments,
+    FragmentSink& electron_fragments,
     const char* sequence,
     size_t seq_len,
     UInt32 peptide_idx,
     double n_term_mod_mass,
     double c_term_mod_mass,
+    const double* residue_masses,
     const double* residue_mod_masses) const
   {
     // Thin wrapper: forward class flags to the series-explicit implementation.
     generateFragmentsForSeries_(fragments, sequence, seq_len, peptide_idx,
-                                n_term_mod_mass, c_term_mod_mass, residue_mod_masses,
+                                n_term_mod_mass, c_term_mod_mass, residue_masses, residue_mod_masses,
                                 add_b_ions_, add_a_ions_, add_c_ions_,
                                 add_y_ions_, add_x_ions_, add_z_ions_, add_zp1_ions_);
     // ions:electron_ions: the c and z+1 ions that the series above lack, in a set of their own
     if (electron_ions_ && !(add_c_ions_ && add_zp1_ions_))
     {
       generateFragmentsForSeries_(electron_fragments, sequence, seq_len, peptide_idx,
-                                  n_term_mod_mass, c_term_mod_mass, residue_mod_masses,
+                                  n_term_mod_mass, c_term_mod_mass, residue_masses, residue_mod_masses,
                                   /*add_b=*/false, /*add_a=*/false, /*add_c=*/!add_c_ions_,
                                   /*add_y=*/false, /*add_x=*/false, /*add_z=*/false,
                                   /*add_zp1=*/!add_zp1_ions_);
     }
   }
 
+  template <typename FragmentSink>
   void FragmentIndex::generateFragmentsForSeries_(
-    std::vector<Fragment>& fragments,
+    FragmentSink& fragments,
     const char* sequence,
     size_t seq_len,
     UInt32 peptide_idx,
     double n_term_mod_mass,
     double c_term_mod_mass,
+    const double* residue_masses,
     const double* residue_mod_masses,
     bool add_b,
     bool add_a,
@@ -395,93 +399,43 @@ namespace OpenMS
     bool add_zp1) const
   {
     const double proton = Constants::PROTON_MASS_U;
-    const auto& table = residue_mass_table_;
+    const float min_mz = fragment_min_mz_;
+    const float max_mz = fragment_max_mz_;
+    const size_t min_ion_index = min_ion_index_;
+    const IonOffsets offsets = ion_offsets_;
+    const auto add = [&](double mass)
+    {
+      const float mz = static_cast<float>(mass);
+      if (mz >= min_mz && mz <= max_mz) fragments.emplace_back(peptide_idx, mz);
+    };
 
-    // Generate prefix ions (b, a, c) - left to right cumulative sum
+    // Prefix ions (b, a, c) sum up the residues from the left, suffix ions (y, x, z, z+1) from the right:
+    // two independent sums, advanced together. Step i yields ion number i + 1 of both (i = 0: b1 / y1).
     // Fragment charge is always 1 for the index (matching original TSG call)
-    // Ion index is 1-based: i=0 produces ion 1 (b1/a1/c1), so skip when (i+1) <= min_ion_index_
-    if (add_b || add_a || add_c)
+    double prefix = proton + n_term_mod_mass;
+    double suffix = proton + c_term_mod_mass;
+    for (size_t i = 0; i + 1 < seq_len; ++i)
     {
+      const size_t j = seq_len - 1 - i;
+      double prefix_residue = residue_masses[static_cast<unsigned char>(sequence[i])];
+      double suffix_residue = residue_masses[static_cast<unsigned char>(sequence[j])];
+      if (residue_mod_masses)
       {
-        constexpr int z = 1;
-        double base_mass = proton * z + n_term_mod_mass;
-        double cumulative = base_mass;
-
-        for (size_t i = 0; i + 1 < seq_len; ++i)
-        {
-          double res_mass = table[static_cast<unsigned char>(sequence[i])];
-          if (residue_mod_masses) res_mass += residue_mod_masses[i];
-          cumulative += res_mass;
-
-          if (i + 1 <= min_ion_index_) continue; // skip ions below min_ion_index
-
-          if (add_b)
-          {
-            float mz = static_cast<float>((cumulative + ion_offsets_.b_offset) / z);
-            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
-              fragments.emplace_back(peptide_idx, mz);
-          }
-          if (add_a)
-          {
-            float mz = static_cast<float>((cumulative + ion_offsets_.a_offset) / z);
-            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
-              fragments.emplace_back(peptide_idx, mz);
-          }
-          if (add_c)
-          {
-            float mz = static_cast<float>((cumulative + ion_offsets_.c_offset) / z);
-            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
-              fragments.emplace_back(peptide_idx, mz);
-          }
-        }
+        prefix_residue += residue_mod_masses[i];
+        suffix_residue += residue_mod_masses[j];
       }
-    }
+      prefix += prefix_residue;
+      suffix += suffix_residue;
 
-    // Generate suffix ions (y, x, z, z+1) - right to left cumulative sum
-    // Suffix ion index: first iteration produces y1, second y2, etc.
-    if (add_y || add_x || add_z || add_zp1)
-    {
-      {
-        constexpr int z = 1;
-        double base_mass = proton * z + c_term_mod_mass;
-        double cumulative = base_mass;
-        size_t suffix_ion_num = 0;
+      if (i + 1 <= min_ion_index) continue; // skip ions below min_ion_index
 
-        for (size_t j = seq_len; j > 1; --j)
-        {
-          double res_mass = table[static_cast<unsigned char>(sequence[j - 1])];
-          if (residue_mod_masses) res_mass += residue_mod_masses[j - 1];
-          cumulative += res_mass;
-          ++suffix_ion_num;
-
-          if (suffix_ion_num <= min_ion_index_) continue; // skip ions below min_ion_index
-
-          if (add_y)
-          {
-            float mz = static_cast<float>((cumulative + ion_offsets_.y_offset) / z);
-            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
-              fragments.emplace_back(peptide_idx, mz);
-          }
-          if (add_x)
-          {
-            float mz = static_cast<float>((cumulative + ion_offsets_.x_offset) / z);
-            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
-              fragments.emplace_back(peptide_idx, mz);
-          }
-          if (add_z)
-          {
-            float mz = static_cast<float>((cumulative + ion_offsets_.z_offset) / z);
-            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
-              fragments.emplace_back(peptide_idx, mz);
-          }
-          if (add_zp1)
-          {
-            float mz = static_cast<float>((cumulative + ion_offsets_.zp1_offset) / z);
-            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
-              fragments.emplace_back(peptide_idx, mz);
-          }
-        }
-      }
+      if (add_b) add(prefix + offsets.b_offset);
+      if (add_a) add(prefix + offsets.a_offset);
+      if (add_c) add(prefix + offsets.c_offset);
+      if (add_y) add(suffix + offsets.y_offset);
+      if (add_x) add(suffix + offsets.x_offset);
+      if (add_z) add(suffix + offsets.z_offset);
+      if (add_zp1) add(suffix + offsets.zp1_offset);
     }
   }
 
@@ -1363,8 +1317,8 @@ namespace OpenMS
 
   namespace
   {
-    // build() partitions the fragments into m/z bins (mergeFragmentsIntoMzBins) and sortAndBucketFragments_()
-    // finishes the bins independently of each other. A bin holds the fragments whose m/z bit patterns agree
+    // build() generates the fragments partitioned into m/z bins and sortAndBucketFragments_() finishes the
+    // bins independently of each other. A bin holds the fragments whose m/z bit patterns agree
     // in all but the lowest MZ_BIN_SHIFT bits (1 Th wide at m/z 512-1024, 2 Th at 1024-2048, ...). For floats
     // that are neither negative nor NaN the IEEE-754 bit pattern orders like the value, so the bins ascend
     // in m/z and the low bits ("cell") order the m/z values inside a bin.
@@ -1378,116 +1332,21 @@ namespace OpenMS
       return std::bit_cast<uint32_t>(fragment.fragment_mz_) >> MZ_BIN_SHIFT;
     }
 
-    // Moves the fragments of all blocks into merged and releases the blocks.
-    // The fragments end up partitioned into ascending m/z bins, in no particular order inside a bin, unless
-    // their m/z values cannot be binned (then they are just concatenated). The partitioning is parallel and
-    // needs no intermediate copy; which fragments share a bin does not depend on the number of threads or
-    // on how the fragments are spread over the blocks.
-    template <typename FragmentT>
-    void mergeFragmentsIntoMzBins(std::vector<std::vector<FragmentT>>& blocks, std::vector<FragmentT>& merged)
+    // Bin of an m/z, counted from first_bin; whatever lies outside of [first_bin, first_bin + last] goes
+    // to bin last.
+    inline uint32_t mzBinFrom(float mz, uint32_t first_bin, uint32_t last)
     {
-      size_t total = 0;
-      for (const auto& v : blocks) total += v.size();
-
-      // Work items: pieces of the blocks
-      struct Chunk
-      {
-        size_t source, begin, end;
-      };
-      const size_t chunk_size = size_t(1) << 20;
-      std::vector<Chunk> chunks;
-      for (size_t s = 0; s < blocks.size(); ++s)
-      {
-        for (size_t begin = 0; begin < blocks[s].size(); begin += chunk_size)
-        {
-          chunks.push_back({s, begin, std::min(begin + chunk_size, blocks[s].size())});
-        }
-      }
-      const SignedSize num_chunks = static_cast<SignedSize>(chunks.size());
-
-      // Range of bins in use
-      std::vector<uint32_t> chunk_min(chunks.size()), chunk_max(chunks.size());
-      #pragma omp parallel for schedule(dynamic)
-      for (SignedSize c = 0; c < num_chunks; ++c)
-      {
-        const FragmentT* source = blocks[chunks[c].source].data();
-        uint32_t lowest = std::numeric_limits<uint32_t>::max();
-        uint32_t highest = 0;
-        for (size_t k = chunks[c].begin; k < chunks[c].end; ++k)
-        {
-          const uint32_t bits = std::bit_cast<uint32_t>(source[k].fragment_mz_);
-          lowest = std::min(lowest, bits);
-          highest = std::max(highest, bits);
-        }
-        chunk_min[c] = lowest >> MZ_BIN_SHIFT;
-        chunk_max[c] = highest >> MZ_BIN_SHIFT;
-      }
-      const uint32_t first_bin = chunks.empty() ? 0 : *std::min_element(chunk_min.begin(), chunk_min.end());
-      const uint32_t last_bin = chunks.empty() ? 0 : *std::max_element(chunk_max.begin(), chunk_max.end());
-
-      if (chunks.empty() || !merged.empty() || last_bin >= MZ_BIN_END || last_bin - first_bin >= MAX_MZ_BINS)
-      {
-        // Nothing to partition, or not possible: concatenate (sortAndBucketFragments_() copes with any order)
-        merged.reserve(merged.size() + total);
-        for (auto& v : blocks)
-        {
-          merged.insert(merged.end(), v.begin(), v.end());
-          std::vector<FragmentT>().swap(v);
-        }
-        return;
-      }
-      const size_t num_bins = last_bin - first_bin + 1;
-
-      // Fragments per chunk and bin, turned into the position at which each chunk fills each bin
-      std::vector<size_t> positions(chunks.size() * num_bins, 0);
-      #pragma omp parallel for schedule(dynamic)
-      for (SignedSize c = 0; c < num_chunks; ++c)
-      {
-        const FragmentT* source = blocks[chunks[c].source].data();
-        size_t* count = &positions[c * num_bins];
-        for (size_t k = chunks[c].begin; k < chunks[c].end; ++k) ++count[mzBin(source[k]) - first_bin];
-      }
-      size_t position = 0;
-      for (size_t b = 0; b < num_bins; ++b)
-      {
-        for (size_t c = 0; c < chunks.size(); ++c)
-        {
-          const size_t count = positions[c * num_bins + b];
-          positions[c * num_bins + b] = position;
-          position += count;
-        }
-      }
-
-      // Fragment's default constructor leaves the new elements uninitialised: the threads below write them first
-      merged.resize(total);
-
-      // Scatter. The chunks are handed out in order and a block is released with its last chunk, so that
-      // blocks and merged together need little more memory than the fragments.
-      std::vector<size_t> open_chunks(blocks.size(), 0);
-      for (const Chunk& chunk : chunks) ++open_chunks[chunk.source];
-      FragmentT* destination = merged.data();
-      #pragma omp parallel for schedule(dynamic)
-      for (SignedSize c = 0; c < num_chunks; ++c)
-      {
-        const FragmentT* source = blocks[chunks[c].source].data();
-        size_t* next = &positions[c * num_bins];
-        for (size_t k = chunks[c].begin; k < chunks[c].end; ++k) destination[next[mzBin(source[k]) - first_bin]++] = source[k];
-
-        bool source_done = false;
-        #pragma omp critical (FragmentIndex_mergeFragmentsIntoMzBins)
-        source_done = (--open_chunks[chunks[c].source] == 0);
-        if (source_done) std::vector<FragmentT>().swap(blocks[chunks[c].source]);
-      }
-      blocks.clear(); // also those without fragments
+      return std::min((std::bit_cast<uint32_t>(mz) >> MZ_BIN_SHIFT) - first_bin, last);
     }
+
+    inline void prefetchForRead(const void* address, std::ptrdiff_t byte_offset); // defined below, with queryPeaks()
   }
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
-      // A rebuild replaces the previous database. generatePeptides() and the fragment
-      // merge below append, so stale peptides/fragments would otherwise be kept and their
-      // coordinates interpreted against the new FASTA. Also leaves isBuild() false if
-      // this build throws.
+      // A rebuild replaces the previous database. generatePeptides() appends, so stale
+      // peptides would otherwise be kept and their coordinates interpreted against the
+      // new FASTA. Also leaves isBuild() false if this build throws.
       clear();
       protein_lengths_.reserve(fasta_entries.size());
       for (const auto& e : fasta_entries)
@@ -1515,55 +1374,81 @@ namespace OpenMS
 
       OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
 
-      // Per-thread fragment vectors to avoid omp critical serialization
 #ifdef _OPENMP
       const int num_threads = omp_get_max_threads();
 #else
       const int num_threads = 1;
 #endif
-      const size_t est_per_thread = (fi_peptides_.size() * 2 * peptide_min_length_) / num_threads + 1;
-      // Each vector object gets cache lines of its own: the generators update its size with every fragment,
-      // which slows down the threads working on vector objects in the same cache line (false sharing).
-      struct alignas(128) ThreadFragments : vector<Fragment> {};
-      vector<ThreadFragments> thread_fragments(num_threads);
-      vector<ThreadFragments> thread_electron_fragments(num_threads); // ions:electron_ions
-      for (int t = 0; t < num_threads; ++t)
-      {
-        thread_fragments[t].reserve(est_per_thread);
-        if (electron_ions_) thread_electron_fragments[t].reserve(est_per_thread);
-      }
 
-      // A vector that has grown to block_size is set aside, so that the merge below can release the
-      // fragments block by block. (Blocks of this size are returned to the system when freed.)
-      const size_t block_size = size_t(1) << 22;
-      vector<vector<Fragment>> fragment_blocks;
-      vector<vector<Fragment>> electron_fragment_blocks;
-      auto set_aside_if_full = [block_size](vector<Fragment>& fragments, vector<vector<Fragment>>& blocks)
+      // The fragments are generated twice: the first pass counts them per m/z bin, the second writes each
+      // one straight to its place in fi_fragments_ / electron_fragments_, which end up partitioned into
+      // ascending m/z bins as sortAndBucketFragments_() wants them - no intermediate copy of the fragments.
+      // Both passes work on the same portions of the peptides (fixed, independent of the number of
+      // threads); in every bin a portion writes behind the portions before it, so that a bin is filled
+      // in ascending peptide order.
+      // The bins start at fragment_min_mz_, but not below 1 Th (no singly charged ion is lighter), and end
+      // at fragment_max_mz_ or after MAX_MZ_BINS bins. A fragment outside of them would be put into the last
+      // bin and leave the order to the general way of sortAndBucketFragments_(), as does the single bin
+      // used if the limits allow for no fragment in any bin.
+      const float lowest_mz = std::max(fragment_min_mz_, 1.0f);
+      const bool binnable = (lowest_mz <= fragment_max_mz_);
+      const uint32_t first_bin = binnable ? mzBinFrom(lowest_mz, 0, MZ_BIN_END) : 0;
+      const uint32_t last = binnable ? mzBinFrom(fragment_max_mz_, first_bin, MAX_MZ_BINS - 1) : 0; // last bin, counted from first_bin
+      const size_t num_bins = size_t(last) + 1;
+      const size_t num_peptides = fi_peptides_.size();
+      const size_t portion_size = std::max<size_t>(4 * num_bins, 1024); // peptides; the tables below take 2 bytes per peptide
+      const SignedSize num_portions = static_cast<SignedSize>((num_peptides + portion_size - 1) / portion_size);
+
+      // Per portion and bin: the number of fragments (first pass), then the position of the next one (second pass)
+      vector<size_t> positions(num_portions * num_bins, 0);
+      vector<size_t> electron_positions(electron_ions_ ? num_portions * num_bins : 0, 0); // ions:electron_ions
+
+      // What generateFragments...() write to in the first and in the second pass
+      struct BinCounter
       {
-        if (fragments.size() < block_size) return;
-        vector<Fragment> next;
-        next.reserve(block_size + 4096);
-        fragments.swap(next);
-        #pragma omp critical (FragmentIndex_build_blocks)
-        blocks.push_back(std::move(next));
+        size_t* count;
+        uint32_t first_bin, last;
+        void emplace_back(UInt32 /*peptide_idx*/, float mz) { ++count[mzBinFrom(mz, first_bin, last)]; }
+        void flush() {}
       };
+      struct BinWriter
+      {
+        Fragment* destination;
+        size_t* next;
+        uint32_t first_bin, last;
+        // The fragments are collected here and placed a buffer at a time, in the order of their arrival
+        // (the scattered writes are faster in a loop of their own than mixed into the generation)
+        enum : size_t { capacity = 1024 };
+        size_t size = 0;
+        Fragment buffer[capacity];
+        void emplace_back(UInt32 peptide_idx, float mz)
+        {
+          buffer[size++] = Fragment(peptide_idx, mz);
+          if (size == capacity) flush();
+        }
+        void flush()
+        {
+          for (size_t k = 0; k < size; ++k) destination[next[mzBinFrom(buffer[k].fragment_mz_, first_bin, last)]++] = buffer[k];
+          size = 0;
+        }
+      };
+
+      // Residue masses with the fixed modifications included, for peptides without variable modifications.
+      // They yield the same fragment masses as the array of per-residue deltas used otherwise: with that,
+      // the generator adds the delta to the residue mass (the sum stored here) or, for a residue without
+      // fixed modification, +0.0, which leaves the mass as it is (no mass in the table is -0.0).
+      std::array<double, 128> fixed_residue_masses = residue_mass_table_;
+      for (size_t aa = 0; aa < fixed_residue_masses.size(); ++aa)
+      {
+        if (fixed_mod_deltas_[aa] != 0.0) fixed_residue_masses[aa] += fixed_mod_deltas_[aa];
+      }
 
       // Unified fragment generation path for all cases.
       // For modified peptides: reconstruct per-residue deltas from bitmask + mod tables.
       // No AASequence construction, no ModifiedPeptideGenerator.
-      // The peptides are sorted by mass and heavier ones have more fragments: hand them out in small
-      // portions so that all threads stay busy. (Which thread generates a fragment does not matter,
-      // the fragments are sorted below.)
-      #pragma omp parallel for schedule(dynamic, 1024)
-      for (SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
+      // mod_masses: buffer for the per-residue mass deltas, kept by the caller (no allocation per peptide)
+      const auto generate_fragments_of = [&](const size_t peptide_idx, vector<double>& mod_masses, auto& fragment_sink, auto& electron_sink)
       {
-#ifdef _OPENMP
-        const int tid = omp_get_thread_num();
-#else
-        const int tid = 0;
-#endif
-        set_aside_if_full(thread_fragments[tid], fragment_blocks);
-        set_aside_if_full(thread_electron_fragments[tid], electron_fragment_blocks);
         const Peptide& pep = fi_peptides_[peptide_idx];
         const char* seq_ptr = fasta_entries[pep.protein_idx].sequence.c_str() + pep.sequence_.first;
         size_t seq_len = pep.sequence_.second;
@@ -1578,18 +1463,6 @@ namespace OpenMS
           // reach that terminus, and the sub-peptide mass is recomputed at realization.
           const bool is_single_c = isSingleCMother(pep.mod_bitmask_);
 
-          vector<double> mod_masses(seq_len, 0.0);
-          bool has_residue_mods = false;
-          for (size_t i = 0; i < seq_len; ++i)
-          {
-            const double delta = fixed_mod_deltas_[static_cast<unsigned char>(seq_ptr[i])];
-            if (delta != 0.0)
-            {
-              mod_masses[i] = delta;
-              has_residue_mods = true;
-            }
-          }
-
           const double n_term_mod = is_single_c ? 0.0 : fixed_nterm_delta_;
           const double c_term_mod = is_single_c ? fixed_cterm_delta_ : 0.0;
 
@@ -1600,9 +1473,9 @@ namespace OpenMS
           // disabled the primary series via ion toggles. Force b-only/y-only
           // regardless of the class add_*_ions_ flags. CodeRabbit #6.
           generateFragmentsForSeries_(
-            thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
+            fragment_sink, seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
             n_term_mod, c_term_mod,
-            has_residue_mods ? mod_masses.data() : nullptr,
+            fixed_residue_masses.data(), nullptr,
             /*add_b=*/!is_single_c,
             /*add_a=*/false,
             /*add_c=*/false,
@@ -1617,33 +1490,22 @@ namespace OpenMS
           if (!has_modifications)
           {
             generateFragmentsLightweight_(
-              thread_fragments[tid], thread_electron_fragments[tid], seq_ptr, seq_len,
-              static_cast<UInt32>(peptide_idx), 0.0, 0.0, nullptr);
+              fragment_sink, electron_sink, seq_ptr, seq_len,
+              static_cast<UInt32>(peptide_idx), 0.0, 0.0, residue_mass_table_.data(), nullptr);
           }
           else
           {
-            // Fixed mods only — build delta array from fixed_mod_deltas_
-            vector<double> mod_masses(seq_len, 0.0);
-            bool has_residue_mods = false;
-            for (size_t i = 0; i < seq_len; ++i)
-            {
-              double delta = fixed_mod_deltas_[static_cast<unsigned char>(seq_ptr[i])];
-              if (delta != 0.0)
-              {
-                mod_masses[i] = delta;
-                has_residue_mods = true;
-              }
-            }
+            // Fixed mods only — their deltas are part of fixed_residue_masses
             generateFragmentsLightweight_(
-              thread_fragments[tid], thread_electron_fragments[tid], seq_ptr, seq_len,
+              fragment_sink, electron_sink, seq_ptr, seq_len,
               static_cast<UInt32>(peptide_idx), fixed_nterm_delta_, fixed_cterm_delta_,
-              has_residue_mods ? mod_masses.data() : nullptr);
+              fixed_residue_masses.data(), nullptr);
           }
         }
         else
         {
           // Variable modifications active: reconstruct delta array from bitmask
-          vector<double> mod_masses(seq_len, 0.0);
+          mod_masses.assign(seq_len, 0.0);
           bool has_residue_mods = false;
           double n_term_mod = fixed_nterm_delta_;
           double c_term_mod = fixed_cterm_delta_;
@@ -1693,20 +1555,79 @@ namespace OpenMS
           }
 
           generateFragmentsLightweight_(
-            thread_fragments[tid], thread_electron_fragments[tid], seq_ptr, seq_len,
+            fragment_sink, electron_sink, seq_ptr, seq_len,
             static_cast<UInt32>(peptide_idx), n_term_mod, c_term_mod,
-            has_residue_mods ? mod_masses.data() : nullptr);
+            residue_mass_table_.data(), has_residue_mods ? mod_masses.data() : nullptr);
         }
-      }
+      };
 
-      // Merge the blocks into the global fragment arrays, partitioned into m/z bins
-      for (int t = 0; t < num_threads; ++t)
+      // One pass over all peptides; make_sink(fragments, table row of the portion) returns what a set of
+      // fragments is written to. The peptides are sorted by mass and heavier ones have more fragments: the
+      // portions are handed out one by one so that all threads stay busy.
+      const auto generate_fragments = [&](const auto make_sink)
       {
-        fragment_blocks.push_back(std::move(thread_fragments[t]));
-        electron_fragment_blocks.push_back(std::move(thread_electron_fragments[t]));
-      }
-      mergeFragmentsIntoMzBins(fragment_blocks, fi_fragments_);
-      mergeFragmentsIntoMzBins(electron_fragment_blocks, electron_fragments_);
+        #pragma omp parallel
+        {
+          vector<double> mod_masses;
+          #pragma omp for schedule(dynamic)
+          for (SignedSize portion = 0; portion < num_portions; ++portion)
+          {
+            auto fragment_sink = make_sink(fi_fragments_, positions.data() + portion * num_bins);
+            auto electron_sink = make_sink(electron_fragments_, electron_positions.empty() ? nullptr : electron_positions.data() + portion * num_bins);
+            const size_t portion_end = std::min(num_peptides, (static_cast<size_t>(portion) + 1) * portion_size);
+            for (size_t peptide_idx = static_cast<size_t>(portion) * portion_size; peptide_idx < portion_end; ++peptide_idx)
+            {
+              // Sorted by mass, the peptides come from the proteins in no order: fetch the sequences of the
+              // next ones (first the string object, then its characters) while this one is worked on
+              if (peptide_idx + 16 < num_peptides)
+              {
+                prefetchForRead(&fasta_entries[fi_peptides_[peptide_idx + 16].protein_idx].sequence, 0);
+                const Peptide& ahead = fi_peptides_[peptide_idx + 8];
+                prefetchForRead(fasta_entries[ahead.protein_idx].sequence.data(), ahead.sequence_.first);
+              }
+              generate_fragments_of(peptide_idx, mod_masses, fragment_sink, electron_sink);
+            }
+            fragment_sink.flush();
+            electron_sink.flush();
+          }
+        }
+      };
+
+      // First pass: count
+      generate_fragments([&](vector<Fragment>& /*fragments*/, size_t* count) { return BinCounter{count, first_bin, last}; });
+
+      // Turn the counts into the position at which each portion fills each bin; returns the number of fragments
+      const auto counts_to_positions = [num_bins](vector<size_t>& table)
+      {
+        vector<size_t> bin_position(num_bins, 0);
+        for (size_t row = 0; row < table.size(); row += num_bins)
+        {
+          for (size_t bin = 0; bin < num_bins; ++bin) bin_position[bin] += table[row + bin];
+        }
+        size_t total = 0;
+        for (size_t& position : bin_position)
+        {
+          const size_t count = position;
+          position = total;
+          total += count;
+        }
+        for (size_t row = 0; row < table.size(); row += num_bins)
+        {
+          for (size_t bin = 0; bin < num_bins; ++bin)
+          {
+            const size_t count = table[row + bin];
+            table[row + bin] = bin_position[bin];
+            bin_position[bin] += count;
+          }
+        }
+        return total;
+      };
+      // Fragment's default constructor leaves the new elements uninitialised: the second pass writes them first
+      fi_fragments_.resize(counts_to_positions(positions));
+      electron_fragments_.resize(counts_to_positions(electron_positions));
+
+      // Second pass: write
+      generate_fragments([&](vector<Fragment>& fragments, size_t* next) { return BinWriter{fragments.data(), next, first_bin, last}; });
 
       OPENMS_LOG_INFO << "Sorting fragments..." << std::endl;
 
@@ -1741,7 +1662,7 @@ namespace OpenMS
   namespace
   {
     // Does the work of sortAndBucketFragments_() for fragments that arrive partitioned into ascending m/z
-    // bins (see mergeFragmentsIntoMzBins): identical result, linear time, each bin handled in the cache.
+    // bins (see build()): identical result, linear time, each bin handled in the cache.
     // Returns false if the fragments are not partitioned like that; it may have reordered them by then.
     //
     // The result is fixed by the fragments alone: bucket k holds those of rank [k * bucketsize,
@@ -2134,7 +2055,7 @@ namespace OpenMS
 
   namespace
   {
-    /// Hint that the cache line @p byte_offset bytes from @p address is read soon (queryPeaks).
+    /// Hint that the cache line @p byte_offset bytes from @p address is read soon (build, queryPeaks).
     /// The line need not exist: a prefetch never faults.
     inline void prefetchForRead(const void* address, std::ptrdiff_t byte_offset)
     {

@@ -579,23 +579,28 @@ protected:
     /// Uses the class-level @c add_b_ions_ / @c add_y_ions_ / ... flags for the ion
     /// series selection. See @ref generateFragmentsForSeries_ for the explicit-flag
     /// variant used by the SNES mother path.
-    /// @param[out] fragments  Output vector to append Fragment entries to
-    /// @param[out] electron_fragments  Output vector for the c and z+1 ions of ions:electron_ions
+    /// @param[out] fragments  Receives the fragments through emplace_back(peptide_idx, mz): a vector of
+    ///             Fragment, or one of the counting / placing sinks of build()
+    /// @param[out] electron_fragments  The same for the c and z+1 ions of ions:electron_ions
     ///             that the series above lack (untouched if ions:electron_ions is off)
     /// @param[in]  sequence   Raw amino acid string (no modifications)
     /// @param[in]  seq_len    Length of sequence
     /// @param[in]  peptide_idx Index of this peptide in fi_peptides_
     /// @param[in]  n_term_mod_mass  Mass delta from N-terminal modification (0 if none)
     /// @param[in]  c_term_mod_mass  Mass delta from C-terminal modification (0 if none)
+    /// @param[in]  residue_masses  Mass of a residue by its character (128 doubles): residue_mass_table_,
+    ///             or that with the deltas of the fixed modifications added
     /// @param[in]  residue_mod_masses  Per-residue modification mass deltas (nullptr if none; array of seq_len doubles)
+    template <typename FragmentSink>
     void generateFragmentsLightweight_(
-      std::vector<Fragment>& fragments,
-      std::vector<Fragment>& electron_fragments,
+      FragmentSink& fragments,
+      FragmentSink& electron_fragments,
       const char* sequence,
       size_t seq_len,
       UInt32 peptide_idx,
       double n_term_mod_mass,
       double c_term_mod_mass,
+      const double* residue_masses,
       const double* residue_mod_masses) const;
 
     /// Fragment generation with explicit per-call ion-series selection.
@@ -605,12 +610,13 @@ protected:
     /// @c generateFragmentsLightweight_ forwards to this function after packing the
     /// class flags; both share a single implementation.
     ///
-    /// @param[out] fragments Output vector to append Fragment entries to
+    /// @param[out] fragments Receives the fragments through emplace_back(peptide_idx, mz)
     /// @param[in] sequence Raw amino acid string (no modifications)
     /// @param[in] seq_len Length of sequence
     /// @param[in] peptide_idx Index of this peptide in fi_peptides_
     /// @param[in] n_term_mod_mass Mass delta from N-terminal modification (0 if none)
     /// @param[in] c_term_mod_mass Mass delta from C-terminal modification (0 if none)
+    /// @param[in] residue_masses Mass of a residue by its character (128 doubles)
     /// @param[in] residue_mod_masses Per-residue modification mass deltas (nullptr if none; array of seq_len doubles)
     /// @param[in] add_b Emit b-ions (prefix).
     /// @param[in] add_a Emit a-ions (prefix).
@@ -619,13 +625,15 @@ protected:
     /// @param[in] add_x Emit x-ions (suffix).
     /// @param[in] add_z Emit z-ions (suffix).
     /// @param[in] add_zp1 Emit z+1 ions (z-dot, suffix).
+    template <typename FragmentSink>
     void generateFragmentsForSeries_(
-      std::vector<Fragment>& fragments,
+      FragmentSink& fragments,
       const char* sequence,
       size_t seq_len,
       UInt32 peptide_idx,
       double n_term_mod_mass,
       double c_term_mod_mass,
+      const double* residue_masses,
       const double* residue_mod_masses,
       bool add_b,
       bool add_a,
