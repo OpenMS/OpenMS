@@ -3925,16 +3925,19 @@ START_SECTION((bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntr
   TEST_FALSE(fi.hasProteinOccurrences(other))
   fi.clear();
   TEST_FALSE(fi.hasProteinOccurrences(db))
-  // protein-terminal modifications: the entries of a span depend on where it lies in its protein
-  for (const auto& [fixed, variable] : vector<pair<vector<string>, vector<string>>> {
-         {{}, {"Acetyl (Protein N-term)"}}, {{}, {"Amidated (Protein C-term)"}}, {{"Acetyl (Protein N-term)"}, {}}})
+  // protein-terminal modifications: the entries of a span depend on where it lies in its protein (variable ones; a
+  // fixed one is rejected, checkFixedModifications())
+  for (const string variable : {"Acetyl (Protein N-term)", "Amidated (Protein C-term)"})
   {
-    p.setValue("modifications:fixed", fixed);
-    p.setValue("modifications:variable", variable);
+    p.setValue("modifications:fixed", vector<string> {});
+    p.setValue("modifications:variable", vector<string> {variable});
     fi.setParameters(p);
     fi.build(db);
     TEST_FALSE(fi.hasProteinOccurrences(db))
   }
+  p.setValue("modifications:fixed", vector<string> {"Acetyl (Protein N-term)"});
+  p.setValue("modifications:variable", vector<string> {});
+  TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p))
   // SNES: the entries are mother peptides
   p.setValue("modifications:fixed", vector<string> {});
   p.setValue("modifications:variable", vector<string> {});
