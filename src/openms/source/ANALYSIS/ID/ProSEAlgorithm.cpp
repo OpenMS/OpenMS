@@ -121,24 +121,24 @@ namespace OpenMS
 
     defaults_.setValue("fragment:deisotope", "auto", "MS2 deisotoping (single-charge deconvolution) before searching. 'auto' deisotopes only when the fragment tolerance is within the high-resolution deisotoper range (<= 0.1 Da / <= 100 ppm) and skips it for low-resolution (e.g. ion-trap CID) data; 'true' always deisotopes (requires a high-resolution fragment tolerance); 'false' never deisotopes.");
     defaults_.setValidStrings("fragment:deisotope", {"auto", "true", "false"});
-    defaults_.setValue("fragment:deisotope_min_peaks", 3,
+    defaults_.setValue("fragment:deisotope_min_peaks", 2,
                        "Minimum number of peaks, the monoisotopic peak included, of an isotope envelope that MS2 deisotoping "
-                       "collapses into its monoisotopic peak. 3 is the earlier behaviour. With 2 (Sage-like), an ion whose M+2 peak is "
-                       "lost in the noise loses its M+1 peak too, so the M+1 peak no longer takes a place in the per-window peak quota, "
-                       "and a multiply charged ion seen with two isotope peaks is converted to charge 1; in dense spectra (e.g. timsTOF) "
-                       "more of the two-peak multiply charged envelopes are chance pairs.",
+                       "collapses into its monoisotopic peak. With 2 (Sage-like), an ion whose M+2 peak is lost in the noise loses its "
+                       "M+1 peak too, so the M+1 peak no longer takes a place in the per-window peak quota, and a multiply charged ion "
+                       "seen with two isotope peaks is converted to charge 1; in dense spectra (e.g. timsTOF) more of the two-peak "
+                       "multiply charged envelopes are chance pairs. 3 is the earlier behaviour.",
                        {"advanced"});
     defaults_.setMinInt("fragment:deisotope_min_peaks", 2);
     defaults_.setMaxInt("fragment:deisotope_min_peaks", 10);
-    defaults_.setValue("fragment:deisotope_charge_cap", "none",
-                       "Fragment charges that MS2 deisotoping tries. 'none' tries charges 1-3 in every spectrum (the earlier behaviour). "
-                       "'precursor' tries charges up to the precursor charge, but at most 3 (1-3 when the precursor charge is unknown): "
-                       "a fragment cannot carry more charges than its precursor, so a chance peak 1/3 Th above an ion of a 2+ precursor "
-                       "cannot turn the ion into a '3+' envelope at a wrong m/z. This is Sage-like; Sage caps at the precursor charge "
-                       "without the limit of 3 and counts an unknown charge as 3.",
+    defaults_.setValue("fragment:deisotope_charge_cap", "precursor",
+                       "Fragment charges that MS2 deisotoping tries. 'precursor' tries charges up to the precursor charge, but at most 3 "
+                       "(1-3 when the precursor charge is unknown): a fragment cannot carry more charges than its precursor, so a chance "
+                       "peak 1/3 Th above an ion of a 2+ precursor cannot turn the ion into a '3+' envelope at a wrong m/z. This is "
+                       "Sage-like; Sage caps at the precursor charge without the limit of 3 and counts an unknown charge as 3. 'none' "
+                       "tries charges 1-3 in every spectrum (the earlier behaviour).",
                        {"advanced"});
     defaults_.setValidStrings("fragment:deisotope_charge_cap", {"precursor", "none"});
-    defaults_.setValue("fragment:deisotope_sum_intensity", "false",
+    defaults_.setValue("fragment:deisotope_sum_intensity", "true",
                        "Give the monoisotopic peak of each isotope envelope the summed intensity of the envelope (Sage-like). "
                        "'false' keeps the monoisotopic peak's own intensity (the earlier behaviour).",
                        {"advanced"});
@@ -706,8 +706,8 @@ namespace OpenMS
       // TMT/TMTpro-labelled fragments carry such a peak (reagent isotope impurity), and dense
       // Orbitrap Astral and timsTOF spectra often hold one by chance.
       // The envelope rule is set by fragment:deisotope_min_peaks, _charge_cap and _sum_intensity; their defaults
-      // keep the earlier rule (three peaks, charges 1-3, own intensity). The Sage-like setting (two peaks, charges
-      // up to the precursor charge but at most 3, summed intensity) differs from Sage itself: Sage links isotope
+      // are Sage-like (two peaks, charges up to the precursor charge but at most 3, summed intensity; the earlier
+      // rule was three peaks, charges 1-3, own intensity). The Sage-like rule differs from Sage itself: Sage links isotope
       // pairs with a fixed 10 ppm tolerance, requires each isotope peak to be weaker than its parent and does not
       // cap the charge at 3, while the OpenMS deisotoper extends an envelope from its monoisotopic peak with the
       // search tolerance and stops at the first isotope peak that is more intense than its predecessor.
@@ -1467,6 +1467,10 @@ namespace OpenMS
         : peaks_window_type_);
     search_parameters.setMetaValue("peaks:dense_window_top", static_cast<int>(peaks_dense_window_top_));
     search_parameters.setMetaValue("peaks:dense_intensity_loss", peaks_dense_intensity_loss_);
+    // MS2 deisotoping rule (used only when the spectra are deisotoped, see fragment:deisotope)
+    search_parameters.setMetaValue("fragment:deisotope_min_peaks", static_cast<int>(deisotoping_.min_peaks));
+    search_parameters.setMetaValue("fragment:deisotope_charge_cap", deisotoping_.charge_cap_precursor ? "precursor" : "none");
+    search_parameters.setMetaValue("fragment:deisotope_sum_intensity", deisotoping_.sum_intensity ? "true" : "false");
 
     search_parameters.enzyme_term_specificity = peptide_enzyme_specificity_;
     protein_ids[0].setSearchParameters(std::move(search_parameters));

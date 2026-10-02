@@ -2740,22 +2740,19 @@ START_SECTION(([EXTRA] fragment:deisotope_* settings: two-peak envelopes, summed
     TEST_REAL_SIMILAR(intensity(u, chance_three_plus_mz), 0.9)
   }
 
-  // Parameters: the defaults keep the earlier rule (= DeisotopingSettings_{}); the Sage-like setting maps as named.
+  // Parameters: the defaults are the Sage-like rule; the earlier rule (= DeisotopingSettings_{}) maps as named.
   ProSEAlgorithm_test algo;
-  TEST_EQUAL(algo.deisotoping_.min_peaks, 3)
-  TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, false)
-  TEST_EQUAL(algo.deisotoping_.sum_intensity, false)
-  TEST_EQUAL(algo.deisotoping_.min_peaks, Settings{}.min_peaks)
-  TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, Settings{}.charge_cap_precursor)
-  TEST_EQUAL(algo.deisotoping_.sum_intensity, Settings{}.sum_intensity)
-  Param p = algo.getParameters();
-  p.setValue("fragment:deisotope_min_peaks", 2);
-  p.setValue("fragment:deisotope_charge_cap", "precursor");
-  p.setValue("fragment:deisotope_sum_intensity", "true");
-  algo.setParameters(p);
   TEST_EQUAL(algo.deisotoping_.min_peaks, 2)
   TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, true)
   TEST_EQUAL(algo.deisotoping_.sum_intensity, true)
+  Param p = algo.getParameters();
+  p.setValue("fragment:deisotope_min_peaks", 3);
+  p.setValue("fragment:deisotope_charge_cap", "none");
+  p.setValue("fragment:deisotope_sum_intensity", "false");
+  algo.setParameters(p);
+  TEST_EQUAL(algo.deisotoping_.min_peaks, Settings{}.min_peaks)
+  TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, Settings{}.charge_cap_precursor)
+  TEST_EQUAL(algo.deisotoping_.sum_intensity, Settings{}.sum_intensity)
 }
 END_SECTION
 
@@ -3038,6 +3035,10 @@ START_SECTION(([EXTRA] scoring:fragment_charges scores multiply charged fragment
   search(p, 3, proteins);
   ABORT_IF(proteins.size() != 1)
   TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "single")
+  // the deisotoping rule is recorded with the search parameters
+  TEST_EQUAL(static_cast<int>(proteins[0].getSearchParameters().getMetaValue("fragment:deisotope_min_peaks")), 2)
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:deisotope_charge_cap").toString(), "precursor")
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:deisotope_sum_intensity").toString(), "true")
 
   // The precursor-calibration pass scores with the same fragment charges.
   p.setValue("fragment:deisotope", "false");

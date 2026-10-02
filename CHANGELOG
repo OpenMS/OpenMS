@@ -98,14 +98,15 @@ TOPP tools:
         for deisotoped (high-resolution) spectra, whose results do not change. The calibration pass and
         the peak annotations use the same charges; the ion-count fractions divide by the number of
         charges scored.
-      - Three advanced parameters set the envelope rule of the MS2 deisotoper; their defaults keep the
-        earlier rule (envelopes of three peaks, charges 1-3, the monoisotopic peak's own intensity):
-        fragment:deisotope_min_peaks (2 accepts two-peak envelopes), fragment:deisotope_charge_cap
-        (precursor: charges up to the precursor charge, at most 3) and fragment:deisotope_sum_intensity
-        (the monoisotopic peak carries the envelope's summed intensity). The Sage-like setting
-        (2 / precursor / true) gave more PSMs after Percolator on high-resolution Orbitrap data, but
-        fewer PSMs after native-score FDR pooled over precursor charges (FDR:PSM, FalseDiscoveryRate)
-        on timsTOF data (-3.6% on two files, although each precursor charge on its own gained).
+      - MS2 deisotoping uses a Sage-like envelope rule, with three new advanced parameters: two isotope
+        peaks make an envelope (fragment:deisotope_min_peaks=2; 3 before), the monoisotopic peak carries
+        the envelope's summed intensity (fragment:deisotope_sum_intensity=true), and charges are tried up
+        to the precursor charge, at most 3 (fragment:deisotope_charge_cap=precursor; 1-3 for every
+        spectrum before). Only high-resolution (deisotoped) searches change; 3 / none / false restores
+        the earlier output. It gave more PSMs after Percolator on high-resolution Orbitrap data, but fewer
+        PSMs after native-score FDR pooled over precursor charges (FDR:PSM, FalseDiscoveryRate) on
+        timsTOF data (-3.6% on two files, although each precursor charge on its own gained). The search
+        parameters of the idXML output record the three settings.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
