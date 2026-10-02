@@ -45,7 +45,6 @@
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
-#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
@@ -830,6 +829,72 @@ namespace OpenMS
                                            [](const MSSpectrum& spectrum) { return isElectronActivated_(spectrum); }));
   }
 
+  namespace
+  {
+    // Keeps the peaks WindowMower::filterPeakSpectrumForTopNInJumpingWindow() keeps: the peak_count most intense peaks of
+    // each m/z window of window_size that starts at a peak (of the last window a share of peak_count by its width), and
+    // every peak equal to a kept one. It selects them through indices instead of copies of the peaks, and finds the
+    // equal peaks among their neighbours instead of searching all kept peaks for each peak. The same std::partial_sort
+    // calls on the same intensities select the same peaks.
+    void filterTopNInJumpingWindows(MSSpectrum& spectrum, double window_size, UInt peak_count)
+    {
+      if (spectrum.empty()) { return; }
+      spectrum.sortByPosition();
+      const Size n = spectrum.size();
+      std::vector<char> kept(n, 0);
+      std::vector<Size> window;
+      const auto more_intense = [&spectrum](Size a, Size b) { return spectrum[b].getIntensity() < spectrum[a].getIntensity(); };
+      const auto keep_most_intense = [&](Size begin, Size end, Size count)
+      {
+        if (end - begin > count)
+        {
+          window.resize(end - begin);
+          std::iota(window.begin(), window.end(), begin);
+          std::partial_sort(window.begin(), window.begin() + count, window.end(), more_intense);
+          for (Size k = 0; k < count; ++k) { kept[window[k]] = 1; }
+        }
+        else
+        {
+          std::fill(kept.begin() + begin, kept.begin() + end, 1);
+        }
+      };
+      double window_start = spectrum[0].getMZ();
+      Size begin = 0;
+      for (Size i = 0; i != n; ++i)
+      {
+        if (spectrum[i].getMZ() - window_start < window_size) { continue; }
+        // a gap may leave windows empty: the next window starts at the next peak
+        window_start = spectrum[i].getMZ();
+        keep_most_intense(begin, i, peak_count);
+        begin = i;
+      }
+      const double last_window_fraction = (spectrum[n - 1].getMZ() - window_start) / window_size;
+      keep_most_intense(begin, n, static_cast<Size>(std::round(last_window_fraction * peak_count)));
+
+      // peaks of equal m/z are neighbours (the spectrum is sorted by m/z)
+      std::vector<Size> selected;
+      selected.reserve(n);
+      for (Size i = 0; i < n;)
+      {
+        Size j = i + 1;
+        while (j < n && spectrum[j].getMZ() == spectrum[i].getMZ()) { ++j; }
+        for (Size a = i; a < j; ++a)
+        {
+          for (Size b = i; b < j; ++b)
+          {
+            if (kept[b] && spectrum[b] == spectrum[a])
+            {
+              selected.push_back(a);
+              break;
+            }
+          }
+        }
+        i = j;
+      }
+      spectrum.select(selected);
+    }
+  }
+
   bool ProSEAlgorithm::filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window, Size dense_peaks_per_window,
                                          double dense_intensity_loss)
   {
@@ -920,10 +985,9 @@ namespace OpenMS
     // Normalizer::filterPeakMap are literally "for (auto& s : exp) filterSpectrum(s);" and
     // neither iterates chromatograms. They are therefore applied at the top of the parallel
     // loop below instead, which is per-spectrum equivalent and removes two full sweeps over
-    // the peak data. Both objects are configured once here; like window_mower_filter and
-    // nlargest_filter below, each OpenMP thread works on its own copy (firstprivate):
-    // ThresholdMower stores its 'threshold' Param in a member on every call and WindowMower
-    // its window size and peak count, and concurrent writes are a data race even when every
+    // the peak data. Both objects are configured once here; like nlargest_filter below, each
+    // OpenMP thread works on its own copy (firstprivate): ThresholdMower stores its 'threshold'
+    // Param in a member on every call, and concurrent writes are a data race even when every
     // thread writes the same value. One copy per thread costs a few Param copies per search.
     // Peaks without intensity (zero or negative, e.g. empty centroids) would still count as
     // matched ions, so they are removed. Nothing else is (every positive float intensity,
@@ -952,13 +1016,8 @@ namespace OpenMS
       query_spectra->resize(exp.size());
     }
 
-    // filter settings
-    WindowMower window_mower_filter;
-    Param filter_param = window_mower_filter.getParameters();
-    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
-    filter_param.setValue("peakcount", peaks_window_top, "The number of peaks that should be kept.");
-    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
-    window_mower_filter.setParameters(filter_param);
+    // filter settings: the most intense peaks_window_top peaks per 100 Th window (jumping windows as WindowMower's,
+    // unless full_window_quota)
     const bool full_window_quota
       = window_type == "jump_full"
         || (window_type == "auto" && Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm));
@@ -1001,7 +1060,7 @@ namespace OpenMS
 #pragma omp parallel for default(none) shared(exp, evidence_spectra, query_spectra, do_deisotope, fragment_mass_tolerance, \
                                                 fragment_mass_tolerance_unit_ppm, full_window_quota, peaks_window_top, dense_window_top, \
                                                 dense_intensity_loss, deisotoping, ion_evidence, ion_evidence_scored_peaks) \
-                                         firstprivate(threshold_mower_filter, normalizer, window_mower_filter, nlargest_filter) \
+                                         firstprivate(threshold_mower_filter, normalizer, nlargest_filter) \
                                          reduction(+ : dense_spectra)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
@@ -1062,7 +1121,7 @@ namespace OpenMS
       {
         if (filterLocalPeaks_(exp[exp_index], static_cast<Size>(peaks_window_top), dense_window_top, dense_intensity_loss)) { ++dense_spectra; }
       }
-      else { window_mower_filter.filterPeakSpectrum(exp[exp_index]); }
+      else { filterTopNInJumpingWindows(exp[exp_index], 100.0, static_cast<UInt>(peaks_window_top)); }
       nlargest_filter.filterPeakSpectrum(exp[exp_index]);
 
       // sort (nlargest changes order)
