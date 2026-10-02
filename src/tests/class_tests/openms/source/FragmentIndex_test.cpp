@@ -22,7 +22,13 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <algorithm>
 #include <limits>
+#include <numeric>
+#include <random>
 #include <set>
+#include <tuple>
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 /*
   FragmentIndex tests
@@ -108,6 +114,9 @@ public:
   }
 
   const std::vector<Fragment>& getFragments() const { return fi_fragments_; }
+
+  static void sortPeptides(std::vector<Peptide>& peptides) { sortPeptides_(peptides); }
+  static void sortPeptides(std::vector<Peptide>& peptides, size_t min_task_size) { sortPeptides_(peptides, min_task_size); }
 
   std::vector<double> exposeComputeSnesSigmaDeltaSet(bool include_prot_nterm_mods,
                                                       bool include_prot_cterm_mods) const
@@ -3313,6 +3322,129 @@ START_SECTION(([EXTRA] SNES recognizes the mature protein N - terminus after ini
     }
     TEST_EQUAL(found, enabled)
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] sortPeptides_() leaves exactly the order of std::sort)
+{
+  // Peptides with equal (precursor_mz_, protein_idx) differ in mod_bitmask_ / sequence_, and the order std::sort
+  // happens to give them defines the peptide indices and, through tie-breaking, the search results. sortPeptides_()
+  // must therefore return the very permutation std::sort returns - for every number of threads and every task size.
+  using Peptide = FragmentIndex::Peptide;
+  const auto by_mz_then_protein = [](const Peptide& a, const Peptide& b)
+  {
+    return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
+  };
+
+  // M. D. McIlroy, "A Killer Adversary for Quicksort" (1999): answers the comparisons of std::sort such that its
+  // quicksort degenerates. Sorting the returned keys makes the same comparisons, so an introsort runs into its depth
+  // limit and has to fall back to heap sort.
+  const auto quicksortKiller = [](size_t n)
+  {
+    const int gas = static_cast<int>(n) - 1;
+    std::vector<int> key(n, gas);
+    std::vector<int> items(n);
+    std::iota(items.begin(), items.end(), 0);
+    int n_solid = 0;
+    int candidate = 0;
+    std::sort(items.begin(), items.end(), [&](int x, int y)
+    {
+      if (key[x] == gas && key[y] == gas) { key[x == candidate ? x : y] = n_solid++; }
+      if (key[x] == gas) { candidate = x; }
+      else if (key[y] == gas) { candidate = y; }
+      return key[x] < key[y];
+    });
+    return key;
+  };
+
+  const int n_patterns = 10;
+  const auto makePeptides = [&](int pattern, size_t n)
+  {
+    std::mt19937 rng(static_cast<uint32_t>(pattern * 1000003 + n));
+    std::vector<int> killer;
+    if (pattern >= 8) { killer = quicksortKiller(n); }
+    std::vector<Peptide> peptides;
+    peptides.reserve(n);
+    for (size_t i = 0; i < n; ++i)
+    {
+      const size_t r = n - 1 - i;
+      float mz = 0;
+      UInt32 protein = 0;
+      switch (pattern)
+      {
+        case 0: mz = static_cast<float>(rng() % (n / 8 + 1)); protein = rng() % 4; break; // random, many ties
+        case 1: mz = static_cast<float>(rng() % 3); protein = rng() % 2; break;           // six different keys
+        case 2: mz = static_cast<float>(i / 3); protein = (i % 3) / 2; break;             // sorted
+        case 3: mz = static_cast<float>(r / 3); protein = (r % 3) / 2; break;             // reverse sorted
+        case 4: mz = 1.0f; protein = 7; break;                                            // all equal
+        case 5: mz = static_cast<float>(std::min(i, r) / 2); break;                       // organ pipe
+        case 6: mz = static_cast<float>(i % 17); protein = i % 2; break;                  // sawtooth
+        case 7: mz = 500.0f + 0.01f * static_cast<float>(rng() % 200000); protein = static_cast<UInt32>(i / 10); break; // as build() has them
+        case 8: mz = static_cast<float>(killer[i]); break;                                // heap sort fallback
+        default: mz = static_cast<float>(killer[i] / 4); protein = rng() % 2; break;      // heap sort fallback, ties
+      }
+      // mod_bitmask_ and sequence_ are not part of the sort key: they tell equal peptides apart
+      peptides.emplace_back(protein, static_cast<uint32_t>(i),
+                            std::make_pair(static_cast<uint16_t>(i & 0xFFFF), static_cast<uint16_t>(i >> 16)), mz);
+    }
+    return peptides;
+  };
+
+  const auto countDifferences = [](const std::vector<Peptide>& a, const std::vector<Peptide>& b)
+  {
+    if (a.size() != b.size()) { return std::max<size_t>(a.size(), b.size()); }
+    size_t differences = 0;
+    for (size_t i = 0; i < a.size(); ++i)
+    {
+      differences += !(a[i].protein_idx == b[i].protein_idx && a[i].mod_bitmask_ == b[i].mod_bitmask_
+                       && a[i].sequence_ == b[i].sequence_ && a[i].precursor_mz_ == b[i].precursor_mz_);
+    }
+    return differences;
+  };
+
+#ifdef _OPENMP
+  const int max_threads = omp_get_max_threads();
+#endif
+  std::vector<size_t> sizes(41);
+  std::iota(sizes.begin(), sizes.end(), 0); // 0..40: around the 16 elements below which std::sort only insertion-sorts
+  sizes.insert(sizes.end(), {1000, 20000, 1000000});
+  for (const size_t n : sizes)
+  {
+    size_t differences = 0;
+    for (int pattern = 0; pattern < n_patterns; ++pattern)
+    {
+      const std::vector<Peptide> input = makePeptides(pattern, n);
+      std::vector<Peptide> expected = input;
+      std::sort(expected.begin(), expected.end(), by_mz_then_protein);
+      for (const int threads : {1, 2, 4, 16})
+      {
+#ifdef _OPENMP
+        omp_set_num_threads(threads);
+#endif
+        if (n < 1000000)
+        {
+          // every partitioning step hands its right part to another task / only the larger parts
+          for (const size_t min_task_size : {size_t(0), size_t(100)})
+          {
+            std::vector<Peptide> sorted = input;
+            FragmentIndex_test::sortPeptides(sorted, min_task_size);
+            differences += countDifferences(sorted, expected);
+          }
+        }
+        else
+        {
+          std::vector<Peptide> sorted = input;
+          FragmentIndex_test::sortPeptides(sorted); // as build() calls it
+          differences += countDifferences(sorted, expected);
+        }
+        (void)threads;
+      }
+    }
+    TEST_EQUAL(differences, 0)
+  }
+#ifdef _OPENMP
+  omp_set_num_threads(max_threads);
+#endif
 }
 END_SECTION
 

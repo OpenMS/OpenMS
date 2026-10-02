@@ -449,6 +449,18 @@ protected:
      */
     void generateSNESMothers_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
+    /**@brief Sorts @p peptides by (precursor_mz_, protein_idx), exactly as std::sort does with that comparator.
+     *
+     * "Exactly" includes the order of peptides with equal keys: the comparator covers neither mod_bitmask_ nor
+     * sequence_, std::sort is not stable, and the resulting order defines the peptide indices and thereby the
+     * search results. With libstdc++ and OpenMP, inputs of more than @p min_task_size peptides are sorted by a
+     * multi-threaded reproduction of libstdc++'s std::sort; everything else calls std::sort.
+     *
+     * @param[in,out] peptides       Peptides to sort
+     * @param[in]     min_task_size  Parts of at most this many peptides are sorted by the thread that created them
+     */
+    static void sortPeptides_(std::vector<Peptide>& peptides, size_t min_task_size = 8192);
+
     /** @brief Entry in the per-AA variable modification lookup table. */
     struct VarModEntry
     {

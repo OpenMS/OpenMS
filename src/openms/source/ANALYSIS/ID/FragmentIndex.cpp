@@ -735,6 +735,113 @@ namespace OpenMS
     return static_cast<float>(mass);
   }
 
+#if defined(__GLIBCXX__) && defined(_OPENMP)
+  namespace
+  {
+    // libstdc++'s std::sort (bits/stl_algo.h, std::__sort) is an introsort: __introsort_loop partitions a range
+    // around the median of three elements, recurses into the right part, loops on the left part and stops at
+    // ranges of at most _S_threshold = 16 elements (heap sort once 2 * floor(log2(n)) partitionings are nested);
+    // one insertion sort over the whole range (__final_insertion_sort) finishes the job. The functions below make
+    // the same comparisons and swaps, so they leave the same permutation - also among elements that compare
+    // equal - but hand the right parts to OpenMP tasks:
+    //  - a partitioning step reads and writes only its own range (the scans of __unguarded_partition are stopped
+    //    by elements of the range), and the two parts are disjoint, so the order in which they are processed
+    //    does not matter;
+    //  - after the partitioning the ranges of <= 16 elements ("leaves") are in ascending order relative to each
+    //    other, so the final insertion sort never moves an element across a leaf boundary: it is an insertion
+    //    sort of each leaf, which can be done as soon as the leaf is known. (__insertion_sort, used for the first
+    //    16 elements, and __unguarded_linear_insert differ in their comparisons, not in where an element ends up.)
+    // Both points need what std::sort needs anyway: a comparison that is a strict weak ordering and has no state.
+    constexpr std::ptrdiff_t STD_SORT_LEAF_SIZE = 16; // _S_threshold
+
+    template <typename T, typename Less>
+    void introsortLoopLikeStdSort(T* first, T* last, int depth_limit, Less less, std::ptrdiff_t min_task_size)
+    {
+      while (last - first > STD_SORT_LEAF_SIZE)
+      {
+        if (depth_limit == 0)
+        {
+          // std::__partial_sort(first, last, last, comp) == __make_heap + __sort_heap; the range is sorted afterwards
+          std::make_heap(first, last, less);
+          std::sort_heap(first, last, less);
+          return;
+        }
+        --depth_limit;
+        // std::__unguarded_partition_pivot: __move_median_to_first(first, first + 1, mid, last - 1) ...
+        T* const a = first + 1;
+        T* const b = first + (last - first) / 2;
+        T* const c = last - 1;
+        if (less(*a, *b))
+        {
+          if (less(*b, *c)) std::iter_swap(first, b);
+          else if (less(*a, *c)) std::iter_swap(first, c);
+          else std::iter_swap(first, a);
+        }
+        else if (less(*a, *c)) std::iter_swap(first, a);
+        else if (less(*b, *c)) std::iter_swap(first, c);
+        else std::iter_swap(first, b);
+        // ... and __unguarded_partition(first + 1, last, pivot = first)
+        T* cut = first + 1;
+        T* hi = last;
+        while (true)
+        {
+          while (less(*cut, *first)) ++cut;
+          --hi;
+          while (less(*first, *hi)) --hi;
+          if (!(cut < hi)) break;
+          std::iter_swap(cut, hi);
+          ++cut;
+        }
+        // right part [cut, last): recursion in std::sort, a task here if it is large enough to be worth one
+        if (last - cut > min_task_size)
+        {
+          #pragma omp task default(none) firstprivate(cut, last, depth_limit, less, min_task_size)
+          introsortLoopLikeStdSort(cut, last, depth_limit, less, min_task_size);
+        }
+        else
+        {
+          introsortLoopLikeStdSort(cut, last, depth_limit, less, min_task_size);
+        }
+        last = cut; // left part [first, cut): next iteration
+      }
+      // leaf: the part of __final_insertion_sort that concerns [first, last)
+      for (T* i = first + 1; i < last; ++i)
+      {
+        T value = std::move(*i);
+        T* pos = i;
+        for (; pos != first && less(value, *(pos - 1)); --pos) *pos = std::move(*(pos - 1));
+        *pos = std::move(value);
+      }
+    }
+  } // namespace
+#endif
+
+  void FragmentIndex::sortPeptides_(std::vector<Peptide>& peptides, size_t min_task_size)
+  {
+    const auto by_mz_then_protein = [](const Peptide& a, const Peptide& b)
+    {
+      return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
+    };
+#if defined(__GLIBCXX__) && defined(_OPENMP)
+    // Relies on libstdc++'s std::sort algorithm (see introsortLoopLikeStdSort); FragmentIndex_test compares the two.
+    // Any other standard library, and a small input, gets the plain std::sort call.
+    if (peptides.size() > min_task_size)
+    {
+      Peptide* const first = peptides.data();
+      Peptide* const last = first + peptides.size();
+      const int depth_limit = 2 * (static_cast<int>(std::bit_width(peptides.size())) - 1); // std::__lg(n) * 2
+      const std::ptrdiff_t min_size = static_cast<std::ptrdiff_t>(min_task_size);
+      #pragma omp parallel
+      #pragma omp single nowait
+      introsortLoopLikeStdSort(first, last, depth_limit, by_mz_then_protein, min_size);
+      return;
+    }
+#else
+    (void)min_task_size;
+#endif
+    std::sort(peptides.begin(), peptides.end(), by_mz_then_protein);
+  }
+
   void FragmentIndex::generateSNESMothers_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
     // Residue-mass table already initialized by the caller (generatePeptides).
@@ -913,10 +1020,7 @@ namespace OpenMS
     }
 
     OPENMS_LOG_INFO << "Sorting SNES mother peptides..." << std::endl;
-    sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b)
-    {
-      return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
-    });
+    sortPeptides_(fi_peptides_);
 
     OPENMS_LOG_INFO << "Generated " << fi_peptides_.size() << " SNES mothers ("
                     << skipped_peptides.load() << " spans skipped — shorter than peptide:min_size)." << std::endl;
@@ -1253,25 +1357,7 @@ namespace OpenMS
       }
 
       OPENMS_LOG_INFO << "Sorting peptides..." << std::endl;
-      if (peptide_min_mass_ > 0 && fi_peptides_.size() == total_peptides && std::numeric_limits<float>::is_iec559)
-      {
-        // Same std::sort on the same sequence as below, with a comparator that returns the same result for every
-        // pair but needs a single integer comparison: all peptides were generated above, so each precursor_mz_ is
-        // >= peptide_min_mass_ > 0 (positive, not NaN), and positive IEEE-754 floats order like their bit patterns.
-        // std::sort thus takes exactly the same decisions and leaves equal-key peptides in the same order.
-        sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b)
-             {
-          const auto key = [](const Peptide& p) { return (static_cast<uint64_t>(std::bit_cast<uint32_t>(p.precursor_mz_)) << 32) | p.protein_idx; };
-          return key(a) < key(b);
-             });
-      }
-      else
-      {
-        sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b)
-             {
-          return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
-             });
-      }
+      sortPeptides_(fi_peptides_);
       OPENMS_LOG_INFO << "done." << std::endl;
   }
 
