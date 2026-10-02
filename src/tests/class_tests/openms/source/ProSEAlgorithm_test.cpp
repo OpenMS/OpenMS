@@ -3114,7 +3114,11 @@ START_SECTION(([EXTRA] dense spectra keep peaks:dense_window_top peaks per windo
 
   ProSEAlgorithm_test algo;
   TEST_EQUAL(int(algo.getParameters().getValue("peaks:dense_window_top")), 100)
-  TEST_REAL_SIMILAR(double(algo.getParameters().getValue("peaks:dense_intensity_loss")), 0.2)
+  // The dense quota is off by default (a loss share of 1.0 never marks a spectrum as dense).
+  TEST_REAL_SIMILAR(double(algo.getParameters().getValue("peaks:dense_intensity_loss")), 1.0)
+  MSSpectrum off = window(80);
+  TEST_EQUAL(ProSEAlgorithm_test::filterLocalPeaks_(off, 20, 100, 1.0), false)
+  TEST_EQUAL(off.size(), 20)
 }
 END_SECTION
 

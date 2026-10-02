@@ -866,7 +866,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     Int peaks_window_top_{20}; ///< WindowMower peaks-per-100Da before scoring (peaks:window_top)
     std::string peaks_window_type_ {"auto"}; ///< Resolution-aware treatment of the final peak window
     Size peaks_dense_window_top_{100};        ///< Peaks per 100 Da window kept in dense spectra (peaks:dense_window_top)
-    double peaks_dense_intensity_loss_{0.2};  ///< Intensity share whose removal marks a spectrum as dense (peaks:dense_intensity_loss)
+    double peaks_dense_intensity_loss_{1.0};  ///< Intensity share whose removal marks a spectrum as dense (peaks:dense_intensity_loss; 1.0 = off)
 
     StringList modifications_fixed_;
 

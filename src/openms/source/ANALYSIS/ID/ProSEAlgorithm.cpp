@@ -145,9 +145,11 @@ namespace OpenMS
                        "as in Orbitrap Astral and many timsTOF spectra. 0, or a value not above peaks:window_top, disables this.",
                        {"advanced"});
     defaults_.setMinInt("peaks:dense_window_top", 0);
-    defaults_.setValue("peaks:dense_intensity_loss", 0.2,
+    defaults_.setValue("peaks:dense_intensity_loss", 1.0,
                        "Share of a spectrum's intensity (after deisotoping) that the peaks:window_top filter may remove before "
-                       "the spectrum counts as dense and keeps peaks:dense_window_top peaks per window instead.",
+                       "the spectrum counts as dense and keeps peaks:dense_window_top peaks per window instead. "
+                       "1.0 (default) disables the dense-spectrum quota: its extra Astral identifications did not hold in a "
+                       "doubled-search-space entrapment control (about 4% false among the added PSMs).",
                        {"advanced"});
     defaults_.setMinFloat("peaks:dense_intensity_loss", 0.0);
     defaults_.setMaxFloat("peaks:dense_intensity_loss", 1.0);
