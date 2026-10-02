@@ -30,6 +30,10 @@ OpenMS Library:
     INIFileEditor failed to load mzML files with a ConversionError, because "60.5" was read as
     60. The imzML and Arrow/Parquet readers no longer use the locale-dependent std::stod, and
     the GUI tools reset LC_NUMERIC to "C" after starting Qt.
+  - FIX: HyperScore::computeWithDetail reported a mean fragment error of 0 for Da tolerances on
+    Linux arm64: an unqualified abs() bound to the integer overload there and truncated every
+    error. ProSE's fragment calibration therefore kept the configured Da tolerance on arm64,
+    while x86-64 and macOS tightened it.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
