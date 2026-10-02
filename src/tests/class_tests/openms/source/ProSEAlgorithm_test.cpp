@@ -55,6 +55,7 @@ public:
   using ProSEAlgorithm::precursor_mass_tolerance_unit_;
   using ProSEAlgorithm::computeModMatchTolerance_;
   using ProSEAlgorithm::last_calibration_result_;
+  using ProSEAlgorithm::scoringMaxCharge_;
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
   using ProSEAlgorithm::preprocessSpectra_;
@@ -2809,6 +2810,124 @@ START_SECTION(([EXTRA] peptidoform deduplication keeps separate charge and isoto
       TEST_TRUE(hypotheses == (unknown_charge ? set<int> {2, 3} : set<int> {0, 1}))
     }
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] scoring:fragment_charges scores multiply charged fragments of spectra that are not deisotoped))
+{
+  // Only doubly charged fragments of a 3+ precursor, as ion-trap CID spectra often hold them.
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> fasta_db = {{"P01", "Test", peptide.toString()}};
+  TheoreticalSpectrumGenerator tsg;
+  MSSpectrum spec;
+  tsg.getSpectrum(spec, peptide, 2, 2);
+  spec.setMSLevel(2);
+  spec.setRT(100.0);
+  spec.setNativeID("scan=1");
+  Precursor prec;
+  prec.setMZ(peptide.getMZ(3));
+  prec.setCharge(3);
+  prec.setActivationMethods({Precursor::ActivationMethod::CID});
+  spec.setPrecursors({prec});
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_EQUAL(p.getValue("scoring:fragment_charges").toString(), "auto")
+  p.setValue("fragment:mass_tolerance", 0.01);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("decoys", "ignore");
+  p.setValue("calibration:enabled", "false");
+  p.setValue("modifications:fixed", vector<string>{});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("annotate:PSM", vector<string>{"ALL"});
+  p.setValue("FDR:PSM", 0.0);
+
+  auto search = [&](const Param& params, int charge, vector<ProteinIdentification>& proteins)
+  {
+    algo.setParameters(params);
+    PeakMap spectra;
+    MSSpectrum input = spec;
+    input.getPrecursors()[0].setCharge(charge);
+    input.getPrecursors()[0].setMZ(peptide.getMZ(charge));
+    spectra.addSpectrum(input);
+    PeptideIdentificationList peptides;
+    const auto result = algo.search(spectra, fasta_db, proteins, peptides);
+    TEST_TRUE(result == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    return peptides;
+  };
+  vector<ProteinIdentification> proteins;
+  p.setValue("scoring:fragment_charges", "single");
+  TEST_TRUE(search(p, 3, proteins).empty()) // 1+ theory cannot explain the doubly charged peaks.
+  ABORT_IF(proteins.size() != 1)
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "single")
+
+  p.setValue("scoring:fragment_charges", "multiple");
+  const auto multiple = search(p, 3, proteins);
+  ABORT_IF(multiple.size() != 1 || multiple[0].getHits().empty())
+  const PeptideHit& hit = multiple[0].getHits()[0];
+  TEST_EQUAL(hit.getSequence(), peptide)
+  TEST_TRUE(hit.getScore() > 0.0)
+  TEST_TRUE(static_cast<int>(hit.getMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS)) >= 10)
+  const double matched_prefix = hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS);
+  TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION)), matched_prefix / (2.0 * peptide.size()))
+  TEST_FALSE(hit.getPeakAnnotations().empty())
+  for (const auto& annotation : hit.getPeakAnnotations())
+  {
+    TEST_EQUAL(annotation.charge, 2)
+  }
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges").toString(), "multiple")
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "multiple")
+  TEST_TRUE(search(p, 2, proteins).empty()) // A 2+ precursor gets no 2+ fragments.
+  p.setValue("fragment:max_charge", 1);
+  TEST_TRUE(search(p, 3, proteins).empty()) // The fragment charge cap applies.
+  p.setValue("fragment:max_charge", 2);
+
+  // 'auto' scores multiple charges exactly when the spectra are not deisotoped: with
+  // fragment:deisotope=false, and at an ion-trap tolerance the deisotoper does not support.
+  const auto explicit_multiple = search(p, 3, proteins);
+  p.setValue("scoring:fragment_charges", "auto");
+  for (int chunk_size : {0, 1})
+  {
+    p.setValue("database:chunk_size", chunk_size);
+    const auto automatic = search(p, 3, proteins);
+    ABORT_IF(automatic.size() != 1)
+    TEST_TRUE(automatic[0].getHits() == explicit_multiple[0].getHits())
+    TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges").toString(), "auto")
+    TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "multiple")
+  }
+  p.setValue("database:chunk_size", 0);
+  p.setValue("fragment:deisotope", "auto");
+  p.setValue("fragment:mass_tolerance", 0.5);
+  TEST_EQUAL(search(p, 3, proteins).size(), 1)
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "multiple")
+  // High-resolution spectra are deisotoped to charge 1, so 'auto' keeps single charges.
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  search(p, 3, proteins);
+  ABORT_IF(proteins.size() != 1)
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "single")
+
+  // The precursor-calibration pass scores with the same fragment charges.
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:mass_tolerance", 0.01);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  p.setValue("calibration:enabled", "true");
+  p.setValue("calibration:subset_ratio", 1.0);
+  p.setValue("calibration:min_psms", 1);
+  ProSEAlgorithm_test calibrated;
+  calibrated.setParameters(p);
+  TEST_EQUAL(calibrated.scoringMaxCharge_(3), 2)
+  TEST_EQUAL(calibrated.scoringMaxCharge_(2), 1)
+  PeakMap spectra;
+  spectra.addSpectrum(spec);
+  PeptideIdentificationList peptide_ids;
+  TEST_TRUE(calibrated.search(spectra, fasta_db, proteins, peptide_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_TRUE(calibrated.last_calibration_result_.success)
+  TEST_EQUAL(peptide_ids.size(), 1)
 }
 END_SECTION
 
