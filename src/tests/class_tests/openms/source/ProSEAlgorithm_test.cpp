@@ -59,6 +59,8 @@ public:
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
   using ProSEAlgorithm::preprocessSpectra_;
+  using ProSEAlgorithm::localFragmentEvidence_;
+  using ProSEAlgorithm::localPeakDensities_;
   using ProSEAlgorithm::resolveDecoyStrategy_;
   using ProSEAlgorithm::DecoyStrategy_;
   using ProSEAlgorithm::buildDecoyAugmentedDB_;
@@ -1644,6 +1646,8 @@ START_SECTION(([EXTRA] ions:by_activation gives each file of a multi-file search
   }
 
   // the top hit of each file searched alone
+  p.setValue("annotate:local_fragment_evidence", "true");
+  algo.setParameters(p);
   auto search_alone = [&algo, &fasta_db](PeakMap alone)
   {
     vector<ProteinIdentification> prot_ids;
@@ -2353,6 +2357,123 @@ START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragme
     TEST_EQUAL(ann.annotation.empty(), false)
     TEST_EQUAL(ann.charge >= 1, true)
   }
+
+  // Local evidence is opt-in, independent of annotate:PSM, and must preserve
+  // the candidates and native score. Both numerical columns reach the PIN feature list.
+  TEST_FALSE(hit.metaValueExists(Constants::UserParam::CHANCE_MATCH_SURPRISE))
+  TEST_EQUAL(p.getValue("annotate:local_fragment_evidence").toString(), "false")
+  p.setValue("annotate:local_fragment_evidence", "true");
+  p.setValue("annotate:PSM", vector<string>{});
+  algo.setParameters(p);
+  vector<ProteinIdentification> evidence_proteins;
+  PeptideIdentificationList evidence_peptides;
+  algo.search(exp, fasta_db, evidence_proteins, evidence_peptides);
+  TEST_EQUAL(evidence_peptides.size(), pep_ids.size())
+  const auto& evidence_hit = evidence_peptides[0].getHits()[0];
+  TEST_EQUAL(evidence_hit.getSequence(), hit.getSequence())
+  TEST_REAL_SIMILAR(evidence_hit.getScore(), hit.getScore())
+  TEST_TRUE(static_cast<double>(evidence_hit.getMetaValue(Constants::UserParam::CHANCE_MATCH_SURPRISE)) > 0.0)
+  TEST_TRUE(static_cast<double>(evidence_hit.getMetaValue(Constants::UserParam::MASS_COMPETITION_EVIDENCE)) > 0.0)
+  TEST_TRUE(evidence_hit.getPeakAnnotations().empty())
+  const auto& evidence_params = evidence_proteins[0].getSearchParameters();
+  TEST_TRUE(evidence_params.getMetaValue("extra_features").toString().find(Constants::UserParam::CHANCE_MATCH_SURPRISE) != string::npos)
+  TEST_TRUE(evidence_params.getMetaValue("extra_features").toString().find(Constants::UserParam::MASS_COMPETITION_EVIDENCE) != string::npos)
+  TEST_EQUAL(evidence_params.getMetaValue("annotate:local_fragment_evidence").toString(), "true")
+  p.setValue("fragment:mass_tolerance", 0.0);
+  TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] local fragment evidence - density, ambiguity, charge and tolerance))
+{
+  auto theory = [](const vector<double>& masses, const vector<int>& charges)
+  {
+    MSSpectrum spectrum;
+    for (double mz : masses) spectrum.emplace_back(mz, 1.0);
+    DataArrays::IntegerDataArray ion_charges;
+    ion_charges.insert(ion_charges.end(), charges.begin(), charges.end());
+    spectrum.getIntegerDataArrays().push_back(ion_charges);
+    return spectrum;
+  };
+  auto evidence = [&](const MSSpectrum& spectrum, const MSSpectrum& theoretical, double tolerance, bool ppm = false)
+  {
+    return ProSEAlgorithm_test::localFragmentEvidence_(spectrum, theoretical,
+      ProSEAlgorithm_test::localPeakDensities_(spectrum), tolerance, ppm);
+  };
+
+  MSSpectrum sparse;
+  sparse.emplace_back(100.0, 10.0);
+  const auto intact = theory({100.0}, {1});
+  const auto alone = evidence(sparse, intact, 0.5);
+  TEST_REAL_SIMILAR(alone.chance_match_surprise, -std::log(0.01))
+  TEST_REAL_SIMILAR(alone.mass_competition_evidence, 1.0 / 1.01) // Excludes the ion itself.
+
+  // Nearby unmatched peaks reduce confidence, remote peaks do not. The
+  // +/-50 m/z endpoints are inclusive, and windows keep their fixed width.
+  MSSpectrum crowded;
+  for (double mz : {50.0, 100.0, 120.0, 150.0, 200.01}) crowded.emplace_back(mz, 1.0);
+  const auto densities = ProSEAlgorithm_test::localPeakDensities_(crowded);
+  TEST_REAL_SIMILAR(densities[1], 0.04)
+  const auto near = evidence(crowded, intact, 0.5);
+  TEST_REAL_SIMILAR(near.chance_match_surprise, -std::log(0.04))
+  TEST_REAL_SIMILAR(near.mass_competition_evidence, 1.0 / 1.04)
+  MSSpectrum remote = sparse;
+  remote.emplace_back(500.0, 100.0);
+  TEST_REAL_SIMILAR(evidence(remote, intact, 0.5).chance_match_surprise, alone.chance_match_surprise)
+
+  // Two coincident ion identities share one peak: both are matched, but each
+  // receives half the approximate competition credit (no hard peak assignment).
+  const auto coincident = evidence(sparse, theory({100.0, 100.0}, {1, 1}), 0.5);
+  TEST_REAL_SIMILAR(coincident.chance_match_surprise, 2.0 * alone.chance_match_surprise)
+  TEST_REAL_SIMILAR(coincident.mass_competition_evidence, 2.0 / 2.01)
+
+  // Only the 100 m/z intact ion matches. Generic neutral losses of the other
+  // ion create competition, but never an additional credited fragment match.
+  const auto water = evidence(sparse, theory({100.0, 118.010565}, {1, 1}), 0.01);
+  TEST_REAL_SIMILAR(water.mass_competition_evidence, 1.0 / 2.01)
+  const auto ammonia = evidence(sparse, theory({100.0, 117.026549}, {1, 1}), 0.01);
+  TEST_REAL_SIMILAR(ammonia.mass_competition_evidence, 1.0 / 2.01)
+  const auto charge2_remote = evidence(sparse, theory({100.0, 118.010565}, {1, 2}), 0.01);
+  TEST_REAL_SIMILAR(charge2_remote.mass_competition_evidence, 1.0 / 1.01)
+  const auto charge2_loss = evidence(sparse, theory({100.0, 109.0052825}, {1, 2}), 0.01);
+  TEST_REAL_SIMILAR(charge2_loss.mass_competition_evidence, 1.0 / 2.01)
+
+  MSSpectrum shifted;
+  shifted.emplace_back(500.004, 1.0);
+  const auto ppm_match = evidence(shifted, theory({500.0}, {1}), 10.0, true);
+  TEST_REAL_SIMILAR(ppm_match.chance_match_surprise, -std::log(0.0001))
+  TEST_REAL_SIMILAR(ppm_match.mass_competition_evidence, 1.0 / 1.01)
+  TEST_REAL_SIMILAR(evidence(shifted, theory({500.0}, {1}), 5.0, true).chance_match_surprise, 0.0)
+  TEST_REAL_SIMILAR(evidence(sparse, intact, 100.0).chance_match_surprise, 0.0) // Chance >= 1.
+  TEST_REAL_SIMILAR(evidence(MSSpectrum{}, intact, 0.5).mass_competition_evidence, 0.0)
+  TEST_REAL_SIMILAR(evidence(sparse, MSSpectrum{}, 0.5).chance_match_surprise, 0.0)
+  TEST_REAL_SIMILAR(evidence(sparse, theory({200.0}, {1}), 0.5).mass_competition_evidence, 0.0)
+
+  // Preserve weak peaks for annotations while the search retains only its top
+  // peak. Sorting by RT must keep the two peak lists aligned across spectra.
+  PeakMap search_spectra, evidence_spectra;
+  for (int i : {2, 1})
+  {
+    MSSpectrum spectrum;
+    spectrum.setRT(10.0 * i);
+    spectrum.setNativeID("scan=" + std::to_string(i));
+    spectrum.emplace_back(100.0 * i, 10.0);
+    spectrum.emplace_back(100.0 * i + 25.0, 0.0);
+    spectrum.emplace_back(100.0 * i + 50.0, 1.0);
+    search_spectra.addSpectrum(spectrum);
+  }
+  ProSEAlgorithm_test::preprocessSpectra_(search_spectra, 0.5, false, false, 1, 20, "auto", &evidence_spectra);
+  TEST_EQUAL(search_spectra.size(), evidence_spectra.size())
+  TEST_EQUAL(search_spectra[0].getNativeID(), "scan=1")
+  for (Size i = 0; i < search_spectra.size(); ++i)
+  {
+    TEST_EQUAL(search_spectra[i].getNativeID(), evidence_spectra[i].getNativeID())
+    TEST_EQUAL(search_spectra[i].size(), 1)
+    TEST_EQUAL(evidence_spectra[i].size(), 2)
+  }
+  const auto weak_ion = theory({150.0}, {1});
+  TEST_REAL_SIMILAR(evidence(search_spectra[0], weak_ion, 0.5).chance_match_surprise, 0.0)
+  TEST_REAL_SIMILAR(evidence(evidence_spectra[0], weak_ion, 0.5).chance_match_surprise, -std::log(0.02))
 }
 END_SECTION
 
@@ -2418,6 +2539,20 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   // values are observable via last_calibration_result_, which is checked above.
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_lower_, 20.0)
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_upper_, 30.0)
+
+  // Raw retrieval must also be used during the independent calibration pass.
+  const auto processed_calibration = cal;
+  Param raw_params = algo.getParameters();
+  raw_params.setValue("fragment:query_spectrum", "raw");
+  algo.setParameters(raw_params);
+  spectra = build_calibration_spectra_(ppm_shifts);
+  vector<ProteinIdentification> raw_proteins;
+  PeptideIdentificationList raw_peptides;
+  algo.search(spectra, fasta_db, raw_proteins, raw_peptides);
+  TEST_TRUE(algo.last_calibration_result_.success)
+  TEST_REAL_SIMILAR(algo.last_calibration_result_.cal_lower, processed_calibration.cal_lower)
+  TEST_REAL_SIMILAR(algo.last_calibration_result_.cal_upper, processed_calibration.cal_upper)
+  TEST_REAL_SIMILAR(algo.last_calibration_result_.fragment_tolerance, processed_calibration.fragment_tolerance)
 }
 END_SECTION
 
@@ -2947,6 +3082,77 @@ START_SECTION(([EXTRA] scoring:fragment_charges scores multiply charged fragment
   TEST_TRUE(calibrated.search(spectra, fasta_db, proteins, peptide_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
   TEST_TRUE(calibrated.last_calibration_result_.success)
   TEST_EQUAL(peptide_ids.size(), 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] raw retrieval recovers a candidate removed by scoring peak selection))
+{
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> db = {{"P01", "", peptide.toString()}, {"P02", "", "VLVLDTDYK"}};
+  MSSpectrum spectrum;
+  TheoreticalSpectrumGenerator().getSpectrum(spectrum, peptide, 1, 1);
+  spectrum.setMSLevel(2);
+  spectrum.setNativeID("scan=1");
+  Precursor precursor;
+  precursor.setMZ(peptide.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  PeakMap input;
+  input.addSpectrum(spectrum);
+  std::string input_file;
+  NEW_TMP_FILE(input_file)
+  FileHandler().storeExperiment(input_file, input, {FileTypes::MZML});
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_EQUAL(p.getValue("fragment:query_spectrum").toString(), "processed")
+  TEST_EQUAL(p.getValue("peaks:window_type").toString(), "auto")
+  p.setValue("peaks:keep_n", 1);
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("decoys", "ignore");
+  p.setValue("calibration:enabled", "false");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+  {
+    // keep_n=1 leaves one scoring peak; HyperScore of one matched peak of intensity 1 is ln(1 + 1).
+    const double expected_score = std::log1p(1.0);
+    for (const std::string mode : {"processed", "raw"})
+    {
+      p.setValue("fragment:query_spectrum", mode);
+      for (Int chunk_size : {0, 1})
+      {
+        p.setValue("database:chunk_size", chunk_size);
+        algo.setParameters(p);
+        PeakMap spectra = input;
+        vector<ProteinIdentification> proteins;
+        PeptideIdentificationList peptides;
+        algo.search(spectra, db, proteins, peptides);
+        TEST_EQUAL(peptides.size(), mode == "raw" ? 1 : 0)
+        if (! peptides.empty())
+        {
+          TEST_EQUAL(peptides[0].getHits()[0].getSequence(), peptide)
+          TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), expected_score)
+          TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:query_spectrum").toString(), "raw")
+          TEST_EQUAL(peptides[0].getScoreType(), "ln(hyperscore)")
+        }
+        const auto files = algo.searchWithModificationAnalysis(vector<std::string> {input_file, input_file}, db, vector<std::string> {}, "", false);
+        TEST_EQUAL(files.per_file.size(), 2)
+        for (const auto& result : files.per_file)
+        {
+          TEST_EQUAL(result.peptide_ids.size(), peptides.size())
+          if (! result.peptide_ids.empty())
+          {
+            TEST_EQUAL(result.peptide_ids[0].getHits()[0].getSequence(), peptide)
+            TEST_REAL_SIMILAR(result.peptide_ids[0].getHits()[0].getScore(), expected_score)
+          }
+        }
+      }
+    }
+  }
 }
 END_SECTION
 
