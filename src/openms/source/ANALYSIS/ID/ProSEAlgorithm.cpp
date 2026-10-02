@@ -1595,12 +1595,18 @@ namespace OpenMS
     // decoys=auto reusing pre-existing decoys logs nothing otherwise; surface the auto-detected
     // marker so a rare DecoyHelper misdetection (a target DB whose accessions start with a decoy
     // affix) is diagnosable. Single emission: buildDecoyAugmentedDB_ runs once per search.
-    if (decoy_mode_ == DecoyMode_::AUTO && !strategy.generate && strategy.have_decoys)
+    const bool reuses_decoys = decoy_mode_ == DecoyMode_::AUTO && !strategy.generate && strategy.have_decoys;
+    if (reuses_decoys)
     {
       OPENMS_LOG_INFO << "[ProSE] decoys=auto: reusing existing decoys detected in the database "
                       << "(marker '" << strategy.decoy_string << "', "
                       << (strategy.is_prefix ? "prefix" : "suffix") << ")." << std::endl;
     }
+    // Initial-Met clipping adds N-terminal peptides of every protein that starts with M. Generated decoys keep the
+    // initial Met (below); supplied decoys often do not (a reversed protein ends with it), and then the clipped
+    // peptides enlarge the target space only. Count both kinds while the entries are filtered.
+    const bool check_met_symmetry = reuses_decoys && param_.getValue("peptide:clip_nterm_methionine").toBool();
+    Size targets = 0, targets_with_met = 0, decoys = 0, decoys_with_met = 0;
 
     // 1. Keep targets, dropping pre-existing decoys when requested. A stop codon ('*') that ends
     //    a sequence, as in databases translated from genomes (e.g. SGD), is not a residue: remove
@@ -1620,12 +1626,29 @@ namespace OpenMS
         while (!sequence.empty() && sequence.back() == '*') { sequence.pop_back(); }
         if (!sequence.empty())
         {
+          if (check_met_symmetry)
+          {
+            const bool is_decoy = strategy.is_prefix ? StringUtils::hasPrefix(e.identifier, strategy.decoy_string)
+                                                     : StringUtils::hasSuffix(e.identifier, strategy.decoy_string);
+            (is_decoy ? decoys : targets) += 1;
+            (is_decoy ? decoys_with_met : targets_with_met) += (sequence.size() > 1 && sequence[0] == 'M') ? 1 : 0;
+          }
           if (&*kept != &e) { *kept = std::move(e); }
           ++kept;
         }
       }
     }
     db.erase(kept, db.end());
+    // Warn when the share of decoys that start with M is below half the share of targets that do.
+    if (check_met_symmetry && targets_with_met > 0 && 2 * decoys_with_met * targets < targets_with_met * decoys)
+    {
+      OPENMS_LOG_WARN << "[ProSE] peptide:clip_nterm_methionine: " << targets_with_met << " of " << targets
+                      << " target proteins but only " << decoys_with_met << " of " << decoys << " decoy proteins "
+                      << "in the database start with M. Removing the initial Met adds N-terminal peptides to the "
+                      << "targets that have no decoy counterpart, which makes target-decoy FDR estimates slightly "
+                      << "optimistic. Use '-Search:decoys generate' (generated decoys keep the initial Met) or "
+                      << "'-Search:peptide:clip_nterm_methionine false' for a symmetric search space." << std::endl;
+    }
 
     // 2. Generate decoys by reversing the (remaining) target proteins.
     if (strategy.generate)

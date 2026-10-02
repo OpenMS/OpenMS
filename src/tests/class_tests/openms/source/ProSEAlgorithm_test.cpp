@@ -34,6 +34,7 @@
 #include <numeric>
 #include <random>
 #include <set>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -3428,6 +3429,36 @@ START_SECTION(([EXTRA] fixed terminal modifications that apply to some peptides 
   p.setValue("modifications:fixed", StringList {"Carbamidomethyl (C)", "TMT6plex (K)", "TMT6plex (N-term)"});
   algo.setParameters(p);
   TEST_EQUAL(ListUtils::toStringList<std::string>(algo.getParameters().getValue("modifications:fixed")).size(), 3)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] decoys=auto warns when the supplied decoys do not start with M as often as the targets))
+{
+  // With initial-Met clipping, reversed decoys (which end with the target's Met) leave the clipped N-terminal
+  // peptides without decoy counterparts. Generated decoys keep the initial Met; supplied ones are only reported.
+  const vector<FASTAFile::FASTAEntry> reversed {{"t1", "", "MACDEKAGHILR"}, {"t2", "", "MKLPEPTIDER"},
+                                                {"DECOY_t1", "", "RLIHGAKEDCAM"}, {"DECOY_t2", "", "REDITPEPLKM"}};
+  const vector<FASTAFile::FASTAEntry> met_kept {{"t1", "", "MACDEKAGHILR"}, {"t2", "", "MKLPEPTIDER"},
+                                                {"DECOY_t1", "", "MRLIHGAKEDCA"}, {"DECOY_t2", "", "MREDITPEPLK"}};
+  auto warnings = [](const vector<FASTAFile::FASTAEntry>& db, const string& clip)
+  {
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "auto");
+    p.setValue("peptide:clip_nterm_methionine", clip);
+    algo.setParameters(p);
+    std::ostringstream log;
+    OPENMS_LOG_WARN.insert(log);
+    const auto strategy = algo.resolveDecoyStrategy_(db);
+    const auto result = algo.buildDecoyAugmentedDB_(db, strategy);
+    OPENMS_LOG_WARN.remove(log);
+    TEST_EQUAL(result.size(), db.size())
+    return log.str();
+  };
+  const string warning = warnings(reversed, "true");
+  TEST_TRUE(warning.find("2 of 2 target proteins but only 0 of 2 decoy proteins") != string::npos)
+  TEST_EQUAL(warnings(reversed, "false"), "")
+  TEST_EQUAL(warnings(met_kept, "true"), "")
 }
 END_SECTION
 
