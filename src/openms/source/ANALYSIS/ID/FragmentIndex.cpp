@@ -153,6 +153,46 @@ namespace OpenMS
     }
   }
 
+  namespace
+  {
+    /// 0 (N) or 1 (C) for a modification of a whole peptide or protein terminus (no residue preference), else -1
+    int wholeTerminus(const ResidueModification& mod)
+    {
+      if (mod.getOrigin() != 'X' && mod.getOrigin() != '.') return -1;
+      switch (mod.getTermSpecificity())
+      {
+        case ResidueModification::N_TERM:
+        case ResidueModification::PROTEIN_N_TERM:
+          return 0;
+        case ResidueModification::C_TERM:
+        case ResidueModification::PROTEIN_C_TERM:
+          return 1;
+        default:
+          return -1;
+      }
+    }
+  } // namespace
+
+  StringList FragmentIndex::shadowedVariableTerminalModifications(const StringList& fixed_modifications,
+                                                                  const StringList& variable_modifications)
+  {
+    StringList shadowed;
+    if (fixed_modifications.empty() || variable_modifications.empty()) return shadowed;
+    bool fixed_terminus[2] = {false, false}; // N-, C-terminus
+    for (const auto& [mod_ptr, residue_ptr] : ModifiedPeptideGenerator::getModifications(fixed_modifications).val)
+    {
+      if (const int t = wholeTerminus(*mod_ptr); t >= 0) fixed_terminus[t] = true;
+    }
+    for (const std::string& name : variable_modifications) // in the given order (getModifications() returns a hash map)
+    {
+      for (const auto& [mod_ptr, residue_ptr] : ModifiedPeptideGenerator::getModifications({name}).val)
+      {
+        if (const int t = wholeTerminus(*mod_ptr); t >= 0 && fixed_terminus[t]) shadowed.push_back(name);
+      }
+    }
+    return shadowed;
+  }
+
   void FragmentIndex::initModificationTables_()
   {
     if (mod_tables_initialized_) return;
@@ -228,14 +268,16 @@ namespace OpenMS
 
         if (origin == 'X' || origin == '.')
         {
-          // Pure terminal mod (no specific AA)
+          // Pure terminal mod (no specific AA). A terminus carries one modification, so it is not applied where a
+          // fixed terminal modification sits (as in ModifiedPeptideGenerator; shadowedVariableTerminalModifications()).
+          // Applying both would give the index the sum of both masses, while the reconstructed sequence keeps one.
           if (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::PROTEIN_N_TERM)
           {
-            variable_nterm_mods_.push_back(entry);
+            if (fixed_nterm_mod_ptr_ == nullptr) variable_nterm_mods_.push_back(entry);
           }
           else if (term_spec == ResidueModification::C_TERM || term_spec == ResidueModification::PROTEIN_C_TERM)
           {
-            variable_cterm_mods_.push_back(entry);
+            if (fixed_cterm_mod_ptr_ == nullptr) variable_cterm_mods_.push_back(entry);
           }
         }
         else
@@ -3601,7 +3643,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
     defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
-    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
+    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'. A terminus carries one modification: a variable modification of the whole terminus (e.g. 'Acetyl (Protein N-term)') is not searched where a fixed one sits on it (e.g. 'TMT6plex (N-term)').");
     defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
 

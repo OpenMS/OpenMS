@@ -3699,4 +3699,51 @@ START_SECTION(([EXTRA] the default isotope error range covers precursors selecte
 }
 END_SECTION
 
+START_SECTION((static StringList shadowedVariableTerminalModifications(const StringList& fixed_modifications, const StringList& variable_modifications)))
+{
+  // A terminus carries one modification: a variable modification of the whole terminus is not applied where a fixed
+  // one sits. Residue-specific terminal variable modifications modify the residue and stay.
+  const StringList variable = {"Acetyl (Protein N-term)", "Oxidation (M)", "Gln->pyro-Glu (N-term Q)", "Amidated (C-term)"};
+  TEST_EQUAL(ListUtils::concatenate(FragmentIndex::shadowedVariableTerminalModifications({"TMT6plex (N-term)"}, variable), ","),
+             "Acetyl (Protein N-term)")
+  TEST_EQUAL(ListUtils::concatenate(FragmentIndex::shadowedVariableTerminalModifications(
+               {"Carbamidomethyl (C)", "TMT6plex (N-term)", "Amidated (C-term)"}, variable), ","),
+             "Acetyl (Protein N-term),Amidated (C-term)")
+  TEST_EQUAL(FragmentIndex::shadowedVariableTerminalModifications({"Carbamidomethyl (C)", "TMT6plex (K)"}, variable).size(), 0)
+  TEST_EQUAL(FragmentIndex::shadowedVariableTerminalModifications({"TMT6plex (N-term)"}, {}).size(), 0)
+
+  // The index applies the excluded modification nowhere, so every peptide's precursor m/z is that of its reconstructed
+  // sequence. (It used to add both terminal masses while the reconstructed sequence kept the variable one only.)
+  const vector<FASTAFile::FASTAEntry> db {{"p", "p", "ACAPEPTIDEKQLGSVTAKQMNPEPTIDER"}};
+  auto build = [&db](const StringList& fixed)
+  {
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    p.setValue("peptide:min_size", 5);
+    p.setValue("peptide:missed_cleavages", 1);
+    p.setValue("modifications:fixed", fixed);
+    p.setValue("modifications:variable", StringList {"Acetyl (Protein N-term)", "Oxidation (M)"});
+    fi.setParameters(p);
+    fi.build(db);
+    Size acetylated = 0;
+    for (const auto& peptide : fi.getPeptides())
+    {
+      const AASequence seq = fi.reconstructModifiedSequence(peptide, db);
+      TEST_REAL_SIMILAR(peptide.precursor_mz_, seq.getMZ(1))
+      if (seq.getNTerminalModificationName() == "Acetyl") ++acetylated;
+      if (fixed.size() > 1)
+      {
+        TEST_EQUAL(seq.getNTerminalModificationName(), "TMT6plex")
+      }
+    }
+    return std::make_pair(fi.getPeptides().size(), acetylated);
+  };
+  const auto [n_without_fixed_nterm, acetylated_without] = build({"Carbamidomethyl (C)"});
+  const auto [n_with_fixed_nterm, acetylated_with] = build({"Carbamidomethyl (C)", "TMT6plex (N-term)"});
+  TEST_EQUAL(acetylated_without, 2) // ACAPEPTIDEK and ACAPEPTIDEKQLGSVTAK
+  TEST_EQUAL(acetylated_with, 0)
+  TEST_EQUAL(n_with_fixed_nterm, n_without_fixed_nterm - acetylated_without)
+}
+END_SECTION
+
 END_TEST
