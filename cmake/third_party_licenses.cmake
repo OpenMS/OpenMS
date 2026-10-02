@@ -27,9 +27,9 @@
 ##   requires its text, the text of the GPL version 3 that it supplements, and a note on
 ##   where to get the source code of the bundled Qt.
 ## - homebrew/<formula>/: on macOS, Qt and the libraries it needs (glib, ICU, freetype, ...)
-##   come from Homebrew, and the package bundles them. Homebrew installs the license files
-##   of a formula into its keg, and these are installed for the given formulae and every
-##   formula they depend on.
+##   and the OpenMP runtime libomp come from Homebrew, and the package bundles them. Homebrew
+##   installs the license files of a formula into its keg, and these are installed for the
+##   given formulae and every formula they depend on.
 ##
 ## openms_install_vendored_licenses() installs the licenses of the third-party code that
 ## OpenMS carries in its own source tree and compiles into its libraries (vendored/<name>/).

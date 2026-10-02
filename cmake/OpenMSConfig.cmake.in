@@ -62,6 +62,8 @@ set(OPENMS_SHARE_DIR "${OPENMS_DATA_DIR}")
 set(OPENMS_BIN_DIR "@PACKAGE_INSTALL_BIN_DIR@")
 set(OPENMS_DOC_DIR "@PACKAGE_INSTALL_DOC_DIR@")
 set(OPENMS_LIB_DIR "@PACKAGE_INSTALL_LIB_DIR@")
+# only for the OpenMP lookup below
+set(_openms_include_dir "@PACKAGE_INSTALL_INCLUDE_DIR@")
 
 #------------------------------------------------------------------------------
 # Build options of this installation (OpenMS_WITH_GUI is set with the imported
@@ -137,6 +139,35 @@ endif()
 unset(_openms_built_shared_libs)
 
 # OpenMP: OpenMP::OpenMP_CXX is PUBLIC in an OpenMS built with OpenMP.
+#
+# The macOS package and SDK bundle the OpenMP runtime (lib/libomp.dylib) and install its
+# omp.h with the headers (cmake/package_general.cmake). FindOpenMP of the consuming project
+# is pointed at both: a program that loads a second OpenMP runtime next to the one
+# libOpenMS uses aborts ("OMP: Error #15"). The cache entries are only filled in when
+# empty, so a project that chose its own libomp keeps it, with a warning.
+if(OpenMS_WITH_OPENMP AND APPLE AND EXISTS "${OPENMS_LIB_DIR}/libomp.dylib"
+   AND EXISTS "${_openms_include_dir}/omp.h")
+  set(_openms_libomp "${OPENMS_LIB_DIR}/libomp.dylib")
+  if(NOT OpenMP_libomp_LIBRARY)
+    set(OpenMP_libomp_LIBRARY "${_openms_libomp}" CACHE FILEPATH
+        "Path to the libomp library for OpenMP" FORCE)
+    foreach(_openms_omp_language IN ITEMS C CXX)
+      if(NOT OpenMP_${_openms_omp_language}_INCLUDE_DIR)
+        set(OpenMP_${_openms_omp_language}_INCLUDE_DIR "${_openms_include_dir}" CACHE PATH
+            "Directory of omp.h" FORCE)
+      endif()
+    endforeach()
+    unset(_openms_omp_language)
+  elseif(NOT OpenMP_libomp_LIBRARY STREQUAL _openms_libomp AND NOT OpenMS_FIND_QUIETLY)
+    message(WARNING
+        "OpenMS bundles the OpenMP runtime ${_openms_libomp}, but this project uses "
+        "${OpenMP_libomp_LIBRARY} (OpenMP_libomp_LIBRARY). A program that loads both aborts "
+        "with \"OMP: Error #15\"; unset OpenMP_libomp_LIBRARY and OpenMP_CXX_INCLUDE_DIR to "
+        "use the bundled runtime.")
+  endif()
+  unset(_openms_libomp)
+endif()
+unset(_openms_include_dir)
 if(OpenMS_WITH_OPENMP)
   find_dependency(OpenMP COMPONENTS CXX)
 endif()

@@ -83,6 +83,15 @@ Build System:
     OpenMS or in a build tree, and left the new folder without it. The package now gives
     pkgbuild a component plist that turns relocation off; the BundleIsRelocatable key in the
     apps' Info.plist, which pkgbuild does not read, is gone (#8477, #8479).
+  - macOS package and SDK: built with OpenMP. CI and the Release workflow found no OpenMP
+    runtime on macOS and fell back to -fopenmp-simd, which compiles out every
+    '#pragma omp parallel', so the 3.6.0 package ran single-threaded and '-threads' had no
+    effect. tools/ci/deps-macos.sh installs Homebrew's libomp, the macOS presets set
+    OpenMP_ROOT to /opt/homebrew/opt/libomp, and the package bundles libomp.dylib and its
+    license. The new option MT_REQUIRE_OPENMP, which the CI presets set, makes the
+    configuration fail instead of falling back. The package and the SDK install omp.h with
+    the headers, and find_package(OpenMS) points FindOpenMP at the bundled runtime, so that
+    a program built against them does not load a second libomp (#10326).
 
 TOPP tools:
     ProSE:
@@ -1731,6 +1740,8 @@ Known issues:
     connections, which OpenMS does not open. The other twelve are rated Low; among them,
     CVE-2026-35189 lets a malicious HTTPS server make OpenMS use excessive memory with a crafted
     certificate.
+  - The macOS package is built without OpenMP: the tools run single-threaded, and '-threads'
+    has no effect. The macOS pyOpenMS wheels are not affected (#10326).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----

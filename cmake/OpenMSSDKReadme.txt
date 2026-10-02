@@ -53,6 +53,12 @@ Requirements of your project
       - macOS: Apple Clang, arm64@MACOS_MINIMUM@.
       - Linux: GCC with a glibc and libstdc++ at least as new as those of
         Ubuntu 24.04, on which the SDK is built.
+  * OpenMP: some OpenMS headers use it, so your code is compiled with it too.
+    On Linux and Windows, the compiler's runtime is used. On macOS, the SDK bundles
+    the runtime (lib/libomp.dylib, include/omp.h) and find_package(OpenMS) has
+    CMake's FindOpenMP use it. Do not link another libomp, such as Homebrew's, into
+    the same program: a process that loads two OpenMP runtimes aborts with
+    "OMP: Error #15".
 
 
 Running your programs
