@@ -3316,4 +3316,46 @@ START_SECTION(([EXTRA] SNES recognizes the mature protein N - terminus after ini
 }
 END_SECTION
 
+START_SECTION(([EXTRA] optional peptidoform deduplication preserves modification sites and terminal contexts))
+{
+  const vector<FASTAFile::FASTAEntry> db
+    = {{"P1", "", "MPEPCIDEMK"}, {"P2", "", "MPEPCIDEMK"}, {"P3", "", "AKMPEPCIDEMK"}, {"DECOY_shared", "", "MPEPCIDEMK"}};
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("decoys", "false");
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("modifications:fixed", vector<string> {"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string> {"Oxidation (M)", "Acetyl (Protein N-term)"});
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  p.setValue("peptide:deduplicate", "false");
+  fi.setParameters(p);
+  fi.build(db);
+  set<string> expected;
+  for (const auto& peptide : fi.getPeptides())
+  {
+    expected.insert(fi.reconstructModifiedSequence(peptide, db).toString());
+  }
+  TEST_EQUAL(expected.size(), 4) // Fixed-only, oxidation at either M, protein-N acetyl.
+  const Size original_count = fi.getPeptides().size();
+  TEST_TRUE(original_count > expected.size())
+  p.setValue("peptide:deduplicate", "true");
+  fi.setParameters(p);
+  fi.build(db);
+  set<string> observed;
+  for (const auto& peptide : fi.getPeptides())
+  {
+    observed.insert(fi.reconstructModifiedSequence(peptide, db).toString());
+  }
+  TEST_TRUE(observed == expected)
+  TEST_EQUAL(fi.getPeptides().size(), expected.size())
+
+  // Rebuilding with the default restores every occurrence; clear() carries no identity state.
+  fi.clear();
+  p.setValue("peptide:deduplicate", "false");
+  fi.setParameters(p);
+  fi.build(db);
+  TEST_EQUAL(fi.getPeptides().size(), original_count)
+}
+END_SECTION
+
 END_TEST
