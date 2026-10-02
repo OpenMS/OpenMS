@@ -909,11 +909,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     StringList annotate_psm_;
 
     /// Candidate-competition PSM features (annotate:*): see the parameter descriptions
-    bool annotate_per_psm_pool_features_{true};   ///< annotate:per_psm_pool_features
-    bool annotate_prefilter_poisson_{true};       ///< annotate:prefilter_poisson
+    bool annotate_per_psm_pool_features_{false};  ///< annotate:per_psm_pool_features
+    bool annotate_prefilter_poisson_{false};      ///< annotate:prefilter_poisson
     enum class PrecursorPpmFeature_ { OFF, RAW, CENTERED };
     PrecursorPpmFeature_ annotate_precursor_ppm_{PrecursorPpmFeature_::CENTERED}; ///< annotate:precursor_ppm
-    bool annotate_matched_intensity_rank_{true};  ///< annotate:matched_intensity_rank
     bool annotate_top_ion_mass_errors_{true};     ///< annotate:top_ion_mass_errors
     bool annotate_delta_best_{false};             ///< annotate:delta_best
 

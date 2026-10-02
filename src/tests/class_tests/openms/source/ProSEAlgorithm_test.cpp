@@ -2816,7 +2816,7 @@ START_SECTION(([EXTRA] peptidoform deduplication keeps separate charge and isoto
 }
 END_SECTION
 
-START_SECTION(([EXTRA] candidate-competition PSM features (annotate:per_psm_pool_features, prefilter_poisson, precursor_ppm, matched_intensity_rank, top_ion_mass_errors, delta_best)))
+START_SECTION(([EXTRA] candidate-competition PSM features (annotate:per_psm_pool_features, prefilter_poisson, precursor_ppm, top_ion_mass_errors, delta_best)))
 {
   // One spectrum of THQPSANLDIK; three isobaric rearrangements compete for it. Fragment intensities rise with m/z
   // (the most intense peak is the heaviest), fragment m/z are off by +3 / -3 ppm in turn, the precursor by +5 ppm.
@@ -2861,6 +2861,8 @@ START_SECTION(([EXTRA] candidate-competition PSM features (annotate:per_psm_pool
   p.setValue("modifications:fixed", vector<string> {});
   p.setValue("modifications:variable", vector<string> {});
   p.setValue("annotate:PSM", vector<string> {"ALL"});
+  p.setValue("annotate:per_psm_pool_features", "true"); // off by default
+  p.setValue("annotate:prefilter_poisson", "true");     // off by default
   // search with the given top_hits and settings; returns the hits and (via the out parameters) the search parameters
   // and the preprocessed spectrum
   auto search = [&](Size top_hits, const map<string, string>& settings, ProteinIdentification::SearchParameters* sp = nullptr,
@@ -2934,11 +2936,10 @@ START_SECTION(([EXTRA] candidate-competition PSM features (annotate:per_psm_pool
   TEST_REAL_SIMILAR(value(raw[0], Constants::UserParam::LN_PRECURSOR_ERROR_PPM), std::log1p(5.0))
   TEST_EQUAL(sp_raw.metaValueExists("precursor_mz_error_ppm_offset"), false)
 
-  // singly charged ion evidence of the true peptide: every peak is matched once, so the mean intensity rank is that
-  // of all peaks; the 7 most intense are the heaviest, with errors of +3 / -3 ppm by position
+  // mass errors of the singly charged ions of the true peptide: every peak is matched once, the 7 most intense are
+  // the heaviest, with errors of +3 / -3 ppm by position
   const Size n = processed.size();
   TEST_EQUAL(n, theo.size())
-  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::MATCHED_INTENSITY_RANK_MEAN), (n + 1) / 2.0)
   double mean = 0.0;
   for (Size i = n - 7; i < n; ++i) mean += (i % 2 == 0 ? 3.0 : -3.0) / 7.0;
   TOLERANCE_ABSOLUTE(1e-4)
@@ -2950,20 +2951,19 @@ START_SECTION(([EXTRA] candidate-competition PSM features (annotate:per_psm_pool
   // the new features are listed for Percolator; switched off, neither they nor their names appear
   const string extra = sp.getMetaValue("extra_features").toString();
   for (const string& feature : {Constants::UserParam::PREFILTER_POISSON_SURPRISE, Constants::UserParam::LN_PRECURSOR_ERROR_PPM,
-                                Constants::UserParam::MATCHED_INTENSITY_RANK_MEAN, Constants::UserParam::TOP_IONS_ERROR_PPM_SD})
+                                Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN, Constants::UserParam::TOP_IONS_ERROR_PPM_SD})
   {
     TEST_TRUE(extra.find(feature) != string::npos)
   }
   ProteinIdentification::SearchParameters sp_off;
   const vector<PeptideHit> off = search(4, {{"annotate:per_psm_pool_features", "false"}, {"annotate:prefilter_poisson", "false"},
-                                            {"annotate:precursor_ppm", "false"}, {"annotate:matched_intensity_rank", "false"},
-                                            {"annotate:top_ion_mass_errors", "false"}}, &sp_off);
+                                            {"annotate:precursor_ppm", "false"}, {"annotate:top_ion_mass_errors", "false"}}, &sp_off);
   ABORT_IF(off.size() != 4)
-  // legacy (above) differs from off only by the four added feature sets
+  // legacy (above) differs from off only by the three added feature sets
   vector<string> keys_off, keys_legacy;
   off[1].getKeys(keys_off);
   legacy[1].getKeys(keys_legacy);
-  TEST_EQUAL(keys_off.size() + 7, keys_legacy.size())
+  TEST_EQUAL(keys_off.size() + 6, keys_legacy.size())
   TEST_EQUAL(sp_off.getMetaValue("extra_features").toString(),
              "score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,"
              "matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,complementary_ions_fraction,"

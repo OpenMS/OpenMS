@@ -424,10 +424,6 @@ namespace OpenMS
       // run's median precursor m/z error of confident hits (or 0)
       inline const std::string LN_PRECURSOR_ERROR_PPM = "ln_precursor_mz_error_ppm";
 
-      // User parameter name for the mean intensity rank (1 = most intense) of the peaks matched by
-      // singly charged fragment ions
-      inline const std::string MATCHED_INTENSITY_RANK_MEAN = "matched_intensity_rank_mean";
-
       // User parameter names for the mean and the population standard deviation of the absolute and
       // of the signed fragment m/z error (ppm) of the 7 most intense matched peaks
       inline const std::string TOP_IONS_ABS_ERROR_PPM_MEAN = "top7_abs_fragment_error_ppm_mean";

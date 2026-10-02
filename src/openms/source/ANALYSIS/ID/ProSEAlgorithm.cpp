@@ -205,21 +205,25 @@ namespace OpenMS
 
     // Candidate-competition features. Each is computed alike for target and decoy candidates from scores, match
     // counts and m/z values only, and none changes the candidates, their native scores or their order.
-    defaults_.setValue("annotate:per_psm_pool_features", "true",
+    defaults_.setValue("annotate:per_psm_pool_features", "false",
       "Compute delta_score and hyperscore_zscore for each reported PSM rather than once per spectrum: delta_score is "
       "the score minus that of the next lower-ranked candidate (Sage's delta_next; one more candidate than "
       "report:top_hits is kept for the last reported hit), hyperscore_zscore is the standard score of the PSM's own "
       "score in its spectrum's candidate pool. The top hit's values are the same either way, so with "
       "report:top_hits=1 nothing changes. 'false': every hit of a spectrum carries its top hit's values, which "
-      "carries the top hit's margin onto lower-ranked PSMs when several PSMs per spectrum are exported to a rescorer.",
+      "carries the top hit's margin onto lower-ranked PSMs when several PSMs per spectrum are exported to a rescorer. "
+      "Off by default: with 10 PSMs per spectrum rescored by Percolator it added identifications but also raised the "
+      "false discovery proportion estimated with a doubled (entrapment) search space.",
       {"advanced"});
     defaults_.setValidStrings("annotate:per_psm_pool_features", {"true", "false"});
-    defaults_.setValue("annotate:prefilter_poisson", "true",
+    defaults_.setValue("annotate:prefilter_poisson", "false",
       "Add the PSM feature " + Constants::UserParam::PREFILTER_POISSON_SURPRISE + " = ln(1 + max(0, -log10 "
       "Poisson(k; lambda))), with k the candidate's matched fragments in the fragment-index prefilter and lambda the "
       "mean of k over every candidate of the spectrum with at least one matched fragment (Sage's Poisson feature with "
       "the prefilter count). Upper tail only: 0 for k <= lambda. 0 in SNES searches. In chunked searches "
-      "(database:chunk_size) lambda counts a peptidoform once per chunk that holds it.",
+      "(database:chunk_size) lambda counts a peptidoform once per chunk that holds it. Off by default: it added "
+      "identifications but raised the false discovery proportion estimated with a doubled (entrapment) search space "
+      "by more than the acceptance threshold.",
       {"advanced"});
     defaults_.setValidStrings("annotate:prefilter_poisson", {"true", "false"});
     defaults_.setValue("annotate:precursor_ppm", "centered",
@@ -230,12 +234,6 @@ namespace OpenMS
       "'raw': offset = 0 (Sage's ln(precursor ppm)). 'false': no feature. Not added in open-search mode.",
       {"advanced"});
     defaults_.setValidStrings("annotate:precursor_ppm", {"centered", "raw", "false"});
-    defaults_.setValue("annotate:matched_intensity_rank", "true",
-      "Add the PSM feature " + Constants::UserParam::MATCHED_INTENSITY_RANK_MEAN + ": the mean intensity rank (1 = most "
-      "intense) within the preprocessed spectrum of the peaks matched by singly charged fragment ions (ANDES' "
-      "MeanMatchedIntensityRank; 0 without such a match).",
-      {"advanced"});
-    defaults_.setValidStrings("annotate:matched_intensity_rank", {"true", "false"});
     defaults_.setValue("annotate:top_ion_mass_errors", "true",
       "Add the PSM features " + Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN + ", "
       + Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_SD + ", " + Constants::UserParam::TOP_IONS_ERROR_PPM_MEAN + " and "
@@ -474,7 +472,6 @@ namespace OpenMS
     annotate_precursor_ppm_ = precursor_ppm == "centered" ? PrecursorPpmFeature_::CENTERED
                             : precursor_ppm == "raw"      ? PrecursorPpmFeature_::RAW
                                                           : PrecursorPpmFeature_::OFF;
-    annotate_matched_intensity_rank_ = param_.getValue("annotate:matched_intensity_rank").toBool();
     annotate_top_ion_mass_errors_ = param_.getValue("annotate:top_ion_mass_errors").toBool();
     annotate_delta_best_ = param_.getValue("annotate:delta_best").toBool();
     fdr_psm_ = param_.getValue("FDR:PSM");
@@ -1112,13 +1109,11 @@ namespace OpenMS
 
     // Alignment is needed for fragment error, fragment annotations, longest ion run, MIC,
     // normalized MIC, and complementary ion pairs
-    // annotate:matched_intensity_rank and annotate:top_ion_mass_errors: evidence of the singly charged fragment ions
-    const bool matched_intensity_rank = annotate_matched_intensity_rank_;
+    // annotate:top_ion_mass_errors: mass errors of the singly charged fragment ions
     const bool top_ion_mass_errors = annotate_top_ion_mass_errors_;
-    const bool need_ion_evidence = matched_intensity_rank || top_ion_mass_errors;
     const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run
       || annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction
-      || need_ion_evidence;
+      || top_ion_mass_errors;
 
     // Both configurations depend only on the fragment tolerance, so they are
     // shared read-only by every thread of the loop below: getSpectrum() and
@@ -1162,7 +1157,7 @@ namespace OpenMS
          mv_num_matched_peaks{}, mv_matched_prefix_ions{}, mv_matched_suffix_ions{}, mv_delta_score{},
          mv_hyperscore_zscore{}, mv_ln_num_candidates{}, mv_matched_ion_current{}, mv_matched_ion_current_fraction{},
          mv_longest_ion_run{}, mv_complementary_ions_fraction{}, mv_isotope_error{}, mv_delta_mass{},
-         mv_delta_best{}, mv_prefilter_poisson{}, mv_ln_precursor_error{}, mv_intensity_rank{},
+         mv_delta_best{}, mv_prefilter_poisson{}, mv_ln_precursor_error{},
          mv_top_abs_error_mean{}, mv_top_abs_error_sd{}, mv_top_error_mean{}, mv_top_error_sd{};
     {
       const auto first_with_hits = std::find_if(annotated_hits.begin(), annotated_hits.end(),
@@ -1194,7 +1189,6 @@ namespace OpenMS
         if (annotate_delta_best_) mv_delta_best = registry.registerName(Constants::UserParam::DELTA_BEST);
         if (annotate_prefilter_poisson_) mv_prefilter_poisson = registry.registerName(Constants::UserParam::PREFILTER_POISSON_SURPRISE);
         if (precursor_ppm_feature) mv_ln_precursor_error = registry.registerName(Constants::UserParam::LN_PRECURSOR_ERROR_PPM);
-        if (matched_intensity_rank) mv_intensity_rank = registry.registerName(Constants::UserParam::MATCHED_INTENSITY_RANK_MEAN);
         if (top_ion_mass_errors)
         {
           mv_top_abs_error_mean = registry.registerName(Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN);
@@ -1236,18 +1230,6 @@ namespace OpenMS
           annotation_matched_ion_current_fraction ? spec.calculateTIC() : 0.0;
 
         AlignmentScratch_ alignment_scratch; // reused by all hits of this spectrum
-
-        // annotate:matched_intensity_rank: the intensity rank of every peak (1 = most intense; ties by position)
-        std::vector<Size> intensity_rank;
-        if (matched_intensity_rank)
-        {
-          std::vector<Size> by_intensity(spec.size());
-          std::iota(by_intensity.begin(), by_intensity.end(), Size(0));
-          std::stable_sort(by_intensity.begin(), by_intensity.end(),
-                           [&spec](Size a, Size b) { return spec[a].getIntensity() > spec[b].getIntensity(); });
-          intensity_rank.resize(spec.size());
-          for (Size rank = 0; rank < by_intensity.size(); ++rank) intensity_rank[by_intensity[rank]] = rank + 1;
-        }
 
         // create full peptide hit structure from annotated hits
         const std::vector<AnnotatedHit_>& hits_of_spectrum = annotated_hits[scan_index];
@@ -1362,9 +1344,9 @@ namespace OpenMS
           }
 
           // Fragment annotations, longest ion run, MIC, normalized MIC, complementary ion pairs
-          // and the singly charged ion evidence all iterate the alignment + ion names
+          // and the mass errors of the singly charged ions all iterate the alignment + ion names
           if (annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current
-            || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction || need_ion_evidence)
+            || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction || top_ion_mass_errors)
           {
             const auto& ion_names = theoretical_spec.getStringDataArrays()[0];
             const auto& ion_charges = theoretical_spec.getIntegerDataArrays()[0];
@@ -1390,7 +1372,7 @@ namespace OpenMS
 
             for (const auto& [theo_idx, exp_idx] : alignment)
             {
-              if (need_ion_evidence && ion_charges[theo_idx] == 1) { charge1_matches.emplace_back(theo_idx, exp_idx); }
+              if (top_ion_mass_errors && ion_charges[theo_idx] == 1) { charge1_matches.emplace_back(theo_idx, exp_idx); }
 
               if (annotation_fragment_annotations)
               {
@@ -1435,14 +1417,8 @@ namespace OpenMS
               ph.setPeakAnnotations(std::move(peak_annotations));
             }
 
-            // ANDES' model-free evidence of the singly charged ions: true fragment ions explain the intense peaks,
-            // and their mass errors are small and consistent. 0 without a singly charged match.
-            if (matched_intensity_rank)
-            {
-              double rank_sum = 0.0;
-              for (const auto& match : charge1_matches) rank_sum += static_cast<double>(intensity_rank[match.second]);
-              ph.setMetaValue(mv_intensity_rank, charge1_matches.empty() ? 0.0 : rank_sum / static_cast<double>(charge1_matches.size()));
-            }
+            // ANDES' model-free mass-accuracy evidence: the mass errors of true fragment ions are small and consistent,
+            // most of all those of the intense ones. 0 without a singly charged match.
             if (top_ion_mass_errors)
             {
               // the 7 most intense matched peaks (ties in alignment order)
@@ -1633,7 +1609,6 @@ namespace OpenMS
     if (annotate_delta_best_) feature_set.push_back(Constants::UserParam::DELTA_BEST);
     if (annotate_prefilter_poisson_) feature_set.push_back(Constants::UserParam::PREFILTER_POISSON_SURPRISE);
     if (precursor_ppm_feature) feature_set.push_back(Constants::UserParam::LN_PRECURSOR_ERROR_PPM);
-    if (matched_intensity_rank) feature_set.push_back(Constants::UserParam::MATCHED_INTENSITY_RANK_MEAN);
     if (top_ion_mass_errors)
     {
       feature_set.push_back(Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN);
