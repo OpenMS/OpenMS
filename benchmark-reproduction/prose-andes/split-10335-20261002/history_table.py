@@ -4,7 +4,8 @@ Per file: mean over seeds. Per group: mean over the group's files. "All 20 files
 Columns:
   2026-09-30 reference: #10335's branch configuration frozen in #10364 (archived per-file means).
   develop f5ea2d04 (arm base), 3a47278 (+#10391, d_base), 9517361 (+#10394, d_dedup),
-  2f30b40 (+#10397: d_fc on low-resolution files, hfx_A2 and astral_A2, d_fc_hr on the other high-resolution files).
+  2f30b40 (+#10397: d_fc on low-resolution files, hfx_A2 and astral_A2, d_fc_hr on the other high-resolution files),
+  f6c680f (+#10398, #10399: re_auto; #10398 cannot change this suite, every spectrum has a charge).
   Sage 0.14.7 and ANDES auto: the frozen 2026-09-30 measurements (archived per-file means).
 """
 import csv
@@ -50,7 +51,7 @@ def mean(d, *arms):
 
 
 COLUMNS = [("ref", None), ("f5ea2d04", ("base",)), ("3a47278", ("d_base",)), ("9517361", ("d_dedup",)),
-           ("2f30b40", ("d_fc", "d_fc_hr")), ("sage", None), ("andes", None)]
+           ("2f30b40", ("d_fc", "d_fc_hr")), ("f6c680f", ("re_auto",)), ("sage", None), ("andes", None)]
 
 
 def main():
@@ -76,7 +77,7 @@ def main():
     lines = ["group\tn\t" + "\t".join(c for c, _ in COLUMNS) + "\tnow_vs_sage_pct\tnow_vs_andes_pct"]
     for g, n, v in rows:
         lines.append(f"{g}\t{n}\t" + "\t".join(f"{v[c]:.1f}" for c, _ in COLUMNS)
-                     + f"\t{100 * (v['2f30b40'] / v['sage'] - 1):+.1f}\t{100 * (v['2f30b40'] / v['andes'] - 1):+.1f}")
+                     + f"\t{100 * (v['f6c680f'] / v['sage'] - 1):+.1f}\t{100 * (v['f6c680f'] / v['andes'] - 1):+.1f}")
     text = "\n".join(lines) + "\n"
     (ROOT / "history_per_group.tsv").write_text(text)
     print(text)

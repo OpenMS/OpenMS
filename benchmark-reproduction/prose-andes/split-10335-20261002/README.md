@@ -64,7 +64,8 @@ high-resolution effect by default was deduplication.
 - **#10399 on high resolution:** on Astral, raw retrieval alone gives +3.9% and local evidence alone +9.2%;
   together +14.3%. Raw retrieval gives 1600–1800 more spectra a candidate per Astral file.
 - **History over all 20 files** (`history_per_group.tsv`, `history_table.py`): develop `f5ea2d04` 59745.7,
-  `3a47278` 60902.3, `9517361` 61409.3, `2f30b40` 62200.3; #10399 63754.0. Sage 62715.3, ANDES 66025.6.
+  `3a47278` 60902.3, `9517361` 61409.3, `2f30b40` 62200.3, `f6c680f` (with #10399, merged) 63754.0.
+  Sage 62715.3, ANDES 66025.6. `f6c680f` differs from the benchmarked `re_on` tree by one doc comment only.
 
 ### Error rate
 
