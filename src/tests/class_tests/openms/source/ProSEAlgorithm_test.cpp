@@ -21,6 +21,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -33,6 +34,7 @@
 #include <numeric>
 #include <random>
 #include <set>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -2808,7 +2810,8 @@ START_SECTION(([EXTRA] peptidoform deduplication keeps separate charge and isoto
         TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue(Constants::UserParam::LN_NUM_CANDIDATES)), std::log1p(2.0))
         hypotheses.insert(unknown_charge ? hit.getCharge() : static_cast<int>(hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR)));
       }
-      TEST_TRUE(hypotheses == (unknown_charge ? set<int> {2, 3} : set<int> {0, 1}))
+      // isotope errors 0 and +1 searched (added to the observed mass) are reported as observed minus theoretical
+      TEST_TRUE(hypotheses == (unknown_charge ? set<int> {2, 3} : set<int> {0, -1}))
     }
   }
 }
@@ -3336,6 +3339,126 @@ START_SECTION(([EXTRA] generated decoys preserve initial methionine when clippin
       }
     }
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] report:isotope_error_convention: isotope_error is reported as observed minus theoretical))
+{
+  // Three tryptic peptides of one protein; their precursors are selected one 13C spacing above the monoisotopic
+  // peak (+1, observed heavier), at it (0) and one 13C spacing below it (-1). The search window covers -1..+1.
+  const vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+  const vector<pair<string, int>> expected = {{"GWSADELK", 1}, {"THQPSANLDIK", 0}, {"HPFNQGTIC(Carbamidomethyl)MSYR", -1}};
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(tsg_param);
+  PeakMap spectra;
+  for (const auto& [sequence, observed_minus_theoretical] : expected)
+  {
+    const AASequence seq = AASequence::fromString(sequence);
+    const int charge = 2;
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, seq, 1, 1);
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(100.0 + spectra.size());
+    Precursor prec;
+    prec.setMZ(seq.getMZ(charge) + observed_minus_theoretical * Constants::C13C12_MASSDIFF_U / charge);
+    prec.setCharge(charge);
+    spec.setPrecursors({prec});
+    spec.setNativeID("scan=" + StringUtils::toStr(spectra.size() + 1));
+    spectra.addSpectrum(std::move(spec));
+  }
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_STRING_EQUAL(p.getValue("report:isotope_error_convention").toString(), "observed_minus_theoretical")
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("precursor:isotope_error_min", -1);
+  p.setValue("precursor:isotope_error_max", 1);
+  p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("decoys", "ignore");
+  p.setValue("peptide:missed_cleavages", 0);
+  for (const string convention : {"observed_minus_theoretical", "theoretical_minus_observed"})
+  {
+    p.setValue("report:isotope_error_convention", convention);
+    algo.setParameters(p);
+    PeakMap input = spectra;
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_TRUE(algo.search(input, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_EQUAL(pep_ids.size(), expected.size())
+    const int sign = convention == "observed_minus_theoretical" ? 1 : -1;
+    for (const auto& pid : pep_ids)
+    {
+      const Size i = static_cast<Size>(std::stoi(pid.getSpectrumReference().substr(5)) - 1);
+      ABORT_IF(pid.getHits().empty() || i >= expected.size())
+      const PeptideHit& hit = pid.getHits()[0];
+      TEST_STRING_EQUAL(hit.getSequence().toString(), expected[i].first)
+      TEST_EQUAL(static_cast<int>(hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR)), sign * expected[i].second)
+      // the precursor error is the isotope-corrected one under either convention
+      TEST_TRUE(std::abs(static_cast<double>(hit.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))) < 0.1)
+    }
+    // the search parameters record the convention unless it is the legacy one
+    ABORT_IF(prot_ids.size() != 1)
+    const auto& sp = prot_ids[0].getSearchParameters();
+    TEST_EQUAL(sp.metaValueExists("isotope_error_convention"), sign == 1)
+    if (sign == 1) { TEST_STRING_EQUAL(sp.getMetaValue("isotope_error_convention").toString(), "observed_minus_theoretical") }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fixed terminal modifications that apply to some peptides only are rejected with the parameters))
+{
+  // FragmentIndex::checkFixedModifications() at setParameters(), before any input is read
+  for (const StringList& fixed : vector<StringList>{{"Acetyl (Protein N-term)"}, {"Gln->pyro-Glu (N-term Q)"},
+                                                    {"TMT6plex (N-term)", "Acetyl (N-term)"}})
+  {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("modifications:fixed", fixed);
+    TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p))
+  }
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("modifications:fixed", StringList {"Carbamidomethyl (C)", "TMT6plex (K)", "TMT6plex (N-term)"});
+  algo.setParameters(p);
+  TEST_EQUAL(ListUtils::toStringList<std::string>(algo.getParameters().getValue("modifications:fixed")).size(), 3)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] decoys=auto warns when the supplied decoys do not start with M as often as the targets))
+{
+  // With initial-Met clipping, reversed decoys (which end with the target's Met) leave the clipped N-terminal
+  // peptides without decoy counterparts. Generated decoys keep the initial Met; supplied ones are only reported.
+  const vector<FASTAFile::FASTAEntry> reversed {{"t1", "", "MACDEKAGHILR"}, {"t2", "", "MKLPEPTIDER"},
+                                                {"DECOY_t1", "", "RLIHGAKEDCAM"}, {"DECOY_t2", "", "REDITPEPLKM"}};
+  const vector<FASTAFile::FASTAEntry> met_kept {{"t1", "", "MACDEKAGHILR"}, {"t2", "", "MKLPEPTIDER"},
+                                                {"DECOY_t1", "", "MRLIHGAKEDCA"}, {"DECOY_t2", "", "MREDITPEPLK"}};
+  auto warnings = [](const vector<FASTAFile::FASTAEntry>& db, const string& clip)
+  {
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "auto");
+    p.setValue("peptide:clip_nterm_methionine", clip);
+    algo.setParameters(p);
+    std::ostringstream log;
+    OPENMS_LOG_WARN.insert(log);
+    const auto strategy = algo.resolveDecoyStrategy_(db);
+    const auto result = algo.buildDecoyAugmentedDB_(db, strategy);
+    OPENMS_LOG_WARN.remove(log);
+    TEST_EQUAL(result.size(), db.size())
+    return log.str();
+  };
+  const string warning = warnings(reversed, "true");
+  TEST_TRUE(warning.find("2 of 2 target proteins but only 0 of 2 decoy proteins") != string::npos)
+  TEST_EQUAL(warnings(reversed, "false"), "")
+  TEST_EQUAL(warnings(met_kept, "true"), "")
 }
 END_SECTION
 

@@ -106,10 +106,6 @@ namespace OpenMS
       "Precursor (Parent Ion) Options. mass_tolerance_lower/_upper are positive magnitudes "
       "applied as [-lower, +upper] around the precursor mass.");
 
-    // consider one before annotated monoisotopic peak and the annotated one
-    IntList isotopes = {0, 1};
-    defaults_.setValue("precursor:isotopes", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)");
-
     defaults_.setValue("fragment:mass_tolerance", 20.0, "Fragment mass tolerance");
 
     std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
@@ -161,7 +157,7 @@ namespace OpenMS
 
     defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
     defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
-    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
+    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'. A terminus carries one modification: a variable modification of the whole terminus (e.g. 'Acetyl (Protein N-term)') is not searched where a fixed one sits on it (e.g. 'TMT6plex (N-term)').");
     defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
     defaults_.setSectionDescription("modifications", "Modifications Options");
@@ -243,6 +239,17 @@ namespace OpenMS
     defaults_.setValidStrings("snes_enabled", {"true", "false"});
 
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
+    defaults_.setValue("report:isotope_error_convention", "observed_minus_theoretical",
+                       "Sign of the precursor isotope error reported for each PSM (meta value 'isotope_error', in 13C "
+                       "spacings of 1.00336 Da). 'observed_minus_theoretical': +1 means the observed precursor lies one "
+                       "13C spacing above the peptide (its first 13C isotope peak was selected), as in MS-GF+, pepXML and "
+                       "Sage; PercolatorInfile and PercolatorAdapter (-out_pin, -percolator_executable) remove the offset "
+                       "from the precursor mass difference with this sign. The search parameters of the result record it "
+                       "as 'isotope_error_convention'. 'theoretical_minus_observed': the opposite sign, as written by "
+                       "earlier ProSE versions (no record in the search parameters); with it the Percolator input "
+                       "doubles the offset in dm/absdm instead of removing it.",
+                       {"advanced"});
+    defaults_.setValidStrings("report:isotope_error_convention", {"observed_minus_theoretical", "theoretical_minus_observed"});
     defaults_.setSectionDescription("report", "Reporting Options");
 
     defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Target and decoy PSMs are filtered alike by the q-value threshold; decoys that pass are kept (no decoy-specific stripping here — decoys are removed only at protein-FDR finalization). Requires '-decoys' to be set.");
@@ -260,9 +267,16 @@ namespace OpenMS
     // Fragment-level filtering
     defaults_.setValue("fragment:min_matched_ions", 5, "Minimal number of matched ions to report a PSM");
 
-    // Precursor isotope error handling
-    defaults_.setValue("precursor:isotope_error_min", -1, "Minimum allowed precursor isotope error");
-    defaults_.setValue("precursor:isotope_error_max", 1, "Maximum allowed precursor isotope error");
+    // Precursor isotope error handling. The search convention (theoretical minus observed) is kept for these two
+    // parameters; the reported isotope_error follows report:isotope_error_convention.
+    defaults_.setValue("precursor:isotope_error_min", -1,
+                       "Minimum precursor isotope error searched, in 13C spacings (1.00336 Da) added to the observed "
+                       "precursor mass: -1 finds a peptide whose first 13C isotope peak was selected as the precursor. "
+                       "The PSM meta value 'isotope_error' reports the opposite sign by default (see "
+                       "report:isotope_error_convention).");
+    defaults_.setValue("precursor:isotope_error_max", 1,
+                       "Maximum precursor isotope error searched, with the sign of precursor:isotope_error_min: +1 finds "
+                       "a peptide whose precursor was selected one 13C spacing below its monoisotopic peak.");
 
     // Fragment and scoring limits
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
@@ -343,7 +357,6 @@ namespace OpenMS
     precursor_min_charge_ = param_.getValue("precursor:min_charge");
     precursor_max_charge_ = param_.getValue("precursor:max_charge");
 
-    precursor_isotopes_ = param_.getValue("precursor:isotopes");
     peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
     peaks_window_top_ = (Int)param_.getValue("peaks:window_top");
     peaks_window_type_ = param_.getValue("peaks:window_type").toString();
@@ -392,7 +405,9 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "Duplicate fixed modification provided. Making them unique." << endl;
       modifications_fixed_.assign(fixed_unique.begin(), fixed_unique.end());
-    }    
+    }
+    // fixed terminal modifications the fragment index cannot restrict: fail here, not after reading the database
+    FragmentIndex::checkFixedModifications(modifications_fixed_);
 
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
     set<std::string> var_unique(modifications_variable_.begin(), modifications_variable_.end());
@@ -400,6 +415,12 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "Duplicate variable modification provided. Making them unique." << endl;
       modifications_variable_.assign(var_unique.begin(), var_unique.end());
+    }
+    for (const std::string& mod : FragmentIndex::shadowedVariableTerminalModifications(modifications_fixed_, modifications_variable_))
+    {
+      OPENMS_LOG_WARN << "Variable modification '" << mod << "' is not searched: a fixed modification already sits on "
+                      << "that terminus, which carries one modification. To search it, specify the fixed terminal "
+                      << "modification as a variable one as well." << endl;
     }
 
     modifications_max_variable_mods_per_peptide_ = param_.getValue("modifications:variable_max_per_peptide");
@@ -414,6 +435,8 @@ namespace OpenMS
     peptide_motif_ = param_.getValue("peptide:motif").toString(); // TODO: remove unused parameters
 
     report_top_hits_ = param_.getValue("report:top_hits");
+    isotope_error_observed_minus_theoretical_ =
+      param_.getValue("report:isotope_error_convention").toString() == "observed_minus_theoretical";
 
     const std::string decoy_mode_str = param_.getValue("decoys").toString();
     if (decoy_mode_str == "generate")   { decoy_mode_ = DecoyMode_::GENERATE; }
@@ -580,11 +603,11 @@ namespace OpenMS
     // Normalizer::filterPeakMap are literally "for (auto& s : exp) filterSpectrum(s);" and
     // neither iterates chromatograms. They are therefore applied at the top of the parallel
     // loop below instead, which is per-spectrum equivalent and removes two full sweeps over
-    // the peak data. Both objects are configured once here and shared across the OpenMP
-    // threads, exactly like window_mower_filter / nlargest_filter below:
-    // Normalizer::filterPeakSpectrum is const (reads the resolved 'method_' only), and
-    // ThresholdMower only re-reads its 'threshold' Param into a member on every call -- the
-    // same idempotent same-value write the already-shared WindowMower performs.
+    // the peak data. Both objects are configured once here; like window_mower_filter and
+    // nlargest_filter below, each OpenMP thread works on its own copy (firstprivate):
+    // ThresholdMower stores its 'threshold' Param in a member on every call and WindowMower
+    // its window size and peak count, and concurrent writes are a data race even when every
+    // thread writes the same value. One copy per thread costs a few Param copies per search.
     // Peaks without intensity (zero or negative, e.g. empty centroids) would still count as
     // matched ions, so they are removed. Nothing else is (every positive float intensity,
     // subnormal ones included, passes): the ThresholdMower default of 0.05 is an absolute
@@ -647,9 +670,10 @@ namespace OpenMS
       Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
     Size dense_spectra = 0;
-#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, threshold_mower_filter, \
-                                                normalizer, window_mower_filter, nlargest_filter, full_window_quota, peaks_window_top, \
-                                                dense_window_top, dense_intensity_loss) reduction(+ : dense_spectra)
+#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, \
+                                                full_window_quota, peaks_window_top, dense_window_top, dense_intensity_loss) \
+                                         firstprivate(threshold_mower_filter, normalizer, window_mower_filter, nlargest_filter) \
+                                         reduction(+ : dense_spectra)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       // remove 0 intensities, then normalize (formerly two serial full-map passes)
@@ -1009,6 +1033,7 @@ namespace OpenMS
     // still registered inside the loop, after the ones below, as before (checked: the registry
     // contents after a search are the same as before this change, at 1 and at 16 threads).
     const bool open_search_mode = isOpenSearchMode_();
+    const int isotope_error_sign = isotope_error_observed_minus_theoretical_ ? -1 : 1;
     UInt mv_scan_index{}, mv_fragment_error{}, mv_precursor_error{}, mv_prefix_fraction{}, mv_suffix_fraction{},
          mv_num_matched_peaks{}, mv_matched_prefix_ions{}, mv_matched_suffix_ions{}, mv_delta_score{},
          mv_hyperscore_zscore{}, mv_ln_num_candidates{}, mv_matched_ion_current{}, mv_matched_ion_current_fraction{},
@@ -1124,6 +1149,7 @@ namespace OpenMS
             // shifted_mass = precursor_mass + isotope_error * C13C12, so M_theo ≈ N_obs
             // + isotope_error * C13C12, and the observed-to-monoiso correction in m/z is
             //   corrected_mz = observed_mz + isotope_error * C13C12 / charge
+            // (ah.isotope_error is this search offset, whatever sign the PSM reports).
             // Without this, a ±1 Da FI match reports ~1000 ppm / charge for the Percolator
             // feature, corrupting target/decoy discrimination.
             const double corrected_mz = mz
@@ -1297,8 +1323,10 @@ namespace OpenMS
           }
 
 
-          // Add isotope error metavalue (always; exposed as Percolator feature)
-          ph.setMetaValue(mv_isotope_error, ah.isotope_error);
+          // Add isotope error metavalue (always; exposed as Percolator feature). ah.isotope_error is the offset
+          // FragmentIndex added to the observed mass (theoretical minus observed); report:isotope_error_convention
+          // selects the reported sign.
+          ph.setMetaValue(mv_isotope_error, isotope_error_sign * ah.isotope_error);
 
           // Add delta mass metavalue for open search
           if (open_search_mode)
@@ -1396,6 +1424,12 @@ namespace OpenMS
     feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
     // note: precursor error is calculated by percolator itself
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+    // Readers tell the sign of the PSMs' isotope_error by this record; without it (earlier ProSE versions, or
+    // report:isotope_error_convention=theoretical_minus_observed) the sign is theoretical minus observed.
+    if (isotope_error_observed_minus_theoretical_)
+    {
+      search_parameters.setMetaValue("isotope_error_convention", "observed_minus_theoretical");
+    }
     // record whether open-search mode was used
     search_parameters.setMetaValue("open_search", isOpenSearchMode_() ? "true" : "false");
 
@@ -1567,12 +1601,18 @@ namespace OpenMS
     // decoys=auto reusing pre-existing decoys logs nothing otherwise; surface the auto-detected
     // marker so a rare DecoyHelper misdetection (a target DB whose accessions start with a decoy
     // affix) is diagnosable. Single emission: buildDecoyAugmentedDB_ runs once per search.
-    if (decoy_mode_ == DecoyMode_::AUTO && !strategy.generate && strategy.have_decoys)
+    const bool reuses_decoys = decoy_mode_ == DecoyMode_::AUTO && !strategy.generate && strategy.have_decoys;
+    if (reuses_decoys)
     {
       OPENMS_LOG_INFO << "[ProSE] decoys=auto: reusing existing decoys detected in the database "
                       << "(marker '" << strategy.decoy_string << "', "
                       << (strategy.is_prefix ? "prefix" : "suffix") << ")." << std::endl;
     }
+    // Initial-Met clipping adds N-terminal peptides of every protein that starts with M. Generated decoys keep the
+    // initial Met (below); supplied decoys often do not (a reversed protein ends with it), and then the clipped
+    // peptides enlarge the target space only. Count both kinds while the entries are filtered.
+    const bool check_met_symmetry = reuses_decoys && param_.getValue("peptide:clip_nterm_methionine").toBool();
+    Size targets = 0, targets_with_met = 0, decoys = 0, decoys_with_met = 0;
 
     // 1. Keep targets, dropping pre-existing decoys when requested. A stop codon ('*') that ends
     //    a sequence, as in databases translated from genomes (e.g. SGD), is not a residue: remove
@@ -1592,12 +1632,29 @@ namespace OpenMS
         while (!sequence.empty() && sequence.back() == '*') { sequence.pop_back(); }
         if (!sequence.empty())
         {
+          if (check_met_symmetry)
+          {
+            const bool is_decoy = strategy.is_prefix ? StringUtils::hasPrefix(e.identifier, strategy.decoy_string)
+                                                     : StringUtils::hasSuffix(e.identifier, strategy.decoy_string);
+            (is_decoy ? decoys : targets) += 1;
+            (is_decoy ? decoys_with_met : targets_with_met) += (sequence.size() > 1 && sequence[0] == 'M') ? 1 : 0;
+          }
           if (&*kept != &e) { *kept = std::move(e); }
           ++kept;
         }
       }
     }
     db.erase(kept, db.end());
+    // Warn when the share of decoys that start with M is below half the share of targets that do.
+    if (check_met_symmetry && targets_with_met > 0 && 2 * decoys_with_met * targets < targets_with_met * decoys)
+    {
+      OPENMS_LOG_WARN << "[ProSE] peptide:clip_nterm_methionine: " << targets_with_met << " of " << targets
+                      << " target proteins but only " << decoys_with_met << " of " << decoys << " decoy proteins "
+                      << "in the database start with M. Removing the initial Met adds N-terminal peptides to the "
+                      << "targets that have no decoy counterpart, which makes target-decoy FDR estimates slightly "
+                      << "optimistic. Use '-Search:decoys generate' (generated decoys keep the initial Met) or "
+                      << "'-Search:peptide:clip_nterm_methionine false' for a symmetric search space." << std::endl;
+    }
 
     // 2. Generate decoys by reversing the (remaining) target proteins.
     if (strategy.generate)

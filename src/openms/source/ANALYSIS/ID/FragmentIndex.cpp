@@ -116,9 +116,87 @@ namespace OpenMS
     });
   }
 
+  void FragmentIndex::checkFixedModifications(const StringList& fixed_modifications)
+  {
+    if (fixed_modifications.empty()) return;
+    // The index has one N- and one C-terminal fixed mass for all peptides (fixed_nterm_delta_ / fixed_cterm_delta_,
+    // used for the precursor mass, the fragments and the reconstructed sequence alike).
+    const ResidueModification* fixed_terminal[2] = {nullptr, nullptr}; // N-, C-terminus
+    for (const auto& [mod_ptr, residue_ptr] : ModifiedPeptideGenerator::getModifications(fixed_modifications).val)
+    {
+      const ResidueModification::TermSpecificity term_spec = mod_ptr->getTermSpecificity();
+      if (term_spec == ResidueModification::ANYWHERE) continue;
+      const bool n_term = term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::PROTEIN_N_TERM;
+      const std::string terminus = n_term ? "N-terminus" : "C-terminus";
+      const std::string use_variable = ", but a fixed terminal modification is applied to every peptide. "
+                                       "Specify it as a variable modification (modifications:variable) instead.";
+      if (term_spec == ResidueModification::PROTEIN_N_TERM || term_spec == ResidueModification::PROTEIN_C_TERM)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Fixed modification '" + mod_ptr->getFullId() + "' applies to the protein " + terminus + " only" + use_variable);
+      }
+      const char origin = mod_ptr->getOrigin();
+      if (origin != 'X' && origin != '.')
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Fixed modification '" + mod_ptr->getFullId() + "' applies only to peptides with " + std::string(1, origin)
+          + " at the " + terminus + use_variable);
+      }
+      const ResidueModification*& previous = fixed_terminal[n_term ? 0 : 1];
+      if (previous != nullptr)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Fixed modifications '" + previous->getFullId() + "' and '" + mod_ptr->getFullId() + "' both modify the peptide "
+          + terminus + ", which carries one modification. Keep one of them as a fixed modification.");
+      }
+      previous = mod_ptr;
+    }
+  }
+
+  namespace
+  {
+    /// 0 (N) or 1 (C) for a modification of a whole peptide or protein terminus (no residue preference), else -1
+    int wholeTerminus(const ResidueModification& mod)
+    {
+      if (mod.getOrigin() != 'X' && mod.getOrigin() != '.') return -1;
+      switch (mod.getTermSpecificity())
+      {
+        case ResidueModification::N_TERM:
+        case ResidueModification::PROTEIN_N_TERM:
+          return 0;
+        case ResidueModification::C_TERM:
+        case ResidueModification::PROTEIN_C_TERM:
+          return 1;
+        default:
+          return -1;
+      }
+    }
+  } // namespace
+
+  StringList FragmentIndex::shadowedVariableTerminalModifications(const StringList& fixed_modifications,
+                                                                  const StringList& variable_modifications)
+  {
+    StringList shadowed;
+    if (fixed_modifications.empty() || variable_modifications.empty()) return shadowed;
+    bool fixed_terminus[2] = {false, false}; // N-, C-terminus
+    for (const auto& [mod_ptr, residue_ptr] : ModifiedPeptideGenerator::getModifications(fixed_modifications).val)
+    {
+      if (const int t = wholeTerminus(*mod_ptr); t >= 0) fixed_terminus[t] = true;
+    }
+    for (const std::string& name : variable_modifications) // in the given order (getModifications() returns a hash map)
+    {
+      for (const auto& [mod_ptr, residue_ptr] : ModifiedPeptideGenerator::getModifications({name}).val)
+      {
+        if (const int t = wholeTerminus(*mod_ptr); t >= 0 && fixed_terminus[t]) shadowed.push_back(name);
+      }
+    }
+    return shadowed;
+  }
+
   void FragmentIndex::initModificationTables_()
   {
     if (mod_tables_initialized_) return;
+    checkFixedModifications(modifications_fixed_);
 
     fixed_mod_deltas_.fill(0.0);
     fixed_mod_ptrs_.fill(nullptr);
@@ -155,9 +233,9 @@ namespace OpenMS
         }
         else
         {
-          // Residue-specific fixed mod (e.g., Carbamidomethyl on C)
-          // For ANYWHERE: applies at all matching positions
-          // For N_TERM/C_TERM: only at terminal positions (handled during enumeration)
+          // Residue-specific fixed mod (e.g., Carbamidomethyl on C): applies at all matching positions.
+          // Residue-specific terminal ones are rejected by checkFixedModifications() above (they would need a
+          // per-peptide terminal mass); the branches below are kept for completeness.
           if (term_spec == ResidueModification::ANYWHERE)
           {
             fixed_mod_deltas_[static_cast<unsigned char>(origin)] = delta;
@@ -190,14 +268,16 @@ namespace OpenMS
 
         if (origin == 'X' || origin == '.')
         {
-          // Pure terminal mod (no specific AA)
+          // Pure terminal mod (no specific AA). A terminus carries one modification, so it is not applied where a
+          // fixed terminal modification sits (as in ModifiedPeptideGenerator; shadowedVariableTerminalModifications()).
+          // Applying both would give the index the sum of both masses, while the reconstructed sequence keeps one.
           if (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::PROTEIN_N_TERM)
           {
-            variable_nterm_mods_.push_back(entry);
+            if (fixed_nterm_mod_ptr_ == nullptr) variable_nterm_mods_.push_back(entry);
           }
           else if (term_spec == ResidueModification::C_TERM || term_spec == ResidueModification::PROTEIN_C_TERM)
           {
-            variable_cterm_mods_.push_back(entry);
+            if (fixed_cterm_mod_ptr_ == nullptr) variable_cterm_mods_.push_back(entry);
           }
         }
         else
@@ -1105,6 +1185,19 @@ namespace OpenMS
         }
       }
     }
+
+    // Variable-modification slots a non-SNES peptide may use: bit 31 of mod_bitmask_ marks Single-C mothers in SNES
+    // mode, and the reconstruction masks it off (SNES_SLOT_MASK) in either mode.
+    constexpr size_t MAX_ENUMERATED_SLOTS = 31;
+
+    // The smallest x' >= x with at most max_set_bits bits set, or a value >= end if there is none below end
+    // (end <= 2^32). Every number in [x, x + lowest set bit of x) keeps all bits of x and has at least as many set;
+    // so while x has too many, the next candidate is x plus its lowest set bit.
+    uint64_t nextSubsetWithin(uint64_t x, size_t max_set_bits, uint64_t end)
+    {
+      while (x < end && static_cast<size_t>(std::popcount(x)) > max_set_bits) x += x & (~x + 1);
+      return x;
+    }
   } // namespace
 
   void FragmentIndex::generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
@@ -1130,6 +1223,7 @@ namespace OpenMS
       }
 
       size_t skipped_peptides = 0;
+      size_t capped_peptides = 0; // peptides with more variable-modification slots than MAX_ENUMERATED_SLOTS
 
       ProteaseDigestion digestor;
       digestor.setEnzyme(digestion_enzyme_);
@@ -1239,6 +1333,13 @@ namespace OpenMS
             bool is_prot_cterm = (digested_peptide.first + seq_len == protein.sequence.size());
             ModSlot slots[MAX_MOD_SLOTS];
             size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
+            if (n_slots > MAX_ENUMERATED_SLOTS)
+            {
+              // buildModSlots_() stops at MAX_MOD_SLOTS; the first 31 slots keep their bits
+              n_slots = MAX_ENUMERATED_SLOTS;
+              #pragma omp atomic
+              capped_peptides++;
+            }
 
             if (n_slots == 0)
             {
@@ -1270,13 +1371,13 @@ namespace OpenMS
                 }
               }
 
-              // Enumerate all valid bitmask subsets
-              uint32_t max_bitmask = (1u << n_slots);
-              for (uint32_t bitmask = 0; bitmask < max_bitmask; ++bitmask)
+              // Enumerate the slot subsets with at most max_variable_mods_per_peptide_ slots, in increasing bitmask
+              // order (the emission order fixes the order of equal-mass variants in the index). nextSubsetWithin()
+              // skips the subsets with more slots instead of visiting all 2^n_slots of them.
+              const uint64_t end_bitmask = uint64_t{1} << n_slots;
+              for (uint64_t subset = 0; subset < end_bitmask; subset = nextSubsetWithin(subset + 1, max_variable_mods_per_peptide_, end_bitmask))
               {
-                // Check max variable mods constraint
-                unsigned int popcount = std::popcount(bitmask);
-                if (popcount > max_variable_mods_per_peptide_) continue;
+                const uint32_t bitmask = static_cast<uint32_t>(subset);
 
                 // Check position conflicts: no two set bits can map to the same position
                 bool conflict = false;
@@ -1336,6 +1437,12 @@ namespace OpenMS
       if (skipped_peptides > 0)
       {
         OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unknown or ambiguous AA (X/B/Z), stop codons or other symbols\n";
+      }
+      if (capped_peptides > 0)
+      {
+        OPENMS_LOG_WARN << capped_peptides << " peptide(s) have more than " << MAX_ENUMERATED_SLOTS
+                        << " sites for variable modifications; only the first " << MAX_ENUMERATED_SLOTS
+                        << " sites are considered for them (see modifications:variable)." << std::endl;
       }
 
       // Merge per-thread peptide vectors.
@@ -3536,7 +3643,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
     defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
-    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
+    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'. A terminus carries one modification: a variable modification of the whole terminus (e.g. 'Acetyl (Protein N-term)') is not searched where a fixed one sits on it (e.g. 'TMT6plex (N-term)').");
     defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
 
@@ -3578,12 +3685,18 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     //Search-related params
 
     defaults_.setValue("fragment:min_matched_ions", 5, "Minimal number of matched ions to report a PSM");
-    // Default iso range [0, +2]: Orbitrap/QExactive/tims monoisotopic peak picking
+    // Default iso range [-2, 0]: Orbitrap/QExactive/tims monoisotopic peak picking
     // fails predominantly *upward* (picks the +1 or +2 isotope instead of the true
-    // monoisotopic). Symmetric ranges like [-1, +1] waste a query slot on the
-    // rare downward mispick. Matches MetaMorpheus/MSFragger defaults.
-    defaults_.setValue("precursor:isotope_error_min", 0, "Minimum allowed precursor isotope error");
-    defaults_.setValue("precursor:isotope_error_max", 2, "Maximum allowed precursor isotope error");
+    // monoisotopic). The query matches observed mass + isotope_error * C13C12, so an
+    // upward mispick needs a negative isotope error. Symmetric ranges like [-1, +1]
+    // waste a query slot on the rare downward mispick. Matches the MetaMorpheus/MSFragger
+    // defaults (0, +1, +2 there, counted as observed minus theoretical).
+    defaults_.setValue("precursor:isotope_error_min", -2,
+                       "Minimum precursor isotope error searched, in 13C spacings (1.00336 Da) added to the observed "
+                       "precursor mass: -1 finds a peptide whose first 13C isotope peak was selected as the precursor.");
+    defaults_.setValue("precursor:isotope_error_max", 0,
+                       "Maximum precursor isotope error searched, with the sign of precursor:isotope_error_min: +1 finds "
+                       "a peptide whose precursor was selected one 13C spacing below its monoisotopic peak.");
 
     // SNES (Speedy Non-specific Enzyme Search): only takes effect when
     // peptide:enzyme_specificity is "none". For full/semi tryptic searches this flag
@@ -3631,9 +3744,6 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setSectionDescription("report", "Reporting Options");
     defaults_.setValue("peptide:motif", "", "If set, only peptides that contain this motif (provided as RegEx) will be considered.");
     defaults_.setSectionDescription("peptide", "Peptide Options");
-
-    IntList isotopes = {0, 1};
-    defaults_.setValue("precursor:isotopes", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)");
 
     defaultsToParam_();
 }

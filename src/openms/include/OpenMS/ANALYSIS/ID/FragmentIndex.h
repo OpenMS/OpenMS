@@ -224,6 +224,35 @@ namespace OpenMS
       return std::max(lower_magnitude, upper_magnitude) > threshold;
     }
 
+    /**
+     * @brief Rejects fixed terminal modifications that the index cannot restrict to the peptides they apply to.
+     *
+     * A fixed terminal modification adds one N- or C-terminal mass to every peptide of the index. A protein-terminal
+     * fixed modification (e.g. 'Acetyl (Protein N-term)') or a residue-specific terminal one (e.g.
+     * 'Gln->pyro-Glu (N-term Q)') applies to some peptides only, and a terminus carries one modification. As variable
+     * modifications (modifications:variable) they are applied to the eligible peptides only.
+     *
+     * @param[in] fixed_modifications Names of the fixed modifications (as in modifications:fixed)
+     * @throws Exception::InvalidParameter for a protein-terminal or residue-specific terminal fixed modification, or
+     *         for a second fixed modification on the same terminus
+     */
+    static void checkFixedModifications(const StringList& fixed_modifications);
+
+    /**
+     * @brief Variable modifications of a whole terminus that a fixed terminal modification excludes.
+     *
+     * A terminus carries one modification. A variable modification of the whole peptide or protein N- or C-terminus
+     * (no residue preference, e.g. 'Acetyl (Protein N-term)') is therefore not searched where a fixed one (e.g.
+     * 'TMT6plex (N-term)') sits on that terminus, as in ModifiedPeptideGenerator. Residue-specific terminal variable
+     * modifications (e.g. 'Gln->pyro-Glu (N-term Q)') modify the residue and are searched as before.
+     *
+     * @param[in] fixed_modifications Names of the fixed modifications (as in modifications:fixed)
+     * @param[in] variable_modifications Names of the variable modifications (as in modifications:variable)
+     * @return Full ids of the variable modifications that the index does not apply
+     */
+    static StringList shadowedVariableTerminalModifications(const StringList& fixed_modifications,
+                                                            const StringList& variable_modifications);
+
     /// @name SNES (Speedy Non-specific Enzyme Search) bit encoding
     ///
     /// When the index is built in SNES mode (@ref isSnesMode), a @ref Peptide entry

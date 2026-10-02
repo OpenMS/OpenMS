@@ -34,6 +34,20 @@ OpenMS Library:
     Linux arm64: an unqualified abs() bound to the integer overload there and truncated every
     error. ProSE's fragment calibration therefore kept the configured Da tolerance on arm64,
     while x86-64 and macOS tightened it.
+  - FIX: PercolatorInfile (store, stampPinFeaturesOnHits; used by PercolatorAdapter and ProSE
+    -out_pin) keeps ExpMass and mass at the observed precursor m/z for every PSM of a spectrum and
+    removes the precursor isotope error from dm, absdm and deltamass only. Percolator takes PSMs
+    with the same ScanNr but different ExpMass for different spectra, so PSMs of one spectrum at
+    different isotope errors no longer pass target-decoy competition side by side.
+  - FIX: FragmentIndex rejects fixed terminal modifications it applied to every peptide although
+    they apply to some only (protein-terminal or residue-specific ones, e.g. Acetyl (Protein
+    N-term), Gln->pyro-Glu (N-term Q); search them as variable modifications) and a second fixed
+    modification on one terminus. A variable modification of a whole terminus is not applied
+    where a fixed one sits (as in ModifiedPeptideGenerator); the index used to add both masses.
+    Variable modifications are enumerated only up to modifications:variable_max_per_peptide per
+    peptide, from at most 31 sites (a warning counts peptides with more). The default precursor
+    isotope range of FragmentIndex is [-2, 0] (it searched [0, +2], precursors picked below the
+    monoisotopic peak).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -75,6 +89,23 @@ Build System:
 
 TOPP tools:
     ProSE:
+      - The PSM meta value isotope_error is observed minus theoretical precursor mass in 13C spacings
+        (+1: the first 13C isotope peak was selected), as in MS-GF+, pepXML and Sage and as
+        PercolatorInfile/PercolatorAdapter expect; ProSE wrote the opposite sign, so -out_pin,
+        -percolator_executable and PercolatorAdapter doubled the isotope offset in dm/absdm instead
+        of removing it. The search parameters record isotope_error_convention=observed_minus_theoretical;
+        the new report:isotope_error_convention=theoretical_minus_observed writes the previous sign
+        (and no record). precursor:isotope_error_min/max keep their meaning. PercolatorAdapter warns
+        about ProSE input without the record.
+      - BREAKING: precursor:isotopes was removed. It was never used (the searched isotope errors are
+        precursor:isotope_error_min/max); ini files that still set it are rejected as outdated: remove
+        the item or update them with INIUpdater.
+      - Fixed terminal modifications: see FragmentIndex above (an invalid one stops ProSE when the
+        parameters are set). A warning names variable terminal modifications that a fixed one excludes.
+      - A warning when decoys=auto reuses the database's decoys with peptide:clip_nterm_methionine and
+        they start with M much less often than the targets (e.g. fully reversed decoys), because
+        clipping then enlarges the target search space only.
+      - FIX: the MS2 preprocessing filters are per thread (they were shared between threads).
       - FIX: The MS2 intensity cutoff applied before normalization removes only peaks without
         intensity (zero or negative). It was the ThresholdMower default of 0.05 absolute, which
         deleted real peaks from intensity-scaled input such as spectra normalized to a base peak of 1.

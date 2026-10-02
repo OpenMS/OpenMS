@@ -21,6 +21,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <algorithm>
+#include <bit>
 #include <limits>
 #include <numeric>
 #include <random>
@@ -3563,6 +3564,185 @@ START_SECTION(([EXTRA] peptidoform deduplication keeps the first entry of every 
   TEST_EQUAL(checked, configs.size() * 8)
   TEST_EQUAL(mismatches, 0)
   TEST_TRUE(removed > 0)
+}
+END_SECTION
+
+START_SECTION((static void checkFixedModifications(const StringList& fixed_modifications)))
+{
+  // A fixed terminal modification is one N- or C-terminal mass for every peptide. Those that apply to some peptides
+  // only are rejected (they are searched as variable modifications), as is a second one on the same terminus.
+  const vector<StringList> rejected = {
+    {"Acetyl (Protein N-term)"},
+    {"Amidated (Protein C-term)"},
+    {"Gln->pyro-Glu (N-term Q)"},
+    {"Carbamidomethyl (C)", "TMT6plex (N-term)", "Acetyl (N-term)"}};
+  for (const StringList& fixed : rejected)
+  {
+    TEST_EXCEPTION(Exception::InvalidParameter, FragmentIndex::checkFixedModifications(fixed))
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    p.setValue("modifications:fixed", fixed);
+    TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p))
+  }
+  // peptide-terminal fixed modifications of any residue, one per terminus, plus residue modifications
+  const StringList accepted = {"Carbamidomethyl (C)", "TMT6plex (K)", "TMT6plex (N-term)", "Amidated (C-term)"};
+  FragmentIndex::checkFixedModifications(accepted);
+  FragmentIndex::checkFixedModifications({});
+
+  // ... and they are applied to every peptide, internal ones included
+  const vector<FASTAFile::FASTAEntry> db {{"p", "p", "MCAPEPTIDEKQLGSVTAKQMNPEPTIDER"}};
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("peptide:min_size", 5);
+  p.setValue("peptide:missed_cleavages", 1);
+  p.setValue("modifications:fixed", accepted);
+  p.setValue("modifications:variable", StringList {});
+  fi.setParameters(p);
+  fi.build(db);
+  TEST_TRUE(fi.getPeptides().size() >= 4)
+  for (const auto& peptide : fi.getPeptides())
+  {
+    const AASequence seq = fi.reconstructModifiedSequence(peptide, db);
+    TEST_TRUE(seq.hasNTerminalModification())
+    TEST_TRUE(seq.hasCTerminalModification())
+    TEST_REAL_SIMILAR(peptide.precursor_mz_, seq.getMZ(1))
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] variable modification enumeration: subsets up to variable_max_per_peptide, at most 31 sites))
+{
+  // A peptide with n Met has n Oxidation (M) sites, so with at most k variable modifications per peptide the index
+  // holds sum_{j <= k} C(n, j) forms of it. The enumeration visits only those subsets (it used to visit all 2^n, which
+  // does not finish for 25 sites and is undefined for 32), and at most the first 31 sites take part.
+  auto forms = [](Size n, Size k) {
+    Size total = 0, c = 1; // c = C(n, j)
+    for (Size j = 0; j <= k && j <= n; ++j) { total += c; c = c * (n - j) / (j + 1); }
+    return total;
+  };
+  for (const Size n : {Size(3), Size(25), Size(31), Size(32), Size(35)})
+  {
+    for (const Size k : {Size(0), Size(1), Size(2)})
+    {
+      const vector<FASTAFile::FASTAEntry> db {{"p", "p", "G" + string(n, 'M') + "K"}};
+      FragmentIndex_test fi;
+      Param p = fi.getParameters();
+      p.setValue("enzyme", "no cleavage");
+      p.setValue("peptide:min_size", 0);
+      p.setValue("peptide:max_size", 100);
+      p.setValue("peptide:min_mass", 0);
+      p.setValue("peptide:max_mass", 50000);
+      p.setValue("fragment:min_mz", 0);
+      p.setValue("fragment:max_mz", 50000);
+      p.setValue("modifications:fixed", StringList {});
+      p.setValue("modifications:variable", StringList {"Oxidation (M)"});
+      p.setValue("modifications:variable_max_per_peptide", static_cast<int>(k));
+      p.setValue("peptide:deduplicate", "false");
+      fi.setParameters(p);
+      fi.build(db);
+      const Size sites = std::min<Size>(n, 31);
+      TEST_EQUAL(fi.getPeptides().size(), forms(sites, k))
+      set<uint32_t> masks;
+      for (const auto& peptide : fi.getPeptides())
+      {
+        masks.insert(peptide.mod_bitmask_);
+        TEST_TRUE(static_cast<Size>(std::popcount(peptide.mod_bitmask_)) <= k)
+        TEST_EQUAL(peptide.mod_bitmask_ >> sites, 0u) // the slots beyond the 31st stay unmodified
+        const AASequence seq = fi.reconstructModifiedSequence(peptide, db);
+        Size oxidized = 0;
+        for (Size i = 0; i < seq.size(); ++i) { oxidized += seq[i].isModified() ? 1 : 0; }
+        TEST_EQUAL(oxidized, static_cast<Size>(std::popcount(peptide.mod_bitmask_)))
+        TEST_REAL_SIMILAR(peptide.precursor_mz_, seq.getMZ(1))
+      }
+      TEST_EQUAL(masks.size(), fi.getPeptides().size())
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the default isotope error range covers precursors selected at the first and second 13C peak))
+{
+  // The query matches observed mass + isotope_error * C13C12: the default [-2, 0] finds a peptide whose precursor was
+  // selected one or two 13C spacings above the monoisotopic peak, not one below it.
+  FragmentIndex fi;
+  TEST_EQUAL(static_cast<int>(fi.getParameters().getValue("precursor:isotope_error_min")), -2)
+  TEST_EQUAL(static_cast<int>(fi.getParameters().getValue("precursor:isotope_error_max")), 0)
+  const vector<FASTAFile::FASTAEntry> db {{"p", "p", "EVAEAATGEDASSPPPK"}};
+  Param p = fi.getParameters();
+  p.setValue("enzyme", "no cleavage");
+  p.setValue("modifications:fixed", StringList {});
+  p.setValue("modifications:variable", StringList {});
+  p.setValue("fragment:min_mz", 0);
+  fi.setParameters(p);
+  fi.build(db);
+  const AASequence peptide = AASequence::fromString("EVAEAATGEDASSPPPK");
+  PeakSpectrum ions;
+  TheoreticalSpectrumGenerator().getSpectrum(ions, peptide, 1, 1);
+  for (int observed_minus_theoretical = -1; observed_minus_theoretical <= 2; ++observed_minus_theoretical)
+  {
+    MSSpectrum spectrum;
+    for (const auto& ion : ions) { spectrum.push_back(ion); }
+    spectrum.setMSLevel(2);
+    Precursor precursor;
+    precursor.setCharge(2);
+    precursor.setMZ(peptide.getMZ(2) + observed_minus_theoretical * Constants::C13C12_MASSDIFF_U / 2);
+    spectrum.setPrecursors({precursor});
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi.querySpectrum(spectrum, sms);
+    bool found = false;
+    for (const auto& hit : sms.hits_)
+    {
+      found |= hit.precursor_charge_ == 2 && hit.isotope_error_ == -observed_minus_theoretical;
+    }
+    TEST_EQUAL(found, observed_minus_theoretical >= 0)
+  }
+}
+END_SECTION
+
+START_SECTION((static StringList shadowedVariableTerminalModifications(const StringList& fixed_modifications, const StringList& variable_modifications)))
+{
+  // A terminus carries one modification: a variable modification of the whole terminus is not applied where a fixed
+  // one sits. Residue-specific terminal variable modifications modify the residue and stay.
+  const StringList variable = {"Acetyl (Protein N-term)", "Oxidation (M)", "Gln->pyro-Glu (N-term Q)", "Amidated (C-term)"};
+  TEST_EQUAL(ListUtils::concatenate(FragmentIndex::shadowedVariableTerminalModifications({"TMT6plex (N-term)"}, variable), ","),
+             "Acetyl (Protein N-term)")
+  TEST_EQUAL(ListUtils::concatenate(FragmentIndex::shadowedVariableTerminalModifications(
+               {"Carbamidomethyl (C)", "TMT6plex (N-term)", "Amidated (C-term)"}, variable), ","),
+             "Acetyl (Protein N-term),Amidated (C-term)")
+  TEST_EQUAL(FragmentIndex::shadowedVariableTerminalModifications({"Carbamidomethyl (C)", "TMT6plex (K)"}, variable).size(), 0)
+  TEST_EQUAL(FragmentIndex::shadowedVariableTerminalModifications({"TMT6plex (N-term)"}, {}).size(), 0)
+
+  // The index applies the excluded modification nowhere, so every peptide's precursor m/z is that of its reconstructed
+  // sequence. (It used to add both terminal masses while the reconstructed sequence kept the variable one only.)
+  const vector<FASTAFile::FASTAEntry> db {{"p", "p", "ACAPEPTIDEKQLGSVTAKQMNPEPTIDER"}};
+  auto build = [&db](const StringList& fixed)
+  {
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    p.setValue("peptide:min_size", 5);
+    p.setValue("peptide:missed_cleavages", 1);
+    p.setValue("modifications:fixed", fixed);
+    p.setValue("modifications:variable", StringList {"Acetyl (Protein N-term)", "Oxidation (M)"});
+    fi.setParameters(p);
+    fi.build(db);
+    Size acetylated = 0;
+    for (const auto& peptide : fi.getPeptides())
+    {
+      const AASequence seq = fi.reconstructModifiedSequence(peptide, db);
+      TEST_REAL_SIMILAR(peptide.precursor_mz_, seq.getMZ(1))
+      if (seq.getNTerminalModificationName() == "Acetyl") ++acetylated;
+      if (fixed.size() > 1)
+      {
+        TEST_EQUAL(seq.getNTerminalModificationName(), "TMT6plex")
+      }
+    }
+    return std::make_pair(fi.getPeptides().size(), acetylated);
+  };
+  const auto [n_without_fixed_nterm, acetylated_without] = build({"Carbamidomethyl (C)"});
+  const auto [n_with_fixed_nterm, acetylated_with] = build({"Carbamidomethyl (C)", "TMT6plex (N-term)"});
+  TEST_EQUAL(acetylated_without, 2) // ACAPEPTIDEK and ACAPEPTIDEKQLGSVTAK
+  TEST_EQUAL(acetylated_with, 0)
+  TEST_EQUAL(n_with_fixed_nterm, n_without_fixed_nterm - acetylated_without)
 }
 END_SECTION
 
