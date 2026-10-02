@@ -84,6 +84,16 @@ namespace OpenMS
     }
 
     vector<pair<Size, Size>> result;
+    // no fragment can reach the minimum length (also keeps the unsigned "rna.size() - min_length" below from wrapping)
+    if (rna.size() < min_length)
+    {
+      return result;
+    }
+    // no length fits (also keeps the unsigned "max_length - min_length + 1" below from wrapping)
+    if (max_length < min_length)
+    {
+      return result;
+    }
     if (enzyme_->getName() == NoCleavage) // no cleavage
     {
       Size length = rna.size();
