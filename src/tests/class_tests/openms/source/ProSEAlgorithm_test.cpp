@@ -3257,6 +3257,8 @@ START_SECTION(([EXTRA] candidate-competition PSM features (annotate:per_psm_pool
   p.setValue("annotate:PSM", vector<string> {"ALL"});
   p.setValue("annotate:per_psm_pool_features", "true"); // off by default
   p.setValue("annotate:prefilter_poisson", "true");     // off by default
+  p.setValue("annotate:precursor_ppm", "centered");     // off by default
+  p.setValue("annotate:top_ion_mass_errors", "true");   // off by default
   p.setValue("annotate:local_fragment_evidence", "false"); // #10399's features are tested on their own
   // search with the given top_hits and settings; returns the hits and (via the out parameters) the search parameters
   // and the preprocessed spectrum

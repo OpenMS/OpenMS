@@ -255,20 +255,22 @@ namespace OpenMS
       "by more than the acceptance threshold.",
       {"advanced"});
     defaults_.setValidStrings("annotate:prefilter_poisson", {"true", "false"});
-    defaults_.setValue("annotate:precursor_ppm", "centered",
+    defaults_.setValue("annotate:precursor_ppm", "false",
       "Add the PSM feature " + Constants::UserParam::LN_PRECURSOR_ERROR_PPM + " = ln(1 + |e - offset|), with e the "
       "isotope-corrected precursor m/z error in ppm (as " + Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM + "). "
       "'centered': offset = median e of the top-scoring 10% of the spectra's top hits (by native score, per run; "
       "recorded as search parameter precursor_mz_error_ppm_offset), which removes a run's mass calibration offset. "
-      "'raw': offset = 0 (Sage's ln(precursor ppm)). 'false': no feature. Not added in open-search mode.",
+      "'raw': offset = 0 (Sage's ln(precursor ppm)). 'false': no feature. Not added in open-search mode. Off by default: "
+      "together with annotate:self_trained_ion_priors it added no identifications (OpenMS#10364 benchmark, +0.02%).",
       {"advanced"});
     defaults_.setValidStrings("annotate:precursor_ppm", {"centered", "raw", "false"});
-    defaults_.setValue("annotate:top_ion_mass_errors", "true",
+    defaults_.setValue("annotate:top_ion_mass_errors", "false",
       "Add the PSM features " + Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN + ", "
       + Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_SD + ", " + Constants::UserParam::TOP_IONS_ERROR_PPM_MEAN + " and "
       + Constants::UserParam::TOP_IONS_ERROR_PPM_SD + ": mean and population standard deviation of the absolute and of "
       "the signed fragment m/z error (ppm) of the 7 most intense peaks matched by singly charged fragment ions "
-      "(ANDES' MeanErrorTop7, StdevErrorTop7, MeanRelErrorTop7, StdevRelErrorTop7; 0 without such a match).",
+      "(ANDES' MeanErrorTop7, StdevErrorTop7, MeanRelErrorTop7, StdevRelErrorTop7; 0 without such a match). Off by "
+      "default: together with annotate:self_trained_ion_priors it added no identifications (OpenMS#10364 benchmark).",
       {"advanced"});
     defaults_.setValidStrings("annotate:top_ion_mass_errors", {"true", "false"});
     defaults_.setValue("annotate:delta_best", "false",

@@ -1048,8 +1048,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool annotate_per_psm_pool_features_{false};  ///< annotate:per_psm_pool_features
     bool annotate_prefilter_poisson_{false};      ///< annotate:prefilter_poisson
     enum class PrecursorPpmFeature_ { OFF, RAW, CENTERED };
-    PrecursorPpmFeature_ annotate_precursor_ppm_{PrecursorPpmFeature_::CENTERED}; ///< annotate:precursor_ppm
-    bool annotate_top_ion_mass_errors_{true};     ///< annotate:top_ion_mass_errors
+    PrecursorPpmFeature_ annotate_precursor_ppm_{PrecursorPpmFeature_::OFF};     ///< annotate:precursor_ppm
+    bool annotate_top_ion_mass_errors_{false};     ///< annotate:top_ion_mass_errors
     bool annotate_delta_best_{false};             ///< annotate:delta_best
 
     /// Candidates kept per spectrum after scoring: the reported ones (report:top_hits) plus, for the per-PSM
