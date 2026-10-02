@@ -118,6 +118,18 @@ TOPP tools:
         for deisotoped (high-resolution) spectra, whose results do not change. The calibration pass and
         the peak annotations use the same charges; the ion-count fractions divide by the number of
         charges scored.
+      - New fragment:query_spectrum (auto, raw, processed). 'raw' retrieves candidates from the fragment
+        index with all positive-intensity peaks, before deisotoping and local/top-N peak filtering, also
+        in the calibration pass; scoring still uses the processed peak list. More spectra get
+        candidates, notably on dense high-resolution spectra. 'auto', the default, uses 'raw' for
+        high-resolution fragment tolerances (<= 0.1 Da / <= 100 ppm) and 'processed', the previous
+        retrieval, otherwise: at low resolution the unfiltered peaks crowd out the correct candidates.
+      - New annotate:local_fragment_evidence (default true): adds chance_match_surprise (local
+        peak-density surprise of the matched fragments) and mass_competition_evidence (matches
+        discounted by alternative intact and neutral-loss assignments) as annotations and Percolator
+        features. Computed on the peak list before local/top-N filtering; candidates and native scores
+        do not change. Requires a finite, positive fragment:mass_tolerance; set it to false to search
+        with other tolerances.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
