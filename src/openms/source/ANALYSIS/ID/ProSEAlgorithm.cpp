@@ -665,6 +665,178 @@ namespace OpenMS
     return (best - mean) / std::sqrt(var);
   }
 
+  namespace
+  {
+    /// Scratch buffers of alignAbsoluteTolerance_(), reused across the hits of one spectrum.
+    struct AlignmentScratch_
+    {
+      std::vector<double> prev;         ///< scores of the computed cells of row i - 1
+      std::vector<double> cur;          ///< scores of the computed cells of row i
+      std::vector<unsigned char> dir;   ///< traceback direction of every computed cell, rows concatenated
+      std::vector<Size> row_begin;      ///< first computed column of row i
+      std::vector<Size> row_offset;     ///< position of row i in dir (entry i + 1 closes row i)
+    };
+
+    /**
+      @brief Absolute-tolerance (Da) branch of SpectrumAlignment::getSpectrumAlignment on flat storage.
+
+      Returns exactly the alignment of the banded dynamic programme in SpectrumAlignment.h, which keeps
+      its cells in std::map<Size, std::map<Size, ...>> (two tree nodes and several lookups per cell).
+      Identity: the reference computes, per row i, one contiguous run of columns (from the left border
+      it carries along to the column where it leaves the band), in the same order and with the same
+      expressions as below. Every other cell it reads is either a border cell (i * tolerance or
+      j * tolerance, (0,0) = 0) or absent, in which case it substitutes (i + j) * tolerance: the same
+      value, so one formula serves both. A traceback step onto an absent cell reads a default (0,0)
+      entry there, which ends the walk.
+    */
+    void alignAbsoluteTolerance_(std::vector<std::pair<Size, Size>>& alignment,
+                                 const MSSpectrum& s1, const MSSpectrum& s2,
+                                 const double tolerance, AlignmentScratch_& scratch)
+    {
+      if (!s1.isSorted() || !s2.isSorted())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input to SpectrumAlignment is not sorted!");
+      }
+      alignment.clear();
+
+      const Size n1 = s1.size();
+      const Size n2 = s2.size();
+      // cell (i, j) outside the computed runs: border value or the reference's substitute for an absent cell
+      const auto outside = [tolerance](const Size i_plus_j) { return i_plus_j == 0 ? 0.0 : i_plus_j * tolerance; };
+      enum : unsigned char { DIAGONAL = 1, UP = 2, LEFT = 3 }; // predecessor (i-1,j-1), (i,j-1), (i-1,j)
+
+      std::vector<double>& prev = scratch.prev;
+      std::vector<double>& cur = scratch.cur;
+      std::vector<unsigned char>& dir = scratch.dir;
+      prev.clear();
+      dir.clear();
+      scratch.row_begin.assign(n1 + 2, 0);
+      scratch.row_offset.assign(n1 + 2, 0);
+
+      Size left_ptr(1);
+      Size last_i(0), last_j(0);
+      Size prev_begin(1), prev_end(0); // computed columns of row i - 1 (row 0: none)
+      for (Size i = 1; i <= n1; ++i)
+      {
+        const double pos1(s1[i - 1].getMZ());
+        const Size cur_begin = left_ptr;
+        cur.clear();
+        scratch.row_begin[i] = cur_begin;
+        scratch.row_offset[i] = dir.size();
+
+        for (Size j = cur_begin; j <= n2; ++j)
+        {
+          bool off_band(false);
+          const double pos2(s2[j - 1].getMZ());
+          const double diff_align = fabs(pos1 - pos2);
+
+          // running off the right border of the band?
+          if (pos2 > pos1 && diff_align > tolerance)
+          {
+            if (i < n1 && j < n2 && s1[i].getMZ() < pos2)
+            {
+              off_band = true;
+            }
+          }
+
+          // can we tighten the left border of the band?
+          if (pos1 > pos2 && diff_align > tolerance && j > left_ptr + 1)
+          {
+            ++left_ptr;
+          }
+
+          double score_align = diff_align;
+          if (j - 1 >= prev_begin && j - 1 <= prev_end)
+          {
+            score_align += prev[j - 1 - prev_begin];
+          }
+          else
+          {
+            score_align += outside(i - 1 + j - 1);
+          }
+
+          double score_up = tolerance;
+          if (j > cur_begin)
+          {
+            score_up += cur.back();
+          }
+          else
+          {
+            score_up += outside(i + j - 1);
+          }
+
+          double score_left = tolerance;
+          if (j >= prev_begin && j <= prev_end)
+          {
+            score_left += prev[j - prev_begin];
+          }
+          else
+          {
+            score_left += outside(i - 1 + j);
+          }
+
+          if (score_align <= score_up && score_align <= score_left && diff_align <= tolerance)
+          {
+            cur.push_back(score_align);
+            dir.push_back(DIAGONAL);
+            last_i = i;
+            last_j = j;
+          }
+          else if (score_up <= score_left)
+          {
+            cur.push_back(score_up);
+            dir.push_back(UP);
+          }
+          else
+          {
+            cur.push_back(score_left);
+            dir.push_back(LEFT);
+          }
+
+          if (off_band)
+          {
+            break;
+          }
+        }
+        prev_begin = cur_begin;
+        prev_end = cur_begin + cur.size() - 1;
+        prev.swap(cur);
+      }
+      scratch.row_offset[n1 + 1] = dir.size();
+
+      // do traceback
+      Size i = last_i;
+      Size j = last_j;
+      while (i >= 1 && j >= 1)
+      {
+        const Size begin = scratch.row_begin[i];
+        const Size width = scratch.row_offset[i + 1] - scratch.row_offset[i];
+        if (j < begin || j >= begin + width)
+        {
+          // absent cell: the reference reads (0,0), which counts as a diagonal step only at (1,1)
+          if (i == 1 && j == 1) alignment.emplace_back(0, 0);
+          break;
+        }
+        const unsigned char d = dir[scratch.row_offset[i] + (j - begin)];
+        if (d == DIAGONAL)
+        {
+          alignment.emplace_back(i - 1, j - 1);
+          --i;
+          --j;
+        }
+        else if (d == UP)
+        {
+          --j;
+        }
+        else
+        {
+          --i;
+        }
+      }
+      std::reverse(alignment.begin(), alignment.end());
+    }
+  }
+
   void ProSEAlgorithm::postProcessHits_(const PeakMap& exp,
         std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
         const std::vector<CandidatePoolStats_>& pool_stats,
@@ -780,6 +952,10 @@ namespace OpenMS
       sa_param.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm == "ppm" ? "true" : "false");
       sa.setParameters(sa_param);
     }
+    // Da tolerance: same alignment from a flat-storage copy of SpectrumAlignment's banded DP
+    // (alignAbsoluteTolerance_ above); ppm tolerance keeps SpectrumAlignment's cheap matching.
+    const bool sa_absolute = !sa.getParameters().getValue("is_relative_tolerance").toBool();
+    const double sa_tolerance = (double)sa.getParameters().getValue("tolerance");
 
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
@@ -811,6 +987,8 @@ namespace OpenMS
         const double spectrum_tic =
           annotation_matched_ion_current_fraction ? spec.calculateTIC() : 0.0;
 
+        AlignmentScratch_ alignment_scratch; // reused by all hits of this spectrum
+
         // create full peptide hit structure from annotated hits
         vector<PeptideHit> phs;
         for (const auto& ah : annotated_hits[scan_index])
@@ -829,7 +1007,14 @@ namespace OpenMS
           {
             const int max_frag_z = (charge >= 2) ? std::min<int>(charge - 1, 2) : 1;
             tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
-            sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
+            if (sa_absolute)
+            {
+              alignAbsoluteTolerance_(alignment, theoretical_spec, spec, sa_tolerance, alignment_scratch);
+            }
+            else
+            {
+              sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
+            }
           }
 
           if (annotation_fragment_error_ppm)
