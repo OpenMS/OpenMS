@@ -12,10 +12,13 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <QApplication>
+#include <QDialog>
 #include <QDir>
 #include <QElapsedTimer>
 #include <QTemporaryDir>
+#include <QTimer>
 #include <fstream>
+#include <iterator>
 #include <thread>
 
 using namespace OpenMS;
@@ -142,6 +145,104 @@ START_SECTION((abort and restart reject stale queued results; scenes are indepen
 }
 END_SECTION
 
+START_SECTION((hovering and testing edges preserve a run until an edge is accepted))
+{
+  PipelineGraph preview = graph;
+  preview.nodes[1].x = 300.0;
+  auto last_merger = merger;
+  last_merger.id = 18;
+  last_merger.x = 600.0;
+  preview.nodes.push_back(last_merger);
+  preview.edges.push_back({17, 18, "", ""});
+  const std::string preview_file = root + "/preview.toppas";
+  PipelineFile().store(preview_file, preview);
+  TOPPASScene scene(nullptr, directory.path(), false);
+  scene.load(preview_file);
+  scene.setOutDir(directory.path());
+  auto* source = *scene.verticesBegin();
+  auto* middle = *(scene.verticesBegin() + 1);
+  auto* target = *(scene.verticesBegin() + 2);
+  scene.runPipeline();
+  TEST_TRUE(scene.isPipelineRunning())
+
+  // Use the real vertex signals and scene slots, including the temporary DFS edge.
+  source->newHoveringEdge(QPointF(900, 900));
+  TEST_TRUE(scene.isPipelineRunning())
+  scene.updateHoveringEdgePos(target->pos());
+  TEST_TRUE(scene.isPipelineRunning())
+  scene.updateHoveringEdgePos(QPointF(900, 900));
+  scene.finishHoveringEdge();
+  TEST_TRUE(scene.isPipelineRunning())
+  TEST_EQUAL(std::distance(scene.edgesBegin(), scene.edgesEnd()), 2)
+
+  // A rejected cyclic edge is also just a preview.
+  target->newHoveringEdge(middle->pos());
+  scene.updateHoveringEdgePos(middle->pos());
+  scene.finishHoveringEdge();
+  TEST_TRUE(scene.isPipelineRunning())
+  TEST_EQUAL(std::distance(scene.edgesBegin(), scene.edgesEnd()), 2)
+
+  source->newHoveringEdge(target->pos());
+  scene.updateHoveringEdgePos(target->pos());
+  scene.finishHoveringEdge(); // input -> merger needs no mapping dialog
+  TEST_FALSE(scene.isPipelineRunning())
+  TEST_EQUAL(std::distance(scene.edgesBegin(), scene.edgesEnd()), 3)
+
+  scene.runPipeline();
+  TEST_TRUE(scene.isPipelineRunning())
+  scene.addVertex(new TOPPASMergerVertex());
+  TEST_FALSE(scene.isPipelineRunning())
+}
+END_SECTION
+
+START_SECTION((incompatible saved tool settings fail without replacing the existing scene))
+{
+  TOPPASScene scene(nullptr, directory.path(), false);
+  scene.load(workflow);
+  scene.setChanged(true);
+  auto* original_input = *scene.verticesBegin();
+  std::string diagnostics;
+  QObject::connect(&scene, &TOPPASScene::messageReady, [&](const QString& message) { diagnostics += fromQString(message); });
+
+  PipelineGraph invalid = graph;
+  PipelineGraph::Node tool;
+  tool.id = 23;
+  tool.kind = PipelineGraph::Kind::TOOL;
+  tool.tool_name = "PipelineTestTool";
+  invalid.nodes.push_back(tool);
+  invalid.edges.push_back({17, 23, "", "in"});
+  const std::string invalid_file = root + "/incompatible.toppas";
+  for (const bool removed_parameter : {true, false})
+  {
+    invalid.nodes.back().parameters.clear();
+    if (removed_parameter) { invalid.nodes.back().parameters.setValue("removed_scientific_parameter", 7); }
+    else
+    {
+      invalid.nodes.back().parameters.setValue("delay_ms", -1);
+    }
+    PipelineFile().store(invalid_file, invalid);
+    diagnostics.clear();
+    scene.load(invalid_file);
+    TEST_EQUAL(std::distance(scene.verticesBegin(), scene.verticesEnd()), 2)
+    TEST_EQUAL(std::distance(scene.edgesBegin(), scene.edgesEnd()), 1)
+    TEST_TRUE(*scene.verticesBegin() == original_input)
+    TEST_FALSE(original_input->signalsBlocked())
+    TEST_EQUAL(scene.getSaveFileName(), workflow)
+    TEST_TRUE(scene.wasChanged())
+    TEST_TRUE(diagnostics.find("Saved parameters for 'PipelineTestTool' are incompatible") != std::string::npos)
+
+    // The saved settings must stay available for explicit repair, without defaults.
+    PipelineGraph retained;
+    PipelineFile().load(invalid_file, retained);
+    TEST_TRUE(retained.nodes.back().parameters == invalid.nodes.back().parameters)
+  }
+  scene.setOutDir(directory.path());
+  scene.runPipeline();
+  TEST_TRUE(finish(scene))
+  TEST_TRUE(original_input->isFinished())
+}
+END_SECTION
+
 START_SECTION((tool rerun retains upstream outputs and parameter edits cancel the old snapshot))
 {
   const std::string fasta = root + "/input.fasta";
@@ -154,11 +255,14 @@ START_SECTION((tool rerun retains upstream outputs and parameter edits cancel th
   first_tool.id = 1;
   first_tool.kind = PipelineGraph::Kind::TOOL;
   first_tool.tool_name = "PipelineTestTool";
+  first_tool.x = 300.0;
   PipelineGraph::Node second_tool = first_tool;
   second_tool.id = 2;
+  second_tool.x = 600.0;
   PipelineGraph::Node output;
   output.id = 3;
   output.kind = PipelineGraph::Kind::OUTPUT;
+  output.x = 900.0;
   tools.nodes = {source, first_tool, second_tool, output};
   tools.edges = {{0, 1, "", "in"}, {1, 2, "out", "in"}, {2, 3, "out", ""}};
   tools.assignTopologicalNumbers();
@@ -219,6 +323,24 @@ START_SECTION((tool rerun retains upstream outputs and parameter edits cancel th
     std::this_thread::yield();
   }
   TEST_EQUAL(second->getStatus(), TOPPASToolVertex::TOOL_RUNNING)
+  bool mapping_cancelled = false;
+  QTimer::singleShot(0, &scene, [&]() {
+    for (auto* widget : QApplication::topLevelWidgets())
+    {
+      if (auto* dialog = qobject_cast<QDialog*>(widget))
+      {
+        mapping_cancelled = true;
+        dialog->reject();
+      }
+    }
+  });
+  (*scene.verticesBegin())->newHoveringEdge(second->pos());
+  scene.updateHoveringEdgePos(second->pos());
+  scene.finishHoveringEdge();
+  TEST_TRUE(mapping_cancelled)
+  TEST_TRUE(scene.isPipelineRunning())
+  TEST_EQUAL(std::distance(scene.edgesBegin(), scene.edgesEnd()), 3)
+
   parameters.setValue("delay_ms", 0);
   second->setParam(parameters);
   second->parameterChanged(true); // cancels and joins before invalidating the downstream cache

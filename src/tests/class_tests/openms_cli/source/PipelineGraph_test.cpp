@@ -235,7 +235,7 @@ START_SECTION((PipelineFile resolves embedded paths relative to the workflow))
   PipelineFile().store(filename, graph);
   Param stored;
   ParamXMLFile().load(filename, stored);
-  const auto embedded = static_cast<std::vector<std::string>>(stored.getValue("vertices:0:file_names"));
+  const auto embedded = stored.getValue("vertices:0:file_names").toStringVector();
   TEST_EQUAL(embedded.front(), "input data.mzML")
   PipelineGraph loaded;
   PipelineFile().load(filename, loaded);

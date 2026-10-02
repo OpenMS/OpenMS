@@ -480,14 +480,21 @@ void PipelineTool::finalizeOutputs(Rounds& outputs)
                         "Workflow tool did not create expected output '" + filename + "'.");
         }
         if (fs::is_directory(to_path(filename))) { continue; }
-        std::string suffix = FileTypes::typeToName(FileHandler::getTypeByContent(filename));
-        if (endsWithIgnoringCase(filename, suffix)) { suffix = filename.substr(filename.size() - suffix.size()); }
-        // Keep compression visible to downstream tools; stripExtension() removes both format and compression.
-        if (const auto compression = FileNameUtils::compressionType(filename); compression != FileTypes::UNKNOWN)
+        std::string target = filename;
+        const auto detected = FileHandler::getTypeByContent(filename);
+        // Content sniffing cannot identify every advertised or custom format.
+        // Keep the planned extension unless it supplies positive evidence.
+        if (detected != FileTypes::UNKNOWN)
         {
-          suffix += "." + FileTypes::typeToName(compression);
+          std::string suffix = FileTypes::typeToName(detected);
+          if (endsWithIgnoringCase(filename, suffix)) { suffix = filename.substr(filename.size() - suffix.size()); }
+          // Keep compression visible to downstream tools; stripExtension() removes both format and compression.
+          if (const auto compression = FileNameUtils::compressionType(filename); compression != FileTypes::UNKNOWN)
+          {
+            suffix += "." + FileTypes::typeToName(compression);
+          }
+          target = FileNameUtils::stripExtension(filename) + "." + suffix;
         }
-        const std::string target = FileNameUtils::stripExtension(filename) + "." + suffix;
         renames.push_back({to_path(filename), to_path(target), {}, false});
         ++counts[to_path(target)];
       }

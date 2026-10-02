@@ -140,6 +140,8 @@ START_SECTION([EXTRA] Executes real TOPP subprocesses with named ports and prese
   const auto first = fixture.input("first sample", "PEPTIDE");
   const auto second = fixture.input("second sample \xE4\xB8\xAD\xE6\x96\x87 \xC3\xA4", "SEQUENCE");
   auto graph = singleToolGraph({first, second});
+  const auto child_log = fixture.directory / to_path("tool log \xE4\xB8\xAD\xE6\x96\x87 \xC3\xA4.txt");
+  graph.node(20).parameters.setValue("log", pathString(child_log));
   const auto caller = std::this_thread::get_id();
   bool callbacks_on_caller = true;
   Size completed = 0;
@@ -150,6 +152,8 @@ START_SECTION([EXTRA] Executes real TOPP subprocesses with named ports and prese
   });
   TEST_EQUAL(result.exit_code, 0)
   TEST_EQUAL(result.error_message, "")
+  TEST_TRUE(fs::is_regular_file(child_log))
+  TEST_FALSE(readFile(child_log).empty())
   TEST_TRUE(callbacks_on_caller)
   TEST_EQUAL(completed, 2)
   TEST_TRUE(result.nodes.at(20).state == State::SUCCEEDED)
@@ -229,6 +233,25 @@ START_SECTION([EXTRA] Multiformat writers receive a valid default suffix and hon
     TEST_EQUAL(pathString(files.at(0).extension()), "." + FileTypes::typeToName(expected))
     TEST_EQUAL(to_path(result.nodes.at(20).outputs.at(0).at("identifications_out").at(0)).extension().string(), "." + FileTypes::typeToName(expected))
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] Unrecognized content keeps its advertised custom extension through publication)
+{
+  Fixture fixture;
+  auto graph = singleToolGraph({fixture.input("sample")});
+  graph.edges.back().source_port = "opaque_out";
+  PipelineExecutor executor;
+  const auto result = executor.run(graph, fixture.options);
+  TEST_EQUAL(result.exit_code, 0)
+  TEST_EQUAL(result.error_message, "")
+  const auto& intermediate = result.nodes.at(20).outputs.at(0).at("opaque_out").at(0);
+  TEST_EQUAL(FileHandler::getTypeByContent(intermediate), FileTypes::UNKNOWN)
+  TEST_EQUAL(pathString(to_path(intermediate).extension()), ".pipeline_custom")
+  const auto published = fixture.writtenFiles();
+  TEST_EQUAL(published.size(), 1)
+  TEST_EQUAL(pathString(published.at(0).extension()), ".pipeline_custom")
+  TEST_EQUAL(readFile(published.at(0)), "opaque workflow payload\n")
 }
 END_SECTION
 

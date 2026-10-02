@@ -193,7 +193,7 @@ void PipelineFile::loadParam(const Param& parameters, PipelineGraph& graph, cons
     vertex.recycle_output = boolValue(vertices, prefix + "recycle_output", false);
     if (vertex.kind == PipelineGraph::Kind::INPUT)
     {
-      vertex.files = static_cast<std::vector<std::string>>(requiredValue(vertices, prefix + "file_names"));
+      vertex.files = requiredValue(vertices, prefix + "file_names").toStringVector();
       for (auto& file : vertex.files)
       {
         auto path = utf8Path(file);
@@ -340,7 +340,7 @@ void PipelineFile::loadResourceParam(const Param& parameters, PipelineGraph& gra
       invalidFile("Invalid resource entry '" + name + "'; expected <input key>:url_list.");
     }
     std::vector<std::string> files;
-    for (const auto& url : static_cast<std::vector<std::string>>(it->value))
+    for (const auto& url : it->value.toStringVector())
     {
       files.push_back(decodeFileURL(url));
     }

@@ -34,9 +34,9 @@
   #include <boost/process/v1/io.hpp>
   #include <boost/process/v1/search_path.hpp>
   #include <boost/process/v1/start_dir.hpp>
+  #include <boost/process/v1/extend.hpp>
   #ifdef _WIN32
     #include <boost/process/v1/error.hpp>
-    #include <boost/process/v1/extend.hpp>
   #endif
 #else
   #include <boost/process/args.hpp>
@@ -47,9 +47,9 @@
   #include <boost/process/io.hpp>
   #include <boost/process/search_path.hpp>
   #include <boost/process/start_dir.hpp>
+  #include <boost/process/extend.hpp>
   #ifdef _WIN32
     #include <boost/process/error.hpp>
-    #include <boost/process/extend.hpp>
   #endif
 #endif
 
@@ -63,7 +63,14 @@
 #include <utility>
 
 #ifndef _WIN32
-#include <sys/wait.h> // for WIFSIGNALED
+  #include <cerrno>
+  #include <fcntl.h>
+  #include <sys/resource.h>
+  #include <sys/wait.h> // for WIFSIGNALED
+  #include <unistd.h>
+  #ifdef __linux__
+    #include <sys/syscall.h>
+  #endif
 #endif
 
 #if BOOST_VERSION >= 108800
@@ -290,6 +297,38 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
       }
       const auto& process_arguments = args;
       const std::string start_dir = working_dir.empty() ? "." : working_dir;
+      struct rlimit descriptor_limits {};
+      if (::getrlimit(RLIMIT_NOFILE, &descriptor_limits) != 0)
+      {
+        throw bp::process_error(std::error_code(errno, std::system_category()), "Cannot determine descriptor limit");
+      }
+      const auto max_descriptor = static_cast<rlim_t>(std::numeric_limits<int>::max());
+      const auto descriptor_limit = static_cast<int>(descriptor_limits.rlim_cur < max_descriptor ? descriptor_limits.rlim_cur : max_descriptor);
+      auto restrict_descriptors = bp::extend::on_exec_setup([descriptor_limit](auto& executor) {
+        // Mark after fork: parallel launches may create more pipes at any time.
+        // CLOEXEC retains Boost's launch-error pipe until a successful exec, and
+        // leaves the child's redirected standard streams and parent untouched.
+#if defined(__linux__) && defined(SYS_close_range)
+        constexpr unsigned close_range_cloexec = 1U << 2; // Linux CLOSE_RANGE_CLOEXEC ABI
+        if (::syscall(SYS_close_range, 3U, std::numeric_limits<unsigned>::max(), close_range_cloexec) == 0) return;
+#endif
+        // Portable fallback (including older Linux kernels): scan the configured
+        // fd limit. This can cost more with large limits, but performs no allocation
+        // or locking in the forked child of a multithreaded caller.
+        for (int descriptor = 3; descriptor < descriptor_limit; ++descriptor)
+        {
+          int status;
+          do
+          {
+            status = ::fcntl(descriptor, F_SETFD, FD_CLOEXEC);
+          } while (status == -1 && errno == EINTR);
+          if (status == -1 && errno != EBADF)
+          {
+            executor.set_error(std::error_code(errno, std::system_category()), "Cannot restrict inherited descriptors");
+            ::_exit(EXIT_FAILURE);
+          }
+        }
+      });
 #endif
 
       const bool can_read = io_mode == IO_MODE::READ_ONLY || io_mode == IO_MODE::READ_WRITE;
@@ -304,6 +343,8 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
 #ifdef _WIN32
                           ,
                           launch_error, set_command_line, suspend, resume, cleanup_failed_launch
+#else
+                          , restrict_descriptors
 #endif
         );
       }
@@ -314,6 +355,8 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
 #ifdef _WIN32
                           ,
                           launch_error, set_command_line, suspend, resume, cleanup_failed_launch
+#else
+                          , restrict_descriptors
 #endif
         );
       }

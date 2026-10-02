@@ -39,6 +39,8 @@ private:
     registerInputFileList_("ETool:in", "<files>", {}, "Nested input requiring INI binding.", false);
     registerOutputFile_("out", "<file>", "", "Single file output.", false);
     registerOutputFile_("untyped_out", "<file>", "", "Output whose format must be detected from content.", false);
+    registerOutputFile_("opaque_out", "<file>", "", "Output with an advertised custom extension and opaque contents.", false);
+    setValidFormats_("opaque_out", {"pipeline_custom"}, false);
     registerOutputFile_("identifications_out", "<file>", "", "Identification output selected by its file extension.", false);
     setValidFormats_("identifications_out", {"idXML", "mzid"});
     registerStringOption_("identifications_out_type", "<type>", "", "Optional explicit identification output format.", false);
@@ -106,6 +108,8 @@ private:
     if (! output.empty() && ! write_(to_path(output), content)) return CANNOT_WRITE_OUTPUT_FILE;
     const auto untyped = getStringOption_("untyped_out");
     if (! untyped.empty() && ! write_(to_path(untyped), content)) return CANNOT_WRITE_OUTPUT_FILE;
+    const auto opaque = getStringOption_("opaque_out");
+    if (! opaque.empty() && ! write_(to_path(opaque), "opaque workflow payload\n")) return CANNOT_WRITE_OUTPUT_FILE;
     const auto identifications = getStringOption_("identifications_out");
     if (! identifications.empty())
     {
@@ -124,6 +128,7 @@ private:
       if (! write_(path / "direct.fasta", content) || ! write_(path / "nested" / "nested.fasta", content)) return CANNOT_WRITE_OUTPUT_FILE;
     }
     if (! trace.empty() && ! write_(trace, std::to_string(started) + " " + std::to_string(now_()) + "\n")) { return CANNOT_WRITE_OUTPUT_FILE; }
+    writeLogInfo_("PipelineTestTool completed.");
     return EXECUTION_OK;
   }
 };
@@ -131,5 +136,5 @@ private:
 int main(int argc, const char** argv)
 {
   PipelineTestTool tool;
-  return tool.main(argc, argv);
+  return tool.mainWithUtf8Arguments(argc, argv);
 }

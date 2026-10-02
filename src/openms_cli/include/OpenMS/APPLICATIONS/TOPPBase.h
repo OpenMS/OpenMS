@@ -112,6 +112,19 @@ public:
     ExitCodes main(int argc, const char** argv);
 
     /**
+      @brief Opt-in entrypoint recovering UTF-8 arguments from the Windows process command line.
+
+      Use only for tools whose file I/O supports UTF-8 paths. Ordinary main()
+      preserves native ACP arguments for legacy tools. Explicit argument arrays
+      supplied by API users remain unchanged on either entrypoint.
+
+      @param[in] argc Number of command-line arguments.
+      @param[in] argv Command-line arguments.
+      @return The exit code returned by main().
+    */
+    ExitCodes mainWithUtf8Arguments(int argc, const char** argv);
+
+    /**
       @brief Sets the maximal number of usable threads
 
       @param[in] num_threads The number of threads that should be usable.

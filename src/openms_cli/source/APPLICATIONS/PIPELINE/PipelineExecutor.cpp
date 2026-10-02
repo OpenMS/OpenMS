@@ -413,10 +413,14 @@ namespace
           if (suffix != std::string::npos && suffix + 4 < basename.size()
               && std::all_of(basename.begin() + suffix + 4, basename.end(), [](char c) { return c >= '0' && c <= '9'; }))
             basename.erase(suffix);
-          std::string output_name = FileHandler::swapExtension(basename, type);
-          if (const auto compression = FileNameUtils::compressionType(basename); compression != FileTypes::UNKNOWN)
+          std::string output_name = basename;
+          if (type != FileTypes::UNKNOWN)
           {
-            output_name += "." + FileTypes::typeToName(compression);
+            output_name = FileHandler::swapExtension(basename, type);
+            if (const auto compression = FileNameUtils::compressionType(basename); compression != FileTypes::UNKNOWN)
+            {
+              output_name += "." + FileTypes::typeToName(compression);
+            }
           }
           const auto target = directory / to_path(output_name);
           outputs[round][""].push_back(pathString(target));

@@ -23,6 +23,13 @@
 #include <fstream>
 #include <thread>
 
+#ifndef OPENMS_WINDOWSPLATFORM
+  #include <cerrno>
+  #include <fcntl.h>
+  #include <sys/stat.h>
+  #include <unistd.h>
+#endif
+
 using namespace OpenMS;
 using namespace std;
 
@@ -329,6 +336,44 @@ START_SECTION([EXTRA] Windows environment overrides are case insensitive)
 }
 END_SECTION
 
+START_SECTION([EXTRA] POSIX children cannot inherit unrelated pipe writers)
+{
+#ifndef OPENMS_WINDOWSPLATFORM
+  int pipe_fds[2] {-1, -1};
+  TEST_EQUAL(::pipe(pipe_fds), 0)
+  struct PipeGuard
+  {
+    int* descriptors;
+    ~PipeGuard()
+    {
+      for (int index = 0; index < 2; ++index)
+        if (descriptors[index] >= 0) ::close(descriptors[index]);
+    }
+  } guard {pipe_fds};
+  if (pipe_fds[0] >= 0)
+  {
+    // Model the inheritable writer of another worker's Boost async_pipe. Check
+    // its device/inode too, so reuse of the numeric fd by child startup is safe.
+    struct stat pipe_status {};
+    TEST_EQUAL(::fstat(pipe_fds[1], &pipe_status), 0)
+    const std::vector<std::string> arguments {"--openms-process-no-inherited-pipe", std::to_string(pipe_fds[1]),
+                                               std::to_string(pipe_status.st_dev), std::to_string(pipe_status.st_ino)};
+    ExternalProcess process;
+    for (const auto mode : {ExternalProcess::IO_MODE::READ_WRITE, ExternalProcess::IO_MODE::NO_IO})
+    {
+      const auto result = process.runWithResult(self_executable, arguments, "", false, mode);
+      TEST_EQUAL(result.state, ExternalProcess::RETURNSTATE::SUCCESS)
+      TEST_EQUAL(result.exit_code, 0)
+    }
+    // Restricting a child must not change its parent's descriptors.
+    TEST_NOT_EQUAL(::fcntl(pipe_fds[1], F_GETFD), -1)
+  }
+#else
+  NOT_TESTABLE
+#endif
+}
+END_SECTION
+
 START_SECTION([EXTRA] failed or crashed direct children cannot leave descendants writing outputs)
 {
 #ifndef OPENMS_WINDOWSPLATFORM
@@ -397,6 +442,14 @@ namespace
 {
 int dispatchProcessTest(int argc, char** argv)
 {
+#ifndef OPENMS_WINDOWSPLATFORM
+  if (argc == 5 && std::string(argv[1]) == "--openms-process-no-inherited-pipe")
+  {
+    struct stat status {};
+    if (::fstat(std::stoi(argv[2]), &status) != 0) return errno == EBADF ? 0 : 2;
+    return std::to_string(status.st_dev) == argv[3] && std::to_string(status.st_ino) == argv[4] ? 1 : 0;
+  }
+#endif
   if (argc >= 2 && std::string(argv[1]) == "--openms-process-argv")
   {
     for (int index = 2; index < argc; ++index)

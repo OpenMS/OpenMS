@@ -334,7 +334,10 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
     }
     TOPPASEdge* new_edge = new TOPPASEdge(sender, pos);
     hover_edge_ = new_edge;
-    addEdge(new_edge);
+    // Dragging an edge only previews a possible edit. Keep the immutable run
+    // until the user commits its mapping in finishHoveringEdge().
+    edges_.push_back(new_edge);
+    addItem(new_edge);
   }
 
   void TOPPASScene::finishHoveringEdge()
@@ -392,11 +395,10 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
         target->addInEdge(hover_edge_);
         hover_edge_->setColor(QColor(255, 165, 0));
 
-        connectEdgeSignals(hover_edge_);
-
         TOPPASIOMappingDialog dialog(hover_edge_);
         if (dialog.firstExec())
         {
+          connectEdgeSignals(hover_edge_);
           hover_edge_->emitChanged();
         }
         else
@@ -628,7 +630,6 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
     test_edge->setTargetVertex(v);
     u->addOutEdge(test_edge);
     v->addInEdge(test_edge);
-    addEdge(test_edge);
 
     bool graph_has_cycles = false;
     // find back edges via DFS
@@ -649,8 +650,6 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
     }
 
     // remove previously inserted edge
-    edges_.removeAll(test_edge);
-    removeItem(test_edge);
     delete test_edge;
 
     return !graph_has_cycles;
@@ -934,10 +933,9 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
 
   void TOPPASScene::load(const std::string& file)
   {
-    file_name_ = file;
-
     if (File::empty(file)) // allow opening of 0-byte files as pretend they are empty, new TOPPAS files
     {
+      file_name_ = file;
       return;
     }
 
@@ -997,6 +995,27 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
 
     PipelineGraph graph;
     PipelineFile().loadParam(load_param, graph, file);
+    // Validate saved scientific settings before replacing any live scene items.
+    // Incompatible settings must neither escape a Qt slot nor become defaults.
+    std::map<Size, std::unique_ptr<TOPPASToolVertex>> tools;
+    try
+    {
+      for (const auto& node : graph.nodes)
+      {
+        if (node.kind != PipelineGraph::Kind::TOOL) { continue; }
+        auto tool = std::make_unique<TOPPASToolVertex>(node.tool_name, node.tool_type);
+        tool->setParam(node.parameters);
+        tools.emplace(node.id, std::move(tool));
+      }
+    }
+    catch (const std::exception& error)
+    {
+      const QString message = toQString("Could not load workflow '" + file + "': " + error.what());
+      logTOPPOutput(message);
+      if (gui_) { QMessageBox::warning(nullptr, tr("Incompatible workflow parameters"), message); }
+      return;
+    }
+    file_name_ = file;
     abortPipeline();
     for (auto* vertex : vertices_)
     {
@@ -1030,8 +1049,7 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
           break;
         }
         case PipelineGraph::Kind::TOOL: {
-          auto tool = std::make_unique<TOPPASToolVertex>(node.tool_name, node.tool_type);
-          tool->setParam(node.parameters);
+          auto tool = std::move(tools.at(node.id));
           connectToolVertexSignals(tool.get());
           vertex = tool.release();
           break;

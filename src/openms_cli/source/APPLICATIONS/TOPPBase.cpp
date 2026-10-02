@@ -302,7 +302,7 @@ namespace OpenMS
     }
   }
 
-  TOPPBase::ExitCodes TOPPBase::main(int argc, const char** argv)
+  TOPPBase::ExitCodes TOPPBase::mainWithUtf8Arguments(int argc, const char** argv)
   {
 #ifdef OPENMS_WINDOWSPLATFORM
     // The owning strings and pointer array outlive parameter parsing and main_().
@@ -317,6 +317,11 @@ namespace OpenMS
       argv = utf8_argv.data();
     }
 #endif
+    return main(argc, argv);
+  }
+
+  TOPPBase::ExitCodes TOPPBase::main(int argc, const char** argv)
+  {
     //----------------------------------------------------------
     //parse command line
     //----------------------------------------------------------
@@ -2710,7 +2715,7 @@ namespace OpenMS
 
     std::string log_destination = param_.getValue("log").toString();
     if (log_destination.empty()) return;
-    log_->open(log_destination, std::ofstream::out | std::ofstream::app);
+    log_->open(to_path(log_destination), std::ofstream::out | std::ofstream::app);
     if (debug_level_ >= 1)
     {
       cout << "Writing to '" << log_destination << '\'' << "\n";

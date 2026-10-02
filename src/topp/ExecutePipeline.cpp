@@ -178,6 +178,6 @@ protected:
 int main(int argc, const char** argv)
 {
   TOPPExecutePipeline tool;
-  return tool.main(argc, argv);
+  return tool.mainWithUtf8Arguments(argc, argv);
 }
 /// @endcond
