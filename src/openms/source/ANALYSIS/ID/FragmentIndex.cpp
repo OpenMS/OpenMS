@@ -1463,18 +1463,18 @@ namespace OpenMS
                         << " sites are considered for them (see modifications:variable)." << std::endl;
       }
 
-      // Merge per-thread peptide vectors.
-      // Deliberately left as reserve + sequential insert, unlike the fragment merge in build():
-      // fi_peptides_ is ~66 MB even for a human proteome, so the transient 2x costs little,
-      // and the sort below keys only on (precursor_mz_, protein_idx) — which does NOT cover
-      // mod_bitmask_ / sequence_ — so equal-key peptides are distinguishable and their
-      // relative order (hence every downstream peptide index) depends on this concatenation.
-      size_t total_peptides = 0;
-      for (int t = 0; t < num_threads; ++t) total_peptides += thread_peptides[t].size();
-      fi_peptides_.reserve(total_peptides);
+      // Merge per-thread peptide vectors, in thread order: the sort below keys only on
+      // (precursor_mz_, protein_idx) — which does NOT cover mod_bitmask_ / sequence_ — so
+      // equal-key peptides are distinguishable and their relative order (hence every downstream
+      // peptide index) depends on this concatenation. Peptide() writes nothing, so the resize only
+      // allocates, and each thread copies (and first touches) the part that it generated.
+      std::vector<size_t> merge_offsets(num_threads + 1, fi_peptides_.size());
+      for (int t = 0; t < num_threads; ++t) merge_offsets[t + 1] = merge_offsets[t] + thread_peptides[t].size();
+      fi_peptides_.resize(merge_offsets[num_threads]);
+      #pragma omp parallel for schedule(static, 1)
       for (int t = 0; t < num_threads; ++t)
       {
-        fi_peptides_.insert(fi_peptides_.end(), thread_peptides[t].begin(), thread_peptides[t].end());
+        std::copy(thread_peptides[t].begin(), thread_peptides[t].end(), fi_peptides_.begin() + merge_offsets[t]);
         vector<Peptide>().swap(thread_peptides[t]);
       }
 

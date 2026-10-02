@@ -51,6 +51,8 @@ namespace OpenMS
      */
     struct Peptide {
 
+      /// Leaves the members uninitialised: resizing a vector of peptides then writes nothing (see generatePeptides())
+      Peptide() {}
       // We need a constructor in order to emplace back
       Peptide(UInt32 protein_idx, uint32_t mod_bitmask, std::pair<uint16_t , uint16_t> sequence, float precursor_mz):
           protein_idx(protein_idx),
@@ -60,7 +62,8 @@ namespace OpenMS
         {}
 
         /// {first, second} like std::pair<uint16_t, uint16_t>, and convertible from and to it, but trivially copyable
-        /// (std::pair's assignment is not), as is Peptide then: sorting and copying peptides moves plain bytes
+        /// (std::pair's assignment is not), as is Peptide then: sorting and copying peptides moves plain bytes. Its
+        /// default constructor writes nothing either (std::pair's zeroes the members).
         struct Span
         {
           Span() = default;
