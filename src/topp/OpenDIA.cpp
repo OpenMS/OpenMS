@@ -26,6 +26,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -38,6 +39,7 @@
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
 
 #include "OpenDIACanonicalLibraryMappingHelper.h"
@@ -45,10 +47,13 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <filesystem>
 #include <limits>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -62,11 +67,14 @@ using namespace std;
 
 @brief High-level DIA workflow front-end that prepares peptide query parameters, performs targeted extraction, rescoring, inference, and export in one invocation.
 
-Three library modes:
-- @c auto: probe the input library for decoy transitions and automatically choose between the prepared and transition-list paths
+Four library modes:
+- @c auto: detect FASTA input as predicted mode; otherwise probe the input library for decoy transitions and automatically choose between the prepared and transition-list paths
 - @c prepared_pqp: accept an already prepared peptide query parameter library (`tsv`, `pqp`, `oswpq`, or `TraML`) and normalize it to an internal `prepared_library.pqp`
 - @c transition_list: accept an empirical transition library, run assay preparation
   and decoy generation, normalize the result to `prepared_library.pqp`, then continue
+- @c predicted: digest a FASTA database, enumerate configured peptide modifications and precursor charges,
+  predict RT/MS2 and optional CCS with the native PeptDeep ONNX models, then reuse the same assay preparation,
+  decoy generation, PQP normalization, extraction, rescoring, inference, and export path as empirical libraries
 
 The downstream run then executes:
 1. extraction/scoring to a working SQLite (`workflow.osw`) or Parquet archive (`workflow.oswpq`) container
@@ -106,7 +114,8 @@ protected:
   {
     AUTO,
     PREPARED,
-    EMPIRICAL
+    EMPIRICAL,
+    PREDICTED
   };
 
   enum class WorkflowFormat
@@ -115,6 +124,14 @@ protected:
     OSWPQ
   };
 
+  // Keep the reusable prediction/preparation parameters in OpenSwathLibraryPreparation.
+  // The optional reusable-output path is OpenDIA CLI/workflow state and therefore
+  // remains local to the TOPP tool rather than leaking into the shared library API.
+  struct PredictedLibraryParameters_ :
+    OpenSwathLibraryPreparation::PredictedLibraryParameters
+  {
+    std::string output_pqp;
+  };
   static constexpr double DEFAULT_PASEF_IM_EXTRACTION_WINDOW = 0.06;
 
   struct InferenceTask
@@ -264,6 +281,75 @@ protected:
   static bool toBool_(const std::string& value)
   {
     return value == "true";
+  }
+
+  static void replaceFilePreservingExisting_(const std::string& source,
+                                             const std::string& destination)
+  {
+    if (File::isDirectory(destination))
+    {
+      throw Exception::FileNotWritable(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, destination);
+    }
+
+    const std::string staged =
+      destination + ".tmp." + File::getUniqueName(false);
+
+    if (!File::copy(source, staged))
+    {
+      File::remove(staged);
+      throw Exception::FileNotWritable(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, destination);
+    }
+
+    // The staged file is a sibling of the destination, so this is a same-filesystem
+    // rename. POSIX replaces an existing destination atomically. Some platforms
+    // (notably Windows) reject rename-over-existing, in which case use the
+    // backup/restore path below without deleting the old library first.
+    std::error_code rename_error;
+    std::filesystem::rename(to_path(staged), to_path(destination), rename_error);
+    if (!rename_error)
+    {
+      return;
+    }
+
+    if (!File::exists(destination))
+    {
+      File::remove(staged);
+      throw Exception::FileNotWritable(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, destination);
+    }
+
+    const std::string backup =
+      destination + ".bak." + File::getUniqueName(false);
+
+    if (!File::rename(destination, backup, false))
+    {
+      File::remove(staged);
+      throw Exception::FileNotWritable(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, destination);
+    }
+
+    if (!File::rename(staged, destination, false))
+    {
+      const bool restored = File::rename(backup, destination, false);
+      File::remove(staged);
+      if (!restored)
+      {
+        OPENMS_LOG_ERROR
+          << "Failed to restore the previous reusable predicted library from '"
+          << backup << "' to '" << destination << "'." << std::endl;
+      }
+      throw Exception::FileNotWritable(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, destination);
+    }
+
+    if (!File::remove(backup))
+    {
+      OPENMS_LOG_WARN
+        << "Could not remove backup of the previous reusable predicted library: "
+        << backup << std::endl;
+    }
   }
 
   static StringList validRescoreLevels_()
@@ -483,8 +569,8 @@ protected:
 #endif
     setValidFormats_("in", in_formats);
 
-    registerInputFile_("tr", "<file>", "", "Library input file.");
-    StringList tr_formats = {"traML", "tsv", "pqp", "oswpq"};
+    registerInputFile_("tr", "<file>", "", "Library input file, or FASTA database for predicted mode.");
+    StringList tr_formats = {"traML", "tsv", "pqp", "oswpq", "fasta"};
     setValidFormats_("tr", tr_formats);
     registerStringOption_("tr_type", "<type>", "", "Library input file type -- default: determined from file extension or content.", false);
     setValidStrings_("tr_type", tr_formats);
@@ -492,8 +578,8 @@ protected:
     registerOutputDir_("out_dir", "<dir>", ".", "Directory for final exported OpenDIA outputs.", false, false);
 
     registerTOPPSubsection_("workflow", "Workflow options.");
-    registerStringOption_("workflow:library_mode", "<choice>", "auto", "How to enter the workflow: auto-detect based on decoys already present in the input library, force prepared peptide-query normalization, or force transition-list assay/decoy preparation.", false);
-    setValidStrings_("workflow:library_mode", {"auto", "prepared_pqp", "transition_list"});
+    registerStringOption_("workflow:library_mode", "<choice>", "auto", "How to enter the workflow: auto-detect FASTA/predicted or transition-library preparation, force prepared peptide-query normalization, force transition-list assay/decoy preparation, or predict a library from FASTA.", false);
+    setValidStrings_("workflow:library_mode", {"auto", "prepared_pqp", "transition_list", "predicted"});
     registerStringOption_("workflow:working_format", "<choice>", "sqlite", "Internal workflow container used after extraction/scoring: 'sqlite' writes a .osw workflow, 'parquet' writes a .oswpq archive.", false);
     setValidStrings_("workflow:working_format", {"sqlite", "parquet"});
     registerStringOption_("workflow:keep_intermediate_files", "<true|false>", "false", "Whether to retain prepared_library.pqp and the single working workflow.osw (.sqlite workflow) or workflow.oswpq (.parquet archive workflow) after success.", false);
@@ -620,7 +706,44 @@ protected:
     registerFlag_("PeptideQueryParameters:AssayGenerator:disable_decoy_transitions", "IPF: disable generation of decoy UIS transitions.", true);
     registerIntOption_("PeptideQueryParameters:AssayGenerator:ipf_decoy_seed", "<int>", -1, "IPF: random seed for decoy shuffle (-1 = time-based).", false, true);
 
-    registerTOPPSubsection_("PeptideQueryParameters:DecoyGenerator", "Decoy-generation parameters used when workflow:library_mode=transition_list.");
+    registerTOPPSubsection_("PeptideQueryParameters:LibraryPrediction", "FASTA digestion and native PeptDeep prediction parameters used when workflow:library_mode=predicted.");
+    registerStringOption_("PeptideQueryParameters:LibraryPrediction:enzyme", "<name>", "Trypsin", "Protease used for in-silico FASTA digestion.", false);
+    std::vector<std::string> protease_names;
+    ProteaseDB::getInstance()->getAllNames(protease_names);
+    setValidStrings_("PeptideQueryParameters:LibraryPrediction:enzyme", protease_names);
+    registerIntOption_("PeptideQueryParameters:LibraryPrediction:missed_cleavages", "<int>", 2, "Maximum number of missed cleavages.", false);
+    setMinInt_("PeptideQueryParameters:LibraryPrediction:missed_cleavages", 0);
+    registerIntOption_("PeptideQueryParameters:LibraryPrediction:min_peptide_length", "<int>", 7, "Minimum peptide length retained for prediction.", false);
+    setMinInt_("PeptideQueryParameters:LibraryPrediction:min_peptide_length", 2);
+    registerIntOption_("PeptideQueryParameters:LibraryPrediction:max_peptide_length", "<int>", 30, "Maximum peptide length retained for prediction.", false);
+    setMinInt_("PeptideQueryParameters:LibraryPrediction:max_peptide_length", 2);
+    registerIntList_("PeptideQueryParameters:LibraryPrediction:precursor_charges", "<list>", IntList{2, 3}, "Precursor charge states to predict.", false);
+    setMinInt_("PeptideQueryParameters:LibraryPrediction:precursor_charges", 1);
+    registerStringList_("PeptideQueryParameters:LibraryPrediction:fixed_modifications", "<mods>", StringList{"Carbamidomethyl (C)"}, "Fixed OpenMS/UniMod modification names applied before prediction.", false);
+    registerStringList_("PeptideQueryParameters:LibraryPrediction:variable_modifications", "<mods>", StringList(), "Variable OpenMS/UniMod modification names enumerated before prediction.", false);
+    registerIntOption_("PeptideQueryParameters:LibraryPrediction:max_variable_modifications", "<int>", 1, "Maximum number of variable modifications per peptide.", false);
+    setMinInt_("PeptideQueryParameters:LibraryPrediction:max_variable_modifications", 0);
+    registerStringOption_("PeptideQueryParameters:LibraryPrediction:clip_nterm_methionine", "<true|false>", "true", "Also digest the mature protein sequence after initiator-methionine removal.", false);
+    setValidStrings_("PeptideQueryParameters:LibraryPrediction:clip_nterm_methionine", {"true", "false"});
+    registerIntOption_("PeptideQueryParameters:LibraryPrediction:prediction_batch_size", "<int>", 500, "Number of precursors predicted per materialization batch.", false);
+    setMinInt_("PeptideQueryParameters:LibraryPrediction:prediction_batch_size", 1);
+    registerIntOption_("PeptideQueryParameters:LibraryPrediction:inference_threads", "<int>", 4, "ONNX Runtime intra-op thread count for each PeptDeep predictor.", false);
+    setMinInt_("PeptideQueryParameters:LibraryPrediction:inference_threads", 1);
+    registerDoubleOption_("PeptideQueryParameters:LibraryPrediction:nce", "<double>", 30.0, "Normalized collision energy supplied to PeptDeep MS2 prediction.", false);
+    setMinFloat_("PeptideQueryParameters:LibraryPrediction:nce", 0.0);
+    setMaxFloat_("PeptideQueryParameters:LibraryPrediction:nce", 100.0);
+    registerIntOption_("PeptideQueryParameters:LibraryPrediction:instrument_index", "<int>", 0, "PeptDeep instrument category (0=QE, 1=Lumos, 2=timsTOF, 3=SciexTOF, 4=ThermoTOF, 7=other/unknown).", false);
+    setMinInt_("PeptideQueryParameters:LibraryPrediction:instrument_index", 0);
+    setMaxInt_("PeptideQueryParameters:LibraryPrediction:instrument_index", 7);
+    registerStringOption_("PeptideQueryParameters:LibraryPrediction:predict_ccs", "<true|false>", "true", "Predict CCS and store converted 1/K0 values in the materialized library.", false);
+    setValidStrings_("PeptideQueryParameters:LibraryPrediction:predict_ccs", {"true", "false"});
+    registerInputFile_("PeptideQueryParameters:LibraryPrediction:rt_model", "<file>", "", "Optional explicit PeptDeep RT ONNX model. Empty uses the installed OpenMS model.", false, true);
+    registerInputFile_("PeptideQueryParameters:LibraryPrediction:ccs_model", "<file>", "", "Optional explicit PeptDeep CCS ONNX model. Empty uses the installed OpenMS model.", false, true);
+    registerInputFile_("PeptideQueryParameters:LibraryPrediction:ms2_model", "<file>", "", "Optional explicit PeptDeep MS2 ONNX model. Empty uses the installed OpenMS model.", false, true);
+    registerOutputFile_("PeptideQueryParameters:LibraryPrediction:out", "<file>", "", "Optional reusable prepared target/decoy PQP generated from the FASTA input.", false);
+    setValidFormats_("PeptideQueryParameters:LibraryPrediction:out", {"pqp"});
+
+    registerTOPPSubsection_("PeptideQueryParameters:DecoyGenerator", "Decoy-generation parameters used when workflow:library_mode=transition_list or predicted.");
     registerStringOption_("PeptideQueryParameters:DecoyGenerator:method", "<type>", "shuffle", "Decoy generation method.", false);
     setValidStrings_("PeptideQueryParameters:DecoyGenerator:method", {"shuffle", "pseudo-reverse", "reverse", "shift"});
     registerStringOption_("PeptideQueryParameters:DecoyGenerator:decoy_tag", "<type>", "DECOY_", "Decoy tag.", false);
@@ -938,7 +1061,51 @@ protected:
     {
       return LibraryMode::PREPARED;
     }
+    if (mode == "predicted")
+    {
+      return LibraryMode::PREDICTED;
+    }
     return LibraryMode::AUTO;
+  }
+
+  PredictedLibraryParameters_ getPredictedLibraryParameters_() const
+  {
+    PredictedLibraryParameters_ parameters;
+    parameters.enzyme = getStringOption_("PeptideQueryParameters:LibraryPrediction:enzyme");
+    parameters.missed_cleavages = static_cast<Size>(getIntOption_("PeptideQueryParameters:LibraryPrediction:missed_cleavages"));
+    parameters.min_peptide_length = static_cast<Size>(getIntOption_("PeptideQueryParameters:LibraryPrediction:min_peptide_length"));
+    parameters.max_peptide_length = static_cast<Size>(getIntOption_("PeptideQueryParameters:LibraryPrediction:max_peptide_length"));
+    if (parameters.max_peptide_length < parameters.min_peptide_length)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "PeptideQueryParameters:LibraryPrediction:max_peptide_length must be >= min_peptide_length.");
+    }
+
+    parameters.precursor_charges = getIntList_("PeptideQueryParameters:LibraryPrediction:precursor_charges");
+    std::sort(parameters.precursor_charges.begin(), parameters.precursor_charges.end());
+    parameters.precursor_charges.erase(
+      std::unique(parameters.precursor_charges.begin(), parameters.precursor_charges.end()),
+      parameters.precursor_charges.end());
+    if (parameters.precursor_charges.empty())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "PeptideQueryParameters:LibraryPrediction:precursor_charges cannot be empty.");
+    }
+
+    parameters.fixed_modifications = getStringList_("PeptideQueryParameters:LibraryPrediction:fixed_modifications");
+    parameters.variable_modifications = getStringList_("PeptideQueryParameters:LibraryPrediction:variable_modifications");
+    parameters.max_variable_modifications = static_cast<Size>(getIntOption_("PeptideQueryParameters:LibraryPrediction:max_variable_modifications"));
+    parameters.clip_nterm_methionine = getStringOption_("PeptideQueryParameters:LibraryPrediction:clip_nterm_methionine") == "true";
+    parameters.prediction_batch_size = static_cast<Size>(getIntOption_("PeptideQueryParameters:LibraryPrediction:prediction_batch_size"));
+    parameters.inference_threads = getIntOption_("PeptideQueryParameters:LibraryPrediction:inference_threads");
+    parameters.nce = getDoubleOption_("PeptideQueryParameters:LibraryPrediction:nce");
+    parameters.instrument_index = getIntOption_("PeptideQueryParameters:LibraryPrediction:instrument_index");
+    parameters.predict_ccs = getStringOption_("PeptideQueryParameters:LibraryPrediction:predict_ccs") == "true";
+    parameters.rt_model_path = getStringOption_("PeptideQueryParameters:LibraryPrediction:rt_model");
+    parameters.ccs_model_path = getStringOption_("PeptideQueryParameters:LibraryPrediction:ccs_model");
+    parameters.ms2_model_path = getStringOption_("PeptideQueryParameters:LibraryPrediction:ms2_model");
+    parameters.output_pqp = getStringOption_("PeptideQueryParameters:LibraryPrediction:out");
+    return parameters;
   }
 
   WorkflowFormat getWorkflowFormat_() const
@@ -4285,6 +4452,7 @@ protected:
     }
   }
 
+
   ExitCodes main_(int, const char**) override
   {
     const StringList input_files = getStringList_("in");
@@ -4295,6 +4463,55 @@ protected:
     try
     {
       const FileTypes::Type tr_type = resolveTransitionLibraryType_(input_library);
+      // Validate the predicted-mode options before any library I/O or working-directory setup.
+      const LibraryMode requested_library_mode = getLibraryMode_();
+      if (requested_library_mode == LibraryMode::PREDICTED && tr_type != FileTypes::FASTA)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "workflow:library_mode=predicted requires FASTA input for '-tr'.");
+      }
+      if (tr_type == FileTypes::FASTA && requested_library_mode != LibraryMode::AUTO && requested_library_mode != LibraryMode::PREDICTED)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "FASTA input for '-tr' requires workflow:library_mode=auto or predicted.");
+      }
+
+      const bool predicted_mode = requested_library_mode == LibraryMode::PREDICTED ||
+        (requested_library_mode == LibraryMode::AUTO && tr_type == FileTypes::FASTA);
+      std::optional<PredictedLibraryParameters_> predicted_parameters;
+      const std::string requested_prediction_output = getStringOption_("PeptideQueryParameters:LibraryPrediction:out");
+      if (predicted_mode)
+      {
+        predicted_parameters = getPredictedLibraryParameters_();
+        const Param calibration_parameters = getParam_().copy("TargetedDataExtraction:Calibration:", true);
+        if (!calibration_parameters.getValue("files:linear_irt_file").toString().empty() ||
+            !calibration_parameters.getValue("rt_norm").toString().empty() ||
+            !calibration_parameters.getValue("tr_irt_priority_sampling").toString().empty())
+        {
+          throw Exception::InvalidParameter(
+            __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Predicted libraries use PeptDeep normalized RT coordinates. External linear-iRT, rt_norm, "
+            "or priority-sampling RT files are not accepted because their RT space is not declared compatible.");
+        }
+        // Without auto_irt, a null RT transformation is used, so a finite RT window
+        // would be centred on the normalized library RTs instead of run RTs.
+        if (calibration_parameters.getValue("auto_irt:enabled").toString() != "true" &&
+            getDoubleOption_("TargetedDataExtraction:rt_extraction_window") >= 0.0)
+        {
+          throw Exception::InvalidParameter(
+            __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Predicted libraries use PeptDeep normalized RT coordinates, which only auto_irt maps to run RT. "
+            "Enable TargetedDataExtraction:Calibration:auto_irt:enabled or set "
+            "TargetedDataExtraction:rt_extraction_window to -1 to extract the full RT range.");
+        }
+      }
+      else if (!requested_prediction_output.empty())
+      {
+        throw Exception::InvalidParameter(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "PeptideQueryParameters:LibraryPrediction:out is only valid when the resolved workflow library mode is predicted.");
+      }
+
       working_dir = prepareWorkingDirectory_(out_dir);
       OPENMS_LOG_INFO << "OpenDIA working directory: " << working_dir.path << std::endl;
 
@@ -4324,7 +4541,6 @@ protected:
       const Param reader_parameters = getParam_().copy("TargetedDataExtraction:Library:", true);
       OpenSwathLibraryPreparation::LibraryStats library_stats;
 
-      const LibraryMode requested_library_mode = getLibraryMode_();
       LibraryMode resolved_library_mode = requested_library_mode;
       bool prepared_library_ready = false;
       std::string empirical_library_input = input_library;
@@ -4337,35 +4553,43 @@ protected:
 
       if (requested_library_mode == LibraryMode::AUTO)
       {
-        OPENMS_LOG_INFO << "Auto-detecting OpenDIA library mode from input decoy coverage.\n";
-        library_stats = library_preparation.normalizeLibraryToPQP(input_library, tr_type, prepared_library_pqp, reader_parameters);
-        if (library_stats.hasDecoys())
+        if (tr_type == FileTypes::FASTA)
         {
-          resolved_library_mode = LibraryMode::PREPARED;
-          prepared_library_ready = true;
-          OPENMS_LOG_INFO << "Auto-detected prepared_pqp library input because decoy transitions are already present.\n";
+          resolved_library_mode = LibraryMode::PREDICTED;
+          OPENMS_LOG_INFO << "Auto-detected predicted library mode from FASTA input.\n";
         }
         else
         {
-          resolved_library_mode = LibraryMode::EMPIRICAL;
-          OPENMS_LOG_INFO << "Auto-detected transition_list library input because no decoy transitions were found. Running peptide query preparation.\n";
-
-          // normalizeLibraryToPQP() has already parsed light-weight inputs and materialized
-          // them as PQP. Reuse that normalized representation for assay preparation instead
-          // of reparsing the original TSV/MRM/PQP/OSWPQ source a second time. TraML stays on
-          // the heavy TargetedExperiment path to preserve its existing preparation semantics.
-          const bool can_reuse_normalized_probe =
-            tr_type == FileTypes::TSV || tr_type == FileTypes::MRM ||
-            tr_type == FileTypes::PQP || tr_type == FileTypes::OSWPQ;
-          if (can_reuse_normalized_probe)
+          OPENMS_LOG_INFO << "Auto-detecting OpenDIA library mode from input decoy coverage.\n";
+          library_stats = library_preparation.normalizeLibraryToPQP(input_library, tr_type, prepared_library_pqp, reader_parameters);
+          if (library_stats.hasDecoys())
           {
-            empirical_library_input = prepared_library_pqp;
-            empirical_library_type = FileTypes::PQP;
-            OPENMS_LOG_INFO << "Reusing the normalized PQP from AUTO library detection for empirical assay preparation.\n";
+            resolved_library_mode = LibraryMode::PREPARED;
+            prepared_library_ready = true;
+            OPENMS_LOG_INFO << "Auto-detected prepared_pqp library input because decoy transitions are already present.\n";
           }
-          else if (File::exists(prepared_library_pqp) && !File::remove(prepared_library_pqp))
+          else
           {
-            throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prepared_library_pqp);
+            resolved_library_mode = LibraryMode::EMPIRICAL;
+            OPENMS_LOG_INFO << "Auto-detected transition_list library input because no decoy transitions were found. Running peptide query preparation.\n";
+
+            // normalizeLibraryToPQP() has already parsed light-weight inputs and materialized
+            // them as PQP. Reuse that normalized representation for assay preparation instead
+            // of reparsing the original TSV/MRM/PQP/OSWPQ source a second time. TraML stays on
+            // the heavy TargetedExperiment path to preserve its existing preparation semantics.
+            const bool can_reuse_normalized_probe =
+              tr_type == FileTypes::TSV || tr_type == FileTypes::MRM ||
+              tr_type == FileTypes::PQP || tr_type == FileTypes::OSWPQ;
+            if (can_reuse_normalized_probe)
+            {
+              empirical_library_input = prepared_library_pqp;
+              empirical_library_type = FileTypes::PQP;
+              OPENMS_LOG_INFO << "Reusing the normalized PQP from AUTO library detection for empirical assay preparation.\n";
+            }
+            else if (File::exists(prepared_library_pqp) && !File::remove(prepared_library_pqp))
+            {
+              throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prepared_library_pqp);
+            }
           }
         }
       }
@@ -4380,16 +4604,30 @@ protected:
       }
       else
       {
-        OPENMS_LOG_INFO << "Using transition_list library mode: running peptide query preparation.\n";
         const auto decoy_parameters = getDecoyGeneratorParameters_();
         if (isPeptidoformInferenceRequested_() && !assay_parameters.enable_ipf)
         {
           throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Peptidoform inference was requested, but PeptideQueryParameters:AssayGenerator:enable_ipf is false. Enable IPF-capable empirical library preparation first.");
+                                        "Peptidoform inference was requested, but PeptideQueryParameters:AssayGenerator:enable_ipf is false. Enable IPF-capable library preparation first.");
         }
-        library_stats = library_preparation.prepareEmpiricalLibraryToPQP(
-          empirical_library_input, empirical_library_type, prepared_library_pqp,
-          assay_parameters, decoy_parameters, reader_parameters, working_dir.path);
+
+        if (resolved_library_mode == LibraryMode::PREDICTED)
+        {
+          OPENMS_LOG_INFO << "Using predicted library mode: digesting FASTA and materializing native PeptDeep predictions.\n";
+          library_stats = library_preparation.preparePredictedLibraryToPQP(
+            input_library,
+            prepared_library_pqp,
+            assay_parameters,
+            decoy_parameters,
+            *predicted_parameters);
+        }
+        else
+        {
+          OPENMS_LOG_INFO << "Using transition_list library mode: running peptide query preparation.\n";
+          library_stats = library_preparation.prepareEmpiricalLibraryToPQP(
+            empirical_library_input, empirical_library_type, prepared_library_pqp,
+            assay_parameters, decoy_parameters, reader_parameters, working_dir.path);
+        }
       }
 
       if (!library_stats.hasDecoys())
@@ -4401,6 +4639,17 @@ protected:
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Peptidoform inference was requested, but the prepared library does not contain identifying/IPF transitions.");
+      }
+
+      if (resolved_library_mode == LibraryMode::PREDICTED && !predicted_parameters->output_pqp.empty())
+      {
+        const std::string reusable_pqp_abs = File::absolutePath(predicted_parameters->output_pqp);
+        const std::string prepared_library_abs = File::absolutePath(prepared_library_pqp);
+        if (reusable_pqp_abs != prepared_library_abs)
+        {
+          replaceFilePreservingExisting_(prepared_library_abs, reusable_pqp_abs);
+        }
+        OPENMS_LOG_INFO << "Wrote reusable prepared predicted library: " << reusable_pqp_abs << std::endl;
       }
 
       bool enable_uis_scoring = getStringOption_("TargetedDataExtraction:enable_ipf") == "true";

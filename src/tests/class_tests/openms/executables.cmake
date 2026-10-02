@@ -761,7 +761,9 @@ if(NOT DISABLE_OPENSWATH)
 endif(NOT DISABLE_OPENSWATH)
 
 if(WITH_ONNX AND NOT DISABLE_OPENSWATH)
-  list(APPEND swath_executables_list PeptDeepLibraryPredictor_test)
+  list(APPEND swath_executables_list
+    PeptDeepLibraryPredictor_test
+    OpenSwathPredictedLibraryPreparation_test)
 endif()
 
 if(NOT DISABLE_OPENSWATH)
