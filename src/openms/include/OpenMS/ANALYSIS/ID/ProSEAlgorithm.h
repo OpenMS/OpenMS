@@ -832,6 +832,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] precursor_max_charge Maximum precursor charge considered.
      * @param[in] enzyme Digestion enzyme name.
      * @param[out] database_name Database file name used for the search (stored in protein_ids).
+     * @param[in] evidence_spectra Peak lists retained before local/top-N filtering, aligned with @p exp;
+     *                             required when annotate:local_fragment_evidence is enabled, otherwise unused.
      */
     void postProcessHits_(const PeakMap& exp,
       std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,

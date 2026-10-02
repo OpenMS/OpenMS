@@ -128,7 +128,8 @@ TOPP tools:
         peak-density surprise of the matched fragments) and mass_competition_evidence (matches
         discounted by alternative intact and neutral-loss assignments) as annotations and Percolator
         features. Computed on the peak list before local/top-N filtering; candidates and native scores
-        do not change.
+        do not change. Requires a finite, positive fragment:mass_tolerance; set it to false to search
+        with other tolerances.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
