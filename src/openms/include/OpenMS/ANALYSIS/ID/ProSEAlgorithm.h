@@ -299,6 +299,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                            double protein_fdr);
 
     /**
+     * @brief Annotate PSM q-values by target-decoy competition of the best hit of each spectrum, as FDR:PSM does.
+     *
+     * Uses FalseDiscoveryRate (decoy hits are kept and annotated) and replaces hit scores by q-values; no filtering.
+     * With FDR:PSM_groups = 'scored_charges' and multiply charged fragments scored (scoring:fragment_charges), PSMs
+     * whose best hits were scored with different numbers of fragment charges compete separately, because HyperScore
+     * grows with the number of theoretical ions. With one group, or a group without target or decoy hits, all PSMs
+     * compete together.
+     *
+     * @param[in,out] peptide_ids PSMs with target_decoy annotations (PeptideIndexing).
+     */
+    void annotatePsmQValues(PeptideIdentificationList& peptide_ids) const;
+
+    /**
      * @brief Search with comprehensive results including modification analysis tables
      *
      * This method performs a peptide database search and additionally returns
@@ -882,6 +895,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string decoy_prefix_;
 
     double fdr_psm_{0.0};
+    bool fdr_psm_by_scored_charges_{true}; ///< FDR:PSM_groups: separate competitions per number of scored fragment charges
     double fdr_protein_{0.0};
 
     StringList annotate_psm_;

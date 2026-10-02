@@ -106,6 +106,12 @@ TOPP tools:
         in ppm up to 100 ppm and HyperScore otherwise, so low-resolution (Da) searches do not change.
         The calibration pass scores the same way. Search results record the method when it is used;
         the score type stays 'ln(hyperscore)'.
+      - New FDR:PSM_groups (scored_charges, pooled). FDR:PSM computes q-values separately for PSMs
+        scored with different numbers of fragment charges ('scored_charges', the default). Since
+        scoring:fragment_charges scores 2+ fragments of precursors of charge 3 and above in spectra
+        that are not deisotoped, their HyperScores are larger for targets and decoys alike, and one
+        pooled competition left fewer charge-2 PSMs below the threshold. High-resolution searches
+        score charge-1 fragments only and form one group, as before.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----

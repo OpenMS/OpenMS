@@ -248,6 +248,15 @@ namespace OpenMS
     defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Target and decoy PSMs are filtered alike by the q-value threshold; decoys that pass are kept (no decoy-specific stripping here — decoys are removed only at protein-FDR finalization). Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
+    defaults_.setValue("FDR:PSM_groups", "scored_charges",
+                       "Target-decoy competitions of FDR:PSM. 'pooled' ranks all PSMs together. 'scored_charges' computes q-values "
+                       "separately for PSMs scored with different numbers of fragment charges (scoring:fragment_charges): HyperScore "
+                       "grows with the number of theoretical ions, so when multiply charged fragments are scored for precursors of "
+                       "charge 3 and above but not for charge 2, a pooled competition is dominated by the higher precursor charges. "
+                       "With singly charged fragments only (deisotoped, high-resolution spectra) there is one group, as with 'pooled'. "
+                       "A group without decoy or without target PSMs falls back to 'pooled'.",
+                       {"advanced"});
+    defaults_.setValidStrings("FDR:PSM_groups", {"scored_charges", "pooled"});
     defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR on a complete protein set (single file, or the -out_merged aggregate). Setting this > 0 finalizes the result: identified decoys are removed. With 0, decoys are retained for downstream/merged FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:protein", 0.0);
     defaults_.setMaxFloat("FDR:protein", 1.0);
@@ -455,6 +464,7 @@ namespace OpenMS
     decoy_prefix_ = param_.getValue("decoy_prefix").toString();
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
     fdr_psm_ = param_.getValue("FDR:PSM");
+    fdr_psm_by_scored_charges_ = param_.getValue("FDR:PSM_groups").toString() == "scored_charges";
     fdr_protein_ = param_.getValue("FDR:protein");
 
     // Open search mode is automatically determined based on precursor tolerance in isOpenSearchMode_()
@@ -2254,11 +2264,7 @@ namespace OpenMS
       // Categorical decoy removal happens only at protein-FDR finalization (file-based
       // single-file search below, or ProSE.cpp).
       StopWatch sw_fdr; sw_fdr.start();
-      FalseDiscoveryRate fdr;
-      Param fdr_params = fdr.getParameters();
-      fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
-      fdr.setParameters(fdr_params);
-      fdr.apply(peptide_ids);
+      annotatePsmQValues(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
       last_run_stats_.fdr_applied = true;
       last_run_stats_.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
@@ -2540,11 +2546,7 @@ namespace OpenMS
       // Categorical decoy removal happens only at protein-FDR finalization (file-based
       // single-file search below, or ProSE.cpp).
       StopWatch sw_fdr; sw_fdr.start();
-      FalseDiscoveryRate fdr;
-      Param fdr_params = fdr.getParameters();
-      fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
-      fdr.setParameters(fdr_params);
-      fdr.apply(peptide_ids);
+      annotatePsmQValues(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
       last_run_stats_.fdr_applied = true;
       last_run_stats_.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
@@ -2628,6 +2630,65 @@ namespace OpenMS
     OPENMS_LOG_INFO << "[ProSE] Protein inference + picked-protein FDR: "
                     << protein_ids[0].getHits().size() << " proteins at "
                     << protein_fdr * 100 << "% FDR." << std::endl;
+  }
+
+  void ProSEAlgorithm::annotatePsmQValues(PeptideIdentificationList& peptide_ids) const
+  {
+    FalseDiscoveryRate fdr;
+    Param fdr_params = fdr.getParameters();
+    fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
+    fdr.setParameters(fdr_params);
+
+    // Group the spectra by the number of fragment charges their best hit was scored with. FalseDiscoveryRate
+    // competes the best hit of each spectrum (stable score order, as sort() below).
+    std::map<int, std::vector<Size>> groups;
+    bool separate = fdr_psm_by_scored_charges_ && scoring_multiple_charges_;
+    if (separate)
+    {
+      std::map<int, std::pair<bool, bool>> has_target_decoy;
+      std::vector<Size> without_hits;
+      for (Size i = 0; i < peptide_ids.size(); ++i)
+      {
+        PeptideIdentification& id = peptide_ids[i];
+        if (id.getHits().empty())
+        {
+          without_hits.push_back(i);
+          continue;
+        }
+        id.sort();
+        const PeptideHit& best = id.getHits()[0];
+        const int group = scoringMaxCharge_(best.getCharge());
+        groups[group].push_back(i);
+        auto& [has_target, has_decoy] = has_target_decoy[group];
+        (best.isDecoy() ? has_decoy : has_target) = true;
+      }
+      separate = groups.size() > 1
+                 && std::all_of(has_target_decoy.begin(), has_target_decoy.end(),
+                                [](const auto& entry) { return entry.second.first && entry.second.second; });
+      if (groups.size() > 1 && ! separate)
+      {
+        OPENMS_LOG_WARN << "[ProSE] FDR:PSM_groups: a group of PSMs scored with the same number of fragment charges has no "
+                        << "target or no decoy PSM; computing q-values over all PSMs together." << std::endl;
+      }
+      if (separate && ! without_hits.empty()) // they carry no score, but get the q-value score type with the others
+      {
+        auto& first = groups.begin()->second;
+        first.insert(first.end(), without_hits.begin(), without_hits.end());
+      }
+    }
+    if (! separate)
+    {
+      fdr.apply(peptide_ids);
+      return;
+    }
+    for (const auto& [group, indices] : groups)
+    {
+      PeptideIdentificationList part;
+      part.reserve(indices.size());
+      for (Size i : indices) { part.push_back(std::move(peptide_ids[i])); }
+      fdr.apply(part);
+      for (Size k = 0; k < indices.size(); ++k) { peptide_ids[indices[k]] = std::move(part[k]); }
+    }
   }
 
   namespace
@@ -3324,11 +3385,7 @@ namespace OpenMS
         if (fdr_psm_ > 0.0 && has_decoys)
         {
           StopWatch sw_fdr; sw_fdr.start();
-          FalseDiscoveryRate fdr;
-          Param fdr_params = fdr.getParameters();
-          fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
-          fdr.setParameters(fdr_params);
-          fdr.apply(result.peptide_ids);
+          annotatePsmQValues(result.peptide_ids);
           IDFilter::filterHitsByScore(result.peptide_ids, fdr_psm_);
           result.stats.fdr_applied = true;
           result.stats.achieved_psm_fdr = maxRetainedScore_(result.peptide_ids);

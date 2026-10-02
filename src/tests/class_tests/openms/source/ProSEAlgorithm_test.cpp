@@ -30,6 +30,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <map>
 #include <numeric>
@@ -3482,6 +3483,136 @@ START_SECTION(([EXTRA] mass accuracy scoring retains its kernel during calibrati
   for (const auto& peptide : peptides)
   {
     TEST_EQUAL(peptide.getScoreType(), "ln(hyperscore)")
+  }
+}
+END_SECTION
+
+START_SECTION((void annotatePsmQValues(PeptideIdentificationList& peptide_ids) const))
+{
+  // Best hits of 2+ and 3+ precursors. When fragment charges 1..2 are scored for 3+ precursors, their scores run
+  // higher for targets and decoys alike: here every 3+ decoy outscores every 2+ PSM.
+  auto make_ids = []()
+  {
+    PeptideIdentificationList ids;
+    auto add = [&ids](int charge, double score, bool decoy)
+    {
+      PeptideIdentification id;
+      id.setScoreType("ln(hyperscore)");
+      id.setHigherScoreBetter(true);
+      id.setIdentifier("run");
+      PeptideHit hit(score, 1, charge, AASequence::fromString(decoy ? "KEDITPEP" : "PEPTIDEK"));
+      hit.setTargetDecoyType(decoy ? PeptideHit::TargetDecoyType::DECOY : PeptideHit::TargetDecoyType::TARGET);
+      // a lower-ranked hit of the other label, which must not change the competition
+      PeptideHit second(score - 5.0, 2, charge, AASequence::fromString(decoy ? "PEPTIDER" : "REDITPEP"));
+      second.setTargetDecoyType(decoy ? PeptideHit::TargetDecoyType::TARGET : PeptideHit::TargetDecoyType::DECOY);
+      id.setHits({second, hit}); // unsorted on purpose
+      ids.push_back(id);
+    };
+    for (int i = 0; i < 300; ++i) { add(2, 20.0 - i * 0.05, false); }       // 2+ targets: 20 .. 5.05
+    for (int i = 0; i < 30; ++i) { add(2, 4.0 - i * 0.1, true); }           // 2+ decoys below all 2+ targets
+    for (int i = 0; i < 300; ++i) { add(3, 60.0 - i * 0.1, false); }        // 3+ targets: 60 .. 30.1
+    for (int i = 0; i < 30; ++i) { add(3, 30.0 - i * 0.2, true); }          // 3+ decoys: 30 .. 24.2
+    add(4, 70.0, false); // 4+ scores two fragment charges too: it competes with the 3+ PSMs
+    ids.push_back(PeptideIdentification()); // a spectrum without hits
+    return ids;
+  };
+  // q-values FalseDiscoveryRate gives the PSMs selected by @p keep, competing alone (by spectrum index)
+  auto reference = [&make_ids](const std::function<bool(const PeptideIdentification&)>& keep)
+  {
+    PeptideIdentificationList all = make_ids(), part;
+    std::vector<Size> index;
+    for (Size i = 0; i < all.size(); ++i)
+    {
+      if (keep(all[i])) { part.push_back(all[i]); index.push_back(i); }
+    }
+    FalseDiscoveryRate fdr;
+    Param fp = fdr.getParameters();
+    fp.setValue("add_decoy_peptides", "true");
+    fdr.setParameters(fp);
+    fdr.apply(part);
+    std::map<Size, double> q;
+    for (Size k = 0; k < part.size(); ++k) { q[index[k]] = part[k].getHits()[0].getScore(); }
+    return q;
+  };
+  auto best_charge = [](const PeptideIdentification& id) { return id.getHits().empty() ? 0 : std::max_element(id.getHits().begin(), id.getHits().end(), [](const PeptideHit& a, const PeptideHit& b) { return a.getScore() < b.getScore(); })->getCharge(); };
+  const auto q_pooled = reference([](const PeptideIdentification& id) { return ! id.getHits().empty(); });
+  const auto q_two = reference([&](const PeptideIdentification& id) { return best_charge(id) == 2; });
+  const auto q_more = reference([&](const PeptideIdentification& id) { return best_charge(id) >= 3; });
+
+  auto annotate = [&make_ids](double tolerance, const std::string& unit, const std::string& groups)
+  {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    TEST_EQUAL(p.getValue("FDR:PSM_groups").toString(), "scored_charges")
+    p.setValue("fragment:mass_tolerance", tolerance);
+    p.setValue("fragment:mass_tolerance_unit", unit);
+    p.setValue("FDR:PSM_groups", groups);
+    algo.setParameters(p);
+    PeptideIdentificationList ids = make_ids();
+    algo.annotatePsmQValues(ids);
+    return ids;
+  };
+  auto accepted = [](const PeptideIdentificationList& ids)
+  {
+    Size n = 0;
+    for (const auto& id : ids) { n += ! id.getHits().empty() && ! id.getHits()[0].isDecoy() && id.getHits()[0].getScore() <= 0.01; }
+    return n;
+  };
+
+  // 0.5 Da: spectra are not deisotoped, 3+ and 4+ precursors are scored with two fragment charges.
+  const PeptideIdentificationList original = make_ids();
+  const PeptideIdentificationList grouped = annotate(0.5, "Da", "scored_charges");
+  ABORT_IF(grouped.size() != 662)
+  for (Size i = 0; i + 1 < grouped.size(); ++i)
+  {
+    TEST_EQUAL(grouped[i].getHits().size(), 1) // FalseDiscoveryRate keeps the best hit
+    TEST_EQUAL(grouped[i].getScoreType(), "q-value")
+    const auto& q = best_charge(original[i]) == 2 ? q_two : q_more;
+    TEST_REAL_SIMILAR(grouped[i].getHits()[0].getScore(), q.at(i))
+  }
+  TEST_EQUAL(grouped.back().getHits().size(), 0)
+  TEST_EQUAL(grouped.back().getScoreType(), "q-value")
+  TEST_EQUAL(accepted(grouped), 601) // all 2+, 3+ and 4+ targets
+
+  const PeptideIdentificationList pooled = annotate(0.5, "Da", "pooled");
+  for (Size i = 0; i + 1 < pooled.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(pooled[i].getHits()[0].getScore(), q_pooled.at(i))
+  }
+  TEST_EQUAL(accepted(pooled), 301) // the 3+ decoys lift every 2+ q-value above 1%
+
+  // 20 ppm: deisotoped spectra are scored with charge-1 fragments only, so there is one group.
+  const PeptideIdentificationList high_resolution = annotate(20.0, "ppm", "scored_charges");
+  for (Size i = 0; i + 1 < high_resolution.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(high_resolution[i].getHits()[0].getScore(), q_pooled.at(i))
+  }
+
+  // A group without decoys falls back to one competition.
+  {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("fragment:mass_tolerance", 0.5);
+    p.setValue("fragment:mass_tolerance_unit", "Da");
+    algo.setParameters(p);
+    PeptideIdentificationList ids = make_ids(), no_two_decoys;
+    for (auto& id : ids)
+    {
+      if (best_charge(id) == 2 && id.getHits().size() == 2 && std::max(id.getHits()[0].getScore(), id.getHits()[1].getScore()) < 5.0) { continue; }
+      no_two_decoys.push_back(id);
+    }
+    PeptideIdentificationList expected = no_two_decoys;
+    FalseDiscoveryRate fdr;
+    Param fp = fdr.getParameters();
+    fp.setValue("add_decoy_peptides", "true");
+    fdr.setParameters(fp);
+    fdr.apply(expected);
+    algo.annotatePsmQValues(no_two_decoys);
+    ABORT_IF(expected.size() != no_two_decoys.size())
+    for (Size i = 0; i < expected.size(); ++i)
+    {
+      TEST_EQUAL(no_two_decoys[i].getHits() == expected[i].getHits(), true)
+    }
   }
 }
 END_SECTION
