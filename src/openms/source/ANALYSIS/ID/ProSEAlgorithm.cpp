@@ -118,11 +118,14 @@ namespace OpenMS
     defaults_.setValue("peaks:window_top", 20, "Maximum number of MS2 peaks kept per 100 Da window (WindowMower) before scoring.", {"advanced"});
     defaults_.setMinInt("peaks:window_top", 1);
     defaults_.setValue(
-      "fragment:query_spectrum", "processed",
-      "Spectrum used for candidate retrieval. 'processed' uses the scoring peak list; 'raw' retains all positive-intensity original peaks before "
-      "deisotoping and local filtering, at additional memory and query cost. Scoring still uses the processed spectrum.",
+      "fragment:query_spectrum", "auto",
+      "Spectrum used for candidate retrieval. 'raw' queries the fragment index with all positive-intensity peaks, before "
+      "deisotoping and local/top-N filtering, so that spectra whose matching fragments are not among the retained peaks still get "
+      "candidates; it costs an additional peak list per spectrum and more fragment matches. 'processed' queries with the scoring peak "
+      "list. 'auto' uses 'raw' for high-resolution fragments (<= 0.1 Da / <= 100 ppm) and 'processed' otherwise: at low resolution, "
+      "the unfiltered peaks match many random fragments and crowd out the correct candidates. Scoring always uses the processed spectrum.",
       {"advanced"});
-    defaults_.setValidStrings("fragment:query_spectrum", {"processed", "raw"});
+    defaults_.setValidStrings("fragment:query_spectrum", {"auto", "raw", "processed"});
     defaults_.setValue("peaks:window_type", "auto",
                        "Local peak filtering. 'auto' uses jump_full for high-resolution fragments (<= 0.1 Da / <= 100 ppm), "
                        "preserving the strongest peaks even in a short final 100 Da window, and legacy jump filtering otherwise. "
@@ -179,7 +182,7 @@ namespace OpenMS
         Constants::UserParam::COMPLEMENTARY_IONS_FRACTION}
       );
 
-    defaults_.setValue("annotate:local_fragment_evidence", "false",
+    defaults_.setValue("annotate:local_fragment_evidence", "true",
       "Add chance_match_surprise and mass_competition_evidence annotations and Percolator features. "
       "Uses local peak density and alternative intact/neutral-loss fragment assignments. "
       "Retains an additional peak list before window/top-N filtering, increasing memory use. "
@@ -329,7 +332,6 @@ namespace OpenMS
     peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
     peaks_window_top_ = (Int)param_.getValue("peaks:window_top");
     peaks_window_type_ = param_.getValue("peaks:window_type").toString();
-    query_raw_spectrum_ = param_.getValue("fragment:query_spectrum") == "raw";
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
     if (param_.getValue("annotate:local_fragment_evidence").toBool() && (! std::isfinite(fragment_mass_tolerance_) || fragment_mass_tolerance_ <= 0.0))
@@ -350,6 +352,9 @@ namespace OpenMS
     const std::string deisotope_mode = param_.getValue("fragment:deisotope").toString();
     const bool deisotope_supported =
       Deisotoper::isToleranceSupported(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ == "ppm");
+    // Resolved from the configured tolerance, with the deisotoper's resolution boundary; calibration does not switch it.
+    const std::string query_spectrum = param_.getValue("fragment:query_spectrum").toString();
+    query_raw_spectrum_ = query_spectrum == "raw" || (query_spectrum == "auto" && deisotope_supported);
     deisotope_requested_ = (deisotope_mode != "false");
     if (deisotope_mode == "true" && !deisotope_supported)
     {
@@ -1227,6 +1232,7 @@ namespace OpenMS
     search_parameters.setMetaValue("peptide:clip_nterm_methionine", param_.getValue("peptide:clip_nterm_methionine"));
     search_parameters.setMetaValue("peptide:deduplicate", param_.getValue("peptide:deduplicate"));
     search_parameters.setMetaValue("fragment:query_spectrum", param_.getValue("fragment:query_spectrum"));
+    search_parameters.setMetaValue("fragment:query_spectrum_resolved", query_raw_spectrum_ ? "raw" : "processed");
     search_parameters.setMetaValue("annotate:local_fragment_evidence", param_.getValue("annotate:local_fragment_evidence"));
     search_parameters.setMetaValue("scoring:fragment_charges", param_.getValue("scoring:fragment_charges"));
     search_parameters.setMetaValue("scoring:fragment_charges_resolved", scoring_multiple_charges_ ? "multiple" : "single");

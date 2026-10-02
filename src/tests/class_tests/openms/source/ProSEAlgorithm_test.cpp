@@ -1669,6 +1669,12 @@ START_SECTION(([EXTRA] ions:by_activation gives each file of a multi-file search
     if (hits.size() != 1) return;
     TEST_EQUAL(hits.begin()->second.getSequence(), alone.begin()->second.getSequence())
     TEST_REAL_SIMILAR(hits.begin()->second.getScore(), alone.begin()->second.getScore())
+    // Local fragment evidence uses each file's own retained peak lists.
+    for (const std::string& feature : {Constants::UserParam::CHANCE_MATCH_SURPRISE, Constants::UserParam::MASS_COMPETITION_EVIDENCE})
+    {
+      ABORT_IF(! hits.begin()->second.metaValueExists(feature) || ! alone.begin()->second.metaValueExists(feature))
+      TEST_REAL_SIMILAR(static_cast<double>(hits.begin()->second.getMetaValue(feature)), static_cast<double>(alone.begin()->second.getMetaValue(feature)))
+    }
   };
 
   for (int chunk_size : {0, 1})
@@ -2358,10 +2364,24 @@ START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragme
     TEST_EQUAL(ann.charge >= 1, true)
   }
 
-  // Local evidence is opt-in, independent of annotate:PSM, and must preserve
-  // the candidates and native score. Both numerical columns reach the PIN feature list.
-  TEST_FALSE(hit.metaValueExists(Constants::UserParam::CHANCE_MATCH_SURPRISE))
-  TEST_EQUAL(p.getValue("annotate:local_fragment_evidence").toString(), "false")
+  // Local evidence is on by default and independent of annotate:PSM. Switching it off
+  // removes both columns and keeps the candidates and native score.
+  TEST_EQUAL(p.getValue("annotate:local_fragment_evidence").toString(), "true")
+  TEST_TRUE(hit.metaValueExists(Constants::UserParam::CHANCE_MATCH_SURPRISE))
+  p.setValue("annotate:local_fragment_evidence", "false");
+  algo.setParameters(p);
+  vector<ProteinIdentification> plain_proteins;
+  PeptideIdentificationList plain_peptides;
+  algo.search(exp, fasta_db, plain_proteins, plain_peptides);
+  ABORT_IF(plain_peptides.size() != pep_ids.size())
+  const auto& plain_hit = plain_peptides[0].getHits()[0];
+  TEST_EQUAL(plain_hit.getSequence(), hit.getSequence())
+  TEST_REAL_SIMILAR(plain_hit.getScore(), hit.getScore())
+  TEST_FALSE(plain_hit.metaValueExists(Constants::UserParam::CHANCE_MATCH_SURPRISE))
+  TEST_FALSE(plain_hit.metaValueExists(Constants::UserParam::MASS_COMPETITION_EVIDENCE))
+  TEST_TRUE(plain_proteins[0].getSearchParameters().getMetaValue("extra_features").toString().find(Constants::UserParam::CHANCE_MATCH_SURPRISE) == string::npos)
+  TEST_EQUAL(plain_proteins[0].getSearchParameters().getMetaValue("annotate:local_fragment_evidence").toString(), "false")
+  // Both numerical columns reach the PIN feature list, also without annotate:PSM.
   p.setValue("annotate:local_fragment_evidence", "true");
   p.setValue("annotate:PSM", vector<string>{});
   algo.setParameters(p);
@@ -3105,7 +3125,7 @@ START_SECTION(([EXTRA] raw retrieval recovers a candidate removed by scoring pea
 
   ProSEAlgorithm algo;
   Param p = algo.getParameters();
-  TEST_EQUAL(p.getValue("fragment:query_spectrum").toString(), "processed")
+  TEST_EQUAL(p.getValue("fragment:query_spectrum").toString(), "auto")
   TEST_EQUAL(p.getValue("peaks:window_type").toString(), "auto")
   p.setValue("peaks:keep_n", 1);
   p.setValue("fragment:min_matched_ions", 3);
@@ -3120,7 +3140,7 @@ START_SECTION(([EXTRA] raw retrieval recovers a candidate removed by scoring pea
   {
     // keep_n=1 leaves one scoring peak; HyperScore of one matched peak of intensity 1 is ln(1 + 1).
     const double expected_score = std::log1p(1.0);
-    for (const std::string mode : {"processed", "raw"})
+    for (const std::string mode : {"processed", "raw", "auto"}) // 'auto' resolves to 'raw' at 20 ppm
     {
       p.setValue("fragment:query_spectrum", mode);
       for (Int chunk_size : {0, 1})
@@ -3131,12 +3151,13 @@ START_SECTION(([EXTRA] raw retrieval recovers a candidate removed by scoring pea
         vector<ProteinIdentification> proteins;
         PeptideIdentificationList peptides;
         algo.search(spectra, db, proteins, peptides);
-        TEST_EQUAL(peptides.size(), mode == "raw" ? 1 : 0)
+        TEST_EQUAL(peptides.size(), mode == "processed" ? 0 : 1)
         if (! peptides.empty())
         {
           TEST_EQUAL(peptides[0].getHits()[0].getSequence(), peptide)
           TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), expected_score)
-          TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:query_spectrum").toString(), "raw")
+          TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:query_spectrum").toString(), mode)
+          TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:query_spectrum_resolved").toString(), "raw")
           TEST_EQUAL(peptides[0].getScoreType(), "ln(hyperscore)")
         }
         const auto files = algo.searchWithModificationAnalysis(vector<std::string> {input_file, input_file}, db, vector<std::string> {}, "", false);
@@ -3152,6 +3173,20 @@ START_SECTION(([EXTRA] raw retrieval recovers a candidate removed by scoring pea
         }
       }
     }
+  }
+  // At an ion-trap tolerance, 'auto' retrieves candidates with the processed peak list.
+  p.setValue("fragment:query_spectrum", "auto");
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  p.setValue("database:chunk_size", 0);
+  algo.setParameters(p);
+  {
+    PeakMap spectra = input;
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    algo.search(spectra, db, proteins, peptides);
+    ABORT_IF(proteins.size() != 1)
+    TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:query_spectrum_resolved").toString(), "processed")
   }
 }
 END_SECTION
