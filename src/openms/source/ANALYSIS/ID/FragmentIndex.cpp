@@ -1253,10 +1253,25 @@ namespace OpenMS
       }
 
       OPENMS_LOG_INFO << "Sorting peptides..." << std::endl;
-      sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b)
-           {
-        return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
-           });
+      if (peptide_min_mass_ > 0 && fi_peptides_.size() == total_peptides && std::numeric_limits<float>::is_iec559)
+      {
+        // Same std::sort on the same sequence as below, with a comparator that returns the same result for every
+        // pair but needs a single integer comparison: all peptides were generated above, so each precursor_mz_ is
+        // >= peptide_min_mass_ > 0 (positive, not NaN), and positive IEEE-754 floats order like their bit patterns.
+        // std::sort thus takes exactly the same decisions and leaves equal-key peptides in the same order.
+        sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b)
+             {
+          const auto key = [](const Peptide& p) { return (static_cast<uint64_t>(std::bit_cast<uint32_t>(p.precursor_mz_)) << 32) | p.protein_idx; };
+          return key(a) < key(b);
+             });
+      }
+      else
+      {
+        sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b)
+             {
+          return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
+             });
+      }
       OPENMS_LOG_INFO << "done." << std::endl;
   }
 
