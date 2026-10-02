@@ -297,6 +297,25 @@ case "$found_dir" in
   *) echo >&2 "ERROR: the consumer found OpenMS at '$found_dir', not in the SDK"; exit 1 ;;
 esac
 
+# macOS: the SDK bundles the OpenMP runtime libOpenMS loads, with its omp.h, and the
+# consumer has to use that one (OpenMSConfig.cmake points FindOpenMP at it): a second
+# libomp in the same process aborts with "OMP: Error #15". (grep reads all of otool's
+# output: grep -q would exit early and fail the pipeline.)
+if [[ "$(uname -s)" == Darwin ]] &&
+   otool -L "$sdk_prefix/$lib_dir/libOpenMS.dylib" | grep '/libomp\.dylib ' >/dev/null; then
+  for required in "$lib_dir/libomp.dylib" "$include_dir/omp.h"; do
+    if [[ ! -e "$sdk_prefix/$required" ]]; then
+      echo >&2 "ERROR: libOpenMS uses OpenMP, but the SDK misses $required"
+      exit 1
+    fi
+  done
+  omp_library=$(sed -n 's/^OpenMP_libomp_LIBRARY:FILEPATH=//p' "$consumer_build/CMakeCache.txt")
+  if [[ "$omp_library" != "$sdk_prefix/$lib_dir/libomp.dylib" ]]; then
+    echo >&2 "ERROR: the consumer uses the OpenMP runtime '$omp_library', not the one in the SDK"
+    exit 1
+  fi
+fi
+
 cmake --build "$(cmake_path "$consumer_build")" --config "${build_type:-Release}"
 # as the README tells users to run their programs
 OPENMS_DATA_PATH="$(cmake_path "$sdk_prefix/$(cache_var INSTALL_SHARE_DIR)")"

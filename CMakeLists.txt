@@ -115,6 +115,7 @@ enable_testing()
 # OPENMS_COVERAGE
 #------------------------------------------------------------------------------
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
+option(MT_REQUIRE_OPENMP "With MT_ENABLE_OPENMP, fail the configuration if no OpenMP runtime is found, instead of falling back to -fopenmp-simd (no parallel regions). The CI presets set it." OFF)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
 option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(BUILD_TOPP_TOOLS "Build the TOPP command-line applications." ON)

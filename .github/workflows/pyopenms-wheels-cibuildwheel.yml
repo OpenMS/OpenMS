@@ -399,7 +399,6 @@ jobs:
             clp \
             coinutils \
             eigen \
-            libomp \
             libsvm \
             libzip \
             sqlite \
