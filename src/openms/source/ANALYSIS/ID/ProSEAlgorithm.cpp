@@ -33,6 +33,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -866,6 +867,35 @@ namespace OpenMS
       sa.setParameters(sa_param);
     }
 
+    // Resolve the meta value keys once: setting a meta value by name looks the name up in the
+    // global registry under a lock, for each value of each hit. They are registered in the order
+    // in which the first annotated hit registered them, so the registry -- and with it the order
+    // of the meta values of a hit in the output -- does not change. Values are only set for the
+    // annotations that are enabled.
+    MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+    const UInt key_scan_index = registry.registerName("scan_index");
+    auto key_if = [&registry](bool enabled, const std::string& name) { return enabled ? registry.registerName(name) : UInt(-1); };
+    const UInt key_fragment_error = key_if(annotation_fragment_error_ppm, Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM);
+    const UInt key_precursor_error = key_if(annotation_precursor_error_ppm, Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
+    const UInt key_prefix_fraction = key_if(annotation_prefix_fraction, Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION);
+    const UInt key_suffix_fraction = key_if(annotation_suffix_fraction, Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION);
+    const UInt key_num_matched_peaks = key_if(annotation_num_matched_peaks, Constants::UserParam::NUM_MATCHED_PEAKS);
+    const UInt key_matched_prefix_ions = key_if(annotation_matched_prefix_ions, Constants::UserParam::MATCHED_PREFIX_IONS);
+    const UInt key_matched_suffix_ions = key_if(annotation_matched_suffix_ions, Constants::UserParam::MATCHED_SUFFIX_IONS);
+    const UInt key_delta_score = registry.registerName(Constants::UserParam::DELTA_SCORE);
+    const UInt key_hyperscore_zscore = key_if(annotation_hyperscore_zscore, Constants::UserParam::HYPERSCORE_ZSCORE);
+    const UInt key_ln_num_candidates = key_if(annotation_ln_num_candidates, Constants::UserParam::LN_NUM_CANDIDATES);
+    const bool annotation_from_alignment = annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current
+      || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction;
+    const UInt key_matched_ion_current = key_if(annotation_from_alignment && annotation_matched_ion_current, Constants::UserParam::MATCHED_ION_CURRENT);
+    const UInt key_matched_ion_current_fraction = key_if(annotation_from_alignment && annotation_matched_ion_current_fraction, Constants::UserParam::MATCHED_ION_CURRENT_FRACTION);
+    const UInt key_longest_ion_run = key_if(annotation_from_alignment && annotation_longest_ion_run, Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE);
+    const UInt key_complementary_ions = key_if(annotation_from_alignment && annotation_complementary_ions_fraction, Constants::UserParam::COMPLEMENTARY_IONS_FRACTION);
+    const UInt key_chance_match_surprise = key_if(annotation_local_evidence, Constants::UserParam::CHANCE_MATCH_SURPRISE);
+    const UInt key_mass_competition_evidence = key_if(annotation_local_evidence, Constants::UserParam::MASS_COMPETITION_EVIDENCE);
+    const UInt key_isotope_error = registry.registerName(Constants::UserParam::ISOTOPE_ERROR);
+    const UInt key_delta_mass = key_if(isOpenSearchMode_(), "DeltaMass");
+
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -876,7 +906,7 @@ namespace OpenMS
         // create empty PeptideIdentification object and fill meta data
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
-        pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
+        pi.setMetaValue(key_scan_index, static_cast<unsigned int>(scan_index));
         pi.setScoreType("ln(hyperscore)");
         pi.setHigherScoreBetter(true);
         double mz = spec.getPrecursors()[0].getMZ();
@@ -932,7 +962,7 @@ namespace OpenMS
             }
             double median_ppm_error(0);
             if (!err.empty()) { median_ppm_error = Math::median(err.begin(), err.end(), false); }
-            ph.setMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, median_ppm_error);
+            ph.setMetaValue(key_fragment_error, median_ppm_error);
           }
 
           if (annotation_precursor_error_ppm)
@@ -947,48 +977,47 @@ namespace OpenMS
               + static_cast<double>(ah.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
             double theo_mz = ah.sequence.getMZ(used_charge);
             double ppm_difference = Math::getPPM(corrected_mz, theo_mz);
-            ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
+            ph.setMetaValue(key_precursor_error, ppm_difference);
           }
 
           if (annotation_prefix_fraction)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION, ah.prefix_fraction);
+            ph.setMetaValue(key_prefix_fraction, ah.prefix_fraction);
           }
 
           if (annotation_suffix_fraction)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION, ah.suffix_fraction);
+            ph.setMetaValue(key_suffix_fraction, ah.suffix_fraction);
           }
 
           // Matched ion counts (from scoring, no alignment needed)
           if (annotation_num_matched_peaks)
           {
-            ph.setMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS, static_cast<int>(ah.matched_prefix_ions + ah.matched_suffix_ions));
+            ph.setMetaValue(key_num_matched_peaks, static_cast<int>(ah.matched_prefix_ions + ah.matched_suffix_ions));
           }
           if (annotation_matched_prefix_ions)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS, static_cast<int>(ah.matched_prefix_ions));
+            ph.setMetaValue(key_matched_prefix_ions, static_cast<int>(ah.matched_prefix_ions));
           }
           if (annotation_matched_suffix_ions)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS, static_cast<int>(ah.matched_suffix_ions));
+            ph.setMetaValue(key_matched_suffix_ions, static_cast<int>(ah.matched_suffix_ions));
           }
 
-          ph.setMetaValue(Constants::UserParam::DELTA_SCORE, delta_scores[scan_index]);
+          ph.setMetaValue(key_delta_score, delta_scores[scan_index]);
 
           if (annotation_hyperscore_zscore)
           {
-            ph.setMetaValue(Constants::UserParam::HYPERSCORE_ZSCORE, hyperscore_zscores[scan_index]);
+            ph.setMetaValue(key_hyperscore_zscore, hyperscore_zscores[scan_index]);
           }
           if (annotation_ln_num_candidates)
           {
-            ph.setMetaValue(Constants::UserParam::LN_NUM_CANDIDATES, ln_num_candidates[scan_index]);
+            ph.setMetaValue(key_ln_num_candidates, ln_num_candidates[scan_index]);
           }
 
           // Fragment annotations, longest ion run, MIC, normalized MIC, and complementary
           // ion pairs all iterate the alignment + ion names
-          if (annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current
-            || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction)
+          if (annotation_from_alignment)
           {
             const auto& ion_names = theoretical_spec.getStringDataArrays()[0];
             const auto& ion_charges = theoretical_spec.getIntegerDataArrays()[0];
@@ -1057,12 +1086,12 @@ namespace OpenMS
 
             if (annotation_matched_ion_current)
             {
-              ph.setMetaValue(Constants::UserParam::MATCHED_ION_CURRENT, matched_ion_current);
+              ph.setMetaValue(key_matched_ion_current, matched_ion_current);
             }
 
             if (annotation_matched_ion_current_fraction)
             {
-              ph.setMetaValue(Constants::UserParam::MATCHED_ION_CURRENT_FRACTION,
+              ph.setMetaValue(key_matched_ion_current_fraction,
                               spectrum_tic > 0 ? matched_ion_current / spectrum_tic : 0.0);
             }
 
@@ -1088,7 +1117,7 @@ namespace OpenMS
 
               if (annotation_longest_ion_run)
               {
-                ph.setMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE, std::max(longest_prefix, longest_suffix));
+                ph.setMetaValue(key_longest_ion_run, std::max(longest_prefix, longest_suffix));
               }
 
               if (annotation_complementary_ions_fraction)
@@ -1108,7 +1137,7 @@ namespace OpenMS
                   }
                   complementary_fraction = static_cast<double>(n_complementary) / static_cast<double>(pep_len - 1);
                 }
-                ph.setMetaValue(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION, complementary_fraction);
+                ph.setMetaValue(key_complementary_ions, complementary_fraction);
               }
             }
           }
@@ -1121,17 +1150,17 @@ namespace OpenMS
             tsg.getSpectrum(evidence_theory, ah.sequence, 1, scoringMaxCharge_(static_cast<int>(used_charge)));
             const auto evidence = localFragmentEvidence_(evidence_spec, evidence_theory, local_densities,
               fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm == "ppm");
-            ph.setMetaValue(Constants::UserParam::CHANCE_MATCH_SURPRISE, evidence.chance_match_surprise);
-            ph.setMetaValue(Constants::UserParam::MASS_COMPETITION_EVIDENCE, evidence.mass_competition_evidence);
+            ph.setMetaValue(key_chance_match_surprise, evidence.chance_match_surprise);
+            ph.setMetaValue(key_mass_competition_evidence, evidence.mass_competition_evidence);
           }
 
           // Add isotope error metavalue (always; exposed as Percolator feature)
-          ph.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, ah.isotope_error);
+          ph.setMetaValue(key_isotope_error, ah.isotope_error);
 
           // Add delta mass metavalue for open search
-          if (isOpenSearchMode_())
+          if (key_delta_mass != UInt(-1))
           {
-            ph.setMetaValue("DeltaMass", ah.delta_mass);
+            ph.setMetaValue(key_delta_mass, ah.delta_mass);
           }
 
           // store PSM
@@ -1156,7 +1185,7 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << "[ProSE] scan_index=" << scan_index
                            << " top_ln(hyperscore)=" << top_hit.getScore()
                            << " top_charge=" << top_hit.getCharge()
-                           << " top_isotope_error=" << (int)top_hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR)
+                           << " top_isotope_error=" << (int)top_hit.getMetaValue(key_isotope_error)
                            << std::endl;
         }
 #pragma omp critical (peptide_ids_access)
@@ -1171,9 +1200,9 @@ namespace OpenMS
     // we need to sort the peptide_ids by scan_index in order to have the same output in the idXML-file
     if (omp_get_max_threads() > 1)
     {
-      std::sort(peptide_ids.begin(), peptide_ids.end(), [](const PeptideIdentification& a, const PeptideIdentification& b)
+      std::sort(peptide_ids.begin(), peptide_ids.end(), [key_scan_index](const PeptideIdentification& a, const PeptideIdentification& b)
       {
-        return a.getMetaValue("scan_index") < b.getMetaValue("scan_index");
+        return a.getMetaValue(key_scan_index) < b.getMetaValue(key_scan_index);
       });
     }
 #endif
@@ -1383,6 +1412,14 @@ namespace OpenMS
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
       const DecoyStrategy_& strategy) const
   {
+    return buildDecoyAugmentedDB_(std::vector<FASTAFile::FASTAEntry>(fasta_db), strategy);
+  }
+
+  std::vector<FASTAFile::FASTAEntry>
+  ProSEAlgorithm::buildDecoyAugmentedDB_(
+      std::vector<FASTAFile::FASTAEntry>&& fasta_db,
+      const DecoyStrategy_& strategy) const
+  {
     std::vector<FASTAFile::FASTAEntry> db;
     db.reserve(fasta_db.size() * (strategy.generate ? 2 : 1));
 
@@ -1402,14 +1439,14 @@ namespace OpenMS
     //    alone. FragmentIndex skips peptides that contain a stop codon inside the sequence.
     //    An entry left without residues has nothing to search, and decoy generation needs
     //    residues: drop it.
-    for (const FASTAFile::FASTAEntry& e : fasta_db)
+    for (FASTAFile::FASTAEntry& e : fasta_db)
     {
       const bool is_existing_decoy = strategy.strip_existing &&
         (strategy.strip_is_prefix ? StringUtils::hasPrefix(e.identifier, strategy.strip_string)
                                   : StringUtils::hasSuffix(e.identifier, strategy.strip_string));
       if (!is_existing_decoy)
       {
-        db.push_back(e);
+        db.push_back(std::move(e));
         std::string& sequence = db.back().sequence;
         while (!sequence.empty() && sequence.back() == '*') { sequence.pop_back(); }
         if (sequence.empty()) { db.pop_back(); }
@@ -1525,11 +1562,18 @@ namespace OpenMS
   ProSEAlgorithm::prepareContext(
       const std::vector<FASTAFile::FASTAEntry>& fasta_db, bool electron_ions) const
   {
+    return prepareContext_(std::vector<FASTAFile::FASTAEntry>(fasta_db), electron_ions);
+  }
+
+  ProSEAlgorithm::SearchContext
+  ProSEAlgorithm::prepareContext_(
+      std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions) const
+  {
     SearchContext ctx;
 
     startProgress(0, 1, "Generate decoys...");
     const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
-    ctx.db = buildDecoyAugmentedDB_(fasta_db, strategy);
+    ctx.db = buildDecoyAugmentedDB_(std::move(fasta_db), strategy);
     ctx.decoy_string = strategy.decoy_string;
     ctx.decoy_is_prefix = strategy.is_prefix;
     ctx.have_decoys = strategy.have_decoys;
@@ -2415,15 +2459,8 @@ namespace OpenMS
                     << protein_fdr * 100 << "% FDR." << std::endl;
   }
 
-  // =====================================================================
-  // File-based search: thin I/O wrapper that delegates to in-memory search
-  // =====================================================================
-  ProSEAlgorithm::ExitCodes ProSEAlgorithm::search(
-      const std::string& in_spectra, const std::string& in_db,
-      vector<ProteinIdentification>& protein_ids,
-      PeptideIdentificationList& peptide_ids) const
+  PeakMap ProSEAlgorithm::loadSpectra_(const std::string& in_spectra)
   {
-    // load MS2 map
     PeakMap spectra;
     FileHandler f;
     PeakFileOptions options;
@@ -2432,13 +2469,55 @@ namespace OpenMS
     f.getOptions() = options;
     f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
     spectra.sortSpectra(true);
+    return spectra;
+  }
+
+  // =====================================================================
+  // File-based search: thin I/O wrapper that delegates to in-memory search
+  // =====================================================================
+  ProSEAlgorithm::ExitCodes ProSEAlgorithm::search(
+      const std::string& in_spectra, const std::string& in_db,
+      vector<ProteinIdentification>& protein_ids,
+      PeptideIdentificationList& peptide_ids) const
+  {
+    // Read the MS2 spectra while the FASTA is read and the fragment index is built.
+    std::future<PeakMap> spectra_reader = std::async(std::launch::async, [&in_spectra]() { return loadSpectra_(in_spectra); });
 
     // load FASTA
     vector<FASTAFile::FASTAEntry> fasta_db;
     FASTAFile().load(in_db, fasta_db);
 
+    // The decoy handling of this database, for the protein FDR below (the search takes the entries
+    // of fasta_db).
+    const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
+
     // delegate to in-memory search
-    ExitCodes ec = search(spectra, fasta_db, protein_ids, peptide_ids);
+    PeakMap spectra;
+    ExitCodes ec;
+    if (database_chunk_size_ == 0)
+    {
+      // As search(spectra, fasta_db, ...), but the index is built before the spectra are known:
+      // without the c and z+1 ions of electron-activated spectra, which are added if needed.
+      last_run_stats_ = RunStatistics{};
+      SearchContext ctx = prepareContext_(std::move(fasta_db), false);
+      spectra = spectra_reader.get();
+      if (countElectronActivated_(spectra) > 0)
+      {
+        startProgress(0, 1, "Building fragment index with c and z+1 ions...");
+        ctx.fragment_index.clear();
+        ctx.fragment_index.setParameters(fragmentIndexParameters_(true));
+        ctx.fragment_index.build(ctx.db);
+        ctx.electron_ions = true;
+        endProgress();
+      }
+      ctx.release_fragment_index_after_scoring = true;
+      ec = search(spectra, ctx, protein_ids, peptide_ids);
+    }
+    else
+    {
+      spectra = spectra_reader.get();
+      ec = search(spectra, fasta_db, protein_ids, peptide_ids);
+    }
 
     if (ec != ExitCodes::EXECUTION_OK)
     {
@@ -2447,9 +2526,8 @@ namespace OpenMS
 
     // Protein inference + picked-protein FDR for single-file search.
     // Must run before decoy removal so both target and decoy proteins
-    // receive aggregated scores from BPIA. Resolve the decoy strategy from the
-    // same input FASTA the search used so the marker/position match.
-    const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
+    // receive aggregated scores from BPIA. The decoy strategy was resolved from the
+    // same input FASTA the search used, so the marker/position match.
     if (fdr_protein_ > 0.0 && strategy.have_decoys)
     {
       // Single input file = complete experiment, so picked-protein FDR is valid. Use the resolved
@@ -2536,6 +2614,19 @@ namespace OpenMS
       const std::string& aggregate_base_name,
       bool build_pooled_aggregate) const
   {
+    return searchFiles_(in_spectra_files, fasta_db, output_base_names, aggregate_base_name, build_pooled_aggregate, nullptr, nullptr);
+  }
+
+  ProSEAlgorithm::MultiFileSearchResult
+  ProSEAlgorithm::searchFiles_(
+      const std::vector<std::string>& in_spectra_files,
+      const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+      const std::vector<std::string>& output_base_names,
+      const std::string& aggregate_base_name,
+      bool build_pooled_aggregate,
+      std::future<PeakMap>* first_spectra,
+      std::vector<FASTAFile::FASTAEntry>* movable_db) const
+  {
     if (!output_base_names.empty() && output_base_names.size() != in_spectra_files.size())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -2603,7 +2694,7 @@ namespace OpenMS
     bool use_chunked = false;
     if (database_chunk_size_ > 0)
     {
-      full_db = buildDecoyAugmentedDB_(fasta_db, strategy);
+      full_db = movable_db != nullptr ? buildDecoyAugmentedDB_(std::move(*movable_db), strategy) : buildDecoyAugmentedDB_(fasta_db, strategy);
       use_chunked = (full_db.size() > database_chunk_size_);
     }
 
@@ -2646,13 +2737,7 @@ namespace OpenMS
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
-        FileHandler f;
-        PeakFileOptions options;
-        options.clearMSLevels();
-        options.addMSLevel(2);
-        f.getOptions() = options;
-        f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
-        all_spectra[i].sortSpectra(true);
+        all_spectra[i] = (i == 0 && first_spectra != nullptr) ? first_spectra->get() : loadSpectra_(in_spectra_files[i]);
         preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_,
                            peaks_window_top_, peaks_window_type_, retain_evidence ? &all_evidence_spectra[i] : nullptr,
                            query_raw_spectrum_ ? &all_query_spectra[i] : nullptr);
@@ -2988,7 +3073,7 @@ namespace OpenMS
         }
         else
         {
-          ctx = prepareContext(fasta_db, electron_ions);
+          ctx = movable_db != nullptr ? prepareContext_(std::move(*movable_db), electron_ions) : prepareContext(fasta_db, electron_ions);
         }
         sw_idx.stop();
 
@@ -3025,19 +3110,24 @@ namespace OpenMS
                         << "] Searching " << in_spectra << std::endl;
 
         PeakMap spectra;
+        if (i == 0 && first_spectra != nullptr)
         {
-          FileHandler f;
-          PeakFileOptions options;
-          options.clearMSLevels();
-          options.addMSLevel(2);
-          f.getOptions() = options;
-          f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+          // The first file is being read already: build the index meanwhile, without the c and z+1
+          // ions of electron-activated spectra, which prepare_context() adds below if needed.
+          prepare_context(false);
+          spectra = first_spectra->get();
         }
-        spectra.sortSpectra(true);
+        else
+        {
+          spectra = loadSpectra_(in_spectra);
+        }
         prepare_context(countElectronActivated_(spectra) > 0);
 
         SearchResult result;
         result.is_open_search = isOpenSearchMode_();
+        // No file after the last one needs the index: release it once its spectra are scored,
+        // before the peptides are mapped to proteins.
+        ctx.release_fragment_index_after_scoring = (i + 1 == in_spectra_files.size());
         result.exit_code = search(spectra, ctx, result.protein_ids, result.peptide_ids);
 
         if (result.exit_code != ExitCodes::EXECUTION_OK)
@@ -3197,12 +3287,22 @@ namespace OpenMS
       const std::string& aggregate_base_name,
       bool build_pooled_aggregate) const
   {
+    // Read the spectra of the first file while the FASTA is read and the fragment index is built.
+    std::future<PeakMap> first_spectra;
+    if (!in_spectra_files.empty())
+    {
+      const std::string& first_file = in_spectra_files[0];
+      first_spectra = std::async(std::launch::async, [&first_file]() { return loadSpectra_(first_file); });
+    }
+
     // load FASTA once
     vector<FASTAFile::FASTAEntry> fasta_db;
     FASTAFile().load(in_db, fasta_db);
 
-    MultiFileSearchResult mfres = searchWithModificationAnalysis(
-      in_spectra_files, fasta_db, output_base_names, aggregate_base_name, build_pooled_aggregate);
+    // The search takes the entries of fasta_db, which is not needed afterwards.
+    MultiFileSearchResult mfres = searchFiles_(
+      in_spectra_files, fasta_db, output_base_names, aggregate_base_name, build_pooled_aggregate,
+      first_spectra.valid() ? &first_spectra : nullptr, &fasta_db);
 
     mfres.shared.database_file = in_db;
 

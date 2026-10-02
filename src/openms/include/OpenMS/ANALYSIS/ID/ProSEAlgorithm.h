@@ -20,6 +20,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <algorithm>   // std::min (used by inline computeModMatchTolerance_)
+#include <future>      // std::future (searchFiles_)
 #include <iosfwd>      // std::ostream (renderRunSummary / renderModificationSummary)
 #include <map>
 #include <string>      // std::string (renderRunSummaryJson return / manifest)
@@ -511,6 +512,26 @@ class OPENMS_DLLAPI ProSEAlgorithm :
   protected:
     void updateMembers_() override;
 
+    /// Reads the MS2 spectra of @p in_spectra and sorts them by RT, as the file-based searches do.
+    static PeakMap loadSpectra_(const std::string& in_spectra);
+
+    /**
+     * @brief The in-memory multi-file search, with the spectra of the first file possibly being read
+     * already.
+     *
+     * @p first_spectra (may be null) delivers the spectra of the first file of
+     * @p in_spectra_files. The fragment index is then built while they are read.
+     * @p movable_db (may be null) is @p fasta_db itself, if the caller does not need it any more:
+     * its entries are then moved into the searched database instead of copied.
+     */
+    MultiFileSearchResult searchFiles_(const std::vector<std::string>& in_spectra_files,
+                                       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+                                       const std::vector<std::string>& output_base_names,
+                                       const std::string& aggregate_base_name,
+                                       bool build_pooled_aggregate,
+                                       std::future<PeakMap>* first_spectra,
+                                       std::vector<FASTAFile::FASTAEntry>* movable_db) const;
+
     /// Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
     struct AnnotatedHit_
     {
@@ -732,6 +753,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::vector<FASTAFile::FASTAEntry> buildDecoyAugmentedDB_(
         const std::vector<FASTAFile::FASTAEntry>& fasta_db,
         const DecoyStrategy_& strategy) const;
+
+    /// As above, but takes the entries of @p fasta_db instead of copying them.
+    std::vector<FASTAFile::FASTAEntry> buildDecoyAugmentedDB_(
+        std::vector<FASTAFile::FASTAEntry>&& fasta_db,
+        const DecoyStrategy_& strategy) const;
+
+    /// As prepareContext(fasta_db, electron_ions), but takes the entries of @p fasta_db instead of
+    /// copying them.
+    SearchContext prepareContext_(std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions) const;
 
     /**
      * @brief Build a strided protein sample for chunked calibration.
