@@ -1,0 +1,160 @@
+diff --git a/src/openms/include/OpenMS/ANALYSIS/ID/PeptDeepRescoring.h b/src/openms/include/OpenMS/ANALYSIS/ID/PeptDeepRescoring.h
+index aab4eaad89..a2dea177d1 100644
+--- a/src/openms/include/OpenMS/ANALYSIS/ID/PeptDeepRescoring.h
++++ b/src/openms/include/OpenMS/ANALYSIS/ID/PeptDeepRescoring.h
+@@ -57,7 +57,10 @@ namespace OpenMS
+ 
+     Confident PSMs are selected by search score rather than by spectral similarity: using
+     similarity here would tie the RT feature to the MS2 features and let one feature's
+-    errors propagate into the other.
++    errors propagate into the other. Only the best-scoring hit of each spectrum, and only
++    if it is not a decoy, is a candidate, so the calibration does not depend on how many
++    hits per spectrum the search reports: with ten, lower-ranked candidates and decoys
++    would otherwise make up most of the better-scoring half.
+ 
+     Parameters are not pulled into the generated documentation with
+     @c \@htmlinclude: that requires the class to be registered in
+@@ -132,6 +135,7 @@ namespace OpenMS
+       Size len;     ///< peptide length
+       Size key;     ///< index into the de-duplicated (sequence, charge) list
+       double score; ///< search score, used to pick the calibration set
++      bool calibration_candidate; ///< best hit of its spectrum and not a decoy
+     };
+ 
+     /// Annotates the PSMs of a single identification run. Each run gets its own
+diff --git a/src/openms/source/ANALYSIS/ID/PeptDeepRescoring.cpp b/src/openms/source/ANALYSIS/ID/PeptDeepRescoring.cpp
+index 2a823d5c0b..1e6c8bc151 100644
+--- a/src/openms/source/ANALYSIS/ID/PeptDeepRescoring.cpp
++++ b/src/openms/source/ANALYSIS/ID/PeptDeepRescoring.cpp
+@@ -175,7 +175,7 @@ namespace OpenMS
+     defaults_.setValue("nce_sample_size", 2000, "Number of confident PSMs scored per candidate NCE.", {"advanced"});
+     defaults_.setMinInt("nce_sample_size", 50);
+ 
+-    defaults_.setValue("calibration_quantile", 0.5, "Fraction of PSMs, ranked by search score, held out of the calibration sets. 0.5 fits on the better-scoring half. Selection uses the search score rather than spectral similarity, so the RT feature stays independent of the MS2 features.", {"advanced"});
++    defaults_.setValue("calibration_quantile", 0.5, "Fraction of the calibration candidates (the best-scoring hit of each spectrum, if it is not a decoy), ranked by search score, held out of the calibration sets. 0.5 fits on the better-scoring half. Selection uses the search score rather than spectral similarity, so the RT feature stays independent of the MS2 features.", {"advanced"});
+     defaults_.setMinFloat("calibration_quantile", 0.0);
+     defaults_.setMaxFloat("calibration_quantile", 0.99);
+ 
+@@ -271,6 +271,14 @@ namespace OpenMS
+     for (Size pi = 0; pi < peptide_ids.size(); ++pi)
+     {
+       const std::vector<PeptideHit>& hits = peptide_ids[pi].getHits();
++      // Only a spectrum's best hit can calibrate, and only if it is not a decoy: the other
++      // hits are wrong for every spectrum that has a correct best hit.
++      const bool higher_better = peptide_ids[pi].isHigherScoreBetter();
++      Size best = 0;
++      for (Size h = 1; h < hits.size(); ++h)
++      {
++        if (higher_better ? hits[h].getScore() > hits[best].getScore() : hits[h].getScore() < hits[best].getScore()) { best = h; }
++      }
+       for (Size h = 0; h < hits.size(); ++h)
+       {
+         const AASequence& seq = hits[h].getSequence();
+@@ -292,7 +300,7 @@ namespace OpenMS
+         // The run identifier is what keeps NCE and RT calibration per-run, so it has to
+         // still distinguish the runs by the time we get here -- see the note on annotate().
+         rows_by_run[peptide_ids[pi].getIdentifier()].push_back(rows.size());
+-        rows.push_back(Row{pi, h, seq.size(), it->second, hits[h].getScore()});
++        rows.push_back(Row{pi, h, seq.size(), it->second, hits[h].getScore(), h == best && !hits[h].isDecoy()});
+       }
+     }
+     if (rows.empty()) { return; }
+@@ -421,7 +429,12 @@ namespace OpenMS
+ 
+     // Confident PSMs of this run, used both to score NCE candidates and to fit the RT
+     // calibration. Ranking by search score keeps this independent of the MS2 features.
+-    std::vector<Size> by_score(run_rows);
++    std::vector<Size> by_score;
++    for (Size i : run_rows)
++    {
++      if (rows[i].calibration_candidate) { by_score.push_back(i); }
++    }
++    if (by_score.empty()) { by_score = run_rows; } // e.g. a run holding only decoy hits
+     std::sort(by_score.begin(), by_score.end(), [&](Size a, Size b)
+       { return higher_better ? rows[a].score > rows[b].score : rows[a].score < rows[b].score; });
+     const Size n_conf = std::max<Size>(1, static_cast<Size>(by_score.size() * (1.0 - calibration_quantile_)));
+diff --git a/src/tests/class_tests/openms/source/PeptDeepRescoring_test.cpp b/src/tests/class_tests/openms/source/PeptDeepRescoring_test.cpp
+index 807112592a..2f2d4699b7 100644
+--- a/src/tests/class_tests/openms/source/PeptDeepRescoring_test.cpp
++++ b/src/tests/class_tests/openms/source/PeptDeepRescoring_test.cpp
+@@ -252,6 +252,80 @@ START_SECTION([EXTRA] annotate() writes every feature and registers them per run
+ }
+ END_SECTION
+ 
++START_SECTION([EXTRA] lower-ranked hits and decoys do not enter the calibration)
++{
++  if (!File::exists(ms2_model_path) || !File::exists(rt_model_path))
++  {
++    STATUS("PeptDeep ONNX models not found next to the test; skipping the calibration-set section.")
++  }
++  else
++  {
++    const std::vector<std::pair<std::string, double>> peaks =
++      {{"b2", 500.0}, {"y3", 900.0}, {"y4", 750.0}, {"b3", 300.0}, {"y5", 620.0}, {"y6", 410.0}};
++    const std::vector<std::string> seqs =
++      {"PEPTIDEK", "TESTPEPTIDER", "ELVISLIVESK", "SAMPLERPEPTIDEK",
++       "LNGGKPVDEK", "VATVSLPRK", "AGGDLSTVEK", "YLDGTSLSPK",
++       "IADPEHLVK", "GFTVSGNLTK", "SLYPQEDVK", "NVLDTGAPIK"};
++    // Second-ranked candidates scoring just below their spectrum's best hit, and decoys
++    // scoring above every target, at retention times that break the trend.
++    const std::vector<std::string> others =
++      {"KEDITPEP", "RDITPEPTSET", "KSEVILSIVLE", "KEDITPEPRELPMAS",
++       "KEDVPKGGNL", "KRPLSVTAV", "KEVTSLDGGA", "KPSLSTGDLY",
++       "KVLHEPDAI", "KTLNGSVTFG", "KVDEQPYLS", "KIPAGTDLVN"};
++
++    auto run = [&](bool with_others, PeptideIdentificationList& peps)
++    {
++      for (Size i = 0; i < seqs.size(); ++i)
++      {
++        PeptideIdentification pi = makeId_("run_A", 100.0 + 40.0 * i, makeHit_(seqs[i], 2, 20.0 - i, peaks));
++        if (with_others)
++        {
++          std::vector<PeptideHit> hits = pi.getHits();
++          hits.push_back(makeHit_(others[i], 2, 19.5 - i, peaks));
++          pi.setHits(hits);
++        }
++        peps.push_back(pi);
++      }
++      if (with_others)
++      {
++        for (Size i = 0; i < 6; ++i)
++        {
++          PeptideHit decoy = makeHit_(others[i], 2, 30.0 + i, peaks);
++          decoy.setTargetDecoyType(PeptideHit::TargetDecoyType::DECOY);
++          peps.push_back(makeId_("run_A", 500.0 - 80.0 * i, decoy));
++        }
++      }
++      std::vector<ProteinIdentification> prot(1);
++      prot[0].setIdentifier("run_A");
++      PeptDeepRescoring r;
++      Param p = r.getParameters();
++      p.setValue("ms2_model", ms2_model_path);
++      p.setValue("rt_model", rt_model_path);
++      p.setValue("nce", 30.0);
++      p.setValue("rt_model_type", "linear");
++      r.setParameters(p);
++      PeakMap exp;
++      r.annotate(exp, prot, peps);
++      return r.getRTCalibrationError();
++    };
++
++    PeptideIdentificationList alone, mixed;
++    const double error_alone = run(false, alone);
++    const double error_mixed = run(true, mixed);
++    TEST_EQUAL(error_alone >= 0.0, true)
++    // The same six best target hits calibrate both runs, so the fit, and with it every
++    // best hit's residual, is the same.
++    TOLERANCE_ABSOLUTE(1e-3)
++    TEST_REAL_SIMILAR(error_mixed, error_alone)
++    for (Size i = 0; i < seqs.size(); ++i)
++    {
++      TEST_REAL_SIMILAR(double(mixed[i].getHits()[0].getMetaValue(Constants::UserParam::RT_ABS_ERROR)),
++                        double(alone[i].getHits()[0].getMetaValue(Constants::UserParam::RT_ABS_ERROR)))
++    }
++  }
++}
++END_SECTION
++
+ START_SECTION([EXTRA] a run without peak annotations is reported rather than silently zeroed)
+ {
+   if (!File::exists(ms2_model_path) || !File::exists(rt_model_path))

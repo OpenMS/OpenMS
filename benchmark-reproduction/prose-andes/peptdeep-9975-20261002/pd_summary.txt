@@ -1,0 +1,181 @@
+## #9975 PeptDeep features (defaults: instrument QE, NCE auto) (pd_on vs re_auto): files up 12 / flat 8 / down 0 of 20; sum 63754.0 -> 66281.7 (+3.96%)
+  Velos CID               3    2940.0    3067.6   +4.34%  +5.4(+3.1) +1.4(+1.2) +6.3(+7.3)
+  HF-X HCD                3    4445.6    4685.8   +5.40%  +4.2(+12.8) +6.8(+11.0) +5.3(+27.2)
+  Astral HCD              3    2655.3    3049.4  +14.84%  +21.0(+9.4) +16.1(+18.3) +8.4(+3.7)
+  Lumos HCD LFQ           3    5552.6    5617.8   +1.17%  +0.6(+3.7) +1.9(+24.4) +1.1(+10.2)
+  Lumos CID TMT           3    2414.9    2411.3   -0.15%  +0.3(+0.2) -0.4(-0.3) -0.4(-1.0)
+  Exploris 480 TMTpro     3    2548.9    2566.2   +0.68%  +1.2(+1.7) +0.9(+5.8) -0.1(-0.1)
+  timsTOF HT              2    1041.2    1043.7   +0.24%  +0.7(+0.4) -0.2(-0.1)
+
+## #9975 + calibration on each spectrum's best target hit (pd_cal vs re_auto): files up 13 / flat 7 / down 0 of 20; sum 63754.0 -> 67362.0 (+5.66%)
+  Velos CID               3    2940.0    3128.2   +6.40%  +7.3(+5.4) +5.2(+4.7) +6.8(+6.0)
+  HF-X HCD                3    4445.6    4828.4   +8.61%  +7.1(+22.7) +9.5(+17.3) +9.2(+43.3)
+  Astral HCD              3    2655.3    3178.7  +19.71%  +23.0(+8.8) +21.8(+29.3) +14.7(+4.8)
+  Lumos HCD LFQ           3    5552.6    5629.0   +1.38%  +0.9(+7.9) +2.0(+21.9) +1.2(+27.7)
+  Lumos CID TMT           3    2414.9    2410.6   -0.18%  -0.7(-0.4) -0.1(-0.1) +0.2(+0.5)
+  Exploris 480 TMTpro     3    2548.9    2574.0   +0.99%  +1.5(+2.1) +0.5(+1.8) +0.9(+1.1)
+  timsTOF HT              2    1041.2    1057.7   +1.58%  +2.6(+1.6) +0.5(+0.2)
+
+## calibration on each spectrum's best target hit, against #9975 as rebased (pd_cal vs pd_on): files up 7 / flat 13 / down 0 of 20; sum 66281.7 -> 67362.0 (+1.63%)
+  Velos CID               3    3067.6    3128.2   +1.98%  +1.8(+1.1) +3.7(+3.0) +0.5(+0.6)
+  HF-X HCD                3    4685.8    4828.4   +3.04%  +2.9(+27.5) +2.5(+8.0) +3.8(+30.4)
+  Astral HCD              3    3049.4    3178.7   +4.24%  +1.7(+0.7) +5.0(+5.4) +5.8(+2.0)
+  Lumos HCD LFQ           3    5617.8    5629.0   +0.20%  +0.3(+1.9) +0.2(+2.5) +0.1(+0.9)
+  Lumos CID TMT           3    2411.3    2410.6   -0.03%  -1.1(-0.5) +0.3(+0.2) +0.6(+1.4)
+  Exploris 480 TMTpro     3    2566.2    2574.0   +0.30%  +0.3(+0.7) -0.4(-1.3) +1.0(+0.9)
+  timsTOF HT              2    1043.7    1057.7   +1.34%  +1.9(+1.1) +0.7(+0.3)
+
+## #9975 without rt_abs_error (Percolator rerun on the same PIN) (pd_on-nort vs re_auto): files up 13 / flat 7 / down 0 of 20; sum 63754.0 -> 66330.7 (+4.04%)
+  Velos CID               3    2940.0    3084.7   +4.92%  +6.4(+2.6) +2.0(+2.4) +6.5(+7.7)
+  HF-X HCD                3    4445.6    4687.6   +5.44%  +4.1(+10.8) +7.0(+11.9) +5.3(+19.9)
+  Astral HCD              3    2655.3    3034.1  +14.26%  +19.3(+12.4) +15.1(+16.9) +9.2(+3.6)
+  Lumos HCD LFQ           3    5552.6    5619.8   +1.21%  +0.6(+3.9) +1.9(+22.3) +1.2(+21.8)
+  Lumos CID TMT           3    2414.9    2412.7   -0.09%  +0.1(+0.0) +0.1(+0.1) -0.4(-0.7)
+  Exploris 480 TMTpro     3    2548.9    2565.7   +0.66%  +1.0(+1.5) +0.8(+5.7) +0.1(+0.2)
+  timsTOF HT              2    1041.2    1058.7   +1.68%  +2.2(+1.3) +1.2(+0.5)
+
+## #9975 without the four MS2 features (Percolator rerun on the same PIN) (pd_on-noms2 vs re_auto): files up 0 / flat 20 / down 0 of 20; sum 63754.0 -> 63776.3 (+0.04%)
+  Velos CID               3    2940.0    2931.1   -0.30%  -0.2(-0.2) -0.2(-0.2) -0.5(-0.6)
+  HF-X HCD                3    4445.6    4462.6   +0.38%  +0.6(+1.3) +0.6(+1.2) -0.1(-0.2)
+  Astral HCD              3    2655.3    2671.1   +0.59%  +0.9(+0.7) +1.0(+1.3) -0.2(-0.1)
+  Lumos HCD LFQ           3    5552.6    5551.0   -0.03%  -0.1(-0.8) -0.1(-0.9) +0.1(+1.7)
+  Lumos CID TMT           3    2414.9    2396.3   -0.77%  -1.3(-0.8) -1.3(-1.2) +0.3(+0.7)
+  Exploris 480 TMTpro     3    2548.9    2555.2   +0.25%  +0.0(+0.0) +0.2(+1.3) +0.5(+0.5)
+  timsTOF HT              2    1041.2    1037.2   -0.38%  +0.1(+0.1) -0.9(-0.4)
+
+## calibration fix, without rt_abs_error (pd_cal-nort vs re_auto): files up 13 / flat 7 / down 0 of 20; sum 63754.0 -> 66335.7 (+4.05%)
+  Velos CID               3    2940.0    3084.7   +4.92%  +6.4(+2.6) +2.0(+2.4) +6.5(+7.7)
+  HF-X HCD                3    4445.6    4692.1   +5.55%  +4.4(+13.8) +7.0(+11.9) +5.3(+19.9)
+  Astral HCD              3    2655.3    3034.1  +14.26%  +19.3(+12.4) +15.1(+16.9) +9.2(+3.6)
+  Lumos HCD LFQ           3    5552.6    5619.8   +1.21%  +0.6(+3.9) +1.9(+22.3) +1.2(+21.8)
+  Lumos CID TMT           3    2414.9    2409.6   -0.22%  -1.0(-0.5) +0.5(+0.7) -0.2(-0.6)
+  Exploris 480 TMTpro     3    2548.9    2565.7   +0.66%  +1.0(+1.5) +0.8(+5.7) +0.1(+0.2)
+  timsTOF HT              2    1041.2    1059.0   +1.71%  +2.3(+1.0) +1.2(+0.5)
+
+## calibration fix, without the four MS2 features (pd_cal-noms2 vs re_auto): files up 10 / flat 9 / down 1 of 20; sum 63754.0 -> 65105.0 (+2.12%)
+  Velos CID               3    2940.0    2990.2   +1.71%  +0.5(+0.3) +2.5(+3.2) +2.1(+2.2)
+  HF-X HCD                3    4445.6    4700.6   +5.74%  +5.5(+12.9) +6.2(+8.8) +5.5(+19.5)
+  Astral HCD              3    2655.3    2786.6   +4.94%  +4.0(+1.6) +5.5(+8.8) +5.2(+1.9)
+  Lumos HCD LFQ           3    5552.6    5584.6   +0.58%  +0.3(+2.8) +1.1(+5.7) +0.3(+4.9)
+  Lumos CID TMT           3    2414.9    2394.1   -0.86%  -1.4(-0.9) -1.6(-2.3) +0.3(+1.1)
+  Exploris 480 TMTpro     3    2548.9    2556.4   +0.30%  +0.7(+0.9) +0.4(+2.9) -0.2(-0.3)
+  timsTOF HT              2    1041.2    1033.8   -0.70%  +0.4(+0.2) -1.8(-0.6)
+
+## #9975 with peptdeep's instrument group per instrument, against QE (pd_inst vs pd_on): files up 2 / flat 9 / down 3 of 14; sum 44525.7 -> 44767.3 (+0.54%)
+  Velos CID               3    3067.6    3201.8   +4.38%  +2.0(+1.0) +6.2(+5.4) +5.0(+9.2)
+  Astral HCD              3    3049.4    2972.9   -2.51%  -4.7(-2.3) -3.8(-4.3) +1.0(+0.5)
+  Lumos HCD LFQ           3    5617.8    5617.9   +0.00%  +0.2(+0.9) -0.2(-3.4) +0.1(+0.8)
+  Lumos CID TMT           3    2411.3    2413.1   +0.07%  -1.0(-0.5) +0.2(+0.2) +0.9(+1.7)
+  timsTOF HT              2    1043.7    1075.2   +3.02%  +2.3(+0.9) +3.7(+1.6)
+
+## #9975 with peptdeep's instrument group per instrument, against develop (pd_inst vs re_auto): files up 9 / flat 5 / down 0 of 14; sum 42770.7 -> 44767.3 (+4.67%)
+  Velos CID               3    2940.0    3201.8   +8.90%  +7.6(+4.0) +7.7(+7.6) +11.6(+12.4)
+  Astral HCD              3    2655.3    2972.9  +11.96%  +15.3(+6.7) +11.6(+17.4) +9.5(+4.9)
+  Lumos HCD LFQ           3    5552.6    5617.9   +1.18%  +0.7(+6.2) +1.6(+18.2) +1.2(+30.7)
+  Lumos CID TMT           3    2414.9    2413.1   -0.07%  -0.6(-0.4) -0.2(-0.3) +0.5(+1.0)
+  timsTOF HT              2    1041.2    1075.2   +3.27%  +3.0(+1.3) +3.5(+1.3)
+
+## Identity checks (native TSV and PIN SHA-256)
+  PASS pd_off == re_auto on 4/4 files (#9975 with PeptDeep off (its default) equals develop f6c680f): velos_125_R1 astral_A2 eclipse_tmtpro_10855 tims_plasma_30min
+
+## Velos natural entrapment (r = 3.376; combined FDP = N_E (1 + 1/r) / N over 3 files x 3 seeds)
+  arm                   N  N_E     FDP
+  re_auto           26460  211  1.034%
+  pd_on             27608  246  1.155%
+  pd_on-nort        27762  240  1.121%
+  pd_on-noms2       26380  227  1.115%
+  pd_cal            28154  238  1.096%
+  pd_cal-nort       27762  240  1.121%
+  pd_cal-noms2      26912  254  1.223%
+  pd_inst           28816  295  1.327%
+
+## Shuffled paired-mass entrapment (r = 1; combined FDP = 2 N_E / N, estimated true PSMs N - 2 N_E; seed means summed over files)
+  HF-X HCD             a35_raw_local_E  N  12822.7  N_E  86.7  FDP 1.35%  true  12649.3
+  HF-X HCD             re_auto_E        N  12822.7  N_E  86.7  FDP 1.35%  true  12649.3
+  HF-X HCD             pd_on_E          N  13659.7  N_E 100.3  FDP 1.47%  true  13459.0
+  HF-X HCD             pd_on_E-nort     N  13659.7  N_E  99.3  FDP 1.45%  true  13461.0
+  HF-X HCD             pd_on_E-noms2    N  12880.0  N_E  98.3  FDP 1.53%  true  12683.3
+  HF-X HCD             pd_cal_E         N  14194.0  N_E 122.7  FDP 1.73%  true  13948.7
+  HF-X HCD             pd_cal_E-nort    N  13659.7  N_E  99.3  FDP 1.45%  true  13461.0
+  HF-X HCD             pd_cal_E-noms2   N  13740.3  N_E 132.7  FDP 1.93%  true  13475.0
+  Astral HCD           a35_raw_local_E  N   7131.0  N_E  50.0  FDP 1.40%  true   7031.0
+  Astral HCD           re_auto_E        N   7131.0  N_E  50.0  FDP 1.40%  true   7031.0
+  Astral HCD           pd_on_E          N   8283.7  N_E  75.3  FDP 1.82%  true   8133.0
+  Astral HCD           pd_on_E-nort     N   8261.7  N_E  66.3  FDP 1.61%  true   8129.0
+  Astral HCD           pd_on_E-noms2    N   7212.0  N_E  50.7  FDP 1.41%  true   7110.7
+  Astral HCD           pd_cal_E         N   8562.3  N_E  66.3  FDP 1.55%  true   8429.7
+  Astral HCD           pd_cal_E-nort    N   8261.7  N_E  66.3  FDP 1.61%  true   8129.0
+  Astral HCD           pd_cal_E-noms2   N   7443.7  N_E  53.7  FDP 1.44%  true   7336.3
+  Exploris 480 TMTpro  a35_raw_local_E  N   7460.7  N_E  40.0  FDP 1.07%  true   7380.7
+  Exploris 480 TMTpro  re_auto_E        N   7460.7  N_E  40.0  FDP 1.07%  true   7380.7
+  Exploris 480 TMTpro  pd_on_E          N   7501.0  N_E  45.3  FDP 1.21%  true   7410.3
+  Exploris 480 TMTpro  pd_on_E-nort     N   7492.7  N_E  44.7  FDP 1.19%  true   7403.3
+  Exploris 480 TMTpro  pd_on_E-noms2    N   7463.3  N_E  41.0  FDP 1.10%  true   7381.3
+  Exploris 480 TMTpro  pd_cal_E         N   7517.3  N_E  48.3  FDP 1.29%  true   7420.7
+  Exploris 480 TMTpro  pd_cal_E-nort    N   7492.7  N_E  44.7  FDP 1.19%  true   7403.3
+  Exploris 480 TMTpro  pd_cal_E-noms2   N   7510.3  N_E  46.7  FDP 1.24%  true   7417.0
+
+## Search cost per file (wall s, CPU s, peak RSS MiB; median over files, OMP_NUM_THREADS=4, 2 searches in parallel)
+  re_auto  n=20  wall    59.0  CPU   114.2  RSS   2520
+  pd_on    n=20  wall   228.6  CPU   467.2  RSS   2435
+  pd_cal   n=20  wall   216.6  CPU   442.2  RSS   2384
+  pd_inst  n=14  wall   527.3  CPU   595.8  RSS   2492
+  pd_on / re_auto: CPU x3.61 (range 2.68-4.37), wall x3.63, RSS -33 MiB (median)
+  pd_cal / re_auto: CPU x3.39 (range 2.46-4.16), wall x3.31, RSS -30 MiB (median)
+  pd_inst ran while Percolator-only ablations and diagnostics used the same 4 cores; its cost is not comparable.
+
+## PeptDeep calibration per file (from search.log)
+  pd_on    velos_125_R1           NCE 36 selected from a grid centred on 30 (median cosine 0.614822) | retention-time calibration (b_spline) on 39567 PSMs, median residual 1218.05 s
+  pd_on    velos_5000_R2          NCE 36 selected from a grid centred on 30 (median cosine 0.623746) | retention-time calibration (b_spline) on 38884 PSMs, median residual 1199.84 s
+  pd_on    velos_25000_R3         NCE 36 selected from a grid centred on 30 (median cosine 0.617825) | retention-time calibration (b_spline) on 36810 PSMs, median residual 1207.48 s
+  pd_on    hfx_A2                 NCE 21 selected from a grid centred on 27 (median cosine 0.976144) | retention-time calibration (b_spline) on 20370 PSMs, median residual 805.617 s
+  pd_on    hfx_B1                 NCE 21 selected from a grid centred on 27 (median cosine 0.974133) | retention-time calibration (b_spline) on 16618 PSMs, median residual 844.936 s
+  pd_on    hfx_B3                 NCE 25 selected from a grid centred on 27 (median cosine 0.974793) | retention-time calibration (b_spline) on 19494 PSMs, median residual 819.718 s
+  pd_on    astral_A2              NCE 26 selected from a grid centred on 30 (median cosine 0.913665) | retention-time calibration (b_spline) on 35862 PSMs, median residual 139.043 s
+  pd_on    astral_B1              NCE 26 selected from a grid centred on 30 (median cosine 0.906586) | retention-time calibration (b_spline) on 36190 PSMs, median residual 136.94 s
+  pd_on    astral_B3              NCE 26 selected from a grid centred on 30 (median cosine 0.918156) | retention-time calibration (b_spline) on 36231 PSMs, median residual 138.536 s
+  pd_on    lumos_lfq_5192         NCE 31 selected from a grid centred on 35 (median cosine 0.942915) | retention-time calibration (b_spline) on 24922 PSMs, median residual 1924.22 s
+  pd_on    lumos_lfq_5194         NCE 31 selected from a grid centred on 35 (median cosine 0.944914) | retention-time calibration (b_spline) on 25819 PSMs, median residual 2029.54 s
+  pd_on    lumos_lfq_5199         NCE 31 selected from a grid centred on 35 (median cosine 0.942529) | retention-time calibration (b_spline) on 26113 PSMs, median residual 2084.62 s
+  pd_on    lumos_tmt_5058         NCE 37 selected from a grid centred on 35 (median cosine 0.43629) | retention-time calibration (b_spline) on 36471 PSMs, median residual 1816.24 s
+  pd_on    lumos_tmt_5059         NCE 41 selected from a grid centred on 35 (median cosine 0.451961) | retention-time calibration (b_spline) on 36091 PSMs, median residual 1930.74 s
+  pd_on    lumos_tmt_5066         NCE 39 selected from a grid centred on 35 (median cosine 0.451339) | retention-time calibration (b_spline) on 36969 PSMs, median residual 2129.2 s
+  pd_on    eclipse_tmtpro_10855   NCE 29 selected from a grid centred on 35 (median cosine 0.642424) | retention-time calibration (b_spline) on 19838 PSMs, median residual 909.008 s
+  pd_on    eclipse_tmtpro_10858   NCE 29 selected from a grid centred on 35 (median cosine 0.654865) | retention-time calibration (b_spline) on 17663 PSMs, median residual 909.795 s
+  pd_on    eclipse_tmtpro_10863   NCE 29 selected from a grid centred on 35 (median cosine 0.641436) | retention-time calibration (b_spline) on 18078 PSMs, median residual 999.727 s
+  pd_on    tims_plasma_30min      NCE 35.2645 selected from a grid centred on 35.2645 (median cosine 0.572822) | retention-time calibration (b_spline) on 16209 PSMs, median residual 275.87 s
+  pd_on    tims_plasma_50min      NCE 34.9985 selected from a grid centred on 34.9985 (median cosine 0.612044) | retention-time calibration (b_spline) on 14506 PSMs, median residual 483.127 s
+  pd_cal   velos_125_R1           NCE 36 selected from a grid centred on 30 (median cosine 0.626737) | retention-time calibration (b_spline) on 3975 PSMs, median residual 610.158 s
+  pd_cal   velos_5000_R2          NCE 36 selected from a grid centred on 30 (median cosine 0.644013) | retention-time calibration (b_spline) on 3919 PSMs, median residual 581.746 s
+  pd_cal   velos_25000_R3         NCE 36 selected from a grid centred on 30 (median cosine 0.639839) | retention-time calibration (b_spline) on 3736 PSMs, median residual 577.313 s
+  pd_cal   hfx_A2                 NCE 25 selected from a grid centred on 27 (median cosine 0.976624) | retention-time calibration (b_spline) on 3230 PSMs, median residual 146.513 s
+  pd_cal   hfx_B1                 NCE 21 selected from a grid centred on 27 (median cosine 0.97427) | retention-time calibration (b_spline) on 3087 PSMs, median residual 137.559 s
+  pd_cal   hfx_B3                 NCE 25 selected from a grid centred on 27 (median cosine 0.975841) | retention-time calibration (b_spline) on 3211 PSMs, median residual 148.966 s
+  pd_cal   astral_A2              NCE 26 selected from a grid centred on 30 (median cosine 0.918541) | retention-time calibration (b_spline) on 3758 PSMs, median residual 49.6158 s
+  pd_cal   astral_B1              NCE 26 selected from a grid centred on 30 (median cosine 0.91179) | retention-time calibration (b_spline) on 3773 PSMs, median residual 42.4216 s
+  pd_cal   astral_B3              NCE 26 selected from a grid centred on 30 (median cosine 0.915087) | retention-time calibration (b_spline) on 3779 PSMs, median residual 42.9832 s
+  pd_cal   lumos_lfq_5192         NCE 31 selected from a grid centred on 35 (median cosine 0.944093) | retention-time calibration (b_spline) on 3507 PSMs, median residual 277.385 s
+  pd_cal   lumos_lfq_5194         NCE 31 selected from a grid centred on 35 (median cosine 0.945718) | retention-time calibration (b_spline) on 3539 PSMs, median residual 282.034 s
+  pd_cal   lumos_lfq_5199         NCE 31 selected from a grid centred on 35 (median cosine 0.942838) | retention-time calibration (b_spline) on 3568 PSMs, median residual 281.971 s
+  pd_cal   lumos_tmt_5058         NCE 41 selected from a grid centred on 35 (median cosine 0.461533) | retention-time calibration (b_spline) on 3794 PSMs, median residual 1642.96 s
+  pd_cal   lumos_tmt_5059         NCE 39 selected from a grid centred on 35 (median cosine 0.466097) | retention-time calibration (b_spline) on 3758 PSMs, median residual 1649.47 s
+  pd_cal   lumos_tmt_5066         NCE 35 selected from a grid centred on 35 (median cosine 0.463385) | retention-time calibration (b_spline) on 3814 PSMs, median residual 1933.24 s
+  pd_cal   eclipse_tmtpro_10855   NCE 29 selected from a grid centred on 35 (median cosine 0.639926) | retention-time calibration (b_spline) on 2590 PSMs, median residual 797.639 s
+  pd_cal   eclipse_tmtpro_10858   NCE 29 selected from a grid centred on 35 (median cosine 0.652407) | retention-time calibration (b_spline) on 2403 PSMs, median residual 742.229 s
+  pd_cal   eclipse_tmtpro_10863   NCE 29 selected from a grid centred on 35 (median cosine 0.638942) | retention-time calibration (b_spline) on 2471 PSMs, median residual 728.717 s
+  pd_cal   tims_plasma_30min      NCE 33.2645 selected from a grid centred on 35.2645 (median cosine 0.594268) | retention-time calibration (b_spline) on 2248 PSMs, median residual 181.891 s
+  pd_cal   tims_plasma_50min      NCE 34.9985 selected from a grid centred on 34.9985 (median cosine 0.63389) | retention-time calibration (b_spline) on 2179 PSMs, median residual 285.214 s
+  pd_inst  velos_125_R1           NCE 24 selected from a grid centred on 30 (median cosine 0.751303) | retention-time calibration (b_spline) on 39567 PSMs, median residual 1218.05 s
+  pd_inst  velos_5000_R2          NCE 24 selected from a grid centred on 30 (median cosine 0.736152) | retention-time calibration (b_spline) on 38884 PSMs, median residual 1199.84 s
+  pd_inst  velos_25000_R3         NCE 24 selected from a grid centred on 30 (median cosine 0.719601) | retention-time calibration (b_spline) on 36810 PSMs, median residual 1207.48 s
+  pd_inst  astral_A2              NCE 32 selected from a grid centred on 30 (median cosine 0.886996) | retention-time calibration (b_spline) on 35862 PSMs, median residual 139.043 s
+  pd_inst  astral_B1              NCE 32 selected from a grid centred on 30 (median cosine 0.88645) | retention-time calibration (b_spline) on 36190 PSMs, median residual 136.94 s
+  pd_inst  astral_B3              NCE 32 selected from a grid centred on 30 (median cosine 0.891176) | retention-time calibration (b_spline) on 36231 PSMs, median residual 138.536 s
+  pd_inst  lumos_lfq_5192         NCE 37 selected from a grid centred on 35 (median cosine 0.965786) | retention-time calibration (b_spline) on 24922 PSMs, median residual 1924.22 s
+  pd_inst  lumos_lfq_5194         NCE 37 selected from a grid centred on 35 (median cosine 0.969058) | retention-time calibration (b_spline) on 25819 PSMs, median residual 2029.54 s
+  pd_inst  lumos_lfq_5199         NCE 37 selected from a grid centred on 35 (median cosine 0.967208) | retention-time calibration (b_spline) on 26113 PSMs, median residual 2084.62 s
+  pd_inst  lumos_tmt_5058         NCE 39 selected from a grid centred on 35 (median cosine 0.420408) | retention-time calibration (b_spline) on 36471 PSMs, median residual 1816.24 s
+  pd_inst  lumos_tmt_5059         NCE 29 selected from a grid centred on 35 (median cosine 0.433964) | retention-time calibration (b_spline) on 36091 PSMs, median residual 1930.74 s
+  pd_inst  lumos_tmt_5066         NCE 29 selected from a grid centred on 35 (median cosine 0.438269) | retention-time calibration (b_spline) on 36969 PSMs, median residual 2129.2 s
+  pd_inst  tims_plasma_30min      NCE 41.2645 selected from a grid centred on 35.2645 (median cosine 0.581056) | retention-time calibration (b_spline) on 16209 PSMs, median residual 275.87 s
+  pd_inst  tims_plasma_50min      NCE 32.9985 selected from a grid centred on 34.9985 (median cosine 0.633086) | retention-time calibration (b_spline) on 14506 PSMs, median residual 483.127 s

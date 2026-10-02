@@ -1,0 +1,62 @@
+# calib_check.py (#9975 as rebased): calibration set composition with report:top_hits 10
+velos_125_R1 hits 79134 confident 39567 rank1 target 4860 (12.3%) decoy 17531 rank>1 33320
+    rank1 target 5771 median rt_abs_error 963.0
+    rank1 decoy 2177 median rt_abs_error 1264.2
+    rank>1 71184 median rt_abs_error 1246.3
+    top-1000 rank1 targets median rt_abs_error 647.5 RT range 117 9294
+astral_A2 hits 71725 confident 35862 rank1 target 4983 (13.9%) decoy 15588 rank>1 29172
+    rank1 target 5421 median rt_abs_error 127.5
+    rank1 decoy 2091 median rt_abs_error 180.1
+    rank>1 64208 median rt_abs_error 163.6
+    top-1000 rank1 targets median rt_abs_error 80.4 RT range 1 1520
+
+# decoy_vs_entrap.py: feature medians of rank-1 decoys and entrapment hits per native-score quintile
+astral_B1 pd_on_E: rank-1 hits 7610; per native-score quintile, median of ['ms2_cosine', 'ms2_frac_pred_found', 'rt_abs_error'] (n)
+  q1 score 0.0-3.5 | targe 0.393 0.300   222.6 (423) | decoy 0.305 0.273   226.9 (724) | entra 0.302 0.273   224.3 (375)
+  q2 score 3.5-4.8 | targe 0.434 0.380   154.0 (510) | decoy 0.323 0.333   174.2 (679) | entra 0.313 0.333   168.8 (333)
+  q3 score 4.8-5.9 | targe 0.550 0.462   145.0 (624) | decoy 0.362 0.385   130.3 (562) | entra 0.355 0.385   150.2 (336)
+  q4 score 5.9-9.7 | targe 0.805 0.636   108.5 (1124) | decoy 0.389 0.429   152.5 (238) | entra 0.380 0.455   123.1 (160)
+  q5 score 9.7-47.4 | targe 0.925 0.846    74.9 (1509)
+hfx_A2 pd_on_E: rank-1 hits 6652; per native-score quintile, median of ['ms2_cosine', 'ms2_frac_pred_found', 'rt_abs_error'] (n)
+  q1 score 0.0-5.4 | targe 0.509 0.429  1169.0 (450) | decoy 0.319 0.333  1184.1 (575) | entra 0.307 0.333  1231.7 (305)
+  q2 score 5.4-7.8 | targe 0.811 0.667   827.1 (779) | decoy 0.417 0.429  1090.6 (369) | entra 0.395 0.444   968.3 (182)
+  q3 score 7.8-11.7 | targe 0.928 0.875   624.3 (1229) | decoy 0.551 0.583   849.5 (68) | entra 0.614 0.646  1080.1 (34)
+  q4 score 11.7-17.9 | targe 0.965 0.909   520.4 (1325)
+  q5 score 17.9-69.8 | targe 0.979 0.944   425.3 (1330)
+velos_125_R1 pd_on: rank-1 hits 7950; per native-score quintile, median of ['ms2_cosine', 'ms2_frac_pred_found', 'rt_abs_error'] (n)
+  q1 score 0.8-8.2 | targe 0.414 0.444  1359.9 (274) | decoy 0.272 0.333  1242.8 (735) | entra 0.256 0.357  1148.9 (581)
+  q2 score 8.2-12.7 | targe 0.758 0.700  1141.1 (630) | decoy 0.270 0.375  1295.9 (542) | entra 0.258 0.333  1249.5 (418)
+  q3 score 12.7-16.5 | targe 0.748 0.667  1071.2 (614) | decoy 0.169 0.278  1264.2 (539) | entra 0.157 0.263  1298.6 (437)
+  q4 score 16.5-23.2 | targe 0.707 0.643   732.5 (970) | decoy 0.172 0.306  1165.3 (334) | entra 0.173 0.302  1243.7 (286)
+  q5 score 23.2-74.6 | targe 0.641 0.667   648.1 (1553) | decoy 0.253 0.538  1448.8 (27) | entra 0.141 0.314  1620.2 (10)
+astral_B1 pd_cal_E: rank-1 hits 7610; per native-score quintile, median of ['ms2_cosine', 'ms2_frac_pred_found', 'rt_abs_error'] (n)
+  q1 score 0.0-3.5 | targe 0.393 0.300   194.6 (423) | decoy 0.305 0.273   218.9 (724) | entra 0.302 0.273   225.9 (375)
+  q2 score 3.5-4.8 | targe 0.434 0.380   130.0 (510) | decoy 0.323 0.333   186.7 (679) | entra 0.313 0.333   173.0 (333)
+  q3 score 4.8-5.9 | targe 0.550 0.462    81.3 (624) | decoy 0.362 0.385   150.3 (562) | entra 0.355 0.385   160.4 (336)
+  q4 score 5.9-9.7 | targe 0.805 0.636    44.6 (1124) | decoy 0.389 0.429   156.9 (238) | entra 0.380 0.455   132.1 (160)
+  q5 score 9.7-47.4 | targe 0.925 0.846    33.9 (1509)
+hfx_A2 pd_cal_E: rank-1 hits 6652; per native-score quintile, median of ['ms2_cosine', 'ms2_frac_pred_found', 'rt_abs_error'] (n)
+  q1 score 0.0-5.4 | targe 0.509 0.429   563.3 (450) | decoy 0.319 0.333  1242.5 (575) | entra 0.307 0.333  1283.4 (305)
+  q2 score 5.4-7.8 | targe 0.811 0.667   207.5 (779) | decoy 0.417 0.429  1235.0 (369) | entra 0.395 0.444  1058.5 (182)
+  q3 score 7.8-11.7 | targe 0.928 0.875   158.3 (1229) | decoy 0.551 0.583  1067.2 (68) | entra 0.614 0.646  1023.0 (34)
+  q4 score 11.7-17.9 | targe 0.965 0.909   134.6 (1325)
+  q5 score 17.9-69.8 | targe 0.979 0.944   152.8 (1330)
+velos_125_R1 pd_cal: rank-1 hits 7950; per native-score quintile, median of ['ms2_cosine', 'ms2_frac_pred_found', 'rt_abs_error'] (n)
+  q1 score 0.8-8.2 | targe 0.414 0.444   923.9 (274) | decoy 0.272 0.333  1093.8 (735) | entra 0.256 0.357  1048.2 (581)
+  q2 score 8.2-12.7 | targe 0.758 0.700   722.3 (630) | decoy 0.270 0.375   997.6 (542) | entra 0.258 0.333   996.0 (418)
+  q3 score 12.7-16.5 | targe 0.748 0.667   681.7 (614) | decoy 0.169 0.278  1185.8 (539) | entra 0.157 0.263  1235.4 (437)
+  q4 score 16.5-23.2 | targe 0.707 0.643   510.1 (970) | decoy 0.172 0.306  1106.6 (334) | entra 0.173 0.302  1247.3 (286)
+  q5 score 23.2-74.6 | targe 0.641 0.667   379.5 (1553) | decoy 0.253 0.538   801.4 (27) | entra 0.141 0.314  1555.9 (10)
+
+# sibling_check.py: accepted entrapment PSMs (q <= 0.01, 3 seeds) whose unshuffled target is among the spectrum's candidates
+hfx_A2 re_auto_E {'accepted': 13006, 'entrapment': 80, 'sibling target at rank 2': 14, 'no sibling among candidates': 48, 'sibling target at rank 1': 5, 'sibling target at rank 3': 5, 'sibling target at rank 7': 3, 'sibling target at rank 5': 3, 'sibling target at rank 4': 2}
+hfx_A2 pd_cal_E {'accepted': 14405, 'entrapment': 123, 'sibling target at rank 2': 18, 'sibling target at rank 1': 15, 'sibling target at rank 3': 9, 'no sibling among candidates': 70, 'sibling target at rank 5': 6, 'sibling target at rank 4': 3, 'sibling target at rank 7': 2}
+hfx_B1 re_auto_E {'accepted': 12548, 'entrapment': 90, 'sibling target at rank 2': 19, 'sibling target at rank 1': 9, 'no sibling among candidates': 60, 'sibling target at rank 3': 2}
+hfx_B1 pd_cal_E {'accepted': 13865, 'entrapment': 109, 'sibling target at rank 1': 17, 'sibling target at rank 2': 15, 'no sibling among candidates': 70, 'sibling target at rank 3': 5, 'sibling target at rank 4': 2}
+
+# rt_tail.py: share of rank-1 decoys / entrapment hits with rt_abs_error below the median of the best-scoring quarter of targets
+hfx_A2 pd_cal_E threshold 148 s | decoy n=1014 small-RT-error share all 0.068 top-third 0.077 | entrapment n=525 small-RT-error share all 0.097 top-third 0.137
+hfx_B1 pd_cal_E threshold 141 s | decoy n=937 small-RT-error share all 0.074 top-third 0.074 | entrapment n=489 small-RT-error share all 0.086 top-third 0.110
+astral_B1 pd_cal_E threshold 34 s | decoy n=2212 small-RT-error share all 0.106 top-third 0.122 | entrapment n=1208 small-RT-error share all 0.100 top-third 0.117
+velos_125_R1 pd_cal threshold 404 s | decoy n=2177 small-RT-error share all 0.189 top-third 0.189 | entrapment n=1732 small-RT-error share all 0.177 top-third 0.159
+velos_5000_R2 pd_cal threshold 397 s | decoy n=2034 small-RT-error share all 0.177 top-third 0.155 | entrapment n=1772 small-RT-error share all 0.188 top-third 0.178

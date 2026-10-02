@@ -1,0 +1,22 @@
+{
+  "re_on": {
+    "source_commit": "fb581fceedecfa50d1878f9750ed8b63e4995997",
+    "source_tree": "6da04892f125c6636d1758a3abf9153753e27c7a",
+    "binary_sha256": "5f121396f4c5d5922b62629cff4468e2daa4ecc3f563d511a7acf177ecadbceb",
+    "tests_passed": true
+  },
+  "pdr_val": {
+    "source_commit": "ff946d0b3fb823b877ce7106bc440d7950f8e281",
+    "source_tree": "1b52cf5f59ae9eba4e46b29fdf6f395da19fde17",
+    "binary_sha256": "1dff28279683dd5cfb1efa992754d6f208f91f4eb88e7c9784598ff98104a5d3",
+    "tests_passed": true,
+    "harness": "harness_onnx"
+  },
+  "pdr_cal": {
+    "source_commit": "cc096e868e311e550d839547e73133019e2bd968",
+    "source_tree": "33f7ba9ac10be87ce6c1ed3804696b07d31102d5",
+    "binary_sha256": "03b68a1b178424de97eb7753814982b4bc279d78179e798a749931575d6b242d",
+    "tests_passed": true,
+    "harness": "harness_onnx"
+  }
+}

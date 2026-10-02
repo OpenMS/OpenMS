@@ -1,0 +1,75 @@
+dataset	group	arm	wall_s	cpu_s	rss_mib
+velos_125_R1	Velos CID	re_auto	97.4	175.4	2701
+velos_125_R1	Velos CID	pd_on	330.3	620.0	2774
+velos_125_R1	Velos CID	pd_cal	289.5	556.5	2746
+velos_125_R1	Velos CID	pd_inst	529.4	614.3	2672
+velos_5000_R2	Velos CID	re_auto	96.6	174.7	2639
+velos_5000_R2	Velos CID	pd_on	431.4	628.9	2762
+velos_5000_R2	Velos CID	pd_cal	286.5	546.6	2628
+velos_5000_R2	Velos CID	pd_inst	525.2	596.4	2773
+velos_25000_R3	Velos CID	re_auto	81.6	170.5	2428
+velos_25000_R3	Velos CID	pd_on	422.9	593.9	2780
+velos_25000_R3	Velos CID	pd_cal	260.0	548.6	2431
+velos_25000_R3	Velos CID	pd_inst	590.3	586.3	2624
+hfx_A2	HF-X HCD	re_auto	63.2	113.5	2907
+hfx_A2	HF-X HCD	pd_on	192.8	380.5	2801
+hfx_A2	HF-X HCD	pd_cal	194.9	367.6	2594
+hfx_B1	HF-X HCD	re_auto	54.1	113.6	2926
+hfx_B1	HF-X HCD	pd_on	185.3	356.3	2590
+hfx_B1	HF-X HCD	pd_cal	154.5	354.8	2776
+hfx_B3	HF-X HCD	re_auto	53.7	112.3	2746
+hfx_B3	HF-X HCD	pd_on	193.4	381.0	2592
+hfx_B3	HF-X HCD	pd_cal	169.5	380.1	2593
+astral_A2	Astral HCD	re_auto	105.4	237.5	2902
+astral_A2	Astral HCD	pd_on	331.7	635.4	2795
+astral_A2	Astral HCD	pd_cal	271.7	584.2	2691
+astral_A2	Astral HCD	pd_inst	614.7	638.0	3028
+astral_B1	Astral HCD	re_auto	96.4	223.3	2848
+astral_B1	Astral HCD	pd_on	282.3	597.5	2743
+astral_B1	Astral HCD	pd_cal	283.7	614.8	2693
+astral_B1	Astral HCD	pd_inst	655.0	660.7	2992
+astral_B3	Astral HCD	re_auto	98.3	224.4	2714
+astral_B3	Astral HCD	pd_on	276.0	604.3	2695
+astral_B3	Astral HCD	pd_cal	280.5	604.4	3044
+astral_B3	Astral HCD	pd_inst	648.5	654.8	3034
+lumos_lfq_5192	Lumos HCD LFQ	re_auto	49.5	106.8	2489
+lumos_lfq_5192	Lumos HCD LFQ	pd_on	221.8	466.7	2370
+lumos_lfq_5192	Lumos HCD LFQ	pd_cal	215.2	444.4	2382
+lumos_lfq_5192	Lumos HCD LFQ	pd_inst	468.1	480.0	2472
+lumos_lfq_5194	Lumos HCD LFQ	re_auto	54.9	114.9	2578
+lumos_lfq_5194	Lumos HCD LFQ	pd_on	225.9	456.3	2478
+lumos_lfq_5194	Lumos HCD LFQ	pd_cal	216.1	440.0	2387
+lumos_lfq_5194	Lumos HCD LFQ	pd_inst	479.2	492.8	2481
+lumos_lfq_5199	Lumos HCD LFQ	re_auto	53.8	109.4	2550
+lumos_lfq_5199	Lumos HCD LFQ	pd_on	231.3	467.7	2392
+lumos_lfq_5199	Lumos HCD LFQ	pd_cal	217.0	437.0	2371
+lumos_lfq_5199	Lumos HCD LFQ	pd_inst	480.5	495.4	2504
+lumos_tmt_5058	Lumos CID TMT	re_auto	75.8	153.2	2189
+lumos_tmt_5058	Lumos CID TMT	pd_on	277.7	554.1	2204
+lumos_tmt_5058	Lumos CID TMT	pd_cal	259.7	520.9	2192
+lumos_tmt_5058	Lumos CID TMT	pd_inst	573.1	601.0	2192
+lumos_tmt_5059	Lumos CID TMT	re_auto	68.3	143.8	2230
+lumos_tmt_5059	Lumos CID TMT	pd_on	273.4	543.4	2199
+lumos_tmt_5059	Lumos CID TMT	pd_cal	248.3	501.1	2195
+lumos_tmt_5059	Lumos CID TMT	pd_inst	551.0	595.2	2195
+lumos_tmt_5066	Lumos CID TMT	re_auto	73.9	154.5	2225
+lumos_tmt_5066	Lumos CID TMT	pd_on	278.9	594.7	2205
+lumos_tmt_5066	Lumos CID TMT	pd_cal	261.6	560.2	2199
+lumos_tmt_5066	Lumos CID TMT	pd_inst	476.8	622.1	2199
+eclipse_tmtpro_10855	Exploris 480 TMTpro	re_auto	43.1	81.5	1638
+eclipse_tmtpro_10855	Exploris 480 TMTpro	pd_on	177.7	338.9	1637
+eclipse_tmtpro_10855	Exploris 480 TMTpro	pd_cal	172.4	325.8	1660
+eclipse_tmtpro_10858	Exploris 480 TMTpro	re_auto	37.2	81.1	1677
+eclipse_tmtpro_10858	Exploris 480 TMTpro	pd_on	132.6	319.9	1642
+eclipse_tmtpro_10858	Exploris 480 TMTpro	pd_cal	129.1	312.5	1651
+eclipse_tmtpro_10863	Exploris 480 TMTpro	re_auto	38.8	84.1	1634
+eclipse_tmtpro_10863	Exploris 480 TMTpro	pd_on	147.9	328.4	1634
+eclipse_tmtpro_10863	Exploris 480 TMTpro	pd_cal	143.6	331.7	1650
+tims_plasma_30min	timsTOF HT	re_auto	47.0	100.9	2101
+tims_plasma_30min	timsTOF HT	pd_on	167.2	375.4	2084
+tims_plasma_30min	timsTOF HT	pd_cal	166.9	380.8	2119
+tims_plasma_30min	timsTOF HT	pd_inst	160.9	361.4	2102
+tims_plasma_50min	timsTOF HT	re_auto	45.0	96.5	2115
+tims_plasma_50min	timsTOF HT	pd_on	93.7	278.7	1939
+tims_plasma_50min	timsTOF HT	pd_cal	127.5	315.7	2017
+tims_plasma_50min	timsTOF HT	pd_inst	152.7	333.2	1906
