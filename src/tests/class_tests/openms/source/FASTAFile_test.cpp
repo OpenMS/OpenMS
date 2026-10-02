@@ -305,6 +305,43 @@ START_SECTION([EXTRA] test_position)
 END_SECTION
 
 
+START_SECTION([EXTRA] load of a large file)
+{
+  // Large files are parsed in pieces on several threads: they must give the entries of readNext(),
+  // also for records whose header is directly followed by another header line (whose '>' then
+  // belongs to the sequence) and other odd layouts.
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  {
+    std::ofstream out(tmp_filename, std::ios::binary);
+    out << "# PEFF 1.0\n\n";
+    Size written = 0;
+    for (Size i = 0; written < (Size(5) << 20); ++i)
+    {
+      std::string record = ">sp|P" + std::to_string(i) + "|TEST" + (i % 3 ? " some description\twith tab" : "") + (i % 2 ? "\r\n" : "\n");
+      if (i % 97 == 0) record += ">not a header" + std::string(i % 2 ? "\r\n" : "\n");
+      for (Size line = 0; line < 1 + i % 5; ++line)
+      {
+        record += std::string(10 + (i * 7 + line) % 50, "ACDEFGHIKLMNPQRSTVWY"[(i + line) % 20]);
+        if (i % 13 == 0) record += " > X\t";
+        record += "\n";
+        if (i % 11 == 0) record += "\n";
+      }
+      out << record;
+      written += record.size();
+    }
+  }
+  std::vector<FASTAFile::FASTAEntry> loaded, read;
+  FASTAFile().load(tmp_filename, loaded);
+  FASTAFile reader;
+  reader.readStart(tmp_filename);
+  FASTAFile::FASTAEntry entry;
+  while (reader.readNext(entry)) { read.push_back(entry); }
+  TEST_EQUAL(loaded.size(), read.size())
+  TEST_EQUAL(loaded == read, true)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
