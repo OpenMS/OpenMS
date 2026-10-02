@@ -29,6 +29,8 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <algorithm>
+#include <cmath>
+#include <limits>
 #include <map>
 #include <numeric>
 #include <random>
@@ -59,6 +61,7 @@ public:
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
   using ProSEAlgorithm::preprocessSpectra_;
+  using ProSEAlgorithm::mass_accuracy_score_;
   using ProSEAlgorithm::filterLocalPeaks_;
   using ProSEAlgorithm::resolveDecoyStrategy_;
   using ProSEAlgorithm::DecoyStrategy_;
@@ -3335,6 +3338,150 @@ START_SECTION(([EXTRA] generated decoys preserve initial methionine when clippin
         }
       }
     }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] scoring:method=mass_accuracy agrees with HyperScore for exact matches and discounts shifted ones in every search path))
+{
+  // One noise-free spectrum of THQPSANLDIK: with exact fragment m/z every matched ion has weight 1
+  // and the weighted score equals HyperScore; a uniform +7 ppm error (one kernel SD) discounts it.
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> db = {{"P01", "", peptide.toString()}, {"P02", "", "VLVLDTDYK"}};
+  auto make_input = [&peptide](double shift_ppm)
+  {
+    MSSpectrum spectrum;
+    TheoreticalSpectrumGenerator().getSpectrum(spectrum, peptide, 1, 1);
+    for (auto& peak : spectrum) { peak.setMZ(peak.getMZ() * (1.0 + shift_ppm * 1e-6)); }
+    spectrum.setMSLevel(2);
+    spectrum.setNativeID("scan=1");
+    Precursor precursor;
+    precursor.setMZ(peptide.getMZ(2));
+    precursor.setCharge(2);
+    spectrum.setPrecursors({precursor});
+    PeakMap input;
+    input.addSpectrum(spectrum);
+    return input;
+  };
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_EQUAL(p.getValue("scoring:method").toString(), "auto")
+  TEST_REAL_SIMILAR(static_cast<double>(p.getValue("scoring:mass_error_sd")), 7.0)
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("decoys", "ignore");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+
+  // score of the single top hit for (method, shift, chunk size); the multi-file path must agree
+  auto top_score = [&](const std::string& method, double shift_ppm, Int chunk_size)
+  {
+    p.setValue("scoring:method", method);
+    p.setValue("database:chunk_size", chunk_size);
+    algo.setParameters(p);
+    PeakMap spectra = make_input(shift_ppm);
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    algo.search(spectra, db, proteins, peptides);
+    TEST_EQUAL(peptides.size(), 1)
+    if (peptides.empty() || proteins.empty()) return -1.0;
+    TEST_EQUAL(peptides[0].getHits()[0].getSequence(), peptide)
+    const bool weighted = method != "hyperscore"; // 'auto' resolves to mass_accuracy at 20 ppm
+    TEST_EQUAL(peptides[0].getScoreType(), "ln(hyperscore)") // the weighted score keeps the score type
+    const auto& search_parameters = proteins[0].getSearchParameters();
+    // recorded only when the weighted score is used; HyperScore searches keep their parameter list
+    TEST_EQUAL(search_parameters.metaValueExists("scoring:method"), weighted)
+    if (weighted)
+    {
+      TEST_EQUAL(search_parameters.getMetaValue("scoring:method").toString(), method)
+      TEST_EQUAL(search_parameters.getMetaValue("scoring:method_resolved").toString(), "mass_accuracy")
+      TEST_REAL_SIMILAR(static_cast<double>(search_parameters.getMetaValue("scoring:mass_error_sd")), 7.0)
+    }
+
+    // chunk-major multi-file path
+    std::string input_file;
+    NEW_TMP_FILE(input_file)
+    FileHandler().storeExperiment(input_file, make_input(shift_ppm), {FileTypes::MZML});
+    const auto files = algo.searchWithModificationAnalysis(vector<std::string> {input_file, input_file}, db, vector<std::string> {}, "", false);
+    TEST_EQUAL(files.per_file.size(), 2)
+    for (const auto& result : files.per_file)
+    {
+      TEST_EQUAL(result.peptide_ids.size(), 1)
+      if (! result.peptide_ids.empty())
+      {
+        TEST_REAL_SIMILAR(result.peptide_ids[0].getHits()[0].getScore(), peptides[0].getHits()[0].getScore())
+      }
+    }
+    return peptides[0].getHits()[0].getScore();
+  };
+
+  for (Int chunk_size : {0, 1})
+  {
+    const double hyperscore = top_score("hyperscore", 0.0, chunk_size);
+    TEST_REAL_SIMILAR(top_score("mass_accuracy", 0.0, chunk_size), hyperscore)
+    TEST_REAL_SIMILAR(top_score("auto", 0.0, chunk_size), hyperscore)
+    // HyperScore does not see an error inside the tolerance; the mass-accuracy score does.
+    TEST_REAL_SIMILAR(top_score("hyperscore", 7.0, chunk_size), hyperscore)
+    const double shifted = top_score("mass_accuracy", 7.0, chunk_size);
+    TEST_TRUE(shifted > 0.0)
+    TEST_TRUE(shifted < hyperscore)
+    TEST_REAL_SIMILAR(top_score("auto", 7.0, chunk_size), shifted)
+  }
+
+  // 'auto' uses HyperScore at Da and at low-resolution ppm tolerances; 'mass_accuracy' applies everywhere.
+  ProSEAlgorithm_test resolved;
+  auto resolve = [&](const std::string& method, double tolerance, const std::string& unit)
+  {
+    Param q = resolved.getParameters();
+    q.setValue("scoring:method", method);
+    q.setValue("fragment:mass_tolerance", tolerance);
+    q.setValue("fragment:mass_tolerance_unit", unit);
+    resolved.setParameters(q);
+    return resolved.mass_accuracy_score_;
+  };
+  TEST_TRUE(resolve("auto", 20.0, "ppm"))
+  TEST_TRUE(resolve("auto", 100.0, "ppm"))
+  TEST_FALSE(resolve("auto", 150.0, "ppm"))
+  TEST_FALSE(resolve("auto", 0.02, "Da"))
+  TEST_FALSE(resolve("auto", 0.5, "Da"))
+  TEST_TRUE(resolve("mass_accuracy", 0.5, "Da"))
+  TEST_FALSE(resolve("hyperscore", 20.0, "ppm"))
+
+  for (double invalid : {0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()})
+  {
+    Param invalid_param = p;
+    invalid_param.setValue("scoring:method", "mass_accuracy");
+    invalid_param.setValue("scoring:mass_error_sd", invalid);
+    TEST_EXCEPTION(Exception::BaseException, algo.setParameters(invalid_param))
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mass accuracy scoring retains its kernel during calibration))
+{
+  ProSEAlgorithm_test algo;
+  configure_calibration_params_(algo, 20.0, 30.0, 3);
+  Param p = algo.getParameters();
+  p.setValue("scoring:method", "mass_accuracy");
+  p.setValue("scoring:mass_error_sd", 9.0);
+  algo.setParameters(p);
+  PeakMap spectra = build_calibration_spectra_({0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0});
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  TEST_TRUE(algo.search(spectra, calibration_fasta_db_(), proteins, peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_TRUE(algo.last_calibration_result_.success)
+  TEST_FALSE(peptides.empty())
+  ABORT_IF(proteins.empty())
+  const auto& params = proteins[0].getSearchParameters();
+  TEST_EQUAL(params.getMetaValue("scoring:method").toString(), "mass_accuracy")
+  TEST_REAL_SIMILAR(static_cast<double>(params.getMetaValue("scoring:mass_error_sd")), 9.0)
+  TEST_EQUAL(params.getMetaValue("scoring:method_resolved").toString(), "mass_accuracy")
+  for (const auto& peptide : peptides)
+  {
+    TEST_EQUAL(peptide.getScoreType(), "ln(hyperscore)")
   }
 }
 END_SECTION

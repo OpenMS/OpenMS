@@ -856,6 +856,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool deisotope_requested_{true};
     bool scoring_multiple_charges_{false}; ///< Resolved scoring:fragment_charges: score charges above 1
     int scoring_max_charge_{2};            ///< Upper fragment charge bound (fragment:max_charge)
+    bool mass_accuracy_score_{false};      ///< Resolved scoring:method: mass-accuracy weighted HyperScore
+    double mass_error_sd_ppm_{7.0};        ///< Width of the mass-accuracy kernel in ppm (scoring:mass_error_sd)
 
     /// Fragment charges that score a candidate of the given precursor charge; also used by the calibration pass.
     int scoringMaxCharge_(int precursor_charge) const
