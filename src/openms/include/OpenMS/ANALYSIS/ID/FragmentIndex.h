@@ -59,9 +59,21 @@ namespace OpenMS
         precursor_mz_(precursor_mz)
         {}
 
+        /// {first, second} like std::pair<uint16_t, uint16_t>, and convertible from and to it, but trivially copyable
+        /// (std::pair's assignment is not), as is Peptide then: sorting and copying peptides moves plain bytes
+        struct Span
+        {
+          Span() = default;
+          Span(std::pair<uint16_t, uint16_t> span) : first(span.first), second(span.second) {}
+          operator std::pair<uint16_t, uint16_t>() const { return {first, second}; }
+          bool operator==(const Span&) const = default;
+          uint16_t first;
+          uint16_t second;
+        };
+
         UInt32 protein_idx;            ///< 0-based index into FASTA entries provided to build(); identifies the source protein
         uint32_t mod_bitmask_;         ///< Bitmask of active variable mod slots (0 = unmodified/fixed-only; up to 32 slots)
-        std::pair<uint16_t , uint16_t> sequence_; ///< {start, length} within the source protein sequence (start is 0-based; length in residues)
+        Span sequence_;                ///< {start, length} within the source protein sequence (start is 0-based; length in residues)
         float precursor_mz_;           ///< Mono-isotopic m/z at charge 1 (M+H)+ of this peptide; used for sorting/filtering
     };
 
