@@ -57,7 +57,10 @@ namespace OpenMS
 
     Confident PSMs are selected by search score rather than by spectral similarity: using
     similarity here would tie the RT feature to the MS2 features and let one feature's
-    errors propagate into the other.
+    errors propagate into the other. Only the best-scoring hit of each spectrum, and only
+    if it is not a decoy, is a candidate, so the calibration does not depend on how many
+    hits per spectrum the search reports: with ten, lower-ranked candidates and decoys
+    would otherwise make up most of the better-scoring half.
 
     Parameters are not pulled into the generated documentation with
     @c \@htmlinclude: that requires the class to be registered in
@@ -132,6 +135,7 @@ namespace OpenMS
       Size len;     ///< peptide length
       Size key;     ///< index into the de-duplicated (sequence, charge) list
       double score; ///< search score, used to pick the calibration set
+      bool calibration_candidate; ///< best hit of its spectrum and not a decoy
     };
 
     /// Annotates the PSMs of a single identification run. Each run gets its own
