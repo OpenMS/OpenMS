@@ -3825,7 +3825,7 @@ START_SECTION(([EXTRA] the prefilter totals count every candidate with a matched
 }
 END_SECTION
 
-START_SECTION((void build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries, const std::function<const MSExperiment*()>& searched_spectra)))
+START_SECTION((void build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries, const std::function<const MSExperiment*(Size)>& searched_spectra)))
 {
   // The index built for some spectra keeps only the peptides in their precursor windows, in their order: these
   // spectra get the same candidates (peptides, matched peaks, charges, isotope errors) as from the full index.
@@ -3876,7 +3876,9 @@ START_SECTION((void build(const std::vector<FASTAFile::FASTAEntry>& fasta_entrie
   FragmentIndex restricted;
   configure(restricted, 20.0);
   Size calls = 0;
-  restricted.build(entries, [&spectra, &calls]() { ++calls; return &spectra; });
+  Size peptides_reported = 0;
+  restricted.build(entries, [&](Size peptides) { ++calls; peptides_reported = peptides; return &spectra; });
+  TEST_EQUAL(peptides_reported, full.getPeptides().size())
   TEST_EQUAL(calls, 1)
   TEST_EQUAL(restricted.isBuild(), true)
   TEST_EQUAL(restricted.getPeptides().size() < full.getPeptides().size(), true)
@@ -3917,7 +3919,7 @@ START_SECTION((void build(const std::vector<FASTAFile::FASTAEntry>& fasta_entrie
   // no spectra (nullptr), no callback, and open search: the full index
   FragmentIndex unrestricted;
   configure(unrestricted, 20.0);
-  unrestricted.build(entries, []() -> const MSExperiment* { return nullptr; });
+  unrestricted.build(entries, [](Size) -> const MSExperiment* { return nullptr; });
   TEST_EQUAL(unrestricted.getPeptides().size(), full.getPeptides().size())
   unrestricted.build(entries, {});
   TEST_EQUAL(unrestricted.getPeptides().size(), full.getPeptides().size())
@@ -3926,7 +3928,7 @@ START_SECTION((void build(const std::vector<FASTAFile::FASTAEntry>& fasta_entrie
   configure(open_restricted, 5000.0);
   open_full.build(entries);
   calls = 0;
-  open_restricted.build(entries, [&spectra, &calls]() { ++calls; return &spectra; });
+  open_restricted.build(entries, [&spectra, &calls](Size) { ++calls; return &spectra; });
   TEST_EQUAL(calls, 0)
   TEST_EQUAL(open_restricted.getPeptides().size(), open_full.getPeptides().size())
 
@@ -3973,7 +3975,7 @@ START_SECTION((void build(const std::vector<FASTAFile::FASTAEntry>& fasta_entrie
   {
     FragmentIndex by_string_restricted;
     configure_by_string(by_string_restricted);
-    by_string_restricted.build(repeats, [searched]() { return searched; });
+    by_string_restricted.build(repeats, [searched](Size) { return searched; });
     const auto& full_peptides = by_string_full.getPeptides();
     const auto& kept_peptides = by_string_restricted.getPeptides();
     TEST_EQUAL(kept_peptides.size() < full_peptides.size(), true)

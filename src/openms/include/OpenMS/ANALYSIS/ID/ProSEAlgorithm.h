@@ -860,7 +860,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// With @p searched_spectra, the index holds only the peptides these spectra can reach (see FragmentIndex::build):
     /// the context then serves only one search of these spectra, without calibration.
     SearchContext prepareContext_(std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions,
-                                  const std::function<const PeakMap*()>& searched_spectra = {}) const;
+                                  const std::function<const PeakMap*(Size)>& searched_spectra = {}) const;
 
     /// Whether a single-use context may index only the peptides the searched spectra can reach: not with
     /// calibration, which may change the precursor windows after the index is built.

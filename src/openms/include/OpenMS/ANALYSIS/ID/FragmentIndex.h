@@ -241,19 +241,20 @@ namespace OpenMS
 
     /** @brief Builds the index like build(fasta_entries), but only with the peptides that the spectra to be searched can reach.
      *
-     * Once the peptides are generated and sorted, @p searched_spectra is called; it may block (e.g. until the spectra are
-     * read). If it returns spectra, every peptide whose precursor mass lies in none of their precursor windows (each charge and
-     * isotope error querySpectrum() tries, widened by a margin) is removed before the fragments are generated (after
-     * peptide:deduplicate has chosen the kept entry of every peptidoform among all of its entries). The others keep
-     * their order, so querySpectrum() returns the same candidates for these spectra as with the full index, from an index that
-     * is built faster and takes less memory. Search the index only with these spectra and the current parameters.
+     * Once the peptides are generated and sorted, @p searched_spectra is called with their number (to judge whether waiting
+     * for spectra that are still being read pays off); it may block. If it returns spectra, every peptide whose precursor mass
+     * lies in none of their precursor windows (each charge and isotope error querySpectrum() tries, widened by a margin) is
+     * removed before the fragments are generated (after peptide:deduplicate has chosen the kept entry of every peptidoform
+     * among all of its entries). The others keep their order, so querySpectrum() returns the same candidates for these
+     * spectra as with the full index, from an index that is built faster and takes less memory. Search the index only with
+     * these spectra and the current parameters.
      * The full index is built if @p searched_spectra is empty or returns nullptr, and in SNES and open search mode.
      *
      * @param[in] fasta_entries The FASTA entries used to build the index.
-     * @param[in] searched_spectra Returns the spectra the index will be searched with, or nullptr.
+     * @param[in] searched_spectra Called with the number of peptides; returns the spectra the index will be searched with, or nullptr.
      */
     void build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
-               const std::function<const MSExperiment*()>& searched_spectra);
+               const std::function<const MSExperiment*(Size)>& searched_spectra);
 
     /** @brief Delete fragment index. Sets is_build=false*/
     void clear();

@@ -1702,7 +1702,7 @@ namespace OpenMS
   }
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
-                            const std::function<const MSExperiment*()>& searched_spectra)
+                            const std::function<const MSExperiment*(Size)>& searched_spectra)
   {
       // A rebuild replaces the previous database. generatePeptides() appends, so stale
       // peptides would otherwise be kept and their coordinates interpreted against the
@@ -1783,7 +1783,7 @@ namespace OpenMS
       // deduplication in runs of equal precursor m/z below keeps or drops a run as a whole and may follow.
       if (searched_spectra && !is_snes_mode_ && !isOpenSearchMode_())
       {
-        if (const MSExperiment* spectra = searched_spectra()) { keepPeptidesInPrecursorWindows_(*spectra); }
+        if (const MSExperiment* spectra = searched_spectra(fi_peptides_.size())) { keepPeptidesInPrecursorWindows_(*spectra); }
       }
       const bool deduplicate = deduplicate_requested && !deduplicate_by_string;
       const size_t num_peptides = fi_peptides_.size();

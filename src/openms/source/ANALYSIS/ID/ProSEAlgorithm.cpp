@@ -2417,7 +2417,7 @@ namespace OpenMS
   ProSEAlgorithm::SearchContext
   ProSEAlgorithm::prepareContext_(
       std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions,
-      const std::function<const PeakMap*()>& searched_spectra) const
+      const std::function<const PeakMap*(Size)>& searched_spectra) const
   {
     SearchContext ctx;
 
@@ -2668,8 +2668,8 @@ namespace OpenMS
     if (database_chunk_size_ == 0)
     {
       // single use: index only the peptides these spectra can reach
-      std::function<const PeakMap*()> searched_spectra;
-      if (restrictIndexToSpectra_()) { searched_spectra = [&spectra]() { return &spectra; }; }
+      std::function<const PeakMap*(Size)> searched_spectra;
+      if (restrictIndexToSpectra_()) { searched_spectra = [&spectra](Size) { return &spectra; }; }
       SearchContext ctx = prepareContext_(std::vector<FASTAFile::FASTAEntry>(fasta_db), electron_ions, searched_spectra);
       ctx.release_fragment_index_after_scoring = true;
       return search(spectra, ctx, protein_ids, peptide_ids);
@@ -3408,10 +3408,14 @@ namespace OpenMS
       return threads;
     }
 
-    // With up to this many threads, the index build waits for the spectra that are read meanwhile, to index only the
-    // peptides they can reach: generating the fragments it skips would take longer than the rest of the read. (Measured
-    // on 8,000-spectrum files: faster for all instrument types up to 4 threads, slower for some from 6 threads on.)
+    // The index build waits for the spectra that are read meanwhile, to index only the peptides they can reach, if
+    // generating the fragments it skips takes longer than the rest of the read: with few threads (measured on
+    // 8,000-spectrum files: faster for all instrument types up to 4 threads, slower for some from 6 threads on) and a
+    // read that is short against the build (the read is serial, the build parallel): at most
+    // MAX_SPECTRA_BYTES_PER_PEPTIDE / threads bytes of spectra file per peptide (measured with 9 M peptides: faster
+    // with 11, 27 and 41 bytes per peptide at 2 threads and with 11 at 4 threads, even with 27, slower with 41).
     constexpr Size MAX_THREADS_WAITING_FOR_SPECTRA = 4;
+    constexpr UInt64 MAX_SPECTRA_BYTES_PER_PEPTIDE = 100;
 
     // FASTAFile::load() with the OpenMP threads: the file is cut into pieces at starts of entries,
     // the threads read the pieces with FASTAFile::readNext(), and the pieces are joined in file
@@ -3594,15 +3598,17 @@ namespace OpenMS
       bool spectra_waited = spectra_read;
       // The single-use index holds only the peptides the spectra can reach if they are read by the time the
       // peptides are generated, or if waiting for them pays off (see MAX_THREADS_WAITING_FOR_SPECTRA).
-      std::function<const PeakMap*()> searched_spectra;
+      std::function<const PeakMap*(Size)> searched_spectra;
       if (restrictIndexToSpectra_())
       {
-        searched_spectra = [&]() -> const PeakMap*
+        const UInt64 spectra_bytes = File::fileSize(in_spectra); // UInt64(-1) if unknown: no waiting
+        searched_spectra = [&, spectra_bytes](Size peptides) -> const PeakMap*
         {
           if (!spectra_waited)
           {
-            if (threads > MAX_THREADS_WAITING_FOR_SPECTRA
-                && spectra_ready.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+            const bool wait = threads <= MAX_THREADS_WAITING_FOR_SPECTRA
+                              && spectra_bytes <= MAX_SPECTRA_BYTES_PER_PEPTIDE * peptides / threads;
+            if (!wait && spectra_ready.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
             {
               return nullptr;
             }
@@ -4214,8 +4220,8 @@ namespace OpenMS
         }
         else
         {
-          std::function<const PeakMap*()> spectra_of_search;
-          if (searched_spectra != nullptr) { spectra_of_search = [searched_spectra]() { return searched_spectra; }; }
+          std::function<const PeakMap*(Size)> spectra_of_search;
+          if (searched_spectra != nullptr) { spectra_of_search = [searched_spectra](Size) { return searched_spectra; }; }
           ctx = prepareContext_(std::vector<FASTAFile::FASTAEntry>(fasta_db), electron_ions, spectra_of_search);
         }
         sw_idx.stop();
