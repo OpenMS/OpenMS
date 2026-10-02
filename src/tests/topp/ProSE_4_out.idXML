@@ -8,6 +8,8 @@
 				<UserParam type="string" name="open_search" value="false"/>
 				<UserParam type="string" name="peptide:clip_nterm_methionine" value="true"/>
 				<UserParam type="string" name="peptide:deduplicate" value="true"/>
+				<UserParam type="string" name="scoring:fragment_charges" value="auto"/>
+				<UserParam type="string" name="scoring:fragment_charges_resolved" value="single"/>
 				<UserParam type="string" name="peaks:window_type" value="auto"/>
 				<UserParam type="string" name="peaks:window_type_resolved" value="jump_full"/>
 				<UserParam type="int" name="peaks:dense_window_top" value="100"/>

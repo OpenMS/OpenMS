@@ -854,6 +854,14 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// deisotoper is never called out of range (it would throw -> terminate in the
     /// OpenMP region). See OpenMS#9619.
     bool deisotope_requested_{true};
+    bool scoring_multiple_charges_{false}; ///< Resolved scoring:fragment_charges: score charges above 1
+    int scoring_max_charge_{2};            ///< Upper fragment charge bound (fragment:max_charge)
+
+    /// Fragment charges that score a candidate of the given precursor charge; also used by the calibration pass.
+    int scoringMaxCharge_(int precursor_charge) const
+    {
+      return scoring_multiple_charges_ ? std::max(1, std::min(precursor_charge - 1, scoring_max_charge_)) : 1;
+    }
     Size peaks_keep_n_{0};     ///< NLargest cap on MS2 peaks before scoring; 0 = resolution-aware auto (peaks:keep_n)
     Int peaks_window_top_{20}; ///< WindowMower peaks-per-100Da before scoring (peaks:window_top)
     std::string peaks_window_type_ {"auto"}; ///< Resolution-aware treatment of the final peak window

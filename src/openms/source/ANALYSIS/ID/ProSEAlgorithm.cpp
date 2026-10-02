@@ -265,6 +265,14 @@ namespace OpenMS
     // Fragment and scoring limits
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
+    defaults_.setValue(
+      "scoring:fragment_charges", "auto",
+      "Fragment charges of the theoretical spectra that score each candidate. 'single' scores singly charged fragments only. "
+      "'multiple' adds charges up to min(precursor charge - 1, fragment:max_charge). 'auto' uses 'multiple' when the MS2 spectra "
+      "are not deisotoped (fragment:deisotope=false, or a fragment tolerance above the deisotoper's limit of 0.1 Da / 100 ppm, "
+      "as for ion-trap CID) and 'single' otherwise, because deisotoping converts fragments to charge 1.",
+      {"advanced"});
+    defaults_.setValidStrings("scoring:fragment_charges", {"auto", "single", "multiple"});
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
     // Ion series toggles
@@ -368,6 +376,13 @@ namespace OpenMS
                       << " exceeds the deisotoping limit (100 ppm / 0.1 Da); skipping MS2 "
                       << "deisotoping (expected for low-resolution data)." << endl;
     }
+
+    // Spectra that are not deisotoped keep multiply charged fragments at their own m/z;
+    // deisotoped spectra hold charge-1 fragments only.
+    const std::string fragment_charges = param_.getValue("scoring:fragment_charges").toString();
+    const bool deisotoped = deisotope_requested_ && deisotope_supported;
+    scoring_multiple_charges_ = fragment_charges == "multiple" || (fragment_charges == "auto" && ! deisotoped);
+    scoring_max_charge_ = static_cast<int>(param_.getValue("fragment:max_charge"));
 
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
     set<std::string> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
@@ -1074,7 +1089,9 @@ namespace OpenMS
           MSSpectrum theoretical_spec;
           if (need_alignment)
           {
-            const int max_frag_z = (charge >= 2) ? std::min<int>(charge - 1, 2) : 1;
+            // Annotate the charges actually scored when higher charges are scored.
+            const int max_frag_z = scoring_multiple_charges_ ? scoringMaxCharge_(static_cast<int>(charge))
+                                                             : ((charge >= 2) ? std::min<int>(charge - 1, 2) : 1);
             tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
             if (sa_absolute)
             {
@@ -1382,6 +1399,8 @@ namespace OpenMS
 
     search_parameters.setMetaValue("peptide:clip_nterm_methionine", param_.getValue("peptide:clip_nterm_methionine"));
     search_parameters.setMetaValue("peptide:deduplicate", param_.getValue("peptide:deduplicate"));
+    search_parameters.setMetaValue("scoring:fragment_charges", param_.getValue("scoring:fragment_charges"));
+    search_parameters.setMetaValue("scoring:fragment_charges_resolved", scoring_multiple_charges_ ? "multiple" : "single");
     search_parameters.setMetaValue("peaks:window_type", peaks_window_type_);
     search_parameters.setMetaValue(
       "peaks:window_type_resolved",
@@ -1841,7 +1860,7 @@ namespace OpenMS
         // Clear peaks + data arrays (ion names / charges) before refilling for the
         // next candidate; getSpectrum appends to whatever is there.
         theo_spectrum.clear(true);
-        spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, 1);
+        spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, scoringMaxCharge_(sms.precursor_charge_));
         // Note: TSG emits sorted output when add_metainfo=true (see the
         // sortByPositionPresorted() call at the tail of getSpectrum_); the extra
         // sortByPosition() pass here was a redundant O(N) scan per candidate.
@@ -1861,7 +1880,8 @@ namespace OpenMS
         AnnotatedHit_ ah;
         ah.sequence = std::move(mod_candidate);
         ah.score = score;
-        double seq_length = (double)ah.sequence.size();
+        // Account for the additional charge hypotheses in the ion-count fractions.
+        double seq_length = static_cast<double>(ah.sequence.size()) * scoringMaxCharge_(sms.precursor_charge_);
         ah.prefix_fraction = static_cast<float>(detail.matched_prefix_ions / seq_length);
         ah.suffix_fraction = static_cast<float>(detail.matched_suffix_ions / seq_length);
         ah.mean_error = static_cast<float>(detail.mean_error);
@@ -3888,7 +3908,7 @@ namespace OpenMS
         // Clear peaks + data arrays before refilling; getSpectrum appends to
         // whatever is there. Its output is already sorted with add_metainfo=true.
         theo.clear(true);
-        tsg.getSpectrum(theo, seq, 1, 1);
+        tsg.getSpectrum(theo, seq, 1, scoringMaxCharge_(sms.precursor_charge_));
 
         HyperScore::PSMDetail detail;
         double score = HyperScore::computeWithDetail(

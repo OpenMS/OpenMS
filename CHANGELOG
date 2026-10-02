@@ -91,6 +91,13 @@ TOPP tools:
         once across chunks; keeping the queried keys adds memory per spectrum. SNES mother indices are
         unchanged. Set false for the previous occurrence-based candidates. FragmentIndex keeps false as
         its own default.
+      - New scoring:fragment_charges (auto, single, multiple). Candidates were scored against singly
+        charged fragments only, also when the spectra are not deisotoped and keep multiply charged
+        fragments at their own m/z, as in ion-trap CID. 'auto', the default, scores charges up to
+        min(precursor charge - 1, fragment:max_charge) for spectra that are not deisotoped and charge 1
+        for deisotoped (high-resolution) spectra, whose results do not change. The calibration pass and
+        the peak annotations use the same charges; the ion-count fractions divide by the number of
+        charges scored.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
