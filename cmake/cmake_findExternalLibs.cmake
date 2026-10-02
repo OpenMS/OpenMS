@@ -18,91 +18,19 @@
 #   * on windows we need the *.lib versions (dlls alone won't do for linking)
 #   * never mix Release/Debug versions of libraries. Leads to strange segfaults,
 #     stack corruption etc, due to different runtime libs ...
-# compiler-wise: use the same compiler for contrib and OpenMS!
+# compiler-wise: build the dependencies with the same compiler as OpenMS!
 find_package(XercesC REQUIRED)
 
 #------------------------------------------------------------------------------
-# Is _path inside a Homebrew prefix? /opt/homebrew on Apple Silicon,
-# /usr/local on Intel, or $HOMEBREW_PREFIX for a relocated install. Used to
-# spot a static boost from brew, which needs the fixups below. cmake_path
-# compares whole path components, so /usr/locale does not count as /usr/local.
-macro(openms_is_homebrew_path _path _out)
-  set(${_out} FALSE)
-  set(_oihp_prefixes "/opt/homebrew" "/usr/local")
-  if (DEFINED ENV{HOMEBREW_PREFIX})
-    list(APPEND _oihp_prefixes "$ENV{HOMEBREW_PREFIX}")
-  endif()
-  foreach (_oihp_prefix ${_oihp_prefixes})
-    cmake_path(IS_PREFIX _oihp_prefix "${_path}" NORMALIZE _oihp_hit)
-    if (_oihp_hit)
-      set(${_out} TRUE)
-    endif()
-  endforeach()
-  unset(_oihp_prefixes)
-  unset(_oihp_prefix)
-  unset(_oihp_hit)
-endmacro()
-
-#------------------------------------------------------------------------------
-# Boost's CMake config does not expose the transitive dependencies of its
-# compiled libraries as imported targets, so a static boost from brew carries
-# plain "-lzstd"-style entries in its link interface instead
-# (https://github.com/boostorg/boost_install/issues/64).
-#
-# Replace the entries of _boost_target's link interface that name library
-# _stem -- "-l<stem>" or a path to "lib<stem>.<ext>" -- with the first of
-# ${ARGN} that exists as an imported target, after looking for _package. Touch
-# nothing else: which libraries boost links depends on how it was built, so
-# substituting one it does not list would invent a dependency, and naming an
-# imported target that no find_package created is a hard error at generate time
-# ("the link interface of target ... contains ZLIB::ZLIB but the target was not
-# found"). When no candidate target exists, boost's own flag is left in place
-# and a warning names _name. Pass an empty _package to skip the find_package,
-# for callers that have already looked the dependency up themselves.
-#
-# The regex is built here rather than passed in: a macro substitutes its
-# arguments as text, so a backslash escape in one would be unescaped a second
-# time ("\\." arriving as ".", which would make the zlib stem match -lzstd).
-macro(openms_boost_flag_to_target _boost_target _name _stem _package)
-  set(_obftt_regex "^(-l|.*lib)${_stem}(\\.|$)")
-  get_target_property(_obftt_libs ${_boost_target} INTERFACE_LINK_LIBRARIES)
-  set(_obftt_hits "${_obftt_libs}")
-  list(FILTER _obftt_hits INCLUDE REGEX "${_obftt_regex}")
-  if (_obftt_hits)
-    if (NOT "${_package}" STREQUAL "")
-      # QUIET: a miss is reported below, with advice specific to this build --
-      # find_package's own "set <pkg>_DIR" wall of text would only compete.
-      find_package(${_package} QUIET)
-    endif()
-    set(_obftt_target "")
-    foreach (_obftt_candidate ${ARGN})
-      if (TARGET ${_obftt_candidate})
-        set(_obftt_target ${_obftt_candidate})
-        break()
-      endif()
-    endforeach()
-    if (_obftt_target)
-      list(FILTER _obftt_libs EXCLUDE REGEX "${_obftt_regex}")
-      list(APPEND _obftt_libs ${_obftt_target})
-      set_target_properties(${_boost_target}
-              PROPERTIES INTERFACE_LINK_LIBRARIES "${_obftt_libs}")
-    else()
-      message(WARNING "${_boost_target} links ${_name}, but no imported target for it was found. Leaving boost's \
-plain link flag for it in place; if linking fails, point CMake at ${_name} through CMAKE_PREFIX_PATH or its _ROOT \
-variable.")
-    endif()
-  endif()
-  unset(_obftt_regex)
-  unset(_obftt_libs)
-  unset(_obftt_hits)
-  unset(_obftt_target)
-  unset(_obftt_candidate)
-endmacro()
-
-#------------------------------------------------------------------------------
 # BOOST
-set(OpenMS_BOOST_COMPONENTS date_time regex CACHE INTERNAL "Boost components for core lib")
-find_boost(iostreams ${OpenMS_BOOST_COMPONENTS})
+# OpenMS uses only header-only Boost libraries (Boost.Regex is header-only since
+# 1.76; FileInfo only needs Boost.Iostreams' filtering_ostream and null_sink,
+# which are templates), so no compiled Boost library is linked and static and
+# shared Boost installations work alike. A static Boost linked into libOpenMS.so
+# failed where it was not built with -fPIC and brought its own dependencies
+# (zstd, lzma, ICU) in as plain link flags (#3319); a compiled component would
+# bring that choice back.
+find_boost()
 
 if(Boost_FOUND)
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
@@ -110,68 +38,8 @@ if(Boost_FOUND)
   set(CF_OPENMS_BOOST_VERSION_MINOR ${Boost_MINOR_VERSION})
   set(CF_OPENMS_BOOST_VERSION_SUBMINOR ${Boost_SUBMINOR_VERSION})
   set(CF_OPENMS_BOOST_VERSION ${Boost_VERSION})
-
-  get_target_property(location Boost::iostreams LOCATION)
-  get_target_property(target_type Boost::iostreams TYPE)
-  openms_is_homebrew_path("${location}" boost_from_brew)
-  if (target_type STREQUAL "STATIC_LIBRARY" AND boost_from_brew)
-    message(WARNING "Statically linked Boost from system installations like brew, are not fully supported yet.
-Either use '-DBOOST_USE_STATIC=OFF' to use the shared library or build boost with our contrib. Nonetheless,
-we are going to try to continue building.")
-    # Swap each compression backend boost listed for its imported target, one
-    # entry at a time (see openms_boost_flag_to_target above). zstd's config
-    # package exports a shared or a static target depending on how it was
-    # built, so take whichever exists -- as the opentims block further down
-    # already does.
-    openms_boost_flag_to_target(Boost::iostreams "zlib"  z    ZLIB    ZLIB::ZLIB)
-    openms_boost_flag_to_target(Boost::iostreams "bzip2" bz2  BZip2   BZip2::BZip2)
-    openms_boost_flag_to_target(Boost::iostreams "zstd"  zstd zstd    zstd::libzstd_shared zstd::libzstd_static)
-    openms_boost_flag_to_target(Boost::iostreams "lzma"  lzma LibLZMA LibLZMA::LibLZMA)
-  endif()
-
-  get_target_property(location Boost::regex LOCATION)
-  get_target_property(target_type Boost::regex TYPE)
-  openms_is_homebrew_path("${location}" boost_from_brew)
-  if (target_type STREQUAL "STATIC_LIBRARY" AND boost_from_brew)
-    get_target_property(libs Boost::regex INTERFACE_LINK_LIBRARIES)
-    # If boost from brew, replace simple "link flags" like "-licuuc" with
-    # find_package calls and their resulting imported targets
-    # since boost CMake does not expose this transitive dependency as targets!
-    # see https://github.com/boostorg/boost_install/issues/64
-    # Ask only for the ICU components boost actually listed: which ones it links
-    # depends on how it was built, so requesting one it does not use would
-    # invent a dependency. Components per FindICU.
-    set(_icu_components)
-    foreach (_icu_component data i18n io le lx test tu uc)
-      set(_icu_hits "${libs}")
-      list(FILTER _icu_hits INCLUDE REGEX "^(-l|.*lib)icu${_icu_component}(\\.|$)")
-      if (_icu_hits)
-        list(APPEND _icu_components ${_icu_component})
-      endif()
-    endforeach()
-    if (_icu_components)
-      # OPTIONAL_COMPONENTS, not COMPONENTS: plain COMPONENTS marks each one
-      # required even without REQUIRED, and FindICU creates every ICU:: target
-      # inside "if(ICU_FOUND)" -- so one missing component would leave us with
-      # no targets at all instead of the ones that are there.
-      find_package(ICU QUIET OPTIONAL_COMPONENTS ${_icu_components})
-      if (ICU_FOUND)
-        foreach (_icu_component ${_icu_components})
-          openms_boost_flag_to_target(Boost::regex "icu${_icu_component}" "icu${_icu_component}" ""
-                  ICU::${_icu_component})
-        endforeach()
-      else()
-        message(WARNING "Boost::regex links ICU, but ICU was not found, so boost's plain -licu* link flags are left \
-in place. Homebrew's icu4c is keg-only and therefore off CMake's default search path: configure with \
--DICU_ROOT=\"$(brew --prefix icu4c)\" if linking fails.")
-      endif()
-    endif()
-    unset(_icu_hits)
-    unset(_icu_component)
-    unset(_icu_components)
-  endif()
 else()
-  message(FATAL_ERROR "Boost or one of its components not found!")
+  message(FATAL_ERROR "Boost not found!")
 endif()
 
 #------------------------------------------------------------------------------
@@ -285,6 +153,38 @@ endif()
 #------------------------------------------------------------------------------
 # bzip2
 find_package(BZip2 REQUIRED)
+
+#------------------------------------------------------------------------------
+# zstd (Zstandard, used for mzML binary data array compression, MS:1003780 ff.)
+# zstd is also a dependency of Apache Arrow/Parquet, so vcpkg and distribution
+# packages of Arrow already provide it (an Arrow built with bundled dependencies
+# carries a private copy, so install the system package there). Its config
+# package exports a shared or a static target depending on how it was built
+# (zstd >= 1.5.6 additionally provides zstd::libzstd), so take whichever exists.
+# Fall back to a plain header/library search for installations without the
+# config package.
+find_package(zstd CONFIG QUIET)
+if(TARGET zstd::libzstd)
+  set(OPENMS_ZSTD_TARGET zstd::libzstd)
+elseif(TARGET zstd::libzstd_shared)
+  set(OPENMS_ZSTD_TARGET zstd::libzstd_shared)
+elseif(TARGET zstd::libzstd_static)
+  set(OPENMS_ZSTD_TARGET zstd::libzstd_static)
+else()
+  find_path(OPENMS_ZSTD_INCLUDE_DIR NAMES zstd.h)
+  find_library(OPENMS_ZSTD_LIBRARY NAMES zstd libzstd zstd_static libzstd_static)
+  if(NOT OPENMS_ZSTD_INCLUDE_DIR OR NOT OPENMS_ZSTD_LIBRARY)
+    message(FATAL_ERROR "zstd (Zstandard) not found. Install the zstd development package "
+                        "(e.g. libzstd-dev, libzstd-devel or 'brew install zstd') or point CMake to it "
+                        "via CMAKE_PREFIX_PATH.")
+  endif()
+  add_library(OpenMS_zstd UNKNOWN IMPORTED)
+  set_target_properties(OpenMS_zstd PROPERTIES
+    IMPORTED_LOCATION "${OPENMS_ZSTD_LIBRARY}"
+    INTERFACE_INCLUDE_DIRECTORIES "${OPENMS_ZSTD_INCLUDE_DIR}")
+  set(OPENMS_ZSTD_TARGET OpenMS_zstd)
+endif()
+message(STATUS "Using zstd target: ${OPENMS_ZSTD_TARGET}")
 
 #------------------------------------------------------------------------------
 # libzip (ZIP64 archive support)
@@ -464,10 +364,12 @@ if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static"
    OR (OPENMS_ARROW_DATASET_TARGET AND
        OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static"))
   # Deliberately not REQUIRED: only the platforms that actually resolve those
-  # symbols against a system libxml2 need it. MSVC has no --as-needed and the
-  # Windows contrib build links a static Arrow with no system libxml2 present at
-  # all, so a mandatory lookup would turn a link-order workaround into a hard
-  # build dependency everywhere and fail configuration where it is not needed.
+  # symbols against a system libxml2 need it. MSVC has no --as-needed, and the
+  # Windows vcpkg triplets link a static Arrow that vcpkg builds against its own
+  # ports, without the azure feature (see vcpkg.json), so the Windows builds need
+  # no libxml2 through Arrow; attaching it where it is found anyway is harmless.
+  # A mandatory lookup would turn a link-order workaround into a hard build
+  # dependency everywhere and fail configuration where it is not needed.
   find_package(LibXml2 QUIET)
   if(LibXml2_FOUND)
     if(TARGET Arrow::arrow_bundled_dependencies)
@@ -586,10 +488,10 @@ if(WITH_WNETALIGN)
 endif()
 
 #------------------------------------------------------------------------------
-# Done finding contrib libraries
+# Done finding external libraries
 #------------------------------------------------------------------------------
 
-#except for the contrib libs, prefer shared libraries
+# for the libraries found below, prefer shared libraries
 if(NOT MSVC AND NOT APPLE)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
 endif()
@@ -607,70 +509,11 @@ find_package (Threads REQUIRED)
 #------------------------------------------------------------------------------
 # QT (only needed for GUI)
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "6.1.0")
-
-if (WITH_GUI)
-  find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS Core QUIET)
-
-  IF (Qt6Core_FOUND)
-    message(STATUS "Found Qt ${Qt6Core_VERSION}")
-  ELSE()
-    message(FATAL_ERROR "Qt6Core not found — required when WITH_GUI=ON. Use -DWITH_GUI=OFF to build without GUI.")
-  ENDIF()
-
-  # --------------------------------------------------------------------------
-  # Find additional Qt libs
-  #---------------------------------------------------------------------------
-  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg OpenGLWidgets)
-
-  # On macOS the platform plugin of QT requires PrintSupport. We link
-  # so it's packaged via the bundling/dependency tools/scripts
-  if (APPLE)
-    set (TEMP_OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} PrintSupport)
-  endif()
-
-  set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT components for GUI lib")
-
-  if(NOT NO_WEBENGINE_WIDGETS)
-    set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
-  endif()
-
-  find_package(Qt6 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
-
-  IF (NOT Qt6Widgets_FOUND OR NOT Qt6Gui_FOUND OR NOT Qt6Svg_FOUND)
-    message(STATUS "Qt6Widgets not found!")
-    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
-  ENDIF()
-  find_package(Qt6 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
-
-  # TODO only works if WebEngineWidgets is the only optional component
-  set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-  if(Qt6WebEngineWidgets_FOUND)
-    list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
-  else()
-    message(WARNING "Qt6WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
-  endif()
-
-  # The GUI applications derive from TOPPBase and discover tools through ToolHandler,
-  # so the tool framework is part of the GUI library's public link interface.
-  set(OpenMS_GUI_DEP_LIBRARIES "OpenMS" "OpenMS_CLI")
-
-  foreach(COMP IN LISTS OpenMS_GUI_QT_COMPONENTS)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
-  endforeach()
-
-  foreach(COMP IN LISTS OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
-  endforeach()
-
-endif()
+include(${OPENMS_HOST_DIRECTORY}/cmake/cmake_findQt.cmake)
 
 #------------------------------------------------------------------------------
 # opentims (Bruker TimsTOF .d file reading)
 if (WITH_OPENTIMS)
-  # Enable C language for bundled ZSTD fallback (zstddeclib.c)
-  enable_language(C)
-
   find_package(Opentims QUIET)
 
   if(Opentims_FOUND)
@@ -751,20 +594,8 @@ if (WITH_OPENTIMS)
     target_include_directories(opentims_cpp PRIVATE
       "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
 
-    # ZSTD: prefer system; fall back to opentims's bundled decoder.
-    set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
-    find_package(zstd QUIET)
-    if(TARGET zstd::libzstd_shared)
-      target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_shared)
-      message(STATUS "opentims: using system zstd (shared)")
-    elseif(TARGET zstd::libzstd_static)
-      target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_static)
-      message(STATUS "opentims: using system zstd (static)")
-    else()
-      target_sources(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd/zstddeclib.c")
-      target_include_directories(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd")
-      message(STATUS "opentims: using bundled zstd decoder (system zstd not found)")
-    endif()
+    # ZSTD: use the same zstd that OpenMS itself links (required, see above).
+    target_link_libraries(opentims_cpp PRIVATE ${OPENMS_ZSTD_TARGET})
 
     # Suppress warnings from third-party code
     target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
@@ -801,10 +632,27 @@ endif()
 #------------------------------------------------------------------------------
 # openms-thermo-bridge (Thermo RAW file reading)
 if (WITH_THERMO_RAW)
-  find_package(OpenMSThermoBridge 0.3 QUIET)
+  # 0.3.1 is the first release that publishes THIRD-PARTY-NOTICES.txt with its managed
+  # assemblies; the install below takes it from there.
+  find_package(OpenMSThermoBridge 0.3.1 QUIET)
 
   if(OpenMSThermoBridge_FOUND)
     message(STATUS "openms-thermo-bridge: using system installation")
+
+    # Ship the Thermo Fisher RawFileReader license with the Thermo assemblies, as the
+    # from-source branch below does. The vcpkg port installs it next to its CMake
+    # package (vcpkg-overlays/ports/openms-thermo-bridge/portfile.cmake).
+    set(_openms_thermo_license_file "${OpenMSThermoBridge_DIR}/ThermoRawFileReader-License.doc")
+    if(EXISTS "${_openms_thermo_license_file}")
+      install(FILES "${_openms_thermo_license_file}"
+              DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
+              COMPONENT share)
+      openms_add_third_party_notice("LICENSES/ThermoRawFileReader-License.doc"
+                                    "${_openms_thermo_license_file}")
+    else()
+      message(WARNING "openms-thermo-bridge: ${_openms_thermo_license_file} not found; "
+                      "the install will not include the Thermo RawFileReader license.")
+    endif()
   else()
     # No system install found — fetch and build from source.
     message(STATUS "openms-thermo-bridge: system installation not found, fetching from git")
@@ -814,9 +662,9 @@ if (WITH_THERMO_RAW)
       OpenMSThermoBridge
       GIT_REPOSITORY https://github.com/OpenMS/openms-thermo-bridge.git
       # Pin to a specific reviewed upstream revision to keep builds reproducible.
-      # This is the commit the v0.3.0 release tag points at; tools/ci/fetch_thermo_assets.sh
-      # checks that its own pin matches and downloads the v0.3.0 release assets.
-      GIT_TAG        2c66c9260ad78f499527c7d1c85a920afab9aa2d  # v0.3.0
+      # This is the commit the v0.3.1 release tag points at; tools/ci/fetch_thermo_assets.sh
+      # checks that its own pin matches and downloads the v0.3.1 release assets.
+      GIT_TAG        d809f8ac6264d00c81da4b7abe456a08f124f804  # v0.3.1
     )
 
     # Configure the thermo bridge build options
@@ -922,6 +770,8 @@ if (WITH_THERMO_RAW)
                 DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
                 RENAME "ThermoRawFileReader-License.doc"
                 COMPONENT share)
+        openms_add_third_party_notice("LICENSES/ThermoRawFileReader-License.doc"
+                                      "${_openms_thermo_license_file}")
       endif()
     endif()
   endif()
@@ -945,6 +795,21 @@ if (WITH_THERMO_RAW)
             COMPONENT share
             PATTERN "*.pdb" EXCLUDE
             PATTERN "*.zip" EXCLUDE)
+    # The bridge publishes THIRD-PARTY-NOTICES.txt with these assemblies, so the copy above
+    # installs it: the licenses of the bridge's own ThermoWrapperManaged, of CommandLineParser
+    # and OpenMcdf (MPL-2.0, with the address of its source code), and of nethost, which the
+    # native bridge library links. Thermo's own license is installed under LICENSES. A managed
+    # directory without the file (e.g. a pre-built one from a bridge older than 0.3.1) stops
+    # the installation instead of shipping the assemblies without their licenses.
+    install(CODE "
+      if(NOT EXISTS \"${OpenMSThermoBridge_MANAGED_DIR}/THIRD-PARTY-NOTICES.txt\")
+        message(FATAL_ERROR \"openms-thermo-bridge: ${OpenMSThermoBridge_MANAGED_DIR} has no \"
+                            \"THIRD-PARTY-NOTICES.txt; use openms-thermo-bridge 0.3.1 or newer.\")
+      endif()"
+      COMPONENT share)
+    ## The file may not exist yet: the build publishes the assemblies when it builds the bridge.
+    openms_add_third_party_notice("openms_thermo_bridge/managed/THIRD-PARTY-NOTICES.txt"
+                                  "${OpenMSThermoBridge_MANAGED_DIR}/THIRD-PARTY-NOTICES.txt")
   else()
     message(WARNING
       "openms-thermo-bridge: OpenMSThermoBridge_MANAGED_DIR is not set; the managed "

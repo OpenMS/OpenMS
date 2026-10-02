@@ -1600,9 +1600,11 @@ def _testParam(p):
     assert sorted(p.items()) == sorted((k, p[k]) for k in p.keys())
 
     assert not p.exists("asdflkj01231321321v")
+    # value-only setValue() keeps an entry's tags, so k may still carry its defaults' tags
+    tags_before = p.getTags(k)
     p.addTag(k, "a")
     p.addTags(k, ["", "c"])
-    assert sorted(p.getTags(k)) == ["", "a", "c"]
+    assert sorted(p.getTags(k)) == sorted(set(tags_before) | {"", "a", "c"})
     p.clearTags(k)
     assert p.getTags(k) == []
 
@@ -1631,8 +1633,12 @@ def _testParam(p):
     assert p == p1
 
     e1 = p1.getEntry(k)
-    for f in ["name", "description", "value", "tags", "valid_strings",
-              "min_float", "max_float", "min_int", "max_int"]:
+    fields = ["name", "description", "value", "tags", "valid_strings",
+              "min_float", "max_float", "min_int", "max_int"]
+    if e1.isBool():
+        # a boolean parameter has no string restrictions from Python (issue #10116)
+        fields.remove("valid_strings")
+    for f in fields:
         assert getattr(e1, f) is not None
 
     assert e1 == e1
@@ -5172,6 +5178,9 @@ def testPeakFileOptions():
     pfo.setMSLevels
     pfo.setMetadataOnly
     pfo.setWriteSupplementalData
+    assert not pfo.getZstdCompression()
+    pfo.setZstdCompression(True)
+    assert pfo.getZstdCompression()
 
 @report
 def testMRMMapping():

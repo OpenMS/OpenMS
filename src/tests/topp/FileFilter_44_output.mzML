@@ -75,11 +75,11 @@
 				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="1907.0" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="408.787391981166991" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8585.0" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="0.273" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -111,11 +111,11 @@
 				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="1907.0" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="408.787391981166991" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8585.0" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="0.273" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -145,9 +145,9 @@
 <indexList count="1">
 	<index name="spectrum">
 		<offset idRef="sample=1 period=1 cycle=1 experiment=1">4413</offset>
-		<offset idRef="sample=2 period=2 cycle=2 experiment=2">7209</offset>
+		<offset idRef="sample=2 period=2 cycle=2 experiment=2">7225</offset>
 	</index>
 </indexList>
-<indexListOffset>10007</indexListOffset>
+<indexListOffset>10039</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

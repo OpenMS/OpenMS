@@ -530,6 +530,9 @@ protected:
     /**
       @brief Insert all values of @p defaults and adds the prefix @p prefix, if the values are not already set.
 
+      Values that are already set are kept. If both the existing entry and the default are
+      strings (or string lists), the existing entry takes the default's valid strings.
+
       @param[in] defaults The default values.
       @param[in] prefix The prefix to add to all defaults.
       @param[in] showMessage If <tt>true</tt> each default that is actually set is printed to stdout as well.

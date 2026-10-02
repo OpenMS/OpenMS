@@ -31,6 +31,7 @@ RUN apt-get update \
     libglpk-dev \
     libzip-dev \
     zlib1g-dev \
+    libzstd-dev \
     libzip4 \
     zlib1g \
     # ICU is needed by the .NET SDK/runtime for the openms-thermo-bridge build
@@ -42,11 +43,8 @@ RUN apt-get update \
     libhdf5-dev\
     coinor-libcoinmp-dev \
     libeigen3-dev \
-    libboost-date-time-dev \
-    libboost-iostreams-dev \
-    libboost-regex-dev \
-    libboost-math-dev \
-    libboost-random-dev \
+    # Boost headers only: OpenMS links no compiled Boost library
+    libboost-dev \
     qt6-base-dev \
     libglx-dev \
     libgl1-mesa-dev \
@@ -167,12 +165,13 @@ RUN <<-EOF
         *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
     esac
     
+    # dependencies from the apt packages above, not from vcpkg
     cmake \
+        -DOPENMS_USE_VCPKG=OFF \
         -DQt6_DIR="/usr/lib/${DEB_ARCH}/cmake/Qt6" \
         -DCMAKE_BUILD_TYPE='Release' \
         -DCMAKE_PREFIX_PATH="/usr/;/usr/local" \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
-        -DBOOST_USE_STATIC=OFF \
         -S ${SOURCE_DIR} \
         -B ${BUILD_DIR}
 EOF
@@ -196,17 +195,13 @@ RUN apt-get update \
     libsvm3 \
     libzip4 \
     zlib1g \
+    libzstd1 \
     libbz2-1.0 \
     libcurl4 \
     libgomp1 \
     libqt6svg6 \
     libxerces-c3.2 \
     coinor-libcoinmp1v5 \
-    libboost-date-time1.83.0 \
-    libboost-iostreams1.83.0 \
-    libboost-regex1.83.0 \
-    libboost-math1.83.0 \
-    libboost-random1.83.0 \
     # ICU is required by the .NET runtime that hosts the openms-thermo-bridge
     libicu74 \
   && wget https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \

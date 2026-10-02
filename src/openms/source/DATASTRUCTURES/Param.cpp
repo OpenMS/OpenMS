@@ -628,6 +628,22 @@ namespace OpenMS
           setMaxFloat(name, it->max_float);
         }
       }
+      else
+      {
+        // An existing string entry takes the defaults' string restrictions: the defaults
+        // describe what the parameter is, checkDefaults() validates against them anyway,
+        // and a Param built by hand (e.g. in pyOpenMS) otherwise keeps restrictions that
+        // contradict them -- or none at all -- for good. Values are left untouched.
+        ParamEntry& entry = getEntry_(prefix2 + it.getName());
+        const auto is_stringy = [](ParamValue::ValueType t)
+        {
+          return t == ParamValue::STRING_VALUE || t == ParamValue::STRING_LIST;
+        };
+        if (is_stringy(entry.value.valueType()) && is_stringy(it->value.valueType()))
+        {
+          entry.valid_strings = it->valid_strings;
+        }
+      }
 
       //copy section descriptions
       const std::vector<ParamIterator::TraceInfo>& trace = it.getTrace();

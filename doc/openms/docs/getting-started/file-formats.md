@@ -25,15 +25,30 @@ compressed file of such a format. A Bruker `.d` directory packed into a ZIP arch
 ### Writing
 
 mzML, mzXML, mzData, featureXML, consensusXML, traML and mzIdentML output is compressed when the output file name
-ends in `.gz` (gzip) or `.bz2` (bzip2), in lower case:
+ends in `.gz` (gzip) or `.bz2` (bzip2):
 
 ```bash
 FileConverter -in sample.mzML -out sample.mzML.gz
 ```
 
-The other formats, idXML and trafoXML among them, cannot be written compressed, and ZIP output is not supported:
-give such output an uncompressed file name. The low-memory modes that write spectra one by one, for example
-FileConverter with `-process_lowmemory`, also write uncompressed mzML.
+The other formats, idXML and trafoXML among them, cannot be written compressed, and ZIP output is not supported.
+A tool refuses such an output name with an error rather than write an uncompressed file under it: give the output
+an uncompressed name, and compress the file afterwards if needed. The same applies to the modes that write spectra
+one by one, for example FileConverter with `-process_lowmemory`: they write uncompressed mzML only.
+
+### Compressing the peak data inside mzML
+
+The peak data inside an mzML file can be compressed as well. With `-zstd_compression`, new in OpenMS 3.6,
+FileConverter compresses it with Zstandard (zstd); FileFilter has the same option as
+`-peak_options:zstd_compression true`:
+
+```bash
+FileConverter -in sample.mzML -out sample_zstd.mzML -zstd_compression
+```
+
+zstd is lossless and usually gives smaller files than zlib, and it can be combined with the lossy numpress compression
+of `-lossy_compression`. Tools read such files like any other mzML file. Not every program outside OpenMS reads
+zstd-compressed mzML yet, so leave the option off for files that other software has to read.
 
 ## Parquet bundles
 

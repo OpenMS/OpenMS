@@ -169,10 +169,25 @@ namespace OpenMS
           auto value = entry.value;
           if (entry.value.valueType() == ParamValue::ValueType::STRING_VALUE)
           {
-            if ((entry.valid_strings.size() == 2 && entry.valid_strings[0] == "true" && entry.valid_strings[1] == "false") ||
-                (entry.valid_strings.size() == 2 && entry.valid_strings[0] == "false" && entry.valid_strings[1] == "true"))
+            if (entry.isBool())
             {
-              value = node.get<bool>() ? "true" : "false";
+              // a CWL runner and ParamJSONFile::store write a JSON boolean, but hand-written JSON
+              // (and older CWL descriptions, which declared these inputs as strings) uses the
+              // strings the parameter itself is restricted to
+              if (node.is_string())
+              {
+                const std::string as_string = node.get<std::string>();
+                if (as_string != "true" && as_string != "false")
+                {
+                  throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
+                                              "Parameter " + key + " only accepts 'true' or 'false', but '" + as_string + "' was given.");
+                }
+                value = as_string;
+              }
+              else
+              {
+                value = node.get<bool>() ? "true" : "false";
+              }
             }
             else if (entry.tags.contains("input file"))
             {
@@ -323,8 +338,7 @@ namespace OpenMS
             node = static_cast<double>(param_it->value);
             break;
           case ParamValue::STRING_VALUE:
-            if ((param_it->valid_strings.size() == 2 && param_it->valid_strings[0] == "true" && param_it->valid_strings[1] == "false")
-               || (param_it->valid_strings.size() == 2 && param_it->valid_strings[0] == "false" && param_it->valid_strings[1] == "true"))
+            if (param_it->isBool())
             {
                 node = param_it->value.toBool();
             } else {

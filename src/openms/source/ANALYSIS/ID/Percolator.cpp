@@ -997,8 +997,7 @@ void Percolator::fillPINCompatibleFields(
   // Spec-lookup regex is derived from the first pid's scan identifier (same
   // as PercolatorInfile::preparePin_).
   const std::string first_sid = PercolatorInfile::getScanIdentifier(peptide_ids.front(), 0);
-  const boost::regex scan_regex(
-    SpectrumLookup::getRegExFromNativeID(first_sid));
+  const RegularExpression scan_regex(SpectrumLookup::getRegExFromNativeID(first_sid));
 
   size_t row = 0;
   size_t pid_index = 0;
@@ -1037,7 +1036,7 @@ void Percolator::fillPINCompatibleFields(
       double calc_mass = 0.0;
       if (hit.metaValueExists("CalcMass"))
       {
-        calc_mass = hit.getMetaValue("CalcMass");
+        calc_mass = PercolatorInfile::getFeatureValue(hit.getMetaValue("CalcMass"), "CalcMass");
       }
       else
       {
@@ -1281,7 +1280,7 @@ void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "PeptideHit missing feature meta value", f);
         }
-        row.push_back(static_cast<double>(hit.getMetaValue(f)));
+        row.push_back(PercolatorInfile::getFeatureValue(hit.getMetaValue(f), f));
       }
       ri.features.push_back(std::move(row));
       ri.is_decoy.push_back(hit.getMetaValue(td_meta).toString() == "decoy");

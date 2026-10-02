@@ -357,6 +357,21 @@ namespace OpenMS{
     return fs::absolute(to_path(file)).generic_string();
   }
 
+  std::string File::toFileURI(const std::string& file)
+  {
+    std::string path = absolutePath(file);
+#ifdef OPENMS_WINDOWSPLATFORM
+    std::replace(path.begin(), path.end(), '\\', '/');
+    // A UNC path has an authority (server name), so keep only two slashes after
+    // the scheme instead of treating it like a local path.
+    if (StringUtils::hasPrefix(path, "//") && path.size() > 2 && path[2] != '/')
+    {
+      return "file:" + path;
+    }
+#endif
+    return StringUtils::hasPrefix(path, "/") ? "file://" + path : "file:///" + path;
+  }
+
   std::string File::basename(const std::string& file)
   {
     return PathUtils::basename(file);
@@ -451,6 +466,22 @@ namespace OpenMS{
       ::close(fd);
 #endif
       return 0;
+    }
+
+    /**
+      @brief The compiled-in install path @p path, with its length taken at run time.
+
+      Relocatable packages (conda) rewrite the install prefix inside such strings in the
+      binary when they are installed, and pad the shorter result with NUL bytes. A
+      std::string made directly from the literal gets the literal's original length, which
+      the compiler folds into the code, so it would keep the padding NULs, and every file
+      name built from it would name the directory instead. Reading the pointer through a
+      volatile variable makes the length a run-time strlen().
+    */
+    std::string installPath_(const char* path)
+    {
+      const char* volatile p = path;
+      return std::string(p);
     }
   } // namespace
 
@@ -604,7 +635,7 @@ namespace OpenMS{
     search_dirs.push_back(std::string(OPENMS_SOURCE_PATH) + "/../../doc/");
     search_dirs.push_back(getOpenMSDataPath() + "/../../doc/");
     search_dirs.push_back(OPENMS_DOC_PATH);
-    search_dirs.push_back(OPENMS_INSTALL_DOC_PATH);
+    search_dirs.push_back(installPath_(OPENMS_INSTALL_DOC_PATH));
 
     // needed for OpenMS Mac OS X packages where documentation is stored in <package-root>/Documentation
 #if defined(__APPLE__)
@@ -671,7 +702,7 @@ namespace OpenMS{
       // unrelated OpenMS installation. On Linux/macOS the baked prefix is genuinely correct.
       if (!path_checked)
       {
-        path = OPENMS_INSTALL_DATA_PATH;
+        path = installPath_(OPENMS_INSTALL_DATA_PATH);
         path_checked = isOpenMSDataPath_(path);
         if (path_checked)
         {
@@ -871,6 +902,16 @@ namespace OpenMS{
     // check if we are in one of the bundles in an installed bundle (new bundles)
     exec = File::getExecutablePath() + "../../../bin/" + toolName;
     if (File::exists(exec)) return exec;
+#endif
+#ifndef OPENMS_WINDOWSPLATFORM
+    // layered installs (e.g. Homebrew kegs for library, TOPP tools and GUI) merge their files into a common
+    // prefix, whose share/OpenMS is compiled in as OPENMS_INSTALL_DATA_PATH: probe the bin/ of that prefix
+    const std::string install_data_path = installPath_(OPENMS_INSTALL_DATA_PATH);
+    if (!install_data_path.empty())
+    {
+      exec = install_data_path + "/../../bin/" + toolName;
+      if (File::exists(exec) && !File::isDirectory(exec)) return exec;
+    }
 #endif
     // TODO(aiche): probe in PATH
 

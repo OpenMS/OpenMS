@@ -154,6 +154,7 @@
   - @subpage TOPP_MRMMapper - MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
   - @subpage TOPP_MRMPairFinder - Evaluates labeled pair ratios on MRM features.
   - @subpage TOPP_MRMTransitionGroupPicker - Picks peaks in MRM chromatograms.
+  - @subpage TOPP_OpenDIA - High-level DIA workflow front-end built on the OpenSWATH stack.
   - @subpage TOPP_OpenSwathAnalyzer - Picks peaks and finds features in an SRM experiment.
   - @subpage TOPP_OpenSwathAssayGenerator - Generates filtered and optimized assays using TraML files.
   - @subpage TOPP_OpenSwathChromatogramExtractor - Extract chromatograms (XIC) from a MS2 map file.
@@ -184,6 +185,7 @@
   <b>Quality Control</b>
   - @subpage TOPP_QualityControl - A one-in-all QC tool to generate an augmented mzTab
   - @subpage TOPP_DatabaseSuitability - Calculates the suitability of a database for peptide identification search using a de novo approach.
+  - @subpage TOPP_DIAuditor - Computes quality metrics of data-independent acquisition (DIA) runs, per run and per isolation window.
   - @subpage TOPP_QCCalculator - Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.
   - @subpage TOPP_QCEmbedder - Embeds tables or plots generated externally as attachments to existing quality parameters in qcML files.
   - @subpage TOPP_QCExporter - Extracts several quality parameter from several runs/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.

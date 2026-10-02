@@ -12,8 +12,9 @@ cmake_minimum_required(VERSION 3.24 FATAL_ERROR) ## Subdirectories pulled
 ## for that directory to the older version
 
 # The vcpkg toolchain must be selected before project() initializes compilers.
-# Existing system/contrib dependency discovery remains the default.
-option(OPENMS_USE_VCPKG "Use vcpkg manifest mode for dependency management." OFF)
+# The CMake presets set OPENMS_USE_VCPKG=ON and build the dependencies with vcpkg.
+# A configure without a preset takes them from system packages and CMAKE_PREFIX_PATH.
+option(OPENMS_USE_VCPKG "Use vcpkg manifest mode for dependency management (OFF: system packages and CMAKE_PREFIX_PATH)." OFF)
 
 if(OPENMS_USE_VCPKG AND NOT CMAKE_TOOLCHAIN_FILE)
   set(_openms_submodule_vcpkg_toolchain "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
@@ -22,8 +23,14 @@ if(OPENMS_USE_VCPKG AND NOT CMAKE_TOOLCHAIN_FILE)
     set(CMAKE_TOOLCHAIN_FILE "${_openms_submodule_vcpkg_toolchain}" CACHE FILEPATH "CMake toolchain file")
   else()
     message(FATAL_ERROR
-      "OPENMS_USE_VCPKG is ON, but no vcpkg toolchain was found. Initialize the "
-      "vcpkg submodule or set CMAKE_TOOLCHAIN_FILE.")
+      "OPENMS_USE_VCPKG is ON, but no vcpkg toolchain was found.\n"
+      "Either\n"
+      "  - build the dependencies with vcpkg: run 'git submodule update --init vcpkg' "
+      "(or clone with --recurse-submodules) and configure with a preset, e.g. "
+      "'cmake --preset linux-x64-release' ('cmake --list-presets' lists them), or set "
+      "CMAKE_TOOLCHAIN_FILE to <vcpkg root>/scripts/buildsystems/vcpkg.cmake; or\n"
+      "  - take the dependencies from system packages or CMAKE_PREFIX_PATH: configure "
+      "with -DOPENMS_USE_VCPKG=OFF.")
   endif()
 
   unset(_openms_submodule_vcpkg_toolchain)
@@ -56,6 +63,17 @@ if(WIN32 AND DEFINED ENV{VCToolsVersion} AND "$ENV{VCToolsVersion}" VERSION_LESS
 endif()
 
 project("OpenMS_host" LANGUAGES CXX)
+
+# A toolchain file given by the user (cross compiling, conda, ...) is not
+# necessarily vcpkg's. vcpkg.cmake sets VCPKG_TOOLCHAIN; a different toolchain
+# would otherwise only surface as missing dependencies much later.
+if(OPENMS_USE_VCPKG AND NOT VCPKG_TOOLCHAIN)
+  message(FATAL_ERROR
+    "OPENMS_USE_VCPKG is ON, but the toolchain file '${CMAKE_TOOLCHAIN_FILE}' "
+    "is not vcpkg's. Pass vcpkg's toolchain (<vcpkg root>/scripts/buildsystems/vcpkg.cmake) and "
+    "chain-load your own with -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=<file>, or configure with "
+    "-DOPENMS_USE_VCPKG=OFF to take the dependencies from system packages or CMAKE_PREFIX_PATH.")
+endif()
 
 # required for cmake < 3.13 if ccache is used
 set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
@@ -97,7 +115,6 @@ enable_testing()
 # OPENMS_COVERAGE
 #------------------------------------------------------------------------------
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
-option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
 option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(BUILD_TOPP_TOOLS "Build the TOPP command-line applications." ON)
@@ -114,6 +131,16 @@ option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration te
 option(ENABLE_THERMO_FAIMS_DIA_TESTS "Download Thermo FAIMS-DIA test data for integration tests" OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
+
+## Build only the applications (TOPP tools and/or the GUI) against an installed OpenMS
+## library of the same version instead of building the libraries, e.g. to package OpenMS in
+## layers (see cmake/find_installed_openms.cmake). Point OpenMS_DIR or CMAKE_PREFIX_PATH at
+## the installation. Tests, documentation and pyOpenMS need the library targets of this build
+## and are not built in this mode.
+option(OPENMS_USE_INSTALLED_LIBRARY "Build the TOPP tools and/or the GUI against an installed OpenMS library instead of building the libraries." OFF)
+if(OPENMS_USE_INSTALLED_LIBRARY AND ENABLE_CWL_GENERATION)
+  message(FATAL_ERROR "ENABLE_CWL_GENERATION is not supported together with OPENMS_USE_INSTALLED_LIBRARY.")
+endif()
 
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
@@ -226,7 +253,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "3")
-set(OPENMS_PACKAGE_VERSION_MINOR "6")
+set(OPENMS_PACKAGE_VERSION_MINOR "7")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
 
@@ -236,15 +263,31 @@ message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION}")
 include(GetGitRevisionDescription)
 option(GIT_TRACKING "Embedding of Git version control information into the OpenMS library (and OpenMSInfo tool). Note that if activated, every branch-switch or commit will trigger re-generation of the build system (MakeFiles, VS Solutions etc)." ON)
 if (GIT_TRACKING)
-  ## will configure an include file
-  git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE OPENMS_GIT_INFO_FOUND)
-  ## The Release workflow builds a release from its tag, a detached checkout whose refspec is "HEAD".
-  ## If HEAD is the tag v<version> of this version, use the tag as refspec, so that the packages
-  ## carry the plain version below instead of <version>-pre-HEAD-<date>.
-  if(OPENMS_GIT_INFO_FOUND AND OPENMS_GIT_SHORT_REFSPEC STREQUAL "HEAD")
-    git_get_exact_tag(_openms_release_tag --tags --match "v${OPENMS_PACKAGE_VERSION}")
-    if(_openms_release_tag STREQUAL "v${OPENMS_PACKAGE_VERSION}")
-      set(OPENMS_GIT_SHORT_REFSPEC "${_openms_release_tag}")
+  ## A source tree made by git archive (the Release workflow's source tarball, GitHub's source
+  ## archives) has no .git of its own, but carries its commit in .git_archival.txt. That takes
+  ## precedence: a .git further up the tree would belong to another repository.
+  git_archival_info("${CMAKE_CURRENT_SOURCE_DIR}/.git_archival.txt"
+    _openms_archival_describe OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE OPENMS_GIT_ARCHIVAL_FOUND)
+  if(OPENMS_GIT_ARCHIVAL_FOUND)
+    ## The archive of the tag v<version> of this version carries the plain version below; any
+    ## other archive is marked as exported, as before.
+    if(_openms_archival_describe STREQUAL "v${OPENMS_PACKAGE_VERSION}")
+      set(OPENMS_GIT_SHORT_REFSPEC "${_openms_archival_describe}")
+    else()
+      set(OPENMS_GIT_SHORT_REFSPEC "exported")
+    endif()
+    set(OPENMS_GIT_INFO_FOUND TRUE)
+  else()
+    ## will configure an include file
+    git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE OPENMS_GIT_INFO_FOUND)
+    ## The Release workflow builds a release from its tag, a detached checkout whose refspec is "HEAD".
+    ## If HEAD is the tag v<version> of this version, use the tag as refspec, so that the packages
+    ## carry the plain version below instead of <version>-pre-HEAD-<date>.
+    if(OPENMS_GIT_INFO_FOUND AND OPENMS_GIT_SHORT_REFSPEC STREQUAL "HEAD")
+      git_get_exact_tag(_openms_release_tag --tags --match "v${OPENMS_PACKAGE_VERSION}")
+      if(_openms_release_tag STREQUAL "v${OPENMS_PACKAGE_VERSION}")
+        set(OPENMS_GIT_SHORT_REFSPEC "${_openms_release_tag}")
+      endif()
     endif()
   endif()
 endif()
@@ -274,7 +317,11 @@ else()
   message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
   message(STATUS "  - Repository branch ${OPENMS_GIT_SHORT_REFSPEC}")
   message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
-  message(STATUS "  [CMake is tracking Git commits and branching ('-D GIT_TRACKING=On')]")
+  if(OPENMS_GIT_ARCHIVAL_FOUND)
+    message(STATUS "  [Git information from .git_archival.txt, filled in by git archive ('-D GIT_TRACKING=On')]")
+  else()
+    message(STATUS "  [CMake is tracking Git commits and branching ('-D GIT_TRACKING=On')]")
+  endif()
 endif()
 
 # Additional versioning information for packaging
@@ -308,12 +355,13 @@ if (MINGW OR MSYS)
 endif()
 
 #------------------------------------------------------------------------------
-# Setup CMAKE_PREFIX_PATH for finding external libs (contrib or system)
+# Setup CMAKE_PREFIX_PATH for finding external libs (vcpkg or system)
 #------------------------------------------------------------------------------
 if(OPENMS_USE_VCPKG)
   message(STATUS "Dependency provider: vcpkg (${CMAKE_TOOLCHAIN_FILE})")
 else()
-  message(STATUS "Dependency provider: system/contrib")
+  message(STATUS "Dependency provider: system packages and CMAKE_PREFIX_PATH "
+                 "(the CMake presets, see 'cmake --list-presets', build the dependency set CI tests with vcpkg)")
 endif()
 include(cmake/setup_lib_find_paths.cmake)
 
@@ -472,6 +520,19 @@ set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_T
 message(STATUS "Package type is '${PACKAGE_TYPE}'")
 is_valid_package(${PACKAGE_TYPE})
 
+## The install component of the GUI applications (TOPPView, TOPPAS, ..., and the TOPP tools
+## that need the GUI library, ExecutePipeline and ImageCreator), separate from the TOPP tools
+## (component Applications) so the two can be installed and packaged independently (see
+## OPENMS_USE_INSTALLED_LIBRARY). The macOS productbuild installer keeps them in
+## Applications: it stages every component in a prefix of its own, and fixing up and
+## signing bin/ (cmake/package_mac_productbuild.cmake) addresses the staging prefix of
+## Applications.
+if("${PACKAGE_TYPE}" STREQUAL "pkg")
+  set(OPENMS_GUI_APPLICATIONS_COMPONENT Applications)
+else()
+  set(OPENMS_GUI_APPLICATIONS_COMPONENT GUIApplications)
+endif()
+
 ## macOS code signing and notarization configuration
 ## Required for code signing:
 ##   SIGNING_IDENTITY - Developer ID Application certificate identity (e.g., "Developer ID Application: Your Name (TEAMID)")
@@ -558,7 +619,7 @@ if(UNIX)
   endif()
 
   # Installed binaries must find the shared dependencies they were linked against
-  # (contrib, Homebrew, conda, ...) on their own: add the directories of those
+  # (Homebrew, conda, ...) on their own: add the directories of those
   # libraries to the install RPATH. Consumers of an installed libOpenMS then link
   # and run without LD_LIBRARY_PATH; the linker also uses this RPATH to resolve
   # the private dependencies of libOpenMS. System directories and directories
@@ -636,7 +697,15 @@ endif()
 # Find core dependencies here, so all projects have access to the same variables and
 # do not have to re-search for the core components
 
-include(cmake/cmake_findExternalLibs.cmake)
+## Defines openms_add_third_party_notice(), with which the code that installs third-party
+## license files (the Thermo bridge in cmake_findExternalLibs.cmake among it) records them
+## for share/OpenMS/THIRD-PARTY-NOTICES.txt.
+include(cmake/third_party_notices.cmake)
+if(OPENMS_USE_INSTALLED_LIBRARY)
+  include(cmake/find_installed_openms.cmake)
+else()
+  include(cmake/cmake_findExternalLibs.cmake)
+endif()
 
 #------------------------------------------------------------------------------
 # find the Doxygen (required by /doc and /src/OpenMS)
@@ -645,9 +714,11 @@ include(cmake/cmake_findExternalLibs.cmake)
 ## not run dot (HAVE_DOT = NO in doc/doxygen/Doxyfile.in). Provides the Doxygen::doxygen /
 ## Doxygen::dot imported targets and the modern Doxygen_FOUND, Doxygen_VERSION,
 ## Doxygen_dot_FOUND result variables.
-find_package(Doxygen OPTIONAL_COMPONENTS dot)
+if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+  find_package(Doxygen OPTIONAL_COMPONENTS dot)
+endif()
 
-if(WITH_ONNX)
+if(WITH_ONNX AND NOT OPENMS_USE_INSTALLED_LIBRARY)
   # 1. Tell CMake to look for the package ONLY if the switch is ON.
   if(OPENMS_USE_VCPKG)
     find_package(onnxruntime CONFIG REQUIRED)
@@ -665,7 +736,9 @@ add_subdirectory(src)
 #------------------------------------------------------------------------------
 # Documentation
 #------------------------------------------------------------------------------
-add_subdirectory(doc)
+if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+  add_subdirectory(doc)
+endif()
 
 #------------------------------------------------------------------------------
 # Thirdparty search engines (shipped with the installers)
@@ -681,12 +754,28 @@ endif()
 
 #------------------------------------------------------------------------------
 # Handle export of targets and install them
-openms_export_targets()
-install_export_targets()
+## A build against an installed OpenMS library does not provide a CMake package: the
+## installation it builds on already does (OpenMSConfig.cmake), and a second one would
+## collide with it where the layers are installed into one prefix.
+if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+  openms_export_targets()
+  install_export_targets()
+endif()
 
 #------------------------------------------------------------------------------
 # Installation and packaging:
 #------------------------------------------------------------------------------
+
+## Defines openms_install_third_party_licenses(), which package_general.cmake calls, and
+## openms_install_vendored_licenses() and openms_install_vcpkg_licenses(), which every
+## installation needs, the pyOpenMS wheels among them.
+include(cmake/third_party_licenses.cmake)
+## The libraries' licenses and THIRD-PARTY-NOTICES.txt come with the installation that a
+## build against an installed OpenMS library builds on.
+if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+  openms_install_vendored_licenses()
+  openms_install_vcpkg_licenses()
+endif()
 
 if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
 
@@ -724,6 +813,12 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
   endif()
   include(CPack)
   include(cmake/package_components.cmake)
+endif()
+
+## share/OpenMS/THIRD-PARTY-NOTICES.txt, made from the license files recorded above. Last, so
+## that it covers all of them.
+if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+  openms_install_third_party_notices()
 endif()
 
 #------------------------------------------------------------------------------

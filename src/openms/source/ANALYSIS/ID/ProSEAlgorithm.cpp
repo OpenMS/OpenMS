@@ -51,6 +51,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <numeric>
 #include <iomanip>
 #include <locale>
 #include <ostream>
@@ -115,6 +116,12 @@ namespace OpenMS
     defaults_.setMinInt("peaks:keep_n", 0);
     defaults_.setValue("peaks:window_top", 20, "Maximum number of MS2 peaks kept per 100 Da window (WindowMower) before scoring.", {"advanced"});
     defaults_.setMinInt("peaks:window_top", 1);
+    defaults_.setValue("peaks:window_type", "auto",
+                       "Local peak filtering. 'auto' uses jump_full for high-resolution fragments (<= 0.1 Da / <= 100 ppm), "
+                       "preserving the strongest peaks even in a short final 100 Da window, and legacy jump filtering otherwise. "
+                       "'jump' scales the last window's peak quota by its observed width; 'jump_full' keeps the full quota in every window.",
+                       {"advanced"});
+    defaults_.setValidStrings("peaks:window_type", {"auto", "jump", "jump_full"});
 
     defaults_.setSectionDescription("fragment", "Fragments (Product Ion) Options");
 
@@ -170,6 +177,11 @@ namespace OpenMS
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
     defaults_.setValue("peptide:max_size", 40, "Maximum size a peptide must have after digestion to be considered in the search (0 = disabled).");
     defaults_.setValue("peptide:missed_cleavages", 1, "Number of missed cleavages.");
+    defaults_.setValue("peptide:clip_nterm_methionine", "true",
+                       "Also search protein N-terminal peptides after removal of their initial methionine. "
+                       "The retained-M form is still searched; length, mass and missed-cleavage limits apply to each form. "
+                       "Set false for the previous search space.");
+    defaults_.setValidStrings("peptide:clip_nterm_methionine", {"true", "false"});
     defaults_.setValue("peptide:enzyme_specificity", "full",
       "Enzyme cleavage specificity required for both peptide termini.\n"
       "  'full' : both termini must be enzyme-specific (canonical, e.g. tryptic).\n"
@@ -289,6 +301,7 @@ namespace OpenMS
     precursor_isotopes_ = param_.getValue("precursor:isotopes");
     peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
     peaks_window_top_ = (Int)param_.getValue("peaks:window_top");
+    peaks_window_type_ = param_.getValue("peaks:window_type").toString();
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
 
@@ -442,7 +455,40 @@ namespace OpenMS
                                            [](const MSSpectrum& spectrum) { return isElectronActivated_(spectrum); }));
   }
 
-  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top)
+  void ProSEAlgorithm::filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window)
+  {
+    // Work on indices so all peak-associated data arrays survive the selection.
+    // An isolated high-m/z ion is still evidence; its window's observed width
+    // must not round the retention quota down to zero.
+    std::vector<Size> indices(spectrum.size()), selected;
+    std::iota(indices.begin(), indices.end(), 0);
+    selected.reserve(spectrum.size());
+    for (Size begin = 0; begin < spectrum.size();)
+    {
+      Size end = begin + 1;
+      while (end < spectrum.size() && spectrum[end].getMZ() - spectrum[begin].getMZ() < 100.0)
+      {
+        ++end;
+      }
+      const Size keep = std::min(peaks_per_window, end - begin);
+      std::partial_sort(indices.begin() + begin, indices.begin() + begin + keep, indices.begin() + end, [&spectrum](Size a, Size b) {
+        if (spectrum[a].getIntensity() != spectrum[b].getIntensity()) { return spectrum[a].getIntensity() > spectrum[b].getIntensity(); }
+        return a < b;
+      });
+      selected.insert(selected.end(), indices.begin() + begin, indices.begin() + begin + keep);
+      begin = end;
+    }
+    std::sort(selected.begin(), selected.end());
+    spectrum.select(selected);
+  }
+
+  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp,
+                                          double fragment_mass_tolerance,
+                                          bool fragment_mass_tolerance_unit_ppm,
+                                          bool deisotope_requested,
+                                          Size peaks_keep_n,
+                                          Int peaks_window_top,
+                                          const std::string& window_type)
   {
     // Intensity threshold + normalization used to run here as two extra SERIAL full-map
     // passes. Both are strictly per-spectrum: ThresholdMower::filterPeakMap and
@@ -454,7 +500,15 @@ namespace OpenMS
     // Normalizer::filterPeakSpectrum is const (reads the resolved 'method_' only), and
     // ThresholdMower only re-reads its 'threshold' Param into a member on every call -- the
     // same idempotent same-value write the already-shared WindowMower performs.
+    // Peaks without intensity (zero or negative, e.g. empty centroids) would still count as
+    // matched ions, so they are removed. Nothing else is (every positive float intensity,
+    // subnormal ones included, passes): the ThresholdMower default of 0.05 is an absolute
+    // cutoff on the raw intensities before normalization and deleted real peaks from
+    // intensity-scaled input (e.g. spectra normalized to a base peak of 1).
     ThresholdMower threshold_mower_filter;
+    Param threshold_param = threshold_mower_filter.getParameters();
+    threshold_param.setValue("threshold", static_cast<double>(std::numeric_limits<float>::denorm_min()));
+    threshold_mower_filter.setParameters(threshold_param);
     Normalizer normalizer;
 
     // sort by rt; done before the loop because sortSpectra(false) only permutes whole
@@ -469,6 +523,9 @@ namespace OpenMS
     filter_param.setValue("peakcount", peaks_window_top, "The number of peaks that should be kept.");
     filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
     window_mower_filter.setParameters(filter_param);
+    const bool full_window_quota
+      = window_type == "jump_full"
+        || (window_type == "auto" && Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm));
 
     // Resolution-aware peak retention. peaks_keep_n == 0 => auto. For HIGH-resolution fragments
     // (within the deisotoper range, <= 0.1 Da / <= 100 ppm) keep the legacy cap of 400. For
@@ -504,7 +561,8 @@ namespace OpenMS
     const bool do_deisotope = deisotope_requested &&
       Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
-#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, threshold_mower_filter, normalizer, window_mower_filter, nlargest_filter)
+#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, threshold_mower_filter, \
+                                                normalizer, window_mower_filter, nlargest_filter, full_window_quota, peaks_window_top)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       // remove 0 intensities, then normalize (formerly two serial full-map passes)
@@ -526,7 +584,8 @@ namespace OpenMS
       }
 
       // remove noise
-      window_mower_filter.filterPeakSpectrum(exp[exp_index]);
+      if (full_window_quota) { filterLocalPeaks_(exp[exp_index], static_cast<Size>(peaks_window_top)); }
+      else { window_mower_filter.filterPeakSpectrum(exp[exp_index]); }
       nlargest_filter.filterPeakSpectrum(exp[exp_index]);
 
       // sort (nlargest changes order)
@@ -1002,6 +1061,14 @@ namespace OpenMS
     // record whether open-search mode was used
     search_parameters.setMetaValue("open_search", isOpenSearchMode_() ? "true" : "false");
 
+    search_parameters.setMetaValue("peptide:clip_nterm_methionine", param_.getValue("peptide:clip_nterm_methionine"));
+    search_parameters.setMetaValue("peaks:window_type", peaks_window_type_);
+    search_parameters.setMetaValue(
+      "peaks:window_type_resolved",
+      peaks_window_type_ == "auto"
+        ? (Deisotoper::isToleranceSupported(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ == "ppm") ? "jump_full" : "jump")
+        : peaks_window_type_);
+
     search_parameters.enzyme_term_specificity = peptide_enzyme_specificity_;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
 
@@ -1192,10 +1259,15 @@ namespace OpenMS
       for (size_t i = 0; i != old_size; ++i)
       {
         FASTAFile::FASTAEntry e = db[i];
+        // Keep an initial Met on generated decoys as well: otherwise clipping
+        // expands the target N-terminal search space without its decoy counterpart.
+        const bool preserve_met = param_.getValue("peptide:clip_nterm_methionine").toBool() && e.sequence.size() > 1 && e.sequence[0] == 'M';
+        if (preserve_met) { e.sequence.erase(0, 1); }
         if (peptide_enzyme_specificity_ == EnzymaticDigestion::SPEC_NONE)
           e.sequence = decoy_generator.reverseProtein(AASequence::fromString(e.sequence)).toString();
         else
           e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+        if (preserve_met) { e.sequence.insert(e.sequence.begin(), 'M'); }
         e.identifier = strategy.decoy_string + e.identifier;  // decoy_string is the prefix to add
         db.push_back(std::move(e));
       }
@@ -1552,7 +1624,8 @@ namespace OpenMS
 
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
     bool open_search_mode = isOpenSearchMode_();
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_,
+                       peaks_window_type_);
 
     // ions:by_activation: the chunk indices hold c and z+1 ions if electron-activated spectra are searched
     const Size n_electron_activated = countElectronActivated_(spectra);
@@ -1807,7 +1880,8 @@ namespace OpenMS
                     << precursor_mass_tolerance_unit_ << ")" << std::endl;
 
     startProgress(0, 1, "Filtering spectra...");
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_,
+                       peaks_window_type_);
     endProgress();
 
     // ions:by_activation: electron-activated spectra are also scored with c and z+1 ions, so the
@@ -2367,7 +2441,8 @@ namespace OpenMS
         f.getOptions() = options;
         f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         all_spectra[i].sortSpectra(true);
-        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
+        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_,
+                           peaks_window_top_, peaks_window_type_);
       }
 
       // ions:by_activation: the chunk indices, shared by all files, hold c and z+1 ions if any file has

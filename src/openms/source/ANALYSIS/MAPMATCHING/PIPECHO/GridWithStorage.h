@@ -8,9 +8,11 @@
 
 #pragma once
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+#include <OpenMS/ML/CLUSTERING/HashGrid.h>
 
+#include <functional>
 #include <memory>
+#include <vector>
 
 namespace OpenMS::PipEcho
 {

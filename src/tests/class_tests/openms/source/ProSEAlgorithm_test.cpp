@@ -210,7 +210,12 @@ void addDecoySpectra(PeakMap& spectra, const std::vector<FASTAFile::FASTAEntry>&
   DecoyGenerator decoy_generator;
   for (const auto& entry : fasta_db)
   {
-    const AASequence decoy_protein = decoy_generator.reversePeptides(AASequence::fromString(entry.sequence), "Trypsin");
+    // Match ProSE's default: preserve the initial Met when generating decoys.
+    const bool preserve_met = entry.sequence.size() > 1 && entry.sequence[0] == 'M';
+    std::string decoy_sequence
+      = decoy_generator.reversePeptides(AASequence::fromString(preserve_met ? entry.sequence.substr(1) : entry.sequence), "Trypsin").toString();
+    if (preserve_met) { decoy_sequence.insert(decoy_sequence.begin(), 'M'); }
+    const AASequence decoy_protein = AASequence::fromString(decoy_sequence);
     std::vector<AASequence> peptides;
     digester.digest(decoy_protein, peptides, 8, 40);
     peptides.resize(std::min(peptides.size(), per_protein));
@@ -2600,6 +2605,86 @@ START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the
 }
 END_SECTION
 
+START_SECTION(([EXTRA] high resolution local filtering preserves short final windows and aligned peak data))
+{
+  auto filter = [](double tolerance, bool ppm, const std::string& mode) {
+    PeakMap exp;
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(2);
+    spectrum.setNativeID("scan=17");
+    const std::vector<double> mz {100.0, 110.0, 120.0, 200.0, 201.0};
+    const std::vector<float> intensity {5.0f, 5.0f, 5.0f, 7.0f, 2.0f};
+    spectrum.getFloatDataArrays().emplace_back();
+    spectrum.getFloatDataArrays().back().setName("ion_mobility");
+    spectrum.getStringDataArrays().emplace_back();
+    spectrum.getStringDataArrays().back().setName("annotation");
+    spectrum.getIntegerDataArrays().emplace_back();
+    spectrum.getIntegerDataArrays().back().setName("original_index");
+    for (Size i = 0; i < mz.size(); ++i)
+    {
+      Peak1D peak;
+      peak.setMZ(mz[i]);
+      peak.setIntensity(intensity[i]);
+      spectrum.push_back(peak);
+      spectrum.getIntegerDataArrays().back().push_back(static_cast<Int>(i));
+      spectrum.getFloatDataArrays().back().push_back(static_cast<float>(i) / 10.0f);
+      spectrum.getStringDataArrays().back().push_back(std::to_string(i));
+    }
+    exp.addSpectrum(spectrum);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, tolerance, ppm, false, 400, 2, mode);
+    return exp[0];
+  };
+
+  const MSSpectrum full = filter(20.0, true, "auto");
+  TEST_EQUAL(full.size(), 4)
+  TEST_EQUAL(full.getNativeID(), "scan=17")
+  TEST_REAL_SIMILAR(full[0].getMZ(), 100.0)
+  TEST_REAL_SIMILAR(full[1].getMZ(), 110.0)
+  TEST_REAL_SIMILAR(full[2].getMZ(), 200.0)
+  TEST_REAL_SIMILAR(full[3].getMZ(), 201.0)
+  TEST_EQUAL(full.getIntegerDataArrays()[0][0], 0)
+  TEST_EQUAL(full.getIntegerDataArrays()[0][1], 1)
+  TEST_EQUAL(full.getIntegerDataArrays()[0][2], 3)
+  TEST_EQUAL(full.getIntegerDataArrays()[0][3], 4)
+  TEST_EQUAL(full.getFloatDataArrays()[0].getName(), "ion_mobility")
+  TEST_EQUAL(full.getStringDataArrays()[0].getName(), "annotation")
+  for (Size i = 0; i < full.size(); ++i)
+  {
+    const Int original_index = full.getIntegerDataArrays()[0][i];
+    TEST_REAL_SIMILAR(full.getFloatDataArrays()[0][i], original_index / 10.0)
+    TEST_EQUAL(full.getStringDataArrays()[0][i], std::to_string(original_index))
+  }
+  TEST_TRUE(full == filter(20.0, true, "jump_full"))
+  TEST_TRUE(full == filter(100.0, true, "auto"))
+  TEST_TRUE(full == filter(0.1, false, "auto"))
+  TEST_TRUE(full == filter(0.5, false, "jump_full"))
+
+  // Legacy jump filtering rounds the short final window's quota down to zero.
+  const MSSpectrum legacy = filter(20.0, true, "jump");
+  TEST_EQUAL(legacy.size(), 2)
+  TEST_TRUE(legacy == filter(0.5, false, "auto"))
+  TEST_TRUE(legacy == filter(101.0, true, "auto"))
+  TEST_TRUE(legacy == filter(0.1001, false, "auto"))
+
+  PeakMap empty;
+  empty.addSpectrum(MSSpectrum());
+  ProSEAlgorithm_test::preprocessSpectra_(empty, 20.0, true, false, 400, 20);
+  TEST_TRUE(empty[0].empty())
+
+  PeakMap singleton;
+  MSSpectrum spectrum;
+  Peak1D peak;
+  peak.setMZ(1000.0);
+  peak.setIntensity(1000.0);
+  spectrum.push_back(peak);
+  singleton.addSpectrum(spectrum);
+  ProSEAlgorithm_test::preprocessSpectra_(singleton, 20.0, true, false, 400, 20);
+  TEST_EQUAL(singleton[0].size(), 1)
+  TEST_REAL_SIMILAR(singleton[0][0].getMZ(), 1000.0)
+}
+END_SECTION
+
+
 START_SECTION(([EXTRA] auto peak retention (peaks:keep_n=0) is resolution-aware))
 {
   // Low-resolution fragment tolerances admit many spurious matches; auto retention keeps far
@@ -2655,6 +2740,190 @@ START_SECTION(([EXTRA] fragment:deisotope parameter + validation (OpenMS#9619)))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] preprocessSpectra_ removes only peaks without intensity, so results do not depend on the intensity scale))
+{
+  // Zero-intensity peaks are dropped; every positive intensity survives, however small on an
+  // absolute scale. The ThresholdMower default of 0.05 absolute, applied before normalization,
+  // deleted real peaks from intensity-scaled spectra.
+  {
+    PeakMap exp;
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(1.0);
+    Precursor prec;
+    prec.setMZ(500.0);
+    prec.setCharge(2);
+    s.getPrecursors().push_back(prec);
+    const std::vector<std::pair<double, float>> peaks = {
+      {110.07, 0.0f}, {120.08, 1e-4f}, {130.10, 0.01f}, {200.10, 0.04f}, {300.20, 0.5f}, {350.25, 1.0f}};
+    for (const auto& [mz, intensity] : peaks) s.emplace_back(mz, intensity);
+    exp.addSpectrum(s);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, false, 0, 20);
+    ABORT_IF(exp.size() != 1)
+    TEST_EQUAL(exp[0].size(), 5) // the empty peak is gone, the weak ones stay
+    TEST_REAL_SIMILAR(exp[0][0].getMZ(), 120.08)
+    TEST_TRUE(exp[0][0].getIntensity() > 0.0f)
+  }
+
+  // Spectra scaled to a base peak of 1e-3 (every peak below the old cutoff) give the same
+  // identifications and scores as the unscaled spectra.
+  const vector<double> no_shift(12, 0.0);
+  PeakMap spectra = build_calibration_spectra_(no_shift);
+  PeakMap scaled = spectra;
+  for (MSSpectrum& spectrum : scaled)
+  {
+    for (Peak1D& peak : spectrum) peak.setIntensity(peak.getIntensity() * 1e-3f);
+  }
+  auto fasta_db = calibration_fasta_db_();
+
+  ProSEAlgorithm algo;
+  configure_calibration_params_(algo, 20.0, 30.0, 3);
+  Param p = algo.getParameters();
+  p.setValue("calibration:enabled", "false");
+  algo.setParameters(p);
+
+  vector<ProteinIdentification> prot_ids, scaled_prot_ids;
+  PeptideIdentificationList pep_ids, scaled_pep_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(algo.search(scaled, fasta_db, scaled_prot_ids, scaled_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  const std::map<std::string, PeptideHit> hits = top_hits_by_spectrum_(pep_ids);
+  const std::map<std::string, PeptideHit> scaled_hits = top_hits_by_spectrum_(scaled_pep_ids);
+  TEST_TRUE(hits.size() > 0)
+  TEST_EQUAL(scaled_hits.size(), hits.size())
+  for (const auto& [reference, hit] : hits)
+  {
+    const auto it = scaled_hits.find(reference);
+    TEST_EQUAL(it != scaled_hits.end(), true)
+    if (it == scaled_hits.end()) continue;
+    TEST_EQUAL(it->second.getSequence(), hit.getSequence())
+    TEST_EQUAL(it->second.getCharge(), hit.getCharge())
+    TEST_REAL_SIMILAR(it->second.getScore(), hit.getScore())
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION(([EXTRA] ProSE searches initial methionine loss by default in single and chunked multi - file searches))
+{
+  const vector<FASTAFile::FASTAEntry> database {{"target", "", "MPEPTIDER"}, {"DECOY_control", "", "MPEPTIDEK"}};
+  vector<AASequence> sequences {AASequence::fromString("PEPTIDER"), AASequence::fromString("PEPTIDER"), AASequence::fromString("PEPTIDEK"),
+                                AASequence::fromString("MPEPTIDER")};
+  sequences[1].setNTerminalModification("Acetyl (Protein N-term)");
+  PeakMap original;
+  for (Size i = 0; i < sequences.size(); ++i)
+  {
+    MSSpectrum spectrum;
+    TheoreticalSpectrumGenerator().getSpectrum(spectrum, sequences[i], 1, 1);
+    spectrum.sortByPosition();
+    spectrum.setMSLevel(2);
+    spectrum.setRT(i + 1);
+    spectrum.setNativeID("scan=" + std::to_string(i + 1));
+    Precursor precursor;
+    precursor.setCharge(2);
+    precursor.setMZ(sequences[i].getMZ(2));
+    spectrum.setPrecursors({precursor});
+    original.addSpectrum(spectrum);
+  }
+  std::string spectrum_file;
+  NEW_TMP_FILE(spectrum_file)
+  spectrum_file += ".mzML";
+  FileHandler().storeExperiment(spectrum_file, original, {FileTypes::MZML});
+  ProSEAlgorithm algo;
+  auto p = algo.getParameters();
+  TEST_TRUE(p.getValue("peptide:clip_nterm_methionine").toBool())
+  p.setValue("calibration:enabled", "false");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("modifications:fixed", StringList {});
+  p.setValue("modifications:variable", StringList {"Acetyl (Protein N-term)"});
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  p.setValue("peptide:missed_cleavages", 0);
+  algo.setParameters(p);
+
+  auto check = [&](const vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides, bool enabled) {
+    TEST_EQUAL(peptides.size(), enabled ? 4 : 1)
+    TEST_EQUAL(proteins.size(), 1)
+    if (! proteins.empty()) { TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("peptide:clip_nterm_methionine").toBool(), enabled) }
+    for (const auto& id : peptides)
+    {
+      const Size i = static_cast<Size>(std::stoi(id.getSpectrumReference().substr(5)) - 1);
+      TEST_EQUAL(id.getHits().size(), 1)
+      if (id.getHits().empty() || i >= sequences.size()) { continue; }
+      const auto& hit = id.getHits()[0];
+      TEST_EQUAL(hit.getSequence(), sequences[i])
+      TEST_EQUAL(hit.getMetaValue("target_decoy").toString(), i == 2 ? "decoy" : "target")
+      TEST_TRUE(hit.getScore() > 0)
+      TEST_EQUAL(hit.getPeptideEvidences().size(), 1)
+      for (const auto& evidence : hit.getPeptideEvidences())
+      {
+        TEST_EQUAL(evidence.getStart(), i == 3 ? 0 : 1)
+        TEST_EQUAL(evidence.getEnd(), 8)
+        if (i != 3) { TEST_EQUAL(evidence.getAABefore(), 'M') }
+      }
+    }
+  };
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  PeakMap spectra = original;
+  TEST_TRUE(algo.search(spectra, database, proteins, peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  check(proteins, peptides, true);
+
+  for (bool enabled : {true, false})
+  {
+    p.setValue("peptide:clip_nterm_methionine", enabled ? "true" : "false");
+    for (int chunk_size : {0, 1})
+    {
+      p.setValue("database:chunk_size", chunk_size);
+      algo.setParameters(p);
+      auto result = algo.searchWithModificationAnalysis(vector<string> {spectrum_file, spectrum_file}, database, {}, "", false);
+      TEST_EQUAL(result.per_file.size(), 2)
+      TEST_EQUAL(result.shared.chunked, chunk_size > 0)
+      for (const auto& file : result.per_file)
+      {
+        check(file.protein_ids, file.peptide_ids, enabled);
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] generated decoys preserve initial methionine when clipping is enabled))
+{
+  const vector<FASTAFile::FASTAEntry> database {{"protein", "", "MACDEKAGHILR"}, {"non_m", "", "ACDEKAGHILR"}, {"single_m", "", "M"}};
+  for (bool enabled : {false, true})
+  {
+    for (const string specificity : {"full", "none"})
+    {
+      ProSEAlgorithm_test algo;
+      auto p = algo.getParameters();
+      p.setValue("decoys", "generate");
+      p.setValue("peptide:clip_nterm_methionine", enabled ? "true" : "false");
+      p.setValue("peptide:enzyme_specificity", specificity);
+      algo.setParameters(p);
+      auto strategy = algo.resolveDecoyStrategy_(database);
+      auto result = algo.buildDecoyAugmentedDB_(database, strategy);
+      TEST_EQUAL(result.size(), 6)
+      DecoyGenerator generator;
+      for (const auto& original : database)
+      {
+        auto expected = original.sequence;
+        const bool preserve_met = enabled && expected.size() > 1 && expected[0] == 'M';
+        if (preserve_met) { expected.erase(0, 1); }
+        const auto seq = AASequence::fromString(expected);
+        expected = (specificity == "none" ? generator.reverseProtein(seq) : generator.reversePeptides(seq, "Trypsin")).toString();
+        if (preserve_met) { expected.insert(expected.begin(), 'M'); }
+        for (const auto& entry : result)
+        {
+          if (entry.identifier == original.identifier) { TEST_EQUAL(entry.sequence, original.sequence) }
+          if (entry.identifier == "DECOY_" + original.identifier) { TEST_EQUAL(entry.sequence, expected) }
+        }
+      }
+    }
+  }
+}
+END_SECTION
+
 END_TEST

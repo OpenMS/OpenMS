@@ -1015,11 +1015,7 @@ namespace OpenMS
       while (StringUtils::hasSuffix(normalized_name, "/") || StringUtils::hasSuffix(normalized_name, "\\"))
         normalized_name = StringUtils::prefix(normalized_name, normalized_name.size() - 1);
       src_file.setNameOfFile(File::basename(normalized_name));
-      std::string path_to_file = File::path(File::absolutePath(normalized_name)); // convert to absolute path and strip file name
-
-      // make sure we end up with at most 3 forward slashes
-      std::string uri = StringUtils::hasPrefix(path_to_file, "/") ? std::string("file://") + path_to_file : std::string("file:///") + path_to_file;
-      src_file.setPathToFile(uri);
+      src_file.setPathToFile(File::toFileURI(File::path(normalized_name)));
       // this is more complicated since the data formats allowed by mzML are very verbose.
       // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
       src_file.setFileType(FileTypes::typeToMZML(type));

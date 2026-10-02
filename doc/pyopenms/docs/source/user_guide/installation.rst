@@ -34,7 +34,12 @@ If you want the newest features you can also install nightly builds of pyOpenMS 
 
 .. code-block:: bash
 
-  pip install --index-url https://pypi.openms.de/simple/ pyopenms
+  pip install --upgrade --pre --index-url https://pypi.openms.de/simple/ pyopenms
+
+The ``--pre`` option includes development and pre-release versions when choosing
+a version to install. The ``--upgrade`` option also checks for a newer version
+if pyOpenMS is already installed, for example when switching from a stable
+release to a nightly build.
 
 Type Stubs
 ----------

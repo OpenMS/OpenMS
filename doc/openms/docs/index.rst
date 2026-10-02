@@ -61,7 +61,7 @@ OpenMS is developed by a group of `core developers <https://openms.de/contributo
     manual/contribute.md
     manual/develop.md
     manual/additional.md
-    API Reference <https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/TOPP_documentation.html>
+    API Reference <https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPP_documentation.html>
     manual/glossary.md
 
 .. toctree::

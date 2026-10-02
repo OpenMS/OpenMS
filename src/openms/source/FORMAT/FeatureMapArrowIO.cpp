@@ -379,7 +379,7 @@ namespace // anonymous
                 }
                 else if (mv_type == "double" || mv_type == "float")
                 {
-                  try { dp.setMetaValue(mv_name, DataValue(std::stod(mv_value))); }
+                  try { dp.setMetaValue(mv_name, DataValue(StringUtils::toDouble(mv_value))); }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
                 }
                 else if (mv_type == "int_list")
@@ -538,7 +538,7 @@ namespace // anonymous
         }
         else if (mv_type == "double" || mv_type == "float")
         {
-          try { target.setMetaValue(mv_name, DataValue(std::stod(mv_value))); }
+          try { target.setMetaValue(mv_name, DataValue(StringUtils::toDouble(mv_value))); }
           catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
         }
         else if (mv_type == "int_list")

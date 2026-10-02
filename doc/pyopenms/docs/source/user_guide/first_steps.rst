@@ -32,12 +32,10 @@ function:
 
 .. code-block:: output
 
-    class MSExperiment(builtins.object)
-     |  Cython implementation of _MSExperiment
-     |   -- Inherits from ['ExperimentalSettings', 'RangeManager2']
-     |  
+    class MSExperiment(pyopenms._pyopenms_kernel.ExperimentalSettings)
+     |  MSExperiment(*args, **kwargs)
+     |
      |  In-Memory representation of a mass spectrometry experiment.
-     |  -----
      |  Contains the data and metadata of an experiment performed with an MS (or
      |  HPLC and MS). This representation of an MS experiment is organized as list
      |  of spectra and chromatograms and provides an in-memory representation of
@@ -47,11 +45,17 @@ function:
      |  spectra and chromatogram level meta data) is stored in objects of type
      |  MSSpectrum and MSChromatogram, which are accessible through the getSpectrum
      |  and getChromatogram functions.
-     |  -----
      |  Spectra can be accessed by direct iteration or by getSpectrum(),
      |  while chromatograms are accessed through getChromatogram().
      |  See help(ExperimentalSettings) for information about meta-data.
-     |  
+
+     [...]
+
+     |  Method resolution order:
+     |      MSExperiment
+     |      pyopenms._pyopenms_kernel.ExperimentalSettings
+     |      builtins.object
+     |
      |  Methods defined here:
 
      [...]
@@ -59,13 +63,13 @@ function:
 
 which lists information on the :py:class:`~.MSExperiment` class, including a
 description of the main purpose of the class and how the class is intended to
-be used. Additional useful information is presented in the ``Inherits from``
-section which points to additional classes that act as base classes to
-:py:class:`~.MSExperiment` and that contain further information.
-The list of available methods is long (but does *not* include methods from the
-base classes) and reveals that the class exposes methods such as
-:py:meth:`~.MSExperiment.getNrSpectra` and :py:meth:`~.MSExperiment.getSpectrum(id)` where the argument ``id`` indicates
-the spectrum identifier. The command also lists the signature for each
+be used. The base classes of :py:class:`~.MSExperiment`, which contain further
+information, are named in the first line of the output and in the
+``Method resolution order`` section.
+The list of available methods is long and reveals that the class exposes methods such as
+:py:meth:`~.MSExperiment.getNrSpectra` and :py:meth:`~.MSExperiment.getSpectrum(id)` where the argument ``id`` is
+the index of the spectrum; the methods inherited from the base classes follow at the end,
+under ``Methods inherited from``. The command also lists the signature for each
 function, allowing users to identify the function arguments and return types.
 We can gain further information about exposed methods by investigating the
 documentation of the base classes:
@@ -73,26 +77,27 @@ documentation of the base classes:
 .. code-block:: python
 
     help(oms.ExperimentalSettings)
+
 .. code-block:: output
 
-    Help on class ExperimentalSettings in module pyopenms.pyopenms_4:
+    Help on class ExperimentalSettings in module pyopenms._pyopenms_kernel:
 
     class ExperimentalSettings(builtins.object)
-     |  Cython implementation of _ExperimentalSettings
-     |   -- Inherits from ['DocumentIdentifier', 'MetaInfoInterface']
-     |  
+     |  ExperimentalSettings(*args, **kwargs)
+     |
      |  Description of the experimental settings, provides meta-information
      |  about an LC-MS/MS injection.
-     |  
+     |
      |  Methods defined here:
 
      [...]
 
-We could now continue our investigation by reading the documentation of the
-base classes :py:class:`~.DocumentIdentifier` and :py:class:`~.MetaInfoInterface`, but we will
-leave this exercise for the interested reader. For a more complete documentation of the underlying
+In C++, :py:class:`~.ExperimentalSettings` in turn derives from :py:class:`~.DocumentIdentifier`
+and :py:class:`~.MetaInfoInterface`. pyOpenMS exposes their methods (for example
+``getIdentifier`` and ``getMetaValue``) directly on :py:class:`~.ExperimentalSettings`, so
+they are part of its list of methods. For a more complete documentation of the underlying
 wrapped methods, please consult the official OpenMS documentation, in this case
-the `MSExperiment documentation <https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/classOpenMS_1_1MSExperiment.html>`_.
+the `MSExperiment documentation <https://archive.openms.de/openms/Documentation/release/latest/html/classOpenMS_1_1MSExperiment.html>`_.
 
 
 First Look at Data
@@ -126,10 +131,8 @@ We can now inspect the properties of this object:
 
 .. code-block:: output
 
-    class MSExperiment(builtins.object)
-     |  Cython implementation of _MSExperiment
-     |   -- Inherits from ['ExperimentalSettings', 'RangeManager2']
-
+    class MSExperiment(pyopenms._pyopenms_kernel.ExperimentalSettings)
+     |  MSExperiment(*args, **kwargs)
 
      [...]
 
@@ -138,10 +141,14 @@ We can now inspect the properties of this object:
      [...]
 
      |  getNrChromatograms(...)
-     |      Cython signature: size_t getNrChromatograms()
+     |      getNrChromatograms(self) -> int
+     |
+     |      Returns the number of chromatograms
      |
      |  getNrSpectra(...)
-     |      Cython signature: size_t getNrSpectra()
+     |      getNrSpectra(self) -> int
+     |
+     |      Returns the number of MS spectra
      |
 
      [...]

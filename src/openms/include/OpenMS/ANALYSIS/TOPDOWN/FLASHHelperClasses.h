@@ -16,7 +16,6 @@ using uint = unsigned int; // POSIX uint not available on MSVC; was provided tra
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
-#include <boost/dynamic_bitset.hpp>
 #include <functional>
 
 namespace OpenMS

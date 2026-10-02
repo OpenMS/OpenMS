@@ -17,12 +17,3 @@ openms_add_tool_class_test(OpenSwathInference_test
     ${CMAKE_CURRENT_SOURCE_DIR}/../source/OpenSwathPeptideInference.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../source/OpenSwathProteinInference.cpp
   INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-
-# PeptidoformInference_test was gated on OpenSWATH before the move.
-if(NOT DISABLE_OPENSWATH)
-  openms_add_tool_class_test(PeptidoformInference_test
-    SOURCES
-      ${CMAKE_CURRENT_SOURCE_DIR}/../source/OpenSwathPeptidoformInference.cpp
-    INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-
-endif()
