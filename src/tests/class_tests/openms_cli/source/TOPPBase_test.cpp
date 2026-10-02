@@ -49,8 +49,7 @@ class TOPPBaseTest
       exit_code = main(0,nullptr);
     }
 
-    TOPPBaseTest(int argc ,const char** argv)
-      : TOPPBase("TOPPBaseTest", "A test class", {}, false)
+    TOPPBaseTest(int argc, const char** argv, bool utf8_process_arguments = false): TOPPBase("TOPPBaseTest", "A test class", {}, false)
     {
       char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -58,7 +57,7 @@ class TOPPBaseTest
 #else
       putenv(var);
 #endif
-      exit_code = main(argc,argv);
+      exit_code = utf8_process_arguments ? mainWithUtf8Arguments(argc, argv) : main(argc, argv);
     }
 
     void registerOptionsAndFlags_() override
@@ -483,6 +482,19 @@ END_SECTION
 START_SECTION((ExitCodes main(int argc, const char**argv)))
 	NOT_TESTABLE
 	// is tested implicitly in all tests
+END_SECTION
+
+START_SECTION([EXTRA] Programmatic argument arrays preserve UTF - 8 values)
+{
+  const std::string value = "\xE4\xB8\xAD\xE6\x96\x87 \xC3\xA4 quoted \"value\" \\";
+  const char* custom_argv[] = {"TOPPBaseTest", "-stringoption", value.c_str(), "-test"};
+  for (const bool utf8_process_arguments : {false, true})
+  {
+    TOPPBaseTest tool(4, custom_argv, utf8_process_arguments);
+    TEST_EQUAL(tool.exit_code, TOPPBase::EXECUTION_OK)
+    TEST_EQUAL(tool.getStringOption("stringoption"), value)
+  }
+}
 END_SECTION
 
 //parts to build command lines
@@ -1220,6 +1232,5 @@ delete [] a8;
 VALIDATE_TMP_FILES
 
 END_TEST
-
 
 

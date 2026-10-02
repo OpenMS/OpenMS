@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
 #include <iostream>
 #include <fstream>
@@ -34,7 +35,7 @@ namespace OpenMS
     std::ostream* os_ptr;
     if (filename != "-")
     {
-      os_.open(filename.c_str(), std::ofstream::out);
+      os_.open(to_path(filename), std::ofstream::out);
       if (!os_)
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
@@ -63,7 +64,8 @@ namespace OpenMS
 
     os.precision(writtenDigits<double>(0.0));
 
-    os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
+    // OpenMS strings contain UTF-8, including workflow paths bound through INI files.
+    os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
     std::string indentation = "  ";
     Param::ParamIterator it = param.begin();

@@ -30,7 +30,7 @@ public:
   /// Constructor
   TOPPASInputFileListVertex(const QStringList& files);
   /// Copy constructor
-  TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs) = default;
+  TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs);
   /// Destructor
   ~TOPPASInputFileListVertex() override = default;
   /// Assignment operator

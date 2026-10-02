@@ -64,8 +64,12 @@
 #endif
 
 #ifdef OPENMS_WINDOWSPLATFORM
-#undef min
-#undef max
+  #include <Windows.h>
+  #include <cstdlib>
+  #include <shellapi.h>
+  #pragma comment(lib, "Shell32.lib")
+  #undef min
+  #undef max
 #endif
 
 #include <cmath>
@@ -77,6 +81,38 @@ namespace OpenMS
 
   namespace
   {
+#ifdef OPENMS_WINDOWSPLATFORM
+    /// Recover Unicode arguments only for the CRT's actual process argv.
+    /// Explicit argument arrays passed by API users must retain their values.
+    std::vector<std::string> utf8ProcessArguments(int argc, const char** argv)
+    {
+      if (argc <= 0 || argc != __argc || static_cast<const void*>(argv) != static_cast<const void*>(__argv)) return {};
+      int wide_argc = 0;
+      const std::unique_ptr<wchar_t*, decltype(&LocalFree)> wide_argv(CommandLineToArgvW(GetCommandLineW(), &wide_argc), LocalFree);
+      if (! wide_argv || wide_argc != argc) return {};
+      const auto convert = [](const wchar_t* text, UINT code_page) -> std::optional<std::string> {
+        const int length = WideCharToMultiByte(code_page, 0, text, -1, nullptr, 0, nullptr, nullptr);
+        if (length == 0) return std::nullopt;
+        std::string value(length, '\0');
+        if (WideCharToMultiByte(code_page, 0, text, -1, value.data(), length, nullptr, nullptr) != length) return std::nullopt;
+        value.pop_back();
+        return value;
+      };
+      std::vector<std::string> result;
+      result.reserve(argc);
+      for (int i = 0; i < argc; ++i)
+      {
+        // CommandLineToArgvW and the CRT differ for some unusual quote forms.
+        // Adopt the wide parse only if it reproduces the original narrow argv.
+        const auto native = convert(wide_argv.get()[i], CP_ACP);
+        const auto utf8 = convert(wide_argv.get()[i], CP_UTF8);
+        if (! native || *native != argv[i] || ! utf8) return {};
+        result.push_back(*utf8);
+      }
+      return result;
+    }
+#endif
+
     /// Does any entry of @p valid_strings denote the same format as @p type?
     /// Compared by type, so a tool declaring 'fasta' accepts 'db.fa' and one declaring 'fa' accepts 'db.fasta'.
     /// Entries that are not known formats keep their exact spelling, so a custom extension only matches itself.
@@ -264,6 +300,24 @@ namespace OpenMS
     {
       File::remove(topplog);
     }
+  }
+
+  TOPPBase::ExitCodes TOPPBase::mainWithUtf8Arguments(int argc, const char** argv)
+  {
+#ifdef OPENMS_WINDOWSPLATFORM
+    // The owning strings and pointer array outlive parameter parsing and main_().
+    const auto utf8_arguments = utf8ProcessArguments(argc, argv);
+    std::vector<const char*> utf8_argv;
+    if (! utf8_arguments.empty())
+    {
+      utf8_argv.reserve(utf8_arguments.size() + 1);
+      for (const auto& argument : utf8_arguments)
+        utf8_argv.push_back(argument.c_str());
+      utf8_argv.push_back(nullptr);
+      argv = utf8_argv.data();
+    }
+#endif
+    return main(argc, argv);
   }
 
   TOPPBase::ExitCodes TOPPBase::main(int argc, const char** argv)
@@ -2661,7 +2715,7 @@ namespace OpenMS
 
     std::string log_destination = param_.getValue("log").toString();
     if (log_destination.empty()) return;
-    log_->open(log_destination, std::ofstream::out | std::ofstream::app);
+    log_->open(to_path(log_destination), std::ofstream::out | std::ofstream::app);
     if (debug_level_ >= 1)
     {
       cout << "Writing to '" << log_destination << '\'' << "\n";

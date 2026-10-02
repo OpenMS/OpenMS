@@ -27,6 +27,9 @@ namespace OpenMS
     setFilenames(files);
   }
 
+  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs): TOPPASVertex(rhs), key_(rhs.key_), cwd_(rhs.cwd_)
+  { setFilenames(rhs.getFileNames()); }
+
   std::unique_ptr<TOPPASVertex> TOPPASInputFileListVertex::clone() const
   {
     return std::make_unique<TOPPASInputFileListVertex>(*this);
@@ -129,21 +132,7 @@ namespace OpenMS
 
   void TOPPASInputFileListVertex::run()
   {
-    round_total_   = (int) output_files_.size(); // for now each file is one round; for the future we might allow to create blocks of files (e.g. for replicate measurements)
-    round_counter_ = (int) round_total_;
-
-    this->finished_ = true; // input node is ready to go (file check was already done)
-
-    //std::cerr << "#" << this->getTopoNr() << " set #rounds: " << round_total_ << "\n";
-
-    for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-    {
-      TOPPASVertex* tv = (*it)->getTargetVertex();
-      if (tv && !tv->isFinished()) // this tool might have already been called by another path, so do not call it again (as this will throw an error)
-      {
-        tv->run();
-      }
-    }
+    if (auto* pipeline = qobject_cast<TOPPASScene*>(scene())) { pipeline->runPipeline(); }
   }
 
   void TOPPASInputFileListVertex::setKey(const QString& key)

@@ -6,58 +6,53 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
-
-#include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/FORMAT/DTA2DFile.h>
-#include <OpenMS/FORMAT/EDTAFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/FORMAT/Bzip2Ifstream.h>
+#include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/DTA2DFile.h>
+#include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/FORMAT/EDTAFile.h>
+#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
+#include <OpenMS/FORMAT/GzipIfstream.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/KroenikFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MSPGenericFile.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/MsInspectFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzQCFile.h>
-#include <OpenMS/FORMAT/OMSSAXMLFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/FORMAT/OMSSAXMLFile.h>
+#include <OpenMS/FORMAT/PSMArrowIO.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
+#include <OpenMS/FORMAT/SpecArrayFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
-#include <OpenMS/FORMAT/XMassFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/XMassFile.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
+#include <OpenMS/FORMAT/ZipIfstream.h>
+#include <OpenMS/KERNEL/ChromatogramTools.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
-#include <OpenMS/FORMAT/PSMArrowIO.h>
-#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
-#include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
-
-#include <OpenMS/FORMAT/MsInspectFile.h>
-#include <OpenMS/FORMAT/SpecArrayFile.h>
-#include <OpenMS/FORMAT/KroenikFile.h>
-
-#include <OpenMS/KERNEL/ChromatogramTools.h>
-
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
-
-#include <OpenMS/FORMAT/GzipIfstream.h>
-#include <OpenMS/FORMAT/Bzip2Ifstream.h>
-#include <OpenMS/FORMAT/ZipIfstream.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
@@ -172,7 +167,7 @@ namespace OpenMS
 
     bool appendFileToSha1_(SHA1& sha, const std::string& filename)
     {
-      std::ifstream file{std::filesystem::path{std::string(filename)}, std::ios::binary};
+      std::ifstream file {to_path(filename), std::ios::binary};
       if (!file.is_open())
       {
         return false;
@@ -321,7 +316,7 @@ namespace OpenMS
     std::string decompressed_preview;
 
     // test whether the file is compressed (bzip2, gzip, or zip)
-    ifstream compressed_file(filename.c_str());
+    ifstream compressed_file(to_path(filename), std::ios::binary);
     char bz[4] = {};
     compressed_file.read(bz, 4);
     char g1 = 0x1f;

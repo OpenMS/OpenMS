@@ -96,8 +96,8 @@ foreach(i ${GUI_executables})
 endforeach(i)
 
 # GUI TOPP tools also need direct OpenMS link for TOPPBase etc.
-## these two are TOPP tools (TOPPBase-derived) with a Qt front end
-foreach(i ExecutePipeline ImageCreator)
+## ImageCreator is a TOPP tool with a Qt rendering backend.
+foreach(i ImageCreator)
   target_link_libraries(${i} OpenMS_CLI)
 endforeach()
 
@@ -107,7 +107,7 @@ endforeach()
 # below, so a tool cannot be built here without being registered. These are a subset of
 # GUI_executables, which also holds the GUI applications that are not TOPP tools
 # (TOPPView, TOPPAS, INIFileEditor).
-set(GUI_TOPP_TOOLS ExecutePipeline ImageCreator)
+set(GUI_TOPP_TOOLS ImageCreator)
 foreach(_gui_topp_tool ${GUI_TOPP_TOOLS})
   openms_topp_tool(${_gui_topp_tool} "Misc")
 endforeach()
@@ -117,8 +117,7 @@ if(TARGET TOPP)
   add_dependencies(TOPP ${GUI_TOPP_TOOLS})
 endif()
 
-  ## install platform plugins, and a qt.conf in bin/ that points to them: ExecutePipeline creates
-  ## a QApplication, so it needs the platform plugin even without a window.
+  ## Install Qt runtime configuration for the remaining GUI applications.
   if(WIN32)
       install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QWindowsIntegrationPlugin"
               DESTINATION "${INSTALL_PLUGIN_DIR}/platforms"
