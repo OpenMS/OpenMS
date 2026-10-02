@@ -38,7 +38,16 @@ fix). `breakdown.py` splits them by precursor charge and peptide length, and `fe
    - **Probe on 128 HF-X spectra:** at 5, none has a candidate. At 4, 103 do, 85 with Sage's peptide at rank 1.
    - **`ds1_mm4` vs develop:** 12 up, 2 flat, 0 down of 14. HF-X +3.2%, Astral +5.6%, Lumos LFQ +2.2%,
      TMTpro +13.2%, timsTOF +1.9%. ProSE then matches or exceeds Sage on HF-X, Astral and Lumos LFQ.
-   - **`ds1_mm3`:** weaker. An entrapment check of the gate is pending.
+   - **`ds1_mm3`:** weaker.
+   - **Entrapment fails on HF-X** (`entrapment_hfx_astral_gate.tsv`, HYE entrapment database):
+
+     | Group | develop | `ds1` | `ds1_mm4` |
+     | --- | --- | --- | --- |
+     | HF-X (combined FDP) | 1.31% | 1.35% | 1.70% |
+     | Astral (combined FDP) | 1.88% | 1.72% | 1.53% |
+
+     The PSMs the gate adds on HF-X carry an estimated FDP of 9–15%. The gate is not proposed as is: part of
+     Sage's weak 4–7-peak identifications on HF-X are likely false as well.
 3. **Only singly charged fragments are scored.** Retrieval uses fragment charges up to 2, but HyperScore scores
    charge 1 only.
    - **`fz2`** (scoring up to charge 2, capped at precursor charge − 1): Velos +7.3% and TMTpro +3.3%, but Astral
