@@ -46,10 +46,10 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <boost/sort/sort.hpp>
-#if defined(__linux__) && defined(_OPENMP)
+#if defined(__linux__)
   #include <cstdint>
   #include <type_traits>
-  #include <sys/mman.h> // madvise (releasePagesInParallel)
+  #include <sys/mman.h> // madvise (releasePagesInParallel, adviseHugePages)
   #include <unistd.h>
 #endif
 #if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_IX86))
@@ -572,6 +572,23 @@ namespace OpenMS
         const std::uintptr_t from = begin + static_cast<std::uintptr_t>(i) * slice;
         madvise(reinterpret_cast<void*>(from), std::min(slice, end - from), MADV_DONTNEED);
       }
+#else
+      (void) buffer;
+#endif
+    }
+
+    // Asks Linux to back a large buffer with transparent huge pages (with THP in "madvise" mode, only buffers advised so
+    // get them): writing it then takes a 512th of the page faults, and releasing it a fraction of the time. Only the
+    // 2 MB pages inside the buffer are advised, and the caller writes all of it right after, so this backs no memory the
+    // buffer would not take anyway.
+    template <typename T>
+    void adviseHugePages(std::vector<T>& buffer)
+    {
+#if defined(__linux__) && defined(MADV_HUGEPAGE)
+      constexpr std::uintptr_t huge_page = std::uintptr_t(2) << 20;
+      const std::uintptr_t begin = (reinterpret_cast<std::uintptr_t>(buffer.data()) + huge_page - 1) / huge_page * huge_page;
+      const std::uintptr_t end = (reinterpret_cast<std::uintptr_t>(buffer.data()) + buffer.size() * sizeof(T)) / huge_page * huge_page;
+      if (end > begin) { madvise(reinterpret_cast<void*>(begin), end - begin, MADV_HUGEPAGE); }
 #else
       (void) buffer;
 #endif
@@ -2131,6 +2148,8 @@ namespace OpenMS
       // Fragment's default constructor leaves the new elements uninitialised: the second pass writes them first
       fi_fragments_.resize(counts_to_positions(positions));
       electron_fragments_.resize(counts_to_positions(electron_positions));
+      adviseHugePages(fi_fragments_);
+      adviseHugePages(electron_fragments_);
 
       // Second pass: write
       generate_fragments([&](vector<Fragment>& fragments, size_t* next) { return BinWriter{fragments.data(), next, first_bin, last}; }, false);
