@@ -87,6 +87,19 @@ Where the full quota applies, a dense spectrum keeps `Search:peaks:dense_window_
 window instead: one in which `Search:peaks:window_top` peaks per window would remove more than
 `Search:peaks:dense_intensity_loss` (20%) of its intensity after deisotoping. Orbitrap Astral and many
 timsTOF spectra are dense; Orbitrap spectra rarely are. Set `Search:peaks:dense_window_top` to 0 to disable.
+@note Self-trained fragment ion priors: with `Search:annotate:self_trained_ion_priors` (on by default) each file learns
+how its fragment ions appear: presence, intensity rank among all peaks after deisotoping (before the
+`Search:peaks:window_top` and `Search:peaks:keep_n` filters) and mass error, per ion series, precursor and fragment
+charge, relative cleavage position, residues at the cleavage site (before P, after D or E) and presence of the
+complementary ion (`Search:annotate:ion_prior_model` 'rich'; 'basic' keeps series, charges and position, and the rank
+only). The model learns from the confident target PSMs (target-decoy competition q <= `Search:annotate:ion_prior_train_fdr`
+of the native score) against their reversed sequences on the same spectra. The spectra are split into two halves by scan
+parity, and every PSM is scored by the model of the other half (cross-fitting), so a PSM's own spectrum and label never
+enter its features. Every PSM gets the Percolator features of `Search:annotate:ion_prior_features` (ion_prior_llr and
+ion_prior_explained); native scores and the reported candidates are unchanged. Nothing is pre-trained: a file with fewer
+than `Search:annotate:ion_prior_min_psms` confident PSMs in either half gets zeros (and a warning). Target-only searches
+(`Search:decoys` ignore) learn and write nothing. The peak lists are kept in a compact form (m/z and rank, 5 bytes per
+peak) until the PSMs are annotated.
 
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.

@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIonLikelihoodModel.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
@@ -653,6 +654,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       local filter (see filterLocalPeaks_); the defaults disable it. @p deisotoping sets the envelope rule of
       the deisotoper (see DeisotopingSettings_).
 
+      With @p ion_evidence, a compact copy of every spectrum's peaks is kept for the self-trained ion priors
+      (annotate:self_trained_ion_priors): the peaks after deisotoping, before the window and top-N filters, or, with
+      @p ion_evidence_scored_peaks, the peaks that are scored. The lists are indexed like @p exp after its sort by RT.
+
       @return the number of spectra filtered with the dense quota
     */
     static Size preprocessSpectra_(PeakMap& exp,
@@ -664,7 +669,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                    const std::string& window_type,
                                    Size dense_window_top,
                                    double dense_intensity_loss,
-                                   const DeisotopingSettings_& deisotoping);
+                                   const DeisotopingSettings_& deisotoping,
+                                   FragmentIonLikelihoodModel::PeakLists* ion_evidence = nullptr,
+                                   bool ion_evidence_scored_peaks = false);
 
     /// preprocessSpectra_() with the DeisotopingSettings_ defaults (the behaviour before its parameters existed)
     static Size preprocessSpectra_(PeakMap& exp,
@@ -676,6 +683,36 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                    const std::string& window_type = "auto",
                                    Size dense_window_top = 0,
                                    double dense_intensity_loss = 1.0);
+
+    /**
+     * @brief Learn per-run fragment ion likelihoods from confident PSMs and annotate every hit with them.
+     *
+     * Implements annotate:self_trained_ion_priors. The spectra are split into two folds by the parity of their
+     * scan_index. Each fold trains its own FragmentIonLikelihoodModel on its rank-one target hits at target-decoy
+     * competition q <= annotate:ion_prior_train_fdr of the native score, computed within the fold, with their
+     * reversed sequences matched against the same spectra as noise. Every hit is then scored by the model of the
+     * other fold (cross-fitting), so neither a PSM's own spectrum nor its label, nor any label of its fold, enters
+     * its features; targets and decoys are scored alike. Both folds need annotate:ion_prior_min_psms training PSMs
+     * (a fold without a decoy hit has the estimate (0 + 1) / T); otherwise all features are 0 and a warning is logged. Adds the feature names to the search
+     * parameters' extra_features and records the settings that determine the features (annotate:ion_prior_*) and the
+     * training set (ion_prior:*). Native scores and the retained candidates are unchanged. Call after PeptideIndexing
+     * (target/decoy labels) and before FDR (which overwrites the native scores). Does nothing when the ion priors are
+     * off, which includes target-only searches (decoys=ignore).
+     *
+     * @param[in] spectra Preprocessed spectra, indexed by the scan_index meta value of the PSMs (precursor
+     *            activation selects the ion series).
+     * @param[in] evidence Peak lists of the same spectra from preprocessSpectra_.
+     * @param[in,out] protein_ids Search parameters of protein_ids[0] receive the feature names and training facts.
+     * @param[in,out] peptide_ids Every hit receives the meta values of annotate:ion_prior_features (ion_prior_llr,
+     *                ion_prior_explained, ion_prior_topk_observed).
+     */
+    void annotateIonPriors_(const PeakMap& spectra,
+                            const FragmentIonLikelihoodModel::PeakLists& evidence,
+                            std::vector<ProteinIdentification>& protein_ids,
+                            PeptideIdentificationList& peptide_ids) const;
+
+    /// Reversed sequence keeping the C-terminal residue and every residue's modification: the noise hypothesis of a confident PSM
+    static AASequence reversedNoiseSequence_(const AASequence& sequence);
 
     /**
       @brief Keep the strongest peaks in each non-overlapping 100 Da window, including a short final window.
@@ -965,6 +1002,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     {
       return std::max(report_top_hits_ + (annotate_per_psm_pool_features_ ? 1 : 0), Size(2));
     }
+    bool self_trained_ion_priors_{false};       ///< annotate:self_trained_ion_priors
+    FragmentIonLikelihoodModel::ContextSet ion_prior_model_{FragmentIonLikelihoodModel::ContextSet::RICH}; ///< annotate:ion_prior_model
+    bool ion_prior_scored_peaks_{false};        ///< annotate:ion_prior_peaks == scored
+    int ion_prior_max_fragment_charge_{2};      ///< annotate:ion_prior_max_fragment_charge (capped at precursor charge - 1)
+    double ion_prior_train_fdr_{0.01};          ///< annotate:ion_prior_train_fdr: TDC q-value threshold of the training PSMs
+    Size ion_prior_min_psms_{100};              ///< annotate:ion_prior_min_psms: training PSMs required per fold
+    bool ion_prior_feature_llr_{true};          ///< annotate:ion_prior_features holds ion_prior_llr
+    bool ion_prior_feature_explained_{true};    ///< annotate:ion_prior_features holds ion_prior_explained
+    bool ion_prior_feature_topk_{false};        ///< annotate:ion_prior_features holds ion_prior_topk_observed
 
     Size peptide_min_size_;
     Size peptide_max_size_;

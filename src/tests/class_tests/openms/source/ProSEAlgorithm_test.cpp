@@ -38,6 +38,7 @@
 #include <random>
 #include <set>
 #include <sstream>
+#include <iomanip>
 
 using namespace OpenMS;
 using namespace std;
@@ -71,6 +72,8 @@ public:
   using ProSEAlgorithm::resolveDecoyStrategy_;
   using ProSEAlgorithm::DecoyStrategy_;
   using ProSEAlgorithm::buildDecoyAugmentedDB_;
+  using ProSEAlgorithm::annotateIonPriors_;
+  using ProSEAlgorithm::reversedNoiseSequence_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -476,6 +479,95 @@ static Size count_annotations_(const PeptideHit& hit, const std::string& prefix)
     if (StringUtils::hasPrefix(pa.annotation, prefix)) ++n;
   }
   return n;
+}
+
+// ---------------------------------------------------------------------------
+// annotate:self_trained_ion_priors
+// ---------------------------------------------------------------------------
+static const std::vector<std::string> ion_prior_features_ = {
+  Constants::UserParam::ION_PRIOR_LLR, Constants::UserParam::ION_PRIOR_EXPLAINED, Constants::UserParam::ION_PRIOR_TOPK_OBSERVED};
+
+// The synthetic protein-FDR problem (targets, generated decoys, decoy spectra) with ion priors on
+// and no PSM filtering, so every scored hit is reported.
+static void configure_ion_prior_params_(ProSEAlgorithm& algo, Size min_psms, double train_fdr, const std::string& decoys = "generate")
+{
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", decoys);
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("FDR:protein", 0.0);
+  p.setValue("report:top_hits", 3);
+  p.setValue("annotate:self_trained_ion_priors", "true");
+  p.setValue("annotate:ion_prior_min_psms", static_cast<Int>(min_psms));
+  p.setValue("annotate:ion_prior_train_fdr", train_fdr);
+  p.setValue("annotate:ion_prior_features", ion_prior_features_);
+  algo.setParameters(p);
+}
+
+// Hits and violations: a hit violates when a feature is missing, not finite, out of [0, 1] for the
+// fractions, or (with expect_zero) not 0.
+static std::pair<Size, Size> check_ion_prior_annotations_(const PeptideIdentificationList& pep_ids, bool expect_zero)
+{
+  Size hits = 0, violations = 0;
+  for (const PeptideIdentification& pid : pep_ids)
+  {
+    for (const PeptideHit& hit : pid.getHits())
+    {
+      ++hits;
+      bool complete = true;
+      for (const std::string& feature : ion_prior_features_) complete = complete && hit.metaValueExists(feature);
+      if (! complete)
+      {
+        ++violations;
+        continue;
+      }
+      const double llr = hit.getMetaValue(Constants::UserParam::ION_PRIOR_LLR);
+      const double explained = hit.getMetaValue(Constants::UserParam::ION_PRIOR_EXPLAINED);
+      const double topk = hit.getMetaValue(Constants::UserParam::ION_PRIOR_TOPK_OBSERVED);
+      bool valid = std::isfinite(llr) && explained >= 0.0 && explained <= 1.0 && topk >= 0.0 && topk <= 1.0;
+      if (expect_zero) valid = valid && llr == 0.0 && explained == 0.0 && topk == 0.0;
+      if (! valid) ++violations;
+    }
+  }
+  return {hits, violations};
+}
+
+static std::string extra_features_(const ProteinIdentification& protein_id)
+{
+  const auto& sp = protein_id.getSearchParameters();
+  return sp.metaValueExists("extra_features") ? sp.getMetaValue("extra_features").toString() : std::string();
+}
+
+static bool lists_feature_(const ProteinIdentification& protein_id, const std::string& feature)
+{
+  const StringList features = ListUtils::create<std::string>(extra_features_(protein_id));
+  return std::find(features.begin(), features.end(), feature) != features.end();
+}
+
+// One line per hit: spectrum, sequence, charge, native score and the three ion-prior features (17 digits)
+static std::vector<std::string> ion_prior_rows_(const PeptideIdentificationList& pep_ids)
+{
+  std::vector<std::string> rows;
+  for (const PeptideIdentification& pid : pep_ids)
+  {
+    for (const PeptideHit& hit : pid.getHits())
+    {
+      std::ostringstream row;
+      row << std::setprecision(17) << pid.getSpectrumReference() << ' ' << hit.getSequence().toString() << ' ' << hit.getCharge()
+          << ' ' << hit.getScore();
+      for (const std::string& feature : ion_prior_features_)
+      {
+        row << ' ' << (hit.metaValueExists(feature) ? static_cast<double>(hit.getMetaValue(feature)) : std::nan(""));
+      }
+      rows.push_back(row.str());
+    }
+  }
+  return rows;
 }
 
 START_TEST(ProSEAlgorithm, "$Id$")
@@ -3802,6 +3894,195 @@ START_SECTION(([EXTRA] scoring:method=mass_accuracy agrees with HyperScore for e
 }
 END_SECTION
 
+START_SECTION(([EXTRA] self-trained ion priors annotate every hit without changing the native search))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  // The reference: the same search without ion priors.
+  ProSEAlgorithm plain;
+  configure_ion_prior_params_(plain, 5, 0.5);
+  Param plain_param = plain.getParameters();
+  plain_param.setValue("annotate:self_trained_ion_priors", "false");
+  plain.setParameters(plain_param);
+  PeakMap plain_spectra = spectra;
+  std::vector<ProteinIdentification> plain_prot_ids;
+  PeptideIdentificationList plain_pep_ids;
+  TEST_EQUAL(plain.search(plain_spectra, fasta_db, plain_prot_ids, plain_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  ABORT_IF(plain_prot_ids.empty() || plain_pep_ids.empty())
+  Size plain_annotated = 0;
+  for (const auto& pid : plain_pep_ids)
+  {
+    for (const auto& hit : pid.getHits())
+    {
+      for (const std::string& feature : ion_prior_features_) if (hit.metaValueExists(feature)) ++plain_annotated;
+    }
+  }
+  // switched off: no feature, nothing recorded
+  TEST_EQUAL(plain_annotated, 0)
+  TEST_EQUAL(lists_feature_(plain_prot_ids[0], Constants::UserParam::ION_PRIOR_LLR), false)
+  TEST_EQUAL(plain_prot_ids[0].getSearchParameters().metaValueExists("ion_prior:trained"), false)
+  TEST_EQUAL(plain_prot_ids[0].getSearchParameters().metaValueExists("annotate:self_trained_ion_priors"), false)
+
+  ProSEAlgorithm algo;
+  configure_ion_prior_params_(algo, 5, 0.5);
+  PeakMap algo_spectra = spectra;
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(algo_spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  ABORT_IF(prot_ids.empty() || pep_ids.empty())
+
+  // recorded in the search parameters, features appended to the ones the search already reports
+  const ProteinIdentification::SearchParameters& sp = prot_ids[0].getSearchParameters();
+  TEST_STRING_EQUAL(sp.getMetaValue("annotate:self_trained_ion_priors").toString(), "true")
+  TEST_STRING_EQUAL(sp.getMetaValue("annotate:ion_prior_model").toString(), "rich")
+  TEST_STRING_EQUAL(sp.getMetaValue("annotate:ion_prior_peaks").toString(), "all")
+  // every setting that determines the features is recorded
+  TEST_EQUAL(static_cast<int>(sp.getMetaValue("annotate:ion_prior_max_fragment_charge")), 2)
+  TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("annotate:ion_prior_train_fdr")), 0.5)
+  TEST_EQUAL(static_cast<int>(sp.getMetaValue("annotate:ion_prior_min_psms")), 5)
+  TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:trained").toString(), "true")
+  const int training_psms = sp.getMetaValue("ion_prior:training_psms");
+  const IntList fold_training_psms = sp.getMetaValue("ion_prior:fold_training_psms");
+  ABORT_IF(fold_training_psms.size() != 2)
+  TEST_EQUAL(fold_training_psms[0] + fold_training_psms[1], training_psms)
+  TEST_TRUE(fold_training_psms[0] >= 5)
+  TEST_TRUE(fold_training_psms[1] >= 5)
+  for (const std::string& feature : ion_prior_features_)
+  {
+    TEST_EQUAL(lists_feature_(prot_ids[0], feature), true)
+  }
+  const std::string plain_extra = extra_features_(plain_prot_ids[0]);
+  TEST_EQUAL(extra_features_(prot_ids[0]).rfind(plain_extra, 0), 0)
+  TEST_TRUE(extra_features_(prot_ids[0]).size() > plain_extra.size())
+
+  // every hit annotated, values in range
+  const auto [hits, violations] = check_ion_prior_annotations_(pep_ids, false);
+  TEST_TRUE(hits > 0)
+  TEST_EQUAL(violations, 0)
+
+  // Native scores and candidate lists are those of the plain search.
+  ABORT_IF(pep_ids.size() != plain_pep_ids.size())
+  Size same = 0;
+  for (Size i = 0; i < pep_ids.size(); ++i)
+  {
+    const std::vector<PeptideHit>& a = pep_ids[i].getHits();
+    const std::vector<PeptideHit>& b = plain_pep_ids[i].getHits();
+    if (a.size() != b.size()) continue;
+    bool equal = true;
+    for (Size h = 0; h < a.size(); ++h)
+    {
+      equal = equal && a[h].getSequence() == b[h].getSequence() && a[h].getCharge() == b[h].getCharge() && a[h].getScore() == b[h].getScore()
+              && a[h].getMetaValue("target_decoy") == b[h].getMetaValue("target_decoy");
+    }
+    if (equal) ++same;
+  }
+  TEST_EQUAL(same, pep_ids.size())
+
+  // The best hits follow the run's fragmentation pattern: positive evidence for most of them, and
+  // more on average than the lower-ranked candidates of the same spectra.
+  Size top = 0, positive = 0, others = 0;
+  double top_llr = 0.0, other_llr = 0.0;
+  for (const PeptideIdentification& pid : pep_ids)
+  {
+    const std::vector<PeptideHit>& hits_of = pid.getHits();
+    if (hits_of.empty()) continue;
+    const double llr = hits_of[0].getMetaValue(Constants::UserParam::ION_PRIOR_LLR);
+    ++top;
+    top_llr += llr;
+    if (llr > 0.0) ++positive;
+    for (Size h = 1; h < hits_of.size(); ++h)
+    {
+      other_llr += static_cast<double>(hits_of[h].getMetaValue(Constants::UserParam::ION_PRIOR_LLR));
+      ++others;
+    }
+  }
+  TEST_TRUE(top > 0)
+  TEST_TRUE(positive * 2 > top)
+  TEST_TRUE(top_llr / static_cast<double>(top) > 0.0)
+  TEST_TRUE(others > 0)
+  TEST_TRUE(top_llr / static_cast<double>(top) > other_llr / static_cast<double>(std::max<Size>(others, 1)))
+
+  // The default features: ion_prior_llr and ion_prior_explained, with the values of the run that writes all three.
+  {
+    ProSEAlgorithm defaults;
+    configure_ion_prior_params_(defaults, 5, 0.5);
+    Param dp = defaults.getParameters();
+    dp.setValue("annotate:ion_prior_features", ProSEAlgorithm().getParameters().getValue("annotate:ion_prior_features"));
+    defaults.setParameters(dp);
+    PeakMap default_spectra = spectra;
+    std::vector<ProteinIdentification> default_prot_ids;
+    PeptideIdentificationList default_pep_ids;
+    TEST_EQUAL(defaults.search(default_spectra, fasta_db, default_prot_ids, default_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    ABORT_IF(default_prot_ids.empty() || default_pep_ids.size() != pep_ids.size())
+    TEST_STRING_EQUAL(default_prot_ids[0].getSearchParameters().getMetaValue("annotate:ion_prior_features").toString(),
+                      Constants::UserParam::ION_PRIOR_LLR + "," + Constants::UserParam::ION_PRIOR_EXPLAINED)
+    TEST_EQUAL(lists_feature_(default_prot_ids[0], Constants::UserParam::ION_PRIOR_LLR), true)
+    TEST_EQUAL(lists_feature_(default_prot_ids[0], Constants::UserParam::ION_PRIOR_EXPLAINED), true)
+    TEST_EQUAL(lists_feature_(default_prot_ids[0], Constants::UserParam::ION_PRIOR_TOPK_OBSERVED), false)
+    TEST_EQUAL(extra_features_(default_prot_ids[0]), plain_extra + "," + Constants::UserParam::ION_PRIOR_LLR + "," + Constants::UserParam::ION_PRIOR_EXPLAINED)
+    Size same_values = 0, default_hits = 0, with_topk = 0;
+    for (Size i = 0; i < default_pep_ids.size(); ++i)
+    {
+      for (Size h = 0; h < default_pep_ids[i].getHits().size() && h < pep_ids[i].getHits().size(); ++h)
+      {
+        const PeptideHit& a = default_pep_ids[i].getHits()[h];
+        const PeptideHit& b = pep_ids[i].getHits()[h];
+        ++default_hits;
+        if (a.metaValueExists(Constants::UserParam::ION_PRIOR_TOPK_OBSERVED)) ++with_topk;
+        if (a.getMetaValue(Constants::UserParam::ION_PRIOR_LLR) == b.getMetaValue(Constants::UserParam::ION_PRIOR_LLR)
+            && a.getMetaValue(Constants::UserParam::ION_PRIOR_EXPLAINED) == b.getMetaValue(Constants::UserParam::ION_PRIOR_EXPLAINED)) ++same_values;
+      }
+    }
+    TEST_EQUAL(default_hits, hits)
+    TEST_EQUAL(same_values, hits)
+    TEST_EQUAL(with_topk, 0)
+
+    // no feature selected: no ion priors
+    dp.setValue("annotate:ion_prior_features", std::vector<std::string>{});
+    defaults.setParameters(dp);
+    PeakMap none_spectra = spectra;
+    std::vector<ProteinIdentification> none_prot_ids;
+    PeptideIdentificationList none_pep_ids;
+    TEST_EQUAL(defaults.search(none_spectra, fasta_db, none_prot_ids, none_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    ABORT_IF(none_prot_ids.empty())
+    TEST_EQUAL(extra_features_(none_prot_ids[0]), plain_extra)
+    TEST_EQUAL(none_prot_ids[0].getSearchParameters().metaValueExists("ion_prior:trained"), false)
+  }
+
+  // The other model and peak choice: annotated as well, recorded, the native search unchanged.
+  for (const auto& [model, peaks] : std::vector<std::pair<std::string, std::string>>{{"basic", "all"}, {"rich", "scored"}, {"basic", "scored"}})
+  {
+    ProSEAlgorithm variant;
+    configure_ion_prior_params_(variant, 5, 0.5);
+    Param vp = variant.getParameters();
+    vp.setValue("annotate:ion_prior_model", model);
+    vp.setValue("annotate:ion_prior_peaks", peaks);
+    variant.setParameters(vp);
+    PeakMap variant_spectra = spectra;
+    std::vector<ProteinIdentification> variant_prot_ids;
+    PeptideIdentificationList variant_pep_ids;
+    TEST_EQUAL(variant.search(variant_spectra, fasta_db, variant_prot_ids, variant_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    ABORT_IF(variant_prot_ids.empty() || variant_pep_ids.size() != pep_ids.size())
+    TEST_STRING_EQUAL(variant_prot_ids[0].getSearchParameters().getMetaValue("annotate:ion_prior_model").toString(), model)
+    TEST_STRING_EQUAL(variant_prot_ids[0].getSearchParameters().getMetaValue("annotate:ion_prior_peaks").toString(), peaks)
+    TEST_STRING_EQUAL(variant_prot_ids[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+    const auto [variant_hits, variant_violations] = check_ion_prior_annotations_(variant_pep_ids, false);
+    TEST_EQUAL(variant_hits, hits)
+    TEST_EQUAL(variant_violations, 0)
+    Size variant_same = 0;
+    for (Size i = 0; i < variant_pep_ids.size(); ++i)
+    {
+      if (variant_pep_ids[i].getHits().size() == pep_ids[i].getHits().size()
+          && variant_pep_ids[i].getHits()[0].getSequence() == pep_ids[i].getHits()[0].getSequence()
+          && variant_pep_ids[i].getHits()[0].getScore() == pep_ids[i].getHits()[0].getScore()) ++variant_same;
+    }
+    TEST_EQUAL(variant_same, pep_ids.size())
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] fixed terminal modifications that apply to some peptides only are rejected with the parameters))
 {
   // FragmentIndex::checkFixedModifications() at setParameters(), before any input is read
@@ -4013,6 +4294,257 @@ START_SECTION((void annotatePsmQValues(PeptideIdentificationList& peptide_ids) c
     for (Size i = 0; i < expected.size(); ++i)
     {
       TEST_EQUAL(no_two_decoys[i].getHits() == expected[i].getHits(), true)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] self-trained ion priors write zero features without enough confident PSMs in either half, and nothing in target-only searches))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  auto run = [&](Size min_psms, double train_fdr, const std::string& decoys, IntList& fold_training_psms)
+  {
+    ProSEAlgorithm algo;
+    configure_ion_prior_params_(algo, min_psms, train_fdr, decoys);
+    PeakMap run_spectra = spectra;
+    std::vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_EQUAL(algo.search(run_spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(prot_ids.empty() || pep_ids.empty(), false)
+    if (prot_ids.empty() || pep_ids.empty()) return;
+    const auto& sp = prot_ids[0].getSearchParameters();
+    TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:trained").toString(), "false")
+    fold_training_psms = sp.getMetaValue("ion_prior:fold_training_psms");
+    // the columns stay complete for Percolator
+    for (const std::string& feature : ion_prior_features_)
+    {
+      TEST_EQUAL(lists_feature_(prot_ids[0], feature), true)
+    }
+    const auto [hits, violations] = check_ion_prior_annotations_(pep_ids, true);
+    TEST_TRUE(hits > 0)
+    TEST_EQUAL(violations, 0)
+  };
+
+  IntList fold_training_psms;
+  // more training PSMs required than the run has; the confident ones are still counted
+  run(1000000, 0.5, "generate", fold_training_psms);
+  ABORT_IF(fold_training_psms.size() != 2)
+  TEST_TRUE(fold_training_psms[0] > 0)
+  TEST_TRUE(fold_training_psms[1] > 0)
+  // the minimum applies to each half: one half above it does not suffice
+  const Size larger = static_cast<Size>(std::max(fold_training_psms[0], fold_training_psms[1]));
+  const Size smaller = static_cast<Size>(std::min(fold_training_psms[0], fold_training_psms[1]));
+  if (larger > smaller)
+  {
+    run(smaller + 1, 0.5, "generate", fold_training_psms);
+    TEST_EQUAL(static_cast<Size>(std::max(fold_training_psms[0], fold_training_psms[1])), larger)
+  }
+  // a q-value threshold nothing reaches
+  run(5, 0.0, "generate", fold_training_psms);
+  TEST_EQUAL(fold_training_psms[0] + fold_training_psms[1], 0)
+
+  // A target-only search (decoys=ignore) has no target-decoy competition to select training PSMs, and Percolator cannot
+  // use it: nothing is learned or written, and the output equals the one with the ion priors off.
+  auto target_only = [&](bool ion_priors, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)
+  {
+    ProSEAlgorithm algo;
+    configure_ion_prior_params_(algo, 5, 0.5, "ignore");
+    Param p = algo.getParameters();
+    p.setValue("annotate:self_trained_ion_priors", ion_priors ? "true" : "false");
+    algo.setParameters(p);
+    PeakMap run_spectra = spectra;
+    TEST_EQUAL(algo.search(run_spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  };
+  std::vector<ProteinIdentification> on_prot_ids, off_prot_ids;
+  PeptideIdentificationList on_pep_ids, off_pep_ids;
+  target_only(true, on_prot_ids, on_pep_ids);
+  target_only(false, off_prot_ids, off_pep_ids);
+  ABORT_IF(on_prot_ids.empty() || off_prot_ids.empty() || on_pep_ids.empty() || on_pep_ids.size() != off_pep_ids.size())
+  const auto& on_sp = on_prot_ids[0].getSearchParameters();
+  TEST_EQUAL(on_sp.metaValueExists("annotate:self_trained_ion_priors"), false)
+  TEST_EQUAL(on_sp.metaValueExists("ion_prior:trained"), false)
+  TEST_EQUAL(extra_features_(on_prot_ids[0]), extra_features_(off_prot_ids[0]))
+  for (const std::string& feature : ion_prior_features_)
+  {
+    TEST_EQUAL(lists_feature_(on_prot_ids[0], feature), false)
+  }
+  Size target_only_hits = 0, target_only_annotated = 0, target_only_same = 0;
+  for (Size i = 0; i < on_pep_ids.size(); ++i)
+  {
+    const std::vector<PeptideHit>& a = on_pep_ids[i].getHits();
+    const std::vector<PeptideHit>& b = off_pep_ids[i].getHits();
+    bool equal = a.size() == b.size();
+    for (Size h = 0; h < a.size(); ++h)
+    {
+      ++target_only_hits;
+      for (const std::string& feature : ion_prior_features_) if (a[h].metaValueExists(feature)) ++target_only_annotated;
+      equal = equal && h < b.size() && a[h].getSequence() == b[h].getSequence() && a[h].getScore() == b[h].getScore();
+    }
+    if (equal) ++target_only_same;
+  }
+  TEST_TRUE(target_only_hits > 0)
+  TEST_EQUAL(target_only_annotated, 0)
+  TEST_EQUAL(target_only_same, on_pep_ids.size())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] self-trained ion priors are cross-fitted: the features of a PSM do not depend on its own half of the spectra))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  // The identifications, labelled by PeptideIndexing, without ion priors.
+  ProSEAlgorithm_test plain;
+  configure_ion_prior_params_(plain, 5, 0.5);
+  Param p = plain.getParameters();
+  p.setValue("annotate:self_trained_ion_priors", "false");
+  plain.setParameters(p);
+  PeakMap searched = spectra;
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(plain.search(searched, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  ABORT_IF(prot_ids.empty() || pep_ids.empty())
+
+  // The spectra and peak lists as the search with ion priors sees them.
+  ProSEAlgorithm_test algo;
+  configure_ion_prior_params_(algo, 5, 0.5);
+  PeakMap preprocessed = spectra;
+  FragmentIonLikelihoodModel::PeakLists evidence;
+  ProSEAlgorithm_test::preprocessSpectra_(preprocessed, 20.0, true, true, 0, 20, "auto", 100, 1.0, ProSEAlgorithm_test::DeisotopingSettings_{}, &evidence, false);
+  TEST_EQUAL(evidence.size(), preprocessed.size())
+  TEST_TRUE(evidence.totalPeaks() > 0)
+
+  auto annotate = [&algo, &preprocessed, &evidence, &prot_ids](PeptideIdentificationList ids) {
+    std::vector<ProteinIdentification> proteins = prot_ids;
+    algo.annotateIonPriors_(preprocessed, evidence, proteins, ids);
+    TEST_STRING_EQUAL(proteins[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+    return ids;
+  };
+  const PeptideIdentificationList reference = annotate(pep_ids);
+  const auto [hits, violations] = check_ion_prior_annotations_(reference, false);
+  TEST_TRUE(hits > 0)
+  TEST_EQUAL(violations, 0)
+
+  // Flip the target/decoy label of the best target of each half in turn. The features of the PSMs of
+  // that half stay exactly the same (they are scored by the model of the other half); the other half's
+  // features change (its model lost a training PSM).
+  for (Size fold = 0; fold < 2; ++fold)
+  {
+    PeptideIdentificationList flipped = pep_ids;
+    Size best = flipped.size();
+    double best_score = -std::numeric_limits<double>::infinity();
+    for (Size i = 0; i < flipped.size(); ++i)
+    {
+      if (flipped[i].getHits().empty()) continue;
+      const Size scan = static_cast<int>(flipped[i].getMetaValue("scan_index"));
+      const PeptideHit& top_hit = flipped[i].getHits()[0];
+      if (scan % 2 != fold || top_hit.getMetaValue("target_decoy").toString() == "decoy") continue;
+      if (top_hit.getScore() > best_score) { best_score = top_hit.getScore(); best = i; }
+    }
+    ABORT_IF(best == flipped.size())
+    flipped[best].getHits()[0].setMetaValue("target_decoy", "decoy");
+    const PeptideIdentificationList result = annotate(flipped);
+    ABORT_IF(result.size() != reference.size())
+    Size same_half_changed = 0, other_half_changed = 0;
+    for (Size i = 0; i < result.size(); ++i)
+    {
+      if (result[i].getHits().empty()) continue;
+      const Size scan = static_cast<int>(result[i].getMetaValue("scan_index"));
+      bool changed = false;
+      for (Size h = 0; h < result[i].getHits().size(); ++h)
+      {
+        for (const std::string& feature : ion_prior_features_)
+        {
+          changed = changed || static_cast<double>(result[i].getHits()[h].getMetaValue(feature))
+                                 != static_cast<double>(reference[i].getHits()[h].getMetaValue(feature));
+        }
+      }
+      if (changed) ++(scan % 2 == fold ? same_half_changed : other_half_changed);
+    }
+    TEST_EQUAL(same_half_changed, 0)
+    TEST_TRUE(other_half_changed > 0)
+  }
+
+  // A half without a decoy hit still has the target-decoy estimate (0 + 1) / T of a search with decoys: with every
+  // best hit of the odd half labelled target, all of its scorable PSMs train (T >= 2 reaches q <= 0.5).
+  {
+    PeptideIdentificationList no_decoy_half = pep_ids;
+    Size odd_psms = 0;
+    for (PeptideIdentification& pid : no_decoy_half)
+    {
+      if (pid.getHits().empty()) continue;
+      const Size scan = static_cast<int>(pid.getMetaValue("scan_index"));
+      if (scan % 2 != 1) continue;
+      for (PeptideHit& hit : pid.getHits()) hit.setMetaValue("target_decoy", "target");
+      if (scan < evidence.size() && evidence.peaks(scan) > 0) ++odd_psms;
+    }
+    TEST_TRUE(odd_psms >= 2)
+    std::vector<ProteinIdentification> proteins = prot_ids;
+    algo.annotateIonPriors_(preprocessed, evidence, proteins, no_decoy_half);
+    const auto& sp = proteins[0].getSearchParameters();
+    TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:trained").toString(), "true")
+    const IntList folds = sp.getMetaValue("ion_prior:fold_training_psms");
+    ABORT_IF(folds.size() != 2)
+    TEST_EQUAL(static_cast<Size>(folds[1]), odd_psms)
+  }
+
+  // Annotation is deterministic: the same input gives bit-identical features.
+  TEST_EQUAL(ion_prior_rows_(annotate(pep_ids)) == ion_prior_rows_(reference), true)
+
+  // the noise hypothesis: all but the C-terminal residue reversed, modifications kept
+  TEST_STRING_EQUAL(ProSEAlgorithm_test::reversedNoiseSequence_(AASequence::fromString("PEPM(Oxidation)TIDEK")).toString(), "EDITM(Oxidation)PEPK")
+  TEST_STRING_EQUAL(ProSEAlgorithm_test::reversedNoiseSequence_(AASequence::fromString("AK")).toString(), "AK")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] self-trained ion priors are learned per file and agree between the single-file, chunked and multi-file searches))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+  std::string spectra_file;
+  NEW_TMP_FILE(spectra_file)
+  spectra_file += ".mzML";
+  FileHandler().storeExperiment(spectra_file, spectra, {FileTypes::MZML});
+  PeakMap stored;
+  FileHandler().loadExperiment(spectra_file, stored, {FileTypes::MZML});
+
+  for (const int chunk_size : {0, 3})
+  {
+    ProSEAlgorithm algo;
+    configure_ion_prior_params_(algo, 5, 0.5);
+    Param p = algo.getParameters();
+    p.setValue("database:chunk_size", chunk_size);
+    algo.setParameters(p);
+
+    // single file, in memory: search(spectra, ctx) without chunks, searchChunked_ with chunks
+    PeakMap single_spectra = stored;
+    std::vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_EQUAL(algo.search(single_spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    ABORT_IF(prot_ids.empty() || pep_ids.empty())
+    TEST_STRING_EQUAL(prot_ids[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+    const auto [hits, violations] = check_ion_prior_annotations_(pep_ids, false);
+    TEST_TRUE(hits > 0)
+    TEST_EQUAL(violations, 0)
+    const std::vector<std::string> single_rows = ion_prior_rows_(pep_ids);
+
+    // The same file twice in one multi-file search (per file with a shared index without chunks,
+    // chunk-major with chunks): each file trains its own models on identical data and gets the
+    // features of the single-file search.
+    ProSEAlgorithm::MultiFileSearchResult result =
+      algo.searchWithModificationAnalysis(std::vector<std::string>{spectra_file, spectra_file}, fasta_db, std::vector<std::string>{}, "", false);
+    ABORT_IF(result.per_file.size() != 2 || result.per_file[0].protein_ids.empty() || result.per_file[1].protein_ids.empty())
+    for (const auto& per_file : result.per_file)
+    {
+      TEST_STRING_EQUAL(per_file.protein_ids[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+      TEST_EQUAL(per_file.protein_ids[0].getSearchParameters().getMetaValue("ion_prior:training_psms"),
+                 prot_ids[0].getSearchParameters().getMetaValue("ion_prior:training_psms"))
+      TEST_EQUAL(ion_prior_rows_(per_file.peptide_ids) == single_rows, true)
     }
   }
 }

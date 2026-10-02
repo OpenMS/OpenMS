@@ -430,6 +430,14 @@ namespace OpenMS
       inline const std::string TOP_IONS_ABS_ERROR_PPM_SD = "top7_abs_fragment_error_ppm_sd";
       inline const std::string TOP_IONS_ERROR_PPM_MEAN = "top7_fragment_error_ppm_mean";
       inline const std::string TOP_IONS_ERROR_PPM_SD = "top7_fragment_error_ppm_sd";
+      /// Summed log-likelihood ratio of the fragment ion outcomes (presence, intensity rank, mass error) under a per-run learned ion model.
+      inline const std::string ION_PRIOR_LLR = "ion_prior_llr";
+
+      /// Fraction of the fragment ion presence predicted by a per-run learned ion model that was observed.
+      inline const std::string ION_PRIOR_EXPLAINED = "ion_prior_explained";
+
+      /// Fraction of the fragment ions a per-run learned ion model predicts as most likely present that were observed.
+      inline const std::string ION_PRIOR_TOPK_OBSERVED = "ion_prior_topk_observed";
 
       /** User parameter name to indicate a peptide q-value
               String
