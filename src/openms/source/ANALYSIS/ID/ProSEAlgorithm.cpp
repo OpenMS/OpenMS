@@ -2121,11 +2121,15 @@ namespace OpenMS
       consecutive proteins counted on their own and joined in their order give the same. The decision is the one of
       findDecoyString() for these statistics; it does not depend on the order in which it looks at the matches,
       since at most one prefix and one suffix can reach 80% of all prefixes or suffixes.
+
+      At most 8 threads: the step (about 60 ms serially for 50,000 entries) gains little beyond 4 threads, and a
+      larger team costs CPU time (measured at 64 threads: 2-4 CPU-s per run for no shorter wall time).
     */
     DecoyHelper::Result findDecoyStringInParallel(const std::vector<FASTAFile::FASTAEntry>& db)
     {
 #ifdef _OPENMP
-      const int threads = omp_in_parallel() ? 1 : omp_get_max_threads();
+      constexpr int max_threads = 8;
+      const int threads = omp_in_parallel() ? 1 : std::min(omp_get_max_threads(), max_threads);
 #else
       const int threads = 1;
 #endif
@@ -3086,6 +3090,78 @@ namespace OpenMS
     }
 
     using Occurrence = std::pair<UInt32, UInt32>; // {protein index, position}
+
+    /**
+      @brief The spans that step 3 of buildProteinMapping_() looks up for one ambiguous residue of a protein: those
+      with no ambiguous residue before it and 1 to aaa_max ambiguous residues from it on (so every span over ambiguous
+      residues belongs to its first one).
+
+      With r_0 = position < r_1 < ... the ambiguous residues from the position on, a span [start, end) with start <=
+      r_0 contains exactly k of them if r_{k-1} < end <= r_k (r_k = the protein end if there is none). Each span is
+      looked up once per combination of the residues its ambiguous ones stand for. Used for both the count (before
+      any lookup, to decide on the fallback) and the lookups, so the two agree.
+    */
+    class AmbiguousSpans
+    {
+    public:
+      /// PeptideIndexing's maximum of aaa_max
+      static constexpr Size MAX_AMBIGUOUS = 10;
+
+      AmbiguousSpans(const std::string& protein, const Size position, const Size max_length, const Size aaa_max) :
+        protein_(protein), first_start_(position), aaa_max_(std::min(aaa_max, MAX_AMBIGUOUS))
+      {
+        // the first start: after the previous ambiguous residue, and close enough to reach the position
+        while (first_start_ > 0 && position - first_start_ + 1 < max_length && !isAmbiguousResidue(protein[first_start_ - 1]))
+        {
+          --first_start_;
+        }
+        // the ambiguous residues from the position on that a span can reach: up to aaa_max + 1 (the last one only
+        // bounds the spans with aaa_max)
+        const Size reach = std::min(protein.size(), position + max_length);
+        ambiguous_[0] = position;
+        for (Size i = position + 1; i < reach && count_ <= aaa_max_; ++i)
+        {
+          if (isAmbiguousResidue(protein[i])) ambiguous_[count_++] = i;
+        }
+      }
+
+      /// The largest number of ambiguous residues in a span
+      Size maxAmbiguous() const { return std::min(aaa_max_, count_); }
+
+      /// The k-th ambiguous residue from the position on (k = 0: the position)
+      Size ambiguous(const Size k) const { return ambiguous_[k]; }
+
+      /// The starts [first, last] of the spans of @p length with exactly @p k (1..maxAmbiguous()) ambiguous residues
+      /// (first > last if there are none)
+      std::pair<SignedSize, SignedSize> starts(const Size length, const Size k) const
+      {
+        const SignedSize end_after = static_cast<SignedSize>(ambiguous_[k - 1]);
+        const SignedSize end_at_most = static_cast<SignedSize>(k < count_ ? ambiguous_[k] : protein_.size());
+        const SignedSize len = static_cast<SignedSize>(length);
+        return {std::max(static_cast<SignedSize>(first_start_), end_after + 1 - len),
+                std::min(static_cast<SignedSize>(ambiguous_[0]), end_at_most - len)};
+      }
+
+      /// The sequences looked up for the spans of @p length (combinations saturate at 2^32, far above any budget)
+      Size lookups(const Size length) const
+      {
+        Size total = 0, combinations = 1;
+        for (Size k = 1; k <= maxAmbiguous(); ++k)
+        {
+          combinations = std::min(combinations * residuesMatchedBy(protein_[ambiguous_[k - 1]]).size(), Size(1) << 32);
+          const auto [first, last] = starts(length, k);
+          if (first <= last) total += combinations * static_cast<Size>(last - first + 1);
+        }
+        return total;
+      }
+
+    private:
+      const std::string& protein_;
+      Size first_start_;
+      Size aaa_max_;
+      std::array<Size, MAX_AMBIGUOUS + 1> ambiguous_{};
+      Size count_ = 1; ///< entries of ambiguous_
+    };
   }
 
   ProSEAlgorithm::ProteinMapping_ ProSEAlgorithm::buildProteinMapping_(const FragmentIndex& index,
@@ -3130,42 +3206,13 @@ namespace OpenMS
     enzyme.setEnzyme(enzyme_name);
     enzyme.setSpecificity(EnzymaticDigestion::SPEC_FULL);
 
-    // The database: letters A-Z only (PeptideIndexing removes '*' and skips other symbols, which shifts positions),
-    // and no stretch of more than aaa_max X (PeptideIndexing splits proteins at such stretches)
-    std::array<uint8_t, 256> residue_class{}; // 0: unambiguous letter, 1: ambiguous letter, 2: anything else
-    residue_class.fill(2);
-    for (char c = 'A'; c <= 'Z'; ++c) residue_class[static_cast<unsigned char>(c)] = isAmbiguousResidue(c) ? 1 : 0;
-    std::vector<uint8_t> protein_class(db.size(), 0); // OR of its residue classes
-    bool letters_only = true, short_stretches = true;
-#pragma omp parallel for schedule(dynamic, 256) reduction(&& : letters_only, short_stretches)
-    for (SignedSize p = 0; p < static_cast<SignedSize>(db.size()); ++p)
-    {
-      uint8_t classes = 0;
-      for (const char c : db[p].sequence) classes |= residue_class[static_cast<unsigned char>(c)];
-      protein_class[p] = classes;
-      letters_only = letters_only && classes < 2;
-      if (classes == 1)
-      {
-        Size stretch = 0;
-        for (const char c : db[p].sequence)
-        {
-          stretch = (c == 'X') ? stretch + 1 : 0;
-          short_stretches = short_stretches && stretch <= aaa_max;
-        }
-      }
-    }
-    if (!letters_only || !short_stretches)
-    {
-      mapping.fallback_reason = letters_only ? "the database has stretches of more than aaa_max X"
-                                             : "the database has symbols other than the letters A-Z";
-      return mapping;
-    }
-
-    // 1. the spans of the digest: per candidate, then per sequence
+    // The candidates, once each, and the lengths of their sequences. A hit with an ambiguous residue leaves the
+    // mapping to PeptideIndexing; checked first, since it needs no pass over the database.
     std::sort(candidates.begin(), candidates.end());
     candidates.erase(std::unique(candidates.begin(), candidates.end()), candidates.end());
+    if (candidates.empty()) return mapping; // nothing to map (applyProteinMapping_() decides)
     const std::vector<FragmentIndex::Peptide>& peptides = index.getPeptides();
-    if (!candidates.empty() && candidates.back() >= peptides.size())
+    if (candidates.back() >= peptides.size())
     {
       mapping.fallback_reason = "a candidate the fragment index does not hold";
       return mapping;
@@ -3175,19 +3222,84 @@ namespace OpenMS
       const FragmentIndex::Peptide& peptide = peptides[candidate];
       return std::string_view(db[peptide.protein_idx].sequence).substr(peptide.sequence_.first, peptide.sequence_.second);
     };
-    std::vector<std::vector<Occurrence>> candidate_occurrences(candidates.size());
     bool unambiguous_candidates = true;
-#pragma omp parallel for schedule(dynamic, 64) reduction(&& : unambiguous_candidates)
+#pragma omp parallel for schedule(dynamic, 256) reduction(&& : unambiguous_candidates)
     for (SignedSize i = 0; i < static_cast<SignedSize>(candidates.size()); ++i)
     {
       const std::string_view residues = residues_of(candidates[i]);
       unambiguous_candidates = unambiguous_candidates && std::none_of(residues.begin(), residues.end(), isAmbiguousResidue);
-      index.getProteinOccurrences(candidates[i], db, candidate_occurrences[i]);
     }
     if (!unambiguous_candidates)
     {
       mapping.fallback_reason = "a hit with an ambiguous residue";
       return mapping;
+    }
+    Size min_length = std::numeric_limits<Size>::max(), max_length = 0;
+    for (const UInt32 candidate : candidates)
+    {
+      min_length = std::min<Size>(min_length, peptides[candidate].sequence_.second);
+      max_length = std::max<Size>(max_length, peptides[candidate].sequence_.second);
+    }
+    std::vector<uint8_t> length_used(max_length + 1, 0);
+    for (const UInt32 candidate : candidates) length_used[peptides[candidate].sequence_.second] = 1;
+
+    // The database: letters A-Z only (PeptideIndexing removes '*' and skips other symbols, which shifts positions),
+    // no stretch of more than aaa_max X (PeptideIndexing splits proteins at such stretches), and at most a budget of
+    // sequences that 3. looks up for the spans over ambiguous residues (beyond it, PeptideIndexing does this better).
+    // The lookups are counted here, without looking anything up, so that a fallback costs little more than this pass.
+    constexpr Size lookup_budget = Size(1) << 22;
+    std::array<uint8_t, 256> residue_class{}; // 0: unambiguous letter, 1: ambiguous letter, 2: anything else
+    residue_class.fill(2);
+    for (char c = 'A'; c <= 'Z'; ++c) residue_class[static_cast<unsigned char>(c)] = isAmbiguousResidue(c) ? 1 : 0;
+    std::vector<uint8_t> with_spans(db.size(), 0); // has spans for 3.
+    bool letters_only = true, short_stretches = true;
+    std::atomic<Size> lookups{0}; // exact while at most lookup_budget (then counting stops)
+#pragma omp parallel for schedule(dynamic, 256) reduction(&& : letters_only, short_stretches)
+    for (SignedSize p = 0; p < static_cast<SignedSize>(db.size()); ++p)
+    {
+      const std::string& protein = db[p].sequence;
+      uint8_t classes = 0; // OR of its residue classes
+      for (const char c : protein) classes |= residue_class[static_cast<unsigned char>(c)];
+      letters_only = letters_only && classes < 2;
+      if (classes != 1) continue;
+      Size stretch = 0;
+      for (const char c : protein)
+      {
+        stretch = (c == 'X') ? stretch + 1 : 0;
+        short_stretches = short_stretches && stretch <= aaa_max;
+      }
+      Size protein_lookups = 0;
+      for (Size position = 0; position < protein.size(); ++position)
+      {
+        if (!isAmbiguousResidue(protein[position])) continue;
+        if (protein_lookups > lookup_budget || lookups.load(std::memory_order_relaxed) > lookup_budget) break;
+        const AmbiguousSpans spans(protein, position, max_length, aaa_max);
+        for (Size length = min_length; length <= max_length; ++length)
+        {
+          if (length_used[length]) protein_lookups += spans.lookups(length);
+        }
+      }
+      with_spans[p] = protein_lookups > 0;
+      lookups.fetch_add(std::min(protein_lookups, lookup_budget + 1), std::memory_order_relaxed);
+    }
+    if (!letters_only || !short_stretches)
+    {
+      mapping.fallback_reason = letters_only ? "the database has stretches of more than aaa_max X"
+                                             : "the database has symbols other than the letters A-Z";
+      return mapping;
+    }
+    if (lookups.load() > lookup_budget)
+    {
+      mapping.fallback_reason = "too many spans over ambiguous residues in the database";
+      return mapping;
+    }
+
+    // 1. the spans of the digest: per candidate, then per sequence
+    std::vector<std::vector<Occurrence>> candidate_occurrences(candidates.size());
+#pragma omp parallel for schedule(dynamic, 64)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(candidates.size()); ++i)
+    {
+      index.getProteinOccurrences(candidates[i], db, candidate_occurrences[i]);
     }
     // One entry per sequence (the candidates of a sequence differ in their modifications only: they have the same
     // spans). The sequences go to ProteinMapping_::SHARDS hash tables by their hash, filled in parallel; the entries
@@ -3237,15 +3349,6 @@ namespace OpenMS
         mapping.occurrences[shard_start[shard] + k] = std::move(candidate_occurrences[i]);
       }
     }
-    if (mapping.sequences.empty()) return mapping;
-    Size min_length = std::numeric_limits<Size>::max(), max_length = 0;
-    for (const std::string_view sequence : mapping.sequences)
-    {
-      min_length = std::min(min_length, sequence.size());
-      max_length = std::max(max_length, sequence.size());
-    }
-    std::vector<uint8_t> length_used(max_length + 1, 0);
-    for (const std::string_view sequence : mapping.sequences) length_used[sequence.size()] = 1;
 
     std::vector<std::tuple<Size, UInt32, UInt32>> extra; // spans of 2. and 3.: {sequence entry, protein, position}
 
@@ -3324,87 +3427,81 @@ namespace OpenMS
       }
     }
 
-    // 3. spans over ambiguous residues: each with every residue its ambiguous ones match (at most 22^aaa_max
-    //    sequences per span; beyond a budget PeptideIndexing does this better)
+    // 3. spans over ambiguous residues (AmbiguousSpans; within the budget checked above): each looked up with every
+    //    combination of the residues its ambiguous ones stand for
     {
-      std::vector<Occurrence> ambiguous; // {protein, position}
-      for (Size p = 0; p < db.size(); ++p)
+      // work items: an ambiguous residue and a length with spans (a few residues with several ambiguous ones around
+      // them would otherwise be the critical path); at most one per two lookups, so bounded by the budget
+      struct Item { UInt32 protein, position, length; };
+      std::vector<Item> items;
+#pragma omp parallel
       {
-        if (protein_class[p] != 1) continue;
-        const std::string& protein = db[p].sequence;
-        for (Size position = 0; position < protein.size(); ++position)
+        std::vector<Item> thread_items;
+#pragma omp for schedule(dynamic, 16) nowait
+        for (SignedSize p = 0; p < static_cast<SignedSize>(db.size()); ++p)
         {
-          if (isAmbiguousResidue(protein[position])) ambiguous.emplace_back(static_cast<UInt32>(p), static_cast<UInt32>(position));
+          if (!with_spans[p]) continue;
+          const std::string& protein = db[p].sequence;
+          for (Size position = 0; position < protein.size(); ++position)
+          {
+            if (!isAmbiguousResidue(protein[position])) continue;
+            const AmbiguousSpans spans(protein, position, max_length, aaa_max);
+            for (Size length = min_length; length <= max_length; ++length)
+            {
+              if (length_used[length] && spans.lookups(length) > 0)
+              {
+                thread_items.push_back({static_cast<UInt32>(p), static_cast<UInt32>(position), static_cast<UInt32>(length)});
+              }
+            }
+          }
         }
+#pragma omp critical (ProSEAlgorithm_proteinMapping)
+        items.insert(items.end(), thread_items.begin(), thread_items.end());
       }
-      // work items: an ambiguous residue and a length of the sequences (a few residues with several ambiguous ones
-      // around them would otherwise be the critical path)
-      std::vector<std::pair<Size, Size>> items; // {index into ambiguous, length}
-      for (Size a = 0; a < ambiguous.size(); ++a)
-      {
-        const Size protein_length = db[ambiguous[a].first].sequence.size();
-        for (Size length = min_length; length <= max_length && length <= protein_length; ++length)
-        {
-          if (length_used[length]) items.emplace_back(a, length);
-        }
-      }
-      constexpr Size budget = Size(1) << 22; // sequences looked up
-      std::atomic<Size> looked_up{0};
 #pragma omp parallel
       {
         const ProteaseDigestion thread_enzyme = enzyme;
         std::vector<std::tuple<Size, UInt32, UInt32>> found;
         std::string window;
-        std::vector<Size> where; // offsets of the ambiguous residues in the window
-        std::vector<Size> choice;
+        std::array<Size, AmbiguousSpans::MAX_AMBIGUOUS> choice{};
 #pragma omp for schedule(dynamic, 1) nowait
-        for (SignedSize item = 0; item < static_cast<SignedSize>(items.size()); ++item)
+        for (SignedSize i = 0; i < static_cast<SignedSize>(items.size()); ++i)
         {
-          const auto [protein, ambiguous_position] = ambiguous[items[item].first];
-          const std::string& protein_sequence = db[protein].sequence;
-          const Size length = items[item].second;
-          const Size first = ambiguous_position + 1 >= length ? ambiguous_position + 1 - length : 0;
-          for (Size start = first; start <= ambiguous_position && start + length <= protein_sequence.size(); ++start)
+          const Item& item = items[i];
+          const std::string& protein_sequence = db[item.protein].sequence;
+          const AmbiguousSpans spans(protein_sequence, item.position, max_length, aaa_max);
+          for (Size k = 1; k <= spans.maxAmbiguous(); ++k)
           {
-            // each span once: from its first ambiguous residue
-            where.clear();
-            Size combinations = 1;
-            for (Size i = 0; i < length; ++i)
+            const auto [first, last] = spans.starts(item.length, k);
+            for (SignedSize start = first; start <= last; ++start)
             {
-              if (!isAmbiguousResidue(protein_sequence[start + i])) continue;
-              where.push_back(i);
-              combinations *= residuesMatchedBy(protein_sequence[start + i]).size();
-            }
-            if (start + where.front() != ambiguous_position || where.size() > aaa_max) continue;
-            if (looked_up.fetch_add(combinations, std::memory_order_relaxed) + combinations > budget) break;
-            window.assign(protein_sequence, start, length);
-            choice.assign(where.size(), 0);
-            while (true)
-            {
-              for (Size w = 0; w < where.size(); ++w) window[where[w]] = residuesMatchedBy(protein_sequence[start + where[w]])[choice[w]];
-              const Size entry = mapping.find(window);
-              if (entry < mapping.sequences.size()
-                  && thread_enzyme.isValidProduct(protein_sequence, static_cast<int>(start), static_cast<int>(length), true, true, false))
+              window.assign(protein_sequence, static_cast<Size>(start), item.length);
+              std::fill_n(choice.begin(), k, 0);
+              while (true)
               {
-                found.emplace_back(entry, protein, static_cast<UInt32>(start));
+                for (Size w = 0; w < k; ++w)
+                {
+                  window[spans.ambiguous(w) - static_cast<Size>(start)] = residuesMatchedBy(protein_sequence[spans.ambiguous(w)])[choice[w]];
+                }
+                const Size entry = mapping.find(window);
+                if (entry < mapping.sequences.size()
+                    && thread_enzyme.isValidProduct(protein_sequence, static_cast<int>(start), static_cast<int>(item.length), true, true, false))
+                {
+                  found.emplace_back(entry, item.protein, static_cast<UInt32>(start));
+                }
+                Size w = 0; // the next combination
+                for (; w < k; ++w)
+                {
+                  if (++choice[w] < residuesMatchedBy(protein_sequence[spans.ambiguous(w)]).size()) break;
+                  choice[w] = 0;
+                }
+                if (w == k) break;
               }
-              Size w = 0; // the next combination
-              for (; w < where.size(); ++w)
-              {
-                if (++choice[w] < residuesMatchedBy(protein_sequence[start + where[w]]).size()) break;
-                choice[w] = 0;
-              }
-              if (w == where.size()) break;
             }
           }
         }
 #pragma omp critical (ProSEAlgorithm_proteinMapping)
         extra.insert(extra.end(), found.begin(), found.end());
-      }
-      if (looked_up.load() > budget)
-      {
-        mapping.fallback_reason = "too many spans over ambiguous residues in the database";
-        return mapping;
       }
     }
 

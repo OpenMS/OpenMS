@@ -577,8 +577,6 @@ static std::vector<std::string> ion_prior_rows_(const PeptideIdentificationList&
   return rows;
 }
 
-// The fragment index and a hit for each of its peptides without ambiguous residues (three per identification), as the
-// protein mapping tests use them
 // Protein mapping tests: a fragment index of c.db and a hit for each of its peptides without ambiguous residues
 // (three per identification), with the parameters PeptideIndexing runs with
 struct MappingCase
@@ -640,6 +638,31 @@ static void prepareMappingCase(MappingCase& c, const string& enzyme, const strin
   pi.setValue("aaa_max", aaa_max);
   c.indexer_parameters = pi;
 }
+
+// The sequences that the protein mapping looks up for the spans of @p protein over ambiguous residues, by brute force:
+// every span of one of the @p lengths with 1 to @p aaa_max ambiguous residues, once per combination of the residues
+// they stand for (B, J, Z: 2; X: the 22 letters other than B, J, Z, X)
+static Size ambiguousSpanLookups(const string& protein, const std::set<Size>& lengths, Size aaa_max)
+{
+  const auto stands_for = [](char c) -> Size { return (c == 'B' || c == 'J' || c == 'Z') ? 2 : (c == 'X' ? 22 : 1); };
+  Size total = 0;
+  for (const Size length : lengths)
+  {
+    for (Size start = 0; start + length <= protein.size(); ++start)
+    {
+      Size ambiguous = 0, combinations = 1;
+      for (Size i = start; i < start + length; ++i)
+      {
+        if (stands_for(protein[i]) == 1) continue;
+        ++ambiguous;
+        combinations *= stands_for(protein[i]);
+      }
+      if (ambiguous >= 1 && ambiguous <= aaa_max) total += combinations;
+    }
+  }
+  return total;
+}
+
 
 START_TEST(ProSEAlgorithm, "$Id$")
 
@@ -5005,6 +5028,55 @@ START_SECTION(([EXTRA] protein mapping from the fragment index leaves PeptideInd
     TEST_TRUE(!reason.empty())
     TEST_TRUE(peptides == c.peptides) // unchanged
     TEST_TRUE(proteins == c.proteins)
+  }
+  // more spans over ambiguous residues than the lookup budget (2^22): decided before any lookup, from an exact count.
+  // Proteins without cleavage sites (no peptides of their own) with B, Z, J and isolated X around them, added up to the
+  // budget and one more.
+  {
+    const string ambiguous_protein = string(25, 'A') + "BGZJAX" + string(3, 'G') + "X" + string(25, 'A');
+    MappingCase probe;
+    probe.db = base;
+    probe.db.push_back({"AMB", "", ambiguous_protein});
+    prepareMappingCase(probe, "Trypsin", "true", "true", {}, {}, 3);
+    std::set<Size> lengths;
+    for (const UInt32 candidate : probe.candidates) lengths.insert(probe.index.getPeptides()[candidate].sequence_.second);
+    const Size per_protein = ambiguousSpanLookups(ambiguous_protein, lengths, 3);
+    TEST_TRUE(per_protein > 0)
+    Size in_base = 0;
+    for (const auto& entry : base) in_base += ambiguousSpanLookups(entry.sequence, lengths, 3);
+    const Size budget = Size(1) << 22;
+    const Size under = (budget - in_base) / per_protein; // proteins that fit
+    for (const Size copies : {under, under + 1})
+    {
+      MappingCase c;
+      c.db = base;
+      for (Size i = 0; i < copies; ++i) c.db.push_back({"AMB" + std::to_string(i), "", ambiguous_protein});
+      prepareMappingCase(c, "Trypsin", "true", "true", {}, {}, 3);
+      TEST_TRUE(c.candidates.size() == probe.candidates.size()) // the same lengths
+      const ProSEAlgorithm_test::ProteinMapping_ mapping = ProSEAlgorithm_test::buildProteinMapping_(c.index, c.db, c.candidates, c.indexer_parameters);
+      vector<ProteinIdentification> proteins = c.proteins;
+      PeptideIdentificationList peptides = c.peptides;
+      string reason;
+      if (copies == under)
+      {
+        TEST_STRING_EQUAL(mapping.fallback_reason, "")
+        TEST_TRUE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+        PeptideIndexing indexer;
+        indexer.setParameters(c.indexer_parameters);
+        vector<FASTAFile::FASTAEntry> db_copy = c.db;
+        TEST_EQUAL(indexer.run(db_copy, c.proteins, c.peptides) == PeptideIndexing::ExitCodes::EXECUTION_OK, true)
+        TEST_TRUE(peptides == c.peptides)
+        TEST_TRUE(proteins == c.proteins)
+      }
+      else
+      {
+        TEST_STRING_EQUAL(mapping.fallback_reason, "too many spans over ambiguous residues in the database")
+        TEST_TRUE(mapping.sequences.empty()) // nothing built
+        TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+        TEST_TRUE(peptides == c.peptides)
+        TEST_TRUE(proteins == c.proteins)
+      }
+    }
   }
   // identifications the mapping does not cover
   {

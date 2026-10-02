@@ -188,11 +188,12 @@ TOPP tools:
         the fragment index, which knows every protein occurrence of a candidate, instead of searching every hit in the
         whole database (PeptideIndexing). Peptide evidences, target_decoy, protein_references, the protein hits and the
         PeptideIndexer:* search parameters are the same; PeptideIndexing still runs where the index cannot reproduce it
-        exactly (SNES, a specificity other than full, protein-terminal modifications, a chunked database, symbols other
-        than letters or stretches of X in the database). With the post-processing below, a search of 8,000 spectra takes
-        0.2-0.9 s less at 4 threads (11% over the 20 files of OpenMS#10364).
+        exactly (SNES, a specificity other than full, protein-terminal modifications, a chunked database, and databases
+        with symbols other than letters, with stretches of X, or with more spans over ambiguous residues than a lookup
+        budget allows, which is decided by counting them before any lookup). With the post-processing below, a search
+        of 8,000 spectra takes 0.2-0.9 s less at 4 threads (11% over the 20 files of OpenMS#10364).
       - The PSMs are annotated in per-spectrum slots (no lock, no sort afterwards), and the decoy marker of large
-        databases is detected with all threads. Results are unchanged.
+        databases is detected with up to 8 threads. Results are unchanged.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----

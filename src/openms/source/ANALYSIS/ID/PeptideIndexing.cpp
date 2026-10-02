@@ -572,8 +572,10 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
       } // end readChunk
     } // OMP end parallel
     // sort hits by peptide index (then protein index, position and flanking residues: a total order, so the
-    // result does not depend on the order in which the threads joined)
+    // result does not depend on the order in which the threads joined); part of the merge time, as before
+    s.start();
     std::sort(func.pep_to_prot.begin(), func.pep_to_prot.end());
+    s.stop();
     this->endProgress();
     std::cout << "Merge took: " << s.toString() << "\n";
     mu.after();
