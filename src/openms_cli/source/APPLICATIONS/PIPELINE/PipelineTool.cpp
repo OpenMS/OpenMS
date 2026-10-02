@@ -166,6 +166,14 @@ namespace
       const auto type = descriptor.parameters.getValue("in_type").toString();
       if (! type.empty()) { return "." + type; }
     }
+    if (! port.valid_types.empty())
+    {
+      // A writer with several advertised formats may dispatch by extension and
+      // reject .unknown before there is any content to inspect. Preserve the
+      // schema's declared preference (e.g. idXML before idparquet in adapters).
+      const auto type = FileTypes::nameToType(port.valid_types.front());
+      return "." + (type == FileTypes::UNKNOWN ? port.valid_types.front() : FileTypes::typeToName(type));
+    }
     return ".unknown";
   }
 

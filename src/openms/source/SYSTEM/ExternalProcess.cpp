@@ -13,6 +13,11 @@
   #ifndef NOMINMAX
     #define NOMINMAX
   #endif
+  #ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+  #endif
+  // Asio requires Winsock2 before windows.h can include the legacy Winsock API.
+  #include <winsock2.h>
   #include <windows.h>
 #endif
 
@@ -368,7 +373,9 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
 #ifdef _WIN32
         const bool crashed = result.exit_code < 0 || static_cast<unsigned int>(result.exit_code) > 0x80000000u;
 #else
-        const bool crashed = WIFSIGNALED(child.native_exit_code());
+        // Darwin's wait-status macros require an lvalue.
+        int native_status = child.native_exit_code();
+        const bool crashed = WIFSIGNALED(native_status);
 #endif
         // A failed wrapper can leave its workers alive. Stop them before draining
         // their pipes or returning failure to the workflow, which may remove their

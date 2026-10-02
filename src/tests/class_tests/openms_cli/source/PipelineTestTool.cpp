@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <chrono>
@@ -36,6 +39,10 @@ private:
     registerInputFileList_("ETool:in", "<files>", {}, "Nested input requiring INI binding.", false);
     registerOutputFile_("out", "<file>", "", "Single file output.", false);
     registerOutputFile_("untyped_out", "<file>", "", "Output whose format must be detected from content.", false);
+    registerOutputFile_("identifications_out", "<file>", "", "Identification output selected by its file extension.", false);
+    setValidFormats_("identifications_out", {"idXML", "mzid"});
+    registerStringOption_("identifications_out_type", "<type>", "", "Optional explicit identification output format.", false);
+    setValidStrings_("identifications_out_type", {"idXML", "mzid"});
     registerOutputFileList_("out_list", "<files>", {}, "List output.", false);
     registerOutputDir_("out_dir", "<directory>", "", "Directory output.", false);
     setValidFormats_("in", {"fasta"});
@@ -99,6 +106,13 @@ private:
     if (! output.empty() && ! write_(to_path(output), content)) return CANNOT_WRITE_OUTPUT_FILE;
     const auto untyped = getStringOption_("untyped_out");
     if (! untyped.empty() && ! write_(to_path(untyped), content)) return CANNOT_WRITE_OUTPUT_FILE;
+    const auto identifications = getStringOption_("identifications_out");
+    if (! identifications.empty())
+    {
+      // Exercise the same extension-dispatched writer used by search adapters;
+      // unlike the copy outputs above, it correctly refuses an .unknown suffix.
+      FileHandler().storeIdentifications(identifications, {}, {}, {FileTypes::IDXML, FileTypes::MZIDENTML});
+    }
     for (const auto& name : getStringList_("out_list"))
     {
       if (! write_(to_path(name), content)) return CANNOT_WRITE_OUTPUT_FILE;

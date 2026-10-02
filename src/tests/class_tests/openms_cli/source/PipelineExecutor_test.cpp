@@ -9,6 +9,7 @@
 #include <OpenMS/APPLICATIONS/PIPELINE/PipelineExecutor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <algorithm>
@@ -206,6 +207,28 @@ START_SECTION([EXTRA] Content based output naming is propagated to downstream to
   const auto& renamed = result.nodes.at(20).outputs.at(0).at("untyped_out").at(0);
   TEST_EQUAL(to_path(renamed).extension().string(), ".fasta")
   TEST_EQUAL(readFile(renamed), readFile(input))
+}
+END_SECTION
+
+START_SECTION([EXTRA] Multiformat writers receive a valid default suffix and honor explicit format choices)
+{
+  for (const std::string selected : {"", "mzid"})
+  {
+    Fixture fixture;
+    auto graph = singleToolGraph({fixture.input("sample")});
+    graph.edges.back().source_port = "identifications_out";
+    if (! selected.empty()) { graph.node(20).parameters.setValue("identifications_out_type", selected); }
+    PipelineExecutor executor;
+    const auto result = executor.run(graph, fixture.options);
+    TEST_EQUAL(result.exit_code, 0)
+    TEST_EQUAL(result.error_message, "")
+    const auto files = fixture.writtenFiles();
+    TEST_EQUAL(files.size(), 1)
+    const auto expected = selected.empty() ? FileTypes::IDXML : FileTypes::MZIDENTML;
+    TEST_EQUAL(FileHandler::getTypeByContent(pathString(files.at(0))), expected)
+    TEST_EQUAL(pathString(files.at(0).extension()), "." + FileTypes::typeToName(expected))
+    TEST_EQUAL(to_path(result.nodes.at(20).outputs.at(0).at("identifications_out").at(0)).extension().string(), "." + FileTypes::typeToName(expected))
+  }
 }
 END_SECTION
 
