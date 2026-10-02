@@ -86,6 +86,11 @@ jobs:
           echo "Using build-env image ${image_repo}:${image_tag} (bioconda-utils ${bu_version:-unknown})"
           echo "BUILD_ENV_IMAGE=${image_repo}:${image_tag}" >> $GITHUB_ENV
           python -m conda_index $GITHUB_WORKSPACE/output
+          # Register the local output directory as a conda channel so that
+          # host-side metadata finalization can resolve packages built in
+          # earlier steps (e.g. pyopenms finding libopenms==3.6.0dev).
+          # Without this, only the Docker container sees the local channel.
+          conda config --add channels file://$GITHUB_WORKSPACE/output
           ls -l
           ls -l $GITHUB_WORKSPACE/output
 
@@ -116,21 +121,26 @@ jobs:
       - name: Lint and build OpenMS Bioconda packages
         run: |
           cd bioconda-recipes
-          # pyopenms is an output of the openms-meta recipe, next to libopenms, openms and
-          # openms-thirdparty, so one conda-build run compiles OpenMS once and then pyopenms
-          # for every Python version against that libopenms. It used to be a recipe of its
-          # own, built in a second step against the libopenms of the first. A nightly branch
-          # that still has that recipe would lose its pyopenms packages here without notice,
-          # so stop instead.
-          if [ -e recipes/pyopenms ]; then
-            echo "::error::recipes/pyopenms exists on OpenMS/bioconda-recipes@nightly, but this workflow builds pyopenms as an output of recipes/openms-meta. Merge the pyopenms recipe into openms-meta on the nightly branch."
-            exit 1
-          fi
-          bioconda-utils lint --packages openms-meta
-          # --mulled-build-and-test builds a mulled container for every output and runs its
-          # tests in it, as bioconda's own CI does. (Formerly --mulled-test, which newer
-          # bioconda-utils releases reject; bioconda-utils is unpinned, see above.)
-          bioconda-utils build --docker --mulled-build-and-test --package-dir $GITHUB_WORKSPACE/output --packages openms-meta
+          # bioconda-utils' --packages option must be repeated per package: it is a
+          # Typer list option (one value per flag), not a single flag taking several
+          # space-separated values. Passing "--packages pyopenms openms-meta" makes
+          # "openms-meta" the positional recipe_folder argument instead of a second
+          # package, which then fails with "path 'openms-meta' does not exist".
+          bioconda-utils lint --packages pyopenms --packages openms-meta
+          bioconda-utils build --docker --package-dir $GITHUB_WORKSPACE/output --packages openms-meta
+          python -m conda_index $GITHUB_WORKSPACE/output
+
+      - name: Build pyopenms package
+        run: |
+          cd bioconda-recipes
+          # bioconda-utils renamed --mulled-test to --mulled-build-and-test (same
+          # behavior: build a mulled container and run the recipe's tests in it).
+          # The old name still worked when this line was written but bioconda-utils
+          # is deliberately unpinned here (see "Prepare output directory"), so a
+          # newer release now rejects it outright: "Error: No such option:
+          # --mulled-test (Possible options: --mulled-build-and-test,
+          # --mulled-conda-image)".
+          bioconda-utils build --docker --mulled-build-and-test --package-dir $GITHUB_WORKSPACE/output --packages pyopenms
           python -m conda_index $GITHUB_WORKSPACE/output
 
       - name: Upload Conda packages
