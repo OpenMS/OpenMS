@@ -124,10 +124,55 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
   }
   TEST_EQUAL(saw_double_decoy_protein, false)
 
+  // Entries carrying the configured decoy tag are skipped even when they are
+  // too rare for DecoyHelper to detect a database-wide decoy affix.
+  std::string sparse_decoy_fasta;
+  NEW_TMP_FILE(sparse_decoy_fasta)
+  {
+    std::ofstream fasta(sparse_decoy_fasta);
+    fasta
+      << ">ProteinA\nPEPTIDEK\n"
+      << ">ProteinB\nPEPCIDEK\n"
+      << ">ProteinC\nSDVEEQK\n"
+      << ">ProteinD\nYPELLANR\n"
+      << ">DECOY_ProteinA\nQQQQQQQK\n";
+  }
+  FASTAContainer<TFI_File> sparse_decoy_scan(sparse_decoy_fasta);
+  TEST_EQUAL(DecoyHelper::findDecoyString(sparse_decoy_scan, true).success, false)
+
+  std::string sparse_decoy_pqp;
+  NEW_TMP_FILE(sparse_decoy_pqp)
+  File::remove(sparse_decoy_pqp);
+  prep.preparePredictedLibraryToPQP(
+    sparse_decoy_fasta, sparse_decoy_pqp, assay, decoy, prediction);
+
+  OpenSwath::LightTargetedExperiment sparse_decoy_library;
+  reader.convertPQPToTargetedExperiment(sparse_decoy_pqp.c_str(), sparse_decoy_library);
+  bool saw_sparse_decoy_sequence = false;
+  for (const auto& compound : sparse_decoy_library.compounds)
+  {
+    saw_sparse_decoy_sequence =
+      saw_sparse_decoy_sequence ||
+      compound.sequence.find("QQQQQQQK") != std::string::npos;
+  }
+  TEST_EQUAL(saw_sparse_decoy_sequence, false)
+  bool saw_sparse_double_decoy_protein = false;
+  for (const auto& protein : sparse_decoy_library.proteins)
+  {
+    saw_sparse_double_decoy_protein =
+      saw_sparse_double_decoy_protein ||
+      protein.id.find("DECOY_DECOY_") != std::string::npos;
+  }
+  TEST_EQUAL(saw_sparse_double_decoy_protein, false)
+
   // Fallback UIS/SWATH construction divides the precursor m/z range by the
   // precursor threshold. Reject a non-positive threshold before that division.
+  // IPF requires a Unimod file; ModificationsDB is already initialized above,
+  // so reuse it to get past that check and reach the threshold guard.
   OpenSwathLibraryPreparation::AssayGeneratorParameters invalid_uis_assay = assay;
   invalid_uis_assay.enable_ipf = true;
+  invalid_uis_assay.unimod_file = File::find("CHEMISTRY/unimod.xml");
+  invalid_uis_assay.reuse_existing_modifications_db = true;
   invalid_uis_assay.enable_swath_specifity = false;
   invalid_uis_assay.swathes.clear();
   invalid_uis_assay.precursor_mz_threshold = 0.0;
@@ -136,10 +181,12 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
   NEW_TMP_FILE(invalid_output_pqp)
   File::remove(invalid_output_pqp);
 
-  TEST_EXCEPTION(
+  TEST_EXCEPTION_WITH_MESSAGE(
     Exception::InvalidParameter,
     prep.preparePredictedLibraryToPQP(
-      fasta_file, invalid_output_pqp, invalid_uis_assay, decoy, prediction))
+      fasta_file, invalid_output_pqp, invalid_uis_assay, decoy, prediction),
+    "AssayGeneratorParameters::precursor_mz_threshold must be greater than zero "
+    "when constructing fallback UIS SWATH windows.")
 }
 END_SECTION
 

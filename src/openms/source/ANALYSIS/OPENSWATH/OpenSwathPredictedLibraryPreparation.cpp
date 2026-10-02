@@ -295,10 +295,19 @@ namespace OpenMS
     digestion.setEnzyme(parameters.enzyme);
     digestion.setMissedCleavages(parameters.missed_cleavages);
 
+    // Skip decoy entries of target-decoy FASTAs. DecoyHelper only reports an affix
+    // when it marks a large share of the database, so entries carrying the
+    // configured decoy tag are always skipped as well; otherwise a database with
+    // few decoys would silently turn them into targets (and DECOY_DECOY_ decoys).
     FASTAContainer<TFI_File> decoy_scan(input_fasta);
     const DecoyHelper::Result decoy = DecoyHelper::findDecoyString(decoy_scan, true);
     const auto is_decoy_accession = [&](const std::string& accession)
     {
+      if (!decoy_parameters.decoy_tag.empty() &&
+          StringUtils::hasPrefix(accession, decoy_parameters.decoy_tag))
+      {
+        return true;
+      }
       if (!decoy.success) return false;
       if (decoy.is_prefix) return StringUtils::hasPrefix(accession, decoy.name);
       return StringUtils::hasSuffix(accession, decoy.name);
@@ -430,6 +439,14 @@ namespace OpenMS
                       << " '" << decoy.name << "'; skipped "
                       << skipped_decoy_proteins << " decoy protein entr"
                       << (skipped_decoy_proteins == 1 ? "y" : "ies") << "."
+                      << std::endl;
+    }
+    else if (skipped_decoy_proteins > 0)
+    {
+      OPENMS_LOG_WARN << "Skipped " << skipped_decoy_proteins << " FASTA protein entr"
+                      << (skipped_decoy_proteins == 1 ? "y" : "ies")
+                      << " carrying the decoy tag '" << decoy_parameters.decoy_tag
+                      << "', although no database-wide decoy prefix/suffix was detected."
                       << std::endl;
     }
     if (skipped_ambiguous_peptides > 0)

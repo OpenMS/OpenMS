@@ -4571,6 +4571,17 @@ protected:
             "Predicted libraries use PeptDeep normalized RT coordinates. External linear-iRT, rt_norm, "
             "or priority-sampling RT files are not accepted because their RT space is not declared compatible.");
         }
+        // Without auto_irt, a null RT transformation is used, so a finite RT window
+        // would be centred on the normalized library RTs instead of run RTs.
+        if (calibration_parameters.getValue("auto_irt:enabled").toString() != "true" &&
+            getDoubleOption_("TargetedDataExtraction:rt_extraction_window") >= 0.0)
+        {
+          throw Exception::InvalidParameter(
+            __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Predicted libraries use PeptDeep normalized RT coordinates, which only auto_irt maps to run RT. "
+            "Enable TargetedDataExtraction:Calibration:auto_irt:enabled or set "
+            "TargetedDataExtraction:rt_extraction_window to -1 to extract the full RT range.");
+        }
       }
       else if (!requested_prediction_output.empty())
       {

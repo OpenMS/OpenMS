@@ -186,6 +186,9 @@ namespace OpenMS
     /**
      * @brief Build a prepared target/decoy PQP directly from FASTA using native PeptDeep prediction.
      *
+     * FASTA entries whose identifier starts with @p decoy_parameters.decoy_tag, or carries a
+     * decoy affix detected by DecoyHelper::findDecoyString, are skipped.
+     *
      * The method remains available in non-ONNX builds but throws Exception::Precondition when called.
      */
     LibraryStats preparePredictedLibraryToPQP(
