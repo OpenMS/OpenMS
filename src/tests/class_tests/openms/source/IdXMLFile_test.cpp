@@ -672,6 +672,17 @@ START_SECTION([EXTRA] store - many peptide identifications are written in input 
     }
     TEST_EQUAL(message.find("No accession UNKNOWN_0 found in run 'runPar1'") != std::string::npos, true)
   }
+  // an EMPTY meta value cannot be written (see XMLHandler::writeUserParamValue_()); on every hit, all threads fail at
+  // once and the ConversionError arrives intact
+  PeptideIdentificationList empty_values = peps;
+  for (PeptideIdentification& pep : empty_values)
+  {
+    for (PeptideHit& hit : pep.getHits()) hit.setMetaValue("par_test_empty", DataValue());
+  }
+  for (int repeat = 0; repeat < 5; ++repeat)
+  {
+    TEST_EXCEPTION(Exception::ConversionError, IdXMLFile().store(file_bad, prots, empty_values))
+  }
   std::remove(file_bad.c_str()); // incomplete, not to be validated
 #ifdef _OPENMP
   omp_set_num_threads(max_threads);

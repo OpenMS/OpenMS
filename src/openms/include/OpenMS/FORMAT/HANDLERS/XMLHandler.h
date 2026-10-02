@@ -253,6 +253,8 @@ protected:
 
         Does not access the MetaInfoRegistry, so several threads can call it at the same time.
 
+        @exception Exception::ConversionError is thrown for an empty value (DataValue::EMPTY_VALUE): it is written as type
+                   string, but only a string value converts to std::string
         @exception Exception::NotImplemented is thrown for a value type that cannot be written
       */
       static void writeUserParamValue_(std::ostream & os, const std::string & tag_start, const std::string & name, const DataValue & value);

@@ -27,6 +27,7 @@
 #include <cmath>
 #include <exception>
 #include <fstream>
+#include <functional>
 #include <numeric>
 #include <sstream>
 #include <unordered_map>
@@ -345,9 +346,29 @@ namespace OpenMS
         std::vector<std::string> protein_accessions;
       };
 
+      // Calls f() one thread at a time and rethrows what it throws. The constructor of an OpenMS exception sets the
+      // process-wide GlobalExceptionHandler, so the exceptions of the threads must not be constructed concurrently.
+      const auto call_serialized = [](const std::function<void()>& f)
+      {
+        std::exception_ptr thrown;
+#pragma omp critical (IdXMLFile_store_exception)
+        {
+          try
+          {
+            f();
+          }
+          catch (...)
+          {
+            thrown = std::current_exception();
+          }
+        }
+        if (thrown) std::rethrow_exception(thrown);
+      };
+      const char* const store_function = OPENMS_PRETTY_FUNCTION; // names store(), not a lambda, in the exceptions below
+
       // writeUserParam_(), leaving out the meta values with index skip_a or skip_b
-      const auto write_user_params = [](std::ostream& out, const MetaInfoInterface& meta_info, const std::string& tag_start,
-                                        Scratch& scratch, UInt skip_a, UInt skip_b)
+      const auto write_user_params = [&call_serialized](std::ostream& out, const MetaInfoInterface& meta_info,
+                                                        const std::string& tag_start, Scratch& scratch, UInt skip_a, UInt skip_b)
       {
         scratch.keys.clear();
         meta_info.getKeys(scratch.keys);
@@ -357,7 +378,16 @@ namespace OpenMS
           if (key >= scratch.names.size()) scratch.names.resize(static_cast<Size>(key) + 1);
           std::string& name = scratch.names[key];
           if (name.empty()) name = MetaInfoInterface::metaRegistry().getName(key);
-          writeUserParamValue_(out, tag_start, name, meta_info.getMetaValue(key));
+          const DataValue& value = meta_info.getMetaValue(key);
+          if (value.valueType() == DataValue::EMPTY_VALUE)
+          {
+            // throws Exception::ConversionError (see writeUserParamValue_())
+            call_serialized([&] { writeUserParamValue_(out, tag_start, name, value); });
+          }
+          else
+          {
+            writeUserParamValue_(out, tag_start, name, value);
+          }
         }
       };
 
@@ -444,17 +474,10 @@ namespace OpenMS
               }
               else
               {
-                // constructing an OpenMS exception sets the process-wide GlobalExceptionHandler: one thread at a time
-                std::exception_ptr not_found;
-#pragma omp critical (IdXMLFile_store_exception)
-                not_found = std::make_exception_ptr(Exception::ElementNotFound(
-                    __FILE__,
-                    __LINE__,
-                    OPENMS_PRETTY_FUNCTION,
-                    "No accession " + protein_accession + " found in run '" + run_identifier +
+                const std::string message = "No accession " + protein_accession + " found in run '" + run_identifier +
                     "' for PSM " + p_hit.getSequence().toString() + "_" + StringUtils::toStr(p_hit.getCharge()) +
-                    ". Please contact the maintainer of this tool e.g. on GitHub as this should not happen."));
-                std::rethrow_exception(not_found);
+                    ". Please contact the maintainer of this tool e.g. on GitHub as this should not happen.";
+                call_serialized([&] { throw Exception::ElementNotFound(__FILE__, __LINE__, store_function, message); });
               }
             }
           }
