@@ -94,6 +94,14 @@ TOPP tools:
         envelope's monoisotopic peak, and the ion was removed as its isotope. Every TMT/TMTpro-labelled
         fragment has such a peak from the reagent's isotope impurity, so labelled searches lost a fifth
         of their matchable fragment peaks; dense Orbitrap Astral and timsTOF spectra lost about 5%.
+      - New peptide:deduplicate=true (the default) indexes each exact modified peptide once before
+        candidate selection. A peptide that occurs in several proteins used to take one candidate slot
+        per occurrence, so the runner-up was often the same peptide (delta score 0) and the candidate
+        pool statistics counted copies. Protein mappings and target/decoy labels are recovered against
+        the complete database as before. Chunked searches score each peptide/charge/isotope hypothesis
+        once across chunks; keeping the queried keys adds memory per spectrum. SNES mother indices are
+        unchanged. Set false for the previous occurrence-based candidates. FragmentIndex keeps false as
+        its own default.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
