@@ -191,7 +191,8 @@ TOPP tools:
         exactly (SNES, a specificity other than full, protein-terminal modifications, a chunked database, and databases
         with symbols other than letters, with stretches of X, or with more spans over ambiguous residues than a lookup
         budget allows, which is decided by counting them before any lookup). With the post-processing below, a search
-        of 8,000 spectra takes 0.2-0.9 s less at 4 threads (11% over the 20 files of OpenMS#10364).
+        of 8,000 spectra takes 0.2-0.7 s less (11% over the 20 files of OpenMS#10364 at 4 threads, 11-18% at 16 and 64
+        threads), one of 48,000 spectra about 2 s less.
       - The PSMs are annotated in per-spectrum slots (no lock, no sort afterwards), and the decoy marker of large
         databases is detected with up to 8 threads. Results are unchanged.
 
