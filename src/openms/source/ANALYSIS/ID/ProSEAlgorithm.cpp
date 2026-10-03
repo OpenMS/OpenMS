@@ -64,6 +64,9 @@
 #include <iomanip>
 #include <iterator>
 #include <locale>
+#ifdef __GLIBC__
+#include <malloc.h> // malloc_trim
+#endif
 #include <ostream>
 #include <map>
 #include <set>
@@ -3694,6 +3697,14 @@ namespace OpenMS
           && loadMzMLChunked(filename, f.getOptions(), threads, spectra))
       {
         ChromatogramTools().convertSpectraToChromatograms<PeakMap>(spectra, true); // as FileHandler::loadExperiment()
+#ifdef __GLIBC__
+        // Each reader thread freed its chunk buffers and parser temporaries between the spectra it
+        // keeps, and glibc holds these pages in the thread's arena, where nothing allocates again: with
+        // 16 readers 109-165 MB on 8,000-24,000 spectra (4 readers: 43 MB), +0.14 GiB max RSS of the
+        // whole search at 64 threads. Return them; with fewer readers the gain is small and returning
+        // pages the search is about to reuse cost +0.4% wall time at 4 threads.
+        if (threads >= 8) { malloc_trim(0); }
+#endif
       }
       else
       {
