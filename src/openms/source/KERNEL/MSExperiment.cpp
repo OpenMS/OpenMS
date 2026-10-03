@@ -15,8 +15,10 @@
 #include <OpenMS/MATH/MISC/LinearResampling.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <numeric>
 #include <unordered_set>
@@ -993,6 +995,22 @@ namespace OpenMS
       return spectra_.end();
     }
     UInt ms_level = iterator->getMSLevel();
+    const bool has_faims_cv = iterator->getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+
+    // A precursor peak from another FAIMS compensation voltage is not a valid parent.
+    // Keep the tolerance in volts to accommodate rounded values in mzML metadata.
+    const auto matches_faims_cv = [has_faims_cv, cv = iterator->getDriftTime()](const MSSpectrum& candidate)
+    {
+      if (!has_faims_cv)
+      {
+        return true;
+      }
+      const double candidate_cv = candidate.getDriftTime();
+      return cv != IMTypes::DRIFTTIME_NOT_SET && std::isfinite(cv)
+          && candidate.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+          && candidate_cv != IMTypes::DRIFTTIME_NOT_SET && std::isfinite(candidate_cv)
+          && std::abs(candidate_cv - cv) < 0.01;
+    };
 
     if (ms_level == 1) // assumes there is not level 0
     {
@@ -1014,7 +1032,9 @@ namespace OpenMS
           --tmp_spec_iter;
           if ((ms_level - tmp_spec_iter->getMSLevel() == 1) && (tmp_spec_iter->getNativeID() == ref))
           {
-            return tmp_spec_iter;
+            // An explicit reference to a different FAIMS CV is inconsistent; do not
+            // silently substitute a different parent.
+            return matches_faims_cv(*tmp_spec_iter) ? tmp_spec_iter : spectra_.end();
           }
         } while (tmp_spec_iter != spectra_.begin());
       }
@@ -1025,7 +1045,7 @@ namespace OpenMS
     do
     {
       --iterator;
-      if (ms_level - iterator->getMSLevel() == 1)
+      if ((ms_level - iterator->getMSLevel() == 1) && matches_faims_cv(*iterator))
       {
         return iterator;
       }
