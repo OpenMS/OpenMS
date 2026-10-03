@@ -162,7 +162,8 @@ namespace OpenMS
      * Provides read-only access to all peptides currently held by the index,
      * typically populated during build().
      * With peptide:deduplicate=true, non-SNES entries retain one representative
-     * protein coordinate per exact peptidoform, not every protein occurrence.
+     * protein coordinate per exact peptidoform, not every protein occurrence
+     * (getProteinOccurrences() lists them all).
      *
      * @return const reference to the internal std::vector of Peptide.
      *
@@ -195,6 +196,38 @@ namespace OpenMS
      * index, and a peptidoform that occurs in several chunks is listed in each of them.
      */
     const std::vector<RemovedOccurrence>& getRemovedOccurrences() const noexcept { return removed_occurrences_; }
+
+    /**
+     * @brief Whether getProteinOccurrences() lists every span of the digest that has the residues of an index peptide.
+     *
+     * build() gives every span of its digest one entry per combination of variable modification slots
+     * (mod_bitmask_). If the slots and masses of a span depend on its residues only, every span with the residues of
+     * an entry holds an entry with the same mod_bitmask_ and the same precursor_mz_ (the masses are added in the same
+     * order), i.e. one in the same run of equal precursor_mz_. That holds unless the index is in SNES mode (its
+     * entries are mother peptides) or a protein-terminal modification is configured (its sites depend on where a span
+     * lies in its protein).
+     *
+     * @param[in] fasta_entries The FASTA entries the index was built from (checked: their number and lengths).
+     * @return false before build(), after clear(), in the cases above and for other FASTA entries.
+     */
+    bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const;
+
+    /**
+     * @brief Appends the protein occurrences {protein index, start} of the residues of getPeptides()[@p peptide_idx].
+     *
+     * These are the spans of the digest of build() with the same residues, including those of the entries that
+     * peptide:deduplicate removed from getPeptides() (getRemovedOccurrences()); each span once, in no particular order. They are complete only
+     * if hasProteinOccurrences(). Spans the digest did not produce (with ambiguous residues, outside of enzymatic
+     * cleavage sites, ...) are not listed.
+     *
+     * @param[in] peptide_idx Index into getPeptides()
+     * @param[in] fasta_entries The FASTA entries the index was built from
+     * @param[out] occurrences Receives the occurrences (appended)
+     *
+     * Thread-safety: read-only; may be called concurrently.
+     */
+    void getProteinOccurrences(Size peptide_idx, const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                               std::vector<std::pair<UInt32, UInt32>>& occurrences) const;
 
     /// Number of theoretical fragments stored in the index (0 before build()), including the c and
     /// z+1 ions of ions:electron_ions.

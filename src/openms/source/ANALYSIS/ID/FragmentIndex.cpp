@@ -1301,6 +1301,9 @@ namespace OpenMS
           }
         }
 
+        // getProteinOccurrences() relies on this loop treating spans with equal residues alike: whether a span is
+        // skipped and which entries it gets depend on its residues only (and, for protein-terminal modifications,
+        // which hasProteinOccurrences() excludes, on its position in the protein).
         for (const pair<size_t, size_t>& digested_peptide : digested_peptides)
         {
           // skip peptides containing unknown or ambiguous AA codes (X, B, Z), stop codons ('*')
@@ -1735,9 +1738,10 @@ namespace OpenMS
       const size_t portion_size = std::max<size_t>(4 * num_bins, 1024); // peptides; the tables below take 2 bytes per peptide
 
       // peptide:deduplicate - protein occurrences are not distinct peptide hypotheses: of every peptidoform
-      // (reconstructModifiedSequence(...).toString()) only the first entry is kept. ProSE maps the hits against the
-      // complete FASTA later, including target/decoy shared sequences. SNES entries are mother peptides with
-      // different anchors, not scored forms.
+      // (reconstructModifiedSequence(...).toString()) only the first entry is kept. The protein occurrences of the others
+      // are recorded (getRemovedOccurrences()), so that getProteinOccurrences() still lists every protein occurrence,
+      // including target/decoy shared sequences. SNES entries are mother peptides with different anchors, not scored
+      // forms.
       // The entries of a peptidoform normally have equal residues and bitwise equal precursor_mz_ (generatePeptides()
       // adds the same masses in the same order), so they lie in one run of equal precursor_mz_. The first pass meets
       // them one after the other, their sequences in the cache, and keeps the first entry of every peptidoform
@@ -3927,6 +3931,63 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
   const vector<FragmentIndex::Peptide>& FragmentIndex::getPeptides() const
   {
     return fi_peptides_;
+  }
+
+  bool FragmentIndex::hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const
+  {
+    if (!is_build_ || is_snes_mode_ || protein_lengths_.size() != fasta_entries.size()) return false;
+    for (Size i = 0; i < fasta_entries.size(); ++i)
+    {
+      if (protein_lengths_[i] != fasta_entries[i].sequence.size()) return false;
+    }
+    // The configured modifications themselves (not the tables built from them): a protein-terminal one, fixed or
+    // variable, may make the entries of a span depend on its position in the protein.
+    for (const StringList* mods : {&modifications_fixed_, &modifications_variable_})
+    {
+      for (const auto& mod_residue : ModifiedPeptideGenerator::getModifications(*mods).val)
+      {
+        const ResidueModification::TermSpecificity term = mod_residue.first->getTermSpecificity();
+        if (term == ResidueModification::PROTEIN_N_TERM || term == ResidueModification::PROTEIN_C_TERM) return false;
+      }
+    }
+    return true;
+  }
+
+  void FragmentIndex::getProteinOccurrences(Size peptide_idx, const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                            std::vector<std::pair<UInt32, UInt32>>& occurrences) const
+  {
+    const Size first_new = occurrences.size();
+    const Peptide& peptide = fi_peptides_[peptide_idx];
+    const float mz = peptide.precursor_mz_;
+    const size_t length = peptide.sequence_.second;
+    const char* residues = fasta_entries[peptide.protein_idx].sequence.data() + peptide.sequence_.first;
+    // The entries of the spans with these residues and slots: same precursor_mz_ (bitwise), length, mod_bitmask_ and
+    // residues, in the run of equal precursor_mz_ around peptide_idx (fi_peptides_ is sorted by precursor_mz_).
+    // With peptide:deduplicate, that is the entry itself.
+    size_t first = peptide_idx;
+    while (first > 0 && fi_peptides_[first - 1].precursor_mz_ == mz) --first;
+    for (size_t i = first; i < fi_peptides_.size() && fi_peptides_[i].precursor_mz_ == mz; ++i)
+    {
+      const Peptide& entry = fi_peptides_[i];
+      if (entry.sequence_.second == length && entry.mod_bitmask_ == peptide.mod_bitmask_
+          && std::memcmp(fasta_entries[entry.protein_idx].sequence.data() + entry.sequence_.first, residues, length) == 0)
+      {
+        occurrences.emplace_back(entry.protein_idx, entry.sequence_.first);
+      }
+    }
+    // The occurrences of its peptidoform that peptide:deduplicate removed (removed_occurrences_ is ordered by the kept
+    // entry). A span with several entries of the peptidoform (a modification configured fixed and variable renders
+    // alike) is listed once.
+    const UInt32 kept = static_cast<UInt32>(peptide_idx);
+    const auto removed_begin = std::lower_bound(removed_occurrences_.begin(), removed_occurrences_.end(), kept,
+      [](const RemovedOccurrence& occurrence, const UInt32 index) { return occurrence.peptide_idx < index; });
+    if (removed_begin == removed_occurrences_.end() || removed_begin->peptide_idx != kept) return;
+    for (auto it = removed_begin; it != removed_occurrences_.end() && it->peptide_idx == kept; ++it)
+    {
+      occurrences.emplace_back(it->protein_idx, it->start);
+    }
+    std::sort(occurrences.begin() + first_new, occurrences.end());
+    occurrences.erase(std::unique(occurrences.begin() + first_new, occurrences.end()), occurrences.end());
   }
 
 }

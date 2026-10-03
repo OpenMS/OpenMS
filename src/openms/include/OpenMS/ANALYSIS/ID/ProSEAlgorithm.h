@@ -21,9 +21,12 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <algorithm>   // std::min (used by inline computeModMatchTolerance_)
+#include <functional>  // std::hash (ProteinMapping_)
 #include <iosfwd>      // std::ostream (renderRunSummary / renderModificationSummary)
 #include <map>
 #include <string>      // std::string (renderRunSummaryJson return / manifest)
+#include <string_view>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>     // std::pair (renderRunSummaryJson manifest)
 #include <vector>
@@ -544,6 +547,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       uint16_t matched_prefix_ions = 0; ///< number of matched prefix ions (a/b/c)
       uint16_t matched_suffix_ions = 0; ///< number of matched suffix ions (x/y/z)
       uint16_t prefilter_matches = 0; ///< matched fragments of this candidate in the fragment-index prefilter (saturating)
+      UInt32 index_peptide = 0; ///< the candidate: its index in FragmentIndex::getPeptides() of the searched index (protein mapping)
 
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
@@ -1088,6 +1092,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool add_z_ions_{false};
     bool add_zp1_ions_{false};
     bool ions_by_activation_{true}; ///< add c and z+1 ions for electron-activated spectra
+    bool protein_mapping_from_index_{true}; ///< peptide:protein_mapping = index
 
     Size database_chunk_size_{0};  ///< 0 = disabled; >0 = chunk DB into groups of this many proteins
 
@@ -1169,6 +1174,75 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                            FragmentIndex& fragment_index,
                                            const std::vector<FASTAFile::FASTAEntry>& db,
                                            const PeakMap* query_spectra = nullptr) const;
+
+    /**
+     * @brief The protein occurrences of the sequences of a search's hits (peptide:protein_mapping = index).
+     *
+     * buildProteinMapping_() collects them while the fragment index exists, applyProteinMapping_() writes what
+     * PeptideIndexing::run() writes. PeptideIndexing (without mismatches and I/L equivalence; missed cleavages
+     * ignored; the initial methionine and the residue after it may be cleaved off) maps an unmodified hit
+     * sequence S to every (protein, position) at which S occurs, where up to aaa_max ambiguous residues (B, J, Z, X)
+     * of the protein may stand for residues of S, and isValidProduct() accepts the span. These are:
+     *  1. the spans of the digest of the index with the residues S (FragmentIndex::getProteinOccurrences(), which
+     *     includes the occurrences removed by peptide:deduplicate): they lie at enzymatic cleavage sites, have the
+     *     missed cleavages, length and mass of S and no ambiguous residue;
+     *  2. spans at position 1 or 2 of a protein that starts with M, which isValidProduct() takes as N-terminal;
+     *  3. spans over 1 to aaa_max ambiguous residues, each one standing for a residue that AhoCorasickAmbiguous
+     *     matches it with.
+     * The spans of 2. and 3. are checked with isValidProduct(). Configurations, databases and hits for which this
+     * does not reproduce PeptideIndexing exactly leave a reason (fallback_reason); then PeptideIndexing runs.
+     */
+    struct ProteinMapping_
+    {
+      /// Number of hash tables that sequences are spread over (by their hash), so that they are filled in parallel
+      static constexpr Size SHARDS = 64;
+      /// The unmodified hit sequences (views into the database), one entry each
+      std::vector<std::string_view> sequences;
+      /// Per entry: its occurrences {protein index, position}, ascending (PeptideIndexing's evidence order)
+      std::vector<std::vector<std::pair<UInt32, UInt32>>> occurrences;
+      /// Sequence -> entry, in SHARDS hash tables
+      std::vector<std::unordered_map<std::string_view, Size>> entries;
+      /// Why PeptideIndexing has to run instead; empty if the mapping applies
+      std::string fallback_reason;
+
+      /// The entry of @p sequence, or sequences.size() if there is none
+      Size find(std::string_view sequence) const
+      {
+        if (entries.empty()) return sequences.size();
+        const auto& table = entries[std::hash<std::string_view>{}(sequence) % SHARDS];
+        const auto entry = table.find(sequence);
+        return entry == table.end() ? sequences.size() : entry->second;
+      }
+    };
+
+    /**
+     * @brief Collects the protein occurrences of the sequences of the index peptides @p candidates.
+     *
+     * @param[in] index The searched fragment index (built from @p db); must still hold its peptides
+     * @param[in] db The searched database
+     * @param[in] candidates Indices into FragmentIndex::getPeptides(): the candidates of the hits (in any order,
+     *            repeats allowed)
+     * @param[in] indexer_parameters The parameters PeptideIndexing would run with
+     */
+    static ProteinMapping_ buildProteinMapping_(const FragmentIndex& index,
+                                                const std::vector<FASTAFile::FASTAEntry>& db,
+                                                std::vector<UInt32> candidates,
+                                                const Param& indexer_parameters);
+
+    /**
+     * @brief Writes what PeptideIndexing::run(@p db, @p protein_ids, @p peptide_ids) with @p indexer_parameters
+     * writes: the evidences, target_decoy and protein_references of every hit, the protein hits and the
+     * PeptideIndexer:* search parameters.
+     *
+     * @return false, with @p fallback_reason set and nothing changed, if @p mapping cannot reproduce PeptideIndexing
+     *         for these identifications (e.g. a hit whose sequence it does not hold); then PeptideIndexing has to run.
+     */
+    static bool applyProteinMapping_(const ProteinMapping_& mapping,
+                                     const std::vector<FASTAFile::FASTAEntry>& db,
+                                     const Param& indexer_parameters,
+                                     std::vector<ProteinIdentification>& protein_ids,
+                                     PeptideIdentificationList& peptide_ids,
+                                     std::string& fallback_reason);
 
     /// Helper: does @p accession carry the decoy @p marker at the given position?
     /// Empty marker → false. Pure std::string (no String dependency).
