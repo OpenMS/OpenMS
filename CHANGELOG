@@ -40,9 +40,10 @@ OpenMS Library:
     (#10179, fixes #9231).
   - IMDataArrayUtils (and IMDataConverter::getIMUnit/setIMUnit) recognize the PSI-MS ion-mobility
     array names from a compiled-in table instead of loading the PSI-MS CV files, so MSSpectrum no
-    longer needs the CV files at run time to find its ion-mobility array. Names and units are
-    unchanged; IMDataArrayUtils::getArrayTerms() lists them. A psi-ms.obo replaced at run time no
-    longer adds array names; the table is updated together with the bundled ontology (#10110).
+    longer needs the CV files at run time to find its ion-mobility array. The canonical PSI-MS
+    names and their units are unchanged; IMDataArrayUtils::getArrayTerms() lists them. A
+    psi-ms.obo replaced at run time no longer adds array names; the table is updated together
+    with the bundled ontology (#10110).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
