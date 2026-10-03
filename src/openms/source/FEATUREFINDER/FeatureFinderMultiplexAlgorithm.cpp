@@ -299,7 +299,7 @@ namespace OpenMS
 
   }
 
-  std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesCentroided_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites)
+  std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesCentroided_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites, std::vector<std::vector<double> >& mt_intensities, std::vector<std::vector<double> >& mt_centroid_rt, std::vector<std::vector<double> >& mt_centroid_mz)
   {
     // determine peptide intensities and RT shift between the peptides
     // i.e. first determine the RT centre of mass for each peptide
@@ -324,6 +324,11 @@ namespace OpenMS
       double intensity_sum_simple(0);    // for intensity-averaged rt
       double intensity_sum(0);
 
+      // per-mass-trace (isotope) results, reused for the masstrace_* meta values
+      std::vector<double> trace_intensities;
+      std::vector<double> trace_centroid_rt;
+      std::vector<double> trace_centroid_mz;
+
       // loop over isotopes i.e. mass traces of the peptide
       for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
       {
@@ -333,6 +338,10 @@ namespace OpenMS
         satellites_isotope = satellites.equal_range(idx);
 
         MSChromatogram chromatogram;
+        // intensity-weighted centroid of this single mass trace
+        double trace_rt_sum(0);
+        double trace_mz_sum(0);
+        double trace_intensity_sum(0);
         // loop over satellites for this isotope i.e. mass trace
         for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it = satellites_isotope.first; satellite_it != satellites_isotope.second; ++satellite_it)
         {
@@ -347,6 +356,7 @@ namespace OpenMS
           std::advance(it_mz, mz_idx);
 
           double rt_temp = it_rt->getRT();
+          double mz_temp = it_mz->getMZ();
           double intensity_temp = it_mz->getIntensity();
 
           if ((peptide + isotope == 0) || (rt_temp < rt_min))
@@ -361,6 +371,10 @@ namespace OpenMS
 
           rt += rt_temp * intensity_temp;
           intensity_sum_simple += intensity_temp;
+
+          trace_rt_sum += rt_temp * intensity_temp;
+          trace_mz_sum += mz_temp * intensity_temp;
+          trace_intensity_sum += intensity_temp;
 
           chromatogram.push_back(ChromatogramPeak(rt_temp, static_cast<ChromatogramPeak::IntensityType>(intensity_temp)));
         }
@@ -381,17 +395,33 @@ namespace OpenMS
           spline_chromatograms.insert(std::make_pair(idx, SplinePackage(rt, intensity)));
         }
 
+        double trace_area(0.0);
         if (chromatogram.size() > 1)
         {
           double rt_start = chromatogram.begin()->getPos();
           double rt_end = chromatogram.back().getPos();
 
           PeakIntegrator::PeakArea pa = pi.integratePeak(chromatogram, rt_start, rt_end);
-          intensity_sum += pa.area;
+          trace_area = pa.area;
         }
         else if (chromatogram.size() == 1)
         {
-          intensity_sum += chromatogram.begin()->getIntensity();
+          trace_area = chromatogram.begin()->getIntensity();
+        }
+        intensity_sum += trace_area;
+
+        // record per-mass-trace results (reused for the masstrace_* meta values)
+        trace_intensities.push_back(trace_area);
+        if (trace_intensity_sum > 0)
+        {
+          trace_centroid_rt.push_back(trace_rt_sum / trace_intensity_sum);
+          trace_centroid_mz.push_back(trace_mz_sum / trace_intensity_sum);
+        }
+        else
+        {
+          // empty mass trace: the intensity is zero, so the (meaningless) centroid is reported as zero
+          trace_centroid_rt.push_back(0.0);
+          trace_centroid_mz.push_back(0.0);
         }
       }
 
@@ -402,6 +432,10 @@ namespace OpenMS
         intensity_sum = -1.0;
       }
       intensity_peptide.push_back(intensity_sum);
+
+      mt_intensities.push_back(std::move(trace_intensities));
+      mt_centroid_rt.push_back(std::move(trace_centroid_rt));
+      mt_centroid_mz.push_back(std::move(trace_centroid_mz));
     }
 
     // If any of the peptide intensities could not be determined (i.e. -1) then there is no need for further corrections.
@@ -421,7 +455,7 @@ namespace OpenMS
     return intensity_peptide;
   }
 
-  std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesProfile_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites)
+  std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesProfile_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites, std::vector<std::vector<double> >& mt_intensities, std::vector<std::vector<double> >& mt_centroid_rt, std::vector<std::vector<double> >& mt_centroid_mz)
   {
     // determine peptide intensities and RT shift between the peptides
     // i.e. first determine the RT centre of mass for each peptide
@@ -446,6 +480,11 @@ namespace OpenMS
       double intensity_sum_simple(0);    // for intensity-averaged rt
       double intensity_sum(0);
 
+      // per-mass-trace (isotope) results, reused for the masstrace_* meta values
+      std::vector<double> trace_intensities;
+      std::vector<double> trace_centroid_rt;
+      std::vector<double> trace_centroid_mz;
+
       // loop over isotopes i.e. mass traces of the peptide
       for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
       {
@@ -455,10 +494,15 @@ namespace OpenMS
         satellites_isotope = satellites.equal_range(idx);
 
         MSChromatogram chromatogram;
+        // intensity-weighted centroid of this single mass trace
+        double trace_rt_sum(0);
+        double trace_mz_sum(0);
+        double trace_intensity_sum(0);
         // loop over satellites for this isotope i.e. mass trace
         for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it = satellites_isotope.first; satellite_it != satellites_isotope.second; ++satellite_it)
         {
           double rt_temp = (satellite_it->second).getRT();
+          double mz_temp = (satellite_it->second).getMZ();
           double intensity_temp = (satellite_it->second).getIntensity();
 
           if ((peptide + isotope == 0) || (rt_temp < rt_min))
@@ -473,6 +517,10 @@ namespace OpenMS
 
           rt += rt_temp * intensity_temp;
           intensity_sum_simple += intensity_temp;
+
+          trace_rt_sum += rt_temp * intensity_temp;
+          trace_mz_sum += mz_temp * intensity_temp;
+          trace_intensity_sum += intensity_temp;
 
           chromatogram.push_back(ChromatogramPeak(rt_temp, static_cast<ChromatogramPeak::IntensityType>(intensity_temp)));
         }
@@ -493,6 +541,7 @@ namespace OpenMS
           spline_chromatograms.insert(std::make_pair(idx, SplinePackage(rt, intensity)));
         }
 
+        double trace_area(0.0);
         if (chromatogram.size() > 1)
         {
           // Positions are already sorted in makePeakPositionUnique(), i.e. sortByPosition() not necessary.
@@ -500,13 +549,27 @@ namespace OpenMS
           double rt_end = chromatogram.back().getPos();
 
           PeakIntegrator::PeakArea pa = pi.integratePeak(chromatogram, rt_start, rt_end);
-          intensity_sum += pa.area;
+          trace_area = pa.area;
         }
         else if (chromatogram.size() == 1)
         {
-          intensity_sum += chromatogram.begin()->getIntensity();
+          trace_area = chromatogram.begin()->getIntensity();
         }
+        intensity_sum += trace_area;
 
+        // record per-mass-trace results (reused for the masstrace_* meta values)
+        trace_intensities.push_back(trace_area);
+        if (trace_intensity_sum > 0)
+        {
+          trace_centroid_rt.push_back(trace_rt_sum / trace_intensity_sum);
+          trace_centroid_mz.push_back(trace_mz_sum / trace_intensity_sum);
+        }
+        else
+        {
+          // empty mass trace: the intensity is zero, so the (meaningless) centroid is reported as zero
+          trace_centroid_rt.push_back(0.0);
+          trace_centroid_mz.push_back(0.0);
+        }
       }
 
       rt /= intensity_sum_simple;
@@ -516,6 +579,10 @@ namespace OpenMS
         intensity_sum = -1.0;
       }
       intensity_peptide.push_back(intensity_sum);
+
+      mt_intensities.push_back(std::move(trace_intensities));
+      mt_centroid_rt.push_back(std::move(trace_centroid_rt));
+      mt_centroid_mz.push_back(std::move(trace_centroid_mz));
     }
 
     // If any of the peptide intensities could not be determined (i.e. -1) then there is no need for further corrections.
@@ -575,8 +642,11 @@ namespace OpenMS
           }
         }
 
-        // determine peptide intensities
-        std::vector<double> peptide_intensities = determinePeptideIntensitiesCentroided_(patterns[pattern], satellites);
+        // determine peptide intensities (also yields the per-mass-trace intensities and centroids for the meta values)
+        std::vector<std::vector<double> > masstrace_intensities;
+        std::vector<std::vector<double> > masstrace_centroid_rt;
+        std::vector<std::vector<double> > masstrace_centroid_mz;
+        std::vector<double> peptide_intensities = determinePeptideIntensitiesCentroided_(patterns[pattern], satellites, masstrace_intensities, masstrace_centroid_rt, masstrace_centroid_mz);
 
         // If no reliable peptide intensity can be determined, we do not report the peptide multiplet.
         if (std::find(peptide_intensities.begin(), peptide_intensities.end(), -1.0) != peptide_intensities.end())
@@ -666,6 +736,12 @@ namespace OpenMS
           feature.setCharge(patterns[pattern].getCharge());
           feature.setOverallQuality(1.0);
 
+          // store per-mass-trace (isotope) intensities and centroids, analogous to FeatureFindingMetabo
+          feature.setMetaValue("masstrace_intensity", masstrace_intensities[peptide]);
+          feature.setMetaValue("masstrace_centroid_rt", masstrace_centroid_rt[peptide]);
+          feature.setMetaValue("masstrace_centroid_mz", masstrace_centroid_mz[peptide]);
+          feature.setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, masstrace_intensities[peptide].size());
+
           // Check that the feature eluted long enough.
           // DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();    // convex hull of the entire peptide feature
           DBoundingBox<2> box = feature.getConvexHulls()[0].getBoundingBox();    // convex hull of the mono-isotopic mass trace
@@ -745,8 +821,11 @@ namespace OpenMS
           }
         }
 
-        // determine peptide intensities
-        std::vector<double> peptide_intensities = determinePeptideIntensitiesProfile_(patterns[pattern], satellites);
+        // determine peptide intensities (also yields the per-mass-trace intensities and centroids for the meta values)
+        std::vector<std::vector<double> > masstrace_intensities;
+        std::vector<std::vector<double> > masstrace_centroid_rt;
+        std::vector<std::vector<double> > masstrace_centroid_mz;
+        std::vector<double> peptide_intensities = determinePeptideIntensitiesProfile_(patterns[pattern], satellites, masstrace_intensities, masstrace_centroid_rt, masstrace_centroid_mz);
 
         // If no reliable peptide intensity can be determined for one of the peptides, we do not report the peptide multiplet.
         if (std::find(peptide_intensities.begin(), peptide_intensities.end(), -1.0) != peptide_intensities.end())
@@ -824,6 +903,12 @@ namespace OpenMS
           feature.setIntensity(peptide_intensities[peptide]);
           feature.setCharge(patterns[pattern].getCharge());
           feature.setOverallQuality(1.0);
+
+          // store per-mass-trace (isotope) intensities and centroids, analogous to FeatureFindingMetabo
+          feature.setMetaValue("masstrace_intensity", masstrace_intensities[peptide]);
+          feature.setMetaValue("masstrace_centroid_rt", masstrace_centroid_rt[peptide]);
+          feature.setMetaValue("masstrace_centroid_mz", masstrace_centroid_mz[peptide]);
+          feature.setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, masstrace_intensities[peptide].size());
 
           // Check that the feature eluted long enough.
           // DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();    // convex hull of the entire peptide feature
