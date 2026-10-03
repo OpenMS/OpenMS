@@ -532,6 +532,52 @@ START_SECTION(isotope_error)
 }
 END_SECTION
 
+START_SECTION([EXTRA] more than 32 isotope errors)
+{
+  // One walk over the index counts up to 32 isotope errors; more take several walks, which must
+  // find the peptide at isotope errors of every walk (41 here: -20..11 and 12..20).
+  const std::vector<FASTAFile::FASTAEntry> entries {
+    {"test1", "test1",
+    "MSDEREVAEAATGEDASSPPPKTEAASDPQHPAASEGAAAAAASPPLLRCLVLTGFGGYDKVKLQSRPAAPPAPGPGQLTLRLRACGLNFADLMARQGLYDRLPPLPVTPGMEGAGVVIAVGEGVSDRKAGDRVMVLNRSGMWQE"}};
+  FragmentIndex_test isoTest;
+  auto params = isoTest.getParameters();
+  params.setValue("precursor:isotope_error_min", -20);
+  params.setValue("precursor:isotope_error_max", 20);
+  params.setValue("fragment:min_mz", 0);
+  params.setValue("fragment:max_mz", 90000);
+  params.setValue("modifications:variable", std::vector<std::string> {});
+  params.setValue("modifications:fixed", std::vector<std::string> {});
+  isoTest.setParameters(params);
+  isoTest.build(entries);
+
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum b_y_ions;
+  AASequence peptide = AASequence::fromString("EVAEAATGEDASSPPPK");
+  tsg.getSpectrum(b_y_ions, peptide, 1, 1);
+  MSSpectrum theo_spec;
+  theo_spec.setMSLevel(2);
+  for (const auto& peak : b_y_ions) theo_spec.push_back(peak);
+  Precursor theo_prec;
+  theo_prec.setCharge(1);
+  for (int iso : {-20, -13, -12, 0, 11, 12, 20})
+  {
+    theo_prec.setMZ(peptide.getMZ(1) + iso * Constants::C13C12_MASSDIFF_U);
+    theo_spec.setPrecursors({theo_prec});
+    FragmentIndex::SpectrumMatchesTopN sms;
+    isoTest.querySpectrum(theo_spec, sms);
+    std::vector<int> found_errors;
+    for (const auto& hit : sms.hits_)
+    {
+      const auto& result = isoTest.getPeptides()[hit.peptide_idx_];
+      if (result.sequence_.first == 5 && result.sequence_.second == peptide.size()) { found_errors.push_back(hit.isotope_error_); }
+    }
+    // the index shifts the observed precursor mass by isotope_error * C13: M + iso * C13 is found at -iso
+    TEST_EQUAL(found_errors.size(), 1)
+    TEST_EQUAL(found_errors.empty() ? 999 : found_errors[0], -iso)
+  }
+}
+END_SECTION
+
 // Apply small deterministic fragment m/z jitter and a precursor offset within tolerances;
 // expect the correct peptide hit and zero isotope error.
 START_SECTION(tolerance)

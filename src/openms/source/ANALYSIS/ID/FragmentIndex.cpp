@@ -86,6 +86,10 @@ namespace OpenMS
       return table;
     }
 
+    /// Most precursor blocks (isotope errors) one queryPeaks() call counts: block membership is kept in
+    /// a 32-bit mask.
+    constexpr size_t max_blocks_per_walk = 32;
+
     /// Order of the peptides: by precursor m/z, protein, start, length and variable modifications.
     /// It compares every field of a Peptide, so peptides that compare equal are identical: any sort
     /// gives the same result, on every platform and with any number of threads. (The fields are
@@ -2023,11 +2027,11 @@ namespace OpenMS
       //
       // Count table layout: block k owns the cells [base_k, base_k + window_k), indexed relative to
       // its first peptide (rel = peptide_idx - first_k).
-      constexpr size_t max_blocks = 32; // block membership is kept in a 32-bit mask
+      constexpr size_t max_blocks = max_blocks_per_walk; // block membership is kept in a 32-bit mask
       if (blocks.size() > max_blocks)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "FragmentIndex: at most 32 isotope errors can be searched per precursor charge.");
+          "FragmentIndex: at most 32 isotope errors can be searched per queryPeaks() call.");
       }
       std::array<size_t, max_blocks + 1> base{};
       for (size_t k = 0; k < blocks.size(); ++k)
@@ -2342,9 +2346,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // this function is only reached for non-SNES searches.
     //
     // candidates_range is half-open [first, second) — the scan in queryPeaks stops strictly
-    // before peptide_idx == second. One queryPeaks call counts all isotope errors in one walk
+    // before peptide_idx == second. One queryPeaks call counts up to 32 isotope errors in one walk
     // over the buckets and appends the (already compacted and threshold-filtered) matches of
-    // each isotope error, in ascending isotope error, directly to the caller's accumulator.
+    // each isotope error, in ascending isotope error, directly to the caller's accumulator. More
+    // isotope errors take several walks, which append the same matches in the same order.
     thread_local std::vector<PrecursorBlock_> blocks;
     blocks.clear();
     for (int16_t isotope_error = iso_lo; isotope_error <= iso_hi; ++isotope_error)
@@ -2355,7 +2360,17 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       const auto window = computeMassWindow_(shifted_mass);
       blocks.push_back({getPeptidesInMassWindow(shifted_mass, window), isotope_error});
     }
-    queryPeaks(sms, spectrum, blocks, charge, with_electron_ions);
+    if (blocks.size() <= max_blocks_per_walk)
+    {
+      queryPeaks(sms, spectrum, blocks, charge, with_electron_ions);
+      return;
+    }
+    thread_local std::vector<PrecursorBlock_> walk_blocks;
+    for (size_t first = 0; first < blocks.size(); first += max_blocks_per_walk)
+    {
+      walk_blocks.assign(blocks.begin() + first, blocks.begin() + std::min(blocks.size(), first + max_blocks_per_walk));
+      queryPeaks(sms, spectrum, walk_blocks, charge, with_electron_ions);
+    }
   }
 
   void FragmentIndex::querySpectrumSNES_(const MSSpectrum& spectrum,

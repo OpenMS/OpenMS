@@ -114,6 +114,84 @@ namespace OpenMS
       return true;
     }
 
+    /// True if the '>' at text[pos] starts a chunk: it starts a line, and the line before it, which
+    /// starts at or after @p first, does not start with '>' -- so the reader starts a record there.
+    bool isChunkStart(const std::string& text, size_t pos, size_t first)
+    {
+      if (pos <= first || text[pos] != '>' || text[pos - 1] != '\n') return false;
+      const size_t line_end = pos - 1; // the '\n' ending the preceding line
+      const size_t previous_newline = line_end == 0 ? std::string::npos : text.rfind('\n', line_end - 1);
+      const size_t line_start = previous_newline == std::string::npos ? 0 : previous_newline + 1;
+      if (line_start < first) return false;
+      return line_start == line_end || text[line_start] != '>';
+    }
+
+    /// The first chunk start in text[from, end), or npos.
+    size_t nextChunkStart(const std::string& text, size_t from, size_t first, size_t end)
+    {
+      for (size_t pos = text.find("\n>", from == 0 ? 0 : from - 1); pos != std::string::npos && pos + 1 < end;
+           pos = text.find("\n>", pos + 1))
+      {
+        if (isChunkStart(text, pos + 1, first)) return pos + 1;
+      }
+      return std::string::npos;
+    }
+
+    /// The last chunk start in text(first, end), or npos.
+    size_t lastChunkStart(const std::string& text, size_t first, size_t end)
+    {
+      for (size_t pos = end; pos >= first + 3;)
+      {
+        const size_t newline = text.rfind("\n>", pos - 2);
+        if (newline == std::string::npos || newline + 1 <= first) break;
+        if (isChunkStart(text, newline + 1, first)) return newline + 1;
+        pos = newline + 1;
+      }
+      return std::string::npos;
+    }
+
+    /// Parses the records in text[first, end) in pieces on @p threads threads and appends them to
+    /// @p data. @p end is the end of the file (@p end_of_file) or a chunk start.
+    bool parseInParallel(const std::string& text, size_t first, size_t end, bool end_of_file, int threads,
+                         std::vector<FASTAFile::FASTAEntry>& data)
+    {
+      std::vector<size_t> starts{first};
+      for (int t = 1; t < threads; ++t)
+      {
+        const size_t pos = nextChunkStart(text, std::max(starts.back() + 1, first + (end - first) / threads * t), first, end);
+        if (pos == std::string::npos) break;
+        starts.push_back(pos);
+      }
+      starts.push_back(end);
+
+      const int chunks = static_cast<int>(starts.size()) - 1;
+      std::vector<std::vector<FASTAFile::FASTAEntry>> parts(chunks);
+      std::vector<char> ok(chunks, 1);
+      #pragma omp parallel for schedule(static, 1) num_threads(threads)
+      for (int c = 0; c < chunks; ++c)
+      {
+        // no exception may leave the parallel region: a failed chunk sends the file to the reader
+        try
+        {
+          ok[c] = parseFastaRecords(text, starts[c], starts[c + 1], end_of_file && c + 1 == chunks, parts[c]);
+        }
+        catch (...)
+        {
+          ok[c] = 0;
+          std::vector<FASTAFile::FASTAEntry>().swap(parts[c]);
+        }
+      }
+      if (std::find(ok.begin(), ok.end(), 0) != ok.end()) return false;
+      size_t total = data.size();
+      for (const auto& part : parts) total += part.size();
+      if (total > data.capacity()) data.reserve(std::max(total, 2 * data.capacity())); // grows over the segments
+      for (auto& part : parts)
+      {
+        std::move(part.begin(), part.end(), std::back_inserter(data));
+      }
+      return true;
+    }
+
     /// Reads all records of @p filename on several threads. Returns false if the file is small,
     /// cannot be read here or holds anything the parser above declines; the caller then reads it
     /// with FASTAFile::readNext().
@@ -125,73 +203,59 @@ namespace OpenMS
       const int threads = 1;
 #endif
       constexpr size_t min_bytes = size_t(1) << 22; // smaller files are read quickly anyway
+      // The file is read and parsed in segments of this size, so that little text is held besides the
+      // entries (only a record longer than a segment is held whole).
+      constexpr size_t segment_bytes = size_t(1) << 22;
       if (threads < 2 || !File::exists(filename) || !File::readable(filename)) return false;
       std::ifstream in(filename, std::ios::binary);
       if (!in) return false;
       in.seekg(0, std::ios::end);
       const std::streamoff size = in.tellg();
       if (size < static_cast<std::streamoff>(min_bytes)) return false;
-      std::string text(static_cast<size_t>(size), '\0');
       in.seekg(0, std::ios::beg);
-      if (!in.read(text.data(), size)) return false;
 
-      // as readStart(): skip leading whitespace and '#' (PEFF header) lines
+      std::string text; // the start of a record (or of the file) and what follows it
       size_t first = 0;
-      while (first < text.size())
+      bool start_of_file = true;
+      while (true)
       {
-        const char c = text[first];
-        if (c == '#')
-        {
-          const size_t newline = text.find('\n', first);
-          first = newline == std::string::npos ? text.size() : newline + 1;
-        }
-        else if (c == ' ' || c == '\t' || c == '\n' || c == '\r') ++first;
-        else break;
-      }
-      if (first == text.size() || text[first] != '>') return false;
+        const size_t kept = text.size();
+        text.resize(kept + segment_bytes);
+        in.read(text.data() + kept, static_cast<std::streamsize>(segment_bytes));
+        text.resize(kept + static_cast<size_t>(in.gcount()));
+        if (in.bad()) return false;
+        const bool end_of_file = in.eof();
 
-      // chunk starts: a '>' at the start of a line whose preceding line does not start with '>'
-      std::vector<size_t> starts{first};
-      for (int t = 1; t < threads; ++t)
-      {
-        size_t pos = std::max(starts.back() + 1, first + (text.size() - first) / threads * t);
-        while (true)
+        if (start_of_file)
         {
-          pos = text.find("\n>", pos);
-          if (pos == std::string::npos) break;
-          const size_t line_end = pos;  // the '\n' ending the preceding line
-          const size_t previous_newline = text.rfind('\n', line_end == 0 ? 0 : line_end - 1);
-          const size_t line_start = (previous_newline == std::string::npos || previous_newline >= line_end) ? 0 : previous_newline + 1;
-          if (line_start < first) return false;
-          if (line_start == line_end || text[line_start] != '>')
+          // as readStart(): skip leading whitespace and '#' (PEFF header) lines
+          while (first < text.size())
           {
-            pos += 1; // the '>'
-            break;
+            const char c = text[first];
+            if (c == '#')
+            {
+              const size_t newline = text.find('\n', first);
+              first = newline == std::string::npos ? text.size() : newline + 1;
+            }
+            else if (c == ' ' || c == '\t' || c == '\n' || c == '\r') ++first;
+            else break;
           }
-          pos += 2;
+          if (first == text.size() || text[first] != '>') return false;
+          start_of_file = false;
         }
-        if (pos == std::string::npos) break;
-        starts.push_back(pos);
-      }
-      starts.push_back(text.size());
 
-      const int chunks = static_cast<int>(starts.size()) - 1;
-      std::vector<std::vector<FASTAFile::FASTAEntry>> parts(chunks);
-      std::vector<char> ok(chunks, 1);
-      #pragma omp parallel for schedule(static, 1) num_threads(threads)
-      for (int c = 0; c < chunks; ++c)
-      {
-        ok[c] = parseFastaRecords(text, starts[c], starts[c + 1], c + 1 == chunks, parts[c]);
+        // parse up to the last record that starts in the text; the rest is kept for the next segment
+        size_t end = text.size();
+        if (!end_of_file)
+        {
+          end = lastChunkStart(text, first, text.size());
+          if (end == std::string::npos) continue; // no record starts after the first one yet: read on
+        }
+        if (!parseInParallel(text, first, end, end_of_file, threads, data)) return false;
+        if (end_of_file) return true;
+        text.erase(0, end);
+        first = 0;
       }
-      if (std::find(ok.begin(), ok.end(), 0) != ok.end()) return false;
-      size_t total = 0;
-      for (const auto& part : parts) total += part.size();
-      data.reserve(total);
-      for (auto& part : parts)
-      {
-        std::move(part.begin(), part.end(), std::back_inserter(data));
-      }
-      return true;
     }
   }
 

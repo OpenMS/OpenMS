@@ -307,17 +307,27 @@ END_SECTION
 
 START_SECTION([EXTRA] load of a large file)
 {
-  // Large files are parsed in pieces on several threads: they must give the entries of readNext(),
-  // also for records whose header is directly followed by another header line (whose '>' then
-  // belongs to the sequence) and other odd layouts.
+  // Large files are read in segments of 4 MB and parsed in pieces on several threads: they must give
+  // the entries of readNext(), also for records whose header is directly followed by another header
+  // line (whose '>' then belongs to the sequence), a record longer than a segment, and other odd
+  // layouts.
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   {
     std::ofstream out(tmp_filename, std::ios::binary);
     out << "# PEFF 1.0\n\n";
     Size written = 0;
-    for (Size i = 0; written < (Size(5) << 20); ++i)
+    bool long_record = false;
+    for (Size i = 0; written < (Size(11) << 20); ++i)
     {
+      if (!long_record && written > (Size(5) << 20))
+      {
+        std::string record = ">sp|LONG|TEST long record\n";
+        while (record.size() < (Size(5) << 20)) record += std::string(60, "ACDEFGHIKLMNPQRSTVWY"[record.size() % 20]) + "\n";
+        out << record;
+        written += record.size();
+        long_record = true;
+      }
       std::string record = ">sp|P" + std::to_string(i) + "|TEST" + (i % 3 ? " some description\twith tab" : "") + (i % 2 ? "\r\n" : "\n");
       if (i % 97 == 0) record += ">not a header" + std::string(i % 2 ? "\r\n" : "\n");
       for (Size line = 0; line < 1 + i % 5; ++line)

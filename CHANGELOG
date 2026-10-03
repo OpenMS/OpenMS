@@ -141,7 +141,8 @@ TOPP tools:
         with other tolerances.
       - Faster: on files of the #10364 suite (8,000 MS2 spectra, human-yeast(-E. coli) target/decoy
         databases) a search takes 3.2-3.7x less time at 4 threads and 2.6-2.9x less on one. Apart from
-        the peptide order below, the results are the same as before, at any thread count. The
+        the effects of the peptide order below (on lower-ranked hits and hyperscore_zscore), the
+        results are the same as before, at any thread count. The
         fragment index is built without sorting all fragments (counted and written to their final m/z
         bin, buckets finished by a radix sort), the peptides are sorted in parallel, and
         peptide:deduplicate no longer builds a peptide sequence per index entry. One walk over the
