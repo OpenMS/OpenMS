@@ -469,9 +469,9 @@ START_SECTION([EXTRA] canonical Light PQP batches can be appended without materi
   transition_a.setDetectingTransition(true);
   batch_a.transitions.push_back(transition_a);
 
-  OpenSwathLibraryIDNormalizer::SourceIDMapping source_a;
-  source_a.precursor_canonical_to_source = {{"0", "PEPTIDEK/2"}};
-  source_a.transition_canonical_to_source = {{"0", "PEPTIDEK/2_y6^1"}};
+  std::optional<OpenSwathLibraryIDNormalizer::SourceIDMapping> source_a{std::in_place};
+  source_a->precursor_canonical_to_source = {{"0", "PEPTIDEK/2"}};
+  source_a->transition_canonical_to_source = {{"0", "PEPTIDEK/2_y6^1"}};
 
   OpenSwath::LightTargetedExperiment batch_b;
   OpenSwath::LightProtein protein_b;
@@ -500,9 +500,9 @@ START_SECTION([EXTRA] canonical Light PQP batches can be appended without materi
   transition_b.setDetectingTransition(true);
   batch_b.transitions.push_back(transition_b);
 
-  OpenSwathLibraryIDNormalizer::SourceIDMapping source_b;
-  source_b.precursor_canonical_to_source = {{"7", "PEPTIDEK/3"}};
-  source_b.transition_canonical_to_source = {{"100", "PEPTIDEK/3_y5^1"}};
+  std::optional<OpenSwathLibraryIDNormalizer::SourceIDMapping> source_b{std::in_place};
+  source_b->precursor_canonical_to_source = {{"7", "PEPTIDEK/3"}};
+  source_b->transition_canonical_to_source = {{"100", "PEPTIDEK/3_y5^1"}};
 
   OpenSwath::LightTargetedExperiment batch_c;
 
@@ -529,17 +529,17 @@ START_SECTION([EXTRA] canonical Light PQP batches can be appended without materi
   transition_c.setDecoy(true);
   batch_c.transitions.push_back(transition_c);
 
-  OpenSwathLibraryIDNormalizer::SourceIDMapping source_c;
-  source_c.precursor_canonical_to_source = {{"8", "TESTPEPK/2"}};
-  source_c.transition_canonical_to_source = {{"101", "TESTPEPK/2_y5^1"}};
+  std::optional<OpenSwathLibraryIDNormalizer::SourceIDMapping> source_c{std::in_place};
+  source_c->precursor_canonical_to_source = {{"8", "TESTPEPK/2"}};
+  source_c->transition_canonical_to_source = {{"101", "TESTPEPK/2_y5^1"}};
 
   std::string pqp_file;
   NEW_TMP_FILE(pqp_file);
   File::remove(pqp_file);
 
-  writer.appendLightTargetedExperimentToPQP(pqp_file.c_str(), batch_a, &source_a);
-  writer.appendLightTargetedExperimentToPQP(pqp_file.c_str(), batch_b, &source_b);
-  writer.appendLightTargetedExperimentToPQP(pqp_file.c_str(), batch_c, &source_c);
+  writer.appendLightTargetedExperimentToPQP(pqp_file, batch_a, source_a);
+  writer.appendLightTargetedExperimentToPQP(pqp_file, batch_b, source_b);
+  writer.appendLightTargetedExperimentToPQP(pqp_file, batch_c, source_c);
 
   {
     SqliteConnector conn(pqp_file);
@@ -585,7 +585,7 @@ START_SECTION([EXTRA] canonical Light PQP batches can be appended without materi
 
   // Duplicate canonical IDs are a caller error and must not be silently remapped.
   TEST_EXCEPTION(Exception::SqlOperationFailed,
-                 writer.appendLightTargetedExperimentToPQP(pqp_file.c_str(), batch_b, &source_b))
+                 writer.appendLightTargetedExperimentToPQP(pqp_file, batch_b, source_b))
 
   // A failed append is transactional: no partial helper rows/mappings survive.
   {

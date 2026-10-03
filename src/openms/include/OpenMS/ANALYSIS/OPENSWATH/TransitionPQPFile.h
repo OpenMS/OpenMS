@@ -11,6 +11,9 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
+#include <optional>
+#include <string>
+
 namespace OpenMS
 {
   class SqliteConnector;
@@ -311,9 +314,9 @@ public:
      * @param[in] source_ids Optional source-ID provenance for this batch.
      */
     void appendLightTargetedExperimentToPQP(
-      const char* filename,
+      const std::string& filename,
       const OpenSwath::LightTargetedExperiment& targeted_exp,
-      const OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids = nullptr);
+      const std::optional<OpenSwathLibraryIDNormalizer::SourceIDMapping>& source_ids = std::nullopt);
 
     /** @brief Read in a PQP file and construct a targeted experiment (TraML structure)
      *
