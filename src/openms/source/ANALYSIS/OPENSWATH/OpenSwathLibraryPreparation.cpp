@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <map>
+#include <optional>
 #include <set>
 #include <string_view>
 #include <unordered_set>
@@ -344,6 +345,8 @@ namespace OpenMS
     {
       if (separate)
       {
+        // Only the decoys are written: release the targets now rather than when the caller returns.
+        targets = OpenSwath::LightTargetedExperiment();
         return std::move(decoys);
       }
       OpenSwath::LightTargetedExperiment merged = std::move(targets);
@@ -754,7 +757,7 @@ namespace OpenMS
     predictor_config.intra_op_threads = parameters.inference_threads;
     predictor_config.batch_size = parameters.prediction_batch_size;
     predictor_config.predict_ccs = parameters.predict_ccs;
-    PeptDeepLibraryPredictor predictor(predictor_config);
+    std::optional<PeptDeepLibraryPredictor> predictor(std::in_place, predictor_config);
 
     ProteaseDigestion digestion;
     digestion.setEnzyme(parameters.enzyme);
@@ -859,7 +862,7 @@ namespace OpenMS
     const auto flush_batch = [&]()
     {
       if (batch.empty()) return;
-      OpenSwath::LightTargetedExperiment predicted_batch = predictor.predict(batch);
+      OpenSwath::LightTargetedExperiment predicted_batch = predictor->predict(batch);
       batch.clear();
 
       // Bound the materialized transition set before retaining the batch. These
@@ -935,6 +938,13 @@ namespace OpenMS
     }
     flush_batch();
     progress.endProgress();
+
+    // The global stages below need neither the FASTA digest nor the ONNX sessions. Release
+    // them before the library is duplicated into decoys and normalized.
+    peptide_proteins.clear();
+    protein_ids = std::unordered_set<std::string>();
+    batch = std::vector<PeptDeepLibraryPrecursor>();
+    predictor.reset();
 
     if (precursor_count == 0)
     {
