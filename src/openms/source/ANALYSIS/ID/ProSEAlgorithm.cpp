@@ -49,7 +49,6 @@
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
-#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
@@ -849,6 +848,72 @@ namespace OpenMS
                                            [](const MSSpectrum& spectrum) { return isElectronActivated_(spectrum); }));
   }
 
+  namespace
+  {
+    // Keeps the peaks WindowMower::filterPeakSpectrumForTopNInJumpingWindow() keeps: the peak_count most intense peaks of
+    // each m/z window of window_size that starts at a peak (of the last window a share of peak_count by its width), and
+    // every peak equal to a kept one. It selects them through indices instead of copies of the peaks, and finds the
+    // equal peaks among their neighbours instead of searching all kept peaks for each peak. The same std::partial_sort
+    // calls on the same intensities select the same peaks.
+    void filterTopNInJumpingWindows(MSSpectrum& spectrum, double window_size, UInt peak_count)
+    {
+      if (spectrum.empty()) { return; }
+      spectrum.sortByPosition();
+      const Size n = spectrum.size();
+      std::vector<char> kept(n, 0);
+      std::vector<Size> window;
+      const auto more_intense = [&spectrum](Size a, Size b) { return spectrum[b].getIntensity() < spectrum[a].getIntensity(); };
+      const auto keep_most_intense = [&](Size begin, Size end, Size count)
+      {
+        if (end - begin > count)
+        {
+          window.resize(end - begin);
+          std::iota(window.begin(), window.end(), begin);
+          std::partial_sort(window.begin(), window.begin() + count, window.end(), more_intense);
+          for (Size k = 0; k < count; ++k) { kept[window[k]] = 1; }
+        }
+        else
+        {
+          std::fill(kept.begin() + begin, kept.begin() + end, 1);
+        }
+      };
+      double window_start = spectrum[0].getMZ();
+      Size begin = 0;
+      for (Size i = 0; i != n; ++i)
+      {
+        if (spectrum[i].getMZ() - window_start < window_size) { continue; }
+        // a gap may leave windows empty: the next window starts at the next peak
+        window_start = spectrum[i].getMZ();
+        keep_most_intense(begin, i, peak_count);
+        begin = i;
+      }
+      const double last_window_fraction = (spectrum[n - 1].getMZ() - window_start) / window_size;
+      keep_most_intense(begin, n, static_cast<Size>(std::round(last_window_fraction * peak_count)));
+
+      // peaks of equal m/z are neighbours (the spectrum is sorted by m/z)
+      std::vector<Size> selected;
+      selected.reserve(n);
+      for (Size i = 0; i < n;)
+      {
+        Size j = i + 1;
+        while (j < n && spectrum[j].getMZ() == spectrum[i].getMZ()) { ++j; }
+        for (Size a = i; a < j; ++a)
+        {
+          for (Size b = i; b < j; ++b)
+          {
+            if (kept[b] && spectrum[b] == spectrum[a])
+            {
+              selected.push_back(a);
+              break;
+            }
+          }
+        }
+        i = j;
+      }
+      spectrum.select(selected);
+    }
+  }
+
   bool ProSEAlgorithm::filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window, Size dense_peaks_per_window,
                                          double dense_intensity_loss)
   {
@@ -939,10 +1004,9 @@ namespace OpenMS
     // Normalizer::filterPeakMap are literally "for (auto& s : exp) filterSpectrum(s);" and
     // neither iterates chromatograms. They are therefore applied at the top of the parallel
     // loop below instead, which is per-spectrum equivalent and removes two full sweeps over
-    // the peak data. Both objects are configured once here; like window_mower_filter and
-    // nlargest_filter below, each OpenMP thread works on its own copy (firstprivate):
-    // ThresholdMower stores its 'threshold' Param in a member on every call and WindowMower
-    // its window size and peak count, and concurrent writes are a data race even when every
+    // the peak data. Both objects are configured once here; like nlargest_filter below, each
+    // OpenMP thread works on its own copy (firstprivate): ThresholdMower stores its 'threshold'
+    // Param in a member on every call, and concurrent writes are a data race even when every
     // thread writes the same value. One copy per thread costs a few Param copies per search.
     // Peaks without intensity (zero or negative, e.g. empty centroids) would still count as
     // matched ions, so they are removed. Nothing else is (every positive float intensity,
@@ -971,13 +1035,8 @@ namespace OpenMS
       query_spectra->resize(exp.size());
     }
 
-    // filter settings
-    WindowMower window_mower_filter;
-    Param filter_param = window_mower_filter.getParameters();
-    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
-    filter_param.setValue("peakcount", peaks_window_top, "The number of peaks that should be kept.");
-    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
-    window_mower_filter.setParameters(filter_param);
+    // filter settings: the most intense peaks_window_top peaks per 100 Th window (jumping windows as WindowMower's,
+    // unless full_window_quota)
     const bool full_window_quota
       = window_type == "jump_full"
         || (window_type == "auto" && Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm));
@@ -1020,7 +1079,7 @@ namespace OpenMS
 #pragma omp parallel for default(none) shared(exp, evidence_spectra, query_spectra, do_deisotope, fragment_mass_tolerance, \
                                                 fragment_mass_tolerance_unit_ppm, full_window_quota, peaks_window_top, dense_window_top, \
                                                 dense_intensity_loss, deisotoping, ion_evidence, ion_evidence_scored_peaks) \
-                                         firstprivate(threshold_mower_filter, normalizer, window_mower_filter, nlargest_filter) \
+                                         firstprivate(threshold_mower_filter, normalizer, nlargest_filter) \
                                          reduction(+ : dense_spectra)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
@@ -1081,7 +1140,7 @@ namespace OpenMS
       {
         if (filterLocalPeaks_(exp[exp_index], static_cast<Size>(peaks_window_top), dense_window_top, dense_intensity_loss)) { ++dense_spectra; }
       }
-      else { window_mower_filter.filterPeakSpectrum(exp[exp_index]); }
+      else { filterTopNInJumpingWindows(exp[exp_index], 100.0, static_cast<UInt>(peaks_window_top)); }
       nlargest_filter.filterPeakSpectrum(exp[exp_index]);
 
       // sort (nlargest changes order)
@@ -2502,7 +2561,8 @@ namespace OpenMS
 
   ProSEAlgorithm::SearchContext
   ProSEAlgorithm::prepareContext_(
-      std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions) const
+      std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions,
+      const std::function<const PeakMap*(Size)>& searched_spectra) const
   {
     SearchContext ctx;
 
@@ -2518,7 +2578,7 @@ namespace OpenMS
     startProgress(0, 1, "Building fragment index...");
     Param this_params = fragmentIndexParameters_(electron_ions);
     ctx.fragment_index.setParameters(this_params);
-    ctx.fragment_index.build(ctx.db);
+    ctx.fragment_index.build(ctx.db, searched_spectra);
     ctx.electron_ions = electron_ions;
     endProgress();
 
@@ -2753,7 +2813,10 @@ namespace OpenMS
     const bool electron_ions = countElectronActivated_(spectra) > 0;
     if (database_chunk_size_ == 0)
     {
-      SearchContext ctx = prepareContext(fasta_db, electron_ions);
+      // single use: index only the peptides these spectra can reach
+      std::function<const PeakMap*(Size)> searched_spectra;
+      if (restrictIndexToSpectra_()) { searched_spectra = [&spectra](Size) { return &spectra; }; }
+      SearchContext ctx = prepareContext_(std::vector<FASTAFile::FASTAEntry>(fasta_db), electron_ions, searched_spectra);
       ctx.release_fragment_index_after_scoring = true;
       return search(spectra, ctx, protein_ids, peptide_ids);
     }
@@ -4152,6 +4215,15 @@ namespace OpenMS
       return threads;
     }
 
+    // The index build waits for the spectra that are read meanwhile, to index only the peptides they can reach, if
+    // generating the fragments it skips takes longer than the rest of the read: with few threads (measured on
+    // 8,000-spectrum files: faster for all instrument types up to 4 threads, slower for some from 6 threads on) and a
+    // read that is short against the build (the read is serial, the build parallel): at most
+    // MAX_SPECTRA_BYTES_PER_PEPTIDE / threads bytes of spectra file per peptide (measured with 9 M peptides: faster
+    // with 11, 27 and 41 bytes per peptide at 2 threads and with 11 at 4 threads, even with 27, slower with 41).
+    constexpr Size MAX_THREADS_WAITING_FOR_SPECTRA = 4;
+    constexpr UInt64 MAX_SPECTRA_BYTES_PER_PEPTIDE = 100;
+
     // FASTAFile::load() with the OpenMP threads: the file is cut into pieces at starts of entries,
     // the threads read the pieces with FASTAFile::readNext(), and the pieces are joined in file
     // order. Same entries as load(): readNext() reads an entry from its '>' up to a line break
@@ -4582,7 +4654,8 @@ namespace OpenMS
     DecoyStrategy_ strategy; // decoys of the searched database, for protein FDR below
     bool strategy_resolved = false;
     ExitCodes ec;
-    if (database_chunk_size_ == 0 && FileHandler::getTypeByFileName(in_spectra) == FileTypes::MZML && startOpenMPThreads() > 1)
+    const Size threads = startOpenMPThreads();
+    if (database_chunk_size_ == 0 && FileHandler::getTypeByFileName(in_spectra) == FileTypes::MZML && threads > 1)
     {
       // Unchunked, multi-threaded search of an mzML file: a helper thread reads the spectra while
       // this thread reads the FASTA file and builds the fragment index; then the search continues
@@ -4610,23 +4683,50 @@ namespace OpenMS
       const bool spectra_read = spectra_ready.wait_for(std::chrono::seconds(0)) == std::future_status::ready
                                 || (ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra));
       if (spectra_read) { spectra = spectra_ready.get(); }
+      bool spectra_waited = spectra_read;
+      // The single-use index holds only the peptides the spectra can reach if they are read by the time the
+      // peptides are generated, or if waiting for them pays off (see MAX_THREADS_WAITING_FOR_SPECTRA).
+      std::function<const PeakMap*(Size)> searched_spectra;
+      if (restrictIndexToSpectra_())
+      {
+        const UInt64 spectra_bytes = File::fileSize(in_spectra); // UInt64(-1) if unknown: no waiting
+        searched_spectra = [&, spectra_bytes](Size peptides) -> const PeakMap*
+        {
+          if (!spectra_waited)
+          {
+            const bool wait = threads <= MAX_THREADS_WAITING_FOR_SPECTRA
+                              && spectra_bytes <= MAX_SPECTRA_BYTES_PER_PEPTIDE * peptides / threads;
+            if (!wait && spectra_ready.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+            {
+              return nullptr;
+            }
+            spectra = spectra_ready.get();
+            spectra_waited = true;
+          }
+          return &spectra;
+        };
+      }
       // The context takes the entries over instead of copying them. fasta_db is not read
       // afterwards: protein FDR below takes the decoy marker from the context, which holds what
       // resolveDecoyStrategy_(fasta_db) returned.
-      SearchContext ctx = prepareContext_(std::move(fasta_db), spectra_read && countElectronActivated_(spectra) > 0);
+      SearchContext ctx = prepareContext_(std::move(fasta_db), spectra_read && countElectronActivated_(spectra) > 0, searched_spectra);
       strategy.have_decoys = ctx.have_decoys;
       strategy.decoy_string = ctx.decoy_string;
       strategy.is_prefix = ctx.decoy_is_prefix;
       strategy_resolved = true;
       if (!spectra_read)
       {
-        spectra = spectra_ready.get();
+        if (!spectra_waited)
+        {
+          spectra = spectra_ready.get();
+          spectra_waited = true;
+        }
         if (countElectronActivated_(spectra) > 0)
         {
           startProgress(0, 1, "Building fragment index with c and z+1 ions...");
           ctx.fragment_index.clear();
           ctx.fragment_index.setParameters(fragmentIndexParameters_(true));
-          ctx.fragment_index.build(ctx.db);
+          ctx.fragment_index.build(ctx.db, searched_spectra);
           ctx.electron_ions = true;
           endProgress();
         }
@@ -4774,7 +4874,8 @@ namespace OpenMS
     // features, target_decoy, PeptideIndexer:*, spectra_data, ...); if the reader of file i + 1
     // registers names in between, these keep their order relative to each other. ProSE writes none
     // of the reader's names, unless a file carries a user parameter that is named like one of them.
-    const bool read_in_background = startOpenMPThreads() > 1;
+    const Size threads_started = startOpenMPThreads();
+    const bool read_in_background = threads_started > 1;
     const auto is_mzml = [&in_spectra_files](Size i) { return FileHandler::getTypeByFileName(in_spectra_files[i]) == FileTypes::MZML; };
     std::future<PeakMap> next_spectra; // the spectra of the next file to search, if read in the background
     const auto read_next = [&](Size i)
@@ -5194,7 +5295,9 @@ namespace OpenMS
       // spectra, by rebuilding it. Only such spectra are matched against these ions (see
       // scoreSpectraAgainstIndex_), so the results of the other files depend neither on whether
       // the index holds them nor on the input order, and no file has to be read in advance.
-      auto prepare_context = [&](bool electron_ions)
+      // A single file is the only search of the context: its index holds only the peptides that the
+      // spectra (read before) can reach.
+      auto prepare_context = [&](bool electron_ions, const std::function<const PeakMap*(Size)>& searched_spectra)
       {
         if (ctx_built && (ctx.electron_ions || !electron_ions)) { return; }
         StopWatch sw_idx; sw_idx.start();
@@ -5224,7 +5327,7 @@ namespace OpenMS
           ctx.have_decoys = strategy.have_decoys;
           startProgress(0, 1, "Building fragment index...");
           ctx.fragment_index.setParameters(fragmentIndexParameters_(electron_ions));
-          ctx.fragment_index.build(ctx.db);
+          ctx.fragment_index.build(ctx.db, searched_spectra);
           ctx.electron_ions = electron_ions;
           endProgress();
         }
@@ -5257,10 +5360,36 @@ namespace OpenMS
       // While the first file is read: build the index, as search(file) does without c and z+1 ions
       // unless the spectra are read already or the file names an electron-based activation early on.
       // prepare_context() below adds them if the spectra need them after all.
+      // A single file is the only search of the context (r3 merge of WP7 and WP10): as in search(file), the index
+      // holds only the peptides its spectra can reach if they are read by the time the peptides are generated, or
+      // if waiting for them pays off (see MAX_THREADS_WAITING_FOR_SPECTRA); the spectra taken for that are searched.
+      const bool restrict_index = in_spectra_files.size() == 1 && restrictIndexToSpectra_();
+      PeakMap first_spectra;
+      bool first_spectra_taken = false;
       if (next_spectra.valid() && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready
           && !(ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra_files[0])))
       {
-        prepare_context(false);
+        std::function<const PeakMap*(Size)> searched_spectra;
+        if (restrict_index)
+        {
+          const UInt64 spectra_bytes = File::fileSize(in_spectra_files[0]); // UInt64(-1) if unknown: no waiting
+          searched_spectra = [&, spectra_bytes](Size peptides) -> const PeakMap*
+          {
+            if (!first_spectra_taken)
+            {
+              const bool wait = threads_started <= MAX_THREADS_WAITING_FOR_SPECTRA
+                                && spectra_bytes <= MAX_SPECTRA_BYTES_PER_PEPTIDE * peptides / threads_started;
+              if (!wait && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+              {
+                return nullptr;
+              }
+              first_spectra = next_spectra.get();
+              first_spectra_taken = true;
+            }
+            return &first_spectra;
+          };
+        }
+        prepare_context(false, searched_spectra);
       }
 
       for (Size i = 0; i < in_spectra_files.size(); ++i)
@@ -5271,9 +5400,13 @@ namespace OpenMS
         OPENMS_LOG_INFO << "[ProSE] [" << (i + 1) << "/" << in_spectra_files.size()
                         << "] Searching " << in_spectra << std::endl;
 
-        PeakMap spectra = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false));
+        PeakMap spectra = first_spectra_taken ? std::move(first_spectra)
+                          : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false));
+        first_spectra_taken = false;
         read_next(i + 1);
-        prepare_context(countElectronActivated_(spectra) > 0);
+        std::function<const PeakMap*(Size)> searched_spectra;
+        if (restrict_index) { searched_spectra = [&spectra](Size) { return &spectra; }; }
+        prepare_context(countElectronActivated_(spectra) > 0, searched_spectra);
 
         SearchResult result;
         result.is_open_search = isOpenSearchMode_();

@@ -51,6 +51,8 @@ namespace OpenMS
      */
     struct Peptide {
 
+      /// Leaves the members uninitialised: resizing a vector of peptides then writes nothing (see generatePeptides())
+      Peptide() {}
       // We need a constructor in order to emplace back
       Peptide(UInt32 protein_idx, uint32_t mod_bitmask, std::pair<uint16_t , uint16_t> sequence, float precursor_mz):
           protein_idx(protein_idx),
@@ -59,9 +61,22 @@ namespace OpenMS
         precursor_mz_(precursor_mz)
         {}
 
+        /// {first, second} like std::pair<uint16_t, uint16_t>, and convertible from and to it, but trivially copyable
+        /// (std::pair's assignment is not), as is Peptide then: sorting and copying peptides moves plain bytes. Its
+        /// default constructor writes nothing either (std::pair's zeroes the members).
+        struct Span
+        {
+          Span() = default;
+          Span(std::pair<uint16_t, uint16_t> span) : first(span.first), second(span.second) {}
+          operator std::pair<uint16_t, uint16_t>() const { return {first, second}; }
+          bool operator==(const Span&) const = default;
+          uint16_t first;
+          uint16_t second;
+        };
+
         UInt32 protein_idx;            ///< 0-based index into FASTA entries provided to build(); identifies the source protein
         uint32_t mod_bitmask_;         ///< Bitmask of active variable mod slots (0 = unmodified/fixed-only; up to 32 slots)
-        std::pair<uint16_t , uint16_t> sequence_; ///< {start, length} within the source protein sequence (start is 0-based; length in residues)
+        Span sequence_;                ///< {start, length} within the source protein sequence (start is 0-based; length in residues)
         float precursor_mz_;           ///< Mono-isotopic m/z at charge 1 (M+H)+ of this peptide; used for sorting/filtering
     };
 
@@ -268,6 +283,23 @@ namespace OpenMS
      * @param[in] fasta_entries The FASTA entries used to build the index.
      */
     void build(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);
+
+    /** @brief Builds the index like build(fasta_entries), but only with the peptides that the spectra to be searched can reach.
+     *
+     * Once the peptides are generated and sorted, @p searched_spectra is called with their number (to judge whether waiting
+     * for spectra that are still being read pays off); it may block. If it returns spectra, every peptide whose precursor mass
+     * lies in none of their precursor windows (each charge and isotope error querySpectrum() tries, widened by a margin) is
+     * removed before the fragments are generated (after peptide:deduplicate has chosen the kept entry of every peptidoform
+     * among all of its entries). The others keep their order, so querySpectrum() returns the same candidates for these
+     * spectra as with the full index, from an index that is built faster and takes less memory. Search the index only with
+     * these spectra and the current parameters.
+     * The full index is built if @p searched_spectra is empty or returns nullptr, and in SNES and open search mode.
+     *
+     * @param[in] fasta_entries The FASTA entries used to build the index.
+     * @param[in] searched_spectra Called with the number of peptides; returns the spectra the index will be searched with, or nullptr.
+     */
+    void build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+               const std::function<const MSExperiment*(Size)>& searched_spectra);
 
     /** @brief Delete fragment index. Sets is_build=false*/
     void clear();
@@ -994,6 +1026,10 @@ private:
      */
     std::pair<float, float> computeMassWindow_(float precursor_mass) const;
 
+    /// Removes the peptides (sorted by precursor_mz_) whose precursor mass lies in no precursor window of the MS2 spectra
+    /// of @p spectra, keeping the order of the others (see build(fasta_entries, searched_spectra)). Removed occurrences
+    /// recorded before (removed_occurrences_) follow their kept entries to their new indices or are dropped with them.
+    void keepPeptidesInPrecursorWindows_(const MSExperiment& spectra);
 
   };
 
