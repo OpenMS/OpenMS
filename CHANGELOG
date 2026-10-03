@@ -53,6 +53,10 @@ OpenMS Library:
     benchmark searches of #10364 at 4 threads, 26% less for one search at 16 threads.
     XMLHandler::writeUserParamValue_() writes a single meta value as UserParam (used by
     writeUserParam_).
+  - FIX: RNaseDigestion::digest returns no fragments for a sequence shorter than min_length, or
+    when min_length exceeds max_length. Unsigned arithmetic wrapped around there, so unspecific
+    cleavage asked reserve() for a huge capacity and could index far past the end of the sequence
+    (#10179, fixes #9231).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -209,6 +213,17 @@ TOPP tools:
         confident PSMs in either half get zeros and a warning; target-only searches (decoys=ignore) get
         nothing. The search parameters record the annotate:ion_prior_* settings and the training set
         (ion_prior:*). The model is the new FragmentIonLikelihoodModel class.
+      - FIX: With multiple-charge fragment scoring and an unknown precursor charge (0), the peak
+        annotations covered only singly charged fragments. They now use the charge each hit reports
+        and was scored (#10398).
+    OpenDIA:
+      - New workflow:library_mode=predicted (also chosen by 'auto' when -tr is a FASTA database):
+        digests the FASTA (PeptideQueryParameters:LibraryPrediction:*: enzyme, missed cleavages,
+        peptide length, variable modifications, precursor charges), predicts RT, MS2 and optionally
+        CCS (as 1/K0) with the native PeptDeep ONNX models (requires WITH_ONNX=ON), and continues
+        through the same assay preparation, decoy generation, extraction, rescoring, inference and
+        export as an empirical library. LibraryPrediction:out keeps the generated target/decoy PQP
+        for reuse; FASTA entries carrying the decoy tag are skipped (#10383).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
