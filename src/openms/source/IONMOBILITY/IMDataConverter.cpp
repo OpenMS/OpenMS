@@ -14,7 +14,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 
@@ -239,25 +238,6 @@ namespace OpenMS
     return {std::move(results), std::move(bins)};
   }
 
-  void annotateAsIM(OpenMS::DataArrays::FloatDataArray& fda, const DriftTimeUnit unit)
-  {
-    const auto& cv = ControlledVocabulary::getPSIMSCV();
-    const ControlledVocabulary::CVTerm* term;
-    switch (unit)
-    {
-      case DriftTimeUnit::MILLISECOND:
-        term = &cv.getTerm("MS:1002816");
-        break;
-      case DriftTimeUnit::VSSC:
-         term = &cv.getTerm("MS:1003008");
-        break;
-      default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit cannot be converted into CV term.", driftTimeUnitToString(unit));
-    }
-    fda.setName(term->name);
-  }
-
-  
   /// private: Process a stack of drift time spectra
   void processDriftTimeStack(std::vector<const MSSpectrum*>& stack, MSExperiment& result)
   {

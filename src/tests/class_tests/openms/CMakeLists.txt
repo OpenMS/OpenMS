@@ -88,6 +88,19 @@ set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 # explicitly (e.g. ctest -LE slow) and given a generous timeout for when it runs.
 set_tests_properties(PipEchoAlgorithm_realistic_test PROPERTIES LABELS "slow" TIMEOUT 1800)
 
+# IMDataArrayUtils recognizes the ion-mobility array of every MSSpectrum from a compiled-in table of
+# PSI-MS terms, so spectrum code does not need the CV files at run time (#10110). A test process
+# cannot hide the CV files (File::getOpenMSDataPath() tries the compiled-in paths first), so these
+# tests check that the sources do not use the vocabulary class at all.
+add_test(NAME IMDataArrayUtils_no_CV_header COMMAND ${CMAKE_COMMAND}
+  -DINPUT_FILE=${OPENMS_HOST_DIRECTORY}/src/openms/include/OpenMS/IONMOBILITY/IMDataArrayUtils.h
+  -DFORBIDDEN=ControlledVocabulary
+  -P ${OPENMS_HOST_DIRECTORY}/src/tests/topp/check_file_contains.cmake)
+add_test(NAME IMDataArrayUtils_no_CV_source COMMAND ${CMAKE_COMMAND}
+  -DINPUT_FILE=${OPENMS_HOST_DIRECTORY}/src/openms/source/IONMOBILITY/IMDataArrayUtils.cpp
+  -DFORBIDDEN=ControlledVocabulary
+  -P ${OPENMS_HOST_DIRECTORY}/src/tests/topp/check_file_contains.cmake)
+
 # Percolator_subprocess_parity_test runs side-by-side comparisons against the
 # external `percolator` binary. Tests that need it are gated via the
 # PERCOLATOR_BINARY environment variable and skip silently when unset. Search

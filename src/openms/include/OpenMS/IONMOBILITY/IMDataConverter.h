@@ -147,22 +147,14 @@ namespace OpenMS
       static void setIMUnit(DataArrays::FloatDataArray& fda, const DriftTimeUnit unit);
 
       /**
-        @brief Checks if the @p fda is an ion-mobility array and if so, returns the unit (either MILLISECOND or VSSC, or NONE)
-        
-        The name of the @p fda should correspond to a value set by setIMUnit(), but all CV names of child terms of 
-        'MS:1002893 ! ion mobility array' are accepted.
-        
-        <table>
-        <caption>This is the current mapping (all of which return true)</caption>
-        <tr><th>CV term                                             <th>Unit
-        <tr><td>MS:1002816 ! mean ion mobility array                <td>DriftTimeUnit::MILLISECOND
-        <tr><td>MS:1003008 ! raw inverse reduced ion mobility array <td>DriftTimeUnit::VSSC
-        <tr><td>MS:1002893 ! ion mobility array **                  <td>DriftTimeUnit::NONE
-        </table>
-        @p **) or a child term, which is not one of the terms used above.
+        @brief Checks if the @p fda is an ion-mobility array and if so, returns the unit
+
+        Forwards to IMDataArrayUtils::getIMUnit(). The names set by setIMUnit() are recognized, as are
+        the names of all child terms of 'MS:1002893 ! ion mobility array' (see IMDataArrayUtils::getArrayTerms(),
+        which lists the unit of each term) and the vendor names described at IMDataArrayUtils::getIMUnit().
 
         @param[in] fda Input array, which is tested for its name
-        @param[out] unit If @p fda is an IM array, the @p unit will contain the IM unit (undefined otherwise)
+        @param[out] unit If @p fda is an IM array, the @p unit will contain the IM unit (unchanged otherwise)
         @return True if @p fda is an IM array, false otherwise
       */
       static bool getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit);

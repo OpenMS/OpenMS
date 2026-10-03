@@ -38,6 +38,11 @@ OpenMS Library:
     when min_length exceeds max_length. Unsigned arithmetic wrapped around there, so unspecific
     cleavage asked reserve() for a huge capacity and could index far past the end of the sequence
     (#10179, fixes #9231).
+  - IMDataArrayUtils (and IMDataConverter::getIMUnit/setIMUnit) recognize the PSI-MS ion-mobility
+    array names from a compiled-in table instead of loading the PSI-MS CV files, so MSSpectrum no
+    longer needs the CV files at run time to find its ion-mobility array. Names and units are
+    unchanged; IMDataArrayUtils::getArrayTerms() lists them. A psi-ms.obo replaced at run time no
+    longer adds array names; the table is updated together with the bundled ontology (#10110).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
