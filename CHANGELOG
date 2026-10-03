@@ -39,6 +39,10 @@ OpenMS Library:
     same results. New digestUnmodifiedWithInitialResidueLoss(). SpectrumAlignment's banded
     alignment (absolute tolerances) uses flat arrays instead of nested maps, and FASTAFile::load
     parses large files on several threads; both give the same results as before.
+  - FIX: RNaseDigestion::digest returns no fragments for a sequence shorter than min_length, or
+    when min_length exceeds max_length. Unsigned arithmetic wrapped around there, so unspecific
+    cleavage asked reserve() for a huge capacity and could index far past the end of the sequence
+    (#10179, fixes #9231).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -151,6 +155,17 @@ TOPP tools:
         trade places in a hit list, and another isomer can make the candidate cut: on the files
         above, 0-4 spectra per file list such hits in another order or with another isomer, and
         hyperscore_zscore changes for a few spectra; no top hit changed.
+      - FIX: With multiple-charge fragment scoring and an unknown precursor charge (0), the peak
+        annotations covered only singly charged fragments. They now use the charge each hit reports
+        and was scored (#10398).
+    OpenDIA:
+      - New workflow:library_mode=predicted (also chosen by 'auto' when -tr is a FASTA database):
+        digests the FASTA (PeptideQueryParameters:LibraryPrediction:*: enzyme, missed cleavages,
+        peptide length, variable modifications, precursor charges), predicts RT, MS2 and optionally
+        CCS (as 1/K0) with the native PeptDeep ONNX models (requires WITH_ONNX=ON), and continues
+        through the same assay preparation, decoy generation, extraction, rescoring, inference and
+        export as an empirical library. LibraryPrediction:out keeps the generated target/decoy PQP
+        for reuse; FASTA entries carrying the decoy tag are skipped (#10383).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
