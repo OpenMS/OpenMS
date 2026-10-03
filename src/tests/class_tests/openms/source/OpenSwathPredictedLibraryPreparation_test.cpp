@@ -124,6 +124,53 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
   }
   TEST_FALSE(saw_double_decoy_protein)
 
+  // prediction_batch_size must affect only inference/persistence granularity,
+  // not the final library or its source-ID provenance. The primary run above uses
+  // batch size 1 and therefore exercises several incremental PQP appends.
+  auto single_batch_prediction = prediction;
+  single_batch_prediction.prediction_batch_size = 64;
+  std::string single_batch_pqp;
+  NEW_TMP_FILE(single_batch_pqp)
+  File::remove(single_batch_pqp);
+  const auto single_batch_stats = prep.preparePredictedLibraryToPQP(
+    fasta_file, single_batch_pqp, assay, decoy, single_batch_prediction);
+
+  TEST_EQUAL(single_batch_stats.protein_count, stats.protein_count)
+  TEST_EQUAL(single_batch_stats.compound_count, stats.compound_count)
+  TEST_EQUAL(single_batch_stats.transition_count, stats.transition_count)
+  TEST_EQUAL(single_batch_stats.decoy_transition_count, stats.decoy_transition_count)
+  TEST_EQUAL(single_batch_stats.identifying_transition_count, stats.identifying_transition_count)
+
+  const auto batched_precursor_sources =
+    reader.getPQPCurrentIDToTraMLIDMap(output_pqp.c_str(), "PRECURSOR");
+  const auto single_precursor_sources =
+    reader.getPQPCurrentIDToTraMLIDMap(single_batch_pqp.c_str(), "PRECURSOR");
+  TEST_EQUAL(batched_precursor_sources.size(), single_precursor_sources.size())
+  for (const auto& [id, source_id] : batched_precursor_sources)
+  {
+    const auto it = single_precursor_sources.find(id);
+    TEST_TRUE(it != single_precursor_sources.end())
+    if (it != single_precursor_sources.end())
+    {
+      TEST_EQUAL(it->second, source_id)
+    }
+  }
+
+  const auto batched_transition_sources =
+    reader.getPQPCurrentIDToTraMLIDMap(output_pqp.c_str(), "TRANSITION");
+  const auto single_transition_sources =
+    reader.getPQPCurrentIDToTraMLIDMap(single_batch_pqp.c_str(), "TRANSITION");
+  TEST_EQUAL(batched_transition_sources.size(), single_transition_sources.size())
+  for (const auto& [id, source_id] : batched_transition_sources)
+  {
+    const auto it = single_transition_sources.find(id);
+    TEST_TRUE(it != single_transition_sources.end())
+    if (it != single_transition_sources.end())
+    {
+      TEST_EQUAL(it->second, source_id)
+    }
+  }
+
   // Entries carrying the configured decoy tag are skipped even when they are
   // too rare for DecoyHelper to detect a database-wide decoy affix.
   std::string sparse_decoy_fasta;
