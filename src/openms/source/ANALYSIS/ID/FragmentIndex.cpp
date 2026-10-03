@@ -44,7 +44,6 @@
 #include <algorithm>
 #include <bit>
 #include <cmath>
-#include <condition_variable>
 #include <functional>
 #include <mutex>
 #include <set>
@@ -87,209 +86,22 @@ namespace OpenMS
       return table;
     }
 
-    // Copy of the introsort behind libstdc++'s std::sort: the same median-of-three pivots, the same
-    // Hoare partition and the same heap-sort fallback at the same depth, so it gives the permutation
-    // libstdc++'s std::sort gives -- also of elements that compare equal, whose order the callers
-    // depend on (see generatePeptides). The standard leaves that order open, and libc++ and the
-    // MSVC STL leave equal elements in other orders, so the copy is used with every standard
-    // library: the peptide order is the same on all platforms.
-    // libstdc++ ends with one insertion sort over the whole range; it never moves an element across
-    // a partition cut (everything left of a cut compares <= its pivot, everything right of it >=
-    // the pivot), so finishing each range of at most 16 elements by insertion sort right away gives
-    // the same result. That also makes the ranges on either side of a cut independent: they are
-    // sorted on several threads.
-    namespace introsort
-    {
-      constexpr std::ptrdiff_t threshold = 16; // libstdc++ _S_threshold
-
-      template <typename It, typename Compare>
-      void moveMedianToFirst(It result, It a, It b, It c, Compare& comp)
-      {
-        if (comp(*a, *b))
-        {
-          if (comp(*b, *c)) std::iter_swap(result, b);
-          else if (comp(*a, *c)) std::iter_swap(result, c);
-          else std::iter_swap(result, a);
-        }
-        else if (comp(*a, *c)) std::iter_swap(result, a);
-        else if (comp(*b, *c)) std::iter_swap(result, c);
-        else std::iter_swap(result, b);
-      }
-
-      /// Partitions [first, last) around the median of three; returns the cut.
-      template <typename It, typename Compare>
-      It partitionAtMedian(It first, It last, Compare& comp)
-      {
-        moveMedianToFirst(first, first + 1, first + (last - first) / 2, last - 1, comp);
-        const It pivot = first;
-        ++first;
-        while (true)
-        {
-          while (comp(*first, *pivot)) ++first;
-          --last;
-          while (comp(*pivot, *last)) --last;
-          if (!(first < last)) return first;
-          std::iter_swap(first, last);
-          ++first;
-        }
-      }
-
-      template <typename It, typename Compare>
-      void insertionSort(It first, It last, Compare& comp)
-      {
-        if (first == last) return;
-        for (It i = first + 1; i != last; ++i)
-        {
-          auto value = std::move(*i);
-          It hole = i;
-          while (hole != first && comp(value, *(hole - 1)))
-          {
-            *hole = std::move(*(hole - 1));
-            --hole;
-          }
-          *hole = std::move(value);
-        }
-      }
-
-      /// Moves @p value into the heap [first, first + length) from position @p hole down (libstdc++ __adjust_heap).
-      template <typename It, typename T, typename Compare>
-      void adjustHeap(It first, std::ptrdiff_t hole, std::ptrdiff_t length, T value, Compare& comp)
-      {
-        const std::ptrdiff_t top = hole;
-        std::ptrdiff_t child = hole;
-        while (child < (length - 1) / 2)
-        {
-          child = 2 * (child + 1);
-          if (comp(first[child], first[child - 1])) --child;
-          first[hole] = std::move(first[child]);
-          hole = child;
-        }
-        if ((length & 1) == 0 && child == (length - 2) / 2)
-        {
-          child = 2 * (child + 1);
-          first[hole] = std::move(first[child - 1]);
-          hole = child - 1;
-        }
-        std::ptrdiff_t parent = (hole - 1) / 2;
-        while (hole > top && comp(first[parent], value))
-        {
-          first[hole] = std::move(first[parent]);
-          hole = parent;
-          parent = (hole - 1) / 2;
-        }
-        first[hole] = std::move(value);
-      }
-
-      /// The heap sort libstdc++ falls back to: std::partial_sort(first, last, last).
-      template <typename It, typename Compare>
-      void heapSort(It first, It last, Compare& comp)
-      {
-        const std::ptrdiff_t length = last - first;
-        if (length < 2) return;
-        for (std::ptrdiff_t parent = (length - 2) / 2; ; --parent)
-        {
-          adjustHeap(first, parent, length, std::move(first[parent]), comp);
-          if (parent == 0) break;
-        }
-        for (std::ptrdiff_t end = length - 1; end > 0; --end)
-        {
-          auto value = std::move(first[end]);
-          first[end] = std::move(first[0]);
-          adjustHeap(first, 0, end, std::move(value), comp);
-        }
-      }
-
-      /// Sorts [first, last) as libstdc++'s __introsort_loop followed by its final insertion sort.
-      template <typename It, typename Compare>
-      void sortRange(It first, It last, long depth_limit, Compare& comp)
-      {
-        while (last - first > threshold)
-        {
-          if (depth_limit == 0)
-          {
-            heapSort(first, last, comp);
-            return;
-          }
-          --depth_limit;
-          const It cut = partitionAtMedian(first, last, comp);
-          sortRange(cut, last, depth_limit, comp);
-          last = cut;
-        }
-        insertionSort(first, last, comp);
-      }
-    }
-
-    /// std::sort(v.begin(), v.end(), comp) as libstdc++ does it (see above), on several threads.
-    template <typename T, typename Compare>
-    void sortLikeStdSort(std::vector<T>& v, Compare comp, int num_threads)
-    {
-      const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(v.size());
-      if (n < 2) return;
-      const long depth_limit = 2L * (static_cast<long>(std::bit_width(v.size())) - 1); // 2 * std::__lg(n)
-      constexpr std::ptrdiff_t min_split = std::ptrdiff_t(1) << 14; // smaller ranges stay on the current thread
-      if (num_threads < 2 || n <= 2 * min_split)
-      {
-        introsort::sortRange(v.begin(), v.end(), depth_limit, comp);
-        return;
-      }
-
-      // A thread takes a range from the stack, partitions it as the serial sort does, puts the right
-      // side back on the stack and goes on with the left side, until that is small; then it sorts it.
-      // Both sides of a cut continue with the decremented depth limit, as in the serial sort. (A
-      // shared stack instead of OpenMP tasks, which not every compiler supports.)
-      struct Range
-      {
-        std::ptrdiff_t first, last;
-        long depth_limit;
-      };
-      std::vector<Range> stack{{0, n, depth_limit}};
-      int splitting = 0; // threads that may still put ranges on the stack
-      std::mutex mutex;
-      std::condition_variable changed;
-      #pragma omp parallel num_threads(num_threads)
-      {
-        while (true)
-        {
-          Range range;
-          {
-            std::unique_lock<std::mutex> lock(mutex);
-            changed.wait(lock, [&] { return !stack.empty() || splitting == 0; });
-            if (stack.empty()) break; // nothing left to take, and nothing more will come
-            range = stack.back();
-            stack.pop_back();
-            ++splitting;
-          }
-          while (range.last - range.first > min_split && range.depth_limit > 0)
-          {
-            const std::ptrdiff_t cut = introsort::partitionAtMedian(v.begin() + range.first, v.begin() + range.last, comp) - v.begin();
-            {
-              std::lock_guard<std::mutex> lock(mutex);
-              stack.push_back({cut, range.last, range.depth_limit - 1});
-            }
-            changed.notify_one();
-            range = {range.first, cut, range.depth_limit - 1};
-          }
-          bool last_splitter;
-          {
-            std::lock_guard<std::mutex> lock(mutex);
-            last_splitter = (--splitting == 0);
-          }
-          if (last_splitter) changed.notify_all();
-          introsort::sortRange(v.begin() + range.first, v.begin() + range.last, range.depth_limit, comp);
-        }
-      }
-    }
-
-    /// Order of the peptides: by precursor m/z, then by protein. The same as comparing
-    /// std::tie(precursor_mz_, protein_idx) (since C++20, through operator<=>) for every value, NaN
-    /// and -0.0 included, but as fast with every standard library: with libc++ the tuple comparison
-    /// made the peptide sort a third slower.
-    struct PrecursorOrder
+    /// Order of the peptides: by precursor m/z, protein, start, length and variable modifications.
+    /// It compares every field of a Peptide, so peptides that compare equal are identical: any sort
+    /// gives the same result, on every platform and with any number of threads. (The fields are
+    /// compared one by one: with libc++, comparing std::tie(...) of floats through operator<=> made
+    /// the sort a third slower.)
+    struct PeptideOrder
     {
       template <typename Peptide>
       bool operator()(const Peptide& a, const Peptide& b) const
       {
-        return a.precursor_mz_ != b.precursor_mz_ ? a.precursor_mz_ < b.precursor_mz_ : a.protein_idx < b.protein_idx;
+        static_assert(sizeof(Peptide) == sizeof(a.precursor_mz_) + sizeof(a.protein_idx) + sizeof(a.sequence_) + sizeof(a.mod_bitmask_),
+                      "PeptideOrder must compare every field of Peptide");
+        if (a.precursor_mz_ != b.precursor_mz_) return a.precursor_mz_ < b.precursor_mz_;
+        if (a.protein_idx != b.protein_idx) return a.protein_idx < b.protein_idx;
+        if (a.sequence_ != b.sequence_) return a.sequence_ < b.sequence_;
+        return a.mod_bitmask_ < b.mod_bitmask_;
       }
     };
 
@@ -1036,7 +848,7 @@ namespace OpenMS
                                       + fixed_nterm_delta_ + fixed_cterm_delta_;
     const std::array<bool, 256>& indexable = indexableResidues();
 
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for
     for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
     {
 #ifdef _OPENMP
@@ -1159,7 +971,7 @@ namespace OpenMS
     }
 
     OPENMS_LOG_INFO << "Sorting SNES mother peptides..." << std::endl;
-    sortLikeStdSort(fi_peptides_, PrecursorOrder(), num_threads);
+    boost::sort::block_indirect_sort(fi_peptides_.begin(), fi_peptides_.end(), PeptideOrder(), static_cast<uint32_t>(num_threads));
 
     OPENMS_LOG_INFO << "Generated " << fi_peptides_.size() << " SNES mothers ("
                     << skipped_peptides.load() << " spans skipped — shorter than peptide:min_size)." << std::endl;
@@ -1212,7 +1024,7 @@ namespace OpenMS
 
       vector<pair<size_t, size_t>> digested_peptides, clipped_peptides;
       vector<size_t> existing_lengths;
-      #pragma omp parallel for schedule(static) private(digested_peptides, clipped_peptides, existing_lengths)
+      #pragma omp parallel for private(digested_peptides, clipped_peptides, existing_lengths)
       for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
       {
 #ifdef _OPENMP
@@ -1383,12 +1195,8 @@ namespace OpenMS
 
       // Merge per-thread peptide vectors.
       // Deliberately left as reserve + sequential insert, unlike the fragment merge in build():
-      // fi_peptides_ is ~66 MB even for a human proteome, so the transient 2x costs little,
-      // and the sort below keys only on (precursor_mz_, protein_idx) — which does NOT cover
-      // mod_bitmask_ / sequence_ — so equal-key peptides are distinguishable and their
-      // relative order (hence every downstream peptide index) depends on this concatenation.
-      // schedule(static) gives each thread one block of consecutive proteins, in thread order, so
-      // the concatenation is in protein order for any number of threads and any OpenMP runtime.
+      // fi_peptides_ is ~66 MB even for a human proteome, so the transient 2x costs little.
+      // The order of the concatenation does not matter: the sort below compares every field.
       size_t total_peptides = 0;
       for (int t = 0; t < num_threads; ++t) total_peptides += thread_peptides[t].size();
       fi_peptides_.reserve(total_peptides);
@@ -1398,11 +1206,10 @@ namespace OpenMS
         vector<Peptide>().swap(thread_peptides[t]);
       }
 
-      // The key does not cover mod_bitmask_ / sequence_, so peptides that tie on it keep the order
-      // libstdc++'s std::sort leaves them in: sortLikeStdSort reproduces it on several threads and
-      // with every standard library.
+      // PeptideOrder compares every field, so the order (hence every downstream peptide index) is the
+      // same on every platform and with any number of threads.
       OPENMS_LOG_INFO << "Sorting peptides..." << std::endl;
-      sortLikeStdSort(fi_peptides_, PrecursorOrder(), num_threads);
+      boost::sort::block_indirect_sort(fi_peptides_.begin(), fi_peptides_.end(), PeptideOrder(), static_cast<uint32_t>(num_threads));
       OPENMS_LOG_INFO << "done." << std::endl;
   }
 

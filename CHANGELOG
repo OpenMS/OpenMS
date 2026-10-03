@@ -135,18 +135,22 @@ TOPP tools:
         features. Computed on the peak list before local/top-N filtering; candidates and native scores
         do not change. Requires a finite, positive fragment:mass_tolerance; set it to false to search
         with other tolerances.
-      - Faster, with the same results: on files of the #10364 suite (8,000 MS2 spectra, human-yeast(-E.
-        coli) target/decoy databases) a search takes 3.2-3.7x less time at 4 threads and 2.6-2.9x less
-        on one; the native results and the idXML and PIN output are unchanged at any thread count. The
-        fragment index is built without sorting all fragments (counted and written to their final
-        m/z bin, buckets finished by a radix sort), the peptides are sorted in parallel in the order
-        libstdc++'s std::sort gives them, and peptide:deduplicate no longer builds a peptide sequence
-        per index entry. One walk over the index serves all isotope errors, with per-bucket skip
-        tables. The spectra are read while the database is read and the index is built; the index is
-        released before the peptides are mapped to proteins. The parallel sort is the same code with
-        every compiler and standard library, so Windows and macOS builds (MSVC STL, libc++) now put
-        peptides of equal precursor m/z and protein in the same order as Linux builds; before, their
-        std::sort ordered them differently, which could change ties between equally scored candidates.
+      - Faster: on files of the #10364 suite (8,000 MS2 spectra, human-yeast(-E. coli) target/decoy
+        databases) a search takes 3.2-3.7x less time at 4 threads and 2.6-2.9x less on one. Apart from
+        the peptide order below, the results are the same as before, at any thread count. The
+        fragment index is built without sorting all fragments (counted and written to their final m/z
+        bin, buckets finished by a radix sort), the peptides are sorted in parallel, and
+        peptide:deduplicate no longer builds a peptide sequence per index entry. One walk over the
+        index serves all isotope errors, with per-bucket skip tables. The spectra are read while the
+        database is read and the index is built; the index is released before the peptides are
+        mapped to proteins.
+      - Peptides of equal precursor m/z and protein (e.g. positional isomers of a variable
+        modification) are ordered by position, length and modifications. Their order was left to
+        std::sort and differed between Linux, Windows and macOS builds (libstdc++, MSVC STL, libc++);
+        it no longer depends on the platform or the number of threads. Equally scored isomers can
+        trade places in a hit list, and another isomer can make the candidate cut: on the files
+        above, 0-4 spectra per file list such hits in another order or with another isomer, and
+        hyperscore_zscore changes for a few spectra; no top hit changed.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.6.0     (Released September 2026)        ----
