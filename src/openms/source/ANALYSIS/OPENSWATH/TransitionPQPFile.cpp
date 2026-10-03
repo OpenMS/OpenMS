@@ -1744,17 +1744,18 @@ namespace OpenMS
 
 
   void TransitionPQPFile::appendLightTargetedExperimentToPQP(
-    const char* filename,
+    const std::string& filename,
     const OpenSwath::LightTargetedExperiment& targeted_exp,
-    const OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids)
+    const std::optional<OpenSwathLibraryIDNormalizer::SourceIDMapping>& source_ids)
   {
     OpenSwathLibraryIDNormalizer::validateCanonicalIDs(targeted_exp);
+    const auto* source_id_mapping = source_ids ? &*source_ids : nullptr;
 
     // Reuse the ordinary writer for the first bounded batch. Subsequent calls only
     // keep the incoming batch and its local helper-ID maps in memory.
     if (!File::exists(filename))
     {
-      convertLightTargetedExperimentToPQP(filename, targeted_exp, source_ids);
+      convertLightTargetedExperimentToPQP(filename.c_str(), targeted_exp, source_id_mapping);
       return;
     }
 
@@ -1977,10 +1978,10 @@ namespace OpenMS
       const int64_t transition_id = StringUtils::toInt64(transition.transition_name);
 
       std::string source_transition_id = transition.transition_name;
-      if (source_ids != nullptr)
+      if (source_id_mapping != nullptr)
       {
-        const auto source_it = source_ids->transition_canonical_to_source.find(transition.transition_name);
-        if (source_it != source_ids->transition_canonical_to_source.end())
+        const auto source_it = source_id_mapping->transition_canonical_to_source.find(transition.transition_name);
+        if (source_it != source_id_mapping->transition_canonical_to_source.end())
         {
           source_transition_id = source_it->second;
         }
@@ -2089,10 +2090,10 @@ namespace OpenMS
       }
 
       std::string source_precursor_id = compound.id;
-      if (source_ids != nullptr)
+      if (source_id_mapping != nullptr)
       {
-        const auto source_it = source_ids->precursor_canonical_to_source.find(compound.id);
-        if (source_it != source_ids->precursor_canonical_to_source.end())
+        const auto source_it = source_id_mapping->precursor_canonical_to_source.find(compound.id);
+        if (source_it != source_id_mapping->precursor_canonical_to_source.end())
         {
           source_precursor_id = source_it->second;
         }
