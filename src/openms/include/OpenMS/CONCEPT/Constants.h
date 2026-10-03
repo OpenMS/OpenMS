@@ -393,9 +393,9 @@ namespace OpenMS
       */
       inline const std::string   ISOTOPE_ERROR = "isotope_error";
 
-      // User parameter name for the standard score of the best candidate's score within
-      // the pool of all candidates scored for the same spectrum. 0 when fewer than two
-      // candidates were scored or when all of them tied.
+      // User parameter name for the standard score of a hit's score (or of the best candidate's
+      // score, for every hit of the spectrum) within the pool of all candidates scored for the same
+      // spectrum. 0 when fewer than two candidates were scored or when all of them tied.
       inline const std::string HYPERSCORE_ZSCORE = "hyperscore_zscore";
 
       // User parameter name for ln(1 + number of candidates scored for a spectrum).
@@ -410,6 +410,39 @@ namespace OpenMS
       // User parameter name for the fraction of cleavage sites where both a prefix ion and its
       // complementary suffix ion were matched
       inline const std::string COMPLEMENTARY_IONS_FRACTION = "complementary_ions_fraction";
+
+      // User parameter name for the score of a spectrum's top hit minus the score of this hit
+      // (0 for the top hit)
+      inline const std::string DELTA_BEST = "delta_best";
+
+      // User parameter name for ln(1 + max(0, -log10 P)), with P the Poisson probability of the
+      // candidate's number of matched fragments in a search engine's candidate prefilter, given the
+      // mean number over all candidates of the spectrum with at least one matched fragment
+      inline const std::string PREFILTER_POISSON_SURPRISE = "prefilter_poisson_surprise";
+
+      // User parameter name for ln(1 + |precursor m/z error (ppm) - offset|), with the offset a
+      // run's median precursor m/z error of confident hits (or 0)
+      inline const std::string LN_PRECURSOR_ERROR_PPM = "ln_precursor_mz_error_ppm";
+
+      // User parameter names for the mean and the population standard deviation of the absolute and
+      // of the signed fragment m/z error (ppm) of the 7 most intense matched peaks
+      inline const std::string TOP_IONS_ABS_ERROR_PPM_MEAN = "top7_abs_fragment_error_ppm_mean";
+      inline const std::string TOP_IONS_ABS_ERROR_PPM_SD = "top7_abs_fragment_error_ppm_sd";
+      inline const std::string TOP_IONS_ERROR_PPM_MEAN = "top7_fragment_error_ppm_mean";
+      inline const std::string TOP_IONS_ERROR_PPM_SD = "top7_fragment_error_ppm_sd";
+      /// Summed log-likelihood ratio of the fragment ion outcomes (presence, intensity rank, mass error) under a per-run learned ion model.
+      inline const std::string ION_PRIOR_LLR = "ion_prior_llr";
+
+      /// Fraction of the fragment ion presence predicted by a per-run learned ion model that was observed.
+      inline const std::string ION_PRIOR_EXPLAINED = "ion_prior_explained";
+
+      /// Fraction of the fragment ions a per-run learned ion model predicts as most likely present that were observed.
+      inline const std::string ION_PRIOR_TOPK_OBSERVED = "ion_prior_topk_observed";
+      /// Sum of local peak-density-based surprise over matched theoretical fragments.
+      inline const std::string CHANCE_MATCH_SURPRISE = "chance_match_surprise";
+
+      /// Matched-fragment evidence discounted by alternative assignments and local peak density.
+      inline const std::string MASS_COMPETITION_EVIDENCE = "mass_competition_evidence";
 
       /** User parameter name to indicate a peptide q-value
               String

@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 
+#include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
@@ -16,8 +17,10 @@
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
@@ -30,10 +33,12 @@
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -44,20 +49,31 @@
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
-#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 #include <algorithm>
+#include <array>
+#include <atomic>
+#include <chrono>
 #include <cmath>
+#include <cstring>
+#include <fstream>
+#include <functional>
+#include <future>
 #include <limits>
 #include <numeric>
 #include <iomanip>
+#include <iterator>
 #include <locale>
+#ifdef __GLIBC__
+#include <malloc.h> // malloc_trim
+#endif
 #include <ostream>
 #include <map>
 #include <set>
 #include <sstream>
+#include <string_view>
 #include <tuple>
 
 #ifdef _OPENMP
@@ -100,10 +116,6 @@ namespace OpenMS
       "Precursor (Parent Ion) Options. mass_tolerance_lower/_upper are positive magnitudes "
       "applied as [-lower, +upper] around the precursor mass.");
 
-    // consider one before annotated monoisotopic peak and the annotated one
-    IntList isotopes = {0, 1};
-    defaults_.setValue("precursor:isotopes", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)");
-
     defaults_.setValue("fragment:mass_tolerance", 20.0, "Fragment mass tolerance");
 
     std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
@@ -115,6 +127,28 @@ namespace OpenMS
 
     defaults_.setValue("fragment:deisotope", "auto", "MS2 deisotoping (single-charge deconvolution) before searching. 'auto' deisotopes only when the fragment tolerance is within the high-resolution deisotoper range (<= 0.1 Da / <= 100 ppm) and skips it for low-resolution (e.g. ion-trap CID) data; 'true' always deisotopes (requires a high-resolution fragment tolerance); 'false' never deisotopes.");
     defaults_.setValidStrings("fragment:deisotope", {"auto", "true", "false"});
+    defaults_.setValue("fragment:deisotope_min_peaks", 2,
+                       "Minimum number of peaks, the monoisotopic peak included, of an isotope envelope that MS2 deisotoping "
+                       "collapses into its monoisotopic peak. With 2 (Sage-like), an ion whose M+2 peak is lost in the noise loses its "
+                       "M+1 peak too, so the M+1 peak no longer takes a place in the per-window peak quota, and a multiply charged ion "
+                       "seen with two isotope peaks is converted to charge 1; in dense spectra (e.g. timsTOF) more of the two-peak "
+                       "multiply charged envelopes are chance pairs. 3 is the earlier behaviour.",
+                       {"advanced"});
+    defaults_.setMinInt("fragment:deisotope_min_peaks", 2);
+    defaults_.setMaxInt("fragment:deisotope_min_peaks", 10);
+    defaults_.setValue("fragment:deisotope_charge_cap", "precursor",
+                       "Fragment charges that MS2 deisotoping tries. 'precursor' tries charges up to the precursor charge, but at most 3 "
+                       "(1-3 when the precursor charge is unknown): a fragment cannot carry more charges than its precursor, so a chance "
+                       "peak 1/3 Th above an ion of a 2+ precursor cannot turn the ion into a '3+' envelope at a wrong m/z. This is "
+                       "Sage-like; Sage caps at the precursor charge without the limit of 3 and counts an unknown charge as 3. 'none' "
+                       "tries charges 1-3 in every spectrum (the earlier behaviour).",
+                       {"advanced"});
+    defaults_.setValidStrings("fragment:deisotope_charge_cap", {"precursor", "none"});
+    defaults_.setValue("fragment:deisotope_sum_intensity", "true",
+                       "Give the monoisotopic peak of each isotope envelope the summed intensity of the envelope (Sage-like). "
+                       "'false' keeps the monoisotopic peak's own intensity (the earlier behaviour).",
+                       {"advanced"});
+    defaults_.setValidStrings("fragment:deisotope_sum_intensity", {"true", "false"});
 
 
     defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
@@ -126,6 +160,15 @@ namespace OpenMS
     defaults_.setMinInt("peaks:keep_n", 0);
     defaults_.setValue("peaks:window_top", 20, "Maximum number of MS2 peaks kept per 100 Da window (WindowMower) before scoring.", {"advanced"});
     defaults_.setMinInt("peaks:window_top", 1);
+    defaults_.setValue(
+      "fragment:query_spectrum", "auto",
+      "Spectrum used for candidate retrieval. 'raw' queries the fragment index with all positive-intensity peaks, before "
+      "deisotoping and local/top-N filtering, so that spectra whose matching fragments are not among the retained peaks still get "
+      "candidates; it costs an additional peak list per spectrum and more fragment matches. 'processed' queries with the scoring peak "
+      "list. 'auto' uses 'raw' for high-resolution fragments (<= 0.1 Da / <= 100 ppm) and 'processed' otherwise: at low resolution, "
+      "the unfiltered peaks match many random fragments and crowd out the correct candidates. Scoring always uses the processed spectrum.",
+      {"advanced"});
+    defaults_.setValidStrings("fragment:query_spectrum", {"auto", "raw", "processed"});
     defaults_.setValue("peaks:window_type", "auto",
                        "Local peak filtering. 'auto' uses jump_full for high-resolution fragments (<= 0.1 Da / <= 100 ppm), "
                        "preserving the strongest peaks even in a short final 100 Da window, and legacy jump filtering otherwise. "
@@ -139,9 +182,12 @@ namespace OpenMS
                        "as in Orbitrap Astral and many timsTOF spectra. 0, or a value not above peaks:window_top, disables this.",
                        {"advanced"});
     defaults_.setMinInt("peaks:dense_window_top", 0);
-    defaults_.setValue("peaks:dense_intensity_loss", 0.2,
+    defaults_.setValue("peaks:dense_intensity_loss", 1.0,
                        "Share of a spectrum's intensity (after deisotoping) that the peaks:window_top filter may remove before "
-                       "the spectrum counts as dense and keeps peaks:dense_window_top peaks per window instead.",
+                       "the spectrum counts as dense and keeps peaks:dense_window_top peaks per window instead. "
+                       "1.0 (default) disables the dense-spectrum quota (as in develop). In a doubled-search-space entrapment "
+                       "control its extra Astral identifications carried about 1.3% false discoveries (pooled over three "
+                       "entrapment shuffles; nominal 1%).",
                        {"advanced"});
     defaults_.setMinFloat("peaks:dense_intensity_loss", 0.0);
     defaults_.setMaxFloat("peaks:dense_intensity_loss", 1.0);
@@ -153,7 +199,7 @@ namespace OpenMS
 
     defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
     defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
-    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
+    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'. A terminus carries one modification: a variable modification of the whole terminus (e.g. 'Acetyl (Protein N-term)') is not searched where a fixed one sits on it (e.g. 'TMT6plex (N-term)').");
     defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
     defaults_.setSectionDescription("modifications", "Modifications Options");
@@ -195,6 +241,100 @@ namespace OpenMS
         Constants::UserParam::COMPLEMENTARY_IONS_FRACTION}
       );
 
+    // Candidate-competition features. Each is computed alike for target and decoy candidates from scores, match
+    // counts and m/z values only, and none changes the candidates, their native scores or their order.
+    defaults_.setValue("annotate:per_psm_pool_features", "false",
+      "Compute delta_score and hyperscore_zscore for each reported PSM rather than once per spectrum: delta_score is "
+      "the score minus that of the next lower-ranked candidate (Sage's delta_next; one more candidate than "
+      "report:top_hits is kept for the last reported hit), hyperscore_zscore is the standard score of the PSM's own "
+      "score in its spectrum's candidate pool. The top hit's values are the same either way, so with "
+      "report:top_hits=1 nothing changes. 'false': every hit of a spectrum carries its top hit's values, which "
+      "carries the top hit's margin onto lower-ranked PSMs when several PSMs per spectrum are exported to a rescorer. "
+      "Off by default: with 10 PSMs per spectrum rescored by Percolator it added identifications but also raised the "
+      "false discovery proportion estimated with a doubled (entrapment) search space.",
+      {"advanced"});
+    defaults_.setValidStrings("annotate:per_psm_pool_features", {"true", "false"});
+    defaults_.setValue("annotate:prefilter_poisson", "false",
+      "Add the PSM feature " + Constants::UserParam::PREFILTER_POISSON_SURPRISE + " = ln(1 + max(0, -log10 "
+      "Poisson(k; lambda))), with k the candidate's matched fragments in the fragment-index prefilter and lambda the "
+      "mean of k over every candidate of the spectrum with at least one matched fragment (Sage's Poisson feature with "
+      "the prefilter count). Upper tail only: 0 for k <= lambda. 0 in SNES searches. In chunked searches "
+      "(database:chunk_size) lambda counts a peptidoform once per chunk that holds it. Off by default: it added "
+      "identifications but raised the false discovery proportion estimated with a doubled (entrapment) search space "
+      "by more than the acceptance threshold.",
+      {"advanced"});
+    defaults_.setValidStrings("annotate:prefilter_poisson", {"true", "false"});
+    defaults_.setValue("annotate:precursor_ppm", "false",
+      "Add the PSM feature " + Constants::UserParam::LN_PRECURSOR_ERROR_PPM + " = ln(1 + |e - offset|), with e the "
+      "isotope-corrected precursor m/z error in ppm (as " + Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM + "). "
+      "'centered': offset = median e of the top-scoring 10% of the spectra's top hits (by native score, per run; "
+      "recorded as search parameter precursor_mz_error_ppm_offset), which removes a run's mass calibration offset. "
+      "'raw': offset = 0 (Sage's ln(precursor ppm)). 'false': no feature. Not added in open-search mode. Off by default: "
+      "together with annotate:self_trained_ion_priors it added no identifications (OpenMS#10364 benchmark, +0.02%).",
+      {"advanced"});
+    defaults_.setValidStrings("annotate:precursor_ppm", {"centered", "raw", "false"});
+    defaults_.setValue("annotate:top_ion_mass_errors", "false",
+      "Add the PSM features " + Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN + ", "
+      + Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_SD + ", " + Constants::UserParam::TOP_IONS_ERROR_PPM_MEAN + " and "
+      + Constants::UserParam::TOP_IONS_ERROR_PPM_SD + ": mean and population standard deviation of the absolute and of "
+      "the signed fragment m/z error (ppm) of the 7 most intense peaks matched by singly charged fragment ions "
+      "(ANDES' MeanErrorTop7, StdevErrorTop7, MeanRelErrorTop7, StdevRelErrorTop7; 0 without such a match). Off by "
+      "default: together with annotate:self_trained_ion_priors it added no identifications (OpenMS#10364 benchmark).",
+      {"advanced"});
+    defaults_.setValidStrings("annotate:top_ion_mass_errors", {"true", "false"});
+    defaults_.setValue("annotate:delta_best", "false",
+      "Add the PSM feature " + Constants::UserParam::DELTA_BEST + " = score of the spectrum's top hit minus the PSM's "
+      "score (Sage's delta_best; 0 for the top hit, so it marks the rank of the PSM).",
+      {"advanced"});
+    defaults_.setValidStrings("annotate:delta_best", {"true", "false"});
+    defaults_.setValue("annotate:self_trained_ion_priors", "true",
+      "Learn per-run fragment ion likelihoods from the confident PSMs of each file and add the Percolator features of "
+      "annotate:ion_prior_features to every hit. The spectra are split into two halves "
+      "by scan parity. Each half trains a model on its rank-one target hits at target-decoy competition q <= "
+      "annotate:ion_prior_train_fdr of the native score (their reversed sequences on the same spectra are the noise "
+      "model), and every hit is scored by the model of the other half, so no PSM is scored by a model that saw its "
+      "spectrum or its label. Needs annotate:ion_prior_min_psms training PSMs in each half, otherwise the features are 0. "
+      "Not applied to target-only searches (decoys=ignore), which get no features. Native scores and candidate selection "
+      "are unchanged. Independent of annotate:PSM.", {"advanced"});
+    defaults_.setValidStrings("annotate:self_trained_ion_priors", {"true", "false"});
+    defaults_.setValue("annotate:ion_prior_model", "rich",
+      "Contexts and outcomes of the ion priors. 'rich': ion series, precursor charge, fragment charge, relative position, "
+      "the residues at the cleavage site (bond before P, bond after D or E) and whether the complementary singly charged "
+      "ion matched; outcome: intensity rank x mass error (|error| / tolerance below 0.25, below 0.5, up to 1). 'basic': "
+      "ion series, precursor charge, fragment charge and relative position; outcome: intensity rank.", {"advanced"});
+    defaults_.setValidStrings("annotate:ion_prior_model", {"rich", "basic"});
+    defaults_.setValue("annotate:ion_prior_peaks", "all",
+      "Peaks the ion priors rank and match. 'all': every peak after deisotoping, before the peaks:window_top and "
+      "peaks:keep_n filters, so weak fragment ions count as evidence for the model without entering HyperScore. "
+      "'scored': the peaks that are scored.", {"advanced"});
+    defaults_.setValidStrings("annotate:ion_prior_peaks", {"all", "scored"});
+    defaults_.setValue("annotate:ion_prior_max_fragment_charge", 2,
+      "Highest fragment charge of the ions of the ion priors; capped at the precursor charge - 1 (at least 1).", {"advanced"});
+    defaults_.setMinInt("annotate:ion_prior_max_fragment_charge", 1);
+    defaults_.setValue("annotate:ion_prior_train_fdr", 0.01,
+      "Target-decoy competition q-value threshold selecting the training PSMs of annotate:self_trained_ion_priors.", {"advanced"});
+    defaults_.setMinFloat("annotate:ion_prior_train_fdr", 0.0);
+    defaults_.setMaxFloat("annotate:ion_prior_train_fdr", 1.0);
+    defaults_.setValue("annotate:ion_prior_min_psms", 100,
+      "Minimum number of training PSMs of annotate:self_trained_ion_priors in each half of the spectra; with fewer, the "
+      "features are 0.", {"advanced"});
+    defaults_.setMinInt("annotate:ion_prior_min_psms", 1);
+    defaults_.setValue("annotate:ion_prior_features",
+      std::vector<std::string>{Constants::UserParam::ION_PRIOR_LLR, Constants::UserParam::ION_PRIOR_EXPLAINED},
+      "Features of annotate:self_trained_ion_priors written to every hit and listed for Percolator: "
+      "ion_prior_llr (summed log-likelihood ratio of the ion outcomes, signal vs reversed noise), ion_prior_explained "
+      "(share of the predicted ion presence that was observed), ion_prior_topk_observed (share of the 6 ions most likely "
+      "present that were observed).", {"advanced"});
+    defaults_.setValidStrings("annotate:ion_prior_features",
+      std::vector<std::string>{Constants::UserParam::ION_PRIOR_LLR, Constants::UserParam::ION_PRIOR_EXPLAINED,
+                               Constants::UserParam::ION_PRIOR_TOPK_OBSERVED});
+
+    defaults_.setValue("annotate:local_fragment_evidence", "true",
+      "Add chance_match_surprise and mass_competition_evidence annotations and Percolator features. "
+      "Uses local peak density and alternative intact/neutral-loss fragment assignments. "
+      "Retains an additional peak list before window/top-N filtering, increasing memory use. "
+      "Does not change native scores or candidate selection. Independent of annotate:PSM.", {"advanced"});
+    defaults_.setValidStrings("annotate:local_fragment_evidence", {"true", "false"});
     defaults_.setSectionDescription("annotate", "Annotation Options");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
@@ -205,6 +345,21 @@ namespace OpenMS
                        "The retained-M form is still searched; length, mass and missed-cleavage limits apply to each form. "
                        "Set false for the previous search space.");
     defaults_.setValidStrings("peptide:clip_nterm_methionine", {"true", "false"});
+    defaults_.setValue("peptide:deduplicate", "true",
+                       "Index each exact peptidoform once before candidate selection. Protein mappings still list every protein occurrence. "
+                       "Across database chunks, count each peptide/charge/isotope hypothesis once; retaining queried keys adds memory per spectrum. "
+                       "SNES mother indices retain their existing behavior. Set false for occurrence-based legacy candidates.",
+                       {"advanced"});
+    defaults_.setValidStrings("peptide:deduplicate", {"true", "false"});
+    defaults_.setValue("peptide:protein_mapping", "index",
+                       "How the hits are mapped to their proteins (peptide evidences, target_decoy, protein_references, protein hits). "
+                       "'index': from the digest of the fragment index, which holds every protein occurrence of a candidate; the result is "
+                       "that of PeptideIndexing, which runs instead wherever the index cannot reproduce it exactly (e.g. SNES, a specificity "
+                       "other than full, protein-terminal modifications, a chunked database, symbols other than letters or long stretches "
+                       "of ambiguous residues in the database). 'PeptideIndexing': always search every hit in the whole database "
+                       "(Aho-Corasick), as before.",
+                       {"advanced"});
+    defaults_.setValidStrings("peptide:protein_mapping", {"index", "PeptideIndexing"});
     defaults_.setValue("peptide:enzyme_specificity", "full",
       "Enzyme cleavage specificity required for both peptide termini.\n"
       "  'full' : both termini must be enzyme-specific (canonical, e.g. tryptic).\n"
@@ -229,11 +384,33 @@ namespace OpenMS
     defaults_.setValidStrings("snes_enabled", {"true", "false"});
 
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
+    defaults_.setValue("report:isotope_error_convention", "observed_minus_theoretical",
+                       "Sign of the precursor isotope error reported for each PSM (meta value 'isotope_error', in 13C "
+                       "spacings of 1.00336 Da). 'observed_minus_theoretical': +1 means the observed precursor lies one "
+                       "13C spacing above the peptide (its first 13C isotope peak was selected), as in MS-GF+, pepXML and "
+                       "Sage; PercolatorInfile and PercolatorAdapter (-out_pin, -percolator_executable) remove the offset "
+                       "from the precursor mass difference with this sign. The search parameters of the result record it "
+                       "as 'isotope_error_convention'. 'theoretical_minus_observed': the opposite sign, as written by "
+                       "earlier ProSE versions (no record in the search parameters); with it the Percolator input "
+                       "doubles the offset in dm/absdm instead of removing it.",
+                       {"advanced"});
+    defaults_.setValidStrings("report:isotope_error_convention", {"observed_minus_theoretical", "theoretical_minus_observed"});
     defaults_.setSectionDescription("report", "Reporting Options");
 
     defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Target and decoy PSMs are filtered alike by the q-value threshold; decoys that pass are kept (no decoy-specific stripping here — decoys are removed only at protein-FDR finalization). Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
+    defaults_.setValue("FDR:PSM_groups", "scored_charges",
+                       "Target-decoy competitions of FDR:PSM. 'pooled' ranks all PSMs together. 'scored_charges' computes q-values "
+                       "separately for PSMs scored with different numbers of fragment charges (scoring:fragment_charges): HyperScore "
+                       "grows with the number of theoretical ions, so when multiply charged fragments are scored for precursors of "
+                       "charge 3 and above but not for charge 2, a pooled competition is dominated by the higher precursor charges. "
+                       "With singly charged fragments only (deisotoped, high-resolution spectra) there is one group, as with 'pooled'. "
+                       "With fragment:max_charge above 2, precursor charges of 4 and above form further groups, which accept few PSMs "
+                       "per run (tens), so their q-values (D/T, as FalseDiscoveryRate) are coarse. "
+                       "A group without decoy or without target PSMs falls back to 'pooled'.",
+                       {"advanced"});
+    defaults_.setValidStrings("FDR:PSM_groups", {"scored_charges", "pooled"});
     defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR on a complete protein set (single file, or the -out_merged aggregate). Setting this > 0 finalizes the result: identified decoys are removed. With 0, decoys are retained for downstream/merged FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:protein", 0.0);
     defaults_.setMaxFloat("FDR:protein", 1.0);
@@ -246,13 +423,44 @@ namespace OpenMS
     // Fragment-level filtering
     defaults_.setValue("fragment:min_matched_ions", 5, "Minimal number of matched ions to report a PSM");
 
-    // Precursor isotope error handling
-    defaults_.setValue("precursor:isotope_error_min", -1, "Minimum allowed precursor isotope error");
-    defaults_.setValue("precursor:isotope_error_max", 1, "Maximum allowed precursor isotope error");
+    // Precursor isotope error handling. The search convention (theoretical minus observed) is kept for these two
+    // parameters; the reported isotope_error follows report:isotope_error_convention.
+    defaults_.setValue("precursor:isotope_error_min", -1,
+                       "Minimum precursor isotope error searched, in 13C spacings (1.00336 Da) added to the observed "
+                       "precursor mass: -1 finds a peptide whose first 13C isotope peak was selected as the precursor. "
+                       "The PSM meta value 'isotope_error' reports the opposite sign by default (see "
+                       "report:isotope_error_convention).");
+    defaults_.setValue("precursor:isotope_error_max", 1,
+                       "Maximum precursor isotope error searched, with the sign of precursor:isotope_error_min: +1 finds "
+                       "a peptide whose precursor was selected one 13C spacing below its monoisotopic peak.");
 
     // Fragment and scoring limits
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
+    defaults_.setValue(
+      "scoring:fragment_charges", "auto",
+      "Fragment charges of the theoretical spectra that score each candidate. 'single' scores singly charged fragments only. "
+      "'multiple' adds charges up to min(precursor charge - 1, fragment:max_charge). 'auto' uses 'multiple' when the MS2 spectra "
+      "are not deisotoped (fragment:deisotope=false, or a fragment tolerance above the deisotoper's limit of 0.1 Da / 100 ppm, "
+      "as for ion-trap CID) and 'single' otherwise, because deisotoping converts fragments to charge 1.",
+      {"advanced"});
+    defaults_.setValidStrings("scoring:fragment_charges", {"auto", "single", "multiple"});
+    defaults_.setValue("scoring:method", "auto",
+                       "Native score. 'hyperscore' is the X!Tandem HyperScore. 'mass_accuracy' weights each matched fragment's "
+                       "contribution to HyperScore's ion counts and intensity product by exp(-0.5 * (error / scoring:mass_error_sd)^2), "
+                       "with the error in ppm, so that matches near the theoretical m/z count fully and matches at the edge of the "
+                       "tolerance count little; exact matches score as HyperScore. The kernel is centred at 0 and suits high-resolution "
+                       "fragments only. 'auto' (default) uses 'mass_accuracy' for fragment tolerances in ppm within the high-resolution "
+                       "range (<= 100 ppm) and 'hyperscore' otherwise (Da tolerances, e.g. ion-trap CID). Matching tolerances, candidates "
+                       "and the unweighted match annotations are unchanged. The score type stays 'ln(hyperscore)'; the search parameters "
+                       "record scoring:method_resolved when the weighted score is used.",
+                       {"advanced"});
+    defaults_.setValidStrings("scoring:method", {"hyperscore", "mass_accuracy", "auto"});
+    defaults_.setValue("scoring:mass_error_sd", 7.0,
+                       "Standard deviation in ppm of the Gaussian fragment mass-error kernel of scoring:method 'mass_accuracy'. "
+                       "Fixed (not fitted) and independent of the matching tolerance and of calibration.",
+                       {"advanced"});
+    defaults_.setMinFloat("scoring:mass_error_sd", 1e-6);
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
     // Ion series toggles
@@ -321,7 +529,6 @@ namespace OpenMS
     precursor_min_charge_ = param_.getValue("precursor:min_charge");
     precursor_max_charge_ = param_.getValue("precursor:max_charge");
 
-    precursor_isotopes_ = param_.getValue("precursor:isotopes");
     peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
     peaks_window_top_ = (Int)param_.getValue("peaks:window_top");
     peaks_window_type_ = param_.getValue("peaks:window_type").toString();
@@ -329,6 +536,11 @@ namespace OpenMS
     peaks_dense_intensity_loss_ = (double)param_.getValue("peaks:dense_intensity_loss");
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
+    if (param_.getValue("annotate:local_fragment_evidence").toBool() && (! std::isfinite(fragment_mass_tolerance_) || fragment_mass_tolerance_ <= 0.0))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Local fragment evidence requires a finite, positive fragment:mass_tolerance.");
+    }
 
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
 
@@ -342,6 +554,9 @@ namespace OpenMS
     const std::string deisotope_mode = param_.getValue("fragment:deisotope").toString();
     const bool deisotope_supported =
       Deisotoper::isToleranceSupported(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ == "ppm");
+    // Resolved from the configured tolerance, with the deisotoper's resolution boundary; calibration does not switch it.
+    const std::string query_spectrum = param_.getValue("fragment:query_spectrum").toString();
+    query_raw_spectrum_ = query_spectrum == "raw" || (query_spectrum == "auto" && deisotope_supported);
     deisotope_requested_ = (deisotope_mode != "false");
     if (deisotope_mode == "true" && !deisotope_supported)
     {
@@ -356,6 +571,33 @@ namespace OpenMS
                       << " exceeds the deisotoping limit (100 ppm / 0.1 Da); skipping MS2 "
                       << "deisotoping (expected for low-resolution data)." << endl;
     }
+    deisotoping_.min_peaks = static_cast<unsigned int>(static_cast<int>(param_.getValue("fragment:deisotope_min_peaks")));
+    deisotoping_.charge_cap_precursor = param_.getValue("fragment:deisotope_charge_cap").toString() == "precursor";
+    deisotoping_.sum_intensity = param_.getValue("fragment:deisotope_sum_intensity").toBool();
+
+    // Spectra that are not deisotoped keep multiply charged fragments at their own m/z;
+    // deisotoped spectra hold charge-1 fragments only.
+    const std::string fragment_charges = param_.getValue("scoring:fragment_charges").toString();
+    const bool deisotoped = deisotope_requested_ && deisotope_supported;
+    scoring_multiple_charges_ = fragment_charges == "multiple" || (fragment_charges == "auto" && ! deisotoped);
+    scoring_max_charge_ = static_cast<int>(param_.getValue("fragment:max_charge"));
+
+    // Mass-accuracy weighting needs fragment errors of a few ppm; 'auto' uses it for high-resolution ppm tolerances only.
+    const std::string scoring_method = param_.getValue("scoring:method").toString();
+    const bool high_resolution_ppm = fragment_mass_tolerance_unit_ == "ppm" && deisotope_supported;
+    mass_accuracy_score_ = scoring_method == "mass_accuracy" || (scoring_method == "auto" && high_resolution_ppm);
+    mass_error_sd_ppm_ = param_.getValue("scoring:mass_error_sd");
+    if (mass_accuracy_score_ && (! std::isfinite(mass_error_sd_ppm_) || mass_error_sd_ppm_ <= 0.0))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "scoring:mass_error_sd must be finite and positive.");
+    }
+    if (scoring_method == "mass_accuracy" && ! high_resolution_ppm)
+    {
+      OPENMS_LOG_WARN << "[ProSE] scoring:method=mass_accuracy weights fragment matches by a " << mass_error_sd_ppm_
+                      << " ppm kernel, but the fragment tolerance is " << fragment_mass_tolerance_
+                      << (fragment_mass_tolerance_unit_ == "ppm" ? " ppm" : " Da")
+                      << "; matches far from the theoretical m/z score little. 'auto' uses HyperScore for such tolerances." << endl;
+    }
 
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
     set<std::string> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
@@ -363,7 +605,9 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "Duplicate fixed modification provided. Making them unique." << endl;
       modifications_fixed_.assign(fixed_unique.begin(), fixed_unique.end());
-    }    
+    }
+    // fixed terminal modifications the fragment index cannot restrict: fail here, not after reading the database
+    FragmentIndex::checkFixedModifications(modifications_fixed_);
 
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
     set<std::string> var_unique(modifications_variable_.begin(), modifications_variable_.end());
@@ -371,6 +615,12 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "Duplicate variable modification provided. Making them unique." << endl;
       modifications_variable_.assign(var_unique.begin(), var_unique.end());
+    }
+    for (const std::string& mod : FragmentIndex::shadowedVariableTerminalModifications(modifications_fixed_, modifications_variable_))
+    {
+      OPENMS_LOG_WARN << "Variable modification '" << mod << "' is not searched: a fixed modification already sits on "
+                      << "that terminus, which carries one modification. To search it, specify the fixed terminal "
+                      << "modification as a variable one as well." << endl;
     }
 
     modifications_max_variable_mods_per_peptide_ = param_.getValue("modifications:variable_max_per_peptide");
@@ -385,6 +635,8 @@ namespace OpenMS
     peptide_motif_ = param_.getValue("peptide:motif").toString(); // TODO: remove unused parameters
 
     report_top_hits_ = param_.getValue("report:top_hits");
+    isotope_error_observed_minus_theoretical_ =
+      param_.getValue("report:isotope_error_convention").toString() == "observed_minus_theoretical";
 
     const std::string decoy_mode_str = param_.getValue("decoys").toString();
     if (decoy_mode_str == "generate")   { decoy_mode_ = DecoyMode_::GENERATE; }
@@ -392,7 +644,43 @@ namespace OpenMS
     else                                 { decoy_mode_ = DecoyMode_::AUTO; }
     decoy_prefix_ = param_.getValue("decoy_prefix").toString();
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
+    annotate_per_psm_pool_features_ = param_.getValue("annotate:per_psm_pool_features").toBool();
+    annotate_prefilter_poisson_ = param_.getValue("annotate:prefilter_poisson").toBool();
+    const std::string precursor_ppm = param_.getValue("annotate:precursor_ppm").toString();
+    annotate_precursor_ppm_ = precursor_ppm == "centered" ? PrecursorPpmFeature_::CENTERED
+                            : precursor_ppm == "raw"      ? PrecursorPpmFeature_::RAW
+                                                          : PrecursorPpmFeature_::OFF;
+    annotate_top_ion_mass_errors_ = param_.getValue("annotate:top_ion_mass_errors").toBool();
+    annotate_delta_best_ = param_.getValue("annotate:delta_best").toBool();
+    self_trained_ion_priors_ = param_.getValue("annotate:self_trained_ion_priors").toBool();
+    ion_prior_model_ = param_.getValue("annotate:ion_prior_model").toString() == "basic"
+                         ? FragmentIonLikelihoodModel::ContextSet::BASIC : FragmentIonLikelihoodModel::ContextSet::RICH;
+    ion_prior_scored_peaks_ = param_.getValue("annotate:ion_prior_peaks").toString() == "scored";
+    ion_prior_max_fragment_charge_ = static_cast<int>(param_.getValue("annotate:ion_prior_max_fragment_charge"));
+    ion_prior_train_fdr_ = param_.getValue("annotate:ion_prior_train_fdr");
+    ion_prior_min_psms_ = static_cast<Size>(static_cast<int>(param_.getValue("annotate:ion_prior_min_psms")));
+    {
+      const StringList features = ListUtils::toStringList<std::string>(param_.getValue("annotate:ion_prior_features"));
+      auto selected = [&features](const std::string& name) { return std::find(features.begin(), features.end(), name) != features.end(); };
+      ion_prior_feature_llr_ = selected(Constants::UserParam::ION_PRIOR_LLR);
+      ion_prior_feature_explained_ = selected(Constants::UserParam::ION_PRIOR_EXPLAINED);
+      ion_prior_feature_topk_ = selected(Constants::UserParam::ION_PRIOR_TOPK_OBSERVED);
+      if (self_trained_ion_priors_ && !(ion_prior_feature_llr_ || ion_prior_feature_explained_ || ion_prior_feature_topk_))
+      {
+        OPENMS_LOG_WARN << "[ProSE] annotate:self_trained_ion_priors is set, but annotate:ion_prior_features is empty: "
+                        << "no ion priors are learned." << endl;
+        self_trained_ion_priors_ = false;
+      }
+    }
+    if (self_trained_ion_priors_ && decoy_mode_ == DecoyMode_::IGNORE)
+    {
+      // A target-only search has no target-decoy competition to select training PSMs, and Percolator cannot use its
+      // output: nothing is learned or written (the output equals the one with the ion priors switched off).
+      OPENMS_LOG_INFO << "[ProSE] annotate:self_trained_ion_priors: not applied to a target-only search (decoys=ignore)." << endl;
+      self_trained_ion_priors_ = false;
+    }
     fdr_psm_ = param_.getValue("FDR:PSM");
+    fdr_psm_by_scored_charges_ = param_.getValue("FDR:PSM_groups").toString() == "scored_charges";
     fdr_protein_ = param_.getValue("FDR:protein");
 
     // Open search mode is automatically determined based on precursor tolerance in isOpenSearchMode_()
@@ -405,6 +693,7 @@ namespace OpenMS
     add_z_ions_ = param_.getValue("ions:add_z_ions").toBool();
     add_zp1_ions_ = param_.getValue("ions:add_zp1_ions").toBool();
     ions_by_activation_ = param_.getValue("ions:by_activation").toBool();
+    protein_mapping_from_index_ = param_.getValue("peptide:protein_mapping").toString() == "index";
 
     database_chunk_size_ = param_.getValue("database:chunk_size");
 
@@ -459,6 +748,85 @@ namespace OpenMS
     return generators;
   }
 
+  std::vector<double> ProSEAlgorithm::localPeakDensities_(const MSSpectrum& spectrum)
+  {
+    // Both bounds only move forward: O(number of peaks), once per spectrum.
+    constexpr double half_window = 50.0;
+    std::vector<double> densities(spectrum.size());
+    Size left = 0, right = 0;
+    for (Size i = 0; i < spectrum.size(); ++i)
+    {
+      const double mz = spectrum[i].getMZ();
+      while (left < spectrum.size() && spectrum[left].getMZ() < mz - half_window) ++left;
+      while (right < spectrum.size() && spectrum[right].getMZ() <= mz + half_window) ++right;
+      densities[i] = static_cast<double>(right - left) / (2.0 * half_window);
+    }
+    return densities;
+  }
+
+  ProSEAlgorithm::LocalFragmentEvidence_ ProSEAlgorithm::localFragmentEvidence_(
+      const MSSpectrum& spectrum, const MSSpectrum& theoretical,
+      const std::vector<double>& densities, double tolerance, bool ppm)
+  {
+    std::vector<double> alternatives;
+    return localFragmentEvidence_(spectrum, theoretical, std::numeric_limits<int>::max(), densities, tolerance, ppm, alternatives);
+  }
+
+  ProSEAlgorithm::LocalFragmentEvidence_ ProSEAlgorithm::localFragmentEvidence_(
+      const MSSpectrum& spectrum, const MSSpectrum& theoretical, int max_charge,
+      const std::vector<double>& densities, double tolerance, bool ppm, std::vector<double>& alternatives)
+  {
+    // The ions of charge <= max_charge of a TSG spectrum of charges 1..Z are the TSG spectrum of charges
+    // 1..max_charge, in the same order: the generator adds each charge independently and sorts stably.
+    // Annotation therefore passes its own theoretical spectrum instead of generating a second one.
+    LocalFragmentEvidence_ evidence;
+    if (spectrum.empty() || theoretical.empty()) return evidence;
+    OPENMS_PRECONDITION(densities.size() == spectrum.size(), "One local density per experimental peak required")
+    OPENMS_PRECONDITION(!theoretical.getIntegerDataArrays().empty()
+      && theoretical.getIntegerDataArrays()[0].size() == theoretical.size(), "Aligned fragment charges required")
+
+    static const double water_mass = EmpiricalFormula("H2O").getMonoWeight();
+    static const double ammonia_mass = EmpiricalFormula("NH3").getMonoWeight();
+    const auto& charges = theoretical.getIntegerDataArrays()[0];
+    alternatives.clear();
+    alternatives.reserve(3 * theoretical.size());
+    for (Size i = 0; i < theoretical.size(); ++i)
+    {
+      OPENMS_PRECONDITION(charges[i] > 0, "Positive fragment charge required")
+      if (charges[i] > max_charge) continue;
+      const double mz = theoretical[i].getMZ();
+      alternatives.push_back(mz);
+      for (const double loss : {water_mass, ammonia_mass})
+      {
+        const double loss_mz = mz - loss / charges[i];
+        if (loss_mz > 0.0) alternatives.push_back(loss_mz);
+      }
+    }
+    std::sort(alternatives.begin(), alternatives.end());
+
+    for (Size i = 0; i < theoretical.size(); ++i)
+    {
+      if (charges[i] > max_charge) continue;
+      const double mz = theoretical[i].getMZ();
+      const double width = ppm ? mz * tolerance * 1e-6 : tolerance;
+      const Size nearest = spectrum.findNearest(mz);
+      const double observed = spectrum[nearest].getMZ();
+      if (std::abs(mz - observed) > width) continue;
+
+      // The matched peak itself is in its density window, hence density > 0.
+      const double density = densities[nearest];
+      evidence.chance_match_surprise += std::max(0.0, -std::log(2.0 * width * density));
+      const auto first = std::lower_bound(alternatives.begin(), alternatives.end(), observed - width);
+      const auto last = std::upper_bound(first, alternatives.end(), observed + width);
+      // One intact hypothesis is the ion currently being scored. All other
+      // hypotheses, including coincident ions, represent alternative assignments.
+      const Size count = static_cast<Size>(last - first);
+      const Size competing = count > 0 ? count - 1 : 0;
+      evidence.mass_competition_evidence += 1.0 / (1.0 + competing + density);
+    }
+    return evidence;
+  }
+
   bool ProSEAlgorithm::isElectronActivated_(const MSSpectrum& spectrum)
   {
     if (spectrum.getPrecursors().empty()) return false;
@@ -478,6 +846,72 @@ namespace OpenMS
     if (!ions_by_activation_) return 0;
     return static_cast<Size>(std::count_if(spectra.begin(), spectra.end(),
                                            [](const MSSpectrum& spectrum) { return isElectronActivated_(spectrum); }));
+  }
+
+  namespace
+  {
+    // Keeps the peaks WindowMower::filterPeakSpectrumForTopNInJumpingWindow() keeps: the peak_count most intense peaks of
+    // each m/z window of window_size that starts at a peak (of the last window a share of peak_count by its width), and
+    // every peak equal to a kept one. It selects them through indices instead of copies of the peaks, and finds the
+    // equal peaks among their neighbours instead of searching all kept peaks for each peak. The same std::partial_sort
+    // calls on the same intensities select the same peaks.
+    void filterTopNInJumpingWindows(MSSpectrum& spectrum, double window_size, UInt peak_count)
+    {
+      if (spectrum.empty()) { return; }
+      spectrum.sortByPosition();
+      const Size n = spectrum.size();
+      std::vector<char> kept(n, 0);
+      std::vector<Size> window;
+      const auto more_intense = [&spectrum](Size a, Size b) { return spectrum[b].getIntensity() < spectrum[a].getIntensity(); };
+      const auto keep_most_intense = [&](Size begin, Size end, Size count)
+      {
+        if (end - begin > count)
+        {
+          window.resize(end - begin);
+          std::iota(window.begin(), window.end(), begin);
+          std::partial_sort(window.begin(), window.begin() + count, window.end(), more_intense);
+          for (Size k = 0; k < count; ++k) { kept[window[k]] = 1; }
+        }
+        else
+        {
+          std::fill(kept.begin() + begin, kept.begin() + end, 1);
+        }
+      };
+      double window_start = spectrum[0].getMZ();
+      Size begin = 0;
+      for (Size i = 0; i != n; ++i)
+      {
+        if (spectrum[i].getMZ() - window_start < window_size) { continue; }
+        // a gap may leave windows empty: the next window starts at the next peak
+        window_start = spectrum[i].getMZ();
+        keep_most_intense(begin, i, peak_count);
+        begin = i;
+      }
+      const double last_window_fraction = (spectrum[n - 1].getMZ() - window_start) / window_size;
+      keep_most_intense(begin, n, static_cast<Size>(std::round(last_window_fraction * peak_count)));
+
+      // peaks of equal m/z are neighbours (the spectrum is sorted by m/z)
+      std::vector<Size> selected;
+      selected.reserve(n);
+      for (Size i = 0; i < n;)
+      {
+        Size j = i + 1;
+        while (j < n && spectrum[j].getMZ() == spectrum[i].getMZ()) { ++j; }
+        for (Size a = i; a < j; ++a)
+        {
+          for (Size b = i; b < j; ++b)
+          {
+            if (kept[b] && spectrum[b] == spectrum[a])
+            {
+              selected.push_back(a);
+              break;
+            }
+          }
+        }
+        i = j;
+      }
+      spectrum.select(selected);
+    }
   }
 
   bool ProSEAlgorithm::filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window, Size dense_peaks_per_window,
@@ -546,16 +980,34 @@ namespace OpenMS
                                           Size dense_window_top,
                                           double dense_intensity_loss)
   {
+    return preprocessSpectra_(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, deisotope_requested, peaks_keep_n,
+                              peaks_window_top, window_type, dense_window_top, dense_intensity_loss, DeisotopingSettings_{});
+  }
+
+  Size ProSEAlgorithm::preprocessSpectra_(PeakMap& exp,
+                                          double fragment_mass_tolerance,
+                                          bool fragment_mass_tolerance_unit_ppm,
+                                          bool deisotope_requested,
+                                          Size peaks_keep_n,
+                                          Int peaks_window_top,
+                                          const std::string& window_type,
+                                          Size dense_window_top,
+                                          double dense_intensity_loss,
+                                          const DeisotopingSettings_& deisotoping,
+                                          FragmentIonLikelihoodModel::PeakLists* ion_evidence,
+                                          bool ion_evidence_scored_peaks,
+                                          PeakMap* evidence_spectra,
+                                          PeakMap* query_spectra)
+  {
     // Intensity threshold + normalization used to run here as two extra SERIAL full-map
     // passes. Both are strictly per-spectrum: ThresholdMower::filterPeakMap and
     // Normalizer::filterPeakMap are literally "for (auto& s : exp) filterSpectrum(s);" and
     // neither iterates chromatograms. They are therefore applied at the top of the parallel
     // loop below instead, which is per-spectrum equivalent and removes two full sweeps over
-    // the peak data. Both objects are configured once here and shared across the OpenMP
-    // threads, exactly like window_mower_filter / nlargest_filter below:
-    // Normalizer::filterPeakSpectrum is const (reads the resolved 'method_' only), and
-    // ThresholdMower only re-reads its 'threshold' Param into a member on every call -- the
-    // same idempotent same-value write the already-shared WindowMower performs.
+    // the peak data. Both objects are configured once here; like nlargest_filter below, each
+    // OpenMP thread works on its own copy (firstprivate): ThresholdMower stores its 'threshold'
+    // Param in a member on every call, and concurrent writes are a data race even when every
+    // thread writes the same value. One copy per thread costs a few Param copies per search.
     // Peaks without intensity (zero or negative, e.g. empty centroids) would still count as
     // matched ions, so they are removed. Nothing else is (every positive float intensity,
     // subnormal ones included, passes): the ThresholdMower default of 0.05 is an absolute
@@ -571,14 +1023,20 @@ namespace OpenMS
     // spectra (it does not touch peak order, see MSExperiment::sortSpectra) and therefore
     // commutes with the per-spectrum filters that now run inside the loop.
     exp.sortSpectra(false);
+    if (ion_evidence != nullptr) { ion_evidence->reset(exp.size()); }
+    if (evidence_spectra != nullptr)
+    {
+      evidence_spectra->clear(true);
+      evidence_spectra->resize(exp.size());
+    }
+    if (query_spectra != nullptr)
+    {
+      query_spectra->clear(true);
+      query_spectra->resize(exp.size());
+    }
 
-    // filter settings
-    WindowMower window_mower_filter;
-    Param filter_param = window_mower_filter.getParameters();
-    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
-    filter_param.setValue("peakcount", peaks_window_top, "The number of peaks that should be kept.");
-    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
-    window_mower_filter.setParameters(filter_param);
+    // filter settings: the most intense peaks_window_top peaks per 100 Th window (jumping windows as WindowMower's,
+    // unless full_window_quota)
     const bool full_window_quota
       = window_type == "jump_full"
         || (window_type == "auto" && Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm));
@@ -618,9 +1076,11 @@ namespace OpenMS
       Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
     Size dense_spectra = 0;
-#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, threshold_mower_filter, \
-                                                normalizer, window_mower_filter, nlargest_filter, full_window_quota, peaks_window_top, \
-                                                dense_window_top, dense_intensity_loss) reduction(+ : dense_spectra)
+#pragma omp parallel for default(none) shared(exp, evidence_spectra, query_spectra, do_deisotope, fragment_mass_tolerance, \
+                                                fragment_mass_tolerance_unit_ppm, full_window_quota, peaks_window_top, dense_window_top, \
+                                                dense_intensity_loss, deisotoping, ion_evidence, ion_evidence_scored_peaks) \
+                                         firstprivate(threshold_mower_filter, normalizer, nlargest_filter) \
+                                         reduction(+ : dense_spectra)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       // remove 0 intensities, then normalize (formerly two serial full-map passes)
@@ -630,39 +1090,294 @@ namespace OpenMS
       // sort by mz
       exp[exp_index].sortByPosition();
 
+      // fragment:query_spectrum=raw retrieves candidates with this peak list (before deisotoping and local filtering).
+      if (query_spectra != nullptr) { (*query_spectra)[exp_index] = exp[exp_index]; }
+
       // deisotope (skipped for low-resolution data; see do_deisotope above)
+      // Isotope intensities must fall from the monoisotopic peak on (start_intensity_check = 1).
+      // With the library default of 2, a small peak one isotope spacing below a fragment ion
+      // became the envelope's monoisotopic peak and the ion itself was removed as its isotope.
+      // TMT/TMTpro-labelled fragments carry such a peak (reagent isotope impurity), and dense
+      // Orbitrap Astral and timsTOF spectra often hold one by chance.
+      // The envelope rule is set by fragment:deisotope_min_peaks, _charge_cap and _sum_intensity; their defaults
+      // are Sage-like (two peaks, charges up to the precursor charge but at most 3, summed intensity; the earlier
+      // rule was three peaks, charges 1-3, own intensity). The Sage-like rule differs from Sage itself: Sage links isotope
+      // pairs with a fixed 10 ppm tolerance, requires each isotope peak to be weaker than its parent and does not
+      // cap the charge at 3, while the OpenMS deisotoper extends an envelope from its monoisotopic peak with the
+      // search tolerance and stops at the first isotope peak that is more intense than its predecessor.
+      // The deisotoper does not exclude peaks that already belong to an earlier envelope, so an isotope peak can be
+      // claimed by two monoisotopic peaks and, with summing, counted in both (two-peak envelopes make this more
+      // frequent; Sage likewise adds a peak to several parents of the same charge). It does not depend on labels.
       if (do_deisotope)
       {
+        int max_charge = 3;
+        if (deisotoping.charge_cap_precursor && ! exp[exp_index].getPrecursors().empty())
+        {
+          const int precursor_charge = exp[exp_index].getPrecursors()[0].getCharge();
+          if (precursor_charge > 0) { max_charge = std::min(max_charge, precursor_charge); }
+        }
         Deisotoper::deisotopeAndSingleCharge(exp[exp_index],
           fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
-          1, 3,   // min / max charge
+          1, max_charge,  // min / max charge
           false,  // keep only deisotoped
-          3, 10,  // min / max isopeaks
-          true);  // convert fragment m/z to mono-charge
+          deisotoping.min_peaks, 10,  // min / max isopeaks
+          true,   // convert fragment m/z to mono-charge
+          false,  // annotate charge
+          false,  // annotate isotopic peak counts
+          true,   // decreasing isotope intensities
+          1,      // start the intensity check at the monoisotopic peak
+          deisotoping.sum_intensity);  // the monoisotopic peak carries the envelope's intensity
       }
+
+      // ion priors: every peak after deisotoping, before the window and top-N filters
+      if (ion_evidence != nullptr && !ion_evidence_scored_peaks) { ion_evidence->assign(exp_index, exp[exp_index]); }
+      // Local fragment evidence uses this peak list: after deisotoping, so that densities and
+      // matching share the m/z space of the scoring spectrum, but before local and top-N filtering.
+      if (evidence_spectra != nullptr) { (*evidence_spectra)[exp_index] = exp[exp_index]; }
 
       // remove noise
       if (full_window_quota)
       {
         if (filterLocalPeaks_(exp[exp_index], static_cast<Size>(peaks_window_top), dense_window_top, dense_intensity_loss)) { ++dense_spectra; }
       }
-      else { window_mower_filter.filterPeakSpectrum(exp[exp_index]); }
+      else { filterTopNInJumpingWindows(exp[exp_index], 100.0, static_cast<UInt>(peaks_window_top)); }
       nlargest_filter.filterPeakSpectrum(exp[exp_index]);
 
       // sort (nlargest changes order)
       exp[exp_index].sortByPosition();
+
+      // ion priors on the scored peaks
+      if (ion_evidence != nullptr && ion_evidence_scored_peaks) { ion_evidence->assign(exp_index, exp[exp_index]); }
     }
     return dense_spectra;
   }
 
-  double ProSEAlgorithm::CandidatePoolStats_::zScore() const
+  double ProSEAlgorithm::CandidatePoolStats_::zScoreOf(double score) const
   {
     if (count < 2) return 0.0;
     const double n = static_cast<double>(count);
     const double mean = sum / n;
     const double var = std::max(0.0, sumsq / n - mean * mean);
-    if (var <= 0.0) return 0.0; // every candidate scored the same: the best one is not an outlier
-    return (best - mean) / std::sqrt(var);
+    if (var <= 0.0) return 0.0; // every candidate scored the same: none of them is an outlier
+    return (score - mean) / std::sqrt(var);
+  }
+
+  namespace
+  {
+    /// Scratch buffers of alignAbsoluteTolerance_(), reused across the hits of one spectrum.
+    struct AlignmentScratch_
+    {
+      std::vector<double> prev;         ///< scores of the computed cells of row i - 1
+      std::vector<double> cur;          ///< scores of the computed cells of row i
+      std::vector<unsigned char> dir;   ///< traceback direction of every computed cell, rows concatenated
+      std::vector<Size> row_begin;      ///< first computed column of row i
+      std::vector<Size> row_offset;     ///< position of row i in dir (entry i + 1 closes row i)
+    };
+
+    /**
+      @brief Absolute-tolerance (Da) branch of SpectrumAlignment::getSpectrumAlignment on flat storage.
+
+      Returns exactly the alignment of the banded dynamic programme in SpectrumAlignment.h, which keeps
+      its cells in std::map<Size, std::map<Size, ...>> (two tree nodes and several lookups per cell).
+      Identity: the reference computes, per row i, one contiguous run of columns (from the left border
+      it carries along to the column where it leaves the band), in the same order and with the same
+      expressions as below. Every other cell it reads is either a border cell (i * tolerance or
+      j * tolerance, (0,0) = 0) or absent, in which case it substitutes (i + j) * tolerance: the same
+      value, so one formula serves both. A traceback step onto an absent cell reads a default (0,0)
+      entry there, which ends the walk.
+    */
+    void alignAbsoluteTolerance_(std::vector<std::pair<Size, Size>>& alignment,
+                                 const MSSpectrum& s1, const MSSpectrum& s2,
+                                 const double tolerance, AlignmentScratch_& scratch)
+    {
+      if (!s1.isSorted() || !s2.isSorted())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input to SpectrumAlignment is not sorted!");
+      }
+      alignment.clear();
+
+      const Size n1 = s1.size();
+      const Size n2 = s2.size();
+      // cell (i, j) outside the computed runs: border value or the reference's substitute for an absent cell
+      const auto outside = [tolerance](const Size i_plus_j) { return i_plus_j == 0 ? 0.0 : i_plus_j * tolerance; };
+      enum : unsigned char { DIAGONAL = 1, UP = 2, LEFT = 3 }; // predecessor (i-1,j-1), (i,j-1), (i-1,j)
+
+      std::vector<double>& prev = scratch.prev;
+      std::vector<double>& cur = scratch.cur;
+      std::vector<unsigned char>& dir = scratch.dir;
+      prev.clear();
+      dir.clear();
+      scratch.row_begin.assign(n1 + 2, 0);
+      scratch.row_offset.assign(n1 + 2, 0);
+
+      Size left_ptr(1);
+      Size last_i(0), last_j(0);
+      Size prev_begin(1), prev_end(0); // computed columns of row i - 1 (row 0: none)
+      for (Size i = 1; i <= n1; ++i)
+      {
+        const double pos1(s1[i - 1].getMZ());
+        const Size cur_begin = left_ptr;
+        cur.clear();
+        scratch.row_begin[i] = cur_begin;
+        scratch.row_offset[i] = dir.size();
+
+        for (Size j = cur_begin; j <= n2; ++j)
+        {
+          bool off_band(false);
+          const double pos2(s2[j - 1].getMZ());
+          const double diff_align = fabs(pos1 - pos2);
+
+          // running off the right border of the band?
+          if (pos2 > pos1 && diff_align > tolerance)
+          {
+            if (i < n1 && j < n2 && s1[i].getMZ() < pos2)
+            {
+              off_band = true;
+            }
+          }
+
+          // can we tighten the left border of the band?
+          if (pos1 > pos2 && diff_align > tolerance && j > left_ptr + 1)
+          {
+            ++left_ptr;
+          }
+
+          double score_align = diff_align;
+          if (j - 1 >= prev_begin && j - 1 <= prev_end)
+          {
+            score_align += prev[j - 1 - prev_begin];
+          }
+          else
+          {
+            score_align += outside(i - 1 + j - 1);
+          }
+
+          double score_up = tolerance;
+          if (j > cur_begin)
+          {
+            score_up += cur.back();
+          }
+          else
+          {
+            score_up += outside(i + j - 1);
+          }
+
+          double score_left = tolerance;
+          if (j >= prev_begin && j <= prev_end)
+          {
+            score_left += prev[j - prev_begin];
+          }
+          else
+          {
+            score_left += outside(i - 1 + j);
+          }
+
+          if (score_align <= score_up && score_align <= score_left && diff_align <= tolerance)
+          {
+            cur.push_back(score_align);
+            dir.push_back(DIAGONAL);
+            last_i = i;
+            last_j = j;
+          }
+          else if (score_up <= score_left)
+          {
+            cur.push_back(score_up);
+            dir.push_back(UP);
+          }
+          else
+          {
+            cur.push_back(score_left);
+            dir.push_back(LEFT);
+          }
+
+          if (off_band)
+          {
+            break;
+          }
+        }
+        prev_begin = cur_begin;
+        prev_end = cur_begin + cur.size() - 1;
+        prev.swap(cur);
+      }
+      scratch.row_offset[n1 + 1] = dir.size();
+
+      // do traceback
+      Size i = last_i;
+      Size j = last_j;
+      while (i >= 1 && j >= 1)
+      {
+        const Size begin = scratch.row_begin[i];
+        const Size width = scratch.row_offset[i + 1] - scratch.row_offset[i];
+        if (j < begin || j >= begin + width)
+        {
+          // absent cell: the reference reads (0,0), which counts as a diagonal step only at (1,1)
+          if (i == 1 && j == 1) alignment.emplace_back(0, 0);
+          break;
+        }
+        const unsigned char d = dir[scratch.row_offset[i] + (j - begin)];
+        if (d == DIAGONAL)
+        {
+          alignment.emplace_back(i - 1, j - 1);
+          --i;
+          --j;
+        }
+        else if (d == UP)
+        {
+          --j;
+        }
+        else
+        {
+          --i;
+        }
+      }
+      std::reverse(alignment.begin(), alignment.end());
+    }
+  }
+
+  double ProSEAlgorithm::precursorErrorPpm_(const MSSpectrum& spectrum, const AnnotatedHit_& hit)
+  {
+    // Subtract out the isotope offset FI matched at — FragmentIndex searches
+    // shifted_mass = precursor_mass + isotope_error * C13C12, so M_theo ≈ N_obs
+    // + isotope_error * C13C12, and the observed-to-monoiso correction in m/z is
+    //   corrected_mz = observed_mz + isotope_error * C13C12 / charge
+    // (hit.isotope_error is this search offset, whatever sign the PSM reports).
+    // Without this, a ±1 Da FI match reports ~1000 ppm / charge for the Percolator
+    // feature, corrupting target/decoy discrimination.
+    const Precursor& precursor = spectrum.getPrecursors()[0];
+    const Size charge = precursor.getCharge();
+    const Size used_charge = (charge > 0) ? charge : static_cast<Size>(hit.applied_charge);
+    const double corrected_mz = precursor.getMZ()
+      + static_cast<double>(hit.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
+    return Math::getPPM(corrected_mz, hit.sequence.getMZ(used_charge));
+  }
+
+  namespace
+  {
+    /**
+      @brief The PSM feature annotate:prefilter_poisson: ln(1 + max(0, -log10 Poisson(k; lambda))) of a candidate's
+      @p k matched fragments in the fragment-index prefilter, lambda = @p matches / @p candidates (the mean over all
+      candidates of the spectrum with at least one matched fragment).
+
+      Upper tail only: 0 for k <= lambda, where a low match count would otherwise look as surprising as a high one.
+      0 without prefilter totals (SNES).
+    */
+    double prefilterPoissonSurprise(uint16_t k, uint64_t candidates, uint64_t matches)
+    {
+      if (candidates == 0) return 0.0;
+      const double lambda = static_cast<double>(matches) / static_cast<double>(candidates); // >= 1: every candidate matched
+      const double kd = static_cast<double>(k);
+      if (kd <= lambda) return 0.0;
+      // ln k! from a table for the counts that occur (lgamma also writes the global signgam)
+      static const std::vector<double> ln_factorial = []
+      {
+        std::vector<double> table(1024);
+        for (Size i = 0; i < table.size(); ++i) table[i] = std::lgamma(static_cast<double>(i) + 1.0);
+        return table;
+      }();
+      const double ln_k_factorial = k < ln_factorial.size() ? ln_factorial[k] : std::lgamma(kd + 1.0);
+      const double neg_log10_p = -(kd * std::log(lambda) - lambda - ln_k_factorial) / std::log(10.0);
+      return std::log1p(std::max(0.0, neg_log10_p));
+    }
   }
 
   void ProSEAlgorithm::postProcessHits_(const PeakMap& exp,
@@ -684,7 +1399,8 @@ namespace OpenMS
         const Int precursor_min_charge,
         const Int precursor_max_charge,
         const std::string& enzyme,
-        const std::string& database_name) const
+        const std::string& database_name,
+        const PeakMap* evidence_spectra) const
   {
     // Candidate-pool features (delta score, z-score, candidate count) are derived
     // from @p pool_stats rather than from @p annotated_hits: scoreSpectraAgainstIndex_
@@ -698,12 +1414,23 @@ namespace OpenMS
         "Candidate-pool statistics must hold one entry per spectrum.");
     }
 
+    const bool open_search_mode = isOpenSearchMode_();
+    const bool per_psm_pool_features = annotate_per_psm_pool_features_;
+    // The precursor m/z error of an open search holds the modification mass: no feature there.
+    const bool precursor_ppm_feature = annotate_precursor_ppm_ != PrecursorPpmFeature_::OFF && !open_search_mode;
+    const bool center_precursor_ppm = precursor_ppm_feature && annotate_precursor_ppm_ == PrecursorPpmFeature_::CENTERED;
+
     // One value per spectrum, kept in side vectors so scoring does not have to carry
     // them on every AnnotatedHit_ candidate.
     std::vector<float> delta_scores(annotated_hits.size(), 0.0f);
     std::vector<float> hyperscore_zscores(annotated_hits.size(), 0.0f);
     std::vector<float> ln_num_candidates(annotated_hits.size(), 0.0f);
-#pragma omp parallel for default(none) shared(annotated_hits, top_hits, pool_stats, delta_scores, hyperscore_zscores, ln_num_candidates)
+    // annotate:per_psm_pool_features: the score of the best candidate below the reported ones (0 if there is none),
+    // for the delta_score of the last reported hit
+    std::vector<double> next_unreported_scores(per_psm_pool_features ? annotated_hits.size() : 0, 0.0);
+    // annotate:precursor_ppm=centered: the precursor m/z error (ppm) of each spectrum's top hit
+    std::vector<double> top_hit_precursor_ppm(center_precursor_ppm ? annotated_hits.size() : 0, 0.0);
+#pragma omp parallel for default(none) shared(exp, annotated_hits, top_hits, pool_stats, delta_scores, hyperscore_zscores, ln_num_candidates, per_psm_pool_features, next_unreported_scores, center_precursor_ppm, top_hit_precursor_ppm)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       const CandidatePoolStats_& stats = pool_stats[scan_index];
@@ -718,8 +1445,40 @@ namespace OpenMS
       auto& hits = annotated_hits[scan_index];
       Size topn = top_hits > hits.size() ? hits.size() : top_hits;
       std::partial_sort(hits.begin(), hits.begin() + topn, hits.end(), AnnotatedHit_::hasBetterScore);
+      if (per_psm_pool_features && topn < hits.size())
+      {
+        next_unreported_scores[scan_index] = std::min_element(hits.begin() + topn, hits.end(), AnnotatedHit_::hasBetterScore)->score;
+      }
       hits.resize(topn);
       hits.shrink_to_fit();
+      if (center_precursor_ppm && !hits.empty())
+      {
+        top_hit_precursor_ppm[scan_index] = precursorErrorPpm_(exp[scan_index], hits.front());
+      }
+    }
+
+    // annotate:precursor_ppm=centered: a run's precursor m/z calibration offset, as the median error of the
+    // confident top hits - those of the top-scoring tenth of the spectra (by native score; ties by spectrum order).
+    // Computed from scores and m/z values only, alike for targets and decoys.
+    double precursor_ppm_offset = 0.0;
+    if (center_precursor_ppm)
+    {
+      std::vector<std::pair<double, Size>> top_hits_by_score; // (score, spectrum)
+      for (Size scan_index = 0; scan_index < annotated_hits.size(); ++scan_index)
+      {
+        if (!annotated_hits[scan_index].empty()) top_hits_by_score.emplace_back(annotated_hits[scan_index].front().score, scan_index);
+      }
+      if (!top_hits_by_score.empty())
+      {
+        const Size confident = std::max<Size>(1, top_hits_by_score.size() / 10);
+        std::partial_sort(top_hits_by_score.begin(), top_hits_by_score.begin() + confident, top_hits_by_score.end(),
+                          [](const std::pair<double, Size>& a, const std::pair<double, Size>& b)
+                          { return a.first != b.first ? a.first > b.first : a.second < b.second; });
+        std::vector<double> errors;
+        errors.reserve(confident);
+        for (Size i = 0; i < confident; ++i) errors.push_back(top_hit_precursor_ppm[top_hits_by_score[i].second]);
+        precursor_ppm_offset = Math::median(errors.begin(), errors.end());
+      }
     }
 
     bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
@@ -736,6 +1495,13 @@ namespace OpenMS
     bool annotation_ln_num_candidates = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LN_NUM_CANDIDATES) != annotate_psm_.end();
     bool annotation_matched_ion_current_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_ION_CURRENT_FRACTION) != annotate_psm_.end();
     bool annotation_complementary_ions_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::COMPLEMENTARY_IONS_FRACTION) != annotate_psm_.end();
+    const bool annotation_local_evidence = param_.getValue("annotate:local_fragment_evidence").toBool();
+    const bool evidence_ppm = fragment_mass_tolerance_unit_ppm == "ppm";
+    if (annotation_local_evidence && (evidence_spectra == nullptr || evidence_spectra->size() != exp.size()))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Local fragment evidence requires the aligned peak lists retained during preprocessing.");
+    }
 
     // "ALL" adds all annotations
     if (std::find(annotate_psm_.begin(), annotate_psm_.end(), "ALL") != annotate_psm_.end())
@@ -758,8 +1524,11 @@ namespace OpenMS
 
     // Alignment is needed for fragment error, fragment annotations, longest ion run, MIC,
     // normalized MIC, and complementary ion pairs
+    // annotate:top_ion_mass_errors: mass errors of the singly charged fragment ions
+    const bool top_ion_mass_errors = annotate_top_ion_mass_errors_;
     const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run
-      || annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction;
+      || annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction
+      || top_ion_mass_errors;
 
     // Both configurations depend only on the fragment tolerance, so they are
     // shared read-only by every thread of the loop below: getSpectrum() and
@@ -780,8 +1549,97 @@ namespace OpenMS
       sa_param.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm == "ppm" ? "true" : "false");
       sa.setParameters(sa_param);
     }
+    // Da tolerance: same alignment from a flat-storage copy of SpectrumAlignment's banded DP
+    // (alignAbsoluteTolerance_ above); ppm tolerance keeps SpectrumAlignment's cheap matching.
+    const bool sa_absolute = !sa.getParameters().getValue("is_relative_tolerance").toBool();
+    const double sa_tolerance = (double)sa.getParameters().getValue("tolerance");
 
-#pragma omp parallel for
+    // Meta value keys of the loop below, resolved to registry indices once per call: every
+    // string-keyed setMetaValue()/getMetaValue() takes the registry's process-wide lock (also for
+    // names that are already registered), which serialised the annotation threads.
+    // Identity: MetaInfo keeps (and idXML writes) the values of a hit ordered by registry index, so
+    // new names must get their indices in the order in which the loop registered them: the first
+    // spectrum with hits registers "scan_index", then IM if it carries a drift time, then its first
+    // hit registers the per-hit names in the order they are set below. All hits set the same names,
+    // so no thread could register a later name before an earlier one and this order did not depend
+    // on the thread count. registerName() only looks up names that are already known, and without
+    // any hit nothing was registered, so nothing is registered here either. Names that stay
+    // string-keyed (spectrum reference, IM, rank; at most one lookup per spectrum or hit) are
+    // still registered inside the loop, after the ones below, as before (checked: the registry
+    // contents after a search are the same as before this change, at 1 and at 16 threads).
+    const int isotope_error_sign = isotope_error_observed_minus_theoretical_ ? -1 : 1;
+    // The candidate-competition features (annotate:*) come after all of these and are registered only when enabled.
+    UInt mv_scan_index{}, mv_fragment_error{}, mv_precursor_error{}, mv_prefix_fraction{}, mv_suffix_fraction{},
+         mv_num_matched_peaks{}, mv_matched_prefix_ions{}, mv_matched_suffix_ions{}, mv_delta_score{},
+         mv_hyperscore_zscore{}, mv_ln_num_candidates{}, mv_matched_ion_current{}, mv_matched_ion_current_fraction{},
+         mv_longest_ion_run{}, mv_complementary_ions_fraction{}, mv_chance_match_surprise{},
+         mv_mass_competition_evidence{}, mv_isotope_error{}, mv_delta_mass{},
+         mv_delta_best{}, mv_prefilter_poisson{}, mv_ln_precursor_error{},
+         mv_top_abs_error_mean{}, mv_top_abs_error_sd{}, mv_top_error_mean{}, mv_top_error_sd{};
+    {
+      const auto first_with_hits = std::find_if(annotated_hits.begin(), annotated_hits.end(),
+                                                [](const std::vector<AnnotatedHit_>& hits) { return !hits.empty(); });
+      if (first_with_hits != annotated_hits.end())
+      {
+        MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+        mv_scan_index = registry.registerName("scan_index");
+        if (IMTypes::determineIMFormat(exp[first_with_hits - annotated_hits.begin()]) == IMFormat::IM_SPECTRUM)
+        {
+          registry.registerName(Constants::UserParam::IM);
+        }
+        if (annotation_fragment_error_ppm) mv_fragment_error = registry.registerName(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM);
+        if (annotation_precursor_error_ppm) mv_precursor_error = registry.registerName(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
+        if (annotation_prefix_fraction) mv_prefix_fraction = registry.registerName(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION);
+        if (annotation_suffix_fraction) mv_suffix_fraction = registry.registerName(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION);
+        if (annotation_num_matched_peaks) mv_num_matched_peaks = registry.registerName(Constants::UserParam::NUM_MATCHED_PEAKS);
+        if (annotation_matched_prefix_ions) mv_matched_prefix_ions = registry.registerName(Constants::UserParam::MATCHED_PREFIX_IONS);
+        if (annotation_matched_suffix_ions) mv_matched_suffix_ions = registry.registerName(Constants::UserParam::MATCHED_SUFFIX_IONS);
+        mv_delta_score = registry.registerName(Constants::UserParam::DELTA_SCORE);
+        if (annotation_hyperscore_zscore) mv_hyperscore_zscore = registry.registerName(Constants::UserParam::HYPERSCORE_ZSCORE);
+        if (annotation_ln_num_candidates) mv_ln_num_candidates = registry.registerName(Constants::UserParam::LN_NUM_CANDIDATES);
+        if (annotation_matched_ion_current) mv_matched_ion_current = registry.registerName(Constants::UserParam::MATCHED_ION_CURRENT);
+        if (annotation_matched_ion_current_fraction) mv_matched_ion_current_fraction = registry.registerName(Constants::UserParam::MATCHED_ION_CURRENT_FRACTION);
+        if (annotation_longest_ion_run) mv_longest_ion_run = registry.registerName(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE);
+        if (annotation_complementary_ions_fraction) mv_complementary_ions_fraction = registry.registerName(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION);
+        if (annotation_local_evidence)
+        {
+          mv_chance_match_surprise = registry.registerName(Constants::UserParam::CHANCE_MATCH_SURPRISE);
+          mv_mass_competition_evidence = registry.registerName(Constants::UserParam::MASS_COMPETITION_EVIDENCE);
+        }
+        mv_isotope_error = registry.registerName(Constants::UserParam::ISOTOPE_ERROR);
+        if (open_search_mode) mv_delta_mass = registry.registerName("DeltaMass");
+        if (annotate_delta_best_) mv_delta_best = registry.registerName(Constants::UserParam::DELTA_BEST);
+        if (annotate_prefilter_poisson_) mv_prefilter_poisson = registry.registerName(Constants::UserParam::PREFILTER_POISSON_SURPRISE);
+        if (precursor_ppm_feature) mv_ln_precursor_error = registry.registerName(Constants::UserParam::LN_PRECURSOR_ERROR_PPM);
+        if (top_ion_mass_errors)
+        {
+          mv_top_abs_error_mean = registry.registerName(Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN);
+          mv_top_abs_error_sd = registry.registerName(Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_SD);
+          mv_top_error_mean = registry.registerName(Constants::UserParam::TOP_IONS_ERROR_PPM_MEAN);
+          mv_top_error_sd = registry.registerName(Constants::UserParam::TOP_IONS_ERROR_PPM_SD);
+        }
+      }
+    }
+
+    // With an empty list to start from, every spectrum with hits gets a slot in scan order: the identifications
+    // end up in scan order without a lock and without the sort below (which orders them by scan_index, i.e. the
+    // same order). Otherwise they are appended under a lock and sorted, as before.
+    const bool slots = peptide_ids.empty();
+    std::vector<Size> slot_of_scan;
+    if (slots)
+    {
+      slot_of_scan.resize(annotated_hits.size());
+      Size used_slots = 0;
+      for (Size scan_index = 0; scan_index < annotated_hits.size(); ++scan_index)
+      {
+        slot_of_scan[scan_index] = used_slots;
+        if (!annotated_hits[scan_index].empty()) ++used_slots;
+      }
+      peptide_ids.resize(used_slots);
+    }
+
+    // The work per spectrum varies with its number of hits: hand out small blocks
+#pragma omp parallel for schedule(dynamic, 16)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       if (!annotated_hits[scan_index].empty())
@@ -791,8 +1649,8 @@ namespace OpenMS
         // create empty PeptideIdentification object and fill meta data
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
-        pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-        pi.setScoreType("ln(hyperscore)");
+        pi.setMetaValue(mv_scan_index, static_cast<unsigned int>(scan_index));
+        pi.setScoreType("ln(hyperscore)"); // also for scoring:method mass_accuracy, a log-space HyperScore (recorded in the search parameters)
         pi.setHigherScoreBetter(true);
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
@@ -810,11 +1668,20 @@ namespace OpenMS
         // computed once here rather than per hit.
         const double spectrum_tic =
           annotation_matched_ion_current_fraction ? spec.calculateTIC() : 0.0;
+        const MSSpectrum& evidence_spec = annotation_local_evidence ? (*evidence_spectra)[scan_index] : spec;
+        const std::vector<double> local_densities = annotation_local_evidence
+          ? localPeakDensities_(evidence_spec) : std::vector<double>{};
+
+        AlignmentScratch_ alignment_scratch; // reused by all hits of this spectrum
+        std::vector<double> evidence_alternatives; // reused by all hits of this spectrum
 
         // create full peptide hit structure from annotated hits
+        const std::vector<AnnotatedHit_>& hits_of_spectrum = annotated_hits[scan_index];
+        const CandidatePoolStats_& pool = pool_stats[scan_index];
         vector<PeptideHit> phs;
-        for (const auto& ah : annotated_hits[scan_index])
+        for (Size hit_index = 0; hit_index < hits_of_spectrum.size(); ++hit_index)
         {
+          const AnnotatedHit_& ah = hits_of_spectrum[hit_index];
           PeptideHit ph;
           // Prefer spectrum charge; if absent (0), fall back to the charge actually used by FI for this candidate
           const Size used_charge = (charge > 0) ? charge : static_cast<Size>(ah.applied_charge);
@@ -825,11 +1692,20 @@ namespace OpenMS
           // Generate theoretical spectrum + alignment for annotations that need it.
           std::vector<std::pair<Size, Size>> alignment;
           MSSpectrum theoretical_spec;
+          // Annotate the charges actually scored when higher charges are scored.
+          const int max_frag_z = scoring_multiple_charges_ ? scoringMaxCharge_(static_cast<int>(used_charge))
+                                                           : ((charge >= 2) ? std::min<int>(charge - 1, 2) : 1);
           if (need_alignment)
           {
-            const int max_frag_z = (charge >= 2) ? std::min<int>(charge - 1, 2) : 1;
             tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
-            sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
+            if (sa_absolute)
+            {
+              alignAbsoluteTolerance_(alignment, theoretical_spec, spec, sa_tolerance, alignment_scratch);
+            }
+            else
+            {
+              sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
+            }
           }
 
           if (annotation_fragment_error_ppm)
@@ -842,63 +1718,79 @@ namespace OpenMS
             }
             double median_ppm_error(0);
             if (!err.empty()) { median_ppm_error = Math::median(err.begin(), err.end(), false); }
-            ph.setMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, median_ppm_error);
+            ph.setMetaValue(mv_fragment_error, median_ppm_error);
           }
 
           if (annotation_precursor_error_ppm)
           {
-            // Subtract out the isotope offset FI matched at — FragmentIndex searches
-            // shifted_mass = precursor_mass + isotope_error * C13C12, so M_theo ≈ N_obs
-            // + isotope_error * C13C12, and the observed-to-monoiso correction in m/z is
-            //   corrected_mz = observed_mz + isotope_error * C13C12 / charge
-            // Without this, a ±1 Da FI match reports ~1000 ppm / charge for the Percolator
-            // feature, corrupting target/decoy discrimination.
-            const double corrected_mz = mz
-              + static_cast<double>(ah.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
-            double theo_mz = ah.sequence.getMZ(used_charge);
-            double ppm_difference = Math::getPPM(corrected_mz, theo_mz);
-            ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
+            ph.setMetaValue(mv_precursor_error, precursorErrorPpm_(spec, ah));
           }
 
           if (annotation_prefix_fraction)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION, ah.prefix_fraction);
+            ph.setMetaValue(mv_prefix_fraction, ah.prefix_fraction);
           }
 
           if (annotation_suffix_fraction)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION, ah.suffix_fraction);
+            ph.setMetaValue(mv_suffix_fraction, ah.suffix_fraction);
           }
 
           // Matched ion counts (from scoring, no alignment needed)
           if (annotation_num_matched_peaks)
           {
-            ph.setMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS, static_cast<int>(ah.matched_prefix_ions + ah.matched_suffix_ions));
+            ph.setMetaValue(mv_num_matched_peaks, static_cast<int>(ah.matched_prefix_ions + ah.matched_suffix_ions));
           }
           if (annotation_matched_prefix_ions)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS, static_cast<int>(ah.matched_prefix_ions));
+            ph.setMetaValue(mv_matched_prefix_ions, static_cast<int>(ah.matched_prefix_ions));
           }
           if (annotation_matched_suffix_ions)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS, static_cast<int>(ah.matched_suffix_ions));
+            ph.setMetaValue(mv_matched_suffix_ions, static_cast<int>(ah.matched_suffix_ions));
           }
 
-          ph.setMetaValue(Constants::UserParam::DELTA_SCORE, delta_scores[scan_index]);
+          if (per_psm_pool_features)
+          {
+            // Sage's delta_next: the margin to the next lower-ranked candidate, the next reported hit or the best
+            // unreported one. For the top hit this is the spectrum-level value.
+            const double next_score = hit_index + 1 < hits_of_spectrum.size() ? hits_of_spectrum[hit_index + 1].score
+                                                                               : next_unreported_scores[scan_index];
+            ph.setMetaValue(mv_delta_score, static_cast<float>(ah.score - next_score));
+          }
+          else
+          {
+            ph.setMetaValue(mv_delta_score, delta_scores[scan_index]);
+          }
 
           if (annotation_hyperscore_zscore)
           {
-            ph.setMetaValue(Constants::UserParam::HYPERSCORE_ZSCORE, hyperscore_zscores[scan_index]);
+            ph.setMetaValue(mv_hyperscore_zscore,
+                            per_psm_pool_features ? static_cast<float>(pool.zScoreOf(ah.score)) : hyperscore_zscores[scan_index]);
           }
           if (annotation_ln_num_candidates)
           {
-            ph.setMetaValue(Constants::UserParam::LN_NUM_CANDIDATES, ln_num_candidates[scan_index]);
+            ph.setMetaValue(mv_ln_num_candidates, ln_num_candidates[scan_index]);
           }
 
-          // Fragment annotations, longest ion run, MIC, normalized MIC, and complementary
-          // ion pairs all iterate the alignment + ion names
+          if (annotate_delta_best_)
+          {
+            ph.setMetaValue(mv_delta_best, static_cast<float>(hits_of_spectrum.front().score - ah.score));
+          }
+          if (annotate_prefilter_poisson_)
+          {
+            ph.setMetaValue(mv_prefilter_poisson,
+                            prefilterPoissonSurprise(ah.prefilter_matches, pool.prefilter_candidates, pool.prefilter_matches));
+          }
+          if (precursor_ppm_feature)
+          {
+            ph.setMetaValue(mv_ln_precursor_error, std::log1p(std::fabs(precursorErrorPpm_(spec, ah) - precursor_ppm_offset)));
+          }
+
+          // Fragment annotations, longest ion run, MIC, normalized MIC, complementary ion pairs
+          // and the mass errors of the singly charged ions all iterate the alignment + ion names
           if (annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current
-            || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction)
+            || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction || top_ion_mass_errors)
           {
             const auto& ion_names = theoretical_spec.getStringDataArrays()[0];
             const auto& ion_charges = theoretical_spec.getIntegerDataArrays()[0];
@@ -919,9 +1811,13 @@ namespace OpenMS
             // when MIC is actually requested.
             std::vector<char> counted_exp_peaks(need_mic ? spec.size() : 0, 0);
             peak_annotations.reserve(alignment.size());
+            // the matches of singly charged ions, as (theoretical, experimental) peak
+            std::vector<std::pair<Size, Size>> charge1_matches;
 
             for (const auto& [theo_idx, exp_idx] : alignment)
             {
+              if (top_ion_mass_errors && ion_charges[theo_idx] == 1) { charge1_matches.emplace_back(theo_idx, exp_idx); }
+
               if (annotation_fragment_annotations)
               {
                 PeptideHit::PeakAnnotation pa;
@@ -965,14 +1861,46 @@ namespace OpenMS
               ph.setPeakAnnotations(std::move(peak_annotations));
             }
 
+            // ANDES' model-free mass-accuracy evidence: the mass errors of true fragment ions are small and consistent,
+            // most of all those of the intense ones. 0 without a singly charged match.
+            if (top_ion_mass_errors)
+            {
+              // the 7 most intense matched peaks (ties in alignment order)
+              std::stable_sort(charge1_matches.begin(), charge1_matches.end(),
+                               [&spec](const std::pair<Size, Size>& a, const std::pair<Size, Size>& b)
+                               { return spec[a.second].getIntensity() > spec[b.second].getIntensity(); });
+              const Size n_top = std::min<Size>(7, charge1_matches.size());
+              double abs_sum = 0.0, sum = 0.0, square_sum = 0.0;
+              for (Size i = 0; i < n_top; ++i)
+              {
+                const double error = Math::getPPM(spec[charge1_matches[i].second].getMZ(), theoretical_spec[charge1_matches[i].first].getMZ());
+                abs_sum += std::fabs(error);
+                sum += error;
+                square_sum += error * error;
+              }
+              double abs_mean = 0.0, abs_sd = 0.0, mean = 0.0, sd = 0.0;
+              if (n_top > 0)
+              {
+                const double n = static_cast<double>(n_top);
+                abs_mean = abs_sum / n;
+                mean = sum / n;
+                abs_sd = std::sqrt(std::max(0.0, square_sum / n - abs_mean * abs_mean)); // population SD; |e|^2 = e^2
+                sd = std::sqrt(std::max(0.0, square_sum / n - mean * mean));
+              }
+              ph.setMetaValue(mv_top_abs_error_mean, abs_mean);
+              ph.setMetaValue(mv_top_abs_error_sd, abs_sd);
+              ph.setMetaValue(mv_top_error_mean, mean);
+              ph.setMetaValue(mv_top_error_sd, sd);
+            }
+
             if (annotation_matched_ion_current)
             {
-              ph.setMetaValue(Constants::UserParam::MATCHED_ION_CURRENT, matched_ion_current);
+              ph.setMetaValue(mv_matched_ion_current, matched_ion_current);
             }
 
             if (annotation_matched_ion_current_fraction)
             {
-              ph.setMetaValue(Constants::UserParam::MATCHED_ION_CURRENT_FRACTION,
+              ph.setMetaValue(mv_matched_ion_current_fraction,
                               spectrum_tic > 0 ? matched_ion_current / spectrum_tic : 0.0);
             }
 
@@ -998,7 +1926,7 @@ namespace OpenMS
 
               if (annotation_longest_ion_run)
               {
-                ph.setMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE, std::max(longest_prefix, longest_suffix));
+                ph.setMetaValue(mv_longest_ion_run, std::max(longest_prefix, longest_suffix));
               }
 
               if (annotation_complementary_ions_fraction)
@@ -1018,19 +1946,43 @@ namespace OpenMS
                   }
                   complementary_fraction = static_cast<double>(n_complementary) / static_cast<double>(pep_len - 1);
                 }
-                ph.setMetaValue(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION, complementary_fraction);
+                ph.setMetaValue(mv_complementary_ions_fraction, complementary_fraction);
               }
             }
           }
 
 
-          // Add isotope error metavalue (always; exposed as Percolator feature)
-          ph.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, ah.isotope_error);
+          if (annotation_local_evidence)
+          {
+            // Use the fragment charges that were scored. The annotation spectrum (charges 1..max_frag_z)
+            // contains them whenever it was generated, so it is reused instead of generating a second one.
+            const int evidence_z = scoringMaxCharge_(static_cast<int>(used_charge));
+            LocalFragmentEvidence_ evidence;
+            if (need_alignment && evidence_z <= max_frag_z)
+            {
+              evidence = localFragmentEvidence_(evidence_spec, theoretical_spec, evidence_z, local_densities,
+                fragment_mass_tolerance, evidence_ppm, evidence_alternatives);
+            }
+            else
+            {
+              MSSpectrum evidence_theory;
+              tsg.getSpectrum(evidence_theory, ah.sequence, 1, evidence_z);
+              evidence = localFragmentEvidence_(evidence_spec, evidence_theory, evidence_z, local_densities,
+                fragment_mass_tolerance, evidence_ppm, evidence_alternatives);
+            }
+            ph.setMetaValue(mv_chance_match_surprise, evidence.chance_match_surprise);
+            ph.setMetaValue(mv_mass_competition_evidence, evidence.mass_competition_evidence);
+          }
+
+          // Add isotope error metavalue (always; exposed as Percolator feature). ah.isotope_error is the offset
+          // FragmentIndex added to the observed mass (theoretical minus observed); report:isotope_error_convention
+          // selects the reported sign.
+          ph.setMetaValue(mv_isotope_error, isotope_error_sign * ah.isotope_error);
 
           // Add delta mass metavalue for open search
-          if (isOpenSearchMode_())
+          if (open_search_mode)
           {
-            ph.setMetaValue("DeltaMass", ah.delta_mass);
+            ph.setMetaValue(mv_delta_mass, ah.delta_mass);
           }
 
           // store PSM
@@ -1055,24 +2007,34 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << "[ProSE] scan_index=" << scan_index
                            << " top_ln(hyperscore)=" << top_hit.getScore()
                            << " top_charge=" << top_hit.getCharge()
-                           << " top_isotope_error=" << (int)top_hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR)
+                           << " top_isotope_error=" << (int)top_hit.getMetaValue(mv_isotope_error)
                            << std::endl;
         }
-#pragma omp critical (peptide_ids_access)
+        if (slots)
         {
-          //clang-tidy: seems to be a false-positive in combination with omp
-          peptide_ids.push_back(std::move(pi));
+          peptide_ids[slot_of_scan[scan_index]] = std::move(pi);
+        }
+        else
+        {
+#pragma omp critical (peptide_ids_access)
+          {
+            //clang-tidy: seems to be a false-positive in combination with omp
+            peptide_ids.push_back(std::move(pi));
+          }
         }
       }
     }
 
 #ifdef _OPENMP
     // we need to sort the peptide_ids by scan_index in order to have the same output in the idXML-file
-    if (omp_get_max_threads() > 1)
+    if (omp_get_max_threads() > 1 && !slots)
     {
-      std::sort(peptide_ids.begin(), peptide_ids.end(), [](const PeptideIdentification& a, const PeptideIdentification& b)
+      // one registry lookup for the whole sort instead of two (locked) lookups per comparison;
+      // getMetaValue(name) is getMetaValue(getIndex(name)), so the comparisons are unchanged
+      const UInt scan_index_key = MetaInfoInterface::metaRegistry().getIndex("scan_index");
+      std::sort(peptide_ids.begin(), peptide_ids.end(), [scan_index_key](const PeptideIdentification& a, const PeptideIdentification& b)
       {
-        return a.getMetaValue("scan_index") < b.getMetaValue("scan_index");
+        return a.getMetaValue(scan_index_key) < b.getMetaValue(scan_index_key);
       });
     }
 #endif
@@ -1116,14 +2078,48 @@ namespace OpenMS
     if (annotation_complementary_ions_fraction) feature_set.push_back(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION);
     if (annotation_hyperscore_zscore) feature_set.push_back(Constants::UserParam::HYPERSCORE_ZSCORE);
     if (annotation_ln_num_candidates) feature_set.push_back(Constants::UserParam::LN_NUM_CANDIDATES);
+    if (annotation_local_evidence)
+    {
+      feature_set.push_back(Constants::UserParam::CHANCE_MATCH_SURPRISE);
+      feature_set.push_back(Constants::UserParam::MASS_COMPETITION_EVIDENCE);
+    }
     feature_set.push_back(Constants::UserParam::DELTA_SCORE);
     feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
-    // note: precursor error is calculated by percolator itself
+    // note: Percolator computes the precursor error (dm, absdm in Da) itself; annotate:precursor_ppm adds it in ppm
+    if (annotate_delta_best_) feature_set.push_back(Constants::UserParam::DELTA_BEST);
+    if (annotate_prefilter_poisson_) feature_set.push_back(Constants::UserParam::PREFILTER_POISSON_SURPRISE);
+    if (precursor_ppm_feature) feature_set.push_back(Constants::UserParam::LN_PRECURSOR_ERROR_PPM);
+    if (top_ion_mass_errors)
+    {
+      feature_set.push_back(Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN);
+      feature_set.push_back(Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_SD);
+      feature_set.push_back(Constants::UserParam::TOP_IONS_ERROR_PPM_MEAN);
+      feature_set.push_back(Constants::UserParam::TOP_IONS_ERROR_PPM_SD);
+    }
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+    // Readers tell the sign of the PSMs' isotope_error by this record; without it (earlier ProSE versions, or
+    // report:isotope_error_convention=theoretical_minus_observed) the sign is theoretical minus observed.
+    if (isotope_error_observed_minus_theoretical_)
+    {
+      search_parameters.setMetaValue("isotope_error_convention", "observed_minus_theoretical");
+    }
+    if (center_precursor_ppm) search_parameters.setMetaValue("precursor_mz_error_ppm_offset", precursor_ppm_offset);
     // record whether open-search mode was used
     search_parameters.setMetaValue("open_search", isOpenSearchMode_() ? "true" : "false");
 
     search_parameters.setMetaValue("peptide:clip_nterm_methionine", param_.getValue("peptide:clip_nterm_methionine"));
+    search_parameters.setMetaValue("peptide:deduplicate", param_.getValue("peptide:deduplicate"));
+    search_parameters.setMetaValue("fragment:query_spectrum", param_.getValue("fragment:query_spectrum"));
+    search_parameters.setMetaValue("fragment:query_spectrum_resolved", query_raw_spectrum_ ? "raw" : "processed");
+    search_parameters.setMetaValue("annotate:local_fragment_evidence", param_.getValue("annotate:local_fragment_evidence"));
+    search_parameters.setMetaValue("scoring:fragment_charges", param_.getValue("scoring:fragment_charges"));
+    search_parameters.setMetaValue("scoring:fragment_charges_resolved", scoring_multiple_charges_ ? "multiple" : "single");
+    if (mass_accuracy_score_) // recorded when it changes the score, so HyperScore searches keep their parameter list
+    {
+      search_parameters.setMetaValue("scoring:method", param_.getValue("scoring:method"));
+      search_parameters.setMetaValue("scoring:method_resolved", "mass_accuracy");
+      search_parameters.setMetaValue("scoring:mass_error_sd", mass_error_sd_ppm_);
+    }
     search_parameters.setMetaValue("peaks:window_type", peaks_window_type_);
     search_parameters.setMetaValue(
       "peaks:window_type_resolved",
@@ -1132,6 +2128,10 @@ namespace OpenMS
         : peaks_window_type_);
     search_parameters.setMetaValue("peaks:dense_window_top", static_cast<int>(peaks_dense_window_top_));
     search_parameters.setMetaValue("peaks:dense_intensity_loss", peaks_dense_intensity_loss_);
+    // MS2 deisotoping rule (used only when the spectra are deisotoped, see fragment:deisotope)
+    search_parameters.setMetaValue("fragment:deisotope_min_peaks", static_cast<int>(deisotoping_.min_peaks));
+    search_parameters.setMetaValue("fragment:deisotope_charge_cap", deisotoping_.charge_cap_precursor ? "precursor" : "none");
+    search_parameters.setMetaValue("fragment:deisotope_sum_intensity", deisotoping_.sum_intensity ? "true" : "false");
 
     search_parameters.enzyme_term_specificity = peptide_enzyme_specificity_;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
@@ -1169,7 +2169,112 @@ namespace OpenMS
     // matched against (see scoreSpectraAgainstIndex_).
     p.remove("ions:by_activation");
     p.setValue("ions:electron_ions", electron_ions ? "true" : "false");
+    // annotation-only parameters of ProSE (see annotateIonPriors_)
+    p.remove("annotate:self_trained_ion_priors");
+    p.removeAll("annotate:ion_prior_");
+    p.remove("peptide:protein_mapping"); // ProSE's own (FragmentIndex::getProteinOccurrences() serves it)
     return p;
+  }
+
+  namespace
+  {
+    /**
+      @brief DecoyHelper::findDecoyString(@p db, quiet = true), with the OpenMP threads for large databases.
+
+      DecoyHelper::countDecoys() sums, over the proteins, the matches of the prefix and the suffix pattern and keeps,
+      per match, the spelling of its last occurrence (within a protein the suffix after the prefix). Chunks of
+      consecutive proteins counted on their own and joined in their order give the same. The decision is the one of
+      findDecoyString() for these statistics; it does not depend on the order in which it looks at the matches,
+      since at most one prefix and one suffix can reach 80% of all prefixes or suffixes.
+
+      At most 8 threads: the step (about 60 ms serially for 50,000 entries) gains little beyond 4 threads, and a
+      larger team costs CPU time (measured at 64 threads: 2-4 CPU-s per run for no shorter wall time).
+    */
+    DecoyHelper::Result findDecoyStringInParallel(const std::vector<FASTAFile::FASTAEntry>& db)
+    {
+#ifdef _OPENMP
+      constexpr int max_threads = 8;
+      const int threads = omp_in_parallel() ? 1 : std::min(omp_get_max_threads(), max_threads);
+#else
+      const int threads = 1;
+#endif
+      if (threads < 2 || db.size() < 8192)
+      {
+        FASTAContainer<TFI_Vector> container(db);
+        return DecoyHelper::findDecoyString(container, /*quiet=*/true);
+      }
+      struct Counts
+      {
+        std::map<std::string, std::pair<Size, Size>> count; ///< match -> occurrences as prefix, as suffix
+        std::map<std::string, std::string> spelling;        ///< match -> spelling of its last occurrence
+        Size prefixes = 0, suffixes = 0;
+      };
+      const SignedSize n = static_cast<SignedSize>(db.size());
+      const SignedSize num_chunks = 4 * static_cast<SignedSize>(threads);
+      std::vector<Counts> chunks(num_chunks);
+#pragma omp parallel num_threads(threads)
+      {
+        const RegularExpression prefix_pattern(DecoyHelper::regexstr_prefix);
+        const RegularExpression suffix_pattern(DecoyHelper::regexstr_suffix);
+        std::string lower, match;
+#pragma omp for schedule(dynamic, 1)
+        for (SignedSize c = 0; c < num_chunks; ++c)
+        {
+          Counts& chunk = chunks[c];
+          for (SignedSize i = n * c / num_chunks; i < n * (c + 1) / num_chunks; ++i)
+          {
+            const std::string& identifier = db[i].identifier;
+            lower = identifier;
+            StringUtils::toLower(lower);
+            if (prefix_pattern.search(lower, &match))
+            {
+              ++chunk.prefixes;
+              ++chunk.count[match].first;
+              chunk.spelling[match] = StringUtils::prefix(identifier, match.length());
+            }
+            if (suffix_pattern.search(lower, &match))
+            {
+              ++chunk.suffixes;
+              ++chunk.count[match].second;
+              chunk.spelling[match] = StringUtils::suffix(identifier, match.length());
+            }
+          }
+        }
+      }
+      Counts all;
+      for (const Counts& chunk : chunks) // in order: later chunks hold later proteins
+      {
+        all.prefixes += chunk.prefixes;
+        all.suffixes += chunk.suffixes;
+        for (const auto& [match, count] : chunk.count)
+        {
+          all.count[match].first += count.first;
+          all.count[match].second += count.second;
+        }
+        for (const auto& [match, spelling] : chunk.spelling) all.spelling[match] = spelling;
+      }
+      // DecoyHelper::findDecoyString()'s decision
+      const double proteins = static_cast<double>(db.size());
+      if (static_cast<double>(all.prefixes + all.suffixes) < 0.4 * proteins || all.prefixes == all.suffixes)
+      {
+        return {false, "?", true};
+      }
+      for (const auto& [match, count] : all.count)
+      {
+        if (static_cast<double>(count.first) / static_cast<double>(all.prefixes) >= 0.8 && static_cast<double>(count.first) / proteins >= 0.4)
+        {
+          return {true, all.spelling[match], true};
+        }
+      }
+      for (const auto& [match, count] : all.count)
+      {
+        if (static_cast<double>(count.second) / static_cast<double>(all.suffixes) >= 0.8 && static_cast<double>(count.second) / proteins >= 0.4)
+        {
+          return {true, all.spelling[match], false};
+        }
+      }
+      return {false, "?", true};
+    }
   }
 
   ProSEAlgorithm::DecoyStrategy_
@@ -1179,11 +2284,10 @@ namespace OpenMS
     // (DecoyHelper: "decoy", "rev", "xxx", ... as prefix or suffix), then a
     // literal fall-back to the configured decoy_prefix so custom markers
     // outside the vocabulary are still recognised.
-    FASTAContainer<TFI_Vector> container(db);
     // quiet=true: a target-only database is a normal case here (auto/generate
     // then synthesise decoys), so suppress DecoyHelper's "unable to determine
     // decoy string" ERROR/WARN noise — we handle the negative result ourselves.
-    const DecoyHelper::Result det = DecoyHelper::findDecoyString(container, /*quiet=*/true);
+    const DecoyHelper::Result det = findDecoyStringInParallel(db);
 
     bool existing = det.success;
     std::string ext_string = det.success ? det.name : decoy_prefix_;
@@ -1273,37 +2377,74 @@ namespace OpenMS
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
       const DecoyStrategy_& strategy) const
   {
-    std::vector<FASTAFile::FASTAEntry> db;
-    db.reserve(fasta_db.size() * (strategy.generate ? 2 : 1));
+    return buildDecoyAugmentedDB_(std::vector<FASTAFile::FASTAEntry>(fasta_db), strategy);
+  }
+
+  std::vector<FASTAFile::FASTAEntry>
+  ProSEAlgorithm::buildDecoyAugmentedDB_(
+      std::vector<FASTAFile::FASTAEntry>&& fasta_db,
+      const DecoyStrategy_& strategy) const
+  {
+    // The entries are filtered in place instead of being copied one by one: the same entries
+    // in the same order.
+    std::vector<FASTAFile::FASTAEntry> db = std::move(fasta_db);
 
     // decoys=auto reusing pre-existing decoys logs nothing otherwise; surface the auto-detected
     // marker so a rare DecoyHelper misdetection (a target DB whose accessions start with a decoy
     // affix) is diagnosable. Single emission: buildDecoyAugmentedDB_ runs once per search.
-    if (decoy_mode_ == DecoyMode_::AUTO && !strategy.generate && strategy.have_decoys)
+    const bool reuses_decoys = decoy_mode_ == DecoyMode_::AUTO && !strategy.generate && strategy.have_decoys;
+    if (reuses_decoys)
     {
       OPENMS_LOG_INFO << "[ProSE] decoys=auto: reusing existing decoys detected in the database "
                       << "(marker '" << strategy.decoy_string << "', "
                       << (strategy.is_prefix ? "prefix" : "suffix") << ")." << std::endl;
     }
+    // Initial-Met clipping adds N-terminal peptides of every protein that starts with M. Generated decoys keep the
+    // initial Met (below); supplied decoys often do not (a reversed protein ends with it), and then the clipped
+    // peptides enlarge the target space only. Count both kinds while the entries are filtered.
+    const bool check_met_symmetry = reuses_decoys && param_.getValue("peptide:clip_nterm_methionine").toBool();
+    Size targets = 0, targets_with_met = 0, decoys = 0, decoys_with_met = 0;
 
-    // 1. Copy targets, dropping pre-existing decoys when requested. A stop codon ('*') that ends
+    // 1. Keep targets, dropping pre-existing decoys when requested. A stop codon ('*') that ends
     //    a sequence, as in databases translated from genomes (e.g. SGD), is not a residue: remove
     //    it so the C-terminal peptide stays searchable and decoys are built from the protein
     //    alone. FragmentIndex skips peptides that contain a stop codon inside the sequence.
     //    An entry left without residues has nothing to search, and decoy generation needs
     //    residues: drop it.
-    for (const FASTAFile::FASTAEntry& e : fasta_db)
+    auto kept = db.begin();
+    for (FASTAFile::FASTAEntry& e : db)
     {
       const bool is_existing_decoy = strategy.strip_existing &&
         (strategy.strip_is_prefix ? StringUtils::hasPrefix(e.identifier, strategy.strip_string)
                                   : StringUtils::hasSuffix(e.identifier, strategy.strip_string));
       if (!is_existing_decoy)
       {
-        db.push_back(e);
-        std::string& sequence = db.back().sequence;
+        std::string& sequence = e.sequence;
         while (!sequence.empty() && sequence.back() == '*') { sequence.pop_back(); }
-        if (sequence.empty()) { db.pop_back(); }
+        if (!sequence.empty())
+        {
+          if (check_met_symmetry)
+          {
+            const bool is_decoy = strategy.is_prefix ? StringUtils::hasPrefix(e.identifier, strategy.decoy_string)
+                                                     : StringUtils::hasSuffix(e.identifier, strategy.decoy_string);
+            (is_decoy ? decoys : targets) += 1;
+            (is_decoy ? decoys_with_met : targets_with_met) += (sequence.size() > 1 && sequence[0] == 'M') ? 1 : 0;
+          }
+          if (&*kept != &e) { *kept = std::move(e); }
+          ++kept;
+        }
       }
+    }
+    db.erase(kept, db.end());
+    // Warn when the share of decoys that start with M is below half the share of targets that do.
+    if (check_met_symmetry && targets_with_met > 0 && 2 * decoys_with_met * targets < targets_with_met * decoys)
+    {
+      OPENMS_LOG_WARN << "[ProSE] peptide:clip_nterm_methionine: " << targets_with_met << " of " << targets
+                      << " target proteins but only " << decoys_with_met << " of " << decoys << " decoy proteins "
+                      << "in the database start with M. Removing the initial Met adds N-terminal peptides to the "
+                      << "targets that have no decoy counterpart, which makes target-decoy FDR estimates slightly "
+                      << "optimistic. Use '-Search:decoys generate' (generated decoys keep the initial Met) or "
+                      << "'-Search:peptide:clip_nterm_methionine false' for a symmetric search space." << std::endl;
     }
 
     // 2. Generate decoys by reversing the (remaining) target proteins.
@@ -1415,11 +2556,19 @@ namespace OpenMS
   ProSEAlgorithm::prepareContext(
       const std::vector<FASTAFile::FASTAEntry>& fasta_db, bool electron_ions) const
   {
+    return prepareContext_(std::vector<FASTAFile::FASTAEntry>(fasta_db), electron_ions);
+  }
+
+  ProSEAlgorithm::SearchContext
+  ProSEAlgorithm::prepareContext_(
+      std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions,
+      const std::function<const PeakMap*(Size)>& searched_spectra) const
+  {
     SearchContext ctx;
 
     startProgress(0, 1, "Generate decoys...");
     const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
-    ctx.db = buildDecoyAugmentedDB_(fasta_db, strategy);
+    ctx.db = buildDecoyAugmentedDB_(std::move(fasta_db), strategy);
     ctx.decoy_string = strategy.decoy_string;
     ctx.decoy_is_prefix = strategy.is_prefix;
     ctx.have_decoys = strategy.have_decoys;
@@ -1429,7 +2578,7 @@ namespace OpenMS
     startProgress(0, 1, "Building fragment index...");
     Param this_params = fragmentIndexParameters_(electron_ions);
     ctx.fragment_index.setParameters(this_params);
-    ctx.fragment_index.build(ctx.db);
+    ctx.fragment_index.build(ctx.db, searched_spectra);
     ctx.electron_ions = electron_ions;
     endProgress();
 
@@ -1450,12 +2599,18 @@ namespace OpenMS
       bool open_search_mode,
       std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
       std::vector<CandidatePoolStats_>& pool_stats,
-      const std::string& progress_label) const
+      const std::string& progress_label,
+      const PeakMap* query_spectra) const
   {
     if (pool_stats.size() != annotated_hits.size())
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pool_stats.size(),
         "Candidate-pool statistics must hold one entry per spectrum.");
+    }
+    if (query_spectra != nullptr && query_spectra->size() != spectra.size())
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, query_spectra->size(),
+        "Candidate-retrieval spectra must hold one entry per scoring spectrum.");
     }
     startProgress(0, spectra.size(), progress_label);
     size_t count_spectra{};
@@ -1463,9 +2618,10 @@ namespace OpenMS
     // Hoisted out of the omp parallel block: clang with `default(none)` forbids
     // referencing namespace-scope constants inside the loop without explicit sharing.
     const double c13c12_massdiff_u = Constants::C13C12_MASSDIFF_U;
-    const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
+    const Size keep = keptHitsPerSpectrum_();
+    const bool deduplicate_chunks = param_.getValue("peptide:deduplicate").toBool() && database_chunk_size_ > 0 && ! fi.isSnesMode();
 
-#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep)
+#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, query_spectra, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep, deduplicate_chunks)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
       #pragma omp atomic
@@ -1478,7 +2634,11 @@ namespace OpenMS
       FragmentIndex::SpectrumMatchesTopN top_sms;
       // ions:by_activation: only electron-activated spectra are matched against the c and z+1 ions,
       // so that these ions do not change which candidates the other spectra keep
-      fi.querySpectrum(exp_spectrum, db, top_sms, generators.electronIons(exp_spectrum));
+      const MSSpectrum& query = query_spectra != nullptr ? (*query_spectra)[scan_index] : exp_spectrum;
+      fi.querySpectrum(query, db, top_sms, generators.electronIons(exp_spectrum));
+      // Each scan_index is owned by exactly one thread (see pool_stats[scan_index].add() below).
+      pool_stats[scan_index].prefilter_candidates += top_sms.scored_candidates_;
+      pool_stats[scan_index].prefilter_matches += top_sms.matched_peaks_;
 
       const bool snes_mode = fi.isSnesMode();
       const bool prec_tol_ppm = precursor_mass_tolerance_unit_ == "ppm";
@@ -1548,16 +2708,29 @@ namespace OpenMS
           mod_candidate = fi.reconstructModifiedSequence(sms_pep, db);
         }
 
+        // Index construction already removes repeated occurrences within a
+        // chunk. Across chunks, skip the same hypothesis before updating either
+        // scores or pool statistics. Charge and isotope hypotheses stay distinct.
+        if (deduplicate_chunks)
+        {
+          std::string key = mod_candidate.toString();
+          key += "\t" + std::to_string(sms.precursor_charge_) + "\t" + std::to_string(sms.isotope_error_);
+          if (! pool_stats[scan_index].seen_candidates.insert(std::move(key)).second) { continue; }
+        }
+
         // Clear peaks + data arrays (ion names / charges) before refilling for the
         // next candidate; getSpectrum appends to whatever is there.
         theo_spectrum.clear(true);
-        spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, 1);
+        spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, scoringMaxCharge_(sms.precursor_charge_));
         // Note: TSG emits sorted output when add_metainfo=true (see the
         // sortByPositionPresorted() call at the tail of getSpectrum_); the extra
         // sortByPosition() pass here was a redundant O(N) scan per candidate.
 
         HyperScore::PSMDetail detail;
-        const double& score = HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
+        const double score = mass_accuracy_score_
+          ? HyperScore::computeMassAccuracy(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum,
+                                            mass_error_sd_ppm_, detail)
+          : HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
 
         // Summarise the candidate before it can be dropped below or pruned at the
         // end of the loop: the pool-derived PSM features describe the whole search
@@ -1571,14 +2744,17 @@ namespace OpenMS
         AnnotatedHit_ ah;
         ah.sequence = std::move(mod_candidate);
         ah.score = score;
-        double seq_length = (double)ah.sequence.size();
+        // Account for the additional charge hypotheses in the ion-count fractions.
+        double seq_length = static_cast<double>(ah.sequence.size()) * scoringMaxCharge_(sms.precursor_charge_);
         ah.prefix_fraction = static_cast<float>(detail.matched_prefix_ions / seq_length);
         ah.suffix_fraction = static_cast<float>(detail.matched_suffix_ions / seq_length);
         ah.mean_error = static_cast<float>(detail.mean_error);
         ah.matched_prefix_ions = static_cast<uint16_t>(detail.matched_prefix_ions);
         ah.matched_suffix_ions = static_cast<uint16_t>(detail.matched_suffix_ions);
+        ah.prefilter_matches = static_cast<uint16_t>(std::min<uint32_t>(sms.num_matched_, std::numeric_limits<uint16_t>::max()));
         ah.isotope_error = sms.isotope_error_;
         ah.applied_charge = sms.precursor_charge_;
+        ah.index_peptide = static_cast<UInt32>(sms.peptide_idx_);
         ah.delta_mass = 0.0;
         if (open_search_mode)
         {
@@ -1637,7 +2813,10 @@ namespace OpenMS
     const bool electron_ions = countElectronActivated_(spectra) > 0;
     if (database_chunk_size_ == 0)
     {
-      SearchContext ctx = prepareContext(fasta_db, electron_ions);
+      // single use: index only the peptides these spectra can reach
+      std::function<const PeakMap*(Size)> searched_spectra;
+      if (restrictIndexToSpectra_()) { searched_spectra = [&spectra](Size) { return &spectra; }; }
+      SearchContext ctx = prepareContext_(std::vector<FASTAFile::FASTAEntry>(fasta_db), electron_ions, searched_spectra);
       ctx.release_fragment_index_after_scoring = true;
       return search(spectra, ctx, protein_ids, peptide_ids);
     }
@@ -1688,8 +2867,14 @@ namespace OpenMS
 
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
     bool open_search_mode = isOpenSearchMode_();
+    FragmentIonLikelihoodModel::PeakLists ion_evidence; // annotate:self_trained_ion_priors
+    PeakMap evidence_spectra, query_spectra;
+    PeakMap* query_ptr = query_raw_spectrum_ ? &query_spectra : nullptr;
+    PeakMap* evidence_ptr = param_.getValue("annotate:local_fragment_evidence").toBool() ? &evidence_spectra : nullptr;
     logDenseSpectra(preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_,
-                                       peaks_window_top_, peaks_window_type_, peaks_dense_window_top_, peaks_dense_intensity_loss_),
+                                       peaks_window_top_, peaks_window_type_, peaks_dense_window_top_, peaks_dense_intensity_loss_,
+                                       deisotoping_, self_trained_ion_priors_ ? &ion_evidence : nullptr, ion_prior_scored_peaks_,
+                                       evidence_ptr, query_ptr),
                     spectra.size());
 
     // ions:by_activation: the chunk indices hold c and z+1 ions if electron-activated spectra are searched
@@ -1726,7 +2911,7 @@ namespace OpenMS
       cal_fi.setParameters(fragmentIndexParameters_(electron_ions));
       cal_fi.build(cal_db);
 
-      CalibrationResult_ cal = runCalibrationPass_(spectra, cal_fi, cal_db);
+      CalibrationResult_ cal = runCalibrationPass_(spectra, cal_fi, cal_db, query_ptr);
       if (cal.success)
       {
         effective_fragment_tol = cal.fragment_tolerance;
@@ -1790,7 +2975,7 @@ namespace OpenMS
       scoreSpectraAgainstIndex_(spectra, chunk_fi, chunk_db, generators,
                                 effective_fragment_tol, fragment_mass_tolerance_unit_ppm,
                                 open_search_mode, annotated_hits, pool_stats,
-                                "Scoring chunk " + StringUtils::toStr(chunk_idx) + "...");
+                                "Scoring chunk " + StringUtils::toStr(chunk_idx) + "...", query_ptr);
 
       // Prune to top-N per spectrum after each chunk to bound memory growth.
       // Without this, K chunks × T candidates per spectrum could accumulate
@@ -1798,7 +2983,7 @@ namespace OpenMS
       // peptide databases with many chunks. The pruning is correct because
       // scores are independent across chunks: a hit that fails to place in the
       // current top-N cannot improve when more chunks are added.
-      const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
+      const Size keep = keptHitsPerSpectrum_();
 #pragma omp parallel for default(none) shared(annotated_hits, keep)
       for (SignedSize si = 0; si < (SignedSize)annotated_hits.size(); ++si)
       {
@@ -1812,6 +2997,11 @@ namespace OpenMS
         }
       }
     } // end chunk loop
+    query_spectra.clear(true);
+    for (auto& stats : pool_stats)
+    {
+      std::unordered_set<std::string>().swap(stats.seen_candidates);
+    }
 
     // 6. Post-process merged hits (sort, annotate, PeptideIndexing, FDR).
     //    This runs once on ALL hits accumulated across all chunks.
@@ -1835,8 +3025,10 @@ namespace OpenMS
       precursor_min_charge_,
       precursor_max_charge_,
       enzyme_,
-      "" // no database filename for in-memory search
+      "", // no database filename for in-memory search
+      evidence_ptr
       );
+    evidence_spectra.clear(true); // Release the additional peak list before PeptideIndexing.
     endProgress();
 
     // 7. PeptideIndexing against the FULL database (not per-chunk).
@@ -1885,6 +3077,14 @@ namespace OpenMS
     //    searchWithModificationAnalysis apply protein FDR post-call).
     const bool has_decoys = strategy.have_decoys;
 
+    // Optional per-run ion priors need the target/decoy labels and the native scores: after
+    // PeptideIndexing, before FDR overwrites the scores.
+    if (self_trained_ion_priors_)
+    {
+      annotateIonPriors_(spectra, ion_evidence, protein_ids, peptide_ids);
+      ion_evidence.clear();
+    }
+
     // Pre-FDR stats (target/decoy counts + HyperScore distribution).
     capturePreFdrStats_(peptide_ids, last_run_stats_);
 
@@ -1896,11 +3096,7 @@ namespace OpenMS
       // Categorical decoy removal happens only at protein-FDR finalization (file-based
       // single-file search below, or ProSE.cpp).
       StopWatch sw_fdr; sw_fdr.start();
-      FalseDiscoveryRate fdr;
-      Param fdr_params = fdr.getParameters();
-      fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
-      fdr.setParameters(fdr_params);
-      fdr.apply(peptide_ids);
+      annotatePsmQValues(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
       last_run_stats_.fdr_applied = true;
       last_run_stats_.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
@@ -1918,6 +3114,636 @@ namespace OpenMS
     collectRunStatistics_(spectra, protein_ids, peptide_ids, last_run_stats_);
 
     return ExitCodes::EXECUTION_OK;
+  }
+
+  // =====================================================================
+  // Protein mapping from the fragment index (peptide:protein_mapping = index):
+  // what PeptideIndexing::run() writes, without searching the database
+  // =====================================================================
+  namespace
+  {
+    bool isAmbiguousResidue(const char c)
+    {
+      return c == 'B' || c == 'J' || c == 'Z' || c == 'X';
+    }
+
+    // The residues AhoCorasickAmbiguous matches an ambiguous protein residue with: B = D or N, J = I or L,
+    // Z = E or Q, X = any of its unambiguous amino acids (every other letter, O and U included)
+    const std::string& residuesMatchedBy(const char ambiguous)
+    {
+      static const std::string b = "DN", j = "IL", z = "EQ";
+      static const std::string x = []
+      {
+        std::string all;
+        for (char c = 'A'; c <= 'Z'; ++c)
+        {
+          if (!AA(c).isAmbiguous()) all += c;
+        }
+        return all;
+      }();
+      switch (ambiguous)
+      {
+        case 'B': return b;
+        case 'J': return j;
+        case 'Z': return z;
+        default: return x;
+      }
+    }
+
+    // The first @p length (<= 8) residues of @p residues as a number that sorts like them
+    uint64_t residueKey(const std::string_view residues, const Size length)
+    {
+      uint64_t key = 0;
+      for (Size i = 0; i < length; ++i) key = (key << 8) | static_cast<unsigned char>(residues[i]);
+      return key;
+    }
+
+    using Occurrence = std::pair<UInt32, UInt32>; // {protein index, position}
+
+    /**
+      @brief The spans that step 3 of buildProteinMapping_() looks up for one ambiguous residue of a protein: those
+      with no ambiguous residue before it and 1 to aaa_max ambiguous residues from it on (so every span over ambiguous
+      residues belongs to its first one).
+
+      With r_0 = position < r_1 < ... the ambiguous residues from the position on, a span [start, end) with start <=
+      r_0 contains exactly k of them if r_{k-1} < end <= r_k (r_k = the protein end if there is none). Each span is
+      looked up once per combination of the residues its ambiguous ones stand for. Used for both the count (before
+      any lookup, to decide on the fallback) and the lookups, so the two agree.
+    */
+    class AmbiguousSpans
+    {
+    public:
+      /// PeptideIndexing's maximum of aaa_max
+      static constexpr Size MAX_AMBIGUOUS = 10;
+
+      AmbiguousSpans(const std::string& protein, const Size position, const Size max_length, const Size aaa_max) :
+        protein_(protein), first_start_(position), aaa_max_(std::min(aaa_max, MAX_AMBIGUOUS))
+      {
+        // the first start: after the previous ambiguous residue, and close enough to reach the position
+        while (first_start_ > 0 && position - first_start_ + 1 < max_length && !isAmbiguousResidue(protein[first_start_ - 1]))
+        {
+          --first_start_;
+        }
+        // the ambiguous residues from the position on that a span can reach: up to aaa_max + 1 (the last one only
+        // bounds the spans with aaa_max)
+        const Size reach = std::min(protein.size(), position + max_length);
+        ambiguous_[0] = position;
+        for (Size i = position + 1; i < reach && count_ <= aaa_max_; ++i)
+        {
+          if (isAmbiguousResidue(protein[i])) ambiguous_[count_++] = i;
+        }
+      }
+
+      /// The largest number of ambiguous residues in a span
+      Size maxAmbiguous() const { return std::min(aaa_max_, count_); }
+
+      /// The k-th ambiguous residue from the position on (k = 0: the position)
+      Size ambiguous(const Size k) const { return ambiguous_[k]; }
+
+      /// The starts [first, last] of the spans of @p length with exactly @p k (1..maxAmbiguous()) ambiguous residues
+      /// (first > last if there are none)
+      std::pair<SignedSize, SignedSize> starts(const Size length, const Size k) const
+      {
+        const SignedSize end_after = static_cast<SignedSize>(ambiguous_[k - 1]);
+        const SignedSize end_at_most = static_cast<SignedSize>(k < count_ ? ambiguous_[k] : protein_.size());
+        const SignedSize len = static_cast<SignedSize>(length);
+        return {std::max(static_cast<SignedSize>(first_start_), end_after + 1 - len),
+                std::min(static_cast<SignedSize>(ambiguous_[0]), end_at_most - len)};
+      }
+
+      /// The sequences looked up for the spans of @p length (combinations saturate at 2^32, far above any budget)
+      Size lookups(const Size length) const
+      {
+        Size total = 0, combinations = 1;
+        for (Size k = 1; k <= maxAmbiguous(); ++k)
+        {
+          combinations = std::min(combinations * residuesMatchedBy(protein_[ambiguous_[k - 1]]).size(), Size(1) << 32);
+          const auto [first, last] = starts(length, k);
+          if (first <= last) total += combinations * static_cast<Size>(last - first + 1);
+        }
+        return total;
+      }
+
+    private:
+      const std::string& protein_;
+      Size first_start_;
+      Size aaa_max_;
+      std::array<Size, MAX_AMBIGUOUS + 1> ambiguous_{};
+      Size count_ = 1; ///< entries of ambiguous_
+    };
+  }
+
+  ProSEAlgorithm::ProteinMapping_ ProSEAlgorithm::buildProteinMapping_(const FragmentIndex& index,
+                                                                      const std::vector<FASTAFile::FASTAEntry>& db,
+                                                                      std::vector<UInt32> candidates,
+                                                                      const Param& indexer_parameters)
+  {
+    ProteinMapping_ mapping;
+
+    // PeptideIndexing settings the mapping reproduces (see ProteinMapping_)
+    if (static_cast<Int>(indexer_parameters.getValue("mismatches_max")) != 0
+        || indexer_parameters.getValue("IL_equivalent").toBool()
+        || !indexer_parameters.getValue("allow_nterm_protein_cleavage").toBool()
+        || indexer_parameters.getValue("write_protein_sequence").toBool()
+        || indexer_parameters.getValue("write_protein_description").toBool()
+        || indexer_parameters.getValue("keep_unreferenced_proteins").toBool()
+        || indexer_parameters.getValue("decoy_string").toString().empty())
+    {
+      mapping.fallback_reason = "PeptideIndexing settings other than no mismatches, no I/L equivalence, N-terminal methionine "
+                                "cleavage, no protein sequences or descriptions, no unreferenced proteins and a given decoy string";
+      return mapping;
+    }
+    const std::string enzyme_name = indexer_parameters.getValue("enzyme:name").toString();
+    const std::string specificity = indexer_parameters.getValue("enzyme:specificity").toString();
+    const Param index_parameters = index.getParameters();
+    if (specificity != EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_FULL]
+        || enzyme_name == EnzymaticDigestion::UnspecificCleavage || enzyme_name == EnzymaticDigestion::NoCleavage
+        || index_parameters.getValue("enzyme").toString() != enzyme_name
+        || index_parameters.getValue("peptide:enzyme_specificity").toString() != specificity)
+    {
+      mapping.fallback_reason = "not a fully specific digestion with the enzyme of the fragment index";
+      return mapping;
+    }
+    if (!index.hasProteinOccurrences(db))
+    {
+      mapping.fallback_reason = "the fragment index does not list every protein occurrence of its peptides "
+                                "(SNES, protein-terminal modifications, or not built from this database)";
+      return mapping;
+    }
+    const Size aaa_max = static_cast<Size>(static_cast<Int>(indexer_parameters.getValue("aaa_max")));
+    ProteaseDigestion enzyme;
+    enzyme.setEnzyme(enzyme_name);
+    enzyme.setSpecificity(EnzymaticDigestion::SPEC_FULL);
+
+    // The candidates, once each, and the lengths of their sequences. A hit with an ambiguous residue leaves the
+    // mapping to PeptideIndexing; checked first, since it needs no pass over the database.
+    std::sort(candidates.begin(), candidates.end());
+    candidates.erase(std::unique(candidates.begin(), candidates.end()), candidates.end());
+    if (candidates.empty()) return mapping; // nothing to map (applyProteinMapping_() decides)
+    const std::vector<FragmentIndex::Peptide>& peptides = index.getPeptides();
+    if (candidates.back() >= peptides.size())
+    {
+      mapping.fallback_reason = "a candidate the fragment index does not hold";
+      return mapping;
+    }
+    const auto residues_of = [&](const UInt32 candidate)
+    {
+      const FragmentIndex::Peptide& peptide = peptides[candidate];
+      return std::string_view(db[peptide.protein_idx].sequence).substr(peptide.sequence_.first, peptide.sequence_.second);
+    };
+    bool unambiguous_candidates = true;
+#pragma omp parallel for schedule(dynamic, 256) reduction(&& : unambiguous_candidates)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(candidates.size()); ++i)
+    {
+      const std::string_view residues = residues_of(candidates[i]);
+      unambiguous_candidates = unambiguous_candidates && std::none_of(residues.begin(), residues.end(), isAmbiguousResidue);
+    }
+    if (!unambiguous_candidates)
+    {
+      mapping.fallback_reason = "a hit with an ambiguous residue";
+      return mapping;
+    }
+    Size min_length = std::numeric_limits<Size>::max(), max_length = 0;
+    for (const UInt32 candidate : candidates)
+    {
+      min_length = std::min<Size>(min_length, peptides[candidate].sequence_.second);
+      max_length = std::max<Size>(max_length, peptides[candidate].sequence_.second);
+    }
+    std::vector<uint8_t> length_used(max_length + 1, 0);
+    for (const UInt32 candidate : candidates) length_used[peptides[candidate].sequence_.second] = 1;
+
+    // The database: letters A-Z only (PeptideIndexing removes '*' and skips other symbols, which shifts positions),
+    // no stretch of more than aaa_max X (PeptideIndexing splits proteins at such stretches), and at most a budget of
+    // sequences that 3. looks up for the spans over ambiguous residues (beyond it, PeptideIndexing does this better).
+    // The lookups are counted here, without looking anything up, so that a fallback costs little more than this pass.
+    constexpr Size lookup_budget = Size(1) << 22;
+    std::array<uint8_t, 256> residue_class{}; // 0: unambiguous letter, 1: ambiguous letter, 2: anything else
+    residue_class.fill(2);
+    for (char c = 'A'; c <= 'Z'; ++c) residue_class[static_cast<unsigned char>(c)] = isAmbiguousResidue(c) ? 1 : 0;
+    std::vector<uint8_t> with_spans(db.size(), 0); // has spans for 3.
+    bool letters_only = true, short_stretches = true;
+    std::atomic<Size> lookups{0}; // exact while at most lookup_budget (then counting stops)
+#pragma omp parallel for schedule(dynamic, 256) reduction(&& : letters_only, short_stretches)
+    for (SignedSize p = 0; p < static_cast<SignedSize>(db.size()); ++p)
+    {
+      const std::string& protein = db[p].sequence;
+      uint8_t classes = 0; // OR of its residue classes
+      for (const char c : protein) classes |= residue_class[static_cast<unsigned char>(c)];
+      letters_only = letters_only && classes < 2;
+      if (classes != 1) continue;
+      Size stretch = 0;
+      for (const char c : protein)
+      {
+        stretch = (c == 'X') ? stretch + 1 : 0;
+        short_stretches = short_stretches && stretch <= aaa_max;
+      }
+      Size protein_lookups = 0;
+      for (Size position = 0; position < protein.size(); ++position)
+      {
+        if (!isAmbiguousResidue(protein[position])) continue;
+        if (protein_lookups > lookup_budget || lookups.load(std::memory_order_relaxed) > lookup_budget) break;
+        const AmbiguousSpans spans(protein, position, max_length, aaa_max);
+        for (Size length = min_length; length <= max_length; ++length)
+        {
+          if (length_used[length]) protein_lookups += spans.lookups(length);
+        }
+      }
+      with_spans[p] = protein_lookups > 0;
+      lookups.fetch_add(std::min(protein_lookups, lookup_budget + 1), std::memory_order_relaxed);
+    }
+    if (!letters_only || !short_stretches)
+    {
+      mapping.fallback_reason = letters_only ? "the database has stretches of more than aaa_max X"
+                                             : "the database has symbols other than the letters A-Z";
+      return mapping;
+    }
+    if (lookups.load() > lookup_budget)
+    {
+      mapping.fallback_reason = "too many spans over ambiguous residues in the database";
+      return mapping;
+    }
+
+    // 1. the spans of the digest: per candidate, then per sequence
+    std::vector<std::vector<Occurrence>> candidate_occurrences(candidates.size());
+#pragma omp parallel for schedule(dynamic, 64)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(candidates.size()); ++i)
+    {
+      index.getProteinOccurrences(candidates[i], db, candidate_occurrences[i]);
+    }
+    // One entry per sequence (the candidates of a sequence differ in their modifications only: they have the same
+    // spans). The sequences go to ProteinMapping_::SHARDS hash tables by their hash, filled in parallel; the entries
+    // are numbered table by table, in the order of the candidates.
+    constexpr Size shards = ProteinMapping_::SHARDS;
+    std::vector<Size> shard_of(candidates.size());
+#pragma omp parallel for schedule(static)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(candidates.size()); ++i)
+    {
+      shard_of[i] = std::hash<std::string_view>{}(residues_of(candidates[i])) % shards;
+    }
+    std::vector<std::vector<Size>> shard_candidates(shards);
+    for (Size i = 0; i < candidates.size(); ++i) shard_candidates[shard_of[i]].push_back(i);
+    mapping.entries.resize(shards);
+    std::vector<std::vector<Size>> shard_entries(shards); // per table: the candidate of each of its entries
+#pragma omp parallel for schedule(dynamic, 1)
+    for (SignedSize shard = 0; shard < static_cast<SignedSize>(shards); ++shard)
+    {
+      auto& table = mapping.entries[shard];
+      table.reserve(shard_candidates[shard].size());
+      for (const Size i : shard_candidates[shard])
+      {
+        const auto [entry, added] = table.try_emplace(residues_of(candidates[i]), shard_entries[shard].size());
+        if (added)
+        {
+          shard_entries[shard].push_back(i);
+        }
+        else
+        { // another modified form of the same residues: the same spans (merged and made unique below)
+          std::vector<Occurrence>& first = candidate_occurrences[shard_entries[shard][entry->second]];
+          first.insert(first.end(), candidate_occurrences[i].begin(), candidate_occurrences[i].end());
+        }
+      }
+    }
+    std::vector<Size> shard_start(shards + 1, 0);
+    for (Size shard = 0; shard < shards; ++shard) shard_start[shard + 1] = shard_start[shard] + shard_entries[shard].size();
+    mapping.sequences.resize(shard_start[shards]);
+    mapping.occurrences.resize(shard_start[shards]);
+#pragma omp parallel for schedule(dynamic, 1)
+    for (SignedSize shard = 0; shard < static_cast<SignedSize>(shards); ++shard)
+    {
+      for (auto& [sequence, entry] : mapping.entries[shard]) entry += shard_start[shard];
+      for (Size k = 0; k < shard_entries[shard].size(); ++k)
+      {
+        const Size i = shard_entries[shard][k];
+        mapping.sequences[shard_start[shard] + k] = residues_of(candidates[i]);
+        mapping.occurrences[shard_start[shard] + k] = std::move(candidate_occurrences[i]);
+      }
+    }
+
+    std::vector<std::tuple<Size, UInt32, UInt32>> extra; // spans of 2. and 3.: {sequence entry, protein, position}
+
+    // 2. positions 1 and 2 of proteins that start with M: found through their first residues
+    {
+      // {key of the residues from the position on, protein, position}, sorted. Filled in parallel by chunks of
+      // proteins, grouped by the first residue (the highest byte of the key), then each group sorted on its own.
+      const Size key_length = std::min<Size>(min_length, 8);
+      using Start = std::tuple<uint64_t, UInt32, UInt32>;
+      const auto is_start = [&](const std::string& protein, Size position)
+      {
+        return position + min_length <= protein.size() && protein[0] == 'M';
+      };
+      constexpr Size letters = 26;
+      const Size num_chunks = std::max<Size>(1, std::min<Size>(256, db.size() / 1024));
+      std::vector<Size> offset(num_chunks * letters + 1, 0); // [letter][chunk]: count, then where the chunk fills it
+#pragma omp parallel for schedule(dynamic, 1)
+      for (SignedSize chunk = 0; chunk < static_cast<SignedSize>(num_chunks); ++chunk)
+      {
+        for (Size p = db.size() * chunk / num_chunks; p < db.size() * (chunk + 1) / num_chunks; ++p)
+        {
+          const std::string& protein = db[p].sequence;
+          for (Size position = 1; position <= 2; ++position)
+          {
+            if (is_start(protein, position)) ++offset[(protein[position] - 'A') * num_chunks + chunk + 1];
+          }
+        }
+      }
+      for (Size i = 1; i < offset.size(); ++i) offset[i] += offset[i - 1];
+      std::vector<Start> starts(offset.back());
+#pragma omp parallel for schedule(dynamic, 1)
+      for (SignedSize chunk = 0; chunk < static_cast<SignedSize>(num_chunks); ++chunk)
+      {
+        for (Size p = db.size() * chunk / num_chunks; p < db.size() * (chunk + 1) / num_chunks; ++p)
+        {
+          const std::string& protein = db[p].sequence;
+          for (Size position = 1; position <= 2; ++position)
+          {
+            if (!is_start(protein, position)) continue;
+            starts[offset[(protein[position] - 'A') * num_chunks + chunk]++] =
+              Start(residueKey(std::string_view(protein).substr(position), key_length), static_cast<UInt32>(p), static_cast<UInt32>(position));
+          }
+        }
+      }
+#pragma omp parallel for schedule(dynamic, 1)
+      for (SignedSize letter = 0; letter < static_cast<SignedSize>(letters); ++letter)
+      {
+        // after the fill, offset[letter * num_chunks + num_chunks - 1] is where the letter's group ends
+        const Size begin = letter == 0 ? 0 : offset[letter * num_chunks - 1];
+        const Size end = offset[(letter + 1) * num_chunks - 1];
+        std::sort(starts.begin() + begin, starts.begin() + end);
+      }
+#pragma omp parallel
+      {
+        const ProteaseDigestion thread_enzyme = enzyme; // as PeptideIndexing: one per thread
+        std::vector<std::tuple<Size, UInt32, UInt32>> found;
+#pragma omp for schedule(dynamic, 256) nowait
+        for (SignedSize entry = 0; entry < static_cast<SignedSize>(mapping.sequences.size()); ++entry)
+        {
+          const std::string_view sequence = mapping.sequences[entry];
+          const uint64_t key = residueKey(sequence, key_length);
+          for (auto s = std::lower_bound(starts.begin(), starts.end(), std::make_tuple(key, UInt32(0), UInt32(0)));
+               s != starts.end() && std::get<0>(*s) == key; ++s)
+          {
+            const UInt32 protein = std::get<1>(*s), position = std::get<2>(*s);
+            const std::string& protein_sequence = db[protein].sequence;
+            if (position + sequence.size() <= protein_sequence.size() && protein_sequence.compare(position, sequence.size(), sequence) == 0
+                && thread_enzyme.isValidProduct(protein_sequence, static_cast<int>(position), static_cast<int>(sequence.size()), true, true, false))
+            {
+              found.emplace_back(static_cast<Size>(entry), protein, position);
+            }
+          }
+        }
+#pragma omp critical (ProSEAlgorithm_proteinMapping)
+        extra.insert(extra.end(), found.begin(), found.end());
+      }
+    }
+
+    // 3. spans over ambiguous residues (AmbiguousSpans; within the budget checked above): each looked up with every
+    //    combination of the residues its ambiguous ones stand for
+    {
+      // work items: an ambiguous residue and a length with spans (a few residues with several ambiguous ones around
+      // them would otherwise be the critical path); at most one per two lookups, so bounded by the budget
+      struct Item { UInt32 protein, position, length; };
+      std::vector<Item> items;
+#pragma omp parallel
+      {
+        std::vector<Item> thread_items;
+#pragma omp for schedule(dynamic, 16) nowait
+        for (SignedSize p = 0; p < static_cast<SignedSize>(db.size()); ++p)
+        {
+          if (!with_spans[p]) continue;
+          const std::string& protein = db[p].sequence;
+          for (Size position = 0; position < protein.size(); ++position)
+          {
+            if (!isAmbiguousResidue(protein[position])) continue;
+            const AmbiguousSpans spans(protein, position, max_length, aaa_max);
+            for (Size length = min_length; length <= max_length; ++length)
+            {
+              if (length_used[length] && spans.lookups(length) > 0)
+              {
+                thread_items.push_back({static_cast<UInt32>(p), static_cast<UInt32>(position), static_cast<UInt32>(length)});
+              }
+            }
+          }
+        }
+#pragma omp critical (ProSEAlgorithm_proteinMapping)
+        items.insert(items.end(), thread_items.begin(), thread_items.end());
+      }
+#pragma omp parallel
+      {
+        const ProteaseDigestion thread_enzyme = enzyme;
+        std::vector<std::tuple<Size, UInt32, UInt32>> found;
+        std::string window;
+        std::array<Size, AmbiguousSpans::MAX_AMBIGUOUS> choice{};
+#pragma omp for schedule(dynamic, 1) nowait
+        for (SignedSize i = 0; i < static_cast<SignedSize>(items.size()); ++i)
+        {
+          const Item& item = items[i];
+          const std::string& protein_sequence = db[item.protein].sequence;
+          const AmbiguousSpans spans(protein_sequence, item.position, max_length, aaa_max);
+          for (Size k = 1; k <= spans.maxAmbiguous(); ++k)
+          {
+            const auto [first, last] = spans.starts(item.length, k);
+            for (SignedSize start = first; start <= last; ++start)
+            {
+              window.assign(protein_sequence, static_cast<Size>(start), item.length);
+              std::fill_n(choice.begin(), k, 0);
+              while (true)
+              {
+                for (Size w = 0; w < k; ++w)
+                {
+                  window[spans.ambiguous(w) - static_cast<Size>(start)] = residuesMatchedBy(protein_sequence[spans.ambiguous(w)])[choice[w]];
+                }
+                const Size entry = mapping.find(window);
+                if (entry < mapping.sequences.size()
+                    && thread_enzyme.isValidProduct(protein_sequence, static_cast<int>(start), static_cast<int>(item.length), true, true, false))
+                {
+                  found.emplace_back(entry, item.protein, static_cast<UInt32>(start));
+                }
+                Size w = 0; // the next combination
+                for (; w < k; ++w)
+                {
+                  if (++choice[w] < residuesMatchedBy(protein_sequence[spans.ambiguous(w)]).size()) break;
+                  choice[w] = 0;
+                }
+                if (w == k) break;
+              }
+            }
+          }
+        }
+#pragma omp critical (ProSEAlgorithm_proteinMapping)
+        extra.insert(extra.end(), found.begin(), found.end());
+      }
+    }
+
+    // all spans of every sequence, ascending and once (2. and 3. may find spans of 1. again)
+    for (const auto& [entry, protein, position] : extra) mapping.occurrences[entry].emplace_back(protein, position);
+#pragma omp parallel for schedule(dynamic, 256)
+    for (SignedSize k = 0; k < static_cast<SignedSize>(mapping.occurrences.size()); ++k)
+    {
+      std::vector<Occurrence>& occurrences = mapping.occurrences[k];
+      std::sort(occurrences.begin(), occurrences.end());
+      occurrences.erase(std::unique(occurrences.begin(), occurrences.end()), occurrences.end());
+    }
+    return mapping;
+  }
+
+  bool ProSEAlgorithm::applyProteinMapping_(const ProteinMapping_& mapping,
+                                            const std::vector<FASTAFile::FASTAEntry>& db,
+                                            const Param& indexer_parameters,
+                                            std::vector<ProteinIdentification>& protein_ids,
+                                            PeptideIdentificationList& peptide_ids,
+                                            std::string& fallback_reason)
+  {
+    if (!mapping.fallback_reason.empty())
+    {
+      fallback_reason = mapping.fallback_reason;
+      return false;
+    }
+    if (protein_ids.size() != 1)
+    {
+      fallback_reason = "not exactly one identification run";
+      return false;
+    }
+    {
+      // PeptideIndexing changes its cleavage rules for results of X! Tandem and MS-GF+
+      std::string engine = protein_ids[0].getOriginalSearchEngineName();
+      StringUtils::toUpper(engine);
+      const ProteinIdentification::SearchParameters& search_parameters = protein_ids[0].getSearchParameters();
+      if (engine == "XTANDEM" || engine == "MS-GF+" || engine == "MSGFPLUS"
+          || search_parameters.metaValueExists("SE:XTandem") || search_parameters.metaValueExists("SE:MS-GF+"))
+      {
+        fallback_reason = "results of X! Tandem or MS-GF+";
+        return false;
+      }
+    }
+
+    // the sequence entry of every hit (PeptideIndexing maps the unmodified sequence)
+    std::vector<Size> first_hit(peptide_ids.size() + 1, 0);
+    for (Size i = 0; i < peptide_ids.size(); ++i) first_hit[i + 1] = first_hit[i] + peptide_ids[i].getHits().size();
+    if (first_hit.back() == 0)
+    {
+      fallback_reason = "no peptide hits"; // PeptideIndexing's own handling (PEPTIDE_IDS_EMPTY)
+      return false;
+    }
+    std::vector<Size> hit_entry(first_hit.back());
+    bool all_mapped = true;
+#pragma omp parallel for schedule(dynamic, 64) reduction(&& : all_mapped)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
+    {
+      const std::vector<PeptideHit>& hits = peptide_ids[i].getHits();
+      for (Size h = 0; h < hits.size(); ++h)
+      {
+        const Size entry = mapping.find(hits[h].getSequence().toUnmodifiedString());
+        const bool mapped = entry < mapping.sequences.size() && !mapping.occurrences[entry].empty();
+        all_mapped = all_mapped && mapped;
+        if (mapped) hit_entry[first_hit[i] + h] = entry;
+      }
+    }
+    if (!all_mapped)
+    {
+      fallback_reason = "a hit whose sequence was not mapped from the fragment index";
+      return false;
+    }
+
+    const std::string decoy_string = indexer_parameters.getValue("decoy_string").toString();
+    const bool decoy_prefix = indexer_parameters.getValue("decoy_string_position").toString() == "prefix";
+    std::vector<uint8_t> is_decoy(db.size());
+#pragma omp parallel for schedule(static)
+    for (SignedSize p = 0; p < static_cast<SignedSize>(db.size()); ++p)
+    {
+      is_decoy[p] = decoy_prefix ? StringUtils::hasPrefix(db[p].identifier, decoy_string) : StringUtils::hasSuffix(db[p].identifier, decoy_string);
+    }
+    // the proteins of the hits
+    std::vector<uint8_t> entry_used(mapping.occurrences.size(), 0);
+    for (const Size entry : hit_entry) entry_used[entry] = 1;
+    std::vector<uint8_t> protein_used(db.size(), 0);
+    for (Size entry = 0; entry < entry_used.size(); ++entry)
+    {
+      if (!entry_used[entry]) continue;
+      for (const Occurrence& occurrence : mapping.occurrences[entry]) protein_used[occurrence.first] = 1;
+    }
+    std::vector<UInt32> proteins; // in database order (PeptideIndexing's std::set of protein indices)
+    bool any_decoy = false;
+    for (Size p = 0; p < db.size(); ++p)
+    {
+      if (!protein_used[p]) continue;
+      proteins.push_back(static_cast<UInt32>(p));
+      any_decoy = any_decoy || is_decoy[p];
+    }
+    if (!any_decoy && indexer_parameters.getValue("missing_decoy_action").toString() != "silent")
+    {
+      fallback_reason = "no hit maps to a decoy"; // PeptideIndexing's warning or error
+      return false;
+    }
+
+    // The meta value names in the order in which PeptideIndexing registers them (its first hit is mapped): MetaInfo
+    // keeps, and idXML writes, the values of a hit ordered by registry index
+    MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+    const UInt target_decoy = registry.registerName("target_decoy");
+    const UInt protein_references = registry.registerName("protein_references");
+    const DataValue target("target"), decoy("decoy"), target_and_decoy("target+decoy"), unique("unique"), non_unique("non-unique");
+
+    // the evidences of every hit, in PeptideIndexing's order (protein, position)
+#pragma omp parallel for schedule(dynamic, 64)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
+    {
+      std::vector<PeptideHit>& hits = peptide_ids[i].getHits();
+      for (Size h = 0; h < hits.size(); ++h)
+      {
+        PeptideHit& hit = hits[h];
+        const std::vector<Occurrence>& occurrences = mapping.occurrences[hit_entry[first_hit[i] + h]];
+        const Size length = hit.getSequence().size();
+        std::vector<PeptideEvidence> evidences;
+        evidences.reserve(occurrences.size());
+        bool in_target = false, in_decoy = false;
+        Size protein_count = 0;
+        UInt32 last_protein = std::numeric_limits<UInt32>::max();
+        for (const auto& [protein, position] : occurrences)
+        {
+          const std::string& sequence = db[protein].sequence;
+          const char before = (position == 0) ? PeptideEvidence::N_TERMINAL_AA : sequence[position - 1];
+          const char after = (position + length >= sequence.size()) ? PeptideEvidence::C_TERMINAL_AA : sequence[position + length];
+          evidences.emplace_back(db[protein].identifier, static_cast<Int>(position), static_cast<Int>(position + length) - 1, before, after);
+          if (protein != last_protein)
+          {
+            last_protein = protein;
+            ++protein_count;
+          }
+          (is_decoy[protein] ? in_decoy : in_target) = true;
+        }
+        hit.setPeptideEvidences(std::move(evidences));
+        hit.setMetaValue(target_decoy, (in_target && in_decoy) ? target_and_decoy : (in_target ? target : decoy));
+        hit.setMetaValue(protein_references, protein_count == 1 ? unique : non_unique);
+      }
+    }
+
+    // the protein hits: the proteins of the hits (keep_unreferenced_proteins = false), in database order
+    std::vector<ProteinHit> protein_hits(proteins.size());
+#pragma omp parallel for schedule(static)
+    for (SignedSize k = 0; k < static_cast<SignedSize>(proteins.size()); ++k)
+    {
+      protein_hits[k].setAccession(db[proteins[k]].identifier);
+      protein_hits[k].setMetaValue(target_decoy, is_decoy[proteins[k]] ? decoy : target);
+    }
+    protein_ids[0].getHits() = std::move(protein_hits);
+
+    // PeptideIndexing's settings, as it records them
+    ProteaseDigestion enzyme;
+    enzyme.setEnzyme(indexer_parameters.getValue("enzyme:name").toString());
+    enzyme.setSpecificity(ProteaseDigestion::getSpecificityByName(indexer_parameters.getValue("enzyme:specificity").toString()));
+    ProteinIdentification::SearchParameters search_parameters = protein_ids[0].getSearchParameters();
+    search_parameters.setMetaValue("PeptideIndexer:decoy_string", decoy_string);
+    search_parameters.setMetaValue("PeptideIndexer:decoy_string_position", decoy_prefix ? "prefix" : "suffix");
+    search_parameters.setMetaValue("PeptideIndexer:enzyme", enzyme.getEnzymeName());
+    search_parameters.setMetaValue("PeptideIndexer:enzyme_specificity", EnzymaticDigestion::NamesOfSpecificity[enzyme.getSpecificity()]);
+    search_parameters.setMetaValue("PeptideIndexer:aaa_max", static_cast<Int>(indexer_parameters.getValue("aaa_max")));
+    search_parameters.setMetaValue("PeptideIndexer:mismatches_max", static_cast<Int>(indexer_parameters.getValue("mismatches_max")));
+    search_parameters.setMetaValue("PeptideIndexer:IL_equivalent", indexer_parameters.getValue("IL_equivalent").toBool() ? "true" : "false");
+    search_parameters.setMetaValue("PeptideIndexer:allow_nterm_protein_cleavage",
+                                   indexer_parameters.getValue("allow_nterm_protein_cleavage").toBool() ? "true" : "false");
+    search_parameters.setMetaValue("PeptideIndexer:unmatched_action", indexer_parameters.getValue("unmatched_action").toString());
+    search_parameters.setMetaValue("PeptideIndexer:missing_decoy_action", indexer_parameters.getValue("missing_decoy_action").toString());
+    protein_ids[0].setSearchParameters(std::move(search_parameters));
+    return true;
   }
 
   // =====================================================================
@@ -1945,8 +3771,14 @@ namespace OpenMS
                     << precursor_mass_tolerance_unit_ << ")" << std::endl;
 
     startProgress(0, 1, "Filtering spectra...");
+    FragmentIonLikelihoodModel::PeakLists ion_evidence; // annotate:self_trained_ion_priors
+    PeakMap evidence_spectra, query_spectra;
+    PeakMap* query_ptr = query_raw_spectrum_ ? &query_spectra : nullptr;
+    PeakMap* evidence_ptr = param_.getValue("annotate:local_fragment_evidence").toBool() ? &evidence_spectra : nullptr;
     logDenseSpectra(preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_,
-                                       peaks_window_top_, peaks_window_type_, peaks_dense_window_top_, peaks_dense_intensity_loss_),
+                                       peaks_window_top_, peaks_window_type_, peaks_dense_window_top_, peaks_dense_intensity_loss_,
+                                       deisotoping_, self_trained_ion_priors_ ? &ion_evidence : nullptr, ion_prior_scored_peaks_,
+                                       evidence_ptr, query_ptr),
                     spectra.size());
     endProgress();
 
@@ -2000,7 +3832,7 @@ namespace OpenMS
     {
       startProgress(0, 1, "Running calibration pass...");
       StopWatch sw_cal; sw_cal.start();
-      last_calibration_result_ = runCalibrationPass_(spectra, fragment_index_, db);
+      last_calibration_result_ = runCalibrationPass_(spectra, fragment_index_, db, query_ptr);
       sw_cal.stop();
       last_run_stats_.seconds_calibration = sw_cal.getClockTime();
       const CalibrationResult_& cal = last_calibration_result_;
@@ -2077,7 +3909,38 @@ namespace OpenMS
     scoreSpectraAgainstIndex_(spectra, fragment_index_, db, generators,
                               effective_fragment_tol, fragment_mass_tolerance_unit_ppm,
                               open_search_mode, annotated_hits, pool_stats,
-                              "Scoring peptide models against spectra...");
+                              "Scoring peptide models against spectra...", query_ptr);
+    query_spectra.clear(true);
+
+    // The PeptideIndexing that maps the hits to their proteins below.
+    // The PeptideIndexer drops peptides whose termini do not match the configured
+    // specificity, so it must agree with the search-time setting — otherwise
+    // semi-specific / non-specific PSMs would be silently filtered out here.
+    PeptideIndexing indexer;
+    {
+      Param param_pi = indexer.getParameters();
+      // Use the effective decoy marker/position recorded in the context (the same
+      // decoys that were searched), avoiding PeptideIndexing's own auto-detection.
+      param_pi.setValue("decoy_string", ctx.decoy_string.empty() ? decoy_prefix_ : ctx.decoy_string);
+      param_pi.setValue("decoy_string_position", ctx.decoy_is_prefix ? "prefix" : "suffix");
+      param_pi.setValue("enzyme:name", enzyme_);
+      param_pi.setValue("enzyme:specificity",
+                        EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
+      param_pi.setValue("missing_decoy_action", "silent");
+      indexer.setParameters(param_pi);
+    }
+    // peptide:protein_mapping = index: the protein occurrences of the hits' candidates are read from the index
+    // while it is still there (the index holds them all, PeptideIndexing searches the whole database for them)
+    ProteinMapping_ protein_mapping;
+    if (protein_mapping_from_index_)
+    {
+      std::vector<UInt32> candidates;
+      for (const auto& hits : annotated_hits)
+      {
+        for (const auto& ah : hits) candidates.push_back(ah.index_peptide);
+      }
+      protein_mapping = buildProteinMapping_(fragment_index_, db, std::move(candidates), indexer.getParameters());
+    }
 
     // M1: release the fragment index eagerly when the caller opted in (single-
     // use context). All downstream work (postProcessHits_, open-search mod
@@ -2109,29 +3972,32 @@ namespace OpenMS
       precursor_min_charge_,
       precursor_max_charge_,
       enzyme_,
-      "" // no database filename for in-memory search
+      "", // no database filename for in-memory search
+      evidence_ptr
       );
+    evidence_spectra.clear(true); // Release the additional peak list before PeptideIndexing.
     endProgress();
     sw_search.stop();
     last_run_stats_.seconds_search = sw_search.getClockTime();
 
-    // reindex peptides to proteins.
-    // The PeptideIndexer drops peptides whose termini do not match the configured
-    // specificity, so it must agree with the search-time setting — otherwise
-    // semi-specific / non-specific PSMs would be silently filtered out here.
-    PeptideIndexing indexer;
-    Param param_pi = indexer.getParameters();
-    // Use the effective decoy marker/position recorded in the context (the same
-    // decoys that were searched), avoiding PeptideIndexing's own auto-detection.
-    param_pi.setValue("decoy_string", ctx.decoy_string.empty() ? decoy_prefix_ : ctx.decoy_string);
-    param_pi.setValue("decoy_string_position", ctx.decoy_is_prefix ? "prefix" : "suffix");
-    param_pi.setValue("enzyme:name", enzyme_);
-    param_pi.setValue("enzyme:specificity",
-                      EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
-    param_pi.setValue("missing_decoy_action", "silent");
-    indexer.setParameters(param_pi);
-
-    PeptideIndexing::ExitCodes indexer_exit = indexer.run(db, protein_ids, peptide_ids);
+    // map the hits to their proteins: from the index, or with PeptideIndexing (the same result)
+    PeptideIndexing::ExitCodes indexer_exit = PeptideIndexing::ExitCodes::EXECUTION_OK;
+    std::string fallback_reason;
+    if (protein_mapping_from_index_
+        && applyProteinMapping_(protein_mapping, db, indexer.getParameters(), protein_ids, peptide_ids, fallback_reason))
+    {
+      OPENMS_LOG_INFO << "[ProSE] Protein mapping from the fragment index: " << protein_mapping.sequences.size()
+                      << " sequences, " << protein_ids[0].getHits().size() << " proteins." << std::endl;
+    }
+    else
+    {
+      if (protein_mapping_from_index_)
+      {
+        OPENMS_LOG_INFO << "[ProSE] Protein mapping with PeptideIndexing (" << fallback_reason << ")." << std::endl;
+      }
+      indexer_exit = indexer.run(db, protein_ids, peptide_ids);
+    }
+    protein_mapping = ProteinMapping_(); // released before the FDR
 
     // Helper lambda: restore FragmentIndex parameters AND algo-level tolerance members
     // before returning if calibration modified them, so the shared SearchContext and the
@@ -2169,6 +4035,14 @@ namespace OpenMS
     // (generated internally, or external decoys reused from the input FASTA).
     const bool has_decoys = ctx.have_decoys;
 
+    // Optional per-run ion priors need the target/decoy labels and the native scores: after
+    // PeptideIndexing, before FDR overwrites the scores.
+    if (self_trained_ion_priors_)
+    {
+      annotateIonPriors_(spectra, ion_evidence, protein_ids, peptide_ids);
+      ion_evidence.clear();
+    }
+
     // Capture pre-FDR stats now — BEFORE FDR, which drops pure-decoy hits
     // (FalseDiscoveryRate default add_decoy_peptides=false), may strip decoys
     // entirely, and overwrites each hit's HyperScore with its q-value.
@@ -2182,11 +4056,7 @@ namespace OpenMS
       // Categorical decoy removal happens only at protein-FDR finalization (file-based
       // single-file search below, or ProSE.cpp).
       StopWatch sw_fdr; sw_fdr.start();
-      FalseDiscoveryRate fdr;
-      Param fdr_params = fdr.getParameters();
-      fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
-      fdr.setParameters(fdr_params);
-      fdr.apply(peptide_ids);
+      annotatePsmQValues(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
       last_run_stats_.fdr_applied = true;
       last_run_stats_.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
@@ -2272,6 +4142,503 @@ namespace OpenMS
                     << protein_fdr * 100 << "% FDR." << std::endl;
   }
 
+  void ProSEAlgorithm::annotatePsmQValues(PeptideIdentificationList& peptide_ids) const
+  {
+    FalseDiscoveryRate fdr;
+    Param fdr_params = fdr.getParameters();
+    fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
+    fdr.setParameters(fdr_params);
+
+    // Group the spectra by the number of fragment charges their best hit was scored with. FalseDiscoveryRate
+    // competes the best hit of each spectrum (stable score order, as sort() below).
+    std::map<int, std::vector<Size>> groups;
+    bool separate = fdr_psm_by_scored_charges_ && scoring_multiple_charges_;
+    if (separate)
+    {
+      std::map<int, std::pair<bool, bool>> has_target_decoy;
+      std::vector<Size> without_hits;
+      for (Size i = 0; i < peptide_ids.size(); ++i)
+      {
+        PeptideIdentification& id = peptide_ids[i];
+        if (id.getHits().empty())
+        {
+          without_hits.push_back(i);
+          continue;
+        }
+        id.sort();
+        const PeptideHit& best = id.getHits()[0];
+        const int group = scoringMaxCharge_(best.getCharge());
+        groups[group].push_back(i);
+        auto& [has_target, has_decoy] = has_target_decoy[group];
+        (best.isDecoy() ? has_decoy : has_target) = true;
+      }
+      separate = groups.size() > 1
+                 && std::all_of(has_target_decoy.begin(), has_target_decoy.end(),
+                                [](const auto& entry) { return entry.second.first && entry.second.second; });
+      if (groups.size() > 1 && ! separate)
+      {
+        OPENMS_LOG_WARN << "[ProSE] FDR:PSM_groups: a group of PSMs scored with the same number of fragment charges has no "
+                        << "target or no decoy PSM; computing q-values over all PSMs together." << std::endl;
+      }
+      if (separate && ! without_hits.empty()) // they carry no score, but get the q-value score type with the others
+      {
+        auto& first = groups.begin()->second;
+        first.insert(first.end(), without_hits.begin(), without_hits.end());
+      }
+    }
+    if (! separate)
+    {
+      fdr.apply(peptide_ids);
+      return;
+    }
+    for (const auto& [group, indices] : groups)
+    {
+      PeptideIdentificationList part;
+      part.reserve(indices.size());
+      for (Size i : indices) { part.push_back(std::move(peptide_ids[i])); }
+      fdr.apply(part);
+      for (Size k = 0; k < indices.size(); ++k) { peptide_ids[indices[k]] = std::move(part[k]); }
+    }
+  }
+
+  namespace
+  {
+    // Starts the OpenMP threads of the calling thread, if they do not run yet, and returns their
+    // number: 1 without OpenMP, with a single OpenMP thread, and inside a parallel region.
+    Size startOpenMPThreads()
+    {
+      Size threads = 0;
+#pragma omp parallel reduction(+ : threads)
+      {
+        ++threads;
+      }
+      return threads;
+    }
+
+    // The index build waits for the spectra that are read meanwhile, to index only the peptides they can reach, if
+    // generating the fragments it skips takes longer than the rest of the read: with few threads (measured on
+    // 8,000-spectrum files: faster for all instrument types up to 4 threads, slower for some from 6 threads on) and a
+    // read that is short against the build (the read is serial, the build parallel): at most
+    // MAX_SPECTRA_BYTES_PER_PEPTIDE / threads bytes of spectra file per peptide (measured with 9 M peptides: faster
+    // with 11, 27 and 41 bytes per peptide at 2 threads and with 11 at 4 threads, even with 27, slower with 41).
+    constexpr Size MAX_THREADS_WAITING_FOR_SPECTRA = 4;
+    constexpr UInt64 MAX_SPECTRA_BYTES_PER_PEPTIDE = 100;
+
+    // FASTAFile::load() with the OpenMP threads: the file is cut into pieces at starts of entries,
+    // the threads read the pieces with FASTAFile::readNext(), and the pieces are joined in file
+    // order. Same entries as load(): readNext() reads an entry from its '>' up to a line break
+    // followed by '>'. A piece starts at a '>' after a line break whose line holds no '>': that
+    // line is not a header (whose line break would not end an entry), so the reader of load()
+    // starts an entry there as well, and the reader of the piece before stops when it arrives
+    // there. Whenever this does not work out (small file, no such place, a reader that fails or
+    // does not arrive at the next piece), load() reads the file and reports errors as before.
+    void loadFASTA(const std::string& filename, std::vector<FASTAFile::FASTAEntry>& entries)
+    {
+      std::vector<std::streamoff> pieces{0}; // where each piece starts; the first one where readStart() starts
+#ifdef _OPENMP
+      if (!omp_in_parallel() && omp_get_max_threads() > 1)
+      {
+        std::ifstream in(filename, std::ios::binary);
+        in.seekg(0, std::ios::end);
+        const std::streamoff size = in.tellg();
+        // several pieces per thread: the threads do not read equally fast
+        const std::streamoff count = std::min<std::streamoff>(4 * omp_get_max_threads(), size / (std::streamoff(1) << 18));
+        std::string window(Size(1) << 16, '\0');
+        for (std::streamoff i = 1; i < count && in.good(); ++i)
+        {
+          const std::streamoff from = size / count * i;
+          in.seekg(from);
+          in.read(window.data(), static_cast<std::streamsize>(window.size()));
+          const std::string_view text(window.data(), static_cast<Size>(in.gcount()));
+          in.clear(); // reading up to the end of the file is fine
+          // lines of the window that are complete: between two line breaks
+          for (Size line = text.find('\n'); line != std::string_view::npos && line + 1 < text.size();)
+          {
+            const Size next = text.find('\n', line + 1);
+            if (next == std::string_view::npos || next + 1 >= text.size()) { break; }
+            if (text[next + 1] == '>' && text.substr(line + 1, next - line - 1).find('>') == std::string_view::npos)
+            {
+              if (from + static_cast<std::streamoff>(next) + 1 > pieces.back()) { pieces.push_back(from + static_cast<std::streamoff>(next) + 1); }
+              break;
+            }
+            line = next;
+          }
+        }
+      }
+#endif
+      if (pieces.size() < 2)
+      {
+        FASTAFile().load(filename, entries);
+        return;
+      }
+
+      std::vector<std::vector<FASTAFile::FASTAEntry>> read(pieces.size());
+      bool complete = true;
+#pragma omp parallel for schedule(dynamic, 1)
+      for (SignedSize i = 0; i < static_cast<SignedSize>(pieces.size()); ++i)
+      {
+        bool ok = false;
+        try // exceptions must not leave the parallel region
+        {
+          FASTAFile file;
+          FASTAFile::FASTAEntry entry;
+          file.readStart(filename);
+          ok = i == 0 || file.setPosition(pieces[i]);
+          if (ok && i + 1 == static_cast<SignedSize>(pieces.size()))
+          { // the last piece: up to the end of the file, as load()
+            while (file.readNext(entry)) { read[i].push_back(std::move(entry)); }
+          }
+          else if (ok)
+          {
+            const std::streampos end = pieces[i + 1];
+            while (ok && file.position() < end)
+            {
+              ok = file.readNext(entry);
+              if (ok) { read[i].push_back(std::move(entry)); }
+            }
+            ok = ok && file.position() == end;
+          }
+        }
+        catch (...)
+        {
+          ok = false;
+        }
+        if (!ok)
+        {
+#pragma omp critical (ProSEAlgorithm_loadFASTA)
+          complete = false;
+        }
+      }
+      if (!complete)
+      {
+        FASTAFile().load(filename, entries);
+        return;
+      }
+
+      Size total = 0;
+      for (const auto& piece : read) { total += piece.size(); }
+      entries.clear();
+      entries.reserve(total);
+      for (auto& piece : read)
+      {
+        entries.insert(entries.end(), std::make_move_iterator(piece.begin()), std::make_move_iterator(piece.end()));
+      }
+    }
+
+    // MzMLFile::load() with @p threads OpenMP threads (at least 2). The spectra are cut into chunks at
+    // their <spectrum> start tags; every chunk is parsed together with the file's header and closing
+    // tags by an MzMLFile of its own (MzMLFile::loadBuffer), and the spectra are joined in file order.
+    // The last chunk runs up to </run>, so it also holds the chromatograms. Each thread reads its chunks
+    // from the file itself, so the data held beyond the spectra is at most about 9 MB per thread,
+    // whatever the size of the file. The header is parsed first on this thread: it gives the experimental
+    // settings, registers its meta value names in file order and initialises the XML parser.
+    // Returns false if the file does not have the layout the chunks rely on (compressed; a comment,
+    // CDATA section or DOCTYPE before the end of the run; not exactly one spectrum list; a count
+    // attribute other than the number of spectra found; few spectra) or a chunk fails to parse. The
+    // caller then reads the file with MzMLFile::load(), which also reports its errors.
+    bool loadMzMLChunked(const std::string& filename, const PeakFileOptions& options, int threads, PeakMap& exp)
+    {
+      std::ifstream in(filename, std::ios::binary);
+      if (!in) { return false; }
+      in.seekg(0, std::ios::end);
+      const Size size = static_cast<Size>(in.tellg());
+      char magic[2] = {0, 0};
+      in.seekg(0);
+      in.read(magic, 2);
+      if (!in || (magic[0] == 'B' && magic[1] == 'Z') || (magic[0] == '\x1f' && magic[1] == '\x8b') || (magic[0] == 'P' && magic[1] == 'K'))
+      {
+        return false; // compressed (bzip2, gzip, zip) or too short
+      }
+
+      // 1. Where the markup of interest starts, found by the threads in blocks of the file.
+      enum class Mark : unsigned char { spectrum, list_start, list_end, run_end, declaration };
+      const auto is_tag = [](std::string_view text, std::string_view name)
+      {
+        return text.size() > name.size() && text.substr(0, name.size()) == name
+               && std::string_view(" \t\r\n>/").find(text[name.size()]) != std::string_view::npos;
+      };
+      constexpr Size block = Size(1) << 20;
+      constexpr Size lookahead = 16; // longer than the longest name compared below, "</spectrumList" plus one
+      const Size n_blocks = (size + block - 1) / block;
+      std::vector<std::vector<std::pair<Size, Mark>>> marks(n_blocks);
+      bool ok = true;
+#pragma omp parallel num_threads(threads)
+      {
+        std::ifstream file(filename, std::ios::binary);
+        std::string buffer;
+#pragma omp for schedule(dynamic, 1)
+        for (SignedSize sb = 0; sb < static_cast<SignedSize>(n_blocks); ++sb)
+        {
+          const Size b = static_cast<Size>(sb);
+          const Size from = b * block;
+          const Size end = std::min(block, size - from); // marks starting before end belong to this block
+          buffer.resize(std::min(block + lookahead, size - from));
+          file.seekg(static_cast<std::streamoff>(from));
+          file.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+          if (!file)
+          {
+#pragma omp atomic write
+            ok = false;
+            file.clear();
+            continue;
+          }
+          for (Size i = 0; i < end; ++i)
+          {
+            const char* p = static_cast<const char*>(std::memchr(buffer.data() + i, '<', end - i));
+            if (p == nullptr) { break; }
+            i = static_cast<Size>(p - buffer.data());
+            const std::string_view text(p, std::min(lookahead, buffer.size() - i));
+            if (is_tag(text, "<spectrumList")) { marks[b].emplace_back(from + i, Mark::list_start); }
+            else if (is_tag(text, "<spectrum")) { marks[b].emplace_back(from + i, Mark::spectrum); }
+            else if (is_tag(text, "</spectrumList")) { marks[b].emplace_back(from + i, Mark::list_end); }
+            else if (is_tag(text, "</run")) { marks[b].emplace_back(from + i, Mark::run_end); }
+            else if (text.substr(0, 2) == "<!") { marks[b].emplace_back(from + i, Mark::declaration); }
+          }
+        }
+      }
+      constexpr Size none = std::numeric_limits<Size>::max();
+      Size list_start = none, list_end = none, run_end = none;
+      std::vector<Size> starts; // of the spectra
+      for (const auto& block_marks : marks)
+      {
+        for (const auto& [pos, mark] : block_marks)
+        {
+          switch (mark)
+          {
+            case Mark::list_start: ok = ok && list_start == none; list_start = pos; break;
+            case Mark::spectrum: ok = ok && list_start != none && list_end == none; starts.push_back(pos); break;
+            case Mark::list_end: ok = ok && list_start != none && list_end == none; list_end = pos; break;
+            case Mark::run_end: if (run_end == none) { ok = ok && list_end != none; run_end = pos; } break;
+            case Mark::declaration: ok = ok && run_end != none; break;
+          }
+        }
+      }
+      marks = {};
+      if (!ok || run_end == none || starts.size() < 64) { return false; }
+
+      // 2. The header (everything before the first spectrum) and the count attribute of its
+      //    <spectrumList>, which each chunk sets to its own number of spectra.
+      std::string header(starts[0], '\0');
+      in.seekg(0);
+      in.read(header.data(), static_cast<std::streamsize>(header.size()));
+      if (!in) { return false; }
+      Size count_begin = none, count_end = none;
+      for (Size p = list_start + std::string_view("<spectrumList").size();;)
+      {
+        p = header.find_first_not_of(" \t\r\n", p);
+        if (p == std::string::npos) { return false; }
+        if (header[p] == '>') { break; }
+        const Size name_end = header.find_first_of("= \t\r\n>", p);
+        Size q = header.find_first_not_of(" \t\r\n", name_end);
+        if (name_end == std::string::npos || q == std::string::npos || header[q] != '=') { return false; }
+        q = header.find_first_not_of(" \t\r\n", q + 1);
+        if (q == std::string::npos || (header[q] != '"' && header[q] != '\'')) { return false; }
+        const Size value_end = header.find(header[q], q + 1);
+        if (value_end == std::string::npos) { return false; }
+        if (std::string_view(header).substr(p, name_end - p) == "count") { count_begin = q + 1; count_end = value_end; }
+        p = value_end + 1;
+      }
+      if (count_begin == none || header.compare(count_begin, count_end - count_begin, std::to_string(starts.size())) != 0)
+      {
+        return false;
+      }
+      const std::string end_of_run = std::string("</run></mzML>") + (header.find("<indexedmzML") != std::string::npos ? "</indexedmzML>" : "");
+      const auto chunk_text = [&](Size n_spectra, std::string& text)
+      {
+        text.assign(header, 0, count_begin);
+        text += std::to_string(n_spectra);
+        text.append(header, count_end, std::string::npos);
+      };
+
+      // 3. Chunks of about equal size: two per thread (the threads do not parse equally fast; every chunk
+      //    costs the set-up of a parser and handler), of at most 8 MB, and of at least 16 spectra.
+      constexpr Size max_chunk_bytes = Size(8) << 20;
+      const Size n = starts.size();
+      const Size bytes = list_end - starts[0];
+      const Size n_chunks = std::min(n / 16, std::max(2 * static_cast<Size>(threads), (bytes + max_chunk_bytes - 1) / max_chunk_bytes));
+      std::vector<Size> first{0}; // the first spectrum of each chunk
+      for (Size c = 1; c < n_chunks; ++c)
+      {
+        const Size f = static_cast<Size>(std::lower_bound(starts.begin(), starts.end(), starts[0] + bytes / n_chunks * c) - starts.begin());
+        if (f > first.back() && f < n) { first.push_back(f); }
+      }
+      first.push_back(n);
+
+      // A chunk decodes its spectra on its thread; in batches of the default size, so that it does not
+      // hold the encoded data of all its spectra at once.
+      PeakFileOptions chunk_options = options;
+      chunk_options.setMaxDataPoolSize(PeakFileOptions().getMaxDataPoolSize());
+      try
+      {
+        std::string text;
+        chunk_text(0, text);
+        text += "</spectrumList>" + end_of_run;
+        MzMLFile mzml;
+        mzml.getOptions() = chunk_options;
+        mzml.loadBuffer(text, exp);
+      }
+      catch (...)
+      {
+        return false;
+      }
+      // A slot for every spectrum of the file (MzMLHandler reserves as many): a chunk moves the spectra it
+      // keeps into the first of its slots right after parsing, so that only the chunks being parsed hold
+      // spectra of their own.
+      const Size n_chunks_used = first.size() - 1;
+      std::vector<MSSpectrum> spectra(n);
+      std::vector<Size> kept(n_chunks_used, 0);
+      std::vector<MSChromatogram> chromatograms;
+#pragma omp parallel num_threads(threads)
+      {
+        std::ifstream file(filename, std::ios::binary);
+        std::string chunk;
+#pragma omp for schedule(dynamic, 1)
+        for (SignedSize sc = 0; sc < static_cast<SignedSize>(n_chunks_used); ++sc)
+        {
+          const Size c = static_cast<Size>(sc);
+          const bool last = c + 1 == n_chunks_used;
+          const Size from = starts[first[c]];
+          const Size to = last ? run_end : starts[first[c + 1]];
+          chunk_text(first[c + 1] - first[c], chunk);
+          const Size at = chunk.size();
+          chunk.resize(at + (to - from));
+          file.seekg(static_cast<std::streamoff>(from));
+          file.read(chunk.data() + at, static_cast<std::streamsize>(to - from));
+          bool parsed = static_cast<bool>(file);
+          if (parsed)
+          {
+            chunk += last ? end_of_run : "</spectrumList>" + end_of_run;
+            try // exceptions must not leave the parallel region
+            {
+              MzMLFile mzml;
+              mzml.getOptions() = chunk_options;
+              PeakMap part;
+              mzml.loadBuffer(chunk, part);
+              parsed = part.size() <= first[c + 1] - first[c];
+              if (parsed)
+              {
+                std::move(part.begin(), part.end(), spectra.begin() + static_cast<SignedSize>(first[c]));
+                kept[c] = part.size();
+                if (last) { chromatograms = std::move(part.getChromatograms()); }
+              }
+            }
+            catch (...)
+            {
+              parsed = false;
+            }
+          }
+          if (!parsed)
+          {
+#pragma omp atomic write
+            ok = false;
+            file.clear();
+          }
+        }
+      }
+      if (!ok) { return false; }
+
+      Size kept_total = 0; // the spectra in file order: each chunk's slots, without the unused ones
+      for (Size c = 0; c < n_chunks_used; ++c)
+      {
+        for (Size i = first[c]; i < first[c] + kept[c]; ++i, ++kept_total)
+        {
+          if (kept_total != i) { spectra[kept_total] = std::move(spectra[i]); }
+        }
+      }
+      spectra.erase(spectra.begin() + static_cast<SignedSize>(kept_total), spectra.end());
+      exp.setSpectra(std::move(spectra));
+      exp.setChromatograms(std::move(chromatograms));
+      exp.setLoadedFileType(filename);
+      exp.setLoadedFilePath(filename);
+      exp.updateRanges();
+      return true;
+    }
+
+    // The MS2 spectra of a spectrum file (mzML, Bruker .d or Thermo .raw), sorted by RT, read with
+    // @p threads OpenMP threads: an mzML file in chunks parsed in parallel (loadMzMLChunked) with two
+    // or more, otherwise with FileHandler.
+    PeakMap loadMS2Spectra(const std::string& filename, int threads)
+    {
+      PeakMap spectra;
+      FileHandler f;
+      f.getOptions().clearMSLevels();
+      f.getOptions().addMSLevel(2);
+      // MzMLHandler decodes the spectra in a parallel region every maxDataPoolSize spectra (100 by
+      // default): with several threads, fewer and larger regions
+      if (threads > 1) { f.getOptions().setMaxDataPoolSize(1000); }
+      if (threads > 1 && FileHandler::getTypeByFileName(filename) == FileTypes::MZML
+          && loadMzMLChunked(filename, f.getOptions(), threads, spectra))
+      {
+        ChromatogramTools().convertSpectraToChromatograms<PeakMap>(spectra, true); // as FileHandler::loadExperiment()
+#ifdef __GLIBC__
+        // Each reader thread freed its chunk buffers and parser temporaries between the spectra it
+        // keeps, and glibc holds these pages in the thread's arena, where nothing allocates again: with
+        // 16 readers 109-165 MB on 8,000-24,000 spectra (4 readers: 43 MB), +0.14 GiB max RSS of the
+        // whole search at 64 threads. Return them; with fewer readers the gain is small and returning
+        // pages the search is about to reuse cost +0.4% wall time at 4 threads.
+        if (threads >= 8) { malloc_trim(0); }
+#endif
+      }
+      else
+      {
+        f.loadExperiment(filename, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+      }
+      spectra.sortSpectra(true);
+      return spectra;
+    }
+
+    // The OpenMP threads a spectrum file is read with: those of this thread, at most 16 (the chunked
+    // read gets no faster with more). A read in the background, next to the index build or the search
+    // of another file, gets a quarter of them, at least 2: with all of them, it slowed the index build
+    // down when the read was hidden behind it anyway.
+    int readerThreads(bool background)
+    {
+#ifdef _OPENMP
+      const int threads = omp_get_max_threads();
+      return background ? std::clamp(threads / 4, std::min(threads, 2), 16) : std::min(threads, 16);
+#else
+      return 1;
+#endif
+    }
+
+    // loadMS2Spectra() on a helper thread. The helper sets its OpenMP threads (readerThreads(true) of
+    // this thread): a new thread starts with the default of the process (OMP_NUM_THREADS or all cores),
+    // not with what was set for this one (e.g. by TOPPBase from -threads).
+    std::future<PeakMap> loadMS2SpectraAsync(const std::string& filename)
+    {
+      const int threads = readerThreads(true);
+      return std::async(std::launch::async, [&filename, threads]()
+      {
+#ifdef _OPENMP
+        omp_set_num_threads(threads);
+#endif
+        return loadMS2Spectra(filename, threads);
+      });
+    }
+
+    // Whether the first MBs of an mzML file name an electron-based activation (the terms that
+    // MzMLHandler reads as ECD, ETD, ETciD or EThcD). A cheap prediction of what the spectra will
+    // hold, used only to decide when to build the index, not what the index holds.
+    bool mzMLHeadNamesElectronActivation(const std::string& filename)
+    {
+      std::string head(Size(8) << 20, '\0');
+      std::ifstream in(filename, std::ios::binary);
+      in.read(head.data(), static_cast<std::streamsize>(head.size()));
+      head.resize(static_cast<Size>(in.gcount()));
+      // MS:1000250, MS:1000598, MS:1003182 and MS:1002631: one pass for what they share
+      const std::string_view text(head);
+      for (Size pos = text.find("MS:100"); pos != std::string_view::npos; pos = text.find("MS:100", pos + 1))
+      {
+        const std::string_view number = text.substr(pos + 6, 4);
+        if (number == "0250" || number == "0598" || number == "3182" || number == "2631")
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+
   // =====================================================================
   // File-based search: thin I/O wrapper that delegates to in-memory search
   // =====================================================================
@@ -2282,20 +4649,101 @@ namespace OpenMS
   {
     // load MS2 map
     PeakMap spectra;
-    FileHandler f;
-    PeakFileOptions options;
-    options.clearMSLevels();
-    options.addMSLevel(2);
-    f.getOptions() = options;
-    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
-    spectra.sortSpectra(true);
 
-    // load FASTA
     vector<FASTAFile::FASTAEntry> fasta_db;
-    FASTAFile().load(in_db, fasta_db);
+    DecoyStrategy_ strategy; // decoys of the searched database, for protein FDR below
+    bool strategy_resolved = false;
+    ExitCodes ec;
+    const Size threads = startOpenMPThreads();
+    if (database_chunk_size_ == 0 && FileHandler::getTypeByFileName(in_spectra) == FileTypes::MZML && threads > 1)
+    {
+      // Unchunked, multi-threaded search of an mzML file: a helper thread reads the spectra while
+      // this thread reads the FASTA file and builds the fragment index; then the search continues
+      // as search(spectra, fasta_db, ...) does. The two sides share no data: the spectra are used
+      // here only after get(), and the registries of OpenMS are written only by the mzML reader
+      // in the meantime (FASTA reading, decoys and the index build register no meta value names),
+      // so they end up as after reading the spectra first. Other readers (.d, .raw) have not
+      // been checked for this and keep the order below.
+      // The OpenMP threads of this thread run before the helper starts (see the condition), as
+      // they did when the spectra were read first (decoding them was the first parallel region):
+      // started next to a busy helper, they more often end up on another NUMA node than this
+      // thread, which slows down the index build and the scoring.
+      std::future<PeakMap> spectra_ready = loadMS2SpectraAsync(in_spectra);
 
-    // delegate to in-memory search
-    ExitCodes ec = search(spectra, fasta_db, protein_ids, peptide_ids);
+      // load FASTA
+      loadFASTA(in_db, fasta_db);
+
+      // ions:by_activation: the index needs c and z+1 ions if electron-activated spectra are
+      // searched, which is known once the spectra are read. Wait for them if they are read already
+      // (or failed to be read: get() rethrows) or if the file names an electron-based activation
+      // early on. Otherwise build the index without these ions meanwhile, which is what most data
+      // need, and rebuild it should such spectra turn up after all (as the multi-file search does
+      // when a later file has them): the index searched is the one prepareContext(fasta_db, true)
+      // builds.
+      const bool spectra_read = spectra_ready.wait_for(std::chrono::seconds(0)) == std::future_status::ready
+                                || (ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra));
+      if (spectra_read) { spectra = spectra_ready.get(); }
+      bool spectra_waited = spectra_read;
+      // The single-use index holds only the peptides the spectra can reach if they are read by the time the
+      // peptides are generated, or if waiting for them pays off (see MAX_THREADS_WAITING_FOR_SPECTRA).
+      std::function<const PeakMap*(Size)> searched_spectra;
+      if (restrictIndexToSpectra_())
+      {
+        const UInt64 spectra_bytes = File::fileSize(in_spectra); // UInt64(-1) if unknown: no waiting
+        searched_spectra = [&, spectra_bytes](Size peptides) -> const PeakMap*
+        {
+          if (!spectra_waited)
+          {
+            const bool wait = threads <= MAX_THREADS_WAITING_FOR_SPECTRA
+                              && spectra_bytes <= MAX_SPECTRA_BYTES_PER_PEPTIDE * peptides / threads;
+            if (!wait && spectra_ready.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+            {
+              return nullptr;
+            }
+            spectra = spectra_ready.get();
+            spectra_waited = true;
+          }
+          return &spectra;
+        };
+      }
+      // The context takes the entries over instead of copying them. fasta_db is not read
+      // afterwards: protein FDR below takes the decoy marker from the context, which holds what
+      // resolveDecoyStrategy_(fasta_db) returned.
+      SearchContext ctx = prepareContext_(std::move(fasta_db), spectra_read && countElectronActivated_(spectra) > 0, searched_spectra);
+      strategy.have_decoys = ctx.have_decoys;
+      strategy.decoy_string = ctx.decoy_string;
+      strategy.is_prefix = ctx.decoy_is_prefix;
+      strategy_resolved = true;
+      if (!spectra_read)
+      {
+        if (!spectra_waited)
+        {
+          spectra = spectra_ready.get();
+          spectra_waited = true;
+        }
+        if (countElectronActivated_(spectra) > 0)
+        {
+          startProgress(0, 1, "Building fragment index with c and z+1 ions...");
+          ctx.fragment_index.clear();
+          ctx.fragment_index.setParameters(fragmentIndexParameters_(true));
+          ctx.fragment_index.build(ctx.db, searched_spectra);
+          ctx.electron_ions = true;
+          endProgress();
+        }
+      }
+      ctx.release_fragment_index_after_scoring = true; // single-use ctx (M1)
+      ec = search(spectra, ctx, protein_ids, peptide_ids);
+    }
+    else
+    {
+      spectra = loadMS2Spectra(in_spectra, readerThreads(false));
+
+      // load FASTA
+      loadFASTA(in_db, fasta_db);
+
+      // delegate to in-memory search
+      ec = search(spectra, fasta_db, protein_ids, peptide_ids);
+    }
 
     if (ec != ExitCodes::EXECUTION_OK)
     {
@@ -2306,13 +4754,17 @@ namespace OpenMS
     // Must run before decoy removal so both target and decoy proteins
     // receive aggregated scores from BPIA. Resolve the decoy strategy from the
     // same input FASTA the search used so the marker/position match.
-    const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
-    if (fdr_protein_ > 0.0 && strategy.have_decoys)
+    // The strategy is only needed for protein FDR: do not scan the accessions again without it.
+    if (fdr_protein_ > 0.0)
     {
-      // Single input file = complete experiment, so picked-protein FDR is valid. Use the resolved
-      // decoy marker (prefix or suffix, detected by DecoyHelper in resolveDecoyStrategy_) so the
-      // shared finalization recognises the same decoys that were searched.
-      applyCompleteSetProteinFDR(protein_ids, peptide_ids, strategy.decoy_string, strategy.is_prefix, fdr_protein_);
+      if (!strategy_resolved) { strategy = resolveDecoyStrategy_(fasta_db); } // else: known from the context
+      if (strategy.have_decoys)
+      {
+        // Single input file = complete experiment, so picked-protein FDR is valid. Use the resolved
+        // decoy marker (prefix or suffix, detected by DecoyHelper in resolveDecoyStrategy_) so the
+        // shared finalization recognises the same decoys that were searched.
+        applyCompleteSetProteinFDR(protein_ids, peptide_ids, strategy.decoy_string, strategy.is_prefix, fdr_protein_);
+      }
     }
 
     // patch file-specific metadata
@@ -2410,6 +4862,31 @@ namespace OpenMS
       return mfres;
     }
 
+    // Multi-threaded: a helper thread reads the spectra of an mzML file while this thread works, the
+    // first file from here on while the database is prepared and the index built, and, in the
+    // unchunked search below, file i + 1 while file i is searched. The OpenMP threads of this thread
+    // are started first, as in search(file).
+    // Registry order: idXML writes the UserParams of an object in the order in which their names were
+    // registered. The mzML reader registers names (CV terms and user parameters of the file, and its
+    // own, see MzMLHandler) while it runs. Preparing the database and building the index register
+    // none, so with the first file the registry ends up as if the file had been read first. While
+    // file i is searched, the search registers the names of what it writes (scan_index, the PSM
+    // features, target_decoy, PeptideIndexer:*, spectra_data, ...); if the reader of file i + 1
+    // registers names in between, these keep their order relative to each other. ProSE writes none
+    // of the reader's names, unless a file carries a user parameter that is named like one of them.
+    const Size threads_started = startOpenMPThreads();
+    const bool read_in_background = threads_started > 1;
+    const auto is_mzml = [&in_spectra_files](Size i) { return FileHandler::getTypeByFileName(in_spectra_files[i]) == FileTypes::MZML; };
+    std::future<PeakMap> next_spectra; // the spectra of the next file to search, if read in the background
+    const auto read_next = [&](Size i)
+    {
+      if (read_in_background && i < in_spectra_files.size() && is_mzml(i))
+      {
+        next_spectra = loadMS2SpectraAsync(in_spectra_files[i]);
+      }
+    };
+    read_next(0);
+
     // Resolve decoy handling once from the shared input FASTA; reused for the
     // chunk-major path, the single-context path, and the downstream FDR steps.
     const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
@@ -2497,19 +4974,21 @@ namespace OpenMS
 
       // Phase 1: Load + preprocess all files.
       std::vector<PeakMap> all_spectra(in_spectra_files.size());
+      // annotate:self_trained_ion_priors: the compact peak lists of every file, until its PSMs are annotated
+      std::vector<FragmentIonLikelihoodModel::PeakLists> all_ion_evidence(in_spectra_files.size());
+      const bool retain_evidence = param_.getValue("annotate:local_fragment_evidence").toBool();
+      std::vector<PeakMap> all_evidence_spectra(retain_evidence ? in_spectra_files.size() : 0);
+      std::vector<PeakMap> all_query_spectra(query_raw_spectrum_ ? in_spectra_files.size() : 0);
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
-        FileHandler f;
-        PeakFileOptions options;
-        options.clearMSLevels();
-        options.addMSLevel(2);
-        f.getOptions() = options;
-        f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
-        all_spectra[i].sortSpectra(true);
+        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads(false));
         logDenseSpectra(preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_,
                                            peaks_keep_n_, peaks_window_top_, peaks_window_type_, peaks_dense_window_top_,
-                                           peaks_dense_intensity_loss_),
+                                           peaks_dense_intensity_loss_, deisotoping_,
+                                           self_trained_ion_priors_ ? &all_ion_evidence[i] : nullptr, ion_prior_scored_peaks_,
+                                           retain_evidence ? &all_evidence_spectra[i] : nullptr,
+                                           query_raw_spectrum_ ? &all_query_spectra[i] : nullptr),
                         all_spectra[i].size());
       }
 
@@ -2565,7 +5044,7 @@ namespace OpenMS
         {
           OPENMS_LOG_INFO << "[ProSE] Calibration for " << in_spectra_files[i]
                           << " (strided sample, " << cal_db.size() << " proteins)" << std::endl;
-          CalibrationResult_ cal = runCalibrationPass_(all_spectra[i], cal_fi, cal_db);
+          CalibrationResult_ cal = runCalibrationPass_(all_spectra[i], cal_fi, cal_db, query_raw_spectrum_ ? &all_query_spectra[i] : nullptr);
           if (cal.success)
           {
             per_file_cal[i].effective_fragment_tol = cal.fragment_tolerance;
@@ -2667,14 +5146,15 @@ namespace OpenMS
                                     generators, per_file_cal[i].effective_fragment_tol,
                                     fragment_mass_tolerance_unit_ppm, open_search_mode,
                                     per_file_hits[i], per_file_pool_stats[i],
-                                    "  file " + StringUtils::toStr(i + 1) + " chunk " + StringUtils::toStr(chunk_idx));
+                                    "  file " + StringUtils::toStr(i + 1) + " chunk " + StringUtils::toStr(chunk_idx),
+                                    query_raw_spectrum_ ? &all_query_spectra[i] : nullptr);
         }
         // Restore base FI params for next chunk (in case calibration modified them).
         if (calibration_enabled_ && !open_search_mode)
           chunk_fi.setParameters(base_fi_params);
 
         // Per-chunk pruning for each file.
-        const Size keep = std::max(report_top_hits_, Size(2));
+        const Size keep = keptHitsPerSpectrum_();
         for (Size i = 0; i < in_spectra_files.size(); ++i)
         {
 #pragma omp parallel for default(none) shared(per_file_hits, i, keep)
@@ -2693,6 +5173,13 @@ namespace OpenMS
       } // end chunk loop
 
       // Phase 3: Per-file postprocess with per-file calibrated tolerances.
+      for (auto& file_stats : per_file_pool_stats)
+      {
+        for (auto& stats : file_stats)
+        {
+          std::unordered_set<std::string>().swap(stats.seen_candidates);
+        }
+      }
       mfres.per_file.reserve(in_spectra_files.size());
 
       for (Size i = 0; i < in_spectra_files.size(); ++i)
@@ -2704,6 +5191,8 @@ namespace OpenMS
         SearchResult result;
         result.is_open_search = open_search_mode;
 
+        if (query_raw_spectrum_) all_query_spectra[i].clear(true);
+
         postProcessHits_(all_spectra[i], per_file_hits[i], per_file_pool_stats[i],
           result.protein_ids, result.peptide_ids,
           report_top_hits_, modifications_fixed_, modifications_variable_,
@@ -2712,7 +5201,9 @@ namespace OpenMS
                    per_file_cal[i].effective_precursor_tol_upper),
           per_file_cal[i].effective_fragment_tol,
           precursor_mass_tolerance_unit_, fragment_mass_tolerance_unit_,
-          precursor_min_charge_, precursor_max_charge_, enzyme_, "");
+          precursor_min_charge_, precursor_max_charge_, enzyme_, "",
+          retain_evidence ? &all_evidence_spectra[i] : nullptr);
+        if (retain_evidence) all_evidence_spectra[i].clear(true);
 
         PeptideIndexing indexer;
         Param param_pi = indexer.getParameters();
@@ -2739,6 +5230,7 @@ namespace OpenMS
             result.exit_code = ExitCodes::UNKNOWN_ERROR;
           result.stats.input_file = File::basename(in_spectra);
           mfres.per_file.push_back(std::move(result));
+          all_ion_evidence[i].clear();
           continue;
         }
 
@@ -2749,16 +5241,18 @@ namespace OpenMS
         // protein-FDR finalization step performed by ProSE.cpp. have_decoys is the marker-aware
         // result from resolveDecoyStrategy_ (prefix or suffix, generated or external).
         const bool has_decoys = strategy.have_decoys;
+        // Optional per-run ion priors, after PeptideIndexing and before FDR (see search()); each file learns its own.
+        if (self_trained_ion_priors_)
+        {
+          annotateIonPriors_(all_spectra[i], all_ion_evidence[i], result.protein_ids, result.peptide_ids);
+          all_ion_evidence[i].clear();
+        }
         // Pre-FDR stats (target/decoy counts + HyperScore distribution).
         capturePreFdrStats_(result.peptide_ids, result.stats);
         if (fdr_psm_ > 0.0 && has_decoys)
         {
           StopWatch sw_fdr; sw_fdr.start();
-          FalseDiscoveryRate fdr;
-          Param fdr_params = fdr.getParameters();
-          fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
-          fdr.setParameters(fdr_params);
-          fdr.apply(result.peptide_ids);
+          annotatePsmQValues(result.peptide_ids);
           IDFilter::filterHitsByScore(result.peptide_ids, fdr_psm_);
           result.stats.fdr_applied = true;
           result.stats.achieved_psm_fdr = maxRetainedScore_(result.peptide_ids);
@@ -2801,7 +5295,9 @@ namespace OpenMS
       // spectra, by rebuilding it. Only such spectra are matched against these ions (see
       // scoreSpectraAgainstIndex_), so the results of the other files depend neither on whether
       // the index holds them nor on the input order, and no file has to be read in advance.
-      auto prepare_context = [&](bool electron_ions)
+      // A single file is the only search of the context: its index holds only the peptides that the
+      // spectra (read before) can reach.
+      auto prepare_context = [&](bool electron_ions, const std::function<const PeakMap*(Size)>& searched_spectra)
       {
         if (ctx_built && (ctx.electron_ions || !electron_ions)) { return; }
         StopWatch sw_idx; sw_idx.start();
@@ -2814,24 +5310,26 @@ namespace OpenMS
           ctx.electron_ions = true;
           endProgress();
         }
-        else if (!full_db.empty())
+        else
         {
-          // chunk_size was set but augmented DB fits in one chunk — reuse the
-          // already-built decoy-augmented DB instead of re-augmenting inside
-          // prepareContext.
+          // As prepareContext(fasta_db, electron_ions), but with the decoy strategy resolved above
+          // instead of detecting the decoys of fasta_db a second time. If chunk_size was set but the
+          // augmented DB fits in one chunk, full_db holds it already.
+          if (full_db.empty())
+          {
+            startProgress(0, 1, "Generate decoys...");
+            full_db = buildDecoyAugmentedDB_(fasta_db, strategy);
+            endProgress();
+          }
           ctx.db = std::move(full_db);
           ctx.decoy_string = strategy.decoy_string;
           ctx.decoy_is_prefix = strategy.is_prefix;
           ctx.have_decoys = strategy.have_decoys;
           startProgress(0, 1, "Building fragment index...");
           ctx.fragment_index.setParameters(fragmentIndexParameters_(electron_ions));
-          ctx.fragment_index.build(ctx.db);
+          ctx.fragment_index.build(ctx.db, searched_spectra);
           ctx.electron_ions = electron_ions;
           endProgress();
-        }
-        else
-        {
-          ctx = prepareContext(fasta_db, electron_ions);
         }
         sw_idx.stop();
 
@@ -2859,6 +5357,41 @@ namespace OpenMS
 
       mfres.per_file.reserve(in_spectra_files.size());
 
+      // While the first file is read: build the index, as search(file) does without c and z+1 ions
+      // unless the spectra are read already or the file names an electron-based activation early on.
+      // prepare_context() below adds them if the spectra need them after all.
+      // A single file is the only search of the context (r3 merge of WP7 and WP10): as in search(file), the index
+      // holds only the peptides its spectra can reach if they are read by the time the peptides are generated, or
+      // if waiting for them pays off (see MAX_THREADS_WAITING_FOR_SPECTRA); the spectra taken for that are searched.
+      const bool restrict_index = in_spectra_files.size() == 1 && restrictIndexToSpectra_();
+      PeakMap first_spectra;
+      bool first_spectra_taken = false;
+      if (next_spectra.valid() && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready
+          && !(ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra_files[0])))
+      {
+        std::function<const PeakMap*(Size)> searched_spectra;
+        if (restrict_index)
+        {
+          const UInt64 spectra_bytes = File::fileSize(in_spectra_files[0]); // UInt64(-1) if unknown: no waiting
+          searched_spectra = [&, spectra_bytes](Size peptides) -> const PeakMap*
+          {
+            if (!first_spectra_taken)
+            {
+              const bool wait = threads_started <= MAX_THREADS_WAITING_FOR_SPECTRA
+                                && spectra_bytes <= MAX_SPECTRA_BYTES_PER_PEPTIDE * peptides / threads_started;
+              if (!wait && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+              {
+                return nullptr;
+              }
+              first_spectra = next_spectra.get();
+              first_spectra_taken = true;
+            }
+            return &first_spectra;
+          };
+        }
+        prepare_context(false, searched_spectra);
+      }
+
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         const std::string& in_spectra = in_spectra_files[i];
@@ -2867,20 +5400,19 @@ namespace OpenMS
         OPENMS_LOG_INFO << "[ProSE] [" << (i + 1) << "/" << in_spectra_files.size()
                         << "] Searching " << in_spectra << std::endl;
 
-        PeakMap spectra;
-        {
-          FileHandler f;
-          PeakFileOptions options;
-          options.clearMSLevels();
-          options.addMSLevel(2);
-          f.getOptions() = options;
-          f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
-        }
-        spectra.sortSpectra(true);
-        prepare_context(countElectronActivated_(spectra) > 0);
+        PeakMap spectra = first_spectra_taken ? std::move(first_spectra)
+                          : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false));
+        first_spectra_taken = false;
+        read_next(i + 1);
+        std::function<const PeakMap*(Size)> searched_spectra;
+        if (restrict_index) { searched_spectra = [&spectra](Size) { return &spectra; }; }
+        prepare_context(countElectronActivated_(spectra) > 0, searched_spectra);
 
         SearchResult result;
         result.is_open_search = isOpenSearchMode_();
+        // No file after this one: search() releases the index right after scoring (in parallel, and
+        // before the post-processing allocates) instead of the context's destructor at the end.
+        ctx.release_fragment_index_after_scoring = i + 1 == in_spectra_files.size();
         result.exit_code = search(spectra, ctx, result.protein_ids, result.peptide_ids);
 
         if (result.exit_code != ExitCodes::EXECUTION_OK)
@@ -3042,7 +5574,7 @@ namespace OpenMS
   {
     // load FASTA once
     vector<FASTAFile::FASTAEntry> fasta_db;
-    FASTAFile().load(in_db, fasta_db);
+    loadFASTA(in_db, fasta_db);
 
     MultiFileSearchResult mfres = searchWithModificationAnalysis(
       in_spectra_files, fasta_db, output_base_names, aggregate_base_name, build_pooled_aggregate);
@@ -3294,13 +5826,240 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // Self-trained ion priors: learn presence, intensity rank and mass error
+  // of fragment ions from the confident PSMs of this run, one model per
+  // half of the spectra, and annotate every hit with the other half's model.
+  // =====================================================================
+  // static
+  AASequence ProSEAlgorithm::reversedNoiseSequence_(const AASequence& sequence)
+  {
+    // Reverse all but the C-terminal residue and keep every residue's modification, so the noise
+    // hypothesis shares composition, mass and enzymatic C-terminus with the peptide.
+    const Size n = sequence.size();
+    if (n < 3) return sequence;
+    AASequence reversed;
+    for (Size i = n - 1; i-- > 0;) { reversed += &sequence[i]; }
+    reversed += &sequence[n - 1];
+    if (sequence.hasNTerminalModification()) { reversed.setNTerminalModification(sequence.getNTerminalModification()); }
+    if (sequence.hasCTerminalModification()) { reversed.setCTerminalModification(sequence.getCTerminalModification()); }
+    return reversed;
+  }
+
+  void ProSEAlgorithm::annotateIonPriors_(const PeakMap& spectra,
+                                          const FragmentIonLikelihoodModel::PeakLists& evidence,
+                                          std::vector<ProteinIdentification>& protein_ids,
+                                          PeptideIdentificationList& peptide_ids) const
+  {
+    if (!self_trained_ion_priors_) return;
+    StopWatch sw_train, sw_annotate;
+    sw_train.start();
+    const bool ppm = fragment_mass_tolerance_unit_ == "ppm";
+    const double tolerance = fragment_mass_tolerance_;
+    const SpectrumGenerators_ generators = spectrumGenerators_();
+    const bool rich = ion_prior_model_ == FragmentIonLikelihoodModel::ContextSet::RICH;
+    // Fragment charges of the theoretical ions: b/y ions of a z+ precursor carry at most z - 1 charges.
+    const int max_fragment_charge = ion_prior_max_fragment_charge_;
+    const auto fragment_charges = [max_fragment_charge](int precursor_charge) {
+      return std::max(1, std::min(max_fragment_charge, precursor_charge - 1));
+    };
+
+    // 1. The spectrum of every PSM (scan_index of postProcessHits_); -1 if it has no peaks to match.
+    const Size n_ids = peptide_ids.size();
+    std::vector<SignedSize> scans(n_ids, -1);
+    for (Size i = 0; i < n_ids; ++i)
+    {
+      const PeptideIdentification& pi = peptide_ids[i];
+      if (pi.getHits().empty() || !pi.metaValueExists("scan_index")) continue;
+      const SignedSize scan = static_cast<int>(pi.getMetaValue("scan_index"));
+      if (scan >= 0 && static_cast<Size>(scan) < spectra.size() && static_cast<Size>(scan) < evidence.size()
+          && evidence.peaks(static_cast<Size>(scan)) > 0)
+      {
+        scans[i] = scan;
+      }
+    }
+    // Best hit by the identification's score orientation (postProcessHits_ sorts the hits, but the
+    // annotation must not depend on it).
+    const auto best_hit = [](const PeptideIdentification& pi) -> const PeptideHit& {
+      const std::vector<PeptideHit>& hits = pi.getHits();
+      const bool higher_better = pi.isHigherScoreBetter();
+      Size best = 0;
+      for (Size h = 1; h < hits.size(); ++h)
+      {
+        if (higher_better ? hits[h].getScore() > hits[best].getScore() : hits[h].getScore() < hits[best].getScore()) best = h;
+      }
+      return hits[best];
+    };
+
+    // 2. Training PSMs of each half (fold = scan parity): its best target hits at TDC q <= threshold over the
+    //    native score, computed within the half, so the other half's labels are not used. Decoys win exact
+    //    ties, as in the native yield evaluation, which keeps the selection conservative. The search has decoys
+    //    (target-only searches never get here), so (D + 1) / T is an estimate even in a half without a decoy hit.
+    struct Row { double score; bool decoy; Size index; };
+    std::array<std::vector<Row>, 2> rows;
+    for (Size i = 0; i < n_ids; ++i)
+    {
+      if (scans[i] < 0) continue;
+      const PeptideHit& top = best_hit(peptide_ids[i]);
+      if (!top.metaValueExists(Constants::UserParam::TARGET_DECOY)) continue;
+      const bool decoy = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString() == "decoy";
+      const Size fold = static_cast<Size>(scans[i]) % 2;
+      rows[fold].push_back({peptide_ids[i].isHigherScoreBetter() ? top.getScore() : -top.getScore(), decoy, i});
+    }
+    std::array<std::vector<Size>, 2> training;
+    for (Size fold = 0; fold < 2; ++fold)
+    {
+      std::vector<Row>& fold_rows = rows[fold];
+      std::sort(fold_rows.begin(), fold_rows.end(), [](const Row& a, const Row& b) {
+        if (a.score != b.score) return a.score > b.score;
+        if (a.decoy != b.decoy) return a.decoy;
+        return a.index < b.index;
+      });
+      std::vector<double> q(fold_rows.size(), 1.0);
+      Size targets = 0, decoys = 0;
+      for (Size r = 0; r < fold_rows.size(); ++r)
+      {
+        if (fold_rows[r].decoy) { ++decoys; }
+        else { ++targets; }
+        q[r] = static_cast<double>(decoys + 1) / static_cast<double>(std::max<Size>(targets, 1));
+      }
+      for (Size r = fold_rows.size(); r-- > 1;) { q[r - 1] = std::min(q[r - 1], q[r]); }
+      for (Size r = 0; r < fold_rows.size(); ++r)
+      {
+        if (!fold_rows[r].decoy && q[r] <= ion_prior_train_fdr_) training[fold].push_back(fold_rows[r].index);
+      }
+    }
+    const bool trained = training[0].size() >= ion_prior_min_psms_ && training[1].size() >= ion_prior_min_psms_
+                         && std::isfinite(tolerance) && tolerance > 0.0;
+
+    // 3. One model per half; its signal: the ions of the training PSMs, its noise: those of their reversed sequences
+    //    on the same spectra. Ions are matched in parallel; the integer counts are added up in training order.
+    std::array<FragmentIonLikelihoodModel, 2> models{FragmentIonLikelihoodModel(ion_prior_model_),
+                                                     FragmentIonLikelihoodModel(ion_prior_model_)};
+    if (trained)
+    {
+      for (Size fold = 0; fold < 2; ++fold)
+      {
+        const std::vector<Size>& psms = training[fold];
+        FragmentIonLikelihoodModel& model = models[fold];
+        std::vector<std::vector<FragmentIonLikelihoodModel::Ion>> signal(psms.size()), noise(psms.size());
+#pragma omp parallel for schedule(dynamic, 16)
+        for (SignedSize t = 0; t < static_cast<SignedSize>(psms.size()); ++t)
+        {
+          const Size scan = static_cast<Size>(scans[psms[t]]);
+          const PeptideHit& hit = best_hit(peptide_ids[psms[t]]);
+          const int charge = hit.getCharge();
+          const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spectra[scan]);
+          PeakSpectrum theo;
+          tsg.getSpectrum(theo, hit.getSequence(), 1, fragment_charges(charge));
+          model.matchIons(evidence, scan, theo, hit.getSequence(), charge, tolerance, ppm, signal[t]);
+          const AASequence reversed = reversedNoiseSequence_(hit.getSequence());
+          if (reversed == hit.getSequence()) continue; // no noise hypothesis (a palindrome)
+          theo.clear(true);
+          tsg.getSpectrum(theo, reversed, 1, fragment_charges(charge));
+          model.matchIons(evidence, scan, theo, reversed, charge, tolerance, ppm, noise[t]);
+        }
+        for (Size t = 0; t < psms.size(); ++t)
+        {
+          model.addObservations(signal[t], false);
+          if (!noise[t].empty()) model.addObservations(noise[t], true);
+        }
+        model.finalize();
+      }
+    }
+    else
+    {
+      OPENMS_LOG_WARN << "[ProSE] Ion priors: " << training[0].size() << " and " << training[1].size()
+                      << " confident training PSMs in the two halves of the spectra, fewer than " << ion_prior_min_psms_
+                      << "; the ion_prior_* features are 0 for this file." << std::endl;
+    }
+    sw_train.stop();
+
+    // 4. Annotate every hit, scoring it with the model of the other half (cross-fitting). Untrained runs get zeros
+    //    so the feature columns stay complete. The names of annotate:ion_prior_features are registered here, always in
+    //    this order, before the parallel loop.
+    sw_annotate.start();
+    MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+    const bool write_llr = ion_prior_feature_llr_, write_explained = ion_prior_feature_explained_, write_topk = ion_prior_feature_topk_;
+    const UInt mv_llr = write_llr ? registry.registerName(Constants::UserParam::ION_PRIOR_LLR) : 0;
+    const UInt mv_explained = write_explained ? registry.registerName(Constants::UserParam::ION_PRIOR_EXPLAINED) : 0;
+    const UInt mv_topk = write_topk ? registry.registerName(Constants::UserParam::ION_PRIOR_TOPK_OBSERVED) : 0;
+    Size annotated = 0;
+#pragma omp parallel for schedule(dynamic, 16) reduction(+ : annotated)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(n_ids); ++i)
+    {
+      PeptideIdentification& pi = peptide_ids[i];
+      const SignedSize scan = scans[i];
+      const bool scorable = trained && scan >= 0;
+      const FragmentIonLikelihoodModel& model = models[scorable ? 1 - static_cast<Size>(scan) % 2 : 0];
+      PeakSpectrum theo;
+      std::vector<FragmentIonLikelihoodModel::Ion> ions;
+      for (PeptideHit& hit : pi.getHits())
+      {
+        FragmentIonLikelihoodModel::Features features;
+        if (scorable)
+        {
+          const int charge = hit.getCharge();
+          theo.clear(true);
+          generators.forSpectrum(spectra[scan]).getSpectrum(theo, hit.getSequence(), 1, fragment_charges(charge));
+          model.matchIons(evidence, static_cast<Size>(scan), theo, hit.getSequence(), charge, tolerance, ppm, ions);
+          features = model.score(ions);
+        }
+        if (write_llr) hit.setMetaValue(mv_llr, features.log_likelihood_ratio);
+        if (write_explained) hit.setMetaValue(mv_explained, features.explained_presence);
+        if (write_topk) hit.setMetaValue(mv_topk, features.top_predicted_observed);
+        ++annotated;
+      }
+    }
+    sw_annotate.stop();
+    OPENMS_LOG_INFO << "[ProSE] Ion priors (" << (rich ? "rich" : "basic") << " model, "
+                    << (ion_prior_scored_peaks_ ? "scored" : "all") << " peaks): "
+                    << (trained ? "trained on " : "not trained; ") << training[0].size() << " + " << training[1].size()
+                    << " PSMs at q <= " << ion_prior_train_fdr_ << " (halves by scan parity, each scored by the other's model) in "
+                    << sw_train.getClockTime() << " s; " << annotated << " hits annotated in " << sw_annotate.getClockTime()
+                    << " s; peak lists " << evidence.totalPeaks() << " peaks of " << evidence.size() << " spectra, "
+                    << static_cast<double>(evidence.memoryUsage()) / (1024.0 * 1024.0) << " MiB." << std::endl;
+
+    // 5. Percolator sees the new columns; the search parameters record every setting that determines the features
+    //    (model, peaks, fragment charges, training threshold and minimum) and the training set.
+    if (protein_ids.empty()) return;
+    ProteinIdentification::SearchParameters& search_parameters = protein_ids[0].getSearchParameters();
+    StringList features;
+    if (search_parameters.metaValueExists("extra_features"))
+    {
+      const std::string existing = search_parameters.getMetaValue("extra_features").toString();
+      if (!existing.empty()) features = ListUtils::create<std::string>(existing);
+    }
+    StringList written;
+    if (write_llr) written.push_back(Constants::UserParam::ION_PRIOR_LLR);
+    if (write_explained) written.push_back(Constants::UserParam::ION_PRIOR_EXPLAINED);
+    if (write_topk) written.push_back(Constants::UserParam::ION_PRIOR_TOPK_OBSERVED);
+    for (const std::string& name : written)
+    {
+      if (std::find(features.begin(), features.end(), name) == features.end()) features.push_back(name);
+    }
+    search_parameters.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
+    search_parameters.setMetaValue("annotate:self_trained_ion_priors", "true");
+    search_parameters.setMetaValue("annotate:ion_prior_features", ListUtils::concatenate(written, ","));
+    search_parameters.setMetaValue("annotate:ion_prior_model", rich ? "rich" : "basic");
+    search_parameters.setMetaValue("annotate:ion_prior_peaks", ion_prior_scored_peaks_ ? "scored" : "all");
+    search_parameters.setMetaValue("annotate:ion_prior_max_fragment_charge", ion_prior_max_fragment_charge_);
+    search_parameters.setMetaValue("annotate:ion_prior_train_fdr", ion_prior_train_fdr_);
+    search_parameters.setMetaValue("annotate:ion_prior_min_psms", static_cast<int>(ion_prior_min_psms_));
+    search_parameters.setMetaValue("ion_prior:trained", trained ? "true" : "false");
+    search_parameters.setMetaValue("ion_prior:training_psms", static_cast<int>(training[0].size() + training[1].size()));
+    search_parameters.setMetaValue("ion_prior:fold_training_psms",
+                                   IntList{static_cast<int>(training[0].size()), static_cast<int>(training[1].size())});
+  }
+
+  // =====================================================================
   // Helper: run calibration pass on a subset of spectra
   // =====================================================================
   ProSEAlgorithm::CalibrationResult_
   ProSEAlgorithm::runCalibrationPass_(
       PeakMap& spectra,
       FragmentIndex& fragment_index,
-      const std::vector<FASTAFile::FASTAEntry>& db) const
+      const std::vector<FASTAFile::FASTAEntry>& db,
+      const PeakMap* query_spectra) const
   {
     CalibrationResult_ result;
 
@@ -3361,7 +6120,8 @@ namespace OpenMS
       const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
 
       FragmentIndex::SpectrumMatchesTopN top_sms;
-      fragment_index.querySpectrum(spec, db, top_sms, generators.electronIons(spec));
+      const MSSpectrum& query = query_spectra != nullptr ? (*query_spectra)[scan_idx] : spec;
+      fragment_index.querySpectrum(query, db, top_sms, generators.electronIons(spec));
 
       // Find the best-scoring hit for this spectrum
       double best_score = 0;
@@ -3382,11 +6142,16 @@ namespace OpenMS
         // Clear peaks + data arrays before refilling; getSpectrum appends to
         // whatever is there. Its output is already sorted with add_metainfo=true.
         theo.clear(true);
-        tsg.getSpectrum(theo, seq, 1, 1);
+        tsg.getSpectrum(theo, seq, 1, scoringMaxCharge_(sms.precursor_charge_));
 
+        // The calibration PSMs are selected with the search's own score (upstream 825c33bb). The mass-accuracy score
+        // favours PSMs with small fragment errors, so it narrows the fragment tolerance estimated from them below
+        // (2-10% narrower than with HyperScore on 12 of 14 ppm runs); selecting by HyperScore instead did not
+        // change the yield measurably.
         HyperScore::PSMDetail detail;
-        double score = HyperScore::computeWithDetail(
-            fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
+        double score = mass_accuracy_score_
+          ? HyperScore::computeMassAccuracy(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)
+          : HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
 
         if (score > best_score)
         {

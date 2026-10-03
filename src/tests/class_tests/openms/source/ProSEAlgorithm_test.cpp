@@ -15,24 +15,37 @@
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <algorithm>
+#include <cmath>
+#include <functional>
+#include <limits>
 #include <map>
 #include <numeric>
 #include <random>
 #include <set>
+#include <sstream>
+#include <iomanip>
+
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -55,13 +68,24 @@ public:
   using ProSEAlgorithm::precursor_mass_tolerance_unit_;
   using ProSEAlgorithm::computeModMatchTolerance_;
   using ProSEAlgorithm::last_calibration_result_;
+  using ProSEAlgorithm::scoringMaxCharge_;
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
   using ProSEAlgorithm::preprocessSpectra_;
+  using ProSEAlgorithm::mass_accuracy_score_;
+  using ProSEAlgorithm::DeisotopingSettings_;
+  using ProSEAlgorithm::deisotoping_;
   using ProSEAlgorithm::filterLocalPeaks_;
+  using ProSEAlgorithm::localFragmentEvidence_;
+  using ProSEAlgorithm::localPeakDensities_;
   using ProSEAlgorithm::resolveDecoyStrategy_;
   using ProSEAlgorithm::DecoyStrategy_;
   using ProSEAlgorithm::buildDecoyAugmentedDB_;
+  using ProSEAlgorithm::ProteinMapping_;
+  using ProSEAlgorithm::buildProteinMapping_;
+  using ProSEAlgorithm::applyProteinMapping_;
+  using ProSEAlgorithm::annotateIonPriors_;
+  using ProSEAlgorithm::reversedNoiseSequence_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -468,6 +492,182 @@ static Size count_annotations_(const PeptideHit& hit, const std::string& prefix)
   }
   return n;
 }
+
+// ---------------------------------------------------------------------------
+// annotate:self_trained_ion_priors
+// ---------------------------------------------------------------------------
+static const std::vector<std::string> ion_prior_features_ = {
+  Constants::UserParam::ION_PRIOR_LLR, Constants::UserParam::ION_PRIOR_EXPLAINED, Constants::UserParam::ION_PRIOR_TOPK_OBSERVED};
+
+// The synthetic protein-FDR problem (targets, generated decoys, decoy spectra) with ion priors on
+// and no PSM filtering, so every scored hit is reported.
+static void configure_ion_prior_params_(ProSEAlgorithm& algo, Size min_psms, double train_fdr, const std::string& decoys = "generate")
+{
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", decoys);
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("FDR:protein", 0.0);
+  p.setValue("report:top_hits", 3);
+  p.setValue("annotate:self_trained_ion_priors", "true");
+  p.setValue("annotate:ion_prior_min_psms", static_cast<Int>(min_psms));
+  p.setValue("annotate:ion_prior_train_fdr", train_fdr);
+  p.setValue("annotate:ion_prior_features", ion_prior_features_);
+  algo.setParameters(p);
+}
+
+// Hits and violations: a hit violates when a feature is missing, not finite, out of [0, 1] for the
+// fractions, or (with expect_zero) not 0.
+static std::pair<Size, Size> check_ion_prior_annotations_(const PeptideIdentificationList& pep_ids, bool expect_zero)
+{
+  Size hits = 0, violations = 0;
+  for (const PeptideIdentification& pid : pep_ids)
+  {
+    for (const PeptideHit& hit : pid.getHits())
+    {
+      ++hits;
+      bool complete = true;
+      for (const std::string& feature : ion_prior_features_) complete = complete && hit.metaValueExists(feature);
+      if (! complete)
+      {
+        ++violations;
+        continue;
+      }
+      const double llr = hit.getMetaValue(Constants::UserParam::ION_PRIOR_LLR);
+      const double explained = hit.getMetaValue(Constants::UserParam::ION_PRIOR_EXPLAINED);
+      const double topk = hit.getMetaValue(Constants::UserParam::ION_PRIOR_TOPK_OBSERVED);
+      bool valid = std::isfinite(llr) && explained >= 0.0 && explained <= 1.0 && topk >= 0.0 && topk <= 1.0;
+      if (expect_zero) valid = valid && llr == 0.0 && explained == 0.0 && topk == 0.0;
+      if (! valid) ++violations;
+    }
+  }
+  return {hits, violations};
+}
+
+static std::string extra_features_(const ProteinIdentification& protein_id)
+{
+  const auto& sp = protein_id.getSearchParameters();
+  return sp.metaValueExists("extra_features") ? sp.getMetaValue("extra_features").toString() : std::string();
+}
+
+static bool lists_feature_(const ProteinIdentification& protein_id, const std::string& feature)
+{
+  const StringList features = ListUtils::create<std::string>(extra_features_(protein_id));
+  return std::find(features.begin(), features.end(), feature) != features.end();
+}
+
+// One line per hit: spectrum, sequence, charge, native score and the three ion-prior features (17 digits)
+static std::vector<std::string> ion_prior_rows_(const PeptideIdentificationList& pep_ids)
+{
+  std::vector<std::string> rows;
+  for (const PeptideIdentification& pid : pep_ids)
+  {
+    for (const PeptideHit& hit : pid.getHits())
+    {
+      std::ostringstream row;
+      row << std::setprecision(17) << pid.getSpectrumReference() << ' ' << hit.getSequence().toString() << ' ' << hit.getCharge()
+          << ' ' << hit.getScore();
+      for (const std::string& feature : ion_prior_features_)
+      {
+        row << ' ' << (hit.metaValueExists(feature) ? static_cast<double>(hit.getMetaValue(feature)) : std::nan(""));
+      }
+      rows.push_back(row.str());
+    }
+  }
+  return rows;
+}
+
+// Protein mapping tests: a fragment index of c.db and a hit for each of its peptides without ambiguous residues
+// (three per identification), with the parameters PeptideIndexing runs with
+struct MappingCase
+{
+  vector<FASTAFile::FASTAEntry> db;
+  FragmentIndex index;
+  vector<UInt32> candidates;
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  Param indexer_parameters;
+};
+
+static void prepareMappingCase(MappingCase& c, const string& enzyme, const string& clip, const string& deduplicate,
+                               const vector<string>& fixed, const vector<string>& variable, Int aaa_max)
+{
+  Param p = c.index.getParameters();
+  p.setValue("decoys", "false");
+  p.setValue("enzyme", enzyme);
+  p.setValue("peptide:min_size", 5);
+  p.setValue("peptide:missed_cleavages", 2);
+  p.setValue("peptide:clip_nterm_methionine", clip);
+  p.setValue("peptide:deduplicate", deduplicate);
+  p.setValue("modifications:fixed", fixed);
+  p.setValue("modifications:variable", variable);
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  c.index.setParameters(p);
+  c.index.build(c.db);
+  c.candidates.clear();
+  c.peptides.clear();
+  c.proteins.assign(1, ProteinIdentification());
+  c.proteins[0].setIdentifier("run");
+  c.proteins[0].setSearchEngine("ProSE");
+  vector<PeptideHit> hits;
+  for (UInt32 i = 0; i < c.index.getPeptides().size(); ++i)
+  {
+    const FragmentIndex::Peptide& peptide = c.index.getPeptides()[i];
+    const string residues = c.db[peptide.protein_idx].sequence.substr(peptide.sequence_.first, peptide.sequence_.second);
+    if (residues.find_first_of("BJZX") != string::npos) continue;
+    c.candidates.push_back(i);
+    PeptideHit hit;
+    hit.setSequence(c.index.reconstructModifiedSequence(peptide, c.db));
+    hit.setScore(static_cast<double>(i));
+    hits.push_back(hit);
+    if (hits.size() == 3)
+    {
+      c.peptides.push_back(PeptideIdentification());
+      c.peptides.back().setIdentifier("run");
+      c.peptides.back().setHits(hits);
+      hits.clear();
+    }
+  }
+  PeptideIndexing indexer;
+  Param pi = indexer.getParameters();
+  pi.setValue("decoy_string", "DECOY_");
+  pi.setValue("decoy_string_position", "prefix");
+  pi.setValue("enzyme:name", enzyme);
+  pi.setValue("enzyme:specificity", "full");
+  pi.setValue("missing_decoy_action", "silent");
+  pi.setValue("aaa_max", aaa_max);
+  c.indexer_parameters = pi;
+}
+
+// The sequences that the protein mapping looks up for the spans of @p protein over ambiguous residues, by brute force:
+// every span of one of the @p lengths with 1 to @p aaa_max ambiguous residues, once per combination of the residues
+// they stand for (B, J, Z: 2; X: the 22 letters other than B, J, Z, X)
+static Size ambiguousSpanLookups(const string& protein, const std::set<Size>& lengths, Size aaa_max)
+{
+  const auto stands_for = [](char c) -> Size { return (c == 'B' || c == 'J' || c == 'Z') ? 2 : (c == 'X' ? 22 : 1); };
+  Size total = 0;
+  for (const Size length : lengths)
+  {
+    for (Size start = 0; start + length <= protein.size(); ++start)
+    {
+      Size ambiguous = 0, combinations = 1;
+      for (Size i = start; i < start + length; ++i)
+      {
+        if (stands_for(protein[i]) == 1) continue;
+        ++ambiguous;
+        combinations *= stands_for(protein[i]);
+      }
+      if (ambiguous >= 1 && ambiguous <= aaa_max) total += combinations;
+    }
+  }
+  return total;
+}
+
 
 START_TEST(ProSEAlgorithm, "$Id$")
 
@@ -1635,8 +1835,17 @@ START_SECTION(([EXTRA] ions:by_activation gives each file of a multi-file search
   algo.setParameters(p);
   const ProSEAlgorithm::SearchContext electron_ctx = algo.prepareContext(fasta_db, true);
   const Size electron_fragments = electron_ctx.fragment_index.getNumFragments();
+  Size chunked_peptides = 0, chunked_fragments = 0;
+  for (const auto& protein : fasta_db)
+  {
+    const auto chunk = algo.prepareContext(vector<FASTAFile::FASTAEntry> {protein}, true);
+    chunked_peptides += chunk.fragment_index.getPeptides().size();
+    chunked_fragments += chunk.fragment_index.getNumFragments();
+  }
 
   // the top hit of each file searched alone
+  p.setValue("annotate:local_fragment_evidence", "true");
+  algo.setParameters(p);
   auto search_alone = [&algo, &fasta_db](PeakMap alone)
   {
     vector<ProteinIdentification> prot_ids;
@@ -1658,6 +1867,12 @@ START_SECTION(([EXTRA] ions:by_activation gives each file of a multi-file search
     if (hits.size() != 1) return;
     TEST_EQUAL(hits.begin()->second.getSequence(), alone.begin()->second.getSequence())
     TEST_REAL_SIMILAR(hits.begin()->second.getScore(), alone.begin()->second.getScore())
+    // Local fragment evidence uses each file's own retained peak lists.
+    for (const std::string& feature : {Constants::UserParam::CHANCE_MATCH_SURPRISE, Constants::UserParam::MASS_COMPETITION_EVIDENCE})
+    {
+      ABORT_IF(! hits.begin()->second.metaValueExists(feature) || ! alone.begin()->second.metaValueExists(feature))
+      TEST_REAL_SIMILAR(static_cast<double>(hits.begin()->second.getMetaValue(feature)), static_cast<double>(alone.begin()->second.getMetaValue(feature)))
+    }
   };
 
   for (int chunk_size : {0, 1})
@@ -1670,8 +1885,9 @@ START_SECTION(([EXTRA] ions:by_activation gives each file of a multi-file search
     for (const auto* res : {&hcd_first, &etd_first})
     {
       TEST_EQUAL(res->shared.chunked, chunk_size > 0)
-      TEST_EQUAL(res->shared.indexed_peptides, electron_ctx.fragment_index.getPeptides().size())
-      TEST_EQUAL(res->shared.indexed_fragments, electron_fragments)
+      // Peptides shared between proteins are indexed once per index, hence once per chunk.
+      TEST_EQUAL(res->shared.indexed_peptides, chunk_size > 0 ? chunked_peptides : electron_ctx.fragment_index.getPeptides().size())
+      TEST_EQUAL(res->shared.indexed_fragments, chunk_size > 0 ? chunked_fragments : electron_fragments)
     }
     test_same_top_hit(hcd_first.per_file[0].peptide_ids, hcd_alone);
     test_same_top_hit(etd_first.per_file[1].peptide_ids, hcd_alone);
@@ -2231,7 +2447,112 @@ END_SECTION
 
 START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<std::string>&, const std::string&, const std::vector<std::string>&, const std::string&, bool) const))
 {
-  NOT_TESTABLE // tested via TOPP tool (multi-file integration test)
+  // With several threads, the file-based searches read an mzML file on a helper thread while the
+  // index is built (the multi-file search the next file while the current one is searched), in
+  // chunks of spectra parsed in parallel. Two files with MS1 spectra between the MS2 spectra and a
+  // chromatogram, the first one indexed: each must get exactly the PSMs of the in-memory search of
+  // its MS2 spectra, read with FileHandler: from search(file) those of search(spectra, ...), from the
+  // multi-file search those of searchWithModificationAnalysis(spectra, ...), which, like it, also
+  // annotates the PSMs of an open search with the modification analysis.
+  vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap synthetic;
+  buildSyntheticProteinFDRData(fasta_db, synthetic);
+  std::string fasta_file;
+  NEW_TMP_FILE(fasta_file)
+  fasta_file += ".fasta";
+  FASTAFile().store(fasta_file, fasta_db);
+
+  vector<std::string> files(2);
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    PeakMap run;
+    for (Size i = f; i < synthetic.size(); i += files.size())
+    {
+      if (i % 4 == f) // an MS1 spectrum before every other MS2 spectrum
+      {
+        MSSpectrum ms1 = synthetic[i];
+        ms1.setMSLevel(1);
+        ms1.setPrecursors({});
+        ms1.setNativeID(synthetic[i].getNativeID() + " ms1");
+        run.addSpectrum(std::move(ms1));
+      }
+      run.addSpectrum(synthetic[i]);
+    }
+    MSChromatogram tic;
+    tic.setNativeID("TIC");
+    tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+    for (const MSSpectrum& spectrum : run) { tic.push_back(ChromatogramPeak(spectrum.getRT(), spectrum.calculateTIC())); }
+    run.addChromatogram(std::move(tic));
+    NEW_TMP_FILE(files[f])
+    files[f] += "_" + StringUtils::toStr(f) + ".mzML";
+    MzMLFile mzml;
+    mzml.getOptions().setWriteIndex(f == 0);
+    mzml.store(files[f], run);
+  }
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0); // the spectra carry modification mass shifts
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "generate");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("FDR:protein", 0.0);
+  algo.setParameters(p);
+
+  // the run identifier holds the time of the search
+  const auto same_psms = [](PeptideIdentificationList a, PeptideIdentificationList b)
+  {
+    if (a.size() != b.size()) { return false; }
+    for (Size i = 0; i < a.size(); ++i)
+    {
+      a[i].setIdentifier("");
+      b[i].setIdentifier("");
+      if (a[i] != b[i]) { return false; }
+    }
+    return true;
+  };
+  vector<PeptideIdentificationList> expected(files.size()), expected_analysed(files.size());
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    PeakMap spectra;
+    FileHandler fh;
+    fh.getOptions().clearMSLevels();
+    fh.getOptions().addMSLevel(2);
+    fh.loadExperiment(files[f], spectra, {FileTypes::MZML});
+    spectra.sortSpectra(true);
+    PeakMap spectra_copy = spectra; // the searches preprocess the spectra in place
+    vector<ProteinIdentification> prot_ids;
+    algo.search(spectra, fasta_db, prot_ids, expected[f]);
+    TEST_TRUE(expected[f].size() > 500)
+    expected_analysed[f] = algo.searchWithModificationAnalysis(spectra_copy, fasta_db, "").peptide_ids;
+  }
+
+#ifdef _OPENMP
+  const int threads = omp_get_max_threads();
+  omp_set_num_threads(8);
+#endif
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_EQUAL(algo.search(files[f], fasta_file, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(same_psms(pep_ids, expected[f]), true)
+  }
+  ProSEAlgorithm::MultiFileSearchResult res = algo.searchWithModificationAnalysis(files, fasta_file, vector<std::string>{}, "", false);
+#ifdef _OPENMP
+  omp_set_num_threads(threads);
+#endif
+  ABORT_IF(res.per_file.size() != files.size())
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    TEST_EQUAL(res.per_file[f].exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(same_psms(res.per_file[f].peptide_ids, expected_analysed[f]), true)
+    TEST_EQUAL(res.per_file[f].protein_ids[0].getSearchParameters().db, fasta_file)
+  }
 }
 END_SECTION
 
@@ -2345,6 +2666,172 @@ START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragme
     TEST_EQUAL(ann.annotation.empty(), false)
     TEST_EQUAL(ann.charge >= 1, true)
   }
+
+  // Local evidence is on by default and independent of annotate:PSM. Switching it off
+  // removes both columns and keeps the candidates and native score.
+  TEST_EQUAL(p.getValue("annotate:local_fragment_evidence").toString(), "true")
+  TEST_TRUE(hit.metaValueExists(Constants::UserParam::CHANCE_MATCH_SURPRISE))
+  p.setValue("annotate:local_fragment_evidence", "false");
+  algo.setParameters(p);
+  vector<ProteinIdentification> plain_proteins;
+  PeptideIdentificationList plain_peptides;
+  algo.search(exp, fasta_db, plain_proteins, plain_peptides);
+  ABORT_IF(plain_peptides.size() != pep_ids.size())
+  const auto& plain_hit = plain_peptides[0].getHits()[0];
+  TEST_EQUAL(plain_hit.getSequence(), hit.getSequence())
+  TEST_REAL_SIMILAR(plain_hit.getScore(), hit.getScore())
+  TEST_FALSE(plain_hit.metaValueExists(Constants::UserParam::CHANCE_MATCH_SURPRISE))
+  TEST_FALSE(plain_hit.metaValueExists(Constants::UserParam::MASS_COMPETITION_EVIDENCE))
+  TEST_TRUE(plain_proteins[0].getSearchParameters().getMetaValue("extra_features").toString().find(Constants::UserParam::CHANCE_MATCH_SURPRISE) == string::npos)
+  TEST_EQUAL(plain_proteins[0].getSearchParameters().getMetaValue("annotate:local_fragment_evidence").toString(), "false")
+  // Both numerical columns reach the PIN feature list, also without annotate:PSM.
+  p.setValue("annotate:local_fragment_evidence", "true");
+  p.setValue("annotate:PSM", vector<string>{});
+  algo.setParameters(p);
+  vector<ProteinIdentification> evidence_proteins;
+  PeptideIdentificationList evidence_peptides;
+  algo.search(exp, fasta_db, evidence_proteins, evidence_peptides);
+  TEST_EQUAL(evidence_peptides.size(), pep_ids.size())
+  const auto& evidence_hit = evidence_peptides[0].getHits()[0];
+  TEST_EQUAL(evidence_hit.getSequence(), hit.getSequence())
+  TEST_REAL_SIMILAR(evidence_hit.getScore(), hit.getScore())
+  TEST_TRUE(static_cast<double>(evidence_hit.getMetaValue(Constants::UserParam::CHANCE_MATCH_SURPRISE)) > 0.0)
+  TEST_TRUE(static_cast<double>(evidence_hit.getMetaValue(Constants::UserParam::MASS_COMPETITION_EVIDENCE)) > 0.0)
+  TEST_TRUE(evidence_hit.getPeakAnnotations().empty())
+  const auto& evidence_params = evidence_proteins[0].getSearchParameters();
+  TEST_TRUE(evidence_params.getMetaValue("extra_features").toString().find(Constants::UserParam::CHANCE_MATCH_SURPRISE) != string::npos)
+  TEST_TRUE(evidence_params.getMetaValue("extra_features").toString().find(Constants::UserParam::MASS_COMPETITION_EVIDENCE) != string::npos)
+  TEST_EQUAL(evidence_params.getMetaValue("annotate:local_fragment_evidence").toString(), "true")
+  p.setValue("fragment:mass_tolerance", 0.0);
+  TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] local fragment evidence - density, ambiguity, charge and tolerance))
+{
+  auto theory = [](const vector<double>& masses, const vector<int>& charges)
+  {
+    MSSpectrum spectrum;
+    for (double mz : masses) spectrum.emplace_back(mz, 1.0);
+    DataArrays::IntegerDataArray ion_charges;
+    ion_charges.insert(ion_charges.end(), charges.begin(), charges.end());
+    spectrum.getIntegerDataArrays().push_back(ion_charges);
+    return spectrum;
+  };
+  auto evidence = [&](const MSSpectrum& spectrum, const MSSpectrum& theoretical, double tolerance, bool ppm = false)
+  {
+    return ProSEAlgorithm_test::localFragmentEvidence_(spectrum, theoretical,
+      ProSEAlgorithm_test::localPeakDensities_(spectrum), tolerance, ppm);
+  };
+
+  MSSpectrum sparse;
+  sparse.emplace_back(100.0, 10.0);
+  const auto intact = theory({100.0}, {1});
+  const auto alone = evidence(sparse, intact, 0.5);
+  TEST_REAL_SIMILAR(alone.chance_match_surprise, -std::log(0.01))
+  TEST_REAL_SIMILAR(alone.mass_competition_evidence, 1.0 / 1.01) // Excludes the ion itself.
+
+  // Nearby unmatched peaks reduce confidence, remote peaks do not. The
+  // +/-50 m/z endpoints are inclusive, and windows keep their fixed width.
+  MSSpectrum crowded;
+  for (double mz : {50.0, 100.0, 120.0, 150.0, 200.01}) crowded.emplace_back(mz, 1.0);
+  const auto densities = ProSEAlgorithm_test::localPeakDensities_(crowded);
+  TEST_REAL_SIMILAR(densities[1], 0.04)
+  const auto near = evidence(crowded, intact, 0.5);
+  TEST_REAL_SIMILAR(near.chance_match_surprise, -std::log(0.04))
+  TEST_REAL_SIMILAR(near.mass_competition_evidence, 1.0 / 1.04)
+  MSSpectrum remote = sparse;
+  remote.emplace_back(500.0, 100.0);
+  TEST_REAL_SIMILAR(evidence(remote, intact, 0.5).chance_match_surprise, alone.chance_match_surprise)
+
+  // Two coincident ion identities share one peak: both are matched, but each
+  // receives half the approximate competition credit (no hard peak assignment).
+  const auto coincident = evidence(sparse, theory({100.0, 100.0}, {1, 1}), 0.5);
+  TEST_REAL_SIMILAR(coincident.chance_match_surprise, 2.0 * alone.chance_match_surprise)
+  TEST_REAL_SIMILAR(coincident.mass_competition_evidence, 2.0 / 2.01)
+
+  // Only the 100 m/z intact ion matches. Generic neutral losses of the other
+  // ion create competition, but never an additional credited fragment match.
+  const auto water = evidence(sparse, theory({100.0, 118.010565}, {1, 1}), 0.01);
+  TEST_REAL_SIMILAR(water.mass_competition_evidence, 1.0 / 2.01)
+  const auto ammonia = evidence(sparse, theory({100.0, 117.026549}, {1, 1}), 0.01);
+  TEST_REAL_SIMILAR(ammonia.mass_competition_evidence, 1.0 / 2.01)
+  const auto charge2_remote = evidence(sparse, theory({100.0, 118.010565}, {1, 2}), 0.01);
+  TEST_REAL_SIMILAR(charge2_remote.mass_competition_evidence, 1.0 / 1.01)
+  const auto charge2_loss = evidence(sparse, theory({100.0, 109.0052825}, {1, 2}), 0.01);
+  TEST_REAL_SIMILAR(charge2_loss.mass_competition_evidence, 1.0 / 2.01)
+
+  MSSpectrum shifted;
+  shifted.emplace_back(500.004, 1.0);
+  const auto ppm_match = evidence(shifted, theory({500.0}, {1}), 10.0, true);
+  TEST_REAL_SIMILAR(ppm_match.chance_match_surprise, -std::log(0.0001))
+  TEST_REAL_SIMILAR(ppm_match.mass_competition_evidence, 1.0 / 1.01)
+  TEST_REAL_SIMILAR(evidence(shifted, theory({500.0}, {1}), 5.0, true).chance_match_surprise, 0.0)
+  TEST_REAL_SIMILAR(evidence(sparse, intact, 100.0).chance_match_surprise, 0.0) // Chance >= 1.
+  TEST_REAL_SIMILAR(evidence(MSSpectrum{}, intact, 0.5).mass_competition_evidence, 0.0)
+  TEST_REAL_SIMILAR(evidence(sparse, MSSpectrum{}, 0.5).chance_match_surprise, 0.0)
+  TEST_REAL_SIMILAR(evidence(sparse, theory({200.0}, {1}), 0.5).mass_competition_evidence, 0.0)
+
+  // Preserve weak peaks for annotations while the search retains only its top
+  // peak. Sorting by RT must keep the two peak lists aligned across spectra.
+  PeakMap search_spectra, evidence_spectra;
+  for (int i : {2, 1})
+  {
+    MSSpectrum spectrum;
+    spectrum.setRT(10.0 * i);
+    spectrum.setNativeID("scan=" + std::to_string(i));
+    spectrum.emplace_back(100.0 * i, 10.0);
+    spectrum.emplace_back(100.0 * i + 25.0, 0.0);
+    spectrum.emplace_back(100.0 * i + 50.0, 1.0);
+    search_spectra.addSpectrum(spectrum);
+  }
+  ProSEAlgorithm_test::preprocessSpectra_(search_spectra, 0.5, false, false, 1, 20, "auto", 0, 1.0, ProSEAlgorithm_test::DeisotopingSettings_{}, nullptr, false, &evidence_spectra);
+  TEST_EQUAL(search_spectra.size(), evidence_spectra.size())
+  TEST_EQUAL(search_spectra[0].getNativeID(), "scan=1")
+  for (Size i = 0; i < search_spectra.size(); ++i)
+  {
+    TEST_EQUAL(search_spectra[i].getNativeID(), evidence_spectra[i].getNativeID())
+    TEST_EQUAL(search_spectra[i].size(), 1)
+    TEST_EQUAL(evidence_spectra[i].size(), 2)
+  }
+  const auto weak_ion = theory({150.0}, {1});
+  TEST_REAL_SIMILAR(evidence(search_spectra[0], weak_ion, 0.5).chance_match_surprise, 0.0)
+  TEST_REAL_SIMILAR(evidence(evidence_spectra[0], weak_ion, 0.5).chance_match_surprise, -std::log(0.02))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] local fragment evidence on the ions of the scored charges of an annotation spectrum))
+{
+  // Annotation reuses its theoretical spectrum (charges 1..Z) and restricts the evidence to the scored
+  // charges; the result must equal the evidence on a spectrum generated with only those charges, bit for bit.
+  TheoreticalSpectrumGenerator tsg;
+  Param p = tsg.getParameters();
+  p.setValue("add_first_prefix_ion", "true");
+  p.setValue("add_metainfo", "true");
+  tsg.setParameters(p);
+  const AASequence peptide = AASequence::fromString("PEPTIDEKAM(Oxidation)R");
+  MSSpectrum all;
+  tsg.getSpectrum(all, peptide, 1, 3);
+  MSSpectrum observed;
+  for (Size i = 0; i < all.size(); i += 2) observed.emplace_back(all[i].getMZ() + 0.003, 1.0);
+  for (double mz = 120.0; mz < 1500.0; mz += 7.3) observed.emplace_back(mz, 0.5);
+  observed.sortByPosition();
+  const auto densities = ProSEAlgorithm_test::localPeakDensities_(observed);
+  std::vector<double> buffer;
+  for (int z : {1, 2, 3})
+  {
+    MSSpectrum exact;
+    tsg.getSpectrum(exact, peptide, 1, z);
+    for (bool ppm : {false, true})
+    {
+      const double tolerance = ppm ? 20.0 : 0.02;
+      const auto expected = ProSEAlgorithm_test::localFragmentEvidence_(observed, exact, densities, tolerance, ppm);
+      const auto restricted = ProSEAlgorithm_test::localFragmentEvidence_(observed, all, z, densities, tolerance, ppm, buffer);
+      TEST_EQUAL(expected.mass_competition_evidence > 0.0, true)
+      TEST_EQUAL(restricted.chance_match_surprise == expected.chance_match_surprise, true)
+      TEST_EQUAL(restricted.mass_competition_evidence == expected.mass_competition_evidence, true)
+    }
+  }
 }
 END_SECTION
 
@@ -2410,6 +2897,20 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   // values are observable via last_calibration_result_, which is checked above.
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_lower_, 20.0)
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_upper_, 30.0)
+
+  // Raw retrieval must also be used during the independent calibration pass.
+  const auto processed_calibration = cal;
+  Param raw_params = algo.getParameters();
+  raw_params.setValue("fragment:query_spectrum", "raw");
+  algo.setParameters(raw_params);
+  spectra = build_calibration_spectra_(ppm_shifts);
+  vector<ProteinIdentification> raw_proteins;
+  PeptideIdentificationList raw_peptides;
+  algo.search(spectra, fasta_db, raw_proteins, raw_peptides);
+  TEST_TRUE(algo.last_calibration_result_.success)
+  TEST_REAL_SIMILAR(algo.last_calibration_result_.cal_lower, processed_calibration.cal_lower)
+  TEST_REAL_SIMILAR(algo.last_calibration_result_.cal_upper, processed_calibration.cal_upper)
+  TEST_REAL_SIMILAR(algo.last_calibration_result_.fragment_tolerance, processed_calibration.fragment_tolerance)
 }
 END_SECTION
 
@@ -2606,6 +3107,697 @@ START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the
 }
 END_SECTION
 
+START_SECTION(([EXTRA] deisotoping keeps a fragment ion that has a small peak one isotope spacing below it))
+{
+  // b2 of TMTpro-YMATQLLAK-TMTpro (eclipse_tmtpro_10855, scan 30241): the TMTpro label's isotope
+  // impurity puts a 5% peak 1.00335 Da below the ion. That peak must not become the monoisotopic
+  // peak of the envelope; previously the ion and its +1 isotope were removed as its isotopes.
+  // Regular envelopes are still deisotoped: a 1+ envelope keeps its monoisotopic peak only, and
+  // a 2+ envelope is converted to its singly charged m/z.
+  PeakMap exp;
+  MSSpectrum s;
+  s.setMSLevel(2);
+  s.setRT(1.0);
+  Precursor prec;
+  prec.setMZ(600.0);
+  prec.setCharge(3);
+  s.getPrecursors().push_back(prec);
+  const std::vector<std::pair<double, float>> peaks = {
+    {450.2500, 0.50f}, {450.7517, 0.20f}, {451.2534, 0.05f},     // 2+ envelope
+    {598.3157, 0.04f}, {599.3193, 0.74f}, {600.3250, 0.10f},     // shadow peak, ion, +1 isotope
+    {700.4000, 1.00f}, {701.4034, 0.35f}, {702.4067, 0.08f}};    // 1+ envelope
+  for (const auto& [mz, intensity] : peaks) s.emplace_back(mz, intensity);
+  exp.addSpectrum(s);
+  ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, true, 0, 20);
+
+  auto has_peak = [&exp](double mz)
+  {
+    return std::any_of(exp[0].begin(), exp[0].end(), [mz](const Peak1D& p) { return std::fabs(p.getMZ() - mz) <= 20e-6 * mz; });
+  };
+  TEST_EQUAL(has_peak(599.3193), true)   // the fragment ion survives
+  TEST_EQUAL(has_peak(700.4000), true)   // 1+ envelope: monoisotopic peak kept ...
+  TEST_EQUAL(has_peak(701.4034), false)  // ... isotopes removed
+  TEST_EQUAL(has_peak(702.4067), false)
+  TEST_EQUAL(has_peak(450.2500), false)  // 2+ envelope converted ...
+  TEST_EQUAL(has_peak(450.2500 * 2.0 - Constants::PROTON_MASS_U), true)  // ... to its 1+ m/z
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fragment:deisotope_* settings: two-peak envelopes, summed intensity, charges up to the precursor charge))
+{
+  // One spectrum of a 2+ precursor (20 ppm) with four isotope situations:
+  //  - a singly charged ion with its M+1 peak only (two-peak 1+ envelope),
+  //  - a regular three-peak 2+ envelope,
+  //  - an ion with a weaker peak 1/3 Th above it by chance (a two-peak "3+" envelope),
+  //  - an ion with its M+1 peak 1/2 Th above it (a two-peak 2+ envelope).
+  using Settings = ProSEAlgorithm_test::DeisotopingSettings_;
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+  const std::vector<std::pair<double, float>> peaks = {
+    {400.2000, 1.00f}, {400.2000 + c13, 0.40f},                              // 1+ ion and M+1
+    {450.2500, 0.50f}, {450.2500 + c13 / 2, 0.20f}, {450.2500 + c13, 0.05f}, // 2+ envelope, three peaks
+    {600.0000, 0.80f}, {600.0000 + c13 / 3, 0.10f},                          // 1+ ion and a chance peak 1/3 Th above
+    {750.0000, 0.60f}, {750.0000 + c13 / 2, 0.20f}};                         // two-peak 2+ envelope
+  auto run = [&peaks](const Settings& settings, int precursor_charge, double precursor_mz)
+  {
+    PeakMap exp;
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(1.0);
+    Precursor prec;
+    prec.setMZ(precursor_mz);
+    prec.setCharge(precursor_charge);
+    s.getPrecursors().push_back(prec);
+    for (const auto& [mz, intensity] : peaks) s.emplace_back(mz, intensity);
+    exp.addSpectrum(s);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, true, 0, 20, "auto", 0, 1.0, settings);
+    return exp[0];
+  };
+  // intensity of the peak at mz, or -1 if there is none
+  auto intensity = [](const MSSpectrum& s, double mz)
+  {
+    for (const Peak1D& p : s) { if (std::fabs(p.getMZ() - mz) <= 20e-6 * mz) return static_cast<double>(p.getIntensity()); }
+    return -1.0;
+  };
+  const double two_plus_mz = 450.2500 * 2 - Constants::PROTON_MASS_U;
+  const double chance_three_plus_mz = 600.0 * 3 - 2 * Constants::PROTON_MASS_U;
+  const double two_peak_two_plus_mz = 750.0 * 2 - Constants::PROTON_MASS_U;
+
+  // Earlier behaviour (the defaults of DeisotopingSettings_): three peaks, charges 1-3, own intensity.
+  {
+    const MSSpectrum s = run(Settings{}, 2, 1000.0);
+    TEST_EQUAL(s.size(), 7)
+    TEST_REAL_SIMILAR(intensity(s, 400.2000), 1.0)
+    TEST_REAL_SIMILAR(intensity(s, 400.2000 + c13), 0.4)  // M+1 of the two-peak envelope stays
+    TEST_REAL_SIMILAR(intensity(s, two_plus_mz), 0.5)     // the three-peak 2+ envelope is converted, own intensity
+    TEST_REAL_SIMILAR(intensity(s, 600.0), 0.8)
+    TEST_REAL_SIMILAR(intensity(s, 750.0), 0.6)
+  }
+  // Two-peak envelopes with summed intensity, charges 1-3.
+  Settings two_peaks;
+  two_peaks.min_peaks = 2;
+  two_peaks.sum_intensity = true;
+  {
+    const MSSpectrum s = run(two_peaks, 2, 1000.0);
+    TEST_EQUAL(s.size(), 4)
+    TEST_REAL_SIMILAR(intensity(s, 400.2000), 1.4)        // the monoisotopic peak carries the envelope's intensity ...
+    TEST_REAL_SIMILAR(intensity(s, 400.2000 + c13), -1.0) // ... and its M+1 peak is gone
+    TEST_REAL_SIMILAR(intensity(s, two_plus_mz), 0.75)
+    TEST_REAL_SIMILAR(intensity(s, 600.0), -1.0)          // the chance pair moves the 1+ ion to a "3+" m/z
+    TEST_REAL_SIMILAR(intensity(s, chance_three_plus_mz), 0.9)
+    TEST_REAL_SIMILAR(intensity(s, two_peak_two_plus_mz), 0.8) // the two-peak 2+ envelope is converted
+  }
+  // Charges up to the precursor charge (2): the chance "3+" pair is not tried; 2+ envelopes still are.
+  Settings capped = two_peaks;
+  capped.charge_cap_precursor = true;
+  {
+    const MSSpectrum s = run(capped, 2, 1000.0);
+    TEST_EQUAL(s.size(), 5)
+    TEST_REAL_SIMILAR(intensity(s, 400.2000), 1.4)
+    TEST_REAL_SIMILAR(intensity(s, two_plus_mz), 0.75)
+    TEST_REAL_SIMILAR(intensity(s, 600.0), 0.8)
+    TEST_REAL_SIMILAR(intensity(s, 600.0 + c13 / 3), 0.1)
+    TEST_REAL_SIMILAR(intensity(s, chance_three_plus_mz), -1.0)
+    TEST_REAL_SIMILAR(intensity(s, two_peak_two_plus_mz), 0.8)
+  }
+  // A 1+ precursor admits singly charged envelopes only; an unknown precursor charge (0) admits charges 1-3.
+  {
+    const MSSpectrum s = run(capped, 1, 2000.0);
+    TEST_REAL_SIMILAR(intensity(s, 750.0), 0.6)
+    TEST_REAL_SIMILAR(intensity(s, two_peak_two_plus_mz), -1.0)
+    const MSSpectrum u = run(capped, 0, 2000.0);
+    TEST_REAL_SIMILAR(intensity(u, 750.0), -1.0)
+    TEST_REAL_SIMILAR(intensity(u, two_peak_two_plus_mz), 0.8)
+    TEST_REAL_SIMILAR(intensity(u, chance_three_plus_mz), 0.9)
+  }
+
+  // Parameters: the defaults are the Sage-like rule; the earlier rule (= DeisotopingSettings_{}) maps as named.
+  ProSEAlgorithm_test algo;
+  TEST_EQUAL(algo.deisotoping_.min_peaks, 2)
+  TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, true)
+  TEST_EQUAL(algo.deisotoping_.sum_intensity, true)
+  Param p = algo.getParameters();
+  p.setValue("fragment:deisotope_min_peaks", 3);
+  p.setValue("fragment:deisotope_charge_cap", "none");
+  p.setValue("fragment:deisotope_sum_intensity", "false");
+  algo.setParameters(p);
+  TEST_EQUAL(algo.deisotoping_.min_peaks, Settings{}.min_peaks)
+  TEST_EQUAL(algo.deisotoping_.charge_cap_precursor, Settings{}.charge_cap_precursor)
+  TEST_EQUAL(algo.deisotoping_.sum_intensity, Settings{}.sum_intensity)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] peptidoform deduplication preserves protein evidence and candidate statistics across chunks))
+{
+  // Eight target proteins and one decoy hold the same peptide. Without deduplication its copies fill
+  // the candidate cap; with it, the cap holds three distinct sequences in every search path.
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  vector<FASTAFile::FASTAEntry> db;
+  for (int i = 0; i < 8; ++i)
+  {
+    db.push_back({"P" + std::to_string(i), "", peptide.toString()});
+  }
+  db.push_back({"DECOY_shared", "", peptide.toString()});
+  db.push_back({"P_variant", "", "THQPSALNDIK"});
+  db.push_back({"DECOY_variant", "", "THQPSADNLIK"});
+
+  MSSpectrum spectrum;
+  TheoreticalSpectrumGenerator generator;
+  Param gp = generator.getParameters();
+  gp.setValue("add_first_prefix_ion", "true");
+  generator.setParameters(gp);
+  generator.getSpectrum(spectrum, peptide, 1, 1);
+  spectrum.setMSLevel(2);
+  spectrum.setNativeID("scan=1");
+  Precursor precursor;
+  precursor.setMZ(peptide.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  PeakMap input;
+  input.addSpectrum(spectrum);
+  std::string input_file;
+  NEW_TMP_FILE(input_file)
+  FileHandler().storeExperiment(input_file, input, {FileTypes::MZML});
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("scoring:max_candidates_per_spectrum", 3);
+  p.setValue("report:top_hits", 10);
+  p.setValue("calibration:enabled", "false");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("FDR:protein", 0.0);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+  p.setValue("annotate:PSM", vector<string> {"ALL"});
+  // The prefilter totals of a chunked search count the shared peptide once per chunk (see annotate:prefilter_poisson).
+  p.setValue("annotate:prefilter_poisson", "false");
+  p.setValue("peptide:deduplicate", "false");
+  algo.setParameters(p);
+  PeakMap spectra = input;
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList legacy;
+  algo.search(spectra, db, proteins, legacy);
+  ABORT_IF(legacy.size() != 1)
+  TEST_EQUAL(legacy[0].getHits().size(), 3)
+  for (const auto& hit : legacy[0].getHits())
+  {
+    TEST_EQUAL(hit.getSequence(), peptide) // Protein copies exhaust the candidate cap.
+  }
+
+  p.setValue("peptide:deduplicate", "true");
+  vector<PeptideHit> reference;
+  for (Int chunk_size : {0, 1, 4})
+  {
+    p.setValue("database:chunk_size", chunk_size);
+    algo.setParameters(p);
+    spectra = input;
+    PeptideIdentificationList ids;
+    algo.search(spectra, db, proteins, ids);
+    ABORT_IF(ids.size() != 1)
+    const auto& hits = ids[0].getHits();
+    TEST_EQUAL(hits.size(), 3)
+    TEST_EQUAL(hits[0].getSequence(), peptide)
+    TEST_EQUAL(hits[0].extractProteinAccessionsSet().size(), 9)
+    TEST_EQUAL(hits[0].getMetaValue("target_decoy").toString(), "target+decoy")
+    TEST_REAL_SIMILAR(static_cast<double>(hits[0].getMetaValue(Constants::UserParam::LN_NUM_CANDIDATES)), std::log1p(3.0))
+    TEST_TRUE(static_cast<double>(hits[0].getMetaValue(Constants::UserParam::DELTA_SCORE)) > 0.0)
+    set<string> sequences;
+    for (const auto& hit : hits)
+    {
+      sequences.insert(hit.getSequence().toString());
+      if (hit.getSequence().toString() == "THQPSADNLIK") { TEST_EQUAL(hit.getMetaValue("target_decoy").toString(), "decoy") }
+    }
+    TEST_EQUAL(sequences.size(), 3)
+    if (chunk_size == 0) reference = hits;
+    else
+      TEST_TRUE(hits == reference)
+
+    const auto multi = algo.searchWithModificationAnalysis(vector<string> {input_file, input_file}, db, vector<string> {}, "", false);
+    TEST_EQUAL(multi.per_file.size(), 2)
+    for (const auto& file : multi.per_file)
+    {
+      ABORT_IF(file.peptide_ids.size() != 1)
+      TEST_TRUE(file.peptide_ids[0].getHits() == reference)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] peptidoform deduplication keeps separate charge and isotope hypotheses))
+{
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> db = {{"P1", "", peptide.toString()}, {"P2", "", peptide.toString()}};
+  MSSpectrum spectrum;
+  TheoreticalSpectrumGenerator().getSpectrum(spectrum, peptide, 1, 1);
+  spectrum.setMSLevel(2);
+  spectrum.setNativeID("scan=1");
+  Precursor precursor;
+  spectrum.setPrecursors({precursor});
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("peptide:deduplicate", "true");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("precursor:min_charge", 2);
+  p.setValue("precursor:max_charge", 3);
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 1);
+  p.setValue("report:top_hits", 10);
+  p.setValue("calibration:enabled", "false");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("decoys", "ignore");
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+  p.setValue("annotate:PSM", vector<string> {"ALL"});
+  for (bool unknown_charge : {false, true})
+  {
+    // Closed windows overlap two isotope assignments; the open window admits
+    // two precursor charges but (by design) no separate isotope hypotheses.
+    const double tolerance = unknown_charge ? 1000.0 : 0.75;
+    p.setValue("precursor:mass_tolerance_lower", tolerance);
+    p.setValue("precursor:mass_tolerance_upper", tolerance);
+    spectrum.getPrecursors()[0].setMZ(peptide.getMZ(2) - (unknown_charge ? 0.0 : 0.25));
+    spectrum.getPrecursors()[0].setCharge(unknown_charge ? 0 : 2);
+    for (Int chunk_size : {0, 1})
+    {
+      p.setValue("database:chunk_size", chunk_size);
+      algo.setParameters(p);
+      PeakMap spectra;
+      spectra.addSpectrum(spectrum);
+      vector<ProteinIdentification> proteins;
+      PeptideIdentificationList ids;
+      algo.search(spectra, db, proteins, ids);
+      ABORT_IF(ids.size() != 1)
+      TEST_EQUAL(ids[0].getHits().size(), 2)
+      set<int> hypotheses;
+      for (const auto& hit : ids[0].getHits())
+      {
+        TEST_EQUAL(hit.getSequence(), peptide)
+        TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue(Constants::UserParam::LN_NUM_CANDIDATES)), std::log1p(2.0))
+        hypotheses.insert(unknown_charge ? hit.getCharge() : static_cast<int>(hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR)));
+      }
+      // isotope errors 0 and +1 searched (added to the observed mass) are reported as observed minus theoretical
+      TEST_TRUE(hypotheses == (unknown_charge ? set<int> {2, 3} : set<int> {0, -1}))
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] candidate-competition PSM features (annotate:per_psm_pool_features, prefilter_poisson, precursor_ppm, top_ion_mass_errors, delta_best)))
+{
+  // One spectrum of THQPSANLDIK; three isobaric rearrangements compete for it. Fragment intensities rise with m/z
+  // (the most intense peak is the heaviest), fragment m/z are off by +3 / -3 ppm in turn, the precursor by +5 ppm.
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> db = {{"P1", "", "THQPSANLDIK"}, {"P2", "", "THQPSALNDIK"},
+                                            {"P3", "", "THQPSADNLIK"}, {"P4", "", "THQPASNLDIK"}};
+  TheoreticalSpectrumGenerator generator;
+  Param gp = generator.getParameters();
+  gp.setValue("add_first_prefix_ion", "true");
+  generator.setParameters(gp);
+  PeakSpectrum theo;
+  generator.getSpectrum(theo, peptide, 1, 1);
+  theo.sortByPosition();
+  MSSpectrum spectrum;
+  for (Size i = 0; i < theo.size(); ++i)
+  {
+    spectrum.emplace_back(theo[i].getMZ() * (1.0 + (i % 2 == 0 ? 3e-6 : -3e-6)), static_cast<float>(10 + i));
+  }
+  spectrum.setMSLevel(2);
+  spectrum.setNativeID("scan=1");
+  Precursor precursor;
+  precursor.setMZ(peptide.getMZ(2) * (1.0 + 5e-6));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("calibration:enabled", "false");
+  p.setValue("decoys", "ignore");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+  p.setValue("annotate:PSM", vector<string> {"ALL"});
+  p.setValue("annotate:per_psm_pool_features", "true"); // off by default
+  p.setValue("annotate:prefilter_poisson", "true");     // off by default
+  p.setValue("annotate:precursor_ppm", "centered");     // off by default
+  p.setValue("annotate:top_ion_mass_errors", "true");   // off by default
+  p.setValue("annotate:local_fragment_evidence", "false"); // #10399's features are tested on their own
+  // search with the given top_hits and settings; returns the hits and (via the out parameters) the search parameters
+  // and the preprocessed spectrum
+  auto search = [&](Size top_hits, const map<string, string>& settings, ProteinIdentification::SearchParameters* sp = nullptr,
+                    MSSpectrum* processed = nullptr)
+  {
+    Param q = p;
+    q.setValue("report:top_hits", static_cast<int>(top_hits));
+    for (const auto& [key, value] : settings) q.setValue(key, value);
+    algo.setParameters(q);
+    PeakMap spectra;
+    spectra.addSpectrum(spectrum);
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList ids;
+    algo.search(spectra, db, proteins, ids);
+    if (sp != nullptr) *sp = proteins[0].getSearchParameters();
+    if (processed != nullptr) *processed = spectra[0];
+    return ids.size() == 1 ? ids[0].getHits() : vector<PeptideHit> {};
+  };
+  auto value = [](const PeptideHit& hit, const string& key) { return static_cast<double>(hit.getMetaValue(key)); };
+
+  ProteinIdentification::SearchParameters sp;
+  MSSpectrum processed;
+  const vector<PeptideHit> all = search(4, {}, &sp, &processed);
+  ABORT_IF(all.size() != 4)
+  TEST_EQUAL(all[0].getSequence(), peptide)
+
+  // per-PSM delta_score (to the next hit; the last one has none) and hyperscore_zscore (decreasing with the score)
+  for (Size r = 0; r < all.size(); ++r)
+  {
+    const double next = r + 1 < all.size() ? all[r + 1].getScore() : 0.0;
+    TEST_EQUAL(static_cast<float>(value(all[r], Constants::UserParam::DELTA_SCORE)), static_cast<float>(all[r].getScore() - next))
+    if (r > 0) { TEST_TRUE(value(all[r], Constants::UserParam::HYPERSCORE_ZSCORE) <= value(all[r - 1], Constants::UserParam::HYPERSCORE_ZSCORE)) }
+  }
+  // the last of two reported hits takes its margin to the best unreported candidate
+  const vector<PeptideHit> two = search(2, {});
+  ABORT_IF(two.size() != 2)
+  TEST_EQUAL(static_cast<float>(value(two[1], Constants::UserParam::DELTA_SCORE)), static_cast<float>(all[1].getScore() - all[2].getScore()))
+
+  // spectrum-level form: every hit carries the top hit's values, which the per-PSM form keeps for the top hit
+  const vector<PeptideHit> legacy = search(4, {{"annotate:per_psm_pool_features", "false"}});
+  ABORT_IF(legacy.size() != 4)
+  for (const PeptideHit& hit : legacy)
+  {
+    TEST_EQUAL(value(hit, Constants::UserParam::DELTA_SCORE), value(all[0], Constants::UserParam::DELTA_SCORE))
+    TEST_EQUAL(value(hit, Constants::UserParam::HYPERSCORE_ZSCORE), value(all[0], Constants::UserParam::HYPERSCORE_ZSCORE))
+  }
+  // with one reported hit the two forms are the same
+  TEST_TRUE(search(1, {}) == search(1, {{"annotate:per_psm_pool_features", "false"}}))
+
+  // delta_best (off by default): margin to the top hit
+  TEST_EQUAL(all[0].metaValueExists(Constants::UserParam::DELTA_BEST), false)
+  const vector<PeptideHit> with_best = search(4, {{"annotate:delta_best", "true"}});
+  ABORT_IF(with_best.size() != 4)
+  for (const PeptideHit& hit : with_best)
+  {
+    TEST_EQUAL(static_cast<float>(value(hit, Constants::UserParam::DELTA_BEST)), static_cast<float>(with_best[0].getScore() - hit.getScore()))
+  }
+
+  // prefilter Poisson feature: non-negative, positive for the top hit (it matched more fragments than the mean)
+  for (const PeptideHit& hit : all) { TEST_TRUE(value(hit, Constants::UserParam::PREFILTER_POISSON_SURPRISE) >= 0.0) }
+  TEST_TRUE(value(all[0], Constants::UserParam::PREFILTER_POISSON_SURPRISE) > 0.0)
+
+  // precursor ppm, centered on the run's offset: a single spectrum is its own offset (+5 ppm)
+  TOLERANCE_ABSOLUTE(1e-6)
+  TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("precursor_mz_error_ppm_offset")), value(all[0], Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
+  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM), 5.0)
+  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::LN_PRECURSOR_ERROR_PPM), 0.0)
+  ProteinIdentification::SearchParameters sp_raw;
+  const vector<PeptideHit> raw = search(4, {{"annotate:precursor_ppm", "raw"}}, &sp_raw);
+  ABORT_IF(raw.empty())
+  TEST_REAL_SIMILAR(value(raw[0], Constants::UserParam::LN_PRECURSOR_ERROR_PPM), std::log1p(5.0))
+  TEST_EQUAL(sp_raw.metaValueExists("precursor_mz_error_ppm_offset"), false)
+
+  // mass errors of the singly charged ions of the true peptide: every peak is matched once, the 7 most intense are
+  // the heaviest, with errors of +3 / -3 ppm by position
+  const Size n = processed.size();
+  TEST_EQUAL(n, theo.size())
+  double mean = 0.0;
+  for (Size i = n - 7; i < n; ++i) mean += (i % 2 == 0 ? 3.0 : -3.0) / 7.0;
+  TOLERANCE_ABSOLUTE(1e-4)
+  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN), 3.0)
+  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_SD), 0.0)
+  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::TOP_IONS_ERROR_PPM_MEAN), mean)
+  TEST_REAL_SIMILAR(value(all[0], Constants::UserParam::TOP_IONS_ERROR_PPM_SD), std::sqrt(9.0 - mean * mean))
+
+  // the new features are listed for Percolator; switched off, neither they nor their names appear
+  const string extra = sp.getMetaValue("extra_features").toString();
+  for (const string& feature : {Constants::UserParam::PREFILTER_POISSON_SURPRISE, Constants::UserParam::LN_PRECURSOR_ERROR_PPM,
+                                Constants::UserParam::TOP_IONS_ABS_ERROR_PPM_MEAN, Constants::UserParam::TOP_IONS_ERROR_PPM_SD})
+  {
+    TEST_TRUE(extra.find(feature) != string::npos)
+  }
+  ProteinIdentification::SearchParameters sp_off;
+  const vector<PeptideHit> off = search(4, {{"annotate:per_psm_pool_features", "false"}, {"annotate:prefilter_poisson", "false"},
+                                            {"annotate:precursor_ppm", "false"}, {"annotate:top_ion_mass_errors", "false"}}, &sp_off);
+  ABORT_IF(off.size() != 4)
+  // legacy (above) differs from off only by the three added feature sets
+  vector<string> keys_off, keys_legacy;
+  off[1].getKeys(keys_off);
+  legacy[1].getKeys(keys_legacy);
+  TEST_EQUAL(keys_off.size() + 6, keys_legacy.size())
+  TEST_EQUAL(sp_off.getMetaValue("extra_features").toString(),
+             "score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,"
+             "matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,complementary_ions_fraction,"
+             "hyperscore_zscore,ln_num_candidates,delta_score,isotope_error")
+  TEST_EQUAL(sp_off.metaValueExists("precursor_mz_error_ppm_offset"), false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] scoring:fragment_charges scores multiply charged fragments of spectra that are not deisotoped))
+{
+  // Only doubly charged fragments of a 3+ precursor, as ion-trap CID spectra often hold them.
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> fasta_db = {{"P01", "Test", peptide.toString()}};
+  TheoreticalSpectrumGenerator tsg;
+  MSSpectrum spec;
+  tsg.getSpectrum(spec, peptide, 2, 2);
+  spec.setMSLevel(2);
+  spec.setRT(100.0);
+  spec.setNativeID("scan=1");
+  Precursor prec;
+  prec.setMZ(peptide.getMZ(3));
+  prec.setCharge(3);
+  prec.setActivationMethods({Precursor::ActivationMethod::CID});
+  spec.setPrecursors({prec});
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_EQUAL(p.getValue("scoring:fragment_charges").toString(), "auto")
+  p.setValue("fragment:mass_tolerance", 0.01);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("decoys", "ignore");
+  p.setValue("calibration:enabled", "false");
+  p.setValue("modifications:fixed", vector<string>{});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("annotate:PSM", vector<string>{"ALL"});
+  p.setValue("FDR:PSM", 0.0);
+
+  auto search = [&](const Param& params, int charge, vector<ProteinIdentification>& proteins)
+  {
+    algo.setParameters(params);
+    PeakMap spectra;
+    MSSpectrum input = spec;
+    input.getPrecursors()[0].setCharge(charge);
+    input.getPrecursors()[0].setMZ(peptide.getMZ(charge));
+    spectra.addSpectrum(input);
+    PeptideIdentificationList peptides;
+    const auto result = algo.search(spectra, fasta_db, proteins, peptides);
+    TEST_TRUE(result == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    return peptides;
+  };
+  vector<ProteinIdentification> proteins;
+  p.setValue("scoring:fragment_charges", "single");
+  TEST_TRUE(search(p, 3, proteins).empty()) // 1+ theory cannot explain the doubly charged peaks.
+  ABORT_IF(proteins.size() != 1)
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "single")
+
+  p.setValue("scoring:fragment_charges", "multiple");
+  const auto multiple = search(p, 3, proteins);
+  ABORT_IF(multiple.size() != 1 || multiple[0].getHits().empty())
+  const PeptideHit& hit = multiple[0].getHits()[0];
+  TEST_EQUAL(hit.getSequence(), peptide)
+  TEST_TRUE(hit.getScore() > 0.0)
+  TEST_TRUE(static_cast<int>(hit.getMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS)) >= 10)
+  const double matched_prefix = hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS);
+  TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION)), matched_prefix / (2.0 * peptide.size()))
+  TEST_FALSE(hit.getPeakAnnotations().empty())
+  for (const auto& annotation : hit.getPeakAnnotations())
+  {
+    TEST_EQUAL(annotation.charge, 2)
+  }
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges").toString(), "multiple")
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "multiple")
+  // Unknown precursor charge: the hit takes the charge that was scored, and so do its annotations.
+  {
+    algo.setParameters(p);
+    PeakMap spectra;
+    MSSpectrum input = spec;
+    input.getPrecursors()[0].setCharge(0);
+    spectra.addSpectrum(input);
+    PeptideIdentificationList unknown_charge;
+    TEST_TRUE(algo.search(spectra, fasta_db, proteins, unknown_charge) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    ABORT_IF(unknown_charge.size() != 1 || unknown_charge[0].getHits().empty())
+    const PeptideHit& unknown_hit = unknown_charge[0].getHits()[0];
+    TEST_EQUAL(unknown_hit.getSequence(), peptide)
+    TEST_EQUAL(unknown_hit.getCharge(), 3)
+    TEST_FALSE(unknown_hit.getPeakAnnotations().empty())
+    for (const auto& annotation : unknown_hit.getPeakAnnotations())
+    {
+      TEST_EQUAL(annotation.charge, 2)
+    }
+  }
+  TEST_TRUE(search(p, 2, proteins).empty()) // A 2+ precursor gets no 2+ fragments.
+  p.setValue("fragment:max_charge", 1);
+  TEST_TRUE(search(p, 3, proteins).empty()) // The fragment charge cap applies.
+  p.setValue("fragment:max_charge", 2);
+
+  // 'auto' scores multiple charges exactly when the spectra are not deisotoped: with
+  // fragment:deisotope=false, and at an ion-trap tolerance the deisotoper does not support.
+  const auto explicit_multiple = search(p, 3, proteins);
+  p.setValue("scoring:fragment_charges", "auto");
+  for (int chunk_size : {0, 1})
+  {
+    p.setValue("database:chunk_size", chunk_size);
+    const auto automatic = search(p, 3, proteins);
+    ABORT_IF(automatic.size() != 1)
+    TEST_TRUE(automatic[0].getHits() == explicit_multiple[0].getHits())
+    TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges").toString(), "auto")
+    TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "multiple")
+  }
+  p.setValue("database:chunk_size", 0);
+  p.setValue("fragment:deisotope", "auto");
+  p.setValue("fragment:mass_tolerance", 0.5);
+  TEST_EQUAL(search(p, 3, proteins).size(), 1)
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "multiple")
+  // High-resolution spectra are deisotoped to charge 1, so 'auto' keeps single charges.
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  search(p, 3, proteins);
+  ABORT_IF(proteins.size() != 1)
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("scoring:fragment_charges_resolved").toString(), "single")
+  // the deisotoping rule is recorded with the search parameters
+  TEST_EQUAL(static_cast<int>(proteins[0].getSearchParameters().getMetaValue("fragment:deisotope_min_peaks")), 2)
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:deisotope_charge_cap").toString(), "precursor")
+  TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:deisotope_sum_intensity").toString(), "true")
+
+  // The precursor-calibration pass scores with the same fragment charges.
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:mass_tolerance", 0.01);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  p.setValue("calibration:enabled", "true");
+  p.setValue("calibration:subset_ratio", 1.0);
+  p.setValue("calibration:min_psms", 1);
+  ProSEAlgorithm_test calibrated;
+  calibrated.setParameters(p);
+  TEST_EQUAL(calibrated.scoringMaxCharge_(3), 2)
+  TEST_EQUAL(calibrated.scoringMaxCharge_(2), 1)
+  PeakMap spectra;
+  spectra.addSpectrum(spec);
+  PeptideIdentificationList peptide_ids;
+  TEST_TRUE(calibrated.search(spectra, fasta_db, proteins, peptide_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_TRUE(calibrated.last_calibration_result_.success)
+  TEST_EQUAL(peptide_ids.size(), 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] raw retrieval recovers a candidate removed by scoring peak selection))
+{
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> db = {{"P01", "", peptide.toString()}, {"P02", "", "VLVLDTDYK"}};
+  MSSpectrum spectrum;
+  TheoreticalSpectrumGenerator().getSpectrum(spectrum, peptide, 1, 1);
+  spectrum.setMSLevel(2);
+  spectrum.setNativeID("scan=1");
+  Precursor precursor;
+  precursor.setMZ(peptide.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  PeakMap input;
+  input.addSpectrum(spectrum);
+  std::string input_file;
+  NEW_TMP_FILE(input_file)
+  FileHandler().storeExperiment(input_file, input, {FileTypes::MZML});
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_EQUAL(p.getValue("fragment:query_spectrum").toString(), "auto")
+  TEST_EQUAL(p.getValue("peaks:window_type").toString(), "auto")
+  p.setValue("peaks:keep_n", 1);
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("decoys", "ignore");
+  p.setValue("calibration:enabled", "false");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+  {
+    // keep_n=1 leaves one scoring peak; HyperScore of one matched peak of intensity 1 is ln(1 + 1).
+    const double expected_score = std::log1p(1.0);
+    for (const std::string mode : {"processed", "raw", "auto"}) // 'auto' resolves to 'raw' at 20 ppm
+    {
+      p.setValue("fragment:query_spectrum", mode);
+      for (Int chunk_size : {0, 1})
+      {
+        p.setValue("database:chunk_size", chunk_size);
+        algo.setParameters(p);
+        PeakMap spectra = input;
+        vector<ProteinIdentification> proteins;
+        PeptideIdentificationList peptides;
+        algo.search(spectra, db, proteins, peptides);
+        TEST_EQUAL(peptides.size(), mode == "processed" ? 0 : 1)
+        if (! peptides.empty())
+        {
+          TEST_EQUAL(peptides[0].getHits()[0].getSequence(), peptide)
+          TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), expected_score)
+          TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:query_spectrum").toString(), mode)
+          TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:query_spectrum_resolved").toString(), "raw")
+          TEST_EQUAL(peptides[0].getScoreType(), "ln(hyperscore)")
+        }
+        const auto files = algo.searchWithModificationAnalysis(vector<std::string> {input_file, input_file}, db, vector<std::string> {}, "", false);
+        TEST_EQUAL(files.per_file.size(), 2)
+        for (const auto& result : files.per_file)
+        {
+          TEST_EQUAL(result.peptide_ids.size(), peptides.size())
+          if (! result.peptide_ids.empty())
+          {
+            TEST_EQUAL(result.peptide_ids[0].getHits()[0].getSequence(), peptide)
+            TEST_REAL_SIMILAR(result.peptide_ids[0].getHits()[0].getScore(), expected_score)
+          }
+        }
+      }
+    }
+  }
+  // At an ion-trap tolerance, 'auto' retrieves candidates with the processed peak list.
+  p.setValue("fragment:query_spectrum", "auto");
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  p.setValue("database:chunk_size", 0);
+  algo.setParameters(p);
+  {
+    PeakMap spectra = input;
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    algo.search(spectra, db, proteins, peptides);
+    ABORT_IF(proteins.size() != 1)
+    TEST_EQUAL(proteins[0].getSearchParameters().getMetaValue("fragment:query_spectrum_resolved").toString(), "processed")
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] high resolution local filtering preserves short final windows and aligned peak data))
 {
   auto filter = [](double tolerance, bool ppm, const std::string& mode) {
@@ -2769,7 +3961,11 @@ START_SECTION(([EXTRA] dense spectra keep peaks:dense_window_top peaks per windo
 
   ProSEAlgorithm_test algo;
   TEST_EQUAL(int(algo.getParameters().getValue("peaks:dense_window_top")), 100)
-  TEST_REAL_SIMILAR(double(algo.getParameters().getValue("peaks:dense_intensity_loss")), 0.2)
+  // The dense quota is off by default (a loss share of 1.0 never marks a spectrum as dense).
+  TEST_REAL_SIMILAR(double(algo.getParameters().getValue("peaks:dense_intensity_loss")), 1.0)
+  MSSpectrum off = window(80);
+  TEST_EQUAL(ProSEAlgorithm_test::filterLocalPeaks_(off, 20, 100, 1.0), false)
+  TEST_EQUAL(off.size(), 20)
 }
 END_SECTION
 
@@ -2985,6 +4181,1141 @@ START_SECTION(([EXTRA] generated decoys preserve initial methionine when clippin
           if (entry.identifier == "DECOY_" + original.identifier) { TEST_EQUAL(entry.sequence, expected) }
         }
       }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] report:isotope_error_convention: isotope_error is reported as observed minus theoretical))
+{
+  // Three tryptic peptides of one protein; their precursors are selected one 13C spacing above the monoisotopic
+  // peak (+1, observed heavier), at it (0) and one 13C spacing below it (-1). The search window covers -1..+1.
+  const vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+  const vector<pair<string, int>> expected = {{"GWSADELK", 1}, {"THQPSANLDIK", 0}, {"HPFNQGTIC(Carbamidomethyl)MSYR", -1}};
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(tsg_param);
+  PeakMap spectra;
+  for (const auto& [sequence, observed_minus_theoretical] : expected)
+  {
+    const AASequence seq = AASequence::fromString(sequence);
+    const int charge = 2;
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, seq, 1, 1);
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(100.0 + spectra.size());
+    Precursor prec;
+    prec.setMZ(seq.getMZ(charge) + observed_minus_theoretical * Constants::C13C12_MASSDIFF_U / charge);
+    prec.setCharge(charge);
+    spec.setPrecursors({prec});
+    spec.setNativeID("scan=" + StringUtils::toStr(spectra.size() + 1));
+    spectra.addSpectrum(std::move(spec));
+  }
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_STRING_EQUAL(p.getValue("report:isotope_error_convention").toString(), "observed_minus_theoretical")
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("precursor:isotope_error_min", -1);
+  p.setValue("precursor:isotope_error_max", 1);
+  p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("decoys", "ignore");
+  p.setValue("peptide:missed_cleavages", 0);
+  for (const string convention : {"observed_minus_theoretical", "theoretical_minus_observed"})
+  {
+    p.setValue("report:isotope_error_convention", convention);
+    algo.setParameters(p);
+    PeakMap input = spectra;
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_TRUE(algo.search(input, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_EQUAL(pep_ids.size(), expected.size())
+    const int sign = convention == "observed_minus_theoretical" ? 1 : -1;
+    for (const auto& pid : pep_ids)
+    {
+      const Size i = static_cast<Size>(std::stoi(pid.getSpectrumReference().substr(5)) - 1);
+      ABORT_IF(pid.getHits().empty() || i >= expected.size())
+      const PeptideHit& hit = pid.getHits()[0];
+      TEST_STRING_EQUAL(hit.getSequence().toString(), expected[i].first)
+      TEST_EQUAL(static_cast<int>(hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR)), sign * expected[i].second)
+      // the precursor error is the isotope-corrected one under either convention
+      TEST_TRUE(std::abs(static_cast<double>(hit.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))) < 0.1)
+    }
+    // the search parameters record the convention unless it is the legacy one
+    ABORT_IF(prot_ids.size() != 1)
+    const auto& sp = prot_ids[0].getSearchParameters();
+    TEST_EQUAL(sp.metaValueExists("isotope_error_convention"), sign == 1)
+    if (sign == 1) { TEST_STRING_EQUAL(sp.getMetaValue("isotope_error_convention").toString(), "observed_minus_theoretical") }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] scoring:method=mass_accuracy agrees with HyperScore for exact matches and discounts shifted ones in every search path))
+{
+  // One noise-free spectrum of THQPSANLDIK: with exact fragment m/z every matched ion has weight 1
+  // and the weighted score equals HyperScore; a uniform +7 ppm error (one kernel SD) discounts it.
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> db = {{"P01", "", peptide.toString()}, {"P02", "", "VLVLDTDYK"}};
+  auto make_input = [&peptide](double shift_ppm)
+  {
+    MSSpectrum spectrum;
+    TheoreticalSpectrumGenerator().getSpectrum(spectrum, peptide, 1, 1);
+    for (auto& peak : spectrum) { peak.setMZ(peak.getMZ() * (1.0 + shift_ppm * 1e-6)); }
+    spectrum.setMSLevel(2);
+    spectrum.setNativeID("scan=1");
+    Precursor precursor;
+    precursor.setMZ(peptide.getMZ(2));
+    precursor.setCharge(2);
+    spectrum.setPrecursors({precursor});
+    PeakMap input;
+    input.addSpectrum(spectrum);
+    return input;
+  };
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_EQUAL(p.getValue("scoring:method").toString(), "auto")
+  TEST_REAL_SIMILAR(static_cast<double>(p.getValue("scoring:mass_error_sd")), 7.0)
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("decoys", "ignore");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+
+  // score of the single top hit for (method, shift, chunk size); the multi-file path must agree
+  auto top_score = [&](const std::string& method, double shift_ppm, Int chunk_size)
+  {
+    p.setValue("scoring:method", method);
+    p.setValue("database:chunk_size", chunk_size);
+    algo.setParameters(p);
+    PeakMap spectra = make_input(shift_ppm);
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    algo.search(spectra, db, proteins, peptides);
+    TEST_EQUAL(peptides.size(), 1)
+    if (peptides.empty() || proteins.empty()) return -1.0;
+    TEST_EQUAL(peptides[0].getHits()[0].getSequence(), peptide)
+    const bool weighted = method != "hyperscore"; // 'auto' resolves to mass_accuracy at 20 ppm
+    TEST_EQUAL(peptides[0].getScoreType(), "ln(hyperscore)") // the weighted score keeps the score type
+    const auto& search_parameters = proteins[0].getSearchParameters();
+    // recorded only when the weighted score is used; HyperScore searches keep their parameter list
+    TEST_EQUAL(search_parameters.metaValueExists("scoring:method"), weighted)
+    if (weighted)
+    {
+      TEST_EQUAL(search_parameters.getMetaValue("scoring:method").toString(), method)
+      TEST_EQUAL(search_parameters.getMetaValue("scoring:method_resolved").toString(), "mass_accuracy")
+      TEST_REAL_SIMILAR(static_cast<double>(search_parameters.getMetaValue("scoring:mass_error_sd")), 7.0)
+    }
+
+    // chunk-major multi-file path
+    std::string input_file;
+    NEW_TMP_FILE(input_file)
+    FileHandler().storeExperiment(input_file, make_input(shift_ppm), {FileTypes::MZML});
+    const auto files = algo.searchWithModificationAnalysis(vector<std::string> {input_file, input_file}, db, vector<std::string> {}, "", false);
+    TEST_EQUAL(files.per_file.size(), 2)
+    for (const auto& result : files.per_file)
+    {
+      TEST_EQUAL(result.peptide_ids.size(), 1)
+      if (! result.peptide_ids.empty())
+      {
+        TEST_REAL_SIMILAR(result.peptide_ids[0].getHits()[0].getScore(), peptides[0].getHits()[0].getScore())
+      }
+    }
+    return peptides[0].getHits()[0].getScore();
+  };
+
+  for (Int chunk_size : {0, 1})
+  {
+    const double hyperscore = top_score("hyperscore", 0.0, chunk_size);
+    TEST_REAL_SIMILAR(top_score("mass_accuracy", 0.0, chunk_size), hyperscore)
+    TEST_REAL_SIMILAR(top_score("auto", 0.0, chunk_size), hyperscore)
+    // HyperScore does not see an error inside the tolerance; the mass-accuracy score does.
+    TEST_REAL_SIMILAR(top_score("hyperscore", 7.0, chunk_size), hyperscore)
+    const double shifted = top_score("mass_accuracy", 7.0, chunk_size);
+    TEST_TRUE(shifted > 0.0)
+    TEST_TRUE(shifted < hyperscore)
+    TEST_REAL_SIMILAR(top_score("auto", 7.0, chunk_size), shifted)
+  }
+
+  // 'auto' uses HyperScore at Da and at low-resolution ppm tolerances; 'mass_accuracy' applies everywhere.
+  ProSEAlgorithm_test resolved;
+  auto resolve = [&](const std::string& method, double tolerance, const std::string& unit)
+  {
+    Param q = resolved.getParameters();
+    q.setValue("scoring:method", method);
+    q.setValue("fragment:mass_tolerance", tolerance);
+    q.setValue("fragment:mass_tolerance_unit", unit);
+    resolved.setParameters(q);
+    return resolved.mass_accuracy_score_;
+  };
+  TEST_TRUE(resolve("auto", 20.0, "ppm"))
+  TEST_TRUE(resolve("auto", 100.0, "ppm"))
+  TEST_FALSE(resolve("auto", 150.0, "ppm"))
+  TEST_FALSE(resolve("auto", 0.02, "Da"))
+  TEST_FALSE(resolve("auto", 0.5, "Da"))
+  TEST_TRUE(resolve("mass_accuracy", 0.5, "Da"))
+  TEST_FALSE(resolve("hyperscore", 20.0, "ppm"))
+
+  for (double invalid : {0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()})
+  {
+    Param invalid_param = p;
+    invalid_param.setValue("scoring:method", "mass_accuracy");
+    invalid_param.setValue("scoring:mass_error_sd", invalid);
+    TEST_EXCEPTION(Exception::BaseException, algo.setParameters(invalid_param))
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] self-trained ion priors annotate every hit without changing the native search))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  // The reference: the same search without ion priors.
+  ProSEAlgorithm plain;
+  configure_ion_prior_params_(plain, 5, 0.5);
+  Param plain_param = plain.getParameters();
+  plain_param.setValue("annotate:self_trained_ion_priors", "false");
+  plain.setParameters(plain_param);
+  PeakMap plain_spectra = spectra;
+  std::vector<ProteinIdentification> plain_prot_ids;
+  PeptideIdentificationList plain_pep_ids;
+  TEST_EQUAL(plain.search(plain_spectra, fasta_db, plain_prot_ids, plain_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  ABORT_IF(plain_prot_ids.empty() || plain_pep_ids.empty())
+  Size plain_annotated = 0;
+  for (const auto& pid : plain_pep_ids)
+  {
+    for (const auto& hit : pid.getHits())
+    {
+      for (const std::string& feature : ion_prior_features_) if (hit.metaValueExists(feature)) ++plain_annotated;
+    }
+  }
+  // switched off: no feature, nothing recorded
+  TEST_EQUAL(plain_annotated, 0)
+  TEST_EQUAL(lists_feature_(plain_prot_ids[0], Constants::UserParam::ION_PRIOR_LLR), false)
+  TEST_EQUAL(plain_prot_ids[0].getSearchParameters().metaValueExists("ion_prior:trained"), false)
+  TEST_EQUAL(plain_prot_ids[0].getSearchParameters().metaValueExists("annotate:self_trained_ion_priors"), false)
+
+  ProSEAlgorithm algo;
+  configure_ion_prior_params_(algo, 5, 0.5);
+  PeakMap algo_spectra = spectra;
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(algo_spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  ABORT_IF(prot_ids.empty() || pep_ids.empty())
+
+  // recorded in the search parameters, features appended to the ones the search already reports
+  const ProteinIdentification::SearchParameters& sp = prot_ids[0].getSearchParameters();
+  TEST_STRING_EQUAL(sp.getMetaValue("annotate:self_trained_ion_priors").toString(), "true")
+  TEST_STRING_EQUAL(sp.getMetaValue("annotate:ion_prior_model").toString(), "rich")
+  TEST_STRING_EQUAL(sp.getMetaValue("annotate:ion_prior_peaks").toString(), "all")
+  // every setting that determines the features is recorded
+  TEST_EQUAL(static_cast<int>(sp.getMetaValue("annotate:ion_prior_max_fragment_charge")), 2)
+  TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("annotate:ion_prior_train_fdr")), 0.5)
+  TEST_EQUAL(static_cast<int>(sp.getMetaValue("annotate:ion_prior_min_psms")), 5)
+  TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:trained").toString(), "true")
+  const int training_psms = sp.getMetaValue("ion_prior:training_psms");
+  const IntList fold_training_psms = sp.getMetaValue("ion_prior:fold_training_psms");
+  ABORT_IF(fold_training_psms.size() != 2)
+  TEST_EQUAL(fold_training_psms[0] + fold_training_psms[1], training_psms)
+  TEST_TRUE(fold_training_psms[0] >= 5)
+  TEST_TRUE(fold_training_psms[1] >= 5)
+  for (const std::string& feature : ion_prior_features_)
+  {
+    TEST_EQUAL(lists_feature_(prot_ids[0], feature), true)
+  }
+  const std::string plain_extra = extra_features_(plain_prot_ids[0]);
+  TEST_EQUAL(extra_features_(prot_ids[0]).rfind(plain_extra, 0), 0)
+  TEST_TRUE(extra_features_(prot_ids[0]).size() > plain_extra.size())
+
+  // every hit annotated, values in range
+  const auto [hits, violations] = check_ion_prior_annotations_(pep_ids, false);
+  TEST_TRUE(hits > 0)
+  TEST_EQUAL(violations, 0)
+
+  // Native scores and candidate lists are those of the plain search.
+  ABORT_IF(pep_ids.size() != plain_pep_ids.size())
+  Size same = 0;
+  for (Size i = 0; i < pep_ids.size(); ++i)
+  {
+    const std::vector<PeptideHit>& a = pep_ids[i].getHits();
+    const std::vector<PeptideHit>& b = plain_pep_ids[i].getHits();
+    if (a.size() != b.size()) continue;
+    bool equal = true;
+    for (Size h = 0; h < a.size(); ++h)
+    {
+      equal = equal && a[h].getSequence() == b[h].getSequence() && a[h].getCharge() == b[h].getCharge() && a[h].getScore() == b[h].getScore()
+              && a[h].getMetaValue("target_decoy") == b[h].getMetaValue("target_decoy");
+    }
+    if (equal) ++same;
+  }
+  TEST_EQUAL(same, pep_ids.size())
+
+  // The best hits follow the run's fragmentation pattern: positive evidence for most of them, and
+  // more on average than the lower-ranked candidates of the same spectra.
+  Size top = 0, positive = 0, others = 0;
+  double top_llr = 0.0, other_llr = 0.0;
+  for (const PeptideIdentification& pid : pep_ids)
+  {
+    const std::vector<PeptideHit>& hits_of = pid.getHits();
+    if (hits_of.empty()) continue;
+    const double llr = hits_of[0].getMetaValue(Constants::UserParam::ION_PRIOR_LLR);
+    ++top;
+    top_llr += llr;
+    if (llr > 0.0) ++positive;
+    for (Size h = 1; h < hits_of.size(); ++h)
+    {
+      other_llr += static_cast<double>(hits_of[h].getMetaValue(Constants::UserParam::ION_PRIOR_LLR));
+      ++others;
+    }
+  }
+  TEST_TRUE(top > 0)
+  TEST_TRUE(positive * 2 > top)
+  TEST_TRUE(top_llr / static_cast<double>(top) > 0.0)
+  TEST_TRUE(others > 0)
+  TEST_TRUE(top_llr / static_cast<double>(top) > other_llr / static_cast<double>(std::max<Size>(others, 1)))
+
+  // The default features: ion_prior_llr and ion_prior_explained, with the values of the run that writes all three.
+  {
+    ProSEAlgorithm defaults;
+    configure_ion_prior_params_(defaults, 5, 0.5);
+    Param dp = defaults.getParameters();
+    dp.setValue("annotate:ion_prior_features", ProSEAlgorithm().getParameters().getValue("annotate:ion_prior_features"));
+    defaults.setParameters(dp);
+    PeakMap default_spectra = spectra;
+    std::vector<ProteinIdentification> default_prot_ids;
+    PeptideIdentificationList default_pep_ids;
+    TEST_EQUAL(defaults.search(default_spectra, fasta_db, default_prot_ids, default_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    ABORT_IF(default_prot_ids.empty() || default_pep_ids.size() != pep_ids.size())
+    TEST_STRING_EQUAL(default_prot_ids[0].getSearchParameters().getMetaValue("annotate:ion_prior_features").toString(),
+                      Constants::UserParam::ION_PRIOR_LLR + "," + Constants::UserParam::ION_PRIOR_EXPLAINED)
+    TEST_EQUAL(lists_feature_(default_prot_ids[0], Constants::UserParam::ION_PRIOR_LLR), true)
+    TEST_EQUAL(lists_feature_(default_prot_ids[0], Constants::UserParam::ION_PRIOR_EXPLAINED), true)
+    TEST_EQUAL(lists_feature_(default_prot_ids[0], Constants::UserParam::ION_PRIOR_TOPK_OBSERVED), false)
+    TEST_EQUAL(extra_features_(default_prot_ids[0]), plain_extra + "," + Constants::UserParam::ION_PRIOR_LLR + "," + Constants::UserParam::ION_PRIOR_EXPLAINED)
+    Size same_values = 0, default_hits = 0, with_topk = 0;
+    for (Size i = 0; i < default_pep_ids.size(); ++i)
+    {
+      for (Size h = 0; h < default_pep_ids[i].getHits().size() && h < pep_ids[i].getHits().size(); ++h)
+      {
+        const PeptideHit& a = default_pep_ids[i].getHits()[h];
+        const PeptideHit& b = pep_ids[i].getHits()[h];
+        ++default_hits;
+        if (a.metaValueExists(Constants::UserParam::ION_PRIOR_TOPK_OBSERVED)) ++with_topk;
+        if (a.getMetaValue(Constants::UserParam::ION_PRIOR_LLR) == b.getMetaValue(Constants::UserParam::ION_PRIOR_LLR)
+            && a.getMetaValue(Constants::UserParam::ION_PRIOR_EXPLAINED) == b.getMetaValue(Constants::UserParam::ION_PRIOR_EXPLAINED)) ++same_values;
+      }
+    }
+    TEST_EQUAL(default_hits, hits)
+    TEST_EQUAL(same_values, hits)
+    TEST_EQUAL(with_topk, 0)
+
+    // no feature selected: no ion priors
+    dp.setValue("annotate:ion_prior_features", std::vector<std::string>{});
+    defaults.setParameters(dp);
+    PeakMap none_spectra = spectra;
+    std::vector<ProteinIdentification> none_prot_ids;
+    PeptideIdentificationList none_pep_ids;
+    TEST_EQUAL(defaults.search(none_spectra, fasta_db, none_prot_ids, none_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    ABORT_IF(none_prot_ids.empty())
+    TEST_EQUAL(extra_features_(none_prot_ids[0]), plain_extra)
+    TEST_EQUAL(none_prot_ids[0].getSearchParameters().metaValueExists("ion_prior:trained"), false)
+  }
+
+  // The other model and peak choice: annotated as well, recorded, the native search unchanged.
+  for (const auto& [model, peaks] : std::vector<std::pair<std::string, std::string>>{{"basic", "all"}, {"rich", "scored"}, {"basic", "scored"}})
+  {
+    ProSEAlgorithm variant;
+    configure_ion_prior_params_(variant, 5, 0.5);
+    Param vp = variant.getParameters();
+    vp.setValue("annotate:ion_prior_model", model);
+    vp.setValue("annotate:ion_prior_peaks", peaks);
+    variant.setParameters(vp);
+    PeakMap variant_spectra = spectra;
+    std::vector<ProteinIdentification> variant_prot_ids;
+    PeptideIdentificationList variant_pep_ids;
+    TEST_EQUAL(variant.search(variant_spectra, fasta_db, variant_prot_ids, variant_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    ABORT_IF(variant_prot_ids.empty() || variant_pep_ids.size() != pep_ids.size())
+    TEST_STRING_EQUAL(variant_prot_ids[0].getSearchParameters().getMetaValue("annotate:ion_prior_model").toString(), model)
+    TEST_STRING_EQUAL(variant_prot_ids[0].getSearchParameters().getMetaValue("annotate:ion_prior_peaks").toString(), peaks)
+    TEST_STRING_EQUAL(variant_prot_ids[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+    const auto [variant_hits, variant_violations] = check_ion_prior_annotations_(variant_pep_ids, false);
+    TEST_EQUAL(variant_hits, hits)
+    TEST_EQUAL(variant_violations, 0)
+    Size variant_same = 0;
+    for (Size i = 0; i < variant_pep_ids.size(); ++i)
+    {
+      if (variant_pep_ids[i].getHits().size() == pep_ids[i].getHits().size()
+          && variant_pep_ids[i].getHits()[0].getSequence() == pep_ids[i].getHits()[0].getSequence()
+          && variant_pep_ids[i].getHits()[0].getScore() == pep_ids[i].getHits()[0].getScore()) ++variant_same;
+    }
+    TEST_EQUAL(variant_same, pep_ids.size())
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fixed terminal modifications that apply to some peptides only are rejected with the parameters))
+{
+  // FragmentIndex::checkFixedModifications() at setParameters(), before any input is read
+  for (const StringList& fixed : vector<StringList>{{"Acetyl (Protein N-term)"}, {"Gln->pyro-Glu (N-term Q)"},
+                                                    {"TMT6plex (N-term)", "Acetyl (N-term)"}})
+  {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("modifications:fixed", fixed);
+    TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p))
+  }
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("modifications:fixed", StringList {"Carbamidomethyl (C)", "TMT6plex (K)", "TMT6plex (N-term)"});
+  algo.setParameters(p);
+  TEST_EQUAL(ListUtils::toStringList<std::string>(algo.getParameters().getValue("modifications:fixed")).size(), 3)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] decoys=auto warns when the supplied decoys do not start with M as often as the targets))
+{
+  // With initial-Met clipping, reversed decoys (which end with the target's Met) leave the clipped N-terminal
+  // peptides without decoy counterparts. Generated decoys keep the initial Met; supplied ones are only reported.
+  const vector<FASTAFile::FASTAEntry> reversed {{"t1", "", "MACDEKAGHILR"}, {"t2", "", "MKLPEPTIDER"},
+                                                {"DECOY_t1", "", "RLIHGAKEDCAM"}, {"DECOY_t2", "", "REDITPEPLKM"}};
+  const vector<FASTAFile::FASTAEntry> met_kept {{"t1", "", "MACDEKAGHILR"}, {"t2", "", "MKLPEPTIDER"},
+                                                {"DECOY_t1", "", "MRLIHGAKEDCA"}, {"DECOY_t2", "", "MREDITPEPLK"}};
+  auto warnings = [](const vector<FASTAFile::FASTAEntry>& db, const string& clip)
+  {
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "auto");
+    p.setValue("peptide:clip_nterm_methionine", clip);
+    algo.setParameters(p);
+    std::ostringstream log;
+    OPENMS_LOG_WARN.insert(log);
+    const auto strategy = algo.resolveDecoyStrategy_(db);
+    const auto result = algo.buildDecoyAugmentedDB_(db, strategy);
+    OPENMS_LOG_WARN.remove(log);
+    TEST_EQUAL(result.size(), db.size())
+    return log.str();
+  };
+  const string warning = warnings(reversed, "true");
+  TEST_TRUE(warning.find("2 of 2 target proteins but only 0 of 2 decoy proteins") != string::npos)
+  TEST_EQUAL(warnings(reversed, "false"), "")
+  TEST_EQUAL(warnings(met_kept, "true"), "")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mass accuracy scoring retains its kernel during calibration))
+{
+  ProSEAlgorithm_test algo;
+  configure_calibration_params_(algo, 20.0, 30.0, 3);
+  Param p = algo.getParameters();
+  p.setValue("scoring:method", "mass_accuracy");
+  p.setValue("scoring:mass_error_sd", 9.0);
+  algo.setParameters(p);
+  PeakMap spectra = build_calibration_spectra_({0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0});
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  TEST_TRUE(algo.search(spectra, calibration_fasta_db_(), proteins, peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_TRUE(algo.last_calibration_result_.success)
+  TEST_FALSE(peptides.empty())
+  ABORT_IF(proteins.empty())
+  const auto& params = proteins[0].getSearchParameters();
+  TEST_EQUAL(params.getMetaValue("scoring:method").toString(), "mass_accuracy")
+  TEST_REAL_SIMILAR(static_cast<double>(params.getMetaValue("scoring:mass_error_sd")), 9.0)
+  TEST_EQUAL(params.getMetaValue("scoring:method_resolved").toString(), "mass_accuracy")
+  for (const auto& peptide : peptides)
+  {
+    TEST_EQUAL(peptide.getScoreType(), "ln(hyperscore)")
+  }
+}
+END_SECTION
+
+START_SECTION((void annotatePsmQValues(PeptideIdentificationList& peptide_ids) const))
+{
+  // Best hits of 2+ and 3+ precursors. When fragment charges 1..2 are scored for 3+ precursors, their scores run
+  // higher for targets and decoys alike: here every 3+ decoy outscores every 2+ PSM.
+  auto make_ids = []()
+  {
+    PeptideIdentificationList ids;
+    auto add = [&ids](int charge, double score, bool decoy)
+    {
+      PeptideIdentification id;
+      id.setScoreType("ln(hyperscore)");
+      id.setHigherScoreBetter(true);
+      id.setIdentifier("run");
+      PeptideHit hit(score, 1, charge, AASequence::fromString(decoy ? "KEDITPEP" : "PEPTIDEK"));
+      hit.setTargetDecoyType(decoy ? PeptideHit::TargetDecoyType::DECOY : PeptideHit::TargetDecoyType::TARGET);
+      // a lower-ranked hit of the other label, which must not change the competition
+      PeptideHit second(score - 5.0, 2, charge, AASequence::fromString(decoy ? "PEPTIDER" : "REDITPEP"));
+      second.setTargetDecoyType(decoy ? PeptideHit::TargetDecoyType::TARGET : PeptideHit::TargetDecoyType::DECOY);
+      id.setHits({second, hit}); // unsorted on purpose
+      ids.push_back(id);
+    };
+    for (int i = 0; i < 300; ++i) { add(2, 20.0 - i * 0.05, false); }       // 2+ targets: 20 .. 5.05
+    for (int i = 0; i < 30; ++i) { add(2, 4.0 - i * 0.1, true); }           // 2+ decoys below all 2+ targets
+    for (int i = 0; i < 300; ++i) { add(3, 60.0 - i * 0.1, false); }        // 3+ targets: 60 .. 30.1
+    for (int i = 0; i < 30; ++i) { add(3, 30.0 - i * 0.2, true); }          // 3+ decoys: 30 .. 24.2
+    add(4, 70.0, false); // 4+ scores two fragment charges too: it competes with the 3+ PSMs
+    ids.push_back(PeptideIdentification()); // a spectrum without hits
+    return ids;
+  };
+  // q-values FalseDiscoveryRate gives the PSMs selected by @p keep, competing alone (by spectrum index)
+  auto reference = [&make_ids](const std::function<bool(const PeptideIdentification&)>& keep)
+  {
+    PeptideIdentificationList all = make_ids(), part;
+    std::vector<Size> index;
+    for (Size i = 0; i < all.size(); ++i)
+    {
+      if (keep(all[i])) { part.push_back(all[i]); index.push_back(i); }
+    }
+    FalseDiscoveryRate fdr;
+    Param fp = fdr.getParameters();
+    fp.setValue("add_decoy_peptides", "true");
+    fdr.setParameters(fp);
+    fdr.apply(part);
+    std::map<Size, double> q;
+    for (Size k = 0; k < part.size(); ++k) { q[index[k]] = part[k].getHits()[0].getScore(); }
+    return q;
+  };
+  auto best_charge = [](const PeptideIdentification& id) { return id.getHits().empty() ? 0 : std::max_element(id.getHits().begin(), id.getHits().end(), [](const PeptideHit& a, const PeptideHit& b) { return a.getScore() < b.getScore(); })->getCharge(); };
+  const auto q_pooled = reference([](const PeptideIdentification& id) { return ! id.getHits().empty(); });
+  const auto q_two = reference([&](const PeptideIdentification& id) { return best_charge(id) == 2; });
+  const auto q_more = reference([&](const PeptideIdentification& id) { return best_charge(id) >= 3; });
+
+  auto annotate = [&make_ids](double tolerance, const std::string& unit, const std::string& groups, int max_charge = 2)
+  {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    TEST_EQUAL(p.getValue("FDR:PSM_groups").toString(), "scored_charges")
+    p.setValue("fragment:mass_tolerance", tolerance);
+    p.setValue("fragment:mass_tolerance_unit", unit);
+    p.setValue("fragment:max_charge", max_charge);
+    p.setValue("FDR:PSM_groups", groups);
+    algo.setParameters(p);
+    PeptideIdentificationList ids = make_ids();
+    algo.annotatePsmQValues(ids);
+    return ids;
+  };
+  auto accepted = [](const PeptideIdentificationList& ids)
+  {
+    Size n = 0;
+    for (const auto& id : ids) { n += ! id.getHits().empty() && ! id.getHits()[0].isDecoy() && id.getHits()[0].getScore() <= 0.01; }
+    return n;
+  };
+
+  // 0.5 Da: spectra are not deisotoped, 3+ and 4+ precursors are scored with two fragment charges.
+  const PeptideIdentificationList original = make_ids();
+  const PeptideIdentificationList grouped = annotate(0.5, "Da", "scored_charges");
+  ABORT_IF(grouped.size() != 662)
+  for (Size i = 0; i + 1 < grouped.size(); ++i)
+  {
+    TEST_EQUAL(grouped[i].getHits().size(), 1) // FalseDiscoveryRate keeps the best hit
+    TEST_EQUAL(grouped[i].getScoreType(), "q-value")
+    const auto& q = best_charge(original[i]) == 2 ? q_two : q_more;
+    TEST_REAL_SIMILAR(grouped[i].getHits()[0].getScore(), q.at(i))
+  }
+  TEST_EQUAL(grouped.back().getHits().size(), 0)
+  TEST_EQUAL(grouped.back().getScoreType(), "q-value")
+  TEST_EQUAL(accepted(grouped), 601) // all 2+, 3+ and 4+ targets
+
+  // fragment:max_charge 3: the 4+ PSM is scored with three fragment charges, so it forms a competition of its own.
+  // That competition has no decoy here, so all PSMs compete together.
+  const PeptideIdentificationList grouped_three = annotate(0.5, "Da", "scored_charges", 3);
+  ABORT_IF(grouped_three.size() != grouped.size())
+  for (Size i = 0; i + 1 < grouped_three.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(grouped_three[i].getHits()[0].getScore(), q_pooled.at(i))
+  }
+  TEST_EQUAL(accepted(grouped_three), 301)
+
+  const PeptideIdentificationList pooled = annotate(0.5, "Da", "pooled");
+  for (Size i = 0; i + 1 < pooled.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(pooled[i].getHits()[0].getScore(), q_pooled.at(i))
+  }
+  TEST_EQUAL(accepted(pooled), 301) // the 3+ decoys lift every 2+ q-value above 1%
+
+  // 20 ppm: deisotoped spectra are scored with charge-1 fragments only, so there is one group.
+  const PeptideIdentificationList high_resolution = annotate(20.0, "ppm", "scored_charges");
+  for (Size i = 0; i + 1 < high_resolution.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(high_resolution[i].getHits()[0].getScore(), q_pooled.at(i))
+  }
+
+  // A group without decoys falls back to one competition.
+  {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("fragment:mass_tolerance", 0.5);
+    p.setValue("fragment:mass_tolerance_unit", "Da");
+    algo.setParameters(p);
+    PeptideIdentificationList ids = make_ids(), no_two_decoys;
+    for (auto& id : ids)
+    {
+      if (best_charge(id) == 2 && id.getHits().size() == 2 && std::max(id.getHits()[0].getScore(), id.getHits()[1].getScore()) < 5.0) { continue; }
+      no_two_decoys.push_back(id);
+    }
+    PeptideIdentificationList expected = no_two_decoys;
+    FalseDiscoveryRate fdr;
+    Param fp = fdr.getParameters();
+    fp.setValue("add_decoy_peptides", "true");
+    fdr.setParameters(fp);
+    fdr.apply(expected);
+    algo.annotatePsmQValues(no_two_decoys);
+    ABORT_IF(expected.size() != no_two_decoys.size())
+    for (Size i = 0; i < expected.size(); ++i)
+    {
+      TEST_EQUAL(no_two_decoys[i].getHits() == expected[i].getHits(), true)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] self-trained ion priors write zero features without enough confident PSMs in either half, and nothing in target-only searches))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  auto run = [&](Size min_psms, double train_fdr, const std::string& decoys, IntList& fold_training_psms)
+  {
+    ProSEAlgorithm algo;
+    configure_ion_prior_params_(algo, min_psms, train_fdr, decoys);
+    PeakMap run_spectra = spectra;
+    std::vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_EQUAL(algo.search(run_spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(prot_ids.empty() || pep_ids.empty(), false)
+    if (prot_ids.empty() || pep_ids.empty()) return;
+    const auto& sp = prot_ids[0].getSearchParameters();
+    TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:trained").toString(), "false")
+    fold_training_psms = sp.getMetaValue("ion_prior:fold_training_psms");
+    // the columns stay complete for Percolator
+    for (const std::string& feature : ion_prior_features_)
+    {
+      TEST_EQUAL(lists_feature_(prot_ids[0], feature), true)
+    }
+    const auto [hits, violations] = check_ion_prior_annotations_(pep_ids, true);
+    TEST_TRUE(hits > 0)
+    TEST_EQUAL(violations, 0)
+  };
+
+  IntList fold_training_psms;
+  // more training PSMs required than the run has; the confident ones are still counted
+  run(1000000, 0.5, "generate", fold_training_psms);
+  ABORT_IF(fold_training_psms.size() != 2)
+  TEST_TRUE(fold_training_psms[0] > 0)
+  TEST_TRUE(fold_training_psms[1] > 0)
+  // the minimum applies to each half: one half above it does not suffice
+  const Size larger = static_cast<Size>(std::max(fold_training_psms[0], fold_training_psms[1]));
+  const Size smaller = static_cast<Size>(std::min(fold_training_psms[0], fold_training_psms[1]));
+  if (larger > smaller)
+  {
+    run(smaller + 1, 0.5, "generate", fold_training_psms);
+    TEST_EQUAL(static_cast<Size>(std::max(fold_training_psms[0], fold_training_psms[1])), larger)
+  }
+  // a q-value threshold nothing reaches
+  run(5, 0.0, "generate", fold_training_psms);
+  TEST_EQUAL(fold_training_psms[0] + fold_training_psms[1], 0)
+
+  // A target-only search (decoys=ignore) has no target-decoy competition to select training PSMs, and Percolator cannot
+  // use it: nothing is learned or written, and the output equals the one with the ion priors off.
+  auto target_only = [&](bool ion_priors, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)
+  {
+    ProSEAlgorithm algo;
+    configure_ion_prior_params_(algo, 5, 0.5, "ignore");
+    Param p = algo.getParameters();
+    p.setValue("annotate:self_trained_ion_priors", ion_priors ? "true" : "false");
+    algo.setParameters(p);
+    PeakMap run_spectra = spectra;
+    TEST_EQUAL(algo.search(run_spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  };
+  std::vector<ProteinIdentification> on_prot_ids, off_prot_ids;
+  PeptideIdentificationList on_pep_ids, off_pep_ids;
+  target_only(true, on_prot_ids, on_pep_ids);
+  target_only(false, off_prot_ids, off_pep_ids);
+  ABORT_IF(on_prot_ids.empty() || off_prot_ids.empty() || on_pep_ids.empty() || on_pep_ids.size() != off_pep_ids.size())
+  const auto& on_sp = on_prot_ids[0].getSearchParameters();
+  TEST_EQUAL(on_sp.metaValueExists("annotate:self_trained_ion_priors"), false)
+  TEST_EQUAL(on_sp.metaValueExists("ion_prior:trained"), false)
+  TEST_EQUAL(extra_features_(on_prot_ids[0]), extra_features_(off_prot_ids[0]))
+  for (const std::string& feature : ion_prior_features_)
+  {
+    TEST_EQUAL(lists_feature_(on_prot_ids[0], feature), false)
+  }
+  Size target_only_hits = 0, target_only_annotated = 0, target_only_same = 0;
+  for (Size i = 0; i < on_pep_ids.size(); ++i)
+  {
+    const std::vector<PeptideHit>& a = on_pep_ids[i].getHits();
+    const std::vector<PeptideHit>& b = off_pep_ids[i].getHits();
+    bool equal = a.size() == b.size();
+    for (Size h = 0; h < a.size(); ++h)
+    {
+      ++target_only_hits;
+      for (const std::string& feature : ion_prior_features_) if (a[h].metaValueExists(feature)) ++target_only_annotated;
+      equal = equal && h < b.size() && a[h].getSequence() == b[h].getSequence() && a[h].getScore() == b[h].getScore();
+    }
+    if (equal) ++target_only_same;
+  }
+  TEST_TRUE(target_only_hits > 0)
+  TEST_EQUAL(target_only_annotated, 0)
+  TEST_EQUAL(target_only_same, on_pep_ids.size())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] self-trained ion priors are cross-fitted: the features of a PSM do not depend on its own half of the spectra))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  // The identifications, labelled by PeptideIndexing, without ion priors.
+  ProSEAlgorithm_test plain;
+  configure_ion_prior_params_(plain, 5, 0.5);
+  Param p = plain.getParameters();
+  p.setValue("annotate:self_trained_ion_priors", "false");
+  plain.setParameters(p);
+  PeakMap searched = spectra;
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(plain.search(searched, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  ABORT_IF(prot_ids.empty() || pep_ids.empty())
+
+  // The spectra and peak lists as the search with ion priors sees them.
+  ProSEAlgorithm_test algo;
+  configure_ion_prior_params_(algo, 5, 0.5);
+  PeakMap preprocessed = spectra;
+  FragmentIonLikelihoodModel::PeakLists evidence;
+  ProSEAlgorithm_test::preprocessSpectra_(preprocessed, 20.0, true, true, 0, 20, "auto", 100, 1.0, ProSEAlgorithm_test::DeisotopingSettings_{}, &evidence, false);
+  TEST_EQUAL(evidence.size(), preprocessed.size())
+  TEST_TRUE(evidence.totalPeaks() > 0)
+
+  auto annotate = [&algo, &preprocessed, &evidence, &prot_ids](PeptideIdentificationList ids) {
+    std::vector<ProteinIdentification> proteins = prot_ids;
+    algo.annotateIonPriors_(preprocessed, evidence, proteins, ids);
+    TEST_STRING_EQUAL(proteins[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+    return ids;
+  };
+  const PeptideIdentificationList reference = annotate(pep_ids);
+  const auto [hits, violations] = check_ion_prior_annotations_(reference, false);
+  TEST_TRUE(hits > 0)
+  TEST_EQUAL(violations, 0)
+
+  // Flip the target/decoy label of the best target of each half in turn. The features of the PSMs of
+  // that half stay exactly the same (they are scored by the model of the other half); the other half's
+  // features change (its model lost a training PSM).
+  for (Size fold = 0; fold < 2; ++fold)
+  {
+    PeptideIdentificationList flipped = pep_ids;
+    Size best = flipped.size();
+    double best_score = -std::numeric_limits<double>::infinity();
+    for (Size i = 0; i < flipped.size(); ++i)
+    {
+      if (flipped[i].getHits().empty()) continue;
+      const Size scan = static_cast<int>(flipped[i].getMetaValue("scan_index"));
+      const PeptideHit& top_hit = flipped[i].getHits()[0];
+      if (scan % 2 != fold || top_hit.getMetaValue("target_decoy").toString() == "decoy") continue;
+      if (top_hit.getScore() > best_score) { best_score = top_hit.getScore(); best = i; }
+    }
+    ABORT_IF(best == flipped.size())
+    flipped[best].getHits()[0].setMetaValue("target_decoy", "decoy");
+    const PeptideIdentificationList result = annotate(flipped);
+    ABORT_IF(result.size() != reference.size())
+    Size same_half_changed = 0, other_half_changed = 0;
+    for (Size i = 0; i < result.size(); ++i)
+    {
+      if (result[i].getHits().empty()) continue;
+      const Size scan = static_cast<int>(result[i].getMetaValue("scan_index"));
+      bool changed = false;
+      for (Size h = 0; h < result[i].getHits().size(); ++h)
+      {
+        for (const std::string& feature : ion_prior_features_)
+        {
+          changed = changed || static_cast<double>(result[i].getHits()[h].getMetaValue(feature))
+                                 != static_cast<double>(reference[i].getHits()[h].getMetaValue(feature));
+        }
+      }
+      if (changed) ++(scan % 2 == fold ? same_half_changed : other_half_changed);
+    }
+    TEST_EQUAL(same_half_changed, 0)
+    TEST_TRUE(other_half_changed > 0)
+  }
+
+  // A half without a decoy hit still has the target-decoy estimate (0 + 1) / T of a search with decoys: with every
+  // best hit of the odd half labelled target, all of its scorable PSMs train (T >= 2 reaches q <= 0.5).
+  {
+    PeptideIdentificationList no_decoy_half = pep_ids;
+    Size odd_psms = 0;
+    for (PeptideIdentification& pid : no_decoy_half)
+    {
+      if (pid.getHits().empty()) continue;
+      const Size scan = static_cast<int>(pid.getMetaValue("scan_index"));
+      if (scan % 2 != 1) continue;
+      for (PeptideHit& hit : pid.getHits()) hit.setMetaValue("target_decoy", "target");
+      if (scan < evidence.size() && evidence.peaks(scan) > 0) ++odd_psms;
+    }
+    TEST_TRUE(odd_psms >= 2)
+    std::vector<ProteinIdentification> proteins = prot_ids;
+    algo.annotateIonPriors_(preprocessed, evidence, proteins, no_decoy_half);
+    const auto& sp = proteins[0].getSearchParameters();
+    TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:trained").toString(), "true")
+    const IntList folds = sp.getMetaValue("ion_prior:fold_training_psms");
+    ABORT_IF(folds.size() != 2)
+    TEST_EQUAL(static_cast<Size>(folds[1]), odd_psms)
+  }
+
+  // Annotation is deterministic: the same input gives bit-identical features.
+  TEST_EQUAL(ion_prior_rows_(annotate(pep_ids)) == ion_prior_rows_(reference), true)
+
+  // the noise hypothesis: all but the C-terminal residue reversed, modifications kept
+  TEST_STRING_EQUAL(ProSEAlgorithm_test::reversedNoiseSequence_(AASequence::fromString("PEPM(Oxidation)TIDEK")).toString(), "EDITM(Oxidation)PEPK")
+  TEST_STRING_EQUAL(ProSEAlgorithm_test::reversedNoiseSequence_(AASequence::fromString("AK")).toString(), "AK")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] self-trained ion priors are learned per file and agree between the single-file, chunked and multi-file searches))
+{
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+  std::string spectra_file;
+  NEW_TMP_FILE(spectra_file)
+  spectra_file += ".mzML";
+  FileHandler().storeExperiment(spectra_file, spectra, {FileTypes::MZML});
+  PeakMap stored;
+  FileHandler().loadExperiment(spectra_file, stored, {FileTypes::MZML});
+
+  for (const int chunk_size : {0, 3})
+  {
+    ProSEAlgorithm algo;
+    configure_ion_prior_params_(algo, 5, 0.5);
+    Param p = algo.getParameters();
+    p.setValue("database:chunk_size", chunk_size);
+    algo.setParameters(p);
+
+    // single file, in memory: search(spectra, ctx) without chunks, searchChunked_ with chunks
+    PeakMap single_spectra = stored;
+    std::vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_EQUAL(algo.search(single_spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    ABORT_IF(prot_ids.empty() || pep_ids.empty())
+    TEST_STRING_EQUAL(prot_ids[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+    const auto [hits, violations] = check_ion_prior_annotations_(pep_ids, false);
+    TEST_TRUE(hits > 0)
+    TEST_EQUAL(violations, 0)
+    const std::vector<std::string> single_rows = ion_prior_rows_(pep_ids);
+
+    // The same file twice in one multi-file search (per file with a shared index without chunks,
+    // chunk-major with chunks): each file trains its own models on identical data and gets the
+    // features of the single-file search.
+    ProSEAlgorithm::MultiFileSearchResult result =
+      algo.searchWithModificationAnalysis(std::vector<std::string>{spectra_file, spectra_file}, fasta_db, std::vector<std::string>{}, "", false);
+    ABORT_IF(result.per_file.size() != 2 || result.per_file[0].protein_ids.empty() || result.per_file[1].protein_ids.empty())
+    for (const auto& per_file : result.per_file)
+    {
+      TEST_STRING_EQUAL(per_file.protein_ids[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+      TEST_EQUAL(per_file.protein_ids[0].getSearchParameters().getMetaValue("ion_prior:training_psms"),
+                 prot_ids[0].getSearchParameters().getMetaValue("ion_prior:training_psms"))
+      TEST_EQUAL(ion_prior_rows_(per_file.peptide_ids) == single_rows, true)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] protein mapping from the fragment index writes what PeptideIndexing writes))
+{
+  // Peptides in several target and decoy proteins, at position 1 and 2 of proteins that start with M (also after a
+  // residue that is no cleavage site), behind non-cleavage sites (A, KP), and across ambiguous residues B, J, Z, X.
+  const vector<string> blocks = {"MPEPCIDEMK", "QPEPTIDEMR", "AMDEQK", "MSTQMPEPK", "GGQMSTMK", "CMQEDK", "QQMMCR", "PEPTIDEK", "AWDLKPEPK"};
+  const vector<string> ambiguous = {"QPEPTXDEMR", "AMBEQK", "AMDZQK", "PEPTJDEK", "GGXMSTMK", "PEPTXDBK", "PXPTXDXK", "CMQEDX", "ZPEPTIDEK"};
+  std::mt19937 rng(5);
+  vector<FASTAFile::FASTAEntry> db;
+  for (int i = 0; i < 80; ++i)
+  {
+    const vector<string> starts = {"M", "MA", "MAS", "", ""};
+    string sequence = starts[i % starts.size()];
+    const int n_blocks = 1 + static_cast<int>(rng() % 4);
+    for (int b = 0; b < n_blocks; ++b)
+    {
+      sequence += (rng() % 5 == 0) ? ambiguous[rng() % ambiguous.size()] : blocks[rng() % blocks.size()];
+      if (rng() % 5 == 0) sequence += "A";
+    }
+    db.push_back({(i % 3 == 0 ? "DECOY_P" : "P") + std::to_string(i), "", sequence});
+  }
+  struct Config { string enzyme, clip, deduplicate; vector<string> fixed, variable; Int aaa_max; };
+  const vector<Config> configs = {
+    {"Trypsin", "true", "true", {"Carbamidomethyl (C)"}, {"Oxidation (M)"}, 3},
+    {"Trypsin", "false", "true", {"Carbamidomethyl (C)"}, {"Oxidation (M)"}, 3},
+    {"Trypsin", "true", "false", {"Carbamidomethyl (C)"}, {"Oxidation (M)"}, 3},
+    {"Trypsin/P", "true", "true", {}, {}, 3},
+    {"Trypsin/P", "false", "false", {"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (N-term)"}, 1},
+    {"Lys-C", "true", "true", {"Carbamidomethyl (C)", "TMT6plex (N-term)", "TMT6plex (K)"}, {"Oxidation (M)"}, 3},
+    {"Trypsin", "true", "true", {"Carbamidomethyl (C)"}, {"Carbamidomethyl (C)", "Oxidation (M)"}, 2}}; // deduplicated as strings
+  Size mapped = 0, m_start = 0, over_ambiguous = 0, shared = 0;
+  for (const Config& config : configs)
+  {
+    MappingCase c;
+    c.db = db;
+    prepareMappingCase(c, config.enzyme, config.clip, config.deduplicate, config.fixed, config.variable, config.aaa_max);
+    TEST_TRUE(c.peptides.size() > 10)
+    vector<ProteinIdentification> proteins = c.proteins;
+    PeptideIdentificationList peptides = c.peptides;
+    const ProSEAlgorithm_test::ProteinMapping_ mapping = ProSEAlgorithm_test::buildProteinMapping_(c.index, c.db, c.candidates, c.indexer_parameters);
+    TEST_STRING_EQUAL(mapping.fallback_reason, "")
+    string reason;
+    TEST_TRUE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    TEST_STRING_EQUAL(reason, "")
+
+    PeptideIndexing indexer;
+    indexer.setParameters(c.indexer_parameters);
+    vector<FASTAFile::FASTAEntry> db_copy = c.db;
+    TEST_EQUAL(indexer.run(db_copy, c.proteins, c.peptides) == PeptideIndexing::ExitCodes::EXECUTION_OK, true)
+    TEST_TRUE(peptides == c.peptides)
+    TEST_TRUE(proteins == c.proteins)
+    // what the database exercised
+    for (const auto& id : c.peptides)
+    {
+      for (const auto& hit : id.getHits())
+      {
+        ++mapped;
+        shared += hit.getMetaValue("target_decoy").toString() == "target+decoy" ? 1 : 0;
+        for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
+        {
+          const string& protein = std::find_if(c.db.begin(), c.db.end(), [&](const auto& e) { return e.identifier == evidence.getProteinAccession(); })->sequence;
+          const string span = protein.substr(evidence.getStart(), evidence.getEnd() - evidence.getStart() + 1);
+          over_ambiguous += span.find_first_of("BJZX") != string::npos ? 1 : 0;
+          m_start += (evidence.getStart() == 2 && protein[0] == 'M' && protein[1] != 'K' && protein[1] != 'R') ? 1 : 0;
+        }
+      }
+    }
+  }
+  TEST_TRUE(mapped > 1000)
+  TEST_TRUE(shared > 0)
+  TEST_TRUE(m_start > 0)
+  TEST_TRUE(over_ambiguous > 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] protein mapping from the fragment index leaves PeptideIndexing what it cannot reproduce))
+{
+  const vector<FASTAFile::FASTAEntry> base = {{"P1", "", "MAPEPTIDEKAMDEQKGGQMSTMK"}, {"P2", "", "QPEPTIDEMRPEPTIDEK"},
+                                              {"DECOY_P3", "", "KEDITPEPRMEDTPEPQ"}, {"P4", "", "PEPTIDEKAMXEQK"}};
+  // {database change, index modifications, PeptideIndexing parameter change}
+  struct Case { string what; vector<FASTAFile::FASTAEntry> db; vector<string> variable; string key; ParamValue value; };
+  vector<Case> cases;
+  cases.push_back({"stretch of more than aaa_max X", base, {}, "", ParamValue()});
+  cases.back().db[3].sequence = "PEPTIDEKAMXXXXEQK";
+  cases.push_back({"symbol", base, {}, "", ParamValue()});
+  cases.back().db[1].sequence = "QPEPTIDEMR*";
+  cases.push_back({"protein-terminal modification", base, {"Acetyl (Protein N-term)"}, "", ParamValue()});
+  cases.push_back({"mismatches", base, {}, "mismatches_max", ParamValue(1)});
+  cases.push_back({"I/L", base, {}, "IL_equivalent", ParamValue("true")});
+  cases.push_back({"no N-terminal cleavage", base, {}, "allow_nterm_protein_cleavage", ParamValue("false")});
+  cases.push_back({"semi-specific", base, {}, "enzyme:specificity", ParamValue("semi")});
+  cases.push_back({"other enzyme", base, {}, "enzyme:name", ParamValue("Lys-C")});
+  cases.push_back({"protein sequences", base, {}, "write_protein_sequence", ParamValue("true")});
+  cases.push_back({"decoy detection", base, {}, "decoy_string", ParamValue("")});
+  for (const Case& test_case : cases)
+  {
+    MappingCase c;
+    c.db = test_case.db;
+    prepareMappingCase(c, "Trypsin", "true", "true", {}, test_case.variable, 3);
+    if (!test_case.key.empty()) c.indexer_parameters.setValue(test_case.key, test_case.value);
+    vector<ProteinIdentification> proteins = c.proteins;
+    PeptideIdentificationList peptides = c.peptides;
+    const ProSEAlgorithm_test::ProteinMapping_ mapping = ProSEAlgorithm_test::buildProteinMapping_(c.index, c.db, c.candidates, c.indexer_parameters);
+    string reason;
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    TEST_TRUE(!reason.empty())
+    TEST_TRUE(peptides == c.peptides) // unchanged
+    TEST_TRUE(proteins == c.proteins)
+  }
+  // more spans over ambiguous residues than the lookup budget (2^22): decided before any lookup, from an exact count.
+  // Proteins without cleavage sites (no peptides of their own) with B, Z, J and isolated X around them, added up to the
+  // budget and one more.
+  {
+    const string ambiguous_protein = string(25, 'A') + "BGZJAX" + string(3, 'G') + "X" + string(25, 'A');
+    MappingCase probe;
+    probe.db = base;
+    probe.db.push_back({"AMB", "", ambiguous_protein});
+    prepareMappingCase(probe, "Trypsin", "true", "true", {}, {}, 3);
+    std::set<Size> lengths;
+    for (const UInt32 candidate : probe.candidates) lengths.insert(probe.index.getPeptides()[candidate].sequence_.second);
+    const Size per_protein = ambiguousSpanLookups(ambiguous_protein, lengths, 3);
+    TEST_TRUE(per_protein > 0)
+    Size in_base = 0;
+    for (const auto& entry : base) in_base += ambiguousSpanLookups(entry.sequence, lengths, 3);
+    const Size budget = Size(1) << 22;
+    const Size under = (budget - in_base) / per_protein; // proteins that fit
+    for (const Size copies : {under, under + 1})
+    {
+      MappingCase c;
+      c.db = base;
+      for (Size i = 0; i < copies; ++i) c.db.push_back({"AMB" + std::to_string(i), "", ambiguous_protein});
+      prepareMappingCase(c, "Trypsin", "true", "true", {}, {}, 3);
+      TEST_TRUE(c.candidates.size() == probe.candidates.size()) // the same lengths
+      const ProSEAlgorithm_test::ProteinMapping_ mapping = ProSEAlgorithm_test::buildProteinMapping_(c.index, c.db, c.candidates, c.indexer_parameters);
+      vector<ProteinIdentification> proteins = c.proteins;
+      PeptideIdentificationList peptides = c.peptides;
+      string reason;
+      if (copies == under)
+      {
+        TEST_STRING_EQUAL(mapping.fallback_reason, "")
+        TEST_TRUE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+        PeptideIndexing indexer;
+        indexer.setParameters(c.indexer_parameters);
+        vector<FASTAFile::FASTAEntry> db_copy = c.db;
+        TEST_EQUAL(indexer.run(db_copy, c.proteins, c.peptides) == PeptideIndexing::ExitCodes::EXECUTION_OK, true)
+        TEST_TRUE(peptides == c.peptides)
+        TEST_TRUE(proteins == c.proteins)
+      }
+      else
+      {
+        TEST_STRING_EQUAL(mapping.fallback_reason, "too many spans over ambiguous residues in the database")
+        TEST_TRUE(mapping.sequences.empty()) // nothing built
+        TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+        TEST_TRUE(peptides == c.peptides)
+        TEST_TRUE(proteins == c.proteins)
+      }
+    }
+  }
+  // identifications the mapping does not cover
+  {
+    MappingCase c;
+    c.db = base;
+    prepareMappingCase(c, "Trypsin", "true", "true", {}, {}, 3);
+    const ProSEAlgorithm_test::ProteinMapping_ mapping = ProSEAlgorithm_test::buildProteinMapping_(c.index, c.db, c.candidates, c.indexer_parameters);
+    TEST_STRING_EQUAL(mapping.fallback_reason, "")
+    string reason;
+    // a hit whose sequence was not among the candidates
+    PeptideIdentificationList peptides = c.peptides;
+    vector<ProteinIdentification> proteins = c.proteins;
+    peptides[0].getHits()[0].setSequence(AASequence::fromString("GGQMSTMKQPEPTIDEMR"));
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    TEST_TRUE(proteins == c.proteins)
+    // no hits, two runs, results of X! Tandem
+    peptides.clear();
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    peptides = c.peptides;
+    proteins.push_back(proteins[0]);
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    proteins = c.proteins;
+    proteins[0].setSearchEngine("XTandem");
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    TEST_TRUE(peptides == c.peptides)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] peptide:protein_mapping index and PeptideIndexing give the same search results))
+{
+  // Target and decoy proteins share peptides; one protein starts with M followed by a residue that is no cleavage site
+  const vector<string> peptides = {"THQPSANLDIK", "VLGFHQRMPNASTICYWDLK", "EGFVRTHQPSANLDIK", "GWSADELK", "HPFNQGTICMSYR"};
+  vector<FASTAFile::FASTAEntry> db = {
+    {"P1", "", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"},
+    {"P2", "", "MATHQPSANLDIKHASGDFLKPIVEQNCTMYRGWSADELK"},
+    {"P3", "", "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYR"},
+    {"DECOY_P4", "", "KDLWYCITSANPMRQHFGLVKERTHQPSANLDIK"}};
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(tsg_param);
+  PeakMap spectra;
+  for (const string& sequence : peptides)
+  {
+    const AASequence peptide = AASequence::fromString(sequence);
+    MSSpectrum spectrum;
+    tsg.getSpectrum(spectrum, peptide, 1, 1);
+    spectrum.setMSLevel(2);
+    spectrum.setRT(100.0 + spectra.size());
+    spectrum.setNativeID("scan=" + std::to_string(spectra.size()));
+    Precursor precursor;
+    precursor.setMZ(peptide.getMZ(2));
+    precursor.setCharge(2);
+    spectrum.setPrecursors({precursor});
+    spectra.addSpectrum(spectrum);
+  }
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("report:top_hits", 10);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {"Oxidation (M)"});
+  p.setValue("peptide:missed_cleavages", 2);
+  p.setValue("decoys", "auto");
+  vector<ProteinIdentification> proteins[2];
+  PeptideIdentificationList ids[2];
+  for (int i = 0; i < 2; ++i)
+  {
+    p.setValue("peptide:protein_mapping", i == 0 ? "index" : "PeptideIndexing");
+    algo.setParameters(p);
+    PeakMap input = spectra;
+    TEST_EQUAL(algo.search(input, db, proteins[i], ids[i]) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    // the run identifier and date are those of the moment of the search
+    for (auto& id : ids[i]) id.setIdentifier("");
+    proteins[i][0].setIdentifier("");
+    proteins[i][0].setDateTime(DateTime());
+  }
+  TEST_EQUAL(ids[0].size(), peptides.size())
+  TEST_EQUAL(ids[1].size(), peptides.size())
+  TEST_TRUE(ids[0] == ids[1])
+  TEST_TRUE(proteins[0] == proteins[1])
+  Size target_decoy = 0;
+  for (const auto& id : ids[0])
+  {
+    for (const auto& hit : id.getHits()) target_decoy += hit.getMetaValue("target_decoy").toString() == "target+decoy" ? 1 : 0;
+  }
+  TEST_TRUE(target_decoy > 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] resolveDecoyStrategy_ detects the decoy marker of large databases as DecoyHelper does))
+{
+  // Large enough for the parallel detection; checked against DecoyHelper::findDecoyString()
+  const auto make_db = [](const std::function<string(Size)>& identifier)
+  {
+    vector<FASTAFile::FASTAEntry> db;
+    for (Size i = 0; i < 10000; ++i) db.push_back({identifier(i), "", "PEPTIDEK"});
+    return db;
+  };
+  const vector<vector<FASTAFile::FASTAEntry>> dbs = {
+    make_db([](Size i) { return (i % 2 ? "DECOY_" : "") + string("P") + std::to_string(i); }),
+    make_db([](Size i) { return (i % 2 ? (i < 9000 ? "DECOY_" : "decoy_") : "") + string("P") + std::to_string(i); }), // last spelling
+    make_db([](Size i) { return (i % 5 < 3 ? "rev_" : "") + string("sp|P") + std::to_string(i); }),
+    make_db([](Size i) { return string("P") + std::to_string(i) + (i % 2 ? "_REVERSED" : ""); }),
+    make_db([](Size i) { return string("P") + std::to_string(i) + (i % 2 ? "_rev" : ""); }),
+    make_db([](Size i) { return (i % 4 == 1 ? "DECOY_" : "") + string("P") + std::to_string(i) + (i % 4 == 3 ? "_decoy" : ""); }), // as often
+    make_db([](Size i) { return (i % 10 == 1 ? "XXX_" : "") + string("P") + std::to_string(i); }), // too few
+    make_db([](Size i) { return (i % 2 ? (i % 3 ? "DECOY_" : "REV_") : "") + string("P") + std::to_string(i); })}; // no single one
+  for (const auto& db : dbs)
+  {
+    FASTAContainer<TFI_Vector> container(db);
+    const DecoyHelper::Result expected = DecoyHelper::findDecoyString(container, true);
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "auto");
+    p.setValue("decoy_prefix", "NOT_IN_THE_DATABASE_");
+    algo.setParameters(p);
+    const ProSEAlgorithm_test::DecoyStrategy_ s = algo.resolveDecoyStrategy_(db);
+    TEST_EQUAL(s.generate, !expected.success)
+    if (expected.success)
+    {
+      TEST_STRING_EQUAL(s.decoy_string, expected.name)
+      TEST_EQUAL(s.is_prefix, expected.is_prefix)
     }
   }
 }

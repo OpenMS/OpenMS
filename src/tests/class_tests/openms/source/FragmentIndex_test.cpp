@@ -13,16 +13,26 @@
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <algorithm>
+#include <bit>
 #include <limits>
+#include <map>
+#include <numeric>
+#include <random>
 #include <set>
+#include <tuple>
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 /*
   FragmentIndex tests
@@ -108,6 +118,9 @@ public:
   }
 
   const std::vector<Fragment>& getFragments() const { return fi_fragments_; }
+
+  static void sortPeptides(std::vector<Peptide>& peptides) { sortPeptides_(peptides); }
+  static void sortPeptides(std::vector<Peptide>& peptides, size_t min_task_size) { sortPeptides_(peptides, min_task_size); }
 
   std::vector<double> exposeComputeSnesSigmaDeltaSet(bool include_prot_nterm_mods,
                                                       bool include_prot_cterm_mods) const
@@ -3312,6 +3325,821 @@ START_SECTION(([EXTRA] SNES recognizes the mature protein N - terminus after ini
       found |= reconstructed == peptide;
     }
     TEST_EQUAL(found, enabled)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] sortPeptides_() leaves exactly the order of std::sort)
+{
+  // Peptides with equal (precursor_mz_, protein_idx) differ in mod_bitmask_ / sequence_, and the order std::sort
+  // happens to give them defines the peptide indices and, through tie-breaking, the search results. sortPeptides_()
+  // must therefore return the very permutation std::sort returns - for every number of threads and every task size.
+  using Peptide = FragmentIndex::Peptide;
+  const auto by_mz_then_protein = [](const Peptide& a, const Peptide& b)
+  {
+    return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
+  };
+
+  // M. D. McIlroy, "A Killer Adversary for Quicksort" (1999): answers the comparisons of std::sort such that its
+  // quicksort degenerates. Sorting the returned keys makes the same comparisons, so an introsort runs into its depth
+  // limit and has to fall back to heap sort.
+  const auto quicksortKiller = [](size_t n)
+  {
+    const int gas = static_cast<int>(n) - 1;
+    std::vector<int> key(n, gas);
+    std::vector<int> items(n);
+    std::iota(items.begin(), items.end(), 0);
+    int n_solid = 0;
+    int candidate = 0;
+    std::sort(items.begin(), items.end(), [&](int x, int y)
+    {
+      if (key[x] == gas && key[y] == gas) { key[x == candidate ? x : y] = n_solid++; }
+      if (key[x] == gas) { candidate = x; }
+      else if (key[y] == gas) { candidate = y; }
+      return key[x] < key[y];
+    });
+    return key;
+  };
+
+  const int n_patterns = 10;
+  const auto makePeptides = [&](int pattern, size_t n)
+  {
+    std::mt19937 rng(static_cast<uint32_t>(pattern * 1000003 + n));
+    std::vector<int> killer;
+    if (pattern >= 8) { killer = quicksortKiller(n); }
+    std::vector<Peptide> peptides;
+    peptides.reserve(n);
+    for (size_t i = 0; i < n; ++i)
+    {
+      const size_t r = n - 1 - i;
+      float mz = 0;
+      UInt32 protein = 0;
+      switch (pattern)
+      {
+        case 0: mz = static_cast<float>(rng() % (n / 8 + 1)); protein = rng() % 4; break; // random, many ties
+        case 1: mz = static_cast<float>(rng() % 3); protein = rng() % 2; break;           // six different keys
+        case 2: mz = static_cast<float>(i / 3); protein = (i % 3) / 2; break;             // sorted
+        case 3: mz = static_cast<float>(r / 3); protein = (r % 3) / 2; break;             // reverse sorted
+        case 4: mz = 1.0f; protein = 7; break;                                            // all equal
+        case 5: mz = static_cast<float>(std::min(i, r) / 2); break;                       // organ pipe
+        case 6: mz = static_cast<float>(i % 17); protein = i % 2; break;                  // sawtooth
+        case 7: mz = 500.0f + 0.01f * static_cast<float>(rng() % 200000); protein = static_cast<UInt32>(i / 10); break; // as build() has them
+        case 8: mz = static_cast<float>(killer[i]); break;                                // heap sort fallback
+        default: mz = static_cast<float>(killer[i] / 4); protein = rng() % 2; break;      // heap sort fallback, ties
+      }
+      // mod_bitmask_ and sequence_ are not part of the sort key: they tell equal peptides apart
+      peptides.emplace_back(protein, static_cast<uint32_t>(i),
+                            std::make_pair(static_cast<uint16_t>(i & 0xFFFF), static_cast<uint16_t>(i >> 16)), mz);
+    }
+    return peptides;
+  };
+
+  const auto countDifferences = [](const std::vector<Peptide>& a, const std::vector<Peptide>& b)
+  {
+    if (a.size() != b.size()) { return std::max<size_t>(a.size(), b.size()); }
+    size_t differences = 0;
+    for (size_t i = 0; i < a.size(); ++i)
+    {
+      differences += !(a[i].protein_idx == b[i].protein_idx && a[i].mod_bitmask_ == b[i].mod_bitmask_
+                       && a[i].sequence_ == b[i].sequence_ && a[i].precursor_mz_ == b[i].precursor_mz_);
+    }
+    return differences;
+  };
+
+#ifdef _OPENMP
+  const int max_threads = omp_get_max_threads();
+#endif
+  std::vector<size_t> sizes(41);
+  std::iota(sizes.begin(), sizes.end(), 0); // 0..40: around the 16 elements below which std::sort only insertion-sorts
+  sizes.insert(sizes.end(), {1000, 20000, 1000000});
+  for (const size_t n : sizes)
+  {
+    size_t differences = 0;
+    for (int pattern = 0; pattern < n_patterns; ++pattern)
+    {
+      const std::vector<Peptide> input = makePeptides(pattern, n);
+      std::vector<Peptide> expected = input;
+      std::sort(expected.begin(), expected.end(), by_mz_then_protein);
+      for (const int threads : {1, 2, 4, 16})
+      {
+#ifdef _OPENMP
+        omp_set_num_threads(threads);
+#endif
+        if (n < 1000000)
+        {
+          // every partitioning step hands its right part to another task / only the larger parts
+          for (const size_t min_task_size : {size_t(0), size_t(100)})
+          {
+            std::vector<Peptide> sorted = input;
+            FragmentIndex_test::sortPeptides(sorted, min_task_size);
+            differences += countDifferences(sorted, expected);
+          }
+        }
+        else
+        {
+          std::vector<Peptide> sorted = input;
+          FragmentIndex_test::sortPeptides(sorted); // as build() calls it
+          differences += countDifferences(sorted, expected);
+        }
+        (void)threads;
+      }
+    }
+    TEST_EQUAL(differences, 0)
+  }
+#ifdef _OPENMP
+  omp_set_num_threads(max_threads);
+#endif
+}
+END_SECTION
+
+START_SECTION(([EXTRA] optional peptidoform deduplication preserves modification sites and terminal contexts))
+{
+  const vector<FASTAFile::FASTAEntry> db
+    = {{"P1", "", "MPEPCIDEMK"}, {"P2", "", "MPEPCIDEMK"}, {"P3", "", "AKMPEPCIDEMK"}, {"DECOY_shared", "", "MPEPCIDEMK"}};
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("decoys", "false");
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("modifications:fixed", vector<string> {"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string> {"Oxidation (M)", "Acetyl (Protein N-term)"});
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  p.setValue("peptide:deduplicate", "false");
+  fi.setParameters(p);
+  fi.build(db);
+  set<string> expected;
+  for (const auto& peptide : fi.getPeptides())
+  {
+    expected.insert(fi.reconstructModifiedSequence(peptide, db).toString());
+  }
+  TEST_EQUAL(expected.size(), 4) // Fixed-only, oxidation at either M, protein-N acetyl.
+  const Size original_count = fi.getPeptides().size();
+  TEST_TRUE(original_count > expected.size())
+  p.setValue("peptide:deduplicate", "true");
+  fi.setParameters(p);
+  fi.build(db);
+  set<string> observed;
+  for (const auto& peptide : fi.getPeptides())
+  {
+    observed.insert(fi.reconstructModifiedSequence(peptide, db).toString());
+  }
+  TEST_TRUE(observed == expected)
+  TEST_EQUAL(fi.getPeptides().size(), expected.size())
+
+  // Rebuilding with the default restores every occurrence; clear() carries no identity state.
+  fi.clear();
+  p.setValue("peptide:deduplicate", "false");
+  fi.setParameters(p);
+  fi.build(db);
+  TEST_EQUAL(fi.getPeptides().size(), original_count)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] peptidoform deduplication keeps the first entry of every rendered peptidoform))
+{
+  // peptide:deduplicate compares entries within runs of equal precursor m/z, residue by residue and modification by
+  // modification (or, for the last configuration, as strings). By definition it keeps, of all entries with the same
+  // reconstructModifiedSequence(...).toString(), the first one. Build both ways on proteins that repeat peptides in
+  // every protein-terminal context.
+  const vector<string> blocks = {"MPEPCIDEMK", "QPEPTIDEMR", "AMDEQK", "MSTQMPEPK", "GGQMSTMK", "CMQEDK", "QQMMCR", "PEPTIDEK"};
+  std::mt19937 rng(17);
+  vector<FASTAFile::FASTAEntry> db;
+  for (int i = 0; i < 40; ++i)
+  {
+    string sequence = (i % 3 == 0) ? "M" : "";
+    const int n_blocks = 1 + static_cast<int>(rng() % 4);
+    for (int b = 0; b < n_blocks; ++b) sequence += blocks[rng() % blocks.size()];
+    db.push_back({"P" + std::to_string(i), "", sequence});
+  }
+  struct Config { vector<string> fixed, variable; };
+  const vector<Config> configs = {
+    {{}, {}},
+    {{"Carbamidomethyl (C)"}, {"Oxidation (M)"}},
+    {{"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (Protein N-term)"}},
+    {{"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (N-term)", "Acetyl (Protein N-term)"}}, // two modifications rendered alike
+    {{"Carbamidomethyl (C)", "TMT6plex (N-term)", "TMT6plex (K)"}, {"Oxidation (M)", "Gln->pyro-Glu (N-term Q)"}}, // terminal residue modification
+    {{}, {"Oxidation (M)", "Amidated (Protein C-term)", "Deamidated (Q)"}},
+    {{"Carbamidomethyl (C)"}, {"Carbamidomethyl (C)", "Oxidation (M)"}}}; // fixed and variable: compared as strings
+  Size checked = 0, mismatches = 0, removed = 0;
+  for (const Config& config : configs)
+  {
+    for (const string clip : {"false", "true"})
+    {
+      for (const int max_mods : {1, 2})
+      {
+        for (const string specificity : {"full", "semi"})
+        {
+          FragmentIndex fi;
+          Param p = fi.getParameters();
+          p.setValue("decoys", "false");
+          p.setValue("peptide:min_size", 5);
+          p.setValue("peptide:missed_cleavages", 2);
+          p.setValue("peptide:clip_nterm_methionine", clip);
+          p.setValue("peptide:enzyme_specificity", specificity);
+          p.setValue("modifications:fixed", config.fixed);
+          p.setValue("modifications:variable", config.variable);
+          p.setValue("modifications:variable_max_per_peptide", max_mods);
+          p.setValue("peptide:deduplicate", "false");
+          fi.setParameters(p);
+          fi.build(db);
+          vector<FragmentIndex::Peptide> expected;
+          // the removed occurrences: (kept entry, protein, start), by kept entry and then in index order
+          map<string, Size> kept_index;
+          vector<tuple<Size, UInt32, uint16_t>> expected_removed;
+          for (const auto& peptide : fi.getPeptides())
+          {
+            const auto [it, inserted] = kept_index.emplace(fi.reconstructModifiedSequence(peptide, db).toString(), expected.size());
+            if (inserted) { expected.push_back(peptide); }
+            else { expected_removed.emplace_back(it->second, peptide.protein_idx, peptide.sequence_.first); }
+          }
+          std::stable_sort(expected_removed.begin(), expected_removed.end(),
+                           [](const auto& a, const auto& b) { return std::get<0>(a) < std::get<0>(b); });
+          TEST_TRUE(fi.getRemovedOccurrences().empty())
+          removed += fi.getPeptides().size() - expected.size();
+          p.setValue("peptide:deduplicate", "true");
+          fi.setParameters(p);
+          fi.build(db);
+          const auto& observed = fi.getPeptides();
+          bool same = observed.size() == expected.size();
+          for (Size i = 0; same && i < observed.size(); ++i)
+          {
+            same = observed[i].protein_idx == expected[i].protein_idx && observed[i].mod_bitmask_ == expected[i].mod_bitmask_
+                   && observed[i].sequence_ == expected[i].sequence_ && observed[i].precursor_mz_ == expected[i].precursor_mz_;
+          }
+          const auto& occurrences = fi.getRemovedOccurrences();
+          same = same && occurrences.size() == expected_removed.size();
+          for (Size i = 0; same && i < occurrences.size(); ++i)
+          {
+            same = occurrences[i].peptide_idx == std::get<0>(expected_removed[i]) && occurrences[i].protein_idx == std::get<1>(expected_removed[i])
+                   && occurrences[i].start == std::get<2>(expected_removed[i]);
+          }
+          mismatches += same ? 0 : 1;
+          ++checked;
+        }
+      }
+    }
+  }
+  TEST_EQUAL(checked, configs.size() * 8)
+  TEST_EQUAL(mismatches, 0)
+  TEST_TRUE(removed > 0)
+}
+END_SECTION
+
+START_SECTION((static void checkFixedModifications(const StringList& fixed_modifications)))
+{
+  // A fixed terminal modification is one N- or C-terminal mass for every peptide. Those that apply to some peptides
+  // only are rejected (they are searched as variable modifications), as is a second one on the same terminus.
+  const vector<StringList> rejected = {
+    {"Acetyl (Protein N-term)"},
+    {"Amidated (Protein C-term)"},
+    {"Gln->pyro-Glu (N-term Q)"},
+    {"Carbamidomethyl (C)", "TMT6plex (N-term)", "Acetyl (N-term)"}};
+  for (const StringList& fixed : rejected)
+  {
+    TEST_EXCEPTION(Exception::InvalidParameter, FragmentIndex::checkFixedModifications(fixed))
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    p.setValue("modifications:fixed", fixed);
+    TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p))
+  }
+  // peptide-terminal fixed modifications of any residue, one per terminus, plus residue modifications
+  const StringList accepted = {"Carbamidomethyl (C)", "TMT6plex (K)", "TMT6plex (N-term)", "Amidated (C-term)"};
+  FragmentIndex::checkFixedModifications(accepted);
+  FragmentIndex::checkFixedModifications({});
+
+  // ... and they are applied to every peptide, internal ones included
+  const vector<FASTAFile::FASTAEntry> db {{"p", "p", "MCAPEPTIDEKQLGSVTAKQMNPEPTIDER"}};
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("peptide:min_size", 5);
+  p.setValue("peptide:missed_cleavages", 1);
+  p.setValue("modifications:fixed", accepted);
+  p.setValue("modifications:variable", StringList {});
+  fi.setParameters(p);
+  fi.build(db);
+  TEST_TRUE(fi.getPeptides().size() >= 4)
+  for (const auto& peptide : fi.getPeptides())
+  {
+    const AASequence seq = fi.reconstructModifiedSequence(peptide, db);
+    TEST_TRUE(seq.hasNTerminalModification())
+    TEST_TRUE(seq.hasCTerminalModification())
+    TEST_REAL_SIMILAR(peptide.precursor_mz_, seq.getMZ(1))
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] variable modification enumeration: subsets up to variable_max_per_peptide, at most 31 sites))
+{
+  // A peptide with n Met has n Oxidation (M) sites, so with at most k variable modifications per peptide the index
+  // holds sum_{j <= k} C(n, j) forms of it. The enumeration visits only those subsets (it used to visit all 2^n, which
+  // does not finish for 25 sites and is undefined for 32), and at most the first 31 sites take part.
+  auto forms = [](Size n, Size k) {
+    Size total = 0, c = 1; // c = C(n, j)
+    for (Size j = 0; j <= k && j <= n; ++j) { total += c; c = c * (n - j) / (j + 1); }
+    return total;
+  };
+  for (const Size n : {Size(3), Size(25), Size(31), Size(32), Size(35)})
+  {
+    for (const Size k : {Size(0), Size(1), Size(2)})
+    {
+      const vector<FASTAFile::FASTAEntry> db {{"p", "p", "G" + string(n, 'M') + "K"}};
+      FragmentIndex_test fi;
+      Param p = fi.getParameters();
+      p.setValue("enzyme", "no cleavage");
+      p.setValue("peptide:min_size", 0);
+      p.setValue("peptide:max_size", 100);
+      p.setValue("peptide:min_mass", 0);
+      p.setValue("peptide:max_mass", 50000);
+      p.setValue("fragment:min_mz", 0);
+      p.setValue("fragment:max_mz", 50000);
+      p.setValue("modifications:fixed", StringList {});
+      p.setValue("modifications:variable", StringList {"Oxidation (M)"});
+      p.setValue("modifications:variable_max_per_peptide", static_cast<int>(k));
+      p.setValue("peptide:deduplicate", "false");
+      fi.setParameters(p);
+      fi.build(db);
+      const Size sites = std::min<Size>(n, 31);
+      TEST_EQUAL(fi.getPeptides().size(), forms(sites, k))
+      set<uint32_t> masks;
+      for (const auto& peptide : fi.getPeptides())
+      {
+        masks.insert(peptide.mod_bitmask_);
+        TEST_TRUE(static_cast<Size>(std::popcount(peptide.mod_bitmask_)) <= k)
+        TEST_EQUAL(peptide.mod_bitmask_ >> sites, 0u) // the slots beyond the 31st stay unmodified
+        const AASequence seq = fi.reconstructModifiedSequence(peptide, db);
+        Size oxidized = 0;
+        for (Size i = 0; i < seq.size(); ++i) { oxidized += seq[i].isModified() ? 1 : 0; }
+        TEST_EQUAL(oxidized, static_cast<Size>(std::popcount(peptide.mod_bitmask_)))
+        TEST_REAL_SIMILAR(peptide.precursor_mz_, seq.getMZ(1))
+      }
+      TEST_EQUAL(masks.size(), fi.getPeptides().size())
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the default isotope error range covers precursors selected at the first and second 13C peak))
+{
+  // The query matches observed mass + isotope_error * C13C12: the default [-2, 0] finds a peptide whose precursor was
+  // selected one or two 13C spacings above the monoisotopic peak, not one below it.
+  FragmentIndex fi;
+  TEST_EQUAL(static_cast<int>(fi.getParameters().getValue("precursor:isotope_error_min")), -2)
+  TEST_EQUAL(static_cast<int>(fi.getParameters().getValue("precursor:isotope_error_max")), 0)
+  const vector<FASTAFile::FASTAEntry> db {{"p", "p", "EVAEAATGEDASSPPPK"}};
+  Param p = fi.getParameters();
+  p.setValue("enzyme", "no cleavage");
+  p.setValue("modifications:fixed", StringList {});
+  p.setValue("modifications:variable", StringList {});
+  p.setValue("fragment:min_mz", 0);
+  fi.setParameters(p);
+  fi.build(db);
+  const AASequence peptide = AASequence::fromString("EVAEAATGEDASSPPPK");
+  PeakSpectrum ions;
+  TheoreticalSpectrumGenerator().getSpectrum(ions, peptide, 1, 1);
+  for (int observed_minus_theoretical = -1; observed_minus_theoretical <= 2; ++observed_minus_theoretical)
+  {
+    MSSpectrum spectrum;
+    for (const auto& ion : ions) { spectrum.push_back(ion); }
+    spectrum.setMSLevel(2);
+    Precursor precursor;
+    precursor.setCharge(2);
+    precursor.setMZ(peptide.getMZ(2) + observed_minus_theoretical * Constants::C13C12_MASSDIFF_U / 2);
+    spectrum.setPrecursors({precursor});
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi.querySpectrum(spectrum, sms);
+    bool found = false;
+    for (const auto& hit : sms.hits_)
+    {
+      found |= hit.precursor_charge_ == 2 && hit.isotope_error_ == -observed_minus_theoretical;
+    }
+    TEST_EQUAL(found, observed_minus_theoretical >= 0)
+  }
+}
+END_SECTION
+
+START_SECTION((static StringList shadowedVariableTerminalModifications(const StringList& fixed_modifications, const StringList& variable_modifications)))
+{
+  // A terminus carries one modification: a variable modification of the whole terminus is not applied where a fixed
+  // one sits. Residue-specific terminal variable modifications modify the residue and stay.
+  const StringList variable = {"Acetyl (Protein N-term)", "Oxidation (M)", "Gln->pyro-Glu (N-term Q)", "Amidated (C-term)"};
+  TEST_EQUAL(ListUtils::concatenate(FragmentIndex::shadowedVariableTerminalModifications({"TMT6plex (N-term)"}, variable), ","),
+             "Acetyl (Protein N-term)")
+  TEST_EQUAL(ListUtils::concatenate(FragmentIndex::shadowedVariableTerminalModifications(
+               {"Carbamidomethyl (C)", "TMT6plex (N-term)", "Amidated (C-term)"}, variable), ","),
+             "Acetyl (Protein N-term),Amidated (C-term)")
+  TEST_EQUAL(FragmentIndex::shadowedVariableTerminalModifications({"Carbamidomethyl (C)", "TMT6plex (K)"}, variable).size(), 0)
+  TEST_EQUAL(FragmentIndex::shadowedVariableTerminalModifications({"TMT6plex (N-term)"}, {}).size(), 0)
+
+  // The index applies the excluded modification nowhere, so every peptide's precursor m/z is that of its reconstructed
+  // sequence. (It used to add both terminal masses while the reconstructed sequence kept the variable one only.)
+  const vector<FASTAFile::FASTAEntry> db {{"p", "p", "ACAPEPTIDEKQLGSVTAKQMNPEPTIDER"}};
+  auto build = [&db](const StringList& fixed)
+  {
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    p.setValue("peptide:min_size", 5);
+    p.setValue("peptide:missed_cleavages", 1);
+    p.setValue("modifications:fixed", fixed);
+    p.setValue("modifications:variable", StringList {"Acetyl (Protein N-term)", "Oxidation (M)"});
+    fi.setParameters(p);
+    fi.build(db);
+    Size acetylated = 0;
+    for (const auto& peptide : fi.getPeptides())
+    {
+      const AASequence seq = fi.reconstructModifiedSequence(peptide, db);
+      TEST_REAL_SIMILAR(peptide.precursor_mz_, seq.getMZ(1))
+      if (seq.getNTerminalModificationName() == "Acetyl") ++acetylated;
+      if (fixed.size() > 1)
+      {
+        TEST_EQUAL(seq.getNTerminalModificationName(), "TMT6plex")
+      }
+    }
+    return std::make_pair(fi.getPeptides().size(), acetylated);
+  };
+  const auto [n_without_fixed_nterm, acetylated_without] = build({"Carbamidomethyl (C)"});
+  const auto [n_with_fixed_nterm, acetylated_with] = build({"Carbamidomethyl (C)", "TMT6plex (N-term)"});
+  TEST_EQUAL(acetylated_without, 2) // ACAPEPTIDEK and ACAPEPTIDEKQLGSVTAK
+  TEST_EQUAL(acetylated_with, 0)
+  TEST_EQUAL(n_with_fixed_nterm, n_without_fixed_nterm - acetylated_without)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the prefilter totals count every candidate with a matched fragment, before the gate and the cap))
+{
+  // SpectrumMatchesTopN::scored_candidates_ / matched_peaks_ are taken before fragment:min_matched_ions and
+  // scoring:max_candidates_per_spectrum: with a gate of 1 and no cap, the hits are exactly the counted candidates.
+  const vector<FASTAFile::FASTAEntry> db{
+    {"L0", "L0", "MAGDEFHILNPKSAMPLEPEPTIDERWYVTSNMLIHGFEDCAK"},
+    {"L1", "L1", "GASTCVLIMPFWKANOTHERLONGERSEQRHKDENQSTGAVLK"},
+    {"L2", "L2", "PQSTVWYACDEFGHILMNKMKVLAGDESTPNQRIHFYWCAETK"}};
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum spectrum;
+  const AASequence target = AASequence::fromString("SAMPLEPEPTIDER");
+  tsg.getSpectrum(spectrum, target, 1, 2);
+  Precursor precursor;
+  precursor.setMZ(target.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  spectrum.setMSLevel(2);
+
+  auto query = [&](Int min_matched_ions, Int max_candidates)
+  {
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    p.setValue("precursor:mass_tolerance_lower", 1000.0); // every peptide is a candidate
+    p.setValue("precursor:mass_tolerance_upper", 1000.0);
+    p.setValue("precursor:mass_tolerance_unit", "Da");
+    p.setValue("fragment:mass_tolerance", 0.5);
+    p.setValue("fragment:mass_tolerance_unit", "Da");
+    p.setValue("fragment:min_mz", 0);
+    p.setValue("fragment:min_ion_index", 0);
+    p.setValue("modifications:variable", vector<string>{});
+    p.setValue("modifications:fixed", vector<string>{});
+    p.setValue("peptide:min_size", 4);
+    p.setValue("fragment:min_matched_ions", min_matched_ions);
+    p.setValue("scoring:max_candidates_per_spectrum", max_candidates);
+    fi.setParameters(p);
+    fi.build(db);
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi.querySpectrum(spectrum, sms);
+    return sms;
+  };
+  const FragmentIndex::SpectrumMatchesTopN all = query(1, 100000);
+  uint64_t matched = 0;
+  for (const auto& hit : all.hits_) matched += hit.num_matched_;
+  TEST_TRUE(all.hits_.size() > 3)
+  TEST_EQUAL(all.scored_candidates_, all.hits_.size())
+  TEST_EQUAL(all.matched_peaks_, matched)
+
+  const FragmentIndex::SpectrumMatchesTopN gated = query(5, 3);
+  TEST_TRUE(gated.hits_.size() <= 3)
+  TEST_EQUAL(gated.scored_candidates_, all.scored_candidates_)
+  TEST_EQUAL(gated.matched_peaks_, all.matched_peaks_)
+
+  FragmentIndex::SpectrumMatchesTopN sum = all;
+  sum += gated;
+  TEST_EQUAL(sum.scored_candidates_, 2 * all.scored_candidates_)
+  TEST_EQUAL(sum.matched_peaks_, 2 * all.matched_peaks_)
+  sum.clear();
+  TEST_EQUAL(sum.scored_candidates_, 0)
+  TEST_EQUAL(sum.matched_peaks_, 0)
+}
+END_SECTION
+
+START_SECTION((void getProteinOccurrences(Size peptide_idx, const std::vector<FASTAFile::FASTAEntry>& fasta_entries, std::vector<std::pair<UInt32, UInt32>>& occurrences) const))
+{
+  // Every entry lists the spans of the digest with its residues (each once), with and without deduplication, which
+  // records the removed occurrences for this. Proteins repeat peptides in every protein-terminal context.
+  const vector<string> blocks = {"MPEPCIDEMK", "QPEPTIDEMR", "AMDEQK", "MSTQMPEPK", "GGQMSTMK", "CMQEDK", "QQMMCR", "PEPTIDEK"};
+  std::mt19937 rng(23);
+  vector<FASTAFile::FASTAEntry> db;
+  for (int i = 0; i < 40; ++i)
+  {
+    string sequence = (i % 3 == 0) ? "M" : "";
+    const int n_blocks = 1 + static_cast<int>(rng() % 4);
+    for (int b = 0; b < n_blocks; ++b) sequence += blocks[rng() % blocks.size()];
+    db.push_back({(i % 2 == 0 ? "P" : "DECOY_P") + std::to_string(i), "", sequence});
+  }
+  struct Config { vector<string> fixed, variable; };
+  const vector<Config> configs = {
+    {{}, {}},
+    {{"Carbamidomethyl (C)"}, {"Oxidation (M)"}},
+    {{"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (N-term)"}},
+    {{"Carbamidomethyl (C)", "TMT6plex (N-term)", "TMT6plex (K)"}, {"Oxidation (M)", "Gln->pyro-Glu (N-term Q)"}},
+    {{"Carbamidomethyl (C)"}, {"Carbamidomethyl (C)", "Oxidation (M)"}}}; // fixed and variable: deduplicated as strings
+  using Occurrences = vector<pair<UInt32, UInt32>>;
+  Size checked = 0, mismatches = 0, repeated = 0, removed = 0;
+  for (const Config& config : configs)
+  {
+    for (const string clip : {"false", "true"})
+    {
+      for (const int max_mods : {1, 2})
+      {
+        FragmentIndex fi;
+        Param p = fi.getParameters();
+        p.setValue("decoys", "false");
+        p.setValue("peptide:min_size", 5);
+        p.setValue("peptide:missed_cleavages", 2);
+        p.setValue("peptide:clip_nterm_methionine", clip);
+        p.setValue("modifications:fixed", config.fixed);
+        p.setValue("modifications:variable", config.variable);
+        p.setValue("modifications:variable_max_per_peptide", max_mods);
+        p.setValue("peptide:deduplicate", "false");
+        fi.setParameters(p);
+        fi.build(db);
+        TEST_TRUE(fi.hasProteinOccurrences(db))
+        // the spans of every residue sequence, from all entries
+        map<string, set<pair<UInt32, UInt32>>> expected;
+        const auto residues = [&db](const FragmentIndex::Peptide& peptide)
+        {
+          return db[peptide.protein_idx].sequence.substr(peptide.sequence_.first, peptide.sequence_.second);
+        };
+        for (const auto& peptide : fi.getPeptides())
+        {
+          expected[residues(peptide)].insert({peptide.protein_idx, peptide.sequence_.first});
+        }
+        const Size all_entries = fi.getPeptides().size();
+        for (const string deduplicate : {"false", "true"})
+        {
+          p.setValue("peptide:deduplicate", deduplicate);
+          fi.setParameters(p);
+          fi.build(db);
+          TEST_TRUE(fi.hasProteinOccurrences(db))
+          removed += all_entries - fi.getPeptides().size();
+          for (Size i = 0; i < fi.getPeptides().size(); ++i)
+          {
+            Occurrences occurrences;
+            fi.getProteinOccurrences(i, db, occurrences);
+            const set<pair<UInt32, UInt32>> observed(occurrences.begin(), occurrences.end());
+            repeated += occurrences.size() - observed.size();
+            mismatches += (observed == expected[residues(fi.getPeptides()[i])]) ? 0 : 1;
+            ++checked;
+          }
+        }
+      }
+    }
+  }
+  TEST_TRUE(checked > 1000)
+  TEST_EQUAL(mismatches, 0)
+  TEST_EQUAL(repeated, 0)
+  TEST_TRUE(removed > 0)
+}
+END_SECTION
+
+START_SECTION((bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const))
+{
+  const vector<FASTAFile::FASTAEntry> db = {{"P1", "", "MPEPCIDEMKAMDEQK"}, {"P2", "", "GGQMSTMKPEPTIDEK"}};
+  FragmentIndex fi;
+  TEST_FALSE(fi.hasProteinOccurrences(db)) // not built
+  Param p = fi.getParameters();
+  p.setValue("decoys", "false");
+  p.setValue("peptide:min_size", 5);
+  p.setValue("modifications:fixed", vector<string> {"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string> {"Oxidation (M)"});
+  p.setValue("peptide:deduplicate", "true");
+  fi.setParameters(p);
+  fi.build(db);
+  TEST_TRUE(fi.hasProteinOccurrences(db))
+  vector<FASTAFile::FASTAEntry> other = db;
+  other[1].sequence += "R";
+  TEST_FALSE(fi.hasProteinOccurrences(other)) // not built from these entries
+  other = db;
+  other.pop_back();
+  TEST_FALSE(fi.hasProteinOccurrences(other))
+  fi.clear();
+  TEST_FALSE(fi.hasProteinOccurrences(db))
+  // protein-terminal modifications: the entries of a span depend on where it lies in its protein (variable ones; a
+  // fixed one is rejected, checkFixedModifications())
+  for (const string variable : {"Acetyl (Protein N-term)", "Amidated (Protein C-term)"})
+  {
+    p.setValue("modifications:fixed", vector<string> {});
+    p.setValue("modifications:variable", vector<string> {variable});
+    fi.setParameters(p);
+    fi.build(db);
+    TEST_FALSE(fi.hasProteinOccurrences(db))
+  }
+  p.setValue("modifications:fixed", vector<string> {"Acetyl (Protein N-term)"});
+  p.setValue("modifications:variable", vector<string> {});
+  TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p))
+  // SNES: the entries are mother peptides
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(db);
+  TEST_TRUE(fi.isSnesMode())
+  TEST_FALSE(fi.hasProteinOccurrences(db))
+}
+END_SECTION
+
+START_SECTION((void build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries, const std::function<const MSExperiment*(Size)>& searched_spectra)))
+{
+  // The index built for some spectra keeps only the peptides in their precursor windows, in their order: these
+  // spectra get the same candidates (peptides, matched peaks, charges, isotope errors) as from the full index.
+  const std::vector<FASTAFile::FASTAEntry> entries{
+    {"L0", "L0", "MAGDEFHILNPKSAMPLEPEPTIDERWYVTSNMLIHGFEDCAKLLIGHTDFEK"},
+    {"L1", "L1", "GASTCVLIMPFWKANOTHERLONGERSEQRHKDENQSTGAVLKMEDITATESK"},
+    {"L2", "L2", "PQSTVWYACDEFGHILMNKMKVLAGDESTPNQRIHFYWCAETKAAGVHELPR"}};
+  auto configure = [](FragmentIndex& fi, double precursor_tolerance_ppm)
+  {
+    Param p = fi.getParameters();
+    p.setValue("precursor:mass_tolerance_lower", precursor_tolerance_ppm);
+    p.setValue("precursor:mass_tolerance_upper", precursor_tolerance_ppm);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("precursor:isotope_error_min", -1);
+    p.setValue("precursor:isotope_error_max", 1);
+    p.setValue("precursor:min_charge", 1);
+    p.setValue("precursor:max_charge", 3);
+    p.setValue("peptide:min_size", 6);
+    p.setValue("peptide:missed_cleavages", 2);
+    p.setValue("fragment:min_matched_ions", 1);
+    fi.setParameters(p);
+  };
+  auto make_spectrum = [](const std::string& seq, Int charge, Int ms_level)
+  {
+    TheoreticalSpectrumGenerator tsg;
+    const AASequence target = AASequence::fromString(seq);
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, target, 1, 1);
+    spec.sortByPosition();
+    Precursor prec;
+    prec.setMZ(target.getMZ(2)); // doubly charged precursor; the charge itself may be unknown (0)
+    prec.setCharge(charge);
+    spec.setPrecursors({prec}); // replaces the one TheoreticalSpectrumGenerator sets
+    spec.setMSLevel(ms_level);
+    return spec;
+  };
+  MSExperiment spectra;
+  spectra.addSpectrum(make_spectrum("SAMPLEPEPTIDER", 2, 2));
+  spectra.addSpectrum(make_spectrum("VLAGDESTPNQR", 0, 2));    // all charges are tried
+  spectra.addSpectrum(make_spectrum("ANOTHERLONGERSEQR", 2, 1)); // MS1: not searched
+
+  FragmentIndex full;
+  configure(full, 20.0);
+  full.build(entries);
+
+  FragmentIndex restricted;
+  configure(restricted, 20.0);
+  Size calls = 0;
+  Size peptides_reported = 0;
+  restricted.build(entries, [&](Size peptides) { ++calls; peptides_reported = peptides; return &spectra; });
+  TEST_EQUAL(peptides_reported, full.getPeptides().size())
+  TEST_EQUAL(calls, 1)
+  TEST_EQUAL(restricted.isBuild(), true)
+  TEST_EQUAL(restricted.getPeptides().size() < full.getPeptides().size(), true)
+  TEST_EQUAL(restricted.getPeptides().empty(), false)
+  TEST_EQUAL(restricted.getNumFragments() < full.getNumFragments(), true)
+
+  auto same_peptide = [](const FragmentIndex::Peptide& a, const FragmentIndex::Peptide& b)
+  {
+    return a.protein_idx == b.protein_idx && a.mod_bitmask_ == b.mod_bitmask_ && a.sequence_ == b.sequence_
+           && a.precursor_mz_ == b.precursor_mz_;
+  };
+  // the kept peptides are a subsequence of the full index' peptides
+  Size next = 0;
+  for (const auto& peptide : restricted.getPeptides())
+  {
+    while (next < full.getPeptides().size() && !same_peptide(full.getPeptides()[next], peptide)) { ++next; }
+    TEST_EQUAL(next < full.getPeptides().size(), true)
+    ++next;
+  }
+  for (Size i = 0; i < 2; ++i)
+  {
+    FragmentIndex::SpectrumMatchesTopN from_full, from_restricted;
+    full.querySpectrum(spectra[i], from_full);
+    restricted.querySpectrum(spectra[i], from_restricted);
+    TEST_EQUAL(from_full.hits_.empty(), false)
+    ABORT_IF(from_full.hits_.size() != from_restricted.hits_.size())
+    for (Size k = 0; k < from_full.hits_.size(); ++k)
+    {
+      const auto& a = from_full.hits_[k];
+      const auto& b = from_restricted.hits_[k];
+      TEST_TRUE(same_peptide(full.getPeptides()[a.peptide_idx_], restricted.getPeptides()[b.peptide_idx_]))
+      TEST_EQUAL(a.num_matched_, b.num_matched_)
+      TEST_EQUAL(a.precursor_charge_, b.precursor_charge_)
+      TEST_EQUAL(a.isotope_error_, b.isotope_error_)
+    }
+  }
+
+  // no spectra (nullptr), no callback, and open search: the full index
+  FragmentIndex unrestricted;
+  configure(unrestricted, 20.0);
+  unrestricted.build(entries, [](Size) -> const MSExperiment* { return nullptr; });
+  TEST_EQUAL(unrestricted.getPeptides().size(), full.getPeptides().size())
+  unrestricted.build(entries, {});
+  TEST_EQUAL(unrestricted.getPeptides().size(), full.getPeptides().size())
+  FragmentIndex open_full, open_restricted;
+  configure(open_full, 5000.0);
+  configure(open_restricted, 5000.0);
+  open_full.build(entries);
+  calls = 0;
+  open_restricted.build(entries, [&spectra, &calls](Size) { ++calls; return &spectra; });
+  TEST_EQUAL(calls, 0)
+  TEST_EQUAL(open_restricted.getPeptides().size(), open_full.getPeptides().size())
+
+  // peptide:deduplicate by strings (a modification configured fixed and variable: equal renderings, different precursor
+  // m/z) keeps the first entry of a peptidoform among all of its entries, before the index is restricted: a spectrum at
+  // the mass of a removed entry gets no candidate from it. The occurrences removed from a kept entry follow it.
+  const std::vector<FASTAFile::FASTAEntry> repeats{
+    {"R0", "R0", "MAGDEFHILNPKSAMPLECPEPTIDERWYVTSNMLIHGFEDCAKLLIGHTDFEK"},
+    {"R1", "R1", "GASTCVLIMPFWKSAMPLECPEPTIDERHKDENQSTGAVLKMEDITATESK"},
+    {"R2", "R2", "PQSTVWYACDEFGHILMNKSAMPLECPEPTIDERVLAGDESTPNQRAAGVHELPR"}};
+  auto configure_by_string = [&configure](FragmentIndex& fi)
+  {
+    configure(fi, 20.0);
+    Param p = fi.getParameters();
+    p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+    p.setValue("modifications:variable", std::vector<std::string>{"Carbamidomethyl (C)", "Oxidation (M)"});
+    p.setValue("peptide:deduplicate", "true");
+    fi.setParameters(p);
+  };
+  FragmentIndex by_string_full;
+  configure_by_string(by_string_full);
+  by_string_full.build(repeats);
+  TEST_EQUAL(by_string_full.getRemovedOccurrences().empty(), false)
+  auto with_precursor = [](const std::string& seq, double extra_mass)
+  {
+    TheoreticalSpectrumGenerator tsg;
+    const AASequence target = AASequence::fromString(seq);
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, target, 1, 1);
+    spec.sortByPosition();
+    Precursor prec;
+    prec.setMZ((target.getMonoWeight() + extra_mass + 2 * Constants::PROTON_MASS_U) / 2.0);
+    prec.setCharge(2);
+    spec.setPrecursors({prec});
+    spec.setMSLevel(2);
+    return spec;
+  };
+  const double carbamidomethyl = ModificationsDB::getInstance()->getModification("Carbamidomethyl (C)")->getDiffMonoMass();
+  MSExperiment at_fixed, at_both;
+  at_fixed.addSpectrum(with_precursor("SAMPLEC(Carbamidomethyl)PEPTIDER", 0.0));
+  at_fixed.addSpectrum(with_precursor("VLAGDESTPNQR", 0.0));
+  at_both.addSpectrum(with_precursor("SAMPLEC(Carbamidomethyl)PEPTIDER", carbamidomethyl)); // fixed and variable
+  for (const MSExperiment* searched : {&at_fixed, &at_both})
+  {
+    FragmentIndex by_string_restricted;
+    configure_by_string(by_string_restricted);
+    by_string_restricted.build(repeats, [searched](Size) { return searched; });
+    const auto& full_peptides = by_string_full.getPeptides();
+    const auto& kept_peptides = by_string_restricted.getPeptides();
+    TEST_EQUAL(kept_peptides.size() < full_peptides.size(), true)
+    // index in the restricted index of every peptide of the full one (or -1)
+    std::vector<SignedSize> new_index(full_peptides.size(), -1);
+    Size at = 0;
+    for (Size k = 0; k < kept_peptides.size(); ++k)
+    {
+      while (at < full_peptides.size() && !same_peptide(full_peptides[at], kept_peptides[k])) { ++at; }
+      ABORT_IF(at == full_peptides.size())
+      new_index[at++] = static_cast<SignedSize>(k);
+    }
+    std::vector<std::tuple<SignedSize, UInt32, uint16_t>> expected_occurrences, kept_occurrences;
+    for (const auto& occurrence : by_string_full.getRemovedOccurrences())
+    {
+      if (new_index[occurrence.peptide_idx] >= 0)
+      {
+        expected_occurrences.emplace_back(new_index[occurrence.peptide_idx], occurrence.protein_idx, occurrence.start);
+      }
+    }
+    for (const auto& occurrence : by_string_restricted.getRemovedOccurrences())
+    {
+      kept_occurrences.emplace_back(static_cast<SignedSize>(occurrence.peptide_idx), occurrence.protein_idx, occurrence.start);
+    }
+    TEST_TRUE(kept_occurrences == expected_occurrences)
+    for (const MSSpectrum& spectrum : *searched)
+    {
+      FragmentIndex::SpectrumMatchesTopN from_full, from_restricted;
+      by_string_full.querySpectrum(spectrum, from_full);
+      by_string_restricted.querySpectrum(spectrum, from_restricted);
+      ABORT_IF(from_full.hits_.size() != from_restricted.hits_.size())
+      for (Size k = 0; k < from_full.hits_.size(); ++k)
+      {
+        TEST_TRUE(same_peptide(full_peptides[from_full.hits_[k].peptide_idx_], kept_peptides[from_restricted.hits_[k].peptide_idx_]))
+        TEST_EQUAL(from_full.hits_[k].num_matched_, from_restricted.hits_[k].num_matched_)
+      }
+    }
   }
 }
 END_SECTION
