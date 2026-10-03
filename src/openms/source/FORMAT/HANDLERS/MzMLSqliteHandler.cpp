@@ -706,10 +706,18 @@ namespace OpenMS::Internal
             product.setIsolationWindowUpperOffset(offset_value);
           }
         }
-        if (sqlite3_column_type(stmt, 12) != SQLITE_NULL && sqlite3_column_int(stmt, 12) != -1
-            && sqlite3_column_int(stmt, 12) < static_cast<int>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
+        if (sqlite3_column_type(stmt, 12) != SQLITE_NULL)
         {
-          precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 12)));
+          // Read as 64-bit so a stored value that doesn't fit in 32 bits can't wrap into
+          // the valid [0, SIZE_OF_ACTIVATIONMETHOD) range; only -1 means "no method", any
+          // other negative value is invalid and must not be cast to the enum (it would
+          // later index the activation-method name tables out of bounds).
+          sqlite3_int64 activation_method = sqlite3_column_int64(stmt, 12);
+          if (activation_method >= 0
+              && activation_method < static_cast<sqlite3_int64>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
+          {
+            precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(activation_method));
+          }
         }
         if (sqlite3_column_type(stmt, 13) != SQLITE_NULL)
         {
@@ -850,10 +858,15 @@ namespace OpenMS::Internal
             spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
           }
         }
-        if (sqlite3_column_type(stmt, 15) != SQLITE_NULL && sqlite3_column_int(stmt, 15) != -1
-            && sqlite3_column_int(stmt, 15) < static_cast<int>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
+        if (sqlite3_column_type(stmt, 15) != SQLITE_NULL)
         {
-          precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 15)));
+          // See the matching comment in prepareChroms_ above.
+          sqlite3_int64 activation_method = sqlite3_column_int64(stmt, 15);
+          if (activation_method >= 0
+              && activation_method < static_cast<sqlite3_int64>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
+          {
+            precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(activation_method));
+          }
         }
         if (sqlite3_column_type(stmt, 16) != SQLITE_NULL)
         {
