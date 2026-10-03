@@ -4,11 +4,14 @@
 	<SearchParameters id="SP_0" db="/home/user/OpenMS/src/tests/topp/SimpleSearchEngine_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
-				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,complementary_ions_fraction,hyperscore_zscore,ln_num_candidates,delta_score,isotope_error"/>
+				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,complementary_ions_fraction,hyperscore_zscore,ln_num_candidates,chance_match_surprise,mass_competition_evidence,delta_score,isotope_error"/>
 				<UserParam type="string" name="isotope_error_convention" value="observed_minus_theoretical"/>
 				<UserParam type="string" name="open_search" value="false"/>
 				<UserParam type="string" name="peptide:clip_nterm_methionine" value="true"/>
 				<UserParam type="string" name="peptide:deduplicate" value="true"/>
+				<UserParam type="string" name="fragment:query_spectrum" value="auto"/>
+				<UserParam type="string" name="fragment:query_spectrum_resolved" value="raw"/>
+				<UserParam type="string" name="annotate:local_fragment_evidence" value="true"/>
 				<UserParam type="string" name="scoring:fragment_charges" value="auto"/>
 				<UserParam type="string" name="scoring:fragment_charges_resolved" value="single"/>
 				<UserParam type="string" name="peaks:window_type" value="auto"/>
@@ -61,6 +64,8 @@
 				<UserParam type="float" name="matched_ion_current_fraction" value="0.32165482076727"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="12"/>
 				<UserParam type="float" name="complementary_ions_fraction" value="0.230769230769231"/>
+				<UserParam type="float" name="chance_match_surprise" value="57.543250164871338"/>
+				<UserParam type="float" name="mass_competition_evidence" value="13.548758230407222"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -84,6 +89,8 @@
 				<UserParam type="float" name="matched_ion_current_fraction" value="0.398846404156281"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="9"/>
 				<UserParam type="float" name="complementary_ions_fraction" value="0.185185185185185"/>
+				<UserParam type="float" name="chance_match_surprise" value="93.581431404883034"/>
+				<UserParam type="float" name="mass_competition_evidence" value="22.645669923828102"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -107,6 +114,8 @@
 				<UserParam type="float" name="matched_ion_current_fraction" value="0.580359741623523"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="12"/>
 				<UserParam type="float" name="complementary_ions_fraction" value="0.227272727272727"/>
+				<UserParam type="float" name="chance_match_surprise" value="99.344104203910348"/>
+				<UserParam type="float" name="mass_competition_evidence" value="22.062341019237504"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
