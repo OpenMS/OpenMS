@@ -310,21 +310,34 @@ namespace OpenMS
     if (input_combo_->currentText() == "<select>" || tools_combo_->currentText() == "<select>")
     {
       QMessageBox::critical(this, "Error", "You have to select a tool and an input argument!");
+      return;
     }
-    else
+
+    // commit any open editor; refuse to continue with an outdated param if the edit was rejected
+    if (!editor_->store())
     {
-      editor_->store();
-      mergeGUIParamIntoSingleToolParam_();
-      applyThreadsToSingleToolParam_();
-      arg_param_.insert(getTool() + ":1:", single_tool_param_);
-      if (!File::writable(ini_file_))
-      {
-        QMessageBox::critical(this, "Error", (std::string("Could not write to '") + ini_file_ + "'!").c_str());
-      }
+      QMessageBox::warning(this, "Not applied", "The value currently being edited could not be applied. Please correct it and try again.");
+      return;
+    }
+    mergeGUIParamIntoSingleToolParam_();
+    applyThreadsToSingleToolParam_();
+    arg_param_.insert(getTool() + ":1:", single_tool_param_);
+    if (!File::writable(ini_file_))
+    {
+      QMessageBox::critical(this, "Error", (std::string("Could not write to '") + ini_file_ + "'!").c_str());
+      return;
+    }
+    try
+    {
       ParamXMLFile paramFile;
       paramFile.store(ini_file_, arg_param_);
-      accept();
     }
+    catch (Exception::BaseException& e)
+    {
+      QMessageBox::critical(this, "Error", (std::string("Error storing INI file: ") + e.what()).c_str());
+      return;
+    }
+    accept();
   }
 
   void ToolsDialog::loadINI_()
@@ -391,7 +404,11 @@ namespace OpenMS
     {
       filename_.append(".ini");
     }
-    editor_->store();
+    if (!editor_->store())
+    {
+      QMessageBox::warning(this, "Not applied", "The value currently being edited could not be applied. Please correct it and try again.");
+      return;
+    }
     mergeGUIParamIntoSingleToolParam_();
     applyThreadsToSingleToolParam_();
 
