@@ -216,6 +216,9 @@ OpenMS Library:
   - FIX: The mzML writer escapes the name of a non-standard data array and the fraction identifier.
     An & or < in either - they are taken verbatim from the data - produced a file that no reader
     could parse, including the OpenMS one (#10148).
+  - FIX: MzMLSqliteHandler no longer accepts a sqMass PRECURSOR.ACTIVATION_METHOD value below -1.
+    Such a value cast straight to an out-of-range Precursor::ActivationMethod enum, which later
+    code (e.g. getActivationMethodsAsString()) used to index a static name table out of bounds.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
