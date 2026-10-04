@@ -169,8 +169,10 @@ runs:
         # not enough to hold a whole build -- the cache evicted itself while it
         # was still being filled, so it could never warm up.  Kept platform
         # specific because the total GitHub Actions cache budget is 10 GB per
-        # repository and it has to cover five build jobs plus the ~1.6 GB
-        # Windows contrib cache.
+        # repository and it has to cover the ccache of the five build jobs plus
+        # the Thermo asset caches of the wheel workflow.  The vcpkg binary
+        # caches do not count against it: they live on the rsync archive
+        # (.github/actions/dependencies).
         maxsize: ${{ runner.os == 'Windows' && '2G' || '1G' }}
       run: |
         mkdir -p "$GITHUB_WORKSPACE/.ccache"
@@ -226,8 +228,7 @@ runs:
         # Also sets LSMinimumSystemVersion of the GUI apps (src/openms_gui/add_mac_bundle.cmake)
         # and the installer's minimum macOS (cmake/package_mac_productbuild.cmake).
         MACOSX_DEPLOYMENT_TARGET: "${{ inputs.macosx_deployment_target }}"
-        #-DOPENMS_CONTRIB_LIBS and -DPYOPENMS are dropped since pyOpenMS is not
-        # built in this workflow.
+        # -DPYOPENMS is not passed since pyOpenMS is not built in this workflow.
 
       run: |
         set -ex

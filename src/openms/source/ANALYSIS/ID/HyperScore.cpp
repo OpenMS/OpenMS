@@ -12,12 +12,12 @@
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <cmath>
 
 using std::vector;
 
 namespace OpenMS
 {
-#include <cmath>   // for std::lgamma
 
   inline double HyperScore::logfactorial_(int x, int base)
   {
@@ -156,7 +156,7 @@ namespace OpenMS
       MatchedIterator<PeakSpectrum, DaTrait, true> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
       for (; it != it.end(); ++it)
       {
-        abs_error += abs((*it).getMZ() - it.ref().getMZ());
+        abs_error += std::abs((*it).getMZ() - it.ref().getMZ());
         dot_product += (*it).getIntensity() * it.ref().getIntensity();
         const std::string& name = (*ion_names)[it.refIdx()];
         const char c = name[0];

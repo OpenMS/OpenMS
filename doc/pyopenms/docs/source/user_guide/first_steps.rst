@@ -97,7 +97,7 @@ and :py:class:`~.MetaInfoInterface`. pyOpenMS exposes their methods (for example
 ``getIdentifier`` and ``getMetaValue``) directly on :py:class:`~.ExperimentalSettings`, so
 they are part of its list of methods. For a more complete documentation of the underlying
 wrapped methods, please consult the official OpenMS documentation, in this case
-the `MSExperiment documentation <https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/classOpenMS_1_1MSExperiment.html>`_.
+the `MSExperiment documentation <https://archive.openms.de/openms/Documentation/release/latest/html/classOpenMS_1_1MSExperiment.html>`_.
 
 
 First Look at Data

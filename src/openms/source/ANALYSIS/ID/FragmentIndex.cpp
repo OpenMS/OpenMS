@@ -39,8 +39,10 @@
 #include <cmath>
 #include <functional>
 #include <mutex>
+#include <set>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <boost/sort/sort.hpp>
 
 using namespace std;
@@ -518,6 +520,11 @@ namespace OpenMS
     mod_tables_initialized_ = false;
   }
 
+  bool FragmentIndex::isProteinNTerminal_(const std::string& protein, Size start) const
+  {
+    return start == 0 || (clip_nterm_methionine_ && start == 1 && ! protein.empty() && protein[0] == 'M');
+  }
+
   AASequence FragmentIndex::reconstructModifiedSequence(
     const Peptide& peptide,
     const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const
@@ -558,7 +565,7 @@ namespace OpenMS
     {
       const char* seq_ptr = protein_seq.c_str() + peptide.sequence_.first;
       size_t seq_len = peptide.sequence_.second;
-      bool is_prot_nterm = (peptide.sequence_.first == 0);
+      bool is_prot_nterm = isProteinNTerminal_(protein_seq, peptide.sequence_.first);
       bool is_prot_cterm = (peptide.sequence_.first + seq_len == protein_seq.size());
       ModSlot slots[MAX_MOD_SLOTS];
       size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
@@ -683,7 +690,7 @@ namespace OpenMS
     if (subset_bitmask != 0)
     {
       const char* seq_ptr = protein_seq.c_str() + realized_start;
-      const bool is_prot_nterm = (realized_start == 0);
+      const bool is_prot_nterm = isProteinNTerminal_(protein_seq, realized_start);
       const bool is_prot_cterm = (realized_start + realized_length == protein_seq.size());
       ModSlot slots[MAX_MOD_SLOTS];
       size_t n_slots = buildModSlots_(seq_ptr, realized_length, slots, is_prot_nterm, is_prot_cterm);
@@ -968,6 +975,24 @@ namespace OpenMS
         digested_peptides.clear();
         const FASTAFile::FASTAEntry& protein = fasta_entries[protein_idx];
         digestor.digestUnmodified(protein.sequence, digested_peptides, peptide_min_length_, peptide_max_length_);
+        if (clip_nterm_methionine_ && protein.sequence.size() > 1 && protein.sequence[0] == 'M'
+            && enzyme_specificity_ != EnzymaticDigestion::SPEC_NONE)
+        {
+          // Digest the mature sequence separately so length and missed-cleavage limits
+          // apply AFTER loss of the initial Met. Keep only its N-terminal spans:
+          // internal peptides already exist in the ordinary digest.
+          vector<pair<size_t, size_t>> clipped_peptides;
+          digestor.digestUnmodified(protein.sequence.substr(1), clipped_peptides, peptide_min_length_, peptide_max_length_);
+          std::set<size_t> existing_lengths;
+          for (const auto& span : digested_peptides)
+          {
+            if (span.first == 1) { existing_lengths.insert(span.second); }
+          }
+          for (const auto& span : clipped_peptides)
+          {
+            if (span.first == 0 && existing_lengths.insert(span.second).second) { digested_peptides.emplace_back(1, span.second); }
+          }
+        }
 
         for (const pair<size_t, size_t>& digested_peptide : digested_peptides)
         {
@@ -998,7 +1023,7 @@ namespace OpenMS
           if (has_variable_mods)
           {
             // Bitmask-based variable modification enumeration
-            bool is_prot_nterm = (digested_peptide.first == 0);
+            bool is_prot_nterm = isProteinNTerminal_(protein.sequence, digested_peptide.first);
             bool is_prot_cterm = (digested_peptide.first + seq_len == protein.sequence.size());
             ModSlot slots[MAX_MOD_SLOTS];
             size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
@@ -1126,7 +1151,11 @@ namespace OpenMS
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
-      protein_lengths_.clear();
+      // A rebuild replaces the previous database. generatePeptides() and the fragment
+      // merge below append, so stale peptides/fragments would otherwise be kept and their
+      // coordinates interpreted against the new FASTA. Also leaves isBuild() false if
+      // this build throws.
+      clear();
       protein_lengths_.reserve(fasta_entries.size());
       for (const auto& e : fasta_entries)
       {
@@ -1148,6 +1177,53 @@ namespace OpenMS
 
       /// generate all Peptides (also initializes residue mass table and mod tables)
       generatePeptides(fasta_entries);
+
+      // Protein occurrences are not distinct peptide hypotheses. Collapse exact
+      // peptidoforms before fragment emission and the per-spectrum candidate cap.
+      // Keep one source coordinate for reconstruction; ProSE maps retained hits
+      // against the complete FASTA later, including shared target/decoy sequences.
+      // SNES entries are mother peptides with different anchors, not scored forms.
+      if (param_.getValue("peptide:deduplicate").toBool() && ! is_snes_mode_)
+      {
+        // Keep compact fingerprints rather than one allocated string per database
+        // peptide. Hashes only identify groups to check: equality is always checked
+        // on the full peptidoform, so collisions cannot merge different candidates.
+        std::vector<std::pair<size_t, Size>> fingerprints(fi_peptides_.size());
+#pragma omp parallel for default(none) shared(fingerprints, fasta_entries)
+        for (SignedSize i = 0; i < static_cast<SignedSize>(fi_peptides_.size()); ++i)
+        {
+          fingerprints[i] = {std::hash<std::string> {}(reconstructModifiedSequence(fi_peptides_[i], fasta_entries).toString()), static_cast<Size>(i)};
+        }
+        // Original index breaks hash ties so the first representative is stable.
+        std::sort(fingerprints.begin(), fingerprints.end());
+        std::vector<uint8_t> duplicate(fi_peptides_.size(), 0);
+        for (Size begin = 0; begin < fingerprints.size();)
+        {
+          Size end = begin + 1;
+          while (end < fingerprints.size() && fingerprints[end].first == fingerprints[begin].first)
+          {
+            ++end;
+          }
+          if (end - begin > 1)
+          {
+            std::unordered_set<std::string> seen;
+            for (Size i = begin; i < end; ++i)
+            {
+              const Size index = fingerprints[i].second;
+              duplicate[index] = ! seen.insert(reconstructModifiedSequence(fi_peptides_[index], fasta_entries).toString()).second;
+            }
+          }
+          begin = end;
+        }
+        Size retained = 0;
+        for (Size i = 0; i < fi_peptides_.size(); ++i)
+        {
+          if (! duplicate[i]) { fi_peptides_[retained++] = fi_peptides_[i]; }
+        }
+        const Size removed = fi_peptides_.size() - retained;
+        fi_peptides_.erase(fi_peptides_.begin() + retained, fi_peptides_.end());
+        OPENMS_LOG_INFO << "Collapsed " << removed << " repeated peptidoform occurrences." << std::endl;
+      }
 
       const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
 
@@ -1284,7 +1360,7 @@ namespace OpenMS
           // 31, so masking is zero-cost.
           const uint32_t slot_bits = pep.mod_bitmask_ & SNES_SLOT_MASK;
           const string& prot_seq = fasta_entries[pep.protein_idx].sequence;
-          bool is_prot_nterm = (pep.sequence_.first == 0);
+          bool is_prot_nterm = isProteinNTerminal_(prot_seq, pep.sequence_.first);
           bool is_prot_cterm = (pep.sequence_.first + seq_len == prot_seq.size());
           ModSlot slots[MAX_MOD_SLOTS];
           size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
@@ -2042,7 +2118,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           if (isSingleCMother(mother.mod_bitmask_) != expect_single_c) continue;
 
           // SNES v1.1: anchor-specific filter for PROTEIN_N/C_TERM mod walks.
-          if (require_anchor == SnesAnchor::PROT_NTERM && mother.sequence_.first != 0) continue;
+          if (require_anchor == SnesAnchor::PROT_NTERM && !isProteinNTerminal_(fasta_entries[mother.protein_idx].sequence, mother.sequence_.first))
+          {
+            continue;
+          }
           if (require_anchor == SnesAnchor::PROT_CTERM)
           {
             const uint32_t prot_len = protein_lengths_[mother.protein_idx];
@@ -2182,7 +2261,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         }
 
         // Extra walks for PROTEIN_N_TERM-only Σ values (Single-N mothers at
-        // protein position 0 only). Empty when no PROTEIN_N_TERM variable mods
+        // protein position 0, or 1 after enabled Met clipping). Empty when no PROTEIN_N_TERM variable mods
         // are configured.
         for (double sigma : prot_nterm_extra)
         {
@@ -2204,7 +2283,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
             {
               const UInt32 id = static_cast<UInt32>(std::distance(fi_peptides_.begin(), it));
               if (emitted[id]) continue;
-              if (fi_peptides_[id].sequence_.first != 0) continue; // PROT_NTERM anchor
+              if (!isProteinNTerminal_(fasta_entries[fi_peptides_[id].protein_idx].sequence, fi_peptides_[id].sequence_.first))
+              {
+                continue; // PROT_NTERM anchor
+              }
               if (isSingleCMother(fi_peptides_[id].mod_bitmask_)) continue; // Single-N only
               if (score_table[id] < min_matched_peaks_) continue;
               emit_mark(id);
@@ -2297,7 +2379,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
             : mother.sequence_.first;
         const size_t sub_len = static_cast<size_t>(realized_len);
         const char* seq_ptr = protein_seq.c_str() + sub_start;
-        const bool is_prot_nterm = (sub_start == 0);
+        const bool is_prot_nterm = isProteinNTerminal_(protein_seq, sub_start);
         const bool is_prot_cterm = (sub_start + sub_len == protein_seq.size());
 
         ModSlot slots[MAX_MOD_SLOTS];
@@ -2540,6 +2622,16 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
 
     defaults_.setValue("peptide:missed_cleavages", 1, "Missed cleavages for digestion");
+    defaults_.setValue(
+      "peptide:clip_nterm_methionine", "false",
+      "Also consider loss of the initial M of a protein. Length and missed-cleavage limits apply to the clipped peptide, "
+      "which remains eligible for protein N-terminal variable modifications. Non-specific searches already include these sequences.");
+    defaults_.setValidStrings("peptide:clip_nterm_methionine", {"true", "false"});
+    defaults_.setValue("peptide:deduplicate", "false",
+                       "Index each exact modified peptide once, retaining one representative protein coordinate. "
+                       "Callers must recover complete protein mappings separately. Does not apply to SNES mother indices.",
+                       {"advanced"});
+    defaults_.setValidStrings("peptide:deduplicate", {"true", "false"});
     defaults_.setValue("peptide:enzyme_specificity", "full",
       "Enzyme cleavage specificity required for both peptide termini.\n"
       "  'full' : both termini must be enzyme-specific (canonical, e.g. tryptic).\n"
@@ -2632,6 +2724,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     add_zp1_ions_ = param_.getValue("ions:add_zp1_ions").toBool();
     electron_ions_ = param_.getValue("ions:electron_ions").toBool();
     digestion_enzyme_ = param_.getValue("enzyme").toString();
+    clip_nterm_methionine_ = param_.getValue("peptide:clip_nterm_methionine").toBool();
     enzyme_specificity_ = EnzymaticDigestion::getSpecificityByName(
       param_.getValue("peptide:enzyme_specificity").toString());
     missed_cleavages_ = param_.getValue("peptide:missed_cleavages");

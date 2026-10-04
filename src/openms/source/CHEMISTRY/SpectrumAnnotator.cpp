@@ -6,6 +6,7 @@
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
+#include "../DATASTRUCTURES/RegularExpressionInternal.h"
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -16,10 +17,11 @@ using namespace std;
 
 namespace OpenMS
 {
-  const boost::regex SpectrumAnnotator::nt_regex_("[a,b,c][[:digit:]]+[+]*");
-  const boost::regex SpectrumAnnotator::ct_regex_("[x,y,z][[:digit:]]+[+]*");
-  const boost::regex SpectrumAnnotator::noloss_regex_("[a,b,c,x,y,z][[:digit:]]+[+]*");
-  const boost::regex SpectrumAnnotator::seriesposition_regex_("[a,b,c,x,y,z]([[:digit:]]+)[+,-]*[[:word:]]*[+]*");
+  using Internal::RegularExpressionAccess;
+  const RegularExpression SpectrumAnnotator::nt_regex_("[a,b,c][[:digit:]]+[+]*");
+  const RegularExpression SpectrumAnnotator::ct_regex_("[x,y,z][[:digit:]]+[+]*");
+  const RegularExpression SpectrumAnnotator::noloss_regex_("[a,b,c,x,y,z][[:digit:]]+[+]*");
+  const RegularExpression SpectrumAnnotator::seriesposition_regex_("[a,b,c,x,y,z]([[:digit:]]+)[+,-]*[[:word:]]*[+]*");
 
   SpectrumAnnotator::SpectrumAnnotator() :
     DefaultParamHandler("SpectrumAnnotator")
@@ -182,11 +184,11 @@ namespace OpenMS
 
         if (terminal_series_match_ratio_)
         {
-          if (boost::regex_match(ion_name, nt_regex_))
+          if (boost::regex_match(ion_name, RegularExpressionAccess::get(nt_regex_)))
           {
             nint += spec[i].getIntensity();
           }
-          else if (boost::regex_match(ion_name, ct_regex_))
+          else if (boost::regex_match(ion_name, RegularExpressionAccess::get(ct_regex_)))
           {
             cint += spec[i].getIntensity();
           }
@@ -196,7 +198,7 @@ namespace OpenMS
         {
           const std::string& ion_type = StringUtils::prefix(ion_name, 1);
           boost::cmatch what;
-          if (boost::regex_match(ion_name.c_str(), what, seriesposition_regex_) &&
+          if (boost::regex_match(ion_name.c_str(), what, RegularExpressionAccess::get(seriesposition_regex_)) &&
                   ListUtils::contains(allowed_types, ion_type))
           {
             // what[0] contains the whole string

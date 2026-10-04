@@ -215,12 +215,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="75833648"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="457.304931640625"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1999.47229003906"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + c NSI Full ms [450.00-2000.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="7004.3373" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + c NSI Full ms [450.00-2000.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="450" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -254,12 +254,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="43694.578125"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="258.315979003906"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1994.45739746094"/>
-				<userParam name="filter string" type="xsd:string" value="ITMS + c NSI d w Full ms2 924.18@cid35.00 [240.00-2000.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="2"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="7004.73190000002" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="ITMS + c NSI d w Full ms2 924.18@cid35.00 [240.00-2000.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="2"/>
 						<userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:double" value="923.846069335938"/>
 						<scanWindowList count="1">
 							<scanWindow>
@@ -314,12 +314,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="98554.5"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="320.802276611328"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1996.94152832031"/>
-				<userParam name="filter string" type="xsd:string" value="ITMS + c NSI d w Full ms2 1123.26@cid35.00 [295.00-2000.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="3"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="7005.65089999998" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="ITMS + c NSI d w Full ms2 1123.26@cid35.00 [295.00-2000.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="3"/>
 						<userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:double" value="1122.59436035156"/>
 						<scanWindowList count="1">
 							<scanWindow>
@@ -374,12 +374,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="53710.4609375"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="195.070358276367"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1976.21594238281"/>
-				<userParam name="filter string" type="xsd:string" value="ITMS + c NSI d w Full ms2 693.39@cid35.00 [180.00-2000.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="4"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="7006.54720000002" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="ITMS + c NSI d w Full ms2 693.39@cid35.00 [180.00-2000.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="4"/>
 						<userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:double" value="693.135986328125"/>
 						<scanWindowList count="1">
 							<scanWindow>
@@ -449,14 +449,14 @@
 <indexList count="2">
 	<index name="spectrum">
 		<offset idRef="controllerType=0 controllerNumber=1 scan=7490">15517</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=7491">44315</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=7492">63763</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=7493">83302</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=7491">44347</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=7492">63827</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=7493">83398</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="TIC">103930</offset>
+		<offset idRef="TIC">104058</offset>
 	</index>
 </indexList>
-<indexListOffset>104947</indexListOffset>
+<indexListOffset>105075</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

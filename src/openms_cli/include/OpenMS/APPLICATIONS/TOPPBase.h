@@ -772,7 +772,7 @@ protected:
       Checks if String/Format restrictions are met (or throws InvalidParameter() otherwise).
       
       For InputFile(s), it checks if the file is readable/findable. 
-      If 'is_executable' is specified as a tag, the filename is searched on PATH and upon success, the full absolute path is returned.
+      If 'is_executable' is specified as a tag, the filename is searched with findExecutable_() (on PATH) and upon success, the full absolute path is returned.
       
       For OutputFile(s), it checks if the file is writeable.
 
@@ -782,6 +782,17 @@ protected:
 
     */
     void fileParamValidityCheck_(std::string& param_value, const std::string& param_name, const ParameterInformation& p) const;
+
+    /**
+      @brief Searches for the executable an input file parameter tagged 'is_executable' names
+
+      This implementation searches the PATH (File::findExecutable()). TOPPExternalToolBase also
+      searches the third-party tools that ship with OpenMS.
+
+      @param[in,out] executable The parameter value; replaced by the full path of the executable if found
+      @return true if the executable was found
+    */
+    virtual bool findExecutable_(std::string& executable) const;
 
     /**
       @brief Checks if the parameters of the provided ini file are applicable to this tool

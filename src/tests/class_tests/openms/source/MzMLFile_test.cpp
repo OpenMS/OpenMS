@@ -1069,6 +1069,114 @@ START_SECTION((template <typename MapType> void store(const std::string& filenam
 }
 END_SECTION
 
+START_SECTION([EXTRA] load and store zstd compressed binary data arrays)
+{
+  MzMLFile file;
+
+  // externally generated file (Python numpy + zstandard) using all zstd compression variants
+  PeakMap exp;
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_zstd.mzML"), exp);
+  TEST_EQUAL(exp.size(), 2)
+  ABORT_IF(exp.size() != 2)
+  TEST_EQUAL(exp[0].size(), 5)
+  ABORT_IF(exp[0].size() != 5)
+  const std::vector<double> mz = {100.5, 200.25, 300.125, 400.0, 500.0625}; // byte-shuffled zstd
+  const std::vector<double> intensity = {10, 20, 10, 30, 20}; // dictionary-encoded zstd
+  for (Size i = 0; i < mz.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(exp[0][i].getMZ(), mz[i])
+    TEST_REAL_SIMILAR(exp[0][i].getIntensity(), intensity[i])
+  }
+  TEST_EQUAL(exp[0].getFloatDataArrays().size(), 1)
+  ABORT_IF(exp[0].getFloatDataArrays().size() != 1)
+  TEST_EQUAL(exp[0].getFloatDataArrays()[0].getName(), "float values")
+  TEST_EQUAL(exp[0].getFloatDataArrays()[0].size(), 5)
+  ABORT_IF(exp[0].getFloatDataArrays()[0].size() != 5)
+  TEST_REAL_SIMILAR(exp[0].getFloatDataArrays()[0][0], 0.5)
+  TEST_REAL_SIMILAR(exp[0].getFloatDataArrays()[0][4], 4.5)
+  TEST_EQUAL(exp[0].getIntegerDataArrays().size(), 2)
+  ABORT_IF(exp[0].getIntegerDataArrays().size() != 2)
+  TEST_EQUAL(exp[0].getIntegerDataArrays()[0].getName(), "int32 values")
+  const std::vector<Int> int32_values = {7, -1, 7, 7, 300};
+  const auto& int32_array = exp[0].getIntegerDataArrays()[0];
+  TEST_EQUAL(std::vector<Int>(int32_array.begin(), int32_array.end()) == int32_values, true)
+  TEST_EQUAL(exp[0].getIntegerDataArrays()[1].getName(), "int64 values")
+  TEST_EQUAL(exp[0].getIntegerDataArrays()[1].size(), 5)
+  ABORT_IF(exp[0].getIntegerDataArrays()[1].size() != 5)
+  TEST_EQUAL(exp[0].getIntegerDataArrays()[1][2], 3)
+  TEST_EQUAL(exp[0].getStringDataArrays().size(), 1)
+  ABORT_IF(exp[0].getStringDataArrays().size() != 1)
+  TEST_EQUAL(exp[0].getStringDataArrays()[0].size(), 3)
+  ABORT_IF(exp[0].getStringDataArrays()[0].size() != 3)
+  TEST_EQUAL(exp[0].getStringDataArrays()[0][0], "alpha")
+  TEST_EQUAL(exp[0].getStringDataArrays()[0][2], "gamma")
+  TEST_EQUAL(exp[1].size(), 0) // empty arrays
+  TEST_EQUAL(exp.getChromatograms().size(), 1)
+  ABORT_IF(exp.getChromatograms().size() != 1)
+  TEST_EQUAL(exp.getChromatograms()[0].size(), 3)
+  ABORT_IF(exp.getChromatograms()[0].size() != 3)
+  TEST_REAL_SIMILAR(exp.getChromatograms()[0][1].getRT(), 2.0)
+  TEST_REAL_SIMILAR(exp.getChromatograms()[0][1].getIntensity(), 200.0)
+
+  // lossless round-trip (32/64 bit floats, 32/64 bit integers, null terminated strings)
+  PeakMap exp_original;
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"), exp_original);
+  file.getOptions().setZstdCompression(true);
+  std::string encoded;
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003781")) // numeric arrays
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003780")) // string arrays
+  TEST_FALSE(StringUtils::hasSubstring(encoded, "MS:1000574"))
+  TEST_FALSE(StringUtils::hasSubstring(encoded, "MS:1000576"))
+  PeakMap exp_zstd;
+  file.loadBuffer(encoded, exp_zstd);
+  TEST_EQUAL(exp_zstd == exp_original, true)
+
+  // zstd takes precedence over zlib
+  file.getOptions().setCompression(true);
+  std::string encoded_both;
+  file.storeBuffer(encoded_both, exp_original);
+  TEST_EQUAL(encoded_both, encoded)
+  file.getOptions().setCompression(false);
+
+  // numpress followed by zstd yields the same values as numpress followed by zlib
+  MSNumpressCoder::NumpressConfig np_mz, np_int;
+  np_mz.setCompression("linear");
+  np_mz.estimate_fixed_point = true;
+  np_int.setCompression("slof");
+  np_int.estimate_fixed_point = true;
+  file.getOptions().setNumpressConfigurationMassTime(np_mz);
+  file.getOptions().setNumpressConfigurationIntensity(np_int);
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003783"))
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003785"))
+  PeakMap exp_np_zstd;
+  file.loadBuffer(encoded, exp_np_zstd);
+
+  file.getOptions().setZstdCompression(false);
+  file.getOptions().setCompression(true);
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1002746"))
+  PeakMap exp_np_zlib;
+  file.loadBuffer(encoded, exp_np_zlib);
+  TEST_EQUAL(exp_np_zstd.size(), exp_np_zlib.size())
+  TEST_EQUAL(exp_np_zstd == exp_np_zlib, true)
+
+  // the same for numpress pic followed by zstd
+  np_int.setCompression("pic");
+  file.getOptions().setNumpressConfigurationIntensity(np_int);
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1002747"))
+  file.loadBuffer(encoded, exp_np_zlib);
+  file.getOptions().setZstdCompression(true);
+  file.storeBuffer(encoded, exp_original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "MS:1003784"))
+  file.loadBuffer(encoded, exp_np_zstd);
+  TEST_EQUAL(exp_np_zstd.size(), exp_np_zlib.size())
+  TEST_EQUAL(exp_np_zstd == exp_np_zlib, true)
+}
+END_SECTION
+
 START_SECTION([EXTRA] store and load gzip and bzip2 compressed files - round-trip)
 {
   // The file format is inferred from the extension before the compression
@@ -1279,16 +1387,41 @@ START_SECTION(([EXTRA] chromatograms are stored with a precursor or product only
 }
 END_SECTION
 
-START_SECTION(([EXTRA] the mass resolving power is stored in the scan))
+START_SECTION(([EXTRA] scan attributes are stored in the scan, also those kept under their accession))
 {
-  // The reader keeps MS:1000800 with the spectrum, but mzML allows it only in a scan. It used to be written as a
-  // userParam of the spectrum, which other readers do not find.
+  // The reader keeps some scan attributes with the spectrum, as MSSpectrum has no member for them, but mzML allows them
+  // only in a scan. Other scan attributes it keeps with the scan, under their accession. Both used to be written as
+  // userParams, which other readers do not find.
   PeakMap exp;
-  MSSpectrum with_scan;
+  MSSpectrum with_scan; // all values as the mzML reader stores them
   with_scan.setNativeID("scan=1");
   with_scan.setRT(1.0);
-  with_scan.setMetaValue("mass resolving power", "60000"); // as the mzML reader stores it
+  DataValue dwell(0.25);
+  dwell.setUnit(10); // UO:0000010 second
+  dwell.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+  with_scan.setMetaValue("dwell time", dwell);
+  with_scan.setMetaValue("mass resolution", "4.3");
+  DataValue rate(17.5);
+  rate.setUnit(1000807); // MS:1000807 Th/s
+  rate.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+  with_scan.setMetaValue("scan rate", rate);
+  with_scan.setMetaValue("filter string", "FTMS + p NSI Full ms [350.0000-1400.0000]");
+  with_scan.setMetaValue("preset scan configuration", "1");
+  with_scan.setMetaValue("mass resolving power", "60000");
+  DataValue offset(-4.5);
+  offset.setUnit(1000040); // MS:1000040 m/z
+  offset.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+  with_scan.setMetaValue("analyzer scan offset", offset);
+  DataValue delay(0.5);
+  delay.setUnit(10); // UO:0000010 second
+  delay.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+  with_scan.setMetaValue("interchannel delay", delay);
+  with_scan.setMetaValue("elution time (seconds)", 55.5); // without its unit
   with_scan.getAcquisitionInfo().push_back(Acquisition());
+  DataValue injection(12.5);
+  injection.setUnit(28); // UO:0000028 millisecond
+  injection.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+  with_scan.getAcquisitionInfo().back().setMetaValue("MS:1000927", injection); // ion injection time
   exp.addSpectrum(with_scan);
   MSSpectrum without_scan; // written with a scan of its own
   without_scan.setNativeID("scan=2");
@@ -1325,13 +1458,37 @@ START_SECTION(([EXTRA] the mass resolving power is stored in the scan))
     for (Size pos = text.find(pattern); pos != std::string::npos; pos = text.find(pattern, pos + 1)) ++n;
     return n;
   };
-  const std::string term = "accession=\"MS:1000800\" name=\"mass resolving power\" value=\"";
-  TEST_FALSE(StringUtils::hasSubstring(out, "userParam name=\"mass resolving power\""))
+  const std::vector<std::string> names = {"dwell time", "mass resolution", "scan rate", "elution time", "filter string",
+                                          "analyzer scan offset", "preset scan configuration", "mass resolving power",
+                                          "interchannel delay", "ion injection time"};
+  for (const std::string& name : names)
+  {
+    TEST_FALSE(StringUtils::hasSubstring(out, "<userParam name=\"" + name))
+  }
+  TEST_FALSE(StringUtils::hasSubstring(out, "<userParam name=\"MS:1000927\""))
   for (const char* id : {"scan=1", "scan=2", "scan=3", "scan=4"})
   {
-    TEST_FALSE(StringUtils::hasSubstring(spectrumXML(id).first, "mass resolving power"))
+    for (const std::string& name : names)
+    {
+      TEST_FALSE(StringUtils::hasSubstring(spectrumXML(id).first, name))
+    }
   }
-  TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=1").second, term + "60000\""))
+  const std::vector<std::string> scan_terms = {
+    "accession=\"MS:1000502\" name=\"dwell time\" value=\"0.25\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"/>",
+    "accession=\"MS:1000011\" name=\"mass resolution\" value=\"4.3\"/>",
+    "accession=\"MS:1000015\" name=\"scan rate\" value=\"17.5\" unitAccession=\"MS:1000807\" unitName=\"Th/s\" unitCvRef=\"MS\"/>",
+    "accession=\"MS:1000512\" name=\"filter string\" value=\"FTMS + p NSI Full ms [350.0000-1400.0000]\"/>",
+    "accession=\"MS:1000616\" name=\"preset scan configuration\" value=\"1\"/>",
+    "accession=\"MS:1000800\" name=\"mass resolving power\" value=\"60000\"/>",
+    "accession=\"MS:1000803\" name=\"analyzer scan offset\" value=\"-4.5\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\"/>",
+    "accession=\"MS:1000880\" name=\"interchannel delay\" value=\"0.5\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"/>",
+    "accession=\"MS:1000826\" name=\"elution time\" value=\"55.5\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"/>",
+    "accession=\"MS:1000927\" name=\"ion injection time\" value=\"12.5\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\"/>"};
+  for (const std::string& scan_term : scan_terms)
+  {
+    TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=1").second, scan_term))
+  }
+  const std::string term = "accession=\"MS:1000800\" name=\"mass resolving power\" value=\"";
   TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=2").second, term + "30000\""))
   TEST_EQUAL(count(spectrumXML("scan=3").second, "mass resolving power"), 1)
   TEST_TRUE(StringUtils::hasSubstring(spectrumXML("scan=3").second, term + "17500\""))
@@ -1344,10 +1501,21 @@ START_SECTION(([EXTRA] the mass resolving power is stored in the scan))
   TEST_EQUAL(errors.size(), 0)
   TEST_EQUAL(warnings.size(), 0)
 
-  // read back as the value of the spectrum, as from mzML written by other software
+  // read back as before, as from mzML written by other software
   PeakMap reloaded;
   file.load(tmp_filename, reloaded);
   ABORT_IF(reloaded.size() != 4)
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("dwell time"), 0.25)
+  TEST_EQUAL(reloaded[0].getMetaValue("mass resolution").toString(), "4.3")
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("scan rate"), 17.5)
+  TEST_EQUAL(reloaded[0].getMetaValue("filter string").toString(), "FTMS + p NSI Full ms [350.0000-1400.0000]")
+  TEST_EQUAL(reloaded[0].getMetaValue("preset scan configuration").toString(), "1")
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("analyzer scan offset"), -4.5)
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("interchannel delay"), 0.5)
+  TEST_REAL_SIMILAR((double)reloaded[0].getMetaValue("elution time (seconds)"), 55.5)
+  ABORT_IF(reloaded[0].getAcquisitionInfo().size() != 1)
+  TEST_REAL_SIMILAR((double)reloaded[0].getAcquisitionInfo()[0].getMetaValue("MS:1000927"), 12.5)
+  TEST_EQUAL(reloaded[0].getAcquisitionInfo()[0].getMetaValue("MS:1000927").getUnit(), 28)
   TEST_EQUAL(reloaded[0].getMetaValue("mass resolving power").toString(), "60000")
   TEST_EQUAL(reloaded[1].getMetaValue("mass resolving power").toString(), "30000")
   TEST_EQUAL(reloaded[2].getMetaValue("mass resolving power").toString(), "17500")

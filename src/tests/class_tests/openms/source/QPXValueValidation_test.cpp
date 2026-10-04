@@ -256,6 +256,36 @@ START_SECTION(([EXTRA] psm view: the primary key must be unique))
   const auto result = validator.validate(duplicate);
   TEST_FALSE(result.valid)
   TEST_TRUE(result.toString().find("primary key") != std::string::npos)
+
+  // The row index is into the Parquet table, so on its own it does not say which spectrum and
+  // which peptide to look at: the message names the values, and what removes the duplicate
+  // upstream (#9895).
+  const std::string message = result.toString();
+  TEST_TRUE(message.find("PEPTIDER") != std::string::npos)
+  TEST_TRUE(message.find("charge 2") != std::string::npos)
+  TEST_TRUE(message.find("scan [1000]") != std::string::npos)
+  TEST_TRUE(message.find("IDConflictResolver") != std::string::npos)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] psm view: a table that collides wholesale names the key, not the identifications))
+{
+  // Vendor native IDs that carry no scan number (Bruker timsTOF, Sciex - see #9893) give every
+  // spectrum of a run the same 'scan', so every repeated peptidoform collapses onto one key. That
+  // is a different problem from two identifications of one spectrum, and the message has to say so
+  // instead of pointing at IDConflictResolver (#9895).
+  const std::string ref = "controllerType=0 controllerNumber=1 scan=0";
+  auto collapsed = makePSMTableFrom({{"PEPTIDER", 2, ref}, {"PEPTIDER", 2, ref}, {"PEPTIDER", 2, ref},
+                                     {"DFPIANGER", 2, ref}, {"DFPIANGER", 2, ref}});
+  TEST_EQUAL(collapsed->num_rows(), 5)
+
+  QPXValueValidation validator(QPXValueValidation::View::PSM);
+  const auto result = validator.validate(collapsed);
+  TEST_FALSE(result.valid)
+  const std::string message = result.toString();
+  TEST_TRUE(message.find("most rows") != std::string::npos)
+  TEST_TRUE(message.find("do not identify a spectrum") != std::string::npos)
+  TEST_TRUE(message.find("IDConflictResolver") == std::string::npos)
 }
 END_SECTION
 

@@ -21,7 +21,6 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 
-#include <boost/numeric/conversion/cast.hpp>
 #include <functional>
 
 namespace OpenMS

@@ -236,7 +236,7 @@ namespace OpenMS
                                         __LINE__,
                                         OPENMS_PRETTY_FUNCTION,
                                         std::string("The TOPP tool registry at '" + ToolHandler::getToolRegistryPath() +
-                                                    "' is empty or unreadable, so no tool can be looked up. This installation is incomplete: it needs the *.tsv files of the 'share' component."),
+                                                    "' is empty or unreadable, so no tool can be looked up. This installation is incomplete: it needs the *.tsv files of the 'share' component (or, for OpenMS installed in layers, of the component that installs the tools)."),
                                         tool_name_);
         }
         // Three ways out, because a tool reaching this point can be any of three things: part
@@ -1652,6 +1652,11 @@ namespace OpenMS
     }
   }
 
+  bool TOPPBase::findExecutable_(std::string& executable) const
+  {
+    return File::findExecutable(executable);
+  }
+
   void TOPPBase::fileParamValidityCheck_(std::string& param_value, const std::string& param_name, const ParameterInformation& p) const
   {
     // check if files are readable/writable
@@ -1659,7 +1664,7 @@ namespace OpenMS
     {
       if (ListUtils::contains(p.tags, "is_executable"))
       { // will update to absolute path
-        if (File::findExecutable(param_value))
+        if (findExecutable_(param_value))
         {
           writeDebug_("Input file resolved to '" + param_value + "'", 2);
         }

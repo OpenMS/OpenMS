@@ -120,6 +120,24 @@ START_SECTION([EXTRA] experimental peak listed twice)
 }
 END_SECTION
 
+START_SECTION([EXTRA] computeWithDetail: mean fragment error in Da)
+{
+  // Every matched ion is 0.004 Da off. The mean error must be 0.004, not 0: an unqualified abs()
+  // resolved to the integer overload where no header exported the double one (aarch64), which
+  // truncated each error and made ProSE's fragment calibration keep the configured tolerance.
+  PeakSpectrum theo_spectrum, exp_spectrum;
+  tsg.getSpectrum(theo_spectrum, AASequence::fromString("PEPTIDER"), 1, 1);
+  for (const Peak1D& p : theo_spectrum)
+  {
+    exp_spectrum.emplace_back(p.getMZ() + 0.004, p.getIntensity());
+  }
+  HyperScore::PSMDetail d;
+  HyperScore::computeWithDetail(0.01, false, exp_spectrum, theo_spectrum, d);
+  TEST_EQUAL(d.matched_prefix_ions + d.matched_suffix_ions, theo_spectrum.size())
+  TEST_REAL_SIMILAR(d.mean_error, 0.004)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

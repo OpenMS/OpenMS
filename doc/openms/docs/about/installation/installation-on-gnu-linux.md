@@ -27,8 +27,8 @@ Some thirdparty software used via adapter tools in OpenMS might also require an 
 
 For Debian-based Linux users, it is suggested to use the Debian package attached to each
 [OpenMS release](https://github.com/OpenMS/OpenMS/releases/latest), built for x86_64 and for aarch64 (ARM64).
-It is tested on Ubuntu 24.04 and needs glibc 2.38 or newer, so it does not install on Ubuntu 22.04 or Debian 12. On
-older distributions, use conda (see above) or a container (see below).
+It is built on Ubuntu 24.04 and installs there, on Ubuntu 26.04 and on Debian 13. It needs glibc 2.38 or newer, so it
+does not install on Ubuntu 22.04 or Debian 12. On older distributions, use conda (see above) or a container (see below).
 
 Install it with `apt`, which resolves its dependencies, such as Qt 6, from your distribution's repositories:
 
@@ -49,9 +49,9 @@ If you encounter errors, troubleshoot using the following steps.
 
 3. Adapters are not finding thirdparty applications
 
-   Executables for thirdparty applications can be found in:
-   `/usr/share/OpenMS/THIRDPARTY`
-   Add the folders in your `PATH` for a convenient use of the adapters.
+   The package installs the bundled thirdparty applications in `/usr/share/OpenMS/THIRDPARTY`. Since OpenMS 3.6,
+   an adapter looks for its application on the `PATH` first and then in these folders. To use another version, put
+   it on the `PATH` or give its location with the adapter's `-..._executable` option.
 
 ```{include} run-in-container.md
 :start-after: "% start-after"
@@ -84,4 +84,4 @@ export DOTNET_ROOT=/usr/share/dotnet
 
 ## Build OpenMS from source
 
-To build OpenMS from source, follow the build instructions for [Linux](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_linux.html).
+To build OpenMS from source, follow the build instructions for [Linux](https://archive.openms.de/openms/Documentation/release/latest/html/install_linux.html).

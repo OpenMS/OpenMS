@@ -4,8 +4,6 @@
 <dict>
 	<key>LSMinimumSystemVersion</key>
 	<string>${OPENMS_BUNDLE_MINIMUM_SYSTEM_VERSION}</string>
-	<key>BundleIsRelocatable</key>
-	<false/>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

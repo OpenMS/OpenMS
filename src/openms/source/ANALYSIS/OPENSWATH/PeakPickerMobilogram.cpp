@@ -509,6 +509,7 @@ namespace OpenMS
         // TODO make list, not boolean
         use_gauss_ = (bool)param_.getValue("use_gauss").toBool();
         write_sn_log_messages_ = (bool)param_.getValue("write_sn_log_messages").toBool();
+        remove_overlapping_ = (bool)param_.getValue("remove_overlapping_peaks").toBool();
         method_ = param_.getValue("method").toString();
 
         Param sg_filter_parameters = sgolay_.getParameters();

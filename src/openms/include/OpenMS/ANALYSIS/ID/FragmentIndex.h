@@ -143,6 +143,8 @@ namespace OpenMS
      *
      * Provides read-only access to all peptides currently held by the index,
      * typically populated during build().
+     * With peptide:deduplicate=true, non-SNES entries retain one representative
+     * protein coordinate per exact peptidoform, not every protein occurrence.
      *
      * @return const reference to the internal std::vector of Peptide.
      *
@@ -186,6 +188,7 @@ namespace OpenMS
     /** @brief Given a set of Fasta files, builds the Fragment Index datastructure (FID). First all fragments are sorted
      * by their own mass. Next they are placed in buckets. The min-fragment mass is stored for each bucket, whereupon
      * the fragments are sorted within the buckets by their originating precursor mass.
+     * Replaces any previously built index; a failed build leaves isBuild() false.
      *
      * @param[in] fasta_entries The FASTA entries used to build the index.
      */
@@ -755,6 +758,10 @@ private:
     std::string digestion_enzyme_;
     EnzymaticDigestion::Specificity enzyme_specificity_{EnzymaticDigestion::SPEC_FULL}; ///< 'full' (default), 'semi' (semi-tryptic), or 'none' (e.g. immunopeptidomics)
 
+    /// Whether a position is the original or, with Met clipping enabled, mature protein N-terminus.
+    bool isProteinNTerminal_(const std::string& protein, Size start) const;
+
+    bool clip_nterm_methionine_ {false}; ///< Include initial Met loss (enabled by ProSE).
     size_t missed_cleavages_; ///< number of missed cleavages
     float peptide_min_mass_;
     float peptide_max_mass_;
