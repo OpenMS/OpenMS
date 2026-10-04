@@ -17,6 +17,10 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - FIX: Predicted-library persistence builds with ONNX, uses the OpenDIA working directory,
+    and preserves protein accessions/order and prediction values across disk batches. Indexed
+    mapping lookups and direct source-ID reload avoid quadratic append work and full-library
+    provenance maps. Duplicate precursor charges are rejected before inference (#10402).
   - FIX: File::getOpenMSDataPath() and the documentation path no longer keep NUL padding from
     the compiled-in install paths. Relocated packages (e.g. conda, which rewrites the install
     prefix inside the binary) could not read share/OpenMS data files, and OPENMS_DATA_PATH was
