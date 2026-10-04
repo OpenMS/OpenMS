@@ -259,6 +259,7 @@ set(format_executables_list
   OMSSACSVFile_test
   OMSSAXMLFile_test
   OSWFile_test
+  OSWParquetFile_test
   OSWFileInference_test
   PTMXMLFile_test
   ParamCTDFile_test
