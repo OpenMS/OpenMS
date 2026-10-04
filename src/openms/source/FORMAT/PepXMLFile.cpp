@@ -1994,7 +1994,7 @@ namespace OpenMS
 
       if (ProteaseDB::getInstance()->hasEnzyme(StringUtils::toLower(enzyme_)))
       {
-        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(StringUtils::toLower(enzyme_)));
       }
       else
       {
