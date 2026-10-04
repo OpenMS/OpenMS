@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
-
+#include <OpenMS/config.h>
+#include <atomic>
 #include <functional>
 #include <map>
 #include <string>
@@ -38,7 +38,16 @@ namespace OpenMS
       SUCCESS,  ///< everything went smoothly (exit-code = 0)
       NONZERO_EXIT, /// finished, but returned with an exit-code other than 0
       CRASH, ///< ran, but crashed (segfault etc)
-      FAILED_TO_START ///< executable not found or not enough access rights for user
+      FAILED_TO_START, ///< executable not found or not enough access rights for user
+      CANCELLED        ///< execution was cancelled before launch or while running
+    };
+
+    /// Structured process outcome. The exit code is -1 if no process was started.
+    struct Result
+    {
+      RETURNSTATE state = RETURNSTATE::FAILED_TO_START;
+      int exit_code = -1;
+      std::string error_message;
     };
 
     /// Open mode for the process.
@@ -87,6 +96,38 @@ namespace OpenMS
                     IO_MODE io_mode = IO_MODE::READ_WRITE,
                     const std::map<std::string, std::string>& env = {},
                     std::function<void()> idle_callback = nullptr);
+
+    /**
+      @brief Runs a program with a structured result and optional cancellation.
+
+      This call blocks. Output and idle callbacks execute on the calling thread.
+      Use a separate ExternalProcess instance per concurrent call and do not change
+      callbacks during execution. Cancellation terminates the owned process group
+      (including descendants that remain in that group) and waits for the direct child.
+      Failed or crashed direct children also cause their remaining group members
+      to be terminated. After the direct child exits, output pipes are drained for up to one second;
+      descendants retaining inherited output handles cannot block completion indefinitely.
+      Windows uses Unicode process APIs; strings are interpreted as UTF-8, with a
+      native-code-page fallback for legacy callers passing non-UTF-8 strings.
+
+      @param[in] exe Executable path or name to resolve through PATH
+      @param[in] args Arguments passed individually, without shell interpretation
+      @param[in] working_dir Working directory; empty uses the current directory
+      @param[in] verbose Report the command and result through the callbacks
+      @param[in] io_mode Whether to capture stdout and stderr
+      @param[in] env Additional environment variables, overriding inherited values
+      @param[in] idle_callback Optional callback invoked while waiting
+      @param[in] cancel Optional cancellation flag, which must outlive this call
+      @return State, numeric child exit code, and diagnostic message
+    */
+    Result runWithResult(const std::string& exe,
+                         const std::vector<std::string>& args,
+                         const std::string& working_dir,
+                         bool verbose,
+                         IO_MODE io_mode = IO_MODE::READ_WRITE,
+                         const std::map<std::string, std::string>& env = {},
+                         std::function<void()> idle_callback = nullptr,
+                         const std::atomic_bool* cancel = nullptr);
 
   private:
     std::function<void(const std::string&)> callbackStdOut_;

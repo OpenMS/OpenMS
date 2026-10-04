@@ -50,6 +50,8 @@ namespace OpenMS
     void setOutputFolderName(const QString& name);
     /// return the output folder where results are written
     const QString& getOutputFolderName() const;
+    /// Set output progress reported by the shared executor.
+    void setOutputProgress(Size written, Size total);
 
   signals:
     /// Emitted when an output file was written

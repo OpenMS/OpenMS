@@ -273,7 +273,7 @@ cmake --build build-gui && cmake --install build-gui
 
 Each application layer installs the registry of the tools it builds into
 <code>share/OpenMS/TOOLS</code>: <code>OpenMS-TOPP.tsv</code> (install component
-<code>Applications</code>) and <code>OpenMS-GUI.tsv</code> (for ExecutePipeline and ImageCreator,
+<code>Applications</code>) and <code>OpenMS-GUI.tsv</code> (for ImageCreator,
 install component <code>GUIApplications</code>). A tool finds the registries in the shared data
 directory of the library (see <code>OPENMS_INSTALL_DATA_PATH</code>) or, failing that, in
 <code>../share/OpenMS/TOOLS</code> next to its executable; <code>OPENMS_TOOL_REGISTRY_PATH</code>

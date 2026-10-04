@@ -6,21 +6,17 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPASVertex.h>
-
-#include <OpenMS/VISUAL/TOPPASEdge.h>
-#include <OpenMS/VISUAL/TOPPASScene.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
-
+#include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASVertex.h>
 #include <QSvgRenderer>
 #include <QtCore/QFileInfo>
-
 #include <iostream>
 #include <map>
 
@@ -128,23 +124,23 @@ namespace OpenMS
     setZValue(42);
   }
 
-  TOPPASVertex::TOPPASVertex(const TOPPASVertex& rhs) :
-    QObject(),
-    QGraphicsItem(),
-    // do not copy pointers to edges
-    in_edges_(/*rhs.in_edges_*/),
-    out_edges_(/*rhs.out_edges_*/),
-    edge_being_created_(rhs.edge_being_created_),
-    pen_color_(rhs.pen_color_),
-    brush_color_(rhs.brush_color_),
-    dfs_color_(rhs.dfs_color_),
-    topo_sort_marked_(rhs.topo_sort_marked_),
-    topo_nr_(rhs.topo_nr_),
-    round_total_(rhs.round_total_),
-    round_counter_(rhs.round_counter_),
-    finished_(rhs.finished_),
-    reachable_(rhs.reachable_),
-    allow_output_recycling_(rhs.allow_output_recycling_)
+  TOPPASVertex::TOPPASVertex(const TOPPASVertex& rhs):
+      QObject(),
+      QGraphicsItem(),
+      // do not copy pointers to edges
+      in_edges_(/*rhs.in_edges_*/),
+      out_edges_(/*rhs.out_edges_*/),
+      edge_being_created_(rhs.edge_being_created_),
+      pen_color_(rhs.pen_color_),
+      brush_color_(rhs.brush_color_),
+      dfs_color_(DFS_WHITE),
+      topo_sort_marked_(false),
+      topo_nr_(rhs.topo_nr_),
+      round_total_(-1),
+      round_counter_(0),
+      finished_(false),
+      reachable_(true),
+      allow_output_recycling_(rhs.allow_output_recycling_)
   {
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     setZValue(42);
@@ -237,103 +233,6 @@ namespace OpenMS
     return true;
   }
 
-  bool TOPPASVertex::buildRoundPackages(RoundPackages& pkg, std::string& error_msg) // check all incoming edges for this node and construct the package
-  {
-    if (inEdgesBegin() == inEdgesEnd())
-    {
-      error_msg = "buildRoundPackages() called on vertex with no input edges!\n";
-      OPENMS_LOG_ERROR << error_msg;
-      return false;
-    }
-
-    // -- determine number of rounds from incoming edges
-    int round_common = -1; // number of rounds common to all
-    int no_recycle_count = 0; // number of edges that do NOT do recycling (there needs to be at least one)
-    for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it) // all incoming edges should have the same number of rounds (or should be set to 'recycle') !
-    {
-      TOPPASVertex* tv = (*it)->getSourceVertex();
-      if (tv->allow_output_recycling_)
-      {
-        continue;
-      }
-
-      ++no_recycle_count;
-      if (round_common == -1)
-      {
-        round_common = tv->round_total_; // first non-recycler sets the pace
-      }
-
-      if (round_common != tv->round_total_)
-      {
-        error_msg =std::string("Number of rounds for incoming edges of node #") + this->getTopoNr() + " are not equal. No idea on how to combine them! Did you want to recycle its input?\n";
-        std::cerr << error_msg;
-        return false;
-      }
-    }
-
-    // -- we demand at least one node with no recycling to allow to determine number of rounds
-    if (no_recycle_count == 0)
-    {
-      error_msg =std::string("Number of rounds of node #") + this->getTopoNr() + " cannot be determined since all input nodes have recycling enabled. Disable for at least one input!\n";
-      std::cerr << error_msg;
-      return false;
-    }
-
-    // -- check if rounds from recyling nodes are an integer part of total rounds, i.e. total_rounds = X * node_rounds, X from N+
-    for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it) // look at all all recycling edges
-    {
-      TOPPASVertex * tv = (*it)->getSourceVertex();
-      if (!tv->allow_output_recycling_)
-      {
-        continue;
-      }
-      if (round_common % tv->round_total_ != 0) // modulo should be 0, if not ...
-      {
-        error_msg =StringUtils::toStr(tv->round_total_) + " rounds for incoming edges of node #" + this->getTopoNr() + " are recycled to meet a total of " + round_common + " rounds. But modulo is not 0. No idea on how to combine them! Adapt the number of input files?\n";
-        std::cerr << error_msg;
-        return false;
-      }
-    }
-
-    if (round_common <= 0)
-    {
-      error_msg =  "Number of input rounds is 0 or negative. This cannot be! Aborting!\n";
-      std::cerr << error_msg;
-      return false;
-    }
-    pkg.clear();
-    pkg.resize(round_common);
-
-    // all incoming edges should have the same number of rounds!
-    for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-    {
-      TOPPASVertex* tv_upstream = (*it)->getSourceVertex();
-
-      // fill files for each round
-      int param_index_src_out = (*it)->getSourceOutParam();
-      int param_index_tgt_in = (*it)->getTargetInParam();
-      for (int round = 0; round < round_common; ++round)
-      {
-        VertexRoundPackage rpg;
-        rpg.edge = *it;
-        int upstream_round = round;
-        if (tv_upstream->allow_output_recycling_ && upstream_round >= tv_upstream->round_total_)
-        {
-          upstream_round %= tv_upstream->round_total_;
-        }
-        rpg.filenames.set(tv_upstream->getFileNames(param_index_src_out, upstream_round));
-
-        // hack for merger vertices, as they have multiple incoming edges with -1 as index
-        while (pkg[round].count(param_index_tgt_in))
-        {
-          --param_index_tgt_in; // find free slot, i.e. -2, -3 ....
-        }
-
-        pkg[round][param_index_tgt_in] = rpg; // index by incoming edge number
-      }
-    }
-    return true;
-  }
 
   QStringList TOPPASVertex::getFileNames(int param_index, int round) const
   {
@@ -367,30 +266,19 @@ namespace OpenMS
     return fl;
   }
 
-  TOPPASVertex::SUBSTREESTATUS TOPPASVertex::getSubtreeStatus() const
-  {
-    if (!this->isFinished())
-    {
-      return TV_UNFINISHED;
-    }
-    if (!this->isUpstreamFinished())
-    {
-      return TV_UNFINISHED_INBRANCH; // only looks for immediate predecessors!
-    }
-    for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-    {
-      SUBSTREESTATUS status = (*it)->getTargetVertex()->getSubtreeStatus();
-      if (status != TV_ALLFINISHED)
-      {
-        return status;
-      }
-    }
-    return TV_ALLFINISHED;
-  }
 
   const TOPPASVertex::RoundPackages& TOPPASVertex::getOutputFiles() const
   {
     return output_files_;
+  }
+
+  void TOPPASVertex::setExecutionResult(const RoundPackages& outputs, Size completed, Size total, bool finished)
+  {
+    output_files_ = outputs;
+    round_counter_ = static_cast<int>(completed);
+    round_total_ = static_cast<int>(total);
+    finished_ = finished;
+    update(boundingRect());
   }
 
   void TOPPASVertex::mousePressEvent(QGraphicsSceneMouseEvent* e)
@@ -565,6 +453,7 @@ namespace OpenMS
   {
     __DEBUG_BEGIN_METHOD__
 
+    if (! qobject_cast<TOPPASInputFileListVertex*>(this)) { output_files_.clear(); }
     round_total_ = -1;
     round_counter_ = 0;
 
@@ -605,24 +494,6 @@ namespace OpenMS
     invertRecylingMode();
   }
 
-  bool TOPPASVertex::allInputsReady() const
-  {
-    __DEBUG_BEGIN_METHOD__
-
-    for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-    {
-      TOPPASVertex* tv = qobject_cast<TOPPASVertex*>((*it)->getSourceVertex());
-      if (tv && !tv->isFinished())
-      {
-        // some (reachable) tool that we depend on has not finished execution yet --> do not start yet
-        __DEBUG_END_METHOD__
-        return false;
-      }
-    }
-
-    __DEBUG_END_METHOD__
-    return true;
-  }
 
   void TOPPASVertex::markUnreachable()
   {

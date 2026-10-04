@@ -278,6 +278,12 @@ namespace OpenMS
   TOPPASBase::~TOPPASBase()
   {
     savePreferences();
+    // Join scene workers before removing their retained temporary results.
+    for (auto* scene : findChildren<TOPPASScene*>())
+    {
+      scene->abortPipeline();
+    }
+    if (clipboard_scene_) { clipboard_scene_->abortPipeline(); }
     // delete temporary files (TODO: make this a user dialog and ask - for later resume)
     // safety measure: only delete if subdirectory of Temp path; we do not want to delete / or c:
     if (StringUtils::hasPrefix(StringUtils::substituted(std::string(tmp_path_), "\\", "/"), StringUtils::substituted(SystemSettings::getTempDirectory(), "\\", "/") + "/"))

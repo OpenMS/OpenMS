@@ -12,20 +12,20 @@
 /////////////////////////////////////////////////////////////
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/SystemSettings.h>
-#include <OpenMS/SYSTEM/TempFiles.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
+#include <OpenMS/SYSTEM/PathUtils.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <atomic>
 #include <ctime>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <thread>
 
 using namespace OpenMS;
@@ -102,6 +102,40 @@ START_SECTION((static bool readable(const std::string &file)))
   TEST_EQUAL(File::readable(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), true)
   TEST_EQUAL(File::readable(""), false)
 END_SECTION
+
+#ifdef OPENMS_WINDOWSPLATFORM
+START_SECTION([EXTRA] UTF - 8 paths use wide access checks and leave no writable probes)
+{
+  TempDir workspace;
+  // Include characters outside common Western code pages, both in the parent
+  // directory and basename. ASCII controls exercise the same public API.
+  const std::string unicode = "\xE4\xB8\xAD\xE6\x96\x87 \xC3\xA4";
+  const auto root = to_path(workspace.getPath()) / to_path(unicode);
+  std::filesystem::create_directories(root);
+  for (const std::string& basename : {std::string("ascii"), unicode})
+  {
+    const auto file = root / to_path(basename + ".txt");
+    const auto utf8 = file.generic_u8string();
+    const std::string filename(utf8.begin(), utf8.end());
+    TEST_FALSE(File::readable(filename))
+    const auto count_before = std::distance(std::filesystem::directory_iterator(root), std::filesystem::directory_iterator());
+    TEST_TRUE(File::writable(filename))
+    TEST_FALSE(std::filesystem::exists(file))
+    // The exclusive sibling probe must also be removed through a wide API.
+    TEST_EQUAL(std::distance(std::filesystem::directory_iterator(root), std::filesystem::directory_iterator()), count_before)
+    {
+      std::ofstream stream(file, std::ios::binary);
+      stream << "preserve contents";
+    }
+    TEST_TRUE(File::readable(filename))
+    TEST_TRUE(File::writable(filename))
+    std::ifstream stream(file, std::ios::binary);
+    const std::string contents {std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()};
+    TEST_EQUAL(contents, "preserve contents")
+  }
+}
+END_SECTION
+#endif
 
 START_SECTION((static bool writable(const std::string &file)))
   TEST_EQUAL(File::writable("/this/file/cannot/be/written.txt"), false)
