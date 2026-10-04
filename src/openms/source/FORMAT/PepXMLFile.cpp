@@ -1990,7 +1990,8 @@ namespace OpenMS
     else if (element == "specificity" && params_.digestion_enzyme.getName() == "unknown_enzyme") // parent: "sample_enzyme"
     { // special case: search parameter that occurs *before* "search_summary"!
       std::string cut_before = attributeAsString_(attributes, "cut");
-      std::string no_cut_after = attributeAsString_(attributes, "no_cut");
+      std::string no_cut_after;
+      optionalAttributeAsString_(no_cut_after, attributes, "no_cut");
       std::string sense = attributeAsString_(attributes, "sense");
       params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(
           "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense,
