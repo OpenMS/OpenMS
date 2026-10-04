@@ -189,6 +189,15 @@ namespace OpenMS
      * FASTA entries whose identifier starts with @p decoy_parameters.decoy_tag, or carries a
      * decoy affix detected by DecoyHelper::findDecoyString, are skipped.
      *
+     * Prediction batches are spilled to disk; global UIS/decoy generation still materializes the library.
+     * @param[in] input_fasta FASTA file to digest and predict.
+     * @param[in] output_pqp Prepared target/decoy library.
+     * @param[in] assay_parameters Assay filtering and UIS settings.
+     * @param[in] decoy_parameters Decoy generation settings.
+     * @param[in] prediction_parameters Digestion and prediction settings (charges must be unique).
+     * @param[in] scratch_directory Directory for temporary prediction batches; empty uses the system
+     * temporary directory. Scratch files are removed on success and failure.
+     *
      * The method remains available in non-ONNX builds but throws Exception::Precondition when called.
      */
     LibraryStats preparePredictedLibraryToPQP(
@@ -196,7 +205,8 @@ namespace OpenMS
       const std::string& output_pqp,
       const AssayGeneratorParameters& assay_parameters,
       const DecoyGeneratorParameters& decoy_parameters,
-      const PredictedLibraryParameters& prediction_parameters) const;
+      const PredictedLibraryParameters& prediction_parameters,
+      const std::string& scratch_directory = "") const;
 
   private:
     ProgressLogger::LogType log_type_ = ProgressLogger::CMD;

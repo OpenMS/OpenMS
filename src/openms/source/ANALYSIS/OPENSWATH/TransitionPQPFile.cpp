@@ -1735,7 +1735,6 @@ namespace OpenMS
     const OpenSwath::LightTargetedExperiment& targeted_exp,
     const std::optional<OpenSwathLibraryIDNormalizer::SourceIDMapping>& source_ids)
   {
-    OpenSwathLibraryIDNormalizer::validateCanonicalIDs(targeted_exp);
     const auto* source_id_mapping = source_ids ? &*source_ids : nullptr;
 
     // Reuse the ordinary writer for the first bounded batch. Subsequent calls only
@@ -1746,6 +1745,7 @@ namespace OpenMS
       return;
     }
 
+    OpenSwathLibraryIDNormalizer::validateCanonicalIDs(targeted_exp);
     SqliteConnector conn(filename);
     sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
 
@@ -1760,6 +1760,12 @@ namespace OpenMS
     conn.executeStatement(
       "CREATE INDEX IF NOT EXISTS OPENMS_APPEND_GENE_NAME "
       "ON GENE(GENE_NAME);");
+    conn.executeStatement(
+      "CREATE INDEX IF NOT EXISTS OPENMS_APPEND_PEPTIDE_PROTEIN_MAPPING "
+      "ON PEPTIDE_PROTEIN_MAPPING(PEPTIDE_ID, PROTEIN_ID);");
+    conn.executeStatement(
+      "CREATE INDEX IF NOT EXISTS OPENMS_APPEND_PEPTIDE_GENE_MAPPING "
+      "ON PEPTIDE_GENE_MAPPING(PEPTIDE_ID, GENE_ID);");
 
     const auto next_id = [&](const std::string& table_name) -> sqlite3_int64
     {

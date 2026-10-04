@@ -5,12 +5,17 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryPreparation.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeptDeepLibraryPredictor.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
 
+#include <filesystem>
 #include <fstream>
+#include <map>
+#include <set>
 #include <string>
 
 using namespace OpenMS;
@@ -25,12 +30,12 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
   {
     std::ofstream fasta(fasta_file);
     fasta
-      << ">ProteinA\nPEPTIDEK\n"
+      << ">Protein;A\nPEPTIDEK\n"
       << ">ProteinB\npeptidek\n"
       << ">ProteinC\nPEPCIDEK\n"
       << ">MetProtein\nMTESTPEPK\n"
       << ">Ambiguous\nPEPXIDEK\n"
-      << ">DECOY_ProteinA\nQQQQQQQK\n"
+      << ">DECOY_Protein;A\nQQQQQQQK\n"
       << ">DECOY_ProteinB\nQQQQQQQK\n"
       << ">DECOY_ProteinC\nQQQCQQQK\n"
       << ">DECOY_MetProtein\nQQQWQQQK\n";
@@ -58,16 +63,16 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
   prediction.missed_cleavages = 2;
   prediction.min_peptide_length = 7;
   prediction.max_peptide_length = 30;
-  prediction.precursor_charges = {2};
+  prediction.precursor_charges = {3, 2};
   prediction.fixed_modifications = {"Carbamidomethyl (C)"};
-  prediction.variable_modifications = {};
-  prediction.max_variable_modifications = 0;
+  prediction.variable_modifications = {"Oxidation (M)"};
+  prediction.max_variable_modifications = 1;
   prediction.clip_nterm_methionine = true;
   prediction.prediction_batch_size = 1;
   prediction.inference_threads = 1;
   prediction.nce = 30.0;
   prediction.instrument_index = 0;
-  prediction.predict_ccs = false;
+  prediction.predict_ccs = true;
 
   OpenSwathLibraryPreparation::AssayGeneratorParameters assay;
   assay.min_transitions = 1;
@@ -81,8 +86,21 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
   decoy.method = "reverse";
   decoy.min_decoy_fraction = 0.0;
 
+  TempDir scratch_parent;
+  const std::string scratch_directory = scratch_parent.getPath() + "/prediction";
   const auto stats = prep.preparePredictedLibraryToPQP(
-    fasta_file, output_pqp, assay, decoy, prediction);
+    fasta_file, output_pqp, assay, decoy, prediction, scratch_directory);
+  TEST_TRUE(std::filesystem::is_directory(scratch_directory))
+  TEST_TRUE(std::filesystem::is_empty(scratch_directory))
+  TEST_EQUAL(stats.protein_count, 8)
+  {
+    // Inspect SQL values directly: the generic reader treats ';' as a separator.
+    SqliteConnector connection(output_pqp);
+    connection.executeStatement("CREATE TEMP TABLE exact_accessions AS SELECT * FROM PROTEIN "
+                                "WHERE PROTEIN_ACCESSION IN ('Protein;A', 'DECOY_Protein;A')");
+    TEST_EQUAL(connection.countTableRows("exact_accessions"), 2)
+    TEST_EQUAL(connection.countTableRows("PROTEIN"), 8)
+  }
 
   TEST_TRUE(File::exists(output_pqp))
   TEST_TRUE(stats.compound_count > 0)
@@ -123,6 +141,121 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
       protein.id.find("DECOY_DECOY_") != std::string::npos;
   }
   TEST_FALSE(saw_double_decoy_protein)
+
+  // Several charges and a variable modification exercise append boundaries.
+  // Compare by source ID: detectingTransitionsLight already orders transitions
+  // within each batch, so canonical numbering can differ between batch sizes.
+  auto single_batch_prediction = prediction;
+  single_batch_prediction.prediction_batch_size = 64;
+  std::string single_batch_pqp;
+  NEW_TMP_FILE(single_batch_pqp)
+  File::remove(single_batch_pqp);
+  const auto single_batch_stats = prep.preparePredictedLibraryToPQP(
+    fasta_file, single_batch_pqp, assay, decoy, single_batch_prediction);
+
+  TEST_EQUAL(single_batch_stats.protein_count, stats.protein_count)
+  TEST_EQUAL(single_batch_stats.compound_count, stats.compound_count)
+  TEST_EQUAL(single_batch_stats.transition_count, stats.transition_count)
+  TEST_EQUAL(single_batch_stats.decoy_transition_count, stats.decoy_transition_count)
+  TEST_EQUAL(single_batch_stats.identifying_transition_count, stats.identifying_transition_count)
+
+  const auto batched_precursor_sources =
+    reader.getPQPCurrentIDToTraMLIDMap(output_pqp.c_str(), "PRECURSOR");
+  const auto single_precursor_sources =
+    reader.getPQPCurrentIDToTraMLIDMap(single_batch_pqp.c_str(), "PRECURSOR");
+  std::set<std::string> batched_precursor_names, single_precursor_names;
+  for (const auto& [id, source] : batched_precursor_sources) batched_precursor_names.insert(source);
+  for (const auto& [id, source] : single_precursor_sources) single_precursor_names.insert(source);
+  TEST_TRUE(batched_precursor_names == single_precursor_names)
+
+  const auto batched_transition_sources =
+    reader.getPQPCurrentIDToTraMLIDMap(output_pqp.c_str(), "TRANSITION");
+  const auto single_transition_sources =
+    reader.getPQPCurrentIDToTraMLIDMap(single_batch_pqp.c_str(), "TRANSITION");
+  std::set<std::string> batched_transition_names, single_transition_names;
+  for (const auto& [id, source] : batched_transition_sources) batched_transition_names.insert(source);
+  for (const auto& [id, source] : single_transition_sources) single_transition_names.insert(source);
+  TEST_TRUE(batched_transition_names == single_transition_names)
+
+  OpenSwath::LightTargetedExperiment single_library;
+  reader.convertPQPToTargetedExperiment(single_batch_pqp.c_str(), single_library);
+  std::map<std::string, const OpenSwath::LightCompound*> single_compounds;
+  for (const auto& compound : single_library.compounds)
+  {
+    single_compounds.emplace(single_precursor_sources.at(compound.id), &compound);
+  }
+  std::vector<PeptDeepLibraryPrecursor> reference_precursors;
+  for (const auto& compound : library.compounds)
+  {
+    const auto& source = batched_precursor_sources.at(compound.id);
+    const auto& other = *single_compounds.at(source);
+    TEST_EQUAL(compound.sequence, other.sequence)
+    TEST_EQUAL(compound.charge, other.charge)
+    TEST_REAL_SIMILAR(compound.rt, other.rt)
+    TEST_REAL_SIMILAR(compound.drift_time, other.drift_time)
+    TEST_TRUE(compound.protein_refs == other.protein_refs)
+    if (!source.starts_with(decoy.decoy_tag))
+    {
+      PeptDeepLibraryPrecursor precursor;
+      precursor.id = source;
+      precursor.peptide = AASequence::fromString(compound.sequence);
+      precursor.charge = compound.charge;
+      precursor.protein_refs = compound.protein_refs;
+      precursor.nce = static_cast<float>(prediction.nce);
+      precursor.instrument_index = prediction.instrument_index;
+      reference_precursors.push_back(std::move(precursor));
+    }
+  }
+  std::map<std::string, const OpenSwath::LightTransition*> single_transitions;
+  for (const auto& transition : single_library.transitions)
+  {
+    single_transitions.emplace(single_transition_sources.at(transition.transition_name), &transition);
+  }
+  for (const auto& transition : library.transitions)
+  {
+    const auto& other = *single_transitions.at(batched_transition_sources.at(transition.transition_name));
+    TEST_REAL_SIMILAR(transition.library_intensity, other.library_intensity)
+    TEST_REAL_SIMILAR(transition.product_mz, other.product_mz)
+    TEST_REAL_SIMILAR(transition.precursor_mz, other.precursor_mz)
+    TEST_REAL_SIMILAR(transition.precursor_im, other.precursor_im)
+    TEST_EQUAL(transition.getAnnotation(), other.getAnnotation())
+    TEST_EQUAL(transition.getDecoy(), other.getDecoy())
+    TEST_EQUAL(transition.isDetectingTransition(), other.isDetectingTransition())
+    TEST_EQUAL(transition.isIdentifyingTransition(), other.isIdentifyingTransition())
+    TEST_EQUAL(transition.isQuantifyingTransition(), other.isQuantifyingTransition())
+  }
+
+  // Check persisted RT, mobility and intensities against direct inference, not
+  // just another run through the same spill reader.
+  PeptDeepLibraryPredictor::Config reference_config;
+  reference_config.batch_size = prediction.prediction_batch_size;
+  reference_config.intra_op_threads = 1;
+  reference_config.predict_ccs = true;
+  const auto reference = PeptDeepLibraryPredictor(reference_config).predict(reference_precursors);
+  for (const auto& compound : reference.compounds)
+  {
+    const auto& persisted = *single_compounds.at(compound.id);
+    TEST_REAL_SIMILAR(compound.rt, persisted.rt)
+    TEST_REAL_SIMILAR(compound.drift_time, persisted.drift_time)
+  }
+  Size checked_transitions = 0;
+  for (const auto& transition : reference.transitions)
+  {
+    const auto it = single_transitions.find(transition.transition_name);
+    if (it == single_transitions.end()) continue; // assay filtering keeps only the top fragments
+    TEST_REAL_SIMILAR(transition.library_intensity, it->second->library_intensity)
+    ++checked_transitions;
+  }
+  TEST_EQUAL(checked_transitions, stats.transition_count - stats.decoy_transition_count)
+
+  // Force a failure after prediction/reload and verify exception-safe scratch cleanup.
+  std::string missing_output_parent;
+  NEW_TMP_FILE(missing_output_parent)
+  File::remove(missing_output_parent);
+  TEST_EXCEPTION(Exception::SqlOperationFailed,
+    prep.preparePredictedLibraryToPQP(fasta_file, missing_output_parent + "/output.pqp",
+                                     assay, decoy, prediction, scratch_directory))
+  TEST_TRUE(std::filesystem::is_empty(scratch_directory))
 
   // Entries carrying the configured decoy tag are skipped even when they are
   // too rare for DecoyHelper to detect a database-wide decoy affix.
@@ -205,6 +338,15 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
   TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter,
     prep.preparePredictedLibraryToPQP(fasta_file, invalid_output_pqp, assay, decoy, bad_instrument),
     "PredictedLibraryParameters::instrument_index must be between 0 and 7.")
+  for (const Size batch_size : {Size{1}, Size{64}})
+  {
+    auto duplicate_charges = prediction;
+    duplicate_charges.precursor_charges = {2, 2};
+    duplicate_charges.prediction_batch_size = batch_size;
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter,
+      prep.preparePredictedLibraryToPQP(fasta_file, invalid_output_pqp, assay, decoy, duplicate_charges),
+      "PredictedLibraryParameters::precursor_charges must contain unique charges.")
+  }
   auto bad_enzyme = prediction;
   bad_enzyme.enzyme = "NoSuchProtease";
   TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter,
