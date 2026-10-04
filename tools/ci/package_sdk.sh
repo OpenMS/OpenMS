@@ -330,9 +330,6 @@ case "$found_dir" in
   *) echo >&2 "ERROR: the consumer found OpenMS at '$found_dir', not in the SDK"; exit 1 ;;
 esac
 
-<<<<<<< HEAD
-cmake --build "$(cmake_path "$consumer_build")" --config "$build_type"
-=======
 # macOS: the SDK bundles the OpenMP runtime libOpenMS loads, with its omp.h, and the
 # consumer has to use that one (OpenMSConfig.cmake points FindOpenMP at it): a second
 # libomp in the same process aborts with "OMP: Error #15". (grep reads all of otool's
@@ -352,8 +349,7 @@ if [[ "$(uname -s)" == Darwin ]] &&
   fi
 fi
 
-cmake --build "$(cmake_path "$consumer_build")" --config "${build_type:-Release}"
->>>>>>> origin/develop
+cmake --build "$(cmake_path "$consumer_build")" --config "$build_type"
 # as the README tells users to run their programs
 OPENMS_DATA_PATH="$(cmake_path "$sdk_prefix/$(cache_var INSTALL_SHARE_DIR)")"
 export OPENMS_DATA_PATH
