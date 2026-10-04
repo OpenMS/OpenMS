@@ -61,6 +61,9 @@ target_link_libraries(FuzzyDiff OpenMSTestFramework)
 
 # OpenDIA directly uses Apache Arrow APIs for its Parquet workflow.
 target_link_libraries(OpenDIA ${OPENMS_ARROW_TARGET})
+# ParquetFile.h is a private (non-installed) libOpenMS header, so it is not part of the library's
+# public include directories; OpenDIA is built in-tree and takes it from the source tree.
+target_include_directories(OpenDIA PRIVATE ${OPENMS_HOST_DIRECTORY}/src/openms/include)
 
 
 # collection target
