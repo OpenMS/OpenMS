@@ -17,6 +17,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - FIX: OpenDIA builds without private Arrow headers. OSWPQ result storage now uses
+    the public OSWParquetFile API, including staged archive commits (#10414).
   - FIX: Predicted-library persistence builds with ONNX, uses the OpenDIA working directory,
     and preserves protein accessions/order and prediction values across disk batches. Indexed
     mapping lookups and direct source-ID reload avoid quadratic append work and full-library
