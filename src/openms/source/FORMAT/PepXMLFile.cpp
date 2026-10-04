@@ -437,7 +437,11 @@ namespace OpenMS
     f << "\t<sample_enzyme name=\"";
     f << StringUtils::toLower(enzyme_name) << "\">" << "\n";
     std::string cut, no_cut;
-    if (!search_params.digestion_enzyme.getRegEx().empty())
+    // 'unspecific cleavage' cuts after every residue (RegEx "(?<=[A-Z])"); the regex parsing
+    // below would read that as a single-residue rule cutting only after alanine ('A', the first
+    // of the two unrelated letters in the character class), which is schema-valid but wrong.
+    const bool unspecific_cleavage = (enzyme_name == "unspecific cleavage");
+    if (!unspecific_cleavage && !search_params.digestion_enzyme.getRegEx().empty())
     {
       vector<std::string> sub_regex;
       StringUtils::split(search_params.digestion_enzyme.getRegEx(), ")", sub_regex);
@@ -452,7 +456,8 @@ namespace OpenMS
         no_cut = "P";
       }
     }
-    // an enzyme without cleavage rules (e.g. the default 'unknown_enzyme') has nothing to cut
+    // an enzyme without cleavage rules (e.g. the default 'unknown_enzyme', or 'unspecific
+    // cleavage', which has no single cleavage residue to express as 'cut') has nothing to cut
     // after; pepXML allows a 'sample_enzyme' without 'specificity', but not an empty 'cut'
     if (!cut.empty())
     {
