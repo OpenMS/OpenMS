@@ -38,6 +38,11 @@ OpenMS Library:
     when min_length exceeds max_length. Unsigned arithmetic wrapped around there, so unspecific
     cleavage asked reserve() for a huge capacity and could index far past the end of the sequence
     (#10179, fixes #9231).
+  - Lower peak memory when light OpenSWATH libraries are prepared and written to PQP (OpenDIA
+    predicted and transition-list libraries; OpenSwathAssayGenerator, OpenSwathDecoyGenerator and
+    TargetedFileConverter on TSV/PQP). Source-ID normalization moves the library instead of copying
+    it, the light PQP writer no longer copies every name or builds its mapping inserts as SQL text,
+    and decoy generation moves decoys into place. The written libraries are unchanged (#10410).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
