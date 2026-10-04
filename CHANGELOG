@@ -47,6 +47,9 @@ OpenMS Library:
     TargetedFileConverter on TSV/PQP). Source-ID normalization moves the library instead of copying
     it, the light PQP writer no longer copies every name or builds its mapping inserts as SQL text,
     and decoy generation moves decoys into place. The written libraries are unchanged (#10410).
+  - FIX: MzDataHandler now round-trips the ABSORPTION, EMC and TDF scan modes instead of silently
+    turning them into the wrong mode; a reader crash (back() on an empty spectrum vector) for an
+    unrecognized scan mode on the first MS level >=2 spectrum is also fixed.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its

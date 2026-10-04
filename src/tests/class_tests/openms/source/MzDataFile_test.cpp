@@ -15,6 +15,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <fstream>
+#include <sstream>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -663,6 +666,74 @@ START_SECTION((template <typename MapType> void store(const std::string &filenam
   e2[1].getDataProcessing()[0]->getSoftware().setMetaValue("comment",std::string("SoftwareComment"));
   e2[2].getDataProcessing()[0]->getSoftware().setMetaValue("comment",std::string("SoftwareComment"));
   TEST_TRUE(e1 == e2);
+}
+END_SECTION
+
+START_SECTION([EXTRA] round-trips ABSORPTION/EMC/TDF scan modes and does not crash on an unknown MS2 scan mode (CPP-171))
+{
+  // Regression test for CPP-171: the writer emits "PhotodiodeArrayDetector",
+  // "EnhancedMultiplyChargedScan" and "TimeDelayedFragmentationScan" for the
+  // ABSORPTION, EMC and TDF scan modes, but the reader did not recognize any of
+  // the three, so they round-tripped as MASSSPECTRUM (MS1) or MSNSPECTRUM (MS2+)
+  // with a warning instead of coming back unchanged.
+  PeakMap exp;
+  MSSpectrum s1;
+  s1.setMSLevel(1);
+  s1.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::ABSORPTION);
+  exp.addSpectrum(s1);
+  MSSpectrum s2;
+  s2.setMSLevel(1);
+  s2.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::EMC);
+  exp.addSpectrum(s2);
+  MSSpectrum s3;
+  s3.setMSLevel(1);
+  s3.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::TDF);
+  exp.addSpectrum(s3);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  MzDataFile file;
+  file.store(tmp_filename, exp);
+
+  PeakMap exp2;
+  file.load(tmp_filename, exp2);
+  TEST_EQUAL(exp2.size(), 3)
+  TEST_EQUAL(exp2[0].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::ABSORPTION)
+  TEST_EQUAL(exp2[1].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::EMC)
+  TEST_EQUAL(exp2[2].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::TDF)
+
+  // Before the fix, an unrecognized scan mode on the *first* spectrum added to
+  // the experiment called back() on the still-empty spectrum vector --
+  // undefined behaviour. The fallback must set the mode on the spectrum
+  // currently being parsed instead. MzDataFile_1.mzData's only MS level 2
+  // spectrum (ScanMode "MassScan") becomes the first (and only) spectrum kept
+  // when loading is filtered to MS level 2 -- replace its scan mode value with
+  // one cvParam_ does not recognize to hit the "exp_ still empty" case through
+  // a real, schema-valid file rather than a hand-rolled one.
+  std::ifstream orig_in(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"));
+  std::stringstream orig_buf;
+  orig_buf << orig_in.rdbuf();
+  std::string mzdata = orig_buf.str();
+  std::string from = "msLevel=\"2\" mzRangeStart=\"110\">\n\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>";
+  std::string to = "msLevel=\"2\" mzRangeStart=\"110\">\n\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"TotallyUnknownScanMode\"/>";
+  Size pos = mzdata.find(from);
+  TEST_NOT_EQUAL(pos, std::string::npos)
+  mzdata.replace(pos, from.size(), to);
+
+  std::string tmp_filename2;
+  NEW_TMP_FILE(tmp_filename2);
+  std::ofstream of(tmp_filename2.c_str());
+  of << mzdata;
+  of.close();
+
+  PeakMap exp3;
+  file.getOptions().clearMSLevels();
+  file.getOptions().addMSLevel(2);
+  file.load(tmp_filename2, exp3);
+  file.getOptions().clearMSLevels();
+  TEST_EQUAL(exp3.size(), 1)
+  TEST_EQUAL(exp3[0].getMSLevel(), 2)
+  TEST_EQUAL(exp3[0].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::MSNSPECTRUM)
 }
 END_SECTION
 

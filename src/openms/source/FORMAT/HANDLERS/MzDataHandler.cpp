@@ -1129,11 +1129,29 @@ namespace OpenMS::Internal
             spec_.getInstrumentSettings().setZoomScan(true);
             spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
           }
+          else if (value == "PhotodiodeArrayDetector")
+          {
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::ABSORPTION);
+          }
+          else if (value == "EnhancedMultiplyChargedScan")
+          {
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::EMC);
+          }
+          else if (value == "TimeDelayedFragmentationScan")
+          {
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::TDF);
+          }
           else
           {
             if (spec_.getMSLevel() >= 2)
             {
-              exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MSNSPECTRUM);
+              // spec_ is the spectrum currently being parsed -- it is only appended to
+              // exp_ at </spectrum>, so for the very first spectrum (or when every
+              // earlier spectrum was filtered out by the MS-level option) exp_'s
+              // spectrum list is still empty here, and back() on it is undefined
+              // behaviour (CPP-171). Set the mode on spec_ itself, as every other
+              // branch in this function does.
+              spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MSNSPECTRUM);
             }
             else
             {
