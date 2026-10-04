@@ -134,29 +134,51 @@ install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
 #install(RUNTIME_DEPENDENCY_SET TOPPAS_DEPS)
 #...
 
+########################################################### OpenMP runtime (macOS)
+## Apple's Clang ships no OpenMP runtime, so the build takes libomp from Homebrew
+## (tools/ci/deps-macos.sh; keg-only, found through OpenMP_ROOT). The runtime dependency
+## set above bundles libomp.dylib. Its omp.h goes next to the OpenMS headers, some of which
+## include it: OpenMSConfig.cmake points FindOpenMP of a consuming project at that header
+## and the bundled library, so that a program built against the package or the SDK loads
+## the bundled runtime only. Two OpenMP runtimes in one process abort ("OMP: Error #15").
+set(_openms_omp_libraries "")
+if(APPLE AND OPENMP_FOUND)
+  set(_openms_omp_libraries ${OpenMP_CXX_LIBRARIES})
+  foreach(_openms_omp_include_dir IN LISTS OpenMP_CXX_INCLUDE_DIRS)
+    if(EXISTS "${_openms_omp_include_dir}/omp.h")
+      install(FILES "${_openms_omp_include_dir}/omp.h"
+              DESTINATION ${INSTALL_INCLUDE_DIR}
+              COMPONENT thirdparty_headers)
+      break()
+    endif()
+  endforeach()
+endif()
+
 ########################################################### Third-party licenses
 ## The license texts of what only the packages bundle: Qt and, on macOS, the Homebrew
 ## formulae (cmake/third_party_licenses.cmake). Those of the vcpkg ports are installed for
 ## every installation (CMakeLists.txt). The DEB depends on the distribution's Qt (libQt6 is
 ## excluded above); the Windows and macOS packages bundle theirs.
 set(_openms_bundled_qt_version "")
-set(_openms_qt_formulae "")
-set(_openms_qt_homebrew_prefix "")
+## On macOS Qt and libomp come from Homebrew (tools/ci/deps-macos.sh): the formulae of Qt are
+## the kegs that hold its CMake packages, that of libomp the keg that holds the library.
+set(_openms_homebrew_paths ${_openms_omp_libraries})
 if(WITH_GUI AND Qt6Core_FOUND AND (WIN32 OR APPLE))
   set(_openms_bundled_qt_version "${Qt6Core_VERSION}")
   if(APPLE)
-    ## On macOS Qt comes from Homebrew (tools/ci/deps-macos.sh). Its formulae are the kegs
-    ## that hold its CMake packages.
-    set(_openms_qt_dirs "")
     foreach(_openms_qt_component IN ITEMS Core ${OpenMS_GUI_QT_COMPONENTS})
-      list(APPEND _openms_qt_dirs "${Qt6${_openms_qt_component}_DIR}")
+      list(APPEND _openms_homebrew_paths "${Qt6${_openms_qt_component}_DIR}")
     endforeach()
-    openms_homebrew_formulae_of(_openms_qt_formulae _openms_qt_homebrew_prefix ${_openms_qt_dirs})
   endif()
 endif()
+set(_openms_homebrew_formulae "")
+set(_openms_homebrew_prefix "")
+if(APPLE)
+  openms_homebrew_formulae_of(_openms_homebrew_formulae _openms_homebrew_prefix ${_openms_homebrew_paths})
+endif()
 openms_install_third_party_licenses(QT_VERSION "${_openms_bundled_qt_version}"
-                                    HOMEBREW_PREFIX "${_openms_qt_homebrew_prefix}"
-                                    HOMEBREW_FORMULAE ${_openms_qt_formulae})
+                                    HOMEBREW_PREFIX "${_openms_homebrew_prefix}"
+                                    HOMEBREW_FORMULAE ${_openms_homebrew_formulae})
 
 ########################################################### SEARCHENGINES
 set(THIRDPARTY_COMPONENT_GROUP)

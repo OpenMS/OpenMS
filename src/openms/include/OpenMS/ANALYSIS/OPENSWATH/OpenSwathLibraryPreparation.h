@@ -89,6 +89,27 @@ namespace OpenMS
       bool reuse_existing_modifications_db = false;
     };
 
+    struct OPENMS_DLLAPI PredictedLibraryParameters
+    {
+      std::string enzyme;
+      Size missed_cleavages{};
+      Size min_peptide_length{};
+      Size max_peptide_length{};
+      std::vector<Int> precursor_charges;
+      std::vector<std::string> fixed_modifications;
+      std::vector<std::string> variable_modifications;
+      Size max_variable_modifications{};
+      bool clip_nterm_methionine{};
+      Size prediction_batch_size{};
+      Int inference_threads{};
+      double nce{};
+      Int instrument_index{};
+      bool predict_ccs{};
+      std::string rt_model_path;
+      std::string ccs_model_path;
+      std::string ms2_model_path;
+    };
+
     struct OPENMS_DLLAPI DecoyGeneratorParameters
     {
       std::string method = "shuffle";
@@ -161,6 +182,31 @@ namespace OpenMS
                                               const DecoyGeneratorParameters& decoy_parameters,
                                               const Param& reader_parameters = Param(),
                                               const std::string& scratch_directory = "") const;
+
+    /**
+     * @brief Build a prepared target/decoy PQP directly from FASTA using native PeptDeep prediction.
+     *
+     * FASTA entries whose identifier starts with @p decoy_parameters.decoy_tag, or carries a
+     * decoy affix detected by DecoyHelper::findDecoyString, are skipped.
+     *
+     * Prediction batches are spilled to disk; global UIS/decoy generation still materializes the library.
+     * @param[in] input_fasta FASTA file to digest and predict.
+     * @param[in] output_pqp Prepared target/decoy library.
+     * @param[in] assay_parameters Assay filtering and UIS settings.
+     * @param[in] decoy_parameters Decoy generation settings.
+     * @param[in] prediction_parameters Digestion and prediction settings (charges must be unique).
+     * @param[in] scratch_directory Directory for temporary prediction batches; empty uses the system
+     * temporary directory. Scratch files are removed on success and failure.
+     *
+     * The method remains available in non-ONNX builds but throws Exception::Precondition when called.
+     */
+    LibraryStats preparePredictedLibraryToPQP(
+      const std::string& input_fasta,
+      const std::string& output_pqp,
+      const AssayGeneratorParameters& assay_parameters,
+      const DecoyGeneratorParameters& decoy_parameters,
+      const PredictedLibraryParameters& prediction_parameters,
+      const std::string& scratch_directory = "") const;
 
   private:
     ProgressLogger::LogType log_type_ = ProgressLogger::CMD;

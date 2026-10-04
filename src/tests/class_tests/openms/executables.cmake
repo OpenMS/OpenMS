@@ -259,6 +259,7 @@ set(format_executables_list
   OMSSACSVFile_test
   OMSSAXMLFile_test
   OSWFile_test
+  OSWParquetFile_test
   OSWFileInference_test
   PTMXMLFile_test
   ParamCTDFile_test
@@ -761,7 +762,9 @@ if(NOT DISABLE_OPENSWATH)
 endif(NOT DISABLE_OPENSWATH)
 
 if(WITH_ONNX AND NOT DISABLE_OPENSWATH)
-  list(APPEND swath_executables_list PeptDeepLibraryPredictor_test)
+  list(APPEND swath_executables_list
+    PeptDeepLibraryPredictor_test
+    OpenSwathPredictedLibraryPreparation_test)
 endif()
 
 if(NOT DISABLE_OPENSWATH)

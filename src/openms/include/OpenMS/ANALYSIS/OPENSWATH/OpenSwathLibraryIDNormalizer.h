@@ -73,7 +73,10 @@ namespace OpenMS
 
       Normalization rebuilds the LightTargetedExperiment rather than changing compound IDs in place,
       ensuring that its internal compound-reference lookup cache cannot retain source-ID keys after
-      canonicalization.
+      canonicalization. The rebuild moves the contents of @p exp instead of copying them, so the
+      library is never held twice. All validation happens before that: if an exception listed below
+      is thrown, @p exp is unchanged. If an allocation fails later, @p exp is left valid but
+      unspecified and must be discarded.
 
       This function is intended for source-oriented formats such as TSV and TraML. It must not
       be used to renumber libraries that already contain persistent canonical IDs.

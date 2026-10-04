@@ -63,8 +63,10 @@
             "name": "macos-arm64-base",
             "hidden": true,
             "inherits": "macos-base",
+            "description": "OpenMP_ROOT is where Homebrew on Apple silicon keeps its keg-only libomp (tools/ci/deps-macos.sh installs it). Apple's Clang ships no OpenMP runtime, so without it OpenMS falls back to -fopenmp-simd and runs single-threaded. Pass -DOpenMP_ROOT=$(brew --prefix libomp) for another Homebrew prefix.",
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "arm64-osx-dynamic-sysroot"
+                "VCPKG_TARGET_TRIPLET": "arm64-osx-dynamic-sysroot",
+                "OpenMP_ROOT": "/opt/homebrew/opt/libomp"
             }
         },
         {
@@ -102,6 +104,7 @@
             "hidden": true,
             "cacheVariables": {
                 "OPENMS_TEST_INSTALLED_CONSUMER": "ON",
+                "MT_REQUIRE_OPENMP": "ON",
                 "WITH_GUI": "ON",
                 "ENABLE_DOCS": "ON",
                 "WITH_THERMO_RAW":"ON",

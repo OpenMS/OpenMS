@@ -28,6 +28,11 @@ endif()
 ## The path is relative to the root pkgbuild packages, which holds the install prefix:
 ## Applications/OpenMS-<version>/TOPPView.app
 string(REGEX REPLACE "^/" "" _openms_bundle_dir "${CPACK_PACKAGING_INSTALL_PREFIX}")
+## Packages of other branches carry the branch name in the version (CMakeLists.txt), and a
+## branch name may contain characters that XML reserves; & first.
+string(REPLACE "&" "&amp;" _openms_bundle_dir "${_openms_bundle_dir}")
+string(REPLACE "<" "&lt;" _openms_bundle_dir "${_openms_bundle_dir}")
+string(REPLACE ">" "&gt;" _openms_bundle_dir "${_openms_bundle_dir}")
 
 set(_openms_plist_entries "")
 foreach(_openms_app_bundle IN LISTS _openms_app_bundles)
