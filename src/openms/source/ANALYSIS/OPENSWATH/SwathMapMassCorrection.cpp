@@ -6,6 +6,7 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -733,7 +734,7 @@ namespace OpenMS
 #endif
 
     // Replace the swath files with a transforming wrapper.
-    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+    for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
     {
       swath_maps[i].sptr = std::shared_ptr<OpenSwath::ISpectrumAccess>(
         new SpectrumAccessQuadMZTransforming(swath_maps[i].sptr,

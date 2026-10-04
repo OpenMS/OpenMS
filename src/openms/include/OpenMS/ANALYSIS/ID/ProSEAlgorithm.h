@@ -23,6 +23,7 @@
 #include <iosfwd>      // std::ostream (renderRunSummary / renderModificationSummary)
 #include <map>
 #include <string>      // std::string (renderRunSummaryJson return / manifest)
+#include <unordered_set>
 #include <utility>     // std::pair (renderRunSummaryJson manifest)
 #include <vector>
 
@@ -550,7 +551,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * before pruning and before zero-scoring candidates are dropped -- so the
      * summary reflects the full pool. Instances accumulate across chunks in the
      * chunked search paths, where each chunk contributes its own candidates for
-     * the same spectrum.
+     * the same spectrum. With peptide:deduplicate enabled for a non-SNES index,
+     * repeated peptidoform/charge/isotope hypotheses in later chunks are skipped
+     * before add(). The per-chunk candidate cap still determines which distinct
+     * hypotheses enter the pool; chunked and unchunked pools can therefore differ.
      */
     struct CandidatePoolStats_
     {
@@ -559,6 +563,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double best = 0.0;        ///< best candidate score (HyperScore is non-negative, so 0 doubles as "none seen")
       double second_best = 0.0; ///< runner-up candidate score
       Size count = 0;           ///< number of candidates scored
+      /// Exact peptide/charge/isotope keys already scored in earlier database chunks.
+      /// Empty in non-chunked searches; full keys resolve hash collisions by equality.
+      std::unordered_set<std::string> seen_candidates;
 
       /// Fold one freshly scored candidate into the summary.
       void add(double score)
@@ -597,8 +604,26 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double zScore() const;
     };
 
-    /// @brief filter, deisotope, decharge spectra
-    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top);
+    /**
+     * @brief Filter, deisotope and decharge spectra.
+     *
+     * Optionally retains two spectrum-aligned copies of each spectrum (same order as @p exp after sorting by RT):
+     * @p query_spectra after zero-intensity removal and m/z sorting, before deisotoping and local filtering
+     * (candidate retrieval with fragment:query_spectrum=raw), and @p evidence_spectra after deisotoping, before
+     * window/top-N filtering (annotate:local_fragment_evidence).
+     */
+    static void preprocessSpectra_(PeakMap& exp,
+                                   double fragment_mass_tolerance,
+                                   bool fragment_mass_tolerance_unit_ppm,
+                                   bool deisotope_requested,
+                                   Size peaks_keep_n,
+                                   Int peaks_window_top,
+                                   const std::string& window_type = "auto",
+                                   PeakMap* evidence_spectra = nullptr,
+                                   PeakMap* query_spectra = nullptr);
+
+    /// Keep the strongest peaks in each non-overlapping 100 Da window, including a short final window.
+    static void filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window);
 
     /// How decoys are obtained/recognised for a search (parameter "decoys").
     enum class DecoyMode_
@@ -657,6 +682,39 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     /// Generators for scoring, annotation and calibration, configured from the ions:* parameters
     SpectrumGenerators_ spectrumGenerators_() const;
+
+    /// Local fragment evidence of one candidate (annotate:local_fragment_evidence).
+    struct LocalFragmentEvidence_
+    {
+      double chance_match_surprise = 0.0;
+      double mass_competition_evidence = 0.0;
+    };
+
+    /// Peak counts per Da in a fixed +/-50 m/z window around each peak of a sorted spectrum.
+    static std::vector<double> localPeakDensities_(const MSSpectrum& spectrum);
+
+    /**
+     * @brief Compute local fragment-match evidence on the spectrum before window/top-N peak filtering.
+     *
+     * Matches each intact theoretical ion to its nearest experimental peak. Surprise is
+     * sum(max(0, -log(2 * tolerance_Da * local_density))). Competition evidence is
+     * sum(1 / (1 + alternative_assignments + local_density)). Alternative hypotheses
+     * include all configured intact ions and generic H2O/NH3 losses, divided by the
+     * fragment charge. Losses only discount ambiguous matches; they are not scored as
+     * additional matches and do not require sequence-specific loss eligibility.
+     *
+     * @param[in] spectrum Sorted experimental spectrum after zero-intensity removal and
+     *                    optional deisotoping, before window/top-N peak filtering.
+     * @param[in] theoretical Sorted intact ions, with the TSG's aligned integer charge array.
+     * @param[in] densities Result of localPeakDensities_(spectrum), reused for all candidates.
+     * @param[in] tolerance Positive, finite matching tolerance.
+     * @param[in] ppm Whether tolerance is given in ppm rather than Da.
+     * @return Two additive annotations; zero without matches. Neither is a calibrated PSM p-value.
+     */
+    static LocalFragmentEvidence_ localFragmentEvidence_(const MSSpectrum& spectrum,
+                                                        const MSSpectrum& theoretical,
+                                                        const std::vector<double>& densities,
+                                                        double tolerance, bool ppm);
 
     /// True if the precursor of @p spectrum was activated by electrons (ETD, ECD, EThcD or ETciD)
     static bool isElectronActivated_(const MSSpectrum& spectrum);
@@ -732,6 +790,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *                pool, one entry per spectrum. Accumulated rather than overwritten,
      *                so chunked callers can pass the same vector for every chunk.
      * @param[in] progress_label Label shown by the progress logger for this scoring pass.
+     * @param[in] query_spectra Optional spectra for candidate retrieval, aligned with @p spectra
+     *                          (fragment:query_spectrum=raw); scoring always uses @p spectra.
      */
     void scoreSpectraAgainstIndex_(
         const PeakMap& spectra,
@@ -743,7 +803,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         bool open_search_mode,
         std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
         std::vector<CandidatePoolStats_>& pool_stats,
-        const std::string& progress_label) const;
+        const std::string& progress_label,
+        const PeakMap* query_spectra = nullptr) const;
 
     /**
      * @brief Filter and annotate search results.
@@ -771,6 +832,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] precursor_max_charge Maximum precursor charge considered.
      * @param[in] enzyme Digestion enzyme name.
      * @param[out] database_name Database file name used for the search (stored in protein_ids).
+     * @param[in] evidence_spectra Peak lists retained before local/top-N filtering, aligned with @p exp;
+     *                             required when annotate:local_fragment_evidence is enabled, otherwise unused.
      */
     void postProcessHits_(const PeakMap& exp,
       std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
@@ -788,7 +851,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       const Int precursor_min_charge,
       const Int precursor_max_charge,
       const std::string& enzyme,
-      const std::string& database_name) const;
+      const std::string& database_name,
+      const PeakMap* evidence_spectra = nullptr) const;
 
     /// Calibration overwrites these with the calibrated magnitudes for the duration of
     /// search(); pure runtime-state mutation that does not affect the logical const-ness
@@ -811,8 +875,18 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// deisotoper is never called out of range (it would throw -> terminate in the
     /// OpenMP region). See OpenMS#9619.
     bool deisotope_requested_{true};
+    bool scoring_multiple_charges_{false}; ///< Resolved scoring:fragment_charges: score charges above 1
+    int scoring_max_charge_{2};            ///< Upper fragment charge bound (fragment:max_charge)
+
+    /// Fragment charges that score a candidate of the given precursor charge; also used by the calibration pass.
+    int scoringMaxCharge_(int precursor_charge) const
+    {
+      return scoring_multiple_charges_ ? std::max(1, std::min(precursor_charge - 1, scoring_max_charge_)) : 1;
+    }
     Size peaks_keep_n_{0};     ///< NLargest cap on MS2 peaks before scoring; 0 = resolution-aware auto (peaks:keep_n)
     Int peaks_window_top_{20}; ///< WindowMower peaks-per-100Da before scoring (peaks:window_top)
+    std::string peaks_window_type_ {"auto"}; ///< Resolution-aware treatment of the final peak window
+    bool query_raw_spectrum_{false}; ///< Retrieve candidates with the spectrum before deisotoping and local filtering (fragment:query_spectrum)
 
     StringList modifications_fixed_;
 
@@ -921,11 +995,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * @param[in] spectra  Preprocessed MS/MS spectra (subset is selected internally by TIC).
      * @param[in,out] fragment_index  Pre-built fragment index for candidate lookup.
      * @param[in] db  Protein database (for sequence reconstruction of candidates).
+     * @param[in] query_spectra Optional spectra for candidate retrieval, aligned with @p spectra.
      * @return CalibrationResult_ with estimated tolerances, or success=false if insufficient PSMs.
      */
     CalibrationResult_ runCalibrationPass_(PeakMap& spectra,
                                            FragmentIndex& fragment_index,
-                                           const std::vector<FASTAFile::FASTAEntry>& db) const;
+                                           const std::vector<FASTAFile::FASTAEntry>& db,
+                                           const PeakMap* query_spectra = nullptr) const;
 
     /// Helper: does @p accession carry the decoy @p marker at the given position?
     /// Empty marker → false. Pure std::string (no String dependency).

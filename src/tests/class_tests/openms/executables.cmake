@@ -95,6 +95,7 @@ set(metadata_executables_list
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
+  IDDataContainer_test
   IdentificationData_test
   IdentificationDataConverter_test
   IdentifiedMolecule_test
@@ -304,6 +305,7 @@ set(format_executables_list
   XTandemInfile_test
   XTandemXMLFile_test
   ZlibCompression_test
+  ZstdCompression_test
   Libzip_test
   ZipArchiveFile_test
   ZipIfstream_test
@@ -720,7 +722,9 @@ if(NOT DISABLE_OPENSWATH)
     PeakMapExtractor_test
     OpenSwathHelper_test
     OpenSwathLibraryIDNormalizer_test
+    OpenSwathLibraryPreparation_test
     OpenSwathOSWWriter_test
+    OpenSwathPeptidoformInference_test
     TransitionListEvidenceFilter_test
     OpenSwathScoring_test
     OpenSwathScores_test
@@ -755,6 +759,12 @@ if(NOT DISABLE_OPENSWATH)
     CachedMzMLHandler_test
   )
 endif(NOT DISABLE_OPENSWATH)
+
+if(WITH_ONNX AND NOT DISABLE_OPENSWATH)
+  list(APPEND swath_executables_list
+    PeptDeepLibraryPredictor_test
+    OpenSwathPredictedLibraryPreparation_test)
+endif()
 
 if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list TransitionParquetFile_test)

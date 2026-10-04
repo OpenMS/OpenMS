@@ -4,8 +4,17 @@
 	<SearchParameters id="SP_0" db="/home/user/OpenMS/src/tests/topp/SimpleSearchEngine_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
-				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,complementary_ions_fraction,hyperscore_zscore,ln_num_candidates,delta_score,isotope_error"/>
+				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction,longest_peptide_ion_sequence,matched_prefix_ions,matched_suffix_ions,matched_ion_current,matched_ion_current_fraction,complementary_ions_fraction,hyperscore_zscore,ln_num_candidates,chance_match_surprise,mass_competition_evidence,delta_score,isotope_error"/>
 				<UserParam type="string" name="open_search" value="false"/>
+				<UserParam type="string" name="peptide:clip_nterm_methionine" value="true"/>
+				<UserParam type="string" name="peptide:deduplicate" value="true"/>
+				<UserParam type="string" name="fragment:query_spectrum" value="auto"/>
+				<UserParam type="string" name="fragment:query_spectrum_resolved" value="raw"/>
+				<UserParam type="string" name="annotate:local_fragment_evidence" value="true"/>
+				<UserParam type="string" name="scoring:fragment_charges" value="auto"/>
+				<UserParam type="string" name="scoring:fragment_charges_resolved" value="single"/>
+				<UserParam type="string" name="peaks:window_type" value="auto"/>
+				<UserParam type="string" name="peaks:window_type_resolved" value="jump_full"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string" value="DECOY_"/>
 				<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="prefix"/>
 				<UserParam type="string" name="PeptideIndexer:enzyme" value="Trypsin"/>
@@ -33,22 +42,24 @@
 			<UserParam type="stringList" name="spectra_data" value="[file://SimpleSearchEngine_1.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="520.262817382812045" RT="2655.095703125" spectrum_reference="spectrum=0" >
-			<PeptideHit score="13.195273686121649" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" start="0" end="13" protein_refs="PH_0" >
-				<UserParam type="string" name="fragment_annotation" value="175.119094848632812,0.145235076546669,1,&quot;y1+&quot;|263.10302734375,0.269983410835266,1,&quot;b2+&quot;|281.664825439453125,0.045622423291206,2,&quot;y4++&quot;|334.140472412109375,0.038884554058313,1,&quot;b3+&quot;|338.206695556640625,0.036569740623236,2,&quot;y5++&quot;|387.74066162109375,0.041254211217165,2,&quot;y6++&quot;|425.263031005859375,0.154225364327431,1,&quot;y3+&quot;|469.2728271484375,0.031441166996956,2,&quot;y7++&quot;|497.783782958984375,0.041119836270809,2,&quot;y8++&quot;|526.29443359375,0.094272904098034,2,&quot;y9++&quot;|569.81048583984375,0.115230679512024,2,&quot;y10++&quot;|613.32598876953125,0.102093867957592,2,&quot;y11++&quot;|622.2730712890625,4.212265368551016e-03,1,&quot;b7+&quot;|648.84503173828125,0.051233120262623,2,&quot;y12++&quot;|675.40625,0.336008250713348,1,&quot;y5+&quot;|937.53729248046875,0.061362523585558,1,&quot;y7+&quot;|994.55938720703125,0.057263620197773,1,&quot;y8+&quot;|1051.580810546875,0.09991666674614,1,&quot;y9+&quot;|1138.6112060546875,0.048153448849916,1,&quot;y10+&quot;|1225.658935546875,7.87415076047182e-03,1,&quot;y11+&quot;"/>
-				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.809573809163447"/>
+			<PeptideHit score="20.342387153364744" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" start="0" end="13" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="175.119094848632812,0.145235076546669,1,&quot;y1+&quot;|263.10302734375,0.269983410835266,1,&quot;b2+&quot;|281.664825439453125,0.045622423291206,2,&quot;y4++&quot;|312.17840576171875,0.130536571145058,1,&quot;y2+&quot;|334.140472412109375,0.038884554058313,1,&quot;b3+&quot;|338.206695556640625,0.036569740623236,2,&quot;y5++&quot;|387.74066162109375,0.041254211217165,2,&quot;y6++&quot;|425.263031005859375,0.154225364327431,1,&quot;y3+&quot;|469.2728271484375,0.031441166996956,2,&quot;y7++&quot;|497.783782958984375,0.041119836270809,2,&quot;y8++&quot;|526.29443359375,0.094272904098034,2,&quot;y9++&quot;|562.32177734375,0.307607710361481,1,&quot;y4+&quot;|569.81048583984375,0.115230679512024,2,&quot;y10++&quot;|613.32598876953125,0.102093867957592,2,&quot;y11++&quot;|622.2730712890625,4.212265368551016e-03,1,&quot;b7+&quot;|648.84503173828125,0.051233120262623,2,&quot;y12++&quot;|675.40625,0.336008250713348,1,&quot;y5+&quot;|774.4742431640625,0.191590219736099,1,&quot;y6+&quot;|937.53729248046875,0.061362523585558,1,&quot;y7+&quot;|994.55938720703125,0.057263620197773,1,&quot;y8+&quot;|1051.580810546875,0.09991666674614,1,&quot;y9+&quot;|1138.6112060546875,0.048153448849916,1,&quot;y10+&quot;|1225.658935546875,7.87415076047182e-03,1,&quot;y11+&quot;"/>
+				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.731785331544976"/>
 				<UserParam type="float" name="precursor_mz_error_ppm" value="-1.415652739967919"/>
 				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.214285716414452"/>
-				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.571428596973419"/>
-				<UserParam type="int" name="num_matched_peaks" value="11"/>
+				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.785714268684387"/>
+				<UserParam type="int" name="num_matched_peaks" value="14"/>
 				<UserParam type="int" name="matched_prefix_ions" value="3"/>
-				<UserParam type="int" name="matched_suffix_ions" value="8"/>
-				<UserParam type="float" name="delta_score" value="13.195273399353027"/>
+				<UserParam type="int" name="matched_suffix_ions" value="11"/>
+				<UserParam type="float" name="delta_score" value="20.342386245727539"/>
 				<UserParam type="float" name="hyperscore_zscore" value="0.0"/>
 				<UserParam type="float" name="ln_num_candidates" value="0.6931471824646"/>
-				<UserParam type="float" name="matched_ion_current" value="1.781957282219082"/>
-				<UserParam type="float" name="matched_ion_current_fraction" value="0.308665716724222"/>
-				<UserParam type="int" name="longest_peptide_ion_sequence" value="10"/>
+				<UserParam type="float" name="matched_ion_current" value="2.41169178346172"/>
+				<UserParam type="float" name="matched_ion_current_fraction" value="0.369551055633204"/>
+				<UserParam type="int" name="longest_peptide_ion_sequence" value="12"/>
 				<UserParam type="float" name="complementary_ions_fraction" value="0.230769230769231"/>
+				<UserParam type="float" name="chance_match_surprise" value="50.88376813866725"/>
+				<UserParam type="float" name="mass_competition_evidence" value="12.164293051435918"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -56,22 +67,24 @@
 			<UserParam type="int" name="scan_index" value="0"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="1063.209838867190001" RT="4587.6689453125" spectrum_reference="spectrum=1" >
-			<PeptideHit score="47.256181302684936" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" start="0" end="27" protein_refs="PH_1" >
-				<UserParam type="string" name="fragment_annotation" value="147.112884521484375,0.073362722992897,1,&quot;y1+&quot;|185.128372192382812,0.304318636655807,1,&quot;b2+&quot;|294.18121337890625,0.199159145355225,1,&quot;y2+&quot;|298.212554931640625,0.030436070635915,1,&quot;b3+&quot;|426.25994873046875,0.053214963525534,2,&quot;b8++&quot;|604.2803955078125,0.367977857589722,1,&quot;y4+&quot;|638.34381103515625,0.023529993370175,1,&quot;b6+&quot;|675.31707763671875,0.364999026060104,1,&quot;y5+&quot;|681.91497802734375,0.018387651070952,2,&quot;b13++&quot;|746.35400390625,0.278303116559982,1,&quot;y6+&quot;|752.44500732421875,0.043161459267139,1,&quot;b7+&quot;|851.50775146484375,0.140275537967682,1,&quot;b8+&quot;|909.41217041015625,0.246380671858788,1,&quot;y7+&quot;|980.553148337916468,0.612667679786682,1,&quot;b9+&quot;|1079.6219482421875,1.0,1,&quot;b10+&quot;|1138.490478515625,0.284363687038422,1,&quot;y9+&quot;|1178.689378806666582,0.277622222900391,1,&quot;b11+&quot;|1221.7279052734375,0.205706641077995,2,&quot;b22++&quot;|1239.53515625,0.73640251159668,1,&quot;y10+&quot;|1249.726318359375,0.724085569381714,1,&quot;b12+&quot;|1352.6168212890625,0.234000310301781,1,&quot;y11+&quot;|1362.8125,0.279476225376129,1,&quot;b13+&quot;|1476.8531494140625,0.269533842802048,1,&quot;b14+&quot;|1499.689453125,0.080423474311829,1,&quot;y12+&quot;|1591.881591796875,0.727882027626038,1,&quot;b15+&quot;|1596.741455078125,0.219704270362854,1,&quot;y13+&quot;|1688.953905173854082,0.01809080503881,1,&quot;b16+&quot;|1711.765380859375,0.032515596598387,1,&quot;y14+&quot;|1825.8343505859375,0.032113555818796,1,&quot;y15+&quot;"/>
-				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.086640460710327"/>
+			<PeptideHit score="52.668432967103769" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" start="0" end="27" protein_refs="PH_1" >
+				<UserParam type="string" name="fragment_annotation" value="147.112884521484375,0.073362722992897,1,&quot;y1+&quot;|185.128372192382812,0.304318636655807,1,&quot;b2+&quot;|294.18121337890625,0.199159145355225,1,&quot;y2+&quot;|298.212554931640625,0.030436070635915,1,&quot;b3+&quot;|426.25994873046875,0.053214963525534,2,&quot;b8++&quot;|441.215545654296875,0.377292335033417,1,&quot;y3+&quot;|541.26373291015625,0.042043596506119,1,&quot;b5+&quot;|604.2803955078125,0.367977857589722,1,&quot;y4+&quot;|638.34381103515625,0.023529993370175,1,&quot;b6+&quot;|675.31707763671875,0.364999026060104,1,&quot;y5+&quot;|681.91497802734375,0.018387651070952,2,&quot;b13++&quot;|746.35400390625,0.278303116559982,1,&quot;y6+&quot;|752.44500732421875,0.043161459267139,1,&quot;b7+&quot;|844.9805908203125,0.01809080503881,2,&quot;b16++&quot;|851.50775146484375,0.140275537967682,1,&quot;b8+&quot;|909.41217041015625,0.246380671858788,1,&quot;y7+&quot;|980.553148337916468,0.612667679786682,1,&quot;b9+&quot;|1024.443115234375,0.177698284387589,1,&quot;y8+&quot;|1079.6219482421875,1.0,1,&quot;b10+&quot;|1138.490478515625,0.284363687038422,1,&quot;y9+&quot;|1178.689378806666582,0.277622222900391,1,&quot;b11+&quot;|1221.7279052734375,0.205706641077995,2,&quot;b22++&quot;|1239.53515625,0.73640251159668,1,&quot;y10+&quot;|1249.726318359375,0.724085569381714,1,&quot;b12+&quot;|1352.6168212890625,0.234000310301781,1,&quot;y11+&quot;|1362.8125,0.279476225376129,1,&quot;b13+&quot;|1476.8531494140625,0.269533842802048,1,&quot;b14+&quot;|1499.689453125,0.080423474311829,1,&quot;y12+&quot;|1591.881591796875,0.727882027626038,1,&quot;b15+&quot;|1596.741455078125,0.219704270362854,1,&quot;y13+&quot;|1711.765380859375,0.032515596598387,1,&quot;y14+&quot;|1825.8343505859375,0.032113555818796,1,&quot;y15+&quot;"/>
+				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.183488812562961"/>
 				<UserParam type="float" name="precursor_mz_error_ppm" value="0.532776127422444"/>
 				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.46428570151329"/>
-				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.46428570151329"/>
-				<UserParam type="int" name="num_matched_peaks" value="26"/>
+				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.535714268684387"/>
+				<UserParam type="int" name="num_matched_peaks" value="28"/>
 				<UserParam type="int" name="matched_prefix_ions" value="13"/>
-				<UserParam type="int" name="matched_suffix_ions" value="13"/>
-				<UserParam type="float" name="delta_score" value="47.256179809570312"/>
+				<UserParam type="int" name="matched_suffix_ions" value="15"/>
+				<UserParam type="float" name="delta_score" value="52.668434143066406"/>
 				<UserParam type="float" name="hyperscore_zscore" value="0.0"/>
 				<UserParam type="float" name="ln_num_candidates" value="0.6931471824646"/>
-				<UserParam type="float" name="matched_ion_current" value="7.878095272928476"/>
-				<UserParam type="float" name="matched_ion_current_fraction" value="0.382467675228915"/>
-				<UserParam type="int" name="longest_peptide_ion_sequence" value="11"/>
+				<UserParam type="float" name="matched_ion_current" value="8.4751294888556"/>
+				<UserParam type="float" name="matched_ion_current_fraction" value="0.356716093308373"/>
+				<UserParam type="int" name="longest_peptide_ion_sequence" value="15"/>
 				<UserParam type="float" name="complementary_ions_fraction" value="0.185185185185185"/>
+				<UserParam type="float" name="chance_match_surprise" value="99.88506359964336"/>
+				<UserParam type="float" name="mass_competition_evidence" value="24.52516348652285"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -92,9 +105,11 @@
 				<UserParam type="float" name="hyperscore_zscore" value="0.0"/>
 				<UserParam type="float" name="ln_num_candidates" value="0.6931471824646"/>
 				<UserParam type="float" name="matched_ion_current" value="8.528975328430533"/>
-				<UserParam type="float" name="matched_ion_current_fraction" value="0.533896463252728"/>
+				<UserParam type="float" name="matched_ion_current_fraction" value="0.525310065067833"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="12"/>
 				<UserParam type="float" name="complementary_ions_fraction" value="0.272727272727273"/>
+				<UserParam type="float" name="chance_match_surprise" value="92.690736902896361"/>
+				<UserParam type="float" name="mass_competition_evidence" value="21.576299792695281"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>

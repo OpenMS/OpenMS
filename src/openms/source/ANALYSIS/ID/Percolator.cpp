@@ -997,8 +997,7 @@ void Percolator::fillPINCompatibleFields(
   // Spec-lookup regex is derived from the first pid's scan identifier (same
   // as PercolatorInfile::preparePin_).
   const std::string first_sid = PercolatorInfile::getScanIdentifier(peptide_ids.front(), 0);
-  const boost::regex scan_regex(
-    SpectrumLookup::getRegExFromNativeID(first_sid));
+  const RegularExpression scan_regex(SpectrumLookup::getRegExFromNativeID(first_sid));
 
   size_t row = 0;
   size_t pid_index = 0;

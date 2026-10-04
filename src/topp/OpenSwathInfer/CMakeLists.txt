@@ -17,13 +17,11 @@ endif()
 set(tool_sources
   source/OpenSwathGeneInference.cpp
   source/OpenSwathPeptideInference.cpp
-  source/OpenSwathPeptidoformInference.cpp
   source/OpenSwathProteinInference.cpp
 )
 set(tool_headers
   include/OpenSwathGeneInference.h
   include/OpenSwathPeptideInference.h
-  include/OpenSwathPeptidoformInference.h
   include/OpenSwathProteinInference.h
 )
 

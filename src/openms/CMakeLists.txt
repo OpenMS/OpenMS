@@ -39,7 +39,7 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 add_subdirectory(extern)
 
 #------------------------------------------------------------------------------
-# external libs (contrib or system)
+# external libs (vcpkg or system)
 #------------------------------------------------------------------------------
 #include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
 
@@ -68,14 +68,8 @@ add_subdirectory(thirdparty/percolator)
 ## Xerces-free XMLHandler / XMLAttributes / StringManager public API and the
 ## internal SAX2HandlerAdapter, so it no longer appears in any installed header
 ## and downstream consumers neither include nor link it (see #8547).
-## Note: Boost::boost (header-only) is PUBLIC because the installed public header
-## config.h includes <boost/current_function.hpp> (via Macros.h), so consumers
-## (e.g. pyOpenMS) need Boost's include dir. It propagates include dirs but no
-## link libraries, and it is the only Boost target: OpenMS uses header-only Boost
-## libraries only (see the Boost section of cmake/cmake_findExternalLibs.cmake).
-set(OPENMS_DEP_LIBRARIES
-  Boost::boost
-)
+## Boost is an implementation dependency: no installed header includes it.
+set(OPENMS_DEP_LIBRARIES)
 
 ## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
 ## Note: Eigen3::Eigen is PRIVATE because Eigen types are not exposed in the public API
@@ -83,6 +77,7 @@ set(OPENMS_DEP_LIBRARIES
 ## Note: LibSVM::LibSVM is PRIVATE because LIBSVM types are not exposed in the public API;
 ##       they are fully encapsulated by the SimpleSVM wrapper (Pimpl) (see #8547).
 set(OPENMS_DEP_PRIVATE_LIBRARIES
+  Boost::boost
   CURL::libcurl
   XercesC::XercesC
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
@@ -97,14 +92,13 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   SQLiteCpp
   ${OPENMS_SQLITECPP_EXTRA_LIBS}
   ZLIB::ZLIB
+  ${OPENMS_ZSTD_TARGET}
   libzip::zip
   nlohmann_json::nlohmann_json
   IsoSpec
   eol-bspline
   OpenMS_Percolator
   )
-
-option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 
 if(WITH_ONNX)
   if(OPENMS_USE_VCPKG)
@@ -154,11 +148,14 @@ if(WITH_ONNX)
   endif()
 
   if(ORT_LIB_PATH)
-      # Safely install ONNX shared libraries based on the operating system
+      # Safely install ONNX shared libraries based on the operating system.
+      # Component Dependencies, as for the other runtime dependencies
+      # (cmake/package_general.cmake): the installers and the SDK select their
+      # components by name and never install the unnamed default component.
       if(WIN32)
-          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_BIN_DIR}")
+          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_BIN_DIR}" COMPONENT Dependencies)
       else()
-          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_LIB_DIR}")
+          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_LIB_DIR}" COMPONENT Dependencies)
       endif()
   endif()
 
@@ -238,9 +235,13 @@ if(WITH_ONNX)
     endif()
   endforeach()
 
-  # Ensure models are packaged during 'make install'.
+  # Ensure models are packaged during 'make install'. They are shared data the
+  # library loads at runtime, so they belong to the share component the
+  # installers and the SDK install (the unnamed default component is never
+  # selected by them).
   install(FILES ${OPENMS_PEPTDEEP_MODEL_FILES}
-          DESTINATION "share/OpenMS/models")
+          DESTINATION "${INSTALL_SHARE_DIR}/models"
+          COMPONENT share)
 
 endif()
 
@@ -477,11 +478,6 @@ if(WITH_WNETALIGN)
   target_compile_definitions(OpenMS PRIVATE LEMON_ONLY_TEMPLATES OPENMS_HAS_WNETALIGN)
 endif()
 
-## Enable test-only hooks when class tests are being built.
-if(ENABLE_CLASS_TESTING)
-  target_compile_definitions(OpenMS PRIVATE OPENMS_ENABLE_TESTING_HOOKS=1)
-endif()
-
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation
 # here
@@ -504,16 +500,7 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
 )
 
 ## The TOPP tool registry is generated into the build tree rather than checked in
-## (cmake/topp_tool_macros.cmake), so it is installed from there. Because it is written from
-## the tools this build actually declares, there is nothing to filter per build option: a
-## tool that was not built was not declared and is not in the file. It is installed into
-## TOOLS/ rather than beside the other share data so that the directory holds registry files
-## and nothing else: ToolHandler reads every *.tsv it finds there.
-install(FILES ${OPENMS_TOOL_REGISTRY_BUILD_FILE}
-  DESTINATION ${INSTALL_SHARE_DIR}/TOOLS
-  COMPONENT share
-  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
-)
+## (cmake/topp_tool_macros.cmake) and installed from src/CMakeLists.txt, where it is written.
 install(FILES ${OPENMS_HOST_DIRECTORY}/License.txt
   DESTINATION ${INSTALL_SHARE_DIR}/LICENSES
   RENAME OpenMS-BSD-3-Clause.txt

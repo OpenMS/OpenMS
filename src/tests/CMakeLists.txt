@@ -31,6 +31,10 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
   ## configure the regular class ..
   if(ENABLE_CLASS_TESTING)
     add_subdirectory(class_tests)
+    # the version of a source tree made by git archive (cmake/Modules/GetGitRevisionDescription.cmake)
+    add_test(NAME GitArchivalInfo
+      COMMAND ${CMAKE_COMMAND} "-DBINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}/git_archival"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/git_archival/run.cmake")
   endif()
   # TOPP Test project ..
   if(ENABLE_TOPP_TESTING)
@@ -67,12 +71,14 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
   # Only the toolchain of this build is forwarded to the consumers, as a consumer
   # building with the same compiler and dependency provider would pass it;
   # everything about OpenMS comes from the installed OpenMSConfig.cmake.
+  # OpenMP_ROOT is part of the toolchain on macOS, where the OpenMP runtime
+  # (Homebrew's keg-only libomp) is not where the compiler looks.
   set(_configure_args)
   foreach(_var IN ITEMS
       CMAKE_TOOLCHAIN_FILE VCPKG_INSTALLED_DIR VCPKG_TARGET_TRIPLET VCPKG_HOST_TRIPLET
       CMAKE_PREFIX_PATH CMAKE_C_COMPILER CMAKE_CXX_COMPILER CMAKE_MAKE_PROGRAM
       CMAKE_MSVC_RUNTIME_LIBRARY CMAKE_OSX_ARCHITECTURES CMAKE_OSX_DEPLOYMENT_TARGET
-      CMAKE_OSX_SYSROOT)
+      CMAKE_OSX_SYSROOT OpenMP_ROOT)
     if(DEFINED ${_var} AND NOT "${${_var}}" STREQUAL "")
       # keep list-valued settings such as CMAKE_PREFIX_PATH as one argument
       string(REPLACE ";" "$<SEMICOLON>" _value "${${_var}}")
@@ -248,6 +254,17 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
       LABELS installed_consumer)
   endif()
 
+  # Prove that every installed core header compiles with Boost unavailable.
+  if(BUILD_SHARED_LIBS)
+    list(GET Boost_INCLUDE_DIRS 0 _boost_header_root)
+    _openms_add_installed_consumer_tests(TestExternalCodeNoBoost
+      "${CMAKE_SOURCE_DIR}/src/tests/external/boost_free"
+      "${CMAKE_BINARY_DIR}/installed-consumer/prefix-no-boost"
+      "${CMAKE_BINARY_DIR}/installed-consumer/build-no-boost"
+      COMPONENTS library OpenMS_headers OpenSwathAlgo_headers thirdparty_headers cmake
+      CONFIGURE_ARGS "-DOPENMS_BOOST_HEADER_ROOT=${_boost_header_root}")
+  endif()
+
   # 2. The core-only installation: exactly the components the pyOpenMS wheel
   #    builds install (.github/workflows/pyopenms-wheels-cibuildwheel.yml) ...
   set(_core_prefix "${CMAKE_BINARY_DIR}/installed-consumer/prefix-core")
@@ -334,6 +351,57 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
     PackageLayers_reconfigure_without_gui PackageLayers_probe_without_gui
     PackageLayers_reject_gui_without_gui PROPERTIES LABELS "installed_consumer;package_layers")
 
+  # 5. The TOPP tools built as a layer of their own against the installation of
+  #    test 1 (OPENMS_USE_INSTALLED_LIBRARY), the way packages that split OpenMS
+  #    into the libraries and the applications build them. Only OpenMSInfo is
+  #    built: configuring proves the layer finds everything it needs through the
+  #    installed package, and running the tool proves it links and finds a tool
+  #    registry (TOPPBase refuses to start a tool it cannot find in one). Not run on
+  #    Windows, where the installed DLLs are not on the search path of the tool.
+  set(_app_layer_build "${CMAKE_BINARY_DIR}/installed-consumer/topp-layer")
+  # This configures the source tree itself, whose vcpkg.json the vcpkg toolchain would
+  # install into the VCPKG_INSTALLED_DIR shared with this build -- without this build's
+  # manifest features, i.e. removing the dependencies they add while the other tests
+  # run. The dependencies are all installed already, so skip the manifest install.
+  set(_app_layer_args)
+  if(VCPKG_INSTALLED_DIR)
+    list(APPEND _app_layer_args -DVCPKG_MANIFEST_INSTALL=OFF)
+  endif()
+  add_test(NAME ApplicationLayer_configure
+    COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}" -B "${_app_layer_build}"
+            -G "${CMAKE_GENERATOR}" "-DCMAKE_BUILD_TYPE=$<CONFIG>"
+            -DOPENMS_USE_INSTALLED_LIBRARY=ON -DBUILD_TOPP_TOOLS=ON -DWITH_GUI=OFF
+            -DGIT_TRACKING=OFF
+            "-DOpenMS_DIR=${_full_prefix}/${INSTALL_CMAKE_DIR}"
+            ${_app_layer_args} ${_configure_args})
+  set_tests_properties(ApplicationLayer_configure PROPERTIES
+    FIXTURES_REQUIRED TestExternalCode_installed
+    FIXTURES_SETUP application_layer_configured)
+  add_test(NAME ApplicationLayer_build
+    COMMAND ${CMAKE_COMMAND} --build "${_app_layer_build}" --config $<CONFIG> --target OpenMSInfo)
+  set_tests_properties(ApplicationLayer_build PROPERTIES
+    FIXTURES_REQUIRED application_layer_configured
+    FIXTURES_SETUP application_layer_built)
+  set(_app_layer_tests ApplicationLayer_configure ApplicationLayer_build)
+  if(NOT WIN32)
+    get_property(_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    set(_app_layer_bin "${_app_layer_build}/bin")
+    if(_multi_config)
+      string(APPEND _app_layer_bin "/$<CONFIG>")
+    endif()
+    add_test(NAME ApplicationLayer_run
+      COMMAND "${_app_layer_bin}/OpenMSInfo")
+    set_tests_properties(ApplicationLayer_run PROPERTIES
+      FIXTURES_REQUIRED application_layer_built)
+    list(APPEND _app_layer_tests ApplicationLayer_run)
+    unset(_multi_config)
+    unset(_app_layer_bin)
+  endif()
+  set_tests_properties(${_app_layer_tests} PROPERTIES LABELS "installed_consumer;application_layer")
+
+  unset(_app_layer_tests)
+  unset(_app_layer_build)
+  unset(_app_layer_args)
   unset(_layers_source)
   unset(_layers_build)
   unset(_full_components)

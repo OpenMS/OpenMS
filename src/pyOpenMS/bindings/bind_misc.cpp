@@ -3110,7 +3110,7 @@ ProgressLogger
             self.align(maps, trafos, reference_index);
             return trafos;
         }, "maps"_a, "reference_index"_a = -1,
-            "Aligns several FeatureMaps and returns one transformation per map. With reference_index >= 0, maps[reference_index] is the reference; with -1, the reference set with setReference() is used, or else the maps are aligned to a consensus of all of them")
+            "Aligns several FeatureMaps and returns one transformation per map. With reference_index >= 0, maps[reference_index] is the reference; with -1, the reference set with setReference() is used, or else the one chosen by parameter 'auto_reference' (by default the map that shares the most identified sequences with every other map)")
         .def("align", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const std::vector<OpenMS::ConsensusMap>& maps, int reference_index) {
             std::vector<OpenMS::TransformationDescription> trafos;
             self.align(maps, trafos, reference_index);

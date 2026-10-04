@@ -10,7 +10,6 @@
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-#include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
@@ -364,7 +363,7 @@ protected:
     registerStringOption_("mass_recalibration", "<option>", "false", "Mass recalibration.", false, true);
     setValidStrings_("mass_recalibration", ListUtils::create<std::string>("true,false"));
 
-    registerStringOption_("alignment_order", "<option>", "star", "If star, aligns all maps to the reference with most IDs. If tree_guided, aligns maps in tree order (most similar pairs first).", false, true);
+    registerStringOption_("alignment_order", "<option>", "star", "If star, aligns all maps to the map that shares the most IDs with every other map. If tree_guided, aligns maps in tree order (most similar pairs first).", false, true);
     setValidStrings_("alignment_order", ListUtils::create<std::string>("star,tree_guided"));
 
     registerStringOption_("keep_feature_top_psm_only", "<option>", "true", "If false, also keeps lower ranked PSMs that have the top-scoring"
@@ -408,7 +407,8 @@ protected:
 
     // hide entries
     for (const auto& s :
-         {"align_algorithm:use_unassigned_peptides", "align_algorithm:use_feature_rt", "align_algorithm:score_cutoff", "align_algorithm:min_score"})
+         {"align_algorithm:use_unassigned_peptides", "align_algorithm:use_feature_rt", "align_algorithm:score_cutoff", "align_algorithm:min_score",
+          "align_algorithm:auto_reference", "align_algorithm:auto_reference_min_points"})
     {
       ma_defaults.addTag(s, "advanced");
     }
@@ -765,7 +765,6 @@ protected:
     }
 
     OPENMS_LOG_INFO << "Size of consensus fraction: " << consensus_fraction.size() << endl;
-    assert(! consensus_fraction.empty());
   }
 
   /// Align and link.
@@ -2109,6 +2108,16 @@ protected:
     }
 
     alignAndLink_(feature_maps, consensus_fraction, transformations, fraction_fwhm);
+
+    // Nothing to link is not an error: typically no run of the fraction has a feature because none
+    // of its identifications passed the upstream FDR filter, so targeted feature detection had
+    // nothing to look for (#10310). The other fractions are quantified as usual.
+    if (consensus_fraction.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: fraction " << fraction << " (" << ms_files.second.size()
+                      << " run(s)) yielded no consensus features and contributes no quantities. "
+                      << "Check the identifications of its runs, e.g. whether any passed FDR filtering.\n";
+    }
 
     if (feature_maps.size() > 1)
     {

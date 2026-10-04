@@ -120,6 +120,26 @@ namespace OpenMS
     */
     void run(ConsensusMap& cmap, ProteinIdentification& prot_id, bool include_unassigned) const;
 
+    /**
+      @brief Computes the indistinguishable protein groups of one run, without scoring anything.
+
+      Two proteins are indistinguishable if exactly the same peptide hits map to them. This is
+      the grouping the @c "annotate_indistinguishable_groups" parameter adds to run(), on its
+      own: only the peptide identifications of @p proteins' run (same getIdentifier()) are
+      used, and of each only its first @p use_top_psms hits. Scores, hits and peptides stay
+      as they are.
+
+      @param[in,out] proteins        Protein-identification run; the groups replace its getIndistinguishableProteins(), which stay as they were if an exception is thrown.
+      @param[in]     peptides        Peptide identifications, e.g. of several runs; not modified.
+      @param[in]     use_top_psms    Number of hits per peptide identification to use, in stored order; 0 uses all.
+      @param[in]     add_singletons  If true, a protein that shares its peptides with no other protein gets a group of its own.
+      @throws Exception::MissingInformation If no hit of @p peptides belongs to the run.
+    */
+    static void annotateIndistinguishableGroups(ProteinIdentification& proteins,
+                                                const PeptideIdentificationList& peptides,
+                                                Size use_top_psms = 1,
+                                                bool add_singletons = true);
+
   private:
 
     /**

@@ -16,6 +16,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
+#include <cassert>
 
 namespace OpenMS
 {

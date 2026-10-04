@@ -6,6 +6,7 @@
 // $Authors: Peter J. Jones $
 // --------------------------------------------------------------------------
 
+#include <boost/math/distributions/normal.hpp>
 #include "FeatureTypes.h"
 #include "Impl.h"
 #include <OpenMS/CONCEPT/Exception.h>

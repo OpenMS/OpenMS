@@ -6,6 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <boost/regex.hpp>
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>

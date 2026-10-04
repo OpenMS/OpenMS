@@ -910,7 +910,6 @@ EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */.git/* \
                          *_moc* \
                          */UIC/* \
-                         */contrib/* \
                          */backup/* \
                          */test/*
 

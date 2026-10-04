@@ -84,6 +84,16 @@ namespace OpenMS
     }
 
     vector<pair<Size, Size>> result;
+    // no fragment can reach the minimum length (also keeps the unsigned "rna.size() - min_length" below from wrapping)
+    if (rna.size() < min_length)
+    {
+      return result;
+    }
+    // no length fits (also keeps the unsigned "max_length - min_length + 1" below from wrapping)
+    if (max_length < min_length)
+    {
+      return result;
+    }
     if (enzyme_->getName() == NoCleavage) // no cleavage
     {
       Size length = rna.size();
@@ -117,14 +127,14 @@ namespace OpenMS
         }
         for (auto it = cuts_after_regexes_.begin(); it != cuts_after_regexes_.end() && is_match; ++it) // Check if the cuts_after_regexes all match
         {
-          if (!boost::regex_search(rna[i - cuts_after_regexes_.size() + (it - cuts_after_regexes_.begin())]->getCode(), *it))
+          if (!it->search(rna[i - cuts_after_regexes_.size() + (it - cuts_after_regexes_.begin())]->getCode()))
           {
             is_match = false;
           }
         }
         for (auto it = cuts_before_regexes_.begin(); it != cuts_before_regexes_.end() && is_match; ++it) // Check if the cuts_before_regexes all match
         {
-          if (!boost::regex_search(rna[i + (it - cuts_before_regexes_.begin())]->getCode(), *it))
+          if (!it->search(rna[i + (it - cuts_before_regexes_.begin())]->getCode()))
           {
             is_match = false;
           }

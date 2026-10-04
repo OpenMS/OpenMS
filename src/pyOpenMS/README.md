@@ -148,8 +148,9 @@ library paths:
 **macOS note:** The `-L` flag in `delocate-wheel` specifies a destination subdirectory *inside the
 wheel*, **not** a library search path. Use `--require-archs` and `-w` for the output directory.
 
-**Windows note:** You may need `--add-path` to point delvewheel at directories containing OpenMS
-DLLs, Qt DLLs, and contrib libraries.
+**Windows note:** You may need `--add-path` to point delvewheel at the directories containing the
+OpenMS DLLs and the DLLs of its dependencies: the `bin/` directory of the dependency prefix, e.g.
+`vcpkg_installed/<triplet>/bin` for a vcpkg build.
 
 For the repair tools to find the OpenMS shared libraries, they must be discoverable via standard
 library search paths (`LD_LIBRARY_PATH`, `DYLD_LIBRARY_PATH`, system paths) or the libraries must
@@ -202,8 +203,9 @@ Key cibuildwheel settings (in `pyproject.toml`):
 
 ```toml
 [tool.cibuildwheel.linux]
-# Custom manylinux containers with pre-built OpenMS dependencies
-manylinux-x86_64-image = "ghcr.io/openms/contrib_manylinux_2_34:latest-amd64"
+# Stock manylinux images; OpenMS and its static vcpkg dependencies are built in the
+# same image first (tools/ci/build_openms_manylinux.sh)
+manylinux-x86_64-image = "quay.io/pypa/manylinux_2_34_x86_64"
 repair-wheel-command = ["auditwheel repair -w {dest_dir} {wheel}"]
 
 [tool.cibuildwheel.macos]

@@ -45,6 +45,7 @@ StringListUtils.h
 ToolDescription.h
 ToolInfo.h
 TypeAliases.h
+RegularExpression.h
 )
 
 ### add path to the filenames
