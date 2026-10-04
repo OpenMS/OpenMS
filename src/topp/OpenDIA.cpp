@@ -4619,7 +4619,8 @@ protected:
             prepared_library_pqp,
             assay_parameters,
             decoy_parameters,
-            *predicted_parameters);
+            *predicted_parameters,
+            working_dir.path);
         }
         else
         {
