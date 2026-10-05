@@ -963,11 +963,8 @@ protected:
       }
     }
 
-    // The peptide identity is the unlabeled sequence: the label belongs to the channel, not to the
-    // peptide, so the light and the heavy spectrum of one peptide must name one peptide for linking,
-    // match between runs, inference and quantification. The resolver above has used the labels; from
-    // here on every identification (quantified or not) is reduced to the peptide and carries its
-    // label state as meta values.
+    // The resolver above needs the matched peptidoform to identify each channel. Record the
+    // label-free identity for later grouping while preserving the matched sequence on each hit.
     for (auto& cf : resolved)
     {
       for (auto& id : cf.getPeptideIdentifications())
@@ -1387,7 +1384,7 @@ protected:
   }
 
   /**
-    @brief Reduce the hit's sequence to the peptide identity and record its label state.
+    @brief Record the peptide identity and label state without changing the matched sequence.
 
     The label modifications of '-labels' are removed from the sequence (the channel, not the
     peptide, carries the label), and the hit is annotated with 'labeled_sequence' (as searched),
@@ -1431,8 +1428,8 @@ protected:
       }
     }
 
-    hit.setSequence(stripped);
     hit.setMetaValue(MS1LabelState::LABELED_SEQUENCE, original.toString());
+    hit.setMetaValue(MS1LabelState::PEPTIDE_IDENTITY, stripped.toString());
     hit.setMetaValue(MS1LabelState::REMOVED_LABELS, removed.empty() ? std::string("none") : ListUtils::concatenate(removed, ","));
     hit.setMetaValue(MS1LabelState::CHANNEL, channelOfLabels_(removed));
   }
@@ -1687,20 +1684,7 @@ protected:
     if (e != EXECUTION_OK) { return e; }
 
     IDFilter::removeUnreferencedProteins(consensus, true);
-    IDConflictResolverAlgorithm::resolve(consensus);
-
-    // The label state of the identification a multiplet is quantified under, at feature level as well:
-    // consensusXML and the mzTab peptide section report feature meta values, the hit's own stay with
-    // the PSM. After linking this identification may come from another run (match between runs).
-    for (auto& cf : consensus)
-    {
-      if (cf.getPeptideIdentifications().empty() || cf.getPeptideIdentifications()[0].getHits().empty()) { continue; }
-      const PeptideHit& hit = cf.getPeptideIdentifications()[0].getHits()[0];
-      for (const std::string& key : MS1LabelState::keys())
-      {
-        if (hit.metaValueExists(key)) { cf.setMetaValue(key, hit.getMetaValue(key)); }
-      }
-    }
+    IDConflictResolverAlgorithm::resolve(consensus, true);
 
     Param pq_param = getParam_().copy("ProteinQuantification:", true);
     writeDebug_("Parameters passed to PeptideAndProteinQuant algorithm", pq_param, 3);

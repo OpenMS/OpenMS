@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -335,7 +336,7 @@ namespace OpenMS
         const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), pep_it->isHigherScoreBetter());
         if (better_(best_hit->getScore(), min_score_))
         {
-          const std::string& seq = best_hit->getSequence().toString();
+          const std::string seq = MS1LabelState::peptideIdentity(*best_hit).toString();
           rt_data[seq].push_back(pep_it->getRT());
         }
       }

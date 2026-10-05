@@ -1062,11 +1062,13 @@ namespace OpenMS
       // Features need to be resolved for this. First is not necessarily the best since ids were resorted by map_index.
       const PeptideIdentification& best_id = curr_pep_ids[0];
       const PeptideHit& best_ph = best_id.getHits()[0];
-      const AASequence& aas = best_ph.getSequence();
+      const AASequence aas = MS1LabelState::peptideIdentity(best_ph);
       row.sequence = MzTabString(aas.toUnmodifiedString());
 
       // annotate variable modifications (no fixed ones)
-      row.modifications = extractModificationList(best_ph, fixed_mods, vector<std::string>());
+      PeptideHit identity_hit = best_ph;
+      identity_hit.setSequence(aas);
+      row.modifications = extractModificationList(identity_hit, fixed_mods, vector<std::string>());
 
       const set<std::string>& accessions = best_ph.extractProteinAccessionsSet();
       const vector<PeptideEvidence> &peptide_evidences = best_ph.getPeptideEvidences();
@@ -1299,10 +1301,8 @@ namespace OpenMS
       current_ph = phs.at(current_psm_idx);
     }
 
-    // The PSM section describes the spectrum match: a hit whose sequence was reduced to a peptide
-    // identity (MS1LabeledWorkflow removes the labels, which belong to the channel) reports the
-    // peptidoform it was matched with, so that the calculated mass fits the precursor.
-    // current_ph is this function's own copy, so it can carry the matched peptidoform in place.
+    // The PSM section describes the spectrum match. The metadata fallback keeps older files, which
+    // stored the identity in sequence, reporting the original matched peptidoform.
     if (MS1LabelState::hasMatchedSequence(current_ph)) { current_ph.setSequence(MS1LabelState::matchedSequence(current_ph)); }
     const AASequence& aas = current_ph.getSequence();
     row.sequence = MzTabString(aas.toUnmodifiedString());
@@ -3404,10 +3404,10 @@ state0:
 
   void MzTab::checkSequenceUniqueness_(const PeptideIdentificationList& curr_pep_ids)
   {
-    const auto& refseq = curr_pep_ids[0].getHits()[0].getSequence();
+    const AASequence refseq = MS1LabelState::peptideIdentity(curr_pep_ids[0].getHits()[0]);
     for (const auto& pep : curr_pep_ids)
     {
-      if (pep.getHits()[0].getSequence() != refseq)
+      if (MS1LabelState::peptideIdentity(pep.getHits()[0]) != refseq)
       {
         throw OpenMS::Exception::IllegalArgument(
             __FILE__

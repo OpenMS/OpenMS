@@ -16,6 +16,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
@@ -266,8 +267,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
         const auto& hit = pid.getHits()[0];
         if (feature_info[fi].sequence.empty())
         {
-          feature_info[fi].sequence = hit.getSequence().toUnmodifiedString();
-          feature_info[fi].peptidoform = hit.getSequence().toString();
+          const AASequence identity = MS1LabelState::peptideIdentity(hit);
+          feature_info[fi].sequence = identity.toUnmodifiedString();
+          feature_info[fi].peptidoform = identity.toString();
           feature_info[fi].charge = hit.getCharge();
         }
         for (const auto& ev : hit.getPeptideEvidences())

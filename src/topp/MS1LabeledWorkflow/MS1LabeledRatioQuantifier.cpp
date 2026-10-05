@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
@@ -151,7 +152,7 @@ namespace OpenMS
       // the peptide identity this evidence belongs to (unlabeled; see MS1LabelState)
       const auto& ids = feature.getPeptideIdentifications();
       if (ids.empty() || ids[0].getHits().empty()) { continue; }
-      const AASequence& sequence = ids[0].getHits()[0].getSequence();
+      const AASequence sequence = MS1LabelState::peptideIdentity(ids[0].getHits()[0]);
       for (Size i = 0; i < ratio_values.size(); ++i)
       {
         const auto fraction_group = run_to_fraction_group.find(ratio_runs[i]);
@@ -199,7 +200,7 @@ namespace OpenMS
     {
       const auto& ids = feature.getPeptideIdentifications();
       if (ids.empty() || ids[0].getHits().empty()) { continue; }
-      const auto ratios = peptide_ratios_.find(ids[0].getHits()[0].getSequence());
+        const auto ratios = peptide_ratios_.find(MS1LabelState::peptideIdentity(ids[0].getHits()[0]));
       if (ratios == peptide_ratios_.end()) { continue; }
 
       IntList fraction_groups, channels, counts;
@@ -231,7 +232,7 @@ namespace OpenMS
         if (id.getHits().empty()) { continue; }
         const PeptideHit& hit = id.getHits()[0];
         const auto accessions = hit.extractProteinAccessionsSet();
-        peptide_accessions[hit.getSequence()].insert(accessions.begin(), accessions.end());
+        peptide_accessions[MS1LabelState::peptideIdentity(hit)].insert(accessions.begin(), accessions.end());
       }
     };
     for (const ConsensusFeature& feature : consensus) { collect(feature.getPeptideIdentifications()); }

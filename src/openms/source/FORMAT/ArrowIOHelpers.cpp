@@ -482,6 +482,7 @@ std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInter
     }
   };
   add(MS1LabelState::LABELED_SEQUENCE, keys.labeled_sequence);
+  add(MS1LabelState::PEPTIDE_IDENTITY, keys.peptide_identity);
   add(MS1LabelState::REMOVED_LABELS, keys.removed_labels);
   add(MS1LabelState::CHANNEL, keys.channel);
   return params;

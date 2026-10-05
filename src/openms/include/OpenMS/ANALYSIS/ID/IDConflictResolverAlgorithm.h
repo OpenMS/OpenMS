@@ -11,6 +11,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 //-------------------------------------------------------------
@@ -246,7 +247,7 @@ protected:
           const PeptideHit& highest_score_hit = hits.front();
           
           // Pair <charge, sequence> of charge of the new feature and the sequence of its highest scoring peptide hit.
-          std::pair<Int, AASequence> pair = std::make_pair(element.getCharge(), highest_score_hit.getSequence());
+          std::pair<Int, AASequence> pair = std::make_pair(element.getCharge(), MS1LabelState::peptideIdentity(highest_score_hit));
           
           // If a <charge, sequence> pair is not yet in the FeatureSet or new feature `feature_in_set`
           // has higher intensity than its counterpart `feature_set[<charge, sequence>]`

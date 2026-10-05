@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
@@ -334,11 +335,11 @@ namespace OpenMS
       std::string lookup_seq;
       if (!treat_modification_variants_separately)
       {
-        lookup_seq = hit.getSequence().toUnmodifiedString();
+        lookup_seq = MS1LabelState::peptideIdentity(hit).toUnmodifiedString();
       }
       else
       {
-        lookup_seq = hit.getSequence().toString();
+        lookup_seq = MS1LabelState::peptideIdentity(hit).toString();
       }
 
       int lookup_charge = 0;

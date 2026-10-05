@@ -9,6 +9,7 @@
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 
 using namespace std;
 
@@ -31,7 +32,7 @@ namespace OpenMS
       {
         continue; // shouldn't be the case
       }
-      annotations_.insert(pep_it->getHits()[0].getSequence());
+      annotations_.insert(MS1LabelState::peptideIdentity(pep_it->getHits()[0]));
     }
   }
 

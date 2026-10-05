@@ -18,12 +18,13 @@ namespace OpenMS::MS1LabelState
 {
   const std::vector<std::string>& keys()
   {
-    static const std::vector<std::string> k{LABELED_SEQUENCE, REMOVED_LABELS, CHANNEL};
+    static const std::vector<std::string> k{LABELED_SEQUENCE, PEPTIDE_IDENTITY, REMOVED_LABELS, CHANNEL};
     return k;
   }
 
   Keys::Keys() :
     labeled_sequence(MetaInfo::registry().getIndex(LABELED_SEQUENCE)),
+    peptide_identity(MetaInfo::registry().getIndex(PEPTIDE_IDENTITY)),
     removed_labels(MetaInfo::registry().getIndex(REMOVED_LABELS)),
     channel(MetaInfo::registry().getIndex(CHANNEL))
   {
@@ -97,6 +98,25 @@ namespace OpenMS::MS1LabelState
   {
     if (!hasMatchedSequence(hit)) { return hit.getSequence(); }
     return parseOrFallback(hit.getMetaValue(LABELED_SEQUENCE).toString(), hit.getSequence());
+  }
+
+  AASequence peptideIdentity(const PeptideHit& hit, const Keys& keys)
+  {
+    if (keys.peptide_identity == static_cast<UInt>(-1) || !hit.metaValueExists(keys.peptide_identity))
+    {
+      return hit.getSequence();
+    }
+    const std::string value = hit.getMetaValue(keys.peptide_identity).toString();
+    if (value.empty()) { return hit.getSequence(); }
+    return parseOrFallback(value, hit.getSequence());
+  }
+
+  AASequence peptideIdentity(const PeptideHit& hit)
+  {
+    if (!hit.metaValueExists(PEPTIDE_IDENTITY)) { return hit.getSequence(); }
+    const std::string value = hit.getMetaValue(PEPTIDE_IDENTITY).toString();
+    if (value.empty()) { return hit.getSequence(); }
+    return parseOrFallback(value, hit.getSequence());
   }
 
   PeptideHit withMatchedSequence(const PeptideHit& hit)

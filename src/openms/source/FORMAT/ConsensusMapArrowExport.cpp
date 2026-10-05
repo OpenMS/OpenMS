@@ -722,7 +722,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     // === sequence / peptidoform ===
     if (best_hit)
     {
-      const auto& seq = best_hit->getSequence();
+      const AASequence seq = MS1LabelState::peptideIdentity(*best_hit, label_state_keys);
       (void)sequence_builder.Append(seq.toUnmodifiedString());
       auto pf = ProForma::fromAASequence(seq);
       peptidoform = ProForma::toString(pf, ProForma::WriteMode::CANONICAL);
@@ -738,8 +738,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
         // mass_error_ppm = (observed - calculated) / calculated * 1e6
         //
         // Only if both sides describe the same peptidoform, which in MS1-labeled data they need
-        // not: the label belongs to the channel, so the workflow reduces every hit to its
-        // label-free peptide identity (MS1LabelState) and calculated_mz above is that identity,
+        // not: calculated_mz above is the peptide identity (MS1LabelState),
         // while observed_mz is the consensus centroid, anchored on channel 1. Where channel 1 is
         // itself unlabeled (SILAC light) the two agree and the error is a real measurement.
         // Where channel 1 carries a label (Dimethyl0, or a SILAC set without a light channel)

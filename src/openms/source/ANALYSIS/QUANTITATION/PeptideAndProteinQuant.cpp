@@ -24,6 +24,7 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -83,7 +84,7 @@ namespace OpenMS
       if (pep.getHits().empty()) continue;
       pep.sort(); // TODO: move this out of count peptides
       const PeptideHit& hit = pep.getHits()[0]; // get best hit
-      PeptideData& data = pep_quant_[hit.getSequence()];
+      PeptideData& data = pep_quant_[MS1LabelState::peptideIdentity(hit)];
       data.psm_count++;
 
       // add protein accessions:
@@ -107,7 +108,7 @@ namespace OpenMS
          pep_it != peptides.end(); ++pep_it)
     {
       const PeptideHit& current = pep_it->getHits()[0];
-      if (current.getSequence() != hit.getSequence())
+      if (MS1LabelState::peptideIdentity(current) != MS1LabelState::peptideIdentity(hit))
       {
         // TODO?: warn/error that ambiguous sequences are annotated. check if this can happen
         return {};
@@ -127,7 +128,7 @@ namespace OpenMS
     if (hit == PeptideHit()) { return; }
 
     stats_.quant_features++;
-    const AASequence& seq = hit.getSequence();
+    const AASequence seq = MS1LabelState::peptideIdentity(hit);
     //TODO The practice of inserting elements with the [] should be forbidden.
     // It is a debugging nightmare because if you try to access it and it is
     // not there, you are adding another element. In a next iteration this whole
@@ -994,7 +995,7 @@ namespace OpenMS
       if (hit.isDecoy()) continue;
 
       stats_.quant_features++;
-      const AASequence& seq = hit.getSequence();
+      const AASequence seq = MS1LabelState::peptideIdentity(hit);
       const std::string& ms_file_path = identifier_idmergeidx_to_ms_file[{p.getIdentifier(),id_merge_idx}];
 
       // determine sample and fraction by MS file name (stored in protein identification)

@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <numeric>
@@ -798,7 +799,7 @@ namespace OpenMS
       const vector<PeptideHit>& peptide_hits = peptide_id.getHits();
       for (const auto & peptide_hit : peptide_hits)
       {
-        const AASequence& aas = peptide_hit.getSequence();
+        const AASequence aas = MS1LabelState::peptideIdentity(peptide_hit);
         const vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
 
         // skip unmodified peptides

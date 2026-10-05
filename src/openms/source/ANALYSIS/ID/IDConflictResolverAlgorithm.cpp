@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 
 #include <limits>    // for std::numeric_limits
 #include <set>
@@ -211,7 +212,7 @@ namespace OpenMS
       pos = min_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
     }
 
-    const AASequence& best = (*pos).getHits()[0].getSequence();
+    const AASequence best = MS1LabelState::peptideIdentity((*pos).getHits()[0]);
     std::swap(*peptides.begin(), *pos); // put best on first position
 
     // filter for matching PEP Sequence and move to unassigned/removed
@@ -221,7 +222,7 @@ namespace OpenMS
       auto hit = hits.begin();
       for (; hit != hits.end(); ++hit)
       {
-        if (hit->getSequence() == best)
+        if (MS1LabelState::peptideIdentity(*hit) == best)
         {
           break;
         }
@@ -356,7 +357,7 @@ namespace OpenMS
 
       for (Size j = 0; j < hits.size(); ++j)
       {
-        const AASequence& seq = hits[j].getSequence();
+        const AASequence seq = MS1LabelState::peptideIdentity(hits[j]);
         if (!seen_in_run.contains(seq))
         {
           // First occurrence of this sequence in this ID: use its rank
@@ -396,7 +397,7 @@ namespace OpenMS
     {
       for (const PeptideHit& hit : it->getHits())
       {
-        if (hit.getSequence() == best_seq)
+        if (MS1LabelState::peptideIdentity(hit) == best_seq)
         {
           if (best_id_it == peptides.end() ||
               (higher_better  && hit.getScore() > best_original_score) ||
@@ -434,7 +435,7 @@ namespace OpenMS
     const vector<PeptideHit>& best_hits = best_id_it->getHits();
     for (const PeptideHit& hit : best_hits)
     {
-      if (hit.getSequence() == best_seq)
+      if (MS1LabelState::peptideIdentity(hit) == best_seq)
       {
         best_id_it->setHits({hit});
         break;

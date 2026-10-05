@@ -22,13 +22,34 @@ START_TEST(MS1LabelState, "$Id$")
 START_SECTION((const std::vector<std::string>& keys()))
 {
   const auto& keys = MS1LabelState::keys();
-  TEST_EQUAL(keys.size(), 3)
+  TEST_EQUAL(keys.size(), 4)
   TEST_EQUAL(keys[0], MS1LabelState::LABELED_SEQUENCE)
-  TEST_EQUAL(keys[1], MS1LabelState::REMOVED_LABELS)
-  TEST_EQUAL(keys[2], MS1LabelState::CHANNEL)
+  TEST_EQUAL(keys[1], MS1LabelState::PEPTIDE_IDENTITY)
+  TEST_EQUAL(keys[2], MS1LabelState::REMOVED_LABELS)
+  TEST_EQUAL(keys[3], MS1LabelState::CHANNEL)
   TEST_EQUAL(MS1LabelState::LABELED_SEQUENCE, "MS1Label:labeled_sequence")
+  TEST_EQUAL(MS1LabelState::PEPTIDE_IDENTITY, "MS1Label:peptide_identity")
   TEST_EQUAL(MS1LabelState::REMOVED_LABELS, "MS1Label:removed_labels")
   TEST_EQUAL(MS1LabelState::CHANNEL, "MS1Label:channel")
+}
+END_SECTION
+
+START_SECTION((AASequence peptideIdentity(const PeptideHit& hit)))
+{
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDEM(Oxidation)K(Label:13C(6)15N(2))"));
+  TEST_EQUAL(MS1LabelState::peptideIdentity(hit).toString(), hit.getSequence().toString())
+
+  hit.setMetaValue(MS1LabelState::PEPTIDE_IDENTITY, "PEPTIDEM(Oxidation)K");
+  const AASequence identity = MS1LabelState::peptideIdentity(hit);
+  TEST_EQUAL(identity.toString(), "PEPTIDEM(Oxidation)K")
+  TEST_EQUAL(MS1LabelState::peptideIdentity(hit, MS1LabelState::Keys()).toString(), identity.toString())
+
+  PeptideHit light;
+  light.setSequence(AASequence::fromString("PEPTIDEM(Oxidation)K"));
+  light.setMetaValue(MS1LabelState::PEPTIDE_IDENTITY, "PEPTIDEM(Oxidation)K");
+  TEST_EQUAL(MS1LabelState::peptideIdentity(light), identity)
+  TEST_NOT_EQUAL(MS1LabelState::peptideIdentity(light), AASequence::fromString("PEPTIDEMK"))
 }
 END_SECTION
 
@@ -49,7 +70,7 @@ START_SECTION((AASequence matchedSequence(const PeptideHit& hit)))
   // no label state recorded: the sequence itself
   TEST_EQUAL(MS1LabelState::matchedSequence(hit).toString(), "PEPTIDEK")
 
-  // reduced to the peptide identity: the peptidoform as matched
+  // A legacy file may store the identity as the sequence and the match in this metadata.
   hit.setMetaValue(MS1LabelState::LABELED_SEQUENCE, "PEPTIDEK(Label:13C(6)15N(2))");
   const AASequence matched = MS1LabelState::matchedSequence(hit);
   TEST_EQUAL(matched.toString(), "PEPTIDEK(Label:13C(6)15N(2))")
