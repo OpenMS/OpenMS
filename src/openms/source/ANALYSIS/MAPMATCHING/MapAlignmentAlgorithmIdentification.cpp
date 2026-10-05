@@ -343,10 +343,10 @@ namespace OpenMS
     return false;
   }
 
-  IdentificationData::ScoreTypeRef
-  MapAlignmentAlgorithmIdentification::handleIdDataScoreType_(const IdentificationData& id_data)
+  LegacyIdentificationData::ScoreTypeRef
+  MapAlignmentAlgorithmIdentification::handleIdDataScoreType_(const LegacyIdentificationData& id_data)
   {
-    IdentificationData::ScoreTypeRef score_ref;
+    LegacyIdentificationData::ScoreTypeRef score_ref;
     if (score_type_.empty()) // choose a score type
     {
       score_ref = id_data.pickScoreType(id_data.getObservationMatches());
@@ -374,15 +374,15 @@ namespace OpenMS
 
 
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-    const IdentificationData& id_data, SeqToList& rt_data)
+    const LegacyIdentificationData& id_data, SeqToList& rt_data)
   {
     // @TODO: should this get handled as an error?
     if (id_data.getObservationMatches().empty()) return true;
 
-    IdentificationData::ScoreTypeRef score_ref =
+    LegacyIdentificationData::ScoreTypeRef score_ref =
       handleIdDataScoreType_(id_data);
 
-    vector<IdentificationData::ObservationMatchRef> top_hits =
+    vector<LegacyIdentificationData::ObservationMatchRef> top_hits =
       id_data.getBestMatchPerObservation(score_ref);
 
     for (const auto& hit : top_hits)

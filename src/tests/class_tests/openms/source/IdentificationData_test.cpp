@@ -1,714 +1,248 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
-//
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
-
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/SYSTEM/SysInfo.h>
-#include <OpenMS/test_config.h>
-
-///////////////////////////
-
 #include <OpenMS/METADATA/ID/IdentificationData.h>
-#include <OpenMS/CHEMISTRY/ProteaseDB.h>
-
-#include <type_traits> // to check if movable
-
-///////////////////////////
-
-START_TEST(IdentificationData, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
+#include <limits>
+#include <stdexcept>
 
 using namespace OpenMS;
-using namespace std;
-
 using ID = IdentificationData;
 
-IdentificationData* ptr = nullptr;
-IdentificationData* null = nullptr;
-START_SECTION((IdentificationData()))
-  ptr = new IdentificationData();
-  TEST_NOT_EQUAL(ptr, null);
-END_SECTION
-
-START_SECTION((movable))
-  TEST_TRUE(std::is_nothrow_move_constructible_v<IdentificationData>);
-  TEST_TRUE(std::is_nothrow_move_assignable_v<IdentificationData>);  
-END_SECTION
-
-
-START_SECTION((~IdentificationData()))
-  delete ptr;
-END_SECTION
-
-IdentificationData data;
-ID::InputFileRef file_ref;
-ID::ProcessingSoftwareRef sw_ref;
-ID::SearchParamRef param_ref;
-ID::ProcessingStepRef step_ref;
-ID::ScoreTypeRef score_ref;
-ID::ObservationRef obs_ref;
-ID::ParentSequenceRef protein_ref, rna_ref;
-ID::IdentifiedPeptideRef peptide_ref;
-ID::IdentifiedOligoRef oligo_ref;
-ID::IdentifiedCompoundRef compound_ref;
-ID::AdductRef adduct_ref;
-ID::ObservationMatchRef match_ref1, match_ref2, match_ref3;
-
-START_SECTION((const InputFiles& getInputFiles() const))
+namespace
 {
-  TEST_EQUAL(data.getInputFiles().empty(), true);
-  // tested further below
+ID::MatchData peptide(const std::string& sequence = "PEPTIDE")
+{
+  ID::MatchData data;
+  data.representation = sequence;
+  data.charge = 2;
+  return data;
+}
+ID::ScoreDefinition score(const std::string& name = "raw", bool higher = true)
+{
+  ID::ScoreDefinition result;
+  result.name = name;
+  result.higher_better = higher;
+  return result;
+}
+} // namespace
+
+START_TEST(IdentificationData, "$Id$")
+START_SECTION((run - local scores, primary coverage and schema guards))
+{
+  ID::Run run("search");
+  auto source = run.addSource({});
+  auto raw = run.addScore(score());
+  auto query = run.addIdentification(source, {});
+  auto a = run.addMatch(query, peptide(), {3.0});
+  auto b = run.addMatch(query, peptide("OTHER"), {2.0});
+  run.setPrimaryScore(raw);
+  TEST_REAL_SIMILAR(*run.getScore(a, raw), 3.0)
+  TEST_EXCEPTION(Exception::InvalidValue, run.replaceMatch(a, peptide("DIFFERENT")))
+  TEST_EXCEPTION(Exception::InvalidValue, run.replaceMatch(a, peptide("DIFFERENT"), {}))
+  run.replaceMatch(a, peptide("DIFFERENT"), {4.0});
+  TEST_REAL_SIMILAR(*run.getScore(a, raw), 4.0)
+  run.replaceMatch(a, peptide(), {3.0});
+  TEST_EXCEPTION(Exception::InvalidValue, run.addMatch(query, peptide()))
+  TEST_EXCEPTION(Exception::InvalidValue, run.setScore(a, raw, std::nullopt))
+  TEST_EXCEPTION(Exception::InvalidValue, run.setScore(a, raw, std::numeric_limits<double>::infinity()))
+  auto bound = run.bindScore(raw);
+  TEST_REAL_SIMILAR(*bound(run.getMatch(a)), 3.0)
+  auto qvalue = run.addScore(score("q-value", false));
+  TEST_EXCEPTION(Exception::InvalidValue, bound(run.getMatch(a)))
+  TEST_REAL_SIMILAR(*run.getScore(a, raw), 3.0)
+  TEST_EXCEPTION(Exception::InvalidValue, run.setPrimaryScore(qvalue))
+  run.setScore(a, qvalue, 0.0);
+  run.setScore(b, qvalue, 0.02);
+  run.setPrimaryScore(qvalue);
+  TEST_TRUE(run.getPrimaryScore() == qvalue)
+  TEST_REAL_SIMILAR(*run.getScore(a, qvalue), 0.0)
+  ID::Run copy(run);
+  TEST_EQUAL(copy.getUuid(), run.getUuid())
+  TEST_REAL_SIMILAR(*copy.getScore(a, raw), 3.0)
+  auto copy_score = copy.addScore(score("copy-only"));
+  auto original_score = run.addScore(score("original-only"));
+  TEST_EQUAL(copy_score.value, original_score.value)
+  TEST_EXCEPTION(Exception::InvalidValue, run.getScore(a, copy_score))
+  TEST_EXCEPTION(Exception::InvalidValue, copy.getScore(a, original_score))
+  auto foreign_source = copy.addSource({});
+  run.addSource({});
+  TEST_EXCEPTION(Exception::InvalidValue, run.addIdentification(foreign_source, {}))
+  ID::Run independent("independent");
+  auto foreign_score = independent.addScore(score());
+  TEST_EXCEPTION(Exception::InvalidValue, run.getScore(a, foreign_score))
+  run.validate();
+  copy.validate();
 }
 END_SECTION
 
-START_SECTION((InputFileRef registerInputFile(const InputFile& file)))
+START_SECTION((filtering is atomic, keeps stable IDs and clears removed selections))
 {
-  ID::InputFile file("test.mzML");
-  file_ref = data.registerInputFile(file);
-  TEST_EQUAL(data.getInputFiles().size(), 1);
-  TEST_STRING_EQUAL(file_ref->name, file.name);
-  // re-registering doesn't lead to redundant entries:
-  data.registerInputFile(file);
-  TEST_EQUAL(data.getInputFiles().size(), 1);
+  ID::Run run("search");
+  auto source = run.addSource({});
+  auto raw = run.addScore(score());
+  auto query = run.addIdentification(source, {});
+  auto a = run.addMatch(query, peptide(), {1.0});
+  auto b = run.addMatch(query, peptide(), {2.0});
+  auto empty = run.addIdentification(source, {});
+  run.setSelectedMatch(query, b);
+  TEST_EXCEPTION(Exception::InvalidValue, run.setSelectedMatch(empty, b))
+  Size calls = 0;
+  TEST_EXCEPTION(std::runtime_error, run.filterMatches([&](const ID::Match&) {
+    if (++calls == 2) throw std::runtime_error("stop");
+    return false;
+  }))
+  TEST_EQUAL(run.getNumberOfMatches(), 2)
+  TEST_TRUE(run.getIdentification(query).getSelectedMatch() == b)
+  TEST_EXCEPTION(Exception::InvalidValue, run.filterMatches([&](const ID::Match&) {
+    run.setScore(a, raw, 9.0);
+    return true;
+  }))
+  TEST_EXCEPTION(Exception::InvalidValue, run.transformMatches([&](ID::MatchData&) { run = ID::Run("replacement"); }))
+  TEST_REAL_SIMILAR(*run.getScore(a, raw), 1.0)
+  auto next = run.getNextMatchId();
+  TEST_EQUAL(run.filterMatches([&](const ID::Match& match) { return match.getId() == a; }, true), 1)
+  TEST_EQUAL(run.getNumberOfIdentifications(), 2)
+  TEST_TRUE(run.findIdentification(empty) != nullptr)
+  TEST_TRUE(run.findMatch(b) == nullptr)
+  TEST_EXCEPTION(Exception::InvalidValue, run.importMatch(query, b, peptide(), {2.0}))
+  TEST_TRUE(! run.getIdentification(query).getSelectedMatch())
+  TEST_EQUAL(run.getNextMatchId(), next)
+  auto c = run.addMatch(query, peptide(), {0.0});
+  TEST_TRUE(c.value > b.value)
+  TEST_TRUE(run.getMatch(a).getId() == a)
+  TEST_EQUAL(run.retainBest(raw), 1)
+  TEST_EQUAL(run.getNumberOfIdentifications(), 1)
+  TEST_TRUE(run.findIdentification(empty) == nullptr)
+  TEST_TRUE(run.findMatch(a) != nullptr)
+  run.validate();
 }
 END_SECTION
 
-START_SECTION((const ProcessingSoftwares& getProcessingSoftwares() const))
+START_SECTION((transform validation preserves original payloads and optional adduct ownership))
 {
-  TEST_EQUAL(data.getProcessingSoftwares().empty(), true);
-  // tested further below
+  ID::Run run("compounds", ID::MoleculeKind::COMPOUND);
+  auto source = run.addSource({});
+  auto query = run.addIdentification(source, {});
+  ID::MatchData data;
+  data.representation = "CCO";
+  data.encoding = ID::Encoding::SMILES;
+  data.charge = 1;
+  data.adduct = AdductInfo::parseAdductString("M+H;1+");
+  auto first = run.addMatch(query, data);
+  auto second = run.addMatch(query, data);
+  data.adduct.reset();
+  TEST_TRUE(run.getMatch(first).adduct.has_value())
+  Size calls = 0;
+  TEST_EXCEPTION(Exception::InvalidValue, run.transformMatches([&](ID::MatchData& match) {
+    match.name = "changed";
+    if (++calls == 2) match.charge = 2;
+  }))
+  TEST_EQUAL(run.getMatch(first).name, "")
+  TEST_EQUAL(run.getMatch(second).charge, 1)
+  run.transformMatches([](ID::MatchData& match) { match.name = "ethanol"; });
+  TEST_EQUAL(run.getMatch(first).name, "ethanol")
+  ID::Run copy(run);
+  auto changed = copy.getMatch(first).getData();
+  changed.adduct.reset();
+  TEST_EXCEPTION(Exception::InvalidValue, copy.replaceMatch(first, changed))
+  copy.replaceMatch(first, changed, {});
+  TEST_TRUE(run.getMatch(first).adduct.has_value())
+  TEST_TRUE(! copy.getMatch(first).adduct.has_value())
+  TEST_EXCEPTION(Exception::InvalidValue, run.addMatch(query, peptide()))
 }
 END_SECTION
 
-START_SECTION((ProcessingSoftwareRef registerProcessingSoftware(const Software& software)))
+START_SECTION((persistent import preserves order and reserves IDs without renumbering))
 {
-  ID::ProcessingSoftware sw("Tool", "1.0");
-  sw_ref = data.registerProcessingSoftware(sw);
-  TEST_EQUAL(data.getProcessingSoftwares().size(), 1);
-  TEST_EQUAL(*sw_ref == sw, true); // "TEST_EQUAL(*sw_ref, sw)" doesn't compile - same below
-  // re-registering doesn't lead to redundant entries:
-  data.registerProcessingSoftware(sw);
-  TEST_EQUAL(data.getProcessingSoftwares().size(), 1);
+  ID::Run run("restored");
+  auto source = run.addSource({});
+  auto query = run.importIdentification(source, {50}, {});
+  run.importIdentification(source, {2}, {});
+  auto high = run.importMatch(query, {900}, peptide());
+  auto low = run.importMatch(query, {3}, peptide());
+  TEST_EQUAL(run.getIdentification(query).getMatches()[0].getId().value, 900)
+  TEST_EQUAL(run.getIdentification(query).getMatches()[1].getId().value, 3)
+  TEST_EXCEPTION(Exception::InvalidValue, run.importMatch(query, high, peptide()))
+  TEST_EXCEPTION(Exception::InvalidValue, run.importIdentification(source, {0}, {}))
+  const std::string uuid = "12345678-1234-4234-8234-123456789abc";
+  run.restoreIdentity(uuid, 100, 1000);
+  TEST_EQUAL(run.getUuid(), uuid)
+  TEST_EQUAL(run.getNextQueryId(), 100)
+  TEST_EQUAL(run.getNextMatchId(), 1000)
+  TEST_EXCEPTION(Exception::InvalidValue, run.restoreIdentity(uuid, 1, 1))
+  run.filterMatches([&](const ID::Match& match) { return match.getId() == low; });
+  TEST_EQUAL(run.getMatch(low).getId().value, 3)
+  TEST_EQUAL(run.addMatch(query, peptide()).value, 1000)
+  run.reserveMatchId({5000});
+  TEST_EQUAL(run.addMatch(query, peptide()).value, 5001)
+  TEST_EXCEPTION(Exception::InvalidValue, run.reserveMatchId({std::numeric_limits<UInt64>::max()}))
+  run.validate();
 }
 END_SECTION
 
-START_SECTION((const DBSearchParams& getDBSearchParams() const))
+START_SECTION((pooled inference is owned provenance and survives filtering and replacement))
 {
-  TEST_EQUAL(data.getDBSearchParams().empty(), true);
-  // tested further below
+  ID data;
+  auto& first = data.addRun("A");
+  auto source = first.addSource({});
+  first.addScore(score());
+  auto query = first.addIdentification(source, {});
+  auto removed = first.addMatch(query, peptide(), {1.0});
+  auto kept = first.addMatch(query, peptide(), {2.0});
+  const auto uuid = first.getUuid();
+  const auto before_provenance = first;
+  data.addRun("B");
+  ID::InferenceResult inference;
+  inference.identifier = "pooled";
+  inference.inputs.push_back({"A", uuid, score(), {removed, kept, removed}, true, "all candidates"});
+  inference.inputs.push_back({"B", data.getRun("B").getUuid(), std::nullopt, {}, false, {}});
+  inference.assignments.push_back({"A", uuid, removed, 0, {{"db", "protein"}}});
+  inference.assignments.push_back({"A", uuid, {8000}, 0, {}});
+  data.addInferenceResult(inference);
+  TEST_EQUAL(data.getRun("A").getNextMatchId(), 8001)
+  data.getRun("A") = before_provenance;
+  TEST_EQUAL(data.getRun("A").getNextMatchId(), 8001)
+  TEST_EXCEPTION(Exception::InvalidValue, data.getRun("A").importMatch(query, {8000}, peptide(), {1.0}))
+  auto old = data.getRun("A");
+  const auto* address = &data.getRun("A");
+  TEST_EQUAL(data.filterMatches([&](const ID::Match& match) { return match.getId() == kept; }, ID::InferencePolicy::PRESERVE), 1)
+  TEST_EQUAL(data.getInferenceResults().size(), 1)
+  TEST_TRUE(address == &data.getRun("A"))
+  TEST_EQUAL(data.getInferenceResults()[0].inputs[0].matches.size(), 3)
+  TEST_TRUE(data.getRun("A").findMatch(removed) == nullptr)
+  TEST_EQUAL(data.getInferenceResults()[0].assignments[1].parents.size(), 0)
+  old.filterMatches([&](const ID::Match& match) { return match.getId() == kept; });
+  data.replaceRun(old);
+  TEST_EQUAL(data.getRun("A").getNextMatchId(), 8001)
+  TEST_EXCEPTION(Exception::InvalidValue, data.filterMatches(
+                                            [&](const ID::Match&) {
+                                              data = ID();
+                                              return true;
+                                            },
+                                            ID::InferencePolicy::PRESERVE))
+  TEST_EQUAL(data.getRun("A").getNumberOfMatches(), 1)
+  TEST_EQUAL(data.getInferenceResults().size(), 1)
+  data.validate();
+  data.filterMatches([](const ID::Match&) { return true; }, ID::InferencePolicy::DISCARD);
+  TEST_EQUAL(data.getInferenceResults().size(), 0)
+  TEST_EQUAL(data.getRun("A").getNumberOfMatches(), 1)
 }
 END_SECTION
 
-START_SECTION((SearchParamRef registerDBSearchParam(const DBSearchParam& param)))
+START_SECTION((absent provenance runs cannot collide with later independent imports))
 {
-  ID::DBSearchParam param;
-  param.database = "test-db.fasta";
-  param.precursor_mass_tolerance = 1;
-  param.fragment_mass_tolerance = 2;
-  param_ref = data.registerDBSearchParam(param);
-  TEST_EQUAL(data.getDBSearchParams().size(), 1);
-  TEST_EQUAL(*param_ref == param, true);
-  // re-registering doesn't lead to redundant entries:
-  data.registerDBSearchParam(param);
-  TEST_EQUAL(data.getDBSearchParams().size(), 1);
+  ID data;
+  ID::Run absent("absent");
+  ID::InferenceResult inference;
+  inference.identifier = "external";
+  inference.inputs.push_back({"absent", absent.getUuid(), {}, {{42}}, true, {}});
+  data.addInferenceResult(inference);
+  TEST_EXCEPTION(Exception::InvalidValue, data.addRun(absent))
+  data.validate();
 }
 END_SECTION
-
-START_SECTION((const ProcessingSteps& getProcessingSteps() const))
-{
-  TEST_EQUAL(data.getProcessingSteps().empty(), true);
-  // tested further below
-}
-END_SECTION
-
-START_SECTION((ProcessingStepRef registerProcessingStep(const ProcessingStep& step)))
-{
-  vector<ID::InputFileRef> file_refs(1, file_ref);
-  ID::ProcessingStep step(sw_ref, file_refs);
-  step_ref = data.registerProcessingStep(step);
-  TEST_EQUAL(data.getProcessingSteps().size(), 1);
-  TEST_EQUAL(*step_ref == step, true);
-  // re-registering doesn't lead to redundant entries:
-  data.registerProcessingStep(step);
-  TEST_EQUAL(data.getProcessingSteps().size(), 1);
-}
-END_SECTION
-
-START_SECTION((const ProcessingSteps& getDBSearchSteps() const))
-{
-  TEST_EQUAL(data.getDBSearchSteps().empty(), true);
-  // tested further below
-}
-END_SECTION
-
-START_SECTION((ProcessingStepRef registerProcessingStep(const ProcessingStep& step, SearchParamRef search_ref)))
-{
-  ID::ProcessingStep step(sw_ref);
-  step_ref = data.registerProcessingStep(step, param_ref);
-  TEST_EQUAL(data.getProcessingSteps().size(), 2);
-  TEST_EQUAL(*step_ref == step, true);
-  TEST_EQUAL(data.getDBSearchSteps().size(), 1);
-  TEST_EQUAL(data.getDBSearchSteps().at(step_ref), param_ref);
-  // re-registering doesn't lead to redundant entries:
-  data.registerProcessingStep(step, param_ref);
-  TEST_EQUAL(data.getProcessingSteps().size(), 2);
-  TEST_EQUAL(data.getDBSearchSteps().size(), 1);
-}
-END_SECTION
-
-START_SECTION((const ScoreTypes& getScoreTypes() const))
-{
-  TEST_EQUAL(data.getScoreTypes().empty(), true);
-  // tested further below
-}
-END_SECTION
-
-START_SECTION((ScoreTypeRef registerScoreType(const ScoreType& score)))
-{
-  ID::ScoreType score("test_score", true);
-  score_ref = data.registerScoreType(score);
-  TEST_EQUAL(data.getScoreTypes().size(), 1);
-  TEST_EQUAL(*score_ref == score, true);
-  // re-registering doesn't lead to redundant entries:
-  data.registerScoreType(score);
-  TEST_EQUAL(data.getScoreTypes().size(), 1);
-}
-END_SECTION
-
-START_SECTION((const Observations& getObservations() const))
-{
-  TEST_EQUAL(data.getObservations().empty(), true);
-  // tested further below
-}
-END_SECTION
-
-START_SECTION((ObservationRef registerObservation(const Observation& obs)))
-{
-  ID::Observation obs("spectrum_1", file_ref, 100.0, 1000.0);
-  obs_ref = data.registerObservation(obs);
-  TEST_EQUAL(data.getObservations().size(), 1);
-  TEST_EQUAL(*obs_ref == obs, true);
-  // re-registering doesn't lead to redundant entries:
-  data.registerObservation(obs);
-  TEST_EQUAL(data.getObservations().size(), 1);
-}
-END_SECTION
-
-START_SECTION((const ParentSequences& getParentSequences() const))
-{
-  TEST_EQUAL(data.getParentSequences().empty(), true);
-  // tested further below
-}
-END_SECTION
-
-START_SECTION((ParentSequenceRef registerParentSequence(const ParentSequence& parent)))
-{
-  ID::ParentSequence protein("");
-  // can't register a parent sequence without accession:
-  TEST_EXCEPTION(Exception::IllegalArgument,
-                 data.registerParentSequence(protein));
-  TEST_EQUAL(data.getParentSequences().empty(), true);
-
-  protein.accession = "protein_1";
-  protein.sequence = "TESTPEPTIDEAAA";
-  protein_ref = data.registerParentSequence(protein);
-  TEST_EQUAL(data.getParentSequences().size(), 1);
-  TEST_EQUAL(*protein_ref == protein, true);
-
-  ID::ParentSequence rna("rna_1", ID::MoleculeType::RNA);
-  rna_ref = data.registerParentSequence(rna);
-  TEST_EQUAL(data.getParentSequences().size(), 2);
-  TEST_EQUAL(*rna_ref == rna, true);
-  // re-registering doesn't lead to redundant entries:
-  data.registerParentSequence(rna);
-  TEST_EQUAL(data.getParentSequences().size(), 2);
-}
-END_SECTION
-
-START_SECTION((const ParentGroupSets& getParentGroupSets() const))
-{
-  TEST_EQUAL(data.getParentGroupSets().empty(), true);
-  // tested further below
-}
-END_SECTION
-
-START_SECTION((void registerParentGroupSet(const ParentGroupSet& groups)))
-{
-  ID::ParentGroup group;
-  group.parent_refs.insert(protein_ref);
-  group.parent_refs.insert(rna_ref);
-  ID::ParentGroupSet groups;
-  groups.label = "test_grouping";
-  groups.groups.insert(group);
-  data.registerParentGroupSet(groups);
-  TEST_EQUAL(data.getParentGroupSets().size(), 1);
-  TEST_EQUAL(data.getParentGroupSets()[0].groups.size(), 1);
-  TEST_EQUAL(data.getParentGroupSets()[0].groups.begin()->parent_refs.size(), 2);
-}
-END_SECTION
-
-START_SECTION((const IdentifiedPeptides& getIdentifiedPeptides() const))
-{
-  TEST_EQUAL(data.getIdentifiedPeptides().empty(), true);
-  // tested further below
-}
-END_SECTION
-
-START_SECTION((IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPeptide& peptide)))
-{
-  ID::IdentifiedPeptide peptide(AASequence::fromString(""));
-  // can't register a peptide without a sequence:
-  TEST_EXCEPTION(Exception::IllegalArgument,
-                 data.registerIdentifiedPeptide(peptide));
-  TEST_EQUAL(data.getIdentifiedPeptides().empty(), true);
-
-  // peptide without protein reference:
-  peptide.sequence = AASequence::fromString("TEST");
-  peptide_ref = data.registerIdentifiedPeptide(peptide);
-  TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
-  TEST_EQUAL(*peptide_ref == peptide, true);
-
-  // peptide with protein reference:
-  peptide.sequence = AASequence::fromString("PEPTIDE");
-  peptide.parent_matches[protein_ref].insert(ID::
-                                             ParentMatch(4, 10));
-  peptide_ref = data.registerIdentifiedPeptide(peptide);
-  TEST_EQUAL(data.getIdentifiedPeptides().size(), 2);
-  TEST_EQUAL(*peptide_ref == peptide, true);
-
-  // re-registering doesn't lead to redundant entries:
-  data.registerIdentifiedPeptide(peptide);
-  TEST_EQUAL(data.getIdentifiedPeptides().size(), 2);
-
-  // registering a peptide with RNA reference doesn't work:
-  peptide.parent_matches[rna_ref];
-  TEST_EXCEPTION(Exception::IllegalArgument,
-                 data.registerIdentifiedPeptide(peptide));
-}
-END_SECTION
-
-START_SECTION((const IdentifiedOligos& getIdentifiedOligos() const))
-{
-  TEST_EQUAL(data.getIdentifiedOligos().empty(), true);
-  // tested further below
-}
-END_SECTION
-
-START_SECTION((IdentifiedOligoRef registerIdentifiedOligo(const IdentifiedOligo& oligo)))
-{
-  ID::IdentifiedOligo oligo(NASequence::fromString(""));
-  // can't register an oligo without a sequence:
-  TEST_EXCEPTION(Exception::IllegalArgument,
-                 data.registerIdentifiedOligo(oligo));
-  TEST_EQUAL(data.getIdentifiedOligos().empty(), true);
-
-  // oligo without RNA reference:
-  oligo.sequence = NASequence::fromString("ACGU");
-  oligo_ref = data.registerIdentifiedOligo(oligo);
-  TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
-  TEST_EQUAL(*oligo_ref == oligo, true);
-
-  // oligo with RNA reference:
-  oligo.sequence = NASequence::fromString("UGCA");
-  oligo.parent_matches[rna_ref];
-  oligo_ref = data.registerIdentifiedOligo(oligo);
-  TEST_EQUAL(data.getIdentifiedOligos().size(), 2);
-  TEST_EQUAL(*oligo_ref == oligo, true);
-
-  // re-registering doesn't lead to redundant entries:
-  data.registerIdentifiedOligo(oligo);
-  TEST_EQUAL(data.getIdentifiedOligos().size(), 2);
-
-  // registering an oligo with protein reference doesn't work:
-  oligo.parent_matches[protein_ref];
-  TEST_EXCEPTION(Exception::IllegalArgument,
-                 data.registerIdentifiedOligo(oligo));
-}
-END_SECTION
-
-START_SECTION((const IdentifiedCompounds& getIdentifiedCompounds() const))
-{
-  TEST_EQUAL(data.getIdentifiedCompounds().empty(), true);
-  // tested further below
-}
-END_SECTION
-
-START_SECTION((IdentifiedCompoundRef registerIdentifiedCompound(const IdentifiedCompound& compound)))
-{
-  ID::IdentifiedCompound compound("");
-  // can't register a compound without identifier:
-  TEST_EXCEPTION(Exception::IllegalArgument,
-                 data.registerIdentifiedCompound(compound));
-  TEST_EQUAL(data.getIdentifiedCompounds().empty(), true);
-
-  compound = ID::IdentifiedCompound("compound_1", EmpiricalFormula("C2H5OH"),
-                                    "ethanol");
-  compound_ref = data.registerIdentifiedCompound(compound);
-  TEST_EQUAL(data.getIdentifiedCompounds().size(), 1);
-  TEST_EQUAL(*compound_ref == compound, true);
-
-  // re-registering doesn't lead to redundant entries:
-  data.registerIdentifiedCompound(compound);
-  TEST_EQUAL(data.getIdentifiedCompounds().size(), 1);
-}
-END_SECTION
-
-START_SECTION((const Adducts& getAdducts() const))
-{
-  TEST_EQUAL(data.getAdducts().empty(), true);
-  // tested further below
-}
-END_SECTION
-
-START_SECTION((AdductRef registerAdduct(const AdductInfo& adduct)))
-{
-  AdductInfo adduct("Na+", EmpiricalFormula("Na"), 1);
-  adduct_ref = data.registerAdduct(adduct);
-  TEST_EQUAL(data.getAdducts().size(), 1);
-  TEST_EQUAL(*adduct_ref == adduct, true);
-}
-END_SECTION
-
-START_SECTION((const ObservationMatches& getObservationMatches() const))
-{
-  TEST_EQUAL(data.getObservationMatches().empty(), true);
-  // tested further below
-}
-END_SECTION
-
-START_SECTION((ObservationMatchRef registerObservationMatch(const ObservationMatch& match)))
-{
-  // match with a peptide:
-  ID::ObservationMatch match(peptide_ref, obs_ref, 3);
-  match_ref1 = data.registerObservationMatch(match);
-  TEST_EQUAL(data.getObservationMatches().size(), 1);
-  TEST_EQUAL(*match_ref1 == match, true);
-
-  // match with an oligo (+ adduct):
-  match = ID::ObservationMatch(oligo_ref, obs_ref, 2, adduct_ref);
-  match_ref2 = data.registerObservationMatch(match);
-  TEST_EQUAL(data.getObservationMatches().size(), 2);
-  TEST_EQUAL(*match_ref2 == match, true);
-  TEST_EQUAL((*match_ref2->adduct_opt)->getName(), "Na+");
-
-  // match with a compound:
-  match = ID::ObservationMatch(compound_ref, obs_ref, 1);
-  match_ref3 = data.registerObservationMatch(match);
-  TEST_EQUAL(data.getObservationMatches().size(), 3);
-  TEST_EQUAL(*match_ref3 == match, true);
-
-  // re-registering doesn't lead to redundant entries:
-  data.registerObservationMatch(match);
-  TEST_EQUAL(data.getObservationMatches().size(), 3);
-}
-END_SECTION
-
-START_SECTION((const ObservationMatchGroups& getObservationMatchGroups() const))
-{
-  TEST_EQUAL(data.getObservationMatchGroups().empty(), true);
-  // tested further below
-}
-END_SECTION
-
-START_SECTION((MatchGroupRef registerObservationMatchGroup(const ObservationMatchGroup& group)))
-{
-  ID::ObservationMatchGroup group;
-  group.observation_match_refs.insert(match_ref1);
-  group.observation_match_refs.insert(match_ref2);
-  group.observation_match_refs.insert(match_ref3);
-
-  data.registerObservationMatchGroup(group);
-  TEST_EQUAL(data.getObservationMatchGroups().size(), 1);
-  TEST_EQUAL(*data.getObservationMatchGroups().begin() == group, true);
-}
-END_SECTION
-
-START_SECTION((void addScore(ObservationMatchRef match_ref, ScoreTypeRef score_ref, double value)))
-{
-  TEST_EQUAL(match_ref1->steps_and_scores.empty(), true);
-  data.addScore(match_ref1, score_ref, 100.0);
-  TEST_EQUAL(match_ref1->steps_and_scores.size(), 1);
-  TEST_EQUAL(match_ref1->steps_and_scores.back().scores.begin()->first,
-             score_ref);
-  TEST_EQUAL(match_ref1->steps_and_scores.back().scores.begin()->second, 100.0);
-  TEST_EQUAL(match_ref2->steps_and_scores.empty(), true);
-  data.addScore(match_ref2, score_ref, 200.0);
-  TEST_EQUAL(match_ref2->steps_and_scores.size(), 1);
-  TEST_EQUAL(match_ref2->steps_and_scores.back().scores.begin()->first,
-             score_ref);
-  TEST_EQUAL(match_ref2->steps_and_scores.back().scores.begin()->second, 200.0);
-}
-END_SECTION
-
-START_SECTION((ProcessingStepRef getCurrentProcessingStep()))
-{
-  TEST_EQUAL(data.getCurrentProcessingStep() == data.getProcessingSteps().end(), true);
-  // tested further below
-}
-END_SECTION
-
-START_SECTION((void setCurrentProcessingStep(ProcessingStepRef step_ref)))
-{
-  data.setCurrentProcessingStep(step_ref);
-  TEST_EQUAL(data.getCurrentProcessingStep() == step_ref, true);
-  // registering new data automatically adds the processing step:
-  ID::IdentifiedPeptide peptide(AASequence::fromString("EDIT"));
-  peptide.parent_matches[protein_ref];
-  peptide_ref = data.registerIdentifiedPeptide(peptide);
-  TEST_EQUAL(peptide_ref->steps_and_scores.size(), 1);
-  TEST_EQUAL(peptide_ref->steps_and_scores.front().processing_step_opt ==
-             step_ref, true);
-}
-END_SECTION
-
-START_SECTION((void clearCurrentProcessingStep()))
-{
-  data.clearCurrentProcessingStep();
-  TEST_EQUAL(data.getCurrentProcessingStep() == data.getProcessingSteps().end(), true);
-}
-END_SECTION
-
-START_SECTION((pair<ID::ObservationMatchRef, ID::ObservationMatchRef> getMatchesForObservation(ObservationRef obs_ref) const))
-{
-  pair<ID::ObservationMatchRef, ID::ObservationMatchRef> result =
-    data.getMatchesForObservation(obs_ref);
-  TEST_EQUAL(distance(result.first, result.second), 3);
-  for (; result.first != result.second; ++result.first)
-  {
-    TEST_EQUAL((result.first == match_ref1) || (result.first == match_ref2) ||
-               (result.first == match_ref3), true);
-  }
-}
-END_SECTION
-
-START_SECTION((ScoreTypeRef findScoreType(const std::string& score_name) const))
-{
-  // non-existent score:
-  TEST_EQUAL(data.findScoreType("fake_score") == data.getScoreTypes().end(), true);
-  // registered score:
-  TEST_EQUAL(data.findScoreType("test_score") == score_ref, true);
-}
-END_SECTION
-
-START_SECTION((void calculateCoverages(bool check_molecule_length = false)))
-{
-  TEST_EQUAL(protein_ref->coverage, 0.0);
-  data.calculateCoverages();
-  TEST_REAL_SIMILAR(protein_ref->coverage, 0.5);
-  // partially overlapping peptide:
-  ID::IdentifiedPeptide peptide(AASequence::fromString("TESTPEP"));
-  peptide.parent_matches[protein_ref].insert(ID::ParentMatch(0, 6));
-  data.registerIdentifiedPeptide(peptide);
-  data.calculateCoverages();
-  TEST_REAL_SIMILAR(protein_ref->coverage, 11.0/14.0);
-}
-END_SECTION
-
-START_SECTION((void cleanup(bool require_observation_match = true, bool require_identified_sequence = true, bool require_parent_match = true, bool require_parent_group = false, bool require_match_group = false)))
-{
-  TEST_EQUAL(data.getIdentifiedPeptides().size(), 4);
-  TEST_EQUAL(data.getIdentifiedOligos().size(), 2);
-  data.cleanup(false);
-  // identified peptide/oligo without parent match is removed:
-  TEST_EQUAL(data.getIdentifiedPeptides().size(), 3);
-  TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
-  data.cleanup();
-  // identified peptides without matches are removed:
-  TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
-  TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
-}
-END_SECTION
-
-START_SECTION((ProcessingStepRef merge(const IdentificationData& other)))
-{
-  TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
-  TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
-  TEST_EQUAL(data.getParentSequences().size(), 2);
-  data.merge(data); // self-merge shouldn't change anything
-  TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
-  TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
-  TEST_EQUAL(data.getParentSequences().size(), 2);
-  IdentificationData other;
-  ID::IdentifiedPeptide peptide(AASequence::fromString("MASSSPEC"));
-  other.registerIdentifiedPeptide(peptide);
-  data.merge(other);
-  TEST_EQUAL(data.getIdentifiedPeptides().size(), 2);
-  TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
-  TEST_EQUAL(data.getParentSequences().size(), 2);
-}
-END_SECTION
-
-START_SECTION((IdentificationData(const IdentificationData& other)))
-{
-  IdentificationData copy(data);
-  TEST_EQUAL(copy.getIdentifiedPeptides().size(), 2);
-  TEST_EQUAL(copy.getIdentifiedOligos().size(), 1);
-  TEST_EQUAL(copy.getParentSequences().size(), 2);
-  TEST_EQUAL(copy.getObservationMatches().size(), 3);
-  // focus on processing steps and scores for observation matches:
-  IdentificationData data2;
-  ID::InputFile file("test.mzML");
-  auto file_ref = data2.registerInputFile(file);
-  ID::ProcessingSoftware sw("Tool", "1.0");
-  auto sw_ref = data2.registerProcessingSoftware(sw);
-  ID::ProcessingStep step(sw_ref, {file_ref});
-  auto step_ref = data2.registerProcessingStep(step);
-  data2.setCurrentProcessingStep(step_ref);
-  ID::Observation obs("spectrum_1", file_ref, 100.0, 1000.0);
-  auto obs_ref = data2.registerObservation(obs);
-  ID::IdentifiedPeptide peptide(AASequence::fromString("PEPTIDE"));
-  auto pep_ref = data2.registerIdentifiedPeptide(peptide);
-  ID::ObservationMatch match(pep_ref, obs_ref, 2);
-  ID::ScoreType score("score1", true);
-  auto score_ref1 = data2.registerScoreType(score);
-  score = ID::ScoreType("score2", false);
-  auto score_ref2 = data2.registerScoreType(score);
-  // add first score, not connected to a processing step:
-  match.addScore(score_ref1, 1.0);
-  auto match_ref = data2.registerObservationMatch(match);
-  // add second score, automatically connected to last processing step:
-  data2.addScore(match_ref, score_ref2, 2.0);
-  TEST_EQUAL(data2.getObservationMatches().begin()->steps_and_scores.size(), 2);
-  TEST_EQUAL(data2.getObservationMatches().begin()->getNumberOfScores(), 2);
-  // look up scores by score type:
-  TEST_EQUAL(data2.getObservationMatches().begin()->getScore(score_ref1).first, 1.0);
-  TEST_EQUAL(data2.getObservationMatches().begin()->getScore(score_ref2).first, 2.0);
-  // look up score by score type and (wrong) processing step -> fails:
-  TEST_EQUAL(data2.getObservationMatches().begin()->getScore(score_ref1, step_ref).second, false);
-  // look up score by score type and (correct) processing step -> succeeds:
-  TEST_EQUAL(data2.getObservationMatches().begin()->getScore(score_ref2, step_ref).first, 2.0);
-  auto triple = data2.getObservationMatches().begin()->getMostRecentScore();
-  TEST_EQUAL(std::get<0>(triple), 2.0);
-  TEST_EQUAL(std::get<1>(triple) == score_ref2, true);
-  // after copying:
-  IdentificationData copy2(data2);
-  TEST_EQUAL(copy2.getObservationMatches().begin()->steps_and_scores.size(), 2);
-  TEST_EQUAL(copy2.getObservationMatches().begin()->getNumberOfScores(), 2);
-  score_ref1 = copy2.findScoreType("score1");
-  TEST_EQUAL(copy2.getObservationMatches().begin()->getScore(score_ref1).first, 1.0);
-  score_ref2 = copy2.findScoreType("score2");
-  TEST_EQUAL(copy2.getObservationMatches().begin()->getScore(score_ref2).first, 2.0);
-  step_ref = copy2.getCurrentProcessingStep();
-  TEST_EQUAL(copy2.getObservationMatches().begin()->getScore(score_ref1, step_ref).second, false);
-  TEST_EQUAL(copy2.getObservationMatches().begin()->getScore(score_ref2, step_ref).first, 2.0);
-  triple = copy2.getObservationMatches().begin()->getMostRecentScore();
-  TEST_EQUAL(std::get<0>(triple), 2.0);
-  TEST_EQUAL(std::get<1>(triple) == score_ref2, true);
-}
-END_SECTION
-
-START_SECTION((vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref) const))
-{
-  // add a second observation and match (without score):
-  ID::Observation obs("spectrum_2", file_ref, 200.0, 2000.0);
-  ID::ObservationRef obs_ref2 = data.registerObservation(obs);
-  ID::ObservationMatch match(oligo_ref, obs_ref2, 2);
-  ID::ObservationMatchRef match_ref4 = data.registerObservationMatch(match);
-  TEST_EQUAL(data.getObservationMatches().size(), 4);
-  // best matches, requiring score:
-  vector<ID::ObservationMatchRef> results = data.getBestMatchPerObservation(score_ref, true);
-  TEST_EQUAL(results.size(), 1);
-  TEST_EQUAL(results[0] == match_ref2, true);
-  // best matches, no score required:
-  results = data.getBestMatchPerObservation(score_ref, false);
-  TEST_EQUAL(results.size(), 2);
-  ABORT_IF(results.size() != 2);
-  if (results[0] == match_ref2) // can't be sure about the order
-  {
-    TEST_EQUAL(results[1] == match_ref4, true);
-  }
-  else
-  {
-    TEST_EQUAL(results[0] == match_ref4, true);
-    TEST_EQUAL(results[1] == match_ref2, true);
-  }
-}
-END_SECTION
-
-START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
-{
-  IdentificationData id;
-
-  ID::InputFile file("file://ROOT/FOLDER/SPECTRA.mzML");
-  auto file_ref = id.registerInputFile(file);
-
-  // register a score type
-  ID::ScoreType score("MySearchEngineScore", true);
-  auto score_ref = id.registerScoreType(score);
-
-  // register software (connected to score)
-  ID::ProcessingSoftware sw("MySearchEngineTool", "1.0");
-  sw.assigned_scores.push_back(score_ref);
-  auto sw_ref = id.registerProcessingSoftware(sw);
-
-  // all supported search settings
-  ID::DBSearchParam search_param;
-  search_param.database = "file://ROOT/FOLDER/DATABASE.fasta";
-  search_param.database_version = "nextprot1234";
-  search_param.taxonomy = "Homo Sapiens";
-  search_param.charges = {2,3,4,5};
-  search_param.precursor_mass_tolerance = 8.0;
-  search_param.precursor_tolerance_ppm = true;
-  search_param.fixed_mods = {"Carbamidomethyl (C)"};
-  search_param.variable_mods = {"Oxidation (M)"};
-  search_param.digestion_enzyme = ProteaseDB::getInstance()->getEnzyme("Trypsin");
-  search_param.enzyme_term_specificity = EnzymaticDigestion::SPEC_SEMI;
-  search_param.missed_cleavages = 2;
-  search_param.min_length = 6;
-  search_param.max_length = 40;
-  search_param.fragment_mass_tolerance = 0.3;
-  search_param.fragment_tolerance_ppm = true;
-  auto search_param_ref = id.registerDBSearchParam(search_param);
-
-  // file has been processed by software
-  ID::ProcessingStep step(sw_ref);
-  step.input_file_refs.push_back(file_ref);
-  auto step_ref = id.registerProcessingStep(step, search_param_ref);
-  // all further data comes from this processing step
-  id.setCurrentProcessingStep(step_ref);
-
-  // register spectrum
-  ID::Observation obs("spectrum_1", file_ref, 100.0, 1000.0);
-  auto obs_ref = id.registerObservation(obs);
-
-  // peptide without protein reference (yet)
-  ID::IdentifiedPeptide peptide(AASequence::fromString("TESTPEPTIDR")); // seq. is required
-  auto peptide_ref = id.registerIdentifiedPeptide(peptide);
-  TEST_EQUAL(peptide_ref->parent_matches.size(), 0);
-
-  // peptide-spectrum match
-  ID::ObservationMatch match(peptide_ref, obs_ref); // both refs. are required
-  match.addScore(score_ref, 123, step_ref);
-  id.registerObservationMatch(match);
-
-  // some calculations, inference etc. could take place ...
-  ID::ParentSequence protein("protein_1"); // accession is required
-  protein.sequence = "PRTTESTPEPTIDRPRT";
-  protein.description = "Human Random Protein 1";
-  auto protein_ref = id.registerParentSequence(protein);
-
-  // add reference to parent (protein) and update peptide
-  ID::IdentifiedPeptide augmented_pep = *peptide_ref;
-  // @TODO: wrap this in a convenience function (like "match.addScore" above)
-  augmented_pep.parent_matches[protein_ref].insert(ID::ParentMatch(3, 13));
-  id.registerIdentifiedPeptide(augmented_pep); // protein reference will be added
-  // peptide_ref should still be valid and now contain link to protein
-  TEST_EQUAL(peptide_ref->sequence, augmented_pep.sequence);
-  TEST_EQUAL(peptide_ref->parent_matches.size(), 1);
-
-  // and now update protein coverage of all proteins
-  id.calculateCoverages();
-  TEST_NOT_EQUAL(protein_ref->coverage, 0.0);
-}
-END_SECTION
-
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 END_TEST

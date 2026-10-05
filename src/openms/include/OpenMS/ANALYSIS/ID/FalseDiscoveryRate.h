@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -186,7 +186,7 @@ public:
 
        @return Key of the FDR score
     */
-    IdentificationData::ScoreTypeRef applyToObservationMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref) const;
+    LegacyIdentificationData::ScoreTypeRef applyToObservationMatches(LegacyIdentificationData& id_data, LegacyIdentificationData::ScoreTypeRef score_ref) const;
 
     /**
      * @brief Finds decoy strings in ProteinIdentification runs
@@ -225,12 +225,12 @@ private:
 
     /// Helper function for applyToObservationMatches()
     void handleObservationMatch_(
-        IdentificationData::ObservationMatchRef match_ref,
-        IdentificationData::ScoreTypeRef score_ref,
+        LegacyIdentificationData::ObservationMatchRef match_ref,
+        LegacyIdentificationData::ScoreTypeRef score_ref,
         std::vector<double>& target_scores,
         std::vector<double>& decoy_scores,
-        std::map<IdentificationData::IdentifiedMolecule, bool>& molecule_to_decoy,
-        std::map<IdentificationData::ObservationMatchRef, double>& match_to_score) const;
+        std::map<LegacyIdentificationData::IdentifiedMolecule, bool>& molecule_to_decoy,
+        std::map<LegacyIdentificationData::ObservationMatchRef, double>& match_to_score) const;
 
     /// calculates an estimated FDR (based on P(E)Ps) given a vector of score value pairs and fills a map for lookup
     /// in scores_to_FDR

@@ -208,7 +208,7 @@ namespace OpenMS
       }
       // if there are multiple IDs, check if all are equal (to the first):
       auto it = id_matches_.begin();
-      IdentificationData::IdentifiedMolecule molecule = (*it)->identified_molecule_var;
+      LegacyIdentificationData::IdentifiedMolecule molecule = (*it)->identified_molecule_var;
       for (++it; it != id_matches_.end(); ++it)
       {
         if ((*it)->identified_molecule_var != molecule)
@@ -227,7 +227,7 @@ namespace OpenMS
   }
 
 
-  const IdentificationData::IdentifiedMolecule& BaseFeature::getPrimaryID() const
+  const LegacyIdentificationData::IdentifiedMolecule& BaseFeature::getPrimaryID() const
   {
     if (!primary_id_)
     {
@@ -245,36 +245,36 @@ namespace OpenMS
   }
 
 
-  void BaseFeature::setPrimaryID(const IdentificationData::IdentifiedMolecule& id)
+  void BaseFeature::setPrimaryID(const LegacyIdentificationData::IdentifiedMolecule& id)
   {
     primary_id_ = id;
   }
 
 
-  const std::set<IdentificationData::ObservationMatchRef>& BaseFeature::getIDMatches() const
+  const std::set<LegacyIdentificationData::ObservationMatchRef>& BaseFeature::getIDMatches() const
   {
     return id_matches_;
   }
 
 
-  std::set<IdentificationData::ObservationMatchRef>& BaseFeature::getIDMatches()
+  std::set<LegacyIdentificationData::ObservationMatchRef>& BaseFeature::getIDMatches()
   {
     return id_matches_;
   }
 
 
-  void BaseFeature::addIDMatch(IdentificationData::ObservationMatchRef ref)
+  void BaseFeature::addIDMatch(LegacyIdentificationData::ObservationMatchRef ref)
   {
     id_matches_.insert(ref);
   }
 
-  void BaseFeature::updateIDReferences(const IdentificationData::RefTranslator& trans)
+  void BaseFeature::updateIDReferences(const LegacyIdentificationData::RefTranslator& trans)
   {
     if (primary_id_ != nullopt) // is feature annotated with a "primary ID"?
     {
       primary_id_ = trans.translate(*primary_id_);
     }
-    set<IdentificationData::ObservationMatchRef> matches; // refs. to e.g. PSMs
+    set<LegacyIdentificationData::ObservationMatchRef> matches; // refs. to e.g. PSMs
     matches.swap(id_matches_);
     for (const auto& item : matches)
     {

@@ -17,17 +17,17 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 #include <vector>
 
 using namespace std;
 
-using ID = OpenMS::IdentificationData;
+using ID = OpenMS::LegacyIdentificationData;
 
 namespace OpenMS
 {
   void IdentificationDataConverter::importIDs(
-    IdentificationData& id_data, const vector<ProteinIdentification>& proteins,
+    LegacyIdentificationData& id_data, const vector<ProteinIdentification>& proteins,
     const PeptideIdentificationList& peptides)
   {
     map<std::string, ID::ProcessingStepRef> id_to_step;
@@ -363,7 +363,7 @@ namespace OpenMS
   }
 
 
-  void IdentificationDataConverter::exportIDs(IdentificationData const& id_data,
+  void IdentificationDataConverter::exportIDs(LegacyIdentificationData const& id_data,
                                               vector <ProteinIdentification>& proteins,
                                               PeptideIdentificationList& peptides,
                                               bool export_ids_wo_scores)
@@ -614,7 +614,7 @@ namespace OpenMS
   }
 
 
-  MzTab IdentificationDataConverter::exportMzTab(const IdentificationData&
+  MzTab IdentificationDataConverter::exportMzTab(const LegacyIdentificationData&
                                                  id_data)
   {
     MzTabMetaData meta;
@@ -762,7 +762,7 @@ namespace OpenMS
 
 
   void IdentificationDataConverter::importSequences(
-    IdentificationData& id_data, const vector<FASTAFile::FASTAEntry>& fasta,
+    LegacyIdentificationData& id_data, const vector<FASTAFile::FASTAEntry>& fasta,
     ID::MoleculeType type, const std::string& decoy_pattern)
   {
     for (const FASTAFile::FASTAEntry& entry : fasta)
@@ -912,7 +912,7 @@ namespace OpenMS
 
   ID::SearchParamRef IdentificationDataConverter::importDBSearchParameters_(
     const ProteinIdentification::SearchParameters& pisp,
-    IdentificationData& id_data)
+    LegacyIdentificationData& id_data)
   {
     ID::DBSearchParam dbsp;
     dbsp.molecule_type = ID::MoleculeType::PROTEIN;
@@ -1011,7 +1011,7 @@ namespace OpenMS
       handleFeatureImport_(features[i], IntList(1, i), peptides, id_counter, clear_original);
     }
 
-    IdentificationData& id_data = features.getIdentificationData();
+    LegacyIdentificationData& id_data = features.getIdentificationData();
     importIDs(id_data, features.getProteinIdentifications(), peptides);
 
     // map converted IDs back to features using meta values assigned in "handleFeatureImport_";
@@ -1165,7 +1165,7 @@ namespace OpenMS
   }
 
   void IdentificationDataConverter::handleFeatureExport_(
-    Feature& feature, const IntList& indexes, IdentificationData& id_data, Size& id_counter)
+    Feature& feature, const IntList& indexes, LegacyIdentificationData& id_data, Size& id_counter)
   {
     if (feature.getIDMatches().empty() && feature.hasPrimaryID())
     {
@@ -1229,7 +1229,7 @@ namespace OpenMS
       if (clear_original) feature.getPeptideIdentifications().clear();
     }
 
-    IdentificationData& id_data = consensus.getIdentificationData();
+    LegacyIdentificationData& id_data = consensus.getIdentificationData();
     importIDs(id_data, consensus.getProteinIdentifications(), peptides);
 
     // map converted IDs back to consensus features using meta values assigned above:
@@ -1267,7 +1267,7 @@ namespace OpenMS
     // use meta values to temporarily store which features IDs are assigned to
 
     Size id_counter = 0;
-    IdentificationData& id_data = consensus.getIdentificationData();
+    LegacyIdentificationData& id_data = consensus.getIdentificationData();
     // Adds dummy Obs.Match for features with ID but no matches.
     // Adds "IDConverter_trace" meta value to Matches for every feature they are contained in
     for (Size i = 0; i < consensus.size(); ++i)

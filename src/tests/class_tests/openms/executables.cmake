@@ -96,7 +96,14 @@ set(metadata_executables_list
   Gradient_test
   HPLC_test
   IDDataContainer_test
+  LegacyIdentificationData_test
   IdentificationData_test
+  IdentificationDataAdapter_test
+  IdentificationDataInference_test
+  IdentificationDataWorkflow_test
+  IdentificationDataFile_test
+  IdentificationDataFileInference_test
+  IdentificationDataFileHandler_test
   IdentificationDataConverter_test
   IdentifiedMolecule_test
   InstrumentSettings_test

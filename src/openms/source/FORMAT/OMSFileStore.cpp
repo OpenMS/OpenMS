@@ -19,7 +19,7 @@
 
 using namespace std;
 
-using ID = OpenMS::IdentificationData;
+using ID = OpenMS::LegacyIdentificationData;
 
 namespace OpenMS::Internal
 {
@@ -307,7 +307,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeScoreTypes_(const IdentificationData& id_data)
+  void OMSFileStore::storeScoreTypes_(const LegacyIdentificationData& id_data)
   {
     if (id_data.getScoreTypes().empty()) return;
 
@@ -337,7 +337,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeInputFiles_(const IdentificationData& id_data)
+  void OMSFileStore::storeInputFiles_(const LegacyIdentificationData& id_data)
   {
     if (id_data.getInputFiles().empty()) return;
 
@@ -369,7 +369,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeProcessingSoftwares_(const IdentificationData& id_data)
+  void OMSFileStore::storeProcessingSoftwares_(const LegacyIdentificationData& id_data)
   {
     if (id_data.getProcessingSoftwares().empty()) return;
 
@@ -427,7 +427,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeDBSearchParams_(const IdentificationData& id_data)
+  void OMSFileStore::storeDBSearchParams_(const LegacyIdentificationData& id_data)
   {
     if (id_data.getDBSearchParams().empty()) return;
 
@@ -513,7 +513,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeProcessingSteps_(const IdentificationData& id_data)
+  void OMSFileStore::storeProcessingSteps_(const LegacyIdentificationData& id_data)
   {
     if (id_data.getProcessingSteps().empty()) return;
 
@@ -585,7 +585,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeObservations_(const IdentificationData& id_data)
+  void OMSFileStore::storeObservations_(const LegacyIdentificationData& id_data)
   {
     if (id_data.getObservations().empty()) return;
 
@@ -635,7 +635,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeParentSequences_(const IdentificationData& id_data)
+  void OMSFileStore::storeParentSequences_(const LegacyIdentificationData& id_data)
   {
     if (id_data.getParentSequences().empty()) return;
 
@@ -678,7 +678,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeParentGroupSets_(const IdentificationData& id_data)
+  void OMSFileStore::storeParentGroupSets_(const LegacyIdentificationData& id_data)
   {
     if (id_data.getParentGroupSets().empty()) return;
 
@@ -783,7 +783,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeIdentifiedCompounds_(const IdentificationData& id_data)
+  void OMSFileStore::storeIdentifiedCompounds_(const LegacyIdentificationData& id_data)
   {
     if (id_data.getIdentifiedCompounds().empty()) return;
 
@@ -831,7 +831,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeIdentifiedSequences_(const IdentificationData& id_data)
+  void OMSFileStore::storeIdentifiedSequences_(const LegacyIdentificationData& id_data)
   {
     if (id_data.getIdentifiedPeptides().empty() &&
         id_data.getIdentifiedOligos().empty()) return;
@@ -955,7 +955,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeAdducts_(const IdentificationData& id_data)
+  void OMSFileStore::storeAdducts_(const LegacyIdentificationData& id_data)
   {
     if (id_data.getAdducts().empty()) return;
 
@@ -1005,7 +1005,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeObservationMatches_(const IdentificationData& id_data)
+  void OMSFileStore::storeObservationMatches_(const LegacyIdentificationData& id_data)
   {
     if (id_data.getObservationMatches().empty()) return;
 
@@ -1107,7 +1107,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::store(const IdentificationData& id_data)
+  void OMSFileStore::store(const LegacyIdentificationData& id_data)
   {
     startProgress(0, 13, "Writing identification data to file");
     // generally, create tables only if we have data to write - no empty ones!

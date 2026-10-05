@@ -101,7 +101,7 @@ namespace OpenMS
     id_data_() // updated below
   {
     // copy ID data and update references in features:
-    IdentificationData::RefTranslator trans = id_data_.merge(source.id_data_);
+    LegacyIdentificationData::RefTranslator trans = id_data_.merge(source.id_data_);
     for (Feature& feature : *this)
     {
       feature.updateAllIDReferences(trans);
@@ -112,7 +112,7 @@ namespace OpenMS
 
   FeatureMap::~FeatureMap() = default;
 
-  FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)  // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
+  FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)  // TODO: cannot be defaulted since OpenMS::LegacyIdentificationData is missing operator=
   {
     if (&rhs == this)
     {
@@ -129,7 +129,7 @@ namespace OpenMS
 
     // copy ID data and update references in features:
     id_data_.clear();
-    IdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
+    LegacyIdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
     for (Feature& feature : *this)
     {
       feature.updateAllIDReferences(trans);
@@ -138,7 +138,7 @@ namespace OpenMS
     return *this;
   }
 
-  // Can be defaulted: moving preserves the addresses of the IdentificationData
+  // Can be defaulted: moving preserves the addresses of the LegacyIdentificationData
   // objects referenced by the contained features, so (unlike the copy assignment
   // above) no ID-reference translation is required. This mirrors the defaulted
   // move constructor.
@@ -155,7 +155,7 @@ namespace OpenMS
            protein_identifications_ == rhs.protein_identifications_ &&
            unassigned_peptide_identifications_ == rhs.unassigned_peptide_identifications_ &&
            data_processing_ == rhs.data_processing_;
-    // @TODO: implement "operator==" for IdentificationData?
+    // @TODO: implement "operator==" for LegacyIdentificationData?
   }
 
   bool FeatureMap::operator!=(const FeatureMap& rhs) const
@@ -197,7 +197,7 @@ namespace OpenMS
     // features, unassignedpeptides, proteins...
 
     // merge IDs (new format):
-    IdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
+    LegacyIdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
     // update ID references of new features:
     for (Size i = n_old_features; i < size(); ++i)
     {
@@ -493,19 +493,19 @@ namespace OpenMS
 
   std::set<IdentificationDataInternal::ObservationMatchRef> FeatureMap::getUnassignedIDMatches() const
   {
-    std::set<IdentificationData::ObservationMatchRef> all_matches;
+    std::set<LegacyIdentificationData::ObservationMatchRef> all_matches;
     for (auto it = id_data_.getObservationMatches().begin();
          it != id_data_.getObservationMatches().end(); ++it)
     {
       all_matches.insert(it);
     }
-    std::set<IdentificationData::ObservationMatchRef> assigned_matches;
+    std::set<LegacyIdentificationData::ObservationMatchRef> assigned_matches;
     for (const Feature& feat : *this)
     {
       assigned_matches.insert(feat.getIDMatches().begin(), feat.getIDMatches().end());
       // @TODO: consider subordinate features? - probably not
     }
-    std::set<IdentificationData::ObservationMatchRef> result;
+    std::set<LegacyIdentificationData::ObservationMatchRef> result;
     std::set_difference(all_matches.begin(), all_matches.end(),
                         assigned_matches.begin(), assigned_matches.end(),
                         inserter(result, result.end()));
@@ -513,13 +513,13 @@ namespace OpenMS
   }
 
 
-  const IdentificationData& FeatureMap::getIdentificationData() const
+  const LegacyIdentificationData& FeatureMap::getIdentificationData() const
   {
     return id_data_;
   }
 
 
-  IdentificationData& FeatureMap::getIdentificationData()
+  LegacyIdentificationData& FeatureMap::getIdentificationData()
   {
     return id_data_;
   }

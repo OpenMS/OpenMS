@@ -17,7 +17,7 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/ExposedVector.h>
@@ -358,13 +358,13 @@ public:
 
       @see BaseFeature::getIDMatches()
     */
-    std::set<IdentificationData::ObservationMatchRef> getUnassignedIDMatches() const;
+    std::set<LegacyIdentificationData::ObservationMatchRef> getUnassignedIDMatches() const;
 
     /// Immutable access to the contained identification data
-    const IdentificationData& getIdentificationData() const;
+    const LegacyIdentificationData& getIdentificationData() const;
 
     /// Mutable access to the contained identification data
-    IdentificationData& getIdentificationData();
+    LegacyIdentificationData& getIdentificationData();
     ///@}
 
   protected:
@@ -384,7 +384,7 @@ public:
     std::vector<DataProcessing> data_processing_;
 
     /// general identification results (peptides/proteins, RNA, compounds)
-    IdentificationData id_data_;
+    LegacyIdentificationData id_data_;
   };
 
   ///Print the contents of a ConsensusMap to a stream.

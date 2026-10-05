@@ -40,7 +40,7 @@ namespace OpenMS
     id_data_() // updated below
   {
     // copy ID data and update references in features:
-    IdentificationData::RefTranslator trans = id_data_.merge(source.id_data_);
+    LegacyIdentificationData::RefTranslator trans = id_data_.merge(source.id_data_);
     for (ConsensusFeature& feature : *this)
     {
       feature.updateIDReferences(trans);
@@ -124,7 +124,7 @@ namespace OpenMS
     this->insert(this->end(), rhs.begin(), rhs.end());
 
     // combine IDs (new format):
-    IdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
+    LegacyIdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
     // update IDs in new consensus features:
     for (Size i = old_size; i < size(); ++i) {
       (*this)[i].updateIDReferences(trans);
@@ -206,7 +206,7 @@ namespace OpenMS
     }
 
     // combine IDs (new format):
-    IdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
+    LegacyIdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
 
     // append consensusElements to consensusElementList and update map index:
     for (ConsensusFeature cf : rhs)
@@ -572,7 +572,7 @@ namespace OpenMS
            protein_identifications_ == rhs.protein_identifications_ &&
            unassigned_peptide_identifications_ == rhs.unassigned_peptide_identifications_ &&
            data_processing_ == rhs.data_processing_;
-    // @TODO: implement "operator==" for IdentificationData?
+    // @TODO: implement "operator==" for LegacyIdentificationData?
   }
 
   /// Equality operator
@@ -701,7 +701,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
 
   std::vector<FeatureMap> ConsensusMap::split(ConsensusMap::SplitMeta mode) const
   {
-    // @TODO: handle IDs in new format (IdentificationData)
+    // @TODO: handle IDs in new format (LegacyIdentificationData)
 
     // Column headers are keyed by map index, and the keys need not be contiguous (e.g. after
     // 'FileFilter -consensus:map 0 3', or for a consensusXML without <map id="0">). The result
@@ -852,19 +852,19 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
 
   std::set<IdentificationDataInternal::ObservationMatchRef> ConsensusMap::getUnassignedIDMatches() const
   {
-    std::set<IdentificationData::ObservationMatchRef> all_matches;
+    std::set<LegacyIdentificationData::ObservationMatchRef> all_matches;
     for (auto it = id_data_.getObservationMatches().begin();
          it != id_data_.getObservationMatches().end(); ++it)
     {
       all_matches.insert(it);
     }
-    std::set<IdentificationData::ObservationMatchRef> assigned_matches;
+    std::set<LegacyIdentificationData::ObservationMatchRef> assigned_matches;
     for (const ConsensusFeature& feat : *this)
     {
       assigned_matches.insert(feat.getIDMatches().begin(), feat.getIDMatches().end());
       // @TODO: consider subordinate features? - probably not
     }
-    std::set<IdentificationData::ObservationMatchRef> result;
+    std::set<LegacyIdentificationData::ObservationMatchRef> result;
     std::set_difference(all_matches.begin(), all_matches.end(),
                         assigned_matches.begin(), assigned_matches.end(),
                         inserter(result, result.end()));
@@ -872,13 +872,13 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
   }
 
 
-  const IdentificationData& ConsensusMap::getIdentificationData() const
+  const LegacyIdentificationData& ConsensusMap::getIdentificationData() const
   {
     return id_data_;
   }
 
 
-  IdentificationData& ConsensusMap::getIdentificationData()
+  LegacyIdentificationData& ConsensusMap::getIdentificationData()
   {
     return id_data_;
   }

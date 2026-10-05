@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -24,7 +24,7 @@ namespace OpenMS
   public:
 
     /// Import from legacy peptide/protein identifications
-    static void importIDs(IdentificationData& id_data,
+    static void importIDs(LegacyIdentificationData& id_data,
                           const std::vector<ProteinIdentification>& proteins,
                           const PeptideIdentificationList& peptides);
 
@@ -33,24 +33,24 @@ namespace OpenMS
 
       Results are added to existing data (if any) in @p proteins and @p peptides.
     */
-    static void exportIDs(const IdentificationData& id_data,
+    static void exportIDs(const LegacyIdentificationData& id_data,
                           std::vector<ProteinIdentification>& proteins,
                           PeptideIdentificationList& peptides,
                           bool export_ids_wo_scores = false);
 
     /// Export to mzTab format
-    static MzTab exportMzTab(const IdentificationData& id_data);
+    static MzTab exportMzTab(const LegacyIdentificationData& id_data);
 
     /// Import FASTA sequences as parent sequences
-    static void importSequences(IdentificationData& id_data,
+    static void importSequences(LegacyIdentificationData& id_data,
                                 const std::vector<FASTAFile::FASTAEntry>& fasta,
-                                IdentificationData::MoleculeType type =
-                                IdentificationData::MoleculeType::PROTEIN,
+                                LegacyIdentificationData::MoleculeType type =
+                                LegacyIdentificationData::MoleculeType::PROTEIN,
                                 const std::string& decoy_pattern = "");
 
     /// Convert parent matches to peptide evidences
     static void exportParentMatches(
-      const IdentificationData::ParentMatches& parent_matches, PeptideHit& hit);
+      const LegacyIdentificationData::ParentMatches& parent_matches, PeptideHit& hit);
 
     /*!
       @brief Convert IDs from legacy peptide/protein identifications in a feature map
@@ -86,7 +86,7 @@ namespace OpenMS
 
   protected:
 
-    using StepOpt = std::optional<IdentificationData::ProcessingStepRef>;
+    using StepOpt = std::optional<LegacyIdentificationData::ProcessingStepRef>;
 
     /// Functor for ordering @p StepOpt (by date of the steps, if available):
     struct StepOptCompare
@@ -145,9 +145,9 @@ namespace OpenMS
     /// Export a parent sequence (protein or nucleic acid) to mzTab
     template <typename MzTabSectionRow>
     static void exportParentSequenceToMzTab_(
-      const IdentificationData::ParentSequence& parent,
+      const LegacyIdentificationData::ParentSequence& parent,
       std::vector<MzTabSectionRow>& output,
-      std::map<IdentificationData::ScoreTypeRef, Size>& score_map)
+      std::map<LegacyIdentificationData::ScoreTypeRef, Size>& score_map)
     {
       MzTabSectionRow row;
       row.accession.set(parent.accession);
@@ -169,7 +169,7 @@ namespace OpenMS
     template <typename MzTabSectionRow, typename IdentSeq>
     static void exportPeptideOrOligoToMzTab_(
       const IdentSeq& identified, std::vector<MzTabSectionRow>& output,
-      std::map<IdentificationData::ScoreTypeRef, Size>& score_map)
+      std::map<LegacyIdentificationData::ScoreTypeRef, Size>& score_map)
     {
       MzTabSectionRow row;
       // @TODO: handle modifications properly
@@ -189,7 +189,7 @@ namespace OpenMS
         for (const auto& match_pair : identified.parent_matches)
         {
           row.accession.set(match_pair.first->accession);
-          for (const IdentificationData::ParentMatch& match :
+          for (const LegacyIdentificationData::ParentMatch& match :
                  match_pair.second)
           {
             MzTabSectionRow copy = row;
@@ -204,17 +204,17 @@ namespace OpenMS
     template <typename MzTabSectionRow>
     static void exportObservationMatchToMzTab_(
       const std::string& sequence,
-      const IdentificationData::ObservationMatch& match, double calc_mass,
+      const LegacyIdentificationData::ObservationMatch& match, double calc_mass,
       std::vector<MzTabSectionRow>& output,
-      std::map<IdentificationData::ScoreTypeRef, Size>& score_map,
-      std::map<IdentificationData::InputFileRef, Size>& file_map)
+      std::map<LegacyIdentificationData::ScoreTypeRef, Size>& score_map,
+      std::map<LegacyIdentificationData::InputFileRef, Size>& file_map)
     {
       MzTabSectionRow xsm; // PSM or OSM
       // @TODO: handle modifications properly
       xsm.sequence.set(sequence);
       exportStepsAndScoresToMzTab_(match.steps_and_scores, xsm.search_engine,
                                    xsm.search_engine_score, score_map);
-      const IdentificationData::Observation& query = *match.observation_ref;
+      const LegacyIdentificationData::Observation& query = *match.observation_ref;
       std::vector<MzTabDouble> rts(1);
       rts[0].set(query.rt);
       xsm.retention_time.set(rts);
@@ -248,37 +248,37 @@ namespace OpenMS
 
     /// Helper function to add processing steps (search engines) and their scores to MzTab
     static void exportStepsAndScoresToMzTab_(
-      const IdentificationData::AppliedProcessingSteps& steps_and_scores,
+      const LegacyIdentificationData::AppliedProcessingSteps& steps_and_scores,
       MzTabParameterList& steps_out, std::map<Size, MzTabDouble>& scores_out,
-      std::map<IdentificationData::ScoreTypeRef, Size>& score_map);
+      std::map<LegacyIdentificationData::ScoreTypeRef, Size>& score_map);
 
     /// Helper function to add search engine score entries to MzTab's meta data section
     static void addMzTabSEScores_(
-      const std::map<IdentificationData::ScoreTypeRef, Size>& scores,
+      const std::map<LegacyIdentificationData::ScoreTypeRef, Size>& scores,
       std::map<Size, MzTabParameter>& output);
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - oligonucleotide variant
     static void addMzTabMoleculeParentContext_(
-      const IdentificationData::ParentMatch& match,
+      const LegacyIdentificationData::ParentMatch& match,
       MzTabOligonucleotideSectionRow& row);
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - peptide variant
     static void addMzTabMoleculeParentContext_(
-      const IdentificationData::ParentMatch& match,
+      const LegacyIdentificationData::ParentMatch& match,
       MzTabPeptideSectionRow& row);
 
     /// Helper function to import DB search parameters from legacy format
-    static IdentificationData::SearchParamRef importDBSearchParameters_(
+    static LegacyIdentificationData::SearchParamRef importDBSearchParameters_(
       const ProteinIdentification::SearchParameters& pisp,
-      IdentificationData& id_data);
+      LegacyIdentificationData& id_data);
 
     /// Helper function to export DB search parameters to legacy format
     static ProteinIdentification::SearchParameters exportDBSearchParameters_(
-      IdentificationData::SearchParamRef ref);
+      LegacyIdentificationData::SearchParamRef ref);
 
     /// Helper function to export (primary) MS run information to legacy format
     static void exportMSRunInformation_(
-      IdentificationData::ProcessingStepRef step_ref,
+      LegacyIdentificationData::ProcessingStepRef step_ref,
       ProteinIdentification& protein);
 
     static void handleFeatureImport_(Feature& feature, const IntList& indexes,
@@ -286,6 +286,6 @@ namespace OpenMS
                                      Size& id_counter, bool clear_original);
 
     static void handleFeatureExport_(Feature& feature, const IntList& indexes,
-                                     IdentificationData& id_data, Size& id_counter);
+                                     LegacyIdentificationData& id_data, Size& id_counter);
   };
 }

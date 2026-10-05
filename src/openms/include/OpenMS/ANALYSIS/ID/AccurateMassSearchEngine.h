@@ -439,14 +439,14 @@ private:
     /// Extract query results from feature
     std::vector<AccurateMassSearchResult> extractQueryResults_(const Feature& feature, const Size& feature_index, const std::string& ion_mode_internal, Size& dummy_count) const;
 
-    /// Add resulting matches to IdentificationData
+    /// Add resulting matches to LegacyIdentificationData
     void addMatchesToID_(
-      IdentificationData& id,
+      LegacyIdentificationData& id,
       const std::vector<AccurateMassSearchResult>& amr, 
-      const IdentificationData::InputFileRef& file_ref,
-      const IdentificationData::ScoreTypeRef& mass_error_ppm_score_ref,
-      const IdentificationData::ScoreTypeRef& mass_error_Da_score_ref,
-      const IdentificationData::ProcessingStepRef& step_ref,
+      const LegacyIdentificationData::InputFileRef& file_ref,
+      const LegacyIdentificationData::ScoreTypeRef& mass_error_ppm_score_ref,
+      const LegacyIdentificationData::ScoreTypeRef& mass_error_Da_score_ref,
+      const LegacyIdentificationData::ProcessingStepRef& step_ref,
       BaseFeature& f) const;
 
     /// For two vectors of identical length, compute the cosine of the angle between them.

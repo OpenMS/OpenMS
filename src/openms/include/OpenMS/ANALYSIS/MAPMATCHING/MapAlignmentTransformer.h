@@ -16,7 +16,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
@@ -53,8 +53,8 @@ namespace OpenMS
       PeptideIdentificationList& pep_ids,
       const TransformationDescription& trafo, bool store_original_rt = false);
 
-    /// Applies the given transformation to input items in IdentificationData
-    static void transformRetentionTimes(IdentificationData& id_data,
+    /// Applies the given transformation to input items in LegacyIdentificationData
+    static void transformRetentionTimes(LegacyIdentificationData& id_data,
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);
 

@@ -41,8 +41,10 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/FORMAT/IdentificationDataFile.h>
 #include <OpenMS/FORMAT/PSMArrowIO.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
@@ -1493,7 +1495,8 @@ namespace OpenMS
   {
     
     //determine file type
-    FileTypes::Type type = getType(filename);
+    const bool native = IdentificationDataFile::isNativeFile(filename);
+    FileTypes::Type type = native ? FileTypes::IDPARQUET : getType(filename);
     if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
@@ -1524,7 +1527,7 @@ namespace OpenMS
       {
         OMSFile f;
         f.setLogType(log);
-        IdentificationData idd;
+        LegacyIdentificationData idd;
         f.load(filename, idd);
         IdentificationDataConverter::exportIDs(idd, additional_proteins, additional_peptides);
       }
@@ -1563,6 +1566,15 @@ namespace OpenMS
 
       case FileTypes::IDPARQUET:
       {
+        if (native)
+        {
+          IdentificationData data;
+          IdentificationDataFile::load(filename, data);
+          auto converted = IdentificationDataAdapter::toLegacy(data);
+          additional_proteins = std::move(converted.proteins);
+          additional_peptides = std::move(converted.peptides);
+          break;
+        }
         if (!PSMArrowIO::importFromParquet(filename, additional_proteins, additional_peptides))
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
@@ -1574,6 +1586,44 @@ namespace OpenMS
       default:
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for loading identifications");
     }   
+  }
+
+  void FileHandler::loadIdentifications(const std::string& filename, IdentificationData& data, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  {
+    if (IdentificationDataFile::isNativeFile(filename))
+    {
+      if (!allowed_types.empty() && !FileTypeList(allowed_types).contains(FileTypes::IDPARQUET))
+      {
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Native identification bundles require IDPARQUET");
+      }
+      IdentificationDataFile::load(filename, data);
+      return;
+    }
+    std::vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    loadIdentifications(filename, proteins, peptides, allowed_types, log);
+    auto converted = IdentificationDataAdapter::fromLegacy(proteins, peptides);
+    data.swap(converted);
+  }
+
+  void FileHandler::storeIdentifications(const std::string& filename, const IdentificationData& data, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  {
+    auto type = getTypeByFileName(filename);
+    if (type == FileTypes::UNKNOWN && allowed_types.size() == 1)
+    {
+      type = allowed_types.front();
+    }
+    if (!allowed_types.empty() && !FileTypeList(allowed_types).contains(type))
+    {
+      throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Identification output type is not allowed");
+    }
+    if (type == FileTypes::IDPARQUET)
+    {
+      IdentificationDataFile::store(filename, data);
+      return;
+    }
+    const auto converted = IdentificationDataAdapter::toLegacy(data);
+    storeIdentifications(filename, converted.proteins, converted.peptides, allowed_types, log);
   }
 
   void FileHandler::storeIdentifications(const std::string& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
@@ -1614,7 +1664,7 @@ namespace OpenMS
       {
         OMSFile f;
         f.setLogType(log);
-        IdentificationData idd;
+        LegacyIdentificationData idd;
         IdentificationDataConverter::importIDs(idd, additional_proteins, additional_peptides);
         f.store(filename, idd);
       }
@@ -1630,6 +1680,11 @@ namespace OpenMS
 
       case FileTypes::IDPARQUET:
       {
+        if (IdentificationDataFile::isNativeFile(filename))
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                              "Cannot overwrite a native identification bundle with legacy Parquet tables");
+        }
         if (!PSMArrowIO::exportToParquet(additional_proteins, additional_peptides, filename))
         {
           throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,

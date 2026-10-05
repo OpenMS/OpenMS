@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 #include <concepts>
 #include <iterator>
 #include <utility>
@@ -35,7 +35,7 @@ START_SECTION((equality compares record values))
   other = steps;
   TEST_TRUE(steps == other)
 
-  IdentificationData data;
+  LegacyIdentificationData data;
   auto software = data.registerProcessingSoftware(ProcessingSoftware("test", "1.0"));
   auto step = data.registerProcessingStep(ProcessingStep(software));
   other.clear();
@@ -100,7 +100,7 @@ END_SECTION
 
 START_SECTION((composite - key ranges and processing - step order))
 {
-  IdentificationData data;
+  LegacyIdentificationData data;
   auto file = data.registerInputFile(InputFile("file"));
   auto first = data.registerObservation(Observation("first", file));
   auto second = data.registerObservation(Observation("second", file));

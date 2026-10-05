@@ -187,11 +187,11 @@ namespace OpenMS
 
 
   void MapAlignmentTransformer::transformRetentionTimes(
-    IdentificationData& id_data, const TransformationDescription& trafo,
+    LegacyIdentificationData& id_data, const TransformationDescription& trafo,
     bool store_original_rt)
   {
     // update RTs in-place:
-    id_data.applyToObservations([&](IdentificationData::Observation& obs)
+    id_data.applyToObservations([&](LegacyIdentificationData::Observation& obs)
       {
         if (store_original_rt)
         {

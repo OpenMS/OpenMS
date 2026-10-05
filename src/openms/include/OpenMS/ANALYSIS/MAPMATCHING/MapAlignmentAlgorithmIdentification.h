@@ -18,7 +18,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 
 #include <cmath> // for "abs"
 #include <limits> // for "max"
@@ -226,7 +226,7 @@ protected:
       @return Are the RTs already sorted? (Here: false)
     */
     // "id_data" can't be "const" here or template resolution will fail
-    bool getRetentionTimes_(const IdentificationData& id_data, SeqToList& rt_data);
+    bool getRetentionTimes_(const LegacyIdentificationData& id_data, SeqToList& rt_data);
 
     /**
       @brief Collect retention time data from peptide IDs contained in feature maps or consensus maps
@@ -389,11 +389,11 @@ protected:
     void getReference_();
 
     /**
-      @brief Helper function to find/define the score type for processing IdentificationData
+      @brief Helper function to find/define the score type for processing LegacyIdentificationData
 
       @return Reference to the score type denoted by algorithm parameter "score_type"
      */
-    IdentificationData::ScoreTypeRef handleIdDataScoreType_(const IdentificationData& id_data);
+    LegacyIdentificationData::ScoreTypeRef handleIdDataScoreType_(const LegacyIdentificationData& id_data);
 
     /**
       @brief Get the best-scoring PeptideHit from a list of hits

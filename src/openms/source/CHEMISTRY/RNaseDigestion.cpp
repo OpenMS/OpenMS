@@ -197,13 +197,13 @@ namespace OpenMS
   }
 
 
-  void RNaseDigestion::digest(IdentificationData& id_data, Size min_length,
+  void RNaseDigestion::digest(LegacyIdentificationData& id_data, Size min_length,
                               Size max_length) const
   {
-    for (IdentificationData::ParentSequenceRef parent_ref = id_data.getParentSequences().begin();
+    for (LegacyIdentificationData::ParentSequenceRef parent_ref = id_data.getParentSequences().begin();
          parent_ref != id_data.getParentSequences().end(); ++parent_ref)
     {
-      if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA)
+      if (parent_ref->molecule_type != LegacyIdentificationData::MoleculeType::RNA)
       {
         continue;
       }
@@ -223,15 +223,15 @@ namespace OpenMS
         {
           fragment.setThreePrimeMod(three_prime_gain_);
         }
-        IdentificationData::IdentifiedOligo oligo(fragment);
+        LegacyIdentificationData::IdentifiedOligo oligo(fragment);
         Size end_pos = pos.first + pos.second; // past-the-end position!
-        IdentificationData::ParentMatch match(pos.first, end_pos - 1);
+        LegacyIdentificationData::ParentMatch match(pos.first, end_pos - 1);
         match.left_neighbor = std::string(1, (pos.first > 0) ?
                                rna[pos.first - 1]->getCode()[0] :
-                               IdentificationData::ParentMatch::LEFT_TERMINUS);
+                               LegacyIdentificationData::ParentMatch::LEFT_TERMINUS);
         match.right_neighbor = std::string(1, (end_pos < rna.size()) ?
                                 rna[end_pos]->getCode()[0] :
-                                IdentificationData::ParentMatch::RIGHT_TERMINUS);
+                                LegacyIdentificationData::ParentMatch::RIGHT_TERMINUS);
         oligo.parent_matches[parent_ref].insert(match);
         id_data.registerIdentifiedOligo(oligo);
       }

@@ -12,7 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/METADATA/ID/IdentifiedMolecule.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
@@ -27,10 +27,10 @@ START_TEST(IdentifiedMolecule, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-using ID = IdentificationData;
+using ID = LegacyIdentificationData;
 namespace IDI = OpenMS::IdentificationDataInternal;
 
-// Shared fixture: the IdentificationData object owns the containers the
+// Shared fixture: the LegacyIdentificationData object owns the containers the
 // references point into, so it must outlive the references below.
 ID data;
 ID::IdentifiedPeptideRef pref = data.registerIdentifiedPeptide(ID::IdentifiedPeptide(AASequence::fromString("PEPTIDE")));

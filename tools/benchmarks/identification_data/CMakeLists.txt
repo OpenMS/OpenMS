@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.24)
+project(IdentificationDataBenchmark LANGUAGES CXX)
+find_package(OpenMS REQUIRED)
+add_executable(IdentificationDataBenchmark main.cpp)
+target_compile_features(IdentificationDataBenchmark PRIVATE cxx_std_23)
+target_link_libraries(IdentificationDataBenchmark PRIVATE OpenMS::OpenMS)

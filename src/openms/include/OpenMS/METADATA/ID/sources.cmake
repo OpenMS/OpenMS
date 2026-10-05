@@ -8,7 +8,9 @@ DBSearchParam.h
 ProcessingSoftware.h
 ProcessingStep.h
 Observation.h
+LegacyIdentificationData.h
 IdentificationData.h
+IdentificationDataAdapter.h
 IdentificationDataConverter.h
 IdentifiedCompound.h
 IdentifiedMolecule.h

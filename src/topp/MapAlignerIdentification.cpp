@@ -273,7 +273,7 @@ private:
       break;
       case FileTypes::OMS:
       {
-        IdentificationData id_data;
+        LegacyIdentificationData id_data;
         OMSFile().load(reference_file, id_data);
         algorithm.setReference(id_data);
       }
@@ -517,7 +517,7 @@ private:
     //-------------------------------------------------------------
     case FileTypes::OMS:
     {
-      vector<IdentificationData> id_data(input_files.size());
+      vector<LegacyIdentificationData> id_data(input_files.size());
       OMSFile oms_file;
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);
@@ -532,24 +532,24 @@ private:
 
       // add data processing information:
       DateTime processing_time = DateTime::now(); // use same for each file
-      IdentificationData::ProcessingSoftware sw(toolName_(), version_);
+      LegacyIdentificationData::ProcessingSoftware sw(toolName_(), version_);
       if (test_mode_) sw.setVersion("test");
       std::string reference_file = getStringOption_("reference:file");
-      for (IdentificationData& id : id_data)
+      for (LegacyIdentificationData& id : id_data)
       {
-        IdentificationData::ProcessingSoftwareRef sw_ref =
+        LegacyIdentificationData::ProcessingSoftwareRef sw_ref =
           id.registerProcessingSoftware(sw);
-        IdentificationData::ProcessingStep step(sw_ref);
+        LegacyIdentificationData::ProcessingStep step(sw_ref);
         for (const std::string& input_file : input_files)
         {
-          IdentificationData::InputFileRef ref =
-            id.registerInputFile(IdentificationData::InputFile(input_file));
+          LegacyIdentificationData::InputFileRef ref =
+            id.registerInputFile(LegacyIdentificationData::InputFile(input_file));
           step.input_file_refs.push_back(ref);
         }
         if (!reference_file.empty())
         {
-          IdentificationData::InputFileRef ref =
-            id.registerInputFile(IdentificationData::InputFile(reference_file));
+          LegacyIdentificationData::InputFileRef ref =
+            id.registerInputFile(LegacyIdentificationData::InputFile(reference_file));
           step.input_file_refs.push_back(ref);
         }
         step.date_time = processing_time;

@@ -87,7 +87,7 @@ namespace OpenMS
       if (actual_spectrum_number != StringUtils::toInt32(StringUtils::trimmed(split[0])))
       {
         // new id
-        //id_data.push_back(IdentificationData());
+        //id_data.push_back(LegacyIdentificationData());
         id_data.emplace_back();
         id_data.back().setScoreType("OMSSA");
         actual_spectrum_number = (UInt)StringUtils::toInt32(StringUtils::trimmed(split[0]));

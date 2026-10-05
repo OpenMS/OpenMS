@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
 
 namespace SQLite
@@ -53,8 +53,8 @@ namespace OpenMS
       */
       ~OMSFileLoad();
 
-      /// Load data from database and populate an IdentificationData object
-      void load(IdentificationData& id_data);
+      /// Load data from database and populate an LegacyIdentificationData object
+      void load(LegacyIdentificationData& id_data);
 
       /// Load data from database and populate a FeatureMap object
       void load(FeatureMap& features);
@@ -74,41 +74,41 @@ namespace OpenMS
 
       // static CVTerm loadCVTerm_(int id);
 
-      /// Load information on score type from the database into IdentificationData
-      void loadScoreTypes_(IdentificationData& id_data);
+      /// Load information on score type from the database into LegacyIdentificationData
+      void loadScoreTypes_(LegacyIdentificationData& id_data);
 
-      /// Load information on input files from the database into IdentificationData
-      void loadInputFiles_(IdentificationData& id_data);
+      /// Load information on input files from the database into LegacyIdentificationData
+      void loadInputFiles_(LegacyIdentificationData& id_data);
 
-      /// Load information on data processing software from the database into IdentificationData
-      void loadProcessingSoftwares_(IdentificationData& id_data);
+      /// Load information on data processing software from the database into LegacyIdentificationData
+      void loadProcessingSoftwares_(LegacyIdentificationData& id_data);
 
-      /// Load information on sequence database search parameters from the database into IdentificationData
-      void loadDBSearchParams_(IdentificationData& id_data);
+      /// Load information on sequence database search parameters from the database into LegacyIdentificationData
+      void loadDBSearchParams_(LegacyIdentificationData& id_data);
 
-      /// Load information on data processing steps from the database into IdentificationData
-      void loadProcessingSteps_(IdentificationData& id_data);
+      /// Load information on data processing steps from the database into LegacyIdentificationData
+      void loadProcessingSteps_(LegacyIdentificationData& id_data);
 
-      /// Load information on observations (e.g. spectra) from the database into IdentificationData
-      void loadObservations_(IdentificationData& id_data);
+      /// Load information on observations (e.g. spectra) from the database into LegacyIdentificationData
+      void loadObservations_(LegacyIdentificationData& id_data);
 
-      /// Load information on parent sequences (e.g. proteins) from the database into IdentificationData
-      void loadParentSequences_(IdentificationData& id_data);
+      /// Load information on parent sequences (e.g. proteins) from the database into LegacyIdentificationData
+      void loadParentSequences_(LegacyIdentificationData& id_data);
 
-      /// Load information on parent group sets (e.g. protein groups) from the database into IdentificationData
-      void loadParentGroupSets_(IdentificationData& id_data);
+      /// Load information on parent group sets (e.g. protein groups) from the database into LegacyIdentificationData
+      void loadParentGroupSets_(LegacyIdentificationData& id_data);
 
-      /// Load information on identified compounds from the database into IdentificationData
-      void loadIdentifiedCompounds_(IdentificationData& id_data);
+      /// Load information on identified compounds from the database into LegacyIdentificationData
+      void loadIdentifiedCompounds_(LegacyIdentificationData& id_data);
 
-      /// Load information on identified sequences (peptides or oligonucleotides) from the database into IdentificationData
-      void loadIdentifiedSequences_(IdentificationData& id_data);
+      /// Load information on identified sequences (peptides or oligonucleotides) from the database into LegacyIdentificationData
+      void loadIdentifiedSequences_(LegacyIdentificationData& id_data);
 
-      /// Load information on adducts from the database into IdentificationData
-      void loadAdducts_(IdentificationData& id_data);
+      /// Load information on adducts from the database into LegacyIdentificationData
+      void loadAdducts_(LegacyIdentificationData& id_data);
 
-      /// Load information on observation matches (e.g. PSMs) from the database into IdentificationData
-      void loadObservationMatches_(IdentificationData& id_data);
+      /// Load information on observation matches (e.g. PSMs) from the database into LegacyIdentificationData
+      void loadObservationMatches_(LegacyIdentificationData& id_data);
 
       /// Helper function for loading meta data on feature/consensus maps from the database
       template <class MapType> std::string loadMapMetaDataTemplate_(MapType& features);
@@ -165,12 +165,12 @@ namespace OpenMS
 
       /// Store results from an SQL query on parent matches
       void handleQueryParentMatch_(
-        SQLite::Statement& query, IdentificationData::ParentMatches& parent_matches,
+        SQLite::Statement& query, LegacyIdentificationData::ParentMatches& parent_matches,
         Key molecule_id);
 
       /// Store results from an SQL query on peak annotations in an observation match
       void handleQueryPeakAnnotation_(
-        SQLite::Statement& query, IdentificationData::ObservationMatch& match,
+        SQLite::Statement& query, LegacyIdentificationData::ObservationMatch& match,
         Key parent_id);
 
       /// The database connection (read)
@@ -181,16 +181,16 @@ namespace OpenMS
       std::string subquery_score_; ///< query for score types used in JSON export
 
       // mappings between database keys and loaded data:
-      std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;
-      std::unordered_map<Key, IdentificationData::InputFileRef> input_file_refs_;
-      std::unordered_map<Key, IdentificationData::ProcessingSoftwareRef> processing_software_refs_;
-      std::unordered_map<Key, IdentificationData::ProcessingStepRef> processing_step_refs_;
-      std::unordered_map<Key, IdentificationData::SearchParamRef> search_param_refs_;
-      std::unordered_map<Key, IdentificationData::ObservationRef> observation_refs_;
-      std::unordered_map<Key, IdentificationData::ParentSequenceRef> parent_sequence_refs_;
-      std::unordered_map<Key, IdentificationData::IdentifiedMolecule> identified_molecule_vars_;
-      std::unordered_map<Key, IdentificationData::ObservationMatchRef> observation_match_refs_;
-      std::unordered_map<Key, IdentificationData::AdductRef> adduct_refs_;
+      std::unordered_map<Key, LegacyIdentificationData::ScoreTypeRef> score_type_refs_;
+      std::unordered_map<Key, LegacyIdentificationData::InputFileRef> input_file_refs_;
+      std::unordered_map<Key, LegacyIdentificationData::ProcessingSoftwareRef> processing_software_refs_;
+      std::unordered_map<Key, LegacyIdentificationData::ProcessingStepRef> processing_step_refs_;
+      std::unordered_map<Key, LegacyIdentificationData::SearchParamRef> search_param_refs_;
+      std::unordered_map<Key, LegacyIdentificationData::ObservationRef> observation_refs_;
+      std::unordered_map<Key, LegacyIdentificationData::ParentSequenceRef> parent_sequence_refs_;
+      std::unordered_map<Key, LegacyIdentificationData::IdentifiedMolecule> identified_molecule_vars_;
+      std::unordered_map<Key, LegacyIdentificationData::ObservationMatchRef> observation_match_refs_;
+      std::unordered_map<Key, LegacyIdentificationData::AdductRef> adduct_refs_;
 
       // mapping: table name -> ordering critera (for JSON export)
       static std::map<std::string, std::string> export_order_by_;

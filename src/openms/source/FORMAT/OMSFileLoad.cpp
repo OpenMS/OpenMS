@@ -22,7 +22,7 @@
 
 using namespace std;
 
-using ID = OpenMS::IdentificationData;
+using ID = OpenMS::LegacyIdentificationData;
 
 namespace OpenMS::Internal
 {
@@ -89,7 +89,7 @@ namespace OpenMS::Internal
   // }
 
 
-  void OMSFileLoad::loadScoreTypes_(IdentificationData& id_data)
+  void OMSFileLoad::loadScoreTypes_(LegacyIdentificationData& id_data)
   {
     if (!db_->tableExists("ID_ScoreType")) return;
     if (!db_->tableExists("CVTerm")) // every score type is a CV term
@@ -115,7 +115,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::loadInputFiles_(IdentificationData& id_data)
+  void OMSFileLoad::loadInputFiles_(LegacyIdentificationData& id_data)
   {
     if (!db_->tableExists("ID_InputFile")) return;
 
@@ -133,7 +133,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::loadProcessingSoftwares_(IdentificationData& id_data)
+  void OMSFileLoad::loadProcessingSoftwares_(LegacyIdentificationData& id_data)
   {
     if (!db_->tableExists("ID_ProcessingSoftware")) return;
 
@@ -275,7 +275,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::loadDBSearchParams_(IdentificationData& id_data)
+  void OMSFileLoad::loadDBSearchParams_(LegacyIdentificationData& id_data)
   {
     if (!db_->tableExists("ID_DBSearchParam")) return;
 
@@ -334,7 +334,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::loadProcessingSteps_(IdentificationData& id_data)
+  void OMSFileLoad::loadProcessingSteps_(LegacyIdentificationData& id_data)
   {
     if (!db_->tableExists("ID_ProcessingStep")) return;
 
@@ -390,7 +390,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::loadObservations_(IdentificationData& id_data)
+  void OMSFileLoad::loadObservations_(LegacyIdentificationData& id_data)
   {
     if (!db_->tableExists("ID_Observation")) return;
 
@@ -417,7 +417,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::loadParentSequences_(IdentificationData& id_data)
+  void OMSFileLoad::loadParentSequences_(LegacyIdentificationData& id_data)
   {
     if (!db_->tableExists("ID_ParentSequence")) return;
 
@@ -456,7 +456,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::loadParentGroupSets_(IdentificationData& id_data)
+  void OMSFileLoad::loadParentGroupSets_(LegacyIdentificationData& id_data)
   {
     if (!db_->tableExists("ID_ParentGroupSet")) return;
 
@@ -528,7 +528,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::loadIdentifiedCompounds_(IdentificationData& id_data)
+  void OMSFileLoad::loadIdentifiedCompounds_(LegacyIdentificationData& id_data)
   {
     if (!db_->tableExists("ID_IdentifiedCompound")) return;
 
@@ -566,7 +566,7 @@ namespace OpenMS::Internal
 
 
   void OMSFileLoad::handleQueryParentMatch_(SQLite::Statement& query,
-                                            IdentificationData::ParentMatches& parent_matches,
+                                            LegacyIdentificationData::ParentMatches& parent_matches,
                                             Key molecule_id)
   {
     query.bind(":id", molecule_id);
@@ -586,7 +586,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::loadIdentifiedSequences_(IdentificationData& id_data)
+  void OMSFileLoad::loadIdentifiedSequences_(LegacyIdentificationData& id_data)
   {
     if (!db_->tableExists("ID_IdentifiedMolecule")) return;
 
@@ -684,7 +684,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::loadAdducts_(IdentificationData& id_data)
+  void OMSFileLoad::loadAdducts_(LegacyIdentificationData& id_data)
   {
     if (!db_->tableExists("AdductInfo")) return;
 
@@ -701,7 +701,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::loadObservationMatches_(IdentificationData& id_data)
+  void OMSFileLoad::loadObservationMatches_(LegacyIdentificationData& id_data)
   {
     if (!db_->tableExists("ID_ObservationMatch")) return;
 
@@ -756,7 +756,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::load(IdentificationData& id_data)
+  void OMSFileLoad::load(LegacyIdentificationData& id_data)
   {
     startProgress(0, 12, "Reading identification data from file");
     loadInputFiles_(id_data);

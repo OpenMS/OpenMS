@@ -11,7 +11,7 @@
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 
 #include <optional>
 
@@ -195,29 +195,29 @@ public:
 
        @throw Exception::MissingInformation if no ID was assigned
     */
-    const IdentificationData::IdentifiedMolecule& getPrimaryID() const;
+    const LegacyIdentificationData::IdentifiedMolecule& getPrimaryID() const;
 
     /// clear any primary ID that was assigned
     void clearPrimaryID();
 
     /// set the primary ID (peptide, RNA, compound) for this feature
-    void setPrimaryID(const IdentificationData::IdentifiedMolecule& id);
+    void setPrimaryID(const LegacyIdentificationData::IdentifiedMolecule& id);
 
     /// immutable access to the set of matches (e.g. PSMs) with IDs for this feature
-    const std::set<IdentificationData::ObservationMatchRef>& getIDMatches() const;
+    const std::set<LegacyIdentificationData::ObservationMatchRef>& getIDMatches() const;
 
     /// mutable access to the set of matches (e.g. PSMs) with IDs for this feature
-    std::set<IdentificationData::ObservationMatchRef>& getIDMatches();
+    std::set<LegacyIdentificationData::ObservationMatchRef>& getIDMatches();
 
     /// add an ID match (e.g. PSM) for this feature
-    void addIDMatch(IdentificationData::ObservationMatchRef ref);
+    void addIDMatch(LegacyIdentificationData::ObservationMatchRef ref);
 
     /*!
       @brief Update ID references (primary ID, matches) for this feature
 
-      This is needed e.g. after the IdentificationData instance containing the referenced data has been copied.
+      This is needed e.g. after the LegacyIdentificationData instance containing the referenced data has been copied.
     */
-    void updateIDReferences(const IdentificationData::RefTranslator& trans);
+    void updateIDReferences(const LegacyIdentificationData::RefTranslator& trans);
     ///@}
 
 protected:
@@ -235,10 +235,10 @@ protected:
     PeptideIdentificationList peptides_;
 
     /// primary ID (peptide, RNA, compound) assigned to this feature
-    std::optional<IdentificationData::IdentifiedMolecule> primary_id_;
+    std::optional<LegacyIdentificationData::IdentifiedMolecule> primary_id_;
 
     /// set of observation matches (e.g. PSMs) with IDs for this feature
-    std::set<IdentificationData::ObservationMatchRef> id_matches_;
+    std::set<LegacyIdentificationData::ObservationMatchRef> id_matches_;
   };
 
 } // namespace OpenMS

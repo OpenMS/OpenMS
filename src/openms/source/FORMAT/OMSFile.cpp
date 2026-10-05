@@ -14,11 +14,11 @@
 
 using namespace std;
 
-using ID = OpenMS::IdentificationData;
+using ID = OpenMS::LegacyIdentificationData;
 
 namespace OpenMS
 {
-  void OMSFile::store(const std::string& filename, const IdentificationData& id_data)
+  void OMSFile::store(const std::string& filename, const LegacyIdentificationData& id_data)
   {
     OpenMS::Internal::OMSFileStore helper(filename, log_type_);
     helper.store(id_data);
@@ -36,7 +36,7 @@ namespace OpenMS
     helper.store(consensus);
   }
 
-  void OMSFile::load(const std::string& filename, IdentificationData& id_data)
+  void OMSFile::load(const std::string& filename, LegacyIdentificationData& id_data)
   {
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
     helper.load(id_data);

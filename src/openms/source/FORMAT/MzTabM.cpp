@@ -129,8 +129,8 @@ namespace OpenMS
         }
 
         // evidence section optional columns
-        IdentificationData::IdentifiedMolecule molecule = match_ref->identified_molecule_var;
-        IdentificationData::IdentifiedCompoundRef compound_ref = molecule.getIdentifiedCompoundRef();
+        LegacyIdentificationData::IdentifiedMolecule molecule = match_ref->identified_molecule_var;
+        LegacyIdentificationData::IdentifiedCompoundRef compound_ref = molecule.getIdentifiedCompoundRef();
         std::vector<std::string> compound_keys;
         compound_ref->getKeys(compound_keys);
         // replace whitespaces with underscore
@@ -147,10 +147,10 @@ namespace OpenMS
     MzTabMMetaData m_meta_data;
 
     // extract identification data from FeatureMap
-    const IdentificationData& id_data = feature_map.getIdentificationData();
+    const LegacyIdentificationData& id_data = feature_map.getIdentificationData();
 
     OPENMS_PRECONDITION(!id_data.empty(),
-                        "The FeatureMap has to have a non empty IdentificationData object attached!")
+                        "The FeatureMap has to have a non empty LegacyIdentificationData object attached!")
 
     // extract MetaValues from FeatureMap
     std::set<std::string> feature_user_value_keys;
@@ -577,8 +577,8 @@ namespace OpenMS
           MzTabMSmallMoleculeEvidenceSectionRow sme;
 
           // IdentifiedCompound
-          IdentificationData::IdentifiedMolecule molecule = ref->identified_molecule_var;
-          IdentificationData::IdentifiedCompoundRef compound_ref = molecule.getIdentifiedCompoundRef();
+          LegacyIdentificationData::IdentifiedMolecule molecule = ref->identified_molecule_var;
+          LegacyIdentificationData::IdentifiedCompoundRef compound_ref = molecule.getIdentifiedCompoundRef();
 
           sme.sme_identifier = MzTabString(StringUtils::toStr(evidence_section_entry_counter));
           sme.evidence_input_id = MzTabString("mass=" + StringUtils::toStr(f.getMZ()) + ",rt=" + StringUtils::toStr(f.getRT()));

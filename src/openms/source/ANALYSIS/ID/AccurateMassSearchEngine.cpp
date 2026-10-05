@@ -541,11 +541,11 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
 
-    IdentificationData& id = fmap.getIdentificationData();
-    IdentificationData::InputFileRef file_ref;
-    IdentificationData::ScoreTypeRef mass_error_ppm_score_ref;
-    IdentificationData::ScoreTypeRef mass_error_Da_score_ref;
-    IdentificationData::ProcessingStepRef step_ref;
+    LegacyIdentificationData& id = fmap.getIdentificationData();
+    LegacyIdentificationData::InputFileRef file_ref;
+    LegacyIdentificationData::ScoreTypeRef mass_error_ppm_score_ref;
+    LegacyIdentificationData::ScoreTypeRef mass_error_Da_score_ref;
+    LegacyIdentificationData::ProcessingStepRef step_ref;
 
     StringList ms_run_paths;
     fmap.getPrimaryMSRunPath(ms_run_paths);
@@ -564,9 +564,9 @@ namespace OpenMS
     }
 
     // register input file
-    IdentificationData::InputFile file(ms_run_paths[0]);
+    LegacyIdentificationData::InputFile file(ms_run_paths[0]);
     file_ref = id.registerInputFile(file);
-    std::vector<IdentificationData::InputFileRef> file_refs;
+    std::vector<LegacyIdentificationData::InputFileRef> file_refs;
     file_refs.emplace_back(file_ref);
 
     // add previous DataProcessingStep(s) from FeatureMap
@@ -574,21 +574,21 @@ namespace OpenMS
     for (const auto& it : data_processing)
     {
       // software
-      IdentificationData::ProcessingSoftware sw(it.getSoftware().getName(), it.getSoftware().getVersion());
+      LegacyIdentificationData::ProcessingSoftware sw(it.getSoftware().getName(), it.getSoftware().getVersion());
       // transfer previous metadata
       sw.addMetaValues(it);
       IdentificationDataInternal::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
       // ProcessingStep: software, input_file_refs, data_time, actions
-      IdentificationData::ProcessingStep step(sw_ref, file_refs, it.getCompletionTime(), it.getProcessingActions());
+      LegacyIdentificationData::ProcessingStep step(sw_ref, file_refs, it.getCompletionTime(), it.getProcessingActions());
       step_ref = id.registerProcessingStep(step);
       id.setCurrentProcessingStep(step_ref);
     }
 
     // add information about current tool
     // register a score type
-    IdentificationData::ScoreType mass_error_ppm_score("MassErrorPPMScore", false);
+    LegacyIdentificationData::ScoreType mass_error_ppm_score("MassErrorPPMScore", false);
     mass_error_ppm_score_ref = id.registerScoreType(mass_error_ppm_score);
-    IdentificationData::ScoreType mass_error_Da_score("MassErrorDaScore", false);
+    LegacyIdentificationData::ScoreType mass_error_Da_score("MassErrorDaScore", false);
     mass_error_Da_score_ref = id.registerScoreType(mass_error_Da_score);
 
     // add the same score_refs to the ProcessingSoftware - to reference the Software with the
@@ -598,24 +598,24 @@ namespace OpenMS
     // register software (connected to score)
     // CVTerm will be set in mztab-m based on the name
     // if the name is not available in PSI-OBO "analysis software" will be used.
-    IdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion(), assigned_scores);
+    LegacyIdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion(), assigned_scores);
     sw.setMetaValue("reliability", "2");
-    IdentificationData::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
+    LegacyIdentificationData::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
 
     // all supported search settings
-    IdentificationData::DBSearchParam search_param;
+    LegacyIdentificationData::DBSearchParam search_param;
     search_param.database = database_name_;
     search_param.database_version = database_version_;
     search_param.setMetaValue("database_location", database_location_);
 
     search_param.precursor_mass_tolerance = this->mass_error_value_;
     search_param.precursor_tolerance_ppm = this->mass_error_unit_ == "ppm" ? true : false;
-    IdentificationData::SearchParamRef search_param_ref = id.registerDBSearchParam(search_param);
+    LegacyIdentificationData::SearchParamRef search_param_ref = id.registerDBSearchParam(search_param);
 
     // file has been processed by software performing a specific processing action.
     std::set<DataProcessing::ProcessingAction> actions;
     actions.insert(DataProcessing::IDENTIFICATION);
-    IdentificationData::ProcessingStep step(sw_ref, file_refs, DateTime::now(), actions);
+    LegacyIdentificationData::ProcessingStep step(sw_ref, file_refs, DateTime::now(), actions);
     step_ref = id.registerProcessingStep(step, search_param_ref);
     id.setCurrentProcessingStep(step_ref); // add the new step
 
@@ -726,16 +726,16 @@ namespace OpenMS
   }
 
   void AccurateMassSearchEngine::addMatchesToID_(
-    IdentificationData& id,
+    LegacyIdentificationData& id,
     const std::vector<AccurateMassSearchResult>& amr,
-    const IdentificationData::InputFileRef& file_ref,
-    const IdentificationData::ScoreTypeRef& mass_error_ppm_score_ref,
-    const IdentificationData::ScoreTypeRef& mass_error_Da_score_ref,
-    const IdentificationData::ProcessingStepRef& step_ref,
+    const LegacyIdentificationData::InputFileRef& file_ref,
+    const LegacyIdentificationData::ScoreTypeRef& mass_error_ppm_score_ref,
+    const LegacyIdentificationData::ScoreTypeRef& mass_error_Da_score_ref,
+    const LegacyIdentificationData::ProcessingStepRef& step_ref,
     BaseFeature& f) const
   {
     // register feature as search item associated with input file
-    IdentificationData::Observation obs(StringUtils::toStr(f.getUniqueId()), file_ref, f.getRT(), f.getMZ());
+    LegacyIdentificationData::Observation obs(StringUtils::toStr(f.getUniqueId()), file_ref, f.getRT(), f.getMZ());
     auto obs_ref = id.registerObservation(obs);
 
     for (const AccurateMassSearchResult& r : amr)
@@ -769,7 +769,7 @@ namespace OpenMS
         const std::string& inchi_key = entry->second[2];
         std::vector<std::string> names = {name}; // to fit legacy format - MetaValue
         std::vector<std::string> identifiers = {r.getMatchingHMDBids()[i]}; // to fit legacy format - MetaValue
-        IdentificationData::IdentifiedCompound compound(r.getMatchingHMDBids()[i],
+        LegacyIdentificationData::IdentifiedCompound compound(r.getMatchingHMDBids()[i],
                                                         EmpiricalFormula(r.getFormulaString()),
                                                         name,
                                                         smiles,
@@ -779,7 +779,7 @@ namespace OpenMS
         auto compound_ref = id.registerIdentifiedCompound(compound); // if already in DB -> NOP
 
         // compound-feature match
-        IdentificationData::ObservationMatch match(compound_ref, obs_ref, r.getCharge());
+        LegacyIdentificationData::ObservationMatch match(compound_ref, obs_ref, r.getCharge());
         match.addScore(mass_error_ppm_score_ref, mass_error_ppm, step_ref);
         match.addScore(mass_error_Da_score_ref, mass_error_Da, step_ref);
         match.setMetaValue("identifier", identifiers);
@@ -800,7 +800,7 @@ namespace OpenMS
 
         // register ObservationMatch
         auto obs_match_ref = id.registerObservationMatch(match);
-        IdentificationData::IdentifiedMolecule molecule(compound_ref);
+        LegacyIdentificationData::IdentifiedMolecule molecule(compound_ref);
         // add to Feature (set PrimaryID to add a reference to a specific molecule)
         f.setPrimaryID(molecule);
         f.addIDMatch(obs_match_ref);
@@ -883,7 +883,7 @@ namespace OpenMS
     return;
   }
 
-  // FeatureMap with IdentificationData attached!
+  // FeatureMap with LegacyIdentificationData attached!
   void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, MzTabM& mztabm_out) const
   {
     mztabm_out = MzTabM::exportFeatureMapToMzTabM(fmap);

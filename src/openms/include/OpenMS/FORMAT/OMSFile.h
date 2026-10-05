@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 
 namespace OpenMS
 {
@@ -31,12 +31,12 @@ namespace OpenMS
       setLogType(log_type);
     }
 
-    /** @brief Write out an IdentificationData object to SQL-based OMS file
+    /** @brief Write out an LegacyIdentificationData object to SQL-based OMS file
      *
      * @param[in] filename The output file
-     * @param[in] id_data The IdentificationData object
+     * @param[in] id_data The LegacyIdentificationData object
      */
-    void store(const std::string& filename, const IdentificationData& id_data);
+    void store(const std::string& filename, const LegacyIdentificationData& id_data);
 
     /** @brief Write out a feature map to SQL-based OMS file
      *
@@ -52,12 +52,12 @@ namespace OpenMS
      */
     void store(const std::string& filename, const ConsensusMap& consensus);
 
-    /** @brief Read in an OMS file and construct an IdentificationData object
+    /** @brief Read in an OMS file and construct an LegacyIdentificationData object
      *
      * @param[out] filename The input file
-     * @param[in] id_data The IdentificationData object
+     * @param[in] id_data The LegacyIdentificationData object
      */
-    void load(const std::string& filename, IdentificationData& id_data);
+    void load(const std::string& filename, LegacyIdentificationData& id_data);
 
     /** @brief Read in an OMS file and construct a feature map
      *

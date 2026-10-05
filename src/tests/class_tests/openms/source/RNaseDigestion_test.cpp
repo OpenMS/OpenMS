@@ -168,11 +168,11 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
 }
 END_SECTION
 
-START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
+START_SECTION((void digest(LegacyIdentificationData& id_data, Size min_length = 0,
                 Size max_length = 0) const))
 {
-  IdentificationData id_data;
-  IdentificationData::ParentSequence rna("test", IdentificationData::MoleculeType::RNA, "pAUGUCGCAG");
+  LegacyIdentificationData id_data;
+  LegacyIdentificationData::ParentSequence rna("test", LegacyIdentificationData::MoleculeType::RNA, "pAUGUCGCAG");
   id_data.registerParentSequence(rna);
 
   RNaseDigestion rd;
@@ -182,7 +182,7 @@ START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
   TEST_EQUAL(id_data.getIdentifiedOligos().size(), 3);
 
   /// multiple occurrences of the same oligo:
-  IdentificationData id_data2;
+  LegacyIdentificationData id_data2;
   rna.sequence = "ACUGACUGG";
   id_data2.registerParentSequence(rna);
 
@@ -190,11 +190,11 @@ START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
 
   TEST_EQUAL(id_data2.getIdentifiedOligos().size(), 1);
   ABORT_IF(id_data2.getIdentifiedOligos().empty());
-  IdentificationData::IdentifiedOligoRef ref = id_data2.getIdentifiedOligos().begin();
+  LegacyIdentificationData::IdentifiedOligoRef ref = id_data2.getIdentifiedOligos().begin();
   TEST_EQUAL(ref->parent_matches.size(), 1);
   ABORT_IF(ref->parent_matches.empty());
   // oligo sequence matches in two locations:
-  const set<IdentificationData::ParentMatch>& matches =
+  const set<LegacyIdentificationData::ParentMatch>& matches =
     ref->parent_matches.begin()->second;
   TEST_EQUAL(matches.size(), 2);
   ABORT_IF(matches.size() < 2);

@@ -223,3 +223,43 @@ discussed :ref:`anchor-other-id-data`) which we would do as follows:
 
 You can inspect the ``out.idXML`` XML file produced here, and you will find a :py:class:`~.ProteinHit` entry for
 the protein that we stored and two :py:class:`~.PeptideHit` entries for the two peptides stored on disk.
+
+
+Owning identification datasets (experimental)
+*********************************************
+
+``IdentificationData`` groups owned candidates into analysis runs with one shared
+score contract. An analysis run can refer to several physical MS files. Peptides,
+oligonucleotides and compounds have a string representation and explicit encoding.
+The existing peptide/protein classes above remain available for legacy workflows.
+
+The new bindings use snake_case names. Values returned by ``get_run`` and record
+getters are independent copies; commit a modified run with ``replace_run``::
+
+    data = oms.FileHandler().load_identification_data("search.idXML")
+    run = data.get_runs()[0]
+    run.retain_best(run.get_primary_score())
+    data.replace_run(run)
+    oms.IdentificationDataFile.store("reduced.idparquet", data)
+
+The native output is a fresh directory containing a manifest and typed Parquet
+tables. Existing destinations are rejected. Filtering does not renumber retained
+records or automatically rerun protein inference. Choose preservation or removal
+of inference explicitly when filtering a dataset or exporting a streaming subset::
+
+    oms.IdentificationDataFile.filter(
+        "search.idparquet", "subset.idparquet",
+        lambda run_uuid, match: match.scores[0] is not None and match.scores[0] < 0.01,
+        oms.IdentificationData.InferencePolicy.DISCARD)
+
+This example assumes column zero is a smaller-is-better probability score in every
+selected run. Inspect each run's definitions before applying a cross-run threshold.
+``IdentificationDataFile.scan`` supports selecting runs and score columns while
+skipping molecular payloads, metadata, evidence and annotations. Streaming avoids
+loading every match into Python. Full loading and inference still require memory
+proportional to their working data.
+
+``IdentificationDataAdapter`` provides explicit legacy, feature and consensus
+conversion. Strict export rejects information the target cannot express. The
+permissive policy reports losses. Removing a match does not remove its measured
+feature; live associations must be pruned or rejected.

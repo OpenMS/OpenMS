@@ -10,7 +10,7 @@
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 
 #include <OpenMS/DATASTRUCTURES/RegularExpression.h>
 
@@ -41,12 +41,12 @@ namespace OpenMS
                 Size min_length = 0, Size max_length = 0) const;
 
     /**
-       @brief Performs the enzymatic digestion of all RNA parent sequences in @p IdentificationData
+       @brief Performs the enzymatic digestion of all RNA parent sequences in @p LegacyIdentificationData
 
        Digestion products are stored as IdentifiedOligos with corresponding ParentMatch annotations.
        Only fragments of appropriate length (between @p min_length and @p max_length) are included.
     */
-    void digest(IdentificationData& id_data, Size min_length = 0,
+    void digest(LegacyIdentificationData& id_data, Size min_length = 0,
                 Size max_length = 0) const;
 
   protected:

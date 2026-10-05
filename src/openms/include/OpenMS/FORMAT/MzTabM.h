@@ -10,7 +10,7 @@
 
 #include <OpenMS/FORMAT/MzTabBase.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <set>
 

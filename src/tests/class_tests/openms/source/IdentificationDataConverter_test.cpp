@@ -39,15 +39,15 @@ START_TEST(IdentificationDataConverter, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentification>&, const PeptideIdentificationList&)))
+START_SECTION((void importIDs(LegacyIdentificationData&, const vector<ProteinIdentification>&, const PeptideIdentificationList&)))
 {
   vector<ProteinIdentification> proteins_in;
   PeptideIdentificationList peptides_in;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), proteins_in, peptides_in);
-  // IdentificationData doesn't allow score types with the same name, but different orientations:
+  // LegacyIdentificationData doesn't allow score types with the same name, but different orientations:
   peptides_in[0].setHigherScoreBetter(true);
 
-  IdentificationData ids;
+  LegacyIdentificationData ids;
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
 
   vector<ProteinIdentification> proteins_out;
@@ -125,17 +125,17 @@ START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentific
 }
 END_SECTION
 
-START_SECTION((void importSequences(IdentificationData&, const vector<FASTAFile::FASTAEntry>&, IdentificationData::MoleculeType, const std::string&)))
+START_SECTION((void importSequences(LegacyIdentificationData&, const vector<FASTAFile::FASTAEntry>&, LegacyIdentificationData::MoleculeType, const std::string&)))
 {
   vector<FASTAFile::FASTAEntry> fasta;
   FASTAFile().load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"), fasta);
-  IdentificationData ids;
+  LegacyIdentificationData ids;
   IdentificationDataConverter::importSequences(ids, fasta);
   TEST_EQUAL(ids.getParentSequences().size(), 5);
 }
 END_SECTION
 
-START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentification>&, PeptideIdentificationList&)))
+START_SECTION((void exportIDs(const LegacyIdentificationData&, vector<ProteinIdentification>&, PeptideIdentificationList&)))
 {
   vector<ProteinIdentification> proteins_in;
   PeptideIdentificationList peptides_in;
@@ -144,7 +144,7 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
   //std::string filename = OPENMS_GET_TEST_DATA_PATH("debug_fraction_1_IDs_after_transfer.idXML");
   IdXMLFile().load(filename, proteins_in, peptides_in);
 
-  IdentificationData ids;
+  LegacyIdentificationData ids;
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
 
   vector<ProteinIdentification> proteins_out;
@@ -174,7 +174,7 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
   }
   for (auto& hit : hits_in)
   {
-    // "target+decoy" is counted as "target" in IdentificationData:
+    // "target+decoy" is counted as "target" in LegacyIdentificationData:
     if (hit.getMetaValue("target_decoy") == "target+decoy")
     {
       hit.setMetaValue("target_decoy", "target");
@@ -214,14 +214,14 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
 }
 END_SECTION
 
-START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
+START_SECTION((MzTab exportMzTab(const LegacyIdentificationData& id_data)))
 {
   vector<ProteinIdentification> proteins_in;
   PeptideIdentificationList peptides_in;
   std::string filename = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/FidoAdapter_4_output.idXML");
   IdXMLFile().load(filename, proteins_in, peptides_in);
 
-  IdentificationData ids;
+  LegacyIdentificationData ids;
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
 
   MzTab mztab = IdentificationDataConverter::exportMzTab(ids);
@@ -231,11 +231,11 @@ START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
   TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out1.mzTab"));
 
   // RNA data, oligonucleotide that matches several times in the same RNA:
-  IdentificationData rna_ids;
-  IdentificationData::ParentSequence rna("test", IdentificationData::MoleculeType::RNA, "AUCGAUCG");
-  IdentificationData::ParentSequenceRef ref = rna_ids.registerParentSequence(rna);
-  IdentificationData::IdentifiedOligo oli(NASequence::fromString("AUCG"));
-  IdentificationData::ParentMatch match1(0, 3), match2(4, 7);
+  LegacyIdentificationData rna_ids;
+  LegacyIdentificationData::ParentSequence rna("test", LegacyIdentificationData::MoleculeType::RNA, "AUCGAUCG");
+  LegacyIdentificationData::ParentSequenceRef ref = rna_ids.registerParentSequence(rna);
+  LegacyIdentificationData::IdentifiedOligo oli(NASequence::fromString("AUCG"));
+  LegacyIdentificationData::ParentMatch match1(0, 3), match2(4, 7);
   oli.parent_matches[ref].insert(match1);
   oli.parent_matches[ref].insert(match2);
   rna_ids.registerIdentifiedOligo(oli);
@@ -250,7 +250,7 @@ END_SECTION
 
 /*
 // performance test on a large file:
-START_SECTION(([[EXTRA]] void importIDs(IdentificationData&, const vector<ProteinIdentification>&, const PeptideIdentificationList&)))
+START_SECTION(([[EXTRA]] void importIDs(LegacyIdentificationData&, const vector<ProteinIdentification>&, const PeptideIdentificationList&)))
 {
   SysInfo::MemUsage mem_usage;
   vector<ProteinIdentification> proteins_in;
@@ -266,9 +266,9 @@ START_SECTION(([[EXTRA]] void importIDs(IdentificationData&, const vector<Protei
 
   mem_usage.reset();
   mem_usage.before();
-  IdentificationData ids;
+  LegacyIdentificationData ids;
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
-  STATUS(mem_usage.delta("IdentificationData"));
+  STATUS(mem_usage.delta("LegacyIdentificationData"));
 
   TEST_EQUAL(ids.getParentSequences().size(), 11098);
   // problem: input data comes from multiple files, spectra with matching names
@@ -292,7 +292,7 @@ START_SECTION((void importFeatureIDs(FeatureMap& features, bool clear_original))
 {
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), features);
   // protein and peptide IDs use same score type (name) with different orientations;
-  // IdentificationData doesn't allow this, so change it here:
+  // LegacyIdentificationData doesn't allow this, so change it here:
   for (auto& run : features.getProteinIdentifications())
   {
     run.setScoreType(run.getScoreType() + "_protein");
@@ -332,7 +332,7 @@ START_SECTION((void importConsensusIDs(ConsensusMap& consensus, bool clear_origi
 {
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), consensus);
   // protein and peptide IDs use same score type (name) with different orientations;
-  // IdentificationData doesn't allow this, so change it here:
+  // LegacyIdentificationData doesn't allow this, so change it here:
   for (auto& run : consensus.getProteinIdentifications())
   {
     run.setScoreType(run.getScoreType() + "_protein");

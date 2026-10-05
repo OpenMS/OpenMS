@@ -32,21 +32,21 @@ START_TEST(OMSFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 std::string oms_tmp;
-IdentificationData ids;
+LegacyIdentificationData ids;
 
-START_SECTION(void store(const std::string& filename, const IdentificationData& id_data))
+START_SECTION(void store(const std::string& filename, const LegacyIdentificationData& id_data))
 {
   vector<ProteinIdentification> proteins_in;
   PeptideIdentificationList peptides_in;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), proteins_in, peptides_in);
-  // IdentificationData doesn't allow score types with the same name, but different orientations:
+  // LegacyIdentificationData doesn't allow score types with the same name, but different orientations:
   peptides_in[0].setHigherScoreBetter(true);
 
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
   // add an adduct (not supported by idXML):
   AdductInfo adduct("Cl-", EmpiricalFormula("Cl"), -1);
   auto adduct_ref = ids.registerAdduct(adduct);
-  IdentificationData::ObservationMatch match = *ids.getObservationMatches().begin();
+  LegacyIdentificationData::ObservationMatch match = *ids.getObservationMatches().begin();
   match.adduct_opt = adduct_ref;
   ids.registerObservationMatch(match);
 
@@ -56,9 +56,9 @@ START_SECTION(void store(const std::string& filename, const IdentificationData& 
 }
 END_SECTION
 
-START_SECTION(void load(const std::string& filename, IdentificationData& id_data))
+START_SECTION(void load(const std::string& filename, LegacyIdentificationData& id_data))
 {
-  IdentificationData out;
+  LegacyIdentificationData out;
   OMSFile().load(oms_tmp, out);
 
   TEST_EQUAL(ids.getInputFiles().size(), out.getInputFiles().size());
@@ -108,7 +108,7 @@ START_SECTION(void store(const std::string& filename, const FeatureMap& features
   FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFileOMStest_1.featureXML"), features);
   // protein and peptide IDs use same score type (name) with different orientations;
-  // IdentificationData doesn't allow this, so change it here:
+  // LegacyIdentificationData doesn't allow this, so change it here:
   for (auto& run : features.getProteinIdentifications())
   {
     run.setScoreType(run.getScoreType() + "_protein");
@@ -166,7 +166,7 @@ START_SECTION(void store(const std::string& filename, const ConsensusMap& consen
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), consensus);
   // protein and peptide IDs use same score type (name) with different orientations;
-  // IdentificationData doesn't allow this, so change it here:
+  // LegacyIdentificationData doesn't allow this, so change it here:
   for (auto& run : consensus.getProteinIdentifications())
   {
     run.setScoreType(run.getScoreType() + "_protein");
