@@ -10,6 +10,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 // scoring
@@ -62,6 +63,7 @@ namespace OpenMS
       std::vector<OpenSwath::LightModification> modifications;
       int charge = 0;
       bool valid = false;
+      bool exact_formula = true;
       EmpiricalFormula formula;
     };
     thread_local PrecursorFormulaCache peptide_formula_cache;
@@ -359,12 +361,31 @@ namespace OpenMS
             peptide_formula_cache.sequence = compound.sequence;
             peptide_formula_cache.modifications = compound.modifications;
             peptide_formula_cache.charge = precursor_charge;
-            peptide_formula_cache.formula = aa_sequence.getFormula(Residue::Full, precursor_charge);
+            peptide_formula_cache.exact_formula = true;
+            try
+            {
+              peptide_formula_cache.formula = aa_sequence.getFormula(Residue::Full, precursor_charge);
+            }
+            catch (const Exception::InvalidValue&)
+            {
+              // Mass-only modifications cannot provide an exact isotope formula; use the same
+              // averagine fallback as compounds without a sequence.
+              peptide_formula_cache.exact_formula = false;
+            }
             peptide_formula_cache.valid = true;
           }
-          diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, im_range, scores.ms1_isotope_correlation,
-                                            scores.ms1_isotope_overlap,
-                                            peptide_formula_cache.formula);
+          if (peptide_formula_cache.exact_formula)
+          {
+            diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, im_range, scores.ms1_isotope_correlation,
+                                              scores.ms1_isotope_overlap,
+                                              peptide_formula_cache.formula);
+          }
+          else
+          {
+            diascoring.dia_ms1_isotope_scores_averagine(precursor_mz, ms1_spectrum, precursor_charge, im_range,
+                                                        scores.ms1_isotope_correlation,
+                                                        scores.ms1_isotope_overlap);
+          }
         }
         else
         {
