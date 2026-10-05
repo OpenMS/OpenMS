@@ -31,7 +31,7 @@ ID::ScoreDefinition score(const std::string& name = "raw", bool higher = true)
 } // namespace
 
 START_TEST(IdentificationData, "$Id$")
-START_SECTION((dataset primary score contract and atomic switching))
+START_SECTION((dataset ordered score schema and atomic switching))
 {
   ID data;
   ID::Run a("A"), b("B"), incompatible("bad");
@@ -39,18 +39,19 @@ START_SECTION((dataset primary score contract and atomic switching))
   auto pep = score("PEP", false);
   auto ar = a.addScore(raw);
   auto ap = a.addScore(pep);
-  auto bp = b.addScore(pep); // Different local column order is valid.
   auto br = b.addScore(raw);
+  auto bp = b.addScore(pep);
   a.setPrimaryScore(ar);
   b.setPrimaryScore(br);
   auto aq = a.addIdentification(a.addSource({}), {});
   auto bq = b.addIdentification(b.addSource({}), {});
   a.addMatch(aq, peptide(), {4.0, 0.1});
-  auto bm = b.addMatch(bq, peptide(), {std::nullopt, 5.0});
+  auto bm = b.addMatch(bq, peptide(), {5.0, std::nullopt});
   data.addRun(a);
   data.addRun(b);
   data.addRun("placeholder");
   TEST_TRUE(data.getPrimaryScoreDefinition() == raw)
+  TEST_TRUE(data.getScoreDefinitions() == a.getScoreDefinitions())
   incompatible.setPrimaryScore(incompatible.addScore(score("raw", false)));
   TEST_EXCEPTION(Exception::InvalidValue, data.addRun(incompatible))
   TEST_EQUAL(data.getRuns().size(), 3)
@@ -82,10 +83,34 @@ START_SECTION((dataset primary score contract and atomic switching))
   ID::Run provenance("provenance");
   provenance.setPrimaryScore(provenance.addScore(changed));
   TEST_EXCEPTION(Exception::InvalidValue, data.addRun(provenance))
+  ID::Run reordered("reordered");
+  reordered.addScore(pep);
+  reordered.setPrimaryScore(reordered.addScore(raw));
+  TEST_EXCEPTION(Exception::InvalidValue, data.addRun(reordered))
+  ID::Run missing("missing");
+  missing.setPrimaryScore(missing.addScore(raw));
+  TEST_EXCEPTION(Exception::InvalidValue, data.addRun(missing))
+  auto extra = data.getRun("B");
+  extra.addScore(score("extra"));
+  TEST_EXCEPTION(Exception::InvalidValue, data.replaceRun(extra))
+  ID::Run supplementary("supplementary provenance");
+  supplementary.setPrimaryScore(supplementary.addScore(raw));
+  auto other_pep = pep;
+  other_pep.calibration = "different";
+  supplementary.addScore(other_pep);
+  TEST_EXCEPTION(Exception::InvalidValue, data.addRun(supplementary))
+  auto mismatched = data;
+  mismatched.getRun("B").addScore(score("extra"));
+  TEST_EXCEPTION(Exception::InvalidValue, mismatched.getScoreDefinitions())
+  TEST_EXCEPTION(Exception::InvalidValue, mismatched.setPrimaryScore(pep))
+  TEST_TRUE(mismatched.getRun("A").getPrimaryScore() == ar)
+  TEST_TRUE(mismatched.getRun("B").getPrimaryScore() == br)
   ID::Run unscored("unscored");
   auto uq = unscored.addIdentification(unscored.addSource({}), {});
   unscored.addMatch(uq, peptide());
   TEST_EXCEPTION(Exception::InvalidValue, data.addRun(unscored))
+  ID empty;
+  TEST_EXCEPTION(Exception::InvalidValue, empty.addRun(unscored))
 }
 END_SECTION
 
@@ -247,7 +272,7 @@ START_SECTION((pooled inference is owned provenance and survives filtering and r
   ID data;
   auto& first = data.addRun("A");
   auto source = first.addSource({});
-  first.addScore(score());
+  first.setPrimaryScore(first.addScore(score()));
   auto query = first.addIdentification(source, {});
   auto removed = first.addMatch(query, peptide(), {1.0});
   auto kept = first.addMatch(query, peptide(), {2.0});

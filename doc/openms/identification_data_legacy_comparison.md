@@ -132,3 +132,10 @@ evidence remain supported; a future PSM-to-peptide-to-protein inference graph ca
 use a separate format. The current layout has **seven files** (six Parquet tables
 plus the manifest). The timing and byte-size figures above predate these
 simplifications and have not been relabelled as new measurements.
+
+
+The current format also requires one ordered score schema across configured runs,
+with one shared primary column and nullable supplementary values. It writes plain
+filenames such as matches.parquet and rejects incompatible layouts instead of
+splitting them into multiple files. The standard layout remains seven files; the
+historical benchmark measurements above have not been relabelled.

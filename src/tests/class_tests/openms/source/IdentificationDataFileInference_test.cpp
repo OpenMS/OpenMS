@@ -260,7 +260,7 @@ START_SECTION((multiple inference results share files without mixing rows or met
   IdentificationDataFile::Options options;
   options.row_group_rows = 2;
   IdentificationDataFile::store(path, data, options);
-  TEST_TRUE(fs::exists(fs::path(path) / "proteins-0.parquet"))
+  TEST_TRUE(fs::exists(fs::path(path) / "proteins.parquet"))
   TEST_FALSE(fs::exists(fs::path(path) / "proteins-1.parquet"))
   ID loaded;
   IdentificationDataFile::load(path, loaded, options);
@@ -326,7 +326,7 @@ START_SECTION((typed pooled inference preserves complete protein values, group a
   TEST_EQUAL(result.proteins.getHits()[1].getModifications().begin()->second.getFullId(), "")
   TEST_EQUAL(result.proteins.getHits()[0].getModifications().begin()->second.getProvenance(), ResidueModification::DEFINED)
   TEST_EQUAL(loaded.getRun(run.getIdentifier()).getNextMatchId(), 1)
-  TEST_TRUE(fs::exists(fs::path(path) / "proteins-0.parquet"))
+  TEST_TRUE(fs::exists(fs::path(path) / "proteins.parquet"))
   TEST_FALSE(fs::exists(fs::path(path) / "inference.json"))
 }
 END_SECTION
@@ -439,12 +439,12 @@ START_SECTION((empty inference tables and optional parent catalogue have distinc
   TEST_TRUE(loaded.getInferenceResults()[0].proteins == inference_result.proteins)
   for (const std::string table : {"inputs", "proteins", "groups"})
   {
-    TEST_TRUE(fs::exists(fs::path(path) / (table + "-0.parquet")))
+    TEST_TRUE(fs::exists(fs::path(path) / (table + ".parquet")))
   }
-  TEST_FALSE(fs::exists(fs::path(path) / "group_members-0.parquet"))
-  TEST_FALSE(fs::exists(fs::path(path) / "input_members-0.parquet"))
-  TEST_FALSE(fs::exists(fs::path(path) / "assignments-0.parquet"))
-  fs::remove(fs::path(path) / "groups-0.parquet");
+  TEST_FALSE(fs::exists(fs::path(path) / "group_members.parquet"))
+  TEST_FALSE(fs::exists(fs::path(path) / "input_members.parquet"))
+  TEST_FALSE(fs::exists(fs::path(path) / "assignments.parquet"))
+  fs::remove(fs::path(path) / "groups.parquet");
   const auto saved_uuid = loaded.getRun("no catalogue").getUuid();
   TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataFile::load(path, loaded))
   TEST_EQUAL(loaded.getRun("no catalogue").getUuid(), saved_uuid)
@@ -462,12 +462,15 @@ START_SECTION((streaming preservation validates live allocation counters and cop
 {
   ID data;
   auto& run = data.addRun("run");
+  ID::ScoreDefinition score;
+  score.name = "score";
+  run.setPrimaryScore(run.addScore(score));
   const auto source = run.addSource({});
   const auto query = run.addIdentification(source, {});
   ID::MatchData peptide;
   peptide.representation = "PEPTIDE";
   peptide.charge = 2;
-  const auto live = run.addMatch(query, peptide);
+  const auto live = run.addMatch(query, peptide, {1.0});
   TEST_EQUAL(live.value, 1)
   ID::ParentRecord parent;
   parent.identity = {"db", "parent"};

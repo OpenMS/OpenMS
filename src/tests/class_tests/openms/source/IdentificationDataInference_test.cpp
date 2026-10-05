@@ -63,15 +63,24 @@ START_SECTION((static IdentificationData::InferenceResult infer(const Identifica
   addRun(data, "A", "dbA", true);
   addRun(data, "B", "dbB", false);
   TEST_EXCEPTION(Exception::InvalidValue, Inference::infer(data, inputs(data), "mixed"))
-  auto& b = data.getRun("B");
-  const auto pp = *b.getPrimaryScore();
-  const auto common = data.getRun("A").getScoreDefinition(*data.getRun("A").getPrimaryScore());
-  const auto pep = b.addScore(common);
-  for (const auto& source : b.getSourceBlocks())
-    for (const auto& query : source.identifications)
-      for (const auto& match : query.getMatches())
-        b.setScore(match.getId(), pep, 1.0 - *b.getScore(match.getId(), pp));
-  data.setPrimaryScore(common);
+  // Normalize both runs explicitly before combining their score columns.
+  ID normalized;
+  addRun(normalized, "A", "dbA", true);
+  addRun(normalized, "B", "dbB", true);
+  data = std::move(normalized);
+  ID::ScoreDefinition pp_definition;
+  pp_definition.name = "Posterior Probability";
+  for (auto& run : data.getRuns())
+  {
+    // getRuns() is read-only; configure through the owning run accessor.
+    auto& mutable_run = data.getRun(run.getIdentifier());
+    const auto pp_score = mutable_run.addScore(pp_definition);
+    for (const auto& source : mutable_run.getSourceBlocks())
+      for (const auto& query : source.identifications)
+        for (const auto& match : query.getMatches())
+          mutable_run.setScore(match.getId(), pp_score, 1.0 - *mutable_run.getScore(match.getId(), *mutable_run.getPrimaryScore()));
+  }
+  const auto pp = data.getRun("B").findScore(pp_definition);
   auto selected = inputs(data);
   // Inference may still explicitly consume a supplementary PP column.
   selected[1].score = pp;

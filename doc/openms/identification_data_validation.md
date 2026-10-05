@@ -218,3 +218,29 @@ inference runs successfully on 1,000 PSMs from 10 runs. A fresh native write/rea
 preserves the content digest and confirms seven files, with only inputs, proteins
 and groups declared for inference. Earlier sections describe previous layouts;
 no new million-PSM timing or memory improvement is claimed.
+
+## One ordered score schema and plain filenames (2026-10-05)
+
+Configured runs now share the complete ordered score-definition vector and primary
+column. The model checks supplementary definitions/provenance and ordering as well
+as the primary selection. Primary values are required; supplementary values may be
+null. Empty unconfigured runs remain valid construction placeholders and preserve
+that state on roundtrip. Dataset-level getScoreDefinitions() exposes the checked
+schema; ScoreId handles remain run-local. Atomic primary switching rejects schema
+mismatches before changing any run.
+
+Native inspection, loading, scanning and filtering validate the contract before
+reading rows. The physical writer uses a single schema per table, rejects conflicting
+layouts and writes plain names such as matches.parquet. Schema fingerprints,
+variant counters and numeric filename suffixes are removed. No implicit union or
+column remapping occurs. Supplemental legacy values remain typed match metadata.
+
+The Release library and focused tests were rebuilt. All 11 focused C++ suites and
+16 Python tests pass, including reordered/missing/extra supplementary columns,
+provenance mismatches, required primary scores, nullable supplementary values,
+atomic failures, transactional malformed-manifest rejection and shared row groups.
+An additional regression verifies projected scans across empty unconfigured runs.
+The standalone Python extension and real metadata/format binding translation units
+compile. A rebuilt benchmark writes and reads 1,000 PSMs over 10 runs with matching
+content digests, seven plain filenames and one shared matches table; pooled inference
+also succeeds. No new million-PSM performance claim is made.

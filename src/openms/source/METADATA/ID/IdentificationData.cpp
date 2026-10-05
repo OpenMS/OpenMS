@@ -25,30 +25,31 @@ namespace
   static_assert(std::is_nothrow_swappable_v<ProteinIdentification>);
   [[noreturn]] void invalid(const std::string& message)
   { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message, "IdentificationData"); }
-  void checkPrimaryContract(const std::deque<ID::Run>& runs, const ID::Run* candidate = nullptr,
-                            const std::string* replacing_uuid = nullptr)
+  const ID::Run* checkScoreContract(const std::deque<ID::Run>& runs,
+                                    const ID::Run* candidate = nullptr,
+                                    const std::string* replacing_uuid = nullptr,
+                                    bool check_primary = true)
   {
-    bool initialized = false;
-    std::optional<ID::ScoreDefinition> expected;
-    std::string first;
+    const ID::Run* expected = nullptr;
     const auto check = [&](const ID::Run& run) {
+      const auto& definitions = run.getScoreDefinitions();
       const auto primary = run.getPrimaryScore();
-      if (!primary && run.getNumberOfMatches() == 0) return;
-      std::optional<ID::ScoreDefinition> definition;
-      if (primary) definition = run.getScoreDefinition(*primary);
-      if (!initialized)
+      if (definitions.empty() && ! primary && run.getNumberOfMatches() == 0) return;
+      if (check_primary && ! primary) invalid("Run '" + run.getIdentifier() + "' must select a primary PSM score");
+      if (! expected) expected = &run;
+      else
       {
-        expected = definition;
-        first = run.getIdentifier();
-        initialized = true;
+        if (definitions != expected->getScoreDefinitions())
+          invalid("Ordered PSM score schema differs between runs '" + expected->getIdentifier() + "' and '" + run.getIdentifier()
+                  + "'. Normalize score definitions and column order before combining runs");
+        if (check_primary && primary->value != expected->getPrimaryScore()->value)
+          invalid("Primary PSM score selection differs between runs '" + expected->getIdentifier() + "' and '" + run.getIdentifier() + "'");
       }
-      else if (definition != expected)
-        invalid("Primary PSM score contract differs between runs '" + first + "' and '" + run.getIdentifier() +
-                "'. Normalize primary score definitions before combining runs");
     };
     for (const auto& run : runs)
       if (!replacing_uuid || run.getUuid() != *replacing_uuid) check(run);
     if (candidate) check(*candidate);
+    return expected;
   }
   UInt64 token()
   {
@@ -764,7 +765,7 @@ ID::Run& ID::addRun(Run run)
   for (const auto& existing : runs_)
     if (existing.uuid_ == run.uuid_ || existing.identifier_ == run.identifier_) invalid("Duplicate run UUID or display identifier");
   run.validate();
-  checkPrimaryContract(runs_, &run);
+  checkScoreContract(runs_, &run);
   for (const auto& result : inference_)
   {
     for (const auto& input : result.inputs)
@@ -780,7 +781,7 @@ void ID::replaceRun(const Run& run)
   copy.validate();
   auto found = std::find_if(runs_.begin(), runs_.end(), [&](const Run& current) { return current.uuid_ == run.uuid_; });
   if (found == runs_.end() || found->identifier_ != run.identifier_) invalid("Replacement must have the same run UUID and identifier");
-  checkPrimaryContract(runs_, &copy, &run.uuid_);
+  checkScoreContract(runs_, &copy, &run.uuid_);
   copy.next_query_id_ = std::max(copy.next_query_id_, found->next_query_id_);
   copy.next_match_id_ = std::max(copy.next_match_id_, found->next_match_id_);
   *found = std::move(copy);
@@ -837,9 +838,15 @@ Size ID::filterMatches(const std::function<bool(const Match&)>& keep, InferenceP
   inference_.swap(replacement.inference_);
   return removed;
 }
+const std::vector<ID::ScoreDefinition>& ID::getScoreDefinitions() const
+{
+  static const std::vector<ScoreDefinition> empty;
+  const auto* run = checkScoreContract(runs_);
+  return run ? run->getScoreDefinitions() : empty;
+}
 std::optional<ID::ScoreDefinition> ID::getPrimaryScoreDefinition() const
 {
-  checkPrimaryContract(runs_);
+  checkScoreContract(runs_);
   for (const auto& run : runs_)
     if (run.primary_) return run.scores_[run.primary_->value];
   return std::nullopt;
@@ -847,6 +854,7 @@ std::optional<ID::ScoreDefinition> ID::getPrimaryScoreDefinition() const
 void ID::setPrimaryScore(const ScoreDefinition& definition)
 {
   checkMutation_();
+  checkScoreContract(runs_, nullptr, nullptr, false);
   std::vector<std::pair<Run*, ScoreId>> selections;
   for (auto& run : runs_)
   {
@@ -864,7 +872,7 @@ void ID::setPrimaryScore(const ScoreDefinition& definition)
 }
 void ID::validate() const
 {
-  checkPrimaryContract(runs_);
+  checkScoreContract(runs_);
   std::set<std::string> identities, identifiers;
   for (const auto& run : runs_)
   {

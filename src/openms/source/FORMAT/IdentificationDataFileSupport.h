@@ -29,7 +29,7 @@ struct Options : IdentificationDataFile::Options
   std::shared_ptr<WritePool> output;
   std::shared_ptr<ReadPool> input;
   UInt64 partition = 0;
-  std::string score_schema;
+  Size score_count = 0;
 };
 [[noreturn]] void invalid(const std::string& message);
 void check(const arrow::Status& status);
@@ -149,7 +149,7 @@ private:
   UInt64 total_ = 0;
 };
 
-// One physical writer per compatible table layout, with small runs sharing row groups.
+// One physical writer per table, with small runs sharing row groups.
 class WritePool
 {
 public:
@@ -159,7 +159,6 @@ public:
 private:
   std::filesystem::path root_;
   std::map<std::string, std::unique_ptr<TableWriter>> writers_;
-  std::map<std::string, Size> variants_;
 };
 
 // File handles and one projected row group per physical table are reused between slices.

@@ -26,7 +26,7 @@ namespace OpenMS
 class IdentificationDataFile;
 
 /**
-  @brief Owning identification values with a homogeneous score contract per analysis run.
+  @brief Owning identification values with one ordered score schema per dataset.
 
   A run owns sources, observations and candidate matches. Editing or filtering a run
   does not traverse inference provenance. IDs survive copies, filtering and native
@@ -366,14 +366,17 @@ public:
   void addInferenceResult(const InferenceResult& result);
   void clearInferenceResults();
   Size filterMatches(const std::function<bool(const Match&)>& keep, InferencePolicy policy, bool keep_empty_queries = false);
-  /** Common primary PSM score contract.
-      All runs with matches or a selected primary score must agree on the complete
-      ScoreDefinition (including orientation and provenance), or all be unscored.
-      Empty runs without a primary score are construction placeholders and are ignored.
-      Supplementary score definitions and local score IDs may differ between runs.
+  /** Dataset-wide ordered PSM score contract.
+      Configured runs have identical complete ScoreDefinitions in identical column
+      order and select the same primary column. Primary values are required;
+      supplementary values may be missing. Empty runs with no score definitions
+      are construction placeholders and are ignored. Run-local ScoreId handles
+      remain distinct even though their column indices agree.
       Throws on disagreement. Mutable run edits must be followed by validate();
       import, replacement, export and inference boundaries enforce this contract.
   */
+  const std::vector<ScoreDefinition>& getScoreDefinitions() const;
+  /// Return the common primary definition after checking the complete score contract.
   std::optional<ScoreDefinition> getPrimaryScoreDefinition() const;
   /// Select an existing score in every participating run, checking coverage first.
   /// Failure leaves all primary selections unchanged. Empty unconfigured runs are ignored.

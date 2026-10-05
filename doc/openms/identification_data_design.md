@@ -4,7 +4,7 @@
 
 ## 1. Decision
 
-Use an ordinary directory containing a small JSON manifest and typed Parquet tables. Keep analysis runs logically separate while sharing physical tables across compatible runs. Keep scores in the match table. Write a new, self-contained dataset after filtering or modification.
+Use an ordinary directory containing a small JSON manifest and typed Parquet tables. Keep analysis runs logically separate while sharing physical tables across runs with one checked score schema. Keep scores in the match table. Write a new, self-contained dataset after filtering or modification.
 
 There are no run revision tokens, scientific snapshots, file catalogues, update overlays, persistent lookup indexes or partial-replacement protocol. Assign a public schema version when the format is ready; discarded, unreleased prototypes do not need compatibility readers.
 
@@ -18,7 +18,7 @@ Each run defines:
 
 - Its identifier, molecule kind and search/processing metadata.
 - Its sources, including exact paths and optional primary-file lists.
-- Immutable score definitions and an optional primary score.
+- The shared ordered score definitions and primary selection; empty unconfigured runs may omit both.
 - Shared metadata descriptors: name, value type and unit information.
 
 A query represents an observation with zero or more candidate matches. It has a generic native reference such as a spectrum identifier, optional RT and observed m/z. There is no mandatory spectrum-versus-feature type flag. Feature associations are separate annotations.
@@ -32,14 +32,14 @@ The manifest identifies every run/result and its table slices: relative physical
 | Path | Contents |
 | --- | --- |
 | `manifest.json` | Format identifier/schema version, run descriptors, sources, score definitions, metadata descriptors, processing metadata and table paths |
-| `queries-0.parquet` | Queries for all runs |
-| `matches-0.parquet` | Matches and all their score columns |
-| `parents-0.parquet` | Optional original parent catalogue: qualified identity, sequence, description and metadata |
-| `inputs-0.parquet` | Ordered contributing runs and exact input score definitions |
-| `proteins-0.parquet` | Inferred protein hits |
-| `groups-0.parquet` | Protein group values, ordering and an inline ordered member list |
+| `queries.parquet` | Queries for all runs |
+| `matches.parquet` | Matches and all their score columns |
+| `parents.parquet` | Optional original parent catalogue: qualified identity, sequence, description and metadata |
+| `inputs.parquet` | Ordered contributing runs and exact input score definitions |
+| `proteins.parquet` | Inferred protein hits |
+| `groups.parquet` | Protein group values, ordering and an inline ordered member list |
 
-The layout above has seven files including the manifest. Use one physical file per compatible table schema, with multiple Parquet row groups. Small runs and inference results share row groups. Query, match and parent rows carry `run_id`; inference rows carry `inference_id`. Different complete supplementary score layouts use separate match files (`matches-1.parquet`, etc.), preserving dense numeric columns and their definitions. The numeric filename suffix enumerates physical files for a table; it is not a run ID or revision. Files do not multiply with the number of compatible runs. Size-based file sharding remains outside this initial implementation.
+The layout above has seven files including the manifest. Use exactly one physical file per table, with multiple Parquet row groups. Small runs and inference results share row groups. Query, match and parent rows carry `run_id`; inference rows carry `inference_id`. Every configured run uses the same ordered score definitions and primary column. Supplementary values may be null. Different score layouts are rejected instead of creating additional files. Filenames have no numeric suffix. Size-based file sharding remains outside this initial implementation.
 
 Keep JSON for configuration whose size follows the number of runs, sources, score definitions and metadata descriptors. Per-record values, parent catalogues, protein results and group members belong in typed tables. The manifest contains no arrays of PSM IDs.
 
@@ -74,7 +74,7 @@ Every run declares query and match slices, even when they contain zero rows. An 
 | `parent_evidence` | Ordered sequence-to-parent evidence with qualified identities, optional coordinates and flanking residues |
 | `peak_annotations` | Ordered fragment annotations |
 | `metadata` | Typed metadata values |
-| `score_<id>` | One nullable float64 column per run score definition |
+| `score_<id>` | One float64 column per shared score definition; supplementary values are nullable |
 
 Queries and candidates retain their order. Match rows follow query order, with a query's candidates contiguous. A reader advances through the query stream and consumes consecutive match rows whose query ID equals the current query, retaining one row of lookahead. A query with no matching row is empty. Any unmatched match rows after the query stream ends are invalid. Validate the selected candidate while traversing its query. This needs neither a stored candidate count nor a run-wide query-to-match hash map. Queries with no candidates remain representable. A very large candidate set can span row groups and processing batches.
 
@@ -84,7 +84,7 @@ The selected match is independent of the primary score and any calculated rankin
 
 A score definition includes name, optional CV term, direction, statistical scope, producing software/parameters and calibration provenance when available. Equal names alone do not establish equal meanings. The inference algorithm is responsible for checking whether scores from different runs can be pooled.
 
-A score has a stable run-local uint32 ID. The complete definition set is known before opening the match writer, so every row group has the same score schema. Every `score_<id>` column has exactly one meaning throughout its run. Missing scores use null; zero remains a value. New-model scores are finite. Selecting a primary score requires a value on every match, including subsequently appended matches.
+A score has a stable uint32 column index shared by every configured run; C++ ScoreId handles remain bound to their owning run. The complete ordered definition set is checked before opening the match writer, so every row group has the same score schema. Every `score_<id>` column has exactly one meaning throughout the dataset. Missing supplementary scores use null; zero remains a value. New-model scores are finite. Selecting a primary score requires a value on every match, including subsequently appended matches.
 
 Changing the primary score uses the dataset-wide checked selection API. Rescoring with a different meaning or provenance creates a new definition and column. Inference retains the definition used for its calculation.
 
@@ -167,7 +167,7 @@ Custom modification definitions are retained with run configuration. Raw scans p
 
 | Workflow | Intended use |
 | --- | --- |
-| IDScoreSwitcher | Resolve a run score definition and select it as primary; validate coverage |
+| IDScoreSwitcher | Select a shared score as primary across runs; validate coverage atomically |
 | Protein inference | Read selected scores and evidence across runs; write one pooled result with explicit inputs |
 | NASE / ProSE | Use homogeneous RNA or peptide runs with the appropriate molecular encoding and score contract |
 | ProteomicsLFQ | Consume identifications and retain explicit associations to measured features |
@@ -193,24 +193,33 @@ The benchmark in `tools/benchmarks/identification_data` measures owning generati
 
 See the benchmark README for reproducible commands and the accompanying validation report for measured results.
 
-## Checked common primary PSM score
+## Checked dataset-wide score schema
 
-A dataset has one common primary PSM score definition across participating runs.
-The complete definition must match, including direction, scope and provenance;
-matching display names alone is insufficient. Local score IDs and supplementary
-score columns may differ. Protein and inference scores remain independent.
-Empty runs with no selected primary are ignored during incremental construction.
-Populated runs must either all select the same definition or all be unscored.
+A dataset has one ordered PSM score schema and one primary column. Configured runs
+must declare exactly the same complete definitions, including direction, scope,
+software, parameters and calibration provenance, in the same order. Equal names
+alone are insufficient. Protein and inference scores remain independent.
 
-`getPrimaryScoreDefinition()` checks and returns this contract.
-`setPrimaryScore(definition)` checks score availability and candidate coverage in
-every configured run before changing any selection. Failure changes no selections.
+Primary values are required on every match. Supplementary values may be null,
+including when an entire run lacks values for a declared supplementary column.
+Empty runs without score definitions are construction placeholders and remain
+unconfigured through a native roundtrip; their zero-row slices use the shared
+physical table schema.
+
+`getScoreDefinitions()` and `getPrimaryScoreDefinition()` check this contract.
+`setPrimaryScore(definition)` checks the shared layout and candidate coverage in
+every configured run before changing any selection. It can repair differing
+primary selections in otherwise compatible runs; failure changes no selections.
 `addRun`, `replaceRun`, legacy import, native read/write, and inference reject
-incompatible datasets. Native descriptor checks also cover streaming scans.
-Mutable C++ run access supports incremental edits; call `validate()` after such
-edits. The contract is checked at these boundaries, not on every low-level setter.
-Normalize mixed legacy scores before import; splitting them into runs no longer
-makes them a valid single dataset. Supplementary schemas may differ; the shared-file writer groups compatible complete score layouts.
+incompatible datasets. Native descriptor checks also cover inspection, streaming
+scans and filtering before rows are delivered or output is created. Mutable C++
+run access supports incremental edits; call `validate()` after those edits.
+
+Normalize incompatible inputs explicitly before combining them. The writer does
+not discover a union of scores, reorder columns, demote declared scores to metadata,
+or create alternative match files. Additional engine-specific values can remain
+in typed match metadata. The legacy importer promotes the primary score and retains
+supplementary legacy values in metadata.
 
 ## Shared-table I/O implementation
 

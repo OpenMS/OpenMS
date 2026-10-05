@@ -274,6 +274,7 @@ inline void bind(nb::module_& m)
                                   keep_empty);
       },
       nb::arg("keep"), nb::arg("inference_policy"), nb::arg("keep_empty_queries") = false)
+    .def("get_score_definitions", &ID::getScoreDefinitions, nb::rv_policy::copy)
     .def("get_primary_score_definition", &ID::getPrimaryScoreDefinition)
     .def("set_primary_score", &ID::setPrimaryScore, nb::arg("definition"))
     .def("validate", &ID::validate)

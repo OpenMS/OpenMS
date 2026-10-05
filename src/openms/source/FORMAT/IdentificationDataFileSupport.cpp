@@ -532,13 +532,14 @@ Json TableWriter::reference() const
 TableWriter& WritePool::acquire(const std::filesystem::path& logical, const std::shared_ptr<arrow::Schema>& schema, const Options& options)
 {
   const auto stem = logical.stem().string();
-  const auto key = stem + "\n" + schema->ToString() + (stem == "matches" ? options.score_schema : "");
-  auto& writer = writers_[key];
+  auto physical = value(
+    schema->AddField(schema->num_fields(),
+                     arrow::field(stem == "queries" || stem == "matches" || stem == "parents" ? "run_id" : "inference_id", arrow::uint64(), false)));
+  auto& writer = writers_[stem];
+  if (writer && ! writer->schema_->Equals(*physical, false)) invalid("Conflicting schema for shared table: " + stem);
   if (!writer)
   {
-    const auto filename = stem + "-" + std::to_string(variants_[stem]++) + ".parquet";
-    const auto id = stem == "queries" || stem == "matches" || stem == "parents" ? "run_id" : "inference_id";
-    auto physical = value(schema->AddField(schema->num_fields(), arrow::field(id, arrow::uint64(), false)));
+    const auto filename = stem + ".parquet";
     Options standalone(options);
     standalone.output.reset();
     standalone.input.reset();
@@ -553,7 +554,7 @@ void WritePool::close()
 }
 std::shared_ptr<ReadPool::Entry> ReadPool::open(const std::filesystem::path& path)
 {
-  // Bound cached decoded groups and open files when many supplementary schemas occur.
+  // Bound cached decoded groups and open files.
   if (!files_.contains(path.string()) && files_.size() >= 16)
     for (auto it = files_.begin(); it != files_.end() && files_.size() >= 16;)
       if (it->second.use_count() == 1) it = files_.erase(it);

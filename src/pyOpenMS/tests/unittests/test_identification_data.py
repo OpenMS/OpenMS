@@ -291,7 +291,7 @@ def test_failed_native_load_preserves_destination(tmp_path):
     data.add_run(run)
     path = str(tmp_path / "native")
     File.store(path, data)
-    matches = list(Path(path).glob("matches-*.parquet"))
+    matches = list(Path(path).glob("matches.parquet"))
     assert len(matches) == 1
     matches[0].unlink()
     with pytest.raises(Exception):
@@ -302,6 +302,9 @@ def test_failed_native_load_preserves_destination(tmp_path):
 
 def test_optional_adduct_and_empty_queries_round_trip(tmp_path):
     run = ID.Run("compounds", ID.MoleculeKind.COMPOUND)
+    score = ID.ScoreDefinition()
+    score.name = "similarity"
+    run.set_primary_score(run.add_score(score))
     source = run.add_source(ID.SourceFile())
     query = run.add_identification(source, ID.Observation())
     empty = run.add_identification(source, ID.Observation())
@@ -310,7 +313,7 @@ def test_optional_adduct_and_empty_queries_round_trip(tmp_path):
     payload.representation = "CCO"
     payload.charge = 1
     payload.adduct = oms.AMSE_AdductInfo.parseAdductString("2M+H;1+")
-    match_id = run.add_match(query, payload)
+    match_id = run.add_match(query, payload, [0.9])
     data = ID()
     data.add_run(run)
     path = str(tmp_path / "native")
@@ -391,15 +394,28 @@ def test_file_handler_loads_and_stores_native_owning_values(tmp_path):
     assert loaded.get_run("search").get_match(first).representation == "PEPTIDE"
 
 
-def test_dataset_primary_score_contract():
+def test_dataset_ordered_score_contract():
     first, _, _, _, _ = make_run("A")
     second, _, _, _, _ = make_run("B")
+    extra = ID.ScoreDefinition()
+    extra.name = "supplementary"
+    first.add_score(extra)
+    second.add_score(extra)
     data = ID()
     data.add_run(first)
     data.add_run(second)
     definition = data.get_primary_score_definition()
     data.set_primary_score(definition)
     data.validate()
+    assert [score.name for score in data.get_score_definitions()] == [definition.name, "supplementary"]
+    with pytest.raises(Exception):
+        data.set_primary_score(extra)  # Null supplementary values cannot become primary.
+    assert data.get_primary_score_definition().name == definition.name
+    reordered = ID.Run("reordered")
+    reordered.add_score(extra)
+    reordered.set_primary_score(reordered.add_score(definition))
+    with pytest.raises(Exception):
+        data.add_run(reordered)
     incompatible, _, _, _, _ = make_run("bad")
     other = ID.ScoreDefinition()
     other.name = "different score"
