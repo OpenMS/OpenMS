@@ -61,6 +61,12 @@ OpenMS Library:
   - IdXMLFile formats peptide identifications in parallel, writes blocks in input order,
     caches metadata names per worker, and sorts hit indices instead of copying hits.
     The writer uses at most 16 threads and preserves the existing output and hit order.
+  - FIX: IdXMLFile::store throws when writing the file fails (e.g. disk full, an I/O error, or an
+    allocation failure while a block of the parallel writer is formatted). It does not remove the
+    file: a partial file may remain. The message of an OpenMS exception names the file and says
+    so; other exceptions (e.g. std::bad_alloc) are raised unchanged.
+    The block writer accepted the text of a failed block stream, and the state of the file stream
+    was never checked, so a truncated idXML could be left behind a successful return.
   - FIX: OpenDIA builds without private Arrow headers. OSWPQ result storage now uses
     the public OSWParquetFile API, including staged archive commits (#10414).
   - TransitionPQPFile can write a PQP library incrementally in batches (new batch writer API), so
