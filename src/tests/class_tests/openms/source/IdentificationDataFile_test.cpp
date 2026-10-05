@@ -102,13 +102,11 @@ struct Fixture
     input.run_identifier = run.getIdentifier();
     input.run_uuid = uuid;
     input.score = raw;
-    input.matches = {selected, first, selected};
     input.selection = "all candidates";
     inference.inputs.push_back(input);
     ID::InferenceInput absent;
     absent.run_identifier = "not-in-export";
     absent.run_uuid = "11111111-1111-4111-8111-111111111111";
-    absent.matches = {ID::MatchId {selected.value}};
     inference.inputs.push_back(absent);
     inference.assignments.push_back({run.getIdentifier(), uuid, selected, UInt64 {0}, {{"db", "P1"}}});
     inference.assignments.push_back({run.getIdentifier(), uuid, first, UInt64 {0}, {}});
@@ -242,7 +240,8 @@ START_SECTION((static void store(const std::string&, const IdentificationData&, 
   TEST_TRUE(Native::isNativeFile(directory))
   TEST_TRUE(fs::exists(fs::path(directory) / "queries-0.parquet"))
   TEST_TRUE(fs::exists(fs::path(directory) / "matches-0.parquet"))
-  TEST_TRUE(fs::exists(fs::path(directory) / "input_members-0.parquet"))
+  TEST_TRUE(fs::exists(fs::path(directory) / "inputs-0.parquet"))
+  TEST_FALSE(fs::exists(fs::path(directory) / "input_members-0.parquet"))
   TEST_FALSE(fs::exists(fs::path(directory) / "inference.json"))
   ID loaded;
   Native::load(directory, loaded, tiny());
@@ -280,7 +279,8 @@ START_SECTION((static void store(const std::string&, const IdentificationData&, 
   TEST_EQUAL(run.getParents()->at(0).description, "parent description")
   TEST_TRUE(loaded.getRun("empty-compounds").getParents().has_value())
   TEST_EQUAL(loaded.getRun("empty-compounds").getParents()->size(), 0)
-  TEST_TRUE(loaded.getInferenceResults()[0].inputs[0].matches == fixture.data.getInferenceResults()[0].inputs[0].matches)
+  TEST_EQUAL(loaded.getInferenceResults()[0].inputs[0].run_uuid, fixture.uuid)
+  TEST_EQUAL(loaded.getInferenceResults()[0].inputs[0].selection, "all candidates")
   TEST_EQUAL(loaded.getInferenceResults()[0].assignments[1].parents.size(), 0)
   TEST_EQUAL(loaded.getInferenceResults()[0].inputs[1].run_uuid, "11111111-1111-4111-8111-111111111111")
   TEST_EXCEPTION(Exception::InvalidValue, Native::store(directory, fixture.data))
@@ -369,7 +369,8 @@ START_SECTION(
   TEST_EQUAL(run.getMatch(fixture.first).getId().value, fixture.first.value)
   TEST_FALSE(run.getIdentification(fixture.query).getSelectedMatch().has_value())
   TEST_TRUE(run.findMatch(fixture.selected) == nullptr)
-  TEST_TRUE(reduced.getInferenceResults()[0].inputs[0].matches == fixture.data.getInferenceResults()[0].inputs[0].matches)
+  TEST_EQUAL(reduced.getInferenceResults()[0].inputs[0].run_uuid, fixture.uuid)
+  TEST_EQUAL(reduced.getInferenceResults()[0].inputs[0].selection, "all candidates")
   TEST_EQUAL(reduced.getInferenceResults()[0].assignments[0].match.value, fixture.selected.value)
   auto appended = run.addMatch(fixture.query, run.getMatch(fixture.first).getData(), {40.0, 0.02});
   TEST_TRUE(appended.value > fixture.last.value)

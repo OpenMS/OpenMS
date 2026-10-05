@@ -787,10 +787,6 @@ void ID::replaceRun(const Run& run)
   copy.next_match_id_ = std::max(copy.next_match_id_, found->next_match_id_);
   for (const auto& result : inference_)
   {
-    for (const auto& input : result.inputs)
-      if (input.run_uuid == run.uuid_)
-        for (auto id : input.matches)
-          copy.reserveMatchId(id);
     for (const auto& assignment : result.assignments)
       if (assignment.run_uuid == run.uuid_) copy.reserveMatchId(assignment.match);
   }
@@ -821,9 +817,6 @@ void ID::addInferenceResult(const InferenceResult& result)
   for (const auto& input : result.inputs)
   {
     if (! validUuid(input.run_uuid)) invalid("Inference input needs a run UUID");
-    if (! input.membership_known && ! input.matches.empty()) invalid("Unknown membership cannot contain members");
-    for (auto id : input.matches)
-      reserve[input.run_uuid] = std::max(reserve[input.run_uuid], following(id.value));
   }
   for (const auto& assignment : result.assignments)
   {
@@ -907,10 +900,7 @@ void ID::validate() const
   {
     for (const auto& input : result.inputs)
     {
-      if (! validUuid(input.run_uuid) || (! input.membership_known && ! input.matches.empty())) invalid("Invalid inference input");
-      const auto* run = findRunByUuid(input.run_uuid);
-      for (auto id : input.matches)
-        if (! id.value || (run && id.value >= run->next_match_id_)) invalid("Unreserved inference member ID");
+      if (! validUuid(input.run_uuid)) invalid("Invalid inference input");
     }
     for (const auto& assignment : result.assignments)
     {

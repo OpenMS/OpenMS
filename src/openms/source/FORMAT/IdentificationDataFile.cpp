@@ -123,8 +123,8 @@ namespace
     for (const auto& result : manifest.at("inference"))
     {
       const auto& tables = result.at("tables");
-      if (!tables.is_object() || tables.size() != 5) invalid("Inference requires five typed tables");
-      for (const auto* name : {"inputs", "input_members", "proteins", "groups", "assignments"}) claim(tables.at(name), partition);
+      if (!tables.is_object() || tables.size() != 4) invalid("Inference requires four typed tables");
+      for (const auto* name : {"inputs", "proteins", "groups", "assignments"}) claim(tables.at(name), partition);
       ++partition;
     }
     for (auto& [name, slices] : ranges)
@@ -626,9 +626,6 @@ namespace
       const auto* run = data.findRunByUuid(uuid);
       if (run && match.value >= run->getNextMatchId()) invalid("Run allocation counter does not reserve retained inference IDs");
     };
-    for (const auto& input : result.inputs)
-      for (auto match : input.matches)
-        check_id(input.run_uuid, match);
     for (const auto& assignment : result.assignments)
       check_id(assignment.run_uuid, assignment.match);
   }

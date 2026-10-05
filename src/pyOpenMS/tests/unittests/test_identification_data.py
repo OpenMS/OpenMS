@@ -72,7 +72,7 @@ def make_data_with_inference():
     input_record.run_identifier = run.get_identifier()
     input_record.run_uuid = run.get_uuid()
     input_record.score = run.get_score_definition(score)
-    input_record.matches = [second, first, second]
+    input_record.selection = "all candidates"
     result.inputs = [input_record]
     assignment = ID.MatchAssignment()
     assignment.run_identifier = run.get_identifier()
@@ -202,7 +202,8 @@ def test_filter_preserves_inference_provenance_or_explicitly_discards():
     assert run.find_match(second) is None
     assert run.get_identification(query).get_selected_match() is None
     result = data.get_inference_results()[0]
-    assert [item.value for item in result.inputs[0].matches] == [second.value, first.value, second.value]
+    assert result.inputs[0].run_uuid == run.get_uuid()
+    assert result.inputs[0].selection == "all candidates"
     assert result.assignments[0].match == second
     assert result.proteins.getHits()[0].getScore() == 0.99
     data.filter_matches(lambda match: True, ID.InferencePolicy.DISCARD)
@@ -228,7 +229,8 @@ def test_native_round_trip_and_nonreused_ids(tmp_path):
     assert match.getMetaValue("counts") == [1, 2, 3]
     assert match.parent_evidence[0].parent.database == "db.fasta"
     result = loaded.get_inference_results()[0]
-    assert result.inputs[0].matches[0] == second
+    assert result.inputs[0].run_uuid == run.get_uuid()
+    assert result.inputs[0].selection == "all candidates"
     assert result.assignments[0].match == second
     added = run.add_match(query, match, [0.05])
     assert added.value > second.value
@@ -283,7 +285,9 @@ def test_native_filter_writes_reduced_dataset_with_explicit_inference_policy(tmp
     assert result.get_run("search").get_number_of_matches() == 1
     assert result.get_run("search").get_match(first).get_id() == first
     assert result.get_run("search").get_identification(query).get_selected_match() is None
-    assert result.get_inference_results()[0].inputs[0].matches[0] == second
+    assert result.get_inference_results()[0].inputs[0].run_uuid == data.get_run("search").get_uuid()
+    assert result.get_inference_results()[0].inputs[0].selection == "all candidates"
+    assert result.get_inference_results()[0].assignments[0].match == second
     stripped = str(tmp_path / "stripped")
     File.filter(destination, stripped, lambda uuid, record: True, ID.InferencePolicy.DISCARD)
     assert File.load(stripped).get_inference_results() == []
@@ -375,7 +379,9 @@ def test_inference_pools_runs_without_editing_candidates():
         expected_ids.append([first, second])
     result = oms.IdentificationDataInference.infer(data, inputs, "pooled")
     assert len(result.inputs) == 2
-    assert [entry.matches for entry in result.inputs] == expected_ids
+    assert [entry.run_uuid for entry in result.inputs] == [entry.run_uuid for entry in inputs]
+    for index, match_ids in enumerate(expected_ids):
+        assert [entry.match for entry in result.assignments if entry.input_index == index] == match_ids
     assert len(result.proteins.getHits()) == 1
     assert len(result.assignments) == 4
     assert result.parent_score.scope == ID.ScoreScope.PROTEIN

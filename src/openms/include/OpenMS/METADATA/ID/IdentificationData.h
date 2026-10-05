@@ -324,13 +324,13 @@ public:
     void swapData_(Run& other) noexcept;
   };
 
+  /// Run-level provenance for an inference calculation; no per-match input list is retained.
   struct OPENMS_DLLAPI InferenceInput
   {
     std::string run_identifier;
     std::string run_uuid;
     std::optional<ScoreDefinition> score;
-    std::vector<MatchId> matches;
-    bool membership_known = true;
+    /// Description of the selection used at calculation time, not an executable filter.
     std::string selection;
   };
   struct OPENMS_DLLAPI MatchAssignment

@@ -78,9 +78,8 @@ START_SECTION((static IdentificationData::InferenceResult infer(const Identifica
   selected[1].probability = Inference::ProbabilityType::POSTERIOR_PROBABILITY;
   auto result = Inference::infer(data, selected, "pooled");
   TEST_EQUAL(result.inputs.size(), 2)
-  TEST_EQUAL(result.inputs[0].matches.size(), 2)
-  TEST_EQUAL(result.inputs[1].matches.size(), 2)
-  TEST_TRUE(result.inputs[0].membership_known)
+  TEST_EQUAL(result.inputs[0].run_uuid, data.getRuns()[0].getUuid())
+  TEST_EQUAL(result.inputs[1].run_uuid, data.getRuns()[1].getUuid())
   TEST_TRUE(*result.inputs[0].score == data.getRuns()[0].getScoreDefinition(selected[0].score))
   TEST_EQUAL(result.proteins.getHits().size(), 2)
   TEST_NOT_EQUAL(result.proteins.getHits()[0].getAccession(), result.proteins.getHits()[1].getAccession())
@@ -91,12 +90,13 @@ START_SECTION((static IdentificationData::InferenceResult infer(const Identifica
   TEST_EQUAL(result.assignments[2].parents.size(), 1)
   TEST_EQUAL(result.assignments[3].parents.size(), 0)
   const auto& run = data.getRuns()[0];
-  TEST_REAL_SIMILAR(*run.getScore(result.inputs[0].matches[0], selected[0].score), 0.1)
-  TEST_EQUAL(run.getMatch(result.inputs[0].matches[0]).parent_evidence[0].parent.accession, "P1")
+  TEST_REAL_SIMILAR(*run.getScore(result.assignments[0].match, selected[0].score), 0.1)
+  TEST_EQUAL(run.getMatch(result.assignments[0].match).parent_evidence[0].parent.accession, "P1")
   TEST_EQUAL(run.getParents()->size(), 1)
   data.addInferenceResult(result);
   data.getRun("A").eraseMatches([](const auto&) { return true; });
-  TEST_EQUAL(data.getInferenceResults()[0].inputs[0].matches.size(), 2)
+  TEST_EQUAL(data.getInferenceResults()[0].inputs[0].run_uuid, data.getRun("A").getUuid())
+  TEST_EQUAL(data.getInferenceResults()[0].assignments.size(), 4)
   TEST_EQUAL(data.getInferenceResults()[0].proteins.getHits().size(), 2)
 
   auto malformed = selected;
@@ -117,14 +117,16 @@ START_SECTION((static void retainProteins(IdentificationData::InferenceResult&, 
   for (const auto& hit : result.proteins.getHits())
     group.accessions.push_back(hit.getAccession());
   result.proteins.getProteinGroups().push_back(group);
-  const auto original_members = result.inputs[0].matches;
+  const auto original_input = result.inputs[0];
   Inference::retainProteins(result, {{"dbA", "P1"}});
   TEST_EQUAL(result.proteins.getHits().size(), 1)
   TEST_EQUAL(result.proteins.getProteinGroups().size(), 0)
   TEST_EQUAL(result.qualified_accessions.size(), 1)
   TEST_EQUAL(result.assignments.size(), 4)
   TEST_EQUAL(result.assignments[2].parents.size(), 0)
-  TEST_TRUE(result.inputs[0].matches == original_members)
+  TEST_EQUAL(result.inputs[0].run_uuid, original_input.run_uuid)
+  TEST_TRUE(result.inputs[0].score == original_input.score)
+  TEST_EQUAL(result.inputs[0].selection, original_input.selection)
   TEST_EQUAL(data.getRuns()[1].getSourceBlocks()[0].identifications[0].getMatches()[0].parent_evidence.size(), 1)
   TEST_EQUAL(data.getRuns()[1].getParents()->size(), 1)
   data.addInferenceResult(result);

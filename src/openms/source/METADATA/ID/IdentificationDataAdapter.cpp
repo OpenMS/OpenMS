@@ -396,8 +396,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
       ID::InferenceInput input;
       input.run_identifier = run_name;
       input.run_uuid = run.getUuid();
-      input.membership_known = false;
-      input.selection = "Imported legacy run-level provenance; exact inference membership unavailable";
+      input.selection = "Imported legacy run-level provenance";
       inference.inputs.push_back(std::move(input));
     }
     result.data.addInferenceResult(inference);
@@ -442,8 +441,6 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
     if (proteins.getIdentifier().empty()) proteins.setIdentifier(run.getIdentifier());
     if (inference && handled_inference.insert(inference->identifier).second)
     {
-      if (std::any_of(inference->inputs.begin(), inference->inputs.end(), [](const auto& input) { return input.membership_known; }))
-        loss(result, options, "Legacy export cannot preserve exact inference membership: " + inference->identifier);
       if (! inference->assignments.empty())
         loss(result, options, "Legacy export cannot separately preserve inferred assignments and original evidence: " + inference->identifier);
       if (inference->parent_score || inference->group_score

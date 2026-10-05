@@ -17,7 +17,7 @@ namespace OpenMS
 
   The bridge materializes temporary peptide values, normalizes explicitly declared PEP/PP
   scores to posterior probabilities and calls BasicProteinInferenceAlgorithm once across
-  all selected runs. Exact ordered candidate memberships and resulting assignments are
+  all selected runs. Run-level input provenance and resulting assignments are
   recorded independently of the original matches. Repeated peptidoforms must have
     consistent qualified parent mappings across inputs; conflicting mappings are rejected.
     This is an in-memory algorithm.

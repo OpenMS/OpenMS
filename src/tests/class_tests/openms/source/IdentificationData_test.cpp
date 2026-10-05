@@ -256,8 +256,8 @@ START_SECTION((pooled inference is owned provenance and survives filtering and r
   data.addRun("B");
   ID::InferenceResult inference;
   inference.identifier = "pooled";
-  inference.inputs.push_back({"A", uuid, score(), {removed, kept, removed}, true, "all candidates"});
-  inference.inputs.push_back({"B", data.getRun("B").getUuid(), std::nullopt, {}, false, {}});
+  inference.inputs.push_back({"A", uuid, score(), "all candidates"});
+  inference.inputs.push_back({"B", data.getRun("B").getUuid(), std::nullopt, {}});
   inference.assignments.push_back({"A", uuid, removed, 0, {{"db", "protein"}}});
   inference.assignments.push_back({"A", uuid, {8000}, 0, {}});
   data.addInferenceResult(inference);
@@ -270,7 +270,8 @@ START_SECTION((pooled inference is owned provenance and survives filtering and r
   TEST_EQUAL(data.filterMatches([&](const ID::Match& match) { return match.getId() == kept; }, ID::InferencePolicy::PRESERVE), 1)
   TEST_EQUAL(data.getInferenceResults().size(), 1)
   TEST_TRUE(address == &data.getRun("A"))
-  TEST_EQUAL(data.getInferenceResults()[0].inputs[0].matches.size(), 3)
+  TEST_EQUAL(data.getInferenceResults()[0].inputs[0].run_uuid, uuid)
+  TEST_EQUAL(data.getInferenceResults()[0].inputs[0].selection, "all candidates")
   TEST_TRUE(data.getRun("A").findMatch(removed) == nullptr)
   TEST_EQUAL(data.getInferenceResults()[0].assignments[1].parents.size(), 0)
   old.filterMatches([&](const ID::Match& match) { return match.getId() == kept; });
@@ -297,7 +298,7 @@ START_SECTION((absent provenance runs cannot collide with later independent impo
   ID::Run absent("absent");
   ID::InferenceResult inference;
   inference.identifier = "external";
-  inference.inputs.push_back({"absent", absent.getUuid(), {}, {{42}}, true, {}});
+  inference.inputs.push_back({"absent", absent.getUuid(), {}, {}});
   data.addInferenceResult(inference);
   TEST_EXCEPTION(Exception::InvalidValue, data.addRun(absent))
   data.validate();

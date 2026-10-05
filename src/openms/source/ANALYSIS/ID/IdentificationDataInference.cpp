@@ -65,7 +65,6 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
     provenance.run_identifier = run->getIdentifier();
     provenance.run_uuid = run->getUuid();
     provenance.score = definition;
-    provenance.membership_known = true;
     provenance.selection = "All candidates in the selected run, in stored order";
     result.inputs.push_back(std::move(provenance));
     if (run->getParents())
@@ -169,7 +168,6 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
           hit.setMetaValue("protein_references", unique_parents.size() == 1 ? "unique" : "non-unique");
           hit.setMetaValue(match_key, static_cast<Int64>(result.assignments.size()));
           peptide_id.insertHit(std::move(hit));
-          result.inputs[input_index].matches.push_back(match.getId());
           ID::MatchAssignment assignment;
           assignment.run_identifier = run.getIdentifier();
           assignment.run_uuid = run.getUuid();
@@ -258,7 +256,7 @@ void IdentificationDataInference::retainProteins(ID::InferenceResult& result, co
   std::erase_if(filtered.proteins.getIndistinguishableProteins(), incomplete);
   for (auto& assignment : filtered.assignments)
     std::erase_if(assignment.parents, [&](const auto& identity) { return ! retained.contains(identity); });
-  // Input memberships and explicit assignment rows remain even when no protein
+  // Run-level input provenance and explicit assignment rows remain even when no protein
   // survives. Qualified assignment identities do not depend on the alias dictionary.
   pruneUnusedAliases(filtered);
   result = std::move(filtered);

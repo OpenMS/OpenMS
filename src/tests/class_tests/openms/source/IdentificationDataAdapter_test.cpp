@@ -87,7 +87,7 @@ START_SECTION((static ImportResult importLegacy(const std::vector<ProteinIdentif
   TEST_EQUAL(run.getNumberOfMatches(), 2)
   TEST_EQUAL(run.getProcessingMetadata().getHits().size(), 0)
   TEST_EQUAL(run.getParents()->size(), 1)
-  TEST_FALSE(imported.data.getInferenceResults()[0].inputs[0].membership_known)
+  TEST_EQUAL(imported.data.getInferenceResults()[0].inputs[0].selection, "Imported legacy run-level provenance")
   TEST_EQUAL(imported.data.getInferenceResults()[0].inputs.size(), 1)
   TEST_TRUE(imported.data.getInferenceResults()[0].proteins == original)
   const auto exported = Adapter::toLegacy(imported.data);

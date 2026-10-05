@@ -455,11 +455,8 @@ namespace
   std::shared_ptr<arrow::Schema> inputsSchema()
   {
     return arrow::schema({required("input_id", arrow::uint64()), required("run_uuid", arrow::utf8()), required("run_identifier", arrow::utf8()),
-                          arrow::field("score_definition", arrow::uint32()), required("selection", arrow::utf8()),
-                          required("membership_known", arrow::boolean()), arrow::field("member_count", arrow::uint64())});
+                          arrow::field("score_definition", arrow::uint32()), required("selection", arrow::utf8())});
   }
-  std::shared_ptr<arrow::Schema> inputMembersSchema()
-  { return arrow::schema({required("input_id", arrow::uint64()), required("ordinal", arrow::uint64()), required("match_id", arrow::uint64())}); }
   std::shared_ptr<arrow::Schema> proteinsSchema()
   {
     return arrow::schema({required("protein_id", arrow::uint64()), required("alias", arrow::utf8()), arrow::field("identity", identityType()),
@@ -668,11 +665,9 @@ Json writeInference(const std::filesystem::path& directory, const ID::InferenceR
   };
   {
     TableWriter inputs(directory / "inputs.parquet", inputsSchema(), options);
-    TableWriter members(directory / "input_members.parquet", inputMembersSchema(), options);
     UInt64 input_id = 0;
     for (const auto& input : result.inputs)
     {
-      if (! input.membership_known && ! input.matches.empty()) invalid("Unknown inference membership cannot contain candidate IDs");
       append<arrow::UInt64Builder>(inputs.column(0), input_id);
       appendText(inputs.column(1), input.run_uuid);
       appendText(inputs.column(2), input.run_identifier);
@@ -685,26 +680,11 @@ Json writeInference(const std::filesystem::path& directory, const ID::InferenceR
       else
         check(inputs.column(3).AppendNull());
       appendText(inputs.column(4), input.selection);
-      append<arrow::BooleanBuilder>(inputs.column(5), input.membership_known);
-      if (input.membership_known) append<arrow::UInt64Builder>(inputs.column(6), input.matches.size());
-      else
-        check(inputs.column(6).AppendNull());
       inputs.finishRow(64 + input.run_uuid.size() + input.run_identifier.size() + input.selection.size());
-      UInt64 ordinal = 0;
-      for (const auto match : input.matches)
-      {
-        if (! match.value) invalid("Zero inference member ID");
-        append<arrow::UInt64Builder>(members.column(0), input_id);
-        append<arrow::UInt64Builder>(members.column(1), ordinal++);
-        append<arrow::UInt64Builder>(members.column(2), match.value);
-        members.finishRow(24);
-      }
       ++input_id;
     }
     inputs.close();
-    members.close();
     recordTable("inputs", inputs);
-    recordTable("input_members", members);
   }
   {
     TableWriter proteins(directory / "proteins.parquet", proteinsSchema(), options);
@@ -847,11 +827,10 @@ void validateInferenceTables(const std::filesystem::path& directory,
     const auto counter = counters.find(uuid);
     if (counter != counters.end() && id >= counter->second) invalid("Inference candidate ID exceeds its run allocation counter");
   };
-  // Only one UUID per input is retained; candidate memberships are consumed as rows.
+  // Keep only the run UUIDs needed to validate assignment input references.
   std::vector<std::string> input_uuids;
   {
     auto inputs = open("inputs", inputsSchema());
-    auto members = open("input_members", inputMembersSchema());
     while (inputs.next())
     {
       const auto row = inputs.row();
@@ -863,21 +842,9 @@ void validateInferenceTables(const std::filesystem::path& directory,
       if (const auto score = optionalNumber<arrow::UInt32Array>(inputs.column(3), row))
         if (*score >= descriptor.at("input_scores").size()) invalid("Unknown inference input score definition");
       const auto selection = text(inputs.column(4), row);
-      if (inputs.column(5).IsNull(row)) invalid("Null inference membership-known flag");
-      const bool known = static_cast<const arrow::BooleanArray&>(inputs.column(5)).Value(row);
-      const auto count = optionalNumber<arrow::UInt64Array>(inputs.column(6), row);
-      if (known != count.has_value()) invalid("Inference membership-known flag/count disagree");
       requirePayload(64 + uuid.size() + identifier.size() + selection.size(), options);
-      for (UInt64 ordinal = 0; ordinal < count.value_or(0); ++ordinal)
-      {
-        if (! members.next()) invalid("Missing inference input member");
-        requireOrdinal(number<arrow::UInt64Array>(members.column(0), members.row()), id);
-        requireOrdinal(number<arrow::UInt64Array>(members.column(1), members.row()), ordinal);
-        validateReference(uuid, number<arrow::UInt64Array>(members.column(2), members.row()));
-      }
       input_uuids.push_back(uuid);
     }
-    if (members.next()) invalid("Unexpected extra inference input members");
   }
   {
     auto proteins = open("proteins", proteinsSchema());
@@ -973,8 +940,6 @@ ID::InferenceResult readInference(const std::filesystem::path& directory, const 
   };
   {
     TableReader inputs(directory, reference("inputs"), inputsSchema(), options);
-    TableReader members(directory, reference("input_members"), inputMembersSchema(), options);
-    UInt64 member_count = 0;
     while (inputs.next())
     {
       const auto row = inputs.row();
@@ -989,26 +954,10 @@ ID::InferenceResult readInference(const std::filesystem::path& directory, const 
         input.score = scores[*score];
       }
       input.selection = text(inputs.column(4), row);
-      if (inputs.column(5).IsNull(row)) invalid("Null inference membership-known flag");
-      input.membership_known = static_cast<const arrow::BooleanArray&>(inputs.column(5)).Value(row);
-      const auto expected = optionalNumber<arrow::UInt64Array>(inputs.column(6), row);
-      if (input.membership_known != expected.has_value()) invalid("Inference membership-known flag/count disagree");
       requirePayload(64 + input.run_uuid.size() + input.run_identifier.size() + input.selection.size(), options);
-      for (UInt64 ordinal = 0; ordinal < expected.value_or(0); ++ordinal)
-      {
-        if (! members.next()) invalid("Missing inference input member");
-        requireOrdinal(number<arrow::UInt64Array>(members.column(0), members.row()), input_id);
-        requireOrdinal(number<arrow::UInt64Array>(members.column(1), members.row()), ordinal);
-        const auto match = number<arrow::UInt64Array>(members.column(2), members.row());
-        if (! match) invalid("Zero inference member ID");
-        input.matches.push_back({match});
-        ++member_count;
-      }
       result.inputs.push_back(std::move(input));
     }
-    if (members.next()) invalid("Unexpected extra inference input members");
     count("inputs", result.inputs.size());
-    count("input_members", member_count);
   }
   {
     TableReader proteins(directory, reference("proteins"), proteinsSchema(), options);

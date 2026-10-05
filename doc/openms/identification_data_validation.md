@@ -179,3 +179,22 @@ suites and 16 Python binding tests pass. A 1,000-PSM / 10-run roundtrip retains 
 content digest; independent PyArrow inspection confirms the nested member schema
 and nine output files. Previous million-PSM timings describe the shared-file layout
 immediately before this membership simplification; no new speedup is claimed.
+
+## Run-level inference input provenance (2026-10-05)
+
+Inference inputs now retain only the run identifier/UUID, optional score definition
+and selection description. The per-PSM input vector, membership-known flag, member
+count and input_members table are removed from the C++ model, Python API and native
+format. Match-to-parent assignments remain independent, including explicit empty
+parent lists and retained references to removed PSMs. Their counter and input-run
+validation remains checked. Run-level provenance alone does not reconstruct the
+exact candidates used by an earlier calculation.
+
+The Release library, focused tests, benchmark and standalone Python bindings were
+rebuilt. All 11 focused C++ suites and all 16 Python tests pass; the actual metadata
+and format binding translation units compile. Coverage includes pooled inference,
+filtering, retained assignments, absent input runs, optional scores and native
+roundtrips. A fresh 1,000-PSM / 10-run write/read preserves the content digest, and
+PyArrow confirms six input columns including the partition ID and eight output
+files. A pooled inference smoke check validates 10 input runs and 1,000 assignments.
+Previous million-PSM timing and size measurements have not been rerun or relabelled.

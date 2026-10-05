@@ -122,8 +122,11 @@ Raw observations are in `tools/benchmarks/identification_data/results/`: these r
 
 Protein group members are now stored directly in each group row as a typed ordered
 list. The separate group_members table and redundant member counts/ordinals are
-removed. The benchmark layout above therefore has **nine files** in the current
-format (eight Parquet tables plus the manifest). The timing and byte-size figures
-above were measured immediately before this simplification and have not been
-relabelled as new measurements. PSM input membership remains a separate table
-because it can grow with the entire dataset rather than with one protein group.
+removed. This initially reduced the benchmark layout above to nine files.
+
+Exact PSM input membership has also been removed from the owning model and format.
+Inference inputs retain the contributing run, optional score definition and selection
+description; match-to-parent assignments remain independent. The current layout has
+**eight files** (seven Parquet tables plus the manifest). The timing and byte-size
+figures above predate both simplifications and have not been relabelled as new
+measurements.

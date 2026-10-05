@@ -177,18 +177,15 @@ ID::InferenceResult inference(const ID::Run& run)
   input.run_identifier = run.getIdentifier();
   input.run_uuid = run.getUuid();
   input.score = definition();
-  input.matches = {{12}, {11}, {12}};
   input.selection = "top candidates, before filtering";
   result.inputs.push_back(input);
   ID::Run absent("absent run");
   input.run_identifier = absent.getIdentifier();
   input.run_uuid = absent.getUuid();
   input.score.reset();
-  input.matches.clear();
-  input.selection = "known empty";
+  input.selection = "No candidates passed the input filter";
   result.inputs.push_back(input);
-  input.membership_known = false;
-  input.selection = "legacy membership unknown";
+  input.selection = "Imported legacy run-level provenance";
   result.inputs.push_back(input);
   result.assignments.push_back({run.getIdentifier(), run.getUuid(), {12}, 0, {{"db", "parent A"}, {"db", "parent B"}, {"db", "parent A"}}});
   result.assignments.push_back({absent.getIdentifier(), absent.getUuid(), {7}, 2, {}});
@@ -317,8 +314,6 @@ START_SECTION((typed pooled inference preserves complete protein values, group a
     TEST_EQUAL(result.inputs[i].run_uuid, input.inputs[i].run_uuid)
     TEST_EQUAL(result.inputs[i].run_identifier, input.inputs[i].run_identifier)
     TEST_TRUE(result.inputs[i].score == input.inputs[i].score)
-    TEST_TRUE(result.inputs[i].matches == input.inputs[i].matches)
-    TEST_EQUAL(result.inputs[i].membership_known, input.inputs[i].membership_known)
     TEST_EQUAL(result.inputs[i].selection, input.inputs[i].selection)
   }
   TEST_EQUAL(result.assignments.size(), 2)
@@ -453,11 +448,12 @@ START_SECTION((empty inference tables and optional parent catalogue have distinc
   TEST_EQUAL(loaded.getInferenceResults()[0].inputs.size(), 0)
   TEST_EQUAL(loaded.getInferenceResults()[0].assignments.size(), 0)
   TEST_TRUE(loaded.getInferenceResults()[0].proteins == inference_result.proteins)
-  for (const std::string table : {"inputs", "input_members", "proteins", "groups", "assignments"})
+  for (const std::string table : {"inputs", "proteins", "groups", "assignments"})
   {
     TEST_TRUE(fs::exists(fs::path(path) / (table + "-0.parquet")))
   }
   TEST_FALSE(fs::exists(fs::path(path) / "group_members-0.parquet"))
+  TEST_FALSE(fs::exists(fs::path(path) / "input_members-0.parquet"))
   fs::remove(fs::path(path) / "assignments-0.parquet");
   const auto saved_uuid = loaded.getRun("no catalogue").getUuid();
   TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataFile::load(path, loaded))
@@ -492,8 +488,8 @@ START_SECTION((streaming preservation validates unresolved provenance counters a
   ID::InferenceInput input;
   input.run_uuid = run.getUuid();
   input.run_identifier = run.getIdentifier();
-  input.matches = {{100}};
   result.inputs.push_back(input);
+  result.assignments.push_back({run.getIdentifier(), run.getUuid(), {100}, 0, {}});
   data.addInferenceResult(result);
   std::string path;
   NEW_TMP_FILE(path)

@@ -223,10 +223,7 @@ int main(int argc, char** argv)
       start = Clock::now();
       const auto result = OpenMS::IdentificationDataInference::infer(data, inputs, "benchmark");
       report("inference", start, rows, result.proteins.getHits().size());
-      OpenMS::UInt64 members = 0;
-      for (const auto& input : result.inputs)
-        members += input.matches.size();
-      if (members != rows || result.assignments.size() != rows) throw std::runtime_error("Inference provenance count differs");
+      if (result.inputs.size() != runs || result.assignments.size() != rows) throw std::runtime_error("Inference provenance count differs");
     }
     else if (mode == "idxml")
     {

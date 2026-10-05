@@ -131,8 +131,6 @@ inline void bind(nb::module_& m)
   field(inferenceinput, "run_identifier", &ID::InferenceInput::run_identifier);
   field(inferenceinput, "run_uuid", &ID::InferenceInput::run_uuid);
   field(inferenceinput, "score", &ID::InferenceInput::score);
-  field(inferenceinput, "matches", &ID::InferenceInput::matches);
-  field(inferenceinput, "membership_known", &ID::InferenceInput::membership_known);
   field(inferenceinput, "selection", &ID::InferenceInput::selection);
   auto matchassignment = valueClass<ID::MatchAssignment>(data, "MatchAssignment");
   field(matchassignment, "run_identifier", &ID::MatchAssignment::run_identifier);
