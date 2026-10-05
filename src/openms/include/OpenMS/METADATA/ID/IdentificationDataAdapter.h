@@ -17,7 +17,7 @@ class ConsensusMap;
 /**
   @brief Explicit conversions between owning identifications and established peptide/protein values.
 
-  Imports split heterogeneous primary score contracts into separate analysis runs. Export
+  Imports reject heterogeneous primary PSM score definitions; normalize them first. Export
   rejects unrepresentable information by default. ALLOW returns a loss report instead of
   silently discarding information. No inference freshness is inferred from current matches.
   @ingroup Metadata

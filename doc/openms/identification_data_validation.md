@@ -133,3 +133,35 @@ persistence and converting every high-level workflow to the new API are separate
 follow-up migrations. Existing idXML/OMS and PSM Parquet paths remain available;
 strict conversion reports unsupported information instead of silently dropping it.
 Validation here covers Linux; other platform builds were not run.
+
+## Common primary score contract (2026-10-05)
+
+Added checked dataset-wide primary score compatibility, an atomic score-selection
+API, legacy import rejection, and native descriptor validation including streaming.
+Release library and affected tests rebuilt. All 11 focused C++ suites pass; all 16
+standalone Python binding tests pass (including the new contract API). This is a
+focused binding harness, not a complete pyOpenMS package build.
+
+Regression coverage includes incompatible score direction/provenance, different
+local column orders, incomplete supplementary scores, atomic failure, replacement,
+copy independence, mixed legacy input, streaming descriptor rejection, and inference
+explicitly consuming a supplementary score while preserving a common primary score.
+The existing IdXMLFile_whole fixture mixes MOWSE directions and is now tested as a
+rejection case; its compatible subset retains roundtrip coverage.
+
+## Shared Parquet tables and writer views (2026-10-05)
+
+The per-run/per-result files were replaced with shared physical tables and bounded
+row groups. Manifest slices and partition columns preserve ownership and direct
+run access. The writer accesses payloads/scores by reference; readers reuse decoded
+row groups across adjacent slices. The format is unreleased and no compatibility
+reader for the discarded layout is retained.
+
+Release build and all 11 focused C++ suites pass, including new shared-run and
+shared-inference roundtrips/filtering tests. All 16 standalone Python binding tests
+pass. The matched million-PSM comparison passes all content digests. For 1,000 runs,
+write time falls from 16.86 s to 5.36 s, full load from 11.77 s to 6.33 s, disk size
+from 79.65 MB to 15.48 MB, and file count from 9,001 to 10. Writing is now comparable
+to existing PSM Parquet; full loading remains slower. Earlier timings above describe
+the prior format/workloads. See `identification_data_legacy_comparison.md` and the
+benchmark's `results/` directory for methods, limitations and raw observations.

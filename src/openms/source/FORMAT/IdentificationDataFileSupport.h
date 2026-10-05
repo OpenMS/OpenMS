@@ -20,7 +20,17 @@ namespace OpenMS::Internal::IdentificationDataIO
 {
 using ID = IdentificationData;
 using Json = nlohmann::ordered_json;
-using Options = IdentificationDataFile::Options;
+class WritePool;
+class ReadPool;
+struct Options : IdentificationDataFile::Options
+{
+  Options() = default;
+  Options(const IdentificationDataFile::Options& options): IdentificationDataFile::Options(options) {}
+  std::shared_ptr<WritePool> output;
+  std::shared_ptr<ReadPool> input;
+  UInt64 partition = 0;
+  std::string score_schema;
+};
 [[noreturn]] void invalid(const std::string& message);
 void check(const arrow::Status& status);
 template<class T>
@@ -114,13 +124,20 @@ public:
   TableWriter(const std::filesystem::path& path, std::shared_ptr<arrow::Schema> schema, const Options& options);
   ~TableWriter();
   arrow::ArrayBuilder& column(Size index)
-  { return *builders_.at(index); }
+  { return delegate_ ? delegate_->column(index) : *builders_.at(index); }
   void finishRow(Size bytes);
   void close();
+  Json reference() const;
   UInt64 rows() const
   { return total_; }
 
 private:
+  friend class WritePool;
+  TableWriter* delegate_ = nullptr;
+  std::string physical_path_;
+  UInt64 start_ = 0;
+  UInt64 partition_ = 0;
+  bool logical_closed_ = false;
   void flush_();
   std::shared_ptr<arrow::Schema> schema_;
   Options options_;
@@ -132,28 +149,60 @@ private:
   UInt64 total_ = 0;
 };
 
-// Keeps one Arrow batch and a current-row cursor. Projection uses top-level field names.
+// One physical writer per compatible table layout, with small runs sharing row groups.
+class WritePool
+{
+public:
+  explicit WritePool(std::filesystem::path root): root_(std::move(root)) {}
+  TableWriter& acquire(const std::filesystem::path& logical, const std::shared_ptr<arrow::Schema>& schema, const Options& options);
+  void close();
+private:
+  std::filesystem::path root_;
+  std::map<std::string, std::unique_ptr<TableWriter>> writers_;
+  std::map<std::string, Size> variants_;
+};
+
+// File handles and one projected row group per physical table are reused between slices.
+class ReadPool
+{
+public:
+  struct Entry
+  {
+    std::shared_ptr<arrow::io::ReadableFile> source;
+    std::unique_ptr<parquet::arrow::FileReader> reader;
+    std::shared_ptr<arrow::Schema> schema;
+    std::vector<UInt64> starts;
+    int cached_group = -1;
+    std::vector<int> cached_leaves;
+    std::shared_ptr<arrow::Table> cached_table;
+  };
+  std::shared_ptr<Entry> open(const std::filesystem::path& path);
+private:
+  std::map<std::string, std::shared_ptr<Entry>> files_;
+};
 class TableReader
 {
 public:
-  TableReader(const std::filesystem::path& path,
-              const std::shared_ptr<arrow::Schema>& expected,
-              const Options& options,
+  TableReader(const std::filesystem::path& root, const Json& reference,
+              const std::shared_ptr<arrow::Schema>& expected, const Options& options,
               const std::vector<std::string>& columns = {});
   bool next();
   const arrow::Array& column(const std::string& name) const;
   const arrow::Array& column(Size index) const
   { return *batch_->column(static_cast<int>(index)); }
-  int64_t row() const
-  { return row_; }
-  UInt64 rows() const
-  { return total_rows_; }
+  int64_t row() const { return row_; }
+  UInt64 rows() const { return total_rows_; }
   bool hasColumn(const std::string& name) const;
-
 private:
-  std::shared_ptr<arrow::io::ReadableFile> source_;
-  std::unique_ptr<parquet::arrow::FileReader> reader_;
-  std::shared_ptr<arrow::RecordBatchReader> batches_;
+  std::shared_ptr<ReadPool::Entry> entry_;
+  std::vector<int> leaves_;
+  std::vector<int> groups_;
+  Size next_group_ = 0;
+  Options options_;
+  UInt64 start_ = 0, end_ = 0, partition_ = 0;
+  std::string id_column_;
+  std::unique_ptr<arrow::TableBatchReader> batches_;
+  std::shared_ptr<arrow::Table> table_;
   std::shared_ptr<arrow::RecordBatch> batch_;
   int64_t row_ = -1;
   UInt64 total_rows_ = 0;
@@ -168,7 +217,7 @@ void validateInferenceTables(const std::filesystem::path& directory,
                              const Json& descriptor,
                              const Options& options,
                              const std::map<std::string, UInt64>& counters = {});
-void validateParents(const std::filesystem::path& path, const Dictionary& dictionary, const Options& options);
-void writeParents(const std::filesystem::path& path, const std::vector<ID::ParentRecord>& parents, Dictionary& dictionary, const Options& options);
-std::vector<ID::ParentRecord> readParents(const std::filesystem::path& path, const Dictionary& dictionary, const Options& options);
+void validateParents(const std::filesystem::path& root, const Json& reference, const Dictionary& dictionary, const Options& options);
+Json writeParents(const std::filesystem::path& path, const std::vector<ID::ParentRecord>& parents, Dictionary& dictionary, const Options& options);
+std::vector<ID::ParentRecord> readParents(const std::filesystem::path& root, const Json& reference, const Dictionary& dictionary, const Options& options);
 } // namespace OpenMS::Internal::IdentificationDataIO

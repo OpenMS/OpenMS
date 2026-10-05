@@ -31,6 +31,64 @@ ID::ScoreDefinition score(const std::string& name = "raw", bool higher = true)
 } // namespace
 
 START_TEST(IdentificationData, "$Id$")
+START_SECTION((dataset primary score contract and atomic switching))
+{
+  ID data;
+  ID::Run a("A"), b("B"), incompatible("bad");
+  auto raw = score();
+  auto pep = score("PEP", false);
+  auto ar = a.addScore(raw);
+  auto ap = a.addScore(pep);
+  auto bp = b.addScore(pep); // Different local column order is valid.
+  auto br = b.addScore(raw);
+  a.setPrimaryScore(ar);
+  b.setPrimaryScore(br);
+  auto aq = a.addIdentification(a.addSource({}), {});
+  auto bq = b.addIdentification(b.addSource({}), {});
+  a.addMatch(aq, peptide(), {4.0, 0.1});
+  auto bm = b.addMatch(bq, peptide(), {std::nullopt, 5.0});
+  data.addRun(a);
+  data.addRun(b);
+  data.addRun("placeholder");
+  TEST_TRUE(data.getPrimaryScoreDefinition() == raw)
+  incompatible.setPrimaryScore(incompatible.addScore(score("raw", false)));
+  TEST_EXCEPTION(Exception::InvalidValue, data.addRun(incompatible))
+  TEST_EQUAL(data.getRuns().size(), 3)
+  auto replacement = data.getRun("B");
+  replacement.setScore(bm, bp, 0.2);
+  replacement.setPrimaryScore(bp);
+  TEST_EXCEPTION(Exception::InvalidValue, data.replaceRun(replacement))
+  TEST_EXCEPTION(Exception::InvalidValue, data.setPrimaryScore(pep))
+  TEST_TRUE(data.getRun("A").getPrimaryScore() == ar)
+  TEST_TRUE(data.getRun("B").getPrimaryScore() == br)
+  data.getRun("B").setScore(bm, bp, 0.2);
+  data.setPrimaryScore(pep);
+  TEST_TRUE(data.getPrimaryScoreDefinition() == pep)
+  TEST_TRUE(data.getRun("A").getPrimaryScore() == ap)
+  TEST_TRUE(data.getRun("B").getPrimaryScore() == bp)
+  data.validate();
+  // Mutable construction can be incomplete, but cannot cross validated boundaries.
+  data.getRun("A").setPrimaryScore(ar);
+  TEST_EXCEPTION(Exception::InvalidValue, data.validate())
+  TEST_EXCEPTION(Exception::InvalidValue, data.getPrimaryScoreDefinition())
+  data.setPrimaryScore(raw);
+  data.validate();
+  ID copy(data);
+  copy.setPrimaryScore(pep);
+  TEST_TRUE(data.getPrimaryScoreDefinition() == raw)
+  TEST_TRUE(copy.getPrimaryScoreDefinition() == pep)
+  auto changed = raw;
+  changed.calibration = "different";
+  ID::Run provenance("provenance");
+  provenance.setPrimaryScore(provenance.addScore(changed));
+  TEST_EXCEPTION(Exception::InvalidValue, data.addRun(provenance))
+  ID::Run unscored("unscored");
+  auto uq = unscored.addIdentification(unscored.addSource({}), {});
+  unscored.addMatch(uq, peptide());
+  TEST_EXCEPTION(Exception::InvalidValue, data.addRun(unscored))
+}
+END_SECTION
+
 START_SECTION((run - local scores, primary coverage and schema guards))
 {
   ID::Run run("search");

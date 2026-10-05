@@ -62,7 +62,20 @@ START_SECTION((static IdentificationData::InferenceResult infer(const Identifica
   ID data;
   addRun(data, "A", "dbA", true);
   addRun(data, "B", "dbB", false);
-  const auto selected = inputs(data);
+  TEST_EXCEPTION(Exception::InvalidValue, Inference::infer(data, inputs(data), "mixed"))
+  auto& b = data.getRun("B");
+  const auto pp = *b.getPrimaryScore();
+  const auto common = data.getRun("A").getScoreDefinition(*data.getRun("A").getPrimaryScore());
+  const auto pep = b.addScore(common);
+  for (const auto& source : b.getSourceBlocks())
+    for (const auto& query : source.identifications)
+      for (const auto& match : query.getMatches())
+        b.setScore(match.getId(), pep, 1.0 - *b.getScore(match.getId(), pp));
+  data.setPrimaryScore(common);
+  auto selected = inputs(data);
+  // Inference may still explicitly consume a supplementary PP column.
+  selected[1].score = pp;
+  selected[1].probability = Inference::ProbabilityType::POSTERIOR_PROBABILITY;
   auto result = Inference::infer(data, selected, "pooled");
   TEST_EQUAL(result.inputs.size(), 2)
   TEST_EQUAL(result.inputs[0].matches.size(), 2)

@@ -70,24 +70,25 @@ START_SECTION((static ImportResult importLegacy(const std::vector<ProteinIdentif
 {
   const auto original = protein();
   const auto first = peptide();
-  auto second = peptide("q-value", 0.01);
+  TEST_EXCEPTION(Exception::InvalidValue, Adapter::importLegacy({original}, {first, peptide("q-value", 0.01)}))
+  auto second = peptide("PEP", 0.01);
   second.setMetaValue("id_merge_index", 1);
   auto empty = peptide();
   empty.getHits().clear();
   PeptideIdentificationList peptides {first, second, empty};
   auto imported = Adapter::importLegacy({original}, peptides);
-  TEST_EQUAL(imported.data.getRuns().size(), 2)
+  TEST_EQUAL(imported.data.getRuns().size(), 1)
   TEST_EQUAL(imported.queries.size(), 3)
   const auto& run = imported.data.getRuns()[0];
   TEST_EQUAL(run.getSourceBlocks()[0].source.path, "")
   TEST_EQUAL(run.getSourceBlocks()[0].source.primary_files.size(), 2)
-  TEST_EQUAL(imported.data.getRuns()[1].getSourceBlocks()[0].source.path, "/other/a.mzML")
-  TEST_EQUAL(run.getNumberOfIdentifications(), 2)
-  TEST_EQUAL(run.getNumberOfMatches(), 1)
+  TEST_EQUAL(imported.data.getRuns()[0].getSourceBlocks()[1].source.path, "/other/a.mzML")
+  TEST_EQUAL(run.getNumberOfIdentifications(), 3)
+  TEST_EQUAL(run.getNumberOfMatches(), 2)
   TEST_EQUAL(run.getProcessingMetadata().getHits().size(), 0)
   TEST_EQUAL(run.getParents()->size(), 1)
   TEST_FALSE(imported.data.getInferenceResults()[0].inputs[0].membership_known)
-  TEST_EQUAL(imported.data.getInferenceResults()[0].inputs.size(), 2)
+  TEST_EQUAL(imported.data.getInferenceResults()[0].inputs.size(), 1)
   TEST_TRUE(imported.data.getInferenceResults()[0].proteins == original)
   const auto exported = Adapter::toLegacy(imported.data);
   TEST_TRUE(exported.losses.empty())
@@ -146,6 +147,13 @@ START_SECTION([EXTRA] idXML round trip preserves supported imported values)
   std::vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), proteins, peptides);
+  TEST_EXCEPTION(Exception::InvalidValue, Adapter::fromLegacy(proteins, peptides))
+  // The fixture deliberately mixes higher/lower-is-better for MOWSE.
+  // Roundtrip a compatible subset without relabelling its scientific values.
+  const auto first = peptides.front();
+  peptides.erase(std::remove_if(peptides.begin(), peptides.end(), [&](const auto& item) {
+    return item.getScoreType() != first.getScoreType() || item.isHigherScoreBetter() != first.isHigherScoreBetter();
+  }), peptides.end());
   auto native = Adapter::fromLegacy(proteins, peptides);
   auto exported = Adapter::toLegacy(native);
   TEST_EQUAL(exported.proteins.size(), proteins.size())

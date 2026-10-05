@@ -4,7 +4,7 @@
 
 ## 1. Decision
 
-Use an ordinary directory containing a small JSON manifest and typed Parquet tables. Partition identifications by analysis run. Keep scores in the match table. Write a new, self-contained dataset after filtering or modification.
+Use an ordinary directory containing a small JSON manifest and typed Parquet tables. Keep analysis runs logically separate while sharing physical tables across compatible runs. Keep scores in the match table. Write a new, self-contained dataset after filtering or modification.
 
 There are no run revision tokens, scientific snapshots, file catalogues, update overlays, persistent lookup indexes or partial-replacement protocol. Assign a public schema version when the format is ready; discarded, unreleased prototypes do not need compatibility readers.
 
@@ -27,28 +27,28 @@ A match owns its molecular representation, ion description, scores, original par
 
 ## 3. Directory layout
 
-The manifest identifies every run/result and its relative table paths. Numeric directory names are storage locations, independent of stable identities. Human identifiers and source paths are never used directly as directory names.
+The manifest identifies every run/result and its table slices: relative physical path, starting row, row count, and numeric partition ID. The partition maps to the run/result descriptor and its stable UUID; it is a storage coordinate, not a new scientific identity. Human identifiers and source paths are never used directly as filenames.
 
 | Path | Contents |
 | --- | --- |
 | `manifest.json` | Format identifier/schema version, run descriptors, sources, score definitions, metadata descriptors, processing metadata and table paths |
-| `runs/000/queries.parquet` | Queries for one analysis run |
-| `runs/000/matches.parquet` | Matches and all their score columns |
-| `runs/000/parents.parquet` | Optional original parent catalogue: qualified identity, sequence, description and metadata |
-| `inference/000/inputs.parquet` | Ordered contributing runs and exact input score definitions |
-| `inference/000/input_members.parquet` | Ordered candidate memberships |
-| `inference/000/proteins.parquet` | Inferred protein hits |
-| `inference/000/groups.parquet` | Protein group values and ordering |
-| `inference/000/group_members.parquet` | Ordered members of each group |
-| `inference/000/assignments.parquet` | Ordered match assignments with a typed parent list, including empty lists |
+| `queries-0.parquet` | Queries for all runs |
+| `matches-0.parquet` | Matches and all their score columns |
+| `parents-0.parquet` | Optional original parent catalogue: qualified identity, sequence, description and metadata |
+| `inputs-0.parquet` | Ordered contributing runs and exact input score definitions |
+| `input_members-0.parquet` | Ordered candidate memberships |
+| `proteins-0.parquet` | Inferred protein hits |
+| `groups-0.parquet` | Protein group values and ordering |
+| `group_members-0.parquet` | Ordered members of each group |
+| `assignments-0.parquet` | Ordered match assignments with a typed parent list, including empty lists |
 
-Use one file per table per run or inference result, with multiple Parquet row groups. A processing batch is not a separate file. File sharding is outside this initial format; introduce it only if measurements establish a need.
+Use one physical file per compatible table schema, with multiple Parquet row groups. Small runs and inference results share row groups. Query, match and parent rows carry `run_id`; inference rows carry `inference_id`. Different complete supplementary score layouts use separate match files (`matches-1.parquet`, etc.), preserving dense numeric columns and their definitions. Files do not multiply with the number of compatible runs. Size-based file sharding remains outside this initial implementation.
 
 Keep JSON for configuration whose size follows the number of runs, sources, score definitions and metadata descriptors. Per-record values, parent catalogues, protein results, memberships and assignments belong in typed tables. The manifest contains no arrays of PSM IDs.
 
 The manifest stores small inference-result descriptors: result ID, display identifier, algorithm/parameters, output score definitions, metadata descriptors and table paths. Detailed per-protein/group metadata is stored with its table rows.
 
-Every run declares query and match files, even when they contain zero rows. An omitted parent table means no parent catalogue was supplied; a declared zero-row table means a supplied catalogue was empty. Every inference result declares the six files above; unused collections have valid zero-row tables. An identification-only dataset has an empty result list and no inference directory. Missing declared files are errors.
+Every run declares query and match slices, even when they contain zero rows. An omitted parent table means no parent catalogue was supplied; a declared zero-row table means a supplied catalogue was empty. Every inference result declares slices in the six shared tables above; unused collections have zero-row slices. An identification-only dataset has an empty result list and no inference tables. Missing declared files are errors.
 
 ## 4. Core tables
 
@@ -89,9 +89,9 @@ A score definition includes name, optional CV term, direction, statistical scope
 
 A score has a stable run-local uint32 ID. The complete definition set is known before opening the match writer, so every row group has the same score schema. Every `score_<id>` column has exactly one meaning throughout its run. Missing scores use null; zero remains a value. New-model scores are finite. Selecting a primary score requires a value on every match, including subsequently appended matches.
 
-Changing the primary score selects a column. Rescoring with a different meaning or provenance creates a new definition and column. Inference retains the definition used for its calculation.
+Changing the primary score uses the dataset-wide checked selection API. Rescoring with a different meaning or provenance creates a new definition and column. Inference retains the definition used for its calculation.
 
-Keep score columns in `matches.parquet`. Parquet column projection supports score-only reads without decoding molecule and annotation columns. Separate score files would introduce alignment rules and are not required for this operation. Rewriting the dataset after rescoring is an accepted first-version tradeoff.
+Keep score columns in the shared match tables. Parquet column projection supports score-only reads without decoding molecule and annotation columns. Separate score files would introduce alignment rules and are not required for this operation. Rewriting the dataset after rescoring is an accepted first-version tradeoff.
 
 Source paths appear once per source descriptor, not on every query or PSM. Repetition of a path across a few run descriptors is acceptable. Optional adducts remain owned nullable structs; a global adduct registry is unnecessary.
 
@@ -196,3 +196,44 @@ The former reference-based implementation is named `LegacyIdentificationData` du
 The benchmark in `tools/benchmarks/identification_data` measures owning generation/load, native writing, score-only scans, full scans and streaming filtering in separate Release processes. Run count and match count are configurable. Synthetic scaling and real idXML measurements must be reported separately. Descriptor residency, Arrow buffers and individual large payloads are additional to callback batch targets; byte targets are not a hard process-memory limit.
 
 See the benchmark README for reproducible commands and the accompanying validation report for measured results.
+
+## Checked common primary PSM score
+
+A dataset has one common primary PSM score definition across participating runs.
+The complete definition must match, including direction, scope and provenance;
+matching display names alone is insufficient. Local score IDs and supplementary
+score columns may differ. Protein and inference scores remain independent.
+Empty runs with no selected primary are ignored during incremental construction.
+Populated runs must either all select the same definition or all be unscored.
+
+`getPrimaryScoreDefinition()` checks and returns this contract.
+`setPrimaryScore(definition)` checks score availability and candidate coverage in
+every configured run before changing any selection. Failure changes no selections.
+`addRun`, `replaceRun`, legacy import, native read/write, and inference reject
+incompatible datasets. Native descriptor checks also cover streaming scans.
+Mutable C++ run access supports incremental edits; call `validate()` after such
+edits. The contract is checked at these boundaries, not on every low-level setter.
+Normalize mixed legacy scores before import; splitting them into runs no longer
+makes them a valid single dataset. Supplementary schemas may differ; the shared-file writer groups compatible complete score layouts.
+
+## Shared-table I/O implementation
+
+The writer fills Arrow builders directly from references to the owning query/match
+values and existing numeric score vectors. It creates no temporary owning payloads
+or optional-score vectors per PSM. Logical table slices close without flushing;
+physical builders flush at the configured row/byte targets and once at final close.
+
+Readers select intersecting row groups using manifest row ranges, trim them to the
+requested slice, and validate the partition column. Projected decoding caches one
+row group per open physical table, with up to 16 idle/active file entries retained
+when possible (active readers are never evicted). Sequential runs sharing a row group
+reuse its decoded arrays. Callback batches still obey their row/estimated byte
+limits; cached decoded row groups use additional memory bounded by physical row
+group size, not callback batch size. External oversized row groups can exceed those
+writer targets. Projection excludes unused payload columns.
+
+Filtering rewrites shared query/match tables and their row ranges. Retained parent
+and inference tables are validated by slice and copied once per physical file.
+Empty versus absent catalogues, local IDs, ordering and inference provenance retain
+their previous semantics. Malformed overlapping ranges or mismatched partitions
+are rejected. No reader for the discarded unreleased per-run-file layout is kept.

@@ -64,7 +64,10 @@ END_SECTION
 START_SECTION((established idXML input imports into the owning model))
 {
   ID data;
-  FileHandler().loadIdentifications(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), data, {FileTypes::IDXML});
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 FileHandler().loadIdentifications(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), data, {FileTypes::IDXML}))
+  TEST_TRUE(data.getRuns().empty())
+  FileHandler().loadIdentifications(OPENMS_GET_TEST_DATA_PATH("IDScoreSwitcherAlgorithm_test_input.idXML"), data, {FileTypes::IDXML});
   TEST_FALSE(data.getRuns().empty())
   Size matches = 0;
   for (const auto& run : data.getRuns())

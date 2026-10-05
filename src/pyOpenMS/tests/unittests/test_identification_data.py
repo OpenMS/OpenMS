@@ -297,7 +297,7 @@ def test_failed_native_load_preserves_destination(tmp_path):
     data.add_run(run)
     path = str(tmp_path / "native")
     File.store(path, data)
-    matches = list(Path(path).glob("runs/*/matches.parquet"))
+    matches = list(Path(path).glob("matches-*.parquet"))
     assert len(matches) == 1
     matches[0].unlink()
     with pytest.raises(Exception):
@@ -398,3 +398,29 @@ def test_file_handler_loads_and_stores_native_owning_values(tmp_path):
     loaded = handler.load_identification_data(path)
     assert loaded.get_run("search").get_uuid() == run.get_uuid()
     assert loaded.get_run("search").get_match(first).representation == "PEPTIDE"
+
+
+def test_dataset_primary_score_contract():
+    first, _, _, _, _ = make_run("A")
+    second, _, _, _, _ = make_run("B")
+    data = ID()
+    data.add_run(first)
+    data.add_run(second)
+    definition = data.get_primary_score_definition()
+    data.set_primary_score(definition)
+    data.validate()
+    incompatible, _, _, _, _ = make_run("bad")
+    other = ID.ScoreDefinition()
+    other.name = "different score"
+    score_id = incompatible.add_score(other)
+    for block in incompatible.get_source_blocks():
+        for query in block.identifications:
+            for match in query.get_matches():
+                incompatible.set_score(match.get_id(), score_id, 1.0)
+    incompatible.set_primary_score(score_id)
+    with pytest.raises(Exception):
+        data.add_run(incompatible)
+    assert len(data.get_runs()) == 2
+    with pytest.raises(Exception):
+        data.set_primary_score(other)
+    assert data.get_primary_score_definition().name == definition.name

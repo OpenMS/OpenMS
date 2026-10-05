@@ -402,6 +402,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
     }
     result.data.addInferenceResult(inference);
   }
+  result.data.validate();
   return result;
 }
 

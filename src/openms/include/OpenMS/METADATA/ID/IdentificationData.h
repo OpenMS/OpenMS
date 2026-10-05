@@ -375,6 +375,18 @@ public:
   void addInferenceResult(const InferenceResult& result);
   void clearInferenceResults();
   Size filterMatches(const std::function<bool(const Match&)>& keep, InferencePolicy policy, bool keep_empty_queries = false);
+  /** Common primary PSM score contract.
+      All runs with matches or a selected primary score must agree on the complete
+      ScoreDefinition (including orientation and provenance), or all be unscored.
+      Empty runs without a primary score are construction placeholders and are ignored.
+      Supplementary score definitions and local score IDs may differ between runs.
+      Throws on disagreement. Mutable run edits must be followed by validate();
+      import, replacement, export and inference boundaries enforce this contract.
+  */
+  std::optional<ScoreDefinition> getPrimaryScoreDefinition() const;
+  /// Select an existing score in every participating run, checking coverage first.
+  /// Failure leaves all primary selections unchanged. Empty unconfigured runs are ignored.
+  void setPrimaryScore(const ScoreDefinition& definition);
   void validate() const;
   void swap(IdentificationData& other);
 

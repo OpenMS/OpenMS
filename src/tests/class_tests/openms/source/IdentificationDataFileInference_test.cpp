@@ -213,6 +213,44 @@ void replaceJsonNumber(const fs::path& path, const std::string& key, const std::
 
 START_TEST(IdentificationDataFileInference, "$Id$")
 
+START_SECTION((multiple inference results share files without mixing rows or metadata))
+{
+  ID data;
+  for (Size i = 0; i < 5; ++i)
+  {
+    ID::InferenceResult result;
+    result.identifier = "result" + std::to_string(i);
+    ProteinHit hit(double(i), 1, "P" + std::to_string(i), "PEPTIDE");
+    hit.setMetaValue("key" + std::to_string(i), static_cast<int>(i));
+    result.proteins.insertHit(hit);
+    ProteinIdentification::ProteinGroup group;
+    group.probability = i * 0.1;
+    group.accessions = {hit.getAccession()};
+    result.proteins.getProteinGroups().push_back(group);
+    data.addInferenceResult(result);
+  }
+  std::string path, filtered;
+  NEW_TMP_FILE(path)
+  NEW_TMP_FILE(filtered)
+  IdentificationDataFile::Options options;
+  options.row_group_rows = 2;
+  IdentificationDataFile::store(path, data, options);
+  TEST_TRUE(fs::exists(fs::path(path) / "proteins-0.parquet"))
+  TEST_FALSE(fs::exists(fs::path(path) / "proteins-1.parquet"))
+  ID loaded;
+  IdentificationDataFile::load(path, loaded, options);
+  TEST_EQUAL(loaded.getInferenceResults().size(), 5)
+  for (Size i = 0; i < 5; ++i)
+    TEST_TRUE(loaded.getInferenceResults()[i].proteins == data.getInferenceResults()[i].proteins)
+  IdentificationDataFile::filter(path, filtered, [](const auto&, const auto&) { return true; }, ID::InferencePolicy::PRESERVE);
+  IdentificationDataFile::load(filtered, loaded);
+  for (Size i = 0; i < 5; ++i)
+    TEST_TRUE(loaded.getInferenceResults()[i].proteins == data.getInferenceResults()[i].proteins)
+  fs::remove_all(path);
+  fs::remove_all(filtered);
+}
+END_SECTION
+
 START_SECTION((typed pooled inference preserves complete protein values, group arrays and ordered provenance))
 {
   ID data;
@@ -273,7 +311,7 @@ START_SECTION((typed pooled inference preserves complete protein values, group a
   TEST_EQUAL(result.proteins.getHits()[1].getModifications().begin()->second.getFullId(), "")
   TEST_EQUAL(result.proteins.getHits()[0].getModifications().begin()->second.getProvenance(), ResidueModification::DEFINED)
   TEST_TRUE(loaded.getRun(run.getIdentifier()).getNextMatchId() > 12)
-  TEST_TRUE(fs::exists(fs::path(path) / "inference/000/proteins.parquet"))
+  TEST_TRUE(fs::exists(fs::path(path) / "proteins-0.parquet"))
   TEST_FALSE(fs::exists(fs::path(path) / "inference.json"))
 }
 END_SECTION
@@ -387,9 +425,9 @@ START_SECTION((empty inference tables and optional parent catalogue have distinc
   TEST_TRUE(loaded.getInferenceResults()[0].proteins == inference_result.proteins)
   for (const std::string table : {"inputs", "input_members", "proteins", "groups", "group_members", "assignments"})
   {
-    TEST_TRUE(fs::exists(fs::path(path) / "inference/000" / (table + ".parquet")))
+    TEST_TRUE(fs::exists(fs::path(path) / (table + "-0.parquet")))
   }
-  fs::remove(fs::path(path) / "inference/000/assignments.parquet");
+  fs::remove(fs::path(path) / "assignments-0.parquet");
   const auto saved_uuid = loaded.getRun("no catalogue").getUuid();
   TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataFile::load(path, loaded))
   TEST_EQUAL(loaded.getRun("no catalogue").getUuid(), saved_uuid)

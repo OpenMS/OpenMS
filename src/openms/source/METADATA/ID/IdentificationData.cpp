@@ -25,6 +25,31 @@ namespace
   static_assert(std::is_nothrow_swappable_v<ProteinIdentification>);
   [[noreturn]] void invalid(const std::string& message)
   { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message, "IdentificationData"); }
+  void checkPrimaryContract(const std::deque<ID::Run>& runs, const ID::Run* candidate = nullptr,
+                            const std::string* replacing_uuid = nullptr)
+  {
+    bool initialized = false;
+    std::optional<ID::ScoreDefinition> expected;
+    std::string first;
+    const auto check = [&](const ID::Run& run) {
+      const auto primary = run.getPrimaryScore();
+      if (!primary && run.getNumberOfMatches() == 0) return;
+      std::optional<ID::ScoreDefinition> definition;
+      if (primary) definition = run.getScoreDefinition(*primary);
+      if (!initialized)
+      {
+        expected = definition;
+        first = run.getIdentifier();
+        initialized = true;
+      }
+      else if (definition != expected)
+        invalid("Primary PSM score contract differs between runs '" + first + "' and '" + run.getIdentifier() +
+                "'. Normalize primary score definitions before combining runs");
+    };
+    for (const auto& run : runs)
+      if (!replacing_uuid || run.getUuid() != *replacing_uuid) check(run);
+    if (candidate) check(*candidate);
+  }
   UInt64 token()
   {
     static std::atomic<UInt64> next {1};
@@ -739,6 +764,7 @@ ID::Run& ID::addRun(Run run)
   for (const auto& existing : runs_)
     if (existing.uuid_ == run.uuid_ || existing.identifier_ == run.identifier_) invalid("Duplicate run UUID or display identifier");
   run.validate();
+  checkPrimaryContract(runs_, &run);
   for (const auto& result : inference_)
   {
     for (const auto& input : result.inputs)
@@ -756,6 +782,7 @@ void ID::replaceRun(const Run& run)
   copy.validate();
   auto found = std::find_if(runs_.begin(), runs_.end(), [&](const Run& current) { return current.uuid_ == run.uuid_; });
   if (found == runs_.end() || found->identifier_ != run.identifier_) invalid("Replacement must have the same run UUID and identifier");
+  checkPrimaryContract(runs_, &copy, &run.uuid_);
   copy.next_query_id_ = std::max(copy.next_query_id_, found->next_query_id_);
   copy.next_match_id_ = std::max(copy.next_match_id_, found->next_match_id_);
   for (const auto& result : inference_)
@@ -842,8 +869,34 @@ Size ID::filterMatches(const std::function<bool(const Match&)>& keep, InferenceP
   inference_.swap(replacement.inference_);
   return removed;
 }
+std::optional<ID::ScoreDefinition> ID::getPrimaryScoreDefinition() const
+{
+  checkPrimaryContract(runs_);
+  for (const auto& run : runs_)
+    if (run.primary_) return run.scores_[run.primary_->value];
+  return std::nullopt;
+}
+void ID::setPrimaryScore(const ScoreDefinition& definition)
+{
+  checkMutation_();
+  std::vector<std::pair<Run*, ScoreId>> selections;
+  for (auto& run : runs_)
+  {
+    run.checkMutation_();
+    if (!run.primary_ && run.match_count_ == 0 && run.scores_.empty()) continue;
+    const auto score = run.findScore(definition);
+    for (const auto& source : run.sources_)
+      for (const auto& query : source.identifications)
+        for (const auto& match : query.getMatches())
+          if (std::isnan(match.getScoreValues()[score.value])) invalid("Primary score is missing on a candidate in run '" + run.identifier_ + "'");
+    selections.emplace_back(&run, score);
+  }
+  // Every potentially throwing operation precedes the commit.
+  for (auto& [run, score] : selections) run->primary_ = score;
+}
 void ID::validate() const
 {
+  checkPrimaryContract(runs_);
   std::set<std::string> identities, identifiers;
   for (const auto& run : runs_)
   {

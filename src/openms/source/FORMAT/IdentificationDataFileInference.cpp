@@ -575,7 +575,7 @@ ProteinIdentification readProcessingJson(const Json& json)
   return result;
 }
 
-void writeParents(const std::filesystem::path& path, const std::vector<ID::ParentRecord>& parents, Dictionary& dictionary, const Options& options)
+Json writeParents(const std::filesystem::path& path, const std::vector<ID::ParentRecord>& parents, Dictionary& dictionary, const Options& options)
 {
   for (const auto& parent : parents)
     dictionary.collect(parent);
@@ -594,11 +594,12 @@ void writeParents(const std::filesystem::path& path, const std::vector<ID::Paren
                      + metadataBytes(parent));
   }
   writer.close();
+  return writer.reference();
 }
 
-std::vector<ID::ParentRecord> readParents(const std::filesystem::path& path, const Dictionary& dictionary, const Options& options)
+std::vector<ID::ParentRecord> readParents(const std::filesystem::path& root, const Json& reference, const Dictionary& dictionary, const Options& options)
 {
-  TableReader reader(path, parentsSchema(), options);
+  TableReader reader(root, reference, parentsSchema(), options);
   std::vector<ID::ParentRecord> parents;
   while (reader.next())
   {
@@ -622,7 +623,6 @@ std::vector<ID::ParentRecord> readParents(const std::filesystem::path& path, con
 
 Json writeInference(const std::filesystem::path& directory, const ID::InferenceResult& result, const Options& options)
 {
-  std::filesystem::create_directories(directory);
   Dictionary dictionary;
   for (const auto& protein : result.proteins.getHits())
     dictionary.collect(protein);
@@ -643,7 +643,7 @@ Json writeInference(const std::filesystem::path& directory, const ID::InferenceR
                      {"counts", Json::object()}};
   std::set<std::string> emitted_aliases;
   auto recordTable = [&](const std::string& name, const TableWriter& writer) {
-    descriptor["tables"][name] = name + ".parquet";
+    descriptor["tables"][name] = writer.reference();
     descriptor["counts"][name] = writer.rows();
   };
   {
@@ -779,9 +779,9 @@ Json writeInference(const std::filesystem::path& directory, const ID::InferenceR
   return descriptor;
 }
 
-void validateParents(const std::filesystem::path& path, const Dictionary& dictionary, const Options& options)
+void validateParents(const std::filesystem::path& root, const Json& reference, const Dictionary& dictionary, const Options& options)
 {
-  TableReader reader(path, parentsSchema(), options);
+  TableReader reader(root, reference, parentsSchema(), options);
   UInt64 ordinal = 0;
   while (reader.next())
   {
@@ -812,7 +812,7 @@ void validateInferenceTables(const std::filesystem::path& directory,
   Dictionary dictionary;
   dictionary.load(descriptor.at("metadata_fields"));
   auto open = [&](const std::string& name, const std::shared_ptr<arrow::Schema>& schema) {
-    TableReader table(tablePath(directory, descriptor.at("tables").at(name).get<std::string>()), schema, options);
+    TableReader table(directory, descriptor.at("tables").at(name), schema, options);
     if (table.rows() != integer<UInt64>(descriptor.at("counts").at(name))) invalid("Inference row count does not match its manifest");
     return table;
   };
@@ -969,13 +969,13 @@ ID::InferenceResult readInference(const std::filesystem::path& directory, const 
   std::vector<ID::ScoreDefinition> scores;
   for (const auto& item : descriptor.at("input_scores"))
     scores.push_back(readScoreJson(item));
-  auto path = [&](const std::string& table) { return tablePath(directory, descriptor.at("tables").at(table).get<std::string>()); };
+  auto reference = [&](const std::string& table) { return descriptor.at("tables").at(table); };
   auto count = [&](const std::string& table, UInt64 actual) {
     if (integer<UInt64>(descriptor.at("counts").at(table)) != actual) invalid("Inference row count does not match its manifest");
   };
   {
-    TableReader inputs(path("inputs"), inputsSchema(), options);
-    TableReader members(path("input_members"), inputMembersSchema(), options);
+    TableReader inputs(directory, reference("inputs"), inputsSchema(), options);
+    TableReader members(directory, reference("input_members"), inputMembersSchema(), options);
     UInt64 member_count = 0;
     while (inputs.next())
     {
@@ -1013,7 +1013,7 @@ ID::InferenceResult readInference(const std::filesystem::path& directory, const 
     count("input_members", member_count);
   }
   {
-    TableReader proteins(path("proteins"), proteinsSchema(), options);
+    TableReader proteins(directory, reference("proteins"), proteinsSchema(), options);
     while (proteins.next())
     {
       const auto row = proteins.row();
@@ -1040,8 +1040,8 @@ ID::InferenceResult readInference(const std::filesystem::path& directory, const 
     count("proteins", result.proteins.getHits().size());
   }
   {
-    TableReader groups(path("groups"), groupsSchema(), options);
-    TableReader members(path("group_members"), groupMembersSchema(), options);
+    TableReader groups(directory, reference("groups"), groupsSchema(), options);
+    TableReader members(directory, reference("group_members"), groupMembersSchema(), options);
     UInt64 group_count = 0, member_count = 0;
     unsigned previous_kind = 0;
     while (groups.next())
@@ -1083,7 +1083,7 @@ ID::InferenceResult readInference(const std::filesystem::path& directory, const 
     count("group_members", member_count);
   }
   {
-    TableReader assignments(path("assignments"), assignmentsSchema(), options);
+    TableReader assignments(directory, reference("assignments"), assignmentsSchema(), options);
     while (assignments.next())
     {
       const auto row = assignments.row();

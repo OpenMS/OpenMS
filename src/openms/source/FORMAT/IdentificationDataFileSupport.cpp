@@ -452,6 +452,14 @@ TableWriter::TableWriter(const std::filesystem::path& path, std::shared_ptr<arro
     options_(options)
 {
   validateOptions(options_);
+  if (options.output)
+  {
+    delegate_ = &options.output->acquire(path, schema_, options);
+    physical_path_ = delegate_->physical_path_;
+    start_ = delegate_->rows();
+    partition_ = options.partition;
+    return;
+  }
   sink_ = value(arrow::io::FileOutputStream::Open(path.string()));
   parquet::WriterProperties::Builder properties_builder;
   properties_builder.compression(parquet::Compression::ZSTD);
@@ -480,6 +488,14 @@ TableWriter::TableWriter(const std::filesystem::path& path, std::shared_ptr<arro
 TableWriter::~TableWriter() = default;
 void TableWriter::finishRow(Size bytes)
 {
+  if (logical_closed_) invalid("Appending to a closed table slice");
+  if (delegate_)
+  {
+    append<arrow::UInt64Builder>(delegate_->column(schema_->num_fields()), partition_);
+    delegate_->finishRow(bytes + sizeof(UInt64));
+    ++total_;
+    return;
+  }
   if (bytes > options_.max_record_bytes) invalid("A record exceeds max_record_bytes");
   ++buffered_;
   ++total_;
@@ -501,6 +517,7 @@ void TableWriter::flush_()
 }
 void TableWriter::close()
 {
+  if (delegate_) { logical_closed_ = true; return; }
   if (! writer_) return;
   flush_();
   check(writer_->Close());
@@ -508,58 +525,124 @@ void TableWriter::close()
   check(sink_->Close());
   sink_.reset();
 }
-TableReader::TableReader(const std::filesystem::path& path,
-                         const std::shared_ptr<arrow::Schema>& expected,
-                         const Options& options,
-                         const std::vector<std::string>& columns)
+Json TableWriter::reference() const
+{
+  return {{"path", physical_path_}, {"start", start_}, {"count", total_}, {"partition", partition_}};
+}
+TableWriter& WritePool::acquire(const std::filesystem::path& logical, const std::shared_ptr<arrow::Schema>& schema, const Options& options)
+{
+  const auto stem = logical.stem().string();
+  const auto key = stem + "\n" + schema->ToString() + (stem == "matches" ? options.score_schema : "");
+  auto& writer = writers_[key];
+  if (!writer)
+  {
+    const auto filename = stem + "-" + std::to_string(variants_[stem]++) + ".parquet";
+    const auto id = stem == "queries" || stem == "matches" || stem == "parents" ? "run_id" : "inference_id";
+    auto physical = value(schema->AddField(schema->num_fields(), arrow::field(id, arrow::uint64(), false)));
+    Options standalone(options);
+    standalone.output.reset();
+    standalone.input.reset();
+    writer = std::make_unique<TableWriter>(root_ / filename, physical, standalone);
+    writer->physical_path_ = filename;
+  }
+  return *writer;
+}
+void WritePool::close()
+{
+  for (auto& [key, writer] : writers_) writer->close();
+}
+std::shared_ptr<ReadPool::Entry> ReadPool::open(const std::filesystem::path& path)
+{
+  // Bound cached decoded groups and open files when many supplementary schemas occur.
+  if (!files_.contains(path.string()) && files_.size() >= 16)
+    for (auto it = files_.begin(); it != files_.end() && files_.size() >= 16;)
+      if (it->second.use_count() == 1) it = files_.erase(it);
+      else ++it;
+  auto& entry = files_[path.string()];
+  if (!entry)
+  {
+    entry = std::make_shared<Entry>();
+    entry->source = value(arrow::io::ReadableFile::Open(path.string()));
+    entry->reader = value(parquet::arrow::OpenFile(entry->source, arrow::default_memory_pool()));
+    check(entry->reader->GetSchema(&entry->schema));
+    const auto metadata = entry->reader->parquet_reader()->metadata();
+    entry->starts.push_back(0);
+    for (int i = 0; i < metadata->num_row_groups(); ++i)
+      entry->starts.push_back(entry->starts.back() + metadata->RowGroup(i)->num_rows());
+  }
+  return entry;
+}
+TableReader::TableReader(const std::filesystem::path& root, const Json& reference,
+                         const std::shared_ptr<arrow::Schema>& expected, const Options& options,
+                         const std::vector<std::string>& columns): options_(options)
 {
   validateOptions(options);
-  source_ = value(arrow::io::ReadableFile::Open(path.string()));
-  reader_ = value(parquet::arrow::OpenFile(source_, arrow::default_memory_pool()));
-  std::shared_ptr<arrow::Schema> schema;
-  check(reader_->GetSchema(&schema));
-  if (! schema->Equals(*expected, false)) invalid("Unexpected schema in " + path.string());
-  total_rows_ = static_cast<UInt64>(reader_->parquet_reader()->metadata()->num_rows());
-  const auto metadata = reader_->parquet_reader()->metadata();
-  const auto* parquet_schema = metadata->schema();
-  std::vector<int> row_groups(reader_->num_row_groups());
-  std::iota(row_groups.begin(), row_groups.end(), 0);
+  auto pool = options.input ? options.input : std::make_shared<ReadPool>();
+  entry_ = pool->open(tablePath(root, reference.at("path").get<std::string>()));
+  start_ = integer<UInt64>(reference.at("start"));
+  total_rows_ = integer<UInt64>(reference.at("count"));
+  partition_ = integer<UInt64>(reference.at("partition"));
+  if (start_ > entry_->starts.back() || total_rows_ > entry_->starts.back() - start_) invalid("Table slice outside physical row range");
+  end_ = start_ + total_rows_;
+  const auto schema = entry_->schema;
+  if (schema->num_fields() != expected->num_fields() + 1) invalid("Unexpected shared table schema");
+  id_column_ = schema->field(expected->num_fields())->name();
+  if (id_column_ != "run_id" && id_column_ != "inference_id") invalid("Missing table partition column");
+  if (!schema->Equals(*value(expected->AddField(expected->num_fields(), arrow::field(id_column_, arrow::uint64(), false))), false))
+    invalid("Unexpected shared table schema");
   std::set<std::string> selected(columns.begin(), columns.end());
   for (const auto& name : selected)
-    if (schema->GetFieldIndex(name) < 0) invalid("Unknown projected field " + name);
-  // Arrow's Parquet projection uses leaf indices, not top-level column indices.
-  std::vector<int> leaves;
+    if (expected->GetFieldIndex(name) < 0) invalid("Unknown projected field " + name);
+  selected.insert(id_column_);
+  const auto* parquet_schema = entry_->reader->parquet_reader()->metadata()->schema();
   for (int i = 0; i < parquet_schema->num_columns(); ++i)
-    if (columns.empty() || selected.contains(parquet_schema->Column(i)->path()->ToDotVector().front())) leaves.push_back(i);
-  // Footer byte densities provide a conservative batch-row target across the selected
-  // row groups. Pages and a single large value may still exceed this target; this is
-  // not a hard process-memory limit and does not include resident descriptors.
-  Size batch_rows = options.batch_rows;
-  for (int group_index : row_groups)
+    if (columns.empty() || selected.contains(parquet_schema->Column(i)->path()->ToDotVector().front())) leaves_.push_back(i);
+  if (total_rows_)
   {
-    const auto group = metadata->RowGroup(group_index);
-    long double bytes = 0;
-    for (int leaf : leaves)
-      bytes += group->ColumnChunk(leaf)->total_uncompressed_size();
-    if (bytes > 0 && group->num_rows() > 0)
-    {
-      const long double target = static_cast<long double>(options.batch_bytes) * group->num_rows() / bytes;
-      if (target < static_cast<long double>(batch_rows)) batch_rows = std::max<Size>(1, static_cast<Size>(target));
-    }
+    auto first = std::upper_bound(entry_->starts.begin(), entry_->starts.end(), start_);
+    for (Size i = static_cast<Size>(first - entry_->starts.begin() - 1); i + 1 < entry_->starts.size() && entry_->starts[i] < end_; ++i)
+      groups_.push_back(static_cast<int>(i));
   }
-  reader_->set_batch_size(static_cast<int64_t>(batch_rows));
-  batches_ = value(reader_->GetRecordBatchReader(row_groups, leaves));
 }
 bool TableReader::next()
 {
   ++row_;
-  while (! batch_ || row_ >= batch_->num_rows())
+  while (!batch_ || row_ >= batch_->num_rows())
   {
-    check(batches_->ReadNext(&batch_));
-    row_ = 0;
-    if (! batch_) return false;
-    check(batch_->ValidateFull());
-    if (batch_->num_rows()) return true;
+    if (batches_)
+    {
+      check(batches_->ReadNext(&batch_));
+      row_ = 0;
+      if (batch_ && batch_->num_rows()) return true;
+      batches_.reset();
+    }
+    if (next_group_ == groups_.size()) return false;
+    const int group = groups_[next_group_++];
+    if (entry_->cached_group != group || entry_->cached_leaves != leaves_)
+    {
+      check(entry_->reader->ReadRowGroup(group, leaves_, &entry_->cached_table));
+      check(entry_->cached_table->ValidateFull());
+      entry_->cached_group = group;
+      entry_->cached_leaves = leaves_;
+    }
+    const auto start = std::max(start_, entry_->starts[group]);
+    const auto end = std::min(end_, entry_->starts[group + 1]);
+    table_ = entry_->cached_table->Slice(start - entry_->starts[group], end - start);
+    // Validate the ownership column even for projections that omit payloads.
+    for (const auto& chunk : table_->GetColumnByName(id_column_)->chunks())
+    {
+      const auto& ids = static_cast<const arrow::UInt64Array&>(*chunk);
+      for (int64_t i = 0; i < ids.length(); ++i)
+        if (ids.IsNull(i) || ids.Value(i) != partition_) invalid("Table slice contains a different run/result partition");
+    }
+    batches_ = std::make_unique<arrow::TableBatchReader>(table_);
+    Size batch_rows = options_.batch_rows;
+    const auto metadata = entry_->reader->parquet_reader()->metadata()->RowGroup(group);
+    long double bytes = 0;
+    for (int leaf : leaves_) bytes += metadata->ColumnChunk(leaf)->total_uncompressed_size();
+    if (bytes > 0 && metadata->num_rows() > 0)
+      batch_rows = std::min(batch_rows, std::max<Size>(1, static_cast<Size>(static_cast<long double>(options_.batch_bytes) * metadata->num_rows() / bytes)));
+    batches_->set_chunksize(static_cast<int64_t>(batch_rows));
   }
   return true;
 }

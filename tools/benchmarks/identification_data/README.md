@@ -72,3 +72,18 @@ This mode uses 10,000 distinct peptidoforms and 2,000 proteins with consistent
 mappings across runs, and validates exact input and assignment counts. Its graph
 is synthetic; inference cost for other ambiguity structures can differ substantially.
 See `doc/openms/identification_data_validation.md` for measured Release results.
+
+## Comparison against legacy
+
+`IdentificationDataLegacyBenchmark` compares idXML, existing PSM Parquet, OMS and
+the owning native format with equivalent modified-peptide input. Run on Linux:
+
+```bash
+python3 tools/benchmarks/identification_data/run_legacy_comparison.py \
+  ../id-benchmark/IdentificationDataLegacyBenchmark ../legacy-comparison-results
+```
+
+The output directory must not exist. Configure runtime library/data paths for your
+OpenMS build first. The driver measures fresh-process peak RSS, rotates read order,
+and includes one warmup plus three measured reads per format. See
+`doc/openms/identification_data_legacy_comparison.md` for results and caveats.

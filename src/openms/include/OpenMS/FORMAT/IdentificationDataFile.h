@@ -14,8 +14,8 @@ namespace OpenMS
 /**
   @brief Native typed Parquet persistence and bounded sequential access to IdentificationData.
 
-  One manifest contains configuration; each run has query/match files with multiple
-  row groups. Scores stay in match rows. Growing inference values use typed tables.
+  One manifest contains configuration and row ranges in shared query/match files.
+  Compatible runs share row groups; partition columns preserve run ownership. Scores stay in match rows. Growing inference values use typed tables.
   Persistent UUIDs and record IDs survive filtering. No revision or freshness policy
   is implicit. Publication rejects an existing destination; owning load is transactional.
   The experimental schema has no compatibility reader for discarded prototypes.

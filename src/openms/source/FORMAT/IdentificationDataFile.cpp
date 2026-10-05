@@ -99,30 +99,53 @@ namespace
     if (manifest.at("format") != FORMAT || IO::integer<unsigned>(manifest.at("schema_version")) != 1)
       invalid("Unsupported native identification format");
     if (! manifest.at("runs").is_array() || ! manifest.at("inference").is_array()) invalid("Malformed run/result descriptors");
-    std::set<std::string> paths;
-    const auto claim = [&](const fs::path& base, const Json& entry) {
-      const auto relative = entry.get<std::string>();
-      const auto name = IO::tablePath(base, relative).lexically_normal().generic_string();
-      if (! paths.insert(name).second) invalid("Two tables declare the same file path");
+    std::map<std::string, std::vector<std::pair<UInt64, UInt64>>> ranges;
+    std::set<std::pair<std::string, UInt64>> partitions;
+    const auto claim = [&](const Json& entry, UInt64 partition) {
+      const auto name = IO::tablePath({}, entry.at("path").get<std::string>()).generic_string();
+      const auto start = IO::integer<UInt64>(entry.at("start"));
+      const auto count = IO::integer<UInt64>(entry.at("count"));
+      if (start > std::numeric_limits<UInt64>::max() - count) invalid("Overflowing table range");
+      if (IO::integer<UInt64>(entry.at("partition")) != partition || !partitions.emplace(name, partition).second)
+        invalid("Invalid or duplicate table partition");
+      if (count) ranges[name].emplace_back(start, start + count);
     };
+    UInt64 partition = 0;
     for (const auto& run : manifest.at("runs"))
     {
       const auto& tables = run.at("tables");
-      if (! tables.is_object() || ! tables.contains("queries") || ! tables.contains("matches")
-          || tables.size() != (tables.contains("parents") ? 3u : 2u))
-        invalid("Invalid run table declarations");
-      for (const auto& table : tables)
-        claim({}, table);
+      if (!tables.is_object() || !tables.contains("queries") || !tables.contains("matches")
+          || tables.size() != (tables.contains("parents") ? 3u : 2u)) invalid("Invalid run table declarations");
+      for (const auto& table : tables) claim(table, partition);
+      ++partition;
     }
+    partition = 0;
     for (const auto& result : manifest.at("inference"))
     {
-      const auto directory = IO::tablePath({}, result.at("directory"));
       const auto& tables = result.at("tables");
-      if (! tables.is_object() || tables.size() != 6) invalid("Inference requires six typed tables");
-      for (const auto* name : {"inputs", "input_members", "proteins", "groups", "group_members", "assignments"})
-      {
-        claim(directory, tables.at(name));
-      }
+      if (!tables.is_object() || tables.size() != 6) invalid("Inference requires six typed tables");
+      for (const auto* name : {"inputs", "input_members", "proteins", "groups", "group_members", "assignments"}) claim(tables.at(name), partition);
+      ++partition;
+    }
+    for (auto& [name, slices] : ranges)
+    {
+      std::sort(slices.begin(), slices.end());
+      for (Size i = 1; i < slices.size(); ++i)
+        if (slices[i].first < slices[i - 1].second) invalid("Overlapping table slices");
+    }
+    bool primary_initialized = false;
+    std::optional<ID::ScoreDefinition> primary_definition;
+    for (const auto& run : manifest.at("runs"))
+    {
+      const auto& primary = run.at("primary_score");
+      if (primary.is_null() && IO::integer<UInt64>(run.at("match_count")) == 0) continue;
+      std::optional<ID::ScoreDefinition> definition;
+      if (!primary.is_null())
+        definition = IO::readScoreJson(run.at("scores").at(IO::integer<UInt32>(primary)));
+      if (primary_initialized && definition != primary_definition)
+        invalid("Primary PSM score contract differs between run descriptors");
+      primary_definition = std::move(definition);
+      primary_initialized = true;
     }
     std::set<std::string> uuids, identifiers;
     for (const auto& run : manifest.at("runs"))
@@ -195,9 +218,27 @@ namespace
       fields.push_back(arrow::field("score_" + std::to_string(i), arrow::float64()));
     return arrow::schema(fields);
   }
-  Size queryBytes(const File::QueryRecord& q)
+  struct QueryView
+  {
+    UInt64 query_id;
+    UInt32 source_id;
+    const ID::Observation& data;
+    std::optional<UInt64> selected_match_id;
+  };
+  struct MatchView
+  {
+    UInt64 match_id, query_id;
+    const ID::MatchData& data;
+    const std::vector<double>& scores;
+  };
+  std::optional<double> storedScore(double score)
+  { return std::isnan(score) ? std::nullopt : std::optional<double>(score); }
+  const std::optional<double>& storedScore(const std::optional<double>& score) { return score; }
+  template<class Query>
+  Size queryBytes(const Query& q)
   { return 64 + q.data.data_id.size() + IO::metadataBytes(q.data); }
-  Size matchBytes(const File::MatchRecord& m)
+  template<class Match>
+  Size matchBytes(const Match& m)
   {
     const auto& d = m.data;
     Size bytes = 128 + d.representation.size() + d.name.size() + (d.formula ? d.formula->size() : 0) + m.scores.size() * 9 + IO::metadataBytes(d);
@@ -210,7 +251,8 @@ namespace
       bytes += 32 + a.annotation.size();
     return bytes;
   }
-  void writeQuery(IO::TableWriter& writer, const File::QueryRecord& q, const IO::Dictionary& dictionary)
+  template<class Query>
+  void writeQuery(IO::TableWriter& writer, const Query& q, const IO::Dictionary& dictionary)
   {
     append<arrow::UInt64Builder>(writer.column(0), q.query_id);
     append<arrow::UInt32Builder>(writer.column(1), q.source_id);
@@ -221,7 +263,8 @@ namespace
     IO::appendMetadata(writer.column(6), q.data, dictionary);
     writer.finishRow(queryBytes(q));
   }
-  void writeMatch(IO::TableWriter& writer, const File::MatchRecord& m, const IO::Dictionary& dictionary)
+  template<class Match>
+  void writeMatch(IO::TableWriter& writer, const Match& m, const IO::Dictionary& dictionary)
   {
     const auto& d = m.data;
     append<arrow::UInt64Builder>(writer.column(0), m.match_id);
@@ -280,7 +323,7 @@ namespace
     }
     IO::appendMetadata(writer.column(13), d, dictionary);
     for (Size i = 0; i < m.scores.size(); ++i)
-      appendOptional<arrow::DoubleBuilder>(writer.column(14 + i), m.scores[i]);
+      appendOptional<arrow::DoubleBuilder>(writer.column(14 + i), storedScore(m.scores[i]));
     writer.finishRow(matchBytes(m));
   }
   template<class Callback>
@@ -491,7 +534,7 @@ namespace
   }
   // Both tables retain scientific ordering. A single match row is sufficient lookahead.
   template<class Begin, class Match, class End>
-  void walkRun(const fs::path& root, const Json& j, const File::ScanOptions& options, const Begin& begin, const Match& consume, const End& end)
+  void walkRun(const fs::path& root, const Json& j, const File::ScanOptions& options, const Begin& begin, const Match& consume, const End& end, const IO::Options& io)
   {
     const auto d = descriptor(j);
     IO::Dictionary dictionary;
@@ -499,8 +542,8 @@ namespace
     const auto& tables = j.at("tables");
     std::vector<std::string> query_columns {"query_id", "source_id", "data_id", "rt", "mz", "selected_match_id"};
     if (options.projection.metadata) query_columns.emplace_back("metadata");
-    IO::TableReader queries(IO::tablePath(root, tables.at("queries")), querySchema(), options.buffering, query_columns);
-    IO::TableReader matches(IO::tablePath(root, tables.at("matches")), matchSchema(d.scores.size()), options.buffering,
+    IO::TableReader queries(root, tables.at("queries"), querySchema(), io, query_columns);
+    IO::TableReader matches(root, tables.at("matches"), matchSchema(d.scores.size()), io,
                             projectedMatchColumns(options.projection, d.scores.size()));
     if (queries.rows() != d.query_count || matches.rows() != d.match_count) invalid("Manifest and table row counts disagree");
     std::set<UInt64> query_ids, match_ids;
@@ -555,7 +598,7 @@ namespace
     }
     if (has_match || seen_queries != d.query_count || seen_matches != d.match_count) invalid("Unmatched or out-of-order match rows");
   }
-  ID::Run readRun(const fs::path& root, const Json& j, const File::Options& options)
+  ID::Run readRun(const fs::path& root, const Json& j, const IO::Options& options)
   {
     auto run = runShell(j);
     File::ScanOptions scan;
@@ -565,13 +608,13 @@ namespace
       [&](const File::MatchRecord& m) { run.importMatch(ID::QueryId {m.query_id}, ID::MatchId {m.match_id}, m.data, m.scores); },
       [&](const File::QueryRecord& q) {
         if (q.selected_match_id) run.setSelectedMatch(ID::QueryId {q.query_id}, ID::MatchId {*q.selected_match_id});
-      });
+      }, options);
     const auto& tables = j.at("tables");
     if (tables.contains("parents"))
     {
       IO::Dictionary dictionary;
       dictionary.load(j.at("metadata_descriptors"));
-      run.setParents(IO::readParents(IO::tablePath(root, tables.at("parents")), dictionary, options));
+      run.setParents(IO::readParents(root, tables.at("parents"), dictionary, options));
     }
     run.restoreIdentity(j.at("uuid"), IO::integer<UInt64>(j.at("next_query_id")), IO::integer<UInt64>(j.at("next_match_id")));
     return run;
@@ -628,33 +671,37 @@ void File::store(const std::string& path, const ID& data, const Options& options
   IO::validateOptions(options);
   data.validate();
   StagedDirectory output(path);
+  IO::Options io(options);
+  io.output = std::make_shared<IO::WritePool>(output.path);
   Json manifest {{"format", FORMAT}, {"schema_version", 1}, {"runs", Json::array()}, {"inference", Json::array()}};
   for (Size index = 0; index < data.getRuns().size(); ++index)
   {
     const auto& run = data.getRuns()[index];
     const std::string directory = "runs/" + numberDirectory(index);
-    fs::create_directories(output.path / directory);
+    io.partition = index;
     IO::Dictionary dictionary;
     collectDictionary(run, dictionary);
     Json j = runJson(run);
+    io.score_schema = j.at("scores").dump();
     Json tables {{"queries", directory + "/queries.parquet"}, {"matches", directory + "/matches.parquet"}};
-    IO::TableWriter queries(output.path / tables.at("queries").get<std::string>(), querySchema(), options);
-    IO::TableWriter matches(output.path / tables.at("matches").get<std::string>(), matchSchema(run.getScoreDefinitions().size()), options);
+    IO::TableWriter queries(output.path / tables.at("queries").get<std::string>(), querySchema(), io);
+    IO::TableWriter matches(output.path / tables.at("matches").get<std::string>(), matchSchema(run.getScoreDefinitions().size()), io);
     for (const auto& source : run.getSourceBlocks())
       for (const auto& query : source.identifications)
       {
-        QueryRecord q {query.getId().value, source.id.value, query.getObservation(), std::nullopt};
+        QueryView q {query.getId().value, source.id.value, query.getObservation(), std::nullopt};
         if (query.getSelectedMatch()) q.selected_match_id = query.getSelectedMatch()->value;
         writeQuery(queries, q, dictionary);
         for (const auto& match : query.getMatches())
-          writeMatch(matches, MatchRecord {match.getId().value, query.getId().value, match.getData(), match.getScores()}, dictionary);
+          writeMatch(matches, MatchView {match.getId().value, query.getId().value, match.getData(), match.getScoreValues()}, dictionary);
       }
     queries.close();
     matches.close();
+    tables["queries"] = queries.reference();
+    tables["matches"] = matches.reference();
     if (run.getParents())
     {
-      tables["parents"] = directory + "/parents.parquet";
-      IO::writeParents(output.path / tables.at("parents").get<std::string>(), *run.getParents(), dictionary, options);
+      tables["parents"] = IO::writeParents(output.path / "parents.parquet", *run.getParents(), dictionary, io);
     }
     j["metadata_descriptors"] = dictionary.toJson();
     j["tables"] = std::move(tables);
@@ -664,12 +711,11 @@ void File::store(const std::string& path, const ID& data, const Options& options
   {
     const auto& result = data.getInferenceResults()[index];
     validateProvenanceCounters(data, result);
-    const std::string directory = "inference/" + numberDirectory(index);
-    fs::create_directories(output.path / directory);
-    Json j = IO::writeInference(output.path / directory, result, options);
-    j["directory"] = directory;
+    io.partition = index;
+    Json j = IO::writeInference(output.path, result, io);
     manifest["inference"].push_back(std::move(j));
   }
+  io.output->close();
   writeManifest(output.path, manifest);
   output.publish();
 }
@@ -680,12 +726,14 @@ try
 {
   IO::validateOptions(options);
   const auto manifest = readManifest(path);
+  IO::Options io(options);
+  io.input = std::make_shared<IO::ReadPool>();
   ID temporary;
   for (const auto& j : manifest.at("runs"))
-    temporary.addRun(readRun(path, j, options));
+    temporary.addRun(readRun(path, j, io));
   for (const auto& j : manifest.at("inference"))
   {
-    auto result = IO::readInference(IO::tablePath(path, j.at("directory")), j, options);
+    auto result = IO::readInference(path, j, io);
     validateProvenanceCounters(temporary, result);
     temporary.addInferenceResult(result);
   }
@@ -703,8 +751,10 @@ try
 {
   IO::validateOptions(options);
   const auto manifest = readManifest(path);
+  IO::Options io(options);
+  io.input = std::make_shared<IO::ReadPool>();
   const auto selected = selectRuns(manifest, {run});
-  return readRun(path, *selected.front(), options);
+  return readRun(path, *selected.front(), io);
 }
 catch (const Json::exception& error)
 {
@@ -715,6 +765,8 @@ try
 {
   IO::validateOptions(options.buffering);
   const auto manifest = readManifest(path);
+  IO::Options io(options.buffering);
+  io.input = std::make_shared<IO::ReadPool>();
   ScanStatistics statistics;
   statistics.descriptor_bytes = fs::file_size(fs::path(path) / "manifest.json");
   for (const auto* j : selectRuns(manifest, options.runs))
@@ -753,7 +805,7 @@ try
           if (matches.size() >= options.buffering.batch_rows || match_bytes >= options.buffering.batch_bytes) flush_matches();
         }
       },
-      [](const QueryRecord&) {});
+      [](const QueryRecord&) {}, io);
     flush_queries();
     flush_matches();
   }
@@ -785,18 +837,26 @@ try
   for (const auto& run : manifest.at("runs"))
     counters.emplace(run.at("uuid").get<std::string>(), IO::integer<UInt64>(run.at("next_match_id")));
   StagedDirectory staged(output);
+  IO::Options io(options);
+  io.input = std::make_shared<IO::ReadPool>();
+  io.output = std::make_shared<IO::WritePool>(staged.path);
+  const auto copyTable = [&](const Json& reference) {
+    const auto name = reference.at("path").get<std::string>();
+    auto dest = IO::tablePath(staged.path, name);
+    if (!fs::exists(dest))
+    {
+      fs::create_directories(dest.parent_path());
+      fs::copy_file(IO::tablePath(input, name), dest);
+    }
+  };
   for (auto& j : manifest["runs"])
   {
     const std::string uuid = j.at("uuid");
-    const auto& tables = j.at("tables");
     IO::Dictionary dictionary;
     dictionary.load(j.at("metadata_descriptors"));
-    auto query_path = IO::tablePath(staged.path, tables.at("queries"));
-    fs::create_directories(query_path.parent_path());
-    auto match_path = IO::tablePath(staged.path, tables.at("matches"));
-    fs::create_directories(match_path.parent_path());
-    IO::TableWriter queries(query_path, querySchema(), options);
-    IO::TableWriter matches(match_path, matchSchema(j.at("scores").size()), options);
+    io.score_schema = j.at("scores").dump();
+    IO::TableWriter queries(staged.path / "queries.parquet", querySchema(), io);
+    IO::TableWriter matches(staged.path / "matches.parquet", matchSchema(j.at("scores").size()), io);
     File::ScanOptions scan;
     scan.buffering = options;
     bool kept_any = false, kept_selection = false;
@@ -817,39 +877,32 @@ try
         }
       },
       [&](const QueryRecord& original) {
-        // Keep the explicit selection only when its candidate survives.
         QueryRecord q = original;
-        if (q.selected_match_id && ! kept_selection) q.selected_match_id.reset();
+        if (q.selected_match_id && !kept_selection) q.selected_match_id.reset();
         if (kept_any || keep_empty_queries) writeQuery(queries, q, dictionary);
-      });
+      }, io);
     queries.close();
     matches.close();
     j["query_count"] = queries.rows();
     j["match_count"] = matches.rows();
-    if (tables.contains("parents"))
+    j["tables"]["queries"] = queries.reference();
+    j["tables"]["matches"] = matches.reference();
+    if (j.at("tables").contains("parents"))
     {
-      auto dest = IO::tablePath(staged.path, tables.at("parents"));
-      fs::create_directories(dest.parent_path());
-      const auto source = IO::tablePath(input, tables.at("parents"));
-      IO::validateParents(source, dictionary, options);
-      fs::copy_file(source, dest);
+      const auto& reference = j.at("tables").at("parents");
+      IO::validateParents(input, reference, dictionary, io);
+      copyTable(reference);
     }
+    ++io.partition;
   }
   if (policy == ID::InferencePolicy::DISCARD) manifest["inference"] = Json::array();
   else
     for (const auto& result : manifest.at("inference"))
     {
-      const auto source = IO::tablePath(input, result.at("directory"));
-      const auto destination = IO::tablePath(staged.path, result.at("directory"));
-      IO::validateInferenceTables(source, result, options, counters);
-      fs::create_directories(destination);
-      for (auto i = result.at("tables").begin(); i != result.at("tables").end(); ++i)
-      {
-        auto dest = IO::tablePath(destination, i.value());
-        fs::create_directories(dest.parent_path());
-        fs::copy_file(IO::tablePath(source, i.value()), dest);
-      }
+      IO::validateInferenceTables(input, result, io, counters);
+      for (const auto& reference : result.at("tables")) copyTable(reference);
     }
+  io.output->close();
   writeManifest(staged.path, manifest);
   staged.publish();
 }

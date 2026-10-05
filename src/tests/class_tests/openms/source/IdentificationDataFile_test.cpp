@@ -141,6 +141,97 @@ void replaceText(const fs::path& path, const std::string& from, const std::strin
 
 START_TEST(IdentificationDataFile, "$Id$")
 
+START_SECTION((shared row groups preserve run boundaries, metadata and supplementary score layouts))
+{
+  ID data;
+  ID::ScoreDefinition primary;
+  primary.name = "common";
+  for (Size index = 0; index < 4; ++index)
+  {
+    auto& run = data.addRun("run" + std::to_string(index));
+    auto score = run.addScore(primary);
+    if (index == 3)
+    {
+      auto additional = primary;
+      additional.name = "extra";
+      run.addScore(additional);
+    }
+    run.setPrimaryScore(score);
+    auto source = run.addSource({});
+    for (Size i = 0; i < 3; ++i)
+    {
+      ID::Observation observation;
+      observation.data_id = "scan=" + std::to_string(i);
+      auto query = run.addIdentification(source, observation);
+      ID::MatchData match;
+      match.representation = "PEPTIDE";
+      match.setMetaValue("run" + std::to_string(index), static_cast<int>(index));
+      std::vector<std::optional<double>> values {double(index * 10 + i)};
+      if (index == 3) values.push_back(std::nullopt);
+      run.addMatch(query, match, values);
+    }
+  }
+  Native::Options options;
+  options.row_group_rows = 5; // boundaries cross runs, and runs cross row groups
+  options.batch_rows = 2;
+  std::string path, filtered;
+  NEW_TMP_FILE(path)
+  NEW_TMP_FILE(filtered)
+  Native::store(path, data, options);
+  TEST_TRUE(fs::exists(fs::path(path) / "queries-0.parquet"))
+  TEST_TRUE(fs::exists(fs::path(path) / "matches-0.parquet"))
+  TEST_TRUE(fs::exists(fs::path(path) / "matches-1.parquet"))
+  TEST_FALSE(fs::exists(fs::path(path) / "runs"))
+  ID loaded;
+  Native::load(path, loaded, options);
+  TEST_EQUAL(loaded.getRuns().size(), 4)
+  for (Size index = 0; index < 4; ++index)
+  {
+    const auto& run = loaded.getRuns()[index];
+    TEST_EQUAL(run.getNumberOfMatches(), 3)
+    const auto& match = run.getSourceBlocks()[0].identifications[0].getMatches()[0];
+    TEST_EQUAL(match.getMetaValue("run" + std::to_string(index)), static_cast<int>(index))
+    TEST_REAL_SIMILAR(*run.getScore(match.getId(), *run.getPrimaryScore()), index * 10)
+  }
+  auto selected = Native::loadRun(path, "run1", options);
+  TEST_EQUAL(selected.getNumberOfMatches(), 3)
+  Native::filter(path, filtered, [](const auto&, const Native::MatchRecord& match) { return *match.scores[0] >= 20; },
+                 ID::InferencePolicy::DISCARD, false, options);
+  Native::load(filtered, loaded, options);
+  TEST_EQUAL(loaded.getRuns()[0].getNumberOfMatches(), 0)
+  TEST_EQUAL(loaded.getRuns()[2].getNumberOfMatches(), 3)
+  TEST_EQUAL(loaded.getRuns()[3].getNumberOfMatches(), 3)
+  replaceText(fs::path(path) / "manifest.json", "\"partition\": 0", "\"partition\": 99");
+  TEST_EXCEPTION(Exception::InvalidValue, Native::scan(path, {}, {}, {}))
+  fs::remove_all(path);
+  fs::remove_all(filtered);
+}
+END_SECTION
+
+START_SECTION((common primary score is checked before writing and scanning))
+{
+  ID data;
+  ID::ScoreDefinition score;
+  score.name = "common";
+  auto& a = data.addRun("A");
+  a.setPrimaryScore(a.addScore(score));
+  auto& b = data.addRun("B");
+  b.setPrimaryScore(b.addScore(score));
+  std::string directory;
+  NEW_TMP_FILE(directory)
+  Native::store(directory, data);
+  // Individually valid but incompatible definitions fail before streaming any table.
+  replaceText(fs::path(directory) / "manifest.json", "\"name\": \"common\"", "\"name\": \"different\"");
+  TEST_EXCEPTION(Exception::InvalidValue, Native::scan(directory, {}, {}, {}))
+  fs::remove_all(directory);
+  score.name = "other";
+  score.higher_better = false;
+  b.setPrimaryScore(b.addScore(score));
+  TEST_EXCEPTION(Exception::InvalidValue, Native::store(directory, data))
+  TEST_FALSE(fs::exists(directory))
+}
+END_SECTION
+
 START_SECTION((static void store(const std::string&, const IdentificationData&, const Options&)))
 {
   Fixture fixture;
@@ -149,9 +240,9 @@ START_SECTION((static void store(const std::string&, const IdentificationData&, 
   fs::remove_all(directory);
   Native::store(directory, fixture.data, tiny());
   TEST_TRUE(Native::isNativeFile(directory))
-  TEST_TRUE(fs::exists(fs::path(directory) / "runs/000/queries.parquet"))
-  TEST_TRUE(fs::exists(fs::path(directory) / "runs/000/matches.parquet"))
-  TEST_TRUE(fs::exists(fs::path(directory) / "inference/000/input_members.parquet"))
+  TEST_TRUE(fs::exists(fs::path(directory) / "queries-0.parquet"))
+  TEST_TRUE(fs::exists(fs::path(directory) / "matches-0.parquet"))
+  TEST_TRUE(fs::exists(fs::path(directory) / "input_members-0.parquet"))
   TEST_FALSE(fs::exists(fs::path(directory) / "inference.json"))
   ID loaded;
   Native::load(directory, loaded, tiny());
@@ -242,7 +333,7 @@ START_SECTION((static ScanStatistics scan(const std::string&, const ScanOptions&
   TEST_EQUAL(statistics.matches, 3)
   TEST_TRUE(statistics.descriptor_bytes > 0)
   // Run selection must not touch another run's missing tables.
-  fs::remove(fs::path(directory) / "runs/001/matches.parquet");
+  fs::remove(fs::path(directory) / "matches-1.parquet");
   single = Native::loadRun(directory, "search-one", tiny());
   TEST_EQUAL(single.getNumberOfMatches(), 3)
   ID old;
