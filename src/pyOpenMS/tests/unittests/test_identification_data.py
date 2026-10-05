@@ -202,15 +202,17 @@ def test_filter_preserves_inference_provenance_or_explicitly_discards():
     assert data.get_inference_results() == []
 
 
-def test_native_round_trip_and_nonreused_ids(tmp_path):
+@pytest.mark.parametrize("threads", [1, 4])
+def test_native_round_trip_and_nonreused_ids(tmp_path, threads):
     data, query, first, second = make_data_with_inference()
     data.filter_matches(lambda match: match.get_id() == first, ID.InferencePolicy.PRESERVE)
     path = str(tmp_path / "native")
     options = File.Options()
+    options.threads = threads
     options.batch_rows = 1
     options.row_group_rows = 1
     File.store(path, data, options)
-    loaded = File.load(path)
+    loaded = File.load(path, options)
     run = loaded.get_run("search")
     assert run.get_uuid() == data.get_run("search").get_uuid()
     match = run.get_match(first)
@@ -231,12 +233,14 @@ def test_native_round_trip_and_nonreused_ids(tmp_path):
     assert File.load_run(path, descriptor.uuid).get_number_of_matches() == 1
 
 
-def test_native_projected_scan_keeps_callback_values_alive(tmp_path):
+@pytest.mark.parametrize("threads", [1, 4])
+def test_native_projected_scan_keeps_callback_values_alive(tmp_path, threads):
     run, _, _, _, _ = make_run()
     data = ID()
     data.add_run(run)
     path = str(tmp_path / "native")
     options = File.Options()
+    options.threads = threads
     options.batch_rows = 1
     options.row_group_rows = 1
     File.store(path, data, options)

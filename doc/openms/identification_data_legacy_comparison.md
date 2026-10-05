@@ -1,6 +1,166 @@
 # IdentificationData: Release comparison against legacy
 
-## Current seven-file format (2026-10-05)
+## Optimized loading, validation and optional threading (2026-10-05)
+
+Implemented and measured after the seven-file baseline below. The score contract,
+seven-file layout and scientific record order are unchanged. The measured source
+blob IDs and complete raw observations are recorded in
+`tools/benchmarks/identification_data/results/optimized-threading.json`.
+
+The implementation now:
+
+- Moves decoded observation/match payloads and inference results into their owners,
+  and moves temporary scan records into callback batches.
+- Validates each fully loaded run once, reads dense score values directly and avoids
+  constructing an optional-score vector for every match during validation.
+- Checks uniqueness using compact ID vectors: a linear pass for sorted IDs, or
+  sorting ID copies when IDs are not ordered. Every duplicate is still rejected.
+- Binds projected columns once per batch and caches metadata registry IDs in the
+  run-local descriptor dictionary. Registry IDs are not written to disk.
+- Exposes `Options.threads` (default 1) in C++ and Python. Higher counts use a private
+  CPU pool shared by the operation's tables, with parallel column decoding and
+  buffered row-group encoding. The global Arrow pool is unchanged.
+
+Both run-count cases contain one million PSMs and use the unchanged synthetic
+content generator. Existing PSM Parquet was regenerated and measured alongside
+native with 1, 2, 4 and 8 workers. All processes run sequentially; no builds ran
+concurrently. Load values are medians of three fresh-process reads after warmup;
+load order rotates. Writes are single samples. I/O timings exclude generation,
+conversion and digest verification. Memory is process peak RSS in MiB; disk is MB.
+
+| Runs | Format / CPU workers | Write (s) | Load (s) | Load range (s) | Peak read RAM (MiB) | Disk (MB) |
+|---:|---|---:|---:|---:|---:|---:|
+| 1 | Existing PSM Parquet (defaults) | 5.46 | 3.90 | 3.76–3.95 | 1622 | 10.79 |
+| 1 | Native / 1 | 3.91 | 3.61 | 3.61–3.86 | 1233 | 17.12 |
+| 1 | Native / 2 | 3.80 | 3.60 | 3.35–3.90 | 1227 | 17.12 |
+| 1 | Native / 4 | 3.58 | 3.48 | 3.40–3.72 | 1243 | 17.12 |
+| 1 | Native / 8 | 3.77 | 3.64 | 3.48–3.78 | 1312 | 17.12 |
+| 1,000 | Existing PSM Parquet (defaults) | 5.90 | 3.94 | 3.90–4.13 | 1682 | 10.82 |
+| 1,000 | Native / 1 | 4.73 | 4.49 | 4.32–4.61 | 1375 | 14.92 |
+| 1,000 | Native / 2 | 4.44 | 4.55 | 4.30–4.57 | 1380 | 14.92 |
+| 1,000 | Native / 4 | 4.37 | 4.32 | 4.15–4.59 | 1412 | 14.92 |
+| 1,000 | Native / 8 | 4.33 | 4.13 | 4.11–4.50 | 1475 | 14.92 |
+
+Relative to the immediately preceding native baseline, serial loading decreases
+from 5.82 to 3.61 s for one run (38% less time), and from 6.77 to 4.49 s for
+1,000 runs (34% less time). Serial writing measures 3.91 / 4.73 s, compared with
+the previous 5.48 / 6.18 s. These are sequential before/after experiments, not
+randomized paired trials.
+
+Against the simultaneously rerun existing PSM Parquet API, native writing is
+faster in these samples. Full loading is comparable for one run, but the serial
+native loader still takes 14% longer for 1,000 runs. Eight workers reduce that
+gap to about 5%, with higher peak memory than serial native loading.
+
+Four workers measure 3.58 / 4.37 s writing and
+3.48 / 4.32 s loading (one / 1,000 runs).
+The extra threading gains are modest and not monotonic across worker counts;
+several load ranges overlap. Removing repeated per-record work supplies most of
+the observed loading improvement. Keep the default at one worker and expose
+explicit control for callers to measure against their workloads. There is no
+claim of linear scaling with cores. The threaded path keeps one decoded row group
+per cached physical table, but encoding/decoding workers need additional buffers.
+
+Conversion from the common legacy vectors adds 2.41 /
+4.90 s for serial native in these runs. Whole-process write RSS and
+CPU time include that conversion and input generation, so they are retained only
+in the raw observations. Projected scan throughput, inference cost and cold-disk
+service time are separate measurements.
+
+An intermediate serial stage (moves, dense-score validation, one validation pass
+and lookup caching, before compact ID validation) measured 4.84 / 4.81 s writing
+and 4.02 / 4.33 s loading. Its raw records and exact patch against the preceding
+commit are retained as `serial-optimization-stage.json` and
+`serial-optimization-stage.patch` in the benchmark results directory. This measures
+a bundle of changes and does not isolate the contribution of each optimization.
+
+All 50 final benchmark subprocesses, 12 worker-count smoke subprocesses and 10
+intermediate-stage subprocesses passed count/score/content digest checks. Every
+final native dataset has seven files. Independent Parquet inspection verifies
+query/match row counts and row-group counts. All 11 focused C++ suites and 18
+standalone Python binding checks pass; the real metadata/format binding translation
+units compile. This is not a complete pyOpenMS package or cross-platform build.
+New coverage includes consuming imports, unordered/duplicate IDs, dense-score
+validation, projected/shared row groups with four workers, concurrent operations,
+serial/threaded cross-reading, unchanged global thread-pool capacity and a corrupt
+encoded page that fails during parallel decoding without modifying the destination.
+
+Reproduce the final matrix with:
+
+```bash
+python3 tools/benchmarks/identification_data/run_legacy_comparison.py \
+  /absolute/path/IdentificationDataLegacyBenchmark /absolute/path/new-output \
+  --formats parquet native --cases 1000000:1 1000000:1000 \
+  --native-threads 1 2 4 8
+```
+
+The Release environment and workload details below still apply. This synthetic
+million-PSM comparison does not establish billion-PSM feasibility or full workflow
+performance. Earlier tables below are retained as historical measurements.
+
+## Why full loading needs about 1.2 GiB per million PSMs
+
+A diagnostic of the same Release implementation separates the owning model from
+its compressed Parquet representation. On this Linux x86_64 build, the per-PSM
+object sizes and occupied payloads in the one-run workload are:
+
+| Component | Bytes per PSM | MiB for one million |
+|---|---:|---:|
+| Match object, including inline optional fields and vector/string headers | 376 | 358.6 |
+| Observation/identification object | 120 | 114.4 |
+| One parent-evidence entry | 160 | 152.6 |
+| Metadata objects, occupied entries and separate string objects | 264 | 251.8 |
+| Score storage, heap string capacity and spare query capacity | about 36 | 34.2 |
+| **Accounted PSM storage, before the remaining overhead** | **about 956** | **911.5** |
+
+This is an accounting lower bound, not a complete heap attribution. The remaining
+roughly 321 MiB includes allocation rounding/headers, metadata spare capacity,
+run/protein/inference data, libraries and Arrow/allocator buffers. Peak RSS was
+1,232.8 MiB in this diagnostic. After loading returned, RSS was still 1,233.0 MiB;
+explicitly trimming free glibc pages reduced it only to 1,217.3 MiB. Thus the large
+footprint cannot be explained mainly by temporary decoding buffers or benchmark
+verification. The diagnostic performs neither input conversion nor digest checking.
+Small differences between sampled RSS and peak RSS reflect the different kernel
+accounting interfaces.
+
+Concrete design costs:
+
+- `std::optional<AdductInfo>` occupies **120 bytes even when absent**: 114.4 MiB
+  across these one million matches. This is already included in the match row
+  above. An absent optional formula similarly occupies 40 bytes. Empty name,
+  identifier and annotation containers also retain their inline headers.
+- Parent evidence owns database/accession strings, two optional 64-bit coordinates
+  and two string-valued flanking residues. That is 160 bytes before extra string
+  storage, even for a peptide with single-character flanks.
+- Every query owns a match vector and every match owns a score vector. Even this
+  one-hit, one-score workload therefore makes many small allocations.
+- The legacy adapter copies metadata wholesale: spectrum references and
+  target/decoy labels coexist with their dedicated fields. Repeated metadata
+  values such as the engine name also become independent C++ values.
+- The generator has only 10,000 distinct peptide representations and 200 protein
+  accessions in its one-run case. Parquet compresses repeated values well; the
+  owning model constructs individual values for every PSM.
+
+A full-projection streaming scan of the same one-run dataset, retaining no callback
+batches, peaked at **192.2 MiB**, with one million queries and matches counted.
+This scan does not materialize the whole dataset or load protein inference; it
+uses the default bounded buffering and disables optional set-based global ID
+uniqueness checks. It is not a billion-PSM memory guarantee. The 1,000-run full-load
+diagnostic peaked at 1,370.7 MiB. That workload also contains 200 protein hits per
+run rather than 200 total, so its extra memory is not solely run overhead.
+
+The next memory-oriented changes should move uncommon molecular fields into an
+optional owned extension, compact parent evidence, avoid duplicate canonical
+metadata and reduce small allocations for common one-hit/one-score records. These
+are design recommendations, not changes included in the I/O optimization. They
+can retain simple value ownership without introducing a graph of mutable
+cross-references. Run-owned dictionaries are another option for repeated strings,
+provided their lifetime and editing rules remain explicit.
+
+Raw phase measurements, object counts and the diagnostic source are archived in
+`tools/benchmarks/identification_data/results/memory-footprint.json`.
+
+## Seven-file baseline before these optimizations (2026-10-05)
 
 Rerun on implementation commit `4cef855e6c6fc60cc8c90a29093f31ccc1c83502` after the
 ordered score-schema contract and format simplifications. All four formats were
@@ -55,12 +215,13 @@ Release build and environment described below, with no concurrent builds.
 It measures full loading rather than projected scans, and does not establish
 cold-disk throughput, inference performance or billion-PSM scalability.
 
-## Remaining optimization candidates
+## Optimization audit before implementation
 
-Code inspection after this rerun identified the following work. These are proposed
-changes, not measured speedups; the benchmark above contains none of them.
+The following audit motivated the implementation reported at the top of this
+document. It describes the previous code; a pipeline overlapping row preparation
+with encoding remains future work.
 
-| Priority | Current work | Candidate change |
+| Priority | Previous work | Proposed change at that stage |
 |---:|---|---|
 | 1 | `readRun` passes decoded observations and match payloads through const references; `importIdentification` and `importMatch` copy them into owned records. Scan batching also copies temporary records. | Add an internal consuming import/batch path and move owned strings, evidence, annotations and metadata. Keep copying APIs for callers that retain their inputs. |
 | 2 | `addRun` validates each loaded run, and `load` then calls dataset `validate`, which validates those runs again. Every `Run::validate` calls `match.getScores()`, allocating an optional-score vector for every match. | Validate dense score storage directly and consolidate the load-time validation passes while preserving every required check and transactional publication. |

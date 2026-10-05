@@ -1,0 +1,235 @@
+{
+  "stage": "After move imports, dense score validation, removal of repeated full validation, and column/metadata lookup caching; before compact ID validation and threading",
+  "baseline_commit": "a3031eccb692aca3659c0240c0e0cce49ab6fd57",
+  "measurements": [
+    {
+      "label": "1000000-1-native-write",
+      "args": [
+        "write",
+        "native",
+        "1000000-1-native",
+        "1000000",
+        "1"
+      ],
+      "code": 0,
+      "elapsed": 10.441037967000739,
+      "rss_kib": 2105004,
+      "phases": {
+        "prepare": 0.99425284,
+        "convert": 3.599958676,
+        "write": 4.844724309
+      },
+      "digests": [
+        [
+          "1000000",
+          "1111821886898865107",
+          "59500000"
+        ],
+        [
+          "1000000",
+          "1111821886898865107",
+          "59500000"
+        ]
+      ]
+    },
+    {
+      "label": "1000000-1-native-read-0",
+      "args": [
+        "read",
+        "native",
+        "1000000-1-native"
+      ],
+      "code": 0,
+      "elapsed": 4.824830772005953,
+      "rss_kib": 1313996,
+      "phases": {
+        "read": 3.993142133
+      },
+      "digests": [
+        [
+          "1000000",
+          "1111821886898865107",
+          "59500000"
+        ]
+      ]
+    },
+    {
+      "label": "1000000-1-native-read-1",
+      "args": [
+        "read",
+        "native",
+        "1000000-1-native"
+      ],
+      "code": 0,
+      "elapsed": 4.757498911996663,
+      "rss_kib": 1314100,
+      "phases": {
+        "read": 3.900578792
+      },
+      "digests": [
+        [
+          "1000000",
+          "1111821886898865107",
+          "59500000"
+        ]
+      ]
+    },
+    {
+      "label": "1000000-1-native-read-2",
+      "args": [
+        "read",
+        "native",
+        "1000000-1-native"
+      ],
+      "code": 0,
+      "elapsed": 4.915034411998931,
+      "rss_kib": 1314376,
+      "phases": {
+        "read": 4.018105605
+      },
+      "digests": [
+        [
+          "1000000",
+          "1111821886898865107",
+          "59500000"
+        ]
+      ]
+    },
+    {
+      "label": "1000000-1-native-read-3",
+      "args": [
+        "read",
+        "native",
+        "1000000-1-native"
+      ],
+      "code": 0,
+      "elapsed": 5.039218787998834,
+      "rss_kib": 1346884,
+      "phases": {
+        "read": 4.166042003
+      },
+      "digests": [
+        [
+          "1000000",
+          "1111821886898865107",
+          "59500000"
+        ]
+      ]
+    },
+    {
+      "label": "1000000-1000-native-write",
+      "args": [
+        "write",
+        "native",
+        "1000000-1000-native",
+        "1000000",
+        "1000"
+      ],
+      "code": 0,
+      "elapsed": 12.577474420999351,
+      "rss_kib": 2291260,
+      "phases": {
+        "prepare": 0.995442497,
+        "convert": 5.539343695,
+        "write": 4.81041203
+      },
+      "digests": [
+        [
+          "1000000",
+          "1111821886898865107",
+          "59500000"
+        ],
+        [
+          "1000000",
+          "1111821886898865107",
+          "59500000"
+        ]
+      ]
+    },
+    {
+      "label": "1000000-1000-native-read-0",
+      "args": [
+        "read",
+        "native",
+        "1000000-1000-native"
+      ],
+      "code": 0,
+      "elapsed": 5.136498672000016,
+      "rss_kib": 1405652,
+      "phases": {
+        "read": 4.549376808
+      },
+      "digests": [
+        [
+          "1000000",
+          "1111821886898865107",
+          "59500000"
+        ]
+      ]
+    },
+    {
+      "label": "1000000-1000-native-read-1",
+      "args": [
+        "read",
+        "native",
+        "1000000-1000-native"
+      ],
+      "code": 0,
+      "elapsed": 4.859286364000582,
+      "rss_kib": 1409424,
+      "phases": {
+        "read": 4.266660836
+      },
+      "digests": [
+        [
+          "1000000",
+          "1111821886898865107",
+          "59500000"
+        ]
+      ]
+    },
+    {
+      "label": "1000000-1000-native-read-2",
+      "args": [
+        "read",
+        "native",
+        "1000000-1000-native"
+      ],
+      "code": 0,
+      "elapsed": 4.9404849909988116,
+      "rss_kib": 1408320,
+      "phases": {
+        "read": 4.331519278
+      },
+      "digests": [
+        [
+          "1000000",
+          "1111821886898865107",
+          "59500000"
+        ]
+      ]
+    },
+    {
+      "label": "1000000-1000-native-read-3",
+      "args": [
+        "read",
+        "native",
+        "1000000-1000-native"
+      ],
+      "code": 0,
+      "elapsed": 5.079969956997957,
+      "rss_kib": 1409392,
+      "phases": {
+        "read": 4.494198634
+      },
+      "digests": [
+        [
+          "1000000",
+          "1111821886898865107",
+          "59500000"
+        ]
+      ]
+    }
+  ],
+  "patch_sha256": "fd0699a4fa0384e6ccc1346093ac858a6d651c8b8c82b4cc0c9e246a688e3307"
+}

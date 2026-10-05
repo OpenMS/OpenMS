@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 
 using namespace OpenMS;
@@ -161,12 +162,21 @@ int main(int argc, char** argv)
   try
   {
     if (argc < 4)
-      throw std::runtime_error(
-        "Usage: IdentificationDataLegacyBenchmark write FORMAT PATH ROWS RUNS | read FORMAT PATH | convert FORMAT PATH INPUT.idXML");
+      throw std::runtime_error("Usage: IdentificationDataLegacyBenchmark write FORMAT PATH ROWS RUNS [THREADS] | read FORMAT PATH [THREADS] | "
+                               "convert FORMAT PATH INPUT.idXML [THREADS]");
     const std::string mode = argv[1], format = argv[2], path = argv[3];
+    const int required = mode == "write" ? 6 : (mode == "convert" ? 5 : 4);
+    if (argc != required && argc != required + 1) throw std::runtime_error("Bad argument count");
+    IdentificationDataFile::Options native_options;
+    if (argc == required + 1)
+    {
+      if (format != "native") throw std::runtime_error("Thread argument is only supported for native I/O");
+      native_options.threads = std::stoull(argv[required]);
+      if (! native_options.threads || native_options.threads > static_cast<Size>(std::numeric_limits<int>::max()))
+        throw std::runtime_error("Thread count must be positive and fit in int");
+    }
     if (mode == "write" || mode == "convert")
     {
-      if ((mode == "write" && argc != 6) || (mode == "convert" && argc != 5)) throw std::runtime_error("Bad write arguments");
       if (std::filesystem::exists(path)) throw std::runtime_error("Existing output");
       std::vector<ProteinIdentification> proteins;
       PeptideIdentificationList peptides;
@@ -185,7 +195,7 @@ int main(int argc, char** argv)
         proteins.clear();
         peptides.clear();
         start = Clock::now();
-        IdentificationDataFile::store(path, data);
+        IdentificationDataFile::store(path, data, native_options);
         timing("write", start);
       }
       else if (format == "oms")
@@ -222,7 +232,7 @@ int main(int argc, char** argv)
       if (format == "native")
       {
         Native data;
-        IdentificationDataFile::load(path, data);
+        IdentificationDataFile::load(path, data, native_options);
         timing("read", start);
         emit(digest(data));
       }

@@ -1,0 +1,528 @@
+diff --git a/src/openms/include/OpenMS/METADATA/ID/IdentificationData.h b/src/openms/include/OpenMS/METADATA/ID/IdentificationData.h
+index dd0a0b2..07c6f87 100644
+--- a/src/openms/include/OpenMS/METADATA/ID/IdentificationData.h
++++ b/src/openms/include/OpenMS/METADATA/ID/IdentificationData.h
+@@ -281,8 +281,9 @@ public:
+     /// Prepare optional indexes before parallel const lookups; mutations require exclusive access.
+     void prepareLookupIndexes();
+     /// Import explicit IDs during construction. After restoration/filtering, historical IDs cannot be reused.
+-    QueryId importIdentification(SourceId source, QueryId id, const Observation& observation);
+-    MatchId importMatch(QueryId query, MatchId id, const MatchData& data, const std::vector<std::optional<double>>& scores = {});
++    /// Payloads are owned by value so importers can transfer decoded records without copying.
++    QueryId importIdentification(SourceId source, QueryId id, Observation observation);
++    MatchId importMatch(QueryId query, MatchId id, MatchData data, const std::vector<std::optional<double>>& scores = {});
+     /// Restore persisted UUID and counters; counters must exceed every live ID.
+     void restoreIdentity(const std::string& uuid, UInt64 next_query, UInt64 next_match);
+     /// Reserve IDs appearing only in retained inference provenance.
+@@ -319,6 +320,7 @@ public:
+     void checkMutation_() const;
+     void checkScore_(ScoreId score) const;
+     void validateMatch_(const MatchData& data, const std::vector<std::optional<double>>& scores) const;
++    void validateMatchData_(const MatchData& data) const;
+     Identification& query_(QueryId id);
+     Match& match_(MatchId id);
+     void swapData_(Run& other) noexcept;
+@@ -363,7 +365,7 @@ public:
+   { return runs_; }
+   const std::vector<InferenceResult>& getInferenceResults() const
+   { return inference_; }
+-  void addInferenceResult(const InferenceResult& result);
++  void addInferenceResult(InferenceResult result);
+   void clearInferenceResults();
+   Size filterMatches(const std::function<bool(const Match&)>& keep, InferencePolicy policy, bool keep_empty_queries = false);
+   /** Dataset-wide ordered PSM score contract.
+diff --git a/src/openms/source/FORMAT/IdentificationDataFile.cpp b/src/openms/source/FORMAT/IdentificationDataFile.cpp
+index 7c8dae3..1d5e6b4 100644
+--- a/src/openms/source/FORMAT/IdentificationDataFile.cpp
++++ b/src/openms/source/FORMAT/IdentificationDataFile.cpp
+@@ -347,13 +347,13 @@ namespace
+   {
+     const auto row = reader.row();
+     File::QueryRecord q;
+-    q.query_id = number<arrow::UInt64Array>(reader.column("query_id"), row);
+-    q.source_id = number<arrow::UInt32Array>(reader.column("source_id"), row);
+-    q.data.data_id = text(reader.column("data_id"), row);
+-    q.data.rt = optionalNumber<arrow::DoubleArray>(reader.column("rt"), row);
+-    q.data.mz = optionalNumber<arrow::DoubleArray>(reader.column("mz"), row);
+-    q.selected_match_id = optionalNumber<arrow::UInt64Array>(reader.column("selected_match_id"), row);
+-    if (reader.hasColumn("metadata")) IO::readMetadata(reader.column("metadata"), row, q.data, dictionary);
++    q.query_id = number<arrow::UInt64Array>(reader.column(Size {0}), row);
++    q.source_id = number<arrow::UInt32Array>(reader.column(Size {1}), row);
++    q.data.data_id = text(reader.column(Size {2}), row);
++    q.data.rt = optionalNumber<arrow::DoubleArray>(reader.column(Size {3}), row);
++    q.data.mz = optionalNumber<arrow::DoubleArray>(reader.column(Size {4}), row);
++    q.selected_match_id = optionalNumber<arrow::UInt64Array>(reader.column(Size {5}), row);
++    if (reader.hasColumn(Size {6})) IO::readMetadata(reader.column(Size {6}), row, q.data, dictionary);
+     if ((q.data.rt && ! std::isfinite(*q.data.rt)) || (q.data.mz && ! std::isfinite(*q.data.mz))) invalid("Nonfinite observation coordinate");
+     return q;
+   }
+@@ -361,26 +361,26 @@ namespace
+   {
+     const auto row = reader.row();
+     File::MatchRecord m;
+-    m.match_id = number<arrow::UInt64Array>(reader.column("match_id"), row);
+-    m.query_id = number<arrow::UInt64Array>(reader.column("query_id"), row);
++    m.match_id = number<arrow::UInt64Array>(reader.column(Size {0}), row);
++    m.query_id = number<arrow::UInt64Array>(reader.column(Size {1}), row);
+     auto& d = m.data;
+-    if (reader.hasColumn("representation"))
++    if (reader.hasColumn(Size {2}))
+     {
+-      d.representation = text(reader.column("representation"), row);
+-      auto encoding = number<arrow::UInt8Array>(reader.column("encoding"), row);
++      d.representation = text(reader.column(Size {2}), row);
++      auto encoding = number<arrow::UInt8Array>(reader.column(Size {3}), row);
+       if (encoding > static_cast<unsigned>(ID::Encoding::DATABASE_ID)) invalid("Unknown molecular encoding");
+       d.encoding = static_cast<ID::Encoding>(encoding);
+-      d.charge = number<arrow::Int32Array>(reader.column("charge"), row);
+-      d.calculated_mz = optionalNumber<arrow::DoubleArray>(reader.column("calculated_mz"), row);
++      d.charge = number<arrow::Int32Array>(reader.column(Size {4}), row);
++      d.calculated_mz = optionalNumber<arrow::DoubleArray>(reader.column(Size {5}), row);
+       if (d.calculated_mz && ! std::isfinite(*d.calculated_mz)) invalid("Nonfinite calculated m/z");
+-      auto target_decoy = number<arrow::UInt8Array>(reader.column("target_decoy"), row);
++      auto target_decoy = number<arrow::UInt8Array>(reader.column(Size {6}), row);
+       if (target_decoy > static_cast<unsigned>(ID::TargetDecoy::BOTH)) invalid("Unknown target/decoy state");
+       d.target_decoy = static_cast<ID::TargetDecoy>(target_decoy);
+-      d.name = text(reader.column("name"), row);
+-      if (! reader.column("formula").IsNull(row)) d.formula = text(reader.column("formula"), row);
+-      readList(reader.column("identifiers"), row,
++      d.name = text(reader.column(Size {7}), row);
++      if (! reader.column(Size {8}).IsNull(row)) d.formula = text(reader.column(Size {8}), row);
++      readList(reader.column(Size {9}), row,
+                [&](const arrow::StructArray& a, int64_t i) { d.identifiers.push_back({text(*a.field(0), i), text(*a.field(1), i)}); });
+-      const auto& adduct = static_cast<const arrow::StructArray&>(reader.column("adduct"));
++      const auto& adduct = static_cast<const arrow::StructArray&>(reader.column(Size {10}));
+       if (! adduct.IsNull(row))
+       {
+         d.adduct.emplace(text(*adduct.field(0), row), EmpiricalFormula(text(*adduct.field(1), row)), number<arrow::Int32Array>(*adduct.field(2), row),
+@@ -388,8 +388,8 @@ namespace
+         if (d.adduct->getCharge() != d.charge) invalid("Adduct and molecular charge disagree");
+       }
+     }
+-    if (reader.hasColumn("parent_evidence"))
+-      readList(reader.column("parent_evidence"), row, [&](const arrow::StructArray& a, int64_t i) {
++    if (reader.hasColumn(Size {11}))
++      readList(reader.column(Size {11}), row, [&](const arrow::StructArray& a, int64_t i) {
+         ID::ParentEvidence e;
+         e.parent = {text(*a.field(0), i), text(*a.field(1), i)};
+         e.start = optionalNumber<arrow::UInt64Array>(*a.field(2), i);
+@@ -399,8 +399,8 @@ namespace
+         e.after = text(*a.field(5), i);
+         d.parent_evidence.push_back(std::move(e));
+       });
+-    if (reader.hasColumn("peak_annotations"))
+-      readList(reader.column("peak_annotations"), row, [&](const arrow::StructArray& a, int64_t i) {
++    if (reader.hasColumn(Size {12}))
++      readList(reader.column(Size {12}), row, [&](const arrow::StructArray& a, int64_t i) {
+         PeptideHit::PeakAnnotation item;
+         item.annotation = text(*a.field(0), i);
+         item.charge = number<arrow::Int32Array>(*a.field(1), i);
+@@ -408,14 +408,13 @@ namespace
+         item.intensity = number<arrow::DoubleArray>(*a.field(3), i);
+         d.peak_annotations.push_back(std::move(item));
+       });
+-    if (reader.hasColumn("metadata")) IO::readMetadata(reader.column("metadata"), row, d, dictionary);
++    if (reader.hasColumn(Size {13})) IO::readMetadata(reader.column(Size {13}), row, d, dictionary);
+     m.scores.resize(score_count);
+     for (Size i = 0; i < score_count; ++i)
+     {
+-      const std::string name = "score_" + std::to_string(i);
+-      if (reader.hasColumn(name))
++      if (reader.hasColumn(14 + i))
+       {
+-        m.scores[i] = optionalNumber<arrow::DoubleArray>(reader.column(name), row);
++        m.scores[i] = optionalNumber<arrow::DoubleArray>(reader.column(14 + i), row);
+         if (m.scores[i] && ! std::isfinite(*m.scores[i])) invalid("Nonfinite score");
+       }
+     }
+@@ -588,8 +587,7 @@ namespace
+         if (options.validate_unique_ids && ! match_ids.insert(pending.match_id).second) invalid("Duplicate match ID");
+         if (d.primary_score)
+         {
+-          const auto name = "score_" + std::to_string(*d.primary_score);
+-          if (matches.hasColumn(name) && ! pending.scores[*d.primary_score]) invalid("Primary score is missing");
++          if (matches.hasColumn(14 + *d.primary_score) && ! pending.scores[*d.primary_score]) invalid("Primary score is missing");
+         }
+         found_selected = found_selected || q.selected_match_id == pending.match_id;
+         consume(pending);
+@@ -608,8 +606,8 @@ namespace
+     File::ScanOptions scan;
+     scan.buffering = options;
+     walkRun(
+-      root, j, scan, [&](const File::QueryRecord& q) { run.importIdentification(run.getSourceId(q.source_id), ID::QueryId {q.query_id}, q.data); },
+-      [&](const File::MatchRecord& m) { run.importMatch(ID::QueryId {m.query_id}, ID::MatchId {m.match_id}, m.data, m.scores); },
++      root, j, scan, [&](File::QueryRecord& q) { run.importIdentification(run.getSourceId(q.source_id), ID::QueryId {q.query_id}, std::move(q.data)); },
++      [&](File::MatchRecord& m) { run.importMatch(ID::QueryId {m.query_id}, ID::MatchId {m.match_id}, std::move(m.data), m.scores); },
+       [&](const File::QueryRecord& q) {
+         if (q.selected_match_id) run.setSelectedMatch(ID::QueryId {q.query_id}, ID::MatchId {*q.selected_match_id});
+       }, options);
+@@ -724,9 +722,11 @@ try
+   for (const auto& j : manifest.at("inference"))
+   {
+     auto result = IO::readInference(path, j, io);
+-    temporary.addInferenceResult(result);
++    temporary.addInferenceResult(std::move(result));
+   }
+-  temporary.validate();
++  // addRun validates each run and the dataset score/identity contract; adding
++  // inference validates its provenance without changing those runs. Do not repeat
++  // the full per-record validation after these checked construction boundaries.
+   data.swap(temporary);
+ }
+ catch (const Json::exception& error)
+@@ -744,7 +744,9 @@ try
+   io.input = std::make_shared<IO::ReadPool>();
+   io.score_count = scoreCount(manifest);
+   const auto selected = selectRuns(manifest, {run});
+-  return readRun(path, *selected.front(), io);
++  auto result = readRun(path, *selected.front(), io);
++  result.validate();
++  return result;
+ }
+ catch (const Json::exception& error)
+ {
+@@ -778,21 +780,21 @@ try
+     };
+     walkRun(
+       path, *j, options,
+-      [&](const QueryRecord& q) {
++      [&](QueryRecord& q) {
+         ++statistics.queries;
+         if (on_queries)
+         {
+-          queries.push_back(q);
+           query_bytes += queryBytes(q);
++          queries.push_back(std::move(q));
+           if (queries.size() >= options.buffering.batch_rows || query_bytes >= options.buffering.batch_bytes) flush_queries();
+         }
+       },
+-      [&](const MatchRecord& m) {
++      [&](MatchRecord& m) {
+         ++statistics.matches;
+         if (on_matches)
+         {
+-          matches.push_back(m);
+           match_bytes += matchBytes(m);
++          matches.push_back(std::move(m));
+           if (matches.size() >= options.buffering.batch_rows || match_bytes >= options.buffering.batch_bytes) flush_matches();
+         }
+       },
+diff --git a/src/openms/source/FORMAT/IdentificationDataFileSupport.cpp b/src/openms/source/FORMAT/IdentificationDataFileSupport.cpp
+index 57b48bd..ce49278 100644
+--- a/src/openms/source/FORMAT/IdentificationDataFileSupport.cpp
++++ b/src/openms/source/FORMAT/IdentificationDataFileSupport.cpp
+@@ -2,6 +2,7 @@
+ // SPDX-License-Identifier: BSD-3-Clause
+ // $Maintainer: Timo Sachsenberg $
+ #include "IdentificationDataFileSupport.h"
++#include <OpenMS/METADATA/MetaInfoRegistry.h>
+ 
+ #include <algorithm>
+ #include <bit>
+@@ -83,27 +84,28 @@ std::string text(const arrow::Array& array, int64_t row)
+   if (array.IsNull(row)) invalid("Unexpected null text");
+   return static_cast<const arrow::StringArray&>(array).GetString(row);
+ }
+-UInt32 Dictionary::add(const std::string& name, const DataValue& item)
++UInt32 Dictionary::add(UInt registry_index, const DataValue& item)
+ {
+-  validateText(name);
+-  Key key {name, item.valueType(), item.getUnitType(), item.getUnit()};
++  Key key {registry_index, item.valueType(), item.getUnitType(), item.getUnit()};
+   auto pos = ids_.find(key);
+   if (pos != ids_.end()) return pos->second;
+   if (values_.size() >= std::numeric_limits<UInt32>::max()) invalid("Metadata descriptor ID space exhausted");
++  const auto name = MetaInfoInterface::metaRegistry().getName(registry_index);
++  validateText(name);
+   UInt32 id = static_cast<UInt32>(values_.size());
+   ids_.emplace(std::move(key), id);
+-  values_.push_back({name, item.valueType(), item.getUnitType(), item.getUnit()});
++  values_.push_back({name, item.valueType(), item.getUnitType(), item.getUnit(), registry_index});
+   return id;
+ }
+-UInt32 Dictionary::find(const std::string& name, const DataValue& item) const
++UInt32 Dictionary::find(UInt registry_index, const DataValue& item) const
+ {
+-  auto pos = ids_.find({name, item.valueType(), item.getUnitType(), item.getUnit()});
++  auto pos = ids_.find({registry_index, item.valueType(), item.getUnitType(), item.getUnit()});
+   if (pos == ids_.end()) invalid("Metadata descriptor not registered before table writing");
+   return pos->second;
+ }
+ void Dictionary::collect(const MetaInfoInterface& metadata)
+ {
+-  std::vector<std::string> names;
++  std::vector<UInt> names;
+   metadata.getKeys(names);
+   for (const auto& name : names)
+     add(name, metadata.getMetaValue(name));
+@@ -128,7 +130,8 @@ void Dictionary::load(const Json& descriptors)
+     Descriptor desc {d.at("name").get<std::string>(), static_cast<DataValue::DataType>(type), static_cast<DataValue::UnitType>(unit_type),
+                      integer<Int32>(d.at("unit"))};
+     validateText(desc.name);
+-    Key key {desc.name, type, unit_type, desc.unit};
++    desc.registry_index = MetaInfoInterface::metaRegistry().registerName(desc.name);
++    Key key {desc.registry_index, type, unit_type, desc.unit};
+     if (ids_.contains(key)) invalid("Duplicate metadata descriptor");
+     if (values_.size() >= std::numeric_limits<UInt32>::max()) invalid("Too many metadata descriptors");
+     ids_.emplace(std::move(key), static_cast<UInt32>(values_.size()));
+@@ -155,7 +158,7 @@ void appendMetadata(arrow::ArrayBuilder& builder, const MetaInfoInterface& metad
+   auto& list = static_cast<arrow::ListBuilder&>(builder);
+   auto& entry = *static_cast<arrow::StructBuilder*>(list.value_builder());
+   check(list.Append());
+-  std::vector<std::string> names;
++  std::vector<UInt> names;
+   metadata.getKeys(names);
+   for (const auto& name : names)
+   {
+@@ -214,12 +217,12 @@ void readMetadata(const arrow::Array& array, int64_t row, MetaInfoInterface& met
+   if (array.IsNull(row)) invalid("Null metadata list");
+   const auto& list = static_cast<const arrow::ListArray&>(array);
+   const auto& entries = static_cast<const arrow::StructArray&>(*list.values());
+-  std::set<std::string> names;
++  std::set<UInt> names;
+   for (int64_t i = list.value_offset(row), end = i + list.value_length(row); i < end; ++i)
+   {
+     if (entries.IsNull(i)) invalid("Null metadata entry");
+     const auto& descriptor = dictionary.at(number<arrow::UInt32Array>(*entries.field(0), i));
+-    if (! names.insert(descriptor.name).second) invalid("Duplicate metadata name in record");
++    if (! names.insert(descriptor.registry_index).second) invalid("Duplicate metadata name in record");
+     int active = descriptor.type == DataValue::EMPTY_VALUE ? 0 : static_cast<int>(descriptor.type) + 1;
+     for (int f = 1; f < 7; ++f)
+       if (entries.field(f)->IsNull(i) == (f == active)) invalid("Metadata value does not match its descriptor type");
+@@ -274,7 +277,7 @@ void readMetadata(const arrow::Array& array, int64_t row, MetaInfoInterface& met
+     }
+     item.setUnitType(descriptor.unit_type);
+     item.setUnit(descriptor.unit);
+-    metadata.setMetaValue(descriptor.name, item);
++    metadata.setMetaValue(descriptor.registry_index, item);
+   }
+ }
+ Size metadataBytes(const MetaInfoInterface& metadata)
+@@ -575,7 +578,7 @@ std::shared_ptr<ReadPool::Entry> ReadPool::open(const std::filesystem::path& pat
+ }
+ TableReader::TableReader(const std::filesystem::path& root, const Json& reference,
+                          const std::shared_ptr<arrow::Schema>& expected, const Options& options,
+-                         const std::vector<std::string>& columns): options_(options)
++                         const std::vector<std::string>& columns): options_(options), expected_(expected), columns_(expected->num_fields(), nullptr)
+ {
+   validateOptions(options);
+   auto pool = options.input ? options.input : std::make_shared<ReadPool>();
+@@ -614,7 +617,11 @@ bool TableReader::next()
+     {
+       check(batches_->ReadNext(&batch_));
+       row_ = 0;
+-      if (batch_ && batch_->num_rows()) return true;
++      if (batch_ && batch_->num_rows())
++      {
++        bindColumns_();
++        return true;
++      }
+       batches_.reset();
+     }
+     if (next_group_ == groups_.size()) return false;
+@@ -647,6 +654,21 @@ bool TableReader::next()
+   }
+   return true;
+ }
++void TableReader::bindColumns_()
++{
++  // Resolve projections once per batch, not once per field of every PSM.
++  for (int i = 0; i < expected_->num_fields(); ++i)
++  {
++    const int index = batch_->schema()->GetFieldIndex(expected_->field(i)->name());
++    columns_[i] = index < 0 ? nullptr : batch_->column(index).get();
++  }
++}
++const arrow::Array& TableReader::column(Size index) const
++{
++  const auto* array = columns_.at(index);
++  if (! array) invalid("Requested unprojected column " + expected_->field(static_cast<int>(index))->name());
++  return *array;
++}
+ const arrow::Array& TableReader::column(const std::string& name) const
+ {
+   auto array = batch_->GetColumnByName(name);
+diff --git a/src/openms/source/FORMAT/IdentificationDataFileSupport.h b/src/openms/source/FORMAT/IdentificationDataFileSupport.h
+index def517b..976fe53 100644
+--- a/src/openms/source/FORMAT/IdentificationDataFileSupport.h
++++ b/src/openms/source/FORMAT/IdentificationDataFileSupport.h
+@@ -89,8 +89,8 @@ std::optional<typename A::value_type> optionalNumber(const arrow::Array& array,
+ class Dictionary
+ {
+ public:
+-  UInt32 add(const std::string& name, const DataValue& item);
+-  UInt32 find(const std::string& name, const DataValue& item) const;
++  UInt32 add(UInt registry_index, const DataValue& item);
++  UInt32 find(UInt registry_index, const DataValue& item) const;
+   void collect(const MetaInfoInterface& metadata);
+   Json toJson() const;
+   void load(const Json& descriptors);
+@@ -100,11 +100,12 @@ public:
+     DataValue::DataType type;
+     DataValue::UnitType unit_type;
+     Int32 unit;
++    UInt registry_index = 0;
+   };
+   const Descriptor& at(UInt32 index) const;
+ 
+ private:
+-  using Key = std::tuple<std::string, unsigned, unsigned, Int32>;
++  using Key = std::tuple<UInt, unsigned, unsigned, Int32>;
+   std::map<Key, UInt32> ids_;
+   std::vector<Descriptor> values_;
+ };
+@@ -187,8 +188,10 @@ public:
+               const std::vector<std::string>& columns = {});
+   bool next();
+   const arrow::Array& column(const std::string& name) const;
+-  const arrow::Array& column(Size index) const
+-  { return *batch_->column(static_cast<int>(index)); }
++  /// Index in the expected schema, independent of the physical projection order.
++  const arrow::Array& column(Size index) const;
++  bool hasColumn(Size index) const
++  { return columns_.at(index) != nullptr; }
+   int64_t row() const { return row_; }
+   UInt64 rows() const { return total_rows_; }
+   bool hasColumn(const std::string& name) const;
+@@ -203,6 +206,9 @@ private:
+   std::unique_ptr<arrow::TableBatchReader> batches_;
+   std::shared_ptr<arrow::Table> table_;
+   std::shared_ptr<arrow::RecordBatch> batch_;
++  std::shared_ptr<arrow::Schema> expected_;
++  std::vector<const arrow::Array*> columns_;
++  void bindColumns_();
+   int64_t row_ = -1;
+   UInt64 total_rows_ = 0;
+ };
+diff --git a/src/openms/source/METADATA/ID/IdentificationData.cpp b/src/openms/source/METADATA/ID/IdentificationData.cpp
+index 8568d06..6041416 100644
+--- a/src/openms/source/METADATA/ID/IdentificationData.cpp
++++ b/src/openms/source/METADATA/ID/IdentificationData.cpp
+@@ -344,6 +344,10 @@ void ID::Run::validateMatch_(const MatchData& data, const std::vector<std::optio
+   for (const auto& value : values)
+     validNumber(value);
+   if (primary_ && (primary_->value >= values.size() || ! values[primary_->value])) invalid("Primary score is missing on a candidate");
++  validateMatchData_(data);
++}
++void ID::Run::validateMatchData_(const MatchData& data) const
++{
+   validNumber(data.calculated_mz);
+   if (data.representation.empty()) invalid("Molecular representation must not be empty");
+   bool compatible = kind_ == MoleculeKind::PEPTIDE ? data.encoding == Encoding::AA_SEQUENCE || data.encoding == Encoding::DATABASE_ID
+@@ -441,7 +445,7 @@ ID::Match& ID::Run::match_(MatchId id)
+ 
+ ID::QueryId ID::Run::addIdentification(SourceId source, const Observation& observation)
+ { return importIdentification(source, QueryId {next_query_id_}, observation); }
+-ID::QueryId ID::Run::importIdentification(SourceId source, QueryId id, const Observation& observation)
++ID::QueryId ID::Run::importIdentification(SourceId source, QueryId id, Observation observation)
+ {
+   checkMutation_();
+   if (source.value >= sources_.size() || sources_[source.value].id != source) invalid("Foreign or invalid source handle");
+@@ -449,7 +453,7 @@ ID::QueryId ID::Run::importIdentification(SourceId source, QueryId id, const Obs
+   validObservation(observation);
+   if (id.value < next_query_id_ && (import_finalized_ || findIdentification(id))) invalid("Duplicate or historical query ID");
+   Identification query;
+-  static_cast<Observation&>(query) = observation;
++  static_cast<Observation&>(query) = std::move(observation);
+   query.id_ = id;
+   auto& queries = sources_[source.value].identifications;
+   std::array<Size, 2> position {source.value, queries.size()};
+@@ -483,7 +487,7 @@ ID::QueryId ID::Run::importIdentification(SourceId source, QueryId id, const Obs
+ }
+ ID::MatchId ID::Run::addMatch(QueryId query, const MatchData& data, const std::vector<std::optional<double>>& values)
+ { return importMatch(query, MatchId {next_match_id_}, data, values); }
+-ID::MatchId ID::Run::importMatch(QueryId query_id, MatchId id, const MatchData& data, const std::vector<std::optional<double>>& values)
++ID::MatchId ID::Run::importMatch(QueryId query_id, MatchId id, MatchData data, const std::vector<std::optional<double>>& values)
+ {
+   checkMutation_();
+   UInt64 next = following(id.value);
+@@ -491,7 +495,7 @@ ID::MatchId ID::Run::importMatch(QueryId query_id, MatchId id, const MatchData&
+   if (id.value < next_match_id_ && (import_finalized_ || findMatch(id))) invalid("Duplicate or historical match ID");
+   auto& query = query_(query_id);
+   Match match;
+-  static_cast<MatchData&>(match) = data;
++  static_cast<MatchData&>(match) = std::move(data);
+   match.id_ = id;
+   match.schema_token_ = schema_token_;
+   match.scores_.assign(scores_.size(), std::numeric_limits<double>::quiet_NaN());
+@@ -711,7 +715,12 @@ void ID::Run::validate() const
+       for (const auto& match : query.matches_)
+       {
+         ++nm;
+-        validateMatch_(match, match.getScores());
++        validateMatchData_(match);
++        if (match.scores_.size() != scores_.size()) invalid("Inconsistent score column count");
++        for (double score : match.scores_)
++          if (! std::isnan(score) && ! std::isfinite(score)) invalid("Scores must be finite or missing");
++        if (primary_ && (primary_->value >= match.scores_.size() || std::isnan(match.scores_[primary_->value])))
++          invalid("Primary score is missing on a candidate");
+         if (! match.id_.value || match.id_.value >= next_match_id_ || ! matches.insert(match.id_.value).second)
+           invalid("Invalid or duplicate match ID");
+         if (query.selected_ == match.id_) selected_found = true;
+@@ -801,7 +810,7 @@ ID::Run* ID::findRunByUuid(const std::string& identity)
+ }
+ const ID::Run* ID::findRunByUuid(const std::string& identity) const
+ { return const_cast<ID*>(this)->findRunByUuid(identity); }
+-void ID::addInferenceResult(const InferenceResult& result)
++void ID::addInferenceResult(InferenceResult result)
+ {
+   checkMutation_();
+   for (const auto& existing : inference_)
+@@ -810,7 +819,7 @@ void ID::addInferenceResult(const InferenceResult& result)
+   {
+     if (! validUuid(input.run_uuid)) invalid("Inference input needs a run UUID");
+   }
+-  inference_.push_back(result);
++  inference_.push_back(std::move(result));
+ }
+ void ID::clearInferenceResults()
+ {
+diff --git a/src/tests/class_tests/openms/source/IdentificationData_test.cpp b/src/tests/class_tests/openms/source/IdentificationData_test.cpp
+index 0d284ae..e8c30a3 100644
+--- a/src/tests/class_tests/openms/source/IdentificationData_test.cpp
++++ b/src/tests/class_tests/openms/source/IdentificationData_test.cpp
+@@ -31,6 +31,44 @@ ID::ScoreDefinition score(const std::string& name = "raw", bool higher = true)
+ } // namespace
+ 
+ START_TEST(IdentificationData, "$Id$")
++START_SECTION((consuming imports preserve ownership and dense validation rejects malformed scores))
++{
++  ID::Run run("import");
++  auto primary = run.addScore(score());
++  run.addScore(score("optional"));
++  run.setPrimaryScore(primary);
++  auto source = run.addSource({});
++  ID::Observation observation;
++  observation.data_id = std::string(100, 'q');
++  observation.setMetaValue("observation", "kept");
++  auto q = run.importIdentification(source, ID::QueryId {7}, std::move(observation));
++  auto payload = peptide(std::string(100, 'A'));
++  payload.parent_evidence.push_back({{"database", "protein"}, 1, 100, "K", "R"});
++  payload.setMetaValue("list", StringList {"alpha", "beta"});
++  auto copied = run.importMatch(q, ID::MatchId {8}, payload, {2.0});
++  auto moved = run.importMatch(q, ID::MatchId {9}, std::move(payload), {3.0});
++  TEST_EQUAL(run.getIdentification(q).data_id, std::string(100, 'q'))
++  TEST_EQUAL(run.getIdentification(q).getMetaValue("observation"), "kept")
++  TEST_EQUAL(run.getMatch(copied).representation, std::string(100, 'A'))
++  TEST_EQUAL(run.getMatch(moved).parent_evidence[0].parent.accession, "protein")
++  TEST_EQUAL(run.getMatch(moved).getMetaValue("list"), run.getMatch(copied).getMetaValue("list"))
++  run.validate(); // missing supplementary values remain valid
++  auto& values = const_cast<std::vector<double>&>(run.getMatch(moved).getScoreValues());
++  values[1] = std::numeric_limits<double>::infinity();
++  TEST_EXCEPTION(Exception::InvalidValue, run.validate())
++  values[1] = std::numeric_limits<double>::quiet_NaN();
++  values[0] = std::numeric_limits<double>::quiet_NaN();
++  TEST_EXCEPTION(Exception::InvalidValue, run.validate())
++  values[0] = 3.0;
++  values.pop_back();
++  TEST_EXCEPTION(Exception::InvalidValue, run.validate())
++  values.push_back(std::numeric_limits<double>::quiet_NaN());
++  run.validate();
++  TEST_EXCEPTION(Exception::InvalidValue, run.importMatch(q, moved, peptide(), {4.0}))
++  TEST_EQUAL(run.getNumberOfMatches(), 2)
++}
++END_SECTION
++
+ START_SECTION((dataset ordered score schema and atomic switching))
+ {
+   ID data;

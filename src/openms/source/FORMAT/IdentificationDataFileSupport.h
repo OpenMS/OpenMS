@@ -7,6 +7,7 @@
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
 #include <arrow/api.h>
 #include <arrow/io/file.h>
+#include <arrow/util/thread_pool.h>
 #include <filesystem>
 #include <limits>
 #include <map>
@@ -25,7 +26,9 @@ class ReadPool;
 struct Options : IdentificationDataFile::Options
 {
   Options() = default;
-  Options(const IdentificationDataFile::Options& options): IdentificationDataFile::Options(options) {}
+  Options(const IdentificationDataFile::Options& options);
+  // Shared across tables of one operation; declared first so readers/writers die first.
+  std::shared_ptr<arrow::internal::ThreadPool> executor;
   std::shared_ptr<WritePool> output;
   std::shared_ptr<ReadPool> input;
   UInt64 partition = 0;
@@ -64,7 +67,7 @@ T integer(const Json& input)
   invalid("Expected an integer, not a floating-point or other JSON value");
 }
 void validateText(const std::string& text);
-void validateOptions(const Options& options);
+void validateOptions(const IdentificationDataFile::Options& options);
 std::filesystem::path tablePath(const std::filesystem::path& root, const std::string& relative);
 
 template<class B, class T>
@@ -89,8 +92,8 @@ std::optional<typename A::value_type> optionalNumber(const arrow::Array& array, 
 class Dictionary
 {
 public:
-  UInt32 add(const std::string& name, const DataValue& item);
-  UInt32 find(const std::string& name, const DataValue& item) const;
+  UInt32 add(UInt registry_index, const DataValue& item);
+  UInt32 find(UInt registry_index, const DataValue& item) const;
   void collect(const MetaInfoInterface& metadata);
   Json toJson() const;
   void load(const Json& descriptors);
@@ -100,11 +103,12 @@ public:
     DataValue::DataType type;
     DataValue::UnitType unit_type;
     Int32 unit;
+    UInt registry_index = 0;
   };
   const Descriptor& at(UInt32 index) const;
 
 private:
-  using Key = std::tuple<std::string, unsigned, unsigned, Int32>;
+  using Key = std::tuple<UInt, unsigned, unsigned, Int32>;
   std::map<Key, UInt32> ids_;
   std::vector<Descriptor> values_;
 };
@@ -168,7 +172,7 @@ public:
   struct Entry
   {
     std::shared_ptr<arrow::io::ReadableFile> source;
-    std::unique_ptr<parquet::arrow::FileReader> reader;
+    std::shared_ptr<parquet::arrow::FileReader> reader;
     std::shared_ptr<arrow::Schema> schema;
     std::vector<UInt64> starts;
     int cached_group = -1;
@@ -187,8 +191,10 @@ public:
               const std::vector<std::string>& columns = {});
   bool next();
   const arrow::Array& column(const std::string& name) const;
-  const arrow::Array& column(Size index) const
-  { return *batch_->column(static_cast<int>(index)); }
+  /// Index in the expected schema, independent of the physical projection order.
+  const arrow::Array& column(Size index) const;
+  bool hasColumn(Size index) const
+  { return columns_.at(index) != nullptr; }
   int64_t row() const { return row_; }
   UInt64 rows() const { return total_rows_; }
   bool hasColumn(const std::string& name) const;
@@ -203,6 +209,9 @@ private:
   std::unique_ptr<arrow::TableBatchReader> batches_;
   std::shared_ptr<arrow::Table> table_;
   std::shared_ptr<arrow::RecordBatch> batch_;
+  std::shared_ptr<arrow::Schema> expected_;
+  std::vector<const arrow::Array*> columns_;
+  void bindColumns_();
   int64_t row_ = -1;
   UInt64 total_rows_ = 0;
 };

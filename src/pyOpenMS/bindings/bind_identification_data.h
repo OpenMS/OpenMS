@@ -288,6 +288,7 @@ inline void bind(nb::module_& m)
   field(options, "batch_bytes", &File::Options::batch_bytes);
   field(options, "row_group_bytes", &File::Options::row_group_bytes);
   field(options, "max_record_bytes", &File::Options::max_record_bytes);
+  field(options, "threads", &File::Options::threads);
   auto projection = valueClass<File::Projection>(file, "Projection");
   field(projection, "molecule", &File::Projection::molecule);
   field(projection, "evidence", &File::Projection::evidence);

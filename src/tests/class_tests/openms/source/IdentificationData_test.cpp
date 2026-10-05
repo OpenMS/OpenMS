@@ -31,6 +31,50 @@ ID::ScoreDefinition score(const std::string& name = "raw", bool higher = true)
 } // namespace
 
 START_TEST(IdentificationData, "$Id$")
+START_SECTION((consuming imports preserve ownership and dense validation rejects malformed scores))
+{
+  ID::Run run("import");
+  auto primary = run.addScore(score());
+  run.addScore(score("optional"));
+  run.setPrimaryScore(primary);
+  auto source = run.addSource({});
+  ID::Observation observation;
+  observation.data_id = std::string(100, 'q');
+  observation.setMetaValue("observation", "kept");
+  auto q = run.importIdentification(source, ID::QueryId {7}, std::move(observation));
+  auto payload = peptide(std::string(100, 'A'));
+  payload.parent_evidence.push_back({{"database", "protein"}, 1, 100, "K", "R"});
+  payload.setMetaValue("list", StringList {"alpha", "beta"});
+  auto copied = run.importMatch(q, ID::MatchId {8}, payload, {2.0});
+  auto moved = run.importMatch(q, ID::MatchId {9}, std::move(payload), {3.0});
+  TEST_EQUAL(run.getIdentification(q).data_id, std::string(100, 'q'))
+  TEST_EQUAL(run.getIdentification(q).getMetaValue("observation"), "kept")
+  TEST_EQUAL(run.getMatch(copied).representation, std::string(100, 'A'))
+  TEST_EQUAL(run.getMatch(moved).parent_evidence[0].parent.accession, "protein")
+  TEST_EQUAL(run.getMatch(moved).getMetaValue("list"), run.getMatch(copied).getMetaValue("list"))
+  run.validate(); // missing supplementary values remain valid
+  auto& values = const_cast<std::vector<double>&>(run.getMatch(moved).getScoreValues());
+  values[1] = std::numeric_limits<double>::infinity();
+  TEST_EXCEPTION(Exception::InvalidValue, run.validate())
+  values[1] = std::numeric_limits<double>::quiet_NaN();
+  values[0] = std::numeric_limits<double>::quiet_NaN();
+  TEST_EXCEPTION(Exception::InvalidValue, run.validate())
+  values[0] = 3.0;
+  values.pop_back();
+  TEST_EXCEPTION(Exception::InvalidValue, run.validate())
+  values.push_back(std::numeric_limits<double>::quiet_NaN());
+  run.validate();
+  TEST_EXCEPTION(Exception::InvalidValue, run.importMatch(q, moved, peptide(), {4.0}))
+  TEST_EQUAL(run.getNumberOfMatches(), 2)
+  run.importMatch(q, ID::MatchId {4}, peptide(), {1.0});
+  run.importIdentification(source, ID::QueryId {1}, {});
+  run.validate(); // imported IDs need not follow scientific record order
+  auto& matches = const_cast<std::vector<ID::Match>&>(run.getIdentification(q).getMatches());
+  matches[1] = matches[0];
+  TEST_EXCEPTION(Exception::InvalidValue, run.validate())
+}
+END_SECTION
+
 START_SECTION((dataset ordered score schema and atomic switching))
 {
   ID data;

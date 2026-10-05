@@ -31,6 +31,8 @@ public:
     Size batch_bytes = 8 * 1024 * 1024;
     Size row_group_bytes = 64 * 1024 * 1024;
     Size max_record_bytes = 64 * 1024 * 1024;
+    /// Positive CPU worker limit per operation; 1 is serial. Does not change Arrow's global pool.
+    Size threads = 1;
   };
   struct OPENMS_DLLAPI Projection
   {

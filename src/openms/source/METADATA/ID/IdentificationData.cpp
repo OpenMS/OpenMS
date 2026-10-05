@@ -344,6 +344,10 @@ void ID::Run::validateMatch_(const MatchData& data, const std::vector<std::optio
   for (const auto& value : values)
     validNumber(value);
   if (primary_ && (primary_->value >= values.size() || ! values[primary_->value])) invalid("Primary score is missing on a candidate");
+  validateMatchData_(data);
+}
+void ID::Run::validateMatchData_(const MatchData& data) const
+{
   validNumber(data.calculated_mz);
   if (data.representation.empty()) invalid("Molecular representation must not be empty");
   bool compatible = kind_ == MoleculeKind::PEPTIDE ? data.encoding == Encoding::AA_SEQUENCE || data.encoding == Encoding::DATABASE_ID
@@ -441,7 +445,7 @@ ID::Match& ID::Run::match_(MatchId id)
 
 ID::QueryId ID::Run::addIdentification(SourceId source, const Observation& observation)
 { return importIdentification(source, QueryId {next_query_id_}, observation); }
-ID::QueryId ID::Run::importIdentification(SourceId source, QueryId id, const Observation& observation)
+ID::QueryId ID::Run::importIdentification(SourceId source, QueryId id, Observation observation)
 {
   checkMutation_();
   if (source.value >= sources_.size() || sources_[source.value].id != source) invalid("Foreign or invalid source handle");
@@ -449,7 +453,7 @@ ID::QueryId ID::Run::importIdentification(SourceId source, QueryId id, const Obs
   validObservation(observation);
   if (id.value < next_query_id_ && (import_finalized_ || findIdentification(id))) invalid("Duplicate or historical query ID");
   Identification query;
-  static_cast<Observation&>(query) = observation;
+  static_cast<Observation&>(query) = std::move(observation);
   query.id_ = id;
   auto& queries = sources_[source.value].identifications;
   std::array<Size, 2> position {source.value, queries.size()};
@@ -483,7 +487,7 @@ ID::QueryId ID::Run::importIdentification(SourceId source, QueryId id, const Obs
 }
 ID::MatchId ID::Run::addMatch(QueryId query, const MatchData& data, const std::vector<std::optional<double>>& values)
 { return importMatch(query, MatchId {next_match_id_}, data, values); }
-ID::MatchId ID::Run::importMatch(QueryId query_id, MatchId id, const MatchData& data, const std::vector<std::optional<double>>& values)
+ID::MatchId ID::Run::importMatch(QueryId query_id, MatchId id, MatchData data, const std::vector<std::optional<double>>& values)
 {
   checkMutation_();
   UInt64 next = following(id.value);
@@ -491,7 +495,7 @@ ID::MatchId ID::Run::importMatch(QueryId query_id, MatchId id, const MatchData& 
   if (id.value < next_match_id_ && (import_finalized_ || findMatch(id))) invalid("Duplicate or historical match ID");
   auto& query = query_(query_id);
   Match match;
-  static_cast<MatchData&>(match) = data;
+  static_cast<MatchData&>(match) = std::move(data);
   match.id_ = id;
   match.schema_token_ = schema_token_;
   match.scores_.assign(scores_.size(), std::numeric_limits<double>::quiet_NaN());
@@ -699,26 +703,40 @@ void ID::Run::validate() const
 {
   if (! validUuid(uuid_) || ! next_query_id_ || ! next_match_id_) invalid("Invalid run identity");
   Size nq = 0, nm = 0;
-  std::set<UInt64> queries, matches;
+  std::vector<UInt64> queries, matches;
+  queries.reserve(query_count_);
+  matches.reserve(match_count_);
   for (const auto& source : sources_)
     for (const auto& query : source.identifications)
     {
       ++nq;
       validObservation(query);
-      if (! query.id_.value || query.id_.value >= next_query_id_ || ! queries.insert(query.id_.value).second)
-        invalid("Invalid or duplicate query ID");
+      if (! query.id_.value || query.id_.value >= next_query_id_) invalid("Invalid or duplicate query ID");
+      queries.push_back(query.id_.value);
       bool selected_found = ! query.selected_;
       for (const auto& match : query.matches_)
       {
         ++nm;
-        validateMatch_(match, match.getScores());
-        if (! match.id_.value || match.id_.value >= next_match_id_ || ! matches.insert(match.id_.value).second)
-          invalid("Invalid or duplicate match ID");
+        validateMatchData_(match);
+        if (match.scores_.size() != scores_.size()) invalid("Inconsistent score column count");
+        for (double score : match.scores_)
+          if (! std::isnan(score) && ! std::isfinite(score)) invalid("Scores must be finite or missing");
+        if (primary_ && (primary_->value >= match.scores_.size() || std::isnan(match.scores_[primary_->value])))
+          invalid("Primary score is missing on a candidate");
+        if (! match.id_.value || match.id_.value >= next_match_id_) invalid("Invalid or duplicate match ID");
+        matches.push_back(match.id_.value);
         if (query.selected_ == match.id_) selected_found = true;
       }
       if (! selected_found) invalid("Selected match is not in its query");
     }
   if (nq != query_count_ || nm != match_count_) invalid("Inconsistent record counts");
+  // Most imports retain increasing IDs. Check these linearly; arbitrary scientific
+  // ordering only requires sorting compact ID copies, never moving model records.
+  for (auto* ids : {&queries, &matches})
+  {
+    if (! std::is_sorted(ids->begin(), ids->end())) std::sort(ids->begin(), ids->end());
+    if (std::adjacent_find(ids->begin(), ids->end()) != ids->end()) invalid("Duplicate query or match ID");
+  }
 }
 
 ID::IdentificationData(const IdentificationData& other): runs_(other.runs_), inference_(other.inference_)
@@ -801,7 +819,7 @@ ID::Run* ID::findRunByUuid(const std::string& identity)
 }
 const ID::Run* ID::findRunByUuid(const std::string& identity) const
 { return const_cast<ID*>(this)->findRunByUuid(identity); }
-void ID::addInferenceResult(const InferenceResult& result)
+void ID::addInferenceResult(InferenceResult result)
 {
   checkMutation_();
   for (const auto& existing : inference_)
@@ -810,7 +828,7 @@ void ID::addInferenceResult(const InferenceResult& result)
   {
     if (! validUuid(input.run_uuid)) invalid("Inference input needs a run UUID");
   }
-  inference_.push_back(result);
+  inference_.push_back(std::move(result));
 }
 void ID::clearInferenceResults()
 {

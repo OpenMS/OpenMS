@@ -3,7 +3,9 @@
 // $Maintainer: Timo Sachsenberg $
 #include "IdentificationDataFileSupport.h"
 
+#include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <algorithm>
+#include <arrow/util/future.h>
 #include <bit>
 #include <limits>
 #include <numeric>
@@ -11,6 +13,11 @@
 
 namespace OpenMS::Internal::IdentificationDataIO
 {
+Options::Options(const IdentificationDataFile::Options& options): IdentificationDataFile::Options(options)
+{
+  validateOptions(options);
+  if (threads > 1) executor = value(arrow::internal::ThreadPool::Make(static_cast<int>(threads)));
+}
 [[noreturn]] void invalid(const std::string& message)
 { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid native identification data", message); }
 void check(const arrow::Status& status)
@@ -55,13 +62,15 @@ void validateText(const std::string& input)
       invalid("Invalid UTF-8 code point");
   }
 }
-void validateOptions(const Options& options)
+void validateOptions(const IdentificationDataFile::Options& options)
 {
   if (! options.batch_rows || ! options.row_group_rows || ! options.batch_bytes || ! options.row_group_bytes || ! options.max_record_bytes)
     invalid("Buffer limits must be positive");
   if (options.batch_rows > static_cast<Size>(std::numeric_limits<int64_t>::max())
       || options.row_group_rows > static_cast<Size>(std::numeric_limits<int64_t>::max()))
     invalid("Row limit exceeds int64 range");
+  if (! options.threads || options.threads > static_cast<Size>(std::numeric_limits<int>::max()))
+    invalid("Thread count must be positive and fit in int");
 }
 std::filesystem::path tablePath(const std::filesystem::path& root, const std::string& relative)
 {
@@ -83,27 +92,28 @@ std::string text(const arrow::Array& array, int64_t row)
   if (array.IsNull(row)) invalid("Unexpected null text");
   return static_cast<const arrow::StringArray&>(array).GetString(row);
 }
-UInt32 Dictionary::add(const std::string& name, const DataValue& item)
+UInt32 Dictionary::add(UInt registry_index, const DataValue& item)
 {
-  validateText(name);
-  Key key {name, item.valueType(), item.getUnitType(), item.getUnit()};
+  Key key {registry_index, item.valueType(), item.getUnitType(), item.getUnit()};
   auto pos = ids_.find(key);
   if (pos != ids_.end()) return pos->second;
   if (values_.size() >= std::numeric_limits<UInt32>::max()) invalid("Metadata descriptor ID space exhausted");
+  const auto name = MetaInfoInterface::metaRegistry().getName(registry_index);
+  validateText(name);
   UInt32 id = static_cast<UInt32>(values_.size());
   ids_.emplace(std::move(key), id);
-  values_.push_back({name, item.valueType(), item.getUnitType(), item.getUnit()});
+  values_.push_back({name, item.valueType(), item.getUnitType(), item.getUnit(), registry_index});
   return id;
 }
-UInt32 Dictionary::find(const std::string& name, const DataValue& item) const
+UInt32 Dictionary::find(UInt registry_index, const DataValue& item) const
 {
-  auto pos = ids_.find({name, item.valueType(), item.getUnitType(), item.getUnit()});
+  auto pos = ids_.find({registry_index, item.valueType(), item.getUnitType(), item.getUnit()});
   if (pos == ids_.end()) invalid("Metadata descriptor not registered before table writing");
   return pos->second;
 }
 void Dictionary::collect(const MetaInfoInterface& metadata)
 {
-  std::vector<std::string> names;
+  std::vector<UInt> names;
   metadata.getKeys(names);
   for (const auto& name : names)
     add(name, metadata.getMetaValue(name));
@@ -128,7 +138,8 @@ void Dictionary::load(const Json& descriptors)
     Descriptor desc {d.at("name").get<std::string>(), static_cast<DataValue::DataType>(type), static_cast<DataValue::UnitType>(unit_type),
                      integer<Int32>(d.at("unit"))};
     validateText(desc.name);
-    Key key {desc.name, type, unit_type, desc.unit};
+    desc.registry_index = MetaInfoInterface::metaRegistry().registerName(desc.name);
+    Key key {desc.registry_index, type, unit_type, desc.unit};
     if (ids_.contains(key)) invalid("Duplicate metadata descriptor");
     if (values_.size() >= std::numeric_limits<UInt32>::max()) invalid("Too many metadata descriptors");
     ids_.emplace(std::move(key), static_cast<UInt32>(values_.size()));
@@ -155,7 +166,7 @@ void appendMetadata(arrow::ArrayBuilder& builder, const MetaInfoInterface& metad
   auto& list = static_cast<arrow::ListBuilder&>(builder);
   auto& entry = *static_cast<arrow::StructBuilder*>(list.value_builder());
   check(list.Append());
-  std::vector<std::string> names;
+  std::vector<UInt> names;
   metadata.getKeys(names);
   for (const auto& name : names)
   {
@@ -214,12 +225,12 @@ void readMetadata(const arrow::Array& array, int64_t row, MetaInfoInterface& met
   if (array.IsNull(row)) invalid("Null metadata list");
   const auto& list = static_cast<const arrow::ListArray&>(array);
   const auto& entries = static_cast<const arrow::StructArray&>(*list.values());
-  std::set<std::string> names;
+  std::set<UInt> names;
   for (int64_t i = list.value_offset(row), end = i + list.value_length(row); i < end; ++i)
   {
     if (entries.IsNull(i)) invalid("Null metadata entry");
     const auto& descriptor = dictionary.at(number<arrow::UInt32Array>(*entries.field(0), i));
-    if (! names.insert(descriptor.name).second) invalid("Duplicate metadata name in record");
+    if (! names.insert(descriptor.registry_index).second) invalid("Duplicate metadata name in record");
     int active = descriptor.type == DataValue::EMPTY_VALUE ? 0 : static_cast<int>(descriptor.type) + 1;
     for (int f = 1; f < 7; ++f)
       if (entries.field(f)->IsNull(i) == (f == active)) invalid("Metadata value does not match its descriptor type");
@@ -274,7 +285,7 @@ void readMetadata(const arrow::Array& array, int64_t row, MetaInfoInterface& met
     }
     item.setUnitType(descriptor.unit_type);
     item.setUnit(descriptor.unit);
-    metadata.setMetaValue(descriptor.name, item);
+    metadata.setMetaValue(descriptor.registry_index, item);
   }
 }
 Size metadataBytes(const MetaInfoInterface& metadata)
@@ -463,6 +474,7 @@ TableWriter::TableWriter(const std::filesystem::path& path, std::shared_ptr<arro
   sink_ = value(arrow::io::FileOutputStream::Open(path.string()));
   parquet::WriterProperties::Builder properties_builder;
   properties_builder.compression(parquet::Compression::ZSTD);
+  properties_builder.max_row_group_length(static_cast<int64_t>(options_.row_group_rows));
   // Floating-point dictionary equality can collapse -0/+0. Plain encoding keeps the
   // original bits while finite analytical columns remain directly queryable doubles.
   const auto preserve_float_bits = [&](const auto& self, const std::shared_ptr<arrow::DataType>& type, const std::string& path) -> void {
@@ -480,7 +492,8 @@ TableWriter::TableWriter(const std::filesystem::path& path, std::shared_ptr<arro
   for (const auto& field : schema_->fields())
     preserve_float_bits(preserve_float_bits, field->type(), field->name());
   auto properties = properties_builder.build();
-  auto arrow_properties = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+  auto arrow_properties
+    = parquet::ArrowWriterProperties::Builder().store_schema()->set_use_threads(options_.threads > 1)->set_executor(options_.executor.get())->build();
   writer_ = value(parquet::arrow::FileWriter::Open(*schema_, arrow::default_memory_pool(), sink_, properties, arrow_properties));
   for (const auto& field : schema_->fields())
     builders_.push_back(value(arrow::MakeBuilder(field->type(), arrow::default_memory_pool())));
@@ -510,8 +523,19 @@ void TableWriter::flush_()
     arrays.push_back(value(builder->Finish()));
   auto batch = arrow::RecordBatch::Make(schema_, static_cast<int64_t>(buffered_), arrays);
   check(batch->ValidateFull());
-  auto table = value(arrow::Table::FromRecordBatches({batch}));
-  check(writer_->WriteTable(*table, static_cast<int64_t>(buffered_)));
+  if (options_.threads > 1)
+  {
+    // Parallel column encoding is supported by buffered row groups, not WriteTable.
+    // This call waits for column work before builders are reused. Only the caller
+    // thread operates the file writer; its workers use the operation's own pool.
+    check(writer_->NewBufferedRowGroup());
+    check(writer_->WriteRecordBatch(*batch));
+  }
+  else
+  {
+    auto table = value(arrow::Table::FromRecordBatches({batch}));
+    check(writer_->WriteTable(*table, static_cast<int64_t>(buffered_)));
+  }
   buffered_ = 0;
   bytes_ = 0;
 }
@@ -573,13 +597,19 @@ std::shared_ptr<ReadPool::Entry> ReadPool::open(const std::filesystem::path& pat
   }
   return entry;
 }
-TableReader::TableReader(const std::filesystem::path& root, const Json& reference,
-                         const std::shared_ptr<arrow::Schema>& expected, const Options& options,
-                         const std::vector<std::string>& columns): options_(options)
+TableReader::TableReader(const std::filesystem::path& root,
+                         const Json& reference,
+                         const std::shared_ptr<arrow::Schema>& expected,
+                         const Options& options,
+                         const std::vector<std::string>& columns):
+    options_(options),
+    expected_(expected),
+    columns_(expected->num_fields(), nullptr)
 {
   validateOptions(options);
   auto pool = options.input ? options.input : std::make_shared<ReadPool>();
   entry_ = pool->open(tablePath(root, reference.at("path").get<std::string>()));
+  entry_->reader->set_use_threads(options_.threads > 1);
   start_ = integer<UInt64>(reference.at("start"));
   total_rows_ = integer<UInt64>(reference.at("count"));
   partition_ = integer<UInt64>(reference.at("partition"));
@@ -614,14 +644,31 @@ bool TableReader::next()
     {
       check(batches_->ReadNext(&batch_));
       row_ = 0;
-      if (batch_ && batch_->num_rows()) return true;
+      if (batch_ && batch_->num_rows())
+      {
+        bindColumns_();
+        return true;
+      }
       batches_.reset();
     }
     if (next_group_ == groups_.size()) return false;
     const int group = groups_[next_group_++];
     if (entry_->cached_group != group || entry_->cached_leaves != leaves_)
     {
-      check(entry_->reader->ReadRowGroup(group, leaves_, &entry_->cached_table));
+      if (options_.threads > 1)
+      {
+        // The generator accepts an explicit executor, unlike ReadRowGroup. Consume
+        // exactly one row group, with no readahead, to preserve the bounded cache.
+        auto generate = value(entry_->reader->GetRecordBatchGenerator(entry_->reader, {group}, leaves_, options_.executor.get(), 0));
+        std::vector<std::shared_ptr<arrow::RecordBatch>> decoded;
+        while (auto batch = value(generate().result()))
+          decoded.push_back(std::move(batch));
+        entry_->cached_table = value(arrow::Table::FromRecordBatches(decoded));
+      }
+      else
+      {
+        check(entry_->reader->ReadRowGroup(group, leaves_, &entry_->cached_table));
+      }
       check(entry_->cached_table->ValidateFull());
       entry_->cached_group = group;
       entry_->cached_leaves = leaves_;
@@ -646,6 +693,21 @@ bool TableReader::next()
     batches_->set_chunksize(static_cast<int64_t>(batch_rows));
   }
   return true;
+}
+void TableReader::bindColumns_()
+{
+  // Resolve projections once per batch, not once per field of every PSM.
+  for (int i = 0; i < expected_->num_fields(); ++i)
+  {
+    const int index = batch_->schema()->GetFieldIndex(expected_->field(i)->name());
+    columns_[i] = index < 0 ? nullptr : batch_->column(index).get();
+  }
+}
+const arrow::Array& TableReader::column(Size index) const
+{
+  const auto* array = columns_.at(index);
+  if (! array) invalid("Requested unprojected column " + expected_->field(static_cast<int>(index))->name());
+  return *array;
 }
 const arrow::Array& TableReader::column(const std::string& name) const
 {

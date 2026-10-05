@@ -1,0 +1,217 @@
+{
+  "date": "2026-10-05",
+  "purpose": "Explain owning-load RSS; diagnostic runs, not replacements for the repeated speed benchmark.",
+  "source_parent_commit": "a3031eccb692aca3659c0240c0e0cce49ab6fd57",
+  "implementation_source_blobs": {
+    "src/openms/include/OpenMS/FORMAT/IdentificationDataFile.h": "aa0b5b28cd34520f0d7a9de1b1cd9c61af90de59",
+    "src/openms/include/OpenMS/METADATA/ID/IdentificationData.h": "07c6f8751d94952d542290a9652065447d652e49",
+    "src/openms/source/FORMAT/IdentificationDataFile.cpp": "50a1e778296c634462e75f77d7ef410edd6d5c14",
+    "src/openms/source/FORMAT/IdentificationDataFileSupport.cpp": "ed5f0551037c1808d0c2162a7e990db6ddf63919",
+    "src/openms/source/FORMAT/IdentificationDataFileSupport.h": "3668e576ec6f8d3d79b1f8d0de2b050d4db52406",
+    "src/openms/source/METADATA/ID/IdentificationData.cpp": "ffdfd80c75f1f70660d408ebb24939e8e71ab18d",
+    "src/pyOpenMS/bindings/bind_identification_data.h": "3d3d85b1b5c162a17ad359af4b9088b90c2d996a",
+    "src/pyOpenMS/tests/unittests/test_identification_data.py": "182783a94bfc12c880f1fe490af29a8ad3f859de",
+    "src/tests/class_tests/openms/CMakeLists.txt": "cfb745ec249af70b2c447f2a081700132007e599",
+    "src/tests/class_tests/openms/source/IdentificationDataFile_test.cpp": "e4ab6747488a4b09447436dee4c5aea8bea5f1fc",
+    "src/tests/class_tests/openms/source/IdentificationData_test.cpp": "e4ab348af5885b231b30a8442a247ebd217a752e",
+    "tools/benchmarks/identification_data/compare_legacy.cpp": "97fe7c334de25786dd715cf130fd37ea6cebb315",
+    "tools/benchmarks/identification_data/run_legacy_comparison.py": "635e8afe14f5478359264d364270653c296f0274"
+  },
+  "environment": "Same GCC 13.3 Linux x86_64 Release library and native-t1 datasets as optimized-threading.json; OMP_NUM_THREADS=1; sequential processes.",
+  "method": [
+    "Fresh process per case; process RSS from /proc/self/statm; peak RSS from getrusage.",
+    "Full load into an initially empty destination; no legacy input generation, conversion or digest verification.",
+    "Query/match/evidence/score vector capacities and heap string capacities counted through public accessors; metadata counts are a lower bound using occupied entries and separate string objects, excluding vector spare capacity and allocator overhead.",
+    "The PSM accounting excludes run/protein/inference objects, runtime libraries, Arrow allocations and allocator overhead. Empty-option counts are counts, not bytes.",
+    "malloc_trim is a diagnostic only; it is not added to production code and cannot release live objects or non-glibc allocator caches.",
+    "Scan retains no callback records and uses default full projection, buffering and non-strict ID-uniqueness option; it does not load protein inference. Both counters equal 1,000,000.",
+    "The 1,000-run generated workload contains 200 protein hits per run versus 200 total in the single-run case, so its additional memory is not solely run-descriptor overhead."
+  ],
+  "reproduction": {
+    "diagnostic_source": "#include <OpenMS/METADATA/PeptideIdentification.h>\n#include <OpenMS/FORMAT/IdentificationDataFile.h>\n#include <OpenMS/METADATA/MetaInfo.h>\n#include <fstream>\n#include <iostream>\n#include <map>\n#include <malloc.h>\n#include <sys/resource.h>\n#include <unistd.h>\n#include <cstdint>\nusing namespace OpenMS;\nusing ID = IdentificationData;\nstd::map<std::string, UInt64> totals;\nvoid memory(const char* label)\n{\n  std::ifstream in(\"/proc/self/statm\");\n  unsigned long pages, resident;\n  in >> pages >> resident;\n  rusage r{}; getrusage(RUSAGE_SELF, &r);\n  auto mi = mallinfo2();\n  std::cout << \"MEMORY \" << label << \" rss_kib=\" << resident * sysconf(_SC_PAGESIZE) / 1024\n            << \" peak_kib=\" << r.ru_maxrss << \" glibc_allocated=\" << mi.uordblks + mi.hblkhd\n            << \" glibc_free=\" << mi.fordblks << '\\n';\n}\nvoid string(const std::string& s)\n{\n  auto p = reinterpret_cast<std::uintptr_t>(s.data());\n  auto begin = reinterpret_cast<std::uintptr_t>(&s);\n  if (p < begin || p >= begin + sizeof(s)) totals[\"string_heap_capacity\"] += s.capacity() + 1;\n}\nvoid meta(const MetaInfoInterface& m)\n{\n  if (!m.metaSize()) return;\n  totals[\"metadata_object_and_used_entries\"] += sizeof(MetaInfo) + m.metaSize() * sizeof(std::pair<UInt, DataValue>);\n  for (auto it = m.metaBegin(); it != m.metaEnd(); ++it)\n  {\n    if (it->second.valueType() == DataValue::STRING_VALUE)\n    {\n      totals[\"metadata_string_objects\"] += sizeof(std::string);\n      auto s = it->second.toString();\n      if (s.size() > 15) totals[\"metadata_string_minimum_heap\"] += s.size() + 1;\n    }\n  }\n}\nint main(int argc, char** argv)\n{\n  if (argc != 3) return 2;\n#define SIZE(T) std::cout << \"SIZE \" #T \" \" << sizeof(T) << '\\n'\n  SIZE(ID::Identification); SIZE(ID::Observation); SIZE(ID::Match); SIZE(ID::MatchData); SIZE(ID::ParentEvidence);\n  SIZE(std::optional<AdductInfo>); SIZE(std::optional<std::string>); SIZE(MetaInfoInterface); SIZE(MetaInfo); SIZE(DataValue);\n  SIZE(std::string); SIZE(std::vector<double>); SIZE(PeptideHit); SIZE(PeptideIdentification);\n  memory(\"before\");\n  if (std::string(argv[1]) == \"scan\")\n  {\n    UInt64 queries = 0, matches = 0;\n    auto stats = IdentificationDataFile::scan(argv[2], {},\n      [&](const auto&, const auto& batch) { queries += batch.size(); },\n      [&](const auto&, const auto& batch) { matches += batch.size(); });\n    std::cout << \"COUNTS queries=\" << queries << \" matches=\" << matches << '\\n';\n    memory(\"scanned\");\n    return 0;\n  }\n  ID data;\n  IdentificationDataFile::load(argv[2], data);\n  memory(\"loaded\");\n  for (const auto& run : data.getRuns())\n    for (const auto& block : run.getSourceBlocks())\n    {\n      totals[\"query_objects\"] += block.identifications.size() * sizeof(ID::Identification);\n      totals[\"query_spare_capacity\"] += (block.identifications.capacity() - block.identifications.size()) * sizeof(ID::Identification);\n      for (const auto& q : block.identifications)\n      {\n        string(q.data_id); meta(q);\n        totals[\"match_objects\"] += q.getMatches().size() * sizeof(ID::Match);\n        totals[\"match_spare_capacity\"] += (q.getMatches().capacity() - q.getMatches().size()) * sizeof(ID::Match);\n        for (const auto& m : q.getMatches())\n        {\n          string(m.representation); string(m.name); meta(m);\n          if (m.formula) string(*m.formula);\n          totals[\"score_capacity\"] += m.getScoreValues().capacity() * sizeof(double);\n          totals[\"parent_evidence_capacity\"] += m.parent_evidence.capacity() * sizeof(ID::ParentEvidence);\n          for (const auto& e : m.parent_evidence)\n          { string(e.parent.database); string(e.parent.accession); string(e.before); string(e.after); }\n          totals[\"empty_adducts\"] += !m.adduct;\n          totals[\"empty_formulas\"] += !m.formula;\n          totals[\"empty_annotations\"] += m.peak_annotations.empty();\n        }\n      }\n    }\n  for (const auto& [k,v] : totals) std::cout << \"TOTAL \" << k << \" \" << v << '\\n';\n  memory(\"enumerated\");\n  malloc_trim(0);\n  memory(\"trimmed\");\n  { ID empty; data.swap(empty); }\n  memory(\"destroyed\");\n  malloc_trim(0);\n  memory(\"destroyed_trimmed\");\n}\n",
+    "build": "Compile the diagnostic_source with the includes/link flags of IdentificationDataLegacyBenchmark, using -O3 -DNDEBUG -std=c++23. The probe additionally uses Linux /proc and glibc malloc diagnostics.",
+    "commands": [
+      "memory_probe load <1000000-1-native-t1>",
+      "memory_probe load <1000000-1000-native-t1>",
+      "memory_probe scan <1000000-1-native-t1>"
+    ]
+  },
+  "results": {
+    "load-1-run": {
+      "raw_output": "SIZE ID::Identification 120\nSIZE ID::Observation 72\nSIZE ID::Match 376\nSIZE ID::MatchData 336\nSIZE ID::ParentEvidence 160\nSIZE std::optional<AdductInfo> 120\nSIZE std::optional<std::string> 40\nSIZE MetaInfoInterface 8\nSIZE MetaInfo 24\nSIZE DataValue 16\nSIZE std::string 32\nSIZE std::vector<double> 24\nSIZE PeptideHit 120\nSIZE PeptideIdentification 128\nMEMORY before rss_kib=48612 peak_kib=48520 glibc_allocated=1103184 glibc_free=137904\nMEMORY loaded rss_kib=1262544 peak_kib=1262424 glibc_allocated=1111298688 glibc_free=17177984\nTOTAL empty_adducts 1000000\nTOTAL empty_annotations 1000000\nTOTAL empty_formulas 1000000\nTOTAL match_objects 376000000\nTOTAL match_spare_capacity 0\nTOTAL metadata_object_and_used_entries 168000000\nTOTAL metadata_string_objects 96000000\nTOTAL parent_evidence_capacity 160000000\nTOTAL query_objects 120000000\nTOTAL query_spare_capacity 5829120\nTOTAL score_capacity 8000000\nTOTAL string_heap_capacity 22000000\nMEMORY enumerated rss_kib=1262544 peak_kib=1262424 glibc_allocated=1111299328 glibc_free=17177344\nMEMORY trimmed rss_kib=1246532 peak_kib=1262424 glibc_allocated=1111299328 glibc_free=1735424\nMEMORY destroyed rss_kib=1129348 peak_kib=1262424 glibc_allocated=1273760 glibc_free=985927776\nMEMORY destroyed_trimmed rss_kib=168272 peak_kib=1262424 glibc_allocated=1273760 glibc_free=985927776\n",
+      "sizeof_bytes": {
+        "ID::Identification": 120,
+        "ID::Observation": 72,
+        "ID::Match": 376,
+        "ID::MatchData": 336,
+        "ID::ParentEvidence": 160,
+        "std::optional<AdductInfo>": 120,
+        "std::optional<std::string>": 40,
+        "MetaInfoInterface": 8,
+        "MetaInfo": 24,
+        "DataValue": 16,
+        "std::string": 32,
+        "std::vector<double>": 24,
+        "PeptideHit": 120,
+        "PeptideIdentification": 128
+      },
+      "psm_accounting": {
+        "empty_adducts": 1000000,
+        "empty_annotations": 1000000,
+        "empty_formulas": 1000000,
+        "match_objects": 376000000,
+        "match_spare_capacity": 0,
+        "metadata_object_and_used_entries": 168000000,
+        "metadata_string_objects": 96000000,
+        "parent_evidence_capacity": 160000000,
+        "query_objects": 120000000,
+        "query_spare_capacity": 5829120,
+        "score_capacity": 8000000,
+        "string_heap_capacity": 22000000
+      },
+      "memory_phases": {
+        "before": {
+          "rss_kib": 48612,
+          "peak_kib": 48520,
+          "glibc_allocated": 1103184,
+          "glibc_free": 137904
+        },
+        "loaded": {
+          "rss_kib": 1262544,
+          "peak_kib": 1262424,
+          "glibc_allocated": 1111298688,
+          "glibc_free": 17177984
+        },
+        "enumerated": {
+          "rss_kib": 1262544,
+          "peak_kib": 1262424,
+          "glibc_allocated": 1111299328,
+          "glibc_free": 17177344
+        },
+        "trimmed": {
+          "rss_kib": 1246532,
+          "peak_kib": 1262424,
+          "glibc_allocated": 1111299328,
+          "glibc_free": 1735424
+        },
+        "destroyed": {
+          "rss_kib": 1129348,
+          "peak_kib": 1262424,
+          "glibc_allocated": 1273760,
+          "glibc_free": 985927776
+        },
+        "destroyed_trimmed": {
+          "rss_kib": 168272,
+          "peak_kib": 1262424,
+          "glibc_allocated": 1273760,
+          "glibc_free": 985927776
+        }
+      }
+    },
+    "load-1000-runs": {
+      "raw_output": "SIZE ID::Identification 120\nSIZE ID::Observation 72\nSIZE ID::Match 376\nSIZE ID::MatchData 336\nSIZE ID::ParentEvidence 160\nSIZE std::optional<AdductInfo> 120\nSIZE std::optional<std::string> 40\nSIZE MetaInfoInterface 8\nSIZE MetaInfo 24\nSIZE DataValue 16\nSIZE std::string 32\nSIZE std::vector<double> 24\nSIZE PeptideHit 120\nSIZE PeptideIdentification 128\nMEMORY before rss_kib=48356 peak_kib=48268 glibc_allocated=1103184 glibc_free=137904\nMEMORY loaded rss_kib=1403712 peak_kib=1403620 glibc_allocated=1274430464 glibc_free=17816576\nTOTAL empty_adducts 1000000\nTOTAL empty_annotations 1000000\nTOTAL empty_formulas 1000000\nTOTAL match_objects 376000000\nTOTAL match_spare_capacity 0\nTOTAL metadata_object_and_used_entries 168000000\nTOTAL metadata_string_objects 96000000\nTOTAL parent_evidence_capacity 160000000\nTOTAL query_objects 120000000\nTOTAL query_spare_capacity 2880000\nTOTAL score_capacity 8000000\nTOTAL string_heap_capacity 22000000\nMEMORY enumerated rss_kib=1403712 peak_kib=1403620 glibc_allocated=1274431104 glibc_free=17815936\nMEMORY trimmed rss_kib=1387188 peak_kib=1403620 glibc_allocated=1274431104 glibc_free=17697152\nMEMORY destroyed rss_kib=1385820 peak_kib=1403620 glibc_allocated=1280240 glibc_free=1289410320\nMEMORY destroyed_trimmed rss_kib=151748 peak_kib=1403620 glibc_allocated=1280240 glibc_free=1289410320\n",
+      "sizeof_bytes": {
+        "ID::Identification": 120,
+        "ID::Observation": 72,
+        "ID::Match": 376,
+        "ID::MatchData": 336,
+        "ID::ParentEvidence": 160,
+        "std::optional<AdductInfo>": 120,
+        "std::optional<std::string>": 40,
+        "MetaInfoInterface": 8,
+        "MetaInfo": 24,
+        "DataValue": 16,
+        "std::string": 32,
+        "std::vector<double>": 24,
+        "PeptideHit": 120,
+        "PeptideIdentification": 128
+      },
+      "psm_accounting": {
+        "empty_adducts": 1000000,
+        "empty_annotations": 1000000,
+        "empty_formulas": 1000000,
+        "match_objects": 376000000,
+        "match_spare_capacity": 0,
+        "metadata_object_and_used_entries": 168000000,
+        "metadata_string_objects": 96000000,
+        "parent_evidence_capacity": 160000000,
+        "query_objects": 120000000,
+        "query_spare_capacity": 2880000,
+        "score_capacity": 8000000,
+        "string_heap_capacity": 22000000
+      },
+      "memory_phases": {
+        "before": {
+          "rss_kib": 48356,
+          "peak_kib": 48268,
+          "glibc_allocated": 1103184,
+          "glibc_free": 137904
+        },
+        "loaded": {
+          "rss_kib": 1403712,
+          "peak_kib": 1403620,
+          "glibc_allocated": 1274430464,
+          "glibc_free": 17816576
+        },
+        "enumerated": {
+          "rss_kib": 1403712,
+          "peak_kib": 1403620,
+          "glibc_allocated": 1274431104,
+          "glibc_free": 17815936
+        },
+        "trimmed": {
+          "rss_kib": 1387188,
+          "peak_kib": 1403620,
+          "glibc_allocated": 1274431104,
+          "glibc_free": 17697152
+        },
+        "destroyed": {
+          "rss_kib": 1385820,
+          "peak_kib": 1403620,
+          "glibc_allocated": 1280240,
+          "glibc_free": 1289410320
+        },
+        "destroyed_trimmed": {
+          "rss_kib": 151748,
+          "peak_kib": 1403620,
+          "glibc_allocated": 1280240,
+          "glibc_free": 1289410320
+        }
+      }
+    },
+    "scan-1-run": {
+      "raw_output": "SIZE ID::Identification 120\nSIZE ID::Observation 72\nSIZE ID::Match 376\nSIZE ID::MatchData 336\nSIZE ID::ParentEvidence 160\nSIZE std::optional<AdductInfo> 120\nSIZE std::optional<std::string> 40\nSIZE MetaInfoInterface 8\nSIZE MetaInfo 24\nSIZE DataValue 16\nSIZE std::string 32\nSIZE std::vector<double> 24\nSIZE PeptideHit 120\nSIZE PeptideIdentification 128\nMEMORY before rss_kib=48556 peak_kib=48356 glibc_allocated=1103184 glibc_free=137904\nCOUNTS queries=1000000 matches=1000000\nMEMORY scanned rss_kib=185292 peak_kib=196796 glibc_allocated=1246672 glibc_free=11008560\n",
+      "sizeof_bytes": {
+        "ID::Identification": 120,
+        "ID::Observation": 72,
+        "ID::Match": 376,
+        "ID::MatchData": 336,
+        "ID::ParentEvidence": 160,
+        "std::optional<AdductInfo>": 120,
+        "std::optional<std::string>": 40,
+        "MetaInfoInterface": 8,
+        "MetaInfo": 24,
+        "DataValue": 16,
+        "std::string": 32,
+        "std::vector<double>": 24,
+        "PeptideHit": 120,
+        "PeptideIdentification": 128
+      },
+      "psm_accounting": {},
+      "memory_phases": {
+        "before": {
+          "rss_kib": 48556,
+          "peak_kib": 48356,
+          "glibc_allocated": 1103184,
+          "glibc_free": 137904
+        },
+        "scanned": {
+          "rss_kib": 185292,
+          "peak_kib": 196796,
+          "glibc_allocated": 1246672,
+          "glibc_free": 11008560
+        }
+      }
+    }
+  }
+}

@@ -22,7 +22,8 @@ OpenMS Library:
     LegacyIdentificationData while existing consumers are migrated.
   - Add native manifest/Parquet persistence with projected streaming scans, subset export,
     stable record identities, typed protein/group results with run-level inference provenance,
-    and strict legacy/feature adapters.
+    strict legacy/feature adapters, and configurable parallel column encoding/decoding.
+    Reduce native I/O copies and validation allocations while retaining checked imports.
   - FIX: OpenDIA builds without private Arrow headers. OSWPQ result storage now uses
     the public OSWParquetFile API, including staged archive commits (#10414).
   - FIX: Predicted-library persistence builds with ONNX, uses the OpenDIA working directory,

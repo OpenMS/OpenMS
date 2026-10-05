@@ -267,3 +267,32 @@ The latest tables, conversion costs and limitations are in
 `identification_data_legacy_comparison.md`; raw observations and per-file sizes
 are in `tools/benchmarks/identification_data/results/shared-score-schema.json`.
 Earlier sections retain their original implementation-specific results.
+
+
+## Copy/allocation reductions and bounded Arrow threading (2026-10-05)
+
+Release library, benchmarks and focused test targets rebuilt. All 11 focused C++
+suites pass. The standalone nanobind harness passes 18 tests, including serial and
+four-worker roundtrip/scan variants. Actual metadata/format binding translation
+units compile. Formatting checks cover changed C++ lines. The full pyOpenMS package
+and other operating systems were not built.
+
+New regressions exercise moved/copy-preserved payloads, dense-score shape and
+finite/required-value validation, arbitrary and duplicate record IDs, shared row
+groups, serial/threaded interoperability, concurrent independent pools, unchanged
+Arrow global worker capacity and transactional failure while decoding a damaged
+column page in parallel. Existing inference, file-handler and OMS coverage passes.
+The constructor/import boundaries retain every validation guarantee; no revision
+machinery or extra physical tables were introduced.
+
+Final benchmarks cover one million PSMs over one and 1,000 runs, existing PSM
+Parquet and native worker counts 1/2/4/8. All 50 process results pass the common
+content digest, as do 12 small worker-count checks and 10 intermediate-stage
+measurements. Serial native load is 3.61 / 4.49 s;
+four-worker load is 3.48 / 4.32 s. Serial writing is
+3.91 / 4.73 s and four-worker writing is
+3.58 / 4.37 s. Loads are warm-cache medians of three reads;
+writes are single samples excluding generation/conversion. No concurrent builds
+ran. The native layout still has seven files. Full results, ranges, memory, disk
+sizes, source blob IDs and limitations are in the comparison report and benchmark
+results directory. Threading stays opt-in via `Options.threads`; default is 1.

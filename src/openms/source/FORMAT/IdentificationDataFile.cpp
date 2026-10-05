@@ -347,13 +347,13 @@ namespace
   {
     const auto row = reader.row();
     File::QueryRecord q;
-    q.query_id = number<arrow::UInt64Array>(reader.column("query_id"), row);
-    q.source_id = number<arrow::UInt32Array>(reader.column("source_id"), row);
-    q.data.data_id = text(reader.column("data_id"), row);
-    q.data.rt = optionalNumber<arrow::DoubleArray>(reader.column("rt"), row);
-    q.data.mz = optionalNumber<arrow::DoubleArray>(reader.column("mz"), row);
-    q.selected_match_id = optionalNumber<arrow::UInt64Array>(reader.column("selected_match_id"), row);
-    if (reader.hasColumn("metadata")) IO::readMetadata(reader.column("metadata"), row, q.data, dictionary);
+    q.query_id = number<arrow::UInt64Array>(reader.column(Size {0}), row);
+    q.source_id = number<arrow::UInt32Array>(reader.column(Size {1}), row);
+    q.data.data_id = text(reader.column(Size {2}), row);
+    q.data.rt = optionalNumber<arrow::DoubleArray>(reader.column(Size {3}), row);
+    q.data.mz = optionalNumber<arrow::DoubleArray>(reader.column(Size {4}), row);
+    q.selected_match_id = optionalNumber<arrow::UInt64Array>(reader.column(Size {5}), row);
+    if (reader.hasColumn(Size {6})) IO::readMetadata(reader.column(Size {6}), row, q.data, dictionary);
     if ((q.data.rt && ! std::isfinite(*q.data.rt)) || (q.data.mz && ! std::isfinite(*q.data.mz))) invalid("Nonfinite observation coordinate");
     return q;
   }
@@ -361,26 +361,26 @@ namespace
   {
     const auto row = reader.row();
     File::MatchRecord m;
-    m.match_id = number<arrow::UInt64Array>(reader.column("match_id"), row);
-    m.query_id = number<arrow::UInt64Array>(reader.column("query_id"), row);
+    m.match_id = number<arrow::UInt64Array>(reader.column(Size {0}), row);
+    m.query_id = number<arrow::UInt64Array>(reader.column(Size {1}), row);
     auto& d = m.data;
-    if (reader.hasColumn("representation"))
+    if (reader.hasColumn(Size {2}))
     {
-      d.representation = text(reader.column("representation"), row);
-      auto encoding = number<arrow::UInt8Array>(reader.column("encoding"), row);
+      d.representation = text(reader.column(Size {2}), row);
+      auto encoding = number<arrow::UInt8Array>(reader.column(Size {3}), row);
       if (encoding > static_cast<unsigned>(ID::Encoding::DATABASE_ID)) invalid("Unknown molecular encoding");
       d.encoding = static_cast<ID::Encoding>(encoding);
-      d.charge = number<arrow::Int32Array>(reader.column("charge"), row);
-      d.calculated_mz = optionalNumber<arrow::DoubleArray>(reader.column("calculated_mz"), row);
+      d.charge = number<arrow::Int32Array>(reader.column(Size {4}), row);
+      d.calculated_mz = optionalNumber<arrow::DoubleArray>(reader.column(Size {5}), row);
       if (d.calculated_mz && ! std::isfinite(*d.calculated_mz)) invalid("Nonfinite calculated m/z");
-      auto target_decoy = number<arrow::UInt8Array>(reader.column("target_decoy"), row);
+      auto target_decoy = number<arrow::UInt8Array>(reader.column(Size {6}), row);
       if (target_decoy > static_cast<unsigned>(ID::TargetDecoy::BOTH)) invalid("Unknown target/decoy state");
       d.target_decoy = static_cast<ID::TargetDecoy>(target_decoy);
-      d.name = text(reader.column("name"), row);
-      if (! reader.column("formula").IsNull(row)) d.formula = text(reader.column("formula"), row);
-      readList(reader.column("identifiers"), row,
+      d.name = text(reader.column(Size {7}), row);
+      if (! reader.column(Size {8}).IsNull(row)) d.formula = text(reader.column(Size {8}), row);
+      readList(reader.column(Size {9}), row,
                [&](const arrow::StructArray& a, int64_t i) { d.identifiers.push_back({text(*a.field(0), i), text(*a.field(1), i)}); });
-      const auto& adduct = static_cast<const arrow::StructArray&>(reader.column("adduct"));
+      const auto& adduct = static_cast<const arrow::StructArray&>(reader.column(Size {10}));
       if (! adduct.IsNull(row))
       {
         d.adduct.emplace(text(*adduct.field(0), row), EmpiricalFormula(text(*adduct.field(1), row)), number<arrow::Int32Array>(*adduct.field(2), row),
@@ -388,8 +388,8 @@ namespace
         if (d.adduct->getCharge() != d.charge) invalid("Adduct and molecular charge disagree");
       }
     }
-    if (reader.hasColumn("parent_evidence"))
-      readList(reader.column("parent_evidence"), row, [&](const arrow::StructArray& a, int64_t i) {
+    if (reader.hasColumn(Size {11}))
+      readList(reader.column(Size {11}), row, [&](const arrow::StructArray& a, int64_t i) {
         ID::ParentEvidence e;
         e.parent = {text(*a.field(0), i), text(*a.field(1), i)};
         e.start = optionalNumber<arrow::UInt64Array>(*a.field(2), i);
@@ -399,8 +399,8 @@ namespace
         e.after = text(*a.field(5), i);
         d.parent_evidence.push_back(std::move(e));
       });
-    if (reader.hasColumn("peak_annotations"))
-      readList(reader.column("peak_annotations"), row, [&](const arrow::StructArray& a, int64_t i) {
+    if (reader.hasColumn(Size {12}))
+      readList(reader.column(Size {12}), row, [&](const arrow::StructArray& a, int64_t i) {
         PeptideHit::PeakAnnotation item;
         item.annotation = text(*a.field(0), i);
         item.charge = number<arrow::Int32Array>(*a.field(1), i);
@@ -408,14 +408,13 @@ namespace
         item.intensity = number<arrow::DoubleArray>(*a.field(3), i);
         d.peak_annotations.push_back(std::move(item));
       });
-    if (reader.hasColumn("metadata")) IO::readMetadata(reader.column("metadata"), row, d, dictionary);
+    if (reader.hasColumn(Size {13})) IO::readMetadata(reader.column(Size {13}), row, d, dictionary);
     m.scores.resize(score_count);
     for (Size i = 0; i < score_count; ++i)
     {
-      const std::string name = "score_" + std::to_string(i);
-      if (reader.hasColumn(name))
+      if (reader.hasColumn(14 + i))
       {
-        m.scores[i] = optionalNumber<arrow::DoubleArray>(reader.column(name), row);
+        m.scores[i] = optionalNumber<arrow::DoubleArray>(reader.column(14 + i), row);
         if (m.scores[i] && ! std::isfinite(*m.scores[i])) invalid("Nonfinite score");
       }
     }
@@ -588,8 +587,7 @@ namespace
         if (options.validate_unique_ids && ! match_ids.insert(pending.match_id).second) invalid("Duplicate match ID");
         if (d.primary_score)
         {
-          const auto name = "score_" + std::to_string(*d.primary_score);
-          if (matches.hasColumn(name) && ! pending.scores[*d.primary_score]) invalid("Primary score is missing");
+          if (matches.hasColumn(14 + *d.primary_score) && ! pending.scores[*d.primary_score]) invalid("Primary score is missing");
         }
         found_selected = found_selected || q.selected_match_id == pending.match_id;
         consume(pending);
@@ -608,11 +606,13 @@ namespace
     File::ScanOptions scan;
     scan.buffering = options;
     walkRun(
-      root, j, scan, [&](const File::QueryRecord& q) { run.importIdentification(run.getSourceId(q.source_id), ID::QueryId {q.query_id}, q.data); },
-      [&](const File::MatchRecord& m) { run.importMatch(ID::QueryId {m.query_id}, ID::MatchId {m.match_id}, m.data, m.scores); },
+      root, j, scan,
+      [&](File::QueryRecord& q) { run.importIdentification(run.getSourceId(q.source_id), ID::QueryId {q.query_id}, std::move(q.data)); },
+      [&](File::MatchRecord& m) { run.importMatch(ID::QueryId {m.query_id}, ID::MatchId {m.match_id}, std::move(m.data), m.scores); },
       [&](const File::QueryRecord& q) {
         if (q.selected_match_id) run.setSelectedMatch(ID::QueryId {q.query_id}, ID::MatchId {*q.selected_match_id});
-      }, options);
+      },
+      options);
     const auto& tables = j.at("tables");
     if (tables.contains("parents"))
     {
@@ -724,9 +724,11 @@ try
   for (const auto& j : manifest.at("inference"))
   {
     auto result = IO::readInference(path, j, io);
-    temporary.addInferenceResult(result);
+    temporary.addInferenceResult(std::move(result));
   }
-  temporary.validate();
+  // addRun validates each run and the dataset score/identity contract; adding
+  // inference validates its provenance without changing those runs. Do not repeat
+  // the full per-record validation after these checked construction boundaries.
   data.swap(temporary);
 }
 catch (const Json::exception& error)
@@ -744,7 +746,9 @@ try
   io.input = std::make_shared<IO::ReadPool>();
   io.score_count = scoreCount(manifest);
   const auto selected = selectRuns(manifest, {run});
-  return readRun(path, *selected.front(), io);
+  auto result = readRun(path, *selected.front(), io);
+  result.validate();
+  return result;
 }
 catch (const Json::exception& error)
 {
@@ -778,21 +782,21 @@ try
     };
     walkRun(
       path, *j, options,
-      [&](const QueryRecord& q) {
+      [&](QueryRecord& q) {
         ++statistics.queries;
         if (on_queries)
         {
-          queries.push_back(q);
           query_bytes += queryBytes(q);
+          queries.push_back(std::move(q));
           if (queries.size() >= options.buffering.batch_rows || query_bytes >= options.buffering.batch_bytes) flush_queries();
         }
       },
-      [&](const MatchRecord& m) {
+      [&](MatchRecord& m) {
         ++statistics.matches;
         if (on_matches)
         {
-          matches.push_back(m);
           match_bytes += matchBytes(m);
+          matches.push_back(std::move(m));
           if (matches.size() >= options.buffering.batch_rows || match_bytes >= options.buffering.batch_bytes) flush_matches();
         }
       },

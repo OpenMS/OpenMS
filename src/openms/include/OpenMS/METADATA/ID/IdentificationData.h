@@ -281,8 +281,9 @@ public:
     /// Prepare optional indexes before parallel const lookups; mutations require exclusive access.
     void prepareLookupIndexes();
     /// Import explicit IDs during construction. After restoration/filtering, historical IDs cannot be reused.
-    QueryId importIdentification(SourceId source, QueryId id, const Observation& observation);
-    MatchId importMatch(QueryId query, MatchId id, const MatchData& data, const std::vector<std::optional<double>>& scores = {});
+    /// Payloads are owned by value so importers can transfer decoded records without copying.
+    QueryId importIdentification(SourceId source, QueryId id, Observation observation);
+    MatchId importMatch(QueryId query, MatchId id, MatchData data, const std::vector<std::optional<double>>& scores = {});
     /// Restore persisted UUID and counters; counters must exceed every live ID.
     void restoreIdentity(const std::string& uuid, UInt64 next_query, UInt64 next_match);
     /// Reserve IDs appearing only in retained inference provenance.
@@ -319,6 +320,7 @@ public:
     void checkMutation_() const;
     void checkScore_(ScoreId score) const;
     void validateMatch_(const MatchData& data, const std::vector<std::optional<double>>& scores) const;
+    void validateMatchData_(const MatchData& data) const;
     Identification& query_(QueryId id);
     Match& match_(MatchId id);
     void swapData_(Run& other) noexcept;
@@ -363,7 +365,7 @@ public:
   { return runs_; }
   const std::vector<InferenceResult>& getInferenceResults() const
   { return inference_; }
-  void addInferenceResult(const InferenceResult& result);
+  void addInferenceResult(InferenceResult result);
   void clearInferenceResults();
   Size filterMatches(const std::function<bool(const Match&)>& keep, InferencePolicy policy, bool keep_empty_queries = false);
   /** Dataset-wide ordered PSM score contract.

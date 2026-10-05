@@ -87,3 +87,27 @@ The output directory must not exist. Configure runtime library/data paths for yo
 OpenMS build first. The driver measures fresh-process peak RSS, rotates read order,
 and includes one warmup plus three measured reads per format. See
 `doc/openms/identification_data_legacy_comparison.md` for results and caveats.
+
+Compare serial and threaded native I/O with the existing PSM Parquet API:
+
+```bash
+python3 tools/benchmarks/identification_data/run_legacy_comparison.py \
+  ../id-benchmark/IdentificationDataLegacyBenchmark ../thread-comparison \
+  --formats parquet native --cases 1000000:1 1000000:1000 \
+  --native-threads 1 2 4 8
+```
+
+`--cases` accepts `PSMS:RUNS` pairs. `--read-repetitions` defaults to three measured
+reads after one warmup. Each native worker count gets its own regenerated dataset;
+all variants must retain the same content digest. Native I/O uses a private CPU
+pool per operation and does not change Arrow's global pool. The existing Parquet
+API retains its own defaults. Native single-threaded operation remains the default.
+The output includes the method, raw phase timings, process CPU time and peak RSS.
+Process CPU/RSS includes verification and, for writes, generation and conversion;
+the separate I/O wall-clock phases exclude that work.
+
+The additional `results/memory-footprint.json` archive contains Linux/glibc memory
+diagnostics, exact object sizes for this build, public-accessor storage accounting,
+and the complete standalone diagnostic source and reproduction instructions. These
+measurements explain owning-load memory and compare it with a non-retaining scan;
+they are separate from the repeated I/O timing matrix.

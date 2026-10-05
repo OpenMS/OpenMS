@@ -149,6 +149,23 @@ Provide two access paths with the same semantics:
 
 Use configurable Arrow batch and Parquet row-group sizes with both byte targets and row-count limits. A filtering writer can stream a query's matches first, then emit its query row with the surviving selection; it does not buffer all candidates for a large query. Start with the current compression settings and tune through Release benchmarks. A single unusually large payload remains an explicit memory consideration.
 
+`IdentificationDataFile::Options::threads` is a positive per-operation CPU worker
+limit (default 1), also exposed as `Options.threads` in Python. Higher counts use
+a private Arrow pool for column decoding and buffered row-group encoding. They do
+not alter Arrow's global pool, parallelize model mutations or create more files.
+Decoding retains one projected row group per cached physical table with no
+row-group readahead; parallel encoding can require additional per-column buffers.
+The caller waits for each batch before reusing its storage, and failures propagate
+through the existing transactional load/store boundaries. Work on different
+operations uses separate pools.
+
+Owning loading transfers decoded payloads by move and validates each completed run
+once. Validation reads dense score storage directly and checks uniqueness with
+compact ID vectors, using a linear path for sorted IDs and sorting copies otherwise.
+Scientific record ordering remains unchanged. Column indices are bound once per
+batch and metadata descriptors cache runtime registry IDs; those runtime IDs are
+never persisted in the file format.
+
 Selecting one of 1,000 runs opens only that run's requested tables after reading the manifest. Billion-PSM processing relies on streaming or loading manageable runs. Global inference may still need substantial memory or a dedicated external-memory algorithm; file organization alone does not solve that.
 
 Write a fresh output directory through a temporary sibling directory. Close and validate files, then publish the completed directory. Reject an existing destination in the first implementation. This avoids introducing concurrent updates, table replacement, transaction catalogues and retained file generations. Atomic publication and power-loss durability are separate platform-dependent guarantees.

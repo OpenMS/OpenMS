@@ -3,10 +3,13 @@
 // $Maintainer: Timo Sachsenberg $
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
+#include <arrow/util/thread_pool.h>
 #include <bit>
 #include <filesystem>
 #include <fstream>
+#include <future>
 #include <limits>
+#include <parquet/file_reader.h>
 #include <stdexcept>
 
 using namespace OpenMS;
@@ -137,6 +140,63 @@ void replaceText(const fs::path& path, const std::string& from, const std::strin
 
 START_TEST(IdentificationDataFile, "$Id$")
 
+START_SECTION((threaded operations preserve values and do not change the global Arrow pool))
+{
+  Fixture fixture;
+  const int global_workers = arrow::GetCpuThreadPoolCapacity();
+  std::string first, second;
+  NEW_TMP_FILE(first)
+  NEW_TMP_FILE(second)
+  auto roundtrip = [&](const std::string& path, Size writers, Size readers) {
+    auto options = tiny();
+    options.threads = writers;
+    Native::store(path, fixture.data, options);
+    options.threads = readers;
+    ID loaded;
+    Native::load(path, loaded, options);
+    const auto& run = loaded.getRun("search-one");
+    const auto& match = run.getMatch(fixture.first);
+    if (run.getNumberOfMatches() != 3 || run.getIdentification(fixture.query).getSelectedMatch() != fixture.selected
+        || match.representation != fixture.data.getRun("search-one").getMatch(fixture.first).representation || match.parent_evidence.size() != 2
+        || match.peak_annotations.size() != 1 || ! match.adduct || match.getMetaValue("strings") != DataValue(StringList {"", "α", "comma,value"})
+        || std::bit_cast<UInt64>(static_cast<double>(match.getMetaValue("nan"))) != UInt64 {0x7ff8000000000031}
+        || loaded.getInferenceResults()[0].inputs.size() != 2)
+      throw std::runtime_error("Threaded roundtrip changed values");
+    return run.getNumberOfMatches();
+  };
+  auto a = std::async(std::launch::async, roundtrip, first, 4, 1);
+  auto b = std::async(std::launch::async, roundtrip, second, 1, 4);
+  TEST_EQUAL(a.get(), 3)
+  TEST_EQUAL(b.get(), 3)
+  TEST_EQUAL(arrow::GetCpuThreadPoolCapacity(), global_workers)
+  auto options = tiny();
+  options.threads = 4;
+  ID destination = fixture.data;
+  const auto matches_path = (fs::path(first) / "matches.parquet").string();
+  {
+    // Preserve the footer/schema but corrupt an encoded column page: failure must
+    // propagate from parallel decoding and leave the destination unchanged.
+    auto reader = parquet::ParquetFileReader::OpenFile(matches_path);
+    const auto column = reader->metadata()->RowGroup(0)->ColumnChunk(2);
+    const auto offset = column->has_dictionary_page() ? column->dictionary_page_offset() : column->data_page_offset();
+    reader->Close();
+    std::fstream file(matches_path, std::ios::binary | std::ios::in | std::ios::out);
+    file.seekp(offset);
+    const std::string invalid_header(16, char(0xff));
+    file.write(invalid_header.data(), static_cast<std::streamsize>(invalid_header.size()));
+  }
+  TEST_EXCEPTION(Exception::InvalidValue, Native::load(first, destination, options))
+  TEST_EQUAL(destination.getRun("search-one").getNumberOfMatches(), 3)
+  TEST_EQUAL(destination.getRun("search-one").getUuid(), fixture.uuid)
+  TEST_EQUAL(arrow::GetCpuThreadPoolCapacity(), global_workers)
+  fs::remove_all(first);
+  fs::remove_all(second);
+  options.threads = 0;
+  TEST_EXCEPTION(Exception::InvalidValue, Native::store(first, fixture.data, options))
+  TEST_FALSE(fs::exists(first))
+}
+END_SECTION
+
 START_SECTION((shared row groups preserve run boundaries, metadata and nullable supplementary scores))
 {
   ID data;
@@ -167,6 +227,7 @@ START_SECTION((shared row groups preserve run boundaries, metadata and nullable 
   Native::Options options;
   options.row_group_rows = 5; // boundaries cross runs, and runs cross row groups
   options.batch_rows = 2;
+  options.threads = 4;
   std::string path, filtered;
   NEW_TMP_FILE(path)
   NEW_TMP_FILE(filtered)
