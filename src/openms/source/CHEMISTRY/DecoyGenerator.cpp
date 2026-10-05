@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, kg290 $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -13,6 +13,8 @@
 
 #include <chrono>
 #include <algorithm>
+#include <map>
+#include <random>
 
 using namespace OpenMS;
 
@@ -25,6 +27,99 @@ DecoyGenerator::DecoyGenerator()
 void DecoyGenerator::setSeed(UInt64 seed)
 {
   shuffler_.seed(seed);
+}
+
+void DecoyGenerator::startDeBruijn(Size k, UInt64 seed, const std::string& keep_residues)
+{
+  OPENMS_PRECONDITION(k > 0, "The de Bruijn k-mer size must be positive.")
+  debruijn_k_ = k;
+  debruijn_seed_ = seed;
+  debruijn_keep_residues_ = keep_residues;
+  debruijn_edge_counts_.clear();
+  debruijn_residue_counts_.clear();
+  debruijn_edge_labels_.clear();
+  debruijn_ready_ = false;
+}
+
+void DecoyGenerator::addProteinToDeBruijn(const AASequence& protein)
+{
+  OPENMS_PRECONDITION(debruijn_k_ > 0 && !debruijn_ready_, "Call startDeBruijn() before adding target proteins and finalize only after all proteins are added.")
+  OPENMS_PRECONDITION(!protein.isModified(), "De Bruijn decoy generation only supports unmodified proteins.")
+
+  const std::string sequence = protein.toUnmodifiedString();
+  const std::string padded = std::string(debruijn_k_, '-') + sequence;
+  for (Size i = 0; i < sequence.size(); ++i)
+  {
+    ++debruijn_edge_counts_[padded.substr(i, debruijn_k_ + 1)];
+    ++debruijn_residue_counts_[sequence[i]];
+  }
+}
+
+void DecoyGenerator::finalizeDeBruijn()
+{
+  OPENMS_PRECONDITION(debruijn_k_ > 0 && !debruijn_ready_, "Call startDeBruijn() once before finalizing de Bruijn decoys.")
+
+  // Stable edge order keeps seeded decoys reproducible across standard-library hash implementations.
+  std::vector<std::pair<std::string, Size>> edges(debruijn_edge_counts_.begin(), debruijn_edge_counts_.end());
+  std::sort(edges.begin(), edges.end());
+
+  std::map<char, Size> mutable_residue_counts;
+  for (const auto& [residue, count] : debruijn_residue_counts_)
+  {
+    mutable_residue_counts[residue] = count;
+  }
+  for (const auto& [edge, count] : edges)
+  {
+    if (debruijn_keep_residues_.find(edge.back()) != std::string::npos)
+    {
+      mutable_residue_counts[edge.back()] -= count;
+      debruijn_edge_labels_[edge] = edge.back();
+    }
+  }
+
+  std::vector<char> alphabet;
+  std::vector<double> weights;
+  for (const auto& [residue, count] : mutable_residue_counts)
+  {
+    if (count > 0)
+    {
+      alphabet.push_back(residue);
+      weights.push_back(static_cast<double>(count));
+    }
+  }
+  std::mt19937_64 rng(debruijn_seed_);
+  if (alphabet.empty())
+  {
+    OPENMS_PRECONDITION(debruijn_edge_labels_.size() == edges.size(), "No replacement residues are available for the de Bruijn decoy.")
+  }
+  else
+  {
+    std::discrete_distribution<Size> residue_distribution(weights.begin(), weights.end());
+    for (const auto& [edge, count] : edges)
+    {
+      if (debruijn_edge_labels_.contains(edge)) continue;
+      debruijn_edge_labels_[edge] = alphabet[residue_distribution(rng)];
+    }
+  }
+  debruijn_ready_ = true;
+}
+
+AASequence DecoyGenerator::deBruijn(const AASequence& protein) const
+{
+  OPENMS_PRECONDITION(debruijn_ready_, "Call finalizeDeBruijn() before generating a de Bruijn decoy.")
+  OPENMS_PRECONDITION(!protein.isModified(), "De Bruijn decoy generation only supports unmodified proteins.")
+
+  const std::string sequence = protein.toUnmodifiedString();
+  const std::string padded = std::string(debruijn_k_, '-') + sequence;
+  std::string decoy;
+  decoy.reserve(sequence.size());
+  for (Size i = 0; i < sequence.size(); ++i)
+  {
+    const auto it = debruijn_edge_labels_.find(padded.substr(i, debruijn_k_ + 1));
+    OPENMS_PRECONDITION(it != debruijn_edge_labels_.end(), "The protein was not included when preparing the de Bruijn decoy database.")
+    decoy.push_back(it->second);
+  }
+  return AASequence::fromString(decoy);
 }
 
 AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const

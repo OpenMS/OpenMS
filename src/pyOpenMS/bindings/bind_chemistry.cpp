@@ -417,6 +417,14 @@ searches
         .def("__copy__", [](const OpenMS::DecoyGenerator& self) { return OpenMS::DecoyGenerator(self); })
         .def("__deepcopy__", [](const OpenMS::DecoyGenerator& self, nb::dict) { return OpenMS::DecoyGenerator(self); }, "memo"_a)
         .def("setSeed", [](OpenMS::DecoyGenerator& self, size_t seed) { return self.setSeed(seed); }, "seed"_a)
+        .def("startDeBruijn", &OpenMS::DecoyGenerator::startDeBruijn, "k"_a, "seed"_a = 4711, "keep_residues"_a = "",
+            "Start preparing a database-wide de Bruijn mapping.")
+        .def("addProteinToDeBruijn", &OpenMS::DecoyGenerator::addProteinToDeBruijn, "protein"_a,
+            "Add a target protein before finalizing the shared mapping.")
+        .def("finalizeDeBruijn", &OpenMS::DecoyGenerator::finalizeDeBruijn,
+            "Finalize the shared edge labels after adding all target proteins.")
+        .def("deBruijn", &OpenMS::DecoyGenerator::deBruijn, "protein"_a,
+            "Generate a repeat-preserving decoy for a prepared target protein.")
         .def("reverseProtein", [](const OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein) { return self.reverseProtein(protein); }, "protein"_a, "Reverses the protein sequence")
         .def("reversePeptides", [](const OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein, const std::string& protease) { return self.reversePeptides(protein, protease); }, "protein"_a, "protease"_a, "Reverses the protein's peptide sequences between enzymatic cutting positions")
         .def("shuffle", [](OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein, const std::string& protease, int decoy_factor) { return self.shuffle(protein, protease, decoy_factor); }, "protein"_a, "protease"_a, "decoy_factor"_a = 1, 

@@ -1,0 +1,20 @@
+file(STRINGS "${OUTPUT}" lines)
+list(LENGTH lines line_count)
+if(NOT line_count EQUAL 4)
+  message(FATAL_ERROR "Expected two decoy FASTA records, got ${line_count} lines")
+endif()
+
+list(GET lines 1 decoy_one)
+list(GET lines 3 decoy_two)
+string(LENGTH "${decoy_one}" length_one)
+string(LENGTH "${decoy_two}" length_two)
+if(NOT length_one EQUAL 9 OR NOT length_two EQUAL 9)
+  message(FATAL_ERROR "De Bruijn decoys must retain target lengths; got ${length_one} and ${length_two}")
+endif()
+
+# The targets share "PEPTIDE" (length 7); for k=2 the decoys must share L-k=5 residues.
+string(SUBSTRING "${decoy_one}" 3 5 repeat_one)
+string(SUBSTRING "${decoy_two}" 3 5 repeat_two)
+if(NOT repeat_one STREQUAL repeat_two)
+  message(FATAL_ERROR "Expected a five-residue shared decoy repeat, got '${repeat_one}' and '${repeat_two}'")
+endif()

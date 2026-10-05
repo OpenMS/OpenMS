@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, kg290 $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -11,7 +11,9 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -32,6 +34,41 @@ namespace OpenMS
 
       // random seed for shuffling
       void setSeed(UInt64 seed);
+
+      /**
+        @brief Prepare repeat-preserving decoy generation for a protein database.
+
+        Call this before adding target proteins. The same generator must receive every target
+        sequence in the database before finalizeDeBruijn() is called, so repeated (k+1)-mers
+        across proteins receive the same decoy residue.
+
+        @param[in] k Length of the k-mer vertices used by the de Bruijn construction
+        @param[in] seed Seed for deterministic edge relabeling
+        @param[in] keep_residues Residues that should remain unchanged in decoys (e.g. "KR")
+      */
+      void startDeBruijn(Size k, UInt64 seed = 4711, const std::string& keep_residues = "");
+
+      /**
+        @brief Add one unmodified target protein to the database being prepared.
+
+        @param[in] protein Target protein to add
+      */
+      void addProteinToDeBruijn(const AASequence& protein);
+
+      /**
+        @brief Assign replacement residues to all distinct (k+1)-mers collected so far.
+
+        Replacement residues are sampled using the target database's amino-acid frequencies.
+      */
+      void finalizeDeBruijn();
+
+      /**
+        @brief Generate a repeat-preserving decoy for a protein added before finalization.
+
+        @param[in] protein Target protein included before finalizeDeBruijn()
+        @return A decoy sequence with the same length as the target
+      */
+      AASequence deBruijn(const AASequence& protein) const;
 
       /* 
          @brief reverses the protein sequence. 
@@ -90,6 +127,14 @@ namespace OpenMS
 
       // ensures that shuffling same peptide (in different proteins) leads to same decoy
       std::unordered_map<std::string, std::string> td_cache_;
+
+      Size debruijn_k_ = 0;
+      UInt64 debruijn_seed_ = 4711;
+      bool debruijn_ready_ = false;
+      std::string debruijn_keep_residues_;
+      std::unordered_map<std::string, Size> debruijn_edge_counts_;
+      std::unordered_map<char, Size> debruijn_residue_counts_;
+      std::unordered_map<std::string, char> debruijn_edge_labels_;
   };
 }
 

@@ -4474,6 +4474,11 @@ set_tests_properties("TOPP_DecoyDatabase_1_out" PROPERTIES DEPENDS "TOPP_DecoyDa
 add_test("TOPP_DecoyDatabase_2" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_2.tmp.fasta -decoy_string "DECOY_SEQ_" -decoy_string_position "prefix" -method shuffle -Decoy:non_shuffle_pattern "KRP" -seed 42)
 add_test("TOPP_DecoyDatabase_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DecoyDatabase_2.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_2_out.fasta )
 set_tests_properties("TOPP_DecoyDatabase_2_out" PROPERTIES DEPENDS "TOPP_DecoyDatabase_2")
+add_test("TOPP_DecoyDatabase_debruijn" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_debruijn.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_debruijn.tmp.fasta -only_decoy -method debruijn -debruijn_k 2 -seed 4711)
+add_test("TOPP_DecoyDatabase_debruijn_repeats" ${CMAKE_COMMAND}
+  "-DOUTPUT=${TESTS_TEMP_DIR}/DecoyDatabase_debruijn.tmp.fasta"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/CheckDeBruijnDecoy.cmake")
+set_tests_properties("TOPP_DecoyDatabase_debruijn_repeats" PROPERTIES DEPENDS "TOPP_DecoyDatabase_debruijn")
 add_test("TOPP_DecoyDatabase_3" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_3.tmp.fasta -decoy_string "DECOY_SEQ_" -decoy_string_position "prefix" -method shuffle -Decoy:non_shuffle_pattern "KR" -seed 42 -enzyme "Chymotrypsin")
 add_test("TOPP_DecoyDatabase_3_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DecoyDatabase_3.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_3_out.fasta )
 set_tests_properties("TOPP_DecoyDatabase_3_out" PROPERTIES DEPENDS "TOPP_DecoyDatabase_3")
