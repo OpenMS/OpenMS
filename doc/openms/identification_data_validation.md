@@ -244,3 +244,26 @@ The standalone Python extension and real metadata/format binding translation uni
 compile. A rebuilt benchmark writes and reads 1,000 PSMs over 10 runs with matching
 content digests, seven plain filenames and one shared matches table; pooled inference
 also succeeds. No new million-PSM performance claim is made.
+
+
+## Release benchmark after format simplification (2026-10-05)
+
+Reran the unchanged four-format driver against implementation commit
+`4cef855e6c6fc60cc8c90a29093f31ccc1c83502`. Release benchmark targets were up to date;
+no implementation or benchmark code changed. All 80 fresh-process operations
+passed common-content digest checks, covering 1,000 PSMs / 2 runs, 100,000 / 1,
+1,000,000 / 1 and 1,000,000 / 1,000. Every native dataset has seven plain filenames.
+
+For one million PSMs over 1,000 runs, native write/load measured
+6.18 s / 6.77 s, versus
+6.01 s / 4.85 s for existing PSM Parquet.
+Native peak read-process RSS is 1381 MiB and disk
+size is 14.92 MB. Loading remains slower than existing PSM Parquet;
+the file-count simplification does not establish an additional speed improvement.
+Loads are warm-cache medians of three measured reads after warmup; writes are
+single samples excluding preparation/conversion. No concurrent builds ran.
+
+The latest tables, conversion costs and limitations are in
+`identification_data_legacy_comparison.md`; raw observations and per-file sizes
+are in `tools/benchmarks/identification_data/results/shared-score-schema.json`.
+Earlier sections retain their original implementation-specific results.
