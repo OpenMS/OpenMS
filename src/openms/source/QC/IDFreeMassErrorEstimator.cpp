@@ -504,13 +504,19 @@ namespace OpenMS
 
     const double precursor_mz = precursors.front().getMZ();
     const Int charge = precursors.front().getCharge();
-    if (charge <= 0 || !std::isfinite(precursor_mz) || precursor_mz <= 0.0)
+    if (!std::isfinite(precursor_mz) || precursor_mz <= 0.0)
     {
       ++diagnostics_.excluded_missing_precursor;
       return;
     }
 
-    consumePrecursor_(spectrum, precursor_mz, charge);
+    // Precursor precision is charge-state specific. Fragment precision only needs
+    // a repeatable precursor/isolation m/z anchor, so charge-less DIA spectra can
+    // still contribute fragment evidence without inventing a precursor charge.
+    if (charge > 0)
+    {
+      consumePrecursor_(spectrum, precursor_mz, charge);
+    }
     consumeFragments_(spectrum, precursor_mz, charge);
   }
 

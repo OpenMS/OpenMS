@@ -162,6 +162,45 @@ START_SECTION((void consumeSpectrum(const MSSpectrum& spectrum)))
 }
 END_SECTION
 
+START_SECTION((charge-less DIA spectra contribute fragment precision but not precursor precision))
+{
+  IDFreeMassErrorEstimator::Parameters parameters;
+  parameters.min_spectrum_pairs = 4;
+  parameters.min_precursor_clusters = 2;
+  parameters.min_tolerance_pairs = 4;
+  parameters.min_tolerance_clusters = 2;
+  parameters.min_fragment_pairs = 10;
+  parameters.min_fragment_tolerance_pairs = 10;
+  parameters.min_fragment_tolerance_spectra = 2;
+
+  IDFreeMassErrorEstimator estimator(parameters);
+  for (Size cycle = 0; cycle < 8; ++cycle)
+  {
+    for (Size target = 0; target < 4; ++target)
+    {
+      auto spectrum = makeSpectrum(cycle, target);
+      auto precursors = spectrum.getPrecursors();
+      precursors.front().setCharge(0);
+      spectrum.setPrecursors(precursors);
+      estimator.consumeSpectrum(spectrum);
+    }
+  }
+
+  const auto result = estimator.getResult();
+  TEST_EQUAL(result.precursor_ppm.has_value(), false)
+  TEST_EQUAL(result.precursor_da.has_value(), false)
+  TEST_EQUAL(result.precursor_tolerance_ppm.has_value(), false)
+  TEST_EQUAL(result.fragment_ppm.has_value(), true)
+  TEST_EQUAL(result.fragment_tolerance_ppm.has_value(), true)
+  TEST_EQUAL(result.fragment_tolerance_da.has_value(), false)
+  TEST_EQUAL(result.fragment_resolution_regime, IDFreeMassErrorEstimator::FragmentResolutionRegime::HIGH_RESOLUTION)
+  TEST_EQUAL(result.diagnostics.precursor_eligible_ms2, 0)
+  TEST_EQUAL(result.diagnostics.fragment_eligible_ms2, 32)
+  TEST_EQUAL(result.diagnostics.fragment_centroid_spectra, 32)
+  TEST_EQUAL(result.diagnostics.excluded_missing_precursor, 0)
+}
+END_SECTION
+
 START_SECTION((std::optional<RobustError> getPrecursorPrecisionPPM() const))
 {
   IDFreeMassErrorEstimator::Parameters parameters;

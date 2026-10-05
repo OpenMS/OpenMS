@@ -150,6 +150,8 @@ namespace OpenMS
     void reset();
 
     /// Consume one spectrum. Non-MS2 spectra are ignored.
+    /// Charge-less MS2 spectra with a valid precursor/isolation m/z contribute
+    /// fragment evidence, but not charge-specific precursor evidence.
     void consumeSpectrum(const MSSpectrum& spectrum);
 
     /// Reset, consume all spectra in @p experiment, and return the resulting estimate.
