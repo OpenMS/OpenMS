@@ -198,3 +198,23 @@ roundtrips. A fresh 1,000-PSM / 10-run write/read preserves the content digest, 
 PyArrow confirms six input columns including the partition ID and eight output
 files. A pooled inference smoke check validates 10 input runs and 1,000 assignments.
 Previous million-PSM timing and size measurements have not been rerun or relabelled.
+
+## Protein/group results without PSM assignments (2026-10-05)
+
+The base model and native format no longer contain inferred PSM-to-protein
+assignments. Their C++ and Python APIs, serializer table, per-match reservation
+checks, input-reference lookup and bridge bookkeeping have been removed. Original
+search evidence remains on matches. Protein/group results, their scores and
+run-level input provenance remain supported. A future PSM-to-peptide-to-protein
+inference graph and its persistence require a separate design and may use a
+different format.
+
+The Release library and focused test targets rebuild successfully. All 11 focused
+C++ suites and 16 Python binding tests pass; the real metadata/format binding
+translation units compile. Updated coverage checks unchanged original candidates,
+protein/group filtering, run-level provenance, live ID allocation counters,
+missing-table failures and native roundtrips. The benchmark rebuilds and pooled
+inference runs successfully on 1,000 PSMs from 10 runs. A fresh native write/read
+preserves the content digest and confirms seven files, with only inputs, proteins
+and groups declared for inference. Earlier sections describe previous layouts;
+no new million-PSM timing or memory improvement is claimed.

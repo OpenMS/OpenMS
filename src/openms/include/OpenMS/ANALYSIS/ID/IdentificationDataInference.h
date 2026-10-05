@@ -17,10 +17,10 @@ namespace OpenMS
 
   The bridge materializes temporary peptide values, normalizes explicitly declared PEP/PP
   scores to posterior probabilities and calls BasicProteinInferenceAlgorithm once across
-  all selected runs. Run-level input provenance and resulting assignments are
-  recorded independently of the original matches. Repeated peptidoforms must have
-    consistent qualified parent mappings across inputs; conflicting mappings are rejected.
-    This is an in-memory algorithm.
+  all selected runs. Protein/group results and run-level input provenance are retained.
+  The original matches and their search evidence remain unchanged. Repeated peptidoforms
+  must have consistent qualified parent mappings across inputs; conflicting mappings
+  are rejected. This is an in-memory algorithm.
   @ingroup Analysis_ID
 */
 class OPENMS_DLLAPI IdentificationDataInference
@@ -41,7 +41,7 @@ public:
   static IdentificationData::InferenceResult
   infer(const IdentificationData& data, const std::vector<Input>& inputs, const std::string& identifier, const Param& parameters);
   static IdentificationData::InferenceResult infer(const IdentificationData& data, const std::vector<Input>& inputs, const std::string& identifier);
-  /// Keep selected qualified proteins, drop any group that loses a member and preserve empty assignments.
+  /// Keep selected qualified proteins and drop any group that loses a member.
   static void retainProteins(IdentificationData::InferenceResult& result, const std::set<IdentificationData::QualifiedAccession>& retained);
 };
 } // namespace OpenMS

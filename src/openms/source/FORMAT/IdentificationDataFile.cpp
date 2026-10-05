@@ -123,8 +123,9 @@ namespace
     for (const auto& result : manifest.at("inference"))
     {
       const auto& tables = result.at("tables");
-      if (!tables.is_object() || tables.size() != 4) invalid("Inference requires four typed tables");
-      for (const auto* name : {"inputs", "proteins", "groups", "assignments"}) claim(tables.at(name), partition);
+      if (! tables.is_object() || tables.size() != 3) invalid("Inference requires three typed tables");
+      for (const auto* name : {"inputs", "proteins", "groups"})
+        claim(tables.at(name), partition);
       ++partition;
     }
     for (auto& [name, slices] : ranges)
@@ -619,16 +620,6 @@ namespace
     run.restoreIdentity(j.at("uuid"), IO::integer<UInt64>(j.at("next_query_id")), IO::integer<UInt64>(j.at("next_match_id")));
     return run;
   }
-  void validateProvenanceCounters(const ID& data, const ID::InferenceResult& result)
-  {
-    const auto check_id = [&](const std::string& uuid, ID::MatchId match) {
-      if (! match.value) invalid("Zero match ID in inference provenance");
-      const auto* run = data.findRunByUuid(uuid);
-      if (run && match.value >= run->getNextMatchId()) invalid("Run allocation counter does not reserve retained inference IDs");
-    };
-    for (const auto& assignment : result.assignments)
-      check_id(assignment.run_uuid, assignment.match);
-  }
 } // namespace
 
 bool File::isNativeFile(const std::string& path)
@@ -707,7 +698,6 @@ void File::store(const std::string& path, const ID& data, const Options& options
   for (Size index = 0; index < data.getInferenceResults().size(); ++index)
   {
     const auto& result = data.getInferenceResults()[index];
-    validateProvenanceCounters(data, result);
     io.partition = index;
     Json j = IO::writeInference(output.path, result, io);
     manifest["inference"].push_back(std::move(j));
@@ -731,7 +721,6 @@ try
   for (const auto& j : manifest.at("inference"))
   {
     auto result = IO::readInference(path, j, io);
-    validateProvenanceCounters(temporary, result);
     temporary.addInferenceResult(result);
   }
   temporary.validate();
@@ -830,9 +819,6 @@ try
   if (! keep) invalid("Filter requires a predicate");
   if (policy != ID::InferencePolicy::PRESERVE && policy != ID::InferencePolicy::DISCARD) invalid("Unknown inference policy");
   auto manifest = readManifest(input);
-  std::map<std::string, UInt64> counters;
-  for (const auto& run : manifest.at("runs"))
-    counters.emplace(run.at("uuid").get<std::string>(), IO::integer<UInt64>(run.at("next_match_id")));
   StagedDirectory staged(output);
   IO::Options io(options);
   io.input = std::make_shared<IO::ReadPool>();
@@ -896,7 +882,7 @@ try
   else
     for (const auto& result : manifest.at("inference"))
     {
-      IO::validateInferenceTables(input, result, io, counters);
+      IO::validateInferenceTables(input, result, io);
       for (const auto& reference : result.at("tables")) copyTable(reference);
     }
   io.output->close();

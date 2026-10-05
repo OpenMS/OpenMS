@@ -137,10 +137,8 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
   result.proteins.getProteinGroups().clear();
   result.proteins.getIndistinguishableProteins().clear();
   PeptideIdentificationList peptides;
-  const std::string match_key = "__owning_inference_candidate";
-  for (Size input_index = 0; input_index < inputs.size(); ++input_index)
+  for (const auto& input : inputs)
   {
-    const auto& input = inputs[input_index];
     const auto& run = *data.findRunByUuid(input.run_uuid);
     const auto score = run.bindScore(input.score);
     for (const auto& source : run.getSourceBlocks())
@@ -166,14 +164,7 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
           for (const auto& item : evidence)
             unique_parents.insert(item.getProteinAccession());
           hit.setMetaValue("protein_references", unique_parents.size() == 1 ? "unique" : "non-unique");
-          hit.setMetaValue(match_key, static_cast<Int64>(result.assignments.size()));
           peptide_id.insertHit(std::move(hit));
-          ID::MatchAssignment assignment;
-          assignment.run_identifier = run.getIdentifier();
-          assignment.run_uuid = run.getUuid();
-          assignment.match = match.getId();
-          assignment.input_index = input_index;
-          result.assignments.push_back(std::move(assignment));
         }
         if (! peptide_id.getHits().empty()) peptides.push_back(std::move(peptide_id));
       }
@@ -210,15 +201,6 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
       invalidInference("Conflicting parent mappings for the same inference peptidoform; harmonize search evidence before pooling");
   }
   algorithm.run(peptides, result.proteins);
-  for (const auto& peptide_id : peptides)
-  {
-    for (const auto& hit : peptide_id.getHits())
-    {
-      auto& assignment = result.assignments.at(static_cast<Size>(static_cast<Int64>(hit.getMetaValue(match_key))));
-      for (const auto& evidence : hit.getPeptideEvidences())
-        assignment.parents.push_back(result.qualified_accessions.at(evidence.getProteinAccession()));
-    }
-  }
   ID::ScoreDefinition parent_score;
   parent_score.name = result.proteins.getScoreType();
   parent_score.higher_better = result.proteins.isHigherScoreBetter();
@@ -254,10 +236,7 @@ void IdentificationDataInference::retainProteins(ID::InferenceResult& result, co
   };
   std::erase_if(filtered.proteins.getProteinGroups(), incomplete);
   std::erase_if(filtered.proteins.getIndistinguishableProteins(), incomplete);
-  for (auto& assignment : filtered.assignments)
-    std::erase_if(assignment.parents, [&](const auto& identity) { return ! retained.contains(identity); });
-  // Run-level input provenance and explicit assignment rows remain even when no protein
-  // survives. Qualified assignment identities do not depend on the alias dictionary.
+  // Run-level input provenance remains even when no protein survives.
   pruneUnusedAliases(filtered);
   result = std::move(filtered);
 }

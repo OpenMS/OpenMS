@@ -69,7 +69,7 @@ OMP_NUM_THREADS=1 /usr/bin/time -v ./IdentificationDataBenchmark inference 10000
 ```
 
 This mode uses 10,000 distinct peptidoforms and 2,000 proteins with consistent
-mappings across runs, and validates contributing-run and match-assignment counts. Its graph
+mappings across runs, and validates the contributing-run count. Its graph
 is synthetic; inference cost for other ambiguity structures can differ substantially.
 See `doc/openms/identification_data_validation.md` for measured Release results.
 

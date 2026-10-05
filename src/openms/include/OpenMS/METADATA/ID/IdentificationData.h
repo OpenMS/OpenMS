@@ -333,14 +333,6 @@ public:
     /// Description of the selection used at calculation time, not an executable filter.
     std::string selection;
   };
-  struct OPENMS_DLLAPI MatchAssignment
-  {
-    std::string run_identifier;
-    std::string run_uuid;
-    MatchId match;
-    std::optional<UInt64> input_index;
-    std::vector<QualifiedAccession> parents;
-  };
   struct OPENMS_DLLAPI InferenceResult
   {
     std::string identifier;
@@ -349,7 +341,6 @@ public:
     std::optional<ScoreDefinition> group_score;
     std::map<std::string, QualifiedAccession> qualified_accessions;
     std::vector<InferenceInput> inputs;
-    std::vector<MatchAssignment> assignments;
   };
 
   IdentificationData() = default;

@@ -84,19 +84,17 @@ START_SECTION((static IdentificationData::InferenceResult infer(const Identifica
   TEST_EQUAL(result.proteins.getHits().size(), 2)
   TEST_NOT_EQUAL(result.proteins.getHits()[0].getAccession(), result.proteins.getHits()[1].getAccession())
   TEST_REAL_SIMILAR(result.proteins.getHits()[0].getScore(), 0.9)
-  TEST_EQUAL(result.assignments.size(), 4)
-  TEST_EQUAL(result.assignments[0].parents.size(), 1)
-  TEST_EQUAL(result.assignments[1].parents.size(), 0)
-  TEST_EQUAL(result.assignments[2].parents.size(), 1)
-  TEST_EQUAL(result.assignments[3].parents.size(), 0)
   const auto& run = data.getRuns()[0];
-  TEST_REAL_SIMILAR(*run.getScore(result.assignments[0].match, selected[0].score), 0.1)
-  TEST_EQUAL(run.getMatch(result.assignments[0].match).parent_evidence[0].parent.accession, "P1")
+  const auto& matches = run.getSourceBlocks()[0].identifications[0].getMatches();
+  TEST_EQUAL(matches.size(), 2)
+  TEST_REAL_SIMILAR(*run.getScore(matches[0].getId(), selected[0].score), 0.1)
+  TEST_REAL_SIMILAR(*run.getScore(matches[1].getId(), selected[0].score), 0.5)
+  TEST_EQUAL(matches[0].parent_evidence[0].parent.accession, "P1")
+  TEST_EQUAL(matches[1].parent_evidence[0].parent.accession, "P1")
   TEST_EQUAL(run.getParents()->size(), 1)
   data.addInferenceResult(result);
   data.getRun("A").eraseMatches([](const auto&) { return true; });
   TEST_EQUAL(data.getInferenceResults()[0].inputs[0].run_uuid, data.getRun("A").getUuid())
-  TEST_EQUAL(data.getInferenceResults()[0].assignments.size(), 4)
   TEST_EQUAL(data.getInferenceResults()[0].proteins.getHits().size(), 2)
 
   auto malformed = selected;
@@ -122,8 +120,6 @@ START_SECTION((static void retainProteins(IdentificationData::InferenceResult&, 
   TEST_EQUAL(result.proteins.getHits().size(), 1)
   TEST_EQUAL(result.proteins.getProteinGroups().size(), 0)
   TEST_EQUAL(result.qualified_accessions.size(), 1)
-  TEST_EQUAL(result.assignments.size(), 4)
-  TEST_EQUAL(result.assignments[2].parents.size(), 0)
   TEST_EQUAL(result.inputs[0].run_uuid, original_input.run_uuid)
   TEST_TRUE(result.inputs[0].score == original_input.score)
   TEST_EQUAL(result.inputs[0].selection, original_input.selection)
@@ -136,8 +132,6 @@ START_SECTION((static void retainProteins(IdentificationData::InferenceResult&, 
   ID loaded;
   IdentificationDataFile::load(path, loaded);
   TEST_EQUAL(loaded.getInferenceResults()[0].proteins.getHits().size(), 1)
-  TEST_EQUAL(loaded.getInferenceResults()[0].assignments.size(), 4)
-  TEST_TRUE(loaded.getInferenceResults()[0].assignments[2].parents.empty())
   std::filesystem::remove_all(path);
 }
 END_SECTION

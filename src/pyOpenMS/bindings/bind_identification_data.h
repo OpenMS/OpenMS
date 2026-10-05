@@ -132,12 +132,6 @@ inline void bind(nb::module_& m)
   field(inferenceinput, "run_uuid", &ID::InferenceInput::run_uuid);
   field(inferenceinput, "score", &ID::InferenceInput::score);
   field(inferenceinput, "selection", &ID::InferenceInput::selection);
-  auto matchassignment = valueClass<ID::MatchAssignment>(data, "MatchAssignment");
-  field(matchassignment, "run_identifier", &ID::MatchAssignment::run_identifier);
-  field(matchassignment, "run_uuid", &ID::MatchAssignment::run_uuid);
-  field(matchassignment, "match", &ID::MatchAssignment::match);
-  field(matchassignment, "input_index", &ID::MatchAssignment::input_index);
-  field(matchassignment, "parents", &ID::MatchAssignment::parents);
   auto inferenceresult = valueClass<ID::InferenceResult>(data, "InferenceResult");
   field(inferenceresult, "identifier", &ID::InferenceResult::identifier);
   field(inferenceresult, "proteins", &ID::InferenceResult::proteins);
@@ -145,7 +139,6 @@ inline void bind(nb::module_& m)
   field(inferenceresult, "group_score", &ID::InferenceResult::group_score);
   field(inferenceresult, "qualified_accessions", &ID::InferenceResult::qualified_accessions);
   field(inferenceresult, "inputs", &ID::InferenceResult::inputs);
-  field(inferenceresult, "assignments", &ID::InferenceResult::assignments);
 
   valueClass<ID::Match, ID::MatchData>(data, "Match")
     .def("get_id", &ID::Match::getId)

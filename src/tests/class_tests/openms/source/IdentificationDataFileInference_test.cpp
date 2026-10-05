@@ -187,8 +187,6 @@ ID::InferenceResult inference(const ID::Run& run)
   result.inputs.push_back(input);
   input.selection = "Imported legacy run-level provenance";
   result.inputs.push_back(input);
-  result.assignments.push_back({run.getIdentifier(), run.getUuid(), {12}, 0, {{"db", "parent A"}, {"db", "parent B"}, {"db", "parent A"}}});
-  result.assignments.push_back({absent.getIdentifier(), absent.getUuid(), {7}, 2, {}});
   return result;
 }
 
@@ -316,15 +314,7 @@ START_SECTION((typed pooled inference preserves complete protein values, group a
     TEST_TRUE(result.inputs[i].score == input.inputs[i].score)
     TEST_EQUAL(result.inputs[i].selection, input.inputs[i].selection)
   }
-  TEST_EQUAL(result.assignments.size(), 2)
-  for (Size i = 0; i < result.assignments.size(); ++i)
-  {
-    TEST_EQUAL(result.assignments[i].run_uuid, input.assignments[i].run_uuid)
-    TEST_EQUAL(result.assignments[i].run_identifier, input.assignments[i].run_identifier)
-    TEST_EQUAL(result.assignments[i].match.value, input.assignments[i].match.value)
-    TEST_TRUE(result.assignments[i].input_index == input.assignments[i].input_index)
-    TEST_TRUE(result.assignments[i].parents == input.assignments[i].parents)
-  }
+
   TEST_TRUE(loaded.getRun(run.getIdentifier()).getProcessingMetadata() == run.getProcessingMetadata())
   const auto& parents = *loaded.getRun(run.getIdentifier()).getParents();
   TEST_EQUAL(parents.size(), 1)
@@ -335,7 +325,7 @@ START_SECTION((typed pooled inference preserves complete protein values, group a
   TEST_TRUE(static_cast<const MetaInfoInterface&>(parents[0]) == static_cast<const MetaInfoInterface&>(parent))
   TEST_EQUAL(result.proteins.getHits()[1].getModifications().begin()->second.getFullId(), "")
   TEST_EQUAL(result.proteins.getHits()[0].getModifications().begin()->second.getProvenance(), ResidueModification::DEFINED)
-  TEST_TRUE(loaded.getRun(run.getIdentifier()).getNextMatchId() > 12)
+  TEST_EQUAL(loaded.getRun(run.getIdentifier()).getNextMatchId(), 1)
   TEST_TRUE(fs::exists(fs::path(path) / "proteins-0.parquet"))
   TEST_FALSE(fs::exists(fs::path(path) / "inference.json"))
 }
@@ -446,15 +436,15 @@ START_SECTION((empty inference tables and optional parent catalogue have distinc
   TEST_EQUAL(loaded.getRun("empty catalogue").getParents()->size(), 0)
   TEST_EQUAL(loaded.getInferenceResults().size(), 1)
   TEST_EQUAL(loaded.getInferenceResults()[0].inputs.size(), 0)
-  TEST_EQUAL(loaded.getInferenceResults()[0].assignments.size(), 0)
   TEST_TRUE(loaded.getInferenceResults()[0].proteins == inference_result.proteins)
-  for (const std::string table : {"inputs", "proteins", "groups", "assignments"})
+  for (const std::string table : {"inputs", "proteins", "groups"})
   {
     TEST_TRUE(fs::exists(fs::path(path) / (table + "-0.parquet")))
   }
   TEST_FALSE(fs::exists(fs::path(path) / "group_members-0.parquet"))
   TEST_FALSE(fs::exists(fs::path(path) / "input_members-0.parquet"))
-  fs::remove(fs::path(path) / "assignments-0.parquet");
+  TEST_FALSE(fs::exists(fs::path(path) / "assignments-0.parquet"))
+  fs::remove(fs::path(path) / "groups-0.parquet");
   const auto saved_uuid = loaded.getRun("no catalogue").getUuid();
   TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataFile::load(path, loaded))
   TEST_EQUAL(loaded.getRun("no catalogue").getUuid(), saved_uuid)
@@ -468,7 +458,7 @@ START_SECTION((empty inference tables and optional parent catalogue have distinc
 }
 END_SECTION
 
-START_SECTION((streaming preservation validates unresolved provenance counters and copied parent payloads))
+START_SECTION((streaming preservation validates live allocation counters and copied parent payloads))
 {
   ID data;
   auto& run = data.addRun("run");
@@ -489,20 +479,19 @@ START_SECTION((streaming preservation validates unresolved provenance counters a
   input.run_uuid = run.getUuid();
   input.run_identifier = run.getIdentifier();
   result.inputs.push_back(input);
-  result.assignments.push_back({run.getIdentifier(), run.getUuid(), {100}, 0, {}});
   data.addInferenceResult(result);
   std::string path;
   NEW_TMP_FILE(path)
   RemoveDirectory cleanup {path};
   IdentificationDataFile::store(path, data);
-  replaceJsonNumber(fs::path(path) / "manifest.json", "next_match_id", "2");
+  replaceJsonNumber(fs::path(path) / "manifest.json", "next_match_id", "1");
   std::string filtered;
   NEW_TMP_FILE(filtered)
   RemoveDirectory cleanup_filtered {filtered};
   auto keep = [](const std::string&, const IdentificationDataFile::MatchRecord&) { return true; };
   TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataFile::filter(path, filtered, keep, ID::InferencePolicy::PRESERVE))
   TEST_FALSE(fs::exists(filtered))
-  replaceJsonNumber(fs::path(path) / "manifest.json", "next_match_id", "101");
+  replaceJsonNumber(fs::path(path) / "manifest.json", "next_match_id", "2");
   IdentificationDataFile::Options options;
   options.max_record_bytes = 1024;
   TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataFile::filter(path, filtered, keep, ID::InferencePolicy::PRESERVE, false, options))

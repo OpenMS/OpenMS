@@ -74,13 +74,6 @@ def make_data_with_inference():
     input_record.score = run.get_score_definition(score)
     input_record.selection = "all candidates"
     result.inputs = [input_record]
-    assignment = ID.MatchAssignment()
-    assignment.run_identifier = run.get_identifier()
-    assignment.run_uuid = run.get_uuid()
-    assignment.match = second
-    assignment.input_index = 0
-    assignment.parents = [identity]
-    result.assignments = [assignment]
     data.add_inference_result(result)
     return data, query, first, second
 
@@ -204,7 +197,6 @@ def test_filter_preserves_inference_provenance_or_explicitly_discards():
     result = data.get_inference_results()[0]
     assert result.inputs[0].run_uuid == run.get_uuid()
     assert result.inputs[0].selection == "all candidates"
-    assert result.assignments[0].match == second
     assert result.proteins.getHits()[0].getScore() == 0.99
     data.filter_matches(lambda match: True, ID.InferencePolicy.DISCARD)
     assert data.get_inference_results() == []
@@ -231,7 +223,6 @@ def test_native_round_trip_and_nonreused_ids(tmp_path):
     result = loaded.get_inference_results()[0]
     assert result.inputs[0].run_uuid == run.get_uuid()
     assert result.inputs[0].selection == "all candidates"
-    assert result.assignments[0].match == second
     added = run.add_match(query, match, [0.05])
     assert added.value > second.value
     descriptor = File.inspect(path)[0]
@@ -287,7 +278,6 @@ def test_native_filter_writes_reduced_dataset_with_explicit_inference_policy(tmp
     assert result.get_run("search").get_identification(query).get_selected_match() is None
     assert result.get_inference_results()[0].inputs[0].run_uuid == data.get_run("search").get_uuid()
     assert result.get_inference_results()[0].inputs[0].selection == "all candidates"
-    assert result.get_inference_results()[0].assignments[0].match == second
     stripped = str(tmp_path / "stripped")
     File.filter(destination, stripped, lambda uuid, record: True, ID.InferencePolicy.DISCARD)
     assert File.load(stripped).get_inference_results() == []
@@ -368,28 +358,23 @@ def test_legacy_adapter_preserves_scores_and_molecular_values():
 def test_inference_pools_runs_without_editing_candidates():
     data = ID()
     inputs = []
-    expected_ids = []
     for name in ("analysis-A", "analysis-B"):
-        run, _, first, second, score = make_run(name)
+        run, _, _, _, score = make_run(name)
         data.add_run(run)
         item = oms.IdentificationDataInference.Input()
         item.run_uuid = run.get_uuid()
         item.score = score
         inputs.append(item)
-        expected_ids.append([first, second])
     result = oms.IdentificationDataInference.infer(data, inputs, "pooled")
     assert len(result.inputs) == 2
     assert [entry.run_uuid for entry in result.inputs] == [entry.run_uuid for entry in inputs]
-    for index, match_ids in enumerate(expected_ids):
-        assert [entry.match for entry in result.assignments if entry.input_index == index] == match_ids
     assert len(result.proteins.getHits()) == 1
-    assert len(result.assignments) == 4
+    assert [run.get_number_of_matches() for run in data.get_runs()] == [2, 2]
     assert result.parent_score.scope == ID.ScoreScope.PROTEIN
     assert data.get_inference_results() == []
     data.add_inference_result(result)
     oms.IdentificationDataInference.retain_proteins(result, [])
     assert result.proteins.getHits() == []
-    assert all(assignment.parents == [] for assignment in result.assignments)
     assert len(data.get_inference_results()[0].proteins.getHits()) == 1
     assert data.get_run("analysis-A").get_number_of_matches() == 2
 

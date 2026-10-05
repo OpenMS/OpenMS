@@ -495,12 +495,6 @@ namespace
       }
     }
   }
-  std::shared_ptr<arrow::Schema> assignmentsSchema()
-  {
-    return arrow::schema({required("assignment_id", arrow::uint64()), required("run_uuid", arrow::utf8()), required("run_identifier", arrow::utf8()),
-                          required("match_id", arrow::uint64()), arrow::field("input_id", arrow::uint64()),
-                          required("parents", listOf(identityType()))});
-  }
 } // namespace
 
 Json processingJson(const ProteinIdentification& processing)
@@ -743,32 +737,6 @@ Json writeInference(const std::filesystem::path& directory, const ID::InferenceR
   }
   if (emitted_aliases.size() != result.qualified_accessions.size())
     invalid("Qualified protein alias is unused by both hits and groups; this format cannot represent detached aliases");
-  {
-    TableWriter assignments(directory / "assignments.parquet", assignmentsSchema(), options);
-    UInt64 ordinal = 0;
-    for (const auto& assignment : result.assignments)
-    {
-      if (! assignment.match.value) invalid("Zero inference assignment match ID");
-      if (assignment.input_index && *assignment.input_index >= result.inputs.size()) invalid("Inference assignment input is out of range");
-      append<arrow::UInt64Builder>(assignments.column(0), ordinal++);
-      appendText(assignments.column(1), assignment.run_uuid);
-      appendText(assignments.column(2), assignment.run_identifier);
-      append<arrow::UInt64Builder>(assignments.column(3), assignment.match.value);
-      if (assignment.input_index) append<arrow::UInt64Builder>(assignments.column(4), *assignment.input_index);
-      else
-        check(assignments.column(4).AppendNull());
-      auto& parents = beginList(assignments.column(5));
-      Size bytes = 64 + assignment.run_uuid.size() + assignment.run_identifier.size();
-      for (const auto& parent : assignment.parents)
-      {
-        appendIdentity(parents, parent);
-        bytes += 16 + parent.database.size() + parent.accession.size();
-      }
-      assignments.finishRow(bytes);
-    }
-    assignments.close();
-    recordTable("assignments", assignments);
-  }
   validateJsonStrings(descriptor);
   return descriptor;
 }
@@ -792,10 +760,7 @@ void validateParents(const std::filesystem::path& root, const Json& reference, c
   }
 }
 
-void validateInferenceTables(const std::filesystem::path& directory,
-                             const Json& descriptor,
-                             const Options& options,
-                             const std::map<std::string, UInt64>& counters)
+void validateInferenceTables(const std::filesystem::path& directory, const Json& descriptor, const Options& options)
 {
   validateJsonStrings(descriptor);
   readProcessingJson(descriptor.at("processing"));
@@ -822,20 +787,14 @@ void validateInferenceTables(const std::filesystem::path& directory,
         invalid("Invalid inference run UUID");
     }
   };
-  auto validateReference = [&](const std::string& uuid, UInt64 id) {
-    if (! id || id == std::numeric_limits<UInt64>::max()) invalid("Invalid inference candidate ID");
-    const auto counter = counters.find(uuid);
-    if (counter != counters.end() && id >= counter->second) invalid("Inference candidate ID exceeds its run allocation counter");
-  };
-  // Keep only the run UUIDs needed to validate assignment input references.
-  std::vector<std::string> input_uuids;
   {
     auto inputs = open("inputs", inputsSchema());
+    UInt64 ordinal = 0;
     while (inputs.next())
     {
       const auto row = inputs.row();
       const auto id = number<arrow::UInt64Array>(inputs.column(0), row);
-      requireOrdinal(id, input_uuids.size());
+      requireOrdinal(id, ordinal++);
       const auto uuid = text(inputs.column(1), row);
       validateUuid(uuid);
       const auto identifier = text(inputs.column(2), row);
@@ -843,7 +802,6 @@ void validateInferenceTables(const std::filesystem::path& directory,
         if (*score >= descriptor.at("input_scores").size()) invalid("Unknown inference input score definition");
       const auto selection = text(inputs.column(4), row);
       requirePayload(64 + uuid.size() + identifier.size() + selection.size(), options);
-      input_uuids.push_back(uuid);
     }
   }
   {
@@ -893,30 +851,6 @@ void validateInferenceTables(const std::filesystem::path& directory,
       readArrays<arrow::StringArray>(groups.column(6), row, group.getStringDataArrays(), dictionary);
       readGroupMembers(groups.column(3), row, group, nullptr,
                        32 + arrayBytes(group.getFloatDataArrays()) + arrayBytes(group.getIntegerDataArrays()) + arrayBytes(group.getStringDataArrays()), options);
-    }
-  }
-  {
-    auto assignments = open("assignments", assignmentsSchema());
-    UInt64 ordinal = 0;
-    while (assignments.next())
-    {
-      const auto row = assignments.row();
-      requireOrdinal(number<arrow::UInt64Array>(assignments.column(0), row), ordinal++);
-      const auto uuid = text(assignments.column(1), row);
-      validateUuid(uuid);
-      const auto identifier = text(assignments.column(2), row);
-      validateReference(uuid, number<arrow::UInt64Array>(assignments.column(3), row));
-      if (const auto input = optionalNumber<arrow::UInt64Array>(assignments.column(4), row))
-        if (*input >= input_uuids.size() || input_uuids[*input] != uuid) invalid("Assignment input does not name the same run");
-      ListView parents(assignments.column(5), row);
-      Size bytes = 64 + uuid.size() + identifier.size();
-      for (int64_t i = parents.begin; i < parents.end; ++i)
-      {
-        const auto parent = readIdentity(parents.values, i);
-        bytes += 16 + parent.database.size() + parent.accession.size();
-        requirePayload(bytes, options);
-      }
-      requirePayload(bytes, options);
     }
   }
 }
@@ -1010,33 +944,6 @@ ID::InferenceResult readInference(const std::filesystem::path& directory, const 
         result.proteins.insertIndistinguishableProteins(group);
     }
     count("groups", group_count);
-  }
-  {
-    TableReader assignments(directory, reference("assignments"), assignmentsSchema(), options);
-    while (assignments.next())
-    {
-      const auto row = assignments.row();
-      requireOrdinal(number<arrow::UInt64Array>(assignments.column(0), row), result.assignments.size());
-      ID::MatchAssignment assignment;
-      assignment.run_uuid = text(assignments.column(1), row);
-      assignment.run_identifier = text(assignments.column(2), row);
-      assignment.match.value = number<arrow::UInt64Array>(assignments.column(3), row);
-      if (! assignment.match.value) invalid("Zero inference assignment match ID");
-      assignment.input_index = optionalNumber<arrow::UInt64Array>(assignments.column(4), row);
-      if (assignment.input_index && *assignment.input_index >= result.inputs.size()) invalid("Unknown inference assignment input");
-      ListView parents(assignments.column(5), row);
-      Size bytes = 64 + assignment.run_uuid.size() + assignment.run_identifier.size();
-      for (int64_t i = parents.begin; i < parents.end; ++i)
-      {
-        auto parent = readIdentity(parents.values, i);
-        bytes += 16 + parent.database.size() + parent.accession.size();
-        requirePayload(bytes, options);
-        assignment.parents.push_back(std::move(parent));
-      }
-      requirePayload(bytes, options);
-      result.assignments.push_back(std::move(assignment));
-    }
-    count("assignments", result.assignments.size());
   }
   return result;
 }

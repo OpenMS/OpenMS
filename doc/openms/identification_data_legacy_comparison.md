@@ -126,7 +126,9 @@ removed. This initially reduced the benchmark layout above to nine files.
 
 Exact PSM input membership has also been removed from the owning model and format.
 Inference inputs retain the contributing run, optional score definition and selection
-description; match-to-parent assignments remain independent. The current layout has
-**eight files** (seven Parquet tables plus the manifest). The timing and byte-size
-figures above predate both simplifications and have not been relabelled as new
-measurements.
+description. Inferred match-to-parent assignments have subsequently also been
+removed from the base model and format. Protein/group results and original search
+evidence remain supported; a future PSM-to-peptide-to-protein inference graph can
+use a separate format. The current layout has **seven files** (six Parquet tables
+plus the manifest). The timing and byte-size figures above predate these
+simplifications and have not been relabelled as new measurements.

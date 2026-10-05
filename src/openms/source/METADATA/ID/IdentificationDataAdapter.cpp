@@ -441,8 +441,6 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
     if (proteins.getIdentifier().empty()) proteins.setIdentifier(run.getIdentifier());
     if (inference && handled_inference.insert(inference->identifier).second)
     {
-      if (! inference->assignments.empty())
-        loss(result, options, "Legacy export cannot separately preserve inferred assignments and original evidence: " + inference->identifier);
       if (inference->parent_score || inference->group_score
           || std::any_of(inference->inputs.begin(), inference->inputs.end(), [](const auto& input) { return input.score.has_value(); }))
         loss(result, options, "Legacy export cannot preserve complete inference score definitions: " + inference->identifier);

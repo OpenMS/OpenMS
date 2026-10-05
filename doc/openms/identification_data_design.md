@@ -38,15 +38,14 @@ The manifest identifies every run/result and its table slices: relative physical
 | `inputs-0.parquet` | Ordered contributing runs and exact input score definitions |
 | `proteins-0.parquet` | Inferred protein hits |
 | `groups-0.parquet` | Protein group values, ordering and an inline ordered member list |
-| `assignments-0.parquet` | Ordered match assignments with a typed parent list, including empty lists |
 
-The layout above has eight files including the manifest. Use one physical file per compatible table schema, with multiple Parquet row groups. Small runs and inference results share row groups. Query, match and parent rows carry `run_id`; inference rows carry `inference_id`. Different complete supplementary score layouts use separate match files (`matches-1.parquet`, etc.), preserving dense numeric columns and their definitions. Files do not multiply with the number of compatible runs. Size-based file sharding remains outside this initial implementation.
+The layout above has seven files including the manifest. Use one physical file per compatible table schema, with multiple Parquet row groups. Small runs and inference results share row groups. Query, match and parent rows carry `run_id`; inference rows carry `inference_id`. Different complete supplementary score layouts use separate match files (`matches-1.parquet`, etc.), preserving dense numeric columns and their definitions. The numeric filename suffix enumerates physical files for a table; it is not a run ID or revision. Files do not multiply with the number of compatible runs. Size-based file sharding remains outside this initial implementation.
 
-Keep JSON for configuration whose size follows the number of runs, sources, score definitions and metadata descriptors. Per-record values, parent catalogues, protein results, group members and assignments belong in typed tables. The manifest contains no arrays of PSM IDs.
+Keep JSON for configuration whose size follows the number of runs, sources, score definitions and metadata descriptors. Per-record values, parent catalogues, protein results and group members belong in typed tables. The manifest contains no arrays of PSM IDs.
 
 The manifest stores small inference-result descriptors: result ID, display identifier, algorithm/parameters, output score definitions, metadata descriptors and table paths. Detailed per-protein/group metadata is stored with its table rows.
 
-Every run declares query and match slices, even when they contain zero rows. An omitted parent table means no parent catalogue was supplied; a declared zero-row table means a supplied catalogue was empty. Every inference result declares slices in the four shared inference tables above; unused collections have zero-row slices. An identification-only dataset has an empty result list and no inference tables. Missing declared files are errors.
+Every run declares query and match slices, even when they contain zero rows. An omitted parent table means no parent catalogue was supplied; a declared zero-row table means a supplied catalogue was empty. Every inference result declares slices in the three shared inference tables above; unused collections have zero-row slices. An identification-only dataset has an empty result list and no inference tables. Missing declared files are errors.
 
 ## 4. Core tables
 
@@ -101,7 +100,7 @@ The descriptor dictionary and manifest remain resident while scanning. Their mem
 
 Each analysis run has an opaque UUID plus a human-readable identifier. Persistent query/match identity is `(run_uuid, record_kind, record_id)`. Query and match IDs have separate uint64 namespaces. Surviving IDs are preserved when writing a subset; row positions can change.
 
-The manifest retains the next allocatable query and match IDs for each run, including across filtering. These are ID allocation counters, not revisions: score or metadata edits do not advance them. Deleted IDs are never reused. For a present run, the counter must exceed IDs in live rows and preserved provenance; importing an externally supplied ID reserves it as well. An absent run UUID remains unresolved and cannot be reused for an independent run. Exhaustion is an error.
+The manifest retains the next allocatable query and match IDs for each run, including across filtering. These are ID allocation counters, not revisions: score or metadata edits do not advance them. Deleted IDs are never reused. For a present run, the counter must exceed IDs in live rows; importing an externally supplied ID reserves it as well. An absent run UUID remains unresolved and cannot be reused for an independent run. Exhaustion is an error.
 
 A copied subset keeps its run identity so existing provenance still identifies its records. A new independent analysis gets a new run UUID. Merging overlapping or divergent copies requires an explicit conflict decision; the importer must reject ambiguity or remap identities and all associated links. It must not silently treat equal IDs as equal payloads.
 
@@ -113,32 +112,33 @@ Editing metadata, scores or candidate payloads uses the owning API's validity ru
 
 Inference results belong to the dataset, independently of individual runs. One result can combine any number of analysis runs and stores its protein/group output once.
 
-The four inference files use result-local keys and explicit ordinals. Reuse the supported OpenMS protein field definitions and typed metadata codecs. Input provenance is recorded per contributing run; it does not contain a separate list of candidate IDs. Each protein group stores its ordered members directly in an Arrow list of structs (original alias and optional qualified identity). List order preserves duplicates and an empty list preserves an empty group. Group membership needs no separate file, join key, ordinal or member-count column. Like each assignment's parent list, a complete group row is subject to `max_record_bytes`.
+The three inference files use result-local keys and explicit ordinals. Reuse the supported OpenMS protein field definitions and typed metadata codecs. Input provenance is recorded per contributing run; it does not contain a separate list of candidate IDs. Each protein group stores its ordered members directly in an Arrow list of structs (original alias and optional qualified identity). List order preserves duplicates and an empty list preserves an empty group. Group membership needs no separate file, join key, ordinal or member-count column. A complete group row is subject to `max_record_bytes`.
 
 | Table | Required content |
 | --- | --- |
 | `inputs` | Input ID/order, run UUID and identifier, optional exact score definition, selection description |
 | `proteins` | Result-local protein key/order, qualified identity, original alias, supported ProteinHit values and typed metadata |
 | `groups` | Group key/order, general or indistinguishable kind, original score, typed arrays, and `members: list<struct<alias, identity?>>`; group-only aliases do not require an invented protein hit |
-| `assignments` | Assignment key/order, run UUID, match ID, optional input ID and ordered list of qualified parents |
 
 Input records describe which analysis runs and scores contributed, plus a human-readable selection description. They do not assert that all current matches were used, and the exact candidate set cannot be reconstructed from these records. Reproducing the calculation requires independently saved inputs and selection parameters.
 
-Assignments record the resulting match-to-parent relationships. An assignment row with an empty parent list differs from an absent assignment. An optional input ID associates the assignment with its run-level input record; it must identify the same run UUID.
+The base model and format do not store inferred PSM-to-protein assignments. Original search evidence remains on each match. A future inference model may represent PSM-to-peptide-to-protein relationships in a separate format; its graph structure and persistence are outside this design.
+
+If a workflow needs membership annotations for retained matches, it can use optional match metadata. Such annotations disappear with deleted matches and do not form a retained inference graph.
 
 Dataset-level transformations require the workflow to choose the treatment of affected inference results:
 
-1. **Preserve:** keep the original inference output, scores, run-level input provenance and assignments.
+1. **Preserve:** keep the original inference output, scores and run-level input provenance.
 2. **Discard:** remove the inference output and write identification-only data.
 3. **Recompute:** discard the old result and explicitly rerun the chosen algorithm.
 
 Low-level run edits preserve inference and do not walk inference objects. Dataset-level transformations receive a policy argument; no interactive confirmation is needed. The serializer performs structural validation and writes the selected contents; it does not judge scientific freshness or run inference automatically.
 
-Preserved inference may mention removed candidates or absent input runs. Those IDs describe the original calculation and are allowed to remain unresolved. They must remain distinct from live IDs during loading. A surviving ID may also refer to a subsequently edited hypothesis, so ID existence does not establish that an old assignment applies to its current contents.
+Preserved inference may refer to absent input runs. Their UUIDs describe the original calculation and are allowed to remain unresolved. Run identity alone does not establish that an inference result was calculated from the currently stored matches.
 
 No old molecular payloads are retained. Reproducing an earlier calculation requires independently saved inputs.
 
-Filtering inferred proteins keeps surviving protein values, removes assignments to removed parents, and retains an explicit empty parent list when an assignment's last parent disappears. By default it drops every group containing a removed member. Recalculation is an explicit algorithm call. The original parent catalogue and search evidence remain unchanged.
+Filtering inferred proteins keeps surviving protein values. By default it drops every group containing a removed member. Recalculation is an explicit algorithm call. The original parent catalogue and search evidence remain unchanged.
 
 ## 8. Reading and writing
 
@@ -155,7 +155,7 @@ Write a fresh output directory through a temporary sibling directory. Close and 
 
 ## 9. Validation and failure behavior
 
-Writers enforce the run contract, ID allocation rules and supported value types. Readers validate schemas, source/score descriptors, row counts, typed payloads and sequential ownership. Selected matches must occur within their query. Inference inputs may refer to absent runs and assignments may retain unresolved match IDs; live feature links must resolve or be explicitly external.
+Writers enforce the run contract, ID allocation rules and supported value types. Readers validate schemas, source/score descriptors, row counts, typed payloads and sequential ownership. Selected matches must occur within their query. Inference inputs may refer to absent runs; live feature links must resolve or be explicitly external.
 
 ID uniqueness is a separate global check. A normal sequential scan needs no record-sized map. Strict validation of untrusted/imported IDs may use a set for a manageable run or external sorting for a large run; it must preserve the stored scientific order. Random lookup likewise builds an explicit optional index in memory. Neither cost is hidden in the streaming guarantee.
 
@@ -182,7 +182,7 @@ The implementation consists of:
 - `IdentificationData`: owned runs, source blocks, queries, candidates and independent inference results. Numeric scores are stored densely, with missing values exposed as optionals. Runtime lookup maps are lazy; call `prepareLookupIndexes()` before sharing a run for parallel read-only lookups.
 - `IdentificationDataFile`: manifest plus typed Parquet tables, stable persisted identities, multi-row-group writing, projected scans, run loading and streaming filtering into a fresh dataset.
 - `IdentificationDataAdapter`: legacy peptide/protein conversion and feature/consensus association adapters. Strict conversion rejects information the destination model cannot express; explicit permissive conversion reports losses.
-- `IdentificationDataInference`: a pooled BasicProteinInference bridge with explicit probability score selection, qualified parent identities, run-level input provenance and match assignments, plus protein filtering.
+- `IdentificationDataInference`: a pooled BasicProteinInference bridge with explicit probability score selection, qualified parent identities and run-level input provenance, plus protein filtering.
 - Python bindings for the owning model, adapters, inference, native I/O and FileHandler access.
 
 The former reference-based implementation is named `LegacyIdentificationData` during consumer migration. Existing OMS, feature internals, NASE and other algorithms still using that representation are updated mechanically to the explicit legacy name. They are not implicitly converted into the new model. Feature and consensus adapters enable deliberate migration while retaining quantitative measurements and checking live links. Migrating every workflow and persisting complete quantitative maps are separate follow-up tasks.

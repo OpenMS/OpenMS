@@ -252,19 +252,13 @@ START_SECTION((pooled inference is owned provenance and survives filtering and r
   auto removed = first.addMatch(query, peptide(), {1.0});
   auto kept = first.addMatch(query, peptide(), {2.0});
   const auto uuid = first.getUuid();
-  const auto before_provenance = first;
   data.addRun("B");
   ID::InferenceResult inference;
   inference.identifier = "pooled";
   inference.inputs.push_back({"A", uuid, score(), "all candidates"});
   inference.inputs.push_back({"B", data.getRun("B").getUuid(), std::nullopt, {}});
-  inference.assignments.push_back({"A", uuid, removed, 0, {{"db", "protein"}}});
-  inference.assignments.push_back({"A", uuid, {8000}, 0, {}});
   data.addInferenceResult(inference);
-  TEST_EQUAL(data.getRun("A").getNextMatchId(), 8001)
-  data.getRun("A") = before_provenance;
-  TEST_EQUAL(data.getRun("A").getNextMatchId(), 8001)
-  TEST_EXCEPTION(Exception::InvalidValue, data.getRun("A").importMatch(query, {8000}, peptide(), {1.0}))
+  TEST_EQUAL(data.getRun("A").getNextMatchId(), kept.value + 1)
   auto old = data.getRun("A");
   const auto* address = &data.getRun("A");
   TEST_EQUAL(data.filterMatches([&](const ID::Match& match) { return match.getId() == kept; }, ID::InferencePolicy::PRESERVE), 1)
@@ -273,10 +267,9 @@ START_SECTION((pooled inference is owned provenance and survives filtering and r
   TEST_EQUAL(data.getInferenceResults()[0].inputs[0].run_uuid, uuid)
   TEST_EQUAL(data.getInferenceResults()[0].inputs[0].selection, "all candidates")
   TEST_TRUE(data.getRun("A").findMatch(removed) == nullptr)
-  TEST_EQUAL(data.getInferenceResults()[0].assignments[1].parents.size(), 0)
   old.filterMatches([&](const ID::Match& match) { return match.getId() == kept; });
   data.replaceRun(old);
-  TEST_EQUAL(data.getRun("A").getNextMatchId(), 8001)
+  TEST_EQUAL(data.getRun("A").getNextMatchId(), kept.value + 1)
   TEST_EXCEPTION(Exception::InvalidValue, data.filterMatches(
                                             [&](const ID::Match&) {
                                               data = ID();

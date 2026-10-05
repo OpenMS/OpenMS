@@ -769,8 +769,6 @@ ID::Run& ID::addRun(Run run)
   {
     for (const auto& input : result.inputs)
       if (input.run_uuid == run.uuid_) invalid("An independent run cannot reuse an unresolved provenance UUID");
-    for (const auto& assignment : result.assignments)
-      if (assignment.run_uuid == run.uuid_) invalid("An independent run cannot reuse an unresolved provenance UUID");
   }
   runs_.push_back(std::move(run));
   return runs_.back();
@@ -785,11 +783,6 @@ void ID::replaceRun(const Run& run)
   checkPrimaryContract(runs_, &copy, &run.uuid_);
   copy.next_query_id_ = std::max(copy.next_query_id_, found->next_query_id_);
   copy.next_match_id_ = std::max(copy.next_match_id_, found->next_match_id_);
-  for (const auto& result : inference_)
-  {
-    for (const auto& assignment : result.assignments)
-      if (assignment.run_uuid == run.uuid_) copy.reserveMatchId(assignment.match);
-  }
   *found = std::move(copy);
 }
 ID::Run& ID::getRun(const std::string& identifier)
@@ -812,29 +805,11 @@ void ID::addInferenceResult(const InferenceResult& result)
   checkMutation_();
   for (const auto& existing : inference_)
     if (existing.identifier == result.identifier) invalid("Duplicate inference result identifier");
-  // Stage all validation and potential allocations before advancing counters.
-  std::map<std::string, UInt64> reserve;
   for (const auto& input : result.inputs)
   {
     if (! validUuid(input.run_uuid)) invalid("Inference input needs a run UUID");
   }
-  for (const auto& assignment : result.assignments)
-  {
-    if (! validUuid(assignment.run_uuid)) invalid("Assignment needs a run UUID");
-    reserve[assignment.run_uuid] = std::max(reserve[assignment.run_uuid], following(assignment.match.value));
-    if (assignment.input_index
-        && (*assignment.input_index >= result.inputs.size() || result.inputs[*assignment.input_index].run_uuid != assignment.run_uuid))
-      invalid("Assignment input does not name the same run");
-    for (const auto& parent : assignment.parents)
-      if (parent.accession.empty()) invalid("Assignment parent accession is empty");
-  }
   inference_.push_back(result);
-  for (const auto& [identity, counter] : reserve)
-    if (auto* run = findRunByUuid(identity))
-    {
-      run->next_match_id_ = std::max(run->next_match_id_, counter);
-      run->import_finalized_ = true;
-    }
 }
 void ID::clearInferenceResults()
 {
@@ -901,12 +876,6 @@ void ID::validate() const
     for (const auto& input : result.inputs)
     {
       if (! validUuid(input.run_uuid)) invalid("Invalid inference input");
-    }
-    for (const auto& assignment : result.assignments)
-    {
-      const auto* run = findRunByUuid(assignment.run_uuid);
-      if (! validUuid(assignment.run_uuid) || ! assignment.match.value || (run && assignment.match.value >= run->next_match_id_))
-        invalid("Unreserved inference assignment ID");
     }
   }
 }

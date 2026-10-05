@@ -108,8 +108,6 @@ struct Fixture
     absent.run_identifier = "not-in-export";
     absent.run_uuid = "11111111-1111-4111-8111-111111111111";
     inference.inputs.push_back(absent);
-    inference.assignments.push_back({run.getIdentifier(), uuid, selected, UInt64 {0}, {{"db", "P1"}}});
-    inference.assignments.push_back({run.getIdentifier(), uuid, first, UInt64 {0}, {}});
     data.addInferenceResult(inference);
     auto& other = data.addRun("empty-compounds", ID::MoleculeKind::COMPOUND);
     other.setParents(std::vector<ID::ParentRecord> {});
@@ -281,7 +279,6 @@ START_SECTION((static void store(const std::string&, const IdentificationData&, 
   TEST_EQUAL(loaded.getRun("empty-compounds").getParents()->size(), 0)
   TEST_EQUAL(loaded.getInferenceResults()[0].inputs[0].run_uuid, fixture.uuid)
   TEST_EQUAL(loaded.getInferenceResults()[0].inputs[0].selection, "all candidates")
-  TEST_EQUAL(loaded.getInferenceResults()[0].assignments[1].parents.size(), 0)
   TEST_EQUAL(loaded.getInferenceResults()[0].inputs[1].run_uuid, "11111111-1111-4111-8111-111111111111")
   TEST_EXCEPTION(Exception::InvalidValue, Native::store(directory, fixture.data))
   fs::remove_all(directory);
@@ -371,7 +368,6 @@ START_SECTION(
   TEST_TRUE(run.findMatch(fixture.selected) == nullptr)
   TEST_EQUAL(reduced.getInferenceResults()[0].inputs[0].run_uuid, fixture.uuid)
   TEST_EQUAL(reduced.getInferenceResults()[0].inputs[0].selection, "all candidates")
-  TEST_EQUAL(reduced.getInferenceResults()[0].assignments[0].match.value, fixture.selected.value)
   auto appended = run.addMatch(fixture.query, run.getMatch(fixture.first).getData(), {40.0, 0.02});
   TEST_TRUE(appended.value > fixture.last.value)
   Native::filter(input, discarded, keep_first, ID::InferencePolicy::DISCARD, true, tiny());
