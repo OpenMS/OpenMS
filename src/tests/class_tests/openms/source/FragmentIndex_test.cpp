@@ -118,6 +118,29 @@ public:
   }
 
   const std::vector<Fragment>& getFragments() const { return fi_fragments_; }
+  const std::vector<float>& getBucketMinMz() const { return bucket_min_mz_; }
+  size_t getBucketSize() const { return bucketsize_; }
+
+  // Replaces the fragments by @p fragments ({peptide index, m/z}) in the layout build() gives them:
+  // ordered by (m/z, peptide index), cut into buckets of @p bucketsize, each bucket ordered by
+  // (peptide index, m/z), bucket_min_mz_ the m/z of the first fragment by rank of each bucket.
+  // Only query() may be called afterwards: the skip tables of queryPeaks() are not rebuilt.
+  void installFragments(const std::vector<std::pair<UInt32, float>>& fragments, size_t bucketsize)
+  {
+    std::vector<Fragment> layout;
+    for (const auto& [peptide_idx, mz] : fragments) layout.emplace_back(peptide_idx, mz);
+    std::sort(layout.begin(), layout.end(), [](const Fragment& a, const Fragment& b)
+              { return std::tie(a.fragment_mz_, a.peptide_idx_) < std::tie(b.fragment_mz_, b.peptide_idx_); });
+    bucket_min_mz_.clear();
+    for (size_t i = 0; i < layout.size(); i += bucketsize)
+    {
+      bucket_min_mz_.push_back(layout[i].fragment_mz_);
+      std::sort(layout.begin() + i, layout.begin() + std::min(i + bucketsize, layout.size()), [](const Fragment& a, const Fragment& b)
+                { return std::tie(a.peptide_idx_, a.fragment_mz_) < std::tie(b.peptide_idx_, b.fragment_mz_); });
+    }
+    fi_fragments_ = std::move(layout);
+    bucketsize_ = bucketsize;
+  }
 
   static void sortPeptides(std::vector<Peptide>& peptides) { sortPeptides_(peptides); }
   static void sortPeptides(std::vector<Peptide>& peptides, size_t min_task_size) { sortPeptides_(peptides, min_task_size); }
@@ -4260,6 +4283,209 @@ START_SECTION(([EXTRA] SNES enumerates nonempty modification subsets whose mass 
     }
     TEST_EQUAL(found, true)
   }
+}
+END_SECTION
+
+// RT-03: a fragment matches a peak iff lo <= fragment m/z <= hi, where lo = mz - tol and hi = mz + tol are
+// computed in float: the same bounds that select the buckets. The two peaks are those named in the commit
+// message of the fix (velos_5000_R2 scan 25808, lumos_tmt_5066 scan 56001), with a tolerance of 0.5 Da. All
+// float values below were derived by hand (IEEE-754 single precision, round to nearest), independently of the
+// code under test, and are given as bit patterns:
+//   peak A 511.830292 = 0x43FFEA47:  lo = 511.330292 = 0x43FFAA47,  hi = 512.330322 = 0x44001524
+//   peak B 1024.05737 = 0x448001D6:  lo = 1023.55737 = 0x447FE3AC,  hi = 1024.55737 = 0x448011D6
+// The former test (mz >= f - tol && mz <= f + tol) missed f = hi(A), as 512.330322 - 0.5 = 511.830322 > mz, and
+// accepted f = lo(B) - 1 ulp = 1023.55731, as 1023.55731 + 0.5 rounds to 1024.05737, whenever the bucket holding
+// it was visited. The expectations must hold for every bucket layout of the same fragments.
+START_SECTION(([EXTRA] query() matches the fragments on the bounds of a tolerance window, for every bucket layout))
+{
+  const auto f32 = [](uint32_t bits) { return std::bit_cast<float>(bits); };
+  const float peak_a = f32(0x43FFEA47u);
+  const float peak_b = f32(0x448001D6u);
+  const float tol = 0.5f;
+  TEST_EQUAL(std::bit_cast<uint32_t>(peak_a - tol), 0x43FFAA47u)
+  TEST_EQUAL(std::bit_cast<uint32_t>(peak_a + tol), 0x44001524u)
+  TEST_EQUAL(std::bit_cast<uint32_t>(peak_b - tol), 0x447FE3ACu)
+  TEST_EQUAL(std::bit_cast<uint32_t>(peak_b + tol), 0x448011D6u)
+
+  // {peptide index, fragment m/z}. Peptide 11 repeats hi(A), so that some layouts cut a bucket between equal m/z.
+  const std::vector<std::pair<UInt32, float>> fragments {
+    {0, f32(0x43FFAA46u)},  // lo(A) - 1 ulp   511.330261  no match
+    {1, f32(0x43FFAA47u)},  // lo(A)           511.330292  A
+    {2, peak_a},            // peak A itself   511.830292  A
+    {3, f32(0x44001523u)},  // hi(A) - 1 ulp   512.330261  A
+    {4, f32(0x44001524u)},  // hi(A)           512.330322  A (missed by the former test)
+    {5, f32(0x44001525u)},  // hi(A) + 1 ulp   512.330383  no match
+    {6, f32(0x447FE3ABu)},  // lo(B) - 1 ulp   1023.55731  no match (accepted by the former test)
+    {7, f32(0x447FE3ACu)},  // lo(B)           1023.55737  B
+    {8, peak_b},            // peak B itself   1024.05737  B
+    {9, f32(0x448011D6u)},  // hi(B)           1024.55737  B
+    {10, f32(0x448011D7u)}, // hi(B) + 1 ulp   1024.55750  no match
+    {11, f32(0x44001524u)}  // hi(A) again     512.330322  A (missed by the former test)
+  };
+  const std::pair<size_t, size_t> all_peptides {0, fragments.size()};
+
+  FragmentIndex_test fi;
+  Param p = fi.getParameters();
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  fi.setParameters(p);
+
+  // the peptide indices of the matched fragments, ascending
+  const auto matched = [&fi, &all_peptides](float mz)
+  {
+    std::vector<UInt32> peptides;
+    for (const auto& hit : fi.query(Peak1D(mz, 1.0f), all_peptides, 1)) peptides.push_back(hit.peptide_idx);
+    std::sort(peptides.begin(), peptides.end());
+    std::string result;
+    for (const UInt32 peptide : peptides) result += (result.empty() ? "" : ",") + std::to_string(peptide);
+    return result;
+  };
+
+  // bucket sizes 1 (every fragment a bucket of its own, each one on a bucket boundary) to 12 (a single bucket)
+  for (size_t bucketsize = 1; bucketsize <= fragments.size(); ++bucketsize)
+  {
+    fi.installFragments(fragments, bucketsize);
+    TEST_EQUAL(matched(peak_a), "1,2,3,4,11")
+    TEST_EQUAL(matched(peak_b), "7,8,9")
+  }
+}
+END_SECTION
+
+// RT-03 on a built index (buckets of 4096 fragments), through query() and through querySpectrum() (queryPeaks()):
+// peaks whose tolerance window starts or ends exactly on the smallest m/z of a bucket, and peaks a few ulps off
+// them. query() must return, and querySpectrum() must count per candidate, exactly the fragments f with
+// lo <= f <= hi (lo = mz - tol, hi = mz + tol in float). The expectation is computed by brute force over all
+// fragments, without buckets.
+START_SECTION(([EXTRA] fragments on bucket boundaries are matched by query() and querySpectrum() exactly within the tolerance window))
+{
+  const std::vector<FASTAFile::FASTAEntry> entries {
+    {"test1", "test1",
+     "MSDEREVAEAATGEDASSPPPKTEAASDPQHPAASEGAAAAAASPPLLRCLVLTGFGGYDKVKLQSRPAAPPAPGPGQLTLRLRACGLNFADLMARQGLYDRLPPLPVTPGMEGAGVVIAVGEGVSDRKAGDRVMVLNRSGMWQE"
+     "EVTVPSVQTFLIPEAMTFEEAAALLVNYITAYMVLFDFGNLQPGHSVLVHMAAGGVGMAAVQLCRTVENVTVFGTASASKHEALKENGVTHPIDYHTTDYVDEIKKISPKGVDIVMDPLGGSDTAKGYNLLKPMGKVVTYGMANL"
+     "LTGPKRNLMALARTWWNQFSVTALQLLQANRAVCGFHLGYLDGEVELVSGVVARLLALYNQGHIKPHIDSVWPFEKVADAMKQMQEKKNVGKVLLVPGPEKEN"}};
+
+  FragmentIndex_test fi;
+  Param p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none"); // many peptides, so that the index has many buckets
+  p.setValue("peptide:min_size", 7);
+  p.setValue("peptide:max_size", 20);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:max_mz", 90000);
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  p.setValue("fragment:min_matched_ions", 1);
+  p.setValue("precursor:mass_tolerance_lower", 0.01);
+  p.setValue("precursor:mass_tolerance_upper", 0.01);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("scoring:max_candidates_per_spectrum", 1000000); // no candidate cap
+  p.setValue("modifications:variable", std::vector<std::string> {});
+  p.setValue("modifications:fixed", std::vector<std::string> {});
+  fi.setParameters(p);
+  fi.build(entries);
+
+  using MatchList = std::vector<std::pair<UInt32, float>>; // {peptide index, fragment m/z}
+  const auto& fragments = fi.getFragments();
+  const auto& bucket_min_mz = fi.getBucketMinMz();
+  const size_t bucketsize = fi.getBucketSize();
+  const size_t num_buckets = bucket_min_mz.size();
+  const std::pair<size_t, size_t> all_peptides {0, fi.getPeptides().size()};
+  const float tol = 0.5f;
+  TEST_EQUAL(num_buckets >= 9, true) // 8 boundaries below need 9 buckets (with stride 1 up to 17 buckets)
+
+  const auto expectedMatches = [&fragments](float lo, float hi)
+  {
+    MatchList expected;
+    for (const auto& f : fragments)
+    {
+      if (f.fragment_mz_ >= lo && f.fragment_mz_ <= hi) expected.emplace_back(f.peptide_idx_, f.fragment_mz_);
+    }
+    std::sort(expected.begin(), expected.end());
+    return expected;
+  };
+
+  bool layout_ok = true;   // bucket k starts at bucket_min_mz[k]; nothing in bucket k - 1 lies above it
+  bool query_ok = true;    // query() returns exactly the expected fragments
+  bool spectrum_ok = true; // querySpectrum() counts exactly the expected fragments of every candidate it returns
+  bool owner_ok = true;    // ... and returns the peptide of the boundary fragment iff that one has a match
+  bool bound_ok = true;    // a fragment exactly on a window bound is matched
+  size_t boundaries = 0, on_upper_bound = 0, on_lower_bound = 0;
+  const size_t stride = std::max<size_t>(1, (num_buckets - 1) / 16);
+  for (size_t k = 1; k < num_buckets; k += stride)
+  {
+    ++boundaries;
+    const float boundary = bucket_min_mz[k];
+    UInt32 owner = std::numeric_limits<UInt32>::max(); // a peptide with a fragment at the boundary
+    for (size_t i = k * bucketsize; i < std::min((k + 1) * bucketsize, fragments.size()); ++i)
+    {
+      layout_ok &= fragments[i].fragment_mz_ >= boundary;
+      if (fragments[i].fragment_mz_ == boundary) owner = std::min(owner, fragments[i].peptide_idx_);
+    }
+    for (size_t i = (k - 1) * bucketsize; i < k * bucketsize; ++i) layout_ok &= fragments[i].fragment_mz_ <= boundary;
+    layout_ok &= owner != std::numeric_limits<UInt32>::max();
+    if (owner == std::numeric_limits<UInt32>::max()) continue;
+
+    // boundary - tol is exact (boundary < 2^22, so 0.5 is a multiple of its ulp): the window of that peak ends on it
+    const float upper_center = boundary - tol;
+    const float lower_center = boundary + tol;
+    TEST_EQUAL(upper_center + tol == boundary, true)
+    for (const float center : {upper_center, lower_center})
+    {
+      float mz = center;
+      for (int i = 0; i < 3; ++i) mz = std::nextafter(mz, 0.0f);
+      for (int i = -3; i <= 3; ++i, mz = std::nextafter(mz, std::numeric_limits<float>::max()))
+      {
+        const float lo = mz - tol;
+        const float hi = mz + tol;
+        const MatchList expected = expectedMatches(lo, hi);
+        const Peak1D peak(mz, 1.0f);
+
+        MatchList got;
+        for (const auto& hit : fi.query(peak, all_peptides, 1)) got.emplace_back(hit.peptide_idx, hit.fragment_mz);
+        std::sort(got.begin(), got.end());
+        query_ok &= (got == expected);
+
+        if (hi == boundary || lo == boundary)
+        {
+          (hi == boundary ? on_upper_bound : on_lower_bound) += 1;
+          bound_ok &= std::find(got.begin(), got.end(), std::make_pair(owner, boundary)) != got.end();
+        }
+
+        // querySpectrum(): one peak, the precursor of the boundary fragment's peptide at charge 1
+        std::map<size_t, uint32_t> expected_count;
+        for (const auto& match : expected) ++expected_count[match.first];
+        MSSpectrum spectrum;
+        spectrum.setMSLevel(2);
+        Precursor precursor;
+        precursor.setCharge(1);
+        precursor.setMZ(fi.getPeptides()[owner].precursor_mz_);
+        spectrum.setPrecursors({precursor});
+        spectrum.push_back(peak);
+        FragmentIndex::SpectrumMatchesTopN sms;
+        fi.querySpectrum(spectrum, sms);
+        bool owner_found = false;
+        for (const auto& sm : sms.hits_)
+        {
+          const auto it = expected_count.find(sm.peptide_idx_);
+          spectrum_ok &= (it != expected_count.end() && sm.num_matched_ == it->second);
+          owner_found |= (sm.peptide_idx_ == owner);
+        }
+        owner_ok &= (owner_found == (expected_count.count(owner) > 0));
+      }
+    }
+  }
+  TEST_EQUAL(layout_ok, true)
+  TEST_EQUAL(query_ok, true)
+  TEST_EQUAL(spectrum_ok, true)
+  TEST_EQUAL(owner_ok, true)
+  TEST_EQUAL(bound_ok, true)
+  TEST_EQUAL(boundaries >= 8, true)
+  TEST_EQUAL(on_upper_bound >= boundaries, true) // the peak upper_center ends its window on every boundary
+  TEST_EQUAL(on_lower_bound > 0, true)
 }
 END_SECTION
 
