@@ -123,8 +123,8 @@ namespace
     for (const auto& result : manifest.at("inference"))
     {
       const auto& tables = result.at("tables");
-      if (!tables.is_object() || tables.size() != 6) invalid("Inference requires six typed tables");
-      for (const auto* name : {"inputs", "input_members", "proteins", "groups", "group_members", "assignments"}) claim(tables.at(name), partition);
+      if (!tables.is_object() || tables.size() != 5) invalid("Inference requires five typed tables");
+      for (const auto* name : {"inputs", "input_members", "proteins", "groups", "assignments"}) claim(tables.at(name), partition);
       ++partition;
     }
     for (auto& [name, slices] : ranges)

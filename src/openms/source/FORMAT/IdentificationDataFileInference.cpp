@@ -469,14 +469,34 @@ namespace
   }
   std::shared_ptr<arrow::Schema> groupsSchema()
   {
+    const auto members = listOf(arrow::struct_({required("alias", arrow::utf8()), arrow::field("identity", identityType())}));
     return arrow::schema({required("group_id", arrow::uint64()), required("kind", arrow::uint8()), required("score_bits", arrow::uint64()),
-                          required("member_count", arrow::uint64()), required("float_arrays", dataArrayType(arrow::uint32())),
+                          required("members", members), required("float_arrays", dataArrayType(arrow::uint32())),
                           required("integer_arrays", dataArrayType(arrow::int32())), required("string_arrays", dataArrayType(arrow::utf8()))});
   }
-  std::shared_ptr<arrow::Schema> groupMembersSchema()
+  // Membership order and duplicate aliases are meaningful and are retained by the list.
+  void readGroupMembers(const arrow::Array& array, int64_t row, ProteinIdentification::ProteinGroup& group,
+                        ID::InferenceResult* result, Size bytes, const Options& options)
   {
-    return arrow::schema({required("group_id", arrow::uint64()), required("ordinal", arrow::uint64()), required("alias", arrow::utf8()),
-                          arrow::field("identity", identityType())});
+    ListView members(array, row);
+    requirePayload(bytes, options);
+    for (int64_t i = members.begin; i < members.end; ++i)
+    {
+      const auto& fields = structure(members.values, i);
+      const auto alias = text(*fields.field(0), i);
+      bytes += 16 + alias.size();
+      if (!fields.field(1)->IsNull(i))
+      {
+        const auto identity = readIdentity(*fields.field(1), i);
+        bytes += identity.database.size() + identity.accession.size();
+      }
+      requirePayload(bytes, options);
+      if (result)
+      {
+        readAlias(*fields.field(1), i, alias, *result);
+        group.accessions.push_back(alias);
+      }
+    }
   }
   std::shared_ptr<arrow::Schema> assignmentsSchema()
   {
@@ -710,42 +730,36 @@ Json writeInference(const std::filesystem::path& directory, const ID::InferenceR
   }
   {
     TableWriter groups(directory / "groups.parquet", groupsSchema(), options);
-    TableWriter members(directory / "group_members.parquet", groupMembersSchema(), options);
     UInt64 group_id = 0;
     unsigned kind = 0;
     for (const auto* collection : {&result.proteins.getProteinGroups(), &result.proteins.getIndistinguishableProteins()})
     {
       for (const auto& group : *collection)
       {
-        append<arrow::UInt64Builder>(groups.column(0), group_id);
+        append<arrow::UInt64Builder>(groups.column(0), group_id++);
         append<arrow::UInt8Builder>(groups.column(1), kind);
         appendReal(groups.column(2), group.probability);
-        append<arrow::UInt64Builder>(groups.column(3), group.accessions.size());
         Size bytes = 32;
         bytes += appendArrays<arrow::FloatBuilder>(groups.column(4), group.getFloatDataArrays(), dictionary);
         bytes += appendArrays<arrow::Int32Builder>(groups.column(5), group.getIntegerDataArrays(), dictionary);
         bytes += appendArrays<arrow::StringBuilder>(groups.column(6), group.getStringDataArrays(), dictionary);
-        groups.finishRow(bytes);
-        UInt64 ordinal = 0;
+        auto& members = beginList(groups.column(3));
         for (const auto& alias : group.accessions)
         {
-          append<arrow::UInt64Builder>(members.column(0), group_id);
-          append<arrow::UInt64Builder>(members.column(1), ordinal++);
-          appendText(members.column(2), alias);
-          appendAlias(members.column(3), alias, result, emitted_aliases);
-          Size member_bytes = 32 + alias.size();
+          bytes += 16 + alias.size();
           const auto identity = result.qualified_accessions.find(alias);
-          if (identity != result.qualified_accessions.end()) member_bytes += identity->second.database.size() + identity->second.accession.size();
-          members.finishRow(member_bytes);
+          if (identity != result.qualified_accessions.end()) bytes += identity->second.database.size() + identity->second.accession.size();
+          requirePayload(bytes, options);
+          auto& fields = beginStruct(members);
+          appendText(*fields.field_builder(0), alias);
+          appendAlias(*fields.field_builder(1), alias, result, emitted_aliases);
         }
-        ++group_id;
+        groups.finishRow(bytes);
       }
       ++kind;
     }
     groups.close();
-    members.close();
     recordTable("groups", groups);
-    recordTable("group_members", members);
   }
   if (emitted_aliases.size() != result.qualified_accessions.size())
     invalid("Qualified protein alias is unused by both hits and groups; this format cannot represent detached aliases");
@@ -895,7 +909,6 @@ void validateInferenceTables(const std::filesystem::path& directory,
   }
   {
     auto groups = open("groups", groupsSchema());
-    auto members = open("group_members", groupMembersSchema());
     UInt64 next_group = 0;
     unsigned previous_kind = 0;
     while (groups.next())
@@ -908,27 +921,12 @@ void validateInferenceTables(const std::filesystem::path& directory,
       previous_kind = kind;
       ProteinIdentification::ProteinGroup group;
       group.probability = readReal(groups.column(2), row);
-      const auto count = number<arrow::UInt64Array>(groups.column(3), row);
       readArrays<arrow::FloatArray>(groups.column(4), row, group.getFloatDataArrays(), dictionary);
       readArrays<arrow::Int32Array>(groups.column(5), row, group.getIntegerDataArrays(), dictionary);
       readArrays<arrow::StringArray>(groups.column(6), row, group.getStringDataArrays(), dictionary);
-      requirePayload(32 + arrayBytes(group.getFloatDataArrays()) + arrayBytes(group.getIntegerDataArrays()) + arrayBytes(group.getStringDataArrays()),
-                     options);
-      for (UInt64 ordinal = 0; ordinal < count; ++ordinal)
-      {
-        if (! members.next()) invalid("Missing protein group member");
-        requireOrdinal(number<arrow::UInt64Array>(members.column(0), members.row()), id);
-        requireOrdinal(number<arrow::UInt64Array>(members.column(1), members.row()), ordinal);
-        Size bytes = 32 + text(members.column(2), members.row()).size();
-        if (! members.column(3).IsNull(members.row()))
-        {
-          const auto identity = readIdentity(members.column(3), members.row());
-          bytes += identity.database.size() + identity.accession.size();
-        }
-        requirePayload(bytes, options);
-      }
+      readGroupMembers(groups.column(3), row, group, nullptr,
+                       32 + arrayBytes(group.getFloatDataArrays()) + arrayBytes(group.getIntegerDataArrays()) + arrayBytes(group.getStringDataArrays()), options);
     }
-    if (members.next()) invalid("Unexpected extra protein group members");
   }
   {
     auto assignments = open("assignments", assignmentsSchema());
@@ -1041,8 +1039,7 @@ ID::InferenceResult readInference(const std::filesystem::path& directory, const 
   }
   {
     TableReader groups(directory, reference("groups"), groupsSchema(), options);
-    TableReader members(directory, reference("group_members"), groupMembersSchema(), options);
-    UInt64 group_count = 0, member_count = 0;
+    UInt64 group_count = 0;
     unsigned previous_kind = 0;
     while (groups.next())
     {
@@ -1054,33 +1051,16 @@ ID::InferenceResult readInference(const std::filesystem::path& directory, const 
       previous_kind = kind;
       ProteinIdentification::ProteinGroup group;
       group.probability = readReal(groups.column(2), row);
-      const auto expected = number<arrow::UInt64Array>(groups.column(3), row);
       readArrays<arrow::FloatArray>(groups.column(4), row, group.getFloatDataArrays(), dictionary);
       readArrays<arrow::Int32Array>(groups.column(5), row, group.getIntegerDataArrays(), dictionary);
       readArrays<arrow::StringArray>(groups.column(6), row, group.getStringDataArrays(), dictionary);
-      requirePayload(32 + arrayBytes(group.getFloatDataArrays()) + arrayBytes(group.getIntegerDataArrays()) + arrayBytes(group.getStringDataArrays()),
-                     options);
-      for (UInt64 ordinal = 0; ordinal < expected; ++ordinal)
-      {
-        if (! members.next()) invalid("Missing protein group member");
-        requireOrdinal(number<arrow::UInt64Array>(members.column(0), members.row()), group_id);
-        requireOrdinal(number<arrow::UInt64Array>(members.column(1), members.row()), ordinal);
-        const auto alias = text(members.column(2), members.row());
-        readAlias(members.column(3), members.row(), alias, result);
-        Size bytes = 32 + alias.size();
-        const auto identity = result.qualified_accessions.find(alias);
-        if (identity != result.qualified_accessions.end()) bytes += identity->second.database.size() + identity->second.accession.size();
-        requirePayload(bytes, options);
-        group.accessions.push_back(alias);
-        ++member_count;
-      }
+      readGroupMembers(groups.column(3), row, group, &result,
+                       32 + arrayBytes(group.getFloatDataArrays()) + arrayBytes(group.getIntegerDataArrays()) + arrayBytes(group.getStringDataArrays()), options);
       if (kind == 0) result.proteins.insertProteinGroup(group);
       else
         result.proteins.insertIndistinguishableProteins(group);
     }
-    if (members.next()) invalid("Unexpected extra protein group members");
     count("groups", group_count);
-    count("group_members", member_count);
   }
   {
     TableReader assignments(directory, reference("assignments"), assignmentsSchema(), options);

@@ -38,8 +38,7 @@ The manifest identifies every run/result and its table slices: relative physical
 | `inputs-0.parquet` | Ordered contributing runs and exact input score definitions |
 | `input_members-0.parquet` | Ordered candidate memberships |
 | `proteins-0.parquet` | Inferred protein hits |
-| `groups-0.parquet` | Protein group values and ordering |
-| `group_members-0.parquet` | Ordered members of each group |
+| `groups-0.parquet` | Protein group values, ordering and an inline ordered member list |
 | `assignments-0.parquet` | Ordered match assignments with a typed parent list, including empty lists |
 
 Use one physical file per compatible table schema, with multiple Parquet row groups. Small runs and inference results share row groups. Query, match and parent rows carry `run_id`; inference rows carry `inference_id`. Different complete supplementary score layouts use separate match files (`matches-1.parquet`, etc.), preserving dense numeric columns and their definitions. Files do not multiply with the number of compatible runs. Size-based file sharding remains outside this initial implementation.
@@ -48,7 +47,7 @@ Keep JSON for configuration whose size follows the number of runs, sources, scor
 
 The manifest stores small inference-result descriptors: result ID, display identifier, algorithm/parameters, output score definitions, metadata descriptors and table paths. Detailed per-protein/group metadata is stored with its table rows.
 
-Every run declares query and match slices, even when they contain zero rows. An omitted parent table means no parent catalogue was supplied; a declared zero-row table means a supplied catalogue was empty. Every inference result declares slices in the six shared tables above; unused collections have zero-row slices. An identification-only dataset has an empty result list and no inference tables. Missing declared files are errors.
+Every run declares query and match slices, even when they contain zero rows. An omitted parent table means no parent catalogue was supplied; a declared zero-row table means a supplied catalogue was empty. Every inference result declares slices in the five shared tables above; unused collections have zero-row slices. An identification-only dataset has an empty result list and no inference tables. Missing declared files are errors.
 
 ## 4. Core tables
 
@@ -115,18 +114,17 @@ Editing metadata, scores or candidate payloads uses the owning API's validity ru
 
 Inference results belong to the dataset, independently of individual runs. One result can combine any number of analysis runs and stores its protein/group output once.
 
-The six inference files use result-local keys and explicit ordinals. Reuse the supported OpenMS protein field definitions and typed metadata codecs. Large membership and group-member collections are rows in child tables, never one dataset-sized list cell. Each assignment is one row with its ordered typed parent list; this list has the same individual-payload memory consideration as a match's original parent evidence.
+The five inference files use result-local keys and explicit ordinals. Reuse the supported OpenMS protein field definitions and typed metadata codecs. Potentially dataset-sized PSM input memberships remain rows in a child table. Each protein group stores its ordered members directly in an Arrow list of structs (original alias and optional qualified identity). List order preserves duplicates and an empty list preserves an empty group. Group membership needs no separate file, join key, ordinal or member-count column. Like each assignment's parent list, a complete group row is subject to `max_record_bytes`.
 
 | Table | Required content |
 | --- | --- |
 | `inputs` | Input ID/order, run UUID, optional exact score definition, selection provenance, membership-known flag, member count when known |
 | `input_members` | Input ID, member ordinal, match ID; preserve order and duplicates |
 | `proteins` | Result-local protein key/order, qualified identity, original alias, supported ProteinHit values and typed metadata |
-| `groups` | Group key/order, general or indistinguishable kind, original score with declared meaning, member count |
-| `group_members` | Group key, member ordinal, original alias and optional qualified identity; do not require an invented protein hit |
+| `groups` | Group key/order, general or indistinguishable kind, original score, typed arrays, and `members: list<struct<alias, identity?>>`; group-only aliases do not require an invented protein hit |
 | `assignments` | Assignment key/order, run UUID, match ID, optional input ID and ordered list of qualified parents |
 
-Child rows are grouped by their input or group header and follow its recorded order/count. They can be consumed sequentially without an inference-wide hash join.
+Input-membership child rows are grouped by their input header and follow its recorded order/count. They can be consumed sequentially without an inference-wide hash join.
 
 Membership means the candidates considered by the calculation; it is distinct from winning candidates and protein assignments. A known empty membership differs from unknown membership. An assignment row with an empty parent list differs from an absent assignment. Missing membership rows never mean all current matches. If an imported result supplies only run-level provenance, preserve that limitation rather than inventing exact membership.
 

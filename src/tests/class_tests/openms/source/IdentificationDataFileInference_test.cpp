@@ -213,6 +213,36 @@ void replaceJsonNumber(const fs::path& path, const std::string& key, const std::
 
 START_TEST(IdentificationDataFileInference, "$Id$")
 
+START_SECTION((inline group membership obeys the whole-record size limit))
+{
+  ID data;
+  ID::InferenceResult result;
+  result.identifier = "large group";
+  ProteinIdentification::ProteinGroup group;
+  group.accessions.assign(20, std::string(64, 'A'));
+  result.proteins.insertProteinGroup(group);
+  data.addInferenceResult(result);
+  std::string path, rejected, filtered;
+  NEW_TMP_FILE(path)
+  NEW_TMP_FILE(rejected)
+  NEW_TMP_FILE(filtered)
+  RemoveDirectory cleanup {path}, cleanup_rejected {rejected}, cleanup_filtered {filtered};
+  IdentificationDataFile::Options small;
+  small.max_record_bytes = 256;
+  TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataFile::store(rejected, data, small))
+  TEST_FALSE(fs::exists(rejected))
+  IdentificationDataFile::store(path, data);
+  ID destination;
+  destination.addRun("unchanged");
+  TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataFile::load(path, destination, small))
+  TEST_EQUAL(destination.getRuns().size(), 1)
+  TEST_EQUAL(destination.getRuns().front().getIdentifier(), "unchanged")
+  TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataFile::filter(path, filtered,
+    [](const auto&, const auto&) { return true; }, ID::InferencePolicy::PRESERVE, false, small))
+  TEST_FALSE(fs::exists(filtered))
+}
+END_SECTION
+
 START_SECTION((multiple inference results share files without mixing rows or metadata))
 {
   ID data;
@@ -423,10 +453,11 @@ START_SECTION((empty inference tables and optional parent catalogue have distinc
   TEST_EQUAL(loaded.getInferenceResults()[0].inputs.size(), 0)
   TEST_EQUAL(loaded.getInferenceResults()[0].assignments.size(), 0)
   TEST_TRUE(loaded.getInferenceResults()[0].proteins == inference_result.proteins)
-  for (const std::string table : {"inputs", "input_members", "proteins", "groups", "group_members", "assignments"})
+  for (const std::string table : {"inputs", "input_members", "proteins", "groups", "assignments"})
   {
     TEST_TRUE(fs::exists(fs::path(path) / (table + "-0.parquet")))
   }
+  TEST_FALSE(fs::exists(fs::path(path) / "group_members-0.parquet"))
   fs::remove(fs::path(path) / "assignments-0.parquet");
   const auto saved_uuid = loaded.getRun("no catalogue").getUuid();
   TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataFile::load(path, loaded))

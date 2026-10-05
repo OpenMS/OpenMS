@@ -117,3 +117,13 @@ For 1,000 runs, native writing improves from 16.86 s to 5.36 s (3.15×), full lo
 All common-content digests agree before and after conversion/roundtrip. All 11 focused C++ suites and 16 Python binding tests pass. Added regressions exercise shared row groups crossing run boundaries, differing supplementary schemas, single-run selection, per-run metadata dictionaries, filtering, and multiple inference results in shared files. No production timing instrumentation remains.
 
 Raw observations are in `tools/benchmarks/identification_data/results/`: these record phase timings, process RSS, count/score/content digests and dataset dimensions. Absolute temporary output paths have been shortened to basenames; measured values are unchanged.
+
+## Subsequent format simplification
+
+Protein group members are now stored directly in each group row as a typed ordered
+list. The separate group_members table and redundant member counts/ordinals are
+removed. The benchmark layout above therefore has **nine files** in the current
+format (eight Parquet tables plus the manifest). The timing and byte-size figures
+above were measured immediately before this simplification and have not been
+relabelled as new measurements. PSM input membership remains a separate table
+because it can grow with the entire dataset rather than with one protein group.

@@ -165,3 +165,17 @@ from 79.65 MB to 15.48 MB, and file count from 9,001 to 10. Writing is now compa
 to existing PSM Parquet; full loading remains slower. Earlier timings above describe
 the prior format/workloads. See `identification_data_legacy_comparison.md` and the
 benchmark's `results/` directory for methods, limitations and raw observations.
+
+## Inline protein-group membership (2026-10-05)
+
+Group membership now uses an ordered Arrow list in the group row. The separate
+member table, join keys, member ordinals and redundant member counts are removed.
+Aliases without protein hits, optional qualified identities, duplicates, ordering,
+empty groups, scores and typed arrays roundtrip unchanged. The whole group row is
+checked against max_record_bytes during writing, owning loading and filtering.
+
+The Release library and affected inference suite were rebuilt. All 11 focused C++
+suites and 16 Python binding tests pass. A 1,000-PSM / 10-run roundtrip retains the
+content digest; independent PyArrow inspection confirms the nested member schema
+and nine output files. Previous million-PSM timings describe the shared-file layout
+immediately before this membership simplification; no new speedup is claimed.
