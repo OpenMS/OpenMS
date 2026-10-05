@@ -395,6 +395,15 @@ namespace OpenMS
   EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const
   {
     validateSatelliteIon_(type);
+    const auto requireKnownFormula = [this](const ResidueModification* mod)
+    {
+      if (mod != nullptr && mod->getProvenance() == ResidueModification::MASS_ONLY && mod->getDiffFormula().isEmpty())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Cannot calculate an empirical formula for a mass-only modification.", toString());
+      }
+    };
+
     if (!peptide_.empty())
     {
       // Initialize with the missing/additional protons
@@ -408,6 +417,7 @@ namespace OpenMS
          type == Residue::DIon ||
          type == Residue::NTerminal))
       {
+        requireKnownFormula(n_term_mod_);
         ef += n_term_mod_->getDiffFormula();
       }
 
@@ -419,6 +429,7 @@ namespace OpenMS
          type == Residue::VIon || type == Residue::WIon ||
          type == Residue::CTerminal))
       {
+        requireKnownFormula(c_term_mod_);
         ef += c_term_mod_->getDiffFormula();
       }
 
@@ -432,6 +443,7 @@ namespace OpenMS
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get EF of sequence with unknown AA 'X'.", toString());
         }
+        requireKnownFormula(e->getModification());
         ef += e->getFormula(Residue::Internal);
       }
 
