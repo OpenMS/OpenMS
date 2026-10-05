@@ -1247,7 +1247,7 @@ namespace OpenMS
 
         // get isotope distribution for peptide:
         Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
-        const CoarseIsotopePatternGenerator isotope_generator(n_isotopes);
+        CoarseIsotopePatternGenerator isotope_generator(n_isotopes);
         IsotopeDistribution iso_dist;
         try
         {
