@@ -4920,7 +4920,7 @@
 			<intensity>4.899552e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>3.004232</overallquality>
+			<overallquality>3.040161</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1675.191650390625" y="613.256595758721005" />
@@ -5023,7 +5023,7 @@
 					<UserParam type="float" name="width_at_50" value="15.2265625"/>
 					<UserParam type="float" name="logSN" value="3.911296799772641"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.588535189628601"/>
+					<UserParam type="float" name="isotope_probability" value="0.603063762187958"/>
 				</feature>
 				<feature id="f_1339341489815824759_5106727040801878879">
 					<position dim="0">1696.521615404302793</position>

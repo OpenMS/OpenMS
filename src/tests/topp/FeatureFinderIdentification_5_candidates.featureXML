@@ -5924,7 +5924,7 @@
 			<intensity>3.443297e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>3.004232</overallquality>
+			<overallquality>3.040161</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1675.191650390625" y="613.256595758721005" />
@@ -6027,7 +6027,7 @@
 					<UserParam type="float" name="width_at_50" value="15.2265625"/>
 					<UserParam type="float" name="logSN" value="3.911296799772641"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.588535189628601"/>
+					<UserParam type="float" name="isotope_probability" value="0.603063762187958"/>
 				</feature>
 				<feature id="f_12388384985798314387_2608380305220684729">
 					<position dim="0">1696.521615404302793</position>
@@ -6223,7 +6223,7 @@
 					<UserParam type="float" name="width_at_50" value="38.525390625"/>
 					<UserParam type="float" name="logSN" value="1.717557861608745"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.588535189628601"/>
+					<UserParam type="float" name="isotope_probability" value="0.603063762187958"/>
 				</feature>
 				<feature id="f_4041634828915281168_7344192187426184761">
 					<position dim="0">1804.181993220353206</position>
@@ -6351,7 +6351,7 @@
 					<UserParam type="float" name="width_at_50" value="15.237548828119998"/>
 					<UserParam type="float" name="logSN" value="1.327397127750002"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.588535189628601"/>
+					<UserParam type="float" name="isotope_probability" value="0.603063762187958"/>
 				</feature>
 				<feature id="f_5106727040801878879_12049315334424432437">
 					<position dim="0">1877.202844962799645</position>
@@ -6468,7 +6468,7 @@
 					<UserParam type="float" name="width_at_50" value="13.64697265625"/>
 					<UserParam type="float" name="logSN" value="1.513392896237561"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.588535189628601"/>
+					<UserParam type="float" name="isotope_probability" value="0.603063762187958"/>
 				</feature>
 				<feature id="f_17078574238716611972_2130311522918743509">
 					<position dim="0">1889.665158985304515</position>
@@ -6585,7 +6585,7 @@
 					<UserParam type="float" name="width_at_50" value="16.851196289059999"/>
 					<UserParam type="float" name="logSN" value="1.298222697243348"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.588535189628601"/>
+					<UserParam type="float" name="isotope_probability" value="0.603063762187958"/>
 				</feature>
 				<feature id="f_18390135059454481268_16616557306000669869">
 					<position dim="0">1920.453291711741258</position>
