@@ -1247,8 +1247,18 @@ namespace OpenMS
 
         // get isotope distribution for peptide:
         Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
-        IsotopeDistribution iso_dist =
-            seq.getFormula(Residue::Full, 0).getIsotopeDistribution(CoarseIsotopePatternGenerator(n_isotopes));
+        const CoarseIsotopePatternGenerator isotope_generator(n_isotopes);
+        IsotopeDistribution iso_dist;
+        try
+        {
+          iso_dist = seq.getFormula(Residue::Full, 0).getIsotopeDistribution(isotope_generator);
+        }
+        catch (const Exception::InvalidValue&)
+        {
+          // A mass-only modification has no exact composition. Estimate the full peptide
+          // envelope from its correct monoisotopic mass instead of using an incomplete formula.
+          iso_dist = isotope_generator.estimateFromPeptideMonoWeight(seq.getMonoWeight());
+        }
         if (isotope_pmin_ > 0.0)
         {
           iso_dist.trimLeft(isotope_pmin_);

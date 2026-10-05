@@ -361,6 +361,12 @@ START_SECTION((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::
   TEST_EQUAL(w3_suffix.toString(), "CAK")
   TEST_EQUAL(w3_suffix.getFormula(Residue::WIon, 0), EmpiricalFormula("C12H21N3O4"))
   TEST_NOT_EQUAL(w3_suffix.getFormula(Residue::WIon, 0), EmpiricalFormula("C12H20N3O4"))
+
+  // A mass-only shift has no exact elemental composition and must not silently disappear.
+  AASequence mass_only_mod = AASequence::fromString("AEADNLDDKK");
+  mass_only_mod.setModificationByDiffMonoMass(8, 306.025304840900048);
+  TEST_REAL_SIMILAR(mass_only_mod.getMonoWeight() - AASequence::fromString("AEADNLDDKK").getMonoWeight(), 306.025304840900048)
+  TEST_EXCEPTION(Exception::InvalidValue, mass_only_mod.getFormula())
 END_SECTION
 
 START_SECTION((double getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))

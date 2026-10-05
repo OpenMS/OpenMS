@@ -476,6 +476,7 @@ protected:
     const Residue& getResidue(Size index) const;
 
     /// returns the formula of the peptide
+    /// @throws Exception::InvalidValue if a mass-only modification has no known empirical formula.
     EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
     /// returns the average weight of the peptide
