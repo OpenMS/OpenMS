@@ -33,6 +33,7 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <functional>
 #include <limits>
@@ -4719,6 +4720,74 @@ START_SECTION(([EXTRA] self-trained ion priors are cross-fitted: the features of
     }
     TEST_EQUAL(same_half_changed, 0)
     TEST_TRUE(other_half_changed > 0)
+  }
+
+  // The run-level gate (annotate:ion_prior_min_psms applies to each half) is where the labels of a half reach its own
+  // features. With the minimum at the training count of the smaller half, the search is trained and its features are
+  // those of any lower minimum; flipping the label of that half's best target leaves the half below the minimum, and
+  // every feature of BOTH halves falls back to 0, those of the half whose label changed included.
+  {
+    std::vector<ProteinIdentification> proteins = prot_ids;
+    PeptideIdentificationList ids = pep_ids;
+    algo.annotateIonPriors_(preprocessed, evidence, proteins, ids);
+    const IntList folds = proteins[0].getSearchParameters().getMetaValue("ion_prior:fold_training_psms");
+    ABORT_IF(folds.size() != 2)
+    const Size gate_fold = folds[0] <= folds[1] ? 0 : 1;
+    const Size min_psms = static_cast<Size>(folds[gate_fold]);
+    ABORT_IF(min_psms < 1)
+
+    ProSEAlgorithm_test gated;
+    configure_ion_prior_params_(gated, min_psms, 0.5);
+    std::vector<ProteinIdentification> at_gate_proteins = prot_ids;
+    PeptideIdentificationList at_gate = pep_ids;
+    gated.annotateIonPriors_(preprocessed, evidence, at_gate_proteins, at_gate);
+    TEST_STRING_EQUAL(at_gate_proteins[0].getSearchParameters().getMetaValue("ion_prior:trained").toString(), "true")
+    TEST_EQUAL(ion_prior_rows_(at_gate) == ion_prior_rows_(reference), true)
+
+    PeptideIdentificationList flipped = pep_ids;
+    Size best = flipped.size();
+    double best_score = -std::numeric_limits<double>::infinity();
+    for (Size i = 0; i < flipped.size(); ++i)
+    {
+      if (flipped[i].getHits().empty()) continue;
+      const Size scan = static_cast<int>(flipped[i].getMetaValue("scan_index"));
+      const PeptideHit& top_hit = flipped[i].getHits()[0];
+      if (scan % 2 != gate_fold || top_hit.getMetaValue("target_decoy").toString() == "decoy") continue;
+      if (top_hit.getScore() > best_score) { best_score = top_hit.getScore(); best = i; }
+    }
+    ABORT_IF(best == flipped.size())
+    flipped[best].getHits()[0].setMetaValue("target_decoy", "decoy");
+    std::vector<ProteinIdentification> flipped_proteins = prot_ids;
+    gated.annotateIonPriors_(preprocessed, evidence, flipped_proteins, flipped);
+    const auto& sp = flipped_proteins[0].getSearchParameters();
+    TEST_STRING_EQUAL(sp.getMetaValue("ion_prior:trained").toString(), "false")
+    const IntList flipped_folds = sp.getMetaValue("ion_prior:fold_training_psms");
+    ABORT_IF(flipped_folds.size() != 2)
+    TEST_TRUE(static_cast<Size>(flipped_folds[gate_fold]) < min_psms)
+    // the all-zero fallback: every hit keeps the complete feature columns, all of them 0
+    const auto [flipped_hits, flipped_violations] = check_ion_prior_annotations_(flipped, true);
+    TEST_EQUAL(flipped_hits, hits)
+    TEST_EQUAL(flipped_violations, 0)
+    // ... which changes features in both halves: the trained features were not all 0
+    ABORT_IF(flipped.size() != reference.size())
+    std::array<Size, 2> changed{0, 0};
+    for (Size i = 0; i < flipped.size(); ++i)
+    {
+      if (flipped[i].getHits().empty()) continue;
+      const Size scan = static_cast<int>(flipped[i].getMetaValue("scan_index"));
+      bool differs = false;
+      for (Size h = 0; h < flipped[i].getHits().size(); ++h)
+      {
+        for (const std::string& feature : ion_prior_features_)
+        {
+          differs = differs || static_cast<double>(flipped[i].getHits()[h].getMetaValue(feature))
+                                 != static_cast<double>(reference[i].getHits()[h].getMetaValue(feature));
+        }
+      }
+      if (differs) ++changed[scan % 2];
+    }
+    TEST_TRUE(changed[0] > 0)
+    TEST_TRUE(changed[1] > 0)
   }
 
   // A half without a decoy hit still has the target-decoy estimate (0 + 1) / T of a search with decoys: with every

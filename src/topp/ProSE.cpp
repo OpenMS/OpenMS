@@ -94,9 +94,10 @@ complementary ion (`Search:annotate:ion_prior_model` 'rich'; 'basic' keeps serie
 only). The model learns from the confident target PSMs (target-decoy competition q <= `Search:annotate:ion_prior_train_fdr`
 of the native score) against their reversed sequences on the same spectra. The spectra are split into two halves by scan
 parity, and every PSM is scored by the model of the other half (cross-fitting), so a PSM's own spectrum and label never
-enter its features. Every PSM gets the Percolator features of `Search:annotate:ion_prior_features` (ion_prior_llr and
+enter the model that scores it. Every PSM gets the Percolator features of `Search:annotate:ion_prior_features` (ion_prior_llr and
 ion_prior_explained); native scores and the reported candidates are unchanged. Nothing is pre-trained: a file with fewer
-than `Search:annotate:ion_prior_min_psms` confident PSMs in either half gets zeros (and a warning). Target-only searches
+than `Search:annotate:ion_prior_min_psms` confident PSMs in either half gets zeros (and a warning); at that boundary a
+single label decides between the features and zeros for the whole file. Target-only searches
 (`Search:decoys` ignore) learn and write nothing. The peak lists are kept in a compact form (m/z and rank, 5 bytes per
 peak) until the PSMs are annotated.
 

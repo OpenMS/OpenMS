@@ -680,13 +680,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * scan_index. Each fold trains its own FragmentIonLikelihoodModel on its rank-one target hits at target-decoy
      * competition q <= annotate:ion_prior_train_fdr of the native score, computed within the fold, with their
      * reversed sequences matched against the same spectra as noise. Every hit is then scored by the model of the
-     * other fold (cross-fitting), so neither a PSM's own spectrum nor its label, nor any label of its fold, enters
-     * its features; targets and decoys are scored alike. Both folds need annotate:ion_prior_min_psms training PSMs
-     * (a fold without a decoy hit has the estimate (0 + 1) / T); otherwise all features are 0 and a warning is logged. Adds the feature names to the search
-     * parameters' extra_features and records the settings that determine the features (annotate:ion_prior_*) and the
-     * training set (ion_prior:*). Native scores and the retained candidates are unchanged. Call after PeptideIndexing
-     * (target/decoy labels) and before FDR (which overwrites the native scores). Does nothing when the ion priors are
-     * off, which includes target-only searches (decoys=ignore).
+     * other fold (cross-fitting), so neither a PSM's own spectrum nor its label, nor any other label of its fold,
+     * enters the model that scores it; targets and decoys are scored alike. Both folds need
+     * annotate:ion_prior_min_psms training PSMs (a fold without a decoy hit has the estimate (0 + 1) / T); otherwise
+     * all features of the file are 0 and a warning is logged. This run-level gate is the one place where the labels
+     * of a fold reach its own features: at the boundary, a single label (in either fold) decides whether both folds
+     * get their cross-fitted features or all zeros. The gate treats targets and decoys alike, but it is not formally
+     * independent of the labels. Adds the feature names to the search parameters' extra_features and records the
+     * settings that determine the features (annotate:ion_prior_*) and the training set (ion_prior:*). Native scores
+     * and the retained candidates are unchanged. Call after PeptideIndexing (target/decoy labels) and before FDR
+     * (which overwrites the native scores). Does nothing when the ion priors are off, which includes target-only
+     * searches (decoys=ignore).
      *
      * @param[in] spectra Preprocessed spectra, indexed by the scan_index meta value of the PSMs (precursor
      *            activation selects the ion series).
