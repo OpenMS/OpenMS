@@ -2177,49 +2177,15 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out3" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
 
-  # Compare the uncapped default with an explicit one-candidate limit. The fixed-size legacy run
-  # above pins its historical cap so feature/chromatogram references remain stable.
-  add_test("TOPP_OpenSwathWorkflow_1_one_candidate" ${TOPP_BIN_PATH}/OpenSwathWorkflow
-    -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML
-    -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML
-    -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML
-    -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_one_candidate.tmp.featureXML
-    -enable_ms1 false
-    -test
-    -mz_extraction_window 0.05
-    -mz_extraction_window_unit Th
-    -ms1_isotopes 0
-    -Scoring:TransitionGroupPicker:compute_peak_quality
-    -Scoring:Scores:use_ms1_mi false
-    -Scoring:Scores:use_mi_score false
-    -Scoring:stop_report_after_feature 1
-    -Calibration:auto_irt:enabled false
-    -Calibration:windows:estimate_rt false
-    -Calibration:windows:estimate_mz false
-    -Calibration:windows:estimate_im false)
-  add_test("TOPP_OpenSwathWorkflow_1_default_candidates" ${TOPP_BIN_PATH}/OpenSwathWorkflow
-    -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML
-    -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML
-    -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML
-    -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_default.tmp.featureXML
-    -enable_ms1 false
-    -test
-    -mz_extraction_window 0.05
-    -mz_extraction_window_unit Th
-    -ms1_isotopes 0
-    -Scoring:TransitionGroupPicker:compute_peak_quality
-    -Scoring:Scores:use_ms1_mi false
-    -Scoring:Scores:use_mi_score false
-    -Calibration:auto_irt:enabled false
-    -Calibration:windows:estimate_rt false
-    -Calibration:windows:estimate_mz false
-    -Calibration:windows:estimate_im false)
-  add_test("TOPP_OpenSwathWorkflow_1_default_candidates_count" ${CMAKE_COMMAND}
-    "-DINPUT=${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_default.tmp.featureXML"
-    "-DREFERENCE=${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_one_candidate.tmp.featureXML"
-    -P "${CMAKE_CURRENT_SOURCE_DIR}/OpenSwathWorkflowCheckCandidates.cmake")
-  set_tests_properties("TOPP_OpenSwathWorkflow_1_default_candidates_count" PROPERTIES
-    DEPENDS "TOPP_OpenSwathWorkflow_1_one_candidate;TOPP_OpenSwathWorkflow_1_default_candidates")
+  # Verify the changed default directly. The sample workflow data does not guarantee multiple
+  # candidates per assay, and featureXML also contains subordinate transition features.
+  add_test("TOPP_OpenSwathWorkflow_default_report_limit" ${TOPP_BIN_PATH}/OpenSwathWorkflow
+    -test -write_ini ${TESTS_TEMP_DIR}/OpenSwathWorkflow_default_report_limit.tmp.ini)
+  add_test("TOPP_OpenSwathWorkflow_default_report_limit_out" ${CMAKE_COMMAND}
+    "-DINPUT=${TESTS_TEMP_DIR}/OpenSwathWorkflow_default_report_limit.tmp.ini"
+    -P "${CMAKE_CURRENT_SOURCE_DIR}/OpenSwathWorkflowCheckDefault.cmake")
+  set_tests_properties("TOPP_OpenSwathWorkflow_default_report_limit_out" PROPERTIES
+    DEPENDS "TOPP_OpenSwathWorkflow_default_report_limit")
 
   add_test("TOPP_OpenSwathWorkflow_1_library_prefilter" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_library_prefilter.tmp.featureXML
     -enable_ms1 "false" -Library:prefilter:enabled -Library:prefilter:ms2_min_fragment_hits "1" -Library:prefilter:min_supported_precursors "1" -mz_extraction_window_ms1 "100000" -mz_extraction_window_ms1_unit "ppm" -irt_mz_extraction_window "100" -irt_mz_extraction_window_unit "Th" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" ${OLD_OSW_PARAM} )
