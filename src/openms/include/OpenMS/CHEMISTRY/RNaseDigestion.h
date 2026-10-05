@@ -10,9 +10,8 @@
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
-#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
-
 #include <OpenMS/DATASTRUCTURES/RegularExpression.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 namespace OpenMS
 {
@@ -40,14 +39,15 @@ namespace OpenMS
     void digest(const NASequence& rna, std::vector<NASequence>& output,
                 Size min_length = 0, Size max_length = 0) const;
 
-    /**
-       @brief Performs the enzymatic digestion of all RNA parent sequences in @p LegacyIdentificationData
-
-       Digestion products are stored as IdentifiedOligos with corresponding ParentMatch annotations.
-       Only fragments of appropriate length (between @p min_length and @p max_length) are included.
-    */
-    void digest(LegacyIdentificationData& id_data, Size min_length = 0,
-                Size max_length = 0) const;
+    /// A deduplicated digestion candidate with owning sequence-to-parent evidence.
+    struct DigestedOligo
+    {
+      NASequence sequence;
+      std::vector<IdentificationData::ParentEvidence> parent_evidence;
+      IdentificationData::TargetDecoy target_decoy = IdentificationData::TargetDecoy::UNKNOWN;
+    };
+    /// Digest RNA parents without creating experimental spectrum matches.
+    std::vector<DigestedOligo> digest(const IdentificationData::Run& run, Size min_length = 0, Size max_length = 0) const;
 
   protected:
     const Ribonucleotide* five_prime_gain_; ///< 5' mod added by the enzyme

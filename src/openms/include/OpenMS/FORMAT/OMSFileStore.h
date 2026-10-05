@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 namespace SQLite
 {
@@ -81,8 +81,8 @@ namespace OpenMS
       */
       ~OMSFileStore();
 
-      /// Write data from an LegacyIdentificationData object to database
-      void store(const LegacyIdentificationData& id_data);
+      /// Write data from an IdentificationData object to database
+      void store(const IdentificationData& id_data);
 
       /// Write data from a FeatureMap object to database
       void store(const FeatureMap& features);
@@ -103,18 +103,12 @@ namespace OpenMS
       /// Create a database table for the data types used in DataValue
       void createTableDataValue_DataType_();
 
-      /// Create a database table (and prepare a query) for storing CV terms
-      void createTableCVTerm_();
-
       /// Create a database table (and prepare a query) for storing meta values
       void createTableMetaInfo_(const std::string& parent_table,
                                 const std::string& key_column = "id");
 
       /// Store version information and current date/time in the database
       void storeVersionAndDate_();
-
-      /// Store a CV term in the database
-      Key storeCVTerm_(const CVTerm& cv_term);
 
       /// Store meta values (associated with one object) in the database
       void storeMetaInfo_(const MetaInfoInterface& info, const std::string& parent_table,
@@ -139,94 +133,6 @@ namespace OpenMS
           }
         }
       }
-
-      /// @name Helper functions for storing identification data
-      ///@{
-      /// Store score type information from LegacyIdentificationData in the database
-      void storeScoreTypes_(const LegacyIdentificationData& id_data);
-
-      /// Store input file information from LegacyIdentificationData in the database
-      void storeInputFiles_(const LegacyIdentificationData& id_data);
-
-      /// Store information on data processing software from LegacyIdentificationData in the database
-      void storeProcessingSoftwares_(const LegacyIdentificationData& id_data);
-
-      /// Store sequence database search parameters from LegacyIdentificationData in the database
-      void storeDBSearchParams_(const LegacyIdentificationData& id_data);
-
-      /// Store information on data processing steps from LegacyIdentificationData in the database
-      void storeProcessingSteps_(const LegacyIdentificationData& id_data);
-
-      /// Store information on observations (e.g. spectra) from LegacyIdentificationData in the database
-      void storeObservations_(const LegacyIdentificationData& id_data);
-
-      /// Store information on parent sequences (e.g. proteins) from LegacyIdentificationData in the database
-      void storeParentSequences_(const LegacyIdentificationData& id_data);
-
-      /// Store information on parent group sets (e.g. protein groups) from LegacyIdentificationData in the database
-      void storeParentGroupSets_(const LegacyIdentificationData& id_data);
-
-      /// Store information on identified compounds from LegacyIdentificationData in the database
-      void storeIdentifiedCompounds_(const LegacyIdentificationData& id_data);
-
-      /// Store information on identified sequences (peptides or oligonucleotides) from LegacyIdentificationData in the database
-      void storeIdentifiedSequences_(const LegacyIdentificationData& id_data);
-
-      /// Store information on adducts from LegacyIdentificationData in the database
-      void storeAdducts_(const LegacyIdentificationData& id_data);
-
-      /// Store information on observation matches (e.g. PSMs) from LegacyIdentificationData in the database
-      void storeObservationMatches_(const LegacyIdentificationData& id_data);
-
-      /// Create a database table for molecule types (proteins, compounds, RNA)
-      void createTableMoleculeType_();
-
-      /// Create a database table for storing processing metadata
-      void createTableAppliedProcessingStep_(const std::string& parent_table);
-
-      /// Store processing metadata for a particular class (stored in @p parent_table) in the database
-      void storeAppliedProcessingStep_(
-        const LegacyIdentificationData::AppliedProcessingStep& step, Size step_order,
-        const std::string& parent_table, Key parent_id);
-
-      /// Create a database table for storing identified molecules (peptides, compounds, oligonucleotides)
-      void createTableIdentifiedMolecule_();
-
-      /// Return the database key used for an identified molecule (peptide, compound or oligonucleotide)
-      Key getDatabaseKey_(const LegacyIdentificationData::IdentifiedMolecule& molecule_var);
-
-      /// Create a database table for storing parent matches (e.g. proteins for a peptide)
-      void createTableParentMatches_();
-
-      /// Store information on parent matches in the database
-      void storeParentMatches_(
-        const LegacyIdentificationData::ParentMatches& matches, Key molecule_id);
-
-      /// Store metadata on scores/processing steps (for all objects in a container) in the database
-      template<class ScoredProcessingResultContainer, class DBKeyTable>
-      void storeScoredProcessingResults_(const ScoredProcessingResultContainer& container,
-                                         const std::string& parent_table, const DBKeyTable& db_keys)
-      {
-        bool table_created = false;
-        for (const auto& element : container)
-        {
-          if (!element.steps_and_scores.empty())
-          {
-            if (!table_created)
-            {
-              createTableAppliedProcessingStep_(parent_table);
-              table_created = true;
-            }
-            Size counter = 0;
-            for (const LegacyIdentificationData::AppliedProcessingStep& step : element.steps_and_scores)
-            {
-              storeAppliedProcessingStep_(step, ++counter, parent_table, db_keys.at(&element));
-            }
-          }
-        }
-        storeMetaInfos_(container, parent_table, db_keys);
-      }
-      ///@}
 
       /// @name Helper functions for storing (consensus) feature data
       ///@{
@@ -276,23 +182,7 @@ namespace OpenMS
       /// Prepared queries for inserting data into different tables
       std::map<std::string, std::unique_ptr<SQLite::Statement>> prepared_queries_;
 
-      // mapping between loaded data and database keys:
-      // @NOTE: in principle we could use `unordered_map` here for efficiency,
-      // but that gives compiler errors when pointers or iterators (`...Ref`)
-      // are used as keys (because they aren't hashable?)
-      std::map<const LegacyIdentificationData::ScoreType*, Key> score_type_keys_;
-      std::map<const LegacyIdentificationData::InputFile*, Key> input_file_keys_;
-      std::map<const LegacyIdentificationData::ProcessingSoftware*, Key> processing_software_keys_;
-      std::map<const LegacyIdentificationData::ProcessingStep*, Key> processing_step_keys_;
-      std::map<const LegacyIdentificationData::DBSearchParam*, Key> search_param_keys_;
-      std::map<const LegacyIdentificationData::Observation*, Key> observation_keys_;
-      std::map<const LegacyIdentificationData::ParentSequence*, Key> parent_sequence_keys_;
-      std::map<const LegacyIdentificationData::ParentGroupSet*, Key> parent_grouping_keys_;
-      std::map<const LegacyIdentificationData::IdentifiedCompound*, Key> identified_compound_keys_;
-      std::map<const LegacyIdentificationData::IdentifiedPeptide*, Key> identified_peptide_keys_;
-      std::map<const LegacyIdentificationData::IdentifiedOligo*, Key> identified_oligo_keys_;
-      std::map<const AdductInfo*, Key> adduct_keys_;
-      std::map<const LegacyIdentificationData::ObservationMatch*, Key> observation_match_keys_;
+      const IdentificationData* identification_data_ = nullptr;
       // for feature/consensus maps:
       std::map<const DataProcessing*, Key> feat_processing_keys_;
     };

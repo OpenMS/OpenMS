@@ -9,16 +9,14 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-
 #include <unordered_map>
-
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 namespace OpenMS
 {
@@ -186,7 +184,7 @@ public:
 
        @return Key of the FDR score
     */
-    LegacyIdentificationData::ScoreTypeRef applyToObservationMatches(LegacyIdentificationData& id_data, LegacyIdentificationData::ScoreTypeRef score_ref) const;
+    IdentificationData::ScoreDefinition applyToObservationMatches(IdentificationData& data, const IdentificationData::ScoreDefinition& score) const;
 
     /**
      * @brief Finds decoy strings in ProteinIdentification runs
@@ -222,15 +220,6 @@ private:
 
     /// calculates the FDR, given two vectors of scores
     void calculateFDRs_(std::map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better) const;
-
-    /// Helper function for applyToObservationMatches()
-    void handleObservationMatch_(
-        LegacyIdentificationData::ObservationMatchRef match_ref,
-        LegacyIdentificationData::ScoreTypeRef score_ref,
-        std::vector<double>& target_scores,
-        std::vector<double>& decoy_scores,
-        std::map<LegacyIdentificationData::IdentifiedMolecule, bool>& molecule_to_decoy,
-        std::map<LegacyIdentificationData::ObservationMatchRef, double>& match_to_score) const;
 
     /// calculates an estimated FDR (based on P(E)Ps) given a vector of score value pairs and fills a map for lookup
     /// in scores_to_FDR

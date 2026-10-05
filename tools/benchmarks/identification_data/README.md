@@ -75,6 +75,9 @@ See `doc/openms/identification_data_validation.md` for measured Release results.
 
 ## Comparison against legacy
 
+The current OMS branch writes owning schema 6, not the removed reference graph.
+Archived OMS measurements refer to the implementation commit recorded in their report.
+
 `IdentificationDataLegacyBenchmark` compares idXML, existing PSM Parquet, OMS and
 the owning native format with equivalent modified-peptide input. Run on Linux:
 

@@ -568,8 +568,76 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
   return result;
 }
 
+namespace
+{
+  template<class Map>
+  IdentificationDataAdapter::FeatureImportResult nativeMap(const Map& map)
+  {
+    using ID = IdentificationData;
+    using Adapter = IdentificationDataAdapter;
+    const auto& data = map.getIdentificationData();
+    data.validate();
+    std::map<ID::MatchReference, ID::QueryReference> owners;
+    for (const auto& run : data.getRuns())
+      for (const auto& source : run.getSourceBlocks())
+        for (const auto& query : source.identifications)
+          for (const auto& match : query.getMatches())
+            owners.emplace(ID::MatchReference {run.getUuid(), match.getId()}, ID::QueryReference {run.getUuid(), query.getId()});
+    std::vector<Adapter::FeatureAssociation> associations;
+    std::map<ID::QueryReference, std::set<ID::MatchId>> assigned;
+    std::set<ID::QueryReference> assigned_queries;
+    const auto collect = [&](const auto& self, const auto& feature, std::vector<Size> path) -> void {
+      std::map<ID::QueryReference, std::set<ID::MatchId>> linked;
+      for (const auto& query : feature.getIDQueries())
+        linked[query];
+      for (const auto& match : feature.getIDMatches())
+      {
+        auto owner = owners.find(match);
+        if (owner == owners.end()) invalid("Feature association refers to a missing match");
+        linked[owner->second].insert(match.match);
+      }
+      for (const auto& [query, matches] : linked)
+      {
+        const auto* run = data.findRunByUuid(query.run_uuid);
+        if (! run || ! run->findIdentification(query.query)) invalid("Feature association refers to a missing query");
+        Adapter::FeatureAssociation association;
+        association.feature_path = path;
+        association.query = query;
+        association.matches.assign(matches.begin(), matches.end());
+        associations.push_back(std::move(association));
+        assigned[query].insert(matches.begin(), matches.end());
+        assigned_queries.insert(query);
+      }
+      if constexpr (requires { feature.getSubordinates(); })
+        for (Size i = 0; i < feature.getSubordinates().size(); ++i)
+        {
+          auto child = path;
+          child.push_back(i);
+          self(self, feature.getSubordinates()[i], std::move(child));
+        }
+    };
+    for (Size i = 0; i < map.size(); ++i)
+      collect(collect, map[i], {i});
+    for (const auto& run : data.getRuns())
+      for (const auto& source : run.getSourceBlocks())
+        for (const auto& query : source.identifications)
+        {
+          ID::QueryReference reference {run.getUuid(), query.getId()};
+          Adapter::FeatureAssociation unassigned;
+          unassigned.unassigned = true;
+          unassigned.query = reference;
+          for (const auto& match : query.getMatches())
+            if (! assigned[reference].contains(match.getId())) unassigned.matches.push_back(match.getId());
+          if (! unassigned.matches.empty() || (! assigned_queries.contains(reference) && query.getMatches().empty()))
+            associations.push_back(std::move(unassigned));
+        }
+    return {data, std::move(associations)};
+  }
+} // namespace
+
 IdentificationDataAdapter::FeatureImportResult IdentificationDataAdapter::fromFeatureMap(const FeatureMap& map)
 {
+  if (! map.getIdentificationData().empty()) return nativeMap(map);
   PeptideIdentificationList peptides;
   std::vector<FeatureAssociation> locations;
   for (Size i = 0; i < map.size(); ++i)
@@ -597,6 +665,7 @@ IdentificationDataAdapter::FeatureImportResult IdentificationDataAdapter::fromFe
 
 IdentificationDataAdapter::FeatureImportResult IdentificationDataAdapter::fromConsensusMap(const ConsensusMap& map)
 {
+  if (! map.getIdentificationData().empty()) return nativeMap(map);
   PeptideIdentificationList peptides;
   std::vector<FeatureAssociation> locations;
   for (Size i = 0; i < map.size(); ++i)
@@ -666,6 +735,16 @@ std::vector<std::string> IdentificationDataAdapter::applyToFeatureMap(const ID& 
   for (Size i = 0; i < converted.queries.size(); ++i)
     query_indices[converted.queries[i]] = i;
   auto updated = map;
+  updated.getIdentificationData() = data;
+  const auto clear_links = [&](const auto& self, auto& feature) -> void {
+    feature.getIDMatches().clear();
+    feature.getIDQueries().clear();
+    if constexpr (requires { feature.getSubordinates(); })
+      for (auto& child : feature.getSubordinates())
+        self(self, child);
+  };
+  for (auto& feature : updated)
+    clear_links(clear_links, feature);
   updated.setProteinIdentifications(converted.proteins);
   updated.getUnassignedPeptideIdentifications().clear();
   for (auto& feature : updated)
@@ -688,6 +767,9 @@ std::vector<std::string> IdentificationDataAdapter::applyToFeatureMap(const ID& 
         if (association.feature_path[i] >= feature->getSubordinates().size()) invalid("Subordinate feature association path is out of range");
         feature = &feature->getSubordinates()[association.feature_path[i]];
       }
+      feature->addIDQuery(association.query);
+      for (auto match : association.matches)
+        feature->addIDMatch({association.query.run_uuid, match});
       feature->getPeptideIdentifications().push_back(std::move(item));
     }
   }
@@ -708,6 +790,16 @@ std::vector<std::string> IdentificationDataAdapter::applyToConsensusMap(const ID
   for (Size i = 0; i < converted.queries.size(); ++i)
     query_indices[converted.queries[i]] = i;
   auto updated = map;
+  updated.getIdentificationData() = data;
+  const auto clear_links = [&](const auto& self, auto& feature) -> void {
+    feature.getIDMatches().clear();
+    feature.getIDQueries().clear();
+    if constexpr (requires { feature.getSubordinates(); })
+      for (auto& child : feature.getSubordinates())
+        self(self, child);
+  };
+  for (auto& feature : updated)
+    clear_links(clear_links, feature);
   updated.setProteinIdentifications(converted.proteins);
   updated.getUnassignedPeptideIdentifications().clear();
   for (auto& feature : updated)
@@ -722,7 +814,11 @@ std::vector<std::string> IdentificationDataAdapter::applyToConsensusMap(const ID
     {
       if (association.feature_path.size() != 1 || association.feature_path.front() >= updated.size())
         invalid("Consensus feature association path is out of range");
-      updated[association.feature_path.front()].getPeptideIdentifications().push_back(std::move(item));
+      auto& feature = updated[association.feature_path.front()];
+      feature.addIDQuery(association.query);
+      for (auto match : association.matches)
+        feature.addIDMatch({association.query.run_uuid, match});
+      feature.getPeptideIdentifications().push_back(std::move(item));
     }
   }
   map = std::move(updated);

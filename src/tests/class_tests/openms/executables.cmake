@@ -95,9 +95,8 @@ set(metadata_executables_list
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
-  IDDataContainer_test
-  LegacyIdentificationData_test
-  IdentificationData_test
+      IdentificationData_test
+IdentificationDataMigration_test
   IdentificationDataAdapter_test
   IdentificationDataInference_test
   IdentificationDataWorkflow_test
@@ -105,8 +104,7 @@ set(metadata_executables_list
   IdentificationDataFileInference_test
   IdentificationDataFileHandler_test
   IdentificationDataConverter_test
-  IdentifiedMolecule_test
-  InstrumentSettings_test
+    InstrumentSettings_test
   Instrument_test
   IonDetector_test
   IonSource_test

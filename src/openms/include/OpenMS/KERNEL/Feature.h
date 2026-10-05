@@ -157,13 +157,6 @@ public:
       return assignments;
     }
 
-    /*!
-      @brief Update ID references (primary ID, input matches) for this feature and any subfeatures
-
-      This is needed e.g. after the LegacyIdentificationData instance containing the referenced data has been copied.
-    */
-    void updateAllIDReferences(const LegacyIdentificationData::RefTranslator& trans);
-
 protected:
 
     /// Quality measures for each dimension

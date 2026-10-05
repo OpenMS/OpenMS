@@ -6,20 +6,18 @@
 // $Authors: Timo Sachsenberg, Samuel Wein, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/MATH/StatisticFunctions.h> // for "median"
-
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/MATH/StatisticFunctions.h> // for "median"
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/METADATA/SpectrumSettings.h>
 
 // file types
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -249,11 +247,13 @@ protected:
     Size scan_index;
     Int charge;
     Size isotope;
-    LegacyIdentificationData::AdductOpt adduct;
+    std::optional<AdductInfo> adduct;
 
-    PrecursorInfo(Size scan_index, Int charge, Size isotope,
-                  const LegacyIdentificationData::AdductOpt& adduct = std::nullopt):
-      scan_index(scan_index), charge(charge), isotope(isotope), adduct(adduct)
+    PrecursorInfo(Size scan_index, Int charge, Size isotope, const std::optional<AdductInfo>& adduct = std::nullopt):
+        scan_index(scan_index),
+        charge(charge),
+        isotope(isotope),
+        adduct(adduct)
     {
     }
   };
@@ -261,7 +261,7 @@ protected:
   // slimmer structure to store basic hit information
   struct AnnotatedHit
   {
-    LegacyIdentificationData::IdentifiedOligoRef oligo_ref;
+    const RNaseDigestion::DigestedOligo* oligo_ref;
     NASequence sequence;
     double precursor_error_ppm; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
@@ -720,82 +720,59 @@ protected:
   }
 
 
-  void postProcessHits_(const PeakMap& exp,
-                        vector<HitsByScore>& annotated_hits,
-                        LegacyIdentificationData& id_data,
-                        bool negative_mode)
+  void postProcessHits_(const PeakMap& exp, vector<HitsByScore>& annotated_hits, IdentificationData& id_data, bool negative_mode)
   {
-    LegacyIdentificationData::InputFileRef file_ref = id_data.getInputFiles().begin();
-    LegacyIdentificationData::ScoreTypeRef score_ref =
-      id_data.getScoreTypes().begin();
-
-// @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
-#pragma omp parallel for
-    for (SignedSize scan_index = 0;
-         scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    auto& run = id_data.getRun("NASE");
+    // Scoring is parallel. Construct owning records in spectrum order with one writer.
+    for (Size scan_index = 0; scan_index < annotated_hits.size(); ++scan_index)
     {
       if (annotated_hits[scan_index].empty()) continue;
-
-      const MSSpectrum& spectrum = exp[scan_index];
-      LegacyIdentificationData::Observation obs(spectrum.getNativeID(), file_ref,
-                                          spectrum.getRT(),
-                                          spectrum.getPrecursors()[0].getMZ());
-      obs.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-      obs.setMetaValue("precursor_intensity",
-                         spectrum.getPrecursors()[0].getIntensity());
-      LegacyIdentificationData::ObservationRef obs_ref;
-#pragma omp critical (id_data_access)
-      obs_ref = id_data.registerObservation(obs);
-
-      if (resolve_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
+      const auto& spectrum = exp[scan_index];
+      IdentificationData::Observation observation;
+      observation.data_id = spectrum.getNativeID();
+      observation.rt = spectrum.getRT();
+      observation.mz = spectrum.getPrecursors()[0].getMZ();
+      observation.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
+      observation.setMetaValue("precursor_intensity", spectrum.getPrecursors()[0].getIntensity());
+      auto query = run.addIdentification(run.getSourceId(0), observation);
+      if (resolve_ambiguous_mods_ && annotated_hits[scan_index].size() > 1) resolveAmbiguousMods_(annotated_hits[scan_index]);
+      for (const auto& [score, hit] : annotated_hits[scan_index])
       {
-        resolveAmbiguousMods_(annotated_hits[scan_index]);
-      }
-
-      // create full oligo hit structure from annotated hits
-      for (const auto& pair : annotated_hits[scan_index])
-      {
-        double score = pair.first;
-        const AnnotatedHit& hit = pair.second;
-        OPENMS_LOG_DEBUG << "Hit sequence: " << hit.sequence.toString() << endl;
-
-        // transfer parent matches from unmodified oligo:
-        LegacyIdentificationData::IdentifiedOligo oligo = *hit.oligo_ref;
-        oligo.sequence = hit.sequence;
-        LegacyIdentificationData::IdentifiedOligoRef oligo_ref;
-#pragma omp critical (id_data_access)
-        oligo_ref = id_data.registerIdentifiedOligo(oligo);
-
-        Int charge = hit.precursor_ref->charge;
-        if ((charge > 0) && negative_mode) charge = -charge;
-        LegacyIdentificationData::ObservationMatch match(oligo_ref, obs_ref, charge);
-        match.addScore(score_ref, score, id_data.getCurrentProcessingStep());
-        match.peak_annotations[id_data.getCurrentProcessingStep()] =
-          hit.annotations;
-        // @TODO: add a field for this to "LegacyIdentificationData::ObservationMatch"?
-        match.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
-                           hit.precursor_error_ppm);
+        IdentificationData::MatchData match;
+        match.encoding = IdentificationData::Encoding::NA_SEQUENCE;
+        match.representation = hit.sequence.toString();
+        match.parent_evidence = hit.oligo_ref->parent_evidence;
+        match.target_decoy = hit.oligo_ref->target_decoy;
+        match.charge = negative_mode ? -std::abs(hit.precursor_ref->charge) : hit.precursor_ref->charge;
+        match.peak_annotations = hit.annotations;
+        if (hit.precursor_ref->adduct)
+        {
+          const auto& salt = *hit.precursor_ref->adduct;
+          auto formula = salt.getEmpiricalFormula();
+          formula += EmpiricalFormula("H") * (match.charge - salt.getCharge());
+          match.adduct = AdductInfo(salt.getName(), formula, match.charge, salt.getMolMultiplier());
+          match.calculated_mz = match.adduct->getMZ(hit.sequence.getMonoWeight());
+        }
+        else
+          match.calculated_mz = hit.sequence.getMonoWeight(NASequence::Full, match.charge) / std::abs(match.charge);
+        match.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, hit.precursor_error_ppm);
         match.setMetaValue("isotope_offset", hit.precursor_ref->isotope);
-        match.adduct_opt = hit.precursor_ref->adduct;
-#pragma omp critical (id_data_access)
-        id_data.registerObservationMatch(match);
+        run.addMatch(query, match, {score});
       }
     }
-    id_data.cleanup();
+    id_data.validate();
   }
 
-
-  void calculateAndFilterFDR_(LegacyIdentificationData& id_data, bool only_top_hits)
+  void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
-    LegacyIdentificationData::ScoreTypeRef score_ref = id_data.findScoreType("hyperscore");
+    const auto score_ref = id_data.getRun("NASE").getScoreDefinitions().at(0);
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "false" : "true");
     bool remove_decoys = getFlag_("fdr:remove_decoys");
     fdr_params.setValue("add_decoy_peptides", remove_decoys ? "false" : "true");
     fdr.setParameters(fdr_params);
-    LegacyIdentificationData::ScoreTypeRef fdr_ref =
-    fdr.applyToObservationMatches(id_data, score_ref);
+    auto fdr_ref = fdr.applyToObservationMatches(id_data, score_ref);
     double fdr_cutoff = getDoubleOption_("fdr:cutoff");
     if (remove_decoys) // remove references to decoys from shared oligos
     {
@@ -804,32 +781,30 @@ protected:
     if (fdr_cutoff < 1.0)
     {
       IDFilter::filterObservationMatchesByScore(id_data, fdr_ref, fdr_cutoff);
-      OPENMS_LOG_INFO << "Search hits after FDR filtering: "
-                      << id_data.getObservationMatches().size()
-                      << "\nIdentified spectra after FDR filtering: "
-                      << id_data.getObservations().size() << endl;
+      OPENMS_LOG_INFO << "Search hits after FDR filtering: " << id_data.getRun("NASE").getNumberOfMatches()
+                      << "\nIdentified spectra after FDR filtering: " << id_data.getRun("NASE").getNumberOfIdentifications() << endl;
     }
   }
 
 
-  void generateLFQInput_(LegacyIdentificationData& id_data, const std::string& out_file)
+  void generateLFQInput_(IdentificationData& id_data, const std::string& out_file)
   {
-    using AdductedOligo = pair<NASequence, LegacyIdentificationData::AdductOpt>;
+    using AdductedOligo = pair<NASequence, std::string>;
     using PrecursorPair = pair<double, double>; // precursor intensity, RT
     // mapping: charge -> list of precursors
     using PrecursorsByCharge = map<Int, vector<PrecursorPair>>;
     map<AdductedOligo, PrecursorsByCharge> rt_info;
-    for (const LegacyIdentificationData::ObservationMatch& match :
-           id_data.getObservationMatches())
-    {
-      const NASequence& seq =
-        match.identified_molecule_var.getIdentifiedOligoRef()->sequence;
-      auto key = make_pair(seq, match.adduct_opt);
-      double rt = match.observation_ref->rt;
-      double prec_int =
-        match.observation_ref->getMetaValue("precursor_intensity");
-      rt_info[key][match.charge].push_back(make_pair(prec_int, rt));
-    }
+    for (const auto& run : id_data.getRuns())
+      for (const auto& source : run.getSourceBlocks())
+        for (const auto& query : source.identifications)
+          for (const auto& match : query.getMatches())
+          {
+            if (! query.rt) continue;
+            auto seq = NASequence::fromString(match.representation);
+            auto key = make_pair(seq, match.adduct ? match.adduct->getName() : std::string {});
+            double intensity = query.getMetaValue("precursor_intensity");
+            rt_info[key][match.charge].push_back({intensity, *query.rt});
+          }
 
     SVOutStream tsv(out_file);
     tsv.modifyStrings(false);
@@ -839,11 +814,11 @@ protected:
     {
       std::string name = entry.first.first.toString();
       EmpiricalFormula ef = entry.first.first.getFormula();
-      const LegacyIdentificationData::AdductOpt& adduct = entry.first.second;
-      if (adduct)
+      const std::string& adduct = entry.first.second;
+      if (! adduct.empty())
       {
-        name += "+[" + (*adduct)->getName() + "]";
-        ef += (*adduct)->getEmpiricalFormula();
+        name += "+[" + adduct + "]";
+        ef += parseAdduct_(adduct).getEmpiricalFormula();
       }
       // @TODO: use charge-specific RTs?
       vector<Int> charges;
@@ -872,7 +847,9 @@ protected:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
 
-    LegacyIdentificationData id_data; // container for results
+    IdentificationData id_data;
+    auto& result_run = id_data.addRun("NASE", IdentificationData::MoleculeKind::OLIGONUCLEOTIDE);
+    vector<RNaseDigestion::DigestedOligo> digest;
 
     // load parameters and check validity:
     std::string in_mzml = getStringOption_("in");
@@ -921,16 +898,21 @@ protected:
     bool negative_mode = (max_charge < 0);
     Int charge_step = negative_mode ? -1 : 1;
 
-    LegacyIdentificationData::DBSearchParam search_param;
+    struct SearchConfiguration
+    {
+      set<Int> charges;
+      double precursor_mass_tolerance = 0, fragment_mass_tolerance = 0;
+      bool precursor_tolerance_ppm = false, fragment_tolerance_ppm = false;
+      Size min_length = 0, max_length = 0, missed_cleavages = 0;
+      set<std::string> fixed_mods, variable_mods;
+      std::string database;
+      const DigestionEnzyme* digestion_enzyme = nullptr;
+    } search_param;
     for (Int charge = min_charge; abs(charge) <= abs(max_charge);
          charge += charge_step)
     {
       search_param.charges.insert(charge);
     }
-    search_param.molecule_type = LegacyIdentificationData::MoleculeType::RNA;
-    search_param.mass_type = (use_avg_mass ?
-                              LegacyIdentificationData::MassType::AVERAGE :
-                              LegacyIdentificationData::MassType::MONOISOTOPIC);
     search_param.precursor_mass_tolerance =
       getDoubleOption_("precursor:mass_tolerance");
     search_param.precursor_tolerance_ppm =
@@ -956,7 +938,7 @@ protected:
     set<ConstRibonucleotidePtr> variable_modifications =
       getModifications_(search_param.variable_mods);
 
-    // @TODO: add slots for these to "LegacyIdentificationData::DBSearchParam"?
+    // @TODO: add slots for these to "owning run processing metadata"?
     IntList precursor_isotopes = (use_avg_mass ? vector<Int>(1, 0) :
                                   getIntList_("precursor:isotopes"));
     Size max_variable_mods_per_oligo =
@@ -966,7 +948,7 @@ protected:
     StringList potential_adducts =
       getStringList_("precursor:potential_adducts");
     // @TODO: allow different adducts with same mass?
-    map<double, LegacyIdentificationData::AdductOpt> adduct_masses;
+    map<double, std::optional<AdductInfo>> adduct_masses;
     adduct_masses[0.0] = std::nullopt; // always consider "no adduct"
     bool use_adducts = getFlag_("precursor:use_adducts");
     bool include_unknown_charge = getFlag_("precursor:include_unknown_charge");
@@ -977,8 +959,7 @@ protected:
       {
         AdductInfo adduct = parseAdduct_(adduct_name);
         double mass = adduct.getMassShift(use_avg_mass);
-        LegacyIdentificationData::AdductRef ref = id_data.registerAdduct(adduct);
-        adduct_masses[mass] = ref;
+        adduct_masses[mass] = adduct;
         OPENMS_LOG_DEBUG << "Added adduct: " << adduct_name << ", mass shift: "
                          << mass << endl;
       }
@@ -994,33 +975,34 @@ protected:
     f.loadExperiment(in_mzml, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
     spectra.sortSpectra(true);
 
-    // input file meta data:
-    std::string input_name = test_mode_ ? File::basename(in_mzml) : in_mzml;
-    LegacyIdentificationData::InputFile input(input_name);
-    vector<std::string> primary_files;
-    spectra.getPrimaryMSRunPath(primary_files);
-    input.primary_files.insert(primary_files.begin(), primary_files.end());
-    LegacyIdentificationData::InputFileRef file_ref =
-      id_data.registerInputFile(input);
-    // processing software meta data:
-    LegacyIdentificationData::ScoreType score("hyperscore", true);
-    LegacyIdentificationData::ScoreTypeRef hyperscore_ref =
-      id_data.registerScoreType(score);
-    CVTerm qvalue("MS:1002354", "PSM-level q-value", "MS");
-    score = LegacyIdentificationData::ScoreType(qvalue, false);
-    LegacyIdentificationData::ScoreTypeRef qvalue_ref =
-      id_data.registerScoreType(score);
-    LegacyIdentificationData::ProcessingSoftware software(toolName_(), version_);
-    // in test mode just overwrite with a generic version:
-    if (test_mode_) software.setVersion("test");
-    // @TODO: which should be the "primary" (first) score?
-    software.assigned_scores.push_back(hyperscore_ref);
-    software.assigned_scores.push_back(qvalue_ref);
-    LegacyIdentificationData::ProcessingSoftwareRef software_ref =
-      id_data.registerProcessingSoftware(software);
-    // @TODO: add suitable data processing action
-    LegacyIdentificationData::ProcessingStep step(software_ref, {file_ref});
-    LegacyIdentificationData::ProcessingStepRef step_ref;
+    IdentificationData::SourceFile input;
+    input.path = test_mode_ ? File::basename(in_mzml) : in_mzml;
+    spectra.getPrimaryMSRunPath(input.primary_files);
+    result_run.addSource(input);
+    IdentificationData::ScoreDefinition hyperscore;
+    hyperscore.name = "hyperscore";
+    hyperscore.higher_better = true;
+    result_run.setPrimaryScore(result_run.addScore(hyperscore));
+    ProteinIdentification processing;
+    processing.setIdentifier("NASE");
+    processing.setSearchEngine(toolName_());
+    processing.setSearchEngineVersion(test_mode_ ? "test" : version_);
+    processing.setHigherScoreBetter(true);
+    DateTime processing_time = DateTime::now();
+    if (test_mode_) processing_time.set("1999-12-31 23:59:59");
+    processing.setDateTime(processing_time);
+    auto& parameters = processing.getSearchParameters();
+    parameters.charges = ListUtils::concatenate(search_param.charges, ",");
+    parameters.mass_type = use_avg_mass ? ProteinIdentification::PeakMassType::AVERAGE : ProteinIdentification::PeakMassType::MONOISOTOPIC;
+    parameters.precursor_mass_tolerance = search_param.precursor_mass_tolerance;
+    parameters.precursor_mass_tolerance_ppm = search_param.precursor_tolerance_ppm;
+    parameters.fragment_mass_tolerance = search_param.fragment_mass_tolerance;
+    parameters.fragment_mass_tolerance_ppm = search_param.fragment_tolerance_ppm;
+    parameters.fixed_modifications.assign(search_param.fixed_mods.begin(), search_param.fixed_mods.end());
+    parameters.variable_modifications.assign(search_param.variable_mods.begin(), search_param.variable_mods.end());
+    parameters.setMetaValue("rna_min_length", static_cast<unsigned int>(search_param.min_length));
+    parameters.setMetaValue("rna_max_length", static_cast<unsigned int>(search_param.max_length));
+    result_run.setProcessingMetadata(processing);
 
     // get digested sequences:
     std::string decoy_pattern = getStringOption_("fdr:decoy_pattern");
@@ -1031,11 +1013,10 @@ protected:
       std::string enzyme_name = getStringOption_("oligo:enzyme");
       search_param.digestion_enzyme =
         RNaseDB::getInstance()->getEnzyme(enzyme_name);
-      LegacyIdentificationData::SearchParamRef search_ref =
-        id_data.registerDBSearchParam(search_param);
-      step_ref = id_data.registerProcessingStep(step, search_ref);
-      // reference this step in all following ID data items, if applicable:
-      id_data.setCurrentProcessingStep(step_ref);
+      parameters.db = in_db;
+      parameters.missed_cleavages = search_param.missed_cleavages;
+      parameters.setMetaValue("rna_enzyme", enzyme_name);
+      result_run.setProcessingMetadata(processing);
 
       RNaseDigestion digestor;
       digestor.setEnzyme(search_param.digestion_enzyme);
@@ -1050,46 +1031,62 @@ protected:
       progresslogger.endProgress();
 
       OPENMS_LOG_INFO << "Performing in-silico digestion..." << endl;
-      IdentificationDataConverter::importSequences(
-        id_data, fasta_db, LegacyIdentificationData::MoleculeType::RNA, decoy_pattern);
-      digestor.digest(id_data, min_oligo_length, max_oligo_length);
+      IdentificationDataConverter::importSequences(result_run, fasta_db, decoy_pattern);
+      digest = digestor.digest(result_run, min_oligo_length, max_oligo_length);
 
       std::string digest_out = getStringOption_("digest_out");
       if (!digest_out.empty())
       {
-        OMSFile(log_type_).store(digest_out, id_data);
+        IdentificationData catalog;
+        auto& catalog_run = catalog.addRun("digestion", IdentificationData::MoleculeKind::OLIGONUCLEOTIDE);
+        auto catalog_processing = processing;
+        catalog_processing.setMetaValue("identification:catalog", "true");
+        catalog_run.setProcessingMetadata(catalog_processing);
+        catalog_run.setParents(result_run.getParents());
+        IdentificationData::SourceFile database_source;
+        database_source.path = in_db;
+        database_source.identifier = "in-silico digestion";
+        auto source = catalog_run.addSource(database_source);
+        Size index = 0;
+        for (const auto& candidate : digest)
+        {
+          IdentificationData::Observation observation;
+          observation.data_id = "digest=" + std::to_string(++index);
+          auto query = catalog_run.addIdentification(source, observation);
+          IdentificationData::MatchData value;
+          value.encoding = IdentificationData::Encoding::NA_SEQUENCE;
+          value.representation = candidate.sequence.toString();
+          value.parent_evidence = candidate.parent_evidence;
+          value.target_decoy = candidate.target_decoy;
+          catalog_run.addMatch(query, value);
+        }
+        OMSFile(log_type_).store(digest_out, catalog);
       }
     }
     else // load digestion results from a previous run
     {
       OPENMS_LOG_INFO << "Loading pre-digested sequence data..." << endl;
-      OMSFile(log_type_).load(in_digest, id_data);
-      if (id_data.getDBSearchParams().empty())
-      {
-        OPENMS_LOG_WARN
-          << "Warning: no search parameter information found in 'digest' input"
-          << endl;
-      }
-
-      LegacyIdentificationData::SearchParamRef search_ref =
-        id_data.getDBSearchParams().begin();
-      step_ref = id_data.registerProcessingStep(step, search_ref);
-      // reference this step in all following ID data items:
-      id_data.setCurrentProcessingStep(step_ref);
+      IdentificationData catalog;
+      OMSFile(log_type_).load(in_digest, catalog);
+      if (catalog.getRuns().size() != 1 || catalog.getRuns().front().getMoleculeKind() != IdentificationData::MoleculeKind::OLIGONUCLEOTIDE)
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Digest input requires one oligonucleotide catalog run");
+      const auto& catalog_run = catalog.getRuns().front();
+      result_run.setParents(catalog_run.getParents());
+      processing.getSearchParameters().db = catalog_run.getProcessingMetadata().getSearchParameters().db;
+      result_run.setProcessingMetadata(processing);
+      for (const auto& source : catalog_run.getSourceBlocks())
+        for (const auto& query : source.identifications)
+          for (const auto& match : query.getMatches())
+            digest.push_back({NASequence::fromString(match.representation), match.parent_evidence, match.target_decoy});
     }
-    Size n_nucleic_acids = id_data.getParentSequences().size();
-
-    if (!decoy_pattern.empty())
+    Size n_nucleic_acids = result_run.getParents() ? result_run.getParents()->size() : 0;
+    if (! decoy_pattern.empty()
+        && (! result_run.getParents() || std::none_of(result_run.getParents()->begin(), result_run.getParents()->end(), [](const auto& parent) {
+             return parent.target_decoy == IdentificationData::TargetDecoy::DECOY;
+           })))
     {
-      bool no_decoys = none_of(
-        id_data.getParentSequences().begin(),
-        id_data.getParentSequences().end(),
-        [](const LegacyIdentificationData::ParentSequence& p){ return p.is_decoy; });
-      if (no_decoys)
-      {
-        OPENMS_LOG_ERROR << "Error: 'fdr:decoy_pattern' is set, but no decoy sequences were found" << endl;
-        return ILLEGAL_PARAMETERS;
-      }
+      OPENMS_LOG_ERROR << "Error: decoy pattern is set, but no decoy sequences were found" << endl;
+      return ILLEGAL_PARAMETERS;
     }
 
     progresslogger.startProgress(0, 1, "filtering spectra...");
@@ -1201,18 +1198,8 @@ protected:
     MSExperiment exp_ms2_spectra, theo_ms2_spectra; // debug output
 
     std::string msg = "scoring oligonucleotide models against spectra...";
-    progresslogger.startProgress(0, id_data.getIdentifiedOligos().size(), msg);
+    progresslogger.startProgress(0, digest.size(), msg);
     Size hit_counter = 0;
-
-    // keep a list of (references to) oligos in the original digest:
-    vector<LegacyIdentificationData::IdentifiedOligoRef> digest;
-    digest.reserve(id_data.getIdentifiedOligos().size());
-    for (LegacyIdentificationData::IdentifiedOligoRef it =
-           id_data.getIdentifiedOligos().begin(); it !=
-           id_data.getIdentifiedOligos().end(); ++it)
-    {
-      digest.push_back(it);
-    }
 
     Int base_charge = negative_mode ? -1 : 1;
 
@@ -1227,7 +1214,7 @@ protected:
         progresslogger.setProgress(index);
       }
 
-      LegacyIdentificationData::IdentifiedOligoRef oligo_ref = digest[index];
+      const RNaseDigestion::DigestedOligo* oligo_ref = &digest[index];
       vector<NASequence> all_modified_oligos;
       NASequence ns = oligo_ref->sequence;
       ModifiedNASequenceGenerator::applyFixedModifications(
@@ -1362,11 +1349,8 @@ protected:
     }
     progresslogger.endProgress();
 
-    OPENMS_LOG_INFO << "Undigested nucleic acids: " << n_nucleic_acids
-                    << "\nOligonucleotides: "
-                    << id_data.getIdentifiedOligos().size()
-                    << "\nSearch hits (spectrum matches): " << hit_counter
-                    << endl;
+    OPENMS_LOG_INFO << "Undigested nucleic acids: " << n_nucleic_acids << "\nOligonucleotides: " << digest.size()
+                    << "\nSearch hits (spectrum matches): " << hit_counter << endl;
 
     if (!exp_ms2_out.empty())
     {
@@ -1380,8 +1364,7 @@ protected:
     progresslogger.startProgress(0, 1, "post-processing search hits...");
     postProcessHits_(spectra, annotated_hits, id_data, negative_mode);
     progresslogger.endProgress();
-    OPENMS_LOG_INFO << "Identified spectra: " << id_data.getObservations().size()
-                    << endl;
+    OPENMS_LOG_INFO << "Identified spectra: " << id_data.getRun("NASE").getNumberOfIdentifications() << endl;
 
     // FDR:
     if (!decoy_pattern.empty())
@@ -1389,7 +1372,37 @@ protected:
       OPENMS_LOG_INFO << "Performing FDR calculations..." << endl;
       calculateAndFilterFDR_(id_data, report_top_hits == 1);
     }
-    id_data.calculateCoverages();
+    // Calculate parent coverage from unique intervals after FDR filtering.
+    auto& coverage_run = id_data.getRun("NASE");
+    std::map<IdentificationData::QualifiedAccession, std::set<std::pair<UInt64, UInt64>>> covered;
+    for (const auto& source : coverage_run.getSourceBlocks())
+      for (const auto& query : source.identifications)
+        for (const auto& match : query.getMatches())
+          for (const auto& evidence : match.parent_evidence)
+            if (evidence.start && evidence.end) covered[evidence.parent].emplace(*evidence.start, *evidence.end);
+    if (coverage_run.getParents())
+    {
+      auto parents = *coverage_run.getParents();
+      for (auto& parent : parents)
+      {
+        const auto length = NASequence::fromString(parent.sequence).size();
+        UInt64 count = 0, end = 0;
+        bool first = true;
+        for (const auto& interval : covered[parent.identity])
+        {
+          if (interval.second >= length)
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RNA parent evidence exceeds sequence length",
+                                          parent.identity.accession);
+          if (first || interval.first > end) count += interval.second - interval.first + 1;
+          else if (interval.second > end)
+            count += interval.second - end;
+          end = std::max(end, interval.second);
+          first = false;
+        }
+        parent.setMetaValue("coverage", length ? static_cast<double>(count) / length : 0.0);
+      }
+      coverage_run.setParents(std::move(parents));
+    }
 
     // store results
     if (!db_out.empty())
@@ -1410,20 +1423,6 @@ protected:
     // dummy "peptide" results:
     if (!id_out.empty())
     {
-      if (!digest.empty())
-      {
-        // RNA seqs. were imported from a previous search run - need to "tag"
-        // them with the current processing step so they get exported properly:
-        for (LegacyIdentificationData::ParentSequenceRef ref =
-               id_data.getParentSequences().begin(); ref !=
-               id_data.getParentSequences().end(); ++ref)
-        {
-          // @TODO: find a way to avoid the copying (modify in place?):
-          LegacyIdentificationData::ParentSequence copy = *ref;
-          copy.addProcessingStep(id_data.getCurrentProcessingStep());
-          id_data.registerParentSequence(copy);
-        }
-      }
       vector<ProteinIdentification> proteins;
       PeptideIdentificationList peptides;
       IdentificationDataConverter::exportIDs(id_data, proteins, peptides);

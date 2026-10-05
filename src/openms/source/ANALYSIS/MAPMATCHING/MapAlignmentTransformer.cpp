@@ -186,19 +186,23 @@ namespace OpenMS
   }
 
 
-  void MapAlignmentTransformer::transformRetentionTimes(
-    LegacyIdentificationData& id_data, const TransformationDescription& trafo,
-    bool store_original_rt)
+  void MapAlignmentTransformer::transformRetentionTimes(IdentificationData& data, const TransformationDescription& trafo, bool store_original_rt)
   {
-    // update RTs in-place:
-    id_data.applyToObservations([&](LegacyIdentificationData::Observation& obs)
-      {
-        if (store_original_rt)
+    IdentificationData replacement(data);
+    for (const auto& current : replacement.getRuns())
+    {
+      auto& run = replacement.getRun(current.getIdentifier());
+      for (const auto& source : run.getSourceBlocks())
+        for (const auto& query : source.identifications)
         {
-          storeOriginalRT_(obs, obs.rt);
+          if (! query.rt) continue;
+          IdentificationData::Observation observation = query;
+          if (store_original_rt) storeOriginalRT_(observation, *observation.rt);
+          observation.rt = trafo.apply(*observation.rt);
+          run.replaceObservation(query.getId(), observation);
         }
-        obs.rt = trafo.apply(obs.rt);
-      });
+    }
+    replacement.validate();
+    data.swap(replacement);
   }
-
 }

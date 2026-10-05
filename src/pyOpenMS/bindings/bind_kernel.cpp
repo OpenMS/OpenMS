@@ -3427,6 +3427,8 @@ This class supports direct iteration in Python.
         .def("getMaxMZ", [](const OpenMS::ConsensusMap& self) { return self.getMaxMZ(); }, "Get the maximum m/z value")
         .def("getMinIntensity", [](const OpenMS::ConsensusMap& self) { return self.getMinIntensity(); }, "Get the minimum intensity value")
         .def("getMaxIntensity", [](const OpenMS::ConsensusMap& self) { return self.getMaxIntensity(); }, "Get the maximum intensity value")
+        .def("getIdentificationData", [](const OpenMS::ConsensusMap& self) { return OpenMS::IdentificationData(self.getIdentificationData()); })
+        .def("setIdentificationData", [](OpenMS::ConsensusMap& self, const OpenMS::IdentificationData& data) { data.validate(); self.getIdentificationData() = data; }, "data"_a)
         .def("getProteinIdentifications", [](OpenMS::ConsensusMap& self) -> std::vector<OpenMS::ProteinIdentification> { return self.getProteinIdentifications(); }, "Returns the protein identification runs stored in this map")
         .def("setProteinIdentifications", [](OpenMS::ConsensusMap& self, const std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, "Sets the protein identifications")
         .def("setProteinIdentifications", [](OpenMS::ConsensusMap& self, std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, "Sets the protein identifications")
@@ -3617,6 +3619,8 @@ Useful for mass-based grouping or analysis
 Sorts features by overall quality score in ascending order
 Higher quality scores indicate better feature detection confidence
 )doc")
+        .def("getIdentificationData", [](const OpenMS::FeatureMap& self) { return OpenMS::IdentificationData(self.getIdentificationData()); })
+        .def("setIdentificationData", [](OpenMS::FeatureMap& self, const OpenMS::IdentificationData& data) { data.validate(); self.getIdentificationData() = data; }, "data"_a)
         .def("getProteinIdentifications", [](OpenMS::FeatureMap& self) -> std::vector<OpenMS::ProteinIdentification> { return self.getProteinIdentifications(); })
         .def("setProteinIdentifications", [](OpenMS::FeatureMap& self, const std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, 
             R"doc(
@@ -3736,33 +3740,58 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     // BaseFeature
     // -----------------------------------------------------------------------
-    auto basefeature_class = nb::class_<OpenMS::BaseFeature, OpenMS::RichPeak2D>(m, "BaseFeature", 
-        R"doc(
+    auto basefeature_class
+      = nb::class_<OpenMS::BaseFeature, OpenMS::RichPeak2D>(m, "BaseFeature",
+                                                            R"doc(
 A basic LC-MS feature
 UniqueIdInterface
 RichPeak2D
 )doc")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::BaseFeature &>())
-        .def("__copy__", [](const OpenMS::BaseFeature& self) { return OpenMS::BaseFeature(self); })
-        .def("__deepcopy__", [](const OpenMS::BaseFeature& self, nb::dict) { return OpenMS::BaseFeature(self); }, "memo"_a)
-        .def(nb::init<const OpenMS::BaseFeature &, size_t>())
-        .def(nb::init<OpenMS::Peak2D>())
-        .def(nb::init<OpenMS::RichPeak2D>())
-        .def(nb::init<OpenMS::FeatureHandle>())
-        .def("getQuality", [](const OpenMS::BaseFeature& self) { return self.getQuality(); }, "Returns the overall quality")
-        .def("setQuality", [](OpenMS::BaseFeature& self, float q) { return self.setQuality(q); }, "q"_a, "Sets the overall quality")
-        .def("getWidth", [](const OpenMS::BaseFeature& self) { return self.getWidth(); }, "Returns the features width (full width at half max, FWHM)")
-        .def("setWidth", [](OpenMS::BaseFeature& self, float fwhm) { return self.setWidth(fwhm); }, "fwhm"_a, "Sets the width of the feature (FWHM)")
-        .def("getCharge", [](const OpenMS::BaseFeature& self) { return self.getCharge(); }, "Returns the charge state")
-        .def("setCharge", [](OpenMS::BaseFeature& self, const int& ch) { return self.setCharge(ch); }, "ch"_a, "Sets the charge state")
-        .def(nb::self == nb::self)
-        .def(nb::self != nb::self)
-        .def("getPeptideIdentifications", [](OpenMS::BaseFeature& self) -> OpenMS::PeptideIdentificationList { return self.getPeptideIdentifications(); }, "Returns the PeptideIdentification vector")
-        .def("setPeptideIdentifications", [](OpenMS::BaseFeature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); }, "peptides"_a, "Sets the PeptideIdentification vector")
-        .def("getAnnotationState", [](const OpenMS::BaseFeature& self) { return self.getAnnotationState(); }, "State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only")
-        
-        ;
+          .def(nb::init<>())
+          .def(nb::init<const OpenMS::BaseFeature&>())
+          .def("__copy__", [](const OpenMS::BaseFeature& self) { return OpenMS::BaseFeature(self); })
+          .def(
+            "__deepcopy__", [](const OpenMS::BaseFeature& self, nb::dict) { return OpenMS::BaseFeature(self); }, "memo"_a)
+          .def(nb::init<const OpenMS::BaseFeature&, size_t>())
+          .def(nb::init<OpenMS::Peak2D>())
+          .def(nb::init<OpenMS::RichPeak2D>())
+          .def(nb::init<OpenMS::FeatureHandle>())
+          .def(
+            "getQuality", [](const OpenMS::BaseFeature& self) { return self.getQuality(); }, "Returns the overall quality")
+          .def(
+            "setQuality", [](OpenMS::BaseFeature& self, float q) { return self.setQuality(q); }, "q"_a, "Sets the overall quality")
+          .def(
+            "getWidth", [](const OpenMS::BaseFeature& self) { return self.getWidth(); }, "Returns the features width (full width at half max, FWHM)")
+          .def(
+            "setWidth", [](OpenMS::BaseFeature& self, float fwhm) { return self.setWidth(fwhm); }, "fwhm"_a, "Sets the width of the feature (FWHM)")
+          .def(
+            "getCharge", [](const OpenMS::BaseFeature& self) { return self.getCharge(); }, "Returns the charge state")
+          .def(
+            "setCharge", [](OpenMS::BaseFeature& self, const int& ch) { return self.setCharge(ch); }, "ch"_a, "Sets the charge state")
+          .def(nb::self == nb::self)
+          .def(nb::self != nb::self)
+          .def(
+            "getPeptideIdentifications",
+            [](OpenMS::BaseFeature& self) -> OpenMS::PeptideIdentificationList { return self.getPeptideIdentifications(); },
+            "Returns the PeptideIdentification vector")
+          .def(
+            "setPeptideIdentifications",
+            [](OpenMS::BaseFeature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); },
+            "peptides"_a, "Sets the PeptideIdentification vector")
+          .def(
+            "getAnnotationState",
+            [](const OpenMS::BaseFeature& self, const OpenMS::IdentificationData& data) { return self.getAnnotationState(data); }, "data"_a)
+          .def("getIDMatches", [](const OpenMS::BaseFeature& self) { return self.getIDMatches(); })
+          .def("addIDMatch", &OpenMS::BaseFeature::addIDMatch, "match"_a)
+          .def("getIDQueries", [](const OpenMS::BaseFeature& self) { return self.getIDQueries(); })
+          .def("addIDQuery", &OpenMS::BaseFeature::addIDQuery, "query"_a)
+          .def("getPrimaryID", [](const OpenMS::BaseFeature& self) { return self.getPrimaryID(); })
+          .def("setPrimaryID", &OpenMS::BaseFeature::setPrimaryID, "molecule"_a)
+          .def(
+            "getAnnotationState", [](const OpenMS::BaseFeature& self) { return self.getAnnotationState(); },
+            "State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only")
+
+      ;
     // AnnotationState enum nested under BaseFeature
     nb::enum_<OpenMS::BaseFeature::AnnotationState>(basefeature_class, "AnnotationState", "State of peptide identification annotation for a feature")
         .value("FEATURE_ID_NONE", OpenMS::BaseFeature::AnnotationState::FEATURE_ID_NONE)
@@ -3776,8 +3805,8 @@ RichPeak2D
     // -----------------------------------------------------------------------
     // ConsensusFeature
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusFeature, OpenMS::BaseFeature>(m, "ConsensusFeature", 
-        R"doc(
+    nb::class_<OpenMS::ConsensusFeature, OpenMS::BaseFeature>(m, "ConsensusFeature",
+                                                              R"doc(
 A consensus feature spanning multiple LC-MS/MS experiments.
 A ConsensusFeature represents analytes that have been
 quantified across multiple LC-MS/MS experiments. Each analyte in a
@@ -3785,61 +3814,130 @@ ConsensusFeature is linked to its original LC-MS/MS run through a
 unique identifier.
 Get access to the underlying features through getFeatureList()
 )doc")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::ConsensusFeature &>())
-        .def("__copy__", [](const OpenMS::ConsensusFeature& self) { return OpenMS::ConsensusFeature(self); })
-        .def("__deepcopy__", [](const OpenMS::ConsensusFeature& self, nb::dict) { return OpenMS::ConsensusFeature(self); }, "memo"_a)
-        .def(nb::init<OpenMS::BaseFeature>())
-        .def(nb::init<size_t, OpenMS::Peak2D, size_t>())
-        .def(nb::init<size_t, OpenMS::BaseFeature>())
-        .def("insert", [](OpenMS::ConsensusFeature& self, const OpenMS::ConsensusFeature& cf) { return self.insert(cf); }, "cf"_a, "Inserts a feature handle from a peak with map index and element index")
-        .def("insert", [](OpenMS::ConsensusFeature& self, OpenMS::ConsensusFeature& cf) { return self.insert(cf); }, "cf"_a, "Inserts a feature handle from a peak with map index and element index")
-        .def("insert", [](OpenMS::ConsensusFeature& self, const OpenMS::FeatureHandle& handle) { return self.insert(handle); }, "handle"_a, "Inserts a feature handle from a peak with map index and element index")
-        .def("insert", [](OpenMS::ConsensusFeature& self, OpenMS::FeatureHandle& handle) { return self.insert(handle); }, "handle"_a, "Inserts a feature handle from a peak with map index and element index")
-        .def("insert", [](OpenMS::ConsensusFeature& self, const std::set<OpenMS::FeatureHandle, OpenMS::FeatureHandle::IndexLess>& handle_set) { return self.insert(handle_set); }, "handle_set"_a, "Inserts a feature handle from a peak with map index and element index")
-        .def("insert", [](OpenMS::ConsensusFeature& self, std::set<OpenMS::FeatureHandle, OpenMS::FeatureHandle::IndexLess>& handle_set) { return self.insert(handle_set); }, "handle_set"_a, "Inserts a feature handle from a peak with map index and element index")
-        .def("insert", [](OpenMS::ConsensusFeature& self, size_t map_index, const OpenMS::Peak2D& element, size_t element_index) { return self.insert(map_index, element, element_index); }, "map_index"_a, "element"_a, "element_index"_a, "Inserts a feature handle from a peak with map index and element index")
-        .def("insert", [](OpenMS::ConsensusFeature& self, size_t map_index, const OpenMS::BaseFeature& element) { return self.insert(map_index, element); }, "map_index"_a, "element"_a, "Inserts a feature handle from a base feature with map index")
-        .def("getFeatureList", [](const OpenMS::ConsensusFeature& self) { return self.getFeatureList(); }, "Returns a list of all contained feature handles")
-        .def("computeConsensus", [](OpenMS::ConsensusFeature& self) { return self.computeConsensus(); }, "Computes and updates the consensus position, intensity, and charge")
-        .def("computeMonoisotopicConsensus", [](OpenMS::ConsensusFeature& self) { return self.computeMonoisotopicConsensus(); }, "Computes and updates the consensus position, intensity, and charge")
-        .def("addRatio", [](OpenMS::ConsensusFeature& self, const OpenMS::ConsensusFeature::Ratio& r) { return self.addRatio(r); }, "r"_a, "Connects a ratio to the ConsensusFeature.")
-        .def("setRatios", [](OpenMS::ConsensusFeature& self, std::vector<OpenMS::ConsensusFeature::Ratio>& rs) { return self.setRatios(rs); }, "rs"_a, "Connects the ratios to the ConsensusFeature.")
-        .def("getRatios", [](OpenMS::ConsensusFeature& self) -> std::vector<OpenMS::ConsensusFeature::Ratio> { return self.getRatios(); }, "Get the ratio vector.")
-        .def("size", [](const OpenMS::ConsensusFeature& self) { return self.size(); }, "Returns the number of feature handles in this consensus feature")
-        .def("clear", [](OpenMS::ConsensusFeature& self) { return self.clear(); }, "Clears all feature handles from this consensus feature")
-        .def("empty", [](const OpenMS::ConsensusFeature& self) { return self.empty(); }, "Returns True if this consensus feature contains no feature handles")
-        .def("getQuality", [](const OpenMS::ConsensusFeature& self) { return self.getQuality(); }, "Returns the overall quality")
-        .def("setQuality", [](OpenMS::ConsensusFeature& self, float q) { return self.setQuality(q); }, "q"_a, "Sets the overall quality")
-        .def("getWidth", [](const OpenMS::ConsensusFeature& self) { return self.getWidth(); }, "Returns the features width (full width at half max, FWHM)")
-        .def("setWidth", [](OpenMS::ConsensusFeature& self, float fwhm) { return self.setWidth(fwhm); }, "fwhm"_a, "Sets the width of the feature (FWHM)")
-        .def("getCharge", [](const OpenMS::ConsensusFeature& self) { return self.getCharge(); }, "Returns the charge state")
-        .def("setCharge", [](OpenMS::ConsensusFeature& self, const int& ch) { return self.setCharge(ch); }, "ch"_a, "Sets the charge state")
-        .def(nb::self == nb::self)
-        .def(nb::self != nb::self)
-        .def("getPeptideIdentifications", [](const OpenMS::ConsensusFeature& self) -> OpenMS::PeptideIdentificationList { return self.getPeptideIdentifications(); }, "Returns the PeptideIdentification vector")
-        .def("setPeptideIdentifications", [](OpenMS::ConsensusFeature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); }, "peptides"_a, "Sets the PeptideIdentification vector")
-        .def("getAnnotationState", [](const OpenMS::ConsensusFeature& self) { return self.getAnnotationState(); }, "State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only")
-        .def("computeDechargeConsensus", [](OpenMS::ConsensusFeature& self, const OpenMS::FeatureMap& fm, bool intensity_weighted_averaging) { return self.computeDechargeConsensus(fm, intensity_weighted_averaging); }, "fm"_a, "intensity_weighted_averaging"_a = false, "Computes and updates the consensus position, intensity, and charge using decharge grouping")
+      .def(nb::init<>())
+      .def(nb::init<const OpenMS::ConsensusFeature&>())
+      .def("__copy__", [](const OpenMS::ConsensusFeature& self) { return OpenMS::ConsensusFeature(self); })
+      .def(
+        "__deepcopy__", [](const OpenMS::ConsensusFeature& self, nb::dict) { return OpenMS::ConsensusFeature(self); }, "memo"_a)
+      .def(nb::init<OpenMS::BaseFeature>())
+      .def(nb::init<size_t, OpenMS::Peak2D, size_t>())
+      .def(nb::init<size_t, OpenMS::BaseFeature>())
+      .def(
+        "insert", [](OpenMS::ConsensusFeature& self, const OpenMS::ConsensusFeature& cf) { return self.insert(cf); }, "cf"_a,
+        "Inserts a feature handle from a peak with map index and element index")
+      .def(
+        "insert", [](OpenMS::ConsensusFeature& self, OpenMS::ConsensusFeature& cf) { return self.insert(cf); }, "cf"_a,
+        "Inserts a feature handle from a peak with map index and element index")
+      .def(
+        "insert", [](OpenMS::ConsensusFeature& self, const OpenMS::FeatureHandle& handle) { return self.insert(handle); }, "handle"_a,
+        "Inserts a feature handle from a peak with map index and element index")
+      .def(
+        "insert", [](OpenMS::ConsensusFeature& self, OpenMS::FeatureHandle& handle) { return self.insert(handle); }, "handle"_a,
+        "Inserts a feature handle from a peak with map index and element index")
+      .def(
+        "insert",
+        [](OpenMS::ConsensusFeature& self, const std::set<OpenMS::FeatureHandle, OpenMS::FeatureHandle::IndexLess>& handle_set) {
+          return self.insert(handle_set);
+        },
+        "handle_set"_a, "Inserts a feature handle from a peak with map index and element index")
+      .def(
+        "insert",
+        [](OpenMS::ConsensusFeature& self, std::set<OpenMS::FeatureHandle, OpenMS::FeatureHandle::IndexLess>& handle_set) {
+          return self.insert(handle_set);
+        },
+        "handle_set"_a, "Inserts a feature handle from a peak with map index and element index")
+      .def(
+        "insert",
+        [](OpenMS::ConsensusFeature& self, size_t map_index, const OpenMS::Peak2D& element, size_t element_index) {
+          return self.insert(map_index, element, element_index);
+        },
+        "map_index"_a, "element"_a, "element_index"_a, "Inserts a feature handle from a peak with map index and element index")
+      .def(
+        "insert",
+        [](OpenMS::ConsensusFeature& self, size_t map_index, const OpenMS::BaseFeature& element) { return self.insert(map_index, element); },
+        "map_index"_a, "element"_a, "Inserts a feature handle from a base feature with map index")
+      .def(
+        "getFeatureList", [](const OpenMS::ConsensusFeature& self) { return self.getFeatureList(); },
+        "Returns a list of all contained feature handles")
+      .def(
+        "computeConsensus", [](OpenMS::ConsensusFeature& self) { return self.computeConsensus(); },
+        "Computes and updates the consensus position, intensity, and charge")
+      .def(
+        "computeMonoisotopicConsensus", [](OpenMS::ConsensusFeature& self) { return self.computeMonoisotopicConsensus(); },
+        "Computes and updates the consensus position, intensity, and charge")
+      .def(
+        "addRatio", [](OpenMS::ConsensusFeature& self, const OpenMS::ConsensusFeature::Ratio& r) { return self.addRatio(r); }, "r"_a,
+        "Connects a ratio to the ConsensusFeature.")
+      .def(
+        "setRatios", [](OpenMS::ConsensusFeature& self, std::vector<OpenMS::ConsensusFeature::Ratio>& rs) { return self.setRatios(rs); }, "rs"_a,
+        "Connects the ratios to the ConsensusFeature.")
+      .def(
+        "getRatios", [](OpenMS::ConsensusFeature& self) -> std::vector<OpenMS::ConsensusFeature::Ratio> { return self.getRatios(); },
+        "Get the ratio vector.")
+      .def(
+        "size", [](const OpenMS::ConsensusFeature& self) { return self.size(); }, "Returns the number of feature handles in this consensus feature")
+      .def(
+        "clear", [](OpenMS::ConsensusFeature& self) { return self.clear(); }, "Clears all feature handles from this consensus feature")
+      .def(
+        "empty", [](const OpenMS::ConsensusFeature& self) { return self.empty(); },
+        "Returns True if this consensus feature contains no feature handles")
+      .def(
+        "getQuality", [](const OpenMS::ConsensusFeature& self) { return self.getQuality(); }, "Returns the overall quality")
+      .def(
+        "setQuality", [](OpenMS::ConsensusFeature& self, float q) { return self.setQuality(q); }, "q"_a, "Sets the overall quality")
+      .def(
+        "getWidth", [](const OpenMS::ConsensusFeature& self) { return self.getWidth(); }, "Returns the features width (full width at half max, FWHM)")
+      .def(
+        "setWidth", [](OpenMS::ConsensusFeature& self, float fwhm) { return self.setWidth(fwhm); }, "fwhm"_a, "Sets the width of the feature (FWHM)")
+      .def(
+        "getCharge", [](const OpenMS::ConsensusFeature& self) { return self.getCharge(); }, "Returns the charge state")
+      .def(
+        "setCharge", [](OpenMS::ConsensusFeature& self, const int& ch) { return self.setCharge(ch); }, "ch"_a, "Sets the charge state")
+      .def(nb::self == nb::self)
+      .def(nb::self != nb::self)
+      .def(
+        "getPeptideIdentifications",
+        [](const OpenMS::ConsensusFeature& self) -> OpenMS::PeptideIdentificationList { return self.getPeptideIdentifications(); },
+        "Returns the PeptideIdentification vector")
+      .def(
+        "setPeptideIdentifications",
+        [](OpenMS::ConsensusFeature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); },
+        "peptides"_a, "Sets the PeptideIdentification vector")
+      .def(
+        "getAnnotationState",
+        [](const OpenMS::ConsensusFeature& self, const OpenMS::IdentificationData& data) { return self.getAnnotationState(data); }, "data"_a)
+      .def("getIDMatches", [](const OpenMS::ConsensusFeature& self) { return self.getIDMatches(); })
+      .def("addIDMatch", &OpenMS::ConsensusFeature::addIDMatch, "match"_a)
+      .def("getIDQueries", [](const OpenMS::ConsensusFeature& self) { return self.getIDQueries(); })
+      .def("addIDQuery", &OpenMS::ConsensusFeature::addIDQuery, "query"_a)
+      .def("getPrimaryID", [](const OpenMS::ConsensusFeature& self) { return self.getPrimaryID(); })
+      .def("setPrimaryID", &OpenMS::ConsensusFeature::setPrimaryID, "molecule"_a)
+      .def(
+        "getAnnotationState", [](const OpenMS::ConsensusFeature& self) { return self.getAnnotationState(); },
+        "State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only")
+      .def(
+        "computeDechargeConsensus",
+        [](OpenMS::ConsensusFeature& self, const OpenMS::FeatureMap& fm, bool intensity_weighted_averaging) {
+          return self.computeDechargeConsensus(fm, intensity_weighted_averaging);
+        },
+        "fm"_a, "intensity_weighted_averaging"_a = false,
+        "Computes and updates the consensus position, intensity, and charge using decharge grouping")
 
-        .def("__len__", [](OpenMS::ConsensusFeature& self) { return self.size(); })
-        .def("__repr__", [](const OpenMS::ConsensusFeature& self) {
-            std::ostringstream os;
-            os << "ConsensusFeature(rt=" << self.getRT() << ", mz=" << self.getMZ()
-               << ", intensity=" << self.getIntensity() << ", charge=" << self.getCharge()
-               << ", num_features=" << self.size() << ")";
-            return os.str();
-        })
-        .def("__str__", [](const OpenMS::ConsensusFeature& self) {
-            return nb::cast(self).attr("__repr__")();
-        })
-        ;
+      .def("__len__", [](OpenMS::ConsensusFeature& self) { return self.size(); })
+      .def("__repr__",
+           [](const OpenMS::ConsensusFeature& self) {
+             std::ostringstream os;
+             os << "ConsensusFeature(rt=" << self.getRT() << ", mz=" << self.getMZ() << ", intensity=" << self.getIntensity()
+                << ", charge=" << self.getCharge() << ", num_features=" << self.size() << ")";
+             return os.str();
+           })
+      .def("__str__", [](const OpenMS::ConsensusFeature& self) { return nb::cast(self).attr("__repr__")(); });
 
     // -----------------------------------------------------------------------
     // Feature
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Feature, OpenMS::BaseFeature>(m, "Feature", 
-        R"doc(
+    nb::class_<OpenMS::Feature, OpenMS::BaseFeature>(m, "Feature",
+                                                     R"doc(
 An LC-MS feature representing a detected analyte signal
 The Feature class represents a two-dimensional (RT and m/z) signal from an analyte
 in LC-MS data. It is one of the core data structures in OpenMS for representing
@@ -3865,123 +3963,151 @@ feature.setOverallQuality(0.95)  # Set quality score (0-1)
 # Access the values
 print(f"RT: {feature.getRT()}, m/z: {feature.getMZ()}, charge: {feature.getCharge()}")
 )doc")
-        .def(nb::init<>())
-        .def(nb::init<OpenMS::BaseFeature>())
-        .def(nb::init<const OpenMS::Feature &>())
-        .def("__copy__", [](const OpenMS::Feature& self) { return OpenMS::Feature(self); })
-        .def("__deepcopy__", [](const OpenMS::Feature& self, nb::dict) { return OpenMS::Feature(self); }, "memo"_a)
-        .def("getOverallQuality", [](const OpenMS::Feature& self) { return self.getOverallQuality(); },
-            R"doc(
+      .def(nb::init<>())
+      .def(nb::init<OpenMS::BaseFeature>())
+      .def(nb::init<const OpenMS::Feature&>())
+      .def("__copy__", [](const OpenMS::Feature& self) { return OpenMS::Feature(self); })
+      .def(
+        "__deepcopy__", [](const OpenMS::Feature& self, nb::dict) { return OpenMS::Feature(self); }, "memo"_a)
+      .def(
+        "getOverallQuality", [](const OpenMS::Feature& self) { return self.getOverallQuality(); },
+        R"doc(
 Returns the overall quality score of the feature
 :return: Overall quality score (typically 0-1, where 1 is highest quality)
 This score represents the overall confidence in the feature detection
 )doc")
-        .def("setOverallQuality", [](OpenMS::Feature& self, float q) { return self.setOverallQuality(q); }, "q"_a,
-            R"doc(
+      .def(
+        "setOverallQuality", [](OpenMS::Feature& self, float q) { return self.setOverallQuality(q); }, "q"_a,
+        R"doc(
 Sets the overall quality score of the feature
 :param q: Overall quality score (typically 0-1, where 1 is highest quality)
 )doc")
-        .def("getQuality", [](const OpenMS::Feature& self, size_t index) { return self.getQuality(index); }, "index"_a,
-            R"doc(
+      .def(
+        "getQuality", [](const OpenMS::Feature& self, size_t index) { return self.getQuality(index); }, "index"_a,
+        R"doc(
 Returns the quality score in a specific dimension
 :param index: The dimension index (0 for RT, 1 for m/z)
 :return: Quality score for the specified dimension (typically 0-1 range)
 )doc")
-        .def("setQuality", [](OpenMS::Feature& self, size_t index, float q) { return self.setQuality(index, q); }, "index"_a, "q"_a,
-            R"doc(
+      .def(
+        "setQuality", [](OpenMS::Feature& self, size_t index, float q) { return self.setQuality(index, q); }, "index"_a, "q"_a,
+        R"doc(
 Sets the quality score for a specific dimension
 :param index: The dimension index (0 for RT, 1 for m/z)
 :param q: Quality score to set (typically 0-1 range)
 )doc")
-        .def("getConvexHulls", [](OpenMS::Feature& self) -> std::vector<OpenMS::ConvexHull2D> { return self.getConvexHulls(); },
-            R"doc(
+      .def(
+        "getConvexHulls", [](OpenMS::Feature& self) -> std::vector<OpenMS::ConvexHull2D> { return self.getConvexHulls(); },
+        R"doc(
 Returns the convex hulls of individual mass traces
 :return: List of convex hulls, one for each isotopic mass trace
 Each isotopic peak typically has its own convex hull in RT-m/z space
 )doc")
-        .def("setConvexHulls", [](OpenMS::Feature& self, const std::vector<OpenMS::ConvexHull2D>& hulls) { return self.setConvexHulls(hulls); }, "hulls"_a,
-            R"doc(
+      .def(
+        "setConvexHulls", [](OpenMS::Feature& self, const std::vector<OpenMS::ConvexHull2D>& hulls) { return self.setConvexHulls(hulls); }, "hulls"_a,
+        R"doc(
 Sets the convex hulls of individual mass traces
 :param hulls: List of convex hulls to associate with this feature
 )doc")
-        .def("getConvexHull", [](const OpenMS::Feature& self) -> OpenMS::ConvexHull2D { return self.getConvexHull(); },
-            R"doc(
+      .def(
+        "getConvexHull", [](const OpenMS::Feature& self) -> OpenMS::ConvexHull2D { return self.getConvexHull(); },
+        R"doc(
 Returns the overall convex hull of the feature
 :return: The overall 2D convex hull encompassing all mass traces
 This is the union of all individual mass trace convex hulls
 )doc")
-        .def("encloses", [](const OpenMS::Feature& self, double rt, double mz) { return self.encloses(rt, mz); }, "rt"_a, "mz"_a,
-            R"doc(
+      .def(
+        "encloses", [](const OpenMS::Feature& self, double rt, double mz) { return self.encloses(rt, mz); }, "rt"_a, "mz"_a,
+        R"doc(
 Checks if the feature's convex hulls enclose a given position
 :param rt: Retention time in seconds
 :param mz: Mass-to-charge ratio
 :return: True if the position (rt, mz) is within the feature's convex hulls, False otherwise
 This uses the feature's convex hull representation to determine spatial containment
 )doc")
-        .def(nb::self == nb::self)
-        .def("getSubordinates", [](OpenMS::Feature& self) -> std::vector<OpenMS::Feature> { return self.getSubordinates(); },
-            R"doc(
+      .def(nb::self == nb::self)
+      .def(
+        "getSubordinates", [](OpenMS::Feature& self) -> std::vector<OpenMS::Feature> { return self.getSubordinates(); },
+        R"doc(
 Returns subordinate features (e.g., isotopic peaks)
 :return: List of subordinate features associated with this feature
 Subordinate features often represent individual isotopic peaks of the same compound
 )doc")
-        .def("setSubordinates", [](OpenMS::Feature& self, const std::vector<OpenMS::Feature>& rhs) { return self.setSubordinates(rhs); }, "rhs"_a,
-            R"doc(
+      .def(
+        "setSubordinates", [](OpenMS::Feature& self, const std::vector<OpenMS::Feature>& rhs) { return self.setSubordinates(rhs); }, "rhs"_a,
+        R"doc(
 Sets the subordinate features
 :param rhs: List of subordinate features to associate with this feature
 )doc")
-        .def("getWidth", [](const OpenMS::Feature& self) { return self.getWidth(); },
-            R"doc(
+      .def(
+        "getWidth", [](const OpenMS::Feature& self) { return self.getWidth(); },
+        R"doc(
 Returns the width (FWHM) of the feature in RT dimension
 :return: Full Width at Half Maximum (FWHM) in seconds
 Represents the elution peak width
 )doc")
-        .def("setWidth", [](OpenMS::Feature& self, float fwhm) { return self.setWidth(fwhm); }, "fwhm"_a,
-            R"doc(
+      .def(
+        "setWidth", [](OpenMS::Feature& self, float fwhm) { return self.setWidth(fwhm); }, "fwhm"_a,
+        R"doc(
 Sets the width (FWHM) of the feature in RT dimension
 :param fwhm: Full Width at Half Maximum in seconds
 )doc")
-        .def("getCharge", [](const OpenMS::Feature& self) { return self.getCharge(); },
-            R"doc(
+      .def(
+        "getCharge", [](const OpenMS::Feature& self) { return self.getCharge(); },
+        R"doc(
 Returns the charge state of the feature
 :return: Charge state (e.g., 2 for doubly charged ions, 0 if unknown)
 )doc")
-        .def("setCharge", [](OpenMS::Feature& self, const int& ch) { return self.setCharge(ch); }, "ch"_a,
-            R"doc(
+      .def(
+        "setCharge", [](OpenMS::Feature& self, const int& ch) { return self.setCharge(ch); }, "ch"_a,
+        R"doc(
 Sets the charge state of the feature
 :param ch: Charge state (e.g., 2 for doubly charged ions)
 )doc")
-        .def(nb::self != nb::self)
-        .def("getPeptideIdentifications", [](const OpenMS::Feature& self) -> OpenMS::PeptideIdentificationList { return self.getPeptideIdentifications(); },
-            R"doc(
+      .def(nb::self != nb::self)
+      .def(
+        "getPeptideIdentifications",
+        [](const OpenMS::Feature& self) -> OpenMS::PeptideIdentificationList { return self.getPeptideIdentifications(); },
+        R"doc(
 Returns the peptide identifications associated with this feature
 :return: List of peptide identifications from database search
 Only relevant for peptide features. Contains results from peptide identification tools
 )doc")
-        .def("setPeptideIdentifications", [](OpenMS::Feature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); }, "peptides"_a,
-            R"doc(
+      .def(
+        "setPeptideIdentifications",
+        [](OpenMS::Feature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); },
+        "peptides"_a,
+        R"doc(
 Sets the peptide identifications associated with this feature
 :param peptides: List of peptide identifications to associate with this feature
 )doc")
-        .def("getAnnotationState", [](const OpenMS::Feature& self) { return self.getAnnotationState(); },
-            R"doc(
+      .def(
+        "getAnnotationState", [](const OpenMS::Feature& self, const OpenMS::IdentificationData& data) { return self.getAnnotationState(data); },
+        "data"_a)
+      .def("getIDMatches", [](const OpenMS::Feature& self) { return self.getIDMatches(); })
+      .def("addIDMatch", &OpenMS::Feature::addIDMatch, "match"_a)
+      .def("getIDQueries", [](const OpenMS::Feature& self) { return self.getIDQueries(); })
+      .def("addIDQuery", &OpenMS::Feature::addIDQuery, "query"_a)
+      .def("getPrimaryID", [](const OpenMS::Feature& self) { return self.getPrimaryID(); })
+      .def("setPrimaryID", &OpenMS::Feature::setPrimaryID, "molecule"_a)
+      .def(
+        "getAnnotationState", [](const OpenMS::Feature& self) { return self.getAnnotationState(); },
+        R"doc(
 Returns the annotation state of the feature
 :return: Enum indicating the annotation status of this feature
 )doc")
-        
-        .def("__copy__", [](const OpenMS::Feature& self) { return OpenMS::Feature(self); })
-        .def("__deepcopy__", [](const OpenMS::Feature& self, nb::dict) { return OpenMS::Feature(self); }, "memo"_a)
-        .def("__repr__", [](const OpenMS::Feature& self) {
-            std::ostringstream os;
-            os << "Feature(rt=" << self.getRT() << ", mz=" << self.getMZ()
-               << ", intensity=" << self.getIntensity() << ", charge=" << self.getCharge()
-               << ", quality=" << self.getOverallQuality() << ")";
-            return os.str();
-        })
-        .def("__str__", [](const OpenMS::Feature& self) {
-            return nb::cast(self).attr("__repr__")();
-        })
-        ;
+
+      .def("__copy__", [](const OpenMS::Feature& self) { return OpenMS::Feature(self); })
+      .def(
+        "__deepcopy__", [](const OpenMS::Feature& self, nb::dict) { return OpenMS::Feature(self); }, "memo"_a)
+      .def("__repr__",
+           [](const OpenMS::Feature& self) {
+             std::ostringstream os;
+             os << "Feature(rt=" << self.getRT() << ", mz=" << self.getMZ() << ", intensity=" << self.getIntensity()
+                << ", charge=" << self.getCharge() << ", quality=" << self.getOverallQuality() << ")";
+             return os.str();
+           })
+      .def("__str__", [](const OpenMS::Feature& self) { return nb::cast(self).attr("__repr__")(); });
 
 
     // SpectrumHelper is a namespace-level helper class with only static methods

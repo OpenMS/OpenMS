@@ -83,6 +83,26 @@ public:
     UInt64 value = 0;
     auto operator<=>(const MatchId&) const = default;
   };
+  struct OPENMS_DLLAPI QueryReference
+  {
+    std::string run_uuid;
+    QueryId query;
+    auto operator<=>(const QueryReference&) const = default;
+  };
+  /// Value identity for a molecule annotation; no reference into a dataset.
+  struct OPENMS_DLLAPI MoleculeIdentity
+  {
+    Encoding encoding = Encoding::AA_SEQUENCE;
+    std::string representation;
+    auto operator<=>(const MoleculeIdentity&) const = default;
+  };
+  /// Stable association to an owned match; copying a map preserves this value.
+  struct OPENMS_DLLAPI MatchReference
+  {
+    std::string run_uuid;
+    MatchId match;
+    auto operator<=>(const MatchReference&) const = default;
+  };
   struct OPENMS_DLLAPI ScoreId
   {
     UInt32 value = 0;
@@ -136,12 +156,14 @@ public:
     TargetDecoy target_decoy = TargetDecoy::UNKNOWN;
     std::string sequence;
     std::string description;
+    bool operator==(const ParentRecord&) const = default;
   };
   struct OPENMS_DLLAPI Observation : MetaInfoInterface
   {
     std::string data_id;
     std::optional<double> rt;
     std::optional<double> mz;
+    bool operator==(const Observation&) const = default;
   };
   struct OPENMS_DLLAPI MatchData : MetaInfoInterface
   {
@@ -156,6 +178,7 @@ public:
     std::optional<AdductInfo> adduct;
     std::vector<ParentEvidence> parent_evidence;
     std::vector<PeptideHit::PeakAnnotation> peak_annotations;
+    bool operator==(const MatchData&) const = default;
   };
 
   class Run;
@@ -259,6 +282,8 @@ public:
     const Match* findMatch(MatchId id) const;
     const Identification& getIdentification(QueryId id) const;
     const Match& getMatch(MatchId id) const;
+    /// Resolve the owning observation without a full dataset scan.
+    const Identification& getIdentificationForMatch(MatchId id) const;
     std::optional<double> getScore(MatchId match, ScoreId score) const;
     void setScore(MatchId match, ScoreId score, std::optional<double> value);
     void setSelectedMatch(QueryId query, std::optional<MatchId> selected);
@@ -289,6 +314,7 @@ public:
     /// Reserve IDs appearing only in retained inference provenance.
     void reserveMatchId(MatchId id);
     void validate() const;
+    bool operator==(const Run& other) const;
 
   private:
     friend class IdentificationData;
@@ -334,6 +360,7 @@ public:
     std::optional<ScoreDefinition> score;
     /// Description of the selection used at calculation time, not an executable filter.
     std::string selection;
+    bool operator==(const InferenceInput&) const = default;
   };
   struct OPENMS_DLLAPI InferenceResult
   {
@@ -343,6 +370,7 @@ public:
     std::optional<ScoreDefinition> group_score;
     std::map<std::string, QualifiedAccession> qualified_accessions;
     std::vector<InferenceInput> inputs;
+    bool operator==(const InferenceResult&) const = default;
   };
 
   IdentificationData() = default;
@@ -367,6 +395,13 @@ public:
   { return inference_; }
   void addInferenceResult(InferenceResult result);
   void clearInferenceResults();
+  bool empty() const
+  { return runs_.empty() && inference_.empty(); }
+  void clear();
+  /// Append independent runs atomically; identical shared UUIDs are retained once.
+  /// Conflicting values for an existing UUID are rejected; repeated display names receive a numeric suffix.
+  void merge(const IdentificationData& other);
+  bool operator==(const IdentificationData& other) const;
   Size filterMatches(const std::function<bool(const Match&)>& keep, InferencePolicy policy, bool keep_empty_queries = false);
   /** Dataset-wide ordered PSM score contract.
       Configured runs have identical complete ScoreDefinitions in identical column

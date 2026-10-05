@@ -273,7 +273,7 @@ private:
       break;
       case FileTypes::OMS:
       {
-        LegacyIdentificationData id_data;
+        IdentificationData id_data;
         OMSFile().load(reference_file, id_data);
         algorithm.setReference(id_data);
       }
@@ -517,7 +517,7 @@ private:
     //-------------------------------------------------------------
     case FileTypes::OMS:
     {
-      vector<LegacyIdentificationData> id_data(input_files.size());
+      vector<IdentificationData> id_data(input_files.size());
       OMSFile oms_file;
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);
@@ -530,32 +530,21 @@ private:
       }
       progresslogger.endProgress();
 
-      // add data processing information:
-      DateTime processing_time = DateTime::now(); // use same for each file
-      LegacyIdentificationData::ProcessingSoftware sw(toolName_(), version_);
-      if (test_mode_) sw.setVersion("test");
-      std::string reference_file = getStringOption_("reference:file");
-      for (LegacyIdentificationData& id : id_data)
-      {
-        LegacyIdentificationData::ProcessingSoftwareRef sw_ref =
-          id.registerProcessingSoftware(sw);
-        LegacyIdentificationData::ProcessingStep step(sw_ref);
-        for (const std::string& input_file : input_files)
+      // Alignment provenance is run metadata; the score contract is unchanged.
+      const auto processing_time = DateTime::now();
+      const auto reference_file = getStringOption_("reference:file");
+      for (auto& data : id_data)
+        for (const auto& current : data.getRuns())
         {
-          LegacyIdentificationData::InputFileRef ref =
-            id.registerInputFile(LegacyIdentificationData::InputFile(input_file));
-          step.input_file_refs.push_back(ref);
+          auto& run = data.getRun(current.getIdentifier());
+          auto processing = run.getProcessingMetadata();
+          processing.setMetaValue("alignment:software", toolName_());
+          processing.setMetaValue("alignment:version", test_mode_ ? "test" : version_);
+          processing.setMetaValue("alignment:time", processing_time.get());
+          processing.setMetaValue("alignment:inputs", input_files);
+          if (! reference_file.empty()) processing.setMetaValue("alignment:reference", reference_file);
+          run.setProcessingMetadata(processing);
         }
-        if (!reference_file.empty())
-        {
-          LegacyIdentificationData::InputFileRef ref =
-            id.registerInputFile(LegacyIdentificationData::InputFile(reference_file));
-          step.input_file_refs.push_back(ref);
-        }
-        step.date_time = processing_time;
-        step.actions.insert(DataProcessing::ALIGNMENT);
-        id.registerProcessingStep(step);
-      }
 
       performAlignment_(algorithm, id_data, transformations, reference_index);
       applyTransformations_(id_data, transformations);

@@ -6,60 +6,54 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
-
-#include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/FORMAT/DTA2DFile.h>
-#include <OpenMS/FORMAT/EDTAFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/FORMAT/Bzip2Ifstream.h>
+#include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/DTA2DFile.h>
+#include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/FORMAT/EDTAFile.h>
+#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
+#include <OpenMS/FORMAT/GzipIfstream.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/IdentificationDataFile.h>
+#include <OpenMS/FORMAT/KroenikFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MSPGenericFile.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/MsInspectFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzQCFile.h>
-#include <OpenMS/FORMAT/OMSSAXMLFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/FORMAT/OMSSAXMLFile.h>
+#include <OpenMS/FORMAT/PSMArrowIO.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
-#include <OpenMS/FORMAT/SqMassFile.h>
-#include <OpenMS/FORMAT/XMassFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/FORMAT/XQuestResultXMLFile.h>
-#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
-#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
-#include <OpenMS/FORMAT/IdentificationDataFile.h>
-#include <OpenMS/FORMAT/PSMArrowIO.h>
-#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
-#include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
-
-#include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
-#include <OpenMS/FORMAT/KroenikFile.h>
-
-#include <OpenMS/KERNEL/ChromatogramTools.h>
-
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
-
-#include <OpenMS/FORMAT/GzipIfstream.h>
-#include <OpenMS/FORMAT/Bzip2Ifstream.h>
+#include <OpenMS/FORMAT/SqMassFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/XMassFile.h>
+#include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/FORMAT/ZipIfstream.h>
+#include <OpenMS/KERNEL/ChromatogramTools.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
@@ -1527,7 +1521,7 @@ namespace OpenMS
       {
         OMSFile f;
         f.setLogType(log);
-        LegacyIdentificationData idd;
+        IdentificationData idd;
         f.load(filename, idd);
         IdentificationDataConverter::exportIDs(idd, additional_proteins, additional_peptides);
       }
@@ -1599,6 +1593,13 @@ namespace OpenMS
       IdentificationDataFile::load(filename, data);
       return;
     }
+    if (getTypeByFileName(filename) == FileTypes::OMS)
+    {
+      if (! allowed_types.empty() && ! FileTypeList(allowed_types).contains(FileTypes::OMS))
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "OMS input is not allowed");
+      OMSFile(log).load(filename, data);
+      return;
+    }
     std::vector<ProteinIdentification> proteins;
     PeptideIdentificationList peptides;
     loadIdentifications(filename, proteins, peptides, allowed_types, log);
@@ -1620,6 +1621,11 @@ namespace OpenMS
     if (type == FileTypes::IDPARQUET)
     {
       IdentificationDataFile::store(filename, data);
+      return;
+    }
+    if (type == FileTypes::OMS)
+    {
+      OMSFile(log).store(filename, data);
       return;
     }
     const auto converted = IdentificationDataAdapter::toLegacy(data);
@@ -1664,7 +1670,7 @@ namespace OpenMS
       {
         OMSFile f;
         f.setLogType(log);
-        LegacyIdentificationData idd;
+        IdentificationData idd;
         IdentificationDataConverter::importIDs(idd, additional_proteins, additional_peptides);
         f.store(filename, idd);
       }

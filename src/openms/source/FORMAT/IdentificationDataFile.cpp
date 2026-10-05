@@ -37,8 +37,14 @@ namespace
       fs::path parent = target_.parent_path();
       if (parent.empty()) parent = ".";
       if (! fs::is_directory(parent)) invalid("Output parent directory does not exist");
-      path = parent / (target_.filename().string() + ".tmp-" + std::to_string(UniqueIdGenerator::getUniqueId()));
-      if (! fs::create_directory(path)) invalid("Cannot create staging directory");
+      // A previous interrupted process may leave a private staging directory.
+      // Reserve a fresh name atomically without modifying another writer's data.
+      for (Size attempt = 0; attempt < 100; ++attempt)
+      {
+        path = parent / (target_.filename().string() + ".tmp-" + std::to_string(UniqueIdGenerator::getUniqueId()));
+        if (fs::create_directory(path)) return;
+      }
+      invalid("Cannot create staging directory");
     }
     ~StagedDirectory()
     {
@@ -134,7 +140,11 @@ namespace
     {
       if (! run.at("scores").is_array()) invalid("Run score definitions must be an array");
       const auto& primary = run.at("primary_score");
-      if (run.at("scores").empty() && primary.is_null() && IO::integer<UInt64>(run.at("match_count")) == 0) continue;
+      const auto processing = IO::readProcessingJson(run.at("processing"));
+      const bool catalog
+        = processing.metaValueExists("identification:catalog") && processing.getMetaValue("identification:catalog").toString() == "true";
+      if (catalog && (! run.at("scores").empty() || ! primary.is_null())) invalid("A sequence catalog cannot declare PSM scores");
+      if (run.at("scores").empty() && primary.is_null() && (IO::integer<UInt64>(run.at("match_count")) == 0 || catalog)) continue;
       if (primary.is_null()) invalid("Configured run must select a primary PSM score");
       const auto column = IO::integer<UInt32>(primary);
       if (column >= run.at("scores").size()) invalid("Primary PSM score is outside the declared schema");

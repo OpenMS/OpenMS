@@ -278,12 +278,12 @@ protected:
 
       OMSFile oms_file;
       // load first file (others will be merged in):
-      LegacyIdentificationData data;
+      IdentificationData data;
       oms_file.load(file_names[0], data);
       // merge in other files:
       for (Size index = 1; index < file_names.size(); ++index)
       {
-        LegacyIdentificationData more_data;
+        IdentificationData more_data;
         oms_file.load(file_names[index], more_data);
         data.merge(more_data);
       }

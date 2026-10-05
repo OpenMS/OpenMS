@@ -8,26 +8,23 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
-#include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
-
-#include <OpenMS/METADATA/DocumentIdentifier.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
-
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/DATASTRUCTURES/ExposedVector.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/RangeManager.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/OpenMSConfig.h>
-
+#include <iosfwd>
 #include <map>
 #include <vector>
-#include <iosfwd>
 
 namespace OpenMS
 {
@@ -358,13 +355,13 @@ public:
 
       @see BaseFeature::getIDMatches()
     */
-    std::set<LegacyIdentificationData::ObservationMatchRef> getUnassignedIDMatches() const;
+    std::set<IdentificationData::MatchReference> getUnassignedIDMatches() const;
 
     /// Immutable access to the contained identification data
-    const LegacyIdentificationData& getIdentificationData() const;
+    const IdentificationData& getIdentificationData() const;
 
     /// Mutable access to the contained identification data
-    LegacyIdentificationData& getIdentificationData();
+    IdentificationData& getIdentificationData();
     ///@}
 
   protected:
@@ -384,7 +381,7 @@ public:
     std::vector<DataProcessing> data_processing_;
 
     /// general identification results (peptides/proteins, RNA, compounds)
-    LegacyIdentificationData id_data_;
+    IdentificationData id_data_;
   };
 
   ///Print the contents of a ConsensusMap to a stream.

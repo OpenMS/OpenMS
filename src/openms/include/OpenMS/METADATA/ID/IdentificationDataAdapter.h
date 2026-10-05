@@ -41,12 +41,7 @@ public:
     bool include_inference = true;
     std::optional<std::string> inference_result;
   };
-  struct OPENMS_DLLAPI QueryReference
-  {
-    std::string run_uuid;
-    IdentificationData::QueryId query;
-    auto operator<=>(const QueryReference&) const = default;
-  };
+  using QueryReference = IdentificationData::QueryReference;
   struct OPENMS_DLLAPI ImportResult
   {
     IdentificationData data;

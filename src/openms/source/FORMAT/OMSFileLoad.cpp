@@ -6,180 +6,121 @@
 // $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/OMSFileLoad.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FORMAT/OMSFileStore.h> // for "raiseDBError_"
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-
-#include <nlohmann/json.hpp> // for JSON export
-
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/IdentificationDataFile.h>
+#include <OpenMS/FORMAT/OMSFileLoad.h>
+#include <OpenMS/FORMAT/OMSFileStore.h> // for "raiseDBError_"
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <SQLiteCpp/Database.h>
-
+#include <charconv>
+#include <filesystem>
+#include <fstream>
+#include <nlohmann/json.hpp> // for JSON export
 #include <sqlite3.h>
 
 using namespace std;
 
-using ID = OpenMS::LegacyIdentificationData;
+using ID = OpenMS::IdentificationData;
 
 namespace OpenMS::Internal
 {
-  // initialize lookup table:
-  map<std::string, std::string> OMSFileLoad::export_order_by_ = {
-    {"version", ""},
-    {"ID_IdentifiedCompound", "molecule_id"},
-    {"ID_ParentMatch", "molecule_id, parent_id, start_pos, end_pos"},
-    {"ID_ParentGroup_ParentSequence", "group_id, parent_id"},
-    {"ID_ProcessingStep_InputFile", "processing_step_id, input_file_id"},
-    {"ID_ProcessingSoftware_AssignedScore", "software_id, score_type_order"},
-    {"ID_ObservationMatch_PeakAnnotation", "parent_id, processing_step_id, peak_mz, peak_annotation"},
-    {"FEAT_ConvexHull", "feature_id, hull_index, point_index"},
-    {"FEAT_ObservationMatch", "feature_id, observation_match_id"},
-    {"FEAT_MapMetaData", "unique_id"}
-  };
-
-
-  OMSFileLoad::OMSFileLoad(const std::string& filename, LogType log_type):
-    db_(make_unique<SQLite::Database>(filename))
+namespace
+{
+  UInt64 parseRecordId(const std::string& text)
   {
-    setLogType(log_type);
-
-    // read version number:
-    try
-    {
-      auto version = db_->execAndGet("SELECT OMSFile FROM version");
-      version_number_ = version.getInt();
-    }
-    catch (...)
-    {
-      raiseDBError_(db_->getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading file format version number");
-    }
+    UInt64 result = 0;
+    const auto [end, error] = std::from_chars(text.data(), text.data() + text.size(), result);
+    if (error != std::errc {} || end != text.data() + text.size() || ! result)
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid record ID", text);
+    return result;
   }
+} // namespace
+// initialize lookup table:
+map<std::string, std::string> OMSFileLoad::export_order_by_
+  = {{"version", ""},
+     {"ID_IdentifiedCompound", "molecule_id"},
+     {"ID_ParentMatch", "molecule_id, parent_id, start_pos, end_pos"},
+     {"ID_ParentGroup_ParentSequence", "group_id, parent_id"},
+     {"ID_ProcessingStep_InputFile", "processing_step_id, input_file_id"},
+     {"ID_ProcessingSoftware_AssignedScore", "software_id, score_type_order"},
+     {"ID_ObservationMatch_PeakAnnotation", "parent_id, processing_step_id, peak_mz, peak_annotation"},
+     {"FEAT_ConvexHull", "feature_id, hull_index, point_index"},
+     {"FEAT_ObservationMatch", "feature_id"},
+     {"FEAT_Query", "feature_id, run_uuid, query_id"},
+     {"ID_NativeFiles", "name, chunk"},
+     {"FEAT_MapMetaData", "unique_id"}};
 
 
-  OMSFileLoad::~OMSFileLoad()
+OMSFileLoad::OMSFileLoad(const std::string& filename, LogType log_type): db_(make_unique<SQLite::Database>(filename))
+{
+  setLogType(log_type);
+
+  // read version number:
+  try
   {
+    auto version = db_->execAndGet("SELECT OMSFile FROM version");
+    version_number_ = version.getInt();
+    if (version_number_ < 1 || version_number_ > 6)
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unsupported OMS version", std::to_string(version_number_));
   }
-
-
-  bool OMSFileLoad::isEmpty_(const SQLite::Statement& query)
+  catch (...)
   {
-    return query.getQuery().empty();
+    raiseDBError_(db_->getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error reading file format version number");
   }
+}
 
 
-  // currently not needed:
-  // CVTerm OMSFileLoad::loadCVTerm_(int id)
-  // {
-  //   // this assumes that the "CVTerm" table exists!
-  //   SQLite::Statement query(db_);
-  //
-  //   std::string sql_select = "SELECT * FROM CVTerm WHERE id = " + StringUtils::toStr(id);
-  //   if (!query.exec(sql_select) || !query.executeStep())
-  //   {
-  //     raiseDBError_(model.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
-  //                   "error reading from database");
-  //   }
-  //   return CVTerm(query.getColumn("accession").getString(),
-  //                 query.getColumn("name").getString(),
-  //                 query.getColumn("cv_identifier_ref").getString());
-  // }
+OMSFileLoad::~OMSFileLoad()
+{
+}
 
 
-  void OMSFileLoad::loadScoreTypes_(LegacyIdentificationData& id_data)
+bool OMSFileLoad::isEmpty_(const SQLite::Statement& query)
+{ return query.getQuery().empty(); }
+
+
+DataValue OMSFileLoad::makeDataValue_(const SQLite::Statement& query)
+{
+  DataValue::DataType type = DataValue::EMPTY_VALUE;
+  int type_index = query.getColumn("data_type_id").getInt();
+  if (type_index > 0) type = DataValue::DataType(type_index - 1);
+  if (type == DataValue::STRING_LIST && query.getColumn("value").getType() == SQLITE_BLOB)
   {
-    if (!db_->tableExists("ID_ScoreType")) return;
-    if (!db_->tableExists("CVTerm")) // every score type is a CV term
+    const auto column = query.getColumn("value");
+    const auto* bytes = static_cast<const unsigned char*>(column.getBlob());
+    Size position = 0, size = column.getBytes();
+    const auto integer = [&]() {
+      if (size - position < 8) throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Truncated string list", "");
+      UInt64 result = 0;
+      for (Size i = 0; i < 8; ++i)
+        result |= static_cast<UInt64>(bytes[position++]) << (i * 8);
+      return result;
+    };
+    const auto count = integer();
+    if (count > (size - position) / 8) throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid string list count", "");
+    StringList values;
+    values.reserve(count);
+    for (UInt64 i = 0; i < count; ++i)
     {
-      std::string msg = "required database table 'CVTerm' not found";
-      throw Exception::MissingInformation(__FILE__, __LINE__,
-                                          OPENMS_PRETTY_FUNCTION, msg);
+      const auto length = integer();
+      if (length > size - position) throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid string list length", "");
+      values.emplace_back(reinterpret_cast<const char*>(bytes + position), length);
+      position += length;
     }
-    // careful - both joined tables have an "id" field, need to exclude one:
-    SQLite::Statement query(*db_, "SELECT S.*, C.accession, C.name, C.cv_identifier_ref " \
-                    "FROM ID_ScoreType AS S JOIN CVTerm AS C "          \
-                    "ON S.cv_term_id = C.id");
-    while (query.executeStep())
-    {
-      CVTerm cv_term(query.getColumn("accession").getString(),
-                     query.getColumn("name").getString(),
-                     query.getColumn("cv_identifier_ref").getString());
-      bool higher_better = query.getColumn("higher_better").getInt();
-      ID::ScoreType score_type(cv_term, higher_better);
-      ID::ScoreTypeRef ref = id_data.registerScoreType(score_type);
-      score_type_refs_[query.getColumn("id").getInt64()] = ref;
-    }
+    if (position != size) throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Trailing string list bytes", "");
+    return DataValue(values);
   }
-
-
-  void OMSFileLoad::loadInputFiles_(LegacyIdentificationData& id_data)
+  std::string value = query.getColumn("value").getString();
+  switch (type)
   {
-    if (!db_->tableExists("ID_InputFile")) return;
-
-    SQLite::Statement query(*db_, "SELECT * FROM ID_InputFile");
-    while (query.executeStep())
-    {
-      ID::InputFile input(query.getColumn("name").getString(),
-                          query.getColumn("experimental_design_id").getString());
-      std::string primary_files = query.getColumn("primary_files").getString();
-      vector<std::string> pf_list = ListUtils::create<std::string>(primary_files);
-      input.primary_files.insert(pf_list.begin(), pf_list.end());
-      ID::InputFileRef ref = id_data.registerInputFile(input);
-      input_file_refs_[query.getColumn("id").getInt64()] = ref;
-    }
-  }
-
-
-  void OMSFileLoad::loadProcessingSoftwares_(LegacyIdentificationData& id_data)
-  {
-    if (!db_->tableExists("ID_ProcessingSoftware")) return;
-
-
-    SQLite::Statement query(*db_, "SELECT * FROM ID_ProcessingSoftware");
-    bool have_scores = db_->tableExists("ID_ProcessingSoftware_AssignedScore");
-    SQLite::Statement subquery(*db_, "");
-    if (have_scores)
-    {
-      subquery = SQLite::Statement(*db_, "SELECT score_type_id "                         \
-                       "FROM ID_ProcessingSoftware_AssignedScore " \
-                       "WHERE software_id = :id ORDER BY score_type_order ASC");
-    }
-    while (query.executeStep())
-    {
-      Key id = query.getColumn("id").getInt64();
-      ID::ProcessingSoftware software(query.getColumn("name").getString(),
-                                          query.getColumn("version").getString());
-      if (have_scores)
-      {
-        subquery.bind(":id", id);
-        while (subquery.executeStep())
-        {
-          Key score_type_id = subquery.getColumn(0).getInt64();
-          software.assigned_scores.push_back(score_type_refs_[score_type_id]);
-        }
-        subquery.reset(); // get ready for new executeStep()
-      }
-      ID::ProcessingSoftwareRef ref = id_data.registerProcessingSoftware(software);
-      processing_software_refs_[id] = ref;
-    }
-  }
-
-
-  DataValue OMSFileLoad::makeDataValue_(const SQLite::Statement& query)
-  {
-    DataValue::DataType type = DataValue::EMPTY_VALUE;
-    int type_index = query.getColumn("data_type_id").getInt();
-    if (type_index > 0) type = DataValue::DataType(type_index - 1);
-    std::string value = query.getColumn("value").getString();
-    switch (type)
-    {
     case DataValue::STRING_VALUE:
       return DataValue(value);
     case DataValue::INT_VALUE:
-      return DataValue(StringUtils::toInt32(value));
+      return DataValue(StringUtils::toInt64(value));
     case DataValue::DOUBLE_VALUE:
       return DataValue(StringUtils::toDouble(value));
     // converting lists to std::string adds square brackets - remove them:
@@ -195,7 +136,7 @@ namespace OpenMS::Internal
     default: // DataValue::EMPTY_VALUE (avoid warning about missing return)
       return DataValue();
     }
-  }
+}
 
 
   bool OMSFileLoad::prepareQueryMetaInfo_(SQLite::Statement& query,
@@ -220,20 +161,6 @@ namespace OpenMS::Internal
   }
 
 
-  bool OMSFileLoad::prepareQueryAppliedProcessingStep_(SQLite::Statement& query,
-                                                       const std::string& parent_table)
-  {
-    std::string table_name = parent_table + "_AppliedProcessingStep";
-    if (!db_->tableExists(table_name)) return false;
-
-    //
-    std::string sql_select = "SELECT * FROM " + table_name +
-      " WHERE parent_id = :id ORDER BY processing_step_order ASC";
-    query = SQLite::Statement(*db_, sql_select);
-    return true;
-  }
-
-
   void OMSFileLoad::handleQueryMetaInfo_(SQLite::Statement& query,
                                          MetaInfoInterface& info,
                                          Key parent_id)
@@ -242,548 +169,566 @@ namespace OpenMS::Internal
     while (query.executeStep())
     {
       DataValue value = makeDataValue_(query);
+      if (version_number_ >= 6)
+      {
+        const auto unit_type = query.getColumn("unit_type").getInt();
+        if (unit_type < 0 || unit_type > static_cast<int>(DataValue::OTHER))
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid metadata unit type", "");
+        value.setUnitType(static_cast<DataValue::UnitType>(unit_type));
+        value.setUnit(query.getColumn("unit").getInt());
+      }
       info.setMetaValue(query.getColumn("name").getString(), value);
     }
     query.reset(); // get ready for new executeStep()
   }
 
 
-  void OMSFileLoad::handleQueryAppliedProcessingStep_(
-    SQLite::Statement& query,
-    IdentificationDataInternal::ScoredProcessingResult& result,
-    Key parent_id)
+  void OMSFileLoad::loadLegacyIdentifications_(IdentificationData& data)
   {
-    query.bind(":id", parent_id);
-    while (query.executeStep())
+    // Read released SQLite schemas directly into owning values. These maps exist only
+    // during import; no iterator-reference graph survives the file boundary.
+    const auto rows = [&](const std::string& table, const auto& consume) {
+      if (! db_->tableExists(table)) return;
+      SQLite::Statement query(*db_, "SELECT * FROM " + table);
+      while (query.executeStep())
+        consume(query);
+    };
+    const auto metadata = [&](const std::string& table, Key id, MetaInfoInterface& value) {
+      SQLite::Statement query(*db_, "");
+      if (prepareQueryMetaInfo_(query, table)) handleQueryMetaInfo_(query, value, id);
+    };
+    const auto kind = [](int value) {
+      if (value == 1) return ID::MoleculeKind::PEPTIDE;
+      if (value == 2) return ID::MoleculeKind::COMPOUND;
+      if (value == 3) return ID::MoleculeKind::OLIGONUCLEOTIDE;
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid legacy molecule type", std::to_string(value));
+    };
+    std::map<Key, ID::ScoreDefinition> definitions;
+    if (db_->tableExists("ID_ScoreType"))
     {
-      ID::AppliedProcessingStep step;
-      auto step_id_opt = query.getColumn("processing_step_id");
-      if (!step_id_opt.isNull())
+      SQLite::Statement query(*db_, "SELECT S.*, C.accession, C.name FROM ID_ScoreType S JOIN CVTerm C ON S.cv_term_id=C.id ORDER BY S.id");
+      while (query.executeStep())
       {
-        step.processing_step_opt =
-          processing_step_refs_[step_id_opt.getInt64()];
+        ID::ScoreDefinition definition;
+        definition.name = query.getColumn("name").getString();
+        definition.accession = query.getColumn("accession").getString();
+        definition.higher_better = query.getColumn("higher_better").getInt();
+        definitions.emplace(query.getColumn("id").getInt64(), std::move(definition));
       }
-      auto score_type_opt = query.getColumn("score_type_id");
-      if (!score_type_opt.isNull())
-      {
-        step.scores[score_type_refs_[score_type_opt.getInt64()]] =
-          query.getColumn("score").getDouble();
-      }
-      result.addProcessingStep(step); // this takes care of merging the steps
     }
-    query.reset(); // get ready for new executeStep()
-  }
-
-
-  void OMSFileLoad::loadDBSearchParams_(LegacyIdentificationData& id_data)
-  {
-    if (!db_->tableExists("ID_DBSearchParam")) return;
-
-    SQLite::Statement query(*db_, "SELECT * FROM ID_DBSearchParam");
-    while (query.executeStep())
-    {
-      Key id = query.getColumn("id").getInt64();
-      ID::DBSearchParam param;
-      int molecule_type_index = query.getColumn("molecule_type_id").getInt() - 1;
-      param.molecule_type = ID::MoleculeType(molecule_type_index);
-      int mass_type_index = query.getColumn("mass_type_average").getInt();
-      param.mass_type = ID::MassType(mass_type_index);
-      param.database = query.getColumn("database").getString();
-      param.database_version = query.getColumn("database_version").getString();
+    std::map<Key, ID::SourceFile> sources;
+    rows("ID_InputFile", [&](auto& query) {
+      ID::SourceFile source;
+      source.path = query.getColumn("name").getString();
+      source.identifier = query.getColumn("experimental_design_id").getString();
+      source.primary_files = ListUtils::create<std::string>(query.getColumn("primary_files").getString());
+      sources.emplace(query.getColumn("id").getInt64(), std::move(source));
+    });
+    std::map<Key, ProteinIdentification> software, parameters, steps;
+    rows("ID_ProcessingSoftware", [&](auto& query) {
+      auto& value = software[query.getColumn("id").getInt64()];
+      value.setSearchEngine(query.getColumn("name").getString());
+      value.setSearchEngineVersion(query.getColumn("version").getString());
+    });
+    rows("ID_DBSearchParam", [&](auto& query) {
+      auto& value = parameters[query.getColumn("id").getInt64()];
+      auto& param = value.getSearchParameters();
+      param.db = query.getColumn("database").getString();
+      param.db_version = query.getColumn("database_version").getString();
       param.taxonomy = query.getColumn("taxonomy").getString();
-      vector<Int> charges =
-        ListUtils::create<Int>(query.getColumn("charges").getString());
-      param.charges.insert(charges.begin(), charges.end());
-      vector<std::string> fixed_mods =
-        ListUtils::create<std::string>(query.getColumn("fixed_mods").getString());
-      param.fixed_mods.insert(fixed_mods.begin(), fixed_mods.end());
-      vector<std::string> variable_mods =
-        ListUtils::create<std::string>(query.getColumn("variable_mods").getString());
-      param.variable_mods.insert(variable_mods.begin(), variable_mods.end());
-      param.precursor_mass_tolerance =
-        query.getColumn("precursor_mass_tolerance").getDouble();
-      param.fragment_mass_tolerance =
-        query.getColumn("fragment_mass_tolerance").getDouble();
-      param.precursor_tolerance_ppm =
-        query.getColumn("precursor_tolerance_ppm").getInt();
-      param.fragment_tolerance_ppm =
-        query.getColumn("fragment_tolerance_ppm").getInt();
-      std::string enzyme = query.getColumn("digestion_enzyme").getString();
-      if (!enzyme.empty())
-      {
-        if (param.molecule_type == ID::MoleculeType::PROTEIN)
-        {
-          param.digestion_enzyme = ProteaseDB::getInstance()->getEnzyme(enzyme);
-        }
-        else if (param.molecule_type == ID::MoleculeType::RNA)
-        {
-          param.digestion_enzyme = RNaseDB::getInstance()->getEnzyme(enzyme);
-        }
-      }
-      if (version_number_ > 1)
-      {
-        std::string spec = query.getColumn("enzyme_term_specificity").getString();
-        param.enzyme_term_specificity = EnzymaticDigestion::getSpecificityByName(spec);
-      }
+      param.charges = query.getColumn("charges").getString();
+      param.mass_type = query.getColumn("mass_type_average").getInt() ? ProteinIdentification::PeakMassType::AVERAGE
+                                                                      : ProteinIdentification::PeakMassType::MONOISOTOPIC;
+      param.fixed_modifications = ListUtils::create<std::string>(query.getColumn("fixed_mods").getString());
+      param.variable_modifications = ListUtils::create<std::string>(query.getColumn("variable_mods").getString());
+      param.precursor_mass_tolerance = query.getColumn("precursor_mass_tolerance").getDouble();
+      param.fragment_mass_tolerance = query.getColumn("fragment_mass_tolerance").getDouble();
+      param.precursor_mass_tolerance_ppm = query.getColumn("precursor_tolerance_ppm").getInt();
+      param.fragment_mass_tolerance_ppm = query.getColumn("fragment_tolerance_ppm").getInt();
       param.missed_cleavages = query.getColumn("missed_cleavages").getUInt();
-      param.min_length = query.getColumn("min_length").getUInt();
-      param.max_length = query.getColumn("max_length").getUInt();
-      ID::SearchParamRef ref = id_data.registerDBSearchParam(param);
-      search_param_refs_[id] = ref;
-    }
-  }
-
-
-  void OMSFileLoad::loadProcessingSteps_(LegacyIdentificationData& id_data)
-  {
-    if (!db_->tableExists("ID_ProcessingStep")) return;
-
-
-    SQLite::Statement query(*db_, "SELECT * FROM ID_ProcessingStep");
-    SQLite::Statement subquery_file(*db_, "");
-    bool have_input_files = db_->tableExists(
-                                         "ID_ProcessingStep_InputFile");
-    if (have_input_files)
-    {
-      subquery_file = SQLite::Statement(*db_, "SELECT input_file_id "                 \
-                            "FROM ID_ProcessingStep_InputFile " \
-                            "WHERE processing_step_id = :id");
-    }
-    SQLite::Statement subquery_info(*db_, "");
-    bool have_meta_info = prepareQueryMetaInfo_(subquery_info, "ID_ProcessingStep");
-    while (query.executeStep())
-    {
-      Key id = query.getColumn("id").getInt64();
-      Key software_id = query.getColumn("software_id").getInt64();
-      ID::ProcessingStep step(processing_software_refs_[software_id]);
-      std::string date_time = query.getColumn("date_time").getString();
-      if (!date_time.empty()) step.date_time.set(date_time);
-      if (have_input_files)
+      auto enzyme = query.getColumn("digestion_enzyme").getString();
+      if (! enzyme.empty() && kind(query.getColumn("molecule_type_id").getInt()) == ID::MoleculeKind::PEPTIDE)
+        param.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enzyme);
+      else if (! enzyme.empty())
+        param.setMetaValue("rna_enzyme", enzyme);
+      param.setMetaValue("legacy:min_length", query.getColumn("min_length").getInt());
+      param.setMetaValue("legacy:max_length", query.getColumn("max_length").getInt());
+      if (version_number_ > 1) param.setMetaValue("legacy:enzyme_term_specificity", query.getColumn("enzyme_term_specificity").getString());
+    });
+    rows("ID_ProcessingStep", [&](auto& query) {
+      auto id = query.getColumn("id").getInt64();
+      auto& value = steps[id];
+      value = software.at(query.getColumn("software_id").getInt64());
+      const auto param = query.getColumn("search_param_id");
+      if (! param.isNull()) value.setSearchParameters(parameters.at(param.getInt64()).getSearchParameters());
+      const auto time = query.getColumn("date_time").getString();
+      if (! time.empty())
       {
-        subquery_file.bind(":id", id);
-        while (subquery_file.executeStep())
+        DateTime dt;
+        dt.set(time);
+        value.setDateTime(dt);
+      }
+      metadata("ID_ProcessingStep", id, value);
+    });
+    // Preserve every processing step as typed run metadata, including input paths.
+    rows("ID_ProcessingStep_InputFile", [&](auto& query) {
+      auto& step = steps.at(query.getColumn("processing_step_id").getInt64());
+      std::vector<std::string> paths;
+      step.getPrimaryMSRunPath(paths);
+      paths.push_back(sources.at(query.getColumn("input_file_id").getInt64()).path);
+      step.setPrimaryMSRunPath(paths);
+    });
+    const auto applied = [&](const std::string& table, Key id, MetaInfoInterface& value) {
+      std::map<Key, double> scores;
+      if (! db_->tableExists(table + "_AppliedProcessingStep")) return scores;
+      SQLite::Statement query(*db_, "SELECT * FROM " + table + "_AppliedProcessingStep WHERE parent_id=:id ORDER BY processing_step_order");
+      query.bind(":id", id);
+      while (query.executeStep())
+      {
+        const auto score = query.getColumn("score_type_id");
+        if (score.isNull()) continue;
+        const auto score_id = score.getInt64();
+        const auto number = query.getColumn("score").getDouble();
+        const auto step = query.getColumn("processing_step_id");
+        value.setMetaValue("legacy:score:" + std::to_string(step.isNull() ? 0 : step.getInt64()) + ":" + definitions.at(score_id).name, number);
+        scores[score_id] = number; // latest application is the materialized score
+      }
+      return scores;
+    };
+    std::set<std::string> databases;
+    for (const auto& [id, step] : steps)
+      if (! step.getSearchParameters().db.empty()) databases.insert(step.getSearchParameters().db);
+    const std::string database = databases.size() == 1 ? *databases.begin() : std::string {};
+    std::map<Key, std::pair<ID::MoleculeKind, ID::ParentRecord>> parents;
+    std::map<Key, std::map<Key, double>> parent_scores;
+    rows("ID_ParentSequence", [&](auto& query) {
+      auto id = query.getColumn("id").getInt64();
+      ID::ParentRecord parent;
+      parent.identity = {database, query.getColumn("accession").getString()};
+      parent.sequence = query.getColumn("sequence").getString();
+      parent.description = query.getColumn("description").getString();
+      parent.target_decoy = query.getColumn("is_decoy").getInt() ? ID::TargetDecoy::DECOY : ID::TargetDecoy::TARGET;
+      metadata("ID_ParentSequence", id, parent);
+      parent.setMetaValue("coverage", query.getColumn("coverage").getDouble());
+      parent_scores[id] = applied("ID_ParentSequence", id, parent);
+      parents.emplace(id, std::make_pair(kind(query.getColumn("molecule_type_id").getInt()), std::move(parent)));
+    });
+    std::map<Key, std::pair<ID::MoleculeKind, ID::MatchData>> molecules;
+    rows("ID_IdentifiedMolecule", [&](auto& query) {
+      auto id = query.getColumn("id").getInt64();
+      auto type = kind(query.getColumn("molecule_type_id").getInt());
+      ID::MatchData match;
+      match.encoding = type == ID::MoleculeKind::PEPTIDE           ? ID::Encoding::AA_SEQUENCE
+                       : type == ID::MoleculeKind::OLIGONUCLEOTIDE ? ID::Encoding::NA_SEQUENCE
+                                                                   : ID::Encoding::DATABASE_ID;
+      match.representation = query.getColumn("identifier").getString();
+      metadata("ID_IdentifiedMolecule", id, match);
+      applied("ID_IdentifiedMolecule", id, match);
+      compatibility_molecules_[id] = {match.encoding, match.representation};
+      molecules.emplace(id, std::make_pair(type, std::move(match)));
+    });
+    rows("ID_IdentifiedCompound", [&](auto& query) {
+      auto& match = molecules.at(query.getColumn("molecule_id").getInt64()).second;
+      match.identifiers.push_back({database, match.representation});
+      match.name = query.getColumn("name").getString();
+      auto formula = query.getColumn("formula").getString();
+      if (! formula.empty()) match.formula = formula;
+      auto smiles = query.getColumn("smile").getString(), inchi = query.getColumn("inchi").getString();
+      if (! smiles.empty() && smiles != "null")
+      {
+        match.encoding = ID::Encoding::SMILES;
+        match.representation = smiles;
+      }
+      else if (! inchi.empty() && inchi != "null")
+      {
+        match.encoding = ID::Encoding::INCHI;
+        match.representation = inchi;
+      }
+      compatibility_molecules_[query.getColumn("molecule_id").getInt64()] = {match.encoding, match.representation};
+    });
+    rows("ID_ParentMatch", [&](auto& query) {
+      auto& match = molecules.at(query.getColumn("molecule_id").getInt64()).second;
+      const auto& parent = parents.at(query.getColumn("parent_id").getInt64()).second;
+      ID::ParentEvidence evidence;
+      evidence.parent = parent.identity;
+      auto start = query.getColumn("start_pos"), end = query.getColumn("end_pos");
+      if (! start.isNull() && start.getInt64() >= 0) evidence.start = start.getInt64();
+      if (! end.isNull() && end.getInt64() >= 0) evidence.end = end.getInt64();
+      evidence.before = query.getColumn("left_neighbor").getString();
+      evidence.after = query.getColumn("right_neighbor").getString();
+      match.parent_evidence.push_back(std::move(evidence));
+      if (match.target_decoy == ID::TargetDecoy::UNKNOWN) match.target_decoy = parent.target_decoy;
+      else if (match.target_decoy != parent.target_decoy)
+        match.target_decoy = ID::TargetDecoy::BOTH;
+    });
+    std::map<Key, std::pair<Key, ID::Observation>> observations;
+    rows("ID_Observation", [&](auto& query) {
+      auto id = query.getColumn("id").getInt64();
+      ID::Observation value;
+      value.data_id = query.getColumn("data_id").getString();
+      auto rt = query.getColumn("rt"), mz = query.getColumn("mz");
+      if (! rt.isNull()) value.rt = rt.getDouble();
+      if (! mz.isNull()) value.mz = mz.getDouble();
+      metadata("ID_Observation", id, value);
+      observations.emplace(id, std::make_pair(query.getColumn("input_file_id").getInt64(), std::move(value)));
+    });
+    std::map<Key, AdductInfo> adducts;
+    rows("AdductInfo", [&](auto& query) {
+      adducts.emplace(query.getColumn("id").getInt64(),
+                      AdductInfo(query.getColumn("name").getString(), EmpiricalFormula(query.getColumn("formula").getString()),
+                                 query.getColumn("charge").getInt(), query.getColumn("mol_multiplier").getInt()));
+    });
+    // Protein/group-only scores do not belong in the PSM column contract.
+    std::map<Key, ID::ScoreDefinition> match_definitions;
+    rows("ID_ObservationMatch_AppliedProcessingStep", [&](auto& query) {
+      const auto score = query.getColumn("score_type_id");
+      if (! score.isNull()) match_definitions.emplace(score.getInt64(), definitions.at(score.getInt64()));
+    });
+    ID loaded;
+    std::map<ID::MoleculeKind, ID::Run*> runs;
+    std::map<std::pair<ID::MoleculeKind, Key>, ID::QueryId> queries;
+    const auto get_run = [&](ID::MoleculeKind type) -> ID::Run& {
+      auto found = runs.find(type);
+      if (found != runs.end()) return *found->second;
+      auto& run = loaded.addRun("OMS:" + std::to_string(static_cast<int>(type)), type);
+      ProteinIdentification processing;
+      if (! steps.empty()) processing = steps.rbegin()->second;
+      processing.setIdentifier(run.getIdentifier());
+      for (const auto& [id, step] : steps)
+      {
+        const auto prefix = "legacy:processing:" + std::to_string(id) + ":";
+        processing.setMetaValue(prefix + "software", step.getSearchEngine());
+        processing.setMetaValue(prefix + "version", step.getSearchEngineVersion());
+        processing.setMetaValue(prefix + "date", step.getDateTime().get());
+        std::vector<std::string> paths;
+        step.getPrimaryMSRunPath(paths);
+        processing.setMetaValue(prefix + "inputs", paths);
+        std::vector<std::string> keys;
+        step.getKeys(keys);
+        for (const auto& key : keys)
+          processing.setMetaValue(prefix + key, step.getMetaValue(key));
+      }
+      run.setProcessingMetadata(processing);
+      for (const auto& [id, definition] : match_definitions)
+        run.addScore(definition);
+      std::vector<ID::ParentRecord> selected;
+      for (const auto& [id, parent] : parents)
+        if (parent.first == type) selected.push_back(parent.second);
+      if (! selected.empty()) run.setParents(std::move(selected));
+      runs.emplace(type, &run);
+      return run;
+    };
+    std::map<std::pair<ID::MoleculeKind, Key>, ID::SourceId> source_ids;
+    const auto get_query = [&](ID::MoleculeKind type, Key observation) {
+      const auto key = std::make_pair(type, observation);
+      auto found = queries.find(key);
+      if (found != queries.end()) return found->second;
+      auto& run = get_run(type);
+      const auto& item = observations.at(observation);
+      const auto skey = std::make_pair(type, item.first);
+      auto source = source_ids.find(skey);
+      if (source == source_ids.end()) source = source_ids.emplace(skey, run.addSource(sources.at(item.first))).first;
+      auto query = run.addIdentification(source->second, item.second);
+      queries.emplace(key, query);
+      return query;
+    };
+    rows("ID_ObservationMatch", [&](auto& query) {
+      const auto id = query.getColumn("id").getInt64();
+      auto [type, match] = molecules.at(query.getColumn("identified_molecule_id").getInt64());
+      auto& run = get_run(type);
+      auto observation = get_query(type, query.getColumn("observation_id").getInt64());
+      match.charge = query.getColumn("charge").getInt();
+      metadata("ID_ObservationMatch", id, match);
+      const auto values = applied("ID_ObservationMatch", id, match);
+      const auto adduct = query.getColumn("adduct_id");
+      if (! adduct.isNull())
+      {
+        auto value = adducts.at(adduct.getInt64());
+        if (value.getCharge() != match.charge && type == ID::MoleculeKind::OLIGONUCLEOTIDE)
+          value = AdductInfo(value.getName(), value.getEmpiricalFormula() + EmpiricalFormula("H") * (match.charge - value.getCharge()), match.charge,
+                             value.getMolMultiplier());
+        match.adduct = value;
+      }
+      if (type == ID::MoleculeKind::COMPOUND && match.formula && match.adduct)
+        match.calculated_mz = match.adduct->getMZ(EmpiricalFormula(*match.formula).getMonoWeight());
+      if (db_->tableExists("ID_ObservationMatch_PeakAnnotation"))
+      {
+        SQLite::Statement annotations(*db_, "SELECT * FROM ID_ObservationMatch_PeakAnnotation WHERE parent_id=:id");
+        annotations.bind(":id", id);
+        while (annotations.executeStep())
         {
-          Key input_file_id = subquery_file.getColumn(0).getInt64();
-          // the foreign key constraint should ensure that look-up succeeds:
-          step.input_file_refs.push_back(input_file_refs_[input_file_id]);
+          PeptideHit::PeakAnnotation annotation;
+          annotation.annotation = annotations.getColumn("peak_annotation").getString();
+          annotation.charge = annotations.getColumn("peak_charge").getInt();
+          annotation.mz = annotations.getColumn("peak_mz").getDouble();
+          annotation.intensity = annotations.getColumn("peak_intensity").getDouble();
+          match.peak_annotations.push_back(std::move(annotation));
         }
-        subquery_file.reset(); // get ready for new executeStep()
       }
-      if (have_meta_info)
+      std::vector<std::optional<double>> scores;
+      for (const auto& [key, definition] : match_definitions)
       {
-        handleQueryMetaInfo_(subquery_info, step, id);
+        auto found = values.find(key);
+        scores.push_back(found == values.end() ? std::nullopt : std::optional<double>(found->second));
       }
-      ID::ProcessingStepRef ref;
-      auto opt_search_param_id = query.getColumn("search_param_id");
-      if (opt_search_param_id.isNull()) // no DB search params available
+      const auto match_id = run.addMatch(observation, match, scores);
+      compatibility_matches_[id] = {run.getUuid(), match_id};
+    });
+    // Scoreless sequence catalogs (e.g. saved RNA digestion) remain owning values.
+    if (compatibility_matches_.empty() && ! molecules.empty())
+      for (const auto& [id, molecule] : molecules)
       {
-        ref = id_data.registerProcessingStep(step);
+        auto& run = get_run(molecule.first);
+        auto processing = run.getProcessingMetadata();
+        processing.setMetaValue("identification:catalog", "true");
+        run.setProcessingMetadata(processing);
+        if (run.getSourceBlocks().empty()) run.addSource(ID::SourceFile {});
+        ID::Observation observation;
+        observation.data_id = "catalog=" + std::to_string(id);
+        const auto query = run.addIdentification(run.getSourceId(0), observation);
+        run.addMatch(query, molecule.second, std::vector<std::optional<double>>(match_definitions.size()));
+      }
+    if (runs.empty() && ! parents.empty())
+      for (const auto& [id, parent] : parents)
+        get_run(parent.first);
+    // Keep empty observations too; they are not tied to a particular candidate type.
+    if (! observations.empty() && runs.empty()) get_run(ID::MoleculeKind::PEPTIDE);
+    for (const auto& [id, observation] : observations)
+      if (std::none_of(queries.begin(), queries.end(), [&](const auto& item) { return item.first.second == id; })) get_query(runs.begin()->first, id);
+    // Honor the preferred score of the most recent software when it is complete.
+    std::vector<Size> preferred;
+    if (db_->tableExists("ID_ProcessingSoftware_AssignedScore") && db_->tableExists("ID_ProcessingStep"))
+    {
+      SQLite::Statement query(*db_, "SELECT A.score_type_id FROM ID_ProcessingSoftware_AssignedScore A JOIN ID_ProcessingStep P ON "
+                                    "A.software_id=P.software_id ORDER BY P.date_time DESC, A.score_type_order");
+      while (query.executeStep())
+      {
+        auto found = match_definitions.find(query.getColumn(0).getInt64());
+        if (found != match_definitions.end()) preferred.push_back(std::distance(match_definitions.begin(), found));
+      }
+    }
+    for (Size column = match_definitions.size(); column > 0; --column)
+      preferred.push_back(column - 1);
+    for (Size column : preferred)
+    {
+      bool complete = true;
+      for (const auto& run : loaded.getRuns())
+        for (const auto& source : run.getSourceBlocks())
+          for (const auto& query : source.identifications)
+            for (const auto& match : query.getMatches())
+              complete = complete && run.getScore(match.getId(), run.getScoreId(column)).has_value();
+      if (complete)
+      {
+        for (const auto& run : loaded.getRuns())
+          loaded.getRun(run.getIdentifier()).setPrimaryScore(run.getScoreId(column));
+        break;
+      }
+    }
+    for (const auto& run : loaded.getRuns())
+      if (run.getNumberOfMatches() && ! run.getScoreDefinitions().empty() && ! run.getPrimaryScore())
+        throw Exception::InvalidValue(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Legacy OMS has no common, fully populated primary PSM score; split score layouts or select a common score before conversion",
+          run.getIdentifier());
+    for (const auto& [type, run] : runs)
+    {
+      ID::InferenceResult inference;
+      inference.identifier = "OMS:parents:" + run->getIdentifier();
+      inference.proteins = run->getProcessingMetadata();
+      std::optional<Key> chosen;
+      for (const auto& [id, parent] : parents)
+        if (parent.first == type && ! parent_scores.at(id).empty()) chosen = parent_scores.at(id).rbegin()->first;
+      if (! chosen || db_->tableExists("ID_ParentGroupSet")) continue;
+      auto definition = definitions.at(*chosen);
+      definition.scope = ID::ScoreScope::PROTEIN;
+      inference.parent_score = definition;
+      inference.proteins.setScoreType(definition.name);
+      inference.proteins.setHigherScoreBetter(definition.higher_better);
+      std::vector<ProteinHit> hits;
+      for (const auto& [id, parent] : parents)
+        if (parent.first == type)
+        {
+          ProteinHit hit;
+          static_cast<MetaInfoInterface&>(hit) = parent.second;
+          hit.setAccession(parent.second.identity.accession);
+          hit.setSequence(parent.second.sequence);
+          hit.setDescription(parent.second.description);
+          hit.setCoverage(static_cast<double>(parent.second.getMetaValue("coverage")) * 100.0);
+          hit.setTargetDecoyType(parent.second.target_decoy == ID::TargetDecoy::DECOY ? ProteinHit::TargetDecoyType::DECOY
+                                                                                      : ProteinHit::TargetDecoyType::TARGET);
+          const auto score = parent_scores.at(id).find(*chosen);
+          if (score != parent_scores.at(id).end()) hit.setScore(score->second);
+          else
+            hit.setMetaValue("legacy:missing_parent_score", "true");
+          inference.qualified_accessions[hit.getAccession()] = parent.second.identity;
+          hits.push_back(std::move(hit));
+        }
+      inference.proteins.setHits(hits);
+      inference.inputs.push_back({run->getIdentifier(), run->getUuid(), std::nullopt, "Legacy OMS parent scores"});
+      loaded.addInferenceResult(std::move(inference));
+    }
+    std::vector<ID::InferenceResult> group_inferences;
+    std::map<std::vector<Key>, Size> protein_groupings;
+    rows("ID_ParentGroupSet", [&](auto& query) {
+      const auto id = query.getColumn("id").getInt64();
+      ID::InferenceResult inference;
+      inference.identifier = "OMS:groups:" + std::to_string(id);
+      inference.proteins.setIdentifier(query.getColumn("label").getString());
+      metadata("ID_ParentGroupSet", id, inference.proteins);
+      applied("ID_ParentGroupSet", id, inference.proteins);
+      std::optional<Key> parent_primary;
+      for (const auto& [parent_id, values] : parent_scores)
+        if (! values.empty()) parent_primary = values.rbegin()->first;
+      if (parent_primary)
+      {
+        auto definition = definitions.at(*parent_primary);
+        definition.scope = ID::ScoreScope::PROTEIN;
+        inference.parent_score = definition;
+        inference.proteins.setScoreType(definition.name);
+        inference.proteins.setHigherScoreBetter(definition.higher_better);
+      }
+      std::vector<ProteinHit> hits;
+      for (const auto& [parent_id, parent] : parents)
+      {
+        ProteinHit hit;
+        static_cast<MetaInfoInterface&>(hit) = parent.second;
+        hit.setAccession(parent.second.identity.accession);
+        hit.setSequence(parent.second.sequence);
+        hit.setDescription(parent.second.description);
+        hit.setCoverage(static_cast<double>(parent.second.getMetaValue("coverage")) * 100.0);
+        if (parent_primary)
+        {
+          auto score = parent_scores.at(parent_id).find(*parent_primary);
+          if (score != parent_scores.at(parent_id).end()) hit.setScore(score->second);
+          else
+            hit.setMetaValue("legacy:missing_parent_score", "true");
+        }
+        hit.setTargetDecoyType(parent.second.target_decoy == ID::TargetDecoy::DECOY ? ProteinHit::TargetDecoyType::DECOY
+                                                                                    : ProteinHit::TargetDecoyType::TARGET);
+        hits.push_back(hit);
+        inference.qualified_accessions[hit.getAccession()] = parent.second.identity;
+      }
+      inference.proteins.setHits(hits);
+      SQLite::Statement groups(*db_, "SELECT * FROM ID_ParentGroup WHERE grouping_id=:id ORDER BY id");
+      groups.bind(":id", id);
+      std::map<Key, ProteinIdentification::ProteinGroup> selected;
+      while (groups.executeStep())
+      {
+        auto group_id = groups.getColumn("id").getInt64();
+        auto& group = selected[group_id];
+        const auto score = groups.getColumn("score_type_id");
+        if (! score.isNull())
+        {
+          auto definition = definitions.at(score.getInt64());
+          definition.scope = ID::ScoreScope::PROTEIN_GROUP;
+          if (inference.group_score && *inference.group_score != definition)
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                "Legacy group contains multiple score types; export separate inference results first");
+          inference.group_score = definition;
+          group.probability = groups.getColumn("score").getDouble();
+        }
+      }
+      for (auto& [group_id, group] : selected)
+      {
+        SQLite::Statement members(*db_, "SELECT parent_id FROM ID_ParentGroup_ParentSequence WHERE group_id=:id");
+        members.bind(":id", group_id);
+        while (members.executeStep())
+          group.accessions.push_back(parents.at(members.getColumn(0).getInt64()).second.identity.accession);
+        if (query.getColumn("label").getString() == "indistinguishable proteins")
+          inference.proteins.getIndistinguishableProteins().push_back(std::move(group));
+        else
+          inference.proteins.getProteinGroups().push_back(std::move(group));
+      }
+      for (const auto& run : loaded.getRuns())
+        inference.inputs.push_back({run.getIdentifier(), run.getUuid(), std::nullopt, "Legacy OMS grouping"});
+      const auto label = query.getColumn("label").getString();
+      std::vector<Key> step_ids;
+      if (db_->tableExists("ID_ParentGroupSet_AppliedProcessingStep"))
+      {
+        SQLite::Statement steps(
+          *db_, "SELECT DISTINCT processing_step_id FROM ID_ParentGroupSet_AppliedProcessingStep WHERE parent_id=:id ORDER BY processing_step_id");
+        steps.bind(":id", id);
+        while (steps.executeStep())
+          step_ids.push_back(steps.getColumn(0).isNull() ? 0 : steps.getColumn(0).getInt64());
+      }
+      inference.proteins.setMetaValue("legacy:grouping:" + std::to_string(id) + ":label", label);
+      const bool conventional = ! step_ids.empty() && (label == "protein groups" || label == "indistinguishable proteins");
+      const auto previous = protein_groupings.find(step_ids);
+      if (conventional && previous != protein_groupings.end())
+      {
+        auto& combined = group_inferences[previous->second];
+        if (combined.parent_score != inference.parent_score || combined.group_score != inference.group_score)
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Incompatible scores in paired legacy protein groupings");
+        auto& groups = combined.proteins.getProteinGroups();
+        const auto& added = inference.proteins.getProteinGroups();
+        groups.insert(groups.end(), added.begin(), added.end());
+        auto& indistinguishable = combined.proteins.getIndistinguishableProteins();
+        const auto& added_indistinguishable = inference.proteins.getIndistinguishableProteins();
+        indistinguishable.insert(indistinguishable.end(), added_indistinguishable.begin(), added_indistinguishable.end());
+        combined.proteins.setMetaValue("legacy:grouping:" + std::to_string(id) + ":label", label);
       }
       else
       {
-        ID::SearchParamRef search_param_ref =
-          search_param_refs_[opt_search_param_id.getInt64()];
-        ref = id_data.registerProcessingStep(step, search_param_ref);
+        if (conventional) protein_groupings.emplace(step_ids, group_inferences.size());
+        group_inferences.push_back(std::move(inference));
       }
-      processing_step_refs_[id] = ref;
-    }
+    });
+    for (auto& inference : group_inferences)
+      loaded.addInferenceResult(std::move(inference));
+    loaded.validate();
+    data = std::move(loaded);
+    identification_data_ = &data;
   }
 
-
-  void OMSFileLoad::loadObservations_(LegacyIdentificationData& id_data)
+  void OMSFileLoad::load(IdentificationData& data)
   {
-    if (!db_->tableExists("ID_Observation")) return;
-
-
-    SQLite::Statement query(*db_, "SELECT * FROM ID_Observation");
-    SQLite::Statement subquery_info(*db_, "");
-    bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
-                                                "ID_Observation");
-
-    while (query.executeStep())
+    if (! db_->tableExists("ID_NativeFiles"))
     {
-      auto input_file_id = query.getColumn("input_file_id");
-      ID::Observation obs(query.getColumn("data_id").getString(),
-                          input_file_refs_[input_file_id.getInt64()]);
-      auto rt = query.getColumn("rt");
-      if (!rt.isNull()) obs.rt = rt.getDouble();
-      auto mz = query.getColumn("mz");
-      if (!mz.isNull()) obs.mz = mz.getDouble();
-      Key id = query.getColumn("id").getInt64();
-      if (have_meta_info) handleQueryMetaInfo_(subquery_info, obs, id);
-      ID::ObservationRef ref = id_data.registerObservation(obs);
-      observation_refs_[id] = ref;
+      loadLegacyIdentifications_(data);
+      return;
     }
-  }
-
-
-  void OMSFileLoad::loadParentSequences_(LegacyIdentificationData& id_data)
-  {
-    if (!db_->tableExists("ID_ParentSequence")) return;
-
-
-    SQLite::Statement query(*db_, "SELECT * FROM ID_ParentSequence");
-    // @TODO: can we combine handling of meta info and applied processing steps?
-    SQLite::Statement subquery_info(*db_, "");
-    bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
-                                                "ID_ParentSequence");
-    SQLite::Statement subquery_step(*db_, "");
-    bool have_applied_steps =
-      prepareQueryAppliedProcessingStep_(subquery_step, "ID_ParentSequence");
-
+    TempDir scratch;
+    std::set<std::string> allowed {"manifest.json",  "queries.parquet",  "matches.parquet", "parents.parquet",
+                                   "inputs.parquet", "proteins.parquet", "groups.parquet"};
+    std::set<std::string> seen;
+    SQLite::Statement query(*db_, "SELECT name, chunk, data FROM ID_NativeFiles ORDER BY name, chunk");
+    std::string current;
+    int64_t next = 0;
+    std::ofstream output;
     while (query.executeStep())
     {
-      std::string accession = query.getColumn("accession").getString();
-      ID::ParentSequence parent(accession);
-      int molecule_type_index = query.getColumn("molecule_type_id").getInt() - 1;
-      parent.molecule_type = ID::MoleculeType(molecule_type_index);
-      parent.sequence = query.getColumn("sequence").getString();
-      parent.description = query.getColumn("description").getString();
-      parent.coverage = query.getColumn("coverage").getDouble();
-      parent.is_decoy = query.getColumn("is_decoy").getInt();
-      Key id = query.getColumn("id").getInt64();
-      if (have_meta_info)
+      auto name = query.getColumn("name").getString();
+      if (! allowed.contains(name)) throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unexpected embedded native file", name);
+      if (name != current)
       {
-        handleQueryMetaInfo_(subquery_info, parent, id);
-      }
-      if (have_applied_steps)
-      {
-        handleQueryAppliedProcessingStep_(subquery_step, parent, id);
-      }
-      ID::ParentSequenceRef ref = id_data.registerParentSequence(parent);
-      parent_sequence_refs_[id] = ref;
-    }
-  }
-
-
-  void OMSFileLoad::loadParentGroupSets_(LegacyIdentificationData& id_data)
-  {
-    if (!db_->tableExists("ID_ParentGroupSet")) return;
-
-    // "grouping_order" column was removed in schema version 3:
-    std::string order_by = version_number_ > 2 ? "id" : "grouping_order";
-
-    SQLite::Statement query(*db_, "SELECT * FROM ID_ParentGroupSet ORDER BY " + order_by + " ASC");
-    // @TODO: can we combine handling of meta info and applied processing steps?
-    SQLite::Statement subquery_info(*db_, "");
-    bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
-                                                "ID_ParentGroupSet");
-    SQLite::Statement subquery_step(*db_, "");
-    bool have_applied_steps =
-      prepareQueryAppliedProcessingStep_(subquery_step,
-                                         "ID_ParentGroupSet");
-
-    SQLite::Statement subquery_group(*db_, "SELECT * FROM ID_ParentGroup WHERE grouping_id = :id");
-
-    SQLite::Statement subquery_parent(*db_, "SELECT parent_id FROM ID_ParentGroup_ParentSequence WHERE group_id = :id");
-
-    while (query.executeStep())
-    {
-      ID::ParentGroupSet grouping(query.getColumn("label").getString());
-      Key grouping_id = query.getColumn("id").getInt64();
-      if (have_meta_info)
-      {
-        handleQueryMetaInfo_(subquery_info, grouping, grouping_id);
-      }
-      if (have_applied_steps)
-      {
-        handleQueryAppliedProcessingStep_(subquery_step, grouping, grouping_id);
-      }
-
-      subquery_group.bind(":id", grouping_id);
-      // get all groups in this grouping:
-      map<Key, ID::ParentGroup> groups_map;
-      while (subquery_group.executeStep())
-      {
-        Key group_id = subquery_group.getColumn("id").getInt64();
-        auto score_type_id = subquery_group.getColumn("score_type_id");
-        if (score_type_id.isNull()) // no scores
+        if (output.is_open())
         {
-          groups_map[group_id]; // insert empty group
+          output.close();
+          if (! output) throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current);
         }
-        else
-        {
-          ID::ScoreTypeRef ref = score_type_refs_[score_type_id.getInt64()];
-          groups_map[group_id].scores[ref] =
-            subquery_group.getColumn("score").getDouble();
-        }
+        output.open(std::filesystem::u8path(scratch.getPath()) / name, std::ios::binary);
+        if (! output) throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
+        seen.insert(name);
+        current = name;
+        next = 0;
       }
-      subquery_group.reset(); // get ready for new executeStep()
-      // get parent sequences in each group:
-      for (auto& pair : groups_map)
-      {
-        subquery_parent.bind(":id", pair.first);
-        while (subquery_parent.executeStep())
-        {
-          Key parent_id = subquery_parent.getColumn(0).getInt64();
-          pair.second.parent_refs.insert(
-            parent_sequence_refs_[parent_id]);
-        }
-        subquery_parent.reset(); // get ready for new executeStep()
-        grouping.groups.insert(pair.second);
-      }
-
-      id_data.registerParentGroupSet(grouping);
+      if (query.getColumn("chunk").getInt64() != next++)
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Noncontiguous embedded chunks", name);
+      const auto column = query.getColumn("data");
+      if (column.getType() != SQLITE_BLOB || column.getBytes() > 8 * 1024 * 1024)
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid native chunk", name);
+      output.write(static_cast<const char*>(column.getBlob()), column.getBytes());
+      if (! output) throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
-  }
-
-
-  void OMSFileLoad::loadIdentifiedCompounds_(LegacyIdentificationData& id_data)
-  {
-    if (!db_->tableExists("ID_IdentifiedCompound")) return;
-
-
-    SQLite::Statement query(*db_, "SELECT * FROM ID_IdentifiedMolecule JOIN ID_IdentifiedCompound " \
-      "ON ID_IdentifiedMolecule.id = ID_IdentifiedCompound.molecule_id");
-    // @TODO: can we combine handling of meta info and applied processing steps?
-    SQLite::Statement subquery_info(*db_, "");
-    bool have_meta_info = prepareQueryMetaInfo_(subquery_info, "ID_IdentifiedMolecule");
-    SQLite::Statement subquery_step(*db_, "");
-    bool have_applied_steps =
-      prepareQueryAppliedProcessingStep_(subquery_step, "ID_IdentifiedMolecule");
-
-    while (query.executeStep())
+    if (output.is_open())
     {
-      ID::IdentifiedCompound compound(
-        query.getColumn("identifier").getString(),
-        EmpiricalFormula(query.getColumn("formula").getString()),
-        query.getColumn("name").getString(),
-        query.getColumn("smile").getString(),
-        query.getColumn("inchi").getString());
-      Key id = query.getColumn("id").getInt64();
-      if (have_meta_info)
-      {
-        handleQueryMetaInfo_(subquery_info, compound, id);
-      }
-      if (have_applied_steps)
-      {
-        handleQueryAppliedProcessingStep_(subquery_step, compound, id);
-      }
-      ID::IdentifiedCompoundRef ref = id_data.registerIdentifiedCompound(compound);
-      identified_molecule_vars_[id] = ref;
+      output.close();
+      if (! output) throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current);
     }
-  }
-
-
-  void OMSFileLoad::handleQueryParentMatch_(SQLite::Statement& query,
-                                            LegacyIdentificationData::ParentMatches& parent_matches,
-                                            Key molecule_id)
-  {
-    query.bind(":id", molecule_id);
-    while (query.executeStep())
-    {
-      ID::ParentSequenceRef ref = parent_sequence_refs_[query.getColumn("parent_id").getInt64()];
-      ID::ParentMatch match;
-      auto start_pos = query.getColumn("start_pos");
-      auto end_pos = query.getColumn("end_pos");
-      if (!start_pos.isNull()) match.start_pos = start_pos.getInt();
-      if (!end_pos.isNull()) match.end_pos = end_pos.getInt();
-      match.left_neighbor = query.getColumn("left_neighbor").getString();
-      match.right_neighbor = query.getColumn("right_neighbor").getString();
-      parent_matches[ref].insert(match);
-    }
-    query.reset(); // get ready for new executeStep()
-  }
-
-
-  void OMSFileLoad::loadIdentifiedSequences_(LegacyIdentificationData& id_data)
-  {
-    if (!db_->tableExists("ID_IdentifiedMolecule")) return;
-
-    SQLite::Statement query(*db_, "SELECT * FROM ID_IdentifiedMolecule "          \
-                            "WHERE molecule_type_id = :molecule_type_id");
-    // @TODO: can we combine handling of meta info and applied processing steps?
-    SQLite::Statement subquery_info(*db_, "");
-    bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
-                                                "ID_IdentifiedMolecule");
-    SQLite::Statement subquery_step(*db_, "");
-    bool have_applied_steps =
-      prepareQueryAppliedProcessingStep_(subquery_step,
-                                         "ID_IdentifiedMolecule");
-    SQLite::Statement subquery_parent(*db_, "");
-    bool have_parent_matches = db_->tableExists(
-                                            "ID_ParentMatch");
-    if (have_parent_matches)
-    {
-      subquery_parent = SQLite::Statement(*db_, "SELECT * FROM ID_ParentMatch " \
-                              "WHERE molecule_id = :id");
-    }
-
-    // load peptides:
-    query.bind(":molecule_type_id", int(ID::MoleculeType::PROTEIN) + 1);
-    while (query.executeStep())
-    {
-      Key id = query.getColumn("id").getInt64();
-      std::string sequence = query.getColumn("identifier").getString();
-      ID::IdentifiedPeptide peptide(AASequence::fromString(sequence));
-      if (have_meta_info)
-      {
-        handleQueryMetaInfo_(subquery_info, peptide, id);
-      }
-      if (have_applied_steps)
-      {
-        handleQueryAppliedProcessingStep_(subquery_step, peptide, id);
-      }
-      if (have_parent_matches)
-      {
-        handleQueryParentMatch_(subquery_parent, peptide.parent_matches, id);
-      }
-      ID::IdentifiedPeptideRef ref = id_data.registerIdentifiedPeptide(peptide);
-      identified_molecule_vars_[id] = ref;
-    }
-    query.reset(); // get ready for new executeStep()
-
-    // load RNA oligos:
-    query.bind(":molecule_type_id", int(ID::MoleculeType::RNA) + 1);
-    while (query.executeStep())
-    {
-      Key id = query.getColumn("id").getInt64();
-      std::string sequence = query.getColumn("identifier").getString();
-      ID::IdentifiedOligo oligo(NASequence::fromString(sequence));
-      if (have_meta_info)
-      {
-        handleQueryMetaInfo_(subquery_info, oligo, id);
-      }
-      if (have_applied_steps)
-      {
-        handleQueryAppliedProcessingStep_(subquery_step, oligo, id);
-      }
-      if (have_parent_matches)
-      {
-        handleQueryParentMatch_(subquery_parent, oligo.parent_matches, id);
-      }
-      ID::IdentifiedOligoRef ref = id_data.registerIdentifiedOligo(oligo);
-      identified_molecule_vars_[id] = ref;
-    }
-    query.reset(); // get ready for new executeStep()
-  }
-
-
-  void OMSFileLoad::handleQueryPeakAnnotation_(SQLite::Statement& query,
-                                               ID::ObservationMatch& match,
-                                               Key parent_id)
-  {
-    query.bind(":id", parent_id);
-    while (query.executeStep())
-    {
-      auto processing_step_id = query.getColumn("processing_step_id");
-      std::optional<ID::ProcessingStepRef> processing_step_opt = std::nullopt;
-      if (!processing_step_id.isNull())
-      {
-        processing_step_opt =
-          processing_step_refs_[processing_step_id.getInt64()];
-      }
-      PeptideHit::PeakAnnotation ann;
-      ann.annotation = query.getColumn("peak_annotation").getString();
-      ann.charge = query.getColumn("peak_charge").getInt();
-      ann.mz = query.getColumn("peak_mz").getDouble();
-      ann.intensity = query.getColumn("peak_intensity").getDouble();
-      match.peak_annotations[processing_step_opt].push_back(ann);
-    }
-    query.reset(); // get ready for new executeStep()
-  }
-
-
-  void OMSFileLoad::loadAdducts_(LegacyIdentificationData& id_data)
-  {
-    if (!db_->tableExists("AdductInfo")) return;
-
-    SQLite::Statement query(*db_, "SELECT * FROM AdductInfo");
-    while (query.executeStep())
-    {
-      EmpiricalFormula formula(query.getColumn("formula").getString());
-      AdductInfo adduct(query.getColumn("name").getString(), formula,
-                        query.getColumn("charge").getInt(),
-                        query.getColumn("mol_multiplier").getInt());
-      ID::AdductRef ref = id_data.registerAdduct(adduct);
-      adduct_refs_[query.getColumn("id").getInt64()] = ref;
-    }
-  }
-
-
-  void OMSFileLoad::loadObservationMatches_(LegacyIdentificationData& id_data)
-  {
-    if (!db_->tableExists("ID_ObservationMatch")) return;
-
-
-    SQLite::Statement query(*db_, "SELECT * FROM ID_ObservationMatch");
-    // @TODO: can we combine handling of meta info and applied processing steps?
-    SQLite::Statement subquery_info(*db_, "");
-    bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
-                                                "ID_ObservationMatch");
-    SQLite::Statement subquery_step(*db_, "");
-    bool have_applied_steps =
-      prepareQueryAppliedProcessingStep_(subquery_step,
-                                         "ID_ObservationMatch");
-    SQLite::Statement subquery_ann(*db_, "");
-    bool have_peak_annotations =
-      db_->tableExists("ID_ObservationMatch_PeakAnnotation");
-    if (have_peak_annotations)
-    {
-      subquery_ann = SQLite::Statement(*db_,
-        "SELECT * FROM ID_ObservationMatch_PeakAnnotation " \
-        "WHERE parent_id = :id");
-    }
-
-    while (query.executeStep())
-    {
-      Key id = query.getColumn("id").getInt64();
-      Key molecule_id = query.getColumn("identified_molecule_id").getInt64();
-      Key query_id = query.getColumn("observation_id").getInt64();
-      ID::ObservationMatch match(identified_molecule_vars_[molecule_id],
-                                   observation_refs_[query_id],
-                                   query.getColumn("charge").getInt());
-      auto adduct_id = query.getColumn("adduct_id"); // adduct is optional
-      if (!adduct_id.isNull())
-      {
-        match.adduct_opt = adduct_refs_[adduct_id.getInt64()];
-      }
-      if (have_meta_info)
-      {
-        handleQueryMetaInfo_(subquery_info, match, id);
-      }
-      if (have_applied_steps)
-      {
-        handleQueryAppliedProcessingStep_(subquery_step, match, id);
-      }
-      if (have_peak_annotations)
-      {
-        handleQueryPeakAnnotation_(subquery_ann, match, id);
-      }
-      ID::ObservationMatchRef ref = id_data.registerObservationMatch(match);
-      observation_match_refs_[id] = ref;
-    }
-  }
-
-
-  void OMSFileLoad::load(LegacyIdentificationData& id_data)
-  {
-    startProgress(0, 12, "Reading identification data from file");
-    loadInputFiles_(id_data);
-    nextProgress();
-    loadScoreTypes_(id_data);
-    nextProgress();
-    loadProcessingSoftwares_(id_data);
-    nextProgress();
-    loadDBSearchParams_(id_data);
-    nextProgress();
-    loadProcessingSteps_(id_data);
-    nextProgress();
-    loadObservations_(id_data);
-    nextProgress();
-    loadParentSequences_(id_data);
-    nextProgress();
-    loadParentGroupSets_(id_data);
-    nextProgress();
-    loadIdentifiedCompounds_(id_data);
-    nextProgress();
-    loadIdentifiedSequences_(id_data);
-    nextProgress();
-    loadAdducts_(id_data);
-    nextProgress();
-    loadObservationMatches_(id_data);
-    endProgress();
-    // @TODO: load input match groups
+    if (! seen.contains("manifest.json"))
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Incomplete embedded native dataset", "");
+    IdentificationDataFile::load(scratch.getPath(), data);
+    identification_data_ = &data;
   }
 
   template <class MapType>
@@ -886,15 +831,29 @@ namespace OpenMS::Internal
     feature.setIntensity(query_feat.getColumn("intensity").getDouble());
     feature.setCharge(query_feat.getColumn("charge").getInt());
     feature.setWidth(query_feat.getColumn("width").getDouble());
+    // setWidth adds the featureXML compatibility key; only persisted metadata
+    // should be restored when loading OMS.
+    feature.removeMetaValue("FWHM");
     string quality_column = (version_number_ < 5) ? "overall_quality" : "quality";
     feature.setQuality(query_feat.getColumn(quality_column.c_str()).getDouble());
     feature.setUniqueId(query_feat.getColumn("unique_id").getInt64());
     if (id == -1) return feature; // stop here for feature handles (in consensus maps)
 
-    auto primary_id = query_feat.getColumn("primary_molecule_id"); // optional
-    if (!primary_id.isNull())
+    if (version_number_ >= 6)
     {
-      feature.setPrimaryID(identified_molecule_vars_[primary_id.getInt64()]);
+      auto encoding = query_feat.getColumn("primary_encoding");
+      if (! encoding.isNull())
+      {
+        auto value = encoding.getInt();
+        if (value < 0 || value > static_cast<int>(ID::Encoding::DATABASE_ID))
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid molecular encoding", "");
+        feature.setPrimaryID({static_cast<ID::Encoding>(value), query_feat.getColumn("primary_representation").getString()});
+      }
+    }
+    if (version_number_ < 6)
+    {
+      auto primary = query_feat.getColumn("primary_molecule_id");
+      if (! primary.isNull()) feature.setPrimaryID(compatibility_molecules_.at(primary.getInt64()));
     }
     // meta data:
     if (!isEmpty_(query_meta))
@@ -907,10 +866,29 @@ namespace OpenMS::Internal
       query_match.bind(":id", id);
       while (query_match.executeStep())
       {
-        Key match_id = query_match.getColumn("observation_match_id").getInt64();
-        feature.addIDMatch(observation_match_refs_[match_id]);
+        ID::MatchReference reference = version_number_ < 6
+                                         ? compatibility_matches_.at(query_match.getColumn("observation_match_id").getInt64())
+                                         : ID::MatchReference {query_match.getColumn("run_uuid").getString(),
+                                                               ID::MatchId {parseRecordId(query_match.getColumn("match_id").getString())}};
+        const auto* run = identification_data_ ? identification_data_->findRunByUuid(reference.run_uuid) : nullptr;
+        if (! run || ! run->findMatch(reference.match))
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Missing feature match", "");
+        feature.addIDMatch(reference);
       }
       query_match.reset(); // get ready for new executeStep()
+    }
+    if (db_->tableExists("FEAT_Query"))
+    {
+      SQLite::Statement links(*db_, "SELECT run_uuid, query_id FROM FEAT_Query WHERE feature_id = :id");
+      links.bind(":id", id);
+      while (links.executeStep())
+      {
+        ID::QueryReference reference {links.getColumn("run_uuid").getString(), ID::QueryId {parseRecordId(links.getColumn("query_id").getString())}};
+        const auto* run = identification_data_ ? identification_data_->findRunByUuid(reference.run_uuid) : nullptr;
+        if (! run || ! run->findIdentification(reference.query))
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Missing feature query", "");
+        feature.addIDQuery(reference);
+      }
     }
     return feature;
   }
@@ -1006,6 +984,7 @@ namespace OpenMS::Internal
     loadDataProcessing_(features.getDataProcessing());
     nextProgress();
     loadFeatures_(features);
+    features.updateRanges();
     endProgress();
   }
 
@@ -1101,6 +1080,7 @@ namespace OpenMS::Internal
     loadDataProcessing_(consensus.getDataProcessing());
     nextProgress();
     loadConsensusFeatures_(consensus);
+    consensus.updateRanges();
     endProgress();
   }
 
@@ -1133,7 +1113,20 @@ namespace OpenMS::Internal
         {
           case SQLITE_INTEGER: record[query.getColumnName(i)] = query.getColumn(i).getInt64(); break;
           case SQLITE_FLOAT: record[query.getColumnName(i)] = query.getColumn(i).getDouble(); break;
-          case SQLITE_BLOB: record[query.getColumnName(i)] = query.getColumn(i).getText(); break;
+          case SQLITE_BLOB: {
+            const auto column = query.getColumn(i);
+            const auto* bytes = static_cast<const unsigned char*>(column.getBlob());
+            std::string hex;
+            hex.reserve(column.getBytes() * 2);
+            constexpr char digits[] = "0123456789abcdef";
+            for (int b = 0; b < column.getBytes(); ++b)
+            {
+              hex += digits[bytes[b] >> 4];
+              hex += digits[bytes[b] & 15];
+            }
+            record[query.getColumnName(i)] = hex;
+            break;
+          }
           case SQLITE_NULL: record[query.getColumnName(i)] = ""; break;
           case SQLITE3_TEXT: record[query.getColumnName(i)] = query.getColumn(i).getText(); break;
           default:

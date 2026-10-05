@@ -70,21 +70,6 @@ Digest digest(const Native& data)
           d.add(h.representation, q.data_id, h.charge, h.getScoreValues()[r.getPrimaryScore()->value], *q.rt, *q.mz);
   return d;
 }
-Digest digest(const LegacyIdentificationData& data)
-{
-  auto score = data.getScoreTypes().begin();
-  for (; score != data.getScoreTypes().end(); ++score)
-    if (score->cv_term.getName() == "search score") break;
-  if (score == data.getScoreTypes().end()) throw std::runtime_error("Missing legacy score type");
-  Digest d;
-  for (const auto& h : data.getObservationMatches())
-  {
-    const auto [value, found] = h.getScore(score);
-    if (! found) throw std::runtime_error("Missing legacy score");
-    d.add(h.identified_molecule_var.toString(), h.observation_ref->data_id, h.charge, value, h.observation_ref->rt, h.observation_ref->mz);
-  }
-  return d;
-}
 
 void generate(UInt64 rows, Size runs, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides)
 {
@@ -201,7 +186,7 @@ int main(int argc, char** argv)
       else if (format == "oms")
       {
         start = Clock::now();
-        LegacyIdentificationData data;
+        IdentificationData data;
         IdentificationDataConverter::importIDs(data, proteins, peptides);
         timing("convert", start);
         if (mode == "write") emit(digest(data));
@@ -238,7 +223,7 @@ int main(int argc, char** argv)
       }
       else if (format == "oms")
       {
-        LegacyIdentificationData data;
+        IdentificationData data;
         OMSFile().load(path, data);
         timing("read", start);
         emit(digest(data));

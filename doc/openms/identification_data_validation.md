@@ -120,19 +120,46 @@ buffers and largest individual payload remain additional memory costs. Global
 protein inference and fully owning loading still need memory proportional to
 their working data. The file format does not make those operations memory bounded.
 
-## Migration boundary
+## Migration
 
-The former reference-based implementation remains explicitly named
-`LegacyIdentificationData` for consumers not yet migrated. The new public
-`IdentificationData` is the owning implementation. No compatibility reader for
-unreleased experimental native formats exists, and there are no revision tokens
-or freshness gates.
+The old reference graph has been removed. Feature and consensus maps, OMS I/O,
+filtering/FDR, RT alignment, accurate-mass search, NASE, IDFileConverter, IDMerger,
+MapAlignerIdentification and their bindings now use the owning model. Existing
+PeptideIdentification/ProteinIdentification workflows still use explicit adapters.
 
-Feature/consensus association adapters are implemented. Complete quantitative-map
-persistence and converting every high-level workflow to the new API are separate
-follow-up migrations. Existing idXML/OMS and PSM Parquet paths remain available;
-strict conversion reports unsupported information instead of silently dropping it.
-Validation here covers Linux; other platform builds were not run.
+Release validation of this migration (5 October 2026):
+
+- Rebuilt the library consumers and five changed TOPP executables with the generated
+  Release compile/link commands. Final incremental builds include every changed C++
+  implementation and regression test.
+- All **21 focused C++ suites passed**, covering the owning model, adapters,
+  inference, native I/O, released OMS compatibility, transactional failures,
+  feature/consensus measurements and links, RNA digestion/conversion, filtering,
+  pooled FDR, RT alignment, mzTab-M and existing FileHandler.
+- All **20 Python regressions passed** in the standalone nanobind harness.
+  The actual metadata, format, kernel, chemistry, processing and analysis binding
+  translation units compiled. The full pyOpenMS package was not built.
+- End-to-end invocations passed for AccurateMassSearch (native OMS annotation and
+  mzTab-M), fresh NASE search, saved-digestion reuse, OMS IDMerger and OMS RT
+  alignment. OMS results converted to idXML successfully. NASE fresh, reused and
+  converted outputs agree on molecular identity, charge, target/decoy and score.
+  This is a functional smoke check, not a pass of the entire TOPP golden-file suite.
+- Native and OMS smoke writes/reads preserve a common content digest for **1,000
+  PSMs across 10 runs**. No new million-PSM timing or memory claim is made.
+- Removed production graph headers/classes and checked that no source or binding
+  still references LegacyIdentificationData or its reference-update machinery.
+  Changed C++ lines are formatted and `git diff --check` passes.
+
+OMS schema 6 preserves typed quantitative metadata, units and string-list bytes;
+feature hull comparisons canonicalize the internal cache and retain exact persisted
+geometry. Empty optional native tables need no physical file. Explicit scoreless
+sequence catalogs do not weaken the primary-score contract for search PSMs.
+Compatibility converter APIs warn when older output formats cannot retain complete
+score/provenance definitions; the adapter itself still defaults to strict export.
+
+Other operating systems, the full Python package and billion-PSM execution remain
+untested. The benchmark sections below describe earlier implementation commits and
+are historical; their old OMS timings do not describe owning schema 6.
 
 ## Common primary score contract (2026-10-05)
 

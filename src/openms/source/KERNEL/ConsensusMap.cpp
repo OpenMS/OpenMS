@@ -25,26 +25,20 @@ namespace OpenMS
 {
   ConsensusMap::ConsensusMap() = default;
 
-  ConsensusMap::ConsensusMap(const ConsensusMap& source) :
-    MetaInfoInterface(source),
-    RangeManagerContainerType(source),
-    DocumentIdentifier(source),
-    ExposedVector<ConsensusFeature>(source),
-    UniqueIdInterface(source),
-    UniqueIdIndexer<ConsensusMap>(source),
-    column_description_(source.column_description_),
-    experiment_type_(source.experiment_type_),
-    protein_identifications_(source.protein_identifications_),
-    unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
-    data_processing_(source.data_processing_),
-    id_data_() // updated below
+  ConsensusMap::ConsensusMap(const ConsensusMap& source):
+      MetaInfoInterface(source),
+      RangeManagerContainerType(source),
+      DocumentIdentifier(source),
+      ExposedVector<ConsensusFeature>(source),
+      UniqueIdInterface(source),
+      UniqueIdIndexer<ConsensusMap>(source),
+      column_description_(source.column_description_),
+      experiment_type_(source.experiment_type_),
+      protein_identifications_(source.protein_identifications_),
+      unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
+      data_processing_(source.data_processing_),
+      id_data_(source.id_data_)
   {
-    // copy ID data and update references in features:
-    LegacyIdentificationData::RefTranslator trans = id_data_.merge(source.id_data_);
-    for (ConsensusFeature& feature : *this)
-    {
-      feature.updateIDReferences(trans);
-    }
   }
 
   ConsensusMap::ConsensusMap(ConsensusMap&& source) = default;
@@ -60,6 +54,9 @@ namespace OpenMS
 
   ConsensusMap& ConsensusMap::appendRows(const ConsensusMap& rhs)
   {
+    // Check identification compatibility before changing measurements or annotations.
+    id_data_.merge(rhs.id_data_);
+
     ConsensusMap empty_map;
 
     // reset these:
@@ -119,16 +116,9 @@ namespace OpenMS
                                                rhs.unassigned_peptide_identifications_.begin(),
                                                rhs.unassigned_peptide_identifications_.end());
 
-    Size old_size = size();
     // append consensusElements to consensusElementList:
     this->insert(this->end(), rhs.begin(), rhs.end());
 
-    // combine IDs (new format):
-    LegacyIdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
-    // update IDs in new consensus features:
-    for (Size i = old_size; i < size(); ++i) {
-      (*this)[i].updateIDReferences(trans);
-    }
 
     // consistency
     try
@@ -146,6 +136,9 @@ namespace OpenMS
 
   ConsensusMap& ConsensusMap::appendColumns(const ConsensusMap& rhs)
   {
+    // Check identification compatibility before changing measurements or annotations.
+    id_data_.merge(rhs.id_data_);
+
     ConsensusMap empty_map;
 
     // reset these:
@@ -206,7 +199,6 @@ namespace OpenMS
     }
 
     // combine IDs (new format):
-    LegacyIdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
 
     // append consensusElements to consensusElementList and update map index:
     for (ConsensusFeature cf : rhs)
@@ -230,9 +222,6 @@ namespace OpenMS
       }
       cf.setFeatures(std::move(new_handles));
       new_handles.clear();
-
-      // update IDs (new format):
-      cf.updateIDReferences(trans);
 
       emplace_back(std::move(cf));
     }
@@ -562,17 +551,11 @@ namespace OpenMS
   /// Equality operator
   bool ConsensusMap::operator==(const ConsensusMap& rhs) const
   {
-    return data_ == rhs.data_ &&
-           MetaInfoInterface::operator==(rhs) &&
-           RangeManagerType::operator==(rhs) &&
-           DocumentIdentifier::operator==(rhs) &&
-           UniqueIdInterface::operator==(rhs) &&
-           column_description_ == rhs.column_description_ &&
-           experiment_type_ == rhs.experiment_type_ &&
-           protein_identifications_ == rhs.protein_identifications_ &&
-           unassigned_peptide_identifications_ == rhs.unassigned_peptide_identifications_ &&
-           data_processing_ == rhs.data_processing_;
-    // @TODO: implement "operator==" for LegacyIdentificationData?
+    return data_ == rhs.data_ && MetaInfoInterface::operator==(rhs) && RangeManagerType::operator==(rhs) && DocumentIdentifier::operator==(rhs)
+           && UniqueIdInterface::operator==(rhs) && column_description_ == rhs.column_description_ && experiment_type_ == rhs.experiment_type_
+           && protein_identifications_ == rhs.protein_identifications_
+           && unassigned_peptide_identifications_ == rhs.unassigned_peptide_identifications_ && data_processing_ == rhs.data_processing_
+           && id_data_ == rhs.id_data_;
   }
 
   /// Equality operator
@@ -701,7 +684,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
 
   std::vector<FeatureMap> ConsensusMap::split(ConsensusMap::SplitMeta mode) const
   {
-    // @TODO: handle IDs in new format (LegacyIdentificationData)
+    // @TODO: handle IDs in new format (IdentificationData)
 
     // Column headers are keyed by map index, and the keys need not be contiguous (e.g. after
     // 'FileFilter -consensus:map 0 3', or for a consensusXML without <map id="0">). The result
@@ -850,35 +833,27 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     }
   }
 
-  std::set<IdentificationDataInternal::ObservationMatchRef> ConsensusMap::getUnassignedIDMatches() const
+  std::set<IdentificationData::MatchReference> ConsensusMap::getUnassignedIDMatches() const
   {
-    std::set<LegacyIdentificationData::ObservationMatchRef> all_matches;
-    for (auto it = id_data_.getObservationMatches().begin();
-         it != id_data_.getObservationMatches().end(); ++it)
-    {
-      all_matches.insert(it);
-    }
-    std::set<LegacyIdentificationData::ObservationMatchRef> assigned_matches;
-    for (const ConsensusFeature& feat : *this)
-    {
-      assigned_matches.insert(feat.getIDMatches().begin(), feat.getIDMatches().end());
-      // @TODO: consider subordinate features? - probably not
-    }
-    std::set<LegacyIdentificationData::ObservationMatchRef> result;
-    std::set_difference(all_matches.begin(), all_matches.end(),
-                        assigned_matches.begin(), assigned_matches.end(),
-                        inserter(result, result.end()));
+    std::set<IdentificationData::MatchReference> all, assigned, result;
+    for (const auto& run : id_data_.getRuns())
+      for (const auto& source : run.getSourceBlocks())
+        for (const auto& query : source.identifications)
+          for (const auto& match : query.getMatches())
+            all.insert({run.getUuid(), match.getId()});
+    for (const auto& feature : *this)
+      assigned.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
+    std::set_difference(all.begin(), all.end(), assigned.begin(), assigned.end(), std::inserter(result, result.end()));
     return result;
   }
 
-
-  const LegacyIdentificationData& ConsensusMap::getIdentificationData() const
+  const IdentificationData& ConsensusMap::getIdentificationData() const
   {
     return id_data_;
   }
 
 
-  LegacyIdentificationData& ConsensusMap::getIdentificationData()
+  IdentificationData& ConsensusMap::getIdentificationData()
   {
     return id_data_;
   }

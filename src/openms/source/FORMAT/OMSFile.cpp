@@ -9,49 +9,100 @@
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/OMSFileLoad.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
-
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
+#include <filesystem>
+#ifdef _WIN32
+  #ifndef NOMINMAX
+    #define NOMINMAX
+  #endif
+  #include <windows.h>
+#endif
 #include <fstream>
 
 using namespace std;
 
-using ID = OpenMS::LegacyIdentificationData;
+using ID = OpenMS::IdentificationData;
 
 namespace OpenMS
 {
-  void OMSFile::store(const std::string& filename, const LegacyIdentificationData& id_data)
+namespace
+{
+  template<class Value>
+  void storeAtomic(const std::string& filename, const Value& value, ProgressLogger::LogType log_type)
   {
-    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
-    helper.store(id_data);
+    const auto utf8 = [](const std::filesystem::path& path) {
+      const auto text = path.u8string();
+      return std::string(reinterpret_cast<const char*>(text.data()), text.size());
+    };
+    const auto target = std::filesystem::absolute(std::filesystem::u8path(filename));
+    TempDir staging(utf8(target.parent_path()));
+    const auto temporary_path = std::filesystem::u8path(staging.getPath()) / "output.oms";
+    const auto temporary = utf8(temporary_path);
+    {
+      Internal::OMSFileStore helper(temporary, log_type);
+      helper.store(value);
+    }
+    // Rename only after validation, all writes and closing the SQLite connection.
+    std::error_code error;
+#ifdef _WIN32
+    if (! MoveFileExW(temporary_path.c_str(), target.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+      error = std::error_code(static_cast<int>(GetLastError()), std::system_category());
+#else
+    std::filesystem::rename(temporary_path, target, error);
+#endif
+    if (error) throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename + ": " + error.message());
   }
+} // namespace
+void OMSFile::store(const std::string& filename, const IdentificationData& id_data)
+{ storeAtomic(filename, id_data, log_type_); }
 
-  void OMSFile::store(const std::string& filename, const FeatureMap& features)
+void OMSFile::store(const std::string& filename, const FeatureMap& features)
+{
+  if (features.getIdentificationData().empty())
   {
-    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
-    helper.store(features);
+    auto converted = features;
+    IdentificationDataConverter::importFeatureIDs(converted);
+    storeAtomic(filename, converted, log_type_);
   }
+  else
+    storeAtomic(filename, features, log_type_);
+}
 
   void OMSFile::store(const std::string& filename, const ConsensusMap& consensus)
   {
-    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
-    helper.store(consensus);
+    if (consensus.getIdentificationData().empty())
+    {
+      auto converted = consensus;
+      IdentificationDataConverter::importConsensusIDs(converted);
+      storeAtomic(filename, converted, log_type_);
+    }
+    else
+      storeAtomic(filename, consensus, log_type_);
   }
 
-  void OMSFile::load(const std::string& filename, LegacyIdentificationData& id_data)
+  void OMSFile::load(const std::string& filename, IdentificationData& id_data)
   {
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
-    helper.load(id_data);
+    IdentificationData loaded;
+    helper.load(loaded);
+    id_data = std::move(loaded);
   }
 
   void OMSFile::load(const std::string& filename, FeatureMap& features)
   {
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
-    helper.load(features);
+    FeatureMap loaded;
+    helper.load(loaded);
+    features = std::move(loaded);
   }
 
   void OMSFile::load(const std::string& filename, ConsensusMap& consensus)
   {
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
-    helper.load(consensus);
+    ConsensusMap loaded;
+    helper.load(loaded);
+    consensus = std::move(loaded);
   }
 
   void OMSFile::exportToJSON(const std::string& filename_in, const std::string& filename_out)

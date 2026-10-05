@@ -9,15 +9,14 @@
 
 #pragma once
 
-#include <vector>
-#include <OpenMS/config.h>
-
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/config.h>
+#include <vector>
 
 namespace OpenMS
 {
@@ -53,10 +52,8 @@ namespace OpenMS
       PeptideIdentificationList& pep_ids,
       const TransformationDescription& trafo, bool store_original_rt = false);
 
-    /// Applies the given transformation to input items in LegacyIdentificationData
-    static void transformRetentionTimes(LegacyIdentificationData& id_data,
-                                        const TransformationDescription& trafo,
-                                        bool store_original_rt = false);
+    /// Applies the given transformation to input items in IdentificationData
+    static void transformRetentionTimes(IdentificationData& id_data, const TransformationDescription& trafo, bool store_original_rt = false);
 
   private:
     /// Applies a transformation to a feature

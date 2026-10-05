@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/DATASTRUCTURES/RegularExpression.h>
 #include <OpenMS/MATH/MathFunctions.h>
-#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <vector>
@@ -19,10 +19,13 @@ int main()
   OpenMS::MetaInfo meta;
   meta.setValue("answer", 42);
   if (meta.getValue("answer") != OpenMS::DataValue(42)) return 1;
-  OpenMS::LegacyIdentificationData ids;
-  auto file = ids.registerInputFile(OpenMS::LegacyIdentificationData::InputFile("test"));
-  ids.registerObservation(OpenMS::LegacyIdentificationData::Observation("scan=42", file));
-  if (ids.getObservations().size() != 1) return 2;
+  OpenMS::IdentificationData ids;
+  auto& run = ids.addRun("test");
+  auto file = run.addSource(OpenMS::IdentificationData::SourceFile {});
+  OpenMS::IdentificationData::Observation observation;
+  observation.data_id = "scan=42";
+  run.addIdentification(file, observation);
+  if (run.getNumberOfIdentifications() != 1) return 2;
   const OpenMS::RegularExpression regex(R"(scan=(?<SCAN>\d+))");
   if (OpenMS::SpectrumNativeIDParser::extractScanNumber("scan=42", regex) != 42) return 3;
   auto copy = regex;

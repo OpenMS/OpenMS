@@ -3,11 +3,9 @@ set(directory source/METADATA/ID)
 
 ### list all filenames of the directory here
 set(sources_list
-LegacyIdentificationData.cpp
 IdentificationData.cpp
 IdentificationDataAdapter.cpp
 IdentificationDataConverter.cpp
-IdentifiedMolecule.cpp
 )
 
 ### add path to the filenames

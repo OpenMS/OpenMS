@@ -8,18 +8,18 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
-#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/config.h>
 #include <algorithm>
@@ -1432,40 +1432,12 @@ namespace OpenMS
     ///@}
 
 
-    /// @name Filter functions for class LegacyIdentificationData
-    ///@{
-    /*!
-      @brief Filter LegacyIdentificationData to keep only the best match (e.g. PSM) for each observation (e.g. spectrum)
-
-      The data structure will be cleaned up (LegacyIdentificationData::cleanup) to remove any invalidated references at the end of this operation.
-
-      @see LegacyIdentificationData::getBestMatchPerObservation
-
-      @param[in] id_data Data to be filtered
-      @param[in] score_ref Reference to the score type defining "best" matches
-    */
-    static void keepBestMatchPerObservation(LegacyIdentificationData& id_data, LegacyIdentificationData::ScoreTypeRef score_ref);
-
-    /*!
-      @brief Filter observation matches (e.g. PSMs) in LegacyIdentificationData by score
-
-      Matches with scores of the required type that are worse than the cut-off are removed.
-      Matches without a score of the required type are also removed.
-      The data structure will be cleaned up (LegacyIdentificationData::cleanup) to remove any invalidated references at the end of this operation.
-
-      @param[in] id_data Data to be filtered
-      @param[in] score_ref Reference to the score type used for filtering
-      @param[in] cutoff Score cut-off for filtering
-    */
-    static void filterObservationMatchesByScore(LegacyIdentificationData& id_data, LegacyIdentificationData::ScoreTypeRef score_ref, double cutoff);
-
-    /*!
-      @brief Filter LegacyIdentificationData to remove parent sequences annotated as decoys
-
-      If any were removed, the data structure will be cleaned up (LegacyIdentificationData::cleanup) to remove any invalidated references at the end of this operation.
-    */
-    static void removeDecoys(LegacyIdentificationData& id_data);
-    ///@}
+    /// Retain one best candidate per observation; inference is explicitly preserved.
+    static void keepBestMatchPerObservation(IdentificationData& data, const IdentificationData::ScoreDefinition& score);
+    /// Remove missing scores and values worse than the inclusive cutoff.
+    static void filterObservationMatchesByScore(IdentificationData& data, const IdentificationData::ScoreDefinition& score, double cutoff);
+    /// Remove exclusively decoy matches and their decoy parent evidence; preserve inference.
+    static void removeDecoys(IdentificationData& data);
 
     // Specific overloads for PeptideIdentificationList to ensure correct template resolution
     static void removeDecoyHits(PeptideIdentificationList& ids)

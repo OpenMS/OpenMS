@@ -3,28 +3,9 @@ set(directory include/OpenMS/METADATA/ID)
 
 ### list all header files of the directory here
 set(sources_list_h
-AppliedProcessingStep.h
-DBSearchParam.h
-ProcessingSoftware.h
-ProcessingStep.h
-Observation.h
-LegacyIdentificationData.h
 IdentificationData.h
 IdentificationDataAdapter.h
 IdentificationDataConverter.h
-IdentifiedCompound.h
-IdentifiedMolecule.h
-IdentifiedSequence.h
-InputFile.h
-MetaData.h
-ParentMatch.h
-ObservationMatch.h
-ParentSequence.h
-ParentGroup.h
-ObservationMatchGroup.h
-ScoreType.h
-ScoredProcessingResult.h
-IDDataContainer.h
 )
 
 ### add path to the filenames

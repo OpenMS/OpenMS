@@ -343,71 +343,53 @@ namespace OpenMS
     return false;
   }
 
-  LegacyIdentificationData::ScoreTypeRef
-  MapAlignmentAlgorithmIdentification::handleIdDataScoreType_(const LegacyIdentificationData& id_data)
+  IdentificationData::ScoreDefinition MapAlignmentAlgorithmIdentification::handleIdDataScoreType_(const IdentificationData& data)
   {
-    LegacyIdentificationData::ScoreTypeRef score_ref;
-    if (score_type_.empty()) // choose a score type
+    if (score_type_.empty())
     {
-      score_ref = id_data.pickScoreType(id_data.getObservationMatches());
-      if (score_ref == id_data.getScoreTypes().end())
-      {
-        std::string msg = "no scores found";
-        throw Exception::MissingInformation(__FILE__, __LINE__,
-                                            OPENMS_PRETTY_FUNCTION, msg);
-      }
-      score_type_ = score_ref->cv_term.getName();
-      OPENMS_LOG_INFO << "Using score type: " << score_type_ << endl;
+      auto primary = data.getPrimaryScoreDefinition();
+      if (! primary) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No primary score configured");
+      score_type_ = primary->name;
+      return *primary;
     }
-    else
-    {
-      score_ref = id_data.findScoreType(score_type_);
-      if (score_ref == id_data.getScoreTypes().end())
-      {
-        std::string msg = "score type '" + score_type_ + "' not found";
-        throw Exception::MissingInformation(__FILE__, __LINE__,
-                                            OPENMS_PRETTY_FUNCTION, msg);
-      }
-    }
-    return score_ref;
+    for (const auto& definition : data.getScoreDefinitions())
+      if (definition.name == score_type_) return definition;
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Score type not found: " + score_type_);
   }
 
-
-  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-    const LegacyIdentificationData& id_data, SeqToList& rt_data)
+  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(const IdentificationData& data, SeqToList& rt_data)
   {
-    // @TODO: should this get handled as an error?
-    if (id_data.getObservationMatches().empty()) return true;
-
-    LegacyIdentificationData::ScoreTypeRef score_ref =
-      handleIdDataScoreType_(id_data);
-
-    vector<LegacyIdentificationData::ObservationMatchRef> top_hits =
-      id_data.getBestMatchPerObservation(score_ref);
-
-    for (const auto& hit : top_hits)
+    if (data.getScoreDefinitions().empty()) return true;
+    const auto definition = handleIdDataScoreType_(data);
+    bool empty = true;
+    for (const auto& run : data.getRuns())
     {
-      bool include = true;
-      if (score_cutoff_)
-      {
-        pair<double, bool> result = hit->getScore(score_ref);
-        if (!result.second ||
-            score_ref->isBetterScore(min_score_, result.first))
+      if (run.getScoreDefinitions().empty()) continue;
+      const auto score = run.bindScore(run.findScore(definition));
+      for (const auto& source : run.getSourceBlocks())
+        for (const auto& query : source.identifications)
         {
-          include = false;
+          if (! query.rt) continue;
+          const IdentificationData::Match* best = nullptr;
+          std::optional<double> value;
+          for (const auto& match : query.getMatches())
+          {
+            auto candidate = score(match);
+            if (candidate && (! value || (definition.higher_better ? *candidate > *value : *candidate < *value)))
+            {
+              best = &match;
+              value = candidate;
+            }
+          }
+          if (! best) continue;
+          empty = false;
+          if (score_cutoff_ && (definition.higher_better ? *value < min_score_ : *value > min_score_)) continue;
+          std::string molecule = best->representation;
+          if (use_adducts_ && best->adduct) molecule += "+[" + best->adduct->getName() + "]";
+          rt_data[molecule].push_back(*query.rt);
         }
-      }
-      if (include)
-      {
-        std::string molecule = hit->identified_molecule_var.toString();
-        if (use_adducts_ && hit->adduct_opt)
-        {
-          molecule += "+[" + (*hit->adduct_opt)->getName() + "]";
-        }
-        rt_data[molecule].push_back(hit->observation_ref->rt);
-      }
     }
-    return false;
+    return empty;
   }
 
   void MapAlignmentAlgorithmIdentification::computeTransformations_(

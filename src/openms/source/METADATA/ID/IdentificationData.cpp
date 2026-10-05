@@ -34,7 +34,11 @@ namespace
     const auto check = [&](const ID::Run& run) {
       const auto& definitions = run.getScoreDefinitions();
       const auto primary = run.getPrimaryScore();
-      if (definitions.empty() && ! primary && run.getNumberOfMatches() == 0) return;
+      const auto& processing = run.getProcessingMetadata();
+      const bool catalog
+        = processing.metaValueExists("identification:catalog") && processing.getMetaValue("identification:catalog").toString() == "true";
+      if (catalog && (! definitions.empty() || primary)) invalid("A sequence catalog cannot declare PSM scores");
+      if (definitions.empty() && ! primary && (run.getNumberOfMatches() == 0 || catalog)) return;
       if (check_primary && ! primary) invalid("Run '" + run.getIdentifier() + "' must select a primary PSM score");
       if (! expected) expected = &run;
       else
@@ -438,6 +442,13 @@ const ID::Match& ID::Run::getMatch(MatchId id) const
   if (! match) invalid("Unknown match ID");
   return *match;
 }
+const ID::Identification& ID::Run::getIdentificationForMatch(MatchId id) const
+{
+  ensureMatchIndex_();
+  auto found = match_index_.find(id.value);
+  if (found == match_index_.end()) invalid("Unknown match ID");
+  return sources_[found->second[0]].identifications[found->second[1]];
+}
 ID::Identification& ID::Run::query_(QueryId id)
 { return const_cast<Identification&>(getIdentification(id)); }
 ID::Match& ID::Run::match_(MatchId id)
@@ -829,6 +840,96 @@ void ID::addInferenceResult(InferenceResult result)
     if (! validUuid(input.run_uuid)) invalid("Inference input needs a run UUID");
   }
   inference_.push_back(std::move(result));
+}
+bool ID::Run::operator==(const Run& other) const
+{
+  if (uuid_ != other.uuid_ || identifier_ != other.identifier_ || kind_ != other.kind_ || processing_ != other.processing_
+      || parents_ != other.parents_ || scores_ != other.scores_ || next_query_id_ != other.next_query_id_ || next_match_id_ != other.next_match_id_
+      || sources_.size() != other.sources_.size())
+    return false;
+  const auto primary = primary_ ? std::optional<UInt32>(primary_->value) : std::nullopt;
+  const auto other_primary = other.primary_ ? std::optional<UInt32>(other.primary_->value) : std::nullopt;
+  if (primary != other_primary) return false;
+  for (Size i = 0; i < sources_.size(); ++i)
+  {
+    const auto& source = sources_[i];
+    const auto& rhs = other.sources_[i];
+    if (source.id.value != rhs.id.value || source.source != rhs.source || source.identifications.size() != rhs.identifications.size()) return false;
+    for (Size q = 0; q < source.identifications.size(); ++q)
+    {
+      const auto& query = source.identifications[q];
+      const auto& rq = rhs.identifications[q];
+      if (query.getId() != rq.getId() || query.getObservation() != rq.getObservation() || query.getSelectedMatch() != rq.getSelectedMatch()
+          || query.getMatches().size() != rq.getMatches().size())
+        return false;
+      for (Size m = 0; m < query.getMatches().size(); ++m)
+      {
+        const auto& match = query.getMatches()[m];
+        const auto& rm = rq.getMatches()[m];
+        if (match.getId() != rm.getId() || match.getData() != rm.getData() || match.getScoreValues().size() != rm.getScoreValues().size())
+          return false;
+        for (Size j = 0; j < match.getScoreValues().size(); ++j)
+        {
+          double left = match.getScoreValues()[j], right = rm.getScoreValues()[j];
+          if (left != right && ! (std::isnan(left) && std::isnan(right))) return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+bool ID::operator==(const IdentificationData& other) const
+{ return runs_ == other.runs_ && inference_ == other.inference_; }
+void ID::clear()
+{
+  checkMutation_();
+  runs_.clear();
+  inference_.clear();
+}
+void ID::merge(const IdentificationData& other)
+{
+  checkMutation_();
+  validate();
+  other.validate();
+  IdentificationData replacement(*this);
+  for (const auto& run : other.runs_)
+  {
+    auto* existing = replacement.findRunByUuid(run.getUuid());
+    if (existing)
+    {
+      auto comparable = run;
+      comparable.identifier_ = existing->identifier_;
+      comparable.processing_.setIdentifier(existing->processing_.getIdentifier());
+      if (*existing != comparable) invalid("Cannot merge conflicting values for the same run UUID");
+    }
+    else
+    {
+      auto copy = run;
+      const auto original = copy.identifier_;
+      Size suffix = 2;
+      while (std::any_of(replacement.runs_.begin(), replacement.runs_.end(), [&](const auto& item) { return item.identifier_ == copy.identifier_; }))
+        copy.identifier_ = original + "#" + std::to_string(suffix++);
+      copy.processing_.setIdentifier(copy.identifier_);
+      replacement.addRun(std::move(copy));
+    }
+  }
+  for (const auto& result : other.inference_)
+  {
+    auto existing
+      = std::find_if(replacement.inference_.begin(), replacement.inference_.end(), [&](const auto& r) { return r.identifier == result.identifier; });
+    if (existing != replacement.inference_.end() && *existing == result) continue;
+    auto copy = result;
+    const auto original = copy.identifier;
+    Size suffix = 2;
+    while (
+      std::any_of(replacement.inference_.begin(), replacement.inference_.end(), [&](const auto& item) { return item.identifier == copy.identifier; }))
+      copy.identifier = original + "#" + std::to_string(suffix++);
+    for (auto& input : copy.inputs)
+      if (const auto* run = replacement.findRunByUuid(input.run_uuid)) input.run_identifier = run->getIdentifier();
+    replacement.addInferenceResult(std::move(copy));
+  }
+  replacement.validate();
+  swap(replacement);
 }
 void ID::clearInferenceResults()
 {

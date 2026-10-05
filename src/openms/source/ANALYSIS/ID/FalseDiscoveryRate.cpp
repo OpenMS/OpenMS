@@ -603,117 +603,75 @@ namespace OpenMS
     }
   }
 
-  LegacyIdentificationData::ScoreTypeRef FalseDiscoveryRate::applyToObservationMatches(
-      LegacyIdentificationData& id_data, LegacyIdentificationData::ScoreTypeRef score_ref)
-  const
+  IdentificationData::ScoreDefinition FalseDiscoveryRate::applyToObservationMatches(IdentificationData& data,
+                                                                                    const IdentificationData::ScoreDefinition& score) const
   {
-    bool use_all_hits = param_.getValue("use_all_hits").toBool();
-    bool include_decoys = param_.getValue("add_decoy_peptides").toBool();
-    vector<double> target_scores, decoy_scores;
-    map<LegacyIdentificationData::IdentifiedMolecule, bool> molecule_to_decoy;
-    map<LegacyIdentificationData::ObservationMatchRef, double> match_to_score;
-    if (use_all_hits)
+    using ID = IdentificationData;
+    data.validate();
+    const bool all_hits = param_.getValue("use_all_hits").toBool();
+    const bool include_decoys = param_.getValue("add_decoy_peptides").toBool();
+    const bool qvalues = ! param_.getValue("no_qvalues").toBool();
+    std::vector<double> targets, decoys;
+    std::map<std::pair<std::string, UInt64>, std::pair<double, bool>> values;
+    for (const auto& run : data.getRuns())
     {
-      for (auto it = id_data.getObservationMatches().begin();
-           it != id_data.getObservationMatches().end(); ++it)
-      {
-        handleObservationMatch_(it, score_ref, target_scores, decoy_scores,
-                          molecule_to_decoy, match_to_score);
-      }
+      if (run.getMoleculeKind() == ID::MoleculeKind::COMPOUND || run.getScoreDefinitions().empty()) continue;
+      const auto view = run.bindScore(run.findScore(score));
+      const auto collect = [&](const ID::Match& match) {
+        auto value = view(match);
+        if (! value) return;
+        if (match.target_decoy == ID::TargetDecoy::UNKNOWN)
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR requires target/decoy annotations");
+        const bool decoy = match.target_decoy == ID::TargetDecoy::DECOY;
+        (decoy ? decoys : targets).push_back(*value);
+        values.emplace(std::make_pair(run.getUuid(), match.getId().value), std::make_pair(*value, decoy));
+      };
+      for (const auto& source : run.getSourceBlocks())
+        for (const auto& query : source.identifications)
+        {
+          const ID::Match* best = nullptr;
+          std::optional<double> best_value;
+          for (const auto& match : query.getMatches())
+          {
+            if (all_hits)
+            {
+              collect(match);
+              continue;
+            }
+            auto value = view(match);
+            if (value && (! best_value || (score.higher_better ? *value > *best_value : *value < *best_value)))
+            {
+              best = &match;
+              best_value = value;
+            }
+          }
+          if (! all_hits && best) collect(*best);
+        }
     }
-    else
+    std::map<double, double> fdr;
+    calculateFDRs_(fdr, targets, decoys, qvalues, score.higher_better);
+    ID::ScoreDefinition definition;
+    definition.name = qvalues ? "PSM-level q-value" : "PSM-level FDRScore";
+    definition.accession = qvalues ? "MS:1002354" : "MS:1002355";
+    definition.higher_better = false;
+    ID replacement(data);
+    for (const auto& current : replacement.getRuns())
     {
-      vector<LegacyIdentificationData::ObservationMatchRef> best_matches =
-          id_data.getBestMatchPerObservation(score_ref);
-      for (const auto& match_ref : best_matches)
-      {
-        handleObservationMatch_(match_ref, score_ref, target_scores, decoy_scores,
-                          molecule_to_decoy, match_to_score);
-      }
+      auto& run = replacement.getRun(current.getIdentifier());
+      if (run.getScoreDefinitions().empty()) continue;
+      const auto column = run.addScore(definition);
+      for (const auto& source : run.getSourceBlocks())
+        for (const auto& query : source.identifications)
+          for (const auto& match : query.getMatches())
+          {
+            auto found = values.find({run.getUuid(), match.getId().value});
+            if (found != values.end() && (include_decoys || ! found->second.second)) run.setScore(match.getId(), column, fdr.at(found->second.first));
+          }
     }
-
-    map<double, double> score_to_fdr;
-    bool higher_better = score_ref->higher_better;
-    bool use_qvalue = !param_.getValue("no_qvalues").toBool();
-    calculateFDRs_(score_to_fdr, target_scores, decoy_scores, use_qvalue,
-                   higher_better);
-
-    LegacyIdentificationData::ScoreType fdr_score;
-    fdr_score.higher_better = false;
-    if (use_qvalue)
-    {
-      fdr_score.cv_term = CVTerm("MS:1002354", "PSM-level q-value", "MS");
-    }
-    else
-    {
-      fdr_score.cv_term = CVTerm("MS:1002355", "PSM-level FDRScore", "MS");
-    }
-    LegacyIdentificationData::ScoreTypeRef fdr_ref =
-        id_data.registerScoreType(fdr_score);
-    for (LegacyIdentificationData::ObservationMatches::iterator it =
-           id_data.getObservationMatches().begin(); it !=
-           id_data.getObservationMatches().end(); ++it)
-    {
-      if (!include_decoys)
-      {
-        auto pos = molecule_to_decoy.find(it->identified_molecule_var);
-        if ((pos != molecule_to_decoy.end()) && pos->second) continue;
-      }
-      auto pos = match_to_score.find(it);
-      if (pos == match_to_score.end()) continue;
-      double fdr = score_to_fdr.at(pos->second);
-      id_data.addScore(it, fdr_ref, fdr);
-    }
-    return fdr_ref;
+    replacement.validate();
+    data.swap(replacement);
+    return definition;
   }
-
-
-  void FalseDiscoveryRate::handleObservationMatch_(
-    LegacyIdentificationData::ObservationMatchRef match_ref,
-    LegacyIdentificationData::ScoreTypeRef score_ref,
-    vector<double>& target_scores, vector<double>& decoy_scores,
-    map<LegacyIdentificationData::IdentifiedMolecule, bool>& molecule_to_decoy,
-    map<LegacyIdentificationData::ObservationMatchRef, double>& match_to_score) const
-  {
-    const LegacyIdentificationData::IdentifiedMolecule& molecule_var =
-      match_ref->identified_molecule_var;
-    LegacyIdentificationData::MoleculeType molecule_type =
-      molecule_var.getMoleculeType();
-    if (molecule_type == LegacyIdentificationData::MoleculeType::COMPOUND)
-    {
-      return; // compounds don't have parents with target/decoy status
-    }
-    pair<double, bool> score = match_ref->getScore(score_ref);
-    if (!score.second) return; // no score of this type
-    match_to_score[match_ref] = score.first;
-    auto pos = molecule_to_decoy.find(molecule_var);
-    bool is_decoy;
-    if (pos == molecule_to_decoy.end()) // new molecule
-    {
-      if (molecule_type == LegacyIdentificationData::MoleculeType::PROTEIN)
-      {
-        is_decoy = molecule_var.getIdentifiedPeptideRef()->allParentsAreDecoys();
-      }
-      else // if (molecule_type == LegacyIdentificationData::MoleculeType::RNA)
-      {
-        is_decoy = molecule_var.getIdentifiedOligoRef()->allParentsAreDecoys();
-      }
-      molecule_to_decoy[molecule_var] = is_decoy;
-    }
-    else
-    {
-      is_decoy = pos->second;
-    }
-    if (is_decoy)
-    {
-      decoy_scores.push_back(score.first);
-    }
-    else
-    {
-      target_scores.push_back(score.first);
-    }
-  }
-
 
   void FalseDiscoveryRate::calculateFDRs_(map<double, double>& score_to_fdr, vector<double>& target_scores, vector<double>& decoy_scores, bool q_value, bool higher_score_better) const
   {

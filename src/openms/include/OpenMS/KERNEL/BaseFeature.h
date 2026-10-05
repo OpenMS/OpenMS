@@ -9,10 +9,9 @@
 #pragma once
 
 #include <OpenMS/KERNEL/RichPeak2D.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
-
 #include <optional>
 
 namespace OpenMS
@@ -77,6 +76,7 @@ public:
       peptides_ = std::move(feature.peptides_);
       primary_id_ = std::move(feature.primary_id_);
       id_matches_ = std::move(feature.id_matches_);
+      id_queries_ = std::move(feature.id_queries_);
     }
 
     /// Copy constructor with a new map_index
@@ -184,6 +184,8 @@ public:
 
     /// state of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only
     AnnotationState getAnnotationState() const;
+    /// Resolve stable match links against their owning dataset; rejects deleted links.
+    AnnotationState getAnnotationState(const IdentificationData& data) const;
 
     /// @name Functions for dealing with identifications in new format
     ///@{
@@ -195,29 +197,30 @@ public:
 
        @throw Exception::MissingInformation if no ID was assigned
     */
-    const LegacyIdentificationData::IdentifiedMolecule& getPrimaryID() const;
+    const IdentificationData::MoleculeIdentity& getPrimaryID() const;
 
     /// clear any primary ID that was assigned
     void clearPrimaryID();
 
     /// set the primary ID (peptide, RNA, compound) for this feature
-    void setPrimaryID(const LegacyIdentificationData::IdentifiedMolecule& id);
+    void setPrimaryID(const IdentificationData::MoleculeIdentity& id);
 
     /// immutable access to the set of matches (e.g. PSMs) with IDs for this feature
-    const std::set<LegacyIdentificationData::ObservationMatchRef>& getIDMatches() const;
+    const std::set<IdentificationData::MatchReference>& getIDMatches() const;
 
     /// mutable access to the set of matches (e.g. PSMs) with IDs for this feature
-    std::set<LegacyIdentificationData::ObservationMatchRef>& getIDMatches();
+    std::set<IdentificationData::MatchReference>& getIDMatches();
+
+    const std::set<IdentificationData::QueryReference>& getIDQueries() const
+    { return id_queries_; }
+    std::set<IdentificationData::QueryReference>& getIDQueries()
+    { return id_queries_; }
+    void addIDQuery(const IdentificationData::QueryReference& reference)
+    { id_queries_.insert(reference); }
 
     /// add an ID match (e.g. PSM) for this feature
-    void addIDMatch(LegacyIdentificationData::ObservationMatchRef ref);
+    void addIDMatch(IdentificationData::MatchReference ref);
 
-    /*!
-      @brief Update ID references (primary ID, matches) for this feature
-
-      This is needed e.g. after the LegacyIdentificationData instance containing the referenced data has been copied.
-    */
-    void updateIDReferences(const LegacyIdentificationData::RefTranslator& trans);
     ///@}
 
 protected:
@@ -235,10 +238,11 @@ protected:
     PeptideIdentificationList peptides_;
 
     /// primary ID (peptide, RNA, compound) assigned to this feature
-    std::optional<LegacyIdentificationData::IdentifiedMolecule> primary_id_;
+    std::optional<IdentificationData::MoleculeIdentity> primary_id_;
 
     /// set of observation matches (e.g. PSMs) with IDs for this feature
-    std::set<LegacyIdentificationData::ObservationMatchRef> id_matches_;
+    std::set<IdentificationData::MatchReference> id_matches_;
+    std::set<IdentificationData::QueryReference> id_queries_;
   };
 
 } // namespace OpenMS

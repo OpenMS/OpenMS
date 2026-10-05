@@ -124,7 +124,7 @@ protected:
 
     if (StringUtils::hasSuffix(file_ann, "oms"))
     {
-      ams_param.setValue("id_format", "ID"); // use LegacyIdentificationData to store id results
+      ams_param.setValue("id_format", "ID"); // use IdentificationData to store id results
     }
 
     writeDebug_("Parameters passed to AccurateMassSearch", ams_param, 3);

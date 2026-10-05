@@ -251,7 +251,7 @@ protected:
     PeptideIdentificationList peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
     SpectrumMetaDataLookup lookup;
-    LegacyIdentificationData id_data;
+    IdentificationData id_data;
 
     //-------------------------------------------------------------
     // reading input

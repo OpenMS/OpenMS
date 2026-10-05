@@ -9,8 +9,8 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/METADATA/ID/LegacyIdentificationData.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 namespace SQLite
 {
@@ -53,8 +53,8 @@ namespace OpenMS
       */
       ~OMSFileLoad();
 
-      /// Load data from database and populate an LegacyIdentificationData object
-      void load(LegacyIdentificationData& id_data);
+      /// Load data from database and populate an IdentificationData object
+      void load(IdentificationData& id_data);
 
       /// Load data from database and populate a FeatureMap object
       void load(FeatureMap& features);
@@ -71,44 +71,6 @@ namespace OpenMS
 
       /// Generate a DataValue with information returned by an SQL query
       static DataValue makeDataValue_(const SQLite::Statement& query);
-
-      // static CVTerm loadCVTerm_(int id);
-
-      /// Load information on score type from the database into LegacyIdentificationData
-      void loadScoreTypes_(LegacyIdentificationData& id_data);
-
-      /// Load information on input files from the database into LegacyIdentificationData
-      void loadInputFiles_(LegacyIdentificationData& id_data);
-
-      /// Load information on data processing software from the database into LegacyIdentificationData
-      void loadProcessingSoftwares_(LegacyIdentificationData& id_data);
-
-      /// Load information on sequence database search parameters from the database into LegacyIdentificationData
-      void loadDBSearchParams_(LegacyIdentificationData& id_data);
-
-      /// Load information on data processing steps from the database into LegacyIdentificationData
-      void loadProcessingSteps_(LegacyIdentificationData& id_data);
-
-      /// Load information on observations (e.g. spectra) from the database into LegacyIdentificationData
-      void loadObservations_(LegacyIdentificationData& id_data);
-
-      /// Load information on parent sequences (e.g. proteins) from the database into LegacyIdentificationData
-      void loadParentSequences_(LegacyIdentificationData& id_data);
-
-      /// Load information on parent group sets (e.g. protein groups) from the database into LegacyIdentificationData
-      void loadParentGroupSets_(LegacyIdentificationData& id_data);
-
-      /// Load information on identified compounds from the database into LegacyIdentificationData
-      void loadIdentifiedCompounds_(LegacyIdentificationData& id_data);
-
-      /// Load information on identified sequences (peptides or oligonucleotides) from the database into LegacyIdentificationData
-      void loadIdentifiedSequences_(LegacyIdentificationData& id_data);
-
-      /// Load information on adducts from the database into LegacyIdentificationData
-      void loadAdducts_(LegacyIdentificationData& id_data);
-
-      /// Load information on observation matches (e.g. PSMs) from the database into LegacyIdentificationData
-      void loadObservationMatches_(LegacyIdentificationData& id_data);
 
       /// Helper function for loading meta data on feature/consensus maps from the database
       template <class MapType> std::string loadMapMetaDataTemplate_(MapType& features);
@@ -153,26 +115,6 @@ namespace OpenMS
       void handleQueryMetaInfo_(SQLite::Statement& query, MetaInfoInterface& info,
                                 Key parent_id);
 
-      /// Prepare SQL query for loading processing metadata associated with a particular class (stored in @p parent_table)
-      bool prepareQueryAppliedProcessingStep_(SQLite::Statement& query,
-                                              const std::string& parent_table);
-
-      /// Store results from an SQL query on processing metadata in a ScoredProcessingResult(-derived) object
-      void handleQueryAppliedProcessingStep_(
-        SQLite::Statement& query,
-        IdentificationDataInternal::ScoredProcessingResult& result,
-        Key parent_id);
-
-      /// Store results from an SQL query on parent matches
-      void handleQueryParentMatch_(
-        SQLite::Statement& query, LegacyIdentificationData::ParentMatches& parent_matches,
-        Key molecule_id);
-
-      /// Store results from an SQL query on peak annotations in an observation match
-      void handleQueryPeakAnnotation_(
-        SQLite::Statement& query, LegacyIdentificationData::ObservationMatch& match,
-        Key parent_id);
-
       /// The database connection (read)
       std::unique_ptr<SQLite::Database> db_;
 
@@ -180,18 +122,10 @@ namespace OpenMS
 
       std::string subquery_score_; ///< query for score types used in JSON export
 
-      // mappings between database keys and loaded data:
-      std::unordered_map<Key, LegacyIdentificationData::ScoreTypeRef> score_type_refs_;
-      std::unordered_map<Key, LegacyIdentificationData::InputFileRef> input_file_refs_;
-      std::unordered_map<Key, LegacyIdentificationData::ProcessingSoftwareRef> processing_software_refs_;
-      std::unordered_map<Key, LegacyIdentificationData::ProcessingStepRef> processing_step_refs_;
-      std::unordered_map<Key, LegacyIdentificationData::SearchParamRef> search_param_refs_;
-      std::unordered_map<Key, LegacyIdentificationData::ObservationRef> observation_refs_;
-      std::unordered_map<Key, LegacyIdentificationData::ParentSequenceRef> parent_sequence_refs_;
-      std::unordered_map<Key, LegacyIdentificationData::IdentifiedMolecule> identified_molecule_vars_;
-      std::unordered_map<Key, LegacyIdentificationData::ObservationMatchRef> observation_match_refs_;
-      std::unordered_map<Key, LegacyIdentificationData::AdductRef> adduct_refs_;
-
+      void loadLegacyIdentifications_(IdentificationData& data);
+      std::map<Key, IdentificationData::MoleculeIdentity> compatibility_molecules_;
+      std::map<Key, IdentificationData::MatchReference> compatibility_matches_;
+      const IdentificationData* identification_data_ = nullptr;
       // mapping: table name -> ordering critera (for JSON export)
       static std::map<std::string, std::string> export_order_by_;
     };

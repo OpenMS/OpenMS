@@ -1653,8 +1653,14 @@ The enzymes are read from share/CHEMISTRY/Enzymes_RNA.xml.
     // -----------------------------------------------------------------------
     // RNaseDigestion
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::RNaseDigestion, OpenMS::EnzymaticDigestion>(m, "RNaseDigestion", 
-        R"doc(
+    nb::class_<OpenMS::RNaseDigestion::DigestedOligo>(m, "DigestedOligo")
+      .def(nb::init<>())
+      .def(nb::init<const OpenMS::RNaseDigestion::DigestedOligo&>())
+      .def_rw("sequence", &OpenMS::RNaseDigestion::DigestedOligo::sequence)
+      .def_rw("parent_evidence", &OpenMS::RNaseDigestion::DigestedOligo::parent_evidence)
+      .def_rw("target_decoy", &OpenMS::RNaseDigestion::DigestedOligo::target_decoy);
+    nb::class_<OpenMS::RNaseDigestion, OpenMS::EnzymaticDigestion>(m, "RNaseDigestion",
+                                                                   R"doc(
 Class for the enzymatic digestion of RNA
 Usage:
 .. code-block:: python
@@ -1667,20 +1673,43 @@ dig.digest(oligo, result)
 for fragment in result:
 print (fragment)
 )doc")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::RNaseDigestion &>())
-        .def("__copy__", [](const OpenMS::RNaseDigestion& self) { return OpenMS::RNaseDigestion(self); })
-        .def("__deepcopy__", [](const OpenMS::RNaseDigestion& self, nb::dict) { return OpenMS::RNaseDigestion(self); }, "memo"_a)
-        .def("setEnzyme", [](OpenMS::RNaseDigestion& self, OpenMS::DigestionEnzyme * enzyme) { return self.setEnzyme(requireEnzymeForReceiver_(self, enzyme)); }, "enzyme"_a, "Sets the enzyme for the digestion. The enzyme must come from RNaseDB, since RNaseDigestion stores it by reference and requires an RNase")
-        .def("setEnzyme", [](OpenMS::RNaseDigestion& self, const std::string& name) { return self.setEnzyme(name); }, "name"_a, "Sets the enzyme for the digestion (by name)")
-        .def("getMissedCleavages", [](const OpenMS::RNaseDigestion& self) { return self.getMissedCleavages(); }, "Returns the max. number of allowed missed cleavages for the digestion")
-        .def("setMissedCleavages", [](OpenMS::RNaseDigestion& self, size_t missed_cleavages) { return self.setMissedCleavages(missed_cleavages); }, "missed_cleavages"_a, "Sets the max. number of allowed missed cleavages for the digestion (default is 0). This setting is ignored when log model is used")
-        .def("getEnzymeName", [](const OpenMS::RNaseDigestion& self) { return self.getEnzymeName(); }, "Returns the enzyme for the digestion")
-        .def("getSpecificity", [](const OpenMS::RNaseDigestion& self) { return self.getSpecificity(); }, "Returns the specificity for the digestion")
-        .def("setSpecificity", [](OpenMS::RNaseDigestion& self, OpenMS::EnzymaticDigestion::Specificity spec) { return self.setSpecificity(spec); }, "spec"_a, "Sets the specificity for the digestion (default is SPEC_FULL)")
-        .def_static("getSpecificityByName", [](const std::string& name) { return OpenMS::RNaseDigestion::getSpecificityByName(name); }, "name"_a, "Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid")
-        .def("isValidProduct", [](const OpenMS::RNaseDigestion& self, const std::string& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages) { return self.isValidProduct(protein, pep_pos, pep_length, ignore_missed_cleavages); }, "protein"_a, "pep_pos"_a, "pep_length"_a, "ignore_missed_cleavages"_a, 
-            R"doc(
+      .def(nb::init<>())
+      .def(nb::init<const OpenMS::RNaseDigestion&>())
+      .def("__copy__", [](const OpenMS::RNaseDigestion& self) { return OpenMS::RNaseDigestion(self); })
+      .def(
+        "__deepcopy__", [](const OpenMS::RNaseDigestion& self, nb::dict) { return OpenMS::RNaseDigestion(self); }, "memo"_a)
+      .def(
+        "setEnzyme",
+        [](OpenMS::RNaseDigestion& self, OpenMS::DigestionEnzyme* enzyme) { return self.setEnzyme(requireEnzymeForReceiver_(self, enzyme)); },
+        "enzyme"_a,
+        "Sets the enzyme for the digestion. The enzyme must come from RNaseDB, since RNaseDigestion stores it by reference and requires an RNase")
+      .def(
+        "setEnzyme", [](OpenMS::RNaseDigestion& self, const std::string& name) { return self.setEnzyme(name); }, "name"_a,
+        "Sets the enzyme for the digestion (by name)")
+      .def(
+        "getMissedCleavages", [](const OpenMS::RNaseDigestion& self) { return self.getMissedCleavages(); },
+        "Returns the max. number of allowed missed cleavages for the digestion")
+      .def(
+        "setMissedCleavages", [](OpenMS::RNaseDigestion& self, size_t missed_cleavages) { return self.setMissedCleavages(missed_cleavages); },
+        "missed_cleavages"_a,
+        "Sets the max. number of allowed missed cleavages for the digestion (default is 0). This setting is ignored when log model is used")
+      .def(
+        "getEnzymeName", [](const OpenMS::RNaseDigestion& self) { return self.getEnzymeName(); }, "Returns the enzyme for the digestion")
+      .def(
+        "getSpecificity", [](const OpenMS::RNaseDigestion& self) { return self.getSpecificity(); }, "Returns the specificity for the digestion")
+      .def(
+        "setSpecificity", [](OpenMS::RNaseDigestion& self, OpenMS::EnzymaticDigestion::Specificity spec) { return self.setSpecificity(spec); },
+        "spec"_a, "Sets the specificity for the digestion (default is SPEC_FULL)")
+      .def_static(
+        "getSpecificityByName", [](const std::string& name) { return OpenMS::RNaseDigestion::getSpecificityByName(name); }, "name"_a,
+        "Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid")
+      .def(
+        "isValidProduct",
+        [](const OpenMS::RNaseDigestion& self, const std::string& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages) {
+          return self.isValidProduct(protein, pep_pos, pep_length, ignore_missed_cleavages);
+        },
+        "protein"_a, "pep_pos"_a, "pep_length"_a, "ignore_missed_cleavages"_a,
+        R"doc(
 Performs the enzymatic digestion of an unmodified sequence\n
 By returning only references into the original string this is very fast
 :param sequence: Sequence to digest
@@ -1689,22 +1718,37 @@ By returning only references into the original string this is very fast
 :param max_length: Maximal length of reported products (0 = no restriction)
 :return: Number of discarded digestion products (which are not matching length restrictions)
 )doc")
-        .def("countInternalCleavageSites", [](const OpenMS::RNaseDigestion& self, const std::string& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
-        .def("digest", [](const OpenMS::RNaseDigestion& self, const OpenMS::NASequence& rna, OpenMS::Size min_length, OpenMS::Size max_length) {
-            std::vector<OpenMS::NASequence> output;
-            self.digest(rna, output, min_length, max_length);
-            return output;
-        }, "rna"_a, "min_length"_a = 0, "max_length"_a = 0, "Digest an RNA sequence and return the fragments")
-        .def("digestUnmodified", [](const OpenMS::RNaseDigestion& self, const std::string& sequence_str, size_t min_length, size_t max_length) {
-            std::string_view sequence(sequence_str);
-            std::vector<std::string_view> output;
-            OpenMS::Size discarded = self.digestUnmodified(sequence, output, min_length, max_length);
-            std::vector<std::string> result;
-            result.reserve(output.size());
-            for (const auto& sv : output) result.push_back(std::string(sv));
-            return nb::make_tuple(result, discarded);
-        }, "sequence"_a, "min_length"_a = 1, "max_length"_a = 0, "Digest unmodified sequence, returns (products, num_discarded)")
-        ;
+      .def(
+        "countInternalCleavageSites",
+        [](const OpenMS::RNaseDigestion& self, const std::string& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a,
+        "Returns the number of internal cleavage sites for this sequence.")
+      .def(
+        "digest",
+        [](const OpenMS::RNaseDigestion& self, const OpenMS::IdentificationData::Run& run, OpenMS::Size min_length, OpenMS::Size max_length) {
+          return self.digest(run, min_length, max_length);
+        },
+        "run"_a, "min_length"_a = 0, "max_length"_a = 0)
+      .def(
+        "digest",
+        [](const OpenMS::RNaseDigestion& self, const OpenMS::NASequence& rna, OpenMS::Size min_length, OpenMS::Size max_length) {
+          std::vector<OpenMS::NASequence> output;
+          self.digest(rna, output, min_length, max_length);
+          return output;
+        },
+        "rna"_a, "min_length"_a = 0, "max_length"_a = 0, "Digest an RNA sequence and return the fragments")
+      .def(
+        "digestUnmodified",
+        [](const OpenMS::RNaseDigestion& self, const std::string& sequence_str, size_t min_length, size_t max_length) {
+          std::string_view sequence(sequence_str);
+          std::vector<std::string_view> output;
+          OpenMS::Size discarded = self.digestUnmodified(sequence, output, min_length, max_length);
+          std::vector<std::string> result;
+          result.reserve(output.size());
+          for (const auto& sv : output)
+            result.push_back(std::string(sv));
+          return nb::make_tuple(result, discarded);
+        },
+        "sequence"_a, "min_length"_a = 1, "max_length"_a = 0, "Digest unmodified sequence, returns (products, num_discarded)");
 
     // -----------------------------------------------------------------------
     // RealMassDecomposer

@@ -435,3 +435,39 @@ def test_dataset_ordered_score_contract():
     with pytest.raises(Exception):
         data.set_primary_score(other)
     assert data.get_primary_score_definition().name == definition.name
+
+
+def test_merge_preserves_stable_links_with_repeated_display_names():
+    first, query, match, _, _ = make_run()
+    second, _, _, _, _ = make_run()
+    data, other = ID(), ID()
+    data.add_run(first)
+    other.add_run(second)
+    data.merge(other)
+    assert len(data.get_runs()) == 2
+    assert data.find_run_by_uuid(second.get_uuid()).get_identifier() == "search#2"
+    reference = ID.MatchReference()
+    reference.run_uuid = first.get_uuid()
+    reference.match = match
+    assert data.find_run_by_uuid(reference.run_uuid).get_match(reference.match).representation == "PEPTIDE"
+    assert first.get_identification_for_match(match).get_id() == query
+    assert oms.IdentificationDataAdapter.QueryReference is ID.QueryReference
+    duplicate = copy.copy(data)
+    data.merge(duplicate)
+    assert data == duplicate
+
+
+def test_oms_owning_roundtrip_and_failed_load_are_transactional(tmp_path):
+    data, *_ = make_data_with_inference()
+    path = str(tmp_path / "search_ä.oms")
+    reader = oms.OMSFile()
+    reader.store(path, data)
+    reader.store(path, data)
+    restored = reader.load(path)
+    assert restored == data
+    assert len(restored.get_inference_results()) == 1
+    broken = tmp_path / "broken.oms"
+    broken.write_text("not SQLite")
+    with pytest.raises(Exception):
+        reader.load(str(broken))
+    assert reader.load(path) == data

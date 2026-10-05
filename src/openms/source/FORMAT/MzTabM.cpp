@@ -10,6 +10,7 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/MzTabM.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <cmath>
 #include <regex>
 
 namespace OpenMS
@@ -93,51 +94,31 @@ namespace OpenMS
     }
   }
 
-  void MzTabM::getFeatureMapMetaValues_(const FeatureMap& feature_map,
-                                        std::set<std::string>& feature_user_value_keys,
-                                        std::set<std::string>& observationmatch_user_value_keys,
-                                        std::set<std::string>& compound_user_value_keys)
+  void MzTabM::getFeatureMapMetaValues_(const FeatureMap& map,
+                                        std::set<std::string>& feature_keys,
+                                        std::set<std::string>& match_keys,
+                                        std::set<std::string>& compound_keys)
   {
-    for (Size i = 0; i < feature_map.size(); ++i)
+    for (const auto& feature : map)
     {
-      // feature section optional columns
-      const Feature& f = feature_map[i];
       std::vector<std::string> keys;
-      f.getKeys(keys);
-      // replace whitespaces with underscore
-      std::transform(keys.begin(), keys.end(), keys.begin(), [&](std::string& s) { return StringUtils::substitute(s, ' ', '_'); });
-      feature_user_value_keys.insert(keys.begin(), keys.end());
-
-      auto match_refs = f.getIDMatches();
-      for (const IdentificationDataInternal::ObservationMatchRef& match_ref : match_refs)
+      feature.getKeys(keys);
+      feature_keys.insert(keys.begin(), keys.end());
+      for (const auto& reference : feature.getIDMatches())
       {
-        // feature section optional columns
-        std::vector<std::string> obsm_keys;
-        match_ref->getKeys(obsm_keys);
-        // replace whitespaces with underscore
-        std::transform(obsm_keys.begin(), obsm_keys.end(), obsm_keys.begin(), [&](std::string& s) { return StringUtils::substitute(s, ' ', '_'); });
-
-        // remove "IDConverter_trace" metadata from the ObservationMatch
-        // introduced by the IdentificationDataConverter
-        // since it leads to convolution of IDConverter_trace_* optional columns
-        for (const auto& key : obsm_keys)
-        {
-          if (!StringUtils::hasSubstring(key, "IDConverter_trace"))
-          {
-            observationmatch_user_value_keys.insert(key);
-          }
-        }
-
-        // evidence section optional columns
-        LegacyIdentificationData::IdentifiedMolecule molecule = match_ref->identified_molecule_var;
-        LegacyIdentificationData::IdentifiedCompoundRef compound_ref = molecule.getIdentifiedCompoundRef();
-        std::vector<std::string> compound_keys;
-        compound_ref->getKeys(compound_keys);
-        // replace whitespaces with underscore
-        std::transform(compound_keys.begin(), compound_keys.end(), compound_keys.begin(), [&](std::string& s) { return StringUtils::substitute(s, ' ', '_'); });
-        compound_user_value_keys.insert(compound_keys.begin(), compound_keys.end());
+        const auto* run = map.getIdentificationData().findRunByUuid(reference.run_uuid);
+        const auto* match = run ? run->findMatch(reference.match) : nullptr;
+        if (! match) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Missing mzTab-M feature association");
+        if (run->getMoleculeKind() != IdentificationData::MoleculeKind::COMPOUND)
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "mzTab-M requires compound matches");
+        keys.clear();
+        match->getKeys(keys);
+        for (const auto& key : keys)
+          if (! StringUtils::hasSubstring(key, "IDConverter_trace") && ! key.starts_with("legacy:score:")) match_keys.insert(key);
       }
     }
+    // Molecular fields are dedicated values; no second compound metadata object exists.
+    compound_keys.clear();
   }
 
   // FeatureMap with associated identification data
@@ -147,11 +128,28 @@ namespace OpenMS
     MzTabMMetaData m_meta_data;
 
     // extract identification data from FeatureMap
-    const LegacyIdentificationData& id_data = feature_map.getIdentificationData();
+    const IdentificationData& id_data = feature_map.getIdentificationData();
 
-    OPENMS_PRECONDITION(!id_data.empty(),
-                        "The FeatureMap has to have a non empty LegacyIdentificationData object attached!")
+    OPENMS_PRECONDITION(! id_data.empty(), "The FeatureMap has to have a non-empty IdentificationData object attached!")
 
+    id_data.validate();
+    std::vector<Software> softwares;
+    for (const auto& processing : feature_map.getDataProcessing())
+    {
+      auto software = processing.getSoftware();
+      software.addMetaValues(processing);
+      softwares.push_back(std::move(software));
+    }
+    for (const auto& run : id_data.getRuns())
+    {
+      const auto& processing = run.getProcessingMetadata();
+      Software software(processing.getSearchEngine(), processing.getSearchEngineVersion());
+      software.addMetaValues(processing);
+      softwares.push_back(std::move(software));
+    }
+    std::stable_sort(softwares.begin(), softwares.end(), [](const auto& left, const auto& right) {
+      return std::tie(left.getName(), left.getVersion()) < std::tie(right.getName(), right.getVersion());
+    });
     // extract MetaValues from FeatureMap
     std::set<std::string> feature_user_value_keys;
     std::set<std::string> observationmatch_user_value_keys;
@@ -180,7 +178,7 @@ namespace OpenMS
     ControlledVocabulary cv;
     MzTabString reliability = MzTabString("2"); // initialize at 2 (should be valid for all tools - putatively annotated compound)
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-    for (const auto& software : id_data.getProcessingSoftwares())
+    for (const auto& software : softwares)
     {
       if (software.metaValueExists("reliability"))
       {
@@ -218,14 +216,11 @@ namespace OpenMS
     MzTabParameter quantification_method;
     quantification_method.setNull(true);
     std::map<DataProcessing::ProcessingAction, std::vector<std::string>> action_software_name;
-    for (const auto& step : id_data.getProcessingSteps())
-    {
-      IdentificationDataInternal::ProcessingSoftwareRef s_ref = step.software_ref;
-      for (const auto& action : step.actions)
-      {
-        action_software_name[action].emplace_back(s_ref->getName());
-      }
-    };
+    for (const auto& processing : feature_map.getDataProcessing())
+      for (auto action : processing.getProcessingActions())
+        action_software_name[action].push_back(processing.getSoftware().getName());
+    for (const auto& run : id_data.getRuns())
+      action_software_name[DataProcessing::IDENTIFICATION].push_back(run.getProcessingMetadata().getSearchEngine());
 
     // set quantification method based on OpenMS Tool(s)
     // current only FeatureFinderMetabo is used
@@ -258,15 +253,19 @@ namespace OpenMS
 
     MzTabMMSRunMetaData meta_ms_run;
     std::string input_file_name;
-    auto input_files = id_data.getInputFiles();
-    for (const auto& input_file : input_files) // should only be one in featureXML
-    {
-      input_file_name = input_file.name;
-      input_file_name =std::string(std::regex_replace(input_file_name, reg_backslash, "/"));
-      if (!StringUtils::hasPrefix(input_file_name, "file://")) input_file_name = "file://" + input_file_name;
-      meta_ms_run.location.set(input_file_name);
-    }
-    // meta_ms_run.location.set(input_files[0].name);
+    StringList paths;
+    feature_map.getPrimaryMSRunPath(paths);
+    if (! paths.empty()) input_file_name = paths.front();
+    else
+      for (const auto& run : id_data.getRuns())
+        if (! run.getSourceBlocks().empty())
+        {
+          input_file_name = run.getSourceBlocks().front().source.path;
+          break;
+        }
+    input_file_name = std::regex_replace(input_file_name, reg_backslash, "/");
+    if (! StringUtils::hasPrefix(input_file_name, "file://")) input_file_name = "file://" + input_file_name;
+    meta_ms_run.location.set(input_file_name);
 
     // ms_run[1-n]-instrument_ref (not mandatory)
     // ms_run[1-n]-format (not mandatory)
@@ -275,41 +274,20 @@ namespace OpenMS
 
     // ms_run[1-n]-scan_polarity[1-n] (mandatory)
     // assess scan polarity based on the first adduct
-    auto adducts = id_data.getAdducts();
-    if (!adducts.empty())
+    std::set<int> polarities;
+    for (const auto& run : id_data.getRuns())
+      for (const auto& source : run.getSourceBlocks())
+        for (const auto& query : source.identifications)
+          for (const auto& match : query.getMatches())
+            if (match.charge) polarities.insert(match.charge > 0 ? 1 : -1);
+    if (polarities.empty()) polarities.insert(1);
+    Size polarity_index = 0;
+    for (int polarity : polarities)
     {
-      std::string_view first_adduct;
-      for (const auto& adduct : adducts)
-      {
-        first_adduct = adduct.getName();
-        break;
-      }
-      if (first_adduct.at(first_adduct.size() - 1) == '+')
-      {
-        ControlledVocabulary::CVTerm cvterm;
-        cvterm = cv.getTermByName("positive scan");
-        MzTabParameter spol;
-        spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
-        meta_ms_run.scan_polarity[1] = spol;
-      }
-      else
-      {
-        ControlledVocabulary::CVTerm cvterm;
-        cvterm = cv.getTermByName("negative scan");
-        MzTabParameter spol;
-        spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
-        meta_ms_run.scan_polarity[1] = spol;
-      }
-    }
-    else
-    {
-      // if no adduct information is available warn, but assume positive mode.
-      OPENMS_LOG_WARN << "No adduct information available: scan polarity will be assumed to be positive." << std::endl;
-      ControlledVocabulary::CVTerm cvterm;
-      cvterm = cv.getTermByName("positive scan");
-      MzTabParameter spol;
-      spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
-      meta_ms_run.scan_polarity[1] = spol;
+      const auto& term = cv.getTermByName(polarity > 0 ? "positive scan" : "negative scan");
+      MzTabParameter value;
+      value.fromCellString("[MS, " + term.id + ", " + term.name + ", ]");
+      meta_ms_run.scan_polarity[++polarity_index] = value;
     }
 
     // ms_run[1-n]-hash (not mandatory)
@@ -363,19 +341,20 @@ namespace OpenMS
     meta_db.database.fromCellString("[,, no database , null]");
     meta_db.uri = MzTabString("https://hmdb.ca/"); // default if not set
 
-    for (const auto& db : id_data.getDBSearchParams())
+    for (const auto& run : id_data.getRuns())
     {
-      if (db.database.contains("custom")) // custom database
+      const auto& db = run.getProcessingMetadata().getSearchParameters();
+      if (db.db.contains("custom")) // custom database
       {
         meta_db.prefix.setNull(true);
-        meta_db.version = MzTabString(db.database_version);
-        meta_db.database.fromCellString("[,, " + db.database + ", ]");
+        meta_db.version = MzTabString(db.db_version);
+        meta_db.database.fromCellString("[,, " + db.db + ", ]");
       }
       else // assumption that prefix is the same as database name
       {
-        meta_db.prefix = MzTabString(db.database);
-        meta_db.version = MzTabString(db.database_version);
-        meta_db.database.fromCellString("[,," + db.database + ", ]");
+        meta_db.prefix = MzTabString(db.db);
+        meta_db.version = MzTabString(db.db_version);
+        meta_db.database.fromCellString("[,," + db.db + ", ]");
       }
       if (db.metaValueExists("database_location"))
       {
@@ -395,7 +374,7 @@ namespace OpenMS
     // derivatization_agent[1-n] (not mandatory)
     MzTabParameter quantification_unit;
     quantification_unit.setNull(true);
-    for (const auto& software : id_data.getProcessingSoftwares())
+    for (const auto& software : softwares)
     {
       if (software.getName() == "FeatureFinderMetabo")
       {
@@ -443,19 +422,12 @@ namespace OpenMS
 
     int software_score_counter = 0;
     std::vector<std::string> identification_tools = action_software_name[DataProcessing::IDENTIFICATION];
-    std::vector<IdentificationDataInternal::ScoreTypeRef> id_score_refs;
-    for (const IdentificationDataInternal::ProcessingSoftware& software : id_data.getProcessingSoftwares())
+    std::vector<Size> id_score_columns;
+    const auto& definitions = id_data.getScoreDefinitions();
+    for (Size i = 0; i < definitions.size(); ++i)
     {
-      // check if in "Identification Vector"
-      if (std::find(identification_tools.begin(), identification_tools.end(), software.getName()) != identification_tools.end())
-      {
-        for (const IdentificationDataInternal::ScoreTypeRef& score_type_ref : software.assigned_scores)
-        {
-          ++software_score_counter;
-          m_meta_data.id_confidence_measure[software_score_counter].fromCellString("[,, " + score_type_ref->cv_term.getName() + ", ]");
-          id_score_refs.emplace_back(score_type_ref);
-        }
-      }
+      m_meta_data.id_confidence_measure[++software_score_counter].fromCellString("[,, " + definitions[i].name + ", ]");
+      id_score_columns.push_back(i);
     }
     // colunit-small_molecule (not mandatory)
     // colunit-small_molecule_feature (not mandatory)
@@ -568,51 +540,65 @@ namespace OpenMS
         // feature row based on number of individual identifications and adducts!
         std::map<std::string, std::vector<int>> evidence_id_ref_per_adduct;
 
-        // TODO: Remove copy operation (operator< IDData Ref)
-        std::set<IdentificationDataInternal::ObservationMatchRef, CompareMzTabMMatchRef> sorted_match_refs(match_refs.begin(), match_refs.end());
-
-        for (const auto& ref : sorted_match_refs) // iterate over all identifications of a feature
+        struct Resolved
         {
-          // evidence section
+          const IdentificationData::Run* run;
+          const IdentificationData::Match* match;
+        };
+        std::vector<Resolved> sorted;
+        for (const auto& reference : match_refs)
+        {
+          const auto* run = id_data.findRunByUuid(reference.run_uuid);
+          const auto* match = run ? run->findMatch(reference.match) : nullptr;
+          if (! match) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Missing mzTab-M match");
+          sorted.push_back({run, match});
+        }
+        const auto identifier = [](const IdentificationData::Match& match) {
+          return match.identifiers.empty() ? match.representation : match.identifiers.front().accession;
+        };
+        std::stable_sort(sorted.begin(), sorted.end(),
+                         [&](const auto& left, const auto& right) { return identifier(*left.match) < identifier(*right.match); });
+        for (const auto& resolved : sorted)
+        {
+          const auto& match = *resolved.match;
+          const auto& observation = resolved.run->getIdentificationForMatch(match.getId());
           MzTabMSmallMoleculeEvidenceSectionRow sme;
-
-          // IdentifiedCompound
-          LegacyIdentificationData::IdentifiedMolecule molecule = ref->identified_molecule_var;
-          LegacyIdentificationData::IdentifiedCompoundRef compound_ref = molecule.getIdentifiedCompoundRef();
 
           sme.sme_identifier = MzTabString(StringUtils::toStr(evidence_section_entry_counter));
           sme.evidence_input_id = MzTabString("mass=" + StringUtils::toStr(f.getMZ()) + ",rt=" + StringUtils::toStr(f.getRT()));
-          sme.database_identifier = MzTabString(compound_ref->identifier);
-          sme.chemical_formula = MzTabString(compound_ref->formula.toString());
-          sme.smiles = MzTabString(compound_ref->smile);
-          sme.inchi = MzTabString(compound_ref->inchi);
-          sme.chemical_name = MzTabString(compound_ref->name);
+          sme.database_identifier = MzTabString(identifier(match));
+          sme.chemical_formula = MzTabString(match.formula.value_or(""));
+          sme.smiles = MzTabString(match.encoding == IdentificationData::Encoding::SMILES ? match.representation : "");
+          sme.inchi = MzTabString(match.encoding == IdentificationData::Encoding::INCHI
+                                    ? match.representation
+                                    : (match.metaValueExists("inchi_key") ? match.getMetaValue("inchi_key").toString() : ""));
+          sme.chemical_name = MzTabString(match.name);
           sme.uri.setNull(true);
           sme.derivatized_form.setNull(true);
-          std::string adduct = getAdductString_(ref);
+          std::string adduct = getAdductString_(match);
           sme.adduct = MzTabString(adduct);
           sme.exp_mass_to_charge = MzTabDouble(f.getMZ());
-          sme.charge = MzTabInteger(f.getCharge());
-          sme.calc_mass_to_charge = MzTabDouble(compound_ref->formula.getMonoWeight());
+          sme.charge = MzTabInteger(match.charge);
+          if (match.calculated_mz) sme.calc_mass_to_charge = MzTabDouble(*match.calculated_mz);
           // For e.g. SIRIUS using multiple MS2 spectra for one identification
           // use the with pipe concatenated native_ids as spectra ref
           // this should  also be available match_ref
           MzTabSpectraRef sp_ref;
           sp_ref.setMSFile(1);
-          sp_ref.setSpecRef(ref->observation_ref->data_id);
+          sp_ref.setSpecRef(observation.data_id);
           sme.spectra_ref = sp_ref;
           sme.identification_method = identification_method; // based on tool used for identification (CV-Term)
           sme.ms_level = ms_level;
           int score_counter = 0;
-          for (const auto& id_score_ref : id_score_refs) // vector of references based on the ProcessingStep
+          for (Size column : id_score_columns) // vector of references based on the ProcessingStep
           {
             ++score_counter; //starts at 1 anyway
-            sme.id_confidence_measure[score_counter] = MzTabDouble(ref->getScore(id_score_ref).first);
+            const double value = match.getScoreValues()[column];
+            if (! std::isnan(value)) sme.id_confidence_measure[score_counter] = MzTabDouble(value);
           }
           sme.rank = MzTabInteger(1); // defaults to 1 if no rank system is used
 
-          addMetaInfoToOptionalColumns(observationmatch_user_value_keys, sme.opt_,std::string("global"), *ref);
-          addMetaInfoToOptionalColumns(compound_user_value_keys, sme.opt_,std::string("global"), *compound_ref);
+          addMetaInfoToOptionalColumns(observationmatch_user_value_keys, sme.opt_, std::string("global"), match);
 
           evidence_id_ref_per_adduct[adduct].emplace_back(evidence_section_entry_counter);
           evidence_section_entry_counter += 1;
@@ -722,12 +708,12 @@ namespace OpenMS
     return mztabm;
   }
 
-  std::string MzTabM::getAdductString_(const IdentificationDataInternal::ObservationMatchRef& match_ref)
+  std::string MzTabM::getAdductString_(const IdentificationData::Match& match)
   {
     std::string adduct_name;
-    if (match_ref->adduct_opt)
+    if (match.adduct)
     {
-      adduct_name = (*match_ref->adduct_opt)->getName();
+      adduct_name = match.adduct->getName();
       // M+H;1+ -> [M+H]1+
       if (adduct_name.contains(';')) // wrong format -> reformat
       {

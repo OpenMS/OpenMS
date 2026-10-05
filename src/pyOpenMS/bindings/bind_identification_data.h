@@ -10,6 +10,7 @@
 
 #include <OpenMS/ANALYSIS/ID/IdentificationDataInference.h>
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
@@ -79,6 +80,15 @@ inline void bind(nb::module_& m)
   auto matchid = valueClass<ID::MatchId>(data, "MatchId");
   matchid.def_ro("value", &ID::MatchId::value).def(nb::self == nb::self).def(nb::self != nb::self);
   matchid.def(nb::init<OpenMS::UInt64>(), nb::arg("value"));
+  auto queryreference = valueClass<ID::QueryReference>(data, "QueryReference");
+  field(queryreference, "run_uuid", &ID::QueryReference::run_uuid);
+  field(queryreference, "query", &ID::QueryReference::query);
+  auto matchreference = valueClass<ID::MatchReference>(data, "MatchReference");
+  field(matchreference, "run_uuid", &ID::MatchReference::run_uuid);
+  field(matchreference, "match", &ID::MatchReference::match);
+  auto moleculeidentity = valueClass<ID::MoleculeIdentity>(data, "MoleculeIdentity");
+  field(moleculeidentity, "encoding", &ID::MoleculeIdentity::encoding);
+  field(moleculeidentity, "representation", &ID::MoleculeIdentity::representation);
   auto scoreid = valueClass<ID::ScoreId>(data, "ScoreId");
   scoreid.def_ro("value", &ID::ScoreId::value).def(nb::self == nb::self).def(nb::self != nb::self);
   auto sourceid = valueClass<ID::SourceId>(data, "SourceId");
@@ -237,6 +247,9 @@ inline void bind(nb::module_& m)
     .def("get_number_of_identifications", &ID::Run::getNumberOfIdentifications)
     .def("prepare_lookup_indexes", &ID::Run::prepareLookupIndexes)
     .def("get_number_of_matches", &ID::Run::getNumberOfMatches)
+    .def(
+      "get_identification_for_match",
+      [](const ID::Run& self, ID::MatchId match) { return ID::Identification(self.getIdentificationForMatch(match)); }, nb::arg("match"))
     .def("get_next_query_id", &ID::Run::getNextQueryId)
     .def("get_next_match_id", &ID::Run::getNextMatchId)
     .def("import_identification", &ID::Run::importIdentification, nb::arg("source"), nb::arg("id"), nb::arg("observation"))
@@ -267,6 +280,11 @@ inline void bind(nb::module_& m)
     .def("get_inference_results", [](const ID& self) { return self.getInferenceResults(); })
     .def("add_inference_result", &ID::addInferenceResult, nb::arg("result"))
     .def("clear_inference_results", &ID::clearInferenceResults)
+    .def("empty", &ID::empty)
+    .def("clear", &ID::clear)
+    .def("merge", &ID::merge, nb::arg("other"))
+    .def(nb::self == nb::self)
+    .def(nb::self != nb::self)
     .def(
       "filter_matches",
       [](ID& self, nb::callable keep, ID::InferencePolicy policy, bool keep_empty) {
@@ -380,6 +398,40 @@ inline void bind(nb::module_& m)
       nb::arg("input"), nb::arg("output"), nb::arg("keep"), nb::arg("inference_policy"), nb::arg("keep_empty_queries") = false,
       nb::arg("options") = File::Options {});
 
+  auto oms = valueClass<OpenMS::OMSFile>(m, "OMSFile");
+  oms.def(
+       "store", [](OpenMS::OMSFile& self, const std::string& path, const ID& data) { self.store(path, data); }, nb::arg("path"), nb::arg("data"))
+    .def(
+      "store", [](OpenMS::OMSFile& self, const std::string& path, const OpenMS::FeatureMap& map) { self.store(path, map); }, nb::arg("path"),
+      nb::arg("map"))
+    .def(
+      "store", [](OpenMS::OMSFile& self, const std::string& path, const OpenMS::ConsensusMap& map) { self.store(path, map); }, nb::arg("path"),
+      nb::arg("map"))
+    .def(
+      "load",
+      [](OpenMS::OMSFile& self, const std::string& path) {
+        ID result;
+        self.load(path, result);
+        return result;
+      },
+      nb::arg("path"))
+    .def(
+      "load_feature_map",
+      [](OpenMS::OMSFile& self, const std::string& path) {
+        OpenMS::FeatureMap result;
+        self.load(path, result);
+        return result;
+      },
+      nb::arg("path"))
+    .def(
+      "load_consensus_map",
+      [](OpenMS::OMSFile& self, const std::string& path) {
+        OpenMS::ConsensusMap result;
+        self.load(path, result);
+        return result;
+      },
+      nb::arg("path"));
+
   // --- IdentificationDataAdapter ---
   auto adapter = valueClass<Adapter>(m, "IdentificationDataAdapter");
   nb::enum_<Adapter::LossPolicy>(adapter, "LossPolicy").value("STRICT", Adapter::LossPolicy::STRICT).value("ALLOW", Adapter::LossPolicy::ALLOW);
@@ -390,9 +442,7 @@ inline void bind(nb::module_& m)
   field(adapter_exportoptions, "loss_policy", &Adapter::ExportOptions::loss_policy);
   field(adapter_exportoptions, "include_inference", &Adapter::ExportOptions::include_inference);
   field(adapter_exportoptions, "inference_result", &Adapter::ExportOptions::inference_result);
-  auto adapter_queryreference = valueClass<Adapter::QueryReference>(adapter, "QueryReference");
-  field(adapter_queryreference, "run_uuid", &Adapter::QueryReference::run_uuid);
-  field(adapter_queryreference, "query", &Adapter::QueryReference::query);
+  adapter.attr("QueryReference") = data.attr("QueryReference");
   auto adapter_importresult = valueClass<Adapter::ImportResult>(adapter, "ImportResult");
   field(adapter_importresult, "data", &Adapter::ImportResult::data);
   field(adapter_importresult, "queries", &Adapter::ImportResult::queries);
