@@ -59,6 +59,10 @@ OpenMS Library:
   - FIX: MzDataHandler now round-trips the ABSORPTION, EMC and TDF scan modes instead of silently
     turning them into the wrong mode; a reader crash (back() on an empty spectrum vector) for an
     unrecognized scan mode on the first MS level >=2 spectrum is also fixed.
+  - FIX: MzDataHandler no longer indexes past a spectrum's binary data arrays when they are
+    missing, shorter than expected, or desynced with the number of <data> elements actually
+    read; peak and float-data-array length mismatches are now clamped instead of read out of
+    bounds.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
