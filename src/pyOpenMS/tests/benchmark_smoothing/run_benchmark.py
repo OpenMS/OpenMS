@@ -28,7 +28,7 @@ if str(current_dir) not in sys.path:
 
 try:
     from synthetic_data import SyntheticChromatogramGenerator
-    from metrics import OverallBenchmarkMetrics
+    from metrics import OverallBenchmarkMetrics, evaluate_valley_to_peak_ratio
     from benchmark_engine import (
         BenchmarkEngine,
         apply_modified_sinc,
@@ -57,7 +57,7 @@ try:
     )
 except ImportError:
     from .synthetic_data import SyntheticChromatogramGenerator
-    from .metrics import OverallBenchmarkMetrics
+    from .metrics import OverallBenchmarkMetrics, evaluate_valley_to_peak_ratio
     from .benchmark_engine import (
         BenchmarkEngine,
         apply_modified_sinc,
@@ -303,31 +303,41 @@ def generate_markdown_report(
     lines.append("Runtime measured using loops of 20–500 iterations (500 for N ≤ 500 down to 20 for N = 50,000) with `gc.disable()` inside Python, matching OpenMS benchmark conventions.")
     lines.append("Note that each timed iteration includes the `MSChromatogram` copy overhead to ensure in-place filtering operates on fresh chromatogram instances:")
     lines.append("")
-    lines.append("| Chromatogram Length (N) | Modified Sinc Time (µs) | Savitzky-Golay Time (µs) | Sinc Speed (ns/pt) | SG Speed (ns/pt) | Ratio (MS / SG) |")
-    lines.append("|---|---|---|---|---|---|")
-    lengths = scaling_data["lengths"]
-    ms_us = scaling_data["ms_per_call_us"]
-    sg_us = scaling_data["sg_per_call_us"]
-    ms_ns = scaling_data["ms_per_point_ns"]
-    sg_ns = scaling_data["sg_per_point_ns"]
-    for i, n in enumerate(lengths):
-        ratio = ms_us[i] / sg_us[i] if sg_us[i] > 0 else 0.0
-        lines.append(f"| {n:,} | {ms_us[i]:.2f} µs | {sg_us[i]:.2f} µs | {ms_ns[i]:.1f} ns | {sg_ns[i]:.1f} ns | {ratio:.2f}x |")
-    lines.append("")
+    max_typical_time = 25.0
+    min_ns = 8.0
+    max_ns = 11.0
+    last_n = 50000
+    last_ratio = 1.0
 
-    typical_times = [max(ms_us[i], sg_us[i]) for i, n in enumerate(lengths) if n <= 2500]
-    max_typical_time = max(typical_times) if typical_times else 25.0
-    typical_ns = [ms_ns[i] for i, n in enumerate(lengths) if n <= 2500] + [sg_ns[i] for i, n in enumerate(lengths) if n <= 2500]
-    min_ns = min(typical_ns) if typical_ns else 8.0
-    max_ns = max(typical_ns) if typical_ns else 11.0
+    if "lengths" in scaling_data and scaling_data["lengths"]:
+        lines.append("| Chromatogram Length (N) | Modified Sinc Time (µs) | Savitzky-Golay Time (µs) | Sinc Speed (ns/pt) | SG Speed (ns/pt) | Ratio (MS / SG) |")
+        lines.append("|---|---|---|---|---|---|")
+        lengths = scaling_data["lengths"]
+        ms_us = scaling_data["ms_per_call_us"]
+        sg_us = scaling_data["sg_per_call_us"]
+        ms_ns = scaling_data["ms_per_point_ns"]
+        sg_ns = scaling_data["sg_per_point_ns"]
+        for i, n in enumerate(lengths):
+            ratio = ms_us[i] / sg_us[i] if sg_us[i] > 0 else 0.0
+            lines.append(f"| {n:,} | {ms_us[i]:.2f} µs | {sg_us[i]:.2f} µs | {ms_ns[i]:.1f} ns | {sg_ns[i]:.1f} ns | {ratio:.2f}x |")
+        lines.append("")
 
-    last_n = lengths[-1] if lengths else 50000
-    last_ratio = (ms_us[-1] / sg_us[-1]) if (lengths and sg_us[-1] > 0) else 1.0
+        typical_times = [max(ms_us[i], sg_us[i]) for i, n in enumerate(lengths) if n <= 2500]
+        max_typical_time = max(typical_times) if typical_times else 25.0
+        typical_ns = [ms_ns[i] for i, n in enumerate(lengths) if n <= 2500] + [sg_ns[i] for i, n in enumerate(lengths) if n <= 2500]
+        min_ns = min(typical_ns) if typical_ns else 8.0
+        max_ns = max(typical_ns) if typical_ns else 11.0
 
-    lines.append(f"> **Runtime Analysis**: For the tested typical chromatogram lengths (N ≤ 2,500), both smoothers execute in < {max_typical_time:.0f} µs ")
-    lines.append(f"> (~{min_ns:.0f}–{max_ns:.0f} ns/point), meaning throughput differences are negligible in routine LC-MS pipelines. For very large chromatograms ")
-    lines.append(f"> (N = {last_n:,}), Savitzky–Golay is ~{last_ratio:.1f}x faster in execution.")
-    lines.append("")
+        last_n = lengths[-1] if lengths else 50000
+        last_ratio = (ms_us[-1] / sg_us[-1]) if (lengths and sg_us[-1] > 0) else 1.0
+
+        lines.append(f"> **Runtime Analysis**: For the tested typical chromatogram lengths (N ≤ 2,500), both smoothers execute in < {max_typical_time:.0f} µs ")
+        lines.append(f"> (~{min_ns:.0f}–{max_ns:.0f} ns/point), meaning throughput differences are negligible in routine LC-MS pipelines. For very large chromatograms ")
+        lines.append(f"> (N = {last_n:,}), Savitzky–Golay is ~{last_ratio:.1f}x faster in execution.")
+        lines.append("")
+    else:
+        lines.append("Computational scaling microbenchmark data was not provided.")
+        lines.append("")
 
     # 7. Memory Assessment
     lines.append("## 7. Memory Overhead Analysis")
@@ -419,13 +429,23 @@ def generate_markdown_report(
 
     # 1. Narrow peaks
     if phase_results:
-        ms_phase_apex = np.mean([data['ms_apex_err'] for data in phase_results.values()])
-        sg_phase_apex = np.mean([data['sg_apex_err'] for data in phase_results.values()])
-        ms_phase_fwhm = np.mean([data['ms_fwhm_err'] for data in phase_results.values()])
-        sg_phase_fwhm = np.mean([data['sg_fwhm_err'] for data in phase_results.values()])
+        def _phase_mean(key: str) -> Optional[float]:
+            vals = [d[key] for d in phase_results.values() if d.get(key) is not None]
+            return float(np.mean(vals)) if vals else None
+
+        ms_phase_apex = _phase_mean("ms_apex_err")
+        sg_phase_apex = _phase_mean("sg_apex_err")
+        ms_phase_fwhm = _phase_mean("ms_fwhm_err")
+        sg_phase_fwhm = _phase_mean("sg_fwhm_err")
+
+        ms_apex_str = f"{ms_phase_apex:+.1f}%" if ms_phase_apex is not None else "N/A"
+        sg_apex_str = f"{sg_phase_apex:+.1f}%" if sg_phase_apex is not None else "N/A"
+        ms_fwhm_str = f"{ms_phase_fwhm:+.1f}%" if ms_phase_fwhm is not None else "N/A"
+        sg_fwhm_str = f"{sg_phase_fwhm:+.1f}%" if sg_phase_fwhm is not None else "N/A"
+
         lines.append(
             f"1. **Signal Preservation on Narrow Peaks**: `ModifiedSincSmoother` demonstrates superior preservation of narrow, scarcely sampled peaks (~3 scans FWHM), "
-            f"exhibiting lower peak apex attenuation ({ms_phase_apex:+.1f}% vs. {sg_phase_apex:+.1f}% mean error) and substantially less FWHM broadening ({ms_phase_fwhm:+.1f}% vs. {sg_phase_fwhm:+.1f}% mean distortion) across sub-scan sampling phases."
+            f"exhibiting lower peak apex attenuation ({ms_apex_str} vs. {sg_apex_str} mean error) and substantially less FWHM broadening ({ms_fwhm_str} vs. {sg_fwhm_str} mean distortion) across sub-scan sampling phases."
         )
     else:
         lines.append("1. **Signal Preservation on Narrow Peaks**: `ModifiedSincSmoother` demonstrates superior preservation of narrow, scarcely sampled peaks (~3 scans FWHM).")
@@ -611,7 +631,6 @@ def main():
             _, y_over_ms, _ = apply_modified_sinc(syn_over.to_openms_noisy(), degree=tuned_ms["degree"], m=tuned_ms["m"], is_ms1=tuned_ms["is_ms1"])
             _, y_over_sg, _ = apply_savitzky_golay(syn_over.to_openms_noisy(), frame_length=tuned_sg["frame_length"], polynomial_order=tuned_sg["polynomial_order"])
             p1, p2 = syn_over.peaks[0], syn_over.peaks[1]
-            from metrics import evaluate_valley_to_peak_ratio
             valley_data = {
                 "true": evaluate_valley_to_peak_ratio(syn_over.rt, syn_over.intensity_true, p1.true_apex_rt, p2.true_apex_rt, syn_over.baseline_level),
                 "noisy": evaluate_valley_to_peak_ratio(syn_over.rt, syn_over.intensity_noisy, p1.true_apex_rt, p2.true_apex_rt, syn_over.baseline_level),

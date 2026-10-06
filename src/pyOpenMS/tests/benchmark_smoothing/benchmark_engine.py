@@ -782,8 +782,8 @@ class BenchmarkEngine:
         for c, prof in zip(selected_chroms, selected_profiles):
             # Timing strictly on in-memory copy
             gc.disable()
-            t0 = time.perf_counter()
             c_ms = pyopenms.MSChromatogram(c)
+            t0 = time.perf_counter()
             ms_smoother.filter(c_ms)
             t1 = time.perf_counter()
 

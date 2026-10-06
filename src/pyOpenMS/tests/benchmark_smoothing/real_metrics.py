@@ -9,8 +9,8 @@ CRITICAL SCIENTIFIC PRINCIPLES:
   * Apex intensity change & ratio
   * Peak area ratio (numerical integration)
   * FWHM ratio & width change (continuous flank interpolation)
-- Noise is estimated strictly on peak-free flank / baseline regions via Median Absolute Deviation (MAD)
-  of first differences divided by sqrt(2), avoiding confounding peak slopes with noise.
+- Noise is estimated strictly on peak-free flank / baseline regions via linear detrending
+  and robust Median Absolute Deviation (MAD) of residuals, avoiding differencing bias on smoothed signals.
 - Overlapping peak resolution is assessed via local maxima counts, valley-to-peak ratio (VPR),
   and peak separation.
 - Downstream detection is evaluated with PeakPickerHiRes at S/N = 2.0.
@@ -37,24 +37,30 @@ def estimate_flank_noise(
 ) -> float:
     """
     Estimate baseline noise strictly from peak-free flank regions.
-    Extracts the outer flank regions (first and last flank_fraction of points)
-    and computes the robust MAD of first differences / sqrt(2).
+    Detrends each outer flank segment linearly, combines the residuals,
+    and returns their robust MAD-based spread.
     """
     n = len(y)
     if n < 6:
         return 0.0
 
     k = max(2, int(n * flank_fraction))
-    flank_indices = np.concatenate([np.arange(0, k), np.arange(n - k, n)])
-    flank_y = y[flank_indices]
+    # Detrend each flank separately; avoid differencing, which assumes white noise
+    residuals = []
+    for seg in (y[:k], y[n - k:]):
+        if len(seg) >= 2:
+            x = np.arange(len(seg), dtype=np.float64)
+            coef = np.polyfit(x, seg, 1)
+            residuals.append(seg - np.polyval(coef, x))
+        else:
+            residuals.append(seg - np.mean(seg))
 
-    dy = np.diff(flank_y)
-    if len(dy) < 2:
-        return float(np.std(flank_y))
+    if not residuals:
+        return 0.0
 
-    med_dy = np.median(dy)
-    mad = np.median(np.abs(dy - med_dy))
-    scale = 0.6745 * math.sqrt(2.0)
+    res = np.concatenate(residuals)
+    mad = np.median(np.abs(res - np.median(res)))
+    scale = 0.6745
     return float(mad / scale) if scale > 0 else 0.0
 
 

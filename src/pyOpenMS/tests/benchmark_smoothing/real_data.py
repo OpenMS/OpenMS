@@ -14,8 +14,12 @@ Provides:
 
 from __future__ import annotations
 
+import gzip
 import json
 import math
+import os
+import shutil
+import tempfile
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
@@ -556,69 +560,104 @@ def extract_swath_chromatograms(
             tr_ids = [t["transition_id"] for t in tr_list]
             window_fast_lookup[widx] = (prod_mzs, tr_ids)
 
-    # Open with OnDiscMSExperiment or fallback to MSExperiment
-    use_ondisc = False
-    od = pyopenms.OnDiscMSExperiment()
+    input_path = Path(mzml_path)
+    is_gz = str(input_path).lower().endswith(".gz")
+    target_mzml = input_path
+    temp_uncompressed: Optional[Path] = None
+
+    if is_gz:
+        # For .gz inputs (e.g. .mzML.gz), decompress to uncompressed indexed mzML before openFile
+        uncompressed_candidate = input_path.with_suffix("")
+        if uncompressed_candidate.exists():
+            target_mzml = uncompressed_candidate
+        else:
+            try:
+                with gzip.open(input_path, "rb") as f_in, open(uncompressed_candidate, "wb") as f_out:
+                    shutil.copyfileobj(f_in, f_out, length=64 * 1024 * 1024)
+                target_mzml = uncompressed_candidate
+            except (OSError, PermissionError):
+                tf = tempfile.NamedTemporaryFile(suffix=".mzML", delete=False)
+                temp_uncompressed = Path(tf.name)
+                tf.close()
+                with gzip.open(input_path, "rb") as f_in, open(temp_uncompressed, "wb") as f_out:
+                    shutil.copyfileobj(f_in, f_out, length=64 * 1024 * 1024)
+                target_mzml = temp_uncompressed
+
     try:
-        if od.openFile(str(mzml_path)):
-            use_ondisc = True
-            n_spec = od.getNrSpectra()
-    except Exception:
+        # Open with OnDiscMSExperiment or fallback to MSExperiment (only for uncompressed inputs)
         use_ondisc = False
+        od = pyopenms.OnDiscMSExperiment()
+        try:
+            if od.openFile(str(target_mzml)):
+                use_ondisc = True
+                n_spec = od.getNrSpectra()
+        except Exception:
+            use_ondisc = False
 
-    if not use_ondisc:
-        exp = pyopenms.MSExperiment()
-        pyopenms.MzMLFile().load(str(mzml_path), exp)
-        n_spec = exp.getNrSpectra()
-        get_spec_fn = lambda idx: exp.getSpectrum(idx)
-    else:
-        get_spec_fn = lambda idx: od.getSpectrum(idx)
+        if not use_ondisc:
+            if is_gz:
+                raise RuntimeError(
+                    f"Failed to open decompressed mzML '{target_mzml}' with OnDiscMSExperiment. "
+                    "In-memory MzMLFile().load fallback is rejected for compressed inputs to prevent memory exhaustion."
+                )
+            exp = pyopenms.MSExperiment()
+            pyopenms.MzMLFile().load(str(target_mzml), exp)
+            n_spec = exp.getNrSpectra()
+            get_spec_fn = lambda idx: exp.getSpectrum(idx)
+        else:
+            get_spec_fn = lambda idx: od.getSpectrum(idx)
 
-    limit = n_spec if max_spectra is None else min(n_spec, max_spectra)
+        limit = n_spec if max_spectra is None else min(n_spec, max_spectra)
 
-    for i in range(limit):
-        spec = get_spec_fn(i)
-        if spec.getMSLevel() == 2:
-            rt = spec.getRT()
-            precursors = spec.getPrecursors()
-            if not precursors:
-                continue
-            prec_mz = precursors[0].getMZ()
+        for i in range(limit):
+            spec = get_spec_fn(i)
+            if spec.getMSLevel() == 2:
+                rt = spec.getRT()
+                precursors = spec.getPrecursors()
+                if not precursors:
+                    continue
+                prec_mz = precursors[0].getMZ()
 
-            matched_win = -1
-            for widx, (w_start, w_end) in enumerate(windows):
-                if w_start <= prec_mz <= w_end:
-                    matched_win = widx
-                    break
+                matched_win = -1
+                for widx, (w_start, w_end) in enumerate(windows):
+                    if w_start <= prec_mz <= w_end:
+                        matched_win = widx
+                        break
 
-            if matched_win in window_fast_lookup:
-                prod_mzs, tr_ids = window_fast_lookup[matched_win]
-                s_mz, s_int = spec.get_peaks()
-                if len(s_mz) > 0:
-                    for target_mz, tr_id in zip(prod_mzs, tr_ids):
-                        idx_left = int(np.searchsorted(s_mz, target_mz - mz_tolerance_da))
-                        idx_right = int(np.searchsorted(s_mz, target_mz + mz_tolerance_da, side="right"))
-                        val = float(np.sum(s_int[idx_left:idx_right])) if idx_right > idx_left else 0.0
-                        trans_rts[tr_id].append(rt)
-                        trans_ints[tr_id].append(val)
+                if matched_win in window_fast_lookup:
+                    prod_mzs, tr_ids = window_fast_lookup[matched_win]
+                    s_mz, s_int = spec.get_peaks()
+                    if len(s_mz) > 0:
+                        for target_mz, tr_id in zip(prod_mzs, tr_ids):
+                            idx_left = int(np.searchsorted(s_mz, target_mz - mz_tolerance_da))
+                            idx_right = int(np.searchsorted(s_mz, target_mz + mz_tolerance_da, side="right"))
+                            val = float(np.sum(s_int[idx_left:idx_right])) if idx_right > idx_left else 0.0
+                            trans_rts[tr_id].append(rt)
+                            trans_ints[tr_id].append(val)
 
-    out_exp = pyopenms.MSExperiment()
-    for t in all_transitions:
-        rts = trans_rts[t["transition_id"]]
-        ints = trans_ints[t["transition_id"]]
-        if len(rts) > 0:
-            c = pyopenms.MSChromatogram()
-            c.setNativeID(t["transition_id"])
-            c.setName(f"{t['peptide_sequence']}_{t['transition_id']}")
-            c.set_peaks((rts, ints))
-            c_prec = pyopenms.Precursor()
-            c_prec.setMZ(t["precursor_mz"])
-            c.setPrecursor(c_prec)
-            c_prod = pyopenms.Product()
-            c_prod.setMZ(t["product_mz"])
-            c.setProduct(c_prod)
-            out_exp.addChromatogram(c)
+        out_exp = pyopenms.MSExperiment()
+        for t in all_transitions:
+            rts = trans_rts[t["transition_id"]]
+            ints = trans_ints[t["transition_id"]]
+            if len(rts) > 0:
+                c = pyopenms.MSChromatogram()
+                c.setNativeID(t["transition_id"])
+                c.setName(f"{t['peptide_sequence']}_{t['transition_id']}")
+                c.set_peaks((rts, ints))
+                c_prec = pyopenms.Precursor()
+                c_prec.setMZ(t["precursor_mz"])
+                c.setPrecursor(c_prec)
+                c_prod = pyopenms.Product()
+                c_prod.setMZ(t["product_mz"])
+                c.setProduct(c_prod)
+                out_exp.addChromatogram(c)
 
-    Path(output_chrom_mzml).parent.mkdir(parents=True, exist_ok=True)
-    pyopenms.MzMLFile().store(str(output_chrom_mzml), out_exp)
-    return out_exp.getNrChromatograms()
+        Path(output_chrom_mzml).parent.mkdir(parents=True, exist_ok=True)
+        pyopenms.MzMLFile().store(str(output_chrom_mzml), out_exp)
+        return out_exp.getNrChromatograms()
+    finally:
+        if temp_uncompressed and temp_uncompressed.exists():
+            try:
+                temp_uncompressed.unlink()
+            except OSError:
+                pass

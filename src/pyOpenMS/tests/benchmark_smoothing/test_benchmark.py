@@ -51,6 +51,7 @@ try:
         RealDatasetBenchmarkResult,
         QCReplicateConsistencyResult,
     )
+    from .run_benchmark import generate_markdown_report
 except ImportError:
     from synthetic_data import (
         SyntheticChromatogramGenerator,
@@ -95,6 +96,7 @@ except ImportError:
         RealDatasetBenchmarkResult,
         QCReplicateConsistencyResult,
     )
+    from run_benchmark import generate_markdown_report
 
 
 
@@ -449,6 +451,81 @@ class TestRealDataInfrastructure(unittest.TestCase):
         self.assertGreater(res.total_traces_evaluated, 0)
         self.assertEqual(manifest.dataset_accession, "LOCAL_FIXTURES")
         self.assertGreater(len(overlays), 0)
+
+
+class TestReportGeneration(unittest.TestCase):
+
+    def test_report_generation_with_missing_phases(self):
+        """Verify report generation handles None error values from missing peak detections gracefully."""
+        import tempfile
+        from pathlib import Path
+        phase_results_with_none = {
+            "phase_0": {
+                "phase": 0.0,
+                "ms_apex_err": -1.5,
+                "sg_apex_err": -2.0,
+                "ms_fwhm_err": 1.2,
+                "sg_fwhm_err": 3.4,
+                "ms_area_err": 0.5,
+                "sg_area_err": 0.8,
+            },
+            "phase_1": {
+                "phase": 0.25,
+                "ms_apex_err": None,  # Missing detection
+                "sg_apex_err": None,
+                "ms_fwhm_err": None,
+                "sg_fwhm_err": None,
+                "ms_area_err": None,
+                "sg_area_err": None,
+            },
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_file = Path(tmpdir) / "test_report.md"
+            generate_markdown_report(
+                tuned_ms={"degree": 6, "m": 7, "is_ms1": False},
+                tuned_sg={"frame_length": 11, "polynomial_order": 4},
+                held_out_results={},
+                phase_results=phase_results_with_none,
+                matched_results=[],
+                scaling_data={},
+                real_results=[],
+                output_path=str(out_file),
+            )
+            self.assertTrue(out_file.exists())
+            content = out_file.read_text(encoding="utf-8")
+            self.assertIn("N/A", content)
+            self.assertIn("-1.50%", content)
+
+    def test_report_generation_all_missing_phases(self):
+        """Verify report generation displays N/A when all phases are missing without crashing."""
+        import tempfile
+        from pathlib import Path
+        all_none_phase = {
+            "phase_0": {
+                "phase": 0.0,
+                "ms_apex_err": None,
+                "sg_apex_err": None,
+                "ms_fwhm_err": None,
+                "sg_fwhm_err": None,
+                "ms_area_err": None,
+                "sg_area_err": None,
+            }
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_file = Path(tmpdir) / "test_report_all_none.md"
+            generate_markdown_report(
+                tuned_ms={"degree": 6, "m": 7, "is_ms1": False},
+                tuned_sg={"frame_length": 11, "polynomial_order": 4},
+                held_out_results={},
+                phase_results=all_none_phase,
+                matched_results=[],
+                scaling_data={},
+                real_results=[],
+                output_path=str(out_file),
+            )
+            self.assertTrue(out_file.exists())
+            content = out_file.read_text(encoding="utf-8")
+            self.assertIn("N/A", content)
 
 
 if __name__ == "__main__":
