@@ -101,6 +101,12 @@ namespace OpenMS
        *   mass, score, peplen, charge1..chargeN, enzN, enzC, enzInt, dm,
        *   absdm, Peptide, Proteins.
        *
+       * ExpMass and mass are the observed precursor m/z, the same for all hits of
+       * a spectrum (Percolator identifies a spectrum by ScanNr and ExpMass). A
+       * precursor isotope error ('isotope_error', observed minus theoretical in
+       * 13C spacings; or the legacy MS-GF+ 'IsotopeError') is removed from the
+       * mass difference only: dm, absdm and deltamass.
+       *
        * Useful for in-process Percolator training (see OpenMS::Percolator):
        * callers can then train on the exact same feature vectors the
        * subprocess path would have seen via the .pin round-trip.
