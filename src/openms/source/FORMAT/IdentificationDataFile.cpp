@@ -438,8 +438,8 @@ namespace
   ID::SourceFile readSourceJson(const Json& j)
   {
     ID::SourceFile source;
-    source.identifier = j.at("identifier");
-    source.path = j.at("path");
+    source.identifier = j.at("identifier").get<std::string>();
+    source.path = j.at("path").get<std::string>();
     source.primary_files = j.at("primary_files").get<std::vector<std::string>>();
     IO::readMetadataJson(j.at("metadata"), source);
     return source;
@@ -483,7 +483,7 @@ namespace
   File::RunDescriptor descriptor(const Json& j)
   {
     auto shell = runShell(j);
-    shell.restoreIdentity(j.at("uuid"), IO::integer<UInt64>(j.at("next_query_id")), IO::integer<UInt64>(j.at("next_match_id")));
+    shell.restoreIdentity(j.at("uuid").get<std::string>(), IO::integer<UInt64>(j.at("next_query_id")), IO::integer<UInt64>(j.at("next_match_id")));
     File::RunDescriptor d;
     d.identifier = shell.getIdentifier();
     d.uuid = shell.getUuid();
@@ -630,7 +630,7 @@ namespace
       dictionary.load(j.at("metadata_descriptors"));
       run.setParents(IO::readParents(root, tables.at("parents"), dictionary, options));
     }
-    run.restoreIdentity(j.at("uuid"), IO::integer<UInt64>(j.at("next_query_id")), IO::integer<UInt64>(j.at("next_match_id")));
+    run.restoreIdentity(j.at("uuid").get<std::string>(), IO::integer<UInt64>(j.at("next_query_id")), IO::integer<UInt64>(j.at("next_match_id")));
     return run;
   }
 } // namespace
@@ -776,7 +776,7 @@ try
   statistics.descriptor_bytes = fs::file_size(fs::path(path) / "manifest.json");
   for (const auto* j : selectRuns(manifest, options.runs))
   {
-    const std::string uuid = j->at("uuid");
+    const std::string uuid = j->at("uuid").get<std::string>();
     std::vector<QueryRecord> queries;
     std::vector<MatchRecord> matches;
     Size query_bytes = 0, match_bytes = 0;
@@ -854,7 +854,7 @@ try
   };
   for (auto& j : manifest["runs"])
   {
-    const std::string uuid = j.at("uuid");
+    const std::string uuid = j.at("uuid").get<std::string>();
     IO::Dictionary dictionary;
     dictionary.load(j.at("metadata_descriptors"));
     IO::TableWriter queries(staged.path / "queries.parquet", querySchema(), io);

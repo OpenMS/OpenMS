@@ -3,6 +3,8 @@
 import copy
 import gc
 from pathlib import Path
+import subprocess
+import sys
 
 import pytest
 import pyopenms as oms
@@ -386,14 +388,25 @@ def test_inference_pools_runs_without_editing_candidates():
     assert data.get_run("analysis-A").get_number_of_matches() == 2
 
 
-def test_file_handler_loads_and_stores_native_owning_values(tmp_path):
+def test_file_handler_import_in_fresh_interpreter():
+    # Module defaults must not depend on enum registration in a later module.
+    subprocess.run(
+        [sys.executable, "-c", "import pyopenms; assert pyopenms.FileHandler() is not None"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
+@pytest.mark.parametrize("log_options", [{}, {"log": None}, {"log": oms.LogType.NONE}])
+def test_file_handler_loads_and_stores_native_owning_values(tmp_path, log_options):
     run, _, first, _, _ = make_run()
     data = ID()
     data.add_run(run)
     path = str(tmp_path / "search.idparquet")
     handler = oms.FileHandler()
-    handler.store_identification_data(path, data)
-    loaded = handler.load_identification_data(path)
+    handler.store_identification_data(path, data, **log_options)
+    loaded = handler.load_identification_data(path, **log_options)
     assert loaded.get_run("search").get_uuid() == run.get_uuid()
     assert loaded.get_run("search").get_match(first).representation == "PEPTIDE"
 

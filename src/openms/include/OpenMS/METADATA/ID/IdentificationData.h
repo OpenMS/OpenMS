@@ -31,8 +31,10 @@ class IdentificationDataFile;
   A run owns sources, observations and candidate matches. Editing or filtering a run
   does not traverse inference provenance. IDs survive copies, filtering and native
   persistence; a new independent run receives a new UUID. Views are invalidated by
-  structural edits. Instances are not safe for concurrent mutation. Prepare lazy lookup
-    indexes with Run::prepareLookupIndexes() before parallel const ID lookups.
+  structural edits; match references may also be invalidated by replacement or
+  transformation. Retain IDs across edits. Instances are not safe for concurrent
+  mutation. Prepare lazy lookup indexes with Run::prepareLookupIndexes() before
+  parallel const ID lookups.
   @ingroup Metadata
 */
 class OPENMS_DLLAPI IdentificationData
@@ -257,7 +259,7 @@ public:
     MoleculeKind getMoleculeKind() const
     { return kind_; }
     const ProteinIdentification& getProcessingMetadata() const
-    { return processing_; }
+    { return *processing_; }
     void setProcessingMetadata(const ProteinIdentification& metadata);
     const std::optional<std::vector<ParentRecord>>& getParents() const
     { return parents_; }
@@ -321,7 +323,9 @@ public:
     std::string identifier_;
     std::string uuid_;
     MoleculeKind kind_;
-    ProteinIdentification processing_;
+    // A standard-library tree inside ProteinIdentification can allocate when moved
+    // on MSVC. Indirection keeps the run's transactional commit nonthrowing.
+    std::unique_ptr<ProteinIdentification> processing_ = std::make_unique<ProteinIdentification>();
     std::optional<std::vector<ParentRecord>> parents_;
     std::vector<SourceBlock> sources_;
     std::vector<ScoreDefinition> scores_;

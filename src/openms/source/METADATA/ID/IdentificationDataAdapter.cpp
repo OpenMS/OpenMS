@@ -17,6 +17,7 @@
 #include <limits>
 #include <set>
 #include <tuple>
+#include <type_traits>
 
 namespace OpenMS
 {
@@ -608,7 +609,7 @@ namespace
         assigned[query].insert(matches.begin(), matches.end());
         assigned_queries.insert(query);
       }
-      if constexpr (requires { feature.getSubordinates(); })
+      if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
         for (Size i = 0; i < feature.getSubordinates().size(); ++i)
         {
           auto child = path;
@@ -739,7 +740,7 @@ std::vector<std::string> IdentificationDataAdapter::applyToFeatureMap(const ID& 
   const auto clear_links = [&](const auto& self, auto& feature) -> void {
     feature.getIDMatches().clear();
     feature.getIDQueries().clear();
-    if constexpr (requires { feature.getSubordinates(); })
+    if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
       for (auto& child : feature.getSubordinates())
         self(self, child);
   };
@@ -794,7 +795,7 @@ std::vector<std::string> IdentificationDataAdapter::applyToConsensusMap(const ID
   const auto clear_links = [&](const auto& self, auto& feature) -> void {
     feature.getIDMatches().clear();
     feature.getIDQueries().clear();
-    if constexpr (requires { feature.getSubordinates(); })
+    if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
       for (auto& child : feature.getSubordinates())
         self(self, child);
   };

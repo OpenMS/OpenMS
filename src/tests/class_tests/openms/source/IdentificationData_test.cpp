@@ -283,6 +283,70 @@ START_SECTION((transform validation preserves original payloads and optional add
 }
 END_SECTION
 
+START_SECTION((editing mixed optional adducts preserves identities scores and selections))
+{
+  ID::Run run("compounds", ID::MoleculeKind::COMPOUND);
+  const auto primary = run.addScore(score());
+  run.setPrimaryScore(primary);
+  const auto source = run.addSource({});
+  const auto query = run.addIdentification(source, {});
+  const auto empty = run.addIdentification(source, {});
+  const auto other_query = run.addIdentification(run.addSource({}), {});
+  ID::MatchData data;
+  data.representation = "CCO";
+  data.encoding = ID::Encoding::SMILES;
+  data.charge = 1;
+  const auto removed = run.addMatch(query, data, {1.0});
+  data.adduct = AdductInfo::parseAdductString("M+H;1+");
+  const auto retained = run.addMatch(query, data, {2.0});
+  const auto other = run.addMatch(other_query, data, {3.0});
+  run.setSelectedMatch(query, removed);
+  run.setSelectedMatch(other_query, other);
+  run.prepareLookupIndexes();
+  TEST_EQUAL(run.eraseMatches([&](const ID::Match& match) { return match.getId() == removed; }), 1)
+  TEST_TRUE(run.findIdentification(empty) == nullptr)
+  TEST_TRUE(! run.getIdentification(query).getSelectedMatch())
+  TEST_TRUE(run.getIdentification(other_query).getSelectedMatch() == other)
+  TEST_TRUE(run.getMatch(retained).adduct.has_value())
+  TEST_REAL_SIMILAR(*run.getScore(retained, primary), 2.0)
+  data.adduct.reset();
+  run.replaceMatch(retained, data, {4.0});
+  TEST_TRUE(! run.getMatch(retained).adduct.has_value())
+  data.adduct = AdductInfo::parseAdductString("M+H;1+");
+  run.replaceMatch(retained, data, {5.0});
+  run.transformMatches([](ID::MatchData& match) { match.name = "ethanol"; });
+  TEST_EQUAL(run.getMatch(retained).name, "ethanol")
+  TEST_EQUAL(run.getMatch(other).name, "ethanol")
+  TEST_TRUE(run.getMatch(retained).adduct.has_value())
+  TEST_REAL_SIMILAR(*run.getScore(retained, primary), 5.0)
+  TEST_REAL_SIMILAR(*run.getScore(other, primary), 3.0)
+  run.validate();
+}
+END_SECTION
+
+START_SECTION((processing metadata remains owned through copy move and replacement))
+{
+  ID::Run run("search");
+  ProteinIdentification metadata;
+  metadata.setSearchEngine("original");
+  run.setProcessingMetadata(metadata);
+  ID::Run copy(run);
+  TEST_TRUE(copy == run)
+  metadata.setSearchEngine("replacement");
+  copy.setProcessingMetadata(metadata);
+  TEST_EQUAL(run.getProcessingMetadata().getSearchEngine(), "original")
+  TEST_EQUAL(copy.getProcessingMetadata().getSearchEngine(), "replacement")
+  ID::Run moved(std::move(copy));
+  TEST_EQUAL(moved.getProcessingMetadata().getSearchEngine(), "replacement")
+  copy.setProcessingMetadata(run.getProcessingMetadata());
+  TEST_EQUAL(copy.getProcessingMetadata().getSearchEngine(), "original")
+  moved = run;
+  TEST_TRUE(moved == run)
+  moved.setProcessingMetadata(moved.getProcessingMetadata());
+  TEST_TRUE(moved == run)
+}
+END_SECTION
+
 START_SECTION((persistent import preserves order and reserves IDs without renumbering))
 {
   ID::Run run("restored");

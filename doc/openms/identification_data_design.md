@@ -108,6 +108,8 @@ Filtering processes a run sequentially and writes the retained queries and match
 
 Editing metadata, scores or candidate payloads uses the owning API's validity rules. Saving writes the resulting values. Native file IDs and process-local handles need not be identical: streaming views use file IDs directly, while an owning adapter may allocate fresh runtime handles and return mappings.
 
+Retain IDs across edits and reacquire references to match records after filtering, replacement or transformation. These operations may replace query-owned match storage even when record counts do not change. Edits stage potentially throwing work before committing; platforms with nonthrowing payload moves retain the in-place fast path. Run processing metadata is owned independently and replaced through a nonthrowing pointer swap.
+
 ## 7. Pooled inference
 
 Inference results belong to the dataset, independently of individual runs. One result can combine any number of analysis runs and stores its protein/group output once.

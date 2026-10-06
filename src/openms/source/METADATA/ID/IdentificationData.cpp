@@ -20,9 +20,9 @@ namespace OpenMS
 namespace
 {
   using ID = IdentificationData;
-  static_assert(std::is_nothrow_move_assignable_v<ID::Match>);
+  static_assert(std::is_nothrow_swappable_v<std::vector<ID::Match>>);
   static_assert(std::is_nothrow_move_assignable_v<ID::Identification>);
-  static_assert(std::is_nothrow_swappable_v<ProteinIdentification>);
+  static_assert(std::is_nothrow_swappable_v<std::unique_ptr<ProteinIdentification>>);
   [[noreturn]] void invalid(const std::string& message)
   { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message, "IdentificationData"); }
   const ID::Run* checkScoreContract(const std::deque<ID::Run>& runs,
@@ -152,7 +152,7 @@ ID::Run::Run(const Run& other):
     identifier_(other.identifier_),
     uuid_(other.uuid_),
     kind_(other.kind_),
-    processing_(other.processing_),
+    processing_(std::make_unique<ProteinIdentification>(*other.processing_)),
     parents_(other.parents_),
     sources_(other.sources_),
     scores_(other.scores_),
@@ -246,7 +246,8 @@ void ID::Run::checkScore_(ScoreId score) const
 void ID::Run::setProcessingMetadata(const ProteinIdentification& metadata)
 {
   checkMutation_();
-  processing_ = metadata;
+  auto replacement = std::make_unique<ProteinIdentification>(metadata);
+  processing_.swap(replacement);
 }
 void ID::Run::setParents(std::optional<std::vector<ParentRecord>> parents)
 {
@@ -593,7 +594,17 @@ void ID::Run::replaceMatch(MatchId match, const MatchData& data, const std::vect
   replacement.scores_.assign(scores_.size(), std::numeric_limits<double>::quiet_NaN());
   for (Size i = 0; i < values.size(); ++i)
     if (values[i]) replacement.scores_[i] = *values[i];
-  target = std::move(replacement);
+  if constexpr (std::is_nothrow_move_assignable_v<Match>) { target = std::move(replacement); }
+  else
+  {
+    // An optional adduct may need to construct a tree when it becomes engaged.
+    // Finish all potentially throwing work before replacing the query's storage.
+    auto& query = query_(getIdentificationForMatch(match).getId());
+    auto matches = query.matches_;
+    const auto offset = static_cast<Size>(&target - query.matches_.data());
+    matches[offset] = std::move(replacement);
+    query.matches_.swap(matches);
+  }
 }
 Size ID::Run::filterMatches(const std::function<bool(const Match&)>& keep, bool keep_empty_queries)
 {
@@ -609,15 +620,46 @@ Size ID::Run::filterMatches(const std::function<bool(const Match&)>& keep, bool 
           decisions.push_back(keep(match));
   }
   Size at = 0, removed = 0;
+  if constexpr (std::is_nothrow_move_assignable_v<Match>)
+  {
+    for (auto& source : sources_)
+      for (auto& query : source.identifications)
+      {
+        auto end = std::remove_if(query.matches_.begin(), query.matches_.end(), [&](const Match&) {
+          const bool erase = ! decisions[at++];
+          removed += erase;
+          return erase;
+        });
+        query.matches_.erase(end, query.matches_.end());
+      }
+  }
+  else
+  {
+    // Copy only survivors; a failed allocation or payload copy leaves every query
+    // intact. Vector swaps below form the nonthrowing commit on all platforms.
+    std::vector<std::vector<Match>> replacements;
+    replacements.reserve(query_count_);
+    for (const auto& source : sources_)
+      for (const auto& query : source.identifications)
+      {
+        auto& matches = replacements.emplace_back();
+        const auto end = at + query.matches_.size();
+        matches.reserve(std::count(decisions.begin() + at, decisions.begin() + end, true));
+        for (const auto& match : query.matches_)
+        {
+          if (decisions[at++]) matches.push_back(match);
+          else
+            ++removed;
+        }
+      }
+    at = 0;
+    for (auto& source : sources_)
+      for (auto& query : source.identifications)
+        query.matches_.swap(replacements[at++]);
+  }
   for (auto& source : sources_)
     for (auto& query : source.identifications)
     {
-      auto end = std::remove_if(query.matches_.begin(), query.matches_.end(), [&](const Match&) {
-        bool erase = ! decisions[at++];
-        removed += erase;
-        return erase;
-      });
-      query.matches_.erase(end, query.matches_.end());
       if (query.selected_
           && std::none_of(query.matches_.begin(), query.matches_.end(), [&](const Match& match) { return match.id_ == query.selected_; }))
         query.selected_.reset();
@@ -684,10 +726,29 @@ void ID::Run::transformMatches(const std::function<void(MatchData&)>& transform)
         }
   }
   Size at = 0;
-  for (auto& source : sources_)
-    for (auto& query : source.identifications)
-      for (auto& match : query.matches_)
-        static_cast<MatchData&>(match) = std::move(replacements[at++]);
+  if constexpr (std::is_nothrow_move_assignable_v<MatchData>)
+  {
+    for (auto& source : sources_)
+      for (auto& query : source.identifications)
+        for (auto& match : query.matches_)
+          static_cast<MatchData&>(match) = std::move(replacements[at++]);
+  }
+  else
+  {
+    std::vector<std::vector<Match>> queries;
+    queries.reserve(query_count_);
+    for (const auto& source : sources_)
+      for (const auto& query : source.identifications)
+      {
+        auto& matches = queries.emplace_back(query.matches_);
+        for (auto& match : matches)
+          static_cast<MatchData&>(match) = std::move(replacements[at++]);
+      }
+    at = 0;
+    for (auto& source : sources_)
+      for (auto& query : source.identifications)
+        query.matches_.swap(queries[at++]);
+  }
 }
 Size ID::Run::getNumberOfIdentifications() const
 { return query_count_; }
@@ -843,7 +904,7 @@ void ID::addInferenceResult(InferenceResult result)
 }
 bool ID::Run::operator==(const Run& other) const
 {
-  if (uuid_ != other.uuid_ || identifier_ != other.identifier_ || kind_ != other.kind_ || processing_ != other.processing_
+  if (uuid_ != other.uuid_ || identifier_ != other.identifier_ || kind_ != other.kind_ || *processing_ != *other.processing_
       || parents_ != other.parents_ || scores_ != other.scores_ || next_query_id_ != other.next_query_id_ || next_match_id_ != other.next_match_id_
       || sources_.size() != other.sources_.size())
     return false;
@@ -899,7 +960,7 @@ void ID::merge(const IdentificationData& other)
     {
       auto comparable = run;
       comparable.identifier_ = existing->identifier_;
-      comparable.processing_.setIdentifier(existing->processing_.getIdentifier());
+      comparable.processing_->setIdentifier(existing->processing_->getIdentifier());
       if (*existing != comparable) invalid("Cannot merge conflicting values for the same run UUID");
     }
     else
@@ -909,7 +970,7 @@ void ID::merge(const IdentificationData& other)
       Size suffix = 2;
       while (std::any_of(replacement.runs_.begin(), replacement.runs_.end(), [&](const auto& item) { return item.identifier_ == copy.identifier_; }))
         copy.identifier_ = original + "#" + std::to_string(suffix++);
-      copy.processing_.setIdentifier(copy.identifier_);
+      copy.processing_->setIdentifier(copy.identifier_);
       replacement.addRun(std::move(copy));
     }
   }

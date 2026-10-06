@@ -444,17 +444,17 @@ Json scoreJson(const ID::ScoreDefinition& s)
 ID::ScoreDefinition readScoreJson(const Json& j)
 {
   ID::ScoreDefinition s;
-  s.name = j.at("name");
-  s.accession = j.at("accession");
-  s.higher_better = j.at("higher_better");
+  s.name = j.at("name").get<std::string>();
+  s.accession = j.at("accession").get<std::string>();
+  s.higher_better = j.at("higher_better").get<bool>();
   unsigned scope = integer<unsigned>(j.at("scope"));
   if (scope > static_cast<unsigned>(ID::ScoreScope::OTHER)) invalid("Unknown score scope");
   s.scope = static_cast<ID::ScoreScope>(scope);
-  s.software = j.at("software");
-  s.software_version = j.at("software_version");
+  s.software = j.at("software").get<std::string>();
+  s.software_version = j.at("software_version").get<std::string>();
   readMetadataJson(j.at("parameters"), s.parameters);
-  s.calibration = j.at("calibration");
-  s.aggregation = j.at("aggregation");
+  s.calibration = j.at("calibration").get<std::string>();
+  s.aggregation = j.at("aggregation").get<std::string>();
   return s;
 }
 

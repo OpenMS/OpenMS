@@ -619,18 +619,20 @@ Computes a SHA-1 hash of the file content
             self.storeIdentifications(filename, proteins, peptides, allowed_types, log);
         }, "filename"_a, "proteins"_a, "peptides"_a, "allowed_types"_a, "log"_a, "Store identifications to file with options")
 
+        // ProgressLogger is registered by _pyopenms_misc, after this module.
+        // Resolve its default at call time so importing _pyopenms_format is independent.
         .def("load_identification_data", [](OpenMS::FileHandler& self, const std::string& filename,
-             const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types, std::optional<OpenMS::ProgressLogger::LogType> log) {
             OpenMS::IdentificationData data;
-            self.loadIdentifications(filename, data, allowed_types, log);
+            self.loadIdentifications(filename, data, allowed_types, log.value_or(OpenMS::ProgressLogger::NONE));
             return data;
-        }, "filename"_a, "allowed_types"_a = std::vector<OpenMS::FileTypes::Type>{}, "log"_a = OpenMS::ProgressLogger::NONE,
+        }, "filename"_a, "allowed_types"_a = std::vector<OpenMS::FileTypes::Type>{}, "log"_a = nb::none(),
              "Load owning identification values from native Parquet or a supported legacy format.")
         .def("store_identification_data", [](OpenMS::FileHandler& self, const std::string& filename,
              const OpenMS::IdentificationData& data, const std::vector<OpenMS::FileTypes::Type>& allowed_types,
-             OpenMS::ProgressLogger::LogType log) {
-            self.storeIdentifications(filename, data, allowed_types, log);
-        }, "filename"_a, "data"_a, "allowed_types"_a = std::vector<OpenMS::FileTypes::Type>{}, "log"_a = OpenMS::ProgressLogger::NONE,
+             std::optional<OpenMS::ProgressLogger::LogType> log) {
+            self.storeIdentifications(filename, data, allowed_types, log.value_or(OpenMS::ProgressLogger::NONE));
+        }, "filename"_a, "data"_a, "allowed_types"_a = std::vector<OpenMS::FileTypes::Type>{}, "log"_a = nb::none(),
              "Store owning identification values; legacy formats enforce strict representability.")
 
         .def("loadTransitions", [](OpenMS::FileHandler& self, const std::string& filename) {

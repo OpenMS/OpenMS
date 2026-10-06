@@ -3,6 +3,53 @@
 Measured on 5 October 2026 against OpenMS base commit `fe7b9cc` (Linux x86-64).
 The owning model, native format, adapters and Python bindings are implemented.
 
+## CI portability and Python imports (2026-10-06)
+
+The CI failures at `179705666f4adc0e1eb8ec4156a6314b8180aaa3` had four causes:
+
+- Native manifest parsing relied on implicit JSON conversions, disabled by the
+  CI dependency configuration. String and boolean reads now use explicit typed
+  extraction.
+- MSVC does not guarantee nonthrowing moves for the trees inside optional adducts
+  and processing metadata. Match edits now stage replacement vectors on platforms
+  with throwing payload moves, then commit through nonthrowing vector swaps.
+  Processing metadata has unique ownership and commits through a pointer swap.
+  Platforms with nonthrowing match moves retain the in-place fast path.
+- Clang 18.1.3 crashed while instantiating dependent `requires` expressions in
+  recursive feature lambdas. Explicit feature-type checks retain subordinate
+  traversal and compile with that compiler.
+- The format Python module eagerly converted the default `ProgressLogger::NONE`
+  argument before the misc module registered its enum. The optional logging
+  argument now defaults to `None` and resolves to `NONE` when called.
+
+Validation on Linux x86-64, GCC 13.3, C++23, Release `-O3 -DNDEBUG`,
+Arrow/Parquet 25 and `JSON_USE_IMPLICIT_CONVERSIONS=0`:
+
+- The complete core library rebuilt and all **21 focused C++ suites passed**.
+- Both original adapter/converter translation units reproduced Clang 18.1.3's
+  frontend crash (exit 139); both fixed units pass syntax compilation.
+- A fault-injection harness exercised every allocation failure before successful
+  filtering, replacement, transformation and processing-metadata replacement.
+  All 34 failure points on the fast path and 75 on a forced staged-vector path
+  preserved the original run. The latter exercises the fallback on Linux; it is
+  not a native Windows build.
+- All actual Python extension sources were compiled and linked using the
+  generated Release build commands, with nanobind 3.1 and Python 3.12. The original
+  format module reproduced `ImportError: std::bad_cast` in a fresh interpreter;
+  the fixed module and complete package import successfully.
+- All **23 owning-model Python regressions passed**, including fresh-process
+  import and FileHandler roundtrips with omitted, `None` and explicit enum logging
+  arguments. The full Python suite then completed with **6,619 passed, 29 skipped,
+  10 expected failures and 7 unexpected passes**, and no failures.
+- New C++ regressions cover filtering mixed optional adducts, replacement in both
+  directions, preserved IDs/scores/selections and independent processing metadata
+  across copies and moves. Changed C++ lines were formatted and whitespace checks
+  pass.
+
+The native layout and score contract are unchanged. Native Windows/macOS builds
+and wheel packaging remain subject to the new CI run; this local Python build
+uses linked mode rather than the wheels' stable-ABI split mode.
+
 ## Build and correctness
 
 - Release `libOpenMS`: GCC 13.3, C++23, `-O3 -DNDEBUG -g1`, Arrow/Parquet 25.

@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <type_traits>
 namespace OpenMS
 {
 namespace
@@ -230,7 +231,7 @@ namespace
             association.feature_path = path;
             associations.push_back(std::move(association));
           }
-          if constexpr (requires { feature.getSubordinates(); })
+          if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
             for (Size i = 0; i < feature.getSubordinates().size(); ++i)
             {
               auto child = path;
@@ -274,7 +275,7 @@ namespace
       feature.getIDMatches().clear();
       feature.getIDQueries().clear();
       if (clear_original) feature.getPeptideIdentifications().clear();
-      if constexpr (requires { feature.getSubordinates(); })
+      if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
         for (auto& child : feature.getSubordinates())
           self(self, child);
     };
@@ -325,7 +326,7 @@ namespace
             indices[{run.getUuid(), query.getId()}] = index++;
       const auto clear = [&](const auto& self, auto& feature) -> void {
         feature.getPeptideIdentifications().clear();
-        if constexpr (requires { feature.getSubordinates(); })
+        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
           for (auto& child : feature.getSubordinates())
             self(self, child);
       };
@@ -365,7 +366,7 @@ namespace
       const auto clear = [&](const auto& self, auto& feature) -> void {
         feature.getIDMatches().clear();
         feature.getIDQueries().clear();
-        if constexpr (requires { feature.getSubordinates(); })
+        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
           for (auto& child : feature.getSubordinates())
             self(self, child);
       };
