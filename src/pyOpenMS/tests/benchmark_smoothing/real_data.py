@@ -571,8 +571,15 @@ def extract_swath_chromatograms(
         if uncompressed_candidate.exists():
             target_mzml = uncompressed_candidate
         else:
-            partial = uncompressed_candidate.with_name(uncompressed_candidate.name + ".partial")
             try:
+                tf_sibling = tempfile.NamedTemporaryFile(
+                    dir=uncompressed_candidate.parent,
+                    prefix=f"{uncompressed_candidate.stem}_",
+                    suffix=".partial",
+                    delete=False,
+                )
+                partial = Path(tf_sibling.name)
+                tf_sibling.close()
                 try:
                     with gzip.open(input_path, "rb") as f_in, open(partial, "wb") as f_out:
                         shutil.copyfileobj(f_in, f_out, length=64 * 1024 * 1024)
@@ -592,7 +599,7 @@ def extract_swath_chromatograms(
                     with gzip.open(input_path, "rb") as f_in, open(temp_uncompressed, "wb") as f_out:
                         shutil.copyfileobj(f_in, f_out, length=64 * 1024 * 1024)
                     target_mzml = temp_uncompressed
-                except Exception:
+                except (Exception, KeyboardInterrupt):
                     if temp_uncompressed.exists():
                         try:
                             temp_uncompressed.unlink()

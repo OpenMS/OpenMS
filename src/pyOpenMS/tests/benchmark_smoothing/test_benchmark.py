@@ -475,10 +475,40 @@ class TestRealDataInfrastructure(unittest.TestCase):
                 extract_swath_chromatograms(corrupt_gz, windows_file, assay_file, out_file)
 
             # Ensure neither partial nor uncompressed candidate was left behind
-            partial_file = tmp_path / "corrupt.mzML.partial"
+            partial_files = list(tmp_path.glob("*.partial"))
             uncompressed_file = tmp_path / "corrupt.mzML"
-            self.assertFalse(partial_file.exists())
+            self.assertEqual(partial_files, [])
             self.assertFalse(uncompressed_file.exists())
+
+    def test_decompression_fallback_keyboard_interrupt_cleanup(self):
+        """Verify fallback copy unlinks temporary file when KeyboardInterrupt occurs."""
+        import tempfile
+        from unittest.mock import patch, MagicMock
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            fake_gz = tmp_path / "sample.mzML.gz"
+            import gzip
+            with gzip.open(fake_gz, "wb") as f:
+                f.write(b"<indexedmzML></indexedmzML>")
+
+            windows_file = tmp_path / "windows.tsv"
+            windows_file.write_text("400\t425\n", encoding="utf-8")
+            assay_file = tmp_path / "assay.tsv"
+            assay_file.write_text("PrecursorMz\tProductMz\n410.0\t500.0\n", encoding="utf-8")
+            out_file = tmp_path / "out.chrom.mzML"
+
+            temp_fallback = tmp_path / "fallback_temp.mzML"
+            temp_fallback.write_text("partial data", encoding="utf-8")
+            mock_tf_fallback = MagicMock()
+            mock_tf_fallback.name = str(temp_fallback)
+
+            with patch("tempfile.NamedTemporaryFile", side_effect=[PermissionError("read-only"), mock_tf_fallback]):
+                with patch("shutil.copyfileobj", side_effect=KeyboardInterrupt("Simulated Ctrl+C")):
+                    with self.assertRaises(KeyboardInterrupt):
+                        extract_swath_chromatograms(fake_gz, windows_file, assay_file, out_file)
+
+            self.assertFalse(temp_fallback.exists())
 
 
 class TestReportGeneration(unittest.TestCase):
