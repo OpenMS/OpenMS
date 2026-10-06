@@ -179,10 +179,10 @@ public:
     /**
        @brief Calculate FDR on the level of observation matches (e.g. peptide-spectrum matches) for "general" identification data
 
-       @param[in,out] id_data Identification data
-       @param[in] score_ref Key of the score to use for FDR calculation
+       @param[in,out] data Identification data; every run with scores gains a column for the FDR score
+       @param[in] score Definition of the score to use for FDR calculation
 
-       @return Key of the FDR score
+       @return Definition of the added FDR score (q-value, or FDR with "no_qvalues")
     */
     IdentificationData::ScoreDefinition applyToObservationMatches(IdentificationData& data, const IdentificationData::ScoreDefinition& score) const;
 
