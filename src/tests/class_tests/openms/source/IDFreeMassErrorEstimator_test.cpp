@@ -48,6 +48,48 @@ namespace
     spectrum.sortByPosition();
     return spectrum;
   }
+
+  MSSpectrum makeContaminatedSpectrum(Size cycle, Size target)
+  {
+    auto spectrum = makeSpectrum(cycle, target, false, 0.0015);
+    for (Size i = 0; i < 24; ++i)
+    {
+      const Int pseudo = static_cast<Int>((cycle * 37 + target * 17 + i * 29) % 101);
+      const double shift = (static_cast<double>(pseudo) / 100.0 - 0.5) * 0.30;
+      spectrum.emplace_back(650.0 + static_cast<double>(i) * 2.0 + shift, 70.0f + static_cast<float>(i));
+    }
+    spectrum.sortByPosition();
+    return spectrum;
+  }
+
+  MSSpectrum makeAdaptiveFallbackSpectrum(Size cycle, Size target)
+  {
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(2);
+    spectrum.setRT(static_cast<double>(cycle * 10 + target));
+    spectrum.setType(SpectrumSettings::SpectrumType::CENTROID);
+
+    Precursor precursor;
+    precursor.setMZ(500.0 + static_cast<double>(target) * 20.0);
+    precursor.setCharge(0);
+    spectrum.setPrecursors({precursor});
+
+    const double narrow_shift = std::sin(static_cast<double>(cycle) * 0.71 + static_cast<double>(target) * 0.37) * 0.0015;
+    for (Size i = 0; i < 12; ++i)
+    {
+      spectrum.emplace_back(150.25 + static_cast<double>(i) * 35.0 + narrow_shift, 1000.0f + static_cast<float>(i));
+    }
+
+    for (Size i = 0; i < 30; ++i)
+    {
+      const double phase = static_cast<double>(cycle) * 0.91 + static_cast<double>(target) * 0.43 + static_cast<double>(i) * 0.61;
+      const double broad_shift = std::sin(phase) * 0.035;
+      spectrum.emplace_back(650.25 + static_cast<double>(i) * 3.0 + broad_shift, 70.0f + static_cast<float>(i));
+    }
+    spectrum.sortByPosition();
+    return spectrum;
+  }
+
 }
 
 START_TEST(IDFreeMassErrorEstimator, "$Id$")
@@ -198,6 +240,102 @@ START_SECTION((charge-less DIA spectra contribute fragment precision but not pre
   TEST_EQUAL(result.diagnostics.fragment_eligible_ms2, 32)
   TEST_EQUAL(result.diagnostics.fragment_centroid_spectra, 32)
   TEST_EQUAL(result.diagnostics.excluded_missing_precursor, 0)
+}
+END_SECTION
+
+START_SECTION((background-aware fragment fit recovers a narrow component from broad false matches))
+{
+  IDFreeMassErrorEstimator::Parameters parameters;
+  parameters.min_fragment_pairs = 20;
+  parameters.min_fragment_tolerance_pairs = 20;
+  parameters.min_fragment_tolerance_spectra = 2;
+
+  IDFreeMassErrorEstimator estimator(parameters);
+  for (Size cycle = 0; cycle < 12; ++cycle)
+  {
+    for (Size target = 0; target < 4; ++target)
+    {
+      auto spectrum = makeContaminatedSpectrum(cycle, target);
+      auto precursors = spectrum.getPrecursors();
+      precursors.front().setCharge(0);
+      spectrum.setPrecursors(precursors);
+      estimator.consumeSpectrum(spectrum);
+    }
+  }
+
+  const auto result = estimator.getResult();
+  TEST_EQUAL(result.fragment_resolution_regime, IDFreeMassErrorEstimator::FragmentResolutionRegime::HIGH_RESOLUTION)
+  TEST_EQUAL(result.fragment_ppm.has_value(), true)
+  TEST_EQUAL(result.fragment_tolerance_ppm.has_value(), true)
+  TEST_EQUAL(result.diagnostics.fragment_mixture_converged, true)
+  TEST_EQUAL(result.diagnostics.fragment_mixture_signal_fraction > 0.1, true)
+  TEST_EQUAL(result.diagnostics.fragment_mixture_signal_fraction < 0.95, true)
+  TEST_EQUAL(result.fragment_ppm->single_measurement_sigma < 10.0, true)
+  TEST_EQUAL(result.diagnostics.fragment_mixture_signal_pairs >= parameters.min_fragment_tolerance_pairs, true)
+}
+END_SECTION
+
+
+START_SECTION((high-intensity fallback rescues a narrow fragment component from weak broad evidence))
+{
+  IDFreeMassErrorEstimator::Parameters parameters;
+  parameters.min_fragment_pairs = 20;
+  parameters.min_fragment_tolerance_pairs = 20;
+  parameters.min_fragment_tolerance_spectra = 2;
+  // Keep this synthetic fixture focused on the fallback branch: its full fit is
+  // slightly broader than its high-intensity fit, so place the configured gate
+  // between the two instead of relying on the production 10 ppm threshold.
+  parameters.fragment_high_res_max_sigma_ppm = 2.75;
+
+  IDFreeMassErrorEstimator estimator(parameters);
+  for (Size cycle = 0; cycle < 16; ++cycle)
+  {
+    for (Size target = 0; target < 4; ++target)
+    {
+      estimator.consumeSpectrum(makeAdaptiveFallbackSpectrum(cycle, target));
+    }
+  }
+
+  const auto result = estimator.getResult();
+  TEST_EQUAL(result.fragment_resolution_regime, IDFreeMassErrorEstimator::FragmentResolutionRegime::HIGH_RESOLUTION)
+  TEST_EQUAL(result.fragment_ppm.has_value(), true)
+  TEST_EQUAL(result.fragment_tolerance_ppm.has_value(), true)
+  TEST_EQUAL(result.diagnostics.fragment_high_intensity_pairs > 0, true)
+  TEST_EQUAL(result.diagnostics.fragment_high_intensity_signal_pairs >= parameters.min_fragment_pairs, true)
+  TEST_EQUAL(result.diagnostics.fragment_high_intensity_mixture_converged, true)
+  TEST_EQUAL(result.diagnostics.fragment_high_intensity_fallback_used, true)
+  TEST_EQUAL(result.fragment_ppm->single_measurement_sigma < parameters.fragment_high_res_max_sigma_ppm, true)
+}
+END_SECTION
+
+START_SECTION((quantized fragment differences fail closed))
+{
+  IDFreeMassErrorEstimator::Parameters parameters;
+  parameters.min_fragment_pairs = 10;
+  parameters.min_fragment_tolerance_pairs = 10;
+  parameters.min_fragment_tolerance_spectra = 2;
+
+  IDFreeMassErrorEstimator estimator(parameters);
+  for (Size cycle = 0; cycle < 8; ++cycle)
+  {
+    for (Size target = 0; target < 4; ++target)
+    {
+      auto spectrum = makeSpectrum(cycle, target, false, 0.0);
+      auto precursors = spectrum.getPrecursors();
+      precursors.front().setCharge(0);
+      spectrum.setPrecursors(precursors);
+      estimator.consumeSpectrum(spectrum);
+    }
+  }
+
+  const auto result = estimator.getResult();
+  TEST_EQUAL(result.diagnostics.fragment_pairs > 0, true)
+  TEST_EQUAL(result.diagnostics.fragment_zero_delta_fraction >= 0.5, true)
+  TEST_EQUAL(result.diagnostics.fragment_mixture_rejected_zero_quantization, true)
+  TEST_EQUAL(result.diagnostics.fragment_mixture_converged, false)
+  TEST_EQUAL(result.fragment_resolution_regime, IDFreeMassErrorEstimator::FragmentResolutionRegime::UNAVAILABLE)
+  TEST_EQUAL(result.fragment_tolerance_ppm.has_value(), false)
+  TEST_EQUAL(result.fragment_tolerance_da.has_value(), false)
 }
 END_SECTION
 

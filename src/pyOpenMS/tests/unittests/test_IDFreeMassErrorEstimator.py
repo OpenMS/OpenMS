@@ -38,6 +38,7 @@ def test_id_free_mass_error_estimator_streaming_binding():
     parameters.min_fragment_pairs = 10
     parameters.min_fragment_tolerance_pairs = 10
     parameters.min_fragment_tolerance_spectra = 2
+    assert 0.0 < parameters.fragment_high_intensity_quantile < 1.0
 
     estimator = IDFreeMassErrorEstimator(parameters)
     for cycle in range(8):
@@ -58,6 +59,14 @@ def test_id_free_mass_error_estimator_streaming_binding():
     assert result.fragment_tolerance_ppm.unit == "ppm"
     assert result.diagnostics.precursor_clusters_used == 4
     assert result.diagnostics.fragment_centroid_spectra == 32
+    assert result.diagnostics.fragment_mixture_converged
+    assert result.diagnostics.fragment_mixture_signal_pairs > 0
+    assert 0.0 < result.diagnostics.fragment_mixture_signal_fraction <= 1.0
+    assert not result.diagnostics.fragment_mixture_rejected_zero_quantization
+    assert result.diagnostics.fragment_high_intensity_pairs > 0
+    assert result.diagnostics.fragment_high_intensity_signal_pairs > 0
+    assert result.diagnostics.fragment_high_intensity_mixture_converged
+    assert not result.diagnostics.fragment_high_intensity_fallback_used
 
     precision = estimator.getPrecursorPrecisionPPM()
     assert precision is not None
