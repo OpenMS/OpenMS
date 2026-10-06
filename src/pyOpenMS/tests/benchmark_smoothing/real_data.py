@@ -571,17 +571,34 @@ def extract_swath_chromatograms(
         if uncompressed_candidate.exists():
             target_mzml = uncompressed_candidate
         else:
+            partial = uncompressed_candidate.with_name(uncompressed_candidate.name + ".partial")
             try:
-                with gzip.open(input_path, "rb") as f_in, open(uncompressed_candidate, "wb") as f_out:
-                    shutil.copyfileobj(f_in, f_out, length=64 * 1024 * 1024)
-                target_mzml = uncompressed_candidate
+                try:
+                    with gzip.open(input_path, "rb") as f_in, open(partial, "wb") as f_out:
+                        shutil.copyfileobj(f_in, f_out, length=64 * 1024 * 1024)
+                    os.replace(partial, uncompressed_candidate)
+                    target_mzml = uncompressed_candidate
+                finally:
+                    if partial.exists():
+                        try:
+                            partial.unlink()
+                        except OSError:
+                            pass
             except (OSError, PermissionError):
                 tf = tempfile.NamedTemporaryFile(suffix=".mzML", delete=False)
                 temp_uncompressed = Path(tf.name)
                 tf.close()
-                with gzip.open(input_path, "rb") as f_in, open(temp_uncompressed, "wb") as f_out:
-                    shutil.copyfileobj(f_in, f_out, length=64 * 1024 * 1024)
-                target_mzml = temp_uncompressed
+                try:
+                    with gzip.open(input_path, "rb") as f_in, open(temp_uncompressed, "wb") as f_out:
+                        shutil.copyfileobj(f_in, f_out, length=64 * 1024 * 1024)
+                    target_mzml = temp_uncompressed
+                except Exception:
+                    if temp_uncompressed.exists():
+                        try:
+                            temp_uncompressed.unlink()
+                        except OSError:
+                            pass
+                    raise
 
     try:
         # Open with OnDiscMSExperiment or fallback to MSExperiment (only for uncompressed inputs)

@@ -39,6 +39,7 @@ try:
         estimate_mad_noise,
         profile_raw_chromatogram,
         load_chromatograms_from_file,
+        extract_swath_chromatograms,
     )
     from .real_metrics import (
         estimate_flank_noise,
@@ -84,6 +85,7 @@ except ImportError:
         estimate_mad_noise,
         profile_raw_chromatogram,
         load_chromatograms_from_file,
+        extract_swath_chromatograms,
     )
     from real_metrics import (
         estimate_flank_noise,
@@ -451,6 +453,32 @@ class TestRealDataInfrastructure(unittest.TestCase):
         self.assertGreater(res.total_traces_evaluated, 0)
         self.assertEqual(manifest.dataset_accession, "LOCAL_FIXTURES")
         self.assertGreater(len(overlays), 0)
+
+    def test_partial_decompression_cleanup(self):
+        """Verify decompression cleans up .partial file when decompression fails or is invalid."""
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            corrupt_gz = tmp_path / "corrupt.mzML.gz"
+            # Write invalid gzip data
+            with open(corrupt_gz, "wb") as f:
+                f.write(b"not a valid gzip stream")
+
+            windows_file = tmp_path / "windows.tsv"
+            windows_file.write_text("400\t425\n", encoding="utf-8")
+            assay_file = tmp_path / "assay.tsv"
+            assay_file.write_text("PrecursorMz\tProductMz\n410.0\t500.0\n", encoding="utf-8")
+            out_file = tmp_path / "out.chrom.mzML"
+
+            with self.assertRaises(Exception):
+                extract_swath_chromatograms(corrupt_gz, windows_file, assay_file, out_file)
+
+            # Ensure neither partial nor uncompressed candidate was left behind
+            partial_file = tmp_path / "corrupt.mzML.partial"
+            uncompressed_file = tmp_path / "corrupt.mzML"
+            self.assertFalse(partial_file.exists())
+            self.assertFalse(uncompressed_file.exists())
 
 
 class TestReportGeneration(unittest.TestCase):
