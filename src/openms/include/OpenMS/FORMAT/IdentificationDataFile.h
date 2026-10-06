@@ -17,7 +17,8 @@ namespace OpenMS
   One manifest contains configuration and row ranges in shared query/match files.
   Compatible runs share row groups; partition columns preserve run ownership. Scores stay in match rows. Growing inference values use typed tables.
   Persistent UUIDs and record IDs survive filtering. No revision or freshness policy
-  is implicit. Publication rejects an existing destination; owning load is transactional.
+  is implicit. Publication rejects an existing destination unless Options::replace_existing
+  allows replacing a native bundle; owning load is transactional.
   The experimental schema has no compatibility reader for discarded prototypes.
   @ingroup FileIO
 */
@@ -33,6 +34,9 @@ public:
     Size max_record_bytes = 64 * 1024 * 1024;
     /// Positive CPU worker limit per operation; 1 is serial. Does not change Arrow's global pool.
     Size threads = 1;
+    /// Writing replaces an existing native identification bundle at the destination (moved aside,
+    /// then deleted after publication). Any other existing file or directory is still rejected.
+    bool replace_existing = false;
   };
   struct OPENMS_DLLAPI Projection
   {

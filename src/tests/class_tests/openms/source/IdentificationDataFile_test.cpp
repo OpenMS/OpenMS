@@ -525,6 +525,68 @@ START_SECTION((invalid descriptors fail transactionally))
 }
 END_SECTION
 
+START_SECTION((scoreless catalog runs share the score columns of scored runs))
+{
+  ID data;
+  ID::ScoreDefinition definition;
+  definition.name = "hyperscore";
+  // Write the catalog first and last, so it opens and appends to the shared tables.
+  for (const std::string name : {"catalog-before", "search", "catalog-after"})
+  {
+    auto& run = data.addRun(name, ID::MoleculeKind::OLIGONUCLEOTIDE);
+    const bool catalog = name != "search";
+    if (catalog)
+    {
+      ProteinIdentification processing;
+      processing.setMetaValue("identification:catalog", "true");
+      run.setProcessingMetadata(processing);
+    }
+    else
+      run.setPrimaryScore(run.addScore(definition));
+    const auto source = run.addSource({});
+    for (Size i = 0; i < 3; ++i)
+    {
+      ID::Observation observation;
+      observation.data_id = "item=" + std::to_string(i);
+      const auto query = run.addIdentification(source, observation);
+      ID::MatchData match;
+      match.encoding = ID::Encoding::NA_SEQUENCE;
+      match.representation = "AUGC";
+      if (catalog) run.addMatch(query, match);
+      else
+        run.addMatch(query, match, {double(i)});
+    }
+  }
+  for (const auto& options : {Native::Options {}, tiny()})
+  {
+    std::string path;
+    NEW_TMP_FILE(path)
+    Native::store(path, data, options);
+    ID loaded;
+    Native::load(path, loaded, options);
+    TEST_EQUAL(loaded.getRuns().size(), 3)
+    for (const auto& run : loaded.getRuns())
+    {
+      TEST_EQUAL(run.getNumberOfMatches(), 3)
+      const bool catalog = run.getIdentifier() != "search";
+      TEST_EQUAL(run.getScoreDefinitions().size(), catalog ? 0 : 1)
+      if (! catalog)
+      {
+        const auto& match = run.getSourceBlocks()[0].identifications[2].getMatches()[0];
+        TEST_REAL_SIMILAR(*run.getScore(match.getId(), *run.getPrimaryScore()), 2.0)
+      }
+    }
+    Size matches = 0;
+    const auto statistics = Native::scan(path, {}, {}, [&](const std::string&, const std::vector<Native::MatchRecord>& records) {
+      matches += records.size();
+    });
+    TEST_EQUAL(matches, 9)
+    TEST_EQUAL(statistics.matches, 9)
+    fs::remove_all(path);
+  }
+}
+END_SECTION
+
 START_SECTION((empty datasets and absent parent catalogues remain distinct))
 {
   ID empty;

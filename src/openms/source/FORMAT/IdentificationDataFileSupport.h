@@ -67,6 +67,8 @@ T integer(const Json& input)
   invalid("Expected an integer, not a floating-point or other JSON value");
 }
 void validateText(const std::string& text);
+/// Validates every string and object key of @p json as UTF-8. Iterative, so nesting depth cannot exhaust the stack.
+void validateJsonText(const Json& json);
 void validateOptions(const IdentificationDataFile::Options& options);
 std::filesystem::path tablePath(const std::filesystem::path& root, const std::string& relative);
 
@@ -129,6 +131,9 @@ public:
   ~TableWriter();
   arrow::ArrayBuilder& column(Size index)
   { return delegate_ ? delegate_->column(index) : *builders_.at(index); }
+  /// Number of columns of this (logical) table, without the partition column of a shared table.
+  Size columns() const
+  { return static_cast<Size>(schema_->num_fields()); }
   void finishRow(Size bytes);
   void close();
   Json reference() const;

@@ -5,9 +5,13 @@
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
+#include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <fstream>
 #include <set>
+#include <system_error>
+#include <thread>
 
 namespace OpenMS
 {
@@ -27,22 +31,57 @@ namespace
   using IO::text;
   const std::string FORMAT = "OpenMS.IdentificationData";
 
+  [[noreturn]] void fileError(const fs::path& path, const std::string& message)
+  { throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path.string(), message); }
+
+  bool replaceableBundle(const fs::path& path)
+  {
+    try
+    {
+      return File::isNativeFile(path.string());
+    }
+    catch (const Exception::BaseException&)
+    {
+      return false; // a malformed manifest is not ours to delete
+    }
+  }
+
+  /// Renames, retrying briefly: on Windows a scanner or indexer may still hold a handle.
+  std::error_code renameWithRetry(const fs::path& from, const fs::path& to)
+  {
+    std::error_code ec;
+    for (int attempt = 0; attempt < 5; ++attempt)
+    {
+      fs::rename(from, to, ec);
+      if (! ec) return ec;
+      std::this_thread::sleep_for(std::chrono::milliseconds(50 * (attempt + 1)));
+    }
+    return ec;
+  }
+
   // All outputs remain private until every table is closed and the manifest is written.
   class StagedDirectory
   {
   public:
-    explicit StagedDirectory(const std::string& target): target_(target)
+    StagedDirectory(const std::string& target, bool replace_existing): target_(target), replace_(replace_existing)
     {
-      if (target_.empty() || fs::exists(target_)) invalid("Output destination already exists or is empty");
+      if (! target_.empty() && ! target_.has_filename()) target_ = target_.parent_path(); // "out.idparquet/"
+      if (target_.empty()) invalid("Output destination is empty");
+      std::error_code ec;
+      const bool exists = fs::exists(target_, ec);
+      if (ec) fileError(target_, ec.message());
+      if (exists && ! (replace_ && replaceableBundle(target_)))
+        invalid(replace_ ? "Output destination exists and is not a native identification bundle" : "Output destination already exists");
       fs::path parent = target_.parent_path();
       if (parent.empty()) parent = ".";
-      if (! fs::is_directory(parent)) invalid("Output parent directory does not exist");
+      if (! fs::is_directory(parent, ec)) fileError(parent, "Output parent directory does not exist");
       // A previous interrupted process may leave a private staging directory.
       // Reserve a fresh name atomically without modifying another writer's data.
       for (Size attempt = 0; attempt < 100; ++attempt)
       {
-        path = parent / (target_.filename().string() + ".tmp-" + std::to_string(UniqueIdGenerator::getUniqueId()));
-        if (fs::create_directory(path)) return;
+        path = sibling(".tmp-");
+        if (fs::create_directory(path, ec)) return;
+        if (ec) fileError(path, ec.message());
       }
       invalid("Cannot create staging directory");
     }
@@ -56,29 +95,45 @@ namespace
     }
     void publish()
     {
-      if (fs::exists(target_)) invalid("Output destination appeared while writing");
-      fs::rename(path, target_);
+      std::error_code ec;
+      const bool exists = fs::exists(target_, ec);
+      if (ec) fileError(target_, ec.message());
+      if (! exists)
+      {
+        ec = renameWithRetry(path, target_);
+        if (ec) fileError(target_, ec.message());
+        published_ = true;
+        return;
+      }
+      if (! replace_ || ! replaceableBundle(target_)) invalid("Output destination appeared while writing");
+      // Move the previous bundle aside, publish, then delete it. If publication fails, restore it.
+      const fs::path previous = sibling(".old-");
+      ec = renameWithRetry(target_, previous);
+      if (ec) fileError(target_, "Cannot replace the existing bundle: " + ec.message());
+      ec = renameWithRetry(path, target_);
+      if (ec)
+      {
+        std::error_code restore;
+        fs::rename(previous, target_, restore);
+        fileError(target_, ec.message());
+      }
       published_ = true;
+      fs::remove_all(previous, ec); // best effort; the new bundle is already published
     }
     fs::path path;
 
   private:
+    fs::path sibling(const std::string& infix) const
+    {
+      fs::path parent = target_.parent_path();
+      if (parent.empty()) parent = ".";
+      return parent / (target_.filename().string() + infix + std::to_string(UniqueIdGenerator::getUniqueId()));
+    }
     fs::path target_;
+    bool replace_ = false;
     bool published_ = false;
   };
-  void validateJsonText(const Json& json)
-  {
-    if (json.is_string()) IO::validateText(json.get<std::string>());
-    else if (json.is_object())
-      for (auto i = json.begin(); i != json.end(); ++i)
-      {
-        IO::validateText(i.key());
-        validateJsonText(i.value());
-      }
-    else if (json.is_array())
-      for (const auto& v : json)
-        validateJsonText(v);
-  }
+  using IO::validateJsonText;
   Json readManifest(const std::string& path)
   try
   {
@@ -337,8 +392,15 @@ namespace
       append<arrow::DoubleBuilder>(*annotation.field_builder(3), a.intensity);
     }
     IO::appendMetadata(writer.column(13), d, dictionary);
-    for (Size i = 0; i < m.scores.size(); ++i)
-      appendOptional<arrow::DoubleBuilder>(writer.column(14 + i), storedScore(m.scores[i]));
+    // The shared table has the dataset's score columns; scoreless catalog runs leave them null.
+    const Size score_columns = writer.columns() - 14;
+    if (m.scores.size() > score_columns) invalid("Match has more scores than the dataset score schema");
+    for (Size i = 0; i < score_columns; ++i)
+    {
+      if (i < m.scores.size()) appendOptional<arrow::DoubleBuilder>(writer.column(14 + i), storedScore(m.scores[i]));
+      else
+        check(writer.column(14 + i).AppendNull());
+    }
     writer.finishRow(matchBytes(m));
   }
   template<class Callback>
@@ -618,7 +680,17 @@ namespace
     walkRun(
       root, j, scan,
       [&](File::QueryRecord& q) { run.importIdentification(run.getSourceId(q.source_id), ID::QueryId {q.query_id}, std::move(q.data)); },
-      [&](File::MatchRecord& m) { run.importMatch(ID::QueryId {m.query_id}, ID::MatchId {m.match_id}, std::move(m.data), m.scores); },
+      [&](File::MatchRecord& m) {
+        // Runs without score definitions (scoreless catalogs) leave the shared score columns null.
+        const Size declared = run.getScoreDefinitions().size();
+        if (m.scores.size() > declared)
+        {
+          if (std::any_of(m.scores.begin() + declared, m.scores.end(), [](const auto& value) { return value.has_value(); }))
+            invalid("Score value outside the run's declared score definitions");
+          m.scores.resize(declared);
+        }
+        run.importMatch(ID::QueryId {m.query_id}, ID::MatchId {m.match_id}, std::move(m.data), m.scores);
+      },
       [&](const File::QueryRecord& q) {
         if (q.selected_match_id) run.setSelectedMatch(ID::QueryId {q.query_id}, ID::MatchId {*q.selected_match_id});
       },
@@ -638,7 +710,8 @@ namespace
 bool File::isNativeFile(const std::string& path)
 {
   const auto manifest = fs::path(path) / "manifest.json";
-  if (! fs::exists(manifest)) return false;
+  std::error_code ec;
+  if (! fs::is_regular_file(manifest, ec)) return false;
   std::ifstream in(manifest, std::ios::binary);
   if (! in) invalid("Cannot open manifest.json");
   Json j;
@@ -671,7 +744,7 @@ void File::store(const std::string& path, const ID& data, const Options& options
 {
   IO::validateOptions(options);
   data.validate();
-  StagedDirectory output(path);
+  StagedDirectory output(path, options.replace_existing);
   IO::Options io(options);
   io.output = std::make_shared<IO::WritePool>(output.path);
   io.score_count = data.getScoreDefinitions().size();
@@ -773,7 +846,9 @@ try
   io.input = std::make_shared<IO::ReadPool>();
   io.score_count = scoreCount(manifest);
   ScanStatistics statistics;
-  statistics.descriptor_bytes = fs::file_size(fs::path(path) / "manifest.json");
+  std::error_code size_error;
+  statistics.descriptor_bytes = fs::file_size(fs::path(path) / "manifest.json", size_error);
+  if (size_error) invalid("Cannot read manifest.json: " + size_error.message());
   for (const auto* j : selectRuns(manifest, options.runs))
   {
     const std::string uuid = j->at("uuid").get<std::string>();
@@ -838,7 +913,7 @@ try
   if (! keep) invalid("Filter requires a predicate");
   if (policy != ID::InferencePolicy::PRESERVE && policy != ID::InferencePolicy::DISCARD) invalid("Unknown inference policy");
   auto manifest = readManifest(input);
-  StagedDirectory staged(output);
+  StagedDirectory staged(output, options.replace_existing);
   IO::Options io(options);
   io.input = std::make_shared<IO::ReadPool>();
   io.score_count = scoreCount(manifest);
@@ -846,10 +921,12 @@ try
   const auto copyTable = [&](const Json& reference) {
     const auto name = reference.at("path").get<std::string>();
     auto dest = IO::tablePath(staged.path, name);
-    if (!fs::exists(dest))
+    std::error_code ec;
+    if (! fs::exists(dest, ec))
     {
-      fs::create_directories(dest.parent_path());
-      fs::copy_file(IO::tablePath(input, name), dest);
+      fs::create_directories(dest.parent_path(), ec);
+      if (! ec) fs::copy_file(IO::tablePath(input, name), dest, ec);
+      if (ec) fileError(dest, ec.message());
     }
   };
   for (auto& j : manifest["runs"])

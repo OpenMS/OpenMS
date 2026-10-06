@@ -78,15 +78,9 @@ namespace
     result.setCharge(integer<Int>(item.at("charge")));
     return result;
   }
+  // Object keys are validated too; the walk is iterative.
   void validateJsonStrings(const Json& item)
-  {
-    if (item.is_string()) validateText(item.get_ref<const std::string&>());
-    else if (item.is_array() || item.is_object())
-    {
-      for (const auto& child : item)
-        validateJsonStrings(child);
-    }
-  }
+  { validateJsonText(item); }
   std::shared_ptr<arrow::DataType> identityType()
   { return arrow::struct_({required("database", arrow::utf8()), required("accession", arrow::utf8())}); }
   void appendIdentity(arrow::ArrayBuilder& builder, const ID::QualifiedAccession& identity)

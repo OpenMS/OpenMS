@@ -62,6 +62,25 @@ void validateText(const std::string& input)
       invalid("Invalid UTF-8 code point");
   }
 }
+void validateJsonText(const Json& json)
+{
+  std::vector<const Json*> pending {&json};
+  while (! pending.empty())
+  {
+    const Json* item = pending.back();
+    pending.pop_back();
+    if (item->is_string()) validateText(item->get_ref<const std::string&>());
+    else if (item->is_object())
+      for (auto it = item->begin(); it != item->end(); ++it)
+      {
+        validateText(it.key());
+        pending.push_back(&it.value());
+      }
+    else if (item->is_array())
+      for (const auto& child : *item)
+        pending.push_back(&child);
+  }
+}
 void validateOptions(const IdentificationDataFile::Options& options)
 {
   if (! options.batch_rows || ! options.row_group_rows || ! options.batch_bytes || ! options.row_group_bytes || ! options.max_record_bytes)
@@ -580,9 +599,13 @@ std::shared_ptr<ReadPool::Entry> ReadPool::open(const std::filesystem::path& pat
 {
   // Bound cached decoded groups and open files.
   if (!files_.contains(path.string()) && files_.size() >= 16)
+  {
     for (auto it = files_.begin(); it != files_.end() && files_.size() >= 16;)
+    {
       if (it->second.use_count() == 1) it = files_.erase(it);
       else ++it;
+    }
+  }
   auto& entry = files_[path.string()];
   if (!entry)
   {
@@ -593,7 +616,13 @@ std::shared_ptr<ReadPool::Entry> ReadPool::open(const std::filesystem::path& pat
     const auto metadata = entry->reader->parquet_reader()->metadata();
     entry->starts.push_back(0);
     for (int i = 0; i < metadata->num_row_groups(); ++i)
-      entry->starts.push_back(entry->starts.back() + metadata->RowGroup(i)->num_rows());
+    {
+      // Row ranges come from file metadata; reject values that cannot describe real rows.
+      const int64_t rows = metadata->RowGroup(i)->num_rows();
+      if (rows < 0 || static_cast<UInt64>(rows) > std::numeric_limits<UInt64>::max() - entry->starts.back())
+        invalid("Invalid Parquet row group size");
+      entry->starts.push_back(entry->starts.back() + static_cast<UInt64>(rows));
+    }
   }
   return entry;
 }
@@ -632,7 +661,7 @@ TableReader::TableReader(const std::filesystem::path& root,
   {
     auto first = std::upper_bound(entry_->starts.begin(), entry_->starts.end(), start_);
     for (Size i = static_cast<Size>(first - entry_->starts.begin() - 1); i + 1 < entry_->starts.size() && entry_->starts[i] < end_; ++i)
-      groups_.push_back(static_cast<int>(i));
+      if (entry_->starts[i + 1] > entry_->starts[i]) groups_.push_back(static_cast<int>(i)); // zero-row groups hold no slice rows
   }
 }
 bool TableReader::next()
@@ -667,9 +696,20 @@ bool TableReader::next()
       }
       else
       {
+#if ARROW_VERSION_MAJOR >= 24
+        entry_->cached_table = value(entry_->reader->ReadRowGroup(group, leaves_));
+#else
         check(entry_->reader->ReadRowGroup(group, leaves_, &entry_->cached_table));
+#endif
       }
       check(entry_->cached_table->ValidateFull());
+      // Slicing beyond the decoded length aborts inside Arrow; the metadata must match the data.
+      if (static_cast<UInt64>(entry_->cached_table->num_rows()) != entry_->starts[group + 1] - entry_->starts[group])
+      {
+        entry_->cached_table.reset();
+        entry_->cached_group = -1;
+        invalid("Parquet row group length disagrees with its metadata");
+      }
       entry_->cached_group = group;
       entry_->cached_leaves = leaves_;
     }
