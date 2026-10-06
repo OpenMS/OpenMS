@@ -1,0 +1,107 @@
+{
+  "issue": "OpenMS/OpenMS#10425",
+  "source_commit": "f139c9bbf97149ceabb2111ee5f153eaa571e80a",
+  "python": "3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "pyopenms": "3.6.0",
+  "pyopenms_source_commit": "5d5cbff4053b281763a1a79bf69e81c27967cfdf",
+  "smoother_and_picker_sources_match_wheel_build": true,
+  "numpy": "2.5.3",
+  "selected_parameters": {
+    "modified_sinc": {
+      "is_ms1": true,
+      "degree": 4,
+      "m": 19
+    },
+    "savitzky_golay": {
+      "frame_length": 15,
+      "polynomial_order": 2
+    }
+  },
+  "training_seeds_per_shape": 4,
+  "validation_seeds_per_shape": 12,
+  "synthetic_rt_step_seconds": 5.26686,
+  "synthetic_validation_summary": {
+    "narrow": {
+      "raw": {
+        "median_normalized_rmse": 0.024297777465756256,
+        "p90_normalized_rmse": 0.02476468337888106
+      },
+      "modified_sinc": {
+        "median_normalized_rmse": 0.02844759598323554,
+        "p90_normalized_rmse": 0.029162584721916743
+      },
+      "savitzky_golay": {
+        "median_normalized_rmse": 0.02368728573695223,
+        "p90_normalized_rmse": 0.0245604791602551
+      }
+    },
+    "broad": {
+      "raw": {
+        "median_normalized_rmse": 0.024297777465756253,
+        "p90_normalized_rmse": 0.024764683378881065
+      },
+      "modified_sinc": {
+        "median_normalized_rmse": 0.008679645858757298,
+        "p90_normalized_rmse": 0.009417562336855966
+      },
+      "savitzky_golay": {
+        "median_normalized_rmse": 0.009410388186480177,
+        "p90_normalized_rmse": 0.010141293156175178
+      }
+    },
+    "overlapping": {
+      "raw": {
+        "median_normalized_rmse": 0.02344522387046656,
+        "p90_normalized_rmse": 0.023895747119972957
+      },
+      "modified_sinc": {
+        "median_normalized_rmse": 0.009074518755267953,
+        "p90_normalized_rmse": 0.009751352731394257
+      },
+      "savitzky_golay": {
+        "median_normalized_rmse": 0.009504564350347487,
+        "p90_normalized_rmse": 0.010284423967347186
+      }
+    },
+    "low_intensity": {
+      "raw": {
+        "median_normalized_rmse": 0.24297777465756254,
+        "p90_normalized_rmse": 0.2476468337888106
+      },
+      "modified_sinc": {
+        "median_normalized_rmse": 0.0871628315505597,
+        "p90_normalized_rmse": 0.09420355494899058
+      },
+      "savitzky_golay": {
+        "median_normalized_rmse": 0.09442241997254336,
+        "p90_normalized_rmse": 0.10144459863666744
+      }
+    }
+  },
+  "fixture_sha256": {
+    "NoiseFilterSGolay_2_input.chrom.mzML": "7e354051aa4e6779f6a3a2fb31bc2e70d338959b6474f10d3eafbfb18301e80c",
+    "OpenSwathWorkflow_17_output.chrom.mzML": "7145635bb7fe04aa42c12a0b20abae273f64e4d4fb6973e98784308892ce8933",
+    "OpenSwathWorkflow_22_output.chrom.mzML": "2e32c97c93fbe7bd7befd90612ca01e2c6a6c391823d2cad6f2be714b4803f57",
+    "OpenSwathWorkflow_23_output.chrom.mzML": "683dbba8049a95119d54aa9d35c3be748964992fd1ff27152d736771f2c8976f"
+  },
+  "fixtures": [
+    "NoiseFilterSGolay_2_input.chrom.mzML",
+    "OpenSwathWorkflow_17_output.chrom.mzML",
+    "OpenSwathWorkflow_22_output.chrom.mzML",
+    "OpenSwathWorkflow_23_output.chrom.mzML"
+  ],
+  "peak_picker_parameters": {
+    "method": "corrected",
+    "signal_to_noise": 1.0,
+    "use_gauss": false,
+    "sgolay_frame_length": 3,
+    "sgolay_polynomial_order": 2
+  },
+  "limitations": [
+    "Tracked fixtures are small regression chromatograms, not full production DIA runs.",
+    "Peak picking uses identical fixed settings on unsmoothed and smoothed inputs.",
+    "Memory is process-level Python/OpenMS working-set/private-byte measurement, not allocation attribution.",
+    "The 100k-point synthetic input is a stress check, not a replacement for full-file profiling."
+  ]
+}

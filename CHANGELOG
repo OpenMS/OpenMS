@@ -57,6 +57,10 @@ OpenMS Library:
     turning them into the wrong mode; a reader crash (back() on an empty spectrum vector) for an
     unrecognized scan mode on the first MS level >=2 spectrum is also fixed.
 
+Benchmarking:
+  - Add a reproducible comparison of ModifiedSincSmoother and SavitzkyGolayFilter on synthetic
+    peak shapes, tracked chromatograms, and an optional full-length DIA run (#10425).
+
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
     deprecation in 3.6. Configuring with it stops with an error: add the prefix of the
