@@ -35,6 +35,22 @@ try:
         evaluate_peak_picking,
         compute_peak_area,
     )
+    from .real_data import (
+        DatasetInfo,
+        PASS00779_INFO,
+        MTBLS404_INFO,
+        LOCAL_FIXTURES_INFO,
+        RealChromatogramSelector,
+        SelectionManifest,
+        load_chromatograms_from_file,
+        extract_swath_chromatograms,
+    )
+    from .real_metrics import (
+        RealTraceEvaluation,
+        RealDatasetBenchmarkResult,
+        evaluate_single_real_trace,
+        summarize_real_dataset_results,
+    )
 except ImportError:
     from synthetic_data import SyntheticChromatogram, SyntheticChromatogramGenerator
     from metrics import (
@@ -44,6 +60,22 @@ except ImportError:
         evaluate_valley_to_peak_ratio,
         evaluate_peak_picking,
         compute_peak_area,
+    )
+    from real_data import (
+        DatasetInfo,
+        PASS00779_INFO,
+        MTBLS404_INFO,
+        LOCAL_FIXTURES_INFO,
+        RealChromatogramSelector,
+        SelectionManifest,
+        load_chromatograms_from_file,
+        extract_swath_chromatograms,
+    )
+    from real_metrics import (
+        RealTraceEvaluation,
+        RealDatasetBenchmarkResult,
+        evaluate_single_real_trace,
+        summarize_real_dataset_results,
     )
 
 
@@ -635,3 +667,172 @@ class BenchmarkEngine:
                 real_results.append(file_stats)
 
         return real_results
+
+    def run_real_data_benchmark(
+        self,
+        dataset: str = "local",
+        data_dir: Optional[str | Path] = None,
+        target_sample_size: int = 50,
+        ms_params: Optional[Dict[str, Any]] = None,
+        sg_params: Optional[Dict[str, Any]] = None,
+    ) -> Tuple[Optional[RealDatasetBenchmarkResult], Optional[SelectionManifest], List[Dict[str, Any]]]:
+        """
+        Execute real-data empirical characterization on candidate or local chromatograms.
+        - Loads candidate files
+        - Performs stratified deterministic selection (no cherry-picking)
+        - Evaluates Modified Sinc vs Savitzky-Golay on identical raw inputs
+        - Times in-memory smoothing execution
+        - Returns: (result, manifest, overlay_plot_traces)
+        """
+        repo_root = Path(__file__).resolve().parents[4]
+
+        # 1. Determine dataset info and files
+        dataset_lower = dataset.lower()
+        if dataset_lower == "pass00779":
+            info = PASS00779_INFO
+            search_dir = Path(data_dir) if data_dir else repo_root / "real_data" / "PASS00779"
+            extracted_file = search_dir / "PASS00779_R1_subsample_500.chrom.mzML"
+            if not extracted_file.exists() and search_dir.exists():
+                r1_mzml = search_dir / "olgas_K121026_001_SW_Wayne_R1_d00.mzML.gz"
+                if not r1_mzml.exists():
+                    r1_mzml = search_dir / "olgas_K121026_001_SW_Wayne_R1_d00.mzML"
+                windows_tsv = search_dir / "SWATHwindows_analysis.tsv"
+                assay_tsv = search_dir / "Mtb_subsample_500.tsv"
+                if not assay_tsv.exists():
+                    assay_tsv = search_dir / "Mtb_TubercuList-R27_iRT_UPS.tsv"
+                if r1_mzml.exists() and windows_tsv.exists() and assay_tsv.exists():
+                    print(f"      [PASS00779] Extracting SWATH chromatograms from {r1_mzml.name} using {assay_tsv.name}...")
+                    extract_swath_chromatograms(r1_mzml, windows_tsv, assay_tsv, extracted_file)
+
+            if extracted_file.exists():
+                candidate_files = [extracted_file]
+            else:
+                candidate_files = list(search_dir.glob("*.chrom.mzML"))
+        elif dataset_lower == "mtbls404":
+            info = MTBLS404_INFO
+            search_dir = Path(data_dir) if data_dir else repo_root / "real_data" / "MTBLS404"
+            candidate_files = list(search_dir.glob("*.mzML")) if search_dir.exists() else []
+        else:
+            info = LOCAL_FIXTURES_INFO
+            candidate_files = [
+                repo_root / "src" / "tests" / "topp" / "NoiseFilterSGolay_2_input.chrom.mzML",
+                repo_root / "src" / "tests" / "topp" / "MRMTransitionGroupPicker_1_input.mzML",
+                repo_root / "src" / "tests" / "topp" / "OpenSwathWorkflow_1_output.chrom.mzML",
+                repo_root / "src" / "tests" / "topp" / "OpenSwathWorkflow_13_output.chrom.mzML",
+            ]
+            candidate_files = [p for p in candidate_files if p.exists()]
+
+        if not candidate_files:
+            return None, None, []
+
+        # 2. Load all available candidate chromatograms
+        all_candidates: List[Tuple[pyopenms.MSChromatogram, str, str]] = []
+        for file_path in candidate_files:
+            chroms = load_chromatograms_from_file(file_path)
+            all_candidates.extend(chroms)
+
+        if not all_candidates:
+            return None, None, []
+
+        # 3. Deterministic stratified selection (NO cherry-picking)
+        selector = RealChromatogramSelector(
+            target_sample_size=target_sample_size,
+            seed=self.seed,
+            min_points=20,
+            min_snr=3.0,
+        )
+        selected_chroms, manifest, selected_profiles = selector.select(
+            all_candidates, dataset_accession=info.accession
+        )
+
+        if not selected_chroms:
+            return None, manifest, []
+
+        # 4. Smoothing parameter configuration
+        if ms_params is None:
+            ms_params = {"degree": 6, "m": 12, "is_ms1": False}
+        if sg_params is None:
+            sg_params = {"frame_length": 15, "polynomial_order": 4}
+
+        ms_smoother = pyopenms.ModifiedSincSmoother()
+        p_ms = ms_smoother.getParameters()
+        p_ms.setValue("degree", ms_params.get("degree", 6))
+        p_ms.setValue("m", ms_params.get("m", 12))
+        p_ms.setValue("is_ms1", "true" if ms_params.get("is_ms1", False) else "false")
+        ms_smoother.setParameters(p_ms)
+
+        sg_smoother = pyopenms.SavitzkyGolayFilter()
+        p_sg = sg_smoother.getParameters()
+        p_sg.setValue("frame_length", sg_params.get("frame_length", 15))
+        p_sg.setValue("polynomial_order", sg_params.get("polynomial_order", 4))
+        sg_smoother.setParameters(p_sg)
+
+        # 5. Evaluate and time smoothing operations
+        evaluations: List[RealTraceEvaluation] = []
+        overlay_traces: List[Dict[str, Any]] = []
+        total_ms_time_us = 0.0
+        total_sg_time_us = 0.0
+
+        for c, prof in zip(selected_chroms, selected_profiles):
+            # Timing strictly on in-memory copy
+            gc.disable()
+            t0 = time.perf_counter()
+            c_ms = pyopenms.MSChromatogram(c)
+            ms_smoother.filter(c_ms)
+            t1 = time.perf_counter()
+
+            c_sg = pyopenms.MSChromatogram(c)
+            t2 = time.perf_counter()
+            sg_smoother.filter(c_sg)
+            t3 = time.perf_counter()
+            gc.enable()
+
+            dt_ms = (t1 - t0) * 1e6
+            dt_sg = (t3 - t2) * 1e6
+            total_ms_time_us += dt_ms
+            total_sg_time_us += dt_sg
+
+            eval_res = evaluate_single_real_trace(
+                chrom=c,
+                trace_id=prof.trace_id,
+                source_file=prof.source_file,
+                intensity_stratum=prof.intensity_stratum,
+                width_stratum=prof.width_stratum,
+                ms_params=ms_params,
+                sg_params=sg_params,
+                ms_smoother_instance=ms_smoother,
+                sg_smoother_instance=sg_smoother,
+            )
+            eval_res.modified_sinc.runtime_us = dt_ms
+            eval_res.modified_sinc.ns_per_point = (dt_ms * 1e3) / prof.num_points if prof.num_points > 0 else 0.0
+            eval_res.savitzky_golay.runtime_us = dt_sg
+            eval_res.savitzky_golay.ns_per_point = (dt_sg * 1e3) / prof.num_points if prof.num_points > 0 else 0.0
+
+            evaluations.append(eval_res)
+
+            if len(overlay_traces) < 4:
+                rt_raw, int_raw = c.get_peaks()
+                _, int_ms = c_ms.get_peaks()
+                _, int_sg = c_sg.get_peaks()
+                overlay_traces.append({
+                    "rt": np.array(rt_raw, dtype=np.float64),
+                    "raw": np.array(int_raw, dtype=np.float64),
+                    "ms": np.array(int_ms, dtype=np.float64),
+                    "sg": np.array(int_sg, dtype=np.float64),
+                    "title": f"{prof.trace_id} ({prof.intensity_stratum}, {prof.width_stratum})",
+                })
+
+        avg_ms_us = total_ms_time_us / len(evaluations) if evaluations else 0.0
+        avg_sg_us = total_sg_time_us / len(evaluations) if evaluations else 0.0
+
+        dataset_result = summarize_real_dataset_results(
+            evaluations=evaluations,
+            dataset_accession=info.accession,
+            dataset_name=info.name,
+            ms_params=ms_params,
+            sg_params=sg_params,
+            ms_time_us=avg_ms_us,
+            sg_time_us=avg_sg_us,
+        )
+
+        return dataset_result, manifest, overlay_traces

@@ -238,3 +238,136 @@ def plot_runtime_scaling(
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(output_path, dpi=300)
     plt.close()
+
+
+def plot_real_chromatogram_overlays(
+    overlay_traces: List[Dict[str, Any]],
+    output_path: str,
+):
+    """
+    Generate multi-panel figure showing raw real traces vs Modified Sinc vs Savitzky-Golay.
+    """
+    n_plots = min(4, len(overlay_traces))
+    if n_plots == 0:
+        return
+
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    axes = axes.flatten()
+
+    for idx in range(4):
+        ax = axes[idx]
+        if idx >= len(overlay_traces):
+            ax.set_visible(False)
+            continue
+
+        item = overlay_traces[idx]
+        rt = item["rt"]
+        y_raw = item["raw"]
+        y_ms = item["ms"]
+        y_sg = item["sg"]
+        title = item.get("title", f"Trace {idx+1}")
+
+        ax.plot(rt, y_raw, color="#94a3b8", alpha=0.7, label="Raw LC-MS Trace", lw=1.2)
+        ax.plot(rt, y_ms, color="#2563eb", label="Modified Sinc", lw=1.8)
+        ax.plot(rt, y_sg, color="#dc2626", label="Savitzky-Golay", lw=1.8)
+
+        ax.set_title(title, fontweight="bold")
+        ax.set_xlabel("Retention Time (s)")
+        ax.set_ylabel("Intensity")
+        ax.legend(loc="upper right", framealpha=0.9)
+
+    plt.tight_layout()
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_path, dpi=300)
+    plt.close()
+
+
+def plot_real_data_distributions(
+    evaluations: List[Any],
+    output_path: str,
+):
+    """
+    Plot comparative boxplots/distributions of empirical metrics on real chromatograms:
+    1. Apex RT Shift (s)
+    2. Apex Intensity Ratio
+    3. Peak Area Ratio
+    4. Baseline Noise Reduction (%)
+    """
+    if not evaluations:
+        return
+
+    fig, axes = plt.subplots(2, 2, figsize=(13, 9))
+
+    ms_shift = [e.modified_sinc.apex_rt_shift for e in evaluations]
+    sg_shift = [e.savitzky_golay.apex_rt_shift for e in evaluations]
+
+    ms_apex_r = [e.modified_sinc.apex_intensity_ratio for e in evaluations]
+    sg_apex_r = [e.savitzky_golay.apex_intensity_ratio for e in evaluations]
+
+    ms_area_r = [e.modified_sinc.peak_area_ratio for e in evaluations]
+    sg_area_r = [e.savitzky_golay.peak_area_ratio for e in evaluations]
+
+    ms_noise_red = [e.modified_sinc.noise_reduction_pct for e in evaluations]
+    sg_noise_red = [e.savitzky_golay.noise_reduction_pct for e in evaluations]
+
+    labels = ["Modified Sinc", "Savitzky-Golay"]
+
+    # 1. Apex RT Shift
+    axes[0, 0].boxplot([ms_shift, sg_shift], tick_labels=labels, patch_artist=True)
+    axes[0, 0].axhline(0.0, color="gray", linestyle="--", alpha=0.6)
+    axes[0, 0].set_title("Apex Retention Time Shift (s)", fontweight="bold")
+    axes[0, 0].set_ylabel("Delta RT = Smooth - Raw (s)")
+
+    # 2. Apex Intensity Ratio
+    axes[0, 1].boxplot([ms_apex_r, sg_apex_r], tick_labels=labels, patch_artist=True)
+    axes[0, 1].axhline(1.0, color="gray", linestyle="--", alpha=0.6)
+    axes[0, 1].set_title("Apex Intensity Ratio (I_smooth / I_raw)", fontweight="bold")
+    axes[0, 1].set_ylabel("Ratio")
+
+    # 3. Peak Area Ratio
+    axes[1, 0].boxplot([ms_area_r, sg_area_r], tick_labels=labels, patch_artist=True)
+    axes[1, 0].axhline(1.0, color="gray", linestyle="--", alpha=0.6)
+    axes[1, 0].set_title("Peak Area Ratio (Area_smooth / Area_raw)", fontweight="bold")
+    axes[1, 0].set_ylabel("Ratio")
+
+    # 4. Flank Baseline Noise Reduction
+    axes[1, 1].boxplot([ms_noise_red, sg_noise_red], tick_labels=labels, patch_artist=True)
+    axes[1, 1].set_title("Baseline Flank Noise Reduction (%)", fontweight="bold")
+    axes[1, 1].set_ylabel("Noise Reduction (%) [Higher is Better]")
+
+    plt.tight_layout()
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_path, dpi=300)
+    plt.close()
+
+
+def plot_real_noise_vs_distortion(
+    evaluations: List[Any],
+    output_path: str,
+):
+    """
+    Scatter plot of Flank Baseline Noise Reduction (%) vs Apex Attenuation (%) on real chromatograms.
+    """
+    if not evaluations:
+        return
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    ms_x = [e.modified_sinc.noise_reduction_pct for e in evaluations]
+    ms_y = [abs(e.modified_sinc.apex_intensity_change_pct) for e in evaluations]
+
+    sg_x = [e.savitzky_golay.noise_reduction_pct for e in evaluations]
+    sg_y = [abs(e.savitzky_golay.apex_intensity_change_pct) for e in evaluations]
+
+    ax.scatter(ms_x, ms_y, color="#2563eb", alpha=0.7, label="Modified Sinc", edgecolors="none", s=40)
+    ax.scatter(sg_x, sg_y, color="#dc2626", alpha=0.7, label="Savitzky-Golay", edgecolors="none", s=40)
+
+    ax.set_title("Real Chromatograms: Noise Reduction vs Apex Attenuation", fontweight="bold")
+    ax.set_xlabel("Flank Baseline Noise Reduction (%) [Higher is Better]")
+    ax.set_ylabel("Apex Attenuation |Delta I| (%) [Lower is Better]")
+    ax.legend()
+
+    plt.tight_layout()
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_path, dpi=300)
+    plt.close()
