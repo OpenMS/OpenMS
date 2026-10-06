@@ -22,6 +22,8 @@ OpenMS Library:
     The writer uses at most 16 threads and preserves the existing output and hit order.
   - FIX: OpenDIA builds without private Arrow headers. OSWPQ result storage now uses
     the public OSWParquetFile API, including staged archive commits (#10414).
+  - TransitionPQPFile can write a PQP library incrementally in batches (new batch writer API), so
+    large libraries do not have to be held in memory before they are written (#10401).
   - FIX: Predicted-library persistence builds with ONNX, uses the OpenDIA working directory,
     and preserves protein accessions/order and prediction values across disk batches. Indexed
     mapping lookups and direct source-ID reload avoid quadratic append work and full-library
