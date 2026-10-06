@@ -48,6 +48,9 @@ OpenMS Library:
     IDFileConverter for identifications (e.g. to idXML) and FileConverter for feature maps
     (to featureXML). Loading a .oms file now reports this. Native identification data is stored as
     .idparquet; maps with native identification data as .featureparquet/.consensusparquet.
+  - IdXMLFile formats peptide identifications in parallel, writes blocks in input order,
+    caches metadata names per worker, and sorts hit indices instead of copying hits.
+    The writer uses at most 16 threads and preserves the existing output and hit order.
   - FIX: OpenDIA builds without private Arrow headers. OSWPQ result storage now uses
     the public OSWParquetFile API, including staged archive commits (#10414).
   - FIX: Predicted-library persistence builds with ONNX, uses the OpenDIA working directory,
