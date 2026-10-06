@@ -144,6 +144,37 @@ START_SECTION((Result compute(const MSExperiment& experiment)))
 END_SECTION
 
 
+START_SECTION((out-of-order spectra do not pair outside the RT window))
+{
+  IDFreeMassErrorEstimator::Parameters parameters;
+  parameters.rt_window_seconds = 5.0;
+
+  auto later = makeSpectrum(0, 0);
+  later.setRT(100.0);
+  auto earlier = makeSpectrum(1, 0);
+  earlier.setRT(0.0);
+  auto nearby = makeSpectrum(2, 0);
+  nearby.setRT(1.0);
+
+  MSExperiment experiment;
+  experiment.addSpectrum(later);
+  experiment.addSpectrum(earlier);
+  experiment.addSpectrum(nearby);
+
+  IDFreeMassErrorEstimator estimator(parameters);
+  const auto result = estimator.compute(experiment);
+
+  // RT=100 must not join the precursor cluster formed at RT=0/1.
+  // The two nearby observations do not reach the default three-spectrum
+  // precursor-cluster support threshold, so no precursor pair is committed.
+  TEST_EQUAL(result.diagnostics.precursor_paired_spectra, 0)
+
+  // RT=0 and RT=1 are a legitimate repeated-spectrum pair; RT=100 is not.
+  TEST_EQUAL(result.diagnostics.fragment_paired_spectra, 1)
+}
+END_SECTION
+
+
 START_SECTION((low-resolution fragments select an uncensored Da tolerance))
 {
   IDFreeMassErrorEstimator::Parameters parameters;

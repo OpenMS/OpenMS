@@ -39,7 +39,6 @@ namespace OpenMS
     The class is stateful so callers can stream spectra through @ref consumeSpectrum. The
     convenience @ref compute overload resets the estimator and processes a complete experiment.
 
-    @ingroup QC
   */
   class OPENMS_DLLAPI IDFreeMassErrorEstimator
   {
@@ -169,9 +168,10 @@ namespace OpenMS
     /// Clear all accumulated evidence while retaining the current parameters.
     void reset();
 
-    /// Consume one spectrum. Non-MS2 spectra are ignored.
+    /// Consume one spectrum. Non-MS2 spectra are ignored. Spectrum RT order does not matter.
     /// Charge-less MS2 spectra with a valid precursor/isolation m/z contribute
-    /// fragment evidence, but not charge-specific precursor evidence.
+    /// fragment evidence, but not charge-specific precursor evidence. A streamed estimator
+    /// instance represents one run; call @ref reset before consuming spectra from another run.
     void consumeSpectrum(const MSSpectrum& spectrum);
 
     /// Reset, consume all spectra in @p experiment, and return the resulting estimate.

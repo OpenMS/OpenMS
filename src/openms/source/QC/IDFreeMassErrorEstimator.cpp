@@ -585,7 +585,7 @@ namespace OpenMS
     {
       auto& clusters = precursor_bins_[{charge, bin_id}];
       std::erase_if(clusters, [&](const PrecursorCluster& cluster) {
-        return spectrum.getRT() - cluster.last_rt > parameters_.rt_window_seconds;
+        return std::abs(spectrum.getRT() - cluster.last_rt) > parameters_.rt_window_seconds;
       });
       for (auto& cluster : clusters)
       {
@@ -680,10 +680,9 @@ namespace OpenMS
     for (Int bin_id = coarse - 1; bin_id <= coarse + 1; ++bin_id)
     {
       auto& queue = fragment_bins_[{charge, bin_id}];
-      while (!queue.empty() && spectrum.getRT() - queue.front().rt > parameters_.rt_window_seconds)
-      {
-        queue.pop_front();
-      }
+      std::erase_if(queue, [&](const FragmentFingerprint& candidate) {
+        return std::abs(spectrum.getRT() - candidate.rt) > parameters_.rt_window_seconds;
+      });
       for (const auto& candidate : queue)
       {
         const double denominator = (precursor_mz + candidate.precursor_mz) / 2.0;
