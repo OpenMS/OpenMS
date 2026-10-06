@@ -3,6 +3,60 @@
 Measured on 5 October 2026 against OpenMS base commit `fe7b9cc` (Linux x86-64).
 The owning model, native format, adapters and Python bindings are implemented.
 
+## Direct OMS SQLite storage (2026-10-06)
+
+OMS schema 6 now stores owning identifications directly in typed SQL tables.
+It no longer writes temporary Parquet files or embeds a native archive. This
+replaces the unreleased schema-6 experiment in place; released schemas 1–5 keep
+the compatibility reader. Quantitative maps and their stable ID links remain
+supported. Runs share the checked ordered score schema and numeric score columns.
+Inference, custom enzymes/modifications, group arrays and metadata remain queryable.
+Metadata names are interned, and `ID_MetadataValue` exposes a readable SQL view.
+
+Final local validation:
+
+- GCC 13.3 Release core builds with strict JSON conversions disabled.
+- All **21 focused C++ suites pass**, including released OMS files, feature and
+  consensus maps, scoreless catalogs and transactional I/O failures.
+- The full Python suite reports **6,620 passed, 29 skipped, 10 xfailed, 7 xpassed**,
+  with no failures; this includes **24 owning-model regressions**.
+- All five changed C++ translation units pass Clang 18.1.3 syntax compilation
+  with OpenMP enabled. Native Windows/macOS execution remains a CI responsibility.
+- Added checks cover direct SQL score filtering and editing, corrupted foreign
+  keys, full-width unsigned record IDs, vector order, empty observations/sources,
+  absent versus empty parent catalogs, complete inference values, modifications,
+  group arrays, exact NaN payloads and signed zero. The rich inference fixture
+  compares native Parquet and direct SQL round trips.
+
+Release comparison: **one million PSMs, 1,000 runs, 200 protein hits per run**.
+Medians of three fresh-process writes and warm-cache reads; no competing local
+builds/tests during the final measurements. Both variants use the same owning
+model and benchmark executable; the baseline library is from `45f09524`.
+
+| OMS implementation | Write (s) | Load (s) | File (MB) | Load peak RSS (MiB) |
+|---|---:|---:|---:|---:|
+| Previous embedded Parquet | 4.43 | 4.50 | 14.96 | 1358 |
+| Direct SQLite | 18.44 | 10.43 | 494.98 | 1260 |
+
+The direct representation is slower and larger than compressed Parquet; this is
+not a bulk-I/O speed improvement. It makes the data available to ordinary SQL,
+removes extraction/temporary-file I/O, and modestly reduces full-load peak RSS.
+These synthetic data are highly repetitive and favor Parquet compression.
+All runs preserve the same digest over sequence, observation, charge, score, RT
+and m/z. Times exclude generation, conversion and digest verification. Write
+process RSS includes generation/conversion and is not isolated writer memory.
+
+The first SQL layout was 805.91 MB. SQLite page accounting showed that repeated
+metadata names and overlapping metadata indexes dominated it. Name interning and
+reuse of the uniqueness index reduced the final file to 494.98 MB. The final
+5.4 million metadata rows and their uniqueness index still occupy 275.22 MB,
+about 56% of the file. Each is a typed SQL row; the remaining work is ordinary
+SQLite insertion/indexing overhead, not Parquet encoding. These measurements do
+not establish cold disk performance, arbitrary query latency or billion-PSM scale.
+
+Raw observations, source blob IDs, commands and table/index sizes are in
+[`oms-sqlite.json`](../../tools/benchmarks/identification_data/results/oms-sqlite.json).
+
 ## CI portability and Python imports (2026-10-06)
 
 The CI failures at `179705666f4adc0e1eb8ec4156a6314b8180aaa3` had four causes:

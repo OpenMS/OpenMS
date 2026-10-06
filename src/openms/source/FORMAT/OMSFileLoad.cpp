@@ -6,19 +6,17 @@
 // $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include "OMSIdentificationData.h"
+
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FORMAT/IdentificationDataFile.h>
 #include <OpenMS/FORMAT/OMSFileLoad.h>
 #include <OpenMS/FORMAT/OMSFileStore.h> // for "raiseDBError_"
-#include <OpenMS/SYSTEM/TempFiles.h>
 #include <SQLiteCpp/Database.h>
 #include <charconv>
-#include <filesystem>
-#include <fstream>
 #include <nlohmann/json.hpp> // for JSON export
 #include <sqlite3.h>
 
@@ -51,7 +49,6 @@ map<std::string, std::string> OMSFileLoad::export_order_by_
      {"FEAT_ConvexHull", "feature_id, hull_index, point_index"},
      {"FEAT_ObservationMatch", "feature_id"},
      {"FEAT_Query", "feature_id, run_uuid, query_id"},
-     {"ID_NativeFiles", "name, chunk"},
      {"FEAT_MapMetaData", "unique_id"}};
 
 
@@ -683,52 +680,12 @@ DataValue OMSFileLoad::makeDataValue_(const SQLite::Statement& query)
 
   void OMSFileLoad::load(IdentificationData& data)
   {
-    if (! db_->tableExists("ID_NativeFiles"))
+    if (version_number_ < 6)
     {
       loadLegacyIdentifications_(data);
       return;
     }
-    TempDir scratch;
-    std::set<std::string> allowed {"manifest.json",  "queries.parquet",  "matches.parquet", "parents.parquet",
-                                   "inputs.parquet", "proteins.parquet", "groups.parquet"};
-    std::set<std::string> seen;
-    SQLite::Statement query(*db_, "SELECT name, chunk, data FROM ID_NativeFiles ORDER BY name, chunk");
-    std::string current;
-    int64_t next = 0;
-    std::ofstream output;
-    while (query.executeStep())
-    {
-      auto name = query.getColumn("name").getString();
-      if (! allowed.contains(name)) throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unexpected embedded native file", name);
-      if (name != current)
-      {
-        if (output.is_open())
-        {
-          output.close();
-          if (! output) throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current);
-        }
-        output.open(std::filesystem::u8path(scratch.getPath()) / name, std::ios::binary);
-        if (! output) throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
-        seen.insert(name);
-        current = name;
-        next = 0;
-      }
-      if (query.getColumn("chunk").getInt64() != next++)
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Noncontiguous embedded chunks", name);
-      const auto column = query.getColumn("data");
-      if (column.getType() != SQLITE_BLOB || column.getBytes() > 8 * 1024 * 1024)
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid native chunk", name);
-      output.write(static_cast<const char*>(column.getBlob()), column.getBytes());
-      if (! output) throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
-    }
-    if (output.is_open())
-    {
-      output.close();
-      if (! output) throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current);
-    }
-    if (! seen.contains("manifest.json"))
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Incomplete embedded native dataset", "");
-    IdentificationDataFile::load(scratch.getPath(), data);
+    loadOMSIdentifications(*db_, data);
     identification_data_ = &data;
   }
 

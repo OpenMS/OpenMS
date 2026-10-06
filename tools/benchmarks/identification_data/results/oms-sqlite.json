@@ -1,0 +1,277 @@
+{
+  "measured_date": "2026-10-06",
+  "baseline_commit": "45f09524d6f515afc310d1c9e86c0873e006f91f",
+  "implementation": "Direct SQLite implementation in the commit containing this report",
+  "source_git_blobs": {
+    "src/openms/source/FORMAT/OMSIdentificationData.cpp": "f86f1ae662a10182b2d62eb85678d2de6ad1b880",
+    "src/openms/source/FORMAT/OMSIdentificationData.h": "fd98a340a114a20968b75e9b2bb52f76b31d4ba2",
+    "src/openms/source/FORMAT/OMSFileLoad.cpp": "5dac7585262149137cd3a820452114f76526981d",
+    "src/openms/source/FORMAT/OMSFileStore.cpp": "9e3487a6459970bd1fc55043674bce0869df973d",
+    "tools/benchmarks/identification_data/compare_legacy.cpp": "0f31ac2b8ffc81b3eac5fa25378b64b9b16122e9"
+  },
+  "environment": {
+    "os": "Linux x86_64",
+    "compiler": "GCC 13.3",
+    "build_type": "Release",
+    "flags": "-O3 -DNDEBUG -DJSON_USE_IMPLICIT_CONVERSIONS=0",
+    "arrow_parquet": "25",
+    "cpu_quota": 8,
+    "memory_limit_bytes": 8589934592
+  },
+  "method": {
+    "psms": 1000000,
+    "runs": 1000,
+    "protein_hits_per_run": 200,
+    "repetitions": 3,
+    "cache": "Warm immediately after each write; fresh read process",
+    "variant_order": "Direct then embedded; no concurrent builds or tests in final measurements",
+    "write_command": "IdentificationDataLegacyBenchmark write oms OUTPUT.oms 1000000 1000",
+    "read_command": "IdentificationDataLegacyBenchmark read oms OUTPUT.oms",
+    "time_scope": "I/O only; generation, conversion and digest checks excluded",
+    "rss_scope": "Whole process including generation/conversion on write and digest verification on read; measured with wait4",
+    "baseline_library": "Saved Release shared library; same executable and owning model",
+    "limitations": "Synthetic, highly repetitive data; not cold disk throughput, arbitrary SQL query latency or a billion-PSM measurement"
+  },
+  "summary": {
+    "embedded": {
+      "size_bytes_median": 14962688.0,
+      "write": {
+        "seconds_median": 4.43347077,
+        "seconds_range": [
+          4.405591053,
+          4.478681871
+        ],
+        "peak_rss_mib_median": 3336.125
+      },
+      "read": {
+        "seconds_median": 4.497611809,
+        "seconds_range": [
+          4.296775974,
+          4.711733812
+        ],
+        "peak_rss_mib_median": 1357.515625
+      }
+    },
+    "direct": {
+      "size_bytes_median": 494981120.0,
+      "write": {
+        "seconds_median": 18.438989131,
+        "seconds_range": [
+          18.343733928,
+          18.907250935
+        ],
+        "peak_rss_mib_median": 3244.5703125
+      },
+      "read": {
+        "seconds_median": 10.425631372,
+        "seconds_range": [
+          10.327389002,
+          10.522850189
+        ],
+        "peak_rss_mib_median": 1260.0234375
+      }
+    }
+  },
+  "observations": {
+    "embedded": [
+      {
+        "mode": "write",
+        "repetition": 0,
+        "times": {
+          "prepare": 2.152723487,
+          "convert": 6.162721119,
+          "write": 4.405591053
+        },
+        "peak_rss_kib": 3415320,
+        "bytes": 14962688,
+        "digest": "DIGEST\t1000000\t1111821886898865107\t59500000"
+      },
+      {
+        "mode": "read",
+        "repetition": 0,
+        "times": {
+          "read": 4.296775974
+        },
+        "peak_rss_kib": 1434052,
+        "bytes": 14962688,
+        "digest": "DIGEST\t1000000\t1111821886898865107\t59500000"
+      },
+      {
+        "mode": "write",
+        "repetition": 1,
+        "times": {
+          "prepare": 2.032790947,
+          "convert": 6.374419197,
+          "write": 4.478681871
+        },
+        "peak_rss_kib": 3416756,
+        "bytes": 14958592,
+        "digest": "DIGEST\t1000000\t1111821886898865107\t59500000"
+      },
+      {
+        "mode": "read",
+        "repetition": 1,
+        "times": {
+          "read": 4.497611809
+        },
+        "peak_rss_kib": 1390096,
+        "bytes": 14958592,
+        "digest": "DIGEST\t1000000\t1111821886898865107\t59500000"
+      },
+      {
+        "mode": "write",
+        "repetition": 2,
+        "times": {
+          "prepare": 2.123220928,
+          "convert": 6.07569697,
+          "write": 4.43347077
+        },
+        "peak_rss_kib": 3416192,
+        "bytes": 14962688,
+        "digest": "DIGEST\t1000000\t1111821886898865107\t59500000"
+      },
+      {
+        "mode": "read",
+        "repetition": 2,
+        "times": {
+          "read": 4.711733812
+        },
+        "peak_rss_kib": 1388268,
+        "bytes": 14962688,
+        "digest": "DIGEST\t1000000\t1111821886898865107\t59500000"
+      }
+    ],
+    "direct": [
+      {
+        "mode": "write",
+        "repetition": 0,
+        "times": {
+          "prepare": 2.007168357,
+          "convert": 6.106911932,
+          "write": 18.438989131
+        },
+        "peak_rss_kib": 3322408,
+        "bytes": 494977024,
+        "digest": "DIGEST\t1000000\t1111821886898865107\t59500000"
+      },
+      {
+        "mode": "read",
+        "repetition": 0,
+        "times": {
+          "read": 10.327389002
+        },
+        "peak_rss_kib": 1290364,
+        "bytes": 494977024,
+        "digest": "DIGEST\t1000000\t1111821886898865107\t59500000"
+      },
+      {
+        "mode": "write",
+        "repetition": 1,
+        "times": {
+          "prepare": 2.049683483,
+          "convert": 6.444519935,
+          "write": 18.907250935
+        },
+        "peak_rss_kib": 3322440,
+        "bytes": 494981120,
+        "digest": "DIGEST\t1000000\t1111821886898865107\t59500000"
+      },
+      {
+        "mode": "read",
+        "repetition": 1,
+        "times": {
+          "read": 10.522850189
+        },
+        "peak_rss_kib": 1290264,
+        "bytes": 494981120,
+        "digest": "DIGEST\t1000000\t1111821886898865107\t59500000"
+      },
+      {
+        "mode": "write",
+        "repetition": 2,
+        "times": {
+          "prepare": 1.966490722,
+          "convert": 5.95361873,
+          "write": 18.343733928
+        },
+        "peak_rss_kib": 3323408,
+        "bytes": 494981120,
+        "digest": "DIGEST\t1000000\t1111821886898865107\t59500000"
+      },
+      {
+        "mode": "read",
+        "repetition": 2,
+        "times": {
+          "read": 10.425631372
+        },
+        "peak_rss_kib": 1289912,
+        "bytes": 494981120,
+        "digest": "DIGEST\t1000000\t1111821886898865107\t59500000"
+      }
+    ]
+  },
+  "direct_sqlite_table_bytes": {
+    "ID_Metadata": 178036736,
+    "sqlite_autoindex_ID_Metadata_1": 97181696,
+    "ID_Match": 46010368,
+    "ID_Query": 45252608,
+    "ID_Evidence": 41799680,
+    "ID_Match_parent": 15986688,
+    "ID_Evidence_parent": 15986688,
+    "ID_Query_parent": 14884864,
+    "ID_Accession": 7413760,
+    "sqlite_autoindex_ID_Parent_1": 7352320,
+    "ID_Parent": 7110656,
+    "ID_Protein": 4513792,
+    "sqlite_autoindex_ID_Accession_1": 3477504,
+    "ID_Protein_parent": 2957312,
+    "ID_Parent_parent": 2932736,
+    "ID_Accession_parent": 2932736,
+    "ID_Processing": 286720,
+    "ID_ProcessingString": 118784,
+    "ID_Input": 102400,
+    "ID_Run": 77824,
+    "ID_MetadataItem": 73728,
+    "ID_ProcessingString_parent": 57344,
+    "sqlite_autoindex_ID_Run_2": 53248,
+    "ID_SourceFile": 36864,
+    "ID_Source": 36864,
+    "ID_Inference": 36864,
+    "sqlite_autoindex_ID_Inference_1": 32768,
+    "ID_MetadataItem_parent": 32768,
+    "sqlite_autoindex_ID_Run_1": 24576,
+    "ID_Source_parent": 20480,
+    "ID_SourceFile_parent": 20480,
+    "ID_Input_parent": 20480,
+    "sqlite_schema": 16384,
+    "version": 4096,
+    "sqlite_autoindex_ID_MetadataName_1": 4096,
+    "ID_Score": 4096,
+    "ID_ProteinGroup_parent": 4096,
+    "ID_ProteinGroup": 4096,
+    "ID_PeakAnnotation_parent": 4096,
+    "ID_PeakAnnotation": 4096,
+    "ID_PSMScore": 4096,
+    "ID_Modification_parent": 4096,
+    "ID_ModificationItem_parent": 4096,
+    "ID_ModificationItem": 4096,
+    "ID_Modification": 4096,
+    "ID_MetadataName": 4096,
+    "ID_MatchIdentifier_parent": 4096,
+    "ID_MatchIdentifier": 4096,
+    "ID_GroupMember_parent": 4096,
+    "ID_GroupMember": 4096,
+    "ID_GroupArray_parent": 4096,
+    "ID_GroupArray": 4096,
+    "ID_ArrayProcessing_parent": 4096,
+    "ID_ArrayProcessing": 4096,
+    "ID_ArrayItem_parent": 4096,
+    "ID_ArrayItem": 4096,
+    "ID_ArrayAction_parent": 4096,
+    "ID_ArrayAction": 4096
+  },
+  "initial_direct_sqlite": {
+    "bytes": 805908480,
+    "note": "Diagnostic intermediate schema; normalized names and removed redundant index before final measurements"
+  }
+}

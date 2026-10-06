@@ -4,6 +4,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 #include <bit>
 #include <filesystem>
 #include <fstream>
@@ -328,6 +329,12 @@ START_SECTION((typed pooled inference preserves complete protein values, group a
   TEST_EQUAL(loaded.getRun(run.getIdentifier()).getNextMatchId(), 1)
   TEST_TRUE(fs::exists(fs::path(path) / "proteins.parquet"))
   TEST_FALSE(fs::exists(fs::path(path) / "inference.json"))
+  std::string oms_path;
+  NEW_TMP_FILE(oms_path)
+  ID sql_loaded;
+  OMSFile().store(oms_path, data);
+  OMSFile().load(oms_path, sql_loaded);
+  TEST_TRUE(sql_loaded == loaded)
 }
 END_SECTION
 
@@ -366,21 +373,29 @@ START_SECTION((inference floating point bit patterns survive dictionary encoding
   IdentificationDataFile::store(path, data, options);
   ID loaded;
   IdentificationDataFile::load(path, loaded, options);
-  const auto& output = loaded.getInferenceResults().at(0).proteins;
-  TEST_EQUAL(output.getHits().size(), bits.size())
-  TEST_EQUAL(output.getProteinGroups().size(), bits.size())
-  for (Size i = 0; i < bits.size(); ++i)
+  std::string oms_path;
+  NEW_TMP_FILE(oms_path)
+  ID sql_loaded;
+  OMSFile().store(oms_path, data);
+  OMSFile().load(oms_path, sql_loaded);
+  for (const auto* restored : {&loaded, &sql_loaded})
   {
-    TEST_EQUAL(std::bit_cast<UInt64>(output.getHits()[i].getScore()), bits[i])
-    TEST_EQUAL(std::bit_cast<UInt64>(output.getHits()[i].getCoverage()), bits[(i + 1) % bits.size()])
-    const auto& mod = output.getHits()[i].getModifications().begin()->second;
-    TEST_EQUAL(std::bit_cast<UInt64>(mod.getDiffMonoMass()), bits[i])
-    TEST_EQUAL(std::bit_cast<UInt64>(mod.getNeutralLossMonoMasses()[0]), bits[i])
-    TEST_EQUAL(std::bit_cast<UInt64>(output.getProteinGroups()[i].probability), bits[i])
-    const auto& values = output.getProteinGroups()[i].getFloatDataArrays()[0];
-    TEST_EQUAL(values.size(), float_bits.size())
-    for (Size j = 0; j < values.size(); ++j)
-      TEST_EQUAL(std::bit_cast<UInt32>(values[j]), float_bits[j])
+    const auto& output = restored->getInferenceResults().at(0).proteins;
+    TEST_EQUAL(output.getHits().size(), bits.size())
+    TEST_EQUAL(output.getProteinGroups().size(), bits.size())
+    for (Size i = 0; i < bits.size(); ++i)
+    {
+      TEST_EQUAL(std::bit_cast<UInt64>(output.getHits()[i].getScore()), bits[i])
+      TEST_EQUAL(std::bit_cast<UInt64>(output.getHits()[i].getCoverage()), bits[(i + 1) % bits.size()])
+      const auto& mod = output.getHits()[i].getModifications().begin()->second;
+      TEST_EQUAL(std::bit_cast<UInt64>(mod.getDiffMonoMass()), bits[i])
+      TEST_EQUAL(std::bit_cast<UInt64>(mod.getNeutralLossMonoMasses()[0]), bits[i])
+      TEST_EQUAL(std::bit_cast<UInt64>(output.getProteinGroups()[i].probability), bits[i])
+      const auto& values = output.getProteinGroups()[i].getFloatDataArrays()[0];
+      TEST_EQUAL(values.size(), float_bits.size())
+      for (Size j = 0; j < values.size(); ++j)
+        TEST_EQUAL(std::bit_cast<UInt32>(values[j]), float_bits[j])
+    }
   }
 }
 END_SECTION

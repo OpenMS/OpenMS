@@ -5,6 +5,7 @@ import gc
 from pathlib import Path
 import subprocess
 import sys
+import sqlite3
 
 import pytest
 import pyopenms as oms
@@ -484,3 +485,38 @@ def test_oms_owning_roundtrip_and_failed_load_are_transactional(tmp_path):
     with pytest.raises(Exception):
         reader.load(str(broken))
     assert reader.load(path) == data
+
+
+def test_oms_identifications_are_queryable_sql_rows(tmp_path):
+    data, *_ = make_data_with_inference()
+    path = str(tmp_path / "direct.oms")
+    oms.OMSFile().store(path, data)
+    with sqlite3.connect(path) as db:
+        tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        assert "ID_NativeFiles" not in tables
+        assert db.execute("PRAGMA foreign_key_check").fetchall() == []
+        rows = db.execute("""
+            SELECT r.identifier, s.path, q.data_id, m.representation, m.score_0
+            FROM ID_Match m JOIN ID_Query q ON q.id=m.parent_id
+            JOIN ID_Source s ON s.id=q.parent_id JOIN ID_Run r ON r.id=s.parent_id
+            WHERE m.score_0 < 0.05 ORDER BY m.id
+        """).fetchall()
+        assert rows == [("search", "/measurements/sample.mzML", "scan=1", "PEPTIDE", 0.01)]
+        assert db.execute("SELECT name FROM ID_Score ORDER BY id LIMIT 1").fetchone()[0] == "posterior error probability"
+        # Lists have typed, ordered SQL rows, including empty lists and strings.
+        counts = db.execute("""
+            SELECT i.integer_value FROM ID_MetadataItem i
+            JOIN ID_MetadataValue m ON m.id=i.parent_id
+            WHERE m.owner='ID_Match' AND m.name='counts' ORDER BY i.id
+        """).fetchall()
+        assert counts == [(1,), (2,), (3,), (1,), (2,), (3,)]
+        # The SQL value is authoritative, not a cache of an embedded archive.
+        db.execute("UPDATE ID_Match SET score_0=0.02 WHERE representation='PEPTIDE'")
+    restored = oms.OMSFile().load(path)
+    run = restored.get_run("search")
+    first = run.get_source_blocks()[0].identifications[0].get_matches()[0]
+    assert first.get_scores()[0] == 0.02
+    with sqlite3.connect(path) as db:
+        db.execute("UPDATE ID_Match SET parent_id=999999")
+    with pytest.raises(Exception):
+        oms.OMSFile().load(path)

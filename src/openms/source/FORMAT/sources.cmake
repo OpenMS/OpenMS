@@ -69,6 +69,7 @@ MzXMLFile.cpp
 OMSFile.cpp
 OMSFileLoad.cpp
 OMSFileStore.cpp
+OMSIdentificationData.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp

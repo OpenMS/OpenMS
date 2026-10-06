@@ -21,7 +21,7 @@ OpenMS Library:
     nullable supplementary scores, generic molecular representations and explicit inference values.
     Replace the reference graph in feature/consensus maps, OMS I/O, filtering/FDR,
     alignment, accurate-mass search, NASE and converters; remove the obsolete graph API.
-    OMS schema 6 embeds the native identification tables and reads released SQLite schemas.
+    OMS schema 6 stores owning identifications in queryable, typed SQLite tables and reads released SQLite schemas.
   - Add native manifest/Parquet persistence with projected streaming scans, subset export,
     stable record identities, typed protein/group results with run-level inference provenance,
     strict legacy/feature adapters, and configurable parallel column encoding/decoding.

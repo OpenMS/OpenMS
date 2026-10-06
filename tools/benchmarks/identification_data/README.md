@@ -114,3 +114,23 @@ diagnostics, exact object sizes for this build, public-accessor storage accounti
 and the complete standalone diagnostic source and reproduction instructions. These
 measurements explain owning-load memory and compare it with a non-retaining scan;
 they are separate from the repeated I/O timing matrix.
+
+## Direct OMS SQLite storage
+
+`results/oms-sqlite.json` compares the direct SQLite implementation with the
+unreleased embedded-file implementation at `45f09524`. Both use the same owning
+model and benchmark generator. Run each command in a fresh Release process:
+
+```bash
+./IdentificationDataLegacyBenchmark write oms sample.oms 1000000 1000
+./IdentificationDataLegacyBenchmark read oms sample.oms
+```
+
+Recreate the output for each repetition; the benchmark refuses to overwrite it.
+Use a separate build or shared-library path for the baseline. Compare the `DIGEST`
+lines, which check sequence, observation, charge, score, RT and m/z. Record process
+peak RSS with an external process monitor; write-process RSS includes generation
+and conversion. These synthetic inputs include 200 protein hits per run and
+5.4 million metadata rows. Warm-cache full loads do not measure cold disk speed
+or the cost of arbitrary SQL queries. The validation report includes medians,
+ranges, file sizes, RSS and SQLite table/index sizes.

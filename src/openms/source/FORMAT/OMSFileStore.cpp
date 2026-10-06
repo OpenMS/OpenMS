@@ -6,17 +6,15 @@
 // $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include "OMSIdentificationData.h"
+
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FORMAT/IdentificationDataFile.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/TempFiles.h>
 #include <SQLiteCpp/Database.h>
 #include <SQLiteCpp/Transaction.h>
-#include <filesystem>
-#include <fstream>
 #include <sqlite3.h>
 
 using namespace std;
@@ -191,28 +189,9 @@ void raiseDBError_(const std::string& error, int line, const char* function, con
   {
     data.validate();
     identification_data_ = &data;
-    TempDir scratch;
-    const auto directory = std::filesystem::u8path(scratch.getPath()) / "identifications";
-    IdentificationDataFile::store(directory.string(), data);
     const auto body = [&]() {
       storeVersionAndDate_();
-      createTable_("ID_NativeFiles", "name TEXT NOT NULL, chunk INTEGER NOT NULL, data BLOB NOT NULL, PRIMARY KEY(name, chunk)");
-      SQLite::Statement query(*db_, "INSERT INTO ID_NativeFiles VALUES (:name, :chunk, :data)");
-      std::vector<char> buffer(8 * 1024 * 1024);
-      for (const auto& entry : std::filesystem::directory_iterator(directory))
-      {
-        std::ifstream input(entry.path(), std::ios::binary);
-        if (! input) throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, entry.path().string());
-        int64_t chunk = 0;
-        while (input.read(buffer.data(), buffer.size()) || input.gcount())
-        {
-          query.bind(":name", entry.path().filename().string());
-          query.bind(":chunk", chunk++);
-          query.bind(":data", buffer.data(), static_cast<int>(input.gcount()));
-          execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "Error storing native identification chunk");
-        }
-        if (! input.eof()) throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, entry.path().string());
-      }
+      storeOMSIdentifications(*db_, data);
     };
     if (sqlite3_get_autocommit(db_->getHandle()))
     {
@@ -520,14 +499,7 @@ void raiseDBError_(const std::string& error, int line, const char* function, con
   void OMSFileStore::store(const FeatureMap& features)
   {
     SQLite::Transaction transaction(*db_); // avoid SQLite's "implicit transactions", improve runtime
-    if (features.getIdentificationData().empty())
-    {
-      storeVersionAndDate_();
-    }
-    else
-    {
-      store(features.getIdentificationData());
-    }
+    store(features.getIdentificationData());
     startProgress(0, features.size() + 2, "Writing feature data to file");
     storeMapMetaData_(features);
     nextProgress();
@@ -660,14 +632,7 @@ void raiseDBError_(const std::string& error, int line, const char* function, con
   void OMSFileStore::store(const ConsensusMap& consensus)
   {
     SQLite::Transaction transaction(*db_); // avoid SQLite's "implicit transactions", improve runtime
-    if (consensus.getIdentificationData().empty())
-    {
-      storeVersionAndDate_();
-    }
-    else
-    {
-      store(consensus.getIdentificationData());
-    }
+    store(consensus.getIdentificationData());
     startProgress(0, consensus.size() + 3, "Writing consensus feature data to file");
     storeMapMetaData_(consensus, consensus.getExperimentType());
     nextProgress();

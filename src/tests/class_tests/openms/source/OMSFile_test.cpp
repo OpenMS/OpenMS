@@ -13,12 +13,14 @@
 
 ///////////////////////////
 
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <cmath>
+#include <limits>
 
 ///////////////////////////
 
@@ -89,6 +91,43 @@ START_SECTION(void load(const std::string& filename, IdentificationData& id_data
   const auto& match = run.getSourceBlocks().front().identifications.front().getMatches().back();
   TEST_EQUAL(match.adduct.has_value(), true);
   TEST_EQUAL(match.adduct->getCharge(), 2);
+}
+END_SECTION
+
+START_SECTION((direct SQLite preserves empty observations, full - width IDs and vector order))
+{
+  using ID = IdentificationData;
+  ID data;
+  auto& run = data.addRun("stable IDs");
+  ID::ScoreDefinition score;
+  score.name = "score";
+  run.setPrimaryScore(run.addScore(score));
+  ID::SourceFile source;
+  source.path = "/data/source.mzML";
+  source.primary_files = {"a,b", "", "a,b"};
+  auto sid = run.addSource(source);
+  const UInt64 high = std::numeric_limits<UInt64>::max() - 4;
+  auto qid = run.importIdentification(sid, ID::QueryId {high}, {});
+  ID::MatchData match;
+  match.representation = "PEPTIDE";
+  auto mid = run.importMatch(qid, ID::MatchId {high}, match, {-0.0});
+  run.setSelectedMatch(qid, mid);
+  run.importIdentification(sid, ID::QueryId {2}, {});
+  source.identifier = "empty source";
+  run.addSource(source);
+  run.setParents(std::vector<ID::ParentRecord> {});
+  run.restoreIdentity(run.getUuid(), high + 1, high + 1);
+  std::string path;
+  NEW_TMP_FILE(path)
+  OMSFile().store(path, data);
+  ID loaded;
+  OMSFile().load(path, loaded);
+  TEST_TRUE(data == loaded)
+  TEST_TRUE(std::signbit(*loaded.getRuns().front().getMatch(mid).getScores().front()))
+  std::string json_path;
+  NEW_TMP_FILE(json_path)
+  OMSFile().exportToJSON(path, json_path);
+  TEST_FALSE(File::empty(json_path))
 }
 END_SECTION
 
