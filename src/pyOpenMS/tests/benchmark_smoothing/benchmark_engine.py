@@ -325,16 +325,22 @@ class BenchmarkEngine:
         vpr_smooth = None
         doublet_area_err = None
 
-        if syn.is_overlapping_doublet and len(syn.peaks) >= 2:
-            p1, p2 = syn.peaks[0], syn.peaks[1]
-            vpr_true = evaluate_valley_to_peak_ratio(syn.rt, syn.intensity_true, p1.true_apex_rt, p2.true_apex_rt, syn.baseline_level)
-            vpr_smooth = evaluate_valley_to_peak_ratio(rt_s, y_s, p1.true_apex_rt, p2.true_apex_rt, syn.baseline_level)
+        if syn.is_overlapping_doublet:
+            doublet_peaks = [
+                p for p in syn.peaks
+                if p.rt_end >= syn.doublet_rt_start
+                and p.rt_start <= syn.doublet_rt_end
+            ]
+            if len(doublet_peaks) >= 2:
+                p1, p2 = doublet_peaks[0], doublet_peaks[1]
+                vpr_true = evaluate_valley_to_peak_ratio(syn.rt, syn.intensity_true, p1.true_apex_rt, p2.true_apex_rt, syn.baseline_level)
+                vpr_smooth = evaluate_valley_to_peak_ratio(rt_s, y_s, p1.true_apex_rt, p2.true_apex_rt, syn.baseline_level)
 
-            # Evaluate total doublet area against ground truth total doublet area
-            smooth_doublet_area = compute_peak_area(
-                rt_s, y_s, syn.doublet_rt_start, syn.doublet_rt_end, baseline_level=syn.baseline_level
-            )
-            doublet_area_err = ((smooth_doublet_area - syn.doublet_total_area) / syn.doublet_total_area) * 100.0
+                # Evaluate total doublet area against ground truth total doublet area
+                smooth_doublet_area = compute_peak_area(
+                    rt_s, y_s, syn.doublet_rt_start, syn.doublet_rt_end, baseline_level=syn.baseline_level
+                )
+                doublet_area_err = ((smooth_doublet_area - syn.doublet_total_area) / syn.doublet_total_area) * 100.0
 
         # 4. Downstream peak picking with PeakPickerHiRes across S/N thresholds
         picking_sensitivity = {}
@@ -405,12 +411,12 @@ class BenchmarkEngine:
             sg_m = self.evaluate_configuration(chrom, "SavitzkyGolayFilter", sg_params, repeats=2)
             phase_results[phase_name] = {
                 "phase": chrom.phase_offset,
-                "ms_apex_err": ms_m.peaks[0].apex_intensity_error_pct if ms_m.peaks else 0.0,
-                "ms_fwhm_err": ms_m.peaks[0].fwhm_error_pct if ms_m.peaks else 0.0,
-                "ms_area_err": ms_m.peaks[0].area_error_pct if ms_m.peaks else 0.0,
-                "sg_apex_err": sg_m.peaks[0].apex_intensity_error_pct if sg_m.peaks else 0.0,
-                "sg_fwhm_err": sg_m.peaks[0].fwhm_error_pct if sg_m.peaks else 0.0,
-                "sg_area_err": sg_m.peaks[0].area_error_pct if sg_m.peaks else 0.0,
+                "ms_apex_err": ms_m.peaks[0].apex_intensity_error_pct if ms_m.peaks else None,
+                "ms_fwhm_err": ms_m.peaks[0].fwhm_error_pct if ms_m.peaks else None,
+                "ms_area_err": ms_m.peaks[0].area_error_pct if ms_m.peaks else None,
+                "sg_apex_err": sg_m.peaks[0].apex_intensity_error_pct if sg_m.peaks else None,
+                "sg_fwhm_err": sg_m.peaks[0].fwhm_error_pct if sg_m.peaks else None,
+                "sg_area_err": sg_m.peaks[0].area_error_pct if sg_m.peaks else None,
             }
 
         return phase_results

@@ -419,6 +419,8 @@ class SyntheticChromatogramGenerator:
         midpoint_d = (c_d1["center_rt"] + c_d2["center_rt"]) / 2.0
         m_d1.rt_end = midpoint_d
         m_d2.rt_start = midpoint_d
+        doublet_rt_start = min(m_d1.rt_start, m_d2.rt_start)
+        doublet_rt_end = max(m_d1.rt_end, m_d2.rt_end)
         peak_intensity += i_d1 + i_d2
         peaks.extend([m_d1, m_d2])
 
@@ -470,6 +472,10 @@ class SyntheticChromatogramGenerator:
             baseline_level=baseline_level,
             peaks=peaks,
             baseline_mask=baseline_mask,
+            is_overlapping_doublet=True,
+            doublet_total_area=m_d1.true_area + m_d2.true_area,
+            doublet_rt_start=doublet_rt_start,
+            doublet_rt_end=doublet_rt_end,
         )
 
     def generate_tuning_datasets(self) -> Dict[str, SyntheticChromatogram]:

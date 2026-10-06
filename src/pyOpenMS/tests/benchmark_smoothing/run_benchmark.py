@@ -203,8 +203,14 @@ def generate_markdown_report(
     lines.append("|---|---|---|---|---|")
     for phase_key, data in phase_results.items():
         p_val = data["phase"]
-        lines.append(f"| {p_val:.2f} | Modified Sinc | {data['ms_apex_err']:+.2f}% | {data['ms_fwhm_err']:+.2f}% | {data['ms_area_err']:+.2f}% |")
-        lines.append(f"| {p_val:.2f} | Savitzky–Golay | {data['sg_apex_err']:+.2f}% | {data['sg_fwhm_err']:+.2f}% | {data['sg_area_err']:+.2f}% |")
+        ms_a = f"{data['ms_apex_err']:+.2f}%" if data["ms_apex_err"] is not None else "N/A"
+        ms_f = f"{data['ms_fwhm_err']:+.2f}%" if data["ms_fwhm_err"] is not None else "N/A"
+        ms_ar = f"{data['ms_area_err']:+.2f}%" if data["ms_area_err"] is not None else "N/A"
+        sg_a = f"{data['sg_apex_err']:+.2f}%" if data["sg_apex_err"] is not None else "N/A"
+        sg_f = f"{data['sg_fwhm_err']:+.2f}%" if data["sg_fwhm_err"] is not None else "N/A"
+        sg_ar = f"{data['sg_area_err']:+.2f}%" if data["sg_area_err"] is not None else "N/A"
+        lines.append(f"| {p_val:.2f} | Modified Sinc | {ms_a} | {ms_f} | {ms_ar} |")
+        lines.append(f"| {p_val:.2f} | Savitzky–Golay | {sg_a} | {sg_f} | {sg_ar} |")
     lines.append("")
     lines.append("> **Methodological Note on Narrow Peaks**: The ~3-point FWHM peak (FWHM = 3.0 s, sampling interval Δt = 1.0 s) ")
     lines.append("> is severely undersampled, spanning only ~3 discrete points across its half-maximum width. It was deliberately ")

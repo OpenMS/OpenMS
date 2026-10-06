@@ -97,11 +97,11 @@ def plot_sampling_phase_sensitivity(
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
 
     phases = [phase_results[k]["phase"] for k in phase_results]
-    ms_apex = [phase_results[k]["ms_apex_err"] for k in phase_results]
-    sg_apex = [phase_results[k]["sg_apex_err"] for k in phase_results]
+    ms_apex = [np.nan if phase_results[k]["ms_apex_err"] is None else phase_results[k]["ms_apex_err"] for k in phase_results]
+    sg_apex = [np.nan if phase_results[k]["sg_apex_err"] is None else phase_results[k]["sg_apex_err"] for k in phase_results]
 
-    ms_fwhm = [phase_results[k]["ms_fwhm_err"] for k in phase_results]
-    sg_fwhm = [phase_results[k]["sg_fwhm_err"] for k in phase_results]
+    ms_fwhm = [np.nan if phase_results[k]["ms_fwhm_err"] is None else phase_results[k]["ms_fwhm_err"] for k in phase_results]
+    sg_fwhm = [np.nan if phase_results[k]["sg_fwhm_err"] is None else phase_results[k]["sg_fwhm_err"] for k in phase_results]
 
     # Apex Intensity Error
     ax1.plot(phases, ms_apex, "o-", color="#2563eb", label="Modified Sinc", lw=2)
