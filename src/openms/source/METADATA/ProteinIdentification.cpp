@@ -922,6 +922,41 @@ namespace OpenMS
     return search_engine_version_;
   }
 
+  void ProteinIdentification::setScoreSoftware(const std::string& score_type, const std::string& software, const std::string& version)
+  {
+    if (score_type.empty() || software.empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Score type and producing software must not be empty", score_type);
+    }
+    search_parameters_.setMetaValue("ScoreSoftware:" + score_type, software);
+    search_parameters_.setMetaValue("ScoreSoftwareVersion:" + score_type, version);
+  }
+
+  std::pair<std::string, std::string> ProteinIdentification::getScoreSoftware(const std::string& score_type) const
+  {
+    const std::string key = "ScoreSoftware:" + score_type;
+    if (score_type.empty() || !search_parameters_.metaValueExists(key))
+    {
+      return {search_engine_, search_engine_version_};
+    }
+    const std::string version_key = "ScoreSoftwareVersion:" + score_type;
+    return {search_parameters_.getMetaValue(key).toString(),
+            search_parameters_.metaValueExists(version_key) ? search_parameters_.getMetaValue(version_key).toString() : std::string()};
+  }
+
+  void ProteinIdentification::clearScoreSoftware()
+  {
+    std::vector<std::string> keys;
+    search_parameters_.getKeys(keys);
+    for (const auto& key : keys)
+    {
+      if (StringUtils::hasPrefix(key, "ScoreSoftware:") || StringUtils::hasPrefix(key, "ScoreSoftwareVersion:"))
+      {
+        search_parameters_.removeMetaValue(key);
+      }
+    }
+  }
+
   void ProteinIdentification::setSearchParameters(const SearchParameters& search_parameters)
   {
     search_parameters_ = search_parameters;

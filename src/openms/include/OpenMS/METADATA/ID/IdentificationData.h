@@ -11,11 +11,13 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <array>
+#include <atomic>
 #include <compare>
 #include <deque>
 #include <functional>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -33,8 +35,8 @@ class IdentificationDataFile;
   persistence; a new independent run receives a new UUID. Views are invalidated by
   structural edits; match references may also be invalidated by replacement or
   transformation. Retain IDs across edits. Instances are not safe for concurrent
-  mutation. Prepare lazy lookup indexes with Run::prepareLookupIndexes() before
-  parallel const ID lookups.
+  mutation. Concurrent const lookups are safe; the first lookup builds a lazy index,
+  which Run::prepareLookupIndexes() can build up front.
   @ingroup Metadata
 */
 class OPENMS_DLLAPI IdentificationData
@@ -305,7 +307,7 @@ public:
     { return next_query_id_; }
     UInt64 getNextMatchId() const
     { return next_match_id_; }
-    /// Prepare optional indexes before parallel const lookups; mutations require exclusive access.
+    /// Build the lazy ID lookup indexes up front (const lookups otherwise build them on first use); mutations require exclusive access.
     void prepareLookupIndexes();
     /// Import explicit IDs during construction. After restoration/filtering, historical IDs cannot be reused.
     /// Payloads are owned by value so importers can transfer decoded records without copying.
@@ -338,8 +340,11 @@ public:
     bool import_finalized_ = false;
     Size query_count_ = 0;
     Size match_count_ = 0;
-    mutable bool query_index_built_ = false;
-    mutable bool match_index_built_ = false;
+    // Lazy lookup indexes may be built from concurrent const lookups: the flags are published
+    // with release/acquire and the build is serialized; mutations still require exclusive access.
+    mutable std::atomic<bool> query_index_built_ {false};
+    mutable std::atomic<bool> match_index_built_ {false};
+    mutable std::mutex index_mutex_;
     mutable std::unordered_map<UInt64, std::array<Size, 2>> query_index_;
     mutable std::unordered_map<UInt64, std::array<Size, 3>> match_index_;
     std::optional<std::array<Size, 2>> last_query_;
@@ -404,6 +409,7 @@ public:
   void clear();
   /// Append independent runs atomically; identical shared UUIDs are retained once.
   /// Conflicting values for an existing UUID are rejected; repeated display names receive a numeric suffix.
+  /// Existing runs are neither copied nor moved, so references to them stay valid; a rejected merge changes nothing.
   void merge(const IdentificationData& other);
   bool operator==(const IdentificationData& other) const;
   Size filterMatches(const std::function<bool(const Match&)>& keep, InferencePolicy policy, bool keep_empty_queries = false);

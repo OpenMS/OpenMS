@@ -22,6 +22,7 @@
 #include <functional>
 #include <set>
 #include <algorithm>
+#include <utility>
 
 namespace OpenMS
 {
@@ -353,6 +354,19 @@ public:
     void setSearchEngineVersion(const std::string& search_engine_version);
     /// Returns the search engine version
     const std::string& getSearchEngineVersion() const;
+    /**
+      @brief Records the software that produced PSM scores of type @p score_type in this run
+
+      Post-processing tools that replace the main PSM score with a derived score (e.g. posterior
+      error probabilities or q-values) record themselves here instead of overwriting the search
+      engine, which downstream tools still need. Stored as search parameter meta values
+      "ScoreSoftware:<score_type>" and "ScoreSoftwareVersion:<score_type>".
+    */
+    void setScoreSoftware(const std::string& score_type, const std::string& software, const std::string& version);
+    /// Returns software and version that produced PSM scores of type @p score_type: the recorded producer, otherwise the search engine
+    std::pair<std::string, std::string> getScoreSoftware(const std::string& score_type) const;
+    /// Removes all recorded score producers, e.g. when a tool that records itself as search engine replaces the scores
+    void clearScoreSoftware();
     /// Sets the inference engine type
     void setInferenceEngine(const std::string& search_engine);
     /// Returns the type of search engine used

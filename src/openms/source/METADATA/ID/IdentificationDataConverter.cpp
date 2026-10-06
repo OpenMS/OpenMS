@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <tuple>
 #include <type_traits>
 namespace OpenMS
 {
@@ -110,8 +111,7 @@ namespace
           ID::ScoreDefinition definition;
           definition.name = item.getScoreType();
           definition.higher_better = item.isHigherScoreBetter();
-          definition.software = metadata.getSearchEngine();
-          definition.software_version = metadata.getSearchEngineVersion();
+          std::tie(definition.software, definition.software_version) = metadata.getScoreSoftware(definition.name);
           run.setPrimaryScore(run.addScore(definition));
         }
         found = runs.emplace(key, &run).first;
@@ -421,7 +421,12 @@ void IdentificationDataConverter::exportIDs(const ID& data,
         hit.setAccession(parent.identity.accession);
         hit.setSequence(parent.sequence);
         hit.setDescription(parent.description);
-        if (parent.metaValueExists("coverage")) hit.setCoverage(static_cast<double>(parent.getMetaValue("coverage")) * 100.0);
+        if (parent.metaValueExists("coverage"))
+        {
+          // the coverage attribute represents it
+          hit.setCoverage(static_cast<double>(parent.getMetaValue("coverage")) * 100.0);
+          hit.removeMetaValue("coverage");
+        }
         hit.setTargetDecoyType(parent.target_decoy == ID::TargetDecoy::DECOY    ? ProteinHit::TargetDecoyType::DECOY
                                : parent.target_decoy == ID::TargetDecoy::TARGET ? ProteinHit::TargetDecoyType::TARGET
                                                                                 : ProteinHit::TargetDecoyType::UNKNOWN);
@@ -441,6 +446,14 @@ void IdentificationDataConverter::exportIDs(const ID& data,
     for (const auto& source : run.getSourceBlocks())
       paths.push_back(source.source.path);
     processing.setPrimaryMSRunPath(paths);
+    if (run.getPrimaryScore())
+    {
+      // Record a producer other than the search engine so the score definition survives the round trip.
+      const auto& definition = run.getScoreDefinition(*run.getPrimaryScore());
+      if (! definition.name.empty() && ! definition.software.empty()
+          && std::make_pair(definition.software, definition.software_version) != processing.getScoreSoftware(definition.name))
+        processing.setScoreSoftware(definition.name, definition.software, definition.software_version);
+    }
     added_proteins.push_back(std::move(processing));
     for (const auto& source : run.getSourceBlocks())
       for (const auto& query : source.identifications)
@@ -460,7 +473,8 @@ void IdentificationDataConverter::exportIDs(const ID& data,
         }
         for (const auto& match : query.getMatches())
         {
-          const auto score = run.getPrimaryScore() ? run.getScore(match.getId(), *run.getPrimaryScore()) : std::nullopt;
+          const auto scores = match.getScores();
+          const auto score = run.getPrimaryScore() ? scores.at(run.getPrimaryScore()->value) : std::nullopt;
           if (! score && ! export_ids_wo_scores) continue;
           PeptideHit hit;
           static_cast<MetaInfoInterface&>(hit) = match;
@@ -499,10 +513,9 @@ void IdentificationDataConverter::exportIDs(const ID& data,
             hit.setMetaValue("target_decoy", match.target_decoy == ID::TargetDecoy::DECOY  ? "decoy"
                                              : match.target_decoy == ID::TargetDecoy::BOTH ? "target+decoy"
                                                                                            : "target");
-          for (Size i = 0; i < run.getScoreDefinitions().size(); ++i)
-            if (const auto value = run.getScore(match.getId(), run.getScoreId(i));
-                value && (! run.getPrimaryScore() || i != run.getPrimaryScore()->value))
-              hit.setMetaValue(run.getScoreDefinitions()[i].name, *value);
+          for (Size i = 0; i < run.getScoreDefinitions().size() && i < scores.size(); ++i)
+            if (scores[i] && (! run.getPrimaryScore() || i != run.getPrimaryScore()->value))
+              hit.setMetaValue(run.getScoreDefinitions()[i].name, *scores[i]);
           item.insertHit(hit);
         }
         if (! item.getHits().empty() || query.getMatches().empty()) added_peptides.push_back(std::move(item));

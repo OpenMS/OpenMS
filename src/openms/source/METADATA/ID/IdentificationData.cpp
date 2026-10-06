@@ -25,35 +25,68 @@ namespace
   static_assert(std::is_nothrow_swappable_v<std::unique_ptr<ProteinIdentification>>);
   [[noreturn]] void invalid(const std::string& message)
   { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message, "IdentificationData"); }
+  std::string describe(const ID::ScoreDefinition& definition)
+  {
+    std::string text = "'" + definition.name + "' (" + (definition.higher_better ? "higher" : "lower") + " is better, from "
+                       + (definition.software.empty() ? std::string("unknown software") : definition.software)
+                       + (definition.software_version.empty() ? std::string() : " " + definition.software_version);
+    if (! definition.accession.empty()) text += ", " + definition.accession;
+    if (! definition.calibration.empty() || ! definition.aggregation.empty() || ! definition.parameters.isMetaEmpty()
+        || definition.scope != ID::ScoreScope::MATCH)
+      text += ", with scope/parameter/calibration provenance";
+    return text + ")";
+  }
+  std::string describe(const std::vector<ID::ScoreDefinition>& definitions)
+  {
+    std::string text = "[";
+    for (const auto& definition : definitions)
+      text += (text.size() > 1 ? "; " : "") + describe(definition);
+    return text + "]";
+  }
+  bool isCatalog(const ID::Run& run)
+  {
+    const auto& processing = run.getProcessingMetadata();
+    return processing.metaValueExists("identification:catalog") && processing.getMetaValue("identification:catalog").toString() == "true";
+  }
+  /// Checks the dataset-wide PSM score contract over @p runs; returns the first configured run.
+  const ID::Run* checkScoreContract(const std::vector<const ID::Run*>& runs, bool check_primary = true)
+  {
+    const ID::Run* expected = nullptr;
+    for (const auto* run : runs)
+    {
+      const auto& definitions = run->getScoreDefinitions();
+      const auto primary = run->getPrimaryScore();
+      const bool catalog = isCatalog(*run);
+      if (catalog && (! definitions.empty() || primary)) invalid("A sequence catalog cannot declare PSM scores");
+      if (definitions.empty() && ! primary && (run->getNumberOfMatches() == 0 || catalog)) continue;
+      if (check_primary && ! primary) invalid("Run '" + run->getIdentifier() + "' must select a primary PSM score");
+      if (! expected)
+      {
+        expected = run;
+        continue;
+      }
+      if (definitions != expected->getScoreDefinitions())
+        invalid("PSM score definitions differ between runs '" + expected->getIdentifier() + "' " + describe(expected->getScoreDefinitions())
+                + " and '" + run->getIdentifier() + "' " + describe(definitions)
+                + ". Runs can only be combined with one ordered score schema, including the producing software and version. "
+                  "Normalize the scores first, e.g. rescore each search with PercolatorAdapter or IDPosteriorErrorProbability, "
+                  "or select a common score with IDScoreSwitcher");
+      if (check_primary && primary->value != expected->getPrimaryScore()->value)
+        invalid("Primary PSM score selection differs between runs '" + expected->getIdentifier() + "' and '" + run->getIdentifier() + "'");
+    }
+    return expected;
+  }
   const ID::Run* checkScoreContract(const std::deque<ID::Run>& runs,
                                     const ID::Run* candidate = nullptr,
                                     const std::string* replacing_uuid = nullptr,
                                     bool check_primary = true)
   {
-    const ID::Run* expected = nullptr;
-    const auto check = [&](const ID::Run& run) {
-      const auto& definitions = run.getScoreDefinitions();
-      const auto primary = run.getPrimaryScore();
-      const auto& processing = run.getProcessingMetadata();
-      const bool catalog
-        = processing.metaValueExists("identification:catalog") && processing.getMetaValue("identification:catalog").toString() == "true";
-      if (catalog && (! definitions.empty() || primary)) invalid("A sequence catalog cannot declare PSM scores");
-      if (definitions.empty() && ! primary && (run.getNumberOfMatches() == 0 || catalog)) return;
-      if (check_primary && ! primary) invalid("Run '" + run.getIdentifier() + "' must select a primary PSM score");
-      if (! expected) expected = &run;
-      else
-      {
-        if (definitions != expected->getScoreDefinitions())
-          invalid("Ordered PSM score schema differs between runs '" + expected->getIdentifier() + "' and '" + run.getIdentifier()
-                  + "'. Normalize score definitions and column order before combining runs");
-        if (check_primary && primary->value != expected->getPrimaryScore()->value)
-          invalid("Primary PSM score selection differs between runs '" + expected->getIdentifier() + "' and '" + run.getIdentifier() + "'");
-      }
-    };
+    std::vector<const ID::Run*> selected;
+    selected.reserve(runs.size() + 1);
     for (const auto& run : runs)
-      if (!replacing_uuid || run.getUuid() != *replacing_uuid) check(run);
-    if (candidate) check(*candidate);
-    return expected;
+      if (! replacing_uuid || run.getUuid() != *replacing_uuid) selected.push_back(&run);
+    if (candidate) selected.push_back(candidate);
+    return checkScoreContract(selected, check_primary);
   }
   UInt64 token()
   {
@@ -194,8 +227,9 @@ void ID::Run::swapData_(Run& other) noexcept
   swap(import_finalized_, other.import_finalized_);
   swap(query_count_, other.query_count_);
   swap(match_count_, other.match_count_);
-  swap(query_index_built_, other.query_index_built_);
-  swap(match_index_built_, other.match_index_built_);
+  // Atomics are not swappable; swapping is a mutation with exclusive access to both runs.
+  query_index_built_.store(other.query_index_built_.exchange(query_index_built_.load()));
+  match_index_built_.store(other.match_index_built_.exchange(match_index_built_.load()));
   swap(query_index_, other.query_index_);
   swap(match_index_, other.match_index_);
   swap(last_query_, other.last_query_);
@@ -377,18 +411,23 @@ void ID::Run::prepareLookupIndexes()
 }
 void ID::Run::ensureQueryIndex_() const
 {
-  if (query_index_built_) return;
+  // Double-checked: concurrent const lookups build the index once and then read it lock-free.
+  if (query_index_built_.load(std::memory_order_acquire)) return;
+  std::lock_guard<std::mutex> lock(index_mutex_);
+  if (query_index_built_.load(std::memory_order_relaxed)) return;
   std::unordered_map<UInt64, std::array<Size, 2>> index;
   index.reserve(query_count_);
   for (Size s = 0; s < sources_.size(); ++s)
     for (Size q = 0; q < sources_[s].identifications.size(); ++q)
       index.emplace(sources_[s].identifications[q].id_.value, std::array<Size, 2> {s, q});
   query_index_.swap(index);
-  query_index_built_ = true;
+  query_index_built_.store(true, std::memory_order_release);
 }
 void ID::Run::ensureMatchIndex_() const
 {
-  if (match_index_built_) return;
+  if (match_index_built_.load(std::memory_order_acquire)) return;
+  std::lock_guard<std::mutex> lock(index_mutex_);
+  if (match_index_built_.load(std::memory_order_relaxed)) return;
   std::unordered_map<UInt64, std::array<Size, 3>> index;
   index.reserve(match_count_);
   for (Size s = 0; s < sources_.size(); ++s)
@@ -396,7 +435,7 @@ void ID::Run::ensureMatchIndex_() const
       for (Size m = 0; m < sources_[s].identifications[q].matches_.size(); ++m)
         index.emplace(sources_[s].identifications[q].matches_[m].id_.value, std::array<Size, 3> {s, q, m});
   match_index_.swap(index);
-  match_index_built_ = true;
+  match_index_built_.store(true, std::memory_order_release);
 }
 void ID::Run::invalidateIndexes_()
 {
@@ -951,46 +990,94 @@ void ID::merge(const IdentificationData& other)
 {
   checkMutation_();
   validate();
+  // Every run and result of a dataset is already present in itself, with equal values.
+  if (this == &other) return;
   other.validate();
-  IdentificationData replacement(*this);
+  // Stage only the incoming runs and results and validate them against this dataset. The
+  // commit appends to the run deque, which keeps references to existing runs valid.
+  std::set<std::string> run_identifiers;
+  for (const auto& run : runs_)
+    run_identifiers.insert(run.identifier_);
+  std::vector<Run> staged_runs;
+  staged_runs.reserve(other.runs_.size());
   for (const auto& run : other.runs_)
   {
-    auto* existing = replacement.findRunByUuid(run.getUuid());
-    if (existing)
+    if (const auto* existing = findRunByUuid(run.getUuid()))
     {
       auto comparable = run;
       comparable.identifier_ = existing->identifier_;
       comparable.processing_->setIdentifier(existing->processing_->getIdentifier());
       if (*existing != comparable) invalid("Cannot merge conflicting values for the same run UUID");
+      continue;
     }
-    else
-    {
-      auto copy = run;
-      const auto original = copy.identifier_;
-      Size suffix = 2;
-      while (std::any_of(replacement.runs_.begin(), replacement.runs_.end(), [&](const auto& item) { return item.identifier_ == copy.identifier_; }))
-        copy.identifier_ = original + "#" + std::to_string(suffix++);
-      copy.processing_->setIdentifier(copy.identifier_);
-      replacement.addRun(std::move(copy));
-    }
+    for (const auto& result : inference_)
+      for (const auto& input : result.inputs)
+        if (input.run_uuid == run.getUuid()) invalid("An independent run cannot reuse an unresolved provenance UUID");
+    auto copy = run;
+    const auto original = copy.identifier_;
+    Size suffix = 2;
+    while (run_identifiers.contains(copy.identifier_))
+      copy.identifier_ = original + "#" + std::to_string(suffix++);
+    copy.processing_->setIdentifier(copy.identifier_);
+    run_identifiers.insert(copy.identifier_);
+    staged_runs.push_back(std::move(copy));
   }
+  {
+    std::vector<const Run*> combined;
+    combined.reserve(runs_.size() + staged_runs.size());
+    for (const auto& run : runs_)
+      combined.push_back(&run);
+    for (const auto& run : staged_runs)
+      combined.push_back(&run);
+    checkScoreContract(combined);
+  }
+  const auto find_identifier = [&](const std::string& uuid) -> const std::string* {
+    if (const auto* run = findRunByUuid(uuid)) return &run->identifier_;
+    for (const auto& run : staged_runs)
+      if (run.uuid_ == uuid) return &run.identifier_;
+    return nullptr;
+  };
+  std::set<std::string> result_identifiers;
+  for (const auto& result : inference_)
+    result_identifiers.insert(result.identifier);
+  std::vector<InferenceResult> staged_results;
   for (const auto& result : other.inference_)
   {
-    auto existing
-      = std::find_if(replacement.inference_.begin(), replacement.inference_.end(), [&](const auto& r) { return r.identifier == result.identifier; });
-    if (existing != replacement.inference_.end() && *existing == result) continue;
     auto copy = result;
+    // Inputs follow renamed runs; compare after mapping so a repeated merge adds nothing.
+    for (auto& input : copy.inputs)
+    {
+      if (! validUuid(input.run_uuid)) invalid("Inference input needs a run UUID");
+      if (const auto* identifier = find_identifier(input.run_uuid)) input.run_identifier = *identifier;
+    }
+    const auto existing = std::find_if(inference_.begin(), inference_.end(), [&](const auto& r) { return r.identifier == copy.identifier; });
+    if (existing != inference_.end() && *existing == copy) continue;
     const auto original = copy.identifier;
     Size suffix = 2;
-    while (
-      std::any_of(replacement.inference_.begin(), replacement.inference_.end(), [&](const auto& item) { return item.identifier == copy.identifier; }))
+    while (result_identifiers.contains(copy.identifier))
       copy.identifier = original + "#" + std::to_string(suffix++);
-    for (auto& input : copy.inputs)
-      if (const auto* run = replacement.findRunByUuid(input.run_uuid)) input.run_identifier = run->getIdentifier();
-    replacement.addInferenceResult(std::move(copy));
+    result_identifiers.insert(copy.identifier);
+    staged_results.push_back(std::move(copy));
   }
-  replacement.validate();
-  swap(replacement);
+  // Commit. If an allocation fails part-way, remove what was appended so nothing changes.
+  const Size old_runs = runs_.size();
+  const Size old_results = inference_.size();
+  try
+  {
+    for (auto& run : staged_runs)
+      runs_.push_back(std::move(run));
+    inference_.reserve(inference_.size() + staged_results.size());
+    for (auto& result : staged_results)
+      inference_.push_back(std::move(result));
+  }
+  catch (...)
+  {
+    while (runs_.size() > old_runs)
+      runs_.pop_back();
+    while (inference_.size() > old_results)
+      inference_.pop_back();
+    throw;
+  }
 }
 void ID::clearInferenceResults()
 {
@@ -1039,7 +1126,8 @@ void ID::setPrimaryScore(const ScoreDefinition& definition)
   for (auto& run : runs_)
   {
     run.checkMutation_();
-    if (!run.primary_ && run.match_count_ == 0 && run.scores_.empty()) continue;
+    // Same exemptions as the score contract: unconfigured empty runs and scoreless catalogs.
+    if (! run.primary_ && run.scores_.empty() && (run.match_count_ == 0 || isCatalog(run))) continue;
     const auto score = run.findScore(definition);
     for (const auto& source : run.sources_)
       for (const auto& query : source.identifications)

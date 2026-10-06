@@ -81,6 +81,7 @@
 #include <nanobind/operators.h>
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/optional.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/set.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
@@ -2718,6 +2719,9 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
         .def("getSearchEngine", [](const OpenMS::ProteinIdentification& self) { return self.getSearchEngine(); }, "Returns the type of search engine used")
         .def("setSearchEngineVersion", [](OpenMS::ProteinIdentification& self, const std::string& search_engine_version) { return self.setSearchEngineVersion(search_engine_version); }, "search_engine_version"_a, "Sets the search engine version")
         .def("getSearchEngineVersion", [](const OpenMS::ProteinIdentification& self) { return self.getSearchEngineVersion(); }, "Returns the search engine version")
+        .def("setScoreSoftware", [](OpenMS::ProteinIdentification& self, const std::string& score_type, const std::string& software, const std::string& version) { self.setScoreSoftware(score_type, software, version); }, "score_type"_a, "software"_a, "version"_a, "Records the software that produced PSM scores of this type (e.g. a post-processing tool)")
+        .def("getScoreSoftware", [](const OpenMS::ProteinIdentification& self, const std::string& score_type) { return self.getScoreSoftware(score_type); }, "score_type"_a, "Returns (software, version) that produced PSM scores of this type; the search engine unless a producer was recorded")
+        .def("clearScoreSoftware", [](OpenMS::ProteinIdentification& self) { self.clearScoreSoftware(); }, "Removes all recorded score producers")
         .def("setSearchParameters", [](OpenMS::ProteinIdentification& self, const OpenMS::ProteinIdentification::SearchParameters& search_parameters) { return self.setSearchParameters(search_parameters); }, "search_parameters"_a, "Sets the search parameters")
         .def("setSearchParameters", [](OpenMS::ProteinIdentification& self, OpenMS::ProteinIdentification::SearchParameters& search_parameters) { return self.setSearchParameters(search_parameters); }, "search_parameters"_a, "Sets the search parameters")
         .def("getSearchParameters", [](OpenMS::ProteinIdentification& self) -> OpenMS::ProteinIdentification::SearchParameters { return self.getSearchParameters(); }, "Returns the search parameters")

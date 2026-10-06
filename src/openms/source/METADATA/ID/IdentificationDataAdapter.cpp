@@ -82,7 +82,8 @@ namespace
   {
     if (run.getMoleculeKind() != ID::MoleculeKind::PEPTIDE || match.encoding != ID::Encoding::AA_SEQUENCE)
       invalid("Legacy peptide conversion requires AASequence-encoded peptide matches");
-    const auto value = run.getScore(match.getId(), score);
+    // Bound access reads the match's dense scores directly instead of building the run's lookup index.
+    const auto value = run.bindScore(score)(match);
     if (! value) invalid("Cannot materialize a peptide without the selected score");
     PeptideHit hit;
     static_cast<MetaInfoInterface&>(hit) = match;
@@ -307,8 +308,8 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
     ID::ScoreDefinition definition;
     definition.name = std::get<1>(contract);
     definition.higher_better = std::get<2>(contract);
-    definition.software = configuration.getSearchEngine();
-    definition.software_version = configuration.getSearchEngineVersion();
+    // A derived score belongs to the tool that recorded itself as its producer, not to the search engine.
+    std::tie(definition.software, definition.software_version) = configuration.getScoreSoftware(definition.name);
     if (! definition.name.empty())
     {
       const auto score = run.addScore(definition);
@@ -446,6 +447,15 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
           || std::any_of(inference->inputs.begin(), inference->inputs.end(), [](const auto& input) { return input.score.has_value(); }))
         loss(result, options, "Legacy export cannot preserve complete inference score definitions: " + inference->identifier);
     }
+    const auto primary = run.getPrimaryScore();
+    if (primary)
+    {
+      // Record a producer other than the search engine so the score definition survives the round trip.
+      const auto& definition = run.getScoreDefinition(*primary);
+      if (! definition.name.empty() && ! definition.software.empty()
+          && std::make_pair(definition.software, definition.software_version) != proteins.getScoreSoftware(definition.name))
+        proteins.setScoreSoftware(definition.name, definition.software, definition.software_version);
+    }
     const auto found = protein_indices.find(proteins.getIdentifier());
     if (found == protein_indices.end())
     {
@@ -463,7 +473,6 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
       protein_indices[identifier] = result.proteins.size();
       result.proteins.push_back(proteins);
     }
-    const auto primary = run.getPrimaryScore();
     if (! primary && run.getNumberOfMatches())
     {
       loss(result, options, "Run has matches but no primary score: " + run.getIdentifier());
@@ -475,8 +484,8 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
     {
       const auto& definition = run.getScoreDefinition(*primary);
       if (! definition.accession.empty() || definition.scope != ID::ScoreScope::MATCH || ! definition.calibration.empty()
-          || ! definition.aggregation.empty() || ! definition.parameters.isMetaEmpty() || definition.software != proteins.getSearchEngine()
-          || definition.software_version != proteins.getSearchEngineVersion())
+          || ! definition.aggregation.empty() || ! definition.parameters.isMetaEmpty()
+          || std::make_pair(definition.software, definition.software_version) != proteins.getScoreSoftware(definition.name))
         loss(result, options, "Legacy export cannot retain the complete primary score definition: " + run.getIdentifier());
     }
     registerDefinitions(run.getProcessingMetadata().getSearchParameters());

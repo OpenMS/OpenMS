@@ -8,6 +8,8 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <limits>
 #include <stdexcept>
+#include <thread>
+#include <vector>
 
 using namespace OpenMS;
 using ID = IdentificationData;
@@ -428,6 +430,74 @@ START_SECTION((absent provenance runs cannot collide with later independent impo
   data.addInferenceResult(inference);
   TEST_EXCEPTION(Exception::InvalidValue, data.addRun(absent))
   data.validate();
+}
+END_SECTION
+
+START_SECTION((concurrent const lookups build the lazy indexes once))
+{
+  ID::Run run("lookups");
+  run.setPrimaryScore(run.addScore(score()));
+  const auto source = run.addSource({});
+  std::vector<ID::MatchId> ids;
+  for (Size i = 0; i < 2000; ++i)
+    ids.push_back(run.addMatch(run.addIdentification(source, {}), peptide(), {static_cast<double>(i)}));
+  const ID::Run copy(run); // fresh copy: no index built yet
+  std::vector<int> found(8, 0);
+  std::vector<std::thread> threads;
+  for (Size t = 0; t < found.size(); ++t)
+    threads.emplace_back([&, t] {
+      for (const auto& id : ids)
+        if (copy.findMatch(id) && copy.getIdentificationForMatch(id).getMatches().size() == 1) ++found[t];
+    });
+  for (auto& thread : threads)
+    thread.join();
+  for (int count : found)
+    TEST_EQUAL(count, 2000)
+}
+END_SECTION
+
+START_SECTION((merging appends runs, keeps existing run references valid and is atomic))
+{
+  ID data;
+  auto& kept = data.addRun("A");
+  auto primary = kept.addScore(score());
+  kept.setPrimaryScore(primary);
+  auto query = kept.addIdentification(kept.addSource({}), {});
+  kept.addMatch(query, peptide(), {1.0});
+  const auto* address = &kept;
+
+  ID other;
+  auto& incoming = other.addRun("A"); // repeated display name, independent run
+  incoming.setPrimaryScore(incoming.addScore(score()));
+  incoming.addMatch(incoming.addIdentification(incoming.addSource({}), {}), peptide("SEQUENCE"), {2.0});
+  ID::InferenceResult result;
+  result.identifier = "pooled";
+  result.inputs.push_back({"A", incoming.getUuid(), {}, {}});
+  other.addInferenceResult(result);
+
+  data.merge(other);
+  TEST_EQUAL(data.getRuns().size(), 2)
+  // The existing run was neither copied nor moved.
+  TEST_EQUAL(&data.getRun("A") == address, true)
+  TEST_EQUAL(kept.getNumberOfMatches(), 1)
+  TEST_EQUAL(data.getRun("A#2").getUuid(), incoming.getUuid())
+  // Provenance follows the renamed run.
+  TEST_EQUAL(data.getInferenceResults().at(0).inputs.at(0).run_identifier, "A#2")
+  // Merging the same data again only re-checks equality and adds nothing.
+  data.merge(other);
+  TEST_EQUAL(data.getRuns().size(), 2)
+  TEST_EQUAL(data.getInferenceResults().size(), 1)
+  data.merge(data);
+  TEST_EQUAL(data.getRuns().size(), 2)
+
+  // A run with a different score definition is rejected and leaves the dataset unchanged.
+  ID conflicting;
+  auto& foreign = conflicting.addRun("B");
+  foreign.setPrimaryScore(foreign.addScore(score("other", false)));
+  foreign.addMatch(foreign.addIdentification(foreign.addSource({}), {}), peptide(), {0.5});
+  TEST_EXCEPTION(Exception::InvalidValue, data.merge(conflicting))
+  TEST_EQUAL(data.getRuns().size(), 2)
+  TEST_EQUAL(&data.getRun("A") == address, true)
 }
 END_SECTION
 END_TEST

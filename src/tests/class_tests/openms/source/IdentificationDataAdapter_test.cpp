@@ -165,6 +165,54 @@ START_SECTION([EXTRA] idXML round trip preserves supported imported values)
 }
 END_SECTION
 
+START_SECTION([EXTRA] derived scores belong to their recorded producer and not to the search engine)
+{
+  // Two engines whose PSMs were rescored with posterior error probabilities.
+  auto comet = protein();
+  comet.setIdentifier("comet");
+  comet.setSearchEngine("Comet");
+  comet.setSearchEngineVersion("2024.01");
+  auto msgf = protein();
+  msgf.setIdentifier("msgf");
+  msgf.setSearchEngine("MSGFPlus");
+  msgf.setSearchEngineVersion("2024.07");
+  auto from_comet = peptide("Posterior Error Probability", 0.01);
+  from_comet.setIdentifier("comet");
+  auto from_msgf = peptide("Posterior Error Probability", 0.02);
+  from_msgf.setIdentifier("msgf");
+  PeptideIdentificationList peptides {from_comet, from_msgf};
+
+  // Without a recorded producer the PEPs are attributed to different engines and cannot share a schema.
+  TEST_EXCEPTION(Exception::InvalidValue, Adapter::fromLegacy({comet, msgf}, peptides))
+
+  comet.setScoreSoftware("Posterior Error Probability", "IDPosteriorErrorProbability", "3.7.0");
+  msgf.setScoreSoftware("Posterior Error Probability", "IDPosteriorErrorProbability", "3.7.0");
+  const auto data = Adapter::fromLegacy({comet, msgf}, peptides);
+  TEST_EQUAL(data.getRuns().size(), 2)
+  const auto& definition = data.getScoreDefinitions().at(0);
+  TEST_EQUAL(definition.name, "Posterior Error Probability")
+  TEST_EQUAL(definition.software, "IDPosteriorErrorProbability")
+  TEST_EQUAL(definition.software_version, "3.7.0")
+  TEST_EQUAL(data.getRuns()[0].getScoreDefinitions() == data.getRuns()[1].getScoreDefinitions(), true)
+  // The engines themselves remain in the run configuration.
+  TEST_EQUAL(data.getRun("comet").getProcessingMetadata().getSearchEngine(), "Comet")
+
+  // Strict export keeps both the engine and the producer.
+  const auto exported = Adapter::toLegacy(data);
+  TEST_EQUAL(exported.losses.empty(), true)
+  TEST_EQUAL(exported.proteins.size(), 2)
+  for (const auto& run : exported.proteins)
+  {
+    TEST_EQUAL(run.getSearchEngine() == "Comet" || run.getSearchEngine() == "MSGFPlus", true)
+    TEST_EQUAL(run.getScoreSoftware("Posterior Error Probability").first, "IDPosteriorErrorProbability")
+  }
+
+  // Different producer versions are different definitions and are still rejected.
+  msgf.setScoreSoftware("Posterior Error Probability", "IDPosteriorErrorProbability", "3.6.0");
+  TEST_EXCEPTION(Exception::InvalidValue, Adapter::fromLegacy({comet, msgf}, peptides))
+}
+END_SECTION
+
 START_SECTION([EXTRA] custom modifications retain definitions and reject conflicting chemistry)
 {
   ResidueModification definition;
