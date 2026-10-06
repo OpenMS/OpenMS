@@ -37,6 +37,9 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/config.h>
 #include <arrow/api.h>
+#include <arrow/io/file.h>
+#include <parquet/arrow/reader.h>
+#include <parquet/arrow/writer.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -1936,6 +1939,46 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - owning identificatio
   TEST_EQUAL(loaded_other.getIDQueries() == unannotated.getIDQueries(), true)
   const auto& reloaded_match = loaded.getIdentificationData().findRunByUuid(run.getUuid())->getMatch(match);
   TEST_EQUAL(reloaded_match.getMetaValue("inchi_key"), "InChI=1S/CH2O2/c2-1-3/h1H,(H,2,3)")
+
+  // Run UUIDs are dictionary-encoded strings; links written by other tools as plain strings load as well.
+  {
+    const std::string links = dir + "/identification_links.parquet";
+    std::shared_ptr<arrow::Table> table;
+    {
+      auto input = arrow::io::ReadableFile::Open(links).ValueOrDie();
+      auto reader = parquet::arrow::OpenFile(input, arrow::default_memory_pool()).ValueOrDie();
+      table = reader->ReadTable().ValueOrDie();
+    }
+    const auto uuid_type = table->schema()->GetFieldByName("run_uuid")->type();
+    TEST_EQUAL(uuid_type->id() == arrow::Type::DICTIONARY, true)
+    TEST_EQUAL(static_cast<const arrow::DictionaryType&>(*uuid_type).index_type()->id() == arrow::Type::INT32, true)
+    arrow::StringBuilder plain_uuids;
+    for (const auto& chunk : table->GetColumnByName("run_uuid")->chunks())
+    {
+      const auto& dictionary = static_cast<const arrow::DictionaryArray&>(*chunk);
+      const auto& values = static_cast<const arrow::StringArray&>(*dictionary.dictionary());
+      for (int64_t row = 0; row < dictionary.length(); ++row)
+      {
+        if (dictionary.IsNull(row)) TEST_EQUAL(plain_uuids.AppendNull().ok(), true)
+        else
+          TEST_EQUAL(plain_uuids.Append(values.GetString(dictionary.GetValueIndex(row))).ok(), true)
+      }
+    }
+    std::shared_ptr<arrow::Array> plain_column;
+    TEST_EQUAL(plain_uuids.Finish(&plain_column).ok(), true)
+    const auto index = table->schema()->GetFieldIndex("run_uuid");
+    table = table->SetColumn(index, arrow::field("run_uuid", arrow::utf8(), true), std::make_shared<arrow::ChunkedArray>(plain_column)).ValueOrDie();
+    {
+      auto sink = arrow::io::FileOutputStream::Open(links).ValueOrDie();
+      TEST_EQUAL(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), sink, table->num_rows()).ok(), true)
+      TEST_EQUAL(sink->Close().ok(), true)
+    }
+    FeatureMap from_plain;
+    TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, from_plain))
+    const auto& plain_top = from_plain[0].getUniqueId() == 11 ? from_plain[0] : from_plain[1];
+    TEST_EQUAL(plain_top.getIDMatches() == top.getIDMatches(), true)
+    TEST_EQUAL(plain_top.getSubordinates()[0].getIDMatches() == subordinate.getIDMatches(), true)
+  }
 
   // An existing bundle is replaced; the result is identical.
   TEST_TRUE(FeatureMapArrowIO::exportToParquet(loaded, dir))

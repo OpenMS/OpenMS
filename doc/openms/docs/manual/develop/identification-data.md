@@ -100,7 +100,13 @@ the legacy `PeptideIdentification`s they may also carry.
 
 - `identifications/`: the map's identification data as a native bundle;
 - `identification_links.parquet`: one row per link (`primary`, `query` or `match`), keyed by
-  feature unique ID like `psms.parquet`.
+  feature unique ID like `psms.parquet`. Columns: `feature_unique_id`, `link`, `run_uuid`,
+  `record_id` (query or match ID), and `encoding`/`representation` for primary molecules.
+
+Run UUIDs are random version-4 UUIDs written as 36-character lowercase strings
+(`4ee928b7-e4ed-4925-8899-133a43050310`). Tables that carry them store them as dictionary-encoded
+strings (`dictionary<int32, string>`, one entry per run) with the Arrow schema stored in the file, so
+readers get the full string at about 4 bytes per row; plain string columns are accepted on input.
 
 Every link must resolve and linked features need distinct valid unique IDs; otherwise the export
 throws `Exception::InvalidValue`. Map bundles are also written to a temporary sibling directory; an
