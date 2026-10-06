@@ -494,7 +494,8 @@ DataValue OMSFileLoad::makeDataValue_(const SQLite::Statement& query)
     // Keep empty observations too; they are not tied to a particular candidate type.
     if (! observations.empty() && runs.empty()) get_run(ID::MoleculeKind::PEPTIDE);
     for (const auto& [id, observation] : observations)
-      if (std::none_of(queries.begin(), queries.end(), [&](const auto& item) { return item.first.second == id; })) get_query(runs.begin()->first, id);
+      if (std::none_of(queries.begin(), queries.end(), [id = id](const auto& item) { return item.first.second == id; }))
+        get_query(runs.begin()->first, id);
     // Honor the preferred score of the most recent software when it is complete.
     std::vector<Size> preferred;
     if (db_->tableExists("ID_ProcessingSoftware_AssignedScore") && db_->tableExists("ID_ProcessingStep"))

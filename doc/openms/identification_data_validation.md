@@ -50,6 +50,27 @@ The native layout and score contract are unchanged. Native Windows/macOS builds
 and wheel packaging remain subject to the new CI run; this local Python build
 uses linked mode rather than the wheels' stable-ABI split mode.
 
+## Clang/OpenMP follow-up (2026-10-06)
+
+The next CI run at `0e8037c7066092a11c63d201de1b10dbc796730e` progressed past
+the previous Clang crashes and exposed a structured-binding lambda capture in
+the released-OMS compatibility reader. Clang 18.1.3 rejects this capture when
+`-fopenmp` is enabled. The earlier isolated Clang checks did not enable OpenMP.
+An explicit value capture of the observation ID removes that unsupported capture
+without changing which empty observations are retained.
+
+The original error reproduces locally with C++23 and `-fopenmp`; the fixed reader
+compiles successfully. All **46 non-deleted C++ translation units changed by this
+PR pass Clang 18.1.3 syntax compilation with OpenMP enabled**: 43 use their generated
+build commands, and the external-consumer source and two benchmark sources use
+the same configured consumer include paths and compiler flags. Deleted sources
+are excluded. This covers the native codecs, migrated consumers, bindings,
+changed class tests and TOPP sources.
+
+The Release OMS reader was rebuilt and the core library relinked. All **21 focused
+C++ suites and 23 owning-model Python regressions pass** against that library.
+The full Python-suite result above belongs to the preceding CI-fix commit.
+
 ## Build and correctness
 
 - Release `libOpenMS`: GCC 13.3, C++23, `-O3 -DNDEBUG -g1`, Arrow/Parquet 25.
