@@ -17,12 +17,24 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ModificationDefinitionIO.h>
+#include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
+#include <atomic>
+#include <cmath>
+#include <exception>
 #include <fstream>
+#include <functional>
+#include <numeric>
+#include <sstream>
 #include <unordered_map>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace std;
 
@@ -214,14 +226,36 @@ namespace OpenMS
     }
     accession_to_id.reserve(protein_count); // expect this many keys (avoid rehashing)
 
-    // identifiers of protein identifications that are already written
-    std::vector<std::string> done_identifiers;
+    // assign the peptide identifications to their runs in one pass, keeping the input order
+    std::unordered_map<std::string, Size> run_of_identifier;
+    run_of_identifier.reserve(protein_ids.size());
+    for (Size i = 0; i < protein_ids.size(); ++i)
+    {
+      run_of_identifier.emplace(protein_ids[i].getIdentifier(), i);
+    }
+    std::vector<std::vector<Size>> run_peptide_ids(protein_ids.size()); // the ones with hits, written
+    std::vector<Size> run_empty_count(protein_ids.size(), 0); // the ones without hits, omitted
+    std::vector<Size> without_run; // the ones whose identifier names no run, omitted
+    for (Size l = 0; l < peptide_ids.size(); ++l)
+    {
+      const auto run = run_of_identifier.find(peptide_ids[l].getIdentifier());
+      if (run == run_of_identifier.end())
+      {
+        without_run.push_back(l);
+      }
+      else if (peptide_ids[l].getHits().empty())
+      {
+        ++run_empty_count[run->second];
+      }
+      else
+      {
+        run_peptide_ids[run->second].push_back(l);
+      }
+    }
 
     // write ProteinIdentification Runs
     for (Size i = 0; i < protein_ids.size(); ++i)
     {
-      done_identifiers.push_back(protein_ids[i].getIdentifier());
-
       os << "\t<IdentificationRun ";
       os << "date=\"" << protein_ids[i].getDateTime().getDate() << "T" << protein_ids[i].getDateTime().getTime() << "\" ";
       os << "search_engine=\"" << writeXMLEscape(protein_ids[i].getSearchEngine()) << "\" ";
@@ -283,84 +317,149 @@ namespace OpenMS
       os << "\t\t</ProteinIdentification>\n";
 
       //write PeptideIdentifications
+      //
+      // The peptide identifications of the run are formatted in parallel, in blocks of consecutive ones, each block into
+      // a string of its own, and the blocks are written in input order as soon as they are ready: the same bytes as
+      // formatting them one after the other into os, while at most one block per thread is held in memory. Meta values
+      // are read by registry index and their names cached per thread (MetaInfoRegistry takes a process-wide lock for
+      // every name), and the hits are visited in the order of PeptideIdentification::sort() without copying them (unless
+      // a score is NaN). If formatting fails, neither the failing block nor any later one is written, and the error of
+      // the first failing block in input order is rethrown.
 
-      Size count_wrong_id(0);
-      Size count_empty(0);
+      const std::vector<Size>& to_write = run_peptide_ids[i];
+      const Size count_empty = run_empty_count[i];
+      const Size count_wrong_id = peptide_ids.size() - to_write.size() - count_empty;
 
-      for (Size l = 0; l < peptide_ids.size(); ++l)
+      const std::string& run_identifier = protein_ids[i].getIdentifier();
+      const MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+      // written as attributes of PeptideIdentification, not as UserParam (UInt(-1) if never registered)
+      const UInt spectrum_reference_index = registry.getIndex("spectrum_reference");
+      const UInt significance_threshold_index = registry.getIndex(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
+
+      // buffers of one thread
+      struct Scratch
       {
-        setProgress(l);
+        std::vector<std::string> names; // registry index -> name; registered names are not empty, so "" is not resolved yet
+        std::vector<UInt> keys;
+        std::vector<Size> order;
+        std::vector<PeptideHit> sorted_hits;
+        std::vector<std::string> protein_accessions;
+      };
 
-        if (peptide_ids[l].getIdentifier() != protein_ids[i].getIdentifier())
+      // Calls f() one thread at a time and rethrows what it throws. The constructor of an OpenMS exception sets the
+      // process-wide GlobalExceptionHandler, so the exceptions of the threads must not be constructed concurrently.
+      const auto call_serialized = [](const std::function<void()>& f)
+      {
+        std::exception_ptr thrown;
+#pragma omp critical (IdXMLFile_store_exception)
         {
-          ++count_wrong_id;
-          continue;
+          try
+          {
+            f();
+          }
+          catch (...)
+          {
+            thrown = std::current_exception();
+          }
         }
-        else if (peptide_ids[l].getHits().empty())
-        {
-          ++count_empty;
-          continue;
-        }
+        if (thrown) std::rethrow_exception(thrown);
+      };
+      const char* const store_function = OPENMS_PRETTY_FUNCTION; // names store(), not a lambda, in the exceptions below
 
-        os << "\t\t<PeptideIdentification "
-           << "score_type=\"" << writeXMLEscape(peptide_ids[l].getScoreType()) << "\" ";
-        if (peptide_ids[l].isHigherScoreBetter())
+      // writeUserParam_(), leaving out the meta values with index skip_a or skip_b
+      const auto write_user_params = [&call_serialized](std::ostream& out, const MetaInfoInterface& meta_info,
+                                                        const std::string& tag_start, Scratch& scratch, UInt skip_a, UInt skip_b)
+      {
+        scratch.keys.clear();
+        meta_info.getKeys(scratch.keys);
+        for (const UInt key : scratch.keys)
         {
-          os << "higher_score_better=\"true\" ";
+          if (key == skip_a || key == skip_b) continue;
+          if (key >= scratch.names.size()) scratch.names.resize(static_cast<Size>(key) + 1);
+          std::string& name = scratch.names[key];
+          if (name.empty()) name = MetaInfoInterface::metaRegistry().getName(key);
+          const DataValue& value = meta_info.getMetaValue(key);
+          if (value.valueType() == DataValue::EMPTY_VALUE)
+          {
+            // throws Exception::ConversionError (see writeUserParamValue_())
+            call_serialized([&] { writeUserParamValue_(out, tag_start, name, value); });
+          }
+          else
+          {
+            writeUserParamValue_(out, tag_start, name, value);
+          }
+        }
+      };
+
+      const auto write_peptide_identification = [&](std::ostream& out, const PeptideIdentification& pep_id, Scratch& scratch)
+      {
+        out << "\t\t<PeptideIdentification "
+            << "score_type=\"" << writeXMLEscape(pep_id.getScoreType()) << "\" ";
+        if (pep_id.isHigherScoreBetter())
+        {
+          out << "higher_score_better=\"true\" ";
         }
         else
         {
-          os << "higher_score_better=\"false\" ";
+          out << "higher_score_better=\"false\" ";
         }
-        double significance_threshold = peptide_ids[l].getSignificanceThreshold();
-        os << "significance_threshold=\"" << StringUtils::toStr(significance_threshold) << "\" ";        
+        out << "significance_threshold=\"" << StringUtils::toStr(pep_id.getSignificanceThreshold()) << "\" ";
 
         // mz
-        if (peptide_ids[l].hasMZ())
+        if (pep_id.hasMZ())
         {
-          os << "MZ=\"" << StringUtils::toStr(peptide_ids[l].getMZ()) << "\" ";
+          out << "MZ=\"" << StringUtils::toStr(pep_id.getMZ()) << "\" ";
         }
         // rt
-        if (peptide_ids[l].hasRT())
+        if (pep_id.hasRT())
         {
-          os << "RT=\"" << StringUtils::toStr(peptide_ids[l].getRT()) << "\" ";
+          out << "RT=\"" << StringUtils::toStr(pep_id.getRT()) << "\" ";
         }
         // spectrum_reference
-        const DataValue& dv = peptide_ids[l].getMetaValue("spectrum_reference");
+        const DataValue& dv = pep_id.getMetaValue(spectrum_reference_index);
         if (dv != DataValue::EMPTY)
         {
-          os << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";
+          out << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";
         }
-        os << ">\n";
+        out << ">\n";
 
-        // write peptide hits
-        std::vector<std::string> protein_accessions;
-
-        // copy current hit
-        PeptideIdentification pep_id = peptide_ids[l];
-
-        // sort by score
-        pep_id.sort();
-        const vector<PeptideHit>& pep_hits = pep_id.getHits();
-
-        for (const PeptideHit& p_hit : pep_hits)
+        // write peptide hits, in the order of PeptideIdentification::sort() (a stable sort by score)
+        const vector<PeptideHit>* pep_hits = &pep_id.getHits();
+        const auto comparator = PeptideIdentification::getScoreComparator(pep_id.isHigherScoreBetter());
+        scratch.order.resize(pep_hits->size());
+        std::iota(scratch.order.begin(), scratch.order.end(), Size(0));
+        if (std::any_of(pep_hits->begin(), pep_hits->end(), [](const PeptideHit& hit) { return std::isnan(hit.getScore()); }))
         {
-          os << "\t\t\t<PeptideHit"
-             << " score=\"" << StringUtils::toStr(p_hit.getScore()) << "\""
-             << " sequence=\"" << writeXMLEscape(p_hit.getSequence().toString()) << "\""
-             << " charge=\"" << StringUtils::toStr(p_hit.getCharge()) << "\"";
+          // NaN scores are not a strict weak order, so the result depends on the sorting algorithm, which may differ
+          // between sorting indices and sorting the hits (e.g. libc++): sort a copy of the hits, as sort() does
+          scratch.sorted_hits = *pep_hits;
+          std::stable_sort(scratch.sorted_hits.begin(), scratch.sorted_hits.end(), comparator);
+          pep_hits = &scratch.sorted_hits;
+        }
+        else
+        {
+          std::stable_sort(scratch.order.begin(), scratch.order.end(), [&](Size x, Size y) { return comparator((*pep_hits)[x], (*pep_hits)[y]); });
+        }
+
+        for (const Size h : scratch.order)
+        {
+          const PeptideHit& p_hit = (*pep_hits)[h];
+          out << "\t\t\t<PeptideHit"
+              << " score=\"" << StringUtils::toStr(p_hit.getScore()) << "\""
+              << " sequence=\"" << writeXMLEscape(p_hit.getSequence().toString()) << "\""
+              << " charge=\"" << StringUtils::toStr(p_hit.getCharge()) << "\"";
 
           const std::vector<PeptideEvidence>& pes = p_hit.getPeptideEvidences();
 
-          createFlankingAAXMLString_(pes, os);
-          createPositionXMLString_(pes, os);
+          createFlankingAAXMLString_(pes, out);
+          createPositionXMLString_(pes, out);
 
           // Extract all protein accessions.
           // Note: protein accessions correspond to neighboring AAs and start/end
           // positions, so we have to keep the same order and allow duplicates
           // (for peptides matching multiple times in the same protein)
 
-          protein_accessions.clear();
+          scratch.protein_accessions.clear();
           for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
           {
             const std::string& protein_accession = pe->getProteinAccession();
@@ -371,39 +470,92 @@ namespace OpenMS
               const auto acc = accession_to_id.find(protein_accession);
               if (acc != accession_to_id.end())
               {
-                protein_accessions.emplace_back("PH_" + StringUtils::toStr(acc->second));
+                scratch.protein_accessions.emplace_back("PH_" + StringUtils::toStr(acc->second));
               }
               else
               {
-                throw Exception::ElementNotFound(
-                    __FILE__,
-                    __LINE__,
-                    OPENMS_PRETTY_FUNCTION,
-                    "No accession " + protein_accession + " found in run '" + protein_ids[i].getIdentifier() +
+                const std::string message = "No accession " + protein_accession + " found in run '" + run_identifier +
                     "' for PSM " + p_hit.getSequence().toString() + "_" + StringUtils::toStr(p_hit.getCharge()) +
-                    ". Please contact the maintainer of this tool e.g. on GitHub as this should not happen.");
+                    ". Please contact the maintainer of this tool e.g. on GitHub as this should not happen.";
+                call_serialized([&] { throw Exception::ElementNotFound(__FILE__, __LINE__, store_function, message); });
               }
             }
           }
 
-          if (!protein_accessions.empty())
+          if (!scratch.protein_accessions.empty())
           {
-            os << " protein_refs=\"" << ListUtils::concatenate(protein_accessions, " ") << "\"";
+            out << " protein_refs=\"" << ListUtils::concatenate(scratch.protein_accessions, " ") << "\"";
           }
 
-          os << " >\n";
-          writeFragmentAnnotations_("UserParam", os, p_hit.getPeakAnnotations(), 4);
-          writeUserParam_("UserParam", os, p_hit, 4);
+          out << " >\n";
+          writeFragmentAnnotations_("UserParam", out, p_hit.getPeakAnnotations(), 4);
+          write_user_params(out, p_hit, "\t\t\t\t<UserParam type=\"", scratch, UInt(-1), UInt(-1));
 
-          os << "\t\t\t</PeptideHit>\n";
+          out << "\t\t\t</PeptideHit>\n";
         }
 
         // do not write "spectrum_reference" or Constants::UserParam::SIGNIFICANCE_THRESHOLD since it is written as attribute already
-        pep_id.removeMetaValue("spectrum_reference");
-        pep_id.removeMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
-        writeUserParam_("UserParam", os, pep_id, 3);
-        os << "\t\t</PeptideIdentification>\n";
+        write_user_params(out, pep_id, "\t\t\t<UserParam type=\"", scratch, spectrum_reference_index, significance_threshold_index);
+        out << "\t\t</PeptideIdentification>\n";
+      };
+
+      const Size block_size = 16;
+      const SignedSize num_blocks = static_cast<SignedSize>((to_write.size() + block_size - 1) / block_size);
+      const std::streamsize precision = os.precision();
+      std::exception_ptr error;
+      std::atomic<bool> failed(false);
+
+#ifdef _OPENMP
+      // at most one thread per block and at most 16: with more, the formatting outruns the serial write into the file and
+      // the threads only wait
+      const int team_size = static_cast<int>(std::min<SignedSize>({omp_get_max_threads(), 16, std::max<SignedSize>(num_blocks, 1)}));
+#endif
+#pragma omp parallel if (num_blocks > 1) num_threads(team_size)
+      {
+        Scratch scratch;
+#pragma omp for ordered schedule(dynamic, 1)
+        for (SignedSize b = 0; b < num_blocks; ++b)
+        {
+          const Size begin = static_cast<Size>(b) * block_size;
+          const Size end = std::min(to_write.size(), begin + block_size);
+          std::string text;
+          std::exception_ptr block_error;
+          if (!failed.load(std::memory_order_relaxed))
+          {
+            try
+            {
+              std::ostringstream block_os;
+              block_os.precision(precision);
+              for (Size k = begin; k < end; ++k)
+              {
+                write_peptide_identification(block_os, peptide_ids[to_write[k]], scratch);
+              }
+              text = block_os.str();
+            }
+            catch (...)
+            {
+              block_error = std::current_exception();
+            }
+          }
+#pragma omp ordered
+          {
+            if (!failed.load(std::memory_order_relaxed))
+            {
+              if (block_error)
+              {
+                error = block_error;
+                failed.store(true, std::memory_order_relaxed);
+              }
+              else
+              {
+                os.write(text.data(), static_cast<std::streamsize>(text.size()));
+                setProgress(to_write[end - 1]);
+              }
+            }
+          }
+        }
       }
+      if (error) std::rethrow_exception(error);
 
       os << "\t</IdentificationRun>\n";
 
@@ -418,12 +570,9 @@ namespace OpenMS
       os << "<IdentificationRun date=\"1900-01-01T01:01:01.0Z\" search_engine=\"Unknown\" search_parameters_ref=\"ID_1\" search_engine_version=\"0\"/>\n";
     }
 
-    for (Size i = 0; i < peptide_ids.size(); ++i)
+    for (const Size l : without_run)
     {
-      if (find(done_identifiers.begin(), done_identifiers.end(), peptide_ids[i].getIdentifier()) == done_identifiers.end())
-      {
-        warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + peptide_ids[i].getIdentifier() + "' while writing '" + filename + "'!");
-      }
+      warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + peptide_ids[l].getIdentifier() + "' while writing '" + filename + "'!");
     }
     // write footer
     os << "</IdXML>\n";
