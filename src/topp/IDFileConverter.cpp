@@ -22,7 +22,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
@@ -31,7 +30,6 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -206,16 +204,15 @@ protected:
   {
     registerInputFile_("in", "<path/file>", "",
                        "Input file or directory containing the data to convert. This may be:\n"
-                       "- a single file in OpenMS database format (.oms),\n"
                        "- a single file in a multi-purpose XML format (.idXML, .mzid, .pepXML, .protXML),\n"
                        "- a single file in a search engine-specific format (Mascot: .mascotXML, OMSSA: .omssaXML, X! Tandem: .xml, Percolator: .psms, xQuest: .xquest.xml),\n"
                        "- a single file in fasta format (can only be used to generate a theoretical mzML),\n"
                        "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<std::string>("oms,idXML,mzid,idparquet,fasta,pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,xquest.xml"));
+    setValidFormats_("in", ListUtils::create<std::string>("idXML,mzid,idparquet,fasta,pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    std::string formats("oms,idXML,mzid,idparquet,pepXML,fasta,xquest.xml,mzML");
+    std::string formats("idXML,mzid,idparquet,pepXML,fasta,xquest.xml,mzML");
     setValidFormats_("out", ListUtils::create<std::string>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", ListUtils::create<std::string>(formats));
@@ -251,7 +248,6 @@ protected:
     PeptideIdentificationList peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
     SpectrumMetaDataLookup lookup;
-    IdentificationData id_data;
 
     //-------------------------------------------------------------
     // reading input
@@ -680,16 +676,6 @@ protected:
       }
       break;
 
-      case FileTypes::OMS:
-      {
-        OMSFile().load(in, id_data);
-        if (out_type != FileTypes::OMS)
-        {
-          IdentificationDataConverter::exportIDs(id_data, protein_identifications, peptide_identifications);
-        }
-      }
-      break;
-
       default:
         writeLogError_("Error: Unknown input file type given. Aborting!");
         printUsage_();
@@ -793,16 +779,6 @@ protected:
 
         f.writeNext(entry);
       }
-    }
-    break;
-
-    case FileTypes::OMS:
-    {
-      if (in_type != FileTypes::OMS)
-      {
-        IdentificationDataConverter::importIDs(id_data, protein_identifications, peptide_identifications);
-      }
-      OMSFile().store(out, id_data);
     }
     break;
 

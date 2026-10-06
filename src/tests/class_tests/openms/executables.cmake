@@ -95,8 +95,7 @@ set(metadata_executables_list
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
-      IdentificationData_test
-IdentificationDataMigration_test
+  IdentificationData_test
   IdentificationDataAdapter_test
   IdentificationDataInference_test
   IdentificationDataWorkflow_test
@@ -104,7 +103,7 @@ IdentificationDataMigration_test
   IdentificationDataFileInference_test
   IdentificationDataFileHandler_test
   IdentificationDataConverter_test
-    InstrumentSettings_test
+  InstrumentSettings_test
   Instrument_test
   IonDetector_test
   IonSource_test
@@ -260,7 +259,6 @@ set(format_executables_list
   MzXMLFile_test
   NoopMSDataConsumer_test
   TraMLValidator_test
-  OMSFile_test
   OMSSACSVFile_test
   OMSSAXMLFile_test
   OSWFile_test

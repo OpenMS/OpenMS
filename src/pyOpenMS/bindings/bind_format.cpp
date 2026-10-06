@@ -624,14 +624,20 @@ Computes a SHA-1 hash of the file content
         .def("load_identification_data", [](OpenMS::FileHandler& self, const std::string& filename,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, std::optional<OpenMS::ProgressLogger::LogType> log) {
             OpenMS::IdentificationData data;
-            self.loadIdentifications(filename, data, allowed_types, log.value_or(OpenMS::ProgressLogger::NONE));
+            const auto log_type = log.value_or(OpenMS::ProgressLogger::NONE);
+            {
+              nb::gil_scoped_release release;
+              self.loadIdentifications(filename, data, allowed_types, log_type);
+            }
             return data;
         }, "filename"_a, "allowed_types"_a = std::vector<OpenMS::FileTypes::Type>{}, "log"_a = nb::none(),
              "Load owning identification values from native Parquet or a supported legacy format.")
         .def("store_identification_data", [](OpenMS::FileHandler& self, const std::string& filename,
              const OpenMS::IdentificationData& data, const std::vector<OpenMS::FileTypes::Type>& allowed_types,
              std::optional<OpenMS::ProgressLogger::LogType> log) {
-            self.storeIdentifications(filename, data, allowed_types, log.value_or(OpenMS::ProgressLogger::NONE));
+            const auto log_type = log.value_or(OpenMS::ProgressLogger::NONE);
+            nb::gil_scoped_release release;
+            self.storeIdentifications(filename, data, allowed_types, log_type);
         }, "filename"_a, "data"_a, "allowed_types"_a = std::vector<OpenMS::FileTypes::Type>{}, "log"_a = nb::none(),
              "Store owning identification values; legacy formats enforce strict representability.")
 

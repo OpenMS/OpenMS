@@ -3,10 +3,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
-#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/PSMArrowIO.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <bit>
 #include <chrono>
@@ -183,19 +181,6 @@ int main(int argc, char** argv)
         IdentificationDataFile::store(path, data, native_options);
         timing("write", start);
       }
-      else if (format == "oms")
-      {
-        start = Clock::now();
-        IdentificationData data;
-        IdentificationDataConverter::importIDs(data, proteins, peptides);
-        timing("convert", start);
-        if (mode == "write") emit(digest(data));
-        proteins.clear();
-        peptides.clear();
-        start = Clock::now();
-        OMSFile().store(path, data);
-        timing("write", start);
-      }
       else if (format == "idxml")
       {
         start = Clock::now();
@@ -218,13 +203,6 @@ int main(int argc, char** argv)
       {
         Native data;
         IdentificationDataFile::load(path, data, native_options);
-        timing("read", start);
-        emit(digest(data));
-      }
-      else if (format == "oms")
-      {
-        IdentificationData data;
-        OMSFile().load(path, data);
         timing("read", start);
         emit(digest(data));
       }

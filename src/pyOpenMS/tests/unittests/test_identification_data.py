@@ -5,7 +5,6 @@ import gc
 from pathlib import Path
 import subprocess
 import sys
-import sqlite3
 
 import pytest
 import pyopenms as oms
@@ -471,52 +470,67 @@ def test_merge_preserves_stable_links_with_repeated_display_names():
     assert data == duplicate
 
 
-def test_oms_owning_roundtrip_and_failed_load_are_transactional(tmp_path):
-    data, *_ = make_data_with_inference()
-    path = str(tmp_path / "search_ä.oms")
-    reader = oms.OMSFile()
-    reader.store(path, data)
-    reader.store(path, data)
-    restored = reader.load(path)
-    assert restored == data
-    assert len(restored.get_inference_results()) == 1
-    broken = tmp_path / "broken.oms"
-    broken.write_text("not SQLite")
-    with pytest.raises(Exception):
-        reader.load(str(broken))
-    assert reader.load(path) == data
 
 
-def test_oms_identifications_are_queryable_sql_rows(tmp_path):
-    data, *_ = make_data_with_inference()
-    path = str(tmp_path / "direct.oms")
-    oms.OMSFile().store(path, data)
-    with sqlite3.connect(path) as db:
-        tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        assert "ID_NativeFiles" not in tables
-        assert db.execute("PRAGMA foreign_key_check").fetchall() == []
-        rows = db.execute("""
-            SELECT r.identifier, s.path, q.data_id, m.representation, m.score_0
-            FROM ID_Match m JOIN ID_Query q ON q.id=m.parent_id
-            JOIN ID_Source s ON s.id=q.parent_id JOIN ID_Run r ON r.id=s.parent_id
-            WHERE m.score_0 < 0.05 ORDER BY m.id
-        """).fetchall()
-        assert rows == [("search", "/measurements/sample.mzML", "scan=1", "PEPTIDE", 0.01)]
-        assert db.execute("SELECT name FROM ID_Score ORDER BY id LIMIT 1").fetchone()[0] == "posterior error probability"
-        # Lists have typed, ordered SQL rows, including empty lists and strings.
-        counts = db.execute("""
-            SELECT i.integer_value FROM ID_MetadataItem i
-            JOIN ID_MetadataValue m ON m.id=i.parent_id
-            WHERE m.owner='ID_Match' AND m.name='counts' ORDER BY i.id
-        """).fetchall()
-        assert counts == [(1,), (2,), (3,), (1,), (2,), (3,)]
-        # The SQL value is authoritative, not a cache of an embedded archive.
-        db.execute("UPDATE ID_Match SET score_0=0.02 WHERE representation='PEPTIDE'")
-    restored = oms.OMSFile().load(path)
-    run = restored.get_run("search")
-    first = run.get_source_blocks()[0].identifications[0].get_matches()[0]
-    assert first.get_scores()[0] == 0.02
-    with sqlite3.connect(path) as db:
-        db.execute("UPDATE ID_Match SET parent_id=999999")
+def test_identity_handles_are_hashable_value_keys():
+    run, query, first, second, _ = make_run()
+    # Equal handles must hash equally so they work as dict keys and set members.
+    assert hash(ID.MatchId(first.value)) == hash(first)
+    scores = {first: 0.01, second: 0.1}
+    assert scores[ID.MatchId(first.value)] == 0.01
+    reference = ID.MatchReference()
+    reference.run_uuid = run.get_uuid()
+    reference.match = first
+    same = ID.MatchReference()
+    same.run_uuid = run.get_uuid()
+    same.match = ID.MatchId(first.value)
+    assert reference == same and hash(reference) == hash(same)
+    assert len({reference, same}) == 1
+    query_reference = ID.QueryReference()
+    query_reference.run_uuid = run.get_uuid()
+    query_reference.query = query
+    assert query_reference in {query_reference}
+
+
+def test_predicates_use_python_truthiness():
+    run, _, first, _, _ = make_run()
+    # 0/1 and None are accepted like any Python condition, not only exact booleans.
+    assert run.filter_matches(lambda match: 1 if match.get_id() == first else 0) == 1
+    assert run.get_number_of_matches() == 1
+    assert run.erase_matches(lambda match: None) == 0
+
+
+def test_native_destination_is_replaced_only_on_request(tmp_path):
+    run, _, _, _, _ = make_run()
+    data = ID()
+    data.add_run(run)
+    path = str(tmp_path / "search.idparquet")
+    File.store(path, data)
     with pytest.raises(Exception):
-        oms.OMSFile().load(path)
+        File.store(path, data)
+    options = File.Options()
+    options.replace_existing = True
+    File.store(path, data, options)
+    assert File.load(path) == data
+    # Tools write through FileHandler, which replaces a previous native bundle like any other output.
+    handler = oms.FileHandler()
+    handler.store_identification_data(path, data)
+    assert handler.load_identification_data(path) == data
+    # Anything else at the destination is never replaced.
+    other = tmp_path / "notes.idparquet"
+    other.mkdir()
+    (other / "keep.txt").write_text("user data")
+    with pytest.raises(Exception):
+        handler.store_identification_data(str(other), data)
+    assert (other / "keep.txt").read_text() == "user data"
+
+
+def test_derived_scores_record_their_producer():
+    run = oms.ProteinIdentification()
+    run.setSearchEngine("Comet")
+    run.setSearchEngineVersion("2024.01")
+    assert run.getScoreSoftware("expect") == ("Comet", "2024.01")
+    run.setScoreSoftware("Posterior Error Probability", "IDPosteriorErrorProbability", "3.7.0")
+    assert run.getScoreSoftware("Posterior Error Probability") == ("IDPosteriorErrorProbability", "3.7.0")
+    run.clearScoreSoftware()
+    assert run.getScoreSoftware("Posterior Error Probability") == ("Comet", "2024.01")

@@ -33,7 +33,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzQCFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/PSMArrowIO.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
@@ -74,6 +73,18 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  namespace
+  {
+    /// The OpenMS SQLite format was removed; point users to the last release that converts it.
+    [[noreturn]] void unsupportedOMS_(const std::string& filename)
+    {
+      throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+        "The OpenMS SQLite format (.oms) is no longer supported. Convert existing files with OpenMS 3.6: "
+        "IDFileConverter for identifications (e.g. to idXML) and FileConverter for feature maps (to featureXML). "
+        "Use idparquet, featureparquet or consensusparquet to store identification data natively.");
+    }
+  }
 
   namespace // SHA-1 implementation per RFC 3174
   {
@@ -237,6 +248,19 @@ namespace OpenMS
     // (mono) path, which is available on all platforms. Callers that try to load a
     // .raw in-process without WITH_THERMO_RAW get a clear "type is not supported"
     // ParseError from loadExperiment's default case.
+
+    // A native identification bundle is a directory with a manifest, whatever its name.
+    if (type == FileTypes::UNKNOWN && File::isDirectory(normalized))
+    {
+      try
+      {
+        if (IdentificationDataFile::isNativeFile(normalized)) return FileTypes::IDPARQUET;
+      }
+      catch (const Exception::BaseException&)
+      {
+        // a malformed manifest: not recognized, like any other unknown directory
+      }
+    }
 
     if (type == FileTypes::UNKNOWN)
     {
@@ -1268,12 +1292,7 @@ namespace OpenMS
       break;
 
       case FileTypes::OMS:
-      {
-        OMSFile f;
-        f.setLogType(log);
-        f.load(filename, map);
-      }
-      break;
+        unsupportedOMS_(filename);
 
       case FileTypes::FEATUREPARQUET:
       {
@@ -1335,12 +1354,7 @@ namespace OpenMS
       break;
 
       case FileTypes::OMS:
-      {
-        OMSFile f;
-        f.setLogType(log);
-        f.store(filename, map);
-      }
-      break;
+        unsupportedOMS_(filename);
 
       case FileTypes::PEPLIST:
       {
@@ -1404,12 +1418,7 @@ namespace OpenMS
       break;
 
       case FileTypes::OMS:
-      {
-        OMSFile f;
-        f.setLogType(log);
-        f.load(filename, map);
-      }
-      break;
+        unsupportedOMS_(filename);
 
       case FileTypes::CONSENSUSPARQUET:
       {
@@ -1461,12 +1470,7 @@ namespace OpenMS
       break;
 
       case FileTypes::OMS:
-      {
-        OMSFile f;
-        f.setLogType(log);
-        f.store(filename, map);
-      }
-      break;
+        unsupportedOMS_(filename);
 
       case FileTypes::CONSENSUSPARQUET:
       {
@@ -1518,14 +1522,7 @@ namespace OpenMS
       break;
 
       case FileTypes::OMS:
-      {
-        OMSFile f;
-        f.setLogType(log);
-        IdentificationData idd;
-        f.load(filename, idd);
-        IdentificationDataConverter::exportIDs(idd, additional_proteins, additional_peptides);
-      }
-      break;
+        unsupportedOMS_(filename);
 
       case FileTypes::XQUESTXML:
       {
@@ -1593,13 +1590,7 @@ namespace OpenMS
       IdentificationDataFile::load(filename, data);
       return;
     }
-    if (getTypeByFileName(filename) == FileTypes::OMS)
-    {
-      if (! allowed_types.empty() && ! FileTypeList(allowed_types).contains(FileTypes::OMS))
-        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "OMS input is not allowed");
-      OMSFile(log).load(filename, data);
-      return;
-    }
+    if (getTypeByFileName(filename) == FileTypes::OMS) unsupportedOMS_(filename);
     std::vector<ProteinIdentification> proteins;
     PeptideIdentificationList peptides;
     loadIdentifications(filename, proteins, peptides, allowed_types, log);
@@ -1620,14 +1611,13 @@ namespace OpenMS
     }
     if (type == FileTypes::IDPARQUET)
     {
-      IdentificationDataFile::store(filename, data);
+      // Like every other output format, a tool rerun replaces its previous native bundle.
+      IdentificationDataFile::Options options;
+      options.replace_existing = true;
+      IdentificationDataFile::store(filename, data, options);
       return;
     }
-    if (type == FileTypes::OMS)
-    {
-      OMSFile(log).store(filename, data);
-      return;
-    }
+    if (type == FileTypes::OMS) unsupportedOMS_(filename);
     const auto converted = IdentificationDataAdapter::toLegacy(data);
     storeIdentifications(filename, converted.proteins, converted.peptides, allowed_types, log);
   }
@@ -1667,14 +1657,7 @@ namespace OpenMS
       break;
 
       case FileTypes::OMS:
-      {
-        OMSFile f;
-        f.setLogType(log);
-        IdentificationData idd;
-        IdentificationDataConverter::importIDs(idd, additional_proteins, additional_peptides);
-        f.store(filename, idd);
-      }
-    break;
+        unsupportedOMS_(filename);
 
       case FileTypes::XQUESTXML:
       {

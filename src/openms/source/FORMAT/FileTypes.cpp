@@ -108,7 +108,8 @@ namespace OpenMS
     TypeNameBinding(FileTypes::SPECXML, "spec.xml", "spec.xml file", {}),
     TypeNameBinding(FileTypes::JSON, "json", "JavaScript Object Notation file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE}),
-    TypeNameBinding(FileTypes::OMS, "oms", "OpenMS SQLite file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::PROVIDES_FEATURES, PROP::PROVIDES_CONSENSUSFEATURES}),
+    // Removed format: recognized by extension only, so loading reports how to convert existing files.
+    TypeNameBinding(FileTypes::OMS, "oms", "OpenMS SQLite file (no longer supported; convert with OpenMS 3.6)", {}),
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable", {}),
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file", {PROP::READABLE}),
     TypeNameBinding(FileTypes::GZ, "gz", "gzip compressed file", {PROP::READABLE}),

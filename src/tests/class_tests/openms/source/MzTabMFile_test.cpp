@@ -13,7 +13,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzTabMFile.h>
-#include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 ///////////////////////////
@@ -44,7 +44,8 @@ START_SECTION(void store(const std::string& filename, MzTabM& mztab_m))
       FeatureMap feature_map;
       MzTabM mztabm;
 
-      OMSFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabMFile_input_1.oms"), feature_map);
+      // AccurateMassSearch result (ID format) with owning identification data
+      FileHandler().loadFeatures(OPENMS_GET_TEST_DATA_PATH("MzTabMFile_input_1.featureparquet"), feature_map, {FileTypes::FEATUREPARQUET});
 
       mztabm = MzTabM::exportFeatureMapToMzTabM(feature_map);
 

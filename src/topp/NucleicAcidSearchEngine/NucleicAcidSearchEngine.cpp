@@ -26,7 +26,6 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 
 // digestion enzymes
@@ -145,7 +144,7 @@ protected:
     setValidFormats_("database", ListUtils::create<std::string>("fasta"));
 
     registerInputFile_("digest", "<file>", "", "Input file: pre-digested sequence database. Can be used instead of 'database'. Sets all 'oligo:...' parameters.", false);
-    setValidFormats_("digest", {"oms"});
+    setValidFormats_("digest", {"idparquet"});
 
     registerOutputFile_("out", "<file>", "", "Output file: mzTab");
     setValidFormats_("out", ListUtils::create<std::string>("mzTab"));
@@ -153,11 +152,11 @@ protected:
     registerOutputFile_("id_out", "<file>", "", "Output file: idXML (for visualization in TOPPView)", false);
     setValidFormats_("id_out", ListUtils::create<std::string>("idXML"));
 
-    registerOutputFile_("db_out", "<file>", "", "Output file: oms (SQLite database)", false);
-    setValidFormats_("db_out", ListUtils::create<std::string>("oms"));
+    registerOutputFile_("db_out", "<file>", "", "Output file: native identification bundle (idparquet directory) with the complete search results", false);
+    setValidFormats_("db_out", {"idparquet"});
 
     registerOutputFile_("digest_out", "<file>", "", "Output file: sequence database digest. Ignored if 'digest' input is used.", false);
-    setValidFormats_("digest_out", {"oms"});
+    setValidFormats_("digest_out", {"idparquet"});
 
     registerOutputFile_("lfq_out", "<file>", "", "Output file: targets for label-free quantification using FeatureFinderMetaboIdent ('id' input)", false);
     setValidFormats_("lfq_out", vector<std::string>(1, "tsv"));
@@ -991,6 +990,9 @@ protected:
     DateTime processing_time = DateTime::now();
     if (test_mode_) processing_time.set("1999-12-31 23:59:59");
     processing.setDateTime(processing_time);
+    // the mzML input and the raw files behind it ("spectra_data"/"spectra_data_raw" in idXML)
+    processing.setPrimaryMSRunPath({input.path});
+    if (! input.primary_files.empty()) processing.setPrimaryMSRunPath(input.primary_files, true);
     auto& parameters = processing.getSearchParameters();
     parameters.charges = ListUtils::concatenate(search_param.charges, ",");
     parameters.mass_type = use_avg_mass ? ProteinIdentification::PeakMassType::AVERAGE : ProteinIdentification::PeakMassType::MONOISOTOPIC;
@@ -1060,19 +1062,23 @@ protected:
           value.target_decoy = candidate.target_decoy;
           catalog_run.addMatch(query, value);
         }
-        OMSFile(log_type_).store(digest_out, catalog);
+        FileHandler().storeIdentifications(digest_out, catalog, {FileTypes::IDPARQUET}, log_type_);
       }
     }
     else // load digestion results from a previous run
     {
       OPENMS_LOG_INFO << "Loading pre-digested sequence data..." << endl;
       IdentificationData catalog;
-      OMSFile(log_type_).load(in_digest, catalog);
+      FileHandler().loadIdentifications(in_digest, catalog, {FileTypes::IDPARQUET}, log_type_);
       if (catalog.getRuns().size() != 1 || catalog.getRuns().front().getMoleculeKind() != IdentificationData::MoleculeKind::OLIGONUCLEOTIDE)
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Digest input requires one oligonucleotide catalog run");
       const auto& catalog_run = catalog.getRuns().front();
       result_run.setParents(catalog_run.getParents());
-      processing.getSearchParameters().db = catalog_run.getProcessingMetadata().getSearchParameters().db;
+      // the digestion settings come with the digest
+      const auto& digestion = catalog_run.getProcessingMetadata().getSearchParameters();
+      parameters.db = digestion.db;
+      parameters.missed_cleavages = digestion.missed_cleavages;
+      if (digestion.metaValueExists("rna_enzyme")) parameters.setMetaValue("rna_enzyme", digestion.getMetaValue("rna_enzyme"));
       result_run.setProcessingMetadata(processing);
       for (const auto& source : catalog_run.getSourceBlocks())
         for (const auto& query : source.identifications)
@@ -1372,17 +1378,23 @@ protected:
       OPENMS_LOG_INFO << "Performing FDR calculations..." << endl;
       calculateAndFilterFDR_(id_data, report_top_hits == 1);
     }
-    // Calculate parent coverage from unique intervals after FDR filtering.
+    // Report only parents with remaining evidence after FDR filtering (the digest catalog keeps
+    // all of them), and calculate their coverage from unique intervals.
     auto& coverage_run = id_data.getRun("NASE");
+    std::set<IdentificationData::QualifiedAccession> referenced;
     std::map<IdentificationData::QualifiedAccession, std::set<std::pair<UInt64, UInt64>>> covered;
     for (const auto& source : coverage_run.getSourceBlocks())
       for (const auto& query : source.identifications)
         for (const auto& match : query.getMatches())
           for (const auto& evidence : match.parent_evidence)
+          {
+            referenced.insert(evidence.parent);
             if (evidence.start && evidence.end) covered[evidence.parent].emplace(*evidence.start, *evidence.end);
+          }
     if (coverage_run.getParents())
     {
       auto parents = *coverage_run.getParents();
+      std::erase_if(parents, [&](const auto& parent) { return ! referenced.contains(parent.identity); });
       for (auto& parent : parents)
       {
         const auto length = NASequence::fromString(parent.sequence).size();
@@ -1407,7 +1419,7 @@ protected:
     // store results
     if (!db_out.empty())
     {
-      OMSFile(log_type_).store(db_out, id_data);
+      FileHandler().storeIdentifications(db_out, id_data, {FileTypes::IDPARQUET}, log_type_);
     }
 
     MzTab results = IdentificationDataConverter::exportMzTab(id_data);

@@ -70,6 +70,17 @@ This affects 31 members on structs such as `SiriusTargetDecoySpectra`,
 `RangeSet`, `PreprocessedPairSpectra` and `AQS_featureConcentration`. The main
 container classes have no such attributes.
 
+The identification data value types (`IdentificationData` and its nested records such as
+`MatchData`, `ScoreDefinition`, `IdentificationDataFile.ScanOptions`) are the exception: their
+fields are properties that return **copies**, like getters. A nested record stays valid even after
+the field it came from is replaced, and edits reach the record only when assigned back:
+
+```python
+projection = options.projection
+projection.molecule = False
+options.projection = projection   # a chained options.projection.molecule = False has no effect
+```
+
 ## Three exceptions, all visible at the call site
 
 | | Example | Why |

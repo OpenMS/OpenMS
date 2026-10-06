@@ -694,6 +694,9 @@ namespace OpenMS
     auto query = run.addIdentification(run.getSourceId(0), observation);
     feature.addIDQuery({run.getUuid(), query});
     for (const auto& result : results)
+    {
+      // An unmatched mass (kept with keep_unidentified_masses) remains a query without candidates.
+      if (result.getMatchingIndex() == static_cast<Size>(-1)) continue;
       for (const auto& identifier : result.getMatchingHMDBids())
       {
         auto entry = hmdb_properties_mapping_.find(identifier);
@@ -706,7 +709,7 @@ namespace OpenMS
         match.representation = match.encoding == IdentificationData::Encoding::SMILES ? properties[1] : identifier;
         match.identifiers.push_back({database_name_, identifier});
         match.name = properties[0];
-        match.formula = result.getFormulaString();
+        match.formula = EmpiricalFormula(result.getFormulaString()).toString(); // canonical element order, as before
         match.charge = result.getCharge();
         match.calculated_mz = result.getCalculatedMZ();
         if (! properties[2].empty()) match.setMetaValue("inchi_key", properties[2]);
@@ -720,10 +723,14 @@ namespace OpenMS
         match.setMetaValue("mz_error_Da", dalton);
         const auto& adduct = result.getFoundAdduct();
         if (! adduct.empty() && adduct != "null") match.adduct = AdductInfo::parseAdductString(adduct);
+        // The search result stores the absolute charge; the adduct carries the signed ion charge
+        // (negative in negative ion mode), which the identification model requires to agree.
+        if (match.adduct) match.charge = match.adduct->getCharge();
         auto id = run.addMatch(query, match, {ppm, dalton});
         feature.setPrimaryID({match.encoding, match.representation});
         feature.addIDMatch({run.getUuid(), id});
       }
+    }
   }
 
   void AccurateMassSearchEngine::annotate_(const std::vector<AccurateMassSearchResult>& amr, BaseFeature& f) const

@@ -89,7 +89,7 @@ namespace OpenMS
       SPECXML,            ///< xQuest XML file format for matched spectra for spectra visualization in the xQuest results manager (.spec.xml)
       JSON,               ///< JavaScript Object Notation file (.json)
       RAW,                ///< Thermo Raw File (.raw)
-      OMS,                ///< OpenMS database file
+      OMS,                ///< OpenMS SQLite file (.oms); no longer supported, recognized only to point to OpenMS 3.6 for conversion
       EXE,                ///< Executable (.exe)
       XML,                ///< any XML format
       BZ2,                ///< any BZ2 compressed file

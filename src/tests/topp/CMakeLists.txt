@@ -179,11 +179,11 @@ add_test("TOPP_IDMerger_5" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/
 add_test("TOPP_IDMerger_5_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDMerger_5_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDMerger_5_output.idXML )
 set_tests_properties("TOPP_IDMerger_5_out1" PROPERTIES DEPENDS "TOPP_IDMerger_5")
 
-# .oms (SQLite) files - inputs based on BSA example data, generated like this:
-# IDFileConverter -in share/OpenMS/examples/BSA/BSA2_OMSSA.idXML -out ${TESTS_TEMP_DIR}/src/tests/topp/IDMerger_6_input2.oms
-# IDFileConverter -in share/OpenMS/examples/BSA/BSA3_OMSSA.idXML -out ${TESTS_TEMP_DIR}/src/tests/topp/IDMerger_6_input1.oms
-add_test("TOPP_IDMerger_6" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_6_input1.oms ${DATA_DIR_TOPP}/IDMerger_6_input2.oms -out ${TESTS_TEMP_DIR}/IDMerger_6_output1.oms)
-add_test("TOPP_IDMerger_6_out1" ${TOPP_BIN_PATH}/IDFileConverter -in ${TESTS_TEMP_DIR}/IDMerger_6_output1.oms -out ${TESTS_TEMP_DIR}/IDMerger_6_output2.tmp.idXML -out_type idXML)
+# native identification bundles - inputs are share/OpenMS/examples/BSA/BSA3_OMSSA.idXML (input1) and
+# BSA2_OMSSA.idXML (input2) imported with IdentificationDataAdapter::fromLegacy and stored with IdentificationDataFile;
+# the expected output equals IDMerger on both idXML files, except for the "file_origin" annotations of the legacy merge
+add_test("TOPP_IDMerger_6" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_6_input1.idparquet ${DATA_DIR_TOPP}/IDMerger_6_input2.idparquet -out ${TESTS_TEMP_DIR}/IDMerger_6_output1.tmp.idparquet)
+add_test("TOPP_IDMerger_6_out1" ${TOPP_BIN_PATH}/IDFileConverter -in ${TESTS_TEMP_DIR}/IDMerger_6_output1.tmp.idparquet -out ${TESTS_TEMP_DIR}/IDMerger_6_output2.tmp.idXML -out_type idXML)
 set_tests_properties("TOPP_IDMerger_6_out1" PROPERTIES DEPENDS "TOPP_IDMerger_6")
 add_test("TOPP_IDMerger_6_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDMerger_6_output2.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDMerger_6_output.idXML)
 set_tests_properties("TOPP_IDMerger_6_out2" PROPERTIES DEPENDS "TOPP_IDMerger_6_out1")
@@ -1416,12 +1416,6 @@ add_test("TOPP_IDFileConverter_33_File_Conversion" ${TOPP_BIN_PATH}/FileConverte
 set_tests_properties("TOPP_IDFileConverter_33_File_Conversion" PROPERTIES DEPENDS "TOPP_IDFileConverter_33")
 add_test("TOPP_IDFileConverter_33_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFileConverter_33_output_mgf.tmp.mgf -in2 ${DATA_DIR_TOPP}/IDFileConverter_33_output.mgf  -whitelist "TITLE")
 set_tests_properties("TOPP_IDFileConverter_33_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_33_File_Conversion")
-# OpenMS SQLite format (input file is "IdXMLFile_whole.idXML" from the class test, with one score type renamed for consistency):
-add_test("TOPP_IDFileConverter_34_1" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_34_input.idXML -out ${TESTS_TEMP_DIR}/IDFileConverter_34_output1.oms)
-add_test("TOPP_IDFileConverter_34_2" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${TESTS_TEMP_DIR}/IDFileConverter_34_output1.oms -out ${TESTS_TEMP_DIR}/IDFileConverter_34_output2.tmp.idxml -out_type idXML)
-add_test("TOPP_IDFileConverter_34_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFileConverter_34_output2.tmp.idxml -in2 ${DATA_DIR_TOPP}/IDFileConverter_34_output.idXML)
-set_tests_properties("TOPP_IDFileConverter_34_2" PROPERTIES DEPENDS "TOPP_IDFileConverter_34_1")
-set_tests_properties("TOPP_IDFileConverter_34_out" PROPERTIES DEPENDS "TOPP_IDFileConverter_34_2")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -1640,11 +1634,9 @@ add_test("TOPP_MapAlignerIdentification_7_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/M
 add_test("TOPP_MapAlignerIdentification_7_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_7_output2.tmp.trafoXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_7_output2.trafoXML -whitelist "TrafoXML version=")
 set_tests_properties("TOPP_MapAlignerIdentification_7_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_7")
 set_tests_properties("TOPP_MapAlignerIdentification_7_out2" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_7")
-# oms (database file) input - files based on BSA example data, generated like this:
-# IDFileConverter -in share/OpenMS/examples/BSA/BSA2_OMSSA.idXML -out ${TESTS_TEMP_DIR}/src/tests/topp/MapAlignerIdentification_8_input2.oms
-# IDFileConverter -in share/OpenMS/examples/BSA/BSA3_OMSSA.idXML -out ${TESTS_TEMP_DIR}/src/tests/topp/MapAlignerIdentification_8_input1.oms
-add_test("TOPP_MapAlignerIdentification_8" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -in ${DATA_DIR_TOPP}/MapAlignerIdentification_8_input1.oms -trafo_out ${TESTS_TEMP_DIR}/MapAlignerIdentification_8_output1.tmp.trafoXML -out ${TESTS_TEMP_DIR}/MapAlignerIdentification_8_output2.tmp.oms -reference:file ${DATA_DIR_TOPP}/MapAlignerIdentification_8_input2.oms -store_original_rt)
-# don't compare binary SQLite files
+# native identification bundle input - the same bundles as for IDMerger_6 (BSA3 = input1, BSA2 = input2)
+add_test("TOPP_MapAlignerIdentification_8" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -in ${DATA_DIR_TOPP}/IDMerger_6_input1.idparquet -trafo_out ${TESTS_TEMP_DIR}/MapAlignerIdentification_8_output1.tmp.trafoXML -out ${TESTS_TEMP_DIR}/MapAlignerIdentification_8_output2.tmp.idparquet -reference:file ${DATA_DIR_TOPP}/IDMerger_6_input2.idparquet -store_original_rt)
+# don't compare the binary Parquet bundle
 add_test("TOPP_MapAlignerIdentification_8_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerIdentification_8_output1.tmp.trafoXML -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_8_output1.trafoXML)
 set_tests_properties("TOPP_MapAlignerIdentification_8_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_8")
 
@@ -3983,13 +3975,8 @@ set_tests_properties("TOPP_AccurateMassSearch_2_out2" PROPERTIES DEPENDS "TOPP_A
 add_test("TOPP_AccurateMassSearch_3" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out ${TESTS_TEMP_DIR}/AccurateMassSearch_3_output.tmp.mzTab -out_annotation ${TESTS_TEMP_DIR}/AccurateMassSearch_2_output.tmp.featureXML -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv)
 add_test("TOPP_AccurateMassSearch_3_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/AccurateMassSearch_3_output.tmp.mzTab -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_3_output.mzTab -whitelist "")
 set_tests_properties("TOPP_AccurateMassSearch_3_out1" PROPERTIES DEPENDS "TOPP_AccurateMassSearch_3")
-# TODO: How to test the oms file?
-# oms (default)
-#add_test("TOPP_AccurateMassSearch_4" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out ${TESTS_TEMP_DIR}/AccurateMassSearch_4_output.tmp.mzTab -out_annotation ${TESTS_TEMP_DIR}/AccurateMassSearch_2_output.tmp.oms -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv)
-#add_test("TOPP_AccurateMassSearch_4_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/AccurateMassSearch_4_output.tmp.oms -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_3_output.mzTab -whitelist "")
-#set_tests_properties("TOPP_AccurateMassSearch_4_out1" PROPERTIES DEPENDS "TOPP_AccurateMassSearch_4")
-# mztab_m + oms (annotation)
-add_test("TOPP_AccurateMassSearch_5" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out ${TESTS_TEMP_DIR}/AccurateMassSearch_5_output.tmp.mzTab -out_annotation ${TESTS_TEMP_DIR}/AccurateMassSearch_5_output.tmp.oms -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv -algorithm:id_format ID)
+# mztab_m + featureparquet (annotation with native identification data)
+add_test("TOPP_AccurateMassSearch_5" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out ${TESTS_TEMP_DIR}/AccurateMassSearch_5_output.tmp.mzTab -out_annotation ${TESTS_TEMP_DIR}/AccurateMassSearch_5_output.tmp.featureparquet -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv -algorithm:id_format ID)
 add_test("TOPP_AccurateMassSearch_5_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/AccurateMassSearch_5_output.tmp.mzTab -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_5_output.mzTab -whitelist "")
 set_tests_properties("TOPP_AccurateMassSearch_5_out1" PROPERTIES DEPENDS "TOPP_AccurateMassSearch_5")
 # mztab_m + featureXML (annotation)
@@ -4105,16 +4092,6 @@ add_test("TOPP_IDSplitter_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDSplitter_1_ou
 set_tests_properties("TOPP_IDSplitter_1_out1" PROPERTIES DEPENDS "TOPP_IDSplitter_1")
 add_test("TOPP_IDSplitter_1_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDSplitter_1_output2.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDSplitter_1_output.idXML )
 set_tests_properties("TOPP_IDSplitter_1_out2" PROPERTIES DEPENDS "TOPP_IDSplitter_1")
-
-# JSONExporter:
-# proteomics test file (= IDFileConverter_34_output1.oms):
-add_test("TOPP_JSONExporter_1" ${TOPP_BIN_PATH}/JSONExporter -test -in ${DATA_DIR_TOPP}/JSONExporter_protein.oms -out ${TESTS_TEMP_DIR}/JSONExporter_1_output.tmp.json)
-add_test("TOPP_JSONExporter_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/JSONExporter_1_output.tmp.json -in2 ${DATA_DIR_TOPP}/JSONExporter_1_output.json)
-set_tests_properties("TOPP_JSONExporter_1_out" PROPERTIES DEPENDS "TOPP_JSONExporter_1")
-# RNA test file (= NucleicAcidSearchEngine_13_out.tmp.mzml):
-add_test("TOPP_JSONExporter_2" ${TOPP_BIN_PATH}/JSONExporter -test -in ${DATA_DIR_TOPP}/JSONExporter_RNA.oms -out ${TESTS_TEMP_DIR}/JSONExporter_2_output.tmp.json)
-add_test("TOPP_JSONExporter_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/JSONExporter_2_output.tmp.json -in2 ${DATA_DIR_TOPP}/JSONExporter_2_output.json)
-set_tests_properties("TOPP_JSONExporter_2_out" PROPERTIES DEPENDS "TOPP_JSONExporter_2")
 
 # MassCalculator:
 add_test("TOPP_MassCalculator_1" ${TOPP_BIN_PATH}/MassCalculator -test -in ${DATA_DIR_TOPP}/MassCalculator_1_input.tsv -out ${TESTS_TEMP_DIR}/MassCalculator_1_output.tmp.csv -charge 0 1 -format table -separator ,)
@@ -6147,18 +6124,18 @@ add_test("TOPP_ProteomicsLFQ_biosaur2_seeds" ${TOPP_BIN_PATH}/ProteomicsLFQ
 
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
-add_test("TOPP_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_11_out.tmp.idXML -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_12_out.tmp.mzTab -db_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_13_out.tmp.oms -digest_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_1_digest.oms -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
+add_test("TOPP_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_11_out.tmp.idXML -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_12_out.tmp.mzTab -db_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_13_out.tmp.idparquet -digest_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_1_digest.tmp.idparquet -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
 add_test("TOPP_NucleicAcidSearchEngine_11_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_11_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 add_test("TOPP_NucleicAcidSearchEngine_12_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_12_out.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
-# don't compare binary .oms (SQLite) output file (NucleicAcidSearchEngine_13_out.tmp.oms)
+# don't compare the binary Parquet bundle (NucleicAcidSearchEngine_13_out.tmp.idparquet)
 set_tests_properties("TOPP_NucleicAcidSearchEngine_11_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
 set_tests_properties("TOPP_NucleicAcidSearchEngine_12_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
 # use pre-digested sequence data:
-add_test("TOPP_NucleicAcidSearchEngine_2" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_21_out.tmp.idXML -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_22_out.tmp.mzTab -db_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_23_out.tmp.oms -digest ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_1_digest.oms)
+add_test("TOPP_NucleicAcidSearchEngine_2" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_21_out.tmp.idXML -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_22_out.tmp.mzTab -db_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_23_out.tmp.idparquet -digest ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_1_digest.tmp.idparquet)
 set_tests_properties("TOPP_NucleicAcidSearchEngine_2" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
 add_test("TOPP_NucleicAcidSearchEngine_21_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_21_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 add_test("TOPP_NucleicAcidSearchEngine_22_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_22_out.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
-# don't compare binary .oms (SQLite) output file (NucleicAcidSearchEngine_23_out.oms)
+# don't compare the binary Parquet bundle (NucleicAcidSearchEngine_23_out.tmp.idparquet)
 set_tests_properties("TOPP_NucleicAcidSearchEngine_21_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_2")
 set_tests_properties("TOPP_NucleicAcidSearchEngine_22_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_2")
 

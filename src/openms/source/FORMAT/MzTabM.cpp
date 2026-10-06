@@ -114,7 +114,11 @@ namespace OpenMS
         keys.clear();
         match->getKeys(keys);
         for (const auto& key : keys)
-          if (! StringUtils::hasSubstring(key, "IDConverter_trace") && ! key.starts_with("legacy:score:")) match_keys.insert(key);
+        {
+          // "inchi_key" fills the dedicated inchi column
+          if (key == "inchi_key" || StringUtils::hasSubstring(key, "IDConverter_trace") || key.starts_with("legacy:score:")) continue;
+          match_keys.insert(key);
+        }
       }
     }
     // Molecular fields are dedicated values; no second compound metadata object exists.

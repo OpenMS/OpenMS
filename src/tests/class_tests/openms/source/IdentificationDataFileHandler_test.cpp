@@ -45,7 +45,15 @@ START_SECTION((owning FileHandler writes native bundles and recognizes their man
   TEST_REAL_SIMILAR(*loaded.getRun("run").getScore(match, loaded.getRun("run").getScoreId(0)), 9.0)
   TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadIdentifications(path, loaded, {FileTypes::IDXML}))
   TEST_EQUAL(loaded.getRun("run").getUuid(), uuid)
-  TEST_EXCEPTION(Exception::InvalidValue, FileHandler().storeIdentifications(path, data, {FileTypes::IDPARQUET}))
+  // The manifest identifies the bundle without an extension.
+  TEST_EQUAL(FileHandler::getType(path), FileTypes::IDPARQUET)
+  // A tool rerun replaces its previous native bundle, like any other output format.
+  peptide.representation = "SEQVENCE";
+  data.getRun("run").addMatch(query, peptide, {7.0});
+  FileHandler().storeIdentifications(path, data, {FileTypes::IDPARQUET});
+  FileHandler().loadIdentifications(path, loaded);
+  TEST_EQUAL(loaded.getRun("run").getNumberOfMatches(), 2)
+  TEST_EQUAL(loaded.getRun("run").getUuid(), uuid)
   std::vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
   FileHandler().loadIdentifications(path, proteins, peptides, {FileTypes::IDPARQUET});

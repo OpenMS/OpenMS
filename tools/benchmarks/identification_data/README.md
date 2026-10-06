@@ -71,14 +71,11 @@ OMP_NUM_THREADS=1 /usr/bin/time -v ./IdentificationDataBenchmark inference 10000
 This mode uses 10,000 distinct peptidoforms and 2,000 proteins with consistent
 mappings across runs, and validates the contributing-run count. Its graph
 is synthetic; inference cost for other ambiguity structures can differ substantially.
-See `doc/openms/identification_data_validation.md` for measured Release results.
+Results are not committed: they depend on hardware, build flags and filesystem cache state.
 
 ## Comparison against legacy
 
-The current OMS branch writes owning schema 6, not the removed reference graph.
-Archived OMS measurements refer to the implementation commit recorded in their report.
-
-`IdentificationDataLegacyBenchmark` compares idXML, existing PSM Parquet, OMS and
+`IdentificationDataLegacyBenchmark` compares idXML, existing PSM Parquet and
 the owning native format with equivalent modified-peptide input. Run on Linux:
 
 ```bash
@@ -88,8 +85,7 @@ python3 tools/benchmarks/identification_data/run_legacy_comparison.py \
 
 The output directory must not exist. Configure runtime library/data paths for your
 OpenMS build first. The driver measures fresh-process peak RSS, rotates read order,
-and includes one warmup plus three measured reads per format. See
-`doc/openms/identification_data_legacy_comparison.md` for results and caveats.
+and includes one warmup plus three measured reads per format.
 
 Compare serial and threaded native I/O with the existing PSM Parquet API:
 
@@ -108,29 +104,3 @@ API retains its own defaults. Native single-threaded operation remains the defau
 The output includes the method, raw phase timings, process CPU time and peak RSS.
 Process CPU/RSS includes verification and, for writes, generation and conversion;
 the separate I/O wall-clock phases exclude that work.
-
-The additional `results/memory-footprint.json` archive contains Linux/glibc memory
-diagnostics, exact object sizes for this build, public-accessor storage accounting,
-and the complete standalone diagnostic source and reproduction instructions. These
-measurements explain owning-load memory and compare it with a non-retaining scan;
-they are separate from the repeated I/O timing matrix.
-
-## Direct OMS SQLite storage
-
-`results/oms-sqlite.json` compares the direct SQLite implementation with the
-unreleased embedded-file implementation at `45f09524`. Both use the same owning
-model and benchmark generator. Run each command in a fresh Release process:
-
-```bash
-./IdentificationDataLegacyBenchmark write oms sample.oms 1000000 1000
-./IdentificationDataLegacyBenchmark read oms sample.oms
-```
-
-Recreate the output for each repetition; the benchmark refuses to overwrite it.
-Use a separate build or shared-library path for the baseline. Compare the `DIGEST`
-lines, which check sequence, observation, charge, score, RT and m/z. Record process
-peak RSS with an external process monitor; write-process RSS includes generation
-and conversion. These synthetic inputs include 200 protein hits per run and
-5.4 million metadata rows. Warm-cache full loads do not measure cold disk speed
-or the cost of arbitrary SQL queries. The validation report includes medians,
-ranges, file sizes, RSS and SQLite table/index sizes.

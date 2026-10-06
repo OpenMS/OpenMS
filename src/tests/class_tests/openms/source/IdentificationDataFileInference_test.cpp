@@ -4,7 +4,6 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
-#include <OpenMS/FORMAT/OMSFile.h>
 #include <bit>
 #include <filesystem>
 #include <fstream>
@@ -329,12 +328,6 @@ START_SECTION((typed pooled inference preserves complete protein values, group a
   TEST_EQUAL(loaded.getRun(run.getIdentifier()).getNextMatchId(), 1)
   TEST_TRUE(fs::exists(fs::path(path) / "proteins.parquet"))
   TEST_FALSE(fs::exists(fs::path(path) / "inference.json"))
-  std::string oms_path;
-  NEW_TMP_FILE(oms_path)
-  ID sql_loaded;
-  OMSFile().store(oms_path, data);
-  OMSFile().load(oms_path, sql_loaded);
-  TEST_TRUE(sql_loaded == loaded)
 }
 END_SECTION
 
@@ -373,12 +366,7 @@ START_SECTION((inference floating point bit patterns survive dictionary encoding
   IdentificationDataFile::store(path, data, options);
   ID loaded;
   IdentificationDataFile::load(path, loaded, options);
-  std::string oms_path;
-  NEW_TMP_FILE(oms_path)
-  ID sql_loaded;
-  OMSFile().store(oms_path, data);
-  OMSFile().load(oms_path, sql_loaded);
-  for (const auto* restored : {&loaded, &sql_loaded})
+  for (const auto* restored : {&loaded})
   {
     const auto& output = restored->getInferenceResults().at(0).proteins;
     TEST_EQUAL(output.getHits().size(), bits.size())

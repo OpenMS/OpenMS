@@ -10,12 +10,12 @@
 
 #include <OpenMS/ANALYSIS/ID/IdentificationDataInference.h>
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
-#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <nanobind/operators.h>
+#include <functional>
 
 namespace pyopenms_identification
 {
@@ -35,6 +35,20 @@ auto valueClass(nb::handle scope, const char* name)
     .def(nb::init<const T&>())
     .def("__copy__", [](const T& self) { return T(self); })
     .def("__deepcopy__", [](const T& self, nb::dict) { return T(self); }, nb::arg("memo"));
+}
+
+/// Python truthiness of a callback result (accepts numpy.bool_, 0/1, None, ...).
+inline bool truthy(const nb::object& value)
+{
+  const int result = PyObject_IsTrue(value.ptr());
+  if (result < 0) throw nb::python_error();
+  return result != 0;
+}
+
+/// Hash for a std::string plus integer identity, consistent with the bound __eq__.
+inline size_t hashIdentity(const std::string& text, OpenMS::UInt64 value)
+{
+  return std::hash<std::string> {}(text) ^ (std::hash<OpenMS::UInt64> {}(value) + 0x9e3779b97f4a7c15ULL + (std::hash<std::string> {}(text) << 6));
 }
 
 template<typename Class, typename T, typename Value>
@@ -77,22 +91,32 @@ inline void bind(nb::module_& m)
   auto queryid = valueClass<ID::QueryId>(data, "QueryId");
   queryid.def_ro("value", &ID::QueryId::value).def(nb::self == nb::self).def(nb::self != nb::self);
   queryid.def(nb::init<OpenMS::UInt64>(), nb::arg("value"));
+  queryid.def("__hash__", [](const ID::QueryId& self) { return std::hash<OpenMS::UInt64> {}(self.value); });
   auto matchid = valueClass<ID::MatchId>(data, "MatchId");
   matchid.def_ro("value", &ID::MatchId::value).def(nb::self == nb::self).def(nb::self != nb::self);
   matchid.def(nb::init<OpenMS::UInt64>(), nb::arg("value"));
+  matchid.def("__hash__", [](const ID::MatchId& self) { return std::hash<OpenMS::UInt64> {}(self.value); });
   auto queryreference = valueClass<ID::QueryReference>(data, "QueryReference");
   field(queryreference, "run_uuid", &ID::QueryReference::run_uuid);
   field(queryreference, "query", &ID::QueryReference::query);
+  queryreference.def(nb::self == nb::self).def(nb::self != nb::self);
+  queryreference.def("__hash__", [](const ID::QueryReference& self) { return hashIdentity(self.run_uuid, self.query.value); });
   auto matchreference = valueClass<ID::MatchReference>(data, "MatchReference");
   field(matchreference, "run_uuid", &ID::MatchReference::run_uuid);
   field(matchreference, "match", &ID::MatchReference::match);
+  matchreference.def(nb::self == nb::self).def(nb::self != nb::self);
+  matchreference.def("__hash__", [](const ID::MatchReference& self) { return hashIdentity(self.run_uuid, self.match.value); });
   auto moleculeidentity = valueClass<ID::MoleculeIdentity>(data, "MoleculeIdentity");
   field(moleculeidentity, "encoding", &ID::MoleculeIdentity::encoding);
   field(moleculeidentity, "representation", &ID::MoleculeIdentity::representation);
+  moleculeidentity.def(nb::self == nb::self).def(nb::self != nb::self);
+  moleculeidentity.def("__hash__", [](const ID::MoleculeIdentity& self) { return hashIdentity(self.representation, static_cast<OpenMS::UInt64>(self.encoding)); });
   auto scoreid = valueClass<ID::ScoreId>(data, "ScoreId");
   scoreid.def_ro("value", &ID::ScoreId::value).def(nb::self == nb::self).def(nb::self != nb::self);
+  scoreid.def("__hash__", [](const ID::ScoreId& self) { return std::hash<OpenMS::UInt64> {}(self.owner) ^ (std::hash<OpenMS::UInt64> {}(self.value) << 1); });
   auto sourceid = valueClass<ID::SourceId>(data, "SourceId");
   sourceid.def_ro("value", &ID::SourceId::value).def(nb::self == nb::self).def(nb::self != nb::self);
+  sourceid.def("__hash__", [](const ID::SourceId& self) { return std::hash<OpenMS::UInt64> {}(self.owner) ^ (std::hash<OpenMS::UInt64> {}(self.value) << 1); });
   auto qualifiedaccession = valueClass<ID::QualifiedAccession>(data, "QualifiedAccession");
   field(qualifiedaccession, "database", &ID::QualifiedAccession::database);
   field(qualifiedaccession, "accession", &ID::QualifiedAccession::accession);
@@ -224,13 +248,13 @@ inline void bind(nb::module_& m)
     .def(
       "filter_matches",
       [](ID::Run& self, nb::callable keep, bool keep_empty) {
-        return self.filterMatches([&](const ID::Match& match) { return nb::cast<bool>(keep(nb::cast(match, nb::rv_policy::copy))); }, keep_empty);
+        return self.filterMatches([&](const ID::Match& match) { return truthy(keep(nb::cast(match, nb::rv_policy::copy))); }, keep_empty);
       },
       nb::arg("keep"), nb::arg("keep_empty_queries") = false)
     .def(
       "erase_matches",
       [](ID::Run& self, nb::callable remove, bool keep_empty) {
-        return self.eraseMatches([&](const ID::Match& match) { return nb::cast<bool>(remove(nb::cast(match, nb::rv_policy::copy))); }, keep_empty);
+        return self.eraseMatches([&](const ID::Match& match) { return truthy(remove(nb::cast(match, nb::rv_policy::copy))); }, keep_empty);
       },
       nb::arg("remove"), nb::arg("keep_empty_queries") = false)
     .def("retain_best", &ID::Run::retainBest, nb::arg("score"), nb::arg("keep_ties") = true, nb::arg("keep_empty_queries") = false)
@@ -288,7 +312,7 @@ inline void bind(nb::module_& m)
     .def(
       "filter_matches",
       [](ID& self, nb::callable keep, ID::InferencePolicy policy, bool keep_empty) {
-        return self.filterMatches([&](const ID::Match& match) { return nb::cast<bool>(keep(nb::cast(match, nb::rv_policy::copy))); }, policy,
+        return self.filterMatches([&](const ID::Match& match) { return truthy(keep(nb::cast(match, nb::rv_policy::copy))); }, policy,
                                   keep_empty);
       },
       nb::arg("keep"), nb::arg("inference_policy"), nb::arg("keep_empty_queries") = false)
@@ -307,6 +331,7 @@ inline void bind(nb::module_& m)
   field(options, "row_group_bytes", &File::Options::row_group_bytes);
   field(options, "max_record_bytes", &File::Options::max_record_bytes);
   field(options, "threads", &File::Options::threads);
+  field(options, "replace_existing", &File::Options::replace_existing);
   auto projection = valueClass<File::Projection>(file, "Projection");
   field(projection, "molecule", &File::Projection::molecule);
   field(projection, "evidence", &File::Projection::evidence);
@@ -347,24 +372,40 @@ inline void bind(nb::module_& m)
 
   file
     .def_static(
-      "store", [](const std::string& path, const ID& values, const File::Options& options) { File::store(path, values, options); }, nb::arg("path"),
+      "store",
+      [](const std::string& path, const ID& values, const File::Options& options) {
+        nb::gil_scoped_release release;
+        File::store(path, values, options);
+      },
+      nb::arg("path"),
       nb::arg("data"), nb::arg("options") = File::Options {})
     .def_static(
       "load",
       [](const std::string& path, const File::Options& options) {
         ID values;
-        File::load(path, values, options);
+        {
+          nb::gil_scoped_release release;
+          File::load(path, values, options);
+        }
         return values;
       },
       nb::arg("path"), nb::arg("options") = File::Options {})
     .def_static(
-      "load", [](const std::string& path, ID& values, const File::Options& options) { File::load(path, values, options); }, nb::arg("path"),
+      "load",
+      [](const std::string& path, ID& values, const File::Options& options) {
+        nb::gil_scoped_release release;
+        File::load(path, values, options);
+      },
+      nb::arg("path"),
       nb::arg("data"), nb::arg("options") = File::Options {})
     .def_static(
       "load_run",
-      [](const std::string& path, const std::string& selected, const File::Options& options) { return File::loadRun(path, selected, options); },
+      [](const std::string& path, const std::string& selected, const File::Options& options) {
+        nb::gil_scoped_release release;
+        return File::loadRun(path, selected, options);
+      },
       nb::arg("path"), nb::arg("run"), nb::arg("options") = File::Options {})
-    .def_static("inspect", &File::inspect, nb::arg("path"))
+    .def_static("inspect", &File::inspect, nb::arg("path"), nb::call_guard<nb::gil_scoped_release>())
     .def_static(
       "scan",
       [](const std::string& path, const File::ScanOptions& options, nb::object queries, nb::object matches) {
@@ -392,45 +433,11 @@ inline void bind(nb::module_& m)
          const File::Options& options) {
         File::filter(
           input, output,
-          [&](const std::string& uuid, const File::MatchRecord& record) { return nb::cast<bool>(keep(uuid, nb::cast(record, nb::rv_policy::copy))); },
+          [&](const std::string& uuid, const File::MatchRecord& record) { return truthy(keep(uuid, nb::cast(record, nb::rv_policy::copy))); },
           policy, keep_empty, options);
       },
       nb::arg("input"), nb::arg("output"), nb::arg("keep"), nb::arg("inference_policy"), nb::arg("keep_empty_queries") = false,
       nb::arg("options") = File::Options {});
-
-  auto oms = valueClass<OpenMS::OMSFile>(m, "OMSFile");
-  oms.def(
-       "store", [](OpenMS::OMSFile& self, const std::string& path, const ID& data) { self.store(path, data); }, nb::arg("path"), nb::arg("data"))
-    .def(
-      "store", [](OpenMS::OMSFile& self, const std::string& path, const OpenMS::FeatureMap& map) { self.store(path, map); }, nb::arg("path"),
-      nb::arg("map"))
-    .def(
-      "store", [](OpenMS::OMSFile& self, const std::string& path, const OpenMS::ConsensusMap& map) { self.store(path, map); }, nb::arg("path"),
-      nb::arg("map"))
-    .def(
-      "load",
-      [](OpenMS::OMSFile& self, const std::string& path) {
-        ID result;
-        self.load(path, result);
-        return result;
-      },
-      nb::arg("path"))
-    .def(
-      "load_feature_map",
-      [](OpenMS::OMSFile& self, const std::string& path) {
-        OpenMS::FeatureMap result;
-        self.load(path, result);
-        return result;
-      },
-      nb::arg("path"))
-    .def(
-      "load_consensus_map",
-      [](OpenMS::OMSFile& self, const std::string& path) {
-        OpenMS::ConsensusMap result;
-        self.load(path, result);
-        return result;
-      },
-      nb::arg("path"));
 
   // --- IdentificationDataAdapter ---
   auto adapter = valueClass<Adapter>(m, "IdentificationDataAdapter");

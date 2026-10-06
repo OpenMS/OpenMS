@@ -419,6 +419,45 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
   ams.run(fm_p, mzt);
 END_SECTION
 
+START_SECTION([EXTRA] void run(FeatureMap&, MzTabM&) const - negative mode and unmatched masses in the owning model)
+{
+  FeatureMap fm;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), fm);
+  for (auto& f : fm)
+  {
+    // [M+H]+ masses of the positive-mode input become [M-H]- masses
+    f.setMZ(f.getMZ() - 2 * Constants::PROTON_MASS_U);
+    f.setMetaValue("scan_polarity", "negative");
+  }
+  AccurateMassSearchEngine ams;
+  Param p;
+  p.setValue("ionization_mode", "auto");
+  p.setValue("keep_unidentified_masses", "true");
+  p.setValue("db:mapping", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv")});
+  p.setValue("db:struct", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv")});
+  ams.setParameters(p);
+  ams.init();
+  MzTabM mztabm;
+  ams.run(fm, mztabm); // previously threw: positive match charge vs. negative adduct charge, NaN scores for unmatched masses
+  const auto& data = fm.getIdentificationData();
+  TEST_EQUAL(data.getRuns().size(), 1)
+  Size queries = 0, matches = 0;
+  for (const auto& source : data.getRuns()[0].getSourceBlocks())
+    for (const auto& query : source.identifications)
+    {
+      ++queries;
+      for (const auto& match : query.getMatches())
+      {
+        ++matches;
+        TEST_EQUAL(match.charge < 0, true)
+        TEST_EQUAL(match.adduct->getCharge(), match.charge)
+      }
+    }
+  TEST_EQUAL(queries, fm.size()) // every feature is a query, matched or not
+  TEST_EQUAL(matches > 0, true)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 /// check the temporary files written above against their XML schema (types without a validator are skipped)
