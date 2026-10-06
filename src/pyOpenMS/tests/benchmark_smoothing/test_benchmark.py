@@ -7,26 +7,48 @@ import unittest
 import numpy as np
 import pyopenms
 
-from synthetic_data import (
-    SyntheticChromatogramGenerator,
-    generate_gaussian_peak,
-    generate_emg_peak,
-    add_noise,
-)
-from metrics import (
-    evaluate_signal_fidelity,
-    evaluate_noise_reduction,
-    evaluate_peak_picking,
-    evaluate_valley_to_peak_ratio,
-    parabolic_apex_interpolation,
-    interpolated_fwhm,
-)
-from benchmark_engine import (
-    BenchmarkEngine,
-    apply_modified_sinc,
-    apply_savitzky_golay,
-    run_peak_picker_hires,
-)
+try:
+    from .synthetic_data import (
+        SyntheticChromatogramGenerator,
+        generate_gaussian_peak,
+        generate_emg_peak,
+        add_noise,
+    )
+    from .metrics import (
+        evaluate_signal_fidelity,
+        evaluate_noise_reduction,
+        evaluate_peak_picking,
+        evaluate_valley_to_peak_ratio,
+        parabolic_apex_interpolation,
+        interpolated_fwhm,
+    )
+    from .benchmark_engine import (
+        BenchmarkEngine,
+        apply_modified_sinc,
+        apply_savitzky_golay,
+        run_peak_picker_hires,
+    )
+except ImportError:
+    from synthetic_data import (
+        SyntheticChromatogramGenerator,
+        generate_gaussian_peak,
+        generate_emg_peak,
+        add_noise,
+    )
+    from metrics import (
+        evaluate_signal_fidelity,
+        evaluate_noise_reduction,
+        evaluate_peak_picking,
+        evaluate_valley_to_peak_ratio,
+        parabolic_apex_interpolation,
+        interpolated_fwhm,
+    )
+    from benchmark_engine import (
+        BenchmarkEngine,
+        apply_modified_sinc,
+        apply_savitzky_golay,
+        run_peak_picker_hires,
+    )
 
 
 class TestSyntheticData(unittest.TestCase):
@@ -59,6 +81,9 @@ class TestSyntheticData(unittest.TestCase):
 
         # Verify no overlapping references and distinct data
         self.assertNotEqual(len(tuning["tuning_narrow"].rt), len(test["narrow"].rt))
+        tuning_rts = [p.true_apex_rt for p in tuning["tuning_composite"].peaks]
+        test_rts = [p.true_apex_rt for p in test["composite"].peaks]
+        self.assertNotEqual(tuning_rts, test_rts)
 
     def test_analytical_area_gaussian(self):
         """Verify analytical Gaussian area matches numerical integration."""

@@ -372,6 +372,7 @@ class SyntheticChromatogramGenerator:
         noise_level: float = 0.02,
         noise_type: str = "heteroscedastic",
         baseline_level: float = 100.0,
+        peak_configs: Optional[Dict[str, Dict[str, float]]] = None,
     ) -> SyntheticChromatogram:
         """
         Create a comprehensive realistic chromatogram containing:
@@ -385,32 +386,67 @@ class SyntheticChromatogramGenerator:
         peak_intensity = np.zeros_like(rt)
         peaks: List[PeakMetadata] = []
 
+        configs = {
+            "narrow": {"center_rt": 40.0, "height": 2500.0, "fwhm": 3.0},
+            "d1": {"center_rt": 95.0, "height": 3000.0, "fwhm": 10.0},
+            "d2": {"center_rt": 107.0, "height": 1800.0, "fwhm": 10.0},
+            "emg": {"center_rt": 160.0, "height": 2000.0, "fwhm": 8.0, "tau": 6.0},
+            "low": {"center_rt": 215.0, "height": 140.0, "fwhm": 7.0},
+            "broad": {"center_rt": 260.0, "height": 4500.0, "fwhm": 25.0},
+        }
+        if peak_configs:
+            for k, v in peak_configs.items():
+                if k in configs:
+                    configs[k].update(v)
+
         # 1. Narrow peak
-        i_narrow, m_narrow = generate_gaussian_peak(rt, center_rt=40.0, height=2500.0, fwhm=3.0)
+        c_n = configs["narrow"]
+        i_narrow, m_narrow = generate_gaussian_peak(
+            rt, center_rt=c_n["center_rt"], height=c_n["height"], fwhm=c_n["fwhm"]
+        )
         peak_intensity += i_narrow
         peaks.append(m_narrow)
 
         # 2. Overlapping doublet
-        i_d1, m_d1 = generate_gaussian_peak(rt, center_rt=95.0, height=3000.0, fwhm=10.0)
-        i_d2, m_d2 = generate_gaussian_peak(rt, center_rt=107.0, height=1800.0, fwhm=10.0)
-        midpoint_d = (95.0 + 107.0) / 2.0
+        c_d1 = configs["d1"]
+        c_d2 = configs["d2"]
+        i_d1, m_d1 = generate_gaussian_peak(
+            rt, center_rt=c_d1["center_rt"], height=c_d1["height"], fwhm=c_d1["fwhm"]
+        )
+        i_d2, m_d2 = generate_gaussian_peak(
+            rt, center_rt=c_d2["center_rt"], height=c_d2["height"], fwhm=c_d2["fwhm"]
+        )
+        midpoint_d = (c_d1["center_rt"] + c_d2["center_rt"]) / 2.0
         m_d1.rt_end = midpoint_d
         m_d2.rt_start = midpoint_d
         peak_intensity += i_d1 + i_d2
         peaks.extend([m_d1, m_d2])
 
         # 3. Asymmetric tailing peak (EMG)
-        i_emg, m_emg = generate_emg_peak(rt, center_rt=160.0, height=2000.0, fwhm=8.0, tau=6.0)
+        c_emg = configs["emg"]
+        i_emg, m_emg = generate_emg_peak(
+            rt,
+            center_rt=c_emg["center_rt"],
+            height=c_emg["height"],
+            fwhm=c_emg["fwhm"],
+            tau=c_emg["tau"],
+        )
         peak_intensity += i_emg
         peaks.append(m_emg)
 
         # 4. Low-intensity peak near LOD
-        i_low, m_low = generate_gaussian_peak(rt, center_rt=215.0, height=140.0, fwhm=7.0)
+        c_low = configs["low"]
+        i_low, m_low = generate_gaussian_peak(
+            rt, center_rt=c_low["center_rt"], height=c_low["height"], fwhm=c_low["fwhm"]
+        )
         peak_intensity += i_low
         peaks.append(m_low)
 
         # 5. Broad high-intensity peak
-        i_broad, m_broad = generate_gaussian_peak(rt, center_rt=260.0, height=4500.0, fwhm=25.0)
+        c_broad = configs["broad"]
+        i_broad, m_broad = generate_gaussian_peak(
+            rt, center_rt=c_broad["center_rt"], height=c_broad["height"], fwhm=c_broad["fwhm"]
+        )
         peak_intensity += i_broad
         peaks.append(m_broad)
 
@@ -439,14 +475,26 @@ class SyntheticChromatogramGenerator:
     def generate_tuning_datasets(self) -> Dict[str, SyntheticChromatogram]:
         """
         Generate calibration/tuning datasets.
-        Uses a separate deterministic seed (self.seed + 10000) and distinct peak locations
+        Uses a separate deterministic seed (self.seed + 10000) and distinct peak locations and shapes
         to ensure parameter tuning is completely isolated from test data.
         """
         tuning_gen = SyntheticChromatogramGenerator(seed=self.seed + 10000)
+        tuning_peaks = {
+            "narrow": {"center_rt": 45.0, "height": 2400.0, "fwhm": 3.4},
+            "d1": {"center_rt": 100.0, "height": 2800.0, "fwhm": 11.0},
+            "d2": {"center_rt": 114.0, "height": 1900.0, "fwhm": 11.0},
+            "emg": {"center_rt": 172.0, "height": 2100.0, "fwhm": 9.0, "tau": 5.5},
+            "low": {"center_rt": 222.0, "height": 150.0, "fwhm": 7.5},
+            "broad": {"center_rt": 268.0, "height": 4200.0, "fwhm": 24.0},
+        }
         return {
             "tuning_narrow": tuning_gen.create_narrow_peak(n_points=160, fwhm=3.5, height=1200.0),
             "tuning_broad": tuning_gen.create_broad_peak(n_points=220, fwhm=28.0, height=1200.0),
-            "tuning_composite": tuning_gen.create_composite_chromatogram(dt=0.5, total_time=250.0),
+            "tuning_composite": tuning_gen.create_composite_chromatogram(
+                dt=0.5,
+                total_time=320.0,
+                peak_configs=tuning_peaks,
+            ),
         }
 
     def generate_test_datasets(self) -> Dict[str, SyntheticChromatogram]:

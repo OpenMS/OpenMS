@@ -172,11 +172,10 @@ def plot_overlapping_resolution(
     fig, ax = plt.subplots(figsize=(8, 6))
 
     labels = ["Ground Truth", "Raw Noisy", "Modified Sinc", "Savitzky-Golay"]
+    keys = ["true", "noisy", "ms", "sg"]
     values = [
-        valley_data.get("true", 0.3),
-        valley_data.get("noisy", 0.35),
-        valley_data.get("ms", 0.32),
-        valley_data.get("sg", 0.38),
+        float(valley_data[k]) if valley_data.get(k) is not None else float("nan")
+        for k in keys
     ]
     colors = ["#0f172a", "#94a3b8", "#2563eb", "#dc2626"]
 
@@ -185,8 +184,15 @@ def plot_overlapping_resolution(
     ax.set_title("Overlapping Doublet Resolvability (Lower VPR = Sharper Valley)", fontweight="bold")
 
     for bar, val in zip(bars, values):
-        ax.text(bar.get_x() + bar.get_width() / 2, val + 0.01, f"{val:.3f}",
-                ha="center", va="bottom", fontweight="bold")
+        missing = np.isnan(val)
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            0.01 if missing else val + 0.01,
+            "N/A" if missing else f"{val:.3f}",
+            ha="center",
+            va="bottom",
+            fontweight="bold",
+        )
 
     plt.tight_layout()
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)

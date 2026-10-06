@@ -144,7 +144,13 @@ def generate_markdown_report(
         lines.append("|---|---|---|---|---|")
         ms_area_e = f"{ms_over.doublet_total_area_error_pct:+.2f}%" if ms_over.doublet_total_area_error_pct is not None else "N/A"
         sg_area_e = f"{sg_over.doublet_total_area_error_pct:+.2f}%" if sg_over.doublet_total_area_error_pct is not None else "N/A"
-        lines.append(f"| Total Doublet Area Error | 0.0% (59,796.8) | {ms_area_e} | {sg_area_e} | Both methods preserve total area within < 0.8% |")
+        true_doublet_area = sum(p.true_area for p in ms_over.peaks) if ms_over.peaks else 0.0
+        if ms_over.doublet_total_area_error_pct is not None and sg_over.doublet_total_area_error_pct is not None:
+            max_d_err = max(abs(ms_over.doublet_total_area_error_pct), abs(sg_over.doublet_total_area_error_pct))
+            area_assessment = f"Both methods preserve total area within {max_d_err:.2f}%"
+        else:
+            area_assessment = "Doublet area preservation evaluated"
+        lines.append(f"| Total Doublet Area Error | 0.0% ({true_doublet_area:,.1f}) | {ms_area_e} | {sg_area_e} | {area_assessment} |")
         vpr_true = f"{ms_over.valley_to_peak_ratio_true:.3f}" if ms_over.valley_to_peak_ratio_true is not None else "N/A"
         vpr_ms = f"{ms_over.valley_to_peak_ratio_smooth:.3f}" if ms_over.valley_to_peak_ratio_smooth is not None else "N/A"
         vpr_sg = f"{sg_over.valley_to_peak_ratio_smooth:.3f}" if sg_over.valley_to_peak_ratio_smooth is not None else "N/A"
@@ -173,8 +179,7 @@ def generate_markdown_report(
     lines.append("> **Methodological Note on Narrow Peaks**: The ~3-point FWHM peak (FWHM = 3.0 s, sampling interval Δt = 1.0 s) ")
     lines.append("> is severely undersampled, spanning only ~3 discrete points across its half-maximum width. It was deliberately ")
     lines.append("> included as a stress test for peak shape preservation. Under these conditions, convolution smoothing inevitably ")
-    lines.append("> attenuates peak height and broadens width. The observed ~58% FWHM broadening for Modified Sinc and ~73% for ")
-    lines.append("> Savitzky–Golay represent real physical filter dispersion rather than calculation error. Sub-scan flank interpolation ")
+    lines.append("> attenuates peak height and broadens width. Sub-scan flank interpolation ")
     lines.append("> accurately quantifies this physical broadening without grid quantization artifacts.")
     lines.append("")
 
@@ -189,6 +194,8 @@ def generate_markdown_report(
     lines.append("|---|---|---|---|---|---|---|---|---|")
 
     comp_res = held_out_results.get("composite", {})
+    ms_p2 = None
+    sg_p2 = None
     if comp_res:
         ms_comp = comp_res["ModifiedSinc"]
         sg_comp = comp_res["SavitzkyGolay"]
@@ -200,11 +207,36 @@ def generate_markdown_report(
                 primary_mark = " *(primary)*" if sn == 2.0 else ""
                 lines.append(f"| S/N = {sn:.1f}{primary_mark} | Modified Sinc | {ms_pp.total_true_peaks} | {ms_pp.total_detected_peaks} | {ms_pp.true_positives} | {ms_pp.false_positives} | {ms_pp.precision:.3f} | {ms_pp.recall:.3f} | {ms_pp.f1_score:.3f} |")
                 lines.append(f"| S/N = {sn:.1f}{primary_mark} | Savitzky–Golay | {sg_pp.total_true_peaks} | {sg_pp.total_detected_peaks} | {sg_pp.true_positives} | {sg_pp.false_positives} | {sg_pp.precision:.3f} | {sg_pp.recall:.3f} | {sg_pp.f1_score:.3f} |")
-    lines.append("")
-    lines.append("> **Downstream Detection Finding**: At realistic operating thresholds (S/N ≥ 2.0), both methods achieve identical ")
-    lines.append("> peak-picking performance (Precision = 1.000, Recall = 0.833, F1 = 0.909, 0 false positives). At S/N = 1.0, ")
-    lines.append("> Modified Sinc had 11 false positives vs. 12 for Savitzky–Golay; this minor difference is descriptive only. ")
-    lines.append("> **No meaningful downstream peak-picking difference was observed under the tested conditions.**")
+
+        ms_p2 = ms_comp.peak_picking_sensitivity.get(2.0)
+        sg_p2 = sg_comp.peak_picking_sensitivity.get(2.0)
+        ms_p1 = ms_comp.peak_picking_sensitivity.get(1.0)
+        sg_p1 = sg_comp.peak_picking_sensitivity.get(1.0)
+
+        det_findings = []
+        if ms_p2 and sg_p2:
+            if (
+                ms_p2.precision == sg_p2.precision
+                and ms_p2.recall == sg_p2.recall
+                and ms_p2.f1_score == sg_p2.f1_score
+                and ms_p2.false_positives == sg_p2.false_positives
+            ):
+                det_findings.append(
+                    f"At realistic operating thresholds (S/N ≥ 2.0), both methods achieve identical peak-picking performance "
+                    f"(Precision = {ms_p2.precision:.3f}, Recall = {ms_p2.recall:.3f}, F1 = {ms_p2.f1_score:.3f}, {ms_p2.false_positives} false positives)."
+                )
+            else:
+                det_findings.append(
+                    f"At realistic operating thresholds (S/N ≥ 2.0), Modified Sinc yielded Precision = {ms_p2.precision:.3f}, Recall = {ms_p2.recall:.3f}, F1 = {ms_p2.f1_score:.3f} ({ms_p2.false_positives} FP) "
+                    f"vs. Savitzky–Golay Precision = {sg_p2.precision:.3f}, Recall = {sg_p2.recall:.3f}, F1 = {sg_p2.f1_score:.3f} ({sg_p2.false_positives} FP)."
+                )
+        if ms_p1 and sg_p1:
+            det_findings.append(
+                f"At S/N = 1.0, Modified Sinc had {ms_p1.false_positives} false positives vs. {sg_p1.false_positives} for Savitzky–Golay; this minor difference is descriptive only."
+            )
+        det_findings.append("**No meaningful downstream peak-picking difference was observed under the tested conditions.**")
+        lines.append("")
+        lines.append(f"> **Downstream Detection Finding**: {' '.join(det_findings)}")
     lines.append("")
 
     # 5. Matched Bandwidth Comparison
@@ -232,7 +264,8 @@ def generate_markdown_report(
     # 6. Computational Performance Scaling
     lines.append("## 6. Computational Performance & Scaling (Microbenchmark)")
     lines.append("")
-    lines.append("Runtime measured using loops of 50–500 iterations with `gc.disable()` inside Python, matching OpenMS benchmark conventions:")
+    lines.append("Runtime measured using loops of 20–500 iterations (500 for N ≤ 500 down to 20 for N = 50,000) with `gc.disable()` inside Python, matching OpenMS benchmark conventions.")
+    lines.append("Note that each timed iteration includes the `MSChromatogram` copy overhead to ensure in-place filtering operates on fresh chromatogram instances:")
     lines.append("")
     lines.append("| Chromatogram Length (N) | Modified Sinc Time (µs) | Savitzky-Golay Time (µs) | Sinc Speed (ns/pt) | SG Speed (ns/pt) | Ratio (MS / SG) |")
     lines.append("|---|---|---|---|---|---|")
@@ -245,9 +278,19 @@ def generate_markdown_report(
         ratio = ms_us[i] / sg_us[i] if sg_us[i] > 0 else 0.0
         lines.append(f"| {n:,} | {ms_us[i]:.2f} µs | {sg_us[i]:.2f} µs | {ms_ns[i]:.1f} ns | {sg_ns[i]:.1f} ns | {ratio:.2f}x |")
     lines.append("")
-    lines.append("> **Runtime Analysis**: For the tested typical chromatogram lengths (N ≤ 2,500), both smoothers execute in < 25 µs ")
-    lines.append("> (~8–11 ns/point), meaning throughput differences are negligible in routine LC-MS pipelines. For very large chromatograms ")
-    lines.append("> (N = 50,000), Savitzky–Golay is ~2.8x–3.2x faster due to fewer internal C++ heap allocations.")
+
+    typical_times = [max(ms_us[i], sg_us[i]) for i, n in enumerate(lengths) if n <= 2500]
+    max_typical_time = max(typical_times) if typical_times else 25.0
+    typical_ns = [ms_ns[i] for i, n in enumerate(lengths) if n <= 2500] + [sg_ns[i] for i, n in enumerate(lengths) if n <= 2500]
+    min_ns = min(typical_ns) if typical_ns else 8.0
+    max_ns = max(typical_ns) if typical_ns else 11.0
+
+    last_n = lengths[-1] if lengths else 50000
+    last_ratio = (ms_us[-1] / sg_us[-1]) if (lengths and sg_us[-1] > 0) else 1.0
+
+    lines.append(f"> **Runtime Analysis**: For the tested typical chromatogram lengths (N ≤ 2,500), both smoothers execute in < {max_typical_time:.0f} µs ")
+    lines.append(f"> (~{min_ns:.0f}–{max_ns:.0f} ns/point), meaning throughput differences are negligible in routine LC-MS pipelines. For very large chromatograms ")
+    lines.append(f"> (N = {last_n:,}), Savitzky–Golay is ~{last_ratio:.1f}x faster in execution.")
     lines.append("")
 
     # 7. Memory Assessment
@@ -280,11 +323,69 @@ def generate_markdown_report(
     lines.append("")
     lines.append("Based strictly on the empirical evidence gathered across synthetic and test data, the comparison reveals clear trade-offs:")
     lines.append("")
-    lines.append("1. **Signal Preservation on Narrow Peaks**: `ModifiedSincSmoother` demonstrates superior preservation of narrow, scarcely sampled peaks (~3 scans FWHM), exhibiting lower peak apex attenuation (-29.2% vs. -32.4%) and substantially less FWHM broadening (+58.1% vs. +72.8%) across all sub-scan sampling phases.")
-    lines.append("2. **General Peak Shapes**: For well-sampled broad peaks (~30 scans FWHM), low-intensity peaks near the detection limit, and asymmetric tailing peaks (EMG), both methods perform essentially equivalently (apex errors < 0.3%, FWHM errors < 4.5%).")
-    lines.append("3. **Overlapping Peaks**: Neither method showed a decisive advantage on overlapping doublets. Both algorithms preserve total doublet area accurately (+0.71% error vs. combined ground truth area) and maintain valley-to-peak resolvability.")
-    lines.append("4. **Downstream Peak Picking**: At realistic operating thresholds (S/N ≥ 2.0), downstream peak detection via `PeakPickerHiRes` is identical between both smoothers (F1 = 0.909, 0 false positives). No meaningful downstream difference was observed.")
-    lines.append(r"5. **Computational Throughput**: Both algorithms scale linearly $O(N)$. For typical chromatogram lengths ($N \le 2,500$), both execute in < 25 µs (~8–11 ns/point). At large sizes ($N = 50,000$), Savitzky–Golay is ~2.8x–3.2x faster due to fewer temporary vector buffer allocations in C++.")
+
+    # 1. Narrow peaks
+    if phase_results:
+        ms_phase_apex = np.mean([data['ms_apex_err'] for data in phase_results.values()])
+        sg_phase_apex = np.mean([data['sg_apex_err'] for data in phase_results.values()])
+        ms_phase_fwhm = np.mean([data['ms_fwhm_err'] for data in phase_results.values()])
+        sg_phase_fwhm = np.mean([data['sg_fwhm_err'] for data in phase_results.values()])
+        lines.append(
+            f"1. **Signal Preservation on Narrow Peaks**: `ModifiedSincSmoother` demonstrates superior preservation of narrow, scarcely sampled peaks (~3 scans FWHM), "
+            f"exhibiting lower peak apex attenuation ({ms_phase_apex:+.1f}% vs. {sg_phase_apex:+.1f}% mean error) and substantially less FWHM broadening ({ms_phase_fwhm:+.1f}% vs. {sg_phase_fwhm:+.1f}% mean distortion) across sub-scan sampling phases."
+        )
+    else:
+        lines.append("1. **Signal Preservation on Narrow Peaks**: `ModifiedSincSmoother` demonstrates superior preservation of narrow, scarcely sampled peaks (~3 scans FWHM).")
+
+    # 2. General peak shapes
+    other_apex_errs = []
+    other_fwhm_errs = []
+    for ds_k in ["broad", "low_intensity", "tailing"]:
+        ds_pair = held_out_results.get(ds_k)
+        if ds_pair:
+            for smoother_k in ["ModifiedSinc", "SavitzkyGolay"]:
+                item = ds_pair[smoother_k]
+                if item.peaks:
+                    other_apex_errs.append(abs(item.peaks[0].apex_intensity_error_pct))
+                    other_fwhm_errs.append(abs(item.peaks[0].fwhm_error_pct))
+    max_other_apex = max(other_apex_errs) if other_apex_errs else 0.5
+    max_other_fwhm = max(other_fwhm_errs) if other_fwhm_errs else 5.0
+    lines.append(
+        f"2. **General Peak Shapes**: For well-sampled broad peaks (~30 scans FWHM), low-intensity peaks near the detection limit, and asymmetric tailing peaks (EMG), "
+        f"both methods perform essentially equivalently (apex errors < {max_other_apex:.1f}%, FWHM errors < {max_other_fwhm:.1f}%)."
+    )
+
+    # 3. Overlapping peaks
+    if over_res and ms_over.doublet_total_area_error_pct is not None and sg_over.doublet_total_area_error_pct is not None:
+        lines.append(
+            f"3. **Overlapping Peaks**: Neither method showed a decisive advantage on overlapping doublets. Both algorithms preserve total doublet area accurately "
+            f"({ms_over.doublet_total_area_error_pct:+.2f}% MS vs. {sg_over.doublet_total_area_error_pct:+.2f}% SG error vs. combined ground truth area) and maintain valley-to-peak resolvability."
+        )
+    else:
+        lines.append("3. **Overlapping Peaks**: Neither method showed a decisive advantage on overlapping doublets. Both algorithms preserve total doublet area accurately and maintain valley-to-peak resolvability.")
+
+    # 4. Downstream Peak Picking
+    if comp_res and ms_p2 and sg_p2:
+        if ms_p2.f1_score == sg_p2.f1_score and ms_p2.false_positives == sg_p2.false_positives:
+            lines.append(
+                f"4. **Downstream Peak Picking**: At realistic operating thresholds (S/N ≥ 2.0), downstream peak detection via `PeakPickerHiRes` is identical between both smoothers "
+                f"(F1 = {ms_p2.f1_score:.3f}, {ms_p2.false_positives} false positives). No meaningful downstream difference was observed."
+            )
+        else:
+            lines.append(
+                f"4. **Downstream Peak Picking**: At realistic operating thresholds (S/N ≥ 2.0), downstream peak detection via `PeakPickerHiRes` yields comparable performance "
+                f"(MS F1 = {ms_p2.f1_score:.3f}, {ms_p2.false_positives} FP vs. SG F1 = {sg_p2.f1_score:.3f}, {sg_p2.false_positives} FP)."
+            )
+    else:
+        lines.append("4. **Downstream Peak Picking**: At realistic operating thresholds (S/N ≥ 2.0), downstream peak detection via `PeakPickerHiRes` is comparable between both smoothers.")
+
+    # 5. Computational Throughput
+    lines.append(
+        rf"5. **Computational Throughput**: Both algorithms scale linearly $O(N)$. For typical chromatogram lengths ($N \le 2,500$), both execute in < {max_typical_time:.0f} µs "
+        rf"(~{min_ns:.0f}–{max_ns:.0f} ns/point). At large sizes ($N = {last_n:,}$), Savitzky–Golay is ~{last_ratio:.1f}x faster in execution."
+    )
+
+    # 6. Overall Conclusion
     lines.append("6. **Overall Conclusion**: The benchmark demonstrates trade-offs rather than a universal winner. Modified Sinc is advantageous for preserving scarcely sampled narrow chromatographic peaks, while Savitzky–Golay maintains an advantage in runtime on very large traces, with both performing comparably across broad peaks and standard downstream peak-picking workflows.")
     lines.append("")
 
@@ -307,10 +408,14 @@ def main():
     args = parser.parse_args()
 
     out_dir = Path(args.output_dir)
-    # Clean previous results if present to guarantee no stale data persists
-    if out_dir.exists():
-        shutil.rmtree(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+    # Remove only artifacts produced by this benchmark
+    for stale in [out_dir / "benchmark_results.json", out_dir / "benchmark_report.md"]:
+        stale.unlink(missing_ok=True)
+    plots_dir_stale = out_dir / "plots"
+    if plots_dir_stale.is_dir():
+        for png in plots_dir_stale.glob("*.png"):
+            png.unlink(missing_ok=True)
 
     print("=" * 80)
     print("OPENMS CHROMATOGRAM SMOOTHING BENCHMARK (ISSUE #10425)")
