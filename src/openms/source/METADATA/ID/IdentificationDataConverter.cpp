@@ -209,6 +209,8 @@ namespace
         imported.merge(Adapter::fromLegacy({protein}, {}));
     for (auto inference : protein_data.getInferenceResults())
     {
+      // These runs carry no database sequences: keep the complete protein hits in the inference result.
+      inference.proteins.setHits(Adapter::proteinHits(protein_data, inference));
       std::vector<ID::InferenceInput> inputs;
       for (const auto& input : inference.inputs)
       {
@@ -465,7 +467,7 @@ void IdentificationDataConverter::exportIDs(const ID& data,
     for (const auto& inference : data.getInferenceResults())
       if (std::any_of(inference.inputs.begin(), inference.inputs.end(), [&](const auto& input) { return input.run_uuid == run.getUuid(); }))
       {
-        processing.setHits(inference.proteins.getHits());
+        processing.setHits(Adapter::proteinHits(data, inference));
         processing.setScoreType(inference.proteins.getScoreType());
         processing.setHigherScoreBetter(inference.proteins.isHigherScoreBetter());
         processing.getProteinGroups() = inference.proteins.getProteinGroups();

@@ -249,7 +249,8 @@ void ID::Run::checkScore_(ScoreId score) const
 void ID::Run::setSettings(const RunSettings& settings)
 {
   checkMutation_();
-  if (settings.metaValueExists("spectra_data"))
+  if (settings.metaValueExists("spectra_data")
+      && ! (settings.getMetaValue("spectra_data").valueType() == DataValue::STRING_LIST && settings.getMetaValue("spectra_data").toStringList().empty()))
     invalid("The files of a run are its sources; its settings must not list them as 'spectra_data'");
   if (! settings.search.db.empty() || ! settings.search.db_version.empty() || ! settings.search.taxonomy.empty())
     invalid("The databases of a run are its own records (Run::addDatabase); the search settings must not name them");
@@ -396,7 +397,6 @@ void ID::Run::validateMatchData_(const MatchData& data) const
   for (const auto& evidence : data.sequence_evidence)
   {
     if (evidence.database.value >= databases_.size()) invalid("Sequence evidence refers to an unknown database of the run");
-    if (evidence.accession.empty()) invalid("Sequence evidence needs an accession");
     if (evidence.start && evidence.end && *evidence.start > *evidence.end) invalid("Sequence evidence start exceeds end");
   }
 }

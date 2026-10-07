@@ -1,0 +1,195 @@
+{
+  "format": "OpenMS.IdentificationData",
+  "schema_version": 1,
+  "score_columns": [
+    "score_q_value"
+  ],
+  "runs": [
+    {
+      "identifier": "Comet_2026-05-23T00:00:00_12959426694392807864",
+      "uuid": "7562011e-9dd5-4097-bc59-ebfd0f73c058",
+      "molecule_kind": 0,
+      "settings": {
+        "software": "Comet",
+        "software_version": "",
+        "date": "2026-05-23T00:00:00.000",
+        "metadata": [],
+        "search_parameters": {
+          "db": "",
+          "db_version": "",
+          "taxonomy": "",
+          "charges": "",
+          "mass_type": 0,
+          "fixed_modifications": [],
+          "variable_modifications": [],
+          "missed_cleavages": 0,
+          "fragment_tolerance_bits": 0,
+          "fragment_tolerance_ppm": false,
+          "precursor_tolerance_bits": 0,
+          "precursor_tolerance_ppm": false,
+          "specificity": 3,
+          "metadata": [],
+          "enzyme": {
+            "name": "unknown_enzyme",
+            "regex": "",
+            "synonyms": [],
+            "description": "",
+            "n_term_gain": {
+              "composition": "H1",
+              "charge": 0
+            },
+            "c_term_gain": {
+              "composition": "H1O1",
+              "charge": 0
+            },
+            "psi_id": "",
+            "xtandem_id": "",
+            "comet_id": -1,
+            "msgf_id": -1,
+            "omssa_id": -1
+          }
+        }
+      },
+      "scores": [
+        {
+          "name": "q-value",
+          "accession": "",
+          "higher_better": false,
+          "scope": 0,
+          "software": "Comet",
+          "software_version": "",
+          "parameters": [],
+          "calibration": "",
+          "aggregation": ""
+        }
+      ],
+      "sources": [
+        {
+          "identifier": "",
+          "path": "",
+          "metadata": []
+        }
+      ],
+      "databases": [
+        {
+          "path": "",
+          "version": "",
+          "taxonomy": "",
+          "metadata": []
+        }
+      ],
+      "primary_score": 0,
+      "next_query_id": 3,
+      "next_match_id": 5,
+      "query_count": 2,
+      "match_count": 4,
+      "metadata_descriptors": [
+        {
+          "name": "file_origin",
+          "type": 0,
+          "unit_type": 2,
+          "unit": -1
+        }
+      ],
+      "tables": {
+        "queries": {
+          "path": "queries.parquet",
+          "start": 0,
+          "count": 2,
+          "partition": "7562011e-9dd5-4097-bc59-ebfd0f73c058"
+        },
+        "matches": {
+          "path": "matches.parquet",
+          "start": 0,
+          "count": 4,
+          "partition": "7562011e-9dd5-4097-bc59-ebfd0f73c058"
+        },
+        "database_sequences": {
+          "path": "database_sequences.parquet",
+          "start": 0,
+          "count": 2,
+          "partition": "7562011e-9dd5-4097-bc59-ebfd0f73c058"
+        }
+      }
+    }
+  ],
+  "inference": [
+    {
+      "identifier": "legacy:Comet_2026-05-23T00:00:00_12959426694392807864",
+      "processing": {
+        "identifier": "Comet_2026-05-23T00:00:00_12959426694392807864",
+        "search_engine": "Comet",
+        "search_engine_version": "",
+        "date": "2026-05-23T00:00:00.000",
+        "score_type": "q-value",
+        "higher_better": false,
+        "significance_threshold_bits": 0,
+        "metadata": [],
+        "search_parameters": {
+          "db": "",
+          "db_version": "",
+          "taxonomy": "",
+          "charges": "",
+          "mass_type": 0,
+          "fixed_modifications": [],
+          "variable_modifications": [],
+          "missed_cleavages": 0,
+          "fragment_tolerance_bits": 0,
+          "fragment_tolerance_ppm": false,
+          "precursor_tolerance_bits": 0,
+          "precursor_tolerance_ppm": false,
+          "specificity": 3,
+          "metadata": [],
+          "enzyme": {
+            "name": "unknown_enzyme",
+            "regex": "",
+            "synonyms": [],
+            "description": "",
+            "n_term_gain": {
+              "composition": "H1",
+              "charge": 0
+            },
+            "c_term_gain": {
+              "composition": "H1O1",
+              "charge": 0
+            },
+            "psi_id": "",
+            "xtandem_id": "",
+            "comet_id": -1,
+            "msgf_id": -1,
+            "omssa_id": -1
+          }
+        }
+      },
+      "metadata_fields": [],
+      "protein_score": null,
+      "group_score": null,
+      "input_scores": [],
+      "tables": {
+        "inputs": {
+          "path": "inputs.parquet",
+          "start": 0,
+          "count": 1,
+          "partition": "legacy:Comet_2026-05-23T00:00:00_12959426694392807864"
+        },
+        "proteins": {
+          "path": "proteins.parquet",
+          "start": 0,
+          "count": 2,
+          "partition": "legacy:Comet_2026-05-23T00:00:00_12959426694392807864"
+        },
+        "groups": {
+          "path": "groups.parquet",
+          "start": 0,
+          "count": 0,
+          "partition": "legacy:Comet_2026-05-23T00:00:00_12959426694392807864"
+        }
+      },
+      "counts": {
+        "inputs": 1,
+        "proteins": 2,
+        "groups": 0
+      }
+    }
+  ]
+}

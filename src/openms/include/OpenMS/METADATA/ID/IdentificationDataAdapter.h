@@ -112,6 +112,15 @@ public:
     and the result takes them as its score type and direction.
   */
   static ProteinIdentification settingsToLegacy(const IdentificationData::Run& run);
+  /**
+    @brief The protein hits of an inference result, completed from the database sequences of its input runs
+
+    An import keeps a protein's sequence, description and metadata once, in the database sequences of its run;
+    the hits of its inference result hold the inference values (score, rank, coverage, modifications) and the
+    target/decoy state. The completed hits add what a hit does not have itself from the database sequence of its
+    qualified accession, as the legacy protein run had it.
+  */
+  static std::vector<ProteinHit> proteinHits(const IdentificationData& data, const IdentificationData::InferenceResult& result);
 
   /**
     @name Legacy file lists

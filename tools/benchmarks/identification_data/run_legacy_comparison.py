@@ -28,8 +28,8 @@ def positive(value):
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("binary", type=Path)
 parser.add_argument("output", type=Path)
-parser.add_argument("--formats", nargs="+", choices=["idxml", "parquet", "native"],
-                    default=["idxml", "parquet", "native"])
+parser.add_argument("--formats", nargs="+", choices=["idxml", "native"],
+                    default=["idxml", "native"])
 parser.add_argument("--cases", nargs="+", type=dimensions,
                     default=[(1000, 2), (100000, 1), (1000000, 1), (1000000, 1000)])
 parser.add_argument("--native-threads", nargs="+", type=positive, default=[1])

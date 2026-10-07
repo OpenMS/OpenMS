@@ -630,6 +630,43 @@ def test_file_handler_loads_and_stores_native_owning_values(tmp_path, log_option
     assert loaded.getRun("search").getMatch(first).representation == "PEPTIDE"
 
 
+def test_psm_table_flattens_a_native_bundle(tmp_path):
+    pa = pytest.importorskip("pyarrow")
+    run, query, first, second, _ = make_run()
+    other, _, _, _, _ = make_run("second search")
+    data = ID()
+    data.addRun(run)
+    data.addRun(other)
+    path = str(tmp_path / "search.idparquet")
+    oms.FileHandler().storeIdentificationData(path, data)
+    table = File.psm_table(path)
+    assert isinstance(table, pa.Table)
+    assert table.num_rows == 4
+    rows = table.to_pylist()
+    assert [row["run_identifier"] for row in rows] == ["search", "search", "second search", "second search"]
+    row = rows[0]
+    assert row["run_uuid"] == run.getUuid()
+    assert row["reference_file_name"] == "/measurements/sample.mzML"
+    assert row["query_id"] == query.value and row["match_id"] == first.value
+    assert row["spectrum_reference"] == "scan=1"
+    assert row["rt"] == 12.5 and row["observed_mz"] == 400.2
+    assert row["peptidoform"] == "PEPTIDE" and row["precursor_charge"] == 2
+    assert row["protein_accessions"] == ["P1"]
+    assert row["target_decoy"] == "" and row["is_decoy"] is False
+    assert row["score_type"] == "posterior error probability" and row["higher_score_better"] is False
+    assert row["score"] == 0.01 and row["score_posterior_error_probability"] == 0.01
+    assert rows[1]["match_id"] == second.value and rows[1]["peptidoform"] == "EDITPEP"
+    only = File.psm_table(path, runs=["second search"])
+    assert only.num_rows == 2 and set(only["run_identifier"].to_pylist()) == {"second search"}
+    with pytest.raises(KeyError):
+        File.psm_table(path, runs=["missing"])
+    legacy = tmp_path / "legacy.idparquet"
+    legacy.mkdir()
+    (legacy / "psms.parquet").write_bytes(b"PAR1")
+    with pytest.raises(ValueError, match="OpenMS 3.6"):
+        File.psm_table(str(legacy))
+
+
 def test_dataset_ordered_score_contract():
     first, _, _, _, _ = make_run("A")
     second, _, _, _, _ = make_run("B")
