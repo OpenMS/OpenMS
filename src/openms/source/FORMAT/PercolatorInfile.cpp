@@ -492,24 +492,28 @@ namespace OpenMS
           calc_mass = getFeatureValue(hit.getMetaValue("CalcMass"), "CalcMass");
         }
 
-        double row_exp_mass = exp_mass;
+        // The precursor isotope error (observed minus theoretical, in 13C spacings) is removed from the mass
+        // difference only. ExpMass and mass stay the observed precursor m/z, the same for every PSM of the spectrum:
+        // Percolator takes PSMs with the same ScanNr but different ExpMass for different spectra, so PSMs at
+        // different isotope errors would not compete with each other.
+        double isotope_corrected_mass = exp_mass;
         if (hit.metaValueExists("IsotopeError"))  // legacy MSGF+ adapter meta (<2.6)
         {
           const float isoErr = StringUtils::toFloat(hit.getMetaValue("IsotopeError").toString());
-          row_exp_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+          isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
         else if (hit.metaValueExists(Constants::UserParam::ISOTOPE_ERROR))
         {
           const float isoErr = StringUtils::toFloat(hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR).toString());
-          row_exp_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+          isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
 
-        stamp_meta_value("ExpMass", row_exp_mass);
+        stamp_meta_value("ExpMass", exp_mass);
 
-        const double delta_mass = row_exp_mass - calc_mass;
+        const double delta_mass = isotope_corrected_mass - calc_mass;
         stamp_meta_value("deltamass", delta_mass);
         stamp_meta_value("retentiontime", retention_time);
-        stamp_meta_value("mass", row_exp_mass);
+        stamp_meta_value("mass", exp_mass);
 
         stamp_meta_value("score", hit.getScore());
         stamp_meta_value("peplen", static_cast<int>(unmodified_sequence.size()));
