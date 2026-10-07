@@ -294,8 +294,21 @@ of inference explicitly when filtering a dataset or exporting a streaming subset
         lambda run_uuid, match: match.scores[0] is not None and match.scores[0] < 0.01,
         oms.IdentificationData.InferencePolicy.DISCARD)
 
-This example assumes column zero is a smaller-is-better probability score in every
-selected run. Inspect each run's definitions before applying a cross-run threshold.
+FDR, filters, alignment and mzTab export work on the dataset directly. FDR adds a q-value column
+and keeps all candidates and scores; each filter changes the whole dataset or nothing::
+
+    hyperscore = data.getPrimaryScoreDefinition()
+    qvalue = oms.FalseDiscoveryRate().applyToObservationMatches(data, hyperscore)
+    oms.IDFilter.keepBestMatchPerObservation(data, hyperscore)
+    oms.IDFilter.filterObservationMatchesByScore(data, qvalue, 0.01)
+    oms.IDFilter.removeDecoys(data)
+    oms.MzTabFile().store("search.mzTab", oms.IdentificationDataConverter.exportMzTab(data))
+
+``MapAlignmentAlgorithmIdentification.align`` takes a list of datasets (one per run), and
+``MapAlignmentTransformer.transformRetentionTimes`` applies the result to a dataset.
+
+The ``IdentificationDataFile.filter`` example assumes column zero is a smaller-is-better probability
+score in every selected run. Inspect each run's definitions before applying a cross-run threshold.
 ``IdentificationDataFile.scan`` supports selecting runs and score columns while
 skipping molecular payloads, metadata, evidence and annotations. Streaming avoids
 loading every match into Python. Full loading and inference still require memory

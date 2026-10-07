@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <nanobind/operators.h>
 #include <algorithm>
 #include <concepts>
@@ -797,6 +798,11 @@ inline void bind(nb::module_& m)
         Inference::retainProteins(result, {retained.begin(), retained.end()});
       },
       nb::arg("result"), nb::arg("retained"));
+  // --- IdentificationDataConverter ---
+  nb::class_<OpenMS::IdentificationDataConverter>(m, "IdentificationDataConverter",
+                                                  "Conversions of IdentificationData that keep the RNA and compound conventions of mzTab")
+    .def_static("exportMzTab", &OpenMS::IdentificationDataConverter::exportMzTab, nb::arg("data"),
+                "Return an mzTab document of the dataset (store it with MzTabFile().store)");
   finishFieldProtocols();
 }
 } // namespace pyopenms_identification

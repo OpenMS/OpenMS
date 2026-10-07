@@ -157,6 +157,9 @@ PyOpenMS:
     work as dict keys and set members; mutable records are unhashable.
   - AMSE_AdductInfo is also available as AdductInfo, compares with == and !=, hashes by value and
     has a readable repr.
+  - Native algorithm entry points for IdentificationData: FalseDiscoveryRate.applyToObservationMatches,
+    IDFilter.keepBestMatchPerObservation/filterObservationMatchesByScore/removeDecoys,
+    MapAlignmentAlgorithmIdentification.align/setReference and IdentificationDataConverter.exportMzTab.
     Predicate callbacks accept any Python truth value. Native identification I/O releases the GIL.
   - ProteinIdentification.setScoreSoftware/getScoreSoftware/clearScoreSoftware.
 

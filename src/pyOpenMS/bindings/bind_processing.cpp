@@ -382,6 +382,13 @@ protein references after cleanup are also removed (default: false) (in)
       .def_static(
         "keepNBestHits", [](OpenMS::PeptideIdentificationList& pep_ids, size_t n) { return OpenMS::IDFilter::keepNBestHits(pep_ids, n); },
         "pep_ids"_a, "n"_a)
+      // Owning identification model (IdentificationData): edits the dataset in place, all or nothing.
+      .def_static("keepBestMatchPerObservation", &OpenMS::IDFilter::keepBestMatchPerObservation, "data"_a, "score"_a,
+                  "Keep one best candidate per query by the given score definition; inference results are preserved")
+      .def_static("filterObservationMatchesByScore", &OpenMS::IDFilter::filterObservationMatchesByScore, "data"_a, "score"_a, "cutoff"_a,
+                  "Remove candidates without a value for the score or worse than the inclusive cutoff")
+      .def_static("removeDecoys", &OpenMS::IDFilter::removeDecoys, "data"_a,
+                  "Remove decoy-only candidates and decoy parents (and their evidence); inference results are preserved")
       .def_static(
         "keepBestPeptideHits",
         [](OpenMS::PeptideIdentificationList& peptides, bool strict) { return OpenMS::IDFilter::keepBestPeptideHits(peptides, strict); },

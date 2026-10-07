@@ -405,6 +405,50 @@ def test_native_projected_scan_keeps_callback_values_alive(tmp_path, threads):
     assert batches[0][0].match_id == 1
 
 
+def search_result(rt_shift=0.0):
+    """Five spectra, each with a target candidate and a lower-scoring decoy candidate."""
+    data = ID()
+    run = data.addRun("search")
+    run.setPrimaryScore(run.addScore(ID.ScoreDefinition(name="hyperscore", higher_better=True)))
+    source = run.addSource(ID.SourceFile(path="a.mzML"))
+    for i, sequence in enumerate(["PEPTIDEA", "PEPTIDEC", "PEPTIDED", "PEPTIDEE", "PEPTIDEF"]):
+        query = run.addIdentification(source, ID.Observation(data_id=f"scan={i}", rt=100.0 * (i + 1) + rt_shift, mz=500.0 + i))
+        run.addMatch(query, ID.MatchData(representation=sequence, charge=2, target_decoy=ID.TargetDecoy.TARGET), [10.0 - i])
+        run.addMatch(query, ID.MatchData(representation="DECOYPEPK", charge=2, target_decoy=ID.TargetDecoy.DECOY), [1.0 + i / 10])
+    return data
+
+
+def test_native_fdr_filters_alignment_and_mztab_export(tmp_path):
+    data = search_result()
+    hyperscore = data.getPrimaryScoreDefinition()
+    qvalue = oms.FalseDiscoveryRate().applyToObservationMatches(data, hyperscore)
+    assert qvalue.name == "PSM-level q-value" and not qvalue.higher_better
+    assert [d.name for d in data.getScoreDefinitions()] == ["hyperscore", "PSM-level q-value"]
+    run = data.getRuns()[0]
+    q = run.bindScore(run.findScore(qvalue))
+    values = [q(match) for block in run.getSourceBlocks() for query in block.identifications for match in query.getMatches()]
+    assert values == [0.0, None] * 5  # the best candidate per query; decoys get no value by default
+
+    oms.IDFilter.keepBestMatchPerObservation(data, hyperscore)
+    assert data.getRuns()[0].getNumberOfMatches() == 5
+    oms.IDFilter.filterObservationMatchesByScore(data, hyperscore, 8.0)  # inclusive
+    assert data.getRuns()[0].getNumberOfIdentifications() == 3
+    with_decoys = search_result()
+    oms.IDFilter.removeDecoys(with_decoys)
+    assert with_decoys.getRuns()[0].getNumberOfMatches() == 5
+
+    reference, shifted = search_result(), search_result(rt_shift=10.0)
+    transformations = oms.MapAlignmentAlgorithmIdentification().align([reference, shifted], 0)
+    assert len(transformations) == 2
+    transformations[1].fitModel("linear")
+    oms.MapAlignmentTransformer.transformRetentionTimes(shifted, transformations[1], True)
+    assert shifted.getRuns()[0].getSourceBlocks()[0].identifications[0].rt == pytest.approx(100.0)
+
+    path = tmp_path / "search.mzTab"
+    oms.MzTabFile().store(str(path), oms.IdentificationDataConverter.exportMzTab(reference))
+    assert "PEPTIDEA" in path.read_text()
+
+
 def test_native_filter_writes_reduced_dataset_with_explicit_inference_policy(tmp_path):
     data, query, first, second = make_data_with_inference()
     source = str(tmp_path / "source")
