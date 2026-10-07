@@ -62,10 +62,12 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <vector>
 #include <map>
 #include <regex>
 #include <random>
+#include <tuple>
 
 // multithreading
 #ifdef _OPENMP
@@ -359,25 +361,7 @@ protected:
     const PrecursorInfo* precursor_ref; // precursor information
   };
 
-  // Comparator for deterministic hit ordering: score (descending), then sequence (ascending)
-  // This ensures reproducible results even when multiple hits have identical scores.
-  // Using map instead of multimap prevents non-deterministic ordering of tied scores.
-  struct HitKeyComparator
-  {
-    bool operator()(const pair<double, String>& a,
-                    const pair<double, String>& b) const
-    {
-      if (a.first != b.first)
-      {
-        return a.first > b.first; // Higher score is better
-      }
-      return a.second < b.second; // Alphabetical tie-breaker for determinism
-    }
-  };
-
-  // Map key: (score, sequence_string), Value: AnnotatedHit
-  // Guarantees deterministic ordering even with OpenMP parallelization
-  typedef map<pair<double, String>, AnnotatedHit, HitKeyComparator> HitsByScore;
+  typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
 
   // query modified residues from database
   set<ConstRibonucleotidePtr> getModifications_(const set<std::string>& mod_names)
@@ -844,7 +828,7 @@ protected:
 
     Size n_zero_charge = 0, n_inferred_charge = 0;
 
-#pragma omp parallel for
+#pragma omp parallel for reduction(+: n_zero_charge, n_inferred_charge)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size();
          ++exp_index)
     {
@@ -1015,10 +999,10 @@ protected:
     // The result should be: 1. "AUC[mA?]Gp" (note ambiguity code), 2. removed.
     for (auto hit_it = ++hits.begin(); hit_it != hits.end(); /* no ++ here! */)
     {
-      double previous_score = previous_it->first.first;
+      double previous_score = previous_it->first;
       NASequence& previous_seq = previous_it->second.sequence;
       const NASequence& current_seq = hit_it->second.sequence;
-      if ((hit_it->first.first != previous_score) ||
+      if ((hit_it->first != previous_score) ||
           (current_seq.size() != previous_seq.size())) // different hits
       {
         previous_it = hit_it;
@@ -1056,17 +1040,7 @@ protected:
       }
       if (remove_current) // current hit is redundant -> remove it
       {
-        if (!replacement.empty())
-        {
-          // Need to update the key since sequence changed
-          // Extract the old entry, modify it, and reinsert with new key
-          auto prev_score = previous_it->first.first;
-          AnnotatedHit updated_hit = previous_it->second;
-          updated_hit.sequence = replacement;
-          hits.erase(previous_it);
-          auto new_key = make_pair(prev_score, updated_hit.sequence.toString());
-          previous_it = hits.insert(make_pair(new_key, updated_hit)).first;
-        }
+        if (!replacement.empty()) previous_seq = replacement;
         hit_it = hits.erase(hit_it);
       }
       else
@@ -1086,6 +1060,8 @@ protected:
     IdentificationData::InputFileRef file_ref = id_data.getInputFiles().begin();
     IdentificationData::ScoreTypeRef score_ref =
       id_data.getScoreTypes().begin();
+    IdentificationData::ScoreTypeRef qvalue_ref =
+      id_data.findScoreType("PSM-level q-value");
 
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
@@ -1105,6 +1081,32 @@ protected:
 #pragma omp critical (id_data_access)
       obs_ref = id_data.registerObservation(obs);
 
+      // Scoring runs in parallel, so insertion order of tied hits is unstable.
+      // Sort by value before merging ambiguous modifications or registering hits.
+      auto& hits = annotated_hits[scan_index];
+      vector<pair<double, AnnotatedHit>> ordered_hits(hits.begin(), hits.end());
+      auto hit_key = [](const AnnotatedHit& hit)
+      {
+        const auto& precursor = *hit.precursor_ref;
+        const String adduct = precursor.adduct ? (*precursor.adduct)->getName() : String();
+        return make_tuple(hit.sequence.toString(), hit.oligo_ref->sequence.toString(),
+                          precursor.charge, precursor.isotope, adduct,
+                          precursor.adduct ? (*precursor.adduct)->getEmpiricalFormula().toString() : String(),
+                          precursor.adduct ? (*precursor.adduct)->getCharge() : 0,
+                          precursor.adduct ? (*precursor.adduct)->getMolMultiplier() : UInt(0),
+                          hit.precursor_error_ppm);
+      };
+      sort(ordered_hits.begin(), ordered_hits.end(), [&](const auto& lhs, const auto& rhs)
+      {
+        if (lhs.first != rhs.first)
+        {
+          return lhs.first > rhs.first;
+        }
+        return hit_key(lhs.second) < hit_key(rhs.second);
+      });
+      hits.clear();
+      hits.insert(ordered_hits.begin(), ordered_hits.end());
+
       if (resolve_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
       {
         resolveAmbiguousMods_(annotated_hits[scan_index]);
@@ -1113,7 +1115,7 @@ protected:
       // create full oligo hit structure from annotated hits
       for (const auto& pair : annotated_hits[scan_index])
       {
-        double score = pair.first.first; // key is (score, sequence_string)
+        double score = pair.first;
         const AnnotatedHit& hit = pair.second;
         OPENMS_LOG_DEBUG << "Hit sequence: " << hit.sequence.toString() << endl;
 
@@ -1128,6 +1130,10 @@ protected:
         if ((charge > 0) && negative_mode) charge = -charge;
         IdentificationData::ObservationMatch match(oligo_ref, obs_ref, charge);
         match.addScore(score_ref, score, id_data.getCurrentProcessingStep());
+        if (qvalue_ref != id_data.getScoreTypes().end())
+        {
+          match.addScore(qvalue_ref, -1.0, id_data.getCurrentProcessingStep());
+        }
         match.peak_annotations[id_data.getCurrentProcessingStep()] =
           hit.annotations;
         // @TODO: add a field for this to "IdentificationData::ObservationMatch"?
@@ -2004,8 +2010,6 @@ protected:
 #pragma omp critical (annotated_hits_access)
             {
               HitsByScore& scan_hits = annotated_hits[scan_index];
-              
-              // Build the AnnotatedHit upfront
               AnnotatedHit new_hit;
               new_hit.oligo_ref = oligo_ref;
               new_hit.sequence = candidate;
@@ -2013,49 +2017,18 @@ protected:
                 (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
               new_hit.annotations = annotations;
               new_hit.precursor_ref = &(prec_it->second);
-              
-              // Key for deterministic ordering: (score, sequence_string)
-              auto key = make_pair(score, candidate.toString());
-              
-              bool should_insert = false;
-              if ((report_top_hits == 0) || (scan_hits.size() < report_top_hits))
+              // Keep the complete tied score group at the cutoff. Keeping just
+              // the first arriving tie makes the result depend on thread scheduling.
+              if ((report_top_hits == 0) || (scan_hits.size() < report_top_hits) ||
+                  (score >= scan_hits.rbegin()->first))
               {
-                should_insert = true;
-              }
-              else // already have enough hits for this spectrum - replace one?
-              {
-                double worst_score = (--scan_hits.end())->first.first;
-                if (score > worst_score)
+                scan_hits.emplace(score, std::move(new_hit));
+                if (report_top_hits > 0)
                 {
-                  should_insert = true;
-                  // Remove the worst hit to make room
-                  auto worst_it = --scan_hits.end();
-                  scan_hits.erase(worst_it);
+                  auto cutoff = scan_hits.begin();
+                  std::advance(cutoff, std::min<Size>(report_top_hits, scan_hits.size()) - 1);
+                  scan_hits.erase(scan_hits.upper_bound(cutoff->first), scan_hits.end());
                 }
-                else if (score == worst_score)
-                {
-                  // For tied scores, count how many have this score
-                  Size n_worst = 0;
-                  for (const auto& hit : scan_hits)
-                  {
-                    if (hit.first.first == worst_score) ++n_worst;
-                  }
-                  
-                  // Only insert if we can remove a hit with the worst score
-                  // without going below report_top_hits non-worst hits
-                  if (scan_hits.size() - n_worst >= report_top_hits)
-                  {
-                    should_insert = true;
-                    // Remove one hit with worst score (deterministically the last one in sort order)
-                    auto worst_it = --scan_hits.end();
-                    scan_hits.erase(worst_it);
-                  }
-                }
-              }
-              
-              if (should_insert)
-              {
-                scan_hits[key] = new_hit;
               }
             }
           }

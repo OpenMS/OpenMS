@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
+#include <algorithm>
 #include <type_traits> // to check if movable
 
 ///////////////////////////
@@ -627,6 +628,47 @@ START_SECTION((vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeR
   {
     TEST_EQUAL(results[0] == match_ref4, true);
     TEST_EQUAL(results[1] == match_ref2, true);
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Best tied RNA match is independent of allocation order))
+{
+  for (bool reverse : {false, true})
+  {
+    for (bool higher_better : {false, true})
+    {
+      ID ids;
+      auto input = ids.registerInputFile(ID::InputFile("ties.mzML"));
+      auto observation = ids.registerObservation(ID::Observation("scan=1", input));
+      auto score = ids.registerScoreType(ID::ScoreType("test", higher_better));
+      vector<String> sequences = {"AAG", "AGG"};
+      if (reverse)
+      {
+        std::reverse(sequences.begin(), sequences.end());
+      }
+      for (const auto& sequence : sequences)
+      {
+        auto molecule = ids.registerIdentifiedOligo(ID::IdentifiedOligo(NASequence::fromString(sequence)));
+        ID::ObservationMatch hit(molecule, observation, -2);
+        hit.addScore(score, 10.0);
+        ids.registerObservationMatch(hit);
+      }
+      auto best = ids.getBestMatchPerObservation(score, true);
+      TEST_EQUAL(best.size(), 1)
+      ABORT_IF(best.size() != 1)
+      TEST_EQUAL(best[0]->identified_molecule_var.toString(), "AAG")
+      // A genuinely better score must win over the lexical tie-breaker.
+      for (auto hit = ids.getObservationMatches().begin(); hit != ids.getObservationMatches().end(); ++hit)
+      {
+        if (hit->identified_molecule_var.toString() == "AGG")
+        {
+          ids.addScore(hit, score, higher_better ? 11.0 : 9.0);
+        }
+      }
+      best = ids.getBestMatchPerObservation(score, true);
+      TEST_EQUAL(best[0]->identified_molecule_var.toString(), "AGG")
+    }
   }
 }
 END_SECTION
