@@ -74,8 +74,8 @@ namespace OpenMS
      * when the source data is no longer needed.
      * Note:
      * - Only inserts PeptideIdentifications from existing runs in @p prots (noop if prots is empty)
-     * - Duplicates file origins if multiple (compatible) protein runs from the same spectrumfile
-     *   are merged 
+     * - Runs from the same spectrum file share one file origin entry (paths are compared as exact
+     *   strings), so their PSMs get the same id_merge_index
      * 
      * @param[in] prots Vector of protein identifications to be merged
      * @param[in] peps Vector of peptide identifications to be merged
@@ -90,8 +90,8 @@ namespace OpenMS
      * merged data structures. This version preserves the source data.
      * Note:
      * - Only inserts PeptideIdentifications from existing runs in @p prots (noop if prots is empty)
-     * - Duplicates file origins if multiple (compatible) protein runs from the same spectrumfile
-     *   are merged
+     * - Runs from the same spectrum file share one file origin entry (paths are compared as exact
+     *   strings), so their PSMs get the same id_merge_index
      *
      * @param[in] prots Vector of protein identifications to be merged
      * @param[in] peps Vector of peptide identifications to be merged

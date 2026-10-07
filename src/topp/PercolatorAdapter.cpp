@@ -619,7 +619,6 @@ protected:
   {
     for (StringList::const_iterator fit = in_list.begin(); fit != in_list.end(); ++fit)
     {
-      std::string file_idx = StringUtils::toStr(distance(in_list.begin(), fit));
       PeptideIdentificationList peptide_ids;
       vector<ProteinIdentification> protein_ids;
       std::string in = *fit;
@@ -660,15 +659,14 @@ protected:
       }
 
       //being paranoid about the presence of target decoy denominations, which are crucial to the percolator process
-      size_t index = 0;
       for (PeptideIdentification& pep_id : peptide_ids)
       {
-        index++;
-        if (in_list.size() > 1)
+        // Spectra of different input files are told apart by their file origin, which enters the pin SpecId
+        // and the spectrum file number. The spectrum reference stays as it is: a "file=<n>," prefix would be
+        // read as a native ID, so the extracted scan number would be the file index.
+        if (in_list.size() > 1 && ! pep_id.metaValueExists("file_origin"))
         {
-          std::string scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
-          scan_identifier = "file=" + file_idx + "," + scan_identifier;
-          pep_id.setSpectrumReference( scan_identifier);
+          pep_id.setMetaValue("file_origin", test_mode_ ? File::basename(in) : in);
         }
         for (PeptideHit& hit : pep_id.getHits())
         {

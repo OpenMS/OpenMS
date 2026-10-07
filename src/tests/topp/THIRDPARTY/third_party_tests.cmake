@@ -206,6 +206,14 @@ if (NOT (${MARACLUSTER_BINARY} STREQUAL "MARACLUSTER_BINARY-NOTFOUND"))
   ## reads as ppm without one; -debug 4 makes the adapter log the command line it runs.
   add_test("TOPP_MaRaClusterAdapter_3" ${TOPP_BIN_PATH}/MaRaClusterAdapter -test -debug 4 -ini ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_1.mzML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_2.mzML -consensus_out MaRaClusterAdapter_3_out_1.tmp.mzML -precursor_tolerance 0.05 -precursor_tolerance_units Da -maracluster_executable "${MARACLUSTER_BINARY}")
   set_tests_properties("TOPP_MaRaClusterAdapter_3" PROPERTIES PASS_REGULAR_EXPRESSION " -p 0\\.05Da ")
+  ## The n-th -id_in file belongs to the n-th -in file, so the PSMs of the second idXML get the second
+  ## mzML as file_origin (all idXMLs used to be annotated from the first mzML).
+  add_test("TOPP_MaRaClusterAdapter_4" ${TOPP_BIN_PATH}/MaRaClusterAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_2.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_1.mzML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_2.mzML -id_in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_3.idXML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_3.idXML -out MaRaClusterAdapter_4_out_1.tmp.idXML -maracluster_executable "${MARACLUSTER_BINARY}")
+  add_test("TOPP_MaRaClusterAdapter_4_out_1" ${CMAKE_COMMAND} -DINPUT_FILE=MaRaClusterAdapter_4_out_1.tmp.idXML -DEXPECTED=MaRaClusterAdapter_1_in_2.mzML -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_MaRaClusterAdapter_4_out_1" PROPERTIES DEPENDS "TOPP_MaRaClusterAdapter_4")
+  ## more idXML than mzML files
+  add_test("TOPP_MaRaClusterAdapter_5" ${TOPP_BIN_PATH}/MaRaClusterAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_1.mzML -id_in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_3.idXML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_3.idXML -out MaRaClusterAdapter_5_out_1.tmp.idXML -maracluster_executable "${MARACLUSTER_BINARY}")
+  set_tests_properties("TOPP_MaRaClusterAdapter_5" PROPERTIES PASS_REGULAR_EXPRESSION "more idXML files .parameter .id_in.. than mzML files")
 endif()
 
 #------------------------------------------------------------------------------
