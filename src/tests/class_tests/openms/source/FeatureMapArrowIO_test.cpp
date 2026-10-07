@@ -23,7 +23,9 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <algorithm>
 #include <fstream>
+#include <set>
 #include <sstream>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
@@ -1907,7 +1909,8 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - owning identificatio
   top.addIDQuery({run.getUuid(), query});
   top.addIDMatch({run.getUuid(), match});
   Feature subordinate;
-  subordinate.setUniqueId(12);
+  const UInt64 high_id = 0xF000000000000012ULL; // half of all random unique IDs have the top bit set
+  subordinate.setUniqueId(high_id);
   subordinate.addIDMatch({run.getUuid(), other});
   top.getSubordinates().push_back(subordinate);
   Feature unannotated;
@@ -1939,6 +1942,25 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - owning identificatio
   TEST_EQUAL(loaded_other.getIDQueries() == unannotated.getIDQueries(), true)
   const auto& reloaded_match = loaded.getIdentificationData().findRunByUuid(run.getUuid())->getMatch(match);
   TEST_EQUAL(reloaded_match.getMetaValue("inchi_key"), "InChI=1S/CH2O2/c2-1-3/h1H,(H,2,3)")
+  TEST_EQUAL(loaded_top.getSubordinates()[0].getUniqueId(), high_id)
+
+  // Links join the feature table without a cast: both store the bits of the unique ID as int64.
+  {
+    const auto ids = [](const std::string& file, const std::string& column) {
+      auto input = arrow::io::ReadableFile::Open(file).ValueOrDie();
+      const auto table = parquet::arrow::OpenFile(input, arrow::default_memory_pool()).ValueOrDie()->ReadTable().ValueOrDie();
+      std::set<int64_t> values;
+      for (const auto& chunk : table->GetColumnByName(column)->chunks())
+        for (int64_t row = 0; row < chunk->length(); ++row)
+          values.insert(static_cast<const arrow::Int64Array&>(*chunk).Value(row));
+      return values;
+    };
+    const auto features = ids(dir + "/features.parquet", "unique_id");
+    const auto linked = ids(dir + "/identification_links.parquet", "feature_unique_id");
+    TEST_EQUAL(linked.size(), 3)
+    TEST_EQUAL(std::includes(features.begin(), features.end(), linked.begin(), linked.end()), true)
+    TEST_EQUAL(linked.contains(static_cast<int64_t>(high_id)), true)
+  }
 
   // Run UUIDs are dictionary-encoded strings; links written by other tools as plain strings load as well.
   {

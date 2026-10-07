@@ -252,8 +252,19 @@ use other encodings. Every run of a dataset declares the same score definitions:
     oligo = ID.MatchData(encoding=ID.Encoding.NA_SEQUENCE, representation="AUCGAUCG", charge=-3)
     compound = ID.MatchData(
         encoding=ID.Encoding.SMILES, representation="CC(=O)OC1=CC=CC=C1C(=O)O", formula="C9H8O4",
-        charge=1, adduct=oms.AMSE_AdductInfo.parseAdductString("M+H;1+"),
+        charge=1, adduct=oms.AdductInfo.parseAdductString("M+H;1+"),
         identifiers=[ID.QualifiedAccession(database="HMDB", accession="HMDB0001879")])
+
+Records with metadata also take ``metadata={name: value}``, and so does the ``parameters``
+field of a score definition. Records compare by value (``==``) and print their fields. Mutable
+records are unhashable; IDs (``QueryId``, ``MatchId``, ``ScoreId``, ``SourceId``), references
+(``QueryReference``, ``MatchReference``), ``MoleculeIdentity`` and ``QualifiedAccession`` hash by
+value and serve as dict keys and set members. A ``Match`` read from a run also compares its ID and
+scores, not just its payload::
+
+    observation = ID.Observation(data_id="scan=1", rt=12.5, metadata={"FWHM": 3.5})
+    observation          # IdentificationData.Observation(data_id='scan=1', rt=12.5, mz=None, metadata={'FWHM': 3.5})
+    accessions = {albumin, ID.QualifiedAccession(database="uniprot.fasta", accession="P02769")}  # one entry
 
 Method names follow the C++ API (``getRun``, ``addMatch``, ``retainBest``). Getters such as
 ``getRun`` and ``getRuns`` return independent copies (snapshots). To edit a run of a dataset,

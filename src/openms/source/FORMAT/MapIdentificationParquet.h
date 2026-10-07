@@ -19,8 +19,9 @@
   A feature or consensus bundle stores the map's owning identification data as a nested
   native bundle (identifications/, see IdentificationDataFile) and the per-feature links
   (primary molecule, observed queries, matches) in identification_links.parquet, keyed by
-  feature unique ID like psms.parquet. Run UUIDs in the links are dictionary-encoded strings
-  (plain strings are accepted on input). Both are optional: bundles without native
+  feature unique ID like psms.parquet (int64 holding the bits of the UInt64, as in the feature
+  tables). Run UUIDs in the links are dictionary-encoded strings (plain strings are accepted on
+  input). Both are optional: bundles without native
   identifications, including those written by OpenMS 3.6, contain neither.
 */
 namespace OpenMS::Internal::MapIdentificationParquet

@@ -126,6 +126,25 @@ the legacy `PeptideIdentification`s they may also carry.
 - `identification_links.parquet`: one row per link (`primary`, `query` or `match`), keyed by
   feature unique ID like `psms.parquet`. Columns: `feature_unique_id`, `link`, `run_uuid`,
   `record_id` (query or match ID), and `encoding`/`representation` for primary molecules.
+  `feature_unique_id` is an `int64` holding the bits of the unsigned unique ID, like `unique_id` in
+  the feature tables and `feature_unique_id` in `psms.parquet`, so IDs of 2^63 and above appear as
+  negative numbers and the tables join without a cast.
+
+Links join the feature table and the identification tables without the manifest. For example, the
+best accurate-mass annotations per feature with DuckDB:
+
+```sql
+SELECT f.unique_id, f.rt, f.mz, m.name, m.adduct.name AS adduct, m.score_masserrorppmscore AS ppm
+FROM 'x.featureparquet/features.parquet' f
+JOIN 'x.featureparquet/identification_links.parquet' l
+  ON l.feature_unique_id = f.unique_id AND l.link = 'match'
+JOIN 'x.featureparquet/identifications/matches.parquet' m
+  ON m.run_uuid = l.run_uuid AND m.match_id = l.record_id
+WHERE abs(m.score_masserrorppmscore) < 2
+ORDER BY f.unique_id, abs(m.score_masserrorppmscore);
+```
+
+Query links join `identifications/queries.parquet` on `run_uuid` and `query_id` the same way.
 
 Every link must resolve and linked features need distinct valid unique IDs; otherwise the export
 throws `Exception::InvalidValue`. Map bundles are also written to a temporary sibling directory; an
@@ -171,8 +190,10 @@ bundles (`-digest_out`, `-db_out`) and reads digests (`-digest`); AccurateMassSe
   `MatchReference`, iteration over `getObservationMatches()` becomes iteration over runs, sources,
   queries and matches, and score lookups go through `ScoreId` or a bound `ScoreView`.
   `BaseFeature::updateIDReferences()` is no longer needed.
-- In pyOpenMS, IDs and references compare and hash by value. Getters return copies; assign edited
-  nested values back to the owning record. Runs are edited through `IdentificationData.run_view()`
+- In pyOpenMS, all value types compare by value (`==`), take their fields as constructor keywords and
+  print them. IDs, references, `MoleculeIdentity` and `QualifiedAccession` also hash by value;
+  mutable records are unhashable. Getters return copies; assign edited nested values back to the
+  owning record. Runs are edited through `IdentificationData.run_view()`
   (also returned by `addRun`), and the identification data of feature and consensus maps through
   `identification_data_view()`; a copied run is never written back.
 

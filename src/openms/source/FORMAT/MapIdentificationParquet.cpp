@@ -52,9 +52,11 @@ namespace
   namespace IO = Internal::IdentificationDataIO;
 
   // Run UUIDs are dictionary-encoded strings, as in every table that carries them: one entry per run.
+  // Feature unique IDs are stored as int64 with the bits of the UInt64, like unique_id in the feature
+  // tables and feature_unique_id in psms.parquet, so that the tables join without a cast.
   std::shared_ptr<arrow::Schema> linkSchema(const std::shared_ptr<arrow::DataType>& run_uuid_type = IO::keyType())
   {
-    return arrow::schema({arrow::field("feature_unique_id", arrow::uint64(), false), arrow::field("link", arrow::utf8(), false),
+    return arrow::schema({arrow::field("feature_unique_id", arrow::int64(), false), arrow::field("link", arrow::utf8(), false),
                           arrow::field("run_uuid", run_uuid_type, true), arrow::field("record_id", arrow::uint64(), true),
                           arrow::field("encoding", arrow::uint8(), true), arrow::field("representation", arrow::utf8(), true)});
   }
@@ -104,7 +106,8 @@ void store(const fs::path& directory, const IdentificationData& data, const std:
 {
   if (! hasNativeIdentifications(data, features)) return;
   validateLinks(data, features);
-  arrow::UInt64Builder feature_ids, record_ids;
+  arrow::Int64Builder feature_ids;
+  arrow::UInt64Builder record_ids;
   arrow::StringBuilder links, representations;
   arrow::StringDictionary32Builder uuids;
   arrow::UInt8Builder encodings;
@@ -118,7 +121,7 @@ void store(const fs::path& directory, const IdentificationData& data, const std:
     if (! UniqueIdInterface::isValid(unique_id)) invalid("A feature with identification links has no valid unique ID");
     if (! linked.insert(unique_id).second) invalid("Features with identification links share unique ID " + std::to_string(unique_id));
     const auto add = [&](const std::string& link, const std::string* uuid, std::optional<UInt64> record, std::optional<ID::MoleculeIdentity> identity) {
-      check(feature_ids.Append(unique_id));
+      check(feature_ids.Append(static_cast<int64_t>(unique_id)));
       check(links.Append(link));
       check(uuid ? uuids.Append(*uuid) : uuids.AppendNull());
       check(record ? record_ids.Append(*record) : record_ids.AppendNull());
@@ -191,7 +194,7 @@ void load(const fs::path& directory, IdentificationData& data, const std::vector
     std::shared_ptr<arrow::RecordBatch> batch;
     for (check(batches.ReadNext(&batch)); batch; check(batches.ReadNext(&batch)))
     {
-      const auto& feature_ids = static_cast<const arrow::UInt64Array&>(*batch->column(0));
+      const auto& feature_ids = static_cast<const arrow::Int64Array&>(*batch->column(0));
       const auto& links = static_cast<const arrow::StringArray&>(*batch->column(1));
       const auto& uuids = *batch->column(2);
       const auto& record_ids = static_cast<const arrow::UInt64Array&>(*batch->column(3));
@@ -200,7 +203,7 @@ void load(const fs::path& directory, IdentificationData& data, const std::vector
       for (int64_t row = 0; row < batch->num_rows(); ++row)
       {
         if (feature_ids.IsNull(row) || links.IsNull(row)) invalid("Identification link without feature or kind");
-        auto& entry = by_feature[feature_ids.Value(row)];
+        auto& entry = by_feature[static_cast<UInt64>(feature_ids.Value(row))];
         const auto link = links.GetString(row);
         if (link == PRIMARY)
         {

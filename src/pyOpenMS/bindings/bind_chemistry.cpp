@@ -2442,8 +2442,23 @@ the fixed and variable modifications given to the constructor
         .def("getMolMultiplier", &OpenMS::AdductInfo::getMolMultiplier, "Returns the molecular multiplier")
         .def_static("parseAdductString", &OpenMS::AdductInfo::parseAdductString, "adduct"_a,
             "Parse an adduct string containing a formula and charge")
-        .def("__eq__", &OpenMS::AdductInfo::operator==)
+        .def("__copy__", [](const OpenMS::AdductInfo& self) { return OpenMS::AdductInfo(self); })
+        .def("__deepcopy__", [](const OpenMS::AdductInfo& self, nb::dict) { return OpenMS::AdductInfo(self); }, "memo"_a)
+        .def(nb::self == nb::self)
+        .def(nb::self != nb::self)
+        // Immutable from Python, so it hashes by value (consistent with ==).
+        .def("__hash__", [](const OpenMS::AdductInfo& self) {
+            return std::hash<std::string>{}(self.getName()) ^ (std::hash<int>{}(self.getCharge()) << 1)
+                   ^ (std::hash<OpenMS::UInt>{}(self.getMolMultiplier()) << 2);
+        })
+        .def("__repr__", [](const OpenMS::AdductInfo& self) {
+            return "AdductInfo(name=" + nb::cast<std::string>(nb::repr(nb::str(self.getName().c_str())))
+                   + ", formula='" + self.getEmpiricalFormula().toString() + "', charge=" + std::to_string(self.getCharge())
+                   + ", mol_multiplier=" + std::to_string(self.getMolMultiplier()) + ")";
+        })
         ;
+    // The C++ name; AMSE_AdductInfo is the historical pyOpenMS name.
+    m.attr("AdductInfo") = m.attr("AMSE_AdductInfo");
     m.def("__static_AdductInfo_parseAdductString", [](const std::string& adduct) -> OpenMS::AdductInfo { return OpenMS::AdductInfo::parseAdductString(adduct); }, "adduct"_a);
 
     // --- GlycanStructure and TheoreticalGlycanSpectrumGenerator ---

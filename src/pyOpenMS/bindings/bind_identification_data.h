@@ -15,10 +15,12 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <nanobind/operators.h>
+#include <algorithm>
+#include <concepts>
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace pyopenms_identification
@@ -29,16 +31,61 @@ using File = OpenMS::IdentificationDataFile;
 using Adapter = OpenMS::IdentificationDataAdapter;
 using Inference = OpenMS::IdentificationDataInference;
 
+/// Values compare with their C++ operator==. Match and Identification inherit the comparison of their
+/// payload base, which ignores ID and scores; they get complete comparisons in bind().
+template<typename T>
+constexpr bool comparesAsValue = std::equality_comparable<T> && ! std::is_same_v<T, ID::Match> && ! std::is_same_v<T, ID::Identification>;
+
+/// Value equality without a hash: equal values must have equal hashes, and these values are mutable.
+/// Identity types (IDs, references) define a value __hash__ after this.
+template<typename Class>
+void unhashable(Class& cls)
+{ cls.attr("__hash__") = nb::none(); }
+
 // All exposed records are owned Python values. Never retain a pointer into a
 // run's vector: appending/filtering its owner may invalidate such a pointer.
 template<typename T, typename... Bases>
 auto valueClass(nb::handle scope, const char* name)
 {
-  return nb::class_<T, Bases...>(scope, name, "Owning value. Nested records and containers are returned as copies; assign them back after editing.")
-    .def(nb::init<>())
-    .def(nb::init<const T&>())
-    .def("__copy__", [](const T& self) { return T(self); })
-    .def("__deepcopy__", [](const T& self, nb::dict) { return T(self); }, nb::arg("memo"));
+  auto cls = nb::class_<T, Bases...>(scope, name, "Owning value. Nested records and containers are returned as copies; assign them back after editing.")
+               .def(nb::init<>())
+               .def(nb::init<const T&>())
+               .def("__copy__", [](const T& self) { return T(self); })
+               .def("__deepcopy__", [](const T& self, nb::dict) { return T(self); }, nb::arg("memo"));
+  if constexpr (comparesAsValue<T>)
+  {
+    cls.def(nb::self == nb::self).def(nb::self != nb::self);
+    unhashable(cls);
+  }
+  return cls;
+}
+
+/// Metadata as a Python dict {name: value}, as MetaInfoInterface.getMetaValues() returns it.
+inline nb::dict metadataDict(const OpenMS::MetaInfoInterface& metadata)
+{
+  nb::dict result;
+  std::vector<std::string> keys;
+  metadata.getKeys(keys);
+  for (const auto& key : keys)
+    result[nb::str(key.c_str())] = nb::cast(metadata.getMetaValue(key));
+  return result;
+}
+/// Fills metadata from a dict {name: value}; values convert like MetaInfoInterface.setMetaValue.
+inline void setMetadata(OpenMS::MetaInfoInterface& metadata, nb::handle values, const std::string& keyword)
+{
+  if (! nb::isinstance<nb::dict>(values)) throw nb::type_error(("'" + keyword + "' expects a dict {name: value}").c_str());
+  for (auto [key, item] : nb::borrow<nb::dict>(values))
+  {
+    const auto name = nb::cast<std::string>(key);
+    try
+    {
+      metadata.setMetaValue(name, nb::cast<OpenMS::DataValue>(item));
+    }
+    catch (const nb::cast_error&)
+    {
+      throw nb::type_error(("invalid value for metadata '" + name + "' in '" + keyword + "'").c_str());
+    }
+  }
 }
 
 /// Python truthiness of a callback result (accepts numpy.bool_, 0/1, None, ...).
@@ -55,52 +102,75 @@ inline size_t hashIdentity(const std::string& text, OpenMS::UInt64 value)
   return std::hash<std::string> {}(text) ^ (std::hash<OpenMS::UInt64> {}(value) + 0x9e3779b97f4a7c15ULL + (std::hash<std::string> {}(text) << 6));
 }
 
-/// The fields bound with field(), per bound class, in binding order; used for keyword construction.
-template<typename Self>
-struct BoundFields
+template<typename Class, typename Same>
+void compareWith(Class& cls, Same same)
 {
-  std::vector<std::string> names;
-  std::map<std::string, std::function<void(Self&, nb::handle)>> setters;
+  using Self = typename Class::Type;
+  cls.def("__eq__", [same](const Self& a, const Self& b) { return same(a, b); }, nb::is_operator())
+    .def("__ne__", [same](const Self& a, const Self& b) { return ! same(a, b); }, nb::is_operator());
+  unhashable(cls);
+}
+
+/// The fields bound with field(), per bound class, in binding order. They drive the keyword
+/// constructor, __repr__ and (for types without a C++ operator==) __eq__ of the class.
+template<typename Self>
+struct BoundField
+{
+  std::string name;
+  std::function<void(Self&, nb::handle)> set;
+  std::function<nb::object(const Self&)> get; ///< owned copy; metadata as a dict
 };
 template<typename Self>
-BoundFields<Self>& boundFields()
+std::vector<BoundField<Self>>& boundFields()
 {
-  static BoundFields<Self> fields;
+  static std::vector<BoundField<Self>> fields;
   return fields;
 }
-/// Keyword constructors are added once all fields of a class are bound (finishKeywordConstructors).
-inline std::vector<std::function<void()>>& pendingKeywordConstructors()
+/// Added once all fields of a class are bound (finishFieldProtocols).
+inline std::vector<std::function<void()>>& pendingFieldProtocols()
 {
   static std::vector<std::function<void()>> pending;
   return pending;
 }
 
-/// Constructor from keyword arguments named after the bound fields, e.g.
-/// QualifiedAccession(database="uniprot.fasta", accession="P02769"). The value is built completely
-/// before it is placed, so a rejected argument leaves nothing half-constructed.
+/// Keyword constructor, __repr__ and, unless the class already compares, field-wise __eq__ (like a
+/// dataclass) from the bound fields; classes with metadata also take and show `metadata`
+/// ({name: value}). The constructor builds the value completely before placing it, so a rejected
+/// argument leaves nothing half-constructed. For example:
+///   QualifiedAccession(database="uniprot.fasta", accession="P02769")
 template<typename Class>
-void addKeywordConstructor(Class& cls)
+void addFieldProtocols(Class& cls)
 {
   using Self = typename Class::Type;
+  constexpr bool has_metadata = std::is_base_of_v<OpenMS::MetaInfoInterface, Self>;
   // The signature lists the keywords for help() and the generated stubs; nanobind keeps the pointer.
   static std::vector<std::unique_ptr<std::string>> signatures;
   std::string signature = "def __init__(self, *";
-  for (const auto& name : boundFields<Self>().names)
-    signature += ", " + name + "=...";
+  for (const auto& field : boundFields<Self>())
+    signature += ", " + field.name + "=...";
+  if (has_metadata) signature += ", metadata=...";
   signatures.push_back(std::make_unique<std::string>(signature + ") -> None"));
   cls.def(
     "__init__",
     [](Self* self, nb::kwargs kwargs) {
       Self value;
-      const auto& setters = boundFields<Self>().setters;
+      const auto& fields = boundFields<Self>();
       for (auto [key, item] : kwargs)
       {
         const auto name = nb::cast<std::string>(key);
-        const auto setter = setters.find(name);
-        if (setter == setters.end()) throw nb::type_error(("unexpected keyword argument '" + name + "'; the keywords are the field names").c_str());
+        if constexpr (has_metadata)
+        {
+          if (name == "metadata")
+          {
+            setMetadata(value, item, name);
+            continue;
+          }
+        }
+        const auto field = std::find_if(fields.begin(), fields.end(), [&](const auto& candidate) { return candidate.name == name; });
+        if (field == fields.end()) throw nb::type_error(("unexpected keyword argument '" + name + "'; the keywords are the field names").c_str());
         try
         {
-          setter->second(value, item);
+          field->set(value, item);
         }
         catch (const nb::cast_error&)
         {
@@ -110,13 +180,36 @@ void addKeywordConstructor(Class& cls)
       new (self) Self(std::move(value));
     },
     nb::sig(signatures.back()->c_str()), "Construct from keyword arguments named after the fields; omitted fields keep their defaults.");
+  const auto type_name = nb::cast<std::string>(cls.attr("__qualname__"));
+  cls.def("__repr__", [type_name](const Self& self) {
+    std::string text = type_name + "(";
+    const char* separator = "";
+    for (const auto& field : boundFields<Self>())
+    {
+      text += separator + field.name + "=" + nb::cast<std::string>(nb::repr(field.get(self)));
+      separator = ", ";
+    }
+    if constexpr (has_metadata)
+    {
+      if (! self.isMetaEmpty()) text += separator + std::string("metadata=") + nb::cast<std::string>(nb::repr(metadataDict(self)));
+    }
+    return text + ")";
+  });
+  if (! nb::cast<bool>(cls.attr("__dict__").attr("__contains__")("__eq__")))
+  {
+    compareWith(cls, [](const Self& a, const Self& b) {
+      for (const auto& field : boundFields<Self>())
+        if (! field.get(a).equal(field.get(b))) return false;
+      return true;
+    });
+  }
 }
 
-inline void finishKeywordConstructors()
+inline void finishFieldProtocols()
 {
-  for (const auto& add : pendingKeywordConstructors())
+  for (const auto& add : pendingFieldProtocols())
     add();
-  pendingKeywordConstructors().clear();
+  pendingFieldProtocols().clear();
 }
 
 template<typename Class, typename T, typename Value>
@@ -124,14 +217,66 @@ void field(Class& cls, const char* name, Value T::* member)
 {
   using Self = typename Class::Type;
   auto& fields = boundFields<Self>();
-  if (fields.names.empty()) pendingKeywordConstructors().push_back([cls]() mutable { addKeywordConstructor(cls); });
-  fields.names.emplace_back(name);
-  fields.setters[name] = [member](Self& self, nb::handle item) { static_cast<T&>(self).*member = nb::cast<Value>(item); };
+  if (fields.empty()) pendingFieldProtocols().push_back([cls]() mutable { addFieldProtocols(cls); });
+  BoundField<Self> bound;
+  bound.name = name;
+  bound.set = [member, keyword = std::string(name)](Self& self, nb::handle item) {
+    if constexpr (std::is_same_v<Value, OpenMS::MetaInfoInterface>)
+    {
+      // Metadata-valued fields (e.g. ScoreDefinition.parameters) also take a dict {name: value}.
+      if (nb::isinstance<nb::dict>(item))
+      {
+        OpenMS::MetaInfoInterface metadata;
+        setMetadata(metadata, item, keyword);
+        static_cast<T&>(self).*member = metadata;
+        return;
+      }
+    }
+    static_cast<T&>(self).*member = nb::cast<Value>(item);
+  };
+  bound.get = [member](const Self& self) -> nb::object {
+    if constexpr (std::is_same_v<Value, OpenMS::MetaInfoInterface>) return metadataDict(static_cast<const T&>(self).*member);
+    else
+      return nb::cast(static_cast<const T&>(self).*member, nb::rv_policy::copy);
+  };
+  fields.push_back(std::move(bound));
   // Explicit value return also protects nested structs and vector elements
   // when Python subsequently replaces the containing field.
   cls.def_prop_rw(
     name, [member](const T& self) -> Value { return self.*member; }, [member](T& self, const Value& value) { self.*member = value; },
     "Owned value; assign an edited nested record or container back to this property.");
+}
+
+/// Complete value comparisons for records that inherit the payload comparison of their base.
+inline bool sameMatch(const ID::Match& a, const ID::Match& b)
+{ return a.getId() == b.getId() && a.getData() == b.getData() && a.getScores() == b.getScores(); }
+inline bool sameIdentification(const ID::Identification& a, const ID::Identification& b)
+{
+  return a.getId() == b.getId() && a.getObservation() == b.getObservation() && a.getSelectedMatch() == b.getSelectedMatch()
+         && std::equal(a.getMatches().begin(), a.getMatches().end(), b.getMatches().begin(), b.getMatches().end(), sameMatch);
+}
+inline bool sameSourceBlock(const ID::SourceBlock& a, const ID::SourceBlock& b)
+{
+  return a.id.value == b.id.value && a.source == b.source
+         && std::equal(a.identifications.begin(), a.identifications.end(), b.identifications.begin(), b.identifications.end(), sameIdentification);
+}
+
+inline std::string moleculeKindName(ID::MoleculeKind kind)
+{
+  switch (kind)
+  {
+    case ID::MoleculeKind::PEPTIDE:
+      return "PEPTIDE";
+    case ID::MoleculeKind::OLIGONUCLEOTIDE:
+      return "OLIGONUCLEOTIDE";
+    default:
+      return "COMPOUND";
+  }
+}
+inline std::string runSummary(const std::string& type, const ID::Run& run)
+{
+  return type + "('" + run.getIdentifier() + "', uuid='" + run.getUuid() + "', kind=MoleculeKind." + moleculeKindName(run.getMoleculeKind())
+         + ", queries=" + std::to_string(run.getNumberOfIdentifications()) + ", matches=" + std::to_string(run.getNumberOfMatches()) + ")";
 }
 
 /// A run inside a dataset, addressed by UUID: it cannot dangle when the dataset's runs change,
@@ -257,37 +402,39 @@ inline void bind(nb::module_& m)
     .value("PRESERVE", ID::InferencePolicy::PRESERVE)
     .value("DISCARD", ID::InferencePolicy::DISCARD);
   auto queryid = valueClass<ID::QueryId>(data, "QueryId");
-  queryid.def_ro("value", &ID::QueryId::value).def(nb::self == nb::self).def(nb::self != nb::self);
+  queryid.def_ro("value", &ID::QueryId::value);
   queryid.def(nb::init<OpenMS::UInt64>(), nb::arg("value"));
-  queryid.def("__hash__", [](const ID::QueryId& self) { return std::hash<OpenMS::UInt64> {}(self.value); });
+  queryid.def("__hash__", [](const ID::QueryId& self) { return std::hash<OpenMS::UInt64> {}(self.value); })
+    .def("__repr__", [](const ID::QueryId& self) { return "QueryId(" + std::to_string(self.value) + ")"; });
   auto matchid = valueClass<ID::MatchId>(data, "MatchId");
-  matchid.def_ro("value", &ID::MatchId::value).def(nb::self == nb::self).def(nb::self != nb::self);
+  matchid.def_ro("value", &ID::MatchId::value);
   matchid.def(nb::init<OpenMS::UInt64>(), nb::arg("value"));
-  matchid.def("__hash__", [](const ID::MatchId& self) { return std::hash<OpenMS::UInt64> {}(self.value); });
+  matchid.def("__hash__", [](const ID::MatchId& self) { return std::hash<OpenMS::UInt64> {}(self.value); })
+    .def("__repr__", [](const ID::MatchId& self) { return "MatchId(" + std::to_string(self.value) + ")"; });
   auto queryreference = valueClass<ID::QueryReference>(data, "QueryReference");
   field(queryreference, "run_uuid", &ID::QueryReference::run_uuid);
   field(queryreference, "query", &ID::QueryReference::query);
-  queryreference.def(nb::self == nb::self).def(nb::self != nb::self);
   queryreference.def("__hash__", [](const ID::QueryReference& self) { return hashIdentity(self.run_uuid, self.query.value); });
   auto matchreference = valueClass<ID::MatchReference>(data, "MatchReference");
   field(matchreference, "run_uuid", &ID::MatchReference::run_uuid);
   field(matchreference, "match", &ID::MatchReference::match);
-  matchreference.def(nb::self == nb::self).def(nb::self != nb::self);
   matchreference.def("__hash__", [](const ID::MatchReference& self) { return hashIdentity(self.run_uuid, self.match.value); });
   auto moleculeidentity = valueClass<ID::MoleculeIdentity>(data, "MoleculeIdentity");
   field(moleculeidentity, "encoding", &ID::MoleculeIdentity::encoding);
   field(moleculeidentity, "representation", &ID::MoleculeIdentity::representation);
-  moleculeidentity.def(nb::self == nb::self).def(nb::self != nb::self);
   moleculeidentity.def("__hash__", [](const ID::MoleculeIdentity& self) { return hashIdentity(self.representation, static_cast<OpenMS::UInt64>(self.encoding)); });
   auto scoreid = valueClass<ID::ScoreId>(data, "ScoreId");
-  scoreid.def_ro("value", &ID::ScoreId::value).def(nb::self == nb::self).def(nb::self != nb::self);
-  scoreid.def("__hash__", [](const ID::ScoreId& self) { return std::hash<OpenMS::UInt64> {}(self.owner) ^ (std::hash<OpenMS::UInt64> {}(self.value) << 1); });
+  scoreid.def_ro("value", &ID::ScoreId::value);
+  scoreid.def("__hash__", [](const ID::ScoreId& self) { return std::hash<OpenMS::UInt64> {}(self.owner) ^ (std::hash<OpenMS::UInt64> {}(self.value) << 1); })
+    .def("__repr__", [](const ID::ScoreId& self) { return "<ScoreId " + std::to_string(self.value) + ">"; });
   auto sourceid = valueClass<ID::SourceId>(data, "SourceId");
-  sourceid.def_ro("value", &ID::SourceId::value).def(nb::self == nb::self).def(nb::self != nb::self);
-  sourceid.def("__hash__", [](const ID::SourceId& self) { return std::hash<OpenMS::UInt64> {}(self.owner) ^ (std::hash<OpenMS::UInt64> {}(self.value) << 1); });
+  sourceid.def_ro("value", &ID::SourceId::value);
+  sourceid.def("__hash__", [](const ID::SourceId& self) { return std::hash<OpenMS::UInt64> {}(self.owner) ^ (std::hash<OpenMS::UInt64> {}(self.value) << 1); })
+    .def("__repr__", [](const ID::SourceId& self) { return "<SourceId " + std::to_string(self.value) + ">"; });
   auto qualifiedaccession = valueClass<ID::QualifiedAccession>(data, "QualifiedAccession");
   field(qualifiedaccession, "database", &ID::QualifiedAccession::database);
   field(qualifiedaccession, "accession", &ID::QualifiedAccession::accession);
+  qualifiedaccession.def("__hash__", [](const ID::QualifiedAccession& self) { return hashIdentity(self.database, std::hash<std::string> {}(self.accession)); });
   auto scoredefinition = valueClass<ID::ScoreDefinition>(data, "ScoreDefinition");
   field(scoredefinition, "name", &ID::ScoreDefinition::name);
   field(scoredefinition, "accession", &ID::ScoreDefinition::accession);
@@ -342,19 +489,34 @@ inline void bind(nb::module_& m)
   field(inferenceresult, "qualified_accessions", &ID::InferenceResult::qualified_accessions);
   field(inferenceresult, "inputs", &ID::InferenceResult::inputs);
 
-  valueClass<ID::Match, ID::MatchData>(data, "Match")
-    .def("getId", &ID::Match::getId)
+  // Match and Identification are records of a run: they are read from a run, not constructed with
+  // keywords, and compare by ID, payload, scores and candidates.
+  auto match = valueClass<ID::Match, ID::MatchData>(data, "Match");
+  match.def("getId", &ID::Match::getId)
     .def("getData", [](const ID::Match& self) { return ID::MatchData(self.getData()); })
-    .def("getScores", &ID::Match::getScores);
-  valueClass<ID::Identification, ID::Observation>(data, "Identification")
-    .def("getId", &ID::Identification::getId)
+    .def("getScores", &ID::Match::getScores)
+    .def("__repr__", [](const ID::Match& self) {
+      return "Match(id=" + std::to_string(self.getId().value) + ", scores=" + nb::cast<std::string>(nb::repr(nb::cast(self.getScores())))
+             + ", data=" + nb::cast<std::string>(nb::repr(nb::cast(ID::MatchData(self.getData())))) + ")";
+    });
+  compareWith(match, sameMatch);
+  auto identification = valueClass<ID::Identification, ID::Observation>(data, "Identification");
+  identification.def("getId", &ID::Identification::getId)
     .def("getObservation", [](const ID::Identification& self) { return ID::Observation(self.getObservation()); })
     .def("getMatches", [](const ID::Identification& self) { return self.getMatches(); })
-    .def("getSelectedMatch", &ID::Identification::getSelectedMatch);
+    .def("getSelectedMatch", &ID::Identification::getSelectedMatch)
+    .def("__repr__", [](const ID::Identification& self) {
+      const auto selected = self.getSelectedMatch();
+      return "Identification(id=" + std::to_string(self.getId().value) + ", matches=" + std::to_string(self.getMatches().size())
+             + ", selected=" + (selected ? std::to_string(selected->value) : std::string("None"))
+             + ", observation=" + nb::cast<std::string>(nb::repr(nb::cast(ID::Observation(self.getObservation())))) + ")";
+    });
+  compareWith(identification, sameIdentification);
   auto block = valueClass<ID::SourceBlock>(data, "SourceBlock");
   field(block, "id", &ID::SourceBlock::id);
   field(block, "source", &ID::SourceBlock::source);
   field(block, "identifications", &ID::SourceBlock::identifications);
+  compareWith(block, sameSourceBlock);
   valueClass<ID::ScoreView>(data, "ScoreView")
     .def("__call__", &ID::ScoreView::operator(), nb::arg("match"))
     .def("getDefinition", [](const ID::ScoreView& self) { return self.getDefinition(); });
@@ -362,6 +524,7 @@ inline void bind(nb::module_& m)
   auto run = valueClass<ID::Run>(data, "Run");
   run.def(nb::init<std::string, ID::MoleculeKind>(), nb::arg("identifier"), nb::arg("kind") = ID::MoleculeKind::PEPTIDE);
   bindRunApi(run, [](ID::Run& self) -> ID::Run& { return self; });
+  run.def("__repr__", [](const ID::Run& self) { return runSummary("Run", self); });
   // Construction from persisted values; not offered on a RunView, whose identity is fixed.
   run.def("importIdentification", &ID::Run::importIdentification, nb::arg("source"), nb::arg("id"), nb::arg("observation"))
     .def("importMatch", &ID::Run::importMatch, nb::arg("query"), nb::arg("id"), nb::arg("data"),
@@ -373,7 +536,15 @@ inline void bind(nb::module_& m)
                                       "Live access to a run inside an IdentificationData, looked up by UUID on every call. "
                                       "Edits land in the dataset directly; the view keeps the dataset alive and raises if the run is gone.");
   bindRunApi(run_view, [](RunView& self) -> ID::Run& { return self.run(); });
-  run_view.def("copy", [](RunView& self) { return ID::Run(self.run()); }, "Return an owned copy of the run (a snapshot; edits to it do not reach the dataset).");
+  run_view.def("copy", [](RunView& self) { return ID::Run(self.run()); }, "Return an owned copy of the run (a snapshot; edits to it do not reach the dataset).")
+    .def("__repr__", [](const RunView& self) {
+      const auto* found = nb::cast<ID&>(self.owner).findRunByUuid(self.uuid);
+      return found ? runSummary("RunView", *found) : "RunView(uuid='" + self.uuid + "', removed)";
+    })
+    // Views are handles: equal when they address the same run of the same dataset object.
+    .def("__eq__", [](const RunView& a, const RunView& b) { return a.owner.is(b.owner) && a.uuid == b.uuid; }, nb::is_operator())
+    .def("__ne__", [](const RunView& a, const RunView& b) { return ! a.owner.is(b.owner) || a.uuid != b.uuid; }, nb::is_operator())
+    .def("__hash__", [](const RunView& self) { return std::hash<std::string> {}(self.uuid); });
 
   data
     .def(
@@ -412,8 +583,6 @@ inline void bind(nb::module_& m)
     .def("empty", &ID::empty)
     .def("clear", &ID::clear)
     .def("merge", &ID::merge, nb::arg("other"))
-    .def(nb::self == nb::self)
-    .def(nb::self != nb::self)
     .def(
       "filterMatches",
       [](ID& self, nb::callable keep, ID::InferencePolicy policy, bool keep_empty) {
@@ -425,7 +594,14 @@ inline void bind(nb::module_& m)
     .def("getPrimaryScoreDefinition", &ID::getPrimaryScoreDefinition)
     .def("setPrimaryScore", &ID::setPrimaryScore, nb::arg("definition"))
     .def("validate", &ID::validate)
-    .def("swap", &ID::swap, nb::arg("other"));
+    .def("swap", &ID::swap, nb::arg("other"))
+    .def("__repr__", [](const ID& self) {
+      nb::list identifiers;
+      for (const auto& run : self.getRuns())
+        identifiers.append(nb::str(run.getIdentifier().c_str()));
+      return "IdentificationData(runs=" + nb::cast<std::string>(nb::repr(identifiers))
+             + ", inference_results=" + std::to_string(self.getInferenceResults().size()) + ")";
+    });
 
   // --- IdentificationDataFile ---
   auto file = valueClass<File>(m, "IdentificationDataFile");
@@ -621,6 +797,6 @@ inline void bind(nb::module_& m)
         Inference::retainProteins(result, {retained.begin(), retained.end()});
       },
       nb::arg("result"), nb::arg("retained"));
-  finishKeywordConstructors();
+  finishFieldProtocols();
 }
 } // namespace pyopenms_identification

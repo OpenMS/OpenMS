@@ -145,18 +145,21 @@ def test_map_identification_data_view_edits_the_map():
 def test_value_types_accept_keyword_arguments_for_their_fields():
     parent = ID.QualifiedAccession(database="uniprot.fasta", accession="P02769")
     assert (parent.database, parent.accession) == ("uniprot.fasta", "P02769")
+    assert parent == ID.QualifiedAccession(database="uniprot.fasta", accession="P02769")
     match = ID.MatchData(representation="LVNELTEFAK", charge=2,
                          parent_evidence=[ID.ParentEvidence(parent=parent, start=65, end=74, before="K", after="T")])
     assert match.encoding == ID.Encoding.AA_SEQUENCE          # omitted fields keep their defaults
     assert match.parent_evidence[0].parent.accession == "P02769" and match.parent_evidence[0].start == 65
     compound = ID.MatchData(encoding=ID.Encoding.SMILES, representation="CCO", charge=1, formula="C2H6O",
                             identifiers=[ID.QualifiedAccession(database="HMDB", accession="HMDB0000108")],
-                            adduct=oms.AMSE_AdductInfo.parseAdductString("M+H;1+"), calculated_mz=47.0491)
+                            adduct=oms.AdductInfo.parseAdductString("M+H;1+"), calculated_mz=47.0491)
     assert compound.adduct.getName() == "M+H;1+" and compound.identifiers[0].accession == "HMDB0000108"
-    observation = ID.Observation(data_id="scan=1", rt=12.5, mz=None)
+    observation = ID.Observation(data_id="scan=1", rt=12.5, mz=None, metadata={"FWHM": 3.5, "label": "a"})
     assert observation.rt == 12.5 and observation.mz is None
-    score = ID.ScoreDefinition(name="expect", higher_better=False, software="Comet")
+    assert observation.getMetaValues() == {"FWHM": 3.5, "label": "a"}
+    score = ID.ScoreDefinition(name="expect", higher_better=False, software="Comet", parameters={"tolerance": 10.0})
     assert (score.name, score.higher_better, score.software) == ("expect", False, "Comet")
+    assert score.parameters.getMetaValue("tolerance") == 10.0
     # Feature links are values as well.
     run = ID.Run("search")
     query = run.addIdentification(run.addSource(ID.SourceFile(path="a.mzML")), observation)
@@ -172,6 +175,77 @@ def test_value_types_accept_keyword_arguments_for_their_fields():
         ID.MatchData(charge="two")
     with pytest.raises(TypeError):
         ID.QualifiedAccession("db", "P1")
+    with pytest.raises(TypeError, match="'metadata' expects a dict"):
+        ID.Observation(metadata=[("FWHM", 3.5)])
+    with pytest.raises(TypeError, match="invalid value for metadata 'FWHM'"):
+        ID.Observation(metadata={"FWHM": object()})
+    with pytest.raises(TypeError, match="unexpected keyword argument 'metadata'"):
+        ID.QualifiedAccession(metadata={})                     # only records with metadata take it
+
+
+def test_values_compare_by_value_and_only_identities_hash():
+    payload = ID.MatchData(representation="PEPTIDE", charge=2, metadata={"note": "x"})
+    assert payload == copy.copy(payload) and not payload != ID.MatchData(payload)
+    assert payload != ID.MatchData(representation="PEPTIDE", charge=3)
+    assert payload != "PEPTIDE"
+    # Mutable values compare by value and are unhashable; IDs, references and accessions are keys.
+    for value in (payload, ID.ScoreDefinition(), ID.Observation(), ID.SourceFile(), ID.InferenceResult(), ID(),
+                  ID.Run("search"), File.Options()):
+        with pytest.raises(TypeError, match="unhashable"):
+            hash(value)
+    keys = {ID.QualifiedAccession(database="db", accession="P1"), ID.QualifiedAccession(database="db", accession="P1"),
+            ID.QueryId(1), ID.QueryId(1), ID.MoleculeIdentity(encoding=ID.Encoding.SMILES, representation="CCO")}
+    assert len(keys) == 3
+    adducts = {oms.AdductInfo.parseAdductString("M+H;1+"), oms.AdductInfo.parseAdductString("M+H;1+")}
+    assert len(adducts) == 1 and oms.AdductInfo is oms.AMSE_AdductInfo
+    # Options without a C++ comparison compare field by field.
+    assert File.Options() == File.Options() and File.Options(threads=2) != File.Options()
+    assert File.ScanOptions(projection=File.Projection(all_scores=False)) != File.ScanOptions()
+
+    # Records of a run compare by ID, payload, scores and candidates, not just their payload.
+    run, query, first, second, score = make_run()
+    assert run.getMatch(first) == run.getMatch(first)
+    assert run.getMatch(first) != run.getMatch(second)
+    before = run.getMatch(first)
+    run.setScore(first, score, 0.5)
+    assert before != run.getMatch(first) and before.getData() == run.getMatch(first).getData()
+    assert run.getIdentification(query) == run.getIdentification(query)
+    identification = run.getIdentification(query)
+    run.setSelectedMatch(query, first)
+    assert identification != run.getIdentification(query)
+    assert run.getSourceBlocks() == copy.copy(run).getSourceBlocks()
+    for record in (before, identification, run.getSourceBlocks()[0]):
+        with pytest.raises(TypeError, match="unhashable"):
+            hash(record)
+    data = ID()
+    view = data.addRun("search")
+    assert ID(data) == data and ID(data) != ID()
+    # Views are handles: equal if they address the same run of the same dataset object.
+    assert view == data.run_view("search") and len({view, data.run_view("search")}) == 1
+    assert view != ID(data).run_view("search")
+
+
+def test_values_have_readable_reprs():
+    parent = ID.QualifiedAccession(database="uniprot.fasta", accession="P02769")
+    assert repr(parent) == "IdentificationData.QualifiedAccession(database='uniprot.fasta', accession='P02769')"
+    observation = ID.Observation(data_id="scan=1", rt=1.5, metadata={"label": "a"})
+    assert repr(observation) == "IdentificationData.Observation(data_id='scan=1', rt=1.5, mz=None, metadata={'label': 'a'})"
+    assert repr(ID.QueryId(3)) == "QueryId(3)" and repr(ID.MatchId(4)) == "MatchId(4)"
+    assert repr(ID.Run("search").addScore(ID.ScoreDefinition(name="expect"))) == "<ScoreId 0>"  # bound to its run
+    assert "adduct=AdductInfo(name='M+H;1+', formula='H1', charge=1, mol_multiplier=1)" in repr(
+        ID.MatchData(encoding=ID.Encoding.SMILES, representation="CCO", adduct=oms.AdductInfo.parseAdductString("M+H;1+")))
+    assert repr(File.Options(threads=2)).startswith("IdentificationDataFile.Options(batch_rows=")
+    data = ID()
+    view = data.addRun("search")
+    query = view.addIdentification(view.addSource(ID.SourceFile()), observation)
+    match = view.addMatch(query, ID.MatchData(representation="PEPTIDE"))
+    assert repr(view) == f"RunView('search', uuid='{view.getUuid()}', kind=MoleculeKind.PEPTIDE, queries=1, matches=1)"
+    assert repr(view.getMatch(match)).startswith("Match(id=1, scores=[], data=IdentificationData.MatchData(representation='PEPTIDE'")
+    assert repr(view.getIdentification(query)).startswith("Identification(id=1, matches=1, selected=None, observation=")
+    assert repr(data) == "IdentificationData(runs=['search'], inference_results=0)"
+    uuid = view.getUuid()
+    data.clear()
+    assert repr(view) == f"RunView(uuid='{uuid}', removed)"
 
 
 def test_nested_field_values_remain_owned_after_replacement():

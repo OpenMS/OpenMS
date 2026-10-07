@@ -41,7 +41,8 @@ OpenMS Library:
     .idparquet bundle remains readable and is still written by the legacy FileHandler overloads.
   - .featureparquet and .consensusparquet bundles store a map's owning identification data
     (identifications/, a native bundle) and the per-feature links (identification_links.parquet,
-    keyed by feature unique ID). Bundles are written to a temporary sibling directory and published
+    keyed by feature unique ID, stored as int64 like the feature tables so they join without a
+    cast). Bundles are written to a temporary sibling directory and published
     when complete; an existing bundle or empty directory is replaced, anything else is left alone.
   - ProteinIdentification::setScoreSoftware()/getScoreSoftware() record the tool that produced a
     derived PSM score (stored as ScoreSoftware:<score type> search parameters). Score definitions
@@ -146,9 +147,13 @@ PyOpenMS:
     Getters return copies; runs are edited through IdentificationData.run_view() (also returned by
     addRun), and FeatureMap/ConsensusMap identification data through identification_data_view().
     Value types take their field names as constructor keywords, e.g.
-    IdentificationData.QualifiedAccession(database="uniprot.fasta", accession="P02769").
-    ID handles (QueryId, MatchId, ScoreId, SourceId) and references (QueryReference, MatchReference,
-    MoleculeIdentity) compare and hash by value, so they work as dict keys and set members.
+    IdentificationData.QualifiedAccession(database="uniprot.fasta", accession="P02769"), records
+    with metadata also metadata={name: value}. All value types compare by value and have a
+    field-by-field repr. ID handles (QueryId, MatchId, ScoreId, SourceId), references
+    (QueryReference, MatchReference), MoleculeIdentity and QualifiedAccession hash by value, so they
+    work as dict keys and set members; mutable records are unhashable.
+  - AMSE_AdductInfo is also available as AdductInfo, compares with == and !=, hashes by value and
+    has a readable repr.
     Predicate callbacks accept any Python truth value. Native identification I/O releases the GIL.
   - ProteinIdentification.setScoreSoftware/getScoreSoftware/clearScoreSoftware.
 
