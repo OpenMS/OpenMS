@@ -17,10 +17,12 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <limits>
@@ -211,6 +213,127 @@ START_SECTION((static void store(const std::string& pin_file, const PeptideIdent
   TEST_STRING_EQUAL(row[col("enzC")], "1")           // tryptic C-terminus
   TEST_STRING_EQUAL(row[col("Peptide")], "K.SAMPLER.S")
   TEST_STRING_EQUAL(row[col("Proteins")], "PROT1")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] stampPinFeaturesOnHits: the isotope error corrects dm/absdm only; ExpMass is the precursor m/z of the spectrum))
+{
+  // One spectrum whose precursor was selected at the first 13C isotope peak of SAMPLER (2+), with two PSMs: SAMPLER
+  // at isotope_error +1 (observed minus theoretical) and SAMPLEK at isotope_error 0. Percolator identifies a spectrum
+  // by ScanNr and ExpMass, so both rows keep the observed precursor m/z there and in 'mass'.
+  const AASequence sampler = AASequence::fromString("SAMPLER");
+  const AASequence samplek = AASequence::fromString("SAMPLEK");
+  const double observed_mz = sampler.getMZ(2) + Constants::C13C12_MASSDIFF_U / 2.0;
+  auto make_hit = [](const AASequence& sequence, int isotope_error, double score)
+  {
+    PeptideHit hit;
+    hit.setSequence(sequence);
+    hit.setCharge(2);
+    hit.setScore(score);
+    hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+    PeptideEvidence ev;
+    ev.setProteinAccession("PROT1");
+    ev.setAABefore('K');
+    ev.setAAAfter('S');
+    hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+    hit.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, isotope_error);
+    return hit;
+  };
+  PeptideIdentification pid;
+  pid.setMZ(observed_mz);
+  pid.setRT(10.0);
+  pid.setSpectrumReference("scan=7");
+  pid.setHits(std::vector<PeptideHit>{make_hit(sampler, 1, 2.0), make_hit(samplek, 0, 1.0)});
+  PeptideIdentificationList pids;
+  pids.push_back(pid);
+
+  TEST_EQUAL(PercolatorInfile::stampPinFeaturesOnHits(pids, "trypsin", 2, 3).size(), 0)
+  const std::vector<PeptideHit>& hits = pids[0].getHits();
+  ABORT_IF(hits.size() != 2)
+  TOLERANCE_ABSOLUTE(1e-9)
+  for (const PeptideHit& hit : hits)
+  {
+    TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("ExpMass")), observed_mz)
+    TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("mass")), observed_mz)
+  }
+  // SAMPLER: the observed precursor lies one 13C spacing above it; the correction removes that
+  TEST_REAL_SIMILAR(static_cast<double>(hits[0].getMetaValue("dm")), 0.0)
+  TEST_REAL_SIMILAR(static_cast<double>(hits[0].getMetaValue("absdm")), 0.0)
+  TEST_REAL_SIMILAR(static_cast<double>(hits[0].getMetaValue("deltamass")), 0.0)
+  // SAMPLEK: no isotope error, the plain difference
+  TEST_REAL_SIMILAR(static_cast<double>(hits[1].getMetaValue("dm")), observed_mz - samplek.getMZ(2))
+  TEST_REAL_SIMILAR(static_cast<double>(hits[1].getMetaValue("absdm")), std::abs(observed_mz - samplek.getMZ(2)))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] isotope correction preserves spectrum identity in stamped features and exported PIN rows))
+{
+  const AASequence sequence = AASequence::fromString(".(Acetyl)SAM(Oxidation)PLER");
+  for (const std::string& key : {std::string(Constants::UserParam::ISOTOPE_ERROR), std::string("IsotopeError")})
+  {
+    for (const int charge : {2, 3})
+    {
+      const double observed_mz = sequence.getMZ(charge) + 0.02;
+      PeptideIdentification pid;
+      pid.setMZ(observed_mz);
+      pid.setRT(10.0);
+      pid.setSpectrumReference("scan=7");
+      for (const int isotope_error : {-1, 0, 1, 2})
+      {
+        PeptideHit hit;
+        hit.setSequence(sequence);
+        hit.setCharge(charge);
+        hit.setScore(1.0);
+        hit.setTargetDecoyType(isotope_error == 0 ? PeptideHit::TargetDecoyType::DECOY : PeptideHit::TargetDecoyType::TARGET);
+        PeptideEvidence evidence;
+        evidence.setProteinAccession(isotope_error == 0 ? "DECOY_PROT1" : "PROT1");
+        evidence.setAABefore('K');
+        evidence.setAAAfter('S');
+        hit.addPeptideEvidence(evidence);
+        // Zero without a key also covers inputs without isotope annotation.
+        if (isotope_error != 0) hit.setMetaValue(key, isotope_error);
+        pid.insertHit(hit);
+      }
+      PeptideIdentificationList pids;
+      pids.push_back(pid);
+      std::string pin_file;
+      NEW_TMP_FILE(pin_file);
+      StringList features = PercolatorInfile::getStandardFeatureSet(2, 3);
+      features.insert(features.end(), {"deltamass", "Peptide", "Proteins"});
+      PercolatorInfile::store(pin_file, pids, features, "trypsin", 2, 3);
+      // store() must leave its input untouched.
+      TEST_FALSE(pids[0].getHits()[0].metaValueExists("ExpMass"))
+      TEST_EQUAL(PercolatorInfile::stampPinFeaturesOnHits(pids, "trypsin", 2, 3).size(), 0)
+      TextFile txt(pin_file);
+      const StringList lines(txt.begin(), txt.end());
+      ABORT_IF(lines.size() != 5)
+      auto col = [&features](const std::string& name) -> Size
+      {
+        return std::find(features.begin(), features.end(), name) - features.begin();
+      };
+      const std::vector<int> isotope_errors = {-1, 0, 1, 2};
+      for (Size i = 0; i < isotope_errors.size(); ++i)
+      {
+        const auto& hit = pids[0].getHits()[i];
+        const double delta_mass = observed_mz - isotope_errors[i] * Constants::C13C12_MASSDIFF_U / charge - sequence.getMZ(charge);
+        TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("ExpMass")), observed_mz)
+        TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("mass")), observed_mz)
+        TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("CalcMass")), sequence.getMZ(charge))
+        TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("dm")), delta_mass)
+        TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("absdm")), std::abs(delta_mass))
+        TEST_REAL_SIMILAR(static_cast<double>(hit.getMetaValue("deltamass")), delta_mass)
+        StringList row;
+        StringUtils::split(lines[i + 1], '\t', row);
+        ABORT_IF(row.size() != features.size())
+        TEST_STRING_EQUAL(row[col("ScanNr")], "7")
+        TEST_REAL_SIMILAR(StringUtils::toDouble(row[col("ExpMass")]), observed_mz)
+        TEST_REAL_SIMILAR(StringUtils::toDouble(row[col("mass")]), observed_mz)
+        TEST_REAL_SIMILAR(StringUtils::toDouble(row[col("dm")]), delta_mass)
+        TEST_REAL_SIMILAR(StringUtils::toDouble(row[col("absdm")]), std::abs(delta_mass))
+        TEST_REAL_SIMILAR(StringUtils::toDouble(row[col("deltamass")]), delta_mass)
+      }
+    }
+  }
 }
 END_SECTION
 
