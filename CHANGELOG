@@ -52,6 +52,9 @@ OpenMS Library:
     IDFileConverter for identifications (e.g. to idXML) and FileConverter for feature maps
     (to featureXML). Loading a .oms file now reports this. Native identification data is stored as
     .idparquet; maps with native identification data as .featureparquet/.consensusparquet.
+  - Added IDFreeMassErrorEstimator, a streaming identification-free precursor/fragment mass-precision
+    estimator with charge-less DIA fragment support, background-aware high-resolution fragment
+    precision, and an adaptive high-intensity fallback for low-signal DIA data; exposed through pyOpenMS. (#10433)
   - FIX: PercolatorInfile keeps the observed precursor m/z in ExpMass and mass for all
     PSMs of a spectrum. Isotope correction applies only to the mass-error features,
     so candidates with different isotope errors compete in the same Percolator spectrum group.

@@ -241,6 +241,7 @@ runtime.
         .def_rw("ms1_centroid_mz_ppm", &OpenMS::BrukerTimsFile::Config::ms1_centroid_mz_ppm, "MS1 IM-centroiding m/z tolerance in ppm (0 = disabled, suggested: 5.0)")
         .def_rw("ms1_centroid_im_pct", &OpenMS::BrukerTimsFile::Config::ms1_centroid_im_pct, "MS1 IM-centroiding ion mobility tolerance in percent (0 = disabled, suggested: 3.0)")
         .def_rw("ms1_centroid_max_peaks", &OpenMS::BrukerTimsFile::Config::ms1_centroid_max_peaks, "Upper bound on centroided peaks per MS1 spectrum")
+        .def_rw("ms2_centroid_algo", &OpenMS::BrukerTimsFile::Config::ms2_centroid_algo, "MS2 centroiding algorithm for DIA-PASEF and DDA-PASEF")
         .def_rw("dia_ms2_n_neighbors", &OpenMS::BrukerTimsFile::Config::dia_ms2_n_neighbors, "DIA MS2 frame aggregation: number of adjacent frames on each side (0 = disabled)")
         .def_rw("dia_ms2_min_support", &OpenMS::BrukerTimsFile::Config::dia_ms2_min_support, "DIA MS2 denoising: minimum occupied neighbors in 3x3 (m/z x IM) grid")
         .def_rw("dia_ms2_centroid", &OpenMS::BrukerTimsFile::Config::dia_ms2_centroid, "DIA MS2 2D peak picking: Gaussian smoothing + local maxima detection")
@@ -251,6 +252,12 @@ runtime.
         .def_rw("tims_calibration_strategy", &OpenMS::BrukerTimsFile::Config::tims_calibration_strategy, "Strategy for converting TIMS scan indices to 1/K0 values")
         .def_rw("pressure_compensation", &OpenMS::BrukerTimsFile::Config::pressure_compensation, "Pressure compensation strategy (only effective with BRUKER_SDK calibration)")
         .def_rw("bruker_sdk_path", &OpenMS::BrukerTimsFile::Config::bruker_sdk_path, "Path to Bruker SDK library (empty = discover from OPENMS_BRUKER_SDK_PATH env var)")
+        ;
+
+    nb::enum_<OpenMS::BrukerTimsFile::Config::CentroidAlgo>(brukertimsfile_config, "CentroidAlgo")
+        .value("OFF", OpenMS::BrukerTimsFile::Config::CentroidAlgo::OFF)
+        .value("GREEDY2D", OpenMS::BrukerTimsFile::Config::CentroidAlgo::GREEDY2D)
+        .value("HILL_BASED", OpenMS::BrukerTimsFile::Config::CentroidAlgo::HILL_BASED)
         ;
 
     nb::enum_<OpenMS::BrukerTimsFile::Config::ExportMode>(brukertimsfile_config, "ExportMode")
