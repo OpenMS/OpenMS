@@ -139,11 +139,12 @@ public:
     std::string aggregation;
     bool operator==(const ScoreDefinition&) const = default;
   };
+  /// One file that identifications come from (e.g. an mzML file, or the FASTA of a digest catalog).
+  /// An empty @p path stands for a file that is not known.
   struct OPENMS_DLLAPI SourceFile : MetaInfoInterface
   {
     std::string identifier;
     std::string path;
-    std::vector<std::string> primary_files;
     bool operator==(const SourceFile&) const = default;
   };
   struct OPENMS_DLLAPI ParentEvidence
@@ -225,6 +226,8 @@ public:
     std::vector<Match> matches_;
     std::optional<MatchId> selected_;
   };
+  /// One file of a run and the identifications made from it. The sources of a run, in order, are
+  /// its file list: a file may appear more than once, and a file without identifications keeps its source.
   struct OPENMS_DLLAPI SourceBlock
   {
     SourceId id;
@@ -265,6 +268,8 @@ public:
     { return kind_; }
     const ProteinIdentification& getProcessingMetadata() const
     { return *processing_; }
+    /// Search settings and processing history of the run. The files of a run are its sources, so
+    /// @p metadata must not list them ('spectra_data'); the raw files behind them ('spectra_data_raw') may stay.
     void setProcessingMetadata(const ProteinIdentification& metadata);
     const std::optional<std::vector<ParentRecord>>& getParents() const
     { return parents_; }
@@ -273,6 +278,7 @@ public:
     { return sources_; }
     const std::vector<ScoreDefinition>& getScoreDefinitions() const
     { return scores_; }
+    /// Append a file to the run's file list. Sources are never removed, so their order stays stable.
     SourceId addSource(const SourceFile& source);
     SourceId getSourceId(UInt32 index) const;
     ScoreId addScore(const ScoreDefinition& definition);

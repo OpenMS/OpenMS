@@ -92,5 +92,29 @@ public:
                                                       ConsensusMap& map,
                                                       const ExportOptions& options,
                                                       MissingLinkPolicy policy);
+
+  /**
+    @name Legacy file lists
+
+    A legacy protein run lists its files in 'spectra_data', and its peptide identifications point into
+    that list with the meta value 'id_merge_index'. Natively, the sources of a run are that list, so the
+    position of a source is the legacy index and identifications need no index of their own. A source
+    without a path stands for a file that is not known.
+  */
+  //@{
+  /// Add one source per legacy file to @p run, in order, including files without identifications and repeated files.
+  static void addLegacySources(IdentificationData::Run& run, const StringList& files);
+  /**
+    @brief The source of a legacy peptide identification in a run set up by addLegacySources() for @p n_files files
+
+    This is the source at its 'id_merge_index', or the only file of a single-file run. Otherwise its file
+    is not known, and the result is the first source without a path, which is added if there is none.
+
+    @throw Exception::InvalidParameter if 'id_merge_index' is not an index into the @p n_files files
+  */
+  static IdentificationData::SourceId legacySource(IdentificationData::Run& run, Size n_files, const PeptideIdentification& item);
+  /// The legacy file list of @p run: the paths of its sources that name a file, in order.
+  static StringList legacyFiles(const IdentificationData::Run& run);
+  //@}
 };
 } // namespace OpenMS

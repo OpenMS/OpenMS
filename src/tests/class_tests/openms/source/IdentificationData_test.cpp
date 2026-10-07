@@ -347,6 +347,12 @@ START_SECTION((processing metadata remains owned through copy move and replaceme
   TEST_TRUE(again == run)
   again.setProcessingMetadata(again.getProcessingMetadata());
   TEST_TRUE(again == run)
+  // The files of a run are its sources; only the raw files behind them may be listed here.
+  metadata.setPrimaryMSRunPath({"raw.raw"}, true);
+  again.setProcessingMetadata(metadata);
+  metadata.setPrimaryMSRunPath({"sample.mzML"});
+  TEST_EXCEPTION(Exception::InvalidValue, again.setProcessingMetadata(metadata))
+  TEST_EQUAL(again.getProcessingMetadata().metaValueExists("spectra_data_raw"), true)
   // Runs are edited in place; a copy can never be written back over a run.
   static_assert(! std::is_copy_assignable_v<ID::Run> && ! std::is_move_assignable_v<ID::Run>);
 }

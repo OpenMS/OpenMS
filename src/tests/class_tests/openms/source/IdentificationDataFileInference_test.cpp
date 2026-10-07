@@ -70,6 +70,14 @@ ProteinIdentification processing()
   return result;
 }
 
+/// The same values as processing() for a run, whose files are its sources rather than 'spectra_data'.
+ProteinIdentification runProcessing()
+{
+  auto result = processing();
+  result.removeMetaValue("spectra_data");
+  return result;
+}
+
 ResidueModification modification()
 {
   ResidueModification mod;
@@ -280,7 +288,7 @@ START_SECTION((typed pooled inference preserves complete protein values, group a
 {
   ID data;
   auto& run = data.addRun("run with processing");
-  run.setProcessingMetadata(processing());
+  run.setProcessingMetadata(runProcessing());
   ID::ParentRecord parent;
   parent.identity = {"db", "parent A"};
   parent.target_decoy = ID::TargetDecoy::BOTH;
@@ -391,7 +399,7 @@ END_SECTION
 START_SECTION((invalid configuration integers fail transactionally and detached aliases are explicit errors))
 {
   ID data;
-  data.addRun("run").setProcessingMetadata(processing());
+  data.addRun("run").setProcessingMetadata(runProcessing());
   std::string path;
   NEW_TMP_FILE(path)
   RemoveDirectory cleanup {path};

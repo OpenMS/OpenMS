@@ -976,7 +976,6 @@ protected:
 
     IdentificationData::SourceFile input;
     input.path = test_mode_ ? File::basename(in_mzml) : in_mzml;
-    spectra.getPrimaryMSRunPath(input.primary_files);
     result_run.addSource(input);
     IdentificationData::ScoreDefinition hyperscore;
     hyperscore.name = "hyperscore";
@@ -990,9 +989,10 @@ protected:
     DateTime processing_time = DateTime::now();
     if (test_mode_) processing_time.set("1999-12-31 23:59:59");
     processing.setDateTime(processing_time);
-    // the mzML input and the raw files behind it ("spectra_data"/"spectra_data_raw" in idXML)
-    processing.setPrimaryMSRunPath({input.path});
-    if (! input.primary_files.empty()) processing.setPrimaryMSRunPath(input.primary_files, true);
+    // the raw files behind the mzML input ("spectra_data_raw" in idXML); the mzML itself is the source of the run
+    StringList raw_files;
+    spectra.getPrimaryMSRunPath(raw_files);
+    if (! raw_files.empty()) processing.setPrimaryMSRunPath(raw_files, true);
     auto& parameters = processing.getSearchParameters();
     parameters.charges = ListUtils::concatenate(search_param.charges, ",");
     parameters.mass_type = use_avg_mass ? ProteinIdentification::PeakMassType::AVERAGE : ProteinIdentification::PeakMassType::MONOISOTOPIC;
@@ -1043,6 +1043,8 @@ protected:
         auto& catalog_run = catalog.addRun("digestion", IdentificationData::MoleculeKind::OLIGONUCLEOTIDE);
         auto catalog_processing = processing;
         catalog_processing.setMetaValue("identification:catalog", "true");
+        // the catalog comes from the database, not from the spectra
+        catalog_processing.removeMetaValue("spectra_data_raw");
         catalog_run.setProcessingMetadata(catalog_processing);
         catalog_run.setParents(result_run.getParents());
         IdentificationData::SourceFile database_source;

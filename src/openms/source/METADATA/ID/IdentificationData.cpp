@@ -247,6 +247,8 @@ void ID::Run::checkScore_(ScoreId score) const
 void ID::Run::setProcessingMetadata(const ProteinIdentification& metadata)
 {
   checkMutation_();
+  if (metadata.metaValueExists("spectra_data"))
+    invalid("The files of a run are its sources; its processing metadata must not list them as 'spectra_data'");
   auto replacement = std::make_unique<ProteinIdentification>(metadata);
   processing_.swap(replacement);
 }

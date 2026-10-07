@@ -79,18 +79,12 @@ namespace
         configuration.getHits().clear();
         configuration.getProteinGroups().clear();
         configuration.getIndistinguishableProteins().clear();
+        // The files of the legacy run become the sources of the run.
+        StringList files;
+        configuration.getPrimaryMSRunPath(files);
+        configuration.removeMetaValue("spectra_data");
         run.setProcessingMetadata(configuration);
-        std::vector<std::string> paths;
-        metadata.getPrimaryMSRunPath(paths);
-        ID::SourceFile source;
-        source.primary_files = paths;
-        if (paths.empty()) run.addSource(source);
-        else
-          for (const auto& path : paths)
-          {
-            source.path = path;
-            run.addSource(source);
-          }
+        Adapter::addLegacySources(run, files);
         std::vector<ID::ParentRecord> parents;
         for (const auto& hit : metadata.getHits())
         {
@@ -122,17 +116,13 @@ namespace
         invalid("Inconsistent idXML PSM score contract");
       ID::Observation observation;
       static_cast<MetaInfoInterface&>(observation) = item;
+      // The source is the file, so the index into the legacy file list is not kept.
+      observation.removeMetaValue("id_merge_index");
       observation.data_id = item.getSpectrumReference();
       if (item.hasRT()) observation.rt = item.getRT();
       if (item.hasMZ()) observation.mz = item.getMZ();
-      Size source_index = 0;
-      if (item.metaValueExists("id_merge_index"))
-      {
-        const auto value = static_cast<Int64>(item.getMetaValue("id_merge_index"));
-        if (value < 0 || static_cast<UInt64>(value) >= run.getSourceBlocks().size()) invalid("Invalid id_merge_index");
-        source_index = static_cast<Size>(value);
-      }
-      const auto query = run.addIdentification(run.getSourceId(source_index), observation);
+      const auto source = Adapter::legacySource(run, original->second->nrPrimaryMSRunPaths(), item);
+      const auto query = run.addIdentification(source, observation);
       imported_queries.push_back({run.getUuid(), query});
       for (const auto& hit : item.getHits())
       {
@@ -442,10 +432,8 @@ void IdentificationDataConverter::exportIDs(const ID& data,
         processing.getProteinGroups() = inference.proteins.getProteinGroups();
         processing.getIndistinguishableProteins() = inference.proteins.getIndistinguishableProteins();
       }
-    std::vector<std::string> paths;
-    for (const auto& source : run.getSourceBlocks())
-      paths.push_back(source.source.path);
-    processing.setPrimaryMSRunPath(paths);
+    const auto files = Adapter::legacyFiles(run);
+    if (! files.empty()) processing.setPrimaryMSRunPath(files);
     if (run.getPrimaryScore())
     {
       // Record a producer other than the search engine so the score definition survives the round trip.
@@ -455,14 +443,19 @@ void IdentificationDataConverter::exportIDs(const ID& data,
         processing.setScoreSoftware(definition.name, definition.software, definition.software_version);
     }
     added_proteins.push_back(std::move(processing));
+    // A source with a path is the next file of the legacy file list (see IdentificationDataAdapter::legacyFiles).
+    Size file_index = 0;
     for (const auto& source : run.getSourceBlocks())
+    {
+      const bool known = ! source.source.path.empty();
       for (const auto& query : source.identifications)
       {
         PeptideIdentification item;
         static_cast<MetaInfoInterface&>(item) = query;
         item.setIdentifier(run.getIdentifier());
         item.setSpectrumReference(query.data_id);
-        if (run.getSourceBlocks().size() > 1) item.setMetaValue("id_merge_index", static_cast<Int64>(&source - run.getSourceBlocks().data()));
+        item.removeMetaValue("id_merge_index");
+        if (known && files.size() > 1) item.setMetaValue("id_merge_index", static_cast<Int64>(file_index));
         if (query.rt) item.setRT(*query.rt);
         if (query.mz) item.setMZ(*query.mz);
         if (run.getPrimaryScore())
@@ -520,6 +513,8 @@ void IdentificationDataConverter::exportIDs(const ID& data,
         }
         if (! item.getHits().empty() || query.getMatches().empty()) added_peptides.push_back(std::move(item));
       }
+      if (known) ++file_index;
+    }
   }
   proteins.insert(proteins.end(), added_proteins.begin(), added_proteins.end());
   peptides.insert(peptides.end(), added_peptides.begin(), added_peptides.end());
@@ -580,6 +575,7 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
   MzTabOligonucleotideSectionRows oligos;
   MzTabOSMSectionRows matches;
   Size file = 0, software = 0;
+  std::map<std::string, Size> ms_run_of_file; // a file listed more than once keeps one ms_run
   std::set<std::tuple<std::string, ID::QualifiedAccession, std::optional<UInt64>, std::optional<UInt64>>> seen;
   for (const auto& run : data.getRuns())
   {
@@ -615,9 +611,16 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
       }
     for (const auto& source : run.getSourceBlocks())
     {
-      MzTabMSRunMetaData input;
-      input.location.set(source.source.path);
-      metadata.ms_run[++file] = input;
+      const auto& path = source.source.path;
+      auto ms_run = path.empty() ? ms_run_of_file.end() : ms_run_of_file.find(path);
+      if (ms_run == ms_run_of_file.end())
+      {
+        MzTabMSRunMetaData input;
+        input.location.set(path);
+        metadata.ms_run[++file] = input;
+        if (! path.empty()) ms_run = ms_run_of_file.emplace(path, file).first;
+      }
+      const Size ms_run_index = ms_run == ms_run_of_file.end() ? file : ms_run->second;
       for (const auto& query : source.identifications)
         for (const auto& match : query.getMatches())
         {
@@ -635,7 +638,7 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
           else if (match.charge)
             row.calc_mass_to_charge.set(NASequence::fromString(match.representation).getMonoWeight(NASequence::Full, match.charge)
                                         / std::abs(match.charge));
-          row.spectra_ref.setMSFile(file);
+          row.spectra_ref.setMSFile(ms_run_index);
           row.spectra_ref.setSpecRef(query.data_id);
           for (Size i = 0; i < match.getScoreValues().size(); ++i)
             if (! std::isnan(match.getScoreValues()[i])) row.search_engine_score[i + 1].set(match.getScoreValues()[i]);

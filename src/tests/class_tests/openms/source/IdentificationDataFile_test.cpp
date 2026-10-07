@@ -46,7 +46,6 @@ struct Fixture
     ID::SourceFile source;
     source.identifier = "raw-source";
     source.path = "/exact path/ä/sample.raw";
-    source.primary_files = {"first.raw", "second.raw", "first.raw"};
     source.setMetaValue("run", IntList {1, 2});
     auto source_id = run.addSource(source);
     ID::Observation observation;
@@ -460,7 +459,8 @@ START_SECTION((static void store(const std::string&, const IdentificationData&, 
   TEST_EQUAL(run.getIdentification(fixture.empty).getMatches().size(), 0)
   TEST_EQUAL(run.getIdentification(fixture.query).getSelectedMatch()->value, fixture.selected.value)
   TEST_EQUAL(run.getSourceBlocks()[0].source.path, "/exact path/ä/sample.raw")
-  TEST_EQUAL(run.getSourceBlocks()[0].source.primary_files.size(), 3)
+  TEST_EQUAL(run.getSourceBlocks()[0].source.identifier, "raw-source")
+  TEST_EQUAL(run.getSourceBlocks()[0].source.getMetaValue("run").toIntList().size(), 2)
   TEST_TRUE(run.getScoreDefinitions() == fixture.data.getRun("search-one").getScoreDefinitions())
   const auto& match = run.getMatch(fixture.first);
   TEST_EQUAL(match.representation, fixture.data.getRun("search-one").getMatch(fixture.first).representation)

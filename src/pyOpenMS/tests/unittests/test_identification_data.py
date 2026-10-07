@@ -23,7 +23,6 @@ def make_run(name="search"):
     score = run.addScore(definition)
     source = ID.SourceFile()
     source.path = "/measurements/sample.mzML"
-    source.primary_files = [source.path]
     source_id = run.addSource(source)
     observation = ID.Observation()
     observation.data_id = "scan=1"

@@ -449,7 +449,6 @@ inline void bind(nb::module_& m)
   auto sourcefile = valueClass<ID::SourceFile, OpenMS::MetaInfoInterface>(data, "SourceFile");
   field(sourcefile, "identifier", &ID::SourceFile::identifier);
   field(sourcefile, "path", &ID::SourceFile::path);
-  field(sourcefile, "primary_files", &ID::SourceFile::primary_files);
   auto parentevidence = valueClass<ID::ParentEvidence>(data, "ParentEvidence");
   field(parentevidence, "parent", &ID::ParentEvidence::parent);
   field(parentevidence, "start", &ID::ParentEvidence::start);

@@ -25,7 +25,6 @@ void addRun(ID& data, const std::string& name, const std::string& database, bool
   processing.setIdentifier(name);
   processing.setSearchEngine("engine");
   processing.getSearchParameters().db = database;
-  if (! file.empty()) processing.setPrimaryMSRunPath({file});
   run.setProcessingMetadata(processing);
   ID::ScoreDefinition definition;
   definition.name = pep ? "PEP" : "Posterior Probability";

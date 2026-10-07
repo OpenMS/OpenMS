@@ -497,15 +497,13 @@ namespace
   }
   Json sourceJson(const ID::SourceFile& source)
   {
-    return {
-      {"identifier", source.identifier}, {"path", source.path}, {"primary_files", source.primary_files}, {"metadata", IO::metadataJson(source)}};
+    return {{"identifier", source.identifier}, {"path", source.path}, {"metadata", IO::metadataJson(source)}};
   }
   ID::SourceFile readSourceJson(const Json& j)
   {
     ID::SourceFile source;
     source.identifier = j.at("identifier").get<std::string>();
     source.path = j.at("path").get<std::string>();
-    source.primary_files = j.at("primary_files").get<std::vector<std::string>>();
     IO::readMetadataJson(j.at("metadata"), source);
     return source;
   }

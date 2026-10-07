@@ -262,14 +262,15 @@ namespace OpenMS
     if (! paths.empty()) input_file_name = paths.front();
     else
       for (const auto& run : id_data.getRuns())
-        if (! run.getSourceBlocks().empty())
-        {
-          input_file_name = run.getSourceBlocks().front().source.path;
-          break;
-        }
-    input_file_name = std::regex_replace(input_file_name, reg_backslash, "/");
-    if (! StringUtils::hasPrefix(input_file_name, "file://")) input_file_name = "file://" + input_file_name;
-    meta_ms_run.location.set(input_file_name);
+        for (const auto& source : run.getSourceBlocks())
+          if (input_file_name.empty()) input_file_name = source.source.path;
+    // Without a known file, the location stays unset.
+    if (! input_file_name.empty())
+    {
+      input_file_name = std::regex_replace(input_file_name, reg_backslash, "/");
+      if (! StringUtils::hasPrefix(input_file_name, "file://")) input_file_name = "file://" + input_file_name;
+      meta_ms_run.location.set(input_file_name);
+    }
 
     // ms_run[1-n]-instrument_ref (not mandatory)
     // ms_run[1-n]-format (not mandatory)

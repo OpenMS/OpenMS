@@ -20,15 +20,6 @@
         "significance_threshold_bits": 0,
         "metadata": [
           {
-            "name": "spectra_data",
-            "type": 3,
-            "unit_type": 2,
-            "unit": -1,
-            "value": [
-              "file://I:\\OpenSWATH_Metabolomics_data\\20181121_full_data\\04_PestMixes_individually_Solvent_DDA_20-50/2012_02_03_PStd_10_1-50.wiff"
-            ]
-          },
-          {
             "name": "legacy:processing:140397785012080:software",
             "type": 0,
             "unit_type": 2,
@@ -264,7 +255,6 @@
         {
           "identifier": "",
           "path": "file://I:\\OpenSWATH_Metabolomics_data\\20181121_full_data\\04_PestMixes_individually_Solvent_DDA_20-50/2012_02_03_PStd_10_1-50.wiff",
-          "primary_files": [],
           "metadata": []
         }
       ],

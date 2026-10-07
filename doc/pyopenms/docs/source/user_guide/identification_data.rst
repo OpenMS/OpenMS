@@ -229,9 +229,12 @@ Owning identification datasets (experimental)
 *********************************************
 
 ``IdentificationData`` groups owned candidates into analysis runs with one shared
-score contract. An analysis run can refer to several physical MS files. Peptides,
-oligonucleotides and compounds have a string representation and explicit encoding.
-The existing peptide/protein classes above remain available for legacy workflows.
+score contract. The sources of a run are its files, in order (``run.addSource()``), and each
+identification belongs to the source of its file, so the legacy ``spectra_data`` list and
+``id_merge_index`` meta value have no counterpart: the legacy conversion derives them from the
+sources. A source without a path stands for an unknown file. Peptides, oligonucleotides and
+compounds have a string representation and explicit encoding. The existing peptide/protein
+classes above remain available for legacy workflows.
 
 Records are plain values whose constructors take the field names as keywords::
 

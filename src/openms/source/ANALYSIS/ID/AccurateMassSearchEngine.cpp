@@ -544,13 +544,12 @@ namespace OpenMS
     auto& id = fmap.getIdentificationData();
     StringList ms_run_paths;
     fmap.getPrimaryMSRunPath(ms_run_paths);
-    if (ms_run_paths.empty()) ms_run_paths.push_back("UNKNOWN");
-    if (fmap.getIdentifier().empty()) fmap.setIdentifier(File::basename(ms_run_paths.front()));
+    if (fmap.getIdentifier().empty()) fmap.setIdentifier(ms_run_paths.empty() ? "UNKNOWN" : File::basename(ms_run_paths.front()));
     std::string ion_mode_internal = ion_mode_ == "auto" ? resolveAutoMode_(fmap) : ion_mode_;
     IdentificationData::Run candidate_run("AccurateMassSearch", IdentificationData::MoleculeKind::COMPOUND);
+    // Features do not record which of several files they come from, so only a single file is named.
     IdentificationData::SourceFile input;
-    input.path = ms_run_paths.front();
-    input.primary_files = ms_run_paths;
+    if (ms_run_paths.size() == 1) input.path = ms_run_paths.front();
     candidate_run.addSource(input);
     IdentificationData::ScoreDefinition ppm;
     ppm.name = "MassErrorPPMScore";
