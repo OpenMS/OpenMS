@@ -62,10 +62,12 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <vector>
 #include <map>
 #include <regex>
 #include <random>
+#include <tuple>
 
 // multithreading
 #ifdef _OPENMP
@@ -766,7 +768,7 @@ protected:
 
     Size n_zero_charge = 0, n_inferred_charge = 0;
 
-#pragma omp parallel for
+#pragma omp parallel for reduction(+: n_zero_charge, n_inferred_charge)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size();
          ++exp_index)
     {
@@ -983,6 +985,32 @@ protected:
       IdentificationData::ObservationRef obs_ref;
 #pragma omp critical (id_data_access)
       obs_ref = id_data.registerObservation(obs);
+
+      // Scoring runs in parallel, so insertion order of tied hits is unstable.
+      // Sort by value before merging ambiguous modifications or registering hits.
+      auto& hits = annotated_hits[scan_index];
+      vector<pair<double, AnnotatedHit>> ordered_hits(hits.begin(), hits.end());
+      auto hit_key = [](const AnnotatedHit& hit)
+      {
+        const auto& precursor = *hit.precursor_ref;
+        const String adduct = precursor.adduct ? (*precursor.adduct)->getName() : String();
+        return make_tuple(hit.sequence.toString(), hit.oligo_ref->sequence.toString(),
+                          precursor.charge, precursor.isotope, adduct,
+                          precursor.adduct ? (*precursor.adduct)->getEmpiricalFormula().toString() : String(),
+                          precursor.adduct ? (*precursor.adduct)->getCharge() : 0,
+                          precursor.adduct ? (*precursor.adduct)->getMolMultiplier() : UInt(0),
+                          hit.precursor_error_ppm);
+      };
+      sort(ordered_hits.begin(), ordered_hits.end(), [&](const auto& lhs, const auto& rhs)
+      {
+        if (lhs.first != rhs.first)
+        {
+          return lhs.first > rhs.first;
+        }
+        return hit_key(lhs.second) < hit_key(rhs.second);
+      });
+      hits.clear();
+      hits.insert(ordered_hits.begin(), ordered_hits.end());
 
       if (resolve_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
       {
@@ -1870,37 +1898,26 @@ protected:
 #pragma omp critical (annotated_hits_access)
             {
               HitsByScore& scan_hits = annotated_hits[scan_index];
-              HitsByScore::iterator pos = scan_hits.end();
-              if ((report_top_hits == 0) ||
-                  (scan_hits.size() < report_top_hits))
+              AnnotatedHit new_hit;
+              new_hit.oligo_ref = oligo_ref;
+              new_hit.sequence = candidate;
+              new_hit.precursor_error_ppm =
+                (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
+              new_hit.annotations = annotations;
+              new_hit.precursor_ref = &(prec_it->second);
+
+              // Keep the complete tied score group at the cutoff. Keeping just
+              // the first arriving tie makes the result depend on thread scheduling.
+              if ((report_top_hits == 0) || (scan_hits.size() < report_top_hits) ||
+                  (score >= scan_hits.rbegin()->first))
               {
-                pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
-              }
-              else // already have enough hits for this spectrum - replace one?
-              {
-                double worst_score = (--scan_hits.end())->first;
-                if (score >= worst_score)
+                scan_hits.emplace(score, std::move(new_hit));
+                if (report_top_hits > 0)
                 {
-                  pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
-                  // prune list of hits if possible (careful about tied scores):
-                  Size n_worst = scan_hits.count(worst_score);
-                  if (scan_hits.size() - n_worst >= report_top_hits)
-                  {
-                    scan_hits.erase(worst_score);
-                  }
+                  auto cutoff = scan_hits.begin();
+                  std::advance(cutoff, std::min<Size>(report_top_hits, scan_hits.size()) - 1);
+                  scan_hits.erase(scan_hits.upper_bound(cutoff->first), scan_hits.end());
                 }
-              }
-              // add oligo hit data only if necessary (good enough score):
-              if (pos != scan_hits.end())
-              {
-                AnnotatedHit& ah = pos->second;
-                ah.oligo_ref = oligo_ref;
-                ah.sequence = candidate;
-                // @TODO: is "observed - calculated" the right way around?
-                ah.precursor_error_ppm =
-                  (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
-                ah.annotations = annotations;
-                ah.precursor_ref = &(prec_it->second);
               }
             }
           }

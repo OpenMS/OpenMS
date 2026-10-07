@@ -10,6 +10,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <numeric>
+#include <tuple>
 
 using namespace std;
 
@@ -623,6 +624,19 @@ namespace OpenMS
   IdentificationData::getBestMatchPerObservation(ScoreTypeRef score_ref,
                                                  bool require_score) const
   {
+    // Reference ordering uses memory addresses. Equal scores must instead be
+    // resolved by stable molecule/adduct values, without preferring target status.
+    auto tie_key = [](const ObservationMatch& match)
+    {
+      const auto& molecule = match.identified_molecule_var;
+      const auto& adduct = match.adduct_opt;
+      return std::make_tuple(molecule.getMoleculeType(), molecule.toString(), match.charge,
+                             bool(adduct),
+                             adduct ? (*adduct)->getName() : String(),
+                             adduct ? (*adduct)->getEmpiricalFormula().toString() : String(),
+                             adduct ? (*adduct)->getCharge() : 0,
+                             adduct ? (*adduct)->getMolMultiplier() : UInt(0));
+    };
     vector<ObservationMatchRef> results;
     pair<double, bool> best_score = make_pair(0.0, false);
     ObservationMatchRef best_ref = observation_matches_.end();
@@ -634,7 +648,9 @@ namespace OpenMS
       pair<double, bool> current_score = ref->getScore(score_ref);
       if (current_score.second && (!best_score.second ||
                                    score_ref->isBetterScore(current_score.first,
-                                                           best_score.first)))
+                                                           best_score.first) ||
+                                   ((current_score.first == best_score.first) &&
+                                    (tie_key(*ref) < tie_key(*best_ref)))))
       {
         // new best score for the current observation:
         best_score = current_score;
