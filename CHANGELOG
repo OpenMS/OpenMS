@@ -20,6 +20,9 @@ OpenMS Library:
   - Added IDFreeMassErrorEstimator, a streaming identification-free precursor/fragment mass-precision
     estimator with charge-less DIA fragment support, background-aware high-resolution fragment
     precision, and an adaptive high-intensity fallback for low-signal DIA data; exposed through pyOpenMS. (#10433)
+  - FIX: PercolatorInfile keeps the observed precursor m/z in ExpMass and mass for all
+    PSMs of a spectrum. Isotope correction applies only to the mass-error features,
+    so candidates with different isotope errors compete in the same Percolator spectrum group.
   - IdXMLFile formats peptide identifications in parallel, writes blocks in input order,
     caches metadata names per worker, and sorts hit indices instead of copying hits.
     The writer uses at most 16 threads and preserves the existing output and hit order.
