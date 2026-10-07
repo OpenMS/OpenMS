@@ -668,7 +668,7 @@ inline void bind(nb::module_& m)
     .def(
       "revisions",
       [](const ID& self) {
-        std::map<std::string, UInt64> revisions;
+        std::map<std::string, OpenMS::UInt64> revisions;
         for (const auto& run : self.getRuns())
           revisions.emplace(run.getUuid(), run.getRevision());
         return revisions;
