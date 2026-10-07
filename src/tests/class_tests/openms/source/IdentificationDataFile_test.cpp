@@ -70,11 +70,12 @@ struct Fixture
     match.charge = 2;
     match.calculated_mz = 345.66;
     match.target_decoy = ID::TargetDecoy::BOTH;
-    match.name = "candidate";
-    match.formula = "C2H4";
-    match.identifiers = {{"db", "molecule"}, {"other", "molecule"}};
-    match.adduct.emplace("original adduct name", EmpiricalFormula("H2"), 2, 1);
-    match.sequence_evidence = {{db, "P1", std::nullopt, 7, "-", "K"}, {other_db, "P1", 2, std::nullopt, "R", "-"}};
+    auto& details = match.details.emplace();
+    details.name = "candidate";
+    details.formula = "C2H4";
+    details.identifiers = {{"db", "molecule"}, {"other", "molecule"}};
+    details.adduct.emplace("original adduct name", EmpiricalFormula("H2"), 2, 1);
+    match.sequence_evidence = {{db, "P1", std::nullopt, 7, '-', 'K'}, {other_db, "P1", 2, std::nullopt, 'R', 0}};
     PeptideHit::PeakAnnotation annotation;
     annotation.annotation = "y7-H2O";
     annotation.charge = 1;
@@ -94,8 +95,8 @@ struct Fixture
     match.setMetaValue("nan", std::bit_cast<double>(UInt64 {0x7ff8000000000031}));
     first = run.addMatch(query, match, {10.0, std::nullopt});
     selected = run.addMatch(query, match, {20.0, 0.0});
-    match.adduct.reset();
-    match.formula.reset();
+    match.details->adduct.reset();
+    match.details->formula.reset();
     last = run.addMatch(query, match, {30.0, 0.01});
     run.setSelectedMatch(query, selected);
     run.setPrimaryScore(score);
@@ -170,7 +171,7 @@ START_SECTION((threaded operations preserve values and do not change the global 
     const auto& match = run.getMatch(fixture.first);
     if (run.getNumberOfMatches() != 3 || run.getIdentification(fixture.query).getSelectedMatch() != fixture.selected
         || match.representation != fixture.data.getRun("search-one").getMatch(fixture.first).representation || match.sequence_evidence.size() != 2
-        || match.peak_annotations.size() != 1 || ! match.adduct || match.getMetaValue("strings") != DataValue(StringList {"", "α", "comma,value"})
+        || match.peak_annotations.size() != 1 || ! match.details || ! match.details->adduct || match.getMetaValue("strings") != DataValue(StringList {"", "α", "comma,value"})
         || std::bit_cast<UInt64>(static_cast<double>(match.getMetaValue("nan"))) != UInt64 {0x7ff8000000000031}
         || loaded.getInferenceResults()[0].inputs.size() != 2)
       throw std::runtime_error("Threaded roundtrip changed values");
@@ -473,17 +474,21 @@ START_SECTION((static void store(const std::string&, const IdentificationData&, 
   TEST_TRUE(run.getScoreDefinitions() == fixture.data.getRun("search-one").getScoreDefinitions())
   const auto& match = run.getMatch(fixture.first);
   TEST_EQUAL(match.representation, fixture.data.getRun("search-one").getMatch(fixture.first).representation)
-  TEST_TRUE(match.adduct == fixture.data.getRun("search-one").getMatch(fixture.first).adduct)
-  TEST_FALSE(run.getMatch(fixture.last).adduct.has_value())
-  TEST_FALSE(run.getMatch(fixture.last).formula.has_value())
+  TEST_TRUE(match.details == fixture.data.getRun("search-one").getMatch(fixture.first).details)
+  TEST_TRUE(match.details->adduct.has_value())
+  TEST_FALSE(run.getMatch(fixture.last).details->adduct.has_value())
+  TEST_FALSE(run.getMatch(fixture.last).details->formula.has_value())
+  TEST_EQUAL(run.getMatch(fixture.last).details->name, "candidate")
   TEST_TRUE(match.sequence_evidence == fixture.data.getRun("search-one").getMatch(fixture.first).sequence_evidence)
   // The databases of the run, with their metadata, in their order (the evidence refers to them by index).
   TEST_TRUE(run.getDatabases() == fixture.data.getRun("search-one").getDatabases())
   TEST_EQUAL(run.getDatabases().at(0).getMetaValue("checksum"), "abc")
   TEST_EQUAL(run.qualify(match.sequence_evidence[1].database, "P1").database, "other")
   TEST_EQUAL(match.peak_annotations[0].annotation, "y7-H2O")
-  TEST_FALSE(match.getScores()[1].has_value())
-  TEST_EQUAL(*run.getMatch(fixture.selected).getScores()[1], 0.0)
+  TEST_FALSE(run.getScores(match)[1].has_value())
+  TEST_EQUAL(*run.getScores(fixture.selected)[1], 0.0)
+  // A flank that is not known is stored as an empty string and read back as 0.
+  TEST_EQUAL(match.sequence_evidence[1].after, 0)
   TEST_TRUE(match.metaValueExists("empty"))
   TEST_EQUAL(match.getMetaValue("empty").valueType(), DataValue::EMPTY_VALUE)
   TEST_EQUAL(match.getMetaValue("empty-list").valueType(), DataValue::STRING_LIST)

@@ -40,7 +40,7 @@ ID fixture(ID::MoleculeKind kind = ID::MoleculeKind::PEPTIDE)
   match.encoding = kind == ID::MoleculeKind::OLIGONUCLEOTIDE ? ID::Encoding::NA_SEQUENCE : ID::Encoding::AA_SEQUENCE;
   match.charge = 2;
   match.target_decoy = ID::TargetDecoy::TARGET;
-  match.sequence_evidence.push_back({database_id, "parent", 3, 8, "K", "R"});
+  match.sequence_evidence.push_back({database_id, "parent", 3, 8, 'K', 'R'});
   match.setMetaValue("numbers", IntList {1, 2, 3});
   run.addMatch(query, match, {99.0});
   ID::DatabaseSequence parent;
@@ -154,12 +154,12 @@ START_SECTION(([EXTRA] RNA mzTab calculated m/z includes the assigned adduct))
   ID::MatchData sodium = match.getData();
   sodium.charge = -2;
   // the adduct of the ion, as NucleicAcidSearchEngine stores "Na:+" for charge -2: [M+Na-3H]2-
-  sodium.adduct = AdductInfo("Na:+", EmpiricalFormula("Na") + EmpiricalFormula("H") * -3, -2);
-  run.replaceMatch(match.getId(), sodium, match.getScores());
+  sodium.details.emplace().adduct = AdductInfo("Na:+", EmpiricalFormula("Na") + EmpiricalFormula("H") * -3, -2);
+  run.replaceMatch(match.getId(), sodium, run.getScores(match));
   const auto rows = IdentificationDataConverter::exportMzTab(data).getOSMSectionRows();
   TEST_EQUAL(rows.size(), 1);
   TEST_REAL_SIMILAR(rows[0].calc_mass_to_charge.get(),
-                    (NASequence::fromString("ACUGp").getMonoWeight(NASequence::Full, -2) + sodium.adduct->getMassShift()) / 2);
+                    (NASequence::fromString("ACUGp").getMonoWeight(NASequence::Full, -2) + sodium.details->adduct->getMassShift()) / 2);
   // sodium in place of a proton
   TEST_REAL_SIMILAR(rows[0].calc_mass_to_charge.get(), (NASequence::fromString("ACUGp").getMonoWeight(NASequence::Full, -2)
                                                         + EmpiricalFormula("Na").getMonoWeight() - EmpiricalFormula("H").getMonoWeight()) / 2);

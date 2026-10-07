@@ -254,7 +254,7 @@ def test_values_have_readable_reprs():
     query = view.addIdentification(view.addSource(ID.SourceFile()), observation)
     match = view.addMatch(query, ID.MatchData(representation="PEPTIDE"))
     assert repr(view) == f"RunView('search', uuid='{view.getUuid()}', kind=MoleculeKind.PEPTIDE, queries=1, matches=1)"
-    assert repr(view.getMatch(match)).startswith("Match(id=1, scores=[], data=IdentificationData.MatchData(representation='PEPTIDE'")
+    assert repr(view.getMatch(match)).startswith("Match(id=1, data=IdentificationData.MatchData(representation='PEPTIDE'")
     assert repr(view.getIdentification(query)).startswith("Identification(id=1, matches=1, selected=None, observation=")
     assert repr(data) == "IdentificationData(runs=['search'], inference_results=0)"
     uuid = view.getUuid()
@@ -316,7 +316,9 @@ def test_callbacks_retain_safe_values_and_rollback_on_exceptions():
     del run
     gc.collect()
     assert retained[0].representation == "PEPTIDE"
-    assert retained[-1].getScores() == [0.1]
+    # Scores are stored in the run's columns, not in the match copies.
+    assert retained[-1].representation == "EDITPEP"
+    assert not hasattr(retained[-1], "getScores")
 
 
 def test_transform_callbacks_use_owned_payloads_and_commit():

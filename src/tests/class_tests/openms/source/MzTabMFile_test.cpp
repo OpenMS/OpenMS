@@ -60,8 +60,8 @@ START_SECTION(void store(const std::string& filename, MzTabM& mztab_m))
       TEST_EQUAL(rows.front().charge.get(), 1);
       const auto& ref = *feature_map.front().getIDMatches().begin();
       const auto& match = *feature_map.getIdentificationData().findRunByUuid(ref.run_uuid)->findMatch(ref.match);
-      TEST_EQUAL(match.adduct.has_value(), true);
-      TEST_REAL_SIMILAR(rows.front().calc_mass_to_charge.get(), match.adduct->getMZ(EmpiricalFormula(*match.formula).getMonoWeight()));
+      TEST_EQUAL(match.details->adduct.has_value(), true);
+      TEST_REAL_SIMILAR(rows.front().calc_mass_to_charge.get(), match.details->adduct->getMZ(EmpiricalFormula(*match.details->formula).getMonoWeight()));
 
       std::string mztabm_tmpfile;
       NEW_TMP_FILE(mztabm_tmpfile);

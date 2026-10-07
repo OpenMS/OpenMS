@@ -450,7 +450,7 @@ START_SECTION([EXTRA] void run(FeatureMap&, MzTabM&) const - negative mode and u
       {
         ++matches;
         TEST_EQUAL(match.charge < 0, true)
-        TEST_EQUAL(match.adduct->getCharge(), match.charge)
+        TEST_EQUAL(match.details->adduct->getCharge(), match.charge)
       }
     }
   TEST_EQUAL(queries, fm.size()) // every feature is a query, matched or not

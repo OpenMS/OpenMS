@@ -560,7 +560,8 @@ namespace OpenMS
           sorted.push_back({run, match});
         }
         const auto identifier = [](const IdentificationData::Match& match) {
-          return match.identifiers.empty() ? match.representation : match.identifiers.front().accession;
+          const auto& identifiers = match.details.value_or_default().identifiers;
+          return identifiers.empty() ? match.representation : identifiers.front().accession;
         };
         std::stable_sort(sorted.begin(), sorted.end(),
                          [&](const auto& left, const auto& right) { return identifier(*left.match) < identifier(*right.match); });
@@ -573,12 +574,12 @@ namespace OpenMS
           sme.sme_identifier = MzTabString(StringUtils::toStr(evidence_section_entry_counter));
           sme.evidence_input_id = MzTabString("mass=" + StringUtils::toStr(f.getMZ()) + ",rt=" + StringUtils::toStr(f.getRT()));
           sme.database_identifier = MzTabString(identifier(match));
-          sme.chemical_formula = MzTabString(match.formula.value_or(""));
+          sme.chemical_formula = MzTabString(match.details.value_or_default().formula.value_or(""));
           sme.smiles = MzTabString(match.encoding == IdentificationData::Encoding::SMILES ? match.representation : "");
           sme.inchi = MzTabString(match.encoding == IdentificationData::Encoding::INCHI
                                     ? match.representation
                                     : (match.metaValueExists("inchi_key") ? match.getMetaValue("inchi_key").toString() : ""));
-          sme.chemical_name = MzTabString(match.name);
+          sme.chemical_name = MzTabString(match.details.value_or_default().name);
           sme.uri.setNull(true);
           sme.derivatized_form.setNull(true);
           std::string adduct = getAdductString_(match);
@@ -596,11 +597,11 @@ namespace OpenMS
           sme.identification_method = identification_method; // based on tool used for identification (CV-Term)
           sme.ms_level = ms_level;
           int score_counter = 0;
+          const auto scores = resolved.run->getScores(match);
           for (Size column : id_score_columns) // vector of references based on the ProcessingStep
           {
             ++score_counter; //starts at 1 anyway
-            const double value = match.getScoreValues()[column];
-            if (! std::isnan(value)) sme.id_confidence_measure[score_counter] = MzTabDouble(value);
+            if (scores[column]) sme.id_confidence_measure[score_counter] = MzTabDouble(*scores[column]);
           }
           sme.rank = MzTabInteger(1); // defaults to 1 if no rank system is used
 
@@ -717,9 +718,9 @@ namespace OpenMS
   std::string MzTabM::getAdductString_(const IdentificationData::Match& match)
   {
     std::string adduct_name;
-    if (match.adduct)
+    if (match.details && match.details->adduct)
     {
-      adduct_name = match.adduct->getName();
+      adduct_name = match.details->adduct->getName();
       // M+H;1+ -> [M+H]1+
       if (adduct_name.contains(';')) // wrong format -> reformat
       {

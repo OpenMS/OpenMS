@@ -171,7 +171,7 @@ START_SECTION(([EXTRA] imported digests use only their recorded enzyme for modif
     oligo.encoding = IdentificationData::Encoding::NA_SEQUENCE;
     oligo.representation = oligo_sequence;
     oligo.target_decoy = IdentificationData::TargetDecoy::TARGET;
-    oligo.sequence_evidence.push_back({database_id, "TARGET", 0, NASequence::fromString(oligo_sequence).size() - 1, "[", "]"});
+    oligo.sequence_evidence.push_back({database_id, "TARGET", 0, static_cast<UInt32>(NASequence::fromString(oligo_sequence).size() - 1), '[', ']'});
     run.addMatch(query, oligo);
     FileHandler().storeIdentifications(digest, data, {FileTypes::IDPARQUET});
 

@@ -49,7 +49,7 @@ START_SECTION((consuming imports preserve ownership and dense validation rejects
   observation.setMetaValue("observation", "kept");
   auto q = run.importIdentification(source, ID::QueryId {7}, std::move(observation));
   auto payload = peptide(std::string(100, 'A'));
-  payload.sequence_evidence.push_back({database_id, "protein", 1, 100, "K", "R"});
+  payload.sequence_evidence.push_back({database_id, "protein", 1, 100, 'K', 'R'});
   payload.setMetaValue("list", StringList {"alpha", "beta"});
   auto copied = run.importMatch(q, ID::MatchId {8}, payload, {2.0});
   auto moved = run.importMatch(q, ID::MatchId {9}, std::move(payload), {3.0});
@@ -59,16 +59,11 @@ START_SECTION((consuming imports preserve ownership and dense validation rejects
   TEST_EQUAL(run.getMatch(moved).sequence_evidence[0].accession, "protein")
   TEST_EQUAL(run.getMatch(moved).getMetaValue("list"), run.getMatch(copied).getMetaValue("list"))
   run.validate(); // missing supplementary values remain valid
-  auto& values = const_cast<std::vector<double>&>(run.getMatch(moved).getScoreValues());
-  values[1] = std::numeric_limits<double>::infinity();
-  TEST_EXCEPTION(Exception::InvalidValue, run.validate())
-  values[1] = std::numeric_limits<double>::quiet_NaN();
-  values[0] = std::numeric_limits<double>::quiet_NaN();
-  TEST_EXCEPTION(Exception::InvalidValue, run.validate())
-  values[0] = 3.0;
-  values.pop_back();
-  TEST_EXCEPTION(Exception::InvalidValue, run.validate())
-  values.push_back(std::numeric_limits<double>::quiet_NaN());
+  // Scores live in the run's columns; edits are checked, so the columns cannot become invalid.
+  TEST_EXCEPTION(Exception::InvalidValue, run.setScore(moved, run.getScoreId(1), std::numeric_limits<double>::infinity()))
+  TEST_EXCEPTION(Exception::InvalidValue, run.setScore(moved, run.getScoreId(0), std::nullopt))
+  TEST_REAL_SIMILAR(*run.getScores(moved)[0], 3.0)
+  TEST_FALSE(run.getScores(moved)[1].has_value())
   run.validate();
   TEST_EXCEPTION(Exception::InvalidValue, run.importMatch(q, moved, peptide(), {4.0}))
   TEST_EQUAL(run.getNumberOfMatches(), 2)
@@ -306,27 +301,27 @@ START_SECTION((transform validation preserves original payloads and optional add
   data.representation = "CCO";
   data.encoding = ID::Encoding::SMILES;
   data.charge = 1;
-  data.adduct = AdductInfo::parseAdductString("M+H;1+");
+  data.details.emplace().adduct = AdductInfo::parseAdductString("M+H;1+");
   auto first = run.addMatch(query, data);
   auto second = run.addMatch(query, data);
-  data.adduct.reset();
-  TEST_TRUE(run.getMatch(first).adduct.has_value())
+  data.details.reset();
+  TEST_TRUE(run.getMatch(first).details.value_or_default().adduct.has_value())
   Size calls = 0;
   TEST_EXCEPTION(Exception::InvalidValue, run.transformMatches([&](ID::MatchData& match) {
-    match.name = "changed";
+    match.details.emplace().name = "changed";
     if (++calls == 2) match.charge = 2;
   }))
-  TEST_EQUAL(run.getMatch(first).name, "")
+  TEST_EQUAL(run.getMatch(first).details.value_or_default().name, "")
   TEST_EQUAL(run.getMatch(second).charge, 1)
-  run.transformMatches([](ID::MatchData& match) { match.name = "ethanol"; });
-  TEST_EQUAL(run.getMatch(first).name, "ethanol")
+  run.transformMatches([](ID::MatchData& match) { match.details.emplace().name = "ethanol"; });
+  TEST_EQUAL(run.getMatch(first).details.value_or_default().name, "ethanol")
   ID::Run copy(run);
   auto changed = copy.getMatch(first).getData();
-  changed.adduct.reset();
+  changed.details->adduct.reset();
   TEST_EXCEPTION(Exception::InvalidValue, copy.replaceMatch(first, changed))
   copy.replaceMatch(first, changed, {});
-  TEST_TRUE(run.getMatch(first).adduct.has_value())
-  TEST_TRUE(! copy.getMatch(first).adduct.has_value())
+  TEST_TRUE(run.getMatch(first).details.value_or_default().adduct.has_value())
+  TEST_TRUE(! copy.getMatch(first).details.value_or_default().adduct.has_value())
   TEST_EXCEPTION(Exception::InvalidValue, run.addMatch(query, peptide()))
 }
 END_SECTION
@@ -345,7 +340,7 @@ START_SECTION((editing mixed optional adducts preserves identities scores and se
   data.encoding = ID::Encoding::SMILES;
   data.charge = 1;
   const auto removed = run.addMatch(query, data, {1.0});
-  data.adduct = AdductInfo::parseAdductString("M+H;1+");
+  data.details.emplace().adduct = AdductInfo::parseAdductString("M+H;1+");
   const auto retained = run.addMatch(query, data, {2.0});
   const auto other = run.addMatch(other_query, data, {3.0});
   run.setSelectedMatch(query, removed);
@@ -355,17 +350,17 @@ START_SECTION((editing mixed optional adducts preserves identities scores and se
   TEST_TRUE(run.findIdentification(empty) == nullptr)
   TEST_TRUE(! run.getIdentification(query).getSelectedMatch())
   TEST_TRUE(run.getIdentification(other_query).getSelectedMatch() == other)
-  TEST_TRUE(run.getMatch(retained).adduct.has_value())
+  TEST_TRUE(run.getMatch(retained).details.value_or_default().adduct.has_value())
   TEST_REAL_SIMILAR(*run.getScore(retained, primary), 2.0)
-  data.adduct.reset();
+  data.details.reset();
   run.replaceMatch(retained, data, {4.0});
-  TEST_TRUE(! run.getMatch(retained).adduct.has_value())
-  data.adduct = AdductInfo::parseAdductString("M+H;1+");
+  TEST_TRUE(! run.getMatch(retained).details.value_or_default().adduct.has_value())
+  data.details.emplace().adduct = AdductInfo::parseAdductString("M+H;1+");
   run.replaceMatch(retained, data, {5.0});
-  run.transformMatches([](ID::MatchData& match) { match.name = "ethanol"; });
-  TEST_EQUAL(run.getMatch(retained).name, "ethanol")
-  TEST_EQUAL(run.getMatch(other).name, "ethanol")
-  TEST_TRUE(run.getMatch(retained).adduct.has_value())
+  run.transformMatches([](ID::MatchData& match) { match.details.emplace().name = "ethanol"; });
+  TEST_EQUAL(run.getMatch(retained).details.value_or_default().name, "ethanol")
+  TEST_EQUAL(run.getMatch(other).details.value_or_default().name, "ethanol")
+  TEST_TRUE(run.getMatch(retained).details.value_or_default().adduct.has_value())
   TEST_REAL_SIMILAR(*run.getScore(retained, primary), 5.0)
   TEST_REAL_SIMILAR(*run.getScore(other, primary), 3.0)
   run.validate();
@@ -506,7 +501,7 @@ START_SECTION((void Run::shrinkToFit()))
   TEST_EQUAL(queries.front().getMatches().capacity(), 5)
   // IDs and the lookup indexes built before stay valid.
   for (Size i = 0; i < ids.size(); ++i)
-    TEST_REAL_SIMILAR(*run.getMatch(ids[i]).getScores()[0], static_cast<double>((i / 5) * 10 + i % 5))
+    TEST_REAL_SIMILAR(*run.getScores(ids[i])[0], static_cast<double>((i / 5) * 10 + i % 5))
   const auto query = run.addIdentification(source, {});
   TEST_EQUAL(run.getIdentification(query).getMatches().size(), 0)
 }
@@ -601,4 +596,82 @@ START_SECTION((merging appends runs, keeps existing run references valid and is 
   TEST_EQUAL(&data.getRun("A") == address, true)
 }
 END_SECTION
+START_SECTION(([EXTRA] scores are per-run columns, read through the run or bound views))
+{
+  // Compact records: no per-match score vector, molecule details and evidence flanks out of line or as characters.
+  // (Loose bounds: they also hold for debug builds of other standard libraries.)
+  TEST_TRUE(sizeof(ID::Match) <= 192)
+  TEST_TRUE(sizeof(ID::SequenceEvidence) <= 80)
+  ID::Run run("columns");
+  const auto primary = run.addScore(score("raw"));
+  run.setPrimaryScore(primary);
+  const auto query = run.addIdentification(run.addSource({}), {});
+  const auto first = run.addMatch(query, peptide("PEPTIDE"), {1.0});
+  const auto second = run.addMatch(query, peptide("PEPTIDER"), {2.0});
+  const auto view = run.bindScore(primary);
+  TEST_REAL_SIMILAR(*view(run.getMatch(second)), 2.0)
+  TEST_REAL_SIMILAR(*run.getScores(run.getMatch(first))[0], 1.0)
+  const auto revision = run.getRevision();
+  // A copy of a match taken now keeps its row while the run keeps the state of its columns.
+  const ID::Match snapshot = run.getMatch(second);
+  run.setScore(second, primary, 3.0);
+  TEST_TRUE(run.getRevision() > revision)
+  TEST_REAL_SIMILAR(*view(snapshot), 3.0)
+  // Adding a score starts a new state: the old view and the snapshot are rejected, never read in another row.
+  const auto extra = run.addScore(score("extra", false));
+  TEST_EXCEPTION(Exception::InvalidValue, view(run.getMatch(second)))
+  TEST_EXCEPTION(Exception::InvalidValue, run.getScores(snapshot))
+  const auto rebound = run.bindScore(primary);
+  TEST_REAL_SIMILAR(*rebound(run.getMatch(second)), 3.0)
+  TEST_FALSE(run.bindScore(extra)(run.getMatch(second)).has_value())
+  // Filtering compacts the columns; values stay with their matches.
+  run.eraseMatches([&](const ID::Match& match) { return match.getId() == first; });
+  TEST_EXCEPTION(Exception::InvalidValue, rebound(run.getMatch(second)))
+  TEST_REAL_SIMILAR(*run.bindScore(primary)(run.getMatch(second)), 3.0)
+  TEST_REAL_SIMILAR(*run.getScore(second, primary), 3.0)
+  run.validate();
+  // A copied run has columns of its own; views of the original reject its matches, and it keeps the revision.
+  const ID::Run copy(run);
+  const auto original_view = run.bindScore(primary);
+  TEST_EXCEPTION(Exception::InvalidValue, original_view(copy.getMatch(second)))
+  TEST_REAL_SIMILAR(*copy.bindScore(primary)(copy.getMatch(second)), 3.0)
+  TEST_EQUAL(copy.getRevision(), run.getRevision())
+  TEST_TRUE(copy == run)
+  // A view shares the columns: it stays readable (in its state) when its run is gone.
+  ID::ScoreView survivor;
+  ID::Match kept;
+  {
+    ID::Run temporary(run);
+    survivor = temporary.bindScore(primary);
+    kept = temporary.getMatch(second);
+  }
+  TEST_REAL_SIMILAR(*survivor(kept), 3.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] molecule details are stored apart; an absent box equals empty details))
+{
+  ID::MatchData plain = peptide();
+  ID::MatchData empty_details = plain;
+  empty_details.details.emplace();
+  TEST_TRUE(plain == empty_details)
+  TEST_TRUE(plain.details.value_or_default().empty())
+  ID::MatchData named = plain;
+  named.details.emplace().name = "a peptide";
+  TEST_FALSE(plain == named)
+  ID::MatchData copy = named;
+  copy.details->name = "changed";
+  TEST_EQUAL(named.details->name, "a peptide") // copies are deep
+  ID::Run run("details");
+  run.setPrimaryScore(run.addScore(score()));
+  const auto query = run.addIdentification(run.addSource({}), {});
+  const auto stored = run.addMatch(query, empty_details, {1.0});
+  TEST_FALSE(run.getMatch(stored).details.has_value()) // empty details are not kept
+  // Single-character flanks and 32-bit positions.
+  ID::SequenceEvidence evidence {run.addDatabase({}), "P1", 3, 9, 'K', 'R'};
+  TEST_EQUAL(evidence.before, 'K')
+  TEST_EQUAL(*evidence.end, 9)
+}
+END_SECTION
+
 END_TEST

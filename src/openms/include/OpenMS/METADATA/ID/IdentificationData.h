@@ -15,6 +15,7 @@
 #include <array>
 #include <atomic>
 #include <compare>
+#include <cstdint>
 #include <deque>
 #include <functional>
 #include <map>
@@ -52,7 +53,7 @@ public:
     OLIGONUCLEOTIDE,
     COMPOUND
   };
-  enum class Encoding
+  enum class Encoding : std::uint8_t
   {
     AA_SEQUENCE,
     NA_SEQUENCE,
@@ -60,7 +61,7 @@ public:
     INCHI,
     DATABASE_ID
   };
-  enum class TargetDecoy
+  enum class TargetDecoy : std::uint8_t
   {
     UNKNOWN,
     TARGET,
@@ -197,15 +198,21 @@ public:
     std::string description;
     bool operator==(const DatabaseSequence&) const = default;
   };
-  /// Where a match occurs in a database sequence of its run (cf. mzIdentML PeptideEvidence); an empty accession is an unknown entry.
+  /**
+    @brief Where a match occurs in a database sequence of its run (cf. mzIdentML PeptideEvidence)
+
+    An empty accession is an entry that is not known (flanking residues and positions only). Positions are 0-based
+    residue indices. A flanking residue is one character, '[' or ']' at a terminus as in PeptideEvidence, or 0 if
+    it is not known.
+  */
   struct OPENMS_DLLAPI SequenceEvidence
   {
     DatabaseId database;
     std::string accession;
-    std::optional<UInt64> start;
-    std::optional<UInt64> end;
-    std::string before;
-    std::string after;
+    std::optional<UInt32> start;
+    std::optional<UInt32> end;
+    char before = 0;
+    char after = 0;
     bool operator==(const SequenceEvidence&) const = default;
   };
   struct OPENMS_DLLAPI Observation : MetaInfoInterface
@@ -215,17 +222,86 @@ public:
     std::optional<double> mz;
     bool operator==(const Observation&) const = default;
   };
-  struct OPENMS_DLLAPI MatchData : MetaInfoInterface
+  /**
+    @brief An optional value on the heap: 8 bytes in its owner instead of the value, for values that most records lack
+
+    Value semantics like std::optional (copies are deep), except that an absent value equals a default-constructed
+    one, so storing an empty value or none is the same.
+  */
+  template<class T>
+  class OptionalBox
   {
-    std::string representation;
-    Encoding encoding = Encoding::AA_SEQUENCE;
-    Int charge = 0;
-    std::optional<double> calculated_mz;
-    TargetDecoy target_decoy = TargetDecoy::UNKNOWN;
+  public:
+    OptionalBox() = default;
+    OptionalBox(std::nullopt_t) {}
+    OptionalBox(T value): value_(std::make_unique<T>(std::move(value))) {}
+    OptionalBox(const OptionalBox& other): value_(other.value_ ? std::make_unique<T>(*other.value_) : nullptr) {}
+    OptionalBox(OptionalBox&&) noexcept = default;
+    OptionalBox& operator=(const OptionalBox& other)
+    {
+      if (this != &other) value_ = other.value_ ? std::make_unique<T>(*other.value_) : nullptr;
+      return *this;
+    }
+    OptionalBox& operator=(OptionalBox&&) noexcept = default;
+    OptionalBox& operator=(std::nullopt_t)
+    {
+      value_.reset();
+      return *this;
+    }
+    bool has_value() const
+    { return value_ != nullptr; }
+    explicit operator bool() const
+    { return has_value(); }
+    const T& operator*() const
+    { return *value_; }
+    T& operator*()
+    { return *value_; }
+    const T* operator->() const
+    { return value_.get(); }
+    T* operator->()
+    { return value_.get(); }
+    /// The value, or a default-constructed one if there is none.
+    const T& value_or_default() const
+    {
+      static const T empty {};
+      return value_ ? *value_ : empty;
+    }
+    /// The value, created (default-constructed) if there is none.
+    T& emplace()
+    {
+      if (! value_) value_ = std::make_unique<T>();
+      return *value_;
+    }
+    void reset()
+    { value_.reset(); }
+    bool operator==(const OptionalBox& other) const
+    { return value_or_default() == other.value_or_default(); }
+
+  private:
+    std::unique_ptr<T> value_;
+  };
+
+  /// What describes a candidate molecule besides its representation: mostly compounds (name, formula, database
+  /// identifiers), and ion adducts of compounds and oligonucleotides. Peptide candidates rarely have any.
+  struct OPENMS_DLLAPI MoleculeDetails
+  {
     std::string name;
     std::optional<std::string> formula;
     std::vector<QualifiedAccession> identifiers;
     std::optional<AdductInfo> adduct;
+    bool operator==(const MoleculeDetails&) const = default;
+    bool empty() const
+    { return *this == MoleculeDetails {}; }
+  };
+  struct OPENMS_DLLAPI MatchData : MetaInfoInterface
+  {
+    std::string representation;
+    Int charge = 0;
+    Encoding encoding = Encoding::AA_SEQUENCE;
+    TargetDecoy target_decoy = TargetDecoy::UNKNOWN;
+    std::optional<double> calculated_mz;
+    /// Name, formula, identifiers and adduct, stored apart from the match (most candidates have none).
+    OptionalBox<MoleculeDetails> details;
     std::vector<SequenceEvidence> sequence_evidence;
     std::vector<PeptideHit::PeakAnnotation> peak_annotations;
     bool operator==(const MatchData&) const = default;
@@ -233,6 +309,13 @@ public:
 
   class Run;
   class ScoreView;
+  struct ScoreTable;
+  /**
+    @brief A candidate of a query: its data and a stable ID
+
+    Its scores are stored in the score columns of its run (Run::getScores(), Run::bindScore()), where it has a row.
+    A copy of a match keeps that row only as long as the run's columns keep their state (see ScoreView).
+  */
   class OPENMS_DLLAPI Match : public MatchData
   {
   public:
@@ -240,17 +323,13 @@ public:
     { return id_; }
     const MatchData& getData() const
     { return *this; }
-    std::vector<std::optional<double>> getScores() const;
-    /// Dense storage; NaN means a missing score, never a numeric score value.
-    const std::vector<double>& getScoreValues() const
-    { return scores_; }
 
   private:
     friend class Run;
     friend class ScoreView;
     MatchId id_;
-    UInt64 schema_token_ = 0;
-    std::vector<double> scores_;
+    UInt32 tag_ = 0;  ///< State of the score columns of the run when the match got its row
+    UInt32 slot_ = 0; ///< Row of the match in the score columns of its run
   };
   class OPENMS_DLLAPI Identification : public Observation
   {
@@ -278,7 +357,13 @@ public:
     SourceFile file;
     std::vector<Identification> identifications;
   };
-  /// Bound score access avoids repeated definition lookup. Rejects foreign schemas.
+  /**
+    @brief Bound access to one score column of a run, without repeated definition lookup
+
+    A view shares ownership of the run's score columns, so it never dangles. It belongs to one state of the
+    columns: adding a score, filtering matches or copying the run starts a new state, and the view then rejects
+    matches (as it rejects matches of other runs) instead of reading another match's value. Bind again after such edits.
+  */
   class OPENMS_DLLAPI ScoreView
   {
   public:
@@ -288,8 +373,9 @@ public:
 
   private:
     friend class Run;
-    ScoreId id_;
-    UInt64 schema_token_ = 0;
+    std::shared_ptr<const ScoreTable> table_;
+    UInt32 column_ = 0;
+    UInt32 tag_ = 0;
     ScoreDefinition definition_;
   };
 
@@ -352,6 +438,10 @@ public:
     /// Resolve the owning observation without a full dataset scan.
     const Identification& getIdentificationForMatch(MatchId id) const;
     std::optional<double> getScore(MatchId match, ScoreId score) const;
+    /// All scores of a match of this run, in score definition order (missing values are std::nullopt).
+    /// @throw Exception::InvalidValue for a match that is not (or no longer) in this state of the run
+    std::vector<std::optional<double>> getScores(const Match& match) const;
+    std::vector<std::optional<double>> getScores(MatchId match) const;
     void setScore(MatchId match, ScoreId score, std::optional<double> value);
     void setSelectedMatch(QueryId query, std::optional<MatchId> selected);
     void replaceObservation(QueryId query, const Observation& observation);
@@ -373,6 +463,10 @@ public:
     { return next_query_id_; }
     UInt64 getNextMatchId() const
     { return next_match_id_; }
+    /// Counts the edits of the run (in this process; not persistent): equal revisions of a run mean equal values.
+    /// Copies keep the revision of their original.
+    UInt64 getRevision() const
+    { return revision_; }
     /// Build the lazy ID lookup indexes up front (const lookups otherwise build them on first use); mutations require exclusive access.
     void prepareLookupIndexes();
     /// Release the spare capacity of the run's containers (sources, queries, candidates), e.g. after importing records one
@@ -403,9 +497,11 @@ public:
     std::vector<ScoreDefinition> scores_;
     std::vector<UInt64> score_owners_;
     std::optional<ScoreId> primary_;
-    UInt64 schema_token_;
+    // One column per score definition and one row per match; shared with bound views.
+    std::shared_ptr<ScoreTable> score_table_;
     UInt64 next_query_id_ = 1;
     UInt64 next_match_id_ = 1;
+    UInt64 revision_ = 0;
     mutable bool callback_active_ = false;
     bool import_finalized_ = false;
     Size query_count_ = 0;
@@ -424,6 +520,9 @@ public:
     void ensureMatchIndex_() const;
     void checkMutation_() const;
     void checkScore_(ScoreId score) const;
+    void checkRow_(const Match& match) const;
+    /// Give every match its row in order and start a new state of the score columns (after the columns were rebuilt).
+    void renumberRows_() noexcept;
     void validateMatch_(const MatchData& data, const std::vector<std::optional<double>>& scores) const;
     void validateMatchData_(const MatchData& data) const;
     Identification& query_(QueryId id);

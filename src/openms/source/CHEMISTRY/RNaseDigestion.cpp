@@ -425,10 +425,10 @@ namespace OpenMS
     ID::SequenceEvidence evidence;
     evidence.database = entry.database;
     evidence.accession = entry.accession;
-    evidence.start = position.first;
-    evidence.end = end - 1;
-    evidence.before = std::string(1, position.first ? rna[position.first - 1]->getCode()[0] : '[');
-    evidence.after = std::string(1, end < rna.size() ? rna[end]->getCode()[0] : ']');
+    evidence.start = static_cast<UInt32>(position.first);
+    evidence.end = static_cast<UInt32>(end - 1);
+    evidence.before = position.first ? rna[position.first - 1]->getCode()[0] : '[';
+    evidence.after = end < rna.size() ? rna[end]->getCode()[0] : ']';
     if (std::find(sequence_evidence.begin(), sequence_evidence.end(), evidence) == sequence_evidence.end())
       sequence_evidence.push_back(std::move(evidence));
   }

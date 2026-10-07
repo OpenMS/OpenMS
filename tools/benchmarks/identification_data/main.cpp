@@ -99,10 +99,12 @@ void benchmarkIdXML(const std::string& input, const std::string& output)
       imported_queries += run.getNumberOfIdentifications();
       imported_matches += run.getNumberOfMatches();
       sources += run.getSources().size();
+      if (run.getScoreDefinitions().empty()) continue;
+      const auto first = run.bindScore(run.getScoreId(0));
       for (const auto& source : run.getSources())
         for (const auto& query : source.identifications)
           for (const auto& match : query.getMatches())
-            if (! match.getScoreValues().empty() && ! std::isnan(match.getScoreValues()[0])) expected.checksum += match.getScoreValues()[0];
+            if (const auto value = first(match)) expected.checksum += *value;
     }
     if (imported_queries != expected.queries || imported_matches != expected.matches)
       throw std::runtime_error("Import changed query or match counts");

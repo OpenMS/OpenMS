@@ -302,11 +302,21 @@ namespace
   {
     UInt64 match_id, query_id;
     const ID::MatchData& data;
-    const std::vector<double>& scores;
+    const std::vector<std::optional<double>>& scores;
   };
-  std::optional<double> storedScore(double score)
-  { return std::isnan(score) ? std::nullopt : std::optional<double>(score); }
-  const std::optional<double>& storedScore(const std::optional<double>& score) { return score; }
+  /// A flanking residue as stored: one character, or an empty string if it is not known.
+  std::string flank(char residue)
+  { return residue ? std::string(1, residue) : std::string(); }
+  char readFlank(const std::string& text)
+  {
+    if (text.size() > 1) invalid("A flanking residue of sequence evidence must be one character");
+    return text.empty() ? 0 : text.front();
+  }
+  std::optional<UInt32> readPosition(const std::optional<UInt64>& position)
+  {
+    if (position && *position > std::numeric_limits<UInt32>::max()) invalid("Sequence evidence position exceeds the supported range");
+    return position ? std::optional<UInt32>(static_cast<UInt32>(*position)) : std::nullopt;
+  }
   template<class Query>
   Size queryBytes(const Query& q)
   { return 64 + q.data.data_id.size() + IO::metadataBytes(q.data); }
@@ -314,12 +324,14 @@ namespace
   Size matchBytes(const Match& m)
   {
     const auto& d = m.data;
-    Size bytes = 128 + d.representation.size() + d.name.size() + (d.formula ? d.formula->size() : 0) + m.scores.size() * 9 + IO::metadataBytes(d);
-    for (const auto& i : d.identifiers)
+    const auto& details = d.details.value_or_default();
+    Size bytes = 128 + d.representation.size() + details.name.size() + (details.formula ? details.formula->size() : 0) + m.scores.size() * 9
+                 + IO::metadataBytes(d);
+    for (const auto& i : details.identifiers)
       bytes += 16 + i.database.size() + i.accession.size();
-    if (d.adduct) bytes += 32 + d.adduct->getName().size() + d.adduct->getEmpiricalFormula().toString().size();
+    if (details.adduct) bytes += 32 + details.adduct->getName().size() + details.adduct->getEmpiricalFormula().toString().size();
     for (const auto& e : d.sequence_evidence)
-      bytes += 40 + e.accession.size() + e.before.size() + e.after.size();
+      bytes += 42 + e.accession.size();
     for (const auto& a : d.peak_annotations)
       bytes += 32 + a.annotation.size();
     return bytes;
@@ -340,6 +352,7 @@ namespace
   void writeMatch(IO::TableWriter& writer, const Match& m, const IO::Dictionary& dictionary)
   {
     const auto& d = m.data;
+    const auto& details = d.details.value_or_default();
     append<arrow::UInt64Builder>(writer.column(0), m.match_id);
     append<arrow::UInt64Builder>(writer.column(1), m.query_id);
     appendText(writer.column(2), d.representation);
@@ -347,28 +360,28 @@ namespace
     append<arrow::Int32Builder>(writer.column(4), d.charge);
     appendOptional<arrow::DoubleBuilder>(writer.column(5), d.calculated_mz);
     append<arrow::UInt8Builder>(writer.column(6), static_cast<unsigned>(d.target_decoy));
-    appendText(writer.column(7), d.name);
-    if (d.formula) appendText(writer.column(8), *d.formula);
+    appendText(writer.column(7), details.name);
+    if (details.formula) appendText(writer.column(8), *details.formula);
     else
       check(writer.column(8).AppendNull());
     auto& identifiers = static_cast<arrow::ListBuilder&>(writer.column(9));
     check(identifiers.Append());
     auto& identity = *static_cast<arrow::StructBuilder*>(identifiers.value_builder());
-    for (const auto& i : d.identifiers)
+    for (const auto& i : details.identifiers)
     {
       check(identity.Append());
       appendText(*identity.field_builder(0), i.database);
       appendText(*identity.field_builder(1), i.accession);
     }
     auto& adduct = static_cast<arrow::StructBuilder&>(writer.column(10));
-    if (! d.adduct) check(adduct.AppendNull());
+    if (! details.adduct) check(adduct.AppendNull());
     else
     {
       check(adduct.Append());
-      appendText(*adduct.field_builder(0), d.adduct->getName());
-      appendText(*adduct.field_builder(1), d.adduct->getEmpiricalFormula().toString());
-      append<arrow::Int32Builder>(*adduct.field_builder(2), d.adduct->getCharge());
-      append<arrow::UInt32Builder>(*adduct.field_builder(3), d.adduct->getMolMultiplier());
+      appendText(*adduct.field_builder(0), details.adduct->getName());
+      appendText(*adduct.field_builder(1), details.adduct->getEmpiricalFormula().toString());
+      append<arrow::Int32Builder>(*adduct.field_builder(2), details.adduct->getCharge());
+      append<arrow::UInt32Builder>(*adduct.field_builder(3), details.adduct->getMolMultiplier());
     }
     auto& evidence = static_cast<arrow::ListBuilder&>(writer.column(11));
     check(evidence.Append());
@@ -378,10 +391,10 @@ namespace
       check(entry.Append());
       append<arrow::UInt32Builder>(*entry.field_builder(0), e.database.value);
       appendText(*entry.field_builder(1), e.accession);
-      appendOptional<arrow::UInt64Builder>(*entry.field_builder(2), e.start);
-      appendOptional<arrow::UInt64Builder>(*entry.field_builder(3), e.end);
-      appendText(*entry.field_builder(4), e.before);
-      appendText(*entry.field_builder(5), e.after);
+      appendOptional<arrow::UInt64Builder>(*entry.field_builder(2), e.start ? std::optional<UInt64>(*e.start) : std::nullopt);
+      appendOptional<arrow::UInt64Builder>(*entry.field_builder(3), e.end ? std::optional<UInt64>(*e.end) : std::nullopt);
+      appendText(*entry.field_builder(4), flank(e.before));
+      appendText(*entry.field_builder(5), flank(e.after));
     }
     auto& annotations = static_cast<arrow::ListBuilder&>(writer.column(12));
     check(annotations.Append());
@@ -400,7 +413,7 @@ namespace
     if (m.scores.size() > score_columns) invalid("Match has more scores than the dataset score schema");
     for (Size i = 0; i < score_columns; ++i)
     {
-      if (i < m.scores.size()) appendOptional<arrow::DoubleBuilder>(writer.column(14 + i), storedScore(m.scores[i]));
+      if (i < m.scores.size()) appendOptional<arrow::DoubleBuilder>(writer.column(14 + i), m.scores[i]);
       else
         check(writer.column(14 + i).AppendNull());
     }
@@ -454,18 +467,21 @@ namespace
       auto target_decoy = number<arrow::UInt8Array>(reader.column(Size {6}), row);
       if (target_decoy > static_cast<unsigned>(ID::TargetDecoy::BOTH)) invalid("Unknown target/decoy state");
       d.target_decoy = static_cast<ID::TargetDecoy>(target_decoy);
-      d.name = text(reader.column(Size {7}), row);
-      if (! reader.column(Size {8}).IsNull(row)) d.formula = text(reader.column(Size {8}), row);
-      d.identifiers.reserve(listLength(reader.column(Size {9}), row));
+      // Most candidates have no details; they are stored only if there are any.
+      ID::MoleculeDetails details;
+      details.name = text(reader.column(Size {7}), row);
+      if (! reader.column(Size {8}).IsNull(row)) details.formula = text(reader.column(Size {8}), row);
+      details.identifiers.reserve(listLength(reader.column(Size {9}), row));
       readList(reader.column(Size {9}), row,
-               [&](const arrow::StructArray& a, int64_t i) { d.identifiers.push_back({text(*a.field(0), i), text(*a.field(1), i)}); });
+               [&](const arrow::StructArray& a, int64_t i) { details.identifiers.push_back({text(*a.field(0), i), text(*a.field(1), i)}); });
       const auto& adduct = static_cast<const arrow::StructArray&>(reader.column(Size {10}));
       if (! adduct.IsNull(row))
       {
-        d.adduct.emplace(text(*adduct.field(0), row), EmpiricalFormula(text(*adduct.field(1), row)), number<arrow::Int32Array>(*adduct.field(2), row),
-                         number<arrow::UInt32Array>(*adduct.field(3), row));
-        if (d.adduct->getCharge() != d.charge) invalid("Adduct and molecular charge disagree");
+        details.adduct.emplace(text(*adduct.field(0), row), EmpiricalFormula(text(*adduct.field(1), row)), number<arrow::Int32Array>(*adduct.field(2), row),
+                               number<arrow::UInt32Array>(*adduct.field(3), row));
+        if (details.adduct->getCharge() != d.charge) invalid("Adduct and molecular charge disagree");
       }
+      if (! details.empty()) d.details = std::move(details);
     }
     if (reader.hasColumn(Size {11})) d.sequence_evidence.reserve(listLength(reader.column(Size {11}), row));
     if (reader.hasColumn(Size {11}))
@@ -473,11 +489,11 @@ namespace
         ID::SequenceEvidence e;
         e.database = {number<arrow::UInt32Array>(*a.field(0), i)};
         e.accession = text(*a.field(1), i);
-        e.start = optionalNumber<arrow::UInt64Array>(*a.field(2), i);
-        e.end = optionalNumber<arrow::UInt64Array>(*a.field(3), i);
+        e.start = readPosition(optionalNumber<arrow::UInt64Array>(*a.field(2), i));
+        e.end = readPosition(optionalNumber<arrow::UInt64Array>(*a.field(3), i));
         if (e.start && e.end && *e.start > *e.end) invalid("Reversed sequence evidence positions");
-        e.before = text(*a.field(4), i);
-        e.after = text(*a.field(5), i);
+        e.before = readFlank(text(*a.field(4), i));
+        e.after = readFlank(text(*a.field(5), i));
         d.sequence_evidence.push_back(std::move(e));
       });
     if (reader.hasColumn(Size {12})) d.peak_annotations.reserve(listLength(reader.column(Size {12}), row));
@@ -789,6 +805,11 @@ void File::store(const std::string& path, const ID& data, const Options& options
     Json tables {{"queries", "queries.parquet"}, {"matches", "matches.parquet"}};
     IO::TableWriter queries(output.path / tables.at("queries").get<std::string>(), querySchema(), io);
     IO::TableWriter matches(output.path / tables.at("matches").get<std::string>(), matchSchema(io.score_columns), io);
+    // The scores of a match are read from the run's columns through bound views, into one reused buffer.
+    std::vector<ID::ScoreView> views;
+    for (UInt32 i = 0; i < run.getScoreDefinitions().size(); ++i)
+      views.push_back(run.bindScore(run.getScoreId(i)));
+    std::vector<std::optional<double>> scores(views.size());
     for (const auto& source : run.getSources())
       for (const auto& query : source.identifications)
       {
@@ -796,7 +817,11 @@ void File::store(const std::string& path, const ID& data, const Options& options
         if (query.getSelectedMatch()) q.selected_match_id = query.getSelectedMatch()->value;
         writeQuery(queries, q, dictionary);
         for (const auto& match : query.getMatches())
-          writeMatch(matches, MatchView {match.getId().value, query.getId().value, match.getData(), match.getScoreValues()}, dictionary);
+        {
+          for (Size i = 0; i < views.size(); ++i)
+            scores[i] = views[i](match);
+          writeMatch(matches, MatchView {match.getId().value, query.getId().value, match.getData(), scores}, dictionary);
+        }
       }
     queries.close();
     matches.close();
