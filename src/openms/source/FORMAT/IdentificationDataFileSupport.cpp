@@ -537,6 +537,49 @@ ID::ScoreDefinition readScoreJson(const Json& j)
   return s;
 }
 
+namespace
+{
+  /// Lower-case ASCII letters and digits; every run of other characters becomes one '_'.
+  std::string columnWord(const std::string& text)
+  {
+    std::string word;
+    for (const char c : text)
+    {
+      const char lower = (c >= 'A' && c <= 'Z') ? static_cast<char>(c - 'A' + 'a') : c;
+      if ((lower >= 'a' && lower <= 'z') || (lower >= '0' && lower <= '9')) word += lower;
+      else if (! word.empty() && word.back() != '_') word += '_';
+    }
+    if (! word.empty() && word.back() == '_') word.pop_back();
+    return word;
+  }
+} // namespace
+std::vector<std::string> scoreColumns(const std::vector<ID::ScoreDefinition>& scores)
+{
+  std::vector<std::string> names;
+  for (const auto& score : scores)
+  {
+    const auto word = columnWord(score.name);
+    names.push_back(word.empty() ? "score" : "score_" + word);
+  }
+  std::map<std::string, Size> counts;
+  for (const auto& name : names)
+    ++counts[name];
+  for (Size i = 0; i < names.size(); ++i)
+  {
+    const auto producer = columnWord(scores[i].software);
+    if (counts[names[i]] > 1 && ! producer.empty()) names[i] += "_" + producer;
+  }
+  std::set<std::string> used;
+  for (auto& name : names)
+  {
+    auto unique = name;
+    for (Size suffix = 2; ! used.insert(unique).second; ++suffix)
+      unique = name + "_" + std::to_string(suffix);
+    name = std::move(unique);
+  }
+  return names;
+}
+
 TableWriter::TableWriter(const std::filesystem::path& path, std::shared_ptr<arrow::Schema> schema, const Options& options):
     schema_(std::move(schema)),
     options_(options)

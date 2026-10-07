@@ -66,9 +66,9 @@ shared Parquet tables:
 
 | Path | Contents |
 | --- | --- |
-| `manifest.json` | Format and schema version, run descriptors (UUID, sources, score definitions, metadata descriptors, ID counters) and table slices |
+| `manifest.json` | Format and schema version, score column names, run descriptors (UUID, sources, score definitions, metadata descriptors, ID counters) and table slices |
 | `queries.parquet` | Queries of all runs |
-| `matches.parquet` | Matches with one column per score definition |
+| `matches.parquet` | Matches with one column per score definition (`score_pep`, `score_q_value`, …) |
 | `parents.parquet` | Optional parent catalogs |
 | `inputs.parquet`, `proteins.parquet`, `groups.parquet` | Inference provenance, protein hits and groups (members stored inline) |
 
@@ -79,6 +79,16 @@ dataset) in `inputs`, `proteins` and `groups`. Readers check every row against i
 `SELECT ... FROM 'x.idparquet/matches.parquet' WHERE run_uuid = '...'` needs no manifest lookup.
 Score columns follow the dataset schema; runs without scores leave them empty. Matches follow their
 query, so readers stream a run without a query-to-match map.
+
+Score columns are named after their definitions: `score_` plus the name in lower case, with every
+character other than ASCII letters and digits replaced by `_` (`q-value` → `score_q_value`,
+`MS:1002252` → `score_ms_1002252`). Definitions that share a name get their producer appended
+(`score_pep_idposteriorerrorprobability`, `score_pep_percolator`), and a number if that is not
+enough. Such names need no quoting in SQL. DuckDB in particular reads an unquoted `MS:1002252` as an
+alias followed by a number, and treats names that differ only in case as the same. The manifest
+records the names (`score_columns`, in score schema order), readers locate scores by them, and
+`IdentificationDataFile::inspect` returns them per run. Because equal definitions get equal names,
+DuckDB's `union_by_name` combines the same score across bundles.
 
 Run UUIDs are random version-4 UUIDs written as 36-character lowercase strings
 (`4ee928b7-e4ed-4925-8899-133a43050310`). Every table that carries them, including

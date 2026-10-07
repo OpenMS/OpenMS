@@ -257,6 +257,8 @@ def test_native_round_trip_and_nonreused_ids(tmp_path, threads):
     descriptor = File.inspect(path)[0]
     assert descriptor.match_count == 1
     assert descriptor.query_count == 1
+    # matches.parquet names its score columns after the definitions
+    assert descriptor.score_columns == ["score_posterior_error_probability"]
     assert File.loadRun(path, descriptor.uuid).getNumberOfMatches() == 1
 
 

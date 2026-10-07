@@ -34,6 +34,8 @@ namespace
   [[noreturn]] void fileError(const fs::path& path, const std::string& message)
   { throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path.string(), message); }
 
+  std::shared_ptr<arrow::Schema> matchSchema(const std::vector<std::string>& score_columns);
+
   bool replaceableBundle(const fs::path& path)
   {
     try
@@ -208,6 +210,14 @@ namespace
       expected_scores = std::move(scores);
       expected_primary = column;
     }
+    // Score columns are named in the manifest, in score schema order; readers find them by name.
+    const auto& columns = manifest.at("score_columns");
+    if (! columns.is_array() || columns.size() != (expected_scores ? expected_scores->size() : 0))
+      invalid("Score columns do not match the score schema");
+    std::set<std::string> names {IO::partitionColumn("matches")};
+    const auto schema = matchSchema(columns.get<std::vector<std::string>>());
+    for (const auto& field : schema->fields())
+      if (field->name().empty() || ! names.insert(field->name()).second) invalid("Empty or duplicate match column name: " + field->name());
     std::set<std::string> uuids, identifiers;
     for (const auto& run : manifest.at("runs"))
     {
@@ -220,12 +230,8 @@ namespace
   {
     invalid(error.what());
   }
-  Size scoreCount(const Json& manifest)
-  {
-    for (const auto& run : manifest.at("runs"))
-      if (! run.at("scores").empty()) return run.at("scores").size();
-    return 0;
-  }
+  std::vector<std::string> scoreColumns(const Json& manifest)
+  { return manifest.at("score_columns").get<std::vector<std::string>>(); }
   void writeManifest(const fs::path& directory, const Json& manifest)
   {
     validateJsonText(manifest);
@@ -250,7 +256,7 @@ namespace
                           arrow::field("data_id", arrow::utf8(), false), arrow::field("rt", arrow::float64()), arrow::field("mz", arrow::float64()),
                           arrow::field("selected_match_id", arrow::uint64()), arrow::field("metadata", IO::metadataType(), false)});
   }
-  std::shared_ptr<arrow::Schema> matchSchema(Size score_count)
+  std::shared_ptr<arrow::Schema> matchSchema(const std::vector<std::string>& score_columns)
   {
     std::vector<std::shared_ptr<arrow::Field>> fields {
       arrow::field("match_id", arrow::uint64(), false),
@@ -281,8 +287,8 @@ namespace
                                  false)),
         false),
       arrow::field("metadata", IO::metadataType(), false)};
-    for (Size i = 0; i < score_count; ++i)
-      fields.push_back(arrow::field("score_" + std::to_string(i), arrow::float64()));
+    for (const auto& name : score_columns)
+      fields.push_back(arrow::field(name, arrow::float64()));
     return arrow::schema(fields);
   }
   struct QueryView
@@ -589,7 +595,7 @@ namespace
       for (const auto& parent : *run.getParents())
         dictionary.collect(parent);
   }
-  std::vector<std::string> projectedMatchColumns(const File::Projection& projection, Size score_count)
+  std::vector<std::string> projectedMatchColumns(const File::Projection& projection, const std::vector<std::string>& score_columns)
   {
     std::vector<std::string> fields {"match_id", "query_id"};
     if (projection.molecule)
@@ -600,9 +606,9 @@ namespace
     if (projection.metadata) fields.emplace_back("metadata");
     std::set<UInt32> scores(projection.score_ids.begin(), projection.score_ids.end());
     for (UInt32 score : scores)
-      if (score >= score_count) invalid("Projected score ID does not exist in the run");
-    for (Size i = 0; i < score_count; ++i)
-      if (projection.all_scores || scores.contains(static_cast<UInt32>(i))) fields.push_back("score_" + std::to_string(i));
+      if (score >= score_columns.size()) invalid("Projected score ID does not exist in the run");
+    for (Size i = 0; i < score_columns.size(); ++i)
+      if (projection.all_scores || scores.contains(static_cast<UInt32>(i))) fields.push_back(score_columns[i]);
     return fields;
   }
   // Both tables retain scientific ordering. A single match row is sufficient lookahead.
@@ -616,7 +622,7 @@ namespace
     std::vector<std::string> query_columns {"query_id", "source_id", "data_id", "rt", "mz", "selected_match_id"};
     if (options.projection.metadata) query_columns.emplace_back("metadata");
     IO::TableReader queries(root, tables.at("queries"), querySchema(), io, query_columns);
-    IO::TableReader matches(root, tables.at("matches"), matchSchema(io.score_count), io, projectedMatchColumns(options.projection, io.score_count));
+    IO::TableReader matches(root, tables.at("matches"), matchSchema(io.score_columns), io, projectedMatchColumns(options.projection, io.score_columns));
     if (queries.rows() != d.query_count || matches.rows() != d.match_count) invalid("Manifest and table row counts disagree");
     std::set<UInt64> query_ids, match_ids;
     bool has_match = matches.next();
@@ -728,7 +734,10 @@ try
   const Json manifest = readManifest(path);
   std::vector<RunDescriptor> result;
   for (const auto& j : manifest.at("runs"))
+  {
     result.push_back(descriptor(j));
+    if (! result.back().scores.empty()) result.back().score_columns = scoreColumns(manifest);
+  }
   return result;
 }
 catch (const Json::exception& error)
@@ -744,8 +753,9 @@ void File::store(const std::string& path, const ID& data, const Options& options
   StagedDirectory output(path, options.replace_existing);
   IO::Options io(options);
   io.output = std::make_shared<IO::WritePool>(output.path);
-  io.score_count = data.getScoreDefinitions().size();
-  Json manifest {{"format", FORMAT}, {"schema_version", 1}, {"runs", Json::array()}, {"inference", Json::array()}};
+  io.score_columns = IO::scoreColumns(data.getScoreDefinitions());
+  Json manifest {
+    {"format", FORMAT}, {"schema_version", 1}, {"score_columns", io.score_columns}, {"runs", Json::array()}, {"inference", Json::array()}};
   for (const auto& run : data.getRuns())
   {
     io.partition = run.getUuid();
@@ -754,7 +764,7 @@ void File::store(const std::string& path, const ID& data, const Options& options
     Json j = runJson(run);
     Json tables {{"queries", "queries.parquet"}, {"matches", "matches.parquet"}};
     IO::TableWriter queries(output.path / tables.at("queries").get<std::string>(), querySchema(), io);
-    IO::TableWriter matches(output.path / tables.at("matches").get<std::string>(), matchSchema(io.score_count), io);
+    IO::TableWriter matches(output.path / tables.at("matches").get<std::string>(), matchSchema(io.score_columns), io);
     for (const auto& source : run.getSourceBlocks())
       for (const auto& query : source.identifications)
       {
@@ -795,7 +805,7 @@ try
   const auto manifest = readManifest(path);
   IO::Options io(options);
   io.input = std::make_shared<IO::ReadPool>();
-  io.score_count = scoreCount(manifest);
+  io.score_columns = scoreColumns(manifest);
   ID temporary;
   for (const auto& j : manifest.at("runs"))
     temporary.addRun(readRun(path, j, io));
@@ -822,7 +832,7 @@ try
   const auto manifest = readManifest(path);
   IO::Options io(options);
   io.input = std::make_shared<IO::ReadPool>();
-  io.score_count = scoreCount(manifest);
+  io.score_columns = scoreColumns(manifest);
   const auto selected = selectRuns(manifest, {run});
   auto result = readRun(path, *selected.front(), io);
   result.validate();
@@ -839,7 +849,7 @@ try
   const auto manifest = readManifest(path);
   IO::Options io(options.buffering);
   io.input = std::make_shared<IO::ReadPool>();
-  io.score_count = scoreCount(manifest);
+  io.score_columns = scoreColumns(manifest);
   ScanStatistics statistics;
   std::error_code size_error;
   statistics.descriptor_bytes = fs::file_size(fs::path(path) / "manifest.json", size_error);
@@ -911,7 +921,7 @@ try
   StagedDirectory staged(output, options.replace_existing);
   IO::Options io(options);
   io.input = std::make_shared<IO::ReadPool>();
-  io.score_count = scoreCount(manifest);
+  io.score_columns = scoreColumns(manifest);
   io.output = std::make_shared<IO::WritePool>(staged.path);
   const auto copyTable = [&](const Json& reference) {
     const auto name = reference.at("path").get<std::string>();
@@ -931,7 +941,7 @@ try
     IO::Dictionary dictionary;
     dictionary.load(j.at("metadata_descriptors"));
     IO::TableWriter queries(staged.path / "queries.parquet", querySchema(), io);
-    IO::TableWriter matches(staged.path / "matches.parquet", matchSchema(io.score_count), io);
+    IO::TableWriter matches(staged.path / "matches.parquet", matchSchema(io.score_columns), io);
     File::ScanOptions scan;
     scan.buffering = options;
     bool kept_any = false, kept_selection = false;

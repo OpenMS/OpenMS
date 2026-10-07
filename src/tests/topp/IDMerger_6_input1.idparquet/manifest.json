@@ -1,6 +1,9 @@
 {
   "format": "OpenMS.IdentificationData",
   "schema_version": 1,
+  "score_columns": [
+    "score_q_value"
+  ],
   "runs": [
     {
       "identifier": "OMSSA_2009-11-17T11:11:44_10480017533854911679",

@@ -268,6 +268,14 @@ skipping molecular payloads, metadata, evidence and annotations. Streaming avoid
 loading every match into Python. Full loading and inference still require memory
 proportional to their working data.
 
+The tables of a bundle are plain Parquet files, so pyarrow, Polars or DuckDB can read
+them directly. Each row carries its ``run_uuid``, and score columns are named after
+their definitions (``score_pep``, ``score_q_value``); ``inspect`` lists them per run::
+
+    print(oms.IdentificationDataFile.inspect("search.idparquet")[0].score_columns)
+    # DuckDB: SELECT run_uuid, match_id, representation, score_q_value
+    #         FROM 'search.idparquet/matches.parquet' WHERE score_q_value < 0.01
+
 ``IdentificationDataAdapter`` provides explicit legacy, feature and consensus
 conversion. Strict export rejects information the target cannot express. The
 permissive policy reports losses. Removing a match does not remove its measured

@@ -63,6 +63,8 @@ public:
     std::string uuid;
     IdentificationData::MoleculeKind molecule_kind;
     std::vector<IdentificationData::ScoreDefinition> scores;
+    /// Names of the score columns in matches.parquet, parallel to @p scores (e.g. score_pep, score_q_value).
+    std::vector<std::string> score_columns;
     std::vector<IdentificationData::SourceFile> sources;
     std::optional<UInt32> primary_score;
     UInt64 query_count = 0;

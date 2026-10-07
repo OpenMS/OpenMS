@@ -381,6 +381,7 @@ inline void bind(nb::module_& m)
   field(rundescriptor, "uuid", &File::RunDescriptor::uuid);
   field(rundescriptor, "molecule_kind", &File::RunDescriptor::molecule_kind);
   field(rundescriptor, "scores", &File::RunDescriptor::scores);
+  field(rundescriptor, "score_columns", &File::RunDescriptor::score_columns);
   field(rundescriptor, "sources", &File::RunDescriptor::sources);
   field(rundescriptor, "primary_score", &File::RunDescriptor::primary_score);
   field(rundescriptor, "query_count", &File::RunDescriptor::query_count);

@@ -33,7 +33,8 @@ struct Options : IdentificationDataFile::Options
   std::shared_ptr<ReadPool> input;
   /// Owner of the rows written next to a shared table: a run UUID or an inference result identifier.
   std::string partition;
-  Size score_count = 0;
+  /// Names of the score columns of the shared matches table, in score schema order.
+  std::vector<std::string> score_columns;
 };
 [[noreturn]] void invalid(const std::string& message);
 void check(const arrow::Status& status);
@@ -132,6 +133,10 @@ Json metadataJson(const MetaInfoInterface& metadata);
 void readMetadataJson(const Json& json, MetaInfoInterface& metadata);
 Json scoreJson(const ID::ScoreDefinition& score);
 ID::ScoreDefinition readScoreJson(const Json& json);
+/// Column names for an ordered score schema: "score_" plus the definition name in lower case, with
+/// every other character than ASCII letters and digits replaced by '_' (e.g. "q-value" -> score_q_value).
+/// Definitions that share a name get their producer appended (score_pep_percolator), then a number.
+std::vector<std::string> scoreColumns(const std::vector<ID::ScoreDefinition>& scores);
 
 // Record builders are reused until either the byte target or row limit is reached.
 class TableWriter

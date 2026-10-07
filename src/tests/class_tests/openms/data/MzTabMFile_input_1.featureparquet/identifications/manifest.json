@@ -1,6 +1,10 @@
 {
   "format": "OpenMS.IdentificationData",
   "schema_version": 1,
+  "score_columns": [
+    "score_masserrorppmscore",
+    "score_masserrordascore"
+  ],
   "runs": [
     {
       "identifier": "OMS:2",

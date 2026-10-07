@@ -348,6 +348,53 @@ START_SECTION([EXTRA] shared tables record the owning run UUID and inference ide
 }
 END_SECTION
 
+START_SECTION([EXTRA] score columns are named after their definitions)
+{
+  ID data;
+  auto& run = data.addRun("A");
+  const std::vector<std::pair<std::string, std::string>> definitions {{"PEP", "IDPosteriorErrorProbability"},
+                                                                      {"PEP", "Percolator"},
+                                                                      {"q-value", "Percolator"},
+                                                                      {"q value", "Percolator"},
+                                                                      {"MS:1002252", "Comet"},
+                                                                      {"Posterior Error Probability", ""},
+                                                                      {"%%", ""}};
+  for (const auto& [name, software] : definitions)
+  {
+    ID::ScoreDefinition definition;
+    definition.name = name;
+    definition.software = software;
+    run.addScore(definition);
+  }
+  run.setPrimaryScore(run.getScoreId(0));
+  ID::MatchData match;
+  match.representation = "PEPTIDE";
+  run.addMatch(run.addIdentification(run.addSource({}), {}), match, {0.1, 0.2, 0.01, 0.02, 2.5, 0.3, 1.0});
+  std::string path;
+  NEW_TMP_FILE(path)
+  Native::store(path, data);
+  // Lower case, ASCII letters and digits; shared names get the producer, then a number.
+  const std::vector<std::string> expected {"score_pep_idposteriorerrorprobability", "score_pep_percolator", "score_q_value_percolator",
+                                           "score_q_value_percolator_2", "score_ms_1002252", "score_posterior_error_probability", "score"};
+  TEST_TRUE(Native::inspect(path)[0].score_columns == expected)
+  auto source = arrow::io::ReadableFile::Open(path + "/matches.parquet").ValueOrDie();
+  const auto schema = parquet::arrow::OpenFile(source, arrow::default_memory_pool()).ValueOrDie()->ReadTable().ValueOrDie()->schema();
+  for (Size i = 0; i < expected.size(); ++i)
+    TEST_EQUAL(schema->field(static_cast<int>(14 + i))->name(), expected[i])
+  // A projected scan reads a score by its definition, wherever its column is.
+  Native::ScanOptions options;
+  options.projection.all_scores = false;
+  options.projection.score_ids = {4};
+  std::optional<double> projected;
+  Native::scan(path, options, {}, [&](const std::string&, const std::vector<Native::MatchRecord>& matches) { projected = matches[0].scores[4]; });
+  TEST_REAL_SIMILAR(*projected, 2.5)
+  // Recorded names must be unique and must not hide a fixed column.
+  replaceText(fs::path(path) / "manifest.json", "\"score_ms_1002252\"", "\"charge\"");
+  TEST_EXCEPTION(Exception::InvalidValue, Native::inspect(path))
+  fs::remove_all(path);
+}
+END_SECTION
+
 START_SECTION((complete score schema is checked before writing and scanning))
 {
   ID data;

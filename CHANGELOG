@@ -35,7 +35,8 @@ OpenMS Library:
   - Add native manifest/Parquet persistence (.idparquet directories with a manifest) with projected
     streaming scans, subset export, stable record identities, typed protein/group results with
     run-level inference provenance, strict legacy/feature adapters, and configurable parallel column
-    encoding/decoding. IdentificationDataFile::Options::replace_existing replaces an existing native
+    encoding/decoding. The Parquet tables can be queried directly: rows carry their run UUID, and score
+    columns are named after their definitions (e.g. score_q_value). IdentificationDataFile::Options::replace_existing replaces an existing native
     bundle; FileHandler sets it so a tool rerun overwrites its output. The established four-table
     .idparquet bundle remains readable and is still written by the legacy FileHandler overloads.
   - .featureparquet and .consensusparquet bundles store a map's owning identification data
