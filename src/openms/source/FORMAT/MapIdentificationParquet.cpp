@@ -5,6 +5,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 #include "MapIdentificationParquet.h"
+#include "IdentificationDataFileSupport.h"
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
@@ -48,39 +49,15 @@ namespace
 
   // One row per link; "primary" rows carry the molecular identity, the others a record reference.
   const std::string PRIMARY = "primary", QUERY = "query", MATCH = "match";
+  namespace IO = Internal::IdentificationDataIO;
+
   // Run UUIDs are dictionary-encoded strings, as in every table that carries them: one entry per run.
-  std::shared_ptr<arrow::DataType> runUuidType()
-  { return arrow::dictionary(arrow::int32(), arrow::utf8()); }
-  std::shared_ptr<arrow::Schema> linkSchema(const std::shared_ptr<arrow::DataType>& run_uuid_type = runUuidType())
+  std::shared_ptr<arrow::Schema> linkSchema(const std::shared_ptr<arrow::DataType>& run_uuid_type = IO::keyType())
   {
     return arrow::schema({arrow::field("feature_unique_id", arrow::uint64(), false), arrow::field("link", arrow::utf8(), false),
                           arrow::field("run_uuid", run_uuid_type, true), arrow::field("record_id", arrow::uint64(), true),
                           arrow::field("encoding", arrow::uint8(), true), arrow::field("representation", arrow::utf8(), true)});
   }
-
-  /// Run UUID column of a link batch; tables written by other tools may store it as a plain string.
-  class RunUuids
-  {
-  public:
-    explicit RunUuids(const std::shared_ptr<arrow::Array>& array)
-    {
-      if (array->type_id() == arrow::Type::DICTIONARY)
-      {
-        dictionary_ = std::static_pointer_cast<arrow::DictionaryArray>(array);
-        values_ = std::static_pointer_cast<arrow::StringArray>(dictionary_->dictionary());
-      }
-      else
-        values_ = std::static_pointer_cast<arrow::StringArray>(array);
-    }
-    bool isNull(int64_t row) const
-    { return dictionary_ ? dictionary_->IsNull(row) : values_->IsNull(row); }
-    std::string at(int64_t row) const
-    { return dictionary_ ? values_->GetString(dictionary_->GetValueIndex(row)) : values_->GetString(row); }
-
-  private:
-    std::shared_ptr<arrow::DictionaryArray> dictionary_;
-    std::shared_ptr<arrow::StringArray> values_;
-  };
 
   std::error_code renameWithRetry(const fs::path& from, const fs::path& to)
   {
@@ -208,11 +185,7 @@ void load(const fs::path& directory, IdentificationData& data, const std::vector
     check(table->ValidateFull());
     // run_uuid may be a plain string or a dictionary of strings with any index width (e.g. from pandas).
     const std::shared_ptr<arrow::DataType> run_uuid = table->schema()->num_fields() == 6 ? table->schema()->field(2)->type() : nullptr;
-    const bool string_uuids = run_uuid
-                              && (run_uuid->id() == arrow::Type::STRING
-                                  || (run_uuid->id() == arrow::Type::DICTIONARY
-                                      && static_cast<const arrow::DictionaryType&>(*run_uuid).value_type()->id() == arrow::Type::STRING));
-    if (! string_uuids || ! table->schema()->Equals(*linkSchema(run_uuid), false)) invalid("Unexpected identification link table schema");
+    if (! run_uuid || ! IO::isKeyType(*run_uuid) || ! table->schema()->Equals(*linkSchema(run_uuid), false)) invalid("Unexpected identification link table schema");
     // Batches keep the columns aligned without concatenating dictionary chunks.
     arrow::TableBatchReader batches(*table);
     std::shared_ptr<arrow::RecordBatch> batch;
@@ -220,7 +193,7 @@ void load(const fs::path& directory, IdentificationData& data, const std::vector
     {
       const auto& feature_ids = static_cast<const arrow::UInt64Array&>(*batch->column(0));
       const auto& links = static_cast<const arrow::StringArray&>(*batch->column(1));
-      const RunUuids uuids(batch->column(2));
+      const auto& uuids = *batch->column(2);
       const auto& record_ids = static_cast<const arrow::UInt64Array&>(*batch->column(3));
       const auto& encodings = static_cast<const arrow::UInt8Array&>(*batch->column(4));
       const auto& representations = static_cast<const arrow::StringArray&>(*batch->column(5));
@@ -237,10 +210,10 @@ void load(const fs::path& directory, IdentificationData& data, const std::vector
           entry.primary = ID::MoleculeIdentity {static_cast<ID::Encoding>(encodings.Value(row)), representations.GetString(row)};
           continue;
         }
-        if (uuids.isNull(row) || record_ids.IsNull(row)) invalid("Identification link without run UUID or record ID");
-        if (link == QUERY) entry.queries.insert({uuids.at(row), ID::QueryId {record_ids.Value(row)}});
+        if (uuids.IsNull(row) || record_ids.IsNull(row)) invalid("Identification link without run UUID or record ID");
+        if (link == QUERY) entry.queries.insert({IO::text(uuids, row), ID::QueryId {record_ids.Value(row)}});
         else if (link == MATCH)
-          entry.matches.insert({uuids.at(row), ID::MatchId {record_ids.Value(row)}});
+          entry.matches.insert({IO::text(uuids, row), ID::MatchId {record_ids.Value(row)}});
         else
           invalid("Unknown identification link kind: " + link);
       }

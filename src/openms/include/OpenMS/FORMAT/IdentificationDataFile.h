@@ -15,7 +15,8 @@ namespace OpenMS
   @brief Native typed Parquet persistence and bounded sequential access to IdentificationData.
 
   One manifest contains configuration and row ranges in shared query/match files.
-  Compatible runs share row groups; partition columns preserve run ownership. Scores stay in match rows. Growing inference values use typed tables.
+  Compatible runs share row groups; a run_uuid (or inference_identifier) column records which run (or inference
+  result) owns each row. Scores stay in match rows. Growing inference values use typed tables.
   Persistent UUIDs and record IDs survive filtering. No revision or freshness policy
   is implicit. Publication rejects an existing destination unless Options::replace_existing
   allows replacing a native bundle; owning load is transactional.

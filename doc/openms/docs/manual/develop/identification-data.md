@@ -72,10 +72,20 @@ shared Parquet tables:
 | `parents.parquet` | Optional parent catalogs |
 | `inputs.parquet`, `proteins.parquet`, `groups.parquet` | Inference provenance, protein hits and groups (members stored inline) |
 
-Runs and inference results share physical tables and row groups; the manifest records each slice
-(start row, row count) and a partition column records ownership. Score columns follow the dataset
-schema; runs without scores leave them empty. Matches follow their query, so readers stream a run
-without a query-to-match map.
+Runs and inference results share physical tables and row groups. The manifest records each slice
+(start row, row count), and the last column of each table records which run or inference result owns
+a row: `run_uuid` in `queries`, `matches` and `parents`, and `inference_identifier` (unique within a
+dataset) in `inputs`, `proteins` and `groups`. Readers check every row against its slice, so
+`SELECT ... FROM 'x.idparquet/matches.parquet' WHERE run_uuid = '...'` needs no manifest lookup.
+Score columns follow the dataset schema; runs without scores leave them empty. Matches follow their
+query, so readers stream a run without a query-to-match map.
+
+Run UUIDs are random version-4 UUIDs written as 36-character lowercase strings
+(`4ee928b7-e4ed-4925-8899-133a43050310`). Every table that carries them, including
+`identification_links.parquet` of map bundles, stores them as dictionary-encoded strings
+(`dictionary<int32, string>`, one entry per run) with the Arrow schema stored in the file, so readers
+get the full string at about 4 bytes per row; plain string columns are accepted on input. Inference
+identifiers are stored the same way.
 
 Writes go to a temporary sibling directory that is renamed into place when every table is closed.
 An existing destination is rejected unless `Options::replace_existing` is set, which replaces an
@@ -104,11 +114,6 @@ the legacy `PeptideIdentification`s they may also carry.
 - `identification_links.parquet`: one row per link (`primary`, `query` or `match`), keyed by
   feature unique ID like `psms.parquet`. Columns: `feature_unique_id`, `link`, `run_uuid`,
   `record_id` (query or match ID), and `encoding`/`representation` for primary molecules.
-
-Run UUIDs are random version-4 UUIDs written as 36-character lowercase strings
-(`4ee928b7-e4ed-4925-8899-133a43050310`). Tables that carry them store them as dictionary-encoded
-strings (`dictionary<int32, string>`, one entry per run) with the Arrow schema stored in the file, so
-readers get the full string at about 4 bytes per row; plain string columns are accepted on input.
 
 Every link must resolve and linked features need distinct valid unique IDs; otherwise the export
 throws `Exception::InvalidValue`. Map bundles are also written to a temporary sibling directory; an

@@ -99,19 +99,19 @@
           "path": "queries.parquet",
           "start": 0,
           "count": 29,
-          "partition": 0
+          "partition": "4ee928b7-e4ed-4925-8899-133a43050310"
         },
         "matches": {
           "path": "matches.parquet",
           "start": 0,
           "count": 29,
-          "partition": 0
+          "partition": "4ee928b7-e4ed-4925-8899-133a43050310"
         },
         "parents": {
           "path": "parents.parquet",
           "start": 0,
           "count": 6,
-          "partition": 0
+          "partition": "4ee928b7-e4ed-4925-8899-133a43050310"
         }
       }
     }
@@ -183,19 +183,19 @@
           "path": "inputs.parquet",
           "start": 0,
           "count": 1,
-          "partition": 0
+          "partition": "legacy:OMSSA_2009-11-17T11:11:44_10480017533854911679"
         },
         "proteins": {
           "path": "proteins.parquet",
           "start": 0,
           "count": 6,
-          "partition": 0
+          "partition": "legacy:OMSSA_2009-11-17T11:11:44_10480017533854911679"
         },
         "groups": {
           "path": "groups.parquet",
           "start": 0,
           "count": 0,
-          "partition": 0
+          "partition": "legacy:OMSSA_2009-11-17T11:11:44_10480017533854911679"
         }
       },
       "counts": {

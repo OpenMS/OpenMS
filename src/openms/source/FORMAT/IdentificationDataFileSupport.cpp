@@ -109,8 +109,68 @@ void appendText(arrow::ArrayBuilder& builder, const std::string& input)
 std::string text(const arrow::Array& array, int64_t row)
 {
   if (array.IsNull(row)) invalid("Unexpected null text");
+  if (array.type_id() == arrow::Type::DICTIONARY)
+  {
+    const auto& keys = static_cast<const arrow::DictionaryArray&>(array);
+    return static_cast<const arrow::StringArray&>(*keys.dictionary()).GetString(keys.GetValueIndex(row));
+  }
   return static_cast<const arrow::StringArray&>(array).GetString(row);
 }
+std::shared_ptr<arrow::DataType> keyType()
+{ return arrow::dictionary(arrow::int32(), arrow::utf8()); }
+bool isKeyType(const arrow::DataType& type)
+{
+  return type.id() == arrow::Type::STRING
+         || (type.id() == arrow::Type::DICTIONARY && static_cast<const arrow::DictionaryType&>(type).value_type()->id() == arrow::Type::STRING);
+}
+void appendKey(arrow::ArrayBuilder& builder, const std::string& key)
+{
+  validateText(key);
+  check(static_cast<arrow::StringDictionary32Builder&>(builder).Append(key));
+}
+std::string partitionColumn(const std::string& table)
+{
+  if (table == "queries" || table == "matches" || table == "parents") return "run_uuid";
+  if (table == "inputs" || table == "proteins" || table == "groups") return "inference_identifier";
+  invalid("Unknown shared table: " + table);
+}
+namespace
+{
+  /// Field-by-field comparison; key columns may be plain or dictionary-encoded strings.
+  bool sameSchema(const arrow::Schema& expected, const arrow::Schema& actual)
+  {
+    if (expected.num_fields() != actual.num_fields()) return false;
+    for (int i = 0; i < expected.num_fields(); ++i)
+    {
+      const auto& wanted = *expected.field(i);
+      const auto& found = *actual.field(i);
+      const bool key = wanted.type()->Equals(*keyType()) && isKeyType(*found.type());
+      if (wanted.name() != found.name() || wanted.nullable() != found.nullable() || ! (key || wanted.type()->Equals(*found.type())))
+        return false;
+    }
+    return true;
+  }
+  /// Every row of a table slice must belong to the slice's run or inference result.
+  void requireOwner(const arrow::Array& keys, const std::string& owner)
+  {
+    const auto* message = "Table slice contains a different run/result partition";
+    if (keys.null_count()) invalid(message);
+    if (keys.type_id() == arrow::Type::DICTIONARY)
+    {
+      const auto& encoded = static_cast<const arrow::DictionaryArray&>(keys);
+      const auto& values = static_cast<const arrow::StringArray&>(*encoded.dictionary());
+      std::vector<char> owned(static_cast<Size>(values.length()));
+      for (int64_t i = 0; i < values.length(); ++i)
+        owned[static_cast<Size>(i)] = ! values.IsNull(i) && values.GetView(i) == owner;
+      for (int64_t row = 0; row < encoded.length(); ++row)
+        if (! owned[static_cast<Size>(encoded.GetValueIndex(row))]) invalid(message);
+      return;
+    }
+    const auto& values = static_cast<const arrow::StringArray&>(keys);
+    for (int64_t row = 0; row < values.length(); ++row)
+      if (values.GetView(row) != owner) invalid(message);
+  }
+} // namespace
 UInt32 Dictionary::add(UInt registry_index, const DataValue& item)
 {
   Key key {registry_index, item.valueType(), item.getUnitType(), item.getUnit()};
@@ -488,6 +548,7 @@ TableWriter::TableWriter(const std::filesystem::path& path, std::shared_ptr<arro
     physical_path_ = delegate_->physical_path_;
     start_ = delegate_->rows();
     partition_ = options.partition;
+    validateText(partition_);
     return;
   }
   sink_ = value(arrow::io::FileOutputStream::Open(path.string()));
@@ -515,7 +576,11 @@ TableWriter::TableWriter(const std::filesystem::path& path, std::shared_ptr<arro
     = parquet::ArrowWriterProperties::Builder().store_schema()->set_use_threads(options_.threads > 1)->set_executor(options_.executor.get())->build();
   writer_ = value(parquet::arrow::FileWriter::Open(*schema_, arrow::default_memory_pool(), sink_, properties, arrow_properties));
   for (const auto& field : schema_->fields())
-    builders_.push_back(value(arrow::MakeBuilder(field->type(), arrow::default_memory_pool())));
+  {
+    // Key columns get a builder with exactly the declared int32 indices (see appendKey).
+    if (field->type()->Equals(*keyType())) builders_.push_back(std::make_unique<arrow::StringDictionary32Builder>(arrow::default_memory_pool()));
+    else builders_.push_back(value(arrow::MakeBuilder(field->type(), arrow::default_memory_pool())));
+  }
 }
 TableWriter::~TableWriter() = default;
 void TableWriter::finishRow(Size bytes)
@@ -523,8 +588,8 @@ void TableWriter::finishRow(Size bytes)
   if (logical_closed_) invalid("Appending to a closed table slice");
   if (delegate_)
   {
-    append<arrow::UInt64Builder>(delegate_->column(schema_->num_fields()), partition_);
-    delegate_->finishRow(bytes + sizeof(UInt64));
+    check(static_cast<arrow::StringDictionary32Builder&>(delegate_->column(schema_->num_fields())).Append(partition_));
+    delegate_->finishRow(bytes + sizeof(Int32));
     ++total_;
     return;
   }
@@ -575,9 +640,7 @@ Json TableWriter::reference() const
 TableWriter& WritePool::acquire(const std::filesystem::path& logical, const std::shared_ptr<arrow::Schema>& schema, const Options& options)
 {
   const auto stem = logical.stem().string();
-  auto physical = value(
-    schema->AddField(schema->num_fields(),
-                     arrow::field(stem == "queries" || stem == "matches" || stem == "parents" ? "run_id" : "inference_id", arrow::uint64(), false)));
+  auto physical = value(schema->AddField(schema->num_fields(), arrow::field(partitionColumn(stem), keyType(), false)));
   auto& writer = writers_[stem];
   if (writer && ! writer->schema_->Equals(*physical, false)) invalid("Conflicting schema for shared table: " + stem);
   if (!writer)
@@ -641,14 +704,11 @@ TableReader::TableReader(const std::filesystem::path& root,
   entry_->reader->set_use_threads(options_.threads > 1);
   start_ = integer<UInt64>(reference.at("start"));
   total_rows_ = integer<UInt64>(reference.at("count"));
-  partition_ = integer<UInt64>(reference.at("partition"));
+  partition_ = reference.at("partition").get<std::string>();
   if (start_ > entry_->starts.back() || total_rows_ > entry_->starts.back() - start_) invalid("Table slice outside physical row range");
   end_ = start_ + total_rows_;
-  const auto schema = entry_->schema;
-  if (schema->num_fields() != expected->num_fields() + 1) invalid("Unexpected shared table schema");
-  id_column_ = schema->field(expected->num_fields())->name();
-  if (id_column_ != "run_id" && id_column_ != "inference_id") invalid("Missing table partition column");
-  if (!schema->Equals(*value(expected->AddField(expected->num_fields(), arrow::field(id_column_, arrow::uint64(), false))), false))
+  id_column_ = partitionColumn(tablePath(root, reference.at("path").get<std::string>()).stem().string());
+  if (! sameSchema(*value(expected->AddField(expected->num_fields(), arrow::field(id_column_, keyType(), false))), *entry_->schema))
     invalid("Unexpected shared table schema");
   std::set<std::string> selected(columns.begin(), columns.end());
   for (const auto& name : selected)
@@ -718,11 +778,7 @@ bool TableReader::next()
     table_ = entry_->cached_table->Slice(start - entry_->starts[group], end - start);
     // Validate the ownership column even for projections that omit payloads.
     for (const auto& chunk : table_->GetColumnByName(id_column_)->chunks())
-    {
-      const auto& ids = static_cast<const arrow::UInt64Array&>(*chunk);
-      for (int64_t i = 0; i < ids.length(); ++i)
-        if (ids.IsNull(i) || ids.Value(i) != partition_) invalid("Table slice contains a different run/result partition");
-    }
+      requireOwner(*chunk, partition_);
     batches_ = std::make_unique<arrow::TableBatchReader>(table_);
     Size batch_rows = options_.batch_rows;
     const auto metadata = entry_->reader->parquet_reader()->metadata()->RowGroup(group);

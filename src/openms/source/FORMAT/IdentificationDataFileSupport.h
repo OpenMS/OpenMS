@@ -31,7 +31,8 @@ struct Options : IdentificationDataFile::Options
   std::shared_ptr<arrow::internal::ThreadPool> executor;
   std::shared_ptr<WritePool> output;
   std::shared_ptr<ReadPool> input;
-  UInt64 partition = 0;
+  /// Owner of the rows written next to a shared table: a run UUID or an inference result identifier.
+  std::string partition;
   Size score_count = 0;
 };
 [[noreturn]] void invalid(const std::string& message);
@@ -76,12 +77,21 @@ template<class B, class T>
 void append(arrow::ArrayBuilder& builder, const T& item)
 { check(static_cast<B&>(builder).Append(item)); }
 void appendText(arrow::ArrayBuilder& builder, const std::string& text);
+/// Run UUIDs and other keys are dictionary-encoded strings (one dictionary entry per distinct key).
+std::shared_ptr<arrow::DataType> keyType();
+/// A plain string or a dictionary of strings with any index width, as other writers may produce.
+bool isKeyType(const arrow::DataType& type);
+void appendKey(arrow::ArrayBuilder& builder, const std::string& key);
+/// Column that records the owner of each row in a shared table: run_uuid (queries, matches, parents)
+/// or inference_identifier (inputs, proteins, groups).
+std::string partitionColumn(const std::string& table);
 template<class A>
 typename A::value_type number(const arrow::Array& array, int64_t row)
 {
   if (array.IsNull(row)) invalid("Unexpected null in required column");
   return static_cast<const A&>(array).Value(row);
 }
+/// Text of a string or dictionary-encoded string column.
 std::string text(const arrow::Array& array, int64_t row);
 template<class A>
 std::optional<typename A::value_type> optionalNumber(const arrow::Array& array, int64_t row)
@@ -145,7 +155,7 @@ private:
   TableWriter* delegate_ = nullptr;
   std::string physical_path_;
   UInt64 start_ = 0;
-  UInt64 partition_ = 0;
+  std::string partition_;
   bool logical_closed_ = false;
   void flush_();
   std::shared_ptr<arrow::Schema> schema_;
@@ -209,7 +219,8 @@ private:
   std::vector<int> groups_;
   Size next_group_ = 0;
   Options options_;
-  UInt64 start_ = 0, end_ = 0, partition_ = 0;
+  UInt64 start_ = 0, end_ = 0;
+  std::string partition_;
   std::string id_column_;
   std::unique_ptr<arrow::TableBatchReader> batches_;
   std::shared_ptr<arrow::Table> table_;

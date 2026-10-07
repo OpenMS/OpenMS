@@ -153,35 +153,32 @@ namespace
       invalid("Unsupported native identification format");
     if (! manifest.at("runs").is_array() || ! manifest.at("inference").is_array()) invalid("Malformed run/result descriptors");
     std::map<std::string, std::vector<std::pair<UInt64, UInt64>>> ranges;
-    std::set<std::pair<std::string, UInt64>> partitions;
-    const auto claim = [&](const Json& entry, UInt64 partition, const std::string& table) {
+    std::set<std::pair<std::string, std::string>> partitions;
+    // A slice belongs to the run (UUID) or inference result (identifier) that declares it.
+    const auto claim = [&](const Json& entry, const std::string& partition, const std::string& table) {
       const auto name = IO::tablePath({}, entry.at("path").get<std::string>()).generic_string();
       if (name != table + ".parquet") invalid("Expected a single named Parquet file per table");
       const auto start = IO::integer<UInt64>(entry.at("start"));
       const auto count = IO::integer<UInt64>(entry.at("count"));
       if (start > std::numeric_limits<UInt64>::max() - count) invalid("Overflowing table range");
-      if (IO::integer<UInt64>(entry.at("partition")) != partition || !partitions.emplace(name, partition).second)
+      if (entry.at("partition").get<std::string>() != partition || !partitions.emplace(name, partition).second)
         invalid("Invalid or duplicate table partition");
       if (count) ranges[name].emplace_back(start, start + count);
     };
-    UInt64 partition = 0;
     for (const auto& run : manifest.at("runs"))
     {
       const auto& tables = run.at("tables");
       if (!tables.is_object() || !tables.contains("queries") || !tables.contains("matches")
           || tables.size() != (tables.contains("parents") ? 3u : 2u)) invalid("Invalid run table declarations");
       for (auto table = tables.begin(); table != tables.end(); ++table)
-        claim(table.value(), partition, table.key());
-      ++partition;
+        claim(table.value(), run.at("uuid").get<std::string>(), table.key());
     }
-    partition = 0;
     for (const auto& result : manifest.at("inference"))
     {
       const auto& tables = result.at("tables");
       if (! tables.is_object() || tables.size() != 3) invalid("Inference requires three typed tables");
       for (const auto* name : {"inputs", "proteins", "groups"})
-        claim(tables.at(name), partition, name);
-      ++partition;
+        claim(tables.at(name), result.at("identifier").get<std::string>(), name);
     }
     for (auto& [name, slices] : ranges)
     {
@@ -749,10 +746,9 @@ void File::store(const std::string& path, const ID& data, const Options& options
   io.output = std::make_shared<IO::WritePool>(output.path);
   io.score_count = data.getScoreDefinitions().size();
   Json manifest {{"format", FORMAT}, {"schema_version", 1}, {"runs", Json::array()}, {"inference", Json::array()}};
-  for (Size index = 0; index < data.getRuns().size(); ++index)
+  for (const auto& run : data.getRuns())
   {
-    const auto& run = data.getRuns()[index];
-    io.partition = index;
+    io.partition = run.getUuid();
     IO::Dictionary dictionary;
     collectDictionary(run, dictionary);
     Json j = runJson(run);
@@ -780,10 +776,9 @@ void File::store(const std::string& path, const ID& data, const Options& options
     j["tables"] = std::move(tables);
     manifest["runs"].push_back(std::move(j));
   }
-  for (Size index = 0; index < data.getInferenceResults().size(); ++index)
+  for (const auto& result : data.getInferenceResults())
   {
-    const auto& result = data.getInferenceResults()[index];
-    io.partition = index;
+    io.partition = result.identifier;
     Json j = IO::writeInference(output.path, result, io);
     manifest["inference"].push_back(std::move(j));
   }
@@ -932,6 +927,7 @@ try
   for (auto& j : manifest["runs"])
   {
     const std::string uuid = j.at("uuid").get<std::string>();
+    io.partition = uuid;
     IO::Dictionary dictionary;
     dictionary.load(j.at("metadata_descriptors"));
     IO::TableWriter queries(staged.path / "queries.parquet", querySchema(), io);
@@ -972,7 +968,6 @@ try
       IO::validateParents(input, reference, dictionary, io);
       copyTable(reference);
     }
-    ++io.partition;
   }
   if (policy == ID::InferencePolicy::DISCARD) manifest["inference"] = Json::array();
   else

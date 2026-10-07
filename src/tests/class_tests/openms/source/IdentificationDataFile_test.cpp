@@ -3,12 +3,16 @@
 // $Maintainer: Timo Sachsenberg $
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
+#include <arrow/api.h>
+#include <arrow/io/file.h>
 #include <arrow/util/thread_pool.h>
 #include <bit>
 #include <filesystem>
 #include <fstream>
 #include <future>
 #include <limits>
+#include <parquet/arrow/reader.h>
+#include <parquet/arrow/writer.h>
 #include <parquet/file_reader.h>
 #include <stdexcept>
 
@@ -259,10 +263,88 @@ START_SECTION((shared row groups preserve run boundaries, metadata and nullable 
   TEST_EQUAL(loaded.getRuns()[0].getNumberOfMatches(), 0)
   TEST_EQUAL(loaded.getRuns()[2].getNumberOfMatches(), 3)
   TEST_EQUAL(loaded.getRuns()[3].getNumberOfMatches(), 3)
-  replaceText(fs::path(path) / "manifest.json", "\"partition\": 0", "\"partition\": 99");
+  // A slice must be declared by the run that owns its rows.
+  const auto first = data.getRuns()[0].getUuid();
+  replaceText(fs::path(path) / "manifest.json", "\"partition\": \"" + first + "\"", "\"partition\": \"" + data.getRuns()[1].getUuid() + "\"");
   TEST_EXCEPTION(Exception::InvalidValue, Native::scan(path, {}, {}, {}))
   fs::remove_all(path);
   fs::remove_all(filtered);
+}
+END_SECTION
+
+START_SECTION([EXTRA] shared tables record the owning run UUID and inference identifier as dictionary-encoded strings)
+{
+  ID data;
+  ID::ScoreDefinition score;
+  score.name = "score";
+  for (const auto* name : {"A", "B"})
+  {
+    auto& run = data.addRun(name);
+    run.setPrimaryScore(run.addScore(score));
+    const auto query = run.addIdentification(run.addSource({}), {});
+    ID::MatchData match;
+    match.representation = "PEPTIDE";
+    run.addMatch(query, match, {1.0});
+  }
+  const auto a = data.getRun("A").getUuid(), b = data.getRun("B").getUuid();
+  ID::InferenceResult result;
+  result.identifier = "pooled";
+  ID::InferenceInput input;
+  input.run_identifier = "A";
+  input.run_uuid = a;
+  result.inputs.push_back(input);
+  data.addInferenceResult(result);
+  std::string path;
+  NEW_TMP_FILE(path)
+  Native::store(path, data);
+  const auto read = [](const std::string& file) {
+    auto source = arrow::io::ReadableFile::Open(file).ValueOrDie();
+    return parquet::arrow::OpenFile(source, arrow::default_memory_pool()).ValueOrDie()->ReadTable().ValueOrDie();
+  };
+  const auto keys = [](const arrow::ChunkedArray& column) {
+    std::vector<std::string> values;
+    for (const auto& chunk : column.chunks())
+    {
+      const auto& encoded = static_cast<const arrow::DictionaryArray&>(*chunk);
+      for (int64_t row = 0; row < encoded.length(); ++row)
+        values.push_back(static_cast<const arrow::StringArray&>(*encoded.dictionary()).GetString(encoded.GetValueIndex(row)));
+    }
+    return values;
+  };
+  const auto key_type = arrow::dictionary(arrow::int32(), arrow::utf8());
+  const auto matches = read(path + "/matches.parquet");
+  const auto owner = matches->schema()->field(matches->num_columns() - 1);
+  TEST_EQUAL(owner->name(), "run_uuid")
+  TEST_TRUE(owner->type()->Equals(*key_type))
+  TEST_TRUE(keys(*matches->column(matches->num_columns() - 1)) == (std::vector<std::string> {a, b}))
+  const auto inputs = read(path + "/inputs.parquet");
+  TEST_EQUAL(inputs->schema()->field(inputs->num_columns() - 1)->name(), "inference_identifier")
+  TEST_TRUE(keys(*inputs->GetColumnByName("inference_identifier")) == std::vector<std::string> {"pooled"})
+  TEST_TRUE(inputs->schema()->GetFieldByName("run_uuid")->type()->Equals(*key_type))
+  TEST_TRUE(keys(*inputs->GetColumnByName("run_uuid")) == std::vector<std::string> {a})
+
+  // Plain string keys, as other writers may produce them, are accepted; rows of another run are not.
+  const auto rewrite = [&](const std::vector<std::string>& owners) {
+    arrow::StringBuilder builder;
+    for (const auto& value : owners)
+      TEST_TRUE(builder.Append(value).ok())
+    std::shared_ptr<arrow::Array> column;
+    TEST_TRUE(builder.Finish(&column).ok())
+    const auto index = matches->num_columns() - 1;
+    const auto table = matches->SetColumn(index, arrow::field("run_uuid", arrow::utf8(), false), std::make_shared<arrow::ChunkedArray>(column)).ValueOrDie();
+    auto sink = arrow::io::FileOutputStream::Open(path + "/matches.parquet").ValueOrDie();
+    TEST_TRUE(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), sink, table->num_rows(), parquet::default_writer_properties(),
+                                         parquet::ArrowWriterProperties::Builder().store_schema()->build())
+                .ok())
+    TEST_TRUE(sink->Close().ok())
+  };
+  rewrite({a, b});
+  ID loaded;
+  Native::load(path, loaded);
+  TEST_TRUE(loaded == data)
+  rewrite({a, a});
+  TEST_EXCEPTION(Exception::InvalidValue, Native::load(path, loaded))
+  fs::remove_all(path);
 }
 END_SECTION
 

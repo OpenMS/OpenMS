@@ -448,7 +448,7 @@ namespace
   }
   std::shared_ptr<arrow::Schema> inputsSchema()
   {
-    return arrow::schema({required("input_id", arrow::uint64()), required("run_uuid", arrow::utf8()), required("run_identifier", arrow::utf8()),
+    return arrow::schema({required("input_id", arrow::uint64()), required("run_uuid", keyType()), required("run_identifier", arrow::utf8()),
                           arrow::field("score_definition", arrow::uint32()), required("selection", arrow::utf8())});
   }
   std::shared_ptr<arrow::Schema> proteinsSchema()
@@ -657,7 +657,7 @@ Json writeInference(const std::filesystem::path& directory, const ID::InferenceR
     for (const auto& input : result.inputs)
     {
       append<arrow::UInt64Builder>(inputs.column(0), input_id);
-      appendText(inputs.column(1), input.run_uuid);
+      appendKey(inputs.column(1), input.run_uuid);
       appendText(inputs.column(2), input.run_identifier);
       if (input.score)
       {
