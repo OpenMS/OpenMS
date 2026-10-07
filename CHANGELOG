@@ -148,7 +148,10 @@ TOPP tools:
         -id_in than -in files are rejected.
     PercolatorAdapter:
       - FIX: With several -in files, the pin ScanNr is the scan number again (it was the input file
-        index) and spectrum references keep their native IDs. Inputs are told apart by file_origin.
+        index) and spectrum references keep their native IDs. Inputs are told apart by file_origin:
+        Percolator identifies a spectrum by spectrum file, scan number and precursor m/z (e.g. for
+        -post_processing_tdc), so the in-process backend numbers the spectrum files, and a pin file
+        with PSMs of several files has a FileName column (PercolatorInfile::getFileIdentifier).
     ProSE:
       - FIX: The MS2 intensity cutoff applied before normalization removes only peaks without
         intensity (zero or negative). It was the ThresholdMower default of 0.05 absolute, which
