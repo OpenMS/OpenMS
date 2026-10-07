@@ -431,7 +431,7 @@ START_SECTION((invalid configuration integers fail transactionally and detached 
 }
 END_SECTION
 
-START_SECTION((empty inference tables and optional parent catalogue have distinct representations))
+START_SECTION((empty inference tables and optional database sequences have distinct representations))
 {
   ID data;
   data.addRun("no catalogue");
@@ -472,7 +472,7 @@ START_SECTION((empty inference tables and optional parent catalogue have distinc
 }
 END_SECTION
 
-START_SECTION((streaming preservation validates live allocation counters and copied parent payloads))
+START_SECTION((streaming preservation validates live allocation counters and copied database sequence payloads))
 {
   ID data;
   auto& run = data.addRun("run");

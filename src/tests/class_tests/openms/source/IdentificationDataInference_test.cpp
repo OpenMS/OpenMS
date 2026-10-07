@@ -288,7 +288,7 @@ START_SECTION([EXTRA] legacy export never attaches a run to the search settings 
 }
 END_SECTION
 
-START_SECTION([EXTRA] an evidence - only run can share a later parent catalogue)
+START_SECTION([EXTRA] an evidence - only run can share later database sequences)
 {
   ID data;
   addRun(data, "A", "dbA", true);

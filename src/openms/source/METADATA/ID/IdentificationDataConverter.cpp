@@ -179,11 +179,11 @@ namespace
       }
     }
     // Reuse the checked protein adapter for inference and protein-only input runs.
-    auto parent_data = Adapter::fromLegacy(proteins, {});
+    auto protein_data = Adapter::fromLegacy(proteins, {});
     for (const auto& protein : proteins)
       if (std::none_of(runs.begin(), runs.end(), [&](const auto& entry) { return entry.first.first == protein.getIdentifier(); }))
         imported.merge(Adapter::fromLegacy({protein}, {}));
-    for (auto inference : parent_data.getInferenceResults())
+    for (auto inference : protein_data.getInferenceResults())
     {
       std::vector<ID::InferenceInput> inputs;
       for (const auto& input : inference.inputs)
@@ -406,13 +406,14 @@ void IdentificationDataConverter::exportIDs(const ID& data,
   {
     auto processing = Adapter::settingsToLegacy(run);
     processing.setIdentifier(run.getIdentifier());
+    if (run.getDatabases().size() > 1) reportLegacyLosses({"Legacy export can name only one database per run: " + run.getIdentifier()});
     // Without an inference result, the legacy run takes the primary score as its score type, as search engines write it.
     if (run.getPrimaryScore())
     {
       processing.setScoreType(run.getScoreDefinition(*run.getPrimaryScore()).name);
       processing.setHigherScoreBetter(run.getScoreDefinition(*run.getPrimaryScore()).higher_better);
     }
-    std::vector<ProteinHit> parents;
+    std::vector<ProteinHit> database_sequences;
     if (run.getDatabaseSequences())
       for (const auto& sequence : *run.getDatabaseSequences())
       {
@@ -430,9 +431,9 @@ void IdentificationDataConverter::exportIDs(const ID& data,
         hit.setTargetDecoyType(sequence.target_decoy == ID::TargetDecoy::DECOY    ? ProteinHit::TargetDecoyType::DECOY
                                : sequence.target_decoy == ID::TargetDecoy::TARGET ? ProteinHit::TargetDecoyType::TARGET
                                                                                   : ProteinHit::TargetDecoyType::UNKNOWN);
-        parents.push_back(std::move(hit));
+        database_sequences.push_back(std::move(hit));
       }
-    processing.setHits(parents);
+    processing.setHits(database_sequences);
     for (const auto& inference : data.getInferenceResults())
       if (std::any_of(inference.inputs.begin(), inference.inputs.end(), [&](const auto& input) { return input.run_uuid == run.getUuid(); }))
       {
@@ -584,7 +585,7 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
   }
   MzTab result;
   MzTabMetaData metadata;
-  MzTabNucleicAcidSectionRows parents;
+  MzTabNucleicAcidSectionRows nucleic_acids;
   MzTabOligonucleotideSectionRows oligos;
   MzTabOSMSectionRows matches;
   Size file = 0, software = 0;
@@ -620,7 +621,7 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
         row.search_engine.set({engine});
         if (sequence.metaValueExists("coverage")) row.coverage.set(static_cast<double>(sequence.getMetaValue("coverage")));
         row.opt_.push_back({"opt_sequence", MzTabString(sequence.sequence)});
-        parents.push_back(std::move(row));
+        nucleic_acids.push_back(std::move(row));
       }
     for (const auto& source : run.getSources())
     {
@@ -693,7 +694,7 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
     }
   }
   result.setMetaData(metadata);
-  result.setNucleicAcidSectionRows(parents);
+  result.setNucleicAcidSectionRows(nucleic_acids);
   result.setOligonucleotideSectionRows(oligos);
   result.setOSMSectionRows(matches);
   return result;

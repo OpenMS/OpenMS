@@ -1436,7 +1436,7 @@ namespace OpenMS
     static void keepBestMatchPerObservation(IdentificationData& data, const IdentificationData::ScoreDefinition& score);
     /// Remove missing scores and values worse than the inclusive cutoff.
     static void filterObservationMatchesByScore(IdentificationData& data, const IdentificationData::ScoreDefinition& score, double cutoff);
-    /// Remove exclusively decoy matches and their decoy parent evidence; preserve inference.
+    /// Remove decoy-only matches, decoy database sequences and the evidence that refers to them; preserve inference.
     static void removeDecoys(IdentificationData& data);
 
     // Specific overloads for PeptideIdentificationList to ensure correct template resolution

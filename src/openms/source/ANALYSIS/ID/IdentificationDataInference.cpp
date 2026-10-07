@@ -42,8 +42,8 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
   data.validate();
   ID::InferenceResult result;
   result.identifier = identifier;
-  std::map<ID::QualifiedAccession, ProteinHit> parent_hits;
-  std::set<ID::QualifiedAccession> referenced_parents;
+  std::map<ID::QualifiedAccession, ProteinHit> protein_hits;
+  std::set<ID::QualifiedAccession> referenced_proteins;
   std::set<std::string> selected_runs;
   std::optional<std::string> calibration;
   for (const auto& input : inputs)
@@ -84,48 +84,48 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
                                                                              : ProteinHit::TargetDecoyType::UNKNOWN;
         if (hit.getTargetDecoyType() != state) hit.setTargetDecoyType(state);
         const auto identity = run->qualify(sequence.database, sequence.accession);
-        const auto existing = parent_hits.find(identity);
-        if (existing != parent_hits.end() && existing->second != hit)
+        const auto existing = protein_hits.find(identity);
+        if (existing != protein_hits.end() && existing->second != hit)
           invalidInference("Conflicting protein definitions across inference input runs: " + sequence.accession);
-        parent_hits[identity] = std::move(hit);
+        protein_hits[identity] = std::move(hit);
       }
     }
     for (const auto& source : run->getSources())
       for (const auto& query : source.identifications)
         for (const auto& match : query.getMatches())
           for (const auto& evidence : match.sequence_evidence)
-            referenced_parents.insert(run->qualify(evidence.database, evidence.accession));
+            referenced_proteins.insert(run->qualify(evidence.database, evidence.accession));
   }
   // Resolve missing catalogue entries only after every run's catalogue was read.
   // An earlier run with evidence alone must not conflict with a later full record.
-  for (const auto& identity : referenced_parents)
+  for (const auto& identity : referenced_proteins)
   {
-    if (! parent_hits.contains(identity))
+    if (! protein_hits.contains(identity))
     {
       ProteinHit hit;
       hit.setAccession(identity.accession);
-      parent_hits.emplace(identity, std::move(hit));
+      protein_hits.emplace(identity, std::move(hit));
     }
   }
   // The legacy algorithm keys proteins by accession. Give cross-database collisions
   // unique aliases while retaining every qualified identity beside the output.
   std::map<std::string, Size> alias_counts;
-  for (const auto& [identity, hit] : parent_hits)
+  for (const auto& [identity, hit] : protein_hits)
     ++alias_counts[identity.accession];
   std::set<std::string> used_aliases;
-  for (const auto& [identity, hit] : parent_hits)
+  for (const auto& [identity, hit] : protein_hits)
     used_aliases.insert(identity.accession);
   std::map<ID::QualifiedAccession, std::string> aliases;
   std::vector<ProteinHit> proteins;
   Size next_alias = 0;
-  for (auto& [identity, hit] : parent_hits)
+  for (auto& [identity, hit] : protein_hits)
   {
     auto alias = identity.accession;
     if (alias_counts[alias] > 1)
     {
       do
       {
-        alias = "__qualified_parent_" + std::to_string(next_alias++);
+        alias = "__qualified_accession_" + std::to_string(next_alias++);
       } while (used_aliases.contains(alias));
       used_aliases.insert(alias);
     }
@@ -162,10 +162,10 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
           for (Size i = 0; i < evidence.size(); ++i)
             evidence[i].setProteinAccession(aliases.at(run.qualify(match.sequence_evidence[i].database, match.sequence_evidence[i].accession)));
           hit.setPeptideEvidences(evidence);
-          std::set<std::string> unique_parents;
+          std::set<std::string> unique_proteins;
           for (const auto& item : evidence)
-            unique_parents.insert(item.getProteinAccession());
-          hit.setMetaValue("protein_references", unique_parents.size() == 1 ? "unique" : "non-unique");
+            unique_proteins.insert(item.getProteinAccession());
+          hit.setMetaValue("protein_references", unique_proteins.size() == 1 ? "unique" : "non-unique");
           peptide_id.insertHit(std::move(hit));
         }
         if (! peptide_id.getHits().empty()) peptides.push_back(std::move(peptide_id));
@@ -195,12 +195,12 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
     const auto& hit = query.getHits().front();
     const auto key = std::make_pair(separate_modifications ? hit.getSequence().toString() : hit.getSequence().toUnmodifiedString(),
                                     separate_charges ? hit.getCharge() : 0);
-    std::set<std::string> parents;
+    std::set<std::string> proteins;
     for (const auto& evidence : hit.getPeptideEvidences())
-      parents.insert(evidence.getProteinAccession());
-    const auto [existing, inserted] = evidence_contract.emplace(key, parents);
-    if (! inserted && existing->second != parents)
-      invalidInference("Conflicting parent mappings for the same inference peptidoform; harmonize search evidence before pooling");
+      proteins.insert(evidence.getProteinAccession());
+    const auto [existing, inserted] = evidence_contract.emplace(key, proteins);
+    if (! inserted && existing->second != proteins)
+      invalidInference("Conflicting protein mappings for the same inference peptidoform; harmonize search evidence before pooling");
   }
   algorithm.run(peptides, result.proteins);
   ID::ScoreDefinition protein_score;

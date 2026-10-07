@@ -388,7 +388,7 @@ protein references after cleanup are also removed (default: false) (in)
       .def_static("filterObservationMatchesByScore", &OpenMS::IDFilter::filterObservationMatchesByScore, "data"_a, "score"_a, "cutoff"_a,
                   "Remove candidates without a value for the score or worse than the inclusive cutoff")
       .def_static("removeDecoys", &OpenMS::IDFilter::removeDecoys, "data"_a,
-                  "Remove decoy-only candidates and decoy parents (and their evidence); inference results are preserved")
+                  "Remove decoy-only candidates, decoy database sequences and the evidence that refers to them; inference results are preserved")
       .def_static(
         "keepBestPeptideHits",
         [](OpenMS::PeptideIdentificationList& peptides, bool strict) { return OpenMS::IDFilter::keepBestPeptideHits(peptides, strict); },

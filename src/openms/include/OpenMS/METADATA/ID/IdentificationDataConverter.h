@@ -15,7 +15,7 @@ namespace OpenMS
 {
 class FeatureMap;
 class ConsensusMap;
-/** @brief Explicit adapters for owning identifications, FASTA parents and map annotations. */
+/** @brief Explicit adapters for owning identifications, FASTA databases and map annotations. */
 class OPENMS_DLLAPI IdentificationDataConverter
 {
 public:

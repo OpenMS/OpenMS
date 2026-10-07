@@ -19,7 +19,7 @@ namespace OpenMS
   scores to posterior probabilities and calls BasicProteinInferenceAlgorithm once across
   all selected runs. Protein/group results and run-level input provenance are retained.
   The original matches and their search evidence remain unchanged. Repeated peptidoforms
-  must have consistent qualified parent mappings across inputs; conflicting mappings
+  must map to the same proteins (sequence evidence) across inputs; conflicting mappings
   are rejected. This is an in-memory algorithm.
   @ingroup Analysis_ID
 */

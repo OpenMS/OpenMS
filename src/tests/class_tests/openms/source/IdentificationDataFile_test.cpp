@@ -733,7 +733,7 @@ START_SECTION((scoreless catalog runs share the score columns of scored runs))
 }
 END_SECTION
 
-START_SECTION((empty datasets and absent parent catalogues remain distinct))
+START_SECTION((empty datasets and absent database sequences remain distinct))
 {
   ID empty;
   std::string directory;

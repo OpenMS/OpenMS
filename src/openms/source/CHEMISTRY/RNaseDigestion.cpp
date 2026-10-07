@@ -204,9 +204,9 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RNA digestion requires an oligonucleotide run");
     std::map<NASequence, DigestedOligo> candidates;
     if (run.getDatabaseSequences())
-      for (const auto& parent : *run.getDatabaseSequences())
+      for (const auto& entry : *run.getDatabaseSequences())
       {
-        NASequence rna = NASequence::fromString(parent.sequence);
+        NASequence rna = NASequence::fromString(entry.sequence);
         for (const auto& pos : getFragmentPositions_(rna, min_length, max_length))
         {
           NASequence fragment = rna.getSubsequence(pos.first, pos.second);
@@ -218,15 +218,15 @@ namespace OpenMS
           if (inserted)
           {
             candidate.sequence = fragment;
-            candidate.target_decoy = parent.target_decoy;
+            candidate.target_decoy = entry.target_decoy;
           }
-          else if (candidate.target_decoy == ID::TargetDecoy::UNKNOWN || parent.target_decoy == ID::TargetDecoy::UNKNOWN)
+          else if (candidate.target_decoy == ID::TargetDecoy::UNKNOWN || entry.target_decoy == ID::TargetDecoy::UNKNOWN)
             candidate.target_decoy = ID::TargetDecoy::UNKNOWN;
-          else if (candidate.target_decoy != parent.target_decoy)
+          else if (candidate.target_decoy != entry.target_decoy)
             candidate.target_decoy = ID::TargetDecoy::BOTH;
           ID::SequenceEvidence evidence;
-          evidence.database = parent.database;
-          evidence.accession = parent.accession;
+          evidence.database = entry.database;
+          evidence.accession = entry.accession;
           evidence.start = pos.first;
           evidence.end = end - 1;
           evidence.before = std::string(1, pos.first ? rna[pos.first - 1]->getCode()[0] : '[');

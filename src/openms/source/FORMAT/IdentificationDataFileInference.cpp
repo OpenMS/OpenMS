@@ -85,7 +85,7 @@ namespace
   { return arrow::struct_({required("database", arrow::utf8()), required("accession", arrow::utf8())}); }
   void appendIdentity(arrow::ArrayBuilder& builder, const ID::QualifiedAccession& identity)
   {
-    if (identity.accession.empty()) invalid("Empty qualified parent accession");
+    if (identity.accession.empty()) invalid("Empty qualified accession");
     auto& fields = beginStruct(builder);
     appendText(*fields.field_builder(0), identity.database);
     appendText(*fields.field_builder(1), identity.accession);
@@ -94,7 +94,7 @@ namespace
   {
     const auto& fields = structure(array, row);
     ID::QualifiedAccession identity {text(*fields.field(0), row), text(*fields.field(1), row)};
-    if (identity.accession.empty()) invalid("Empty qualified parent accession");
+    if (identity.accession.empty()) invalid("Empty qualified accession");
     return identity;
   }
   void appendAlias(arrow::ArrayBuilder& builder, const std::string& alias, const ID::InferenceResult& result, std::set<std::string>& emitted_aliases)
