@@ -109,8 +109,10 @@ Besides owning load and store, the API offers projected streaming scans (`scan`)
 enables a private Arrow thread pool per operation; the default is serial.
 
 The four-table `.idparquet` bundle of OpenMS 3.6 (psms, proteins, protein_groups, search_params)
-remains supported as a different layout of the same file type; `FileHandler` recognizes native
-bundles by their manifest.
+is still read and written by the legacy `FileHandler` overloads as a different layout of the same
+file type; `FileHandler` recognizes native bundles by their manifest. Compatibility with OpenMS 3.6
+is not a goal in either direction: the four-table layout will be dropped without an importer once
+`.idparquet` is written natively only, and OpenMS 3.6 does not need to read the new bundles.
 
 ## Feature and consensus maps
 
@@ -128,8 +130,7 @@ the legacy `PeptideIdentification`s they may also carry.
 Every link must resolve and linked features need distinct valid unique IDs; otherwise the export
 throws `Exception::InvalidValue`. Map bundles are also written to a temporary sibling directory; an
 existing bundle of the same kind or an empty directory is replaced, any other existing path is left
-alone. Maps without native identification data write neither part, and OpenMS 3.6 reads the
-extended bundles while ignoring the new parts.
+alone. Maps without native identification data write neither part.
 
 AccurateMassSearch writes its ID-format annotations (`-out_annotation *.featureparquet`) this way;
 unmatched masses are queries without candidates.

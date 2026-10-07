@@ -43,7 +43,6 @@ OpenMS Library:
     (identifications/, a native bundle) and the per-feature links (identification_links.parquet,
     keyed by feature unique ID). Bundles are written to a temporary sibling directory and published
     when complete; an existing bundle or empty directory is replaced, anything else is left alone.
-    OpenMS 3.6 reads these bundles and ignores the new parts.
   - ProteinIdentification::setScoreSoftware()/getScoreSoftware() record the tool that produced a
     derived PSM score (stored as ScoreSoftware:<score type> search parameters). Score definitions
     imported from idXML use that producer instead of the search engine, so posterior error
