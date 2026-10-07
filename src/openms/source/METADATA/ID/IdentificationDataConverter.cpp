@@ -75,15 +75,10 @@ namespace
         auto& run = imported.addRun(name, kind);
         auto metadata = *original->second;
         metadata.setIdentifier(name);
-        auto configuration = metadata;
-        configuration.getHits().clear();
-        configuration.getProteinGroups().clear();
-        configuration.getIndistinguishableProteins().clear();
+        run.setSettings(Adapter::settingsFromLegacy(metadata));
         // The files of the legacy run become the sources of the run.
         StringList files;
-        configuration.getPrimaryMSRunPath(files);
-        configuration.removeMetaValue("spectra_data");
-        run.setProcessingMetadata(configuration);
+        metadata.getPrimaryMSRunPath(files);
         Adapter::addLegacySources(run, files);
         std::vector<ID::ParentRecord> parents;
         for (const auto& hit : metadata.getHits())
@@ -163,7 +158,7 @@ namespace
         for (const auto& old : hit.getPeptideEvidences())
         {
           ID::ParentEvidence evidence;
-          evidence.parent = {run.getProcessingMetadata().getSearchParameters().db, old.getProteinAccession()};
+          evidence.parent = {run.getSettings().search.db, old.getProteinAccession()};
           if (old.getStart() >= 0) evidence.start = old.getStart();
           if (old.getEnd() >= 0) evidence.end = old.getEnd();
           evidence.before = std::string(1, old.getAABefore());
@@ -400,8 +395,14 @@ void IdentificationDataConverter::exportIDs(const ID& data,
   PeptideIdentificationList added_peptides;
   for (const auto& run : data.getRuns())
   {
-    auto processing = run.getProcessingMetadata();
+    auto processing = Adapter::settingsToLegacy(run.getSettings());
     processing.setIdentifier(run.getIdentifier());
+    // Without an inference result, the legacy run takes the primary score as its score type, as search engines write it.
+    if (run.getPrimaryScore())
+    {
+      processing.setScoreType(run.getScoreDefinition(*run.getPrimaryScore()).name);
+      processing.setHigherScoreBetter(run.getScoreDefinition(*run.getPrimaryScore()).higher_better);
+    }
     std::vector<ProteinHit> parents;
     if (run.getParents())
       for (const auto& parent : *run.getParents())
@@ -523,7 +524,7 @@ void IdentificationDataConverter::exportIDs(const ID& data,
 void IdentificationDataConverter::importSequences(ID::Run& run, const std::vector<FASTAFile::FASTAEntry>& fasta, const std::string& decoy_pattern)
 {
   std::vector<ID::ParentRecord> parents = run.getParents().value_or(std::vector<ID::ParentRecord> {});
-  const auto& database = run.getProcessingMetadata().getSearchParameters().db;
+  const auto& database = run.getSettings().search.db;
   for (const auto& entry : fasta)
   {
     ID::ParentRecord parent;
@@ -581,10 +582,10 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
   {
     if (run.getMoleculeKind() != ID::MoleculeKind::OLIGONUCLEOTIDE)
       invalid("Use mzTab-M for compounds; mixed peptide/RNA export requires separate outputs");
-    const auto& processing = run.getProcessingMetadata();
+    const auto& settings = run.getSettings();
     MzTabSoftwareMetaData sw;
-    sw.software.setName(processing.getSearchEngine());
-    sw.software.setValue(processing.getSearchEngineVersion());
+    sw.software.setName(settings.software);
+    sw.software.setValue(settings.software_version);
     metadata.software[++software] = sw;
     for (Size i = 0; i < run.getScoreDefinitions().size(); ++i)
     {
@@ -602,8 +603,8 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
         row.accession.set(parent.identity.accession);
         row.description.set(parent.description);
         MzTabParameter engine;
-        engine.setName(processing.getSearchEngine());
-        engine.setValue(processing.getSearchEngineVersion());
+        engine.setName(settings.software);
+        engine.setValue(settings.software_version);
         row.search_engine.set({engine});
         if (parent.metaValueExists("coverage")) row.coverage.set(static_cast<double>(parent.getMetaValue("coverage")));
         row.opt_.push_back({"opt_sequence", MzTabString(parent.sequence)});
@@ -643,8 +644,8 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
           for (Size i = 0; i < match.getScoreValues().size(); ++i)
             if (! std::isnan(match.getScoreValues()[i])) row.search_engine_score[i + 1].set(match.getScoreValues()[i]);
           MzTabParameter engine;
-          engine.setName(processing.getSearchEngine());
-          engine.setValue(processing.getSearchEngineVersion());
+          engine.setName(settings.software);
+          engine.setValue(settings.software_version);
           row.search_engine.set({engine});
           if (match.adduct) row.opt_.push_back({"opt_adduct", MzTabString(match.adduct->getName())});
           if (match.metaValueExists("isotope_offset"))
@@ -661,8 +662,8 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
               parent_ids.insert(parent.parent);
             oligo.unique.set(parent_ids.size() == 1);
             MzTabParameter engine;
-            engine.setName(processing.getSearchEngine());
-            engine.setValue(processing.getSearchEngineVersion());
+            engine.setName(settings.software);
+            engine.setValue(settings.software_version);
             oligo.search_engine.set({engine});
             oligo.pre.set(evidence.before == "[" ? "-" : evidence.before);
             oligo.post.set(evidence.after == "]" ? "-" : evidence.after);

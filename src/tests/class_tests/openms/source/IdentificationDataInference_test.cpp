@@ -21,11 +21,10 @@ namespace
 void addRun(ID& data, const std::string& name, const std::string& database, bool pep, const std::string& file = "")
 {
   auto& run = data.addRun(name);
-  ProteinIdentification processing;
-  processing.setIdentifier(name);
-  processing.setSearchEngine("engine");
-  processing.getSearchParameters().db = database;
-  run.setProcessingMetadata(processing);
+  ID::RunSettings settings;
+  settings.software = "engine";
+  settings.search.db = database;
+  run.setSettings(settings);
   ID::ScoreDefinition definition;
   definition.name = pep ? "PEP" : "Posterior Probability";
   definition.higher_better = ! pep;
@@ -226,7 +225,7 @@ START_SECTION([EXTRA] legacy export writes pooled inference as one merged protei
   const auto& run = imported.getRuns()[0];
   TEST_EQUAL(run.getSources()[0].file.path, "a.mzML")
   TEST_EQUAL(run.getSources()[1].file.path, "b.mzML")
-  TEST_EQUAL(run.getProcessingMetadata().metaValueExists("identification:inference:parent_score:name"), false)
+  TEST_EQUAL(run.getSettings().metaValueExists("identification:inference:parent_score:name"), false)
   const auto& restored = imported.getInferenceResults()[0];
   TEST_TRUE(restored.parent_score == pooled.parent_score)
   TEST_TRUE(restored.group_score == pooled.group_score)
@@ -265,9 +264,9 @@ START_SECTION([EXTRA] legacy export never attaches a run to the search settings 
   ID close;
   addRun(close, "A", "db.fasta", true, "a.mzML");
   addRun(close, "B", "db.fasta", true, "b.mzML");
-  auto processing = close.getRun("B").getProcessingMetadata();
-  processing.getSearchParameters().missed_cleavages = 2;
-  close.getRun("B").setProcessingMetadata(processing);
+  auto settings = close.getRun("B").getSettings();
+  settings.search.missed_cleavages = 2;
+  close.getRun("B").setSettings(settings);
   close.addInferenceResult(Inference::infer(close, inputs(close), "pooled"));
   TEST_EXCEPTION(Exception::InvalidParameter, Adapter::toLegacy(close))
   const auto merged = Adapter::toLegacy(close, options);

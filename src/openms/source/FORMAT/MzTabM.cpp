@@ -146,9 +146,9 @@ namespace OpenMS
     }
     for (const auto& run : id_data.getRuns())
     {
-      const auto& processing = run.getProcessingMetadata();
-      Software software(processing.getSearchEngine(), processing.getSearchEngineVersion());
-      software.addMetaValues(processing);
+      const auto& settings = run.getSettings();
+      Software software(settings.software, settings.software_version);
+      software.addMetaValues(settings);
       softwares.push_back(std::move(software));
     }
     std::stable_sort(softwares.begin(), softwares.end(), [](const auto& left, const auto& right) {
@@ -224,7 +224,7 @@ namespace OpenMS
       for (auto action : processing.getProcessingActions())
         action_software_name[action].push_back(processing.getSoftware().getName());
     for (const auto& run : id_data.getRuns())
-      action_software_name[DataProcessing::IDENTIFICATION].push_back(run.getProcessingMetadata().getSearchEngine());
+      action_software_name[DataProcessing::IDENTIFICATION].push_back(run.getSettings().software);
 
     // set quantification method based on OpenMS Tool(s)
     // current only FeatureFinderMetabo is used
@@ -348,7 +348,7 @@ namespace OpenMS
 
     for (const auto& run : id_data.getRuns())
     {
-      const auto& db = run.getProcessingMetadata().getSearchParameters();
+      const auto& db = run.getSettings().search;
       if (db.db.contains("custom")) // custom database
       {
         meta_db.prefix.setNull(true);

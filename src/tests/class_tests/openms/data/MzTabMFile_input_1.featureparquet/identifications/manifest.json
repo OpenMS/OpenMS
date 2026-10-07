@@ -10,14 +10,10 @@
       "identifier": "OMS:2",
       "uuid": "77e33376-6d94-4774-adc4-a4bf2a87dce0",
       "molecule_kind": 2,
-      "processing": {
-        "identifier": "OMS:2",
-        "search_engine": "AccurateMassSearch",
-        "search_engine_version": "2.7.0-pre-idf-ams-2021-12-20",
+      "settings": {
+        "software": "AccurateMassSearch",
+        "software_version": "2.7.0-pre-idf-ams-2021-12-20",
         "date": "2021-12-20T19:51:48.000",
-        "score_type": "",
-        "higher_better": true,
-        "significance_threshold_bits": 0,
         "metadata": [
           {
             "name": "legacy:processing:140397785012080:software",

@@ -4,6 +4,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <bit>
 #include <filesystem>
 #include <fstream>
@@ -70,12 +71,10 @@ ProteinIdentification processing()
   return result;
 }
 
-/// The same values as processing() for a run, whose files are its sources rather than 'spectra_data'.
-ProteinIdentification runProcessing()
+/// The run settings of processing(): its search engine, date, search parameters and metadata.
+ID::RunSettings runSettings()
 {
-  auto result = processing();
-  result.removeMetaValue("spectra_data");
-  return result;
+  return IdentificationDataAdapter::settingsFromLegacy(processing());
 }
 
 ResidueModification modification()
@@ -288,7 +287,7 @@ START_SECTION((typed pooled inference preserves complete protein values, group a
 {
   ID data;
   auto& run = data.addRun("run with processing");
-  run.setProcessingMetadata(runProcessing());
+  run.setSettings(runSettings());
   ID::ParentRecord parent;
   parent.identity = {"db", "parent A"};
   parent.target_decoy = ID::TargetDecoy::BOTH;
@@ -323,7 +322,7 @@ START_SECTION((typed pooled inference preserves complete protein values, group a
     TEST_EQUAL(result.inputs[i].selection, input.inputs[i].selection)
   }
 
-  TEST_TRUE(loaded.getRun(run.getIdentifier()).getProcessingMetadata() == run.getProcessingMetadata())
+  TEST_TRUE(loaded.getRun(run.getIdentifier()).getSettings() == run.getSettings())
   const auto& parents = *loaded.getRun(run.getIdentifier()).getParents();
   TEST_EQUAL(parents.size(), 1)
   TEST_TRUE(parents[0].identity == parent.identity)
@@ -399,7 +398,7 @@ END_SECTION
 START_SECTION((invalid configuration integers fail transactionally and detached aliases are explicit errors))
 {
   ID data;
-  data.addRun("run").setProcessingMetadata(runProcessing());
+  data.addRun("run").setSettings(runSettings());
   std::string path;
   NEW_TMP_FILE(path)
   RemoveDirectory cleanup {path};

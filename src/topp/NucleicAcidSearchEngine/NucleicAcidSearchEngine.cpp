@@ -981,21 +981,18 @@ protected:
     hyperscore.name = "hyperscore";
     hyperscore.higher_better = true;
     result_run.setPrimaryScore(result_run.addScore(hyperscore));
-    ProteinIdentification processing;
-    processing.setIdentifier("NASE");
-    processing.setSearchEngine(toolName_());
-    processing.setSearchEngineVersion(test_mode_ ? "test" : version_);
-    processing.setHigherScoreBetter(true);
-    DateTime processing_time = DateTime::now();
-    if (test_mode_) processing_time.set("1999-12-31 23:59:59");
-    processing.setDateTime(processing_time);
+    IdentificationData::RunSettings settings;
+    settings.software = toolName_();
+    settings.software_version = test_mode_ ? "test" : version_;
+    settings.date = DateTime::now();
+    if (test_mode_) settings.date.set("1999-12-31 23:59:59");
     // the raw files behind the mzML input ("spectra_data_raw" in idXML); the mzML itself is the source of the run
     StringList raw_files;
     spectra.getPrimaryMSRunPath(raw_files);
-    if (! raw_files.empty()) processing.setPrimaryMSRunPath(raw_files, true);
-    auto& parameters = processing.getSearchParameters();
+    if (! raw_files.empty()) settings.setMetaValue("spectra_data_raw", raw_files);
+    auto& parameters = settings.search;
     parameters.charges = ListUtils::concatenate(search_param.charges, ",");
-    parameters.mass_type = use_avg_mass ? ProteinIdentification::PeakMassType::AVERAGE : ProteinIdentification::PeakMassType::MONOISOTOPIC;
+    parameters.mass_type = use_avg_mass ? SearchParameters::PeakMassType::AVERAGE : SearchParameters::PeakMassType::MONOISOTOPIC;
     parameters.precursor_mass_tolerance = search_param.precursor_mass_tolerance;
     parameters.precursor_mass_tolerance_ppm = search_param.precursor_tolerance_ppm;
     parameters.fragment_mass_tolerance = search_param.fragment_mass_tolerance;
@@ -1004,7 +1001,7 @@ protected:
     parameters.variable_modifications.assign(search_param.variable_mods.begin(), search_param.variable_mods.end());
     parameters.setMetaValue("rna_min_length", static_cast<unsigned int>(search_param.min_length));
     parameters.setMetaValue("rna_max_length", static_cast<unsigned int>(search_param.max_length));
-    result_run.setProcessingMetadata(processing);
+    result_run.setSettings(settings);
 
     // get digested sequences:
     std::string decoy_pattern = getStringOption_("fdr:decoy_pattern");
@@ -1018,7 +1015,7 @@ protected:
       parameters.db = in_db;
       parameters.missed_cleavages = search_param.missed_cleavages;
       parameters.setMetaValue("rna_enzyme", enzyme_name);
-      result_run.setProcessingMetadata(processing);
+      result_run.setSettings(settings);
 
       RNaseDigestion digestor;
       digestor.setEnzyme(search_param.digestion_enzyme);
@@ -1041,11 +1038,11 @@ protected:
       {
         IdentificationData catalog;
         auto& catalog_run = catalog.addRun("digestion", IdentificationData::MoleculeKind::OLIGONUCLEOTIDE);
-        auto catalog_processing = processing;
-        catalog_processing.setMetaValue("identification:catalog", "true");
+        auto catalog_settings = settings;
+        catalog_settings.setMetaValue("identification:catalog", "true");
         // the catalog comes from the database, not from the spectra
-        catalog_processing.removeMetaValue("spectra_data_raw");
-        catalog_run.setProcessingMetadata(catalog_processing);
+        catalog_settings.removeMetaValue("spectra_data_raw");
+        catalog_run.setSettings(catalog_settings);
         catalog_run.setParents(result_run.getParents());
         IdentificationData::SourceFile database_source;
         database_source.path = in_db;
@@ -1077,11 +1074,11 @@ protected:
       const auto& catalog_run = catalog.getRuns().front();
       result_run.setParents(catalog_run.getParents());
       // the digestion settings come with the digest
-      const auto& digestion = catalog_run.getProcessingMetadata().getSearchParameters();
+      const auto& digestion = catalog_run.getSettings().search;
       parameters.db = digestion.db;
       parameters.missed_cleavages = digestion.missed_cleavages;
       if (digestion.metaValueExists("rna_enzyme")) parameters.setMetaValue("rna_enzyme", digestion.getMetaValue("rna_enzyme"));
-      result_run.setProcessingMetadata(processing);
+      result_run.setSettings(settings);
       for (const auto& source : catalog_run.getSources())
         for (const auto& query : source.identifications)
           for (const auto& match : query.getMatches())

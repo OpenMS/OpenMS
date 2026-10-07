@@ -327,32 +327,32 @@ START_SECTION((editing mixed optional adducts preserves identities scores and se
 }
 END_SECTION
 
-START_SECTION((processing metadata remains owned through copy move and replacement))
+START_SECTION((run settings remain owned through copy move and replacement))
 {
   ID::Run run("search");
-  ProteinIdentification metadata;
-  metadata.setSearchEngine("original");
-  run.setProcessingMetadata(metadata);
+  ID::RunSettings settings;
+  settings.software = "original";
+  run.setSettings(settings);
   ID::Run copy(run);
   TEST_TRUE(copy == run)
-  metadata.setSearchEngine("replacement");
-  copy.setProcessingMetadata(metadata);
-  TEST_EQUAL(run.getProcessingMetadata().getSearchEngine(), "original")
-  TEST_EQUAL(copy.getProcessingMetadata().getSearchEngine(), "replacement")
+  settings.software = "replacement";
+  copy.setSettings(settings);
+  TEST_EQUAL(run.getSettings().software, "original")
+  TEST_EQUAL(copy.getSettings().software, "replacement")
   ID::Run moved(std::move(copy));
-  TEST_EQUAL(moved.getProcessingMetadata().getSearchEngine(), "replacement")
-  copy.setProcessingMetadata(run.getProcessingMetadata());
-  TEST_EQUAL(copy.getProcessingMetadata().getSearchEngine(), "original")
+  TEST_EQUAL(moved.getSettings().software, "replacement")
+  copy.setSettings(run.getSettings());
+  TEST_EQUAL(copy.getSettings().software, "original")
   ID::Run again(run);
   TEST_TRUE(again == run)
-  again.setProcessingMetadata(again.getProcessingMetadata());
+  again.setSettings(again.getSettings());
   TEST_TRUE(again == run)
   // The files of a run are its sources; only the raw files behind them may be listed here.
-  metadata.setPrimaryMSRunPath({"raw.raw"}, true);
-  again.setProcessingMetadata(metadata);
-  metadata.setPrimaryMSRunPath({"sample.mzML"});
-  TEST_EXCEPTION(Exception::InvalidValue, again.setProcessingMetadata(metadata))
-  TEST_EQUAL(again.getProcessingMetadata().metaValueExists("spectra_data_raw"), true)
+  settings.setMetaValue("spectra_data_raw", StringList {"raw.raw"});
+  again.setSettings(settings);
+  settings.setMetaValue("spectra_data", StringList {"sample.mzML"});
+  TEST_EXCEPTION(Exception::InvalidValue, again.setSettings(settings))
+  TEST_EQUAL(again.getSettings().metaValueExists("spectra_data_raw"), true)
   // Runs are edited in place; a copy can never be written back over a run.
   static_assert(! std::is_copy_assignable_v<ID::Run> && ! std::is_move_assignable_v<ID::Run>);
 }

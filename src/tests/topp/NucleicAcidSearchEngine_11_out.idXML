@@ -7,7 +7,7 @@
 				<UserParam type="string" name="rna_enzyme" value="no cleavage"/>
 	</SearchParameters>
 	<IdentificationRun date="2019-04-18T16:00:33" search_engine="NucleicAcidSearchEngine" search_engine_version="test" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+		<ProteinIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="dme-let-7-5p" score="0.0" coverage="100.0" sequence="UGAGGUAGUAGGUUGUAUAGU" >
 				<UserParam type="string" name="Description" value="MIMAT0000396 Drosophila melanogaster let-7-5p"/>
 				<UserParam type="string" name="target_decoy" value="target"/>

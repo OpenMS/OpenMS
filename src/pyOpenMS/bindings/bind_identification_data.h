@@ -302,9 +302,8 @@ void bindRunApi(Class& cls, Get get)
   cls.def("getIdentifier", [get](Self& self) { return get(self).getIdentifier(); })
     .def("getUuid", [get](Self& self) { return get(self).getUuid(); })
     .def("getMoleculeKind", [get](Self& self) { return get(self).getMoleculeKind(); })
-    .def("getProcessingMetadata", [get](Self& self) { return OpenMS::ProteinIdentification(get(self).getProcessingMetadata()); })
-    .def("setProcessingMetadata", [get](Self& self, const OpenMS::ProteinIdentification& metadata) { get(self).setProcessingMetadata(metadata); },
-         nb::arg("metadata"))
+    .def("getSettings", [get](Self& self) { return get(self).getSettings(); })
+    .def("setSettings", [get](Self& self, const ID::RunSettings& settings) { get(self).setSettings(settings); }, nb::arg("settings"))
     .def("getParents", [get](Self& self) { return get(self).getParents(); })
     .def("setParents", [get](Self& self, std::optional<std::vector<ID::ParentRecord>> parents) { get(self).setParents(std::move(parents)); },
          nb::arg("parents"))
@@ -446,6 +445,11 @@ inline void bind(nb::module_& m)
   field(scoredefinition, "parameters", &ID::ScoreDefinition::parameters);
   field(scoredefinition, "calibration", &ID::ScoreDefinition::calibration);
   field(scoredefinition, "aggregation", &ID::ScoreDefinition::aggregation);
+  auto runsettings = valueClass<ID::RunSettings, OpenMS::MetaInfoInterface>(data, "RunSettings");
+  field(runsettings, "software", &ID::RunSettings::software);
+  field(runsettings, "software_version", &ID::RunSettings::software_version);
+  field(runsettings, "date", &ID::RunSettings::date);
+  field(runsettings, "search", &ID::RunSettings::search);
   auto sourcefile = valueClass<ID::SourceFile, OpenMS::MetaInfoInterface>(data, "SourceFile");
   field(sourcefile, "identifier", &ID::SourceFile::identifier);
   field(sourcefile, "path", &ID::SourceFile::path);

@@ -9,14 +9,10 @@
       "identifier": "OMSSA_2009-11-17T11:11:29_5013881264840086984",
       "uuid": "fe09e373-d911-4d28-aae4-286cdcda102b",
       "molecule_kind": 0,
-      "processing": {
-        "identifier": "OMSSA_2009-11-17T11:11:29_5013881264840086984",
-        "search_engine": "OMSSA",
-        "search_engine_version": "2.1.4",
+      "settings": {
+        "software": "OMSSA",
+        "software_version": "2.1.4",
         "date": "2009-11-17T11:11:29.000",
-        "score_type": "FDR",
-        "higher_better": false,
-        "significance_threshold_bits": 0,
         "metadata": [],
         "search_parameters": {
           "db": "18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta",

@@ -670,9 +670,9 @@ START_SECTION((scoreless catalog runs share the score columns of scored runs))
     const bool catalog = name != "search";
     if (catalog)
     {
-      ProteinIdentification processing;
-      processing.setMetaValue("identification:catalog", "true");
-      run.setProcessingMetadata(processing);
+      ID::RunSettings settings;
+      settings.setMetaValue("identification:catalog", "true");
+      run.setSettings(settings);
     }
     else
       run.setPrimaryScore(run.addScore(definition));

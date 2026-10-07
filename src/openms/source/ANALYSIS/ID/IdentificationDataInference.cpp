@@ -60,7 +60,7 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
     if (calibration && *calibration != definition.calibration)
       invalidInference("Input score calibration provenance differs; calibrate comparable scores before pooling");
     calibration = definition.calibration;
-    if (result.inputs.empty()) result.proteins = run->getProcessingMetadata();
+    if (result.inputs.empty()) result.proteins = IdentificationDataAdapter::settingsToLegacy(run->getSettings());
     ID::InferenceInput provenance;
     provenance.run_identifier = run->getIdentifier();
     provenance.run_uuid = run->getUuid();

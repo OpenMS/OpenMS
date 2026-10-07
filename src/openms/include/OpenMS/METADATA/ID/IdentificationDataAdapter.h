@@ -94,6 +94,16 @@ public:
                                                       MissingLinkPolicy policy);
 
   /**
+    @brief Run settings from a legacy protein run: search engine and version, date, search parameters and metadata
+
+    The protein values of the legacy run belong to an inference result, its identifier is the run name, and
+    its files ('spectra_data') are the sources of the run, so none of them are settings.
+  */
+  static IdentificationData::RunSettings settingsFromLegacy(const ProteinIdentification& proteins);
+  /// A legacy protein run without proteins, identifier and files, from run settings.
+  static ProteinIdentification settingsToLegacy(const IdentificationData::RunSettings& settings);
+
+  /**
     @name Legacy file lists
 
     A legacy protein run lists its files in 'spectra_data', and its peptide identifications point into

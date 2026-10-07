@@ -31,6 +31,9 @@ namespace
   [[noreturn]] void invalid(const std::string& message)
   { throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message); }
 
+  /// Settings metadata naming the legacy protein run of a run that import split off (e.g. "search:score_1").
+  const std::string LEGACY_RUN = "identification:legacy_run";
+
   void loss(Adapter::LegacyResult& result, const Adapter::ExportOptions& options, const std::string& message)
   {
     if (options.loss_policy == Adapter::LossPolicy::STRICT) invalid(message);
@@ -145,8 +148,15 @@ namespace
 
   ProteinIdentification originalParents(const ID::Run& run, Adapter::LegacyResult& result, const Adapter::ExportOptions& options)
   {
-    auto proteins = run.getProcessingMetadata();
-    if (proteins.getIdentifier().empty()) proteins.setIdentifier(run.getIdentifier());
+    auto proteins = Adapter::settingsToLegacy(run.getSettings());
+    proteins.setIdentifier(proteins.metaValueExists(LEGACY_RUN) ? proteins.getMetaValue(LEGACY_RUN).toString() : run.getIdentifier());
+    proteins.removeMetaValue(LEGACY_RUN);
+    // Without an inference result, the legacy run takes the primary score as its score type, as search engines write it.
+    if (run.getPrimaryScore())
+    {
+      proteins.setScoreType(run.getScoreDefinition(*run.getPrimaryScore()).name);
+      proteins.setHigherScoreBetter(run.getScoreDefinition(*run.getPrimaryScore()).higher_better);
+    }
     const auto files = Adapter::legacyFiles(run);
     if (! files.empty()) proteins.setPrimaryMSRunPath(files);
     if (run.getParents())
@@ -260,17 +270,17 @@ namespace
       if (first_input)
       {
         // A run only joins if its PSMs keep their search settings; otherwise it stays a separate protein run.
-        const auto& reference = joined.front()->getProcessingMetadata();
-        const auto& processing = run->getProcessingMetadata();
-        if (processing.getSearchEngine() != reference.getSearchEngine() || processing.getSearchEngineVersion() != reference.getSearchEngineVersion()
-            || ! processing.getSearchParameters().mergeable(reference.getSearchParameters(), "label-free"))
+        const auto& reference = joined.front()->getSettings();
+        const auto& settings = run->getSettings();
+        if (settings.software != reference.software || settings.software_version != reference.software_version
+            || ! settings.search.mergeable(reference.search, "label-free"))
         {
           loss(result, options,
                "Pooled inference input run " + run->getIdentifier() + " cannot share a legacy protein run with " + joined.front()->getIdentifier()
                  + "; it is exported without the inference result " + inference.identifier);
           continue;
         }
-        if (processing.getSearchParameters() != reference.getSearchParameters())
+        if (settings.search != reference.search)
           loss(result, options,
                "Pooled inference input run " + run->getIdentifier() + " differs in search settings from " + joined.front()->getIdentifier()
                  + "; the merged legacy protein run keeps those of " + joined.front()->getIdentifier());
@@ -412,15 +422,13 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
     }
     used_names.insert(name);
     auto& run = result.data.addRun(name);
-    auto configuration = original->second;
-    configuration.setHits({});
-    configuration.getProteinGroups().clear();
-    configuration.getIndistinguishableProteins().clear();
+    const auto& configuration = original->second;
+    auto settings = settingsFromLegacy(configuration);
+    if (name != original_id) settings.setMetaValue(LEGACY_RUN, original_id);
+    run.setSettings(settings);
     // The files of the legacy run become the sources of the run.
     StringList files;
     configuration.getPrimaryMSRunPath(files);
-    configuration.removeMetaValue("spectra_data");
-    run.setProcessingMetadata(configuration);
     addLegacySources(run, files);
     std::vector<ID::ParentRecord> parents;
     for (const auto& hit : original->second.getHits())
@@ -477,7 +485,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
       for (const auto& item_evidence : hit.getPeptideEvidences())
       {
         ID::ParentEvidence evidence;
-        evidence.parent = {run.getProcessingMetadata().getSearchParameters().db, item_evidence.getProteinAccession()};
+        evidence.parent = {run.getSettings().search.db, item_evidence.getProteinAccession()};
         if (item_evidence.getStart() != PeptideEvidence::UNKNOWN_POSITION)
         {
           if (item_evidence.getStart() < 0) invalid("Unsupported negative parent evidence start");
@@ -524,6 +532,29 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
   return result;
 }
 
+ID::RunSettings IdentificationDataAdapter::settingsFromLegacy(const ProteinIdentification& proteins)
+{
+  ID::RunSettings settings;
+  static_cast<MetaInfoInterface&>(settings) = proteins;
+  settings.removeMetaValue("spectra_data");
+  settings.software = proteins.getSearchEngine();
+  settings.software_version = proteins.getSearchEngineVersion();
+  settings.date = proteins.getDateTime();
+  settings.search = proteins.getSearchParameters();
+  return settings;
+}
+
+ProteinIdentification IdentificationDataAdapter::settingsToLegacy(const ID::RunSettings& settings)
+{
+  ProteinIdentification proteins;
+  static_cast<MetaInfoInterface&>(proteins) = settings;
+  proteins.setSearchEngine(settings.software);
+  proteins.setSearchEngineVersion(settings.software_version);
+  proteins.setDateTime(settings.date);
+  proteins.setSearchParameters(settings.search);
+  return proteins;
+}
+
 void IdentificationDataAdapter::addLegacySources(ID::Run& run, const StringList& files)
 {
   for (const auto& file : files)
@@ -565,7 +596,7 @@ IdentificationData IdentificationDataAdapter::fromLegacy(const std::vector<Prote
 
 PeptideHit IdentificationDataAdapter::materializePeptide(const ID::Run& run, const ID::Match& match, ID::ScoreId score)
 {
-  registerDefinitions(run.getProcessingMetadata().getSearchParameters());
+  registerDefinitions(run.getSettings().search);
   return peptide(run, match, score);
 }
 
@@ -649,7 +680,7 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
           || std::make_pair(definition.software, definition.software_version) != proteins.getScoreSoftware(definition.name))
         loss(result, options, "Legacy export cannot retain the complete primary score definition: " + run.getIdentifier());
     }
-    registerDefinitions(run.getProcessingMetadata().getSearchParameters());
+    registerDefinitions(run.getSettings().search);
     // A source with a path is the next file of the run's legacy file list; its identifications point
     // to it with id_merge_index if the legacy run has several files.
     Size file_index = 0;

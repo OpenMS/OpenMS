@@ -7,9 +7,11 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/AdductInfo.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/SearchParameters.h>
 #include <array>
 #include <atomic>
 #include <compare>
@@ -139,6 +141,20 @@ public:
     std::string aggregation;
     bool operator==(const ScoreDefinition&) const = default;
   };
+  /**
+    @brief How a run was produced: the software, its search settings and further processing metadata
+
+    The files of a run are its sources, so the metadata must not list them as 'spectra_data'; the raw files
+    behind them ('spectra_data_raw') and processing history (e.g. 'alignment:*') are metadata.
+  */
+  struct OPENMS_DLLAPI RunSettings : MetaInfoInterface
+  {
+    std::string software;         ///< Search engine or tool that produced the run
+    std::string software_version;
+    DateTime date;
+    SearchParameters search;
+    bool operator==(const RunSettings&) const = default;
+  };
   /// One file that identifications come from (e.g. an mzML file, or the FASTA of a digest catalog).
   /// An empty @p path stands for a file that is not known.
   struct OPENMS_DLLAPI SourceFile : MetaInfoInterface
@@ -266,11 +282,10 @@ public:
     { return uuid_; }
     MoleculeKind getMoleculeKind() const
     { return kind_; }
-    const ProteinIdentification& getProcessingMetadata() const
-    { return *processing_; }
-    /// Search settings and processing history of the run. The files of a run are its sources, so
-    /// @p metadata must not list them ('spectra_data'); the raw files behind them ('spectra_data_raw') may stay.
-    void setProcessingMetadata(const ProteinIdentification& metadata);
+    const RunSettings& getSettings() const
+    { return *settings_; }
+    /// @throw Exception::InvalidValue if the metadata of @p settings lists 'spectra_data' (the files of a run are its sources)
+    void setSettings(const RunSettings& settings);
     const std::optional<std::vector<ParentRecord>>& getParents() const
     { return parents_; }
     void setParents(std::optional<std::vector<ParentRecord>> parents);
@@ -334,9 +349,9 @@ public:
     std::string identifier_;
     std::string uuid_;
     MoleculeKind kind_;
-    // A standard-library tree inside ProteinIdentification can allocate when moved
-    // on MSVC. Indirection keeps the run's transactional commit nonthrowing.
-    std::unique_ptr<ProteinIdentification> processing_ = std::make_unique<ProteinIdentification>();
+    // Standard-library trees inside the settings can allocate when moved on MSVC.
+    // Indirection keeps the run's transactional commit nonthrowing.
+    std::unique_ptr<RunSettings> settings_ = std::make_unique<RunSettings>();
     std::optional<std::vector<ParentRecord>> parents_;
     std::vector<Source> sources_;
     std::vector<ScoreDefinition> scores_;

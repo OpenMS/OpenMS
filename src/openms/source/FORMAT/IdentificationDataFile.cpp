@@ -194,9 +194,9 @@ namespace
     {
       if (! run.at("scores").is_array()) invalid("Run score definitions must be an array");
       const auto& primary = run.at("primary_score");
-      const auto processing = IO::readProcessingJson(run.at("processing"));
+      const auto settings = IO::readSettingsJson(run.at("settings"));
       const bool catalog
-        = processing.metaValueExists("identification:catalog") && processing.getMetaValue("identification:catalog").toString() == "true";
+        = settings.metaValueExists("identification:catalog") && settings.getMetaValue("identification:catalog").toString() == "true";
       if (catalog && (! run.at("scores").empty() || ! primary.is_null())) invalid("A sequence catalog cannot declare PSM scores");
       if (run.at("scores").empty() && primary.is_null() && (IO::integer<UInt64>(run.at("match_count")) == 0 || catalog)) continue;
       if (primary.is_null()) invalid("Configured run must select a primary PSM score");
@@ -509,9 +509,6 @@ namespace
   }
   Json runJson(const ID::Run& run)
   {
-    const auto& processing = run.getProcessingMetadata();
-    if (! processing.getHits().empty() || ! processing.getProteinGroups().empty() || ! processing.getIndistinguishableProteins().empty())
-      invalid("Run processing metadata must contain configuration only; use parent catalogue and inference results for protein values");
     Json scores = Json::array(), sources = Json::array();
     for (const auto& s : run.getScoreDefinitions())
       scores.push_back(IO::scoreJson(s));
@@ -520,7 +517,7 @@ namespace
     return {{"identifier", run.getIdentifier()},
             {"uuid", run.getUuid()},
             {"molecule_kind", run.getMoleculeKind()},
-            {"processing", IO::processingJson(run.getProcessingMetadata())},
+            {"settings", IO::settingsJson(run.getSettings())},
             {"scores", std::move(scores)},
             {"sources", std::move(sources)},
             {"primary_score", run.getPrimaryScore() ? Json(run.getPrimaryScore()->value) : Json()},
@@ -534,7 +531,7 @@ namespace
     unsigned kind = IO::integer<unsigned>(j.at("molecule_kind"));
     if (kind > static_cast<unsigned>(ID::MoleculeKind::COMPOUND)) invalid("Unknown molecule kind");
     ID::Run run(j.at("identifier").get<std::string>(), static_cast<ID::MoleculeKind>(kind));
-    run.setProcessingMetadata(IO::readProcessingJson(j.at("processing")));
+    run.setSettings(IO::readSettingsJson(j.at("settings")));
     if (! j.at("scores").is_array() || ! j.at("sources").is_array()) invalid("Run descriptors must be arrays");
     for (const auto& s : j.at("scores"))
       run.addScore(IO::readScoreJson(s));

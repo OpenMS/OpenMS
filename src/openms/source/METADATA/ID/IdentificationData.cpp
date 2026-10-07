@@ -22,7 +22,7 @@ namespace
   using ID = IdentificationData;
   static_assert(std::is_nothrow_swappable_v<std::vector<ID::Match>>);
   static_assert(std::is_nothrow_move_assignable_v<ID::Identification>);
-  static_assert(std::is_nothrow_swappable_v<std::unique_ptr<ProteinIdentification>>);
+  static_assert(std::is_nothrow_swappable_v<std::unique_ptr<ID::RunSettings>>);
   [[noreturn]] void invalid(const std::string& message)
   { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message, "IdentificationData"); }
   std::string describe(const ID::ScoreDefinition& definition)
@@ -45,7 +45,7 @@ namespace
   }
   bool isCatalog(const ID::Run& run)
   {
-    const auto& processing = run.getProcessingMetadata();
+    const auto& processing = run.getSettings();
     return processing.metaValueExists("identification:catalog") && processing.getMetaValue("identification:catalog").toString() == "true";
   }
   /// Checks the dataset-wide PSM score contract over @p runs; returns the first configured run.
@@ -185,7 +185,7 @@ ID::Run::Run(const Run& other):
     identifier_(other.identifier_),
     uuid_(other.uuid_),
     kind_(other.kind_),
-    processing_(std::make_unique<ProteinIdentification>(*other.processing_)),
+    settings_(std::make_unique<RunSettings>(*other.settings_)),
     parents_(other.parents_),
     sources_(other.sources_),
     scores_(other.scores_),
@@ -215,7 +215,7 @@ void ID::Run::swapData_(Run& other) noexcept
   swap(identifier_, other.identifier_);
   swap(uuid_, other.uuid_);
   swap(kind_, other.kind_);
-  swap(processing_, other.processing_);
+  swap(settings_, other.settings_);
   swap(parents_, other.parents_);
   swap(sources_, other.sources_);
   swap(scores_, other.scores_);
@@ -244,13 +244,13 @@ void ID::Run::checkScore_(ScoreId score) const
 {
   if (score.value >= scores_.size() || score_owners_[score.value] != score.owner) invalid("Foreign or invalid score handle");
 }
-void ID::Run::setProcessingMetadata(const ProteinIdentification& metadata)
+void ID::Run::setSettings(const RunSettings& settings)
 {
   checkMutation_();
-  if (metadata.metaValueExists("spectra_data"))
-    invalid("The files of a run are its sources; its processing metadata must not list them as 'spectra_data'");
-  auto replacement = std::make_unique<ProteinIdentification>(metadata);
-  processing_.swap(replacement);
+  if (settings.metaValueExists("spectra_data"))
+    invalid("The files of a run are its sources; its settings must not list them as 'spectra_data'");
+  auto replacement = std::make_unique<RunSettings>(settings);
+  settings_.swap(replacement);
 }
 void ID::Run::setParents(std::optional<std::vector<ParentRecord>> parents)
 {
@@ -900,7 +900,7 @@ void ID::addInferenceResult(InferenceResult result)
 }
 bool ID::Run::operator==(const Run& other) const
 {
-  if (uuid_ != other.uuid_ || identifier_ != other.identifier_ || kind_ != other.kind_ || *processing_ != *other.processing_
+  if (uuid_ != other.uuid_ || identifier_ != other.identifier_ || kind_ != other.kind_ || *settings_ != *other.settings_
       || parents_ != other.parents_ || scores_ != other.scores_ || next_query_id_ != other.next_query_id_ || next_match_id_ != other.next_match_id_
       || sources_.size() != other.sources_.size())
     return false;
@@ -963,7 +963,6 @@ void ID::merge(const IdentificationData& other)
     {
       auto comparable = run;
       comparable.identifier_ = existing->identifier_;
-      comparable.processing_->setIdentifier(existing->processing_->getIdentifier());
       if (*existing != comparable) invalid("Cannot merge conflicting values for the same run UUID");
       continue;
     }
@@ -975,7 +974,6 @@ void ID::merge(const IdentificationData& other)
     Size suffix = 2;
     while (run_identifiers.contains(copy.identifier_))
       copy.identifier_ = original + "#" + std::to_string(suffix++);
-    copy.processing_->setIdentifier(copy.identifier_);
     run_identifiers.insert(copy.identifier_);
     staged_runs.push_back(std::move(copy));
   }

@@ -17,11 +17,10 @@ ID fixture(ID::MoleculeKind kind = ID::MoleculeKind::PEPTIDE)
   score.name = "score";
   score.software = "engine";
   run.setPrimaryScore(run.addScore(score));
-  ProteinIdentification processing;
-  processing.setIdentifier("search");
-  processing.setSearchEngine("engine");
-  processing.getSearchParameters().db = "database";
-  run.setProcessingMetadata(processing);
+  ID::RunSettings settings;
+  settings.software = "engine";
+  settings.search.db = "database";
+  run.setSettings(settings);
   ID::SourceFile source;
   source.path = "input.mzML";
   ID::Observation observation;

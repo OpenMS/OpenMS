@@ -491,14 +491,74 @@ namespace
   }
 } // namespace
 
-Json processingJson(const ProteinIdentification& processing)
+Json searchParametersJson(const SearchParameters& sp)
 {
-  const auto& sp = processing.getSearchParameters();
   const auto specificity = static_cast<unsigned>(sp.enzyme_term_specificity);
-  if (static_cast<unsigned>(sp.mass_type) >= static_cast<unsigned>(ProteinIdentification::PeakMassType::SIZE_OF_PEAKMASSTYPE)
+  if (static_cast<unsigned>(sp.mass_type) >= static_cast<unsigned>(SearchParameters::PeakMassType::SIZE_OF_PEAKMASSTYPE)
       || (specificity > 3 && specificity != 8 && specificity != 9))
     invalid("Invalid search parameter enum");
   const auto& enzyme = sp.digestion_enzyme;
+  return {{"db", sp.db},
+          {"db_version", sp.db_version},
+          {"taxonomy", sp.taxonomy},
+          {"charges", sp.charges},
+          {"mass_type", sp.mass_type},
+          {"fixed_modifications", sp.fixed_modifications},
+          {"variable_modifications", sp.variable_modifications},
+          {"missed_cleavages", sp.missed_cleavages},
+          {"fragment_tolerance_bits", std::bit_cast<UInt64>(sp.fragment_mass_tolerance)},
+          {"fragment_tolerance_ppm", sp.fragment_mass_tolerance_ppm},
+          {"precursor_tolerance_bits", std::bit_cast<UInt64>(sp.precursor_mass_tolerance)},
+          {"precursor_tolerance_ppm", sp.precursor_mass_tolerance_ppm},
+          {"specificity", sp.enzyme_term_specificity},
+          {"metadata", metadataJson(sp)},
+          {"enzyme",
+           {{"name", enzyme.getName()},
+            {"regex", enzyme.getRegEx()},
+            {"synonyms", enzyme.getSynonyms()},
+            {"description", enzyme.getRegExDescription()},
+            {"n_term_gain", formulaJson(enzyme.getNTermGain())},
+            {"c_term_gain", formulaJson(enzyme.getCTermGain())},
+            {"psi_id", enzyme.getPSIID()},
+            {"xtandem_id", enzyme.getXTandemID()},
+            {"comet_id", enzyme.getCometID()},
+            {"msgf_id", enzyme.getMSGFID()},
+            {"omssa_id", enzyme.getOMSSAID()}}}};
+}
+
+SearchParameters readSearchParametersJson(const Json& parameters)
+{
+  SearchParameters sp;
+  sp.db = parameters.at("db").get<std::string>();
+  sp.db_version = parameters.at("db_version").get<std::string>();
+  sp.taxonomy = parameters.at("taxonomy").get<std::string>();
+  sp.charges = parameters.at("charges").get<std::string>();
+  const auto mass_type = integer<unsigned>(parameters.at("mass_type"));
+  const auto specificity = integer<unsigned>(parameters.at("specificity"));
+  if (mass_type >= static_cast<unsigned>(SearchParameters::PeakMassType::SIZE_OF_PEAKMASSTYPE)
+      || (specificity > 3 && specificity != 8 && specificity != 9))
+    invalid("Invalid search parameter enum");
+  sp.mass_type = static_cast<SearchParameters::PeakMassType>(mass_type);
+  sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(specificity);
+  sp.fixed_modifications = parameters.at("fixed_modifications").get<std::vector<std::string>>();
+  sp.variable_modifications = parameters.at("variable_modifications").get<std::vector<std::string>>();
+  sp.missed_cleavages = integer<UInt>(parameters.at("missed_cleavages"));
+  sp.fragment_mass_tolerance = std::bit_cast<double>(integer<UInt64>(parameters.at("fragment_tolerance_bits")));
+  sp.fragment_mass_tolerance_ppm = parameters.at("fragment_tolerance_ppm").get<bool>();
+  sp.precursor_mass_tolerance = std::bit_cast<double>(integer<UInt64>(parameters.at("precursor_tolerance_bits")));
+  sp.precursor_mass_tolerance_ppm = parameters.at("precursor_tolerance_ppm").get<bool>();
+  readMetadataJson(parameters.at("metadata"), sp);
+  const auto& enzyme = parameters.at("enzyme");
+  sp.digestion_enzyme
+    = Protease(enzyme.at("name").get<std::string>(), enzyme.at("regex").get<std::string>(), enzyme.at("synonyms").get<std::set<std::string>>(),
+               enzyme.at("description").get<std::string>(), readFormulaJson(enzyme.at("n_term_gain")), readFormulaJson(enzyme.at("c_term_gain")),
+               enzyme.at("psi_id").get<std::string>(), enzyme.at("xtandem_id").get<std::string>(), integer<Int>(enzyme.at("comet_id")),
+               integer<Int>(enzyme.at("msgf_id")), integer<Int>(enzyme.at("omssa_id")));
+  return sp;
+}
+
+Json processingJson(const ProteinIdentification& processing)
+{
   Json result = {{"identifier", processing.getIdentifier()},
                  {"search_engine", processing.getSearchEngine()},
                  {"search_engine_version", processing.getSearchEngineVersion()},
@@ -507,33 +567,7 @@ Json processingJson(const ProteinIdentification& processing)
                  {"higher_better", processing.isHigherScoreBetter()},
                  {"significance_threshold_bits", std::bit_cast<UInt64>(processing.getSignificanceThreshold())},
                  {"metadata", metadataJson(processing)},
-                 {"search_parameters",
-                  {{"db", sp.db},
-                   {"db_version", sp.db_version},
-                   {"taxonomy", sp.taxonomy},
-                   {"charges", sp.charges},
-                   {"mass_type", sp.mass_type},
-                   {"fixed_modifications", sp.fixed_modifications},
-                   {"variable_modifications", sp.variable_modifications},
-                   {"missed_cleavages", sp.missed_cleavages},
-                   {"fragment_tolerance_bits", std::bit_cast<UInt64>(sp.fragment_mass_tolerance)},
-                   {"fragment_tolerance_ppm", sp.fragment_mass_tolerance_ppm},
-                   {"precursor_tolerance_bits", std::bit_cast<UInt64>(sp.precursor_mass_tolerance)},
-                   {"precursor_tolerance_ppm", sp.precursor_mass_tolerance_ppm},
-                   {"specificity", sp.enzyme_term_specificity},
-                   {"metadata", metadataJson(sp)},
-                   {"enzyme",
-                    {{"name", enzyme.getName()},
-                     {"regex", enzyme.getRegEx()},
-                     {"synonyms", enzyme.getSynonyms()},
-                     {"description", enzyme.getRegExDescription()},
-                     {"n_term_gain", formulaJson(enzyme.getNTermGain())},
-                     {"c_term_gain", formulaJson(enzyme.getCTermGain())},
-                     {"psi_id", enzyme.getPSIID()},
-                     {"xtandem_id", enzyme.getXTandemID()},
-                     {"comet_id", enzyme.getCometID()},
-                     {"msgf_id", enzyme.getMSGFID()},
-                     {"omssa_id", enzyme.getOMSSAID()}}}}}};
+                 {"search_parameters", searchParametersJson(processing.getSearchParameters())}};
   validateJsonStrings(result);
   return result;
 }
@@ -550,34 +584,31 @@ ProteinIdentification readProcessingJson(const Json& json)
   result.setHigherScoreBetter(json.at("higher_better").get<bool>());
   result.setSignificanceThreshold(std::bit_cast<double>(integer<UInt64>(json.at("significance_threshold_bits"))));
   readMetadataJson(json.at("metadata"), result);
-  const auto& parameters = json.at("search_parameters");
-  auto& sp = result.getSearchParameters();
-  sp.db = parameters.at("db").get<std::string>();
-  sp.db_version = parameters.at("db_version").get<std::string>();
-  sp.taxonomy = parameters.at("taxonomy").get<std::string>();
-  sp.charges = parameters.at("charges").get<std::string>();
-  const auto mass_type = integer<unsigned>(parameters.at("mass_type"));
-  const auto specificity = integer<unsigned>(parameters.at("specificity"));
-  if (mass_type >= static_cast<unsigned>(ProteinIdentification::PeakMassType::SIZE_OF_PEAKMASSTYPE)
-      || (specificity > 3 && specificity != 8 && specificity != 9))
-    invalid("Invalid search parameter enum");
-  sp.mass_type = static_cast<ProteinIdentification::PeakMassType>(mass_type);
-  sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(specificity);
-  sp.fixed_modifications = parameters.at("fixed_modifications").get<std::vector<std::string>>();
-  sp.variable_modifications = parameters.at("variable_modifications").get<std::vector<std::string>>();
-  sp.missed_cleavages = integer<UInt>(parameters.at("missed_cleavages"));
-  sp.fragment_mass_tolerance = std::bit_cast<double>(integer<UInt64>(parameters.at("fragment_tolerance_bits")));
-  sp.fragment_mass_tolerance_ppm = parameters.at("fragment_tolerance_ppm").get<bool>();
-  sp.precursor_mass_tolerance = std::bit_cast<double>(integer<UInt64>(parameters.at("precursor_tolerance_bits")));
-  sp.precursor_mass_tolerance_ppm = parameters.at("precursor_tolerance_ppm").get<bool>();
-  readMetadataJson(parameters.at("metadata"), sp);
-  const auto& enzyme = parameters.at("enzyme");
-  sp.digestion_enzyme
-    = Protease(enzyme.at("name").get<std::string>(), enzyme.at("regex").get<std::string>(), enzyme.at("synonyms").get<std::set<std::string>>(),
-               enzyme.at("description").get<std::string>(), readFormulaJson(enzyme.at("n_term_gain")), readFormulaJson(enzyme.at("c_term_gain")),
-               enzyme.at("psi_id").get<std::string>(), enzyme.at("xtandem_id").get<std::string>(), integer<Int>(enzyme.at("comet_id")),
-               integer<Int>(enzyme.at("msgf_id")), integer<Int>(enzyme.at("omssa_id")));
+  result.setSearchParameters(readSearchParametersJson(json.at("search_parameters")));
   return result;
+}
+
+Json settingsJson(const ID::RunSettings& settings)
+{
+  Json result = {{"software", settings.software},
+                 {"software_version", settings.software_version},
+                 {"date", dateText(settings.date)},
+                 {"metadata", metadataJson(settings)},
+                 {"search_parameters", searchParametersJson(settings.search)}};
+  validateJsonStrings(result);
+  return result;
+}
+
+ID::RunSettings readSettingsJson(const Json& json)
+{
+  validateJsonStrings(json);
+  ID::RunSettings settings;
+  settings.software = json.at("software").get<std::string>();
+  settings.software_version = json.at("software_version").get<std::string>();
+  settings.date = parseDate(json.at("date").get<std::string>());
+  readMetadataJson(json.at("metadata"), settings);
+  settings.search = readSearchParametersJson(json.at("search_parameters"));
+  return settings;
 }
 
 Json writeParents(const std::filesystem::path& path, const std::vector<ID::ParentRecord>& parents, Dictionary& dictionary, const Options& options)

@@ -238,13 +238,13 @@ private:
       for (const auto& current : data.getRuns())
       {
         auto& run = data.getRun(current.getIdentifier());
-        auto processing = run.getProcessingMetadata();
-        processing.setMetaValue("alignment:software", toolName_());
-        processing.setMetaValue("alignment:version", test_mode_ ? "test" : version_);
-        processing.setMetaValue("alignment:time", processing_time.get());
-        processing.setMetaValue("alignment:inputs", input_files);
-        if (! reference_file.empty()) processing.setMetaValue("alignment:reference", reference_file);
-        run.setProcessingMetadata(processing);
+        auto settings = run.getSettings();
+        settings.setMetaValue("alignment:software", toolName_());
+        settings.setMetaValue("alignment:version", test_mode_ ? "test" : version_);
+        settings.setMetaValue("alignment:time", processing_time.get());
+        settings.setMetaValue("alignment:inputs", input_files);
+        if (! reference_file.empty()) settings.setMetaValue("alignment:reference", reference_file);
+        run.setSettings(settings);
       }
     }
 

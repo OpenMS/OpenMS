@@ -559,21 +559,18 @@ namespace OpenMS
     dalton.higher_better = false;
     candidate_run.setPrimaryScore(candidate_run.addScore(ppm));
     candidate_run.addScore(dalton);
-    ProteinIdentification processing;
-    processing.setIdentifier("AccurateMassSearch");
-    processing.setSearchEngine("AccurateMassSearch");
-    processing.setSearchEngineVersion(VersionInfo::getVersion());
-    processing.setDateTime(DateTime::now());
-    processing.setScoreType(ppm.name);
-    processing.setHigherScoreBetter(false);
-    processing.setMetaValue("reliability", "2");
-    auto& parameters = processing.getSearchParameters();
+    IdentificationData::RunSettings settings;
+    settings.software = "AccurateMassSearch";
+    settings.software_version = VersionInfo::getVersion();
+    settings.date = DateTime::now();
+    settings.setMetaValue("reliability", "2");
+    auto& parameters = settings.search;
     parameters.db = database_name_;
     parameters.db_version = database_version_;
     parameters.setMetaValue("database_location", database_location_);
     parameters.precursor_mass_tolerance = mass_error_value_;
     parameters.precursor_mass_tolerance_ppm = mass_error_unit_ == "ppm";
-    candidate_run.setProcessingMetadata(processing);
+    candidate_run.setSettings(settings);
     auto& run = id.addRun(std::move(candidate_run));
 
     // map for storing overall results

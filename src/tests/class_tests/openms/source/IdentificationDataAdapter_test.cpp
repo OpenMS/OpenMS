@@ -90,10 +90,12 @@ START_SECTION((static ImportResult importLegacy(const std::vector<ProteinIdentif
   TEST_EQUAL(run.getSources()[1].identifications[0].metaValueExists("id_merge_index"), false)
   TEST_EQUAL(run.getSources()[2].file.path, "")
   TEST_EQUAL(run.getSources()[2].identifications.size(), 2)
-  TEST_EQUAL(run.getProcessingMetadata().metaValueExists("spectra_data"), false)
+  TEST_EQUAL(run.getSettings().metaValueExists("spectra_data"), false)
   TEST_EQUAL(run.getNumberOfIdentifications(), 3)
   TEST_EQUAL(run.getNumberOfMatches(), 2)
-  TEST_EQUAL(run.getProcessingMetadata().getHits().size(), 0)
+  // The settings keep the search engine; the proteins of the legacy run are an inference result.
+  TEST_EQUAL(run.getSettings().software, "test-search")
+  TEST_EQUAL(run.getSettings().search.db, "database.fasta")
   TEST_EQUAL(run.getParents()->size(), 1)
   TEST_EQUAL(imported.data.getInferenceResults()[0].inputs[0].selection, "Imported legacy run-level provenance")
   TEST_EQUAL(imported.data.getInferenceResults()[0].inputs.size(), 1)
@@ -206,7 +208,7 @@ START_SECTION([EXTRA] derived scores belong to their recorded producer and not t
   TEST_EQUAL(definition.software_version, "3.7.0")
   TEST_EQUAL(data.getRuns()[0].getScoreDefinitions() == data.getRuns()[1].getScoreDefinitions(), true)
   // The engines themselves remain in the run configuration.
-  TEST_EQUAL(data.getRun("comet").getProcessingMetadata().getSearchEngine(), "Comet")
+  TEST_EQUAL(data.getRun("comet").getSettings().software, "Comet")
 
   // Strict export keeps both the engine and the producer.
   const auto exported = Adapter::toLegacy(data);
@@ -238,13 +240,13 @@ START_SECTION([EXTRA] custom modifications retain definitions and reject conflic
   item.getHits()[0].setSequence(AASequence::fromString("P(OwningAdapterTest)EPTIDE"));
   auto data = Adapter::fromLegacy({protein()}, {item});
   auto& run = data.getRun("search");
-  TEST_TRUE(run.getProcessingMetadata().getSearchParameters().metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
+  TEST_TRUE(run.getSettings().search.metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
   const auto exported = Adapter::toLegacy(data);
   TEST_TRUE(exported.peptides[0] == item)
-  auto configuration = run.getProcessingMetadata();
+  auto settings = run.getSettings();
   definition.setDiffMonoMass(definition.getDiffMonoMass() + 1.0);
-  configuration.getSearchParameters().setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, definition.toDefinitionString());
-  run.setProcessingMetadata(configuration);
+  settings.search.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, definition.toDefinitionString());
+  run.setSettings(settings);
   TEST_EXCEPTION(Exception::InvalidParameter, Adapter::toLegacy(data))
 }
 END_SECTION
@@ -269,9 +271,9 @@ START_SECTION([EXTRA] the sources of a run are the files of its legacy run)
   TEST_EQUAL(run.getSources()[1].identifications.size(), 0)
   TEST_EQUAL(run.getSources()[2].identifications.size(), 1)
   TEST_EQUAL(run.getSources()[2].identifications[0].metaValueExists("id_merge_index"), false)
-  TEST_EQUAL(run.getProcessingMetadata().metaValueExists("spectra_data"), false)
+  TEST_EQUAL(run.getSettings().metaValueExists("spectra_data"), false)
   StringList raw;
-  run.getProcessingMetadata().getPrimaryMSRunPath(raw, true);
+  raw = run.getSettings().getMetaValue("spectra_data_raw").toStringList();
   TEST_EQUAL(ListUtils::concatenate(raw, ","), "a.raw,b.raw")
   TEST_EQUAL(ListUtils::concatenate(Adapter::legacyFiles(run), ","), "a.mzML,b.mzML,a.mzML")
 
@@ -321,9 +323,12 @@ START_SECTION([EXTRA] the sources of a run are the files of its legacy run)
   first.setMetaValue("id_merge_index", 0);
   TEST_EXCEPTION(Exception::InvalidParameter, Adapter::fromLegacy({legacy_run}, {first}))
 
-  // The files of a run are its sources, so its processing metadata cannot list them as well.
+  // The files of a run are its sources, so its settings cannot list them as well.
   ID::Run files_in_metadata("search");
-  TEST_EXCEPTION(Exception::InvalidValue, files_in_metadata.setProcessingMetadata(protein()))
+  auto settings = Adapter::settingsFromLegacy(protein());
+  TEST_EQUAL(settings.metaValueExists("spectra_data"), false)
+  settings.setMetaValue("spectra_data", StringList {"a.mzML"});
+  TEST_EXCEPTION(Exception::InvalidValue, files_in_metadata.setSettings(settings))
 }
 END_SECTION
 

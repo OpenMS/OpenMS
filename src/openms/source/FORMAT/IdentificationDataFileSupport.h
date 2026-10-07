@@ -240,6 +240,8 @@ private:
 // Configuration JSON excludes hits/groups. Per-record protein values are typed tables.
 Json processingJson(const ProteinIdentification& processing);
 ProteinIdentification readProcessingJson(const Json& json);
+Json settingsJson(const IdentificationData::RunSettings& settings);
+IdentificationData::RunSettings readSettingsJson(const Json& json);
 Json writeInference(const std::filesystem::path& directory, const ID::InferenceResult& result, const Options& options);
 ID::InferenceResult readInference(const std::filesystem::path& directory, const Json& descriptor, const Options& options);
 void validateInferenceTables(const std::filesystem::path& directory, const Json& descriptor, const Options& options);
