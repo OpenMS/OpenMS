@@ -62,10 +62,12 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <vector>
 #include <map>
 #include <regex>
 #include <random>
+#include <tuple>
 
 // multithreading
 #ifdef _OPENMP
@@ -209,6 +211,8 @@ protected:
     setMinFloat_("preprocessing:window_mower:windowsize", 1.0);
     registerIntOption_("preprocessing:window_mower:peakcount", "<num>", 50, "Number of peaks that should be kept per window", false, true);
     setMinInt_("preprocessing:window_mower:peakcount", 1);
+    registerStringOption_("preprocessing:window_mower:movetype", "<type>", "slide", "Window movement for noise filtering; use jump to reproduce historical NASE preprocessing", false, true);
+    setValidStrings_("preprocessing:window_mower:movetype", ListUtils::create<String>("slide,jump"));
     registerFlag_("preprocessing:filter_nlargest", "Apply NLargest filter to keep only the top N most intense peaks", true);
     registerTOPPSubsection_("preprocessing:nlargest", "NLargest filter parameters");
     registerIntOption_("preprocessing:nlargest:n", "<num>", 1000, "Number of largest (most intense) peaks to keep per spectrum", false, true);
@@ -353,25 +357,9 @@ protected:
     const PrecursorInfo* precursor_ref; // precursor information
   };
 
-  // Comparator for deterministic hit ordering: score (descending), then sequence (ascending)
-  // This ensures reproducible results even when multiple hits have identical scores.
-  // Using map instead of multimap prevents non-deterministic ordering of tied scores.
-  struct HitKeyComparator
-  {
-    bool operator()(const pair<double, String>& a,
-                    const pair<double, String>& b) const
-    {
-      if (a.first != b.first)
-      {
-        return a.first > b.first; // Higher score is better
-      }
-      return a.second < b.second; // Alphabetical tie-breaker for determinism
-    }
-  };
-
-  // Map key: (score, sequence_string), Value: AnnotatedHit
-  // Guarantees deterministic ordering even with OpenMP parallelization
-  typedef map<pair<double, String>, AnnotatedHit, HitKeyComparator> HitsByScore;
+  // Preserve all candidates at the score cutoff, including tied sequences and
+  // alternative precursor explanations. Canonicalize ties before post-processing.
+  typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
 
   // query modified residues from database
   set<ConstRibonucleotidePtr> getModifications_(const set<String>& mod_names)
@@ -809,7 +797,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const String& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -829,7 +817,7 @@ protected:
       Param filter_param = window_mower_filter.getParameters();
       filter_param.setValue("windowsize", window_size, "The size of the sliding window along the m/z axis.");
       filter_param.setValue("peakcount", window_peakcount, "The number of peaks that should be kept.");
-      filter_param.setValue("movetype", "slide", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+      filter_param.setValue("movetype", window_movetype, "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
       window_mower_filter.setParameters(filter_param);
     }
 
@@ -838,7 +826,7 @@ protected:
 
     Size n_zero_charge = 0, n_inferred_charge = 0;
 
-#pragma omp parallel for
+#pragma omp parallel for reduction(+: n_zero_charge, n_inferred_charge)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size();
          ++exp_index)
     {
@@ -1009,10 +997,10 @@ protected:
     // The result should be: 1. "AUC[mA?]Gp" (note ambiguity code), 2. removed.
     for (auto hit_it = ++hits.begin(); hit_it != hits.end(); /* no ++ here! */)
     {
-      double previous_score = previous_it->first.first;
+      double previous_score = previous_it->first;
       NASequence& previous_seq = previous_it->second.sequence;
       const NASequence& current_seq = hit_it->second.sequence;
-      if ((hit_it->first.first != previous_score) ||
+      if ((hit_it->first != previous_score) ||
           (current_seq.size() != previous_seq.size())) // different hits
       {
         previous_it = hit_it;
@@ -1052,14 +1040,7 @@ protected:
       {
         if (!replacement.empty())
         {
-          // Need to update the key since sequence changed
-          // Extract the old entry, modify it, and reinsert with new key
-          auto prev_score = previous_it->first.first;
-          AnnotatedHit updated_hit = previous_it->second;
-          updated_hit.sequence = replacement;
-          hits.erase(previous_it);
-          auto new_key = make_pair(prev_score, updated_hit.sequence.toString());
-          previous_it = hits.insert(make_pair(new_key, updated_hit)).first;
+          previous_seq = replacement;
         }
         hit_it = hits.erase(hit_it);
       }
@@ -1099,6 +1080,32 @@ protected:
 #pragma omp critical (id_data_access)
       obs_ref = id_data.registerObservation(obs);
 
+      // Scoring runs in parallel, so insertion order of tied hits is unstable.
+      // Sort by value before merging ambiguous modifications or registering hits.
+      auto& hits = annotated_hits[scan_index];
+      vector<pair<double, AnnotatedHit>> ordered_hits(hits.begin(), hits.end());
+      auto hit_key = [](const AnnotatedHit& hit)
+      {
+        const auto& precursor = *hit.precursor_ref;
+        const String adduct = precursor.adduct ? (*precursor.adduct)->getName() : String();
+        return make_tuple(hit.sequence.toString(), hit.oligo_ref->sequence.toString(),
+                          precursor.charge, precursor.isotope, adduct,
+                          precursor.adduct ? (*precursor.adduct)->getEmpiricalFormula().toString() : String(),
+                          precursor.adduct ? (*precursor.adduct)->getCharge() : 0,
+                          precursor.adduct ? (*precursor.adduct)->getMolMultiplier() : UInt(0),
+                          hit.precursor_error_ppm);
+      };
+      sort(ordered_hits.begin(), ordered_hits.end(), [&](const auto& lhs, const auto& rhs)
+      {
+        if (lhs.first != rhs.first)
+        {
+          return lhs.first > rhs.first;
+        }
+        return hit_key(lhs.second) < hit_key(rhs.second);
+      });
+      hits.clear();
+      hits.insert(ordered_hits.begin(), ordered_hits.end());
+
       if (resolve_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
       {
         resolveAmbiguousMods_(annotated_hits[scan_index]);
@@ -1107,7 +1114,7 @@ protected:
       // create full oligo hit structure from annotated hits
       for (const auto& pair : annotated_hits[scan_index])
       {
-        double score = pair.first.first; // key is (score, sequence_string)
+        double score = pair.first;
         const AnnotatedHit& hit = pair.second;
         OPENMS_LOG_DEBUG << "Hit sequence: " << hit.sequence.toString() << endl;
 
@@ -1708,6 +1715,7 @@ protected:
     bool use_window_mower = getFlag_("preprocessing:filter_window_mower");
     double window_size = getDoubleOption_("preprocessing:window_mower:windowsize");
     int window_peakcount = getIntOption_("preprocessing:window_mower:peakcount");
+    String window_movetype = getStringOption_("preprocessing:window_mower:movetype");
     bool use_nlargest = getFlag_("preprocessing:filter_nlargest");
     int nlargest_n = getIntOption_("preprocessing:nlargest:n");
     bool remove_precursor = getFlag_("preprocessing:remove_precursor_peak");
@@ -1719,7 +1727,7 @@ protected:
                        search_param.fragment_tolerance_ppm,
                        single_charge_spectra, negative_mode, min_charge,
                        max_charge, include_unknown_charge,
-                       use_window_mower, window_size, window_peakcount,
+                       use_window_mower, window_size, window_peakcount, window_movetype,
                        use_nlargest, nlargest_n,
                        remove_precursor, precursor_mass_tolerance,
                        precursor_tolerance_ppm, precursor_peak_isotopes);
@@ -2008,48 +2016,18 @@ protected:
               new_hit.annotations = annotations;
               new_hit.precursor_ref = &(prec_it->second);
               
-              // Key for deterministic ordering: (score, sequence_string)
-              auto key = make_pair(score, candidate.toString());
-              
-              bool should_insert = false;
-              if ((report_top_hits == 0) || (scan_hits.size() < report_top_hits))
+              // Keep the complete tied score group at the cutoff. Keeping just
+              // the first arriving tie makes the result depend on thread scheduling.
+              if ((report_top_hits == 0) || (scan_hits.size() < report_top_hits) ||
+                  (score >= scan_hits.rbegin()->first))
               {
-                should_insert = true;
-              }
-              else // already have enough hits for this spectrum - replace one?
-              {
-                double worst_score = (--scan_hits.end())->first.first;
-                if (score > worst_score)
+                scan_hits.emplace(score, std::move(new_hit));
+                if (report_top_hits > 0)
                 {
-                  should_insert = true;
-                  // Remove the worst hit to make room
-                  auto worst_it = --scan_hits.end();
-                  scan_hits.erase(worst_it);
+                  auto cutoff = scan_hits.begin();
+                  std::advance(cutoff, std::min<Size>(report_top_hits, scan_hits.size()) - 1);
+                  scan_hits.erase(scan_hits.upper_bound(cutoff->first), scan_hits.end());
                 }
-                else if (score == worst_score)
-                {
-                  // For tied scores, count how many have this score
-                  Size n_worst = 0;
-                  for (const auto& hit : scan_hits)
-                  {
-                    if (hit.first.first == worst_score) ++n_worst;
-                  }
-                  
-                  // Only insert if we can remove a hit with the worst score
-                  // without going below report_top_hits non-worst hits
-                  if (scan_hits.size() - n_worst >= report_top_hits)
-                  {
-                    should_insert = true;
-                    // Remove one hit with worst score (deterministically the last one in sort order)
-                    auto worst_it = --scan_hits.end();
-                    scan_hits.erase(worst_it);
-                  }
-                }
-              }
-              
-              if (should_insert)
-              {
-                scan_hits[key] = new_hit;
               }
             }
           }

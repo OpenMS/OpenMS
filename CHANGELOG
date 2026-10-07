@@ -1,3 +1,9 @@
+Reproducibility fixes (add_bedrmod follow-up):
+  - NucleicAcidSearchEngine exposes preprocessing:window_mower:movetype (slide by default; jump for historical preprocessing) so the noise-filter algorithm can be recorded in an INI.
+  - NucleicAcidSearchEngine preserves complete tied score groups at the report cutoff and orders them by stable values before ambiguity resolution; parallel diagnostic counters use reductions.
+  - IdentificationData selects a deterministic representative for exact score ties using molecule/charge/adduct values rather than memory addresses. This can change historical FDR tie representatives, including target/decoy ties; it does not establish unique localization.
+  - BedRModFile accepts mxA/mxC/mxG/mxU mapping aliases for ambiguous mA?/mC?/mG?/mU? codes without overriding explicit mappings.
+
 
 Glossary:
 OpenMS - Name of the project and our C++ library

@@ -147,6 +147,16 @@ namespace OpenMS
         mapping[mod] = chebi;
       }
 
+      // Submission files may use mxN labels for the engine's ambiguous mN? codes.
+      // Reuse user-provided IDs; never override an explicit engine-code mapping.
+      for (const String& base : {String("A"), String("C"), String("G"), String("U")})
+      {
+        auto alias = mapping.find("mx" + base);
+        if (alias != mapping.end())
+        {
+          mapping.emplace("m" + base + "?", alias->second);
+        }
+      }
       return mapping;
     }
 

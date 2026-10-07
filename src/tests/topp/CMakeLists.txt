@@ -3756,6 +3756,11 @@ add_test("TOPP_ProteomicsLFQ_biosaur2_seeds" ${TOPP_BIN_PATH}/ProteomicsLFQ
 
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
+add_test("TOPP_NucleicAcidSearchEngine_reproducibility" ${CMAKE_COMMAND}
+         -DNASE=${TOPP_BIN_PATH}/NucleicAcidSearchEngine
+         -DDATA_DIR=${DATA_DIR_TOPP}
+         -DOUTPUT_DIR=${TESTS_TEMP_DIR}/NASE_reproducibility
+         -P ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_reproducibility.cmake)
 add_test("TOPP_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_11_out.tmp.idXML -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_12_out.tmp.mzTab -db_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_13_out.tmp.oms -bedrmod_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_14_out.tmp.bed -digest_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_1_digest.oms -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
 add_test("TOPP_NucleicAcidSearchEngine_11_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_11_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 add_test("TOPP_NucleicAcidSearchEngine_12_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_12_out.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")

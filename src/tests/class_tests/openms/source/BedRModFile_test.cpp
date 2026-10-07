@@ -460,4 +460,56 @@ START_SECTION((void store - decoy-only mappings have target_mapping_count of 0))
 }
 END_SECTION
 
+START_SECTION((void store - ambiguous modification aliases respect explicit mappings))
+{
+  IdentificationData ids;
+  auto parent = ids.registerParentSequence(ID::ParentSequence("rna", ID::MoleculeType::RNA, "ACGU"));
+  ID::IdentifiedOligo oligo(NASequence::fromString("[mA?][mC?][mG?][mU?]"));
+  oligo.parent_matches[parent].insert(ID::ParentMatch(0, 3));
+  auto molecule = ids.registerIdentifiedOligo(oligo);
+  auto input = ids.registerInputFile(ID::InputFile("aliases.mzML"));
+  auto observation = ids.registerObservation(ID::Observation("scan=1", input));
+  auto qvalue = ids.registerScoreType(ID::ScoreType("PSM-level q-value", false));
+  ID::ObservationMatch hit(molecule, observation, -2);
+  hit.addScore(qvalue, 0.01);
+  ids.registerObservationMatch(hit);
+  String mapping_file, output_file;
+  NEW_TMP_FILE(mapping_file)
+  NEW_TMP_FILE(output_file)
+  for (bool explicit_mapping : {false, true})
+  {
+    TextFile mapping;
+    mapping.addLine("mod,chebi_id");
+    mapping.addLine("mxA,99990");
+    mapping.addLine("mxC,99991");
+    mapping.addLine("mxG,99992");
+    mapping.addLine("mxU,99993");
+    if (explicit_mapping)
+    {
+      mapping.addLine("mA?,12345");
+    }
+    mapping.store(mapping_file);
+    BedRModFile().store(output_file, ids, mapping_file);
+    TextFile output(output_file);
+    vector<Int> actual;
+    for (const auto& line : output)
+    {
+      if (line.empty() || line[0] == '#')
+      {
+        continue;
+      }
+      StringList fields;
+      line.split('\t', fields);
+      actual.push_back(fields[3].toInt());
+    }
+    TEST_EQUAL(actual.size(), 4)
+    ABORT_IF(actual.size() != 4)
+    TEST_EQUAL(actual[0], explicit_mapping ? 12345 : 99990)
+    TEST_EQUAL(actual[1], 99991)
+    TEST_EQUAL(actual[2], 99992)
+    TEST_EQUAL(actual[3], 99993)
+  }
+}
+END_SECTION
+
 END_TEST
