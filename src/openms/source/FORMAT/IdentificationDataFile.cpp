@@ -679,10 +679,7 @@ namespace
         if (d.molecule_kind == ID::MoleculeKind::COMPOUND && ! pending.data.sequence_evidence.empty())
           invalid("Compound candidate has sequence evidence");
         for (const auto& evidence : pending.data.sequence_evidence)
-        {
-          if (evidence.accession.empty()) invalid("Sequence evidence needs an accession");
           if (evidence.database.value >= d.databases.size()) invalid("Sequence evidence refers to an unknown database of its run");
-        }
         if (matchBytes(pending) > options.buffering.max_record_bytes) invalid("Match exceeds max_record_bytes");
         if (options.validate_unique_ids && ! match_ids.insert(pending.match_id).second) invalid("Duplicate match ID");
         if (d.primary_score)

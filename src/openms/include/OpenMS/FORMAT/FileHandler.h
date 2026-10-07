@@ -289,6 +289,8 @@ public:
     /**
       @brief Loads an identification file into a proteinIdentifications and peptideIdentifications
 
+      Native bundles (IDPARQUET) are exported with IdentificationDataAdapter::toLegacy(); the four-table
+      .idparquet layout of OpenMS 3.6 is not supported.
       @param[in] filename the file name of the file to load.
       @param[in] additional_proteins The proteinIdentification vector to load the data into.
       @param[in] additional_peptides The peptideIdentification vector to load the data into.
@@ -315,6 +317,8 @@ public:
     /**
       @brief Stores proteins and peptides into an Identification File
 
+      IDPARQUET imports the identifications with IdentificationDataAdapter::fromLegacy(), which keeps
+      their values and order, and writes a native bundle like the IdentificationData overload.
       @param[in] filename the file name of the file to write to.
       @param[in] additional_proteins The proteinIdentification vector to load the data from.
       @param[in] additional_peptides The peptideIdentification vector to load the data from.
@@ -337,8 +341,9 @@ public:
     /**
       @brief Write owning identifications to a native bundle or a strict legacy projection.
 
-      IDPARQUET writes the native format directly. Other formats require representable
-      peptide/protein values. Native output must not already exist.
+      IDPARQUET writes the native format directly and replaces a native bundle that already exists
+      at @p filename (any other existing path is rejected). Other formats require representable
+      peptide/protein values.
       @param[in] filename Output file or native directory.
       @param[in] data Owning identification collection.
       @param[in] allowed_types Optional allowed types, with the same extension fallback as the legacy overload.

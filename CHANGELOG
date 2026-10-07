@@ -56,8 +56,17 @@ OpenMS Library:
     run-level inference provenance, strict legacy/feature adapters, and configurable parallel column
     encoding/decoding. The Parquet tables can be queried directly: rows carry their run UUID, and score
     columns are named after their definitions (e.g. score_q_value). IdentificationDataFile::Options::replace_existing replaces an existing native
-    bundle; FileHandler sets it so a tool rerun overwrites its output. The established four-table
-    .idparquet bundle remains readable and is still written by the legacy FileHandler overloads.
+    bundle; FileHandler sets it so a tool rerun overwrites its output.
+  - .idparquet is the native format only: the FileHandler overloads for ProteinIdentification/
+    PeptideIdentification lists import and export through IdentificationDataAdapter, so every tool
+    that writes .idparquet writes native bundles. A legacy -> native -> legacy round trip keeps every
+    value and the order of protein runs and peptide identifications (checked on the golden outputs of
+    IDMerger, PercolatorAdapter, ProteomicsLFQ and IsobaricWorkflow). Legacy loads of native bundles
+    give each protein run a fresh identifier, like IdXMLFile.
+  - REMOVED: the four-table .idparquet layout of OpenMS 3.6 (psms, proteins, protein_groups,
+    search_params; PSMArrowIO). It is not read: convert such bundles to idXML with IDFileConverter of
+    OpenMS 3.6. pyOpenMS: IdentificationDataFile.psm_table() returns a flat PSM table from a native
+    bundle for code that read psms.parquet.
   - FeatureXMLFile/ConsensusXMLFile::store write the native identification data of a map that has no
     legacy identifications as legacy identifications instead of dropping it.
   - Identification data of feature and consensus maps is no longer lost by map operations:
@@ -191,8 +200,8 @@ TOPP tools:
       - mzTab-M evidence rows report the ion charge and theoretical m/z of the adduct (previously 0
         and the neutral mass); unmatched masses no longer produce empty evidence rows.
     IDMerger, MapAlignerIdentification:
-      - Native identification bundles (.idparquet with a manifest) are merged/aligned in the owning
-        model, as .oms files were. Other .idparquet bundles and idXML use the existing paths.
+      - Native identification bundles (.idparquet) are merged/aligned in the owning model, as .oms
+        files were. idXML inputs use the existing paths.
     NucleicAcidSearchEngine:
       - -db_out, -digest and -digest_out use native identification bundles (.idparquet) instead of .oms.
         Reported parents are again restricted to those with hits after FDR filtering.

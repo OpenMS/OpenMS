@@ -99,7 +99,21 @@ writes and reads them like the XML formats:
 
 ``storeIdentifications()`` and ``loadIdentifications()`` do the same for ``.idparquet``, and
 ``storeConsensusFeatures()`` and ``loadConsensusFeatures()`` for ``.consensusparquet``. These functions do not need
-``pyarrow``.
+``pyarrow``. ``.idparquet`` bundles are the native identification format (see :doc:`identification_data`):
+``storeIdentifications()`` imports peptide and protein identifications into it, keeping their values and order.
+
+The tables of an ``.idparquet`` bundle keep queries (spectra) and candidates apart. For one row per candidate with
+the values of its spectrum, as the ``psms.parquet`` table of OpenMS 3.6 had them, use
+:py:meth:`~.IdentificationDataFile.psm_table` (requires ``pyarrow``):
+
+.. code-block:: python
+    :linenos:
+
+    psms = oms.IdentificationDataFile.psm_table("BSA1.idparquet").to_pandas()
+    print(psms[["peptidoform", "precursor_charge", "rt", "score", "is_decoy"]].head(3))
+
+OpenMS 3.7 does not read the four-table ``.idparquet`` bundles of OpenMS 3.6; convert them to idXML with
+IDFileConverter of OpenMS 3.6.
 
 Each table of a bundle is an ordinary Parquet file, so other programs can read it without pyOpenMS, for example
 pandas:

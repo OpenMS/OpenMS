@@ -9,8 +9,6 @@
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="APRTT" score="40.0" sequence="" >
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[]"/>
-			<UserParam type="string" name="file_origin" value="IDMerger_idparquet_input1.idparquet"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0.0" MZ="623.580000000000041" RT="-1.0" >
 			<PeptideHit score="40.5" sequence="APRTPEPTIDER" charge="2" protein_refs="PH_0" >
@@ -23,7 +21,6 @@
 			</PeptideHit>
 			<PeptideHit score="30.5" sequence="APEPTIDERR" charge="2" >
 			</PeptideHit>
-			<UserParam type="string" name="file_origin" value="IDMerger_idparquet_input1.idparquet"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 	<IdentificationRun date="2006-10-07T06:31:08" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
@@ -32,8 +29,6 @@
 			</ProteinHit>
 			<ProteinHit id="PH_3" accession="BPRTT" score="40.0" sequence="" >
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[]"/>
-			<UserParam type="string" name="file_origin" value="IDMerger_idparquet_input2.idparquet"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0.0" MZ="623.580000000000041" RT="-1.0" >
 			<PeptideHit score="40.5" sequence="BPRTPEPTIDER" charge="2" protein_refs="PH_2" >
@@ -44,7 +39,6 @@
 			</PeptideHit>
 			<PeptideHit score="30.5" sequence="BPEPTIDER" charge="2" >
 			</PeptideHit>
-			<UserParam type="string" name="file_origin" value="IDMerger_idparquet_input2.idparquet"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

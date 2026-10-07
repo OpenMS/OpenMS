@@ -153,8 +153,8 @@ public:
     @brief How a run was produced: the software, its search settings and further processing metadata
 
     The files of a run are its sources and its databases are its own records, so the settings name neither:
-    the metadata must not list 'spectra_data', and the database fields of @p search (db, db_version,
-    taxonomy) stay empty. The raw files behind the sources ('spectra_data_raw') and processing history
+    the metadata must not list files in 'spectra_data' (an empty list, as legacy runs without files have, may
+    stay), and the database fields of @p search (db, db_version, taxonomy) stay empty. The raw files behind the sources ('spectra_data_raw') and processing history
     (e.g. 'alignment:*') are metadata.
   */
   struct OPENMS_DLLAPI RunSettings : MetaInfoInterface
@@ -197,7 +197,7 @@ public:
     std::string description;
     bool operator==(const DatabaseSequence&) const = default;
   };
-  /// Where a match occurs in a database sequence of its run (cf. mzIdentML PeptideEvidence).
+  /// Where a match occurs in a database sequence of its run (cf. mzIdentML PeptideEvidence); an empty accession is an unknown entry.
   struct OPENMS_DLLAPI SequenceEvidence
   {
     DatabaseId database;
@@ -312,7 +312,7 @@ public:
     { return kind_; }
     const RunSettings& getSettings() const
     { return *settings_; }
-    /// @throw Exception::InvalidValue if the metadata of @p settings lists 'spectra_data' (the files of a run are its sources)
+    /// @throw Exception::InvalidValue if the metadata of @p settings lists files in 'spectra_data' (the files of a run are its sources)
     void setSettings(const RunSettings& settings);
     /// The databases that the database sequences and the sequence evidence of the run refer to.
     const std::vector<Database>& getDatabases() const

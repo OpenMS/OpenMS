@@ -200,53 +200,55 @@ add_test("TOPP_IDMerger_idparquet_convert"
     -in ${TESTS_TEMP_DIR}/IDMerger_idparquet_output.tmp.idparquet
     -out ${TESTS_TEMP_DIR}/IDMerger_idparquet_output.tmp.idXML)
 set_tests_properties("TOPP_IDMerger_idparquet_convert" PROPERTIES DEPENDS "TOPP_IDMerger_idparquet")
+# All inputs are native, so IDMerger merges natively: the runs stay as they are, and unlike the legacy merge
+# of the idXML files (IDMerger_1_output.idXML) no "file_origin" annotations are added.
 add_test("TOPP_IDMerger_idparquet_diff"
   ${DIFF}
     -in1 ${TESTS_TEMP_DIR}/IDMerger_idparquet_output.tmp.idXML
     -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_output.idXML
-    -whitelist "IdentificationRun date" "UserParam.*file_origin")
+    -whitelist "IdentificationRun date")
 set_tests_properties("TOPP_IDMerger_idparquet_diff" PROPERTIES DEPENDS "TOPP_IDMerger_idparquet_convert")
 
 ### ParquetDiff ###
-# Uses the checked-in .idparquet psm tables as fixtures: both have the same 29-column schema,
+# Uses two PSM tables of OpenMS 3.6 (QPX psms.parquet) as fixtures: both have the same 29-column schema,
 # (peptidoform, precursor_charge) is unique in each, and the two share no key at all -- so a
 # self-comparison must report equal and a cross-comparison must report differences. No
 # generated reference file is needed.
 add_test("TOPP_ParquetDiff_1" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
-  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in1 ${DATA_DIR_TOPP}/ParquetDiff_input1.parquet
+  -in2 ${DATA_DIR_TOPP}/ParquetDiff_input1.parquet
   -pk peptidoform precursor_charge)
 
 # Schema-only mode: the value comparison is skipped entirely, so identical schemas are equal.
 add_test("TOPP_ParquetDiff_2" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
-  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -in1 ${DATA_DIR_TOPP}/ParquetDiff_input2.parquet
+  -in2 ${DATA_DIR_TOPP}/ParquetDiff_input2.parquet
   -pk peptidoform precursor_charge
   -schema_only)
 
 # Two different tables: the key sets are disjoint, so this must exit non-zero.
 add_test("TOPP_ParquetDiff_3" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
-  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -in1 ${DATA_DIR_TOPP}/ParquetDiff_input1.parquet
+  -in2 ${DATA_DIR_TOPP}/ParquetDiff_input2.parquet
   -pk peptidoform precursor_charge)
 set_tests_properties("TOPP_ParquetDiff_3" PROPERTIES WILL_FAIL 1)
 
 # A primary-key column that does not exist must be reported, not silently ignored.
 add_test("TOPP_ParquetDiff_4" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
-  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in1 ${DATA_DIR_TOPP}/ParquetDiff_input1.parquet
+  -in2 ${DATA_DIR_TOPP}/ParquetDiff_input1.parquet
   -pk no_such_column)
 set_tests_properties("TOPP_ParquetDiff_4" PROPERTIES WILL_FAIL 1)
 
 # Neither 'in2' nor 'schema' given: illegal parameters.
 add_test("TOPP_ParquetDiff_5" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet)
+  -in1 ${DATA_DIR_TOPP}/ParquetDiff_input1.parquet)
 set_tests_properties("TOPP_ParquetDiff_5" PROPERTIES WILL_FAIL 1)
 
 # 'min_rows' is satisfied: input1 holds 5 rows.
 add_test("TOPP_ParquetDiff_6" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
-  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in1 ${DATA_DIR_TOPP}/ParquetDiff_input1.parquet
+  -in2 ${DATA_DIR_TOPP}/ParquetDiff_input1.parquet
   -pk peptidoform precursor_charge
   -min_rows 5)
 
@@ -254,8 +256,8 @@ add_test("TOPP_ParquetDiff_6" ${TOPP_BIN_PATH}/ParquetDiff
 # what the row-count floor buys over a schema check: identical tables compare equal however few
 # rows they hold.
 add_test("TOPP_ParquetDiff_7" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
-  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
+  -in1 ${DATA_DIR_TOPP}/ParquetDiff_input1.parquet
+  -in2 ${DATA_DIR_TOPP}/ParquetDiff_input1.parquet
   -pk peptidoform precursor_charge
   -min_rows 6)
 set_tests_properties("TOPP_ParquetDiff_7" PROPERTIES WILL_FAIL 1)
@@ -266,28 +268,33 @@ set_tests_properties("TOPP_ParquetDiff_7" PROPERTIES WILL_FAIL 1)
 # 'min_rows' only ever looked at 'in1'. Skipping the value comparison leaves the row floor as
 # the only thing that can fail.
 add_test("TOPP_ParquetDiff_8" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet/psms.parquet
-  -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet/psms.parquet
+  -in1 ${DATA_DIR_TOPP}/ParquetDiff_input1.parquet
+  -in2 ${DATA_DIR_TOPP}/ParquetDiff_input2.parquet
   -pk peptidoform precursor_charge
   -schema_only
   -min_rows 5)
 set_tests_properties("TOPP_ParquetDiff_8" PROPERTIES WILL_FAIL 1)
 
-# .idparquet rip: split the merged .idparquet from TOPP_IDMerger_idparquet back into
-# per-run .idparquet directories.  -numeric_filenames + -split_ident_runs make output
-# names deterministic (merged_<ident_run_idx>_<file_origin_idx>.idparquet) so the diff
-# also implicitly verifies that the per-run output ordering matches the input order.
+# .idparquet rip: the legacy merge of two idXML files (IDMerger_1_output.idXML, which annotates every
+# identification with its file of origin), converted to .idparquet, is split back into per-run .idparquet
+# directories. (A native merge keeps the runs apart but records no file of origin.) -numeric_filenames +
+# -split_ident_runs make output names deterministic (<input>_<ident_run_idx>_<file_origin_idx>.idparquet)
+# so the diff also implicitly verifies that the per-run output ordering matches the input order.
+add_test("TOPP_IDRipper_idparquet_merge"
+  ${TOPP_BIN_PATH}/IDFileConverter
+    -in ${DATA_DIR_TOPP}/IDMerger_1_output.idXML
+    -out ${TESTS_TEMP_DIR}/IDRipper_idparquet_input.tmp.idparquet)
 file(MAKE_DIRECTORY ${TESTS_TEMP_DIR}/IDRipper_idparquet_out)
 add_test("TOPP_IDRipper_idparquet"
   ${TOPP_BIN_PATH}/IDRipper -test
-    -in ${TESTS_TEMP_DIR}/IDMerger_idparquet_output.tmp.idparquet
+    -in ${TESTS_TEMP_DIR}/IDRipper_idparquet_input.tmp.idparquet
     -out ${TESTS_TEMP_DIR}/IDRipper_idparquet_out
     -split_ident_runs -numeric_filenames)
-set_tests_properties("TOPP_IDRipper_idparquet" PROPERTIES DEPENDS "TOPP_IDMerger_idparquet")
+set_tests_properties("TOPP_IDRipper_idparquet" PROPERTIES DEPENDS "TOPP_IDRipper_idparquet_merge")
 
 add_test("TOPP_IDRipper_idparquet_convert_0"
   ${TOPP_BIN_PATH}/IDFileConverter
-    -in ${TESTS_TEMP_DIR}/IDRipper_idparquet_out/IDMerger_idparquet_output.tmp_0_0.idparquet
+    -in ${TESTS_TEMP_DIR}/IDRipper_idparquet_out/IDRipper_idparquet_input.tmp_0_0.idparquet
     -out ${TESTS_TEMP_DIR}/IDRipper_idparquet_out_0.tmp.idXML)
 set_tests_properties("TOPP_IDRipper_idparquet_convert_0" PROPERTIES DEPENDS "TOPP_IDRipper_idparquet")
 add_test("TOPP_IDRipper_idparquet_diff_0"
@@ -299,7 +306,7 @@ set_tests_properties("TOPP_IDRipper_idparquet_diff_0" PROPERTIES DEPENDS "TOPP_I
 
 add_test("TOPP_IDRipper_idparquet_convert_1"
   ${TOPP_BIN_PATH}/IDFileConverter
-    -in ${TESTS_TEMP_DIR}/IDRipper_idparquet_out/IDMerger_idparquet_output.tmp_1_1.idparquet
+    -in ${TESTS_TEMP_DIR}/IDRipper_idparquet_out/IDRipper_idparquet_input.tmp_1_1.idparquet
     -out ${TESTS_TEMP_DIR}/IDRipper_idparquet_out_1.tmp.idXML)
 set_tests_properties("TOPP_IDRipper_idparquet_convert_1" PROPERTIES DEPENDS "TOPP_IDRipper_idparquet")
 add_test("TOPP_IDRipper_idparquet_diff_1"
@@ -2974,8 +2981,8 @@ add_test(NAME "TOPP_OpenNuXL_definitions_missing" COMMAND ${CMAKE_COMMAND}
   -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 set_tests_properties("TOPP_OpenNuXL_definitions_missing" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_strip")
 #
-# Parquet lane: idXML -> .idparquet -> idXML restores the names, and psms.parquet on its own
-# spells each cross-link with its chemistry ([Formula:...|INFO:name]).
+# Parquet lane: idXML -> .idparquet -> idXML restores the names. matches.parquet names each cross-link
+# (AEADNLDDK(NuXL:U-H2O1)K), and the run settings in manifest.json define its chemistry.
 add_test("TOPP_OpenNuXL_definitions_idparquet_write" ${TOPP_BIN_PATH}/IDFileConverter
   -in ${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML
   -out ${TESTS_TEMP_DIR}/OpenNuXL_definitions.tmp.idparquet -out_type idparquet)
@@ -2993,14 +3000,19 @@ add_test("TOPP_OpenNuXL_definitions_idparquet_check" ${CMAKE_COMMAND}
   -P ${DATA_DIR_TOPP}/OpenNuXL_adduct_in_sequence_test.cmake)
 set_tests_properties("TOPP_OpenNuXL_definitions_idparquet_check" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_idparquet_read")
 add_test("TOPP_OpenNuXL_definitions_idparquet_dump" ${TOPP_BIN_PATH}/ParquetDiff
-  -in1 ${TESTS_TEMP_DIR}/OpenNuXL_definitions.tmp.idparquet/psms.parquet
-  -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_definitions_psms.tmp.tsv -pk peptidoform precursor_charge)
+  -in1 ${TESTS_TEMP_DIR}/OpenNuXL_definitions.tmp.idparquet/matches.parquet
+  -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_definitions_matches.tmp.tsv -pk run_uuid match_id)
 set_tests_properties("TOPP_OpenNuXL_definitions_idparquet_dump" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_idparquet_write")
 add_test("TOPP_OpenNuXL_definitions_idparquet_peptidoform" ${CMAKE_COMMAND}
-  -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_definitions_psms.tmp.tsv
-  "-DEXPECTED=AEADNLDDK[Formula:C9H11N2O8P1|INFO:NuXL:U-H2O1]K"
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_definitions_matches.tmp.tsv
+  "-DEXPECTED=AEADNLDDK(NuXL:U-H2O1)K"
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_OpenNuXL_definitions_idparquet_peptidoform" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_idparquet_dump")
+add_test("TOPP_OpenNuXL_definitions_idparquet_manifest" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_definitions.tmp.idparquet/manifest.json
+  "-DEXPECTED=NuXL:U-H2O1|NuXL:U-H2O1 (K)||K|none|C9H11N2O8P1"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_OpenNuXL_definitions_idparquet_manifest" PROPERTIES DEPENDS "TOPP_OpenNuXL_definitions_idparquet_write")
 #
 # Old files: the mass-bracket spelling that predates the definitions loads unchanged and
 # acquires no definitions block (a mass-only modification has nothing to define).

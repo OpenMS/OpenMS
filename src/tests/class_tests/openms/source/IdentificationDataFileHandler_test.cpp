@@ -11,6 +11,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/test_config.h>
 #include <filesystem>
+#include <fstream>
 
 using namespace OpenMS;
 using ID = IdentificationData;
@@ -60,12 +61,25 @@ START_SECTION((owning FileHandler writes native bundles and recognizes their man
   TEST_EQUAL(peptides.size(), 1)
   TEST_EQUAL(peptides.front().getHits().front().getSequence().toString(), "PEPTIDE")
   TEST_REAL_SIMILAR(peptides.front().getHits().front().getScore(), 9.0)
-  TEST_EXCEPTION(Exception::UnableToCreateFile,
-                 FileHandler().storeIdentifications(path, proteins, peptides, {FileTypes::IDPARQUET}))
+  // .idparquet is native only: established identifications are imported and replace the bundle, like a tool rerun.
+  FileHandler().storeIdentifications(path, proteins, peptides, {FileTypes::IDPARQUET});
+  TEST_TRUE(IdentificationDataFile::isNativeFile(path))
   TEST_FALSE(std::filesystem::exists(std::filesystem::path(path) / "psms.parquet"))
   FileHandler().loadIdentifications(path, loaded);
-  TEST_EQUAL(loaded.getRun("run").getUuid(), uuid)
+  ABORT_IF(loaded.getRuns().size() != 1)
+  TEST_EQUAL(loaded.getRuns()[0].getNumberOfMatches(), 2)
+  // The import is a new run (the legacy load named it like IdXMLFile does).
+  TEST_NOT_EQUAL(loaded.getRuns()[0].getUuid(), uuid)
   std::filesystem::remove_all(path);
+
+  // The four-table layout of OpenMS 3.6 is not read, by either overload.
+  const auto legacy_bundle = path + ".idparquet";
+  std::filesystem::create_directories(legacy_bundle);
+  std::ofstream(std::filesystem::path(legacy_bundle) / "psms.parquet") << "PAR1";
+  TEST_FALSE(IdentificationDataFile::isNativeFile(legacy_bundle))
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadIdentifications(legacy_bundle, proteins, peptides, {FileTypes::IDPARQUET}))
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadIdentifications(legacy_bundle, loaded))
+  std::filesystem::remove_all(legacy_bundle);
 }
 END_SECTION
 

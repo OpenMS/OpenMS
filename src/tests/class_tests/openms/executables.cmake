@@ -104,6 +104,7 @@ set(metadata_executables_list
   IdentificationDataFileInference_test
   IdentificationDataFileHandler_test
   IdentificationDataConverter_test
+  IdentificationDataRoundTrip_test
   InstrumentSettings_test
   Instrument_test
   IonDetector_test
@@ -348,7 +349,6 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   ProteinIdentificationArrowIO_test
   FeatureMapArrowIO_test
   ConsensusMapArrowIO_test
-  PSMArrowIO_test
   ModificationDefinitionIO_test
   ArrowSchemaRegistry_test
   ArrowIOHelpers_test

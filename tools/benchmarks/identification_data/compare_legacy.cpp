@@ -3,7 +3,6 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
-#include <OpenMS/FORMAT/PSMArrowIO.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <bit>
@@ -187,12 +186,6 @@ int main(int argc, char** argv)
         IdXMLFile().store(path, proteins, peptides);
         timing("write", start);
       }
-      else if (format == "parquet")
-      {
-        start = Clock::now();
-        if (! PSMArrowIO::exportToParquet(proteins, peptides, path)) throw std::runtime_error("Parquet write failed");
-        timing("write", start);
-      }
       else
         throw std::runtime_error("Unknown format");
     }
@@ -211,10 +204,6 @@ int main(int argc, char** argv)
         std::vector<ProteinIdentification> proteins;
         PeptideIdentificationList peptides;
         if (format == "idxml") IdXMLFile().load(path, proteins, peptides);
-        else if (format == "parquet")
-        {
-          if (! PSMArrowIO::importFromParquet(path, proteins, peptides)) throw std::runtime_error("Parquet read failed");
-        }
         else
           throw std::runtime_error("Unknown format");
         timing("read", start);

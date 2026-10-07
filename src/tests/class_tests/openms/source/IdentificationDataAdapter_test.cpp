@@ -105,16 +105,29 @@ START_SECTION((static ImportResult importLegacy(const std::vector<ProteinIdentif
   TEST_EQUAL(imported.data.getInferenceResults()[0].inputs.size(), 1)
   auto without_files = original;
   without_files.removeMetaValue("spectra_data");
-  TEST_TRUE(imported.data.getInferenceResults()[0].proteins == without_files)
+  // The protein's sequence, description and metadata are stored once, in the database sequence; the inference
+  // result keeps the inference values, and proteinHits() completes them.
+  const auto& inference = imported.data.getInferenceResults()[0];
+  ABORT_IF(inference.proteins.getHits().size() != 1)
+  TEST_EQUAL(inference.proteins.getHits()[0].getSequence(), "")
+  TEST_EQUAL(inference.proteins.getHits()[0].getDescription(), "")
+  TEST_FALSE(inference.proteins.getHits()[0].metaValueExists("user"))
+  TEST_REAL_SIMILAR(inference.proteins.getHits()[0].getScore(), 0.95)
+  TEST_EQUAL(run.getDatabaseSequences()->at(0).sequence, "PEPTIDE")
+  TEST_EQUAL(run.getDatabaseSequences()->at(0).description, "description")
+  TEST_TRUE(Adapter::proteinHits(imported.data, inference) == without_files.getHits())
+  auto stripped = inference.proteins;
+  stripped.setHits(without_files.getHits());
+  TEST_TRUE(stripped == without_files)
   const auto exported = Adapter::toLegacy(imported.data);
   TEST_TRUE(exported.losses.empty())
   TEST_EQUAL(exported.proteins.size(), 1)
   TEST_TRUE(exported.proteins[0] == original)
-  // Identifications are exported by source, in the order of the run's files; mappings preserve the
-  // original cross-run order without requiring a dataset-wide sort.
-  TEST_TRUE(exported.peptides[0] == second)
-  TEST_TRUE(exported.peptides[1] == first)
+  // Identifications are exported in their legacy order, across the sources of the run (query IDs follow that order).
+  TEST_TRUE(exported.peptides[0] == first)
+  TEST_TRUE(exported.peptides[1] == second)
   TEST_TRUE(exported.peptides[2] == empty)
+  TEST_TRUE(exported.peptides == peptides)
   TEST_EXCEPTION(Exception::InvalidParameter, Adapter::fromLegacy({original, original}, peptides))
   TEST_EXCEPTION(Exception::InvalidParameter, Adapter::fromLegacy({}, peptides))
   auto malformed = first;
@@ -156,6 +169,100 @@ START_SECTION((static LegacyResult toLegacy(const IdentificationData&, const Exp
   TEST_EXCEPTION(Exception::InvalidParameter, Adapter::toLegacy(unsupported))
   options.loss_policy = Adapter::LossPolicy::ALLOW;
   TEST_EQUAL(Adapter::toLegacy(unsupported, options).losses.size(), 1)
+}
+END_SECTION
+
+START_SECTION([EXTRA] export keeps the order of protein runs and of identifications across runs)
+{
+  // As in IDMerger outputs: the identifications of the second protein run come first, and a protein run without
+  // identifications precedes both.
+  auto empty_run = protein();
+  empty_run.setIdentifier("empty");
+  auto a = protein();
+  a.setIdentifier("a");
+  auto b = protein();
+  b.setIdentifier("b");
+  PeptideIdentificationList peptides;
+  for (const auto* run : {&b, &b, &a, &b})
+  {
+    auto item = peptide("PEP", 0.01 * (peptides.size() + 1));
+    item.setIdentifier(run->getIdentifier());
+    item.setRT(peptides.size());
+    peptides.push_back(item);
+  }
+  const auto imported = Adapter::importLegacy({empty_run, a, b}, peptides);
+  TEST_EQUAL(imported.data.getRuns().size(), 3)
+  TEST_EQUAL(imported.data.getRuns()[0].getIdentifier(), "empty")
+  TEST_EQUAL(imported.data.getRuns()[1].getIdentifier(), "a")
+  TEST_EQUAL(imported.data.getRuns()[2].getIdentifier(), "b")
+  const auto exported = Adapter::toLegacy(imported.data);
+  ABORT_IF(exported.proteins.size() != 3)
+  TEST_EQUAL(exported.proteins[0].getIdentifier(), "empty")
+  TEST_EQUAL(exported.proteins[1].getIdentifier(), "a")
+  TEST_EQUAL(exported.proteins[2].getIdentifier(), "b")
+  TEST_TRUE(exported.peptides == peptides)
+  for (Size i = 0; i < peptides.size(); ++i)
+    TEST_TRUE(exported.queries[i] == imported.queries[i])
+
+  // Runs that were created independently share query IDs; such runs are exported one after the other.
+  ID merged = Adapter::fromLegacy({a}, {peptides[2]});
+  auto other = Adapter::fromLegacy({b}, {peptides[0], peptides[1]});
+  merged.merge(other);
+  const auto sequential = Adapter::toLegacy(merged);
+  ABORT_IF(sequential.peptides.size() != 3)
+  TEST_TRUE(sequential.peptides[0] == peptides[2])
+  TEST_TRUE(sequential.peptides[1] == peptides[0])
+  TEST_TRUE(sequential.peptides[2] == peptides[1])
+}
+END_SECTION
+
+START_SECTION([EXTRA] legacy values that native records cannot hold survive a round trip)
+{
+  // Repeated and empty protein accessions: no database sequences, the inference result keeps the complete hits.
+  auto repeated = protein();
+  repeated.insertHit(repeated.getHits().front());
+  ProteinHit unnamed;
+  unnamed.setSequence("SEQ");
+  repeated.insertHit(unnamed);
+  // An evidence without an accession (flanking residues of an unknown protein) and target_decoy values that the
+  // legacy getters do not know.
+  auto item = peptide();
+  auto hit = item.getHits().front();
+  hit.setPeptideEvidences({PeptideEvidence("P1", 0, 6, '[', ']'), PeptideEvidence("", 3, 9, 'K', 'R')});
+  hit.setMetaValue("target_decoy", "");
+  item.setHits({hit});
+  repeated.getHits().front().setMetaValue("target_decoy", "");
+  const auto imported = Adapter::fromLegacy({repeated}, {item});
+  const auto& run = imported.getRuns().front();
+  TEST_FALSE(run.getDatabaseSequences().has_value())
+  TEST_EQUAL(imported.getInferenceResults().front().proteins.getHits().size(), 3)
+  const auto& match = run.getSources().back().identifications.front().getMatches().front();
+  TEST_TRUE(match.target_decoy == ID::TargetDecoy::UNKNOWN)
+  TEST_EQUAL(match.getMetaValue("target_decoy").toString(), "")
+  TEST_EQUAL(match.sequence_evidence.size(), 2)
+  TEST_EQUAL(match.sequence_evidence[1].accession, "")
+  const auto exported = Adapter::toLegacy(imported);
+  TEST_TRUE(exported.proteins.front() == repeated)
+  TEST_TRUE(exported.peptides.front() == item)
+
+  // Two bundles split from one run keep its identifier; merged, each run is exported under its own name.
+  auto first = protein();
+  first.setIdentifier("split");
+  auto second = first;
+  second.getHits().front().setAccession("P2");
+  auto in_first = peptide();
+  in_first.setIdentifier("split");
+  auto in_second = peptide("PEP", 0.2);
+  in_second.setIdentifier("split");
+  auto merged = Adapter::fromLegacy({first}, {in_first});
+  merged.merge(Adapter::fromLegacy({second}, {in_second}));
+  const auto legacy = Adapter::toLegacy(merged);
+  ABORT_IF(legacy.proteins.size() != 2)
+  TEST_EQUAL(legacy.proteins[0].getIdentifier(), "split")
+  TEST_EQUAL(legacy.proteins[1].getIdentifier(), merged.getRuns()[1].getIdentifier())
+  TEST_NOT_EQUAL(legacy.proteins[1].getIdentifier(), "split")
+  TEST_EQUAL(legacy.peptides[1].getIdentifier(), legacy.proteins[1].getIdentifier())
+  TEST_EQUAL(legacy.proteins[1].getHits().front().getAccession(), "P2")
 }
 END_SECTION
 
@@ -434,9 +541,10 @@ START_SECTION([EXTRA] the sources of a run are the files of its legacy run)
   StringList files;
   exported.proteins[0].getPrimaryMSRunPath(files);
   TEST_EQUAL(ListUtils::concatenate(files, ","), "a.mzML,b.mzML,a.mzML")
+  // The identifications keep their legacy order, not that of their files.
   ABORT_IF(exported.peptides.size() != 2)
-  TEST_TRUE(exported.peptides[0] == first)
-  TEST_TRUE(exported.peptides[1] == third)
+  TEST_TRUE(exported.peptides[0] == third)
+  TEST_TRUE(exported.peptides[1] == first)
 
   // A stale index in the metadata of an identification does not override its source.
   ID stale;
@@ -456,13 +564,40 @@ START_SECTION([EXTRA] the sources of a run are the files of its legacy run)
   exported = Adapter::toLegacy(stale);
   TEST_EQUAL(static_cast<Int>(exported.peptides[0].getMetaValue("id_merge_index")), 1)
 
-  // A single-file run needs no index: its identifications belong to its file either way.
+  // A single-file run needs no index: its identifications belong to its file either way. Export writes none,
+  // so an index that names the file stays metadata, and the identifications come back as they were.
   legacy_run.setPrimaryMSRunPath({"a.mzML"});
   imported = Adapter::fromLegacy({legacy_run}, {peptide(), first});
   TEST_EQUAL(imported.getRuns()[0].getSources().size(), 1)
   TEST_EQUAL(imported.getRuns()[0].getSources()[0].identifications.size(), 2)
   exported = Adapter::toLegacy(imported);
+  TEST_EQUAL(exported.peptides[0].metaValueExists("id_merge_index"), false)
+  TEST_EQUAL(static_cast<Int>(exported.peptides[1].getMetaValue("id_merge_index")), 0)
+  TEST_TRUE(exported.peptides[1] == first)
+  // An index that does not name the file of a single-file run is not exported.
+  auto& single = imported.getRun(imported.getRuns()[0].getIdentifier());
+  const auto& query = single.getSources()[0].identifications[1];
+  auto wrong = query.getObservation();
+  wrong.setMetaValue("id_merge_index", 3);
+  single.replaceObservation(query.getId(), wrong);
+  exported = Adapter::toLegacy(imported);
   TEST_EQUAL(exported.peptides[1].metaValueExists("id_merge_index"), false)
+
+  // A legacy run with an empty file list keeps it; one without a file list gets none.
+  auto no_files = protein();
+  no_files.setMetaValue("spectra_data", DataValue(StringList()));
+  auto empty_list = Adapter::toLegacy(Adapter::fromLegacy({no_files}, {peptide()}));
+  TEST_TRUE(empty_list.proteins[0] == no_files)
+  no_files.removeMetaValue("spectra_data");
+  auto no_list = Adapter::toLegacy(Adapter::fromLegacy({no_files}, {peptide()}));
+  TEST_TRUE(no_list.proteins[0] == no_files)
+  // Settings may keep an empty file list, but must not list files.
+  ID::RunSettings listed;
+  listed.setMetaValue("spectra_data", DataValue(StringList()));
+  ID with_list;
+  with_list.addRun("listed").setSettings(listed);
+  listed.setMetaValue("spectra_data", DataValue(StringList {"a.mzML"}));
+  TEST_EXCEPTION(Exception::InvalidValue, with_list.getRun("listed").setSettings(listed))
 
   // Without files, the identifications have an unknown source, and the export lists no files.
   legacy_run.removeMetaValue("spectra_data");

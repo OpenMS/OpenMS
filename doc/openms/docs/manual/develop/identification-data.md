@@ -122,11 +122,11 @@ Besides owning load and store, the API offers projected streaming scans (`scan`)
 (`filter`), which keeps IDs and either preserves or discards inference results. `Options::threads`
 enables a private Arrow thread pool per operation; the default is serial.
 
-The four-table `.idparquet` bundle of OpenMS 3.6 (psms, proteins, protein_groups, search_params)
-is still read and written by the legacy `FileHandler` overloads as a different layout of the same
-file type; `FileHandler` recognizes native bundles by their manifest. Compatibility with OpenMS 3.6
-is not a goal in either direction: the four-table layout will be dropped without an importer once
-`.idparquet` is written natively only, and OpenMS 3.6 does not need to read the new bundles.
+`.idparquet` is the native format only. The `FileHandler` overloads for the established classes
+import and export through `IdentificationDataAdapter` (below), so every tool that reads or writes
+`.idparquet` uses native bundles. The four-table bundle of OpenMS 3.6 (psms, proteins,
+protein_groups, search_params) is not read: there is no importer, and loading one reports that it
+must be converted to idXML with OpenMS 3.6. OpenMS 3.6 does not read native bundles either.
 
 ## Feature and consensus maps
 
@@ -191,7 +191,15 @@ protein scores, groups or coverage are. A protein score type other than the PSM 
 or the search engine score after rescoring) is then kept in the settings metadata
 (`identification:legacy_protein_score_type`, `identification:legacy_protein_higher_score_better`). Export
 reverses this (`settingsToLegacy`, `legacyFiles`) and writes `id_merge_index` only
-for runs with several files. Legacy meta values that a field holds are not stored twice: the spectrum
+for runs with several files.
+
+A round trip keeps the order of the legacy values. Import creates the runs in the order of the
+protein runs, and numbers the queries of all runs in the order of the peptide identifications.
+Export writes the protein runs in run order and the peptide identifications by query ID across all
+runs, which restores the legacy order; if two runs share a query ID (runs created independently, e.g.
+merged datasets), it writes them run by run instead, each by query ID. The golden outputs of
+IDMerger, PercolatorAdapter, ProteomicsLFQ and IsobaricWorkflow survive legacy → native → legacy
+unchanged (`IdentificationDataRoundTrip_test`). Legacy meta values that a field holds are not stored twice: the spectrum
 reference is the query's `data_id`, `target_decoy` of peptide and protein hits is the
 `target_decoy` field of matches and database sequences, and the description of a protein hit is that
 of its database sequence. Export writes them back; a meta value that

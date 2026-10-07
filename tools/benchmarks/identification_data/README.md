@@ -75,8 +75,9 @@ Results are not committed: they depend on hardware, build flags and filesystem c
 
 ## Comparison against legacy
 
-`IdentificationDataLegacyBenchmark` compares idXML, existing PSM Parquet and
-the owning native format with equivalent modified-peptide input. Run on Linux:
+`IdentificationDataLegacyBenchmark` compares idXML and the owning native format
+with equivalent modified-peptide input. (The four-table PSM Parquet bundle of
+OpenMS 3.6 is no longer supported.) Run on Linux:
 
 ```bash
 python3 tools/benchmarks/identification_data/run_legacy_comparison.py \
@@ -87,20 +88,20 @@ The output directory must not exist. Configure runtime library/data paths for yo
 OpenMS build first. The driver measures fresh-process peak RSS, rotates read order,
 and includes one warmup plus three measured reads per format.
 
-Compare serial and threaded native I/O with the existing PSM Parquet API:
+Compare serial and threaded native I/O with idXML:
 
 ```bash
 python3 tools/benchmarks/identification_data/run_legacy_comparison.py \
   ../id-benchmark/IdentificationDataLegacyBenchmark ../thread-comparison \
-  --formats parquet native --cases 1000000:1 1000000:1000 \
+  --formats idxml native --cases 1000000:1 1000000:1000 \
   --native-threads 1 2 4 8
 ```
 
 `--cases` accepts `PSMS:RUNS` pairs. `--read-repetitions` defaults to three measured
 reads after one warmup. Each native worker count gets its own regenerated dataset;
 all variants must retain the same content digest. Native I/O uses a private CPU
-pool per operation and does not change Arrow's global pool. The existing Parquet
-API retains its own defaults. Native single-threaded operation remains the default.
+pool per operation and does not change Arrow's global pool. Native single-threaded
+operation remains the default.
 The output includes the method, raw phase timings, process CPU time and peak RSS.
 Process CPU/RSS includes verification and, for writes, generation and conversion;
 the separate I/O wall-clock phases exclude that work.

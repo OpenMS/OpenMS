@@ -94,7 +94,7 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
       for (const auto& query : source.identifications)
         for (const auto& match : query.getMatches())
           for (const auto& evidence : match.sequence_evidence)
-            referenced_proteins.insert(run->qualify(evidence.database, evidence.accession));
+            if (! evidence.accession.empty()) referenced_proteins.insert(run->qualify(evidence.database, evidence.accession));
   }
   // Resolve missing catalogue entries only after every run's catalogue was read.
   // An earlier run with evidence alone must not conflict with a later full record.
@@ -159,12 +159,14 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
           auto hit = IdentificationDataAdapter::materializePeptide(run, match, input.score);
           hit.setScore(input.probability == ProbabilityType::POSTERIOR_ERROR_PROBABILITY ? 1.0 - *value : *value);
           auto evidence = hit.getPeptideEvidences();
+          // Evidence without an accession (flanking residues of an unknown protein) refers to no protein.
           for (Size i = 0; i < evidence.size(); ++i)
-            evidence[i].setProteinAccession(aliases.at(run.qualify(match.sequence_evidence[i].database, match.sequence_evidence[i].accession)));
+            if (! match.sequence_evidence[i].accession.empty())
+              evidence[i].setProteinAccession(aliases.at(run.qualify(match.sequence_evidence[i].database, match.sequence_evidence[i].accession)));
           hit.setPeptideEvidences(evidence);
           std::set<std::string> unique_proteins;
           for (const auto& item : evidence)
-            unique_proteins.insert(item.getProteinAccession());
+            if (! item.getProteinAccession().empty()) unique_proteins.insert(item.getProteinAccession());
           hit.setMetaValue("protein_references", unique_proteins.size() == 1 ? "unique" : "non-unique");
           peptide_id.insertHit(std::move(hit));
         }

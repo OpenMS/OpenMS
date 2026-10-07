@@ -8,6 +8,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -49,6 +50,14 @@ namespace
   ID::DatabaseId legacyDatabase(ID::Run& run)
   { return run.getDatabases().empty() ? run.addDatabase(ID::Database {}) : run.getDatabaseId(0); }
 
+  /// Whether @p metadata has an empty legacy file list ('spectra_data'), which a legacy run without files may carry.
+  bool emptyFileList(const MetaInfoInterface& metadata)
+  {
+    if (! metadata.metaValueExists("spectra_data")) return false;
+    const auto& value = metadata.getMetaValue("spectra_data");
+    return value.valueType() == DataValue::STRING_LIST && value.toStringList().empty();
+  }
+
   void loss(Adapter::LegacyResult& result, const Adapter::ExportOptions& options, const std::string& message)
   {
     if (options.loss_policy == Adapter::LossPolicy::STRICT) invalid(message);
@@ -78,19 +87,16 @@ namespace
     const auto& value = metadata.getMetaValue(name);
     if (value.valueType() == DataValue::STRING_VALUE && value.toString() == restored) metadata.removeMetaValue(name);
   }
-  ID::TargetDecoy targetDecoy(PeptideHit::TargetDecoyType value)
+  /// The target/decoy state of a legacy peptide or protein hit, read from 'target_decoy' as PeptideHit and ProteinHit
+  /// read it, but without throwing: a value they do not know (e.g. an empty one) is UNKNOWN and stays metadata.
+  ID::TargetDecoy legacyTargetDecoy(const MetaInfoInterface& hit, bool protein)
   {
-    switch (value)
-    {
-      case PeptideHit::TargetDecoyType::TARGET:
-        return ID::TargetDecoy::TARGET;
-      case PeptideHit::TargetDecoyType::DECOY:
-        return ID::TargetDecoy::DECOY;
-      case PeptideHit::TargetDecoyType::TARGET_DECOY:
-        return ID::TargetDecoy::BOTH;
-      default:
-        return ID::TargetDecoy::UNKNOWN;
-    }
+    if (! hit.metaValueExists("target_decoy")) return ID::TargetDecoy::UNKNOWN;
+    const auto text = StringUtils::toLowered(hit.getMetaValue("target_decoy").toString());
+    if (text == "target") return ID::TargetDecoy::TARGET;
+    if (text == "decoy") return ID::TargetDecoy::DECOY;
+    if (! protein && text == "target+decoy") return ID::TargetDecoy::BOTH;
+    return ID::TargetDecoy::UNKNOWN;
   }
 
   void registerDefinitions(const ProteinIdentification::SearchParameters& parameters)
@@ -147,7 +153,7 @@ namespace
                             item.after.empty() ? PeptideEvidence::UNKNOWN_AA : item.after.front());
     }
     hit.setPeptideEvidences(evidence);
-    if (targetDecoy(hit.getTargetDecoyType()) != match.target_decoy)
+    if (legacyTargetDecoy(hit, false) != match.target_decoy)
     {
       switch (match.target_decoy)
       {
@@ -208,8 +214,8 @@ namespace
         static_cast<MetaInfoInterface&>(hit) = sequence;
         hit.setAccession(sequence.accession);
         hit.setSequence(sequence.sequence);
-        // ProteinHit keeps its description as metadata, which is absent unless set.
-        if (! sequence.description.empty() || hit.metaValueExists("Description")) hit.setDescription(sequence.description);
+        // ProteinHit stores the description as metadata; an empty one is not written.
+        if (! sequence.description.empty()) hit.setDescription(sequence.description);
         if (sequence.target_decoy == ID::TargetDecoy::BOTH)
           loss(result, options, "Legacy proteins cannot represent a combined target/decoy database sequence");
         else
@@ -217,7 +223,7 @@ namespace
           const auto state = sequence.target_decoy == ID::TargetDecoy::TARGET  ? ProteinHit::TargetDecoyType::TARGET
                              : sequence.target_decoy == ID::TargetDecoy::DECOY ? ProteinHit::TargetDecoyType::DECOY
                                                                                : ProteinHit::TargetDecoyType::UNKNOWN;
-          if (hit.getTargetDecoyType() != state) hit.setTargetDecoyType(state);
+          if (legacyTargetDecoy(hit, true) != sequence.target_decoy) hit.setTargetDecoyType(state);
         }
         hits.push_back(std::move(hit));
       }
@@ -306,6 +312,7 @@ namespace
                                   const Adapter::ExportOptions& options)
   {
     LegacyInference merged {inference.proteins, {}};
+    merged.proteins.setHits(Adapter::proteinHits(data, inference));
     if (merged.proteins.getIdentifier().empty()) merged.proteins.setIdentifier(inference.identifier);
     StringList files;
     Size file_groups = 0; ///< Joined runs with files of their own in the merged list
@@ -366,6 +373,7 @@ namespace
                "Pooled inference input run " + run->getIdentifier() + " has no primary MS file that identifies its PSMs in the merged legacy protein run");
     }
     if (! files.empty()) merged.proteins.setPrimaryMSRunPath(files);
+    else if (! joined.empty() && emptyFileList(joined.front()->getSettings())) merged.proteins.setMetaValue("spectra_data", DataValue(StringList()));
     else merged.proteins.removeMetaValue("spectra_data");
     if (inference.protein_score) writeScoreDefinition(merged.proteins, "protein_score", *inference.protein_score);
     if (inference.group_score) writeScoreDefinition(merged.proteins, "group_score", *inference.group_score);
@@ -374,6 +382,40 @@ namespace
       if (alias != identity.accession || identity.database != merged.proteins.getSearchParameters().db)
         loss(result, options, "Legacy export cannot represent proteins of several databases in the inference result " + inference.identifier);
     return merged;
+  }
+
+  /// A query of a dataset at its position: the run and source that own it.
+  struct QueryPosition
+  {
+    Size run;    ///< Index of the run in the dataset
+    Size source; ///< Index of the source in the run
+    const ID::Identification* query;
+  };
+
+  /**
+    The queries of @p data in the order in which export writes them: by query ID across all runs if no ID occurs in
+    two runs, as after an import, which numbers the queries in their legacy order; otherwise run by run (runs that
+    were created independently, e.g. merged), the queries of each run by ID. Either way the queries of a run follow
+    their IDs across its sources, i.e. the order in which they were added.
+  */
+  std::vector<QueryPosition> queryOrder(const ID& data)
+  {
+    std::vector<QueryPosition> order;
+    for (Size r = 0; r < data.getRuns().size(); ++r)
+    {
+      const auto& sources = data.getRuns()[r].getSources();
+      for (Size s = 0; s < sources.size(); ++s)
+        for (const auto& query : sources[s].identifications)
+          order.push_back({r, s, &query});
+    }
+    std::stable_sort(order.begin(), order.end(), [](const auto& a, const auto& b) { return a.query->getId() < b.query->getId(); });
+    const bool shared_ids = std::adjacent_find(order.begin(), order.end(), [](const auto& a, const auto& b) {
+                              return a.query->getId() == b.query->getId();
+                            }) != order.end();
+    if (shared_ids)
+      std::sort(order.begin(), order.end(),
+                [](const auto& a, const auto& b) { return std::make_pair(a.run, a.query->getId()) < std::make_pair(b.run, b.query->getId()); });
+    return order;
   }
 
   std::vector<Adapter::FeatureAssociation> makeAssociations(const Adapter::ImportResult& imported, std::vector<Adapter::FeatureAssociation> locations)
@@ -488,7 +530,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
     protein.setSearchParameters(params);
     file_counts[protein.getIdentifier()] = protein.nrPrimaryMSRunPaths();
     // Database sequences need distinct accessions. A protein list with empty or repeated accessions (which legacy
-    // runs allow) has no catalogue; its inference result keeps the protein hits.
+    // runs allow) has no catalogue; its inference result keeps the complete protein hits instead.
     std::set<std::string> accessions;
     catalogues[protein.getIdentifier()] = std::all_of(protein.getHits().begin(), protein.getHits().end(), [&](const ProteinHit& hit) {
       return ! hit.getAccession().empty() && accessions.insert(hit.getAccession()).second;
@@ -538,9 +580,9 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
       sequence.accession = hit.getAccession();
       sequence.sequence = hit.getSequence();
       sequence.description = hit.getDescription();
+      // ProteinHit keeps its description as the meta value "Description"; the field holds it.
       dropRestoredMetaValue(sequence, "Description", sequence.description);
-      if (hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::TARGET) sequence.target_decoy = ID::TargetDecoy::TARGET;
-      if (hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::DECOY) sequence.target_decoy = ID::TargetDecoy::DECOY;
+      sequence.target_decoy = legacyTargetDecoy(hit, true);
       dropRestoredMetaValue(sequence, "target_decoy", targetDecoyText(sequence.target_decoy));
       sequences.push_back(std::move(sequence));
     }
@@ -560,21 +602,37 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
     return run;
   };
 
+  // The runs follow the legacy protein runs, so export lists the protein runs in their original order. A run
+  // takes the score of the first identification that refers to it; identifications with other scores get runs of their own.
+  std::map<std::string, const PeptideIdentification*> first_peptides;
   for (const auto& item : peptides)
+    first_peptides.try_emplace(item.getIdentifier(), &item);
+  for (const auto& protein : proteins)
   {
+    // Protein-only runs are legitimate and remain representable after an empty search.
+    const auto first = first_peptides.find(protein.getIdentifier());
+    if (first == first_peptides.end()) create_run({protein.getIdentifier(), "", true});
+    else create_run({protein.getIdentifier(), first->second->getScoreType(), first->second->isHigherScoreBetter()});
+  }
+
+  for (Size index = 0; index < peptides.size(); ++index)
+  {
+    const auto& item = peptides[index];
     auto& run = create_run({item.getIdentifier(), item.getScoreType(), item.isHigherScoreBetter()});
     // Multiple files without an explicit index leave the file unknown. Neither basename
     // matching nor consensus map indices resolve this.
     const auto source = legacySource(run, file_counts.at(item.getIdentifier()), item);
     ID::Observation observation;
     static_cast<MetaInfoInterface&>(observation) = item;
-    // The source is the file, so the index into the legacy file list is not kept.
-    observation.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+    // The source is the file, so export writes the index into the legacy file list of a run with several files;
+    // in a single-file run, where export writes none, an index (which can only name that file) stays metadata.
+    if (file_counts.at(item.getIdentifier()) > 1) observation.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
     observation.data_id = item.getSpectrumReference();
     dropRestoredMetaValue(observation, Constants::UserParam::SPECTRUM_REFERENCE, observation.data_id);
     if (item.hasRT()) observation.rt = item.getRT();
     if (item.hasMZ()) observation.mz = item.getMZ();
-    auto query = run.addIdentification(source, observation);
+    // Query IDs follow the legacy order across all runs, so export restores that order (see queryOrder()).
+    auto query = run.importIdentification(source, ID::QueryId {index + 1}, std::move(observation));
     result.queries.push_back({run.getUuid(), query});
     for (const auto& hit : item.getHits())
     {
@@ -583,7 +641,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
       static_cast<MetaInfoInterface&>(match) = hit;
       match.representation = hit.getSequence().toString();
       match.charge = hit.getCharge();
-      match.target_decoy = targetDecoy(hit.getTargetDecoyType());
+      match.target_decoy = legacyTargetDecoy(hit, false);
       dropRestoredMetaValue(match, "target_decoy", targetDecoyText(match.target_decoy));
       match.peak_annotations = hit.getPeakAnnotations();
       for (const auto& item_evidence : hit.getPeptideEvidences())
@@ -608,21 +666,33 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
       run.addMatch(query, match, {hit.getScore()});
     }
   }
-  // Protein-only runs are legitimate and remain representable after an empty search.
-  for (const auto& [name, original] : originals)
+  std::vector<ProteinHit> empty_hits;
+  for (const auto& protein : proteins)
   {
+    const auto& name = protein.getIdentifier();
+    const auto& original = originals.at(name);
     // Search engines list the proteins of their matches, with no inference: if export rebuilds that list from
-    // the run's database sequences, the run needs no inference result.
+    // the run's database sequences, the run needs no inference result. (A protein run without peptide
+    // identifications keeps one.)
     const auto& scores = inference_scores[name];
-    if (input_runs[name].size() == 1 && ! scores.protein && ! scores.group && ! scores.input
+    if (first_peptides.contains(name) && input_runs[name].size() == 1 && ! scores.protein && ! scores.group && ! scores.input
         && representsLegacyProteins(result.data.getRun(input_runs[name].front()), original))
       continue;
-    if (input_runs[name].empty()) create_run({name, "", true});
     ID::InferenceResult inference;
     inference.identifier = "legacy:" + name;
     inference.proteins = original;
     // The files of the inference result are those of its input runs.
     inference.proteins.removeMetaValue("spectra_data");
+    // The run's database sequences hold sequence, description and metadata of the proteins; the hits keep their
+    // inference values and target/decoy state (protein FDR reads it), and export completes them (proteinHits()).
+    for (auto& hit : catalogues.at(name) ? inference.proteins.getHits() : empty_hits)
+    {
+      hit.setSequence("");
+      hit.setDescription("");
+      const auto state = hit.metaValueExists("target_decoy") ? std::optional<DataValue>(hit.getMetaValue("target_decoy")) : std::nullopt;
+      hit.clearMetaInfo();
+      if (state) hit.setMetaValue("target_decoy", *state);
+    }
     inference.protein_score = inference_scores[name].protein;
     inference.group_score = inference_scores[name].group;
     for (const auto& hit : original.getHits())
@@ -653,7 +723,8 @@ ID::RunSettings IdentificationDataAdapter::settingsFromLegacy(const ProteinIdent
 {
   ID::RunSettings settings;
   static_cast<MetaInfoInterface&>(settings) = proteins;
-  settings.removeMetaValue("spectra_data");
+  // The files are the sources of the run. An empty list names none and stays, so export can write it again.
+  if (! emptyFileList(settings)) settings.removeMetaValue("spectra_data");
   settings.software = proteins.getSearchEngine();
   settings.software_version = proteins.getSearchEngineVersion();
   settings.date = proteins.getDateTime();
@@ -702,6 +773,36 @@ ProteinIdentification IdentificationDataAdapter::settingsToLegacy(const ID::Run&
     proteins.removeMetaValue(LEGACY_PROTEIN_HIGHER_BETTER);
   }
   return proteins;
+}
+
+std::vector<ProteinHit> IdentificationDataAdapter::proteinHits(const ID& data, const ID::InferenceResult& result)
+{
+  std::map<ID::QualifiedAccession, const ID::DatabaseSequence*> catalog;
+  for (const auto& input : result.inputs)
+  {
+    const auto* run = data.findRunByUuid(input.run_uuid);
+    if (! run || ! run->getDatabaseSequences()) continue;
+    for (const auto& sequence : *run->getDatabaseSequences())
+      catalog.try_emplace(run->qualify(sequence.database, sequence.accession), &sequence);
+  }
+  auto hits = result.proteins.getHits();
+  if (catalog.empty()) return hits;
+  for (auto& hit : hits)
+  {
+    const auto identity = result.qualified_accessions.find(hit.getAccession());
+    if (identity == result.qualified_accessions.end()) continue;
+    const auto found = catalog.find(identity->second);
+    if (found == catalog.end()) continue;
+    const auto& sequence = *found->second;
+    if (hit.getSequence().empty()) hit.setSequence(sequence.sequence);
+    // ProteinHit stores the description as metadata; an empty one is not written.
+    if (hit.getDescription().empty() && ! sequence.description.empty()) hit.setDescription(sequence.description);
+    std::vector<std::string> keys;
+    sequence.getKeys(keys);
+    for (const auto& key : keys)
+      if (! hit.metaValueExists(key)) hit.setMetaValue(key, sequence.getMetaValue(key));
+  }
+  return hits;
 }
 
 void IdentificationDataAdapter::addLegacySources(ID::Run& run, const StringList& files)
@@ -764,8 +865,21 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
   std::set<std::string> handled_inference;
   std::map<const ID::InferenceResult*, LegacyInference> legacy_inference;
   std::map<std::string, Size> protein_indices;
-  for (const auto& run : data.getRuns())
+  // How the identifications of an exported run refer to its legacy protein run.
+  struct RunExport
   {
+    std::string identifier;  ///< Of the legacy protein run
+    std::string database;    ///< Of the legacy protein run
+    std::optional<ID::ScoreId> primary;
+    bool merge_index = false; ///< Whether the legacy protein run has several files, which PSMs refer to by id_merge_index
+    /// Per source: the index of its file in the legacy file list (in a merged protein run, after the files of
+    /// the runs before), or none for a source without a path.
+    std::vector<std::optional<Size>> files;
+  };
+  std::vector<std::optional<RunExport>> exports(data.getRuns().size());
+  for (Size run_index = 0; run_index < data.getRuns().size(); ++run_index)
+  {
+    const auto& run = data.getRuns()[run_index];
     if (run.getMoleculeKind() != ID::MoleculeKind::PEPTIDE)
     {
       loss(result, options, "Legacy peptide/protein export cannot represent non-peptide run " + run.getIdentifier());
@@ -805,8 +919,9 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
     }
     else if (result.proteins[found->second] != proteins)
     {
-      // Same legacy identifier is only shared when its complete original payload agrees.
-      loss(result, options, "Conflicting protein payloads use the same legacy identifier: " + proteins.getIdentifier());
+      // Same legacy identifier is only shared when its complete original payload agrees. Otherwise (e.g. runs of
+      // two bundles merged after a split, which kept the identifier of their original run) the run is exported
+      // under its own name: a legacy identifier only links peptide to protein identifications, so nothing is lost.
       std::string identifier = run.getIdentifier();
       while (protein_indices.contains(identifier))
         identifier += ":export";
@@ -832,6 +947,7 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
     registerDefinitions(run.getSettings().search);
     // A source with a path is the next file of the run's legacy file list; its identifications point
     // to it with id_merge_index if the legacy run has several files.
+    RunExport exported {proteins.getIdentifier(), proteins.getSearchParameters().db, primary, legacy_paths.size() > 1, {}};
     Size file_index = 0;
     for (const auto& source : run.getSources())
     {
@@ -839,56 +955,68 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
       if (! source.file.isMetaEmpty()) loss(result, options, "Legacy export cannot retain source-level metadata: " + run.getIdentifier());
       if (! known && legacy_paths.size() == 1)
         loss(result, options, "An unknown source cannot be represented in a legacy run with exactly one known source: " + run.getIdentifier());
-      for (const auto& query : source.identifications)
-      {
-        PeptideIdentification item;
-        static_cast<MetaInfoInterface&>(item) = query;
-        item.setIdentifier(proteins.getIdentifier());
-        if (primary)
-        {
-          item.setScoreType(run.getScoreDefinition(*primary).name);
-          item.setHigherScoreBetter(run.getScoreDefinition(*primary).higher_better);
-        }
-        if (query.rt) item.setRT(*query.rt);
-        if (query.mz) item.setMZ(*query.mz);
-        if (! query.data_id.empty()) item.setSpectrumReference(query.data_id);
-        // The source decides the file; an index in the metadata is not used.
-        item.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
-        if (known && legacy_paths.size() > 1)
-          item.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<Int64>(file_index + file_offset));
-        if (query.getSelectedMatch()) loss(result, options, "Legacy export cannot preserve an explicit selected candidate: " + run.getIdentifier());
-        for (const auto& match : query.getMatches())
-        {
-          if (match.calculated_mz || match.adduct || match.formula || ! match.name.empty() || ! match.identifiers.empty())
-            loss(result, options, "Legacy export cannot preserve all molecular/ion fields: " + run.getIdentifier());
-          for (const auto& evidence : match.sequence_evidence)
-          {
-            if (run.getDatabase(evidence.database).path != proteins.getSearchParameters().db)
-              loss(result, options, "Legacy export cannot represent the database of sequence evidence: " + run.getIdentifier());
-          }
-          if (match.encoding != ID::Encoding::AA_SEQUENCE)
-          {
-            loss(result, options, "Legacy export cannot materialize the molecular encoding: " + run.getIdentifier());
-            continue;
-          }
-          auto hit = peptide(run, match, *primary);
-          const auto scores = match.getScores();
-          for (Size score = 0; score < run.getScoreDefinitions().size(); ++score)
-          {
-            if (score == primary->value || ! scores[score]) continue;
-            const auto& name = run.getScoreDefinitions()[score].name;
-            if (hit.metaValueExists(name) && hit.getMetaValue(name) != DataValue(*scores[score]))
-              loss(result, options, "Secondary score collides with existing metadata: " + name);
-            else
-              hit.setMetaValue(name, *scores[score]);
-          }
-          item.insertHit(std::move(hit));
-        }
-        result.queries.push_back({run.getUuid(), query.getId()});
-        result.peptides.push_back(std::move(item));
-      }
-      if (known) ++file_index;
+      exported.files.push_back(known ? std::optional<Size>(file_offset + file_index++) : std::nullopt);
     }
+    exports[run_index] = std::move(exported);
+  }
+  // The identifications in the order of their IDs, which is their legacy order after an import (see queryOrder()).
+  for (const auto& position : queryOrder(data))
+  {
+    if (! exports[position.run]) continue;
+    const auto& run = data.getRuns()[position.run];
+    const auto& exported = *exports[position.run];
+    const auto& primary = exported.primary;
+    const auto& query = *position.query;
+    PeptideIdentification item;
+    static_cast<MetaInfoInterface&>(item) = query;
+    item.setIdentifier(exported.identifier);
+    if (primary)
+    {
+      item.setScoreType(run.getScoreDefinition(*primary).name);
+      item.setHigherScoreBetter(run.getScoreDefinition(*primary).higher_better);
+    }
+    if (query.rt) item.setRT(*query.rt);
+    if (query.mz) item.setMZ(*query.mz);
+    if (! query.data_id.empty()) item.setSpectrumReference(query.data_id);
+    // The source decides the file: a run with several files writes the index of its file, and an index in the
+    // metadata (e.g. of a single-file run) stays only if it names that file.
+    const auto& file = exported.files[position.source];
+    if (exported.merge_index || ! file
+        || (item.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)
+            && (item.getMetaValue(Constants::UserParam::ID_MERGE_INDEX).valueType() != DataValue::INT_VALUE
+                || static_cast<Int64>(item.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)) != static_cast<Int64>(*file))))
+      item.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+    if (file && exported.merge_index) item.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<Int64>(*file));
+    if (query.getSelectedMatch()) loss(result, options, "Legacy export cannot preserve an explicit selected candidate: " + run.getIdentifier());
+    for (const auto& match : query.getMatches())
+    {
+      if (match.calculated_mz || match.adduct || match.formula || ! match.name.empty() || ! match.identifiers.empty())
+        loss(result, options, "Legacy export cannot preserve all molecular/ion fields: " + run.getIdentifier());
+      for (const auto& evidence : match.sequence_evidence)
+      {
+        if (run.getDatabase(evidence.database).path != exported.database)
+          loss(result, options, "Legacy export cannot represent the database of sequence evidence: " + run.getIdentifier());
+      }
+      if (match.encoding != ID::Encoding::AA_SEQUENCE)
+      {
+        loss(result, options, "Legacy export cannot materialize the molecular encoding: " + run.getIdentifier());
+        continue;
+      }
+      auto hit = peptide(run, match, *primary);
+      const auto scores = match.getScores();
+      for (Size score = 0; score < run.getScoreDefinitions().size(); ++score)
+      {
+        if (score == primary->value || ! scores[score]) continue;
+        const auto& name = run.getScoreDefinitions()[score].name;
+        if (hit.metaValueExists(name) && hit.getMetaValue(name) != DataValue(*scores[score]))
+          loss(result, options, "Secondary score collides with existing metadata: " + name);
+        else
+          hit.setMetaValue(name, *scores[score]);
+      }
+      item.insertHit(std::move(hit));
+    }
+    result.queries.push_back({run.getUuid(), query.getId()});
+    result.peptides.push_back(std::move(item));
   }
   if (options.include_inference)
   {
@@ -920,6 +1048,9 @@ namespace
     std::vector<Adapter::FeatureAssociation> associations;
     std::map<ID::QueryReference, std::set<ID::MatchId>> assigned;
     std::set<ID::QueryReference> assigned_queries;
+    std::map<std::string, Size> run_positions;
+    for (const auto& run : data.getRuns())
+      run_positions.emplace(run.getUuid(), run_positions.size());
     const auto collect = [&](const auto& self, const auto& feature, std::vector<Size> path) -> void {
       std::map<ID::QueryReference, std::set<ID::MatchId>> linked;
       for (const auto& query : feature.getIDQueries())
@@ -930,7 +1061,14 @@ namespace
         if (owner == owners.end()) invalid("Feature association refers to a missing match");
         linked[owner->second].insert(match.match);
       }
-      for (const auto& [query, matches] : linked)
+      // The identifications of a feature in the order of their IDs, then of their runs: the legacy order of an import.
+      std::vector<std::pair<ID::QueryReference, std::set<ID::MatchId>>> ordered(linked.begin(), linked.end());
+      const auto key = [&](const auto& item) {
+        const auto run = run_positions.find(item.first.run_uuid);
+        return std::make_pair(item.first.query, run == run_positions.end() ? run_positions.size() : run->second);
+      };
+      std::stable_sort(ordered.begin(), ordered.end(), [&](const auto& a, const auto& b) { return key(a) < key(b); });
+      for (const auto& [query, matches] : ordered)
       {
         const auto* run = data.findRunByUuid(query.run_uuid);
         if (! run || ! run->findIdentification(query.query)) invalid("Feature association refers to a missing query");
@@ -952,19 +1090,18 @@ namespace
     };
     for (Size i = 0; i < map.size(); ++i)
       collect(collect, map[i], {i});
-    for (const auto& run : data.getRuns())
-      for (const auto& source : run.getSources())
-        for (const auto& query : source.identifications)
-        {
-          ID::QueryReference reference {run.getUuid(), query.getId()};
-          Adapter::FeatureAssociation unassigned;
-          unassigned.unassigned = true;
-          unassigned.query = reference;
-          for (const auto& match : query.getMatches())
-            if (! assigned[reference].contains(match.getId())) unassigned.matches.push_back(match.getId());
-          if (! unassigned.matches.empty() || (! assigned_queries.contains(reference) && query.getMatches().empty()))
-            associations.push_back(std::move(unassigned));
-        }
+    for (const auto& position : queryOrder(data))
+    {
+      const auto& query = *position.query;
+      ID::QueryReference reference {data.getRuns()[position.run].getUuid(), query.getId()};
+      Adapter::FeatureAssociation unassigned;
+      unassigned.unassigned = true;
+      unassigned.query = reference;
+      for (const auto& match : query.getMatches())
+        if (! assigned[reference].contains(match.getId())) unassigned.matches.push_back(match.getId());
+      if (! unassigned.matches.empty() || (! assigned_queries.contains(reference) && query.getMatches().empty()))
+        associations.push_back(std::move(unassigned));
+    }
     return {data, std::move(associations)};
   }
 } // namespace

@@ -34,7 +34,7 @@
 #include <OpenMS/FORMAT/MzQCFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
-#include <OpenMS/FORMAT/PSMArrowIO.h>
+#include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
@@ -83,6 +83,15 @@ namespace OpenMS
         "The OpenMS SQLite format (.oms) is no longer supported. Convert existing files with OpenMS 3.6: "
         "IDFileConverter for identifications (e.g. to idXML) and FileConverter for feature maps (to featureXML). "
         "Use idparquet, featureparquet or consensusparquet to store identification data natively.");
+    }
+
+    /// The four-table .idparquet layout of OpenMS 3.6 was dropped without an importer; point users to the release that reads it.
+    [[noreturn]] void unsupportedLegacyBundle_(const std::string& filename)
+    {
+      throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+        "Not a native identification bundle (no manifest.json). The four-table .idparquet layout of OpenMS 3.6 "
+        "(psms, proteins, protein_groups, search_params) is no longer supported; convert such bundles to idXML "
+        "with IDFileConverter of OpenMS 3.6.");
     }
   }
 
@@ -1557,20 +1566,16 @@ namespace OpenMS
 
       case FileTypes::IDPARQUET:
       {
-        if (native)
-        {
-          IdentificationData data;
-          IdentificationDataFile::load(filename, data);
-          auto converted = IdentificationDataAdapter::toLegacy(data);
-          additional_proteins = std::move(converted.proteins);
-          additional_peptides = std::move(converted.peptides);
-          break;
-        }
-        if (!PSMArrowIO::importFromParquet(filename, additional_proteins, additional_peptides))
-        {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
-                                      "PSMArrowIO::importFromParquet failed");
-        }
+        if (!native) unsupportedLegacyBundle_(filename);
+        IdentificationData data;
+        IdentificationDataFile::load(filename, data);
+        auto converted = IdentificationDataAdapter::toLegacy(data);
+        additional_proteins = std::move(converted.proteins);
+        additional_peptides = std::move(converted.peptides);
+        // Like the other legacy loaders (e.g. IdXMLFile), give every protein run a fresh identifier, so the runs of
+        // two loads of the same bundle (or of bundles split from one run) do not collide when they are merged.
+        const auto renamed = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(additional_proteins);
+        ProteinIdentificationArrowIO::applyRunIdentifierRename(renamed, additional_peptides);
       }
       break;
 
@@ -1669,16 +1674,9 @@ namespace OpenMS
 
       case FileTypes::IDPARQUET:
       {
-        if (IdentificationDataFile::isNativeFile(filename))
-        {
-          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
-                                              "Cannot overwrite a native identification bundle with legacy Parquet tables");
-        }
-        if (!PSMArrowIO::exportToParquet(additional_proteins, additional_peptides, filename))
-        {
-          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
-                                              "PSMArrowIO::exportToParquet failed");
-        }
+        // .idparquet is the native format only: the identifications are imported (which keeps every value and
+        // their order, see IdentificationDataAdapter) and written as a native bundle.
+        storeIdentifications(filename, IdentificationDataAdapter::fromLegacy(additional_proteins, additional_peptides), {FileTypes::IDPARQUET}, log);
       }
       break;
 
