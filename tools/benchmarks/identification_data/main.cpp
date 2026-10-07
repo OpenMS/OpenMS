@@ -98,8 +98,8 @@ void benchmarkIdXML(const std::string& input, const std::string& output)
     {
       imported_queries += run.getNumberOfIdentifications();
       imported_matches += run.getNumberOfMatches();
-      sources += run.getSourceBlocks().size();
-      for (const auto& source : run.getSourceBlocks())
+      sources += run.getSources().size();
+      for (const auto& source : run.getSources())
         for (const auto& query : source.identifications)
           for (const auto& match : query.getMatches())
             if (! match.getScoreValues().empty() && ! std::isnan(match.getScoreValues()[0])) expected.checksum += match.getScoreValues()[0];

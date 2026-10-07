@@ -545,8 +545,8 @@ ID::SourceId IdentificationDataAdapter::legacySource(ID::Run& run, Size n_files,
     return run.getSourceId(static_cast<UInt32>(index));
   }
   if (n_files == 1) return run.getSourceId(0);
-  const auto& sources = run.getSourceBlocks();
-  const auto unknown = std::find_if(sources.begin(), sources.end(), [](const auto& source) { return source.source.path.empty(); });
+  const auto& sources = run.getSources();
+  const auto unknown = std::find_if(sources.begin(), sources.end(), [](const auto& source) { return source.file.path.empty(); });
   if (unknown != sources.end()) return unknown->id;
   return run.addSource(ID::SourceFile {});
 }
@@ -554,8 +554,8 @@ ID::SourceId IdentificationDataAdapter::legacySource(ID::Run& run, Size n_files,
 StringList IdentificationDataAdapter::legacyFiles(const ID::Run& run)
 {
   StringList files;
-  for (const auto& source : run.getSourceBlocks())
-    if (! source.source.path.empty()) files.push_back(source.source.path);
+  for (const auto& source : run.getSources())
+    if (! source.file.path.empty()) files.push_back(source.file.path);
   return files;
 }
 
@@ -653,10 +653,10 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
     // A source with a path is the next file of the run's legacy file list; its identifications point
     // to it with id_merge_index if the legacy run has several files.
     Size file_index = 0;
-    for (const auto& source : run.getSourceBlocks())
+    for (const auto& source : run.getSources())
     {
-      const bool known = ! source.source.path.empty();
-      if (! source.source.isMetaEmpty()) loss(result, options, "Legacy export cannot retain source-level metadata: " + run.getIdentifier());
+      const bool known = ! source.file.path.empty();
+      if (! source.file.isMetaEmpty()) loss(result, options, "Legacy export cannot retain source-level metadata: " + run.getIdentifier());
       if (! known && legacy_paths.size() == 1)
         loss(result, options, "An unknown source cannot be represented in a legacy run with exactly one known source: " + run.getIdentifier());
       for (const auto& query : source.identifications)
@@ -733,7 +733,7 @@ namespace
     data.validate();
     std::map<ID::MatchReference, ID::QueryReference> owners;
     for (const auto& run : data.getRuns())
-      for (const auto& source : run.getSourceBlocks())
+      for (const auto& source : run.getSources())
         for (const auto& query : source.identifications)
           for (const auto& match : query.getMatches())
             owners.emplace(ID::MatchReference {run.getUuid(), match.getId()}, ID::QueryReference {run.getUuid(), query.getId()});
@@ -773,7 +773,7 @@ namespace
     for (Size i = 0; i < map.size(); ++i)
       collect(collect, map[i], {i});
     for (const auto& run : data.getRuns())
-      for (const auto& source : run.getSourceBlocks())
+      for (const auto& source : run.getSources())
         for (const auto& query : source.identifications)
         {
           ID::QueryReference reference {run.getUuid(), query.getId()};

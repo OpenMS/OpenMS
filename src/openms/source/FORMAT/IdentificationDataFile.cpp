@@ -515,8 +515,8 @@ namespace
     Json scores = Json::array(), sources = Json::array();
     for (const auto& s : run.getScoreDefinitions())
       scores.push_back(IO::scoreJson(s));
-    for (const auto& s : run.getSourceBlocks())
-      sources.push_back(sourceJson(s.source));
+    for (const auto& s : run.getSources())
+      sources.push_back(sourceJson(s.file));
     return {{"identifier", run.getIdentifier()},
             {"uuid", run.getUuid()},
             {"molecule_kind", run.getMoleculeKind()},
@@ -552,8 +552,8 @@ namespace
     d.uuid = shell.getUuid();
     d.molecule_kind = shell.getMoleculeKind();
     d.scores = shell.getScoreDefinitions();
-    for (const auto& source : shell.getSourceBlocks())
-      d.sources.push_back(source.source);
+    for (const auto& source : shell.getSources())
+      d.sources.push_back(source.file);
     if (shell.getPrimaryScore()) d.primary_score = shell.getPrimaryScore()->value;
     d.next_query_id = shell.getNextQueryId();
     d.next_match_id = shell.getNextMatchId();
@@ -582,7 +582,7 @@ namespace
   }
   void collectDictionary(const ID::Run& run, IO::Dictionary& dictionary)
   {
-    for (const auto& source : run.getSourceBlocks())
+    for (const auto& source : run.getSources())
       for (const auto& query : source.identifications)
       {
         dictionary.collect(query);
@@ -763,7 +763,7 @@ void File::store(const std::string& path, const ID& data, const Options& options
     Json tables {{"queries", "queries.parquet"}, {"matches", "matches.parquet"}};
     IO::TableWriter queries(output.path / tables.at("queries").get<std::string>(), querySchema(), io);
     IO::TableWriter matches(output.path / tables.at("matches").get<std::string>(), matchSchema(io.score_columns), io);
-    for (const auto& source : run.getSourceBlocks())
+    for (const auto& source : run.getSources())
       for (const auto& query : source.identifications)
       {
         QueryView q {query.getId().value, source.id.value, query.getObservation(), std::nullopt};

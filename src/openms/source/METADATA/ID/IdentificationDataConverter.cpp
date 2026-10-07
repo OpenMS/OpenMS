@@ -311,7 +311,7 @@ namespace
       std::map<ID::QueryReference, Size> indices;
       Size index = 0;
       for (const auto& run : converted.data.getRuns())
-        for (const auto& source : run.getSourceBlocks())
+        for (const auto& source : run.getSources())
           for (const auto& query : source.identifications)
             indices[{run.getUuid(), query.getId()}] = index++;
       const auto clear = [&](const auto& self, auto& feature) -> void {
@@ -445,9 +445,9 @@ void IdentificationDataConverter::exportIDs(const ID& data,
     added_proteins.push_back(std::move(processing));
     // A source with a path is the next file of the legacy file list (see IdentificationDataAdapter::legacyFiles).
     Size file_index = 0;
-    for (const auto& source : run.getSourceBlocks())
+    for (const auto& source : run.getSources())
     {
-      const bool known = ! source.source.path.empty();
+      const bool known = ! source.file.path.empty();
       for (const auto& query : source.identifications)
       {
         PeptideIdentification item;
@@ -609,9 +609,9 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
         row.opt_.push_back({"opt_sequence", MzTabString(parent.sequence)});
         parents.push_back(std::move(row));
       }
-    for (const auto& source : run.getSourceBlocks())
+    for (const auto& source : run.getSources())
     {
-      const auto& path = source.source.path;
+      const auto& path = source.file.path;
       auto ms_run = path.empty() ? ms_run_of_file.end() : ms_run_of_file.find(path);
       if (ms_run == ms_run_of_file.end())
       {

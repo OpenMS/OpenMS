@@ -88,7 +88,7 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
         parent_hits[parent.identity] = std::move(hit);
       }
     }
-    for (const auto& source : run->getSourceBlocks())
+    for (const auto& source : run->getSources())
       for (const auto& query : source.identifications)
         for (const auto& match : query.getMatches())
           for (const auto& evidence : match.parent_evidence)
@@ -141,7 +141,7 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
   {
     const auto& run = *data.findRunByUuid(input.run_uuid);
     const auto score = run.bindScore(input.score);
-    for (const auto& source : run.getSourceBlocks())
+    for (const auto& source : run.getSources())
     {
       for (const auto& query : source.identifications)
       {

@@ -82,14 +82,14 @@ START_SECTION((static ImportResult importLegacy(const std::vector<ProteinIdentif
   TEST_EQUAL(imported.queries.size(), 3)
   const auto& run = imported.data.getRuns()[0];
   // The sources are the files of the legacy run, then an unknown file for the identifications without an index.
-  ABORT_IF(run.getSourceBlocks().size() != 3)
-  TEST_EQUAL(run.getSourceBlocks()[0].source.path, "/exact/a.mzML")
-  TEST_EQUAL(run.getSourceBlocks()[0].identifications.size(), 0)
-  TEST_EQUAL(run.getSourceBlocks()[1].source.path, "/other/a.mzML")
-  TEST_EQUAL(run.getSourceBlocks()[1].identifications.size(), 1)
-  TEST_EQUAL(run.getSourceBlocks()[1].identifications[0].metaValueExists("id_merge_index"), false)
-  TEST_EQUAL(run.getSourceBlocks()[2].source.path, "")
-  TEST_EQUAL(run.getSourceBlocks()[2].identifications.size(), 2)
+  ABORT_IF(run.getSources().size() != 3)
+  TEST_EQUAL(run.getSources()[0].file.path, "/exact/a.mzML")
+  TEST_EQUAL(run.getSources()[0].identifications.size(), 0)
+  TEST_EQUAL(run.getSources()[1].file.path, "/other/a.mzML")
+  TEST_EQUAL(run.getSources()[1].identifications.size(), 1)
+  TEST_EQUAL(run.getSources()[1].identifications[0].metaValueExists("id_merge_index"), false)
+  TEST_EQUAL(run.getSources()[2].file.path, "")
+  TEST_EQUAL(run.getSources()[2].identifications.size(), 2)
   TEST_EQUAL(run.getProcessingMetadata().metaValueExists("spectra_data"), false)
   TEST_EQUAL(run.getNumberOfIdentifications(), 3)
   TEST_EQUAL(run.getNumberOfMatches(), 2)
@@ -122,7 +122,7 @@ START_SECTION((static LegacyResult toLegacy(const IdentificationData&, const Exp
   auto data = Adapter::fromLegacy({protein()}, {peptide()});
   auto& run = data.getRun("search");
   // The identification has no index into the two files, so it is in the unknown source after them.
-  const auto match_id = run.getSourceBlocks().back().identifications[0].getMatches()[0].getId();
+  const auto match_id = run.getSources().back().identifications[0].getMatches()[0].getId();
   auto second = data.getInferenceResults()[0];
   second.identifier = "second";
   data.addInferenceResult(second);
@@ -145,7 +145,7 @@ START_SECTION((static LegacyResult toLegacy(const IdentificationData&, const Exp
 
   auto unsupported = Adapter::fromLegacy({protein()}, {peptide()});
   auto& edited = unsupported.getRun("search");
-  const auto& query = edited.getSourceBlocks().back().identifications[0];
+  const auto& query = edited.getSources().back().identifications[0];
   edited.setSelectedMatch(query.getId(), query.getMatches()[0].getId());
   TEST_EXCEPTION(Exception::InvalidParameter, Adapter::toLegacy(unsupported))
   options.loss_policy = Adapter::LossPolicy::ALLOW;
@@ -261,14 +261,14 @@ START_SECTION([EXTRA] the sources of a run are the files of its legacy run)
   first.setMetaValue("id_merge_index", 0);
   auto imported = Adapter::fromLegacy({legacy_run}, {third, first});
   const auto& run = imported.getRuns()[0];
-  ABORT_IF(run.getSourceBlocks().size() != 3)
-  TEST_EQUAL(run.getSourceBlocks()[0].source.path, "a.mzML")
-  TEST_EQUAL(run.getSourceBlocks()[1].source.path, "b.mzML")
-  TEST_EQUAL(run.getSourceBlocks()[2].source.path, "a.mzML")
-  TEST_EQUAL(run.getSourceBlocks()[0].identifications.size(), 1)
-  TEST_EQUAL(run.getSourceBlocks()[1].identifications.size(), 0)
-  TEST_EQUAL(run.getSourceBlocks()[2].identifications.size(), 1)
-  TEST_EQUAL(run.getSourceBlocks()[2].identifications[0].metaValueExists("id_merge_index"), false)
+  ABORT_IF(run.getSources().size() != 3)
+  TEST_EQUAL(run.getSources()[0].file.path, "a.mzML")
+  TEST_EQUAL(run.getSources()[1].file.path, "b.mzML")
+  TEST_EQUAL(run.getSources()[2].file.path, "a.mzML")
+  TEST_EQUAL(run.getSources()[0].identifications.size(), 1)
+  TEST_EQUAL(run.getSources()[1].identifications.size(), 0)
+  TEST_EQUAL(run.getSources()[2].identifications.size(), 1)
+  TEST_EQUAL(run.getSources()[2].identifications[0].metaValueExists("id_merge_index"), false)
   TEST_EQUAL(run.getProcessingMetadata().metaValueExists("spectra_data"), false)
   StringList raw;
   run.getProcessingMetadata().getPrimaryMSRunPath(raw, true);
@@ -306,16 +306,16 @@ START_SECTION([EXTRA] the sources of a run are the files of its legacy run)
   // A single-file run needs no index: its identifications belong to its file either way.
   legacy_run.setPrimaryMSRunPath({"a.mzML"});
   imported = Adapter::fromLegacy({legacy_run}, {peptide(), first});
-  TEST_EQUAL(imported.getRuns()[0].getSourceBlocks().size(), 1)
-  TEST_EQUAL(imported.getRuns()[0].getSourceBlocks()[0].identifications.size(), 2)
+  TEST_EQUAL(imported.getRuns()[0].getSources().size(), 1)
+  TEST_EQUAL(imported.getRuns()[0].getSources()[0].identifications.size(), 2)
   exported = Adapter::toLegacy(imported);
   TEST_EQUAL(exported.peptides[1].metaValueExists("id_merge_index"), false)
 
   // Without files, the identifications have an unknown source, and the export lists no files.
   legacy_run.removeMetaValue("spectra_data");
   imported = Adapter::fromLegacy({legacy_run}, {peptide()});
-  TEST_EQUAL(imported.getRuns()[0].getSourceBlocks().size(), 1)
-  TEST_EQUAL(imported.getRuns()[0].getSourceBlocks()[0].source.path, "")
+  TEST_EQUAL(imported.getRuns()[0].getSources().size(), 1)
+  TEST_EQUAL(imported.getRuns()[0].getSources()[0].file.path, "")
   exported = Adapter::toLegacy(imported);
   TEST_EQUAL(exported.proteins[0].metaValueExists("spectra_data"), false)
   first.setMetaValue("id_merge_index", 0);

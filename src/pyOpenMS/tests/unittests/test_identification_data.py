@@ -212,8 +212,8 @@ def test_values_compare_by_value_and_only_identities_hash():
     identification = run.getIdentification(query)
     run.setSelectedMatch(query, first)
     assert identification != run.getIdentification(query)
-    assert run.getSourceBlocks() == copy.copy(run).getSourceBlocks()
-    for record in (before, identification, run.getSourceBlocks()[0]):
+    assert run.getSources() == copy.copy(run).getSources()
+    for record in (before, identification, run.getSources()[0]):
         with pytest.raises(TypeError, match="unhashable"):
             hash(record)
     data = ID()
@@ -425,7 +425,7 @@ def test_native_fdr_filters_alignment_and_mztab_export(tmp_path):
     assert [d.name for d in data.getScoreDefinitions()] == ["hyperscore", "PSM-level q-value"]
     run = data.getRuns()[0]
     q = run.bindScore(run.findScore(qvalue))
-    values = [q(match) for block in run.getSourceBlocks() for query in block.identifications for match in query.getMatches()]
+    values = [q(match) for block in run.getSources() for query in block.identifications for match in query.getMatches()]
     assert values == [0.0, None] * 5  # the best candidate per query; decoys get no value by default
 
     oms.IDFilter.keepBestMatchPerObservation(data, hyperscore)
@@ -441,7 +441,7 @@ def test_native_fdr_filters_alignment_and_mztab_export(tmp_path):
     assert len(transformations) == 2
     transformations[1].fitModel("linear")
     oms.MapAlignmentTransformer.transformRetentionTimes(shifted, transformations[1], True)
-    assert shifted.getRuns()[0].getSourceBlocks()[0].identifications[0].rt == pytest.approx(100.0)
+    assert shifted.getRuns()[0].getSources()[0].identifications[0].rt == pytest.approx(100.0)
 
     path = tmp_path / "search.mzTab"
     oms.MzTabFile().store(str(path), oms.IdentificationDataConverter.exportMzTab(reference))
@@ -613,7 +613,7 @@ def test_dataset_ordered_score_contract():
     other = ID.ScoreDefinition()
     other.name = "different score"
     score_id = incompatible.addScore(other)
-    for block in incompatible.getSourceBlocks():
+    for block in incompatible.getSources():
         for query in block.identifications:
             for match in query.getMatches():
                 incompatible.setScore(match.getId(), score_id, 1.0)

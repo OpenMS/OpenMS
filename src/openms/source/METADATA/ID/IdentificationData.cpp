@@ -911,7 +911,7 @@ bool ID::Run::operator==(const Run& other) const
   {
     const auto& source = sources_[i];
     const auto& rhs = other.sources_[i];
-    if (source.id.value != rhs.id.value || source.source != rhs.source || source.identifications.size() != rhs.identifications.size()) return false;
+    if (source.id.value != rhs.id.value || source.file != rhs.file || source.identifications.size() != rhs.identifications.size()) return false;
     for (Size q = 0; q < source.identifications.size(); ++q)
     {
       const auto& query = source.identifications[q];

@@ -62,7 +62,7 @@ Digest digest(const Native& data)
 {
   Digest d;
   for (const auto& r : data.getRuns())
-    for (const auto& s : r.getSourceBlocks())
+    for (const auto& s : r.getSources())
       for (const auto& q : s.identifications)
         for (const auto& h : q.getMatches())
           d.add(h.representation, q.data_id, h.charge, h.getScoreValues()[r.getPrimaryScore()->value], *q.rt, *q.mz);

@@ -26,8 +26,8 @@ OpenMS Library:
     Runs are edited in place and are not assignable, so a stale copy cannot reuse IDs.
     Legacy export writes inference over several runs as one merged protein run (as IDMerger
     creates it) when their search settings are mergeable, and keeps inference score definitions.
-    The sources of a run are its files, one file each and in order (a SourceFile names one file;
-    an empty path is an unknown file). Legacy import turns 'spectra_data' into the sources and
+    The sources of a run (Run::getSources(), each a Source with a SourceFile and its
+    identifications) are its files, one file each and in order (an empty path is an unknown file). Legacy import turns 'spectra_data' into the sources and
     places each identification in the source its 'id_merge_index' names, so neither is kept;
     export derives both from the sources. Run processing metadata rejects 'spectra_data'.
     API: the reference graph is removed (IDDataContainer.h, IdentifiedMolecule.h, IdentifiedSequence.h,

@@ -247,7 +247,7 @@ START_SECTION((shared row groups preserve run boundaries, metadata and nullable 
   {
     const auto& run = loaded.getRuns()[index];
     TEST_EQUAL(run.getNumberOfMatches(), 3)
-    const auto& match = run.getSourceBlocks()[0].identifications[0].getMatches()[0];
+    const auto& match = run.getSources()[0].identifications[0].getMatches()[0];
     TEST_EQUAL(match.getMetaValue("run" + std::to_string(index)), static_cast<int>(index))
     TEST_REAL_SIMILAR(*run.getScore(match.getId(), *run.getPrimaryScore()), index * 10)
     TEST_EQUAL(run.getScoreDefinitions().size(), 2)
@@ -458,9 +458,9 @@ START_SECTION((static void store(const std::string&, const IdentificationData&, 
   TEST_EQUAL(run.getNumberOfMatches(), 3)
   TEST_EQUAL(run.getIdentification(fixture.empty).getMatches().size(), 0)
   TEST_EQUAL(run.getIdentification(fixture.query).getSelectedMatch()->value, fixture.selected.value)
-  TEST_EQUAL(run.getSourceBlocks()[0].source.path, "/exact path/ä/sample.raw")
-  TEST_EQUAL(run.getSourceBlocks()[0].source.identifier, "raw-source")
-  TEST_EQUAL(run.getSourceBlocks()[0].source.getMetaValue("run").toIntList().size(), 2)
+  TEST_EQUAL(run.getSources()[0].file.path, "/exact path/ä/sample.raw")
+  TEST_EQUAL(run.getSources()[0].file.identifier, "raw-source")
+  TEST_EQUAL(run.getSources()[0].file.getMetaValue("run").toIntList().size(), 2)
   TEST_TRUE(run.getScoreDefinitions() == fixture.data.getRun("search-one").getScoreDefinitions())
   const auto& match = run.getMatch(fixture.first);
   TEST_EQUAL(match.representation, fixture.data.getRun("search-one").getMatch(fixture.first).representation)
@@ -705,7 +705,7 @@ START_SECTION((scoreless catalog runs share the score columns of scored runs))
       TEST_EQUAL(run.getScoreDefinitions().size(), catalog ? 0 : 1)
       if (! catalog)
       {
-        const auto& match = run.getSourceBlocks()[0].identifications[2].getMatches()[0];
+        const auto& match = run.getSources()[0].identifications[2].getMatches()[0];
         TEST_REAL_SIMILAR(*run.getScore(match.getId(), *run.getPrimaryScore()), 2.0)
       }
     }

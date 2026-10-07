@@ -442,7 +442,7 @@ START_SECTION([EXTRA] void run(FeatureMap&, MzTabM&) const - negative mode and u
   const auto& data = fm.getIdentificationData();
   TEST_EQUAL(data.getRuns().size(), 1)
   Size queries = 0, matches = 0;
-  for (const auto& source : data.getRuns()[0].getSourceBlocks())
+  for (const auto& source : data.getRuns()[0].getSources())
     for (const auto& query : source.identifications)
     {
       ++queries;

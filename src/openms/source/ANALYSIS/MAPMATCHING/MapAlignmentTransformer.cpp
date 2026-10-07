@@ -192,7 +192,7 @@ namespace OpenMS
     for (const auto& current : replacement.getRuns())
     {
       auto& run = replacement.getRun(current.getIdentifier());
-      for (const auto& source : run.getSourceBlocks())
+      for (const auto& source : run.getSources())
         for (const auto& query : source.identifications)
         {
           if (! query.rt) continue;

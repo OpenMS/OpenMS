@@ -366,7 +366,7 @@ namespace OpenMS
     {
       if (run.getScoreDefinitions().empty()) continue;
       const auto score = run.bindScore(run.findScore(definition));
-      for (const auto& source : run.getSourceBlocks())
+      for (const auto& source : run.getSources())
         for (const auto& query : source.identifications)
         {
           if (! query.rt) continue;

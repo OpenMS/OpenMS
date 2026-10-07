@@ -256,9 +256,9 @@ inline bool sameIdentification(const ID::Identification& a, const ID::Identifica
   return a.getId() == b.getId() && a.getObservation() == b.getObservation() && a.getSelectedMatch() == b.getSelectedMatch()
          && std::equal(a.getMatches().begin(), a.getMatches().end(), b.getMatches().begin(), b.getMatches().end(), sameMatch);
 }
-inline bool sameSourceBlock(const ID::SourceBlock& a, const ID::SourceBlock& b)
+inline bool sameSource(const ID::Source& a, const ID::Source& b)
 {
-  return a.id.value == b.id.value && a.source == b.source
+  return a.id.value == b.id.value && a.file == b.file
          && std::equal(a.identifications.begin(), a.identifications.end(), b.identifications.begin(), b.identifications.end(), sameIdentification);
 }
 
@@ -308,7 +308,7 @@ void bindRunApi(Class& cls, Get get)
     .def("getParents", [get](Self& self) { return get(self).getParents(); })
     .def("setParents", [get](Self& self, std::optional<std::vector<ID::ParentRecord>> parents) { get(self).setParents(std::move(parents)); },
          nb::arg("parents"))
-    .def("getSourceBlocks", [get](Self& self) { return get(self).getSourceBlocks(); })
+    .def("getSources", [get](Self& self) { return get(self).getSources(); })
     .def("getScoreDefinitions", [get](Self& self) { return get(self).getScoreDefinitions(); })
     .def("addSource", [get](Self& self, const ID::SourceFile& source) { return get(self).addSource(source); }, nb::arg("source"))
     .def("getSourceId", [get](Self& self, OpenMS::UInt32 index) { return get(self).getSourceId(index); }, nb::arg("index"))
@@ -512,11 +512,11 @@ inline void bind(nb::module_& m)
              + ", observation=" + nb::cast<std::string>(nb::repr(nb::cast(ID::Observation(self.getObservation())))) + ")";
     });
   compareWith(identification, sameIdentification);
-  auto block = valueClass<ID::SourceBlock>(data, "SourceBlock");
-  field(block, "id", &ID::SourceBlock::id);
-  field(block, "source", &ID::SourceBlock::source);
-  field(block, "identifications", &ID::SourceBlock::identifications);
-  compareWith(block, sameSourceBlock);
+  auto source = valueClass<ID::Source>(data, "Source");
+  field(source, "id", &ID::Source::id);
+  field(source, "file", &ID::Source::file);
+  field(source, "identifications", &ID::Source::identifications);
+  compareWith(source, sameSource);
   valueClass<ID::ScoreView>(data, "ScoreView")
     .def("__call__", &ID::ScoreView::operator(), nb::arg("match"))
     .def("getDefinition", [](const ID::ScoreView& self) { return self.getDefinition(); });

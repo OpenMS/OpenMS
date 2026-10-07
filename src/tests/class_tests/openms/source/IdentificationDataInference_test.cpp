@@ -83,7 +83,7 @@ START_SECTION((static IdentificationData::InferenceResult infer(const Identifica
     // getRuns() is read-only; configure through the owning run accessor.
     auto& mutable_run = data.getRun(run.getIdentifier());
     const auto pp_score = mutable_run.addScore(pp_definition);
-    for (const auto& source : mutable_run.getSourceBlocks())
+    for (const auto& source : mutable_run.getSources())
       for (const auto& query : source.identifications)
         for (const auto& match : query.getMatches())
           mutable_run.setScore(match.getId(), pp_score, 1.0 - *mutable_run.getScore(match.getId(), *mutable_run.getPrimaryScore()));
@@ -102,7 +102,7 @@ START_SECTION((static IdentificationData::InferenceResult infer(const Identifica
   TEST_NOT_EQUAL(result.proteins.getHits()[0].getAccession(), result.proteins.getHits()[1].getAccession())
   TEST_REAL_SIMILAR(result.proteins.getHits()[0].getScore(), 0.9)
   const auto& run = data.getRuns()[0];
-  const auto& matches = run.getSourceBlocks()[0].identifications[0].getMatches();
+  const auto& matches = run.getSources()[0].identifications[0].getMatches();
   TEST_EQUAL(matches.size(), 2)
   TEST_REAL_SIMILAR(*run.getScore(matches[0].getId(), selected[0].score), 0.1)
   TEST_REAL_SIMILAR(*run.getScore(matches[1].getId(), selected[0].score), 0.5)
@@ -140,7 +140,7 @@ START_SECTION((static void retainProteins(IdentificationData::InferenceResult&, 
   TEST_EQUAL(result.inputs[0].run_uuid, original_input.run_uuid)
   TEST_TRUE(result.inputs[0].score == original_input.score)
   TEST_EQUAL(result.inputs[0].selection, original_input.selection)
-  TEST_EQUAL(data.getRuns()[1].getSourceBlocks()[0].identifications[0].getMatches()[0].parent_evidence.size(), 1)
+  TEST_EQUAL(data.getRuns()[1].getSources()[0].identifications[0].getMatches()[0].parent_evidence.size(), 1)
   TEST_EQUAL(data.getRuns()[1].getParents()->size(), 1)
   data.addInferenceResult(result);
   std::string path;
@@ -159,7 +159,7 @@ START_SECTION([EXTRA] invalid probabilities are rejected without editing input v
   addRun(data, "A", "dbA", true);
   auto selected = inputs(data);
   auto& run = data.getRun("A");
-  const auto match = run.getSourceBlocks()[0].identifications[0].getMatches()[0].getId();
+  const auto match = run.getSources()[0].identifications[0].getMatches()[0].getId();
   run.setScore(match, selected[0].score, 1.1);
   TEST_EXCEPTION(Exception::InvalidParameter, Inference::infer(data, selected, "invalid"))
   TEST_REAL_SIMILAR(*run.getScore(match, selected[0].score), 1.1)
@@ -174,7 +174,7 @@ START_SECTION([EXTRA] pooled inference rejects inconsistent mappings of the same
   addRun(data, "A", "dbA", true);
   addRun(data, "B", "dbB", true);
   auto& run = data.getRun("B");
-  const auto match_id = run.getSourceBlocks()[0].identifications[0].getMatches()[0].getId();
+  const auto match_id = run.getSources()[0].identifications[0].getMatches()[0].getId();
   auto match = run.getMatch(match_id).getData();
   match.representation = "PEPTIDE";
   run.replaceMatch(match_id, match, {0.1});
@@ -222,10 +222,10 @@ START_SECTION([EXTRA] legacy export writes pooled inference as one merged protei
   const auto imported = Adapter::importLegacy(stored_proteins, stored_peptides).data;
   TEST_EQUAL(imported.getRuns().size(), 1)
   TEST_EQUAL(imported.getInferenceResults().size(), 1)
-  ABORT_IF(imported.getRuns().size() != 1 || imported.getRuns()[0].getSourceBlocks().size() != 2 || imported.getInferenceResults().size() != 1)
+  ABORT_IF(imported.getRuns().size() != 1 || imported.getRuns()[0].getSources().size() != 2 || imported.getInferenceResults().size() != 1)
   const auto& run = imported.getRuns()[0];
-  TEST_EQUAL(run.getSourceBlocks()[0].source.path, "a.mzML")
-  TEST_EQUAL(run.getSourceBlocks()[1].source.path, "b.mzML")
+  TEST_EQUAL(run.getSources()[0].file.path, "a.mzML")
+  TEST_EQUAL(run.getSources()[1].file.path, "b.mzML")
   TEST_EQUAL(run.getProcessingMetadata().metaValueExists("identification:inference:parent_score:name"), false)
   const auto& restored = imported.getInferenceResults()[0];
   TEST_TRUE(restored.parent_score == pooled.parent_score)

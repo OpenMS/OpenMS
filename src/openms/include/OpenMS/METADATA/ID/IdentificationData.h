@@ -228,10 +228,10 @@ public:
   };
   /// One file of a run and the identifications made from it. The sources of a run, in order, are
   /// its file list: a file may appear more than once, and a file without identifications keeps its source.
-  struct OPENMS_DLLAPI SourceBlock
+  struct OPENMS_DLLAPI Source
   {
     SourceId id;
-    SourceFile source;
+    SourceFile file;
     std::vector<Identification> identifications;
   };
   /// Bound score access avoids repeated definition lookup. Rejects foreign schemas.
@@ -274,7 +274,7 @@ public:
     const std::optional<std::vector<ParentRecord>>& getParents() const
     { return parents_; }
     void setParents(std::optional<std::vector<ParentRecord>> parents);
-    const std::vector<SourceBlock>& getSourceBlocks() const
+    const std::vector<Source>& getSources() const
     { return sources_; }
     const std::vector<ScoreDefinition>& getScoreDefinitions() const
     { return scores_; }
@@ -338,7 +338,7 @@ public:
     // on MSVC. Indirection keeps the run's transactional commit nonthrowing.
     std::unique_ptr<ProteinIdentification> processing_ = std::make_unique<ProteinIdentification>();
     std::optional<std::vector<ParentRecord>> parents_;
-    std::vector<SourceBlock> sources_;
+    std::vector<Source> sources_;
     std::vector<ScoreDefinition> scores_;
     std::vector<UInt64> score_owners_;
     std::optional<ScoreId> primary_;

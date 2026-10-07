@@ -626,7 +626,7 @@ namespace OpenMS
         (decoy ? decoys : targets).push_back(*value);
         values.emplace(std::make_pair(run.getUuid(), match.getId().value), std::make_pair(*value, decoy));
       };
-      for (const auto& source : run.getSourceBlocks())
+      for (const auto& source : run.getSources())
         for (const auto& query : source.identifications)
         {
           const ID::Match* best = nullptr;
@@ -660,7 +660,7 @@ namespace OpenMS
       auto& run = replacement.getRun(current.getIdentifier());
       if (run.getScoreDefinitions().empty()) continue;
       const auto column = run.addScore(definition);
-      for (const auto& source : run.getSourceBlocks())
+      for (const auto& source : run.getSources())
         for (const auto& query : source.identifications)
           for (const auto& match : query.getMatches())
           {

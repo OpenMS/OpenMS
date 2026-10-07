@@ -837,7 +837,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
   {
     std::set<IdentificationData::MatchReference> all, assigned, result;
     for (const auto& run : id_data_.getRuns())
-      for (const auto& source : run.getSourceBlocks())
+      for (const auto& source : run.getSources())
         for (const auto& query : source.identifications)
           for (const auto& match : query.getMatches())
             all.insert({run.getUuid(), match.getId()});

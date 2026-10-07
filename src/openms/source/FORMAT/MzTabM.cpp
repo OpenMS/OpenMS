@@ -262,8 +262,8 @@ namespace OpenMS
     if (! paths.empty()) input_file_name = paths.front();
     else
       for (const auto& run : id_data.getRuns())
-        for (const auto& source : run.getSourceBlocks())
-          if (input_file_name.empty()) input_file_name = source.source.path;
+        for (const auto& source : run.getSources())
+          if (input_file_name.empty()) input_file_name = source.file.path;
     // Without a known file, the location stays unset.
     if (! input_file_name.empty())
     {
@@ -281,7 +281,7 @@ namespace OpenMS
     // assess scan polarity based on the first adduct
     std::set<int> polarities;
     for (const auto& run : id_data.getRuns())
-      for (const auto& source : run.getSourceBlocks())
+      for (const auto& source : run.getSources())
         for (const auto& query : source.identifications)
           for (const auto& match : query.getMatches())
             if (match.charge) polarities.insert(match.charge > 0 ? 1 : -1);

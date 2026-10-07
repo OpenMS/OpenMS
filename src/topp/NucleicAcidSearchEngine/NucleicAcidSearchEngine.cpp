@@ -794,7 +794,7 @@ protected:
     using PrecursorsByCharge = map<Int, vector<PrecursorPair>>;
     map<AdductedOligo, PrecursorsByCharge> rt_info;
     for (const auto& run : id_data.getRuns())
-      for (const auto& source : run.getSourceBlocks())
+      for (const auto& source : run.getSources())
         for (const auto& query : source.identifications)
           for (const auto& match : query.getMatches())
           {
@@ -1082,7 +1082,7 @@ protected:
       parameters.missed_cleavages = digestion.missed_cleavages;
       if (digestion.metaValueExists("rna_enzyme")) parameters.setMetaValue("rna_enzyme", digestion.getMetaValue("rna_enzyme"));
       result_run.setProcessingMetadata(processing);
-      for (const auto& source : catalog_run.getSourceBlocks())
+      for (const auto& source : catalog_run.getSources())
         for (const auto& query : source.identifications)
           for (const auto& match : query.getMatches())
             digest.push_back({NASequence::fromString(match.representation), match.parent_evidence, match.target_decoy});
@@ -1385,7 +1385,7 @@ protected:
     auto& coverage_run = id_data.getRun("NASE");
     std::set<IdentificationData::QualifiedAccession> referenced;
     std::map<IdentificationData::QualifiedAccession, std::set<std::pair<UInt64, UInt64>>> covered;
-    for (const auto& source : coverage_run.getSourceBlocks())
+    for (const auto& source : coverage_run.getSources())
       for (const auto& query : source.identifications)
         for (const auto& match : query.getMatches())
           for (const auto& evidence : match.parent_evidence)
