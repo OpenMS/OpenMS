@@ -34,6 +34,17 @@ namespace
   /// Settings metadata naming the legacy protein run of a run that import split off (e.g. "search:score_1").
   const std::string LEGACY_RUN = "identification:legacy_run";
 
+  /// Add the database of a legacy search to @p run, if the search names one.
+  void addLegacyDatabase(ID::Run& run, const SearchParameters& search)
+  {
+    const auto database = Adapter::databaseFromLegacy(search);
+    if (database != ID::Database {}) run.addDatabase(database);
+  }
+
+  /// The database of a legacy run (which has at most one); an unknown database if its search names none.
+  ID::DatabaseId legacyDatabase(ID::Run& run)
+  { return run.getDatabases().empty() ? run.addDatabase(ID::Database {}) : run.getDatabaseId(0); }
+
   void loss(Adapter::LegacyResult& result, const Adapter::ExportOptions& options, const std::string& message)
   {
     if (options.loss_policy == Adapter::LossPolicy::STRICT) invalid(message);
@@ -97,16 +108,16 @@ namespace
     hit.setScore(*value);
     hit.setPeakAnnotations(match.peak_annotations);
     std::vector<PeptideEvidence> evidence;
-    for (const auto& parent : match.parent_evidence)
+    for (const auto& item : match.sequence_evidence)
     {
       const auto max_position = static_cast<UInt64>(std::numeric_limits<Int>::max());
-      if ((parent.start && *parent.start > max_position) || (parent.end && *parent.end > max_position) || parent.before.size() > 1
-          || parent.after.size() > 1)
-        invalid("Parent evidence cannot be represented by legacy peptide coordinates/flanking residues");
-      evidence.emplace_back(parent.parent.accession, parent.start ? static_cast<Int>(*parent.start) : PeptideEvidence::UNKNOWN_POSITION,
-                            parent.end ? static_cast<Int>(*parent.end) : PeptideEvidence::UNKNOWN_POSITION,
-                            parent.before.empty() ? PeptideEvidence::UNKNOWN_AA : parent.before.front(),
-                            parent.after.empty() ? PeptideEvidence::UNKNOWN_AA : parent.after.front());
+      if ((item.start && *item.start > max_position) || (item.end && *item.end > max_position) || item.before.size() > 1
+          || item.after.size() > 1)
+        invalid("Sequence evidence cannot be represented by legacy peptide coordinates/flanking residues");
+      evidence.emplace_back(item.accession, item.start ? static_cast<Int>(*item.start) : PeptideEvidence::UNKNOWN_POSITION,
+                            item.end ? static_cast<Int>(*item.end) : PeptideEvidence::UNKNOWN_POSITION,
+                            item.before.empty() ? PeptideEvidence::UNKNOWN_AA : item.before.front(),
+                            item.after.empty() ? PeptideEvidence::UNKNOWN_AA : item.after.front());
     }
     hit.setPeptideEvidences(evidence);
     if (targetDecoy(hit.getTargetDecoyType()) != match.target_decoy)
@@ -146,9 +157,10 @@ namespace
     return selected;
   }
 
-  ProteinIdentification originalParents(const ID::Run& run, Adapter::LegacyResult& result, const Adapter::ExportOptions& options)
+  ProteinIdentification legacyProteins(const ID::Run& run, Adapter::LegacyResult& result, const Adapter::ExportOptions& options)
   {
-    auto proteins = Adapter::settingsToLegacy(run.getSettings());
+    auto proteins = Adapter::settingsToLegacy(run);
+    if (run.getDatabases().size() > 1) loss(result, options, "Legacy export can name only one database per run: " + run.getIdentifier());
     proteins.setIdentifier(proteins.metaValueExists(LEGACY_RUN) ? proteins.getMetaValue(LEGACY_RUN).toString() : run.getIdentifier());
     proteins.removeMetaValue(LEGACY_RUN);
     // Without an inference result, the legacy run takes the primary score as its score type, as search engines write it.
@@ -159,23 +171,23 @@ namespace
     }
     const auto files = Adapter::legacyFiles(run);
     if (! files.empty()) proteins.setPrimaryMSRunPath(files);
-    if (run.getParents())
+    if (run.getDatabaseSequences())
     {
       std::vector<ProteinHit> hits;
-      for (const auto& parent : *run.getParents())
+      for (const auto& sequence : *run.getDatabaseSequences())
       {
         ProteinHit hit;
-        static_cast<MetaInfoInterface&>(hit) = parent;
-        hit.setAccession(parent.identity.accession);
-        hit.setSequence(parent.sequence);
-        hit.setDescription(parent.description);
-        if (parent.target_decoy == ID::TargetDecoy::BOTH)
-          loss(result, options, "Legacy proteins cannot represent a combined target/decoy parent state");
+        static_cast<MetaInfoInterface&>(hit) = sequence;
+        hit.setAccession(sequence.accession);
+        hit.setSequence(sequence.sequence);
+        hit.setDescription(sequence.description);
+        if (sequence.target_decoy == ID::TargetDecoy::BOTH)
+          loss(result, options, "Legacy proteins cannot represent a combined target/decoy database sequence");
         else
         {
-          const auto state = parent.target_decoy == ID::TargetDecoy::TARGET  ? ProteinHit::TargetDecoyType::TARGET
-                             : parent.target_decoy == ID::TargetDecoy::DECOY ? ProteinHit::TargetDecoyType::DECOY
-                                                                             : ProteinHit::TargetDecoyType::UNKNOWN;
+          const auto state = sequence.target_decoy == ID::TargetDecoy::TARGET  ? ProteinHit::TargetDecoyType::TARGET
+                             : sequence.target_decoy == ID::TargetDecoy::DECOY ? ProteinHit::TargetDecoyType::DECOY
+                                                                               : ProteinHit::TargetDecoyType::UNKNOWN;
           if (hit.getTargetDecoyType() != state) hit.setTargetDecoyType(state);
         }
         hits.push_back(std::move(hit));
@@ -272,15 +284,17 @@ namespace
         // A run only joins if its PSMs keep their search settings; otherwise it stays a separate protein run.
         const auto& reference = joined.front()->getSettings();
         const auto& settings = run->getSettings();
+        const auto reference_search = Adapter::settingsToLegacy(*joined.front()).getSearchParameters();
+        const auto search = Adapter::settingsToLegacy(*run).getSearchParameters();
         if (settings.software != reference.software || settings.software_version != reference.software_version
-            || ! settings.search.mergeable(reference.search, "label-free"))
+            || ! search.mergeable(reference_search, "label-free"))
         {
           loss(result, options,
                "Pooled inference input run " + run->getIdentifier() + " cannot share a legacy protein run with " + joined.front()->getIdentifier()
                  + "; it is exported without the inference result " + inference.identifier);
           continue;
         }
-        if (settings.search != reference.search)
+        if (search != reference_search)
           loss(result, options,
                "Pooled inference input run " + run->getIdentifier() + " differs in search settings from " + joined.front()->getIdentifier()
                  + "; the merged legacy protein run keeps those of " + joined.front()->getIdentifier());
@@ -306,12 +320,12 @@ namespace
     }
     if (! files.empty()) merged.proteins.setPrimaryMSRunPath(files);
     else merged.proteins.removeMetaValue("spectra_data");
-    if (inference.parent_score) writeScoreDefinition(merged.proteins, "parent_score", *inference.parent_score);
+    if (inference.protein_score) writeScoreDefinition(merged.proteins, "protein_score", *inference.protein_score);
     if (inference.group_score) writeScoreDefinition(merged.proteins, "group_score", *inference.group_score);
     // Legacy proteins are identified by accession within the protein run's database.
     for (const auto& [alias, identity] : inference.qualified_accessions)
       if (alias != identity.accession || identity.database != merged.proteins.getSearchParameters().db)
-        loss(result, options, "Legacy export cannot represent parents of several databases in the inference result " + inference.identifier);
+        loss(result, options, "Legacy export cannot represent proteins of several databases in the inference result " + inference.identifier);
     return merged;
   }
 
@@ -383,14 +397,14 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
   std::map<std::string, Size> file_counts;
   struct InferenceScores
   {
-    std::optional<ID::ScoreDefinition> parent, group, input;
+    std::optional<ID::ScoreDefinition> protein, group, input;
   };
   std::map<std::string, InferenceScores> inference_scores;
   for (auto protein : proteins)
   {
     if (originals.contains(protein.getIdentifier())) invalid("Duplicate legacy protein run identifier: " + protein.getIdentifier());
     // Score definitions of an exported inference result belong to that result, not to the run.
-    inference_scores[protein.getIdentifier()] = {takeScoreDefinition(protein, "parent_score"), takeScoreDefinition(protein, "group_score"),
+    inference_scores[protein.getIdentifier()] = {takeScoreDefinition(protein, "protein_score"), takeScoreDefinition(protein, "group_score"),
                                                  takeScoreDefinition(protein, "input_score")};
     auto params = protein.getSearchParameters();
     ModificationDefinitionIO::attach(params, definitions[protein.getIdentifier()]);
@@ -430,19 +444,22 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
     StringList files;
     configuration.getPrimaryMSRunPath(files);
     addLegacySources(run, files);
-    std::vector<ID::ParentRecord> parents;
+    // The database of the legacy run's search becomes the database of the run.
+    addLegacyDatabase(run, configuration.getSearchParameters());
+    std::vector<ID::DatabaseSequence> sequences;
     for (const auto& hit : original->second.getHits())
     {
-      ID::ParentRecord parent;
-      static_cast<MetaInfoInterface&>(parent) = hit;
-      parent.identity = {configuration.getSearchParameters().db, hit.getAccession()};
-      parent.sequence = hit.getSequence();
-      parent.description = hit.getDescription();
-      if (hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::TARGET) parent.target_decoy = ID::TargetDecoy::TARGET;
-      if (hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::DECOY) parent.target_decoy = ID::TargetDecoy::DECOY;
-      parents.push_back(std::move(parent));
+      ID::DatabaseSequence sequence;
+      static_cast<MetaInfoInterface&>(sequence) = hit;
+      sequence.database = legacyDatabase(run);
+      sequence.accession = hit.getAccession();
+      sequence.sequence = hit.getSequence();
+      sequence.description = hit.getDescription();
+      if (hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::TARGET) sequence.target_decoy = ID::TargetDecoy::TARGET;
+      if (hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::DECOY) sequence.target_decoy = ID::TargetDecoy::DECOY;
+      sequences.push_back(std::move(sequence));
     }
-    run.setParents(std::move(parents));
+    run.setDatabaseSequences(std::move(sequences));
     ID::ScoreDefinition definition;
     definition.name = std::get<1>(contract);
     definition.higher_better = std::get<2>(contract);
@@ -484,21 +501,22 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
       match.peak_annotations = hit.getPeakAnnotations();
       for (const auto& item_evidence : hit.getPeptideEvidences())
       {
-        ID::ParentEvidence evidence;
-        evidence.parent = {run.getSettings().search.db, item_evidence.getProteinAccession()};
+        ID::SequenceEvidence evidence;
+        evidence.database = legacyDatabase(run);
+        evidence.accession = item_evidence.getProteinAccession();
         if (item_evidence.getStart() != PeptideEvidence::UNKNOWN_POSITION)
         {
-          if (item_evidence.getStart() < 0) invalid("Unsupported negative parent evidence start");
+          if (item_evidence.getStart() < 0) invalid("Unsupported negative sequence evidence start");
           evidence.start = static_cast<UInt64>(item_evidence.getStart());
         }
         if (item_evidence.getEnd() != PeptideEvidence::UNKNOWN_POSITION)
         {
-          if (item_evidence.getEnd() < 0) invalid("Unsupported negative parent evidence end");
+          if (item_evidence.getEnd() < 0) invalid("Unsupported negative sequence evidence end");
           evidence.end = static_cast<UInt64>(item_evidence.getEnd());
         }
         evidence.before = std::string(1, item_evidence.getAABefore());
         evidence.after = std::string(1, item_evidence.getAAAfter());
-        match.parent_evidence.push_back(std::move(evidence));
+        match.sequence_evidence.push_back(std::move(evidence));
       }
       run.addMatch(query, match, {hit.getScore()});
     }
@@ -512,7 +530,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
     inference.proteins = original;
     // The files of the inference result are those of its input runs.
     inference.proteins.removeMetaValue("spectra_data");
-    inference.parent_score = inference_scores[name].parent;
+    inference.protein_score = inference_scores[name].protein;
     inference.group_score = inference_scores[name].group;
     for (const auto& hit : original.getHits())
       inference.qualified_accessions[hit.getAccession()] = {original.getSearchParameters().db, hit.getAccession()};
@@ -541,17 +559,38 @@ ID::RunSettings IdentificationDataAdapter::settingsFromLegacy(const ProteinIdent
   settings.software_version = proteins.getSearchEngineVersion();
   settings.date = proteins.getDateTime();
   settings.search = proteins.getSearchParameters();
+  settings.search.db.clear();
+  settings.search.db_version.clear();
+  settings.search.taxonomy.clear();
   return settings;
 }
 
-ProteinIdentification IdentificationDataAdapter::settingsToLegacy(const ID::RunSettings& settings)
+ID::Database IdentificationDataAdapter::databaseFromLegacy(const SearchParameters& search)
 {
+  ID::Database database;
+  database.path = search.db;
+  database.version = search.db_version;
+  database.taxonomy = search.taxonomy;
+  return database;
+}
+
+ProteinIdentification IdentificationDataAdapter::settingsToLegacy(const ID::Run& run)
+{
+  const auto& settings = run.getSettings();
   ProteinIdentification proteins;
   static_cast<MetaInfoInterface&>(proteins) = settings;
   proteins.setSearchEngine(settings.software);
   proteins.setSearchEngineVersion(settings.software_version);
   proteins.setDateTime(settings.date);
-  proteins.setSearchParameters(settings.search);
+  auto search = settings.search;
+  if (! run.getDatabases().empty())
+  {
+    const auto& database = run.getDatabases().front();
+    search.db = database.path;
+    search.db_version = database.version;
+    search.taxonomy = database.taxonomy;
+  }
+  proteins.setSearchParameters(search);
   return proteins;
 }
 
@@ -633,7 +672,7 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
         handled_inference.insert(inference->identifier);
       }
     }
-    auto proteins = shared ? shared->proteins : originalParents(run, result, options);
+    auto proteins = shared ? shared->proteins : legacyProteins(run, result, options);
     if (proteins.getIdentifier().empty()) proteins.setIdentifier(run.getIdentifier());
     // The files of the legacy protein run. In a merged protein run, those of this run start at file_offset.
     StringList legacy_paths;
@@ -712,10 +751,10 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
         {
           if (match.calculated_mz || match.adduct || match.formula || ! match.name.empty() || ! match.identifiers.empty())
             loss(result, options, "Legacy export cannot preserve all molecular/ion fields: " + run.getIdentifier());
-          for (const auto& evidence : match.parent_evidence)
+          for (const auto& evidence : match.sequence_evidence)
           {
-            if (evidence.parent.database != proteins.getSearchParameters().db)
-              loss(result, options, "Legacy export cannot represent the parent database namespace: " + run.getIdentifier());
+            if (run.getDatabase(evidence.database).path != proteins.getSearchParameters().db)
+              loss(result, options, "Legacy export cannot represent the database of sequence evidence: " + run.getIdentifier());
           }
           if (match.encoding != ID::Encoding::AA_SEQUENCE)
           {

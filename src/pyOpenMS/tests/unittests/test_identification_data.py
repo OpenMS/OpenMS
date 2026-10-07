@@ -32,14 +32,14 @@ def make_run(name="search"):
     payload = ID.MatchData()
     payload.representation = "PEPTIDE"
     payload.charge = 2
-    parent = ID.QualifiedAccession()
-    parent.database = "db.fasta"
-    parent.accession = "P1"
-    evidence = ID.ParentEvidence()
-    evidence.parent = parent
+    database = ID.Database()
+    database.path = "db.fasta"
+    evidence = ID.SequenceEvidence()
+    evidence.database = run.addDatabase(database)
+    evidence.accession = "P1"
     evidence.start = 2
     evidence.end = 8
-    payload.parent_evidence = [evidence]
+    payload.sequence_evidence = [evidence]
     payload.setMetaValues({"empty": None})
     payload.setMetaValue("annotation", "")
     payload.setMetaValue("counts", [1, 2, 3])
@@ -145,10 +145,24 @@ def test_value_types_accept_keyword_arguments_for_their_fields():
     parent = ID.QualifiedAccession(database="uniprot.fasta", accession="P02769")
     assert (parent.database, parent.accession) == ("uniprot.fasta", "P02769")
     assert parent == ID.QualifiedAccession(database="uniprot.fasta", accession="P02769")
+    run = ID.Run("search")
+    uniprot = run.addDatabase(ID.Database(path="uniprot.fasta", version="2026_04"))
+    assert run.addDatabase(ID.Database(path="uniprot.fasta", version="2026_04")) == uniprot  # equal databases are one
+    assert run.qualify(uniprot, "P02769") == parent and {uniprot: 1}[run.getDatabaseId(0)] == 1
+    run.setDatabaseSequences([ID.DatabaseSequence(database=uniprot, accession="P02769", target_decoy=ID.TargetDecoy.TARGET)])
+    assert run.getDatabaseSequences()[0].accession == "P02769"
     match = ID.MatchData(representation="LVNELTEFAK", charge=2,
-                         parent_evidence=[ID.ParentEvidence(parent=parent, start=65, end=74, before="K", after="T")])
+                         sequence_evidence=[ID.SequenceEvidence(database=uniprot, accession="P02769", start=65, end=74,
+                                                                before="K", after="T")])
     assert match.encoding == ID.Encoding.AA_SEQUENCE          # omitted fields keep their defaults
-    assert match.parent_evidence[0].parent.accession == "P02769" and match.parent_evidence[0].start == 65
+    assert match.sequence_evidence[0].accession == "P02769" and match.sequence_evidence[0].start == 65
+    settings = ID.RunSettings(software="Comet", software_version="2024.01", metadata={"note": "test"})
+    run.setSettings(settings)
+    assert run.getSettings().software == "Comet" and run.getSettings().getMetaValue("note") == "test"
+    search = oms.SearchParameters()
+    search.db = "uniprot.fasta"
+    with pytest.raises(Exception):  # the databases of a run are its own records
+        run.setSettings(ID.RunSettings(software="Comet", search=search))
     compound = ID.MatchData(encoding=ID.Encoding.SMILES, representation="CCO", charge=1, formula="C2H6O",
                             identifiers=[ID.QualifiedAccession(database="HMDB", accession="HMDB0000108")],
                             adduct=oms.AdductInfo.parseAdductString("M+H;1+"), calculated_mz=47.0491)
@@ -159,8 +173,7 @@ def test_value_types_accept_keyword_arguments_for_their_fields():
     score = ID.ScoreDefinition(name="expect", higher_better=False, software="Comet", parameters={"tolerance": 10.0})
     assert (score.name, score.higher_better, score.software) == ("expect", False, "Comet")
     assert score.parameters.getMetaValue("tolerance") == 10.0
-    # Feature links are values as well.
-    run = ID.Run("search")
+    # Feature links are values as well (the evidence of match names a database of this run).
     query = run.addIdentification(run.addSource(ID.SourceFile(path="a.mzML")), observation)
     match_id = run.addMatch(query, match)
     reference = ID.MatchReference(run_uuid=run.getUuid(), match=match_id)
@@ -180,6 +193,8 @@ def test_value_types_accept_keyword_arguments_for_their_fields():
         ID.Observation(metadata={"FWHM": object()})
     with pytest.raises(TypeError, match="unexpected keyword argument 'metadata'"):
         ID.QualifiedAccession(metadata={})                     # only records with metadata take it
+    with pytest.raises(RuntimeError, match="unknown database"):
+        ID.Run("other").addMatch(query, match)                 # evidence names a database of its own run
 
 
 def test_values_compare_by_value_and_only_identities_hash():
@@ -256,11 +271,11 @@ def test_nested_field_values_remain_owned_after_replacement():
     result.inputs = []
     assert retained.run_identifier == "first"
     run, _, first, _, _ = make_run()
-    evidence = run.getMatch(first).parent_evidence[0]
-    parents = run.getMatch(first).parent_evidence
-    parents.clear()
-    assert evidence.parent.accession == "P1"
-    assert len(run.getMatch(first).parent_evidence) == 1
+    evidence = run.getMatch(first).sequence_evidence[0]
+    sequences = run.getMatch(first).sequence_evidence
+    sequences.clear()
+    assert evidence.accession == "P1"
+    assert len(run.getMatch(first).sequence_evidence) == 1
 
 
 def test_copy_preserves_ids_and_edits_are_independent():
@@ -353,7 +368,7 @@ def test_native_round_trip_and_nonreused_ids(tmp_path, threads):
     assert match.getMetaValue("empty") is None
     assert match.getMetaValue("annotation") == ""
     assert match.getMetaValue("counts") == [1, 2, 3]
-    assert match.parent_evidence[0].parent.database == "db.fasta"
+    assert run.getDatabase(match.sequence_evidence[0].database).path == "db.fasta"
     result = loaded.getInferenceResults()[0]
     assert result.inputs[0].run_uuid == run.getUuid()
     assert result.inputs[0].selection == "all candidates"
@@ -398,7 +413,7 @@ def test_native_projected_scan_keeps_callback_values_alive(tmp_path, threads):
     assert len(batches) == 2
     assert [batch[0].scores for batch in batches] == [[0.01], [0.1]]
     assert batches[0][0].data.representation == ""
-    assert batches[0][0].data.parent_evidence == []
+    assert batches[0][0].data.sequence_evidence == []
     assert queries[0].data.data_id == "scan=1"
     gc.collect()
     assert batches[0][0].match_id == 1
@@ -555,7 +570,7 @@ def test_inference_pools_runs_without_editing_candidates():
     assert [entry.run_uuid for entry in result.inputs] == [entry.run_uuid for entry in inputs]
     assert len(result.proteins.getHits()) == 1
     assert [run.getNumberOfMatches() for run in data.getRuns()] == [2, 2]
-    assert result.parent_score.scope == ID.ScoreScope.PROTEIN
+    assert result.protein_score.scope == ID.ScoreScope.PROTEIN
     assert data.getInferenceResults() == []
     data.addInferenceResult(result)
     oms.IdentificationDataInference.retainProteins(result, [])

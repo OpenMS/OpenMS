@@ -48,6 +48,14 @@ struct Fixture
     source.path = "/exact path/ä/sample.raw";
     source.setMetaValue("run", IntList {1, 2});
     auto source_id = run.addSource(source);
+    ID::Database database;
+    database.path = "db";
+    database.version = "2026-10";
+    database.setMetaValue("checksum", "abc");
+    const auto db = run.addDatabase(database);
+    database = ID::Database {};
+    database.path = "other";
+    const auto other_db = run.addDatabase(database);
     ID::Observation observation;
     observation.data_id = "controllerType=0 scan=1";
     observation.rt = 1.25;
@@ -66,7 +74,7 @@ struct Fixture
     match.formula = "C2H4";
     match.identifiers = {{"db", "molecule"}, {"other", "molecule"}};
     match.adduct.emplace("original adduct name", EmpiricalFormula("H2"), 2, 1);
-    match.parent_evidence = {{{"db", "P1"}, std::nullopt, 7, "-", "K"}, {{"other", "P1"}, 2, std::nullopt, "R", "-"}};
+    match.sequence_evidence = {{db, "P1", std::nullopt, 7, "-", "K"}, {other_db, "P1", 2, std::nullopt, "R", "-"}};
     PeptideHit::PeakAnnotation annotation;
     annotation.annotation = "y7-H2O";
     annotation.charge = 1;
@@ -91,13 +99,14 @@ struct Fixture
     last = run.addMatch(query, match, {30.0, 0.01});
     run.setSelectedMatch(query, selected);
     run.setPrimaryScore(score);
-    ID::ParentRecord parent;
-    parent.identity = {"db", "P1"};
+    ID::DatabaseSequence parent;
+    parent.database = db;
+    parent.accession = "P1";
     parent.sequence = "PEPTIDE";
     parent.description = "parent description";
     parent.target_decoy = ID::TargetDecoy::TARGET;
     parent.setMetaValue("parent-int", IntList {});
-    run.setParents(std::vector<ID::ParentRecord> {parent});
+    run.setDatabaseSequences(std::vector<ID::DatabaseSequence> {parent});
     ID::InferenceResult inference;
     inference.identifier = "pooled";
     ProteinHit protein(0.99, 1, "P1", "PEPTIDE");
@@ -116,7 +125,7 @@ struct Fixture
     inference.inputs.push_back(absent);
     data.addInferenceResult(inference);
     auto& other = data.addRun("empty-compounds", ID::MoleculeKind::COMPOUND);
-    other.setParents(std::vector<ID::ParentRecord> {});
+    other.setDatabaseSequences(std::vector<ID::DatabaseSequence> {});
   }
 };
 Native::Options tiny()
@@ -160,7 +169,7 @@ START_SECTION((threaded operations preserve values and do not change the global 
     const auto& run = loaded.getRun("search-one");
     const auto& match = run.getMatch(fixture.first);
     if (run.getNumberOfMatches() != 3 || run.getIdentification(fixture.query).getSelectedMatch() != fixture.selected
-        || match.representation != fixture.data.getRun("search-one").getMatch(fixture.first).representation || match.parent_evidence.size() != 2
+        || match.representation != fixture.data.getRun("search-one").getMatch(fixture.first).representation || match.sequence_evidence.size() != 2
         || match.peak_annotations.size() != 1 || ! match.adduct || match.getMetaValue("strings") != DataValue(StringList {"", "α", "comma,value"})
         || std::bit_cast<UInt64>(static_cast<double>(match.getMetaValue("nan"))) != UInt64 {0x7ff8000000000031}
         || loaded.getInferenceResults()[0].inputs.size() != 2)
@@ -467,7 +476,11 @@ START_SECTION((static void store(const std::string&, const IdentificationData&, 
   TEST_TRUE(match.adduct == fixture.data.getRun("search-one").getMatch(fixture.first).adduct)
   TEST_FALSE(run.getMatch(fixture.last).adduct.has_value())
   TEST_FALSE(run.getMatch(fixture.last).formula.has_value())
-  TEST_TRUE(match.parent_evidence == fixture.data.getRun("search-one").getMatch(fixture.first).parent_evidence)
+  TEST_TRUE(match.sequence_evidence == fixture.data.getRun("search-one").getMatch(fixture.first).sequence_evidence)
+  // The databases of the run, with their metadata, in their order (the evidence refers to them by index).
+  TEST_TRUE(run.getDatabases() == fixture.data.getRun("search-one").getDatabases())
+  TEST_EQUAL(run.getDatabases().at(0).getMetaValue("checksum"), "abc")
+  TEST_EQUAL(run.qualify(match.sequence_evidence[1].database, "P1").database, "other")
   TEST_EQUAL(match.peak_annotations[0].annotation, "y7-H2O")
   TEST_FALSE(match.getScores()[1].has_value())
   TEST_EQUAL(*run.getMatch(fixture.selected).getScores()[1], 0.0)
@@ -483,9 +496,9 @@ START_SECTION((static void store(const std::string&, const IdentificationData&, 
   TEST_EQUAL(std::bit_cast<UInt64>(values[2]), UInt64 {0x7ff8000000000042})
   TEST_EQUAL(match.getMetaValue("double-list").getUnit(), 1000001)
   TEST_EQUAL(match.getMetaValue("double-list").getUnitType(), DataValue::MS_ONTOLOGY)
-  TEST_EQUAL(run.getParents()->at(0).description, "parent description")
-  TEST_TRUE(loaded.getRun("empty-compounds").getParents().has_value())
-  TEST_EQUAL(loaded.getRun("empty-compounds").getParents()->size(), 0)
+  TEST_EQUAL(run.getDatabaseSequences()->at(0).description, "parent description")
+  TEST_TRUE(loaded.getRun("empty-compounds").getDatabaseSequences().has_value())
+  TEST_EQUAL(loaded.getRun("empty-compounds").getDatabaseSequences()->size(), 0)
   TEST_EQUAL(loaded.getInferenceResults()[0].inputs[0].run_uuid, fixture.uuid)
   TEST_EQUAL(loaded.getInferenceResults()[0].inputs[0].selection, "all candidates")
   TEST_EQUAL(loaded.getInferenceResults()[0].inputs[1].run_uuid, "11111111-1111-4111-8111-111111111111")
@@ -529,7 +542,7 @@ START_SECTION((static ScanStatistics scan(const std::string&, const ScanOptions&
       {
         ++match_count;
         TEST_TRUE(m.data.representation.empty())
-        TEST_TRUE(m.data.parent_evidence.empty()) TEST_FALSE(m.scores[0].has_value()) if (m.scores[1]) sum += *m.scores[1];
+        TEST_TRUE(m.data.sequence_evidence.empty()) TEST_FALSE(m.scores[0].has_value()) if (m.scores[1]) sum += *m.scores[1];
       }
     });
   TEST_EQUAL(query_count, 2)

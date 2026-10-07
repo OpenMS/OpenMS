@@ -127,8 +127,8 @@ ID::InferenceResult inference(const ID::Run& run)
   ID::InferenceResult result;
   result.identifier = "pooled result";
   result.proteins = processing();
-  result.parent_score = definition();
-  result.parent_score->scope = ID::ScoreScope::PROTEIN;
+  result.protein_score = definition();
+  result.protein_score->scope = ID::ScoreScope::PROTEIN;
   result.group_score = definition();
   result.group_score->scope = ID::ScoreScope::PROTEIN_GROUP;
   ProteinHit a(0.9, 2, "A", "PEPTIDE");
@@ -288,13 +288,16 @@ START_SECTION((typed pooled inference preserves complete protein values, group a
   ID data;
   auto& run = data.addRun("run with processing");
   run.setSettings(runSettings());
-  ID::ParentRecord parent;
-  parent.identity = {"db", "parent A"};
+  ID::Database database;
+  database.path = "db";
+  ID::DatabaseSequence parent;
+  parent.database = run.addDatabase(database);
+  parent.accession = "parent A";
   parent.target_decoy = ID::TargetDecoy::BOTH;
   parent.sequence = "PEPTIDE";
   parent.description = " original parent ";
   parent.setMetaValue("empty", DataValue::EMPTY);
-  run.setParents(std::vector<ID::ParentRecord> {parent});
+  run.setDatabaseSequences(std::vector<ID::DatabaseSequence> {parent});
   const auto input = inference(run);
   data.addInferenceResult(input);
   std::string path;
@@ -310,7 +313,7 @@ START_SECTION((typed pooled inference preserves complete protein values, group a
   const auto& result = loaded.getInferenceResults().at(0);
   TEST_EQUAL(result.identifier, input.identifier)
   TEST_TRUE(result.proteins == input.proteins)
-  TEST_TRUE(result.parent_score == input.parent_score)
+  TEST_TRUE(result.protein_score == input.protein_score)
   TEST_TRUE(result.group_score == input.group_score)
   TEST_TRUE(result.qualified_accessions == input.qualified_accessions)
   TEST_EQUAL(result.inputs.size(), 3)
@@ -323,9 +326,10 @@ START_SECTION((typed pooled inference preserves complete protein values, group a
   }
 
   TEST_TRUE(loaded.getRun(run.getIdentifier()).getSettings() == run.getSettings())
-  const auto& parents = *loaded.getRun(run.getIdentifier()).getParents();
+  const auto& parents = *loaded.getRun(run.getIdentifier()).getDatabaseSequences();
   TEST_EQUAL(parents.size(), 1)
-  TEST_TRUE(parents[0].identity == parent.identity)
+  TEST_TRUE(parents[0].database == parent.database)
+  TEST_EQUAL(parents[0].accession, parent.accession)
   TEST_TRUE(parents[0].target_decoy == parent.target_decoy)
   TEST_EQUAL(parents[0].sequence, parent.sequence)
   TEST_EQUAL(parents[0].description, parent.description)
@@ -431,7 +435,7 @@ START_SECTION((empty inference tables and optional parent catalogue have distinc
 {
   ID data;
   data.addRun("no catalogue");
-  data.addRun("empty catalogue").setParents(std::vector<ID::ParentRecord> {});
+  data.addRun("empty catalogue").setDatabaseSequences(std::vector<ID::DatabaseSequence> {});
   ID::InferenceResult inference_result;
   inference_result.identifier = "empty result";
   data.addInferenceResult(inference_result);
@@ -441,9 +445,9 @@ START_SECTION((empty inference tables and optional parent catalogue have distinc
   IdentificationDataFile::store(path, data);
   ID loaded;
   IdentificationDataFile::load(path, loaded);
-  TEST_FALSE(loaded.getRun("no catalogue").getParents().has_value())
-  TEST_TRUE(loaded.getRun("empty catalogue").getParents().has_value())
-  TEST_EQUAL(loaded.getRun("empty catalogue").getParents()->size(), 0)
+  TEST_FALSE(loaded.getRun("no catalogue").getDatabaseSequences().has_value())
+  TEST_TRUE(loaded.getRun("empty catalogue").getDatabaseSequences().has_value())
+  TEST_EQUAL(loaded.getRun("empty catalogue").getDatabaseSequences()->size(), 0)
   TEST_EQUAL(loaded.getInferenceResults().size(), 1)
   TEST_EQUAL(loaded.getInferenceResults()[0].inputs.size(), 0)
   TEST_TRUE(loaded.getInferenceResults()[0].proteins == inference_result.proteins)
@@ -482,10 +486,13 @@ START_SECTION((streaming preservation validates live allocation counters and cop
   peptide.charge = 2;
   const auto live = run.addMatch(query, peptide, {1.0});
   TEST_EQUAL(live.value, 1)
-  ID::ParentRecord parent;
-  parent.identity = {"db", "parent"};
+  ID::Database database;
+  database.path = "db";
+  ID::DatabaseSequence parent;
+  parent.database = run.addDatabase(database);
+  parent.accession = "parent";
   parent.sequence.assign(5000, 'A');
-  run.setParents(std::vector<ID::ParentRecord> {parent});
+  run.setDatabaseSequences(std::vector<ID::DatabaseSequence> {parent});
   ID::InferenceResult result;
   result.identifier = "retained inference";
   ID::InferenceInput input;

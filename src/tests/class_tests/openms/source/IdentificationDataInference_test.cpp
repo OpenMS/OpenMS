@@ -23,18 +23,21 @@ void addRun(ID& data, const std::string& name, const std::string& database, bool
   auto& run = data.addRun(name);
   ID::RunSettings settings;
   settings.software = "engine";
-  settings.search.db = database;
   run.setSettings(settings);
+  ID::Database search_database;
+  search_database.path = database;
+  const auto database_id = run.addDatabase(search_database);
   ID::ScoreDefinition definition;
   definition.name = pep ? "PEP" : "Posterior Probability";
   definition.higher_better = ! pep;
   definition.software = "engine";
   const auto score = run.addScore(definition);
   run.setPrimaryScore(score);
-  ID::ParentRecord parent;
-  parent.identity = {database, "P1"};
+  ID::DatabaseSequence parent;
+  parent.database = database_id;
+  parent.accession = "P1";
   parent.sequence = "PEPTIDEOTHER";
-  run.setParents(std::vector<ID::ParentRecord> {parent});
+  run.setDatabaseSequences(std::vector<ID::DatabaseSequence> {parent});
   ID::SourceFile file_source;
   file_source.path = file;
   const auto source = run.addSource(file_source);
@@ -42,11 +45,12 @@ void addRun(ID& data, const std::string& name, const std::string& database, bool
   ID::MatchData match;
   match.representation = database == "dbB" ? "OTHER" : "PEPTIDE";
   match.charge = 2;
-  ID::ParentEvidence evidence;
-  evidence.parent = parent.identity;
+  ID::SequenceEvidence evidence;
+  evidence.database = database_id;
+  evidence.accession = "P1";
   evidence.start = 0;
   evidence.end = 6;
-  match.parent_evidence = {evidence};
+  match.sequence_evidence = {evidence};
   run.addMatch(query, match, {pep ? 0.1 : 0.9});
   match.representation = database == "dbB" ? "PEPTIDE" : "OTHER";
   run.addMatch(query, match, {pep ? 0.5 : 0.5});
@@ -105,9 +109,9 @@ START_SECTION((static IdentificationData::InferenceResult infer(const Identifica
   TEST_EQUAL(matches.size(), 2)
   TEST_REAL_SIMILAR(*run.getScore(matches[0].getId(), selected[0].score), 0.1)
   TEST_REAL_SIMILAR(*run.getScore(matches[1].getId(), selected[0].score), 0.5)
-  TEST_EQUAL(matches[0].parent_evidence[0].parent.accession, "P1")
-  TEST_EQUAL(matches[1].parent_evidence[0].parent.accession, "P1")
-  TEST_EQUAL(run.getParents()->size(), 1)
+  TEST_EQUAL(matches[0].sequence_evidence[0].accession, "P1")
+  TEST_EQUAL(matches[1].sequence_evidence[0].accession, "P1")
+  TEST_EQUAL(run.getDatabaseSequences()->size(), 1)
   data.addInferenceResult(result);
   data.getRun("A").eraseMatches([](const auto&) { return true; });
   TEST_EQUAL(data.getInferenceResults()[0].inputs[0].run_uuid, data.getRun("A").getUuid())
@@ -139,8 +143,8 @@ START_SECTION((static void retainProteins(IdentificationData::InferenceResult&, 
   TEST_EQUAL(result.inputs[0].run_uuid, original_input.run_uuid)
   TEST_TRUE(result.inputs[0].score == original_input.score)
   TEST_EQUAL(result.inputs[0].selection, original_input.selection)
-  TEST_EQUAL(data.getRuns()[1].getSources()[0].identifications[0].getMatches()[0].parent_evidence.size(), 1)
-  TEST_EQUAL(data.getRuns()[1].getParents()->size(), 1)
+  TEST_EQUAL(data.getRuns()[1].getSources()[0].identifications[0].getMatches()[0].sequence_evidence.size(), 1)
+  TEST_EQUAL(data.getRuns()[1].getDatabaseSequences()->size(), 1)
   data.addInferenceResult(result);
   std::string path;
   NEW_TMP_FILE(path)
@@ -190,7 +194,7 @@ START_SECTION([EXTRA] legacy export writes pooled inference as one merged protei
   addRun(data, "A", "db.fasta", true, "a.mzML");
   addRun(data, "B", "db.fasta", true, "b.mzML");
   const auto pooled = Inference::infer(data, inputs(data), "pooled");
-  TEST_TRUE(pooled.parent_score.has_value())
+  TEST_TRUE(pooled.protein_score.has_value())
   data.addInferenceResult(pooled);
 
   // Strict export represents the bridge output, including its score definitions.
@@ -225,14 +229,14 @@ START_SECTION([EXTRA] legacy export writes pooled inference as one merged protei
   const auto& run = imported.getRuns()[0];
   TEST_EQUAL(run.getSources()[0].file.path, "a.mzML")
   TEST_EQUAL(run.getSources()[1].file.path, "b.mzML")
-  TEST_EQUAL(run.getSettings().metaValueExists("identification:inference:parent_score:name"), false)
+  TEST_EQUAL(run.getSettings().metaValueExists("identification:inference:protein_score:name"), false)
   const auto& restored = imported.getInferenceResults()[0];
-  TEST_TRUE(restored.parent_score == pooled.parent_score)
+  TEST_TRUE(restored.protein_score == pooled.protein_score)
   TEST_TRUE(restored.group_score == pooled.group_score)
   TEST_EQUAL(restored.inputs.size(), 1)
   ABORT_IF(restored.inputs.size() != 1)
   TEST_TRUE(restored.inputs[0].score == pooled.inputs[0].score)
-  TEST_EQUAL(restored.proteins.metaValueExists("identification:inference:parent_score:name"), false)
+  TEST_EQUAL(restored.proteins.metaValueExists("identification:inference:protein_score:name"), false)
   TEST_EQUAL(Adapter::toLegacy(imported).losses.size(), 0)
 }
 END_SECTION
@@ -289,7 +293,7 @@ START_SECTION([EXTRA] an evidence - only run can share a later parent catalogue)
   ID data;
   addRun(data, "A", "dbA", true);
   addRun(data, "B", "dbA", true);
-  data.getRun("A").setParents(std::nullopt);
+  data.getRun("A").setDatabaseSequences(std::nullopt);
   const auto result = Inference::infer(data, inputs(data), "catalogue");
   TEST_EQUAL(result.proteins.getHits().size(), 1)
   TEST_EQUAL(result.proteins.getHits()[0].getSequence(), "PEPTIDEOTHER")

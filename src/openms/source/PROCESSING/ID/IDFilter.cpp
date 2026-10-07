@@ -765,18 +765,19 @@ namespace OpenMS
     for (const auto& current : replacement.getRuns())
     {
       auto& run = replacement.getRun(current.getIdentifier());
-      std::set<ID::QualifiedAccession> decoys;
-      if (run.getParents())
+      std::set<std::pair<UInt32, std::string>> decoys;
+      if (run.getDatabaseSequences())
       {
-        auto parents = *run.getParents();
-        for (const auto& parent : parents)
-          if (parent.target_decoy == ID::TargetDecoy::DECOY) decoys.insert(parent.identity);
-        std::erase_if(parents, [](const auto& parent) { return parent.target_decoy == ID::TargetDecoy::DECOY; });
-        run.setParents(std::move(parents));
+        auto sequences = *run.getDatabaseSequences();
+        for (const auto& sequence : sequences)
+          if (sequence.target_decoy == ID::TargetDecoy::DECOY) decoys.emplace(sequence.database.value, sequence.accession);
+        std::erase_if(sequences, [](const auto& sequence) { return sequence.target_decoy == ID::TargetDecoy::DECOY; });
+        run.setDatabaseSequences(std::move(sequences));
       }
       run.eraseMatches([](const auto& match) { return match.target_decoy == ID::TargetDecoy::DECOY; });
       run.transformMatches([&](ID::MatchData& match) {
-        const auto removed = std::erase_if(match.parent_evidence, [&](const auto& evidence) { return decoys.contains(evidence.parent); });
+        const auto removed = std::erase_if(match.sequence_evidence,
+                                           [&](const auto& evidence) { return decoys.contains({evidence.database.value, evidence.accession}); });
         if (removed && match.target_decoy == ID::TargetDecoy::BOTH) match.target_decoy = ID::TargetDecoy::TARGET;
       });
     }

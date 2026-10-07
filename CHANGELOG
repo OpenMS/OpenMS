@@ -33,7 +33,12 @@ OpenMS Library:
     the software, its version, the date, the SearchParameters and metadata) replace the
     ProteinIdentification that held its configuration; they reject 'spectra_data'.
     ProteinIdentification::SearchParameters is now the standalone class SearchParameters
-    (the nested name remains an alias).
+    (the nested name remains an alias). A run lists its databases (Run::addDatabase, a Database
+    with path, version and taxonomy); its DatabaseSequence catalogue (formerly ParentRecord) and the
+    SequenceEvidence of matches (formerly ParentEvidence, MatchData::parent_evidence) refer to them
+    by DatabaseId, so the search settings name no database. QualifiedAccession (database path and
+    accession, Run::qualify) remains the identity across runs. InferenceResult::parent_score is
+    protein_score.
     API: the reference graph is removed (IDDataContainer.h, IdentifiedMolecule.h, IdentifiedSequence.h,
     IdentifiedCompound.h, ObservationMatch.h, ObservationMatchGroup.h, Observation.h, ScoreType.h,
     ScoredProcessingResult.h, AppliedProcessingStep.h, ProcessingStep.h, ProcessingSoftware.h,

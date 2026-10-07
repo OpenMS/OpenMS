@@ -186,7 +186,8 @@ ID::Run::Run(const Run& other):
     uuid_(other.uuid_),
     kind_(other.kind_),
     settings_(std::make_unique<RunSettings>(*other.settings_)),
-    parents_(other.parents_),
+    databases_(other.databases_),
+    sequences_(other.sequences_),
     sources_(other.sources_),
     scores_(other.scores_),
     score_owners_(other.score_owners_),
@@ -216,7 +217,8 @@ void ID::Run::swapData_(Run& other) noexcept
   swap(uuid_, other.uuid_);
   swap(kind_, other.kind_);
   swap(settings_, other.settings_);
-  swap(parents_, other.parents_);
+  swap(databases_, other.databases_);
+  swap(sequences_, other.sequences_);
   swap(sources_, other.sources_);
   swap(scores_, other.scores_);
   swap(score_owners_, other.score_owners_);
@@ -249,21 +251,46 @@ void ID::Run::setSettings(const RunSettings& settings)
   checkMutation_();
   if (settings.metaValueExists("spectra_data"))
     invalid("The files of a run are its sources; its settings must not list them as 'spectra_data'");
+  if (! settings.search.db.empty() || ! settings.search.db_version.empty() || ! settings.search.taxonomy.empty())
+    invalid("The databases of a run are its own records (Run::addDatabase); the search settings must not name them");
   auto replacement = std::make_unique<RunSettings>(settings);
   settings_.swap(replacement);
 }
-void ID::Run::setParents(std::optional<std::vector<ParentRecord>> parents)
+ID::DatabaseId ID::Run::addDatabase(const Database& database)
 {
   checkMutation_();
-  if (parents)
+  const auto existing = std::find(databases_.begin(), databases_.end(), database);
+  if (existing != databases_.end()) return {static_cast<UInt32>(existing - databases_.begin())};
+  if (databases_.size() >= std::numeric_limits<UInt32>::max()) invalid("Too many databases");
+  databases_.push_back(database);
+  return {static_cast<UInt32>(databases_.size() - 1)};
+}
+ID::DatabaseId ID::Run::getDatabaseId(UInt32 index) const
+{
+  if (index >= databases_.size()) invalid("Invalid database index");
+  return {index};
+}
+const ID::Database& ID::Run::getDatabase(DatabaseId database) const
+{
+  if (database.value >= databases_.size()) invalid("Unknown database of the run");
+  return databases_[database.value];
+}
+ID::QualifiedAccession ID::Run::qualify(DatabaseId database, const std::string& accession) const
+{ return {getDatabase(database).path, accession}; }
+void ID::Run::setDatabaseSequences(std::optional<std::vector<DatabaseSequence>> sequences)
+{
+  checkMutation_();
+  if (sequences)
   {
-    std::set<QualifiedAccession> identities;
-    for (const auto& parent : *parents)
+    std::set<std::pair<UInt32, std::string>> identities;
+    for (const auto& sequence : *sequences)
     {
-      if (parent.identity.accession.empty() || ! identities.insert(parent.identity).second) invalid("Empty or duplicate parent identity");
+      if (sequence.database.value >= databases_.size()) invalid("Database sequence refers to an unknown database of the run");
+      if (sequence.accession.empty() || ! identities.emplace(sequence.database.value, sequence.accession).second)
+        invalid("Empty or duplicate database sequence accession");
     }
   }
-  parents_ = std::move(parents);
+  sequences_ = std::move(sequences);
 }
 ID::SourceId ID::Run::addSource(const SourceFile& source)
 {
@@ -365,11 +392,12 @@ void ID::Run::validateMatchData_(const MatchData& data) const
   if (! compatible) invalid("Molecular encoding is incompatible with the run kind");
   if (data.target_decoy < TargetDecoy::UNKNOWN || data.target_decoy > TargetDecoy::BOTH) invalid("Invalid target/decoy state");
   if (data.adduct && data.adduct->getCharge() != data.charge) invalid("Adduct charge disagrees with ion charge");
-  if (kind_ == MoleculeKind::COMPOUND && ! data.parent_evidence.empty()) invalid("Compound candidates cannot contain sequence-to-parent evidence");
-  for (const auto& evidence : data.parent_evidence)
+  if (kind_ == MoleculeKind::COMPOUND && ! data.sequence_evidence.empty()) invalid("Compound candidates cannot contain sequence evidence");
+  for (const auto& evidence : data.sequence_evidence)
   {
-    if (evidence.parent.accession.empty()) invalid("Parent evidence needs an accession");
-    if (evidence.start && evidence.end && *evidence.start > *evidence.end) invalid("Parent evidence start exceeds end");
+    if (evidence.database.value >= databases_.size()) invalid("Sequence evidence refers to an unknown database of the run");
+    if (evidence.accession.empty()) invalid("Sequence evidence needs an accession");
+    if (evidence.start && evidence.end && *evidence.start > *evidence.end) invalid("Sequence evidence start exceeds end");
   }
 }
 void ID::Run::prepareLookupIndexes()
@@ -901,7 +929,7 @@ void ID::addInferenceResult(InferenceResult result)
 bool ID::Run::operator==(const Run& other) const
 {
   if (uuid_ != other.uuid_ || identifier_ != other.identifier_ || kind_ != other.kind_ || *settings_ != *other.settings_
-      || parents_ != other.parents_ || scores_ != other.scores_ || next_query_id_ != other.next_query_id_ || next_match_id_ != other.next_match_id_
+      || databases_ != other.databases_ || sequences_ != other.sequences_ || scores_ != other.scores_ || next_query_id_ != other.next_query_id_ || next_match_id_ != other.next_match_id_
       || sources_.size() != other.sources_.size())
     return false;
   const auto primary = primary_ ? std::optional<UInt32>(primary_->value) : std::nullopt;

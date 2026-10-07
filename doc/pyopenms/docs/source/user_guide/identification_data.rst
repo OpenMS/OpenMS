@@ -232,22 +232,27 @@ Owning identification datasets (experimental)
 score contract. The sources of a run are its files, in order (``run.addSource()``,
 ``run.getSources()``), and each identification belongs to the source of its file, so the legacy ``spectra_data`` list and
 ``id_merge_index`` meta value have no counterpart: the legacy conversion derives them from the
-sources. A source without a path stands for an unknown file. Peptides, oligonucleotides and
-compounds have a string representation and explicit encoding. The existing peptide/protein
-classes above remain available for legacy workflows.
+sources. A source without a path stands for an unknown file. In the same way, a run lists the
+databases it searched (``run.addDatabase()``); its database sequences (proteins, nucleic acids) and
+the sequence evidence of its matches refer to them by ``DatabaseId``. The run settings (software,
+version, date and search parameters) therefore name neither files nor databases. Peptides,
+oligonucleotides and compounds have a string representation and explicit encoding. The existing
+peptide/protein classes above remain available for legacy workflows.
 
 Records are plain values whose constructors take the field names as keywords::
 
     ID = oms.IdentificationData
     data = ID()
     run = data.addRun("comet_1")  # MoleculeKind.PEPTIDE
+    run.setSettings(ID.RunSettings(software="Comet", software_version="2024.01"))
     score = run.addScore(ID.ScoreDefinition(name="expect", higher_better=False, software="Comet"))
     run.setPrimaryScore(score)
     source = run.addSource(ID.SourceFile(path="BSA1.mzML"))
+    uniprot = run.addDatabase(ID.Database(path="uniprot.fasta"))
+    run.setDatabaseSequences([ID.DatabaseSequence(database=uniprot, accession="P02769", target_decoy=ID.TargetDecoy.TARGET)])
     query = run.addIdentification(source, ID.Observation(data_id="scan=1234", rt=1234.5, mz=582.32))
-    albumin = ID.QualifiedAccession(database="uniprot.fasta", accession="P02769")
-    evidence = ID.ParentEvidence(parent=albumin, start=65, end=74, before="K", after="T")
-    run.addMatch(query, ID.MatchData(representation="LVNELTEFAK", charge=2, parent_evidence=[evidence]), [0.003])
+    evidence = ID.SequenceEvidence(database=uniprot, accession="P02769", start=65, end=74, before="K", after="T")
+    run.addMatch(query, ID.MatchData(representation="LVNELTEFAK", charge=2, sequence_evidence=[evidence]), [0.003])
 
 Oligonucleotide and compound runs (``ID.MoleculeKind.OLIGONUCLEOTIDE``, ``ID.MoleculeKind.COMPOUND``)
 use other encodings. Every run of a dataset declares the same score definitions::
@@ -260,13 +265,15 @@ use other encodings. Every run of a dataset declares the same score definitions:
 
 Records with metadata also take ``metadata={name: value}``, and so does the ``parameters``
 field of a score definition. Records compare by value (``==``) and print their fields. Mutable
-records are unhashable; IDs (``QueryId``, ``MatchId``, ``ScoreId``, ``SourceId``), references
-(``QueryReference``, ``MatchReference``), ``MoleculeIdentity`` and ``QualifiedAccession`` hash by
-value and serve as dict keys and set members. A ``Match`` read from a run also compares its ID and
+records are unhashable; IDs (``QueryId``, ``MatchId``, ``ScoreId``, ``SourceId``, ``DatabaseId``),
+references (``QueryReference``, ``MatchReference``), ``MoleculeIdentity`` and ``QualifiedAccession``
+(an accession with the path of its database, comparable across runs: ``run.qualify(database, accession)``)
+hash by value and serve as dict keys and set members. A ``Match`` read from a run also compares its ID and
 scores, not just its payload::
 
     observation = ID.Observation(data_id="scan=1", rt=12.5, metadata={"FWHM": 3.5})
     observation          # IdentificationData.Observation(data_id='scan=1', rt=12.5, mz=None, metadata={'FWHM': 3.5})
+    albumin = run.qualify(uniprot, "P02769")
     accessions = {albumin, ID.QualifiedAccession(database="uniprot.fasta", accession="P02769")}  # one entry
 
 Method names follow the C++ API (``getRun``, ``addMatch``, ``retainBest``). Getters such as

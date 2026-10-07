@@ -245,7 +245,7 @@ IdentificationData::RunSettings readSettingsJson(const Json& json);
 Json writeInference(const std::filesystem::path& directory, const ID::InferenceResult& result, const Options& options);
 ID::InferenceResult readInference(const std::filesystem::path& directory, const Json& descriptor, const Options& options);
 void validateInferenceTables(const std::filesystem::path& directory, const Json& descriptor, const Options& options);
-void validateParents(const std::filesystem::path& root, const Json& reference, const Dictionary& dictionary, const Options& options);
-Json writeParents(const std::filesystem::path& path, const std::vector<ID::ParentRecord>& parents, Dictionary& dictionary, const Options& options);
-std::vector<ID::ParentRecord> readParents(const std::filesystem::path& root, const Json& reference, const Dictionary& dictionary, const Options& options);
+void validateDatabaseSequences(const std::filesystem::path& root, const Json& reference, Size databases, const Dictionary& dictionary, const Options& options);
+Json writeDatabaseSequences(const std::filesystem::path& path, const std::vector<ID::DatabaseSequence>& sequences, Dictionary& dictionary, const Options& options);
+std::vector<ID::DatabaseSequence> readDatabaseSequences(const std::filesystem::path& root, const Json& reference, const Dictionary& dictionary, const Options& options);
 } // namespace OpenMS::Internal::IdentificationDataIO

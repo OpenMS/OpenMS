@@ -95,8 +95,12 @@ START_SECTION((static ImportResult importLegacy(const std::vector<ProteinIdentif
   TEST_EQUAL(run.getNumberOfMatches(), 2)
   // The settings keep the search engine; the proteins of the legacy run are an inference result.
   TEST_EQUAL(run.getSettings().software, "test-search")
-  TEST_EQUAL(run.getSettings().search.db, "database.fasta")
-  TEST_EQUAL(run.getParents()->size(), 1)
+  // The database of the legacy search is a database of the run; the search settings no longer name it.
+  TEST_EQUAL(run.getSettings().search.db, "")
+  ABORT_IF(run.getDatabases().size() != 1)
+  TEST_EQUAL(run.getDatabases()[0].path, "database.fasta")
+  TEST_EQUAL(run.getDatabaseSequences()->size(), 1)
+  TEST_EQUAL(run.getDatabaseSequences()->at(0).accession, "P1")
   TEST_EQUAL(imported.data.getInferenceResults()[0].inputs[0].selection, "Imported legacy run-level provenance")
   TEST_EQUAL(imported.data.getInferenceResults()[0].inputs.size(), 1)
   auto without_files = original;

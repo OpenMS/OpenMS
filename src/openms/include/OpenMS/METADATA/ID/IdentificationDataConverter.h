@@ -25,8 +25,10 @@ public:
                         PeptideIdentificationList& peptides,
                         bool export_ids_wo_scores = false);
   static MzTab exportMzTab(const IdentificationData& data);
-  static void importSequences(IdentificationData::Run& run, const std::vector<FASTAFile::FASTAEntry>& fasta, const std::string& decoy_pattern = "");
-  static void exportParentMatches(const std::vector<IdentificationData::ParentEvidence>& evidence, PeptideHit& hit);
+  /// Add @p database to @p run (or find an equal one) and its FASTA entries as database sequences; returns the database.
+  static IdentificationData::DatabaseId importSequences(IdentificationData::Run& run, const IdentificationData::Database& database,
+                                                        const std::vector<FASTAFile::FASTAEntry>& fasta, const std::string& decoy_pattern = "");
+  static void exportSequenceEvidence(const std::vector<IdentificationData::SequenceEvidence>& evidence, PeptideHit& hit);
   static void importFeatureIDs(FeatureMap& features, bool clear_original = true);
   static void exportFeatureIDs(FeatureMap& features, bool clear_original = true);
   static void importConsensusIDs(ConsensusMap& consensus, bool clear_original = true);

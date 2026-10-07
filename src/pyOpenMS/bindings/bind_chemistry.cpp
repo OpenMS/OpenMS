@@ -1657,7 +1657,7 @@ The enzymes are read from share/CHEMISTRY/Enzymes_RNA.xml.
       .def(nb::init<>())
       .def(nb::init<const OpenMS::RNaseDigestion::DigestedOligo&>())
       .def_rw("sequence", &OpenMS::RNaseDigestion::DigestedOligo::sequence)
-      .def_rw("parent_evidence", &OpenMS::RNaseDigestion::DigestedOligo::parent_evidence)
+      .def_rw("sequence_evidence", &OpenMS::RNaseDigestion::DigestedOligo::sequence_evidence)
       .def_rw("target_decoy", &OpenMS::RNaseDigestion::DigestedOligo::target_decoy);
     nb::class_<OpenMS::RNaseDigestion, OpenMS::EnzymaticDigestion>(m, "RNaseDigestion",
                                                                    R"doc(

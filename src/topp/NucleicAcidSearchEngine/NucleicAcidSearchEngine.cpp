@@ -740,7 +740,7 @@ protected:
         IdentificationData::MatchData match;
         match.encoding = IdentificationData::Encoding::NA_SEQUENCE;
         match.representation = hit.sequence.toString();
-        match.parent_evidence = hit.oligo_ref->parent_evidence;
+        match.sequence_evidence = hit.oligo_ref->sequence_evidence;
         match.target_decoy = hit.oligo_ref->target_decoy;
         match.charge = negative_mode ? -std::abs(hit.precursor_ref->charge) : hit.precursor_ref->charge;
         match.peak_annotations = hit.annotations;
@@ -1012,7 +1012,6 @@ protected:
       std::string enzyme_name = getStringOption_("oligo:enzyme");
       search_param.digestion_enzyme =
         RNaseDB::getInstance()->getEnzyme(enzyme_name);
-      parameters.db = in_db;
       parameters.missed_cleavages = search_param.missed_cleavages;
       parameters.setMetaValue("rna_enzyme", enzyme_name);
       result_run.setSettings(settings);
@@ -1030,7 +1029,9 @@ protected:
       progresslogger.endProgress();
 
       OPENMS_LOG_INFO << "Performing in-silico digestion..." << endl;
-      IdentificationDataConverter::importSequences(result_run, fasta_db, decoy_pattern);
+      IdentificationData::Database database;
+      database.path = in_db;
+      IdentificationDataConverter::importSequences(result_run, database, fasta_db, decoy_pattern);
       digest = digestor.digest(result_run, min_oligo_length, max_oligo_length);
 
       std::string digest_out = getStringOption_("digest_out");
@@ -1043,7 +1044,10 @@ protected:
         // the catalog comes from the database, not from the spectra
         catalog_settings.removeMetaValue("spectra_data_raw");
         catalog_run.setSettings(catalog_settings);
-        catalog_run.setParents(result_run.getParents());
+        // the catalog's databases in the same order, so that the evidence of the candidates refers to them
+        for (const auto& database : result_run.getDatabases())
+          catalog_run.addDatabase(database);
+        catalog_run.setDatabaseSequences(result_run.getDatabaseSequences());
         IdentificationData::SourceFile database_source;
         database_source.path = in_db;
         database_source.identifier = "in-silico digestion";
@@ -1057,7 +1061,7 @@ protected:
           IdentificationData::MatchData value;
           value.encoding = IdentificationData::Encoding::NA_SEQUENCE;
           value.representation = candidate.sequence.toString();
-          value.parent_evidence = candidate.parent_evidence;
+          value.sequence_evidence = candidate.sequence_evidence;
           value.target_decoy = candidate.target_decoy;
           catalog_run.addMatch(query, value);
         }
@@ -1072,21 +1076,24 @@ protected:
       if (catalog.getRuns().size() != 1 || catalog.getRuns().front().getMoleculeKind() != IdentificationData::MoleculeKind::OLIGONUCLEOTIDE)
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Digest input requires one oligonucleotide catalog run");
       const auto& catalog_run = catalog.getRuns().front();
-      result_run.setParents(catalog_run.getParents());
+      // the databases in the same order, so that the evidence of the candidates refers to them
+      for (const auto& database : catalog_run.getDatabases())
+        result_run.addDatabase(database);
+      result_run.setDatabaseSequences(catalog_run.getDatabaseSequences());
       // the digestion settings come with the digest
       const auto& digestion = catalog_run.getSettings().search;
-      parameters.db = digestion.db;
       parameters.missed_cleavages = digestion.missed_cleavages;
       if (digestion.metaValueExists("rna_enzyme")) parameters.setMetaValue("rna_enzyme", digestion.getMetaValue("rna_enzyme"));
       result_run.setSettings(settings);
       for (const auto& source : catalog_run.getSources())
         for (const auto& query : source.identifications)
           for (const auto& match : query.getMatches())
-            digest.push_back({NASequence::fromString(match.representation), match.parent_evidence, match.target_decoy});
+            digest.push_back({NASequence::fromString(match.representation), match.sequence_evidence, match.target_decoy});
     }
-    Size n_nucleic_acids = result_run.getParents() ? result_run.getParents()->size() : 0;
+    Size n_nucleic_acids = result_run.getDatabaseSequences() ? result_run.getDatabaseSequences()->size() : 0;
     if (! decoy_pattern.empty()
-        && (! result_run.getParents() || std::none_of(result_run.getParents()->begin(), result_run.getParents()->end(), [](const auto& parent) {
+        && (! result_run.getDatabaseSequences()
+            || std::none_of(result_run.getDatabaseSequences()->begin(), result_run.getDatabaseSequences()->end(), [](const auto& parent) {
              return parent.target_decoy == IdentificationData::TargetDecoy::DECOY;
            })))
     {
@@ -1377,33 +1384,35 @@ protected:
       OPENMS_LOG_INFO << "Performing FDR calculations..." << endl;
       calculateAndFilterFDR_(id_data, report_top_hits == 1);
     }
-    // Report only parents with remaining evidence after FDR filtering (the digest catalog keeps
-    // all of them), and calculate their coverage from unique intervals.
+    // Report only database sequences with remaining evidence after FDR filtering (the digest catalog
+    // keeps all of them), and calculate their coverage from unique intervals.
     auto& coverage_run = id_data.getRun("NASE");
-    std::set<IdentificationData::QualifiedAccession> referenced;
-    std::map<IdentificationData::QualifiedAccession, std::set<std::pair<UInt64, UInt64>>> covered;
+    using SequenceKey = std::pair<UInt32, std::string>; // database and accession
+    std::set<SequenceKey> referenced;
+    std::map<SequenceKey, std::set<std::pair<UInt64, UInt64>>> covered;
     for (const auto& source : coverage_run.getSources())
       for (const auto& query : source.identifications)
         for (const auto& match : query.getMatches())
-          for (const auto& evidence : match.parent_evidence)
+          for (const auto& evidence : match.sequence_evidence)
           {
-            referenced.insert(evidence.parent);
-            if (evidence.start && evidence.end) covered[evidence.parent].emplace(*evidence.start, *evidence.end);
+            const SequenceKey key {evidence.database.value, evidence.accession};
+            referenced.insert(key);
+            if (evidence.start && evidence.end) covered[key].emplace(*evidence.start, *evidence.end);
           }
-    if (coverage_run.getParents())
+    if (coverage_run.getDatabaseSequences())
     {
-      auto parents = *coverage_run.getParents();
-      std::erase_if(parents, [&](const auto& parent) { return ! referenced.contains(parent.identity); });
+      auto parents = *coverage_run.getDatabaseSequences();
+      std::erase_if(parents, [&](const auto& parent) { return ! referenced.contains({parent.database.value, parent.accession}); });
       for (auto& parent : parents)
       {
         const auto length = NASequence::fromString(parent.sequence).size();
         UInt64 count = 0, end = 0;
         bool first = true;
-        for (const auto& interval : covered[parent.identity])
+        for (const auto& interval : covered[{parent.database.value, parent.accession}])
         {
           if (interval.second >= length)
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RNA parent evidence exceeds sequence length",
-                                          parent.identity.accession);
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RNA sequence evidence exceeds sequence length",
+                                          parent.accession);
           if (first || interval.first > end) count += interval.second - interval.first + 1;
           else if (interval.second > end)
             count += interval.second - end;
@@ -1412,7 +1421,7 @@ protected:
         }
         parent.setMetaValue("coverage", length ? static_cast<double>(count) / length : 0.0);
       }
-      coverage_run.setParents(std::move(parents));
+      coverage_run.setDatabaseSequences(std::move(parents));
     }
 
     // store results

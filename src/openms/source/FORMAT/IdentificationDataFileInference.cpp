@@ -441,10 +441,11 @@ namespace
       arrays.push_back(std::move(output));
     }
   }
-  std::shared_ptr<arrow::Schema> parentsSchema()
+  std::shared_ptr<arrow::Schema> sequencesSchema()
   {
-    return arrow::schema({required("ordinal", arrow::uint64()), required("identity", identityType()), required("target_decoy", arrow::uint8()),
-                          required("sequence", arrow::utf8()), required("description", arrow::utf8()), required("metadata", metadataType())});
+    return arrow::schema({required("ordinal", arrow::uint64()), required("database", arrow::uint32()), required("accession", arrow::utf8()),
+                          required("target_decoy", arrow::uint8()), required("sequence", arrow::utf8()), required("description", arrow::utf8()),
+                          required("metadata", metadataType())});
   }
   std::shared_ptr<arrow::Schema> inputsSchema()
   {
@@ -611,50 +612,52 @@ ID::RunSettings readSettingsJson(const Json& json)
   return settings;
 }
 
-Json writeParents(const std::filesystem::path& path, const std::vector<ID::ParentRecord>& parents, Dictionary& dictionary, const Options& options)
+Json writeDatabaseSequences(const std::filesystem::path& path, const std::vector<ID::DatabaseSequence>& sequences, Dictionary& dictionary,
+                            const Options& options)
 {
-  for (const auto& parent : parents)
-    dictionary.collect(parent);
-  TableWriter writer(path, parentsSchema(), options);
+  for (const auto& sequence : sequences)
+    dictionary.collect(sequence);
+  TableWriter writer(path, sequencesSchema(), options);
   UInt64 ordinal = 0;
-  for (const auto& parent : parents)
+  for (const auto& sequence : sequences)
   {
-    if (static_cast<unsigned>(parent.target_decoy) > static_cast<unsigned>(ID::TargetDecoy::BOTH)) invalid("Invalid parent target/decoy value");
+    if (static_cast<unsigned>(sequence.target_decoy) > static_cast<unsigned>(ID::TargetDecoy::BOTH))
+      invalid("Invalid database sequence target/decoy value");
     append<arrow::UInt64Builder>(writer.column(0), ordinal++);
-    appendIdentity(writer.column(1), parent.identity);
-    append<arrow::UInt8Builder>(writer.column(2), static_cast<unsigned>(parent.target_decoy));
-    appendText(writer.column(3), parent.sequence);
-    appendText(writer.column(4), parent.description);
-    appendMetadata(writer.column(5), parent, dictionary);
-    writer.finishRow(64 + parent.identity.database.size() + parent.identity.accession.size() + parent.sequence.size() + parent.description.size()
-                     + metadataBytes(parent));
+    append<arrow::UInt32Builder>(writer.column(1), sequence.database.value);
+    appendText(writer.column(2), sequence.accession);
+    append<arrow::UInt8Builder>(writer.column(3), static_cast<unsigned>(sequence.target_decoy));
+    appendText(writer.column(4), sequence.sequence);
+    appendText(writer.column(5), sequence.description);
+    appendMetadata(writer.column(6), sequence, dictionary);
+    writer.finishRow(64 + sequence.accession.size() + sequence.sequence.size() + sequence.description.size() + metadataBytes(sequence));
   }
   writer.close();
   return writer.reference();
 }
 
-std::vector<ID::ParentRecord> readParents(const std::filesystem::path& root, const Json& reference, const Dictionary& dictionary, const Options& options)
+std::vector<ID::DatabaseSequence> readDatabaseSequences(const std::filesystem::path& root, const Json& reference, const Dictionary& dictionary,
+                                                        const Options& options)
 {
-  TableReader reader(root, reference, parentsSchema(), options);
-  std::vector<ID::ParentRecord> parents;
+  TableReader reader(root, reference, sequencesSchema(), options);
+  std::vector<ID::DatabaseSequence> sequences;
   while (reader.next())
   {
     const auto row = reader.row();
-    requireOrdinal(number<arrow::UInt64Array>(reader.column(0), row), parents.size());
-    ID::ParentRecord parent;
-    parent.identity = readIdentity(reader.column(1), row);
-    const auto state = number<arrow::UInt8Array>(reader.column(2), row);
-    if (state > static_cast<unsigned>(ID::TargetDecoy::BOTH)) invalid("Invalid parent target/decoy value");
-    parent.target_decoy = static_cast<ID::TargetDecoy>(state);
-    parent.sequence = text(reader.column(3), row);
-    parent.description = text(reader.column(4), row);
-    readMetadata(reader.column(5), row, parent, dictionary);
-    requirePayload(64 + parent.identity.database.size() + parent.identity.accession.size() + parent.sequence.size() + parent.description.size()
-                     + metadataBytes(parent),
-                   options);
-    parents.push_back(std::move(parent));
+    requireOrdinal(number<arrow::UInt64Array>(reader.column(0), row), sequences.size());
+    ID::DatabaseSequence sequence;
+    sequence.database = {number<arrow::UInt32Array>(reader.column(1), row)};
+    sequence.accession = text(reader.column(2), row);
+    const auto state = number<arrow::UInt8Array>(reader.column(3), row);
+    if (state > static_cast<unsigned>(ID::TargetDecoy::BOTH)) invalid("Invalid database sequence target/decoy value");
+    sequence.target_decoy = static_cast<ID::TargetDecoy>(state);
+    sequence.sequence = text(reader.column(4), row);
+    sequence.description = text(reader.column(5), row);
+    readMetadata(reader.column(6), row, sequence, dictionary);
+    requirePayload(64 + sequence.accession.size() + sequence.sequence.size() + sequence.description.size() + metadataBytes(sequence), options);
+    sequences.push_back(std::move(sequence));
   }
-  return parents;
+  return sequences;
 }
 
 Json writeInference(const std::filesystem::path& directory, const ID::InferenceResult& result, const Options& options)
@@ -672,7 +675,7 @@ Json writeInference(const std::filesystem::path& directory, const ID::InferenceR
   Json descriptor = {{"identifier", result.identifier},
                      {"processing", processingJson(result.proteins)},
                      {"metadata_fields", dictionary.toJson()},
-                     {"parent_score", result.parent_score ? scoreJson(*result.parent_score) : Json(nullptr)},
+                     {"protein_score", result.protein_score ? scoreJson(*result.protein_score) : Json(nullptr)},
                      {"group_score", result.group_score ? scoreJson(*result.group_score) : Json(nullptr)},
                      {"input_scores", Json::array()},
                      {"tables", Json::object()},
@@ -766,22 +769,24 @@ Json writeInference(const std::filesystem::path& directory, const ID::InferenceR
   return descriptor;
 }
 
-void validateParents(const std::filesystem::path& root, const Json& reference, const Dictionary& dictionary, const Options& options)
+void validateDatabaseSequences(const std::filesystem::path& root, const Json& reference, Size databases, const Dictionary& dictionary,
+                               const Options& options)
 {
-  TableReader reader(root, reference, parentsSchema(), options);
+  TableReader reader(root, reference, sequencesSchema(), options);
   UInt64 ordinal = 0;
   while (reader.next())
   {
     const auto row = reader.row();
     requireOrdinal(number<arrow::UInt64Array>(reader.column(0), row), ordinal++);
-    const auto identity = readIdentity(reader.column(1), row);
-    if (number<arrow::UInt8Array>(reader.column(2), row) > static_cast<unsigned>(ID::TargetDecoy::BOTH)) invalid("Invalid parent target/decoy value");
-    const auto sequence = text(reader.column(3), row);
-    const auto description = text(reader.column(4), row);
+    if (number<arrow::UInt32Array>(reader.column(1), row) >= databases) invalid("Database sequence refers to an unknown database of its run");
+    const auto accession = text(reader.column(2), row);
+    if (number<arrow::UInt8Array>(reader.column(3), row) > static_cast<unsigned>(ID::TargetDecoy::BOTH))
+      invalid("Invalid database sequence target/decoy value");
+    const auto sequence = text(reader.column(4), row);
+    const auto description = text(reader.column(5), row);
     MetaInfoInterface metadata;
-    readMetadata(reader.column(5), row, metadata, dictionary);
-    requirePayload(64 + identity.database.size() + identity.accession.size() + sequence.size() + description.size() + metadataBytes(metadata),
-                   options);
+    readMetadata(reader.column(6), row, metadata, dictionary);
+    requirePayload(64 + accession.size() + sequence.size() + description.size() + metadataBytes(metadata), options);
   }
 }
 
@@ -789,7 +794,7 @@ void validateInferenceTables(const std::filesystem::path& directory, const Json&
 {
   validateJsonStrings(descriptor);
   readProcessingJson(descriptor.at("processing"));
-  if (! descriptor.at("parent_score").is_null()) readScoreJson(descriptor.at("parent_score"));
+  if (! descriptor.at("protein_score").is_null()) readScoreJson(descriptor.at("protein_score"));
   if (! descriptor.at("group_score").is_null()) readScoreJson(descriptor.at("group_score"));
   for (const auto& score : descriptor.at("input_scores"))
     readScoreJson(score);
@@ -886,7 +891,7 @@ ID::InferenceResult readInference(const std::filesystem::path& directory, const 
   ID::InferenceResult result;
   result.identifier = descriptor.at("identifier").get<std::string>();
   result.proteins = readProcessingJson(descriptor.at("processing"));
-  if (! descriptor.at("parent_score").is_null()) result.parent_score = readScoreJson(descriptor.at("parent_score"));
+  if (! descriptor.at("protein_score").is_null()) result.protein_score = readScoreJson(descriptor.at("protein_score"));
   if (! descriptor.at("group_score").is_null()) result.group_score = readScoreJson(descriptor.at("group_score"));
   Dictionary dictionary;
   dictionary.load(descriptor.at("metadata_fields"));

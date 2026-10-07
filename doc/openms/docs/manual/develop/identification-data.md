@@ -12,16 +12,30 @@ model, its score contract and its Parquet persistence for developers. The establ
 
 An `IdentificationData` dataset contains analysis runs and independent inference results.
 
-- A **run** groups identifications with one configuration (search settings in a
-  `ProteinIdentification`), one molecule kind (peptide, oligonucleotide or compound) and the
-  dataset's score schema. It owns its sources, which record exact file paths.
+- A **run** groups identifications with its settings (`RunSettings`: software and version, date,
+  `SearchParameters` and metadata), one molecule kind (peptide, oligonucleotide or compound) and the
+  dataset's score schema.
+- The **sources** of a run are its files, in order. A `Source` is one file (`SourceFile`) with the
+  queries from it; a file may appear twice, a file without queries keeps its source, and an empty
+  path stands for a file that is not known. The position of a source is the index that legacy PSMs
+  store as `id_merge_index`, so the native model needs neither that index nor the `spectra_data`
+  list; the run settings must not list `spectra_data` (`spectra_data_raw` is settings metadata).
+- The **databases** of a run (`Database`: path, version, taxonomy; cf. mzIdentML `SearchDatabase`)
+  are its own records, so the search parameters in the settings leave `db`, `db_version` and
+  `taxonomy` empty. Sequence evidence and the optional **database sequences** of a run
+  (`DatabaseSequence`: accession, target/decoy, sequence, description; cf. mzIdentML `DBSequence`)
+  refer to a database by `DatabaseId`, its index in the run. `Run::qualify` turns a database and an
+  accession into a `QualifiedAccession` (database path and accession), which compares across runs
+  and datasets; inference results use it.
 - A **query** (`Identification`) is an observation, e.g. a spectrum or a feature, with zero or
   more candidate **matches**. Queries without candidates are valid.
 - A match owns its molecular representation (a string with an explicit `Encoding`: AASequence or
-  NASequence notation, SMILES, InChI or a database identifier), charge, optional adduct, parent
-  evidence, peak annotations, metadata and dense score values.
+  NASequence notation, SMILES, InChI or a database identifier), charge, optional adduct, sequence
+  evidence (`SequenceEvidence`: database, accession, position and flanking residues; cf. mzIdentML
+  `PeptideEvidence`), peak annotations, metadata and dense score values.
 - An **inference result** stores protein and group values once for any number of contributing runs,
-  with run-level provenance (`InferenceInput`). It does not store per-PSM assignments.
+  with run-level provenance (`InferenceInput`) and its protein and group score definitions. It does
+  not store per-PSM assignments.
 
 Runs have a UUID; queries and matches have stable `UInt64` IDs within their run. IDs survive
 copies, filtering and persistence and are never reused. Features refer to identifications by value
@@ -40,7 +54,7 @@ A dataset has one ordered PSM score schema and one primary score column. Every r
 declares exactly the same `ScoreDefinition`s in the same order: name, direction, scope, producing
 software and version, parameters and calibration. Equal names alone are not enough. Primary values
 are required on every match; supplementary values may be missing. Scoreless sequence catalogs (runs
-with `identification:catalog=true` in their processing metadata) declare no scores.
+with `identification:catalog=true` in their settings metadata) declare no scores.
 
 Data that does not satisfy the contract is rejected, and the error names the conflicting
 definitions. The model does not split runs or demote scores on its own. To combine searches from
@@ -66,15 +80,15 @@ shared Parquet tables:
 
 | Path | Contents |
 | --- | --- |
-| `manifest.json` | Format and schema version, score column names, run descriptors (UUID, sources, score definitions, metadata descriptors, ID counters) and table slices |
+| `manifest.json` | Format and schema version, score column names, run descriptors (UUID, settings, sources, databases, score definitions, metadata descriptors, ID counters) and table slices |
 | `queries.parquet` | Queries of all runs |
 | `matches.parquet` | Matches with one column per score definition (`score_pep`, `score_q_value`, …) |
-| `parents.parquet` | Optional parent catalogs |
+| `database_sequences.parquet` | Optional database sequences (`database` is the index of a database of the run) |
 | `inputs.parquet`, `proteins.parquet`, `groups.parquet` | Inference provenance, protein hits and groups (members stored inline) |
 
 Runs and inference results share physical tables and row groups. The manifest records each slice
 (start row, row count), and the last column of each table records which run or inference result owns
-a row: `run_uuid` in `queries`, `matches` and `parents`, and `inference_identifier` (unique within a
+a row: `run_uuid` in `queries`, `matches` and `database_sequences`, and `inference_identifier` (unique within a
 dataset) in `inputs`, `proteins` and `groups`. Readers check every row against its slice, so
 `SELECT ... FROM 'x.idparquet/matches.parquet' WHERE run_uuid = '...'` needs no manifest lookup.
 Score columns follow the dataset schema; runs without scores leave them empty. Matches follow their
@@ -158,8 +172,16 @@ unmatched masses are queries without candidates.
 
 `IdentificationDataAdapter::fromLegacy` imports peptide/protein identifications; `toLegacy`
 exports them. Export is strict by default: information the established classes cannot represent
-(e.g. explicit selected candidates, compound or oligonucleotide runs) is rejected.
-`LossPolicy::ALLOW` returns a loss report instead.
+(e.g. explicit selected candidates, compound or oligonucleotide runs, a run with more than one
+database) is rejected. `LossPolicy::ALLOW` returns a loss report instead.
+
+A legacy protein run maps to a run as follows: search engine, version, date, search parameters and
+meta values become the settings (`settingsFromLegacy`); `db`, `db_version` and `taxonomy` become a
+database of the run (`databaseFromLegacy`); `spectra_data` becomes the sources, and each PSM goes to
+the source its `id_merge_index` names, else to the only file, else to a source without a path
+(`addLegacySources`, `legacySource`); the protein hits become database sequences and an inference
+result. Export reverses this (`settingsToLegacy`, `legacyFiles`) and writes `id_merge_index` only
+for runs with several files.
 
 An inference result becomes one protein run. Inference over several runs is exported as the
 legacy model represents it: one merged protein run (as IDMerger creates it) that lists the files of
@@ -191,9 +213,9 @@ bundles (`-digest_out`, `-db_out`) and reads digests (`-digest`); AccurateMassSe
   queries and matches, and score lookups go through `ScoreId` or a bound `ScoreView`.
   `BaseFeature::updateIDReferences()` is no longer needed.
 - In pyOpenMS, all value types compare by value (`==`), take their fields as constructor keywords and
-  print them. IDs, references, `MoleculeIdentity` and `QualifiedAccession` also hash by value;
-  mutable records are unhashable. Getters return copies; assign edited nested values back to the
-  owning record. Runs are edited through `IdentificationData.run_view()`
+  print them. IDs (including `DatabaseId`), references, `MoleculeIdentity` and `QualifiedAccession`
+  also hash by value; mutable records are unhashable. Getters return copies; assign edited nested
+  values back to the owning record. Runs are edited through `IdentificationData.run_view()`
   (also returned by `addRun`), and the identification data of feature and consensus maps through
   `identification_data_view()`; a copied run is never written back.
 

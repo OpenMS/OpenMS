@@ -150,6 +150,9 @@ ID synthetic(OpenMS::UInt64 rows, OpenMS::UInt64 run_count, bool inference = fal
     source.identifier = "raw-" + std::to_string(r);
     source.path = "/data/run-" + std::to_string(r) + ".mzML";
     const auto source_id = run.addSource(source);
+    ID::Database database;
+    database.path = "synthetic.fasta";
+    const auto database_id = run.addDatabase(database);
     ID::ScoreDefinition raw;
     raw.name = "search score";
     raw.software = "synthetic benchmark";
@@ -171,7 +174,7 @@ ID synthetic(OpenMS::UInt64 rows, OpenMS::UInt64 run_count, bool inference = fal
       match.representation = i % 2 ? "PEPTIDEK" : "PEPTIDER";
       match.charge = 2 + i % 2;
       match.target_decoy = i % 10 ? ID::TargetDecoy::TARGET : ID::TargetDecoy::DECOY;
-      match.parent_evidence.push_back({{"synthetic.fasta", "P" + std::to_string(i % 2000)}, 1, 8, "K", "A"});
+      match.sequence_evidence.push_back({database_id, "P" + std::to_string(i % 2000), 1, 8, "K", "A"});
       if (inference)
       {
         // Repeated peptidoforms retain the same mapping across every input run.
@@ -184,7 +187,7 @@ ID synthetic(OpenMS::UInt64 rows, OpenMS::UInt64 run_count, bool inference = fal
           key /= 20;
         }
         match.representation += 'K';
-        match.parent_evidence.front().parent.accession = "P" + std::to_string((i % 10000) / 5);
+        match.sequence_evidence.front().accession = "P" + std::to_string((i % 10000) / 5);
       }
       match.setMetaValue("rank", 1);
       match.setMetaValue("engine", "synthetic");

@@ -304,9 +304,16 @@ void bindRunApi(Class& cls, Get get)
     .def("getMoleculeKind", [get](Self& self) { return get(self).getMoleculeKind(); })
     .def("getSettings", [get](Self& self) { return get(self).getSettings(); })
     .def("setSettings", [get](Self& self, const ID::RunSettings& settings) { get(self).setSettings(settings); }, nb::arg("settings"))
-    .def("getParents", [get](Self& self) { return get(self).getParents(); })
-    .def("setParents", [get](Self& self, std::optional<std::vector<ID::ParentRecord>> parents) { get(self).setParents(std::move(parents)); },
-         nb::arg("parents"))
+    .def("getDatabases", [get](Self& self) { return get(self).getDatabases(); })
+    .def("addDatabase", [get](Self& self, const ID::Database& database) { return get(self).addDatabase(database); }, nb::arg("database"))
+    .def("getDatabaseId", [get](Self& self, OpenMS::UInt32 index) { return get(self).getDatabaseId(index); }, nb::arg("index"))
+    .def("getDatabase", [get](Self& self, ID::DatabaseId database) { return get(self).getDatabase(database); }, nb::arg("database"))
+    .def("qualify", [get](Self& self, ID::DatabaseId database, const std::string& accession) { return get(self).qualify(database, accession); },
+         nb::arg("database"), nb::arg("accession"))
+    .def("getDatabaseSequences", [get](Self& self) { return get(self).getDatabaseSequences(); })
+    .def("setDatabaseSequences",
+         [get](Self& self, std::optional<std::vector<ID::DatabaseSequence>> sequences) { get(self).setDatabaseSequences(std::move(sequences)); },
+         nb::arg("sequences"))
     .def("getSources", [get](Self& self) { return get(self).getSources(); })
     .def("getScoreDefinitions", [get](Self& self) { return get(self).getScoreDefinitions(); })
     .def("addSource", [get](Self& self, const ID::SourceFile& source) { return get(self).addSource(source); }, nb::arg("source"))
@@ -431,6 +438,10 @@ inline void bind(nb::module_& m)
   sourceid.def_ro("value", &ID::SourceId::value);
   sourceid.def("__hash__", [](const ID::SourceId& self) { return std::hash<OpenMS::UInt64> {}(self.owner) ^ (std::hash<OpenMS::UInt64> {}(self.value) << 1); })
     .def("__repr__", [](const ID::SourceId& self) { return "<SourceId " + std::to_string(self.value) + ">"; });
+  auto databaseid = valueClass<ID::DatabaseId>(data, "DatabaseId");
+  databaseid.def_ro("value", &ID::DatabaseId::value);
+  databaseid.def("__hash__", [](const ID::DatabaseId& self) { return std::hash<OpenMS::UInt32> {}(self.value); })
+    .def("__repr__", [](const ID::DatabaseId& self) { return "<DatabaseId " + std::to_string(self.value) + ">"; });
   auto qualifiedaccession = valueClass<ID::QualifiedAccession>(data, "QualifiedAccession");
   field(qualifiedaccession, "database", &ID::QualifiedAccession::database);
   field(qualifiedaccession, "accession", &ID::QualifiedAccession::accession);
@@ -453,17 +464,23 @@ inline void bind(nb::module_& m)
   auto sourcefile = valueClass<ID::SourceFile, OpenMS::MetaInfoInterface>(data, "SourceFile");
   field(sourcefile, "identifier", &ID::SourceFile::identifier);
   field(sourcefile, "path", &ID::SourceFile::path);
-  auto parentevidence = valueClass<ID::ParentEvidence>(data, "ParentEvidence");
-  field(parentevidence, "parent", &ID::ParentEvidence::parent);
-  field(parentevidence, "start", &ID::ParentEvidence::start);
-  field(parentevidence, "end", &ID::ParentEvidence::end);
-  field(parentevidence, "before", &ID::ParentEvidence::before);
-  field(parentevidence, "after", &ID::ParentEvidence::after);
-  auto parentrecord = valueClass<ID::ParentRecord, OpenMS::MetaInfoInterface>(data, "ParentRecord");
-  field(parentrecord, "identity", &ID::ParentRecord::identity);
-  field(parentrecord, "sequence", &ID::ParentRecord::sequence);
-  field(parentrecord, "description", &ID::ParentRecord::description);
-  field(parentrecord, "target_decoy", &ID::ParentRecord::target_decoy);
+  auto database = valueClass<ID::Database, OpenMS::MetaInfoInterface>(data, "Database");
+  field(database, "path", &ID::Database::path);
+  field(database, "version", &ID::Database::version);
+  field(database, "taxonomy", &ID::Database::taxonomy);
+  auto sequenceevidence = valueClass<ID::SequenceEvidence>(data, "SequenceEvidence");
+  field(sequenceevidence, "database", &ID::SequenceEvidence::database);
+  field(sequenceevidence, "accession", &ID::SequenceEvidence::accession);
+  field(sequenceevidence, "start", &ID::SequenceEvidence::start);
+  field(sequenceevidence, "end", &ID::SequenceEvidence::end);
+  field(sequenceevidence, "before", &ID::SequenceEvidence::before);
+  field(sequenceevidence, "after", &ID::SequenceEvidence::after);
+  auto databasesequence = valueClass<ID::DatabaseSequence, OpenMS::MetaInfoInterface>(data, "DatabaseSequence");
+  field(databasesequence, "database", &ID::DatabaseSequence::database);
+  field(databasesequence, "accession", &ID::DatabaseSequence::accession);
+  field(databasesequence, "sequence", &ID::DatabaseSequence::sequence);
+  field(databasesequence, "description", &ID::DatabaseSequence::description);
+  field(databasesequence, "target_decoy", &ID::DatabaseSequence::target_decoy);
   auto observation = valueClass<ID::Observation, OpenMS::MetaInfoInterface>(data, "Observation");
   field(observation, "data_id", &ID::Observation::data_id);
   field(observation, "rt", &ID::Observation::rt);
@@ -478,7 +495,7 @@ inline void bind(nb::module_& m)
   field(matchdata, "formula", &ID::MatchData::formula);
   field(matchdata, "identifiers", &ID::MatchData::identifiers);
   field(matchdata, "adduct", &ID::MatchData::adduct);
-  field(matchdata, "parent_evidence", &ID::MatchData::parent_evidence);
+  field(matchdata, "sequence_evidence", &ID::MatchData::sequence_evidence);
   field(matchdata, "peak_annotations", &ID::MatchData::peak_annotations);
   auto inferenceinput = valueClass<ID::InferenceInput>(data, "InferenceInput");
   field(inferenceinput, "run_identifier", &ID::InferenceInput::run_identifier);
@@ -488,7 +505,7 @@ inline void bind(nb::module_& m)
   auto inferenceresult = valueClass<ID::InferenceResult>(data, "InferenceResult");
   field(inferenceresult, "identifier", &ID::InferenceResult::identifier);
   field(inferenceresult, "proteins", &ID::InferenceResult::proteins);
-  field(inferenceresult, "parent_score", &ID::InferenceResult::parent_score);
+  field(inferenceresult, "protein_score", &ID::InferenceResult::protein_score);
   field(inferenceresult, "group_score", &ID::InferenceResult::group_score);
   field(inferenceresult, "qualified_accessions", &ID::InferenceResult::qualified_accessions);
   field(inferenceresult, "inputs", &ID::InferenceResult::inputs);

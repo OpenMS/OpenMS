@@ -36,6 +36,10 @@ namespace
     for (const auto& message : losses)
       OPENMS_LOG_WARN << "IdentificationDataConverter: " << message << "; use native persistence to retain this information." << std::endl;
   }
+  /// The database of a legacy run (which has at most one); an unknown database if its search names none.
+  ID::DatabaseId legacyDatabase(ID::Run& run)
+  { return run.getDatabases().empty() ? run.addDatabase(ID::Database {}) : run.getDatabaseId(0); }
+
   Adapter::ImportResult importGeneric(const std::vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides)
   {
     ID imported;
@@ -80,21 +84,25 @@ namespace
         StringList files;
         metadata.getPrimaryMSRunPath(files);
         Adapter::addLegacySources(run, files);
-        std::vector<ID::ParentRecord> parents;
+        // The database of the legacy run's search becomes the database of the run.
+        const auto database = Adapter::databaseFromLegacy(metadata.getSearchParameters());
+        if (database != ID::Database {}) run.addDatabase(database);
+        std::vector<ID::DatabaseSequence> sequences;
         for (const auto& hit : metadata.getHits())
         {
-          ID::ParentRecord parent;
-          static_cast<MetaInfoInterface&>(parent) = hit;
-          parent.identity = {metadata.getSearchParameters().db, hit.getAccession()};
-          parent.sequence = hit.getSequence();
-          parent.description = hit.getDescription();
-          if (hit.getCoverage() >= 0) parent.setMetaValue("coverage", hit.getCoverage() / 100.0);
-          parent.target_decoy = hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::DECOY    ? ID::TargetDecoy::DECOY
-                                : hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::TARGET ? ID::TargetDecoy::TARGET
-                                                                                                  : ID::TargetDecoy::UNKNOWN;
-          parents.push_back(std::move(parent));
+          ID::DatabaseSequence sequence;
+          static_cast<MetaInfoInterface&>(sequence) = hit;
+          sequence.database = legacyDatabase(run);
+          sequence.accession = hit.getAccession();
+          sequence.sequence = hit.getSequence();
+          sequence.description = hit.getDescription();
+          if (hit.getCoverage() >= 0) sequence.setMetaValue("coverage", hit.getCoverage() / 100.0);
+          sequence.target_decoy = hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::DECOY    ? ID::TargetDecoy::DECOY
+                                  : hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::TARGET ? ID::TargetDecoy::TARGET
+                                                                                                    : ID::TargetDecoy::UNKNOWN;
+          sequences.push_back(std::move(sequence));
         }
-        if (! parents.empty()) run.setParents(std::move(parents));
+        if (! sequences.empty()) run.setDatabaseSequences(std::move(sequences));
         if (! item.getScoreType().empty())
         {
           ID::ScoreDefinition definition;
@@ -157,13 +165,14 @@ namespace
           match.target_decoy = ID::TargetDecoy::BOTH;
         for (const auto& old : hit.getPeptideEvidences())
         {
-          ID::ParentEvidence evidence;
-          evidence.parent = {run.getSettings().search.db, old.getProteinAccession()};
+          ID::SequenceEvidence evidence;
+          evidence.database = legacyDatabase(run);
+          evidence.accession = old.getProteinAccession();
           if (old.getStart() >= 0) evidence.start = old.getStart();
           if (old.getEnd() >= 0) evidence.end = old.getEnd();
           evidence.before = std::string(1, old.getAABefore());
           evidence.after = std::string(1, old.getAAAfter());
-          match.parent_evidence.push_back(std::move(evidence));
+          match.sequence_evidence.push_back(std::move(evidence));
         }
         run.addMatch(query, match,
                      run.getPrimaryScore() ? std::vector<std::optional<double>> {hit.getScore()} : std::vector<std::optional<double>> {});
@@ -395,7 +404,7 @@ void IdentificationDataConverter::exportIDs(const ID& data,
   PeptideIdentificationList added_peptides;
   for (const auto& run : data.getRuns())
   {
-    auto processing = Adapter::settingsToLegacy(run.getSettings());
+    auto processing = Adapter::settingsToLegacy(run);
     processing.setIdentifier(run.getIdentifier());
     // Without an inference result, the legacy run takes the primary score as its score type, as search engines write it.
     if (run.getPrimaryScore())
@@ -404,23 +413,23 @@ void IdentificationDataConverter::exportIDs(const ID& data,
       processing.setHigherScoreBetter(run.getScoreDefinition(*run.getPrimaryScore()).higher_better);
     }
     std::vector<ProteinHit> parents;
-    if (run.getParents())
-      for (const auto& parent : *run.getParents())
+    if (run.getDatabaseSequences())
+      for (const auto& sequence : *run.getDatabaseSequences())
       {
         ProteinHit hit;
-        static_cast<MetaInfoInterface&>(hit) = parent;
-        hit.setAccession(parent.identity.accession);
-        hit.setSequence(parent.sequence);
-        hit.setDescription(parent.description);
-        if (parent.metaValueExists("coverage"))
+        static_cast<MetaInfoInterface&>(hit) = sequence;
+        hit.setAccession(sequence.accession);
+        hit.setSequence(sequence.sequence);
+        hit.setDescription(sequence.description);
+        if (sequence.metaValueExists("coverage"))
         {
           // the coverage attribute represents it
-          hit.setCoverage(static_cast<double>(parent.getMetaValue("coverage")) * 100.0);
+          hit.setCoverage(static_cast<double>(sequence.getMetaValue("coverage")) * 100.0);
           hit.removeMetaValue("coverage");
         }
-        hit.setTargetDecoyType(parent.target_decoy == ID::TargetDecoy::DECOY    ? ProteinHit::TargetDecoyType::DECOY
-                               : parent.target_decoy == ID::TargetDecoy::TARGET ? ProteinHit::TargetDecoyType::TARGET
-                                                                                : ProteinHit::TargetDecoyType::UNKNOWN);
+        hit.setTargetDecoyType(sequence.target_decoy == ID::TargetDecoy::DECOY    ? ProteinHit::TargetDecoyType::DECOY
+                               : sequence.target_decoy == ID::TargetDecoy::TARGET ? ProteinHit::TargetDecoyType::TARGET
+                                                                                  : ProteinHit::TargetDecoyType::UNKNOWN);
         parents.push_back(std::move(hit));
       }
     processing.setHits(parents);
@@ -481,7 +490,7 @@ void IdentificationDataConverter::exportIDs(const ID& data,
           hit.setCharge(match.charge);
           hit.setScore(score.value_or(0));
           hit.setPeakAnnotations(match.peak_annotations);
-          exportParentMatches(match.parent_evidence, hit);
+          exportSequenceEvidence(match.sequence_evidence, hit);
           if (match.adduct)
           {
             hit.setMetaValue("adduct", match.adduct->getName());
@@ -521,34 +530,37 @@ void IdentificationDataConverter::exportIDs(const ID& data,
   peptides.insert(peptides.end(), added_peptides.begin(), added_peptides.end());
 }
 
-void IdentificationDataConverter::importSequences(ID::Run& run, const std::vector<FASTAFile::FASTAEntry>& fasta, const std::string& decoy_pattern)
+ID::DatabaseId IdentificationDataConverter::importSequences(ID::Run& run, const ID::Database& database, const std::vector<FASTAFile::FASTAEntry>& fasta,
+                                                             const std::string& decoy_pattern)
 {
-  std::vector<ID::ParentRecord> parents = run.getParents().value_or(std::vector<ID::ParentRecord> {});
-  const auto& database = run.getSettings().search.db;
+  const auto database_id = run.addDatabase(database);
+  auto sequences = run.getDatabaseSequences().value_or(std::vector<ID::DatabaseSequence> {});
   for (const auto& entry : fasta)
   {
-    ID::ParentRecord parent;
-    parent.identity = {database, entry.identifier};
-    parent.sequence = entry.sequence;
-    parent.description = entry.description;
-    parent.target_decoy
+    ID::DatabaseSequence sequence;
+    sequence.database = database_id;
+    sequence.accession = entry.identifier;
+    sequence.sequence = entry.sequence;
+    sequence.description = entry.description;
+    sequence.target_decoy
       = ! decoy_pattern.empty() && entry.identifier.find(decoy_pattern) != std::string::npos ? ID::TargetDecoy::DECOY : ID::TargetDecoy::TARGET;
-    parents.push_back(std::move(parent));
+    sequences.push_back(std::move(sequence));
   }
-  run.setParents(std::move(parents));
+  run.setDatabaseSequences(std::move(sequences));
+  return database_id;
 }
-void IdentificationDataConverter::exportParentMatches(const std::vector<ID::ParentEvidence>& parents, PeptideHit& hit)
+void IdentificationDataConverter::exportSequenceEvidence(const std::vector<ID::SequenceEvidence>& sequence_evidence, PeptideHit& hit)
 {
   std::vector<PeptideEvidence> evidence;
-  for (const auto& parent : parents)
+  for (const auto& item : sequence_evidence)
   {
-    if ((parent.start && *parent.start > std::numeric_limits<Int>::max()) || (parent.end && *parent.end > std::numeric_limits<Int>::max())
-        || parent.before.size() > 1 || parent.after.size() > 1)
-      invalid("Parent evidence exceeds legacy coordinate or flank limits");
-    evidence.emplace_back(parent.parent.accession, parent.start ? static_cast<Int>(*parent.start) : PeptideEvidence::UNKNOWN_POSITION,
-                          parent.end ? static_cast<Int>(*parent.end) : PeptideEvidence::UNKNOWN_POSITION,
-                          parent.before.empty() ? PeptideEvidence::UNKNOWN_AA : parent.before[0],
-                          parent.after.empty() ? PeptideEvidence::UNKNOWN_AA : parent.after[0]);
+    if ((item.start && *item.start > std::numeric_limits<Int>::max()) || (item.end && *item.end > std::numeric_limits<Int>::max())
+        || item.before.size() > 1 || item.after.size() > 1)
+      invalid("Sequence evidence exceeds legacy coordinate or flank limits");
+    evidence.emplace_back(item.accession, item.start ? static_cast<Int>(*item.start) : PeptideEvidence::UNKNOWN_POSITION,
+                          item.end ? static_cast<Int>(*item.end) : PeptideEvidence::UNKNOWN_POSITION,
+                          item.before.empty() ? PeptideEvidence::UNKNOWN_AA : item.before[0],
+                          item.after.empty() ? PeptideEvidence::UNKNOWN_AA : item.after[0]);
   }
   hit.setPeptideEvidences(evidence);
 }
@@ -596,18 +608,18 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
       if (const auto colon = score.accession.find(':'); colon != std::string::npos) definition.setCVLabel(score.accession.substr(0, colon));
       metadata.osm_search_engine_score[i + 1] = definition;
     }
-    if (run.getParents())
-      for (const auto& parent : *run.getParents())
+    if (run.getDatabaseSequences())
+      for (const auto& sequence : *run.getDatabaseSequences())
       {
         MzTabNucleicAcidSectionRow row;
-        row.accession.set(parent.identity.accession);
-        row.description.set(parent.description);
+        row.accession.set(sequence.accession);
+        row.description.set(sequence.description);
         MzTabParameter engine;
         engine.setName(settings.software);
         engine.setValue(settings.software_version);
         row.search_engine.set({engine});
-        if (parent.metaValueExists("coverage")) row.coverage.set(static_cast<double>(parent.getMetaValue("coverage")));
-        row.opt_.push_back({"opt_sequence", MzTabString(parent.sequence)});
+        if (sequence.metaValueExists("coverage")) row.coverage.set(static_cast<double>(sequence.getMetaValue("coverage")));
+        row.opt_.push_back({"opt_sequence", MzTabString(sequence.sequence)});
         parents.push_back(std::move(row));
       }
     for (const auto& source : run.getSources())
@@ -651,16 +663,16 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
           if (match.metaValueExists("isotope_offset"))
             row.opt_.push_back({"opt_isotope_offset", MzTabString(match.getMetaValue("isotope_offset").toString())});
           matches.push_back(std::move(row));
-          for (const auto& evidence : match.parent_evidence)
+          for (const auto& evidence : match.sequence_evidence)
           {
-            if (! seen.emplace(match.representation, evidence.parent, evidence.start, evidence.end).second) continue;
+            if (! seen.emplace(match.representation, run.qualify(evidence.database, evidence.accession), evidence.start, evidence.end).second) continue;
             MzTabOligonucleotideSectionRow oligo;
             oligo.sequence.set(match.representation);
-            oligo.accession.set(evidence.parent.accession);
-            std::set<ID::QualifiedAccession> parent_ids;
-            for (const auto& parent : match.parent_evidence)
-              parent_ids.insert(parent.parent);
-            oligo.unique.set(parent_ids.size() == 1);
+            oligo.accession.set(evidence.accession);
+            std::set<std::pair<UInt32, std::string>> sequences;
+            for (const auto& item : match.sequence_evidence)
+              sequences.emplace(item.database.value, item.accession);
+            oligo.unique.set(sequences.size() == 1);
             MzTabParameter engine;
             engine.setName(settings.software);
             engine.setValue(settings.software_version);
@@ -671,7 +683,7 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
             if (evidence.end) oligo.end.set(*evidence.end + 1);
             oligos.push_back(std::move(oligo));
           }
-          if (match.parent_evidence.empty() && seen.emplace(match.representation, ID::QualifiedAccession {}, std::nullopt, std::nullopt).second)
+          if (match.sequence_evidence.empty() && seen.emplace(match.representation, ID::QualifiedAccession {}, std::nullopt, std::nullopt).second)
           {
             MzTabOligonucleotideSectionRow oligo;
             oligo.sequence.set(match.representation);

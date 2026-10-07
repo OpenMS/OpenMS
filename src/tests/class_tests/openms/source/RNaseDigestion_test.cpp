@@ -172,31 +172,35 @@ START_SECTION((owning digestion retains repeated evidence and target / decoy mem
 {
   IdentificationData data;
   auto& run = data.addRun("RNA", IdentificationData::MoleculeKind::OLIGONUCLEOTIDE);
-  IdentificationData::ParentRecord parent;
-  parent.identity = {"db", "test"};
+  IdentificationData::Database database;
+  database.path = "db";
+  IdentificationData::DatabaseSequence parent;
+  parent.database = run.addDatabase(database);
+  parent.accession = "test";
   parent.sequence = "pAUGUCGCAG";
   parent.target_decoy = IdentificationData::TargetDecoy::TARGET;
-  run.setParents(std::vector {parent});
+  run.setDatabaseSequences(std::vector {parent});
   RNaseDigestion rd;
   rd.setEnzyme("RNase_T1");
   auto output = rd.digest(run);
   TEST_EQUAL(output.size(), 3);
   parent.sequence = "ACUGACUGG";
-  run.setParents(std::vector {parent});
+  run.setDatabaseSequences(std::vector {parent});
   output = rd.digest(run, 2);
   TEST_EQUAL(output.size(), 1);
   ABORT_IF(output.empty());
   TEST_EQUAL(output[0].sequence.toString(), "ACUGp");
-  TEST_EQUAL(output[0].parent_evidence.size(), 2);
-  TEST_EQUAL(output[0].parent_evidence[0].start.value(), 0);
-  TEST_EQUAL(output[0].parent_evidence[1].start.value(), 4);
+  TEST_EQUAL(output[0].sequence_evidence.size(), 2);
+  TEST_EQUAL(output[0].sequence_evidence[0].start.value(), 0);
+  TEST_EQUAL(output[0].sequence_evidence[1].start.value(), 4);
+  TEST_EQUAL(output[0].sequence_evidence[0].accession, "test");
   TEST_EQUAL(output[0].target_decoy == IdentificationData::TargetDecoy::TARGET, true);
   auto decoy = parent;
-  decoy.identity.accession = "decoy";
+  decoy.accession = "decoy";
   decoy.target_decoy = IdentificationData::TargetDecoy::DECOY;
-  run.setParents(std::vector {parent, decoy});
+  run.setDatabaseSequences(std::vector {parent, decoy});
   output = rd.digest(run, 2);
-  TEST_EQUAL(output[0].parent_evidence.size(), 4);
+  TEST_EQUAL(output[0].sequence_evidence.size(), 4);
   TEST_EQUAL(output[0].target_decoy == IdentificationData::TargetDecoy::BOTH, true);
 }
 END_SECTION

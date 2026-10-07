@@ -41,19 +41,22 @@ START_SECTION((consuming imports preserve ownership and dense validation rejects
   run.addScore(score("optional"));
   run.setPrimaryScore(primary);
   auto source = run.addSource({});
+  ID::Database database;
+  database.path = "database";
+  const auto database_id = run.addDatabase(database);
   ID::Observation observation;
   observation.data_id = std::string(100, 'q');
   observation.setMetaValue("observation", "kept");
   auto q = run.importIdentification(source, ID::QueryId {7}, std::move(observation));
   auto payload = peptide(std::string(100, 'A'));
-  payload.parent_evidence.push_back({{"database", "protein"}, 1, 100, "K", "R"});
+  payload.sequence_evidence.push_back({database_id, "protein", 1, 100, "K", "R"});
   payload.setMetaValue("list", StringList {"alpha", "beta"});
   auto copied = run.importMatch(q, ID::MatchId {8}, payload, {2.0});
   auto moved = run.importMatch(q, ID::MatchId {9}, std::move(payload), {3.0});
   TEST_EQUAL(run.getIdentification(q).data_id, std::string(100, 'q'))
   TEST_EQUAL(run.getIdentification(q).getMetaValue("observation"), "kept")
   TEST_EQUAL(run.getMatch(copied).representation, std::string(100, 'A'))
-  TEST_EQUAL(run.getMatch(moved).parent_evidence[0].parent.accession, "protein")
+  TEST_EQUAL(run.getMatch(moved).sequence_evidence[0].accession, "protein")
   TEST_EQUAL(run.getMatch(moved).getMetaValue("list"), run.getMatch(copied).getMetaValue("list"))
   run.validate(); // missing supplementary values remain valid
   auto& values = const_cast<std::vector<double>&>(run.getMatch(moved).getScoreValues());

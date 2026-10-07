@@ -15,9 +15,9 @@
         "date": "2009-11-17T11:11:29.000",
         "metadata": [],
         "search_parameters": {
-          "db": "18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta",
+          "db": "",
           "db_version": "",
-          "taxonomy": "0",
+          "taxonomy": "",
           "charges": "+1-+3",
           "mass_type": 0,
           "fixed_modifications": [],
@@ -73,6 +73,14 @@
           "metadata": []
         }
       ],
+      "databases": [
+        {
+          "path": "18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta",
+          "version": "",
+          "taxonomy": "0",
+          "metadata": []
+        }
+      ],
       "primary_score": 0,
       "next_query_id": 43,
       "next_match_id": 43,
@@ -105,8 +113,8 @@
           "count": 42,
           "partition": "fe09e373-d911-4d28-aae4-286cdcda102b"
         },
-        "parents": {
-          "path": "parents.parquet",
+        "database_sequences": {
+          "path": "database_sequences.parquet",
           "start": 0,
           "count": 12,
           "partition": "fe09e373-d911-4d28-aae4-286cdcda102b"
@@ -173,7 +181,7 @@
           "unit": -1
         }
       ],
-      "parent_score": null,
+      "protein_score": null,
       "group_score": null,
       "input_scores": [],
       "tables": {

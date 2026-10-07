@@ -171,7 +171,7 @@ namespace
     {
       const auto& tables = run.at("tables");
       if (!tables.is_object() || !tables.contains("queries") || !tables.contains("matches")
-          || tables.size() != (tables.contains("parents") ? 3u : 2u)) invalid("Invalid run table declarations");
+          || tables.size() != (tables.contains("database_sequences") ? 3u : 2u)) invalid("Invalid run table declarations");
       for (auto table = tables.begin(); table != tables.end(); ++table)
         claim(table.value(), run.at("uuid").get<std::string>(), table.key());
     }
@@ -272,9 +272,9 @@ namespace
       arrow::field("adduct", arrow::struct_({arrow::field("name", arrow::utf8(), false), arrow::field("formula", arrow::utf8(), false),
                                              arrow::field("charge", arrow::int32(), false), arrow::field("multiplier", arrow::uint32(), false)})),
       arrow::field(
-        "parent_evidence",
+        "sequence_evidence",
         arrow::list(arrow::field("item",
-                                 arrow::struct_({arrow::field("database", arrow::utf8(), false), arrow::field("accession", arrow::utf8(), false),
+                                 arrow::struct_({arrow::field("database", arrow::uint32(), false), arrow::field("accession", arrow::utf8(), false),
                                                  arrow::field("start", arrow::uint64()), arrow::field("end", arrow::uint64()),
                                                  arrow::field("before", arrow::utf8(), false), arrow::field("after", arrow::utf8(), false)}),
                                  false)),
@@ -318,8 +318,8 @@ namespace
     for (const auto& i : d.identifiers)
       bytes += 16 + i.database.size() + i.accession.size();
     if (d.adduct) bytes += 32 + d.adduct->getName().size() + d.adduct->getEmpiricalFormula().toString().size();
-    for (const auto& e : d.parent_evidence)
-      bytes += 40 + e.parent.database.size() + e.parent.accession.size() + e.before.size() + e.after.size();
+    for (const auto& e : d.sequence_evidence)
+      bytes += 40 + e.accession.size() + e.before.size() + e.after.size();
     for (const auto& a : d.peak_annotations)
       bytes += 32 + a.annotation.size();
     return bytes;
@@ -373,11 +373,11 @@ namespace
     auto& evidence = static_cast<arrow::ListBuilder&>(writer.column(11));
     check(evidence.Append());
     auto& entry = *static_cast<arrow::StructBuilder*>(evidence.value_builder());
-    for (const auto& e : d.parent_evidence)
+    for (const auto& e : d.sequence_evidence)
     {
       check(entry.Append());
-      appendText(*entry.field_builder(0), e.parent.database);
-      appendText(*entry.field_builder(1), e.parent.accession);
+      append<arrow::UInt32Builder>(*entry.field_builder(0), e.database.value);
+      appendText(*entry.field_builder(1), e.accession);
       appendOptional<arrow::UInt64Builder>(*entry.field_builder(2), e.start);
       appendOptional<arrow::UInt64Builder>(*entry.field_builder(3), e.end);
       appendText(*entry.field_builder(4), e.before);
@@ -465,14 +465,15 @@ namespace
     }
     if (reader.hasColumn(Size {11}))
       readList(reader.column(Size {11}), row, [&](const arrow::StructArray& a, int64_t i) {
-        ID::ParentEvidence e;
-        e.parent = {text(*a.field(0), i), text(*a.field(1), i)};
+        ID::SequenceEvidence e;
+        e.database = {number<arrow::UInt32Array>(*a.field(0), i)};
+        e.accession = text(*a.field(1), i);
         e.start = optionalNumber<arrow::UInt64Array>(*a.field(2), i);
         e.end = optionalNumber<arrow::UInt64Array>(*a.field(3), i);
-        if (e.start && e.end && *e.start > *e.end) invalid("Reversed parent evidence positions");
+        if (e.start && e.end && *e.start > *e.end) invalid("Reversed sequence evidence positions");
         e.before = text(*a.field(4), i);
         e.after = text(*a.field(5), i);
-        d.parent_evidence.push_back(std::move(e));
+        d.sequence_evidence.push_back(std::move(e));
       });
     if (reader.hasColumn(Size {12}))
       readList(reader.column(Size {12}), row, [&](const arrow::StructArray& a, int64_t i) {
@@ -499,6 +500,19 @@ namespace
   {
     return {{"identifier", source.identifier}, {"path", source.path}, {"metadata", IO::metadataJson(source)}};
   }
+  Json databaseJson(const ID::Database& database)
+  {
+    return {{"path", database.path}, {"version", database.version}, {"taxonomy", database.taxonomy}, {"metadata", IO::metadataJson(database)}};
+  }
+  ID::Database readDatabaseJson(const Json& j)
+  {
+    ID::Database database;
+    database.path = j.at("path").get<std::string>();
+    database.version = j.at("version").get<std::string>();
+    database.taxonomy = j.at("taxonomy").get<std::string>();
+    IO::readMetadataJson(j.at("metadata"), database);
+    return database;
+  }
   ID::SourceFile readSourceJson(const Json& j)
   {
     ID::SourceFile source;
@@ -514,12 +528,16 @@ namespace
       scores.push_back(IO::scoreJson(s));
     for (const auto& s : run.getSources())
       sources.push_back(sourceJson(s.file));
+    Json databases = Json::array();
+    for (const auto& database : run.getDatabases())
+      databases.push_back(databaseJson(database));
     return {{"identifier", run.getIdentifier()},
             {"uuid", run.getUuid()},
             {"molecule_kind", run.getMoleculeKind()},
             {"settings", IO::settingsJson(run.getSettings())},
             {"scores", std::move(scores)},
             {"sources", std::move(sources)},
+            {"databases", std::move(databases)},
             {"primary_score", run.getPrimaryScore() ? Json(run.getPrimaryScore()->value) : Json()},
             {"next_query_id", run.getNextQueryId()},
             {"next_match_id", run.getNextMatchId()},
@@ -532,11 +550,13 @@ namespace
     if (kind > static_cast<unsigned>(ID::MoleculeKind::COMPOUND)) invalid("Unknown molecule kind");
     ID::Run run(j.at("identifier").get<std::string>(), static_cast<ID::MoleculeKind>(kind));
     run.setSettings(IO::readSettingsJson(j.at("settings")));
-    if (! j.at("scores").is_array() || ! j.at("sources").is_array()) invalid("Run descriptors must be arrays");
+    if (! j.at("scores").is_array() || ! j.at("sources").is_array() || ! j.at("databases").is_array()) invalid("Run descriptors must be arrays");
     for (const auto& s : j.at("scores"))
       run.addScore(IO::readScoreJson(s));
     for (const auto& s : j.at("sources"))
       run.addSource(readSourceJson(s));
+    for (const auto& database : j.at("databases"))
+      if (run.addDatabase(readDatabaseJson(database)).value != run.getDatabases().size() - 1) invalid("Duplicate database of a run");
     if (! j.at("primary_score").is_null()) run.setPrimaryScore(run.getScoreId(IO::integer<UInt32>(j.at("primary_score"))));
     return run;
   }
@@ -551,6 +571,7 @@ namespace
     d.scores = shell.getScoreDefinitions();
     for (const auto& source : shell.getSources())
       d.sources.push_back(source.file);
+    d.databases = shell.getDatabases();
     if (shell.getPrimaryScore()) d.primary_score = shell.getPrimaryScore()->value;
     d.next_query_id = shell.getNextQueryId();
     d.next_match_id = shell.getNextMatchId();
@@ -586,9 +607,9 @@ namespace
         for (const auto& match : query.getMatches())
           dictionary.collect(match);
       }
-    if (run.getParents())
-      for (const auto& parent : *run.getParents())
-        dictionary.collect(parent);
+    if (run.getDatabaseSequences())
+      for (const auto& sequence : *run.getDatabaseSequences())
+        dictionary.collect(sequence);
   }
   std::vector<std::string> projectedMatchColumns(const File::Projection& projection, const std::vector<std::string>& score_columns)
   {
@@ -596,7 +617,7 @@ namespace
     if (projection.molecule)
       for (const auto* field : {"representation", "encoding", "charge", "calculated_mz", "target_decoy", "name", "formula", "identifiers", "adduct"})
         fields.emplace_back(field);
-    if (projection.evidence) fields.emplace_back("parent_evidence");
+    if (projection.evidence) fields.emplace_back("sequence_evidence");
     if (projection.annotations) fields.emplace_back("peak_annotations");
     if (projection.metadata) fields.emplace_back("metadata");
     std::set<UInt32> scores(projection.score_ids.begin(), projection.score_ids.end());
@@ -649,10 +670,13 @@ namespace
               || (d.molecule_kind == ID::MoleculeKind::COMPOUND && (encoding == ID::Encoding::SMILES || encoding == ID::Encoding::INCHI));
           if (pending.data.representation.empty() || ! compatible) invalid("Empty or incompatible molecular representation");
         }
-        if (d.molecule_kind == ID::MoleculeKind::COMPOUND && ! pending.data.parent_evidence.empty())
+        if (d.molecule_kind == ID::MoleculeKind::COMPOUND && ! pending.data.sequence_evidence.empty())
           invalid("Compound candidate has sequence evidence");
-        for (const auto& evidence : pending.data.parent_evidence)
-          if (evidence.parent.accession.empty()) invalid("Parent evidence needs an accession");
+        for (const auto& evidence : pending.data.sequence_evidence)
+        {
+          if (evidence.accession.empty()) invalid("Sequence evidence needs an accession");
+          if (evidence.database.value >= d.databases.size()) invalid("Sequence evidence refers to an unknown database of its run");
+        }
         if (matchBytes(pending) > options.buffering.max_record_bytes) invalid("Match exceeds max_record_bytes");
         if (options.validate_unique_ids && ! match_ids.insert(pending.match_id).second) invalid("Duplicate match ID");
         if (d.primary_score)
@@ -694,11 +718,11 @@ namespace
       },
       options);
     const auto& tables = j.at("tables");
-    if (tables.contains("parents"))
+    if (tables.contains("database_sequences"))
     {
       IO::Dictionary dictionary;
       dictionary.load(j.at("metadata_descriptors"));
-      run.setParents(IO::readParents(root, tables.at("parents"), dictionary, options));
+      run.setDatabaseSequences(IO::readDatabaseSequences(root, tables.at("database_sequences"), dictionary, options));
     }
     run.restoreIdentity(j.at("uuid").get<std::string>(), IO::integer<UInt64>(j.at("next_query_id")), IO::integer<UInt64>(j.at("next_match_id")));
     return run;
@@ -773,9 +797,9 @@ void File::store(const std::string& path, const ID& data, const Options& options
     matches.close();
     tables["queries"] = queries.reference();
     tables["matches"] = matches.reference();
-    if (run.getParents())
+    if (run.getDatabaseSequences())
     {
-      tables["parents"] = IO::writeParents(output.path / "parents.parquet", *run.getParents(), dictionary, io);
+      tables["database_sequences"] = IO::writeDatabaseSequences(output.path / "database_sequences.parquet", *run.getDatabaseSequences(), dictionary, io);
     }
     j["metadata_descriptors"] = dictionary.toJson();
     j["tables"] = std::move(tables);
@@ -967,10 +991,10 @@ try
     j["match_count"] = matches.rows();
     j["tables"]["queries"] = queries.reference();
     j["tables"]["matches"] = matches.reference();
-    if (j.at("tables").contains("parents"))
+    if (j.at("tables").contains("database_sequences"))
     {
-      const auto& reference = j.at("tables").at("parents");
-      IO::validateParents(input, reference, dictionary, io);
+      const auto& reference = j.at("tables").at("database_sequences");
+      IO::validateDatabaseSequences(input, reference, j.at("databases").size(), dictionary, io);
       copyTable(reference);
     }
   }

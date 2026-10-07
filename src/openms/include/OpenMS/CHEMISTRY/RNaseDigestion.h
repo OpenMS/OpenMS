@@ -39,14 +39,14 @@ namespace OpenMS
     void digest(const NASequence& rna, std::vector<NASequence>& output,
                 Size min_length = 0, Size max_length = 0) const;
 
-    /// A deduplicated digestion candidate with owning sequence-to-parent evidence.
+    /// A deduplicated digestion candidate with its evidence in the database sequences of the run.
     struct DigestedOligo
     {
       NASequence sequence;
-      std::vector<IdentificationData::ParentEvidence> parent_evidence;
+      std::vector<IdentificationData::SequenceEvidence> sequence_evidence;
       IdentificationData::TargetDecoy target_decoy = IdentificationData::TargetDecoy::UNKNOWN;
     };
-    /// Digest RNA parents without creating experimental spectrum matches.
+    /// Digest the database sequences of an oligonucleotide run without creating experimental spectrum matches.
     std::vector<DigestedOligo> digest(const IdentificationData::Run& run, Size min_length = 0, Size max_length = 0) const;
 
   protected:

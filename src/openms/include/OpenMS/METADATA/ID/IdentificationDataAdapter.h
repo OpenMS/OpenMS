@@ -96,12 +96,15 @@ public:
   /**
     @brief Run settings from a legacy protein run: search engine and version, date, search parameters and metadata
 
-    The protein values of the legacy run belong to an inference result, its identifier is the run name, and
-    its files ('spectra_data') are the sources of the run, so none of them are settings.
+    The protein values of the legacy run belong to an inference result, its identifier is the run name, its
+    files ('spectra_data') are the sources of the run and its database (db, db_version and taxonomy of the
+    search parameters, see databaseFromLegacy()) is a database of the run, so none of them are settings.
   */
   static IdentificationData::RunSettings settingsFromLegacy(const ProteinIdentification& proteins);
-  /// A legacy protein run without proteins, identifier and files, from run settings.
-  static ProteinIdentification settingsToLegacy(const IdentificationData::RunSettings& settings);
+  /// The database that legacy search parameters name.
+  static IdentificationData::Database databaseFromLegacy(const SearchParameters& search);
+  /// A legacy protein run without proteins, identifier and files, from the settings and the first database of @p run.
+  static ProteinIdentification settingsToLegacy(const IdentificationData::Run& run);
 
   /**
     @name Legacy file lists

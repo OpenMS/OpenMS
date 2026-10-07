@@ -60,39 +60,41 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
     if (calibration && *calibration != definition.calibration)
       invalidInference("Input score calibration provenance differs; calibrate comparable scores before pooling");
     calibration = definition.calibration;
-    if (result.inputs.empty()) result.proteins = IdentificationDataAdapter::settingsToLegacy(run->getSettings());
+    if (result.inputs.empty()) result.proteins = IdentificationDataAdapter::settingsToLegacy(*run);
     ID::InferenceInput provenance;
     provenance.run_identifier = run->getIdentifier();
     provenance.run_uuid = run->getUuid();
     provenance.score = definition;
     provenance.selection = "All candidates in the selected run, in stored order";
     result.inputs.push_back(std::move(provenance));
-    if (run->getParents())
+    // Proteins of different runs are the same if their database (by path) and accession agree.
+    if (run->getDatabaseSequences())
     {
-      for (const auto& parent : *run->getParents())
+      for (const auto& sequence : *run->getDatabaseSequences())
       {
         ProteinHit hit;
-        static_cast<MetaInfoInterface&>(hit) = parent;
-        hit.setAccession(parent.identity.accession);
-        hit.setSequence(parent.sequence);
-        hit.setDescription(parent.description);
-        if (parent.target_decoy == ID::TargetDecoy::BOTH)
+        static_cast<MetaInfoInterface&>(hit) = sequence;
+        hit.setAccession(sequence.accession);
+        hit.setSequence(sequence.sequence);
+        hit.setDescription(sequence.description);
+        if (sequence.target_decoy == ID::TargetDecoy::BOTH)
           invalidInference("BasicProteinInference cannot represent a combined target/decoy protein state");
-        const auto state = parent.target_decoy == ID::TargetDecoy::TARGET  ? ProteinHit::TargetDecoyType::TARGET
-                           : parent.target_decoy == ID::TargetDecoy::DECOY ? ProteinHit::TargetDecoyType::DECOY
-                                                                           : ProteinHit::TargetDecoyType::UNKNOWN;
+        const auto state = sequence.target_decoy == ID::TargetDecoy::TARGET  ? ProteinHit::TargetDecoyType::TARGET
+                           : sequence.target_decoy == ID::TargetDecoy::DECOY ? ProteinHit::TargetDecoyType::DECOY
+                                                                             : ProteinHit::TargetDecoyType::UNKNOWN;
         if (hit.getTargetDecoyType() != state) hit.setTargetDecoyType(state);
-        const auto existing = parent_hits.find(parent.identity);
+        const auto identity = run->qualify(sequence.database, sequence.accession);
+        const auto existing = parent_hits.find(identity);
         if (existing != parent_hits.end() && existing->second != hit)
-          invalidInference("Conflicting parent definitions across inference input runs: " + parent.identity.accession);
-        parent_hits[parent.identity] = std::move(hit);
+          invalidInference("Conflicting protein definitions across inference input runs: " + sequence.accession);
+        parent_hits[identity] = std::move(hit);
       }
     }
     for (const auto& source : run->getSources())
       for (const auto& query : source.identifications)
         for (const auto& match : query.getMatches())
-          for (const auto& evidence : match.parent_evidence)
-            referenced_parents.insert(evidence.parent);
+          for (const auto& evidence : match.sequence_evidence)
+            referenced_parents.insert(run->qualify(evidence.database, evidence.accession));
   }
   // Resolve missing catalogue entries only after every run's catalogue was read.
   // An earlier run with evidence alone must not conflict with a later full record.
@@ -158,7 +160,7 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
           hit.setScore(input.probability == ProbabilityType::POSTERIOR_ERROR_PROBABILITY ? 1.0 - *value : *value);
           auto evidence = hit.getPeptideEvidences();
           for (Size i = 0; i < evidence.size(); ++i)
-            evidence[i].setProteinAccession(aliases.at(match.parent_evidence[i].parent));
+            evidence[i].setProteinAccession(aliases.at(run.qualify(match.sequence_evidence[i].database, match.sequence_evidence[i].accession)));
           hit.setPeptideEvidences(evidence);
           std::set<std::string> unique_parents;
           for (const auto& item : evidence)
@@ -201,18 +203,18 @@ IdentificationDataInference::infer(const ID& data, const std::vector<Input>& inp
       invalidInference("Conflicting parent mappings for the same inference peptidoform; harmonize search evidence before pooling");
   }
   algorithm.run(peptides, result.proteins);
-  ID::ScoreDefinition parent_score;
-  parent_score.name = result.proteins.getScoreType();
-  parent_score.higher_better = result.proteins.isHigherScoreBetter();
-  parent_score.scope = ID::ScoreScope::PROTEIN;
-  parent_score.software = "BasicProteinInferenceAlgorithm";
-  parent_score.software_version = result.proteins.getInferenceEngineVersion();
-  parent_score.calibration = calibration.value_or("");
-  parent_score.aggregation = configured.getValue("score_aggregation_method").toString();
+  ID::ScoreDefinition protein_score;
+  protein_score.name = result.proteins.getScoreType();
+  protein_score.higher_better = result.proteins.isHigherScoreBetter();
+  protein_score.scope = ID::ScoreScope::PROTEIN;
+  protein_score.software = "BasicProteinInferenceAlgorithm";
+  protein_score.software_version = result.proteins.getInferenceEngineVersion();
+  protein_score.calibration = calibration.value_or("");
+  protein_score.aggregation = configured.getValue("score_aggregation_method").toString();
   for (auto item = configured.begin(); item != configured.end(); ++item)
-    parent_score.parameters.setMetaValue(item.getName(), item->value);
-  result.parent_score = parent_score;
-  auto group_score = parent_score;
+    protein_score.parameters.setMetaValue(item.getName(), item->value);
+  result.protein_score = protein_score;
+  auto group_score = protein_score;
   group_score.scope = ID::ScoreScope::PROTEIN_GROUP;
   result.group_score = group_score;
   pruneUnusedAliases(result);

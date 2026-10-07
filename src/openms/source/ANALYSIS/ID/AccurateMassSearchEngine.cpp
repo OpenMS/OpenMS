@@ -565,12 +565,14 @@ namespace OpenMS
     settings.date = DateTime::now();
     settings.setMetaValue("reliability", "2");
     auto& parameters = settings.search;
-    parameters.db = database_name_;
-    parameters.db_version = database_version_;
     parameters.setMetaValue("database_location", database_location_);
     parameters.precursor_mass_tolerance = mass_error_value_;
     parameters.precursor_mass_tolerance_ppm = mass_error_unit_ == "ppm";
     candidate_run.setSettings(settings);
+    IdentificationData::Database database;
+    database.path = database_name_;
+    database.version = database_version_;
+    candidate_run.addDatabase(database);
     auto& run = id.addRun(std::move(candidate_run));
 
     // map for storing overall results

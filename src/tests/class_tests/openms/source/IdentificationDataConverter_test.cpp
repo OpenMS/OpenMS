@@ -19,8 +19,10 @@ ID fixture(ID::MoleculeKind kind = ID::MoleculeKind::PEPTIDE)
   run.setPrimaryScore(run.addScore(score));
   ID::RunSettings settings;
   settings.software = "engine";
-  settings.search.db = "database";
   run.setSettings(settings);
+  ID::Database database;
+  database.path = "database";
+  const auto database_id = run.addDatabase(database);
   ID::SourceFile source;
   source.path = "input.mzML";
   ID::Observation observation;
@@ -33,14 +35,15 @@ ID fixture(ID::MoleculeKind kind = ID::MoleculeKind::PEPTIDE)
   match.encoding = kind == ID::MoleculeKind::OLIGONUCLEOTIDE ? ID::Encoding::NA_SEQUENCE : ID::Encoding::AA_SEQUENCE;
   match.charge = 2;
   match.target_decoy = ID::TargetDecoy::TARGET;
-  match.parent_evidence.push_back({{"database", "parent"}, 3, 8, "K", "R"});
+  match.sequence_evidence.push_back({database_id, "parent", 3, 8, "K", "R"});
   match.setMetaValue("numbers", IntList {1, 2, 3});
   run.addMatch(query, match, {99.0});
-  ID::ParentRecord parent;
-  parent.identity = {"database", "parent"};
+  ID::DatabaseSequence parent;
+  parent.database = database_id;
+  parent.accession = "parent";
   parent.sequence = "KKKPEPMK";
   parent.target_decoy = ID::TargetDecoy::TARGET;
-  run.setParents(std::vector {parent});
+  run.setDatabaseSequences(std::vector {parent});
   return data;
 }
 } // namespace

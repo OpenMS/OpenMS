@@ -348,22 +348,23 @@ namespace OpenMS
 
     for (const auto& run : id_data.getRuns())
     {
-      const auto& db = run.getSettings().search;
-      if (db.db.contains("custom")) // custom database
+      const auto& search = run.getSettings().search;
+      const auto db = run.getDatabases().empty() ? IdentificationData::Database {} : run.getDatabases().front();
+      if (db.path.contains("custom")) // custom database
       {
         meta_db.prefix.setNull(true);
-        meta_db.version = MzTabString(db.db_version);
-        meta_db.database.fromCellString("[,, " + db.db + ", ]");
+        meta_db.version = MzTabString(db.version);
+        meta_db.database.fromCellString("[,, " + db.path + ", ]");
       }
       else // assumption that prefix is the same as database name
       {
-        meta_db.prefix = MzTabString(db.db);
-        meta_db.version = MzTabString(db.db_version);
-        meta_db.database.fromCellString("[,," + db.db + ", ]");
+        meta_db.prefix = MzTabString(db.path);
+        meta_db.version = MzTabString(db.version);
+        meta_db.database.fromCellString("[,," + db.path + ", ]");
       }
-      if (db.metaValueExists("database_location"))
+      if (search.metaValueExists("database_location"))
       {
-        std::vector<std::string> db_loc = ListUtils::create<std::string>(db.getMetaValue("database_location"), '|');
+        std::vector<std::string> db_loc = ListUtils::create<std::string>(search.getMetaValue("database_location"), '|');
         for (auto& loc : db_loc)
         {
           loc =std::string(std::regex_replace(loc, reg_backslash, "/"));

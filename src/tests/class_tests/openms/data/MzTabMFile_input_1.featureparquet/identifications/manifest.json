@@ -173,8 +173,8 @@
           }
         ],
         "search_parameters": {
-          "db": "HMDB",
-          "db_version": "3.5",
+          "db": "",
+          "db_version": "",
           "taxonomy": "",
           "charges": "",
           "mass_type": 0,
@@ -251,6 +251,14 @@
         {
           "identifier": "",
           "path": "file://I:\\OpenSWATH_Metabolomics_data\\20181121_full_data\\04_PestMixes_individually_Solvent_DDA_20-50/2012_02_03_PStd_10_1-50.wiff",
+          "metadata": []
+        }
+      ],
+      "databases": [
+        {
+          "path": "HMDB",
+          "version": "3.5",
+          "taxonomy": "",
           "metadata": []
         }
       ],

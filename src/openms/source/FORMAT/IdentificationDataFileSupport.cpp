@@ -130,7 +130,7 @@ void appendKey(arrow::ArrayBuilder& builder, const std::string& key)
 }
 std::string partitionColumn(const std::string& table)
 {
-  if (table == "queries" || table == "matches" || table == "parents") return "run_uuid";
+  if (table == "queries" || table == "matches" || table == "database_sequences") return "run_uuid";
   if (table == "inputs" || table == "proteins" || table == "groups") return "inference_identifier";
   invalid("Unknown shared table: " + table);
 }

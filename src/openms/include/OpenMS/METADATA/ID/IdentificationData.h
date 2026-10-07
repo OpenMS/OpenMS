@@ -122,6 +122,13 @@ public:
     UInt64 owner = 0;
     auto operator<=>(const SourceId&) const = default;
   };
+  /// Index of a database in the databases of its run (Run::getDatabases()).
+  struct OPENMS_DLLAPI DatabaseId
+  {
+    UInt32 value = 0;
+    auto operator<=>(const DatabaseId&) const = default;
+  };
+  /// An accession together with the name or path of its database; comparable across runs and datasets.
   struct OPENMS_DLLAPI QualifiedAccession
   {
     std::string database;
@@ -144,8 +151,10 @@ public:
   /**
     @brief How a run was produced: the software, its search settings and further processing metadata
 
-    The files of a run are its sources, so the metadata must not list them as 'spectra_data'; the raw files
-    behind them ('spectra_data_raw') and processing history (e.g. 'alignment:*') are metadata.
+    The files of a run are its sources and its databases are its own records, so the settings name neither:
+    the metadata must not list 'spectra_data', and the database fields of @p search (db, db_version,
+    taxonomy) stay empty. The raw files behind the sources ('spectra_data_raw') and processing history
+    (e.g. 'alignment:*') are metadata.
   */
   struct OPENMS_DLLAPI RunSettings : MetaInfoInterface
   {
@@ -163,22 +172,34 @@ public:
     std::string path;
     bool operator==(const SourceFile&) const = default;
   };
-  struct OPENMS_DLLAPI ParentEvidence
+  /// A sequence database that a run's matches refer to, e.g. a FASTA file (cf. mzIdentML SearchDatabase).
+  struct OPENMS_DLLAPI Database : MetaInfoInterface
   {
-    QualifiedAccession parent;
+    std::string path; ///< Path or name of the database, as the search engine reports it
+    std::string version;
+    std::string taxonomy;
+    bool operator==(const Database&) const = default;
+  };
+  /// An entry of a database: a protein in peptide runs, a nucleic acid in oligonucleotide runs (cf. mzIdentML DBSequence).
+  struct OPENMS_DLLAPI DatabaseSequence : MetaInfoInterface
+  {
+    DatabaseId database;
+    std::string accession;
+    TargetDecoy target_decoy = TargetDecoy::UNKNOWN;
+    std::string sequence;
+    std::string description;
+    bool operator==(const DatabaseSequence&) const = default;
+  };
+  /// Where a match occurs in a database sequence of its run (cf. mzIdentML PeptideEvidence).
+  struct OPENMS_DLLAPI SequenceEvidence
+  {
+    DatabaseId database;
+    std::string accession;
     std::optional<UInt64> start;
     std::optional<UInt64> end;
     std::string before;
     std::string after;
-    bool operator==(const ParentEvidence&) const = default;
-  };
-  struct OPENMS_DLLAPI ParentRecord : MetaInfoInterface
-  {
-    QualifiedAccession identity;
-    TargetDecoy target_decoy = TargetDecoy::UNKNOWN;
-    std::string sequence;
-    std::string description;
-    bool operator==(const ParentRecord&) const = default;
+    bool operator==(const SequenceEvidence&) const = default;
   };
   struct OPENMS_DLLAPI Observation : MetaInfoInterface
   {
@@ -198,7 +219,7 @@ public:
     std::optional<std::string> formula;
     std::vector<QualifiedAccession> identifiers;
     std::optional<AdductInfo> adduct;
-    std::vector<ParentEvidence> parent_evidence;
+    std::vector<SequenceEvidence> sequence_evidence;
     std::vector<PeptideHit::PeakAnnotation> peak_annotations;
     bool operator==(const MatchData&) const = default;
   };
@@ -286,9 +307,20 @@ public:
     { return *settings_; }
     /// @throw Exception::InvalidValue if the metadata of @p settings lists 'spectra_data' (the files of a run are its sources)
     void setSettings(const RunSettings& settings);
-    const std::optional<std::vector<ParentRecord>>& getParents() const
-    { return parents_; }
-    void setParents(std::optional<std::vector<ParentRecord>> parents);
+    /// The databases that the database sequences and the sequence evidence of the run refer to.
+    const std::vector<Database>& getDatabases() const
+    { return databases_; }
+    /// Add a database, or return the ID of an equal one. Databases are never removed.
+    DatabaseId addDatabase(const Database& database);
+    DatabaseId getDatabaseId(UInt32 index) const;
+    const Database& getDatabase(DatabaseId database) const;
+    /// The identity of an entry of a database of the run, comparable across runs (database by path).
+    QualifiedAccession qualify(DatabaseId database, const std::string& accession) const;
+    /// The database entries that the run's matches refer to, if the run has a catalogue of them.
+    const std::optional<std::vector<DatabaseSequence>>& getDatabaseSequences() const
+    { return sequences_; }
+    /// @throw Exception::InvalidValue for an unknown database, an empty accession or a duplicate (database, accession)
+    void setDatabaseSequences(std::optional<std::vector<DatabaseSequence>> sequences);
     const std::vector<Source>& getSources() const
     { return sources_; }
     const std::vector<ScoreDefinition>& getScoreDefinitions() const
@@ -352,7 +384,8 @@ public:
     // Standard-library trees inside the settings can allocate when moved on MSVC.
     // Indirection keeps the run's transactional commit nonthrowing.
     std::unique_ptr<RunSettings> settings_ = std::make_unique<RunSettings>();
-    std::optional<std::vector<ParentRecord>> parents_;
+    std::vector<Database> databases_;
+    std::optional<std::vector<DatabaseSequence>> sequences_;
     std::vector<Source> sources_;
     std::vector<ScoreDefinition> scores_;
     std::vector<UInt64> score_owners_;
@@ -399,7 +432,7 @@ public:
   {
     std::string identifier;
     ProteinIdentification proteins;
-    std::optional<ScoreDefinition> parent_score;
+    std::optional<ScoreDefinition> protein_score;
     std::optional<ScoreDefinition> group_score;
     std::map<std::string, QualifiedAccession> qualified_accessions;
     std::vector<InferenceInput> inputs;
