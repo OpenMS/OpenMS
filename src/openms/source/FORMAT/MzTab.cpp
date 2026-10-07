@@ -1920,11 +1920,11 @@ Not sure how to handle these:
         // prepend file:// if not there yet
         for (const std::string& s : ms_run_in_data)
         {
-          // use the string without file: prefix for the map
-          msrunindex_2_msfilename.emplace(current_ms_run_index, s);
+          // use the string without file: prefix for the map; a file listed by several runs keeps its first index
           const auto& msfileidxpair_success = msfilename_2_msrunindex.emplace(s, current_ms_run_index);
           if (msfileidxpair_success.second) // newly inserted
           {
+            msrunindex_2_msfilename.emplace(current_ms_run_index, s);
             current_ms_run_index++;
           }
         }

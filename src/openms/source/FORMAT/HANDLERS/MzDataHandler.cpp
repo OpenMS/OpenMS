@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 
 #include <OpenMS/FORMAT/Base64.h>
+#include <algorithm>
 #include <map>
 
 namespace OpenMS::Internal
@@ -138,8 +139,14 @@ namespace OpenMS::Internal
       }
       else if (current_tag == "data")
       {
-        //chars may be split to several chunks => concatenate them
-        data_to_decode_.back() += transcoded_chars;
+        // A <data> element outside any array element (mzArrayBinary, intenArrayBinary,
+        // or a supDataArrayBinary's arrayName) never gets a data_to_decode_ slot
+        // resized for it; back() on the then-empty vector is undefined behaviour.
+        if (!data_to_decode_.empty())
+        {
+          //chars may be split to several chunks => concatenate them
+          data_to_decode_.back() += transcoded_chars;
+        }
       }
       else if (current_tag == "arrayName" && parent_tag == "supDataArrayBinary")
       {
@@ -469,6 +476,19 @@ namespace OpenMS::Internal
       std::vector<float> decoded;
       std::vector<double> decoded_double;
 
+      // Every <data> element pushes one entry onto precisions_/endians_ (in
+      // onStartElement), but data_to_decode_ only gets a new slot for a
+      // recognized array container (mzArrayBinary, intenArrayBinary, or a
+      // supDataArrayBinary's arrayName). A <data> outside any of those desyncs
+      // the two, and the loop below indexes precisions_[i] by data_to_decode_'s
+      // index -- keep the spectrum without peaks instead of reading the wrong
+      // (or, further down, an out-of-range) precision entry.
+      if (precisions_.size() != data_to_decode_.size())
+      {
+        error(LOAD, "Number of binary <data> elements does not match the number of array containers (mzArrayBinary/intenArrayBinary/supDataArrayBinary) -- spectrum kept without peaks.");
+        return;
+      }
+
       // data_to_decode is an encoded spectrum, represented as
       // vector of base64-encoded strings:
       // Each string represents one property (e.g. mzData) and decodes
@@ -517,20 +537,26 @@ namespace OpenMS::Internal
 
       // this works only if MapType::PeakType is a Peak1D or derived from it
       {
-        //store what precision is used for intensity and m/z
-        bool mz_precision_64 = true;
-        if (precisions_[0] == "32")
+        // A spectrum needs both an m/z and an intensity array; with only one (or
+        // zero) present, precisions_[0]/[1] below would read out of bounds. This
+        // check must run before those reads, not after them.
+        if (data_to_decode_.size() < 2)
         {
-          mz_precision_64 = false;
-        }
-        bool int_precision_64 = true;
-        if (precisions_[1] == "32")
-        {
-          int_precision_64 = false;
+          if (data_to_decode_.size() == 1)
+          {
+            warning(LOAD, "Spectrum has only one binary data array (expected both m/z and intensity) -- kept without peaks.");
+          }
+          return;
         }
 
-        // no data was decoded?
-        if (data_to_decode_.size() < 2) return;
+        //store what precision is used for intensity and m/z
+        // Match the decode loop above exactly (precisions_[i] == "64" decodes as
+        // double, anything else as float): testing "== 32" here instead of
+        // "!= 64" disagreed with it for any nonstandard precision string, so a
+        // spectrum with such a value read an empty double vector (the decode
+        // loop filled the float one instead).
+        bool mz_precision_64 = (precisions_[0] == "64");
+        bool int_precision_64 = (precisions_[1] == "64");
 
         const size_t peak_count_mz = mz_precision_64 ? decoded_double_list_[0].size() : decoded_list_[0].size();
         const size_t peak_count_int = int_precision_64 ? decoded_double_list_[1].size() : decoded_list_[1].size();
@@ -539,10 +565,14 @@ namespace OpenMS::Internal
           error(LOAD,std::string("Length of data array for m/z differs from length of intensity data: ") + peak_count_mz + " vs. " + peak_count_int + " . The first array starts with: '" +
                         data_to_decode_[0].substr(0, 10) + " ...'");
         }
-        if (peak_count_ != peak_count_mz)
+        // Clamp to the shorter of the two -- using only peak_count_mz let the
+        // peak loop below read decoded_*_list_[1] (intensity) past its actual
+        // length whenever the intensity array was the shorter one.
+        const size_t peak_count_safe = std::min(peak_count_mz, peak_count_int);
+        if (peak_count_ != peak_count_safe)
         {
-          warning(LOAD,std::string("Length of data arrays (m/z and int) differs from value in attribute 'length': ") + peak_count_mz + " vs. " + peak_count_ + ".");
-          peak_count_ = peak_count_mz;
+          warning(LOAD,std::string("Length of data arrays (m/z and int) differs from value in attribute 'length': ") + peak_count_safe + " vs. " + peak_count_ + ".");
+          peak_count_ = peak_count_safe;
         }
 
         // reserve space for spectrum
@@ -569,7 +599,25 @@ namespace OpenMS::Internal
             //load data from meta data arrays
             for (Size i = 0; i < spec_.getFloatDataArrays().size(); ++i)
             {
-              spec_.getFloatDataArrays()[i].push_back(precisions_[2 + i] == "64" ? decoded_double_list_[2 + i][n] : decoded_list_[2 + i][n]);
+              // A FloatDataArray is created at the supDataArrayBinary start tag, but
+              // only gets a data_to_decode_/precisions_ slot at its arrayName child
+              // (and only if the array's own <data> is well-formed). A slot missing
+              // entirely, or shorter than peak_count_ (e.g. OpenMS's own writer can
+              // emit a FloatDataArray whose length differs from the spectrum), must
+              // stop contributing to this array rather than index past its decoded
+              // vector -- the array then simply ends up shorter than the spectrum.
+              Size slot = 2 + i;
+              if (slot >= precisions_.size())
+              {
+                continue;
+              }
+              bool array_precision_64 = (precisions_[slot] == "64");
+              const size_t array_size = array_precision_64 ? decoded_double_list_[slot].size() : decoded_list_[slot].size();
+              if (n >= array_size)
+              {
+                continue;
+              }
+              spec_.getFloatDataArrays()[i].push_back(array_precision_64 ? decoded_double_list_[slot][n] : decoded_list_[slot][n]);
             }
           }
         }
