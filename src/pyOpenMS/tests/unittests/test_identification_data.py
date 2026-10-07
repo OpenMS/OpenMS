@@ -217,13 +217,15 @@ def test_values_compare_by_value_and_only_identities_hash():
     assert File.Options() == File.Options() and File.Options(threads=2) != File.Options()
     assert File.ScanOptions(projection=File.Projection(all_scores=False)) != File.ScanOptions()
 
-    # Records of a run compare by ID, payload, scores and candidates, not just their payload.
+    # Records of a run compare by ID, payload and candidates, not just their payload. The scores of a match are
+    # stored in its run (Run.getScores()), not in the match.
     run, query, first, second, score = make_run()
     assert run.getMatch(first) == run.getMatch(first)
     assert run.getMatch(first) != run.getMatch(second)
     before = run.getMatch(first)
+    scores = run.getScores(first)
     run.setScore(first, score, 0.5)
-    assert before != run.getMatch(first) and before.getData() == run.getMatch(first).getData()
+    assert before == run.getMatch(first) and run.getScores(first) == [0.5] != scores
     assert run.getIdentification(query) == run.getIdentification(query)
     identification = run.getIdentification(query)
     run.setSelectedMatch(query, first)
