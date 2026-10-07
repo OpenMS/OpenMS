@@ -79,7 +79,10 @@ namespace OpenMS
 
   std::string PercolatorInfile::getFileIdentifier(const PeptideIdentification& pid)
   {
-    return pid.getMetaValue("file_origin", std::string()).toString() + pid.getMetaValue("id_merge_index", std::string()).toString();
+    std::string identifier = pid.getMetaValue("file_origin", std::string()).toString();
+    // the index is a number: after the last '|', it cannot run into the file origin ("run1" vs. "run" + 1)
+    if (pid.metaValueExists("id_merge_index")) identifier += "|" + pid.getMetaValue("id_merge_index").toString();
+    return identifier;
   }
 
   PeptideIdentificationList PercolatorInfile::load(

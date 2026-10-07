@@ -78,7 +78,8 @@ namespace OpenMS
       static std::string getScanIdentifier(const PeptideIdentification& pid, size_t index);
 
       /**
-       * @brief The spectrum file of a PSM: its 'file_origin' followed by its 'id_merge_index' (each empty if not set).
+       * @brief The spectrum file of a PSM: its 'file_origin' (empty if not set), followed by '|' and its
+       * 'id_merge_index' if that is set.
        *
        * The SpecId of a PSM in the .pin file starts with it. When the PSMs of a .pin file come from more than
        * one spectrum file, @ref store also writes it to a 'FileName' column. Percolator numbers the spectrum

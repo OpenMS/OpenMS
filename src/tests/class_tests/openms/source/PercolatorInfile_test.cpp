@@ -344,7 +344,19 @@ START_SECTION((static std::string getFileIdentifier(const PeptideIdentification&
   pid.setMetaValue("file_origin", "a.idXML");
   TEST_STRING_EQUAL(PercolatorInfile::getFileIdentifier(pid), "a.idXML")
   pid.setMetaValue("id_merge_index", 1);
-  TEST_STRING_EQUAL(PercolatorInfile::getFileIdentifier(pid), "a.idXML1")
+  TEST_STRING_EQUAL(PercolatorInfile::getFileIdentifier(pid), "a.idXML|1")
+  // an index never runs into the file origin
+  PeptideIdentification other;
+  other.setMetaValue("file_origin", "a.idXML1");
+  TEST_STRING_EQUAL(PercolatorInfile::getFileIdentifier(other), "a.idXML1")
+  other.setMetaValue("file_origin", "run1");
+  other.setMetaValue("id_merge_index", 2);
+  pid.setMetaValue("file_origin", "run");
+  pid.setMetaValue("id_merge_index", 12);
+  TEST_NOT_EQUAL(PercolatorInfile::getFileIdentifier(pid), PercolatorInfile::getFileIdentifier(other))
+  PeptideIdentification merged;
+  merged.setMetaValue("id_merge_index", 0);
+  TEST_STRING_EQUAL(PercolatorInfile::getFileIdentifier(merged), "|0")
 }
 END_SECTION
 
@@ -422,8 +434,8 @@ START_SECTION(([EXTRA] store: PSMs of several spectrum files get a FileName colu
   lines = store(merged);
   ABORT_IF(lines.size() != 3)
   TEST_EQUAL(lines[0] == expected, true)
-  TEST_STRING_EQUAL(lines[1][5], "a.mzML0")
-  TEST_STRING_EQUAL(lines[2][5], "a.mzML1")
+  TEST_STRING_EQUAL(lines[1][5], "a.mzML|0")
+  TEST_STRING_EQUAL(lines[2][5], "a.mzML|1")
 }
 END_SECTION
 

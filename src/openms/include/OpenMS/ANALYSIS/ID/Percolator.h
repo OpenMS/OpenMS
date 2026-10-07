@@ -248,7 +248,7 @@ namespace OpenMS
         PeptideIdentification's spectrum_reference (or `spectrum_id`
         meta value, or fallback to 1-based index).
       - spec_file: numbers the spectrum files (PercolatorInfile::getFileIdentifier:
-        `file_origin` + `id_merge_index`, the PIN SpecId prefix) in order of
+        `file_origin` and `id_merge_index`, the PIN SpecId prefix) in order of
         appearance, as Percolator numbers the FileName column of a .pin file.
         Zero when single-file / unset.
       - exp_mass: `pid.getMZ()` (kept as m/z — Percolator doesn't convert
