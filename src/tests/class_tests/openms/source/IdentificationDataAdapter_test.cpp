@@ -212,11 +212,90 @@ START_SECTION([EXTRA] meta values that fields hold are stored once and restored 
   const auto& sequence = run.getDatabaseSequences()->front();
   TEST_TRUE(sequence.target_decoy == ID::TargetDecoy::DECOY)
   TEST_FALSE(sequence.metaValueExists("target_decoy"))
+  // ProteinHit keeps its description as the meta value "Description".
+  TEST_EQUAL(sequence.description, "description")
+  TEST_FALSE(sequence.metaValueExists("Description"))
 
   auto exported = Adapter::toLegacy(imported.data);
   TEST_EQUAL(exported.peptides.size(), peptides.size())
   TEST_TRUE(exported.peptides[0] == peptides[0])
   TEST_EQUAL(exported.proteins.front().getHits().front().getMetaValue("target_decoy").toString(), "decoy")
+  TEST_EQUAL(exported.proteins.front().getHits().front().getDescription(), "description")
+}
+END_SECTION
+
+START_SECTION([EXTRA] a protein run that export rebuilds from its run is not kept as an inference result)
+{
+  // As a search engine writes it: the proteins of the matches, without scores, and the PSM score as score type.
+  ProteinIdentification search;
+  search.setIdentifier("search");
+  search.setSearchEngine("test-search");
+  search.setScoreType("PEP");
+  search.setHigherScoreBetter(false);
+  search.setPrimaryMSRunPath({"/exact/a.mzML"});
+  auto parameters = search.getSearchParameters();
+  parameters.db = "database.fasta";
+  search.setSearchParameters(parameters);
+  ProteinHit described;
+  described.setAccession("P1");
+  described.setDescription("first protein");
+  described.setTargetDecoyType(ProteinHit::TargetDecoyType::TARGET);
+  search.insertHit(described);
+  ProteinHit decoy;
+  decoy.setAccession("DECOY_P1");
+  decoy.setTargetDecoyType(ProteinHit::TargetDecoyType::DECOY);
+  search.insertHit(decoy);
+  ProteinHit empty_description;
+  empty_description.setAccession("P2");
+  empty_description.setDescription("");
+  search.insertHit(empty_description);
+  const PeptideIdentificationList peptides {peptide()};
+
+  auto data = Adapter::fromLegacy({search}, peptides);
+  TEST_EQUAL(data.getInferenceResults().size(), 0)
+  const auto& sequences = *data.getRuns().front().getDatabaseSequences();
+  ABORT_IF(sequences.size() != 3)
+  TEST_FALSE(sequences[0].metaValueExists("Description"))
+  TEST_FALSE(sequences[1].metaValueExists("Description"))
+  // An explicitly empty description is metadata that export restores as such.
+  TEST_TRUE(sequences[2].metaValueExists("Description"))
+  auto exported = Adapter::toLegacy(data);
+  ABORT_IF(exported.proteins.size() != 1)
+  TEST_TRUE(exported.proteins[0] == search)
+  ABORT_IF(exported.peptides.size() != 1)
+  TEST_TRUE(exported.peptides[0] == peptides[0])
+
+  // The exported protein list follows edits of the run.
+  auto& run = data.getRun("search");
+  auto targets = *run.getDatabaseSequences();
+  std::erase_if(targets, [](const auto& sequence) { return sequence.target_decoy == ID::TargetDecoy::DECOY; });
+  run.setDatabaseSequences(targets);
+  TEST_EQUAL(Adapter::toLegacy(data).proteins[0].getHits().size(), 2)
+
+  // A score type other than the PSM score (empty, or the search engine score after rescoring) is kept in the settings.
+  for (const auto& [type, higher_better] : {std::pair {std::string(), true}, std::pair {std::string("hyperscore"), true}})
+  {
+    auto rescored = search;
+    rescored.setScoreType(type);
+    rescored.setHigherScoreBetter(higher_better);
+    const auto imported = Adapter::fromLegacy({rescored}, peptides);
+    TEST_EQUAL(imported.getInferenceResults().size(), 0)
+    const auto& settings = imported.getRuns().front().getSettings();
+    TEST_EQUAL(settings.getMetaValue("identification:legacy_protein_score_type").toString(), type)
+    TEST_EQUAL(settings.getMetaValue("identification:legacy_protein_higher_score_better").toString(), "true")
+    TEST_TRUE(Adapter::toLegacy(imported).proteins[0] == rescored)
+  }
+  TEST_FALSE(data.getRuns().front().getSettings().metaValueExists("identification:legacy_protein_score_type"))
+
+  // Protein scores, or a protein run without PSMs, are inference results.
+  auto scored = search;
+  scored.getHits()[0].setScore(0.9);
+  auto with_scores = Adapter::fromLegacy({scored}, peptides);
+  ABORT_IF(with_scores.getInferenceResults().size() != 1)
+  TEST_EQUAL(with_scores.getInferenceResults()[0].identifier, "legacy:search")
+  TEST_FALSE(with_scores.getRuns().front().getSettings().metaValueExists("identification:legacy_protein_score_type"))
+  TEST_TRUE(Adapter::toLegacy(with_scores).proteins[0] == scored)
+  TEST_EQUAL(Adapter::fromLegacy({search}, {}).getInferenceResults().size(), 1)
 }
 END_SECTION
 

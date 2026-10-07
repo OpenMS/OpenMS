@@ -103,7 +103,14 @@ public:
   static IdentificationData::RunSettings settingsFromLegacy(const ProteinIdentification& proteins);
   /// The database that legacy search parameters name.
   static IdentificationData::Database databaseFromLegacy(const SearchParameters& search);
-  /// A legacy protein run without proteins, identifier and files, from the settings and the first database of @p run.
+  /**
+    @brief A legacy protein run without proteins, identifier and files, from the settings and the first database of @p run
+
+    If import kept a legacy protein run without an inference result although its score type was not that of the
+    PSMs (e.g. empty, or the search engine score after rescoring), the settings metadata
+    'identification:legacy_protein_score_type' and 'identification:legacy_protein_higher_score_better' hold it,
+    and the result takes them as its score type and direction.
+  */
   static ProteinIdentification settingsToLegacy(const IdentificationData::Run& run);
 
   /**

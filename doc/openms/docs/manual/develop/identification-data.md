@@ -179,11 +179,17 @@ A legacy protein run maps to a run as follows: search engine, version, date, sea
 meta values become the settings (`settingsFromLegacy`); `db`, `db_version` and `taxonomy` become a
 database of the run (`databaseFromLegacy`); `spectra_data` becomes the sources, and each PSM goes to
 the source its `id_merge_index` names, else to the only file, else to a source without a path
-(`addLegacySources`, `legacySource`); the protein hits become database sequences and an inference
-result. Export reverses this (`settingsToLegacy`, `legacyFiles`) and writes `id_merge_index` only
+(`addLegacySources`, `legacySource`); the protein hits become database sequences. The protein run is
+kept as the inference result `legacy:<run>` only if export cannot rebuild it exactly from the run:
+search engine output, which lists the proteins of its matches without scores, is not kept, while
+protein scores, groups or coverage are. A protein score type other than the PSM score (often empty,
+or the search engine score after rescoring) is then kept in the settings metadata
+(`identification:legacy_protein_score_type`, `identification:legacy_protein_higher_score_better`). Export
+reverses this (`settingsToLegacy`, `legacyFiles`) and writes `id_merge_index` only
 for runs with several files. Legacy meta values that a field holds are not stored twice: the spectrum
-reference is the query's `data_id`, and `target_decoy` of peptide and protein hits is the
-`target_decoy` field of matches and database sequences. Export writes them back; a meta value that
+reference is the query's `data_id`, `target_decoy` of peptide and protein hits is the
+`target_decoy` field of matches and database sequences, and the description of a protein hit is that
+of its database sequence. Export writes them back; a meta value that
 export would write differently (another spelling or value type) is kept as metadata.
 
 An inference result becomes one protein run. Inference over several runs is exported as the

@@ -109,6 +109,7 @@ namespace
           sequence.accession = hit.getAccession();
           sequence.sequence = hit.getSequence();
           sequence.description = hit.getDescription();
+          dropRestoredMetaValue(sequence, "Description", sequence.description);
           if (hit.getCoverage() >= 0) sequence.setMetaValue("coverage", hit.getCoverage() / 100.0);
           sequence.target_decoy = hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::DECOY    ? ID::TargetDecoy::DECOY
                                   : hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::TARGET ? ID::TargetDecoy::TARGET
@@ -440,7 +441,8 @@ void IdentificationDataConverter::exportIDs(const ID& data,
         static_cast<MetaInfoInterface&>(hit) = sequence;
         hit.setAccession(sequence.accession);
         hit.setSequence(sequence.sequence);
-        hit.setDescription(sequence.description);
+        // ProteinHit keeps its description as metadata, which is absent unless set.
+        if (! sequence.description.empty() || hit.metaValueExists("Description")) hit.setDescription(sequence.description);
         if (sequence.metaValueExists("coverage"))
         {
           // the coverage attribute represents it

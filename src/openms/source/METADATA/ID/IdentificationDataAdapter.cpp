@@ -33,6 +33,10 @@ namespace
 
   /// Settings metadata naming the legacy protein run of a run that import split off (e.g. "search:score_1").
   const std::string LEGACY_RUN = "identification:legacy_run";
+  /// Settings metadata with the score type and direction ("true"/"false") of a legacy protein run that is kept
+  /// without an inference result, if they are not those of the run's primary score (see settingsToLegacy()).
+  const std::string LEGACY_PROTEIN_SCORE_TYPE = "identification:legacy_protein_score_type";
+  const std::string LEGACY_PROTEIN_HIGHER_BETTER = "identification:legacy_protein_higher_score_better";
 
   /// Add the database of a legacy search to @p run, if the search names one.
   void addLegacyDatabase(ID::Run& run, const SearchParameters& search)
@@ -186,8 +190,9 @@ namespace
     if (run.getDatabases().size() > 1) loss(result, options, "Legacy export can name only one database per run: " + run.getIdentifier());
     proteins.setIdentifier(proteins.metaValueExists(LEGACY_RUN) ? proteins.getMetaValue(LEGACY_RUN).toString() : run.getIdentifier());
     proteins.removeMetaValue(LEGACY_RUN);
-    // Without an inference result, the legacy run takes the primary score as its score type, as search engines write it.
-    if (run.getPrimaryScore())
+    // Without an inference result, the legacy run takes the primary score as its score type, as search engines write it,
+    // unless import recorded another one.
+    if (run.getPrimaryScore() && ! run.getSettings().metaValueExists(LEGACY_PROTEIN_SCORE_TYPE))
     {
       proteins.setScoreType(run.getScoreDefinition(*run.getPrimaryScore()).name);
       proteins.setHigherScoreBetter(run.getScoreDefinition(*run.getPrimaryScore()).higher_better);
@@ -203,7 +208,8 @@ namespace
         static_cast<MetaInfoInterface&>(hit) = sequence;
         hit.setAccession(sequence.accession);
         hit.setSequence(sequence.sequence);
-        hit.setDescription(sequence.description);
+        // ProteinHit keeps its description as metadata, which is absent unless set.
+        if (! sequence.description.empty() || hit.metaValueExists("Description")) hit.setDescription(sequence.description);
         if (sequence.target_decoy == ID::TargetDecoy::BOTH)
           loss(result, options, "Legacy proteins cannot represent a combined target/decoy database sequence");
         else
@@ -384,6 +390,35 @@ namespace
     }
   }
 
+  /// Whether export rebuilds the legacy protein run @p original exactly from the settings and database sequences
+  /// of @p run, so that an inference result holding @p original would only repeat them.
+  bool rebuildsLegacyProteins(const ID::Run& run, const ProteinIdentification& original)
+  {
+    Adapter::LegacyResult scratch;
+    Adapter::ExportOptions options;
+    options.loss_policy = Adapter::LossPolicy::ALLOW;
+    const auto rebuilt = legacyProteins(run, scratch, options);
+    return scratch.losses.empty() && rebuilt == original;
+  }
+
+  /**
+    Whether @p run represents the legacy protein run @p original without an inference result. The score type
+    of a protein run without protein scores is often empty, or still that of the search engine after PSM
+    rescoring; if that is all export cannot rebuild, it is recorded in the run settings.
+  */
+  bool representsLegacyProteins(ID::Run& run, const ProteinIdentification& original)
+  {
+    if (rebuildsLegacyProteins(run, original)) return true;
+    const auto previous = run.getSettings();
+    auto settings = previous;
+    settings.setMetaValue(LEGACY_PROTEIN_SCORE_TYPE, original.getScoreType());
+    settings.setMetaValue(LEGACY_PROTEIN_HIGHER_BETTER, original.isHigherScoreBetter() ? "true" : "false");
+    run.setSettings(settings);
+    if (rebuildsLegacyProteins(run, original)) return true;
+    run.setSettings(previous);
+    return false;
+  }
+
   void clearFeatures(std::vector<Feature>& features)
   {
     for (auto& feature : features)
@@ -478,6 +513,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
       sequence.accession = hit.getAccession();
       sequence.sequence = hit.getSequence();
       sequence.description = hit.getDescription();
+      dropRestoredMetaValue(sequence, "Description", sequence.description);
       if (hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::TARGET) sequence.target_decoy = ID::TargetDecoy::TARGET;
       if (hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::DECOY) sequence.target_decoy = ID::TargetDecoy::DECOY;
       dropRestoredMetaValue(sequence, "target_decoy", targetDecoyText(sequence.target_decoy));
@@ -550,6 +586,12 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
   // Protein-only runs are legitimate and remain representable after an empty search.
   for (const auto& [name, original] : originals)
   {
+    // Search engines list the proteins of their matches, with no inference: if export rebuilds that list from
+    // the run's database sequences, the run needs no inference result.
+    const auto& scores = inference_scores[name];
+    if (input_runs[name].size() == 1 && ! scores.protein && ! scores.group && ! scores.input
+        && representsLegacyProteins(result.data.getRun(input_runs[name].front()), original))
+      continue;
     if (input_runs[name].empty()) create_run({name, "", true});
     ID::InferenceResult inference;
     inference.identifier = "legacy:" + name;
@@ -623,6 +665,17 @@ ProteinIdentification IdentificationDataAdapter::settingsToLegacy(const ID::Run&
     search.taxonomy = database.taxonomy;
   }
   proteins.setSearchParameters(search);
+  // The score type of a legacy protein run that import kept without an inference result
+  if (proteins.metaValueExists(LEGACY_PROTEIN_SCORE_TYPE))
+  {
+    proteins.setScoreType(proteins.getMetaValue(LEGACY_PROTEIN_SCORE_TYPE).toString());
+    proteins.removeMetaValue(LEGACY_PROTEIN_SCORE_TYPE);
+  }
+  if (proteins.metaValueExists(LEGACY_PROTEIN_HIGHER_BETTER))
+  {
+    proteins.setHigherScoreBetter(proteins.getMetaValue(LEGACY_PROTEIN_HIGHER_BETTER).toString() != "false");
+    proteins.removeMetaValue(LEGACY_PROTEIN_HIGHER_BETTER);
+  }
   return proteins;
 }
 
