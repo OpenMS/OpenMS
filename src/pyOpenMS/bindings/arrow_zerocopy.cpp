@@ -10,6 +10,7 @@
 // --------------------------------------------------------------------------
 
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/map.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 
@@ -23,6 +24,7 @@
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
+#include <OpenMS/FORMAT/IdentificationDataArrow.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 
 #include <cstdlib>
@@ -541,4 +543,61 @@ NB_MODULE(_arrow_zerocopy, m) {
         ".. warning::\n"
         "    **EXPERIMENTAL API**: This function is experimental and may change."
     );
+
+    // -----------------------------------------------------------------------
+    // IdentificationDataArrow — matches as a table, edits as patches
+    // -----------------------------------------------------------------------
+
+    m.def("identification_data_matches_to_arrow",
+        [](nb::object data_obj) -> nb::object
+        {
+            const auto& data = nb::cast<const OpenMS::IdentificationData&>(data_obj);
+            std::shared_ptr<arrow::Table> table;
+            {
+                nb::gil_scoped_release release;
+                table = OpenMS::IdentificationDataArrow::matchTable(data);
+            }
+            return table_to_pyarrow(table);
+        },
+        nb::arg("data"),
+        "One row per match of an IdentificationData, with the columns of matches.parquet "
+        "(IdentificationDataArrow::matchTable()).");
+
+    m.def("identification_data_apply_patch",
+        [](nb::object data_obj, nb::object patch, std::vector<OpenMS::IdentificationData::ScoreDefinition> add_scores,
+           std::map<std::string, uint64_t> expected_revisions) -> nb::dict
+        {
+            auto& data = nb::cast<OpenMS::IdentificationData&>(data_obj);
+            // Any Arrow stream (Arrow PyCapsule interface): pyarrow tables and readers, pandas, polars, ...
+            if (!nb::hasattr(patch, "__arrow_c_stream__"))
+                throw nb::type_error("A patch must provide the Arrow stream interface (__arrow_c_stream__), e.g. a pyarrow.Table");
+            nb::object capsule = patch.attr("__arrow_c_stream__")();
+            auto* stream = static_cast<ArrowArrayStream*>(PyCapsule_GetPointer(capsule.ptr(), "arrow_array_stream"));
+            if (!stream) throw nb::python_error();
+            // Importing moves the stream out of the capsule, which then only frees the struct.
+            auto reader = arrow::ImportRecordBatchReader(stream);
+            if (!reader.ok())
+                throw std::runtime_error("Failed to import Arrow stream: " + reader.status().ToString());
+            OpenMS::IdentificationDataArrow::PatchOptions options;
+            options.add_scores = std::move(add_scores);
+            options.expected_revisions.insert(expected_revisions.begin(), expected_revisions.end());
+            OpenMS::IdentificationDataArrow::PatchResult result;
+            try
+            {
+                nb::gil_scoped_release release;
+                result = OpenMS::IdentificationDataArrow::applyPatch(data, **reader, options);
+            }
+            catch (const OpenMS::Exception::InvalidParameter& e)
+            {
+                throw nb::value_error(e.what());
+            }
+            nb::dict out;
+            out["rows"] = result.rows;
+            out["columns"] = result.columns;
+            out["added"] = result.added;
+            return out;
+        },
+        nb::arg("data"), nb::arg("patch"), nb::arg("add_scores"), nb::arg("expected_revisions"),
+        "Apply a patch of match scores and target/decoy states (IdentificationDataArrow::applyPatch()); "
+        "all edits or none. Raises ValueError for an invalid patch.");
 }

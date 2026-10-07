@@ -78,6 +78,11 @@ OpenMS Library:
     sequences and descriptions only in the database sequences. Run::getRevision() counts the edits
     of a run. pyOpenMS keeps MatchData.name/formula/identifiers/adduct (now backed by details) and
     the string flanks; scores are read with Run.getScores(match) or a bound ScoreView.
+  - IdentificationDataArrow: matchTable() returns the matches of an IdentificationData as an Arrow
+    table with the columns of matches.parquet (score definitions, metadata descriptors and run
+    revisions in the schema metadata); applyPatch() edits scores and target/decoy states from a
+    table keyed by run_uuid and match_id, all edits or none, optionally adding score definitions
+    to every scored run and checking the run revisions the patch was computed from.
   - FeatureXMLFile/ConsensusXMLFile::store write the native identification data of a map that has no
     legacy identifications as legacy identifications instead of dropping it.
   - Identification data of feature and consensus maps is no longer lost by map operations:
@@ -239,6 +244,10 @@ PyOpenMS:
     field-by-field repr. ID handles (QueryId, MatchId, ScoreId, SourceId), references
     (QueryReference, MatchReference), MoleculeIdentity and QualifiedAccession hash by value, so they
     work as dict keys and set members; mutable records are unhashable.
+  - IdentificationData.to_arrow() (a pyarrow.Table of the matches), __arrow_c_stream__ (pyarrow.table(data),
+    polars.from_arrow(data)), revisions() and apply_patch() (scores and target/decoy states from a
+    pyarrow table, pandas frame or any Arrow stream; ValueError for an invalid patch, which changes
+    nothing).
   - AMSE_AdductInfo is also available as AdductInfo, compares with == and !=, hashes by value and
     has a readable repr.
   - Native algorithm entry points for IdentificationData: FalseDiscoveryRate.applyToObservationMatches,

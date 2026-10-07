@@ -24,6 +24,7 @@ FeatureXMLFile.cpp
 FLASHDeconvFeatureFile.cpp
 FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
+IdentificationDataArrow.cpp
 IdentificationDataFile.cpp
 IdentificationDataFileSupport.cpp
 IdentificationDataFileInference.cpp
@@ -157,4 +158,5 @@ source_group("Source Files\\FORMAT" FILES ${sources})
 
 # Private Arrow-based implementation shared by the native identification codecs.
 list(APPEND OpenMS_private_headers ${directory}/IdentificationDataFileSupport.h)
+list(APPEND OpenMS_private_headers ${directory}/IdentificationDataMatchTable.h)
 list(APPEND OpenMS_private_headers ${directory}/MapIdentificationParquet.h)

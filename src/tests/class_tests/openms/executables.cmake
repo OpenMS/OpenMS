@@ -98,6 +98,7 @@ set(metadata_executables_list
   HPLC_test
   IdentificationData_test
   IdentificationDataAdapter_test
+  IdentificationDataArrow_test
   IdentificationDataInference_test
   IdentificationDataWorkflow_test
   IdentificationDataFile_test
