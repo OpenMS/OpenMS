@@ -9,6 +9,7 @@
 #include <limits>
 #include <stdexcept>
 #include <thread>
+#include <type_traits>
 #include <vector>
 
 using namespace OpenMS;
@@ -101,10 +102,10 @@ START_SECTION((dataset ordered score schema and atomic switching))
   incompatible.setPrimaryScore(incompatible.addScore(score("raw", false)));
   TEST_EXCEPTION(Exception::InvalidValue, data.addRun(incompatible))
   TEST_EQUAL(data.getRuns().size(), 3)
-  auto replacement = data.getRun("B");
-  replacement.setScore(bm, bp, 0.2);
-  replacement.setPrimaryScore(bp);
-  TEST_EXCEPTION(Exception::InvalidValue, data.replaceRun(replacement))
+  ID mixed(data);
+  mixed.getRun("B").setScore(bm, bp, 0.2);
+  mixed.getRun("B").setPrimaryScore(bp);
+  TEST_EXCEPTION(Exception::InvalidValue, mixed.validate())
   TEST_EXCEPTION(Exception::InvalidValue, data.setPrimaryScore(pep))
   TEST_TRUE(data.getRun("A").getPrimaryScore() == ar)
   TEST_TRUE(data.getRun("B").getPrimaryScore() == br)
@@ -136,9 +137,9 @@ START_SECTION((dataset ordered score schema and atomic switching))
   ID::Run missing("missing");
   missing.setPrimaryScore(missing.addScore(raw));
   TEST_EXCEPTION(Exception::InvalidValue, data.addRun(missing))
-  auto extra = data.getRun("B");
-  extra.addScore(score("extra"));
-  TEST_EXCEPTION(Exception::InvalidValue, data.replaceRun(extra))
+  ID extra(data);
+  extra.getRun("B").addScore(score("extra"));
+  TEST_EXCEPTION(Exception::InvalidValue, extra.validate())
   ID::Run supplementary("supplementary provenance");
   supplementary.setPrimaryScore(supplementary.addScore(raw));
   auto other_pep = pep;
@@ -230,7 +231,7 @@ START_SECTION((filtering is atomic, keeps stable IDs and clears removed selectio
     run.setScore(a, raw, 9.0);
     return true;
   }))
-  TEST_EXCEPTION(Exception::InvalidValue, run.transformMatches([&](ID::MatchData&) { run = ID::Run("replacement"); }))
+  TEST_EXCEPTION(Exception::InvalidValue, run.transformMatches([&](ID::MatchData&) { run.eraseMatches([](const ID::Match&) { return true; }); }))
   TEST_REAL_SIMILAR(*run.getScore(a, raw), 1.0)
   auto next = run.getNextMatchId();
   TEST_EQUAL(run.filterMatches([&](const ID::Match& match) { return match.getId() == a; }, true), 1)
@@ -342,10 +343,12 @@ START_SECTION((processing metadata remains owned through copy move and replaceme
   TEST_EQUAL(moved.getProcessingMetadata().getSearchEngine(), "replacement")
   copy.setProcessingMetadata(run.getProcessingMetadata());
   TEST_EQUAL(copy.getProcessingMetadata().getSearchEngine(), "original")
-  moved = run;
-  TEST_TRUE(moved == run)
-  moved.setProcessingMetadata(moved.getProcessingMetadata());
-  TEST_TRUE(moved == run)
+  ID::Run again(run);
+  TEST_TRUE(again == run)
+  again.setProcessingMetadata(again.getProcessingMetadata());
+  TEST_TRUE(again == run)
+  // Runs are edited in place; a copy can never be written back over a run.
+  static_assert(! std::is_copy_assignable_v<ID::Run> && ! std::is_move_assignable_v<ID::Run>);
 }
 END_SECTION
 
@@ -377,7 +380,7 @@ START_SECTION((persistent import preserves order and reserves IDs without renumb
 }
 END_SECTION
 
-START_SECTION((pooled inference is owned provenance and survives filtering and replacement))
+START_SECTION((pooled inference is owned provenance and survives filtering))
 {
   ID data;
   auto& first = data.addRun("A");
@@ -394,7 +397,6 @@ START_SECTION((pooled inference is owned provenance and survives filtering and r
   inference.inputs.push_back({"B", data.getRun("B").getUuid(), std::nullopt, {}});
   data.addInferenceResult(inference);
   TEST_EQUAL(data.getRun("A").getNextMatchId(), kept.value + 1)
-  auto old = data.getRun("A");
   const auto* address = &data.getRun("A");
   TEST_EQUAL(data.filterMatches([&](const ID::Match& match) { return match.getId() == kept; }, ID::InferencePolicy::PRESERVE), 1)
   TEST_EQUAL(data.getInferenceResults().size(), 1)
@@ -402,8 +404,7 @@ START_SECTION((pooled inference is owned provenance and survives filtering and r
   TEST_EQUAL(data.getInferenceResults()[0].inputs[0].run_uuid, uuid)
   TEST_EQUAL(data.getInferenceResults()[0].inputs[0].selection, "all candidates")
   TEST_TRUE(data.getRun("A").findMatch(removed) == nullptr)
-  old.filterMatches([&](const ID::Match& match) { return match.getId() == kept; });
-  data.replaceRun(old);
+  // Filtering never lowers the ID counter, so removed IDs are not reused.
   TEST_EQUAL(data.getRun("A").getNextMatchId(), kept.value + 1)
   TEST_EXCEPTION(Exception::InvalidValue, data.filterMatches(
                                             [&](const ID::Match&) {

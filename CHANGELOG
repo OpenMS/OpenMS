@@ -23,6 +23,7 @@ OpenMS Library:
     accurate-mass search, NASE and converters. Data that does not fit one score schema is
     rejected with the conflicting definitions named; normalize scores first (e.g. per-engine
     PercolatorAdapter or IDPosteriorErrorProbability). Merging keeps references to existing runs valid.
+    Runs are edited in place and are not assignable, so a stale copy cannot reuse IDs.
     API: the reference graph is removed (IDDataContainer.h, IdentifiedMolecule.h, IdentifiedSequence.h,
     IdentifiedCompound.h, ObservationMatch.h, ObservationMatchGroup.h, Observation.h, ScoreType.h,
     ScoredProcessingResult.h, AppliedProcessingStep.h, ProcessingStep.h, ProcessingSoftware.h,
@@ -136,7 +137,9 @@ TOPP tools:
 
 PyOpenMS:
   - Bindings for the owning IdentificationData model, IdentificationDataFile (native Parquet),
-    IdentificationDataAdapter and FileHandler.load_identification_data/store_identification_data.
+    IdentificationDataAdapter and FileHandler.loadIdentificationData/storeIdentificationData.
+    Getters return copies; runs are edited through IdentificationData.run_view() (also returned by
+    addRun), and FeatureMap/ConsensusMap identification data through identification_data_view().
     ID handles (QueryId, MatchId, ScoreId, SourceId) and references (QueryReference, MatchReference,
     MoleculeIdentity) compare and hash by value, so they work as dict keys and set members.
     Predicate callbacks accept any Python truth value. Native identification I/O releases the GIL.

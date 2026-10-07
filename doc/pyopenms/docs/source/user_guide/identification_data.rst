@@ -233,14 +233,23 @@ score contract. An analysis run can refer to several physical MS files. Peptides
 oligonucleotides and compounds have a string representation and explicit encoding.
 The existing peptide/protein classes above remain available for legacy workflows.
 
-The new bindings use snake_case names. Values returned by ``get_run`` and record
-getters are independent copies; commit a modified run with ``replace_run``::
+Method names follow the C++ API (``getRun``, ``addMatch``, ``retainBest``). Getters such as
+``getRun`` and ``getRuns`` return independent copies (snapshots). To edit a run of a dataset,
+use ``run_view``: its methods act on the run inside the dataset, so there is nothing to write
+back. ``addRun`` returns such a view as well::
 
-    data = oms.FileHandler().load_identification_data("search.idXML")
-    run = data.get_runs()[0]
-    run.retain_best(run.get_primary_score())
-    data.replace_run(run)
+    data = oms.FileHandler().loadIdentificationData("search.idXML")
+    run = data.run_view(data.getRuns()[0].getIdentifier())
+    run.retainBest(run.getPrimaryScore())
     oms.IdentificationDataFile.store("reduced.idparquet", data)
+
+A view looks the run up by its UUID on every call. It keeps the dataset alive and raises
+``KeyError`` if the run is no longer part of it. New query and match IDs are only ever
+allocated by the run inside the dataset, which keeps feature links (run UUID plus match ID)
+unambiguous. The identification data of a feature or consensus map is edited the same way
+through ``identification_data_view()``::
+
+    features.identification_data_view().run_view("search").setScore(match_id, score_id, 0.01)
 
 The native output is a fresh directory containing a manifest and typed Parquet
 tables. Existing destinations are rejected. Filtering does not renumber retained

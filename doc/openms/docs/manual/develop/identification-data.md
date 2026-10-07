@@ -27,7 +27,9 @@ Runs have a UUID; queries and matches have stable `UInt64` IDs within their run.
 copies, filtering and persistence and are never reused. Features refer to identifications by value
 (`QueryReference`, `MatchReference`: run UUID plus record ID), so copying a map needs no reference
 translation. `IdentificationData::merge` appends runs; references to existing runs stay valid, and a
-rejected merge changes nothing.
+rejected merge changes nothing. Only the run inside a dataset allocates new IDs: runs are edited in
+place through `getRun()`, and `Run` is not assignable, so a stale copy cannot replace a run and
+reuse IDs that the run allocated meanwhile.
 
 Concurrent const lookups by ID are safe; the first lookup builds an index per run
 (`Run::prepareLookupIndexes()` builds it up front). Mutations need exclusive access.
@@ -144,7 +146,9 @@ bundles (`-digest_out`, `-db_out`) and reads digests (`-digest`); AccurateMassSe
   queries and matches, and score lookups go through `ScoreId` or a bound `ScoreView`.
   `BaseFeature::updateIDReferences()` is no longer needed.
 - In pyOpenMS, IDs and references compare and hash by value. Getters return copies; assign edited
-  nested values back to the owning record.
+  nested values back to the owning record. Runs are edited through `IdentificationData.run_view()`
+  (also returned by `addRun`), and the identification data of feature and consensus maps through
+  `identification_data_view()`; a copied run is never written back.
 
 ## Limits
 

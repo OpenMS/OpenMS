@@ -61,6 +61,101 @@ void field(Class& cls, const char* name, Value T::* member)
     "Owned value; assign an edited nested record or container back to this property.");
 }
 
+/// A run inside a dataset, addressed by UUID: it cannot dangle when the dataset's runs change,
+/// and every edit goes to the live run, so IDs are only ever allocated in one place.
+struct RunView
+{
+  nb::object owner; // the IdentificationData (an owned object or a view into a feature/consensus map)
+  std::string uuid;
+  ID::Run& run() const
+  {
+    auto* found = nb::cast<ID&>(owner).findRunByUuid(uuid);
+    if (! found) throw nb::key_error(("The run " + uuid + " is no longer part of the dataset").c_str());
+    return *found;
+  }
+};
+
+/// Run methods shared by owned runs (Run) and live runs (RunView); names follow the C++ API.
+template<typename Class, typename Get>
+void bindRunApi(Class& cls, Get get)
+{
+  using Self = typename Class::Type;
+  cls.def("getIdentifier", [get](Self& self) { return get(self).getIdentifier(); })
+    .def("getUuid", [get](Self& self) { return get(self).getUuid(); })
+    .def("getMoleculeKind", [get](Self& self) { return get(self).getMoleculeKind(); })
+    .def("getProcessingMetadata", [get](Self& self) { return OpenMS::ProteinIdentification(get(self).getProcessingMetadata()); })
+    .def("setProcessingMetadata", [get](Self& self, const OpenMS::ProteinIdentification& metadata) { get(self).setProcessingMetadata(metadata); },
+         nb::arg("metadata"))
+    .def("getParents", [get](Self& self) { return get(self).getParents(); })
+    .def("setParents", [get](Self& self, std::optional<std::vector<ID::ParentRecord>> parents) { get(self).setParents(std::move(parents)); },
+         nb::arg("parents"))
+    .def("getSourceBlocks", [get](Self& self) { return get(self).getSourceBlocks(); })
+    .def("getScoreDefinitions", [get](Self& self) { return get(self).getScoreDefinitions(); })
+    .def("addSource", [get](Self& self, const ID::SourceFile& source) { return get(self).addSource(source); }, nb::arg("source"))
+    .def("getSourceId", [get](Self& self, OpenMS::UInt32 index) { return get(self).getSourceId(index); }, nb::arg("index"))
+    .def("addScore", [get](Self& self, const ID::ScoreDefinition& definition) { return get(self).addScore(definition); }, nb::arg("definition"))
+    .def("getScoreId", [get](Self& self, OpenMS::UInt32 index) { return get(self).getScoreId(index); }, nb::arg("index"))
+    .def("findScore", [get](Self& self, const ID::ScoreDefinition& definition) { return get(self).findScore(definition); }, nb::arg("definition"))
+    .def("getScoreDefinition", [get](Self& self, ID::ScoreId score) { return ID::ScoreDefinition(get(self).getScoreDefinition(score)); },
+         nb::arg("score"))
+    .def("bindScore", [get](Self& self, ID::ScoreId score) { return get(self).bindScore(score); }, nb::arg("score"))
+    .def("getPrimaryScore", [get](Self& self) { return get(self).getPrimaryScore(); })
+    .def("setPrimaryScore", [get](Self& self, std::optional<ID::ScoreId> score) { get(self).setPrimaryScore(score); }, nb::arg("score"))
+    .def("addIdentification", [get](Self& self, ID::SourceId source, const ID::Observation& observation) {
+           return get(self).addIdentification(source, observation);
+         }, nb::arg("source"), nb::arg("observation"))
+    .def("addMatch", [get](Self& self, ID::QueryId query, const ID::MatchData& value, const std::vector<std::optional<double>>& scores) {
+           return get(self).addMatch(query, value, scores);
+         }, nb::arg("query"), nb::arg("data"), nb::arg("scores") = std::vector<std::optional<double>> {})
+    .def("findIdentification", [get](Self& self, ID::QueryId id) -> std::optional<ID::Identification> {
+           const auto* found = get(self).findIdentification(id);
+           return found ? std::optional<ID::Identification>(*found) : std::nullopt;
+         }, nb::arg("id"))
+    .def("findMatch", [get](Self& self, ID::MatchId id) -> std::optional<ID::Match> {
+           const auto* found = get(self).findMatch(id);
+           return found ? std::optional<ID::Match>(*found) : std::nullopt;
+         }, nb::arg("id"))
+    .def("getIdentification", [get](Self& self, ID::QueryId id) { return ID::Identification(get(self).getIdentification(id)); }, nb::arg("id"))
+    .def("getMatch", [get](Self& self, ID::MatchId id) { return ID::Match(get(self).getMatch(id)); }, nb::arg("id"))
+    .def("getScore", [get](Self& self, ID::MatchId match, ID::ScoreId score) { return get(self).getScore(match, score); }, nb::arg("match"),
+         nb::arg("score"))
+    .def("setScore", [get](Self& self, ID::MatchId match, ID::ScoreId score, std::optional<double> value) { get(self).setScore(match, score, value); },
+         nb::arg("match"), nb::arg("score"), nb::arg("value"))
+    .def("setSelectedMatch", [get](Self& self, ID::QueryId query, std::optional<ID::MatchId> selected) { get(self).setSelectedMatch(query, selected); },
+         nb::arg("query"), nb::arg("selected"))
+    .def("replaceObservation", [get](Self& self, ID::QueryId query, const ID::Observation& observation) {
+           get(self).replaceObservation(query, observation);
+         }, nb::arg("query"), nb::arg("observation"))
+    .def("replaceMatch", [get](Self& self, ID::MatchId id, const ID::MatchData& value) { get(self).replaceMatch(id, value); }, nb::arg("match"),
+         nb::arg("data"))
+    .def("replaceMatch", [get](Self& self, ID::MatchId id, const ID::MatchData& value, const std::vector<std::optional<double>>& scores) {
+           get(self).replaceMatch(id, value, scores);
+         }, nb::arg("match"), nb::arg("data"), nb::arg("scores"))
+    .def("filterMatches", [get](Self& self, nb::callable keep, bool keep_empty) {
+           return get(self).filterMatches([&](const ID::Match& match) { return truthy(keep(nb::cast(match, nb::rv_policy::copy))); }, keep_empty);
+         }, nb::arg("keep"), nb::arg("keep_empty_queries") = false)
+    .def("eraseMatches", [get](Self& self, nb::callable remove, bool keep_empty) {
+           return get(self).eraseMatches([&](const ID::Match& match) { return truthy(remove(nb::cast(match, nb::rv_policy::copy))); }, keep_empty);
+         }, nb::arg("remove"), nb::arg("keep_empty_queries") = false)
+    .def("retainBest", [get](Self& self, ID::ScoreId score, bool keep_ties, bool keep_empty) { return get(self).retainBest(score, keep_ties, keep_empty); },
+         nb::arg("score"), nb::arg("keep_ties") = true, nb::arg("keep_empty_queries") = false)
+    .def("transformMatches", [get](Self& self, nb::callable transform) {
+           get(self).transformMatches([&](ID::MatchData& payload) {
+             auto owned = nb::cast(payload, nb::rv_policy::copy);
+             transform(owned);
+             payload = nb::cast<ID::MatchData>(owned);
+           });
+         }, nb::arg("transform"))
+    .def("getNumberOfIdentifications", [get](Self& self) { return get(self).getNumberOfIdentifications(); })
+    .def("getNumberOfMatches", [get](Self& self) { return get(self).getNumberOfMatches(); })
+    .def("prepareLookupIndexes", [get](Self& self) { get(self).prepareLookupIndexes(); })
+    .def("getIdentificationForMatch", [get](Self& self, ID::MatchId match) { return ID::Identification(get(self).getIdentificationForMatch(match)); },
+         nb::arg("match"))
+    .def("getNextQueryId", [get](Self& self) { return get(self).getNextQueryId(); })
+    .def("getNextMatchId", [get](Self& self) { return get(self).getNextMatchId(); })
+    .def("validate", [get](Self& self) { get(self).validate(); });
+}
+
 inline void bind(nb::module_& m)
 {
   auto data = valueClass<ID>(m, "IdentificationData");
@@ -175,150 +270,87 @@ inline void bind(nb::module_& m)
   field(inferenceresult, "inputs", &ID::InferenceResult::inputs);
 
   valueClass<ID::Match, ID::MatchData>(data, "Match")
-    .def("get_id", &ID::Match::getId)
-    .def("get_data", [](const ID::Match& self) { return ID::MatchData(self.getData()); })
-    .def("get_scores", &ID::Match::getScores);
+    .def("getId", &ID::Match::getId)
+    .def("getData", [](const ID::Match& self) { return ID::MatchData(self.getData()); })
+    .def("getScores", &ID::Match::getScores);
   valueClass<ID::Identification, ID::Observation>(data, "Identification")
-    .def("get_id", &ID::Identification::getId)
-    .def("get_observation", [](const ID::Identification& self) { return ID::Observation(self.getObservation()); })
-    .def("get_matches", [](const ID::Identification& self) { return self.getMatches(); })
-    .def("get_selected_match", &ID::Identification::getSelectedMatch);
+    .def("getId", &ID::Identification::getId)
+    .def("getObservation", [](const ID::Identification& self) { return ID::Observation(self.getObservation()); })
+    .def("getMatches", [](const ID::Identification& self) { return self.getMatches(); })
+    .def("getSelectedMatch", &ID::Identification::getSelectedMatch);
   auto block = valueClass<ID::SourceBlock>(data, "SourceBlock");
   field(block, "id", &ID::SourceBlock::id);
   field(block, "source", &ID::SourceBlock::source);
   field(block, "identifications", &ID::SourceBlock::identifications);
   valueClass<ID::ScoreView>(data, "ScoreView")
     .def("__call__", &ID::ScoreView::operator(), nb::arg("match"))
-    .def("get_definition", [](const ID::ScoreView& self) { return self.getDefinition(); });
+    .def("getDefinition", [](const ID::ScoreView& self) { return self.getDefinition(); });
 
   auto run = valueClass<ID::Run>(data, "Run");
-  run.def(nb::init<std::string, ID::MoleculeKind>(), nb::arg("identifier"), nb::arg("kind") = ID::MoleculeKind::PEPTIDE)
-    .def("get_identifier", &ID::Run::getIdentifier)
-    .def("get_uuid", &ID::Run::getUuid)
-    .def("get_molecule_kind", &ID::Run::getMoleculeKind)
-    .def("get_processing_metadata", [](const ID::Run& self) { return self.getProcessingMetadata(); })
-    .def("set_processing_metadata", &ID::Run::setProcessingMetadata, nb::arg("metadata"))
-    .def("get_parents", [](const ID::Run& self) { return self.getParents(); })
-    .def("set_parents", &ID::Run::setParents, nb::arg("parents"))
-    .def("get_source_blocks", [](const ID::Run& self) { return self.getSourceBlocks(); })
-    .def("get_score_definitions", [](const ID::Run& self) { return self.getScoreDefinitions(); })
-    .def("add_source", &ID::Run::addSource, nb::arg("source"))
-    .def("get_source_id", &ID::Run::getSourceId, nb::arg("index"))
-    .def("add_score", &ID::Run::addScore, nb::arg("definition"))
-    .def("get_score_id", &ID::Run::getScoreId, nb::arg("index"))
-    .def("find_score", &ID::Run::findScore, nb::arg("definition"))
-    .def(
-      "get_score_definition", [](const ID::Run& self, ID::ScoreId score) { return self.getScoreDefinition(score); }, nb::arg("score"))
-    .def("bind_score", &ID::Run::bindScore, nb::arg("score"))
-    .def("get_primary_score", &ID::Run::getPrimaryScore)
-    .def("set_primary_score", &ID::Run::setPrimaryScore, nb::arg("score"))
-    .def("add_identification", &ID::Run::addIdentification, nb::arg("source"), nb::arg("observation"))
-    .def("add_match", &ID::Run::addMatch, nb::arg("query"), nb::arg("data"), nb::arg("scores") = std::vector<std::optional<double>> {})
-    .def(
-      "find_identification",
-      [](const ID::Run& self, ID::QueryId id) -> std::optional<ID::Identification> {
-        const auto* found = self.findIdentification(id);
-        return found ? std::optional<ID::Identification>(*found) : std::nullopt;
-      },
-      nb::arg("id"))
-    .def(
-      "find_match",
-      [](const ID::Run& self, ID::MatchId id) -> std::optional<ID::Match> {
-        const auto* found = self.findMatch(id);
-        return found ? std::optional<ID::Match>(*found) : std::nullopt;
-      },
-      nb::arg("id"))
-    .def(
-      "get_identification", [](const ID::Run& self, ID::QueryId id) { return self.getIdentification(id); }, nb::arg("id"))
-    .def(
-      "get_match", [](const ID::Run& self, ID::MatchId id) { return self.getMatch(id); }, nb::arg("id"))
-    .def("get_score", &ID::Run::getScore, nb::arg("match"), nb::arg("score"))
-    .def("set_score", &ID::Run::setScore, nb::arg("match"), nb::arg("score"), nb::arg("value"))
-    .def("set_selected_match", &ID::Run::setSelectedMatch, nb::arg("query"), nb::arg("selected"))
-    .def("replace_observation", &ID::Run::replaceObservation, nb::arg("query"), nb::arg("observation"))
-    .def(
-      "replace_match", [](ID::Run& self, ID::MatchId id, const ID::MatchData& value) { self.replaceMatch(id, value); }, nb::arg("match"),
-      nb::arg("data"))
-    .def(
-      "replace_match",
-      [](ID::Run& self, ID::MatchId id, const ID::MatchData& value, const std::vector<std::optional<double>>& scores) {
-        self.replaceMatch(id, value, scores);
-      },
-      nb::arg("match"), nb::arg("data"), nb::arg("scores"))
-    .def(
-      "filter_matches",
-      [](ID::Run& self, nb::callable keep, bool keep_empty) {
-        return self.filterMatches([&](const ID::Match& match) { return truthy(keep(nb::cast(match, nb::rv_policy::copy))); }, keep_empty);
-      },
-      nb::arg("keep"), nb::arg("keep_empty_queries") = false)
-    .def(
-      "erase_matches",
-      [](ID::Run& self, nb::callable remove, bool keep_empty) {
-        return self.eraseMatches([&](const ID::Match& match) { return truthy(remove(nb::cast(match, nb::rv_policy::copy))); }, keep_empty);
-      },
-      nb::arg("remove"), nb::arg("keep_empty_queries") = false)
-    .def("retain_best", &ID::Run::retainBest, nb::arg("score"), nb::arg("keep_ties") = true, nb::arg("keep_empty_queries") = false)
-    .def(
-      "transform_matches",
-      [](ID::Run& self, nb::callable transform) {
-        self.transformMatches([&](ID::MatchData& payload) {
-          auto owned = nb::cast(payload, nb::rv_policy::copy);
-          transform(owned);
-          payload = nb::cast<ID::MatchData>(owned);
-        });
-      },
-      nb::arg("transform"))
-    .def("get_number_of_identifications", &ID::Run::getNumberOfIdentifications)
-    .def("prepare_lookup_indexes", &ID::Run::prepareLookupIndexes)
-    .def("get_number_of_matches", &ID::Run::getNumberOfMatches)
-    .def(
-      "get_identification_for_match",
-      [](const ID::Run& self, ID::MatchId match) { return ID::Identification(self.getIdentificationForMatch(match)); }, nb::arg("match"))
-    .def("get_next_query_id", &ID::Run::getNextQueryId)
-    .def("get_next_match_id", &ID::Run::getNextMatchId)
-    .def("import_identification", &ID::Run::importIdentification, nb::arg("source"), nb::arg("id"), nb::arg("observation"))
-    .def("import_match", &ID::Run::importMatch, nb::arg("query"), nb::arg("id"), nb::arg("data"),
+  run.def(nb::init<std::string, ID::MoleculeKind>(), nb::arg("identifier"), nb::arg("kind") = ID::MoleculeKind::PEPTIDE);
+  bindRunApi(run, [](ID::Run& self) -> ID::Run& { return self; });
+  // Construction from persisted values; not offered on a RunView, whose identity is fixed.
+  run.def("importIdentification", &ID::Run::importIdentification, nb::arg("source"), nb::arg("id"), nb::arg("observation"))
+    .def("importMatch", &ID::Run::importMatch, nb::arg("query"), nb::arg("id"), nb::arg("data"),
          nb::arg("scores") = std::vector<std::optional<double>> {})
-    .def("restore_identity", &ID::Run::restoreIdentity, nb::arg("uuid"), nb::arg("next_query"), nb::arg("next_match"))
-    .def("reserve_match_id", &ID::Run::reserveMatchId, nb::arg("id"))
-    .def("validate", &ID::Run::validate);
+    .def("restoreIdentity", &ID::Run::restoreIdentity, nb::arg("uuid"), nb::arg("next_query"), nb::arg("next_match"))
+    .def("reserveMatchId", &ID::Run::reserveMatchId, nb::arg("id"));
+
+  auto run_view = nb::class_<RunView>(data, "RunView",
+                                      "Live access to a run inside an IdentificationData, looked up by UUID on every call. "
+                                      "Edits land in the dataset directly; the view keeps the dataset alive and raises if the run is gone.");
+  bindRunApi(run_view, [](RunView& self) -> ID::Run& { return self.run(); });
+  run_view.def("copy", [](RunView& self) { return ID::Run(self.run()); }, "Return an owned copy of the run (a snapshot; edits to it do not reach the dataset).");
 
   data
     .def(
-      "add_run", [](ID& self, const std::string& identifier, ID::MoleculeKind kind) { return ID::Run(self.addRun(identifier, kind)); },
-      nb::arg("identifier"), nb::arg("kind") = ID::MoleculeKind::PEPTIDE, "Add a run and return an owned copy. Commit later edits with replace_run.")
+      "addRun",
+      [](nb::object self, const std::string& identifier, ID::MoleculeKind kind) {
+        return RunView {self, nb::cast<ID&>(self).addRun(identifier, kind).getUuid()};
+      },
+      nb::arg("identifier"), nb::arg("kind") = ID::MoleculeKind::PEPTIDE, "Add a run and return a RunView: edits through it land in this dataset.")
     .def(
-      "add_run", [](ID& self, ID::Run value) { return ID::Run(self.addRun(std::move(value))); }, nb::arg("run"))
+      "addRun", [](nb::object self, ID::Run value) { return RunView {self, nb::cast<ID&>(self).addRun(std::move(value)).getUuid()}; },
+      nb::arg("run"), "Add a copy of a standalone run and return a RunView of the added run.")
     .def(
-      "get_run", [](const ID& self, const std::string& identifier) { return ID::Run(self.getRun(identifier)); }, nb::arg("identifier"),
-      "Return an owned run copy. Commit edits with replace_run.")
-    .def("replace_run", &ID::replaceRun, nb::arg("run"))
+      "run_view", [](nb::object self, const std::string& identifier) { return RunView {self, nb::cast<ID&>(self).getRun(identifier).getUuid()}; },
+      nb::arg("identifier"), "Live view of a run (see RunView). Use this to edit a run of the dataset.")
     .def(
-      "find_run_by_uuid",
+      "run_view_by_uuid",
+      [](nb::object self, const std::string& uuid) {
+        if (! nb::cast<ID&>(self).findRunByUuid(uuid)) throw nb::key_error(("No run with UUID " + uuid).c_str());
+        return RunView {self, uuid};
+      },
+      nb::arg("uuid"))
+    .def(
+      "getRun", [](const ID& self, const std::string& identifier) { return ID::Run(self.getRun(identifier)); }, nb::arg("identifier"),
+      "Return an owned copy of a run (a snapshot). Edit runs through run_view().")
+    .def(
+      "findRunByUuid",
       [](const ID& self, const std::string& uuid) -> std::optional<ID::Run> {
         const auto* found = self.findRunByUuid(uuid);
         return found ? std::optional<ID::Run>(*found) : std::nullopt;
       },
       nb::arg("uuid"))
-    .def("get_runs", [](const ID& self) { return std::vector<ID::Run>(self.getRuns().begin(), self.getRuns().end()); })
-    .def("get_inference_results", [](const ID& self) { return self.getInferenceResults(); })
-    .def("add_inference_result", &ID::addInferenceResult, nb::arg("result"))
-    .def("clear_inference_results", &ID::clearInferenceResults)
+    .def("getRuns", [](const ID& self) { return std::vector<ID::Run>(self.getRuns().begin(), self.getRuns().end()); })
+    .def("getInferenceResults", [](const ID& self) { return self.getInferenceResults(); })
+    .def("addInferenceResult", &ID::addInferenceResult, nb::arg("result"))
+    .def("clearInferenceResults", &ID::clearInferenceResults)
     .def("empty", &ID::empty)
     .def("clear", &ID::clear)
     .def("merge", &ID::merge, nb::arg("other"))
     .def(nb::self == nb::self)
     .def(nb::self != nb::self)
     .def(
-      "filter_matches",
+      "filterMatches",
       [](ID& self, nb::callable keep, ID::InferencePolicy policy, bool keep_empty) {
         return self.filterMatches([&](const ID::Match& match) { return truthy(keep(nb::cast(match, nb::rv_policy::copy))); }, policy,
                                   keep_empty);
       },
       nb::arg("keep"), nb::arg("inference_policy"), nb::arg("keep_empty_queries") = false)
-    .def("get_score_definitions", &ID::getScoreDefinitions, nb::rv_policy::copy)
-    .def("get_primary_score_definition", &ID::getPrimaryScoreDefinition)
-    .def("set_primary_score", &ID::setPrimaryScore, nb::arg("definition"))
+    .def("getScoreDefinitions", &ID::getScoreDefinitions, nb::rv_policy::copy)
+    .def("getPrimaryScoreDefinition", &ID::getPrimaryScoreDefinition)
+    .def("setPrimaryScore", &ID::setPrimaryScore, nb::arg("definition"))
     .def("validate", &ID::validate)
     .def("swap", &ID::swap, nb::arg("other"));
 
@@ -399,7 +431,7 @@ inline void bind(nb::module_& m)
       nb::arg("path"),
       nb::arg("data"), nb::arg("options") = File::Options {})
     .def_static(
-      "load_run",
+      "loadRun",
       [](const std::string& path, const std::string& selected, const File::Options& options) {
         nb::gil_scoped_release release;
         return File::loadRun(path, selected, options);
@@ -467,24 +499,24 @@ inline void bind(nb::module_& m)
   field(adapter_featureimportresult, "data", &Adapter::FeatureImportResult::data);
   field(adapter_featureimportresult, "associations", &Adapter::FeatureImportResult::associations);
 
-  adapter.def_static("import_legacy", &Adapter::importLegacy, nb::arg("proteins"), nb::arg("peptides"))
-    .def_static("from_legacy", &Adapter::fromLegacy, nb::arg("proteins"), nb::arg("peptides"))
+  adapter.def_static("importLegacy", &Adapter::importLegacy, nb::arg("proteins"), nb::arg("peptides"))
+    .def_static("fromLegacy", &Adapter::fromLegacy, nb::arg("proteins"), nb::arg("peptides"))
     .def_static(
-      "to_legacy", [](const ID& values, const Adapter::ExportOptions& options) { return Adapter::toLegacy(values, options); }, nb::arg("data"),
+      "toLegacy", [](const ID& values, const Adapter::ExportOptions& options) { return Adapter::toLegacy(values, options); }, nb::arg("data"),
       nb::arg("options") = Adapter::ExportOptions {})
-    .def_static("materialize_peptide", &Adapter::materializePeptide, nb::arg("run"), nb::arg("match"), nb::arg("score"))
-    .def_static("from_feature_map", &Adapter::fromFeatureMap, nb::arg("map"))
-    .def_static("from_consensus_map", &Adapter::fromConsensusMap, nb::arg("map"))
+    .def_static("materializePeptide", &Adapter::materializePeptide, nb::arg("run"), nb::arg("match"), nb::arg("score"))
+    .def_static("fromFeatureMap", &Adapter::fromFeatureMap, nb::arg("map"))
+    .def_static("fromConsensusMap", &Adapter::fromConsensusMap, nb::arg("map"))
     .def_static(
-      "reconcile_associations",
+      "reconcileAssociations",
       [](const ID& values, std::vector<Adapter::FeatureAssociation> associations, Adapter::MissingLinkPolicy policy) {
         const auto removed = Adapter::reconcileAssociations(values, associations, policy);
         return std::make_pair(std::move(associations), removed);
       },
       nb::arg("data"), nb::arg("associations"), nb::arg("policy"), "Return (updated associations, removed link count).")
-    .def_static("apply_to_feature_map", &Adapter::applyToFeatureMap, nb::arg("data"), nb::arg("associations"), nb::arg("map"), nb::arg("options"),
+    .def_static("applyToFeatureMap", &Adapter::applyToFeatureMap, nb::arg("data"), nb::arg("associations"), nb::arg("map"), nb::arg("options"),
                 nb::arg("policy"))
-    .def_static("apply_to_consensus_map", &Adapter::applyToConsensusMap, nb::arg("data"), nb::arg("associations"), nb::arg("map"), nb::arg("options"),
+    .def_static("applyToConsensusMap", &Adapter::applyToConsensusMap, nb::arg("data"), nb::arg("associations"), nb::arg("map"), nb::arg("options"),
                 nb::arg("policy"));
 
   // --- IdentificationDataInference ---
@@ -510,7 +542,7 @@ inline void bind(nb::module_& m)
       },
       nb::arg("data"), nb::arg("inputs"), nb::arg("identifier"), nb::arg("parameters"))
     .def_static(
-      "retain_proteins",
+      "retainProteins",
       [](ID::InferenceResult& result, const std::vector<ID::QualifiedAccession>& retained) {
         Inference::retainProteins(result, {retained.begin(), retained.end()});
       },

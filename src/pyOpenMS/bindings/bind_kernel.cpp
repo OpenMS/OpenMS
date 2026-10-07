@@ -3433,6 +3433,9 @@ This class supports direct iteration in Python.
         .def("getMaxIntensity", [](const OpenMS::ConsensusMap& self) { return self.getMaxIntensity(); }, "Get the maximum intensity value")
         .def("getIdentificationData", [](const OpenMS::ConsensusMap& self) { return OpenMS::IdentificationData(self.getIdentificationData()); })
         .def("setIdentificationData", [](OpenMS::ConsensusMap& self, const OpenMS::IdentificationData& data) { data.validate(); self.getIdentificationData() = data; }, "data"_a)
+        .def("identification_data_view", [](OpenMS::ConsensusMap& self) -> OpenMS::IdentificationData& { return self.getIdentificationData(); },
+             nb::rv_policy::reference_internal,
+             "Live view of the map's identification data: edits (e.g. through run_view()) land in the map. Valid while the map exists.")
         .def("getProteinIdentifications", [](OpenMS::ConsensusMap& self) -> std::vector<OpenMS::ProteinIdentification> { return self.getProteinIdentifications(); }, "Returns the protein identification runs stored in this map")
         .def("setProteinIdentifications", [](OpenMS::ConsensusMap& self, const std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, "Sets the protein identifications")
         .def("setProteinIdentifications", [](OpenMS::ConsensusMap& self, std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, "Sets the protein identifications")
@@ -3625,6 +3628,9 @@ Higher quality scores indicate better feature detection confidence
 )doc")
         .def("getIdentificationData", [](const OpenMS::FeatureMap& self) { return OpenMS::IdentificationData(self.getIdentificationData()); })
         .def("setIdentificationData", [](OpenMS::FeatureMap& self, const OpenMS::IdentificationData& data) { data.validate(); self.getIdentificationData() = data; }, "data"_a)
+        .def("identification_data_view", [](OpenMS::FeatureMap& self) -> OpenMS::IdentificationData& { return self.getIdentificationData(); },
+             nb::rv_policy::reference_internal,
+             "Live view of the map's identification data: edits (e.g. through run_view()) land in the map. Valid while the map exists.")
         .def("getProteinIdentifications", [](OpenMS::FeatureMap& self) -> std::vector<OpenMS::ProteinIdentification> { return self.getProteinIdentifications(); })
         .def("setProteinIdentifications", [](OpenMS::FeatureMap& self, const std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, 
             R"doc(

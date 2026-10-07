@@ -236,39 +236,6 @@ void ID::Run::swapData_(Run& other) noexcept
   swap(last_match_, other.last_match_);
 }
 
-ID::Run& ID::Run::operator=(const Run& other)
-{
-  checkMutation_();
-  if (this != &other)
-  {
-    Run copy(other);
-    if (uuid_ == copy.uuid_)
-    {
-      copy.next_query_id_ = std::max(next_query_id_, copy.next_query_id_);
-      copy.next_match_id_ = std::max(next_match_id_, copy.next_match_id_);
-      copy.import_finalized_ = import_finalized_ || copy.import_finalized_;
-    }
-    swapData_(copy);
-  }
-  return *this;
-}
-ID::Run& ID::Run::operator=(Run&& other)
-{
-  checkMutation_();
-  other.checkMutation_();
-  if (this != &other)
-  {
-    Run moved(std::move(other));
-    if (uuid_ == moved.uuid_)
-    {
-      moved.next_query_id_ = std::max(next_query_id_, moved.next_query_id_);
-      moved.next_match_id_ = std::max(next_match_id_, moved.next_match_id_);
-      moved.import_finalized_ = import_finalized_ || moved.import_finalized_;
-    }
-    swapData_(moved);
-  }
-  return *this;
-}
 void ID::Run::checkMutation_() const
 {
   if (callback_active_) invalid("Cannot modify a run from its filtering or transformation callback");
@@ -902,18 +869,6 @@ ID::Run& ID::addRun(Run run)
   }
   runs_.push_back(std::move(run));
   return runs_.back();
-}
-void ID::replaceRun(const Run& run)
-{
-  checkMutation_();
-  Run copy(run);
-  copy.validate();
-  auto found = std::find_if(runs_.begin(), runs_.end(), [&](const Run& current) { return current.uuid_ == run.uuid_; });
-  if (found == runs_.end() || found->identifier_ != run.identifier_) invalid("Replacement must have the same run UUID and identifier");
-  checkScoreContract(runs_, &copy, &run.uuid_);
-  copy.next_query_id_ = std::max(copy.next_query_id_, found->next_query_id_);
-  copy.next_match_id_ = std::max(copy.next_match_id_, found->next_match_id_);
-  *found = std::move(copy);
 }
 ID::Run& ID::getRun(const std::string& identifier)
 {

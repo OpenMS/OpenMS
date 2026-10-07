@@ -621,7 +621,7 @@ Computes a SHA-1 hash of the file content
 
         // ProgressLogger is registered by _pyopenms_misc, after this module.
         // Resolve its default at call time so importing _pyopenms_format is independent.
-        .def("load_identification_data", [](OpenMS::FileHandler& self, const std::string& filename,
+        .def("loadIdentificationData", [](OpenMS::FileHandler& self, const std::string& filename,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, std::optional<OpenMS::ProgressLogger::LogType> log) {
             OpenMS::IdentificationData data;
             const auto log_type = log.value_or(OpenMS::ProgressLogger::NONE);
@@ -632,7 +632,7 @@ Computes a SHA-1 hash of the file content
             return data;
         }, "filename"_a, "allowed_types"_a = std::vector<OpenMS::FileTypes::Type>{}, "log"_a = nb::none(),
              "Load owning identification values from native Parquet or a supported legacy format.")
-        .def("store_identification_data", [](OpenMS::FileHandler& self, const std::string& filename,
+        .def("storeIdentificationData", [](OpenMS::FileHandler& self, const std::string& filename,
              const OpenMS::IdentificationData& data, const std::vector<OpenMS::FileTypes::Type>& allowed_types,
              std::optional<OpenMS::ProgressLogger::LogType> log) {
             const auto log_type = log.value_or(OpenMS::ProgressLogger::NONE);

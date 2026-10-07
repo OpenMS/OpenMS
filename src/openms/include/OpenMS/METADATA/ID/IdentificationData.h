@@ -32,9 +32,10 @@ class IdentificationDataFile;
 
   A run owns sources, observations and candidate matches. Editing or filtering a run
   does not traverse inference provenance. IDs survive copies, filtering and native
-  persistence; a new independent run receives a new UUID. Views are invalidated by
-  structural edits; match references may also be invalidated by replacement or
-  transformation. Retain IDs across edits. Instances are not safe for concurrent
+  persistence; a new independent run receives a new UUID, and only the run inside the
+  dataset allocates new IDs: runs are edited in place through getRun(), and a copied run
+  cannot be written back. Views are invalidated by structural edits; match references may
+  also be invalidated by match replacement or transformation. Retain IDs across edits. Instances are not safe for concurrent
   mutation. Concurrent const lookups are safe; the first lookup builds a lazy index,
   which Run::prepareLookupIndexes() can build up front.
   @ingroup Metadata
@@ -251,8 +252,10 @@ public:
     explicit Run(std::string identifier = {}, MoleculeKind kind = MoleculeKind::PEPTIDE);
     Run(const Run&);
     Run(Run&&);
-    Run& operator=(const Run&);
-    Run& operator=(Run&&);
+    /// Not assignable: a run inside a dataset is edited in place (getRun), so a stale copy can never
+    /// replace it and reuse IDs that the live run has allocated meanwhile.
+    Run& operator=(const Run&) = delete;
+    Run& operator=(Run&&) = delete;
     ~Run() = default;
     const std::string& getIdentifier() const
     { return identifier_; }
@@ -392,8 +395,6 @@ public:
   Run& addRun(const std::string& identifier, MoleculeKind kind = MoleculeKind::PEPTIDE);
   /// Add an owning copy, rejecting duplicate UUIDs or display identifiers.
   Run& addRun(Run run);
-  /// Replace an existing run of identical persistent identity, preserving inference.
-  void replaceRun(const Run& run);
   Run& getRun(const std::string& identifier);
   const Run& getRun(const std::string& identifier) const;
   Run* findRunByUuid(const std::string& uuid);
@@ -420,7 +421,7 @@ public:
       are construction placeholders and are ignored. Run-local ScoreId handles
       remain distinct even though their column indices agree.
       Throws on disagreement. Mutable run edits must be followed by validate();
-      import, replacement, export and inference boundaries enforce this contract.
+      import, merge, export and inference boundaries enforce this contract.
   */
   const std::vector<ScoreDefinition>& getScoreDefinitions() const;
   /// Return the common primary definition after checking the complete score contract.

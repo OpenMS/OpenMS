@@ -20,16 +20,16 @@ def make_run(name="search"):
     definition.name = "posterior error probability"
     definition.higher_better = False
     definition.calibration = "test calibration"
-    score = run.add_score(definition)
+    score = run.addScore(definition)
     source = ID.SourceFile()
     source.path = "/measurements/sample.mzML"
     source.primary_files = [source.path]
-    source_id = run.add_source(source)
+    source_id = run.addSource(source)
     observation = ID.Observation()
     observation.data_id = "scan=1"
     observation.rt = 12.5
     observation.mz = 400.2
-    query = run.add_identification(source_id, observation)
+    query = run.addIdentification(source_id, observation)
     payload = ID.MatchData()
     payload.representation = "PEPTIDE"
     payload.charge = 2
@@ -44,18 +44,18 @@ def make_run(name="search"):
     payload.setMetaValues({"empty": None})
     payload.setMetaValue("annotation", "")
     payload.setMetaValue("counts", [1, 2, 3])
-    first = run.add_match(query, payload, [0.01])
+    first = run.addMatch(query, payload, [0.01])
     payload.representation = "EDITPEP"
-    second = run.add_match(query, payload, [0.1])
-    run.set_primary_score(score)
-    run.set_selected_match(query, second)
+    second = run.addMatch(query, payload, [0.1])
+    run.setPrimaryScore(score)
+    run.setSelectedMatch(query, second)
     return run, query, first, second, score
 
 
 def make_data_with_inference():
     run, query, first, second, score = make_run()
     data = ID()
-    data.add_run(run)
+    data.addRun(run)
     result = ID.InferenceResult()
     result.identifier = "pooled inference"
     protein = oms.ProteinHit()
@@ -71,50 +71,75 @@ def make_data_with_inference():
     identity.accession = "P1"
     result.qualified_accessions = {"P1": identity}
     input_record = ID.InferenceInput()
-    input_record.run_identifier = run.get_identifier()
-    input_record.run_uuid = run.get_uuid()
-    input_record.score = run.get_score_definition(score)
+    input_record.run_identifier = run.getIdentifier()
+    input_record.run_uuid = run.getUuid()
+    input_record.score = run.getScoreDefinition(score)
     input_record.selection = "all candidates"
     result.inputs = [input_record]
-    data.add_inference_result(result)
+    data.addInferenceResult(result)
     return data, query, first, second
 
 
 def test_score_contract_and_owned_records():
     run, query, first, _, score = make_run()
-    retained = run.get_match(first)
-    definition = run.get_score_definition(score)
+    retained = run.getMatch(first)
+    definition = run.getScoreDefinition(score)
     definition.name = "changed outside the owner"
-    assert run.get_score_definition(score).name == "posterior error probability"
+    assert run.getScoreDefinition(score).name == "posterior error probability"
     retained.representation = "OTHER"
-    assert run.get_match(first).representation == "PEPTIDE"
+    assert run.getMatch(first).representation == "PEPTIDE"
     with pytest.raises(Exception):
-        run.set_score(first, score, None)
+        run.setScore(first, score, None)
     with pytest.raises(Exception):
-        run.set_score(first, score, float("nan"))
-    assert run.get_score(first, score) == 0.01
-    run.replace_match(first, retained, [0.01])
-    assert run.get_match(first).representation == "OTHER"
-    assert run.get_identification(query).get_matches()[0].get_id() == first
+        run.setScore(first, score, float("nan"))
+    assert run.getScore(first, score) == 0.01
+    run.replaceMatch(first, retained, [0.01])
+    assert run.getMatch(first).representation == "OTHER"
+    assert run.getIdentification(query).getMatches()[0].getId() == first
     assert not hasattr(run, "get_revision")
     assert not hasattr(ID(), "is_current")
 
 
-def test_get_run_copy_can_be_committed_without_dangling_references():
-    run, _, first, _, _ = make_run()
+def test_run_views_edit_the_live_run_and_copies_stay_snapshots():
+    run, query, first, second, _ = make_run()
     data = ID()
-    data.add_run(run)
-    retained = data.get_run("search")
+    view = data.addRun(run)
+    assert isinstance(view, ID.RunView)
+    snapshot = data.getRun("search")
     for index in range(30):
-        data.add_run(ID.Run(f"other-{index}"))
-    retained.erase_matches(lambda match: match.get_id() == first)
-    assert data.get_run("search").get_number_of_matches() == 2
-    data.replace_run(retained)
-    assert data.get_run("search").get_number_of_matches() == 1
-    assert run.get_number_of_matches() == 2
+        data.addRun(ID.Run(f"other-{index}"))  # growing the dataset does not invalidate the view
+    view.eraseMatches(lambda match: match.getId() == first)
+    assert data.getRun("search").getNumberOfMatches() == 1
+    assert snapshot.getNumberOfMatches() == 2  # a copy is a snapshot; nothing writes it back
+    assert not hasattr(data, "replaceRun") and not hasattr(data, "replace_run")
+    # New IDs come from the live run only, so they never collide with IDs handed out before.
+    added = data.run_view("search").addMatch(query, snapshot.getMatch(first), [0.3])
+    assert added.value == second.value + 1
+    assert view.getMatch(added).representation == "PEPTIDE"
+    assert data.run_view_by_uuid(run.getUuid()).getNumberOfMatches() == 2
+    assert view.copy().getNumberOfMatches() == 2
+    # The view keeps the dataset alive and reports a run that is gone.
     del data
     gc.collect()
-    assert retained.get_number_of_matches() == 1
+    assert view.getNumberOfMatches() == 2
+    owner = ID()
+    gone = owner.addRun("temporary")
+    owner.clear()
+    with pytest.raises(KeyError):
+        gone.getNumberOfMatches()
+
+
+def test_map_identification_data_view_edits_the_map():
+    run, query, first, _, _ = make_run()
+    features = oms.FeatureMap()
+    view = features.identification_data_view().addRun(run)
+    added = view.addMatch(query, run.getMatch(first), [0.2])
+    stored = features.getIdentificationData().getRun("search")
+    assert stored.getNumberOfMatches() == 3
+    assert stored.getMatch(added).representation == "PEPTIDE"
+    consensus = oms.ConsensusMap()
+    consensus.identification_data_view().addRun("empty")
+    assert [r.getIdentifier() for r in consensus.getIdentificationData().getRuns()] == ["empty"]
 
 
 def test_nested_field_values_remain_owned_after_replacement():
@@ -126,22 +151,22 @@ def test_nested_field_values_remain_owned_after_replacement():
     result.inputs = []
     assert retained.run_identifier == "first"
     run, _, first, _, _ = make_run()
-    evidence = run.get_match(first).parent_evidence[0]
-    parents = run.get_match(first).parent_evidence
+    evidence = run.getMatch(first).parent_evidence[0]
+    parents = run.getMatch(first).parent_evidence
     parents.clear()
     assert evidence.parent.accession == "P1"
-    assert len(run.get_match(first).parent_evidence) == 1
+    assert len(run.getMatch(first).parent_evidence) == 1
 
 
 def test_copy_preserves_ids_and_edits_are_independent():
     run, query, first, _, score = make_run()
     clone = copy.deepcopy(run)
-    assert clone.get_uuid() == run.get_uuid()
-    assert clone.get_match(first).get_id() == first
-    clone.set_score(first, clone.get_score_id(score.value), 0.2)
-    assert run.get_score(first, score) == 0.01
-    assert clone.get_score(first, clone.get_primary_score()) == 0.2
-    assert clone.get_identification(query).data_id == "scan=1"
+    assert clone.getUuid() == run.getUuid()
+    assert clone.getMatch(first).getId() == first
+    clone.setScore(first, clone.getScoreId(score.value), 0.2)
+    assert run.getScore(first, score) == 0.01
+    assert clone.getScore(first, clone.getPrimaryScore()) == 0.2
+    assert clone.getIdentification(query).data_id == "scan=1"
 
 
 def test_callbacks_retain_safe_values_and_rollback_on_exceptions():
@@ -150,13 +175,13 @@ def test_callbacks_retain_safe_values_and_rollback_on_exceptions():
 
     def invalid_callback(match):
         retained.append(match)
-        run.set_score(first, score, 0.5)
+        run.setScore(first, score, 0.5)
         return True
 
     with pytest.raises(Exception):
-        run.filter_matches(invalid_callback)
-    assert run.get_score(first, score) == 0.01
-    assert run.get_number_of_matches() == 2
+        run.filterMatches(invalid_callback)
+    assert run.getScore(first, score) == 0.01
+    assert run.getNumberOfMatches() == 2
 
     def throwing_callback(match):
         retained.append(match)
@@ -165,13 +190,13 @@ def test_callbacks_retain_safe_values_and_rollback_on_exceptions():
         return False
 
     with pytest.raises(ValueError, match="callback failed"):
-        run.filter_matches(throwing_callback)
-    assert run.get_number_of_matches() == 2
-    run.erase_matches(lambda match: True)
+        run.filterMatches(throwing_callback)
+    assert run.getNumberOfMatches() == 2
+    run.eraseMatches(lambda match: True)
     del run
     gc.collect()
     assert retained[0].representation == "PEPTIDE"
-    assert retained[-1].get_scores() == [0.1]
+    assert retained[-1].getScores() == [0.1]
 
 
 def test_transform_callbacks_use_owned_payloads_and_commit():
@@ -182,32 +207,32 @@ def test_transform_callbacks_use_owned_payloads_and_commit():
         retained.append(payload)
         payload.name = "updated"
 
-    run.transform_matches(transform)
-    assert run.get_match(first).name == "updated"
+    run.transformMatches(transform)
+    assert run.getMatch(first).name == "updated"
     retained[0].name = "changed later"
-    assert run.get_match(first).name == "updated"
-    run.erase_matches(lambda match: True)
+    assert run.getMatch(first).name == "updated"
+    run.eraseMatches(lambda match: True)
     assert retained[1].representation == "EDITPEP"
 
 
 def test_filter_preserves_inference_provenance_or_explicitly_discards():
     data, query, first, second = make_data_with_inference()
-    data.filter_matches(lambda match: match.get_id() == first, ID.InferencePolicy.PRESERVE)
-    run = data.get_run("search")
-    assert run.find_match(second) is None
-    assert run.get_identification(query).get_selected_match() is None
-    result = data.get_inference_results()[0]
-    assert result.inputs[0].run_uuid == run.get_uuid()
+    data.filterMatches(lambda match: match.getId() == first, ID.InferencePolicy.PRESERVE)
+    run = data.getRun("search")
+    assert run.findMatch(second) is None
+    assert run.getIdentification(query).getSelectedMatch() is None
+    result = data.getInferenceResults()[0]
+    assert result.inputs[0].run_uuid == run.getUuid()
     assert result.inputs[0].selection == "all candidates"
     assert result.proteins.getHits()[0].getScore() == 0.99
-    data.filter_matches(lambda match: True, ID.InferencePolicy.DISCARD)
-    assert data.get_inference_results() == []
+    data.filterMatches(lambda match: True, ID.InferencePolicy.DISCARD)
+    assert data.getInferenceResults() == []
 
 
 @pytest.mark.parametrize("threads", [1, 4])
 def test_native_round_trip_and_nonreused_ids(tmp_path, threads):
     data, query, first, second = make_data_with_inference()
-    data.filter_matches(lambda match: match.get_id() == first, ID.InferencePolicy.PRESERVE)
+    data.filterMatches(lambda match: match.getId() == first, ID.InferencePolicy.PRESERVE)
     path = str(tmp_path / "native")
     options = File.Options()
     options.threads = threads
@@ -215,31 +240,31 @@ def test_native_round_trip_and_nonreused_ids(tmp_path, threads):
     options.row_group_rows = 1
     File.store(path, data, options)
     loaded = File.load(path, options)
-    run = loaded.get_run("search")
-    assert run.get_uuid() == data.get_run("search").get_uuid()
-    match = run.get_match(first)
+    run = loaded.getRun("search")
+    assert run.getUuid() == data.getRun("search").getUuid()
+    match = run.getMatch(first)
     assert match.representation == "PEPTIDE"
     assert match.metaValueExists("empty")
     assert match.getMetaValue("empty") is None
     assert match.getMetaValue("annotation") == ""
     assert match.getMetaValue("counts") == [1, 2, 3]
     assert match.parent_evidence[0].parent.database == "db.fasta"
-    result = loaded.get_inference_results()[0]
-    assert result.inputs[0].run_uuid == run.get_uuid()
+    result = loaded.getInferenceResults()[0]
+    assert result.inputs[0].run_uuid == run.getUuid()
     assert result.inputs[0].selection == "all candidates"
-    added = run.add_match(query, match, [0.05])
+    added = run.addMatch(query, match, [0.05])
     assert added.value > second.value
     descriptor = File.inspect(path)[0]
     assert descriptor.match_count == 1
     assert descriptor.query_count == 1
-    assert File.load_run(path, descriptor.uuid).get_number_of_matches() == 1
+    assert File.loadRun(path, descriptor.uuid).getNumberOfMatches() == 1
 
 
 @pytest.mark.parametrize("threads", [1, 4])
 def test_native_projected_scan_keeps_callback_values_alive(tmp_path, threads):
     run, _, _, _, _ = make_run()
     data = ID()
-    data.add_run(run)
+    data.addRun(run)
     path = str(tmp_path / "native")
     options = File.Options()
     options.threads = threads
@@ -248,7 +273,7 @@ def test_native_projected_scan_keeps_callback_values_alive(tmp_path, threads):
     File.store(path, data, options)
     scan = File.ScanOptions()
     scan.buffering = options
-    scan.runs = [run.get_uuid()]
+    scan.runs = [run.getUuid()]
     projection = scan.projection
     projection.molecule = False
     projection.evidence = False
@@ -279,14 +304,14 @@ def test_native_filter_writes_reduced_dataset_with_explicit_inference_policy(tmp
     File.store(source, data)
     File.filter(source, destination, lambda uuid, record: record.scores[0] < 0.05, ID.InferencePolicy.PRESERVE)
     result = File.load(destination)
-    assert result.get_run("search").get_number_of_matches() == 1
-    assert result.get_run("search").get_match(first).get_id() == first
-    assert result.get_run("search").get_identification(query).get_selected_match() is None
-    assert result.get_inference_results()[0].inputs[0].run_uuid == data.get_run("search").get_uuid()
-    assert result.get_inference_results()[0].inputs[0].selection == "all candidates"
+    assert result.getRun("search").getNumberOfMatches() == 1
+    assert result.getRun("search").getMatch(first).getId() == first
+    assert result.getRun("search").getIdentification(query).getSelectedMatch() is None
+    assert result.getInferenceResults()[0].inputs[0].run_uuid == data.getRun("search").getUuid()
+    assert result.getInferenceResults()[0].inputs[0].selection == "all candidates"
     stripped = str(tmp_path / "stripped")
     File.filter(destination, stripped, lambda uuid, record: True, ID.InferencePolicy.DISCARD)
-    assert File.load(stripped).get_inference_results() == []
+    assert File.load(stripped).getInferenceResults() == []
     with pytest.raises(Exception):
         File.store(source, data)
 
@@ -294,7 +319,7 @@ def test_native_filter_writes_reduced_dataset_with_explicit_inference_policy(tmp
 def test_failed_native_load_preserves_destination(tmp_path):
     run, _, first, _, _ = make_run()
     data = ID()
-    data.add_run(run)
+    data.addRun(run)
     path = str(tmp_path / "native")
     File.store(path, data)
     matches = list(Path(path).glob("matches.parquet"))
@@ -302,32 +327,32 @@ def test_failed_native_load_preserves_destination(tmp_path):
     matches[0].unlink()
     with pytest.raises(Exception):
         File.load(path, data)
-    assert data.get_run("search").get_match(first).representation == "PEPTIDE"
-    assert data.get_run("search").get_uuid() == run.get_uuid()
+    assert data.getRun("search").getMatch(first).representation == "PEPTIDE"
+    assert data.getRun("search").getUuid() == run.getUuid()
 
 
 def test_optional_adduct_and_empty_queries_round_trip(tmp_path):
     run = ID.Run("compounds", ID.MoleculeKind.COMPOUND)
     score = ID.ScoreDefinition()
     score.name = "similarity"
-    run.set_primary_score(run.add_score(score))
-    source = run.add_source(ID.SourceFile())
-    query = run.add_identification(source, ID.Observation())
-    empty = run.add_identification(source, ID.Observation())
+    run.setPrimaryScore(run.addScore(score))
+    source = run.addSource(ID.SourceFile())
+    query = run.addIdentification(source, ID.Observation())
+    empty = run.addIdentification(source, ID.Observation())
     payload = ID.MatchData()
     payload.encoding = ID.Encoding.SMILES
     payload.representation = "CCO"
     payload.charge = 1
     payload.adduct = oms.AMSE_AdductInfo.parseAdductString("2M+H;1+")
-    match_id = run.add_match(query, payload, [0.9])
+    match_id = run.addMatch(query, payload, [0.9])
     data = ID()
-    data.add_run(run)
+    data.addRun(run)
     path = str(tmp_path / "native")
     File.store(path, data)
-    loaded = File.load(path).get_run("compounds")
-    assert loaded.get_number_of_identifications() == 2
-    assert loaded.get_identification(empty).get_matches() == []
-    adduct = loaded.get_match(match_id).adduct
+    loaded = File.load(path).getRun("compounds")
+    assert loaded.getNumberOfIdentifications() == 2
+    assert loaded.getIdentification(empty).getMatches() == []
+    adduct = loaded.getMatch(match_id).adduct
     assert adduct.getCharge() == 1
     assert adduct.getMolMultiplier() == 2
     assert adduct.getName() == "2M+H;1+"
@@ -353,11 +378,11 @@ def test_legacy_adapter_preserves_scores_and_molecular_values():
     query.setHits([hit])
     peptides = oms.PeptideIdentificationList()
     peptides.append(query)
-    imported = oms.IdentificationDataAdapter.import_legacy([proteins], peptides)
+    imported = oms.IdentificationDataAdapter.importLegacy([proteins], peptides)
     assert len(imported.queries) == 1
     values = imported.data
-    assert values.get_runs()[0].get_number_of_matches() == 1
-    exported = oms.IdentificationDataAdapter.to_legacy(values)
+    assert values.getRuns()[0].getNumberOfMatches() == 1
+    exported = oms.IdentificationDataAdapter.toLegacy(values)
     assert exported.losses == []
     assert exported.peptides[0].getHits()[0].getSequence().toString() == "PEPTIDE"
     assert exported.peptides[0].getHits()[0].getScore() == 0.03
@@ -369,23 +394,23 @@ def test_inference_pools_runs_without_editing_candidates():
     inputs = []
     for name in ("analysis-A", "analysis-B"):
         run, _, _, _, score = make_run(name)
-        data.add_run(run)
+        data.addRun(run)
         item = oms.IdentificationDataInference.Input()
-        item.run_uuid = run.get_uuid()
+        item.run_uuid = run.getUuid()
         item.score = score
         inputs.append(item)
     result = oms.IdentificationDataInference.infer(data, inputs, "pooled")
     assert len(result.inputs) == 2
     assert [entry.run_uuid for entry in result.inputs] == [entry.run_uuid for entry in inputs]
     assert len(result.proteins.getHits()) == 1
-    assert [run.get_number_of_matches() for run in data.get_runs()] == [2, 2]
+    assert [run.getNumberOfMatches() for run in data.getRuns()] == [2, 2]
     assert result.parent_score.scope == ID.ScoreScope.PROTEIN
-    assert data.get_inference_results() == []
-    data.add_inference_result(result)
-    oms.IdentificationDataInference.retain_proteins(result, [])
+    assert data.getInferenceResults() == []
+    data.addInferenceResult(result)
+    oms.IdentificationDataInference.retainProteins(result, [])
     assert result.proteins.getHits() == []
-    assert len(data.get_inference_results()[0].proteins.getHits()) == 1
-    assert data.get_run("analysis-A").get_number_of_matches() == 2
+    assert len(data.getInferenceResults()[0].proteins.getHits()) == 1
+    assert data.getRun("analysis-A").getNumberOfMatches() == 2
 
 
 def test_file_handler_import_in_fresh_interpreter():
@@ -402,13 +427,13 @@ def test_file_handler_import_in_fresh_interpreter():
 def test_file_handler_loads_and_stores_native_owning_values(tmp_path, log_options):
     run, _, first, _, _ = make_run()
     data = ID()
-    data.add_run(run)
+    data.addRun(run)
     path = str(tmp_path / "search.idparquet")
     handler = oms.FileHandler()
-    handler.store_identification_data(path, data, **log_options)
-    loaded = handler.load_identification_data(path, **log_options)
-    assert loaded.get_run("search").get_uuid() == run.get_uuid()
-    assert loaded.get_run("search").get_match(first).representation == "PEPTIDE"
+    handler.storeIdentificationData(path, data, **log_options)
+    loaded = handler.loadIdentificationData(path, **log_options)
+    assert loaded.getRun("search").getUuid() == run.getUuid()
+    assert loaded.getRun("search").getMatch(first).representation == "PEPTIDE"
 
 
 def test_dataset_ordered_score_contract():
@@ -416,54 +441,54 @@ def test_dataset_ordered_score_contract():
     second, _, _, _, _ = make_run("B")
     extra = ID.ScoreDefinition()
     extra.name = "supplementary"
-    first.add_score(extra)
-    second.add_score(extra)
+    first.addScore(extra)
+    second.addScore(extra)
     data = ID()
-    data.add_run(first)
-    data.add_run(second)
-    definition = data.get_primary_score_definition()
-    data.set_primary_score(definition)
+    data.addRun(first)
+    data.addRun(second)
+    definition = data.getPrimaryScoreDefinition()
+    data.setPrimaryScore(definition)
     data.validate()
-    assert [score.name for score in data.get_score_definitions()] == [definition.name, "supplementary"]
+    assert [score.name for score in data.getScoreDefinitions()] == [definition.name, "supplementary"]
     with pytest.raises(Exception):
-        data.set_primary_score(extra)  # Null supplementary values cannot become primary.
-    assert data.get_primary_score_definition().name == definition.name
+        data.setPrimaryScore(extra)  # Null supplementary values cannot become primary.
+    assert data.getPrimaryScoreDefinition().name == definition.name
     reordered = ID.Run("reordered")
-    reordered.add_score(extra)
-    reordered.set_primary_score(reordered.add_score(definition))
+    reordered.addScore(extra)
+    reordered.setPrimaryScore(reordered.addScore(definition))
     with pytest.raises(Exception):
-        data.add_run(reordered)
+        data.addRun(reordered)
     incompatible, _, _, _, _ = make_run("bad")
     other = ID.ScoreDefinition()
     other.name = "different score"
-    score_id = incompatible.add_score(other)
-    for block in incompatible.get_source_blocks():
+    score_id = incompatible.addScore(other)
+    for block in incompatible.getSourceBlocks():
         for query in block.identifications:
-            for match in query.get_matches():
-                incompatible.set_score(match.get_id(), score_id, 1.0)
-    incompatible.set_primary_score(score_id)
+            for match in query.getMatches():
+                incompatible.setScore(match.getId(), score_id, 1.0)
+    incompatible.setPrimaryScore(score_id)
     with pytest.raises(Exception):
-        data.add_run(incompatible)
-    assert len(data.get_runs()) == 2
+        data.addRun(incompatible)
+    assert len(data.getRuns()) == 2
     with pytest.raises(Exception):
-        data.set_primary_score(other)
-    assert data.get_primary_score_definition().name == definition.name
+        data.setPrimaryScore(other)
+    assert data.getPrimaryScoreDefinition().name == definition.name
 
 
 def test_merge_preserves_stable_links_with_repeated_display_names():
     first, query, match, _, _ = make_run()
     second, _, _, _, _ = make_run()
     data, other = ID(), ID()
-    data.add_run(first)
-    other.add_run(second)
+    data.addRun(first)
+    other.addRun(second)
     data.merge(other)
-    assert len(data.get_runs()) == 2
-    assert data.find_run_by_uuid(second.get_uuid()).get_identifier() == "search#2"
+    assert len(data.getRuns()) == 2
+    assert data.findRunByUuid(second.getUuid()).getIdentifier() == "search#2"
     reference = ID.MatchReference()
-    reference.run_uuid = first.get_uuid()
+    reference.run_uuid = first.getUuid()
     reference.match = match
-    assert data.find_run_by_uuid(reference.run_uuid).get_match(reference.match).representation == "PEPTIDE"
-    assert first.get_identification_for_match(match).get_id() == query
+    assert data.findRunByUuid(reference.run_uuid).getMatch(reference.match).representation == "PEPTIDE"
+    assert first.getIdentificationForMatch(match).getId() == query
     assert oms.IdentificationDataAdapter.QueryReference is ID.QueryReference
     duplicate = copy.copy(data)
     data.merge(duplicate)
@@ -479,15 +504,15 @@ def test_identity_handles_are_hashable_value_keys():
     scores = {first: 0.01, second: 0.1}
     assert scores[ID.MatchId(first.value)] == 0.01
     reference = ID.MatchReference()
-    reference.run_uuid = run.get_uuid()
+    reference.run_uuid = run.getUuid()
     reference.match = first
     same = ID.MatchReference()
-    same.run_uuid = run.get_uuid()
+    same.run_uuid = run.getUuid()
     same.match = ID.MatchId(first.value)
     assert reference == same and hash(reference) == hash(same)
     assert len({reference, same}) == 1
     query_reference = ID.QueryReference()
-    query_reference.run_uuid = run.get_uuid()
+    query_reference.run_uuid = run.getUuid()
     query_reference.query = query
     assert query_reference in {query_reference}
 
@@ -495,15 +520,15 @@ def test_identity_handles_are_hashable_value_keys():
 def test_predicates_use_python_truthiness():
     run, _, first, _, _ = make_run()
     # 0/1 and None are accepted like any Python condition, not only exact booleans.
-    assert run.filter_matches(lambda match: 1 if match.get_id() == first else 0) == 1
-    assert run.get_number_of_matches() == 1
-    assert run.erase_matches(lambda match: None) == 0
+    assert run.filterMatches(lambda match: 1 if match.getId() == first else 0) == 1
+    assert run.getNumberOfMatches() == 1
+    assert run.eraseMatches(lambda match: None) == 0
 
 
 def test_native_destination_is_replaced_only_on_request(tmp_path):
     run, _, _, _, _ = make_run()
     data = ID()
-    data.add_run(run)
+    data.addRun(run)
     path = str(tmp_path / "search.idparquet")
     File.store(path, data)
     with pytest.raises(Exception):
@@ -514,14 +539,14 @@ def test_native_destination_is_replaced_only_on_request(tmp_path):
     assert File.load(path) == data
     # Tools write through FileHandler, which replaces a previous native bundle like any other output.
     handler = oms.FileHandler()
-    handler.store_identification_data(path, data)
-    assert handler.load_identification_data(path) == data
+    handler.storeIdentificationData(path, data)
+    assert handler.loadIdentificationData(path) == data
     # Anything else at the destination is never replaced.
     other = tmp_path / "notes.idparquet"
     other.mkdir()
     (other / "keep.txt").write_text("user data")
     with pytest.raises(Exception):
-        handler.store_identification_data(str(other), data)
+        handler.storeIdentificationData(str(other), data)
     assert (other / "keep.txt").read_text() == "user data"
 
 
