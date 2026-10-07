@@ -86,6 +86,10 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    OpenSwathWorkflow:
+      - Reports all detected peakgroups by default instead of truncating to five using the legacy
+        preliminary LDA ranking. Set -Scoring:stop_report_after_feature to a positive value to cap
+        output; this can exclude candidates before downstream learned rescoring (#10058).
     UniPEFF:
       - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
         file names, e.g. 2025_07_05 for uniprotkb_proteome_UP000005640_2025_07_05.xml.gz,

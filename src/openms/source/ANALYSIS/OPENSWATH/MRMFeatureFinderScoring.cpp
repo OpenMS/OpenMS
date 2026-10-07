@@ -90,7 +90,7 @@ namespace OpenMS
     DefaultParamHandler("MRMFeatureFinderScoring"),
     ProgressLogger()
   {
-    defaults_.setValue("stop_report_after_feature", -1, "Stop reporting after feature (ordered by quality; -1 means do not stop).");
+    defaults_.setValue("stop_report_after_feature", -1, "Stop reporting after this many features, ordered by preliminary LDA quality. A positive limit can discard candidates before downstream learned rescoring; -1 reports all features (default).");
     defaults_.setValue("rt_extraction_window", -1.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 500 means to extract around +/- 500 s of the expected elution). For this to work, the TraML input file needs to contain normalized RT values.");
     defaults_.setValue("rt_normalization_factor", 1.0, "The normalized RT is expected to be between 0 and 1. If your normalized RT has a different range, pass this here (e.g. it goes from 0 to 100, set this value to 100)");
     defaults_.setValue("quantification_cutoff", 0.0, "Cutoff in m/z below which peaks should not be used for quantification any more", {"advanced"});

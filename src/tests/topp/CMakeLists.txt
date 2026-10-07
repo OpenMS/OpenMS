@@ -2166,7 +2166,8 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set(OLD_OSW_PARAM "-test" "-mz_extraction_window" "0.05" "-mz_extraction_window_unit" "Th" "-ms1_isotopes" "0"
      "-Scoring:TransitionGroupPicker:compute_peak_quality"
      "-Scoring:Scores:use_ms1_mi" "false"
-     "-Scoring:Scores:use_mi_score" "false")
+     "-Scoring:Scores:use_mi_score" "false"
+     "-Scoring:stop_report_after_feature" "5")
   add_test("TOPP_OpenSwathWorkflow_1" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.chrom.tmp.mzML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.tmp.featureXML -out_qc ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.tmp.json
   -enable_ms1 "false" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" ${OLD_OSW_PARAM} )
   add_test("TOPP_OpenSwathWorkflow_1_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_output.featureXML)
@@ -2175,6 +2176,16 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out3" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
+
+  # Verify the changed default directly. The sample workflow data does not guarantee multiple
+  # candidates per assay, and featureXML also contains subordinate transition features.
+  add_test("TOPP_OpenSwathWorkflow_default_report_limit" ${TOPP_BIN_PATH}/OpenSwathWorkflow
+    -test -write_ini ${TESTS_TEMP_DIR}/OpenSwathWorkflow_default_report_limit.tmp.ini)
+  add_test("TOPP_OpenSwathWorkflow_default_report_limit_out" ${CMAKE_COMMAND}
+    "-DINPUT=${TESTS_TEMP_DIR}/OpenSwathWorkflow_default_report_limit.tmp.ini"
+    -P "${CMAKE_CURRENT_SOURCE_DIR}/OpenSwathWorkflowCheckDefault.cmake")
+  set_tests_properties("TOPP_OpenSwathWorkflow_default_report_limit_out" PROPERTIES
+    DEPENDS "TOPP_OpenSwathWorkflow_default_report_limit")
 
   add_test("TOPP_OpenSwathWorkflow_1_library_prefilter" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_library_prefilter.tmp.featureXML
     -enable_ms1 "false" -Library:prefilter:enabled -Library:prefilter:ms2_min_fragment_hits "1" -Library:prefilter:min_supported_precursors "1" -mz_extraction_window_ms1 "100000" -mz_extraction_window_ms1_unit "ppm" -irt_mz_extraction_window "100" -irt_mz_extraction_window_unit "Th" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" ${OLD_OSW_PARAM} )
@@ -2207,7 +2218,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   # thread-count independent, but the on-disk *order* and the synthetic feature ids are not. Run the
   # parallel path (-threads 4, in-memory, single batch), canonicalize the order with FileFilter -sort,
   # and diff against the serial-order reference; only the whitelisted feature ids differ.
-  add_test("TOPP_OpenSwathWorkflow_threads4" ${TOPP_BIN_PATH}/OpenSwathWorkflow -test -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -enable_ms1 "false" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" -readOptions workingInMemory -batchSize 0 -threads 4 -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.tmp.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_threads4" ${TOPP_BIN_PATH}/OpenSwathWorkflow -test -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -enable_ms1 "false" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" -readOptions workingInMemory -batchSize 0 -threads 4 -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.tmp.featureXML -Scoring:stop_report_after_feature 5)
   add_test("TOPP_OpenSwathWorkflow_threads4_sort" ${TOPP_BIN_PATH}/FileFilter -test -sort -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.tmp.featureXML -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.sorted.tmp.featureXML)
   add_test("TOPP_OpenSwathWorkflow_threads4_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.sorted.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_threads_output.featureXML)
   set_tests_properties("TOPP_OpenSwathWorkflow_threads4_sort" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_threads4")
@@ -2333,7 +2344,8 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   "-test" "-mz_extraction_window" "0.05" "-mz_extraction_window_unit" "Th" "-ms1_isotopes" "0"
      "-Scoring:TransitionGroupPicker:compute_peak_quality"
      # "-Scoring:Scores:use_ms1_mi" "false"
-     "-Scoring:Scores:use_mi_score" "false")
+     "-Scoring:Scores:use_mi_score" "false"
+     "-Scoring:stop_report_after_feature" "5")
   add_test("TOPP_OpenSwathWorkflow_18_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_18.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_18_output.featureXML)
   set_tests_properties("TOPP_OpenSwathWorkflow_18_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_18")
 
@@ -2341,7 +2353,8 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathWorkflow_19" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_19.tmp.featureXML -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false"
   "-test" "-mz_extraction_window" "0.05" "-mz_extraction_window_unit" "Th" "-ms1_isotopes" "0"
      "-Scoring:TransitionGroupPicker:compute_peak_quality"
-     "-Scoring:Scores:use_ms1_mi" "false")
+     "-Scoring:Scores:use_ms1_mi" "false"
+     "-Scoring:stop_report_after_feature" "5")
      #"-Scoring:Scores:use_mi_score" "false")
   add_test("TOPP_OpenSwathWorkflow_19_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_19.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_19_output.featureXML)
   set_tests_properties("TOPP_OpenSwathWorkflow_19_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_19")
@@ -2352,7 +2365,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
      "-Scoring:TransitionGroupPicker:compute_peak_quality"
      "-Scoring:Scores:use_total_mi_score"
      "-Scoring:Scores:use_ms1_mi" "false"
-  )
+     "-Scoring:stop_report_after_feature" "5")
   add_test("TOPP_OpenSwathWorkflow_20_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_20.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_20_output.featureXML)
   set_tests_properties("TOPP_OpenSwathWorkflow_20_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_20")
 
@@ -2361,7 +2374,8 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
     "-test" "-mz_extraction_window" "0.05" "-mz_extraction_window_unit" "Th" "-ms1_isotopes" "0"
     "-Scoring:Scores:use_total_mi_score"
     "-Scoring:Scores:use_ms1_mi" "false"
-    "-Scoring:TransitionGroupPicker:compute_peak_quality")
+    "-Scoring:TransitionGroupPicker:compute_peak_quality"
+    "-Scoring:stop_report_after_feature" "5")
   add_test("TOPP_OpenSwathWorkflow_21_out1" ${DIFF} -whitelist "id=" "potentialOutlier" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_21.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_21_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_21.tmp.trafoXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_output.trafoXML)
   # add_test("TOPP_OpenSwathWorkflow_21_out3" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_21.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_output.mzML)
@@ -2456,12 +2470,12 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_23_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_23")
 
   # Test with SRM chromatogram-only data
-  add_test("TOPP_OpenSwathWorkflow_24" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/MRMMapping_input.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_24.tmp.featureXML -Calibration:auto_irt:enabled false -Calibration:windows:estimate_rt false -Calibration:windows:estimate_mz false -Calibration:windows:estimate_im false -test -mz_extraction_window 0.05 -mz_extraction_window_unit Th -ms1_isotopes 0 -Scoring:TransitionGroupPicker:compute_peak_quality -Scoring:Scores:use_ms1_mi false -Scoring:Scores:use_mi_score false)
+  add_test("TOPP_OpenSwathWorkflow_24" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/MRMMapping_input.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_24.tmp.featureXML -Calibration:auto_irt:enabled false -Calibration:windows:estimate_rt false -Calibration:windows:estimate_mz false -Calibration:windows:estimate_im false -test -mz_extraction_window 0.05 -mz_extraction_window_unit Th -ms1_isotopes 0 -Scoring:TransitionGroupPicker:compute_peak_quality -Scoring:Scores:use_ms1_mi false -Scoring:Scores:use_mi_score false -Scoring:stop_report_after_feature 5)
   add_test("TOPP_OpenSwathWorkflow_24_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_24.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_24_output.featureXML)
   set_tests_properties("TOPP_OpenSwathWorkflow_24_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_24")
 
   # Test with multiple SRM chromatogram-only data inputs
-  add_test("TOPP_OpenSwathWorkflow_25" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/MRMMapping_output.chrom.mzML ${DATA_DIR_TOPP}/MRMMapping_output_2.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_25.tmp.featureXML -Calibration:auto_irt:enabled false -Calibration:windows:estimate_rt false -Calibration:windows:estimate_mz false -Calibration:windows:estimate_im false -test -mz_extraction_window 0.05 -mz_extraction_window_unit Th -ms1_isotopes 0 -Scoring:TransitionGroupPicker:compute_peak_quality -Scoring:Scores:use_ms1_mi false -Scoring:Scores:use_mi_score false)
+  add_test("TOPP_OpenSwathWorkflow_25" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/MRMMapping_output.chrom.mzML ${DATA_DIR_TOPP}/MRMMapping_output_2.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_25.tmp.featureXML -Calibration:auto_irt:enabled false -Calibration:windows:estimate_rt false -Calibration:windows:estimate_mz false -Calibration:windows:estimate_im false -test -mz_extraction_window 0.05 -mz_extraction_window_unit Th -ms1_isotopes 0 -Scoring:TransitionGroupPicker:compute_peak_quality -Scoring:Scores:use_ms1_mi false -Scoring:Scores:use_mi_score false -Scoring:stop_report_after_feature 5)
   add_test("TOPP_OpenSwathWorkflow_25_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_25.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_25_output.featureXML)
   set_tests_properties("TOPP_OpenSwathWorkflow_25_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_25")
 

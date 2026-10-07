@@ -173,6 +173,11 @@ window for the retention time. In m/z domain, consider adjusting
 @p -mz_extraction_window to your instrument resolution, which can be in Th or
 ppm.
 
+OpenSwathWorkflow reports all detected peakgroups by default. Its preliminary LDA score is a legacy
+ranking heuristic, not a probability calibrated for every instrument. Setting
+@p -Scoring:stop_report_after_feature to a positive value limits output to the highest-ranked
+peakgroups and can discard candidates before downstream learned rescoring.
+
 Furthermore, if you wish to use MS1 information, use the @p -enable_ms1 flag
 and provide an MS1 map in addition to the SWATH data.
 
@@ -397,7 +402,9 @@ protected:
       // set sensible default parameters
       Param feature_finder_param = MRMFeatureFinderScoring().getDefaults();
       feature_finder_param.remove("rt_extraction_window");
-      feature_finder_param.setValue("stop_report_after_feature", 5);
+      // Keep every candidate by default. The legacy LDA prescore is not a calibrated
+      // probability model, so truncating on it can remove true targets before learned rescoring.
+      // Users can still opt into a report limit through Scoring:stop_report_after_feature.
       feature_finder_param.setValue("rt_normalization_factor", 100.0); // for iRT peptides between 0 and 100 (more or less)
       feature_finder_param.setValue("Scores:use_ms1_mi", "true");
       feature_finder_param.setValue("Scores:use_mi_score", "true");
