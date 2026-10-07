@@ -3713,6 +3713,15 @@ if (NOT WIN32)
   set_tests_properties("TOPP_NucleicAcidSearchEngine_3_json_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_3_json")
 endif()
 
+# Regression: results at different OpenMP thread counts must be byte-identical.
+add_test("TOPP_NucleicAcidSearchEngine_4" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_ties.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_ties.mzML -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_ties.fasta -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_42_out.tmp.mzTab -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_41_out.tmp.idXML -bedrmod_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_44_out.tmp.bed -bedrmod_chebi_mapping ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_ties.csv -threads 1)
+add_test("TOPP_NucleicAcidSearchEngine_5" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_ties.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_ties.mzML -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_ties.fasta -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_52_out.tmp.mzTab -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_51_out.tmp.idXML -bedrmod_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_54_out.tmp.bed -bedrmod_chebi_mapping ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_ties.csv -threads 4)
+add_test("TOPP_NucleicAcidSearchEngine_6" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_ties.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_ties.mzML -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_ties.fasta -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_62_out.tmp.mzTab -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_61_out.tmp.idXML -bedrmod_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_64_out.tmp.bed -bedrmod_chebi_mapping ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_ties.csv -threads 4)
+add_test("TOPP_NucleicAcidSearchEngine_5_out1" ${CMAKE_COMMAND} -E compare_files ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_44_out.tmp.bed ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_54_out.tmp.bed)
+add_test("TOPP_NucleicAcidSearchEngine_6_out1" ${CMAKE_COMMAND} -E compare_files ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_44_out.tmp.bed ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_64_out.tmp.bed)
+set_tests_properties("TOPP_NucleicAcidSearchEngine_5_out1" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_4;TOPP_NucleicAcidSearchEngine_5")
+set_tests_properties("TOPP_NucleicAcidSearchEngine_6_out1" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_4;TOPP_NucleicAcidSearchEngine_6")
+
 #------------------------------------------------------------------------------
 # RNAMassCalculator:
 add_test("TOPP_RNAMassCalculator_1" ${TOPP_BIN_PATH}/RNAMassCalculator -test -in_seq "AUCGGC" -charge -1 -2 -out ${TESTS_TEMP_DIR}/RNAMassCalculator.tmp.txt)
