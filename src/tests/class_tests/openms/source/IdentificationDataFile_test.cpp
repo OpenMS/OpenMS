@@ -377,8 +377,12 @@ START_SECTION([EXTRA] score columns are named after their definitions)
   const std::vector<std::string> expected {"score_pep_idposteriorerrorprobability", "score_pep_percolator", "score_q_value_percolator",
                                            "score_q_value_percolator_2", "score_ms_1002252", "score_posterior_error_probability", "score"};
   TEST_TRUE(Native::inspect(path)[0].score_columns == expected)
-  auto source = arrow::io::ReadableFile::Open(path + "/matches.parquet").ValueOrDie();
-  const auto schema = parquet::arrow::OpenFile(source, arrow::default_memory_pool()).ValueOrDie()->ReadTable().ValueOrDie()->schema();
+  std::shared_ptr<arrow::Schema> schema;
+  {
+    // Scoped, so the file is closed again: Windows cannot remove an open file with the bundle.
+    auto source = arrow::io::ReadableFile::Open(path + "/matches.parquet").ValueOrDie();
+    schema = parquet::arrow::OpenFile(source, arrow::default_memory_pool()).ValueOrDie()->ReadTable().ValueOrDie()->schema();
+  }
   for (Size i = 0; i < expected.size(); ++i)
     TEST_EQUAL(schema->field(static_cast<int>(14 + i))->name(), expected[i])
   // A projected scan reads a score by its definition, wherever its column is.
