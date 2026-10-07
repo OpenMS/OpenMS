@@ -304,6 +304,8 @@ void readMetadata(const arrow::Array& array, int64_t row, MetaInfoInterface& met
   if (array.IsNull(row)) invalid("Null metadata list");
   const auto& list = static_cast<const arrow::ListArray&>(array);
   const auto& entries = static_cast<const arrow::StructArray&>(*list.values());
+  // Entries are collected first and copied once: values set one by one leave their container with spare capacity.
+  MetaInfoInterface values;
   std::set<UInt> names;
   for (int64_t i = list.value_offset(row), end = i + list.value_length(row); i < end; ++i)
   {
@@ -364,8 +366,12 @@ void readMetadata(const arrow::Array& array, int64_t row, MetaInfoInterface& met
     }
     item.setUnitType(descriptor.unit_type);
     item.setUnit(descriptor.unit);
-    metadata.setMetaValue(descriptor.registry_index, item);
+    values.setMetaValue(descriptor.registry_index, item);
   }
+  if (values.isMetaEmpty()) return;
+  if (metadata.isMetaEmpty()) metadata = values;
+  else
+    metadata.addMetaValues(values);
 }
 Size metadataBytes(const MetaInfoInterface& metadata)
 {

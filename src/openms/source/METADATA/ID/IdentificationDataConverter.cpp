@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -39,6 +40,18 @@ namespace
   /// The database of a legacy run (which has at most one); an unknown database if its search names none.
   ID::DatabaseId legacyDatabase(ID::Run& run)
   { return run.getDatabases().empty() ? run.addDatabase(ID::Database {}) : run.getDatabaseId(0); }
+  /// Remove a legacy meta value that a field holds and export writes back as @p restored (as IdentificationDataAdapter
+  /// does); a value that export would write differently (other spelling or value type) is kept.
+  void dropRestoredMetaValue(MetaInfoInterface& metadata, const std::string& name, const std::string& restored)
+  {
+    if (restored.empty() || ! metadata.metaValueExists(name)) return;
+    const auto& value = metadata.getMetaValue(name);
+    if (value.valueType() == DataValue::STRING_VALUE && value.toString() == restored) metadata.removeMetaValue(name);
+  }
+  std::string targetDecoyText(ID::TargetDecoy value)
+  {
+    return value == ID::TargetDecoy::TARGET ? "target" : value == ID::TargetDecoy::DECOY ? "decoy" : value == ID::TargetDecoy::BOTH ? "target+decoy" : "";
+  }
 
   Adapter::ImportResult importGeneric(const std::vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides)
   {
@@ -100,6 +113,7 @@ namespace
           sequence.target_decoy = hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::DECOY    ? ID::TargetDecoy::DECOY
                                   : hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::TARGET ? ID::TargetDecoy::TARGET
                                                                                                     : ID::TargetDecoy::UNKNOWN;
+          dropRestoredMetaValue(sequence, "target_decoy", targetDecoyText(sequence.target_decoy));
           sequences.push_back(std::move(sequence));
         }
         if (! sequences.empty()) run.setDatabaseSequences(std::move(sequences));
@@ -122,6 +136,7 @@ namespace
       // The source is the file, so the index into the legacy file list is not kept.
       observation.removeMetaValue("id_merge_index");
       observation.data_id = item.getSpectrumReference();
+      dropRestoredMetaValue(observation, Constants::UserParam::SPECTRUM_REFERENCE, observation.data_id);
       if (item.hasRT()) observation.rt = item.getRT();
       if (item.hasMZ()) observation.mz = item.getMZ();
       const auto source = Adapter::legacySource(run, original->second->nrPrimaryMSRunPaths(), item);
@@ -163,6 +178,7 @@ namespace
           match.target_decoy = ID::TargetDecoy::DECOY;
         else if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::TARGET_DECOY)
           match.target_decoy = ID::TargetDecoy::BOTH;
+        dropRestoredMetaValue(match, "target_decoy", targetDecoyText(match.target_decoy));
         for (const auto& old : hit.getPeptideEvidences())
         {
           ID::SequenceEvidence evidence;
@@ -206,6 +222,9 @@ namespace
         imported.addInferenceResult(std::move(inference));
       }
     }
+    // Queries and candidates were appended one by one.
+    for (const auto& [key, run] : runs)
+      run->shrinkToFit();
     imported.validate();
     return {std::move(imported), std::move(imported_queries)};
   }

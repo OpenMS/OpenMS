@@ -38,7 +38,10 @@ OpenMS Library:
     SequenceEvidence of matches (formerly ParentEvidence, MatchData::parent_evidence) refer to them
     by DatabaseId, so the search settings name no database. QualifiedAccession (database path and
     accession, Run::qualify) remains the identity across runs. InferenceResult::parent_score is
-    protein_score.
+    protein_score. Legacy import no longer stores the spectrum reference and 'target_decoy' as
+    metadata next to the fields that hold them (export writes them back), and loading or importing
+    ends with Run::shrinkToFit(): a 268,000-PSM idXML (Tide, 16 meta values per PSM) takes 353 MiB
+    loaded from .idparquet instead of 538 MiB (established classes: 384 MiB).
     API: the reference graph is removed (IDDataContainer.h, IdentifiedMolecule.h, IdentifiedSequence.h,
     IdentifiedCompound.h, ObservationMatch.h, ObservationMatchGroup.h, Observation.h, ScoreType.h,
     ScoredProcessingResult.h, AppliedProcessingStep.h, ProcessingStep.h, ProcessingSoftware.h,

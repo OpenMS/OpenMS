@@ -181,7 +181,10 @@ database of the run (`databaseFromLegacy`); `spectra_data` becomes the sources, 
 the source its `id_merge_index` names, else to the only file, else to a source without a path
 (`addLegacySources`, `legacySource`); the protein hits become database sequences and an inference
 result. Export reverses this (`settingsToLegacy`, `legacyFiles`) and writes `id_merge_index` only
-for runs with several files.
+for runs with several files. Legacy meta values that a field holds are not stored twice: the spectrum
+reference is the query's `data_id`, and `target_decoy` of peptide and protein hits is the
+`target_decoy` field of matches and database sequences. Export writes them back; a meta value that
+export would write differently (another spelling or value type) is kept as metadata.
 
 An inference result becomes one protein run. Inference over several runs is exported as the
 legacy model represents it: one merged protein run (as IDMerger creates it) that lists the files of
@@ -222,6 +225,8 @@ bundles (`-digest_out`, `-db_out`) and reads digests (`-digest`); AccurateMassSe
 ## Limits
 
 Owning loads keep every record in memory; datasets larger than memory are processed with `scan` and
-`filter` or one run at a time. Inference over many runs may still need substantial memory. A bundle
+`filter` or one run at a time. Loading a bundle or importing legacy identifications ends with
+`Run::shrinkToFit()`, which releases the spare capacity of containers filled one record at a time;
+code that builds large runs record by record can call it as well. Inference over many runs may still need substantial memory. A bundle
 is rewritten as a whole: there are no partial updates, and changing scores means writing a new
 bundle. Arbitrary non-UTF-8 strings are rejected rather than converted.

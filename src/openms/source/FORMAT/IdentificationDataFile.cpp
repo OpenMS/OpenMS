@@ -406,6 +406,9 @@ namespace
     }
     writer.finishRow(matchBytes(m));
   }
+  /// Number of items of a list cell, to reserve the container it is read into.
+  Size listLength(const arrow::Array& array, int64_t row)
+  { return array.IsNull(row) ? 0 : static_cast<Size>(static_cast<const arrow::ListArray&>(array).value_length(row)); }
   template<class Callback>
   void readList(const arrow::Array& array, int64_t row, const Callback& callback)
   {
@@ -453,6 +456,7 @@ namespace
       d.target_decoy = static_cast<ID::TargetDecoy>(target_decoy);
       d.name = text(reader.column(Size {7}), row);
       if (! reader.column(Size {8}).IsNull(row)) d.formula = text(reader.column(Size {8}), row);
+      d.identifiers.reserve(listLength(reader.column(Size {9}), row));
       readList(reader.column(Size {9}), row,
                [&](const arrow::StructArray& a, int64_t i) { d.identifiers.push_back({text(*a.field(0), i), text(*a.field(1), i)}); });
       const auto& adduct = static_cast<const arrow::StructArray&>(reader.column(Size {10}));
@@ -463,6 +467,7 @@ namespace
         if (d.adduct->getCharge() != d.charge) invalid("Adduct and molecular charge disagree");
       }
     }
+    if (reader.hasColumn(Size {11})) d.sequence_evidence.reserve(listLength(reader.column(Size {11}), row));
     if (reader.hasColumn(Size {11}))
       readList(reader.column(Size {11}), row, [&](const arrow::StructArray& a, int64_t i) {
         ID::SequenceEvidence e;
@@ -475,6 +480,7 @@ namespace
         e.after = text(*a.field(5), i);
         d.sequence_evidence.push_back(std::move(e));
       });
+    if (reader.hasColumn(Size {12})) d.peak_annotations.reserve(listLength(reader.column(Size {12}), row));
     if (reader.hasColumn(Size {12}))
       readList(reader.column(Size {12}), row, [&](const arrow::StructArray& a, int64_t i) {
         PeptideHit::PeakAnnotation item;
@@ -724,6 +730,8 @@ namespace
       dictionary.load(j.at("metadata_descriptors"));
       run.setDatabaseSequences(IO::readDatabaseSequences(root, tables.at("database_sequences"), dictionary, options));
     }
+    // Queries and candidates were appended one by one.
+    run.shrinkToFit();
     run.restoreIdentity(j.at("uuid").get<std::string>(), IO::integer<UInt64>(j.at("next_query_id")), IO::integer<UInt64>(j.at("next_match_id")));
     return run;
   }

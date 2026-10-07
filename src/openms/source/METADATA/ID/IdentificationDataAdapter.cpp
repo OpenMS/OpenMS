@@ -51,6 +51,29 @@ namespace
     if (std::find(result.losses.begin(), result.losses.end(), message) == result.losses.end()) result.losses.push_back(message);
   }
 
+  /// The legacy meta value of a target/decoy state, as PeptideHit and ProteinHit write it ("" if unknown).
+  std::string targetDecoyText(ID::TargetDecoy value)
+  {
+    switch (value)
+    {
+      case ID::TargetDecoy::TARGET:
+        return "target";
+      case ID::TargetDecoy::DECOY:
+        return "decoy";
+      case ID::TargetDecoy::BOTH:
+        return "target+decoy";
+      default:
+        return "";
+    }
+  }
+  /// Remove a legacy meta value that a field of the owning model holds, so it is not stored twice. Export writes the
+  /// field back as @p restored; a value it would write differently (other spelling or value type) is kept.
+  void dropRestoredMetaValue(MetaInfoInterface& metadata, const std::string& name, const std::string& restored)
+  {
+    if (restored.empty() || ! metadata.metaValueExists(name)) return;
+    const auto& value = metadata.getMetaValue(name);
+    if (value.valueType() == DataValue::STRING_VALUE && value.toString() == restored) metadata.removeMetaValue(name);
+  }
   ID::TargetDecoy targetDecoy(PeptideHit::TargetDecoyType value)
   {
     switch (value)
@@ -457,6 +480,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
       sequence.description = hit.getDescription();
       if (hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::TARGET) sequence.target_decoy = ID::TargetDecoy::TARGET;
       if (hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::DECOY) sequence.target_decoy = ID::TargetDecoy::DECOY;
+      dropRestoredMetaValue(sequence, "target_decoy", targetDecoyText(sequence.target_decoy));
       sequences.push_back(std::move(sequence));
     }
     run.setDatabaseSequences(std::move(sequences));
@@ -486,6 +510,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
     // The source is the file, so the index into the legacy file list is not kept.
     observation.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
     observation.data_id = item.getSpectrumReference();
+    dropRestoredMetaValue(observation, Constants::UserParam::SPECTRUM_REFERENCE, observation.data_id);
     if (item.hasRT()) observation.rt = item.getRT();
     if (item.hasMZ()) observation.mz = item.getMZ();
     auto query = run.addIdentification(source, observation);
@@ -498,6 +523,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
       match.representation = hit.getSequence().toString();
       match.charge = hit.getCharge();
       match.target_decoy = targetDecoy(hit.getTargetDecoyType());
+      dropRestoredMetaValue(match, "target_decoy", targetDecoyText(match.target_decoy));
       match.peak_annotations = hit.getPeakAnnotations();
       for (const auto& item_evidence : hit.getPeptideEvidences())
       {
@@ -546,6 +572,12 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
     }
     result.data.addInferenceResult(inference);
   }
+  // Queries and candidates were appended one by one.
+  std::vector<std::string> names;
+  for (const auto& run : result.data.getRuns())
+    names.push_back(run.getIdentifier());
+  for (const auto& name : names)
+    result.data.getRun(name).shrinkToFit();
   result.data.validate();
   return result;
 }

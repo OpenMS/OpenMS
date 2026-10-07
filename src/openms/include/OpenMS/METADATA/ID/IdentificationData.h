@@ -365,6 +365,9 @@ public:
     { return next_match_id_; }
     /// Build the lazy ID lookup indexes up front (const lookups otherwise build them on first use); mutations require exclusive access.
     void prepareLookupIndexes();
+    /// Release the spare capacity of the run's containers (sources, queries, candidates), e.g. after importing records one
+    /// by one. Like any structural edit, this invalidates record views; IDs and lookup indexes stay valid.
+    void shrinkToFit();
     /// Import explicit IDs during construction. After restoration/filtering, historical IDs cannot be reused.
     /// Payloads are owned by value so importers can transfer decoded records without copying.
     QueryId importIdentification(SourceId source, QueryId id, Observation observation);

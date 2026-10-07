@@ -182,6 +182,44 @@ START_SECTION([EXTRA] idXML round trip preserves supported imported values)
 }
 END_SECTION
 
+START_SECTION([EXTRA] meta values that fields hold are stored once and restored on export)
+{
+  // The spectrum reference and the target/decoy states are fields of the owning model; their legacy meta values
+  // are dropped on import and written back on export. A spelling or value type that export would not reproduce stays.
+  auto peptides = PeptideIdentificationList {peptide()};
+  auto other = peptides.front().getHits().front();
+  other.setSequence(AASequence::fromString("PEPTIDER"));
+  other.setMetaValue("target_decoy", "Target");
+  peptides.front().insertHit(other);
+  auto integer_reference = peptide();
+  integer_reference.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, 42);
+  peptides.push_back(integer_reference);
+  auto proteins = std::vector<ProteinIdentification> {protein()};
+  proteins.front().getHits().front().setMetaValue("target_decoy", "decoy");
+
+  const auto imported = Adapter::importLegacy(proteins, peptides);
+  const auto& run = imported.data.getRuns().front();
+  const auto& query = run.getIdentification(imported.queries[0].query);
+  TEST_EQUAL(query.data_id, "controllerType=0 controllerNumber=1 scan=42")
+  TEST_FALSE(query.metaValueExists(Constants::UserParam::SPECTRUM_REFERENCE))
+  TEST_TRUE(query.getMatches()[0].target_decoy == ID::TargetDecoy::TARGET)
+  TEST_FALSE(query.getMatches()[0].metaValueExists("target_decoy"))
+  TEST_TRUE(query.getMatches()[1].target_decoy == ID::TargetDecoy::TARGET)
+  TEST_EQUAL(query.getMatches()[1].getMetaValue("target_decoy").toString(), "Target")
+  const auto& integer_query = run.getIdentification(imported.queries[1].query);
+  TEST_EQUAL(integer_query.data_id, "42")
+  TEST_EQUAL(integer_query.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE).valueType() == DataValue::INT_VALUE, true)
+  const auto& sequence = run.getDatabaseSequences()->front();
+  TEST_TRUE(sequence.target_decoy == ID::TargetDecoy::DECOY)
+  TEST_FALSE(sequence.metaValueExists("target_decoy"))
+
+  auto exported = Adapter::toLegacy(imported.data);
+  TEST_EQUAL(exported.peptides.size(), peptides.size())
+  TEST_TRUE(exported.peptides[0] == peptides[0])
+  TEST_EQUAL(exported.proteins.front().getHits().front().getMetaValue("target_decoy").toString(), "decoy")
+}
+END_SECTION
+
 START_SECTION([EXTRA] derived scores belong to their recorded producer and not to the search engine)
 {
   // Two engines whose PSMs were rescored with posterior error probabilities.

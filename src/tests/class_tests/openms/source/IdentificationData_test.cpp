@@ -443,6 +443,33 @@ START_SECTION((absent provenance runs cannot collide with later independent impo
 }
 END_SECTION
 
+START_SECTION((void Run::shrinkToFit()))
+{
+  ID::Run run("compact");
+  run.setPrimaryScore(run.addScore(score()));
+  const auto source = run.addSource({});
+  std::vector<ID::MatchId> ids;
+  for (Size q = 0; q < 50; ++q)
+  {
+    const auto query = run.addIdentification(source, {});
+    for (Size m = 0; m < 5; ++m)
+      ids.push_back(run.addMatch(query, peptide(), {static_cast<double>(q * 10 + m)}));
+  }
+  run.prepareLookupIndexes();
+  const ID::Run before(run);
+  run.shrinkToFit();
+  TEST_TRUE(run == before)
+  const auto& queries = run.getSources().front().identifications;
+  TEST_EQUAL(queries.capacity(), queries.size())
+  TEST_EQUAL(queries.front().getMatches().capacity(), 5)
+  // IDs and the lookup indexes built before stay valid.
+  for (Size i = 0; i < ids.size(); ++i)
+    TEST_REAL_SIMILAR(*run.getMatch(ids[i]).getScores()[0], static_cast<double>((i / 5) * 10 + i % 5))
+  const auto query = run.addIdentification(source, {});
+  TEST_EQUAL(run.getIdentification(query).getMatches().size(), 0)
+}
+END_SECTION
+
 START_SECTION((concurrent const lookups build the lazy indexes once))
 {
   ID::Run run("lookups");

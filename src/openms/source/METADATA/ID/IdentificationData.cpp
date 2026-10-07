@@ -406,6 +406,20 @@ void ID::Run::prepareLookupIndexes()
   ensureQueryIndex_();
   ensureMatchIndex_();
 }
+void ID::Run::shrinkToFit()
+{
+  checkMutation_();
+  // Lookup indexes and the cached last positions hold positions, not addresses, so they stay valid.
+  databases_.shrink_to_fit();
+  if (sequences_) sequences_->shrink_to_fit();
+  sources_.shrink_to_fit();
+  for (auto& source : sources_)
+  {
+    source.identifications.shrink_to_fit();
+    for (auto& query : source.identifications)
+      query.matches_.shrink_to_fit();
+  }
+}
 void ID::Run::ensureQueryIndex_() const
 {
   // Double-checked: concurrent const lookups build the index once and then read it lock-free.
