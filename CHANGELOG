@@ -25,7 +25,8 @@ OpenMS Library:
   - FIX: SpectrumMetaDataLookup::addMissingSpectrumReferences updates the caller's protein
     identifications; it took them by value, so 'override_spectra_data' had no effect. A second
     overload without protein identifications replaces the default argument.
-  - FIX: ProteinIdentificationArrowIO keeps 'spectra_data_raw' (the raw files of a run) on export.
+  - FIX: ProteinIdentificationArrowIO restores 'spectra_data_raw' (the raw files of a run) on import;
+    it was written but dropped when reading.
   - Added IDFreeMassErrorEstimator, a streaming identification-free precursor/fragment mass-precision
     estimator with charge-less DIA fragment support, background-aware high-resolution fragment
     precision, and an adaptive high-intensity fallback for low-signal DIA data; exposed through pyOpenMS. (#10433)

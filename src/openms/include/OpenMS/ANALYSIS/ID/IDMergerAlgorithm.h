@@ -75,7 +75,8 @@ namespace OpenMS
      * Note:
      * - Only inserts PeptideIdentifications from existing runs in @p prots (noop if prots is empty)
      * - Runs from the same spectrum file share one file origin entry (paths are compared as exact
-     *   strings), so their PSMs get the same id_merge_index
+     *   strings). PSMs that get an id_merge_index ("annotate_origin", or one present before) point to
+     *   that shared entry.
      * 
      * @param[in] prots Vector of protein identifications to be merged
      * @param[in] peps Vector of peptide identifications to be merged
@@ -91,7 +92,8 @@ namespace OpenMS
      * Note:
      * - Only inserts PeptideIdentifications from existing runs in @p prots (noop if prots is empty)
      * - Runs from the same spectrum file share one file origin entry (paths are compared as exact
-     *   strings), so their PSMs get the same id_merge_index
+     *   strings). PSMs that get an id_merge_index ("annotate_origin", or one present before) point to
+     *   that shared entry.
      *
      * @param[in] prots Vector of protein identifications to be merged
      * @param[in] peps Vector of peptide identifications to be merged
