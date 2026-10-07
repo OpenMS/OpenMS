@@ -145,6 +145,8 @@ PyOpenMS:
     IdentificationDataAdapter and FileHandler.loadIdentificationData/storeIdentificationData.
     Getters return copies; runs are edited through IdentificationData.run_view() (also returned by
     addRun), and FeatureMap/ConsensusMap identification data through identification_data_view().
+    Value types take their field names as constructor keywords, e.g.
+    IdentificationData.QualifiedAccession(database="uniprot.fasta", accession="P02769").
     ID handles (QueryId, MatchId, ScoreId, SourceId) and references (QueryReference, MatchReference,
     MoleculeIdentity) compare and hash by value, so they work as dict keys and set members.
     Predicate callbacks accept any Python truth value. Native identification I/O releases the GIL.

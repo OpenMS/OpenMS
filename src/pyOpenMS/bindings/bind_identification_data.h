@@ -16,6 +16,10 @@
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <nanobind/operators.h>
 #include <functional>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace pyopenms_identification
 {
@@ -51,9 +55,78 @@ inline size_t hashIdentity(const std::string& text, OpenMS::UInt64 value)
   return std::hash<std::string> {}(text) ^ (std::hash<OpenMS::UInt64> {}(value) + 0x9e3779b97f4a7c15ULL + (std::hash<std::string> {}(text) << 6));
 }
 
+/// The fields bound with field(), per bound class, in binding order; used for keyword construction.
+template<typename Self>
+struct BoundFields
+{
+  std::vector<std::string> names;
+  std::map<std::string, std::function<void(Self&, nb::handle)>> setters;
+};
+template<typename Self>
+BoundFields<Self>& boundFields()
+{
+  static BoundFields<Self> fields;
+  return fields;
+}
+/// Keyword constructors are added once all fields of a class are bound (finishKeywordConstructors).
+inline std::vector<std::function<void()>>& pendingKeywordConstructors()
+{
+  static std::vector<std::function<void()>> pending;
+  return pending;
+}
+
+/// Constructor from keyword arguments named after the bound fields, e.g.
+/// QualifiedAccession(database="uniprot.fasta", accession="P02769"). The value is built completely
+/// before it is placed, so a rejected argument leaves nothing half-constructed.
+template<typename Class>
+void addKeywordConstructor(Class& cls)
+{
+  using Self = typename Class::Type;
+  // The signature lists the keywords for help() and the generated stubs; nanobind keeps the pointer.
+  static std::vector<std::unique_ptr<std::string>> signatures;
+  std::string signature = "def __init__(self, *";
+  for (const auto& name : boundFields<Self>().names)
+    signature += ", " + name + "=...";
+  signatures.push_back(std::make_unique<std::string>(signature + ") -> None"));
+  cls.def(
+    "__init__",
+    [](Self* self, nb::kwargs kwargs) {
+      Self value;
+      const auto& setters = boundFields<Self>().setters;
+      for (auto [key, item] : kwargs)
+      {
+        const auto name = nb::cast<std::string>(key);
+        const auto setter = setters.find(name);
+        if (setter == setters.end()) throw nb::type_error(("unexpected keyword argument '" + name + "'; the keywords are the field names").c_str());
+        try
+        {
+          setter->second(value, item);
+        }
+        catch (const nb::cast_error&)
+        {
+          throw nb::type_error(("invalid type for field '" + name + "'").c_str());
+        }
+      }
+      new (self) Self(std::move(value));
+    },
+    nb::sig(signatures.back()->c_str()), "Construct from keyword arguments named after the fields; omitted fields keep their defaults.");
+}
+
+inline void finishKeywordConstructors()
+{
+  for (const auto& add : pendingKeywordConstructors())
+    add();
+  pendingKeywordConstructors().clear();
+}
+
 template<typename Class, typename T, typename Value>
 void field(Class& cls, const char* name, Value T::* member)
 {
+  using Self = typename Class::Type;
+  auto& fields = boundFields<Self>();
+  if (fields.names.empty()) pendingKeywordConstructors().push_back([cls]() mutable { addKeywordConstructor(cls); });
+  fields.names.emplace_back(name);
+  fields.setters[name] = [member](Self& self, nb::handle item) { static_cast<T&>(self).*member = nb::cast<Value>(item); };
   // Explicit value return also protects nested structs and vector elements
   // when Python subsequently replaces the containing field.
   cls.def_prop_rw(
@@ -548,5 +621,6 @@ inline void bind(nb::module_& m)
         Inference::retainProteins(result, {retained.begin(), retained.end()});
       },
       nb::arg("result"), nb::arg("retained"));
+  finishKeywordConstructors();
 }
 } // namespace pyopenms_identification

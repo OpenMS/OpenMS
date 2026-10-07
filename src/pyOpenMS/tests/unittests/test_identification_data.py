@@ -142,6 +142,38 @@ def test_map_identification_data_view_edits_the_map():
     assert [r.getIdentifier() for r in consensus.getIdentificationData().getRuns()] == ["empty"]
 
 
+def test_value_types_accept_keyword_arguments_for_their_fields():
+    parent = ID.QualifiedAccession(database="uniprot.fasta", accession="P02769")
+    assert (parent.database, parent.accession) == ("uniprot.fasta", "P02769")
+    match = ID.MatchData(representation="LVNELTEFAK", charge=2,
+                         parent_evidence=[ID.ParentEvidence(parent=parent, start=65, end=74, before="K", after="T")])
+    assert match.encoding == ID.Encoding.AA_SEQUENCE          # omitted fields keep their defaults
+    assert match.parent_evidence[0].parent.accession == "P02769" and match.parent_evidence[0].start == 65
+    compound = ID.MatchData(encoding=ID.Encoding.SMILES, representation="CCO", charge=1, formula="C2H6O",
+                            identifiers=[ID.QualifiedAccession(database="HMDB", accession="HMDB0000108")],
+                            adduct=oms.AMSE_AdductInfo.parseAdductString("M+H;1+"), calculated_mz=47.0491)
+    assert compound.adduct.getName() == "M+H;1+" and compound.identifiers[0].accession == "HMDB0000108"
+    observation = ID.Observation(data_id="scan=1", rt=12.5, mz=None)
+    assert observation.rt == 12.5 and observation.mz is None
+    score = ID.ScoreDefinition(name="expect", higher_better=False, software="Comet")
+    assert (score.name, score.higher_better, score.software) == ("expect", False, "Comet")
+    # Feature links are values as well.
+    run = ID.Run("search")
+    query = run.addIdentification(run.addSource(ID.SourceFile(path="a.mzML")), observation)
+    match_id = run.addMatch(query, match)
+    reference = ID.MatchReference(run_uuid=run.getUuid(), match=match_id)
+    assert reference == ID.MatchReference(run_uuid=run.getUuid(), match=match_id)
+    assert ID.MoleculeIdentity(encoding=ID.Encoding.SMILES, representation="CCO").representation == "CCO"
+    assert File.Options(threads=2, replace_existing=True).threads == 2
+    # Unknown names, wrong types and positional values are rejected.
+    with pytest.raises(TypeError, match="unexpected keyword argument 'acession'"):
+        ID.QualifiedAccession(database="db", acession="P1")
+    with pytest.raises(TypeError, match="invalid type for field 'charge'"):
+        ID.MatchData(charge="two")
+    with pytest.raises(TypeError):
+        ID.QualifiedAccession("db", "P1")
+
+
 def test_nested_field_values_remain_owned_after_replacement():
     result = ID.InferenceResult()
     first_input = ID.InferenceInput()

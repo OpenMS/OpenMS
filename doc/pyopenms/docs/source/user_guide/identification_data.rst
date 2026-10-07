@@ -233,6 +233,28 @@ score contract. An analysis run can refer to several physical MS files. Peptides
 oligonucleotides and compounds have a string representation and explicit encoding.
 The existing peptide/protein classes above remain available for legacy workflows.
 
+Records are plain values whose constructors take the field names as keywords::
+
+    ID = oms.IdentificationData
+    data = ID()
+    run = data.addRun("comet_1")  # MoleculeKind.PEPTIDE
+    score = run.addScore(ID.ScoreDefinition(name="expect", higher_better=False, software="Comet"))
+    run.setPrimaryScore(score)
+    source = run.addSource(ID.SourceFile(path="BSA1.mzML"))
+    query = run.addIdentification(source, ID.Observation(data_id="scan=1234", rt=1234.5, mz=582.32))
+    albumin = ID.QualifiedAccession(database="uniprot.fasta", accession="P02769")
+    evidence = ID.ParentEvidence(parent=albumin, start=65, end=74, before="K", after="T")
+    run.addMatch(query, ID.MatchData(representation="LVNELTEFAK", charge=2, parent_evidence=[evidence]), [0.003])
+
+Oligonucleotide and compound runs (``ID.MoleculeKind.OLIGONUCLEOTIDE``, ``ID.MoleculeKind.COMPOUND``)
+use other encodings. Every run of a dataset declares the same score definitions::
+
+    oligo = ID.MatchData(encoding=ID.Encoding.NA_SEQUENCE, representation="AUCGAUCG", charge=-3)
+    compound = ID.MatchData(
+        encoding=ID.Encoding.SMILES, representation="CC(=O)OC1=CC=CC=C1C(=O)O", formula="C9H8O4",
+        charge=1, adduct=oms.AMSE_AdductInfo.parseAdductString("M+H;1+"),
+        identifiers=[ID.QualifiedAccession(database="HMDB", accession="HMDB0001879")])
+
 Method names follow the C++ API (``getRun``, ``addMatch``, ``retainBest``). Getters such as
 ``getRun`` and ``getRuns`` return independent copies (snapshots). To edit a run of a dataset,
 use ``run_view``: its methods act on the run inside the dataset, so there is nothing to write
