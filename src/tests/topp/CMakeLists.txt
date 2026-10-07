@@ -1363,7 +1363,7 @@ add_test("TOPP_IDFileConverter_20_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFileCon
 set_tests_properties("TOPP_IDFileConverter_20_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_20")
 # Testing spectrum_reference addition
 add_test("TOPP_IDFileConverter_21" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_21_input.idXML -out_type idXML -out ${TESTS_TEMP_DIR}/IDFileConverter_21_output.tmp.idXML -mz_file ${DATA_DIR_TOPP}/IDMapper_4_input.mzML)
-add_test("TOPP_IDFileConverter_21_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFileConverter_21_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFileConverter_21_output.idXML -whitelist "creationDate" "id" "spectraData_ref" "searchDatabase_ref")
+add_test("TOPP_IDFileConverter_21_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDFileConverter_21_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFileConverter_21_output.idXML -whitelist "creationDate" "id" "spectraData_ref" "searchDatabase_ref" "name=\"spectra_data\"")
 set_tests_properties("TOPP_IDFileConverter_21_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_21")
 # Testing add_ionmatch_annotation
 add_test("TOPP_IDFileConverter_22" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -out ${TESTS_TEMP_DIR}/IDFileConverter_22_output.tmp.idXML -out_type idXML -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -add_ionmatch_annotation 0.01)
@@ -5091,6 +5091,55 @@ add_test("TOPP_PercolatorAdapter_CalcMass_check" ${CMAKE_COMMAND}
          -P ${DATA_DIR_TOPP}/PercolatorAdapter_CalcMass_test.cmake)
 set_tests_properties("TOPP_PercolatorAdapter_CalcMass_check" PROPERTIES
                      DEPENDS "TOPP_PercolatorAdapter_CalcMass")
+
+# Several -in files: the pin ScanNr must stay the scan number of each PSM (it used to be the input
+# file index) and the pin SpecId must tell the inputs apart.
+add_test("TOPP_PercolatorAdapter_multiple_inputs_prepare" ${CMAKE_COMMAND}
+         -DOPERATION=prepare
+         -DINPUT_FILE=${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML
+         -DOUTPUT_FILE_1=${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_1.tmp.idXML
+         -DOUTPUT_FILE_2=${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_2.tmp.idXML
+         -P ${DATA_DIR_TOPP}/PercolatorAdapter_multiple_inputs_test.cmake)
+add_test("TOPP_PercolatorAdapter_multiple_inputs" ${TOPP_BIN_PATH}/PercolatorAdapter -test
+         -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini
+         -use_subprocess false
+         -in ${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_1.tmp.idXML
+             ${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_2.tmp.idXML
+         -out ${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_out.tmp.idXML
+         -out_type idXML
+         -out_pin ${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs.tmp.tsv)
+set_tests_properties("TOPP_PercolatorAdapter_multiple_inputs" PROPERTIES
+                     DEPENDS "TOPP_PercolatorAdapter_multiple_inputs_prepare")
+add_test("TOPP_PercolatorAdapter_multiple_inputs_check" ${CMAKE_COMMAND}
+         -DOPERATION=check
+         -DPIN_FILE=${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs.tmp.tsv
+         -DID_FILE=${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_out.tmp.idXML
+         -DINPUT_NAME_1=PercolatorAdapter_multiple_inputs_1.tmp.idXML
+         -DINPUT_NAME_2=PercolatorAdapter_multiple_inputs_2.tmp.idXML
+         -P ${DATA_DIR_TOPP}/PercolatorAdapter_multiple_inputs_test.cmake)
+set_tests_properties("TOPP_PercolatorAdapter_multiple_inputs_check" PROPERTIES
+                     DEPENDS "TOPP_PercolatorAdapter_multiple_inputs")
+# The same inputs with target-decoy competition: spectra of different inputs with the same scan number
+# and precursor m/z must not compete (the subprocess variant is in THIRDPARTY/third_party_tests.cmake).
+add_test("TOPP_PercolatorAdapter_multiple_inputs_tdc" ${TOPP_BIN_PATH}/PercolatorAdapter -test
+         -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini
+         -use_subprocess false
+         -post_processing_tdc
+         -in ${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_1.tmp.idXML
+             ${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_2.tmp.idXML
+         -out ${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_tdc_out.tmp.idXML
+         -out_type idXML)
+set_tests_properties("TOPP_PercolatorAdapter_multiple_inputs_tdc" PROPERTIES
+                     DEPENDS "TOPP_PercolatorAdapter_multiple_inputs_prepare")
+add_test("TOPP_PercolatorAdapter_multiple_inputs_tdc_check" ${CMAKE_COMMAND}
+         -DOPERATION=check_tdc
+         -DINPUT_FILE=${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML
+         -DID_FILE=${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_tdc_out.tmp.idXML
+         -DINPUT_NAME_1=PercolatorAdapter_multiple_inputs_1.tmp.idXML
+         -DINPUT_NAME_2=PercolatorAdapter_multiple_inputs_2.tmp.idXML
+         -P ${DATA_DIR_TOPP}/PercolatorAdapter_multiple_inputs_test.cmake)
+set_tests_properties("TOPP_PercolatorAdapter_multiple_inputs_tdc_check" PROPERTIES
+                     DEPENDS "TOPP_PercolatorAdapter_multiple_inputs_tdc")
 
 # Search engine scores that an adapter read from text are string meta values (SageAdapter keeps
 # all of its extra features like that). The in-process backend must train on the numbers they

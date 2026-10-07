@@ -1010,10 +1010,8 @@ void Percolator::fillPINCompatibleFields(
     const Int scan_number = SpectrumLookup::extractScanNumber(
         scan_identifier, scan_regex, /*no_error=*/true);
 
-    const std::string file_key =
-      pid.getMetaValue("file_origin", std::string()).toString() +
-      "|" +
-      pid.getMetaValue("id_merge_index", std::string()).toString();
+    // the spectrum file, numbered in order of appearance as Percolator numbers the FileName column of a .pin file
+    const std::string file_key = PercolatorInfile::getFileIdentifier(pid);
 
     int spec_file = 0;
     auto it = spec_file_to_idx.find(file_key);

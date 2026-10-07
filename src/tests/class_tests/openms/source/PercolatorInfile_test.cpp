@@ -337,6 +337,108 @@ START_SECTION(([EXTRA] isotope correction preserves spectrum identity in stamped
 }
 END_SECTION
 
+START_SECTION((static std::string getFileIdentifier(const PeptideIdentification& pid)))
+{
+  PeptideIdentification pid;
+  TEST_STRING_EQUAL(PercolatorInfile::getFileIdentifier(pid), "")
+  pid.setMetaValue("file_origin", "a.idXML");
+  TEST_STRING_EQUAL(PercolatorInfile::getFileIdentifier(pid), "a.idXML")
+  pid.setMetaValue("id_merge_index", 1);
+  TEST_STRING_EQUAL(PercolatorInfile::getFileIdentifier(pid), "a.idXML|1")
+  // an index never runs into the file origin
+  PeptideIdentification other;
+  other.setMetaValue("file_origin", "a.idXML1");
+  TEST_STRING_EQUAL(PercolatorInfile::getFileIdentifier(other), "a.idXML1")
+  other.setMetaValue("file_origin", "run1");
+  other.setMetaValue("id_merge_index", 2);
+  pid.setMetaValue("file_origin", "run");
+  pid.setMetaValue("id_merge_index", 12);
+  TEST_NOT_EQUAL(PercolatorInfile::getFileIdentifier(pid), PercolatorInfile::getFileIdentifier(other))
+  PeptideIdentification merged;
+  merged.setMetaValue("id_merge_index", 0);
+  TEST_STRING_EQUAL(PercolatorInfile::getFileIdentifier(merged), "|0")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store: PSMs of several spectrum files get a FileName column among the optional columns))
+{
+  // Percolator identifies a spectrum by spectrum file, ScanNr and ExpMass. Without a FileName column all PSMs
+  // count as one file, so equal scan numbers and precursor m/z of two files would be one spectrum.
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("SAMPLER"));
+  hit.setCharge(2);
+  hit.setScore(1.0);
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+  PeptideEvidence ev;
+  ev.setProteinAccession("PROT1");
+  ev.setAABefore('K');
+  ev.setAAAfter('S');
+  hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+  PeptideIdentification pid;
+  pid.setMZ(500.25);
+  pid.setRT(123.4);
+  pid.setSpectrumReference("scan=529");
+  pid.setHits(std::vector<PeptideHit>{hit});
+
+  StringList feature_set = PercolatorInfile::getStandardFeatureSet(2, 3);
+  feature_set.push_back("Peptide");
+  feature_set.push_back("Proteins");
+  auto store = [&](const PeptideIdentificationList& pids) {
+    std::string pin_file;
+    NEW_TMP_FILE(pin_file);
+    PercolatorInfile::store(pin_file, pids, feature_set, "trypsin", 2, 3);
+    std::ifstream is(pin_file.c_str());
+    std::vector<StringList> lines;
+    std::string line;
+    while (std::getline(is, line))
+    {
+      lines.emplace_back();
+      StringUtils::split(line, '\t', lines.back());
+    }
+    return lines;
+  };
+
+  // one file: no FileName column (the .pin file is unchanged)
+  PeptideIdentificationList one_file;
+  pid.setMetaValue("file_origin", "a.mzML");
+  one_file.push_back(pid);
+  one_file.push_back(pid);
+  auto lines = store(one_file);
+  ABORT_IF(lines.size() != 3)
+  TEST_EQUAL(lines[0] == feature_set, true)
+
+  // two files: FileName after SpecId, Label, ScanNr, ExpMass and CalcMass, before the first feature
+  PeptideIdentificationList two_files = one_file;
+  two_files[1].setMetaValue("file_origin", "b.mzML");
+  lines = store(two_files);
+  ABORT_IF(lines.size() != 3)
+  StringList expected = feature_set;
+  expected.insert(expected.begin() + 5, "FileName");
+  TEST_EQUAL(lines[0] == expected, true)
+  TEST_STRING_EQUAL(lines[0][4], "CalcMass")
+  TEST_STRING_EQUAL(lines[0][6], "mass")
+  TEST_EQUAL(lines[1].size(), expected.size())
+  TEST_EQUAL(lines[2].size(), expected.size())
+  TEST_STRING_EQUAL(lines[1][5], "a.mzML")
+  TEST_STRING_EQUAL(lines[2][5], "b.mzML")
+  // the same scan number, told apart by the file
+  TEST_STRING_EQUAL(lines[1][2], "529")
+  TEST_STRING_EQUAL(lines[2][2], "529")
+  TEST_STRING_EQUAL(lines[1][0], "a.mzMLscan=529")
+  TEST_STRING_EQUAL(lines[2][0], "b.mzMLscan=529")
+
+  // a merged file: 'id_merge_index' tells the files apart as well
+  PeptideIdentificationList merged = one_file;
+  merged[0].setMetaValue("id_merge_index", 0);
+  merged[1].setMetaValue("id_merge_index", 1);
+  lines = store(merged);
+  ABORT_IF(lines.size() != 3)
+  TEST_EQUAL(lines[0] == expected, true)
+  TEST_STRING_EQUAL(lines[1][5], "a.mzML|0")
+  TEST_STRING_EQUAL(lines[2][5], "a.mzML|1")
+}
+END_SECTION
+
 START_SECTION((static double getFeatureValue(const DataValue& value, const std::string& feature)))
 {
   // numeric meta values count as they are

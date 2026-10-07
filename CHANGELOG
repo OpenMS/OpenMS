@@ -17,6 +17,16 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - FIX: ConsensusMapMergerAlgorithm::mergeProteinsAcrossFractionsAndReplicates offsets each PSM's
+    id_merge_index by the position of its original run's files in the merged run. The offset was
+    looked up under the new run identifier, so every PSM pointed at the first file of its new run.
+  - FIX: MzTab identification export gives a spectrum file listed by several runs one ms_run. The
+    next new file used to take that ms_run's index again, so its PSMs pointed at the repeated file.
+  - FIX: SpectrumMetaDataLookup::addMissingSpectrumReferences updates the caller's protein
+    identifications; it took them by value, so 'override_spectra_data' had no effect. A second
+    overload without protein identifications replaces the default argument.
+  - FIX: ProteinIdentificationArrowIO restores 'spectra_data_raw' (the raw files of a run) on import;
+    it was written but dropped when reading.
   - Added IDFreeMassErrorEstimator, a streaming identification-free precursor/fragment mass-precision
     estimator with charge-less DIA fragment support, background-aware high-resolution fragment
     precision, and an adaptive high-intensity fallback for low-signal DIA data; exposed through pyOpenMS. (#10433)
@@ -129,6 +139,20 @@ Build System:
     a program built against them does not load a second libomp (#10326).
 
 TOPP tools:
+    IDFileConverter:
+      - FIX: idXML input with -mz_file records the mzML in the runs' 'spectra_data' unless
+        -no_spectra_data_override is set, as documented; it was left unchanged.
+    MaRaClusterAdapter:
+      - FIX: With several -id_in files, the PSMs of each idXML get their cluster_id and file_origin
+        from the mzML at the same position; all of them were looked up in the first mzML. More
+        -id_in than -in files are rejected.
+    PercolatorAdapter:
+      - FIX: With several -in files, the pin ScanNr is the scan number again (it was the input file
+        index) and spectrum references keep their native IDs. Inputs are told apart by file_origin:
+        Percolator identifies a spectrum by spectrum file, scan number and precursor m/z (e.g. for
+        -post_processing_tdc), so the in-process backend numbers the spectrum files, and a pin file
+        with PSMs of several files has a FileName column (PercolatorInfile::getFileIdentifier). In the
+        pin SpecId, a '|' now separates the id_merge_index of a PSM from its file origin.
     ProSE:
       - FIX: The MS2 intensity cutoff applied before normalization removes only peaks without
         intensity (zero or negative). It was the ThresholdMower default of 0.05 absolute, which

@@ -1439,9 +1439,10 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     }
 
     // ProteinIdentification metavalues (exclude keys handled via dedicated columns)
+    // spectra_data has its own column; spectra_data_raw only travels as a meta value.
     static const std::unordered_set<std::string> excluded_prot_id_mvs = {
       "InferenceEngine", "InferenceEngineVersion",
-      "spectra_data", "spectra_data_raw"
+      "spectra_data"
     };
     ArrowIOHelpers::readMetaValues(col_metavalues, row, prot_id, excluded_prot_id_mvs);
 
