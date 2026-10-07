@@ -79,6 +79,9 @@ OpenMS Library:
     missing, shorter than expected, or desynced with the number of <data> elements actually
     read; peak and float-data-array length mismatches are now clamped instead of read out of
     bounds.
+  - FIX: The mzML writer escapes the name of a non-standard data array and the fraction identifier.
+    An & or < in either - they are taken verbatim from the data - produced a file that no reader
+    could parse, including the OpenMS one (#10148).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
