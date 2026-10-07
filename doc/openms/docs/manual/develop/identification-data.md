@@ -168,6 +168,11 @@ alone. Maps without native identification data write neither part.
 AccurateMassSearch writes its ID-format annotations (`-out_annotation *.featureparquet`) this way;
 unmatched masses are queries without candidates.
 
+featureXML and consensusXML hold legacy identifications only. A map with native identification data
+and no legacy identifications is written with the native ones converted
+(`IdentificationDataConverter::exportFeatureIDs`/`exportConsensusIDs`) instead of losing them; a map
+with legacy identifications is written as before, without its native data.
+
 ## Conversion to and from the established classes
 
 `IdentificationDataAdapter::fromLegacy` imports peptide/protein identifications; `toLegacy`

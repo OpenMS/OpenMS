@@ -58,6 +58,8 @@ OpenMS Library:
     columns are named after their definitions (e.g. score_q_value). IdentificationDataFile::Options::replace_existing replaces an existing native
     bundle; FileHandler sets it so a tool rerun overwrites its output. The established four-table
     .idparquet bundle remains readable and is still written by the legacy FileHandler overloads.
+  - FeatureXMLFile/ConsensusXMLFile::store write the native identification data of a map that has no
+    legacy identifications as legacy identifications instead of dropping it.
   - .featureparquet and .consensusparquet bundles store a map's owning identification data
     (identifications/, a native bundle) and the per-feature links (identification_links.parquet,
     keyed by feature unique ID, stored as int64 like the feature tables so they join without a

@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
@@ -18,6 +19,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <fstream>
+#include <optional>
 
 using namespace std;
 
@@ -69,8 +71,28 @@ namespace OpenMS
     feature_map.updateRanges();
   }
 
-  void FeatureXMLFile::store(const std::string& filename, const FeatureMap& feature_map)
+  namespace
   {
+    bool hasLegacyIdentifications(const Feature& feature)
+    {
+      return ! feature.getPeptideIdentifications().empty()
+             || std::any_of(feature.getSubordinates().begin(), feature.getSubordinates().end(),
+                            [](const Feature& child) { return hasLegacyIdentifications(child); });
+    }
+  } // namespace
+
+  void FeatureXMLFile::store(const std::string& filename, const FeatureMap& map)
+  {
+    // featureXML holds legacy identifications. A map with native identification data and no legacy identifications
+    // (which the file would hold otherwise) is written with its native identifications converted, so they are kept.
+    std::optional<FeatureMap> converted;
+    if (! map.getIdentificationData().empty() && map.getProteinIdentifications().empty() && map.getUnassignedPeptideIdentifications().empty()
+        && std::none_of(map.begin(), map.end(), [](const Feature& feature) { return hasLegacyIdentifications(feature); }))
+    {
+      converted.emplace(map);
+      IdentificationDataConverter::exportFeatureIDs(*converted, true);
+    }
+    const FeatureMap& feature_map = converted ? *converted : map;
 
     if (!FileHandler::hasValidExtension(filename, FileTypes::FEATUREXML))
     {
