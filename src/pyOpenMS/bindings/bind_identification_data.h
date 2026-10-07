@@ -665,6 +665,16 @@ inline void bind(nb::module_& m)
       },
       nb::arg("uuid"))
     .def("getRuns", [](const ID& self) { return std::vector<ID::Run>(self.getRuns().begin(), self.getRuns().end()); })
+    .def(
+      "revisions",
+      [](const ID& self) {
+        std::map<std::string, UInt64> revisions;
+        for (const auto& run : self.getRuns())
+          revisions.emplace(run.getUuid(), run.getRevision());
+        return revisions;
+      },
+      "The revision of every run (Run.getRevision()) by run UUID, without copying the runs. Record them when a table is "
+      "exported (to_arrow()) and pass them to apply_patch() as expected_revisions to reject a patch if the dataset changed.")
     .def("getInferenceResults", [](const ID& self) { return self.getInferenceResults(); })
     .def("addInferenceResult", &ID::addInferenceResult, nb::arg("result"))
     .def("clearInferenceResults", &ID::clearInferenceResults)

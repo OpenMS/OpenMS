@@ -33,6 +33,7 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
+IdentificationDataArrow.h
 IdentificationDataFile.h
 FileInfo.h
 FLASHDeconvFeatureFile.h

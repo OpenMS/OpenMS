@@ -485,6 +485,7 @@ public:
 
   private:
     friend class IdentificationData;
+    friend class IdentificationDataArrow; // commits patches like filterMatches(): edited copies swapped in
     std::string identifier_;
     std::string uuid_;
     MoleculeKind kind_;

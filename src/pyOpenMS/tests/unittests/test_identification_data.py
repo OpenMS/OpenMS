@@ -2,6 +2,7 @@
 
 import copy
 import gc
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -667,6 +668,58 @@ def test_psm_table_flattens_a_native_bundle(tmp_path):
     (legacy / "psms.parquet").write_bytes(b"PAR1")
     with pytest.raises(ValueError, match="OpenMS 3.6"):
         File.psm_table(str(legacy))
+
+
+def test_matches_as_arrow_table_and_patches():
+    pa = pytest.importorskip("pyarrow")
+    data = ID()
+    for name in ("A", "B"):
+        data.addRun(make_run(name)[0])
+    pep = "score_posterior_error_probability"
+    table = data.to_arrow()
+    assert table.num_rows == 4
+    assert table.column_names[:2] == ["match_id", "query_id"] and table.column_names[-2:] == [pep, "run_uuid"]
+    assert table["representation"].to_pylist() == ["PEPTIDE", "EDITPEP"] * 2
+    assert json.loads(table.schema.metadata[b"openms:revisions"]) == data.revisions()
+    assert json.loads(table.schema.metadata[b"openms:score_definitions"])[0]["name"] == "posterior error probability"
+    assert pa.table(data).equals(table)  # the Arrow stream interface
+    scores = data.to_arrow(columns=[pep])
+    assert scores.column_names == ["match_id", "query_id", pep, "run_uuid"]
+    with pytest.raises(KeyError):
+        data.to_arrow(columns=["unknown"])
+
+    # Rescoring: a new score for every run, filled from a pandas frame (filtered, so its index is no range).
+    pd = pytest.importorskip("pandas")
+    revisions = data.revisions()
+    frame = scores.to_pandas()
+    frame = frame[frame[pep] < 0.05].assign(score_rescored=[0.9, 0.8])
+    rescored = ID.ScoreDefinition()
+    rescored.name = "rescored"
+    patch = frame[["run_uuid", "match_id", "score_rescored"]]
+    result = data.apply_patch(patch, add_scores=[rescored], expected_revisions=revisions)
+    assert result == {"rows": 2, "columns": ["score_rescored"], "added": ["score_rescored"]}
+    assert data.getScoreDefinitions()[-1] == rescored
+    assert data.to_arrow()["score_rescored"].to_pylist() == [0.9, None, 0.8, None]
+    assert data.revisions() != revisions
+
+    # Invalid patches raise ValueError and change nothing.
+    before = copy.deepcopy(data)
+    with pytest.raises(ValueError, match="changed since"):
+        data.apply_patch(patch, expected_revisions=revisions)
+    unknown = pa.table({"run_uuid": [table["run_uuid"][0].as_py()], "match_id": pa.array([999], pa.uint64()), pep: [0.5]})
+    with pytest.raises(ValueError, match="has no match 999"):
+        data.apply_patch(unknown)
+    with pytest.raises(ValueError, match="primary score"):
+        data.apply_patch(scores.select(["run_uuid", "match_id", pep]).set_column(2, pep, pa.array([None] * 4, pa.float64())))
+    with pytest.raises(TypeError):
+        data.apply_patch([1, 2])
+    assert data == before
+
+    # Target/decoy states, from a stream of record batches.
+    decoys = pa.table({"run_uuid": table["run_uuid"], "match_id": table["match_id"], "target_decoy": pa.array([2, 1, 1, 1], pa.uint8())})
+    assert data.apply_patch(pa.RecordBatchReader.from_batches(decoys.schema, decoys.to_batches(max_chunksize=1)))["rows"] == 4
+    assert data.to_arrow()["target_decoy"].to_pylist() == [2, 1, 1, 1]
+    assert data.to_arrow()[pep].to_pylist() == table[pep].to_pylist()  # scores stay
 
 
 def test_dataset_ordered_score_contract():

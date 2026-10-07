@@ -135,6 +135,41 @@ import and export through `IdentificationDataAdapter` (below), so every tool tha
 protein_groups, search_params) is not read: there is no importer, and loading one reports that it
 must be converted to idXML with OpenMS 3.6. OpenMS 3.6 does not read native bundles either.
 
+## Bulk access with Arrow
+
+`IdentificationDataArrow` gives the matches of an in-memory dataset to columnar code and takes edits
+back. `matchTable()` returns an `arrow::Table` with one row per match and the columns of
+`matches.parquet` (`run_uuid` last, a projection like that of `scan` keeps the key columns). The
+schema metadata describes the table: `openms:score_definitions` and `openms:metadata_descriptors`
+(JSON, as in the manifest; the `metadata` column refers to the descriptors by index),
+`openms:primary_score` and `openms:revisions` (run UUID → `Run::getRevision()`).
+
+`applyPatch()` takes a table (or a stream of record batches) keyed by `run_uuid` and `match_id`, with
+score columns named as in `matchTable()` and `target_decoy`. A null or NaN removes a supplementary
+score; the primary score cannot be removed. Every key and value is checked before anything changes,
+the patched runs are edited as copies and swapped in, so a patch is applied completely or not at
+all. `PatchOptions::add_scores` adds score definitions to every run of the score schema first (the
+dataset keeps one ordered schema), e.g. for the output of a rescoring model. Revisions are only
+checked when the caller passes `PatchOptions::expected_revisions`: a table that went through pandas
+or polars has lost its schema metadata, so a check cannot be the default. Patching replaces the data
+of the patched runs, so references to their queries and matches and bound score views must be taken
+again; the runs themselves stay in place.
+
+In pyOpenMS, `IdentificationData.to_arrow(columns=None)` returns the table as a `pyarrow.Table`, the
+dataset implements `__arrow_c_stream__` (so `pyarrow.table(data)` or `polars.from_arrow(data)` read it
+directly), `revisions()` returns the run revisions, and `apply_patch(patch, add_scores=None,
+expected_revisions=None)` accepts a pyarrow table or reader, a pandas frame or anything else with
+`__arrow_c_stream__`; invalid patches raise `ValueError`:
+
+```python
+revisions = data.revisions()
+frame = data.to_arrow(columns=["score_q_value"]).to_pandas()
+frame["score_rescored"] = model.predict(frame)
+data.apply_patch(frame[["run_uuid", "match_id", "score_rescored"]],
+                 add_scores=[oms.IdentificationData.ScoreDefinition(name="rescored")],
+                 expected_revisions=revisions)
+```
+
 ## Feature and consensus maps
 
 `FeatureMap` and `ConsensusMap` own an `IdentificationData` value (`getIdentificationData()`).
@@ -259,5 +294,5 @@ Owning loads keep every record in memory; datasets larger than memory are proces
 `filter` or one run at a time. Loading a bundle or importing legacy identifications ends with
 `Run::shrinkToFit()`, which releases the spare capacity of containers filled one record at a time;
 code that builds large runs record by record can call it as well. Inference over many runs may still need substantial memory. A bundle
-is rewritten as a whole: there are no partial updates, and changing scores means writing a new
-bundle. Arbitrary non-UTF-8 strings are rejected rather than converted.
+is rewritten as a whole: there are no partial updates on disk; scores changed in memory (for
+example by an Arrow patch) are stored by writing a new bundle. Arbitrary non-UTF-8 strings are rejected rather than converted.
