@@ -711,25 +711,26 @@ namespace OpenMS
         match.encoding
           = properties[1].empty() || properties[1] == "null" ? IdentificationData::Encoding::DATABASE_ID : IdentificationData::Encoding::SMILES;
         match.representation = match.encoding == IdentificationData::Encoding::SMILES ? properties[1] : identifier;
-        match.identifiers.push_back({database_name_, identifier});
-        match.name = properties[0];
-        match.formula = EmpiricalFormula(result.getFormulaString()).toString(); // canonical element order, as before
+        auto& details = match.details.emplace();
+        details.identifiers.push_back({database_name_, identifier});
+        details.name = properties[0];
+        details.formula = EmpiricalFormula(result.getFormulaString()).toString(); // canonical element order, as before
         match.charge = result.getCharge();
         match.calculated_mz = result.getCalculatedMZ();
         if (! properties[2].empty()) match.setMetaValue("inchi_key", properties[2]);
         const double ppm = result.getMZErrorPPM();
         const double dalton = result.getObservedMZ() - result.getCalculatedMZ();
         match.setMetaValue("identifier", StringList {identifier});
-        match.setMetaValue("description", StringList {match.name});
+        match.setMetaValue("description", StringList {details.name});
         match.setMetaValue("modifications", result.getFoundAdduct());
         match.setMetaValue("chemical_formula", result.getFormulaString());
         match.setMetaValue("mz_error_ppm", ppm);
         match.setMetaValue("mz_error_Da", dalton);
         const auto& adduct = result.getFoundAdduct();
-        if (! adduct.empty() && adduct != "null") match.adduct = AdductInfo::parseAdductString(adduct);
+        if (! adduct.empty() && adduct != "null") details.adduct = AdductInfo::parseAdductString(adduct);
         // The search result stores the absolute charge; the adduct carries the signed ion charge
         // (negative in negative ion mode), which the identification model requires to agree.
-        if (match.adduct) match.charge = match.adduct->getCharge();
+        if (details.adduct) match.charge = details.adduct->getCharge();
         auto id = run.addMatch(query, match, {std::fabs(ppm), ppm, dalton});
         feature.setPrimaryID({match.encoding, match.representation});
         feature.addIDMatch({run.getUuid(), id});

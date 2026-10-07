@@ -248,9 +248,36 @@ void field(Class& cls, const char* name, Value T::* member)
     "Owned value; assign an edited nested record or container back to this property.");
 }
 
-/// Complete value comparisons for records that inherit the payload comparison of their base.
+/// A field whose Python value is computed from the record (e.g. a member stored elsewhere, or converted): bound like
+/// field() (keyword constructor, __repr__, __eq__, property), with explicit getter and setter.
+template<typename Class, typename Value, typename Get, typename Set>
+void computedField(Class& cls, const char* name, Get get, Set set, const char* doc)
+{
+  using Self = typename Class::Type;
+  auto& fields = boundFields<Self>();
+  if (fields.empty()) pendingFieldProtocols().push_back([cls]() mutable { addFieldProtocols(cls); });
+  BoundField<Self> bound;
+  bound.name = name;
+  bound.set = [set](Self& self, nb::handle item) { set(self, nb::cast<Value>(item)); };
+  bound.get = [get](const Self& self) -> nb::object { return nb::cast(Value(get(self)), nb::rv_policy::copy); };
+  fields.push_back(std::move(bound));
+  cls.def_prop_rw(
+    name, [get](const Self& self) -> Value { return get(self); }, [set](Self& self, const Value& value) { set(self, value); }, doc);
+}
+
+/// A flanking residue in Python: a string of one character, or "" if it is not known (0 in C++).
+inline std::string flankText(char residue)
+{ return residue ? std::string(1, residue) : std::string(); }
+inline char flankResidue(const std::string& text)
+{
+  if (text.size() > 1) throw nb::value_error("a flanking residue is one character (or \"\" if it is not known)");
+  return text.empty() ? 0 : text.front();
+}
+
+/// Complete value comparisons for records that inherit the payload comparison of their base. The scores of a match
+/// are stored in its run (Run.getScores()), so a match compares by ID and payload.
 inline bool sameMatch(const ID::Match& a, const ID::Match& b)
-{ return a.getId() == b.getId() && a.getData() == b.getData() && a.getScores() == b.getScores(); }
+{ return a.getId() == b.getId() && a.getData() == b.getData(); }
 inline bool sameIdentification(const ID::Identification& a, const ID::Identification& b)
 {
   return a.getId() == b.getId() && a.getObservation() == b.getObservation() && a.getSelectedMatch() == b.getSelectedMatch()
@@ -324,6 +351,12 @@ void bindRunApi(Class& cls, Get get)
     .def("getScoreDefinition", [get](Self& self, ID::ScoreId score) { return ID::ScoreDefinition(get(self).getScoreDefinition(score)); },
          nb::arg("score"))
     .def("bindScore", [get](Self& self, ID::ScoreId score) { return get(self).bindScore(score); }, nb::arg("score"))
+    .def("getScores", [get](Self& self, const ID::Match& match) { return get(self).getScores(match); }, nb::arg("match"),
+         "All scores of a match of this run, in score definition order (None if missing). The match must come from this run "
+         "in its current state (its scores are stored in the run).")
+    .def("getScores", [get](Self& self, ID::MatchId match) { return get(self).getScores(match); }, nb::arg("match"))
+    .def("getRevision", [get](Self& self) { return get(self).getRevision(); },
+         "Counts the edits of the run in this process; equal revisions mean equal values.")
     .def("getPrimaryScore", [get](Self& self) { return get(self).getPrimaryScore(); })
     .def("setPrimaryScore", [get](Self& self, std::optional<ID::ScoreId> score) { get(self).setPrimaryScore(score); }, nb::arg("score"))
     .def("addIdentification", [get](Self& self, ID::SourceId source, const ID::Observation& observation) {
@@ -473,8 +506,14 @@ inline void bind(nb::module_& m)
   field(sequenceevidence, "accession", &ID::SequenceEvidence::accession);
   field(sequenceevidence, "start", &ID::SequenceEvidence::start);
   field(sequenceevidence, "end", &ID::SequenceEvidence::end);
-  field(sequenceevidence, "before", &ID::SequenceEvidence::before);
-  field(sequenceevidence, "after", &ID::SequenceEvidence::after);
+  computedField<decltype(sequenceevidence), std::string>(
+    sequenceevidence, "before", [](const ID::SequenceEvidence& self) { return flankText(self.before); },
+    [](ID::SequenceEvidence& self, const std::string& value) { self.before = flankResidue(value); },
+    "Residue before the match: one character ('[' at the N-terminus), or \"\" if it is not known.");
+  computedField<decltype(sequenceevidence), std::string>(
+    sequenceevidence, "after", [](const ID::SequenceEvidence& self) { return flankText(self.after); },
+    [](ID::SequenceEvidence& self, const std::string& value) { self.after = flankResidue(value); },
+    "Residue after the match: one character (']' at the C-terminus), or \"\" if it is not known.");
   auto databasesequence = valueClass<ID::DatabaseSequence, OpenMS::MetaInfoInterface>(data, "DatabaseSequence");
   field(databasesequence, "database", &ID::DatabaseSequence::database);
   field(databasesequence, "accession", &ID::DatabaseSequence::accession);
@@ -485,16 +524,45 @@ inline void bind(nb::module_& m)
   field(observation, "data_id", &ID::Observation::data_id);
   field(observation, "rt", &ID::Observation::rt);
   field(observation, "mz", &ID::Observation::mz);
+  auto moleculedetails = valueClass<ID::MoleculeDetails>(data, "MoleculeDetails");
+  field(moleculedetails, "name", &ID::MoleculeDetails::name);
+  field(moleculedetails, "formula", &ID::MoleculeDetails::formula);
+  field(moleculedetails, "identifiers", &ID::MoleculeDetails::identifiers);
+  field(moleculedetails, "adduct", &ID::MoleculeDetails::adduct);
   auto matchdata = valueClass<ID::MatchData, OpenMS::MetaInfoInterface>(data, "MatchData");
   field(matchdata, "representation", &ID::MatchData::representation);
   field(matchdata, "encoding", &ID::MatchData::encoding);
   field(matchdata, "charge", &ID::MatchData::charge);
   field(matchdata, "calculated_mz", &ID::MatchData::calculated_mz);
   field(matchdata, "target_decoy", &ID::MatchData::target_decoy);
-  field(matchdata, "name", &ID::MatchData::name);
-  field(matchdata, "formula", &ID::MatchData::formula);
-  field(matchdata, "identifiers", &ID::MatchData::identifiers);
-  field(matchdata, "adduct", &ID::MatchData::adduct);
+  // Name, formula, identifiers and adduct are MatchData.details in C++ (stored apart from the match, as most
+  // candidates have none); here they stay fields of the match, and details gives the whole record.
+  computedField<decltype(matchdata), std::string>(
+    matchdata, "name", [](const ID::MatchData& self) { return self.details.value_or_default().name; },
+    [](ID::MatchData& self, const std::string& value) { self.details.emplace().name = value; }, "Name of the molecule (details.name).");
+  computedField<decltype(matchdata), std::optional<std::string>>(
+    matchdata, "formula", [](const ID::MatchData& self) { return self.details.value_or_default().formula; },
+    [](ID::MatchData& self, const std::optional<std::string>& value) { self.details.emplace().formula = value; },
+    "Molecular formula (details.formula).");
+  computedField<decltype(matchdata), std::vector<ID::QualifiedAccession>>(
+    matchdata, "identifiers", [](const ID::MatchData& self) { return self.details.value_or_default().identifiers; },
+    [](ID::MatchData& self, const std::vector<ID::QualifiedAccession>& value) { self.details.emplace().identifiers = value; },
+    "Database identifiers of the molecule (details.identifiers).");
+  computedField<decltype(matchdata), std::optional<OpenMS::AdductInfo>>(
+    matchdata, "adduct", [](const ID::MatchData& self) { return self.details.value_or_default().adduct; },
+    [](ID::MatchData& self, const std::optional<OpenMS::AdductInfo>& value) { self.details.emplace().adduct = value; },
+    "Ion adduct (details.adduct).");
+  matchdata.def_prop_rw(
+    "details",
+    [](const ID::MatchData& self) -> std::optional<ID::MoleculeDetails> {
+      return self.details ? std::optional<ID::MoleculeDetails>(*self.details) : std::nullopt;
+    },
+    [](ID::MatchData& self, const std::optional<ID::MoleculeDetails>& value) {
+      if (value) self.details = *value;
+      else
+        self.details.reset();
+    },
+    "Name, formula, identifiers and adduct as one record (None if the match has none); owned copy.");
   field(matchdata, "sequence_evidence", &ID::MatchData::sequence_evidence);
   field(matchdata, "peak_annotations", &ID::MatchData::peak_annotations);
   auto inferenceinput = valueClass<ID::InferenceInput>(data, "InferenceInput");
@@ -515,10 +583,9 @@ inline void bind(nb::module_& m)
   auto match = valueClass<ID::Match, ID::MatchData>(data, "Match");
   match.def("getId", &ID::Match::getId)
     .def("getData", [](const ID::Match& self) { return ID::MatchData(self.getData()); })
-    .def("getScores", &ID::Match::getScores)
     .def("__repr__", [](const ID::Match& self) {
-      return "Match(id=" + std::to_string(self.getId().value) + ", scores=" + nb::cast<std::string>(nb::repr(nb::cast(self.getScores())))
-             + ", data=" + nb::cast<std::string>(nb::repr(nb::cast(ID::MatchData(self.getData())))) + ")";
+      return "Match(id=" + std::to_string(self.getId().value) + ", data=" + nb::cast<std::string>(nb::repr(nb::cast(ID::MatchData(self.getData()))))
+             + ")";
     });
   compareWith(match, sameMatch);
   auto identification = valueClass<ID::Identification, ID::Observation>(data, "Identification");

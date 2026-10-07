@@ -171,14 +171,14 @@ namespace
           const auto accessions = hit.getMetaValue("identification:identifier_accessions").toStringList();
           if (databases.size() != accessions.size()) invalid("Mismatched compound identifier columns");
           for (Size i = 0; i < databases.size(); ++i)
-            match.identifiers.push_back({databases[i], accessions[i]});
+            match.details.emplace().identifiers.push_back({databases[i], accessions[i]});
         }
-        if (hit.metaValueExists("identification:formula")) match.formula = hit.getMetaValue("identification:formula").toString();
-        if (hit.metaValueExists("identification:name")) match.name = hit.getMetaValue("identification:name").toString();
+        if (hit.metaValueExists("identification:formula")) match.details.emplace().formula = hit.getMetaValue("identification:formula").toString();
+        if (hit.metaValueExists("identification:name")) match.details.emplace().name = hit.getMetaValue("identification:name").toString();
         if (hit.metaValueExists("identification:calculated_mz"))
           match.calculated_mz = static_cast<double>(hit.getMetaValue("identification:calculated_mz"));
         if (hit.metaValueExists("identification:adduct_formula"))
-          match.adduct
+          match.details.emplace().adduct
             = AdductInfo(hit.getMetaValue("adduct").toString(), EmpiricalFormula(hit.getMetaValue("identification:adduct_formula").toString()),
                          match.charge, static_cast<int>(hit.getMetaValue("identification:adduct_multiplier")));
         if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::TARGET) match.target_decoy = ID::TargetDecoy::TARGET;
@@ -194,8 +194,8 @@ namespace
           evidence.accession = old.getProteinAccession();
           if (old.getStart() >= 0) evidence.start = old.getStart();
           if (old.getEnd() >= 0) evidence.end = old.getEnd();
-          evidence.before = std::string(1, old.getAABefore());
-          evidence.after = std::string(1, old.getAAAfter());
+          evidence.before = old.getAABefore();
+          evidence.after = old.getAAAfter();
           match.sequence_evidence.push_back(std::move(evidence));
         }
         run.addMatch(query, match,
@@ -508,7 +508,7 @@ void IdentificationDataConverter::exportIDs(const ID& data,
         }
         for (const auto& match : query.getMatches())
         {
-          const auto scores = match.getScores();
+          const auto scores = run.getScores(match);
           const auto score = run.getPrimaryScore() ? scores.at(run.getPrimaryScore()->value) : std::nullopt;
           if (! score && ! export_ids_wo_scores) continue;
           PeptideHit hit;
@@ -523,17 +523,18 @@ void IdentificationDataConverter::exportIDs(const ID& data,
           hit.setScore(score.value_or(0));
           hit.setPeakAnnotations(match.peak_annotations);
           exportSequenceEvidence(match.sequence_evidence, hit);
-          if (match.adduct)
+          const auto& details = match.details.value_or_default();
+          if (details.adduct)
           {
-            hit.setMetaValue("adduct", match.adduct->getName());
-            hit.setMetaValue("identification:adduct_formula", match.adduct->getEmpiricalFormula().toString());
-            hit.setMetaValue("identification:adduct_multiplier", static_cast<int>(match.adduct->getMolMultiplier()));
+            hit.setMetaValue("adduct", details.adduct->getName());
+            hit.setMetaValue("identification:adduct_formula", details.adduct->getEmpiricalFormula().toString());
+            hit.setMetaValue("identification:adduct_multiplier", static_cast<int>(details.adduct->getMolMultiplier()));
           }
           hit.setMetaValue("identification:encoding", static_cast<int>(match.encoding));
-          if (! match.identifiers.empty())
+          if (! details.identifiers.empty())
           {
             StringList databases, accessions;
-            for (const auto& identity : match.identifiers)
+            for (const auto& identity : details.identifiers)
             {
               databases.push_back(identity.database);
               accessions.push_back(identity.accession);
@@ -541,8 +542,8 @@ void IdentificationDataConverter::exportIDs(const ID& data,
             hit.setMetaValue("identification:identifier_databases", databases);
             hit.setMetaValue("identification:identifier_accessions", accessions);
           }
-          if (match.formula) hit.setMetaValue("identification:formula", *match.formula);
-          if (! match.name.empty()) hit.setMetaValue("identification:name", match.name);
+          if (details.formula) hit.setMetaValue("identification:formula", *details.formula);
+          if (! details.name.empty()) hit.setMetaValue("identification:name", details.name);
           if (match.calculated_mz) hit.setMetaValue("identification:calculated_mz", *match.calculated_mz);
           if (match.target_decoy != ID::TargetDecoy::UNKNOWN)
             hit.setMetaValue("target_decoy", match.target_decoy == ID::TargetDecoy::DECOY  ? "decoy"
@@ -586,13 +587,12 @@ void IdentificationDataConverter::exportSequenceEvidence(const std::vector<ID::S
   std::vector<PeptideEvidence> evidence;
   for (const auto& item : sequence_evidence)
   {
-    if ((item.start && *item.start > std::numeric_limits<Int>::max()) || (item.end && *item.end > std::numeric_limits<Int>::max())
-        || item.before.size() > 1 || item.after.size() > 1)
-      invalid("Sequence evidence exceeds legacy coordinate or flank limits");
+    if ((item.start && *item.start > static_cast<UInt32>(std::numeric_limits<Int>::max()))
+        || (item.end && *item.end > static_cast<UInt32>(std::numeric_limits<Int>::max())))
+      invalid("Sequence evidence exceeds legacy coordinate limits");
     evidence.emplace_back(item.accession, item.start ? static_cast<Int>(*item.start) : PeptideEvidence::UNKNOWN_POSITION,
                           item.end ? static_cast<Int>(*item.end) : PeptideEvidence::UNKNOWN_POSITION,
-                          item.before.empty() ? PeptideEvidence::UNKNOWN_AA : item.before[0],
-                          item.after.empty() ? PeptideEvidence::UNKNOWN_AA : item.after[0]);
+                          item.before ? item.before : PeptideEvidence::UNKNOWN_AA, item.after ? item.after : PeptideEvidence::UNKNOWN_AA);
   }
   hit.setPeptideEvidences(evidence);
 }
@@ -677,7 +677,7 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
   MzTabOSMSectionRows matches;
   Size file = 0, software = 0;
   std::map<std::string, Size> ms_run_of_file; // a file listed more than once keeps one ms_run
-  std::set<std::tuple<std::string, ID::QualifiedAccession, std::optional<UInt64>, std::optional<UInt64>>> seen;
+  std::set<std::tuple<std::string, ID::QualifiedAccession, std::optional<UInt32>, std::optional<UInt32>>> seen;
   for (const auto& run : data.getRuns())
   {
     if (run.getMoleculeKind() != ID::MoleculeKind::OLIGONUCLEOTIDE)
@@ -741,13 +741,14 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
                                         / std::abs(match.charge));
           row.spectra_ref.setMSFile(ms_run_index);
           row.spectra_ref.setSpecRef(query.data_id);
-          for (Size i = 0; i < match.getScoreValues().size(); ++i)
-            if (! std::isnan(match.getScoreValues()[i])) row.search_engine_score[i + 1].set(match.getScoreValues()[i]);
+          const auto scores = run.getScores(match);
+          for (Size i = 0; i < scores.size(); ++i)
+            if (scores[i]) row.search_engine_score[i + 1].set(*scores[i]);
           MzTabParameter engine;
           engine.setName(settings.software);
           engine.setValue(settings.software_version);
           row.search_engine.set({engine});
-          if (match.adduct) row.opt_.push_back({"opt_adduct", MzTabString(match.adduct->getName())});
+          if (match.details && match.details->adduct) row.opt_.push_back({"opt_adduct", MzTabString(match.details->adduct->getName())});
           if (match.metaValueExists("isotope_offset"))
             row.opt_.push_back({"opt_isotope_offset", MzTabString(match.getMetaValue("isotope_offset").toString())});
           matches.push_back(std::move(row));
@@ -765,8 +766,8 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
             engine.setName(settings.software);
             engine.setValue(settings.software_version);
             oligo.search_engine.set({engine});
-            oligo.pre.set(evidence.before == "[" ? "-" : evidence.before);
-            oligo.post.set(evidence.after == "]" ? "-" : evidence.after);
+            oligo.pre.set(evidence.before == '[' ? std::string("-") : std::string(evidence.before ? 1 : 0, evidence.before));
+            oligo.post.set(evidence.after == ']' ? std::string("-") : std::string(evidence.after ? 1 : 0, evidence.after));
             if (evidence.start) oligo.start.set(*evidence.start + 1);
             if (evidence.end) oligo.end.set(*evidence.end + 1);
             oligos.push_back(std::move(oligo));

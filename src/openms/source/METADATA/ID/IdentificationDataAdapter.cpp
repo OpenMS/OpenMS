@@ -143,14 +143,12 @@ namespace
     std::vector<PeptideEvidence> evidence;
     for (const auto& item : match.sequence_evidence)
     {
-      const auto max_position = static_cast<UInt64>(std::numeric_limits<Int>::max());
-      if ((item.start && *item.start > max_position) || (item.end && *item.end > max_position) || item.before.size() > 1
-          || item.after.size() > 1)
-        invalid("Sequence evidence cannot be represented by legacy peptide coordinates/flanking residues");
+      const auto max_position = static_cast<UInt32>(std::numeric_limits<Int>::max());
+      if ((item.start && *item.start > max_position) || (item.end && *item.end > max_position))
+        invalid("Sequence evidence cannot be represented by legacy peptide coordinates");
       evidence.emplace_back(item.accession, item.start ? static_cast<Int>(*item.start) : PeptideEvidence::UNKNOWN_POSITION,
                             item.end ? static_cast<Int>(*item.end) : PeptideEvidence::UNKNOWN_POSITION,
-                            item.before.empty() ? PeptideEvidence::UNKNOWN_AA : item.before.front(),
-                            item.after.empty() ? PeptideEvidence::UNKNOWN_AA : item.after.front());
+                            item.before ? item.before : PeptideEvidence::UNKNOWN_AA, item.after ? item.after : PeptideEvidence::UNKNOWN_AA);
     }
     hit.setPeptideEvidences(evidence);
     if (legacyTargetDecoy(hit, false) != match.target_decoy)
@@ -652,15 +650,15 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
         if (item_evidence.getStart() != PeptideEvidence::UNKNOWN_POSITION)
         {
           if (item_evidence.getStart() < 0) invalid("Unsupported negative sequence evidence start");
-          evidence.start = static_cast<UInt64>(item_evidence.getStart());
+          evidence.start = static_cast<UInt32>(item_evidence.getStart());
         }
         if (item_evidence.getEnd() != PeptideEvidence::UNKNOWN_POSITION)
         {
           if (item_evidence.getEnd() < 0) invalid("Unsupported negative sequence evidence end");
-          evidence.end = static_cast<UInt64>(item_evidence.getEnd());
+          evidence.end = static_cast<UInt32>(item_evidence.getEnd());
         }
-        evidence.before = std::string(1, item_evidence.getAABefore());
-        evidence.after = std::string(1, item_evidence.getAAAfter());
+        evidence.before = item_evidence.getAABefore();
+        evidence.after = item_evidence.getAAAfter();
         match.sequence_evidence.push_back(std::move(evidence));
       }
       run.addMatch(query, match, {hit.getScore()});
@@ -990,7 +988,7 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
     if (query.getSelectedMatch()) loss(result, options, "Legacy export cannot preserve an explicit selected candidate: " + run.getIdentifier());
     for (const auto& match : query.getMatches())
     {
-      if (match.calculated_mz || match.adduct || match.formula || ! match.name.empty() || ! match.identifiers.empty())
+      if (match.calculated_mz || ! match.details.value_or_default().empty())
         loss(result, options, "Legacy export cannot preserve all molecular/ion fields: " + run.getIdentifier());
       for (const auto& evidence : match.sequence_evidence)
       {
@@ -1003,7 +1001,7 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
         continue;
       }
       auto hit = peptide(run, match, *primary);
-      const auto scores = match.getScores();
+      const auto scores = run.getScores(match);
       for (Size score = 0; score < run.getScoreDefinitions().size(); ++score)
       {
         if (score == primary->value || ! scores[score]) continue;

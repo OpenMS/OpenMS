@@ -30,9 +30,16 @@ An `IdentificationData` dataset contains analysis runs and independent inference
 - A **query** (`Identification`) is an observation, e.g. a spectrum or a feature, with zero or
   more candidate **matches**. Queries without candidates are valid.
 - A match owns its molecular representation (a string with an explicit `Encoding`: AASequence or
-  NASequence notation, SMILES, InChI or a database identifier), charge, optional adduct, sequence
-  evidence (`SequenceEvidence`: database, accession, position and flanking residues; cf. mzIdentML
-  `PeptideEvidence`), peak annotations, metadata and dense score values.
+  NASequence notation, SMILES, InChI or a database identifier), charge, sequence evidence
+  (`SequenceEvidence`: database, accession, 0-based positions and one-character flanking residues;
+  cf. mzIdentML `PeptideEvidence`), peak annotations and metadata. Name, formula, database
+  identifiers and adduct (`MoleculeDetails`, mostly of compounds) are stored apart from the match
+  (`MatchData::details`, empty for most peptides).
+- The scores of a run are stored in its own columns, one per score definition, with a row per match
+  (`Run::getScores()`, `Run::getScore()`, or a `ScoreView` from `Run::bindScore()`). A view shares
+  ownership of the columns and belongs to one state of them: adding a score, filtering or copying the
+  run starts a new state, and the view (and a copy of a match taken before) is then rejected rather
+  than reading another match's value. `Run::getRevision()` counts the edits of a run in a process.
 - An **inference result** stores protein and group values once for any number of contributing runs,
   with run-level provenance (`InferenceInput`) and its protein and group score definitions. It does
   not store per-PSM assignments.
@@ -242,6 +249,11 @@ bundles (`-digest_out`, `-db_out`) and reads digests (`-digest`); AccurateMassSe
   `identification_data_view()`; a copied run is never written back.
 
 ## Limits
+
+A match takes 136 bytes on 64-bit Linux (a `PeptideHit` 120) and a sequence evidence 64 (a
+`PeptideEvidence` 48); scores take 8 bytes per value in the columns of their run. Imported protein
+lists are stored once: the database sequences hold sequence, description and metadata, and the
+`legacy:<run>` inference result only the inference values of the proteins.
 
 Owning loads keep every record in memory; datasets larger than memory are processed with `scan` and
 `filter` or one run at a time. Loading a bundle or importing legacy identifications ends with

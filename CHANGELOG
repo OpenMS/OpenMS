@@ -67,6 +67,17 @@ OpenMS Library:
     search_params; PSMArrowIO). It is not read: convert such bundles to idXML with IDFileConverter of
     OpenMS 3.6. pyOpenMS: IdentificationDataFile.psm_table() returns a flat PSM table from a native
     bundle for code that read psms.parquet.
+  - IdentificationData memory: the scores of a run are per-run columns (one per score definition,
+    a row per match) instead of a vector in every match; read them with Run::getScores(),
+    Run::getScore() or a ScoreView, which shares ownership of the columns and rejects matches of
+    another state of the run (after adding a score, filtering or copying) instead of reading another
+    match's value. Match::getScores()/getScoreValues() are removed. Name, formula, identifiers and
+    adduct are MatchData::details (MoleculeDetails, stored apart; most peptides have none);
+    SequenceEvidence has one-character flanks (0 if not known) and 32-bit positions. A match takes
+    136 instead of 376 bytes, a sequence evidence 64 instead of 136, and imported protein lists keep
+    sequences and descriptions only in the database sequences. Run::getRevision() counts the edits
+    of a run. pyOpenMS keeps MatchData.name/formula/identifiers/adduct (now backed by details) and
+    the string flanks; scores are read with Run.getScores(match) or a bound ScoreView.
   - FeatureXMLFile/ConsensusXMLFile::store write the native identification data of a map that has no
     legacy identifications as legacy identifications instead of dropping it.
   - Identification data of feature and consensus maps is no longer lost by map operations:

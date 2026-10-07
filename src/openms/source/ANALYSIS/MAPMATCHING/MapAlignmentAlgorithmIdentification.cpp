@@ -385,7 +385,8 @@ namespace OpenMS
           empty = false;
           if (score_cutoff_ && (definition.higher_better ? *value < min_score_ : *value > min_score_)) continue;
           std::string molecule = best->representation;
-          if (use_adducts_ && best->adduct) molecule += "+[" + best->adduct->getName() + "]";
+          const auto& adduct = best->details.value_or_default().adduct;
+          if (use_adducts_ && adduct) molecule += "+[" + adduct->getName() + "]";
           rt_data[molecule].push_back(*query.rt);
         }
     }

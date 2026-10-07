@@ -39,7 +39,7 @@ ID fixture(ID::MoleculeKind kind = ID::MoleculeKind::PEPTIDE)
   match.encoding = kind == ID::MoleculeKind::OLIGONUCLEOTIDE ? ID::Encoding::NA_SEQUENCE : ID::Encoding::AA_SEQUENCE;
   match.charge = 2;
   match.target_decoy = ID::TargetDecoy::TARGET;
-  match.sequence_evidence.push_back({database_id, "parent", 3, 8, "K", "R"});
+  match.sequence_evidence.push_back({database_id, "parent", 3, 8, 'K', 'R'});
   match.setMetaValue("numbers", IntList {1, 2, 3});
   run.addMatch(query, match, {99.0});
   ID::DatabaseSequence parent;

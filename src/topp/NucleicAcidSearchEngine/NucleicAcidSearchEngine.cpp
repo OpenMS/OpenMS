@@ -749,8 +749,8 @@ protected:
           const auto& salt = *hit.precursor_ref->adduct;
           auto formula = salt.getEmpiricalFormula();
           formula += EmpiricalFormula("H") * (match.charge - salt.getCharge());
-          match.adduct = AdductInfo(salt.getName(), formula, match.charge, salt.getMolMultiplier());
-          match.calculated_mz = match.adduct->getMZ(hit.sequence.getMonoWeight());
+          const auto& adduct = match.details.emplace().adduct = AdductInfo(salt.getName(), formula, match.charge, salt.getMolMultiplier());
+          match.calculated_mz = adduct->getMZ(hit.sequence.getMonoWeight());
         }
         else
           match.calculated_mz = hit.sequence.getMonoWeight(NASequence::Full, match.charge) / std::abs(match.charge);
@@ -800,7 +800,8 @@ protected:
           {
             if (! query.rt) continue;
             auto seq = NASequence::fromString(match.representation);
-            auto key = make_pair(seq, match.adduct ? match.adduct->getName() : std::string {});
+            const auto& adduct = match.details.value_or_default().adduct;
+            auto key = make_pair(seq, adduct ? adduct->getName() : std::string {});
             double intensity = query.getMetaValue("precursor_intensity");
             rt_info[key][match.charge].push_back({intensity, *query.rt});
           }

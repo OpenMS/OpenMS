@@ -23,6 +23,7 @@ namespace
   static_assert(std::is_nothrow_swappable_v<std::vector<ID::Match>>);
   static_assert(std::is_nothrow_move_assignable_v<ID::Identification>);
   static_assert(std::is_nothrow_swappable_v<std::unique_ptr<ID::RunSettings>>);
+  static_assert(std::is_nothrow_move_assignable_v<ID::Match>);
   [[noreturn]] void invalid(const std::string& message)
   { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message, "IdentificationData"); }
   std::string describe(const ID::ScoreDefinition& definition)
@@ -95,6 +96,17 @@ namespace
     if (! value || value == std::numeric_limits<UInt64>::max()) invalid("Runtime handle space exhausted");
     return value;
   }
+  /// A new state of the score columns of a run (never 0, which no run uses).
+  UInt32 newTag()
+  {
+    static std::atomic<UInt32> next {1};
+    UInt32 value = next.fetch_add(1, std::memory_order_relaxed);
+    while (value == 0)
+      value = next.fetch_add(1, std::memory_order_relaxed);
+    return value;
+  }
+  std::optional<double> stored(double value)
+  { return std::isnan(value) ? std::nullopt : std::optional<double>(value); }
   std::string uuid()
   {
     thread_local std::mt19937_64 engine([] {
@@ -130,8 +142,10 @@ namespace
   }
   bool sameHypothesis(const ID::MatchData& first, const ID::MatchData& second)
   {
+    const auto& a = first.details.value_or_default();
+    const auto& b = second.details.value_or_default();
     return first.representation == second.representation && first.encoding == second.encoding && first.charge == second.charge
-           && first.formula == second.formula && first.adduct == second.adduct;
+           && a.formula == b.formula && a.adduct == b.adduct;
   }
   void validNumber(const std::optional<double>& number)
   {
@@ -160,23 +174,23 @@ namespace
   };
 } // namespace
 
-std::vector<std::optional<double>> ID::Match::getScores() const
+/// The score values of a run: one column per score definition and one row per match (Match::slot_); NaN is a missing
+/// value. The tag names the state of the rows; matches and views record the tag they belong to.
+struct ID::ScoreTable
 {
-  std::vector<std::optional<double>> result;
-  result.reserve(scores_.size());
-  for (double value : scores_)
-    result.push_back(std::isnan(value) ? std::nullopt : std::optional<double>(value));
-  return result;
-}
+  UInt32 tag = newTag();
+  std::vector<std::vector<double>> columns;
+};
 
 std::optional<double> ID::ScoreView::operator()(const Match& match) const
 {
-  if (match.schema_token_ != schema_token_ || id_.value >= match.scores_.size()) invalid("Score view belongs to a different score schema");
-  double value = match.scores_[id_.value];
-  return std::isnan(value) ? std::nullopt : std::optional<double>(value);
+  if (! table_ || match.tag_ != tag_ || table_->tag != tag_ || column_ >= table_->columns.size() || match.slot_ >= table_->columns[column_].size())
+    invalid("Score view belongs to a different run, score schema or state of the run; bind it again");
+  return stored(table_->columns[column_][match.slot_]);
 }
 
-ID::Run::Run(std::string identifier, MoleculeKind kind): identifier_(std::move(identifier)), uuid_(uuid()), kind_(kind), schema_token_(token())
+ID::Run::Run(std::string identifier, MoleculeKind kind):
+    identifier_(std::move(identifier)), uuid_(uuid()), kind_(kind), score_table_(std::make_shared<ScoreTable>())
 {
   if (kind_ != MoleculeKind::PEPTIDE && kind_ != MoleculeKind::OLIGONUCLEOTIDE && kind_ != MoleculeKind::COMPOUND) invalid("Unknown molecule kind");
 }
@@ -192,16 +206,23 @@ ID::Run::Run(const Run& other):
     scores_(other.scores_),
     score_owners_(other.score_owners_),
     primary_(other.primary_),
-    schema_token_(other.schema_token_),
+    score_table_(std::make_shared<ScoreTable>(*other.score_table_)),
     next_query_id_(other.next_query_id_),
     next_match_id_(other.next_match_id_),
+    revision_(other.revision_),
     import_finalized_(other.import_finalized_),
     query_count_(other.query_count_),
     match_count_(other.match_count_),
     last_query_(other.last_query_),
     last_match_(other.last_match_)
 {
-  // Persistent identities and existing score/source handles remain valid in copies.
+  // Persistent identities and existing score/source handles remain valid in copies. The copy's score columns are
+  // its own, in a new state, so views of the original cannot read them.
+  score_table_->tag = newTag();
+  for (auto& source : sources_)
+    for (auto& query : source.identifications)
+      for (auto& match : query.matches_)
+        match.tag_ = score_table_->tag;
 }
 
 ID::Run::Run(Run&& other): Run()
@@ -223,9 +244,10 @@ void ID::Run::swapData_(Run& other) noexcept
   swap(scores_, other.scores_);
   swap(score_owners_, other.score_owners_);
   swap(primary_, other.primary_);
-  swap(schema_token_, other.schema_token_);
+  swap(score_table_, other.score_table_);
   swap(next_query_id_, other.next_query_id_);
   swap(next_match_id_, other.next_match_id_);
+  swap(revision_, other.revision_);
   swap(import_finalized_, other.import_finalized_);
   swap(query_count_, other.query_count_);
   swap(match_count_, other.match_count_);
@@ -246,6 +268,24 @@ void ID::Run::checkScore_(ScoreId score) const
 {
   if (score.value >= scores_.size() || score_owners_[score.value] != score.owner) invalid("Foreign or invalid score handle");
 }
+void ID::Run::checkRow_(const Match& match) const
+{
+  if (match.tag_ != score_table_->tag || (! score_table_->columns.empty() && match.slot_ >= score_table_->columns.front().size()))
+    invalid("Match does not belong to this state of the run");
+}
+void ID::Run::renumberRows_() noexcept
+{
+  const UInt32 state = newTag();
+  UInt32 row = 0;
+  for (auto& source : sources_)
+    for (auto& query : source.identifications)
+      for (auto& match : query.matches_)
+      {
+        match.slot_ = row++;
+        match.tag_ = state;
+      }
+  score_table_->tag = state;
+}
 void ID::Run::setSettings(const RunSettings& settings)
 {
   checkMutation_();
@@ -256,6 +296,7 @@ void ID::Run::setSettings(const RunSettings& settings)
     invalid("The databases of a run are its own records (Run::addDatabase); the search settings must not name them");
   auto replacement = std::make_unique<RunSettings>(settings);
   settings_.swap(replacement);
+  ++revision_;
 }
 ID::DatabaseId ID::Run::addDatabase(const Database& database)
 {
@@ -264,6 +305,7 @@ ID::DatabaseId ID::Run::addDatabase(const Database& database)
   if (existing != databases_.end()) return {static_cast<UInt32>(existing - databases_.begin())};
   if (databases_.size() >= std::numeric_limits<UInt32>::max()) invalid("Too many databases");
   databases_.push_back(database);
+  ++revision_;
   return {static_cast<UInt32>(databases_.size() - 1)};
 }
 ID::DatabaseId ID::Run::getDatabaseId(UInt32 index) const
@@ -292,6 +334,7 @@ void ID::Run::setDatabaseSequences(std::optional<std::vector<DatabaseSequence>> 
     }
   }
   sequences_ = std::move(sequences);
+  ++revision_;
 }
 ID::SourceId ID::Run::addSource(const SourceFile& source)
 {
@@ -299,6 +342,7 @@ ID::SourceId ID::Run::addSource(const SourceFile& source)
   if (sources_.size() >= std::numeric_limits<UInt32>::max()) invalid("Too many sources");
   SourceId id {static_cast<UInt32>(sources_.size()), token()};
   sources_.push_back({id, source, {}});
+  ++revision_;
   return id;
 }
 ID::SourceId ID::Run::getSourceId(UInt32 index) const
@@ -314,26 +358,24 @@ ID::ScoreId ID::Run::addScore(const ScoreDefinition& definition)
   for (UInt32 i = 0; i < scores_.size(); ++i)
     if (scores_[i] == definition) return getScoreId(i);
   if (scores_.size() >= std::numeric_limits<UInt32>::max()) invalid("Too many score definitions");
-  // Reserve before changing the logical schema, maintaining the strong guarantee.
+  // Allocate before changing the logical schema, maintaining the strong guarantee.
   ScoreDefinition copy = definition;
   scores_.reserve(scores_.size() + 1);
   score_owners_.reserve(scores_.size() + 1);
-  for (auto& source : sources_)
-    for (auto& query : source.identifications)
-      for (auto& match : query.matches_)
-        match.scores_.reserve(scores_.size() + 1);
+  score_table_->columns.reserve(scores_.size() + 1);
+  std::vector<double> column(match_count_, std::numeric_limits<double>::quiet_NaN());
   UInt64 owner = token();
-  UInt64 new_schema = token();
   scores_.push_back(std::move(copy));
   score_owners_.push_back(owner);
-  schema_token_ = new_schema;
+  score_table_->columns.push_back(std::move(column));
+  // A new schema is a new state of the columns: views bound before reject the matches.
+  const UInt32 state = newTag();
   for (auto& source : sources_)
     for (auto& query : source.identifications)
       for (auto& match : query.matches_)
-      {
-        match.scores_.push_back(std::numeric_limits<double>::quiet_NaN());
-        match.schema_token_ = schema_token_;
-      }
+        match.tag_ = state;
+  score_table_->tag = state;
+  ++revision_;
   return getScoreId(static_cast<UInt32>(scores_.size() - 1));
 }
 ID::ScoreId ID::Run::getScoreId(UInt32 index) const
@@ -356,8 +398,9 @@ ID::ScoreView ID::Run::bindScore(ScoreId score) const
 {
   checkScore_(score);
   ScoreView view;
-  view.id_ = score;
-  view.schema_token_ = schema_token_;
+  view.table_ = score_table_;
+  view.column_ = score.value;
+  view.tag_ = score_table_->tag;
   view.definition_ = scores_[score.value];
   return view;
 }
@@ -367,12 +410,11 @@ void ID::Run::setPrimaryScore(std::optional<ScoreId> score)
   if (score)
   {
     checkScore_(*score);
-    for (const auto& source : sources_)
-      for (const auto& query : source.identifications)
-        for (const auto& match : query.matches_)
-          if (std::isnan(match.scores_[score->value])) invalid("Primary score is missing on a candidate");
+    const auto& column = score_table_->columns[score->value];
+    if (std::any_of(column.begin(), column.end(), [](double value) { return std::isnan(value); })) invalid("Primary score is missing on a candidate");
   }
   primary_ = score;
+  ++revision_;
 }
 void ID::Run::validateMatch_(const MatchData& data, const std::vector<std::optional<double>>& values) const
 {
@@ -392,7 +434,7 @@ void ID::Run::validateMatchData_(const MatchData& data) const
                       : data.encoding == Encoding::SMILES || data.encoding == Encoding::INCHI || data.encoding == Encoding::DATABASE_ID;
   if (! compatible) invalid("Molecular encoding is incompatible with the run kind");
   if (data.target_decoy < TargetDecoy::UNKNOWN || data.target_decoy > TargetDecoy::BOTH) invalid("Invalid target/decoy state");
-  if (data.adduct && data.adduct->getCharge() != data.charge) invalid("Adduct charge disagrees with ion charge");
+  if (data.details && data.details->adduct && data.details->adduct->getCharge() != data.charge) invalid("Adduct charge disagrees with ion charge");
   if (kind_ == MoleculeKind::COMPOUND && ! data.sequence_evidence.empty()) invalid("Compound candidates cannot contain sequence evidence");
   for (const auto& evidence : data.sequence_evidence)
   {
@@ -412,6 +454,8 @@ void ID::Run::shrinkToFit()
   // Lookup indexes and the cached last positions hold positions, not addresses, so they stay valid.
   databases_.shrink_to_fit();
   if (sequences_) sequences_->shrink_to_fit();
+  for (auto& column : score_table_->columns)
+    column.shrink_to_fit();
   sources_.shrink_to_fit();
   for (auto& source : sources_)
   {
@@ -545,6 +589,7 @@ ID::QueryId ID::Run::importIdentification(SourceId source, QueryId id, Observati
   ++query_count_;
   next_query_id_ = std::max(next_query_id_, next);
   last_query_ = position;
+  ++revision_;
   return id;
 }
 ID::MatchId ID::Run::addMatch(QueryId query, const MatchData& data, const std::vector<std::optional<double>>& values)
@@ -556,13 +601,17 @@ ID::MatchId ID::Run::importMatch(QueryId query_id, MatchId id, MatchData data, c
   validateMatch_(data, values);
   if (id.value < next_match_id_ && (import_finalized_ || findMatch(id))) invalid("Duplicate or historical match ID");
   auto& query = query_(query_id);
+  if (match_count_ >= std::numeric_limits<UInt32>::max()) invalid("Too many matches in a run");
+  // Details without a value are stored as none.
+  if (data.details && data.details->empty()) data.details.reset();
   Match match;
   static_cast<MatchData&>(match) = std::move(data);
   match.id_ = id;
-  match.schema_token_ = schema_token_;
-  match.scores_.assign(scores_.size(), std::numeric_limits<double>::quiet_NaN());
-  for (Size i = 0; i < values.size(); ++i)
-    if (values[i]) match.scores_[i] = *values[i];
+  match.tag_ = score_table_->tag;
+  match.slot_ = static_cast<UInt32>(match_count_);
+  auto& columns = score_table_->columns;
+  for (auto& column : columns)
+    column.reserve(match_count_ + 1);
   std::array<Size, 2> qp;
   if (last_query_ && sources_[(*last_query_)[0]].identifications[(*last_query_)[1]].id_ == query_id) qp = *last_query_;
   else
@@ -593,24 +642,39 @@ ID::MatchId ID::Run::importMatch(QueryId query_id, MatchId id, MatchData data, c
     if (match_index_built_) match_index_.erase(id.value);
     throw;
   }
+  // Capacity was reserved above, so appending the row cannot throw.
+  for (Size i = 0; i < columns.size(); ++i)
+    columns[i].push_back(i < values.size() && values[i] ? *values[i] : std::numeric_limits<double>::quiet_NaN());
   ++match_count_;
   next_match_id_ = std::max(next_match_id_, next);
   last_match_ = position;
+  ++revision_;
   return id;
 }
 std::optional<double> ID::Run::getScore(MatchId match, ScoreId score) const
 {
   checkScore_(score);
-  double value = getMatch(match).scores_[score.value];
-  return std::isnan(value) ? std::nullopt : std::optional<double>(value);
+  return stored(score_table_->columns[score.value][getMatch(match).slot_]);
 }
+std::vector<std::optional<double>> ID::Run::getScores(const Match& match) const
+{
+  checkRow_(match);
+  std::vector<std::optional<double>> result;
+  result.reserve(scores_.size());
+  for (const auto& column : score_table_->columns)
+    result.push_back(stored(column[match.slot_]));
+  return result;
+}
+std::vector<std::optional<double>> ID::Run::getScores(MatchId match) const
+{ return getScores(getMatch(match)); }
 void ID::Run::setScore(MatchId match, ScoreId score, std::optional<double> value)
 {
   checkMutation_();
   checkScore_(score);
   validNumber(value);
   if (! value && primary_ == score) invalid("Cannot clear a primary score");
-  match_(match).scores_[score.value] = value.value_or(std::numeric_limits<double>::quiet_NaN());
+  score_table_->columns[score.value][match_(match).slot_] = value.value_or(std::numeric_limits<double>::quiet_NaN());
+  ++revision_;
 }
 void ID::Run::setSelectedMatch(QueryId query_id, std::optional<MatchId> selected)
 {
@@ -619,6 +683,7 @@ void ID::Run::setSelectedMatch(QueryId query_id, std::optional<MatchId> selected
   if (selected && std::none_of(query.matches_.begin(), query.matches_.end(), [&](const Match& match) { return match.id_ == selected; }))
     invalid("Selected match is not owned by the query");
   query.selected_ = selected;
+  ++revision_;
 }
 void ID::Run::replaceObservation(QueryId query, const Observation& observation)
 {
@@ -626,13 +691,14 @@ void ID::Run::replaceObservation(QueryId query, const Observation& observation)
   validObservation(observation);
   Observation copy(observation);
   static_cast<Observation&>(query_(query)) = std::move(copy);
+  ++revision_;
 }
 void ID::Run::replaceMatch(MatchId match, const MatchData& data)
 {
   checkMutation_();
   auto& target = match_(match);
   if (! sameHypothesis(target, data)) invalid("Changing a molecular/ion hypothesis requires explicitly replacing its scores");
-  replaceMatch(match, data, target.getScores());
+  replaceMatch(match, data, getScores(target));
 }
 void ID::Run::replaceMatch(MatchId match, const MatchData& data, const std::vector<std::optional<double>>& values)
 {
@@ -641,20 +707,12 @@ void ID::Run::replaceMatch(MatchId match, const MatchData& data, const std::vect
   validateMatch_(data, values);
   Match replacement(target);
   static_cast<MatchData&>(replacement) = data;
-  replacement.scores_.assign(scores_.size(), std::numeric_limits<double>::quiet_NaN());
-  for (Size i = 0; i < values.size(); ++i)
-    if (values[i]) replacement.scores_[i] = *values[i];
-  if constexpr (std::is_nothrow_move_assignable_v<Match>) { target = std::move(replacement); }
-  else
-  {
-    // An optional adduct may need to construct a tree when it becomes engaged.
-    // Finish all potentially throwing work before replacing the query's storage.
-    auto& query = query_(getIdentificationForMatch(match).getId());
-    auto matches = query.matches_;
-    const auto offset = static_cast<Size>(&target - query.matches_.data());
-    matches[offset] = std::move(replacement);
-    query.matches_.swap(matches);
-  }
+  if (replacement.details && replacement.details->empty()) replacement.details.reset();
+  // The match keeps its row; its values are replaced after everything that may throw.
+  target = std::move(replacement);
+  for (Size i = 0; i < score_table_->columns.size(); ++i)
+    score_table_->columns[i][target.slot_] = i < values.size() && values[i] ? *values[i] : std::numeric_limits<double>::quiet_NaN();
+  ++revision_;
 }
 Size ID::Run::filterMatches(const std::function<bool(const Match&)>& keep, bool keep_empty_queries)
 {
@@ -669,44 +727,32 @@ Size ID::Run::filterMatches(const std::function<bool(const Match&)>& keep, bool 
         for (const auto& match : query.matches_)
           decisions.push_back(keep(match));
   }
-  Size at = 0, removed = 0;
-  if constexpr (std::is_nothrow_move_assignable_v<Match>)
+  // The score columns of the retained matches, in their order, are built before anything changes.
+  const Size retained = static_cast<Size>(std::count(decisions.begin(), decisions.end(), true));
+  std::vector<std::vector<double>> columns(score_table_->columns.size());
+  for (auto& column : columns)
+    column.reserve(retained);
   {
-    for (auto& source : sources_)
-      for (auto& query : source.identifications)
-      {
-        auto end = std::remove_if(query.matches_.begin(), query.matches_.end(), [&](const Match&) {
-          const bool erase = ! decisions[at++];
-          removed += erase;
-          return erase;
-        });
-        query.matches_.erase(end, query.matches_.end());
-      }
-  }
-  else
-  {
-    // Copy only survivors; a failed allocation or payload copy leaves every query
-    // intact. Vector swaps below form the nonthrowing commit on all platforms.
-    std::vector<std::vector<Match>> replacements;
-    replacements.reserve(query_count_);
+    Size at = 0;
     for (const auto& source : sources_)
       for (const auto& query : source.identifications)
-      {
-        auto& matches = replacements.emplace_back();
-        const auto end = at + query.matches_.size();
-        matches.reserve(std::count(decisions.begin() + at, decisions.begin() + end, true));
         for (const auto& match : query.matches_)
-        {
-          if (decisions[at++]) matches.push_back(match);
-          else
-            ++removed;
-        }
-      }
-    at = 0;
-    for (auto& source : sources_)
-      for (auto& query : source.identifications)
-        query.matches_.swap(replacements[at++]);
+          if (decisions[at++])
+            for (Size i = 0; i < columns.size(); ++i)
+              columns[i].push_back(score_table_->columns[i][match.slot_]);
   }
+  // Commit: matches move without throwing; erasing queries and swapping vectors cannot throw.
+  Size at = 0, removed = 0;
+  for (auto& source : sources_)
+    for (auto& query : source.identifications)
+    {
+      auto end = std::remove_if(query.matches_.begin(), query.matches_.end(), [&](const Match&) {
+        const bool erase = ! decisions[at++];
+        removed += erase;
+        return erase;
+      });
+      query.matches_.erase(end, query.matches_.end());
+    }
   for (auto& source : sources_)
     for (auto& query : source.identifications)
     {
@@ -722,8 +768,11 @@ Size ID::Run::filterMatches(const std::function<bool(const Match&)>& keep, bool 
       query_count_ -= before - source.identifications.size();
     }
   match_count_ -= removed;
+  score_table_->columns.swap(columns);
+  renumberRows_();
   import_finalized_ = true;
   invalidateIndexes_();
+  ++revision_;
   return removed;
 }
 Size ID::Run::eraseMatches(const std::function<bool(const Match&)>& remove, bool keep_empty_queries)
@@ -777,17 +826,18 @@ Size ID::Run::retainBest(ScoreId score, bool keep_ties, bool keep_empty_queries)
   for (const auto& source : sources_)
     for (const auto& query : source.identifications)
     {
+      const auto& column = score_table_->columns[score.value];
       std::optional<double> best;
       for (const auto& match : query.matches_)
       {
-        double value = match.scores_[score.value];
+        double value = column[match.slot_];
         if (std::isnan(value)) continue;
         if (! best || (scores_[score.value].higher_better ? value > *best : value < *best)) best = value;
       }
       bool taken = false;
       for (const auto& match : query.matches_)
       {
-        bool keep = best && match.scores_[score.value] == *best && (keep_ties || ! taken);
+        bool keep = best && column[match.slot_] == *best && (keep_ties || ! taken);
         retained.push_back(keep);
         taken = taken || keep;
       }
@@ -809,34 +859,18 @@ void ID::Run::transformMatches(const std::function<void(MatchData&)>& transform)
           MatchData data(match);
           transform(data);
           if (! sameHypothesis(match, data)) invalid("Transformation cannot change a hypothesis without explicit replacement scores");
-          validateMatch_(data, match.getScores());
+          validateMatch_(data, getScores(match));
+          if (data.details && data.details->empty()) data.details.reset();
           replacements.push_back(std::move(data));
         }
   }
+  // Moving the payloads cannot throw; rows and scores stay.
   Size at = 0;
-  if constexpr (std::is_nothrow_move_assignable_v<MatchData>)
-  {
-    for (auto& source : sources_)
-      for (auto& query : source.identifications)
-        for (auto& match : query.matches_)
-          static_cast<MatchData&>(match) = std::move(replacements[at++]);
-  }
-  else
-  {
-    std::vector<std::vector<Match>> queries;
-    queries.reserve(query_count_);
-    for (const auto& source : sources_)
-      for (const auto& query : source.identifications)
-      {
-        auto& matches = queries.emplace_back(query.matches_);
-        for (auto& match : matches)
-          static_cast<MatchData&>(match) = std::move(replacements[at++]);
-      }
-    at = 0;
-    for (auto& source : sources_)
-      for (auto& query : source.identifications)
-        query.matches_.swap(queries[at++]);
-  }
+  for (auto& source : sources_)
+    for (auto& query : source.identifications)
+      for (auto& match : query.matches_)
+        static_cast<MatchData&>(match) = std::move(replacements[at++]);
+  ++revision_;
 }
 Size ID::Run::getNumberOfIdentifications() const
 { return query_count_; }
@@ -852,12 +886,14 @@ void ID::Run::restoreIdentity(const std::string& identity, UInt64 next_query, UI
   next_query_id_ = next_query;
   next_match_id_ = next_match;
   import_finalized_ = true;
+  ++revision_;
 }
 void ID::Run::reserveMatchId(MatchId id)
 {
   checkMutation_();
   next_match_id_ = std::max(next_match_id_, following(id.value));
   import_finalized_ = true;
+  ++revision_;
 }
 void ID::Run::validate() const
 {
@@ -866,6 +902,15 @@ void ID::Run::validate() const
   std::vector<UInt64> queries, matches;
   queries.reserve(query_count_);
   matches.reserve(match_count_);
+  const auto& columns = score_table_->columns;
+  if (columns.size() != scores_.size()) invalid("Inconsistent score column count");
+  for (const auto& column : columns)
+  {
+    if (column.size() != match_count_) invalid("Inconsistent score column length");
+    for (double score : column)
+      if (! std::isnan(score) && ! std::isfinite(score)) invalid("Scores must be finite or missing");
+  }
+  std::vector<bool> rows(match_count_, false);
   for (const auto& source : sources_)
     for (const auto& query : source.identifications)
     {
@@ -878,11 +923,9 @@ void ID::Run::validate() const
       {
         ++nm;
         validateMatchData_(match);
-        if (match.scores_.size() != scores_.size()) invalid("Inconsistent score column count");
-        for (double score : match.scores_)
-          if (! std::isnan(score) && ! std::isfinite(score)) invalid("Scores must be finite or missing");
-        if (primary_ && (primary_->value >= match.scores_.size() || std::isnan(match.scores_[primary_->value])))
-          invalid("Primary score is missing on a candidate");
+        if (match.tag_ != score_table_->tag || match.slot_ >= rows.size() || rows[match.slot_]) invalid("Inconsistent score rows");
+        rows[match.slot_] = true;
+        if (primary_ && std::isnan(columns[primary_->value][match.slot_])) invalid("Primary score is missing on a candidate");
         if (! match.id_.value || match.id_.value >= next_match_id_) invalid("Invalid or duplicate match ID");
         matches.push_back(match.id_.value);
         if (query.selected_ == match.id_) selected_found = true;
@@ -1003,11 +1046,10 @@ bool ID::Run::operator==(const Run& other) const
       {
         const auto& match = query.getMatches()[m];
         const auto& rm = rq.getMatches()[m];
-        if (match.getId() != rm.getId() || match.getData() != rm.getData() || match.getScoreValues().size() != rm.getScoreValues().size())
-          return false;
-        for (Size j = 0; j < match.getScoreValues().size(); ++j)
+        if (match.getId() != rm.getId() || match.getData() != rm.getData()) return false;
+        for (Size j = 0; j < scores_.size(); ++j)
         {
-          double left = match.getScoreValues()[j], right = rm.getScoreValues()[j];
+          double left = score_table_->columns[j][match.slot_], right = other.score_table_->columns[j][rm.slot_];
           if (left != right && ! (std::isnan(left) && std::isnan(right))) return false;
         }
       }
@@ -1250,14 +1292,17 @@ void ID::setPrimaryScore(const ScoreDefinition& definition)
     // Same exemptions as the score contract: unconfigured empty runs and scoreless catalogs.
     if (! run.primary_ && run.scores_.empty() && (run.match_count_ == 0 || isCatalog(run))) continue;
     const auto score = run.findScore(definition);
-    for (const auto& source : run.sources_)
-      for (const auto& query : source.identifications)
-        for (const auto& match : query.getMatches())
-          if (std::isnan(match.getScoreValues()[score.value])) invalid("Primary score is missing on a candidate in run '" + run.identifier_ + "'");
+    const auto& column = run.score_table_->columns[score.value];
+    if (std::any_of(column.begin(), column.end(), [](double value) { return std::isnan(value); }))
+      invalid("Primary score is missing on a candidate in run '" + run.identifier_ + "'");
     selections.emplace_back(&run, score);
   }
   // Every potentially throwing operation precedes the commit.
-  for (auto& [run, score] : selections) run->primary_ = score;
+  for (auto& [run, score] : selections)
+  {
+    run->primary_ = score;
+    ++run->revision_;
+  }
 }
 void ID::validate() const
 {

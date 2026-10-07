@@ -1894,7 +1894,7 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - owning identificatio
   ID::MatchData compound;
   compound.encoding = ID::Encoding::SMILES;
   compound.representation = "C(=O)O";
-  compound.name = "formic acid";
+  compound.details.emplace().name = "formic acid";
   compound.charge = 1;
   compound.setMetaValue("inchi_key", "InChI=1S/CH2O2/c2-1-3/h1H,(H,2,3)");
   const auto match = run.addMatch(query, compound, {0.25});
