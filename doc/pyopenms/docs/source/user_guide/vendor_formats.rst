@@ -113,6 +113,10 @@ example, the :term:`MS1` spectra are not needed:
 ``export_mode`` selects the layout: ``AUTO`` (the default) detects DDA or DIA, ``SPECTRUM``
 forces the per-precursor layout and ``FRAME`` returns the raw frames. Other fields control m/z
 recalibration, frame aggregation and centroiding along the ion mobility axis.
+``ms2_centroid_algo`` (:py:class:`~.BrukerTimsFile.Config.CentroidAlgo`: ``OFF``, ``GREEDY2D`` or
+``HILL_BASED``) selects the MS2 centroiding of DIA-PASEF and DDA-PASEF. ``GREEDY2D`` needs RT-neighbour
+aggregation (``dia_ms2_n_neighbors > 0``); ``HILL_BASED`` centroids across the ion mobility scans of each
+frame and also works with ``dia_ms2_n_neighbors = 0``.
 :py:class:`~.FileHandler` reads ``.d`` directories with the default configuration.
 
 Bruker's SDK is not needed: m/z and ion mobility are computed from the calibration stored in the
