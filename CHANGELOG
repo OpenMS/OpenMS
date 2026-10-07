@@ -24,6 +24,8 @@ OpenMS Library:
     rejected with the conflicting definitions named; normalize scores first (e.g. per-engine
     PercolatorAdapter or IDPosteriorErrorProbability). Merging keeps references to existing runs valid.
     Runs are edited in place and are not assignable, so a stale copy cannot reuse IDs.
+    Legacy export writes inference over several runs as one merged protein run (as IDMerger
+    creates it) when their search settings are mergeable, and keeps inference score definitions.
     API: the reference graph is removed (IDDataContainer.h, IdentifiedMolecule.h, IdentifiedSequence.h,
     IdentifiedCompound.h, ObservationMatch.h, ObservationMatchGroup.h, Observation.h, ScoreType.h,
     ScoredProcessingResult.h, AppliedProcessingStep.h, ProcessingStep.h, ProcessingSoftware.h,

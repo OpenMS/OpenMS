@@ -15,6 +15,8 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <map>
+#include <optional>
 #include <set>
 #include <tuple>
 #include <type_traits>
@@ -141,6 +143,20 @@ namespace
     return selected;
   }
 
+  /// The primary MS files of a run, as its legacy protein run lists them.
+  StringList primaryFiles(const ID::Run& run)
+  {
+    StringList paths;
+    run.getProcessingMetadata().getPrimaryMSRunPath(paths);
+    if (! paths.empty()) return paths;
+    for (const auto& source : run.getSourceBlocks())
+      if (! source.source.primary_files.empty()) return source.source.primary_files;
+    for (const auto& source : run.getSourceBlocks())
+      if (! source.source.path.empty() && std::find(paths.begin(), paths.end(), source.source.path) == paths.end())
+        paths.push_back(source.source.path);
+    return paths;
+  }
+
   ProteinIdentification originalParents(const ID::Run& run, Adapter::LegacyResult& result, const Adapter::ExportOptions& options)
   {
     auto proteins = run.getProcessingMetadata();
@@ -149,18 +165,7 @@ namespace
     proteins.getPrimaryMSRunPath(paths);
     if (paths.empty())
     {
-      for (const auto& source : run.getSourceBlocks())
-      {
-        if (! source.source.primary_files.empty())
-        {
-          paths = source.source.primary_files;
-          break;
-        }
-      }
-      if (paths.empty())
-        for (const auto& source : run.getSourceBlocks())
-          if (! source.source.path.empty() && std::find(paths.begin(), paths.end(), source.source.path) == paths.end())
-            paths.push_back(source.source.path);
+      paths = primaryFiles(run);
       if (! paths.empty()) proteins.setPrimaryMSRunPath(paths);
     }
     if (run.getParents())
@@ -187,6 +192,135 @@ namespace
       proteins.setHits(hits);
     }
     return proteins;
+  }
+
+  // Inference score definitions have no legacy field. They travel as prefixed metadata of the
+  // legacy protein run, and import removes them again.
+  const std::string INFERENCE_SCORE_PREFIX = "identification:inference:";
+
+  void writeScoreDefinition(MetaInfoInterface& target, const std::string& role, const ID::ScoreDefinition& definition)
+  {
+    const auto prefix = INFERENCE_SCORE_PREFIX + role + ":";
+    target.setMetaValue(prefix + "name", definition.name);
+    target.setMetaValue(prefix + "higher_better", definition.higher_better ? "true" : "false");
+    target.setMetaValue(prefix + "scope", static_cast<Int>(definition.scope));
+    for (const auto& [field, value] : {std::pair {"accession", &definition.accession},
+                                       std::pair {"software", &definition.software},
+                                       std::pair {"software_version", &definition.software_version},
+                                       std::pair {"calibration", &definition.calibration},
+                                       std::pair {"aggregation", &definition.aggregation}})
+      if (! value->empty()) target.setMetaValue(prefix + field, *value);
+    std::vector<std::string> keys;
+    definition.parameters.getKeys(keys);
+    for (const auto& key : keys)
+      target.setMetaValue(prefix + "parameter:" + key, definition.parameters.getMetaValue(key));
+  }
+
+  std::optional<ID::ScoreDefinition> takeScoreDefinition(MetaInfoInterface& source, const std::string& role)
+  {
+    const auto prefix = INFERENCE_SCORE_PREFIX + role + ":";
+    std::vector<std::string> keys;
+    source.getKeys(keys);
+    std::erase_if(keys, [&](const auto& key) { return ! key.starts_with(prefix); });
+    if (keys.empty()) return std::nullopt;
+    if (! source.metaValueExists(prefix + "name")) invalid("Incomplete legacy inference score definition: " + role);
+    ID::ScoreDefinition definition;
+    for (const auto& key : keys)
+    {
+      const auto field = key.substr(prefix.size());
+      const auto& value = source.getMetaValue(key);
+      if (field.starts_with("parameter:"))
+        definition.parameters.setMetaValue(field.substr(std::string("parameter:").size()), value);
+      else if (field == "higher_better")
+      {
+        if (value.toString() != "true" && value.toString() != "false") invalid("Invalid legacy inference score direction: " + key);
+        definition.higher_better = value.toString() == "true";
+      }
+      else if (field == "scope")
+      {
+        const Int scope = value.valueType() == DataValue::INT_VALUE ? static_cast<Int>(value) : -1;
+        if (scope < 0 || scope > static_cast<Int>(ID::ScoreScope::OTHER)) invalid("Invalid legacy inference score scope: " + key);
+        definition.scope = static_cast<ID::ScoreScope>(scope);
+      }
+      else if (field == "name") definition.name = value.toString();
+      else if (field == "accession") definition.accession = value.toString();
+      else if (field == "software") definition.software = value.toString();
+      else if (field == "software_version") definition.software_version = value.toString();
+      else if (field == "calibration") definition.calibration = value.toString();
+      else if (field == "aggregation") definition.aggregation = value.toString();
+      else invalid("Unknown legacy inference score field: " + key);
+      source.removeMetaValue(key);
+    }
+    return definition;
+  }
+
+  /// The legacy protein run of an inference result. In the legacy model, inference over several runs
+  /// works on one merged protein run (as IDMerger or ProteinInference create it), whose PSMs locate
+  /// their file through id_merge_index.
+  struct LegacyInference
+  {
+    ProteinIdentification proteins;
+    std::map<std::string, Size> file_offsets; ///< Run UUID of each joined run -> index of its first primary MS file.
+  };
+
+  LegacyInference legacyInference(const ID& data, const ID::InferenceResult& inference, Adapter::LegacyResult& result,
+                                  const Adapter::ExportOptions& options)
+  {
+    LegacyInference merged {inference.proteins, {}};
+    if (merged.proteins.getIdentifier().empty()) merged.proteins.setIdentifier(inference.identifier);
+    StringList files;
+    std::vector<const ID::Run*> joined;
+    const ID::InferenceInput* first_input = nullptr;
+    for (const auto& input : inference.inputs)
+    {
+      const auto* run = data.findRunByUuid(input.run_uuid);
+      // Inputs that are no longer part of the dataset contribute no PSMs.
+      if (! run || run->getMoleculeKind() != ID::MoleculeKind::PEPTIDE || merged.file_offsets.contains(run->getUuid())) continue;
+      if (first_input)
+      {
+        // A run only joins if its PSMs keep their search settings; otherwise it stays a separate protein run.
+        const auto& reference = joined.front()->getProcessingMetadata();
+        const auto& processing = run->getProcessingMetadata();
+        if (processing.getSearchEngine() != reference.getSearchEngine() || processing.getSearchEngineVersion() != reference.getSearchEngineVersion()
+            || ! processing.getSearchParameters().mergeable(reference.getSearchParameters(), "label-free"))
+        {
+          loss(result, options,
+               "Pooled inference input run " + run->getIdentifier() + " cannot share a legacy protein run with " + joined.front()->getIdentifier()
+                 + "; it is exported without the inference result " + inference.identifier);
+          continue;
+        }
+        if (processing.getSearchParameters() != reference.getSearchParameters())
+          loss(result, options,
+               "Pooled inference input run " + run->getIdentifier() + " differs in search settings from " + joined.front()->getIdentifier()
+                 + "; the merged legacy protein run keeps those of " + joined.front()->getIdentifier());
+        if (input.score != first_input->score)
+          loss(result, options, "Legacy export cannot represent different input scores of the pooled inference result " + inference.identifier);
+      }
+      else
+      {
+        first_input = &input;
+        if (input.score) writeScoreDefinition(merged.proteins, "input_score", *input.score);
+      }
+      merged.file_offsets[run->getUuid()] = files.size();
+      const auto run_files = primaryFiles(*run);
+      files.insert(files.end(), run_files.begin(), run_files.end());
+      joined.push_back(run);
+    }
+    if (joined.size() > 1)
+    {
+      for (const auto* run : joined)
+        if (primaryFiles(*run).empty())
+          loss(result, options,
+               "Pooled inference input run " + run->getIdentifier() + " has no primary MS file that identifies its PSMs in the merged legacy protein run");
+    }
+    if (! files.empty()) merged.proteins.setPrimaryMSRunPath(files);
+    if (inference.parent_score) writeScoreDefinition(merged.proteins, "parent_score", *inference.parent_score);
+    if (inference.group_score) writeScoreDefinition(merged.proteins, "group_score", *inference.group_score);
+    // Legacy proteins are identified by accession within the protein run's database.
+    for (const auto& [alias, identity] : inference.qualified_accessions)
+      if (alias != identity.accession || identity.database != merged.proteins.getSearchParameters().db)
+        loss(result, options, "Legacy export cannot represent parents of several databases in the inference result " + inference.identifier);
+    return merged;
   }
 
   std::vector<Adapter::FeatureAssociation> makeAssociations(const Adapter::ImportResult& imported, std::vector<Adapter::FeatureAssociation> locations)
@@ -254,9 +388,17 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
   ImportResult result;
   auto definitions = ModificationDefinitionIO::collect(proteins, peptides);
   std::map<std::string, ProteinIdentification> originals;
+  struct InferenceScores
+  {
+    std::optional<ID::ScoreDefinition> parent, group, input;
+  };
+  std::map<std::string, InferenceScores> inference_scores;
   for (auto protein : proteins)
   {
     if (originals.contains(protein.getIdentifier())) invalid("Duplicate legacy protein run identifier: " + protein.getIdentifier());
+    // Score definitions of an exported inference result belong to that result, not to the run.
+    inference_scores[protein.getIdentifier()] = {takeScoreDefinition(protein, "parent_score"), takeScoreDefinition(protein, "group_score"),
+                                                 takeScoreDefinition(protein, "input_score")};
     auto params = protein.getSearchParameters();
     ModificationDefinitionIO::attach(params, definitions[protein.getIdentifier()]);
     protein.setSearchParameters(params);
@@ -390,6 +532,8 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
     ID::InferenceResult inference;
     inference.identifier = "legacy:" + name;
     inference.proteins = original;
+    inference.parent_score = inference_scores[name].parent;
+    inference.group_score = inference_scores[name].group;
     for (const auto& hit : original.getHits())
       inference.qualified_accessions[hit.getAccession()] = {original.getSearchParameters().db, hit.getAccession()};
     for (const auto& run_name : input_runs[name])
@@ -399,6 +543,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
       input.run_identifier = run_name;
       input.run_uuid = run.getUuid();
       input.selection = "Imported legacy run-level provenance";
+      input.score = inference_scores[name].input;
       inference.inputs.push_back(std::move(input));
     }
     result.data.addInferenceResult(inference);
@@ -430,6 +575,7 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
       }))
     invalid("Selected inference result does not exist");
   std::set<std::string> handled_inference;
+  std::map<const ID::InferenceResult*, LegacyInference> legacy_inference;
   std::map<std::string, Size> protein_indices;
   for (const auto& run : data.getRuns())
   {
@@ -438,15 +584,24 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
       loss(result, options, "Legacy peptide/protein export cannot represent non-peptide run " + run.getIdentifier());
       continue;
     }
-    const auto* inference = selectInference(data, run, options);
-    auto proteins = inference ? inference->proteins : originalParents(run, result, options);
-    if (proteins.getIdentifier().empty()) proteins.setIdentifier(run.getIdentifier());
-    if (inference && handled_inference.insert(inference->identifier).second)
+    const LegacyInference* shared = nullptr;
+    if (const auto* inference = selectInference(data, run, options))
     {
-      if (inference->parent_score || inference->group_score
-          || std::any_of(inference->inputs.begin(), inference->inputs.end(), [](const auto& input) { return input.score.has_value(); }))
-        loss(result, options, "Legacy export cannot preserve complete inference score definitions: " + inference->identifier);
+      auto found = legacy_inference.find(inference);
+      if (found == legacy_inference.end()) found = legacy_inference.emplace(inference, legacyInference(data, *inference, result, options)).first;
+      if (found->second.file_offsets.contains(run.getUuid()))
+      {
+        shared = &found->second;
+        handled_inference.insert(inference->identifier);
+      }
     }
+    auto proteins = shared ? shared->proteins : originalParents(run, result, options);
+    if (proteins.getIdentifier().empty()) proteins.setIdentifier(run.getIdentifier());
+    StringList legacy_paths;
+    proteins.getPrimaryMSRunPath(legacy_paths);
+    // The files of this run. In a merged protein run, they start at file_offset.
+    const auto run_paths = shared ? primaryFiles(run) : legacy_paths;
+    const Size file_offset = shared ? shared->file_offsets.at(run.getUuid()) : 0;
     const auto primary = run.getPrimaryScore();
     if (primary)
     {
@@ -491,13 +646,11 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
     registerDefinitions(run.getProcessingMetadata().getSearchParameters());
     for (const auto& source : run.getSourceBlocks())
     {
-      StringList original_paths;
-      proteins.getPrimaryMSRunPath(original_paths);
-      if ((! source.source.primary_files.empty() && source.source.primary_files != original_paths)
-          || (! source.source.path.empty() && std::find(original_paths.begin(), original_paths.end(), source.source.path) == original_paths.end()))
+      if ((! source.source.primary_files.empty() && source.source.primary_files != run_paths)
+          || (! source.source.path.empty() && std::find(run_paths.begin(), run_paths.end(), source.source.path) == run_paths.end()))
         loss(result, options, "Source descriptor cannot be represented by the selected legacy protein run: " + run.getIdentifier());
       if (! source.source.isMetaEmpty()) loss(result, options, "Legacy export cannot retain source-level metadata: " + run.getIdentifier());
-      if (source.source.path.empty() && original_paths.size() == 1)
+      if (source.source.path.empty() && legacy_paths.size() == 1)
         loss(result, options, "An unknown source cannot be represented in a legacy run with exactly one known source: " + run.getIdentifier());
       for (const auto& query : source.identifications)
       {
@@ -512,27 +665,31 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
         if (query.rt) item.setRT(*query.rt);
         if (query.mz) item.setMZ(*query.mz);
         if (! query.data_id.empty()) item.setSpectrumReference(query.data_id);
+        // A retained legacy index counts within this run's files.
+        std::optional<Size> file_index;
         if (item.metaValueExists("id_merge_index"))
         {
           const auto& index_value = item.getMetaValue("id_merge_index");
           bool valid_index = index_value.valueType() == DataValue::INT_VALUE;
           const Int64 index = valid_index ? static_cast<Int64>(index_value) : -1;
-          valid_index = valid_index && index >= 0 && static_cast<Size>(index) < original_paths.size() && ! source.source.path.empty()
-                        && original_paths[static_cast<Size>(index)] == source.source.path;
-          if (! valid_index)
+          valid_index = valid_index && index >= 0 && static_cast<Size>(index) < run_paths.size() && ! source.source.path.empty()
+                        && run_paths[static_cast<Size>(index)] == source.source.path;
+          if (valid_index)
+            file_index = static_cast<Size>(index);
+          else
           {
             loss(result, options, "Legacy source index contradicts its source descriptor: " + run.getIdentifier());
             item.removeMetaValue("id_merge_index");
           }
         }
-        if (! item.metaValueExists("id_merge_index") && ! source.source.path.empty() && original_paths.size() > 1)
+        if (! file_index && ! source.source.path.empty() && legacy_paths.size() > 1)
         {
-          if (std::count(original_paths.begin(), original_paths.end(), source.source.path) == 1)
-            item.setMetaValue("id_merge_index", static_cast<Int64>(std::find(original_paths.begin(), original_paths.end(), source.source.path)
-                                                                   - original_paths.begin()));
+          if (std::count(run_paths.begin(), run_paths.end(), source.source.path) == 1)
+            file_index = static_cast<Size>(std::find(run_paths.begin(), run_paths.end(), source.source.path) - run_paths.begin());
           else
             loss(result, options, "Duplicate source paths need an explicit legacy file index: " + run.getIdentifier());
         }
+        if (file_index) item.setMetaValue("id_merge_index", static_cast<Int64>(*file_index + file_offset));
         if (query.getSelectedMatch()) loss(result, options, "Legacy export cannot preserve an explicit selected candidate: " + run.getIdentifier());
         for (const auto& match : query.getMatches())
         {

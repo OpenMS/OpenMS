@@ -4,33 +4,42 @@
 // $Authors: Timo Sachsenberg $
 #include <OpenMS/ANALYSIS/ID/IdentificationDataInference.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <algorithm>
 #include <filesystem>
 
 using namespace OpenMS;
 using ID = IdentificationData;
 using Inference = IdentificationDataInference;
+using Adapter = IdentificationDataAdapter;
 
 namespace
 {
-void addRun(ID& data, const std::string& name, const std::string& database, bool pep)
+void addRun(ID& data, const std::string& name, const std::string& database, bool pep, const std::string& file = "")
 {
   auto& run = data.addRun(name);
   ProteinIdentification processing;
   processing.setIdentifier(name);
+  processing.setSearchEngine("engine");
   processing.getSearchParameters().db = database;
+  if (! file.empty()) processing.setPrimaryMSRunPath({file});
   run.setProcessingMetadata(processing);
   ID::ScoreDefinition definition;
   definition.name = pep ? "PEP" : "Posterior Probability";
   definition.higher_better = ! pep;
+  definition.software = "engine";
   const auto score = run.addScore(definition);
   run.setPrimaryScore(score);
   ID::ParentRecord parent;
   parent.identity = {database, "P1"};
   parent.sequence = "PEPTIDEOTHER";
   run.setParents(std::vector<ID::ParentRecord> {parent});
-  const auto source = run.addSource({});
+  ID::SourceFile file_source;
+  file_source.path = file;
+  const auto source = run.addSource(file_source);
   auto query = run.addIdentification(source, {});
   ID::MatchData match;
   match.representation = database == "dbB" ? "OTHER" : "PEPTIDE";
@@ -175,6 +184,107 @@ START_SECTION([EXTRA] pooled inference rejects inconsistent mappings of the same
 }
 END_SECTION
 
+
+START_SECTION([EXTRA] legacy export writes pooled inference as one merged protein run)
+{
+  // Two runs of the same search, as IDMerger or ProteinInference would merge them in the legacy model.
+  ID data;
+  addRun(data, "A", "db.fasta", true, "a.mzML");
+  addRun(data, "B", "db.fasta", true, "b.mzML");
+  const auto pooled = Inference::infer(data, inputs(data), "pooled");
+  TEST_TRUE(pooled.parent_score.has_value())
+  data.addInferenceResult(pooled);
+
+  // Strict export represents the bridge output, including its score definitions.
+  const auto exported = Adapter::toLegacy(data);
+  TEST_EQUAL(exported.losses.size(), 0)
+  TEST_EQUAL(exported.proteins.size(), 1)
+  ABORT_IF(exported.proteins.size() != 1)
+  const auto& merged = exported.proteins[0];
+  TEST_EQUAL(merged.getIdentifier(), "pooled")
+  StringList paths;
+  merged.getPrimaryMSRunPath(paths);
+  TEST_EQUAL(ListUtils::concatenate(paths, ","), "a.mzML,b.mzML")
+  TEST_EQUAL(merged.getHits().size(), pooled.proteins.getHits().size())
+  TEST_EQUAL(exported.peptides.size(), 2)
+  for (Size i = 0; i < exported.peptides.size(); ++i)
+  {
+    TEST_EQUAL(exported.peptides[i].getIdentifier(), "pooled")
+    TEST_EQUAL(static_cast<Int>(exported.peptides[i].getMetaValue("id_merge_index")), static_cast<Int>(i))
+  }
+
+  // Importing the legacy run (here from idXML) restores the files and the inference score definitions.
+  std::string path;
+  NEW_TMP_FILE(path)
+  IdXMLFile().store(path, exported.proteins, exported.peptides);
+  std::vector<ProteinIdentification> stored_proteins;
+  PeptideIdentificationList stored_peptides;
+  IdXMLFile().load(path, stored_proteins, stored_peptides);
+  const auto imported = Adapter::importLegacy(stored_proteins, stored_peptides).data;
+  TEST_EQUAL(imported.getRuns().size(), 1)
+  TEST_EQUAL(imported.getInferenceResults().size(), 1)
+  ABORT_IF(imported.getRuns().size() != 1 || imported.getRuns()[0].getSourceBlocks().size() != 2 || imported.getInferenceResults().size() != 1)
+  const auto& run = imported.getRuns()[0];
+  TEST_EQUAL(run.getSourceBlocks()[0].source.path, "a.mzML")
+  TEST_EQUAL(run.getSourceBlocks()[1].source.path, "b.mzML")
+  TEST_EQUAL(run.getProcessingMetadata().metaValueExists("identification:inference:parent_score:name"), false)
+  const auto& restored = imported.getInferenceResults()[0];
+  TEST_TRUE(restored.parent_score == pooled.parent_score)
+  TEST_TRUE(restored.group_score == pooled.group_score)
+  TEST_EQUAL(restored.inputs.size(), 1)
+  ABORT_IF(restored.inputs.size() != 1)
+  TEST_TRUE(restored.inputs[0].score == pooled.inputs[0].score)
+  TEST_EQUAL(restored.proteins.metaValueExists("identification:inference:parent_score:name"), false)
+  TEST_EQUAL(Adapter::toLegacy(imported).losses.size(), 0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] legacy export never attaches a run to the search settings of another run)
+{
+  ID data;
+  addRun(data, "A", "dbA", true);
+  addRun(data, "B", "dbB", true);
+  data.addInferenceResult(Inference::infer(data, inputs(data), "pooled"));
+  // Different databases cannot share one legacy protein run.
+  TEST_EXCEPTION(Exception::InvalidParameter, Adapter::toLegacy(data))
+  Adapter::ExportOptions options;
+  options.loss_policy = Adapter::LossPolicy::ALLOW;
+  const auto exported = Adapter::toLegacy(data, options);
+  TEST_EQUAL(exported.proteins.size(), 2)
+  ABORT_IF(exported.proteins.size() != 2 || exported.peptides.size() != 2)
+  TEST_EQUAL(exported.proteins[0].getIdentifier(), "pooled")
+  TEST_EQUAL(exported.proteins[0].getSearchParameters().db, "dbA")
+  TEST_EQUAL(exported.proteins[1].getIdentifier(), "B")
+  TEST_EQUAL(exported.proteins[1].getSearchParameters().db, "dbB")
+  TEST_EQUAL(exported.peptides.size(), 2)
+  TEST_EQUAL(exported.peptides[0].getIdentifier(), "pooled")
+  TEST_EQUAL(exported.peptides[1].getIdentifier(), "B")
+  TEST_TRUE(std::any_of(exported.losses.begin(), exported.losses.end(),
+                        [](const auto& loss) { return loss.find("cannot share") != std::string::npos; }))
+
+  // Settings that legacy merging accepts but that differ are a reported loss.
+  ID close;
+  addRun(close, "A", "db.fasta", true, "a.mzML");
+  addRun(close, "B", "db.fasta", true, "b.mzML");
+  auto processing = close.getRun("B").getProcessingMetadata();
+  processing.getSearchParameters().missed_cleavages = 2;
+  close.getRun("B").setProcessingMetadata(processing);
+  close.addInferenceResult(Inference::infer(close, inputs(close), "pooled"));
+  TEST_EXCEPTION(Exception::InvalidParameter, Adapter::toLegacy(close))
+  const auto merged = Adapter::toLegacy(close, options);
+  TEST_EQUAL(merged.proteins.size(), 1)
+  ABORT_IF(merged.peptides.size() != 2)
+  TEST_EQUAL(merged.peptides[1].getIdentifier(), "pooled")
+  TEST_EQUAL(merged.losses.size(), 1)
+
+  // Without primary MS files, the PSMs of the merged runs could not be told apart.
+  ID unnamed;
+  addRun(unnamed, "A", "db.fasta", true);
+  addRun(unnamed, "B", "db.fasta", true);
+  unnamed.addInferenceResult(Inference::infer(unnamed, inputs(unnamed), "pooled"));
+  TEST_EXCEPTION(Exception::InvalidParameter, Adapter::toLegacy(unnamed))
+}
+END_SECTION
 
 START_SECTION([EXTRA] an evidence - only run can share a later parent catalogue)
 {

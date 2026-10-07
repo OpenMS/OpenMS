@@ -123,8 +123,18 @@ unmatched masses are queries without candidates.
 
 `IdentificationDataAdapter::fromLegacy` imports peptide/protein identifications; `toLegacy`
 exports them. Export is strict by default: information the established classes cannot represent
-(e.g. explicit selected candidates, compound or oligonucleotide runs, inference score
-definitions) is rejected. `LossPolicy::ALLOW` returns a loss report instead.
+(e.g. explicit selected candidates, compound or oligonucleotide runs) is rejected.
+`LossPolicy::ALLOW` returns a loss report instead.
+
+An inference result becomes one protein run. Inference over several runs is exported as the
+legacy model represents it: one merged protein run (as IDMerger creates it) that lists the files of
+all input runs, with `id_merge_index` on each PSM. A run joins only if its search engine and
+settings are mergeable by the legacy rules (`SearchParameters::mergeable`); settings that are
+mergeable but not identical are reported as a loss, and a run that cannot join is exported as its
+own protein run without the inference result, never under another run's settings. The score
+definitions of the inference result (protein, group and input score) are stored as
+`identification:inference:*` metadata of the protein run, and import restores them.
+
 `IdentificationDataConverter` keeps the RNA and compound conventions of idXML and mzTab, and
 converts feature annotations (`importFeatureIDs`, `exportFeatureIDs`).
 
