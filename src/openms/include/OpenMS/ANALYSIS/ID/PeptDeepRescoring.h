@@ -124,6 +124,14 @@ namespace OpenMS
     /// -1 if annotate() has not run, or could not calibrate.
     double getRTCalibrationError() const;
 
+    /// Number of PSMs (peptide hits) seen by the last annotate() call.
+    Size getNumPSMs() const;
+
+    /// Number of PSMs of the last annotate() call that received a model prediction
+    /// and carry peak annotations, i.e. whose MS2 features are computed rather than
+    /// zero-filled. 0 if annotate() returned early or predicted nothing.
+    Size getNumPredictedPSMs() const;
+
   protected:
     void updateMembers_() override;
 
@@ -170,6 +178,8 @@ namespace OpenMS
 
     double used_nce_{-1.0};
     double rt_calibration_error_{-1.0};
+    Size num_psms_{0};
+    Size num_predicted_psms_{0};
   };
 
 } // namespace OpenMS
