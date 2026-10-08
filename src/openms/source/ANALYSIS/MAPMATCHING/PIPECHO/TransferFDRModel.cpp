@@ -228,22 +228,6 @@ const TransferFDRModel::group_t& TransferFDRModel::run(double fdr_cutoff)
                   << " reduced acceptors from " << before << " to "
                   << acceptors_.size() << std::endl;
 
-  // One last pass to update the `Feature` target/decoy status:
-  for (auto& acceptor : acceptors_)
-  {
-    // Only update the status for known decoys.  We don't really
-    // "know" if a target is real or not so just leave it alone.
-    if (! acceptor->is_target())
-    {
-      auto hit = Util::feature_hit(acceptor->acceptor.get().feature);
-
-      if (hit.has_value())
-      {
-        hit->setTargetDecoyType(PeptideHit::TargetDecoyType::DECOY);
-      }
-    }
-  }
-
   // The FDR was estimable (we passed the gate above), but the fallback filter
   // may still have removed every transfer.  Report that loudly rather than
   // leaving only the soft "falling back to MBR scores" note, so silent
@@ -515,8 +499,8 @@ void TransferFDRModel::compute_qvalues(bool pep_values_are_valid)
   {
     ++total_so_far;
 
-    bool is_peptide_decoy
-      = Util::feature_is_decoy(acceptor->acceptor.get().feature);
+    const auto& hit = acceptor->acceptor.get().hit;
+    bool is_peptide_decoy = hit.has_value() && hit->decoy;
     bool is_mbr_decoy = ! acceptor->is_target();
 
     if (is_peptide_decoy && ! is_mbr_decoy) { ++decoy_peptide_count; }

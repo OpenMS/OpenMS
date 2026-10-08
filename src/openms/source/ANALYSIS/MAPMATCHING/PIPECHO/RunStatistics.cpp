@@ -109,7 +109,7 @@ RunStatistics::normal_t RunStatistics::init_mass_error(const Run& run) const
 
   for (auto& donor : run.donors.storage)
   {
-    auto me = Util::feature_mass_error(donor->feature);
+    auto me = Util::feature_mass_error(donor->feature, donor->hit);
     if (me.has_value()) mass_errors.push_back(*me);
   }
 
@@ -150,7 +150,7 @@ RunStatistics::normal_t RunStatistics::init_im_tolerance(const Run& run, bool en
 }
 
 /******************************************************************************/
-Score RunStatistics::score(const Feature& donor, const Feature& acceptor,
+Score RunStatistics::score(const Donor& donor, const Feature& acceptor,
                            std::optional<double> donor_rt_override,
                            RtScoreMode rt_mode,
                            const boost::math::normal* rt_dist) const
@@ -169,7 +169,7 @@ Score RunStatistics::score(const Feature& donor, const Feature& acceptor,
   // local adaptive RT path donor_rt is the locally PREDICTED acceptor RT centre,
   // so the SIGNED residual below is exactly what the RT prediction-error
   // distribution (built leave-one-out from anchors) is calibrated against.
-  const double donor_rt = donor_rt_override.value_or(donor.getRT());
+  const double donor_rt = donor_rt_override.value_or(donor.feature.getRT());
   const double signed_rt = acceptor.getRT() - donor_rt;
   Score s = {.intensity = calc_intensity_score(acceptor),
              .rt_diff_error = std::fabs(signed_rt),
@@ -201,7 +201,7 @@ Score RunStatistics::score(const Feature& donor, const Feature& acceptor,
   double product = s.intensity * s.mass_error;
   double measures = 2.0;
 
-  if (auto im = calc_im_score(donor, acceptor); im.has_value())
+  if (auto im = calc_im_score(donor.feature, acceptor); im.has_value())
   {
     s.im_diff_score = *im;
     product *= *im;
@@ -234,15 +234,15 @@ double RunStatistics::calc_intensity_score(const Feature& acceptor) const
 }
 
 /******************************************************************************/
-double RunStatistics::calc_mass_error_score(const Feature& donor,
+double RunStatistics::calc_mass_error_score(const Donor& donor,
                                             const Feature& acceptor) const
 {
   // The acceptor is unidentified by construction, so its own ID cannot give a
   // mass error.  Compute the acceptor m/z error against the donor's peptide
   // sequence/charge -- the identity that would be transferred to it.
-  auto donor_hit = Util::feature_hit(donor);
+  const auto& donor_hit = donor.hit;
   if (! donor_hit.has_value()) return MIN_SCORE;
-  double theoretical = donor_hit->getSequence().getMZ(donor_hit->getCharge());
+  double theoretical = donor_hit->sequence.getMZ(donor_hit->charge);
   return calc_score_using(mass_error, Math::getPPM(acceptor.getMZ(), theoretical));
 }
 
@@ -271,18 +271,18 @@ RunStatistics::calc_im_score(const Feature& donor, const Feature& acceptor) cons
 }
 
 /******************************************************************************/
-double RunStatistics::calc_isotope_score(const Feature& donor, const Feature& acceptor) const
+double RunStatistics::calc_isotope_score(const Donor& donor, const Feature& acceptor) const
 {
   // Neutral "uncorrelated" value when the envelope is unavailable/too short.
   constexpr double NA = 0.5;
 
   auto obs = Util::feature_obs_envelope(acceptor);
-  auto donor_hit = Util::feature_hit(donor);
+  const auto& donor_hit = donor.hit;
   if (! obs.has_value() || ! donor_hit.has_value()) { return NA; }
 
   // Donor peptide's theoretical isotope envelope (neutral formula -- the relative
   // isotope intensities are charge-independent), to the observed envelope length.
-  IsotopeDistribution iso = donor_hit->getSequence().getFormula().getIsotopeDistribution(
+  IsotopeDistribution iso = donor_hit->sequence.getFormula().getIsotopeDistribution(
     CoarseIsotopePatternGenerator(obs->size()));
 
   std::vector<double> theo;

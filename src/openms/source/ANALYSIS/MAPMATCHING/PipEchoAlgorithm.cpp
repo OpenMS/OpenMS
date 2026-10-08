@@ -180,103 +180,106 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
 PipEchoAlgorithm::~PipEchoAlgorithm() = default;
 
 /******************************************************************************/
-void PipEchoAlgorithm::group(const std::vector<FeatureMap>& feature_maps, ConsensusMap& consensus_map)
+void PipEchoAlgorithm::group(const std::vector<FeatureMap>& maps, ConsensusMap& consensus_map)
 {
-  PipEcho::Impl impl(param_, mz_range(feature_maps));
-  PipEcho::RunMap runs;
+  // the identifications of the features are read as identification data:
+  groupWithIdentificationData_(maps, consensus_map, [&](const std::vector<FeatureMap>& feature_maps) {
+    PipEcho::Impl impl(param_, mz_range(feature_maps));
+    PipEcho::RunMap runs;
 
-  impl.partition_features(feature_maps, runs);
+    impl.partition_features(feature_maps, runs);
 
-  // Ion mobility is used as a scoring feature only when EVERY run can build an
-  // IM tolerance (>= 2 identified features carrying an IM width). The decision
-  // is global -- all runs use IM or none do -- so the geometric-mean MBR score
-  // stays on a single comparable scale: a per-run decision would mix 3- and
-  // 4-feature scores in the shared SVM `mbr_score` predictor and the fallback
-  // q-value ordering, which aggregate acceptors across all runs.
-  auto run_supports_im = [](const PipEcho::Run& run) {
-    std::size_t n = 0;
-    for (const auto& donor : run.donors.storage)
-    {
-      if (PipEcho::Util::feature_im_width(donor->feature).has_value()) { ++n; }
-    }
-    return n >= 2;
-  };
-  const bool enable_im
-    = ! runs.empty()
-      && std::ranges::all_of(
-        runs, [&](const auto& kv) { return run_supports_im(kv.second); });
-
-  // [LOCAL-RT auto] Estimate the global window scales from the data before matching
-  // (no-op unless 'local_rt:auto'); sets cap/floor/locality/fallback experiment-wide.
-  impl.estimate_auto_params(runs);
-
-  // [LOCAL-RT] Match donors -> acceptors. With the local adaptive window enabled,
-  // wrap the O(R^2) matching in an ADAPTIVE-WIDENING loop: if too few decoy
-  // transfers are generated to resolve the requested FDR, double the local window
-  // scale and re-match, until estimable or the window saturates the global ceiling
-  // (then the existing conservative FDR gate drops transfers). Baseline (env unset)
-  // runs exactly one pass and is byte-identical.
-  const Size target_decoys = impl.target_decoy_count();
-  for (double widen = 1.0;;)
-  {
-    impl.set_widen_factor(widen);
-
-    // Clear matches from any previous (tighter) widening pass.
-    for (auto& kv : runs)
-    {
-      for (auto& a : kv.second.acceptors.storage) { a->target.reset(); a->decoy.reset(); }
-    }
-
-    auto logger = ProgressLogger();
-    Size progress {};
-    logger.setLogType(ProgressLogger::CMD);
-    logger.startProgress(0, runs.size() * runs.size(), "matching donors and acceptors");
-    for (auto& acceptor_run : runs)
-    {
-      PipEcho::RunStatistics stats(acceptor_run.second, enable_im);
-      PipEcho::AcceptorMap& acceptors(acceptor_run.second.acceptors);
-
-      for (auto& donor_run : runs)
+    // Ion mobility is used as a scoring feature only when EVERY run can build an
+    // IM tolerance (>= 2 identified features carrying an IM width). The decision
+    // is global -- all runs use IM or none do -- so the geometric-mean MBR score
+    // stays on a single comparable scale: a per-run decision would mix 3- and
+    // 4-feature scores in the shared SVM `mbr_score` predictor and the fallback
+    // q-value ordering, which aggregate acceptors across all runs.
+    auto run_supports_im = [](const PipEcho::Run& run) {
+      std::size_t n = 0;
+      for (const auto& donor : run.donors.storage)
       {
-        if (donor_run.first != acceptor_run.first)
-        {
-          PipEcho::DonorMap& donors(donor_run.second.donors);
-          // [LOCAL-RT] build this pair's local RT calibration first.
-          impl.set_local_rt_model(donors, acceptor_run.second.donors);
-          impl.link_donors_and_acceptors(stats, donors, acceptors);
-        }
-        logger.setProgress(++progress);
+        if (PipEcho::Util::feature_im_width(donor->feature).has_value()) { ++n; }
       }
-    }
-    logger.endProgress();
+      return n >= 2;
+    };
+    const bool enable_im
+      = ! runs.empty()
+        && std::ranges::all_of(
+          runs, [&](const auto& kv) { return run_supports_im(kv.second); });
 
-    if (! impl.local_rt_enabled()) { break; }  // baseline: single pass
+    // [LOCAL-RT auto] Estimate the global window scales from the data before matching
+    // (no-op unless 'local_rt:auto'); sets cap/floor/locality/fallback experiment-wide.
+    impl.estimate_auto_params(runs);
 
-    Size decoys = 0;
-    for (auto& kv : runs)
+    // [LOCAL-RT] Match donors -> acceptors. With the local adaptive window enabled,
+    // wrap the O(R^2) matching in an ADAPTIVE-WIDENING loop: if too few decoy
+    // transfers are generated to resolve the requested FDR, double the local window
+    // scale and re-match, until estimable or the window saturates the global ceiling
+    // (then the existing conservative FDR gate drops transfers). Baseline (env unset)
+    // runs exactly one pass and is byte-identical.
+    const Size target_decoys = impl.target_decoy_count();
+    for (double widen = 1.0;;)
     {
-      for (auto& a : kv.second.acceptors.storage) { if (a->decoy.has_value()) { ++decoys; } }
-    }
-    if (decoys >= target_decoys)
-    {
-      OPENMS_LOG_INFO << "[LOCAL-RT] " << decoys << " decoy transfers (>= " << target_decoys
-                      << " needed) at widen x" << widen << "; FDR estimable." << '\n';
-      break;
-    }
-    if (widen >= impl.widen_ceiling())
-    {
-      OPENMS_LOG_WARN << "[LOCAL-RT] widened the local RT window to the global ceiling but only "
-                      << decoys << " decoy transfer(s) (< " << target_decoys
-                      << " needed); the conservative FDR gate may drop transfers." << '\n';
-      break;
-    }
-    widen *= 2.0;
-    OPENMS_LOG_INFO << "[LOCAL-RT] only " << decoys << " decoy transfer(s) (< " << target_decoys
-                    << " needed); widening local RT window x" << widen << " and re-matching." << '\n';
-  }
+      impl.set_widen_factor(widen);
 
-  impl.generate_consensus_map(runs, consensus_map);
-  postprocess_(feature_maps, consensus_map);
+      // Clear matches from any previous (tighter) widening pass.
+      for (auto& kv : runs)
+      {
+        for (auto& a : kv.second.acceptors.storage) { a->target.reset(); a->decoy.reset(); }
+      }
+
+      auto logger = ProgressLogger();
+      Size progress {};
+      logger.setLogType(ProgressLogger::CMD);
+      logger.startProgress(0, runs.size() * runs.size(), "matching donors and acceptors");
+      for (auto& acceptor_run : runs)
+      {
+        PipEcho::RunStatistics stats(acceptor_run.second, enable_im);
+        PipEcho::AcceptorMap& acceptors(acceptor_run.second.acceptors);
+
+        for (auto& donor_run : runs)
+        {
+          if (donor_run.first != acceptor_run.first)
+          {
+            PipEcho::DonorMap& donors(donor_run.second.donors);
+            // [LOCAL-RT] build this pair's local RT calibration first.
+            impl.set_local_rt_model(donors, acceptor_run.second.donors);
+            impl.link_donors_and_acceptors(stats, donors, acceptors);
+          }
+          logger.setProgress(++progress);
+        }
+      }
+      logger.endProgress();
+
+      if (! impl.local_rt_enabled()) { break; }  // baseline: single pass
+
+      Size decoys = 0;
+      for (auto& kv : runs)
+      {
+        for (auto& a : kv.second.acceptors.storage) { if (a->decoy.has_value()) { ++decoys; } }
+      }
+      if (decoys >= target_decoys)
+      {
+        OPENMS_LOG_INFO << "[LOCAL-RT] " << decoys << " decoy transfers (>= " << target_decoys
+                        << " needed) at widen x" << widen << "; FDR estimable." << '\n';
+        break;
+      }
+      if (widen >= impl.widen_ceiling())
+      {
+        OPENMS_LOG_WARN << "[LOCAL-RT] widened the local RT window to the global ceiling but only "
+                        << decoys << " decoy transfer(s) (< " << target_decoys
+                        << " needed); the conservative FDR gate may drop transfers." << '\n';
+        break;
+      }
+      widen *= 2.0;
+      OPENMS_LOG_INFO << "[LOCAL-RT] only " << decoys << " decoy transfer(s) (< " << target_decoys
+                      << " needed); widening local RT window x" << widen << " and re-matching." << '\n';
+    }
+
+    impl.generate_consensus_map(runs, consensus_map);
+    postprocess_(feature_maps, consensus_map);
+  });
 }
 
 } // namespace OpenMS

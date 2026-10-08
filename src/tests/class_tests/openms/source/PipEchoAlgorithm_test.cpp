@@ -19,6 +19,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <set>
 
@@ -43,18 +45,29 @@ namespace
       PeptideHit hit;
       hit.setSequence(AASequence::fromString(seq));
       hit.setCharge(charge);
+      hit.setScore(0.01);
       PeptideIdentification pid;
+      pid.setIdentifier("search");
+      pid.setScoreType("q-value");
+      pid.setHigherScoreBetter(false);
       pid.setHits({hit});
       f.setPeptideIdentifications({pid});
     }
     return f;
   }
 
+  // A run with the given features; the peptide IDs of the donors become
+  // identification data that the features link.
   FeatureMap makeRun(const std::string& path, const vector<Feature>& feats)
   {
     FeatureMap fm;
     for (const auto& f : feats) { fm.push_back(f); }
     fm.setPrimaryMSRunPath({path});
+    ProteinIdentification search;
+    search.setIdentifier("search");
+    search.setPrimaryMSRunPath({path});
+    fm.setProteinIdentifications({search});
+    IdentificationDataConverter::moveToIdentificationData(fm);
     return fm;
   }
 

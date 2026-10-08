@@ -19,6 +19,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <algorithm>
 #include <cmath>
@@ -118,8 +120,12 @@ namespace
     PeptideHit hit;
     hit.setSequence(seq);
     hit.setCharge(charge);
+    hit.setScore(0.01);
     hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
     PeptideIdentification pid;
+    pid.setIdentifier("search");
+    pid.setScoreType("q-value");
+    pid.setHigherScoreBetter(false);
     pid.setHits({hit});
     f.setPeptideIdentifications({pid});
     return f;
@@ -301,6 +307,14 @@ namespace
       }
     }
 
+    // the peptide IDs of the donors become identification data that the features link
+    for (auto& map : ds.maps)
+    {
+      ProteinIdentification search;
+      search.setIdentifier("search");
+      map.setProteinIdentifications({search});
+      IdentificationDataConverter::moveToIdentificationData(map);
+    }
     return ds;
   }
 

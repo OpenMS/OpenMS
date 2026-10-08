@@ -10,7 +10,6 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MathFunctions.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 #include <algorithm>
@@ -21,32 +20,20 @@ namespace OpenMS::PipEcho::Util
 {
 
 /**************************************************************************/
-std::optional<PeptideHit> feature_hit(const Feature& feature)
+std::optional<FeatureHit> feature_hit(const Feature& feature, const IdentificationData& data)
 {
-  const PeptideIdentificationList& peps = feature.getPeptideIdentifications();
-
-  // FIXME: Is this the correct way to know if a feature has an
-  // ID?  There seems to be two ways to store an ID on a feature,
-  // but most code I see uses the "old way".
-  if (! peps.empty() && ! peps[0].getHits().empty())
-  {
-    return peps[0].getHits()[0];
-  }
-
-  return {};
-}
-
-/******************************************************************************/
-bool feature_is_decoy(const Feature& feature)
-{
-  auto hit = feature_hit(feature);
-
-  return hit.has_value()
-         && hit->getTargetDecoyType() == PeptideHit::TargetDecoyType::DECOY;
+  // the top match of the feature (the first hit of its first peptide
+  // identification after sorting):
+  const auto best = feature.getBestLinkedMatch(data);
+  if (! best.has_value()) { return {}; }
+  const auto& match = *best->matches.front();
+  if (match.encoding != IdentificationData::Encoding::AA_SEQUENCE) { return {}; }
+  return FeatureHit {AASequence::fromString(match.representation), match.charge,
+                     match.target_decoy == IdentificationData::TargetDecoy::DECOY, best->query->mz};
 }
 
 /**************************************************************************/
-std::optional<double> feature_mass_error(const Feature& feature)
+std::optional<double> feature_mass_error(const Feature& feature, const std::optional<FeatureHit>& hit)
 {
   // Prefer FeatureFinderIdentification's observed mass-trace deviation:
   // "masserror_ppm" is a per-isotope getPPM(observed, theoretical) from the DIA
@@ -87,11 +74,9 @@ std::optional<double> feature_mass_error(const Feature& feature)
   // Fallbacks when masserror_ppm is unavailable (e.g. a non-FFID feature path):
   // the identification's OBSERVED precursor m/z vs theoretical, else feature.getMZ()
   // (which is theoretical for FFID, giving a 0 error -- the dead-feature case).
-  const PeptideIdentificationList& peps = feature.getPeptideIdentifications();
-  if (peps.empty() || peps[0].getHits().empty()) { return {}; }
-  const PeptideHit& hit = peps[0].getHits()[0];
-  const double theoretical = hit.getSequence().getMZ(hit.getCharge());
-  double observed = peps[0].hasMZ() ? peps[0].getMZ() : feature.getMZ();
+  if (! hit.has_value()) { return {}; }
+  const double theoretical = hit->sequence.getMZ(hit->charge);
+  double observed = hit->mz.value_or(feature.getMZ());
   if (! std::isfinite(observed) || observed <= 0.0) { observed = feature.getMZ(); }
   // Both inputs to getPPM must be valid: the fallback feature m/z may itself be
   // invalid, and the theoretical m/z (getPPM's denominator) is never guaranteed.

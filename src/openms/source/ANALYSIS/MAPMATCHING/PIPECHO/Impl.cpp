@@ -49,32 +49,9 @@ std::string feature_sequence_key(const std::string& ident,
  * Return a key that can be used to link features with the same
  * amino acid sequence and charge state.
  */
-std::string feature_sequence_key(const Feature& feature)
+std::string feature_sequence_key(const Donor& donor)
 {
-  auto hit = PipEcho::Util::feature_hit(feature);
-
-  if (hit)
-  {
-    return feature_sequence_key(hit->getSequence().toString(),
-                                feature.getCharge());
-  }
-
-  std::string msg("donor feature missing peptide sequence");
-  throw(Exception::MissingInformation(__FILE__, __LINE__,
-                                      OPENMS_PRETTY_FUNCTION, msg));
-}
-
-/******************************************************************************/
-/// Ensure that a feature is ready for analysis.
-void prepare_feature(Feature& feature)
-{
-  // Ensure everything is sorted for later use.
-  for (auto& peptide : feature.getPeptideIdentifications())
-  {
-    peptide.sort();
-  }
-
-  feature.sortPeptideIdentifications();
+  return feature_sequence_key(donor.ident(), donor.feature.getCharge());
 }
 
 } // namespace
@@ -291,7 +268,7 @@ LocalRtModel build_local_rt_model(const DonorMap& donor_donors,
   // residuals that inflate the local-sigma tail driving the auto cap (Codex review).
   auto median_rt_by_key = [](const auto& storage) {
     std::unordered_map<std::string, std::vector<double>> tmp;
-    for (const auto& d : storage) { tmp[feature_sequence_key(d->feature)].push_back(d->feature.getRT()); }
+    for (const auto& d : storage) { tmp[feature_sequence_key(*d)].push_back(d->feature.getRT()); }
     std::unordered_map<std::string, double> med;
     med.reserve(tmp.size());
     for (auto& [k, v] : tmp) { std::sort(v.begin(), v.end()); med[k] = v[v.size() / 2]; }
@@ -495,13 +472,7 @@ void Impl::partition_features(const std::vector<FeatureMap>& maps, RunMap& runs)
 
     for (auto& feature : map)
     {
-      // We need to strip off the const-ness of the Feature to
-      // prepare it for use.  We don't really care about it being
-      // const, only that we have a reference/pointer.  But a
-      // FeatureMap doesn't let us have a non-const reference
-      // iterator.  So, we have to cheat and cast it.
-      prepare_feature(const_cast<Feature&>(feature));
-      run.insert(feature, i);
+      run.insert(feature, i, PipEcho::Util::feature_hit(feature, map.getIdentificationData()));
     }
   }
 
@@ -600,7 +571,7 @@ Impl::match_t Impl::find_acceptor_for(const RunStatistics& stats,
       if (acceptor->is_donor_compatible(donor, window, eff_override)
           && std::fabs(acceptor->feature.getRT() - center_rt) <= rt_gate)
       {
-        Score score(stats.score(donor.feature, acceptor->feature, eff_override,
+        Score score(stats.score(donor, acceptor->feature, eff_override,
                                 rt_mode, rt_dist));
 
         if (! best_match.has_value()
@@ -629,14 +600,14 @@ Impl::find_random_donor(const DonorMap& donors,
   /// FIXME: Is this sequence calculation good enough?
   /// FIXME: What is a "Base Sequence"?
   const auto base_seq = [](const Donor& donor) -> std::string {
-    const auto hit(PipEcho::Util::feature_hit(donor.feature));
+    const auto& hit = donor.hit;
     if (! hit.has_value())
     {
       throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION,
                                           "donor feature missing peptide sequence");
     }
-    return hit->getSequence().toUnmodifiedString();
+    return hit->sequence.toUnmodifiedString();
   };
 
   const double mass_min_diff = 5.0 * Constants::PROTON_MASS_U;
@@ -750,7 +721,7 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
     // Place each donor into the identity map.
     for (auto& donor : run.second.donors.storage)
     {
-      std::string key = feature_sequence_key(donor->feature);
+      std::string key = feature_sequence_key(*donor);
       insert(key, *donor);
     }
   }

@@ -8,8 +8,9 @@
 
 #pragma once
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <optional>
 #include <vector>
@@ -19,25 +20,34 @@ namespace OpenMS::PipEcho::Util
 
 /******************************************************************************/
 /**
- * Return the first peptide hit from a feature.
+ * The identification of a feature, as far as PIP-ECHO uses it: its peptide
+ * (the top match of the identifications the feature links).
+ */
+struct FeatureHit
+{
+  AASequence sequence;
+  Int charge {0};
+  bool decoy {false};
+  /// Precursor m/z of the identification, if known.
+  std::optional<double> mz;
+};
+
+/******************************************************************************/
+/**
+ * Return the identification of a feature: the top match (by primary score) of
+ * the identifications that it links in @p data, if that match is a peptide.
  *
  * This code is here to isolate checking hits because the process
  * might change in a future version of OpenMS.
  */
-std::optional<PeptideHit> feature_hit(const Feature&);
+std::optional<FeatureHit> feature_hit(const Feature&, const IdentificationData& data);
 
 /******************************************************************************/
 /**
- * Return `true` if the peptide hit referenced by the given feature is
- * a decoy.
+ * Compute the mass error in PPM for the given feature with the given
+ * identification.
  */
-bool feature_is_decoy(const Feature&);
-
-/******************************************************************************/
-/**
- * Compute the mass error in PPM for the given feature.
- */
-std::optional<double> feature_mass_error(const Feature&);
+std::optional<double> feature_mass_error(const Feature&, const std::optional<FeatureHit>&);
 
 /******************************************************************************/
 /**

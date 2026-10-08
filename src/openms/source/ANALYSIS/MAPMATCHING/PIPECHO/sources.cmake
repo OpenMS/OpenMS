@@ -19,7 +19,6 @@ set(sources_list
   FeatureTypes.cpp
   Impl.cpp
   TransferFDRModel.cpp
-  Run.cpp
   RunStatistics.cpp
   Util.cpp
 )

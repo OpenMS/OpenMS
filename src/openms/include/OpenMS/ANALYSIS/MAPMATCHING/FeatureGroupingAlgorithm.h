@@ -86,8 +86,9 @@ protected:
         @brief After grouping by the subclasses, give the result the identifications of the maps and sort it in a
         consistent way
 
-        Maps with identification data give theirs (see groupIdentifications()); otherwise the protein identifications
-        and the unassigned peptide identifications (with the map index) of the maps are added to the result.
+        The identifications come from the identification data of the maps (see groupIdentifications()).
+
+        @throw Exception::InvalidParameter if a map has peptide identifications (see groupWithIdentificationData_())
     */
     void postprocess_(const std::vector<FeatureMap>& maps, ConsensusMap& out) const;
     void postprocess_(const std::vector<ConsensusMap>& maps, ConsensusMap& out) const;

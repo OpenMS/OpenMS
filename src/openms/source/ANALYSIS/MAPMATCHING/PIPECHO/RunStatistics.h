@@ -45,7 +45,7 @@ public:
   /// @param rt_dist Data-driven RT prediction-error distribution for the current
   /// run pair (FlashLFQ-style). When null but a calibrated mode is requested, a
   /// neutral agreement score is used (no hard penalty for an unestimable pair).
-  Score score(const Feature&, const Feature&,
+  Score score(const Donor&, const Feature&,
               std::optional<double> donor_rt_override = std::nullopt,
               RtScoreMode rt_mode = RtScoreMode::Raw,
               const boost::math::normal* rt_dist = nullptr) const;
@@ -63,7 +63,7 @@ private:
   double calc_score_using(const normal_t&, double) const;
   double calc_score_using(const boost::math::normal&, double) const;
   double calc_intensity_score(const Feature&) const;
-  double calc_mass_error_score(const Feature& donor, const Feature& acceptor) const;
+  double calc_mass_error_score(const Donor& donor, const Feature& acceptor) const;
 
   /// Ion-mobility agreement score for a donor/acceptor pair.
   ///
@@ -81,7 +81,7 @@ private:
   /// ("uncorrelated") when the envelope is unavailable or too short. Identity-
   /// coupled (compares the acceptor signal to the DONOR's theoretical pattern),
   /// so a coincidental m/z match scores low.
-  double calc_isotope_score(const Feature& donor, const Feature& acceptor) const;
+  double calc_isotope_score(const Donor& donor, const Feature& acceptor) const;
 
 private:
   // Log intensity distribution.

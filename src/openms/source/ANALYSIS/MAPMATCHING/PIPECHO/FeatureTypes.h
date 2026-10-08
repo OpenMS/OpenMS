@@ -14,6 +14,8 @@
 #include "Window.h"
 
 #include <cstddef>
+#include <optional>
+#include <utility>
 
 namespace OpenMS::PipEcho
 {
@@ -28,10 +30,14 @@ struct FeatureRef
 {
   const std::size_t map_index;
   const Feature& feature;
+  /// The identification of the feature (see Util::feature_hit()), if any.
+  const std::optional<Util::FeatureHit> hit;
 
-  FeatureRef(const std::size_t map_index, const Feature& feature):
+  FeatureRef(const std::size_t map_index, const Feature& feature,
+             std::optional<Util::FeatureHit> hit = std::nullopt):
       map_index(map_index),
-      feature(feature) {};
+      feature(feature),
+      hit(std::move(hit)) {};
 };
 
 /******************************************************************************/
@@ -56,13 +62,11 @@ struct FeatureRefCmp
  */
 struct Donor : FeatureRef
 {
-  Donor(const FeatureRef& peak): FeatureRef(peak.map_index, peak.feature) {};
+  Donor(const FeatureRef& peak): FeatureRef(peak) {};
 
   std::string ident() const
   {
-    auto hit = Util::feature_hit(feature);
-
-    if (hit) { return hit->getSequence().toString(); }
+    if (hit) { return hit->sequence.toString(); }
 
     std::string msg("donor feature missing peptide sequence");
     throw(Exception::MissingInformation(__FILE__, __LINE__,
@@ -98,7 +102,7 @@ struct Acceptor : FeatureRef
   std::optional<scored_t> decoy;
 
   /// Constructor.
-  Acceptor(const FeatureRef& peak): FeatureRef(peak.map_index, peak.feature) {};
+  Acceptor(const FeatureRef& peak): FeatureRef(peak) {};
 
   /// Check if a Donor matches this Acceptor.
   ///

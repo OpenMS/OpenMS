@@ -201,46 +201,15 @@ namespace OpenMS
     }
 
     template <class MapType>
-    void postprocessLegacy(const std::vector<MapType>& maps, ConsensusMap& out)
-    {
-      // add protein IDs and unassigned peptide IDs to the result map here,
-      // to keep the same order as the input maps (useful for output later):
-      auto& newIDs = out.getUnassignedPeptideIdentifications();
-      for (Size map_idx = 0; map_idx < maps.size(); ++map_idx)
-      {
-        // add protein identifications to result map:
-        out.getProteinIdentifications().insert(out.getProteinIdentifications().end(),
-                                               maps[map_idx].getProteinIdentifications().begin(),
-                                               maps[map_idx].getProteinIdentifications().end());
-
-        // assign the map_index to unassigned PepIDs as well.
-        // for the assigned ones, this has to be done in the subclass.
-        for (const PeptideIdentification& pepID : maps[map_idx].getUnassignedPeptideIdentifications())
-        {
-          auto newPepID = pepID;
-          // Note: during linking of _consensus_Maps we have the problem that old identifications
-          // should already have a map_index associated. Since we group the consensusFeatures only anyway
-          // (without keeping the subfeatures) the method for now is to "re"-index based on the input file/map index.
-          // Subfeatures have to be transferred in postprocessing if required
-          // (see FeatureGroupingAlgorithm::transferSubelements as used in the TOPP tools, i.e. FeatureLinkerBase),
-          // which also takes care of a re-re-indexing if the old map_index of the IDs was saved.
-          newPepID.setMetaValue("map_index", map_idx);
-          newIDs.push_back(newPepID);
-        }
-      }
-    }
-
-    template <class MapType>
     void postprocessMaps(const std::vector<MapType>& maps, ConsensusMap& out)
     {
       if (std::any_of(maps.begin(), maps.end(), [](const MapType& map) { return IdentificationDataConverter::hasPeptideIdentifications(map); }))
       {
-        postprocessLegacy(maps, out);
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Feature grouping needs the identifications of the maps as identification data; "
+                                          "convert peptide identifications first (see groupWithIdentificationData_())");
       }
-      else
-      {
-        FeatureGroupingAlgorithm::groupIdentifications(maps, out);
-      }
+      FeatureGroupingAlgorithm::groupIdentifications(maps, out);
 
       // canonical ordering for checking the results:
       out.sortByQuality();

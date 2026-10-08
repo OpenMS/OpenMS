@@ -28,12 +28,13 @@ public:
   {
   }
 
-  /// Insert a donor peak.
-  void insert(const Feature& feature, const std::size_t map_index)
+  /// Insert a peak: a donor if it has an identification (see Util::feature_hit()), else an acceptor.
+  void insert(const Feature& feature, const std::size_t map_index, std::optional<Util::FeatureHit> hit)
   {
-    FeatureRef ref(map_index, feature);
+    const bool donor = hit.has_value();
+    FeatureRef ref(map_index, feature, std::move(hit));
 
-    if (is_donor_feature(feature))
+    if (donor)
     {
       donors.insert(std::make_shared<Donor>(ref));
     }
@@ -53,9 +54,6 @@ public:
   // Allow direct access to the grid type.
   GridWithStorage<Donor> donors;
   GridWithStorage<Acceptor> acceptors;
-
-private:
-  bool is_donor_feature(const Feature&);
 };
 
 
