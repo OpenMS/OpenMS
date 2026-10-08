@@ -11,6 +11,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <optional>
 #include <tuple>
 
 using namespace std;
@@ -320,7 +322,10 @@ void MSstatsFile::storeLFQ(const std::string& filename,
   }
 
   // Extract information from the consensus features.
-  MSstatsFile::AggregatedConsensusInfo aggregatedInfo = MSstatsFile::aggregateInfo_(consensus_map, spectra_paths);
+  // The identifications of the consensus features are read from identification data
+  std::optional<ConsensusMap> converted;
+  const ConsensusMap& identified = IdentificationDataConverter::withIdentificationData(consensus_map, converted);
+  MSstatsFile::AggregatedConsensusInfo aggregatedInfo = MSstatsFile::aggregateInfo_(identified, spectra_paths);
 
   // The output file of the MSstats converter
   TextFile csv_out;
@@ -386,23 +391,23 @@ void MSstatsFile::storeLFQ(const std::string& filename,
   {
     const BaseFeature &base_feature = aggregatedInfo.features[i];
 
-    for (const PeptideIdentification &pep_id : base_feature.getPeptideIdentifications())
+    for (const auto& identification : base_feature.getLinkedIdentifications(identified.getIdentificationData()))
     {
-      for (const PeptideHit & pep_hit : pep_id.getHits())
+      for (const auto* match : identification.matches)
       {
         // skip decoys
-        if (pep_hit.isDecoy())
+        if (match->target_decoy == IdentificationData::TargetDecoy::DECOY)
         {
           continue;
         }
 
         //TODO Really double check with Meena Choi (MSStats author) or make it an option! I can't find any info
         // on what is correct. For TMT we include them (since it is necessary) (see occurrence above as well when map is built!)
-        const std::string & sequence = pep_hit.getSequence().toString(); // to modified string
+        const std::string sequence = AASequence::fromString(match->representation).toString(); // to modified string
 
         // check if all referenced protein accessions are part of the same indistinguishable group
         // if so, we mark the sequence as quantifiable
-        std::set<std::string> accs = pep_hit.extractProteinAccessionsSet();
+        const std::set<std::string> accs = match->extractProteinAccessionsSet();
 
         //Note: In general as long as we only support merged proteins across conditions,
         // we check if the map is already set at this sequence since
@@ -417,7 +422,7 @@ void MSstatsFile::storeLFQ(const std::string& filename,
 
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
-        const Int precursor_charge = pep_hit.getCharge();
+        const Int precursor_charge = match->charge;
 
         // Unused for DDA data anyway
         std::string fragment_ion = na_string_;
@@ -620,7 +625,10 @@ void MSstatsFile::storeISO(const std::string& filename,
   }
 
   // Extract information from the consensus features.
-  MSstatsFile::AggregatedConsensusInfo AggregatedInfo = MSstatsFile::aggregateInfo_(consensus_map, spectra_paths);
+  // The identifications of the consensus features are read from identification data
+  std::optional<ConsensusMap> converted;
+  const ConsensusMap& identified = IdentificationDataConverter::withIdentificationData(consensus_map, converted);
+  MSstatsFile::AggregatedConsensusInfo AggregatedInfo = MSstatsFile::aggregateInfo_(identified, spectra_paths);
 
   // The output file of the MSstatsConverter
   TextFile csv_out;
@@ -650,30 +658,27 @@ void MSstatsFile::storeISO(const std::string& filename,
   {
     const BaseFeature &base_feature = AggregatedInfo.features[i];
 
-    for (const PeptideIdentification &pep_id : base_feature.getPeptideIdentifications())
+    for (const auto& identification : base_feature.getLinkedIdentifications(identified.getIdentificationData()))
     {
-      std::string nativeID = "NONATIVEID";
-      if (pep_id.metaValueExists("spectrum_reference"))
-      {
-        nativeID = StringUtils::toStr(pep_id.getMetaValue("spectrum_reference"));
-      }
+      // the spectrum reference of the identification
+      const std::string nativeID = identification.query->data_id.empty() ? "NONATIVEID" : identification.query->data_id;
 
-      for (const PeptideHit & pep_hit : pep_id.getHits())
+      for (const auto* match : identification.matches)
       {
         // skip decoys
-        if (pep_hit.isDecoy())
+        if (match->target_decoy == IdentificationData::TargetDecoy::DECOY)
         {
           continue;
         }
 
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
-        const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
-        const std::string & sequence = pep_hit.getSequence().toString();
+        const Int precursor_charge = (std::max)(match->charge, 0);
+        const std::string sequence = AASequence::fromString(match->representation).toString();
 
         // check if all referenced protein accessions are part of the same indistinguishable group
         // if so, we mark the sequence as quantifiable
-        std::set<std::string> accs = pep_hit.extractProteinAccessionsSet();
+        const std::set<std::string> accs = match->extractProteinAccessionsSet();
 
         // When using extractProteinAccessionSet, we do not really need to loop over Evidences
         // anymore since MSStats does not care about anything else but the Protein accessions

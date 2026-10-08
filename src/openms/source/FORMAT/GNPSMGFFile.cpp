@@ -18,6 +18,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -205,23 +206,26 @@ namespace OpenMS
   }
 
   /**
-   * @brief Retrieve list of PeptideIdentification parameters from ConsensusFeature metadata, sorted by map intensity
-   * @param[in] feature ConsensusFeature feature containing PeptideIdentification annotations
+   * @brief Retrieve the MS2 spectra of the identifications of a ConsensusFeature (their metadata), sorted by map intensity
+   * @param[in] feature ConsensusFeature feature linking the identifications
+   * @param[in] data The identification data of the consensus map
    * @param[in] sorted_element_maps Sorted list of element_maps
-   * @param[out] pepts Result vector of <map_index,spectrum_index> of PeptideIdentification annotations sorted by map intensity in feature
+   * @param[out] pepts Result vector of <map_index,spectrum_index> of the identifications sorted by map intensity in feature
    */
   void getElementPeptideIdentificationsByElementIntensity_(
     const ConsensusFeature& feature,
+    const IdentificationData& data,
     vector<pair<int,double>>& sorted_element_maps,
     vector<pair<int,int>>& pepts
   )
   {
+    const auto identifications = feature.getLinkedIdentifications(data);
     for (pair<int,double>& element_pair : sorted_element_maps)
     {
       int element_map = element_pair.first;
-      PeptideIdentificationList feature_pepts = feature.getPeptideIdentifications();
-      for (PeptideIdentification& pept_id : feature_pepts)
+      for (const auto& identification : identifications)
       {
+        const IdentificationData::Observation& pept_id = *identification.query;
         if (pept_id.metaValueExists("spectrum_index") && pept_id.metaValueExists("map_index")
             && (int)pept_id.getMetaValue("map_index") == element_map)
         {
@@ -232,7 +236,6 @@ namespace OpenMS
         }
       }
     }
-    // return will be reformatted PeptideIdentificationList pepts passed in by value
   }
 
   void GNPSMGFFile::store(const std::string& consensus_file_path, const StringList& mzml_file_paths, const std::string& out) const
@@ -253,6 +256,7 @@ namespace OpenMS
     // ConsensusMap
     ConsensusMap consensus_map;
     FileHandler().loadConsensusFeatures(consensus_file_path, consensus_map, {FileTypes::CONSENSUSXML});
+    IdentificationDataConverter::moveToIdentificationData(consensus_map);
 
     //-------------------------------------------------------------
     // open on-disc data (=spectra are only loaded on demand to safe memory)
@@ -287,7 +291,7 @@ namespace OpenMS
       vector<pair<int,double>> element_maps;
       sortElementMapsByIntensity_(feature, element_maps);
       vector<pair<int, int>> pepts;
-      getElementPeptideIdentificationsByElementIntensity_(feature, element_maps, pepts);
+      getElementPeptideIdentificationsByElementIntensity_(feature, consensus_map.getIdentificationData(), element_maps, pepts);
 
       // discard poorer precursor spectra for 'merged_spectra' and 'full_spectra' output
       if (pept_cutoff != -1 && pepts.size() > (unsigned long) pept_cutoff)

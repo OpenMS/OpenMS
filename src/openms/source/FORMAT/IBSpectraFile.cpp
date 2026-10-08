@@ -12,6 +12,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 // we need the quantitation types to extract the appropriate channels
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
@@ -188,15 +189,23 @@ namespace OpenMS
     TextFile textFile;
     textFile.addLine(ListUtils::concatenate(constructHeader_(*quantMethod), "\t"));
 
-    for (ConsensusMap::ConstIterator cm_iter = cm.begin();
-         cm_iter != cm.end();
+    // the identifications of the consensus features are read from identification data
+    std::optional<ConsensusMap> converted;
+    const ConsensusMap& identified = IdentificationDataConverter::withIdentificationData(cm, converted);
+    for (ConsensusMap::ConstIterator cm_iter = identified.begin();
+         cm_iter != identified.end();
          ++cm_iter)
     {
       const ConsensusFeature& cFeature = *cm_iter;
       std::vector<IdCSV> entries;
 
+      // the first match of the first identification of the consensus feature
+      const auto identifications = cFeature.getLinkedIdentifications(identified.getIdentificationData());
+      const IdentificationData::Match* match
+        = (identifications.empty() || identifications.front().matches.empty()) ? nullptr : identifications.front().matches.front();
+
       /// 1st we extract the identification information from the consensus feature
-      if (cFeature.getPeptideIdentifications().empty() || !has_proteinIdentifications)
+      if (match == nullptr || !has_proteinIdentifications)
       {
         // we store unidentified hits anyway, because the iTRAQ quant is still helpful for normalization
         entries.emplace_back();
@@ -204,8 +213,8 @@ namespace OpenMS
       else
       {
         // protein name:
-        const PeptideHit& peptide_hit = cFeature.getPeptideIdentifications()[0].getHits()[0];
-        std::set<std::string> protein_accessions = peptide_hit.extractProteinAccessionsSet();
+        const AASequence sequence = AASequence::fromString(match->representation);
+        std::set<std::string> protein_accessions = match->extractProteinAccessionsSet();
         if (protein_accessions.size() != 1)
         {
           if (!allow_non_unique) continue; // we only want unique peptides
@@ -214,12 +223,12 @@ namespace OpenMS
         for (std::set<std::string>::const_iterator prot_ac = protein_accessions.begin(); prot_ac != protein_accessions.end(); ++prot_ac)
         {
           IdCSV entry;
-          entry.charge = cFeature.getPeptideIdentifications()[0].getHits()[0].getCharge();
-          entry.peptide = cFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
-          entry.theo_mass = cFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getMonoWeight(Residue::Full, cFeature.getPeptideIdentifications()[0].getHits()[0].getCharge());
+          entry.charge = match->charge;
+          entry.peptide = sequence.toUnmodifiedString();
+          entry.theo_mass = sequence.getMonoWeight(Residue::Full, match->charge);
 
           // write modif
-          entry.modif = getModifString_(cFeature.getPeptideIdentifications()[0].getHits()[0].getSequence());
+          entry.modif = getModifString_(sequence);
 
           ProtHitIt proteinHit = protIdent.findHit(*prot_ac);
           if (proteinHit == protIdent.getHits().end())
