@@ -155,7 +155,21 @@ if(WITH_ONNX)
       if(WIN32)
           install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_BIN_DIR}" COMPONENT Dependencies)
       else()
-          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_LIB_DIR}" COMPONENT Dependencies)
+          # ORT_LIB_PATH is usually the unversioned symlink (libonnxruntime.so/.dylib), which
+          # install() copies as a symlink, i.e. dangling without its target; and libOpenMS records
+          # the SONAME/install name (libonnxruntime.so.1, libonnxruntime.1.dylib) anyway. Install
+          # the real library together with all its (relative) version symlinks from its directory.
+          file(REAL_PATH "${ORT_LIB_PATH}" _ort_real_lib)
+          get_filename_component(_ort_lib_dir "${_ort_real_lib}" DIRECTORY)
+          if(APPLE)
+            file(GLOB _ort_libs "${_ort_lib_dir}/libonnxruntime.*dylib")
+          else()
+            file(GLOB _ort_libs "${_ort_lib_dir}/libonnxruntime.so*")
+          endif()
+          install(FILES ${_ort_libs}
+                  DESTINATION "${INSTALL_LIB_DIR}"
+                  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+                  COMPONENT Dependencies)
       endif()
   endif()
 
