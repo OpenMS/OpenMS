@@ -152,7 +152,7 @@ Build System:
       libgfortran5 and had no license. Libraries the package takes from the build machine's
       distribution now come with the copyright file of their Debian package and the
       /usr/share/common-licenses texts it refers to, in share/OpenMS/LICENSES/system, with an
-      INDEX.txt that names the package, version and source package of each.
+      INDEX.txt that names the package, version and source package of each (#10442).
 
 TOPP tools:
     IDFileConverter:
