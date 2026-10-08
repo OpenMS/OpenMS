@@ -225,6 +225,13 @@ namespace OpenMS
       pos = min_element(peptides.begin(), peptides.end(), lowerScoreFirst);
     }
 
+    // A hitless winner means all identifications are hitless, in either score direction.
+    // There is no sequence to match; preserve the identifications and their metadata.
+    if (pos->getHits().empty())
+    {
+      return;
+    }
+
     const AASequence& best = (*pos).getHits()[0].getSequence();
     std::swap(*peptides.begin(), *pos); // put best on first position
 
