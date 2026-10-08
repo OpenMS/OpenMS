@@ -14,11 +14,63 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <algorithm>
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  using ID = IdentificationData;
+
+  /**
+    A consensus map with identification data: run "search" (PEPs) with database sequences P1-P3. Feature 0 links
+    PEPTIDEA (P1, 0.01), feature 1 PEPTIDEB (P1 and P2, 0.02), and PEPTIDEC (P3, 0.05) is unassigned.
+  */
+  ConsensusMap nativeMap()
+  {
+    ConsensusMap map;
+    auto& run = map.getIdentificationData().addRun("search");
+    ID::ScoreDefinition score;
+    score.name = "Posterior Error Probability";
+    score.higher_better = false;
+    run.setPrimaryScore(run.addScore(score));
+    ID::Database database;
+    database.path = "proteins.fasta";
+    const auto db = run.addDatabase(database);
+    run.setDatabaseSequences(std::vector<ID::DatabaseSequence> {{db, "P1", ID::TargetDecoy::TARGET}, {db, "P2", ID::TargetDecoy::TARGET},
+                                                                {db, "P3", ID::TargetDecoy::TARGET}});
+    const auto source = run.addSource({});
+    const auto add = [&](const std::string& sequence, const std::vector<std::string>& proteins, double pep) {
+      ID::MatchData match;
+      match.representation = sequence;
+      match.charge = 2;
+      for (const auto& protein : proteins) match.sequence_evidence.push_back({db, protein, std::nullopt, std::nullopt, 0, 0});
+      return ID::MatchReference {run.getUuid(), run.addMatch(run.addIdentification(source, ID::Observation {}), match, {pep})};
+    };
+    ConsensusFeature f0, f1;
+    f0.setUniqueId(1);
+    f0.addIDMatch(add("PEPTIDEA", {"P1"}, 0.01));
+    f1.setUniqueId(2);
+    f1.addIDMatch(add("PEPTIDEB", {"P1", "P2"}, 0.02));
+    add("PEPTIDEC", {"P3"}, 0.05);
+    map.push_back(f0);
+    map.push_back(f1);
+    return map;
+  }
+
+  /// accession:score of the proteins of the inference result
+  std::string proteinScores(const ConsensusMap& map)
+  {
+    std::vector<std::string> scores;
+    for (const auto& hit : map.getIdentificationData().getInferenceResults().at(0).proteins.getHits())
+      scores.push_back(hit.getAccession() + ":" + StringUtils::toStr(hit.getScore()));
+    return ListUtils::concatenate(scores, ",");
+  }
+} // namespace
 
 START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
 
@@ -303,6 +355,103 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       TEST_EXCEPTION(Exception::MissingInformation,
                      BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, PeptideIdentificationList()))
       TEST_EQUAL(groups(proteins), "P1,P3")
+    }
+    END_SECTION
+
+    START_SECTION((void run(ConsensusMap& cmap, bool include_unassigned) const))
+    {
+      // the proteins of the run are scored; the result is an inference result for the run
+      auto map = nativeMap();
+      BasicProteinInferenceAlgorithm bpia;
+      bpia.run(map, true);
+      const auto& data = map.getIdentificationData();
+      TEST_EQUAL(data.getInferenceResults().size(), 1)
+      ABORT_IF(data.getInferenceResults().size() != 1)
+      const auto& result = data.getInferenceResults()[0];
+      TEST_EQUAL(result.inputs.size(), 1)
+      TEST_EQUAL(result.inputs[0].run_uuid, data.getRuns()[0].getUuid())
+      TEST_EQUAL(result.proteins.getIdentifier(), "search")
+      TEST_EQUAL(result.proteins.getInferenceEngine(), "TOPPProteinInference")
+      TEST_EQUAL(result.proteins.getScoreType(), "Posterior Probability")
+      TEST_EQUAL(proteinScores(map), "P1:0.99,P2:0.98,P3:0.95")
+      TEST_EQUAL(result.proteins.getIndistinguishableProteins().size(), 3)
+
+      // inference again replaces the result
+      bpia.run(map, true);
+      TEST_EQUAL(data.getInferenceResults().size(), 1)
+      TEST_EQUAL(proteinScores(map), "P1:0.99,P2:0.98,P3:0.95")
+
+      // the result is the legacy protein run
+      IdentificationDataConverter::exportConsensusIDs(map);
+      TEST_EQUAL(map.getProteinIdentifications().size(), 1)
+      ABORT_IF(map.getProteinIdentifications().size() != 1)
+      TEST_EQUAL(map.getProteinIdentifications()[0].getInferenceEngine(), "TOPPProteinInference")
+      TEST_EQUAL(map.getProteinIdentifications()[0].getHits().size(), 3)
+
+      // without the unassigned identification, P3 has no peptide (min_peptides_per_protein 1): it is removed, and
+      // so is the unassigned match that referred to it
+      map = nativeMap();
+      bpia.run(map, false);
+      TEST_EQUAL(proteinScores(map), "P1:0.99,P2:0.98")
+      TEST_EQUAL(map.getIdentificationData().getRuns()[0].getNumberOfMatches(), 2)
+    }
+    END_SECTION
+
+    START_SECTION([EXTRA] void run(ConsensusMap& cmap, bool include_unassigned) const with greedy group resolution)
+    {
+      // the shared peptide goes to the better protein: P2 loses its reference and is removed
+      auto map = nativeMap();
+      BasicProteinInferenceAlgorithm bpia;
+      Param params = bpia.getParameters();
+      params.setValue("greedy_group_resolution", "true");
+      bpia.setParameters(params);
+      bpia.run(map, true);
+      TEST_EQUAL(proteinScores(map), "P1:0.99,P3:0.95")
+      std::vector<std::string> references;
+      for (const auto& query : map.getIdentificationData().getRuns()[0].getSources()[0].identifications)
+      {
+        for (const auto& match : query.getMatches())
+        {
+          const auto accessions = match.extractProteinAccessionsSet();
+          references.push_back(match.representation + ":" + ListUtils::concatenate(std::vector<std::string>(accessions.begin(), accessions.end()), "+"));
+        }
+      }
+      TEST_EQUAL(ListUtils::concatenate(references, ","), "PEPTIDEA:P1,PEPTIDEB:P1,PEPTIDEC:P3")
+    }
+    END_SECTION
+
+    START_SECTION([EXTRA] void run(ConsensusMap& cmap, ProteinIdentification& prot_id, bool include_unassigned) const)
+    {
+      BasicProteinInferenceAlgorithm bpia;
+      // with identification data: the run gets the proteins of the result
+      auto map = nativeMap();
+      ProteinIdentification proteins;
+      bpia.run(map, proteins, true);
+      TEST_EQUAL(proteins.getHits().size(), 3)
+      TEST_EQUAL(proteins.getScoreType(), "Posterior Probability")
+
+      // with peptide identifications: the only protein run of the map gets the result
+      map = nativeMap();
+      IdentificationDataConverter::exportConsensusIDs(map);
+      ProteinIdentification other;
+      TEST_EXCEPTION(Exception::InvalidParameter, bpia.run(map, other, true))
+      auto& run = map.getProteinIdentifications()[0];
+      bpia.run(map, run, true);
+      TEST_EQUAL(&map.getProteinIdentifications()[0] == &run, true)
+      TEST_EQUAL(run.getScoreType(), "Posterior Probability")
+      TEST_EQUAL(run.getInferenceEngine(), "TOPPProteinInference")
+      TEST_EQUAL(map.getIdentificationData().empty(), true)
+    }
+    END_SECTION
+
+    START_SECTION([EXTRA] void run(ConsensusMap& cmap, bool include_unassigned) const needs one protein run)
+    {
+      // two runs in two protein runs; merging pools them
+      auto map = nativeMap();
+      auto second = nativeMap();
+      map.getIdentificationData().merge(second.getIdentificationData());
+      BasicProteinInferenceAlgorithm bpia;
+      TEST_EXCEPTION(Exception::InvalidParameter, bpia.run(map, true))
     }
     END_SECTION
 

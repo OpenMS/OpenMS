@@ -794,6 +794,44 @@ const std::vector<FeatureMap>& IdentificationDataConverter::withIdentificationDa
 const std::vector<ConsensusMap>& IdentificationDataConverter::withIdentificationData(const std::vector<ConsensusMap>& maps, std::vector<ConsensusMap>& converted)
 { return distinctMaps(maps, converted); }
 
+namespace
+{
+  /// Meta value of the peptide hits of IdentificationDataConverter::exportWithMatchReferences(): "<run UUID>/<match ID>"
+  const std::string MATCH_REFERENCE = "identification:match_reference";
+} // namespace
+
+ConsensusMap IdentificationDataConverter::exportWithMatchReferences(const ConsensusMap& map)
+{
+  if (hasLegacyIDs(map)) invalid("The map has peptide identifications already");
+  ConsensusMap copy = map;
+  auto& data = copy.getIdentificationData();
+  for (const auto& current : data.getRuns())
+  {
+    std::vector<std::pair<ID::MatchId, ID::MatchData>> named;
+    for (const auto& source : current.getSources())
+      for (const auto& query : source.identifications)
+        for (const auto& match : query.getMatches())
+        {
+          named.emplace_back(match.getId(), match.getData());
+          named.back().second.setMetaValue(MATCH_REFERENCE, current.getUuid() + "/" + std::to_string(match.getId().value));
+        }
+    auto& run = data.getRun(current.getIdentifier());
+    for (const auto& [id, match] : named)
+      run.replaceMatch(id, match);
+  }
+  exportMap(copy, true);
+  return copy;
+}
+
+std::optional<ID::MatchReference> IdentificationDataConverter::matchReference(const PeptideHit& hit)
+{
+  if (! hit.metaValueExists(MATCH_REFERENCE)) return std::nullopt;
+  const std::string reference = hit.getMetaValue(MATCH_REFERENCE).toString();
+  const auto separator = reference.rfind('/');
+  if (separator == std::string::npos) invalid("Invalid match reference: " + reference);
+  return ID::MatchReference {reference.substr(0, separator), ID::MatchId {std::stoull(reference.substr(separator + 1))}};
+}
+
 bool IdentificationDataConverter::moveToIdentificationData(FeatureMap& map)
 {
   if (! checkedLegacyIDs(map)) return false;

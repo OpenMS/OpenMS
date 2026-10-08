@@ -2216,6 +2216,13 @@ Performs basic aggregation-based inference on single ProteinIdentification run. 
 :param prot_id: ProteinIdentification run with possible proteins. Scores will be overwritten and groups added.
 :return: Writes its results into prot_ids
 )doc")
+        .def("run", [](const OpenMS::BasicProteinInferenceAlgorithm& self, OpenMS::ConsensusMap& cmap, bool include_unassigned) { self.run(cmap, include_unassigned); }, "cmap"_a, "include_unassigned"_a,
+            R"doc(
+Performs basic aggregation-based inference over the identifications of a consensus map, as identification data.
+The identifications must be in one protein run (merge runs first, see ConsensusMapMergerAlgorithm.mergeAllIDRuns).
+:param cmap: Consensus map with the identifications; its inference result holds the scored proteins
+:param include_unassigned: Whether to also use the unassigned identifications
+)doc")
         ;
     def_ProgressLogger<OpenMS::BasicProteinInferenceAlgorithm>(basicproteininferencealgorithm_class);
     // AggregationMethod enum nested under BasicProteinInferenceAlgorithm

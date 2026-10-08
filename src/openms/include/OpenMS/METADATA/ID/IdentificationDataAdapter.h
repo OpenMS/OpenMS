@@ -149,6 +149,8 @@ public:
   static std::vector<ProteinHit> proteinHits(const IdentificationData& data, const IdentificationData::InferenceResult& result);
   /// The protein hits of the database sequences of @p run, as export writes them in its protein run without an inference result
   static std::vector<ProteinHit> proteinHits(const IdentificationData::Run& run);
+  /// The legacy protein run of @p run, as export writes it without an inference result (losses are not reported)
+  static ProteinIdentification proteinRun(const IdentificationData::Run& run);
 
   /**
     @name Legacy file lists

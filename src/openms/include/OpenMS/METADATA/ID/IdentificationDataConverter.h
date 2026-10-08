@@ -97,6 +97,15 @@ public:
   */
   static const std::vector<FeatureMap>& withIdentificationData(const std::vector<FeatureMap>& maps, std::vector<FeatureMap>& converted);
   static const std::vector<ConsensusMap>& withIdentificationData(const std::vector<ConsensusMap>& maps, std::vector<ConsensusMap>& converted);
+  /**
+    @brief A copy of @p map with its identifications as peptide identifications (exportConsensusIDs()) whose peptide
+    hits name their match (see matchReference()), for algorithms that work on peptide hits, e.g. protein inference
+
+    @throw Exception::InvalidParameter if @p map has peptide identifications
+  */
+  static ConsensusMap exportWithMatchReferences(const ConsensusMap& map);
+  /// The match that a peptide hit of exportWithMatchReferences() stands for, if it names one
+  static std::optional<IdentificationData::MatchReference> matchReference(const PeptideHit& hit);
   ///@}
 };
 }

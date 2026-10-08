@@ -850,6 +850,14 @@ std::vector<ProteinHit> IdentificationDataAdapter::proteinHits(const ID& data, c
   return hits;
 }
 
+ProteinIdentification IdentificationDataAdapter::proteinRun(const ID::Run& run)
+{
+  LegacyResult scratch;
+  ExportOptions options;
+  options.loss_policy = LossPolicy::ALLOW;
+  return legacyProteins(run, scratch, options);
+}
+
 std::vector<ProteinHit> IdentificationDataAdapter::proteinHits(const ID::Run& run)
 {
   std::vector<ProteinHit> hits;
