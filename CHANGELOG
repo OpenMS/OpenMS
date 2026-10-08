@@ -113,6 +113,9 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    IDFileConverter:
+      - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
+        better) instead of no score.
     UniPEFF:
       - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
         file names, e.g. 2025_07_05 for uniprotkb_proteome_UP000005640_2025_07_05.xml.gz,
