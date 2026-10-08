@@ -37,7 +37,7 @@ namespace OpenMS
     virtual ~MzCalibration() = default;
 
     /**
-     * @brief Writes results as meta values to the PeptideIdentification of the given FeatureMap
+     * @brief Writes results as meta values to the top matches of the identifications of the given FeatureMap (see QCBase::annotateIdentifications())
      * @param[in,out] features FeatureMap with m/z-values of PeptideIdentification after calibration, meta values are added here
      * @param[in] exp PeakMap of the original experiment. Can be empty (i.e. not available).
      * @param[in] map_to_spectrum Map to find index of spectrum given by meta value at PepID
@@ -55,8 +55,8 @@ namespace OpenMS
     const std::string& getName() const override;
 
   private:
-    /// calculate the m/z values and m/z errors and add them to the PeptideIdentification
-    void addMzMetaValues_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
+    /// calculate the m/z values and m/z errors and add them to the top match of the identification
+    void addMzMetaValues_(QCBase::AnnotatedIdentification& id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
 
     double mz_raw_;
     double mz_ref_;

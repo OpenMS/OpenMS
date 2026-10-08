@@ -57,7 +57,8 @@ namespace OpenMS
 
     /**
       @brief Calculate the ScanEventNumber, find all unidentified MS2-Spectra and add them to unassigned PeptideIdentifications,
-             write meta values "ScanEventNumber" and "identified" in PeptideIdentification.
+             write meta values "ScanEventNumber" and "identified" in the identifications of the features and the unassigned ones
+             (see QCBase::annotateIdentifications(); maps with peptide identifications are converted for this and back).
       @param[in] exp Imported calibrated MzML file as MSExperiment
       @param[in,out] features Imported featureXML file after FDR as FeatureMap
       @param[in] map_to_spectrum Map to find index of spectrum given by meta value at PepID
@@ -83,7 +84,7 @@ namespace OpenMS
     void setScanEventNumber_(const MSExperiment& exp);
 
     /// set ms2_included_ bool to true, if PeptideID exist and set "ScanEventNumber" for every PeptideID
-    void setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
+    void setPresenceAndScanEventNumber_(QCBase::AnnotatedIdentification& id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
 
     /// return all unidentified MS2-Scans as unassignedPeptideIDs, these contain only Information about RT and "ScanEventNumber"
     PeptideIdentificationList getUnassignedPeptideIdentifications_(const MSExperiment& exp);

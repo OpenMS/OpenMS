@@ -134,6 +134,25 @@ namespace OpenMS::Internal::ClassTest
   }
 
   /**
+    @brief Give the peptide identifications of a hand-built map what identification data needs: their search run and a score type
+
+    The search run is the first protein identification run of @p map (a new one named "search" if it has none, or if it
+    has no identifier); every peptide identification gets its identifier, and the score type @p score_type if it has none.
+  */
+  template<class Map>
+  void addSearchRun(Map& map, const std::string& score_type = "score")
+  {
+    if (map.getProteinIdentifications().empty()) map.getProteinIdentifications().emplace_back();
+    auto& run = map.getProteinIdentifications()[0];
+    if (run.getIdentifier().empty()) run.setIdentifier("search");
+    const std::string identifier = run.getIdentifier();
+    map.applyFunctionOnPeptideIDs([&](PeptideIdentification& id) {
+      id.setIdentifier(identifier);
+      if (id.getScoreType().empty()) id.setScoreType(score_type);
+    });
+  }
+
+  /**
     @brief Compare an operation on the peptide identifications of a map with the same operation on its identification data
 
     Runs @p operation(map, false) on a copy of @p input and @p operation(map, true) on a copy whose peptide identifications

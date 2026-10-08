@@ -23,6 +23,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include "Contaminants.h"
@@ -308,6 +309,8 @@ protected:
       {
         FileHandler().loadTransformations(in_trafo[i], trafo_descr, true, {FileTypes::TRANSFORMATIONXML});
       }
+      // the metrics work on identification data: convert once for all of them (and back below)
+      const bool converted = IdentificationDataConverter::moveToIdentificationData(*fmap);
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
@@ -396,6 +399,11 @@ protected:
 
         // save the just calculated IDs for appending to Cmap later (not now, because the vector might resize and invalidate our PepID*).
         all_new_upep_ids.insert(all_new_upep_ids.end(), new_upep_ids.begin(), new_upep_ids.end());
+      }
+
+      if (converted)
+      {
+        IdentificationDataConverter::exportFeatureIDs(*fmap);
       }
 
       StringList out_feat = getStringList_("out_feat");

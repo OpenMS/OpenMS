@@ -13,28 +13,27 @@ namespace OpenMS
 {
   void FWHM::compute(FeatureMap& features)
   {
-    for (auto& f : features)
-    {
-      if (f.metaValueExists("FWHM")) // from FF-Centroided
+    // the identifications that the features link
+    QCBase::annotateIdentifications(features, [](Feature* f, std::vector<QCBase::AnnotatedIdentification>& identifications) {
+      if (f->metaValueExists("FWHM")) // from FF-Centroided
       {
-        for (auto& pi : f.getPeptideIdentifications())
+        for (auto& id : identifications)
         {
-          pi.setMetaValue("FWHM", f.getMetaValue("FWHM"));
+          id.meta->setMetaValue("FWHM", f->getMetaValue("FWHM"));
         }
       }
-      else if (f.metaValueExists("model_FWHM")) // from FF-Identification
+      else if (f->metaValueExists("model_FWHM")) // from FF-Identification
       {
-        for (auto& pi : f.getPeptideIdentifications())
+        for (auto& id : identifications)
         {
-          pi.setMetaValue("FWHM", f.getMetaValue("model_FWHM")); // use 'FWHM' as target to make the name unique for downstream processing
+          id.meta->setMetaValue("FWHM", f->getMetaValue("model_FWHM")); // use 'FWHM' as target to make the name unique for downstream processing
         }
       }
       else
       {
-        // throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metavalue 'FWHM' or 'model_FWHM' is missing for a feature in a FeatureMap. Please check your FeatureFinder
-        // reports FWHM using these metavalues or add a new mapping here.");
+        // throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metavalue 'FWHM' or 'model_FWHM' is missing for a feature in a FeatureMap. Please check your FeatureFinder reports FWHM using these metavalues or add a new mapping here.");
       }
-    }
+    }, false);
   }
 
   const std::string& FWHM::getName() const

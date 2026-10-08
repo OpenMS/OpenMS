@@ -28,10 +28,13 @@ namespace OpenMS
     // count peptideIdentifications
     Size peptide_identification_counter {};
 
-    auto f = [assume_all_target, &peptide_identification_counter](const PeptideIdentification& id) { peptide_identification_counter += isTargetPeptide_(id, assume_all_target); };
-
-    // iterates through all PeptideIdentifications in FeatureMap, applies function f to all of them
-    feature_map.applyFunctionOnPeptideIDs(f, true);
+    // the identifications of the features and the unassigned ones
+    QCBase::visitIdentifications(feature_map, [&](const Feature*, const std::vector<QCBase::AnnotatedIdentification>& identifications) {
+      for (const auto& id : identifications)
+      {
+        peptide_identification_counter += isTargetPeptide_(id.top, assume_all_target);
+      }
+    });
 
     writeResults_(peptide_identification_counter, ms2_level_counter);
   }
@@ -46,7 +49,7 @@ namespace OpenMS
 
     for (const auto& id : pep_ids)
     {
-      peptide_identification_counter += isTargetPeptide_(id, assume_all_target);
+      peptide_identification_counter += isTargetPeptide_(id.getHits().empty() ? nullptr : &id.getHits()[0], assume_all_target);
     }
 
     writeResults_(peptide_identification_counter, ms2_level_counter);
@@ -108,9 +111,9 @@ namespace OpenMS
     return ms2_counter;
   }
 
-  bool Ms2IdentificationRate::isTargetPeptide_(const PeptideIdentification& id, bool all_targets)
+  bool Ms2IdentificationRate::isTargetPeptide_(const PeptideHit* top, bool all_targets)
   {
-    if (id.getHits().empty())
+    if (top == nullptr)
     {
       return false;
     }
@@ -118,12 +121,12 @@ namespace OpenMS
     {
       return true;
     }
-    if (id.getHits()[0].getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
+    if (top->getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy annotation found. If you want to continue regardless use -MS2_id_rate:assume_all_target");
     }
     // check for 'target' information, also allow "target+decoy" value
-    return !id.getHits()[0].isDecoy();
+    return !top->isDecoy();
   }
 
   void Ms2IdentificationRate::writeResults_(Size pep_ids_count, Size ms2_spectra_count)

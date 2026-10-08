@@ -21,9 +21,9 @@ namespace OpenMS
     @brief QualityControl metric: flag PSMs whose peptide sequences match
            a user-supplied contaminants FASTA (e.g. cRAP) after digestion.
 
-    Each call to @ref compute marks the first @c PeptideHit of every
-    @c PeptideIdentification in the supplied @c FeatureMap (both
-    feature-attached and unassigned) with an @c "is_contaminant"
+    Each call to @ref compute marks the top match of every
+    identification in the supplied @c FeatureMap (both linked to features
+    and unassigned; see QCBase::annotateIdentifications()) with an @c "is_contaminant"
     meta value (@c 1 if its unmodified sequence matches an entry in
     the digested contaminants database, @c 0 otherwise) and appends a
     @ref ContaminantsSummary to the internal results list returned by
@@ -34,8 +34,8 @@ namespace OpenMS
           and ignore the @p contaminants argument's actual contents.
           The enzyme and missed-cleavage settings used for the initial
           digestion are also frozen at that point (taken from
-          @c FeatureMap::getProteinIdentifications()[0].getSearchParameters()
-          of the @c FeatureMap supplied on the first call).
+          the search parameters of the first identification run, i.e. the first
+          protein identification run, of the @c FeatureMap supplied on the first call).
 
     @ingroup Metadata
   */
@@ -68,17 +68,17 @@ namespace OpenMS
 
       On the first call (when the internal digested-DB cache is empty),
       the FASTA entries in @p contaminants are digested using the
-      enzyme and missed-cleavage count from
-      @c features.getProteinIdentifications()[0].getSearchParameters()
-      and stored in a hash set. Every subsequent call to @ref compute
+      enzyme and missed-cleavage count from the search parameters of the
+      first identification run (the first protein identification run) of
+      @p features and stored in a hash set. Every subsequent call to @ref compute
       reuses that cache without consulting @p contaminants again.
 
-      The first @c PeptideHit of every @c PeptideIdentification in
-      @p features (both attached to features and in
-      @c getUnassignedPeptideIdentifications()) is annotated with
+      The top match of every identification of @p features (both linked
+      to features and unassigned) is annotated with
       @c "is_contaminant" set to @c 0 or @c 1. The aggregated ratios
       and the empty-feature counters are then pushed onto the internal
-      results list (see @ref getResults).
+      results list (see @ref getResults). A map with peptide identifications
+      is converted for this and back.
 
       @param[in,out] features    Source of the PSMs (annotated in place)
                                  and -- on the first call -- of the
@@ -141,5 +141,8 @@ namespace OpenMS
       @param[in]     intensity Intensity associated with this PSM.
     */
     void compare_(const std::string& key, PeptideHit& pep_hit, Int64& total, Int64& cont, double& sum_total, double& sum_cont, double intensity);
+
+    /// compute() of a map with identification data
+    void computeNative_(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants);
   };
 } // namespace OpenMS

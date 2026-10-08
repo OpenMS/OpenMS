@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/NativeIdentificationTest.h>
 
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -85,6 +86,7 @@ const PeptideIdentification createPeptideIdentification(const std::string& id, c
   PeptideIdentification peptide_id;
   peptide_id.setSpectrumReference( id);
   peptide_id.setMZ(mz);
+  peptide_id.setScoreType("score"); // identification data needs a score type
   peptide_id.setHits({peptide_hit});
 
   return peptide_id;
@@ -220,11 +222,17 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
   // test with missing toleranceUnit and toleranceValue in featureMap
   //--------------------------------------------------------------------
 
-  // featureMap with missing ProteinIdentifications
+  // featureMap whose search run has no fragment mass tolerance
+  {
+    FeatureMap fmap_auto = fmap;
+    fmap_auto.getProteinIdentifications()[0].setSearchParameters(ProteinIdentification::SearchParameters());
+    TEST_EXCEPTION(Exception::MissingInformation, psm_corr.compute(fmap_auto, exp, spectra_map, QCBase::ToleranceUnit::AUTO))
+  }
+  // featureMap with peptide identifications but without their search run (ProteinIdentification): not valid input
   {
     FeatureMap fmap_auto = fmap;
     fmap_auto.getProteinIdentifications().clear();
-    TEST_EXCEPTION(Exception::MissingInformation, psm_corr.compute(fmap_auto, exp, spectra_map, QCBase::ToleranceUnit::AUTO))
+    TEST_EXCEPTION(Exception::InvalidParameter, psm_corr.compute(fmap_auto, exp, spectra_map, QCBase::ToleranceUnit::AUTO))
   }
 
   //--------------------------------------------------------------------
@@ -243,6 +251,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
     // fmap with PeptideIdentification with spec_ref matching to a MS1 Spectrum
     FeatureMap fmap_ms1(fmap);
     fmap_ms1.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::3")});
+    Internal::ClassTest::addSearchRun(fmap_ms1); // the run of the map
     TEST_EXCEPTION(Exception::IllegalArgument, psm_corr.compute(fmap_ms1, exp_ms1, spectra_map))
   }
 
@@ -254,6 +263,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
     FeatureMap fmap_sori;
     fmap_sori.setProteinIdentifications({protId});
     fmap_sori.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::5")});
+    Internal::ClassTest::addSearchRun(fmap_sori); // the run of the map
 
     spectra_map.calculateMap(exp_sori);
     TEST_EXCEPTION(Exception::InvalidParameter, psm_corr.compute(fmap_sori, exp_sori, spectra_map))
@@ -267,6 +277,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
     FeatureMap failing_fmap;
     failing_fmap.setProteinIdentifications({protId});
     failing_fmap.setUnassignedPeptideIdentifications({no_hit_id, createPeptideIdentification("XTandem::6")});
+    Internal::ClassTest::addSearchRun(failing_fmap); // the run of the map
 
     spectra_map.calculateMap(failing_exp);
 

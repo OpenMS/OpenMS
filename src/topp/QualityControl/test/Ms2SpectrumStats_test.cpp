@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/NativeIdentificationTest.h>
 
 ///////////////////////////
 
@@ -162,6 +163,7 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
 
   Ms2SpectrumStats top;
   PeptideIdentificationList new_unassigned_pep_ids;
+  Internal::ClassTest::addSearchRun(fmap);
   new_unassigned_pep_ids = top.compute(exp, fmap, map_to_spectrum);
 
   // test features
@@ -194,6 +196,7 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   fmap_empty.clear();
   fmap_empty.push_back(f1); // need some non-empty feature
   fmap_empty.setUnassignedPeptideIdentifications({});
+  Internal::ClassTest::addSearchRun(fmap_empty);
   new_unassigned_pep_ids = top.compute(exp, fmap_empty, map_to_spectrum);
   TEST_EQUAL(new_unassigned_pep_ids.size(), 5);
   // empty MSExperiment
@@ -203,6 +206,7 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   // test exception PepID without 'spectrum_reference'
   PeptideIdentification pep_no_spec_ref;
   fmap[1].setPeptideIdentifications({pep_no_spec_ref});
+  Internal::ClassTest::addSearchRun(fmap);
   TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, top.compute(exp, fmap, map_to_spectrum), "No spectrum reference annotated at peptide identification!");
 }
 END_SECTION

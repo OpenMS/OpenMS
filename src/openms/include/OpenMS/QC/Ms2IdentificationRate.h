@@ -50,17 +50,16 @@ namespace OpenMS
     Size getMS2Count_(const MSExperiment& exp);
 
     /*
-     * @brief Checks pepID for target/decoy
+     * @brief Checks the top hit of an identification for target/decoy
      *
-     * Only checks the first (!) hit, all other hits are ignored
-     * Is static so that it can be used with MapUtilities::applyFunctionOnPeptideIDs() without creating a new object for each ID
+     * Only checks the top (first) hit, all other hits are ignored
      *
-     * @param[in] id             pepID to be checked
-     * @param[in] all_targets    always returns true (if the hits aren't empty)
+     * @param[in] top            top hit of the identification to be checked (nullptr if it has none)
+     * @param[in] all_targets    always returns true (if there is a hit)
      * @return               true/false
      * @throws               MissingInformation if target/decoy annotation is missing
      */
-    static bool isTargetPeptide_(const PeptideIdentification& id, bool all_targets);
+    static bool isTargetPeptide_(const PeptideHit* top, bool all_targets);
 
     /*
      * @brief Calculates id-rate and writes the result into a IdentificationRateData object which is appended to rate_result_
@@ -81,6 +80,7 @@ namespace OpenMS
      * @brief computes Ms2 Identification Rate with FeatureMap
      *
      * stores results as a struct in a vector
+     * Counts the identifications of the features and the unassigned ones by their top match (see QCBase::visitIdentifications()).
      * Only pep-ids with target/decoy annotation as 'target' are counted, unless force_index flag is set (assumes all pep-ids are target peptides)
      *
      * @param[in] feature_map       Input FeatureMap with target/decoy annotation

@@ -45,48 +45,38 @@ namespace OpenMS
       }
     }
 
-    // set meta values for the first hit of all PeptideIdentifications of all features
-    for (Feature& feature : features)
-    {
-      if (feature.getPeptideIdentifications().empty())
+    // set meta values for the top match of all identifications of the features and of the unassigned ones
+    QCBase::annotateIdentifications(features, [&](Feature*, std::vector<QCBase::AnnotatedIdentification>& identifications) {
+      for (auto& id : identifications)
       {
-        continue;
+        addMzMetaValues_(id, exp, map_to_spectrum);
       }
-
-      for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
-      {
-        addMzMetaValues_(peptide_ID, exp, map_to_spectrum);
-      }
-    }
-    // set meta values for the first hit of all unasssigned PeptideIdentifications
-    for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
-    {
-      addMzMetaValues_(unassigned_ID, exp, map_to_spectrum);
-    }
+    });
   }
 
-  void MzCalibration::addMzMetaValues_(PeptideIdentification& peptide_ID, const PeakMap& exp, const QCBase::SpectraMap& map_to_spectrum)
+  void MzCalibration::addMzMetaValues_(QCBase::AnnotatedIdentification& id, const PeakMap& exp, const QCBase::SpectraMap& map_to_spectrum)
   {
-    if (peptide_ID.getHits().empty())
+    if (id.top == nullptr)
     {
       return;
     }
+    PeptideHit& hit = *id.top;
 
-    mz_ref_ = peptide_ID.getHits()[0].getSequence().getMZ(peptide_ID.getHits()[0].getCharge());
+    mz_ref_ = hit.getSequence().getMZ(hit.getCharge());
 
     if (no_mzml_)
     {
-      peptide_ID.getHits()[0].setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(peptide_ID.getMZ(), mz_ref_));
+      hit.setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(id.mz, mz_ref_));
     }
     else
     {
-      if (!peptide_ID.metaValueExists("spectrum_reference"))
+      if (id.spectrum_reference.empty())
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identification!");
       }
 
       // get spectrum from mapping and meta value
-      MSSpectrum spectrum = exp[map_to_spectrum.at(peptide_ID.getSpectrumReference())];
+      MSSpectrum spectrum = exp[map_to_spectrum.at(id.spectrum_reference)];
 
       // check if spectrum fulfills all requirements
       if (spectrum.getMSLevel() == 2)
@@ -104,10 +94,10 @@ namespace OpenMS
       }
 
       // set meta values
-      peptide_ID.getHits()[0].setMetaValue("mz_raw", mz_raw_);
-      peptide_ID.getHits()[0].setMetaValue("mz_ref", mz_ref_);
-      peptide_ID.getHits()[0].setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(mz_raw_, mz_ref_));
-      peptide_ID.getHits()[0].setMetaValue("calibrated_mz_error_ppm", Math::getPPM(peptide_ID.getMZ(), mz_ref_));
+      hit.setMetaValue("mz_raw", mz_raw_);
+      hit.setMetaValue("mz_ref", mz_ref_);
+      hit.setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(mz_raw_, mz_ref_));
+      hit.setMetaValue("calibrated_mz_error_ppm", Math::getPPM(id.mz, mz_ref_));
     }
   }
 

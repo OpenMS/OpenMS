@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/QC/PSMExplainedIonCurrent.h>
 #include <cfloat>
 #include <numeric>
@@ -31,12 +32,12 @@ namespace OpenMS
     return sum;
   }
 
-  double PSMExplainedIonCurrent::annotatePSMExplainedIonCurrent_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter,
+  double PSMExplainedIonCurrent::annotatePSMExplainedIonCurrent_(QCBase::AnnotatedIdentification& id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter,
                                                                  PSMExplainedIonCurrent::ToleranceUnit tolerance_unit, double tolerance)
   {
-    if (pep_id.getHits().empty())
+    if (id.top == nullptr)
     {
-      OPENMS_LOG_DEBUG << "PeptideHits of PeptideIdentification with RT: " << pep_id.getRT() << " and MZ: " << pep_id.getMZ() << " is empty.";
+      OPENMS_LOG_DEBUG << "PeptideHits of PeptideIdentification with RT: " << id.rt << " and MZ: " << id.mz << " is empty.";
       return DBL_MAX;
     }
 
@@ -45,20 +46,20 @@ namespace OpenMS
     //---------------------------------------------------------------------
 
     // sequence
-    const AASequence& seq = pep_id.getHits()[0].getSequence();
+    const AASequence& seq = id.top->getSequence();
 
-    // charge: re-calculated from masses since much more robust this way (PepID annotation of pep_id.getHits()[0].getCharge() could be wrong)
-    Int charge = static_cast<Int>(round(seq.getMonoWeight() / pep_id.getMZ()));
+    // charge: re-calculated from masses since much more robust this way (PepID annotation of the top hit's charge could be wrong)
+    Int charge = static_cast<Int>(round(seq.getMonoWeight() / id.mz));
 
     //-----------------------------------------------------------------------
     // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICATION
     //-----------------------------------------------------------------------
 
-    if (!pep_id.metaValueExists("spectrum_reference"))
+    if (id.spectrum_reference.empty())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identifiction!");
     }
-    const MSSpectrum& exp_spectrum = exp[map_to_spectrum.at(pep_id.getSpectrumReference())];
+    const MSSpectrum& exp_spectrum = exp[map_to_spectrum.at(id.spectrum_reference)];
 
     if (exp_spectrum.getMSLevel() != 2)
     {
@@ -122,12 +123,17 @@ namespace OpenMS
       correctness = sumOfMatchedIntensities(mi) / sum_of_intensities;
     }
 
-    pep_id.getHits()[0].setMetaValue(Constants::UserParam::PSM_EXPLAINED_ION_CURRENT_USERPARAM, correctness);
+    id.top->setMetaValue(Constants::UserParam::PSM_EXPLAINED_ION_CURRENT_USERPARAM, correctness);
 
     return correctness;
   }
 
   void PSMExplainedIonCurrent::compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
+  {
+    IdentificationDataConverter::editAsIdentificationData(fmap, [&](FeatureMap& map) { computeNative_(map, exp, map_to_spectrum, tolerance_unit, tolerance); });
+  }
+
+  void PSMExplainedIonCurrent::computeNative_(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
     Statistics result;
 
@@ -155,13 +161,14 @@ namespace OpenMS
     //------------------------------------------------------------------
     if (tolerance_unit == ToleranceUnit::AUTO)
     {
-      if (fmap.getProteinIdentifications().empty())
+      const auto* search = QCBase::searchParameters(fmap.getIdentificationData());
+      if (search == nullptr)
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
       }
-      tolerance_unit = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance_ppm ? ToleranceUnit::PPM : ToleranceUnit::DA;
-      tolerance = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance;
+      tolerance_unit = search->fragment_mass_tolerance_ppm ? ToleranceUnit::PPM : ToleranceUnit::DA;
+      tolerance = search->fragment_mass_tolerance;
       if (tolerance <= 0.0)
       { // some engines, e.g. MSGF+ have no fragment tolerance parameter. It will be 0.0.
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -171,15 +178,17 @@ namespace OpenMS
 
     std::vector<double> correctnesses;
 
-    std::function<void(PeptideIdentification&)> fCorrectness = [&exp, &map_to_spectrum, &correctnesses, &wm_filter, tolerance, tolerance_unit](PeptideIdentification& pep_id) {
-      double correctness = annotatePSMExplainedIonCurrent_(pep_id, exp, map_to_spectrum, wm_filter, tolerance_unit, tolerance);
-      if (correctness != DBL_MAX)
+    // the identifications of the features and the unassigned ones
+    QCBase::annotateIdentifications(fmap, [&](Feature*, std::vector<QCBase::AnnotatedIdentification>& identifications) {
+      for (auto& id : identifications)
       {
-        correctnesses.push_back(correctness);
+        double correctness = annotatePSMExplainedIonCurrent_(id, exp, map_to_spectrum, wm_filter, tolerance_unit, tolerance);
+        if (correctness != DBL_MAX)
+        {
+          correctnesses.push_back(correctness);
+        }
       }
-    };
-
-    fmap.applyFunctionOnPeptideIDs(fCorrectness);
+    });
 
     if (correctnesses.empty())
     {
@@ -232,7 +241,8 @@ namespace OpenMS
 
     for (auto& pep_id : pep_ids)
     {
-      double correctness = annotatePSMExplainedIonCurrent_(pep_id, exp, map_to_spectrum, wm_filter, tolerance_unit, tolerance);
+      auto id = QCBase::annotated(pep_id);
+      double correctness = annotatePSMExplainedIonCurrent_(id, exp, map_to_spectrum, wm_filter, tolerance_unit, tolerance);
       if (correctness != DBL_MAX)
       {
         correctnesses.push_back(correctness);

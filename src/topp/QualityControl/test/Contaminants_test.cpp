@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/NativeIdentificationTest.h>
 
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
@@ -77,6 +78,7 @@ vector<FASTAFile::FASTAEntry> contaminantsFile;
   f.setPeptideIdentifications({});
   fmap.push_back(f);
 }
+Internal::ClassTest::addSearchRun(fmap);
 
 // set the unassigned peptideidentifications
 PeptideIdentificationList ids2(3);
@@ -149,6 +151,7 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
 
   // fill the unassigned peptideidentifications
   fmap.setUnassignedPeptideIdentifications(ids2);
+  Internal::ClassTest::addSearchRun(fmap);
 
   // tests without given missed cleavages but with set enzyme
   conts4.compute(fmap, contaminantsFile);

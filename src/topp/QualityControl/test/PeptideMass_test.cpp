@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/NativeIdentificationTest.h>
 ///////////////////////////
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include "PeptideMass.h"
@@ -47,6 +48,7 @@ START_SECTION(void compute(FeatureMap& features))
   f.getPeptideIdentifications().back() = pi;
   fm.push_back(f);
   PeptideMass fw;
+  Internal::ClassTest::addSearchRun(fm);
   fw.compute(fm);
   TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("mass"), (100.0 - Constants::PROTON_MASS_U) * 3)
   TEST_EQUAL(fm[1].getPeptideIdentifications()[0].getHits()[0].getMetaValue("mass"), (200.0 - Constants::PROTON_MASS_U) * 2)

@@ -13,16 +13,17 @@ namespace OpenMS
 {
   void PeptideMass::compute(FeatureMap& features)
   {
-    features.applyFunctionOnPeptideIDs(
-      [](PeptideIdentification& pi) {
-        if (pi.getHits().empty())
+    // the identifications of the features and the unassigned ones
+    QCBase::annotateIdentifications(features, [](Feature*, std::vector<QCBase::AnnotatedIdentification>& identifications) {
+      for (auto& id : identifications)
+      {
+        if (id.top == nullptr)
         {
-          return;
+          continue;
         }
-        auto& hit = pi.getHits()[0];
-        hit.setMetaValue("mass", (pi.getMZ() - Constants::PROTON_MASS_U) * hit.getCharge());
-      },
-      true);
+        id.top->setMetaValue("mass", (id.mz - Constants::PROTON_MASS_U) * id.top->getCharge());
+      }
+    });
   }
 
   const std::string& PeptideMass::getName() const

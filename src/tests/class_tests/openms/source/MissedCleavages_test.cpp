@@ -55,6 +55,8 @@ PeptideIdentification pep_id_empty;
 pep_id_empty.setHits(pep_hits_empty);
 PeptideIdentification pep_id_3;
 pep_id_3.setHits(pep_hits_3);
+// identification data needs a score type
+for (auto* id : {&pep_id_0, &pep_id_1, &pep_id_empty, &pep_id_3}) id->setScoreType("score");
 
 // construct vectors of PeptideIdentifications
 PeptideIdentificationList pep_ids = {pep_id_0, pep_id_1, pep_id_empty};
@@ -172,7 +174,8 @@ START_SECTION(void compute(FeatureMap& fmap))
   // Missing informations in ProteinIdentifications
   // fmap.getProteinIdentifications().empty()
   MissedCleavages mc_no_protein;
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, mc_no_protein.compute(feature_map_no_protein), "Missing information in ProteinIdentifications.")
+  // peptide identifications without their search run (ProteinIdentification) are not valid input
+  TEST_EXCEPTION(Exception::InvalidParameter, mc_no_protein.compute(feature_map_no_protein))
 
   // no given enzyme
   // enzyme == "unknown_enzyme"

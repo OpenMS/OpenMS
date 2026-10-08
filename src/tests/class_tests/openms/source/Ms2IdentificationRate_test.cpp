@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/NativeIdentificationTest.h>
 
 ///////////////////////////
 
@@ -29,14 +30,18 @@ START_TEST(Ms2IdentificationRate, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-// construct PeptideHits
+// construct PeptideHits (identification data needs a sequence)
 PeptideHit pep_hit1_t1;
+pep_hit1_t1.setSequence(AASequence::fromString("PEPTIDE"));
 pep_hit1_t1.setMetaValue("target_decoy", "target");
 PeptideHit pep_hit1_t2;
+pep_hit1_t2.setSequence(AASequence::fromString("PEPTIDE"));
 pep_hit1_t2.setMetaValue("target_decoy", "target");
 PeptideHit pep_hit2_d;
+pep_hit2_d.setSequence(AASequence::fromString("PEPTIDE"));
 pep_hit2_d.setMetaValue("target_decoy", "decoy");
 PeptideHit pep_hit_fdr;
+pep_hit_fdr.setSequence(AASequence::fromString("PEPTIDE"));
 
 // construct vectors of PeptideHits
 std::vector<PeptideHit> pep_hits_target = {pep_hit1_t1, pep_hit1_t2};
@@ -82,6 +87,9 @@ FeatureMap fmap_empty;
 
 
 fmap.setUnassignedPeptideIdentifications(pep_ids);
+// identification data needs their search run and a score type
+Internal::ClassTest::addSearchRun(fmap);
+Internal::ClassTest::addSearchRun(fmap_fdr);
 
 // construct MSSpectrum
 MSSpectrum ms2;

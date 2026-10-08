@@ -33,8 +33,8 @@ namespace OpenMS
   {
   private:
     typedef std::map<UInt32, UInt32> MapU32;
-    /// collects number of missed cleavages from PeptideIdentification in a result map (missed cleavages: occurences)
-    void get_missed_cleavages_from_peptide_identification_(const ProteaseDigestion& digestor, MapU32& result, const UInt32& max_mc, PeptideIdentification& pep_id);
+    /// collects number of missed cleavages of the top match of an identification in a result map (missed cleavages: occurences)
+    void get_missed_cleavages_from_peptide_identification_(const ProteaseDigestion& digestor, MapU32& result, const UInt32& max_mc, QCBase::AnnotatedIdentification& id);
 
   public:
     /// constructor
@@ -47,8 +47,9 @@ namespace OpenMS
      * @brief Counts the number of missed cleavages per PeptideIdentification.
      *
      * The result is a key/value map: \#missed_cleavages --> counts
-     * Additionally the first PeptideHit in each PeptideIdentification of the FeatureMap is annotated with metavalue 'missed_cleavages'.
-     * The protease and digestion parameters are taken from the first ProteinIdentication (and SearchParameter therein) within the FeatureMap itself.
+     * Additionally the top match of each identification of the FeatureMap (see QCBase::annotateIdentifications()) is annotated with metavalue 'missed_cleavages'.
+     * The protease and digestion parameters are taken from the search parameters of the first identification run (the first ProteinIdentification) of the FeatureMap.
+     * Maps with peptide identifications are converted for this and back.
      *
      * @param[in,out] fmap FeatureMap with Peptide and ProteinIdentifications
      */

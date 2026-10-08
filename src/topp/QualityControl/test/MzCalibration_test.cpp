@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/NativeIdentificationTest.h>
 ///////////////////////////
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -119,6 +120,7 @@ peptide_ID.setRT(0.5);
 peptide_ID.setSpectrumReference( "XTandem::2");
 unassignedIDs.push_back(peptide_ID);
 fmap_ref.setUnassignedPeptideIdentifications(unassignedIDs);
+Internal::ClassTest::addSearchRun(fmap_ref);
 MzCalibration cal;
 // tests compute function
 START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const QCBase::SpectraMap map_to_spectrum))
@@ -195,6 +197,7 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const 
   identifications.push_back(peptide_ID_empty);
   feature1.setPeptideIdentifications(identifications);
   fmap_empty.push_back(feature1);
+  Internal::ClassTest::addSearchRun(fmap_empty);
   cal.compute(fmap_empty, exp, spectra_map);
   TEST_EQUAL(fmap_empty.isMetaEmpty(), true);
 
@@ -205,6 +208,7 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const 
   identifications.push_back(peptide_ID);
   feature1.setPeptideIdentifications(identifications);
   fmap_empty.push_back(feature1);
+  Internal::ClassTest::addSearchRun(fmap_empty);
   cal.compute(fmap_empty, exp, spectra_map);
   TEST_EQUAL(fmap_empty.isMetaEmpty(), true);
 
@@ -224,6 +228,7 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const 
   dummy_hit.setCharge(2);
   pep_no_spec_ref.setHits({dummy_hit});
   fmap[0].setPeptideIdentifications({pep_no_spec_ref});
+  Internal::ClassTest::addSearchRun(fmap);
   TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, cal.compute(fmap, exp, spectra_map), "No spectrum reference annotated at peptide identification!");
 }
 END_SECTION

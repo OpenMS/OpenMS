@@ -15,6 +15,7 @@
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -44,12 +45,12 @@ namespace OpenMS
     }
   }
 
-  void FragmentMassError::calculateFME_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance,
+  void FragmentMassError::calculateFME_(QCBase::AnnotatedIdentification& id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance,
                                         FragmentMassError::ToleranceUnit tolerance_unit, double& accumulator_ppm, UInt32& counter_ppm, WindowMower& window_mower_filter)
   {
-    if (pep_id.getHits().empty())
+    if (id.top == nullptr)
     {
-      OPENMS_LOG_WARN << "PeptideHits of PeptideIdentification with RT: " << pep_id.getRT() << " and MZ: " << pep_id.getMZ() << " is empty.";
+      OPENMS_LOG_WARN << "PeptideHits of PeptideIdentification with RT: " << id.rt << " and MZ: " << id.mz << " is empty.";
       return;
     }
 
@@ -58,20 +59,20 @@ namespace OpenMS
     //---------------------------------------------------------------------
 
     // sequence
-    const AASequence& seq = pep_id.getHits()[0].getSequence();
+    const AASequence& seq = id.top->getSequence();
 
-    // charge: re-calculated from masses since much more robust this way (PepID annotation of pep_id.getHits()[0].getCharge() could be wrong)
-    Int charge = static_cast<Int>(round(seq.getMonoWeight() / pep_id.getMZ()));
+    // charge: re-calculated from masses since much more robust this way (PepID annotation of the top hit's charge could be wrong)
+    Int charge = static_cast<Int>(round(seq.getMonoWeight() / id.mz));
 
     //-----------------------------------------------------------------------
     // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICATION
     //-----------------------------------------------------------------------
 
-    if (!pep_id.metaValueExists("spectrum_reference"))
+    if (id.spectrum_reference.empty())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identifiction!");
     }
-    const MSSpectrum& exp_spectrum = exp[map_to_spectrum.at(pep_id.getSpectrumReference())];
+    const MSSpectrum& exp_spectrum = exp[map_to_spectrum.at(id.spectrum_reference)];
 
     if (exp_spectrum.getMSLevel() != 2)
     {
@@ -140,27 +141,27 @@ namespace OpenMS
     //-----------------------------------------------------------------------
     // WRITE PPM ERROR IN PEPTIDEHIT
     //-----------------------------------------------------------------------
-    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_USERPARAM, ppms);
-    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_USERPARAM, dalton);
+    id.top->setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_USERPARAM, ppms);
+    id.top->setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_USERPARAM, dalton);
     if (ppms.size() > 1)
     {
-      pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_USERPARAM + "_variance", Math::variance(ppms.begin(), ppms.end()));
+      id.top->setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_USERPARAM + "_variance", Math::variance(ppms.begin(), ppms.end()));
     }
     if (dalton.size() > 1)
     {
-      pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_USERPARAM + "_variance", Math::variance(dalton.begin(), dalton.end()));
+      id.top->setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_USERPARAM + "_variance", Math::variance(dalton.begin(), dalton.end()));
     }
   }
 
-  void FragmentMassError::calculateVariance_(FragmentMassError::Statistics& result, const PeptideIdentification& pep_id, const UInt num_ppm)
+  void FragmentMassError::calculateVariance_(FragmentMassError::Statistics& result, const QCBase::AnnotatedIdentification& id, const UInt num_ppm)
   {
-    if (pep_id.getHits().empty())
+    if (id.top == nullptr)
     {
-      OPENMS_LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() << ") without PeptideHits. "
+      OPENMS_LOG_WARN << "There is a Peptideidentification(RT: " << id.rt << ", MZ: " << id.mz << ") without PeptideHits. "
                       << "\n";
       return;
     }
-    for (const auto& ppm : (pep_id.getHits()[0].getMetaValue("fragment_mass_error_ppm")).toDoubleList())
+    for (const auto& ppm : (id.top->getMetaValue("fragment_mass_error_ppm")).toDoubleList())
     {
       double tmp = ppm - result.average_ppm;
       result.variance_ppm += (tmp * tmp / num_ppm);
@@ -168,6 +169,11 @@ namespace OpenMS
   }
 
   void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
+  {
+    IdentificationDataConverter::editAsIdentificationData(fmap, [&](FeatureMap& map) { computeNative_(map, exp, map_to_spectrum, tolerance_unit, tolerance); });
+  }
+
+  void FragmentMassError::computeNative_(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
     Statistics result;
 
@@ -201,13 +207,14 @@ namespace OpenMS
     //------------------------------------------------------------------
     if (tolerance_unit == ToleranceUnit::AUTO)
     {
-      if (fmap.getProteinIdentifications().empty())
+      const auto* search = QCBase::searchParameters(fmap.getIdentificationData());
+      if (search == nullptr)
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
       }
-      tolerance_unit = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance_ppm ? ToleranceUnit::PPM : ToleranceUnit::DA;
-      tolerance = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance;
+      tolerance_unit = search->fragment_mass_tolerance_ppm ? ToleranceUnit::PPM : ToleranceUnit::DA;
+      tolerance = search->fragment_mass_tolerance;
       if (tolerance <= 0.0)
       { // some engines, e.g. MSGF+ have no fragment tolerance parameter. It will be 0.0.
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -217,16 +224,13 @@ namespace OpenMS
 
     bool print_warning {false};
 
-    // computes the FragmentMassError
-    std::function<void(PeptideIdentification&)> fCompPPM = [&exp, &map_to_spectrum, &print_warning, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm,
-                                                            &window_mower_filter](PeptideIdentification& pep_id) {
-      calculateFME_(pep_id, exp, map_to_spectrum, print_warning, tolerance, tolerance_unit, accumulator_ppm, counter_ppm, window_mower_filter);
-    };
-
-    auto fVar = [&result, &counter_ppm](const PeptideIdentification& pep_id) { calculateVariance_(result, pep_id, counter_ppm); };
-
-    // computation of ppms
-    fmap.applyFunctionOnPeptideIDs(fCompPPM);
+    // computation of ppms, of the identifications of the features and the unassigned ones
+    QCBase::annotateIdentifications(fmap, [&](Feature*, std::vector<QCBase::AnnotatedIdentification>& identifications) {
+      for (auto& id : identifications)
+      {
+        calculateFME_(id, exp, map_to_spectrum, print_warning, tolerance, tolerance_unit, accumulator_ppm, counter_ppm, window_mower_filter);
+      }
+    });
     // if there are no matching peaks, the counter is zero and it is not possible to find ppms
     if (counter_ppm == 0)
     {
@@ -238,7 +242,12 @@ namespace OpenMS
     result.average_ppm = accumulator_ppm / counter_ppm;
 
     // computes variance
-    fmap.applyFunctionOnPeptideIDs(fVar);
+    QCBase::visitIdentifications(fmap, [&](const Feature*, const std::vector<QCBase::AnnotatedIdentification>& identifications) {
+      for (const auto& id : identifications)
+      {
+        calculateVariance_(result, id, counter_ppm);
+      }
+    });
 
     results_.push_back(result);
   }
@@ -294,7 +303,8 @@ namespace OpenMS
     // first pass: accumulate all ppm errors
     for (auto& pep_id : pep_ids)
     {
-      calculateFME_(pep_id, exp, map_to_spectrum, print_warning, tolerance, tolerance_unit, accumulator_ppm, counter_ppm, window_mower_filter);
+      auto id = QCBase::annotated(pep_id);
+      calculateFME_(id, exp, map_to_spectrum, print_warning, tolerance, tolerance_unit, accumulator_ppm, counter_ppm, window_mower_filter);
     }
 
     // if there are no matching peaks, the counter is zero and it is not possible to find ppms
@@ -308,9 +318,9 @@ namespace OpenMS
     result.average_ppm = accumulator_ppm / counter_ppm;
 
     // computes variance (second pass: against the final average)
-    for (const auto& pep_id : pep_ids)
+    for (auto& pep_id : pep_ids)
     {
-      calculateVariance_(result, pep_id, counter_ppm);
+      calculateVariance_(result, QCBase::annotated(pep_id), counter_ppm);
     }
 
     results_.push_back(result);

@@ -11,13 +11,21 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/FlagSet.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/PeptideHit.h>
 #include <algorithm>
+#include <functional>
+#include <limits>
 #include <map>
+#include <vector>
 
 namespace OpenMS
 {
   class MSExperiment;
   class ConsensusMap;
+  class Feature;
+  class FeatureMap;
+  class PeptideIdentification;
 
   /**
    * @brief This class serves as an abstract base class for all QC classes.
@@ -112,14 +120,51 @@ namespace OpenMS
     /// check if the IsobaricAnalyzer TOPP tool was used to create this ConsensusMap
     static bool isLabeledExperiment(const ConsensusMap& cm);
 
-    /// does the container have a PeptideIdentification in its members or as unassignedPepID ?
-    template<typename MAP>
-    static bool hasPepID(const MAP& fmap)
-    {
-      if (!fmap.getUnassignedPeptideIdentifications().empty())
-        return true;
+    /// does the map have an identification (linked to a feature or unassigned), as identification data or as peptide identification?
+    static bool hasPepID(const FeatureMap& fmap);
+    static bool hasPepID(const ConsensusMap& cmap);
 
-      return std::any_of(fmap.cbegin(), fmap.cend(), [](const auto& f) { return !f.getPeptideIdentifications().empty(); });
-    }
+    /**
+      @brief An identification as QC metrics read and annotate it: an identification of a feature map (see
+      annotateIdentifications()) or a peptide identification (see annotated())
+
+      Meta values set on @p meta and on @p top are stored at the identification and at its match. Other changes are not
+      stored.
+    */
+    struct OPENMS_DLLAPI AnnotatedIdentification
+    {
+      double rt = std::numeric_limits<double>::quiet_NaN(); ///< NaN if unknown
+      double mz = std::numeric_limits<double>::quiet_NaN(); ///< NaN if unknown
+      std::string spectrum_reference;                       ///< empty if unknown
+      MetaInfoInterface* meta = nullptr;                    ///< meta values of the identification
+      /**
+        The top match: of an identification of a map, the one with the best primary score of the matches that the
+        feature links (the first of equal ones; the first hit after sorting the hits of the peptide identification); of
+        a peptide identification, its first hit. As a peptide hit (sequence, charge, score and meta values); nullptr
+        without matches.
+      */
+      PeptideHit* top = nullptr;
+    };
+
+    /// @p id as an annotated identification (its first hit as top match)
+    static AnnotatedIdentification annotated(PeptideIdentification& id);
+
+    /**
+      @brief Run @p visit on the identifications of @p map, feature by feature, and store the meta values it sets
+
+      @p visit gets every feature with the identifications it links (none for a feature without identifications), then,
+      if @p include_unassigned, the unassigned identifications with a null feature. An identification that several
+      features link is the same object each time. Maps with peptide identifications are converted for this and back
+      (IdentificationDataConverter::editAsIdentificationData()).
+    */
+    static void annotateIdentifications(FeatureMap& map, const std::function<void(Feature* feature, std::vector<AnnotatedIdentification>& identifications)>& visit,
+                                        bool include_unassigned = true);
+
+    /// As annotateIdentifications(), without storing anything (maps with peptide identifications are read through a converted copy)
+    static void visitIdentifications(const FeatureMap& map, const std::function<void(const Feature* feature, const std::vector<AnnotatedIdentification>& identifications)>& visit,
+                                     bool include_unassigned = true);
+
+    /// The search parameters of the first run of @p data (of the first protein identification run of a converted map), or nullptr without runs
+    static const SearchParameters* searchParameters(const IdentificationData& data);
   };
 } // namespace OpenMS

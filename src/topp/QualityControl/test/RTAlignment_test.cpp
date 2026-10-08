@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/NativeIdentificationTest.h>
 
 ///////////////////////////
 
@@ -85,6 +86,7 @@ START_SECTION(const std::string& getName() const override) {TEST_EQUAL(rtA.getNa
   td.setDataPoints(vector<pair<double, double>> {{0.0, 1.0}, {0.25, 1.5}, {0.5, 2.0}, {1.0, 3.0}});
   td.fitModel("linear");
   RTAlignment rtA;
+  Internal::ClassTest::addSearchRun(fmap);
   rtA.compute(fmap, td);
   // test features
   TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getMetaValue("rt_align"), 1);
@@ -116,6 +118,7 @@ START_SECTION(const std::string& getName() const override) {TEST_EQUAL(rtA.getNa
   identifications.push_back(peptide_ID_empty);
   feature1.setPeptideIdentifications(identifications);
   fmap_empty.push_back(feature1);
+  Internal::ClassTest::addSearchRun(fmap_empty);
   rtA.compute(fmap_empty, td);
 
   // data processing: after alignment

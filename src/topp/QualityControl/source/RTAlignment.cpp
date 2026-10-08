@@ -38,24 +38,25 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metric RTAlignment received a featureXML AFTER map alignment, but needs a featureXML BEFORE map alignment!");
     }
 
-    // set meta values for original retention time and aligned retention time (after map alignment)
-    for (Feature& feature : features)
-    {
-      for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
+    // set meta values for original retention time and aligned retention time (after map alignment), of the features
+    // and their identifications, and of the unassigned identifications
+    QCBase::annotateIdentifications(features, [&trafo](Feature* feature, std::vector<QCBase::AnnotatedIdentification>& identifications) {
+      for (auto& id : identifications)
       {
-        peptide_ID.setMetaValue("rt_align", trafo.apply(peptide_ID.getRT()));
-        peptide_ID.setMetaValue("rt_raw", peptide_ID.getRT());
+        id.meta->setMetaValue("rt_align", trafo.apply(id.rt));
+        id.meta->setMetaValue("rt_raw", id.rt);
       }
-      feature.setMetaValue("rt_align", trafo.apply(feature.getRT()));
-      feature.setMetaValue("rt_raw", feature.getRT());
-      feature.setMetaValue("rt_align_start", trafo.apply(feature.getConvexHull().getBoundingBox().minX()));
-      feature.setMetaValue("rt_align_end", trafo.apply(feature.getConvexHull().getBoundingBox().maxX()));
-      feature.setMetaValue("rt_raw_start", feature.getConvexHull().getBoundingBox().minX());
-      feature.setMetaValue("rt_raw_end", feature.getConvexHull().getBoundingBox().maxX());
-    }
-
-    // same for unassigned PepIDs
-    compute(features.getUnassignedPeptideIdentifications(), trafo);
+      if (feature == nullptr)
+      {
+        return;
+      }
+      feature->setMetaValue("rt_align", trafo.apply(feature->getRT()));
+      feature->setMetaValue("rt_raw", feature->getRT());
+      feature->setMetaValue("rt_align_start", trafo.apply(feature->getConvexHull().getBoundingBox().minX()));
+      feature->setMetaValue("rt_align_end", trafo.apply(feature->getConvexHull().getBoundingBox().maxX()));
+      feature->setMetaValue("rt_raw_start", feature->getConvexHull().getBoundingBox().minX());
+      feature->setMetaValue("rt_raw_end", feature->getConvexHull().getBoundingBox().maxX());
+    });
   }
 
   void RTAlignment::compute(PeptideIdentificationList& ids, const TransformationDescription& trafo) const

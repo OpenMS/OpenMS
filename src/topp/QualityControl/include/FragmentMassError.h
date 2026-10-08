@@ -41,7 +41,7 @@ namespace OpenMS
      * @brief computes FragmentMassError (FME) in ppm and Dalton (only of the first PeptideHit of each PepID)
      *
      * Stores average FME over all spectra (one for each PeptideIdentification) and its variance in ppm as a struct in a vector.
-     * Each FME (in ppm) is stored at the first PeptideHit of the corresponding PeptideIdentification as metavalue Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM
+     * Each FME (in ppm) is stored at the top match of the corresponding identification (see QCBase::annotateIdentifications(); maps with peptide identifications are converted for this and back) as metavalue Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM
      * and contains the FME for each peak in the corresponding spectrum.
      * Same is done for the FME in Da - as metavalue Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM.
      * For both tolerance units the variance of FMEs over the spectrum is also stored as a metavalue with the extension "_variance" to the metavalue name.
@@ -104,10 +104,13 @@ namespace OpenMS
     /// container that stores results
     std::vector<Statistics> results_;
 
-    static void calculateFME_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance,
+    static void calculateFME_(QCBase::AnnotatedIdentification& id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance,
                               FragmentMassError::ToleranceUnit tolerance_unit, double& accumulator_ppm, UInt32& counter_ppm, WindowMower& window_mower_filter);
 
-    static void calculateVariance_(FragmentMassError::Statistics& result, const PeptideIdentification& pep_id, const UInt num_ppm);
+    static void calculateVariance_(FragmentMassError::Statistics& result, const QCBase::AnnotatedIdentification& id, const UInt num_ppm);
+
+    /// compute() of a map with identification data
+    void computeNative_(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance);
   };
 
 } // namespace OpenMS

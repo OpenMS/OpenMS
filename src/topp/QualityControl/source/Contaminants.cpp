@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include "Contaminants.h"
 #include <algorithm>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
@@ -18,6 +19,11 @@ namespace OpenMS
 {
 
   void Contaminants::compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants)
+  {
+    IdentificationDataConverter::editAsIdentificationData(features, [&](FeatureMap& map) { computeNative_(map, contaminants); });
+  }
+
+  void Contaminants::computeNative_(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants)
   {
     // empty FeatureMap
     if (features.empty())
@@ -33,12 +39,13 @@ namespace OpenMS
     // fill the unordered set once with the digested contaminants database
     if (digested_db_.empty())
     {
-      if (features.getProteinIdentifications().empty())
+      const auto* search = QCBase::searchParameters(features.getIdentificationData());
+      if (search == nullptr)
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No proteinidentifications in FeatureMap.");
       }
       ProteaseDigestion digestor;
-      std::string enzyme = features.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme.getName();
+      std::string enzyme = search->digestion_enzyme.getName();
 
       // no enzyme is given
       if (enzyme == "unknown_enzyme")
@@ -49,7 +56,7 @@ namespace OpenMS
       digestor.setEnzyme(enzyme);
 
       // get the missed cleavages for the digestor. If none are given, its default is 0.
-      UInt missed_cleavages(features.getProteinIdentifications()[0].getSearchParameters().missed_cleavages);
+      UInt missed_cleavages(search->missed_cleavages);
       digestor.setMissedCleavages(missed_cleavages);
 
       // digest the contaminants database and add the peptides into the unordered set
@@ -71,63 +78,63 @@ namespace OpenMS
     double sum_cont = 0.0;
     Int64 feature_has_no_sequence = 0;
 
-    // Check if peptides of featureMap are contaminants or not and add is_contaminant = 0/1 to the first hit of the peptideidentification.
+    // Check if peptides of featureMap are contaminants or not and add is_contaminant = 0/1 to the top hit of the identifications.
     // If so, raise contaminants ratio.
-    for (auto& f : features)
-    {
-      if (f.getPeptideIdentifications().empty())
+    ContaminantsSummary final;
+    UInt64 utotal = 0;
+    UInt64 ucont = 0;
+    QCBase::annotateIdentifications(features, [&](Feature* f, std::vector<QCBase::AnnotatedIdentification>& identifications) {
+      if (f != nullptr)
       {
-        ++feature_has_no_sequence;
-        continue;
-      }
-      for (auto& id : f.getPeptideIdentifications())
-      {
-        // peptideidentifications in feature f is not empty
-        if (id.getHits().empty())
+        if (identifications.empty())
         {
           ++feature_has_no_sequence;
+          return;
+        }
+        for (auto& id : identifications)
+        {
+          // the identification of feature f has no hit
+          if (id.top == nullptr)
+          {
+            ++feature_has_no_sequence;
+            continue;
+          }
+          std::string key = (id.top->getSequence().toUnmodifiedString());
+          this->compare_(key, *id.top, total, cont, sum_total, sum_cont, f->getIntensity());
+        }
+        return;
+      }
+
+      // save the contaminants ratio in object before searching through the unassigned identifications
+      final.assigned_contaminants_ratio = (cont / double(total));
+
+      final.empty_features.first = feature_has_no_sequence;
+      final.empty_features.second = features.size();
+
+      // Change the assigned contaminants ratio to total contaminants ratio by adding the unassigned.
+      // Additionally save the unassigned contaminants ratio and add the is_contaminant = 0/1 to the top hit of the unassigned identifications.
+      for (auto& id : identifications)
+      {
+        if (id.top == nullptr)
+        {
+          continue;
+        }
+        std::string key = (id.top->getSequence().toUnmodifiedString());
+        ++utotal;
+
+        // peptide is not in contaminant database
+        if (!digested_db_.contains(key))
+        {
+          id.top->setMetaValue("is_contaminant", 0);
           continue;
         }
 
-        // the one existing peptideidentification has at least one getHits entry
-        PeptideHit& pep_hit = id.getHits()[0];
-        std::string key = (pep_hit.getSequence().toUnmodifiedString());
-        this->compare_(key, pep_hit, total, cont, sum_total, sum_cont, f.getIntensity());
+        // peptide is contaminant
+        ++ucont;
+        id.top->setMetaValue("is_contaminant", 1);
       }
-    }
-    // save the contaminants ratio in object before searching through the unassigned peptideidentifications
-    ContaminantsSummary final;
-    final.assigned_contaminants_ratio = (cont / double(total));
+    });
 
-    final.empty_features.first = feature_has_no_sequence;
-    final.empty_features.second = features.size();
-
-    UInt64 utotal = 0;
-    UInt64 ucont = 0;
-
-    // Change the assigned contaminants ratio to total contaminants ratio by adding the unassigned.
-    // Additionally save the unassigned contaminants ratio and add the is_contaminant = 0/1 to the first hit of the unassigned peptideidentifications.
-    for (auto& fu : features.getUnassignedPeptideIdentifications())
-    {
-      if (fu.getHits().empty())
-      {
-        continue;
-      }
-      auto& fu_hit = fu.getHits()[0];
-      std::string key = (fu_hit.getSequence().toUnmodifiedString());
-      ++utotal;
-
-      // peptide is not in contaminant database
-      if (!digested_db_.contains(key))
-      {
-        fu_hit.setMetaValue("is_contaminant", 0);
-        continue;
-      }
-
-      // peptide is contaminant
-      ++ucont;
-      fu_hit.setMetaValue("is_contaminant", 1);
-    }
     total += utotal;
     cont += ucont;
 

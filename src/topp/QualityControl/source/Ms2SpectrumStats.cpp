@@ -26,9 +26,13 @@ namespace OpenMS
     }
 
     setScanEventNumber_(exp);
-    // if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
-    std::function<void(PeptideIdentification&)> l_f = [&exp, this, &map_to_spectrum](PeptideIdentification& pep_id) { setPresenceAndScanEventNumber_(pep_id, exp, map_to_spectrum); };
-    features.applyFunctionOnPeptideIDs(l_f);
+    // if MS2-spectrum identifications found (of the features and unassigned) -> mark them in ms2_included_
+    QCBase::annotateIdentifications(features, [&](Feature*, std::vector<QCBase::AnnotatedIdentification>& identifications) {
+      for (auto& id : identifications)
+      {
+        setPresenceAndScanEventNumber_(id, exp, map_to_spectrum);
+      }
+    });
 
     // if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT, mz and some meta values
     return getUnassignedPeptideIdentifications_(exp);
@@ -55,7 +59,7 @@ namespace OpenMS
     }
   }
 
-  void annotatePepIDfromSpectrum_(const MSSpectrum& spectrum, PeptideIdentification& peptide_ID)
+  void annotatePepIDfromSpectrum_(const MSSpectrum& spectrum, MetaInfoInterface& peptide_ID)
   {
     if (!spectrum.getAcquisitionInfo().empty() && spectrum.getAcquisitionInfo()[0].metaValueExists("MS:1000927"))
     {
@@ -68,14 +72,15 @@ namespace OpenMS
   }
 
   // marks all seen (unassigned-)PeptideIdentifications in vector ms2_included
-  void Ms2SpectrumStats::setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum)
+  void Ms2SpectrumStats::setPresenceAndScanEventNumber_(QCBase::AnnotatedIdentification& id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum)
   {
-    if (!peptide_ID.metaValueExists("spectrum_reference"))
+    if (id.spectrum_reference.empty())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identification!");
     }
 
-    UInt64 index = map_to_spectrum.at(peptide_ID.getSpectrumReference());
+    MetaInfoInterface& peptide_ID = *id.meta;
+    UInt64 index = map_to_spectrum.at(id.spectrum_reference);
     const MSSpectrum& spectrum = exp[index];
 
     if (spectrum.getMSLevel() == 2)

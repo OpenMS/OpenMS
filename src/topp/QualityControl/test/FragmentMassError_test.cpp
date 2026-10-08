@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/NativeIdentificationTest.h>
 
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -49,6 +50,7 @@ const PeptideIdentification createPeptideIdentification(const std::string& id, c
   PeptideIdentification peptide_id;
   peptide_id.setSpectrumReference( id);
   peptide_id.setMZ(mz);
+  peptide_id.setScoreType("score"); // identification data needs a score type
   peptide_id.setHits({peptide_hit});
 
   return peptide_id;
@@ -170,11 +172,17 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
   // test with missing toleranceUnit and toleranceValue in featureMap
   //--------------------------------------------------------------------
 
-  // featureMap with missing ProteinIdentifications
+  // featureMap whose search run has no fragment mass tolerance
+  {
+    FeatureMap fmap_auto = fmap;
+    fmap_auto.getProteinIdentifications()[0].setSearchParameters(ProteinIdentification::SearchParameters());
+    TEST_EXCEPTION(Exception::MissingInformation, frag_ma_err.compute(fmap_auto, exp, spectra_map, QCBase::ToleranceUnit::AUTO))
+  }
+  // featureMap with peptide identifications but without their search run (ProteinIdentification): not valid input
   {
     FeatureMap fmap_auto = fmap;
     fmap_auto.getProteinIdentifications().clear();
-    TEST_EXCEPTION(Exception::MissingInformation, frag_ma_err.compute(fmap_auto, exp, spectra_map, QCBase::ToleranceUnit::AUTO))
+    TEST_EXCEPTION(Exception::InvalidParameter, frag_ma_err.compute(fmap_auto, exp, spectra_map, QCBase::ToleranceUnit::AUTO))
   }
 
   //--------------------------------------------------------------------
@@ -194,6 +202,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
 
   // fmap with PeptideIdentification with RT matching to a MS1 Spectrum
   fmap.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::3")});
+  Internal::ClassTest::addSearchRun(fmap); // the run of the map
 
   // set MS1 Spectrum to exp
   exp.setSpectra({createMSSpectrum(1, 5, "XTandem::3")});
@@ -209,6 +218,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
   FeatureMap fmap_sori;
   fmap_sori.setProteinIdentifications({protId});
   fmap_sori.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::5")});
+  Internal::ClassTest::addSearchRun(fmap_sori); // the run of the map
 
   // MSExperiment with fragmentation method SORI (not supported)
   exp.setSpectra({createMSSpectrum(2, 7, "XTandem::5", Precursor::ActivationMethod::SORI)});
@@ -222,6 +232,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
 
   // put PeptideIdentification with RT matching to MSSpectrum with no peaks to fmap
   fmap.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::6")});
+  Internal::ClassTest::addSearchRun(fmap); // the run of the map
 
   // MSExperiment without peaks
   exp.setSpectra({createMSSpectrum(2, 4, "XTandem::6")});

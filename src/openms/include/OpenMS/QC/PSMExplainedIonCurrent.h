@@ -44,7 +44,8 @@ namespace OpenMS
      * After that: PSMExplainedIonCurrent = sum of matched peaks intensity / total intensity
      *
      * Stores average and variance of PSMExplainedIonCurrent as a struct and stores it in the results vector (can be accessed by getResults()).
-     * Each PSMExplainedIonCurrent is also stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "PSM_correctness".
+     * Each PSMExplainedIonCurrent is also stored in the top match of the corresponding identification (see QCBase::annotateIdentifications()) as metavalue "PSM_correctness".
+     * Maps with peptide identifications are converted for this and back.
      *
      * @param[in,out] fmap Input FeatureMap for annotation and data for theoretical spectra
      * @param[in] exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
@@ -98,7 +99,10 @@ namespace OpenMS
     /// container that stores results
     std::vector<Statistics> results_ {};
 
-    static double annotatePSMExplainedIonCurrent_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter,
+    /// compute() of a map with identification data
+    void computeNative_(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance);
+
+    static double annotatePSMExplainedIonCurrent_(QCBase::AnnotatedIdentification& id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter,
                                                   PSMExplainedIonCurrent::ToleranceUnit tolerance_unit, double tolerance);
   };
 

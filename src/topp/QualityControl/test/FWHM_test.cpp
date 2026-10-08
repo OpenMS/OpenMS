@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/NativeIdentificationTest.h>
 ///////////////////////////
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include "FWHM.h"
@@ -46,6 +47,7 @@ START_SECTION(void compute(FeatureMap& features))
   f.setMetaValue("model_FWHM", 98.1);
   fm.push_back(f);
   FWHM fw;
+  Internal::ClassTest::addSearchRun(fm);
   fw.compute(fm);
   TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getMetaValue("FWHM"), 123.4)
   TEST_EQUAL(fm[1].getPeptideIdentifications()[0].getMetaValue("FWHM"), 98.1)
