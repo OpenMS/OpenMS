@@ -7,7 +7,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <cmath>
 #include <regex>
 
 using namespace std;
@@ -73,6 +77,341 @@ namespace OpenMS
       }
     }
   } // anonymous namespace
+
+  namespace // identifications of maps as identification data
+  {
+    using ID = IdentificationData;
+
+    /**
+      The inference result that holds the proteins of @p run, as its legacy protein run: the one that covers the run.
+      Without one, the proteins of the run are its database sequences.
+    */
+    const ID::InferenceResult* proteinResult(const ID& data, const ID::Run& run)
+    {
+      const ID::InferenceResult* found = nullptr;
+      for (const auto& result : data.getInferenceResults())
+      {
+        for (const auto& input : result.inputs)
+        {
+          if (input.run_uuid != run.getUuid() || found == &result) continue;
+          if (found != nullptr)
+          {
+            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "Several inference results cover run '" + run.getIdentifier() + "'; its proteins are ambiguous");
+          }
+          found = &result;
+        }
+      }
+      return found;
+    }
+
+    /// The protein run of a run (its legacy protein run): its inference result, else the run itself
+    std::string proteinRunKey(const ID& data, const ID::Run& run)
+    {
+      const auto* result = proteinResult(data, run);
+      return result != nullptr ? "result:" + result->identifier : "run:" + run.getUuid();
+    }
+
+    /// The accessions of the proteins of @p run (see proteinResult())
+    unordered_set<std::string> proteinAccessions(const ID& data, const ID::Run& run)
+    {
+      unordered_set<std::string> accessions;
+      if (const auto* result = proteinResult(data, run))
+      {
+        for (const auto& hit : result->proteins.getHits()) accessions.insert(hit.getAccession());
+      }
+      else if (run.getDatabaseSequences())
+      {
+        for (const auto& sequence : *run.getDatabaseSequences()) accessions.insert(sequence.accession);
+      }
+      return accessions;
+    }
+
+    /// The matches that the (top-level) features of @p map link
+    template<class MapType>
+    set<ID::MatchReference> linkedMatches(const MapType& map)
+    {
+      set<ID::MatchReference> linked;
+      for (const auto& feature : map) linked.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
+      return linked;
+    }
+
+    /**
+      Keep the proteins for which @p keep (protein run key, accession) returns true: the hits of inference results,
+      and the database sequences of runs without one. The hits that @p removed gets are those of an inference result
+      as its legacy protein run has them, and the database sequences as protein hits.
+    */
+    void keepProteins(ID& data, const std::function<bool(const std::string&, const std::string&)>& keep,
+                      map<std::string, vector<ProteinHit>>* removed = nullptr)
+    {
+      auto results = data.getInferenceResults();
+      bool changed = false;
+      for (auto& result : results)
+      {
+        const std::string key = "result:" + result.identifier;
+        const auto complete = removed != nullptr ? IdentificationDataAdapter::proteinHits(data, result) : vector<ProteinHit>();
+        vector<ProteinHit>* extracted = nullptr;
+        if (removed != nullptr)
+        {
+          extracted = &(*removed)[result.proteins.getIdentifier().empty() ? result.identifier : result.proteins.getIdentifier()];
+        }
+        vector<ProteinHit> kept;
+        const auto& hits = result.proteins.getHits();
+        for (Size i = 0; i < hits.size(); ++i)
+        {
+          if (keep(key, hits[i].getAccession()))
+          {
+            kept.push_back(hits[i]);
+          }
+          else if (extracted != nullptr)
+          {
+            extracted->push_back(complete[i]);
+          }
+        }
+        if (kept.size() == hits.size()) continue;
+        result.proteins.setHits(kept);
+        // aliases of proteins that are neither hits nor group members are not used
+        std::set<std::string> used;
+        for (const auto& hit : kept) used.insert(hit.getAccession());
+        for (const auto* groups : {&result.proteins.getProteinGroups(), &result.proteins.getIndistinguishableProteins()})
+        {
+          for (const auto& group : *groups) used.insert(group.accessions.begin(), group.accessions.end());
+        }
+        std::erase_if(result.qualified_accessions, [&](const auto& alias) { return !used.contains(alias.first); });
+        changed = true;
+      }
+      for (const auto& current : data.getRuns())
+      {
+        if (proteinResult(data, current) != nullptr || !current.getDatabaseSequences()) continue;
+        const std::string key = "run:" + current.getUuid();
+        const auto& sequences = *current.getDatabaseSequences();
+        vector<ID::DatabaseSequence> kept;
+        for (const auto& sequence : sequences)
+        {
+          if (keep(key, sequence.accession)) kept.push_back(sequence);
+        }
+        if (kept.size() == sequences.size()) continue;
+        if (removed != nullptr)
+        {
+          auto& extracted = (*removed)[IdentificationDataAdapter::legacyIdentifier(current)];
+          for (const auto& hit : IdentificationDataAdapter::proteinHits(current))
+          {
+            if (!keep(key, hit.getAccession())) extracted.push_back(hit);
+          }
+        }
+        data.getRun(current.getIdentifier()).setDatabaseSequences(std::move(kept));
+      }
+      if (changed)
+      {
+        data.clearInferenceResults();
+        for (auto& result : results) data.addInferenceResult(std::move(result));
+      }
+    }
+
+    /// The accessions that matches of each protein run refer to: all matches, or those that features link
+    template<class MapType>
+    map<std::string, unordered_set<std::string>> referencedAccessions(const MapType& map, bool include_unassigned)
+    {
+      const auto& data = map.getIdentificationData();
+      const auto linked = include_unassigned ? set<ID::MatchReference>() : linkedMatches(map);
+      std::map<std::string, unordered_set<std::string>> referenced;
+      for (const auto& run : data.getRuns())
+      {
+        auto& accessions = referenced[proteinRunKey(data, run)];
+        for (const auto& source : run.getSources())
+        {
+          for (const auto& query : source.identifications)
+          {
+            for (const auto& match : query.getMatches())
+            {
+              if (!include_unassigned && !linked.contains({run.getUuid(), match.getId()})) continue;
+              for (const auto& evidence : match.sequence_evidence) accessions.insert(evidence.accession);
+            }
+          }
+        }
+      }
+      return referenced;
+    }
+
+    /// Remove the sequence evidence of matches whose accession @p allowed (of the run) does not contain, and optionally
+    /// the matches left without any
+    template<class MapType>
+    void filterReferences(MapType& map, const std::function<unordered_set<std::string>(const ID::Run&)>& allowed,
+                          bool remove_peptides_without_reference)
+    {
+      auto& data = map.getIdentificationData();
+      for (const auto& current : data.getRuns())
+      {
+        const auto accessions = allowed(current);
+        data.getRun(current.getIdentifier()).transformMatches([&](ID::MatchData& match) {
+          std::erase_if(match.sequence_evidence, [&](const ID::SequenceEvidence& evidence) { return !accessions.contains(evidence.accession); });
+        });
+      }
+      if (remove_peptides_without_reference)
+      {
+        map.eraseMatches([](const ID::Run&, const ID::Identification&, const ID::Match& match) { return match.sequence_evidence.empty(); });
+      }
+    }
+
+    /// The primary score of a match, or NaN; and whether higher is better
+    double primaryScore(const ID::Run& run, const ID::Match& match)
+    {
+      const auto primary = run.getPrimaryScore();
+      if (!primary) return std::numeric_limits<double>::quiet_NaN();
+      return run.getScore(match.getId(), *primary).value_or(std::numeric_limits<double>::quiet_NaN());
+    }
+
+    bool higherBetter(const ID::Run& run)
+    {
+      const auto primary = run.getPrimaryScore();
+      return !primary || run.getScoreDefinition(*primary).higher_better;
+    }
+
+    /// The matches of @p matches ordered best first by primary score, like PeptideIdentification::sort()
+    vector<const ID::Match*> sortedMatches(const ID::Run& run, vector<const ID::Match*> matches)
+    {
+      const bool higher_better = higherBetter(run);
+      std::stable_sort(matches.begin(), matches.end(), [&](const ID::Match* a, const ID::Match* b) {
+        const double score_a = primaryScore(run, *a), score_b = primaryScore(run, *b);
+        return higher_better ? score_a > score_b : score_a < score_b;
+      });
+      return matches;
+    }
+
+    template<class MapType>
+    void keepNBest(MapType& map, Size n)
+    {
+      const auto& data = map.getIdentificationData();
+      set<ID::MatchReference> keep;
+      for (const auto& run : data.getRuns())
+      {
+        for (const auto& source : run.getSources())
+        {
+          for (const auto& query : source.identifications)
+          {
+            vector<const ID::Match*> matches;
+            for (const auto& match : query.getMatches()) matches.push_back(&match);
+            const auto sorted = sortedMatches(run, std::move(matches));
+            for (Size i = 0; i < std::min(n, sorted.size()); ++i) keep.insert({run.getUuid(), sorted[i]->getId()});
+          }
+        }
+      }
+      map.eraseMatches([&](const ID::Run& run, const ID::Identification&, const ID::Match& match) {
+        return !keep.contains({run.getUuid(), match.getId()});
+      });
+    }
+
+    template<class MapType>
+    void removeEmpty(MapType& map)
+    {
+      const auto& data = map.getIdentificationData();
+      // a feature that links an identification, but none of its matches, has a legacy peptide identification without hits:
+      for (auto& feature : map)
+      {
+        std::erase_if(feature.getIDQueries(), [&](const ID::QueryReference& reference) {
+          const auto* run = data.findRunByUuid(reference.run_uuid);
+          const auto* query = run != nullptr ? run->findIdentification(reference.query) : nullptr;
+          if (query == nullptr) return false;
+          return std::none_of(query->getMatches().begin(), query->getMatches().end(), [&](const ID::Match& match) {
+            return feature.getIDMatches().contains({reference.run_uuid, match.getId()});
+          });
+        });
+      }
+      map.eraseIdentifications([](const ID::Run&, const ID::Identification& query) { return query.getMatches().empty(); });
+    }
+
+    /// The legacy peptide identifications of @p map: the matches that each feature links, then the unassigned ones
+    template<class MapType>
+    vector<ID::QueryMatches> legacyEntries(const MapType& map)
+    {
+      const auto& data = map.getIdentificationData();
+      vector<ID::QueryMatches> entries;
+      for (const auto& feature : map)
+      {
+        auto linked = feature.getLinkedIdentifications(data);
+        entries.insert(entries.end(), std::make_move_iterator(linked.begin()), std::make_move_iterator(linked.end()));
+      }
+      auto unassigned = map.getUnassignedIdentifications();
+      entries.insert(entries.end(), std::make_move_iterator(unassigned.begin()), std::make_move_iterator(unassigned.end()));
+      return entries;
+    }
+
+    /// See IDFilter::annotateBestPerPeptideWithData(): the best matches per peptide sequence (and charge) of each
+    /// protein run get "best_per_peptide" 1, the others of the top @p nr_best_spectrum of their identification 0
+    template<class MapType>
+    void annotateBestNative(MapType& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
+      auto& data = map.getIdentificationData();
+      std::map<ID::MatchReference, int> annotations;
+      // per protein run: sequence -> charge -> best match (with its score)
+      std::map<std::string, std::map<std::string, std::map<int, std::pair<ID::MatchReference, double>>>> best;
+      for (const auto& entry : legacyEntries(map))
+      {
+        const auto& run = *entry.run;
+        auto& best_pep = best[proteinRunKey(data, run)];
+        const bool higher_better = higherBetter(run);
+        const auto sorted = sortedMatches(run, entry.matches);
+        const Size n = nr_best_spectrum == 0 ? sorted.size() : std::min(nr_best_spectrum, sorted.size());
+        for (Size i = 0; i < n; ++i)
+        {
+          const auto& match = *sorted[i];
+          const ID::MatchReference reference {run.getUuid(), match.getId()};
+          const double score = primaryScore(run, match);
+          const std::string sequence = ignore_mods ? AASequence::fromString(match.representation).toUnmodifiedString() : match.representation;
+          const int charge = ignore_charges ? 0 : match.charge;
+          auto [found, inserted] = best_pep[sequence].emplace(charge, std::make_pair(reference, score));
+          if (inserted)
+          {
+            annotations[reference] = 1;
+          }
+          else if ((higher_better && score > found->second.second) || (!higher_better && score < found->second.second))
+          {
+            annotations[found->second.first] = 0;
+            annotations[reference] = 1;
+            found->second = {reference, score};
+          }
+          else
+          {
+            annotations[reference] = 0;
+          }
+        }
+      }
+      for (const auto& current : data.getRuns())
+      {
+        vector<std::pair<ID::MatchId, ID::MatchData>> edits;
+        for (const auto& source : current.getSources())
+        {
+          for (const auto& query : source.identifications)
+          {
+            for (const auto& match : query.getMatches())
+            {
+              const auto annotation = annotations.find({current.getUuid(), match.getId()});
+              if (annotation == annotations.end()) continue;
+              edits.emplace_back(match.getId(), match.getData());
+              edits.back().second.setMetaValue("best_per_peptide", annotation->second);
+            }
+          }
+        }
+        auto& run = data.getRun(current.getIdentifier());
+        for (const auto& [id, edited] : edits) run.replaceMatch(id, edited);
+      }
+    }
+
+    template<class MapType>
+    void keepBestNative(MapType& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
+      annotateBestNative(map, ignore_mods, ignore_charges, nr_best_spectrum);
+      map.eraseMatches([](const ID::Run&, const ID::Identification&, const ID::Match& match) {
+        return !match.metaValueExists("best_per_peptide") || int(match.getMetaValue("best_per_peptide")) != 1;
+      });
+    }
+
+    template<class MapType>
+    void edit(MapType& map, const std::function<void(MapType&)>& operation)
+    {
+      IdentificationDataConverter::editAsIdentificationData(map, operation);
+    }
+  } // namespace
 
 
   struct IDFilter::HasMinPeptideLength {
@@ -255,62 +594,37 @@ namespace OpenMS
 
   map<std::string, vector<ProteinHit>> IDFilter::extractUnassignedProteins(ConsensusMap& cmap)
   {
-    // collect accessions that are referenced by peptides for each ID run:
-    map<std::string, unordered_set<std::string>> run_to_accessions;
-
-    for (const auto& f : cmap)
-    {
-      for (const auto& pepid : f.getPeptideIdentifications())
+    map<std::string, vector<ProteinHit>> result;
+    edit<ConsensusMap>(cmap, [&](ConsensusMap& map) {
+      auto& data = map.getIdentificationData();
+      // the accessions that peptides in features refer to, per protein run:
+      const auto referenced = referencedAccessions(map, false);
+      // every protein run is listed (by its legacy identifier), also without unassigned proteins:
+      for (const auto& result_item : data.getInferenceResults())
       {
-        const std::string& run_id = pepid.getIdentifier();
-        // extract protein accessions of each peptide hit:
-        for (const PeptideHit& hit : pepid.getHits())
-        {
-          const set<std::string>& current_accessions = hit.extractProteinAccessionsSet();
-          run_to_accessions[run_id].insert(current_accessions.begin(), current_accessions.end());
-        }
+        result[result_item.proteins.getIdentifier().empty() ? result_item.identifier : result_item.proteins.getIdentifier()];
       }
-    }
-
-    vector<ProteinIdentification>& prots = cmap.getProteinIdentifications();
-
-    map<std::string, vector<ProteinHit>> result {};
-    for (ProteinIdentification& prot : prots)
-    {
-      const std::string& run_id = prot.getIdentifier();
-      auto target = result.emplace(run_id, vector<ProteinHit> {});
-      const unordered_set<std::string>& accessions = run_to_accessions[run_id];
-      HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
-      moveMatchingItems(prot.getHits(), std::not_fn(acc_filter), target.first->second);
-    }
+      for (const auto& run : data.getRuns())
+      {
+        if (proteinResult(data, run) == nullptr) result[IdentificationDataAdapter::legacyIdentifier(run)];
+      }
+      keepProteins(data, [&](const std::string& key, const std::string& accession) {
+        const auto found = referenced.find(key);
+        return found != referenced.end() && found->second.contains(accession);
+      }, &result);
+    });
     return result;
   }
 
   void IDFilter::removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned)
   {
-    // collect accessions that are referenced by peptides for each ID run:
-    map<std::string, unordered_set<std::string>> run_to_accessions;
-
-    auto add_references_to_map = [&run_to_accessions](const PeptideIdentification& pepid) {
-      const std::string& run_id = pepid.getIdentifier();
-      // extract protein accessions of each peptide hit:
-      for (const PeptideHit& hit : pepid.getHits())
-      {
-        const set<std::string>& current_accessions = hit.extractProteinAccessionsSet();
-        run_to_accessions[run_id].insert(current_accessions.begin(), current_accessions.end());
-      }
-    };
-    cmap.applyFunctionOnPeptideIDs(add_references_to_map, include_unassigned);
-
-    vector<ProteinIdentification>& prots = cmap.getProteinIdentifications();
-
-    for (ProteinIdentification& prot : prots)
-    {
-      const std::string& run_id = prot.getIdentifier();
-      const unordered_set<std::string>& accessions = run_to_accessions[run_id];
-      HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
-      keepMatchingItems(prot.getHits(), acc_filter);
-    }
+    edit<ConsensusMap>(cmap, [&](ConsensusMap& map) {
+      const auto referenced = referencedAccessions(map, include_unassigned);
+      keepProteins(map.getIdentificationData(), [&](const std::string& key, const std::string& accession) {
+        const auto found = referenced.find(key);
+        return found != referenced.end() && found->second.contains(accession);
+      });
+    });
   }
 
   void IDFilter::removeUnreferencedProteins(ProteinIdentification& proteins, const PeptideIdentificationList& peptides)
@@ -334,12 +648,10 @@ namespace OpenMS
 
   void IDFilter::removeDanglingProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference)
   {
-    auto run_to_accessions = collectProteinAccessions(cmap.getProteinIdentifications());
-
-    auto filter_func = [&run_to_accessions, remove_peptides_without_reference](PeptideIdentification& pep) {
-      filterPeptideReferences(pep, run_to_accessions[pep.getIdentifier()], remove_peptides_without_reference);
-    };
-    cmap.applyFunctionOnPeptideIDs(filter_func);
+    edit<ConsensusMap>(cmap, [&](ConsensusMap& map) {
+      const auto& data = map.getIdentificationData();
+      filterReferences(map, [&](const IdentificationData::Run& run) { return proteinAccessions(data, run); }, remove_peptides_without_reference);
+    });
   }
 
   void IDFilter::removeDanglingProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference)
@@ -349,11 +661,49 @@ namespace OpenMS
     {
       accessions.insert(hit.getAccession());
     }
+    edit<ConsensusMap>(cmap, [&](ConsensusMap& map) {
+      filterReferences(map, [&](const IdentificationData::Run&) { return accessions; }, remove_peptides_without_reference);
+    });
+  }
 
-    auto filter_func = [&accessions, remove_peptides_without_reference](PeptideIdentification& pep) {
-      filterPeptideReferences(pep, accessions, remove_peptides_without_reference);
-    };
-    cmap.applyFunctionOnPeptideIDs(filter_func);
+  void IDFilter::keepNBestPeptideHits(FeatureMap& map, Size n)
+  {
+    edit<FeatureMap>(map, [&](FeatureMap& m) { keepNBest(m, n); });
+  }
+
+  void IDFilter::keepNBestPeptideHits(ConsensusMap& map, Size n)
+  {
+    edit<ConsensusMap>(map, [&](ConsensusMap& m) { keepNBest(m, n); });
+  }
+
+  void IDFilter::removeEmptyIdentifications(FeatureMap& map)
+  {
+    edit<FeatureMap>(map, [](FeatureMap& m) { removeEmpty(m); });
+  }
+
+  void IDFilter::removeEmptyIdentifications(ConsensusMap& map)
+  {
+    edit<ConsensusMap>(map, [](ConsensusMap& m) { removeEmpty(m); });
+  }
+
+  void IDFilter::annotateBestPerPeptidePerRun(FeatureMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+  {
+    edit<FeatureMap>(map, [&](FeatureMap& m) { annotateBestNative(m, ignore_mods, ignore_charges, nr_best_spectrum); });
+  }
+
+  void IDFilter::annotateBestPerPeptidePerRun(ConsensusMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+  {
+    edit<ConsensusMap>(map, [&](ConsensusMap& m) { annotateBestNative(m, ignore_mods, ignore_charges, nr_best_spectrum); });
+  }
+
+  void IDFilter::keepBestPerPeptidePerRun(FeatureMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+  {
+    edit<FeatureMap>(map, [&](FeatureMap& m) { keepBestNative(m, ignore_mods, ignore_charges, nr_best_spectrum); });
+  }
+
+  void IDFilter::keepBestPerPeptidePerRun(ConsensusMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+  {
+    edit<ConsensusMap>(map, [&](ConsensusMap& m) { keepBestNative(m, ignore_mods, ignore_charges, nr_best_spectrum); });
   }
 
   void IDFilter::removeDanglingProteinReferences(PeptideIdentificationList& peptides, const vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference)

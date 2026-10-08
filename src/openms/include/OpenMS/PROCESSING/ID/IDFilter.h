@@ -561,36 +561,6 @@ namespace OpenMS
       }
     }
 
-    template<class MapType, class Predicate>
-    static void keepMatchingPeptideHits(MapType& prot_and_pep_ids, Predicate& pred)
-    {
-      for (auto& feat : prot_and_pep_ids)
-      {
-        keepMatchingItemsUnroll(feat.getPeptideIdentifications(), pred);
-      }
-      keepMatchingItemsUnroll(prot_and_pep_ids.getUnassignedPeptideIdentifications(), pred);
-    }
-
-    template<class MapType, class Predicate>
-    static void removeMatchingPeptideHits(MapType& prot_and_pep_ids, Predicate& pred)
-    {
-      for (auto& feat : prot_and_pep_ids)
-      {
-        removeMatchingItemsUnroll(feat.getPeptideIdentifications(), pred);
-      }
-      removeMatchingItemsUnroll(prot_and_pep_ids.getUnassignedPeptideIdentifications(), pred);
-    }
-
-    template<IsFeatureOrConsensusMap MapType, class Predicate>
-    static void removeMatchingPeptideIdentifications(MapType& prot_and_pep_ids, Predicate& pred)
-    {
-      for (auto& feat : prot_and_pep_ids)
-      {
-        removeMatchingItems(feat.getPeptideIdentifications(), pred);
-      }
-      removeMatchingItems(prot_and_pep_ids.getUnassignedPeptideIdentifications(), pred);
-    }
-
     // Specialization for PeptideIdentificationList
     template<class Predicate>
     static void removeMatchingPeptideIdentifications(PeptideIdentificationList& pep_ids, Predicate& pred)
@@ -731,8 +701,13 @@ namespace OpenMS
 
     /**
      * @brief Extracts all proteins not matched by PSMs in features
+     *
+     * The proteins come from the identification data of @p cmap: those of the inference result that covers a run
+     * (as its legacy protein run), else the database sequences of the run. Maps with peptide identifications are
+     * converted for this (IdentificationDataConverter::editAsIdentificationData()).
+     *
      * @param[in] cmap the Input ConsensusMap
-     * @return extracted ProteinHits for every IDRun
+     * @return extracted ProteinHits for every IDRun (by the identifier of its legacy protein run)
      */
     static std::map<std::string, std::vector<ProteinHit>> extractUnassignedProteins(ConsensusMap& cmap);
 
@@ -760,8 +735,14 @@ namespace OpenMS
 
     /// @name Clean-up functions
     ///@{
-    /// Removes protein hits from the protein IDs in a @p cmap that are not referenced by a peptide in the features
-    /// or if requested in the unassigned peptide list
+    /**
+       @brief Removes protein hits from the protein IDs in a @p cmap that are not referenced by a peptide in the features
+       or if requested in the unassigned peptide list
+
+       The proteins of a run are those of the inference result that covers it (as its legacy protein run), else its
+       database sequences; the peptides of the features are the matches they link. Maps with peptide identifications
+       are converted for this (IdentificationDataConverter::editAsIdentificationData()).
+    */
     static void removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned);
 
     /// Removes protein hits from @p proteins that are not referenced by a peptide in @p peptides
@@ -799,6 +780,10 @@ namespace OpenMS
 
        @note Only PeptideEvidence entries referencing protein hits in the corresponding
              protein run of @p cmap are kept. The matching is done per identification run.
+
+       In identification data, the proteins of a run are those of the inference result that covers it, else its
+       database sequences, and peptide hits are matches; removing a match keeps its identification. Maps with
+       peptide identifications are converted for this (IdentificationDataConverter::editAsIdentificationData()).
     */
     static void removeDanglingProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference = false);
 
@@ -815,6 +800,8 @@ namespace OpenMS
               protein references after cleanup are also removed (default: false)
 
        @note Only PeptideEvidence entries referencing protein hits in @p ref_run are kept.
+
+       Works on identification data like removeDanglingProteinReferences(ConsensusMap&, bool).
     */
     static void removeDanglingProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference = false);
 
@@ -1244,25 +1231,25 @@ namespace OpenMS
     /// The vector is sorted and reduced to @p n elements. If the vector's size 's' is less than @p n, only 's' best spectra are kept.
     static void keepNBestSpectra(PeptideIdentificationList& peptides, Size n);
 
-    /// Filters a Consensus/FeatureMap by keeping the N best peptide hits for every spectrum
-    template<class MapType>
-    static void keepNBestPeptideHits(MapType& map, Size n)
-    {
-      // The rank predicate needs annotated ranks, not sure if they are always updated. Use the following instead,
-      // which sorts Hits first.
-      for (auto& feat : map)
-      {
-        keepNBestHits(feat.getPeptideIdentifications(), n);
-      }
-      keepNBestHits(map.getUnassignedPeptideIdentifications(), n);
-    }
+    /**
+       @brief Filters a Consensus/FeatureMap by keeping the N best peptide hits for every spectrum
 
-    template<IsNotIdentificationVector MapType>
-    static void removeEmptyIdentifications(MapType& prot_and_pep_ids)
-    {
-      const auto pred = HasNoHits<PeptideIdentification>();
-      removeMatchingPeptideIdentifications(prot_and_pep_ids, pred);
-    }
+       Works on identification data: each identification keeps its @p n best matches by primary score (the first
+       ones of equal scores, matches without a score last). Maps with peptide identifications are converted for this
+       (IdentificationDataConverter::editAsIdentificationData()).
+    */
+    static void keepNBestPeptideHits(FeatureMap& map, Size n);
+    static void keepNBestPeptideHits(ConsensusMap& map, Size n);
+
+    /**
+       @brief Removes the peptide identifications without hits of a Consensus/FeatureMap
+
+       Works on identification data: identifications without matches are erased, and features no longer link an
+       identification without any of its matches (whose legacy peptide identification has no hits). Maps with
+       peptide identifications are converted for this (IdentificationDataConverter::editAsIdentificationData()).
+    */
+    static void removeEmptyIdentifications(FeatureMap& map);
+    static void removeEmptyIdentifications(ConsensusMap& map);
 
     /// Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence
     static void keepBestPerPeptide(PeptideIdentificationList& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
@@ -1279,33 +1266,21 @@ namespace OpenMS
       keepMatchingItemsUnroll(pep_ids, best_per_peptide);
     }
 
-    // TODO allow skipping unassigned?
-    template<class MapType>
-    static void annotateBestPerPeptidePerRun(MapType& prot_and_pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
-    {
-      const auto& prot_ids = prot_and_pep_ids.getProteinIdentifications();
+    /**
+       @brief Annotates the best peptide hits for every peptide sequence of a protein run in a Consensus/FeatureMap
+       (meta value "best_per_peptide"; see annotateBestPerPeptideWithData())
 
-      RunToSequenceToChargeToPepHitP best_peps_per_run;
-      for (const auto& idrun : prot_ids)
-      {
-        best_peps_per_run[idrun.getIdentifier()] = SequenceToChargeToPepHitP();
-      }
+       Works on identification data: the matches that features link count once per feature, the unassigned ones
+       once; the protein run of a run is the inference result that covers it, else the run itself. Maps with peptide
+       identifications are converted for this (IdentificationDataConverter::editAsIdentificationData()).
+    */
+    static void annotateBestPerPeptidePerRun(FeatureMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum);
+    static void annotateBestPerPeptidePerRun(ConsensusMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum);
 
-      for (auto& feat : prot_and_pep_ids)
-      {
-        annotateBestPerPeptidePerRunWithData(best_peps_per_run, feat.getPeptideIdentifications(), ignore_mods, ignore_charges, nr_best_spectrum);
-      }
-
-      annotateBestPerPeptidePerRunWithData(best_peps_per_run, prot_and_pep_ids.getUnassignedPeptideIdentifications(), ignore_mods, ignore_charges, nr_best_spectrum);
-    }
-
-    template<class MapType>
-    static void keepBestPerPeptidePerRun(MapType& prot_and_pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
-    {
-      annotateBestPerPeptidePerRun(prot_and_pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
-      HasMetaValue<PeptideHit> best_per_peptide {"best_per_peptide", 1};
-      keepMatchingPeptideHits(prot_and_pep_ids, best_per_peptide);
-    }
+    /// Keeps only the best peptide hits for every peptide sequence of a protein run in a Consensus/FeatureMap (see
+    /// annotateBestPerPeptidePerRun())
+    static void keepBestPerPeptidePerRun(FeatureMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum);
+    static void keepBestPerPeptidePerRun(ConsensusMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum);
 
     /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
     /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.

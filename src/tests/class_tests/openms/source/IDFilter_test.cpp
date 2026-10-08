@@ -22,6 +22,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -44,6 +45,73 @@ struct IsEven
     return (i % 2 == 0);
   }
 } is_even;
+
+namespace
+{
+  using namespace OpenMS;
+  using ID = IdentificationData;
+
+  /**
+    A consensus map with identification data: run "search" (q-value scores) with database sequences PROT1-3.
+    Feature 0 links both matches of identification 1 (PEPTIDEA/PROT1 0.01, PEPTIDEB/PROT3 0.05), feature 1 the match
+    of identification 2 (PEPTIDEA/PROT1 0.02) and identification 5 (no matches); identification 3 (PEPTIDEC/PROT2
+    0.03) and 4 (no matches) are unassigned.
+  */
+  ConsensusMap nativeMap()
+  {
+    ConsensusMap map;
+    auto& run = map.getIdentificationData().addRun("search");
+    ID::ScoreDefinition score;
+    score.name = "q-value";
+    score.higher_better = false;
+    run.setPrimaryScore(run.addScore(score));
+    ID::Database database;
+    database.path = "proteins.fasta";
+    const auto db = run.addDatabase(database);
+    run.setDatabaseSequences(std::vector<ID::DatabaseSequence> {{db, "PROT1"}, {db, "PROT2"}, {db, "PROT3"}});
+    const auto source = run.addSource({});
+    std::vector<ID::QueryId> queries;
+    for (int i = 0; i < 5; ++i) queries.push_back(run.addIdentification(source, ID::Observation {}));
+    const auto add = [&](Size query, const std::string& sequence, const std::string& protein, double value) {
+      ID::MatchData match;
+      match.representation = sequence;
+      match.charge = 2;
+      match.sequence_evidence.push_back({db, protein, std::nullopt, std::nullopt, 0, 0});
+      return run.addMatch(queries[query], match, {value});
+    };
+    const auto m1a = add(0, "PEPTIDEA", "PROT1", 0.01);
+    const auto m1b = add(0, "PEPTIDEB", "PROT3", 0.05);
+    const auto m2 = add(1, "PEPTIDEA", "PROT1", 0.02);
+    add(2, "PEPTIDEC", "PROT2", 0.03);
+    ConsensusFeature f0, f1;
+    f0.setUniqueId(1);
+    f0.addIDMatch({run.getUuid(), m1a});
+    f0.addIDMatch({run.getUuid(), m1b});
+    f1.setUniqueId(2);
+    f1.addIDMatch({run.getUuid(), m2});
+    f1.addIDQuery({run.getUuid(), queries[4]});
+    map.push_back(f0);
+    map.push_back(f1);
+    return map;
+  }
+
+  /// The representations of the matches of a map, in order
+  std::vector<std::string> matchSequences(const ConsensusMap& map)
+  {
+    std::vector<std::string> sequences;
+    for (const auto& source : map.getIdentificationData().getRuns()[0].getSources())
+      for (const auto& query : source.identifications)
+        for (const auto& match : query.getMatches()) sequences.push_back(match.representation);
+    return sequences;
+  }
+
+  std::vector<std::string> proteinAccessions(const ConsensusMap& map)
+  {
+    std::vector<std::string> accessions;
+    for (const auto& sequence : *map.getIdentificationData().getRuns()[0].getDatabaseSequences()) accessions.push_back(sequence.accession);
+    return accessions;
+  }
+} // namespace
 
 START_TEST(IDFilter, "$Id$")
 
@@ -302,6 +370,8 @@ START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, b
     { PeptideEvidence e; e.setProteinAccession("DECOY_PROT1"); hitB.addPeptideEvidence(e); }
     PeptideIdentification pid;
     pid.setIdentifier("run1");
+    pid.setScoreType("q-value");
+    pid.setHigherScoreBetter(false);
     pid.setHits({hitA, hitB});
 
     ConsensusFeature cf;
@@ -316,6 +386,8 @@ START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, b
     { PeptideEvidence e; e.setProteinAccession("DECOY_PROT2"); hitC.addPeptideEvidence(e); }
     PeptideIdentification upid;
     upid.setIdentifier("run1");
+    upid.setScoreType("q-value");
+    upid.setHigherScoreBetter(false);
     upid.setHits({hitC});
     cmap.getUnassignedPeptideIdentifications().push_back(upid);
 
@@ -368,7 +440,7 @@ START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, c
   hitA.setSequence(AASequence::fromString("PEPTIDEA"));
   { PeptideEvidence e; e.setProteinAccession("PROT1"); hitA.addPeptideEvidence(e); }
   { PeptideEvidence e; e.setProteinAccession("DECOY_PROT1"); hitA.addPeptideEvidence(e); }
-  PeptideIdentification pid; pid.setIdentifier("run1"); pid.setHits({hitA});
+  PeptideIdentification pid; pid.setIdentifier("run1"); pid.setScoreType("q-value"); pid.setHits({hitA});
   ConsensusFeature cf; cf.setRT(1.0); cf.setMZ(100.0);
   cf.getPeptideIdentifications().push_back(pid);
   cmap.push_back(cf);
@@ -376,7 +448,7 @@ START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, c
   PeptideHit hitC;
   hitC.setSequence(AASequence::fromString("PEPTIDEC"));
   { PeptideEvidence e; e.setProteinAccession("PROT2"); hitC.addPeptideEvidence(e); }
-  PeptideIdentification upid; upid.setIdentifier("run1"); upid.setHits({hitC});
+  PeptideIdentification upid; upid.setIdentifier("run1"); upid.setScoreType("q-value"); upid.setHits({hitC});
   cmap.getUnassignedPeptideIdentifications().push_back(upid);
 
   ProteinIdentification ref_run;
@@ -1074,6 +1146,159 @@ START_SECTION((static void keepNBestSpectra(PeptideIdentificationList& peptides,
   cout << peptides[1].getHits()[0].getSequence().toString() << endl;
   TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), 1000);
   TEST_REAL_SIMILAR(peptides[1].getHits()[0].getScore(), 40);
+}
+END_SECTION
+
+START_SECTION((static void keepNBestPeptideHits(ConsensusMap& map, Size n)))
+{
+  auto map = nativeMap();
+  IDFilter::keepNBestPeptideHits(map, 1);
+  TEST_EQUAL(ListUtils::concatenate(matchSequences(map), ","), "PEPTIDEA,PEPTIDEA,PEPTIDEC")
+  // the feature keeps its link to the best match only
+  TEST_EQUAL(map[0].getIDMatches().size(), 1)
+  TEST_EQUAL(map[0].getLinkedIdentifications(map.getIdentificationData())[0].matches[0]->representation, "PEPTIDEA")
+}
+END_SECTION
+
+START_SECTION((static void keepNBestPeptideHits(FeatureMap& map, Size n)))
+{
+  FeatureMap map;
+  map.getIdentificationData() = nativeMap().getIdentificationData();
+  IDFilter::keepNBestPeptideHits(map, 2);
+  TEST_EQUAL(map.getIdentificationData().getRuns()[0].getNumberOfMatches(), 4)
+}
+END_SECTION
+
+START_SECTION((static void removeEmptyIdentifications(ConsensusMap& map)))
+{
+  auto map = nativeMap();
+  IDFilter::removeEmptyIdentifications(map);
+  const auto& run = map.getIdentificationData().getRuns()[0];
+  TEST_EQUAL(run.getNumberOfIdentifications(), 3)
+  // the query link of feature 1 to an identification without matches is gone
+  TEST_EQUAL(map[1].getIDQueries().empty(), true)
+  TEST_EQUAL(map[1].getLinkedIdentifications(map.getIdentificationData()).size(), 1)
+}
+END_SECTION
+
+START_SECTION((static void removeEmptyIdentifications(FeatureMap& map)))
+{
+  FeatureMap map;
+  map.getIdentificationData() = nativeMap().getIdentificationData();
+  IDFilter::removeEmptyIdentifications(map);
+  TEST_EQUAL(map.getIdentificationData().getRuns()[0].getNumberOfIdentifications(), 3)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] static void removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned) with identification data))
+{
+  // database sequences of a run without an inference result
+  auto map = nativeMap();
+  IDFilter::removeUnreferencedProteins(map, true);
+  TEST_EQUAL(ListUtils::concatenate(proteinAccessions(map), ","), "PROT1,PROT2,PROT3")
+  IDFilter::removeUnreferencedProteins(map, false);
+  TEST_EQUAL(ListUtils::concatenate(proteinAccessions(map), ","), "PROT1,PROT3")
+
+  // the proteins of the inference result that covers the run
+  map = nativeMap();
+  ID::InferenceResult inference;
+  inference.identifier = "inference";
+  for (const auto* accession : {"PROT1", "PROT2", "PROT4"})
+  {
+    ProteinHit hit;
+    hit.setAccession(accession);
+    inference.proteins.insertHit(hit);
+  }
+  const auto& run = map.getIdentificationData().getRuns()[0];
+  inference.inputs.push_back({run.getIdentifier(), run.getUuid(), std::nullopt, ""});
+  map.getIdentificationData().addInferenceResult(inference);
+  IDFilter::removeUnreferencedProteins(map, true);
+  const auto& hits = map.getIdentificationData().getInferenceResults()[0].proteins.getHits();
+  TEST_EQUAL(hits.size(), 2)
+  ABORT_IF(hits.size() != 2)
+  TEST_EQUAL(hits[0].getAccession(), "PROT1")
+  TEST_EQUAL(hits[1].getAccession(), "PROT2")
+  // (the database sequences stay)
+  TEST_EQUAL(proteinAccessions(map).size(), 3)
+
+  // dangling references to proteins outside the inference result: PEPTIDEB (PROT3) has none left
+  IDFilter::removeDanglingProteinReferences(map, true);
+  TEST_EQUAL(ListUtils::concatenate(matchSequences(map), ","), "PEPTIDEA,PEPTIDEA,PEPTIDEC")
+  TEST_EQUAL(map[0].getIDMatches().size(), 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] static void removeDanglingProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference) with identification data))
+{
+  auto map = nativeMap();
+  ProteinIdentification reference;
+  ProteinHit hit;
+  hit.setAccession("PROT1");
+  reference.insertHit(hit);
+  IDFilter::removeDanglingProteinReferences(map, reference, false);
+  // matches without remaining references stay
+  TEST_EQUAL(map.getIdentificationData().getRuns()[0].getNumberOfMatches(), 4)
+  IDFilter::removeDanglingProteinReferences(map, reference, true);
+  TEST_EQUAL(ListUtils::concatenate(matchSequences(map), ","), "PEPTIDEA,PEPTIDEA")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] static std::map<std::string, std::vector<ProteinHit>> extractUnassignedProteins(ConsensusMap& cmap) with identification data))
+{
+  auto map = nativeMap();
+  const auto extracted = IDFilter::extractUnassignedProteins(map);
+  TEST_EQUAL(extracted.size(), 1)
+  ABORT_IF(extracted.size() != 1)
+  TEST_EQUAL(extracted.begin()->first, "search")
+  TEST_EQUAL(extracted.begin()->second.size(), 1)
+  ABORT_IF(extracted.begin()->second.size() != 1)
+  TEST_EQUAL(extracted.begin()->second[0].getAccession(), "PROT2")
+  TEST_EQUAL(ListUtils::concatenate(proteinAccessions(map), ","), "PROT1,PROT3")
+}
+END_SECTION
+
+START_SECTION((static void annotateBestPerPeptidePerRun(ConsensusMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)))
+{
+  auto map = nativeMap();
+  IDFilter::annotateBestPerPeptidePerRun(map, false, false, 1);
+  std::vector<std::string> annotations;
+  for (const auto& query : map.getIdentificationData().getRuns()[0].getSources()[0].identifications)
+    for (const auto& match : query.getMatches())
+      annotations.push_back(match.representation + ":" + (match.metaValueExists("best_per_peptide") ? match.getMetaValue("best_per_peptide").toString() : "-"));
+  // the top match of each identification counts; PEPTIDEB is not the top match of its identification
+  TEST_EQUAL(ListUtils::concatenate(annotations, ","), "PEPTIDEA:1,PEPTIDEB:-,PEPTIDEA:0,PEPTIDEC:1")
+}
+END_SECTION
+
+START_SECTION((static void keepBestPerPeptidePerRun(ConsensusMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)))
+{
+  auto map = nativeMap();
+  IDFilter::keepBestPerPeptidePerRun(map, false, false, 1);
+  TEST_EQUAL(ListUtils::concatenate(matchSequences(map), ","), "PEPTIDEA,PEPTIDEC")
+  // feature 1 links its identification without the match
+  TEST_EQUAL(map[1].getIDMatches().empty(), true)
+}
+END_SECTION
+
+START_SECTION((static void annotateBestPerPeptidePerRun(FeatureMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)))
+{
+  FeatureMap map;
+  map.getIdentificationData() = nativeMap().getIdentificationData();
+  // all matches are unassigned here, and all are considered (nr_best_spectrum 0)
+  IDFilter::annotateBestPerPeptidePerRun(map, false, false, 0);
+  Size best = 0;
+  for (const auto& query : map.getIdentificationData().getRuns()[0].getSources()[0].identifications)
+    for (const auto& match : query.getMatches()) best += int(match.getMetaValue("best_per_peptide"));
+  TEST_EQUAL(best, 3)
+}
+END_SECTION
+
+START_SECTION((static void keepBestPerPeptidePerRun(FeatureMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)))
+{
+  FeatureMap map;
+  map.getIdentificationData() = nativeMap().getIdentificationData();
+  IDFilter::keepBestPerPeptidePerRun(map, true, true, 0);
+  TEST_EQUAL(map.getIdentificationData().getRuns()[0].getNumberOfMatches(), 3)
 }
 END_SECTION
 

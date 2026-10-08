@@ -206,27 +206,10 @@ namespace
     if (! files.empty()) proteins.setPrimaryMSRunPath(files);
     if (run.getDatabaseSequences())
     {
-      std::vector<ProteinHit> hits;
       for (const auto& sequence : *run.getDatabaseSequences())
-      {
-        ProteinHit hit;
-        static_cast<MetaInfoInterface&>(hit) = sequence;
-        hit.setAccession(sequence.accession);
-        hit.setSequence(sequence.sequence);
-        // ProteinHit stores the description as metadata; an empty one is not written.
-        if (! sequence.description.empty()) hit.setDescription(sequence.description);
         if (sequence.target_decoy == ID::TargetDecoy::BOTH)
           loss(result, options, "Legacy proteins cannot represent a combined target/decoy database sequence");
-        else
-        {
-          const auto state = sequence.target_decoy == ID::TargetDecoy::TARGET  ? ProteinHit::TargetDecoyType::TARGET
-                             : sequence.target_decoy == ID::TargetDecoy::DECOY ? ProteinHit::TargetDecoyType::DECOY
-                                                                               : ProteinHit::TargetDecoyType::UNKNOWN;
-          if (legacyTargetDecoy(hit, true) != sequence.target_decoy) hit.setTargetDecoyType(state);
-        }
-        hits.push_back(std::move(hit));
-      }
-      proteins.setHits(hits);
+      proteins.setHits(Adapter::proteinHits(run));
     }
     return proteins;
   }
@@ -863,6 +846,31 @@ std::vector<ProteinHit> IdentificationDataAdapter::proteinHits(const ID& data, c
     sequence.getKeys(keys);
     for (const auto& key : keys)
       if (! hit.metaValueExists(key)) hit.setMetaValue(key, sequence.getMetaValue(key));
+  }
+  return hits;
+}
+
+std::vector<ProteinHit> IdentificationDataAdapter::proteinHits(const ID::Run& run)
+{
+  std::vector<ProteinHit> hits;
+  if (! run.getDatabaseSequences()) return hits;
+  for (const auto& sequence : *run.getDatabaseSequences())
+  {
+    ProteinHit hit;
+    static_cast<MetaInfoInterface&>(hit) = sequence;
+    hit.setAccession(sequence.accession);
+    hit.setSequence(sequence.sequence);
+    // ProteinHit stores the description as metadata; an empty one is not written.
+    if (! sequence.description.empty()) hit.setDescription(sequence.description);
+    // (legacy proteins cannot represent a combined target/decoy state)
+    if (sequence.target_decoy != ID::TargetDecoy::BOTH)
+    {
+      const auto state = sequence.target_decoy == ID::TargetDecoy::TARGET  ? ProteinHit::TargetDecoyType::TARGET
+                         : sequence.target_decoy == ID::TargetDecoy::DECOY ? ProteinHit::TargetDecoyType::DECOY
+                                                                           : ProteinHit::TargetDecoyType::UNKNOWN;
+      if (legacyTargetDecoy(hit, true) != sequence.target_decoy) hit.setTargetDecoyType(state);
+    }
+    hits.push_back(std::move(hit));
   }
   return hits;
 }
