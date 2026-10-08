@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <bit>
 #include <limits>
+#include <map>
 #include <numeric>
 #include <random>
 #include <set>
@@ -3541,11 +3542,18 @@ START_SECTION(([EXTRA] peptidoform deduplication keeps the first entry of every 
           fi.setParameters(p);
           fi.build(db);
           vector<FragmentIndex::Peptide> expected;
-          set<string> seen;
+          // the removed occurrences: (kept entry, protein, start), by kept entry and then in index order
+          map<string, Size> kept_index;
+          vector<tuple<Size, UInt32, uint16_t>> expected_removed;
           for (const auto& peptide : fi.getPeptides())
           {
-            if (seen.insert(fi.reconstructModifiedSequence(peptide, db).toString()).second) { expected.push_back(peptide); }
+            const auto [it, inserted] = kept_index.emplace(fi.reconstructModifiedSequence(peptide, db).toString(), expected.size());
+            if (inserted) { expected.push_back(peptide); }
+            else { expected_removed.emplace_back(it->second, peptide.protein_idx, peptide.sequence_.first); }
           }
+          std::stable_sort(expected_removed.begin(), expected_removed.end(),
+                           [](const auto& a, const auto& b) { return std::get<0>(a) < std::get<0>(b); });
+          TEST_TRUE(fi.getRemovedOccurrences().empty())
           removed += fi.getPeptides().size() - expected.size();
           p.setValue("peptide:deduplicate", "true");
           fi.setParameters(p);
@@ -3556,6 +3564,13 @@ START_SECTION(([EXTRA] peptidoform deduplication keeps the first entry of every 
           {
             same = observed[i].protein_idx == expected[i].protein_idx && observed[i].mod_bitmask_ == expected[i].mod_bitmask_
                    && observed[i].sequence_ == expected[i].sequence_ && observed[i].precursor_mz_ == expected[i].precursor_mz_;
+          }
+          const auto& occurrences = fi.getRemovedOccurrences();
+          same = same && occurrences.size() == expected_removed.size();
+          for (Size i = 0; same && i < occurrences.size(); ++i)
+          {
+            same = occurrences[i].peptide_idx == std::get<0>(expected_removed[i]) && occurrences[i].protein_idx == std::get<1>(expected_removed[i])
+                   && occurrences[i].start == std::get<2>(expected_removed[i]);
           }
           mismatches += same ? 0 : 1;
           ++checked;
