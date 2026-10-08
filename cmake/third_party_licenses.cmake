@@ -291,7 +291,8 @@ endfunction()
 ## common licenses in /usr/share/common-licenses instead of including them, so the texts
 ## they name go next to it. LICENSES/system/INDEX.txt lists the
 ## libraries with the package, version and source package each comes from. Configuring
-## fails rather than leave a license out: without dpkg, or for a library no package owns.
+## fails rather than leave a license out: without dpkg, for a library the compiler cannot
+## find, or for one no package owns.
 function(openms_install_system_library_licenses)
   cmake_parse_arguments(PARSE_ARGV 0 arg "" "" "ROOTS;EXCLUDE_REGEXES")
   set(_provided)
@@ -319,6 +320,7 @@ function(openms_install_system_library_licenses)
   ## Walk the dependencies: <name>|<path> for every library of the build machine.
   set(_seen ${_provided})
   set(_system)
+  set(_unresolved)
   while(_queue)
     list(POP_FRONT _queue _library)
     _openms_needed_libraries(_needed "${_objdump}" "${_library}")
@@ -331,25 +333,40 @@ function(openms_install_system_library_licenses)
                       OUTPUT_VARIABLE _path
                       OUTPUT_STRIP_TRAILING_WHITESPACE
                       ERROR_QUIET)
-      if(NOT IS_ABSOLUTE "${_path}" OR NOT EXISTS "${_path}")
-        ## Not where the compiler looks; the install step reports what it cannot resolve.
-        continue()
+      if(IS_ABSOLUTE "${_path}" AND EXISTS "${_path}")
+        file(REAL_PATH "${_path}" _real)
+        set(_candidates "${_path}" "${_real}")
+      else()
+        ## Not where the compiler looks, but the install step may still find and bundle it
+        ## (through a RUNPATH, ld.so.conf or its DIRECTORIES), so only an exclusion that
+        ## matches the name lets it pass.
+        set(_real)
+        set(_candidates "/${_name}")
       endif()
-      file(REAL_PATH "${_path}" _real)
       set(_excluded FALSE)
       foreach(_regex IN LISTS arg_EXCLUDE_REGEXES)
-        if(_path MATCHES "${_regex}" OR _real MATCHES "${_regex}")
-          set(_excluded TRUE)
-          break()
-        endif()
+        foreach(_candidate IN LISTS _candidates)
+          if(_candidate MATCHES "${_regex}")
+            set(_excluded TRUE)
+          endif()
+        endforeach()
       endforeach()
       if(_excluded)
+        continue()
+      elseif(NOT _real)
+        list(APPEND _unresolved "${_name} (needed by ${_library})")
         continue()
       endif()
       list(APPEND _system "${_name}|${_real}")
       list(APPEND _queue "${_real}")
     endforeach()
   endwhile()
+  if(_unresolved)
+    list(JOIN _unresolved ", " _list)
+    message(FATAL_ERROR "The compiler (-print-file-name) cannot find ${_list}, so whether the "
+                        "package bundles them, and the licenses it then has to ship, cannot be "
+                        "checked.")
+  endif()
   if(NOT _system)
     return()
   endif()
