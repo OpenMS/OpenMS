@@ -174,7 +174,7 @@ namespace OpenMS
 
     defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
     defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
-    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'. A terminus carries one modification: a variable modification of the whole terminus (e.g. 'Acetyl (Protein N-term)') is not searched where a fixed one sits on it (e.g. 'TMT6plex (N-term)').");
+    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'. A terminus and a residue carry one modification each: a variable terminal modification (e.g. 'Acetyl (Protein N-term)', 'Gln->pyro-Glu (N-term Q)') is not searched where a fixed one sits on that terminus (e.g. 'TMT6plex (N-term)'), and a variable residue modification (e.g. 'Glutathione (C)') is not searched where a fixed one sits on that residue (e.g. 'Carbamidomethyl (C)').");
     defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
     defaults_.setSectionDescription("modifications", "Modifications Options");
@@ -546,11 +546,36 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Duplicate variable modification provided. Making them unique." << endl;
       modifications_variable_.assign(var_unique.begin(), var_unique.end());
     }
+    // A modification that is fixed as well applies everywhere already: the remedy is to drop the fixed one.
+    const auto also_fixed = [this](const std::string& mod)
+    {
+      return std::find(modifications_fixed_.begin(), modifications_fixed_.end(), mod) != modifications_fixed_.end();
+    };
     for (const std::string& mod : FragmentIndex::shadowedVariableTerminalModifications(modifications_fixed_, modifications_variable_))
     {
+      if (also_fixed(mod))
+      {
+        OPENMS_LOG_WARN << "Variable modification '" << mod << "' is not searched: it is also a fixed modification, which "
+                        << "applies to every such terminus. To search the terminus with and without it, remove it from "
+                        << "modifications:fixed." << endl;
+        continue;
+      }
       OPENMS_LOG_WARN << "Variable modification '" << mod << "' is not searched: a fixed modification already sits on "
                       << "that terminus, which carries one modification. To search it, specify the fixed terminal "
                       << "modification as a variable one as well." << endl;
+    }
+    for (const std::string& mod : FragmentIndex::shadowedVariableResidueModifications(modifications_fixed_, modifications_variable_))
+    {
+      if (also_fixed(mod))
+      {
+        OPENMS_LOG_WARN << "Variable modification '" << mod << "' is not searched: it is also a fixed modification, which "
+                        << "applies to every such residue. To search the residue with and without it, remove it from "
+                        << "modifications:fixed." << endl;
+        continue;
+      }
+      OPENMS_LOG_WARN << "Variable modification '" << mod << "' is not searched: a fixed modification already sits on "
+                      << "that residue, which carries one modification. To search it, specify the fixed residue "
+                      << "modification as a variable one instead." << endl;
     }
 
     modifications_max_variable_mods_per_peptide_ = param_.getValue("modifications:variable_max_per_peptide");

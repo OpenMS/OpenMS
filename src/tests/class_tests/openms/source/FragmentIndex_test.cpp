@@ -3742,14 +3742,31 @@ END_SECTION
 
 START_SECTION((static StringList shadowedVariableTerminalModifications(const StringList& fixed_modifications, const StringList& variable_modifications)))
 {
-  // A terminus carries one modification: a variable modification of the whole terminus is not applied where a fixed
-  // one sits. Residue-specific terminal variable modifications modify the residue and stay.
+  // A terminus carries one modification: a variable terminal modification is not applied where a fixed one sits,
+  // also one with a residue preference (Gln->pyro-Glu (N-term Q)), which AASequence stores on the terminus too.
   const StringList variable = {"Acetyl (Protein N-term)", "Oxidation (M)", "Gln->pyro-Glu (N-term Q)", "Amidated (C-term)"};
   TEST_EQUAL(ListUtils::concatenate(FragmentIndex::shadowedVariableTerminalModifications({"TMT6plex (N-term)"}, variable), ","),
-             "Acetyl (Protein N-term)")
+             "Acetyl (Protein N-term),Gln->pyro-Glu (N-term Q)")
   TEST_EQUAL(ListUtils::concatenate(FragmentIndex::shadowedVariableTerminalModifications(
                {"Carbamidomethyl (C)", "TMT6plex (N-term)", "Amidated (C-term)"}, variable), ","),
-             "Acetyl (Protein N-term),Amidated (C-term)")
+             "Acetyl (Protein N-term),Gln->pyro-Glu (N-term Q),Amidated (C-term)")
+  {
+    // the index agrees: no pyro-Glu form next to the fixed TMT6plex (N-term)
+    const vector<FASTAFile::FASTAEntry> q_db {{"q", "q", "QPEPTIDERQAPEPTIDEK"}};
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    p.setValue("peptide:min_size", 5);
+    p.setValue("peptide:missed_cleavages", 0);
+    p.setValue("modifications:fixed", StringList {"TMT6plex (N-term)"});
+    p.setValue("modifications:variable", StringList {"Gln->pyro-Glu (N-term Q)"});
+    fi.setParameters(p);
+    fi.build(q_db);
+    TEST_EQUAL(fi.getPeptides().size(), 2)
+    for (const auto& peptide : fi.getPeptides())
+    {
+      TEST_EQUAL(fi.reconstructModifiedSequence(peptide, q_db).getNTerminalModificationName(), "TMT6plex")
+    }
+  }
   TEST_EQUAL(FragmentIndex::shadowedVariableTerminalModifications({"Carbamidomethyl (C)", "TMT6plex (K)"}, variable).size(), 0)
   TEST_EQUAL(FragmentIndex::shadowedVariableTerminalModifications({"TMT6plex (N-term)"}, {}).size(), 0)
 
@@ -3784,6 +3801,45 @@ START_SECTION((static StringList shadowedVariableTerminalModifications(const Str
   TEST_EQUAL(acetylated_without, 2) // ACAPEPTIDEK and ACAPEPTIDEKQLGSVTAK
   TEST_EQUAL(acetylated_with, 0)
   TEST_EQUAL(n_with_fixed_nterm, n_without_fixed_nterm - acetylated_without)
+}
+END_SECTION
+
+START_SECTION((static StringList shadowedVariableResidueModifications(const StringList& fixed_modifications, const StringList& variable_modifications)))
+{
+  // A residue carries one modification: a variable residue modification is not applied where a fixed one sits.
+  // Terminal modifications with a residue preference sit on the terminus and are applied next to it.
+  const StringList variable = {"Glutathione (C)", "Oxidation (M)", "Carbamidomethyl (C)", "Ammonia-loss (N-term C)",
+                               "Acetyl (Protein N-term)"};
+  TEST_EQUAL(ListUtils::concatenate(FragmentIndex::shadowedVariableResidueModifications({"Carbamidomethyl (C)"}, variable), ","),
+             "Glutathione (C),Carbamidomethyl (C)")
+  TEST_EQUAL(ListUtils::concatenate(FragmentIndex::shadowedVariableResidueModifications(
+               {"Carbamidomethyl (C)", "TMT6plex (N-term)", "Oxidation (M)"}, variable), ","),
+             "Glutathione (C),Oxidation (M),Carbamidomethyl (C)")
+  TEST_EQUAL(FragmentIndex::shadowedVariableResidueModifications({"TMT6plex (N-term)"}, variable).size(), 0)
+  TEST_EQUAL(FragmentIndex::shadowedVariableResidueModifications({"Carbamidomethyl (C)"}, {"Ammonia-loss (N-term C)"}).size(), 0)
+  TEST_EQUAL(FragmentIndex::shadowedVariableResidueModifications({"Carbamidomethyl (C)"}, {}).size(), 0)
+  TEST_EQUAL(FragmentIndex::shadowedVariableResidueModifications({}, variable).size(), 0)
+
+  // the index agrees: with Carbamidomethyl (C) fixed, only Oxidation (M) is applied as a residue modification
+  const vector<FASTAFile::FASTAEntry> db {{"p", "p", "ACMCKGGMCPEPTIDER"}};
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("peptide:min_size", 5);
+  p.setValue("modifications:fixed", StringList {"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", StringList {"Glutathione (C)", "Carbamidomethyl (C)", "Oxidation (M)"});
+  fi.setParameters(p);
+  fi.build(db);
+  Size oxidized = 0;
+  for (const auto& peptide : fi.getPeptides())
+  {
+    const AASequence seq = fi.reconstructModifiedSequence(peptide, db);
+    for (Size i = 0; i < seq.size(); ++i)
+    {
+      if (seq[i].getOneLetterCode() == "C") { TEST_EQUAL(seq[i].getModificationName(), "Carbamidomethyl") }
+      if (seq[i].getOneLetterCode() == "M" && seq[i].isModified()) ++oxidized;
+    }
+  }
+  TEST_TRUE(oxidized > 0)
 }
 END_SECTION
 

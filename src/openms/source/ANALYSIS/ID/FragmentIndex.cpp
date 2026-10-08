@@ -155,10 +155,10 @@ namespace OpenMS
 
   namespace
   {
-    /// 0 (N) or 1 (C) for a modification of a whole peptide or protein terminus (no residue preference), else -1
-    int wholeTerminus(const ResidueModification& mod)
+    /// 0 (N) or 1 (C) for a peptide- or protein-terminal modification, also one with a residue preference (AASequence
+    /// stores it on the terminus), else -1
+    int modifiedTerminus(const ResidueModification& mod)
     {
-      if (mod.getOrigin() != 'X' && mod.getOrigin() != '.') return -1;
       switch (mod.getTermSpecificity())
       {
         case ResidueModification::N_TERM:
@@ -181,13 +181,43 @@ namespace OpenMS
     bool fixed_terminus[2] = {false, false}; // N-, C-terminus
     for (const auto& [mod_ptr, residue_ptr] : ModifiedPeptideGenerator::getModifications(fixed_modifications).val)
     {
-      if (const int t = wholeTerminus(*mod_ptr); t >= 0) fixed_terminus[t] = true;
+      if (const int t = modifiedTerminus(*mod_ptr); t >= 0) fixed_terminus[t] = true;
     }
     for (const std::string& name : variable_modifications) // in the given order (getModifications() returns a hash map)
     {
       for (const auto& [mod_ptr, residue_ptr] : ModifiedPeptideGenerator::getModifications({name}).val)
       {
-        if (const int t = wholeTerminus(*mod_ptr); t >= 0 && fixed_terminus[t]) shadowed.push_back(name);
+        if (const int t = modifiedTerminus(*mod_ptr); t >= 0 && fixed_terminus[t]) shadowed.push_back(name);
+      }
+    }
+    return shadowed;
+  }
+
+  StringList FragmentIndex::shadowedVariableResidueModifications(const StringList& fixed_modifications,
+                                                                 const StringList& variable_modifications)
+  {
+    StringList shadowed;
+    if (fixed_modifications.empty() || variable_modifications.empty()) return shadowed;
+    std::array<bool, 128> fixed_residue{}; // as fixed_mod_ptrs_
+    const auto residue = [](const ResidueModification& mod)
+    {
+      const char origin = mod.getOrigin();
+      return (origin == 'X' || origin == '.' || mod.getTermSpecificity() != ResidueModification::ANYWHERE) ? -1
+             : static_cast<int>(static_cast<unsigned char>(origin) & 127);
+    };
+    for (const auto& [mod_ptr, residue_ptr] : ModifiedPeptideGenerator::getModifications(fixed_modifications).val)
+    {
+      if (const int r = residue(*mod_ptr); r >= 0) fixed_residue[r] = true;
+    }
+    for (const std::string& name : variable_modifications) // in the given order (getModifications() returns a hash map)
+    {
+      for (const auto& [mod_ptr, residue_ptr] : ModifiedPeptideGenerator::getModifications({name}).val)
+      {
+        if (const int r = residue(*mod_ptr); r >= 0 && fixed_residue[r])
+        {
+          shadowed.push_back(name);
+          break;
+        }
       }
     }
     return shadowed;
@@ -3852,7 +3882,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
     defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
-    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'. A terminus carries one modification: a variable modification of the whole terminus (e.g. 'Acetyl (Protein N-term)') is not searched where a fixed one sits on it (e.g. 'TMT6plex (N-term)').");
+    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'. A terminus and a residue carry one modification each: a variable terminal modification (e.g. 'Acetyl (Protein N-term)', 'Gln->pyro-Glu (N-term Q)') is not searched where a fixed one sits on that terminus (e.g. 'TMT6plex (N-term)'), and a variable residue modification (e.g. 'Glutathione (C)') is not searched where a fixed one sits on that residue (e.g. 'Carbamidomethyl (C)').");
     defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
 

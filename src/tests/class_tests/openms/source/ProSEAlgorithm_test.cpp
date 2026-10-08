@@ -5202,4 +5202,51 @@ START_SECTION(([EXTRA] fragment:mass_tolerance must be finite and positive for e
 }
 END_SECTION
 
+START_SECTION(([EXTRA] every variable modification that a fixed one excludes is reported))
+{
+  // A residue and a terminus carry one modification each, so the index does not apply a variable modification where a
+  // fixed one sits on the same residue (Carbamidomethyl (C) fixed and variable, Glutathione (C) with Carbamidomethyl
+  // (C) fixed) or terminus (also one with a residue preference, Gln->pyro-Glu (N-term Q) with TMT6plex (N-term)
+  // fixed). Each is reported. For a modification that is fixed as well, the remedy is to remove the fixed one.
+  const auto warnings = [](const std::vector<std::string>& fixed, const std::vector<std::string>& variable)
+  {
+    std::ostringstream captured;
+    OPENMS_LOG_WARN.insert(captured);
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("modifications:fixed", fixed);
+    p.setValue("modifications:variable", variable);
+    algo.setParameters(p);
+    OPENMS_LOG_WARN.remove(captured);
+    return captured.str();
+  };
+  const std::string fixed_too = "remove it from modifications:fixed";
+  {
+    const std::string w = warnings({"Carbamidomethyl (C)"}, {"Carbamidomethyl (C)"});
+    TEST_EQUAL(w.find("'Carbamidomethyl (C)' is not searched") != std::string::npos, true)
+    TEST_EQUAL(w.find(fixed_too) != std::string::npos, true)
+  }
+  {
+    const std::string w = warnings({"Carbamidomethyl (C)"}, {"Glutathione (C)", "Oxidation (M)"});
+    TEST_EQUAL(w.find("'Glutathione (C)' is not searched") != std::string::npos, true)
+    TEST_EQUAL(w.find(fixed_too) == std::string::npos, true)
+    TEST_EQUAL(w.find("'Oxidation (M)'") == std::string::npos, true)
+  }
+  {
+    const std::string w = warnings({"TMT6plex (N-term)"}, {"Gln->pyro-Glu (N-term Q)"});
+    TEST_EQUAL(w.find("'Gln->pyro-Glu (N-term Q)' is not searched") != std::string::npos, true)
+  }
+  {
+    const std::string w = warnings({"TMT6plex (N-term)"}, {"TMT6plex (N-term)", "Deamidated (N)"});
+    TEST_EQUAL(w.find("'TMT6plex (N-term)' is not searched") != std::string::npos, true)
+    TEST_EQUAL(w.find(fixed_too) != std::string::npos, true)
+  }
+  {
+    // searched: a residue-specific terminal modification next to a fixed modification of the residue
+    const std::string w = warnings({"Carbamidomethyl (C)"}, {"Ammonia-loss (N-term C)", "Oxidation (M)", "Acetyl (N-term)"});
+    TEST_EQUAL(w.find("is not searched") == std::string::npos, true)
+  }
+}
+END_SECTION
+
 END_TEST

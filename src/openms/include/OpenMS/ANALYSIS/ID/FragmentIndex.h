@@ -336,19 +336,34 @@ namespace OpenMS
     static void checkFixedModifications(const StringList& fixed_modifications);
 
     /**
-     * @brief Variable modifications of a whole terminus that a fixed terminal modification excludes.
+     * @brief Variable terminal modifications that a fixed terminal modification excludes.
      *
-     * A terminus carries one modification. A variable modification of the whole peptide or protein N- or C-terminus
-     * (no residue preference, e.g. 'Acetyl (Protein N-term)') is therefore not searched where a fixed one (e.g.
-     * 'TMT6plex (N-term)') sits on that terminus, as in ModifiedPeptideGenerator. Residue-specific terminal variable
-     * modifications (e.g. 'Gln->pyro-Glu (N-term Q)') modify the residue and are searched as before.
+     * A terminus carries one modification. A variable peptide- or protein-terminal modification (e.g. 'Acetyl
+     * (Protein N-term)') is therefore not searched where a fixed one (e.g. 'TMT6plex (N-term)') sits on that terminus.
+     * This also applies to terminal modifications with a residue preference (e.g. 'Gln->pyro-Glu (N-term Q)'), which
+     * AASequence stores on the terminus as well.
      *
      * @param[in] fixed_modifications Names of the fixed modifications (as in modifications:fixed)
      * @param[in] variable_modifications Names of the variable modifications (as in modifications:variable)
-     * @return Full ids of the variable modifications that the index does not apply
+     * @return Full ids of the variable terminal modifications that the index does not apply, in the given order
      */
     static StringList shadowedVariableTerminalModifications(const StringList& fixed_modifications,
                                                             const StringList& variable_modifications);
+
+    /**
+     * @brief Variable residue modifications that a fixed modification of the same residue excludes.
+     *
+     * A residue carries one modification. A variable modification of a residue anywhere in the peptide (e.g.
+     * 'Glutathione (C)', or 'Carbamidomethyl (C)' configured as fixed and variable) is therefore not searched where a
+     * fixed one (e.g. 'Carbamidomethyl (C)') sits, as in ModifiedPeptideGenerator. Terminal modifications with a
+     * residue preference (e.g. 'Ammonia-loss (N-term C)') sit on the terminus and are searched next to it.
+     *
+     * @param[in] fixed_modifications Names of the fixed modifications (as in modifications:fixed)
+     * @param[in] variable_modifications Names of the variable modifications (as in modifications:variable)
+     * @return Full ids of the variable residue modifications that the index does not apply, in the given order
+     */
+    static StringList shadowedVariableResidueModifications(const StringList& fixed_modifications,
+                                                           const StringList& variable_modifications);
 
     /// @name SNES (Speedy Non-specific Enzyme Search) bit encoding
     ///
