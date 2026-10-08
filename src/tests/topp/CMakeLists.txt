@@ -1061,6 +1061,18 @@ if(ENABLE_TDL)
   else()
     message(STATUS "cwltool not found - skipping the CWL round-trip test (TOPP_FileMerger_cwl_run).")
   endif()
+else()
+  # Without TDL, '-write_cwl' and '-write_nested_cwl' must fail with a clear message and
+  # ILLEGAL_PARAMETERS (6), and leave no empty description behind. They used to abort the tool
+  # (an uncaught std::runtime_error) after creating an empty <Tool>.cwl.
+  foreach(_cwl_opt write_cwl write_nested_cwl)
+    file(MAKE_DIRECTORY ${TESTS_TEMP_DIR}/FileMerger_${_cwl_opt}_noTDL)
+    add_test(NAME "TOPP_FileMerger_${_cwl_opt}_noTDL" COMMAND ${CMAKE_COMMAND}
+      "-DCOMMAND=${TOPP_BIN_PATH}/FileMerger;-${_cwl_opt};${TESTS_TEMP_DIR}/FileMerger_${_cwl_opt}_noTDL"
+      -DEXPECTED_CODE=6 "-DEXPECTED_OUTPUT_REGEX=not supported by this build.*ENABLE_TDL=ON"
+      -DABSENT_FILE=${TESTS_TEMP_DIR}/FileMerger_${_cwl_opt}_noTDL/FileMerger.cwl
+      -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  endforeach()
 endif()
 
 #------------------------------------------------------------------------------

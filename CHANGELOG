@@ -122,6 +122,10 @@ TOPP tools:
       - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
         file names, e.g. 2025_07_05 for uniprotkb_proteome_UP000005640_2025_07_05.xml.gz,
         and stays 'unknown' if the input file name has none. -dbversion now defaults to empty.
+  - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
+    CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
+    ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
+    exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported().
 
 Build System:
   - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
