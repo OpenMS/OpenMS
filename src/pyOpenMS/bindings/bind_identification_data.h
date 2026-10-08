@@ -565,6 +565,8 @@ inline void bind(nb::module_& m)
     "Name, formula, identifiers and adduct as one record (None if the match has none); owned copy.");
   field(matchdata, "sequence_evidence", &ID::MatchData::sequence_evidence);
   field(matchdata, "peak_annotations", &ID::MatchData::peak_annotations);
+  matchdata.def("extractProteinAccessionsSet", &ID::MatchData::extractProteinAccessionsSet,
+                "The non-empty accessions of the sequence evidence (as PeptideHit.extractProteinAccessionsSet()).");
   auto inferenceinput = valueClass<ID::InferenceInput>(data, "InferenceInput");
   field(inferenceinput, "run_identifier", &ID::InferenceInput::run_identifier);
   field(inferenceinput, "run_uuid", &ID::InferenceInput::run_uuid);

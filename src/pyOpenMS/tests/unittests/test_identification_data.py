@@ -157,6 +157,7 @@ def test_value_types_accept_keyword_arguments_for_their_fields():
                                                                 before="K", after="T")])
     assert match.encoding == ID.Encoding.AA_SEQUENCE          # omitted fields keep their defaults
     assert match.sequence_evidence[0].accession == "P02769" and match.sequence_evidence[0].start == 65
+    assert match.extractProteinAccessionsSet() == {"P02769"}
     settings = ID.RunSettings(software="Comet", software_version="2024.01", metadata={"note": "test"})
     run.setSettings(settings)
     assert run.getSettings().software == "Comet" and run.getSettings().getMetaValue("note") == "test"

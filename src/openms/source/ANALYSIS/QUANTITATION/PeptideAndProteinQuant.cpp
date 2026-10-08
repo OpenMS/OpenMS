@@ -105,10 +105,8 @@ namespace OpenMS
       data.psm_count++;
 
       // add protein accessions:
-      for (const auto& evidence : best->sequence_evidence)
-      {
-        data.accessions.insert(evidence.accession);
-      }
+      const std::set<std::string> protein_accessions = best->extractProteinAccessionsSet();
+      data.accessions.insert(protein_accessions.begin(), protein_accessions.end());
     }
   }
 

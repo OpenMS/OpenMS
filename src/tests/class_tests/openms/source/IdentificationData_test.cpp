@@ -512,6 +512,21 @@ START_SECTION((void Run::shrinkToFit()))
 }
 END_SECTION
 
+START_SECTION((std::set<std::string> MatchData::extractProteinAccessionsSet() const))
+{
+  ID::MatchData match;
+  TEST_TRUE(match.extractProteinAccessionsSet().empty())
+  for (const auto* accession : {"P2", "P1", "", "P2"})
+  {
+    ID::SequenceEvidence evidence;
+    evidence.accession = accession;
+    match.sequence_evidence.push_back(evidence);
+  }
+  // Distinct and sorted; an empty accession is left out (as PeptideHit::extractProteinAccessionsSet())
+  TEST_TRUE(match.extractProteinAccessionsSet() == (std::set<std::string> {"P1", "P2"}))
+}
+END_SECTION
+
 START_SECTION((DatabaseSequence(DatabaseId database, std::string accession, TargetDecoy target_decoy)))
 {
   ID::Run run("catalog");

@@ -305,6 +305,8 @@ public:
     std::vector<SequenceEvidence> sequence_evidence;
     std::vector<PeptideHit::PeakAnnotation> peak_annotations;
     bool operator==(const MatchData&) const = default;
+    /// The accessions of the sequence evidence (as PeptideHit::extractProteinAccessionsSet())
+    std::set<std::string> extractProteinAccessionsSet() const;
   };
 
   class Run;

@@ -1066,6 +1066,14 @@ void ID::clear()
   runs_.clear();
   inference_.clear();
 }
+std::set<std::string> ID::MatchData::extractProteinAccessionsSet() const
+{
+  std::set<std::string> accessions;
+  for (const auto& evidence : sequence_evidence)
+    if (! evidence.accession.empty()) accessions.insert(evidence.accession);
+  return accessions;
+}
+
 const ID::Match* ID::QueryMatches::getBestMatch() const
 {
   const auto primary = run ? run->getPrimaryScore() : std::nullopt;
