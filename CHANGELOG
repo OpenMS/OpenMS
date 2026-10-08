@@ -210,6 +210,12 @@ TOPP tools:
       - FIX: With multiple-charge fragment scoring and an unknown precursor charge (0), the peak
         annotations covered only singly charged fragments. They now use the charge each hit reports
         and was scored (#10398).
+    SimpleSearchEngine:
+      - FIX: MS2 deisotoping (high-resolution fragments) requires isotope intensities to fall from the
+        monoisotopic peak, as in ProSE (#10391). A small peak one isotope spacing below a fragment ion
+        was taken as the envelope's monoisotopic peak, and the ion was removed as its isotope. On a
+        TMTpro Orbitrap Eclipse run (PXD061985) this removed 9.5% of the matched b/y ions of
+        identified spectra; PSMs at 1% FDR rose by 8% with the fix, and by 3% on a label-free run.
     OpenDIA:
       - New workflow:library_mode=predicted (also chosen by 'auto' when -tr is a FASTA database):
         digests the FASTA (PeptideQueryParameters:LibraryPrediction:*: enzyme, missed cleavages,

@@ -162,11 +162,15 @@ START_SECTION(([EXTRA] preprocessSpectra_ keeps a fragment ion that has a small 
   prec.setMZ(600.0);
   prec.setCharge(3);
   s.getPrecursors().push_back(prec);
+  // Intensities are scaled to realistic values: preprocessSpectra_ removes peaks below an absolute
+  // intensity of 0.05 before normalizing. The peaks above 1200 keep the tested peaks out of the
+  // window mower's last, partial window.
   const std::vector<std::pair<double, float>> peaks = {
     {450.2500, 0.50f}, {450.7517, 0.20f}, {451.2534, 0.05f},     // 2+ envelope
     {598.3157, 0.04f}, {599.3193, 0.74f}, {600.3250, 0.10f},     // shadow peak, ion, +1 isotope
-    {700.4000, 1.00f}, {701.4034, 0.35f}, {702.4067, 0.08f}};    // 1+ envelope
-  for (const auto& [mz, intensity] : peaks) s.emplace_back(mz, intensity);
+    {700.4000, 1.00f}, {701.4034, 0.35f}, {702.4067, 0.08f},     // 1+ envelope
+    {1200.0000, 0.30f}, {1250.0000, 0.30f}, {1299.0000, 0.30f}};
+  for (const auto& [mz, intensity] : peaks) s.emplace_back(mz, intensity * 1.0e4f);
   exp.addSpectrum(s);
   SimpleSearchEngineAlgorithm_test::preprocessSpectra_(exp, 20.0, true);
 
