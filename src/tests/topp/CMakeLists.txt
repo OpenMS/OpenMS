@@ -740,6 +740,18 @@ if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
     "-DFORBIDDEN=name=\"profile spectrum\""
     -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
   set_tests_properties("TOPP_FileConverter_RAW_1_centroided" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_1")
+  if (NOT WIN32) # creating symbolic links needs extra privileges on Windows
+    # Workflow systems (Nextflow, Galaxy) stage inputs as symbolic links, which Thermo's RawFileReader
+    # cannot open itself (#10451). The source file must keep the linked name.
+    add_test("TOPP_FileConverter_RAW_symlink_prepare" ${CMAKE_COMMAND} -E create_symlink ${THERMO_RAW_TEST_DATA} ${TESTS_TEMP_DIR}/FileConverter_RAW_symlink.tmp.raw)
+    add_test("TOPP_FileConverter_RAW_symlink" ${TOPP_BIN_PATH}/FileConverter -test -in ${TESTS_TEMP_DIR}/FileConverter_RAW_symlink.tmp.raw -RawToMzML:reader inprocess -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_symlink.tmp.mzML)
+    set_tests_properties("TOPP_FileConverter_RAW_symlink" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_symlink_prepare")
+    add_test("TOPP_FileConverter_RAW_symlink_name" ${CMAKE_COMMAND}
+      -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_symlink.tmp.mzML
+      "-DEXPECTED=name=\"FileConverter_RAW_symlink.tmp.raw\""
+      -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+    set_tests_properties("TOPP_FileConverter_RAW_symlink_name" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_symlink")
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
