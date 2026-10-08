@@ -37,12 +37,16 @@ namespace OpenMS
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);
 
-    /// Applies the given transformation to a feature map (features, their peptide identifications and its identification data)
+    /**
+      @brief Applies the given transformation to a feature map (features and its identification data)
+
+      A map with peptide identifications is converted for this and back (IdentificationDataConverter::editAsIdentificationData()).
+    */
     static void transformRetentionTimes(FeatureMap& fmap,
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);
 
-    /// Applies the given transformation to a consensus map (features, their peptide identifications and its identification data)
+    /// Applies the given transformation to a consensus map (features and its identification data), as for feature maps
     static void transformRetentionTimes(ConsensusMap& cmap,
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);

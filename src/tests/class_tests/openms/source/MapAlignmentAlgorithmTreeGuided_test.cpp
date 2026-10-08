@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/NativeIdentificationTest.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -204,6 +205,53 @@ START_SECTION((static void computeTransformedFeatureMaps(std::vector<FeatureMap>
     {
       TEST_EQUAL(feat_it->metaValueExists("original_RT"), true);
     }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] maps with identification data align like maps with peptide identifications))
+{
+  using namespace OpenMS::Internal::ClassTest;
+  vector<FeatureMap> legacy(3);
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmTreeGuided_test_in0.featureXML"), legacy[0]);
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmTreeGuided_test_in1.featureXML"), legacy[1]);
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmTreeGuided_test_in2.featureXML"), legacy[2]);
+  vector<FeatureMap> native = legacy;
+  for (auto& map : native) toNative(map);
+  ABORT_IF(native[0].getIdentificationData().empty())
+
+  vector<BinaryTreeNode> legacy_tree, native_tree;
+  vector<vector<double>> legacy_ranges(3), native_ranges(3);
+  MapAlignmentAlgorithmTreeGuided::buildTree(legacy, legacy_tree, legacy_ranges);
+  MapAlignmentAlgorithmTreeGuided::buildTree(native, native_tree, native_ranges);
+  TEST_EQUAL(native_tree.size(), legacy_tree.size())
+  for (Size i = 0; i < min(native_tree.size(), legacy_tree.size()); ++i)
+  {
+    TEST_EQUAL(native_tree[i].left_child, legacy_tree[i].left_child)
+    TEST_EQUAL(native_tree[i].right_child, legacy_tree[i].right_child)
+    TEST_REAL_SIMILAR(native_tree[i].distance, legacy_tree[i].distance)
+  }
+  TEST_EQUAL(native_ranges == legacy_ranges, true)
+
+  MapAlignmentAlgorithmTreeGuided tree_aligner;
+  vector<TransformationDescription> legacy_trafos, native_trafos;
+  tree_aligner.align(legacy, legacy_trafos);
+  tree_aligner.align(native, native_trafos);
+  TEST_EQUAL(native_trafos.size(), 3)
+  for (Size i = 0; i < 3; ++i)
+  {
+    const auto& expected = legacy_trafos[i].getDataPoints();
+    const auto& actual = native_trafos[i].getDataPoints();
+    TEST_EQUAL(actual.size(), expected.size())
+    for (Size j = 0; j < min(actual.size(), expected.size()); ++j)
+    {
+      TEST_EQUAL(actual[j].note, expected[j].note)
+      TEST_REAL_SIMILAR(actual[j].first, expected[j].first)
+      TEST_REAL_SIMILAR(actual[j].second, expected[j].second)
+    }
+    // the maps are transformed alike, with their identifications
+    toLegacy(native[i]);
+    TEST_EQUAL(mapDifference(legacy[i], native[i]), "")
   }
 }
 END_SECTION

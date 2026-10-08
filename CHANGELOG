@@ -107,6 +107,35 @@ OpenMS Library:
     unassigns are no longer appended after the others: the order of unassigned identifications in
     consensusXML and of PSM rows in mzTab of ProteomicsLFQ, MS1LabeledWorkflow, QualityControl and
     IDConflictResolver changes (values unchanged).
+  - Feature linking works on identification data: the feature grouping algorithms (QT, KD,
+    unlabeled, labeled, WNet), their pair and cluster finders, PIPECHO and the FeatureLinker tools.
+    IdentificationDataConverter::makeRunsDistinct() and withIdentificationData() for map vectors
+    keep the runs of the linked maps apart. ConsensusID's grouping by precursor position links
+    match-free identifications (outputs unchanged).
+  - IDFilter's map functions (unreferenced proteins, dangling references, N best hits, empty
+    identifications, best per peptide and run, unassigned proteins), ConsensusMapMergerAlgorithm
+    and protein inference on consensus maps work on identification data.
+    ConsensusMapMergerAlgorithm::mergeAllIDRuns()/mergeProteinIDRuns() no longer merge runs:
+    they add an inference result that pools them, which export writes as the merged protein run.
+    BasicProteinInferenceAlgorithm::run(ConsensusMap&, bool) and Epifany's consensus map
+    inference store their result as an inference result over those runs; PSM edits (score
+    conversion, filtering, group resolution) apply to the matches, and the IDBoostGraph core runs
+    on a copy whose peptide hits name their matches
+    (IdentificationDataConverter::exportWithMatchReferences(), updateReferencedMatches()).
+    BasicProteinInferenceAlgorithm::run(ConsensusMap&, ProteinIdentification&, bool) needs the
+    protein run to be the map's only one for maps with peptide identifications.
+  - Map alignment works on identification data: MapAlignmentAlgorithmIdentification collects the
+    RTs of feature and consensus maps from the identifications that features link (and the
+    unassigned ones), skipping identifications without RT and keying compounds by adduct if
+    'use_adducts' is set (also for a reference set with setReference(), which now reads
+    'min_score' and 'use_adducts' as align() does); MapAlignmentAlgorithmTreeGuided reads linked
+    identifications and combines maps in identification data; MapAlignmentTransformer transforms
+    identification RTs only in identification data.
+  - Algorithms that work on identification data convert the peptide identifications of maps.
+    Each peptide identification needs the protein identification run (the search run) with its
+    identifier, as search engines and ID mapping write it; the run may have no protein hits or
+    database (e.g. peptidomics, de novo). Maps with peptide identifications without such a run
+    are rejected (Exception::InvalidParameter naming the identifier).
   - .featureparquet and .consensusparquet bundles store a map's owning identification data
     (identifications/, a native bundle) and the per-feature links (identification_links.parquet,
     keyed by feature unique ID, stored as int64 like the feature tables so they join without a

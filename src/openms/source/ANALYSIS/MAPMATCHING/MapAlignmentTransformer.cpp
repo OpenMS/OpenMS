@@ -13,6 +13,7 @@
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 using std::vector;
 
@@ -69,24 +70,19 @@ namespace OpenMS
     FeatureMap& fmap, const TransformationDescription& trafo,
     bool store_original_rt)
   {
-    for (vector<Feature>::iterator fmit = fmap.begin(); fmit != fmap.end();
-         ++fmit)
-    {
-      applyToFeature_(*fmit, trafo, store_original_rt);
-    }
+    IdentificationDataConverter::editAsIdentificationData(fmap, [&](FeatureMap& map) {
+      for (vector<Feature>::iterator fmit = map.begin(); fmit != map.end();
+           ++fmit)
+      {
+        applyToFeature_(*fmit, trafo, store_original_rt);
+      }
 
-    // adapt RT values of unassigned peptides:
-    if (!fmap.getUnassignedPeptideIdentifications().empty())
-    {
-      transformRetentionTimes(fmap.getUnassignedPeptideIdentifications(), trafo,
-                              store_original_rt);
-    }
-
-    // and of the identification data the features link to:
-    if (!fmap.getIdentificationData().empty())
-    {
-      transformRetentionTimes(fmap.getIdentificationData(), trafo, store_original_rt);
-    }
+      // adapt RT values of the identifications:
+      if (!map.getIdentificationData().empty())
+      {
+        transformRetentionTimes(map.getIdentificationData(), trafo, store_original_rt);
+      }
+    });
   }
 
 
@@ -98,13 +94,6 @@ namespace OpenMS
     double rt = feature.getRT();
     if (store_original_rt) storeOriginalRT_(feature, rt);
     feature.setRT(trafo.apply(rt));
-
-    // adapt RT values of annotated peptides:
-    if (!feature.getPeptideIdentifications().empty())
-    {
-      transformRetentionTimes(feature.getPeptideIdentifications(), trafo,
-                              store_original_rt);
-    }
   }
 
 
@@ -144,23 +133,18 @@ namespace OpenMS
     ConsensusMap& cmap, const TransformationDescription& trafo,
     bool store_original_rt)
   {
-    for (ConsensusMap::Iterator cmit = cmap.begin(); cmit != cmap.end(); ++cmit)
-    {
-      applyToConsensusFeature_(*cmit, trafo, store_original_rt);
-    }
+    IdentificationDataConverter::editAsIdentificationData(cmap, [&](ConsensusMap& map) {
+      for (ConsensusMap::Iterator cmit = map.begin(); cmit != map.end(); ++cmit)
+      {
+        applyToConsensusFeature_(*cmit, trafo, store_original_rt);
+      }
 
-    // adapt RT values of unassigned peptides:
-    if (!cmap.getUnassignedPeptideIdentifications().empty())
-    {
-      transformRetentionTimes(cmap.getUnassignedPeptideIdentifications(), trafo,
-                              store_original_rt);
-    }
-
-    // and of the identification data the features link to:
-    if (!cmap.getIdentificationData().empty())
-    {
-      transformRetentionTimes(cmap.getIdentificationData(), trafo, store_original_rt);
-    }
+      // adapt RT values of the identifications:
+      if (!map.getIdentificationData().empty())
+      {
+        transformRetentionTimes(map.getIdentificationData(), trafo, store_original_rt);
+      }
+    });
   }
 
 

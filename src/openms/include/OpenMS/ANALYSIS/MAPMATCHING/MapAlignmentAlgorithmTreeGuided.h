@@ -12,7 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 namespace OpenMS
 {
@@ -67,6 +67,8 @@ public:
      *
      * @param[in] tree Vector of BinaryTreeNodes that contains order for alignment.
      * @param[out] feature_maps_transformed Vector with input maps for transformation process. Because the transformed maps are stored within this vector it's not const.
+     *   Their identifications are moved into their identification data first, with distinct runs (see IdentificationDataConverter::moveToIdentificationData()
+     *   and IdentificationDataConverter::makeRunsDistinct()), so that the combined maps keep them apart.
      * @param[in] maps_ranges Vector that contains all sorted RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
      * @param[in] map_transformed FeatureMap to store all features of combined maps with original and transformed RTs in order of alignment.
      * @param[in] trafo_order Vector to store indices of maps in order of alignment.
@@ -130,20 +132,22 @@ protected:
     class PeptideIdentificationsPearsonDistance_;
 
     /**
-     * @brief For given peptide identifications extract sequences and store with associated feature RT.
+     * @brief For the identifications that a feature links, store the sequence of their first (top) match with the feature RT.
      *
-     * @param[in] peptides Vector of peptide identifications to extract sequences.
+     * @param[in] identifications Identifications that the feature links, with their linked matches (BaseFeature::getLinkedIdentifications()).
      * @param[out] peptide_rts Map to store a list of feature RTs for each peptide sequence as key.
      * @param[out] map_range Vector in which all feature RTs are stored for given peptide identifications.
-     * @param[in] feature_rt RT value of the feature to which the peptide identifications to be analysed belong.
+     * @param[in] feature_rt RT value of the feature to which the identifications belong.
      */
-    static void addPeptideSequences_(const PeptideIdentificationList& peptides, SeqAndRTList& peptide_rts,
+    static void addPeptideSequences_(const std::vector<IdentificationData::QueryMatches>& identifications, SeqAndRTList& peptide_rts,
             std::vector<double>& map_range, double feature_rt);
 
     /**
-     * @brief For each input map, extract peptide identifications (sequences) of existing features with associated feature RT.
+     * @brief For each input map, extract the identifications (sequences) of existing features with associated feature RT.
      *
-     * @param[in] feature_maps Vector of original maps containing peptide identifications.
+     * Maps with peptide identifications are read as identification data (IdentificationDataConverter::withIdentificationData()).
+     *
+     * @param[in] feature_maps Vector of original maps containing identifications.
      * @param[out] maps_seq_and_rt Vector of maps to store feature RTs given for individual peptide sequences for each feature map.
      * @param[out] maps_ranges Vector to store all feature RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
      */

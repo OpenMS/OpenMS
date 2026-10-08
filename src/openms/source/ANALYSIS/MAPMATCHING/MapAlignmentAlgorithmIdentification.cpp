@@ -10,6 +10,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
@@ -384,10 +385,7 @@ namespace OpenMS
           if (! best) continue;
           empty = false;
           if (score_cutoff_ && (definition.higher_better ? *value < min_score_ : *value > min_score_)) continue;
-          std::string molecule = best->representation;
-          const auto& adduct = best->details.value_or_default().adduct;
-          if (use_adducts_ && adduct) molecule += "+[" + adduct->getName() + "]";
-          rt_data[molecule].push_back(*query.rt);
+          rt_data[moleculeKey_(*best)].push_back(*query.rt);
         }
     }
     return empty;
@@ -560,11 +558,113 @@ namespace OpenMS
     if (!reference_given) reference_.clear();
   }
 
-  // explicit template instantiation for Windows DLL:
-  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_<>(const ConsensusMap& features, SeqToList& rt_data);
+  std::string MapAlignmentAlgorithmIdentification::moleculeKey_(const IdentificationData::Match& match) const
+  {
+    std::string molecule = match.representation;
+    const auto& adduct = match.details.value_or_default().adduct;
+    if (use_adducts_ && adduct) molecule += "+[" + adduct->getName() + "]";
+    return molecule;
+  }
 
-  // explicit template instantiation for Windows DLL:
-  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_<>(const FeatureMap& features, SeqToList& rt_data);
+  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(const FeatureMap& features, SeqToList& rt_data)
+  {
+    std::optional<FeatureMap> converted;
+    return getMapRetentionTimes_(IdentificationDataConverter::withIdentificationData(features, converted), rt_data);
+  }
+
+  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(const ConsensusMap& features, SeqToList& rt_data)
+  {
+    std::optional<ConsensusMap> converted;
+    return getMapRetentionTimes_(IdentificationDataConverter::withIdentificationData(features, converted), rt_data);
+  }
+
+  template <typename MapType>
+  bool MapAlignmentAlgorithmIdentification::getMapRetentionTimes_(const MapType& features, SeqToList& rt_data)
+  {
+    const auto& data = features.getIdentificationData();
+    const auto primary = data.getPrimaryScoreDefinition();
+    if (!score_cutoff_)
+    {
+      better_ = [](double, double)
+      {return true;};
+    }
+    else if (primary && primary->higher_better)
+    {
+      better_ = [](double a, double b)
+      { return a >= b; };
+    }
+    else
+    {
+      better_ = [](double a, double b)
+      { return a <= b; };
+    }
+
+    // the best match of an identification, if its primary score passes the cutoff
+    const auto passing = [&](const IdentificationData::QueryMatches& entry) -> const IdentificationData::Match* {
+      const auto* best = entry.getBestMatch();
+      if (!best) return nullptr;
+      const auto score = entry.run->getScore(best->getId(), *entry.run->getPrimaryScore());
+      return better_(*score, min_score_) ? best : nullptr;
+    };
+    const auto collect = [&](const std::vector<IdentificationData::QueryMatches>& entries) {
+      for (const auto& entry : entries)
+      {
+        if (!entry.query->rt) continue;
+        if (const auto* best = passing(entry)) rt_data[moleculeKey_(*best)].push_back(*entry.query->rt);
+      }
+    };
+
+    for (const auto& feature : features)
+    {
+      const auto entries = feature.getLinkedIdentifications(data);
+      if (use_feature_rt_)
+      {
+        // find the identification closest in RT to the feature centroid:
+        std::string sequence;
+        double rt_distance = std::numeric_limits<double>::max();
+        bool any_hit = false;
+        for (const auto& entry : entries)
+        {
+          if (entry.matches.empty()) continue;
+          any_hit = true;
+          if (!entry.query->rt) continue;
+          double current_distance = fabs(*entry.query->rt - feature.getRT());
+          if (current_distance < rt_distance)
+          {
+            if (const auto* best = passing(entry))
+            {
+              sequence = moleculeKey_(*best);
+              rt_distance = current_distance;
+            }
+          }
+        }
+
+        if (any_hit) rt_data[sequence].push_back(feature.getRT());
+      }
+      else
+      {
+        collect(entries);
+      }
+    }
+
+    if (!use_feature_rt_ &&
+        param_.getValue("use_unassigned_peptides").toBool())
+    {
+      collect(features.getUnassignedIdentifications());
+    }
+
+    // remove duplicates (can occur if a peptide ID was assigned to several
+    // features due to overlap or annotation tolerance):
+    for (SeqToList::iterator rt_it = rt_data.begin(); rt_it != rt_data.end();
+         ++rt_it)
+    {
+      DoubleList& rt_values = rt_it->second;
+      sort(rt_values.begin(), rt_values.end());
+      DoubleList::iterator it = unique(rt_values.begin(), rt_values.end());
+      rt_values.resize(it - rt_values.begin());
+    }
+    return true; // RTs were already sorted for duplicate detection
+  }
 
   const PeptideHit* MapAlignmentAlgorithmIdentification::getBestScoringHit(const std::vector<PeptideHit>& hits, const bool is_higher_score_better)
   {

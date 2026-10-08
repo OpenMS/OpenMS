@@ -529,7 +529,11 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
   auto create_run = [&](const Contract& contract) -> ID::Run& {
     const auto& original_id = std::get<0>(contract);
     const auto original = originals.find(original_id);
-    if (original == originals.end()) invalid("Peptide identification has no matching protein run: " + original_id);
+    if (original == originals.end())
+    {
+      invalid("Peptide identification has no matching protein run: '" + original_id +
+              "'. Every peptide identification needs the protein identification run (search run) with its identifier, which may have no protein hits.");
+    }
     auto found = contracts.find(contract);
     if (found != contracts.end()) return result.data.getRun(found->second);
     std::string name = original_id;

@@ -11,6 +11,9 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/NativeIdentificationTest.h>
 
 #include <iostream>
 
@@ -385,6 +388,86 @@ START_SECTION([EXTRA] other references or a consensus if the automatic reference
   TEST_EQUAL(transforms[1].getModelType(), "identity");
   TEST_EQUAL(transforms[2].getDataPoints().size(), 100);
   TEST_EQUAL(transforms[3].getDataPoints().size(), 100);
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] align() of feature and consensus maps uses their identifications as identification data)
+{
+  using namespace OpenMS::Internal::ClassTest;
+  vector<vector<ProteinIdentification>> runs(2);
+  vector<PeptideIdentificationList> ids(2);
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmIdentification_test_1.idXML"), runs[0], ids[0]);
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmIdentification_test_2.idXML"), runs[1], ids[1]);
+  vector<TransformationDescription> expected;
+  aligner.align(ids, expected, 0);
+  ABORT_IF(expected.size() != 2 || expected[1].getDataPoints().empty())
+  // the data points of the second map, as "sequence:RT->reference RT" (shifted by @p offset)
+  auto points = [](const TransformationDescription& transform, double offset) {
+    vector<std::string> result;
+    for (const auto& point : transform.getDataPoints())
+      result.push_back(point.note + ":" + StringUtils::toStr(point.first + offset) + "->" + StringUtils::toStr(point.second + offset));
+    return ListUtils::concatenate(result, ",");
+  };
+
+  // the identifications unassigned: same data points with peptide identifications and with identification data
+  // (a map needs a feature, else it counts as empty, see setReference())
+  vector<FeatureMap> maps(2);
+  vector<ConsensusMap> consensus(2);
+  for (Size i = 0; i < 2; ++i)
+  {
+    maps[i].push_back(Feature());
+    maps[i].setProteinIdentifications(runs[i]);
+    maps[i].setUnassignedPeptideIdentifications(ids[i]);
+    consensus[i].push_back(ConsensusFeature());
+    consensus[i].setProteinIdentifications(runs[i]);
+    consensus[i].setUnassignedPeptideIdentifications(ids[i]);
+  }
+  vector<TransformationDescription> transforms;
+  aligner.align(maps, transforms, 0);
+  TEST_EQUAL(points(transforms[1], 0), points(expected[1], 0))
+  for (auto& map : maps) toNative(map);
+  for (auto& map : consensus) toNative(map);
+  TEST_EQUAL(maps[0].getUnassignedPeptideIdentifications().empty() && !maps[0].getIdentificationData().empty(), true)
+  transforms.clear();
+  aligner.align(maps, transforms, 0);
+  TEST_EQUAL(points(transforms[1], 0), points(expected[1], 0))
+  transforms.clear();
+  aligner.align(consensus, transforms, 0);
+  TEST_EQUAL(points(transforms[1], 0), points(expected[1], 0))
+  // the map as reference:
+  aligner.setReference(maps[0]);
+  transforms.clear();
+  aligner.align(vector<FeatureMap>(1, maps[1]), transforms);
+  TEST_EQUAL(points(transforms[0], 0), points(expected[1], 0))
+  aligner.setReference(FeatureMap());
+
+  // each identification on a feature 10 s later: with feature RTs, the data points move by 10 s
+  for (Size i = 0; i < 2; ++i)
+  {
+    maps[i] = FeatureMap();
+    maps[i].setProteinIdentifications(runs[i]);
+    for (const auto& id : ids[i])
+    {
+      Feature feature;
+      feature.setRT(id.getRT() + 10);
+      feature.setUniqueId();
+      feature.getPeptideIdentifications().push_back(id);
+      maps[i].push_back(feature);
+    }
+    toNative(maps[i]);
+  }
+  Param feature_rt = params;
+  feature_rt.setValue("use_feature_rt", "true");
+  aligner.setParameters(feature_rt);
+  transforms.clear();
+  aligner.align(maps, transforms, 0);
+  TEST_EQUAL(points(transforms[1], 0), points(expected[1], 10))
+  // without feature RTs, the identification RTs count
+  aligner.setParameters(params);
+  transforms.clear();
+  aligner.align(maps, transforms, 0);
+  TEST_EQUAL(points(transforms[1], 0), points(expected[1], 0))
 }
 END_SECTION
 

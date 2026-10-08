@@ -121,6 +121,11 @@ def test_java_info_can_run_without_verbosity_flag():
 def _identified_run(shift):
     """A FeatureMap and its PeptideIdentificationList: five peptides, RTs shifted by 'shift'."""
     fmap = oms.FeatureMap()
+    # the search run of the peptide identifications (needed to read them as identification data)
+    search = oms.ProteinIdentification()
+    search.setIdentifier("search")
+    search.setSearchEngine("SearchEngine")
+    fmap.setProteinIdentifications([search])
     peptides = oms.PeptideIdentificationList()
     for i, sequence in enumerate(["PEPTIDEK", "ELVISLIVESK", "DLGEEHFK", "LVNELTEFAK", "YLYEIAR"]):
         rt = 100.0 * (i + 1) + shift
@@ -128,6 +133,7 @@ def _identified_run(shift):
         hit.setSequence(oms.AASequence.fromString(sequence))
         hit.setScore(0.01)
         pid = oms.PeptideIdentification()
+        pid.setIdentifier("search")
         pid.setRT(rt)
         pid.setMZ(500.0 + i)
         pid.setScoreType("q-value")

@@ -22,6 +22,10 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelDefaults.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+
+#include <optional>
+#include <set>
 
 using namespace std;
 
@@ -105,33 +109,32 @@ namespace OpenMS
     }
   }; // end of PeptideIdentificationsPearsonDifference
 
-  // For given peptide identifications extract sequences and store with associated feature RT.
-  void MapAlignmentAlgorithmTreeGuided::addPeptideSequences_(const PeptideIdentificationList& peptides,
+  // For the identifications that a feature links, store the sequence of their first (top) match with the feature RT.
+  void MapAlignmentAlgorithmTreeGuided::addPeptideSequences_(const std::vector<IdentificationData::QueryMatches>& identifications,
           SeqAndRTList& peptide_rts, std::vector<double>& map_range, double feature_rt)
   {
-    for (const auto& peptide : peptides)
+    for (const auto& identification : identifications)
     {
-      if (!peptide.getHits().empty())
+      if (!identification.matches.empty())
       {
-        const std::string& sequence = peptide.getHits()[0].getSequence().toString();
+        const std::string& sequence = identification.matches.front()->representation;
         peptide_rts[sequence].push_back(feature_rt);
         map_range.push_back(feature_rt);
       }
     }
   }
 
-  // For each input map, extract peptide identifications (sequences) of existing features with associated feature RT.
+  // For each input map, extract the identifications (sequences) of existing features with associated feature RT.
   void MapAlignmentAlgorithmTreeGuided::extractSeqAndRt_(const vector<FeatureMap>& feature_maps,
           vector<SeqAndRTList>& maps_seq_and_rt, vector<vector<double>>& maps_ranges)
   {
     for (Size i = 0; i < feature_maps.size(); ++i)
     {
-      for (const BaseFeature& bf : feature_maps[i])
+      std::optional<FeatureMap> converted;
+      const FeatureMap& map = IdentificationDataConverter::withIdentificationData(feature_maps[i], converted);
+      for (const BaseFeature& bf : map)
       {
-        if (!bf.getPeptideIdentifications().empty())
-        {
-          addPeptideSequences_(bf.getPeptideIdentifications(), maps_seq_and_rt[i], maps_ranges[i], bf.getRT());
-        }
+        addPeptideSequences_(bf.getLinkedIdentifications(map.getIdentificationData()), maps_seq_and_rt[i], maps_ranges[i], bf.getRT());
       }
       sort(maps_ranges[i].begin(), maps_ranges[i].end());
     }
@@ -172,6 +175,14 @@ namespace OpenMS
 
     Size ref;
     Size to_transform;
+
+    // the maps are combined during the alignment: their identifications as identification data, each run in one map only
+    std::set<std::string> taken_runs;
+    for (auto& map : feature_maps_transformed)
+    {
+      IdentificationDataConverter::moveToIdentificationData(map);
+      IdentificationDataConverter::makeRunsDistinct(map, taken_runs);
+    }
 
     // check RT ranges of IDs
     for (size_t i = 0; i < maps_ranges.size(); ++i)

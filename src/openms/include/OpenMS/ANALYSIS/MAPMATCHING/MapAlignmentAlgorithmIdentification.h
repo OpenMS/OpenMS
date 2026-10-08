@@ -77,6 +77,8 @@ public:
       use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
       score_cutoff_ = param_.getValue("score_cutoff").toBool();
       score_type_ = StringUtils::toStr(param_.getValue("score_type"));
+      min_score_ = param_.getValue("min_score");
+      use_adducts_ = param_.getValue("use_adducts").toBool();
       bool sorted = getRetentionTimes_(data, rt_data);
       computeMedians_(rt_data, reference_, sorted);
 
@@ -224,98 +226,36 @@ protected:
 
       @return Are the RTs already sorted? (Here: false)
     */
-    // "id_data" can't be "const" here or template resolution will fail
     bool getRetentionTimes_(const IdentificationData& id_data, SeqToList& rt_data);
 
     /**
-      @brief Collect retention time data from peptide IDs contained in feature maps or consensus maps
+      @brief Collect retention time data from the identifications of feature maps or consensus maps
 
+      The identifications that the features link count with their best match (by primary score, see
+      IdentificationData::QueryMatches::getBestMatch()); identifications without RT are skipped.\n
       The following global flags (mutually exclusive) influence the processing:\n
-      Depending on @p use_unassigned_peptides, unassigned peptide IDs are used in addition to IDs annotated to features.\n
-      Depending on @p use_feature_rt, feature retention times are used instead of peptide retention times.
-      Depending on @p score_cutoff and min_score, only peptide IDs with minimum score X are used. Higher score better is
-      determined from the first PeptideID encountered. Make sure they are the same. This param is useless with use_feature_rt yet.
+      Depending on @p use_unassigned_peptides, unassigned identifications are used in addition to those linked to features.\n
+      Depending on @p use_feature_rt, feature retention times are used instead of identification retention times (with
+      the sequence of the linked identification closest in RT to the feature).\n
+      Depending on @p score_cutoff and @p min_score, only matches whose primary score is at least as good as @p min_score are used.
+      This param is useless with use_feature_rt yet.\n
+      Depending on @p use_adducts, differently adducted matches of a molecule count as different.\n
+      Maps with peptide identifications are read as identification data (IdentificationDataConverter::withIdentificationData()).
 
       @param[in] features Input features for RT data
       @param[out] rt_data Lists of RT values for diff. peptide sequences (output)
 
       @return Are the RTs already sorted? (Here: true)
     */
+    bool getRetentionTimes_(const FeatureMap& features, SeqToList& rt_data);
+    bool getRetentionTimes_(const ConsensusMap& features, SeqToList& rt_data);
 
-    bool getRetentionTimes_(const IsFCMap auto& features, SeqToList& rt_data)
-    {
-      if (!score_cutoff_)
-      {
-        better_ = [](double, double)
-        {return true;};
-      }
-      else if (features[0].getPeptideIdentifications()[0].isHigherScoreBetter())
-      {
-        better_ = [](double a, double b)
-        { return a >= b; };
-      }
-      else
-      {
-        better_ = [](double a, double b)
-        { return a <= b; };
-      }
+    /// getRetentionTimes_() of a feature map or consensus map with identification data
+    template <typename MapType>
+    bool getMapRetentionTimes_(const MapType& features, SeqToList& rt_data);
 
-      for (auto feat_it = features.cbegin(); feat_it != features.cend(); ++feat_it)
-      {
-        if (use_feature_rt_)
-        {
-          // find the peptide ID closest in RT to the feature centroid:
-          std::string sequence;
-          double rt_distance = std::numeric_limits<double>::max();
-          bool any_hit = false;
-          for (PeptideIdentificationList::const_iterator pep_it =
-                 feat_it->getPeptideIdentifications().begin(); pep_it !=
-                 feat_it->getPeptideIdentifications().end(); ++pep_it)
-          {
-            if (!pep_it->getHits().empty())
-            {
-              any_hit = true;
-              double current_distance = fabs(pep_it->getRT() -
-                                             feat_it->getRT());
-              if (current_distance < rt_distance)
-              {
-                const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), pep_it->isHigherScoreBetter());
-                if (best_hit && better_(best_hit->getScore(), min_score_))
-                {
-                  sequence = best_hit->getSequence().toString();
-                  rt_distance = current_distance;
-                }
-              }
-            }
-          }
-
-          if (any_hit) rt_data[sequence].push_back(feat_it->getRT());
-        }
-        else
-        {
-          getRetentionTimes_(feat_it->getPeptideIdentifications(), rt_data);
-        }
-      }
-
-      if (!use_feature_rt_ &&
-          param_.getValue("use_unassigned_peptides").toBool())
-      {
-        getRetentionTimes_(features.getUnassignedPeptideIdentifications(),
-                           rt_data);
-      }
-
-      // remove duplicates (can occur if a peptide ID was assigned to several
-      // features due to overlap or annotation tolerance):
-      for (SeqToList::iterator rt_it = rt_data.begin(); rt_it != rt_data.end();
-           ++rt_it)
-      {
-        DoubleList& rt_values = rt_it->second;
-        sort(rt_values.begin(), rt_values.end());
-        DoubleList::iterator it = unique(rt_values.begin(), rt_values.end());
-        rt_values.resize(it - rt_values.begin());
-      }
-      return true; // RTs were already sorted for duplicate detection
-    }
+    /// The key of the RT data of @p match: its representation, with its adduct if @p use_adducts is set
+    std::string moleculeKey_(const IdentificationData::Match& match) const;
 
     /**
       @brief Compute retention time transformations from RT data grouped by peptide sequence
