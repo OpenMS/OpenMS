@@ -76,7 +76,7 @@
 		<SearchParameters db="Custom" db_version="0.0" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 			<UserParam type="string" name="database_location" value="/Users/alka/Documents/work/software/openms_test/OpenMS/src/tests/topp/AMS_test_Mapping.tsv"/>
 		</SearchParameters>
-		<ProteinIdentification score_type="MassErrorPPMScore" higher_score_better="false" significance_threshold="0">
+		<ProteinIdentification score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0">
 			<UserParam type="stringList" name="spectra_data" value="[file://I:\OpenSWATH_Metabolomics_data\20181121_full_data\04_PestMixes_individually_Solvent_DDA_20-50/PestMix1_1ngSolventDDA20-50.wiff]"/>
 			<UserParam type="string" name="reliability" value="2"/>
 		</ProteinIdentification>
@@ -90,7 +90,7 @@
 			<quality dim="1">0.0</quality>
 			<overallquality>1.054042e-04</overallquality>
 			<charge>0</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorPPMScore" higher_score_better="false" significance_threshold="0" MZ="235.144546436815" RT="355.50799999998" spectrum_reference="8308517420049663419" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" MZ="235.144546436815" RT="355.50799999998" spectrum_reference="8308517420049663419" >
 				<PeptideHit score="1.99871001087511" sequence="" charge="1">
 					<UserParam type="string" name="label" value="C1CCC(CC1)n2c(=O)c3c([nH]c2=O)CCC3"/>
 					<UserParam type="string" name="inchi_key" value="&quot;InChI=1S/C13H18N2O2/c16-12-10-7-4-8-11(10)14-13(17)15(12)9-5-2-1-3-6-9/h9H,1-8H2,(H,14,17)&quot;"/>
@@ -110,6 +110,7 @@
 					<UserParam type="string" name="identification:formula" value="C13H18N2O2"/>
 					<UserParam type="string" name="identification:name" value="Lenacil"/>
 					<UserParam type="float" name="identification:calculated_mz" value="235.144076451995716"/>
+					<UserParam type="float" name="MassErrorPPMScore" value="1.998710010875113"/>
 					<UserParam type="float" name="MassErrorDaScore" value="4.6998481960258687e-04"/>
 				</PeptideHit>
 			</PeptideIdentification>
@@ -132,7 +133,7 @@
 			<quality dim="1">0.0</quality>
 			<overallquality>7.195689e-04</overallquality>
 			<charge>1</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorPPMScore" higher_score_better="false" significance_threshold="0" MZ="332.10835949539" RT="518.841" spectrum_reference="248283675846367528" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" MZ="332.10835949539" RT="518.841" spectrum_reference="248283675846367528" >
 				<PeptideHit score="1.15337005258795" sequence="" charge="1">
 					<UserParam type="string" name="label" value="CC(C)NP(=S)(OC)Oc1ccccc1C(=O)OC(C)C"/>
 					<UserParam type="string" name="inchi_key" value="&quot;InChI=1S/C14H22NO4PS/c1-10(2)15-20(21,17-5)19-13-9-7-6-8-12(13)14(16)18-11(3)4/h6-11H,1-5H3,(H,15,21)&quot;"/>
@@ -152,6 +153,7 @@
 					<UserParam type="string" name="identification:formula" value="C14H22N1O4P1S1"/>
 					<UserParam type="string" name="identification:name" value="Isofenphos-methyl"/>
 					<UserParam type="float" name="identification:calculated_mz" value="332.107976451995683"/>
+					<UserParam type="float" name="MassErrorPPMScore" value="1.153370052587946"/>
 					<UserParam type="float" name="MassErrorDaScore" value="3.830433942653144e-04"/>
 				</PeptideHit>
 			</PeptideIdentification>

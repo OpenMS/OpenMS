@@ -552,13 +552,18 @@ namespace OpenMS
     IdentificationData::SourceFile input;
     if (ms_run_paths.size() == 1) input.path = ms_run_paths.front();
     candidate_run.addSource(input);
+    // Matches rank by the absolute m/z error; the signed errors are kept as supplementary scores.
+    IdentificationData::ScoreDefinition abs_ppm;
+    abs_ppm.name = "MassErrorAbsPPMScore";
+    abs_ppm.higher_better = false;
     IdentificationData::ScoreDefinition ppm;
     ppm.name = "MassErrorPPMScore";
     ppm.higher_better = false;
     IdentificationData::ScoreDefinition dalton;
     dalton.name = "MassErrorDaScore";
     dalton.higher_better = false;
-    candidate_run.setPrimaryScore(candidate_run.addScore(ppm));
+    candidate_run.setPrimaryScore(candidate_run.addScore(abs_ppm));
+    candidate_run.addScore(ppm);
     candidate_run.addScore(dalton);
     IdentificationData::RunSettings settings;
     settings.software = "AccurateMassSearch";
@@ -725,7 +730,7 @@ namespace OpenMS
         // The search result stores the absolute charge; the adduct carries the signed ion charge
         // (negative in negative ion mode), which the identification model requires to agree.
         if (match.adduct) match.charge = match.adduct->getCharge();
-        auto id = run.addMatch(query, match, {ppm, dalton});
+        auto id = run.addMatch(query, match, {std::fabs(ppm), ppm, dalton});
         feature.setPrimaryID({match.encoding, match.representation});
         feature.addIDMatch({run.getUuid(), id});
       }
