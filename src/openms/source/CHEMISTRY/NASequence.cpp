@@ -184,7 +184,7 @@ namespace OpenMS
     }
 
     // The four standard unmodified ribonucleotides for mutation fallback
-    static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
+    static const RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
     static const Ribonucleotide* standard_ribos[] = {
       rdb->getRibonucleotide("A"),
       rdb->getRibonucleotide("C"),

@@ -231,13 +231,13 @@ namespace OpenMS
         continue;
       }
 
-      String origin_code(1, mod->getOrigin());
-      const String& modified_code = mod->getCode();
+      std::string origin_code(1, mod->getOrigin());
+      const std::string& modified_code = mod->getCode();
 
       for (const auto& pattern : cuts_after_regexes_)
       {
-        bool origin_matches = boost::regex_search(origin_code, pattern);
-        bool modified_matches = boost::regex_search(modified_code, pattern);
+        bool origin_matches = pattern.search(origin_code);
+        bool modified_matches = pattern.search(modified_code);
         if (origin_matches && !modified_matches)
         {
           groups.cuts_after_sensitive.insert(mod);
@@ -247,8 +247,8 @@ namespace OpenMS
 
       for (const auto& pattern : cuts_before_regexes_)
       {
-        bool origin_matches = boost::regex_search(origin_code, pattern);
-        bool modified_matches = boost::regex_search(modified_code, pattern);
+        bool origin_matches = pattern.search(origin_code);
+        bool modified_matches = pattern.search(modified_code);
         if (origin_matches && !modified_matches)
         {
           groups.cuts_before_sensitive.insert(mod);
@@ -293,7 +293,7 @@ namespace OpenMS
         continue;
       }
 
-      const String& code = residue->getCode();
+      const std::string& code = residue->getCode();
       if (code.size() != 1)
       {
         continue;
@@ -329,7 +329,7 @@ namespace OpenMS
     }
     vector<Size> cut_points(cut_points_set.begin(), cut_points_set.end());
 
-    set<String> emitted;
+    set<std::string> emitted;
     std::function<void(NASequence&, Size, Size, Size)> recurse =
       [&](NASequence& current_parent, Size start, Size end, Size used_mods)
     {
@@ -339,9 +339,9 @@ namespace OpenMS
       {
         NASequence fragment = current_parent.getSubsequence(start, length);
         applyTerminalGains_(fragment, make_pair(start, length), rna.size());
-        String key = String(start);
+        std::string key = std::to_string(start);
         key += ":";
-        key += String(end);
+        key += std::to_string(end);
         key += ":";
         key += fragment.toString();
         if (emitted.insert(key).second)
