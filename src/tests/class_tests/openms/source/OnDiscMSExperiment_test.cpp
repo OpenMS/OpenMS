@@ -12,6 +12,8 @@
 ///////////////////////////
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 ///////////////////////////
 
 START_TEST(OnDiscMSExperiment, "$Id$");
@@ -496,6 +498,129 @@ START_SECTION(([EXTRA] Test precursor m/z range filter skips loading peak data f
   MSSpectrum s_ms1 = tmp.getSpectrum(0);
   TEST_EQUAL(s_ms1.getMSLevel(), 1);
   TEST_EQUAL(s_ms1.size() > 0, true);  // MS1 should still have peaks despite precursor filter
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Range filters keep spectrum metadata and filter data arrays in step with the peaks))
+{
+  // indexed mzML with an MS2 spectrum carrying float, string and integer data arrays and a chromatogram with arrays
+  PeakMap exp;
+  MSSpectrum spec;
+  spec.setRT(123.5);
+  spec.setMSLevel(2);
+  spec.setName("my_spectrum");
+  spec.setNativeID("scan=1");
+  Precursor prec;
+  prec.setMZ(500.0);
+  spec.getPrecursors().push_back(prec);
+  MSSpectrum::FloatDataArray fda;
+  fda.setName("Ion Mobility");
+  MSSpectrum::StringDataArray sda;
+  sda.setName("labels");
+  MSSpectrum::IntegerDataArray ida;
+  ida.setName("indices");
+  for (Size i = 0; i < 10; ++i)
+  {
+    spec.emplace_back(100.0 + 10.0 * i, 10.0 * (i + 1));   // mz 100..190, intensity 10..100
+    fda.push_back(0.5 + i);
+    sda.push_back("p" + String(i));
+    ida.push_back(Int64(1000 + i));
+  }
+  spec.getFloatDataArrays().push_back(fda);
+  spec.getStringDataArrays().push_back(sda);
+  spec.getIntegerDataArrays().push_back(ida);
+  exp.addSpectrum(spec);
+
+  MSChromatogram chrom;
+  chrom.setName("my_chrom");
+  chrom.setNativeID("chrom=1");
+  MSChromatogram::FloatDataArray cfda;
+  cfda.setName("chrom_array");
+  for (Size i = 0; i < 10; ++i)
+  {
+    chrom.emplace_back(1.0 + i, 10.0 * (i + 1));   // rt 1..10, intensity 10..100
+    cfda.push_back(0.25 + i);
+  }
+  chrom.getFloatDataArrays().push_back(cfda);
+  exp.addChromatogram(chrom);
+
+  String filename;
+  NEW_TMP_FILE(filename);
+  IndexedMzMLFileLoader().store(filename, exp);
+
+  OnDiscPeakMap od;
+  TEST_EQUAL(od.openFile(filename), true);
+  MSSpectrum ref = od.getSpectrum(0);
+  TEST_EQUAL(ref.size(), 10);
+
+  // checks shared by all range types; kept = indices of the peaks that must survive
+  auto check = [&](const MSSpectrum& s, const std::vector<Size>& kept)
+  {
+    TEST_REAL_SIMILAR(s.getRT(), 123.5);
+    TEST_EQUAL(s.getMSLevel(), 2);
+    TEST_EQUAL(s.getName(), "my_spectrum");
+    TEST_EQUAL(s.getNativeID(), "scan=1");
+    TEST_EQUAL(s.getPrecursors().size(), 1);
+    TEST_EQUAL(s.size(), kept.size());
+    TEST_EQUAL(s.getFloatDataArrays().size(), 1);
+    TEST_EQUAL(s.getStringDataArrays().size(), 1);
+    TEST_EQUAL(s.getIntegerDataArrays().size(), 1);
+    if (s.getFloatDataArrays().size() != 1 || s.getStringDataArrays().size() != 1 || s.getIntegerDataArrays().size() != 1) return;
+    TEST_EQUAL(s.getFloatDataArrays()[0].getName(), "Ion Mobility");
+    TEST_EQUAL(s.getStringDataArrays()[0].getName(), "labels");
+    TEST_EQUAL(s.getIntegerDataArrays()[0].getName(), "indices");
+    TEST_EQUAL(s.getFloatDataArrays()[0].size(), kept.size());
+    TEST_EQUAL(s.getStringDataArrays()[0].size(), kept.size());
+    TEST_EQUAL(s.getIntegerDataArrays()[0].size(), kept.size());
+    if (s.getFloatDataArrays()[0].size() != kept.size() || s.getStringDataArrays()[0].size() != kept.size()
+        || s.getIntegerDataArrays()[0].size() != kept.size() || s.size() != kept.size()) return;
+    for (Size j = 0; j < kept.size(); ++j)
+    {
+      TEST_REAL_SIMILAR(s[j].getMZ(), ref[kept[j]].getMZ());
+      TEST_REAL_SIMILAR(s[j].getIntensity(), ref[kept[j]].getIntensity());
+      TEST_REAL_SIMILAR(s.getFloatDataArrays()[0][j], ref.getFloatDataArrays()[0][kept[j]]);
+      TEST_EQUAL(s.getStringDataArrays()[0][j], ref.getStringDataArrays()[0][kept[j]]);
+      TEST_EQUAL(s.getIntegerDataArrays()[0][j], ref.getIntegerDataArrays()[0][kept[j]]);
+    }
+  };
+
+  od.getOptions().setMZRange(DRange<1>(125.0, 165.0));   // keeps mz 130..160 -> indices 3..6
+  check(od.getSpectrum(0), {3, 4, 5, 6});
+
+  od.getOptions() = PeakFileOptions();
+  od.getOptions().setIntensityRange(DRange<1>(25.0, 65.0));   // keeps intensity 30..60 -> indices 2..5
+  check(od.getSpectrum(0), {2, 3, 4, 5});
+
+  // both filters at once
+  od.getOptions().setMZRange(DRange<1>(125.0, 145.0));   // mz 130, 140 -> indices 3, 4; intensity 40, 50 pass
+  check(od.getSpectrum(0), {3, 4});
+
+  // chromatogram: RT range and intensity range keep name, native ID and data arrays in step with the peaks
+  od.getOptions() = PeakFileOptions();
+  MSChromatogram cref = od.getChromatogram(0);
+  TEST_EQUAL(cref.size(), 10);
+  auto checkChrom = [&](const MSChromatogram& c, const std::vector<Size>& kept)
+  {
+    TEST_EQUAL(c.getName(), "my_chrom");
+    TEST_EQUAL(c.getNativeID(), "chrom=1");
+    TEST_EQUAL(c.size(), kept.size());
+    TEST_EQUAL(c.getFloatDataArrays().size(), 1);
+    if (c.getFloatDataArrays().size() != 1 || c.size() != kept.size()) return;
+    TEST_EQUAL(c.getFloatDataArrays()[0].getName(), "chrom_array");
+    TEST_EQUAL(c.getFloatDataArrays()[0].size(), kept.size());
+    if (c.getFloatDataArrays()[0].size() != kept.size()) return;
+    for (Size j = 0; j < kept.size(); ++j)
+    {
+      TEST_REAL_SIMILAR(c[j].getRT(), cref[kept[j]].getRT());
+      TEST_REAL_SIMILAR(c[j].getIntensity(), cref[kept[j]].getIntensity());
+      TEST_REAL_SIMILAR(c.getFloatDataArrays()[0][j], cref.getFloatDataArrays()[0][kept[j]]);
+    }
+  };
+  od.getOptions().setRTRange(DRange<1>(3.5, 6.5));   // rt 4..6 -> indices 3..5
+  checkChrom(od.getChromatogram(0), {3, 4, 5});
+  od.getOptions() = PeakFileOptions();
+  od.getOptions().setIntensityRange(DRange<1>(25.0, 55.0));   // intensity 30..50 -> indices 2..4
+  checkChrom(od.getChromatogram(0), {2, 3, 4});
 }
 END_SECTION
 

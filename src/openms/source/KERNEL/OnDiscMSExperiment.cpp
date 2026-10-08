@@ -175,20 +175,21 @@ namespace OpenMS
     // Apply m/z and intensity range filters if set (requires peak data)
     if (options_.hasMZRange() || options_.hasIntensityRange())
     {
-      MSSpectrum filtered;
-      filtered.SpectrumSettings::operator=(spectrum);
-      filtered.reserve(spectrum.size());
-
-      for (const auto& peak : spectrum)
+      // Select the passing peaks in place, so retention time, MS level, name etc. are kept and
+      // the float/string/integer data arrays are filtered in step with the peaks.
+      std::vector<Size> kept;
+      kept.reserve(spectrum.size());
+      for (Size i = 0; i < spectrum.size(); ++i)
       {
+        const auto& peak = spectrum[i];
         bool pass_mz = !options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(peak.getMZ()));
         bool pass_int = !options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(peak.getIntensity()));
         if (pass_mz && pass_int)
         {
-          filtered.push_back(peak);
+          kept.push_back(i);
         }
       }
-      return filtered;
+      spectrum.select(kept);
     }
 
     return spectrum;
@@ -210,20 +211,21 @@ namespace OpenMS
     // Apply RT and intensity range filters if set (RT range for chromatograms filters on RT dimension)
     if (options_.hasRTRange() || options_.hasIntensityRange())
     {
-      MSChromatogram filtered;
-      filtered.ChromatogramSettings::operator=(chromatogram);
-      filtered.reserve(chromatogram.size());
-
-      for (const auto& peak : chromatogram)
+      // Select the passing peaks in place, so the name, native ID etc. are kept and the data arrays
+      // are filtered in step with the peaks.
+      std::vector<Size> kept;
+      kept.reserve(chromatogram.size());
+      for (Size i = 0; i < chromatogram.size(); ++i)
       {
+        const auto& peak = chromatogram[i];
         bool pass_rt = !options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(peak.getRT()));
         bool pass_int = !options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(peak.getIntensity()));
         if (pass_rt && pass_int)
         {
-          filtered.push_back(peak);
+          kept.push_back(i);
         }
       }
-      return filtered;
+      chromatogram.select(kept);
     }
 
     return chromatogram;
