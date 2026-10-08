@@ -232,6 +232,10 @@ namespace OpenMS
 
   double PeptDeepRescoring::getRTCalibrationError() const { return rt_calibration_error_; }
 
+  Size PeptDeepRescoring::getNumPSMs() const { return num_psms_; }
+
+  Size PeptDeepRescoring::getNumPredictedPSMs() const { return num_predicted_psms_; }
+
   void PeptDeepRescoring::annotate(const PeakMap& spectra,
                                    std::vector<ProteinIdentification>& protein_ids,
                                    PeptideIdentificationList& peptide_ids)
@@ -239,6 +243,9 @@ namespace OpenMS
     // Diagnostics describe the call that is about to happen, not the previous one.
     used_nce_ = -1.0;
     rt_calibration_error_ = -1.0;
+    num_psms_ = 0;
+    num_predicted_psms_ = 0;
+    for (const PeptideIdentification& pid : peptide_ids) { num_psms_ += pid.getHits().size(); }
 
     if (ms2_model_.empty() || rt_model_.empty())
     {
@@ -412,6 +419,11 @@ namespace OpenMS
       sp.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
       protein_ids[0].setSearchParameters(sp);
     }
+
+    // Stable, machine-checkable summary (pipelines such as quantms grep for it).
+    OPENMS_LOG_INFO << "[PeptDeepRescoring] Predicted features added: " << num_predicted_psms_
+                    << " / " << num_psms_ << " PSMs (" << ListUtils::concatenate(names, ", ")
+                    << "), NCE=" << used_nce_ << '\n';
   }
 
   void PeptDeepRescoring::annotateRun_(const std::string& run_id,
@@ -650,7 +662,11 @@ namespace OpenMS
         if (it != row_of_hit.end())
         {
           const auto si = sims.find(it->second);
-          if (si != sims.end()) { s = si->second; }
+          if (si != sims.end())
+          {
+            s = si->second;
+            if (!hits[h].getPeakAnnotations().empty()) { ++num_predicted_psms_; }
+          }
           const auto ei = rt_err.find(it->second);
           if (ei != rt_err.end()) { e = ei->second; }
         }

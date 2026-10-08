@@ -153,6 +153,8 @@ START_SECTION([EXTRA] annotate() is a no-op on empty input)
   // are never actually loaded.
   r.annotate(exp, prot, peps);
   TEST_EQUAL(peps.size(), 0)
+  TEST_EQUAL(r.getNumPSMs(), 0)
+  TEST_EQUAL(r.getNumPredictedPSMs(), 0)
 }
 END_SECTION
 
@@ -233,6 +235,10 @@ START_SECTION([EXTRA] annotate() writes every feature and registers them per run
 
     // The fixed NCE must be reported back rather than a stale or unset value.
     TEST_REAL_SIMILAR(r.getUsedNCE(), 30.0)
+
+    // Every PSM is annotated and got a prediction, so all of them count as predicted.
+    TEST_EQUAL(r.getNumPSMs(), seqs.size())
+    TEST_EQUAL(r.getNumPredictedPSMs(), seqs.size())
 
     // A negative calibration error means the fit was skipped, which would leave
     // rt_abs_error a constant zero and make the checks below vacuous.
@@ -385,6 +391,9 @@ START_SECTION([EXTRA] a run without peak annotations is reported rather than sil
     }
     TEST_REAL_SIMILAR(run_b_cosine_sum, 0.0)
     TEST_EQUAL(run_a_cosine_sum > 0.0, true)
+    // Only run_A's PSMs carry computed MS2 features; run_B's are zero-filled.
+    TEST_EQUAL(r.getNumPSMs(), seqs.size())
+    TEST_EQUAL(r.getNumPredictedPSMs(), seqs.size() / 2)
   }
 }
 END_SECTION
