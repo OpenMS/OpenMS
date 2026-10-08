@@ -65,7 +65,9 @@ public:
     /**
      * @brief returns whether consensus feature passes filters
      * returns whether consensus feature @p cf_it in @p map passes accession
-     * regexp @p acc_filter and description regexp @p desc_filter
+     * regexp @p acc_filter and description regexp @p desc_filter: whether a match it links
+     * has a protein accession that passes, with a description that passes. The identifications
+     * are read from the identification data of @p map (see IdentificationDataConverter::withIdentificationData()).
      * @param[in] cf_it consensus feature
      * @param[in] map consensus map
      * @param[in] acc_filter string describing the regular expression for filtering accessions

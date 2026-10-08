@@ -96,6 +96,8 @@ OpenMS Library:
     identifications), IdentificationData::resolveLinks()/getUnlinked(), Run::eraseIdentifications();
     IdentificationDataConverter::withIdentificationData()/moveToIdentificationData() give code that
     works on identification data a map in that form.
+  - InternalCalibration::fillCalibrants(FeatureMap) and the accession/description filters of the
+    consensus map normalizers read identification data (peptide identifications are converted).
   - .featureparquet and .consensusparquet bundles store a map's owning identification data
     (identifications/, a native bundle) and the per-feature links (identification_links.parquet,
     keyed by feature unique ID, stored as int64 like the feature tables so they join without a

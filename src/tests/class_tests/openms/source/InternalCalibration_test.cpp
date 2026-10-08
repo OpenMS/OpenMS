@@ -67,6 +67,7 @@ IdXMLFile().load(File::find("./examples/BSA/BSA1_OMSSA.idXML"), prots, peps);
 
 START_SECTION(Size fillCalibrants(const FeatureMap& fm, double tol_ppm))
   FeatureMap fm;
+  fm.setProteinIdentifications(prots);
   fm.setUnassignedPeptideIdentifications(peps);
 
   InternalCalibration ic;

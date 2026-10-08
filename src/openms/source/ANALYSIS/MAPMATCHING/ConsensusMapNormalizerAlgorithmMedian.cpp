@@ -11,8 +11,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <boost/regex.hpp>
 
 using namespace std;
@@ -23,8 +22,11 @@ namespace OpenMS
 
   ConsensusMapNormalizerAlgorithmMedian::~ConsensusMapNormalizerAlgorithmMedian() = default;
 
-  Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & map, vector<double>& medians, const std::string& acc_filter, const std::string& desc_filter)
+  Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & input_map, vector<double>& medians, const std::string& acc_filter, const std::string& desc_filter)
   {
+    // the filters read the identification data
+    std::optional<ConsensusMap> converted;
+    const ConsensusMap& map = (acc_filter.empty() && desc_filter.empty()) ? input_map : IdentificationDataConverter::withIdentificationData(input_map, converted);
     Size number_of_maps = map.getColumnHeaders().size();
     vector<vector<double> > feature_int(number_of_maps);
     medians.resize(number_of_maps);
@@ -166,42 +168,51 @@ namespace OpenMS
       return true;
     }
 
-    const vector<ProteinIdentification>& prot_ids = map.getProteinIdentifications();
-    const PeptideIdentificationList& pep_ids = cf_it->getPeptideIdentifications();
-
-    for (PeptideIdentificationList::const_iterator p_it = pep_ids.begin(); p_it != pep_ids.end(); ++p_it)
-    {
-      const vector<PeptideHit>& hits = p_it->getHits();
-      for (vector<PeptideHit>::const_iterator h_it = hits.begin(); h_it != hits.end(); ++h_it)
+    const auto& data = map.getIdentificationData();
+    // the descriptions of a protein: from the database sequences of the runs and from inference results
+    const auto description_matches = [&](const std::string& accession) {
+      for (const auto& run : data.getRuns())
       {
-        const set<std::string>& accs = h_it->extractProteinAccessionsSet();
-        for (set<std::string>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
+        if (!run.getDatabaseSequences()) continue;
+        for (const auto& sequence : *run.getDatabaseSequences())
+        {
+          if (sequence.accession == accession && boost::regex_search(sequence.description.c_str(), m, desc_regexp)) return true;
+        }
+      }
+      for (const auto& result : data.getInferenceResults())
+      {
+        for (const auto& hit : result.proteins.getHits())
+        {
+          if (hit.getAccession() == accession && boost::regex_search(hit.getDescription().c_str(), m, desc_regexp)) return true;
+        }
+      }
+      return false;
+    };
+
+    for (const auto& entry : cf_it->getLinkedIdentifications(data))
+    {
+      for (const auto* match : entry.matches)
+      {
+        set<std::string> accs;
+        for (const auto& evidence : match->sequence_evidence)
+        {
+          accs.insert(evidence.accession);
+        }
+        for (const auto& acc : accs)
         {
           // does accession match?
           if (!(acc_filter.empty() ||
                 boost::regex_search("", m, acc_regexp) ||
-                boost::regex_search(acc_it->c_str(), m, acc_regexp)))
+                boost::regex_search(acc.c_str(), m, acc_regexp)))
           {
             //no
             continue;
           }
 
           // yes. does description match, too?
-          if (desc_filter.empty() || boost::regex_search("", m, desc_regexp))
+          if (desc_filter.empty() || boost::regex_search("", m, desc_regexp) || description_matches(acc))
           {
             return true;
-          }
-          for (vector<ProteinIdentification>::const_iterator pr_it = prot_ids.begin(); pr_it != prot_ids.end(); ++pr_it)
-          {
-            std::vector<ProteinHit>::const_iterator pr_hit = const_cast<ProteinIdentification&>(*pr_it).findHit(*acc_it);
-            if (pr_hit != pr_it->getHits().end())
-            {
-              const char* desc = pr_hit->getDescription().c_str();
-              if (boost::regex_search(desc, m, desc_regexp))
-              {
-                return true;
-              }
-            }
           }
         }
       }

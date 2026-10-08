@@ -12,6 +12,7 @@
 
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -164,29 +165,59 @@ namespace OpenMS
     return cal_data_.size();
   }
 
-  Size InternalCalibration::fillCalibrants(const FeatureMap& fm, double tol_ppm)
+  Size InternalCalibration::fillCalibrants(const FeatureMap& features, double tol_ppm)
   {
+    std::optional<FeatureMap> converted;
+    const FeatureMap& fm = IdentificationDataConverter::withIdentificationData(features, converted);
+    const auto& data = fm.getIdentificationData();
+    const auto unassigned = fm.getUnassignedIdentifications();
     cal_data_.clear();
     CalibrantStats_ stats(tol_ppm);
-    stats.cnt_total = fm.size() + fm.getUnassignedPeptideIdentifications().size();
+    stats.cnt_total = fm.size() + unassigned.size();
 
     for (const auto& f : fm)
     {
-      const PeptideIdentificationList& ids = f.getPeptideIdentifications();
-      double mz_ref;
+      // the best match of the first identification
+      const auto ids = f.getLinkedIdentifications(data);
       if (ids.empty())
       {
         continue;
       }
-      if (isDecalibrated_(ids[0], f.getMZ(), tol_ppm, stats, mz_ref))
+      const auto* best = ids[0].getBestMatch();
+      double mz_ref;
+      if (best == nullptr || isDecalibrated_(AASequence::fromString(best->representation), best->charge, f.getMZ(), tol_ppm, stats, mz_ref))
       {
         continue;
       }
       cal_data_.insertCalibrationPoint(f.getRT(), f.getMZ(), f.getIntensity(), mz_ref, log(f.getIntensity()));
     }
 
-    // unassigned peptide IDs
-    fillIDs_(fm.getUnassignedPeptideIdentifications(), tol_ppm, stats);
+    // unassigned identifications
+    for (const auto& id : unassigned)
+    {
+      const auto* best = id.getBestMatch();
+      if (best == nullptr)
+      {
+        ++stats.cnt_empty;
+        continue;
+      }
+      if (!id.query->mz)
+      {
+        ++stats.cnt_nomz;
+        continue;
+      }
+      if (!id.query->rt)
+      {
+        ++stats.cnt_nort;
+        continue;
+      }
+      double mz_ref;
+      if (isDecalibrated_(AASequence::fromString(best->representation), best->charge, *id.query->mz, tol_ppm, stats, mz_ref))
+      {
+        continue;
+      }
+      cal_data_.insertCalibrationPoint(*id.query->rt, *id.query->mz, 1.0, mz_ref, 1.0);
+    }
 
     OPENMS_LOG_INFO << "Found " << cal_data_.size() << " calibrants (incl. unassigned) in FeatureMap.\n";
     stats.print();
@@ -235,8 +266,12 @@ namespace OpenMS
   {
     PeptideIdentification pid = pep_id;
     pid.sort();
-    int q = pid.getHits()[0].getCharge();
-    mz_ref = pid.getHits()[0].getSequence().getMZ(q);
+    return isDecalibrated_(pid.getHits()[0].getSequence(), pid.getHits()[0].getCharge(), mz_obs, tol_ppm, stats, mz_ref);
+  }
+
+  bool InternalCalibration::isDecalibrated_(const AASequence& sequence, Int charge, const double mz_obs, const double tol_ppm, CalibrantStats_& stats, double& mz_ref)
+  {
+    mz_ref = sequence.getMZ(charge);
 
     // Only use ID if precursor m/z and theoretical mass don't deviate too much.
     // as they may occur due to isotopic peak misassignments
@@ -245,7 +280,7 @@ namespace OpenMS
     {
       if (stats.cnt_decal < 10)
       {
-        OPENMS_LOG_INFO << "Peptide " << pid.getHits()[0].getSequence().toString() << " is " << delta << " (>" << tol_ppm << ") ppm away from theoretical mass and is omitted as calibration point.\n";
+        OPENMS_LOG_INFO << "Peptide " << sequence.toString() << " is " << delta << " (>" << tol_ppm << ") ppm away from theoretical mass and is omitted as calibration point.\n";
       }
       else if (stats.cnt_decal == 10)
       {

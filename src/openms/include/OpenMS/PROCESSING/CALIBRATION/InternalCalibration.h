@@ -88,12 +88,12 @@ namespace OpenMS
     /** 
       @brief Extract calibrants from identifications
 
-      Extracts only the first hit from the first peptide identification of each feature.
-      Hits are sorted beforehand.
+      Extracts only the best match (by primary score) of the first identification of each feature
+      (BaseFeature::getLinkedIdentifications()); peptide identifications are converted to identification data first.
       Ambiguities should be resolved before, e.g. using IDFilter.
       RT and m/z are taken from the features, not from the identifications (for an exception see below)!
 
-      Unassigned peptide identifications are also taken into account!
+      Unassigned identifications are also taken into account!
       RT and m/z are naturally taken from the IDs, since to feature is assigned.
       If you do not want these IDs, remove them from the feature map before calling this function.
 
@@ -101,7 +101,7 @@ namespace OpenMS
       Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
       larger outliers are removed before accepting an ID as calibrant.
 
-      @param[in] fm FeatureMap with peptide identifications
+      @param[in] fm FeatureMap with identifications (identification data or peptide identifications)
       @param[in] tol_ppm Only accept ID's whose theoretical mass deviates at most this much from annotated
       @return Number of calibration masses found
 
@@ -261,6 +261,8 @@ namespace OpenMS
 
     /// determine if sequence is within tol_ppm and update stats; fills mz_ref with the theoretical m/z of the sequence
     bool isDecalibrated_(const PeptideIdentification& pep_id, const double mz_obs, const double tol_ppm, CalibrantStats_& stats, double& mz_ref);
+    /// as above, for a peptide given by sequence and charge
+    bool isDecalibrated_(const AASequence& sequence, Int charge, const double mz_obs, const double tol_ppm, CalibrantStats_& stats, double& mz_ref);
 
     /**
      @brief Calibrate m/z of a spectrum, ignoring precursors!

@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -21,8 +22,11 @@ namespace OpenMS
 
   ConsensusMapNormalizerAlgorithmThreshold::~ConsensusMapNormalizerAlgorithmThreshold() = default;
 
-  vector<double> ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(const ConsensusMap& map, const double& ratio_threshold, const std::string& acc_filter, const std::string& desc_filter)
+  vector<double> ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(const ConsensusMap& input_map, const double& ratio_threshold, const std::string& acc_filter, const std::string& desc_filter)
   {
+    // the filters read the identification data
+    std::optional<ConsensusMap> converted;
+    const ConsensusMap& map = (acc_filter.empty() && desc_filter.empty()) ? input_map : IdentificationDataConverter::withIdentificationData(input_map, converted);
     Size number_of_features = map.size();
     Size number_of_maps = map.getColumnHeaders().size();
     vector<vector<double> > feature_int(number_of_maps);

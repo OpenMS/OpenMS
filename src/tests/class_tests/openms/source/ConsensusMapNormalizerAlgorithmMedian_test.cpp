@@ -156,6 +156,32 @@ START_SECTION((static Size computeMedians(const ConsensusMap & map, std::vector<
     for (Size i = 0; i < medians.size(); ++i) { TEST_REAL_SIMILAR(medians[i], 1.0) }
   }
 
+  // Filters on peptide identifications: only the first consensus feature has a protein that passes.
+  {
+    ConsensusMap map = makeMap({3, 3, 3});
+    ProteinIdentification search;
+    search.setIdentifier("search");
+    search.setSearchEngine("Engine");
+    map.getProteinIdentifications() = {search};
+    PeptideHit hit(10.0, 1, 2, AASequence::fromString("PEPTIDER"));
+    PeptideEvidence evidence;
+    evidence.setProteinAccession("P02769|ALBU_BOVIN");
+    hit.addPeptideEvidence(evidence);
+    PeptideIdentification id;
+    id.setIdentifier("search");
+    id.setScoreType("hyperscore");
+    id.setHits({hit});
+    map[0].setPeptideIdentifications({id});
+    const ConsensusMap before = map;
+    vector<double> medians;
+    ConsensusMapNormalizerAlgorithmMedian::computeMedians(map, medians, "ALBU", "");
+    TEST_EQUAL(medians.size(), 3)
+    TEST_REAL_SIMILAR(medians[0], 100.0)
+    TEST_REAL_SIMILAR(medians[1], 200.0)
+    TEST_REAL_SIMILAR(medians[2], 400.0)
+    TEST_TRUE(map == before)
+  }
+
   // A column header missing from the map is an error, not a silently skipped map.
   {
     ConsensusMap map = makeMap({3, 3, 3});
@@ -250,16 +276,34 @@ START_SECTION((static bool passesFilters_(ConsensusMap::ConstIterator cf_it, con
   // is dropped rather than passed through.
   TEST_FALSE(ConsensusMapNormalizerAlgorithmMedian::passesFilters_(map.begin(), map, "ALBU", ""))
 
-  PeptideHit hit;
-  hit.setSequence(AASequence::fromString("PEPTIDER"));
-  PeptideEvidence ev;
-  ev.setProteinAccession("P02769|ALBU_BOVIN");
-  hit.addPeptideEvidence(ev);
-  PeptideIdentification pid;
-  pid.setHits({hit});
-  map[0].setPeptideIdentifications({pid});
+  // The identifications are read from the identification data.
+  using ID = IdentificationData;
+  auto& run = map.getIdentificationData().addRun("search");
+  const auto source = run.addSource({});
+  ID::ScoreDefinition hyperscore;
+  hyperscore.name = "hyperscore";
+  run.setPrimaryScore(run.addScore(hyperscore));
+  ID::Database fasta;
+  fasta.path = "bsa.fasta";
+  const auto db = run.addDatabase(fasta);
+  ID::DatabaseSequence albumin(db, "P02769|ALBU_BOVIN", ID::TargetDecoy::TARGET);
+  albumin.description = "Serum albumin";
+  run.setDatabaseSequences(std::vector<ID::DatabaseSequence> {albumin});
+  ID::MatchData hit;
+  hit.representation = "PEPTIDER";
+  hit.charge = 2;
+  ID::SequenceEvidence evidence;
+  evidence.database = db;
+  evidence.accession = "P02769|ALBU_BOVIN";
+  hit.sequence_evidence = {evidence};
+  const auto query = run.addIdentification(source, {});
+  map[0].addIDQuery({run.getUuid(), query});
+  map[0].addIDMatch({run.getUuid(), run.addMatch(query, hit, {10.0})});
 
   TEST_TRUE(ConsensusMapNormalizerAlgorithmMedian::passesFilters_(map.begin(), map, "ALBU", ""))
+  TEST_TRUE(ConsensusMapNormalizerAlgorithmMedian::passesFilters_(map.begin(), map, "ALBU", "albumin"))
+  TEST_FALSE(ConsensusMapNormalizerAlgorithmMedian::passesFilters_(map.begin(), map, "ALBU", "trypsin"))
+  TEST_FALSE(ConsensusMapNormalizerAlgorithmMedian::passesFilters_(map.begin() + 1, map, "ALBU", ""))
   TEST_FALSE(ConsensusMapNormalizerAlgorithmMedian::passesFilters_(map.begin(), map, "TRYP", ""))
 }
 END_SECTION
