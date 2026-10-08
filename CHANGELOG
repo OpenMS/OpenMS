@@ -163,7 +163,7 @@ TOPP tools:
     IsobaricWorkflow:
       - FIX: The precursor purity uses -extraction:precursor_isotope_deviation (default 10 ppm)
         for the isotope match and the fuzzy border of the isolation window. The value was passed
-        through a bool parameter, so any setting other than 0 became 1 ppm.
+        through a bool parameter, so any setting other than 0 became 1 ppm (#10448).
     MaRaClusterAdapter:
       - FIX: With several -id_in files, the PSMs of each idXML get their cluster_id and file_origin
         from the mzML at the same position; all of them were looked up in the first mzML. More
