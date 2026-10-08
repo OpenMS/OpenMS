@@ -822,7 +822,19 @@ inline void bind(nb::module_& m)
   nb::class_<OpenMS::IdentificationDataConverter>(m, "IdentificationDataConverter",
                                                   "Conversions of IdentificationData that keep the RNA and compound conventions of mzTab")
     .def_static("exportMzTab", &OpenMS::IdentificationDataConverter::exportMzTab, nb::arg("data"),
-                "Return an mzTab document of the dataset (store it with MzTabFile().store)");
+                "Return an mzTab document of the dataset (store it with MzTabFile().store)")
+    .def_static("importFeatureIDs", &OpenMS::IdentificationDataConverter::importFeatureIDs, nb::arg("features"),
+                nb::arg("clear_original") = true,
+                "Turn the PeptideIdentifications of the features (e.g. from IDMapper) into links to the map's IdentificationData; "
+                "with clear_original, the copies, unassigned identifications and protein runs are removed")
+    .def_static("exportFeatureIDs", &OpenMS::IdentificationDataConverter::exportFeatureIDs, nb::arg("features"),
+                nb::arg("clear_original") = true,
+                "Turn the links of the features into PeptideIdentifications; with clear_original, the links and the "
+                "IdentificationData are removed")
+    .def_static("importConsensusIDs", &OpenMS::IdentificationDataConverter::importConsensusIDs, nb::arg("consensus"),
+                nb::arg("clear_original") = true, "importFeatureIDs for a ConsensusMap")
+    .def_static("exportConsensusIDs", &OpenMS::IdentificationDataConverter::exportConsensusIDs, nb::arg("consensus"),
+                nb::arg("clear_original") = true, "exportFeatureIDs for a ConsensusMap");
   finishFieldProtocols();
 }
 } // namespace pyopenms_identification

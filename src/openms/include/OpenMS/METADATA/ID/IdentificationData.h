@@ -183,6 +183,12 @@ public:
   /// An entry of a database: a protein in peptide runs, a nucleic acid in oligonucleotide runs (cf. mzIdentML DBSequence).
   struct OPENMS_DLLAPI DatabaseSequence : MetaInfoInterface
   {
+    DatabaseSequence() = default;
+    /// An entry of @p database, e.g. <tt>{db, "P02769|ALBU_BOVIN", TargetDecoy::TARGET}</tt>
+    DatabaseSequence(DatabaseId database, std::string accession, TargetDecoy target_decoy = TargetDecoy::UNKNOWN) :
+        database(database), accession(std::move(accession)), target_decoy(target_decoy)
+    {}
+
     DatabaseId database;
     std::string accession;
     TargetDecoy target_decoy = TargetDecoy::UNKNOWN;

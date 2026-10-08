@@ -470,6 +470,28 @@ START_SECTION((void Run::shrinkToFit()))
 }
 END_SECTION
 
+START_SECTION((DatabaseSequence(DatabaseId database, std::string accession, TargetDecoy target_decoy)))
+{
+  ID::Run run("catalog");
+  ID::Database fasta;
+  fasta.path = "bsa_td.fasta";
+  const auto db = run.addDatabase(fasta);
+  run.setDatabaseSequences(std::vector<ID::DatabaseSequence> {{db, "P02769|ALBU_BOVIN", ID::TargetDecoy::TARGET},
+                                                              {db, "DECOY_P02769|ALBU_BOVIN", ID::TargetDecoy::DECOY},
+                                                              {db, "P1"}});
+  const auto& sequences = *run.getDatabaseSequences();
+  ABORT_IF(sequences.size() != 3)
+  ID::DatabaseSequence expected;
+  expected.database = db;
+  expected.accession = "DECOY_P02769|ALBU_BOVIN";
+  expected.target_decoy = ID::TargetDecoy::DECOY;
+  TEST_TRUE(sequences[1] == expected)
+  TEST_EQUAL(sequences[0].accession, "P02769|ALBU_BOVIN")
+  TEST_TRUE(sequences[2].target_decoy == ID::TargetDecoy::UNKNOWN)
+  TEST_TRUE(sequences[2].sequence.empty() && sequences[2].description.empty() && sequences[2].isMetaEmpty())
+}
+END_SECTION
+
 START_SECTION((concurrent const lookups build the lazy indexes once))
 {
   ID::Run run("lookups");

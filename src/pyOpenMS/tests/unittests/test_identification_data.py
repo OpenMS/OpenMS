@@ -463,6 +463,34 @@ def test_native_fdr_filters_alignment_and_mztab_export(tmp_path):
     assert "PEPTIDEA" in path.read_text()
 
 
+def test_converter_turns_feature_annotations_into_links_and_back():
+    run = oms.ProteinIdentification()
+    run.setIdentifier("search")
+    peptide = oms.PeptideIdentification()
+    peptide.setIdentifier("search")
+    peptide.setScoreType("hyperscore")
+    peptide.setRT(100.0)
+    peptide.setMZ(500.0)
+    peptide.setHits([oms.PeptideHit(7.0, 1, 2, oms.AASequence.fromString("PEPTIDE"))])
+    feature = oms.Feature()
+    feature.setPeptideIdentifications(oms.PeptideIdentificationList([peptide]))
+    features = oms.FeatureMap()
+    features.push_back(feature)
+    features.setProteinIdentifications([run])
+
+    oms.IdentificationDataConverter.importFeatureIDs(features)
+    linked = features[0]
+    assert len(linked.getPeptideIdentifications()) == 0 and features.getProteinIdentifications() == []
+    (link,) = linked.getIDMatches()
+    data = features.getIdentificationData()
+    assert data.findRunByUuid(link.run_uuid).getMatch(link.match).representation == "PEPTIDE"
+
+    oms.IdentificationDataConverter.exportFeatureIDs(features)
+    restored = features[0]
+    assert len(restored.getIDMatches()) == 0 and features.getIdentificationData().empty()
+    assert restored.getPeptideIdentifications()[0].getHits()[0].getSequence().toString() == "PEPTIDE"
+
+
 def test_native_filter_writes_reduced_dataset_with_explicit_inference_policy(tmp_path):
     data, query, first, second = make_data_with_inference()
     source = str(tmp_path / "source")

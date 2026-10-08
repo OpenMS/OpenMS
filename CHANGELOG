@@ -34,7 +34,8 @@ OpenMS Library:
     ProteinIdentification that held its configuration; they reject 'spectra_data'.
     ProteinIdentification::SearchParameters is now the standalone class SearchParameters
     (the nested name remains an alias). A run lists its databases (Run::addDatabase, a Database
-    with path, version and taxonomy); its DatabaseSequence catalogue (formerly ParentRecord) and the
+    with path, version and taxonomy); its DatabaseSequence catalogue (formerly ParentRecord; constructible
+    as {database, accession, target_decoy}) and the
     SequenceEvidence of matches (formerly ParentEvidence, MatchData::parent_evidence) refer to them
     by DatabaseId, so the search settings name no database. QualifiedAccession (database path and
     accession, Run::qualify) remains the identity across runs. InferenceResult::parent_score is
@@ -191,7 +192,8 @@ PyOpenMS:
     has a readable repr.
   - Native algorithm entry points for IdentificationData: FalseDiscoveryRate.applyToObservationMatches,
     IDFilter.keepBestMatchPerObservation/filterObservationMatchesByScore/removeDecoys,
-    MapAlignmentAlgorithmIdentification.align/setReference and IdentificationDataConverter.exportMzTab.
+    MapAlignmentAlgorithmIdentification.align/setReference and IdentificationDataConverter.exportMzTab,
+    importFeatureIDs/exportFeatureIDs and importConsensusIDs/exportConsensusIDs.
     Predicate callbacks accept any Python truth value. Native identification I/O releases the GIL.
   - ProteinIdentification.setScoreSoftware/getScoreSoftware/clearScoreSoftware.
 
