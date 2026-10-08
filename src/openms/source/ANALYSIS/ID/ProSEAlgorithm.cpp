@@ -933,7 +933,7 @@ namespace OpenMS
     // neither iterates chromatograms. They are therefore applied at the top of the parallel
     // loop below instead, which is per-spectrum equivalent and removes two full sweeps over
     // the peak data. Both objects are configured once here; like nlargest_filter below, each
-    // OpenMP thread works on its own copy (firstprivate): ThresholdMower stores its 'threshold'
+    // OpenMP thread works on its own copy (made before the loop): ThresholdMower stores its 'threshold'
     // Param in a member on every call, and concurrent writes are a data race even when every
     // thread writes the same value. One copy per thread costs a few Param copies per search.
     // Peaks without intensity (zero or negative, e.g. empty centroids) would still count as
@@ -1003,15 +1003,39 @@ namespace OpenMS
     const bool do_deisotope = deisotope_requested &&
       Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
+    // The per-thread copies of the filters are made here: copied on entry to the parallel region (firstprivate), they
+    // were outside any exception handling, and an exception from a copy (std::bad_alloc) terminated the process.
+#ifdef _OPENMP
+    const Size num_threads = static_cast<Size>(omp_get_max_threads());
+#else
+    const Size num_threads = 1;
+#endif
+    std::vector<ThresholdMower> threshold_mower_filters(num_threads, threshold_mower_filter);
+    std::vector<Normalizer> normalizers(num_threads, normalizer);
+    std::vector<NLargest> nlargest_filters(num_threads, nlargest_filter);
+
+    // An exception on a worker thread must not leave the parallel region, which would terminate the process: the
+    // first one is rethrown after the loop.
+    std::exception_ptr preprocessing_error;
+    std::atomic<bool> preprocessing_failed{false};
 #pragma omp parallel for default(none) shared(exp, evidence_spectra, query_spectra, do_deisotope, fragment_mass_tolerance, \
                                                 fragment_mass_tolerance_unit_ppm, full_window_quota, peaks_window_top, \
-                                                deisotoping, ion_evidence, ion_evidence_scored_peaks) \
-                                         firstprivate(threshold_mower_filter, normalizer, nlargest_filter)
+                                                deisotoping, ion_evidence, ion_evidence_scored_peaks, \
+                                                threshold_mower_filters, normalizers, nlargest_filters, \
+                                                preprocessing_error, preprocessing_failed)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
+      if (preprocessing_failed.load(std::memory_order_relaxed)) continue;
+      try
+      {
+#ifdef _OPENMP
+      const Size thread = static_cast<Size>(omp_get_thread_num());
+#else
+      const Size thread = 0;
+#endif
       // remove 0 intensities, then normalize (formerly two serial full-map passes)
-      threshold_mower_filter.filterPeakSpectrum(exp[exp_index]);
-      normalizer.filterPeakSpectrum(exp[exp_index]);
+      threshold_mower_filters[thread].filterPeakSpectrum(exp[exp_index]);
+      normalizers[thread].filterPeakSpectrum(exp[exp_index]);
 
       // sort by mz
       exp[exp_index].sortByPosition();
@@ -1064,14 +1088,24 @@ namespace OpenMS
       // remove noise
       if (full_window_quota) { filterLocalPeaks_(exp[exp_index], static_cast<Size>(peaks_window_top)); }
       else { filterTopNInJumpingWindows(exp[exp_index], 100.0, static_cast<UInt>(peaks_window_top)); }
-      nlargest_filter.filterPeakSpectrum(exp[exp_index]);
+      nlargest_filters[thread].filterPeakSpectrum(exp[exp_index]);
 
       // sort (nlargest changes order)
       exp[exp_index].sortByPosition();
 
       // ion priors on the scored peaks
       if (ion_evidence != nullptr && ion_evidence_scored_peaks) { ion_evidence->assign(exp_index, exp[exp_index]); }
+      }
+      catch (...)
+      {
+#pragma omp critical (ProSEAlgorithm_preprocessing_error)
+        {
+          if (!preprocessing_error) preprocessing_error = std::current_exception();
+        }
+        preprocessing_failed.store(true, std::memory_order_relaxed);
+      }
     }
+    if (preprocessing_error) std::rethrow_exception(preprocessing_error);
   }
 
   double ProSEAlgorithm::CandidatePoolStats_::zScore() const
@@ -4133,35 +4167,44 @@ namespace OpenMS
       bool ok = true;
 #pragma omp parallel num_threads(threads)
       {
-        std::ifstream file(filename, std::ios::binary);
+        std::ifstream file; // opened by the thread's first block, in the try below
         std::string buffer;
 #pragma omp for schedule(dynamic, 1)
         for (SignedSize sb = 0; sb < static_cast<SignedSize>(n_blocks); ++sb)
         {
-          const Size b = static_cast<Size>(sb);
-          const Size from = b * block;
-          const Size end = std::min(block, size - from); // marks starting before end belong to this block
-          buffer.resize(std::min(block + lookahead, size - from));
-          file.seekg(static_cast<std::streamoff>(from));
-          file.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
-          if (!file)
+          bool read = false;
+          try // exceptions (e.g. std::bad_alloc of the buffers) must not leave the parallel region
+          {
+            if (!file.is_open()) { file.open(filename, std::ios::binary); }
+            const Size b = static_cast<Size>(sb);
+            const Size from = b * block;
+            const Size end = std::min(block, size - from); // marks starting before end belong to this block
+            buffer.resize(std::min(block + lookahead, size - from));
+            file.seekg(static_cast<std::streamoff>(from));
+            file.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+            read = static_cast<bool>(file);
+            for (Size i = 0; read && i < end; ++i)
+            {
+              const char* p = static_cast<const char*>(std::memchr(buffer.data() + i, '<', end - i));
+              if (p == nullptr) { break; }
+              i = static_cast<Size>(p - buffer.data());
+              const std::string_view text(p, std::min(lookahead, buffer.size() - i));
+              if (is_tag(text, "<spectrumList")) { marks[b].emplace_back(from + i, Mark::list_start); }
+              else if (is_tag(text, "<spectrum")) { marks[b].emplace_back(from + i, Mark::spectrum); }
+              else if (is_tag(text, "</spectrumList")) { marks[b].emplace_back(from + i, Mark::list_end); }
+              else if (is_tag(text, "</run")) { marks[b].emplace_back(from + i, Mark::run_end); }
+              else if (text.substr(0, 2) == "<!") { marks[b].emplace_back(from + i, Mark::declaration); }
+            }
+          }
+          catch (...)
+          {
+            read = false;
+          }
+          if (!read)
           {
 #pragma omp critical (ProSEAlgorithm_loadMzMLChunked)
             ok = false;
             file.clear();
-            continue;
-          }
-          for (Size i = 0; i < end; ++i)
-          {
-            const char* p = static_cast<const char*>(std::memchr(buffer.data() + i, '<', end - i));
-            if (p == nullptr) { break; }
-            i = static_cast<Size>(p - buffer.data());
-            const std::string_view text(p, std::min(lookahead, buffer.size() - i));
-            if (is_tag(text, "<spectrumList")) { marks[b].emplace_back(from + i, Mark::list_start); }
-            else if (is_tag(text, "<spectrum")) { marks[b].emplace_back(from + i, Mark::spectrum); }
-            else if (is_tag(text, "</spectrumList")) { marks[b].emplace_back(from + i, Mark::list_end); }
-            else if (is_tag(text, "</run")) { marks[b].emplace_back(from + i, Mark::run_end); }
-            else if (text.substr(0, 2) == "<!") { marks[b].emplace_back(from + i, Mark::declaration); }
           }
         }
       }
@@ -4259,26 +4302,28 @@ namespace OpenMS
       std::vector<MSChromatogram> chromatograms;
 #pragma omp parallel num_threads(threads)
       {
-        std::ifstream file(filename, std::ios::binary);
+        std::ifstream file; // opened by the thread's first chunk, in the try below
         std::string chunk;
 #pragma omp for schedule(dynamic, 1)
         for (SignedSize sc = 0; sc < static_cast<SignedSize>(n_chunks_used); ++sc)
         {
-          const Size c = static_cast<Size>(sc);
-          const bool last = c + 1 == n_chunks_used;
-          const Size from = starts[first[c]];
-          const Size to = last ? run_end : starts[first[c + 1]];
-          chunk_text(first[c + 1] - first[c], chunk);
-          const Size at = chunk.size();
-          chunk.resize(at + (to - from));
-          file.seekg(static_cast<std::streamoff>(from));
-          file.read(chunk.data() + at, static_cast<std::streamsize>(to - from));
-          bool parsed = static_cast<bool>(file);
-          if (parsed)
+          bool parsed = false;
+          try // exceptions (a parse error, std::bad_alloc of the chunk text, ...) must not leave the parallel region
           {
-            chunk += last ? end_of_run : "</spectrumList>" + end_of_run;
-            try // exceptions must not leave the parallel region
+            if (!file.is_open()) { file.open(filename, std::ios::binary); }
+            const Size c = static_cast<Size>(sc);
+            const bool last = c + 1 == n_chunks_used;
+            const Size from = starts[first[c]];
+            const Size to = last ? run_end : starts[first[c + 1]];
+            chunk_text(first[c + 1] - first[c], chunk);
+            const Size at = chunk.size();
+            chunk.resize(at + (to - from));
+            file.seekg(static_cast<std::streamoff>(from));
+            file.read(chunk.data() + at, static_cast<std::streamsize>(to - from));
+            parsed = static_cast<bool>(file);
+            if (parsed)
             {
+              chunk += last ? end_of_run : "</spectrumList>" + end_of_run;
               MzMLFile mzml;
               mzml.getOptions() = chunk_options;
               PeakMap part;
@@ -4291,10 +4336,10 @@ namespace OpenMS
                 if (last) { chromatograms = std::move(part.getChromatograms()); }
               }
             }
-            catch (...)
-            {
-              parsed = false;
-            }
+          }
+          catch (...)
+          {
+            parsed = false;
           }
           if (!parsed)
           {
@@ -5868,6 +5913,10 @@ namespace OpenMS
     // Collect per-spectrum best hits with scores and errors
     struct CalHit { double score; double prec_error; double frag_error; };
     vector<CalHit> cal_hits;
+    // At most one hit per spectrum of the subset: the push_back() in the critical section below never reallocates, so
+    // it cannot throw there (an exception must not leave an OpenMP critical section; the catch of the loop body is
+    // outside it).
+    cal_hits.reserve(subset_size);
 
     // Parallelize over the calibration subset, mirroring the main scoring loop
     // (scoreSpectraAgainstIndex_). Each iteration is independent: querySpectrum and
