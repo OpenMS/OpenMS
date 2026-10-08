@@ -12,12 +12,14 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FEATUREFINDER/SeedListGenerator.h>
 
+#include <limits>
 #include <map>
 
 // TODO REMOVE
@@ -177,8 +179,14 @@ protected:
       {
         FeatureMap features;
         FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML}, log_type_);
-        seed_gen.generateSeedList(
-          features.getUnassignedPeptideIdentifications(), seed_lists[0]);
+        // seeds at the positions of the unassigned identifications
+        IdentificationDataConverter::moveToIdentificationData(features);
+        seed_lists[0].clear();
+        for (const auto& id : features.getUnassignedIdentifications())
+        {
+          seed_lists[0].push_back(DPosition<2>(id.query->rt.value_or(std::numeric_limits<double>::quiet_NaN()),
+                                               id.query->mz.value_or(std::numeric_limits<double>::quiet_NaN())));
+        }
       }
 
       // output:

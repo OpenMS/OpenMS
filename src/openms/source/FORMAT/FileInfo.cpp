@@ -35,6 +35,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
@@ -1084,6 +1085,8 @@ namespace OpenMS
       ff.loadFeatures(in, feat, {FileTypes::FEATUREXML}, options.log_type);
 
       feat.updateRanges();
+      // the identifications as identification data
+      IdentificationDataConverter::moveToIdentificationData(feat);
 
       os << "Number of features: " << feat.size() << '\n'
          << '\n';
@@ -1102,10 +1105,11 @@ namespace OpenMS
       {
         ++charges[feat[i].getCharge()];
         tic += feat[i].getIntensity();
-        const PeptideIdentificationList &peptide_ids = feat[i].getPeptideIdentifications();
-        ++numberofids[peptide_ids.size()];
-        assigned_ids += peptide_ids.size();
+        const Size ids = feat[i].getLinkedIdentifications(feat.getIdentificationData()).size();
+        ++numberofids[ids];
+        assigned_ids += ids;
       }
+      const Size unassigned_ids = feat.getUnassignedIdentifications().size();
 
       os << "Total ion current in features: " << tic << '\n';
       os_tsv << "general: total ion current in features" << '\t'
@@ -1127,9 +1131,9 @@ namespace OpenMS
          << "Assigned peptide identifications: " << assigned_ids << '\n';
       os_tsv << "general: assigned peptide identifications" << '\t'
              << assigned_ids << '\n';
-      os << "Unassigned peptide identifications: " << feat.getUnassignedPeptideIdentifications().size() << '\n';
+      os << "Unassigned peptide identifications: " << unassigned_ids << '\n';
       os_tsv << "general: unassigned peptide identifications" << '\t'
-             << feat.getUnassignedPeptideIdentifications().size() << '\n';
+             << unassigned_ids << '\n';
 
       // --- structured result (additive) ---
       FeatureInfo finfo;
@@ -1139,7 +1143,7 @@ namespace OpenMS
       for (const auto& c : charges) { finfo.charges[c.first] = c.second; }
       for (const auto& n : numberofids) { finfo.ids_per_element[n.first] = n.second; }
       finfo.assigned_ids = assigned_ids;
-      finfo.unassigned_ids = feat.getUnassignedPeptideIdentifications().size();
+      finfo.unassigned_ids = unassigned_ids;
       r.feature = finfo;
       r.ranges = extractRanges_(feat);
     }
@@ -1147,6 +1151,9 @@ namespace OpenMS
     {
       // reading input
       FileHandler().loadConsensusFeatures(in, cons, {FileTypes::CONSENSUSXML}, options.log_type);
+      // the identifications as identification data
+      IdentificationDataConverter::moveToIdentificationData(cons);
+      const auto& cons_data = cons.getIdentificationData();
 
       cons.updateRanges();
 
@@ -1158,18 +1165,18 @@ namespace OpenMS
       for (const ConsensusFeature& cm : cons)
       {
         ++num_consfeat_of_size[cm.size()];
-        const auto& pids = cm.getPeptideIdentifications();
+        const auto pids = cm.getLinkedIdentifications(cons_data);
         assigned_ids += pids.size();
         if (!pids.empty())
         {
           ++num_consfeat_of_size_with_id[cm.size()];
 
           // count how often a peptide/charge pair has been observed in the different maps
-          const vector<PeptideHit>& phits = pids[0].getHits();
+          const auto& phits = pids[0].matches;
           if (!phits.empty())
           {
-            const std::string s = phits[0].getSequence().toString();
-            const int z = phits[0].getCharge();
+            const std::string s = phits[0]->representation;
+            const int z = phits[0]->charge;
 
             if (seq_charge2map_occurence[make_pair(s,z)].empty())
             {
@@ -1286,9 +1293,10 @@ namespace OpenMS
       os << "Assigned peptide identifications: " << assigned_ids << '\n';
       os_tsv << "general: assigned peptide identifications" << '\t'
              << assigned_ids << '\n';
-      os << "Unassigned peptide identifications: " << cons.getUnassignedPeptideIdentifications().size() << '\n';
+      const Size unassigned_ids = cons.getUnassignedIdentifications().size();
+      os << "Unassigned peptide identifications: " << unassigned_ids << '\n';
       os_tsv << "general: unassigned peptide identifications" << '\t'
-             << cons.getUnassignedPeptideIdentifications().size() << '\n';
+             << unassigned_ids << '\n';
 
       // --- structured result (additive) ---
       FeatureInfo finfo;
@@ -1296,7 +1304,7 @@ namespace OpenMS
       finfo.num_features = cons.size();
       for (const auto& s : num_consfeat_of_size) { finfo.size_distribution[s.first] = s.second; }
       finfo.assigned_ids = assigned_ids;
-      finfo.unassigned_ids = cons.getUnassignedPeptideIdentifications().size();
+      finfo.unassigned_ids = unassigned_ids;
       for (const auto& d : cons.getColumnHeaders())
       {
         FeatureInfo::MapColumn col;

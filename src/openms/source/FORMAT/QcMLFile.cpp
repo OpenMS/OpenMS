@@ -15,6 +15,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
@@ -1838,9 +1839,13 @@ namespace OpenMS
         at.colTypes.emplace_back("IDs");
         UInt fiter = 0;
         UInt ided = 0;
+        // the identifications as identification data
+        std::optional<FeatureMap> converted;
+        const auto& identified = IdentificationDataConverter::withIdentificationData(feature_map, converted);
         //ofstream out(outputfile_name.c_str());
         while (fiter < feature_map.size())
         {
+          const Size ids = identified[fiter].getLinkedIdentifications(identified.getIdentificationData()).size();
           std::vector<std::string> row;
           row.push_back(StringUtils::toStr(feature_map[fiter].getMZ()));
           row.push_back(StringUtils::toStr(feature_map[fiter].getRT()));
@@ -1848,8 +1853,8 @@ namespace OpenMS
           row.push_back(StringUtils::toStr(feature_map[fiter].getCharge()));
           row.push_back(StringUtils::toStr(feature_map[fiter].getOverallQuality()));
           row.push_back(StringUtils::toStr(feature_map[fiter].getWidth()));
-          row.push_back(StringUtils::toStr(feature_map[fiter].getPeptideIdentifications().size()));
-          if (!feature_map[fiter].getPeptideIdentifications().empty())
+          row.push_back(StringUtils::toStr(ids));
+          if (ids != 0)
           {
             ++ided;
           }
