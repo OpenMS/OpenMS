@@ -86,6 +86,34 @@ public:
   using ProSEAlgorithm::applyProteinMapping_;
   using ProSEAlgorithm::annotateIonPriors_;
   using ProSEAlgorithm::reversedNoiseSequence_;
+  using ProSEAlgorithm::fragment_mass_tolerance_;
+};
+
+// A progress display that counts how often a progress display starts and ends, and throws when one with the label
+// prefix throw_at starts (the scoring of the main search: after the calibration pass).
+class CountingProgressLogger : public ProgressLogger::ProgressLoggerImpl
+{
+public:
+  CountingProgressLogger(int& starts, int& ends, const std::string& throw_at = "") :
+    starts_(starts), ends_(ends), throw_at_(throw_at)
+  {
+  }
+  void startProgress(const SignedSize, const SignedSize, const std::string& label, const int) const override
+  {
+    if (!throw_at_.empty() && label.rfind(throw_at_, 0) == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "injected by the test", label);
+    }
+    ++starts_;
+  }
+  void setProgress(const SignedSize, const int) const override {}
+  SignedSize nextProgress() const override { return 0; }
+  void endProgress(const int, UInt64) const override { ++ends_; }
+
+private:
+  int& starts_;
+  int& ends_;
+  std::string throw_at_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -5245,6 +5273,90 @@ START_SECTION(([EXTRA] every variable modification that a fixed one excludes is 
     // searched: a residue-specific terminal modification next to a fixed modification of the residue
     const std::string w = warnings({"Carbamidomethyl (C)"}, {"Ammonia-loss (N-term C)", "Oxidation (M)", "Acetyl (N-term)"});
     TEST_EQUAL(w.find("is not searched") == std::string::npos, true)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] an exception after the calibration pass leaves the tolerances and the progress display as they were))
+{
+  // Calibration narrows the precursor tolerances of the instance (and of the index of the search context) for the main
+  // search; they were restored only on the return paths. An exception after the calibration pass (a worker exception
+  // that the scoring loop rethrows, std::bad_alloc, ...) left them narrowed for the next search of a caller that
+  // catches it. Here the progress display throws when the scoring starts. Both search paths: one search context and
+  // database chunks (database:chunk_size).
+  const vector<double> ppm_shifts = {0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0};
+  vector<FASTAFile::FASTAEntry> fasta_db = calibration_fasta_db_();
+  fasta_db.push_back({"P02", "Test", "MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVK"});
+  for (const Int chunk_size : {0, 1})
+  {
+    const auto configure = [chunk_size](ProSEAlgorithm& algo)
+    {
+      configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0, /*min_psms*/ 3);
+      Param p = algo.getParameters();
+      p.setValue("database:chunk_size", chunk_size);
+      algo.setParameters(p);
+    };
+    ProSEAlgorithm_test fresh;
+    configure(fresh);
+    PeakMap spectra = build_calibration_spectra_(ppm_shifts);
+    vector<ProteinIdentification> fresh_proteins;
+    PeptideIdentificationList fresh_peptides;
+    fresh.search(spectra, fasta_db, fresh_proteins, fresh_peptides);
+
+    ProSEAlgorithm_test algo;
+    configure(algo);
+    int starts = 0, ends = 0;
+    algo.setLogger(new CountingProgressLogger(starts, ends, "Scoring"));
+    std::ostringstream info;
+    OPENMS_LOG_INFO.insert(info);
+    spectra = build_calibration_spectra_(ppm_shifts);
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    TEST_EXCEPTION(Exception::InvalidValue, algo.search(spectra, fasta_db, proteins, peptides))
+    OPENMS_LOG_INFO.remove(info);
+    TEST_EQUAL(info.str().find("-> window [-") != std::string::npos, true) // the calibration narrowed the window
+    TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_lower_, 20.0)
+    TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_upper_, 30.0)
+    TEST_EQUAL(starts, ends)
+
+    // the instance searches as a fresh one
+    algo.setLogType(ProgressLogger::NONE);
+    spectra = build_calibration_spectra_(ppm_shifts);
+    proteins.clear();
+    peptides.clear();
+    algo.search(spectra, fasta_db, proteins, peptides);
+    TEST_EQUAL(peptides.size(), fresh_peptides.size())
+    ABORT_IF(peptides.size() != fresh_peptides.size())
+    for (Size i = 0; i < peptides.size(); ++i)
+    {
+      TEST_EQUAL(peptides[i].getHits().size(), fresh_peptides[i].getHits().size())
+      if (!peptides[i].getHits().empty() && !fresh_peptides[i].getHits().empty())
+      {
+        TEST_EQUAL(peptides[i].getHits()[0].getSequence(), fresh_peptides[i].getHits()[0].getSequence())
+        TEST_REAL_SIMILAR(peptides[i].getHits()[0].getScore(), fresh_peptides[i].getHits()[0].getScore())
+      }
+    }
+  }
+
+  // A worker exception of the scoring or calibration loop (HyperScore::computeMassAccuracy() rejects the tolerance,
+  // set here past setParameters()) is rethrown after the loop; the progress display it started ends as well.
+  for (const std::string calibration : {"false", "true"})
+  {
+    ProSEAlgorithm_test algo;
+    configure_calibration_params_(algo, 20.0, 30.0, 3);
+    Param p = algo.getParameters();
+    p.setValue("scoring:method", "mass_accuracy");
+    p.setValue("calibration:enabled", calibration);
+    algo.setParameters(p);
+    algo.fragment_mass_tolerance_ = 0.0;
+    int starts = 0, ends = 0;
+    algo.setLogger(new CountingProgressLogger(starts, ends));
+    PeakMap spectra = build_calibration_spectra_(ppm_shifts);
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    TEST_EXCEPTION(Exception::InvalidParameter, algo.search(spectra, fasta_db, proteins, peptides))
+    TEST_EQUAL(starts > 0, true)
+    TEST_EQUAL(starts, ends)
   }
 }
 END_SECTION

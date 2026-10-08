@@ -797,6 +797,20 @@ namespace OpenMS
 
   namespace
   {
+    // Calls f when the scope ends, also when an exception leaves it (f must not throw then).
+    template <typename F>
+    class OnScopeExit
+    {
+    public:
+      explicit OnScopeExit(F f) : f_(std::move(f)) {}
+      OnScopeExit(const OnScopeExit&) = delete;
+      OnScopeExit& operator=(const OnScopeExit&) = delete;
+      ~OnScopeExit() { f_(); }
+
+    private:
+      F f_;
+    };
+
     // Keeps the peaks WindowMower::filterPeakSpectrumForTopNInJumpingWindow() keeps: the peak_count most intense peaks of
     // each m/z window of window_size that starts at a peak (of the last window a share of peak_count by its width), and
     // every peak equal to a kept one. It selects them through indices instead of copies of the peaks, and finds the
@@ -2530,9 +2544,8 @@ namespace OpenMS
         scoring_failed.store(true, std::memory_order_relaxed);
       }
     }
-    if (scoring_error) std::rethrow_exception(scoring_error);
-
     endProgress();
+    if (scoring_error) std::rethrow_exception(scoring_error);
   }
 
   // =====================================================================
@@ -2648,6 +2661,20 @@ namespace OpenMS
     const double orig_prec_tol_lower = precursor_mass_tolerance_lower_;
     const double orig_prec_tol_upper = precursor_mass_tolerance_upper_;
     bool calibration_applied = false;
+    // Restore algo-level tolerance members on every return path, and when an exception leaves this function (e.g. a
+    // worker exception that the scoring loop rethrows). Calibration may mutate them below; leaving them mutated would
+    // poison subsequent searches that reuse this ProSEAlgorithm instance (e.g. the multi-file wrapper, or a caller
+    // that catches the exception).
+    auto restore_tolerances = [&]()
+    {
+      if (calibration_applied)
+      {
+        calibration_applied = false;
+        precursor_mass_tolerance_lower_ = orig_prec_tol_lower;
+        precursor_mass_tolerance_upper_ = orig_prec_tol_upper;
+      }
+    };
+    const OnScopeExit restore_on_exit(restore_tolerances);
 
     // Optional calibration on a strided sample of the full DB. The sample size is
     // bounded (see buildCalibrationSample_) so calibration memory stays O(chunk)
@@ -2795,18 +2822,6 @@ namespace OpenMS
     indexer.setParameters(param_pi);
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(full_db, protein_ids, peptide_ids);
-
-    // Restore algo-level tolerance members on every return path. Calibration may have
-    // mutated them above; leaving them mutated would poison subsequent searches that
-    // reuse this ProSEAlgorithm instance (e.g. the multi-file wrapper).
-    auto restore_tolerances = [&]()
-    {
-      if (calibration_applied)
-      {
-        precursor_mass_tolerance_lower_ = orig_prec_tol_lower;
-        precursor_mass_tolerance_upper_ = orig_prec_tol_upper;
-      }
-    };
 
     if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
         (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
@@ -3573,17 +3588,38 @@ namespace OpenMS
     const double orig_precursor_mass_tolerance_lower = precursor_mass_tolerance_lower_;
     const double orig_precursor_mass_tolerance_upper = precursor_mass_tolerance_upper_;
     bool fi_params_modified = false;
+    // Restores the FragmentIndex parameters AND the algo-level tolerance members if calibration modified them, so the
+    // shared SearchContext and the algorithm instance are both clean for subsequent per-file searches in the
+    // multi-file wrapper: on the return paths below, and when an exception leaves this function (e.g. a worker
+    // exception that the scoring or calibration loop rethrows) for a caller that catches it.
+    auto restore_fi_params = [&]()
+    {
+      if (fi_params_modified)
+      {
+        fi_params_modified = false;
+        precursor_mass_tolerance_lower_ = orig_precursor_mass_tolerance_lower;
+        precursor_mass_tolerance_upper_ = orig_precursor_mass_tolerance_upper;
+        fragment_index_.setParameters(fi_params_original);
+      }
+    };
+    const OnScopeExit restore_on_exit([&restore_fi_params]() noexcept
+    {
+      try { restore_fi_params(); }
+      catch (...) {} // only after another exception (e.g. std::bad_alloc copying the parameters): the members are restored
+    });
 
     // --- Optional calibration pass ---
     if (calibration_enabled_ && !open_search)
     {
       startProgress(0, 1, "Running calibration pass...");
       StopWatch sw_cal; sw_cal.start();
-      last_calibration_result_ = runCalibrationPass_(spectra, fragment_index_, db, query_ptr);
+      {
+        OnScopeExit end_progress([this]() { endProgress(); }); // also when the calibration loop rethrows
+        last_calibration_result_ = runCalibrationPass_(spectra, fragment_index_, db, query_ptr);
+      }
       sw_cal.stop();
       last_run_stats_.seconds_calibration = sw_cal.getClockTime();
       const CalibrationResult_& cal = last_calibration_result_;
-      endProgress();
 
       if (cal.success)
       {
@@ -3745,20 +3781,6 @@ namespace OpenMS
       indexer_exit = indexer.run(db, protein_ids, peptide_ids);
     }
     protein_mapping = ProteinMapping_(); // released before the FDR
-
-    // Helper lambda: restore FragmentIndex parameters AND algo-level tolerance members
-    // before returning if calibration modified them, so the shared SearchContext and the
-    // algorithm instance are both clean for subsequent per-file searches in the
-    // multi-file wrapper.
-    auto restore_fi_params = [&]()
-    {
-      if (fi_params_modified)
-      {
-        fragment_index_.setParameters(fi_params_original);
-        precursor_mass_tolerance_lower_ = orig_precursor_mass_tolerance_lower;
-        precursor_mass_tolerance_upper_ = orig_precursor_mass_tolerance_upper;
-      }
-    };
 
     if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
         (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
