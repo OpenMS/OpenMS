@@ -23,11 +23,13 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <algorithm>
+#include <optional>
 
 using namespace std;
 
@@ -90,6 +92,46 @@ namespace OpenMS
       set<std::string> protein_accessions = hit.extractProteinAccessionsSet();
       data.accessions.insert(protein_accessions.begin(), protein_accessions.end());
     }
+  }
+
+
+  void PeptideAndProteinQuant::countPeptides_(const std::vector<IdentificationData::QueryMatches>& identifications)
+  {
+    for (const auto& identification : identifications)
+    {
+      const auto* best = identification.getBestMatch();
+      if (best == nullptr) continue;
+      PeptideData& data = pep_quant_[AASequence::fromString(best->representation)];
+      data.psm_count++;
+
+      // add protein accessions:
+      for (const auto& evidence : best->sequence_evidence)
+      {
+        data.accessions.insert(evidence.accession);
+      }
+    }
+  }
+
+
+  PeptideHit PeptideAndProteinQuant::getAnnotation_(const std::vector<IdentificationData::QueryMatches>& identifications)
+  {
+    const auto* best = identifications.empty() ? nullptr : identifications.front().getBestMatch();
+    if (best == nullptr) return {};
+    const AASequence sequence = AASequence::fromString(best->representation);
+
+    // check for ambiguities
+    for (auto it = ++identifications.begin(); it != identifications.end(); ++it)
+    {
+      const auto* current = it->getBestMatch();
+      if (current != nullptr && AASequence::fromString(current->representation) != sequence)
+      {
+        return {};
+      }
+    }
+    PeptideHit hit;
+    hit.setSequence(sequence);
+    hit.setCharge(best->charge);
+    return hit;
   }
 
 
@@ -799,22 +841,25 @@ namespace OpenMS
       filename = File::stemName(ed.getMSFileSection()[0].path);
     }
 
-    for (auto & f : features)
+    std::optional<FeatureMap> converted;
+    const FeatureMap& map = IdentificationDataConverter::withIdentificationData(features, converted);
+    for (const auto & f : map)
     {
-      if (f.getPeptideIdentifications().empty())
+      const auto identifications = f.getLinkedIdentifications(map.getIdentificationData());
+      if (identifications.empty())
       {
         stats_.blank_features++;
         continue;
       }
        
-      countPeptides_(f.getPeptideIdentifications());
-      PeptideHit hit = getAnnotation_(f.getPeptideIdentifications());
+      countPeptides_(identifications);
+      PeptideHit hit = getAnnotation_(identifications);
       FeatureHandle handle(0, f);
       const size_t fraction(1);
       const Int label(1); // Default label for LFQ data
       quantifyFeature_(handle, fraction, filename, hit, label); // updates "stats_.quant_features"
     }
-    countPeptides_(features.getUnassignedPeptideIdentifications());
+    countPeptides_(map.getUnassignedIdentifications());
     stats_.total_peptides = pep_quant_.size();
     stats_.ambig_features = stats_.total_features - stats_.blank_features -
                             stats_.quant_features;
@@ -893,19 +938,22 @@ namespace OpenMS
       quantification_fraction_group_labels_.emplace(it->second.fraction_group, label);
     }
 
-    for (auto & c : consensus)
+    std::optional<ConsensusMap> converted;
+    const ConsensusMap& map = IdentificationDataConverter::withIdentificationData(consensus, converted);
+    for (const auto & c : map)
     {
       stats_.total_features += c.getFeatures().size();
 
       // count features without id
-      if (c.getPeptideIdentifications().empty())
+      const auto identifications = c.getLinkedIdentifications(map.getIdentificationData());
+      if (identifications.empty())
       {
         stats_.blank_features += c.getFeatures().size();
         continue;
       }
 
-      countPeptides_(c.getPeptideIdentifications());
-      PeptideHit hit = getAnnotation_(c.getPeptideIdentifications());
+      countPeptides_(identifications);
+      PeptideHit hit = getAnnotation_(identifications);
       for (auto const & f : c.getFeatures())
       {
         //TODO MULTIPLEXED: needs to be adapted for multiplexed experiments
@@ -931,7 +979,7 @@ namespace OpenMS
         }
       }
     }
-    countPeptides_(consensus.getUnassignedPeptideIdentifications());
+    countPeptides_(map.getUnassignedIdentifications());
     stats_.total_peptides = pep_quant_.size();
     stats_.ambig_features = stats_.total_features - stats_.blank_features -
                             stats_.quant_features;

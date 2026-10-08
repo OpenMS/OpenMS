@@ -269,6 +269,14 @@ private:
     PeptideHit getAnnotation_(PeptideIdentificationList& peptides);
 
     /**
+         @brief The annotation of a feature/consensus feature from the identifications it links (see the other overload)
+
+         Only the best match of each identification is taken into account (identifications without matches are
+         skipped). The returned hit has the sequence and charge of the annotation.
+    */
+    PeptideHit getAnnotation_(const std::vector<IdentificationData::QueryMatches>& identifications);
+
+    /**
          @brief Gather quantitative information from a feature.
 
          Store quantitative information from @p feature in member @p pep_quant_, based on the peptide annotation in @p hit.
@@ -481,6 +489,9 @@ private:
          The peptide hits in @p peptides are sorted by score in the process.
     */
     void countPeptides_(PeptideIdentificationList& peptides);
+
+    /// Count the number of identifications (best matches only) of each peptide sequence
+    void countPeptides_(const std::vector<IdentificationData::QueryMatches>& identifications);
 
     /**
          @brief (Re)build design-cell lookups from @p experimental_design_.

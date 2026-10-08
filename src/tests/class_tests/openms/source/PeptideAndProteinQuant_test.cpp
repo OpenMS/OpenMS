@@ -17,14 +17,39 @@
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/NativeIdentificationTest.h>
 
 #include <algorithm>
 #include <cmath>
+#include <set>
 
 
 using namespace OpenMS;
 using namespace std;
 
+
+namespace
+{
+  // Identification data requires what a search engine writes: identifications in a protein identification run,
+  // with a score type. Fills in what the hand-made maps below leave out.
+  void addSearchRun(ConsensusMap& consensus)
+  {
+    std::set<std::string> runs;
+    for (const auto& run : consensus.getProteinIdentifications()) runs.insert(run.getIdentifier());
+    const auto complete = [&](PeptideIdentification& id) {
+      if (id.getIdentifier().empty()) id.setIdentifier("run");
+      if (id.getScoreType().empty()) id.setScoreType("score");
+      if (! runs.insert(id.getIdentifier()).second) return;
+      ProteinIdentification run;
+      run.setIdentifier(id.getIdentifier());
+      run.setSearchEngine("search");
+      consensus.getProteinIdentifications().push_back(run);
+    };
+    for (auto& feature : consensus)
+      for (auto& id : feature.getPeptideIdentifications()) complete(id);
+    for (auto& id : consensus.getUnassignedPeptideIdentifications()) complete(id);
+  }
+} // namespace
 
 // Builds a one-file isobaric ConsensusMap: one consensus feature per peptide, one sub-feature per
 // channel. `intensities[p][c]` is the reporter intensity of peptide p in channel c; a 0 stands for a
@@ -89,6 +114,7 @@ namespace
     p.setValue("consensus:normalize", "true");
     if (best_charge) { p.setValue("best_charge", "true"); }
     quantifier.setParameters(p);
+    addSearchRun(consensus);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
     return quantifier;
@@ -222,6 +248,7 @@ namespace
     p.setValue("top:aggregate", "sum");  // so a protein is exactly the sum of its peptides
     p.setValue("top:include_all", "true");
     quantifier.setParameters(p);
+    addSearchRun(consensus);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
     quantifier.quantifyProteins(proteins);
@@ -307,6 +334,48 @@ START_SECTION((void readQuantData(ConsensusMap& consensus, ExperimentalDesign& e
   quantifier_consensus.readQuantData(consensus, design);
   quantifier_consensus.quantifyPeptides();
   TEST_EQUAL(quantifier_consensus.getPeptideResults().empty(), false);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] readQuantData: maps with identification data give the results of maps with peptide identifications))
+{
+  const auto check = [&](auto legacy) {
+    auto native = legacy;
+    Internal::ClassTest::toNative(native);
+    PeptideAndProteinQuant from_legacy, from_native;
+    from_legacy.setParameters(params);
+    from_native.setParameters(params);
+    const auto design = [&] {
+      if constexpr (std::is_same_v<decltype(legacy), FeatureMap>) return ExperimentalDesign::fromFeatureMap(legacy);
+      else return ExperimentalDesign::fromConsensusMap(legacy);
+    }();
+    from_legacy.readQuantData(legacy, design);
+    from_native.readQuantData(native, design);
+    const auto& expected = from_legacy.getPeptideResults();
+    const auto& actual = from_native.getPeptideResults();
+    TEST_EQUAL(actual.size(), expected.size())
+    TEST_EQUAL(expected.empty(), false)
+    for (const auto& [sequence, data] : expected)
+    {
+      ABORT_IF(actual.count(sequence) == 0)
+      TEST_EQUAL(actual.at(sequence).psm_count, data.psm_count)
+      TEST_TRUE(actual.at(sequence).accessions == data.accessions)
+      TEST_TRUE(actual.at(sequence).abundances == data.abundances)
+    }
+    const auto& a = from_native.getStatistics();
+    const auto& e = from_legacy.getStatistics();
+    TEST_EQUAL(a.total_features, e.total_features)
+    TEST_EQUAL(a.blank_features, e.blank_features)
+    TEST_EQUAL(a.quant_features, e.quant_features)
+    TEST_EQUAL(a.ambig_features, e.ambig_features)
+    TEST_EQUAL(a.total_peptides, e.total_peptides)
+  };
+  FeatureMap features;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.featureXML"), features);
+  check(features);
+  ConsensusMap consensus;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.consensusXML"), consensus);
+  check(consensus);
 }
 END_SECTION
 
@@ -416,6 +485,7 @@ START_SECTION((void readQuantData(ConsensusMap& consensus, ExperimentalDesign& e
   ExperimentalDesign design(fs, ss);
 
   PeptideAndProteinQuant quantifier;
+  addSearchRun(consensus);
   TEST_EXCEPTION(Exception::MissingInformation, quantifier.readQuantData(consensus, design));
 }
 END_SECTION
@@ -522,6 +592,7 @@ START_SECTION((void readQuantData(ConsensusMap& consensus, ExperimentalDesign& e
   ExperimentalDesign design(fs, ss);
 
   PeptideAndProteinQuant quantifier;
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
 
@@ -597,6 +668,7 @@ START_SECTION(([EXTRA] fraction-group/label quantities remain distinct and omit 
   Param p;
   p.setValue("top:include_all", "true");
   quantifier.setParameters(p);
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
 
@@ -788,6 +860,7 @@ START_SECTION(([EXTRA] best_charge picks the charge first, fractions:aggregate t
     p.setValue("best_charge", "true");
     p.setValue("fractions:aggregate", fractions_aggregate);
     quantifier.setParameters(p);
+    addSearchRun(consensus);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
     return quantifier.getPeptideResults()
@@ -1088,6 +1161,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.consensusXML"), consensus);
   ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus);
   ProteinIdentification proteins_ = consensus.getProteinIdentifications()[0];
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, ed);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins(proteins_);
@@ -1172,6 +1246,7 @@ START_SECTION(([EXTRA] normalization scales technical-replicate assays independe
   Param parameters = quantifier.getParameters();
   parameters.setValue("consensus:normalize", "true");
   quantifier.setParameters(parameters);
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
 
@@ -1453,6 +1528,7 @@ START_SECTION(([EXTRA] best_charge selects by assay prevalence and retains all s
   p.setValue("top:include_all", "true");
   quantifier.setParameters(p);
 
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
 
@@ -1525,6 +1601,7 @@ START_SECTION(([EXTRA] best_charge breaks equal-prevalence ties by total abundan
   p.setValue("top:aggregate", "sum");
   quantifier.setParameters(p);
 
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
 
@@ -1564,6 +1641,7 @@ START_SECTION(([EXTRA] best_charge selects a charge independently for each pepti
   p.setValue("top:aggregate", "sum");
   quantifier.setParameters(p);
 
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
   TEST_REAL_SIMILAR(quantifier.getPeptideResults().at(AASequence::fromString("PEPTIDEMK")).fraction_group_abundances.at(1).at(1), 100.0);
@@ -1601,6 +1679,7 @@ START_SECTION((const ProteinQuant& getProteinResults() fractionated: file+channe
   p.setValue("top:aggregate", "sum");
   quantifier.setParameters(p);
 
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
@@ -1647,6 +1726,7 @@ START_SECTION((const ProteinQuant& getProteinResults() fractionated: "top:N" is 
   p.setValue("top:include_all", "false");
   quantifier.setParameters(p);
 
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
@@ -1702,6 +1782,7 @@ START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protei
   // per-file peptide-count gate drops every cell of a fractionated design
   quantifier.setParameters(quantifier.getDefaults());
 
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins(proteins);
@@ -1788,6 +1869,7 @@ START_SECTION((const ProteinQuant& getProteinResults() file+channel level must s
   p.setValue("top:include_all", "true");
   quantifier.setParameters(p);
 
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
@@ -1835,6 +1917,7 @@ START_SECTION((const ProteinQuant& getProteinResults() file+channel level "top:N
   p.setValue("top:include_all", "false");
   quantifier.setParameters(p);
 
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
@@ -1878,6 +1961,7 @@ START_SECTION((const ProteinQuant& getProteinResults() file+channel level must n
   p.setValue("top:include_all", "false");
   quantifier.setParameters(p);
 
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
@@ -1922,6 +2006,7 @@ START_SECTION((const ProteinQuant& getProteinResults() file+channel level "top:N
   p.setValue("top:include_all", "false");
   quantifier.setParameters(p);
 
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
@@ -1959,6 +2044,7 @@ START_SECTION((const ProteinQuant& getProteinResults() iBAQ must also normalize 
   p.setValue("method", "iBAQ");
   quantifier.setParameters(p);
 
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins(proteins);
@@ -1997,6 +2083,7 @@ START_SECTION((const ProteinQuant& getProteinResults() file+channel level aggreg
     p.setValue("top:aggregate", "median");
     p.setValue("top:include_all", "true");
     quantifier.setParameters(p);
+    addSearchRun(consensus);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
     quantifier.quantifyProteins();
@@ -2015,6 +2102,7 @@ START_SECTION((const ProteinQuant& getProteinResults() file+channel level aggreg
     p.setValue("top:N", 0);
     p.setValue("top:aggregate", "sum");
     quantifier.setParameters(p);
+    addSearchRun(consensus);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
     quantifier.quantifyProteins();
@@ -2034,6 +2122,7 @@ START_SECTION((const ProteinQuant& getProteinResults() file+channel level aggreg
     p.setValue("top:N", 3);
     p.setValue("top:aggregate", "median");
     quantifier.setParameters(p);
+    addSearchRun(consensus);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
     quantifier.quantifyProteins();
@@ -2072,6 +2161,7 @@ START_SECTION((const ProteinQuant& getProteinResults() fraction group level aggr
     p.setValue("top:aggregate", "median");
     p.setValue("top:include_all", "true");
     quantifier.setParameters(p);
+    addSearchRun(consensus);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
     quantifier.quantifyProteins();
@@ -2095,6 +2185,7 @@ START_SECTION((const ProteinQuant& getProteinResults() fraction group level aggr
     p.setValue("top:N", 0);
     p.setValue("top:aggregate", "sum");
     quantifier.setParameters(p);
+    addSearchRun(consensus);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
     quantifier.quantifyProteins();
@@ -2114,6 +2205,7 @@ START_SECTION((const ProteinQuant& getProteinResults() fraction group level aggr
     p.setValue("top:N", 3);
     p.setValue("top:aggregate", "median");
     quantifier.setParameters(p);
+    addSearchRun(consensus);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
     quantifier.quantifyProteins();
@@ -2210,6 +2302,7 @@ START_SECTION(([EXTRA] "occurs in every assay" counts detected assays, not store
   p.setValue("top:aggregate", "sum");
   quantifier.setParameters(p);
 
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
@@ -2244,6 +2337,7 @@ START_SECTION(([EXTRA] top:N ranking prefers the peptide detected in more assays
   p.setValue("top:aggregate", "sum");
   quantifier.setParameters(p);
 
+  addSearchRun(consensus);
   quantifier.readQuantData(consensus, design);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
@@ -2282,6 +2376,7 @@ START_SECTION(([EXTRA] median/mean aggregate the detected peptides, not the stor
     p.setValue("top:include_all", "true");
     quantifier.setParameters(p);
 
+    addSearchRun(consensus);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
     quantifier.quantifyProteins();
@@ -2301,6 +2396,7 @@ START_SECTION(([EXTRA] median/mean aggregate the detected peptides, not the stor
     p.setValue("top:include_all", "true");
     quantifier.setParameters(p);
 
+    addSearchRun(consensus);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
     quantifier.quantifyProteins();
@@ -2331,6 +2427,7 @@ START_SECTION(([EXTRA] "enough peptides" counts the detected ones, and a dead sa
     p.setValue("top:N", 3);
     p.setValue("top:aggregate", "median");
     quantifier.setParameters(p);
+    addSearchRun(consensus);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
     quantifier.quantifyProteins();
@@ -2351,6 +2448,7 @@ START_SECTION(([EXTRA] "enough peptides" counts the detected ones, and a dead sa
     p.setValue("top:aggregate", "median");
     p.setValue("top:include_all", "true");
     quantifier.setParameters(p);
+    addSearchRun(consensus);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides();
     quantifier.quantifyProteins();
