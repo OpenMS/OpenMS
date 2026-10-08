@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -51,7 +52,7 @@ namespace OpenMS
 
       for (const auto& ann : annotations)
       {
-        String annotation = ann.annotation;  // Copy, not reference - avoid potential dangling reference
+        std::string annotation = ann.annotation;  // Copy, not reference - avoid potential dangling reference
         if (annotation.empty()) continue;
 
         // Skip special cases (like 'precursor' or empty annotations)
@@ -61,16 +62,16 @@ namespace OpenMS
 
         // Extract position number from annotation (e.g., "w3" -> 3)
         annotation.erase(0, 1);  // Remove first character
-        annotation.trim();  // Remove any whitespace
+        annotation = StringUtils::trimmed(annotation);  // Remove any whitespace
 
         //Remove charge indicators
         size_t plus_pos = annotation.find('+');
-        if (plus_pos != String::npos)
+        if (plus_pos != std::string::npos)
         {
           annotation = annotation.substr(0, plus_pos);
         }
         size_t minus_pos = annotation.find('-');
-        if (minus_pos != String::npos)
+        if (minus_pos != std::string::npos)
         {
           annotation = annotation.substr(0, minus_pos);
         }
@@ -80,7 +81,7 @@ namespace OpenMS
         int position;
         try
         {
-          position = annotation.toInt();
+          position = StringUtils::toInt32(annotation);
         }
         catch (const Exception::ConversionError&)
         {
@@ -690,12 +691,12 @@ namespace OpenMS
     if (num_intensity_classes < 1 || num_intensity_classes > 7)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "num_intensity_classes must be between 1 and 7, got " + String(num_intensity_classes));
+        "num_intensity_classes must be between 1 and 7, got " + std::to_string(num_intensity_classes));
     }
     if (tic_fraction < 0.5 || tic_fraction > 1.0)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "tic_fraction must be between 0.5 and 1.0, got " + String(tic_fraction));
+        "tic_fraction must be between 0.5 and 1.0, got " + std::to_string(tic_fraction));
     }
 
     // Step 1: Filter peaks by TIC fraction
