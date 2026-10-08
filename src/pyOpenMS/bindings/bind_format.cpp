@@ -530,6 +530,16 @@ Computes a SHA-1 hash of the file content
             nb::gil_scoped_release release;
             self.loadExperiment(filename, exp, allowed_types, log, rewrite_source_file, compute_hash);
         }, "filename"_a, "exp"_a, "allowed_types"_a, "log"_a, "rewrite_source_file"_a = false, "compute_hash"_a = false, "Load experiment with options")
+        .def("loadImagingExperiment", [](OpenMS::FileHandler& self, const std::string& filename, OpenMS::MSImagingExperiment& exp) {
+            nb::gil_scoped_release release;
+            self.loadImagingExperiment(filename, exp);
+        }, "filename"_a, "exp"_a,
+           "Load an imaging file (imzML, Bruker MALDI imaging .d) into an MSImagingExperiment; loadExperiment rejects these formats")
+        .def("loadImagingExperiment", [](OpenMS::FileHandler& self, const std::string& filename, OpenMS::MSImagingExperiment& exp,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
+            nb::gil_scoped_release release;
+            self.loadImagingExperiment(filename, exp, allowed_types, log);
+        }, "filename"_a, "exp"_a, "allowed_types"_a, "log"_a, "Load imaging experiment with options")
 
         .def("storeExperiment", [](OpenMS::FileHandler& self, const std::string& filename, const OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;
