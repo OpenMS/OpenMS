@@ -306,10 +306,19 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
   }
 
   bool SpectrumMetaDataLookup::addMissingSpectrumReferences(PeptideIdentificationList& peptides, const std::string& filename,
-    bool stop_on_error, 
-    bool override_spectra_data, 
+    bool stop_on_error,
+    bool override_spectra_data,
+    bool override_spectra_references)
+  {
+    vector<ProteinIdentification> no_proteins;
+    return addMissingSpectrumReferences(peptides, filename, stop_on_error, override_spectra_data, override_spectra_references, no_proteins);
+  }
+
+  bool SpectrumMetaDataLookup::addMissingSpectrumReferences(PeptideIdentificationList& peptides, const std::string& filename,
+    bool stop_on_error,
+    bool override_spectra_data,
     bool override_spectra_references,
-    vector<ProteinIdentification> proteins)
+    vector<ProteinIdentification>& proteins)
   {
     bool success = true;
     PeakMap exp;

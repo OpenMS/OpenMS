@@ -131,9 +131,10 @@ namespace OpenMS
       /// MS2 centroiding algorithm for both DIA-PASEF and DDA-PASEF.
       ///
       /// DIA-MS2: Off / Greedy2D / HillBased. Greedy2D maps to the legacy
-      /// 2D Gaussian + local-maxima path (equivalent to dia_ms2_centroid=true).
-      /// HillBased fires only inside the aggregated DIA path (requires
-      /// dia_ms2_n_neighbors > 0); without aggregation, DIA-MS2 stays raw.
+      /// 2D Gaussian + local-maxima path (equivalent to dia_ms2_centroid=true)
+      /// and requires RT-neighbor aggregation. HillBased operates across IM scans
+      /// within each DIA-PASEF frame and can run with dia_ms2_n_neighbors == 0;
+      /// positive neighbor counts additionally aggregate frames across RT first.
       /// Takes precedence over the legacy dia_ms2_centroid boolean.
       ///
       /// DDA-MS2: Off / HillBased. HillBased replaces the default TOF-domain
@@ -168,7 +169,7 @@ namespace OpenMS
       bool   isotopic_prefilter         = false;
       double isotopic_prefilter_tol_ppm = 50.0;  ///< ppm tolerance for isotopic-partner matching (broad by design — survives per-scan calibration jitter; 50 ppm @ m/z 1000 = 0.05 Da).
 
-      int dia_ms2_n_neighbors = 0;  ///< DIA MS2 frame aggregation: number of adjacent frames on each side (0 = disabled / raw per-frame export, 1 = 3-frame sum, 2 = 5-frame sum). Kept at 0 by default so the raw DIA-MS2 export path is the out-of-the-box behavior — this knob switches the entire DIA-MS2 export pipeline (sum + denoise) regardless of centroiding algo, so flipping it changes output for every caller. Set to 2 alongside ms2_centroid_algo=hillbased + min_hill_length=2 + mz_ppm=20 for the DIA-PASEF hill recipe; set to 1/2 with algo=off for raw RT-summed export.
+      int dia_ms2_n_neighbors = 0;  ///< DIA MS2 frame aggregation: number of adjacent frames on each side (0 = no RT aggregation, 1 = 3-frame sum, 2 = 5-frame sum). Kept at 0 by default so no cross-RT summing occurs. HillBased MS2 centroiding can still run at 0 using the IM scans within each frame; positive values aggregate neighboring frames before optional denoising/centroiding. Set to 1/2 with algo=off for raw RT-summed export.
       int dia_ms2_min_support = 1;  ///< DIA MS2 denoising: minimum occupied neighbors in 3x3 (mz x IM) grid to retain a point (center excluded)
       bool dia_ms2_centroid = false; ///< DIA MS2 2D peak picking: apply Gaussian smoothing + local maxima detection to produce IM_CENTROIDED spectra
 

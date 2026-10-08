@@ -17,11 +17,39 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - OpenSWATH (MRMFeatureFinderScoring) and AccurateMassSearchEngine record the score type of the
+    peptide identifications they write: xx_lda_prelim_score (or xx_swath_prelim_score,
+    OverallQuality; higher is better) and MassErrorAbsPPMScore (lower is better). AccurateMassSearch
+    hits of feature and consensus maps now score their absolute m/z error in ppm instead of 0; the
+    signed error stays in the meta value mz_error_ppm (and is what MassErrorPPMScore names in the
+    mzTab and mzTab-M output).
+  - FIX: IDConflictResolverAlgorithm::resolve keeps a feature's best identification with hits when
+    lower scores are better. It picked an identification without hits instead (moving the feature's
+    hits to the unassigned list), and with keep_matching read that identification's missing first hit
+    (#10443).
+  - FIX: ConsensusMapMergerAlgorithm::mergeProteinsAcrossFractionsAndReplicates offsets each PSM's
+    id_merge_index by the position of its original run's files in the merged run. The offset was
+    looked up under the new run identifier, so every PSM pointed at the first file of its new run.
+  - FIX: MzTab identification export gives a spectrum file listed by several runs one ms_run. The
+    next new file used to take that ms_run's index again, so its PSMs pointed at the repeated file.
+  - FIX: SpectrumMetaDataLookup::addMissingSpectrumReferences updates the caller's protein
+    identifications; it took them by value, so 'override_spectra_data' had no effect. A second
+    overload without protein identifications replaces the default argument.
+  - FIX: ProteinIdentificationArrowIO restores 'spectra_data_raw' (the raw files of a run) on import;
+    it was written but dropped when reading.
+  - Added IDFreeMassErrorEstimator, a streaming identification-free precursor/fragment mass-precision
+    estimator with charge-less DIA fragment support, background-aware high-resolution fragment
+    precision, and an adaptive high-intensity fallback for low-signal DIA data; exposed through pyOpenMS. (#10433)
+  - FIX: PercolatorInfile keeps the observed precursor m/z in ExpMass and mass for all
+    PSMs of a spectrum. Isotope correction applies only to the mass-error features,
+    so candidates with different isotope errors compete in the same Percolator spectrum group.
   - IdXMLFile formats peptide identifications in parallel, writes blocks in input order,
     caches metadata names per worker, and sorts hit indices instead of copying hits.
     The writer uses at most 16 threads and preserves the existing output and hit order.
   - FIX: OpenDIA builds without private Arrow headers. OSWPQ result storage now uses
     the public OSWParquetFile API, including staged archive commits (#10414).
+  - TransitionPQPFile can write a PQP library incrementally in batches (new batch writer API), so
+    large libraries do not have to be held in memory before they are written (#10401).
   - FIX: Predicted-library persistence builds with ONNX, uses the OpenDIA working directory,
     and preserves protein accessions/order and prediction values across disk batches. Indexed
     mapping lookups and direct source-ID reload avoid quadratic append work and full-library
@@ -59,6 +87,13 @@ OpenMS Library:
   - FIX: MzDataHandler now round-trips the ABSORPTION, EMC and TDF scan modes instead of silently
     turning them into the wrong mode; a reader crash (back() on an empty spectrum vector) for an
     unrecognized scan mode on the first MS level >=2 spectrum is also fixed.
+  - FIX: MzDataHandler no longer indexes past a spectrum's binary data arrays when they are
+    missing, shorter than expected, or desynced with the number of <data> elements actually
+    read; peak and float-data-array length mismatches are now clamped instead of read out of
+    bounds.
+  - FIX: The mzML writer escapes the name of a non-standard data array and the fraction identifier.
+    An & or < in either - they are taken verbatim from the data - produced a file that no reader
+    could parse, including the OpenMS one (#10148).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -80,6 +115,9 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    IDFileConverter:
+      - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
+        better) instead of no score.
     UniPEFF:
       - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
         file names, e.g. 2025_07_05 for uniprotkb_proteome_UP000005640_2025_07_05.xml.gz,
@@ -119,6 +157,20 @@ Build System:
     a program built against them does not load a second libomp (#10326).
 
 TOPP tools:
+    IDFileConverter:
+      - FIX: idXML input with -mz_file records the mzML in the runs' 'spectra_data' unless
+        -no_spectra_data_override is set, as documented; it was left unchanged.
+    MaRaClusterAdapter:
+      - FIX: With several -id_in files, the PSMs of each idXML get their cluster_id and file_origin
+        from the mzML at the same position; all of them were looked up in the first mzML. More
+        -id_in than -in files are rejected.
+    PercolatorAdapter:
+      - FIX: With several -in files, the pin ScanNr is the scan number again (it was the input file
+        index) and spectrum references keep their native IDs. Inputs are told apart by file_origin:
+        Percolator identifies a spectrum by spectrum file, scan number and precursor m/z (e.g. for
+        -post_processing_tdc), so the in-process backend numbers the spectrum files, and a pin file
+        with PSMs of several files has a FileName column (PercolatorInfile::getFileIdentifier). In the
+        pin SpecId, a '|' now separates the id_merge_index of a PSM from its file origin.
     ProSE:
       - FIX: The MS2 intensity cutoff applied before normalization removes only peaks without
         intensity (zero or negative). It was the ThresholdMower default of 0.05 absolute, which

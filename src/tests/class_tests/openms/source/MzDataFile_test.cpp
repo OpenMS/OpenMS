@@ -17,6 +17,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 
 using namespace OpenMS;
 using namespace std;
@@ -734,6 +735,81 @@ START_SECTION([EXTRA] round-trips ABSORPTION/EMC/TDF scan modes and does not cra
   TEST_EQUAL(exp3.size(), 1)
   TEST_EQUAL(exp3[0].getMSLevel(), 2)
   TEST_EQUAL(exp3[0].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::MSNSPECTRUM)
+}
+END_SECTION
+
+START_SECTION([EXTRA] handles a spectrum with mismatched or missing binary data arrays without reading out of bounds (CPP-170))
+{
+  // Build a minimal but schema-valid mzData document: reuse the real fixture's
+  // <description> block (required by the schema) and replace its spectrumList
+  // with a single hand-built spectrum.
+  std::ifstream orig_in(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"));
+  std::stringstream orig_buf;
+  orig_buf << orig_in.rdbuf();
+  std::string orig = orig_buf.str();
+  Size desc_end = orig.find("</description>");
+  TEST_NOT_EQUAL(desc_end, std::string::npos)
+  std::string header = orig.substr(0, desc_end + std::string("</description>").size());
+
+  // mz array: 2 little-endian 32-bit floats (100.0, 120.0) -> "AADIQgAA8EI="
+  // intensity array: 1 little-endian 32-bit float (100.0) -> "AADIQg=="
+  // -- one intensity value for two m/z values; pre-fix this read
+  // decoded_list_[1][1] one element past the end of the decoded intensity vector.
+  {
+    std::string body =
+      header +
+      "\n<spectrumList count=\"1\">\n"
+      " <spectrum id=\"1\">\n"
+      "  <spectrumDesc><spectrumSettings><spectrumInstrument msLevel=\"1\">\n"
+      "   <cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>\n"
+      "  </spectrumInstrument></spectrumSettings></spectrumDesc>\n"
+      "  <mzArrayBinary><data precision=\"32\" endian=\"little\" length=\"2\">AADIQgAA8EI=</data></mzArrayBinary>\n"
+      "  <intenArrayBinary><data precision=\"32\" endian=\"little\" length=\"1\">AADIQg==</data></intenArrayBinary>\n"
+      " </spectrum>\n"
+      "</spectrumList>\n</mzData>\n";
+    std::string tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    std::ofstream of(tmp_filename.c_str());
+    of << body;
+    of.close();
+
+    PeakMap exp;
+    MzDataFile().load(tmp_filename, exp);
+    TEST_EQUAL(exp.size(), 1)
+    // Clamped to the shorter (intensity) array instead of reading past it.
+    TEST_EQUAL(exp[0].size(), 1)
+  }
+
+  // Only a mzArrayBinary, no intenArrayBinary at all: pre-fix this read
+  // precisions_[1] one element past the end of a one-element vector. The mzData
+  // schema requires intenArrayBinary, so this document is intentionally
+  // schema-invalid (that's the point -- the reader must not crash on it even
+  // though it should reject it); write it with a plain filename instead of
+  // NEW_TMP_FILE, since VALIDATE_TMP_FILES below would otherwise flag it.
+  {
+    std::string body =
+      header +
+      "\n<spectrumList count=\"1\">\n"
+      " <spectrum id=\"1\">\n"
+      "  <spectrumDesc><spectrumSettings><spectrumInstrument msLevel=\"1\">\n"
+      "   <cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>\n"
+      "  </spectrumInstrument></spectrumSettings></spectrumDesc>\n"
+      "  <mzArrayBinary><data precision=\"32\" endian=\"little\" length=\"1\">AADIQg==</data></mzArrayBinary>\n"
+      " </spectrum>\n"
+      "</spectrumList>\n</mzData>\n";
+    std::string tmp_filename = (std::filesystem::temp_directory_path() / "MzDataFile_test_cpp170_no_inten.mzData").string();
+    std::ofstream of(tmp_filename.c_str());
+    of << body;
+    of.close();
+
+    PeakMap exp;
+    MzDataFile().load(tmp_filename, exp);
+    TEST_EQUAL(exp.size(), 1)
+    // Kept, but without peaks -- not a crash, and not reading precisions_[1] OOB.
+    TEST_EQUAL(exp[0].size(), 0)
+
+    std::filesystem::remove(tmp_filename);
+  }
 }
 END_SECTION
 

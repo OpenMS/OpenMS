@@ -33,6 +33,7 @@
 #include <iostream>
 #include <cmath>
 #include <string>
+#include <map>
 #include <set>
 //#include <typeinfo>
 
@@ -570,10 +571,18 @@ protected:
   {
     CsvFile csv_file(pout_file, '\t');
     StringList row;
+    // Percolator adds the spectrum file after the PSMId when the pin file has a FileName column
+    bool has_filename = false;
+    if (csv_file.rowCount() > 0)
+    {
+      csv_file.getRow(0, row);
+      has_filename = row.size() > 1 && row[1] == "filename";
+    }
 
     for (Size i = 1; i < csv_file.rowCount(); ++i)
     {
       csv_file.getRow(i, row);
+      if (has_filename && row.size() > 1) row.erase(row.begin() + 1);
       PercolatorResult res(row);
       // note: Since we create our pin file in a way that the SpecID (=PSMId) is composed of filename + spectrum native id
       //  this will be passed through Percolator and we use it again to read it back in.
@@ -619,7 +628,6 @@ protected:
   {
     for (StringList::const_iterator fit = in_list.begin(); fit != in_list.end(); ++fit)
     {
-      std::string file_idx = StringUtils::toStr(distance(in_list.begin(), fit));
       PeptideIdentificationList peptide_ids;
       vector<ProteinIdentification> protein_ids;
       std::string in = *fit;
@@ -660,15 +668,15 @@ protected:
       }
 
       //being paranoid about the presence of target decoy denominations, which are crucial to the percolator process
-      size_t index = 0;
       for (PeptideIdentification& pep_id : peptide_ids)
       {
-        index++;
-        if (in_list.size() > 1)
+        // Spectra of different input files are told apart by their file origin: it starts the pin SpecId,
+        // and Percolator numbers the spectrum files by it (the pin's FileName column, the spectrum file
+        // numbers of the in-process backend). The spectrum reference stays as it is: a "file=<n>," prefix
+        // would be read as a native ID, so the extracted scan number would be the file index.
+        if (in_list.size() > 1 && ! pep_id.metaValueExists("file_origin"))
         {
-          std::string scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
-          scan_identifier = "file=" + file_idx + "," + scan_identifier;
-          pep_id.setSpectrumReference( scan_identifier);
+          pep_id.setMetaValue("file_origin", test_mode_ ? File::basename(in) : in);
         }
         for (PeptideHit& hit : pep_id.getHits())
         {
@@ -1065,6 +1073,10 @@ protected:
         RescoreInput ri;
         ri.feature_names = numeric_features;
         std::vector<std::pair<size_t, size_t>> hit_locs;
+        // Spectrum files in order of appearance, as Percolator numbers the FileName column of the pin
+        // file: it identifies a spectrum by file, scan number and precursor m/z (e.g. for target-decoy
+        // competition), so spectra of different inputs with the same scan number must not share a file.
+        std::map<std::string, int> spec_files;
 
         // After stamping, every kept hit carries ScanNr / ExpMass / CalcMass
         // / Label meta values with PIN-equivalent derivations. Read them back
@@ -1093,9 +1105,8 @@ protected:
             ri.is_decoy.push_back(hit.isDecoy());
             ri.scan_numbers.push_back(
               static_cast<int>(hit.getMetaValue("ScanNr")));
-            // Derive stable specFileNr from ScanNr (good enough for sort order
-            // since all hits with same scan share the same spec file).
-            ri.spec_file_numbers.push_back(0);
+            ri.spec_file_numbers.push_back(spec_files.try_emplace(
+              PercolatorInfile::getFileIdentifier(pid), static_cast<int>(spec_files.size())).first->second);
             ri.exp_masses.push_back(
               static_cast<double>(hit.getMetaValue("ExpMass")));
             ri.calc_masses.push_back(
@@ -1462,8 +1473,7 @@ protected:
         pep_id.setHigherScoreBetter(scoreType == "svm");
         
         std::string scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
-        std::string file_identifier = pep_id.getMetaValue("file_origin", DataValue(std::string(""))).toString();
-        file_identifier += pep_id.getMetaValue("id_merge_index", DataValue(std::string(""))).toString();
+        const std::string file_identifier = PercolatorInfile::getFileIdentifier(pep_id);
 
         //check each PeptideHit for compliance with one of the PercolatorResults (by sequence)
         for (PeptideHit& hit : pep_id.getHits())

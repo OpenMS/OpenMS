@@ -36,6 +36,10 @@ public:
     The the filtered identifications are added to the vector of unassigned peptides
     and also reduced to a single best hit.
 
+    @note If @p keep_matching is true and every identification attached to a feature has an empty hit list,
+    the identifications remain attached in their original order with unchanged metadata, so a nonempty
+    identification list does not imply an identified peptide.
+
     @param[in] features Features to work on
     @param[in,out] keep_matching Keeps all IDs that match the modified sequence of the best
     hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
@@ -46,6 +50,10 @@ public:
     The the filtered identifications are added to the vector of unassigned peptides
     and also reduced to a single best hit.
     
+    @note If @p keep_matching is true and every identification attached to a feature has an empty hit list,
+    the identifications remain attached in their original order with unchanged metadata, so a nonempty
+    identification list does not imply an identified peptide.
+
     @param[in] features Features to work on
     @param[in,out] keep_matching Keeps all IDs that match the modified sequence of the best
     hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
