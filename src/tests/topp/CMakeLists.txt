@@ -740,6 +740,18 @@ if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
     "-DFORBIDDEN=name=\"profile spectrum\""
     -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
   set_tests_properties("TOPP_FileConverter_RAW_1_centroided" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_1")
+  if (NOT WIN32) # creating symbolic links needs extra privileges on Windows
+    # Workflow systems (Nextflow, Galaxy) stage inputs as symbolic links, which Thermo's RawFileReader
+    # cannot open itself (#10451). The source file must keep the linked name.
+    add_test("TOPP_FileConverter_RAW_symlink_prepare" ${CMAKE_COMMAND} -E create_symlink ${THERMO_RAW_TEST_DATA} ${TESTS_TEMP_DIR}/FileConverter_RAW_symlink.tmp.raw)
+    add_test("TOPP_FileConverter_RAW_symlink" ${TOPP_BIN_PATH}/FileConverter -test -in ${TESTS_TEMP_DIR}/FileConverter_RAW_symlink.tmp.raw -RawToMzML:reader inprocess -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_symlink.tmp.mzML)
+    set_tests_properties("TOPP_FileConverter_RAW_symlink" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_symlink_prepare")
+    add_test("TOPP_FileConverter_RAW_symlink_name" ${CMAKE_COMMAND}
+      -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_symlink.tmp.mzML
+      "-DEXPECTED=name=\"FileConverter_RAW_symlink.tmp.raw\""
+      -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+    set_tests_properties("TOPP_FileConverter_RAW_symlink_name" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_symlink")
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
@@ -1265,6 +1277,36 @@ set_tests_properties("TOPP_IsobaricWorkflow_qpx_psms" PROPERTIES DEPENDS "TOPP_I
 add_test("TOPP_IsobaricWorkflow_qpx_pg" ${TOPP_BIN_PATH}/ParquetDiff
   -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_qpx_dir/quantms.pg.parquet -schema pg -min_rows 20)
 set_tests_properties("TOPP_IsobaricWorkflow_qpx_pg" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_qpx")
+
+# Thermo .raw input, read natively. The fixture (Angiotensin I) carries no isobaric label, so a wide
+# iTRAQ-4plex window picks up some fragment signal near the reporter masses; that is enough to check
+# that the .raw run quantifies exactly like its mzML conversion. The design names the .raw file and is
+# resolved against the working directory (the fixture's folder); the run must match its rows.
+if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
+  get_filename_component(THERMO_RAW_TEST_DIR ${THERMO_RAW_TEST_DATA} DIRECTORY)
+  add_test("TOPP_IsobaricWorkflow_raw" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type itraq4plex
+    -extraction:reporter_mass_shift 0.01
+    -in ${THERMO_RAW_TEST_DATA}
+    -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_raw_input.idXML
+    -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_raw_design.tsv
+    -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_raw.tmp.consensusXML)
+  set_tests_properties("TOPP_IsobaricWorkflow_raw" PROPERTIES WORKING_DIRECTORY ${THERMO_RAW_TEST_DIR}
+    FAIL_REGULAR_EXPRESSION "no matching row in the experimental design")
+  # reference: the same run converted to mzML (own conversion, so the result does not depend on other tests)
+  add_test("TOPP_IsobaricWorkflow_raw_convert" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA}
+    -RawToMzML:reader inprocess -no_progress -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_raw_converted.mzML)
+  add_test("TOPP_IsobaricWorkflow_raw_mzML" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type itraq4plex
+    -extraction:reporter_mass_shift 0.01
+    -in ${TESTS_TEMP_DIR}/IsobaricWorkflow_raw_converted.mzML
+    -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_raw_input.idXML
+    -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_raw_mzML.tmp.consensusXML)
+  set_tests_properties("TOPP_IsobaricWorkflow_raw_mzML" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_raw_convert")
+  # only the file names and the sample names (from the design vs. derived) may differ
+  add_test("TOPP_IsobaricWorkflow_raw_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion"
+    "<map id=" "sample_name" "file_channel_level_filename"
+    -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_raw.tmp.consensusXML -in2 ${TESTS_TEMP_DIR}/IsobaricWorkflow_raw_mzML.tmp.consensusXML)
+  set_tests_properties("TOPP_IsobaricWorkflow_raw_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_raw;TOPP_IsobaricWorkflow_raw_mzML")
+endif()
 
 #add_test("TOPP_IsobaricAnalyzer_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/IsobaricAnalyzer.ini -out ${TESTS_TEMP_DIR}/IsobaricAnalyzer_output_1.tmp.consensusXML)
 #add_test("TOPP_IsobaricAnalyzer_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/IsobaricAnalyzer_output_1.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricAnalyzer_output_1.consensusXML )
@@ -4790,6 +4832,47 @@ add_test("TOPP_ProSE_10_out" ${DIFF}
   -in2 ${DATA_DIR_TOPP}/ProSE_10_out.idXML
   -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_10_out" PROPERTIES DEPENDS "TOPP_ProSE_10")
+
+# Test 11: in-process Percolator rescoring (-rescore), per input file, followed by the deferred
+# PSM/protein FDR. Scores carry the same cross-platform FP noise as Test 6, so check that every file
+# was rescored and that the output carries Percolator q-values; no exact diff. The ProSE runs have no
+# PASS_REGULAR_EXPRESSION, so that ctest checks their exit code; FileInfo checks their output.
+add_test("TOPP_ProSE_11_rescore" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -rescore
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML)
+add_test("TOPP_ProSE_11_rescore_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_info" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore"
+  PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+# Several input files: each is rescored on its own, then pooled for -out_merged.
+add_test("TOPP_ProSE_11_rescore_multi" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+      ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -rescore
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi_b.tmp.idXML
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi.tmp.idXML)
+foreach(_part a b)
+  add_test("TOPP_ProSE_11_rescore_multi_info_${_part}" ${TOPP_BIN_PATH}/FileInfo -test
+    -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi_${_part}.tmp.idXML)
+  set_tests_properties("TOPP_ProSE_11_rescore_multi_info_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_multi"
+    PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+endforeach()
+# Too few PSMs to train on: the file is not rescored, keeps its HyperScores and ProSE still succeeds.
+add_test("TOPP_ProSE_11_rescore_skip" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+  -rescore
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_skip_out.tmp.idXML)
+add_test("TOPP_ProSE_11_rescore_skip_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_skip_out.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_skip_info" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_skip"
+  PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
