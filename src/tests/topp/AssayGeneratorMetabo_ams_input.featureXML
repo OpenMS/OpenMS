@@ -192,8 +192,8 @@
 				<pt x="444.319999999979984" y="292.120756058941367" />
 				<pt x="443.395000000019991" y="292.119396763735324" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="1">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="3.93961339741601" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[88671-89-0]"/>
 					<UserParam type="stringList" name="description" value="[Myclobutanil]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
@@ -269,8 +269,8 @@
 				<pt x="474.788999999999987" y="293.06856450698524" />
 				<pt x="473.862000000000023" y="293.06824325980125" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="1">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="1.018342787376819" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[50512-35-1]"/>
 					<UserParam type="stringList" name="description" value="[Isoprothiolane]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
@@ -382,8 +382,8 @@
 				<pt x="434.644000000020014" y="295.12080196445595" />
 				<pt x="433.717000000020107" y="295.120481083763366" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="1">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="0.974417405881674" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[13096-99-4]"/>
 					<UserParam type="stringList" name="description" value="[Cyproconazole]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
@@ -597,8 +597,8 @@
 				<pt x="474.788999999999987" y="315.049581648021785" />
 				<pt x="473.862000000000023" y="315.049391705017911" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="1">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="0.827421137560595" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[50512-35-1]"/>
 					<UserParam type="stringList" name="description" value="[Isoprothiolane]"/>
 					<UserParam type="string" name="modifications" value="M+Na;1+"/>
@@ -665,8 +665,8 @@
 				<pt x="431.866000000019994" y="318.013460543863289" />
 				<pt x="430.939999999979989" y="318.012807082280688" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="1">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="0.67256988830843" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[8650-0]"/>
 					<UserParam type="stringList" name="description" value="[Guthion]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
@@ -720,8 +720,8 @@
 				<pt x="447.100000000020032" y="327.096918826683748" />
 				<pt x="446.172000000000025" y="327.09648574855305" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="1">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="1.736752624325459" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[22224-92-6]"/>
 					<UserParam type="stringList" name="description" value="[Fenamiphos]"/>
 					<UserParam type="string" name="modifications" value="M+Na;1+"/>
@@ -813,8 +813,8 @@
 				<pt x="444.319999999979984" y="331.209945872254821" />
 				<pt x="443.395000000019991" y="331.209367752674268" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="1">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="2.214392170044189" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[87820-88-0]"/>
 					<UserParam type="stringList" name="description" value="[Tralkoxidym]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
@@ -901,8 +901,8 @@
 				<pt x="431.866000000019994" y="340.998517552508247" />
 				<pt x="430.939999999979989" y="340.998247708452709" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="1">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="0.304129210136911" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[8650-0]"/>
 					<UserParam type="stringList" name="description" value="[Guthion]"/>
 					<UserParam type="string" name="modifications" value="M+Na;1+"/>
@@ -1236,8 +1236,8 @@
 				<pt x="460.888000000019986" y="388.965530388284037" />
 				<pt x="459.961000000019965" y="388.966510755464981" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="1">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="3.115204489978675" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[239110-15-7]"/>
 					<UserParam type="stringList" name="description" value="[Fluopicolide]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
@@ -1275,8 +1275,8 @@
 				<pt x="480.363" y="386.056147896684365" />
 				<pt x="479.430000000000007" y="386.056776466031238" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="1">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="0.976062197220421" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[142459-58-3]"/>
 					<UserParam type="stringList" name="description" value="[Flufenacet]"/>
 					<UserParam type="string" name="modifications" value="M+Na;1+"/>

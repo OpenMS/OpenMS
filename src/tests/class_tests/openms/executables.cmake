@@ -21,6 +21,7 @@ set(qc_executables_list
   DBSuitability_test
   FeatureSummary_test
   IdentificationSummary_test
+  IDFreeMassErrorEstimator_test
   MissedCleavages_test
   Ms2IdentificationRate_test
   PSMExplainedIonCurrent_test
@@ -259,6 +260,7 @@ set(format_executables_list
   OMSSACSVFile_test
   OMSSAXMLFile_test
   OSWFile_test
+  OSWParquetFile_test
   OSWFileInference_test
   PTMXMLFile_test
   ParamCTDFile_test
