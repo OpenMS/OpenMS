@@ -34,7 +34,7 @@ namespace OpenMS
   };
 
   /**
-   * @brief A class for extracting and reinserting IDScores from Peptide/ProteinIdentifications and from ConsensusMaps
+   * @brief A class for extracting and reinserting IDScores from Peptide/ProteinIdentifications
    */
   class IDScoreGetterSetter
   {
@@ -92,11 +92,6 @@ namespace OpenMS
     static void fillPeptideScoreMap_(
       std::unordered_map<std::string, ScoreToTgtDecLabelPair>& seq_to_score_labels,
       PeptideIdentificationList const& ids);
-
-    static void fillPeptideScoreMap_(
-      std::unordered_map<std::string, ScoreToTgtDecLabelPair>& seq_to_score_labels,
-      ConsensusMap const& map,
-      bool include_unassigned);
 
 
     /**
@@ -219,21 +214,6 @@ namespace OpenMS
     /** @} */
 
 
-
-    /**
-     * @brief Helper for getting scores in ConsensusMaps
-     * @todo allow FeatureMap?
-     */
-    template<class ...Args>
-    static void getPeptideScoresFromMap_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const ConsensusMap &cmap, bool include_unassigned_peptides, Args &&... args)
-    {
-      auto f =
-          [&](const PeptideIdentification &id) -> void
-          { getScores_(scores_labels, id, std::forward<Args>(args)...); };
-      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
-    }
 
     /**
      * @brief For peptide hits, a hit is considered target also if it maps to both
@@ -551,34 +531,6 @@ namespace OpenMS
     }
 
     /**
-     * @brief Helper for applying set Scores on ConsensusMaps
-     * @tparam Args optional additional arguments (charge, run ID)
-     * @param[in] scores_to_FDR maps original scores to FDR
-     * @param[in] cmap the ConsensusMap
-     * @param[in] include_unassigned_peptides Also modify unassigned peptide IDs in @p cmap?
-     * @param[in] score_type FDR or q-Value
-     * @param[in] higher_better usually false
-     * @param[in] keep_decoy read from Param object
-     * @param[in] args optional additional arguments (int charge, string run ID)
-    */
-    template<class ...Args>
-    static void setPeptideScoresForMap_(const std::map<double, double>& scores_to_FDR,
-                                 ConsensusMap& cmap,
-                                 bool include_unassigned_peptides,
-                                 const std::string& score_type,
-                                 bool higher_better,
-                                 bool keep_decoy,
-                                 Args&&... args)
-    {
-      //Note: Gcc4.8 cannot handle variadic templates in lambdas
-      auto f =
-          [&](PeptideIdentification &id) -> void
-          { setScores_(scores_to_FDR, id, score_type,
-                       higher_better, keep_decoy, std::forward<Args>(args)...); };
-      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
-    }
-
-    /**
      * @brief To check the metavalues before we do anything
      * @param[in] id_or_hit Any Object with MetaInfoInterface. Specifically ID or Hit Type here.
      * @throws Exception::MissingInformation if target_decoy annotation does not exist
@@ -598,11 +550,5 @@ namespace OpenMS
                                          PeptideIdentificationList& ids,
                                          std::string const& score_type,
                                          bool keep_decoys);
-
-    static void setPeptideScoresFromMap_(std::unordered_map<std::string, ScoreToTgtDecLabelPair> const& seq_to_fdr,
-                                         ConsensusMap& map,
-                                         std::string const& score_type,
-                                         bool keep_decoys,
-                                         bool include_unassigned);
   };
 } // namespace OpenMS

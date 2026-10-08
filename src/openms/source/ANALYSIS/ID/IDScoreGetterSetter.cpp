@@ -90,16 +90,6 @@ namespace OpenMS
     }
   }
 
-  void IDScoreGetterSetter::fillPeptideScoreMap_(
-    std::unordered_map<std::string, ScoreToTgtDecLabelPair>& seq_to_score_labels,
-    ConsensusMap const& map,
-    bool include_unassigned = true)
-  {
-    map.applyFunctionOnPeptideIDs(
-      [&seq_to_score_labels](const PeptideIdentification& id){addToPeptideScoreMap_(seq_to_score_labels, id);},
-      include_unassigned);
-  }
-
   /**
    * @ingroup getScoresFunctions
    * @brief For protein groups. Groups are target if at least one protein is target
@@ -294,22 +284,6 @@ namespace OpenMS
         OPENMS_LOG_ERROR << "Error: No FDR found for " + seq + "." << std::endl;
         continue;
       }
-    }
-  }
-
-  void IDScoreGetterSetter::setPeptideScoresFromMap_(std::unordered_map<std::string, ScoreToTgtDecLabelPair> const& seq_to_fdr,
-                                                     ConsensusMap& map,
-                                                     std::string const& score_type,
-                                                     bool keep_decoys,
-                                                     bool include_unassigned)
-  {
-    for (auto& f : map)
-    {
-      setPeptideScoresFromMap_(seq_to_fdr, f.getPeptideIdentifications(), score_type, keep_decoys);
-    }
-    if (include_unassigned)
-    {
-      setPeptideScoresFromMap_(seq_to_fdr, map.getUnassignedPeptideIdentifications(), score_type, keep_decoys);
     }
   }
 

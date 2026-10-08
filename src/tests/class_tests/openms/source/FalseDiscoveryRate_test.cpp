@@ -14,10 +14,43 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/NativeIdentificationTest.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+// A consensus map of the PSMs of FalseDiscoveryRate_OMSSA.idXML: two of three are assigned (to features of one PSM),
+// the others unassigned.
+ConsensusMap omssaMap(const vector<ProteinIdentification>& prot_ids, const PeptideIdentificationList& pep_ids)
+{
+  ConsensusMap cmap;
+  cmap.setProteinIdentifications(prot_ids);
+  for (Size i = 0; i < pep_ids.size(); ++i)
+  {
+    if (i % 3 == 0)
+    {
+      cmap.getUnassignedPeptideIdentifications().push_back(pep_ids[i]);
+      continue;
+    }
+    ConsensusFeature feature;
+    feature.setUniqueId(i + 1);
+    feature.getPeptideIdentifications().push_back(pep_ids[i]);
+    cmap.push_back(feature);
+  }
+  return cmap;
+}
+PeptideIdentificationList assignedPSMs(const ConsensusMap& cmap)
+{
+  PeptideIdentificationList result;
+  for (const auto& feature : cmap)
+    result.insert(result.end(), feature.getPeptideIdentifications().begin(), feature.getPeptideIdentifications().end());
+  return result;
+}
+} // namespace
 
 START_TEST(FalseDiscoveryRate, "$Id$")
 
@@ -434,6 +467,123 @@ START_SECTION((void applyBasicPeptideLevel(PeptideIdentificationList & ids)))
 END_SECTION
 
 delete ptr;
+
+START_SECTION((void applyBasic(ConsensusMap & cmap, bool include_unassigned_peptides)))
+{
+  using Internal::ClassTest::NativeIdentificationDetail::peptideDifference;
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FalseDiscoveryRate_OMSSA.idXML"), prot_ids, pep_ids);
+  FalseDiscoveryRate fdr;
+
+  // With the unassigned PSMs, the PSMs of the map get what they get together.
+  auto cmap = omssaMap(prot_ids, pep_ids);
+  auto expected = assignedPSMs(cmap);
+  const auto assigned_count = expected.size();
+  expected.insert(expected.end(), cmap.getUnassignedPeptideIdentifications().begin(), cmap.getUnassignedPeptideIdentifications().end());
+  fdr.applyBasic(prot_ids, expected);
+  fdr.applyBasic(cmap, true);
+  TEST_EQUAL(cmap.getIdentificationData().empty(), true) // peptide identifications in, peptide identifications out
+  TEST_TRUE(cmap.getProteinIdentifications() == prot_ids)
+  auto actual = assignedPSMs(cmap);
+  actual.insert(actual.end(), cmap.getUnassignedPeptideIdentifications().begin(), cmap.getUnassignedPeptideIdentifications().end());
+  TEST_EQUAL(peptideDifference(expected, actual), "")
+  TEST_EQUAL(actual[0].getScoreType(), "q-value")
+  TEST_TRUE(actual[0].getHits()[0].metaValueExists("OMSSA_score"))
+
+  // Without, the FDR is that of the assigned PSMs; the unassigned ones get the q-value of their score, keep their decoys.
+  cmap = omssaMap(prot_ids, pep_ids);
+  expected = assignedPSMs(cmap);
+  TEST_EQUAL(expected.size(), assigned_count)
+  fdr.applyBasic(prot_ids, expected);
+  fdr.applyBasic(cmap, false);
+  TEST_EQUAL(peptideDifference(expected, assignedPSMs(cmap)), "")
+  std::map<double, double> q_values; // OMSSA score -> q-value of the assigned PSMs
+  for (const auto& id : expected)
+    for (const auto& hit : id.getHits())
+      q_values[hit.getMetaValue("OMSSA_score")] = hit.getScore();
+  Size decoys = 0, shared_scores = 0;
+  for (const auto& id : cmap.getUnassignedPeptideIdentifications())
+  {
+    TEST_EQUAL(id.getScoreType(), "q-value")
+    TEST_EQUAL(id.isHigherScoreBetter(), false)
+    for (const auto& hit : id.getHits())
+    {
+      TEST_EQUAL(hit.getScore() >= 0.0 && hit.getScore() <= 1.0, true)
+      if (hit.getMetaValue("target_decoy") == "decoy") ++decoys;
+      const auto found = q_values.find(hit.getMetaValue("OMSSA_score"));
+      if (found == q_values.end()) continue;
+      ++shared_scores;
+      TEST_REAL_SIMILAR(hit.getScore(), found->second)
+    }
+  }
+  TEST_NOT_EQUAL(decoys, 0)
+  TEST_NOT_EQUAL(shared_scores, 0)
+
+  // A map with identification data stays one.
+  cmap = omssaMap(prot_ids, pep_ids);
+  Internal::ClassTest::toNative(cmap);
+  fdr.applyBasic(cmap, true);
+  TEST_EQUAL(cmap.getUnassignedPeptideIdentifications().empty(), true)
+  TEST_EQUAL(cmap.getIdentificationData().getPrimaryScoreDefinition()->name, "q-value")
+  Internal::ClassTest::toLegacy(cmap);
+  actual = assignedPSMs(cmap);
+  actual.insert(actual.end(), cmap.getUnassignedPeptideIdentifications().begin(), cmap.getUnassignedPeptideIdentifications().end());
+  expected = assignedPSMs(omssaMap(prot_ids, pep_ids));
+  auto unassigned = omssaMap(prot_ids, pep_ids).getUnassignedPeptideIdentifications();
+  expected.insert(expected.end(), unassigned.begin(), unassigned.end());
+  fdr.applyBasic(prot_ids, expected);
+  TEST_EQUAL(peptideDifference(expected, actual), "")
+}
+END_SECTION
+
+START_SECTION((double rocN(const ConsensusMap& ids, Size fp_cutoff, bool include_unassigned_peptides) const))
+{
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FalseDiscoveryRate_OMSSA.idXML"), prot_ids, pep_ids);
+  FalseDiscoveryRate fdr;
+  const auto cmap = omssaMap(prot_ids, pep_ids);
+  auto all = assignedPSMs(cmap);
+  const auto assigned = all;
+  all.insert(all.end(), cmap.getUnassignedPeptideIdentifications().begin(), cmap.getUnassignedPeptideIdentifications().end());
+  TEST_REAL_SIMILAR(fdr.rocN(cmap, 50, true), fdr.rocN(all, 50))
+  TEST_REAL_SIMILAR(fdr.rocN(cmap, 50, false), fdr.rocN(assigned, 50))
+  TEST_REAL_SIMILAR(fdr.rocN(cmap, 50, prot_ids[1].getIdentifier(), true), fdr.rocN(all, 50, prot_ids[1].getIdentifier()))
+  auto native = cmap;
+  Internal::ClassTest::toNative(native);
+  TEST_REAL_SIMILAR(fdr.rocN(native, 50, false), fdr.rocN(assigned, 50))
+}
+END_SECTION
+
+START_SECTION((void applyBasicPeptideLevel(ConsensusMap & map, bool include_unassigned)))
+{
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FalseDiscoveryRate_OMSSA.idXML"), prot_ids, pep_ids);
+  FalseDiscoveryRate fdr;
+  // With the unassigned PSMs, (best) hits get the q-values of their peptides as with the PSMs together.
+  auto cmap = omssaMap(prot_ids, pep_ids);
+  auto expected = assignedPSMs(cmap);
+  expected.insert(expected.end(), cmap.getUnassignedPeptideIdentifications().begin(), cmap.getUnassignedPeptideIdentifications().end());
+  fdr.applyBasicPeptideLevel(expected);
+  fdr.applyBasicPeptideLevel(cmap, true);
+  auto actual = assignedPSMs(cmap);
+  actual.insert(actual.end(), cmap.getUnassignedPeptideIdentifications().begin(), cmap.getUnassignedPeptideIdentifications().end());
+  ABORT_IF(actual.size() != expected.size())
+  Size compared = 0;
+  for (Size i = 0; i < actual.size(); ++i)
+  {
+    TEST_EQUAL(actual[i].getHits().size(), expected[i].getHits().size())
+    if (expected[i].getHits().empty() || actual[i].getHits().empty()) continue;
+    TEST_EQUAL(actual[i].getScoreType(), expected[i].getScoreType())
+    TEST_REAL_SIMILAR(actual[i].getHits()[0].getScore(), expected[i].getHits()[0].getScore())
+    TEST_EQUAL(actual[i].getHits()[0].getMetaValue("OMSSA"), expected[i].getHits()[0].getMetaValue("OMSSA"))
+    ++compared;
+  }
+  TEST_NOT_EQUAL(compared, 0)
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
