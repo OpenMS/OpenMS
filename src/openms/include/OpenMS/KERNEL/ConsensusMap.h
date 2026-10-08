@@ -147,7 +147,12 @@ public:
     /**
       @brief Add consensus map entries as new columns.
 
-      The number of columns (maximum map index) is the sum of both maps.
+      The number of columns (maximum map index) is the sum of both maps. The map indices of the
+      identifications of @p rhs (meta value @c map_index of peptide identifications and of
+      identifications in the identification data) are shifted like its columns.
+
+      @exception Exception::InvalidValue if both maps contain the same identification run and its
+      identifications have map indices
 
       @param[in] rhs The consensus map to be merged.
     */
@@ -351,11 +356,16 @@ public:
     /*!
       @brief Return observation matches (e.g. PSMs) from the identification data that are not assigned to any feature in the map
 
-      Only top-level features are considered, i.e. no subordinates.
-
       @see BaseFeature::getIDMatches()
     */
     std::set<IdentificationData::MatchReference> getUnassignedIDMatches() const;
+
+    /*!
+      @brief The identifications and matches that no feature links (the counterpart of getUnassignedPeptideIdentifications())
+
+      @see IdentificationData::getUnlinked()
+    */
+    std::vector<IdentificationData::QueryMatches> getUnassignedIdentifications() const;
 
     /// Immutable access to the contained identification data
     const IdentificationData& getIdentificationData() const;

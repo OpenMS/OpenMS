@@ -37,12 +37,12 @@ namespace OpenMS
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);
 
-    /// Applies the given transformation to a feature map
+    /// Applies the given transformation to a feature map (features, their peptide identifications and its identification data)
     static void transformRetentionTimes(FeatureMap& fmap,
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);
 
-    /// Applies the given transformation to a consensus map
+    /// Applies the given transformation to a consensus map (features, their peptide identifications and its identification data)
     static void transformRetentionTimes(ConsensusMap& cmap,
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);

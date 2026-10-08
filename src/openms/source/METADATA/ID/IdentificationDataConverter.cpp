@@ -595,6 +595,62 @@ void IdentificationDataConverter::importConsensusIDs(ConsensusMap& map, bool cle
 void IdentificationDataConverter::exportConsensusIDs(ConsensusMap& map, bool clear)
 { exportMap(map, clear); }
 
+namespace
+{
+  template<class Map>
+  bool hasLegacyIDs(const Map& map)
+  {
+    if (! map.getProteinIdentifications().empty() || ! map.getUnassignedPeptideIdentifications().empty()) return true;
+    const auto any = [](const auto& self, const auto& feature) -> bool {
+      if (! feature.getPeptideIdentifications().empty()) return true;
+      if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
+        return std::any_of(feature.getSubordinates().begin(), feature.getSubordinates().end(),
+                           [&](const Feature& subordinate) { return self(self, subordinate); });
+      return false;
+    };
+    return std::any_of(map.begin(), map.end(), [&](const auto& feature) { return any(any, feature); });
+  }
+  template<class Map>
+  bool checkedLegacyIDs(const Map& map)
+  {
+    if (! hasLegacyIDs(map)) return false;
+    if (! map.getIdentificationData().empty())
+      invalid("The map has peptide identifications and identification data; it can hold its identifications in one of them only");
+    return true;
+  }
+} // namespace
+
+bool IdentificationDataConverter::hasPeptideIdentifications(const FeatureMap& map)
+{ return hasLegacyIDs(map); }
+bool IdentificationDataConverter::hasPeptideIdentifications(const ConsensusMap& map)
+{ return hasLegacyIDs(map); }
+const FeatureMap& IdentificationDataConverter::withIdentificationData(const FeatureMap& map, std::optional<FeatureMap>& converted)
+{
+  if (! checkedLegacyIDs(map)) return map;
+  converted = map;
+  importMap(*converted, true);
+  return *converted;
+}
+const ConsensusMap& IdentificationDataConverter::withIdentificationData(const ConsensusMap& map, std::optional<ConsensusMap>& converted)
+{
+  if (! checkedLegacyIDs(map)) return map;
+  converted = map;
+  importMap(*converted, true);
+  return *converted;
+}
+bool IdentificationDataConverter::moveToIdentificationData(FeatureMap& map)
+{
+  if (! checkedLegacyIDs(map)) return false;
+  importMap(map, true);
+  return true;
+}
+bool IdentificationDataConverter::moveToIdentificationData(ConsensusMap& map)
+{
+  if (! checkedLegacyIDs(map)) return false;
+  importMap(map, true);
+  return true;
+}
+
 MzTab IdentificationDataConverter::exportMzTab(const ID& data)
 {
   data.validate();

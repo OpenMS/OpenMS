@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <optional>
 namespace OpenMS
 {
 class FeatureMap;
@@ -33,5 +34,30 @@ public:
   static void exportFeatureIDs(FeatureMap& features, bool clear_original = true);
   static void importConsensusIDs(ConsensusMap& consensus, bool clear_original = true);
   static void exportConsensusIDs(ConsensusMap& consensus, bool clear_original = true);
+
+  /// @name Maps for code that works on identification data
+  ///@{
+  /// Whether @p map has peptide or protein identifications (of features, subordinates or unassigned)
+  static bool hasPeptideIdentifications(const FeatureMap& map);
+  static bool hasPeptideIdentifications(const ConsensusMap& map);
+  /**
+    @brief Read access to the identifications of a map as identification data
+
+    @return @p map if it has no peptide identifications, else @p converted: a copy of @p map with its peptide
+    identifications moved into its identification data (importFeatureIDs())
+
+    @throw Exception::InvalidParameter if @p map has peptide identifications and identification data
+  */
+  static const FeatureMap& withIdentificationData(const FeatureMap& map, std::optional<FeatureMap>& converted);
+  static const ConsensusMap& withIdentificationData(const ConsensusMap& map, std::optional<ConsensusMap>& converted);
+  /**
+    @brief Move the peptide identifications of a map into its identification data, for code that edits identification data
+
+    @return Whether @p map had peptide identifications, i.e. whether to move them back afterwards (exportFeatureIDs())
+    @throw Exception::InvalidParameter if @p map has peptide identifications and identification data
+  */
+  static bool moveToIdentificationData(FeatureMap& map);
+  static bool moveToIdentificationData(ConsensusMap& map);
+  ///@}
 };
 }

@@ -77,8 +77,9 @@ public:
 
       Every element of @p input_map is converted to a @c Feature in
       @p output_map (the @c BaseFeature portion is copied; positional and
-      meta data are preserved). The document identifier and the protein /
-      unassigned peptide identifications are preserved on the output.
+      meta data are preserved). The document identifier, the protein /
+      unassigned peptide identifications and the identification data with
+      the elements' links to it are preserved on the output.
 
       @param[in]  input_map  Source @c ConsensusMap.
       @param[in]  keep_uids  If @c true, the container unique id and every
@@ -100,7 +101,13 @@ public:
       entries tagged with @p input_map_index. The output's container unique
       id is taken from @p input_map (an intentional design choice -- callers
       that need a fresh id must overwrite it afterwards). The protein and
-      unassigned peptide identifications are preserved on the output.
+      unassigned peptide identifications are preserved on the output. The
+      peptide identifications of the copied features are tagged with
+      @p input_map_index (meta value @c map_index); those of features that
+      are not copied and of subordinates are dropped. The identification
+      data follows the same rule: identifications linked by copied features
+      get @c map_index, identifications linked only by other features or
+      subordinates are removed, unlinked ones are kept.
 
       @note Because features are taken in input order, @p n is mainly useful
             after pre-sorting @p input_map (e.g. by intensity); it exists for

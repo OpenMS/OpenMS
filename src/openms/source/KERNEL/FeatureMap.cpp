@@ -484,6 +484,21 @@ namespace OpenMS
     return result;
   }
 
+  std::vector<IdentificationData::QueryMatches> FeatureMap::getUnassignedIdentifications() const
+  {
+    std::set<IdentificationData::QueryReference> queries;
+    std::set<IdentificationData::MatchReference> matches;
+    const auto collect = [&](const auto& self, const Feature& feature) -> void {
+      queries.insert(feature.getIDQueries().begin(), feature.getIDQueries().end());
+      matches.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
+      for (const auto& subordinate : feature.getSubordinates())
+        self(self, subordinate);
+    };
+    for (const auto& feature : *this)
+      collect(collect, feature);
+    return id_data_.getUnlinked(queries, matches);
+  }
+
   const IdentificationData& FeatureMap::getIdentificationData() const
   {
     return id_data_;

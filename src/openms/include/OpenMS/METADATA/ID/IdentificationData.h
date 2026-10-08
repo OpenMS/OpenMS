@@ -21,6 +21,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -361,6 +362,9 @@ public:
     /// Evaluate all predicates before committing; throwing callbacks leave values unchanged.
     Size filterMatches(const std::function<bool(const Match&)>& keep, bool keep_empty_queries = false);
     Size eraseMatches(const std::function<bool(const Match&)>& remove, bool keep_empty_queries = false);
+    /// Remove identifications (with their matches), also ones without matches; returns the number removed.
+    /// Evaluates all predicates before committing, like filterMatches().
+    Size eraseIdentifications(const std::function<bool(const Identification&)>& remove);
     Size retainBest(ScoreId score, bool keep_ties = true, bool keep_empty_queries = false);
     void transformMatches(const std::function<void(MatchData&)>& transform);
     Size getNumberOfIdentifications() const;
@@ -427,6 +431,18 @@ public:
     void swapData_(Run& other) noexcept;
   };
 
+  /// An identification of a run with some of its matches, e.g. those that a feature links. Points into the
+  /// dataset, so it is invalidated like a record view by structural edits.
+  struct OPENMS_DLLAPI QueryMatches
+  {
+    const Run* run = nullptr;
+    const Identification* query = nullptr;
+    /// In the order of the identification's matches
+    std::vector<const Match*> matches;
+    /// The match with the best primary score (the first of equal ones; matches without a value are skipped), or nullptr
+    const Match* getBestMatch() const;
+  };
+
   /// Run-level provenance for an inference calculation; no per-match input list is retained.
   struct OPENMS_DLLAPI InferenceInput
   {
@@ -475,6 +491,23 @@ public:
   /// Conflicting values for an existing UUID are rejected; repeated display names receive a numeric suffix.
   /// Existing runs are neither copied nor moved, so references to them stay valid; a rejected merge changes nothing.
   void merge(const IdentificationData& other);
+  /**
+    @brief Resolve links to identifications and matches (e.g. of a feature)
+
+    Every linked identification appears once, with its linked matches (an identification linked only by itself has none),
+    ordered by identification ID, then run: the order of peptide identifications exported from imported ones.
+
+    @throw Exception::MissingInformation if a link refers to an identification or match that does not exist
+  */
+  std::vector<QueryMatches> resolveLinks(const std::set<QueryReference>& queries, const std::set<MatchReference>& matches) const;
+  /**
+    @brief The identifications and matches that none of the given links refers to (e.g. those not assigned to features)
+
+    An identification appears with its matches that are not linked, if it has any; an identification without matches
+    appears if it is not linked itself. The order is the order of identification IDs (by run, then ID, if runs share IDs),
+    the order of exported unassigned peptide identifications.
+  */
+  std::vector<QueryMatches> getUnlinked(const std::set<QueryReference>& queries, const std::set<MatchReference>& matches) const;
   bool operator==(const IdentificationData& other) const;
   Size filterMatches(const std::function<bool(const Match&)>& keep, InferencePolicy policy, bool keep_empty_queries = false);
   /** Dataset-wide ordered PSM score contract.

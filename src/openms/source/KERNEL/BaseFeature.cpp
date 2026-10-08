@@ -10,6 +10,7 @@
 #include <OpenMS/KERNEL/FeatureHandle.h>
 
 #include <algorithm>
+#include <cmath>
 
 using namespace std;
 
@@ -229,6 +230,42 @@ namespace OpenMS
     }
     if (id_matches_.size() == 1) return AnnotationState::FEATURE_ID_SINGLE;
     return divergent ? AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT : AnnotationState::FEATURE_ID_MULTIPLE_SAME;
+  }
+
+  std::set<IdentificationData::QueryReference> BaseFeature::getLinkedIDQueries(const IdentificationData& data) const
+  {
+    auto queries = id_queries_;
+    for (const auto& reference : id_matches_)
+    {
+      const auto* run = data.findRunByUuid(reference.run_uuid);
+      if (! run || ! run->findMatch(reference.match))
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature association refers to a missing match");
+      queries.insert({reference.run_uuid, run->getIdentificationForMatch(reference.match).getId()});
+    }
+    return queries;
+  }
+
+  std::vector<IdentificationData::QueryMatches> BaseFeature::getLinkedIdentifications(const IdentificationData& data) const
+  {
+    return data.resolveLinks(id_queries_, id_matches_);
+  }
+
+  std::optional<IdentificationData::QueryMatches> BaseFeature::getBestLinkedMatch(const IdentificationData& data) const
+  {
+    // The best match of each identification, then the best of those (the first of equal ones).
+    std::optional<IdentificationData::QueryMatches> best;
+    double best_score = 0.0;
+    for (const auto& entry : getLinkedIdentifications(data))
+    {
+      const auto* match = entry.getBestMatch();
+      if (! match) continue;
+      const auto primary = *entry.run->getPrimaryScore();
+      const double score = *entry.run->getScore(match->getId(), primary);
+      if (best && ! (entry.run->getScoreDefinition(primary).higher_better ? score > best_score : score < best_score)) continue;
+      best = IdentificationData::QueryMatches {entry.run, entry.query, {match}};
+      best_score = score;
+    }
+    return best;
   }
 
   bool BaseFeature::hasPrimaryID() const

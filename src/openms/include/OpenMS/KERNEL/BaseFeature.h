@@ -218,6 +218,34 @@ public:
     void addIDQuery(const IdentificationData::QueryReference& reference)
     { id_queries_.insert(reference); }
 
+    /**
+       @brief The identifications this feature links, directly or through their matches
+
+       @throw Exception::MissingInformation if a match link refers to a match that @p data does not have
+    */
+    std::set<IdentificationData::QueryReference> getLinkedIDQueries(const IdentificationData& data) const;
+
+    /**
+       @brief The identifications this feature links, each with its linked matches (the counterpart of getPeptideIdentifications())
+
+       In the order of the peptide identifications that an export of @p data gives the feature.
+
+       @throw Exception::MissingInformation if a link refers to something that @p data does not have
+    */
+    std::vector<IdentificationData::QueryMatches> getLinkedIdentifications(const IdentificationData& data) const;
+
+    /**
+       @brief The linked match with the best primary score, with its identification (the counterpart of the first hit
+       of the first peptide identification after sortPeptideIdentifications())
+
+       Of matches that score equally, the first in the order of getLinkedIdentifications() is taken.
+       Matches without a primary score value are skipped.
+
+       @return An entry with exactly one match, or nothing if the feature links no match with a score
+       @throw Exception::MissingInformation if a link refers to something that @p data does not have
+    */
+    std::optional<IdentificationData::QueryMatches> getBestLinkedMatch(const IdentificationData& data) const;
+
     /// add an ID match (e.g. PSM) for this feature
     void addIDMatch(IdentificationData::MatchReference ref);
 

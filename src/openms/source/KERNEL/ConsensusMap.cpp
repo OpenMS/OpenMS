@@ -136,8 +136,29 @@ namespace OpenMS
 
   ConsensusMap& ConsensusMap::appendColumns(const ConsensusMap& rhs)
   {
-    // Check identification compatibility before changing measurements or annotations.
-    id_data_.merge(rhs.id_data_);
+    // The identifications of rhs refer to its columns: shift their map index like the column indices below.
+    // Merging checks identification compatibility before measurements or annotations change.
+    IdentificationData rhs_data = rhs.id_data_;
+    for (const auto& current : rhs.id_data_.getRuns())
+    {
+      auto& run = rhs_data.getRun(current.getIdentifier());
+      for (const auto& source : current.getSources())
+        for (const auto& query : source.identifications)
+        {
+          if (! query.metaValueExists("map_index")) continue;
+          if (id_data_.findRunByUuid(run.getUuid()))
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Both consensus maps contain identification run '" + run.getIdentifier()
+                                            + "' with map indices; its identifications cannot refer to columns of both maps.",
+                                          run.getUuid());
+          }
+          IdentificationData::Observation observation = query;
+          observation.setMetaValue("map_index", column_description_.size() + static_cast<Size>(query.getMetaValue("map_index")));
+          run.replaceObservation(query.getId(), observation);
+        }
+    }
+    id_data_.merge(rhs_data);
 
     ConsensusMap empty_map;
 
@@ -845,6 +866,18 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       assigned.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
     std::set_difference(all.begin(), all.end(), assigned.begin(), assigned.end(), std::inserter(result, result.end()));
     return result;
+  }
+
+  std::vector<IdentificationData::QueryMatches> ConsensusMap::getUnassignedIdentifications() const
+  {
+    std::set<IdentificationData::QueryReference> queries;
+    std::set<IdentificationData::MatchReference> matches;
+    for (const auto& feature : *this)
+    {
+      queries.insert(feature.getIDQueries().begin(), feature.getIDQueries().end());
+      matches.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
+    }
+    return id_data_.getUnlinked(queries, matches);
   }
 
   const IdentificationData& ConsensusMap::getIdentificationData() const

@@ -60,6 +60,17 @@ OpenMS Library:
     .idparquet bundle remains readable and is still written by the legacy FileHandler overloads.
   - FeatureXMLFile/ConsensusXMLFile::store write the native identification data of a map that has no
     legacy identifications as legacy identifications instead of dropping it.
+  - Identification data of feature and consensus maps is no longer lost by map operations:
+    MapConversion keeps it (features to consensus features: identifications of converted features
+    get their map index, those of subordinates and of features not converted are removed, as for
+    peptide identifications), ConsensusFeature::insert keeps the links, ConsensusMap::appendColumns
+    shifts the map indices, and MapAlignmentTransformer transforms its retention times.
+  - Reading map identifications from identification data: BaseFeature::getLinkedIdentifications()
+    and getBestLinkedMatch(), FeatureMap/ConsensusMap::getUnassignedIdentifications() (the
+    counterparts of getPeptideIdentifications(), the best hit and the unassigned peptide
+    identifications), IdentificationData::resolveLinks()/getUnlinked(), Run::eraseIdentifications();
+    IdentificationDataConverter::withIdentificationData()/moveToIdentificationData() give code that
+    works on identification data a map in that form.
   - .featureparquet and .consensusparquet bundles store a map's owning identification data
     (identifications/, a native bundle) and the per-feature links (identification_links.parquet,
     keyed by feature unique ID, stored as int64 like the feature tables so they join without a

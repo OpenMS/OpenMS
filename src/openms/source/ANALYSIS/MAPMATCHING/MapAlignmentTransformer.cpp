@@ -81,6 +81,12 @@ namespace OpenMS
       transformRetentionTimes(fmap.getUnassignedPeptideIdentifications(), trafo,
                               store_original_rt);
     }
+
+    // and of the identification data the features link to:
+    if (!fmap.getIdentificationData().empty())
+    {
+      transformRetentionTimes(fmap.getIdentificationData(), trafo, store_original_rt);
+    }
   }
 
 
@@ -148,6 +154,12 @@ namespace OpenMS
     {
       transformRetentionTimes(cmap.getUnassignedPeptideIdentifications(), trafo,
                               store_original_rt);
+    }
+
+    // and of the identification data the features link to:
+    if (!cmap.getIdentificationData().empty())
+    {
+      transformRetentionTimes(cmap.getIdentificationData(), trafo, store_original_rt);
     }
   }
 

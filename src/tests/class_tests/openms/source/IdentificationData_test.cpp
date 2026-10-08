@@ -255,6 +255,48 @@ START_SECTION((filtering is atomic, keeps stable IDs and clears removed selectio
 }
 END_SECTION
 
+START_SECTION((Size Run::eraseIdentifications(const std::function<bool(const Identification&)>& remove)))
+{
+  ID::Run run("search");
+  auto first_file = run.addSource({});
+  auto second_file = run.addSource({});
+  auto raw = run.addScore(score());
+  auto kept = run.addIdentification(first_file, {});
+  auto a = run.addMatch(kept, peptide("PEPTIDEA"), {1.0});
+  auto removed = run.addIdentification(first_file, {});
+  auto b = run.addMatch(removed, peptide("PEPTIDEB"), {2.0});
+  auto c = run.addMatch(removed, peptide("PEPTIDEC"), {3.0});
+  auto empty_kept = run.addIdentification(second_file, {});
+  auto empty_removed = run.addIdentification(second_file, {});
+  auto last = run.addIdentification(second_file, {});
+  auto d = run.addMatch(last, peptide("PEPTIDED"), {4.0});
+  run.setSelectedMatch(removed, c);
+  // a throwing predicate changes nothing
+  TEST_EXCEPTION(std::runtime_error, run.eraseIdentifications([](const ID::Identification& query) -> bool {
+    if (query.getMatches().empty()) throw std::runtime_error("stop");
+    return true;
+  }))
+  TEST_EQUAL(run.getNumberOfIdentifications(), 5)
+  TEST_EQUAL(run.getNumberOfMatches(), 4)
+  TEST_EQUAL(run.eraseIdentifications([](const ID::Identification&) { return false; }), 0)
+  TEST_EQUAL(run.eraseIdentifications([&](const ID::Identification& query) { return query.getId() == removed || query.getId() == empty_removed; }), 2)
+  TEST_EQUAL(run.getNumberOfIdentifications(), 3)
+  TEST_EQUAL(run.getNumberOfMatches(), 2)
+  TEST_TRUE(run.findIdentification(removed) == nullptr && run.findIdentification(empty_removed) == nullptr)
+  TEST_TRUE(run.findMatch(b) == nullptr && run.findMatch(c) == nullptr)
+  TEST_TRUE(run.findIdentification(empty_kept) != nullptr)
+  TEST_EQUAL(run.getSources()[0].identifications.size(), 1)
+  TEST_EQUAL(run.getSources()[1].identifications.size(), 2)
+  // the remaining matches keep their scores
+  TEST_REAL_SIMILAR(*run.getScore(a, raw), 1.0)
+  TEST_REAL_SIMILAR(*run.getScore(d, raw), 4.0)
+  TEST_REAL_SIMILAR(*run.bindScore(raw)(run.getMatch(d)), 4.0)
+  // IDs are not reused
+  TEST_TRUE(run.addIdentification(first_file, {}).value > last.value)
+  run.validate();
+}
+END_SECTION
+
 START_SECTION((transform validation preserves original payloads and optional adduct ownership))
 {
   ID::Run run("compounds", ID::MoleculeKind::COMPOUND);

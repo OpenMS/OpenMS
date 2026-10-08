@@ -730,6 +730,44 @@ Size ID::Run::eraseMatches(const std::function<bool(const Match&)>& remove, bool
 {
   return filterMatches([&](const Match& match) { return ! remove(match); }, keep_empty_queries);
 }
+Size ID::Run::eraseIdentifications(const std::function<bool(const Identification&)>& remove)
+{
+  checkMutation_();
+  std::vector<bool> decisions;
+  decisions.reserve(query_count_);
+  {
+    CallbackGuard guard(callback_active_);
+    for (const auto& source : sources_)
+      for (const auto& query : source.identifications)
+        decisions.push_back(remove(query));
+  }
+  const Size erased = static_cast<Size>(std::count(decisions.begin(), decisions.end(), true));
+  if (erased == 0) return 0;
+  std::set<MatchId> matches;
+  {
+    Size at = 0;
+    for (const auto& source : sources_)
+      for (const auto& query : source.identifications)
+        if (decisions[at++])
+          for (const auto& match : query.matches_)
+            matches.insert(match.id_);
+  }
+  // Removing the matches first changes nothing if it throws.
+  // Afterwards the identifications to remove are empty, and erasing them cannot throw.
+  filterMatches([&](const Match& match) { return ! matches.contains(match.id_); }, true);
+  Size offset = 0;
+  for (auto& source : sources_)
+  {
+    const Identification* first = source.identifications.data();
+    const auto end = std::remove_if(source.identifications.begin(), source.identifications.end(),
+                                    [&](const Identification& query) { return decisions[offset + static_cast<Size>(&query - first)]; });
+    offset += source.identifications.size();
+    source.identifications.erase(end, source.identifications.end());
+  }
+  query_count_ -= erased;
+  invalidateIndexes_();
+  return erased;
+}
 Size ID::Run::retainBest(ScoreId score, bool keep_ties, bool keep_empty_queries)
 {
   checkMutation_();
@@ -984,6 +1022,92 @@ void ID::clear()
   checkMutation_();
   runs_.clear();
   inference_.clear();
+}
+const ID::Match* ID::QueryMatches::getBestMatch() const
+{
+  const auto primary = run ? run->getPrimaryScore() : std::nullopt;
+  if (! primary) return nullptr;
+  const bool higher_better = run->getScoreDefinition(*primary).higher_better;
+  const Match* best = nullptr;
+  double best_score = 0.0;
+  for (const auto* match : matches)
+  {
+    const auto score = run->getScore(match->getId(), *primary);
+    if (! score || std::isnan(*score)) continue;
+    if (best && ! (higher_better ? *score > best_score : *score < best_score)) continue;
+    best = match;
+    best_score = *score;
+  }
+  return best;
+}
+std::vector<ID::QueryMatches> ID::resolveLinks(const std::set<QueryReference>& queries, const std::set<MatchReference>& matches) const
+{
+  const auto missing = [](const std::string& what) {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Link refers to a missing " + what);
+  };
+  std::map<QueryReference, QueryMatches> linked;
+  for (const auto& reference : queries)
+  {
+    const auto* run = findRunByUuid(reference.run_uuid);
+    const auto* query = run ? run->findIdentification(reference.query) : nullptr;
+    if (! query) missing("identification");
+    linked[reference] = {run, query, {}};
+  }
+  for (const auto& reference : matches)
+  {
+    const auto* run = findRunByUuid(reference.run_uuid);
+    const auto* match = run ? run->findMatch(reference.match) : nullptr;
+    if (! match) missing("match");
+    const auto& query = run->getIdentificationForMatch(reference.match);
+    auto& entry = linked[{reference.run_uuid, query.getId()}];
+    entry.run = run;
+    entry.query = &query;
+    entry.matches.push_back(match);
+  }
+  std::map<const Run*, Size> positions;
+  for (const auto& run : runs_)
+    positions.emplace(&run, positions.size());
+  std::vector<QueryMatches> result;
+  result.reserve(linked.size());
+  for (auto& [reference, entry] : linked)
+  {
+    // The matches of an identification are contiguous, in their order.
+    std::sort(entry.matches.begin(), entry.matches.end(), std::less<const Match*>());
+    result.push_back(std::move(entry));
+  }
+  std::stable_sort(result.begin(), result.end(), [&](const QueryMatches& a, const QueryMatches& b) {
+    return std::make_pair(a.query->getId(), positions[a.run]) < std::make_pair(b.query->getId(), positions[b.run]);
+  });
+  return result;
+}
+std::vector<ID::QueryMatches> ID::getUnlinked(const std::set<QueryReference>& queries, const std::set<MatchReference>& matches) const
+{
+  std::vector<QueryMatches> order;
+  for (const auto& run : runs_)
+    for (const auto& source : run.getSources())
+      for (const auto& query : source.identifications)
+        order.push_back({&run, &query, {}});
+  std::stable_sort(order.begin(), order.end(), [](const QueryMatches& a, const QueryMatches& b) { return a.query->getId() < b.query->getId(); });
+  // Runs that share query IDs keep their identifications together (the order of an export).
+  if (std::adjacent_find(order.begin(), order.end(), [](const auto& a, const auto& b) { return a.query->getId() == b.query->getId(); }) != order.end())
+  {
+    std::map<const Run*, Size> positions;
+    for (const auto& run : runs_)
+      positions.emplace(&run, positions.size());
+    std::stable_sort(order.begin(), order.end(), [&](const QueryMatches& a, const QueryMatches& b) {
+      return std::make_pair(positions[a.run], a.query->getId()) < std::make_pair(positions[b.run], b.query->getId());
+    });
+  }
+  std::vector<QueryMatches> result;
+  for (auto& entry : order)
+  {
+    const auto& uuid = entry.run->getUuid();
+    for (const auto& match : entry.query->getMatches())
+      if (! matches.contains({uuid, match.getId()})) entry.matches.push_back(&match);
+    if (! entry.matches.empty() || (entry.query->getMatches().empty() && ! queries.contains({uuid, entry.query->getId()})))
+      result.push_back(std::move(entry));
+  }
+  return result;
 }
 void ID::merge(const IdentificationData& other)
 {
