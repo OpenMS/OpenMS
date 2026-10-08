@@ -612,8 +612,8 @@ namespace
     const auto any = [](const auto& self, const auto& feature) -> bool {
       if (! feature.getPeptideIdentifications().empty()) return true;
       if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
-        return std::any_of(feature.getSubordinates().begin(), feature.getSubordinates().end(),
-                           [&](const Feature& subordinate) { return self(self, subordinate); });
+        for (const auto& subordinate : feature.getSubordinates())
+          if (self(self, subordinate)) return true;
       return false;
     };
     return std::any_of(map.begin(), map.end(), [&](const auto& feature) { return any(any, feature); });
