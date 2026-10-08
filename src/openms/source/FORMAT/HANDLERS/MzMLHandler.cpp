@@ -5260,7 +5260,7 @@ namespace OpenMS::Internal
       //run attributes
       if (!exp.getFractionIdentifier().empty())
       {
-        os << "\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000858\" name=\"fraction identifier\" value=\"" << exp.getFractionIdentifier() << "\" />\n";
+        os << "\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000858\" name=\"fraction identifier\" value=\"" << writeXMLAttribute_(exp.getFractionIdentifier()) << "\" />\n";
       }
 
       writeUserParam_(os, exp, 2, "/mzML/run/cvParam/@accession", validator, {"mzml_start_time_stamp"});
@@ -5656,7 +5656,7 @@ namespace OpenMS::Internal
           }
           else
           {
-            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
+            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << writeXMLAttribute_(array.getName()) << "\" />\n";
           }
           writeUserParam_(os, array, 6, "/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
           os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
@@ -5679,7 +5679,7 @@ namespace OpenMS::Internal
           os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001479\" name=\"null-terminated ASCII string\" />\n";
           os << "\t\t\t\t\t\t" << compression_term_string << "\n";
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << writeXMLAttribute_(array.getName()) << "\" />\n";
           writeUserParam_(os, array, 6, "/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
           os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
           os << "\t\t\t\t\t</binaryDataArray>\n";
@@ -5872,7 +5872,7 @@ namespace OpenMS::Internal
         else
         {
           cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" +
-            array.getName() + "\"" + unit_cv_term + " />\n";
+            writeXMLAttribute_(array.getName()) + "\"" + unit_cv_term + " />\n";
         }
 
         compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationFloatDataArray(), "\t\t\t\t\t\t", true);
@@ -6064,7 +6064,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << writeXMLAttribute_(array.getName()) << "\" />\n";
         }
         writeUserParam_(os, array, 6, "/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
         os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
@@ -6089,7 +6089,7 @@ namespace OpenMS::Internal
         os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001479\" name=\"null-terminated ASCII string\" />\n";
         os << "\t\t\t\t\t\t" << compression_term_string << "\n";
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
+        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << writeXMLAttribute_(array.getName()) << "\" />\n";
         writeUserParam_(os, array, 6, "/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
         os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
         os << "\t\t\t\t\t</binaryDataArray>\n";

@@ -2000,4 +2000,56 @@ START_SECTION((Thermo metadata survives mzML serialization, sorting, and reloadi
 }
 END_SECTION
 
+START_SECTION((data array names and the fraction identifier are XML-escaped))
+{
+  // These two are the values a writer takes verbatim from the data: the name of a non-standard
+  // data array (from the input file, or set by a tool) and the fraction identifier (from the
+  // experimental design). Written unescaped, an '&' or '<' in them produced mzML that no reader
+  // can parse, including OpenMS' own.
+  const std::string tricky = "a & b < c > \"d\"";
+
+  PeakMap original;
+  original.setFractionIdentifier(tricky);
+  MSSpectrum spectrum;
+  spectrum.setNativeID("scan=1");
+  spectrum.setRT(1); spectrum.setMSLevel(1);
+  spectrum.push_back(Peak1D(100.0, 1.0f));
+  MSSpectrum::FloatDataArray fda;
+  fda.setName(tricky);
+  fda.push_back(1.0f);
+  spectrum.getFloatDataArrays().push_back(fda);
+  MSSpectrum::IntegerDataArray ida;
+  ida.setName(tricky);
+  ida.push_back(2);
+  spectrum.getIntegerDataArrays().push_back(ida);
+  original.addSpectrum(spectrum);
+
+  MSChromatogram chromatogram;
+  chromatogram.setNativeID("chrom=1");
+  chromatogram.push_back(ChromatogramPeak(1, 200));
+  MSChromatogram::FloatDataArray cfda;
+  cfda.setName(tricky);
+  cfda.push_back(3.0f);
+  chromatogram.getFloatDataArrays().push_back(cfda);
+  original.addChromatogram(chromatogram);
+
+  MzMLFile file;
+  std::string encoded;
+  file.storeBuffer(encoded, original);
+  TEST_TRUE(StringUtils::hasSubstring(encoded, "a &amp; b &lt; c &gt;"))
+  TEST_FALSE(StringUtils::hasSubstring(encoded, "value=\"a & b"))
+
+  PeakMap loaded;
+  file.loadBuffer(encoded, loaded); // an unescaped '&' makes this throw
+  ABORT_IF(loaded.size() != 1)
+  TEST_EQUAL(loaded.getFractionIdentifier(), tricky)
+  ABORT_IF(loaded[0].getFloatDataArrays().empty())
+  TEST_EQUAL(loaded[0].getFloatDataArrays()[0].getName(), tricky)
+  ABORT_IF(loaded[0].getIntegerDataArrays().empty())
+  TEST_EQUAL(loaded[0].getIntegerDataArrays()[0].getName(), tricky)
+  ABORT_IF(loaded.getChromatograms().empty() || loaded.getChromatograms()[0].getFloatDataArrays().empty())
+  TEST_EQUAL(loaded.getChromatograms()[0].getFloatDataArrays()[0].getName(), tricky)
+}
+END_SECTION
+
 END_TEST
