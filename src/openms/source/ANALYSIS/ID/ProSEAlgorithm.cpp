@@ -4104,7 +4104,7 @@ namespace OpenMS
           file.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
           if (!file)
           {
-#pragma omp atomic write
+#pragma omp critical (ProSEAlgorithm_loadMzMLChunked)
             ok = false;
             file.clear();
             continue;
@@ -4256,7 +4256,7 @@ namespace OpenMS
           }
           if (!parsed)
           {
-#pragma omp atomic write
+#pragma omp critical (ProSEAlgorithm_loadMzMLChunked)
             ok = false;
             file.clear();
           }
