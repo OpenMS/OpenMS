@@ -80,6 +80,21 @@ OpenMS Library:
     peptide, from at most 31 sites (a warning counts peptides with more). The default precursor
     isotope range of FragmentIndex is [-2, 0] (it searched [0, +2], precursors picked below the
     monoisotopic peak).
+  - FIX: FragmentIndex applies a residue-specific terminal variable modification (e.g. Gln->pyro-Glu
+    (N-term Q)) as a terminal modification; set as a residue modification, it failed ResidueDB's
+    precondition and aborted the parallel search. A variable modification is not applied to a residue
+    that carries a fixed one (as in ModifiedPeptideGenerator; the index held both masses while the
+    reconstructed sequence kept one). SNES also enumerates nonempty modification subsets whose shifts
+    cancel (e.g. Deamidated (N) with Amidated (C-term)); it returned the unmodified sequence only.
+  - FIX: ProSE rejects scoring:method=mass_accuracy without a finite, positive fragment:mass_tolerance
+    when the parameters are set ('auto' then uses HyperScore), and an exception on a worker thread of
+    the parallel scoring and calibration loops is rethrown after the loop instead of terminating the
+    process.
+  - FIX: GlobalExceptionHandler records the last exception per thread (the fields were shared strings
+    that exceptions constructed on several threads at once wrote concurrently), and its singleton is
+    initialised thread-safely. Xerces initialisation and termination are serialised
+    (Internal::xercesInitialize(), Internal::xercesTerminate()), as Xerces requires of its callers;
+    XMLFile::parseBuffer_() runs on several threads at once in ProSE's chunked mzML reader.
   - FragmentIndex::getProteinOccurrences() lists every span of the digest with the residues of an index peptide,
     including the occurrences that peptide:deduplicate removed from getPeptides() (recorded by the deduplication);
     hasProteinOccurrences() tells whether the list is complete (not in SNES mode or with protein-terminal

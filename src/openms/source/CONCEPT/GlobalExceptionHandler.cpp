@@ -113,68 +113,44 @@ namespace OpenMS::Exception
 
     GlobalExceptionHandler & GlobalExceptionHandler::getInstance()
     {
-      static GlobalExceptionHandler * globalExceptionHandler_;
-
-      if (globalExceptionHandler_ == nullptr)
-      {
-        globalExceptionHandler_ = new GlobalExceptionHandler;
-      }
-      return *globalExceptionHandler_;
+      // A function-local static is initialised once, also when several threads construct their first
+      // exception at the same time (the former check-then-new on a static pointer was a data race).
+      static GlobalExceptionHandler globalExceptionHandler_;
+      return globalExceptionHandler_;
     }
 
+    // The last exception is recorded per thread: every exception constructor writes these fields,
+    // and threads that throw at the same time (e.g. the chunks of a parallel file read that fail to
+    // parse) would otherwise write the same strings at once. terminate() runs on the thread whose
+    // exception was not caught, so it reads that thread's entry.
     std::string & GlobalExceptionHandler::file_()
     {
-      static std::string * file_ = nullptr;
-      if (file_ == nullptr)
-      {
-        file_  = new std::string;
-        *file_ = "unknown";
-      }
-      return *file_;
+      static thread_local std::string file = "unknown";
+      return file;
     }
 
     int & GlobalExceptionHandler::line_()
     {
-      static int * line_ = nullptr;
-      if (line_ == nullptr)
-      {
-        line_  = new int;
-        *line_ = -1;
-      }
-      return *line_;
+      static thread_local int line = -1;
+      return line;
     }
 
     std::string & GlobalExceptionHandler::function_()
     {
-      static std::string * function_ = nullptr;
-      if (function_ == nullptr)
-      {
-        function_  = new std::string;
-        *function_ = "unknown";
-      }
-      return *function_;
+      static thread_local std::string function = "unknown";
+      return function;
     }
 
     std::string & GlobalExceptionHandler::name_()
     {
-      static std::string * name_ = nullptr;
-      if (name_ == nullptr)
-      {
-        name_  = new std::string;
-        *name_ = "unknown exception";
-      }
-      return *name_;
+      static thread_local std::string name = "unknown exception";
+      return name;
     }
 
     std::string & GlobalExceptionHandler::what_()
     {
-      static std::string * what_ = nullptr;
-      if (what_ == nullptr)
-      {
-        what_  = new std::string;
-        *what_ = " - ";
-      }
-      return *what_;
+      static thread_local std::string what = " - ";
+      return what;
     }
 
 
