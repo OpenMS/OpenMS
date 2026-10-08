@@ -576,8 +576,10 @@ START_SECTION(([EXTRA] Range filters keep spectrum metadata and filter data arra
     TEST_EQUAL(s.getFloatDataArrays()[0].size(), kept.size());
     TEST_EQUAL(s.getStringDataArrays()[0].size(), ref_has_strings ? kept.size() : 0);
     TEST_EQUAL(s.getIntegerDataArrays()[0].size(), kept.size());
-    if (s.getFloatDataArrays()[0].size() != kept.size() || s.getStringDataArrays()[0].size() != kept.size()
-        || s.getIntegerDataArrays()[0].size() != kept.size() || s.size() != kept.size() || (ref_has_strings && s.getStringDataArrays()[0].size() != kept.size())) return;
+    if (s.getFloatDataArrays()[0].size() != kept.size()
+        || s.getIntegerDataArrays()[0].size() != kept.size()
+        || s.size() != kept.size()
+        || (ref_has_strings && s.getStringDataArrays()[0].size() != kept.size())) return;
     for (Size j = 0; j < kept.size(); ++j)
     {
       TEST_REAL_SIMILAR(s[j].getMZ(), ref[kept[j]].getMZ());
