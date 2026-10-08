@@ -38,6 +38,33 @@ static PeptideIdentification makePepID_(const std::string& reference,
 
 START_TEST(IDConflictResolverAlgorithm, "$Id$")
 
+START_SECTION((static void resolve(FeatureMap& features, bool keep_matching = false)))
+{
+  // The best identification of a feature is never one without hits, whichever direction is better: with lower
+  // scores better, an identification without hits used to win (and keep_matching then read its first hit).
+  for (const bool higher_better : {false, true})
+  {
+    for (const bool keep_matching : {false, true})
+    {
+      FeatureMap map;
+      Feature feature;
+      feature.setUniqueId(7);
+      PeptideIdentificationList ids;
+      ids.push_back(makePepID_("scan=1", "", 2, 0.0, higher_better)); // no hits
+      ids.push_back(makePepID_("scan=2", "PEPTIDEK", 2, 0.25, higher_better));
+      ids.push_back(makePepID_("scan=3", "PEPTIDER", 2, 0.75, higher_better));
+      ids.push_back(makePepID_("scan=4", "", 2, 0.0, higher_better)); // no hits
+      feature.setPeptideIdentifications(ids);
+      map.push_back(feature);
+      IDConflictResolverAlgorithm::resolve(map, keep_matching);
+      const auto& kept = map[0].getPeptideIdentifications();
+      ABORT_IF(kept.empty() || kept[0].getHits().empty())
+      TEST_EQUAL(kept[0].getHits()[0].getSequence().toString(), higher_better ? "PEPTIDER" : "PEPTIDEK")
+    }
+  }
+}
+END_SECTION
+
 START_SECTION(resolveBetweenFeatures())
 {
   FeatureMap map;
