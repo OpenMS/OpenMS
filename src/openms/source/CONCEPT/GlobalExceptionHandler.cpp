@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <cstdlib>  // for getenv in terminate()
+#include <exception>
 //#include <sys/types.h>
 #include <csignal> // for SIGSEGV and kill
 #include <iostream>
@@ -50,7 +51,27 @@ namespace OpenMS::Exception
       std::cout << "---------------------------------------------------" << std::endl;
       std::cout << "FATAL: uncaught exception!" << std::endl;
       std::cout << "---------------------------------------------------" << std::endl;
-      if ((line_() != -1) && (name_() != "unknown"))
+      // The exception that was not caught reports itself: it may have been constructed on another thread (and carried
+      // here by std::exception_ptr, e.g. from a parallel loop), so the last entry of this thread need not be about it.
+      bool reported = false;
+      if (const std::exception_ptr uncaught = std::current_exception())
+      {
+        try
+        {
+          std::rethrow_exception(uncaught);
+        }
+        catch (const BaseException& e)
+        {
+          std::cout << "exception of type " << e.getName() << " occurred in line " << e.getLine() << ", function "
+                    << e.getFunction() << " of " << e.getFile() << std::endl;
+          std::cout << "error message: " << e.what() << std::endl;
+          reported = true;
+        }
+        catch (...)
+        {
+        }
+      }
+      if (!reported && (line_() != -1) && (name_() != "unknown"))
       {
         std::cout << "last entry in the exception handler: " << std::endl;
         std::cout << "exception of type " << name_().c_str() << " occurred in line "
