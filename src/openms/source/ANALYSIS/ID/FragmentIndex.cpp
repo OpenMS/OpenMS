@@ -46,10 +46,10 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <boost/sort/sort.hpp>
-#if defined(__linux__) && defined(_OPENMP)
+#if defined(__linux__)
   #include <cstdint>
   #include <type_traits>
-  #include <sys/mman.h> // madvise (releasePagesInParallel)
+  #include <sys/mman.h> // madvise (releasePagesInParallel, adviseHugePages)
   #include <unistd.h>
 #endif
 #if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_IX86))
@@ -576,6 +576,23 @@ namespace OpenMS
       (void) buffer;
 #endif
     }
+
+    // Asks Linux to back a large buffer with transparent huge pages (with THP in "madvise" mode, only buffers advised so
+    // get them): writing it then takes a 512th of the page faults, and releasing it a fraction of the time. Only the
+    // 2 MB pages inside the buffer are advised, and the caller writes all of it right after, so this backs no memory the
+    // buffer would not take anyway.
+    template <typename T>
+    void adviseHugePages(std::vector<T>& buffer)
+    {
+#if defined(__linux__) && defined(MADV_HUGEPAGE)
+      constexpr std::uintptr_t huge_page = std::uintptr_t(2) << 20;
+      const std::uintptr_t begin = (reinterpret_cast<std::uintptr_t>(buffer.data()) + huge_page - 1) / huge_page * huge_page;
+      const std::uintptr_t end = (reinterpret_cast<std::uintptr_t>(buffer.data()) + buffer.size() * sizeof(T)) / huge_page * huge_page;
+      if (end > begin) { madvise(reinterpret_cast<void*>(begin), end - begin, MADV_HUGEPAGE); }
+#else
+      (void) buffer;
+#endif
+    }
   }
 
   void FragmentIndex::clear()
@@ -592,6 +609,7 @@ namespace OpenMS
     std::vector<Fragment>().swap(fi_fragments_);
     std::vector<Fragment>().swap(electron_fragments_);
     std::vector<Peptide>().swap(fi_peptides_);
+    std::vector<RemovedOccurrence>().swap(removed_occurrences_);
     std::vector<float>().swap(bucket_min_mz_);
     std::vector<float>().swap(electron_bucket_min_mz_);
     std::vector<UInt32>().swap(bucket_skip_);
@@ -1300,6 +1318,9 @@ namespace OpenMS
           }
         }
 
+        // getProteinOccurrences() relies on this loop treating spans with equal residues alike: whether a span is
+        // skipped and which entries it gets depend on its residues only (and, for protein-terminal modifications,
+        // which hasProteinOccurrences() excludes, on its position in the protein).
         for (const pair<size_t, size_t>& digested_peptide : digested_peptides)
         {
           // skip peptides containing unknown or ambiguous AA codes (X, B, Z), stop codons ('*')
@@ -1445,18 +1466,18 @@ namespace OpenMS
                         << " sites are considered for them (see modifications:variable)." << std::endl;
       }
 
-      // Merge per-thread peptide vectors.
-      // Deliberately left as reserve + sequential insert, unlike the fragment merge in build():
-      // fi_peptides_ is ~66 MB even for a human proteome, so the transient 2x costs little,
-      // and the sort below keys only on (precursor_mz_, protein_idx) — which does NOT cover
-      // mod_bitmask_ / sequence_ — so equal-key peptides are distinguishable and their
-      // relative order (hence every downstream peptide index) depends on this concatenation.
-      size_t total_peptides = 0;
-      for (int t = 0; t < num_threads; ++t) total_peptides += thread_peptides[t].size();
-      fi_peptides_.reserve(total_peptides);
+      // Merge per-thread peptide vectors, in thread order: the sort below keys only on
+      // (precursor_mz_, protein_idx) — which does NOT cover mod_bitmask_ / sequence_ — so
+      // equal-key peptides are distinguishable and their relative order (hence every downstream
+      // peptide index) depends on this concatenation. Peptide() writes nothing, so the resize only
+      // allocates, and each thread copies (and first touches) the part that it generated.
+      std::vector<size_t> merge_offsets(num_threads + 1, fi_peptides_.size());
+      for (int t = 0; t < num_threads; ++t) merge_offsets[t + 1] = merge_offsets[t] + thread_peptides[t].size();
+      fi_peptides_.resize(merge_offsets[num_threads]);
+      #pragma omp parallel for schedule(static, 1)
       for (int t = 0; t < num_threads; ++t)
       {
-        fi_peptides_.insert(fi_peptides_.end(), thread_peptides[t].begin(), thread_peptides[t].end());
+        std::copy(thread_peptides[t].begin(), thread_peptides[t].end(), fi_peptides_.begin() + merge_offsets[t]);
         vector<Peptide>().swap(thread_peptides[t]);
       }
 
@@ -1607,6 +1628,8 @@ namespace OpenMS
     // Original index breaks hash ties so the first representative is stable.
     std::sort(fingerprints.begin(), fingerprints.end());
     std::vector<uint8_t> duplicate(fi_peptides_.size(), 0);
+    // Removed entries as (index of their kept entry, index of the removed entry), both before compaction
+    std::vector<std::pair<Size, Size>> removed_entries;
     for (Size begin = 0; begin < fingerprints.size();)
     {
       Size end = begin + 1;
@@ -1616,19 +1639,33 @@ namespace OpenMS
       }
       if (end - begin > 1)
       {
-        std::unordered_set<std::string> seen;
+        std::unordered_map<std::string, Size> first_of; // rendered peptidoform -> its first (kept) entry
         for (Size i = begin; i < end; ++i)
         {
           const Size index = fingerprints[i].second;
-          duplicate[index] = ! seen.insert(reconstructModifiedSequence(fi_peptides_[index], fasta_entries).toString()).second;
+          const auto [it, inserted] = first_of.emplace(reconstructModifiedSequence(fi_peptides_[index], fasta_entries).toString(), index);
+          duplicate[index] = ! inserted;
+          if (! inserted) removed_entries.emplace_back(it->second, index);
         }
       }
       begin = end;
     }
+    // Ordered by kept entry, then by the position of the removed entry: getRemovedOccurrences()
+    std::sort(removed_entries.begin(), removed_entries.end());
+    removed_occurrences_.clear();
+    removed_occurrences_.reserve(removed_entries.size());
+    auto next_removed = removed_entries.begin();
     Size retained = 0;
     for (Size i = 0; i < fi_peptides_.size(); ++i)
     {
-      if (! duplicate[i]) { fi_peptides_[retained++] = fi_peptides_[i]; }
+      if (duplicate[i]) continue;
+      // removed entries come after their kept entry, which is therefore still in place here
+      for (; next_removed != removed_entries.end() && next_removed->first == i; ++next_removed)
+      {
+        const Peptide& occurrence = fi_peptides_[next_removed->second];
+        removed_occurrences_.push_back({static_cast<UInt32>(retained), occurrence.protein_idx, occurrence.sequence_.first});
+      }
+      fi_peptides_[retained++] = fi_peptides_[i];
     }
     const Size removed = fi_peptides_.size() - retained;
     fi_peptides_.erase(fi_peptides_.begin() + retained, fi_peptides_.end());
@@ -1663,6 +1700,12 @@ namespace OpenMS
   }
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
+  {
+    build(fasta_entries, {});
+  }
+
+  void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                            const std::function<const MSExperiment*(Size)>& searched_spectra)
   {
       // A rebuild replaces the previous database. generatePeptides() appends, so stale
       // peptides would otherwise be kept and their coordinates interpreted against the
@@ -1718,9 +1761,10 @@ namespace OpenMS
       const size_t portion_size = std::max<size_t>(4 * num_bins, 1024); // peptides; the tables below take 2 bytes per peptide
 
       // peptide:deduplicate - protein occurrences are not distinct peptide hypotheses: of every peptidoform
-      // (reconstructModifiedSequence(...).toString()) only the first entry is kept. ProSE maps the hits against the
-      // complete FASTA later, including target/decoy shared sequences. SNES entries are mother peptides with
-      // different anchors, not scored forms.
+      // (reconstructModifiedSequence(...).toString()) only the first entry is kept. The protein occurrences of the others
+      // are recorded (getRemovedOccurrences()), so that getProteinOccurrences() still lists every protein occurrence,
+      // including target/decoy shared sequences. SNES entries are mother peptides with different anchors, not scored
+      // forms.
       // The entries of a peptidoform normally have equal residues and bitwise equal precursor_mz_ (generatePeptides()
       // adds the same masses in the same order), so they lie in one run of equal precursor_mz_. The first pass meets
       // them one after the other, their sequences in the cache, and keeps the first entry of every peptidoform
@@ -1735,6 +1779,15 @@ namespace OpenMS
       {
         const Size removed = deduplicateByString_(fasta_entries);
         OPENMS_LOG_INFO << "Collapsed " << removed << " repeated peptidoform occurrences." << std::endl;
+      }
+
+      // Peptides that no spectrum can reach need no fragments (the open search windows reach nearly all peptides).
+      // After the deduplication by strings: equal renderings may have different precursor m/z there, so the kept
+      // entry of a peptidoform has to be chosen among all of its entries, not only among those in a window. The
+      // deduplication in runs of equal precursor m/z below keeps or drops a run as a whole and may follow.
+      if (searched_spectra && !is_snes_mode_ && !isOpenSearchMode_())
+      {
+        if (const MSExperiment* spectra = searched_spectra(fi_peptides_.size())) { keepPeptidesInPrecursorWindows_(*spectra); }
       }
       const bool deduplicate = deduplicate_requested && !deduplicate_by_string;
       const size_t num_peptides = fi_peptides_.size();
@@ -1912,6 +1965,9 @@ namespace OpenMS
         portion_start[portion] = start;
       }
       vector<size_t> kept_count(deduplicate ? num_portions : 0); // first pass: entries kept of each portion
+      // First pass: the entries each portion removed, with the position of their kept entry within the portion,
+      // in the order met (getRemovedOccurrences())
+      vector<vector<RemovedOccurrence>> removed_of_portion(deduplicate ? num_portions : 0);
       // Key of a peptide within its run: a hash of its length and of up to 8 residues after the first and before the
       // last one, and of its active modification slots where these name the peptidoform (the same residues give the
       // same slots, and no two variable modifications render alike). Equal peptidoforms agree in them, the peptides
@@ -1940,6 +1996,7 @@ namespace OpenMS
           vector<double> mod_masses;
           vector<uint32_t> run_keys;           // keys of the kept entries of the current run
           vector<Peptide> run_entries;         // the kept entries of the current run
+          vector<UInt32> run_positions;        // their positions within the portion's kept entries
           vector<uint32_t> tokens_a, tokens_b; // samePeptidoform_()
           const size_t size = fi_peptides_.size();
           #pragma omp for schedule(dynamic)
@@ -1973,20 +2030,30 @@ namespace OpenMS
               {
                 run_keys.clear();
                 run_entries.clear();
+                run_positions.clear();
               }
               const uint32_t key = runKey(peptide);
               // Long runs are mostly distinct peptides of one composition: test all keys at once, without branches,
               // and compare entries only where a key matches.
               bool candidate = false;
               for (const uint32_t earlier : run_keys) candidate |= (earlier == key);
-              bool repeats = false;
-              for (size_t k = 0; candidate && !repeats && k < run_keys.size(); ++k)
+              size_t repeated = run_keys.size(); // the kept entry this one repeats, if any
+              for (size_t k = 0; candidate && k < run_keys.size(); ++k)
               {
-                repeats = run_keys[k] == key && samePeptidoform_(run_entries[k], peptide, fasta_entries, rendering, tokens_a, tokens_b);
+                if (run_keys[k] == key && samePeptidoform_(run_entries[k], peptide, fasta_entries, rendering, tokens_a, tokens_b))
+                {
+                  repeated = k;
+                  break;
+                }
               }
-              if (repeats) continue;
+              if (repeated < run_keys.size())
+              {
+                removed_of_portion[portion].push_back({run_positions[repeated], peptide.protein_idx, peptide.sequence_.first});
+                continue;
+              }
               run_keys.push_back(key);
               run_entries.push_back(peptide);
+              run_positions.push_back(static_cast<UInt32>(kept));
               fi_peptides_[begin + kept] = peptide; // at or before peptide_idx
               generate_fragments_of(begin + kept, mod_masses, fragment_sink, electron_sink); // the counter ignores the index
               ++kept;
@@ -2038,6 +2105,22 @@ namespace OpenMS
         }
         OPENMS_LOG_INFO << "Collapsed " << (num_peptides - kept_total) << " repeated peptidoform occurrences." << std::endl;
         fi_peptides_.erase(fi_peptides_.begin() + kept_total, fi_peptides_.end());
+
+        // The removed occurrences under the final index of their kept entry; stable, so that the occurrences of an
+        // entry stay in the order met (a run, and so every kept entry with its repeats, lies in one portion)
+        removed_occurrences_.clear();
+        removed_occurrences_.reserve(num_peptides - kept_total);
+        for (SignedSize portion = 0; portion < num_portions; ++portion)
+        {
+          for (RemovedOccurrence occurrence : removed_of_portion[portion])
+          {
+            occurrence.peptide_idx += static_cast<UInt32>(portion_start[portion]);
+            removed_occurrences_.push_back(occurrence);
+          }
+          vector<RemovedOccurrence>().swap(removed_of_portion[portion]);
+        }
+        std::stable_sort(removed_occurrences_.begin(), removed_occurrences_.end(),
+                         [](const RemovedOccurrence& a, const RemovedOccurrence& b) { return a.peptide_idx < b.peptide_idx; });
       }
 
       // Turn the counts into the position at which each portion fills each bin; returns the number of fragments
@@ -2069,6 +2152,8 @@ namespace OpenMS
       // Fragment's default constructor leaves the new elements uninitialised: the second pass writes them first
       fi_fragments_.resize(counts_to_positions(positions));
       electron_fragments_.resize(counts_to_positions(electron_positions));
+      adviseHugePages(fi_fragments_);
+      adviseHugePages(electron_fragments_);
 
       // Second pass: write
       generate_fragments([&](vector<Fragment>& fragments, size_t* next) { return BinWriter{fragments.data(), next, first_bin, last}; }, false);
@@ -2446,6 +2531,84 @@ namespace OpenMS
              static_cast<float>(precursor_mass_tolerance_upper_)};
   }
 
+  void FragmentIndex::keepPeptidesInPrecursorWindows_(const MSExperiment& spectra)
+  {
+    // The windows of querySpectrum(), with its charges and isotope errors and the float arithmetic of
+    // searchDifferentPrecursorRanges() and getPeptidesInMassWindow(). The margin only covers a different
+    // rounding of the same expressions (e.g. fused multiply-adds in one place only); it is far smaller
+    // than a window.
+    std::vector<std::pair<float, float>> windows;
+    std::vector<uint16_t> charges;
+    for (const MSSpectrum& spectrum : spectra)
+    {
+      if (spectrum.empty() || spectrum.getMSLevel() != 2 || spectrum.getPrecursors().size() != 1) { continue; } // not searched
+      const Precursor& precursor = spectrum.getPrecursors()[0];
+      charges.clear();
+      if (precursor.getCharge()) { charges.push_back(static_cast<uint16_t>(precursor.getCharge())); }
+      else
+      {
+        for (uint16_t charge = min_precursor_charge_; charge <= max_precursor_charge_; ++charge) { charges.push_back(charge); }
+      }
+      for (const uint16_t charge : charges)
+      {
+        const float precursor_mass = (float)precursor.getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
+        for (int16_t isotope_error = min_isotope_error_; isotope_error <= max_isotope_error_; ++isotope_error)
+        {
+          const float shifted_mass = precursor_mass
+            + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
+          const auto window = computeMassWindow_(shifted_mass);
+          const float margin = 1e-3f + 1e-6f * std::fabs(shifted_mass);
+          const float lo = shifted_mass + window.first - margin;
+          const float hi = shifted_mass + window.second + margin;
+          // a NaN bound gives the query an arbitrary peptide range: keep them all
+          if (std::isnan(lo) || std::isnan(hi)) { return; }
+          windows.emplace_back(lo, hi);
+        }
+      }
+    }
+    if (windows.empty()) { return; } // nothing will be searched
+    std::sort(windows.begin(), windows.end());
+
+    // Moves the peptides of the merged windows to the front, in their order (the windows ascend).
+    const size_t num_peptides = fi_peptides_.size();
+    struct KeptRange { size_t begin, end, new_begin; }; // [begin, end) moved to new_begin
+    std::vector<KeptRange> kept_ranges;
+    auto kept_end = fi_peptides_.begin();
+    auto from = fi_peptides_.begin();
+    for (size_t w = 0; w < windows.size();)
+    {
+      const float lo = windows[w].first;
+      float hi = windows[w].second;
+      for (++w; w < windows.size() && windows[w].first <= hi; ++w) { hi = std::max(hi, windows[w].second); }
+      const auto first = std::lower_bound(from, fi_peptides_.end(), lo, [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
+      from = std::upper_bound(first, fi_peptides_.end(), hi, [](float b, const Peptide& a) { return b < a.precursor_mz_; });
+      if (first == from) { continue; }
+      kept_ranges.push_back({static_cast<size_t>(first - fi_peptides_.begin()), static_cast<size_t>(from - fi_peptides_.begin()),
+                             static_cast<size_t>(kept_end - fi_peptides_.begin())});
+      kept_end = (kept_end == first) ? from : std::copy(first, from, kept_end);
+    }
+    fi_peptides_.erase(kept_end, fi_peptides_.end());
+
+    // Occurrences removed by a deduplication before (ordered by their kept entry): those of the kept entries follow
+    // them to their new index, the others go with them.
+    if (!removed_occurrences_.empty())
+    {
+      size_t num_kept = 0;
+      auto range = kept_ranges.cbegin();
+      for (const RemovedOccurrence& occurrence : removed_occurrences_)
+      {
+        while (range != kept_ranges.cend() && range->end <= occurrence.peptide_idx) { ++range; }
+        if (range == kept_ranges.cend()) { break; }
+        if (occurrence.peptide_idx < range->begin) { continue; }
+        RemovedOccurrence moved = occurrence;
+        moved.peptide_idx = static_cast<UInt32>(range->new_begin + (occurrence.peptide_idx - range->begin));
+        removed_occurrences_[num_kept++] = moved;
+      }
+      removed_occurrences_.resize(num_kept);
+    }
+    OPENMS_LOG_INFO << "The precursor windows of the spectra reach " << fi_peptides_.size() << " of " << num_peptides << " peptides." << std::endl;
+  }
+
   vector<FragmentIndex::Hit> FragmentIndex::query(const OpenMS::Peak1D& peak,
                                                   const pair<size_t, size_t>& peptide_idx_range,
                                                   uint16_t peak_charge)
@@ -2454,8 +2617,14 @@ namespace OpenMS
 
       float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, adjusted_mass) : fragment_mz_tolerance_;
 
-      auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), adjusted_mass - frag_tol);
-      auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), adjusted_mass + frag_tol);
+      // The fragments are matched against the same bounds that select the buckets: a test written
+      // differently (adjusted_mass - frag_tol <= fragment_mz_ is not the same in float arithmetic as
+      // adjusted_mass >= fragment_mz_ - frag_tol) would let a fragment within an ulp of a bound count
+      // only if its bucket happens to be visited, i.e. depend on the bucket layout.
+      const float mz_lo = adjusted_mass - frag_tol;
+      const float mz_hi = adjusted_mass + frag_tol;
+      auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_lo);
+      auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_hi);
 
       if (left_it != bucket_min_mz_.begin()) --left_it;
 
@@ -2481,7 +2650,7 @@ namespace OpenMS
           // peptide_idx_range is half-open [first, second) — stop BEFORE index second.
           if (left_iter->peptide_idx_ >= peptide_idx_range.second) break;
 
-          if ((adjusted_mass >= left_iter->fragment_mz_ - frag_tol ) && adjusted_mass <= (left_iter->fragment_mz_+ frag_tol))
+          if (left_iter->fragment_mz_ >= mz_lo && left_iter->fragment_mz_ <= mz_hi)
           {
 
             hits.emplace_back(left_iter->peptide_idx_, left_iter->fragment_mz_);
@@ -2584,14 +2753,15 @@ namespace OpenMS
       std::vector<UInt32>& touched = touched_ids;
 
       // A bucket visit: the bucket, where in it the candidate ranges are expected to start,
-      // and the peak its fragments are matched against.
+      // and the m/z window of the peak its fragments are matched against (the bounds that
+      // selected the bucket).
       struct Visit
       {
         const Fragment* begin;
         const Fragment* guess;
         const Fragment* end;
-        float adjusted_mass;
-        float frag_tol;
+        float mz_lo;
+        float mz_hi;
       };
 
       // Tolerance window and half-open peptide-range test are identical to
@@ -2619,7 +2789,7 @@ namespace OpenMS
             // candidate ranges are half-open [first, second) — stop BEFORE index second.
             for (; it != v.end && it->peptide_idx_ < block.second; ++it)
             {
-              if ((v.adjusted_mass >= it->fragment_mz_ - v.frag_tol ) && v.adjusted_mass <= (it->fragment_mz_+ v.frag_tol))
+              if (it->fragment_mz_ >= v.mz_lo && it->fragment_mz_ <= v.mz_hi)
               {
                 uint32_t& count = block_counts[it->peptide_idx_ - block.first];
                 if (count == 0) touched.push_back(static_cast<UInt32>(&count - counts));
@@ -2643,8 +2813,10 @@ namespace OpenMS
       auto count_matches = [&](const std::vector<Fragment>& fragments, const std::vector<float>& bucket_min_mz,
                                const std::vector<UInt32>& skip, float adjusted_mass, float frag_tol)
       {
-          auto left_it = std::lower_bound(bucket_min_mz.begin(), bucket_min_mz.end(), adjusted_mass - frag_tol);
-          auto right_it = std::upper_bound(bucket_min_mz.begin(), bucket_min_mz.end(), adjusted_mass + frag_tol);
+          const float mz_lo = adjusted_mass - frag_tol;
+          const float mz_hi = adjusted_mass + frag_tol;
+          auto left_it = std::lower_bound(bucket_min_mz.begin(), bucket_min_mz.end(), mz_lo);
+          auto right_it = std::upper_bound(bucket_min_mz.begin(), bucket_min_mz.end(), mz_hi);
 
           if (left_it != bucket_min_mz.begin()) --left_it;
 
@@ -2685,7 +2857,7 @@ namespace OpenMS
             prefetchForRead(guess, 96);
 
             if (num_queued - num_scanned == pipeline_depth) scan(pipeline[num_scanned++ % pipeline_depth]);
-            pipeline[num_queued++ % pipeline_depth] = Visit{slice_begin, guess, slice_end, adjusted_mass, frag_tol};
+            pipeline[num_queued++ % pipeline_depth] = Visit{slice_begin, guess, slice_end, mz_lo, mz_hi};
           }
       };
 
@@ -2994,8 +3166,11 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       sigma_union.insert(sigma_union.end(), snes_sigma_delta_set_with_prot_cterm_.begin(), snes_sigma_delta_set_with_prot_cterm_.end());
 
       auto mark_bucket_range = [&](float target, float tol_lo, float tol_hi) {
-        auto lb = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), target + tol_lo);
-        auto rb = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), target + tol_hi);
+        // same bounds for the bucket selection and the fragment test (see query())
+        const float mz_lo = target + tol_lo;
+        const float mz_hi = target + tol_hi;
+        auto lb = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_lo);
+        auto rb = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_hi);
         if (lb != bucket_min_mz_.begin()) --lb;
         const size_t jb = std::distance(bucket_min_mz_.begin(), lb);
         const size_t je = std::distance(bucket_min_mz_.begin(), rb);
@@ -3006,8 +3181,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
             ? fi_fragments_.end() : (fi_fragments_.begin() + ((j + 1) * bucketsize_));
           for (auto it = sb; it != se; ++it)
           {
-            const float d = it->fragment_mz_ - target;
-            if (d >= tol_lo && d <= tol_hi) viable_set(it->peptide_idx_);
+            if (it->fragment_mz_ >= mz_lo && it->fragment_mz_ <= mz_hi) viable_set(it->peptide_idx_);
           }
         }
       };
@@ -3054,11 +3228,12 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
         // Bucket-range lookup mirrors query(): bucket_min_mz_ holds the smallest
         // fragment_mz of each bucket, so a peak with mz ∈ [bucket_min, next_bucket_min)
-        // falls inside the bucket starting at bucket_min.
-        auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(),
-                                        adjusted_mass - frag_tol);
-        auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(),
-                                         adjusted_mass + frag_tol);
+        // falls inside the bucket starting at bucket_min. The fragments are matched
+        // against the same bounds.
+        const float mz_lo = adjusted_mass - frag_tol;
+        const float mz_hi = adjusted_mass + frag_tol;
+        auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_lo);
+        auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_hi);
         if (left_it != bucket_min_mz_.begin()) --left_it;
 
         const size_t bucket_begin = std::distance(bucket_min_mz_.begin(), left_it);
@@ -3076,8 +3251,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           // downstream via the fragment-bin-as-precursor trick.
           for (auto it = slice_begin; it != slice_end; ++it)
           {
-            if (adjusted_mass >= it->fragment_mz_ - frag_tol
-                && adjusted_mass <= it->fragment_mz_ + frag_tol)
+            if (it->fragment_mz_ >= mz_lo && it->fragment_mz_ <= mz_hi)
             {
               const UInt32 id = it->peptide_idx_;
               if (!viable_test(id)) continue;   // precursor-prefilter: skip the non-viable mothers
@@ -3114,7 +3288,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     };
 
     // Asymmetric tolerance: tol_lo <= 0 (low-side magnitude, sign-flipped),
-    // tol_hi >= 0. A match requires (fragment_mz - target_mz) ∈ [tol_lo, tol_hi].
+    // tol_hi >= 0. A match requires fragment_mz ∈ [target_mz + tol_lo, target_mz + tol_hi],
+    // the bounds that also select the buckets.
     // Preserves calibrated windows like [100 ppm, 5 ppm] where the symmetric
     // max-collapse over-admitted ~20× on the tighter side.
     auto collect_candidates =
@@ -3122,10 +3297,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           int16_t iso_err, uint16_t charge,
           SnesAnchor require_anchor, float sigma_tag)
     {
-      auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(),
-                                      target_mz + tol_lo);
-      auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(),
-                                       target_mz + tol_hi);
+      const float mz_lo = target_mz + tol_lo;
+      const float mz_hi = target_mz + tol_hi;
+      auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_lo);
+      auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_hi);
       if (left_it != bucket_min_mz_.begin()) --left_it;
 
       const size_t bucket_begin = std::distance(bucket_min_mz_.begin(), left_it);
@@ -3140,8 +3315,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
         for (auto it = slice_begin; it != slice_end; ++it)
         {
-          const float delta = it->fragment_mz_ - target_mz;
-          if (delta < tol_lo || delta > tol_hi) continue;
+          if (it->fragment_mz_ < mz_lo || it->fragment_mz_ > mz_hi) continue;
 
           const UInt32 id = it->peptide_idx_;
           if (emitted[id]) continue;
@@ -3873,6 +4047,63 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
   const vector<FragmentIndex::Peptide>& FragmentIndex::getPeptides() const
   {
     return fi_peptides_;
+  }
+
+  bool FragmentIndex::hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const
+  {
+    if (!is_build_ || is_snes_mode_ || protein_lengths_.size() != fasta_entries.size()) return false;
+    for (Size i = 0; i < fasta_entries.size(); ++i)
+    {
+      if (protein_lengths_[i] != fasta_entries[i].sequence.size()) return false;
+    }
+    // The configured modifications themselves (not the tables built from them): a protein-terminal one, fixed or
+    // variable, may make the entries of a span depend on its position in the protein.
+    for (const StringList* mods : {&modifications_fixed_, &modifications_variable_})
+    {
+      for (const auto& mod_residue : ModifiedPeptideGenerator::getModifications(*mods).val)
+      {
+        const ResidueModification::TermSpecificity term = mod_residue.first->getTermSpecificity();
+        if (term == ResidueModification::PROTEIN_N_TERM || term == ResidueModification::PROTEIN_C_TERM) return false;
+      }
+    }
+    return true;
+  }
+
+  void FragmentIndex::getProteinOccurrences(Size peptide_idx, const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                            std::vector<std::pair<UInt32, UInt32>>& occurrences) const
+  {
+    const Size first_new = occurrences.size();
+    const Peptide& peptide = fi_peptides_[peptide_idx];
+    const float mz = peptide.precursor_mz_;
+    const size_t length = peptide.sequence_.second;
+    const char* residues = fasta_entries[peptide.protein_idx].sequence.data() + peptide.sequence_.first;
+    // The entries of the spans with these residues and slots: same precursor_mz_ (bitwise), length, mod_bitmask_ and
+    // residues, in the run of equal precursor_mz_ around peptide_idx (fi_peptides_ is sorted by precursor_mz_).
+    // With peptide:deduplicate, that is the entry itself.
+    size_t first = peptide_idx;
+    while (first > 0 && fi_peptides_[first - 1].precursor_mz_ == mz) --first;
+    for (size_t i = first; i < fi_peptides_.size() && fi_peptides_[i].precursor_mz_ == mz; ++i)
+    {
+      const Peptide& entry = fi_peptides_[i];
+      if (entry.sequence_.second == length && entry.mod_bitmask_ == peptide.mod_bitmask_
+          && std::memcmp(fasta_entries[entry.protein_idx].sequence.data() + entry.sequence_.first, residues, length) == 0)
+      {
+        occurrences.emplace_back(entry.protein_idx, entry.sequence_.first);
+      }
+    }
+    // The occurrences of its peptidoform that peptide:deduplicate removed (removed_occurrences_ is ordered by the kept
+    // entry). A span with several entries of the peptidoform (a modification configured fixed and variable renders
+    // alike) is listed once.
+    const UInt32 kept = static_cast<UInt32>(peptide_idx);
+    const auto removed_begin = std::lower_bound(removed_occurrences_.begin(), removed_occurrences_.end(), kept,
+      [](const RemovedOccurrence& occurrence, const UInt32 index) { return occurrence.peptide_idx < index; });
+    if (removed_begin == removed_occurrences_.end() || removed_begin->peptide_idx != kept) return;
+    for (auto it = removed_begin; it != removed_occurrences_.end() && it->peptide_idx == kept; ++it)
+    {
+      occurrences.emplace_back(it->protein_idx, it->start);
+    }
+    std::sort(occurrences.begin() + first_new, occurrences.end());
+    occurrences.erase(std::unique(occurrences.begin() + first_new, occurrences.end()), occurrences.end());
   }
 
 }

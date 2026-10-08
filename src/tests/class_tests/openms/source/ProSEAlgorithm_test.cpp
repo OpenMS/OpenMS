@@ -15,6 +15,8 @@
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
@@ -24,6 +26,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
@@ -39,6 +42,10 @@
 #include <set>
 #include <sstream>
 #include <iomanip>
+
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -73,6 +80,9 @@ public:
   using ProSEAlgorithm::resolveDecoyStrategy_;
   using ProSEAlgorithm::DecoyStrategy_;
   using ProSEAlgorithm::buildDecoyAugmentedDB_;
+  using ProSEAlgorithm::ProteinMapping_;
+  using ProSEAlgorithm::buildProteinMapping_;
+  using ProSEAlgorithm::applyProteinMapping_;
   using ProSEAlgorithm::annotateIonPriors_;
   using ProSEAlgorithm::reversedNoiseSequence_;
 };
@@ -570,6 +580,93 @@ static std::vector<std::string> ion_prior_rows_(const PeptideIdentificationList&
   }
   return rows;
 }
+
+// Protein mapping tests: a fragment index of c.db and a hit for each of its peptides without ambiguous residues
+// (three per identification), with the parameters PeptideIndexing runs with
+struct MappingCase
+{
+  vector<FASTAFile::FASTAEntry> db;
+  FragmentIndex index;
+  vector<UInt32> candidates;
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  Param indexer_parameters;
+};
+
+static void prepareMappingCase(MappingCase& c, const string& enzyme, const string& clip, const string& deduplicate,
+                               const vector<string>& fixed, const vector<string>& variable, Int aaa_max)
+{
+  Param p = c.index.getParameters();
+  p.setValue("decoys", "false");
+  p.setValue("enzyme", enzyme);
+  p.setValue("peptide:min_size", 5);
+  p.setValue("peptide:missed_cleavages", 2);
+  p.setValue("peptide:clip_nterm_methionine", clip);
+  p.setValue("peptide:deduplicate", deduplicate);
+  p.setValue("modifications:fixed", fixed);
+  p.setValue("modifications:variable", variable);
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  c.index.setParameters(p);
+  c.index.build(c.db);
+  c.candidates.clear();
+  c.peptides.clear();
+  c.proteins.assign(1, ProteinIdentification());
+  c.proteins[0].setIdentifier("run");
+  c.proteins[0].setSearchEngine("ProSE");
+  vector<PeptideHit> hits;
+  for (UInt32 i = 0; i < c.index.getPeptides().size(); ++i)
+  {
+    const FragmentIndex::Peptide& peptide = c.index.getPeptides()[i];
+    const string residues = c.db[peptide.protein_idx].sequence.substr(peptide.sequence_.first, peptide.sequence_.second);
+    if (residues.find_first_of("BJZX") != string::npos) continue;
+    c.candidates.push_back(i);
+    PeptideHit hit;
+    hit.setSequence(c.index.reconstructModifiedSequence(peptide, c.db));
+    hit.setScore(static_cast<double>(i));
+    hits.push_back(hit);
+    if (hits.size() == 3)
+    {
+      c.peptides.push_back(PeptideIdentification());
+      c.peptides.back().setIdentifier("run");
+      c.peptides.back().setHits(hits);
+      hits.clear();
+    }
+  }
+  PeptideIndexing indexer;
+  Param pi = indexer.getParameters();
+  pi.setValue("decoy_string", "DECOY_");
+  pi.setValue("decoy_string_position", "prefix");
+  pi.setValue("enzyme:name", enzyme);
+  pi.setValue("enzyme:specificity", "full");
+  pi.setValue("missing_decoy_action", "silent");
+  pi.setValue("aaa_max", aaa_max);
+  c.indexer_parameters = pi;
+}
+
+// The sequences that the protein mapping looks up for the spans of @p protein over ambiguous residues, by brute force:
+// every span of one of the @p lengths with 1 to @p aaa_max ambiguous residues, once per combination of the residues
+// they stand for (B, J, Z: 2; X: the 22 letters other than B, J, Z, X)
+static Size ambiguousSpanLookups(const string& protein, const std::set<Size>& lengths, Size aaa_max)
+{
+  const auto stands_for = [](char c) -> Size { return (c == 'B' || c == 'J' || c == 'Z') ? 2 : (c == 'X' ? 22 : 1); };
+  Size total = 0;
+  for (const Size length : lengths)
+  {
+    for (Size start = 0; start + length <= protein.size(); ++start)
+    {
+      Size ambiguous = 0, combinations = 1;
+      for (Size i = start; i < start + length; ++i)
+      {
+        if (stands_for(protein[i]) == 1) continue;
+        ++ambiguous;
+        combinations *= stands_for(protein[i]);
+      }
+      if (ambiguous >= 1 && ambiguous <= aaa_max) total += combinations;
+    }
+  }
+  return total;
+}
+
 
 START_TEST(ProSEAlgorithm, "$Id$")
 
@@ -2349,7 +2446,112 @@ END_SECTION
 
 START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<std::string>&, const std::string&, const std::vector<std::string>&, const std::string&, bool) const))
 {
-  NOT_TESTABLE // tested via TOPP tool (multi-file integration test)
+  // With several threads, the file-based searches read an mzML file on a helper thread while the
+  // index is built (the multi-file search the next file while the current one is searched), in
+  // chunks of spectra parsed in parallel. Two files with MS1 spectra between the MS2 spectra and a
+  // chromatogram, the first one indexed: each must get exactly the PSMs of the in-memory search of
+  // its MS2 spectra, read with FileHandler: from search(file) those of search(spectra, ...), from the
+  // multi-file search those of searchWithModificationAnalysis(spectra, ...), which, like it, also
+  // annotates the PSMs of an open search with the modification analysis.
+  vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap synthetic;
+  buildSyntheticProteinFDRData(fasta_db, synthetic);
+  std::string fasta_file;
+  NEW_TMP_FILE(fasta_file)
+  fasta_file += ".fasta";
+  FASTAFile().store(fasta_file, fasta_db);
+
+  vector<std::string> files(2);
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    PeakMap run;
+    for (Size i = f; i < synthetic.size(); i += files.size())
+    {
+      if (i % 4 == f) // an MS1 spectrum before every other MS2 spectrum
+      {
+        MSSpectrum ms1 = synthetic[i];
+        ms1.setMSLevel(1);
+        ms1.setPrecursors({});
+        ms1.setNativeID(synthetic[i].getNativeID() + " ms1");
+        run.addSpectrum(std::move(ms1));
+      }
+      run.addSpectrum(synthetic[i]);
+    }
+    MSChromatogram tic;
+    tic.setNativeID("TIC");
+    tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+    for (const MSSpectrum& spectrum : run) { tic.push_back(ChromatogramPeak(spectrum.getRT(), spectrum.calculateTIC())); }
+    run.addChromatogram(std::move(tic));
+    NEW_TMP_FILE(files[f])
+    files[f] += "_" + StringUtils::toStr(f) + ".mzML";
+    MzMLFile mzml;
+    mzml.getOptions().setWriteIndex(f == 0);
+    mzml.store(files[f], run);
+  }
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0); // the spectra carry modification mass shifts
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "generate");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("FDR:protein", 0.0);
+  algo.setParameters(p);
+
+  // the run identifier holds the time of the search
+  const auto same_psms = [](PeptideIdentificationList a, PeptideIdentificationList b)
+  {
+    if (a.size() != b.size()) { return false; }
+    for (Size i = 0; i < a.size(); ++i)
+    {
+      a[i].setIdentifier("");
+      b[i].setIdentifier("");
+      if (a[i] != b[i]) { return false; }
+    }
+    return true;
+  };
+  vector<PeptideIdentificationList> expected(files.size()), expected_analysed(files.size());
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    PeakMap spectra;
+    FileHandler fh;
+    fh.getOptions().clearMSLevels();
+    fh.getOptions().addMSLevel(2);
+    fh.loadExperiment(files[f], spectra, {FileTypes::MZML});
+    spectra.sortSpectra(true);
+    PeakMap spectra_copy = spectra; // the searches preprocess the spectra in place
+    vector<ProteinIdentification> prot_ids;
+    algo.search(spectra, fasta_db, prot_ids, expected[f]);
+    TEST_TRUE(expected[f].size() > 500)
+    expected_analysed[f] = algo.searchWithModificationAnalysis(spectra_copy, fasta_db, "").peptide_ids;
+  }
+
+#ifdef _OPENMP
+  const int threads = omp_get_max_threads();
+  omp_set_num_threads(8);
+#endif
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    TEST_EQUAL(algo.search(files[f], fasta_file, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(same_psms(pep_ids, expected[f]), true)
+  }
+  ProSEAlgorithm::MultiFileSearchResult res = algo.searchWithModificationAnalysis(files, fasta_file, vector<std::string>{}, "", false);
+#ifdef _OPENMP
+  omp_set_num_threads(threads);
+#endif
+  ABORT_IF(res.per_file.size() != files.size())
+  for (Size f = 0; f < files.size(); ++f)
+  {
+    TEST_EQUAL(res.per_file[f].exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(same_psms(res.per_file[f].peptide_ids, expected_analysed[f]), true)
+    TEST_EQUAL(res.per_file[f].protein_ids[0].getSearchParameters().db, fasta_file)
+  }
 }
 END_SECTION
 
@@ -4595,6 +4797,296 @@ START_SECTION(([EXTRA] self-trained ion priors are learned per file and agree be
       TEST_EQUAL(per_file.protein_ids[0].getSearchParameters().getMetaValue("ion_prior:training_psms"),
                  prot_ids[0].getSearchParameters().getMetaValue("ion_prior:training_psms"))
       TEST_EQUAL(ion_prior_rows_(per_file.peptide_ids) == single_rows, true)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] protein mapping from the fragment index writes what PeptideIndexing writes))
+{
+  // Peptides in several target and decoy proteins, at position 1 and 2 of proteins that start with M (also after a
+  // residue that is no cleavage site), behind non-cleavage sites (A, KP), and across ambiguous residues B, J, Z, X.
+  const vector<string> blocks = {"MPEPCIDEMK", "QPEPTIDEMR", "AMDEQK", "MSTQMPEPK", "GGQMSTMK", "CMQEDK", "QQMMCR", "PEPTIDEK", "AWDLKPEPK"};
+  const vector<string> ambiguous = {"QPEPTXDEMR", "AMBEQK", "AMDZQK", "PEPTJDEK", "GGXMSTMK", "PEPTXDBK", "PXPTXDXK", "CMQEDX", "ZPEPTIDEK"};
+  std::mt19937 rng(5);
+  vector<FASTAFile::FASTAEntry> db;
+  for (int i = 0; i < 80; ++i)
+  {
+    const vector<string> starts = {"M", "MA", "MAS", "", ""};
+    string sequence = starts[i % starts.size()];
+    const int n_blocks = 1 + static_cast<int>(rng() % 4);
+    for (int b = 0; b < n_blocks; ++b)
+    {
+      sequence += (rng() % 5 == 0) ? ambiguous[rng() % ambiguous.size()] : blocks[rng() % blocks.size()];
+      if (rng() % 5 == 0) sequence += "A";
+    }
+    db.push_back({(i % 3 == 0 ? "DECOY_P" : "P") + std::to_string(i), "", sequence});
+  }
+  struct Config { string enzyme, clip, deduplicate; vector<string> fixed, variable; Int aaa_max; };
+  const vector<Config> configs = {
+    {"Trypsin", "true", "true", {"Carbamidomethyl (C)"}, {"Oxidation (M)"}, 3},
+    {"Trypsin", "false", "true", {"Carbamidomethyl (C)"}, {"Oxidation (M)"}, 3},
+    {"Trypsin", "true", "false", {"Carbamidomethyl (C)"}, {"Oxidation (M)"}, 3},
+    {"Trypsin/P", "true", "true", {}, {}, 3},
+    {"Trypsin/P", "false", "false", {"Carbamidomethyl (C)"}, {"Oxidation (M)", "Acetyl (N-term)"}, 1},
+    {"Lys-C", "true", "true", {"Carbamidomethyl (C)", "TMT6plex (N-term)", "TMT6plex (K)"}, {"Oxidation (M)"}, 3},
+    {"Trypsin", "true", "true", {"Carbamidomethyl (C)"}, {"Carbamidomethyl (C)", "Oxidation (M)"}, 2}}; // deduplicated as strings
+  Size mapped = 0, m_start = 0, over_ambiguous = 0, shared = 0;
+  for (const Config& config : configs)
+  {
+    MappingCase c;
+    c.db = db;
+    prepareMappingCase(c, config.enzyme, config.clip, config.deduplicate, config.fixed, config.variable, config.aaa_max);
+    TEST_TRUE(c.peptides.size() > 10)
+    vector<ProteinIdentification> proteins = c.proteins;
+    PeptideIdentificationList peptides = c.peptides;
+    const ProSEAlgorithm_test::ProteinMapping_ mapping = ProSEAlgorithm_test::buildProteinMapping_(c.index, c.db, c.candidates, c.indexer_parameters);
+    TEST_STRING_EQUAL(mapping.fallback_reason, "")
+    string reason;
+    TEST_TRUE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    TEST_STRING_EQUAL(reason, "")
+
+    PeptideIndexing indexer;
+    indexer.setParameters(c.indexer_parameters);
+    vector<FASTAFile::FASTAEntry> db_copy = c.db;
+    TEST_EQUAL(indexer.run(db_copy, c.proteins, c.peptides) == PeptideIndexing::ExitCodes::EXECUTION_OK, true)
+    TEST_TRUE(peptides == c.peptides)
+    TEST_TRUE(proteins == c.proteins)
+    // what the database exercised
+    for (const auto& id : c.peptides)
+    {
+      for (const auto& hit : id.getHits())
+      {
+        ++mapped;
+        shared += hit.getMetaValue("target_decoy").toString() == "target+decoy" ? 1 : 0;
+        for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
+        {
+          const string& protein = std::find_if(c.db.begin(), c.db.end(), [&](const auto& e) { return e.identifier == evidence.getProteinAccession(); })->sequence;
+          const string span = protein.substr(evidence.getStart(), evidence.getEnd() - evidence.getStart() + 1);
+          over_ambiguous += span.find_first_of("BJZX") != string::npos ? 1 : 0;
+          m_start += (evidence.getStart() == 2 && protein[0] == 'M' && protein[1] != 'K' && protein[1] != 'R') ? 1 : 0;
+        }
+      }
+    }
+  }
+  TEST_TRUE(mapped > 1000)
+  TEST_TRUE(shared > 0)
+  TEST_TRUE(m_start > 0)
+  TEST_TRUE(over_ambiguous > 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] protein mapping from the fragment index leaves PeptideIndexing what it cannot reproduce))
+{
+  const vector<FASTAFile::FASTAEntry> base = {{"P1", "", "MAPEPTIDEKAMDEQKGGQMSTMK"}, {"P2", "", "QPEPTIDEMRPEPTIDEK"},
+                                              {"DECOY_P3", "", "KEDITPEPRMEDTPEPQ"}, {"P4", "", "PEPTIDEKAMXEQK"}};
+  // {database change, index modifications, PeptideIndexing parameter change}
+  struct Case { string what; vector<FASTAFile::FASTAEntry> db; vector<string> variable; string key; ParamValue value; };
+  vector<Case> cases;
+  cases.push_back({"stretch of more than aaa_max X", base, {}, "", ParamValue()});
+  cases.back().db[3].sequence = "PEPTIDEKAMXXXXEQK";
+  cases.push_back({"symbol", base, {}, "", ParamValue()});
+  cases.back().db[1].sequence = "QPEPTIDEMR*";
+  cases.push_back({"protein-terminal modification", base, {"Acetyl (Protein N-term)"}, "", ParamValue()});
+  cases.push_back({"mismatches", base, {}, "mismatches_max", ParamValue(1)});
+  cases.push_back({"I/L", base, {}, "IL_equivalent", ParamValue("true")});
+  cases.push_back({"no N-terminal cleavage", base, {}, "allow_nterm_protein_cleavage", ParamValue("false")});
+  cases.push_back({"semi-specific", base, {}, "enzyme:specificity", ParamValue("semi")});
+  cases.push_back({"other enzyme", base, {}, "enzyme:name", ParamValue("Lys-C")});
+  cases.push_back({"protein sequences", base, {}, "write_protein_sequence", ParamValue("true")});
+  cases.push_back({"decoy detection", base, {}, "decoy_string", ParamValue("")});
+  for (const Case& test_case : cases)
+  {
+    MappingCase c;
+    c.db = test_case.db;
+    prepareMappingCase(c, "Trypsin", "true", "true", {}, test_case.variable, 3);
+    if (!test_case.key.empty()) c.indexer_parameters.setValue(test_case.key, test_case.value);
+    vector<ProteinIdentification> proteins = c.proteins;
+    PeptideIdentificationList peptides = c.peptides;
+    const ProSEAlgorithm_test::ProteinMapping_ mapping = ProSEAlgorithm_test::buildProteinMapping_(c.index, c.db, c.candidates, c.indexer_parameters);
+    string reason;
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    TEST_TRUE(!reason.empty())
+    TEST_TRUE(peptides == c.peptides) // unchanged
+    TEST_TRUE(proteins == c.proteins)
+  }
+  // more spans over ambiguous residues than the lookup budget (2^22): decided before any lookup, from an exact count.
+  // Proteins without cleavage sites (no peptides of their own) with B, Z, J and isolated X around them, added up to the
+  // budget and one more.
+  {
+    const string ambiguous_protein = string(25, 'A') + "BGZJAX" + string(3, 'G') + "X" + string(25, 'A');
+    MappingCase probe;
+    probe.db = base;
+    probe.db.push_back({"AMB", "", ambiguous_protein});
+    prepareMappingCase(probe, "Trypsin", "true", "true", {}, {}, 3);
+    std::set<Size> lengths;
+    for (const UInt32 candidate : probe.candidates) lengths.insert(probe.index.getPeptides()[candidate].sequence_.second);
+    const Size per_protein = ambiguousSpanLookups(ambiguous_protein, lengths, 3);
+    TEST_TRUE(per_protein > 0)
+    Size in_base = 0;
+    for (const auto& entry : base) in_base += ambiguousSpanLookups(entry.sequence, lengths, 3);
+    const Size budget = Size(1) << 22;
+    const Size under = (budget - in_base) / per_protein; // proteins that fit
+    for (const Size copies : {under, under + 1})
+    {
+      MappingCase c;
+      c.db = base;
+      for (Size i = 0; i < copies; ++i) c.db.push_back({"AMB" + std::to_string(i), "", ambiguous_protein});
+      prepareMappingCase(c, "Trypsin", "true", "true", {}, {}, 3);
+      TEST_TRUE(c.candidates.size() == probe.candidates.size()) // the same lengths
+      const ProSEAlgorithm_test::ProteinMapping_ mapping = ProSEAlgorithm_test::buildProteinMapping_(c.index, c.db, c.candidates, c.indexer_parameters);
+      vector<ProteinIdentification> proteins = c.proteins;
+      PeptideIdentificationList peptides = c.peptides;
+      string reason;
+      if (copies == under)
+      {
+        TEST_STRING_EQUAL(mapping.fallback_reason, "")
+        TEST_TRUE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+        PeptideIndexing indexer;
+        indexer.setParameters(c.indexer_parameters);
+        vector<FASTAFile::FASTAEntry> db_copy = c.db;
+        TEST_EQUAL(indexer.run(db_copy, c.proteins, c.peptides) == PeptideIndexing::ExitCodes::EXECUTION_OK, true)
+        TEST_TRUE(peptides == c.peptides)
+        TEST_TRUE(proteins == c.proteins)
+      }
+      else
+      {
+        TEST_STRING_EQUAL(mapping.fallback_reason, "too many spans over ambiguous residues in the database")
+        TEST_TRUE(mapping.sequences.empty()) // nothing built
+        TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+        TEST_TRUE(peptides == c.peptides)
+        TEST_TRUE(proteins == c.proteins)
+      }
+    }
+  }
+  // identifications the mapping does not cover
+  {
+    MappingCase c;
+    c.db = base;
+    prepareMappingCase(c, "Trypsin", "true", "true", {}, {}, 3);
+    const ProSEAlgorithm_test::ProteinMapping_ mapping = ProSEAlgorithm_test::buildProteinMapping_(c.index, c.db, c.candidates, c.indexer_parameters);
+    TEST_STRING_EQUAL(mapping.fallback_reason, "")
+    string reason;
+    // a hit whose sequence was not among the candidates
+    PeptideIdentificationList peptides = c.peptides;
+    vector<ProteinIdentification> proteins = c.proteins;
+    peptides[0].getHits()[0].setSequence(AASequence::fromString("GGQMSTMKQPEPTIDEMR"));
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    TEST_TRUE(proteins == c.proteins)
+    // no hits, two runs, results of X! Tandem
+    peptides.clear();
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    peptides = c.peptides;
+    proteins.push_back(proteins[0]);
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    proteins = c.proteins;
+    proteins[0].setSearchEngine("XTandem");
+    TEST_FALSE(ProSEAlgorithm_test::applyProteinMapping_(mapping, c.db, c.indexer_parameters, proteins, peptides, reason))
+    TEST_TRUE(peptides == c.peptides)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] peptide:protein_mapping index and PeptideIndexing give the same search results))
+{
+  // Target and decoy proteins share peptides; one protein starts with M followed by a residue that is no cleavage site
+  const vector<string> peptides = {"THQPSANLDIK", "VLGFHQRMPNASTICYWDLK", "EGFVRTHQPSANLDIK", "GWSADELK", "HPFNQGTICMSYR"};
+  vector<FASTAFile::FASTAEntry> db = {
+    {"P1", "", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"},
+    {"P2", "", "MATHQPSANLDIKHASGDFLKPIVEQNCTMYRGWSADELK"},
+    {"P3", "", "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYR"},
+    {"DECOY_P4", "", "KDLWYCITSANPMRQHFGLVKERTHQPSANLDIK"}};
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(tsg_param);
+  PeakMap spectra;
+  for (const string& sequence : peptides)
+  {
+    const AASequence peptide = AASequence::fromString(sequence);
+    MSSpectrum spectrum;
+    tsg.getSpectrum(spectrum, peptide, 1, 1);
+    spectrum.setMSLevel(2);
+    spectrum.setRT(100.0 + spectra.size());
+    spectrum.setNativeID("scan=" + std::to_string(spectra.size()));
+    Precursor precursor;
+    precursor.setMZ(peptide.getMZ(2));
+    precursor.setCharge(2);
+    spectrum.setPrecursors({precursor});
+    spectra.addSpectrum(spectrum);
+  }
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("report:top_hits", 10);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {"Oxidation (M)"});
+  p.setValue("peptide:missed_cleavages", 2);
+  p.setValue("decoys", "auto");
+  vector<ProteinIdentification> proteins[2];
+  PeptideIdentificationList ids[2];
+  for (int i = 0; i < 2; ++i)
+  {
+    p.setValue("peptide:protein_mapping", i == 0 ? "index" : "PeptideIndexing");
+    algo.setParameters(p);
+    PeakMap input = spectra;
+    TEST_EQUAL(algo.search(input, db, proteins[i], ids[i]) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    // the run identifier and date are those of the moment of the search
+    for (auto& id : ids[i]) id.setIdentifier("");
+    proteins[i][0].setIdentifier("");
+    proteins[i][0].setDateTime(DateTime());
+  }
+  TEST_EQUAL(ids[0].size(), peptides.size())
+  TEST_EQUAL(ids[1].size(), peptides.size())
+  TEST_TRUE(ids[0] == ids[1])
+  TEST_TRUE(proteins[0] == proteins[1])
+  Size target_decoy = 0;
+  for (const auto& id : ids[0])
+  {
+    for (const auto& hit : id.getHits()) target_decoy += hit.getMetaValue("target_decoy").toString() == "target+decoy" ? 1 : 0;
+  }
+  TEST_TRUE(target_decoy > 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] resolveDecoyStrategy_ detects the decoy marker of large databases as DecoyHelper does))
+{
+  // Large enough for the parallel detection; checked against DecoyHelper::findDecoyString()
+  const auto make_db = [](const std::function<string(Size)>& identifier)
+  {
+    vector<FASTAFile::FASTAEntry> db;
+    for (Size i = 0; i < 10000; ++i) db.push_back({identifier(i), "", "PEPTIDEK"});
+    return db;
+  };
+  const vector<vector<FASTAFile::FASTAEntry>> dbs = {
+    make_db([](Size i) { return (i % 2 ? "DECOY_" : "") + string("P") + std::to_string(i); }),
+    make_db([](Size i) { return (i % 2 ? (i < 9000 ? "DECOY_" : "decoy_") : "") + string("P") + std::to_string(i); }), // last spelling
+    make_db([](Size i) { return (i % 5 < 3 ? "rev_" : "") + string("sp|P") + std::to_string(i); }),
+    make_db([](Size i) { return string("P") + std::to_string(i) + (i % 2 ? "_REVERSED" : ""); }),
+    make_db([](Size i) { return string("P") + std::to_string(i) + (i % 2 ? "_rev" : ""); }),
+    make_db([](Size i) { return (i % 4 == 1 ? "DECOY_" : "") + string("P") + std::to_string(i) + (i % 4 == 3 ? "_decoy" : ""); }), // as often
+    make_db([](Size i) { return (i % 10 == 1 ? "XXX_" : "") + string("P") + std::to_string(i); }), // too few
+    make_db([](Size i) { return (i % 2 ? (i % 3 ? "DECOY_" : "REV_") : "") + string("P") + std::to_string(i); })}; // no single one
+  for (const auto& db : dbs)
+  {
+    FASTAContainer<TFI_Vector> container(db);
+    const DecoyHelper::Result expected = DecoyHelper::findDecoyString(container, true);
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "auto");
+    p.setValue("decoy_prefix", "NOT_IN_THE_DATABASE_");
+    algo.setParameters(p);
+    const ProSEAlgorithm_test::DecoyStrategy_ s = algo.resolveDecoyStrategy_(db);
+    TEST_EQUAL(s.generate, !expected.success)
+    if (expected.success)
+    {
+      TEST_STRING_EQUAL(s.decoy_string, expected.name)
+      TEST_EQUAL(s.is_prefix, expected.is_prefix)
     }
   }
 }

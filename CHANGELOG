@@ -71,11 +71,6 @@ OpenMS Library:
     Linux arm64: an unqualified abs() bound to the integer overload there and truncated every
     error. ProSE's fragment calibration therefore kept the configured Da tolerance on arm64,
     while x86-64 and macOS tightened it.
-  - FIX: PercolatorInfile (store, stampPinFeaturesOnHits; used by PercolatorAdapter and ProSE
-    -out_pin) keeps ExpMass and mass at the observed precursor m/z for every PSM of a spectrum and
-    removes the precursor isotope error from dm, absdm and deltamass only. Percolator takes PSMs
-    with the same ScanNr but different ExpMass for different spectra, so PSMs of one spectrum at
-    different isotope errors no longer pass target-decoy competition side by side.
   - FIX: FragmentIndex rejects fixed terminal modifications it applied to every peptide although
     they apply to some only (protein-terminal or residue-specific ones, e.g. Acetyl (Protein
     N-term), Gln->pyro-Glu (N-term Q); search them as variable modifications) and a second fixed
@@ -85,11 +80,12 @@ OpenMS Library:
     peptide, from at most 31 sites (a warning counts peptides with more). The default precursor
     isotope range of FragmentIndex is [-2, 0] (it searched [0, +2], precursors picked below the
     monoisotopic peak).
-  - PERF: IdXMLFile::store formats the PeptideIdentifications in parallel (at most 16 threads) and
-    writes them in input order, so the output is unchanged; 12% less wall time for ProSE's 20
-    benchmark searches of #10364 at 4 threads, 26% less for one search at 16 threads.
-    XMLHandler::writeUserParamValue_() writes a single meta value as UserParam (used by
-    writeUserParam_).
+  - FragmentIndex::getProteinOccurrences() lists every span of the digest with the residues of an index peptide,
+    including the occurrences that peptide:deduplicate removed from getPeptides() (recorded by the deduplication);
+    hasProteinOccurrences() tells whether the list is complete (not in SNES mode or with protein-terminal
+    modifications).
+  - PeptideIndexing sorts its peptide-protein matches once after the parallel database search, instead of once per
+    thread while the threads join. The result is the same; the step no longer gets slower with more threads.
   - FIX: RNaseDigestion::digest returns no fragments for a sequence shorter than min_length, or
     when min_length exceeds max_length. Unsigned arithmetic wrapped around there, so unspecific
     cleavage asked reserve() for a huge capacity and could index far past the end of the sequence
@@ -289,6 +285,17 @@ TOPP tools:
       - FIX: With multiple-charge fragment scoring and an unknown precursor charge (0), the peak
         annotations covered only singly charged fragments. They now use the charge each hit reports
         and was scored (#10398).
+      - New peptide:protein_mapping (index, PeptideIndexing): the hits are mapped to their proteins from the digest of
+        the fragment index, which knows every protein occurrence of a candidate, instead of searching every hit in the
+        whole database (PeptideIndexing). Peptide evidences, target_decoy, protein_references, the protein hits and the
+        PeptideIndexer:* search parameters are the same; PeptideIndexing still runs where the index cannot reproduce it
+        exactly (SNES, a specificity other than full, protein-terminal modifications, a chunked database, and databases
+        with symbols other than letters, with stretches of X, or with more spans over ambiguous residues than a lookup
+        budget allows, which is decided by counting them before any lookup). With the post-processing below, a search
+        of 8,000 spectra takes 0.2-0.7 s less (11% over the 20 files of OpenMS#10364 at 4 threads, 11-18% at 16 and 64
+        threads), one of 48,000 spectra about 2 s less.
+      - The PSMs are annotated in per-spectrum slots (no lock, no sort afterwards), and the decoy marker of large
+        databases is detected with up to 8 threads. Results are unchanged.
     OpenDIA:
       - New workflow:library_mode=predicted (also chosen by 'auto' when -tr is a FASTA database):
         digests the FASTA (PeptideQueryParameters:LibraryPrediction:*: enzyme, missed cleavages,

@@ -51,6 +51,8 @@ namespace OpenMS
      */
     struct Peptide {
 
+      /// Leaves the members uninitialised: resizing a vector of peptides then writes nothing (see generatePeptides())
+      Peptide() {}
       // We need a constructor in order to emplace back
       Peptide(UInt32 protein_idx, uint32_t mod_bitmask, std::pair<uint16_t , uint16_t> sequence, float precursor_mz):
           protein_idx(protein_idx),
@@ -59,9 +61,22 @@ namespace OpenMS
         precursor_mz_(precursor_mz)
         {}
 
+        /// {first, second} like std::pair<uint16_t, uint16_t>, and convertible from and to it, but trivially copyable
+        /// (std::pair's assignment is not), as is Peptide then: sorting and copying peptides moves plain bytes. Its
+        /// default constructor writes nothing either (std::pair's zeroes the members).
+        struct Span
+        {
+          Span() = default;
+          Span(std::pair<uint16_t, uint16_t> span) : first(span.first), second(span.second) {}
+          operator std::pair<uint16_t, uint16_t>() const { return {first, second}; }
+          bool operator==(const Span&) const = default;
+          uint16_t first;
+          uint16_t second;
+        };
+
         UInt32 protein_idx;            ///< 0-based index into FASTA entries provided to build(); identifies the source protein
         uint32_t mod_bitmask_;         ///< Bitmask of active variable mod slots (0 = unmodified/fixed-only; up to 32 slots)
-        std::pair<uint16_t , uint16_t> sequence_; ///< {start, length} within the source protein sequence (start is 0-based; length in residues)
+        Span sequence_;                ///< {start, length} within the source protein sequence (start is 0-based; length in residues)
         float precursor_mz_;           ///< Mono-isotopic m/z at charge 1 (M+H)+ of this peptide; used for sorting/filtering
     };
 
@@ -86,18 +101,15 @@ namespace OpenMS
     {
       std::vector<SpectrumMatch> hits_;     ///< The preliminary candidates
 
-
       SpectrumMatchesTopN() = default;
 
       /**
-       * @brief Appends the a SpectrumMatchesTopN to another one. Add the number of all matched peaks up. Same for number of scored candidates
-       * The
+       * @brief Appends a SpectrumMatchesTopN to another one.
        * @param[in] other The appended struct
        * @return The struct after the attachment
        */
       SpectrumMatchesTopN& operator+=(const SpectrumMatchesTopN& other)
       {
-
         this->hits_.insert(this->hits_.end(), other.hits_.begin(), other.hits_.end());
         return *this;
       }
@@ -105,7 +117,6 @@ namespace OpenMS
       void clear()
       {
         hits_.clear();
-
       }
     };
     /**
@@ -128,6 +139,18 @@ namespace OpenMS
     ~FragmentIndex() override = default;
 
     /**
+     * @brief Copy and move operations.
+     *
+     * Declared explicitly because the user-declared destructor above suppresses the implicit move
+     * operations: without them, every move of a FragmentIndex (and of a ProSEAlgorithm::SearchContext
+     * that holds one) copies the whole index.
+     */
+    FragmentIndex(const FragmentIndex&) = default;
+    FragmentIndex& operator=(const FragmentIndex&) = default;
+    FragmentIndex(FragmentIndex&&) = default;
+    FragmentIndex& operator=(FragmentIndex&&) = default;
+
+    /**
      * @brief Indicates whether the fragment index has been built.
      *
      * @return true if build() has completed successfully and the index is ready
@@ -144,7 +167,8 @@ namespace OpenMS
      * Provides read-only access to all peptides currently held by the index,
      * typically populated during build().
      * With peptide:deduplicate=true, non-SNES entries retain one representative
-     * protein coordinate per exact peptidoform, not every protein occurrence.
+     * protein coordinate per exact peptidoform, not every protein occurrence
+     * (getProteinOccurrences() lists them all).
      *
      * @return const reference to the internal std::vector of Peptide.
      *
@@ -153,6 +177,62 @@ namespace OpenMS
      * thread mutates the index (e.g., build()/clear()).
      */
     const std::vector<Peptide>& getPeptides() const;
+
+    /**
+     * @brief A protein occurrence of an indexed peptidoform that peptide:deduplicate removed from the index.
+     *
+     * The removed entry had the same peptidoform (reconstructModifiedSequence(...).toString()) as the kept entry
+     * getPeptides()[peptide_idx], hence the same length; it started at @p start in protein @p protein_idx.
+     */
+    struct RemovedOccurrence
+    {
+      UInt32 peptide_idx;   ///< index into getPeptides() of the kept entry of the same peptidoform
+      UInt32 protein_idx;   ///< protein of the removed entry (index into the FASTA entries passed to build())
+      uint16_t start;       ///< 0-based start of the removed entry in that protein
+    };
+
+    /**
+     * @brief The protein occurrences that peptide:deduplicate removed, ordered by RemovedOccurrence::peptide_idx and,
+     * for one kept entry, in the order of the entries before deduplication (sortPeptides_() order).
+     *
+     * A kept entry's protein occurrences are its own coordinate plus its removed occurrences, so a caller can map
+     * the indexed peptides to proteins without searching the database again. Empty without deduplication (and for
+     * SNES indices, which are not deduplicated); released by clear(). In chunked searches every chunk has its own
+     * index, and a peptidoform that occurs in several chunks is listed in each of them.
+     */
+    const std::vector<RemovedOccurrence>& getRemovedOccurrences() const noexcept { return removed_occurrences_; }
+
+    /**
+     * @brief Whether getProteinOccurrences() lists every span of the digest that has the residues of an index peptide.
+     *
+     * build() gives every span of its digest one entry per combination of variable modification slots
+     * (mod_bitmask_). If the slots and masses of a span depend on its residues only, every span with the residues of
+     * an entry holds an entry with the same mod_bitmask_ and the same precursor_mz_ (the masses are added in the same
+     * order), i.e. one in the same run of equal precursor_mz_. That holds unless the index is in SNES mode (its
+     * entries are mother peptides) or a protein-terminal modification is configured (its sites depend on where a span
+     * lies in its protein).
+     *
+     * @param[in] fasta_entries The FASTA entries the index was built from (checked: their number and lengths).
+     * @return false before build(), after clear(), in the cases above and for other FASTA entries.
+     */
+    bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const;
+
+    /**
+     * @brief Appends the protein occurrences {protein index, start} of the residues of getPeptides()[@p peptide_idx].
+     *
+     * These are the spans of the digest of build() with the same residues, including those of the entries that
+     * peptide:deduplicate removed from getPeptides() (getRemovedOccurrences()); each span once, in no particular order. They are complete only
+     * if hasProteinOccurrences(). Spans the digest did not produce (with ambiguous residues, outside of enzymatic
+     * cleavage sites, ...) are not listed.
+     *
+     * @param[in] peptide_idx Index into getPeptides()
+     * @param[in] fasta_entries The FASTA entries the index was built from
+     * @param[out] occurrences Receives the occurrences (appended)
+     *
+     * Thread-safety: read-only; may be called concurrently.
+     */
+    void getProteinOccurrences(Size peptide_idx, const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                               std::vector<std::pair<UInt32, UInt32>>& occurrences) const;
 
     /// Number of theoretical fragments stored in the index (0 before build()), including the c and
     /// z+1 ions of ions:electron_ions.
@@ -193,6 +273,23 @@ namespace OpenMS
      * @param[in] fasta_entries The FASTA entries used to build the index.
      */
     void build(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);
+
+    /** @brief Builds the index like build(fasta_entries), but only with the peptides that the spectra to be searched can reach.
+     *
+     * Once the peptides are generated and sorted, @p searched_spectra is called with their number (to judge whether waiting
+     * for spectra that are still being read pays off); it may block. If it returns spectra, every peptide whose precursor mass
+     * lies in none of their precursor windows (each charge and isotope error querySpectrum() tries, widened by a margin) is
+     * removed before the fragments are generated (after peptide:deduplicate has chosen the kept entry of every peptidoform
+     * among all of its entries). The others keep their order, so querySpectrum() returns the same candidates for these
+     * spectra as with the full index, from an index that is built faster and takes less memory. Search the index only with
+     * these spectra and the current parameters.
+     * The full index is built if @p searched_spectra is empty or returns nullptr, and in SNES and open search mode.
+     *
+     * @param[in] fasta_entries The FASTA entries used to build the index.
+     * @param[in] searched_spectra Called with the number of peptides; returns the spectra the index will be searched with, or nullptr.
+     */
+    void build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+               const std::function<const MSExperiment*(Size)>& searched_spectra);
 
     /** @brief Delete fragment index. Sets is_build=false*/
     void clear();
@@ -538,7 +635,7 @@ protected:
      *
      * peptide:deduplicate for configurations in which equal peptidoforms need not lie in one run of equal
      * precursor_mz_ (see PeptidoformRendering_::runs_hold_peptidoforms); build() handles the others while it
-     * generates the fragments.
+     * generates the fragments. Records the removed entries in removed_occurrences_.
      * @return Number of entries removed
      */
     Size deduplicateByString_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
@@ -726,6 +823,7 @@ protected:
       bool add_zp1) const;
 
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
+    std::vector<RemovedOccurrence> removed_occurrences_; ///< occurrences removed by peptide:deduplicate (getRemovedOccurrences())
     std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
     /// The c and z+1 ions of ions:electron_ions that fi_fragments_ lacks. They are bucketed on their
     /// own (electron_bucket_min_mz_) and matched only when a query asks for them.
@@ -917,6 +1015,10 @@ private:
      */
     std::pair<float, float> computeMassWindow_(float precursor_mass) const;
 
+    /// Removes the peptides (sorted by precursor_mz_) whose precursor mass lies in no precursor window of the MS2 spectra
+    /// of @p spectra, keeping the order of the others (see build(fasta_entries, searched_spectra)). Removed occurrences
+    /// recorded before (removed_occurrences_) follow their kept entries to their new indices or are dropped with them.
+    void keepPeptidesInPrecursorWindows_(const MSExperiment& spectra);
 
   };
 
