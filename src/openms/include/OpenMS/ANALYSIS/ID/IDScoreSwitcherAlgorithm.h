@@ -325,56 +325,14 @@ namespace OpenMS
       @param[in,out] cmap The ConsensusMap containing peptide identifications whose scores need to be switched.
       @param[in] type The desired general score type to switch to.
       @param[in] counter A reference to a counter that will be incremented for each peptide identification processed.
-      @param[in] unassigned_peptides_too A boolean flag indicating whether to include unassigned peptides in the score switching process. Default is true.
+      @param[in] unassigned_peptides_too Unused: the identification data of a map has one main score, so the scores of
+      the unassigned peptides are switched as well. Kept for compatibility.
       @throws Exception::MissingInformation If the first encountered ID does not have the requested score type.
+
+      The identifications are switched in the identification data of the map; a map with peptide identifications has
+      them converted for the switch (and back).
     */
-    void switchToGeneralScoreType(ConsensusMap& cmap, ScoreType type, Size& counter, bool unassigned_peptides_too = true)
-    {
-      std::string new_type;
-      for (const auto& f : cmap)
-      {
-        const auto& ids = f.getPeptideIdentifications();
-        if (!ids.empty())
-        {
-          auto sr = findScoreType(ids[0], type);
-          if (sr.is_main_score_type)
-          {
-            return;
-          }
-          if (!sr.score_name.empty())
-          {
-            new_type = sr.score_name;
-            break;
-          }
-        }
-      }
-
-      if (new_type.empty())
-      {
-        std::string msg = "First encountered ID does not have the requested score type.";
-        throw Exception::MissingInformation(__FILE__, __LINE__,
-                                            OPENMS_PRETTY_FUNCTION, msg);
-      }
-
-      if (StringUtils::hasSuffix(new_type, "_score"))
-      {
-        new_score_type_ = StringUtils::chop(new_type, 6);
-      }
-      else
-      {
-        new_score_type_ = new_type;
-      }
-      new_score_ = new_type;
-
-      if (higher_better_ != Scores::isHigherBetter(type))
-      {
-        OPENMS_LOG_WARN << "Requested score type does not match the expected score direction. Correcting!\n";
-        higher_better_ = Scores::isHigherBetter(type);
-      }
-
-      const auto switchScoresSingle = [&counter,this](PeptideIdentification& id){switchScores(id,counter);};
-      cmap.applyFunctionOnPeptideIDs(switchScoresSingle, unassigned_peptides_too);
-    }
+    void switchToGeneralScoreType(ConsensusMap& cmap, ScoreType type, Size& counter, bool unassigned_peptides_too = true);
 
   /**
    @brief Determines the score type and orientation of the main score for a set of peptide identifications.
@@ -424,48 +382,11 @@ namespace OpenMS
    @param[in] score_type Output parameter to store the determined score type.
    @param[in] include_unassigned If true, unassigned peptide identifications are considered if no assigned ones are found. Default is true.
   */
-  void determineScoreNameOrientationAndType(const ConsensusMap& cmap, 
+  void determineScoreNameOrientationAndType(const ConsensusMap& cmap,
     std::string& name,
     bool& higher_better,
     ScoreType& score_type,
-    bool include_unassigned = true)
-  {
-    name = "";
-    higher_better = true;
-
-    // TODO: check all pep IDs? this assumes equality to first encountered
-    for (const auto& cf : cmap)
-    {
-      const auto& pep_ids = cf.getPeptideIdentifications();
-      if (!pep_ids.empty())
-      {
-        name = pep_ids[0].getScoreType();
-        higher_better = pep_ids[0].isHigherScoreBetter();
-
-        // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
-        if (Scores::findIDTypeByName(name, score_type))
-        {
-          return;
-        }
-      }
-    }
-
-    if (name.empty() && include_unassigned)
-    {
-      for (const auto& id : cmap.getUnassignedPeptideIdentifications())
-      {
-        name = id.getScoreType();
-        higher_better = id.isHigherScoreBetter();
-
-        // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
-        if (Scores::findIDTypeByName(name, score_type))
-        {
-          return;
-        }
-        return;
-      }
-    }
-  }
+    bool include_unassigned = true);
 
     /**
      * @brief Switches the scores of peptide identifications in a ConsensusMap.
@@ -478,28 +399,10 @@ namespace OpenMS
      *
      * @param[in] cmap The ConsensusMap containing peptide identifications whose scores need to be switched.
      * @param[in] counter A reference to a counter that will be incremented for each peptide identification processed.
-     * @param[in] unassigned_peptides_too A boolean flag indicating whether to include unassigned peptides in the score switching process. Default is true.
+     * @param[in] unassigned_peptides_too Unused: the identification data of a map has one main score, so the scores of
+     * the unassigned peptides are switched as well. Kept for compatibility.
      */
-    void switchScores(ConsensusMap& cmap, Size& counter, bool unassigned_peptides_too = true)
-    {
-      for (const auto& f : cmap)
-      {
-        const auto& ids = f.getPeptideIdentifications();
-        if (!ids.empty())
-        {
-          if (new_score_ == ids[0].getScoreType()) // correct score or category already set
-          {
-            return;
-          }
-          else
-          {
-            break;
-          }
-        }
-      }      
-      const auto switchScoresSingle = [&counter,this](PeptideIdentification& id){switchScores(id,counter);};
-      cmap.applyFunctionOnPeptideIDs(switchScoresSingle, unassigned_peptides_too);
-    }
+    void switchScores(ConsensusMap& cmap, Size& counter, bool unassigned_peptides_too = true);
     
     /**
      * @brief Switches the scores of peptide identifications.
@@ -739,6 +642,9 @@ namespace OpenMS
   private:
 
     void updateMembers_() override; ///< documented in base class
+
+    /// Switch the main score of @p data to new_score_ (see switchScores() of a ConsensusMap)
+    void switchScores_(IdentificationData& data, Size& counter) const;
 
     /// relative tolerance for score comparisons:
     const double tolerance_ = 1e-6;
