@@ -24,6 +24,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <algorithm>
 #include <bit>
+#include <chrono>
 #include <limits>
 #include <map>
 #include <numeric>
@@ -4587,6 +4588,70 @@ START_SECTION(([EXTRA] a residue-specific terminal variable modification applies
     }
     TEST_EQUAL(found, true)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] SNES expands a hit into the modification subsets within variable_max_per_peptide only))
+{
+  // A Σ hit is expanded into the variable-modification subsets of the realized peptide whose shifts sum to Σ; with a
+  // cancelling pair (Deamidated (N) and Amidated (C-term)) every Σ = 0 hit is expanded as well. The expansion visited
+  // all 2^n_slots bitmasks and skipped those with more than variable_max_per_peptide slots afterwards: 2^31 for this
+  // peptide (29 oxidation sites, the deamidation and the amidation) per hit, against 496 subsets of at most two slots.
+  const std::string residues = std::string(29, 'M') + "NPEPTIDEK";
+  const vector<FASTAFile::FASTAEntry> db{{"P1", "", residues}};
+  const AASequence target = AASequence::fromString(residues);
+  const AASequence cancelling = AASequence::fromString(std::string(29, 'M') + "N(Deamidated)PEPTIDEK.(Amidated)");
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum spectrum;
+  tsg.getSpectrum(spectrum, target, 1, 1);
+  Precursor precursor;
+  precursor.setMZ(target.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  spectrum.setMSLevel(2);
+  const double target_mh_plus = target.getMonoWeight() + Constants::PROTON_MASS_U;
+
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("decoys", "false");
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 30);
+  p.setValue("peptide:max_size", 40);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("modifications:fixed", vector<string>{});
+  p.setValue("modifications:variable", vector<string>{"Oxidation (M)", "Deamidated (N)", "Amidated (C-term)"});
+  p.setValue("modifications:variable_max_per_peptide", 2);
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(db);
+  TEST_EQUAL(fi.isSnesMode(), true)
+  FragmentIndex::SpectrumMatchesTopN sms;
+  const auto start = std::chrono::steady_clock::now();
+  fi.querySpectrum(spectrum, db, sms);
+  const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+  bool found_unmodified = false, found_cancelling = false;
+  for (const auto& hit : sms.hits_)
+  {
+    const FragmentIndex::Peptide& entry = fi.getPeptides()[hit.peptide_idx_];
+    const int realized = fi.realizeSNESLength(entry, db, target_mh_plus - hit.sigma_delta_, 10.0, 10.0, true);
+    if (realized < 0) continue;
+    const AASequence seq = fi.reconstructRealizedSubSequence(entry, db, static_cast<size_t>(realized), hit.subset_bitmask_);
+    found_unmodified |= (seq == target);
+    found_cancelling |= (seq == cancelling);
+  }
+  TEST_EQUAL(found_unmodified, true)
+  TEST_EQUAL(found_cancelling, true)
+  STATUS("SNES query with 31 modification slots: " << seconds << " s")
+  TEST_EQUAL(seconds < 5.0, true) // milliseconds with the bounded enumeration, seconds per hit without
 }
 END_SECTION
 

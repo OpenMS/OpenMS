@@ -3632,22 +3632,22 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         //   - Σ_subset ≈ sigma_delta_ within 1e-6 Da
         // Cap: ≤ 16 subsets per mother (across all k, Σ tuples in this query).
         if (n_slots == 0) continue;
-        // Enumerate all non-empty bitmasks in [1, 2^n_slots - 1]. Use uint64_t for
-        // the upper bound to avoid (1u << 32) UB at n_slots=32, and to include
-        // bitmask 0xFFFFFFFF at that boundary. The iteration variable is still
-        // uint32_t since n_slots ≤ 32 (bounded by MAX_MOD_SLOTS).
+        // Enumerate the non-empty bitmasks in [1, 2^n_slots - 1] with at most
+        // max_variable_mods_per_peptide_ bits, in increasing order: nextSubsetWithin()
+        // skips the others instead of visiting all 2^n_slots bitmasks (about 10^9 for a
+        // long peptide with 30 slots, per hit). Use uint64_t for the upper bound to avoid
+        // (1u << 32) UB at n_slots=32, and to include bitmask 0xFFFFFFFF at that boundary.
         const uint64_t max_bitmask64 = (n_slots >= 32)
             ? (uint64_t{1} << 32)
             : (uint64_t{1} << n_slots);
-        // bm is uint64_t so the terminating increment past UINT32_MAX doesn't
+        // bm is uint64_t so the terminating step past UINT32_MAX doesn't
         // wrap to 0 and re-enter the loop (n_slots == 32 isn't reachable in
         // SNES mode — bit 31 is reserved for the kind flag — but the
         // defensive width keeps the loop terminating cleanly on any
         // future widening of MAX_MOD_SLOTS).
-        for (uint64_t bm = 1; bm < max_bitmask64; ++bm)
+        for (uint64_t bm = nextSubsetWithin(1, max_variable_mods_per_peptide_, max_bitmask64); bm < max_bitmask64;
+             bm = nextSubsetWithin(bm + 1, max_variable_mods_per_peptide_, max_bitmask64))
         {
-          if (static_cast<size_t>(std::popcount(bm)) > max_variable_mods_per_peptide_) continue;
-
           // Position-conflict check. Use 1ULL for the shift so n_slots up to
           // 63 remain well-defined after the bm → uint64_t widening above.
           bool conflict = false;
